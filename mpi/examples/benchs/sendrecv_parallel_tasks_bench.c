@@ -34,7 +34,6 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 #include "bench_helper.h"
-#include "abstract_sendrecv_bench.h"
 
 #define NB_WARMUP_PINGPONGS 10
 

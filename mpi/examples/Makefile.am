@@ -466,7 +466,6 @@ benchs_sendrecv_bench_SOURCES += benchs/abstract_sendrecv_bench.c
 
 benchs_sendrecv_parallel_tasks_bench_SOURCES = benchs/sendrecv_parallel_tasks_bench.c
 benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/bench_helper.c
-benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/abstract_sendrecv_bench.c
 
 benchs_burst_SOURCES = benchs/burst.c
 benchs_burst_SOURCES += benchs/burst_helper.c
