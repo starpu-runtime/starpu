@@ -888,7 +888,7 @@ static void load_bus_affinity_file_content(void)
 	_STARPU_DEBUG("loading affinities from %s\n", path);
 
 	f = fopen(path, "r");
-	STARPU_ASSERT(f);
+	STARPU_ASSERT_MSG(f, "Error when reading from file '%s'", path);
 
 	locked = _starpu_frdlock(f) == 0;
 
@@ -903,7 +903,7 @@ static void load_bus_affinity_file_content(void)
 
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%u\t", &dummy);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 
 		STARPU_ASSERT(dummy == gpu);
 
@@ -911,11 +911,11 @@ static void load_bus_affinity_file_content(void)
 		for (numa = 0; numa < nnumas; numa++)
 		{
 			ret = fscanf(f, "%u\t", &cuda_affinity_matrix[gpu][numa]);
-			STARPU_ASSERT(ret == 1);
+			STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		}
 
 		ret = fscanf(f, "\n");
-		STARPU_ASSERT(ret == 0);
+		STARPU_ASSERT_MSG(ret == 0, "Error when reading from file '%s'", path);
 	}
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
@@ -927,7 +927,7 @@ static void load_bus_affinity_file_content(void)
 
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%u\t", &dummy);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 
 		STARPU_ASSERT(dummy == gpu);
 
@@ -935,11 +935,11 @@ static void load_bus_affinity_file_content(void)
 		for (numa = 0; numa < nnumas; numa++)
 		{
 			ret = fscanf(f, "%u\t", &opencl_affinity_matrix[gpu][numa]);
-			STARPU_ASSERT(ret == 1);
+			STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		}
 
 		ret = fscanf(f, "\n");
-		STARPU_ASSERT(ret == 0);
+		STARPU_ASSERT_MSG(ret == 0, "Error when reading from file '%s'", path);
 	}
 #endif /* !STARPU_USE_OPENCL */
 	if (locked)
@@ -1059,12 +1059,12 @@ static int check_bus_affinity_file(void)
 	_STARPU_DEBUG("loading affinities from %s\n", path);
 
 	f = fopen(path, "r");
-	STARPU_ASSERT(f);
+	STARPU_ASSERT_MSG(f, "Error when reading from file '%s'", path);
 
 	locked = _starpu_frdlock(f) == 0;
 
 	ret = fscanf(f, "# GPU\t");
-	STARPU_ASSERT(ret == 0);
+	STARPU_ASSERT_MSG(ret == 0, "Error when reading from file '%s'", path);
 
 	ret = fscanf(f, "NUMA%u\t", &dummy);
 
@@ -1677,7 +1677,7 @@ static void write_bus_bandwidth_file_content(void)
 	_STARPU_DEBUG("writing bandwidth to %s\n", path);
 
 	f = fopen(path, "w+");
-	STARPU_ASSERT(f);
+	STARPU_ASSERT_MSG(f, "Error when opening file (writing) '%s'", path);
 
 	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
@@ -2045,24 +2045,24 @@ static void check_bus_config_file(void)
 
 		// Loading configuration from file
 		f = fopen(path, "r");
-		STARPU_ASSERT(f);
+		STARPU_ASSERT_MSG(f, "Error when reading from file '%s'", path);
 		locked = _starpu_frdlock(f) == 0;
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_cpus);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_numa);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_cuda);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_opencl);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_mic);
@@ -2117,7 +2117,7 @@ static void write_bus_config_file_content(void)
 	_STARPU_DEBUG("writing config to %s\n", path);
 
 	f = fopen(path, "w+");
-	STARPU_ASSERT(f);
+	STARPU_ASSERT_MSG(f, "Error when opening file (writing) '%s'", path);
 	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
