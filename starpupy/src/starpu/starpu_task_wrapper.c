@@ -51,14 +51,13 @@ void codelet_func(void *buffers[], void *cl_arg){
     }
     
     /*call the python function*/
-    PyObject *pRetVal = PyObject_CallObject(cst->f, PyList_AsTuple(cst->argList));
+    PyObject *pRetVal = PyObject_CallObject(cst->f, cst->argList);
     cst->rv=pRetVal;
 
     Py_DECREF(cst->f);
-    for(int i = 0; i < PyList_Size(cst->argList); i++){
-        Py_DECREF(PyList_GetItem(cst->argList, i));
+    for(int i = 0; i < PyTuple_Size(cst->argList); i++){
+        Py_DECREF(PyTuple_GetItem(cst->argList, i));
     }
-    Py_DECREF(cst->argList);
 
     /*restore previous GIL state*/
     PyGILState_Release(state);
@@ -106,11 +105,14 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
     /*the args of function*/
     PyObject* pArgs;
 
-	if (!PyArg_ParseTuple(args, "OO", &func_py, &pArgs))
-		return NULL;
+    /*first argument in args is always the function*/
+    func_py = PyTuple_GetItem(args, 0); 
 
-	/*allocate a task structure and initialize it with default values*/
+	  /*allocate a task structure and initialize it with default values*/
     struct starpu_task *task=starpu_task_create();
+
+    // int PyObject_SetAttrString(fut, starpu_task, int(task))
+    
     /*allocate a codelet structure*/
     struct starpu_codelet *func_cl=(struct starpu_codelet*)malloc(sizeof(struct starpu_codelet));
     /*initialize func_cl with default values*/
@@ -126,16 +128,17 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
     Py_INCREF(fut);
     Py_INCREF(loop);
 
-    /*allocate a new list of length*/
-    cst->argList = PyList_New (PyList_Size(pArgs));
-
-    /*pass pArgs in argList*/
-    for(int i = 0; i < PyList_Size(pArgs); i++){
-        PyList_SetItem(cst->argList, i, pArgs);
-        Py_INCREF(PyList_GetItem(cst->argList, i));
+    /*pass args in argList*/
+    if (PyTuple_Size(args)==1)
+      cst->argList = PyTuple_New(0);
+    else{
+      cst->argList = PyTuple_New(PyTuple_Size(args)-1);
+      for (int i=0; i < PyTuple_Size(args)-1; i++){
+        PyObject* tmp=PyTuple_GetItem(args, i+1);
+        PyTuple_SetItem(cst->argList, i, tmp);
+        Py_INCREF(PyTuple_GetItem(cst->argList, i));
+     }
     }
-    cst->argList = pArgs;
-    Py_INCREF(pArgs);
 
     task->cl=func_cl;
     task->cl_arg=cst;

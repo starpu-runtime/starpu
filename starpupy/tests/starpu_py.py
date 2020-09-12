@@ -23,24 +23,12 @@ def hello():
 	print ("Example 1:")
 	print ("Hello, world!")
 
-#submit function "hello"
-async def hello_wait():
-    fut = starpu.task_submit(hello,[])
-    await fut
-asyncio.run(hello_wait())
-
 #############################################################################
 
 #function no input no output
 def func1():
 	print ("Example 2:")
 	print ("This is a function no input no output")
-
-#submit function "func1"
-async def func1_wait():
-    fut1 = starpu.task_submit(func1,[])
-    await fut1
-asyncio.run(func1_wait())
 
 ##############################################################################
 
@@ -51,9 +39,6 @@ def func1_deco():
 	print ("Example 3:")
 	print ("This is a function no input no output wrapped by the decorator function")
 
-#apply starpu.delayed(func1_deco())
-func1_deco()
-
 ##############################################################################
 
 #function no input return a value
@@ -61,27 +46,12 @@ def func2():
 	print ("Example 4:")
 	return 12
 
-#submit function "func2"
-async def func2_wait():
-    fut2 = starpu.task_submit(func2, [])
-    res2 = await fut2
-    #print the result of function
-    print("This is a function no input and the return value is", res2)
-asyncio.run(func2_wait())
-
 ###############################################################################
  
 #function has 2 int inputs and 1 int output
 def multi(a,b):
 	print ("Example 5:")
 	return a*b
-
-#submit function "multi"
-async def multi_wait():
-	fut3 = starpu.task_submit(multi, [2, 3])
-	res3=await fut3
-	print("The result of function multi is :", res3)
-asyncio.run(multi_wait())
 #print(multi(2, 3))
 
 ###############################################################################
@@ -90,13 +60,6 @@ asyncio.run(multi_wait())
 def add(a,b,c,d):
 	print ("Example 6:")
 	return a+b+c+d
-
-#submit function "add"
-async def add_wait():
-	fut4 = starpu.task_submit(add, [1.2, 2.5, 3.6, 4.9])
-	res4=await fut4
-	print("The result of function add is :", res4)
-asyncio.run(add_wait())
 #print(add(1.2, 2.5, 3.6, 4.9))
 
 ###############################################################################
@@ -105,13 +68,6 @@ asyncio.run(add_wait())
 def sub(a,b,c):
 	print ("Example 7:")
 	return a-b-c, a-b
-
-#submit function "sub"
-async def sub_wait():
-	fut5 = starpu.task_submit(sub, [6, 2, 5.9])
-	res5 = await fut5
-	print("The result of function sub is:", res5)
-asyncio.run(sub_wait())
 #print(sub(6, 2, 5.9))
 
 ###############################################################################
@@ -121,12 +77,49 @@ asyncio.run(sub_wait())
 def add_deco(a,b,c):
 	#time.sleep(1)
 	print ("Example 8:")
-	print ("This is a function with input wrapped by the decorator function:")
-	print ("The result of function is:", a, "+", b, "+", c, "=", a+b+c)
-
-#apply starpu.delayed(add_deco)
-add_deco(1,2,3)
+	print ("This is a function with input and output wrapped by the decorator function:")
+	return a+b+c
 
 ###############################################################################
 
-starpu.task_wait_for_all()
+async def main():
+	#submit function "hello"
+    fut = starpu.task_submit(hello)
+    await fut
+
+    #submit function "func1"
+    fut1 = starpu.task_submit(func1)
+    await fut1
+
+    #apply starpu.delayed(func1_deco())
+    await func1_deco()
+
+	#submit function "func2"
+    fut2 = starpu.task_submit(func2)
+    res2 = await fut2
+	#print the result of function
+    print("This is a function no input and the return value is", res2)
+
+    #submit function "multi"
+    fut3 = starpu.task_submit(multi, 2, 3)
+    res3 = await fut3
+    print("The result of function multi is :", res3)
+
+	#submit function "add"
+    fut4 = starpu.task_submit(add, 1.2, 2.5, 3.6, 4.9)
+    res4 = await fut4
+    print("The result of function add is :", res4)
+
+	#submit function "sub"
+    fut5 = starpu.task_submit(sub, 6, 2, 5.9)
+    res5 = await fut5
+    print("The result of function sub is:", res5)
+
+	#apply starpu.delayed(add_deco)
+    res6 = await add_deco(1,2,3)
+    print("The result of function is", res6)
+
+asyncio.run(main())
+
+
+#starpu.task_wait_for_all()
