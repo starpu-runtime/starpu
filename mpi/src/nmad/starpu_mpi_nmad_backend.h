@@ -40,7 +40,7 @@ struct _starpu_mpi_req_backend
 	piom_cond_t req_cond;
 	nm_sr_request_t size_req;
 
-	// When datatype is unknown:
+	/** When datatype is unknown */
 	struct nm_data_s unknown_datatype_body;
 	struct nm_data_s unknown_datatype_data;
 	struct nm_data_s unknown_datatype_size;

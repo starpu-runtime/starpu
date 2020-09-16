@@ -25,7 +25,7 @@
 #ifdef STARPU_MEMORY_STATS
 struct _starpu_memory_stats
 {
-	/* Handle access stats per node */
+	/** Handle access stats per node */
 	unsigned direct_access[STARPU_MAXNODES];
 	unsigned loaded_shared[STARPU_MAXNODES];
 	unsigned loaded_owner[STARPU_MAXNODES];

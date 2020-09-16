@@ -28,8 +28,10 @@ MULTILIST_CREATE_TYPE(_starpu_graph_node, dropped)
 
 struct _starpu_graph_node
 {
-	starpu_pthread_mutex_t mutex;	/* protects access to the job */
-	struct _starpu_job *job;	/* pointer to the job, if it is still alive, NULL otherwise */
+	/** protects access to the job */
+	starpu_pthread_mutex_t mutex;
+	/** pointer to the job, if it is still alive, NULL otherwise */
+	struct _starpu_job *job;
 
 	/**
 	 * Fields for graph analysis for scheduling heuristics
@@ -44,22 +46,35 @@ struct _starpu_graph_node
 	struct _starpu_graph_node_multilist_dropped dropped;
 
 	/** set of incoming dependencies */
-	struct _starpu_graph_node **incoming;	/* May contain NULLs for terminated jobs */
-	unsigned *incoming_slot;	/* Index within corresponding outgoing array */
-	unsigned n_incoming;		/* Number of slots used */
-	unsigned alloc_incoming;	/* Size of incoming */
+	/** May contain NULLs for terminated jobs */
+	struct _starpu_graph_node **incoming;
+	/** Index within corresponding outgoing array */
+	unsigned *incoming_slot;
+	/** Number of slots used */
+	unsigned n_incoming;
+	/** Size of incoming */
+	unsigned alloc_incoming;
 	/** set of outgoing dependencies */
 	struct _starpu_graph_node **outgoing;
-	unsigned *outgoing_slot;	/* Index within corresponding incoming array */
-	unsigned n_outgoing;		/* Number of slots used */
-	unsigned alloc_outgoing;	/* Size of outgoing */
 
-	unsigned depth;			/* Rank from bottom, in number of jobs */
-					/* Only available if _starpu_graph_compute_depths was called */
-	unsigned descendants;		/* Number of children, grand-children, etc. */
-					/* Only available if _starpu_graph_compute_descendants was called */
+	/** Index within corresponding incoming array */
+	unsigned *outgoing_slot;
+	/** Number of slots used */
+	unsigned n_outgoing;
+	/** Size of outgoing */
+	unsigned alloc_outgoing;
 
-	int graph_n;			/* Variable available for graph flow */
+	/** Rank from bottom, in number of jobs
+	 * Only available if _starpu_graph_compute_depths was called
+	 */
+	unsigned depth;
+	/** Number of children, grand-children, etc.
+	 * Only available if _starpu_graph_compute_descendants was called
+	 */
+	unsigned descendants;
+
+	/** Variable available for graph flow */
+	int graph_n;
 };
 
 MULTILIST_CREATE_INLINES(struct _starpu_graph_node, _starpu_graph_node, all)

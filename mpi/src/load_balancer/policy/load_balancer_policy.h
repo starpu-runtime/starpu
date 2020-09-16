@@ -26,7 +26,7 @@ extern "C"
 {
 #endif
 
-/* A load balancer consists in a collection of operations on a data
+/** A load balancer consists in a collection of operations on a data
  * representing the load of the application (in terms of computation, memory,
  * whatever). StarPU allows several entry points for the user. The load
  * balancer allows the user to give its load balancing methods to be used on
@@ -38,7 +38,7 @@ struct load_balancer_policy
 	void (*submitted_task_entry_point)();
 	void (*finished_task_entry_point)();
 
-	/* Name of the load balancing policy. The selection of the load balancer is
+	/** Name of the load balancing policy. The selection of the load balancer is
 	 * performed through the use of the STARPU_MPI_LB=name environment
 	 * variable.
 	 */

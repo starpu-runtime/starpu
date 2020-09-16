@@ -23,7 +23,7 @@ struct _starpu_mct_data
 	double beta;
 	double _gamma;
 	double idle_power;
-	starpu_pthread_mutex_t scheduling_mutex; 
+	starpu_pthread_mutex_t scheduling_mutex;
 };
 
 struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_component_mct_data *params);

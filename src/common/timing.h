@@ -19,11 +19,6 @@
 
 /** @file */
 
-/*
- * _starpu_timing_init must be called prior to using any of these timing
- * functions.
- */
-
 #include <stdint.h>
 #include <common/config.h>
 #ifdef HAVE_UNISTD_H
@@ -32,6 +27,10 @@
 #include <starpu.h>
 #include <starpu_util.h>
 
+/**
+ * _starpu_timing_init must be called prior to using any of these timing
+ * functions.
+ */
 void _starpu_timing_init(void);
 void _starpu_clock_gettime(struct timespec *ts);
 

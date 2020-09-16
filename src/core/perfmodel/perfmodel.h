@@ -50,8 +50,10 @@ struct _starpu_perfmodel_state
 	starpu_pthread_rwlock_t model_rwlock;
 	int *nimpls;
 	int *nimpls_set;
-	int ncombs;  /* The number of combinations currently used by the model */
-	int ncombs_set; /* The number of combinations allocated in the array nimpls and ncombs */
+	/** The number of combinations currently used by the model */
+	int ncombs;
+	/** The number of combinations allocated in the array nimpls and ncombs */
+	int ncombs_set;
 	int *combs;
 };
 
