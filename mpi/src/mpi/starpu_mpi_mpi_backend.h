@@ -20,6 +20,8 @@
 #include <common/config.h>
 #include <common/uthash.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {

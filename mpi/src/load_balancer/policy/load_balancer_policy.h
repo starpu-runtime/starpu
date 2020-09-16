@@ -19,6 +19,8 @@
 
 #include <starpu_mpi_lb.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {

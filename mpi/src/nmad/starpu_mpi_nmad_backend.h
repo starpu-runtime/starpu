@@ -19,6 +19,8 @@
 
 #include <common/config.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {

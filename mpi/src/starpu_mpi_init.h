@@ -20,6 +20,8 @@
 #include <starpu.h>
 #include <starpu_mpi.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {
