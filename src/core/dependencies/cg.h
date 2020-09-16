@@ -60,7 +60,8 @@ struct _starpu_cg_list
 	/** List of successors */
 	unsigned nsuccs; /* how many successors ? */
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
-	unsigned succ_list_size; /* How many allocated items in succ */
+	/** How many allocated items in succ */
+	unsigned succ_list_size;
 	struct _starpu_cg **succ;
 #else
 	struct _starpu_cg *succ[STARPU_NMAXDEPS];
@@ -77,27 +78,31 @@ enum _starpu_cg_type
 /** Completion Group */
 struct _starpu_cg
 {
-	unsigned ntags; /* number of tags depended on */
-	unsigned remaining; /* number of remaining tags */
+	/** number of tags depended on */
+	unsigned ntags;
+	/** number of remaining tags */
+	unsigned remaining;
 
 #ifdef STARPU_DEBUG
 	unsigned ndeps;
-	void **deps; /* array of predecessors, size ndeps */
-	char *done;  /* which ones have notified, size ndeps */
+	/** array of predecessors, size ndeps */
+	void **deps;
+	/** which ones have notified, size ndeps */
+	char *done;
 #endif
 
 	enum _starpu_cg_type cg_type;
 
 	union
 	{
-		/* STARPU_CG_TAG */
+		/** STARPU_CG_TAG */
 		struct _starpu_tag *tag;
 
-		/* STARPU_CG_TASK */
+		/** STARPU_CG_TASK */
 		struct _starpu_job *job;
 
-		/* STARPU_CG_APPS */
-		/* in case this completion group is related to an application,
+		/** STARPU_CG_APPS
+		 * in case this completion group is related to an application,
 		 * we have to explicitely wake the waiting thread instead of
 		 * reschedule the corresponding task */
 		struct

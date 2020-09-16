@@ -18,6 +18,8 @@
 #ifndef __LIST_H__
 #define __LIST_H__
 
+/** @file */
+
 #include <starpu_util.h>
 
 /** @remarks list how-to

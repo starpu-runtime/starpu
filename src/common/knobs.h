@@ -96,7 +96,7 @@ __STARPU_PERF_COUNTER_UPDATE_64BIT(min,<=,double,double);
 #undef __STARPU_PERF_COUNTER_UPDATE_32BIT
 #undef __STARPU_PERF_COUNTER_UPDATE_64BIT
 
-/* Floating point atomic accumulate */
+/** Floating point atomic accumulate */
 static inline void _starpu_perf_counter_update_acc_float(float *ptr, float acc_value)
 {
 	STARPU_ASSERT(sizeof(float) == sizeof(uint32_t));
@@ -339,14 +339,12 @@ static inline int _starpu_perf_knob_id_build(const enum starpu_perf_knob_scope s
 	return (index << _STARPU_PERF_KNOBS_ID_SCOPE_BITS) | scope;
 }
 
-
 void _starpu_perf_knob_init(void);
 void _starpu_perf_knob_exit(void);
 
-struct starpu_perf_knob_group *_starpu_perf_knob_group_register(
-	enum starpu_perf_knob_scope scope,
-	void (*set_func)(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value),
-	void (*get_func)(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value));
+struct starpu_perf_knob_group *_starpu_perf_knob_group_register(enum starpu_perf_knob_scope scope,
+								void (*set_func)(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value),
+								void (*get_func)(const struct starpu_perf_knob * const knob, void *context, struct starpu_perf_knob_value * const value));
 void _starpu_perf_knob_group_unregister(struct starpu_perf_knob_group *group);
 
 int _starpu_perf_knob_register(struct starpu_perf_knob_group *group, const char *name, enum starpu_perf_knob_type type, const char *help);

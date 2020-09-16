@@ -17,6 +17,8 @@
 #ifndef __STARPU_MPI_TASK_INSERT_H__
 #define __STARPU_MPI_TASK_INSERT_H__
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {

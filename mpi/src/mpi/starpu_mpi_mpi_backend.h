@@ -20,6 +20,8 @@
 #include <common/config.h>
 #include <common/uthash.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -54,7 +56,7 @@ struct _starpu_mpi_req_backend
 	starpu_pthread_cond_t req_cond;
 	starpu_pthread_mutex_t posted_mutex;
 	starpu_pthread_cond_t posted_cond;
-	/* In the case of a Wait/Test request, we are going to post a request
+	/** In the case of a Wait/Test request, we are going to post a request
 	 * to test the completion of another request */
 	struct _starpu_mpi_req *other_request;
 

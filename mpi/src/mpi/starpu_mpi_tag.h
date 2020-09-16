@@ -21,6 +21,8 @@
 #include <stdlib.h>
 #include <mpi.h>
 
+/** @file */
+
 #ifdef STARPU_USE_MPI_MPI
 
 #ifdef __cplusplus
