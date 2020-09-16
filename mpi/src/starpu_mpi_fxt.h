@@ -22,6 +22,8 @@
 #include <common/config.h>
 #include <common/fxt.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {

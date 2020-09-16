@@ -16,6 +16,8 @@
 
 #include <starpu.h>
 
+/** @file */
+
 #ifndef __LOAD_DATA_INTERFACE_H
 #define __LOAD_DATA_INTERFACE_H
 

@@ -17,7 +17,10 @@
 #ifndef __STARPURM_PRIVATE_H
 #define __STARPURM_PRIVATE_H
 
-enum e_state {
+/** @file */
+
+enum e_state
+{
 	state_uninitialized = 0,
 	state_init
 };

@@ -27,6 +27,8 @@
 #include <common/starpu_spinlock.h>
 #include <core/simgrid.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {

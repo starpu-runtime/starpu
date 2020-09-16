@@ -16,6 +16,8 @@
 
 #include <starpu.h>
 
+/** @file */
+
 #ifndef __DATA_MOVEMENTS_INTERFACE_H
 #define __DATA_MOVEMENTS_INTERFACE_H
 
