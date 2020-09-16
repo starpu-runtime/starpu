@@ -35,7 +35,8 @@
 #define MAX_PENDING_REQUESTS_PER_NODE 20
 #define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 10
 #define MAX_PENDING_IDLE_REQUESTS_PER_NODE 1
-#define MAX_PUSH_TIME 1000 /* Maximum time in us that we can afford pushing requests before going back to the driver loop, e.g. for checking GPU task termination */
+/** Maximum time in us that we can afford pushing requests before going back to the driver loop, e.g. for checking GPU task termination */
+#define MAX_PUSH_TIME 1000
 
 struct _starpu_data_replicate;
 

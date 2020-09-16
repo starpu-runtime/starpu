@@ -21,26 +21,26 @@
 #ifndef __LOAD_DATA_INTERFACE_H
 #define __LOAD_DATA_INTERFACE_H
 
-/* interface for load_data */
+/** interface for load_data */
 struct load_data_interface
 {
-	/* Starting time of the execution */
+	/** Starting time of the execution */
 	double start;
-	/* Elapsed time until the start time and the time when event "launch a load
+	/** Elapsed time until the start time and the time when event "launch a load
 	 * balancing phase" is triggered */
 	double elapsed_time;
-	/* Current submission phase, i.e how many balanced steps have already
+	/** Current submission phase, i.e how many balanced steps have already
 	 * happened so far. */
 	int phase;
-	/* Number of currently submitted tasks */
+	/** Number of currently submitted tasks */
 	int nsubmitted_tasks;
-	/* Number of currently finished tasks */
+	/** Number of currently finished tasks */
 	int nfinished_tasks;
-	/* Task threshold to sleep the submission thread */
+	/** Task threshold to sleep the submission thread */
 	int sleep_task_threshold;
-	/* Task threshold to wake-up the submission thread */
+	/** Task threshold to wake-up the submission thread */
 	int wakeup_task_threshold;
-	/* Ratio of submitted tasks to wait for completion before waking up the
+	/** Ratio of submitted tasks to wait for completion before waking up the
 	 * submission thread */
 	double wakeup_ratio;
 };

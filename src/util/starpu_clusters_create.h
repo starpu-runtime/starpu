@@ -79,7 +79,7 @@ LIST_TYPE(_starpu_cluster,
 )
 
 
-/* Machine discovery and cluster creation main funcitons */
+/** Machine discovery and cluster creation main funcitons */
 int _starpu_cluster_machine(hwloc_obj_type_t cluster_level,
 			     struct starpu_cluster_machine* machine);
 int _starpu_cluster_topology(hwloc_obj_type_t cluster_level,
@@ -88,13 +88,13 @@ void _starpu_cluster_group(hwloc_obj_type_t cluster_level,
 			   struct starpu_cluster_machine* machine);
 void _starpu_cluster(struct _starpu_cluster_group* group);
 
-/* Parameter functions */
+/** Parameter functions */
 void _starpu_cluster_init_parameters(struct _starpu_cluster_parameters* globals);
 void _starpu_cluster_copy_parameters(struct _starpu_cluster_parameters* src,
 				     struct _starpu_cluster_parameters* dst);
 int _starpu_cluster_analyze_parameters(struct _starpu_cluster_parameters* params, int npus);
 
-/* Cluster helper functions */
+/** Cluster helper functions */
 void _starpu_cluster_init(struct _starpu_cluster* cluster, struct _starpu_cluster_group* father);
 void _starpu_cluster_create(struct _starpu_cluster* cluster);
 
@@ -102,14 +102,14 @@ int _starpu_cluster_bind(struct _starpu_cluster* cluster);
 int _starpu_cluster_remove(struct _starpu_cluster_list* cluster_list,
 			   struct _starpu_cluster* cluster);
 
-/* Cluster group helper function */
+/** Cluster group helper function */
 void _starpu_cluster_group_init(struct _starpu_cluster_group* group,
 				struct starpu_cluster_machine* father);
 void _starpu_cluster_group_create(struct _starpu_cluster_group* group);
 int _starpu_cluster_group_remove(struct _starpu_cluster_group_list* group_list,
 				 struct _starpu_cluster_group* group);
 
-/* Binding helpers */
+/** Binding helpers */
 void _starpu_cluster_noop(void* buffers[], void* cl_arg)
 {
 	(void) buffers;

@@ -195,8 +195,7 @@ LIST_TYPE(_starpu_worker,
 	hwloc_obj_t hwloc_obj;
 #endif
 
-	/* Keep this last, to make sure to separate worker data in separate
-	  cache lines. */
+	/** Keep this last, to make sure to separate worker data in separate cache lines. */
 	char padding[STARPU_CACHELINE_SIZE];
 );
 
@@ -219,7 +218,7 @@ struct _starpu_combined_worker
 	hwloc_bitmap_t hwloc_cpu_set;
 #endif
 
-	/* Keep this last, to make sure to separate worker data in separate
+	/** Keep this last, to make sure to separate worker data in separate
 	  cache lines. */
 	char padding[STARPU_CACHELINE_SIZE];
 };
@@ -386,7 +385,7 @@ struct _starpu_machine_config
 	/** Memory node for MPI, if only one */
 	int mpi_nodeid;
 
-	/* Separate out previous variables from per-worker data. */
+	/** Separate out previous variables from per-worker data. */
 	char padding1[STARPU_CACHELINE_SIZE];
 
 	/** Basic workers : each of this worker is running its own driver and
@@ -399,7 +398,7 @@ struct _starpu_machine_config
 
 	starpu_pthread_mutex_t submitted_mutex;
 
-	/* Separate out previous mutex from the rest of the data. */
+	/** Separate out previous mutex from the rest of the data. */
 	char padding2[STARPU_CACHELINE_SIZE];
 
 	/** Translation table from bindid to worker IDs */

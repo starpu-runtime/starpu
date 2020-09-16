@@ -265,6 +265,7 @@ extern int _starpu_fxt_willstart;
 extern starpu_pthread_mutex_t _starpu_fxt_started_mutex;
 extern starpu_pthread_cond_t _starpu_fxt_started_cond;
 
+/** Wait until FXT is started (or not). Returns if FXT was started */
 static inline void _starpu_fxt_wait_initialisation()
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);

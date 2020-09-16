@@ -73,7 +73,7 @@ union _starpu_async_channel_event;
 int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event);
 int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event);
 void _starpu_simgrid_sync_gpus(void);
-/* Return the number of hosts prefixed by PREFIX */
+/** Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
 starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name);

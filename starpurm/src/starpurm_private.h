@@ -36,86 +36,86 @@ enum e_starpurm_unit_type
 
 struct s_starpurm
 {
-	/* Machine topology as detected by hwloc. */
+	/** Machine topology as detected by hwloc. */
 	hwloc_topology_t topology;
 
-	/* Current upper bound on the number of CPU cores selectable for computing with the runtime system. */
+	/** Current upper bound on the number of CPU cores selectable for computing with the runtime system. */
 	unsigned max_ncpus;
 
-	/* Number of currently selected CPU workers */
+	/** Number of currently selected CPU workers */
 	unsigned selected_ncpus;
 
-	/* Number of currently selected workers (CPU+devices) */
+	/** Number of currently selected workers (CPU+devices) */
 	unsigned selected_nworkers;
 
-	/* Initialization state of the RM instance. */
+	/** Initialization state of the RM instance. */
 	int state;
 
-	/* Boolean indicating the state of the dynamic resource sharing layer.
+	/** Boolean indicating the state of the dynamic resource sharing layer.
 	 *
 	 * !0 indicates that dynamic resource sharing is enabled.
 	 * 0 indicates that dynamic resource sharing is disabled.
 	 */
 	int dynamic_resource_sharing;
 
-	/* Id of the StarPU's sched_ctx used by the RM instance. */
+	/** Id of the StarPU's sched_ctx used by the RM instance. */
 	unsigned sched_ctx_id;
 
-	/* Number of unit types supported by this RM instance. */
+	/** Number of unit types supported by this RM instance. */
 	int unit_ntypes;
 
-	/* Number of unitss available for each type. */
+	/** Number of unitss available for each type. */
 	int *nunits_by_type;
 
-	/* Number of units. */
+	/** Number of units. */
 	int nunits;
 
-	/* Offset of unit numbering for each type. */
+	/** Offset of unit numbering for each type. */
 	int *unit_offsets_by_type;
 
-	/* Array of units. */
+	/** Array of units. */
 	struct s_starpurm_unit *units;
 
-	/* Cpuset of all the StarPU's workers (CPU+devices. */
+	/** Cpuset of all the StarPU's workers (CPU+devices. */
 	hwloc_cpuset_t global_cpuset;
 
-	/* Cpuset of all StarPU CPU workers. */
+	/** Cpuset of all StarPU CPU workers. */
 	hwloc_cpuset_t all_cpu_workers_cpuset;
 
-	/* Cpuset of all StarPU OpenCL workers. */
+	/** Cpuset of all StarPU OpenCL workers. */
 	hwloc_cpuset_t all_opencl_device_workers_cpuset;
 
-	/* Cpuset of all StarPU CUDA workers. */
+	/** Cpuset of all StarPU CUDA workers. */
 	hwloc_cpuset_t all_cuda_device_workers_cpuset;
 
-	/* Cpuset of all StarPU MIC workers. */
+	/** Cpuset of all StarPU MIC workers. */
 	hwloc_cpuset_t all_mic_device_workers_cpuset;
 
-	/* Cpuset of all StarPU device workers. */
+	/** Cpuset of all StarPU device workers. */
 	hwloc_cpuset_t all_device_workers_cpuset;
 
-	/* Cpuset of all selected workers (CPU+devices). */
+	/** Cpuset of all selected workers (CPU+devices). */
 	hwloc_cpuset_t selected_cpuset;
 
-	/* Cpuset mask of initially owned cpuset or full if not used. */
+	/** Cpuset mask of initially owned cpuset or full if not used. */
 	hwloc_cpuset_t initially_owned_cpuset_mask;
 
-	/* maximum value among worker ids */
+	/** maximum value among worker ids */
 	int max_worker_id;
 
-	/* worker id to unit id table */
+	/** worker id to unit id table */
 	int *worker_unit_ids;
 
-	/* Temporary contexts accounting. */
+	/** Temporary contexts accounting. */
 	unsigned int max_temporary_ctxs;
 	unsigned int avail_temporary_ctxs;
 	pthread_mutex_t temporary_ctxs_mutex;
 	pthread_cond_t temporary_ctxs_cond;
 
-	/* Global StarPU pause state */
+	/** Global StarPU pause state */
 	int starpu_in_pause;
 
-	/* Event list. */
+	/** Event list. */
 	pthread_t event_thread;
 	pthread_mutex_t event_list_mutex;
 	pthread_cond_t event_list_cond;
