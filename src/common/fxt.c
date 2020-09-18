@@ -300,10 +300,17 @@ void _starpu_fxt_dump_file(void)
 {
 	if (!_starpu_fxt_started)
 		return;
+
+	char hostname[128];
+	gethostname(hostname, 128);
+
+	int ret = fut_endup(_starpu_prof_file_user);
+	if (ret < 0)
+		_STARPU_MSG("Problem when writing FxT traces into file %s:%s\n", hostname, _starpu_prof_file_user);
 #ifdef STARPU_VERBOSE
-	_STARPU_MSG("Writing FxT traces into file %s\n", _starpu_prof_file_user);
+	else
+		_STARPU_MSG("Writing FxT traces into file %s:%s\n", hostname, _starpu_prof_file_user);
 #endif
-	fut_endup(_starpu_prof_file_user);
 }
 
 void _starpu_stop_fxt_profiling(void)
@@ -312,12 +319,7 @@ void _starpu_stop_fxt_profiling(void)
 		return;
 	if (!_starpu_written)
 	{
-#ifdef STARPU_VERBOSE
-	        char hostname[128];
-		gethostname(hostname, 128);
-		_STARPU_MSG("Writing FxT traces into file %s:%s\n", hostname, _starpu_prof_file_user);
-#endif
-		fut_endup(_starpu_prof_file_user);
+		_starpu_fxt_dump_file();
 
 		/* Should we generate a Paje trace directly ? */
 		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
