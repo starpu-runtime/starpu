@@ -39,7 +39,7 @@ unsigned long _starpu_job_cnt = 0;
 #include <sys/thr.h>       /* for thr_self() */
 #endif
 
-static char _STARPU_PROF_FILE_USER[128];
+static char _starpu_prof_file_user[128];
 int _starpu_fxt_started = 0;
 int _starpu_fxt_willstart = 1;
 starpu_pthread_mutex_t _starpu_fxt_started_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -111,10 +111,10 @@ static void _starpu_profile_set_tracefile(void)
 	if (!user)
 		user = "";
 
-	char suffix[128];
+	char suffix[127];
 	snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
 
-	snprintf(_STARPU_PROF_FILE_USER, sizeof(_STARPU_PROF_FILE_USER), "%s%s", fxt_prefix, suffix);
+	snprintf(_starpu_prof_file_user, sizeof(_starpu_prof_file_user), "%s/%s", fxt_prefix, suffix);
 }
 
 void starpu_profiling_set_id(int new_id)
@@ -124,7 +124,7 @@ void starpu_profiling_set_id(int new_id)
 	_starpu_profile_set_tracefile();
 
 #ifdef HAVE_FUT_SET_FILENAME
-	fut_set_filename(_STARPU_PROF_FILE_USER);
+	fut_set_filename(_starpu_prof_file_user);
 #endif
 }
 
@@ -184,7 +184,7 @@ void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
 	_starpu_profile_set_tracefile();
 
 #ifdef HAVE_FUT_SET_FILENAME
-	fut_set_filename(_STARPU_PROF_FILE_USER);
+	fut_set_filename(_starpu_prof_file_user);
 #endif
 #ifdef HAVE_ENABLE_FUT_FLUSH
 	// when the event buffer is full, fxt stops recording events.
@@ -292,9 +292,9 @@ void _starpu_fxt_dump_file(void)
 	if (!_starpu_fxt_started)
 		return;
 #ifdef STARPU_VERBOSE
-	_STARPU_MSG("Writing FxT traces into file %s\n", _STARPU_PROF_FILE_USER);
+	_STARPU_MSG("Writing FxT traces into file %s\n", _starpu_prof_file_user);
 #endif
-	fut_endup(_STARPU_PROF_FILE_USER);
+	fut_endup(_starpu_prof_file_user);
 }
 
 void _starpu_stop_fxt_profiling(void)
@@ -306,14 +306,14 @@ void _starpu_stop_fxt_profiling(void)
 #ifdef STARPU_VERBOSE
 	        char hostname[128];
 		gethostname(hostname, 128);
-		_STARPU_MSG("Writing FxT traces into file %s:%s\n", hostname, _STARPU_PROF_FILE_USER);
+		_STARPU_MSG("Writing FxT traces into file %s:%s\n", hostname, _starpu_prof_file_user);
 #endif
-		fut_endup(_STARPU_PROF_FILE_USER);
+		fut_endup(_starpu_prof_file_user);
 
 		/* Should we generate a Paje trace directly ? */
 		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
 		if (generate_trace == 1)
-			_starpu_generate_paje_trace(_STARPU_PROF_FILE_USER, "paje.trace");
+			_starpu_generate_paje_trace(_starpu_prof_file_user, "paje.trace");
 
 		int ret = fut_done();
 		if (ret < 0)
