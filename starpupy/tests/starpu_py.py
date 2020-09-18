@@ -82,6 +82,15 @@ def add_deco(a,b,c):
 
 ###############################################################################
 
+#using decorator wrap the function with input
+@starpu.delayed
+def sub_deco(x,a):
+	print ("Example 9:")
+	print ("This is a function with input and output wrapped by the decorator function:")
+	return x-a
+
+###############################################################################
+
 async def main():
 	#submit function "hello"
     fut = starpu.task_submit(hello)
@@ -116,8 +125,15 @@ async def main():
     print("The result of function sub is:", res5)
 
 	#apply starpu.delayed(add_deco)
-    res6 = await add_deco(1,2,3)
+    fut6 = add_deco(1,2,3)
+    res6 = await fut6
     print("The result of function is", res6)
+
+    #apply starpu.delayed(sub_deco)
+    fut7 = sub_deco(fut6, 1)
+    res7 = await fut7
+    print("The first argument of this function is the result of Example 8")
+    print("The result of function is", res7)
 
 asyncio.run(main())
 
