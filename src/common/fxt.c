@@ -112,7 +112,15 @@ static void _starpu_profile_set_tracefile(void)
 		user = "";
 
 	char suffix[127];
-	snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
+	char *fxt_suffix = starpu_getenv("STARPU_FXT_SUFFIX");
+	if (!fxt_suffix)
+	{
+		snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
+	}
+	else
+	{
+		snprintf(suffix, sizeof(suffix), "%s", fxt_suffix);
+	}
 
 	snprintf(_starpu_prof_file_user, sizeof(_starpu_prof_file_user), "%s/%s", fxt_prefix, suffix);
 }

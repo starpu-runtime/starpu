@@ -50,6 +50,10 @@ Small changes:
 StarPU 1.3.5 (git revision xxx)
 ====================================================================
 
+Small features:
+  * New environment variable STARPU_FXT_SUFFIX to set the filename in
+    which to save the fxt trace
+
 Small changes:
   * Move MPI cache functions into the public API
   * Add STARPU_MPI_NOBIND environment variable.
