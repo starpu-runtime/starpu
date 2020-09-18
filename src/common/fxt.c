@@ -189,7 +189,6 @@ void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
 
 	_starpu_fxt_started = 1;
 	_starpu_written = 0;
-	_starpu_id = (int)getpid();
 	_starpu_profile_set_tracefile();
 
 #ifdef HAVE_FUT_SET_FILENAME
