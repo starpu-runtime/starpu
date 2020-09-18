@@ -4184,6 +4184,48 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->activity_path = "activity.data";
 }
 
+void _set_dir(char *dir, char **option)
+{
+	if (*option)
+	{
+		char *tmp = strdup(*option);
+		_STARPU_MALLOC(*option, 256);
+		snprintf(*option, 256, "%s/%s", dir, tmp);
+		free(tmp);
+	}
+}
+
+void starpu_fxt_options_set_dir(struct starpu_fxt_options *options)
+{
+	if (!options->dir)
+		return;
+
+	_starpu_mkpath_and_check(options->dir, S_IRWXU);
+	_set_dir(options->dir, &options->out_paje_path);
+	_set_dir(options->dir, &options->dag_path);
+	_set_dir(options->dir, &options->tasks_path);
+	_set_dir(options->dir, &options->data_path);
+	_set_dir(options->dir, &options->anim_path);
+	_set_dir(options->dir, &options->states_path);
+	_set_dir(options->dir, &options->distrib_time_path);
+	_set_dir(options->dir, &options->activity_path);
+}
+
+void starpu_fxt_options_shutdown(struct starpu_fxt_options *options)
+{
+	if (options->dir)
+	{
+		free(options->out_paje_path);
+		free(options->dag_path);
+		free(options->tasks_path);
+		free(options->data_path);
+		free(options->anim_path);
+		free(options->states_path);
+		free(options->distrib_time_path);
+		free(options->activity_path);
+	}
+}
+
 static
 void _starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
 {
