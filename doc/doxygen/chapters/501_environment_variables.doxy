@@ -890,14 +890,21 @@ Specify in which file the debugging output should be saved to.
 <dd>
 \anchor STARPU_FXT_PREFIX
 \addindex __env__STARPU_FXT_PREFIX
-Specify in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
+Specify in which directory to save the generated trace if FxT is enabled.
+</dd>
+
+<dt>STARPU_FXT_SUFFIX</dt>
+<dd>
+\anchor STARPU_FXT_SUFFIX
+\addindex __env__STARPU_FXT_SUFFIX
+Specify in which file to save the generated trace if FxT is enabled.
 </dd>
 
 <dt>STARPU_FXT_TRACE</dt>
 <dd>
 \anchor STARPU_FXT_TRACE
 \addindex __env__STARPU_FXT_TRACE
-Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY . The default is 1 (generate it)
+Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY (the directory and file name can be changed with \ref STARPU_FXT_PREFIX and \ref STARPU_FXT_SUFFIX). The default is 1 (generate it)
 </dd>
 
 <dt>STARPU_LIMIT_CUDA_devid_MEM</dt>
