@@ -3366,8 +3366,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_in, strerror(errno));
 	}
 
 	static fxt_t fut;
@@ -4194,6 +4193,8 @@ void _starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
 	if (options->distrib_time_path)
 	{
 		distrib_time = fopen(options->distrib_time_path, "w+");
+		if (distrib_time == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->distrib_time_path, strerror(errno));
 	}
 	else
 	{
@@ -4218,7 +4219,11 @@ static
 void _starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
 {
 	if (options->activity_path)
+	{
 		activity_file = fopen(options->activity_path, "w+");
+		if (activity_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->activity_path, strerror(errno));
+	}
 	else
 		activity_file = NULL;
 }
@@ -4229,6 +4234,9 @@ void _starpu_fxt_anim_file_init(struct starpu_fxt_options *options)
 	if (options->anim_path)
 	{
 		anim_file = fopen(options->anim_path, "w+");
+		if (anim_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->anim_path, strerror(errno));
+
 		_starpu_fxt_component_print_header(anim_file);
 	}
 	else
@@ -4239,7 +4247,11 @@ static
 void _starpu_fxt_tasks_file_init(struct starpu_fxt_options *options)
 {
 	if (options->tasks_path)
+	{
 		tasks_file = fopen(options->tasks_path, "w+");
+		if (tasks_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->tasks_path, strerror(errno));
+	}
 	else
 		tasks_file = NULL;
 }
@@ -4248,7 +4260,11 @@ static
 void _starpu_fxt_data_file_init(struct starpu_fxt_options *options)
 {
 	if (options->data_path)
+	{
 		data_file = fopen(options->data_path, "w+");
+		if (data_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->data_path, strerror(errno));
+	}
 	else
 		data_file = NULL;
 }
@@ -4271,7 +4287,11 @@ static
 void _starpu_fxt_trace_file_init(struct starpu_fxt_options *options)
 {
 	if (options->states_path)
+	{
 		trace_file = fopen(options->states_path, "w+");
+		if (trace_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->states_path, strerror(errno));
+	}
 	else
 		trace_file = NULL;
 
@@ -4374,8 +4394,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_in, strerror(errno));
 	}
 
 	static fxt_t fut;
@@ -4586,8 +4605,7 @@ static void write_task(struct parse_task pt)
 		kernel->file = fopen(codelet_name, "w+");
 		if(!kernel->file)
 		{
-			perror("open failed :");
-			exit(-1);
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", codelet_name, strerror(errno));
 		}
 		HASH_ADD_STR(kernels, name, kernel);
 		fprintf(codelet_list, "%s\n", codelet_name);
@@ -4602,8 +4620,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_in, strerror(errno));
 	}
 
 	static fxt_t fut;
@@ -4617,8 +4634,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	codelet_list = fopen("codelet_list", "w+");
 	if(!codelet_list)
 	{
-		perror("open failed :");
-		exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", "codelet_list", strerror(errno));
 	}
 
 	fxt_blockev_t block;

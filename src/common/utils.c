@@ -111,7 +111,7 @@ int _starpu_mkpath(const char *s, mode_t mode)
 	{
 		if (!S_ISDIR(sb.st_mode))
 		{
-			_STARPU_MSG("Error: %s is not a directory:\n", path);
+			_STARPU_MSG("Error: %s already exists and is not a directory:\n", path);
 			STARPU_ABORT();
 		}
 		/* It already exists and is a directory.  */
