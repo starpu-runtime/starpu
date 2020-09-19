@@ -3432,8 +3432,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_in, strerror(errno));
 	}
 
 	static fxt_t fut;
@@ -4266,6 +4265,56 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->sched_tasks_path = "sched_tasks.rec";
 }
 
+void _set_dir(char *dir, char **option)
+{
+	if (*option)
+	{
+		char *tmp = strdup(*option);
+		_STARPU_MALLOC(*option, 256);
+		snprintf(*option, 256, "%s/%s", dir, tmp);
+		free(tmp);
+	}
+}
+
+void starpu_fxt_options_set_dir(struct starpu_fxt_options *options)
+{
+	if (!options->dir)
+		return;
+
+	_starpu_mkpath_and_check(options->dir, S_IRWXU);
+	_set_dir(options->dir, &options->out_paje_path);
+	_set_dir(options->dir, &options->dag_path);
+	_set_dir(options->dir, &options->tasks_path);
+	_set_dir(options->dir, &options->comms_path);
+	_set_dir(options->dir, &options->number_events_path);
+	_set_dir(options->dir, &options->data_path);
+	_set_dir(options->dir, &options->papi_path);
+	_set_dir(options->dir, &options->anim_path);
+	_set_dir(options->dir, &options->states_path);
+	_set_dir(options->dir, &options->distrib_time_path);
+	_set_dir(options->dir, &options->activity_path);
+	_set_dir(options->dir, &options->sched_tasks_path);
+}
+
+void starpu_fxt_options_shutdown(struct starpu_fxt_options *options)
+{
+	if (options->dir)
+	{
+		free(options->out_paje_path);
+		free(options->dag_path);
+		free(options->tasks_path);
+		free(options->comms_path);
+		free(options->number_events_path);
+		free(options->data_path);
+		free(options->papi_path);
+		free(options->anim_path);
+		free(options->states_path);
+		free(options->distrib_time_path);
+		free(options->activity_path);
+		free(options->sched_tasks_path);
+	}
+}
+
 static
 void _starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
 {
@@ -4275,6 +4324,8 @@ void _starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
 	if (options->distrib_time_path)
 	{
 		distrib_time = fopen(options->distrib_time_path, "w+");
+		if (distrib_time == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->distrib_time_path, strerror(errno));
 	}
 	else
 	{
@@ -4299,7 +4350,11 @@ static
 void _starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
 {
 	if (options->activity_path)
+	{
 		activity_file = fopen(options->activity_path, "w+");
+		if (activity_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->activity_path, strerror(errno));
+	}
 	else
 		activity_file = NULL;
 }
@@ -4308,7 +4363,11 @@ static
 void _starpu_fxt_sched_tasks_file_init(struct starpu_fxt_options *options)
 {
 	if (options->sched_tasks_path)
+	{
 		sched_tasks_file = fopen(options->sched_tasks_path, "w+");
+		if (sched_tasks_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->sched_tasks_path, strerror(errno));
+	}
 	else
 		sched_tasks_file = NULL;
 }
@@ -4319,6 +4378,9 @@ void _starpu_fxt_anim_file_init(struct starpu_fxt_options *options)
 	if (options->anim_path)
 	{
 		anim_file = fopen(options->anim_path, "w+");
+		if (anim_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->anim_path, strerror(errno));
+
 		_starpu_fxt_component_print_header(anim_file);
 	}
 	else
@@ -4329,7 +4391,11 @@ static
 void _starpu_fxt_tasks_file_init(struct starpu_fxt_options *options)
 {
 	if (options->tasks_path)
+	{
 		tasks_file = fopen(options->tasks_path, "w+");
+		if (tasks_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->tasks_path, strerror(errno));
+	}
 	else
 		tasks_file = NULL;
 }
@@ -4338,7 +4404,11 @@ static
 void _starpu_fxt_data_file_init(struct starpu_fxt_options *options)
 {
 	if (options->data_path)
+	{
 		data_file = fopen(options->data_path, "w+");
+		if (data_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->data_path, strerror(errno));
+	}
 	else
 		data_file = NULL;
 }
@@ -4347,7 +4417,11 @@ static
 void _starpu_fxt_comms_file_init(struct starpu_fxt_options *options)
 {
 	if (options->comms_path)
+	{
 		comms_file = fopen(options->comms_path, "w+");
+		if (comms_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->comms_path, strerror(errno));
+	}
 	else
 		comms_file = NULL;
 }
@@ -4358,6 +4432,8 @@ void _starpu_fxt_number_events_file_init(struct starpu_fxt_options *options)
 	if (options->number_events_path)
 	{
 		number_events_file = fopen(options->number_events_path, "w+");
+		if (number_events_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->number_events_path, strerror(errno));
 
 		/* FUT_SETUP_CODE is the event with the maximal value */
 		number_events = calloc(FUT_SETUP_CODE+1, sizeof(uint64_t));
@@ -4371,7 +4447,11 @@ void _starpu_fxt_papi_file_init(struct starpu_fxt_options *options)
 {
 #ifdef STARPU_PAPI
 	if (options->papi_path)
+	{
 		papi_file = fopen(options->papi_path, "w+");
+		if (papi_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->papi_path, strerror(errno));
+	}
 	else
 		papi_file = NULL;
 #endif
@@ -4395,7 +4475,11 @@ static
 void _starpu_fxt_trace_file_init(struct starpu_fxt_options *options)
 {
 	if (options->states_path)
+	{
 		trace_file = fopen(options->states_path, "w+");
+		if (trace_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->states_path, strerror(errno));
+	}
 	else
 		trace_file = NULL;
 
@@ -4545,8 +4629,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_in, strerror(errno));
 	}
 
 	static fxt_t fut;
@@ -4765,8 +4848,7 @@ static void write_task(struct parse_task pt)
 		kernel->file = fopen(codelet_name, "w+");
 		if(!kernel->file)
 		{
-			perror("open failed :");
-			exit(-1);
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", codelet_name, strerror(errno));
 		}
 		HASH_ADD_STR(kernels, name, kernel);
 		fprintf(codelet_list, "%s\n", codelet_name);
@@ -4781,8 +4863,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_in, strerror(errno));
 	}
 
 	static fxt_t fut;
@@ -4796,8 +4877,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	codelet_list = fopen("codelet_list", "w+");
 	if(!codelet_list)
 	{
-		perror("open failed :");
-		exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", "codelet_list", strerror(errno));
 	}
 
 	fxt_blockev_t block;

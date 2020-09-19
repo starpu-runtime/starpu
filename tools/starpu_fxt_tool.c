@@ -77,6 +77,13 @@ static int parse_args(int argc, char **argv)
 			continue;
 		}
 
+		if (strcmp(argv[i], "-d") == 0)
+		{
+			options.dir = argv[++i];
+			reading_input_filenames = 0;
+			continue;
+		}
+
 		if (strcmp(argv[i], "-i") == 0)
 		{
 			if (options.ninputfiles >= STARPU_FXT_MAX_FILES)
@@ -193,6 +200,9 @@ static int parse_args(int argc, char **argv)
                 usage();
 		return 77;
 	}
+
+	starpu_fxt_options_set_dir(&options);
+
 	return 0;
 }
 
@@ -202,6 +212,8 @@ int main(int argc, char **argv)
 	if (ret) return ret;
 
 	starpu_fxt_generate_trace(&options);
+
+	starpu_fxt_options_shutdown(&options);
 
 	return 0;
 }

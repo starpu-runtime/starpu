@@ -84,9 +84,11 @@ Or you can simply point the <c>PKG_CONFIG_PATH</c> to
 When FxT is enabled, a trace is generated when StarPU is terminated by calling
 starpu_shutdown(). The trace is a binary file whose name has the form
 <c>prof_file_XXX_YYY</c> where <c>XXX</c> is the user name, and
-<c>YYY</c> is the MPI id of the process that used StarPU. One can change
+<c>YYY</c> is the MPI id of the process that used StarPU (or 0 when running a sequential program).
+One can change
 the name of the file by setting the environnement variable \ref
-STARPU_FXT_SUFFIX. This file is saved in the
+STARPU_FXT_SUFFIX, its contents will be used instead of <c>prof_file_XXX</c>.
+This file is saved in the
 <c>/tmp/</c> directory by default, or by the directory specified by
 the environment variable \ref STARPU_FXT_PREFIX.
 

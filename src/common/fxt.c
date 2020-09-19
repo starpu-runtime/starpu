@@ -119,7 +119,7 @@ static void _starpu_profile_set_tracefile(void)
 	}
 	else
 	{
-		snprintf(suffix, sizeof(suffix), "%s", fxt_suffix);
+		snprintf(suffix, sizeof(suffix), "%s_%d", fxt_suffix, _starpu_id);
 	}
 
 	snprintf(_starpu_prof_file_user, sizeof(_starpu_prof_file_user), "%s/%s", fxt_prefix, suffix);
