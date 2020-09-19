@@ -204,9 +204,9 @@ double median_time(unsigned nb_test, unsigned xdim, unsigned ydim, unsigned zdim
 {
 	unsigned i;
 
-	float * A = (float *) valloc(zdim*ydim*sizeof(float));
-	float * B = (float *) valloc(xdim*zdim*sizeof(float));
-	float * C = (float *) valloc(xdim*ydim*sizeof(float));
+	float * A = (float *) malloc(zdim*ydim*sizeof(float));
+	float * B = (float *) malloc(xdim*zdim*sizeof(float));
+	float * C = (float *) malloc(xdim*ydim*sizeof(float));
 
 	double exec_times[nb_test];
 
