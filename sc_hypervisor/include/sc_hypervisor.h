@@ -29,7 +29,7 @@ extern "C"
 #endif
 
 /* synchronise the hypervisor when several workers try to update its information */
-starpu_pthread_mutex_t act_hypervisor_mutex;
+extern starpu_pthread_mutex_t act_hypervisor_mutex;
 
 /* platform of resizing contexts */
 struct sc_hypervisor_policy

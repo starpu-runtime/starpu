@@ -110,7 +110,7 @@ struct sc_hypervisor_adjustment
 	int nworkers;
 };
 
-struct sc_hypervisor hypervisor;
+extern struct sc_hypervisor hypervisor;
 
 
 void _add_config(unsigned sched_ctx);
