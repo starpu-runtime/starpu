@@ -66,6 +66,7 @@ struct starpu_fxt_options
 	char *data_path;
 	char *anim_path;
 	char *states_path;
+	char *dir;
 
 	/**
 	   In case we are going to gather multiple traces (e.g in the case of
