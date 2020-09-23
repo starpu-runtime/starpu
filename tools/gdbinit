@@ -15,7 +15,8 @@
 #
 # To set a breakpoint when starting gdb with option "-ex run",
 # here what you need to do:
-#set breakpoint pending on
+set breakpoint pending on
+break _starpu_bubble_partition_data_if_needed
 #break starpu_mpi.c:419
 
 define starpu-print-job

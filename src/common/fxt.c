@@ -95,26 +95,17 @@ static void _starpu_profile_set_tracefile(void)
 
 	char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
 	if (!fxt_prefix)
-	     fxt_prefix = "/tmp/";
+		fxt_prefix = "/tmp";
 	else
-	{
-		// Check if the given folder really exists:
-		struct stat folder_stat;
-		if (stat(fxt_prefix, &folder_stat) < 0 || !S_ISDIR(folder_stat.st_mode))
-		{
-			_STARPU_MSG("%s is not a valid directory.\n", fxt_prefix);
-			_starpu_abort();
-		}
-	}
-
-	user = starpu_getenv("USER");
-	if (!user)
-		user = "";
+		_starpu_mkpath_and_check(fxt_prefix, S_IRWXU);
 
 	char suffix[127];
 	char *fxt_suffix = starpu_getenv("STARPU_FXT_SUFFIX");
 	if (!fxt_suffix)
 	{
+		user = starpu_getenv("USER");
+		if (!user)
+			user = "";
 		snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
 	}
 	else
