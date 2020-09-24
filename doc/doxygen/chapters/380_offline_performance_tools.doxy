@@ -108,8 +108,10 @@ $ starpu_fxt_tool -i /tmp/prof_file_something
 \endverbatim
 
 Or alternatively, setting the environment variable \ref STARPU_GENERATE_TRACE
-to <c>1</c> before application execution will make StarPU do it automatically at
-application shutdown.
+to <c>1</c> before application execution will make StarPU
+automatically generate all traces at application shutdown. Note that
+if the environment variable \ref STARPU_FXT_PREFIX is set, files will
+be generated in the given directory.
 
 One can also set the environment variable \ref
 STARPU_GENERATE_TRACE_OPTIONS to specify options, see

@@ -260,7 +260,7 @@ static void _starpu_generate_paje_trace_read_option(const char *option, struct s
 	}
 }
 
-static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_paje_filename)
+static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_paje_filename, char *dirname)
 {
 	/* We take default options */
 	struct starpu_fxt_options options;
@@ -282,6 +282,7 @@ static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_p
 	options.out_paje_path = output_paje_filename;
 	options.file_prefix = "";
 	options.file_rank = -1;
+	options.dir = dirname;
 
 	starpu_fxt_generate_trace(&options);
 }
@@ -314,7 +315,10 @@ void _starpu_stop_fxt_profiling(void)
 		/* Should we generate a Paje trace directly ? */
 		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
 		if (generate_trace == 1)
-			_starpu_generate_paje_trace(_starpu_prof_file_user, "paje.trace");
+		{
+			char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
+			_starpu_generate_paje_trace(_starpu_prof_file_user, "paje.trace", fxt_prefix);
+		}
 
 		int ret = fut_done();
 		if (ret < 0)
