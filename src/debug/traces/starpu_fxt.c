@@ -4263,8 +4263,10 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->dumped_codelets = NULL;
 	options->activity_path = "activity.data";
 	options->sched_tasks_path = "sched_tasks.rec";
+	options->dir = NULL;
 }
 
+static
 void _set_dir(char *dir, char **option)
 {
 	if (*option)
@@ -4276,7 +4278,8 @@ void _set_dir(char *dir, char **option)
 	}
 }
 
-void starpu_fxt_options_set_dir(struct starpu_fxt_options *options)
+static
+void _starpu_fxt_options_set_dir(struct starpu_fxt_options *options)
 {
 	if (!options->dir)
 		return;
@@ -4659,6 +4662,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 {
+	_starpu_fxt_options_set_dir(options);
 	_starpu_fxt_dag_init(options->dag_path);
 	_starpu_fxt_distrib_file_init(options);
 	_starpu_fxt_activity_file_init(options);

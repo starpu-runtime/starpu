@@ -32,7 +32,8 @@ static void usage()
 	fprintf(stderr, "   -i <input file[s]>  specify the input file[s]. Several files can be provided,\n");
 	fprintf(stderr, "                       or the option specified several times for MPI execution\n");
 	fprintf(stderr, "                       case\n");
-        fprintf(stderr, "   -o <output file>    specify the output file\n");
+        fprintf(stderr, "   -o <output file>    specify the paje output filename\n");
+	fprintf(stderr, "   -d <directory>      specify the directory in which to save files\n");
         fprintf(stderr, "   -c                  use a different colour for every type of task\n");
 	fprintf(stderr, "   -no-events          do not show events\n");
 	fprintf(stderr, "   -no-counter         do not show scheduler counters\n");
@@ -200,8 +201,6 @@ static int parse_args(int argc, char **argv)
                 usage();
 		return 77;
 	}
-
-	starpu_fxt_options_set_dir(&options);
 
 	return 0;
 }
