@@ -4734,6 +4734,9 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		}
 	}
 
+#ifdef HAVE_FXT_CLOSE
+	fxt_close(fut);
+#endif
 	if (close(fd_in))
 	{
 	        perror("close failed :");
