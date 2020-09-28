@@ -893,6 +893,22 @@ has been configured with the option \ref enable-verbose "--enable-verbose". Also
 disable the display of StarPU information and warning messages.
 </dd>
 
+<dt>STARPU_MPI_DEBUG_LEVEL_MIN</dt>
+<dd>
+\anchor STARPU_MPI_DEBUG_LEVEL_MIN
+\addindex __env__STARPU_MPI_DEBUG_LEVEL_MIN
+Set the minimum level of debug when StarPU
+has been configured with the option \ref enable-mpi-verbose "--enable-mpi-verbose".
+</dd>
+
+<dt>STARPU_MPI_DEBUG_LEVEL_MAX</dt>
+<dd>
+\anchor STARPU_MPI_DEBUG_LEVEL_MAX
+\addindex __env__STARPU_MPI_DEBUG_LEVEL_MAX
+Set the maximum level of debug when StarPU
+has been configured with the option \ref enable-mpi-verbose "--enable-mpi-verbose".
+</dd>
+
 <dt>STARPU_LOGFILENAME</dt>
 <dd>
 \anchor STARPU_LOGFILENAME

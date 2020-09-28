@@ -66,4 +66,6 @@ void _starpu_mpi_env_init(void)
 	_starpu_mpi_thread_cpuid = starpu_get_env_number_default("STARPU_MPI_THREAD_CPUID", -1);
 	_starpu_mpi_use_prio = starpu_get_env_number_default("STARPU_MPI_PRIORITIES", 1);
 	_starpu_mpi_use_coop_sends = starpu_get_env_number_default("STARPU_MPI_COOP_SENDS", 1);
+	_starpu_debug_level_min = starpu_get_env_number_default("STARPU_MPI_DEBUG_LEVEL_MIN", 0);
+	_starpu_debug_level_max = starpu_get_env_number_default("STARPU_MPI_DEBUG_LEVEL_MAX", 0);
 }
