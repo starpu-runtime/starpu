@@ -760,6 +760,12 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 {
 	_STARPU_MPI_LOG_IN();
 
+	/* FIXME: rather use MPI_Ibarrier and make it a detached request.
+	 * We'd then be able to introduce starpu_mpi_ibarrier, and make
+	 * starpu_mpi_barrier just call starpu_mpi_ibarrier(); starpu_mpi_wait();
+	 * That'll solve locking issue when intermixing starpu_mpi_barrier with
+	 * other communications.
+	 */
 	barrier_req->ret = MPI_Barrier(barrier_req->node_tag.node.comm);
 	STARPU_MPI_ASSERT_MSG(barrier_req->ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_error_code(barrier_req->ret));
 
