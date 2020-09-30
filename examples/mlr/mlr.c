@@ -185,7 +185,7 @@ int main(void)
 		vector_mn[1] = n;
 		starpu_data_release(vector_mn_handle);
 
-		for (j = 0; j < 42; j++)
+		for (j = 0; j < 1000; j++)
 		{
 			starpu_insert_task(&cl_init,
 					   STARPU_R, vector_mn_handle,
