@@ -200,5 +200,11 @@ int main(void)
 	free(vector_mn);
 	starpu_shutdown();
 
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	starpu_perfmodel_dump_xml(stdout, &cl_model_final);
+	starpu_shutdown();
+
 	return 0;
 }
