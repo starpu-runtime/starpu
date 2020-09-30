@@ -134,7 +134,7 @@ starpu_mpi_TESTS +=				\
 	ring_sync_detached			\
 	temporary				\
 	user_defined_datatype			\
-	early_stuff
+	early_stuff				\
 	display_bindings
 
 if !STARPU_SIMGRID
@@ -220,7 +220,7 @@ noinst_PROGRAMS +=				\
 	early_request				\
 	starpu_redefine				\
 	load_balancer				\
-	driver
+	driver					\
 	display_bindings
 
 
