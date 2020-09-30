@@ -1010,6 +1010,8 @@ static void dump_per_arch_model_xml(FILE *f, struct starpu_perfmodel *model, int
 
 void starpu_perfmodel_dump_xml(FILE *f, struct starpu_perfmodel *model)
 {
+	_starpu_init_and_load_perfmodel(model);
+
 	fprintf(f, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 	fprintf(f, "<!DOCTYPE StarPUPerfmodel SYSTEM \"starpu-perfmodel.dtd\">\n");
 	fprintf(f, "<!-- symbol %s -->\n", model->symbol);
@@ -1496,6 +1498,8 @@ int starpu_perfmodel_load_file(const char *filename, struct starpu_perfmodel *mo
 
 	if (ret)
 		starpu_perfmodel_unload_model(model);
+	else
+		model->is_loaded = 1;
 	return ret;
 }
 
