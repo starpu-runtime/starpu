@@ -194,6 +194,7 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	unsigned use_explicit_workers_bindid;
+
 	/**
 	   If the starpu_conf::use_explicit_workers_bindid flag is
 	   set, this array indicates where to bind the different
@@ -215,6 +216,7 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	unsigned use_explicit_workers_cuda_gpuid;
+
 	/**
 	   If the starpu_conf::use_explicit_workers_cuda_gpuid flag is
 	   set, this array contains the logical identifiers of the
@@ -232,6 +234,7 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	unsigned use_explicit_workers_opencl_gpuid;
+
 	/**
 	   If the starpu_conf::use_explicit_workers_opencl_gpuid flag
 	   is set, this array contains the logical identifiers of the
@@ -249,6 +252,7 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	unsigned use_explicit_workers_mic_deviceid;
+
 	/**
 	   If the flag starpu_conf::use_explicit_workers_mic_deviceid
 	   is set, the array contains the logical identifiers of the
@@ -265,6 +269,7 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	unsigned use_explicit_workers_mpi_ms_deviceid;
+
 	/**
 	   If the flag
 	   starpu_conf::use_explicit_workers_mpi_ms_deviceid is set,
@@ -281,6 +286,7 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	int bus_calibrate;
+
 	/**
 	   If this flag is set, StarPU will calibrate the performance
 	   models when executing tasks. If this value is equal to -1,
@@ -331,6 +337,7 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	int disable_asynchronous_copy;
+
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
 	   between CPUs and CUDA accelerators.
@@ -343,6 +350,7 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	int disable_asynchronous_cuda_copy;
+
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
 	   between CPUs and OpenCL accelerators.
@@ -359,6 +367,7 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	int disable_asynchronous_opencl_copy;
+
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
 	   between CPUs and MIC accelerators.
@@ -371,6 +380,7 @@ struct starpu_conf
 	   (default = 0).
 	*/
 	int disable_asynchronous_mic_copy;
+
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
 	   between CPUs and MPI Master Slave devices.
@@ -393,6 +403,7 @@ struct starpu_conf
 	   (default = <c>NULL</c>)
 	*/
 	unsigned *cuda_opengl_interoperability;
+
 	/**
 	   Size of the array starpu_conf::cuda_opengl_interoperability
 	*/
@@ -404,6 +415,7 @@ struct starpu_conf
 	   (default = <c>NULL</c>)
 	*/
 	struct starpu_driver *not_launched_drivers;
+
 	/**
 	   The number of StarPU drivers that should not be launched by
 	   StarPU, i.e number of elements of the array
@@ -420,7 +432,9 @@ struct starpu_conf
 	   would disturb the trace).
 	*/
 	uint64_t trace_buffer_size;
+
 	int global_sched_ctx_min_priority;
+
 	int global_sched_ctx_max_priority;
 
 #ifdef STARPU_WORKER_CALLBACKS
