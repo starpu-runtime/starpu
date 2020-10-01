@@ -648,15 +648,25 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 
 	callback_lfstack_init(&callback_stack);
 
-	if (_starpu_mpi_thread_cpuid < 0)
+	if (!_starpu_mpi_nobind && _starpu_mpi_thread_cpuid < 0)
 	{
 		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
 	}
 
 	/* Tell pioman to use a bound thread for communication progression:
 	 * share the same core as StarPU's MPI thread, the MPI thread has very low activity with NMAD backend */
+#ifdef HAVE_PIOM_LTASK_SET_BOUND_THREAD_OS_INDEXES
+	/* We prefer to give the OS index of the core, because StarPU can have
+	 * a different vision of the topology, especially if STARPU_WORKERS_GETBIND
+	 * is enabled */
+	int indexes[1] = { starpu_get_pu_os_index((unsigned) _starpu_mpi_thread_cpuid) };
+	if (!_starpu_mpi_nobind)
+		piom_ltask_set_bound_thread_os_indexes(HWLOC_OBJ_PU, indexes, 1);
+#else
 	int indexes[1] = { _starpu_mpi_thread_cpuid };
-	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
+	if (!_starpu_mpi_nobind)
+		piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
+#endif
 
 	/* Register some hooks for communication progress if needed */
 	int polling_point_prog, polling_point_idle;
