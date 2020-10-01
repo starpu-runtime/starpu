@@ -448,6 +448,10 @@ if test x$enable_mpi = xyes -a x$enable_nmad = xyes ; then
     build_nmad_lib=yes
     build_mpi_lib=no
     PKG_CHECK_MODULES([NMAD],[nmad])
+    AC_CHECK_DECL([piom_ltask_set_bound_thread_os_indexes], have_piom_ltask_set_bound_thread_os_indexes=yes, have_piom_ltask_set_bound_thread_os_indexes=no, [[#include <pioman.h>]])
+    if test x$have_piom_ltask_set_bound_thread_os_indexes = xyes; then
+      AC_DEFINE(HAVE_PIOM_LTASK_SET_BOUND_THREAD_OS_INDEXES, [1], [piom_ltask_set_bound_thread_os_indexes is availabe])
+    fi
 else
     build_nmad_lib=no
 fi
