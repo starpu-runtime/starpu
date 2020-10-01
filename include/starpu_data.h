@@ -115,7 +115,9 @@ enum starpu_data_access_mode
 
 struct starpu_data_interface_ops;
 
-/** Set the name of the data, to be shown in various profiling tools. */
+/**
+   Set the name of the data, to be shown in various profiling tools.
+*/
 void starpu_data_set_name(starpu_data_handle_t handle, const char *name);
 
 /**
