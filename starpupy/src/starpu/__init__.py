@@ -15,5 +15,6 @@
 #
 
 
-from.task import *
-from .delay import delayed
+from.starpupy import *
+from .delay import *
+from . import joblib

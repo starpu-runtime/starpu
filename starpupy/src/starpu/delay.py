@@ -13,11 +13,11 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-from starpu import task
+from starpu import starpupy
 import asyncio
 
 def delayed(f):
 	def submit(*args,**kwargs):
-		fut = task.task_submit(f, *args,**kwargs)
+		fut = starpupy.task_submit(f, *args,**kwargs)
 		return fut
 	return submit

@@ -22,6 +22,19 @@
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
 
+/*macro*/
+#if defined(Py_DEBUG) || defined(DEBUG)
+extern void _Py_CountReferences(FILE*);
+#define CURIOUS(x) { fprintf(stderr, __FILE__ ":%d ", __LINE__); x; }
+#else
+#define CURIOUS(x)
+#endif
+#define MARKER()        CURIOUS(fprintf(stderr, "\n"))
+#define DESCRIBE(x)     CURIOUS(fprintf(stderr, "  " #x "=%d\n", x))
+#define DESCRIBE_HEX(x) CURIOUS(fprintf(stderr, "  " #x "=%08x\n", x))
+#define COUNTREFS()     CURIOUS(_Py_CountReferences(stderr))
+/*******/
+
 /*********************Functions passed in task_submit wrapper***********************/
 
 static PyObject* asyncio_module; /*python asyncio library*/
@@ -47,7 +60,7 @@ void codelet_func(void *buffers[], void *cl_arg){
     /*verify that the function is a proper callable*/
     if (!PyCallable_Check(cst->f)) {
 
-        printf("py_callback: expected a callablen\n"); 
+        printf("py_callback: expected a callable function\n"); 
         exit(1);
     }
     
@@ -67,14 +80,15 @@ void codelet_func(void *buffers[], void *cl_arg){
     PyObject *pRetVal = PyObject_CallObject(cst->f, cst->argList);
     cst->rv=pRetVal;
 
-    Py_DECREF(cst->f);
     for(int i = 0; i < PyTuple_Size(cst->argList); i++){
         Py_DECREF(PyTuple_GetItem(cst->argList, i));
     }
     Py_DECREF(cst->argList);
+    //Py_DECREF(cst->f);
 
     /*restore previous GIL state*/
     PyGILState_Release(state);
+
 }
 
 /*function passed to starpu_task.callback_func*/
@@ -162,6 +176,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
     /*initialize func_cl with default values*/
     starpu_codelet_init(func_cl);
     func_cl->cpu_func=&codelet_func;
+    //func_cl->model=p; p malloc perfmode
 
     /*allocate a new codelet structure to pass the python function, asyncio.Future and Event loop*/
     codelet_st *cst = (codelet_st*)malloc(sizeof(codelet_st));
@@ -186,12 +201,15 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
 
     task->cl=func_cl;
     task->cl_arg=cst;
-
     /*call starpu_task_submit method*/
-    int retval=starpu_task_submit(task);
+    starpu_task_submit(task);
     task->callback_func=&cb_func;
 
+    //printf("the number of reference is %ld\n", Py_REFCNT(func_py));
+    //_Py_PrintReferences(stderr);
+    //COUNTREFS();
     return fut;
+
 }
 
 /*wrapper wait for all method*/
@@ -229,48 +247,60 @@ static PyObject* starpu_resume_wrapper(PyObject *self, PyObject *args){
     return Py_None;
 }
 
+/*wrapper get count cpu method*/
+static PyObject* starpu_cpu_worker_get_count_wrapper(PyObject *self, PyObject *args){
+
+  /*call starpu_cpu_worker_get_count method*/
+  int num_cpu=starpu_cpu_worker_get_count();
+
+  /*return type is unsigned*/
+  return Py_BuildValue("I", num_cpu);
+}
+
 /***********************************************************************************/
 
 /***************The module’s method table and initialization function**************/
 /*method table*/
-static PyMethodDef taskMethods[] = 
+static PyMethodDef starpupyMethods[] = 
 { 
   {"task_submit", starpu_task_submit_wrapper, METH_VARARGS, "submit the task"}, /*submit method*/
   {"task_wait_for_all", starpu_task_wait_for_all_wrapper, METH_VARARGS, "wait the task"}, /*wait for all method*/
   {"pause", starpu_pause_wrapper, METH_VARARGS, "suspend the processing of new tasks by workers"}, /*pause method*/
   {"resume", starpu_resume_wrapper, METH_VARARGS, "resume the workers polling for new tasks"}, /*resume method*/
+  {"cpu_worker_get_count", starpu_cpu_worker_get_count_wrapper, METH_VARARGS, "return the number of CPUs controlled by StarPU"}, /*get count cpu method*/
   {NULL, NULL}
 };
 
 /*deallocation function*/
-static void taskFree(void *v){
+static void starpupyFree(void *v){
 	starpu_shutdown();
-    Py_DECREF(asyncio_module);
+  Py_DECREF(asyncio_module);
+  //COUNTREFS();
 }
 
 /*module definition structure*/
-static struct PyModuleDef taskmodule={
+static struct PyModuleDef starpupymodule={
   PyModuleDef_HEAD_INIT,
-  "task", /*name of module*/
+  "starpupy", /*name of module*/
   NULL,
   -1,
-  taskMethods, /*method table*/
+  starpupyMethods, /*method table*/
   NULL,
   NULL,
   NULL,
-  taskFree /*deallocation function*/
+  starpupyFree /*deallocation function*/
 };
 
 /*initialization function*/
 PyMODINIT_FUNC
-PyInit_task(void)
+PyInit_starpupy(void)
 {
     PyEval_InitThreads();
     /*starpu initialization*/
-	int ret = starpu_init(NULL);
+	  starpu_init(NULL);
     /*python asysncio import*/
     asyncio_module = PyImport_ImportModule("asyncio");
     /*module import initialization*/
-    return PyModule_Create(&taskmodule);
+    return PyModule_Create(&starpupymodule);
 }
 /***********************************************************************************/
