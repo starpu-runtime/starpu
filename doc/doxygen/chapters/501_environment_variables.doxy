@@ -69,7 +69,8 @@ create as many CUDA workers as there are CUDA devices.
 \anchor STARPU_NWORKER_PER_CUDA
 \addindex __env__STARPU_NWORKER_PER_CUDA
 Specify the number of workers per CUDA device, and thus the number of kernels
-which will be concurrently running on the devices. The default value is 1.
+which will be concurrently running on the devices, i.e. the number of CUDA
+streams. The default value is 1.
 </dd>
 
 <dt>STARPU_CUDA_THREAD_PER_WORKER</dt>
