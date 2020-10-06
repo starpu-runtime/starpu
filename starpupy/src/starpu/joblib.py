@@ -85,7 +85,8 @@ def parallel(*, mode, n_jobs=None):
 	elif mode=="future":
 		def parallel_future(g):
 			L_fut=future_generator(g, n_jobs)
-			return L_fut
+			fut=asyncio.gather(*L_fut)
+			return fut
 		return parallel_future
 
 def delayed(f):

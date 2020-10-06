@@ -74,18 +74,12 @@ print("parallel Future version:")
 print("************************")
 async def main():
 	print("--input is iterable argument list")
-	L_fut1=starpu.joblib.parallel(mode="future", n_jobs=-3)(starpu.joblib.delayed(sqrt)(i**2)for i in range(10))
-	res1=[]
-	for i in range(len(L_fut1)):
-		L_res1=await L_fut1[i]
-		res1.extend(L_res1)
+	fut1=starpu.joblib.parallel(mode="future", n_jobs=-3)(starpu.joblib.delayed(sqrt)(i**2)for i in range(10))
+	res1=await fut1
 	print(res1)
 
 	print("--input is iterable function list")
-	L_fut2=starpu.joblib.parallel(mode="future", n_jobs=2)(g_func)
-	res2=[]
-	for i in range(len(L_fut2)):
-		L_res2=await L_fut2[i]
-		res2.extend(L_res2)
+	fut2=starpu.joblib.parallel(mode="future", n_jobs=2)(g_func)
+	res2=await fut2
 	print(res2)
 asyncio.run(main())
