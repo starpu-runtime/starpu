@@ -447,23 +447,23 @@ static const char *get_worker_color(int workerid)
 	return worker_colors[workerid];
 }
 
-static unsigned get_colour_symbol_red(char *name)
+static unsigned get_color_symbol_red(char *name)
 {
-	/* choose some colour ... that's disguting yes */
+	/* choose some color ... that's disguting yes */
 	uint32_t hash_symbol = starpu_hash_crc32c_string(name, 0);
 	return (unsigned)starpu_hash_crc32c_string("red", hash_symbol) % 1024;
 }
 
-static unsigned get_colour_symbol_green(char *name)
+static unsigned get_color_symbol_green(char *name)
 {
-	/* choose some colour ... that's disguting yes */
+	/* choose some color ... that's disguting yes */
 	uint32_t hash_symbol = starpu_hash_crc32c_string(name, 0);
 	return (unsigned)starpu_hash_crc32c_string("green", hash_symbol) % 1024;
 }
 
-static unsigned get_colour_symbol_blue(char *name)
+static unsigned get_color_symbol_blue(char *name)
 {
-	/* choose some colour ... that's disguting yes */
+	/* choose some color ... that's disguting yes */
 	uint32_t hash_symbol = starpu_hash_crc32c_string(name, 0);
 	return (unsigned)starpu_hash_crc32c_string("blue", hash_symbol) % 1024;
 }
@@ -1420,10 +1420,10 @@ static void create_paje_state_if_not_found(char *name, unsigned color, struct st
 
 	_starpu_symbol_name_list_push_front(&symbol_list, entry);
 
-	/* choose some colour ... that's disguting yes */
-	unsigned hash_symbol_red = get_colour_symbol_red(name);
-	unsigned hash_symbol_green = get_colour_symbol_green(name);
-	unsigned hash_symbol_blue = get_colour_symbol_blue(name);
+	/* choose some color ... that's disguting yes */
+	unsigned hash_symbol_red = get_color_symbol_red(name);
+	unsigned hash_symbol_green = get_color_symbol_green(name);
+	unsigned hash_symbol_blue = get_color_symbol_blue(name);
 
 	uint32_t hash_sum = hash_symbol_red + hash_symbol_green + hash_symbol_blue;
 
@@ -2937,22 +2937,22 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
         int worker;
         worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
 
-	const char *colour;
+	const char *color;
 	char buffer[32];
 	if (options->per_task_colour)
 	{
 		snprintf(buffer, sizeof(buffer), "%.4f,%.4f,%.4f",
-			 get_colour_symbol_red(name)/1024.0,
-			 get_colour_symbol_green(name)/1024.0,
-			 get_colour_symbol_blue(name)/1024.0);
-		colour = &buffer[0];
+			 get_color_symbol_red(name)/1024.0,
+			 get_color_symbol_green(name)/1024.0,
+			 get_color_symbol_blue(name)/1024.0);
+		color = &buffer[0];
 	}
 	else
 	{
-		colour= (worker < 0)?"white":get_worker_color(worker);
+		color= (worker < 0)?"white":get_worker_color(worker);
 	}
 
-	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, colour);
+	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, color);
 }
 
 static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
