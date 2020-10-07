@@ -2798,47 +2798,49 @@ static void handle_task_color(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	task->color = color;
 }
 
+static void handle_task_exclude_from_dag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long job_id = ev->param[0];
+	unsigned exclude_from_dag = ev->param[1];
+
+	struct task_info *task = get_task(job_id, options->file_rank);
+	task->exclude_from_dag = exclude_from_dag;
+}
+
 static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	char *prefix = options->file_prefix;
-
 	unsigned long job_id = ev->param[0];
+	char *name = get_fxt_string(ev,1);
+
+	char *prefix = options->file_prefix;
 	struct task_info *task = get_task(job_id, options->file_rank);
+        int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
 
-	unsigned long has_name = ev->param[3];
-	char *name = has_name?get_fxt_string(ev,4):"unknown";
-
-        int worker;
-        worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
-
-	const char *colour;
+	const char *color;
 	char buffer[32];
 	if (task->color != 0)
 	{
 		snprintf(buffer, sizeof(buffer), "#%06x", task->color);
-		colour = &buffer[0];
+		color = &buffer[0];
 	}
 	else if (options->per_task_colour)
 	{
 		snprintf(buffer, sizeof(buffer), "#%x%x%x",
-			 get_colour_symbol_red(name)/4,
-			 get_colour_symbol_green(name)/4,
-			 get_colour_symbol_blue(name)/4);
-		colour = &buffer[0];
+			 get_color_symbol_red(name)/4,
+			 get_color_symbol_green(name)/4,
+			 get_color_symbol_blue(name)/4);
+		color = &buffer[0];
 	}
 	else
 	{
-		colour= (worker < 0)?"#aaaaaa":get_worker_color(worker);
+		color= (worker < 0)?"#aaaaaa":get_worker_color(worker);
 	}
 
 	if (!task->name)
 		task->name = strdup(name);
 
-	unsigned exclude_from_dag = ev->param[2];
-	task->exclude_from_dag = exclude_from_dag;
-
-	if (!exclude_from_dag && show_task(task, options))
-		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, name, colour);
+	if (!task->exclude_from_dag && show_task(task, options))
+		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color);
 }
 
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3625,6 +3627,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_WAIT_END:
 				handle_task_submit_event(&ev, options, ev.param[0], NULL);
+				break;
+
+			case _STARPU_FUT_TASK_EXCLUDE_FROM_DAG:
+				handle_task_exclude_from_dag(&ev, options);
 				break;
 
 			case _STARPU_FUT_TASK_NAME:

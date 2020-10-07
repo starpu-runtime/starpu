@@ -234,6 +234,7 @@
 #define _STARPU_FUT_DATA_STATE_SHARED     0x5184
 
 #define _STARPU_FUT_DATA_REQUEST_CREATED   0x5185
+#define _STARPU_FUT_TASK_EXCLUDE_FROM_DAG   0x5187
 
 extern unsigned long _starpu_job_cnt;
 
@@ -694,18 +695,23 @@ do {									\
 #define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ)		\
 	_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "ghost")
 
-#define _STARPU_TRACE_TASK_NAME(job)						\
-do {										\
-	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
+#define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(job)			\
+	do {								\
+	unsigned exclude_from_dag = (job)->exclude_from_dag;		\
+	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_EXCLUDE_FROM_DAG, (job)->job_id, (long unsigned)exclude_from_dag); \
+} while(0)
+
+#define _STARPU_TRACE_TASK_NAME(job)					\
+	do {								\
         const char *model_name = _starpu_job_get_task_name((job));                       \
 	if (model_name)					                        \
 	{									\
-		_STARPU_FUT_DO_PROBE4STR(_STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 1, model_name);\
+		_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_TASK_NAME, (job)->job_id, model_name);\
 	}									\
 	else {									\
-		FUT_DO_PROBE4(_STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 0);\
+		FUT_DO_PROBE1(_STARPU_FUT_TASK_NAME, (job)->job_id, "unknown");\
 	}									\
-} while(0);
+} while(0)
 
 #define _STARPU_TRACE_TASK_COLOR(job)						\
 do { \
@@ -1158,6 +1164,7 @@ do {										\
 #define _STARPU_TRACE_TAG_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(a)	do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_NAME(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_COLOR(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_DONE(a)		do {(void)(a);} while(0)
