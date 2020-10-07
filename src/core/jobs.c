@@ -62,6 +62,7 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	j->exclude_from_dag = 1;
+	_STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(j);
 }
 
 /* create an internal struct _starpu_job structure to encapsulate the task */
