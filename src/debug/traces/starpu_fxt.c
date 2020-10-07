@@ -2762,7 +2762,7 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	task->ndeps++;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
-	if (show_task(task, options))
+	if (show_task(task, options) && show_task(prev_task, options))
 	{
 		if (!options->label_deps) name = NULL;
 		/* We should show the name of the predecessor, then. */
