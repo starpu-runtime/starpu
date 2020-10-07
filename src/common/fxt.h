@@ -698,7 +698,7 @@ do {									\
 #define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(job)			\
 	do {								\
 	unsigned exclude_from_dag = (job)->exclude_from_dag;		\
-	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_EXCLUDE_FROM_DAG, (job)->job_id, (long unsigned)exclude_from_dag); \
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_EXCLUDE_FROM_DAG, (job)->job_id, (long unsigned)exclude_from_dag); \
 } while(0)
 
 #define _STARPU_TRACE_TASK_NAME(job)					\
@@ -709,7 +709,7 @@ do {									\
 		_STARPU_FUT_DO_PROBE1STR(_STARPU_FUT_TASK_NAME, (job)->job_id, model_name);\
 	}									\
 	else {									\
-		FUT_DO_PROBE1(_STARPU_FUT_TASK_NAME, (job)->job_id, "unknown");\
+		FUT_DO_PROBE2(_STARPU_FUT_TASK_NAME, (job)->job_id, "unknown");\
 	}									\
 } while(0)
 
