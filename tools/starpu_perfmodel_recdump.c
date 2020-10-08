@@ -89,7 +89,8 @@ void print_archs(FILE* output)
 	{
 		struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
 		comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-		STARPU_ASSERT(comb >= 0);
+		if (comb < 0) continue; // Ignore architecture which is not present in any perfmodel
+
 		if(comb != old_comb)
 		{
 			if(nb_workers > 0)
