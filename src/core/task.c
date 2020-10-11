@@ -646,6 +646,7 @@ int starpu_task_submit(struct starpu_task *task)
 	_STARPU_LOG_IN();
 	STARPU_ASSERT(task);
 	STARPU_ASSERT_MSG(task->magic == _STARPU_TASK_MAGIC, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
+	STARPU_ASSERT_MSG(starpu_is_initialized(), "starpu_init must be called (and return no error) before submitting tasks.");
 
 	int ret;
 	unsigned is_sync = task->synchronous;
