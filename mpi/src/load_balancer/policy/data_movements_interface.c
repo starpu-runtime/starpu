@@ -23,7 +23,7 @@
 
 #if defined(STARPU_USE_MPI_MPI)
 
-int **data_movements_get_ref_tags_table(starpu_data_handle_t handle)
+starpu_mpi_tag_t **data_movements_get_ref_tags_table(starpu_data_handle_t handle)
 {
 	struct data_movements_interface *dm_interface =
 		(struct data_movements_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -45,7 +45,7 @@ int **data_movements_get_ref_ranks_table(starpu_data_handle_t handle)
 		return NULL;
 }
 
-int *data_movements_get_tags_table(starpu_data_handle_t handle)
+starpu_mpi_tag_t *data_movements_get_tags_table(starpu_data_handle_t handle)
 {
 	struct data_movements_interface *dm_interface =
 		(struct data_movements_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -94,8 +94,8 @@ int data_movements_reallocate_tables(starpu_data_handle_t handle, int size)
 
 	if (dm_interface->size)
 	{
-		_STARPU_MPI_MALLOC(dm_interface->tags, size*sizeof(int));
-		_STARPU_MPI_MALLOC(dm_interface->ranks, size*sizeof(int));
+		_STARPU_MPI_MALLOC(dm_interface->tags, size*sizeof(*dm_interface->tags));
+		_STARPU_MPI_MALLOC(dm_interface->ranks, size*sizeof(*dm_interface->ranks));
 	}
 
 	return 0 ;
@@ -129,7 +129,7 @@ static starpu_ssize_t data_movements_allocate_data_on_node(void *data_interface,
 {
 	struct data_movements_interface *dm_interface = (struct data_movements_interface *) data_interface;
 
-	int *addr_tags;
+	starpu_mpi_tag_t *addr_tags;
 	int *addr_ranks;
 	starpu_ssize_t requested_memory = dm_interface->size * sizeof(int);
 
@@ -155,10 +155,11 @@ fail_tags:
 static void data_movements_free_data_on_node(void *data_interface, unsigned node)
 {
 	struct data_movements_interface *dm_interface = (struct data_movements_interface *) data_interface;
-	starpu_ssize_t requested_memory = dm_interface->size * sizeof(int);
+	starpu_ssize_t requested_memory_tags = dm_interface->size * sizeof(starpu_mpi_tag_t);
+	starpu_ssize_t requested_memory_ranks = dm_interface->size * sizeof(int);
 
-	starpu_free_on_node(node, (uintptr_t) dm_interface->tags, requested_memory);
-	starpu_free_on_node(node, (uintptr_t) dm_interface->ranks, requested_memory);
+	starpu_free_on_node(node, (uintptr_t) dm_interface->tags, requested_memory_tags);
+	starpu_free_on_node(node, (uintptr_t) dm_interface->ranks, requested_memory_ranks);
 }
 
 static size_t data_movements_get_size(starpu_data_handle_t handle)
@@ -166,7 +167,7 @@ static size_t data_movements_get_size(starpu_data_handle_t handle)
 	size_t size;
 	struct data_movements_interface *dm_interface = (struct data_movements_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	size = (dm_interface->size * 2 * sizeof(int)) + sizeof(int);
+	size = (dm_interface->size * sizeof(starpu_mpi_tag_t)) + (dm_interface->size * sizeof(int)) + sizeof(int);
 	return size;
 }
 
@@ -192,8 +193,8 @@ static int data_movements_pack_data(starpu_data_handle_t handle, unsigned node, 
 		memcpy(data, &dm_interface->size, sizeof(int));
 		if (dm_interface->size)
 		{
-			memcpy(data+sizeof(int), dm_interface->tags, (dm_interface->size*sizeof(int)));
-			memcpy(data+sizeof(int)+(dm_interface->size*sizeof(int)), dm_interface->ranks, dm_interface->size*sizeof(int));
+			memcpy(data+sizeof(int), dm_interface->tags, (dm_interface->size*sizeof(starpu_mpi_tag_t)));
+			memcpy(data+sizeof(int)+(dm_interface->size*sizeof(starpu_mpi_tag_t)), dm_interface->ranks, dm_interface->size*sizeof(int));
 		}
 	}
 
@@ -216,8 +217,8 @@ static int data_movements_unpack_data(starpu_data_handle_t handle, unsigned node
 
 	if (dm_interface->size)
 	{
-		memcpy(dm_interface->tags, data+sizeof(int), dm_interface->size*sizeof(int));
-		memcpy(dm_interface->ranks, data+sizeof(int)+(dm_interface->size*sizeof(int)), dm_interface->size*sizeof(int));
+		memcpy(dm_interface->tags, data+sizeof(int), dm_interface->size*sizeof(starpu_mpi_tag_t));
+		memcpy(dm_interface->ranks, data+sizeof(int)+(dm_interface->size*sizeof(starpu_mpi_tag_t)), dm_interface->size*sizeof(int));
 	}
 
     return 0;
@@ -233,7 +234,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 
 	if (starpu_interface_copy((uintptr_t) src_data_movements->tags, 0, src_node,
 				    (uintptr_t) dst_data_movements->tags, 0, dst_node,
-				     src_data_movements->size*sizeof(int),
+				     src_data_movements->size*sizeof(starpu_mpi_tag_t),
 				     async_data))
 		ret = -EAGAIN;
 	if (starpu_interface_copy((uintptr_t) src_data_movements->ranks, 0, src_node,
@@ -265,7 +266,7 @@ static struct starpu_data_interface_ops interface_data_movements_ops =
 	.describe = NULL
 };
 
-void data_movements_data_register(starpu_data_handle_t *handleptr, unsigned home_node, int *ranks, int *tags, int size)
+void data_movements_data_register(starpu_data_handle_t *handleptr, unsigned home_node, int *ranks, starpu_mpi_tag_t *tags, int size)
 {
 	struct data_movements_interface data_movements =
 	{

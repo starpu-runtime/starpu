@@ -128,7 +128,7 @@ static void register_matrices()
 	int mr = (comm_rank == 0) ? STARPU_MAIN_RAM : -1;
 
 	/* mpi tag used for the block */
-	int tag = 0;
+	starpu_mpi_tag_t tag = 0;
 
 	int b_row,b_col;
 

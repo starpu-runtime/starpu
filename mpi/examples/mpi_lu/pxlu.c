@@ -90,7 +90,7 @@ static struct starpu_task *create_task(starpu_tag_t id)
 
 /* Send handle to every node appearing in the mask, and unlock tag once the
  * transfers are done. */
-static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int mpi_tag, starpu_tag_t tag)
+static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, starpu_mpi_tag_t mpi_tag, starpu_tag_t tag)
 {
 	unsigned cnt = 0;
 
@@ -134,7 +134,7 @@ static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, int m
 struct recv_when_done_callback_arg
 {
 	int source;
-	int mpi_tag;
+	starpu_mpi_tag_t mpi_tag;
 	starpu_data_handle_t handle;
 	starpu_tag_t unlocked_tag;
 };
@@ -150,7 +150,7 @@ static void callback_receive_when_done(void *_arg)
 }
 
 static void receive_when_deps_are_done(unsigned ndeps, starpu_tag_t *deps_tags,
-				int source, int mpi_tag,
+				int source, starpu_mpi_tag_t mpi_tag,
 				starpu_data_handle_t handle,
 				starpu_tag_t partial_tag,
 				starpu_tag_t unlocked_tag)
@@ -218,7 +218,7 @@ static void create_task_11_recv(unsigned k)
 #else
 	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_11_block_handle)(k);
 #endif
-	int mpi_tag = MPI_TAG11(k);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG11(k);
 	starpu_tag_t partial_tag = TAG11_SAVE_PARTIAL(k);
 	starpu_tag_t unlocked_tag = TAG11_SAVE(k);
 
@@ -260,7 +260,7 @@ static void callback_task_11_real(void *_arg)
 	/* Send the block to those nodes */
 	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(k, k);
 	starpu_tag_t tag = TAG11_SAVE(k);
-	int mpi_tag = MPI_TAG11(k);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG11(k);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
 
 	free(arg);
@@ -380,7 +380,7 @@ static void create_task_12_recv(unsigned k, unsigned j)
 #else
 	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_12_block_handle)(j,k);
 #endif
-	int mpi_tag = MPI_TAG12(k, j);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG12(k, j);
 	starpu_tag_t partial_tag = TAG12_SAVE_PARTIAL(k, j);
 	starpu_tag_t unlocked_tag = TAG12_SAVE(k, j);
 
@@ -415,7 +415,7 @@ static void callback_task_12_real(void *_arg)
 	/* Send the block to those nodes */
 	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(k, j);
 	starpu_tag_t tag = TAG12_SAVE(k, j);
-	int mpi_tag = MPI_TAG12(k, j);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG12(k, j);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
 
 	free(arg);
@@ -564,7 +564,7 @@ static void create_task_21_recv(unsigned k, unsigned i)
 #else
 	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_21_block_handle)(i, k);
 #endif
-	int mpi_tag = MPI_TAG21(k, i);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG21(k, i);
 	starpu_tag_t partial_tag = TAG21_SAVE_PARTIAL(k, i);
 	starpu_tag_t unlocked_tag = TAG21_SAVE(k, i);
 
@@ -600,7 +600,7 @@ static void callback_task_21_real(void *_arg)
 	/* Send the block to those nodes */
 	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(i, k);
 	starpu_tag_t tag = TAG21_SAVE(k, i);
-	int mpi_tag = MPI_TAG21(k, i);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG21(k, i);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
 
 	free(arg);
