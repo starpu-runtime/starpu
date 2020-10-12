@@ -112,7 +112,7 @@ int main(int argc, char **argv)
 
 	for (loop = 0; loop < nloops; loop++)
 	{
-		int tag = loop*size + rank;
+		starpu_mpi_tag_t tag = loop*size + rank;
 
 		if (loop == 0 && rank == 0)
 		{

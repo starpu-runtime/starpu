@@ -27,12 +27,12 @@
 
 #if defined(STARPU_USE_MPI_MPI)
 
-static int TAG_LOAD(int n)
+static starpu_mpi_tag_t TAG_LOAD(int n)
 {
 	return (n+1) << 24;
 }
 
-static int TAG_MOV(int n)
+static starpu_mpi_tag_t TAG_MOV(int n)
 {
 	return (n+1) << 20;
 }
@@ -132,7 +132,7 @@ static void balance(starpu_data_handle_t load_data_cpy)
 
 			if (nhandles)
 			{
-				int *tags = data_movements_get_tags_table(data_movements_handles[my_rank]);
+				starpu_mpi_tag_t *tags = data_movements_get_tags_table(data_movements_handles[my_rank]);
 				int *ranks = data_movements_get_ranks_table(data_movements_handles[my_rank]);
 
 				for (n = 0; n < nhandles; n++)
@@ -564,7 +564,7 @@ static int deinit_heat()
 		_STARPU_DEBUG("Move back %u data on node %d ..\n", ndata_to_move_back, my_rank);
 		data_movements_reallocate_tables(data_movements_handles[my_rank], ndata_to_move_back);
 
-		int *tags = data_movements_get_tags_table(data_movements_handles[my_rank]);
+		starpu_mpi_tag_t *tags = data_movements_get_tags_table(data_movements_handles[my_rank]);
 		int *ranks = data_movements_get_ranks_table(data_movements_handles[my_rank]);
 
 		int n = 0;

@@ -325,7 +325,8 @@ starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t data)
 
 void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
 {
-	int me, rank, tag;
+	int me, rank;
+	starpu_mpi_tag_t tag;
 
 	rank = starpu_mpi_data_get_rank(data_handle);
 	if (rank == -1)
@@ -367,7 +368,8 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 
 void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
 {
-	int me, rank, tag;
+	int me, rank;
+	starpu_mpi_tag_t tag;
 
 	rank = starpu_mpi_data_get_rank(data_handle);
 	if (rank == -1)
