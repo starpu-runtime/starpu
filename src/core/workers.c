@@ -222,7 +222,7 @@ char ***_starpu_get_argv()
 
 int starpu_is_initialized(void)
 {
-	return initialized == INITIALIZED;
+	return initialized != UNINITIALIZED;
 }
 
 void starpu_wait_initialized(void)
