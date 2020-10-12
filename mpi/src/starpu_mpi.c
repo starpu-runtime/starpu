@@ -330,7 +330,7 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	rank = starpu_mpi_data_get_rank(data_handle);
 	if (rank == -1)
 	{
-		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register() or starpu_mpi_data_register()\n");
+		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register() or starpu_mpi_data_register_comm()\n");
 	}
 
 	starpu_mpi_comm_rank(comm, &me);
@@ -340,7 +340,7 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	tag = starpu_mpi_data_get_tag(data_handle);
 	if (tag == -1)
 	{
-		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register() or starpu_mpi_data_register()\n");
+		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register() or starpu_mpi_data_register_comm()\n");
 	}
 
 	if (me == node)
