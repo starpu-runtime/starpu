@@ -2673,7 +2673,7 @@ static void write_bus_platform_file_content(int version)
 			version == 3
 			? "http://simgrid.gforge.inria.fr/simgrid.dtd"
 			: "http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd",
-			version, dash, dash, dash, speed, flops);
+			version, dash, dash, dash, dash, speed, flops);
 
 	for (i = 0; i < ncpus; i++)
 		/* TODO: host memory for out-of-core simulation */
