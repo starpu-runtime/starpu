@@ -54,13 +54,13 @@ static int parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			usage();
-			return EXIT_SUCCESS;
+			exit(EXIT_FAILURE);
 		}
 
 		if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
 		{
 		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
-			return EXIT_SUCCESS;
+			exit(EXIT_FAILURE);
 		}
 	}
 	return 0;
