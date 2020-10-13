@@ -42,7 +42,7 @@ STARPU_EFFECTIVE_VERSION=1.3
 
 # Libtool interface versioning (info "(libtool) Versioning").
 LIBSTARPU_INTERFACE_CURRENT=6	# increment upon ABI change
-LIBSTARPU_INTERFACE_REVISION=0	# increment upon implementation change
+LIBSTARPU_INTERFACE_REVISION=1	# increment upon implementation change
 LIBSTARPU_INTERFACE_AGE=1	# set to CURRENT - PREVIOUS interface
 
 LIBSTARPUFFT_INTERFACE_CURRENT=2	# increment upon ABI change

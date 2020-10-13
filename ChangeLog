@@ -17,6 +17,9 @@
 StarPU 1.3.7
 ====================================================================
 
+Small changes:
+  * Simgrid: bug fix for setting network/weight-S to 0.0
+
 StarPU 1.3.6 (git revision fb9fbed81410d9f0ebbff5bdad1352df4705efe8)
 ====================================================================
 
