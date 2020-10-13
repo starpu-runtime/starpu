@@ -245,8 +245,3 @@ endif
 EXTRA_DIST += doxygen.cfg refman.tex \
 	      $(chapters) $(images)
 
-# Rule to update documentation on web server. Should only be called from benchmarks dalton directory
-PUBLISHDIR	?= /home/benchmarks/softs/starpu/starpu-scripts/mirror/files/doc
-update-web: $(DOX_PDF)
-	cp -pr starpu_dev.pdf html_dev $(PUBLISHDIR)
-
