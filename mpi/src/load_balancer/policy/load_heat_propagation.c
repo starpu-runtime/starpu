@@ -29,12 +29,12 @@
 
 static starpu_mpi_tag_t TAG_LOAD(int n)
 {
-	return (n+1) << 24;
+	return ((starpu_mpi_tag_t) n+1) << 24;
 }
 
 static starpu_mpi_tag_t TAG_MOV(int n)
 {
-	return (n+1) << 20;
+	return ((starpu_mpi_tag_t) n+1) << 20;
 }
 
 /* Hash table of local pieces of data that has been moved out of the local MPI
