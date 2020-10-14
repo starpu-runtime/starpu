@@ -131,12 +131,13 @@ static starpu_ssize_t data_movements_allocate_data_on_node(void *data_interface,
 
 	starpu_mpi_tag_t *addr_tags;
 	int *addr_ranks;
-	starpu_ssize_t requested_memory = dm_interface->size * sizeof(int);
+	starpu_ssize_t requested_memory_tags = dm_interface->size * sizeof(starpu_mpi_tag_t);
+	starpu_ssize_t requested_memory_ranks = dm_interface->size * sizeof(int);
 
-	addr_tags = (int*) starpu_malloc_on_node(node, requested_memory);
+	addr_tags = (starpu_mpi_tag_t*) starpu_malloc_on_node(node, requested_memory_tags);
 	if (!addr_tags)
 		goto fail_tags;
-	addr_ranks = (int*) starpu_malloc_on_node(node, requested_memory);
+	addr_ranks = (int*) starpu_malloc_on_node(node, requested_memory_ranks);
 	if (!addr_ranks)
 		goto fail_ranks;
 
@@ -144,10 +145,10 @@ static starpu_ssize_t data_movements_allocate_data_on_node(void *data_interface,
 	dm_interface->tags = addr_tags;
 	dm_interface->ranks = addr_ranks;
 
-	return 2*requested_memory;
+	return requested_memory_tags+requested_memory_ranks;
 
 fail_ranks:
-	starpu_free_on_node(node, (uintptr_t) addr_tags, requested_memory);
+	starpu_free_on_node(node, (uintptr_t) addr_tags, requested_memory_tags);
 fail_tags:
 	return -ENOMEM;
 }
