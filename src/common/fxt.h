@@ -1273,8 +1273,8 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)		\
 	FUT_RAW_ALWAYS_PROBE2(FUT_CODE(_STARPU_FUT_SCHED_COMPONENT_CONNECT,2), parent, child);
 
-#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)		\
-	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, (task)->priority);
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task, prio)		\
+	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, prio);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)		\
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
