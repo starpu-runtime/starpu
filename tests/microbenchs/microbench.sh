@@ -22,6 +22,9 @@
 
 set -e
 
+# disable core generation
+ulimit -c 0
+
 # Testing a specific scheduler
 if [ -n "$STARPU_SCHED" ]
 then
