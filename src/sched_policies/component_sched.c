@@ -371,7 +371,7 @@ int starpu_sched_component_push_task(struct starpu_sched_component *from STARPU_
 	int pushback;
 	pushback = to->push_task(to, task);
 	if (!pushback)
-		_STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task);
+		_STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task, task->priority);
 	return pushback;
 }
 

@@ -1107,8 +1107,8 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)		\
 	FUT_DO_PROBE2(_STARPU_FUT_SCHED_COMPONENT_CONNECT, parent, child);
 
-#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)		\
-	FUT_DO_PROBE5(_STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, (task)->priority);
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task, prio)		\
+	FUT_DO_PROBE5(_STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, prio);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)		\
 	FUT_DO_PROBE5(_STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
