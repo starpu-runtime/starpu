@@ -313,7 +313,7 @@ starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t data)
 void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
 {
 	int me, rank;
-	starpu_mpi_tag_t tag;
+	starpu_mpi_tag_t data_tag;
 
 	rank = starpu_mpi_data_get_rank(data_handle);
 	if (rank == -1)
@@ -325,8 +325,8 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 	if (node == rank)
 		return;
 
-	tag = starpu_mpi_data_get_tag(data_handle);
-	if (tag == -1)
+	data_tag = starpu_mpi_data_get_tag(data_handle);
+	if (data_tag == -1)
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register() or starpu_mpi_data_register_comm()\n");
 	}
@@ -338,7 +338,7 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 		if (already_received == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
-			starpu_mpi_irecv_detached(data_handle, rank, tag, comm, callback, arg);
+			starpu_mpi_irecv_detached(data_handle, rank, data_tag, comm, callback, arg);
 		}
 	}
 	else if (me == rank)
@@ -348,7 +348,7 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 		if (already_sent == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
-			starpu_mpi_isend_detached(data_handle, node, tag, comm, NULL, NULL);
+			starpu_mpi_isend_detached(data_handle, node, data_tag, comm, NULL, NULL);
 		}
 	}
 }
@@ -356,7 +356,7 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
 {
 	int me, rank;
-	starpu_mpi_tag_t tag;
+	starpu_mpi_tag_t data_tag;
 
 	rank = starpu_mpi_data_get_rank(data_handle);
 	if (rank == -1)
@@ -368,8 +368,8 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 	if (node == rank)
 		return;
 
-	tag = starpu_mpi_data_get_tag(data_handle);
-	if (tag == -1)
+	data_tag = starpu_mpi_data_get_tag(data_handle);
+	if (data_tag == -1)
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 	}
@@ -382,7 +382,7 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 		if (already_received == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
-			starpu_mpi_recv(data_handle, rank, tag, comm, &status);
+			starpu_mpi_recv(data_handle, rank, data_tag, comm, &status);
 		}
 	}
 	else if (me == rank)
@@ -392,7 +392,7 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 		if (already_sent == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
-			starpu_mpi_send(data_handle, node, tag, comm);
+			starpu_mpi_send(data_handle, node, data_tag, comm);
 		}
 	}
 }
