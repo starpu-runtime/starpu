@@ -1426,7 +1426,7 @@ do {										\
 #define _STARPU_TRACE_HYPERVISOR_END()                  do {} while(0)
 #define _STARPU_TRACE_SCHED_COMPONENT_NEW(component)	do {(void)(component);} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)	do {(void)(parent); (void)(child);} while (0)
-#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)	do {(void)(from); (void)(to); (void)(task);} while (0)
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task, prio)	do {(void)(from); (void)(to); (void)(task); (void)(prio);} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {(void)(from); (void)(to); (void)(task);} while (0)
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {(void)(handle);} while (0)
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	do {(void)(handle);} while (0)
