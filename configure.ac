@@ -3351,17 +3351,10 @@ AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples 
 ##########################################
 
 def_enable_build_doc="yes"
-def_enable_build_doc_pdf="no"
 available_doc="no"
 if test -d "$srcdir/doc/doxygen/html" ; then
    def_enable_build_doc="no"
    available_doc="yes"
-fi
-available_doc_pdf="no"
-if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
-   def_enable_build_doc="no"
-   def_enable_build_doc_pdf="no"
-   available_doc_pdf="yes"
 fi
 
 AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
@@ -3370,7 +3363,13 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 
 AC_ARG_ENABLE(build-doc-pdf, [AS_HELP_STRING([--enable-build-doc-pdf],
 			[enable building of PDF documentation])],
-			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=$def_enable_build_doc_pdf)
+			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=no)
+
+available_doc_pdf="no"
+if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
+   enable_build_doc_pdf="no"
+   available_doc_pdf="yes"
+fi
 
 # Check whether doxygen needed tools are installed
 AC_PATH_PROG(doxygencommand, doxygen)
