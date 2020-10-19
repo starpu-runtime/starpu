@@ -425,7 +425,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		/* the callback is executed after the dependencies so that we may remove the tag
 		 * of the task itself */
-		if (task->callback_func)
+		if (task->callback_func || (task->cl && task->cl->callback_func))
 		{
 			int profiling = starpu_profiling_status_get();
 			if (profiling && task->profiling_info)
@@ -435,7 +435,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			 * within the callback */
 			_starpu_set_local_worker_status(STATUS_CALLBACK);
 
-
 			/* Perhaps we have nested callbacks (eg. with chains of empty
 			 * tasks). So we store the current task and we will restore it
 			 * later. */
@@ -444,7 +443,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_set_current_task(task);
 
 			_STARPU_TRACE_START_CALLBACK(j);
-			task->callback_func(task->callback_arg);
+			if (task->callback_func)
+				task->callback_func(task->callback_arg);
+			else
+				task->cl->callback_func(task->callback_arg);
 			_STARPU_TRACE_END_CALLBACK(j);
 
 			_starpu_set_current_task(current_task);
