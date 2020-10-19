@@ -144,6 +144,7 @@ XFAIL_TESTS	=				\
 myPROGRAMS =
 
 myPROGRAMS +=					\
+	main/callback				\
 	main/bind				\
 	main/mkdtemp				\
 	main/execute_schedule			\

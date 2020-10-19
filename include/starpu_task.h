@@ -521,6 +521,20 @@ struct starpu_codelet
 	unsigned color;
 
 	/**
+	   Optional field, the default value is <c>NULL</c>. This is a
+	   function pointer of prototype <c>void (*f)(void *)</c>
+	   which specifies a possible callback. If this pointer is
+	   non-<c>NULL</c>, the callback function is executed on the
+	   host after the execution of the task. If the task defines a
+	   callback, the codelet callback is not called, unless called
+	   within the task callback function.
+	   The callback is passed the value contained in the
+	   starpu_task::callback_arg field. No callback is executed if
+	   the field is set to <c>NULL</c>.
+	*/
+	void (*callback_func)(void *);
+
+	/**
 	   Various flags for the codelet.
 	 */
 	int flags;
@@ -735,7 +749,7 @@ struct starpu_task
 	   <c>NULL</c>.
 
 	   With starpu_task_insert() and alike this can be specified thanks to
-	   ::STARPU_CALLBACK_ARG followed by the function pointer, or thanks to
+	   ::STARPU_CALLBACK_ARG followed by the argument pointer, or thanks to
 	   ::STARPU_CALLBACK_WITH_ARG or
 	   ::STARPU_CALLBACK_WITH_ARG_NFREE followed by the function
 	   pointer and the argument.

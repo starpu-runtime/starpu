@@ -17,6 +17,15 @@
 StarPU 1.3.8
 ====================================================================
 
+StarPU 1.3.8
+====================================================================
+
+Small features:
+  * A codelet can now define a callback function pointer which will be
+    automatically called when the task does not define itself a
+    callback function, in that case, it can still be called from the
+    task callback function.
+
 StarPU 1.3.7
 ====================================================================
 
