@@ -17,6 +17,7 @@ import starpu
 import time
 import asyncio
 from math import sqrt
+from math import log10
 
 #generate a list to store functions
 g_func=[]
@@ -59,27 +60,41 @@ def sub(a,b,c):
 	return res_sub1, res_sub2
 g_func.append(starpu.joblib.delayed(sub)(6, 2, 5.9))
 
+#the size of generator
+N=1000
 print("************************")
 print("parallel Normal version:")
 print("************************")
-print("--input is iterable argument list")
-starpu.joblib.parallel(mode="normal", n_jobs=-2)(starpu.joblib.delayed(sqrt)(i**2)for i in range(10))
+print("--input is iterable argument list, example 1")
+starpu.joblib.parallel(mode="normal", n_jobs=-2, perfmodel="first")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
+
+print("--input is iterable argument list, example 2")
+starpu.joblib.parallel(mode="normal", n_jobs=-2, perfmodel="second")(starpu.joblib.delayed(log10)(10**i)for i in range(N))
 
 print("--input is iterable function list")
-starpu.joblib.parallel(mode="normal", n_jobs=3)(g_func)
+starpu.joblib.parallel(mode="normal", n_jobs=3, perfmodel="third")(g_func)
 
 
 print("************************")
 print("parallel Future version:")
 print("************************")
 async def main():
-	print("--input is iterable argument list")
-	fut1=starpu.joblib.parallel(mode="future", n_jobs=-3)(starpu.joblib.delayed(sqrt)(i**2)for i in range(10))
+	print("--input is iterable argument list, example 1")
+	fut1=starpu.joblib.parallel(mode="future", n_jobs=-3, perfmodel="first")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
 	res1=await fut1
 	print(res1)
 
-	print("--input is iterable function list")
-	fut2=starpu.joblib.parallel(mode="future", n_jobs=2)(g_func)
+	print("--input is iterable argument list, example 2")
+	fut2=starpu.joblib.parallel(mode="future", n_jobs=-3, perfmodel="second")(starpu.joblib.delayed(log10)(10**i)for i in range(N))
 	res2=await fut2
 	print(res2)
+
+	print("--input is iterable function list")
+	fut3=starpu.joblib.parallel(mode="future", n_jobs=2, perfmodel="third")(g_func)
+	res3=await fut3
+	print(res3)
 asyncio.run(main())
+
+starpu.joblib.dump_perfmodel(perfmodel="first")
+starpu.joblib.dump_perfmodel(perfmodel="second")
+starpu.joblib.dump_perfmodel(perfmodel="third")

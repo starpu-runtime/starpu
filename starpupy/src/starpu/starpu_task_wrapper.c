@@ -80,10 +80,6 @@ void codelet_func(void *buffers[], void *cl_arg){
     PyObject *pRetVal = PyObject_CallObject(cst->f, cst->argList);
     cst->rv=pRetVal;
 
-    for(int i = 0; i < PyTuple_Size(cst->argList); i++){
-        Py_DECREF(PyTuple_GetItem(cst->argList, i));
-    }
-    Py_DECREF(cst->argList);
     //Py_DECREF(cst->f);
 
     /*restore previous GIL state*/
@@ -110,6 +106,19 @@ void cb_func(void *v){
     Py_DECREF(cst->fut);
     Py_DECREF(cst->lp);
 
+    //Py_DECREF(perfmodel);
+    struct starpu_codelet * func_cl=(struct starpu_codelet *) task->cl;
+    if (func_cl->model != NULL){
+      struct starpu_perfmodel *perf =(struct starpu_perfmodel *) func_cl->model;
+      PyObject* perfmodel=PyCapsule_New(perf, "Perf", 0);
+      Py_DECREF(perfmodel);
+    }
+
+    for(int i = 0; i < PyTuple_Size(cst->argList); i++){
+        Py_DECREF(PyTuple_GetItem(cst->argList, i));
+    }
+    Py_DECREF(cst->argList);
+
     /*restore previous GIL state*/
     PyGILState_Release(state);
 
@@ -134,6 +143,82 @@ static void del_Task(PyObject *obj) {
 /*struct starpu_task*->PyObject**/
 static PyObject *PyTask_FromTask(struct starpu_task *task) {
   return PyCapsule_New(task, "Task", del_Task);
+}
+
+/***********************************************************************************/
+static size_t sizebase (struct starpu_task * task, unsigned nimpl){
+
+  codelet_st* cst = (codelet_st*) task->cl_arg;
+
+  PyObject* obj=PyTuple_GetItem(cst->argList, 0);
+  /*get the length of arguments*/
+  int n = PyList_Size(obj);
+
+  return n;
+}
+
+static void del_Perf(PyObject *obj){
+  struct starpu_perfmodel *perf=(struct starpu_perfmodel*)PyCapsule_GetPointer(obj, "Perf");
+  free(perf);
+}
+/*initialization of perfmodel*/
+static PyObject* init_perfmodel(PyObject *self, PyObject *args){
+
+  char* sym;
+
+  if (!PyArg_ParseTuple(args, "s", &sym))
+    return NULL;
+
+  /*allocate a perfmodel structure*/
+  struct starpu_perfmodel *perf=(struct starpu_perfmodel*)calloc(1, sizeof(struct starpu_perfmodel));
+
+  /*get the perfmodel symbol*/
+  char* p =strdup(sym);
+  perf->symbol=p;
+  perf->type=STARPU_HISTORY_BASED;
+
+  /*struct perfmodel*->PyObject**/
+  PyObject *perfmodel=PyCapsule_New(perf, "Perf", NULL);
+
+  return perfmodel;
+}
+
+
+/*free perfmodel*/
+static PyObject* free_perfmodel(PyObject *self, PyObject *args){
+
+  PyObject* perfmodel;
+  if (!PyArg_ParseTuple(args, "O", &perfmodel))
+    return NULL;
+
+  /*PyObject*->struct perfmodel**/
+  struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
+
+  starpu_save_history_based_model(perf);
+  //starpu_perfmodel_unload_model(perf);
+  free(perf->symbol);
+  starpu_perfmodel_deinit(perf);
+  free(perf);
+
+  /*return type is void*/
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+static PyObject* starpu_save_history_based_model_wrapper(PyObject *self, PyObject *args){
+
+  PyObject* perfmodel;
+  if (!PyArg_ParseTuple(args, "O", &perfmodel))
+    return NULL;
+
+  /*PyObject*->struct perfmodel**/
+  struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
+
+  starpu_save_history_based_model(perf);
+
+  /*return type is void*/
+  Py_INCREF(Py_None);
+  return Py_None;
 }
 
 /*****************************Wrappers of StarPU methods****************************/
@@ -176,7 +261,17 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
     /*initialize func_cl with default values*/
     starpu_codelet_init(func_cl);
     func_cl->cpu_func=&codelet_func;
-    //func_cl->model=p; p malloc perfmode
+    
+    /*check whether the last argument in args is the perfmodel*/
+    PyObject* perfmodel=PyTuple_GetItem(args, PyTuple_Size(args)-1);
+    const char* tp_perf = Py_TYPE(perfmodel)->tp_name;
+    if (strcmp(tp_perf, "PyCapsule")==0){
+      /*PyObject*->struct perfmodel**/
+      struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
+      func_cl->model=perf;
+      Py_INCREF(perfmodel);
+    }
+    
 
     /*allocate a new codelet structure to pass the python function, asyncio.Future and Event loop*/
     codelet_st *cst = (codelet_st*)malloc(sizeof(codelet_st));
@@ -188,15 +283,23 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
     Py_INCREF(loop);
 
     /*pass args in argList*/
-    if (PyTuple_Size(args)==1)
+    if (PyTuple_Size(args)==1 || (PyTuple_Size(args)==2 && strcmp(tp_perf, "PyCapsule")==0))/*function no arguments*/
       cst->argList = PyTuple_New(0);
-    else{
+    else if(PyTuple_Size(args)>2 && strcmp(tp_perf, "PyCapsule")==0){/*function has arguments and the last argument in args is the perfmodel*/
+      cst->argList = PyTuple_New(PyTuple_Size(args)-2);
+      for (int i=0; i < PyTuple_Size(args)-2; i++){
+        PyObject* tmp=PyTuple_GetItem(args, i+1);
+        PyTuple_SetItem(cst->argList, i, tmp);
+        Py_INCREF(PyTuple_GetItem(cst->argList, i));
+      }
+    }
+    else{/*function has arguments and no perfmodel*/
       cst->argList = PyTuple_New(PyTuple_Size(args)-1);
       for (int i=0; i < PyTuple_Size(args)-1; i++){
         PyObject* tmp=PyTuple_GetItem(args, i+1);
         PyTuple_SetItem(cst->argList, i, tmp);
         Py_INCREF(PyTuple_GetItem(cst->argList, i));
-     }
+      }
     }
 
     task->cl=func_cl;
@@ -204,6 +307,10 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
     /*call starpu_task_submit method*/
     starpu_task_submit(task);
     task->callback_func=&cb_func;
+    if (strcmp(tp_perf, "PyCapsule")==0){
+      struct starpu_perfmodel *perf =(struct starpu_perfmodel *) func_cl->model;
+      perf->size_base=&sizebase;
+    }
 
     //printf("the number of reference is %ld\n", Py_REFCNT(func_py));
     //_Py_PrintReferences(stderr);
@@ -222,7 +329,7 @@ static PyObject* starpu_task_wait_for_all_wrapper(PyObject *self, PyObject *args
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
-    return Py_None;
+  return Py_None;
 }
 
 /*wrapper pause method*/
@@ -233,7 +340,7 @@ static PyObject* starpu_pause_wrapper(PyObject *self, PyObject *args){
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
-    return Py_None;
+  return Py_None;
 }
 
 /*wrapper resume method*/
@@ -244,7 +351,7 @@ static PyObject* starpu_resume_wrapper(PyObject *self, PyObject *args){
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
-    return Py_None;
+  return Py_None;
 }
 
 /*wrapper get count cpu method*/
@@ -268,11 +375,14 @@ static PyMethodDef starpupyMethods[] =
   {"pause", starpu_pause_wrapper, METH_VARARGS, "suspend the processing of new tasks by workers"}, /*pause method*/
   {"resume", starpu_resume_wrapper, METH_VARARGS, "resume the workers polling for new tasks"}, /*resume method*/
   {"cpu_worker_get_count", starpu_cpu_worker_get_count_wrapper, METH_VARARGS, "return the number of CPUs controlled by StarPU"}, /*get count cpu method*/
+  {"init_perfmodel", init_perfmodel, METH_VARARGS, "initialize struct starpu_perfmodel"}, /*initialize perfmodel*/
+  {"free_perfmodel", free_perfmodel, METH_VARARGS, "free struct starpu_perfmodel"}, /*free perfmodel*/
+  {"save_history_based_model", starpu_save_history_based_model_wrapper, METH_VARARGS, "save the performance model"}, /*save the performance model*/
   {NULL, NULL}
 };
 
 /*deallocation function*/
-static void starpupyFree(void *v){
+static void starpupyFree(void* self){
 	starpu_shutdown();
   Py_DECREF(asyncio_module);
   //COUNTREFS();
