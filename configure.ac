@@ -3359,7 +3359,7 @@ fi
 
 AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
-			enable_build_doc=$enableval, enable_build_doc=$enable_build_doc)
+			enable_build_doc=$enableval, enable_build_doc=$def_enable_build_doc)
 
 AC_ARG_ENABLE(build-doc-pdf, [AS_HELP_STRING([--enable-build-doc-pdf],
 			[enable building of PDF documentation])],
