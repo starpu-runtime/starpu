@@ -1156,7 +1156,7 @@ void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxl
 }
 
 #ifndef STARPU_SIMGRID
-static void save_history_based_model(struct starpu_perfmodel *model)
+void starpu_save_history_based_model(struct starpu_perfmodel *model)
 {
 	STARPU_ASSERT(model);
 	STARPU_ASSERT(model->symbol);
@@ -1200,7 +1200,7 @@ static void _starpu_dump_registered_models(void)
 	     node  = _starpu_perfmodel_list_next(node))
 	{
 		if (node->model->is_init)
-			save_history_based_model(node->model);
+			starpu_save_history_based_model(node->model);
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
@@ -1506,6 +1506,13 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
 		free((char *)model->symbol);
 		model->symbol = NULL;
 	}
+
+	starpu_perfmodel_deinit(model);
+
+	return 0;
+}
+
+int starpu_perfmodel_deinit(struct starpu_perfmodel *model){
 
 	_starpu_deinitialize_performance_model(model);
 	free(model->state);

@@ -312,6 +312,13 @@ struct starpu_perfmodel
 void starpu_perfmodel_init(struct starpu_perfmodel *model);
 
 /**
+   Deinitialize the \p model performance model structure. You need to call this 
+   before deallocating the structure. You will probably want to call 
+   starpu_perfmodel_unload_model() before calling this function, to save the perfmodel.
+*/   
+int starpu_perfmodel_deinit(struct starpu_perfmodel *model);
+
+/**
    Load the performance model found in the file named \p filename. \p model has to be
    completely zero, and will be filled with the information stored in the given file.
 */
@@ -331,6 +338,11 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
    through the function starpu_perfmodel_load_symbol()
 */
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
+
+/**
+	Save the performance model in its file.
+*/
+void starpu_save_history_based_model(struct starpu_perfmodel *model);
 
 /**
   Fills \p path (supposed to be \p maxlen long) with the full path to the
