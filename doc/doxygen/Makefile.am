@@ -144,6 +144,10 @@ images = 	\
 	chapters/images/temanejo.png
 
 if STARPU_BUILD_DOC
+EXTRA_DIST += \
+	      $(top_srcdir)/doc/doxygen/chapters/version.sty \
+	      $(top_srcdir)/doc/doxygen/chapters/version.html
+
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 

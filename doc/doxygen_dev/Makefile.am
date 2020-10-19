@@ -67,6 +67,10 @@ chapters =	\
 images =
 
 if STARPU_BUILD_DOC
+EXTRA_DIST += \
+	      $(top_srcdir)/doc/doxygen_dev/chapters/version.sty \
+	      $(top_srcdir)/doc/doxygen_dev/chapters/version.html
+
 config.h: $(top_srcdir)/src/common/config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 	@$(SED) -i '1s/^/\/\*\* \@file \*\/\n/' $@
