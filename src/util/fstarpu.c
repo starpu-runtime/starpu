@@ -103,6 +103,13 @@ static const intptr_t fstarpu_starpu_codelet_simgrid_execute_and_inject	= STARPU
 static const intptr_t fstarpu_starpu_cuda_async	= STARPU_CUDA_ASYNC;
 static const intptr_t fstarpu_starpu_opencl_async	= STARPU_OPENCL_ASYNC;
 
+//static const intptr_t fstarpu_per_worker	= STARPU_PER_WORKER;
+//static const intptr_t fstarpu_per_arch		= STARPU_PER_ARCH;
+//static const intptr_t fstarpu_per_common	= STARPU_COMMON;
+static const intptr_t fstarpu_history_based	= STARPU_HISTORY_BASED;
+static const intptr_t fstarpu_regression_based	= STARPU_REGRESSION_BASED;
+static const intptr_t fstarpu_nl_regression_based	= STARPU_NL_REGRESSION_BASED;
+static const intptr_t fstarpu_multiple_regression_based	= STARPU_MULTIPLE_REGRESSION_BASED;
 
 intptr_t fstarpu_get_constant(char *s)
 {
@@ -186,6 +193,14 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT"))	{ return fstarpu_starpu_codelet_simgrid_execute_and_inject; }
 	else if (!strcmp(s, "FSTARPU_CUDA_ASYNC"))	{ return fstarpu_starpu_cuda_async; }
 	else if (!strcmp(s, "FSTARPU_OPENCL_ASYNC"))	{ return fstarpu_starpu_opencl_async; }
+
+//	else if (!strcmp(s, "FSTARPU_PER_WORKER"))	{ return fstarpu_per_worker; }
+//	else if (!strcmp(s, "FSTARPU_PER_ARCH"))	{ return fstarpu_per_arch; }
+//	else if (!strcmp(s, "FSTARPU_COMMON"))	{ return fstarpu_per_common; }
+	else if (!strcmp(s, "FSTARPU_HISTORY_BASED"))	{ return fstarpu_history_based; }
+	else if (!strcmp(s, "FSTARPU_REGRESSION_BASED"))	{ return fstarpu_regression_based; }
+	else if (!strcmp(s, "FSTARPU_NL_REGRESSION_BASED"))	{ return fstarpu_nl_regression_based; }
+	else if (!strcmp(s, "FSTARPU_MULTIPLE_REGRESSION_BASED"))	{ return fstarpu_multiple_regression_based; }
 
 	else { _STARPU_ERROR("unknown constant"); }
 }
@@ -277,6 +292,16 @@ void fstarpu_codelet_free(struct starpu_codelet *cl)
 void fstarpu_codelet_set_name(struct starpu_codelet *cl, const char *cl_name)
 {
 	cl->name = cl_name;
+}
+
+void fstarpu_codelet_set_model(struct starpu_codelet *cl, struct starpu_perfmodel *cl_perfmodel)
+{
+	cl->model = cl_perfmodel;
+}
+
+void fstarpu_codelet_set_energy_model(struct starpu_codelet *cl, struct starpu_perfmodel *cl_perfmodel)
+{
+	cl->energy_model = cl_perfmodel;
 }
 
 void fstarpu_codelet_add_cpu_func(struct starpu_codelet *cl, void *f_ptr)
@@ -415,6 +440,31 @@ void fstarpu_codelet_set_where(struct starpu_codelet *cl, intptr_t where)
 {
 	STARPU_ASSERT(where >= 0);
 	cl->where = (uint32_t)where;
+}
+
+STARPU_ATTRIBUTE_MALLOC
+struct starpu_perfmodel *fstarpu_perfmodel_allocate(void)
+{
+	struct starpu_perfmodel *model;
+	_STARPU_CALLOC(model, 1, sizeof(*model));
+	return model;
+}
+
+void fstarpu_perfmodel_free(struct starpu_perfmodel *model)
+{
+	memset(model, 0, sizeof(*model));
+	free(model);
+}
+
+void fstarpu_perfmodel_set_symbol(struct starpu_perfmodel *model, const char *model_symbol)
+{
+	model->symbol = model_symbol;
+}
+
+void fstarpu_perfmodel_set_type(struct starpu_perfmodel *model, intptr_t type)
+{
+	STARPU_ASSERT(type == fstarpu_history_based || type == fstarpu_regression_based || type == fstarpu_nl_regression_based || type == fstarpu_multiple_regression_based);
+	model->type = type;
 }
 
 void * fstarpu_variable_get_ptr(void *buffers[], int i)
