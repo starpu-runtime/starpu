@@ -249,6 +249,12 @@ static void print_comma(FILE *gnuplot_file, int *first)
 static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_arch* arch, struct starpu_perfmodel_per_arch *arch_model, int impl, int *first, struct _perfmodel_plot_options *options)
 {
 	char arch_name[256];
+	const char *factor;
+
+	if (options->energy)
+		factor = "";
+	else
+		factor = "0.001 * ";
 
 	starpu_perfmodel_get_arch_name(arch, arch_name, 256, impl);
 
@@ -278,7 +284,7 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_arch*
 		fprintf(stderr, "\t\talpha = %e\n", arch_model->regression.alpha * 0.001);
 		fprintf(stderr, "\t\tbeta = %e\n", arch_model->regression.beta);
 
-		fprintf(gnuplot_file, "0.001 * %f * x ** %f title \"Linear Regression %s\"",
+		fprintf(gnuplot_file, "%s%g * x ** %g title \"Linear Regression %s\"", factor,
 			arch_model->regression.alpha, arch_model->regression.beta, arch_name);
 	}
 
@@ -291,8 +297,8 @@ static void display_perf_model(FILE *gnuplot_file, struct starpu_perfmodel_arch*
 		fprintf(stderr, "\t\tb = %e\n", arch_model->regression.b);
 		fprintf(stderr, "\t\tc = %e\n", arch_model->regression.c * 0.001);
 
-		fprintf(gnuplot_file, "0.001 * %f * x ** %f + 0.001 * %f title \"Non-Linear Regression %s\"",
-			arch_model->regression.a, arch_model->regression.b,  arch_model->regression.c, arch_name);
+		fprintf(gnuplot_file, "%s%g * x ** %g + %s%g title \"Non-Linear Regression %s\"", factor,
+			arch_model->regression.a, arch_model->regression.b, factor, arch_model->regression.c, arch_name);
 	}
 }
 
