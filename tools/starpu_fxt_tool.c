@@ -170,14 +170,14 @@ static int parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			usage();
-			return EXIT_SUCCESS;
+			return 77;
 		}
 
 		if (strcmp(argv[i], "-v") == 0
 		 || strcmp(argv[i], "--version") == 0)
 		{
 		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
-			return EXIT_SUCCESS;
+			return 77;
 		}
 
 		/* That's pretty dirty: if the reading_input_filenames flag is

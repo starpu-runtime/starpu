@@ -4844,7 +4844,7 @@ struct starpu_data_trace_kernel
 
 static FILE *codelet_list;
 
-static void write_task(struct parse_task pt)
+static void write_task(char *dir, struct parse_task pt)
 {
 	struct starpu_data_trace_kernel *kernel;
 	char *codelet_name = pt.codelet_name;
@@ -4854,11 +4854,13 @@ static void write_task(struct parse_task pt)
 	{
 		_STARPU_MALLOC(kernel, sizeof(*kernel));
 		kernel->name = strdup(codelet_name);
+		char filename[256];
+		snprintf(filename, sizeof(filename), "%s/%s", dir, kernel->name);
 		//fprintf(stderr, "%s\n", kernel->name);
-		kernel->file = fopen(codelet_name, "w+");
+		kernel->file = fopen(filename, "w+");
 		if(!kernel->file)
 		{
-			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", codelet_name, strerror(errno));
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename, strerror(errno));
 		}
 		HASH_ADD_STR(kernels, name, kernel);
 		fprintf(codelet_list, "%s\n", codelet_name);
@@ -4867,7 +4869,7 @@ static void write_task(struct parse_task pt)
 	fprintf(kernel->file, "%lf %u %u\n", time, pt.data_total, pt.workerid);
 }
 
-void starpu_fxt_write_data_trace(char *filename_in)
+void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 {
 	int fd_in;
 	fd_in = open(filename_in, O_RDONLY);
@@ -4884,10 +4886,12 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	        exit(-1);
 	}
 
-	codelet_list = fopen("codelet_list", "w+");
+	char filename_out[512];
+	snprintf(filename_out, sizeof(filename_out), "%s/codelet_list", dir);
+	codelet_list = fopen(filename_out, "w+");
 	if(!codelet_list)
 	{
-		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", "codelet_list", strerror(errno));
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_out, strerror(errno));
 	}
 
 	fxt_blockev_t block;
@@ -4928,7 +4932,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			workerid = ev.param[3];
 			assert(workerid != -1);
 			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
-			write_task(tasks[workerid]);
+			write_task(dir, tasks[workerid]);
 			break;
 
 		case _STARPU_FUT_DATA_LOAD:
@@ -4974,4 +4978,10 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	}
 
 }
+
+void starpu_fxt_write_data_trace(char *filename_in)
+{
+	starpu_fxt_write_data_trace_in_dir(filename_in, ".");
+}
+
 #endif // STARPU_USE_FXT

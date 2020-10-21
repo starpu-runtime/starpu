@@ -131,7 +131,9 @@ void starpu_fxt_start_profiling(void);
    start recording it again, etc.
 */
 void starpu_fxt_stop_profiling(void);
+
 void starpu_fxt_write_data_trace(char *filename_in);
+void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir);
 
 /**
     Wrapper to get value of env variable STARPU_FXT_TRACE
