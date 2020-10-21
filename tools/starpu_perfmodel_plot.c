@@ -359,13 +359,11 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 							if (options->gflops)
 								if (options->energy)
 									fprintf(datafile, "\t%-15le\t%-15le", entry->flops / entry->mean,
-										entry->flops / (entry->mean + entry->deviation) -
-										entry->flops / entry->mean
+										entry->flops * entry->deviation / (entry->mean * entry->mean)
 										);
 								else
 									fprintf(datafile, "\t%-15le\t%-15le", entry->flops / (entry->mean * 1000),
-										entry->flops / ((entry->mean + entry->deviation) * 1000) -
-										entry->flops / (entry->mean * 1000)
+										entry->flops * entry->deviation / (entry->mean * entry->mean * 1000)
 										);
 							else
 								if (options->energy)
