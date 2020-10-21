@@ -99,7 +99,7 @@ static void _starpu_profile_set_tracefile(void)
 	else
 		_starpu_mkpath_and_check(fxt_prefix, S_IRWXU);
 
-	char suffix[127];
+	char suffix[64];
 	char *fxt_suffix = starpu_getenv("STARPU_FXT_SUFFIX");
 	if (!fxt_suffix)
 	{
