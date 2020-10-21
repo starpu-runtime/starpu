@@ -538,9 +538,8 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	fprintf(gnuplot_file, "plot\t");
 
 	/* display all or selected combinations */
-	display_all_perf_models(gnuplot_file, model, &first, options);
-	if (options->energy_symbol)
-		display_all_perf_models(gnuplot_file, energy_model, &first, options);
+	if (!options->energy_symbol)
+		display_all_perf_models(gnuplot_file, model, &first, options);
 	display_history_based_perf_models(gnuplot_file, model, energy_model, &first, options);
 
 	free(symbol);
