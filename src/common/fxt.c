@@ -100,7 +100,7 @@ static void _starpu_profile_set_tracefile(void)
 	if (!user)
 		user = "";
 
-	char suffix[127];
+	char suffix[64];
 	char *fxt_suffix = starpu_getenv("STARPU_FXT_SUFFIX");
 	if (!fxt_suffix)
 	{
