@@ -19,9 +19,6 @@
 
 set -e # fail fast
 
-# File names
-basename="$PWD"
-
 inputfiles=""
 
 help_script()
@@ -87,6 +84,7 @@ for file in $inputfiles; do
 	echo "Error: file $file does not exist!"
 	exit 5
     fi
+    dir=$(dirname $file)
     DefCont="$(get_event_num $file PajeDefineContainerType) "
     DefEvent="$(get_event_num $file PajeDefineEventType) "
     DefState="$(get_event_num $file PajeDefineStateType) "
@@ -97,22 +95,22 @@ for file in $inputfiles; do
     AddVar="$(get_event_num $file PajeAddVariable) "
     grepstr="^\\(%\\|$DefCont\\|$DefEvent\\|$DefState\\|$DefVar\\|$DefLink\\|$DefEnt\\|$CreateCont\\|$AddVar\\)"
     grepstr=${grepstr//[ 	]/[ 	]}
-# Sorting traces
-    grep -e "$grepstr" $file > start.trace
-    grep -e "$grepstr" -v $file > end.trace
-    sort -s -V --key=2,2 end.trace > endSorted.trace
-    if grep -q start_profiling endSorted.trace
+    # Sorting traces
+    grep -e "$grepstr" $file > $dir/start.trace
+    grep -e "$grepstr" -v $file > $dir/end.trace
+    sort -s -V --key=2,2 $dir/end.trace > $dir/endSorted.trace
+    if grep -q start_profiling $dir/endSorted.trace
     then
 	echo Using start_profiling/stop_profiling trace selection.
-	sed -ne '/start_profiling/,/stop_profiling/p' < endSorted.trace > endSorted2.trace
+	sed -ne '/start_profiling/,/stop_profiling/p' < $dir/endSorted.trace > $dir/endSorted2.trace
     else
-	cp endSorted.trace endSorted2.trace
+	cp $dir/endSorted.trace $dir/endSorted2.trace
     fi
-    cat start.trace endSorted2.trace > $file
-done
+    cat $dir/start.trace $dir/endSorted2.trace > $file
 
-# Cleanup: delete temporary files
-rm -f start.trace
-rm -f end.trace
-rm -f endSorted.trace
-rm -f endSorted2.trace
+    # Cleanup: delete temporary files
+    rm -f $dir/start.trace
+    rm -f $dir/end.trace
+    rm -f $dir/endSorted.trace
+    rm -f $dir/endSorted2.trace
+done

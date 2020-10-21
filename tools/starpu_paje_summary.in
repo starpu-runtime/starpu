@@ -83,15 +83,22 @@ for file in $inputfiles; do
 	echo "Error: file $file does not exist!"
 	exit 5
     fi
-# Sorting traces
-    grep -e '^\(\(%\)\|\(\(0\|1\|2\|3\|4\|5\|6\|7\|9\)\>\)\)' $file > start.trace
-    grep -e '^\(\(%\)\|\(\(0\|1\|2\|3\|4\|5\|6\|7\|9\|18\|19\)\>\)\)' -v  $file > end.trace
-    sort -s -V --key=2,2 end.trace > endSorted.trace
-    cat start.trace endSorted.trace > outputSorted.trace
+    dir=$(dirname $file)
+    # Sorting traces
+    grep -e '^\(\(%\)\|\(\(0\|1\|2\|3\|4\|5\|6\|7\|9\)\>\)\)' $file > $dir/start.trace
+    grep -e '^\(\(%\)\|\(\(0\|1\|2\|3\|4\|5\|6\|7\|9\|18\|19\)\>\)\)' -v  $file > $dir/end.trace
+    sort -s -V --key=2,2 $dir/end.trace > $dir/endSorted.trace
+    cat $dir/start.trace $dir/endSorted.trace > $dir/outputSorted.trace
 
-# Transferring to .csv
-    pj_dump -n outputSorted.trace > $file.csv
+    # Transferring to .csv
+    pj_dump -n $dir/outputSorted.trace > $file.csv
     perl -i -ne 'print if /^State/' $file.csv
+
+    # Cleanup: delete temporary files
+    rm -f $dir/outputSorted.trace
+    rm -f $dir/start.trace
+    rm -f $dir/end.trace
+    rm -f $dir/endSorted.trace
 done
 
 analysis_input=`echo \"$inputfiles".csv\"" | sed 's/  */.csv", "/g'`
@@ -102,8 +109,3 @@ Rscript -e "library(knitr); input_traces = c($analysis_input) ; outputhtml='$out
             outputRmd = gsub('.html\$','.Rmd',outputhtml);\
             knit('$analysis_script',output=outputRmd); knitr::knit2html(outputRmd)"
 
-# Cleanup: delete temporary files
-rm -f outputSorted.trace
-rm -f start.trace
-rm -f end.trace
-rm -f endSorted.trace
