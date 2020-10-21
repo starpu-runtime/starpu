@@ -43,6 +43,7 @@ New features:
     can make prefetch more aggressive.
   * Add starpu_data_dup_ro().
   * Add starpu_data_release_to() and starpu_data_release_to_on_node().
+  * Add profiling based on papi performance counters.
 
 Small changes:
   * Add a synthetic energy efficiency testcase.
