@@ -240,6 +240,11 @@ void _starpu_profiling_terminate(void)
 	{
 		STARPU_PTHREAD_MUTEX_DESTROY(&worker_info_mutex[worker]);
 	}
+#ifdef STARPU_PAPI
+	/* free the resources used by PAPI */
+	PAPI_shutdown();
+#endif
+
 }
 
 /*
