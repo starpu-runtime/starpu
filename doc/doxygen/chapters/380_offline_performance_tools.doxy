@@ -400,7 +400,7 @@ starpu_perfmodel_load_symbol(). The source code of the tool
 
 An XML output can also be printed by using the <c>-x</c> option:
 \verbatim
-tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based 
+$ tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based 
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE StarPUPerfmodel SYSTEM "starpu-perfmodel.dtd">
 <!-- symbol non_linear_memset_regression_based -->
@@ -424,6 +424,12 @@ tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based
 The tool <c>starpu_perfmodel_plot</c> can be used to draw performance
 models. It writes a <c>.gp</c> file in the current directory, to be
 run with the tool <c>gnuplot</c>, which shows the corresponding curve.
+
+\verbatim
+$ tools/starpu_perfmodel_plot -s non_linear_memset_regression_based 
+$ gnuplot starpu_non_linear_memset_regression_based.gp
+$ gv starpu_non_linear_memset_regression_based.eps
+\endverbatim
 
 \image html starpu_non_linear_memset_regression_based.png
 \image latex starpu_non_linear_memset_regression_based.eps "" width=\textwidth
@@ -481,6 +487,64 @@ histogram of the codelet execution time distribution.
 
 \image html distrib_data_histo.png
 \image latex distrib_data_histo.eps "" width=\textwidth
+
+\section EnergyOfCodelets Energy Of Codelets
+
+A performance model of the energy of codelets can also be recorded thanks to
+the ::energy_model field of the starpu_codelet structure. StarPU usually cannot
+record this automatically since the energy measurement probes are usually not
+fine-grain enough.  It is however possible to measure it by writing a program
+that submits batches of tasks, let StarPU measure the energy requirement of
+the batch, and compute an average, see \ref MeasuringEnergyandPower .
+
+The energy performance model can then be displayed in Joules with
+<c>starpu_perfmodel_display</c> just like the time performance model.  The
+<c>starpu_perfmodel_plot</c> needs an extra <c>-e</c> option to display the
+proper unit in the graph:
+
+\verbatim
+$ tools/starpu_perfmodel_plot -e -s my_energy_perfmodel
+$ gnuplot starpu_my_energy_perfmodel.gp
+$ gv starpu_my_energy_perfmodel.eps
+\endverbatim
+
+\image html starpu_my_energy_perfmodel.png
+\image latex starpu_my_energy_perfmodel.eps "" width=\textwidth
+
+The <c>-f</c> option can also be used to display the performance in terms of GFlop/J:
+
+\verbatim
+$ tools/starpu_perfmodel_plot -f -e -s my_energy_perfmodel
+$ gnuplot starpu_my_energy_perfmodel.gp
+$ gv starpu_my_energy_perfmodel.eps
+\endverbatim
+
+\image html starpu_my_energy_perfmodel_flops.png
+\image latex starpu_my_energy_perfmodel_flops.eps "" width=\textwidth
+
+One can combine the two time and energy performance models to draw Watts:
+
+\verbatim
+$ tools/starpu_perfmodel_plot -se my_perfmodel my_energy_perfmodel
+$ gnuplot starpu_my_perfmodel.gp
+$ gv starpu_my_perfmodel.eps
+\endverbatim
+
+\image html starpu_my_perfmodel.png
+\image latex starpu_my_perfmodel.eps "" width=\textwidth
+
+Or last but not least, GFlop/W, i.e. the efficiency:
+
+\verbatim
+$ tools/starpu_perfmodel_plot -f -se my_perfmodel my_energy_perfmodel
+$ gnuplot starpu_my_perfmodel.gp
+$ gv starpu_my_perfmodel.eps
+\endverbatim
+
+\image html starpu_my_perfmodel_flops.png
+\image latex starpu_my_perfmodel_flops.eps "" width=\textwidth
+
+We clearly see here that it is much more energy-efficient to stay in the L3 cache.
 
 \section DataTrace Data trace and tasks length
 
