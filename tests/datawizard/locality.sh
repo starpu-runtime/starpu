@@ -23,6 +23,8 @@
 set -e
 
 PREFIX=$(dirname $0)
+rm -rf $PREFIX/locality.traces
+mkdir -p $PREFIX/locality.traces
 
 if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/locality
@@ -31,13 +33,15 @@ if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 fi
 
 test -x $PREFIX/../../tools/starpu_fxt_tool || exit 77
-STARPU_SCHED=modular-eager STARPU_FXT_PREFIX=$PREFIX/ $STARPU_LAUNCH $PREFIX/locality
-$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -memory-states -label-deps -i $PREFIX/prof_file_${USER}_0
+
+export STARPU_FXT_PREFIX=$PREFIX/locality.traces
+STARPU_SCHED=modular-eager $STARPU_LAUNCH $PREFIX/locality
+$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -d $STARPU_FXT_PREFIX -memory-states -label-deps -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
 
 # Check that they are approved by Grenoble :)
 
 if type pj_dump > /dev/null 2> /dev/null
 then
-	$PREFIX/../../tools/starpu_paje_sort paje.trace
-	pj_dump -e 0 paje.trace
+	$PREFIX/../../tools/starpu_paje_sort $STARPU_FXT_PREFIX/paje.trace
+	pj_dump -e 0 $STARPU_FXT_PREFIX/paje.trace
 fi
