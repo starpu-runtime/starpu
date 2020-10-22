@@ -491,7 +491,7 @@ histogram of the codelet execution time distribution.
 \section EnergyOfCodelets Energy Of Codelets
 
 A performance model of the energy of codelets can also be recorded thanks to
-the ::energy_model field of the starpu_codelet structure. StarPU usually cannot
+the starpu_codelet::energy_model field of the starpu_codelet structure. StarPU usually cannot
 record this automatically since the energy measurement probes are usually not
 fine-grain enough.  It is however possible to measure it by writing a program
 that submits batches of tasks, let StarPU measure the energy requirement of
