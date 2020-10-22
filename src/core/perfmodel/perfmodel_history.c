@@ -1229,12 +1229,18 @@ void _starpu_initialize_registered_performance_models(void)
 	unsigned ncuda =  conf->topology.nhwcudagpus;
 	unsigned nopencl = conf->topology.nhwopenclgpus;
 	unsigned nmic = 0;
+#if STARPU_MAXMICDEVS > 0 || STARPU_MAXMPIDEVS > 0
 	unsigned i;
+#endif
+#if STARPU_MAXMICDEVS > 0
 	for(i = 0; i < conf->topology.nhwmicdevices; i++)
 		nmic += conf->topology.nhwmiccores[i];
+#endif
 	unsigned nmpi = 0;
+#if STARPU_MAXMPIDEVS > 0
 	for(i = 0; i < conf->topology.nhwmpidevices; i++)
 		nmpi += conf->topology.nhwmpicores[i];
+#endif
 
 	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nmpi), this is too big
 	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nmpi), and reallocate when necessary in starpu_perfmodel_arch_comb_add

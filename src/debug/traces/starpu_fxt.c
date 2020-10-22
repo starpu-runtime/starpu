@@ -680,9 +680,7 @@ static int prefixTOnodeid (const char *prefix)
 	//if we are a single-node trace, prefix is empty, so return 0
 	if (strcmp(prefix, "")==0) return 0;
 
-	char *str;
-	_STARPU_MALLOC(str, sizeof(char)*strlen(prefix));
-	strncpy (str, prefix, strlen(prefix));
+	char *str = strdup(prefix);
 	str[strlen(prefix)-1] = '\0';
 	unsigned long nodeid = atoi(str);
 	free(str);
@@ -1544,7 +1542,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	unsigned long has_name = ev->param[4];
 	char *name = has_name?get_fxt_string(ev, 5):"unknown";
 
-	snprintf(_starpu_last_codelet_symbol[worker], sizeof(_starpu_last_codelet_symbol[worker])-1, "%s", name);
+	snprintf(_starpu_last_codelet_symbol[worker], sizeof(_starpu_last_codelet_symbol[worker]), "%.*s", (int) sizeof(_starpu_last_codelet_symbol[worker])-1, name);
 	_starpu_last_codelet_symbol[worker][sizeof(_starpu_last_codelet_symbol[worker])-1] = 0;
 	last_codelet_parameter[worker] = 0;
 
@@ -1621,7 +1619,7 @@ static void handle_codelet_data(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, st
 	if (num >= MAX_PARAMETERS)
 		return;
 	char *name = get_fxt_string(ev, 1);
-	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num])-1, "%s", name);
+	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num]), "%.*s", (int) sizeof(last_codelet_parameter_description[worker][num])-1, name);
 	last_codelet_parameter_description[worker][num][sizeof(last_codelet_parameter_description[worker][num])-1] = 0;
 }
 
@@ -1852,7 +1850,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1, "%s", _starpu_last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].symbol[sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1] = 0;
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
-		snprintf(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname, sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname)-1, "%s", name);
+		snprintf(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname, sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname), "%.*s", (int) sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname)-1, name);
 		dumped_codelets[dumped_codelets_count - 1].perfmodel_archname[sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname)-1] = 0;
 		dumped_codelets[dumped_codelets_count - 1].size = codelet_size;
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;
