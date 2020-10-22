@@ -3290,14 +3290,20 @@ static
 void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
+	struct _starpu_communication *itor, *next;
 
 	/* Loop through completed communications */
-	while (!_starpu_communication_list_empty(&communication_list)
-			&& _starpu_communication_list_begin(&communication_list)->peer)
+	for (itor = _starpu_communication_list_begin(&communication_list);
+		itor != _starpu_communication_list_end(&communication_list);
+		itor = next)
 	{
-		struct _starpu_communication*itor;
+		next = _starpu_communication_list_next(itor);
+
+		if (!itor->peer)
+			continue;
+
 		/* This communication is complete */
-		itor = _starpu_communication_list_pop_front(&communication_list);
+		_starpu_communication_list_erase(&communication_list, itor);
 
 		current_bandwidth_out_per_node[itor->src_node] +=  itor->bandwidth;
 		if (out_paje_file)
