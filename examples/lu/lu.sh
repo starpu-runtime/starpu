@@ -19,6 +19,8 @@
 set -e
 
 PREFIX=$(dirname $0)
+rm -rf $PREFIX/lu.traces
+mkdir -p $PREFIX/lu.traces
 
 if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/lu_implicit_example_float
@@ -26,11 +28,13 @@ if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/lu_implicit_example_float" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/lu_implicit_example_float
 fi
 
+export STARPU_FXT_PREFIX=$PREFIX/lu.traces
+
 $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 4)) -nblocks 4 -piv
 $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 4)) -nblocks 4 -no-stride
 $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 4)) -nblocks 4 -bound
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 2)) -nblocks 2 -bounddeps
-$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio
+$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 2)) -nblocks 2 -bounddeps -directory $STARPU_FXT_PREFIX
+$STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
 
 if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/lu_example_float
@@ -41,5 +45,5 @@ fi
 $STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 4)) -nblocks 4 -piv
 $STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 4)) -nblocks 4 -no-stride
 $STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 4)) -nblocks 4 -bound
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 2)) -nblocks 2 -bounddeps
-$STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio
+$STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 2)) -nblocks 2 -bounddeps -directory $PREFIX/lu.traces
+$STARPU_LAUNCH $PREFIX/lu_example_float -size $((160 * 2)) -nblocks 2 -bound -bounddeps -bounddepsprio -directory $STARPU_FXT_PREFIX
