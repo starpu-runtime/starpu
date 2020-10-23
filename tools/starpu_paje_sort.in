@@ -99,18 +99,10 @@ for file in $inputfiles; do
     grep -e "$grepstr" $file > $dir/start.trace
     grep -e "$grepstr" -v $file > $dir/end.trace
     sort -s -V --key=2,2 $dir/end.trace > $dir/endSorted.trace
-    if grep -q start_profiling $dir/endSorted.trace
-    then
-	echo Using start_profiling/stop_profiling trace selection.
-	sed -ne '/start_profiling/,/stop_profiling/p' < $dir/endSorted.trace > $dir/endSorted2.trace
-    else
-	cp $dir/endSorted.trace $dir/endSorted2.trace
-    fi
-    cat $dir/start.trace $dir/endSorted2.trace > $file
+    cat $dir/start.trace $dir/endSorted.trace > $file
 
     # Cleanup: delete temporary files
     rm -f $dir/start.trace
     rm -f $dir/end.trace
     rm -f $dir/endSorted.trace
-    rm -f $dir/endSorted2.trace
 done
