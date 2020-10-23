@@ -1764,7 +1764,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	size_t codelet_size = ev->param[1];
 	uint32_t codelet_hash = ev->param[2];
 	long unsigned int threadid = ev->param[4];
-	char *name = get_fxt_string(ev, 4);
+	char *name = get_fxt_string(ev, 5);
 
 	const char *state = "I";
 	if (find_sync(prefixTOnodeid(prefix), threadid))
