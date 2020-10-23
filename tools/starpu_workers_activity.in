@@ -24,7 +24,7 @@ usage()
     echo "  can be processed by this script to generate a plot named activity.eps"
     echo ""
     echo "  Typical usage:"
-    echo "     ./starpu_fxt_tool -i /tmp/prof_file_foo"
+    echo "     ./starpu_fxt_tool -i /tmp/prof_file_foo &&"
     echo "     $PROGNAME activity.data"
     echo ""
     echo "Options:"
