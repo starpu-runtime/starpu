@@ -511,7 +511,7 @@ $ gv starpu_non_linear_memset_regression_based_energy.eps
 \image html starpu_non_linear_memset_regression_based_energy.png
 \image latex starpu_non_linear_memset_regression_based_energy.eps "" width=\textwidth
 
-The <c>-f</c> option can also be used to display the performance in terms of GFlop/J:
+The <c>-f</c> option can also be used to display the performance in terms of GFlop/s/W, i.e. the efficiency:
 
 \verbatim
 $ tools/starpu_perfmodel_plot -f -e -s non_linear_memset_regression_based_energy
@@ -521,6 +521,8 @@ $ gv starpu_non_linear_memset_regression_based_energy.eps
 
 \image html starpu_non_linear_memset_regression_based_energy_flops.png
 \image latex starpu_non_linear_memset_regression_based_energy_flops.eps "" width=\textwidth
+
+We clearly see here that it is much more energy-efficient to stay in the L3 cache.
 
 One can combine the two time and energy performance models to draw Watts:
 
@@ -532,19 +534,6 @@ $ gv starpu_power_non_linear_memset_regression_based.eps
 
 \image html starpu_power_non_linear_memset_regression_based.png
 \image latex starpu_power_non_linear_memset_regression_based.eps "" width=\textwidth
-
-Or last but not least, GFlop/W, i.e. the efficiency:
-
-\verbatim
-$ tools/starpu_perfmodel_plot -f -se non_linear_memset_regression_based non_linear_memset_regression_based_energy
-$ gnuplot starpu_power_non_linear_memset_regression_based.gp
-$ gv starpu_power_non_linear_memset_regression_based.eps
-\endverbatim
-
-\image html starpu_power_non_linear_memset_regression_based_flops.png
-\image latex starpu_power_non_linear_memset_regression_based_flops.eps "" width=\textwidth
-
-We clearly see here that it is much more energy-efficient to stay in the L3 cache.
 
 \section DataTrace Data trace and tasks length
 

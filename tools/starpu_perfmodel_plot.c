@@ -408,12 +408,8 @@ static void display_history_based_perf_models(FILE *gnuplot_file, struct starpu_
 											(entry2->deviation * entry2->deviation) / (entry2->mean * entry2->mean)
 											+ (entry->deviation * entry->deviation) / (entry->mean * entry->mean));
 
-										if (options->gflops)
-											fprintf(datafile, "\t%-15le\t%-15le", entry->flops / (entry->mean * 1000) / entry2->mean,
-													entry->flops / (entry->mean * 1000) / entry2->mean * rel_delta);
-										else
-											fprintf(datafile, "\t%-15le\t%-15le", entry2->mean / (entry->mean / 1000000),
-													entry2->mean / (entry->mean / 1000000) * rel_delta);
+										fprintf(datafile, "\t%-15le\t%-15le", entry2->mean / (entry->mean / 1000000),
+												entry2->mean / (entry->mean / 1000000) * rel_delta);
 										found = 1;
 										break;
 									}
@@ -509,17 +505,15 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	fprintf(gnuplot_file, "set output \"starpu_%s%s.eps\"\n", options->energy_symbol?"power_":"", options->symbol);
 	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", symbol);
 	fprintf(gnuplot_file, "set xlabel \"Total data size\"\n");
-	if (options->gflops)
-		if (options->energy_symbol)
-			fprintf(gnuplot_file, "set ylabel \"GFlop/W\"\n");
-		else if (options->energy)
-			fprintf(gnuplot_file, "set ylabel \"GFlop/J\"\n");
+	if (options->energy_symbol)
+		fprintf(gnuplot_file, "set ylabel \"Power (W)\"\n");
+	else if (options->gflops)
+		if (options->energy)
+			fprintf(gnuplot_file, "set ylabel \"GFlop/s/W\"\n");
 		else
 			fprintf(gnuplot_file, "set ylabel \"GFlop/s\"\n");
 	else
-		if (options->energy_symbol)
-			fprintf(gnuplot_file, "set ylabel \"Power (W)\"\n");
-		else if (options->energy)
+		if (options->energy)
 			fprintf(gnuplot_file, "set ylabel \"Energy (J)\"\n");
 		else
 			fprintf(gnuplot_file, "set ylabel \"Time (ms)\"\n");
