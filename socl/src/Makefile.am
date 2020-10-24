@@ -20,7 +20,7 @@ CLEANFILES = *.gcno *.gcda
 
 AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(HWLOC_CFLAGS) $(FXT_CFLAGS)
 AM_CPPFLAGS = -DBUILDING_SOCL -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_srcdir)/socl/src
-AM_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la \
+LIBS = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la \
 	    $(STARPU_OPENCL_LDFLAGS) $(FXT_LDFLAGS)
 
 SUBDIRS =
@@ -51,7 +51,6 @@ noinst_HEADERS =				\
   CL/cl_gl.h					\
   CL/opencl.h
 
-libsocl_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = $(AM_LIBADD)
 libsocl_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined			\
   -version-info $(LIBSOCL_INTERFACE_CURRENT):$(LIBSOCL_INTERFACE_REVISION):$(LIBSOCL_INTERFACE_AGE)
 
