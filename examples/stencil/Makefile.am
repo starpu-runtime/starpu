@@ -73,7 +73,7 @@ if !STARPU_HAVE_WINDOWS
 ## test loader program
 if !STARPU_CROSS_COMPILING
 LOADER			=	loader
-loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	./$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 noinst_PROGRAMS		+=	loader

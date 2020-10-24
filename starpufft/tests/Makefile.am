@@ -31,7 +31,7 @@ check_PROGRAMS	=	$(STARPU_FFT_EXAMPLES)
 if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
-loader_CPPFLAGS 	=  	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS 	=  	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/starpufft/tests/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 noinst_PROGRAMS		+=	loader

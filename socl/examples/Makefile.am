@@ -31,7 +31,7 @@ check_PROGRAMS	=	$(SOCL_EXAMPLES)
 if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
-loader_CPPFLAGS 	=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS 	=	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/socl/examples/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 noinst_PROGRAMS		+=	loader
@@ -72,7 +72,7 @@ matmul_matmul_SOURCES = matmul/matmul.c
 matmul_matmul_LDADD = -lm
 mansched_mansched_SOURCES = mansched/mansched.c
 
-#mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS) $(AM_CFLAGS)
+#mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS)
 #if STARPU_HAVE_X11
 #mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
 #mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) -lX11 $(X_EXTRA_LIBS)
