@@ -388,6 +388,13 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	if (_starpu_graph_record)
 		_starpu_graph_drop_job(j);
 
+	/* Get callback pointer for codelet before notifying dependencies, in
+	   case dependencies free the codelet (see starpu_data_unregister for
+	   instance) */
+	void (*callback)(void *) = task->callback_func;
+	if (!callback && task->cl)
+		callback = task->cl->callback_func;
+
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
 	 * tasks waiting for us
@@ -404,13 +411,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		if (!_starpu_data_check_not_busy(handle))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
-
-	/* Get callback pointer for codelet before notifying dependencies, in
-	   case dependencies free the codelet (see starpu_data_unregister for
-	   instance) */
-	void (*callback)(void *) = task->callback_func;
-	if (!callback && task->cl)
-		callback = task->cl->callback_func;
 
 	_STARPU_TRACE_TASK_NAME(j);
 
