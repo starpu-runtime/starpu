@@ -3624,6 +3624,7 @@ AC_OUTPUT([
 	examples/stencil/Makefile
 	tests/Makefile
 	tests/loader-cross.sh
+	tests/model-checking/Makefile
 	tests/model-checking/starpu-mc.sh
 	examples/loader-cross.sh
 	examples/stencil/loader-cross.sh

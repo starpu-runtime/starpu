@@ -67,11 +67,7 @@ EXTRA_DIST =					\
 	datawizard/interfaces/tensor/tensor_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
-	microbenchs/microbench.sh \
-	model-checking/platform.xml \
-	model-checking/prio_list.sh \
-	model-checking/barrier.sh \
-	model-checking/starpu-mc.sh.in
+	microbenchs/microbench.sh
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg
@@ -459,19 +455,7 @@ endif
 ################################
 
 if STARPU_SIMGRID_MC
-model_checking_prio_list_LDADD = 
-model_checking_prio_list_LDFLAGS = 
-noinst_PROGRAMS += model-checking/prio_list
-if !STARPU_QUICK_CHECK
-SHELL_TESTS += model-checking/prio_list.sh
-endif
-
-model_checking_starpu_barrier_LDADD = 
-model_checking_starpu_barrier_LDFLAGS = 
-noinst_PROGRAMS += model-checking/starpu_barrier
-if !STARPU_QUICK_CHECK
-#SHELL_TESTS += model-checking/barrier.sh
-endif
+SUBDIRS += model-checking
 endif
 
 #######################
