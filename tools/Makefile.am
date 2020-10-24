@@ -21,9 +21,9 @@ include $(top_srcdir)/starpu.mk
 SUBDIRS =
 
 AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src
-AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(FXT_LIBS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 bin_PROGRAMS =
 dist_bin_SCRIPTS =

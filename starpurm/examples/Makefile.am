@@ -21,7 +21,7 @@ CLEANFILES = *.gcno *.gcda *.linkinfo
 AM_CPPFLAGS	= -I$(top_srcdir)/include -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/include
 AM_CPPFLAGS	+= -I$(top_srcdir)/starpurm/include -I$(top_srcdir)/starpurm/src -I$(top_builddir)/starpurm/src -I$(top_builddir)/starpurm/include
 AM_CFLAGS	= -Wall -g $(HWLOC_CFLAGS) $(DLB_CFLAGS) $(GLOBAL_AM_CFLAGS)
-LDADD	= $(top_builddir)/starpurm/src/libstarpurm-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(DLB_LIBS)
+LIBS += $(top_builddir)/starpurm/src/libstarpurm-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(DLB_LIBS)
 
 examplebindir = $(libdir)/starpu/examples/starpurm
 
