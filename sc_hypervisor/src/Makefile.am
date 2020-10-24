@@ -23,8 +23,6 @@ AM_LDFLAGS = $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_COI_LDFLAG
 
 lib_LTLIBRARIES = libsc_hypervisor.la
 
-libsc_hypervisor_la_LIBADD = $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
-
 libsc_hypervisor_la_SOURCES = 				\
 	sc_hypervisor.c					\
 	sc_config.c					\
