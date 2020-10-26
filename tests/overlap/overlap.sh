@@ -37,10 +37,6 @@ fi
 export STARPU_FXT_PREFIX=$PREFIX/overlap.traces
 
 STARPU_SCHED=dmdas $PREFIX/overlap
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -x -s overlap_sleep_1024_24
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump -o $STARPU_FXT_PREFIX/perfs.rec
-[ -f $STARPU_FXT_PREFIX/perfs.rec ]
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_plot -o $STARPU_FXT_PREFIX -s overlap_sleep_1024_24 -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
@@ -79,3 +75,7 @@ then
 	[ -f $STARPU_FXT_PREFIX/perfs2.rec ]
 fi
 
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -x -s overlap_sleep_1024_24
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump -o $STARPU_FXT_PREFIX/perfs.rec
+[ -f $STARPU_FXT_PREFIX/perfs.rec ]
