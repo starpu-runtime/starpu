@@ -248,6 +248,8 @@ if test x$enable_simgrid = xyes ; then
 		AC_DEFINE(STARPU_SIMGRID_MC, [1], [Define this to enable Model Checker in simgrid execution])
 		AC_PATH_PROG([SIMGRID_MC], [simgrid-mc], [no], [$simgrid_dir/bin:$PATH])
 		LDFLAGS="$LDFLAGS -Wl,-znorelro -Wl,-znoseparate-code"
+		# libsimgrid needs to be linked from binaries themselves for MC to work
+		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS -lsimgrid"
 	fi
 fi
 AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
