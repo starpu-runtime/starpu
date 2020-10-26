@@ -443,7 +443,6 @@ int main(int argc, char **argv)
 			starpu_bound_print_dot(f);
 			FPRINTF(stderr,"system printed to %s\n", filename);
 			fclose(f);
-			free(directory);
 		}
 	}
 
@@ -470,6 +469,7 @@ int main(int argc, char **argv)
 	starpu_cublas_shutdown();
 
 	starpu_shutdown();
+	free(directory);
 
 	if (ret == -ENODEV) return 77; else return 0;
 }
