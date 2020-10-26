@@ -523,7 +523,7 @@ if (PARALLEL) {
 	}
 #endif
 	STARPU_ASSERT(n == n1*n2);
-	STARPU_ASSERT(n1 < (1ULL << I_BITS));
+	STARPU_ASSERT((unsigned long long) n1 < (1ULL << I_BITS));
 
 	/* distribute the n2 second ffts into DIV_1D packages */
 	n3 = n2 / DIV_1D;
@@ -540,7 +540,7 @@ if (PARALLEL) {
 	plan->number = STARPU_ATOMIC_ADD(&starpufft_last_plan_number, 1) - 1;
 
 	/* The plan number has a limited size */
-	STARPU_ASSERT(plan->number < (1ULL << NUMBER_BITS));
+	STARPU_ASSERT((unsigned long long) plan->number < (1ULL << NUMBER_BITS));
 }
 
 	/* Just one dimension */
