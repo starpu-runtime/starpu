@@ -18,7 +18,7 @@ include $(top_srcdir)/starpu-notests.mk
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS)
 AM_CPPFLAGS = -I$(top_builddir)/include -I$(top_srcdir)/include -I$(top_srcdir)/sc_hypervisor/include/ -I$(top_srcdir)/sc_hypervisor/src
-LIBS += $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@
 LIBS += $(STARPU_CUDA_LDFLAGS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 lib_LTLIBRARIES = libsc_hypervisor.la

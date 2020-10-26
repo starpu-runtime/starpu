@@ -3478,14 +3478,15 @@ LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
-AC_SUBST([LIBSTARPU_LINK])
 
 if test "x$enable_shared" = xno; then
         # No .so, so application will unexpected have to know which -l to
         # use. Give them in .pc file.
 	AC_DEFINE(STARPU_STATIC_ONLY, [1], [Only static compilation was made])
 	STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
+	LIBSTARPU_LINK="$LIBSTARPU_LINK $STARPU_EXPORTED_LIBS"
 fi
+AC_SUBST([LIBSTARPU_LINK])
 AC_SUBST(STARPU_EXPORTED_LIBS)
 
 # File configuration
