@@ -604,7 +604,7 @@ S: Start time
 Here's an example on how to use it:
 
 \verbatim
-$ python starpu_trace_state_stats.py trace.rec | column -t -s ","
+$ starpu_trace_state_stats.py trace.rec | column -t -s ","
 "Name"		"Count" "Type"	"Duration"
 "Callback"       220	Runtime	0.075978
 "chol_model_11"  10	Task	565.176

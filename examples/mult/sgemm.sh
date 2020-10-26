@@ -56,7 +56,7 @@ then
 
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_stats -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_tasks_rec_complete $STARPU_FXT_PREFIX/tasks.rec $STARPU_FXT_PREFIX/tasks2.rec
-	python $PREFIX/../../tools/starpu_trace_state_stats.py $STARPU_FXT_PREFIX/trace.rec
+	python3 $PREFIX/../../tools/starpu_trace_state_stats.py $STARPU_FXT_PREFIX/trace.rec
 	$PREFIX/../../tools/starpu_workers_activity -d $STARPU_FXT_PREFIX $STARPU_FXT_PREFIX/activity.data
 	[ -f $STARPU_FXT_PREFIX/activity.eps ]
 
