@@ -46,7 +46,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ] ; then
 fi
 
 odir="."
-if [ "$1" == "-d" ]
+if [ "$1" = "-d" ]
 then
     odir=$2
     shift ; shift
