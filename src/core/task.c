@@ -948,10 +948,13 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 
 	/* If profiling is activated, we allocate a structure to store the
 	 * appropriate info. */
-	struct starpu_profiling_task_info *info;
+	struct starpu_profiling_task_info *info = task->profiling_info;
 	int profiling = starpu_profiling_status_get();
-	info = _starpu_allocate_profiling_info_if_needed(task);
-	task->profiling_info = info;
+	if (!info)
+	{
+		info = _starpu_allocate_profiling_info_if_needed(task);
+		task->profiling_info = info;
+	}
 
 	/* The task is considered as block until we are sure there remains not
 	 * dependency. */
