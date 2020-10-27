@@ -44,6 +44,7 @@ static unsigned worker_registered_executing_start[STARPU_NMAXWORKERS];
 static struct timespec executing_start_date[STARPU_NMAXWORKERS];
 
 #ifdef STARPU_PAPI
+static starpu_pthread_mutex_t papi_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static int papi_events[PAPI_MAX_HWCTRS];
 static int papi_nevents = 0;
 static int warned_component_unavailable = 0;
@@ -145,6 +146,7 @@ void _starpu_profiling_init(void)
 	}
 
 #ifdef STARPU_PAPI
+		STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
 		int retval = PAPI_library_init(PAPI_VER_CURRENT);
 		if (retval != PAPI_VER_CURRENT)
 		{
@@ -171,6 +173,7 @@ void _starpu_profiling_init(void)
 					papi_nevents++;
 			}
 		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&papi_mutex);
 #endif
 
 }
@@ -186,6 +189,7 @@ void _starpu_profiling_papi_task_start_counters(struct starpu_task *task)
 	if (profiling_info)
 	{
 		profiling_info->papi_event_set = PAPI_NULL;
+		STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
 		PAPI_create_eventset(&profiling_info->papi_event_set);
 		for(int i=0; i<papi_nevents; i++)
 		{
@@ -199,6 +203,7 @@ void _starpu_profiling_papi_task_start_counters(struct starpu_task *task)
 		}
 		PAPI_reset(profiling_info->papi_event_set);
 		PAPI_start(profiling_info->papi_event_set);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&papi_mutex);
 	}
 }
 
@@ -212,6 +217,7 @@ void _starpu_profiling_papi_task_stop_counters(struct starpu_task *task)
 
 	if (profiling_info)
 	{
+		STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
 		PAPI_stop(profiling_info->papi_event_set, profiling_info->papi_values);
 		for(int i=0; i<papi_nevents; i++)
 		{
@@ -219,6 +225,7 @@ void _starpu_profiling_papi_task_stop_counters(struct starpu_task *task)
 		}
 		PAPI_cleanup_eventset(profiling_info->papi_event_set);
 		PAPI_destroy_eventset(&profiling_info->papi_event_set);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&papi_mutex);
 	}
 }
 #endif
@@ -242,7 +249,9 @@ void _starpu_profiling_terminate(void)
 	}
 #ifdef STARPU_PAPI
 	/* free the resources used by PAPI */
+	STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
 	PAPI_shutdown();
+	STARPU_PTHREAD_MUTEX_UNLOCK(&papi_mutex);
 #endif
 
 }
