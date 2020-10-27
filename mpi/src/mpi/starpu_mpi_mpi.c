@@ -1513,6 +1513,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		starpu_pthread_wait_wait(&_starpu_mpi_thread_wait);
 		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 #endif
+		STARPU_VALGRIND_YIELD();
 	}
 
 	_STARPU_MPI_TRACE_POLLING_END();
