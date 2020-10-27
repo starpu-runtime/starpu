@@ -279,6 +279,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		for (i = 0; i < task->ndata; i++)
 			fprintf(tasks_file, " %lu", task->data[i].size);
 		fprintf(tasks_file, "\n");
+		free(task->data);
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
 	fprintf(tasks_file, "\n");
