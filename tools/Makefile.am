@@ -296,6 +296,7 @@ EXTRA_DIST =				\
 	dev/valgrind/openmpi.suppr	\
 	dev/valgrind/openmp.suppr	\
 	dev/valgrind/padico.suppr	\
+	dev/valgrind/papi.suppr		\
 	dev/valgrind/pthread.suppr	\
 	dev/valgrind/starpu.suppr	\
 	dev/valgrind/valgrind.suppr	\
