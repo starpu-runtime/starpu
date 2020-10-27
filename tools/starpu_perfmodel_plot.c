@@ -535,6 +535,8 @@ int main(int argc, char **argv)
 				STARPU_ASSERT(data_file);
 				dump_data_file(data_file, &options);
 				fclose(data_file);
+				free(options.fxt_options.dir);
+				starpu_fxt_options_shutdown(&options.fxt_options);
 			}
 #endif
 
@@ -565,6 +567,7 @@ int main(int argc, char **argv)
 			}
 			_STARPU_DISP("Gnuplot file <%s> generated\n", gnuplot_file_name);
 		}
+		starpu_perfmodel_unload_model(&model);
 	}
 	starpu_perfmodel_free_sampling();
 	return ret;
