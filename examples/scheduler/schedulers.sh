@@ -33,6 +33,6 @@ SCHEDULERS=`STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/\t->/ 
 for sched in $SCHEDULERS
 do
     echo "cholesky.$sched"
-    STARPU_SCHED=$sched $STARPU_LAUNCH ./cholesky/cholesky_tag -size $((960*3)) -nblocks 3
+    STARPU_SCHED=$sched $STARPU_LAUNCH ./cholesky/cholesky_tag -size $((320*3)) -nblocks 3
     check_success $?
 done
