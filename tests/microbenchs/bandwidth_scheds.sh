@@ -17,12 +17,14 @@
 
 set -e
 
+DIR=$(dirname $0)
+
 if [ -n "$STARPU_SCHED" ]
 then
 	SCHEDS=$STARPU_SCHED
 	DEFAULT=$STARPU_SCHED
 else
-	SCHEDS=`$(dirname $0)/../../tools/starpu_sched_display`
+	SCHEDS=`$DIR/../../tools/starpu_sched_display`
 	DEFAULT=eager
 fi
 
@@ -53,20 +55,50 @@ plot \\
 	"bandwidth-$DEFAULT.dat" using 1:2 with lines title "alone contiguous", \\
 EOF
 
-type=1
-for sched in $SCHEDS
-do
+run()
+{
+	sched=$1
+	type=$2
+
 	if [ "$sched" != eager -a "$sched" != "$SCHEDS" ]; then
 		extra=-a
 	else
 		extra=
 	fi
 
-	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_LAUNCH $(dirname $0)/bandwidth $fast $extra "$@" | tee bandwidth-$sched.dat
+	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_LAUNCH $DIR/bandwidth $fast $extra "$@" | tee bandwidth-$sched.dat
 	echo "\"bandwidth-$sched.dat\" using 1:3 with linespoints lt $type pt $type title \"$sched\", \\" >> bandwidth.gp
 	echo "\"bandwidth-$sched.dat\" using 1:8 with linespoints lt $type pt $type notitle, \\" >> bandwidth.gp
-	type=$((type+1))
-done
+}
+
+case "$MAKEFLAGS" in
+    *\ -j1[0-9]*\ *|*\ -j[2-9]*\ *)
+	type=1
+	for sched in $SCHEDS
+	do
+		run $sched $type &
+		type=$((type+1))
+	done
+	while true
+	do
+		set +e
+		wait -n
+		RET=$?
+		set -e
+		if [ $RET = 127 ] ; then break ; fi
+		if [ $RET != 0 ] ; then exit $RET ; fi
+	done
+    ;;
+
+    *)
+	type=1
+	for sched in $SCHEDS
+	do
+		run $sched $type
+		type=$((type+1))
+	done
+    ;;
+esac
 
 if gnuplot bandwidth.gp ; then
 	if [ -n "$STARPU_BENCH_DIR" ]; then
