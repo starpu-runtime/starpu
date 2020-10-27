@@ -44,8 +44,6 @@ run()
     check_success $?
 }
 
-printenv | grep MAKEFLAGS
-
 case "$MAKEFLAGS" in
     *\ -j1[0-9]*\ *|*\ -j[2-9]*\ *)
 	for sched in $SCHEDULERS
