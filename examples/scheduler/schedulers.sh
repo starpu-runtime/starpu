@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
@@ -30,9 +30,35 @@ fi
 
 SCHEDULERS=`STARPU_SCHED="help" ./basic_examples/hello_world 2>&1 | awk '/\t->/ {print $1}'`
 
-for sched in $SCHEDULERS
-do
+run()
+{
+    sched=$1
     echo "cholesky.$sched"
     STARPU_SCHED=$sched $STARPU_LAUNCH ./cholesky/cholesky_tag -size $((320*3)) -nblocks 3
     check_success $?
-done
+}
+
+printenv | grep MAKEFLAGS
+
+case "$MAKEFLAGS" in
+    *\ -j1[0-9]*\ *|*\ -j[2-9]*\ *)
+	for sched in $SCHEDULERS
+	do
+		run $sched &
+	done
+	while true
+	do
+		wait -n
+		RET=$?
+		if [ $RET = 127 ] ; then break ; fi
+		check_success $RET
+	done
+    ;;
+
+    *)
+	for sched in $SCHEDULERS
+	do
+		run $sched
+	done
+    ;;
+esac
