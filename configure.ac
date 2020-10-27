@@ -2086,6 +2086,7 @@ if test x$use_fxt = xyes; then
 	save_LDFLAGS="$LDFLAGS"
 	LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
 	AC_CHECK_FUNCS([fxt_close])
+	AC_CHECK_FUNCS([fxt_blockev_leave])
 	AC_CHECK_FUNCS([enable_fut_flush])
 	AC_CHECK_FUNCS([fut_set_filename])
 	AC_CHECK_FUNCS([fut_setup_flush_callback])

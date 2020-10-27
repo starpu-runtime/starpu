@@ -4251,12 +4251,20 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		free(options->worker_archtypes[i].devices);
 
+#ifdef HAVE_FXT_BLOCKEV_LEAVE
+	fxt_blockev_leave(block);
+#endif
+
 	/* Close the trace file */
+#ifdef HAVE_FXT_CLOSE
+	fxt_close(fut);
+#else
 	if (close(fd_in))
 	{
 	        perror("close failed :");
 	        exit(-1);
 	}
+#endif
 }
 
 /* Initialize FxT options to default values */
@@ -4674,12 +4682,20 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 	STARPU_ASSERT (ret == FXT_EV_OK);
 
+#ifdef HAVE_FXT_BLOCKEV_LEAVE
+	fxt_blockev_leave(block);
+#endif
+
 	/* Close the trace file */
+#ifdef HAVE_FXT_CLOSE
+	fxt_close(fut);
+#else
 	if (close(fd_in))
 	{
 	        perror("close failed :");
 	        exit(-1);
 	}
+#endif
 	return (ev.time);
 }
 
@@ -4965,6 +4981,10 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 			break;
 		}
 	}
+
+#ifdef HAVE_FXT_BLOCKEV_LEAVE
+	fxt_blockev_leave(block);
+#endif
 
 #ifdef HAVE_FXT_CLOSE
 	fxt_close(fut);
