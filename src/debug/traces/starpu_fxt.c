@@ -4070,10 +4070,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			_starpu_fxt_process_computations(options);
 	}
 
+	unsigned i;
 	if (!options->no_flops)
 	{
-		/* computations are supposed to be over, drop any pending comp */
-		unsigned i;
+		/* computations are supposed to be over, unref any pending comp */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
 			struct _starpu_computation *comp = ongoing_computation[i];
@@ -4081,11 +4081,21 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			{
 				STARPU_ASSERT(!comp->peer);
 				_starpu_computation_list_erase(&computation_list, comp);
-				ongoing_computation[i] = 0;
 			}
 		}
 		/* And flush completed computations */
 		_starpu_fxt_process_computations(options);
+	}
+
+	for (i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
+		struct _starpu_computation *comp = ongoing_computation[i];
+		if (comp)
+		{
+			STARPU_ASSERT(!comp->peer);
+			_starpu_computation_delete(comp);
+			ongoing_computation[i] = 0;
+		}
 	}
 
 	if (out_paje_file && !options->no_bus)
@@ -4118,7 +4128,6 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 	if (out_paje_file && !options->no_flops)
 	{
-		unsigned i;
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
 			if (last_codelet_end[i] != 0.0)
