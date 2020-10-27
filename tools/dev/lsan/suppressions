@@ -30,3 +30,6 @@ leak:hwloc_topology_set_xml
 leak:hwloc_components_init
 leak:hwloc_plugins_init
 leak:hwloc_plugins_exit
+
+# papi
+leak:_pe_libpfm4_init
