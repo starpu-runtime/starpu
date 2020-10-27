@@ -1555,8 +1555,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_timing_init();
 
-	_starpu_profiling_init();
-
 	_starpu_load_bus_performance_files();
 
 	/* Depending on whether we are a MP sink or not, we must build the
@@ -1586,6 +1584,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #endif
 		return ret;
 	}
+
+	_starpu_profiling_init();
 
 	_starpu_task_init();
 
