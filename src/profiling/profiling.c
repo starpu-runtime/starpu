@@ -186,7 +186,7 @@ void _starpu_profiling_papi_task_start_counters(struct starpu_task *task)
 
 	struct starpu_profiling_task_info *profiling_info;
 	profiling_info = task->profiling_info;
-	if (profiling_info)
+	if (profiling_info && papi_nevents)
 	{
 		profiling_info->papi_event_set = PAPI_NULL;
 		STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
@@ -215,7 +215,7 @@ void _starpu_profiling_papi_task_stop_counters(struct starpu_task *task)
 	struct starpu_profiling_task_info *profiling_info;
 	profiling_info = task->profiling_info;
 
-	if (profiling_info)
+	if (profiling_info && papi_nevents)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
 		PAPI_stop(profiling_info->papi_event_set, profiling_info->papi_values);
