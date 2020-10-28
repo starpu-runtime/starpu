@@ -161,6 +161,7 @@ void _starpu_profiling_init(void)
 		char *conf_papi_events;
 		char *papi_event_name;
 		conf_papi_events = starpu_getenv("STARPU_PROF_PAPI_EVENTS");
+		papi_nevents = 0;
 		if (conf_papi_events != NULL)
 		{
 			while ((papi_event_name = strtok_r(conf_papi_events, " ,", &conf_papi_events)))
