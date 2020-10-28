@@ -165,7 +165,13 @@ void _starpu_profiling_init(void)
 		{
 			while ((papi_event_name = strtok_r(conf_papi_events, " ,", &conf_papi_events)))
 			{
-				_STARPU_DEBUG("Loading PAPI Event:%s\n", papi_event_name);
+				if (papi_nevents == PAPI_MAX_HWCTRS)
+				{
+				      _STARPU_MSG("Too many requested papi counters, ignoring %s\n", papi_event_name);
+				      continue;
+				}
+
+				_STARPU_DEBUG("Loading PAPI Event: %s\n", papi_event_name);
 				retval = PAPI_event_name_to_code ((char*)papi_event_name, &papi_events[papi_nevents]);
 				if (retval != PAPI_OK)
 				      _STARPU_MSG("Failed to codify papi event [%s], error: %s.\n", papi_event_name, PAPI_strerror(retval));
