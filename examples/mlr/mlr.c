@@ -44,6 +44,12 @@
 #include <stdint.h>
 #include <starpu.h>
 
+#ifdef STARPU_QUICK_CHECK
+#define NTASKS 10
+#else
+#define NTASKS 1000
+#endif
+
 static long sum;
 
 /* Performance function of the task, which is in this case very simple, as the parameter values just need to be written in the array "parameters" */
@@ -183,7 +189,7 @@ int main(void)
 		vector_mn[1] = n;
 		starpu_data_release(vector_mn_handle);
 
-		for (j = 0; j < 1000; j++)
+		for (j = 0; j < NTASKS; j++)
 		{
 			starpu_insert_task(&cl_init,
 					   STARPU_R, vector_mn_handle,
