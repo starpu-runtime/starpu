@@ -31,7 +31,9 @@ void axpy_opencl(void *buffers[], void *_args)
 
 	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
 	cl_mem x = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
+	unsigned x_offset = STARPU_VECTOR_GET_OFFSET(buffers[0]);
 	cl_mem y = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[1]);
+	unsigned y_offset = STARPU_VECTOR_GET_OFFSET(buffers[1]);
 
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
@@ -41,9 +43,11 @@ void axpy_opencl(void *buffers[], void *_args)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
 	err = clSetKernelArg(kernel, 0, sizeof(x), &x);
-	err|= clSetKernelArg(kernel, 1, sizeof(y), &y);
-	err|= clSetKernelArg(kernel, 2, sizeof(n), &n);
-	err|= clSetKernelArg(kernel, 3, sizeof(*alpha), alpha);
+	err|= clSetKernelArg(kernel, 1, sizeof(x_offset), &x_offset);
+	err|= clSetKernelArg(kernel, 2, sizeof(y), &y);
+	err|= clSetKernelArg(kernel, 3, sizeof(y_offset), &y_offset);
+	err|= clSetKernelArg(kernel, 4, sizeof(n), &n);
+	err|= clSetKernelArg(kernel, 5, sizeof(*alpha), alpha);
 	if (err)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
