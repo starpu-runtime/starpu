@@ -189,7 +189,7 @@ main(void) {
    cl_ulong val; \
    err = clGetDeviceInfo(devices[j], CL_D, sizeof(val), &val, NULL); \
    checkErr(err, "clGetDeviceInfo(" #CL_D ")"); \
-   printf(str, val); \
+   printf(str, (unsigned long long) val); \
 }
 
 #define GET_BOOL(CL_D,str) { \
@@ -223,7 +223,7 @@ main(void) {
                GET_UINT(CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE, "  Preferred vector width double:\t\t %u\n")
                GET_UINT(CL_DEVICE_MAX_CLOCK_FREQUENCY, "  Max clock frequency:\t\t\t\t %uMHz\n")
                GET_UINT(CL_DEVICE_ADDRESS_BITS, "  Address bits:\t\t\t\t\t %ubits\n")
-               GET_ULONG(CL_DEVICE_MAX_MEM_ALLOC_SIZE, "  Max memory allocation:\t\t\t %lu bytes\n")
+               GET_ULONG(CL_DEVICE_MAX_MEM_ALLOC_SIZE, "  Max memory allocation:\t\t\t %llu bytes\n")
 
                GET_BOOL(CL_DEVICE_IMAGE_SUPPORT, "  Image support:\t\t\t\t %s\n")
 
@@ -258,9 +258,9 @@ main(void) {
                }
 
                GET_UINT(CL_DEVICE_GLOBAL_MEM_CACHELINE_SIZE, "  Cache line size:\t\t\t\t %u bytes\n")
-               GET_ULONG(CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, "  Cache size:\t\t\t\t\t %lu bytes\n")
-               GET_ULONG(CL_DEVICE_GLOBAL_MEM_SIZE, "  Global memory size:\t\t\t\t %lu bytes\n")
-               GET_ULONG(CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, "  Constant buffer size:\t\t\t\t %lu bytes\n")
+               GET_ULONG(CL_DEVICE_GLOBAL_MEM_CACHE_SIZE, "  Cache size:\t\t\t\t\t %llu bytes\n")
+               GET_ULONG(CL_DEVICE_GLOBAL_MEM_SIZE, "  Global memory size:\t\t\t\t %llu bytes\n")
+               GET_ULONG(CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, "  Constant buffer size:\t\t\t\t %llu bytes\n")
                GET_UINT(CL_DEVICE_MAX_CONSTANT_ARGS, "  Max number of constant args:\t\t\t %u\n")
 
                {
@@ -278,7 +278,7 @@ main(void) {
                   }
                }
 
-               GET_ULONG(CL_DEVICE_LOCAL_MEM_SIZE, "  Local memory size:\t\t\t\t %lu bytes\n")
+               GET_ULONG(CL_DEVICE_LOCAL_MEM_SIZE, "  Local memory size:\t\t\t\t %llu bytes\n")
                GET_SIZET(CL_DEVICE_PROFILING_TIMER_RESOLUTION, "  Profiling timer resolution:\t\t\t %u\n")
                GET_BOOL_CUSTOM(CL_DEVICE_ENDIAN_LITTLE, "  Device endianess:\t\t\t\t %s\n", "Little", "Big")
                GET_BOOL(CL_DEVICE_AVAILABLE, "  Available:\t\t\t\t\t %s\n")
