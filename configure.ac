@@ -3556,6 +3556,7 @@ AC_OUTPUT([
 	mpi/src/Makefile
 	mpi/tests/Makefile
 	mpi/examples/Makefile
+	mpi/GNUmakefile
 	sc_hypervisor/Makefile
 	sc_hypervisor/src/Makefile
 	sc_hypervisor/examples/Makefile
