@@ -1,0 +1,45 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
+
+SUBDIRS=
+
+@STARPU_BUILD_EXAMPLES_TRUE@SUBDIRS += examples
+@STARPU_BUILD_TESTS_TRUE@SUBDIRS += tests
+
+check: check-recursive
+
+# divide by 4 the number of jobs to run in parallel, since mpirun will start 4
+# processes in the tests and examples
+@STARPU_SIMGRID_FALSE@check-recursive:
+@STARPU_SIMGRID_FALSE@	RET=0 ; \
+@STARPU_SIMGRID_FALSE@	NJOBS=`printf %s "$(MAKEFLAGS)" | sed -ne 's/.*-j \?\([0-9]\+\).*/\1/p'` ; \
+@STARPU_SIMGRID_FALSE@	JOBS="" ; \
+@STARPU_SIMGRID_FALSE@	if [ -n "$$NJOBS" ] ; then \
+@STARPU_SIMGRID_FALSE@		if [ "$$NJOBS" -ge 4 ] ; then \
+@STARPU_SIMGRID_FALSE@			JOBS="-j$$(($$NJOBS / 4))" ; \
+@STARPU_SIMGRID_FALSE@		else \
+@STARPU_SIMGRID_FALSE@			JOBS="-j1" ; \
+@STARPU_SIMGRID_FALSE@		fi ; \
+@STARPU_SIMGRID_FALSE@	fi ; \
+@STARPU_SIMGRID_FALSE@	for i in $(SUBDIRS) ; do \
+@STARPU_SIMGRID_FALSE@		$(MAKE) check -C $$i MAKEFLAGS="$(MAKEFLAGS) $$JOBS" || RET=1; \
+@STARPU_SIMGRID_FALSE@	done ; \
+@STARPU_SIMGRID_FALSE@	exit $$RET
+
+%: force
+	@$(MAKE) -f Makefile $@
+
+force: ;
