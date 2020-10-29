@@ -36,7 +36,7 @@ g_func.append(starpu.joblib.delayed(func1)())
 def func2():
 	print ("Example 3:")
 	return 12
-g_func.append(starpu.joblib.delayed(func2)())	
+g_func.append(starpu.joblib.delayed(func2)())
  
 #function has 2 int inputs and 1 int output
 def multi(a,b):
@@ -61,7 +61,8 @@ def sub(a,b,c):
 g_func.append(starpu.joblib.delayed(sub)(6, 2, 5.9))
 
 #the size of generator
-N=1000
+N=1000000
+
 print("************************")
 print("parallel Normal version:")
 print("************************")
@@ -69,7 +70,7 @@ print("--input is iterable argument list, example 1")
 starpu.joblib.parallel(mode="normal", n_jobs=-2, perfmodel="first")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
 
 print("--input is iterable argument list, example 2")
-starpu.joblib.parallel(mode="normal", n_jobs=-2, perfmodel="second")(starpu.joblib.delayed(log10)(10**i)for i in range(N))
+starpu.joblib.parallel(mode="normal", n_jobs=2, perfmodel="second")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
 
 print("--input is iterable function list")
 starpu.joblib.parallel(mode="normal", n_jobs=3, perfmodel="third")(g_func)
@@ -82,19 +83,19 @@ async def main():
 	print("--input is iterable argument list, example 1")
 	fut1=starpu.joblib.parallel(mode="future", n_jobs=-3, perfmodel="first")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
 	res1=await fut1
-	print(res1)
+	#print(res1)
 
 	print("--input is iterable argument list, example 2")
-	fut2=starpu.joblib.parallel(mode="future", n_jobs=-3, perfmodel="second")(starpu.joblib.delayed(log10)(10**i)for i in range(N))
+	fut2=starpu.joblib.parallel(mode="future", n_jobs=-3, perfmodel="second")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
 	res2=await fut2
-	print(res2)
+	#print(res2)
 
 	print("--input is iterable function list")
 	fut3=starpu.joblib.parallel(mode="future", n_jobs=2, perfmodel="third")(g_func)
 	res3=await fut3
-	print(res3)
+	#print(res3)
 asyncio.run(main())
 
-starpu.joblib.dump_perfmodel(perfmodel="first")
-starpu.joblib.dump_perfmodel(perfmodel="second")
-starpu.joblib.dump_perfmodel(perfmodel="third")
+starpu.joblib.perfmodel_plot(perfmodel="first")
+starpu.joblib.perfmodel_plot(perfmodel="second")
+starpu.joblib.perfmodel_plot(perfmodel="third")
