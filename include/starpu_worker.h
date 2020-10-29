@@ -302,6 +302,9 @@ struct starpu_tree* starpu_workers_get_tree(void);
 
 unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
 
+/**
+   Return whether worker \p workerid is currently blocked in a parallel task.
+ */
 unsigned starpu_worker_is_blocked_in_parallel(int workerid);
 
 unsigned starpu_worker_is_slave_somewhere(int workerid);

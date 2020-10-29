@@ -16,6 +16,9 @@
 #
 INPUT                  = @top_srcdir@/doc/doxygen_dev/chapters         \
                          @top_builddir@/doc/doxygen_dev/config.h \
+			 @top_srcdir@/include/starpu_driver.h \
+			 @top_srcdir@/include/starpu_worker.h \
+			 @top_srcdir@/include/starpu_config.h \
 			 @top_srcdir@/src/datawizard/data_request.h \
 			 @top_srcdir@/src/datawizard/coherency.h \
 			 @top_srcdir@/src/datawizard/sort_data_handles.h \
