@@ -76,6 +76,7 @@ chapters =	\
 	chapters/370_online_performance_tools.doxy		\
 	chapters/380_offline_performance_tools.doxy		\
 	chapters/390_faq.doxy		\
+	chapters/400_python.doxy		\
 	chapters/401_out_of_core.doxy		\
 	chapters/410_mpi_support.doxy		\
 	chapters/415_fault_tolerance.doxy	\
