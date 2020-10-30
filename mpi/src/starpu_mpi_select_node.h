@@ -19,6 +19,8 @@
 
 #include <mpi.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {

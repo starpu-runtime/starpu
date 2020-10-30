@@ -114,11 +114,13 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 			}
 #else
 #  ifdef STARPU_PAPI
-			_starpu_profiling_papi_task_start_counters(task);
+			if (rank == 0)
+				_starpu_profiling_papi_task_start_counters(task);
 #  endif
 			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
 #  ifdef STARPU_PAPI
-			_starpu_profiling_papi_task_stop_counters(task);
+			if (rank == 0)
+				_starpu_profiling_papi_task_stop_counters(task);
 #  endif
 #endif
 			_STARPU_TRACE_END_EXECUTING();

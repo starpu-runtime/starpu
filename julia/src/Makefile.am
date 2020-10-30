@@ -19,9 +19,9 @@ include $(top_srcdir)/starpu-notests.mk
 CLEANFILES = *.gcno *.gcda
 
 AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(HWLOC_CFLAGS) $(FXT_CFLAGS) -fPIC
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ `@JULIA@ $(top_srcdir)/julia/src/openblas_ldflags.jl`
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_srcdir)/julia/src
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) -no-undefined
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ `@JULIA@ $(top_srcdir)/julia/src/openblas_ldflags.jl`
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS)
 
 SUBDIRS = dynamic_compiler
 

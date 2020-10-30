@@ -341,6 +341,9 @@ void _starpu_release_nowhere_task_output(struct _starpu_job *j);
 
 struct _starpu_worker;
 STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
+/** Fetch the data parameters for task \p task
+ * Setting \p async to 1 allows to only start the fetches, and call
+ * \p _starpu_fetch_task_input_tail later when the transfers are finished */
 int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, int async);
 void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job *j, struct _starpu_worker *worker);
 void _starpu_fetch_nowhere_task_input(struct _starpu_job *j);

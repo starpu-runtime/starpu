@@ -39,7 +39,7 @@ unsigned long _starpu_job_cnt = 0;
 #include <sys/thr.h>       /* for thr_self() */
 #endif
 
-static char _STARPU_PROF_FILE_USER[128];
+static char _starpu_prof_file_user[128];
 int _starpu_fxt_started = 0;
 int _starpu_fxt_willstart = 1;
 starpu_pthread_mutex_t _starpu_fxt_started_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
@@ -95,26 +95,25 @@ static void _starpu_profile_set_tracefile(void)
 
 	char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
 	if (!fxt_prefix)
-	     fxt_prefix = "/tmp/";
+		fxt_prefix = "/tmp";
+	else
+		_starpu_mkpath_and_check(fxt_prefix, S_IRWXU);
+
+	char suffix[64];
+	char *fxt_suffix = starpu_getenv("STARPU_FXT_SUFFIX");
+	if (!fxt_suffix)
+	{
+		user = starpu_getenv("USER");
+		if (!user)
+			user = "";
+		snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
+	}
 	else
 	{
-		// Check if the given folder really exists:
-		struct stat folder_stat;
-		if (stat(fxt_prefix, &folder_stat) < 0 || !S_ISDIR(folder_stat.st_mode))
-		{
-			_STARPU_MSG("%s is not a valid directory.\n", fxt_prefix);
-			_starpu_abort();
-		}
+		snprintf(suffix, sizeof(suffix), "%s_%d", fxt_suffix, _starpu_id);
 	}
 
-	user = starpu_getenv("USER");
-	if (!user)
-		user = "";
-
-	char suffix[128];
-	snprintf(suffix, sizeof(suffix), "prof_file_%s_%d", user, _starpu_id);
-
-	snprintf(_STARPU_PROF_FILE_USER, sizeof(_STARPU_PROF_FILE_USER), "%s%s", fxt_prefix, suffix);
+	snprintf(_starpu_prof_file_user, sizeof(_starpu_prof_file_user), "%s/%s", fxt_prefix, suffix);
 }
 
 void starpu_profiling_set_id(int new_id)
@@ -124,7 +123,7 @@ void starpu_profiling_set_id(int new_id)
 	_starpu_profile_set_tracefile();
 
 #ifdef HAVE_FUT_SET_FILENAME
-	fut_set_filename(_STARPU_PROF_FILE_USER);
+	fut_set_filename(_starpu_prof_file_user);
 #endif
 }
 
@@ -184,7 +183,7 @@ void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
 	_starpu_profile_set_tracefile();
 
 #ifdef HAVE_FUT_SET_FILENAME
-	fut_set_filename(_STARPU_PROF_FILE_USER);
+	fut_set_filename(_starpu_prof_file_user);
 #endif
 #ifdef HAVE_ENABLE_FUT_FLUSH
 	// when the event buffer is full, fxt stops recording events.
@@ -261,7 +260,7 @@ static void _starpu_generate_paje_trace_read_option(const char *option, struct s
 	}
 }
 
-static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_paje_filename)
+static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_paje_filename, char *dirname)
 {
 	/* We take default options */
 	struct starpu_fxt_options options;
@@ -283,6 +282,7 @@ static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_p
 	options.out_paje_path = output_paje_filename;
 	options.file_prefix = "";
 	options.file_rank = -1;
+	options.dir = dirname;
 
 	starpu_fxt_generate_trace(&options);
 }
@@ -291,10 +291,17 @@ void _starpu_fxt_dump_file(void)
 {
 	if (!_starpu_fxt_started)
 		return;
+
+	char hostname[128];
+	gethostname(hostname, 128);
+
+	int ret = fut_endup(_starpu_prof_file_user);
+	if (ret < 0)
+		_STARPU_MSG("Problem when writing FxT traces into file %s:%s\n", hostname, _starpu_prof_file_user);
 #ifdef STARPU_VERBOSE
-	_STARPU_MSG("Writing FxT traces into file %s\n", _STARPU_PROF_FILE_USER);
+	else
+		_STARPU_MSG("Writing FxT traces into file %s:%s\n", hostname, _starpu_prof_file_user);
 #endif
-	fut_endup(_STARPU_PROF_FILE_USER);
 }
 
 void _starpu_stop_fxt_profiling(void)
@@ -303,17 +310,15 @@ void _starpu_stop_fxt_profiling(void)
 		return;
 	if (!_starpu_written)
 	{
-#ifdef STARPU_VERBOSE
-	        char hostname[128];
-		gethostname(hostname, 128);
-		_STARPU_MSG("Writing FxT traces into file %s:%s\n", hostname, _STARPU_PROF_FILE_USER);
-#endif
-		fut_endup(_STARPU_PROF_FILE_USER);
+		_starpu_fxt_dump_file();
 
 		/* Should we generate a Paje trace directly ? */
 		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
 		if (generate_trace == 1)
-			_starpu_generate_paje_trace(_STARPU_PROF_FILE_USER, "paje.trace");
+		{
+			char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
+			_starpu_generate_paje_trace(_starpu_prof_file_user, "paje.trace", fxt_prefix);
+		}
 
 		int ret = fut_done();
 		if (ret < 0)

@@ -27,6 +27,8 @@
 #include <common/starpu_spinlock.h>
 #include <core/simgrid.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -246,7 +248,8 @@ LIST_TYPE(_starpu_mpi_req,
 
 	int ret;
 
-	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
+	/** 0 send, 1 recv */
+	enum _starpu_mpi_request_type request_type;
 
 	unsigned submitted;
 	unsigned completed;
@@ -315,8 +318,10 @@ struct _starpu_mpi_argc_argv
 	int *argc;
 	char ***argv;
 	MPI_Comm comm;
-	int fargc;	// Fortran argc
-	char **fargv;	// Fortran argv
+	/** Fortran argc */
+	int fargc;
+	/** Fortran argv */
+	char **fargv;
 	int rank;
 	int world_size;
 };

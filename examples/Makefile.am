@@ -20,9 +20,10 @@ include $(top_srcdir)/starpu.mk
 
 AM_CFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ $(MAGMA_LIBS) $(HWLOC_LIBS) @LIBS@ $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
-AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(MAGMA_LIBS) $(HWLOC_LIBS) $(FXT_LIBS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 SUBDIRS = stencil
 
@@ -75,7 +76,7 @@ EXTRA_DIST = 					\
 	lu/lu.sh
 
 
-CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps *.dot *.pl *.png *.output tasks.rec perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90
+CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.mps */*/*.mps *.dot */*.dot */*/*.dot *.pl */*.pl */*/*.pl *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90
 
 if STARPU_USE_CUDA
 
@@ -165,7 +166,7 @@ if !STARPU_HAVE_WINDOWS
 ## test loader program
 if !STARPU_CROSS_COMPILING
 LOADER			=	loader
-loader_CPPFLAGS 	=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS 	=	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
 noinst_PROGRAMS		+=	loader
@@ -1012,7 +1013,7 @@ endif
 examplebin_PROGRAMS +=				\
 	mandelbrot/mandelbrot
 
-mandelbrot_mandelbrot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS)
+mandelbrot_mandelbrot_CPPFLAGS = $(AM_CPPFLAGS)
 if STARPU_HAVE_X11
 mandelbrot_mandelbrot_CPPFLAGS += $(X_CFLAGS)
 mandelbrot_mandelbrot_LDADD = $(X_PRE_LIBS) $(X_LIBS) -lX11 $(X_EXTRA_LIBS)

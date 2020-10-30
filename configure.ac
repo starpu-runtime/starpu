@@ -152,14 +152,14 @@ if test x$enable_simgrid = xyes ; then
 	PKG_CHECK_MODULES([SIMGRID], [simgrid], [], [:])
 
 	if test "$simgrid_include_dir" != "no" ; then
-	   	SIMGRID_CFLAGS="$SIMGRID_CFLAGS -I$simgrid_include_dir"
+		SIMGRID_CFLAGS="-I$simgrid_include_dir $SIMGRID_CFLAGS"
 	fi
 	if test "$simgrid_lib_dir" != "no" ; then
-	   	SIMGRID_LIBS="$SIMGRID_LIBS -L$simgrid_lib_dir"
+		SIMGRID_LIBS="-L$simgrid_lib_dir $SIMGRID_LIBS"
 	fi
 	if test "$simgrid_dir" != "no" ; then
-	   	SIMGRID_CFLAGS="$SIMGRID_CFLAGS -I$simgrid_dir/include"
-	   	SIMGRID_LIBS="$SIMGRID_LIBS -L$simgrid_dir/lib"
+		SIMGRID_CFLAGS="-I$simgrid_dir/include $SIMGRID_CFLAGS"
+		SIMGRID_LIBS="-L$simgrid_dir/lib $SIMGRID_LIBS"
 	fi
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
@@ -226,9 +226,9 @@ if test x$enable_simgrid = xyes ; then
 		LIBS="$LIBS -lstdc++"
 	fi
 
-	case \ $CXXFLAGS\  in 
+	case \ $CXXFLAGS\  in
 	*\ -std=*\ *) ;;
-	*) 
+	*)
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 				  #ifdef STARPU_HAVE_SIMGRID_MSG_H
 				  #include <simgrid/msg.h>
@@ -248,6 +248,8 @@ if test x$enable_simgrid = xyes ; then
 		AC_DEFINE(STARPU_SIMGRID_MC, [1], [Define this to enable Model Checker in simgrid execution])
 		AC_PATH_PROG([SIMGRID_MC], [simgrid-mc], [no], [$simgrid_dir/bin:$PATH])
 		LDFLAGS="$LDFLAGS -Wl,-znorelro -Wl,-znoseparate-code"
+		# libsimgrid needs to be linked from binaries themselves for MC to work
+		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS -lsimgrid"
 	fi
 fi
 AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
@@ -448,6 +450,10 @@ if test x$enable_mpi = xyes -a x$enable_nmad = xyes ; then
     build_nmad_lib=yes
     build_mpi_lib=no
     PKG_CHECK_MODULES([NMAD],[nmad])
+    AC_CHECK_DECL([piom_ltask_set_bound_thread_os_indexes], have_piom_ltask_set_bound_thread_os_indexes=yes, have_piom_ltask_set_bound_thread_os_indexes=no, [[#include <pioman.h>]])
+    if test x$have_piom_ltask_set_bound_thread_os_indexes = xyes; then
+      AC_DEFINE(HAVE_PIOM_LTASK_SET_BOUND_THREAD_OS_INDEXES, [1], [piom_ltask_set_bound_thread_os_indexes is availabe])
+    fi
 else
     build_nmad_lib=no
 fi
@@ -1298,9 +1304,9 @@ if test x$enable_cuda = xyes; then
 	STARPU_CUFFT_LDFLAGS="-lcufft"
 
 	AC_LANG_PUSH([C++])
-	case \ $NVCCFLAGS\  in 
+	case \ $NVCCFLAGS\  in
 	*\ -std=*\ *) ;;
-	*) 
+	*)
 		SAVED_CXX="$CXX"
 		CXX="$NVCC"
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -1323,7 +1329,7 @@ if test x$enable_cuda = xyes; then
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag, if missing from existing flags
 	if test x$SIZEOF_VOID_P = x8; then
-		case \ $NVCCFLAGS\  in 
+		case \ $NVCCFLAGS\  in
 			*\ -m64\ *) ;;
 			*) NVCCFLAGS="${NVCCFLAGS} -m64" ;;
 		esac
@@ -2079,8 +2085,10 @@ if test x$use_fxt = xyes; then
 	LIBS="$LIBS $FXT_LIBS"
 	save_LDFLAGS="$LDFLAGS"
 	LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
-   	AC_CHECK_FUNCS([enable_fut_flush])
-   	AC_CHECK_FUNCS([fut_set_filename])
+	AC_CHECK_FUNCS([fxt_close])
+	AC_CHECK_FUNCS([fxt_blockev_leave])
+	AC_CHECK_FUNCS([enable_fut_flush])
+	AC_CHECK_FUNCS([fut_set_filename])
 	AC_CHECK_FUNCS([fut_setup_flush_callback])
 	LDFLAGS="$save_LDFLAGS"
 	LIBS="$save_LIBS"
@@ -2705,7 +2713,7 @@ if test "x$use_mpi_master_slave" = "xyes" ; then
       AC_MSG_ERROR([MPI Master-Slave and SOCL can not be used at the same time !])
    fi
    if test "x$enable_socl" = "xmaybe" ; then
-     enable_socl=no 
+     enable_socl=no
    fi
 fi
 
@@ -3271,9 +3279,9 @@ then
 			[AS_HELP_STRING([--with-dlb-include-dir=<path>],
 			[specify where DLB headers are installed])],
 			[dlb_inc_dirs="$withval"], [dlb_inc_dirs=""])
-	
+
 		dlb_inc_dirs="${dlb_inc_dirs} /usr/include/dlb"
-	
+
 		dlb_incdir_found=no
 		for dlb_incdir in $dlb_inc_dirs
 		do
@@ -3294,18 +3302,18 @@ then
 				unset ac_cv_header_dlb_h
 			fi
 		done
-	
+
 		AC_ARG_WITH(dlb-lib-dir,
 			[AS_HELP_STRING([--with-dlb-lib-dir=<path>],
 			[specify where DLB libraries are installed])],
 			[dlb_lib_dirs="$withval"], [dlb_lib_dirs=""])
-	
+
 		dlb_lib_dirs="${dlb_lib_dirs} /usr/lib/dlb"
-	
+
 		dlb_libdir_found=no
 		for dlb_libdir in $dlb_lib_dirs
 		do
-			if test -n "$dlb_libdir" 
+			if test -n "$dlb_libdir"
 			then
 				SAVED_LDFLAGS="${LDFLAGS}"
 				LDFLAGS=-L${dlb_libdir}
@@ -3322,7 +3330,7 @@ then
 				unset ac_cv_lib_dlb_DLB_Init
 			fi
 		done
-	
+
 		SAVED_CPPFLAGS="${CPPFLAGS}"
 		SAVED_CFLAGS="${CFLAGS}"
 		SAVED_LDFLAGS="${LDFLAGS}"
@@ -3334,7 +3342,7 @@ then
 		CPPFLAGS="$SAVED_CPPFLAGS"
 		CFLAGS="$SAVED_CFLAGS"
 		LIBS="$SAVED_LIBS"
-	
+
 		SAVED_CPPFLAGS="${CPPFLAGS}"
 		SAVED_CFLAGS="${CFLAGS}"
 		SAVED_LDFLAGS="${LDFLAGS}"
@@ -3350,13 +3358,13 @@ then
 		CPPFLAGS="$SAVED_CPPFLAGS"
 		CFLAGS="$SAVED_CFLAGS"
 		LIBS="$SAVED_LIBS"
-	
+
 		if test "x$dlb_incdir_found" != "xyes" -o "x$dlb_libdir_found" != "xyes"
 		then
 			enable_dlb=no
 		fi
 	fi
-	
+
 	AC_MSG_CHECKING(whether DLB support should be enabled)
 	AC_MSG_RESULT($enable_dlb)
 	if test "x$enable_dlb" != "xno"
@@ -3386,33 +3394,30 @@ AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
 			enable_starpurm_examples=$enableval, enable_starpurm_examples=no)
 AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
 
-
-
 ##########################################
 # Documentation                          #
 ##########################################
 
 def_enable_build_doc="yes"
-def_enable_build_doc_pdf="no"
 available_doc="no"
 if test -d "$srcdir/doc/doxygen/html" ; then
    def_enable_build_doc="no"
    available_doc="yes"
 fi
-available_doc_pdf="no"
-if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
-   def_enable_build_doc="no"
-   def_enable_build_doc_pdf="no"
-   available_doc_pdf="yes"
-fi
 
 AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
-			enable_build_doc=$enableval, enable_build_doc=$enable_build_doc)
+			enable_build_doc=$enableval, enable_build_doc=$def_enable_build_doc)
 
 AC_ARG_ENABLE(build-doc-pdf, [AS_HELP_STRING([--enable-build-doc-pdf],
 			[enable building of PDF documentation])],
 			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=$def_enable_build_doc_pdf)
+
+available_doc_pdf="no"
+if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
+   enable_build_doc_pdf="no"
+   available_doc_pdf="yes"
+fi
 
 # Check whether doxygen needed tools are installed
 AC_PATH_PROG(doxygencommand, doxygen)
@@ -3476,7 +3481,6 @@ LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
-AC_SUBST([LIBSTARPU_LINK])
 
 if test "x$enable_shared" = xno; then
         # No .so, so application will unexpected have to know which -l to
@@ -3484,6 +3488,8 @@ if test "x$enable_shared" = xno; then
 	AC_DEFINE(STARPU_STATIC_ONLY, [1], [Only static compilation was made])
 	STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
 fi
+LIBSTARPU_LINK="$LIBSTARPU_LINK $STARPU_EXPORTED_LIBS"
+AC_SUBST([LIBSTARPU_LINK])
 AC_SUBST(STARPU_EXPORTED_LIBS)
 
 # File configuration
@@ -3622,6 +3628,7 @@ AC_OUTPUT([
 	examples/stencil/Makefile
 	tests/Makefile
 	tests/loader-cross.sh
+	tests/model-checking/Makefile
 	tests/model-checking/starpu-mc.sh
 	examples/loader-cross.sh
 	examples/stencil/loader-cross.sh
@@ -3630,6 +3637,7 @@ AC_OUTPUT([
 	mpi/tests/Makefile
 	mpi/examples/Makefile
 	mpi/tools/Makefile
+	mpi/GNUmakefile
 	sc_hypervisor/Makefile
 	sc_hypervisor/src/Makefile
 	sc_hypervisor/examples/Makefile
@@ -3689,7 +3697,7 @@ AC_MSG_NOTICE([
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
 	       FFT Support:                                   $fft_support
-	       Resource Management enable:                    $starpurm_support
+	       Resource Management enabled:                   $starpurm_support
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl

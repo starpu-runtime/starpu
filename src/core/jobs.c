@@ -62,6 +62,7 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	j->exclude_from_dag = 1;
+	_STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(j);
 }
 
 /* create an internal struct _starpu_job structure to encapsulate the task */
@@ -387,6 +388,13 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	if (_starpu_graph_record)
 		_starpu_graph_drop_job(j);
 
+	/* Get callback pointer for codelet before notifying dependencies, in
+	   case dependencies free the codelet (see starpu_data_unregister for
+	   instance) */
+	void (*callback)(void *) = task->callback_func;
+	if (!callback && task->cl)
+		callback = task->cl->callback_func;
+
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
 	 * tasks waiting for us
@@ -424,7 +432,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		/* the callback is executed after the dependencies so that we may remove the tag
 		 * of the task itself */
-		if (task->callback_func)
+		if (callback)
 		{
 			int profiling = starpu_profiling_status_get();
 			if (profiling && task->profiling_info)
@@ -434,7 +442,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			 * within the callback */
 			_starpu_set_local_worker_status(STATUS_CALLBACK);
 
-
 			/* Perhaps we have nested callbacks (eg. with chains of empty
 			 * tasks). So we store the current task and we will restore it
 			 * later. */
@@ -443,7 +450,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_set_current_task(task);
 
 			_STARPU_TRACE_START_CALLBACK(j);
-			task->callback_func(task->callback_arg);
+			if (callback)
+				callback(task->callback_arg);
 			_STARPU_TRACE_END_CALLBACK(j);
 
 			_starpu_set_current_task(current_task);

@@ -133,7 +133,10 @@ static void parse_args(int rank, int argc, char **argv)
 
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
-		size = 16;
+	{
+		size = 4;
+		nblocks = 4;
+	}
 #endif
 }
 

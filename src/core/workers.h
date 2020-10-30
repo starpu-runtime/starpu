@@ -204,7 +204,7 @@ LIST_TYPE(_starpu_worker,
 	int enable_knob;
 	int bindid_requested;
 
-	/* Keep this last, to make sure to separate worker data in separate
+	  /** Keep this last, to make sure to separate worker data in separate
 	  cache lines. */
 	char padding[STARPU_CACHELINE_SIZE];
 );
@@ -228,7 +228,7 @@ struct _starpu_combined_worker
 	hwloc_bitmap_t hwloc_cpu_set;
 #endif
 
-	/* Keep this last, to make sure to separate worker data in separate
+	/** Keep this last, to make sure to separate worker data in separate
 	  cache lines. */
 	char padding[STARPU_CACHELINE_SIZE];
 };
@@ -397,7 +397,7 @@ struct _starpu_machine_config
 	/** Memory node for MPI, if only one */
 	int mpi_nodeid;
 
-	/* Separate out previous variables from per-worker data. */
+	/** Separate out previous variables from per-worker data. */
 	char padding1[STARPU_CACHELINE_SIZE];
 
 	/** Basic workers : each of this worker is running its own driver and
@@ -410,7 +410,7 @@ struct _starpu_machine_config
 
 	starpu_pthread_mutex_t submitted_mutex;
 
-	/* Separate out previous mutex from the rest of the data. */
+	/** Separate out previous mutex from the rest of the data. */
 	char padding2[STARPU_CACHELINE_SIZE];
 
 	/** Translation table from bindid to worker IDs */
@@ -803,6 +803,10 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
 	}
 }
 
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_enter_sched_op(worker) __starpu_worker_enter_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
+static inline void __starpu_worker_enter_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
+#else
 /** Mark the beginning of a scheduling operation by the worker. No worker
  * blocking operations on parallel tasks and no scheduling context change
  * operations must be performed on contexts containing the worker, on
@@ -819,9 +823,6 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
  *
  * Must be called with worker's sched_mutex held.
  */
-#ifdef STARPU_SPINLOCK_CHECK
-static inline void __starpu_worker_enter_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
-#else
 static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const worker)
 #endif
 {
@@ -864,18 +865,17 @@ static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const w
 	worker->relax_on_func = func;
 #endif
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_enter_sched_op(worker) __starpu_worker_enter_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
-#endif
 
+void _starpu_worker_apply_deferred_ctx_changes(void);
+
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_leave_sched_op(worker) __starpu_worker_leave_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
+static inline void __starpu_worker_leave_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
+#else
 /** Mark the end of a scheduling operation by the worker.
  *
  * Must be called with worker's sched_mutex held.
  */
-void _starpu_worker_apply_deferred_ctx_changes(void);
-#ifdef STARPU_SPINLOCK_CHECK
-static inline void __starpu_worker_leave_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
-#else
 static inline void _starpu_worker_leave_sched_op(struct _starpu_worker * const worker)
 #endif
 {
@@ -890,9 +890,6 @@ static inline void _starpu_worker_leave_sched_op(struct _starpu_worker * const w
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	_starpu_worker_apply_deferred_ctx_changes();
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_leave_sched_op(worker) __starpu_worker_leave_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
-#endif
 
 static inline int _starpu_worker_sched_op_pending(void)
 {
@@ -962,11 +959,12 @@ static inline void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * 
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 }
 
-/** Temporarily allow other worker to access current worker state, when still scheduling,
- * but the scheduling has not yet been made or is already done */
 #ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_on() __starpu_worker_relax_on(__FILE__, __LINE__, __starpu_func__)
 static inline void __starpu_worker_relax_on(const char*file, int line, const char* func)
 #else
+/** Temporarily allow other worker to access current worker state, when still scheduling,
+ * but the scheduling has not yet been made or is already done */
 static inline void _starpu_worker_relax_on(void)
 #endif
 {
@@ -990,15 +988,13 @@ static inline void _starpu_worker_relax_on(void)
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_relax_on() __starpu_worker_relax_on(__FILE__, __LINE__, __starpu_func__)
-#endif
 #define starpu_worker_relax_on _starpu_worker_relax_on
 
-/** Same, but with current worker mutex already held */
 #ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_on_locked(worker) __starpu_worker_relax_on_locked(worker,__FILE__, __LINE__, __starpu_func__)
 static inline void __starpu_worker_relax_on_locked(struct _starpu_worker *worker, const char*file, int line, const char* func)
 #else
+/** Same, but with current worker mutex already held */
 static inline void _starpu_worker_relax_on_locked(struct _starpu_worker *worker)
 #endif
 {
@@ -1017,11 +1013,9 @@ static inline void _starpu_worker_relax_on_locked(struct _starpu_worker *worker)
 #endif
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_relax_on_locked(worker) __starpu_worker_relax_on_locked(worker,__FILE__, __LINE__, __starpu_func__)
-#endif
 
 #ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_off() __starpu_worker_relax_off(__FILE__, __LINE__, __starpu_func__)
 static inline void __starpu_worker_relax_off(const char*file, int line, const char* func)
 #else
 static inline void _starpu_worker_relax_off(void)
@@ -1048,12 +1042,10 @@ static inline void _starpu_worker_relax_off(void)
 #endif
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_relax_off() __starpu_worker_relax_off(__FILE__, __LINE__, __starpu_func__)
-#endif
 #define starpu_worker_relax_off _starpu_worker_relax_off
 
 #ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_off_locked() __starpu_worker_relax_off_locked(__FILE__, __LINE__, __starpu_func__)
 static inline void __starpu_worker_relax_off_locked(const char*file, int line, const char* func)
 #else
 static inline void _starpu_worker_relax_off_locked(void)
@@ -1078,9 +1070,6 @@ static inline void _starpu_worker_relax_off_locked(void)
 	worker->relax_off_func = func;
 #endif
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_relax_off_locked() __starpu_worker_relax_off_locked(__FILE__, __LINE__, __starpu_func__)
-#endif
 
 static inline int _starpu_worker_get_relax_state(void)
 {
@@ -1201,8 +1190,8 @@ void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_tas
 void _starpu_set_catch_signals(int do_catch_signal);
 int _starpu_get_catch_signals(void);
 
-/* Performance Monitoring */
-static inline int _starpu_perf_counter_paused(void) 
+/** Performance Monitoring */
+static inline int _starpu_perf_counter_paused(void)
 {
 	STARPU_RMB();
 	return STARPU_UNLIKELY(_starpu_config.perf_counter_pause_depth > 0);

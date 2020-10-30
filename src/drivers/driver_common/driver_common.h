@@ -32,6 +32,8 @@ void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, 
 void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_worker *worker_args,
 					struct starpu_perfmodel_arch* perf_arch, int profiling);
 
+/** Get from the scheduler a task to be executed on the worker \p workerid */
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode);
+/** Get from the scheduler tasks to be executed on the workers \p workers */
 int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_task ** tasks, int nworker, unsigned memnode);
 #endif // __DRIVER_COMMON_H__

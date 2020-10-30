@@ -19,7 +19,7 @@
 
 
 
-void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
+void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int bidir)
 {
 	uint64_t iterations = LOOPS_DEFAULT;
 	uint64_t s = 0;
@@ -62,6 +62,7 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 	float* vector_recv = NULL;
 	double t1, t2, global_tstart, global_tend;
 	double* lats = malloc(sizeof(double) * LOOPS_DEFAULT);
+	starpu_mpi_req send_req, recv_req;
 
 	if (thread_barrier != NULL)
 	{
@@ -88,18 +89,38 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier)
 			if (mpi_rank == 0)
 			{
 				t1 = starpu_timing_now();
-				starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
-				starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, NULL);
+				if (bidir)
+				{
+					starpu_mpi_isend(handle_send, &send_req, 1, 0, MPI_COMM_WORLD);
+					starpu_mpi_irecv(handle_recv, &recv_req, 1, 1, MPI_COMM_WORLD);
+					starpu_mpi_wait(&send_req, MPI_STATUS_IGNORE);
+					starpu_mpi_wait(&recv_req, MPI_STATUS_IGNORE);
+				}
+				else
+				{
+					starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
+					starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, NULL);
+				}
 				t2 = starpu_timing_now();
 
-				const double t = (t2 -t1) / 2;
+				const double t = (t2 - t1) / 2;
 
 				lats[j] = t;
 			}
 			else
 			{
-				starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, NULL);
-				starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
+				if (bidir)
+				{
+					starpu_mpi_irecv(handle_recv, &recv_req, 0, 0, MPI_COMM_WORLD);
+					starpu_mpi_isend(handle_send, &send_req, 0, 1, MPI_COMM_WORLD);
+					starpu_mpi_wait(&recv_req, MPI_STATUS_IGNORE);
+					starpu_mpi_wait(&send_req, MPI_STATUS_IGNORE);
+				}
+				else
+				{
+					starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, NULL);
+					starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
+				}
 			}
 
 			starpu_mpi_barrier(MPI_COMM_WORLD);

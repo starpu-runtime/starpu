@@ -17,9 +17,10 @@ include $(top_srcdir)/starpu.mk
 
 AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
 AM_CXXFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
-LDADD = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(FXT_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
-AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(FXT_LDFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(FXT_LIBS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(FXT_LDFLAGS)
 
 EXTRA_DIST =					\
 	helper.h				\
@@ -67,14 +68,10 @@ EXTRA_DIST =					\
 	datawizard/interfaces/tensor/tensor_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
-	microbenchs/microbench.sh \
-	model-checking/platform.xml \
-	model-checking/prio_list.sh \
-	model-checking/barrier.sh \
-	model-checking/starpu-mc.sh.in
+	microbenchs/microbench.sh
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg
+	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg
 
 BUILT_SOURCES =
 SUBDIRS =
@@ -148,6 +145,7 @@ XFAIL_TESTS	=				\
 myPROGRAMS =
 
 myPROGRAMS +=					\
+	main/callback				\
 	main/bind				\
 	main/mkdtemp				\
 	main/execute_schedule			\
@@ -458,19 +456,7 @@ endif
 ################################
 
 if STARPU_SIMGRID_MC
-model_checking_prio_list_LDADD = 
-model_checking_prio_list_LDFLAGS = 
-noinst_PROGRAMS += model-checking/prio_list
-if !STARPU_QUICK_CHECK
-SHELL_TESTS += model-checking/prio_list.sh
-endif
-
-model_checking_starpu_barrier_LDADD = 
-model_checking_starpu_barrier_LDFLAGS = 
-noinst_PROGRAMS += model-checking/starpu_barrier
-if !STARPU_QUICK_CHECK
-#SHELL_TESTS += model-checking/barrier.sh
-endif
+SUBDIRS += model-checking
 endif
 
 #######################

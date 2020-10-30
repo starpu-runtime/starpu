@@ -279,6 +279,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		for (i = 0; i < task->ndata; i++)
 			fprintf(tasks_file, " %lu", task->data[i].size);
 		fprintf(tasks_file, "\n");
+		free(task->data);
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
 	fprintf(tasks_file, "\n");
@@ -447,23 +448,23 @@ static const char *get_worker_color(int workerid)
 	return worker_colors[workerid];
 }
 
-static unsigned get_colour_symbol_red(char *name)
+static unsigned get_color_symbol_red(char *name)
 {
-	/* choose some colour ... that's disguting yes */
+	/* choose some color ... that's disguting yes */
 	uint32_t hash_symbol = starpu_hash_crc32c_string(name, 0);
 	return (unsigned)starpu_hash_crc32c_string("red", hash_symbol) % 1024;
 }
 
-static unsigned get_colour_symbol_green(char *name)
+static unsigned get_color_symbol_green(char *name)
 {
-	/* choose some colour ... that's disguting yes */
+	/* choose some color ... that's disguting yes */
 	uint32_t hash_symbol = starpu_hash_crc32c_string(name, 0);
 	return (unsigned)starpu_hash_crc32c_string("green", hash_symbol) % 1024;
 }
 
-static unsigned get_colour_symbol_blue(char *name)
+static unsigned get_color_symbol_blue(char *name)
 {
-	/* choose some colour ... that's disguting yes */
+	/* choose some color ... that's disguting yes */
 	uint32_t hash_symbol = starpu_hash_crc32c_string(name, 0);
 	return (unsigned)starpu_hash_crc32c_string("blue", hash_symbol) % 1024;
 }
@@ -680,9 +681,7 @@ static int prefixTOnodeid (const char *prefix)
 	//if we are a single-node trace, prefix is empty, so return 0
 	if (strcmp(prefix, "")==0) return 0;
 
-	char *str;
-	_STARPU_MALLOC(str, sizeof(char)*strlen(prefix));
-	strncpy (str, prefix, strlen(prefix));
+	char *str = strdup(prefix);
 	str[strlen(prefix)-1] = '\0';
 	unsigned long nodeid = atoi(str);
 	free(str);
@@ -1420,10 +1419,10 @@ static void create_paje_state_if_not_found(char *name, unsigned color, struct st
 
 	_starpu_symbol_name_list_push_front(&symbol_list, entry);
 
-	/* choose some colour ... that's disguting yes */
-	unsigned hash_symbol_red = get_colour_symbol_red(name);
-	unsigned hash_symbol_green = get_colour_symbol_green(name);
-	unsigned hash_symbol_blue = get_colour_symbol_blue(name);
+	/* choose some color ... that's disguting yes */
+	unsigned hash_symbol_red = get_color_symbol_red(name);
+	unsigned hash_symbol_green = get_color_symbol_green(name);
+	unsigned hash_symbol_blue = get_color_symbol_blue(name);
 
 	uint32_t hash_sum = hash_symbol_red + hash_symbol_green + hash_symbol_blue;
 
@@ -1544,7 +1543,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	unsigned long has_name = ev->param[4];
 	char *name = has_name?get_fxt_string(ev, 5):"unknown";
 
-	snprintf(_starpu_last_codelet_symbol[worker], sizeof(_starpu_last_codelet_symbol[worker])-1, "%s", name);
+	snprintf(_starpu_last_codelet_symbol[worker], sizeof(_starpu_last_codelet_symbol[worker]), "%.*s", (int) sizeof(_starpu_last_codelet_symbol[worker])-1, name);
 	_starpu_last_codelet_symbol[worker][sizeof(_starpu_last_codelet_symbol[worker])-1] = 0;
 	last_codelet_parameter[worker] = 0;
 
@@ -1621,7 +1620,7 @@ static void handle_codelet_data(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, st
 	if (num >= MAX_PARAMETERS)
 		return;
 	char *name = get_fxt_string(ev, 1);
-	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num])-1, "%s", name);
+	snprintf(last_codelet_parameter_description[worker][num], sizeof(last_codelet_parameter_description[worker][num]), "%.*s", (int) sizeof(last_codelet_parameter_description[worker][num])-1, name);
 	last_codelet_parameter_description[worker][num][sizeof(last_codelet_parameter_description[worker][num])-1] = 0;
 }
 
@@ -1766,7 +1765,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	size_t codelet_size = ev->param[1];
 	uint32_t codelet_hash = ev->param[2];
 	long unsigned int threadid = ev->param[4];
-	char *name = get_fxt_string(ev, 4);
+	char *name = get_fxt_string(ev, 5);
 
 	const char *state = "I";
 	if (find_sync(prefixTOnodeid(prefix), threadid))
@@ -1852,7 +1851,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 		snprintf(dumped_codelets[dumped_codelets_count - 1].symbol, sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1, "%s", _starpu_last_codelet_symbol[worker]);
 		dumped_codelets[dumped_codelets_count - 1].symbol[sizeof(dumped_codelets[dumped_codelets_count - 1].symbol)-1] = 0;
 		dumped_codelets[dumped_codelets_count - 1].workerid = worker;
-		snprintf(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname, sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname)-1, "%s", name);
+		snprintf(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname, sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname), "%.*s", (int) sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname)-1, name);
 		dumped_codelets[dumped_codelets_count - 1].perfmodel_archname[sizeof(dumped_codelets[dumped_codelets_count - 1].perfmodel_archname)-1] = 0;
 		dumped_codelets[dumped_codelets_count - 1].size = codelet_size;
 		dumped_codelets[dumped_codelets_count - 1].hash = codelet_hash;
@@ -2826,7 +2825,7 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	task->ndeps++;
 
 	/* There is a dependency between both job id : dep_prev -> dep_succ */
-	if (show_task(task, options))
+	if (show_task(task, options) && show_task(prev_task, options))
 	{
 		if (!options->label_deps) name = NULL;
 		/* We should show the name of the predecessor, then. */
@@ -2862,47 +2861,49 @@ static void handle_task_color(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 	task->color = color;
 }
 
+static void handle_task_exclude_from_dag(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long job_id = ev->param[0];
+	unsigned exclude_from_dag = ev->param[1];
+
+	struct task_info *task = get_task(job_id, options->file_rank);
+	task->exclude_from_dag = exclude_from_dag;
+}
+
 static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	char *prefix = options->file_prefix;
-
 	unsigned long job_id = ev->param[0];
+	char *name = get_fxt_string(ev,1);
+
+	char *prefix = options->file_prefix;
 	struct task_info *task = get_task(job_id, options->file_rank);
+        int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
 
-	unsigned long has_name = ev->param[3];
-	char *name = has_name?get_fxt_string(ev,4):"unknown";
-
-        int worker;
-        worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
-
-	const char *colour;
+	const char *color;
 	char buffer[32];
 	if (task->color != 0)
 	{
 		snprintf(buffer, sizeof(buffer), "#%06x", task->color);
-		colour = &buffer[0];
+		color = &buffer[0];
 	}
 	else if (options->per_task_colour)
 	{
 		snprintf(buffer, sizeof(buffer), "#%x%x%x",
-			 get_colour_symbol_red(name)/4,
-			 get_colour_symbol_green(name)/4,
-			 get_colour_symbol_blue(name)/4);
-		colour = &buffer[0];
+			 get_color_symbol_red(name)/4,
+			 get_color_symbol_green(name)/4,
+			 get_color_symbol_blue(name)/4);
+		color = &buffer[0];
 	}
 	else
 	{
-		colour= (worker < 0)?"#aaaaaa":get_worker_color(worker);
+		color= (worker < 0)?"#aaaaaa":get_worker_color(worker);
 	}
 
 	if (!task->name)
 		task->name = strdup(name);
 
-	unsigned exclude_from_dag = ev->param[2];
-	task->exclude_from_dag = exclude_from_dag;
-
-	if (!exclude_from_dag && show_task(task, options))
-		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, name, colour);
+	if (!task->exclude_from_dag && show_task(task, options))
+		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color);
 }
 
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2937,22 +2938,22 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
         int worker;
         worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
 
-	const char *colour;
+	const char *color;
 	char buffer[32];
 	if (options->per_task_colour)
 	{
 		snprintf(buffer, sizeof(buffer), "%.4f,%.4f,%.4f",
-			 get_colour_symbol_red(name)/1024.0,
-			 get_colour_symbol_green(name)/1024.0,
-			 get_colour_symbol_blue(name)/1024.0);
-		colour = &buffer[0];
+			 get_color_symbol_red(name)/1024.0,
+			 get_color_symbol_green(name)/1024.0,
+			 get_color_symbol_blue(name)/1024.0);
+		color = &buffer[0];
 	}
 	else
 	{
-		colour= (worker < 0)?"white":get_worker_color(worker);
+		color= (worker < 0)?"white":get_worker_color(worker);
 	}
 
-	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, colour);
+	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, color);
 }
 
 static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3354,14 +3355,20 @@ static
 void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
+	struct _starpu_communication *itor, *next;
 
 	/* Loop through completed communications */
-	while (!_starpu_communication_list_empty(&communication_list)
-			&& _starpu_communication_list_begin(&communication_list)->peer)
+	for (itor = _starpu_communication_list_begin(&communication_list);
+		itor != _starpu_communication_list_end(&communication_list);
+		itor = next)
 	{
-		struct _starpu_communication*itor;
+		next = _starpu_communication_list_next(itor);
+
+		if (!itor->peer)
+			continue;
+
 		/* This communication is complete */
-		itor = _starpu_communication_list_pop_front(&communication_list);
+		_starpu_communication_list_erase(&communication_list, itor);
 
 		current_bandwidth_out_per_node[itor->src_node] +=  itor->bandwidth;
 		if (out_paje_file)
@@ -3432,8 +3439,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_in, strerror(errno));
 	}
 
 	static fxt_t fut;
@@ -3699,6 +3705,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_WAIT_END:
 				handle_task_submit_event(&ev, options, ev.param[0], NULL);
+				break;
+
+			case _STARPU_FUT_TASK_EXCLUDE_FROM_DAG:
+				handle_task_exclude_from_dag(&ev, options);
 				break;
 
 			case _STARPU_FUT_TASK_NAME:
@@ -4137,10 +4147,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			_starpu_fxt_process_computations(options);
 	}
 
+	unsigned i;
 	if (!options->no_flops)
 	{
-		/* computations are supposed to be over, drop any pending comp */
-		unsigned i;
+		/* computations are supposed to be over, unref any pending comp */
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
 			struct _starpu_computation *comp = ongoing_computation[i];
@@ -4148,11 +4158,21 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			{
 				STARPU_ASSERT(!comp->peer);
 				_starpu_computation_list_erase(&computation_list, comp);
-				ongoing_computation[i] = 0;
 			}
 		}
 		/* And flush completed computations */
 		_starpu_fxt_process_computations(options);
+	}
+
+	for (i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
+		struct _starpu_computation *comp = ongoing_computation[i];
+		if (comp)
+		{
+			STARPU_ASSERT(!comp->peer);
+			_starpu_computation_delete(comp);
+			ongoing_computation[i] = 0;
+		}
 	}
 
 	if (out_paje_file && !options->no_bus)
@@ -4185,7 +4205,6 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 	if (out_paje_file && !options->no_flops)
 	{
-		unsigned i;
 		for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		{
 			if (last_codelet_end[i] != 0.0)
@@ -4229,12 +4248,23 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		}
 	}
 
+	for (i = 0; i < STARPU_NMAXWORKERS; i++)
+		free(options->worker_archtypes[i].devices);
+
+#ifdef HAVE_FXT_BLOCKEV_LEAVE
+	fxt_blockev_leave(block);
+#endif
+
 	/* Close the trace file */
+#ifdef HAVE_FXT_CLOSE
+	fxt_close(fut);
+#else
 	if (close(fd_in))
 	{
 	        perror("close failed :");
 	        exit(-1);
 	}
+#endif
 }
 
 /* Initialize FxT options to default values */
@@ -4264,6 +4294,59 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->dumped_codelets = NULL;
 	options->activity_path = "activity.data";
 	options->sched_tasks_path = "sched_tasks.rec";
+	options->dir = NULL;
+}
+
+static
+void _set_dir(char *dir, char **option)
+{
+	if (*option)
+	{
+		char *tmp = strdup(*option);
+		_STARPU_MALLOC(*option, 256);
+		snprintf(*option, 256, "%s/%s", dir, tmp);
+		free(tmp);
+	}
+}
+
+static
+void _starpu_fxt_options_set_dir(struct starpu_fxt_options *options)
+{
+	if (!options->dir)
+		return;
+
+	_starpu_mkpath_and_check(options->dir, S_IRWXU);
+	_set_dir(options->dir, &options->out_paje_path);
+	_set_dir(options->dir, &options->dag_path);
+	_set_dir(options->dir, &options->tasks_path);
+	_set_dir(options->dir, &options->comms_path);
+	_set_dir(options->dir, &options->number_events_path);
+	_set_dir(options->dir, &options->data_path);
+	_set_dir(options->dir, &options->papi_path);
+	_set_dir(options->dir, &options->anim_path);
+	_set_dir(options->dir, &options->states_path);
+	_set_dir(options->dir, &options->distrib_time_path);
+	_set_dir(options->dir, &options->activity_path);
+	_set_dir(options->dir, &options->sched_tasks_path);
+}
+
+void starpu_fxt_options_shutdown(struct starpu_fxt_options *options)
+{
+	if (options->dir)
+	{
+		free(options->out_paje_path);
+		free(options->dag_path);
+		free(options->tasks_path);
+		free(options->comms_path);
+		free(options->number_events_path);
+		free(options->data_path);
+		free(options->papi_path);
+		free(options->anim_path);
+		free(options->states_path);
+		free(options->distrib_time_path);
+		free(options->activity_path);
+		free(options->sched_tasks_path);
+	}
 }
 
 static
@@ -4275,6 +4358,8 @@ void _starpu_fxt_distrib_file_init(struct starpu_fxt_options *options)
 	if (options->distrib_time_path)
 	{
 		distrib_time = fopen(options->distrib_time_path, "w+");
+		if (distrib_time == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->distrib_time_path, strerror(errno));
 	}
 	else
 	{
@@ -4299,7 +4384,11 @@ static
 void _starpu_fxt_activity_file_init(struct starpu_fxt_options *options)
 {
 	if (options->activity_path)
+	{
 		activity_file = fopen(options->activity_path, "w+");
+		if (activity_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->activity_path, strerror(errno));
+	}
 	else
 		activity_file = NULL;
 }
@@ -4308,7 +4397,11 @@ static
 void _starpu_fxt_sched_tasks_file_init(struct starpu_fxt_options *options)
 {
 	if (options->sched_tasks_path)
+	{
 		sched_tasks_file = fopen(options->sched_tasks_path, "w+");
+		if (sched_tasks_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->sched_tasks_path, strerror(errno));
+	}
 	else
 		sched_tasks_file = NULL;
 }
@@ -4319,6 +4412,9 @@ void _starpu_fxt_anim_file_init(struct starpu_fxt_options *options)
 	if (options->anim_path)
 	{
 		anim_file = fopen(options->anim_path, "w+");
+		if (anim_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->anim_path, strerror(errno));
+
 		_starpu_fxt_component_print_header(anim_file);
 	}
 	else
@@ -4329,7 +4425,11 @@ static
 void _starpu_fxt_tasks_file_init(struct starpu_fxt_options *options)
 {
 	if (options->tasks_path)
+	{
 		tasks_file = fopen(options->tasks_path, "w+");
+		if (tasks_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->tasks_path, strerror(errno));
+	}
 	else
 		tasks_file = NULL;
 }
@@ -4338,7 +4438,11 @@ static
 void _starpu_fxt_data_file_init(struct starpu_fxt_options *options)
 {
 	if (options->data_path)
+	{
 		data_file = fopen(options->data_path, "w+");
+		if (data_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->data_path, strerror(errno));
+	}
 	else
 		data_file = NULL;
 }
@@ -4347,7 +4451,11 @@ static
 void _starpu_fxt_comms_file_init(struct starpu_fxt_options *options)
 {
 	if (options->comms_path)
+	{
 		comms_file = fopen(options->comms_path, "w+");
+		if (comms_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->comms_path, strerror(errno));
+	}
 	else
 		comms_file = NULL;
 }
@@ -4358,6 +4466,8 @@ void _starpu_fxt_number_events_file_init(struct starpu_fxt_options *options)
 	if (options->number_events_path)
 	{
 		number_events_file = fopen(options->number_events_path, "w+");
+		if (number_events_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->number_events_path, strerror(errno));
 
 		/* FUT_SETUP_CODE is the event with the maximal value */
 		number_events = calloc(FUT_SETUP_CODE+1, sizeof(uint64_t));
@@ -4371,7 +4481,11 @@ void _starpu_fxt_papi_file_init(struct starpu_fxt_options *options)
 {
 #ifdef STARPU_PAPI
 	if (options->papi_path)
+	{
 		papi_file = fopen(options->papi_path, "w+");
+		if (papi_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->papi_path, strerror(errno));
+	}
 	else
 		papi_file = NULL;
 #endif
@@ -4395,7 +4509,11 @@ static
 void _starpu_fxt_trace_file_init(struct starpu_fxt_options *options)
 {
 	if (options->states_path)
+	{
 		trace_file = fopen(options->states_path, "w+");
+		if (trace_file == NULL)
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->states_path, strerror(errno));
+	}
 	else
 		trace_file = NULL;
 
@@ -4545,8 +4663,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_in, strerror(errno));
 	}
 
 	static fxt_t fut;
@@ -4565,17 +4682,26 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 	STARPU_ASSERT (ret == FXT_EV_OK);
 
+#ifdef HAVE_FXT_BLOCKEV_LEAVE
+	fxt_blockev_leave(block);
+#endif
+
 	/* Close the trace file */
+#ifdef HAVE_FXT_CLOSE
+	fxt_close(fut);
+#else
 	if (close(fd_in))
 	{
 	        perror("close failed :");
 	        exit(-1);
 	}
+#endif
 	return (ev.time);
 }
 
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 {
+	_starpu_fxt_options_set_dir(options);
 	_starpu_fxt_dag_init(options->dag_path);
 	_starpu_fxt_distrib_file_init(options);
 	_starpu_fxt_activity_file_init(options);
@@ -4751,7 +4877,7 @@ struct starpu_data_trace_kernel
 
 static FILE *codelet_list;
 
-static void write_task(struct parse_task pt)
+static void write_task(char *dir, struct parse_task pt)
 {
 	struct starpu_data_trace_kernel *kernel;
 	char *codelet_name = pt.codelet_name;
@@ -4761,12 +4887,13 @@ static void write_task(struct parse_task pt)
 	{
 		_STARPU_MALLOC(kernel, sizeof(*kernel));
 		kernel->name = strdup(codelet_name);
+		char filename[256];
+		snprintf(filename, sizeof(filename), "%s/%s", dir, kernel->name);
 		//fprintf(stderr, "%s\n", kernel->name);
-		kernel->file = fopen(codelet_name, "w+");
+		kernel->file = fopen(filename, "w+");
 		if(!kernel->file)
 		{
-			perror("open failed :");
-			exit(-1);
+			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename, strerror(errno));
 		}
 		HASH_ADD_STR(kernels, name, kernel);
 		fprintf(codelet_list, "%s\n", codelet_name);
@@ -4775,14 +4902,13 @@ static void write_task(struct parse_task pt)
 	fprintf(kernel->file, "%lf %u %u\n", time, pt.data_total, pt.workerid);
 }
 
-void starpu_fxt_write_data_trace(char *filename_in)
+void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 {
 	int fd_in;
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_in, strerror(errno));
 	}
 
 	static fxt_t fut;
@@ -4793,11 +4919,12 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	        exit(-1);
 	}
 
-	codelet_list = fopen("codelet_list", "w+");
+	char filename_out[512];
+	snprintf(filename_out, sizeof(filename_out), "%s/codelet_list", dir);
+	codelet_list = fopen(filename_out, "w+");
 	if(!codelet_list)
 	{
-		perror("open failed :");
-		exit(-1);
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", filename_out, strerror(errno));
 	}
 
 	fxt_blockev_t block;
@@ -4838,7 +4965,7 @@ void starpu_fxt_write_data_trace(char *filename_in)
 			workerid = ev.param[3];
 			assert(workerid != -1);
 			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
-			write_task(tasks[workerid]);
+			write_task(dir, tasks[workerid]);
 			break;
 
 		case _STARPU_FUT_DATA_LOAD:
@@ -4855,11 +4982,19 @@ void starpu_fxt_write_data_trace(char *filename_in)
 		}
 	}
 
+#ifdef HAVE_FXT_BLOCKEV_LEAVE
+	fxt_blockev_leave(block);
+#endif
+
+#ifdef HAVE_FXT_CLOSE
+	fxt_close(fut);
+#else
 	if (close(fd_in))
 	{
 	        perror("close failed :");
 	        exit(-1);
 	}
+#endif
 
 	if(fclose(codelet_list))
 	{
@@ -4881,4 +5016,10 @@ void starpu_fxt_write_data_trace(char *filename_in)
 	}
 
 }
+
+void starpu_fxt_write_data_trace(char *filename_in)
+{
+	starpu_fxt_write_data_trace_in_dir(filename_in, ".");
+}
+
 #endif // STARPU_USE_FXT

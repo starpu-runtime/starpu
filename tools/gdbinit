@@ -390,6 +390,9 @@ define starpu-print-data
   printf "Current mode "
   starpu-print-mode $data->current_mode
   printf "\n"
+  if $data->mpi_data
+    printf "TAG %ld\n",((struct _starpu_mpi_data *) ($data->mpi_data))->node_tag.data_tag
+  end
   if $data->current_mode & (4|8)
     set $n = 0
     while $n < _starpu_config.topology.nworkers
@@ -449,7 +452,7 @@ define starpu-print-data
     set $tasklist = $tasklist->next
   end
   printf "Requester tasks\n"
-  set $requesterlist = $data->req_list._head
+  set $requesterlist = $data->req_list.list._head
   while $requesterlist != 0x0
     printf "mode: "
     starpu-print-mode $requesterlist->mode
@@ -458,7 +461,7 @@ define starpu-print-data
     set $requesterlist = $requesterlist->_next
   end
   printf "Arbitered requester tasks\n"
-  set $requesterlist = $data->arbitered_req_list._head
+  set $requesterlist = $data->arbitered_req_list.list._head
   while $requesterlist != 0x0
     printf "mode: "
     starpu-print-mode $requesterlist->mode
@@ -959,7 +962,7 @@ end
 
 define starpu-mpi-print-request
     set $request = (struct _starpu_mpi_req *)$arg0
-    printf "Request (struct _starpu_mpi_req *) %p data %p tag %d to MPI node %d type ", $request, $request->data_handle, $request->data_handle && $request->data_handle->mpi_data ? ((struct _starpu_mpi_node_tag *) ($request->data_handle->mpi_data))->data_tag : -1, $request->node_tag.node.rank,
+    printf "Request (struct _starpu_mpi_req *) %p data %p tag %ld to MPI node %d type ", $request, $request->data_handle, $request->data_handle && $request->data_handle->mpi_data ? ((struct _starpu_mpi_data *) ($request->data_handle->mpi_data))->node_tag.data_tag : -1, $request->node_tag.node.rank,
     if $request->request_type == SEND_REQ
        printf "SEND_REQ"
     end
@@ -999,7 +1002,7 @@ end
 
 define starpu-mpi-print-requests-list
   set $list = $arg0
-  set $request = $list->_head
+  set $request = $list._head
   while $request
     starpu-mpi-print-request $request
     set $request = $request->_next
@@ -1019,7 +1022,7 @@ define starpu-mpi-print-ready-send-requests
   set $prio_list = (struct _starpu_mpi_req_prio_list) ready_send_requests
   if _starpu_debug
     if $prio_list
-        starpu-mpi-print-requests-list &$prio_list.list
+        starpu-mpi-print-requests-list $prio_list.list
     else
 	printf "No ready send requests\n"
     end

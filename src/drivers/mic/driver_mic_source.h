@@ -34,7 +34,7 @@
 
 extern struct _starpu_node_ops _starpu_driver_mic_node_ops;
 
-/* Array of structures containing all the informations useful to send
+/** Array of structures containing all the informations useful to send
  * and receive informations with devices */
 extern struct _starpu_mp_node *_starpu_mic_nodes[STARPU_MAXMICDEVS];
 

@@ -122,7 +122,7 @@ struct starpu_cluster_machine* starpu_cluster_machine(hwloc_obj_type_t cluster_l
 int starpu_uncluster_machine(struct starpu_cluster_machine* clusters);
 int starpu_cluster_print(struct starpu_cluster_machine* clusters);
 
-/* Prologue functions */
+/** Prologue functions */
 void starpu_openmp_prologue(void*);
 #define starpu_intel_openmp_mkl_prologue starpu_openmp_prologue
 #ifdef STARPU_MKL

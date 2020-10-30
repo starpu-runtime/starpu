@@ -20,7 +20,7 @@ noinst_PROGRAMS		=
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
-loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/julia/examples/$(LOADER)
@@ -96,9 +96,9 @@ endif
 endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpujulia-@STARPU_EFFECTIVE_VERSION@.la -lm @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpujulia-@STARPU_EFFECTIVE_VERSION@.la -lm $(FXT_LIBS) $(MAGMA_LIBS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 check_PROGRAMS = $(LOADER) $(starpu_julia_EXAMPLES)
 SHELL_TESTS	=

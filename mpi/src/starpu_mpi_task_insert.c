@@ -797,15 +797,15 @@ void _starpu_mpi_redux_data_recv_callback(void *callback_arg)
 void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
 {
 	int me, rank, nb_nodes;
-	starpu_mpi_tag_t tag;
+	starpu_mpi_tag_t data_tag;
 
 	rank = starpu_mpi_data_get_rank(data_handle);
-	tag = starpu_mpi_data_get_tag(data_handle);
+	data_tag = starpu_mpi_data_get_tag(data_handle);
 	if (rank == -1)
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 	}
-	if (tag == -1)
+	if (data_tag == -1)
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 	}
@@ -851,7 +851,7 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 				struct _starpu_mpi_redux_data_args *args;
 				_STARPU_MPI_MALLOC(args, sizeof(struct _starpu_mpi_redux_data_args));
 				args->data_handle = data_handle;
-				args->data_tag = tag;
+				args->data_tag = data_tag;
 				args->node = i;
 				args->comm = comm;
 
@@ -878,7 +878,7 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 	else
 	{
 		_STARPU_MPI_DEBUG(1, "Sending redux handle to %d ...\n", rank);
-		starpu_mpi_isend_detached_prio(data_handle, rank, tag, prio, comm, NULL, NULL);
+		starpu_mpi_isend_detached_prio(data_handle, rank, data_tag, prio, comm, NULL, NULL);
 		starpu_task_insert(data_handle->init_cl, STARPU_W, data_handle, 0);
 	}
 	/* FIXME: In order to prevent simultaneous receive submissions

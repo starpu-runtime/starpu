@@ -24,7 +24,7 @@ noinst_PROGRAMS		=
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
-loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
@@ -84,9 +84,9 @@ endif
 endif
 
 AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la $(FXT_LIBS) $(MAGMA_LIBS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
 
 ########################
 # Unit testcases       #
@@ -109,6 +109,7 @@ starpu_mpi_TESTS +=				\
 	insert_task_owner			\
 	insert_task_owner2			\
 	insert_task_owner_data			\
+	insert_task_tags			\
 	matrix					\
 	matrix2					\
 	mpi_barrier				\
@@ -205,6 +206,7 @@ noinst_PROGRAMS +=				\
 	insert_task_count			\
 	insert_task_dyn_handles			\
 	insert_task_seq				\
+	insert_task_tags			\
 	multiple_send				\
 	mpi_scatter_gather			\
 	mpi_reduction				\

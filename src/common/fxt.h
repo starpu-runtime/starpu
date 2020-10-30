@@ -234,6 +234,8 @@
 #define _STARPU_FUT_DATA_STATE_SHARED     0x5184
 
 #define _STARPU_FUT_DATA_REQUEST_CREATED   0x5185
+#define _STARPU_FUT_PAPI_TASK_EVENT_VALUE   0x5186
+#define _STARPU_FUT_TASK_EXCLUDE_FROM_DAG   0x5187
 
 
 /* Predefined FUT key masks */
@@ -257,8 +259,6 @@
 #define _STARPU_FUT_KEYMASK_MPI_VERBOSE    FUT_KEYMASK17
 #define _STARPU_FUT_KEYMASK_HYP            FUT_KEYMASK18
 #define _STARPU_FUT_KEYMASK_HYP_VERBOSE    FUT_KEYMASK19
-
-#define _STARPU_FUT_PAPI_TASK_EVENT_VALUE   0x5186
 
 extern unsigned long _starpu_job_cnt;
 
@@ -290,7 +290,7 @@ extern int _starpu_fxt_willstart;
 extern starpu_pthread_mutex_t _starpu_fxt_started_mutex;
 extern starpu_pthread_cond_t _starpu_fxt_started_cond;
 
-/* Wait until FXT is started (or not). Returns if FXT was started */
+/** Wait until FXT is started (or not). Returns if FXT was started */
 static inline int _starpu_fxt_wait_initialisation()
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_fxt_started_mutex);
@@ -843,18 +843,23 @@ do {									\
 #define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ)		\
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "ghost")
 
-#define _STARPU_TRACE_TASK_NAME(job)						\
-do {										\
-	unsigned exclude_from_dag = (job)->exclude_from_dag;			\
+#define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(job)			\
+	do {								\
+	unsigned exclude_from_dag = (job)->exclude_from_dag;		\
+	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_EXCLUDE_FROM_DAG, (job)->job_id, (long unsigned)exclude_from_dag); \
+} while(0)
+
+#define _STARPU_TRACE_TASK_NAME(job)					\
+	do {								\
         const char *model_name = _starpu_job_get_task_name((job));                       \
 	if (model_name)					                        \
 	{									\
-		_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 1, model_name);\
+		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, model_name);\
 	}									\
 	else {									\
-		FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), (long unsigned)exclude_from_dag, 0);\
+		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, "unknown");\
 	}									\
-} while(0);
+} while(0)
 
 #define _STARPU_TRACE_TASK_COLOR(job)						\
 do { \
@@ -1268,8 +1273,8 @@ do {										\
 #define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)		\
 	FUT_RAW_ALWAYS_PROBE2(FUT_CODE(_STARPU_FUT_SCHED_COMPONENT_CONNECT,2), parent, child);
 
-#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)		\
-	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, (task)->priority);
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task, prio)		\
+	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, prio);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)		\
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
@@ -1327,6 +1332,7 @@ do {										\
 #define _STARPU_TRACE_TAG_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(a)	do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_NAME(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_COLOR(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_DONE(a)		do {(void)(a);} while(0)
@@ -1420,7 +1426,7 @@ do {										\
 #define _STARPU_TRACE_HYPERVISOR_END()                  do {} while(0)
 #define _STARPU_TRACE_SCHED_COMPONENT_NEW(component)	do {(void)(component);} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)	do {(void)(parent); (void)(child);} while (0)
-#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task)	do {(void)(from); (void)(to); (void)(task);} while (0)
+#define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task, prio)	do {(void)(from); (void)(to); (void)(task); (void)(prio);} while (0)
 #define _STARPU_TRACE_SCHED_COMPONENT_PULL(from, to, task)	do {(void)(from); (void)(to); (void)(task);} while (0)
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {(void)(handle);} while (0)
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	do {(void)(handle);} while (0)

@@ -23,6 +23,7 @@ program nf_vector
         integer, dimension(:), allocatable, target :: vb
         integer :: i
 
+        type(c_ptr) :: perfmodel_vec   ! a pointer for the perfmodel structure
         type(c_ptr) :: cl_vec   ! a pointer for the codelet structure
         type(c_ptr) :: dh_va    ! a pointer for the 'va' vector data handle
         type(c_ptr) :: dh_vb    ! a pointer for the 'vb' vector data handle
@@ -48,11 +49,23 @@ program nf_vector
                 stop 77
         end if
 
+        ! allocate an empty perfmodel structure
+        perfmodel_vec = fstarpu_perfmodel_allocate()
+
+        ! set the perfmodel symbol
+        call fstarpu_perfmodel_set_symbol(perfmodel_vec, C_CHAR_"my_vec_sym"//C_NULL_CHAR)
+
+        ! set the perfmodel type
+        call fstarpu_perfmodel_set_type(perfmodel_vec, FSTARPU_HISTORY_BASED)
+
         ! allocate an empty codelet structure
         cl_vec = fstarpu_codelet_allocate()
 
         ! set the codelet name
         call fstarpu_codelet_set_name(cl_vec, C_CHAR_"my_vec_codelet"//C_NULL_CHAR)
+
+        ! set the codelet perfmodel
+        call fstarpu_codelet_set_model(cl_vec, perfmodel_vec)
 
         ! add a CPU implementation function to the codelet
         call fstarpu_codelet_add_cpu_func(cl_vec, C_FUNLOC(cl_cpu_func_vec))
@@ -97,6 +110,9 @@ program nf_vector
 
         ! shut StarPU down
         call fstarpu_shutdown()
+
+        ! free perfmodel structure (must be called after fstarpu_shutdown)
+        call fstarpu_perfmodel_free(perfmodel_vec)
 
         deallocate(vb)
         deallocate(va)

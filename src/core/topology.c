@@ -322,17 +322,34 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 		node = local_node;
 		break;
 	case STARPU_SPECIFIC_NODE_LOCAL_OR_CPU:
-		if (task->handles[index]->per_node[local_node].state != STARPU_INVALID)
 		{
-			/* It is here already, rather access it from here */
-			node = local_node;
+			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+			if (mode & STARPU_R)
+			{
+				if (mode & STARPU_R && task->handles[index]->per_node[local_node].state != STARPU_INVALID)
+				{
+					/* It is here already, rather access it from here */
+					node = local_node;
+				}
+				else
+				{
+					/* It is not here already, do not bother moving it */
+					node = STARPU_MAIN_RAM;
+				}
+			}
+			else
+			{
+				/* Nothing to read, consider where to write */
+				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+				if (handle->wt_mask & (1 << STARPU_MAIN_RAM))
+					/* Write through, better simply write to the main memory */
+					node = STARPU_MAIN_RAM;
+				else
+					/* Better keep temporary data on the accelerator to save PCI bandwidth */
+					node = local_node;
+			}
+			break;
 		}
-		else
-		{
-			/* It is not here already, do not bother moving it */
-			node = STARPU_MAIN_RAM;
-		}
-		break;
 	}
 	return node;
 }
@@ -359,17 +376,34 @@ int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned inde
 		node = local_node;
 		break;
 	case STARPU_SPECIFIC_NODE_LOCAL_OR_CPU:
-		if (task->handles[index]->per_node[local_node].state != STARPU_INVALID)
 		{
-			/* It is here already, rather access it from here */
-			node = local_node;
+			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
+			if (mode & STARPU_R)
+			{
+				if (task->handles[index]->per_node[local_node].state != STARPU_INVALID)
+				{
+					/* It is here already, rather access it from here */
+					node = local_node;
+				}
+				else
+				{
+					/* It is not here already, do not bother moving it */
+					node = STARPU_MAIN_RAM;
+				}
+			}
+			else
+			{
+				/* Nothing to read, consider where to write */
+				starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+				if (handle->wt_mask & (1 << STARPU_MAIN_RAM))
+					/* Write through, better simply write to the main memory */
+					node = STARPU_MAIN_RAM;
+				else
+					/* Better keep temporary data on the accelerator to save PCI bandwidth */
+					node = local_node;
+			}
+			break;
 		}
-		else
-		{
-			/* It is not here already, do not bother moving it */
-			node = STARPU_MAIN_RAM;
-		}
-		break;
 	}
 	return node;
 }

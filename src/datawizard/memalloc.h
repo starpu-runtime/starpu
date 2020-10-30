@@ -59,8 +59,8 @@ LIST_TYPE(_starpu_mem_chunk,
 	unsigned home:1;
 	/** Whether the memchunk is in the clean part of the mc_list */
 	unsigned clean:1;
-	/** Was this chunk used since it got allocated?  */
-	/* FIXME: probably useless now with nb_tasks_prefetch */
+	/** Was this chunk used since it got allocated?
+	    FIXME: probably useless now with nb_tasks_prefetch */
 	unsigned diduse:1;
 	/** Was this chunk marked as "won't use"? */
 	unsigned wontuse:1;

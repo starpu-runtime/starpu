@@ -16,6 +16,9 @@
 #
 INPUT                  = @top_srcdir@/doc/doxygen_dev/chapters         \
                          @top_builddir@/doc/doxygen_dev/config.h \
+			 @top_srcdir@/include/starpu_driver.h \
+			 @top_srcdir@/include/starpu_worker.h \
+			 @top_srcdir@/include/starpu_config.h \
 			 @top_srcdir@/src/datawizard/data_request.h \
 			 @top_srcdir@/src/datawizard/coherency.h \
 			 @top_srcdir@/src/datawizard/sort_data_handles.h \
@@ -99,7 +102,32 @@ INPUT                  = @top_srcdir@/doc/doxygen_dev/chapters         \
 			 @top_srcdir@/src/core/errorcheck.h \
 			 @top_srcdir@/src/core/progress_hook.h \
 			 @top_srcdir@/src/core/drivers.h \
-			 @top_srcdir@/src/core/workers.h
+			 @top_srcdir@/src/core/workers.h \
+			 @top_srcdir@/mpi/src/starpu_mpi_init.h \
+			 @top_srcdir@/mpi/src/starpu_mpi_datatype.h \
+			 @top_srcdir@/mpi/src/starpu_mpi_task_insert.h \
+			 @top_srcdir@/mpi/src/starpu_mpi_select_node.h \
+			 @top_srcdir@/mpi/src/starpu_mpi_fxt.h \
+			 @top_srcdir@/mpi/src/starpu_mpi_cache.h \
+			 @top_srcdir@/mpi/src/mpi/starpu_mpi_mpi_backend.h \
+			 @top_srcdir@/mpi/src/mpi/starpu_mpi_driver.h \
+			 @top_srcdir@/mpi/src/mpi/starpu_mpi_early_data.h \
+			 @top_srcdir@/mpi/src/mpi/starpu_mpi_comm.h \
+			 @top_srcdir@/mpi/src/mpi/starpu_mpi_tag.h \
+			 @top_srcdir@/mpi/src/mpi/starpu_mpi_mpi.h \
+			 @top_srcdir@/mpi/src/mpi/starpu_mpi_early_request.h \
+			 @top_srcdir@/mpi/src/mpi/starpu_mpi_sync_data.h \
+			 @top_srcdir@/mpi/src/load_balancer/policy/load_data_interface.h \
+			 @top_srcdir@/mpi/src/load_balancer/policy/load_balancer_policy.h \
+			 @top_srcdir@/mpi/src/load_balancer/policy/data_movements_interface.h \
+			 @top_srcdir@/mpi/src/nmad/starpu_mpi_nmad_unknown_datatype.h \
+			 @top_srcdir@/mpi/src/nmad/starpu_mpi_nmad_backend.h \
+			 @top_srcdir@/mpi/src/nmad/starpu_mpi_nmad.h \
+			 @top_srcdir@/mpi/src/starpu_mpi_stats.h \
+			 @top_srcdir@/mpi/src/starpu_mpi_private.h \
+			 @top_srcdir@/mpi/src/starpu_mpi_cache_stats.h \
+			 @top_srcdir@/starpurm/src/starpurm_private.h
+
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen_dev \
 		       	 @top_srcdir@/doc/doxygen/chapters

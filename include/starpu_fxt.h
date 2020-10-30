@@ -69,6 +69,7 @@ struct starpu_fxt_options
 	char *number_events_path;
 	char *anim_path;
 	char *states_path;
+	char *dir;
 	char worker_names[STARPU_NMAXWORKERS][256];
 	int nworkers;
 	struct starpu_perfmodel_arch worker_archtypes[STARPU_NMAXWORKERS];
@@ -104,6 +105,7 @@ struct starpu_fxt_options
 };
 
 void starpu_fxt_options_init(struct starpu_fxt_options *options);
+void starpu_fxt_options_shutdown(struct starpu_fxt_options *options);
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
 
 /**
@@ -129,7 +131,9 @@ void starpu_fxt_start_profiling(void);
    start recording it again, etc.
 */
 void starpu_fxt_stop_profiling(void);
+
 void starpu_fxt_write_data_trace(char *filename_in);
+void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir);
 
 /**
     Wrapper to get value of env variable STARPU_FXT_TRACE

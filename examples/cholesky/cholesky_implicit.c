@@ -206,6 +206,14 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 {
 	float *mat = NULL;
 
+	/*
+	 * create a simple definite positive symetric matrix example
+	 *
+	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
+	 *
+	 * and make it better conditioned by adding one on the diagonal.
+	 */
+
 #ifndef STARPU_SIMGRID
 	unsigned m,n;
 	starpu_malloc_flags((void **)&mat, (size_t)size*size*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
@@ -324,11 +332,6 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 int main(int argc, char **argv)
 {
-	/* create a simple definite positive symetric matrix example
-	 *
-	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
-	 * */
-
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
 #endif

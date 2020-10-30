@@ -841,6 +841,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	_STARPU_LOG_IN();
 	STARPU_ASSERT(task);
 	STARPU_ASSERT_MSG(task->magic == _STARPU_TASK_MAGIC, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
+	STARPU_ASSERT_MSG(starpu_is_initialized(), "starpu_init must be called (and return no error) before submitting tasks.");
 
 	int ret;
 	{
@@ -947,10 +948,13 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 
 	/* If profiling is activated, we allocate a structure to store the
 	 * appropriate info. */
-	struct starpu_profiling_task_info *info;
+	struct starpu_profiling_task_info *info = task->profiling_info;
 	int profiling = starpu_profiling_status_get();
-	info = _starpu_allocate_profiling_info_if_needed(task);
-	task->profiling_info = info;
+	if (!info)
+	{
+		info = _starpu_allocate_profiling_info_if_needed(task);
+		task->profiling_info = info;
+	}
 
 	/* The task is considered as block until we are sure there remains not
 	 * dependency. */

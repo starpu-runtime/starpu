@@ -22,7 +22,7 @@
  * expected binding does happen
  */
 
-#if !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
+#if !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC) || !defined(STARPU_HAVE_SETENV)
 #warning no cpu are available. Skipping test
 int main(void)
 {
@@ -130,7 +130,6 @@ static long * generate_arrangement(int arr_size, long *set, int set_size)
 	int i;
 
 	STARPU_ASSERT(arr_size <= set_size);
-	srandom(time(0));
 
 	for (i=0; i<arr_size; i++)
 	{
