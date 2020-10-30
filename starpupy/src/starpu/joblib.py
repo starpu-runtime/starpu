@@ -19,6 +19,7 @@ import math
 import os
 import pickle
 import json
+import functools
 
 # get the number of CPUs controlled by StarPU
 n_cpus=starpupy.cpu_worker_get_count()
@@ -125,12 +126,8 @@ def parallel(*, mode="normal", n_jobs=1, perfmodel=None, end_msg=None,\
 			if end_msg==None:
 				return fut
 			else:
-				loop = asyncio.get_running_loop()
-				async def await_fut():
-					retval=await fut
-					print(end_msg)
-					return retval	
-				return loop.run_in_executor(None, await_fut)
+				fut.add_done_callback(functools.partial(print, end_msg))
+				return fut
 			#return fut
 		return parallel_future
 

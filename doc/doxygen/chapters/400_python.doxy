@@ -110,7 +110,7 @@ The result of function is 3
 
 The Future object can be also used for the next step calculation even you do not get the task result. The eventual result will be awaited until the Future has a result.
 
-In this example, after submitting the first task, a Future object "fut1" is created, and it is used in the second task as one of arguments. During the first task is executed, the second task is submitted even we do not have the first return value. Then we receive the signal that the second result is ready after the signal that the first result is ready. We can perform awaiting to get the eventual result.
+In this example, after submitting the first task, a Future object "fut1" is created, and it is used in the second task as one of arguments. During the first task is executed, the second task is submitted even we do not have the first return value. Then we receive the signal that the second result is ready right after the signal that the first result is ready. We can perform awaiting to get the eventual result.
 
 \code{.py}
 >>> import asyncio
@@ -213,10 +213,10 @@ You need to choose the mode between "normal" and "future". As in the previous ex
 >>> import asyncio
 >>> from math import log10
 >>> fut = starpu.joblib.parallel(mode="future", n_jobs=3, end_msg="The result is ready!")(starpu.joblib.delayed(log10)(10**i)for i in range(10))
->>> res = await fut
->>> await res
-The result is ready!
-[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+>>> The result is ready! <_GatheringFuture finished result=[[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]>
+>>> await fut
+[[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]
+
 \endcode
 
 \subsubsection end_msg end_msg
