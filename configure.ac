@@ -3411,7 +3411,7 @@ AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 
 AC_ARG_ENABLE(build-doc-pdf, [AS_HELP_STRING([--enable-build-doc-pdf],
 			[enable building of PDF documentation])],
-			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=$def_enable_build_doc_pdf)
+			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=no)
 
 available_doc_pdf="no"
 if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
