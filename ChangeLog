@@ -44,6 +44,7 @@ New features:
   * Add starpu_data_dup_ro().
   * Add starpu_data_release_to() and starpu_data_release_to_on_node().
   * Add profiling based on papi performance counters.
+  * Add an experimental python interface (not actually parallel yet)
 
 Small changes:
   * Add a synthetic energy efficiency testcase.
