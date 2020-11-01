@@ -34,32 +34,7 @@ The StarPU module should be imported in any Python code using StarPU Python inte
 \subsection SubmittingTasks Submitting Tasks
 One of the most important function in StarPU is to submit tasks. Unlike the original C interface, Python interface simplifies the use of this function. It is more convenient for Python users to call the function directly without requiring more preparations. However, this simplification does not affect the final implementation.
 
-The function task_submit(func, *args, **kwargs) is used to submit tasks to StarPU in Python interface. When you want to let StarPU make optimizations for your program, you should submit all tasks and StarPU does smart scheduling to manage tasks. Submitted tasks will not be executed immediately, and you can only get the return value until the task has been executed.
-
-Here is an example to show how to use this function to submit a task in the most basic way.
-
-Suposse that there is a function:
-
-\code{.py}
->>> def add(a, b):
-...     return a+b
-\endcode
-
-Then submitting this function as a task to StarPU, calling task_submit and setting the parameters to the function name and its arguments:
-
-\code{.py}
->>> starpu.task_submit(add, 1, 2)
-3
-\endcode
-
-You can also use decorator starpu.delayed to wrap your own function. The operation effect is the same as the previous example. However you can call your function directly, and the function will be submitted to StarPU as a task automatically.
-\code{.py}
->>> @starpu.delayed
->>> def add_deco(a, b):
-...     return a+b
->>> add_deco(1, 2)
-3
-\endcode
+The function task_submit(func, *args, **kwargs) is used to submit tasks to StarPU in Python interface. The task that you will submit may be a function, and you need to set the parameters of task_submit to your function name and its arguments. When you want to let StarPU make optimizations for your program, you should submit all tasks and StarPU does smart scheduling to manage tasks. Submitted tasks will not be executed immediately, and you can only get the return value until the task has been executed.
 
 
 \subsection ReturningFutureObject Returning Future Object
@@ -72,12 +47,18 @@ The asyncio module should be imported in this case.
 
 Considering when submitting a task to StarPU, the task will not be executed immediately, but with this Future object, you do not need to wait for the eventual result but to perform other operations during task execution. When the return value is ready, awaiting this Future object, then you can get the return value.
 
-As in the following example: after calling task_submit function to create a Future object "fut", we perform awaiting until receiving a signal that the result is ready. Then we get the eventual result.
+Here is an example to show how to submit a task in the most basic way.
+
+Suppose that there is a function:
+
 \code{.py}
 >>> def add(a, b):
 ...     print("The result is ready!")
 ...     return a+b
-... 
+\endcode
+
+Then submitting this function as a task to StarPU. After calling task_submit function to create a Future object "fut", we perform awaiting until receiving a signal that the result is ready. Then we get the eventual result.
+\code{.py}
 >>> fut = starpu.task_submit(add, 1, 2)
 The result is ready!
 >>> res = await fut
@@ -107,6 +88,21 @@ Execution:
 \verbatim
 The result of function is 3
 \endverbatim
+
+You can also use decorator starpu.delayed to wrap your own function. The operation effect is the same as the previous example. However you can call your function directly, and the function will be submitted to StarPU as a task automatically with returning a Future object. Once the result is ready, you can perform awaiting to get it.
+\code{.py}
+>>> @starpu.delayed
+... def add_deco(a, b):
+...     print("The result is ready!")
+...     return a+b
+... 
+>>> fut = add_deco(1, 2)
+The result is ready!
+>>> res = await fut
+>>> res
+3
+
+\endcode
 
 The Future object can be also used for the next step calculation even you do not get the task result. The eventual result will be awaited until the Future has a result.
 
