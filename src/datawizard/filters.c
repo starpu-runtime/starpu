@@ -561,7 +561,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f)
 {
 	unsigned nparts = _starpu_data_partition_nparts(initial_handle, f);
-	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "there should not be mutiple filters applied on the same data %p, futher filtering has to be done on children", initial_handle);
+	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "there should not be multiple filters applied on the same data %p, further filtering has to be done on children", initial_handle);
 	STARPU_ASSERT_MSG(initial_handle->nplans == 0, "partition planning and synchronous partitioning is not supported");
 
 	initial_handle->children = NULL;

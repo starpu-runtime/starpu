@@ -1941,7 +1941,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 					{
 						char archname[STR_SHORT_LENGTH];
 						starpu_perfmodel_get_arch_name(arch, archname, sizeof(archname), impl);
-						_STARPU_DISP("Too big deviation for model %s on %s: %fus vs average %fus, %u such errors against %u samples (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environement variable to control the threshold (currently %d%%)\n", model->symbol, archname, measured, entry->mean, entry->nerror, entry->nsample, measured * 100. / entry->mean - 100, historymaxerror);
+						_STARPU_DISP("Too big deviation for model %s on %s: %fus vs average %fus, %u such errors against %u samples (%+f%%), flushing the performance model. Use the STARPU_HISTORY_MAX_ERROR environment variable to control the threshold (currently %d%%)\n", model->symbol, archname, measured, entry->mean, entry->nerror, entry->nsample, measured * 100. / entry->mean - 100, historymaxerror);
 						entry->sum = 0.0;
 						entry->sum2 = 0.0;
 						entry->nsample = 0;
