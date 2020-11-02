@@ -125,6 +125,9 @@ void cb_func(void *v){
     /*deallocate task*/
     free(task->cl);
 	  free(task->cl_arg);
+    if (task->name!=NULL){
+      free(task->name);
+    }
 
 }
 
@@ -243,7 +246,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
     /*set one of fut attribute to the task pointer*/
     PyObject_SetAttrString(fut, "starpu_task", PyTask);
     /*check the arguments of python function passed in*/
-    for (int i=1; i < PyTuple_Size(args); i++){
+    for (int i=1; i < PyTuple_Size(args)-1; i++){
       PyObject* obj=PyTuple_GetItem(args, i);
       const char* tp = Py_TYPE(obj)->tp_name;
       if(strcmp(tp, "_asyncio.Future") == 0){
@@ -262,8 +265,9 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
     starpu_codelet_init(func_cl);
     func_cl->cpu_func=&codelet_func;
     
-    /*check whether the last argument in args is the perfmodel*/
-    PyObject* perfmodel=PyTuple_GetItem(args, PyTuple_Size(args)-1);
+    /*check whether the option perfmodel is None*/
+    PyObject* dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);/*the last argument is the option dictionary*/
+    PyObject* perfmodel = PyDict_GetItemString(dict_option, "perfmodel");
     const char* tp_perf = Py_TYPE(perfmodel)->tp_name;
     if (strcmp(tp_perf, "PyCapsule")==0){
       /*PyObject*->struct perfmodel**/
@@ -271,7 +275,6 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
       func_cl->model=perf;
       Py_INCREF(perfmodel);
     }
-    
 
     /*allocate a new codelet structure to pass the python function, asyncio.Future and Event loop*/
     codelet_st *cst = (codelet_st*)malloc(sizeof(codelet_st));
@@ -283,19 +286,11 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
     Py_INCREF(loop);
 
     /*pass args in argList*/
-    if (PyTuple_Size(args)==1 || (PyTuple_Size(args)==2 && strcmp(tp_perf, "PyCapsule")==0))/*function no arguments*/
+    if (PyTuple_Size(args)==2)/*function no arguments*/
       cst->argList = PyTuple_New(0);
-    else if(PyTuple_Size(args)>2 && strcmp(tp_perf, "PyCapsule")==0){/*function has arguments and the last argument in args is the perfmodel*/
+    else{/*function has arguments*/
       cst->argList = PyTuple_New(PyTuple_Size(args)-2);
       for (int i=0; i < PyTuple_Size(args)-2; i++){
-        PyObject* tmp=PyTuple_GetItem(args, i+1);
-        PyTuple_SetItem(cst->argList, i, tmp);
-        Py_INCREF(PyTuple_GetItem(cst->argList, i));
-      }
-    }
-    else{/*function has arguments and no perfmodel*/
-      cst->argList = PyTuple_New(PyTuple_Size(args)-1);
-      for (int i=0; i < PyTuple_Size(args)-1; i++){
         PyObject* tmp=PyTuple_GetItem(args, i+1);
         PyTuple_SetItem(cst->argList, i, tmp);
         Py_INCREF(PyTuple_GetItem(cst->argList, i));
@@ -304,6 +299,49 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
 
     task->cl=func_cl;
     task->cl_arg=cst;
+    /*pass optional values name=None, synchronous=1, priority=0, color=None, flops=None, perfmodel=None*/
+    /*const char * name*/
+    PyObject* PyName = PyDict_GetItemString(dict_option, "name");
+    const char* name_type = Py_TYPE(PyName)->tp_name;
+    if (strcmp(name_type, "NoneType")!=0){
+      PyObject* pStrObj = PyUnicode_AsUTF8String(PyName);
+      char* name_str = PyBytes_AsString(pStrObj);
+      char* name = strdup(name_str);
+      //printf("name is %s\n", name);
+      task->name=name;
+      Py_DECREF(pStrObj);
+    }
+
+    /*unsigned synchronous:1*/
+    PyObject* PySync = PyDict_GetItemString(dict_option, "synchronous");
+    unsigned sync=PyLong_AsUnsignedLong(PySync);
+    //printf("sync is %u\n", sync);
+    task->synchronous=sync;
+
+    /*int priority*/
+    PyObject* PyPrio = PyDict_GetItemString(dict_option, "priority");
+    int prio=PyLong_AsLong(PyPrio);
+    //printf("prio is %d\n", prio);
+    task->priority=prio;
+
+    /*unsigned color*/
+    PyObject* PyColor = PyDict_GetItemString(dict_option, "color");
+    const char* color_type = Py_TYPE(PyColor)->tp_name;
+    if (strcmp(color_type, "NoneType")!=0){
+      unsigned color=PyLong_AsUnsignedLong(PyColor);
+      //printf("color is %u\n", color);
+      task->color=color;
+    }
+
+    /*double flops*/
+    PyObject* PyFlops = PyDict_GetItemString(dict_option, "flops");
+    const char* flops_type = Py_TYPE(PyFlops)->tp_name;
+    if (strcmp(flops_type, "NoneType")!=0){
+      double flop=PyFloat_AsDouble(PyFlops);
+      //printf("flops is %f\n", flop);
+      task->flops=flop;
+    }
+
     /*call starpu_task_submit method*/
     starpu_task_submit(task);
     task->callback_func=&cb_func;
@@ -364,13 +402,32 @@ static PyObject* starpu_cpu_worker_get_count_wrapper(PyObject *self, PyObject *a
   return Py_BuildValue("I", num_cpu);
 }
 
+/*wrapper get min priority method*/
+static PyObject* starpu_sched_get_min_priority_wrapper(PyObject *self, PyObject *args){
+
+  /*call starpu_sched_get_min_priority*/
+  int min_prio=starpu_sched_get_min_priority();
+
+  /*return type is int*/
+  return Py_BuildValue("i", min_prio);
+}
+
+/*wrapper get max priority method*/
+static PyObject* starpu_sched_get_max_priority_wrapper(PyObject *self, PyObject *args){
+
+  /*call starpu_sched_get_max_priority*/
+  int max_prio=starpu_sched_get_max_priority();
+
+  /*return type is int*/
+  return Py_BuildValue("i", max_prio);
+}
 /***********************************************************************************/
 
 /***************The module’s method table and initialization function**************/
 /*method table*/
 static PyMethodDef starpupyMethods[] = 
 { 
-  {"task_submit", starpu_task_submit_wrapper, METH_VARARGS, "submit the task"}, /*submit method*/
+  {"_task_submit", starpu_task_submit_wrapper, METH_VARARGS, "submit the task"}, /*submit method*/
   {"task_wait_for_all", starpu_task_wait_for_all_wrapper, METH_VARARGS, "wait the task"}, /*wait for all method*/
   {"pause", starpu_pause_wrapper, METH_VARARGS, "suspend the processing of new tasks by workers"}, /*pause method*/
   {"resume", starpu_resume_wrapper, METH_VARARGS, "resume the workers polling for new tasks"}, /*resume method*/
@@ -378,6 +435,8 @@ static PyMethodDef starpupyMethods[] =
   {"init_perfmodel", init_perfmodel, METH_VARARGS, "initialize struct starpu_perfmodel"}, /*initialize perfmodel*/
   {"free_perfmodel", free_perfmodel, METH_VARARGS, "free struct starpu_perfmodel"}, /*free perfmodel*/
   {"save_history_based_model", starpu_save_history_based_model_wrapper, METH_VARARGS, "save the performance model"}, /*save the performance model*/
+  {"sched_get_min_priority", starpu_sched_get_min_priority_wrapper, METH_VARARGS, "get the number of min priority"}, /*get the number of min priority*/
+  {"sched_get_max_priority", starpu_sched_get_max_priority_wrapper, METH_VARARGS, "get the number of max priority"}, /*get the number of max priority*/
   {NULL, NULL}
 };
 

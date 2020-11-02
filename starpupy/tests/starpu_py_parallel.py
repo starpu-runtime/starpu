@@ -96,6 +96,6 @@ async def main():
 	#print(res3)
 asyncio.run(main())
 
-starpu.joblib.perfmodel_plot(perfmodel="first")
-starpu.joblib.perfmodel_plot(perfmodel="second")
-starpu.joblib.perfmodel_plot(perfmodel="third")
+starpu.perfmodel_plot(perfmodel="first")
+starpu.perfmodel_plot(perfmodel="second")
+starpu.perfmodel_plot(perfmodel="third")

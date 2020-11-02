@@ -34,8 +34,39 @@ The StarPU module should be imported in any Python code wanting to use the StarP
 \subsection SubmittingTasks Submitting Tasks
 One of the most important functionality in StarPU is to submit tasks. Unlike the original C interface, Python interface simplifies the use of this function. It is more convenient for Python users to call the function directly without requiring more preparations. However, this simplification does not affect the final implementation.
 
-The function task_submit(func, *args, **kwargs) is used to submit tasks to StarPU in Python interface. The task that you will submit may be a function, and you need to set the parameters of task_submit to your function name and its arguments. When you want to let StarPU make optimizations for your program, you should submit all tasks and StarPU does smart scheduling to manage tasks. Submitted tasks will not be executed immediately, and you can only get the return value until the task has been executed.
+The function task_submit(options)(func, *args, **kwargs) is used to submit tasks to StarPU in Python interface. The task that you will submit may be a function, and in the second parentheses you need to set parameters of task_submit to your function name and its arguments. When you want to let StarPU make optimizations for your program, you should submit all tasks and StarPU does smart scheduling to manage tasks. Submitted tasks will not be executed immediately, and you can only get the return value until the task has been executed.
 
+In the first parentheses, you can set options which must be specified using keywords. If you set none of options, you still need to keep the parentheses, and options will be set with their default values. All options are introduced as follow:
+
+\subsubsection name name
+(string, default: None)
+
+Optional name of the task. This can be useful for debugging purposes.
+
+\subsubsection synchronous synchronous
+(unsigned, default: 0)
+
+If this flag is set, the function task_submit is blocking and returns only when the task has been executed (or if no worker is able to process the task). Otherwise, task_submit returns immediately.
+
+\subsubsection priority priority
+(int, default: 0)
+
+This field indicates a level of priority for the task. This is an integer value that must be set between the return values of the function starpu.sched_get_min_priority() for the least important tasks, and that of the function starpu.sched_get_max_priority() for the most important tasks (included). Default priority is always defined as 0 in order to allow static task initialization. Scheduling strategies that take priorities into account can use this parameter to take better scheduling decisions, but the scheduling policy may also ignore it.
+
+\subsubsection color color
+(unsigned, default: None)
+
+Setting color of the task to be used in dag.dot.
+
+\subsubsection flops flops
+(double, default: None)
+
+This can be set to the number of floating points operations that the task will have to achieve. This is useful for easily getting GFlops curves from the function starpu.perfmodel_plot, and for the hypervisor load balancing.
+
+\subsubsection perfmodel perfmodel
+(string, default: None)
+
+Setting a symbol for a function and its performance model will be saved in the file named by the symbol. Ideally, the same function should use the same symbol. After the task is executed, calling the function perfmodel_plot by giving the symbol of perfmodel to view the performance curve.
 
 \subsection ReturningFutureObject Returning Future Object
 In order to realize asynchronous frameworks, the <c>task_submit</c> function will return a Future object. This is an extended use for the Python interface. A Future represents an eventual result of an asynchronous operation. It is an awaitable object, Coroutines can await on Future objects until they either have a result or an exception set, or until they are canceled.
@@ -60,7 +91,7 @@ Suppose that there is a function:
 
 Then submitting this function as a task to StarPU. After calling task_submit function to create a Future object <c>fut</c>, we perform awaiting until receiving a signal that the result is ready. Then we get the eventual result.
 \code{.py}
->>> fut = starpu.task_submit(add, 1, 2)
+>>> fut = starpu.task_submit(perfmodel="add")(add, 1, 2)
 The result is ready!
 >>> res = await fut
 >>> res
@@ -77,7 +108,7 @@ def add(a, b):
 	return a+b
 
 async def main():
-	fut = starpu.task_submit(add, 1, 2)
+	fut = starpu.task_submit(perfmodel="add")(add, 1, 2)
 	res = await fut
 	print("The result of function is", res)
 
@@ -102,7 +133,21 @@ The result is ready!
 >>> res = await fut
 >>> res
 3
+\endcode
 
+If you want to set options when using decorator, you can just add parameters in starpu.delayed, like this:
+
+\code{.py}
+>>> @starpu.delayed(name="add", color=2, perfmodel="add_deco")
+... def add_deco(a, b):
+...     print("The result is ready!")
+...     return a+b
+... 
+>>> fut = add_deco(1, 2)
+The result is ready!
+>>> res = await fut
+>>> res
+3
 \endcode
 
 The Future object can be also used for the next step calculation even you do not get the task result. The eventual result will be awaited until the Future has a result.
@@ -122,8 +167,8 @@ In this example, after submitting the first task, a Future object <c>fut1</c> is
 ...     print("The second result is ready!")
 ...     return x-a
 ... 
->>> fut1 = starpu.task_submit(add, 1, 2)
->>> fut2 = starpu.task_submit(sub, fut1, 1)
+>>> fut1 = starpu.task_submit(perfmodel="add")(add, 1, 2)
+>>> fut2 = starpu.task_submit(perfmodel="sub")(sub, fut1, 1)
 >>> The first result is ready!
 The second result is ready!
 
@@ -200,6 +245,8 @@ Example 4: The result of  6 - 2 - 5.9 is -1.9000000000000004 and the result of 6
 
 \subsection ParallelParameters Parallel Parameters
 
+Without setting options of function task_submit, joblib.parallel module also provides some own parameters:
+
 \subsubsection mode mode
 (string, default: "normal")
 
@@ -226,10 +273,6 @@ As we introduced in the previous section, this parameter can be set with a promp
 
 You need to set the number of CPUs which is used for parallel computing. Thus for n_jobs=2, 2 CPUs are used. If 1 is given, no parallel computing. For n_jobs below 0, (n_cpus+1+n_jobs) CPUs are used. Thus for n_jobs=-2, all CPUs but one are used.
 
-\subsubsection perfmodel perfmodel
-(string, default: None)
-
-You can set a symbol for your function and its performance model will be stored for this function. Ideally, the same function should use the same symbol.
 
 In the following example, for the function log10 (i+1) for i in range(N), we set the performodel symbol to "log", and we submit the task in turn when N=10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 2000, ..., 100000,200000, ..., 1000000, 2000000, ..., 9000000. 
 \code{.py}
@@ -239,10 +282,10 @@ In the following example, for the function log10 (i+1) for i in range(N), we set
 ...     	starpu.joblib.parallel(mode="normal", n_jobs=2, perfmodel="log")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
 \endcode
 
-The performance model will be saved in the file named by the symbol. You can also call the function perfmodel_plot by giving the symbol of perfmodel to view the performance curve.
+You can call the function perfmodel_plot by giving the symbol of perfmodel to view the performance curve.
 
 \code{.py}
-starpu.joblib.perfmodel_plot(perfmodel="log")
+starpu.perfmodel_plot(perfmodel="log")
 \endcode
 
 The performance curve of this example will be shown as:
