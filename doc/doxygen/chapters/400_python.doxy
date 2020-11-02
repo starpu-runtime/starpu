@@ -20,32 +20,33 @@ A Python interface is also provided to allow the use of StarPU for Python users.
 
 The need to exploit the computing power of the available CPUs and GPUs, while relieving them from the need to specially adapt their programs to the target machine and processing units is present in most programs regardless the programming language. Providing a Python interface, in addition to the existing C interface, will extend the use of StarPU to Python users and thus support them in this perpetual quest for optimization.
 
-In this Python interface, some principle functions of StarPU are wrapped to simplify the use. Not all functions are existed compared to the original C interface, but at the same time, some new functions especially adapted to Python have been added in this interface.
-You can simply import StarPU module and use the provided functions of StarPU in your own Python library.
+The Python interface provides an interface to some of the main functionalities of StarPU. All the functionalities of the C API are not provided, however, new functions especially adapted to Python have been added in this interface.
+You can simply import the StarPU module and use the provided functions of StarPU in your own Python library.
 
 \section ImplementingStarPUInPython Implementing StarPU in Python
 
-The StarPU module should be imported in any Python code using StarPU Python interface.
+The StarPU module should be imported in any Python code wanting to use the StarPU Python interface.
 
 \code{.py}
 >>> import starpu
 \endcode
 
 \subsection SubmittingTasks Submitting Tasks
-One of the most important function in StarPU is to submit tasks. Unlike the original C interface, Python interface simplifies the use of this function. It is more convenient for Python users to call the function directly without requiring more preparations. However, this simplification does not affect the final implementation.
+One of the most important functionality in StarPU is to submit tasks. Unlike the original C interface, Python interface simplifies the use of this function. It is more convenient for Python users to call the function directly without requiring more preparations. However, this simplification does not affect the final implementation.
 
 The function task_submit(func, *args, **kwargs) is used to submit tasks to StarPU in Python interface. The task that you will submit may be a function, and you need to set the parameters of task_submit to your function name and its arguments. When you want to let StarPU make optimizations for your program, you should submit all tasks and StarPU does smart scheduling to manage tasks. Submitted tasks will not be executed immediately, and you can only get the return value until the task has been executed.
 
 
 \subsection ReturningFutureObject Returning Future Object
-In order to realise asynchronous frameworks, the task_submit function will return a Future object. This is an extended use for Python interface. A Future represents an eventual result of an asynchronous operation. It is an awaitable object, Coroutines can await on Future objects until they either have a result or an exception set, or until they are cancelled.
+In order to realize asynchronous frameworks, the <c>task_submit</c> function will return a Future object. This is an extended use for the Python interface. A Future represents an eventual result of an asynchronous operation. It is an awaitable object, Coroutines can await on Future objects until they either have a result or an exception set, or until they are canceled.
 
-The asyncio module should be imported in this case. 
+The asyncio module should be imported in this case.
+
 \code{.py}
 >>> import asyncio
 \endcode
 
-Considering when submitting a task to StarPU, the task will not be executed immediately, but with this Future object, you do not need to wait for the eventual result but to perform other operations during task execution. When the return value is ready, awaiting this Future object, then you can get the return value.
+When submitting a task to StarPU, the task will not be executed immediately, but with this Future object, you do not need to wait for the eventual result but to perform other operations during task execution. When the return value is ready, awaiting this Future object, then you can get the return value.
 
 Here is an example to show how to submit a task in the most basic way.
 
@@ -57,7 +58,7 @@ Suppose that there is a function:
 ...     return a+b
 \endcode
 
-Then submitting this function as a task to StarPU. After calling task_submit function to create a Future object "fut", we perform awaiting until receiving a signal that the result is ready. Then we get the eventual result.
+Then submitting this function as a task to StarPU. After calling task_submit function to create a Future object <c>fut</c>, we perform awaiting until receiving a signal that the result is ready. Then we get the eventual result.
 \code{.py}
 >>> fut = starpu.task_submit(add, 1, 2)
 The result is ready!
@@ -66,7 +67,7 @@ The result is ready!
 3
 \endcode
 
-Special attention is needed in above example that we use the argument "-m asyncio" (available in Python version > 3.8) when executing the program, then we can use "await" directly instead of "asyncio.run()". In addition, this argument only applies to execute programs in the command line. Therefore, if you want to write your program in Python script file or you only have an old version of Python, you need to await the Future in an asyncio function and use "asyncio.run()" to execute the function, like this:
+Special attention is needed in above example that we use the argument <c>-m asyncio</c> (available in Python version > 3.8) when executing the program, then we can use <c>await</c> directly instead of <c>asyncio.run()</c>. In addition, this argument only applies to execute programs in the command line. Therefore, if you want to write your program in Python script file or you only have an old version of Python, you need to await the Future in an asyncio function and use <c>asyncio.run()</c> to execute the function, like this:
 
 \code{.py}
 import starpu
@@ -106,7 +107,7 @@ The result is ready!
 
 The Future object can be also used for the next step calculation even you do not get the task result. The eventual result will be awaited until the Future has a result.
 
-In this example, after submitting the first task, a Future object "fut1" is created, and it is used in the second task as one of arguments. During the first task is executed, the second task is submitted even we do not have the first return value. Then we receive the signal that the second result is ready right after the signal that the first result is ready. We can perform awaiting to get the eventual result.
+In this example, after submitting the first task, a Future object <c>fut1</c> is created, and it is used in the second task as one of arguments. During the first task is executed, the second task is submitted even we do not have the first return value. Then we receive the signal that the second result is ready right after the signal that the first result is ready. We can perform awaiting to get the eventual result.
 
 \code{.py}
 >>> import asyncio
@@ -202,7 +203,7 @@ Example 4: The result of  6 - 2 - 5.9 is -1.9000000000000004 and the result of 6
 \subsubsection mode mode
 (string, default: "normal")
 
-You need to choose the mode between "normal" and "future". As in the previous example, with "normal" mode, you can call starpu.joblib.parallel directly without using asyncio module and you will get the result when the task is executed. With "future" mode, when you call starpu.joblib.parallel, you will get a Future object as return value. Here if you set another parameter "end_msg", you will receive a signal with this message that the result is ready, then you can perform awaiting to get the eventual result. The asyncio module should be imported in this case.
+You need to choose the mode between <c>normal</c> and <c>future</c>. As in the previous example, with <c>normal</c> mode, you can call starpu.joblib.parallel directly without using asyncio module and you will get the result when the task is executed. With <c>future</c> mode, when you call starpu.joblib.parallel, you will get a Future object as return value. Here if you set another parameter <c>end_msg</c>, you will receive a signal with this message that the result is ready, then you can perform awaiting to get the eventual result. The asyncio module should be imported in this case.
 
 \code{.py}
 >>> import starpu
