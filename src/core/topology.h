@@ -59,6 +59,9 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
 /** returns the number of NUMA nodes */
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config);
 
+/** returns the number of hyperthreads per core */
+unsigned _starpu_get_nhyperthreads();
+
 #ifdef STARPU_HAVE_HWLOC
 /** Small convenient function to filter hwloc topology depending on HWLOC API version */
 void _starpu_topology_filter(hwloc_topology_t topology);
