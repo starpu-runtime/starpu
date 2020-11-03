@@ -935,8 +935,16 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 	unsigned i;
 
 	struct _starpu_machine_topology *topology = &config->topology;
+	int nhyperthreads = topology->nhwpus / topology->nhwcpus;
+	unsigned bind_on_core = 0;
+	int scale = 1;
 
 	config->current_bindid = 0;
+
+	if (starpu_getenv("STARPU_WORKERS_CPUID") && starpu_getenv("STARPU_WORKERS_COREID"))
+	{
+		_STARPU_DISP("Warning: STARPU_WORKERS_CPUID and STARPU_WORKERS_COREID cannot be set at the same time. STARPU_WORKERS_CPUID will be used.\n");
+	}
 
 	/* conf->workers_bindid indicates the successive logical PU identifier that
 	 * should be used to bind the workers. It should be either filled
@@ -947,6 +955,16 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 
 	/* what do we use, explicit value, env. variable, or round-robin ? */
 	strval = starpu_getenv("STARPU_WORKERS_CPUID");
+	if (strval == NULL)
+	{
+		strval = starpu_getenv("STARPU_WORKERS_COREID");
+		if (strval)
+		{
+			bind_on_core = 1;
+			scale = nhyperthreads;
+		}
+	}
+
 	if (strval)
 	{
 		/* STARPU_WORKERS_CPUID certainly contains less entries than
@@ -967,7 +985,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 				val = strtol(strval, &endptr, 10);
 				if (endptr != strval)
 				{
-					topology->workers_bindid[i] = (unsigned)(val % topology->nhwpus);
+					topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus);
 					strval = endptr;
 					if (*strval == '-')
 					{
@@ -981,14 +999,14 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 						}
 						else
 						{
-							endval = topology->nhwpus-1;
+							endval = (bind_on_core ? topology->nhwcpus : topology->nhwpus) - 1;
 							if (*strval)
 								strval++;
 						}
 						for (val++; val <= endval && i < STARPU_NMAXWORKERS-1; val++)
 						{
 							i++;
-							topology->workers_bindid[i] = (unsigned)(val % topology->nhwpus);
+							topology->workers_bindid[i] = (unsigned)((val * scale) % topology->nhwpus);
 						}
 					}
 					if (*strval == ',')
@@ -1027,7 +1045,6 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 		int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
 		int k;
 		int nbindids=0;
-		int nhyperthreads = topology->nhwpus / topology->nhwcpus;
 		STARPU_ASSERT_MSG(nth_per_core > 0 && nth_per_core <= nhyperthreads , "Incorrect number of hyperthreads");
 
 		i = 0; /* PU number currently assigned */

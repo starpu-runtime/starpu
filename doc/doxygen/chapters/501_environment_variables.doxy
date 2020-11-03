@@ -228,7 +228,14 @@ and the third (resp. second and fourth) workers will be put on CPU #0
 This variable is ignored if the field
 starpu_conf::use_explicit_workers_bindid passed to starpu_init() is
 set.
+</dd>
 
+<dt>STARPU_WORKERS_COREID</dt>
+<dd>
+\anchor STARPU_WORKERS_COREID
+\addindex __env__STARPU_WORKERS_COREID
+Same as \ref STARPU_WORKERS_CPUID, but bind the workers to cores instead of PUs
+(hyperthreads).
 </dd>
 
 <dt>STARPU_MAIN_THREAD_BIND</dt>
