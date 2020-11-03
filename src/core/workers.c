@@ -1638,6 +1638,15 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	int main_thread_cpuid = starpu_get_env_number_default("STARPU_MAIN_THREAD_CPUID", -1);
+	int main_thread_coreid = starpu_get_env_number_default("STARPU_MAIN_THREAD_COREID", -1);
+	if (main_thread_cpuid >= 0 && main_thread_coreid >= 0)
+	{
+		_STARPU_DISP("Warning: STARPU_MAIN_THREAD_CPUID and STARPU_MAIN_THREAD_COREID cannot be set at the same time. STARPU_MAIN_THREAD_CPUID will be used.\n");
+	}
+	if (main_thread_cpuid == -1 && main_thread_coreid >= 0)
+	{
+		main_thread_cpuid = main_thread_coreid * _starpu_get_nhyperthreads();
+	}
 	int main_thread_bind = starpu_get_env_number_default("STARPU_MAIN_THREAD_BIND", 0);
 	int main_thread_activity = STARPU_NONACTIVETHREAD;
 	if (main_thread_bind)

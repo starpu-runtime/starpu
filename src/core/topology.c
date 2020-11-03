@@ -3130,3 +3130,10 @@ hwloc_topology_t starpu_get_hwloc_topology(void)
 	return config->topology.hwtopology;
 }
 #endif
+
+unsigned _starpu_get_nhyperthreads()
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+
+	return config->topology.nhwpus / config->topology.nhwcpus;
+}

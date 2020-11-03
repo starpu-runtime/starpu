@@ -15,6 +15,7 @@
  */
 
 #include <starpu_mpi_private.h>
+#include <core/topology.h>
 
 int _starpu_debug_rank=-1;
 int _starpu_debug_level_min=0;
@@ -70,4 +71,14 @@ void _starpu_mpi_env_init(void)
 	_starpu_mpi_mem_throttle = starpu_get_env_number_default("STARPU_MPI_MEM_THROTTLE", 0);
 	_starpu_debug_level_min = starpu_get_env_number_default("STARPU_MPI_DEBUG_LEVEL_MIN", 0);
 	_starpu_debug_level_max = starpu_get_env_number_default("STARPU_MPI_DEBUG_LEVEL_MAX", 0);
+
+	int mpi_thread_coreid = starpu_get_env_number_default("STARPU_MPI_THREAD_COREID", -1);
+	if (_starpu_mpi_thread_cpuid >= 0 && mpi_thread_coreid >= 0)
+	{
+		_STARPU_DISP("Warning: STARPU_MPI_THREAD_CPUID and STARPU_MPI_THREAD_COREID cannot be set at the same time. STARPU_MAIN_THREAD_CPUID will be used.\n");
+	}
+	if (_starpu_mpi_thread_cpuid == -1 && mpi_thread_coreid >= 0)
+	{
+		_starpu_mpi_thread_cpuid = mpi_thread_coreid * _starpu_get_nhyperthreads();
+	}
 }
