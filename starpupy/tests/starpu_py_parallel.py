@@ -67,13 +67,13 @@ print("************************")
 print("parallel Normal version:")
 print("************************")
 print("--input is iterable argument list, example 1")
-starpu.joblib.parallel(mode="normal", n_jobs=-2, perfmodel="first")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
+starpu.joblib.Parallel(mode="normal", n_jobs=-2, perfmodel="first")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
 
 print("--input is iterable argument list, example 2")
-starpu.joblib.parallel(mode="normal", n_jobs=2, perfmodel="second")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
+starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="second")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
 
 print("--input is iterable function list")
-starpu.joblib.parallel(mode="normal", n_jobs=3, perfmodel="third")(g_func)
+starpu.joblib.Parallel(mode="normal", n_jobs=3, perfmodel="third")(g_func)
 
 
 print("************************")
@@ -81,17 +81,17 @@ print("parallel Future version:")
 print("************************")
 async def main():
 	print("--input is iterable argument list, example 1")
-	fut1=starpu.joblib.parallel(mode="future", n_jobs=-3, perfmodel="first")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
+	fut1=starpu.joblib.Parallel(mode="future", n_jobs=-3, perfmodel="first")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
 	res1=await fut1
 	#print(res1)
 
 	print("--input is iterable argument list, example 2")
-	fut2=starpu.joblib.parallel(mode="future", n_jobs=-3, perfmodel="second")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
+	fut2=starpu.joblib.Parallel(mode="future", n_jobs=-3, perfmodel="second")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
 	res2=await fut2
 	#print(res2)
 
 	print("--input is iterable function list")
-	fut3=starpu.joblib.parallel(mode="future", n_jobs=2, perfmodel="third")(g_func)
+	fut3=starpu.joblib.Parallel(mode="future", n_jobs=2, perfmodel="third")(g_func)
 	res3=await fut3
 	#print(res3)
 asyncio.run(main())

@@ -189,11 +189,20 @@ StarPU Python interface also provides parallel computing for loops using multipr
 [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
 \endcode
 
-In order to spread it over several CPUs, you can use starpu.joblib module, and call parallel function:
+In order to spread it over several CPUs, you can use starpu.joblib module, and call Parallel class:
 
 \code{.py}
 >>> from math import log10
->>> starpu.joblib.parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(log10)(10**i)for i in range(10))
+>>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(log10)(10**i)for i in range(10))
+[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+\endcode
+
+Or you can create an object of Parallel class, and then call starpu.joblib.delayed to execute the function.
+
+\code{.py}
+>>> from math import log10
+>>> parallel=starpu.joblib.Parallel(mode="normal", n_jobs=2)
+>>> parallel(starpu.joblib.delayed(log10)(10**i)for i in range(10))
 [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
 \endcode
 
@@ -231,7 +240,7 @@ def sub(a, b, c):
 g_func.append(starpu.joblib.delayed(sub)(6, 2, 5.9))
 
 #input is iterable function list
-starpu.joblib.parallel(mode="normal", n_jobs=2)(g_func)
+starpu.joblib.Parallel(mode="normal", n_jobs=2)(g_func)
 \endcode
 
 Execution:
@@ -245,18 +254,18 @@ Example 4: The result of  6 - 2 - 5.9 is -1.9000000000000004 and the result of 6
 
 \subsection ParallelParameters Parallel Parameters
 
-Without setting options of function task_submit, joblib.parallel module also provides some own parameters:
+Without setting options of function task_submit, starpu.joblib.Parallel also provides some own parameters:
 
 \subsubsection mode mode
 (string, default: "normal")
 
-You need to choose the mode between <c>normal</c> and <c>future</c>. As in the previous example, with <c>normal</c> mode, you can call starpu.joblib.parallel directly without using asyncio module and you will get the result when the task is executed. With <c>future</c> mode, when you call starpu.joblib.parallel, you will get a Future object as return value. Here if you set another parameter <c>end_msg</c>, you will receive a signal with this message that the result is ready, then you can perform awaiting to get the eventual result. The asyncio module should be imported in this case.
+You need to choose the mode between <c>normal</c> and <c>future</c>. As in the previous example, with <c>normal</c> mode, you can call starpu.joblib.Parallel directly without using asyncio module and you will get the result when the task is executed. With <c>future</c> mode, when you call starpu.joblib.Parallel, you will get a Future object as return value. Here if you set another parameter <c>end_msg</c>, you will receive a signal with this message that the result is ready, then you can perform awaiting to get the eventual result. The asyncio module should be imported in this case.
 
 \code{.py}
 >>> import starpu
 >>> import asyncio
 >>> from math import log10
->>> fut = starpu.joblib.parallel(mode="future", n_jobs=3, end_msg="The result is ready!")(starpu.joblib.delayed(log10)(10**i)for i in range(10))
+>>> fut = starpu.joblib.Parallel(mode="future", n_jobs=3, end_msg="The result is ready!")(starpu.joblib.delayed(log10)(10**i)for i in range(10))
 >>> The result is ready! <_GatheringFuture finished result=[[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]>
 >>> await fut
 [[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]
@@ -269,7 +278,7 @@ You need to choose the mode between <c>normal</c> and <c>future</c>. As in the p
 As we introduced in the previous section, this parameter can be set with a prompt message to remind you that the task is executed and the result is ready, then you can perform awaiting and get the eventual result. If you do not set this parameter, the default value is None, and you will not receive any prompt message, but you still can perform awaiting and get the eventual result.
 
 \subsubsection n_jobs n_jobs
-(int, default: 1)
+(int, default: None)
 
 You need to set the number of CPUs which is used for parallel computing. Thus for n_jobs=2, 2 CPUs are used. If 1 is given, no parallel computing. For n_jobs below 0, (n_cpus+1+n_jobs) CPUs are used. Thus for n_jobs=-2, all CPUs but one are used.
 
@@ -279,7 +288,7 @@ In the following example, for the function log10 (i+1) for i in range(N), we set
 >>> from math import log10
 >>> for x in [10, 100, 1000, 10000, 100000, 1000000]:
 ...     for N in range(x, x*10, x):
-...     	starpu.joblib.parallel(mode="normal", n_jobs=2, perfmodel="log")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
+...     	starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="log")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
 \endcode
 
 You can call the function perfmodel_plot by giving the symbol of perfmodel to view the performance curve.
