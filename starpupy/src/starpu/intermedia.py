@@ -54,9 +54,10 @@ def task_submit(*, name=None, synchronous=0, priority=0, color=None, flops=None,
 	return call_task_submit
 
 # dump performance model and show the plot
-def perfmodel_plot(perfmodel):
+def perfmodel_plot(perfmodel, view=False):
 	p=dict_perf[perfmodel]
 	starpupy.save_history_based_model(p.get_struct())
-	os.system('starpu_perfmodel_plot -s "' + perfmodel +'"')
-	os.system('gnuplot starpu_'+perfmodel+'.gp')
-	os.system('gv starpu_'+perfmodel+'.eps')
+	if view == True:
+		os.system('starpu_perfmodel_plot -s "' + perfmodel +'"')
+		os.system('gnuplot starpu_'+perfmodel+'.gp')
+		os.system('gv starpu_'+perfmodel+'.eps')
