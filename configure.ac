@@ -3366,6 +3366,31 @@ AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
 			enable_starpurm_examples=$enableval, enable_starpurm_examples=no)
 AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
 
+#####################################
+# StarPUPy                          #
+#####################################
+
+starpupy_support=no
+AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU python interface])],
+                    enable_starpupy=$enableval, enable_starpupy=yes)
+if test "x$enable_starpupy" != xno
+then
+	starpupy_support=yes
+	AC_CHECK_PROGS([PYTHON], python3)
+	if test "$ac_cv_prog_PYTHON" == ""
+	then
+		AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
+	fi
+	AC_SUBST(PYTHON)
+	AC_MSG_CHECKING(for python3 module joblib)
+	AC_PYTHON_MODULE(joblib,[joblib_avail=yes],[joblib_avail=no])
+	AC_MSG_RESULT($joblib_avail)
+	if test "$joblib_avail" = "no" ; then
+		AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface])
+	fi
+fi
+AM_CONDITIONAL(STARPU_BUILD_STARPUPY, [test x$starpupy_support = xyes])
+
 ##########################################
 # Documentation                          #
 ##########################################
@@ -3527,6 +3552,10 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
+  chmod +x starpupy/tests/execute.sh
+  for x in starpupy/tests/starpu_py.sh starpupy/tests/starpu_py_parallel.sh; do
+      test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
+  done
   chmod +x julia/examples/execute.sh
   for x in julia/examples/check_deps/check_deps.sh julia/examples/mult/mult_starpu.sh julia/examples/mult/perf.sh julia/examples/variable/variable.sh julia/examples/task_insert_color/task_insert_color.sh julia/examples/vector_scal/vector_scal.sh julia/examples/mandelbrot/mandelbrot.sh julia/examples/callback/callback.sh julia/examples/dependency/task_dep.sh julia/examples/dependency/tag_dep.sh julia/examples/dependency/end_dep.sh julia/examples/axpy/axpy.sh julia/examples/gemm/gemm.sh julia/examples/cholesky/cholesky.sh; do
       test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
@@ -3596,6 +3625,12 @@ AC_OUTPUT([
 	starpurm/src/Makefile
 	starpurm/examples/Makefile
 	starpurm/starpurm-1.3.pc
+	starpupy/src/setup.cfg
+	starpupy/src/setup.py
+	starpupy/Makefile
+	starpupy/src/Makefile
+	starpupy/tests/Makefile
+	starpupy/tests/execute.sh
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
@@ -3670,6 +3705,7 @@ AC_MSG_NOTICE([
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
 	       FFT Support:                                   $fft_support
 	       Resource Management enabled:                   $starpurm_support
+	       Python Interface enabled:                      $starpupy_support
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl

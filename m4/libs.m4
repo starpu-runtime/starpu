@@ -191,3 +191,15 @@ AC_DEFUN([IS_SUPPORTED_FCFLAG],
 	FCFLAGS="$SAVED_FCFLAGS"
 	AC_LANG_POP([Fortran])
 ])
+
+# AC_PYTHON_MODULE(modulename, [action-if-found], [action-if-not-found])
+# Check if the given python module is available
+AC_DEFUN([AC_PYTHON_MODULE],
+	[
+	echo "import $1" | $PYTHON - 2>/dev/null
+	if test $? -ne 0 ; then
+	   	$3
+	else
+		$2
+	fi
+])
