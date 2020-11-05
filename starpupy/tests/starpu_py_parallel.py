@@ -96,6 +96,6 @@ async def main():
 	#print(res3)
 asyncio.run(main())
 
-starpu.perfmodel_plot(perfmodel="first")#,view=True
-starpu.perfmodel_plot(perfmodel="second")
-starpu.perfmodel_plot(perfmodel="third")
+starpu.perfmodel_plot(perfmodel="first",view=False)
+starpu.perfmodel_plot(perfmodel="second",view=False)
+starpu.perfmodel_plot(perfmodel="third",view=False)

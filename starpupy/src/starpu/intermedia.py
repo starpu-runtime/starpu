@@ -54,7 +54,7 @@ def task_submit(*, name=None, synchronous=0, priority=0, color=None, flops=None,
 	return call_task_submit
 
 # dump performance model and show the plot
-def perfmodel_plot(perfmodel, view=False):
+def perfmodel_plot(perfmodel, view=True):
 	p=dict_perf[perfmodel]
 	starpupy.save_history_based_model(p.get_struct())
 	if view == True:
