@@ -412,8 +412,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 
-	_STARPU_TRACE_TASK_NAME(j);
-
 	/* If this is a continuation, we do not notify task/tag dependencies
 	 * now. Task/tag dependencies will be notified only when the continued
 	 * task fully completes */
