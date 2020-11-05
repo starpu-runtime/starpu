@@ -691,6 +691,7 @@ int starpu_task_submit(struct starpu_task *task)
 		_STARPU_TRACE_TASK_SUBMIT(j,
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
+		_STARPU_TRACE_TASK_NAME(j);
 	}
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
