@@ -37,374 +37,391 @@ extern void _Py_CountReferences(FILE*);
 
 /*********************Functions passed in task_submit wrapper***********************/
 
-static PyObject* asyncio_module; /*python asyncio library*/
+static PyObject *asyncio_module; /*python asyncio library*/
 
 /*structure contains parameters which are passed to starpu_task.cl_arg*/
-struct codelet_struct { 
-    PyObject* f; /*the python function passed in*/
-    PyObject* argList; /*argument list of python function passed in*/
-    PyObject* rv; /*return value when using PyObject_CallObject call the function f*/
-    PyObject* fut; /*asyncio.Future*/
-    PyObject* lp; /*asyncio.Eventloop*/
+struct codelet_args
+{
+	PyObject *f; /*the python function passed in*/
+	PyObject *argList; /*argument list of python function passed in*/
+	PyObject *rv; /*return value when using PyObject_CallObject call the function f*/
+	PyObject *fut; /*asyncio.Future*/
+	PyObject *lp; /*asyncio.Eventloop*/
 };
-typedef struct codelet_struct codelet_st;
 
 /*function passed to starpu_codelet.cpu_func*/
-void codelet_func(void *buffers[], void *cl_arg){
+void codelet_func(void *buffers[], void *cl_arg)
+{
+	struct codelet_args *cst = (struct codelet_args*) cl_arg;
 
-    codelet_st* cst = (codelet_st*) cl_arg;
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
 
-    /*make sure we own the GIL*/
-    PyGILState_STATE state = PyGILState_Ensure();
+	/*verify that the function is a proper callable*/
+	if (!PyCallable_Check(cst->f))
+	{
+		printf("py_callback: expected a callable function\n");
+		exit(1);
+	}
 
-    /*verify that the function is a proper callable*/
-    if (!PyCallable_Check(cst->f)) {
+	/*check the arguments of python function passed in*/
+	for (int i=0; i < PyTuple_Size(cst->argList); i++)
+	{
+		PyObject *obj = PyTuple_GetItem(cst->argList, i);
+		const char *tp = Py_TYPE(obj)->tp_name;
+		if(strcmp(tp, "_asyncio.Future") == 0)
+		{
+			/*if one of arguments is Future, get its result*/
+			PyObject *fut_result = PyObject_CallMethod(obj, "result", NULL);
+			/*replace the Future argument to its result*/
+			PyTuple_SetItem(cst->argList, i, fut_result);
+		}
+	}
 
-        printf("py_callback: expected a callable function\n"); 
-        exit(1);
-    }
-    
-    /*check the arguments of python function passed in*/
-    for (int i=0; i < PyTuple_Size(cst->argList); i++){
-      PyObject* obj=PyTuple_GetItem(cst->argList, i);
-      const char* tp = Py_TYPE(obj)->tp_name;
-      if(strcmp(tp, "_asyncio.Future") == 0){
-        /*if one of arguments is Future, get its result*/
-        PyObject * fut_result = PyObject_CallMethod(obj, "result", NULL);
-        /*replace the Future argument to its result*/
-        PyTuple_SetItem(cst->argList, i, fut_result);
-      }
-    }
+	/*call the python function*/
+	PyObject *pRetVal = PyObject_CallObject(cst->f, cst->argList);
+	cst->rv = pRetVal;
 
-    /*call the python function*/
-    PyObject *pRetVal = PyObject_CallObject(cst->f, cst->argList);
-    cst->rv=pRetVal;
+	//Py_DECREF(cst->f);
 
-    //Py_DECREF(cst->f);
-
-    /*restore previous GIL state*/
-    PyGILState_Release(state);
-
+	/*restore previous GIL state*/
+	PyGILState_Release(state);
 }
 
 /*function passed to starpu_task.callback_func*/
-void cb_func(void *v){
+void cb_func(void *v)
+{
+	struct starpu_task *task = starpu_task_get_current();
+	struct codelet_args *cst = (struct codelet_args*) task->cl_arg;
 
-	struct starpu_task *task=starpu_task_get_current();
-    codelet_st* cst = (codelet_st*) task->cl_arg;
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
 
-    /*make sure we own the GIL*/
-    PyGILState_STATE state = PyGILState_Ensure();
+	/*set the Future result and mark the Future as done*/
+	PyObject *set_result = PyObject_GetAttrString(cst->fut, "set_result");
+	PyObject *loop_callback = PyObject_CallMethod(cst->lp, "call_soon_threadsafe", "(O,O)", set_result, cst->rv);
 
-    /*set the Future result and mark the Future as done*/
-    PyObject * set_result = PyObject_GetAttrString(cst->fut, "set_result");
-    PyObject * loop_callback = PyObject_CallMethod(cst->lp, "call_soon_threadsafe", "(O,O)", set_result, cst->rv);
+	Py_DECREF(loop_callback);
+	Py_DECREF(set_result);
+	Py_DECREF(cst->rv);
+	Py_DECREF(cst->fut);
+	Py_DECREF(cst->lp);
 
-    Py_DECREF(loop_callback);
-    Py_DECREF(set_result);
-    Py_DECREF(cst->rv);
-    Py_DECREF(cst->fut);
-    Py_DECREF(cst->lp);
+	//Py_DECREF(perfmodel);
+	struct starpu_codelet *func_cl=(struct starpu_codelet *) task->cl;
+	if (func_cl->model != NULL)
+	{
+		struct starpu_perfmodel *perf =(struct starpu_perfmodel *) func_cl->model;
+		PyObject *perfmodel=PyCapsule_New(perf, "Perf", 0);
+		Py_DECREF(perfmodel);
+	}
 
-    //Py_DECREF(perfmodel);
-    struct starpu_codelet * func_cl=(struct starpu_codelet *) task->cl;
-    if (func_cl->model != NULL){
-      struct starpu_perfmodel *perf =(struct starpu_perfmodel *) func_cl->model;
-      PyObject* perfmodel=PyCapsule_New(perf, "Perf", 0);
-      Py_DECREF(perfmodel);
-    }
+	for(int i = 0; i < PyTuple_Size(cst->argList); i++)
+	{
+		Py_DECREF(PyTuple_GetItem(cst->argList, i));
+	}
+	Py_DECREF(cst->argList);
 
-    for(int i = 0; i < PyTuple_Size(cst->argList); i++){
-        Py_DECREF(PyTuple_GetItem(cst->argList, i));
-    }
-    Py_DECREF(cst->argList);
+	/*restore previous GIL state*/
+	PyGILState_Release(state);
 
-    /*restore previous GIL state*/
-    PyGILState_Release(state);
-
-    /*deallocate task*/
-    free(task->cl);
-	  free(task->cl_arg);
-    if (task->name!=NULL){
-      free(task->name);
-    }
-
+	/*deallocate task*/
+	free(task->cl);
+	free(task->cl_arg);
+  if (task->name!=NULL)
+  {
+    free(task->name);
+  }
 }
 
 /***********************************************************************************/
 /*PyObject*->struct starpu_task**/
-static struct starpu_task *PyTask_AsTask(PyObject* obj){
-  return (struct starpu_task *) PyCapsule_GetPointer(obj, "Task");
+static struct starpu_task *PyTask_AsTask(PyObject *obj)
+{
+	return (struct starpu_task *) PyCapsule_GetPointer(obj, "Task");
 }
 
 /* destructor function for task */
-static void del_Task(PyObject *obj) {
-  struct starpu_task* obj_task=PyTask_AsTask(obj);
-  obj_task->destroy=1; /*XXX we should call starpu task destroy*/
+static void del_Task(PyObject *obj)
+{
+	struct starpu_task *obj_task=PyTask_AsTask(obj);
+	obj_task->destroy=1; /*XXX we should call starpu task destroy*/
 }
 
 /*struct starpu_task*->PyObject**/
-static PyObject *PyTask_FromTask(struct starpu_task *task) {
-  return PyCapsule_New(task, "Task", del_Task);
+static PyObject *PyTask_FromTask(struct starpu_task *task)
+{
+	return PyCapsule_New(task, "Task", del_Task);
 }
 
 /***********************************************************************************/
-static size_t sizebase (struct starpu_task * task, unsigned nimpl){
+static size_t sizebase (struct starpu_task *task, unsigned nimpl)
+{
+	struct codelet_args *cst = (struct codelet_args*) task->cl_arg;
 
-  codelet_st* cst = (codelet_st*) task->cl_arg;
+	PyObject *obj=PyTuple_GetItem(cst->argList, 0);
+	/*get the length of arguments*/
+	int n = PyList_Size(obj);
 
-  PyObject* obj=PyTuple_GetItem(cst->argList, 0);
-  /*get the length of arguments*/
-  int n = PyList_Size(obj);
-
-  return n;
+	return n;
 }
 
-static void del_Perf(PyObject *obj){
-  struct starpu_perfmodel *perf=(struct starpu_perfmodel*)PyCapsule_GetPointer(obj, "Perf");
-  free(perf);
+static void del_Perf(PyObject *obj)
+{
+	struct starpu_perfmodel *perf=(struct starpu_perfmodel*)PyCapsule_GetPointer(obj, "Perf");
+	free(perf);
 }
+
 /*initialization of perfmodel*/
-static PyObject* init_perfmodel(PyObject *self, PyObject *args){
+static PyObject* init_perfmodel(PyObject *self, PyObject *args)
+{
+	char *sym;
 
-  char* sym;
+	if (!PyArg_ParseTuple(args, "s", &sym))
+		return NULL;
 
-  if (!PyArg_ParseTuple(args, "s", &sym))
-    return NULL;
+	/*allocate a perfmodel structure*/
+	struct starpu_perfmodel *perf=(struct starpu_perfmodel*)calloc(1, sizeof(struct starpu_perfmodel));
 
-  /*allocate a perfmodel structure*/
-  struct starpu_perfmodel *perf=(struct starpu_perfmodel*)calloc(1, sizeof(struct starpu_perfmodel));
+	/*get the perfmodel symbol*/
+	char *p =strdup(sym);
+	perf->symbol=p;
+	perf->type=STARPU_HISTORY_BASED;
 
-  /*get the perfmodel symbol*/
-  char* p =strdup(sym);
-  perf->symbol=p;
-  perf->type=STARPU_HISTORY_BASED;
+	/*struct perfmodel*->PyObject**/
+	PyObject *perfmodel=PyCapsule_New(perf, "Perf", NULL);
 
-  /*struct perfmodel*->PyObject**/
-  PyObject *perfmodel=PyCapsule_New(perf, "Perf", NULL);
-
-  return perfmodel;
+	return perfmodel;
 }
-
 
 /*free perfmodel*/
-static PyObject* free_perfmodel(PyObject *self, PyObject *args){
+static PyObject* free_perfmodel(PyObject *self, PyObject *args)
+{
+	PyObject *perfmodel;
+	if (!PyArg_ParseTuple(args, "O", &perfmodel))
+		return NULL;
 
-  PyObject* perfmodel;
-  if (!PyArg_ParseTuple(args, "O", &perfmodel))
-    return NULL;
+	/*PyObject*->struct perfmodel**/
+	struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
 
-  /*PyObject*->struct perfmodel**/
-  struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
+	starpu_save_history_based_model(perf);
+	//starpu_perfmodel_unload_model(perf);
+	//free(perf->symbol);
+	starpu_perfmodel_deinit(perf);
+	free(perf);
 
-  starpu_save_history_based_model(perf);
-  //starpu_perfmodel_unload_model(perf);
-  free(perf->symbol);
-  starpu_perfmodel_deinit(perf);
-  free(perf);
-
-  /*return type is void*/
-  Py_INCREF(Py_None);
-  return Py_None;
+	/*return type is void*/
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
-static PyObject* starpu_save_history_based_model_wrapper(PyObject *self, PyObject *args){
+static PyObject* starpu_save_history_based_model_wrapper(PyObject *self, PyObject *args)
+{
+	PyObject *perfmodel;
+	if (!PyArg_ParseTuple(args, "O", &perfmodel))
+		return NULL;
 
-  PyObject* perfmodel;
-  if (!PyArg_ParseTuple(args, "O", &perfmodel))
-    return NULL;
+	/*PyObject*->struct perfmodel**/
+	struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
 
-  /*PyObject*->struct perfmodel**/
-  struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
+	starpu_save_history_based_model(perf);
 
-  starpu_save_history_based_model(perf);
-
-  /*return type is void*/
-  Py_INCREF(Py_None);
-  return Py_None;
+	/*return type is void*/
+	Py_INCREF(Py_None);
+	return Py_None;
 }
 
 /*****************************Wrappers of StarPU methods****************************/
 /*wrapper submit method*/
-static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args){
+static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
+{
+	/*get the running Event loop*/
+	PyObject *loop = PyObject_CallMethod(asyncio_module, "get_running_loop", NULL);
+	/*create a asyncio.Future object*/
+	PyObject *fut = PyObject_CallMethod(loop, "create_future", NULL);
 
-    /*get the running Event loop*/
-    PyObject* loop = PyObject_CallMethod(asyncio_module, "get_running_loop", NULL);
-    /*create a asyncio.Future object*/
-    PyObject* fut = PyObject_CallMethod(loop, "create_future", NULL);
+	/*first argument in args is always the python function passed in*/
+	PyObject *func_py = PyTuple_GetItem(args, 0);
+	Py_INCREF(func_py);
 
-    /*first argument in args is always the python function passed in*/
-    PyObject* func_py = PyTuple_GetItem(args, 0);
-    Py_INCREF(func_py);
+	/*allocate a task structure and initialize it with default values*/
+	struct starpu_task *task=starpu_task_create();
+	task->destroy=0;
 
-	  /*allocate a task structure and initialize it with default values*/
-    struct starpu_task *task=starpu_task_create();
-    task->destroy=0;
+	PyObject *PyTask=PyTask_FromTask(task);
 
-    PyObject* PyTask=PyTask_FromTask(task);
+	/*set one of fut attribute to the task pointer*/
+	PyObject_SetAttrString(fut, "starpu_task", PyTask);
+	/*check the arguments of python function passed in*/
+	for (int i=1; i < PyTuple_Size(args)-1; i++)
+	{
+		PyObject *obj=PyTuple_GetItem(args, i);
+		const char* tp = Py_TYPE(obj)->tp_name;
+		if(strcmp(tp, "_asyncio.Future") == 0)
+		{
+			/*if one of arguments is Future, get its corresponding task*/
+			PyObject *fut_task=PyObject_GetAttrString(obj, "starpu_task");
+			/*declare task dependencies between the current task and the corresponding task of Future argument*/
+			starpu_task_declare_deps(task, 1, PyTask_AsTask(fut_task));
 
-    /*set one of fut attribute to the task pointer*/
-    PyObject_SetAttrString(fut, "starpu_task", PyTask);
-    /*check the arguments of python function passed in*/
-    for (int i=1; i < PyTuple_Size(args)-1; i++){
-      PyObject* obj=PyTuple_GetItem(args, i);
-      const char* tp = Py_TYPE(obj)->tp_name;
-      if(strcmp(tp, "_asyncio.Future") == 0){
-        /*if one of arguments is Future, get its corresponding task*/
-        PyObject* fut_task=PyObject_GetAttrString(obj, "starpu_task");
-        /*declare task dependencies between the current task and the corresponding task of Future argument*/
-        starpu_task_declare_deps(task, 1, PyTask_AsTask(fut_task));
+			Py_DECREF(fut_task);
+		}
+	}
 
-        Py_DECREF(fut_task);
-      }
-    }
-    
-    /*allocate a codelet structure*/
-    struct starpu_codelet *func_cl=(struct starpu_codelet*)malloc(sizeof(struct starpu_codelet));
-    /*initialize func_cl with default values*/
-    starpu_codelet_init(func_cl);
-    func_cl->cpu_func=&codelet_func;
-    
-    /*check whether the option perfmodel is None*/
-    PyObject* dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);/*the last argument is the option dictionary*/
-    PyObject* perfmodel = PyDict_GetItemString(dict_option, "perfmodel");
-    const char* tp_perf = Py_TYPE(perfmodel)->tp_name;
-    if (strcmp(tp_perf, "PyCapsule")==0){
-      /*PyObject*->struct perfmodel**/
-      struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
-      func_cl->model=perf;
-      Py_INCREF(perfmodel);
-    }
+	/*allocate a codelet structure*/
+	struct starpu_codelet *func_cl=(struct starpu_codelet*)malloc(sizeof(struct starpu_codelet));
+	/*initialize func_cl with default values*/
+	starpu_codelet_init(func_cl);
+	func_cl->cpu_funcs[0]=&codelet_func;
 
-    /*allocate a new codelet structure to pass the python function, asyncio.Future and Event loop*/
-    codelet_st *cst = (codelet_st*)malloc(sizeof(codelet_st));
-    cst->f = func_py;
-    cst->fut = fut;
-    cst->lp = loop;
-    
-    Py_INCREF(fut);
-    Py_INCREF(loop);
+	/*check whether the option perfmodel is None*/
+  PyObject *dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);/*the last argument is the option dictionary*/
+  PyObject *perfmodel = PyDict_GetItemString(dict_option, "perfmodel");
+	const char *tp_perf = Py_TYPE(perfmodel)->tp_name;
+	if (strcmp(tp_perf, "PyCapsule")==0)
+	{
+		/*PyObject*->struct perfmodel**/
+		struct starpu_perfmodel *perf=PyCapsule_GetPointer(perfmodel, "Perf");
+		func_cl->model=perf;
+		Py_INCREF(perfmodel);
+	}
 
-    /*pass args in argList*/
+	/*allocate a new codelet structure to pass the python function, asyncio.Future and Event loop*/
+	struct codelet_args *cst = (struct codelet_args*)malloc(sizeof(struct codelet_args));
+	cst->f = func_py;
+	cst->fut = fut;
+	cst->lp = loop;
+
+	Py_INCREF(fut);
+	Py_INCREF(loop);
+
+	/*pass args in argList*/
     if (PyTuple_Size(args)==2)/*function no arguments*/
       cst->argList = PyTuple_New(0);
-    else{/*function has arguments*/
+    else
+    {/*function has arguments*/
       cst->argList = PyTuple_New(PyTuple_Size(args)-2);
-      for (int i=0; i < PyTuple_Size(args)-2; i++){
-        PyObject* tmp=PyTuple_GetItem(args, i+1);
+      for (int i=0; i < PyTuple_Size(args)-2; i++)
+      {
+        PyObject *tmp=PyTuple_GetItem(args, i+1);
         PyTuple_SetItem(cst->argList, i, tmp);
         Py_INCREF(PyTuple_GetItem(cst->argList, i));
       }
     }
 
-    task->cl=func_cl;
-    task->cl_arg=cst;
-    /*pass optional values name=None, synchronous=1, priority=0, color=None, flops=None, perfmodel=None*/
-    /*const char * name*/
-    PyObject* PyName = PyDict_GetItemString(dict_option, "name");
-    const char* name_type = Py_TYPE(PyName)->tp_name;
-    if (strcmp(name_type, "NoneType")!=0){
-      PyObject* pStrObj = PyUnicode_AsUTF8String(PyName);
-      char* name_str = PyBytes_AsString(pStrObj);
-      char* name = strdup(name_str);
-      //printf("name is %s\n", name);
-      task->name=name;
-      Py_DECREF(pStrObj);
-    }
+	task->cl=func_cl;
+	task->cl_arg=cst;
 
-    /*unsigned synchronous:1*/
-    PyObject* PySync = PyDict_GetItemString(dict_option, "synchronous");
-    unsigned sync=PyLong_AsUnsignedLong(PySync);
-    //printf("sync is %u\n", sync);
-    task->synchronous=sync;
+  /*pass optional values name=None, synchronous=1, priority=0, color=None, flops=None, perfmodel=None*/
+  /*const char * name*/
+  PyObject *PyName = PyDict_GetItemString(dict_option, "name");
+  const char *name_type = Py_TYPE(PyName)->tp_name;
+  if (strcmp(name_type, "NoneType")!=0)
+  {
+    PyObject *pStrObj = PyUnicode_AsUTF8String(PyName);
+    char* name_str = PyBytes_AsString(pStrObj);
+    char* name = strdup(name_str);
+    //printf("name is %s\n", name);
+    task->name=name;
+    Py_DECREF(pStrObj);
+  }
 
-    /*int priority*/
-    PyObject* PyPrio = PyDict_GetItemString(dict_option, "priority");
-    int prio=PyLong_AsLong(PyPrio);
-    //printf("prio is %d\n", prio);
-    task->priority=prio;
+  /*unsigned synchronous:1*/
+  PyObject *PySync = PyDict_GetItemString(dict_option, "synchronous");
+  unsigned sync=PyLong_AsUnsignedLong(PySync);
+  //printf("sync is %u\n", sync);
+  task->synchronous=sync;
 
-    /*unsigned color*/
-    PyObject* PyColor = PyDict_GetItemString(dict_option, "color");
-    const char* color_type = Py_TYPE(PyColor)->tp_name;
-    if (strcmp(color_type, "NoneType")!=0){
-      unsigned color=PyLong_AsUnsignedLong(PyColor);
-      //printf("color is %u\n", color);
-      task->color=color;
-    }
+  /*int priority*/
+  PyObject *PyPrio = PyDict_GetItemString(dict_option, "priority");
+  int prio=PyLong_AsLong(PyPrio);
+  //printf("prio is %d\n", prio);
+  task->priority=prio;
 
-    /*double flops*/
-    PyObject* PyFlops = PyDict_GetItemString(dict_option, "flops");
-    const char* flops_type = Py_TYPE(PyFlops)->tp_name;
-    if (strcmp(flops_type, "NoneType")!=0){
-      double flop=PyFloat_AsDouble(PyFlops);
-      //printf("flops is %f\n", flop);
-      task->flops=flop;
-    }
+  /*unsigned color*/
+  PyObject *PyColor = PyDict_GetItemString(dict_option, "color");
+  const char *color_type = Py_TYPE(PyColor)->tp_name;
+  if (strcmp(color_type, "NoneType")!=0)
+  {
+    unsigned color=PyLong_AsUnsignedLong(PyColor);
+    //printf("color is %u\n", color);
+    task->color=color;
+  }
 
-    /*call starpu_task_submit method*/
-    starpu_task_submit(task);
-    task->callback_func=&cb_func;
-    if (strcmp(tp_perf, "PyCapsule")==0){
-      struct starpu_perfmodel *perf =(struct starpu_perfmodel *) func_cl->model;
-      perf->size_base=&sizebase;
-    }
+  /*double flops*/
+  PyObject *PyFlops = PyDict_GetItemString(dict_option, "flops");
+  const char *flops_type = Py_TYPE(PyFlops)->tp_name;
+  if (strcmp(flops_type, "NoneType")!=0)
+  {
+    double flops=PyFloat_AsDouble(PyFlops);
+    //printf("flops is %f\n", flop);
+    task->flops=flops;
+  }
 
-    //printf("the number of reference is %ld\n", Py_REFCNT(func_py));
-    //_Py_PrintReferences(stderr);
-    //COUNTREFS();
-    return fut;
+	/*call starpu_task_submit method*/
+	int ret = starpu_task_submit(task);
+	assert(ret==0);
+	task->callback_func=&cb_func;
+	if (strcmp(tp_perf, "PyCapsule")==0)
+	{
+		struct starpu_perfmodel *perf =(struct starpu_perfmodel *) func_cl->model;
+		perf->size_base=&sizebase;
+	}
 
+	//printf("the number of reference is %ld\n", Py_REFCNT(func_py));
+	//_Py_PrintReferences(stderr);
+	//COUNTREFS();
+	return fut;
 }
 
 /*wrapper wait for all method*/
-static PyObject* starpu_task_wait_for_all_wrapper(PyObject *self, PyObject *args){
-
+static PyObject* starpu_task_wait_for_all_wrapper(PyObject *self, PyObject *args)
+{
 	/*call starpu_task_wait_for_all method*/
 	Py_BEGIN_ALLOW_THREADS
-	starpu_task_wait_for_all();
+		starpu_task_wait_for_all();
 	Py_END_ALLOW_THREADS
 
-	/*return type is void*/
+		/*return type is void*/
 	Py_INCREF(Py_None);
-  return Py_None;
+	return Py_None;
 }
 
 /*wrapper pause method*/
-static PyObject* starpu_pause_wrapper(PyObject *self, PyObject *args){
-
+static PyObject* starpu_pause_wrapper(PyObject *self, PyObject *args)
+{
 	/*call starpu_pause method*/
 	starpu_pause();
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
-  return Py_None;
+	return Py_None;
 }
 
 /*wrapper resume method*/
-static PyObject* starpu_resume_wrapper(PyObject *self, PyObject *args){
-
+static PyObject* starpu_resume_wrapper(PyObject *self, PyObject *args)
+{
 	/*call starpu_resume method*/
 	starpu_resume();
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
-  return Py_None;
+	return Py_None;
 }
 
 /*wrapper get count cpu method*/
-static PyObject* starpu_cpu_worker_get_count_wrapper(PyObject *self, PyObject *args){
+static PyObject* starpu_cpu_worker_get_count_wrapper(PyObject *self, PyObject *args)
+{
+	/*call starpu_cpu_worker_get_count method*/
+	int num_cpu=starpu_cpu_worker_get_count();
 
-  /*call starpu_cpu_worker_get_count method*/
-  int num_cpu=starpu_cpu_worker_get_count();
-
-  /*return type is unsigned*/
-  return Py_BuildValue("I", num_cpu);
+	/*return type is unsigned*/
+	return Py_BuildValue("I", num_cpu);
 }
 
 /*wrapper get min priority method*/
-static PyObject* starpu_sched_get_min_priority_wrapper(PyObject *self, PyObject *args){
-
+static PyObject* starpu_sched_get_min_priority_wrapper(PyObject *self, PyObject *args)
+{
   /*call starpu_sched_get_min_priority*/
   int min_prio=starpu_sched_get_min_priority();
 
@@ -413,8 +430,8 @@ static PyObject* starpu_sched_get_min_priority_wrapper(PyObject *self, PyObject 
 }
 
 /*wrapper get max priority method*/
-static PyObject* starpu_sched_get_max_priority_wrapper(PyObject *self, PyObject *args){
-
+static PyObject* starpu_sched_get_max_priority_wrapper(PyObject *self, PyObject *args)
+{
   /*call starpu_sched_get_max_priority*/
   int max_prio=starpu_sched_get_max_priority();
 
@@ -441,35 +458,38 @@ static PyMethodDef starpupyMethods[] =
 };
 
 /*deallocation function*/
-static void starpupyFree(void* self){
+static void starpupyFree(void *self)
+{
 	starpu_shutdown();
-  Py_DECREF(asyncio_module);
-  //COUNTREFS();
+	Py_DECREF(asyncio_module);
+	//COUNTREFS();
 }
 
 /*module definition structure*/
-static struct PyModuleDef starpupymodule={
-  PyModuleDef_HEAD_INIT,
-  "starpupy", /*name of module*/
-  NULL,
-  -1,
-  starpupyMethods, /*method table*/
-  NULL,
-  NULL,
-  NULL,
-  starpupyFree /*deallocation function*/
+static struct PyModuleDef starpupymodule =
+{
+	PyModuleDef_HEAD_INIT,
+	"starpupy", /*name of module*/
+	NULL,
+	-1,
+	starpupyMethods, /*method table*/
+	NULL,
+	NULL,
+	NULL,
+	starpupyFree /*deallocation function*/
 };
 
 /*initialization function*/
 PyMODINIT_FUNC
 PyInit_starpupy(void)
 {
-    PyEval_InitThreads();
-    /*starpu initialization*/
-	  starpu_init(NULL);
-    /*python asysncio import*/
-    asyncio_module = PyImport_ImportModule("asyncio");
-    /*module import initialization*/
-    return PyModule_Create(&starpupymodule);
+	PyEval_InitThreads();
+	/*starpu initialization*/
+	int ret = starpu_init(NULL);
+	assert(ret==0);
+	/*python asysncio import*/
+	asyncio_module = PyImport_ImportModule("asyncio");
+	/*module import initialization*/
+	return PyModule_Create(&starpupymodule);
 }
 /***********************************************************************************/
