@@ -17,5 +17,5 @@
 include $(top_srcdir)/starpu-subdirtests.mk
 
 SUBDIRS  = src
-SUBDIRS += tests
+SUBDIRS += examples
 

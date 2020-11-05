@@ -3552,8 +3552,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
-  chmod +x starpupy/tests/execute.sh
-  for x in starpupy/tests/starpu_py.sh starpupy/tests/starpu_py_parallel.sh; do
+  chmod +x starpupy/examples/execute.sh
+  for x in starpupy/examples/starpu_py.sh starpupy/examples/starpu_py_parallel.sh; do
       test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
   done
   chmod +x julia/examples/execute.sh
@@ -3629,8 +3629,8 @@ AC_OUTPUT([
 	starpupy/src/setup.py
 	starpupy/Makefile
 	starpupy/src/Makefile
-	starpupy/tests/Makefile
-	starpupy/tests/execute.sh
+	starpupy/examples/Makefile
+	starpupy/examples/execute.sh
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile

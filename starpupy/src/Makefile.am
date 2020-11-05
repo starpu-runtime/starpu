@@ -16,10 +16,20 @@
 
 SUBDIRS =
 
-all:
+PYTHON_PY_SRC	=	$(wildcard $(top_srcdir)/starpupy/src/*py)
+PYTHON_PY_BUILD	=	$(addprefix $(top_builddir)/starpupy/src/starpu/,$(notdir $(PYTHON_PY_SRC)))
+
+PYTHON_C_SRC	=	$(wildcard $(top_srcdir)/starpupy/src/*c)
+PYTHON_C_BUILD	=	$(addprefix $(top_builddir)/starpupy/src/starpu/,$(notdir $(PYTHON_C_SRC)))
+
+$(top_builddir)/starpupy/src/starpu/%.py: $(abs_top_srcdir)/starpupy/src/%.py
 	$(MKDIR_P) starpu
-	for f in $(top_srcdir)/starpupy/src/starpu/*py ; do cp $$f starpu ; done
-	for f in $(top_srcdir)/starpupy/src/starpu/*c ; do cp $$f starpu ; done
+	$(V_ln) $(LN_S) $< $@
+$(top_builddir)/starpupy/src/starpu/%.c: $(abs_top_srcdir)/starpupy/src/%.c
+	@$(MKDIR_P) starpu
+	$(V_ln) $(LN_S) $< $@
+
+all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD)
 	$(PYTHON) setup.py build
 
 install:
@@ -42,9 +52,8 @@ uninstall:
 	rm -rf $(prefix)/lib/python*/site-packages/tmp/starpu*
 
 EXTRA_DIST	=		\
-	starpu/delay.py		\
-	starpu/__init__.py	\
-	starpu/intermedia.py	\
-	starpu/joblib.py	\
-	starpu/starpu_task_wrapper.c
-
+	delay.py		\
+	__init__.py	\
+	intermedia.py	\
+	joblib.py	\
+	starpu_task_wrapper.c

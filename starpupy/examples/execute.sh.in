@@ -17,18 +17,18 @@
 
 set -x
 
-tstdir=@STARPU_SRC_DIR@/starpupy/tests
+exampledir=@STARPU_SRC_DIR@/starpupy/examples
 
 modpath=@STARPU_BUILD_DIR@/src/.libs:
 pypath=@STARPU_BUILD_DIR@/starpupy/src/build:$PYTHONPATH
 
-tstfile=$1
-if test ! -f $tstdir/$tstfile
+examplefile=$1
+if test ! -f $exampledir/$examplefile
 then
-    echo "Error. File $tstdir/$tstfile not found"
+    echo "Error. File $exampledir/$examplefile not found"
     exit 1
 fi
 shift
 
-PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath @PYTHON@ $tstdir/$tstfile $*
+PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath @PYTHON@ $exampledir/$examplefile $*
 

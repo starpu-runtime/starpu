@@ -45,6 +45,7 @@ else
 	export LD_LIBRARY_PATH=$starpu_prefix/lib:$LD_LIBRARY_PATH
 	export PATH=$starpu_prefix/bin:$PATH
 	export MANPATH=$starpu_prefix/share/man:$MANPATH
+	for d in $starpu_prefix/lib/@PYTHON@* ; do export PYTHONPATH=$d/site-packages:$PYTHONPATH ; done
     else
 	echo "[Error] $starpu_prefix is not a valid StarPU installation directory"
     fi

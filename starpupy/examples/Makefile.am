@@ -17,8 +17,6 @@ SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-examplebindir = $(libdir)/starpupy/examples
-
 TESTS	=
 TESTS	+=	starpu_py.sh
 TESTS	+=	starpu_py_parallel.sh
@@ -28,3 +26,9 @@ EXTRA_DIST	=		\
 	starpu_py_parallel.sh	\
 	starpu_py.py		\
 	starpu_py.sh
+
+python_sourcesdir = $(libdir)/starpu/python
+dist_python_sources_DATA	=	\
+	starpu_py_parallel.py	\
+	starpu_py.py
+
