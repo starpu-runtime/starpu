@@ -30,6 +30,9 @@
 #include <util/openmp_runtime_support.h>
 #endif
 
+static struct starpu_data_interface_ops **_id_to_ops_array;
+static unsigned _id_to_ops_array_size;
+
 /* Entry in the `registered_handles' hash table.  */
 struct handle_entry
 {
@@ -50,6 +53,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 void _starpu_data_interface_init(void)
 {
 	_starpu_spin_init(&registered_handles_lock);
+	_id_to_ops_array_size = 20;
+	_STARPU_MALLOC(_id_to_ops_array, _id_to_ops_array_size * sizeof(struct starpu_data_interface_ops *));
 
 	/* Just for testing purpose */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
@@ -66,6 +71,7 @@ void _starpu_data_interface_shutdown()
 	}
 
 	_starpu_spin_destroy(&registered_handles_lock);
+	free(_id_to_ops_array);
 
 	HASH_ITER(hh, registered_handles, entry, tmp)
 	{
@@ -138,8 +144,16 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
 			return &starpu_interface_multiformat_ops;
 
 		default:
-			STARPU_ABORT();
-			return NULL;
+		{
+			if (interface_id-STARPU_MAX_INTERFACE_ID > _id_to_ops_array_size || _id_to_ops_array[interface_id-STARPU_MAX_INTERFACE_ID]==NULL)
+			{
+				_STARPU_MSG("There is no 'struct starpu_data_interface_ops' registered for interface %d\n", interface_id);
+				STARPU_ABORT();
+				return NULL;
+			}
+			else
+				return _id_to_ops_array[interface_id-STARPU_MAX_INTERFACE_ID];
+		}
 	}
 }
 
@@ -554,6 +568,16 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 	/* fill the interface fields with the appropriate method */
 	STARPU_ASSERT(ops->register_data_handle);
 	ops->register_data_handle(handle, home_node, data_interface);
+
+	if ((unsigned)ops->interfaceid >= STARPU_MAX_INTERFACE_ID)
+	{
+		if ((unsigned)ops->interfaceid > _id_to_ops_array_size)
+		{
+			_id_to_ops_array_size *= 2;
+			_STARPU_REALLOC(_id_to_ops_array, _id_to_ops_array_size * sizeof(struct starpu_data_interface_ops *));
+		}
+		_id_to_ops_array[ops->interfaceid-STARPU_MAX_INTERFACE_ID] = ops;
+	}
 
 	_starpu_register_new_data(handle, home_node, 0);
 	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);

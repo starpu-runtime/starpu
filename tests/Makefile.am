@@ -276,6 +276,7 @@ myPROGRAMS +=				\
 	datawizard/copy				\
 	datawizard/data_implicit_deps		\
 	datawizard/data_lookup			\
+	datawizard/data_register		\
 	datawizard/scratch			\
 	datawizard/scratch_reuse		\
 	datawizard/sync_and_notify_data		\
