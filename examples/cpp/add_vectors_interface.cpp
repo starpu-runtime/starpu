@@ -375,7 +375,7 @@ static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned hom
 
 /* declare a new data with the vector interface */
 void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
-                        std::vector<MY_TYPE>* vec, uint32_t nx, size_t elemsize)
+			      std::vector<MY_TYPE>* vec, uint32_t nx, size_t elemsize)
 {
 #if __cplusplus >= 201103L
 	struct vector_cpp_interface vector =
@@ -402,6 +402,11 @@ void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
 		0
 	};
 #endif
+
+	if (interface_vector_cpp_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
+	{
+		interface_vector_cpp_ops.interfaceid = (enum starpu_data_interface_id )starpu_data_interface_get_next_id();
+	}
 
 	starpu_data_register(handleptr, home_node, &vector, &interface_vector_cpp_ops);
 }
