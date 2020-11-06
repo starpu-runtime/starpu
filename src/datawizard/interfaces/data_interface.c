@@ -490,6 +490,9 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
 
+	/* check the interfaceid is set */
+	STARPU_ASSERT(ops->interfaceid != STARPU_UNKNOWN_INTERFACE_ID);
+
 	/* fill the interface fields with the appropriate method */
 	STARPU_ASSERT(ops->register_data_handle);
 	ops->register_data_handle(handle, home_node, data_interface);
