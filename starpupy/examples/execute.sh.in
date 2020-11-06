@@ -15,20 +15,24 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-set -x
-
 exampledir=@STARPU_SRC_DIR@/starpupy/examples
 
 modpath=@STARPU_BUILD_DIR@/src/.libs:
 pypath=@STARPU_BUILD_DIR@/starpupy/src/build:$PYTHONPATH
 
 examplefile=$1
-if test ! -f $exampledir/$examplefile
+if test -f $examplefile
 then
-    echo "Error. File $exampledir/$examplefile not found"
+    pythonscript=$examplefile
+elif test -f $exampledir/$examplefile
+then
+    pythonscript=$exampledir/$examplefile
+else
+    echo "Error. Python script $examplefile not found in current directory or in $exampledir"
     exit 1
 fi
 shift
 
-PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath @PYTHON@ $exampledir/$examplefile $*
+set -x
+PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath @PYTHON@ $pythonscript $*
 
