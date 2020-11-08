@@ -41,8 +41,8 @@ static void register_my(starpu_data_handle_t handle, unsigned home_node, void *d
 
 static size_t my_get_size(starpu_data_handle_t handle)
 {
-	struct my_interface *interface = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
-	return interface->x;
+	struct my_interface *my_interface = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	return my_interface->x;
 }
 
 static uint32_t my_footprint(starpu_data_handle_t handle)
@@ -82,12 +82,12 @@ int main(void)
 	for (x = 0; x < N; x++)
 	{
 		starpu_interface_my_ops.interfaceid = starpu_data_interface_get_next_id();
-		struct my_interface interface =
+		struct my_interface my_interface =
 		{
 			.id = starpu_interface_my_ops.interfaceid,
 		};
-		starpu_data_register(&handles[x], -1, &interface, &starpu_interface_my_ops);
-		STARPU_ASSERT(_starpu_data_interface_get_ops(interface.id) == &starpu_interface_my_ops);
+		starpu_data_register(&handles[x], -1, &my_interface, &starpu_interface_my_ops);
+		STARPU_ASSERT(_starpu_data_interface_get_ops(my_interface.id) == &starpu_interface_my_ops);
 	}
 
 	for (x = 0; x < N; x++)
