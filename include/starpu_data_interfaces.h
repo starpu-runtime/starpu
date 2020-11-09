@@ -675,6 +675,11 @@ starpu_data_handle_t starpu_data_lookup(const void *ptr);
 int starpu_data_get_home_node(starpu_data_handle_t handle);
 
 /**
+   Print basic informations on \p handle on \p node
+ */
+void starpu_data_print(starpu_data_handle_t handle, unsigned node, FILE *stream);
+
+/**
    Return the next available id for a newly created data interface
    (\ref DefiningANewDataInterface).
 */

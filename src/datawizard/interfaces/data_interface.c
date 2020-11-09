@@ -67,7 +67,12 @@ void _starpu_data_interface_shutdown()
 
 	if (registered_handles)
 	{
-		_STARPU_DISP("[warning] The application has not unregistered all data handles.\n");
+		_STARPU_DISP("[warning] The application has not unregistered all data handles....\n");
+		HASH_ITER(hh, registered_handles, entry, tmp)
+		{
+			starpu_data_print(entry->handle, STARPU_MAIN_RAM, stderr);
+		}
+		_STARPU_DISP("[warning] .... The application has not unregistered all data handles.\n");
 	}
 
 	_starpu_spin_destroy(&registered_handles_lock);
@@ -1284,4 +1289,57 @@ unsigned starpu_data_get_coordinates_array(starpu_data_handle_t handle, unsigned
 		dims[i] = handle->coordinates[i];
 
 	return dimensions;
+}
+
+void starpu_data_print(starpu_data_handle_t handle, unsigned node, FILE *stream)
+{
+	switch (handle->ops->interfaceid)
+	{
+	case(STARPU_MATRIX_INTERFACE_ID):
+		fprintf(stream, "Matrix");
+		break;
+	case(STARPU_BLOCK_INTERFACE_ID):
+		fprintf(stream, "Block");
+		break;
+	case(STARPU_VECTOR_INTERFACE_ID):
+		fprintf(stream, "Vector");
+		break;
+	case(STARPU_CSR_INTERFACE_ID):
+		fprintf(stream, "CSR");
+		break;
+	case(STARPU_BCSR_INTERFACE_ID):
+		fprintf(stream, "BCSR");
+		break;
+	case(STARPU_VARIABLE_INTERFACE_ID):
+		fprintf(stream, "Variable");
+		break;
+	case(STARPU_VOID_INTERFACE_ID):
+		fprintf(stream, "Void");
+		break;
+	case(STARPU_MULTIFORMAT_INTERFACE_ID):
+		fprintf(stream, "Multfiformat");
+		break;
+	case(STARPU_COO_INTERFACE_ID):
+		fprintf(stream, "COO");
+		break;
+	case(STARPU_TENSOR_INTERFACE_ID):
+		fprintf(stream, "Tensor");
+		break;
+	case(STARPU_UNKNOWN_INTERFACE_ID ):
+		fprintf(stream, "UNKNOWN");
+		break;
+	default:
+		fprintf(stream, "User interface with id %d", handle->ops->interfaceid);
+		break;
+	}
+	void *data_interface = starpu_data_get_interface_on_node(handle, node);
+	if (handle->ops->describe && data_interface)
+	{
+		char buffer[1024];
+		handle->ops->describe(data_interface, buffer, sizeof(buffer));
+		fprintf(stream, " %s\n", buffer);
+	}
+	else
+		fprintf(stream, "\n");
+
 }
