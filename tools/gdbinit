@@ -381,7 +381,10 @@ define starpu-print-data
   if $data->ops->interfaceid == 8
     printf "COO\n"
   end
-  if $data->ops->interfaceid > 8
+  if $data->ops->interfaceid == 9
+    printf "Tensor\n"
+  end
+  if $data->ops->interfaceid > 9
     printf "Interface id %d\n", $data->ops->interfaceid
   end
   printf "Home node %d\n", $data->home_node
