@@ -1332,7 +1332,11 @@ void starpu_data_print(starpu_data_handle_t handle, unsigned node, FILE *stream)
 		fprintf(stream, "User interface with id %d", handle->ops->interfaceid);
 		break;
 	}
-	void *data_interface = starpu_data_get_interface_on_node(handle, node);
+	void *data_interface = NULL;
+	if (starpu_data_test_if_allocated_on_node(handle, node))
+		data_interface = starpu_data_get_interface_on_node(handle, node);
+	if (starpu_data_test_if_allocated_on_node(handle, handle->home_node))
+		data_interface = starpu_data_get_interface_on_node(handle, handle->home_node);
 	if (handle->ops->describe && data_interface)
 	{
 		char buffer[1024];
