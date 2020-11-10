@@ -14,6 +14,8 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+include $(top_srcdir)/starpu-notests.mk
+
 SUBDIRS =
 
 PYTHON_PY_SRC	=	$(wildcard $(top_srcdir)/starpupy/src/*py)

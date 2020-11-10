@@ -13,6 +13,9 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+include $(top_srcdir)/starpu.mk
+
 SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
