@@ -65,7 +65,8 @@ void codelet_func(void *buffers[], void *cl_arg)
 	}
 
 	/*check the arguments of python function passed in*/
-	for (int i=0; i < PyTuple_Size(cst->argList); i++)
+	int i;
+	for (i=0; i < PyTuple_Size(cst->argList); i++)
 	{
 		PyObject *obj = PyTuple_GetItem(cst->argList, i);
 		const char *tp = Py_TYPE(obj)->tp_name;
@@ -253,7 +254,8 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	/*set one of fut attribute to the task pointer*/
 	PyObject_SetAttrString(fut, "starpu_task", PyTask);
 	/*check the arguments of python function passed in*/
-	for (int i=1; i < PyTuple_Size(args)-1; i++)
+	int i;
+	for (i=1; i < PyTuple_Size(args)-1; i++)
 	{
 		PyObject *obj=PyTuple_GetItem(args, i);
 		const char* tp = Py_TYPE(obj)->tp_name;
@@ -301,7 +303,8 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
     else
     {/*function has arguments*/
       cst->argList = PyTuple_New(PyTuple_Size(args)-2);
-      for (int i=0; i < PyTuple_Size(args)-2; i++)
+      int i;
+      for (i=0; i < PyTuple_Size(args)-2; i++)
       {
         PyObject *tmp=PyTuple_GetItem(args, i+1);
         PyTuple_SetItem(cst->argList, i, tmp);
