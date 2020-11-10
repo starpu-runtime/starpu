@@ -18,6 +18,14 @@
 #include <math.h>
 #include "helper.h"
 
+#if !defined(STARPU_HAVE_SETENV)
+#warning setenv is not defined. Skipping test
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
+
 int main(int argc, char **argv)
 {
 	int ret, rank, size, i;
@@ -132,3 +140,4 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+#endif
