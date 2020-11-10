@@ -229,9 +229,9 @@ struct starpu_data_copy_methods
 	*/
 	int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_cudaStream_t stream);
 #else
-	int (*ram_to_cuda_async)();
-	int (*cuda_to_ram_async)();
-	int (*cuda_to_cuda_async)();
+	int (*ram_to_cuda_async)(void);
+	int (*cuda_to_ram_async)(void);
+	int (*cuda_to_cuda_async)(void);
 #endif
 
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
@@ -266,9 +266,9 @@ struct starpu_data_copy_methods
 	*/
 	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 #else
-	int (*ram_to_opencl_async)();
-	int (*opencl_to_ram_async)();
-	int (*opencl_to_opencl_async)();
+	int (*ram_to_opencl_async)(void);
+	int (*opencl_to_ram_async)(void);
+	int (*opencl_to_opencl_async)(void);
 #endif
 
 	/**

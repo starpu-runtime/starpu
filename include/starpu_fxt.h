@@ -138,7 +138,7 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir);
 /**
     Wrapper to get value of env variable STARPU_FXT_TRACE
 */
-int starpu_fxt_is_enabled();
+int starpu_fxt_is_enabled(void);
 
 /**
    Add an event in the execution trace if FxT is enabled.

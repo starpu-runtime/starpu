@@ -208,7 +208,7 @@ struct starpu_sched_policy
    Return an <c>NULL</c>-terminated array of all the predefined
    scheduling policies.
 */
-struct starpu_sched_policy **starpu_sched_get_predefined_policies();
+struct starpu_sched_policy **starpu_sched_get_predefined_policies(void);
 
 /**
    When there is no available task for a worker, StarPU blocks this

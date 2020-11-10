@@ -639,7 +639,7 @@ extern void starpu_omp_set_num_threads(int threads) __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_max_threads
    \sa starpu_omp_get_num_procs
  */
-extern int starpu_omp_get_num_threads() __STARPU_OMP_NOTHROW;
+extern int starpu_omp_get_num_threads(void) __STARPU_OMP_NOTHROW;
 
 /**
    Return the rank of the current thread among the threads
@@ -652,7 +652,7 @@ extern int starpu_omp_get_num_threads() __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_max_threads
    \sa starpu_omp_get_num_procs
  */
-extern int starpu_omp_get_thread_num() __STARPU_OMP_NOTHROW;
+extern int starpu_omp_get_thread_num(void) __STARPU_OMP_NOTHROW;
 
 /**
    Return the maximum number of threads that can be used to
@@ -665,7 +665,7 @@ extern int starpu_omp_get_thread_num() __STARPU_OMP_NOTHROW;
    \sa starpu_omp_get_thread_num
    \sa starpu_omp_get_num_procs
  */
-extern int starpu_omp_get_max_threads() __STARPU_OMP_NOTHROW;
+extern int starpu_omp_get_max_threads(void) __STARPU_OMP_NOTHROW;
 
 /**
    Return the number of StarPU CPU workers.

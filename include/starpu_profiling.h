@@ -316,7 +316,7 @@ void starpu_profiling_worker_helper_display_summary(void);
    option \ref enable-memory-stats "--enable-memory-stats" (see \ref
    MemoryFeedback).
 */
-void starpu_data_display_memory_stats();
+void starpu_data_display_memory_stats(void);
 
 /** @} */
 
