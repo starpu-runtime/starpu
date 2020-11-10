@@ -178,7 +178,8 @@ struct _starpu_data_state
 	unsigned active:1;
 	unsigned active_ro:1;
 
-	/** describe the state of the data in term of coherency */
+	/** describe the state of the data in term of coherency
+	 * This is execution-time state. */
 	struct _starpu_data_replicate per_node[STARPU_MAXNODES];
 	struct _starpu_data_replicate *per_worker;
 
@@ -209,7 +210,8 @@ struct _starpu_data_state
 
 	/** Does StarPU have to enforce some implicit data-dependencies ? */
 	unsigned sequential_consistency:1;
-	/** Is the data initialized, or a task is already submitted to initialize it */
+	/** Is the data initialized, or a task is already submitted to initialize it
+	 * This is submission-time initialization state. */
 	unsigned initialized:1;
 	/** Whether we shall not ever write to this handle, thus allowing various optimizations */
 	unsigned readonly:1;
