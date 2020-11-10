@@ -117,7 +117,8 @@ void cb_func(void *v)
 		Py_DECREF(perfmodel);
 	}
 
-	for(int i = 0; i < PyTuple_Size(cst->argList); i++)
+	int i;
+	for(i = 0; i < PyTuple_Size(cst->argList); i++)
 	{
 		Py_DECREF(PyTuple_GetItem(cst->argList, i));
 	}
