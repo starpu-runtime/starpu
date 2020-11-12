@@ -1293,51 +1293,56 @@ unsigned starpu_data_get_coordinates_array(starpu_data_handle_t handle, unsigned
 
 void starpu_data_print(starpu_data_handle_t handle, unsigned node, FILE *stream)
 {
-	switch (handle->ops->interfaceid)
+	if (handle->ops == NULL)
+		fprintf(stream, "Undefined");
+	else
 	{
-	case(STARPU_MATRIX_INTERFACE_ID):
-		fprintf(stream, "Matrix");
-		break;
-	case(STARPU_BLOCK_INTERFACE_ID):
-		fprintf(stream, "Block");
-		break;
-	case(STARPU_VECTOR_INTERFACE_ID):
-		fprintf(stream, "Vector");
-		break;
-	case(STARPU_CSR_INTERFACE_ID):
-		fprintf(stream, "CSR");
-		break;
-	case(STARPU_BCSR_INTERFACE_ID):
-		fprintf(stream, "BCSR");
-		break;
-	case(STARPU_VARIABLE_INTERFACE_ID):
-		fprintf(stream, "Variable");
-		break;
-	case(STARPU_VOID_INTERFACE_ID):
-		fprintf(stream, "Void");
-		break;
-	case(STARPU_MULTIFORMAT_INTERFACE_ID):
-		fprintf(stream, "Multfiformat");
-		break;
-	case(STARPU_COO_INTERFACE_ID):
-		fprintf(stream, "COO");
-		break;
-	case(STARPU_TENSOR_INTERFACE_ID):
-		fprintf(stream, "Tensor");
-		break;
-	case(STARPU_UNKNOWN_INTERFACE_ID ):
-		fprintf(stream, "UNKNOWN");
-		break;
-	default:
-		fprintf(stream, "User interface with id %d", handle->ops->interfaceid);
-		break;
+		switch (handle->ops->interfaceid)
+		{
+		case(STARPU_MATRIX_INTERFACE_ID):
+			fprintf(stream, "Matrix");
+			break;
+		case(STARPU_BLOCK_INTERFACE_ID):
+			fprintf(stream, "Block");
+			break;
+		case(STARPU_VECTOR_INTERFACE_ID):
+			fprintf(stream, "Vector");
+			break;
+		case(STARPU_CSR_INTERFACE_ID):
+			fprintf(stream, "CSR");
+			break;
+		case(STARPU_BCSR_INTERFACE_ID):
+			fprintf(stream, "BCSR");
+			break;
+		case(STARPU_VARIABLE_INTERFACE_ID):
+			fprintf(stream, "Variable");
+			break;
+		case(STARPU_VOID_INTERFACE_ID):
+			fprintf(stream, "Void");
+			break;
+		case(STARPU_MULTIFORMAT_INTERFACE_ID):
+			fprintf(stream, "Multfiformat");
+			break;
+		case(STARPU_COO_INTERFACE_ID):
+			fprintf(stream, "COO");
+			break;
+		case(STARPU_TENSOR_INTERFACE_ID):
+			fprintf(stream, "Tensor");
+			break;
+		case(STARPU_UNKNOWN_INTERFACE_ID ):
+			fprintf(stream, "UNKNOWN");
+			break;
+		default:
+			fprintf(stream, "User interface with id %d", handle->ops->interfaceid);
+			break;
+		}
 	}
 	void *data_interface = NULL;
 	if (starpu_data_test_if_allocated_on_node(handle, node))
 		data_interface = starpu_data_get_interface_on_node(handle, node);
 	if (starpu_data_test_if_allocated_on_node(handle, handle->home_node))
 		data_interface = starpu_data_get_interface_on_node(handle, handle->home_node);
-	if (handle->ops->describe && data_interface)
+	if (handle->ops && handle->ops->describe && data_interface)
 	{
 		char buffer[1024];
 		handle->ops->describe(data_interface, buffer, sizeof(buffer));
