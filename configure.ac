@@ -2776,7 +2776,7 @@ AM_CONDITIONAL(BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_examples = xye
 ##########################################
 
 have_valid_hwloc=no
-SAVED_LDFLAGS="${LDFLAGS}"
+SAVED_LIBS="${LIBS}"
 SAVED_CPPFLAGS="${CPPFLAGS}"
 SAVED_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 AC_ARG_WITH([hwloc],
@@ -2816,7 +2816,7 @@ AS_IF([test "$have_valid_hwloc" = "no" -a "$use_hwloc" != "no"],
       [AC_MSG_ERROR([libhwloc or pkg-config was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install libhwloc and pkg-config. However, if you really want to use StarPU without enabling libhwloc, please restart configure by specifying the option '--without-hwloc'.])]
      )
 
-LDFLAGS="${HWLOC_LIBS} ${SAVED_LDFLAGS}"
+LIBS="${HWLOC_LIBS} ${SAVED_LIBS}"
 CPPFLAGS="${HWLOC_CFLAGS} ${SAVED_CPPFLAGS}"
 
 AS_IF([test "$have_valid_hwloc" = "yes"],
@@ -2830,7 +2830,7 @@ AC_CHECK_FUNCS([hwloc_topology_dup])
 AC_CHECK_FUNCS([hwloc_topology_set_components])
 AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $ac_cv_func_hwloc_topology_dup = yes)
 
-LDFLAGS="${SAVED_LDFLAGS}"
+LIBS="${SAVED_LIBS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
 export PKG_CONFIG_PATH=$SAVED_PKG_CONFIG_PATH
 
