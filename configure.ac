@@ -3121,6 +3121,7 @@ AS_IF([test "$have_valid_hwloc" = "yes"],
 
 AC_CHECK_FUNCS([hwloc_topology_dup])
 AC_CHECK_FUNCS([hwloc_topology_set_components])
+AC_CHECK_FUNCS([hwloc_cpukinds_get_nr])
 AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $ac_cv_func_hwloc_topology_dup = yes)
 
 LIBS="${SAVED_LIBS}"
