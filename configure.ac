@@ -3388,6 +3388,15 @@ then
 	if test "$joblib_avail" = "no" ; then
 		AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface])
 	fi
+	AC_MSG_CHECKING(for python3 module numpy)
+	AC_PYTHON_MODULE(numpy,[numpy_avail=yes],[numpy_avail=no])
+	AC_MSG_RESULT($numpy_avail)
+	PYTHON_NUMPY_CFLAGS=""
+	if test "$numpy_avail" = "yes" ; then
+	   	AC_DEFINE(STARPU_PYTHON_HAVE_NUMPY, [1], [Python3 numpy package available])
+		PYTHON_NUMPY_CFLAGS="`$PYTHON -c "import numpy ; print(numpy.get_include())"`"
+	fi
+	AC_SUBST(PYTHON_NUMPY_CFLAGS)
 fi
 AM_CONDITIONAL(STARPU_BUILD_STARPUPY, [test x$starpupy_support = xyes])
 
