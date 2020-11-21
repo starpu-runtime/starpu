@@ -114,6 +114,15 @@ static int eager_can_push(struct starpu_sched_component * component, struct star
 	return success;
 }
 
+static struct starpu_task *eager_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to)
+{
+	/* We can't directly pull (in case the obtained task does not match
+	 * the constraints of `to'), but we can try to push, and components
+	 * below will cope with it */
+	eager_can_push(component, to);
+	return NULL;
+}
+
 static void eager_deinit_data(struct starpu_sched_component *component)
 {
 	STARPU_ASSERT(starpu_sched_component_is_eager(component));
@@ -138,6 +147,7 @@ struct starpu_sched_component * starpu_sched_component_eager_create(struct starp
 
 	component->data = data;
 	component->push_task = eager_push_task;
+	component->pull_task = eager_pull_task;
 	component->can_push = eager_can_push;
 	component->can_pull = starpu_sched_component_can_pull_all;
 	component->deinit_data = eager_deinit_data;
