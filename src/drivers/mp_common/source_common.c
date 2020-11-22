@@ -788,7 +788,8 @@ int _starpu_src_common_locate_file(char *located_file_name, size_t len,
 	{
 		if (access(env_file_name, R_OK) == 0)
 		{
-			strncpy(located_file_name, env_file_name, len);
+			strncpy(located_file_name, env_file_name, len-1);
+			located_file_name[len-1] = '\0';
 			return 0;
 		}
 		else if(env_mic_path != NULL)
@@ -802,7 +803,8 @@ int _starpu_src_common_locate_file(char *located_file_name, size_t len,
 	{
 		if (access(config_file_name, R_OK) == 0)
 		{
-			strncpy(located_file_name, config_file_name, len);
+			strncpy(located_file_name, config_file_name, len-1);
+			located_file_name[len-1] = '\0';
 			return 0;
 		}
 		else if (env_mic_path != NULL)
@@ -820,7 +822,8 @@ int _starpu_src_common_locate_file(char *located_file_name, size_t len,
 		if (env_mic_path != NULL)
 		{
 			char actual_cpy[1024];
-			strncpy(actual_cpy, actual_file_name, sizeof(actual_cpy));
+			strncpy(actual_cpy, actual_file_name, sizeof(actual_cpy)-1);
+			actual_cpy[sizeof(actual_cpy)-1] = '\0';
 
 			char *last =  strrchr(actual_cpy, '/');
 			while (last != NULL)
@@ -831,7 +834,8 @@ int _starpu_src_common_locate_file(char *located_file_name, size_t len,
 
 				if (access(tmp, R_OK) == 0)
 				{
-					strncpy(located_file_name, tmp, len);
+					strncpy(located_file_name, tmp, len-1);
+					located_file_name[len-1] = '\0';
 					return 0;
 				}
 
