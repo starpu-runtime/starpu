@@ -472,6 +472,7 @@ struct starpu_data_interface_ops
 	   Compare the data size and layout of two interfaces (nx, ny, ld, elemsize,
 	   etc.), to be used for indexing performance models. It should return 1 if
 	   the two interfaces size and layout match computation-wise, and 0 otherwise.
+	   It does *not* compare the actual content of the interfaces.
 	*/
 	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
 

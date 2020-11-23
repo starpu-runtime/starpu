@@ -175,21 +175,7 @@ static int complex_compare(void *data_interface_a, void *data_interface_b)
 	struct starpu_complex_interface *complex_a = (struct starpu_complex_interface *) data_interface_a;
 	struct starpu_complex_interface *complex_b = (struct starpu_complex_interface *) data_interface_b;
 
-	if (complex_a->nx != complex_b->nx)
-	{
-		return 0;
-	}
-	else
-	{
-		int i;
-		for(i=0 ; i<complex_a->nx ; i++)
-		{
-			if (complex_a->real[i] != complex_b->real[i]) return 0;
-			if (complex_a->imaginary[i] != complex_b->imaginary[i]) return 0;
-		}
-		return 1;
-	}
-
+	return (complex_a->nx == complex_b->nx)
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node,
