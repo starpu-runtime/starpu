@@ -67,12 +67,7 @@ void _starpu_data_interface_shutdown()
 
 	if (registered_handles)
 	{
-		_STARPU_DISP("[warning] The application has not unregistered all data handles....\n");
-		HASH_ITER(hh, registered_handles, entry, tmp)
-		{
-			starpu_data_print(entry->handle, STARPU_MAIN_RAM, stderr);
-		}
-		_STARPU_DISP("[warning] .... The application has not unregistered all data handles.\n");
+		_STARPU_DISP("[warning] The application has not unregistered all data handles.\n");
 	}
 
 	_starpu_spin_destroy(&registered_handles_lock);
