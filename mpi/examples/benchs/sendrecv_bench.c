@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 		{
 			man();
 		}
-		if (strcmp(argv[i], "--bidir") == 0)
+		else if (strcmp(argv[i], "--bidir") == 0)
 		{
 			bidir = 1;
 			printf("Communications will be full-duplex.\n");
