@@ -170,6 +170,28 @@ static starpu_ssize_t complex_describe(void *data_interface, char *buf, size_t s
 	return snprintf(buf, size, "Complex%d", complex_interface->nx);
 }
 
+static int complex_compare(void *data_interface_a, void *data_interface_b)
+{
+	struct starpu_complex_interface *complex_a = (struct starpu_complex_interface *) data_interface_a;
+	struct starpu_complex_interface *complex_b = (struct starpu_complex_interface *) data_interface_b;
+
+	if (complex_a->nx != complex_b->nx)
+	{
+		return 0;
+	}
+	else
+	{
+		int i;
+		for(i=0 ; i<complex_a->nx ; i++)
+		{
+			if (complex_a->real[i] != complex_b->real[i]) return 0;
+			if (complex_a->imaginary[i] != complex_b->imaginary[i]) return 0;
+		}
+		return 1;
+	}
+
+}
+
 static int copy_any_to_any(void *src_interface, unsigned src_node,
 			   void *dst_interface, unsigned dst_node,
 			   void *async_data)
@@ -210,7 +232,8 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.pointer_is_inside = complex_pointer_is_inside,
 	.pack_data = complex_pack_data,
 	.unpack_data = complex_unpack_data,
-	.describe = complex_describe
+	.describe = complex_describe,
+	.compare = complex_compare
 };
 
 void starpu_complex_data_register(starpu_data_handle_t *handleptr, unsigned home_node, double *real, double *imaginary, int nx)
