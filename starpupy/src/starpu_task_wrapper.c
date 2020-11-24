@@ -21,6 +21,7 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <numpy/arrayobject.h>
 
 /*macro*/
 #if defined(Py_DEBUG) || defined(DEBUG)
@@ -65,8 +66,7 @@ void codelet_func(void *buffers[], void *cl_arg)
 	}
 
 	/*check the arguments of python function passed in*/
-	int i;
-	for (i=0; i < PyTuple_Size(cst->argList); i++)
+	for (int i=0; i < PyTuple_Size(cst->argList); i++)
 	{
 		PyObject *obj = PyTuple_GetItem(cst->argList, i);
 		const char *tp = Py_TYPE(obj)->tp_name;
@@ -77,10 +77,16 @@ void codelet_func(void *buffers[], void *cl_arg)
 			/*replace the Future argument to its result*/
 			PyTuple_SetItem(cst->argList, i, fut_result);
 		}
+    /*else if (strcmp(tp, "numpy.ndarray")==0)
+    {
+      printf("array is %p\n", obj);
+    }*/
 	}
 
 	/*call the python function*/
 	PyObject *pRetVal = PyObject_CallObject(cst->f, cst->argList);
+  //const char *tp = Py_TYPE(pRetVal)->tp_name;
+  //printf("return value type is %s\n", tp);
 	cst->rv = pRetVal;
 
 	//Py_DECREF(cst->f);
@@ -107,6 +113,7 @@ void cb_func(void *v)
 	Py_DECREF(cst->rv);
 	Py_DECREF(cst->fut);
 	Py_DECREF(cst->lp);
+  Py_DECREF(cst->argList);
 
 	//Py_DECREF(perfmodel);
 	struct starpu_codelet *func_cl=(struct starpu_codelet *) task->cl;
@@ -116,13 +123,6 @@ void cb_func(void *v)
 		PyObject *perfmodel=PyCapsule_New(perf, "Perf", 0);
 		Py_DECREF(perfmodel);
 	}
-
-	int i;
-	for(i = 0; i < PyTuple_Size(cst->argList); i++)
-	{
-		Py_DECREF(PyTuple_GetItem(cst->argList, i));
-	}
-	Py_DECREF(cst->argList);
 
 	/*restore previous GIL state*/
 	PyGILState_Release(state);
@@ -255,8 +255,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	/*set one of fut attribute to the task pointer*/
 	PyObject_SetAttrString(fut, "starpu_task", PyTask);
 	/*check the arguments of python function passed in*/
-	int i;
-	for (i=1; i < PyTuple_Size(args)-1; i++)
+	for (int i=1; i < PyTuple_Size(args)-1; i++)
 	{
 		PyObject *obj=PyTuple_GetItem(args, i);
 		const char* tp = Py_TYPE(obj)->tp_name;
@@ -304,8 +303,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
     else
     {/*function has arguments*/
       cst->argList = PyTuple_New(PyTuple_Size(args)-2);
-      int i;
-      for (i=0; i < PyTuple_Size(args)-2; i++)
+      for (int i=0; i < PyTuple_Size(args)-2; i++)
       {
         PyObject *tmp=PyTuple_GetItem(args, i+1);
         PyTuple_SetItem(cst->argList, i, tmp);
@@ -363,7 +361,9 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
   }
 
 	/*call starpu_task_submit method*/
+  Py_BEGIN_ALLOW_THREADS
 	int ret = starpu_task_submit(task);
+  Py_END_ALLOW_THREADS
 	assert(ret==0);
 	task->callback_func=&cb_func;
 	if (strcmp(tp_perf, "PyCapsule")==0)
@@ -493,6 +493,10 @@ PyInit_starpupy(void)
 	assert(ret==0);
 	/*python asysncio import*/
 	asyncio_module = PyImport_ImportModule("asyncio");
+  #ifdef STARPU_PYTHON_HAVE_NUMPY
+  /*numpy import array*/
+  import_array();
+  #endif
 	/*module import initialization*/
 	return PyModule_Create(&starpupymodule);
 }

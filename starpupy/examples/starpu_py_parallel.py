@@ -18,6 +18,7 @@ import time
 import asyncio
 from math import sqrt
 from math import log10
+import numpy as np
 
 #generate a list to store functions
 g_func=[]
@@ -61,7 +62,21 @@ def sub(a,b,c):
 g_func.append(starpu.joblib.delayed(sub)(6, 2, 5.9))
 
 #the size of generator
-N=1000000
+N=100
+# a=np.array([1,2,3,4,5,6,7,8,9,10])
+# print(type(a))
+
+def scal(a, t):
+    return t*a
+
+A=np.arange(N)
+
+
+#starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="log")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
+# for x in [10, 100, 1000, 10000, 100000, 1000000]:
+# 	for X2 in range(x, x*10, x):
+# 		starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="log")(starpu.joblib.delayed(log10)(i+1)for i in range(X2))
+# 		print(range(X2))
 
 print("************************")
 print("parallel Normal version:")
@@ -69,12 +84,34 @@ print("************************")
 print("--input is iterable argument list, example 1")
 starpu.joblib.Parallel(mode="normal", n_jobs=-2, perfmodel="first")(starpu.joblib.delayed(sqrt)(i**2)for i in range(N))
 
-print("--input is iterable argument list, example 2")
-starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="second")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
+#################scikit test###################
+DEFAULT_JOBLIB_BACKEND = starpu.joblib.get_active_backend()[0].__class__
+class MyBackend(DEFAULT_JOBLIB_BACKEND):  # type: ignore
+    def __init__(self, *args, **kwargs):
+        self.count = 0
+        super().__init__(*args, **kwargs)
+
+    def start_call(self):
+        self.count += 1
+        return super().start_call()
+
+
+starpu.joblib.register_parallel_backend('testing', MyBackend)
+
+with starpu.joblib.parallel_backend("testing") as (ba, n_jobs):
+	print("backend and n_jobs is", ba, n_jobs)
+###############################################
+
+print("--input is iterable argument list, example 2, with multi input")
+a=np.arange(10)
+b=np.arange(10)
+starpu.joblib.Parallel(mode="normal", n_jobs=-2, perfmodel="first")(starpu.joblib.delayed(multi)(i,j) for i,j in zip(a,b))
 
 print("--input is iterable function list")
 starpu.joblib.Parallel(mode="normal", n_jobs=3, perfmodel="third")(g_func)
 
+print("--input is numpy array")
+starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="array")(starpu.joblib.delayed(scal)(2,A))
 
 print("************************")
 print("parallel Future version:")
@@ -85,15 +122,23 @@ async def main():
 	res1=await fut1
 	#print(res1)
 
-	print("--input is iterable argument list, example 2")
-	fut2=starpu.joblib.Parallel(mode="future", n_jobs=-3, perfmodel="second")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
+	print("--input is iterable argument list, example 2, with multi input")
+	a=np.arange(10)
+	b=np.arange(10)
+	fut2=starpu.joblib.Parallel(mode="future", n_jobs=-3, perfmodel="second")(starpu.joblib.delayed(multi)(i,j) for i,j in zip(a,b))
 	res2=await fut2
 	#print(res2)
 
 	print("--input is iterable function list")
-	fut3=starpu.joblib.Parallel(mode="future", n_jobs=2, perfmodel="third")(g_func)
+	fut3=starpu.joblib.Parallel(mode="future", n_jobs=2)(g_func)
 	res3=await fut3
 	#print(res3)
+
+	print("--input is numpy array")
+	fut4=starpu.joblib.Parallel(mode="future", n_jobs=2, perfmodel="array")(starpu.joblib.delayed(scal)(2,A))
+	res4=await fut4
+	#print(res4)
+
 asyncio.run(main())
 
 starpu.perfmodel_plot(perfmodel="first",view=False)
