@@ -97,7 +97,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	else
 		exp_len = fifo->exp_len;
 
-	if ((data->ntasks_threshold != 0 && fifo->ntasks >= data->ntasks_threshold) || (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold))
+	if (!is_pushback && (data->ntasks_threshold != 0 && fifo->ntasks >= data->ntasks_threshold) || (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold))
 	{
 		static int warned;
 		if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
