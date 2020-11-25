@@ -114,9 +114,8 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 
 	double exp_len = NAN;
 
-	if (data->ntasks_threshold != 0 && queue->ntasks >= data->ntasks_threshold)
+	if (!is_pushback && data->ntasks_threshold != 0 && queue->ntasks >= data->ntasks_threshold)
 	{
-		STARPU_ASSERT(!is_pushback);
 		ret = 1;
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
