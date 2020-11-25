@@ -1557,6 +1557,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 
 	_starpu_load_bus_performance_files();
 
+	/* Note: nothing before here should be allocating anything, in case we
+	 * actually return ENODEV here */
+
 	/* Depending on whether we are a MP sink or not, we must build the
 	 * topology with MP nodes or not. */
 	ret = _starpu_build_topology(&_starpu_config, is_a_sink);

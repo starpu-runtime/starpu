@@ -53,8 +53,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 void _starpu_data_interface_init(void)
 {
 	_starpu_spin_init(&registered_handles_lock);
-	_id_to_ops_array_size = 20;
-	_STARPU_MALLOC(_id_to_ops_array, _id_to_ops_array_size * sizeof(struct starpu_data_interface_ops *));
 
 	/* Just for testing purpose */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
@@ -573,7 +571,11 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 	{
 		if ((unsigned)ops->interfaceid > _id_to_ops_array_size)
 		{
-			_id_to_ops_array_size *= 2;
+			if (!_id_to_ops_array_size) {
+				_id_to_ops_array_size = 16;
+			} else {
+				_id_to_ops_array_size *= 2;
+			}
 			_STARPU_REALLOC(_id_to_ops_array, _id_to_ops_array_size * sizeof(struct starpu_data_interface_ops *));
 		}
 		_id_to_ops_array[ops->interfaceid-STARPU_MAX_INTERFACE_ID] = ops;
