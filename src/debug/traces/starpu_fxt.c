@@ -198,15 +198,9 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		goto out;
 
 	if (task->name)
-	{
 		fprintf(tasks_file, "Name: %s\n", task->name);
-		free(task->name);
-	}
 	if (task->model_name)
-	{
 		fprintf(tasks_file, "Model: %s\n", task->model_name);
-		free(task->model_name);
-	}
 	fprintf(tasks_file, "JobId: %s%lu\n", prefix, task->job_id);
 	if (task->submit_order)
 		fprintf(tasks_file, "SubmitOrder: %lu\n", task->submit_order);
@@ -217,18 +211,13 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		for (i = 0; i < task->ndeps; i++)
 			fprintf(tasks_file, " %s%lu", prefix, task->dependencies[i]);
 		fprintf(tasks_file, "\n");
-		free(task->dependencies);
 	}
 	if (task->dep_labels)
 	{
 		fprintf(tasks_file, "DepLabels:");
 		for (i = 0; i < task->ndeps; i++)
-		{
 			fprintf(tasks_file, " %s", task->dep_labels[i]);
-			free(task->dep_labels[i]);
-		}
 		fprintf(tasks_file, "\n");
-		free(task->dep_labels);
 	}
 	fprintf(tasks_file, "Tag: %"PRIx64"\n", task->tag);
 	if (task->workerid >= 0)
@@ -256,10 +245,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "\n");
 	}
 	if (task->parameters)
-	{
 		fprintf(tasks_file, "Parameters: %s\n", task->parameters);
-		free(task->parameters);
-	}
 	if (task->data)
 	{
 		fprintf(tasks_file, "Handles:");
@@ -279,12 +265,22 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		for (i = 0; i < task->ndata; i++)
 			fprintf(tasks_file, " %lu", task->data[i].size);
 		fprintf(tasks_file, "\n");
-		free(task->data);
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
 	fprintf(tasks_file, "\n");
 
 out:
+	free(task->name);
+	free(task->model_name);
+	free(task->dependencies);
+	if (task->dep_labels)
+	{
+		for (i = 0; i < task->ndeps; i++)
+			free(task->dep_labels[i]);
+		free(task->dep_labels);
+	}
+	free(task->parameters);
+	free(task->data);
 	HASH_DEL(tasks_info, task);
 	free(task);
 }
@@ -363,18 +359,12 @@ static void data_dump(struct data_info *data)
 	if (data->mpi_rank >= 0)
 		fprintf(data_file, "MPIRank: %d\n", data->mpi_rank);
 	if (data->name)
-	{
 		fprintf(data_file, "Name: %s\n", data->name);
-		free(data->name);
-	}
 	fprintf(data_file, "Size: %lu\n", (unsigned long) data->size);
 	if (data->max_size != -1)
 		fprintf(data_file, "MaxSize: %lu\n", (unsigned long) data->max_size);
 	if (data->description)
-	{
 		fprintf(data_file, "Description: %s\n", data->description);
-		free(data->description);
-	}
 	if (data->dimensions)
 	{
 		unsigned i;
@@ -389,6 +379,8 @@ static void data_dump(struct data_info *data)
 		fprintf(data_file, "MPITag: %ld\n", data->mpi_tag);
 	fprintf(data_file, "\n");
 out:
+	free(data->description);
+	free(data->name);
 	HASH_DEL(data_info, data);
 	free(data);
 }
