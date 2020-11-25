@@ -278,6 +278,8 @@ end:
 #endif
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
+	starpu_data_unregister(handle3);
+	starpu_data_unregister(handle4);
 	starpu_shutdown();
 	if (ret == -ENODEV) return 77; else return !compare;
 }
