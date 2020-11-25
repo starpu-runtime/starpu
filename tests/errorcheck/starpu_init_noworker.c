@@ -41,8 +41,12 @@ int main(int argc, char **argv)
 
 	/* starpu_init should return -ENODEV */
         ret = starpu_initialize(&conf, &argc, &argv);
+
         if (ret == -ENODEV)
+	{
+		starpu_shutdown();
                 return EXIT_SUCCESS;
+	}
         else
         {
                 unsigned ncpu = starpu_cpu_worker_get_count();
@@ -56,6 +60,7 @@ int main(int argc, char **argv)
                 FPRINTF(stderr, "\t%u OpenCL devices\n", nopencl);
                 FPRINTF(stderr, "\t%u MIC devices\n", nmic);
                 FPRINTF(stderr, "\t%u MPI Master-Slaves devices\n", nmpi_ms);
+		starpu_shutdown();
                 return EXIT_FAILURE;
         }
 
