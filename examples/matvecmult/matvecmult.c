@@ -163,7 +163,6 @@ int main(void)
 	if (STARPU_UNLIKELY(ret == -ENODEV))
 	{
                 FPRINTF(stderr, "This application requires an OpenCL worker.\n");
-		starpu_shutdown();
 		return 77;
 	}
 
