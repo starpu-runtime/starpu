@@ -2666,6 +2666,7 @@ static void write_bus_platform_file_content(int version)
 			"   <prop id=\"network/TCP%cgamma\" value=\"-1\"></prop>\n"
 			"   <prop id=\"network/latency%cfactor\" value=\"1\"></prop>\n"
 			"   <prop id=\"network/bandwidth%cfactor\" value=\"1\"></prop>\n"
+			"   <prop id=\"network/crosstraffic\" value=\"0\"></prop>\n"
 			"   <prop id=\"network/weight%cS\" value=\"0.0\"></prop>\n"
 			" </config>\n"
 			" <AS  id=\"AS0\"  routing=\"Full\">\n"
