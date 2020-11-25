@@ -48,3 +48,11 @@
    fun:fxt_setinfos
    fun:fut_setup
 }
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:fxt_get_cpu_info
+   fun:fxt_setinfos
+   fun:fut_setup
+}
