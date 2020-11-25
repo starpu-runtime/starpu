@@ -1068,6 +1068,7 @@ retry_busy:
 		free(handle->switch_cl->dyn_nodes);
 		free(handle->switch_cl);
 	}
+	free(handle->last_submitted_ghost_accessors_id);
 	_STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle);
 	free(handle);
 }
