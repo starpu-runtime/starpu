@@ -192,8 +192,10 @@ int main(int argc, char *argv[])
 	starpu_shutdown();
 	HASH_ITER(hh, models, model, tmp)
 	{
-		free(model->name);
 		HASH_DEL(models, model);
+		starpu_perfmodel_unload_model(&model->model);
+		free(model->name);
+		free(model);
 	}
 	return 0;
 }
