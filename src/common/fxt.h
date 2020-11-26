@@ -748,17 +748,7 @@ do {									\
 
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)				\
 do {									\
-        const char *model_name = _starpu_job_get_model_name((job)), *name = _starpu_job_get_task_name((job));         \
-	if (name)                                                 \
-	{								\
-		/* we include the task name */			\
-		_STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid), 1, name); \
-		if (model_name)					\
-			_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_MODEL_NAME, (job)->job_id, model_name); \
-	}								\
-	else {                                                          \
-		FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid), 0); \
-	}								\
+	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid)); \
 	{								\
 		if ((job)->task->cl)					\
 		{							\
@@ -851,14 +841,17 @@ do {									\
 
 #define _STARPU_TRACE_TASK_NAME(job)					\
 	do {								\
-        const char *model_name = _starpu_job_get_task_name((job));                       \
-	if (model_name)					                        \
+        const char *model_name = _starpu_job_get_model_name((job));		\
+	const char *name = _starpu_job_get_task_name((job));			\
+	if (name)					                        \
 	{									\
-		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, model_name);\
+		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, name);\
 	}									\
 	else {									\
 		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, "unknown");\
 	}									\
+	if (model_name)					\
+		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_MODEL_NAME, (job)->job_id, model_name); \
 } while(0)
 
 #define _STARPU_TRACE_TASK_COLOR(job)						\

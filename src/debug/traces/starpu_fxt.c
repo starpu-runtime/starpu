@@ -1532,8 +1532,9 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 
 	if (worker < 0) return;
 
-	unsigned long has_name = ev->param[4];
-	char *name = has_name?get_fxt_string(ev, 5):"unknown";
+	struct task_info *task = get_task(ev->param[0], options->file_rank);
+	char *name = task->name;
+	create_paje_state_if_not_found(name, task->color, options);
 
 	snprintf(_starpu_last_codelet_symbol[worker], sizeof(_starpu_last_codelet_symbol[worker]), "%.*s", (int) sizeof(_starpu_last_codelet_symbol[worker])-1, name);
 	_starpu_last_codelet_symbol[worker][sizeof(_starpu_last_codelet_symbol[worker])-1] = 0;
@@ -1543,12 +1544,8 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	double last_start_codelet_time = last_codelet_start[worker];
 	last_codelet_start[worker] = start_codelet_time;
 
-	struct task_info *task = get_task(ev->param[0], options->file_rank);
-	create_paje_state_if_not_found(name, task->color, options);
-
 	task->start_time = start_codelet_time;
 	task->workerid = worker;
-	task->name = strdup(name);
 	task->node = node;
 
 	if (out_paje_file)
