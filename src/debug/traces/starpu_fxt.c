@@ -4257,6 +4257,16 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 	_starpu_fxt_component_deinit();
 
+
+	{
+		struct worker_entry *entry, *tmp;
+		HASH_ITER(hh, worker_ids, entry, tmp)
+		{
+			HASH_DEL(worker_ids, entry);
+			free(entry);
+		}
+	}
+
 #ifdef HAVE_FXT_BLOCKEV_LEAVE
 	fxt_blockev_leave(block);
 #endif
