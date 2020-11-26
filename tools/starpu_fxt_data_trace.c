@@ -186,5 +186,6 @@ int main(int argc, char **argv)
 	starpu_fxt_write_data_trace_in_dir(argv[1+pos], directory);
 	write_gp(directory, argc - (2 + pos), argv + 2 + pos);
 	starpu_perfmodel_free_sampling();
+	free(directory);
 	return 0;
 }
