@@ -4243,6 +4243,18 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		free(options->worker_archtypes[i].devices);
 
+	struct _starpu_symbol_name *itor, *next;
+	for (itor = _starpu_symbol_name_list_begin(&symbol_list);
+		itor != _starpu_symbol_name_list_end(&symbol_list);
+		itor = next)
+	{
+		next = _starpu_symbol_name_list_next(itor);
+
+		_starpu_symbol_name_list_erase(&symbol_list, itor);
+		free(itor->name);
+		_starpu_symbol_name_delete(itor);
+	}
+
 #ifdef HAVE_FXT_BLOCKEV_LEAVE
 	fxt_blockev_leave(block);
 #endif
