@@ -112,34 +112,6 @@ struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(starpu_mpi_tag_t data_
 	return found;
 }
 
-struct _starpu_mpi_early_request_tag_hashlist *_starpu_mpi_early_request_extract(starpu_mpi_tag_t data_tag, int source, MPI_Comm comm)
-{
-	struct _starpu_mpi_node_tag node_tag;
-	struct _starpu_mpi_early_request_hashlist *hashlist;
-	struct _starpu_mpi_early_request_tag_hashlist *tag_hashlist = NULL;
-
-	memset(&node_tag, 0, sizeof(struct _starpu_mpi_node_tag));
-	node_tag.node.comm = comm;
-	node_tag.node.rank = source;
-	node_tag.data_tag = data_tag;
-
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
-	_STARPU_MPI_DEBUG(100, "Looking for early_request with comm %ld source %d tag %ld\n", (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
-	HASH_FIND(hh, _starpu_mpi_early_request_hash, &node_tag.node, sizeof(struct _starpu_mpi_node), hashlist);
-	if (hashlist)
-	{
-		HASH_FIND(hh, hashlist->datahash, &node_tag.data_tag, sizeof(starpu_mpi_tag_t), tag_hashlist);
-		if (tag_hashlist)
-		{
-			_starpu_mpi_early_request_hash_count -= _starpu_mpi_req_list_size(&tag_hashlist->list);
-			HASH_DEL(hashlist->datahash, tag_hashlist);
-		}
-	}
-	_STARPU_MPI_DEBUG(100, "Found hashlist %p with comm %ld source %d tag %ld\n", hashlist, (long int)node_tag.node.comm, node_tag.node.rank, node_tag.data_tag);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_request_mutex);
-	return tag_hashlist;
-}
-
 void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_request_mutex);
