@@ -1070,6 +1070,9 @@ retry_busy:
 	STARPU_HG_ENABLE_CHECKING(handle->post_sync_tasks_cnt);
 	STARPU_HG_ENABLE_CHECKING(handle->busy_count);
 
+	_starpu_data_requester_prio_list_deinit(&handle->req_list);
+	_starpu_data_requester_prio_list_deinit(&handle->reduction_req_list);
+
 	if (handle->switch_cl)
 	{
 		free(handle->switch_cl->dyn_nodes);
