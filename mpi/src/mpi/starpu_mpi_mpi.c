@@ -1546,6 +1546,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_early_request_check_termination();
 	_starpu_mpi_early_data_check_termination();
 	_starpu_mpi_sync_data_check_termination();
+	_starpu_mpi_req_prio_list_deinit(&ready_send_requests);
 
 	if (argc_argv->initialize_mpi)
 	{
