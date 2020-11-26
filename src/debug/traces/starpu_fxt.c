@@ -662,6 +662,16 @@ static int register_thread(unsigned long nodeid, unsigned long tid, int workerid
 	return 1;
 }
 
+static void free_worker_ids(void)
+{
+	struct worker_entry *entry, *tmp;
+	HASH_ITER(hh, worker_ids, entry, tmp)
+	{
+		HASH_DEL(worker_ids, entry);
+		free(entry);
+	}
+}
+
 static int register_worker_id(unsigned long nodeid, unsigned long tid, int workerid, int sync)
 {
 	nworkers++;
@@ -4255,15 +4265,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 	_starpu_fxt_component_deinit();
 
-
-	{
-		struct worker_entry *entry, *tmp;
-		HASH_ITER(hh, worker_ids, entry, tmp)
-		{
-			HASH_DEL(worker_ids, entry);
-			free(entry);
-		}
-	}
+	free_worker_ids();
 
 #ifdef HAVE_FXT_BLOCKEV_LEAVE
 	fxt_blockev_leave(block);
@@ -4891,10 +4893,10 @@ struct starpu_data_trace_kernel
 
 static FILE *codelet_list;
 
-static void write_task(char *dir, struct parse_task pt)
+static void write_task(char *dir, struct parse_task *pt)
 {
 	struct starpu_data_trace_kernel *kernel;
-	char *codelet_name = pt.codelet_name;
+	char *codelet_name = pt->codelet_name;
 	HASH_FIND_STR(kernels, codelet_name, kernel);
 	//fprintf(stderr, "%p %p %s\n", kernel, kernels, codelet_name);
 	if(kernel == NULL)
@@ -4912,8 +4914,8 @@ static void write_task(char *dir, struct parse_task pt)
 		HASH_ADD_STR(kernels, name, kernel);
 		fprintf(codelet_list, "%s\n", codelet_name);
 	}
-	double time = pt.exec_time * NANO_SEC_TO_MILI_SEC;
-	fprintf(kernel->file, "%lf %u %u\n", time, pt.data_total, pt.workerid);
+	double time = pt->exec_time * NANO_SEC_TO_MILI_SEC;
+	fprintf(kernel->file, "%lf %u %u\n", time, pt->data_total, pt->workerid);
 }
 
 void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
@@ -4979,7 +4981,7 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 			workerid = ev.param[3];
 			assert(workerid != -1);
 			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
-			write_task(dir, tasks[workerid]);
+			write_task(dir, &tasks[workerid]);
 			break;
 
 		case _STARPU_FUT_DATA_LOAD:
@@ -5015,6 +5017,12 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 		perror("close failed :");
 		exit(-1);
 	}
+
+	unsigned i;
+	for (i = 0; i < STARPU_NMAXWORKERS; i++)
+		free(tasks[i].codelet_name);
+
+	free_worker_ids();
 
 	struct starpu_data_trace_kernel *kernel=NULL, *tmp=NULL;
 	HASH_ITER(hh, kernels, kernel, tmp)
