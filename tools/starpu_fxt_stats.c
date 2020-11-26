@@ -184,6 +184,10 @@ int main(int argc, char **argv)
 		}
 	}
 
+#ifdef HAVE_FXT_BLOCKEV_LEAVE
+	fxt_blockev_leave(block);
+#endif
+
 #ifdef HAVE_FXT_CLOSE
 	fxt_close(fut);
 #else
