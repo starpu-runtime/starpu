@@ -33,3 +33,4 @@ leak:hwloc_plugins_exit
 
 # papi
 leak:_pe_libpfm4_init
+leak:allocate_thread
