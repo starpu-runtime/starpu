@@ -22,3 +22,12 @@
    fun:_pe_libpfm4_init
    ...
 }
+
+# This happens in multithreaded_init: papi does not support getting initialized in one thread and shut down in another thread.
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   fun:malloc
+   fun:allocate_thread
+   ...
+}
