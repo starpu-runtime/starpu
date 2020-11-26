@@ -4973,6 +4973,7 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 			tasks[workerid].workerid = (unsigned)workerid;
 			tasks[workerid].exec_time = ev.time;
 			has_name = ev.param[4];
+			free(tasks[workerid].codelet_name);
 			tasks[workerid].codelet_name = strdup(has_name ? get_fxt_string(&ev, 5): "unknown");
 			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
 			break;
