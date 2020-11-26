@@ -492,6 +492,7 @@ static void dump_data_file(FILE *data_file, struct _perfmodel_plot_options *opti
 		}
 		free(tmp);
 	}
+	free(options->dumped_codelets);
 }
 #endif
 
