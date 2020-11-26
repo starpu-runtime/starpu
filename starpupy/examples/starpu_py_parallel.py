@@ -67,7 +67,9 @@ N=100
 # print(type(a))
 
 def scal(a, t):
-    return t*a
+	for i in range(len(t)):
+		t[i]=t[i]*a
+	return t
 
 A=np.arange(N)
 
@@ -108,10 +110,20 @@ b=np.arange(10)
 starpu.joblib.Parallel(mode="normal", n_jobs=-2, perfmodel="first")(starpu.joblib.delayed(multi)(i,j) for i,j in zip(a,b))
 
 print("--input is iterable function list")
-starpu.joblib.Parallel(mode="normal", n_jobs=3, perfmodel="third")(g_func)
+p=starpu.joblib.Parallel(mode="normal", n_jobs=3, perfmodel="third")
+p(g_func)
+
+def producer():
+	for i in range(6):
+		print('Produced %s' % i)
+		yield i
+#starpu.joblib.Parallel(n_jobs=2)(starpu.joblib.delayed(sqrt)(i) for i in producer())
+
 
 print("--input is numpy array")
+print("The input array is", A)
 starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="array")(starpu.joblib.delayed(scal)(2,A))
+print("The return array is", A)
 
 print("************************")
 print("parallel Future version:")
@@ -135,9 +147,10 @@ async def main():
 	#print(res3)
 
 	print("--input is numpy array")
+	print("The input array is", A)
 	fut4=starpu.joblib.Parallel(mode="future", n_jobs=2, perfmodel="array")(starpu.joblib.delayed(scal)(2,A))
 	res4=await fut4
-	#print(res4)
+	print("The return array is", A)
 
 asyncio.run(main())
 

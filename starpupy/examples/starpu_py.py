@@ -93,7 +93,9 @@ def sub_deco(x,a):
 ###############################################################################
 
 def scal(a, t):
-    return t*a
+	for i in range(len(t)):
+		t[i]=t[i]*a
+	return t
 
 t=np.array([1,2,3,4,5,6,7,8,9,10])
 
@@ -144,6 +146,8 @@ async def main():
     fut8 = starpu.task_submit()(scal, 2, t)
     res8 = await fut8
     print("The result of Example 10 is", res8)
+    print("The return array is", t)
+    #print("The result type is", type(res8))
 
 asyncio.run(main())
 
