@@ -106,6 +106,8 @@ int main(void)
 #endif
 	starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, &real, &imaginary, 1);
 	starpu_complex_data_register(&handle2, STARPU_MAIN_RAM, &copy_real, &copy_imaginary, 1);
+	/* Create a vector of two complexs.  */
+	starpu_complex_data_register(&handle3, -1, 0, 0, 2);
 
 	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1")+1, STARPU_R, handle1, 0);
 	if (ret == -ENODEV) goto end;
@@ -167,9 +169,6 @@ int main(void)
 	copy_real = 78.0;
 	copy_imaginary = 77.0;
 	starpu_data_release(handle2);
-
-	/* Create a vector of two complexs.  */
-	starpu_complex_data_register(&handle3, -1, 0, 0, 2);
 
 	/* Split it in two pieces (thus one complex each).  */
 	struct starpu_data_filter f =
@@ -236,6 +235,7 @@ end:
 #endif
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
+	starpu_data_unregister(handle3);
 	starpu_shutdown();
 	if (ret == -ENODEV) return 77; else return !compare;
 }
