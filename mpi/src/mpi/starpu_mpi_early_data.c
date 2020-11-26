@@ -92,6 +92,12 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_create(struct _star
 	return early_data_handle;
 }
 
+void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle)
+{
+	free(early_data_handle);
+	early_data_handle = NULL;
+}
+
 struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu_mpi_node_tag *node_tag)
 {
 	struct _starpu_mpi_early_data_handle_hashlist *hashlist;

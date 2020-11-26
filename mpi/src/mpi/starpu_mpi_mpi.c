@@ -862,8 +862,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	if (req->backend->internal_req)
 	{
-		free(req->backend->early_data_handle);
-		req->backend->early_data_handle = NULL;
+		_starpu_mpi_early_data_delete(req->backend->early_data_handle);
 	}
 	else
 	{
