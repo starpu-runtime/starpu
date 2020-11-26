@@ -82,6 +82,7 @@ void _starpu_fxt_component_push(FILE *output, struct starpu_fxt_options *options
 void _starpu_fxt_component_pull(FILE *output, struct starpu_fxt_options *options, double timestamp, int workerid, uint64_t from, uint64_t to, uint64_t task, unsigned prio);
 void _starpu_fxt_component_dump(FILE *output);
 void _starpu_fxt_component_finish(FILE *output);
+void _starpu_fxt_component_deinit(void);
 
 #endif // STARPU_USE_FXT
 
