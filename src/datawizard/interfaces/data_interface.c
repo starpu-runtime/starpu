@@ -53,7 +53,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 void _starpu_data_interface_init(void)
 {
 	_starpu_spin_init(&registered_handles_lock);
-	_id_to_ops_array_size = 0;
 
 	/* Just for testing purpose */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
@@ -71,6 +70,8 @@ void _starpu_data_interface_shutdown()
 
 	_starpu_spin_destroy(&registered_handles_lock);
 	free(_id_to_ops_array);
+	_id_to_ops_array = NULL;
+	_id_to_ops_array_size = 0;
 
 	HASH_ITER(hh, registered_handles, entry, tmp)
 	{
