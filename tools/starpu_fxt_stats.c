@@ -184,6 +184,16 @@ int main(int argc, char **argv)
 		}
 	}
 
+#ifdef HAVE_FXT_CLOSE
+	fxt_close(fut);
+#else
+	if (close(fd_in))
+	{
+	        perror("close failed :");
+	        exit(-1);
+	}
+#endif
+
 	fprintf(fd_out, "Start : start time %e end time %e length %e\n", start_time, end_time, end_time - start_time);
 
 	unsigned src, dst;
