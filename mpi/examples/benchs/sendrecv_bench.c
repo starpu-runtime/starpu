@@ -83,6 +83,12 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
+#if !defined(STARPU_LONG_CHECK)
+	if (rank == 0)
+	{
+		printf("To have a more precise benchmark, configure StarPU with --enable-long-check\n");
+	}
+#endif
 
 	if (pause_workers)
 	{
