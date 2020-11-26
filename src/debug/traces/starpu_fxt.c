@@ -379,6 +379,7 @@ static void data_dump(struct data_info *data)
 		fprintf(data_file, "MPITag: %ld\n", data->mpi_tag);
 	fprintf(data_file, "\n");
 out:
+	free(data->dims);
 	free(data->description);
 	free(data->name);
 	HASH_DEL(data_info, data);
