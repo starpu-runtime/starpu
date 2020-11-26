@@ -219,6 +219,8 @@ int main(void)
 
 	/* Show it.  */
 	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle3", strlen("handle3")+1, STARPU_R, handle3, 0);
+	if (ret == -ENODEV) goto end;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	/* Get the real and imaginary vectors.  */
 	struct starpu_data_filter fcanon =
@@ -253,6 +255,7 @@ int main(void)
 	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle4", strlen("handle4")+1, STARPU_R, handle4, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
 	/* Compare two different complexs.  */
 	ret = starpu_task_insert(&cl_compare,
 				 STARPU_R, handle1,
