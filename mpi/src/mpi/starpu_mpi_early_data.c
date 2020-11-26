@@ -136,6 +136,29 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu
 	return early_data_handle;
 }
 
+struct _starpu_mpi_early_data_handle_tag_hashlist *_starpu_mpi_early_data_extract(struct _starpu_mpi_node_tag *node_tag)
+{
+	struct _starpu_mpi_early_data_handle_hashlist *hashlist;
+	struct _starpu_mpi_early_data_handle_tag_hashlist *tag_hashlist = NULL;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_data_handle_mutex);
+	_STARPU_MPI_DEBUG(60, "Looking for hashlist for (comm %ld, source %d)\n", (long int)node_tag->node.comm, node_tag->node.rank);
+	HASH_FIND(hh, _starpu_mpi_early_data_handle_hashmap, &node_tag->node, sizeof(struct _starpu_mpi_node), hashlist);
+	if (hashlist)
+	{
+		_STARPU_MPI_DEBUG(60, "Looking for hashlist for (tag %ld)\n", node_tag->data_tag);
+		HASH_FIND(hh, hashlist->datahash, &node_tag->data_tag, sizeof(starpu_mpi_tag_t), tag_hashlist);
+		if (tag_hashlist)
+		{
+			_starpu_mpi_early_data_handle_hashmap_count -= _starpu_mpi_early_data_handle_list_size(&tag_hashlist->list);
+			HASH_DEL(hashlist->datahash, tag_hashlist);
+		}
+	}
+	_STARPU_MPI_DEBUG(60, "Found hashlist %p for (comm %ld, source %d) and (tag %ld)\n", tag_hashlist, (long int)node_tag->node.comm, node_tag->node.rank, node_tag->data_tag);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_early_data_handle_mutex);
+	return tag_hashlist;
+}
+
 void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data_handle)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_early_data_handle_mutex);
