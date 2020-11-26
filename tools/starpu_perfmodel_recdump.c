@@ -386,8 +386,10 @@ int main(int argc, char **argv)
 					l = ltmp;
 				}
 
+				starpu_perfmodel_unload_model(&model->model);
 				free(model->name);
 				HASH_DEL(models, model);
+				free(model);
 			}
 		}
 		fclose(input);
