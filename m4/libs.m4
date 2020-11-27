@@ -51,3 +51,123 @@ AC_DEFUN([STARPU_CHECK_LIB], [dnl
 AC_DEFUN([STARPU_HAVE_LIBRARY], [dnl
 STARPU_CHECK_LIB([$1], [$2], main, [$3], [$4], [$5])
 ])dnl
+
+# IS_SUPPORTED_CFLAG(flag)
+# ------------------------
+# Check if the CFLAGS `flag' is supported by the compiler
+AC_DEFUN([IS_SUPPORTED_CFLAG],
+[
+	AC_REQUIRE([AC_PROG_CC])
+	AC_MSG_CHECKING([whether C compiler support $1])
+
+	SAVED_CFLAGS="$CFLAGS"
+	CFLAGS="$1"
+
+	AC_LINK_IFELSE(
+		AC_LANG_PROGRAM(
+			[[]],
+			[[AC_LANG_SOURCE([const char *hello = "Hello World";])]]
+		),
+		[
+			m4_default_nblank([$2], [GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"])
+			AC_MSG_RESULT(yes)
+			option_available=1
+		],
+		[
+			AC_MSG_RESULT(no)
+			option_available=0
+		]
+	)
+	CFLAGS="$SAVED_CFLAGS"
+])
+
+# IS_SUPPORTED_CXXFLAG(flag)
+# ------------------------
+# Check if the CFLAGS `flag' is supported by the compiler
+AC_DEFUN([IS_SUPPORTED_CXXFLAG],
+[
+	AC_REQUIRE([AC_PROG_CXX])
+	AC_LANG_PUSH([C++])
+	AC_MSG_CHECKING([whether CXX compiler support $1])
+
+	SAVED_CXXFLAGS="$CXXFLAGS"
+	CXXFLAGS="$1"
+
+	AC_LINK_IFELSE(
+		AC_LANG_PROGRAM(
+			[[]],
+			[[AC_LANG_SOURCE([const char *hello = "Hello World";])]]
+		),
+		[
+			m4_default_nblank([$2], [GLOBAL_AM_CFLAGS="$GLOBAL_AM_CXXFLAGS $1"])
+			AC_MSG_RESULT(yes)
+			option_available=1
+		],
+		[
+			AC_MSG_RESULT(no)
+			option_available=0
+		]
+	)
+	CXXFLAGS="$SAVED_CXXFLAGS"
+	AC_LANG_POP([C++])
+])
+
+# IS_SUPPORTED_FFLAG(flag)
+# ------------------------
+# Check if the FFLAGS `flag' is supported by the compiler
+AC_DEFUN([IS_SUPPORTED_FFLAG],
+[
+	AC_LANG_PUSH([Fortran 77])
+	AC_MSG_CHECKING([whether Fortran 77 compiler support $1])
+
+	SAVED_FFLAGS="$FFLAGS"
+	FFLAGS="$1"
+
+	AC_LINK_IFELSE(
+		AC_LANG_PROGRAM(
+			[],
+			[[AC_LANG_SOURCE([])]]
+		),
+		[
+			m4_default_nblank([$2], [GLOBAL_AM_FFLAGS="$GLOBAL_AM_FFLAGS $1"])
+			AC_MSG_RESULT(yes)
+			option_available=1
+		],
+		[
+			AC_MSG_RESULT(no)
+			option_available=0
+		]
+	)
+	FFLAGS="$SAVED_FFLAGS"
+	AC_LANG_POP([Fortran 77])
+])
+
+# IS_SUPPORTED_FCFLAG(flag)
+# ------------------------
+# Check if the FCLAGS `flag' is supported by the compiler
+AC_DEFUN([IS_SUPPORTED_FCFLAG],
+[
+	AC_LANG_PUSH([Fortran])
+	AC_MSG_CHECKING([whether Fortran compiler support $1])
+
+	SAVED_FCFLAGS="$FCFLAGS"
+	FCFLAGS="$1"
+
+	AC_LINK_IFELSE(
+		AC_LANG_PROGRAM(
+			[],
+			[[AC_LANG_SOURCE([])]]
+		),
+		[
+			m4_default_nblank([$2], [GLOBAL_AM_FCFLAGS="$GLOBAL_AM_FCFLAGS $1"])
+			AC_MSG_RESULT(yes)
+			option_available=1
+		],
+		[
+			AC_MSG_RESULT(no)
+			option_available=0
+		]
+	)
+	FCFLAGS="$SAVED_FCFLAGS"
+	AC_LANG_POP([Fortran])
+])

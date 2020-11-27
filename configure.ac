@@ -557,6 +557,7 @@ if test x$enable_mpi = xyes ; then
 	    CXXFLAGS="$CXXFLAGS -fPIC"
 	    NVCCFLAGS="$NVCCFLAGS --compiler-options -fPIC"
 	    FFLAGS="$FFLAGS -fPIC"
+	    FCLAGS="$FFLAGS -fPIC"
         fi
     fi
 fi
@@ -1922,10 +1923,10 @@ if test x$enable_debug = xyes; then
 	FCFLAGS="$FCFLAGS -O0"
 	enable_spinlock_check=yes
 	if test x$GCC = xyes; then
-		CFLAGS="$CFLAGS -Og"
-		CXXFLAGS="$CXXFLAGS -Og"
-		FFLAGS="$FFLAGS -Og"
-		FCFLAGS="$FCFLAGS -Og"
+	   	IS_SUPPORTED_CFLAG(-Og)
+	   	IS_SUPPORTED_CXXFLAG(-Og)
+	   	IS_SUPPORTED_FFLAG(-Og)
+	   	IS_SUPPORTED_FCFLAG(-Og)
 		if test x$starpu_windows != xyes ; then
 			if test x$enable_fstack_protector_all = xyes ; then
 			   CFLAGS="$CFLAGS -fstack-protector-all"
@@ -2405,40 +2406,6 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMPKERNELS, [$maxmpkernels],
 #                           Flags for C Compiler                              #
 #                                                                             #
 ###############################################################################
-
-# IS_SUPPORTED_CFLAG(flag)
-# ------------------------
-# Check if the CFLAGS `flag' is supported by the compiler
-AC_DEFUN([IS_SUPPORTED_CFLAG],
-[
-	AC_REQUIRE([AC_PROG_CC])
-
-	AC_MSG_CHECKING([whether compiler support $1])
-
-	SAVED_CFLAGS="$CFLAGS"
-	CFLAGS="$1" # -we10006"
-
-	AC_LINK_IFELSE(
-		AC_LANG_PROGRAM(
-			[[]],
-			[[
-				AC_LANG_SOURCE([
-					const char *hello = "Hello World";
-				])
-			]]
-		),
-		[
-			m4_default_nblank([$2], [GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"])
-			AC_MSG_RESULT(yes)
-			option_available=1
-		],
-		[
-			AC_MSG_RESULT(no)
-			option_available=0
-		]
-	)
-	CFLAGS="$SAVED_CFLAGS"
-])
 
 IS_SUPPORTED_CFLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
