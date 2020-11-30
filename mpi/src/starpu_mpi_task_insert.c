@@ -823,17 +823,15 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 
 	_STARPU_MPI_DEBUG(1, "Doing reduction for data %p on node %d with %d nodes ...\n", data_handle, rank, nb_nodes);
 
-	// Creating synchronization task and use its jobid for tracing
-	struct starpu_task *taskC = starpu_task_create();
-	const long taskC_jobid = starpu_task_get_job_id(taskC);
-
 	// need to count how many nodes have the data in redux mode
 	if (me == rank)
 	{
 		int i;
 
 		// taskC depends on all taskBs created
+		// Creating synchronization task and use its jobid for tracing
 		struct starpu_task *taskC = starpu_task_create();
+		const long taskC_jobid = starpu_task_get_job_id(taskC);
 		taskC->cl = &_starpu_mpi_redux_data_readwrite_cl;
 		STARPU_TASK_SET_HANDLE(taskC, data_handle, 0);
 
