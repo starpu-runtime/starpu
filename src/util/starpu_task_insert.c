@@ -152,6 +152,7 @@ int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 	return ret;
 }
 
+#undef starpu_task_set
 int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
@@ -162,6 +163,7 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...)
 	return 0;
 }
 
+#undef starpu_task_insert
 int starpu_task_insert(struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
@@ -173,6 +175,7 @@ int starpu_task_insert(struct starpu_codelet *cl, ...)
 	return ret;
 }
 
+#undef starpu_insert_task
 int starpu_insert_task(struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
@@ -184,6 +187,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	return ret;
 }
 
+#undef starpu_task_build
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 {
 	struct starpu_task *task;

@@ -597,11 +597,19 @@ starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t handle);
    STARPU_MPI_CACHE).
 */
 int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_mpi_task_insert(comm, cl, ...) \
+	starpu_mpi_task_insert((comm), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
 
 /**
    Call starpu_mpi_task_insert(). Symbol kept for backward compatibility.
 */
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_mpi_insert_task(comm, cl, ...) \
+	starpu_mpi_insert_task((comm), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
 
 /**
    Create a task corresponding to \p codelet with the following given
@@ -617,6 +625,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);
    creates it, with the SAME list of arguments.
 */
 struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_mpi_task_build(comm, cl, ...) \
+	starpu_mpi_task_build((comm), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
 
 /**
    MUST be called after a call to starpu_mpi_task_build(),

@@ -110,6 +110,8 @@
 
 #define _STARPU_FUT_DATA_DOING_WONT_USE	0x512e
 
+#define _STARPU_FUT_TASK_LINE	0x512f
+
 #define	_STARPU_FUT_START_MEMRECLAIM	0x5131
 #define	_STARPU_FUT_END_MEMRECLAIM	0x5132
 
@@ -839,6 +841,12 @@ do {									\
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_EXCLUDE_FROM_DAG, (job)->job_id, (long unsigned)exclude_from_dag); \
 } while(0)
 
+#define _STARPU_TRACE_TASK_LINE(job)					\
+	do {								\
+		if ((job)->task->file)					\
+			_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_LINE, (job)->job_id, (job)->task->line, (job)->task->file); \
+} while(0)
+
 #define _STARPU_TRACE_TASK_NAME(job)					\
 	do {								\
         const char *model_name = _starpu_job_get_model_name((job));		\
@@ -1327,6 +1335,7 @@ do {										\
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(a)	do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_NAME(a)		do {(void)(a);} while(0)
+#define _STARPU_TRACE_TASK_LINE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_COLOR(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_DONE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TAG_DONE(a)		do {(void)(a);} while(0)

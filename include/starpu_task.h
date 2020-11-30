@@ -603,6 +603,18 @@ struct starpu_task
 	const char *name;
 
 	/**
+	   Optional file name where the task was submitted. This can be useful
+	   for debugging purposes.
+	*/
+	const char *file;
+
+	/**
+	  Optional line number where the task was submitted. This can be useful
+	   for debugging purposes.
+	*/
+	int line;
+
+	/**
 	   Pointer to the corresponding structure starpu_codelet. This
 	   describes where the kernel should be executed, and supplies
 	   the appropriate implementations. When set to <c>NULL</c>,
@@ -1436,6 +1448,16 @@ void starpu_task_destroy(struct starpu_task *task);
    that the field starpu_task::synchronous is set to 0.
 */
 int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
+
+#ifdef STARPU_USE_FXT
+static inline int starpu_task_submit_line(struct starpu_task *task, const char *file, int line)
+{
+	task->file = file;
+	task->line = line;
+	return starpu_task_submit(task);
+}
+#define starpu_task_submit(task) starpu_task_submit_line((task), __FILE__, __LINE__)
+#endif
 
 /**
    Submit \p task to StarPU with dependency bypass.

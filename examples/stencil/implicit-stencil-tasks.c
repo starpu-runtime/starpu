@@ -36,6 +36,7 @@
 
 #if defined(STARPU_USE_MPI) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 #include <starpu_mpi.h>
+#undef starpu_insert_task
 #define starpu_insert_task(...) starpu_mpi_insert_task(MPI_COMM_WORLD, __VA_ARGS__)
 #endif
 

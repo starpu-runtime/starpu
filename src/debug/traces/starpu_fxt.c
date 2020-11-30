@@ -105,6 +105,8 @@ struct task_info
 	UT_hash_handle hh;
 	char *model_name;
 	char *name;
+	char *file;
+	int line;
 	int exclude_from_dag;
 	int show;
 	unsigned type;
@@ -143,6 +145,8 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		_STARPU_MALLOC(task, sizeof(*task));
 		task->model_name = NULL;
 		task->name = NULL;
+		task->file = NULL;
+		task->line = -1;
 		task->exclude_from_dag = 0;
 		task->show = 0;
 		task->type = 0;
@@ -201,6 +205,10 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "Name: %s\n", task->name);
 	if (task->model_name)
 		fprintf(tasks_file, "Model: %s\n", task->model_name);
+	if (task->file) {
+		fprintf(tasks_file, "File: %s\n", task->file);
+		fprintf(tasks_file, "Line: %d\n", task->line);
+	}
 	fprintf(tasks_file, "JobId: %s%lu\n", prefix, task->job_id);
 	if (task->submit_order)
 		fprintf(tasks_file, "SubmitOrder: %lu\n", task->submit_order);
@@ -272,6 +280,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 out:
 	free(task->name);
 	free(task->model_name);
+	free(task->file);
 	free(task->dependencies);
 	if (task->dep_labels)
 	{
@@ -2906,6 +2915,21 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color);
 }
 
+static void handle_task_line(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long job_id = ev->param[0];
+	int line = ev->param[1];
+	char *file = get_fxt_string(ev,2);
+
+	struct task_info *task = get_task(job_id, options->file_rank);
+	task->file = strdup(file);
+	task->line = line;
+
+	if (!task->exclude_from_dag && show_task(task, options))
+		_starpu_fxt_dag_set_task_line(options->file_prefix, job_id, task->file, line);
+}
+
+
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
         /* Ideally, we would be able to dump tasks as they terminate, to save
@@ -3713,6 +3737,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_NAME:
 				handle_task_name(&ev, options);
+				break;
+
+			case _STARPU_FUT_TASK_LINE:
+				handle_task_line(&ev, options);
 				break;
 
 			case _STARPU_FUT_TASK_COLOR:

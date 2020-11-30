@@ -327,7 +327,23 @@ extern "C"
  */
 #define STARPU_TASK_SCHED_DATA (41<<STARPU_MODE_SHIFT)
 
-#define STARPU_SHIFTED_MODE_MAX (42<<STARPU_MODE_SHIFT)
+/**
+   Used when calling starpu_task_insert(), must be followed by a
+   char * stored in starpu_task::file.
+
+   This is automatically set when FXT is enabled.
+*/
+#define STARPU_TASK_FILE	 (42<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), must be followed by an
+   int stored in starpu_task::line.
+
+   This is automatically set when FXT is enabled.
+*/
+#define STARPU_TASK_LINE	 (43<<STARPU_MODE_SHIFT)
+
+#define STARPU_SHIFTED_MODE_MAX (44<<STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.
@@ -338,6 +354,11 @@ extern "C"
    starpu_task::cl_arg_free will be set to 1.
 */
 int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_task_set(task, cl, ...) \
+	starpu_task_set((task), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
+
 
 /**
    Create a task corresponding to \p cl with the following arguments.
@@ -348,6 +369,10 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
    starpu_task::cl_arg_free will be set to 1.
 */
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_task_build(cl, ...) \
+	starpu_task_build((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
 
 /**
    Create and submit a task corresponding to \p cl with the following
@@ -386,11 +411,19 @@ struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...);
    starpu_codelet_unpack_args() must be called within the codelet implementation to retrieve them.
 */
 int starpu_task_insert(struct starpu_codelet *cl, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_task_insert(cl, ...) \
+	starpu_task_insert((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
 
 /**
    Similar to starpu_task_insert(). Kept to avoid breaking old codes.
 */
 int starpu_insert_task(struct starpu_codelet *cl, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_insert_task(cl, ...) \
+	starpu_insert_task((cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
 
 /**
    Assuming that there are already \p current_buffer data handles

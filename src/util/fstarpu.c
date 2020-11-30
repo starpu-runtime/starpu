@@ -70,6 +70,8 @@ static const intptr_t fstarpu_sequential_consistency = STARPU_SEQUENTIAL_CONSIST
 static const intptr_t fstarpu_task_profiling_info = STARPU_TASK_PROFILING_INFO;
 static const intptr_t fstarpu_task_no_submitorder = STARPU_TASK_NO_SUBMITORDER;
 static const intptr_t fstarpu_task_sched_data = STARPU_TASK_SCHED_DATA;
+static const intptr_t fstarpu_task_file = STARPU_TASK_FILE;
+static const intptr_t fstarpu_task_line = STARPU_TASK_LINE;
 
 static const intptr_t fstarpu_value = STARPU_VALUE;
 static const intptr_t fstarpu_sched_ctx = STARPU_SCHED_CTX;

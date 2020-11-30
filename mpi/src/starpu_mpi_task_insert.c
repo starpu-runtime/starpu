@@ -505,6 +505,14 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			(void)va_arg(varg_list_copy, void *);
 		}
+		else if (arg_type==STARPU_TASK_FILE)
+		{
+			(void)va_arg(varg_list_copy, const char *);
+		}
+		else if (arg_type==STARPU_TASK_LINE)
+		{
+			(void)va_arg(varg_list_copy, int);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -661,6 +669,7 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 	return val;
 }
 
+#undef starpu_mpi_task_insert
 int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
 	va_list varg_list;
@@ -672,6 +681,7 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	return ret;
 }
 
+#undef starpu_mpi_insert_task
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
 	va_list varg_list;
@@ -683,6 +693,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	return ret;
 }
 
+#undef starpu_mpi_task_build
 struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
 	va_list varg_list;
