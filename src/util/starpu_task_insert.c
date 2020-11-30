@@ -130,6 +130,7 @@ struct starpu_task *_starpu_task_build_v(struct starpu_task *ptask, struct starp
 	return (ret == 0) ? task : NULL;
 }
 
+#undef starpu_task_submit
 int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 {
 	struct starpu_task *task;
