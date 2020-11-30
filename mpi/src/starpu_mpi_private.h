@@ -196,6 +196,9 @@ struct _starpu_mpi_coop_sends
 	struct _starpu_mpi_req **reqs_array;
 	unsigned n;
 	unsigned redirects_sent;
+
+	/* Used to trace dependencies */
+	long pre_sync_jobid;
 };
 
 /** Initialized in starpu_mpi_data_register_comm */
@@ -298,6 +301,11 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
  * the converse, possibly on different threads, etc.
  */
 void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control, int submit_data);
+
+/*
+ * Fills post_sync_jobid with the reduction synchronization task jobid
+ */
+void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, long * const post_sync_jobid);
 
 void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req);
 void _starpu_mpi_request_init(struct _starpu_mpi_req **req);

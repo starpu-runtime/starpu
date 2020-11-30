@@ -53,7 +53,15 @@ static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum sta
 		}
 	}
 
-	starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, sequential_consistency, 1, &req->pre_sync_jobid, &req->post_sync_jobid);
+	if (sequential_consistency)
+	{
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, 1 /*sequential consistency*/, 1, &req->pre_sync_jobid, &req->post_sync_jobid);
+	}
+	else
+	{
+		/* post_sync_job_id has already been filled */
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, 0 /*sequential consistency*/, 1, &req->pre_sync_jobid, NULL);
+	}
 }
 
 static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg, int sequential_consistency)
@@ -185,6 +193,13 @@ struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handl
 
 	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, source, data_tag, comm, detached, sync, 0, callback, arg, RECV_REQ, _mpi_backend._starpu_mpi_backend_irecv_size_func, sequential_consistency, is_internal_req, count);
 	_starpu_mpi_req_willpost(req);
+
+	if (sequential_consistency == 0)
+	{
+		/* Synchronization task jobid from redux is used */
+		_starpu_mpi_redux_fill_post_sync_jobid(arg, &(req->post_sync_jobid));
+	}
+
 	_starpu_mpi_isend_irecv_common(req, STARPU_W, sequential_consistency);
 	return req;
 }

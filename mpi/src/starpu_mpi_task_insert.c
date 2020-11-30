@@ -726,6 +726,7 @@ struct _starpu_mpi_redux_data_args
 	int node;
 	MPI_Comm comm;
 	struct starpu_task *taskB;
+	long taskC_jobid;
 };
 
 void _starpu_mpi_redux_data_dummy_func(void *buffers[], void *cl_arg)
@@ -792,6 +793,13 @@ void _starpu_mpi_redux_data_recv_callback(void *callback_arg)
 	starpu_mpi_irecv_detached_sequential_consistency(args->new_handle, args->node, args->data_tag, args->comm, _starpu_mpi_redux_data_detached_callback, args, 0);
 }
 
+
+void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, long * const post_sync_jobid)
+{
+	*post_sync_jobid = ((const struct _starpu_mpi_redux_data_args *) redux_data_args)->taskC_jobid;
+}
+
+
 /* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
  * a data previously accessed in REDUX mode gets accessed in R mode. */
 void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
@@ -814,6 +822,10 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 	starpu_mpi_comm_size(comm, &nb_nodes);
 
 	_STARPU_MPI_DEBUG(1, "Doing reduction for data %p on node %d with %d nodes ...\n", data_handle, rank, nb_nodes);
+
+	// Creating synchronization task and use its jobid for tracing
+	struct starpu_task *taskC = starpu_task_create();
+	const long taskC_jobid = starpu_task_get_job_id(taskC);
 
 	// need to count how many nodes have the data in redux mode
 	if (me == rank)
@@ -854,6 +866,8 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 				args->data_tag = data_tag;
 				args->node = i;
 				args->comm = comm;
+
+				args->taskC_jobid = taskC_jobid;
 
 				// We need to create taskB early as
 				// taskC declares a dependancy on it
