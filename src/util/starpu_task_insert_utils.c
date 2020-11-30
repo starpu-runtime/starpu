@@ -1007,6 +1007,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 }
 
 /* Fortran interface to task_insert */
+#undef starpu_task_submit
 void fstarpu_task_insert(void **arglist)
 {
 	struct starpu_codelet *cl = arglist[0];
