@@ -279,12 +279,14 @@ static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_p
 
 	options.ninputfiles = 1;
 	options.filenames[0] = input_fxt_filename;
-	options.out_paje_path = output_paje_filename;
+	free(options.out_paje_path);
+	options.out_paje_path = strdup(output_paje_filename);
 	options.file_prefix = "";
 	options.file_rank = -1;
 	options.dir = dirname;
 
 	starpu_fxt_generate_trace(&options);
+	starpu_fxt_options_shutdown(&options);
 }
 
 void _starpu_fxt_dump_file(void)

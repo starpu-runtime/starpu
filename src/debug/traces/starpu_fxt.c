@@ -4314,31 +4314,18 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 /* Initialize FxT options to default values */
 void starpu_fxt_options_init(struct starpu_fxt_options *options)
 {
-	options->per_task_colour = 0;
-	options->no_events = 0;
-	options->no_counter = 0;
-	options->no_bus = 0;
-	options->no_flops = 0;
-	options->no_smooth = 0;
-	options->no_acquire = 0;
-	options->memory_states = 0;
-	options->internal = 0;
-	options->label_deps = 0;
-	options->ninputfiles = 0;
-	options->out_paje_path = "paje.trace";
-	options->dag_path = "dag.dot";
-	options->tasks_path = "tasks.rec";
-	options->comms_path = "comms.rec";
-	options->number_events_path = NULL;
-	options->data_path = "data.rec";
-	options->papi_path = "papi.rec";
-	options->anim_path = "trace.html";
-	options->states_path = "trace.rec";
-	options->distrib_time_path = "distrib.data";
-	options->dumped_codelets = NULL;
-	options->activity_path = "activity.data";
-	options->sched_tasks_path = "sched_tasks.rec";
-	options->dir = NULL;
+	memset(options, 0, sizeof(struct starpu_fxt_options));
+	options->out_paje_path = strdup("paje.trace");
+	options->dag_path = strdup("dag.dot");
+	options->tasks_path = strdup("tasks.rec");
+	options->comms_path = strdup("comms.rec");
+	options->data_path = strdup("data.rec");
+	options->papi_path = strdup("papi.rec");
+	options->anim_path = strdup("trace.html");
+	options->states_path = strdup("trace.rec");
+	options->distrib_time_path = strdup("distrib.data");
+	options->activity_path = strdup("activity.data");
+	options->sched_tasks_path = strdup("sched_tasks.rec");
 }
 
 static
@@ -4347,6 +4334,7 @@ void _set_dir(char *dir, char **option)
 	if (*option)
 	{
 		char *tmp = strdup(*option);
+		free(*option);
 		_STARPU_MALLOC(*option, 256);
 		snprintf(*option, 256, "%s/%s", dir, tmp);
 		free(tmp);
@@ -4376,21 +4364,18 @@ void _starpu_fxt_options_set_dir(struct starpu_fxt_options *options)
 
 void starpu_fxt_options_shutdown(struct starpu_fxt_options *options)
 {
-	if (options->dir)
-	{
-		free(options->out_paje_path);
-		free(options->dag_path);
-		free(options->tasks_path);
-		free(options->comms_path);
-		free(options->number_events_path);
-		free(options->data_path);
-		free(options->papi_path);
-		free(options->anim_path);
-		free(options->states_path);
-		free(options->distrib_time_path);
-		free(options->activity_path);
-		free(options->sched_tasks_path);
-	}
+	free(options->out_paje_path);
+	free(options->dag_path);
+	free(options->tasks_path);
+	free(options->comms_path);
+	free(options->number_events_path);
+	free(options->data_path);
+	free(options->papi_path);
+	free(options->anim_path);
+	free(options->states_path);
+	free(options->distrib_time_path);
+	free(options->activity_path);
+	free(options->sched_tasks_path);
 }
 
 static
