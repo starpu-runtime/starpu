@@ -166,6 +166,8 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_TASK_PROFILING_INFO"))	{ return fstarpu_task_profiling_info; }
 	else if (!strcmp(s, "FSTARPU_TASK_NO_SUBMITORDER"))	{ return fstarpu_task_no_submitorder; }
 	else if	(!strcmp(s, "FSTARPU_TASK_SCHED_DATA"))	{ return fstarpu_task_sched_data; }
+	else if	(!strcmp(s, "FSTARPU_TASK_FILE"))	{ return fstarpu_task_file; }
+	else if	(!strcmp(s, "FSTARPU_TASK_LINE"))	{ return fstarpu_task_line; }
 
 	else if (!strcmp(s, "FSTARPU_CPU_WORKER"))	{ return fstarpu_cpu_worker; }
 	else if (!strcmp(s, "FSTARPU_CUDA_WORKER"))	{ return fstarpu_cuda_worker; }
