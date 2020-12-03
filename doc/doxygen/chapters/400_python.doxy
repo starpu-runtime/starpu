@@ -252,6 +252,46 @@ Example 3: The result of  1.2 + 2.5 + 3.6 + 4.9 is 12.200000000000001
 Example 4: The result of  6 - 2 - 5.9 is -1.9000000000000004 and the result of 6 - 2 is 4
 \endverbatim
 
+When you want to apply parallel computing for a function which contains arrays, for example:
+
+\code{.py}
+>>> def multi_array(a, b):
+...     for i in range(len(a)):
+...         a[i]=a[i]*b[i]
+...     return a
+\endcode
+
+You should provide either a Numpy array or a generator for the argument of starpu.joblib.delayed.
+
+\code{.py}
+>>> import numpy as np
+>>> A=np.arange(10)
+>>> B=np.arange(10, 20, 1)
+>>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)((i for i in A), (j for j in B)))
+[0, 11, 24, 39, 56, 75, 96, 119, 144, 171]
+>>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)(A, B))
+[0, 11, 24, 39, 56, 75, 96, 119, 144, 171]
+>>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)(A, (j for j in B)))
+[0, 11, 24, 39, 56, 75, 96, 119, 144, 171]
+\endcode
+
+The above three writing methods are equivalent and their execution time are very close. 
+
+Of course, you can also provide a scalar, but not with the generator expression, for example:
+
+\code{.py}
+>>> import numpy as np
+>>> def scal(a, t):
+... 	for i in range(len(t)):
+... 		t[i]=t[i]*a
+... 	return t
+>>> A=np.arange(10)
+>>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(scal)(2,A))
+[0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+>>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(scal)(2, (i for i in A)))
+[0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+\endcode
+
 \subsection ParallelParameters Parallel Parameters
 
 Without setting options of function task_submit, starpu.joblib.Parallel also provides some own parameters:
