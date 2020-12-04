@@ -35,7 +35,7 @@ extern "C"
 
 struct starpu_fxt_codelet_event
 {
-	char symbol[256];
+	char symbol[2048];
 	int workerid;
 	char perfmodel_archname[256];
 	uint32_t hash;
