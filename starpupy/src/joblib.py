@@ -27,6 +27,7 @@ import asyncio
 import math
 import functools
 import numpy as np
+import inspect
 import threading
 
 BACKENDS={}
@@ -72,8 +73,17 @@ def future_generator(iterable, n_jobs, dict_task):
 	if type(iterable) is tuple:
 		# the function is always the first element
 		f=iterable[0]
-		# the list of arguments is always the second element
-		args=iterable[1]
+		# get the name of formal arguments of f
+		formal_args=inspect.getargspec(f).args
+		# get the arguments list
+		args=[]
+		# argument is arbitrary in iterable[1]
+		args=list(iterable[1])
+		# argument is keyword argument in iterable[2]
+		for i in range(len(formal_args)):
+			for j in iterable[2].keys():
+				if j==formal_args[i]:
+					args.append(iterable[2][j])
 		# check whether all arrays have the same size
 		l_arr=[]
 		# list of Future result
@@ -159,6 +169,9 @@ class Parallel(object):
                                  % (backend, sorted(BACKENDS.keys()))) from e
 			backend = backend_factory(nesting_level=nesting_level)
 
+		if n_jobs is None:
+			n_jobs = 1
+
 		self.mode=mode
 		self.perfmodel=perfmodel
 		self.end_msg=end_msg
@@ -203,10 +216,10 @@ class Parallel(object):
 			self._backend.stop_call()
 		return retVal
 
-def delayed(f):
-	def delayed_func(*args):
-		return f, args
-	return delayed_func
+def delayed(function):
+	def delayed_function(*args, **kwargs):
+		return function, args, kwargs
+	return delayed_function
 
 
 ######################################################################
