@@ -117,7 +117,7 @@ def future_generator(iterable, n_jobs, dict_task):
 					L_args.append(args[j])
 			#print("L_args is", L_args)
 			fut=starpu.task_submit(name=dict_task['name'], synchronous=dict_task['synchronous'], priority=dict_task['priority'],\
-								   color=dict_task['color'], flops=dict_task['flops'])\
+								   color=dict_task['color'], flops=dict_task['flops'], perfmodel=dict_task['perfmodel'])\
 				                  (f, *L_args)
 			L_fut.append(fut)
 		return L_fut

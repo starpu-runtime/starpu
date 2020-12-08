@@ -85,8 +85,8 @@ void codelet_func(void *buffers[], void *cl_arg)
 
 	/*call the python function*/
 	PyObject *pRetVal = PyObject_CallObject(cst->f, cst->argList);
-  //const char *tp = Py_TYPE(pRetVal)->tp_name;
-  //printf("return value type is %s\n", tp);
+    //const char *tp = Py_TYPE(pRetVal)->tp_name;
+    //printf("return value type is %s\n", tp);
 	cst->rv = pRetVal;
 
 	//Py_DECREF(cst->f);
@@ -113,7 +113,7 @@ void cb_func(void *v)
 	Py_DECREF(cst->rv);
 	Py_DECREF(cst->fut);
 	Py_DECREF(cst->lp);
-  Py_DECREF(cst->argList);
+    Py_DECREF(cst->argList);
 
 	//Py_DECREF(perfmodel);
 	struct starpu_codelet *func_cl=(struct starpu_codelet *) task->cl;
@@ -130,10 +130,10 @@ void cb_func(void *v)
 	/*deallocate task*/
 	free(task->cl);
 	free(task->cl_arg);
-  if (task->name!=NULL)
-  {
-    free(task->name);
-  }
+    if (task->name!=NULL)
+    {
+      free(task->name);
+    }
 }
 
 /***********************************************************************************/
@@ -159,12 +159,25 @@ static PyObject *PyTask_FromTask(struct starpu_task *task)
 /***********************************************************************************/
 static size_t sizebase (struct starpu_task *task, unsigned nimpl)
 {
+	int n=0;
 	struct codelet_args *cst = (struct codelet_args*) task->cl_arg;
 
-	PyObject *obj=PyTuple_GetItem(cst->argList, 0);
-	/*get the length of arguments*/
-	int n = PyList_Size(obj);
-
+	/*get the result of function*/
+	PyObject *obj=cst->rv;
+	/*get the length of result*/
+	const char *tp = Py_TYPE(obj)->tp_name;
+	/*if the result is a numpy array*/ 
+	if (strcmp(tp, "numpy.ndarray")==0)
+		n = PyArray_SIZE(obj);
+	/*if the result is a list*/
+	else if (strcmp(tp, "list")==0)
+		n = PyList_Size(obj);
+	/*else error*/
+	else
+	{
+		printf("starpu_perfmodel::size_base: the type of function result is unrecognized\n");
+		exit(1);
+	}
 	return n;
 }
 
@@ -277,8 +290,8 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	func_cl->cpu_funcs[0]=&codelet_func;
 
 	/*check whether the option perfmodel is None*/
-  PyObject *dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);/*the last argument is the option dictionary*/
-  PyObject *perfmodel = PyDict_GetItemString(dict_option, "perfmodel");
+    PyObject *dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);/*the last argument is the option dictionary*/
+    PyObject *perfmodel = PyDict_GetItemString(dict_option, "perfmodel");
 	const char *tp_perf = Py_TYPE(perfmodel)->tp_name;
 	if (strcmp(tp_perf, "PyCapsule")==0)
 	{
@@ -442,6 +455,16 @@ static PyObject* starpu_sched_get_max_priority_wrapper(PyObject *self, PyObject 
   /*return type is int*/
   return Py_BuildValue("i", max_prio);
 }
+
+/*wrapper get the number of no completed submitted tasks method*/
+static PyObject* starpu_task_nsubmitted_wrapper(PyObject *self, PyObject *args)
+{
+  /*call starpu_task_nsubmitted*/
+  int num_task=starpu_task_nsubmitted();
+
+  /*Return the number of submitted tasks which have not completed yet */
+  return Py_BuildValue("i", num_task);
+}
 /***********************************************************************************/
 
 /***************The module’s method table and initialization function**************/
@@ -458,6 +481,7 @@ static PyMethodDef starpupyMethods[] =
   {"save_history_based_model", starpu_save_history_based_model_wrapper, METH_VARARGS, "save the performance model"}, /*save the performance model*/
   {"sched_get_min_priority", starpu_sched_get_min_priority_wrapper, METH_VARARGS, "get the number of min priority"}, /*get the number of min priority*/
   {"sched_get_max_priority", starpu_sched_get_max_priority_wrapper, METH_VARARGS, "get the number of max priority"}, /*get the number of max priority*/
+  {"task_nsubmitted", starpu_task_nsubmitted_wrapper, METH_VARARGS, "get the number of submitted tasks which have not completed yet"}, /*get the number of submitted tasks which have not completed yet*/
   {NULL, NULL}
 };
 
