@@ -21,6 +21,7 @@ except:
    pass
 import types
 import joblib as jl
+from joblib import logger
 from starpu import starpupy
 import starpu
 import asyncio
@@ -203,8 +204,11 @@ class Parallel(object):
 				#print(res)
 				#print("type of result is", type(res))
 				return res
-			asyncio.run(asy_main())
-			retVal=asy_main
+			#asyncio.run(asy_main())
+			#retVal=asy_main
+			loop = asyncio.get_event_loop()
+			results = loop.run_until_complete(asy_main())
+			retVal = results
 		# the mode future, user needs to use asyncio module and await the Future result in main function
 		elif self.mode=="future":
 			L_fut=future_generator(iterable, self.n_jobs, dict_task)
@@ -223,6 +227,8 @@ def delayed(function):
 
 
 ######################################################################
+__version__ = jl.__version__
+
 class Memory(jl.Memory):
 	def __init__(self,location=None, backend='local', cachedir=None,
                  mmap_mode=None, compress=False, verbose=1, bytes_limit=None,
