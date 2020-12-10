@@ -94,6 +94,10 @@ def multi_list(l):
 		res.append(a*b)
 	return res
 
+def log10_arr(t):
+	for i in range(len(t)):
+		t[i]=log10(t[i])
+	return t
 ########################################################
 
 #################scikit test###################
@@ -121,12 +125,13 @@ N=100
 # a=np.arange(N)
 # b=np.arange(N, 2*N, 1)
 
-#starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="log")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
-# for x in [10, 100, 1000, 10000, 100000, 1000000]:
-# 	for X2 in range(x, x*10, x):
-# 		starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="log")(starpu.joblib.delayed(log10)(i+1)for i in range(X2))
-# 		print(range(X2))
-
+for x in [10, 100, 1000, 10000, 100000, 1000000, 10000000]:
+	for X in range(x, x*10, x):
+		print("X=",X)
+		starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_list")(starpu.joblib.delayed(log10)(i+1)for i in range(X))
+		A=np.arange(1,X+1,1)
+		starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_arr")(starpu.joblib.delayed(log10_arr)(A))
+		
 print("************************")
 print("parallel Normal version:")
 print("************************")
@@ -325,7 +330,10 @@ starpu.perfmodel_plot(perfmodel="sqrt",view=False)
 starpu.perfmodel_plot(perfmodel="multi",view=False)
 starpu.perfmodel_plot(perfmodel="scal_arr",view=False)
 starpu.perfmodel_plot(perfmodel="multi_list",view=False)
-starpu.perfmodel_plot(perfmodel="multi_2arr")
-starpu.perfmodel_plot(perfmodel="scal")
-starpu.perfmodel_plot(perfmodel="add_scal")
+starpu.perfmodel_plot(perfmodel="multi_2arr",view=False)
+starpu.perfmodel_plot(perfmodel="scal",view=False)
+starpu.perfmodel_plot(perfmodel="add_scal",view=False)
 starpu.perfmodel_plot(perfmodel="func",view=False)
+
+starpu.perfmodel_plot(perfmodel="log_list")
+starpu.perfmodel_plot(perfmodel="log_arr")

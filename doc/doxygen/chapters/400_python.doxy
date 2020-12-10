@@ -105,12 +105,12 @@ import starpu
 import asyncio
 
 def add(a, b):
-	return a+b
+    return a+b
 
 async def main():
-	fut = starpu.task_submit(perfmodel="add")(add, 1, 2)
-	res = await fut
-	print("The result of function is", res)
+    fut = starpu.task_submit(perfmodel="add")(add, 1, 2)
+    res = await fut
+    print("The result of function is", res)
 
 asyncio.run(main())
 \endcode
@@ -189,9 +189,10 @@ StarPU Python interface also provides parallel computing for loops using multipr
 [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
 \endcode
 
-In order to spread it over several CPUs, you can use starpu.joblib module, and call Parallel class:
+In order to spread it over several CPUs, you can import starpu.joblib module, and call Parallel class:
 
 \code{.py}
+>>> import starpu.joblib
 >>> from math import log10
 >>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(log10)(10**i)for i in range(10))
 [0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
@@ -200,6 +201,7 @@ In order to spread it over several CPUs, you can use starpu.joblib module, and c
 Or you can create an object of Parallel class, and then call starpu.joblib.delayed to execute the function.
 
 \code{.py}
+>>> import starpu.joblib
 >>> from math import log10
 >>> parallel=starpu.joblib.Parallel(mode="normal", n_jobs=2)
 >>> parallel(starpu.joblib.delayed(log10)(10**i)for i in range(10))
@@ -209,34 +211,36 @@ Or you can create an object of Parallel class, and then call starpu.joblib.delay
 You can also generate a list of functions instead of a generator expression, and submit it as task to StarPU parallel.
 
 \code{.py}
+import starpu.joblib
+
 #generate a list to store functions
 g_func=[]
 
 #function no input no output print hello world
 def hello():
-	print ("Example 1: Hello, world!")
+    print ("Example 1: Hello, world!")
 g_func.append(starpu.joblib.delayed(hello)())
  
 #function has 2 int inputs and 1 int output
 def multi(a, b):
-	res_multi = a*b
-	print("Example 2: The result of ",a,"*",b,"is",res_multi)
-	return res_multi
+    res_multi = a*b
+    print("Example 2: The result of ",a,"*",b,"is",res_multi)
+    return res_multi
 g_func.append(starpu.joblib.delayed(multi)(2, 3))
 
 #function has 4 float inputs and 1 float output
 def add(a, b, c, d):
-	res_add = a+b+c+d
-	print("Example 3: The result of ",a,"+",b,"+",c,"+",d,"is",res_add)
-	return res_add
+    res_add = a+b+c+d
+    print("Example 3: The result of ",a,"+",b,"+",c,"+",d,"is",res_add)
+    return res_add
 g_func.append(starpu.joblib.delayed(add)(1.2, 2.5, 3.6, 4.9))
 
 #function has 2 int inputs 1 float input and 1 float output 1 int output
 def sub(a, b, c):
-	res_sub1 = a-b-c
-	res_sub2 = a-b
-	print ("Example 4: The result of ",a,"-",b,"-",c,"is",res_sub1,"and the result of",a,"-",b,"is",res_sub2)
-	return res_sub1, res_sub2
+    res_sub1 = a-b-c
+    res_sub2 = a-b
+    print ("Example 4: The result of ",a,"-",b,"-",c,"is",res_sub1,"and the result of",a,"-",b,"is",res_sub2)
+    return res_sub1, res_sub2
 g_func.append(starpu.joblib.delayed(sub)(6, 2, 5.9))
 
 #input is iterable function list
@@ -252,45 +256,123 @@ Example 3: The result of  1.2 + 2.5 + 3.6 + 4.9 is 12.200000000000001
 Example 4: The result of  6 - 2 - 5.9 is -1.9000000000000004 and the result of 6 - 2 is 4
 \endverbatim
 
-When you want to apply parallel computing for a function which contains arrays, for example:
+In addition to writing the code to be executed as a generator expression, you can also define a function that all arguments are passed in arrays to execute the operation. When you want to apply parallel computing for the function which contains arrays calculations, for example:
 
 \code{.py}
 >>> def multi_array(a, b):
 ...     for i in range(len(a)):
-...         a[i]=a[i]*b[i]
+...         a[i] = a[i]*b[i]
 ...     return a
 \endcode
 
-You should provide either a Numpy array or a generator for the argument of starpu.joblib.delayed.
+You should provide either Numpy arrays or generators for starpu.joblib.delayed as normal arguments or keyword arguments.
 
 \code{.py}
+>>> import starpu.joblib
 >>> import numpy as np
->>> A=np.arange(10)
->>> B=np.arange(10, 20, 1)
+>>> A = np.arange(10)
+>>> B = np.arange(10, 20, 1)
 >>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)((i for i in A), (j for j in B)))
 [0, 11, 24, 39, 56, 75, 96, 119, 144, 171]
+>>> A
+array([ 0, 11, 24, 39, 56, 75, 96, 119, 144, 171])
 >>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)(A, B))
 [0, 11, 24, 39, 56, 75, 96, 119, 144, 171]
->>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)(A, (j for j in B)))
-[0, 11, 24, 39, 56, 75, 96, 119, 144, 171]
+>>> A
+array([ 0, 11, 24, 39, 56, 75, 96, 119, 144, 171])
+>>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)(b=(j for j in B), a=A))
+[0, 121, 288, 507, 784, 1125, 1536, 2023, 2592, 3249]
+>>> A
+array([ 0, 121, 288, 507, 784, 1125, 1536, 2023, 2592, 3249])
+
 \endcode
 
-The above three writing methods are equivalent and their execution time are very close. 
+The above three writing methods are equivalent and their execution time are very close. However, as shown in the example above, when we provide Numpy arrays, the target array will be changed according to the function, but this does not happen when generators are provided. And what's more, when you provide a Numpy array, you can set a larger array size.
 
-Of course, you can also provide a scalar, but not with the generator expression, for example:
+Of course, you can also provide a scalar as argument, but not with the generator expression, for example:
 
 \code{.py}
+>>> import starpu.joblib
 >>> import numpy as np
 >>> def scal(a, t):
 ... 	for i in range(len(t)):
-... 		t[i]=t[i]*a
+...         t[i] = t[i]*a
 ... 	return t
->>> A=np.arange(10)
->>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(scal)(2,A))
-[0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+>>> A = np.arange(10)
 >>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(scal)(2, (i for i in A)))
 [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+>>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(scal)(2,A))
+[0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+>>> A
+array([ 0,  2,  4,  6,  8, 10, 12, 14, 16, 18])
 \endcode
+
+In summary, if you want to realise the same operation, there are two methods of passing arguments to starpu.joblib.delayed function. In the first method, we define a function that contains only scalars calculations, and then we pass a generator expression as argument. In the second method, we define a function that contains arrays calculations, and then we pass either Numpy arrays or generators as arguments. Comparing these two methods, we find that the second one takes less time. You can choose the method to pass arguments according to your actual needs and function definitions.
+
+\code{.py}
+import starpu.joblib
+import numpy as np
+import time
+
+N=1000000
+
+def multi(a,b):
+    res_multi = a*b
+    return res_multi
+
+print("--First method")
+A = np.arange(N)
+B = np.arange(N, 2*N, 1)
+start_exec1 = time.time()
+start_cpu1 = time.process_time()
+starpu.joblib.Parallel(mode="normal", n_jobs=-1)(starpu.joblib.delayed(multi)(i,j) for i,j in zip(A,B))
+end_exec1 = time.time()
+end_cpu1 = time.process_time()
+print("the program execution time is", end_exec1-start_exec1)
+print("the cpu execution time is", end_cpu1-start_cpu1)
+
+def multi_array(a, b):
+    for i in range(len(a)):
+        a[i] = a[i]*b[i]
+    return a
+
+print("--Second method with Numpy arrays")
+A = np.arange(N)
+B = np.arange(N, 2*N, 1)
+start_exec2 = time.time()
+start_cpu2 = time.process_time()
+starpu.joblib.Parallel(mode="normal", n_jobs=-1)(starpu.joblib.delayed(multi_array)(A, B))
+end_exec2 = time.time()
+end_cpu2 = time.process_time()
+print("the program execution time is", end_exec2-start_exec2)
+print("the cpu execution time is", end_cpu2-start_cpu2)
+
+print("--Second method with generators")
+A = np.arange(N)
+B = np.arange(N, 2*N, 1)
+start_exec3 = time.time()
+start_cpu3 = time.process_time()
+starpu.joblib.Parallel(mode="normal", n_jobs=-1)(starpu.joblib.delayed(multi_array)((i for i in A), (j for j in B)))
+end_exec3 = time.time()
+end_cpu3 = time.process_time()
+print("the program execution time is", end_exec3-start_exec3)
+print("the cpu execution time is", end_cpu3-start_cpu3)
+
+\endcode
+
+Execution:
+
+\verbatim
+--First method
+the program execution time is 3.000865936279297
+the cpu execution time is 5.17138062
+--Second method with Numpy arrays
+the program execution time is 0.7571873664855957
+the cpu execution time is 0.9166007309999991
+--Second method with generators
+the program execution time is 0.7259719371795654
+the cpu execution time is 1.1182918959999988
+\endverbatim
 
 \subsection ParallelParameters Parallel Parameters
 
@@ -322,24 +404,53 @@ As we introduced in the previous section, this parameter can be set with a promp
 
 You need to set the number of CPUs which is used for parallel computing. Thus for n_jobs=2, 2 CPUs are used. If 1 is given, no parallel computing. For n_jobs below 0, (n_cpus+1+n_jobs) CPUs are used. Thus for n_jobs=-2, all CPUs but one are used.
 
+\subsection Examples Examples
 
-In the following example, for the function log10 (i+1) for i in range(N), we set the performodel symbol to "log", and we submit the task in turn when N=10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 2000, ..., 100000,200000, ..., 1000000, 2000000, ..., 9000000. 
+We will show examples of using starpu.joblib.Parallel by passing generator or Numpy array as input. We will also show how to get their performance curves by setting "perfmodel" parameter. It is a parameter of function task_submit, but here we set it in the Parallel option field, and the same for the other parameters of function task_submit when calling Parallel class.
+
+In the following example, for the function log10 (i+1) for i in range(N), we set the performodel symbol to "log_list", and we submit the task in turn when N=10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 2000, ..., 100000,200000, ..., 1000000, 2000000, ..., 9000000.
+
 \code{.py}
 >>> from math import log10
 >>> for x in [10, 100, 1000, 10000, 100000, 1000000]:
-...     for N in range(x, x*10, x):
-...     	starpu.joblib.Parallel(mode="normal", n_jobs=2, perfmodel="log")(starpu.joblib.delayed(log10)(i+1)for i in range(N))
+...     for X in range(x, x*10, x):
+...         starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_list")(starpu.joblib.delayed(log10)(i+1)for i in range(X))
 \endcode
 
 You can call the function perfmodel_plot by giving the symbol of perfmodel to view the performance curve.
 
 \code{.py}
-starpu.perfmodel_plot(perfmodel="log")
+starpu.perfmodel_plot(perfmodel="log_list")
 \endcode
 
-The performance curve of this example will be shown as:
+The performance curve of this example is shown as:
 
-\image html starpu_log.png
-\image latex starpu_log.eps "" width=\textwidth
+\image html starpu_log_list.png
+\image latex starpu_log_list.eps "" width=\textwidth
+
+If we pass a Numpy array as input, the calculation can withstand larger size. In this example we try to set the size of array from 10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 2000, ..., 100000,200000, ..., 1000000, 2000000, until to 10000000, 20000000, ..., 90000000.
+
+\code{.py}
+>>> from math import log10
+>>> def log10_arr(t):
+...     for i in range(len(t)):
+...         t[i] = log10(t[i])
+...     return t
+>>> for x in [10, 100, 1000, 10000, 100000, 1000000, 10000000]:
+...     for X in range(x, x*10, x):
+...         A = np.arange(1,X+1,1)
+...         starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_arr")(starpu.joblib.delayed(log10_arr)(A))
+\endcode
+
+Then we call the function perfmodel_plot by giving the symbol of perfmodel.
+
+\code{.py}
+starpu.perfmodel_plot(perfmodel="log_arr")
+\endcode
+
+And the performance curve of this example is shown as:
+
+\image html starpu_log_arr.png
+\image latex starpu_log_arr.eps "" width=\textwidth
 
 */
