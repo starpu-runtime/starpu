@@ -242,6 +242,64 @@ use starpu_task_expected_length() on the task (in µs), multiplied by the
 typical power consumption of the device, e.g. in W, and divided by 1000000. to
 get Joules.
 
+\subsection MeasuringEnergyandPower Measuring energy and power with StarPU
+
+We have extended the performance model of StarPU to measure energy and power values of CPUs. These values are measured using the existing Performance API (PAPI) analysis library. PAPI provides the tool designer and application engineer with a consistent interface and methodology for use of the performance counter hardware found in most major microprocessors. PAPI enables software engineers to see, in near real time, the relation between software performance and processor events. 
+
+
+- To measure energy consumption of CPUs, we use the <c>RAPL</c> events, which are available on CPU architecture:
+
+const char* event_names[] = { "rapl::RAPL_ENERGY_PKG:cpu=%d",
+                              "rapl::RAPL_ENERGY_DRAM:cpu=%d"};
+
+
+Where <c>RAPL_ENERGY_PKG</c> represents the whole CPU socket power consumption.
+
+and <c>RAPL_ENERGY_DRAM</c> represents the RAM power consumption.
+
+
+
+PAPI provides a generic, portable interface for the hardware performance counters available on all modern CPUs and some other components of interest that are scattered across the chip
+and system.
+
+
+In order to use the right <c>rapl events</c> for energy measurement, user should check the <c>rapl events</c> available on the machine, using this command:
+
+\verbatim
+$ papi_native_avail
+\endverbatim
+
+
+- The example below illustrates the energy and power measurements, using <c>starpu_energy_start()</c> and <c>starpu_energy_stop()</c> functions. 
+ 
+In this example, we launch several tasks of the same type in parallel. To perform the energy requirement measurement of a program, we call <c>starpu_energy_start(void)</c> function, which initializes energy measurement counters and <c>starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned ntasks)</c> to stop counting and update the performance model. This ends up yielding the average energy requirement of a single task. The example below illustrates this for a given task type.
+
+
+
+\code{.c}
+
+      
+       
+        unsigned N = starpu_cpu_worker_get_count() * 40;
+
+        starpu_energy_start();
+
+        for (i = 0 ; i < N ; i++)
+	  starpu_task_insert(&cl, STARPU_R, arg1, STARPU_RW, arg2, 0);
+
+        starpu_task_t *specimen = starpu_task_build(&cl, STARPU_R, arg1, STARPU_RW, arg2, 0);
+        starpu_energy_stop(&codelet.energy_model, specimen, N);
+
+       . . .
+
+\endcode
+
+The example starts 40 times more tasks of the same type than there are CPU execution unit. Once the tasks are distributed over all CPUs, the latter are all executing the same type of tasks (with the same data size and parameters); each CPU will in the end execute 40 tasks. A specimen task is then constructed and passed to <c>starpu_energy_stop</c> function, which will fold into the performance model the energy requirement measurement for that type and size of task.
+
+For the energy and power measurements, depending on the system configuration the user may have to run an application as a <b>root</b> to use PAPI library.
+
+<c>starpu_energy_stop()</c> function uses <c>PAPI_stop()</c> to stop counting and store the values into the array. we calculate both energy in <c>Joules</c> and power consumption in <c>Watt</c>. We call starpu_perfmodel_update_history() function in the perfmormance model to provide explicit measurements.
+
 \section StaticScheduling Static Scheduling
 
 In some cases, one may want to force some scheduling, for instance force a given

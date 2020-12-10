@@ -196,6 +196,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/disk_ops/disk_unistd.c                             \
 	core/disk_ops/unistd/disk_unistd_global.c		\
 	core/perfmodel/perfmodel_history.c			\
+        core/perfmodel/energy_model.c                           \
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
 	core/perfmodel/perfmodel_print.c			\

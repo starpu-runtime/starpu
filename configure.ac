@@ -2110,10 +2110,6 @@ if test x$use_fxt = xyes; then
 		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
 	fi
 
-	AC_CHECK_LIB([papi], [PAPI_library_init],
-		     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
-		      PAPI_LIBS=-lpapi])
-
 	##########################################
 	# Poti is a library to generate paje trace files
 	##########################################
@@ -2140,6 +2136,13 @@ AC_MSG_RESULT($enable_fxt_lock)
 if  test x$enable_fxt_lock = xyes; then
 	AC_DEFINE(STARPU_FXT_LOCK_TRACES, [1], [enable additional locking systems FxT traces])
 fi
+
+AC_CHECK_LIB([papi], [PAPI_library_init],
+	     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
+	      PAPI_LIBS=-lpapi])
+AC_SUBST(PAPI_LIBS)
+
+AM_CONDITIONAL([STARPU_USE_PAPI], [test "x$PAPI_LIBS" != "x"])
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
 AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],

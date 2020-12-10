@@ -19,6 +19,8 @@
 #include <starpu_scheduler.h>
 #include "../helper.h"
 
+#define ERROR_RETURN(retval) { fprintf(stderr, "Error %d %s:line %d: \n", retval,__FILE__,__LINE__);  exit(retval); }
+
 /*
  * Benchmark memset with a linear and non-linear regression
  */
@@ -27,8 +29,10 @@
 #define START 1024
 #ifdef STARPU_QUICK_CHECK
 #define END 1048576
+#define NENERGY 3
 #else
 #define END 16777216
+#define NENERGY 100
 #endif
 
 #ifdef STARPU_USE_CUDA
@@ -85,6 +89,18 @@ static struct starpu_perfmodel nl_model =
 	.symbol = "non_linear_memset_regression_based"
 };
 
+static struct starpu_perfmodel energy_model =
+{
+	.type = STARPU_REGRESSION_BASED,
+	.symbol = "memset_regression_based_energy"
+};
+
+static struct starpu_perfmodel nl_energy_model =
+{
+	.type = STARPU_NL_REGRESSION_BASED,
+	.symbol = "non_linear_memset_regression_based_energy"
+};
+
 static struct starpu_codelet memset_cl =
 {
 #ifdef STARPU_USE_CUDA
@@ -98,6 +114,7 @@ static struct starpu_codelet memset_cl =
 	.cpu_funcs = {memset0_cpu, memset_cpu},
 	.cpu_funcs_name = {"memset0_cpu", "memset_cpu"},
 	.model = &model,
+	.energy_model = &energy_model,
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };
@@ -115,6 +132,7 @@ static struct starpu_codelet nl_memset_cl =
 	.cpu_funcs = {memset0_cpu, memset_cpu},
 	.cpu_funcs_name = {"memset0_cpu", "memset_cpu"},
 	.model = &nl_model,
+	.energy_model = &nl_energy_model,
 	.nbuffers = 1,
 	.modes = {STARPU_W}
 };
@@ -140,6 +158,68 @@ static void test_memset(int nelems, struct starpu_codelet *codelet)
 	}
 
         starpu_data_unregister(handle);
+}
+
+static int test_memset_energy(int nelems, int where, enum starpu_worker_archtype archtype, int impl, struct starpu_codelet *codelet)
+{
+	int nloops = starpu_worker_get_count_by_type(archtype) * NENERGY;
+	int loop;
+	starpu_data_handle_t handle[nloops];
+
+	for (loop = 0; loop < nloops; loop++)
+	{
+		struct starpu_task *task = starpu_task_create();
+		starpu_vector_data_register(&handle[loop], -1, (uintptr_t)NULL, nelems, sizeof(int));
+
+		task->cl = codelet;
+		task->where = where;
+		task->handles[0] = handle[loop];
+		task->flops = nelems;
+
+		int ret = starpu_task_submit(task);
+		if (ret == -ENODEV)
+			exit(STARPU_TEST_SKIPPED);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+	}
+
+	for (loop = 0; loop < nloops; loop++)
+	{
+		starpu_data_unregister(handle[loop]);
+	}
+
+	return nloops;
+}
+
+static void bench_energy(int where, enum starpu_worker_archtype archtype, int impl, struct starpu_codelet *codelet)
+{
+	int size;
+	int retval;
+	int ntasks;
+
+	for (size = STARTlin; size < END; size *= 2)
+	{
+		starpu_data_handle_t handle;
+		starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, size, sizeof(int));
+
+		struct starpu_task *task = starpu_task_create();
+		task->cl = codelet;
+		task->handles[0] = handle;
+		task->synchronous = 1;
+		task->destroy = 0;
+		task->flops = size;
+
+		if ( (retval = starpu_energy_start(STARPU_CPU_WORKER)) != 0)
+			ERROR_RETURN(retval);
+
+		/* Use a linear regression */
+		ntasks = test_memset_energy(size, where, archtype, impl, codelet);
+
+		if ( (retval = starpu_energy_stop(codelet->energy_model, task, impl, ntasks, STARPU_CPU_WORKER)) != 0)
+			ERROR_RETURN(retval);
+
+		starpu_task_destroy (task);
+		starpu_data_unregister(handle);
+	}
 }
 
 static void show_task_perfs(int size, struct starpu_task *task)
@@ -226,6 +306,42 @@ int main(int argc, char **argv)
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
+
+
+	starpu_conf_init(&conf);
+
+	/* Use a scheduler which doesn't choose the implementation */
+	conf.sched_policy_name = "eager";
+	conf.calibrate = 1;
+
+	ret = starpu_initialize(&conf, &argc, &argv);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+#ifdef STARPU_USE_OPENCL
+	ret = starpu_opencl_load_opencl_from_file("tests/perfmodels/opencl_memset_kernel.cl",
+						  &opencl_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+#endif
+
+	memset_cl.cpu_funcs[1] = NULL;
+	bench_energy(STARPU_CPU, STARPU_CPU_WORKER, 0, &memset_cl);
+	memset_cl.cpu_funcs[1] = memset_cpu;
+	memset_cl.cpu_funcs[0] = NULL;
+	bench_energy(STARPU_CPU, STARPU_CPU_WORKER, 1, &memset_cl);
+
+	nl_memset_cl.cpu_funcs[1] = NULL;
+	bench_energy(STARPU_CPU, STARPU_CPU_WORKER, 0, &nl_memset_cl);
+	nl_memset_cl.cpu_funcs[1] = memset_cpu;
+	nl_memset_cl.cpu_funcs[0] = NULL;
+	bench_energy(STARPU_CPU, STARPU_CPU_WORKER, 1, &nl_memset_cl);
+
+#ifdef STARPU_USE_OPENCL
+        ret = starpu_opencl_unload_opencl(&opencl_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+#endif
+	starpu_shutdown();
+
 
 	return EXIT_SUCCESS;
 }

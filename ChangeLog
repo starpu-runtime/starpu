@@ -46,6 +46,7 @@ New features:
   * Add profiling based on papi performance counters.
   * Add an experimental python interface (not actually parallel yet)
   * Add task submission file+line in traces.
+  * Add papi- and nvml-based energy measurement.
 
 Small changes:
   * Add a synthetic energy efficiency testcase.

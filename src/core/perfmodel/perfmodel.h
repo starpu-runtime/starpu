@@ -81,7 +81,7 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch,
 					struct _starpu_job *j, unsigned nimpl);
 void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch,
-				unsigned cpuid, double measured, unsigned nimpl);
+					unsigned cpuid, double measured, unsigned nimpl, unsigned number);
 int _starpu_perfmodel_create_comb_if_needed(struct starpu_perfmodel_arch* arch);
 
 void _starpu_create_sampling_directory_if_needed(void);

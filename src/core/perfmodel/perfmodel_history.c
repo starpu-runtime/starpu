@@ -804,7 +804,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, in
 	/* Dump the history into the model file in case it is necessary */
        if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 	{
-		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us)\tdev (us)\tsum\t\tsum2\t\tn\n");
+		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us or J)\tdev (us or J)\tsum\t\tsum2\t\tn\n");
 		ptr = per_arch_model->list;
 		while (ptr)
 		{
@@ -1839,7 +1839,7 @@ int _starpu_perfmodel_create_comb_if_needed(struct starpu_perfmodel_arch* arch)
 	return comb;
 }
 
-void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned impl)
+void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned cpuid STARPU_ATTRIBUTE_UNUSED, double measured, unsigned impl, unsigned number)
 {
 	STARPU_ASSERT_MSG(measured >= 0, "measured=%lf\n", measured);
 	if (model)
@@ -1909,11 +1909,11 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 				/* For history-based, do not take the first measurement into account, it is very often quite bogus */
 				/* TODO: it'd be good to use a better estimation heuristic, like the median, or latest n values, etc. */
-				if (model->type != STARPU_HISTORY_BASED)
+				if (number != 1 || model->type != STARPU_HISTORY_BASED)
 				{
-					entry->sum = measured;
-					entry->sum2 = measured*measured;
-					entry->nsample = 1;
+					entry->sum = measured * number;
+					entry->sum2 = measured*measured * number;
+					entry->nsample = number;
 					entry->mean = measured;
 				}
 
@@ -1934,7 +1934,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 					(100 * local_deviation > (100 + historymaxerror)
 					 || (100 / local_deviation > (100 + historymaxerror))))
 				{
-					entry->nerror++;
+					entry->nerror+=number;
 
 					/* More errors than measurements, we're most probably completely wrong, we flush out all the entries */
 					if (entry->nerror >= entry->nsample)
@@ -1952,9 +1952,9 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 				}
 				else
 				{
-					entry->sum += measured;
-					entry->sum2 += measured*measured;
-					entry->nsample++;
+					entry->sum += measured * number;
+					entry->sum2 += measured*measured * number;
+					entry->nsample += number;
 
 					unsigned n = entry->nsample;
 					entry->mean = entry->sum / n;
@@ -2070,7 +2070,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 	}
 }
 
-void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch * arch, unsigned cpuid, unsigned nimpl, double measured)
+void starpu_perfmodel_update_history_n(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch * arch, unsigned cpuid, unsigned nimpl, double measured, unsigned number)
 {
 	struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
 
@@ -2080,9 +2080,14 @@ void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct star
 
 	_starpu_init_and_load_perfmodel(model);
 	/* Record measurement */
-	_starpu_update_perfmodel_history(job, model, arch, cpuid, measured, nimpl);
+	_starpu_update_perfmodel_history(job, model, arch, cpuid, measured, nimpl, number);
 	/* and save perfmodel on termination */
 	_starpu_set_calibrate_flag(1);
+}
+
+void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch * arch, unsigned cpuid, unsigned nimpl, double measured)
+{
+	starpu_perfmodel_update_history_n(model, task, arch, cpuid, nimpl, measured, 1);
 }
 
 int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)

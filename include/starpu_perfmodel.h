@@ -319,6 +319,21 @@ void starpu_perfmodel_init(struct starpu_perfmodel *model);
 int starpu_perfmodel_deinit(struct starpu_perfmodel *model);
 
 /**
+   starpu_energy_start - start counting hardware events in an event set
+*/
+
+int starpu_energy_start(enum starpu_worker_archtype archi);
+
+/**
+   starpu_energy_stop - stop counting hardware events in an event set
+   \values -- an array to hold the counter values of the counting events
+   \EventSet -- an integer handle for a PAPI event set as created by papi_create_eventset()
+*/
+
+int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, enum starpu_worker_archtype archi);
+
+
+/**
    Load the performance model found in the file named \p filename. \p model has to be
    completely zero, and will be filled with the information stored in the given file.
 */
@@ -414,14 +429,30 @@ int starpu_perfmodel_print_estimations(struct starpu_perfmodel *model, uint32_t 
 int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model);
 
 /**
-   Feed the performance model model with an explicit
-   measurement measured (in µs), in addition to measurements done by StarPU
+   Feed the performance model \p model with one explicit
+   measurement (in µs or J), in addition to measurements done by StarPU
    itself. This can be useful when the application already has an
    existing set of measurements done in good conditions, that StarPU
    could benefit from instead of doing on-line measurements. An example
    of use can be seen in \ref PerformanceModelExample.
+
+   Note that this records only one measurement, and StarPU would ignore
+   the first measurement (since it is usually disturbed by library loading
+   etc.). Make sure to call this function several times to record all your
+   measurements.
+
+   You can also call starpu_perfmodel_update_history_n() to directly provide an
+   average performed on several tasks.
 */
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned cpuid, unsigned nimpl, double measured);
+
+/**
+   Feed the performance model \p model with an explicit average measurement (in µs or J).
+
+   This is similar to starpu_perfmodel_update_history(), but records a batch of
+   \p number measurements provided as the average of the measurements \p average_measured.
+*/
+void starpu_perfmodel_update_history_n(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned cpuid, unsigned nimpl, double average_measured, unsigned number);
 
 /**
    Print the directory name storing performance models on \p output
