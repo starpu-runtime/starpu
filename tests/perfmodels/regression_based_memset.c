@@ -211,7 +211,10 @@ static int bench_energy(int workerid, int where, enum starpu_worker_archtype arc
 		starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, size, sizeof(int));
 
 		if ( (retval = starpu_energy_start(workerid, archtype)) != 0)
-			ERROR_RETURN(retval);
+		{
+			_STARPU_DISP("Energy measurement not supported for archtype %d\n", archtype);
+			return -1;
+		}
 
 		/* Use a linear regression */
 		ntasks = test_memset_energy(size, workerid, where, archtype, impl, codelet);
