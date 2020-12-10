@@ -195,10 +195,11 @@ void _starpu_profiling_papi_task_start_counters(struct starpu_task *task)
 	profiling_info = task->profiling_info;
 	if (profiling_info && papi_nevents)
 	{
+		int i;
 		profiling_info->papi_event_set = PAPI_NULL;
 		STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
 		PAPI_create_eventset(&profiling_info->papi_event_set);
-		for(int i=0; i<papi_nevents; i++)
+		for(i=0; i<papi_nevents; i++)
 		{
 			int ret = PAPI_add_event(profiling_info->papi_event_set, papi_events[i]);
 			if (ret == PAPI_ECMP_DISABLED && !warned_component_unavailable)
@@ -224,9 +225,10 @@ void _starpu_profiling_papi_task_stop_counters(struct starpu_task *task)
 
 	if (profiling_info && papi_nevents)
 	{
+		int i;
 		STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
 		PAPI_stop(profiling_info->papi_event_set, profiling_info->papi_values);
-		for(int i=0; i<papi_nevents; i++)
+		for(i=0; i<papi_nevents; i++)
 		{
 			_STARPU_TRACE_PAPI_TASK_EVENT(papi_events[i], task, profiling_info->papi_values[i]);
 		}

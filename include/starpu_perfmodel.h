@@ -320,17 +320,25 @@ int starpu_perfmodel_deinit(struct starpu_perfmodel *model);
 
 /**
    starpu_energy_start - start counting hardware events in an event set
+
+   - \p workerid is the worker on which calibration is to be performed (in the case of GPUs, use -1 for CPUs)
+   - \p archi is the type of architecture on which calibration will be run
 */
 
-int starpu_energy_start(enum starpu_worker_archtype archi);
+int starpu_energy_start(int workerid, enum starpu_worker_archtype archi);
 
 /**
    starpu_energy_stop - stop counting hardware events in an event set
-   \values -- an array to hold the counter values of the counting events
-   \EventSet -- an integer handle for a PAPI event set as created by papi_create_eventset()
+
+   - \p model is the energy performance model to be filled with the result
+   - \p task is a task specimen, so the performance model folds the result according to the parameter sizes of the task.
+   - \p nimpl is the implementation number run during calibration
+   - \p ntasks is the number of tasks run during calibration
+   - \p workerid is the worker on which calibration was performed (in the case of GPUs, use -1 for CPUs)
+   - \p archi is the type of architecture on which calibration was run
 */
 
-int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, enum starpu_worker_archtype archi);
+int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi);
 
 
 /**

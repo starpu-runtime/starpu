@@ -248,14 +248,8 @@ We have extended the performance model of StarPU to measure energy and power val
 
 
 - To measure energy consumption of CPUs, we use the <c>RAPL</c> events, which are available on CPU architecture:
-
-const char* event_names[] = { "rapl::RAPL_ENERGY_PKG:cpu=%d",
-                              "rapl::RAPL_ENERGY_DRAM:cpu=%d"};
-
-
-Where <c>RAPL_ENERGY_PKG</c> represents the whole CPU socket power consumption.
-
-and <c>RAPL_ENERGY_DRAM</c> represents the RAM power consumption.
+<c>RAPL_ENERGY_PKG</c> that represents the whole CPU socket power consumption,
+and <c>RAPL_ENERGY_DRAM</c> that represents the RAM power consumption.
 
 
 
@@ -269,6 +263,10 @@ In order to use the right <c>rapl events</c> for energy measurement, user should
 $ papi_native_avail
 \endverbatim
 
+Depending on the system configuration, the user may have to run this as <b>root</b> to get the performance counter values.
+
+Since the measurement is for all the the CPUs and the memory, the approach taken
+here is to run a series of tasks on all of them and to take the overall measurement.
 
 - The example below illustrates the energy and power measurements, using <c>starpu_energy_start()</c> and <c>starpu_energy_stop()</c> functions. 
  
@@ -282,13 +280,13 @@ In this example, we launch several tasks of the same type in parallel. To perfor
        
         unsigned N = starpu_cpu_worker_get_count() * 40;
 
-        starpu_energy_start();
+        starpu_energy_start(-1, STARPU_CPU_WORKER);
 
         for (i = 0 ; i < N ; i++)
-	  starpu_task_insert(&cl, STARPU_R, arg1, STARPU_RW, arg2, 0);
+	  starpu_task_insert(&cl, STARPU_EXECUTE_WHERE, STARPU_CPU, STARPU_R, arg1, STARPU_RW, arg2, 0);
 
         starpu_task_t *specimen = starpu_task_build(&cl, STARPU_R, arg1, STARPU_RW, arg2, 0);
-        starpu_energy_stop(&codelet.energy_model, specimen, N);
+        starpu_energy_stop(&codelet.energy_model, specimen, 0, N, -1, STARPU_CPU_WORKER);
 
        . . .
 
@@ -299,6 +297,28 @@ The example starts 40 times more tasks of the same type than there are CPU execu
 For the energy and power measurements, depending on the system configuration the user may have to run an application as a <b>root</b> to use PAPI library.
 
 <c>starpu_energy_stop()</c> function uses <c>PAPI_stop()</c> to stop counting and store the values into the array. we calculate both energy in <c>Joules</c> and power consumption in <c>Watt</c>. We call starpu_perfmodel_update_history() function in the perfmormance model to provide explicit measurements.
+
+- In the CUDA case, nvml provides per-GPU energy measurement. We can thus calibrate the performance models per GPU:
+
+\code{.c}
+       
+        unsigned N = 40;
+
+	for (i = 0; i < starpu_cuda_worker_get_count(); i++) {
+		int workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, i);
+
+		starpu_energy_start(workerid, STARPU_CUDA_WORKER);
+
+		for (i = 0 ; i < N ; i++)
+		  starpu_task_insert(&cl, STARPU_EXECUTE_ON_WORKER, workerid, STARPU_R, arg1, STARPU_RW, arg2, 0);
+
+		starpu_task_t *specimen = starpu_task_build(&cl, STARPU_R, arg1, STARPU_RW, arg2, 0);
+		starpu_energy_stop(&codelet.energy_model, specimen, 0, N, workerid, STARPU_CUDA_WORKER);
+
+       }
+       . . .
+
+\endcode
 
 \section StaticScheduling Static Scheduling
 
