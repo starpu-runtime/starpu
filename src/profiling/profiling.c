@@ -146,43 +146,42 @@ void _starpu_profiling_init(void)
 	}
 
 #ifdef STARPU_PAPI
-		STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
-		int retval = PAPI_library_init(PAPI_VER_CURRENT);
-		if (retval != PAPI_VER_CURRENT)
-		{
-			 _STARPU_MSG("Failed init PAPI, error: %s.\n", PAPI_strerror(retval));
-		}
-		retval = PAPI_thread_init(pthread_self);
-		if (retval != PAPI_OK)
-		{
-			 _STARPU_MSG("Failed init PAPI thread, error: %s.\n", PAPI_strerror(retval));
-		}
+	STARPU_PTHREAD_MUTEX_LOCK(&papi_mutex);
+	int retval = PAPI_library_init(PAPI_VER_CURRENT);
+	if (retval != PAPI_VER_CURRENT)
+	{
+		_STARPU_MSG("Failed init PAPI, error: %s.\n", PAPI_strerror(retval));
+	}
+	retval = PAPI_thread_init(pthread_self);
+	if (retval != PAPI_OK)
+	{
+		_STARPU_MSG("Failed init PAPI thread, error: %s.\n", PAPI_strerror(retval));
+	}
 
-		char *conf_papi_events;
-		char *papi_event_name;
-		conf_papi_events = starpu_getenv("STARPU_PROF_PAPI_EVENTS");
-		papi_nevents = 0;
-		if (conf_papi_events != NULL)
+	char *conf_papi_events;
+	char *papi_event_name;
+	conf_papi_events = starpu_getenv("STARPU_PROF_PAPI_EVENTS");
+	papi_nevents = 0;
+	if (conf_papi_events != NULL)
+	{
+		while ((papi_event_name = strtok_r(conf_papi_events, " ,", &conf_papi_events)))
 		{
-			while ((papi_event_name = strtok_r(conf_papi_events, " ,", &conf_papi_events)))
+			if (papi_nevents == PAPI_MAX_HWCTRS)
 			{
-				if (papi_nevents == PAPI_MAX_HWCTRS)
-				{
-				      _STARPU_MSG("Too many requested papi counters, ignoring %s\n", papi_event_name);
-				      continue;
-				}
-
-				_STARPU_DEBUG("Loading PAPI Event: %s\n", papi_event_name);
-				retval = PAPI_event_name_to_code ((char*)papi_event_name, &papi_events[papi_nevents]);
-				if (retval != PAPI_OK)
-				      _STARPU_MSG("Failed to codify papi event [%s], error: %s.\n", papi_event_name, PAPI_strerror(retval));
-				else
-					papi_nevents++;
+				_STARPU_MSG("Too many requested papi counters, ignoring %s\n", papi_event_name);
+				continue;
 			}
-		}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&papi_mutex);
-#endif
 
+			_STARPU_DEBUG("Loading PAPI Event: %s\n", papi_event_name);
+			retval = PAPI_event_name_to_code ((char*)papi_event_name, &papi_events[papi_nevents]);
+			if (retval != PAPI_OK)
+				_STARPU_MSG("Failed to codify papi event [%s], error: %s.\n", papi_event_name, PAPI_strerror(retval));
+			else
+				papi_nevents++;
+		}
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&papi_mutex);
+#endif
 }
 
 #ifdef STARPU_PAPI
@@ -268,7 +267,6 @@ void _starpu_profiling_terminate(void)
 /*
  *	Task profiling
  */
-
 struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(struct starpu_task *task)
 {
 	struct starpu_profiling_task_info *info = NULL;
@@ -285,7 +283,6 @@ struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(str
 /*
  *	Worker profiling
  */
-
 static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 {
 	_starpu_clock_gettime(&worker_info[workerid].start_time);

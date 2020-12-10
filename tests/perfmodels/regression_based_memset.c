@@ -337,7 +337,8 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
 #endif
 
-	if (starpu_cpu_worker_get_count() > 0) {
+	if (starpu_cpu_worker_get_count() > 0)
+	{
 		memset_cl.cpu_funcs[1] = NULL;
 		bench_energy(-1, STARPU_CPU, STARPU_CPU_WORKER, 0, &memset_cl);
 		memset_cl.cpu_funcs[1] = memset_cpu;
@@ -351,7 +352,8 @@ int main(int argc, char **argv)
 		bench_energy(-1, STARPU_CPU, STARPU_CPU_WORKER, 1, &nl_memset_cl);
 	}
 
-	for (i = 0; i < starpu_cuda_worker_get_count(); i++) {
+	for (i = 0; i < starpu_cuda_worker_get_count(); i++)
+	{
 		int workerid = starpu_worker_get_by_type(STARPU_CUDA_WORKER, i);
 		bench_energy(workerid, STARPU_CUDA, STARPU_CUDA_WORKER, 0, &memset_cl);
 		bench_energy(workerid, STARPU_CUDA, STARPU_CUDA_WORKER, 0, &nl_memset_cl);
@@ -362,7 +364,6 @@ int main(int argc, char **argv)
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
-
 
 	return EXIT_SUCCESS;
 }

@@ -57,8 +57,7 @@ static const int N_EVTS = 2;
 static int nsockets;
 
 static const char* event_names[] = { "rapl::RAPL_ENERGY_PKG:cpu=%d",
-
-                              "rapl::RAPL_ENERGY_DRAM:cpu=%d"};
+				     "rapl::RAPL_ENERGY_DRAM:cpu=%d"};
 
 static int add_event(int EventSet, int socket);
 
@@ -85,7 +84,8 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 {
 	t1 = starpu_timing_now();
 
-	switch (archi) {
+	switch (archi)
+	{
 #ifdef STARPU_PAPI
 #ifdef STARPU_HAVE_HWLOC
 	case STARPU_CPU_WORKER:
@@ -102,15 +102,14 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 		values=calloc(nsockets * N_EVTS,sizeof(long long));
 		STARPU_ASSERT(values);
 
-		if((retval = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT )
+		if ((retval = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT)
 			ERROR_RETURN(retval);
 
 		/* Creating the eventset */
-		if ( (retval = PAPI_create_eventset(&EventSet)) != PAPI_OK)
+		if ((retval = PAPI_create_eventset(&EventSet)) != PAPI_OK)
 			ERROR_RETURN(retval);
 
 		int i;
-
 		for (i = 0 ; i < nsockets ; i ++ )
 		{
 			/* return the index of socket */
@@ -134,19 +133,20 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 #endif
 #endif
 
-
 #ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 	case STARPU_CUDA_WORKER:
 	{
 		STARPU_ASSERT_MSG(workerid != -1, "For CUDA GPUs we measure each GPU separately, please specify a worker\n");
 		int devid = starpu_worker_get_devid(workerid);
 		int ret = nvmlDeviceGetHandleByIndex_v2 (devid,  &device);
-		if (ret != NVML_SUCCESS) {
+		if (ret != NVML_SUCCESS)
+		{
 			_STARPU_DISP("Could not get CUDA device %d from nvml\n", devid);
 			return -1;
 		}
 		ret = nvmlDeviceGetTotalEnergyConsumption ( device, &energy_begin );
-		if (ret != NVML_SUCCESS) {
+		if (ret != NVML_SUCCESS)
+		{
 			_STARPU_DISP("Could not measure energy used by CUDA device %d\n", devid);
 			return -1;
 		}
@@ -164,14 +164,13 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi)
 {
 	double energy = 0.;
-
 	int retval;
 	unsigned cpuid = 0;
-
 	double t2 = starpu_timing_now();
 	double t STARPU_ATTRIBUTE_UNUSED = t2 - t1;
 
-	switch (archi) {
+	switch (archi)
+	{
 #ifdef STARPU_PAPI
 #ifdef STARPU_HAVE_HWLOC
 	case STARPU_CPU_WORKER:
@@ -184,15 +183,16 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 
 		int k,s;
 
-		for( s = 0 ; s < nsockets ; s ++){
-			for(k = 0 ; k < N_EVTS; k++) {
+		for( s = 0 ; s < nsockets ; s ++)
+		{
+			for(k = 0 ; k < N_EVTS; k++)
+			{
 				double delta = values[s * N_EVTS + k]*0.23/1.0e9;
 				energy += delta;
 
 				debug("%-40s%12.6f J\t(for %f us, Average Power %.1fW)\n",
-					event_names[k],
-					delta, t, delta/(t*1.0E-6)
-				);
+				      event_names[k],
+				      delta, t, delta/(t*1.0E-6));
 			}
 		}
 
@@ -215,7 +215,7 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 	case STARPU_CUDA_WORKER:
 	{
 		STARPU_ASSERT_MSG(workerid != -1, "For CUDA GPUs we measure each GPU separately, please specify a worker\n");
-		int ret = nvmlDeviceGetTotalEnergyConsumption ( device, &energy_end );
+		int ret = nvmlDeviceGetTotalEnergyConsumption(device, &energy_end );
 		if (ret != NVML_SUCCESS)
 			return -1;
 		energy = (energy_end - energy_begin) / 1000.;
@@ -225,10 +225,11 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 #endif
 
 	default:
+	{
 		printf("Error: worker type %d is not supported! \n", archi);
 		return -1;
 		break;
-
+	}
 	}
 
 
@@ -242,7 +243,6 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 	starpu_perfmodel_update_history(model, task, arch, cpuid, nimpl, energy);
 
 	return retval;
-
 }
 
 #ifdef STARPU_PAPI
@@ -250,17 +250,18 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 static int add_event(int eventSet, int socket)
 {
 	int retval, i;
-	for (i = 0; i < N_EVTS; i++) {
+	for (i = 0; i < N_EVTS; i++)
+	{
 		char buf[255];
 		int code;
-
 		PAPI_event_info_t info;
 		sprintf(buf,  event_names[i], socket);
 		retval = PAPI_event_name_to_code( buf, &code);
 
 		retval = PAPI_get_event_info(code, &info);
 		retval = PAPI_add_event(eventSet, code);
-		if (retval != PAPI_OK) {
+		if (retval != PAPI_OK)
+		{
 			/* printf("Activating multiplex\n"); */
 			/* retval = PAPI_set_multiplex(eventSet); */
 			/* if(retval != PAPI_OK) { */
@@ -268,7 +269,8 @@ static int add_event(int eventSet, int socket)
 			/*      exit (0); */
 			/* } */
 			retval = PAPI_add_named_event(eventSet, buf);
-			if(retval != PAPI_OK) {
+			if(retval != PAPI_OK)
+			{
 				printf("cannot add event\n");
 				exit (1);
 			}

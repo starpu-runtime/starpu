@@ -74,14 +74,10 @@ void _starpu_initialize_registered_performance_models(void);
 void _starpu_deinitialize_registered_performance_models(void);
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model);
 
-double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model,
-					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
-double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model,
-					struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
-double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch,
-					struct _starpu_job *j, unsigned nimpl);
-void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch,
-					unsigned cpuid, double measured, unsigned nimpl, unsigned number);
+double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
+double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
+double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, struct _starpu_job *j, unsigned nimpl);
+void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, unsigned cpuid, double measured, unsigned nimpl, unsigned number);
 int _starpu_perfmodel_create_comb_if_needed(struct starpu_perfmodel_arch* arch);
 
 void _starpu_create_sampling_directory_if_needed(void);
@@ -98,8 +94,7 @@ unsigned *_starpu_get_cuda_affinity_vector(unsigned gpuid);
 unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 #endif
 
-void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read,
-					     double latency_write, double latency_read, unsigned node, const char *name);
+void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, double latency_write, double latency_read, unsigned node, const char *name);
 
 void _starpu_write_double(FILE *f, const char *format, double val);
 int _starpu_read_double(FILE *f, char *format, double *val);
