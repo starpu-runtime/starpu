@@ -320,6 +320,8 @@ For the energy and power measurements, depending on the system configuration the
 
 \endcode
 
+- A complete example is available in <c>tests/perfmodels/regression_based_memset.c</c>
+
 \section StaticScheduling Static Scheduling
 
 In some cases, one may want to force some scheduling, for instance force a given
