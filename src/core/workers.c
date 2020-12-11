@@ -1159,6 +1159,7 @@ int starpu_conf_noworker(struct starpu_conf *conf)
 	conf->nopencl = 0;
 	conf->nmic = 0;
 	conf->nmpi_ms = 0;
+	return 0;
 }
 
 static void _starpu_conf_set_value_against_environment(char *name, int *value, int precedence_over_env)
