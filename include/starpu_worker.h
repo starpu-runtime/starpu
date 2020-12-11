@@ -313,7 +313,12 @@ unsigned starpu_worker_is_slave_somewhere(int workerid);
 /**
    Return worker \p type as a string.
 */
-char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
+const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
+
+/**
+   Return worker \p type as a trivial string (CPU, CUDA, etc.)
+*/
+const char *starpu_worker_get_type_as_short_string(enum starpu_worker_archtype type);
 
 int starpu_bindid_get_workerids(int bindid, int **workerids);
 

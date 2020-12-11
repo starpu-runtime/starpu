@@ -2555,15 +2555,30 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 	return nsched_ctxs;
 }
 
-char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
+const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 {
-	if (type == STARPU_CPU_WORKER) return "STARPU_CPU_WORKER";
-	if (type == STARPU_CUDA_WORKER) return "STARPU_CUDA_WORKER";
-	if (type == STARPU_OPENCL_WORKER) return "STARPU_OPENCL_WORKER";
-	if (type == STARPU_MIC_WORKER) return "STARPU_MIC_WORKER";
-        if (type == STARPU_MPI_MS_WORKER) return "STARPU_MPI_MS_WORKER";
-	if (type == STARPU_ANY_WORKER) return "STARPU_ANY_WORKER";
-	return "STARPU_unknown_WORKER";
+	switch (type) {
+		case STARPU_CPU_WORKER: return "STARPU_CPU_WORKER";
+		case STARPU_CUDA_WORKER: return "STARPU_CUDA_WORKER";
+		case STARPU_OPENCL_WORKER: return "STARPU_OPENCL_WORKER";
+		case STARPU_MIC_WORKER: return "STARPU_MIC_WORKER";
+		case STARPU_MPI_MS_WORKER: return "STARPU_MPI_MS_WORKER";
+		case STARPU_ANY_WORKER: return "STARPU_ANY_WORKER";
+		default: return "STARPU_unknown_WORKER";
+	}
+}
+
+const char *starpu_worker_get_type_as_short_string(enum starpu_worker_archtype type)
+{
+	switch (type) {
+		case STARPU_CPU_WORKER: return "CPU";
+		case STARPU_CUDA_WORKER: return "CUDA";
+		case STARPU_OPENCL_WORKER: return "OPENCL";
+		case STARPU_MIC_WORKER: return "MIC";
+		case STARPU_MPI_MS_WORKER: return "MPI_MS";
+		case STARPU_ANY_WORKER: return "ANY";
+		default: return "STARPU_unknown_WORKER";
+	}
 }
 
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx)
