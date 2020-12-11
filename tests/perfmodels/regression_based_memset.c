@@ -232,6 +232,7 @@ static int bench_energy(int workerid, int where, enum starpu_worker_archtype arc
 		starpu_task_destroy (task);
 		starpu_data_unregister(handle);
 	}
+	return 0;
 }
 
 static void show_task_perfs(int size, struct starpu_task *task)
