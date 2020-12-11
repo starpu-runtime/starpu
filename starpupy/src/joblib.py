@@ -15,10 +15,6 @@
 #
 
 import sys
-try:
-   sys.path.remove('/usr/local/lib/python3.8/site-packages/starpu')
-except:
-   pass
 import types
 import joblib as jl
 from joblib import logger
