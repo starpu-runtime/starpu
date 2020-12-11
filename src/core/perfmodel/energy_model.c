@@ -114,7 +114,8 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 		{
 			/* return the index of socket */
 			hwloc_obj_t obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_PACKAGE, i);
-			add_event(EventSet, obj->os_index);
+			if ( (retval = add_event(EventSet, obj->os_index)) != PAPI_OK)
+				ERROR_RETURN(retval);
 		}
 
 		/* get the number of events in the event set */
@@ -271,8 +272,8 @@ static int add_event(int eventSet, int socket)
 			retval = PAPI_add_named_event(eventSet, buf);
 			if(retval != PAPI_OK)
 			{
-				printf("cannot add event\n");
-				exit (1);
+				printf("cannot add event '%s'\n", buf);
+				return retval;
 			}
 		}
 	}
