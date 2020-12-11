@@ -34,5 +34,7 @@ fi
 shift
 
 set -x
+#PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath PYTHONMALLOC=malloc valgrind --track-origins=yes @PYTHON@ $pythonscript $*
+#PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath gdb --args @PYTHON@ $pythonscript $*
 PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath @PYTHON@ $pythonscript $*
 
