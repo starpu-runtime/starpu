@@ -212,6 +212,7 @@ static int bench_energy(int workerid, int where, enum starpu_worker_archtype arc
 
 		if ( (retval = starpu_energy_start(workerid, archtype)) != 0)
 		{
+			starpu_data_unregister(handle);
 			_STARPU_DISP("Energy measurement not supported for archtype %d\n", archtype);
 			return -1;
 		}
@@ -226,11 +227,13 @@ static int bench_energy(int workerid, int where, enum starpu_worker_archtype arc
 		task->destroy = 0;
 		task->flops = size;
 
-		if ( (retval = starpu_energy_stop(codelet->energy_model, task, impl, ntasks, workerid, archtype)) != 0)
-			ERROR_RETURN(retval);
+		retval = starpu_energy_stop(codelet->energy_model, task, impl, ntasks, workerid, archtype);
 
 		starpu_task_destroy (task);
 		starpu_data_unregister(handle);
+
+		if (retval != 0)
+			ERROR_RETURN(retval);
 	}
 	return 0;
 }
