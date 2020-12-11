@@ -404,31 +404,31 @@ starpu_init(&conf);
 
 void init_heteroprio(unsigned sched_ctx) {
   // CPU uses 5 buckets and visits them in the natural order
-  starpu_heteroprio_set_nb_prios(ctx, STARPU_CPU_IDX, 5);
+  starpu_heteroprio_set_nb_prios(ctx, STARPU_CPU_WORKER, 5);
   // It uses direct mapping idx => idx
   for(unsigned idx = 0; idx < 5; ++idx){
-    starpu_heteroprio_set_mapping(ctx, STARPU_CPU_IDX, idx, idx);
+    starpu_heteroprio_set_mapping(ctx, STARPU_CPU_WORKER, idx, idx);
     // If there is no CUDA worker we must tell that CPU is faster
-    starpu_heteroprio_set_faster_arch(ctx, STARPU_CPU_IDX, idx);
+    starpu_heteroprio_set_faster_arch(ctx, STARPU_CPU_WORKER, idx);
   }
   
   if(starpu_cuda_worker_get_count()){
     // CUDA is enabled and uses 2 buckets
-    starpu_heteroprio_set_nb_prios(ctx, STARPU_CUDA_IDX, 2);
+    starpu_heteroprio_set_nb_prios(ctx, STARPU_CUDA_WORKER, 2);
     // CUDA will first look at bucket 1
-    starpu_heteroprio_set_mapping(ctx, STARPU_CUDA_IDX, 0, 1);
+    starpu_heteroprio_set_mapping(ctx, STARPU_CUDA_WORKER, 0, 1);
     // CUDA will then look at bucket 2
-    starpu_heteroprio_set_mapping(ctx, STARPU_CUDA_IDX, 1, 2);
+    starpu_heteroprio_set_mapping(ctx, STARPU_CUDA_WORKER, 1, 2);
 
     // For bucket 1 CUDA is the fastest
-    starpu_heteroprio_set_faster_arch(ctx, STARPU_CUDA_IDX, 1);
+    starpu_heteroprio_set_faster_arch(ctx, STARPU_CUDA_WORKER, 1);
     // And CPU is 30 times slower
-    starpu_heteroprio_set_arch_slow_factor(ctx, STARPU_CPU_IDX, 1, 30.0f);
+    starpu_heteroprio_set_arch_slow_factor(ctx, STARPU_CPU_WORKER, 1, 30.0f);
     
     // For bucket 0 CUDA is the fastest
-    starpu_heteroprio_set_faster_arch(ctx, STARPU_CUDA_IDX, 0);
+    starpu_heteroprio_set_faster_arch(ctx, STARPU_CUDA_WORKER, 0);
     // And CPU is 20 times slower
-    starpu_heteroprio_set_arch_slow_factor(ctx, STARPU_CPU_IDX, 0, 20.0f);
+    starpu_heteroprio_set_arch_slow_factor(ctx, STARPU_CPU_WORKER, 0, 20.0f);
   }
 }
 \endcode
