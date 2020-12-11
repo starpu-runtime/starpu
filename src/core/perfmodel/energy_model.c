@@ -255,27 +255,19 @@ static int add_event(int eventSet, int socket)
 	for (i = 0; i < N_EVTS; i++)
 	{
 		char buf[255];
-		int code;
-		PAPI_event_info_t info;
-		sprintf(buf,  event_names[i], socket);
-		retval = PAPI_event_name_to_code( buf, &code);
+		snprintf(buf, sizeof(buf), event_names[i], socket);
 
-		retval = PAPI_get_event_info(code, &info);
-		retval = PAPI_add_event(eventSet, code);
+		/* printf("Activating multiplex\n"); */
+		/* retval = PAPI_set_multiplex(eventSet); */
+		/* if(retval != PAPI_OK) { */
+		/*      _STARPU_DISP("cannot set multiplex\n"); */
+		/*      return retval; */
+		/* } */
+		retval = PAPI_add_named_event(eventSet, buf);
 		if (retval != PAPI_OK)
 		{
-			/* printf("Activating multiplex\n"); */
-			/* retval = PAPI_set_multiplex(eventSet); */
-			/* if(retval != PAPI_OK) { */
-			/*      printf("cannot set multiplex\n"); */
-			/*      exit (0); */
-			/* } */
-			retval = PAPI_add_named_event(eventSet, buf);
-			if(retval != PAPI_OK)
-			{
-				printf("cannot add event '%s'\n", buf);
-				return retval;
-			}
+			_STARPU_DISP("cannot add event '%s': %d\n", buf, retval);
+			return retval;
 		}
 	}
 
