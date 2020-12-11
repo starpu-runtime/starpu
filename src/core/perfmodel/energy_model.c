@@ -196,6 +196,7 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 				      delta, t, delta/(t*1.0E-6));
 			}
 		}
+		free(values);
 
 		energy = energy * 0.23 / 1.0e9 / ntasks;
 
