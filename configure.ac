@@ -3391,12 +3391,12 @@ then
 	AC_MSG_CHECKING(for python3 module numpy)
 	AC_PYTHON_MODULE(numpy,[numpy_avail=yes],[numpy_avail=no])
 	AC_MSG_RESULT($numpy_avail)
-	PYTHON_NUMPY_CFLAGS=""
+	PYTHON_NUMPY_DIR=""
 	if test "$numpy_avail" = "yes" ; then
 	   	AC_DEFINE(STARPU_PYTHON_HAVE_NUMPY, [1], [Python3 numpy package available])
-		PYTHON_NUMPY_CFLAGS="`$PYTHON -c "import numpy ; print(numpy.get_include())"`"
+		PYTHON_NUMPY_DIR="`$PYTHON -c "import numpy ; print(numpy.get_include())"`"
 	fi
-	AC_SUBST(PYTHON_NUMPY_CFLAGS)
+	AC_SUBST(PYTHON_NUMPY_DIR)
 fi
 AM_CONDITIONAL(STARPU_BUILD_STARPUPY, [test x$starpupy_support = xyes])
 

@@ -15,8 +15,13 @@
 #
 from distutils.core import setup, Extension
 
+numpy_dir = '@PYTHON_NUMPY_DIR@'
+if numpy_dir != '':
+    numpy_include_dir = [numpy_dir]
+else:
+    numpy_include_dir = []
 starpupy = Extension('starpu.starpupy',
-                     include_dirs = ['@STARPU_SRC_DIR@/include', '@STARPU_BUILD_DIR@/include', '@PYTHON_NUMPY_CFLAGS@'],
+                     include_dirs = ['@STARPU_SRC_DIR@/include', '@STARPU_BUILD_DIR@/include'] + numpy_include_dir,
                      libraries = ['starpu-@STARPU_EFFECTIVE_VERSION@'],
                      library_dirs = ['@STARPU_BUILD_DIR@/src/.libs'],
 	             sources = ['starpu/starpu_task_wrapper.c'])
