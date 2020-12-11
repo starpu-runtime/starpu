@@ -308,9 +308,9 @@ int main(int argc, char *argv[])
 	/* Initialize StarPU */
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
 
-	conf.ncuda = 0;
-	conf.nopencl = 0;
 	if (!getenv("STARPU_SCHED"))
 		conf.sched_policy_name = "dmdas";
 

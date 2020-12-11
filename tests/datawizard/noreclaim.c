@@ -84,11 +84,8 @@ int main(int argc, char **argv)
 	setenv("STARPU_LIMIT_CPU_NUMA_MEM", TOTAL, 1);
 
 	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
-	conf.nmic = 0;
-	conf.nmpi_ms = 0;
 
         ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
