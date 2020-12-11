@@ -856,7 +856,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 #ifdef HAVE_HWLOC_CPUKINDS_GET_NR
 	int nr_kinds = hwloc_cpukinds_get_nr(topology->hwtopology, 0);
 	if (nr_kinds > 1)
-		_STARPU_DISP("Warning: there are several kinds of CPU on this system. For now StarPU assumes all CPU are equal\n", strerror(errno));
+		_STARPU_DISP("Warning: there are several kinds of CPU on this system. For now StarPU assumes all CPU are equal\n");
 #endif
 
 	if (starpu_get_env_number_default("STARPU_WORKERS_GETBIND", 0))
