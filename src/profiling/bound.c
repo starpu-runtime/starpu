@@ -235,6 +235,7 @@ static void initialize_duration(struct bound_task *task)
 	task->duration[STARPU_CUDA_WORKER] = initialize_arch_duration(conf->topology.nhwcudagpus,NULL);
 	task->duration[STARPU_OPENCL_WORKER] = initialize_arch_duration(conf->topology.nhwopenclgpus,NULL);
 	task->duration[STARPU_MIC_WORKER] = initialize_arch_duration(conf->topology.nhwmicdevices,conf->topology.nmiccores);
+	task->duration[STARPU_MPI_MS_WORKER] = initialize_arch_duration(conf->topology.nhwmpidevices,conf->topology.nmpicores);
 }
 
 static struct starpu_perfmodel_device device =
