@@ -67,8 +67,7 @@ enum starpu_worker_archtype
 	STARPU_OPENCL_WORKER=2,     /**< OpenCL device */
 	STARPU_MIC_WORKER=3,        /**< Intel MIC device */
 	STARPU_MPI_MS_WORKER=5,     /**< MPI Slave device */
-	STARPU_MAX_WORKER=5,        /**< maximum value of STARPU_*_WORKER */
-	STARPU_NARCH = (STARPU_MAX_WORKER+1), /**< Number of arch types */
+	STARPU_NARCH = 6,           /**< Number of arch types */
 	STARPU_ANY_WORKER=255       /**< any worker, used in the hypervisor */
 };
 
