@@ -1455,38 +1455,29 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 	switch (node_kind)
 	{
 		case STARPU_CPU_RAM:
-			switch(starpu_node_get_kind(handle->mf_node))
-			{
-				case STARPU_CPU_RAM:
-					return 0;
-				case STARPU_CUDA_RAM:      /* Fall through */
-				case STARPU_OPENCL_RAM:
-				case STARPU_MIC_RAM:
-                                case STARPU_MPI_MS_RAM:
-					return 1;
-				default:
-					STARPU_ABORT();
-			}
-			break;
-		case STARPU_CUDA_RAM:    /* Fall through */
-		case STARPU_OPENCL_RAM:
 		case STARPU_MIC_RAM:
 		case STARPU_MPI_MS_RAM:
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
-					return 1;
-				case STARPU_CUDA_RAM:
-				case STARPU_OPENCL_RAM:
 				case STARPU_MIC_RAM:
                                 case STARPU_MPI_MS_RAM:
 					return 0;
 				default:
-					STARPU_ABORT();
+					return 1;
 			}
 			break;
 		default:
-			STARPU_ABORT();
+			switch(starpu_node_get_kind(handle->mf_node))
+			{
+				case STARPU_CPU_RAM:
+				case STARPU_MIC_RAM:
+                                case STARPU_MPI_MS_RAM:
+					return 1;
+				default:
+					return 0;
+			}
+			break;
 	}
 	/* that instruction should never be reached */
 	return -EINVAL;
