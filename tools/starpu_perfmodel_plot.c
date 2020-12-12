@@ -555,6 +555,7 @@ int main(int argc, char **argv)
 #endif
 
 	parse_args(argc, argv, &options, &directory);
+	starpu_drivers_preinit();
 	starpu_perfmodel_initialize();
 
 	if (options.directory)

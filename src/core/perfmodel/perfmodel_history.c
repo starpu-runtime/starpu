@@ -33,7 +33,6 @@
 #include <core/perfmodel/regression.h>
 #include <core/perfmodel/multiple_regression.h>
 #include <common/config.h>
-#include <starpu_parameters.h>
 #include <common/uthash.h>
 #include <limits.h>
 #include <core/task.h>
@@ -1030,16 +1029,9 @@ void starpu_perfmodel_dump_xml(FILE *f, struct starpu_perfmodel *model)
 		fprintf(f, "  <combination>\n");
 		for(dev = 0; dev < ndevices; dev++)
 		{
-			const char *type;
-			switch (arch_combs[comb]->devices[dev].type)
-			{
-				case STARPU_CPU_WORKER: type = "CPU"; break;
-				case STARPU_CUDA_WORKER: type = "CUDA"; break;
-				case STARPU_OPENCL_WORKER: type = "OpenCL"; break;
-				case STARPU_MIC_WORKER: type = "MIC"; break;
-				case STARPU_MPI_MS_WORKER: type = "MPI_MS"; break;
-				default: STARPU_ASSERT(0);
-			}
+			enum starpu_worker_archtype archtype = arch_combs[comb]->devices[dev].type;
+			const char *type = starpu_driver_info[archtype].name_upper;
+			STARPU_ASSERT(type);
 			fprintf(f, "    <device type=\"%s\" id=\"%d\"",
 					type,
 					arch_combs[comb]->devices[dev].devid);
@@ -1546,29 +1538,11 @@ int starpu_perfmodel_deinit(struct starpu_perfmodel *model){
 	return 0;
 }
 
-char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
+const char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 {
-	switch(archtype)
-	{
-		case(STARPU_CPU_WORKER):
-			return "cpu";
-			break;
-		case(STARPU_CUDA_WORKER):
-			return "cuda";
-			break;
-		case(STARPU_OPENCL_WORKER):
-			return "opencl";
-			break;
-		case(STARPU_MIC_WORKER):
-			return "mic";
-			break;
-		case(STARPU_MPI_MS_WORKER):
-			return "mpi_ms";
-			break;
-		default:
-			STARPU_ABORT();
-			break;
-	}
+	const char *name = starpu_driver_info[archtype].name_lower;
+	STARPU_ASSERT(name);
+	return name;
 }
 
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *archname, size_t maxlen,unsigned impl)
@@ -2104,7 +2078,7 @@ int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
 		fprintf(output, "\tComb %d: %d device%s\n", model->state->combs[comb], arch->ndevices, arch->ndevices>1?"s":"");
 		for(device=0 ; device<arch->ndevices ; device++)
 		{
-			char *name = starpu_perfmodel_get_archtype_name(arch->devices[device].type);
+			const char *name = starpu_perfmodel_get_archtype_name(arch->devices[device].type);
 			fprintf(output, "\t\tDevice %d: type: %s - devid: %d - ncores: %d\n", device, name, arch->devices[device].devid, arch->devices[device].ncores);
 		}
 	}

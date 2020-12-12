@@ -59,6 +59,25 @@
 #include <windows.h>
 #endif
 
+static struct starpu_driver_info driver_info = {
+	.name_upper = "CPU",
+	.name_var = "CPU",
+	.name_lower = "cpu",
+	.memory_kind = STARPU_CPU_RAM,
+	.alpha = 0.5f,
+};
+
+static struct starpu_memory_driver_info memory_driver_info = {
+	.name_upper = "NUMA",
+	.worker_archtype = STARPU_CPU_WORKER,
+};
+
+void _starpu_cpu_preinit(void)
+{
+	starpu_driver_info_register(STARPU_CPU_WORKER, &driver_info);
+	starpu_memory_driver_info_register(STARPU_CPU_RAM, &memory_driver_info);
+}
+
 
 #ifdef STARPU_USE_CPU
 /* Actually launch the job on a cpu worker.

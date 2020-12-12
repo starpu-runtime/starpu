@@ -36,6 +36,8 @@
 #include <core/workers.h>
 #include <datawizard/node_ops.h>
 
+void _starpu_opencl_preinit(void);
+
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 struct _starpu_machine_config;
 void _starpu_opencl_discover_devices(struct _starpu_machine_config *config);

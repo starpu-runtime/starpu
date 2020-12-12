@@ -44,6 +44,9 @@
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
+#include <drivers/mic/driver_mic_source.h>
+#include <drivers/mpi/driver_mpi_source.h>
+#include <drivers/disk/driver_disk.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
@@ -200,6 +203,20 @@ static char ***my_argv = NULL;
 void _starpu__workers_c__register_kobs(void)
 {
 	/* TODO */
+}
+
+struct starpu_driver_info starpu_driver_info[STARPU_MAX_WORKER+1];
+
+void starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct starpu_driver_info *info)
+{
+	starpu_driver_info[archtype] = *info;
+}
+
+struct starpu_memory_driver_info starpu_memory_driver_info[STARPU_MAX_RAM+1];
+
+void starpu_memory_driver_info_register(enum starpu_node_kind kind, const struct starpu_memory_driver_info *info)
+{
+	starpu_memory_driver_info[kind] = *info;
 }
 
 /* Initialize value of static argc and argv, called when the process begins
@@ -1383,6 +1400,15 @@ int _starpu_get_catch_signals(void)
 	return _starpu_config.conf.catch_signals;
 }
 
+void starpu_drivers_preinit(void) {
+	_starpu_cpu_preinit();
+	_starpu_cuda_preinit();
+	_starpu_opencl_preinit();
+	_starpu_mic_preinit();
+	_starpu_mpi_ms_preinit();
+	_starpu_disk_preinit();
+}
+
 int starpu_init(struct starpu_conf *user_conf)
 {
 	return starpu_initialize(user_conf, NULL, NULL);
@@ -1566,6 +1592,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_timing_init();
 
 	_starpu_load_bus_performance_files();
+
+	/* Let drivers register themselves */
+	starpu_drivers_preinit();
 
 	/* Note: nothing before here should be allocating anything, in case we
 	 * actually return ENODEV here */
@@ -2567,28 +2596,17 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 
 const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 {
-	switch (type) {
-		case STARPU_CPU_WORKER: return "STARPU_CPU_WORKER";
-		case STARPU_CUDA_WORKER: return "STARPU_CUDA_WORKER";
-		case STARPU_OPENCL_WORKER: return "STARPU_OPENCL_WORKER";
-		case STARPU_MIC_WORKER: return "STARPU_MIC_WORKER";
-		case STARPU_MPI_MS_WORKER: return "STARPU_MPI_MS_WORKER";
-		case STARPU_ANY_WORKER: return "STARPU_ANY_WORKER";
-		default: return "STARPU_unknown_WORKER";
-	}
+	const char *ret = starpu_driver_info[type].name_upper;
+	if (!ret)
+		ret = "unknown";
+	return ret;
 }
 
-const char *starpu_worker_get_type_as_short_string(enum starpu_worker_archtype type)
+const char *starpu_worker_get_type_as_env_var(enum starpu_worker_archtype type)
 {
-	switch (type) {
-		case STARPU_CPU_WORKER: return "CPU";
-		case STARPU_CUDA_WORKER: return "CUDA";
-		case STARPU_OPENCL_WORKER: return "OPENCL";
-		case STARPU_MIC_WORKER: return "MIC";
-		case STARPU_MPI_MS_WORKER: return "MPI_MS";
-		case STARPU_ANY_WORKER: return "ANY";
-		default: return "STARPU_unknown_WORKER";
-	}
+	const char *ret = starpu_driver_info[type].name_var;
+	STARPU_ASSERT(ret);
+	return ret;
 }
 
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx)

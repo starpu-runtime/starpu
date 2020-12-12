@@ -126,18 +126,8 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arc
 	int dev;
 	for(dev = 0; dev < perf_arch->ndevices; dev++)
 	{
-		double coef = 0.0;
-		if (perf_arch->devices[dev].type == STARPU_CPU_WORKER)
-			coef = _STARPU_CPU_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_CUDA_WORKER)
-			coef = _STARPU_CUDA_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_OPENCL_WORKER)
-			coef = _STARPU_OPENCL_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_MIC_WORKER)
-			coef = _STARPU_MIC_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_MPI_MS_WORKER)
-			coef = _STARPU_MPI_MS_ALPHA;
-
+		enum starpu_worker_archtype archtype = perf_arch->devices[dev].type;
+		double coef = starpu_driver_info[archtype].alpha;
 		speedup += coef * (perf_arch->devices[dev].ncores);
 	}
 	return speedup;

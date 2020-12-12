@@ -23,6 +23,8 @@
 #include <starpu_mic.h>
 #include <common/config.h>
 
+void _starpu_mic_preinit(void);
+
 #ifdef STARPU_USE_MIC
 
 #include <source/COIProcess_source.h>

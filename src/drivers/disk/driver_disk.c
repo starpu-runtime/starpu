@@ -23,6 +23,16 @@
 #include <datawizard/coherency.h>
 #include <datawizard/memory_nodes.h>
 
+static struct starpu_memory_driver_info memory_driver_info = {
+	.name_upper = "Disk",
+	.worker_archtype = (enum starpu_worker_archtype) -1,
+};
+
+void _starpu_disk_preinit(void)
+{
+	starpu_memory_driver_info_register(STARPU_DISK_RAM, &memory_driver_info);
+}
+
 int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel)
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_CPU_RAM);

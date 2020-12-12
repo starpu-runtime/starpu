@@ -33,7 +33,13 @@ extern "C"
 */
 
 /**
-   structure for a driver
+   Pre-initialize drivers
+   So as to register information on device types, memory types, etc.
+*/
+void starpu_drivers_preinit(void);
+
+/**
+   structure for designating a given driver
 */
 struct starpu_driver
 {

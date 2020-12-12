@@ -49,7 +49,8 @@ enum starpu_node_kind
 	STARPU_OPENCL_RAM=3,
 	STARPU_DISK_RAM=4,
 	STARPU_MIC_RAM=5,
-	STARPU_MPI_MS_RAM=6
+	STARPU_MPI_MS_RAM=6,
+	STARPU_MAX_RAM=6
 };
 
 /**
@@ -316,9 +317,9 @@ unsigned starpu_worker_is_slave_somewhere(int workerid);
 const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
 
 /**
-   Return worker \p type as a trivial string (CPU, CUDA, etc.)
+   Return worker \p type as a string suitable for environment variable names (CPU, CUDA, etc.)
 */
-const char *starpu_worker_get_type_as_short_string(enum starpu_worker_archtype type);
+const char *starpu_worker_get_type_as_env_var(enum starpu_worker_archtype type);
 
 int starpu_bindid_get_workerids(int bindid, int **workerids);
 

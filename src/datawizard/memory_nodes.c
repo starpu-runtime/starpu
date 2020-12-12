@@ -181,14 +181,7 @@ int starpu_memory_node_get_devid(unsigned node)
 }
 
 enum starpu_worker_archtype starpu_memory_node_get_worker_archtype(enum starpu_node_kind node_kind) {
-	switch (node_kind) {
-		// case STARPU_UNUSED:
-		case STARPU_CPU_RAM: return STARPU_CPU_WORKER;
-		case STARPU_CUDA_RAM: return STARPU_CUDA_WORKER;
-		case STARPU_OPENCL_RAM: return STARPU_OPENCL_WORKER;
-		// case STARPU_DISK_RAM:
-		case STARPU_MIC_RAM: return STARPU_MIC_WORKER;
-		case STARPU_MPI_MS_RAM: return STARPU_MPI_MS_WORKER;
-		default: STARPU_ASSERT_MSG(0, "ambiguous memory node kind %d", node_kind);
-	}
+	enum starpu_worker_archtype archtype = starpu_memory_driver_info[node_kind].worker_archtype;
+	STARPU_ASSERT_MSG(archtype != (enum starpu_worker_archtype) -1, "ambiguous memory node kind %d", node_kind);
+	return archtype;
 }

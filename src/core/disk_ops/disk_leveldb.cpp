@@ -27,7 +27,6 @@
 #include <core/perfmodel/perfmodel.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memory_manager.h>
-#include <starpu_parameters.h>
 
 #define NITER	_starpu_calibration_minimum
 
