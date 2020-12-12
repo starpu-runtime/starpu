@@ -1785,7 +1785,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 	topology->ndevices[STARPU_OPENCL_WORKER] = nopencl;
 	for (i = 0; i < nopencl; i++)
-		topology->nworker[STARPU_CUDA_WORKER][i] = 1;
+		topology->nworker[STARPU_OPENCL_WORKER][i] = 1;
 	STARPU_ASSERT(topology->ndevices[STARPU_OPENCL_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_opencl_gpuid(config);
