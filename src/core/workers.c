@@ -2816,20 +2816,7 @@ void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
 
 enum starpu_node_kind _starpu_worker_get_node_kind(enum starpu_worker_archtype type)
 {
-	switch(type)
-	{
-		case STARPU_CPU_WORKER:
-			return STARPU_CPU_RAM;
-		case STARPU_CUDA_WORKER:
-			return STARPU_CUDA_RAM;
-		case STARPU_OPENCL_WORKER:
-			return STARPU_OPENCL_RAM;
-			break;
-		case STARPU_MIC_WORKER:
-			return STARPU_MIC_RAM;
-		case STARPU_MPI_MS_WORKER:
-			return STARPU_MPI_MS_RAM;
-		default:
-			STARPU_ABORT();
-	}
+	enum starpu_node_kind kind = starpu_driver_info[type].memory_kind;
+	STARPU_ASSERT_MSG(kind != (enum starpu_node_kind) -1, "no memory for archtype %d", type);
+	return kind;
 }
