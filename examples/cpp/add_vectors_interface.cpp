@@ -61,9 +61,9 @@ class my_allocator
 		node = a.get_node();
 	}
 
-	explicit my_allocator(const unsigned node)
+	explicit my_allocator(const unsigned thenode)
 	{
-		this->node = node;
+		this->node = thenode;
 	}
 
 	pointer allocate(size_type n, const void * = 0)
