@@ -1217,7 +1217,7 @@ void _starpu_initialize_registered_performance_models(void)
 	starpu_perfmodel_initialize();
 
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
-	unsigned ncores = conf->topology.nhwdevices[STARPU_CPU_WORKER];
+	unsigned ncores = conf->topology.nhwworker[STARPU_CPU_WORKER][0];
 	unsigned ncuda =  conf->topology.nhwdevices[STARPU_CUDA_WORKER];
 	unsigned nopencl = conf->topology.nhwdevices[STARPU_OPENCL_WORKER];
 	unsigned nmic = 0;

@@ -837,7 +837,8 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 	nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
 
-	topology->nhwdevices[STARPU_CPU_WORKER] = 0;
+	topology->nhwdevices[STARPU_CPU_WORKER] = 1;
+	topology->nhwworker[STARPU_CPU_WORKER][0] = 0;
 	topology->nhwpus = 0;
 
 #ifndef STARPU_SIMGRID
@@ -881,7 +882,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 #endif
 
 #ifdef STARPU_SIMGRID
-	config->topology.nhwdevices[STARPU_CPU_WORKER] = config->topology.nhwpus = _starpu_simgrid_get_nbhosts("CPU");
+	config->topology.nhwworker[STARPU_CPU_WORKER][0] = config->topology.nhwpus = _starpu_simgrid_get_nbhosts("CPU");
 #elif defined(STARPU_HAVE_HWLOC)
 	/* Discover the CPUs relying on the hwloc interface and fills CONFIG
 	 * accordingly. */
@@ -901,24 +902,24 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 							 HWLOC_OBJ_PU);
 	}
 
-	topology->nhwdevices[STARPU_CPU_WORKER] = hwloc_get_nbobjs_by_depth(topology->hwtopology, config->cpu_depth);
+	topology->nhwworker[STARPU_CPU_WORKER][0] = hwloc_get_nbobjs_by_depth(topology->hwtopology, config->cpu_depth);
 	topology->nhwpus = hwloc_get_nbobjs_by_depth(topology->hwtopology, config->pu_depth);
 
 #elif defined(HAVE_SYSCONF)
 	/* Discover the CPUs relying on the sysconf(3) function and fills
 	 * CONFIG accordingly. */
 
-	config->topology.nhwdevices[STARPU_CPU_WORKER] = config->topology.nhwpus = sysconf(_SC_NPROCESSORS_ONLN);
+	config->topology.nhwworker[STARPU_CPU_WORKER][0] = config->topology.nhwpus = sysconf(_SC_NPROCESSORS_ONLN);
 
 #elif defined(_WIN32)
 	/* Discover the CPUs on Cygwin and MinGW systems. */
 
 	SYSTEM_INFO sysinfo;
 	GetSystemInfo(&sysinfo);
-	config->topology.nhwdevices[STARPU_CPU_WORKER] = config->topology.nhwpus = sysinfo.dwNumberOfProcessors;
+	config->topology.nhwworker[STARPU_CPU_WORKER][0] = config->topology.nhwpus = sysinfo.dwNumberOfProcessors;
 #else
 #warning no way to know number of cores, assuming 1
-	config->topology.nhwdevices[STARPU_CPU_WORKER] = config->topology.nhwpus = 1;
+	config->topology.nhwworker[STARPU_CPU_WORKER][0] = config->topology.nhwpus = 1;
 #endif
 
 	if (config->conf.ncuda != 0)
@@ -941,7 +942,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 	unsigned i;
 
 	struct _starpu_machine_topology *topology = &config->topology;
-	int nhyperthreads = topology->nhwpus / topology->nhwdevices[STARPU_CPU_WORKER];
+	int nhyperthreads = topology->nhwpus / topology->nhwworker[STARPU_CPU_WORKER][0];
 	unsigned bind_on_core = 0;
 	int scale = 1;
 
@@ -1005,7 +1006,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 						}
 						else
 						{
-							endval = (bind_on_core ? topology->nhwdevices[STARPU_CPU_WORKER] : topology->nhwpus) - 1;
+							endval = (bind_on_core ? topology->nhwworker[STARPU_CPU_WORKER][0] : topology->nhwpus) - 1;
 							if (*strval)
 								strval++;
 						}
@@ -1109,7 +1110,7 @@ static inline unsigned _starpu_get_next_bindid(struct _starpu_machine_config *co
 	STARPU_ASSERT_MSG(topology_is_initialized, "The StarPU core is not initialized yet, have you called starpu_init?");
 
 	unsigned current_preferred;
-	unsigned nhyperthreads = topology->nhwpus / topology->nhwdevices[STARPU_CPU_WORKER];
+	unsigned nhyperthreads = topology->nhwpus / topology->nhwworker[STARPU_CPU_WORKER][0];
 	unsigned ncores = topology->nhwpus / nhyperthreads;
 	unsigned i;
 
@@ -1192,7 +1193,7 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config)
 #endif
 	_starpu_init_topology(config);
 
-	return config->topology.nhwdevices[STARPU_CPU_WORKER];
+	return config->topology.nhwworker[STARPU_CPU_WORKER][0];
 }
 
 unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config)
@@ -1853,7 +1854,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 				+ cuda_busy_cpus
 				+ topology->ndevices[STARPU_OPENCL_WORKER];
 
-			long avail_cpus = (long) topology->nhwdevices[STARPU_CPU_WORKER] - (long) already_busy_cpus;
+			long avail_cpus = (long) topology->nhwworker[STARPU_CPU_WORKER][0] - (long) already_busy_cpus;
 			if (avail_cpus < 0)
 				avail_cpus = 0;
 			int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
@@ -1883,14 +1884,13 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 	}
 
-	topology->ndevices[STARPU_CPU_WORKER] = ncpu;
-	for (i = 0; i < ncpu; i++)
-		topology->nworker[STARPU_CPU_WORKER][i] = 1;
-	STARPU_ASSERT(topology->ndevices[STARPU_CPU_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
+	topology->ndevices[STARPU_CPU_WORKER] = 1;
+	topology->nworker[STARPU_CPU_WORKER][0] = ncpu;
+	STARPU_ASSERT(topology->nworker[STARPU_CPU_WORKER][0] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	unsigned cpu;
 	unsigned homogeneous = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
-	for (cpu = 0; cpu < topology->ndevices[STARPU_CPU_WORKER]; cpu++)
+	for (cpu = 0; cpu < topology->nworker[STARPU_CPU_WORKER][0]; cpu++)
 	{
 		int worker_idx = topology->nworkers + cpu;
 		config->workers[worker_idx].arch = STARPU_CPU_WORKER;
@@ -1905,7 +1905,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		config->worker_mask |= STARPU_CPU;
 	}
 
-	topology->nworkers += topology->ndevices[STARPU_CPU_WORKER];
+	topology->nworkers += topology->nworker[STARPU_CPU_WORKER][0];
 #endif
 
 	if (topology->nworkers == 0)
@@ -2038,7 +2038,7 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 
 			if (workerid >= 0)
 				/* This shouldn't happen for workers */
-				_STARPU_DISP("[%s] Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported %d cores and %d threads, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", hostname, config->topology.nhwdevices[STARPU_CPU_WORKER], config->topology.nhwpus);
+				_STARPU_DISP("[%s] Maybe check starpu_machine_display's output to determine what wrong binding happened. Hwloc reported %d cores and %d threads, perhaps there is misdetection between hwloc, the kernel and the BIOS, or an administrative allocation issue from e.g. the job scheduler?\n", hostname, config->topology.nhwworker[STARPU_CPU_WORKER][0], config->topology.nhwpus);
 			ret = -1;
 		}
 		else
@@ -3026,7 +3026,7 @@ void starpu_topology_print(FILE *output)
 	unsigned worker;
 	unsigned nworkers = starpu_worker_get_count();
 	unsigned ncombinedworkers = topology->ncombinedworkers;
-	unsigned nthreads_per_core = topology->nhwpus / topology->nhwdevices[STARPU_CPU_WORKER];
+	unsigned nthreads_per_core = topology->nhwpus / topology->nhwworker[STARPU_CPU_WORKER][0];
 
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_t topo = topology->hwtopology;
@@ -3115,5 +3115,5 @@ unsigned _starpu_get_nhyperthreads()
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-	return config->topology.nhwpus / config->topology.nhwdevices[STARPU_CPU_WORKER];
+	return config->topology.nhwpus / config->topology.nhwworker[STARPU_CPU_WORKER][0];
 }

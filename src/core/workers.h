@@ -275,9 +275,12 @@ struct _starpu_machine_topology
 	unsigned nhwpus;
 
 	/** Total number of devices, as detected. May be different from the
-	 * actual number of workers run by StarPU.
+	 * actual number of devices run by StarPU.
 	 */
 	unsigned nhwdevices[STARPU_NARCH];
+	/** Total number of worker for each device, as detected. May be different from the
+	 * actual number of workers run by StarPU.
+	 */
 	unsigned nhwworker[STARPU_NARCH][STARPU_NMAXDEVS];
 
 	/** Actual number of devices used by StarPU.

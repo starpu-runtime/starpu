@@ -65,7 +65,7 @@ int starpu_omp_get_max_threads()
 
 int starpu_omp_get_num_procs (void)
 {
-	/* starpu_cpu_worker_get_count defined as topology.ndevices[STARPU_CPU_WORKER] */
+	/* starpu_cpu_worker_get_count defined as topology.nworkers[STARPU_CPU_WORKER] */
 	return starpu_cpu_worker_get_count();
 }
 

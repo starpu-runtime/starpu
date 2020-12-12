@@ -2365,10 +2365,6 @@ AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
 nmaxdevs=0
-# XXX for now
-if test $nmaxdevs -lt $maxcpus; then
-	nmaxdevs=$maxcpus
-fi
 if test $nmaxdevs -lt $nmaxcudadev; then
 	nmaxdevs=$nmaxcudadev
 fi
