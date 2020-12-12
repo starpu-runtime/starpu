@@ -1221,6 +1221,7 @@ void _starpu_initialize_registered_performance_models(void)
 	unsigned ncuda =  conf->topology.nhwcudagpus;
 	unsigned nopencl = conf->topology.nhwopenclgpus;
 	unsigned nmic = 0;
+	enum starpu_worker_archtype archtype;
 #if STARPU_MAXMICDEVS > 0 || STARPU_MAXMPIDEVS > 0
 	unsigned i;
 #endif
@@ -1241,11 +1242,14 @@ void _starpu_initialize_registered_performance_models(void)
 	current_arch_comb = 0;
 	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
 	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
-	ignore_devid[STARPU_CPU_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
-	ignore_devid[STARPU_CUDA_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CUDA", 0);
-	ignore_devid[STARPU_OPENCL_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL", 0);
-	ignore_devid[STARPU_MIC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MIC", 0);
-	ignore_devid[STARPU_MPI_MS_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS", 0);
+
+	for (archtype = 0; archtype < STARPU_NARCH; archtype++) {
+		char name[128];
+		const char *arch = starpu_worker_get_type_as_env_var(archtype);
+		int def = archtype == STARPU_CPU_WORKER ? 1 : 0;
+		snprintf(name, sizeof(name), "STARPU_PERF_MODEL_HOMOGENEOUS_%s", arch);
+		ignore_devid[archtype] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", def);
+	}
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
