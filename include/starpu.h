@@ -486,6 +486,17 @@ struct starpu_conf
 int starpu_conf_init(struct starpu_conf *conf);
 
 /**
+   Set fields of \p conf so that no worker is enabled, i.e. set
+   starpu_conf::ncpus = 0, starpu_conf::ncuda = 0, etc.
+
+   This allows to portably enable only a given type of worker:
+
+   starpu_conf_noworker(&conf);
+   conf.ncpus = -1;
+*/
+int starpu_conf_noworker(struct starpu_conf *conf);
+
+/**
    StarPU initialization method, must be called prior to any other
    StarPU call. It is possible to specify StarPU’s configuration (e.g.
    scheduling policy, number of cores, ...) by passing a

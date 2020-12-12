@@ -23,11 +23,12 @@ BUILT_SOURCES =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) $(NMAD_CFLAGS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src
-LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(FXT_LIBS) $(MAGMA_LIBS) $(NMAD_LIBS)
-LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(NMAD_LDFLAGS)
-LIBS += $(MPICC_LDFLAGS) $(FXT_LDFLAGS)
+AM_CFLAGS += $(FXT_CFLAGS) $(NMAD_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src $(STARPU_H_CPPFLAGS)
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
+LIBS += $(FXT_LDFLAGS) $(FXT_LIBS)
+LIBS += $(NMAD_LDFLAGS) $(NMAD_LIBS)
+LIBS += $(MPICC_LDFLAGS)
 
 ldflags =
 

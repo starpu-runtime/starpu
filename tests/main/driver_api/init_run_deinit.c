@@ -85,9 +85,8 @@ static int test_cpu(void)
 	};
 
 	conf.precedence_over_environment_variables = 1;
+	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
 	conf.not_launched_drivers = &d;
 	conf.n_not_launched_drivers = 1;
 
@@ -145,9 +144,8 @@ static int test_cuda(void)
 	};
 
 	conf.precedence_over_environment_variables = 1;
-	conf.ncpus = 0;
+	starpu_conf_noworker(&conf);
 	conf.ncuda = 1;
-	conf.nopencl = 0;
 	conf.not_launched_drivers = &d;
 	conf.n_not_launched_drivers = 1;
 
@@ -231,8 +229,7 @@ static int test_opencl(void)
 	};
 
 	conf.precedence_over_environment_variables = 1;
-	conf.ncpus = 0;
-	conf.ncuda = 0;
+	starpu_conf_noworker(&conf);
 	conf.nopencl = 1;
 	conf.not_launched_drivers = &d;
 	conf.n_not_launched_drivers = 1;

@@ -22,7 +22,7 @@ includedir=@includedir@
 Name: starpu
 Description: offers support for heterogeneous multicore architecture
 Version: @PACKAGE_VERSION@
-Cflags: -I${includedir}/starpu/@STARPU_EFFECTIVE_VERSION@ @STARPU_CUDA_CPPFLAGS@ @SIMGRID_CFLAGS@ @OPENMP_CFLAGS@
-Libs: @STARPU_EXPORT_DYNAMIC@ -L${libdir} -lstarpu-@STARPU_EFFECTIVE_VERSION@ @STARPU_SC_HYPERVISOR@ @STARPU_EXPORTED_LIBS@ @OPENMP_CFLAGS@
+Cflags: -I${includedir}/starpu/@STARPU_EFFECTIVE_VERSION@ @STARPU_H_CPPFLAGS@
+Libs: @STARPU_EXPORT_DYNAMIC@ -L${libdir} -lstarpu-@STARPU_EFFECTIVE_VERSION@ @STARPU_EXPORTED_LIBS@
 Libs.private: @LDFLAGS@ @LIBS@ @LIBSTARPU_LDFLAGS@
 Requires: @HWLOC_REQUIRES@

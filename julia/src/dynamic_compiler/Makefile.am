@@ -14,14 +14,15 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+include $(top_srcdir)/starpu-notests.mk
+
 LD=$(CC_OR_NVCC)
 AM_CPPFLAGS = -I$(abs_top_srcdir)/include/ -I$(abs_top_builddir)/src -I$(abs_top_builddir)/include \
-	 -I$(abs_top_srcdir)/julia/src/
+	 -I$(abs_top_srcdir)/julia/src/ $(STARPU_H_CPPFLAGS)
 
-AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS)
-AM_CFLAGS += -fPIC -O3 -g -DSTRIDE=${STRIDE} -Wall -mavx -fomit-frame-pointer -march=native -ffast-math
+AM_CFLAGS += -fPIC -DSTRIDE=${STRIDE} -mavx -fomit-frame-pointer -march=native -ffast-math
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@
-LIBS += -L @STARPU_BUILD_DIR@/julia/src/.libs/ -lstarpujulia-1.3
+LIBS += -L $(top_builddir)/julia/src/libstarpujulia-$(STARPU_EFFECTIVE_VERSION).1.3
 CUDA_CFLAGS = $(STARPU_CUDA_CPPFLAGS) -Wno-deprecated-gpu-targets
 EXTERNLIB=extern_tasks.so
 GENERATEDLIB=generated_tasks.so

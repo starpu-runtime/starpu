@@ -48,39 +48,43 @@ extern "C"
 #define STARPU_NOWHERE	((1ULL)<<0)
 
 /**
+  Convert from enum starpu_worker_archtype to worker type mask for use in "where" fields
+  */
+#define STARPU_WORKER_TO_MASK(worker_archtype) (1ULL << (worker_archtype + 1))
+/**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a CPU processing unit.
 */
-#define STARPU_CPU	((1ULL)<<1)
+#define STARPU_CPU	STARPU_WORKER_TO_MASK(STARPU_CPU_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a CUDA processing unit.
 */
-#define STARPU_CUDA	((1ULL)<<3)
+#define STARPU_CUDA	STARPU_WORKER_TO_MASK(STARPU_CUDA_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a OpenCL processing unit.
 */
-#define STARPU_OPENCL	((1ULL)<<6)
+#define STARPU_OPENCL	STARPU_WORKER_TO_MASK(STARPU_OPENCL_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a MIC processing unit.
 */
-#define STARPU_MIC	((1ULL)<<7)
+#define STARPU_MIC	STARPU_WORKER_TO_MASK(STARPU_MIC_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a MPI Slave processing unit.
 */
-#define STARPU_MPI_MS	((1ULL)<<9)
+#define STARPU_MPI_MS	STARPU_WORKER_TO_MASK(STARPU_MPI_MS_WORKER)
 
 /**
    Value to be set in starpu_codelet::flags to execute the codelet

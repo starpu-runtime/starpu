@@ -85,7 +85,7 @@ if STARPU_USE_CUDA
 if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(STARPU_H_CPPFLAGS)
 
 .cu.cubin:
 	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
@@ -95,10 +95,12 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -
 endif
 endif
 
-AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include
-LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpujulia-@STARPU_EFFECTIVE_VERSION@.la -lm $(FXT_LIBS) $(MAGMA_LIBS)
-LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+AM_CFLAGS += $(MAGMA_CFLAGS) -Wno-unused
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include $(STARPU_H_CPPFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpujulia-@STARPU_EFFECTIVE_VERSION@.la $(STARPU_EXPORTED_LIBS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
+LIBS += -lm
 
 check_PROGRAMS = $(LOADER) $(starpu_julia_EXAMPLES)
 SHELL_TESTS	=

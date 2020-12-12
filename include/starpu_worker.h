@@ -66,7 +66,8 @@ enum starpu_worker_archtype
 	STARPU_OPENCL_WORKER=2,     /**< OpenCL device */
 	STARPU_MIC_WORKER=3,        /**< Intel MIC device */
 	STARPU_MPI_MS_WORKER=5,     /**< MPI Slave device */
-	STARPU_ANY_WORKER=6         /**< any worker, used in the hypervisor */
+	STARPU_MAX_WORKER=5,        /**< maximum value of STARPU_*_WORKER */
+	STARPU_ANY_WORKER=255       /**< any worker, used in the hypervisor */
 };
 
 /**
@@ -312,7 +313,12 @@ unsigned starpu_worker_is_slave_somewhere(int workerid);
 /**
    Return worker \p type as a string.
 */
-char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
+const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type);
+
+/**
+   Return worker \p type as a trivial string (CPU, CUDA, etc.)
+*/
+const char *starpu_worker_get_type_as_short_string(enum starpu_worker_archtype type);
 
 int starpu_bindid_get_workerids(int bindid, int **workerids);
 
@@ -373,6 +379,11 @@ int starpu_memory_nodes_numa_devid_to_id(unsigned id);
    memory needs to be allocated.
 */
 enum starpu_node_kind starpu_node_get_kind(unsigned node);
+
+/**
+   Return the type of worker which operates on memory node kind \p node_kind
+  */
+enum starpu_worker_archtype starpu_memory_node_get_worker_archtype(enum starpu_node_kind node_kind);
 
 /**
    @name Scheduling operations
