@@ -26,7 +26,6 @@ s/\b_starpu_get_memory_node_description\b/_starpu_memory_node_get_description/g
 
 s/\bheft_policy\b/_starpu_sched_heft_policy/g
 s/\bstruct starpu_priority_taskq_s\b/struct _starpu_priority_taskq/g
-s/\bSTARPU_FUT_APPS_KEY\b/_STARPU_FUT_APPS_KEY/g
 s/\bSTARPU_FUT_CPU_KEY\b/_STARPU_FUT_CPU_KEY/g
 s/\bSTARPU_FUT_CUDA_KEY\b/_STARPU_FUT_CUDA_KEY/g
 s/\bSTARPU_FUT_DATA_COPY\b/_STARPU_FUT_DATA_COPY/g

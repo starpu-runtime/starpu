@@ -1238,10 +1238,6 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 	switch (ev->param[0])
 	{
-		case _STARPU_FUT_APPS_KEY:
-			set_next_other_worker_color(workerid);
-			kindstr = "APPS";
-			break;
 		case _STARPU_FUT_CPU_KEY:
 			set_next_cpu_worker_color(workerid);
 			kindstr = "CPU";

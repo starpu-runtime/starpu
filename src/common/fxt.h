@@ -37,7 +37,6 @@
 #include <starpu.h>
 
 /* some key to identify the worker kind */
-#define _STARPU_FUT_APPS_KEY	0x100
 #define _STARPU_FUT_CPU_KEY	0x101
 #define _STARPU_FUT_CUDA_KEY	0x102
 #define _STARPU_FUT_OPENCL_KEY	0x103
