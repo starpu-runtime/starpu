@@ -248,7 +248,11 @@ static void measure_bandwidth_between_host_and_dev_on_cpu_with_cuda(int dev, int
 	cudaFreeHost(h_buffer);
 	cudaFree(d_buffer);
 
+#if CUDART_VERSION >= 4000
+	cudaDeviceReset();
+#else
 	cudaThreadExit();
+#endif
 }
 
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
@@ -348,7 +352,11 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cudaSetDevice(src);
 	cudaFree(s_buffer);
 
+#if CUDART_VERSION >= 4000
+	cudaDeviceReset();
+#else
 	cudaThreadExit();
+#endif
 }
 #endif
 #endif
