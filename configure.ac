@@ -1010,6 +1010,7 @@ if test "x$enable_sc_hypervisor" = "xyes"; then
   AC_DEFINE(STARPU_USE_SC_HYPERVISOR, [1], [enable sc_hypervisor lib])
 #   PKG_CHECK_MODULES([SC_HYPERVISOR], [libsc_hypervisor], [], build_sc_hypervisor="yes")
    STARPU_SC_HYPERVISOR="-lsc_hypervisor"
+   STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $STARPU_SC_HYPERVISOR"
    build_sc_hypervisor="yes"
 else
    build_sc_hypervisor="no"
@@ -1945,10 +1946,7 @@ if test x$enable_debug = xyes; then
 	FCFLAGS="$FCFLAGS -O0"
 	enable_spinlock_check=yes
 	if test x$GCC = xyes; then
-	   	IS_SUPPORTED_CFLAG(-Og)
-	   	IS_SUPPORTED_CXXFLAG(-Og)
-	   	IS_SUPPORTED_FFLAG(-Og)
-	   	IS_SUPPORTED_FCFLAG(-Og)
+		IS_SUPPORTED_FLAG(-Og)
 		if test x$starpu_windows != xyes ; then
 			if test x$enable_fstack_protector_all = xyes ; then
 			   CFLAGS="$CFLAGS -fstack-protector-all"
@@ -2449,30 +2447,35 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMPKERNELS, [$maxmpkernels],
 #                                                                             #
 ###############################################################################
 
-IS_SUPPORTED_CFLAG(-Wall)
+IS_SUPPORTED_FLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
 IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
 if test x$enable_perf_debug = xyes; then
-	IS_SUPPORTED_CFLAG(-no-pie)
-	IS_SUPPORTED_CFLAG(-no-PIE)
-	IS_SUPPORTED_CFLAG(-fno-pie)
+	IS_SUPPORTED_FLAG(-no-pie)
+	IS_SUPPORTED_FLAG(-no-PIE)
+	IS_SUPPORTED_FLAG(-fno-pie)
 fi
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
-	IS_SUPPORTED_CFLAG(-Wextra)
-	IS_SUPPORTED_CFLAG(-Wunused)
+	IS_SUPPORTED_FLAG(-Wextra)
+	IS_SUPPORTED_FLAG(-Wunused)
 	IS_SUPPORTED_CFLAG(-Wundef)
-	IS_SUPPORTED_CFLAG(-Wshadow)
+	IS_SUPPORTED_CXXFLAG(-Wundef)
+	IS_SUPPORTED_FLAG(-Wshadow)
 	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
-	IS_SUPPORTED_CFLAG(-fno-common)
+	IS_SUPPORTED_CXXFLAG(-Werror=pointer-arith)
+	IS_SUPPORTED_FLAG(-fno-common)
 	if test x$enable_debug = xyes; then
-		IS_SUPPORTED_CFLAG(-fno-optimize-sibling-calls)
+		IS_SUPPORTED_FLAG(-fno-optimize-sibling-calls)
 	fi
 fi
 AM_CONDITIONAL([STARPU_DEVEL],[test "x$STARPU_DEVEL" != x])
 
 AC_SUBST(GLOBAL_AM_CFLAGS)
+AC_SUBST(GLOBAL_AM_CXXFLAGS)
+AC_SUBST(GLOBAL_AM_FFLAGS)
+AC_SUBST(GLOBAL_AM_FCFLAGS)
 
 # Same value as Automake's, for use in other places.
 pkglibdir="\${libdir}/$PACKAGE"
@@ -2658,6 +2661,7 @@ if test x$enable_simgrid = xno; then
   if test -n "{OPENMP_CFLAGS}"; then
      CFLAGS="${CFLAGS} ${OPENMP_CFLAGS}"
      STARPU_OMP_LDFLAGS="${OPENMP_CFLAGS}"
+     STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS ${OPENMP_CFLAGS}"
   fi
 fi
 AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test x$enable_simgrid = xno -a -n "$OPENMP_CFLAGS"])
@@ -3451,21 +3455,26 @@ AC_SUBST(JULIA, $juliapath)
 #                                                                             #
 ###############################################################################
 
+# these are the flags needed to compile starpu.h
+STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $SIMGRID_CFLAGS $OPENMP_CFLAGS"
+AC_SUBST([STARPU_H_CPPFLAGS])
+
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
-LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
-
+# these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
 if test "x$enable_shared" = xno; then
-        # No .so, so application will unexpected have to know which -l to
+        # No .so, so application will unexpectedly have to know which -l to
         # use. Give them in .pc file.
 	AC_DEFINE(STARPU_STATIC_ONLY, [1], [Only static compilation was made])
 	STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
 fi
+AC_SUBST(STARPU_EXPORTED_LIBS)
+
+LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
 LIBSTARPU_LINK="$LIBSTARPU_LINK $STARPU_EXPORTED_LIBS"
 AC_SUBST([LIBSTARPU_LINK])
-AC_SUBST(STARPU_EXPORTED_LIBS)
 
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [

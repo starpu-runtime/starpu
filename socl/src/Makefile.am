@@ -18,10 +18,9 @@ include $(top_srcdir)/starpu-notests.mk
 
 CLEANFILES = *.gcno *.gcda
 
-AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(HWLOC_CFLAGS) $(FXT_CFLAGS)
-AM_CPPFLAGS = -DBUILDING_SOCL -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_srcdir)/socl/src
-LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ \
-	    $(STARPU_OPENCL_LDFLAGS) $(FXT_LDFLAGS)
+AM_CPPFLAGS = -DBUILDING_SOCL -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_srcdir)/socl/src $(STARPU_H_CPPFLAGS)
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
+LIBS += $(STARPU_OPENCL_LDFLAGS)
 
 SUBDIRS =
 

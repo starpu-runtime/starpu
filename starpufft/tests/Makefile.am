@@ -45,10 +45,11 @@ endif
 
 endif
 
-AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/starpufft/include -I$(top_srcdir)/starpufft/src
-LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(FXT_LIBS) $(MAGMA_LIBS)
-LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+AM_CFLAGS += -Wno-unused
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/starpufft/include -I$(top_srcdir)/starpufft/src $(STARPU_H_CPPFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(STARPU_EXPORTED_LIBS)
+LIBS += $(STARPU_CUDA_LDFLAGS)
 
 examplebin_PROGRAMS =
 examplebin_PROGRAMS +=	\
