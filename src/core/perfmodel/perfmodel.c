@@ -295,7 +295,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 
-		node_kind = _starpu_worker_get_node_kind(arch->devices[0].type);
+		node_kind = starpu_worker_get_memory_node_kind(arch->devices[0].type);
 		if (!_starpu_handle_needs_conversion_task_for_arch(handle, node_kind))
 			continue;
 

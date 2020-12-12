@@ -2814,7 +2814,7 @@ void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
 }
 #endif
 
-enum starpu_node_kind _starpu_worker_get_node_kind(enum starpu_worker_archtype type)
+enum starpu_node_kind starpu_worker_get_memory_node_kind(enum starpu_worker_archtype type)
 {
 	enum starpu_node_kind kind = starpu_driver_info[type].memory_kind;
 	STARPU_ASSERT_MSG(kind != (enum starpu_node_kind) -1, "no memory for archtype %d", type);

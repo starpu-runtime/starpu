@@ -2970,6 +2970,7 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 {
 	int ret;
 	unsigned i;
+	enum starpu_worker_archtype type;
 
 	ret = _starpu_init_machine_config(config, no_mp_config);
 	if (ret)
@@ -2983,48 +2984,16 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 
 	_starpu_mem_chunk_init_last();
 
-	config->cpus_nodeid = -1;
-	config->cuda_nodeid = -1;
-	config->opencl_nodeid = -1;
-	config->mic_nodeid = -1;
-        config->mpi_nodeid = -1;
+	for (type = 0; type < STARPU_NARCH; type++)
+		config->arch_nodeid[type] = -1;
+
 	for (i = 0; i < starpu_worker_get_count(); i++)
 	{
-		switch (starpu_worker_get_type(i))
-		{
-			case STARPU_CPU_WORKER:
-				if (config->cpus_nodeid == -1)
-					config->cpus_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->cpus_nodeid != (int) starpu_worker_get_memory_node(i))
-					config->cpus_nodeid = -2;
-				break;
-			case STARPU_CUDA_WORKER:
-				if (config->cuda_nodeid == -1)
-					config->cuda_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->cuda_nodeid != (int) starpu_worker_get_memory_node(i))
-					config->cuda_nodeid = -2;
-				break;
-			case STARPU_OPENCL_WORKER:
-				if (config->opencl_nodeid == -1)
-					config->opencl_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->opencl_nodeid != (int) starpu_worker_get_memory_node(i))
-					config->opencl_nodeid = -2;
-				break;
-			case STARPU_MIC_WORKER:
-				if (config->mic_nodeid == -1)
-					config->mic_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->mic_nodeid != (int) starpu_worker_get_memory_node(i))
-					config->mic_nodeid = -2;
-				break;
-			case STARPU_MPI_MS_WORKER:
-				if (config->mpi_nodeid == -1)
-					config->mpi_nodeid = starpu_worker_get_memory_node(i);
-				else if (config->mpi_nodeid != (int) starpu_worker_get_memory_node(i))
-					config->mpi_nodeid = -2;
-				break;
-			case STARPU_ANY_WORKER:
-				STARPU_ASSERT(0);
-		}
+		type = starpu_worker_get_type(i);
+		if (config->arch_nodeid[type] == -1)
+			config->arch_nodeid[type] = starpu_worker_get_memory_node(i);
+		else if (config->arch_nodeid[type] != (int) starpu_worker_get_memory_node(i))
+			config->arch_nodeid[type] = -2;
 	}
 
 	return 0;

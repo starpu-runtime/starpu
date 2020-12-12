@@ -387,6 +387,12 @@ enum starpu_node_kind starpu_node_get_kind(unsigned node);
 enum starpu_worker_archtype starpu_memory_node_get_worker_archtype(enum starpu_node_kind node_kind);
 
 /**
+   Return the type of memory node that arch type \p type operates on
+  */
+enum starpu_node_kind starpu_worker_get_memory_node_kind(enum starpu_worker_archtype type);
+
+
+/**
    @name Scheduling operations
    @{
 */

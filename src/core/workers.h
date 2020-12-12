@@ -384,16 +384,8 @@ struct _starpu_machine_config
 	/** Which MPI do we use? */
 	int current_mpi_deviceid;
 
-	/** Memory node for cpus, if only one */
-	int cpus_nodeid;
-	/** Memory node for CUDA, if only one */
-	int cuda_nodeid;
-	/** Memory node for OpenCL, if only one */
-	int opencl_nodeid;
-	/** Memory node for MIC, if only one */
-	int mic_nodeid;
-	/** Memory node for MPI, if only one */
-	int mpi_nodeid;
+	/** Memory node for different worker types, if only one */
+	int arch_nodeid [STARPU_NARCH];
 
 	/** Separate out previous variables from per-worker data. */
 	char padding1[STARPU_CACHELINE_SIZE];
@@ -680,8 +672,6 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 	return id;
 }
 #define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)
-
-enum starpu_node_kind _starpu_worker_get_node_kind(enum starpu_worker_archtype type);
 
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
 

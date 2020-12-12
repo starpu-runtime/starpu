@@ -629,16 +629,15 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				&& starpu_get_prefetch_flag()
 				&& starpu_memory_nodes_get_count() > 1)
 			{
-				if (task->where == STARPU_CPU && config->cpus_nodeid >= 0)
-					starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);
-				else if (task->where == STARPU_CUDA && config->cuda_nodeid >= 0)
-					starpu_prefetch_task_input_on_node(task, config->cuda_nodeid);
-				else if (task->where == STARPU_OPENCL && config->opencl_nodeid >= 0)
-					starpu_prefetch_task_input_on_node(task, config->opencl_nodeid);
-				else if (task->where == STARPU_MIC && config->mic_nodeid >= 0)
-					starpu_prefetch_task_input_on_node(task, config->mic_nodeid);
-				else if (task->where == STARPU_MPI_MS && config->mpi_nodeid >= 0)
-					starpu_prefetch_task_input_on_node(task, config->mpi_nodeid);
+				enum starpu_worker_archtype type;
+				for (type = 0; type < STARPU_NARCH; type++)
+				{
+					if (task->where == (int32_t) STARPU_WORKER_TO_MASK(type)) {
+						if (config->arch_nodeid[type] >= 0)
+							starpu_prefetch_task_input_on_node(task, config->arch_nodeid[type]);
+						break;
+					}
+				}
 			}
 
 			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
