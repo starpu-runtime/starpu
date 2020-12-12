@@ -3045,7 +3045,7 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	int busid = starpu_bus_get_id(src_node, dst_node);
 	int direct = starpu_bus_get_direct(busid);
 #endif
-	float ngpus = topology->ncudagpus+topology->nopenclgpus;
+	float ngpus = topology->ndevices[STARPU_CUDA_WORKER]+topology->ndevices[STARPU_OPENCL_WORKER];
 #ifdef STARPU_DEVEL
 #warning FIXME: ngpus should not be used e.g. for slow disk transfers...
 #endif

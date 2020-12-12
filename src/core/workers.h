@@ -269,57 +269,29 @@ struct _starpu_machine_topology
 	/** custom hwloc tree*/
 	struct starpu_tree *tree;
 
-	/** Total number of CPU cores, as detected by the topology code. May
-	 * be different from the actual number of CPU workers.
-	 */
-	unsigned nhwcpus;
-
 	/** Total number of PUs (i.e. threads), as detected by the topology code. May
-	 * be different from the actual number of PU workers.
+	 * be different from the actual number of CPU workers.
 	 */
 	unsigned nhwpus;
 
-	/** Total number of CUDA devices, as detected. May be different
-	 * from the actual number of CUDA workers.
+	/** Total number of devices, as detected. May be different from the
+	 * actual number of workers run by StarPU.
 	 */
-	unsigned nhwcudagpus;
+	unsigned nhwdevices[STARPU_NARCH];
+	unsigned nhwworker[STARPU_NARCH][STARPU_NMAXDEVS];
 
-	/** Total number of OpenCL devices, as detected. May be
-	 * different from the actual number of OpenCL workers.
+	/** Actual number of devices used by StarPU.
 	 */
-	unsigned nhwopenclgpus;
+	unsigned ndevices[STARPU_NARCH];
 
-	/** Total number of MPI nodes, as detected. May be different
-	 * from the actual number of node workers.
+	/** Number of worker per device
 	 */
-	unsigned nhwmpi;
+	unsigned nworker[STARPU_NARCH][STARPU_NMAXDEVS];
 
-	/** Actual number of CPU workers used by StarPU. */
-	unsigned ncpus;
-
-	/** Actual number of CUDA GPUs used by StarPU. */
-	unsigned ncudagpus;
-	unsigned nworkerpercuda;
+	/** Whether we should have one thread per stream */
 	int cuda_th_per_stream;
+	/** Whether we should have one thread per device */
 	int cuda_th_per_dev;
-
-	/** Actual number of OpenCL workers used by StarPU. */
-	unsigned nopenclgpus;
-
-	/** Actual number of MPI workers used by StarPU. */
-	unsigned nmpidevices;
-        unsigned nhwmpidevices;
-
-	unsigned nhwmpicores[STARPU_MAXMPIDEVS]; /**< Each MPI node has its set of cores. */
-	unsigned nmpicores[STARPU_MAXMPIDEVS];
-
-	/** Topology of MP nodes (MIC) as well as necessary
-	 * objects to communicate with them. */
-	unsigned nhwmicdevices;
-	unsigned nmicdevices;
-
-	unsigned nhwmiccores[STARPU_MAXMICDEVS]; /**< Each MIC node has its set of cores. */
-	unsigned nmiccores[STARPU_MAXMICDEVS];
 
 	/** Indicates the successive logical PU identifier that should be used
 	 * to bind the workers. It is either filled according to the

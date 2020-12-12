@@ -320,7 +320,7 @@ void *_starpu_mpi_src_worker(void *arg)
                 // Current task for a thread managing a worker set has no sense.
                 _starpu_set_current_task(NULL);
 
-                for (i = 0; i < config->topology.nmpicores[devid]; i++)
+                for (i = 0; i < config->topology.nworker[STARPU_MPI_MS_WORKER][devid]; i++)
                 {
                         struct _starpu_worker *worker = &config->workers[baseworkerid+i];
                         snprintf(worker->name, sizeof(worker->name), "MPI_MS %u core %u", devid, i);

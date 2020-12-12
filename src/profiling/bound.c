@@ -231,11 +231,14 @@ static double** initialize_arch_duration(int maxdevid, unsigned* maxncore_table)
 static void initialize_duration(struct bound_task *task)
 {
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
-	task->duration[STARPU_CPU_WORKER] = initialize_arch_duration(1,&conf->topology.nhwcpus);
-	task->duration[STARPU_CUDA_WORKER] = initialize_arch_duration(conf->topology.nhwcudagpus,NULL);
-	task->duration[STARPU_OPENCL_WORKER] = initialize_arch_duration(conf->topology.nhwopenclgpus,NULL);
-	task->duration[STARPU_MIC_WORKER] = initialize_arch_duration(conf->topology.nhwmicdevices,conf->topology.nmiccores);
-	task->duration[STARPU_MPI_MS_WORKER] = initialize_arch_duration(conf->topology.nhwmpidevices,conf->topology.nmpicores);
+	enum starpu_worker_archtype type;
+	for (type = 0; type < STARPU_NARCH; type++)
+	{
+		if (type == STARPU_CPU_WORKER)
+			task->duration[type] = initialize_arch_duration(1,&conf->topology.nhwdevices[type]);
+		else
+			task->duration[type] = initialize_arch_duration(conf->topology.nhwdevices[type], conf->topology.nworker[type]);
+	}
 }
 
 static struct starpu_perfmodel_device device =

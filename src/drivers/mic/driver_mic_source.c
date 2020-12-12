@@ -241,7 +241,7 @@ unsigned starpu_mic_device_get_count(void)
     struct _starpu_machine_config *config = _starpu_get_machine_config ();
     struct _starpu_machine_topology *topology = &config->topology;
 
-    return topology->nmicdevices;
+    return topology->ndevices[STARPU_MIC_WORKER];
 }
 
 starpu_mic_kernel_t _starpu_mic_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl)
@@ -530,7 +530,7 @@ void *_starpu_mic_src_worker(void *arg)
 	// Current task for a thread managing a worker set has no sense.
 	_starpu_set_current_task(NULL);
 
-	for (i = 0; i < config->topology.nmiccores[devid]; i++)
+	for (i = 0; i < config->topology.nworker[STARPU_MIC_WORKER][devid]; i++)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
 		snprintf(worker->name, sizeof(worker->name), "MIC %u core %u", devid, i);

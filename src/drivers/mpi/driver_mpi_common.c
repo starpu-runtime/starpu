@@ -127,7 +127,7 @@ void _starpu_mpi_common_mp_initialize_src_sink(struct _starpu_mp_node *node)
 {
         struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 
-        node->nb_cores = topology->nhwcpus;
+        node->nb_cores = topology->nhwdevices[STARPU_CPU_WORKER];
 }
 
 int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node)

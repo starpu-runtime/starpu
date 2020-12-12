@@ -1217,22 +1217,22 @@ void _starpu_initialize_registered_performance_models(void)
 	starpu_perfmodel_initialize();
 
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
-	unsigned ncores = conf->topology.nhwcpus;
-	unsigned ncuda =  conf->topology.nhwcudagpus;
-	unsigned nopencl = conf->topology.nhwopenclgpus;
+	unsigned ncores = conf->topology.nhwdevices[STARPU_CPU_WORKER];
+	unsigned ncuda =  conf->topology.nhwdevices[STARPU_CUDA_WORKER];
+	unsigned nopencl = conf->topology.nhwdevices[STARPU_OPENCL_WORKER];
 	unsigned nmic = 0;
 	enum starpu_worker_archtype archtype;
 #if STARPU_MAXMICDEVS > 0 || STARPU_MAXMPIDEVS > 0
 	unsigned i;
 #endif
 #if STARPU_MAXMICDEVS > 0
-	for(i = 0; i < conf->topology.nhwmicdevices; i++)
-		nmic += conf->topology.nhwmiccores[i];
+	for(i = 0; i < conf->topology.nhwdevices[STARPU_MIC_WORKER]; i++)
+		nmic += conf->topology.nhwworker[STARPU_MIC_WORKER][i];
 #endif
 	unsigned nmpi = 0;
 #if STARPU_MAXMPIDEVS > 0
-	for(i = 0; i < conf->topology.nhwmpidevices; i++)
-		nmpi += conf->topology.nhwmpicores[i];
+	for(i = 0; i < conf->topology.nhwdevices[STARPU_MPI_MS_WORKER]; i++)
+		nmpi += conf->topology.nhwworker[STARPU_MPI_MS_WORKER][i];
 #endif
 
 	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nmpi), this is too big

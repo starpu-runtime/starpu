@@ -1006,7 +1006,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	}
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
-        if (pconfig->topology.nmpidevices > 0)
+        if (pconfig->topology.ndevices[STARPU_MPI_MS_WORKER] > 0)
         {
                 struct _starpu_worker_set * worker_set_zero = &mpi_worker_set[0];
                 struct _starpu_worker * worker_zero = &worker_set_zero->workers[0];
@@ -2106,32 +2106,22 @@ unsigned starpu_worker_is_slave_somewhere(int workerid)
 
 int starpu_worker_get_count_by_type(enum starpu_worker_archtype type)
 {
-	switch (type)
+	unsigned n = 0;
+
+	if (type != STARPU_ANY_WORKER)
 	{
-		case STARPU_CPU_WORKER:
-			return _starpu_config.topology.ncpus;
-
-		case STARPU_CUDA_WORKER:
-			return _starpu_config.topology.ncudagpus * _starpu_config.topology.nworkerpercuda;
-
-		case STARPU_OPENCL_WORKER:
-			return _starpu_config.topology.nopenclgpus;
-
-		case STARPU_MIC_WORKER:
-			return _starpu_config.topology.nmicdevices;
-
-                case STARPU_MPI_MS_WORKER:
-                        return _starpu_config.topology.nmpidevices;
-
-                case STARPU_ANY_WORKER:
-                        return _starpu_config.topology.ncpus+
-				_starpu_config.topology.ncudagpus * _starpu_config.topology.nworkerpercuda+
-                                _starpu_config.topology.nopenclgpus+
-                                _starpu_config.topology.nmicdevices+
-                                _starpu_config.topology.nmpidevices;
-		default:
+		if (type >= STARPU_NARCH)
 			return -EINVAL;
+
+		unsigned i;
+		for (i = 0; i < _starpu_config.topology.ndevices[type]; i++)
+			n += _starpu_config.topology.nworker[type][i];
+		return n;
 	}
+
+	for (type = 0; type < STARPU_NARCH; type++)
+		n += starpu_worker_get_count_by_type(type);
+	return n;
 }
 
 unsigned starpu_combined_worker_get_count(void)
@@ -2141,17 +2131,17 @@ unsigned starpu_combined_worker_get_count(void)
 
 unsigned starpu_cpu_worker_get_count(void)
 {
-	return _starpu_config.topology.ncpus;
+	return starpu_worker_get_count_by_type(STARPU_CPU_WORKER);
 }
 
 unsigned starpu_cuda_worker_get_count(void)
 {
-	return _starpu_config.topology.ncudagpus * _starpu_config.topology.nworkerpercuda;
+	return starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
 }
 
 unsigned starpu_opencl_worker_get_count(void)
 {
-	return _starpu_config.topology.nopenclgpus;
+	return starpu_worker_get_count_by_type(STARPU_OPENCL_WORKER);
 }
 
 int starpu_asynchronous_copy_disabled(void)
@@ -2181,17 +2171,12 @@ int starpu_asynchronous_mpi_ms_copy_disabled(void)
 
 unsigned starpu_mic_worker_get_count(void)
 {
-	int i = 0, count = 0;
-
-	for (i = 0; i < STARPU_MAXMICDEVS; i++)
-		count += _starpu_config.topology.nmiccores[i];
-
-	return count;
+	return starpu_worker_get_count_by_type(STARPU_MIC_WORKER);
 }
 
 unsigned starpu_mpi_ms_worker_get_count(void)
 {
-        return _starpu_config.topology.nmpidevices;
+	return starpu_worker_get_count_by_type(STARPU_MPI_MS_WORKER);
 }
 
 /* When analyzing performance, it is useful to see what is the processing unit
@@ -2607,7 +2592,8 @@ const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 const char *starpu_worker_get_type_as_env_var(enum starpu_worker_archtype type)
 {
 	const char *ret = starpu_driver_info[type].name_var;
-	STARPU_ASSERT(ret);
+	if (!ret)
+		ret = "UNKNOWN";
 	return ret;
 }
 

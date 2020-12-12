@@ -71,7 +71,7 @@ _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 	/* As OpenCL must have been initialized before calling this function,
 	 * `nb_device' is ensured to be correctly set. */
 	STARPU_ASSERT(init_done == 1);
-	config->topology.nhwopenclgpus = nb_devices;
+	config->topology.nhwdevices[STARPU_OPENCL_WORKER] = nb_devices;
 }
 
 static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)

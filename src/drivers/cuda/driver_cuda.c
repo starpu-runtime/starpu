@@ -110,7 +110,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	/* Discover the number of CUDA devices. Fill the result in CONFIG. */
 
 #ifdef STARPU_SIMGRID
-	config->topology.nhwcudagpus = _starpu_simgrid_get_nbhosts("CUDA");
+	config->topology.nhwdevices[STARPU_CUDA_WORKER] = _starpu_simgrid_get_nbhosts("CUDA");
 #else
 	int cnt;
 	cudaError_t cures;
@@ -118,7 +118,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	cures = cudaGetDeviceCount (&cnt);
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
-	config->topology.nhwcudagpus = cnt;
+	config->topology.nhwdevices[STARPU_CUDA_WORKER] = cnt;
 #ifdef HAVE_LIBNVIDIA_ML
 	nvmlInit();
 #endif
@@ -710,7 +710,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 		init_device_context(devid, memnode);
 
 #ifndef STARPU_SIMGRID
-		if (worker->config->topology.nworkerpercuda > 1 && props[devid].concurrentKernels == 0)
+		if (worker->config->topology.nworker[STARPU_CUDA_WORKER][devid] > 1 && props[devid].concurrentKernels == 0)
 			_STARPU_DISP("Warning: STARPU_NWORKER_PER_CUDA is %u, but CUDA device %u does not support concurrent kernel execution!\n", worker_set->nworkers, devid);
 #endif /* !STARPU_SIMGRID */
 	}
@@ -723,7 +723,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 		struct _starpu_worker *worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
 		unsigned workerid = worker->workerid;
-		unsigned subdev = i % _starpu_get_machine_config()->topology.nworkerpercuda;
+		unsigned subdev = i % _starpu_get_machine_config()->topology.nworker[STARPU_CUDA_WORKER][devid];
 
 		float size = (float) global_mem[devid] / (1<<30);
 #ifdef STARPU_SIMGRID
