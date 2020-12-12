@@ -643,10 +643,12 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 			if (d->id.cuda_id == conf->not_launched_drivers[i].id.cuda_id)
 				return 0;
 			break;
+#ifdef STARPU_USE_OPENCL
 		case STARPU_OPENCL_WORKER:
 			if (d->id.opencl_id == conf->not_launched_drivers[i].id.opencl_id)
 				return 0;
 			break;
+#endif
 		default:
 			STARPU_ABORT();
 		}

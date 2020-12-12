@@ -57,8 +57,6 @@ struct starpu_driver
 		unsigned cuda_id;
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
 		cl_device_id opencl_id;
-#else
-		unsigned opencl_id;
 #endif
 	} id;
 };
