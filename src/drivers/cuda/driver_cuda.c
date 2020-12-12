@@ -1832,37 +1832,17 @@ struct _starpu_driver_ops _starpu_driver_cuda_ops =
 #ifdef STARPU_SIMGRID
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = NULL,
 	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
-	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_interface_to[STARPU_DISK_RAM] = NULL,
-	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = NULL,
 	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_data_to[STARPU_DISK_RAM] = NULL,
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy2d_data_to[STARPU_UNUSED] = NULL,
 	.copy2d_data_to[STARPU_CPU_RAM] = NULL,
 	.copy2d_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy2d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy2d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy2d_data_to[STARPU_MIC_RAM] = NULL,
-	.copy2d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy3d_data_to[STARPU_UNUSED] = NULL,
 	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
 	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy3d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy3d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy3d_data_to[STARPU_MIC_RAM] = NULL,
-	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.wait_request_completion = NULL,
 	.test_request_completion = NULL,
@@ -1874,31 +1854,15 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 #else
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cpu,
 	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cuda,
-	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_interface_to[STARPU_DISK_RAM] = NULL,
-	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy_data_from_cuda_to_cpu,
 	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cuda_to_cuda,
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_data_to[STARPU_DISK_RAM] = NULL,
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy2d_data_to[STARPU_UNUSED] = NULL,
 	.copy2d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cpu,
 	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
-	.copy2d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy2d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy2d_data_to[STARPU_MIC_RAM] = NULL,
-	.copy2d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy3d_data_to[STARPU_UNUSED] = NULL,
 #if 0
 	.copy3d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cpu,
 	.copy3d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cuda,
@@ -1906,10 +1870,6 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
 	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
 #endif
-	.copy3d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy3d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy3d_data_to[STARPU_MIC_RAM] = NULL,
-	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.wait_request_completion = _starpu_cuda_wait_request_completion,
 	.test_request_completion = _starpu_cuda_test_request_completion,
