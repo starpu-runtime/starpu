@@ -968,7 +968,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		j = _starpu_get_job_associated_to_task(task);
 
 		/* can CUDA do that task ? */
-		if (!_STARPU_CUDA_MAY_PERFORM(j))
+		if (!_STARPU_MAY_PERFORM(j, CUDA))
 		{
 			/* this is neither a cuda or a cublas task */
 			_starpu_worker_refuse_task(worker, task);

@@ -379,7 +379,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	 * job. */
 
 	/* can a cpu perform that task ? */
-	if (!_STARPU_CPU_MAY_PERFORM(j))
+	if (!_STARPU_MAY_PERFORM(j, CPU))
 	{
 		/* put it and the end of the queue ... XXX */
 		_starpu_push_task_to_workers(task);
