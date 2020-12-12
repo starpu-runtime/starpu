@@ -33,7 +33,6 @@
 #include <core/perfmodel/regression.h>
 #include <core/perfmodel/multiple_regression.h>
 #include <common/config.h>
-#include <starpu_parameters.h>
 #include <common/uthash.h>
 #include <limits.h>
 #include <core/task.h>
@@ -54,7 +53,7 @@ static int current_arch_comb;
 static int nb_arch_combs;
 static starpu_pthread_rwlock_t arch_combs_mutex;
 static int historymaxerror;
-static char ignore_devid[STARPU_ANY_WORKER];
+static char ignore_devid[STARPU_NARCH];
 
 /* How many executions a codelet will have to be measured before we
  * consider that calibration will provide a value good enough for scheduling */
@@ -1030,16 +1029,9 @@ void starpu_perfmodel_dump_xml(FILE *f, struct starpu_perfmodel *model)
 		fprintf(f, "  <combination>\n");
 		for(dev = 0; dev < ndevices; dev++)
 		{
-			const char *type;
-			switch (arch_combs[comb]->devices[dev].type)
-			{
-				case STARPU_CPU_WORKER: type = "CPU"; break;
-				case STARPU_CUDA_WORKER: type = "CUDA"; break;
-				case STARPU_OPENCL_WORKER: type = "OpenCL"; break;
-				case STARPU_MIC_WORKER: type = "MIC"; break;
-				case STARPU_MPI_MS_WORKER: type = "MPI_MS"; break;
-				default: STARPU_ASSERT(0);
-			}
+			enum starpu_worker_archtype archtype = arch_combs[comb]->devices[dev].type;
+			const char *type = starpu_driver_info[archtype].name_upper;
+			STARPU_ASSERT(type);
 			fprintf(f, "    <device type=\"%s\" id=\"%d\"",
 					type,
 					arch_combs[comb]->devices[dev].devid);
@@ -1225,21 +1217,22 @@ void _starpu_initialize_registered_performance_models(void)
 	starpu_perfmodel_initialize();
 
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
-	unsigned ncores = conf->topology.nhwcpus;
-	unsigned ncuda =  conf->topology.nhwcudagpus;
-	unsigned nopencl = conf->topology.nhwopenclgpus;
+	unsigned ncores = conf->topology.nhwworker[STARPU_CPU_WORKER][0];
+	unsigned ncuda =  conf->topology.nhwdevices[STARPU_CUDA_WORKER];
+	unsigned nopencl = conf->topology.nhwdevices[STARPU_OPENCL_WORKER];
 	unsigned nmic = 0;
+	enum starpu_worker_archtype archtype;
 #if STARPU_MAXMICDEVS > 0 || STARPU_MAXMPIDEVS > 0
 	unsigned i;
 #endif
 #if STARPU_MAXMICDEVS > 0
-	for(i = 0; i < conf->topology.nhwmicdevices; i++)
-		nmic += conf->topology.nhwmiccores[i];
+	for(i = 0; i < conf->topology.nhwdevices[STARPU_MIC_WORKER]; i++)
+		nmic += conf->topology.nhwworker[STARPU_MIC_WORKER][i];
 #endif
 	unsigned nmpi = 0;
 #if STARPU_MAXMPIDEVS > 0
-	for(i = 0; i < conf->topology.nhwmpidevices; i++)
-		nmpi += conf->topology.nhwmpicores[i];
+	for(i = 0; i < conf->topology.nhwdevices[STARPU_MPI_MS_WORKER]; i++)
+		nmpi += conf->topology.nhwworker[STARPU_MPI_MS_WORKER][i];
 #endif
 
 	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nmpi), this is too big
@@ -1249,11 +1242,14 @@ void _starpu_initialize_registered_performance_models(void)
 	current_arch_comb = 0;
 	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
 	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
-	ignore_devid[STARPU_CPU_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
-	ignore_devid[STARPU_CUDA_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CUDA", 0);
-	ignore_devid[STARPU_OPENCL_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL", 0);
-	ignore_devid[STARPU_MIC_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MIC", 0);
-	ignore_devid[STARPU_MPI_MS_WORKER] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS", 0);
+
+	for (archtype = 0; archtype < STARPU_NARCH; archtype++) {
+		char name[128];
+		const char *arch = starpu_worker_get_type_as_env_var(archtype);
+		int def = archtype == STARPU_CPU_WORKER ? 1 : 0;
+		snprintf(name, sizeof(name), "STARPU_PERF_MODEL_HOMOGENEOUS_%s", arch);
+		ignore_devid[archtype] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", def);
+	}
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
@@ -1546,29 +1542,11 @@ int starpu_perfmodel_deinit(struct starpu_perfmodel *model){
 	return 0;
 }
 
-char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
+const char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype)
 {
-	switch(archtype)
-	{
-		case(STARPU_CPU_WORKER):
-			return "cpu";
-			break;
-		case(STARPU_CUDA_WORKER):
-			return "cuda";
-			break;
-		case(STARPU_OPENCL_WORKER):
-			return "opencl";
-			break;
-		case(STARPU_MIC_WORKER):
-			return "mic";
-			break;
-		case(STARPU_MPI_MS_WORKER):
-			return "mpi_ms";
-			break;
-		default:
-			STARPU_ABORT();
-			break;
-	}
+	const char *name = starpu_driver_info[archtype].name_lower;
+	STARPU_ASSERT(name);
+	return name;
 }
 
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch* arch, char *archname, size_t maxlen,unsigned impl)
@@ -2104,7 +2082,7 @@ int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model)
 		fprintf(output, "\tComb %d: %d device%s\n", model->state->combs[comb], arch->ndevices, arch->ndevices>1?"s":"");
 		for(device=0 ; device<arch->ndevices ; device++)
 		{
-			char *name = starpu_perfmodel_get_archtype_name(arch->devices[device].type);
+			const char *name = starpu_perfmodel_get_archtype_name(arch->devices[device].type);
 			fprintf(output, "\t\tDevice %d: type: %s - devid: %d - ncores: %d\n", device, name, arch->devices[device].devid, arch->devices[device].ncores);
 		}
 	}

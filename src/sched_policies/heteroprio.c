@@ -37,7 +37,7 @@
 #define DBL_MAX __DBL_MAX__
 #endif
 
-#define STARPU_NB_TYPES (STARPU_MAX_WORKER+1)
+#define STARPU_NB_TYPES STARPU_NARCH
 
 /* A bucket corresponds to a Pair of priorities
  * When a task is pushed with a priority X, it will be stored
@@ -112,7 +112,7 @@ struct _starpu_heteroprio_data
 
 static int starpu_heteroprio_types_to_arch(enum starpu_worker_archtype arch)
 {
-	if (arch > STARPU_MAX_WORKER)
+	if (arch >= STARPU_NARCH)
 		return 0;
 	return STARPU_WORKER_TO_MASK(arch);
 }
@@ -174,7 +174,7 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 	enum starpu_worker_archtype type;
 
 	// By default each type of devices uses 1 bucket and no slow factor
-	for (type = 0; type <= STARPU_MAX_WORKER; type++)
+	for (type = 0; type < STARPU_NARCH; type++)
 		if (starpu_worker_get_count_by_type(type) > 0)
 			starpu_heteroprio_set_nb_prios(sched_ctx_id, type, max_prio-min_prio+1);
 
@@ -183,7 +183,7 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 	for(prio=min_prio ; prio<=max_prio ; prio++)
 	{
 		// By default each type of devices uses 1 bucket and no slow factor
-		for (type = 0; type <= STARPU_MAX_WORKER; type++)
+		for (type = 0; type < STARPU_NARCH; type++)
 			if (starpu_worker_get_count_by_type(type) > 0)
 				starpu_heteroprio_set_mapping(sched_ctx_id, type, prio, prio);
 	}

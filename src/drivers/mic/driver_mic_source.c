@@ -241,7 +241,7 @@ unsigned starpu_mic_device_get_count(void)
     struct _starpu_machine_config *config = _starpu_get_machine_config ();
     struct _starpu_machine_topology *topology = &config->topology;
 
-    return topology->nmicdevices;
+    return topology->ndevices[STARPU_MIC_WORKER];
 }
 
 starpu_mic_kernel_t _starpu_mic_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl)
@@ -521,16 +521,16 @@ void *_starpu_mic_src_worker(void *arg)
 
 	/* unsigned memnode = baseworker->memory_node; */
 
-	_starpu_driver_start(baseworker, _STARPU_FUT_MIC_KEY, 0);
+	_starpu_driver_start(baseworker, STARPU_MIC_WORKER, 0);
 #ifdef STARPU_USE_FXT
 	for (i = 1; i < worker_set->nworkers; i++)
-		_starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_MIC_KEY, 0);
+		_starpu_worker_start(&worker_set->workers[i], STARPU_FUT_WORKER, 0);
 #endif
 
 	// Current task for a thread managing a worker set has no sense.
 	_starpu_set_current_task(NULL);
 
-	for (i = 0; i < config->topology.nmiccores[devid]; i++)
+	for (i = 0; i < config->topology.nworker[STARPU_MIC_WORKER][devid]; i++)
 	{
 		struct _starpu_worker *worker = &config->workers[baseworkerid+i];
 		snprintf(worker->name, sizeof(worker->name), "MIC %u core %u", devid, i);
@@ -686,21 +686,11 @@ void _starpu_mic_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 /* TODO: MIC -> MIC */
 struct _starpu_node_ops _starpu_driver_mic_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_mic_copy_interface_from_mic_to_cpu,
-	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
-	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_interface_to[STARPU_DISK_RAM] = NULL,
 	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_mic_copy_data_from_mic_to_cpu,
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_data_to[STARPU_DISK_RAM] = NULL,
 	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	/* TODO: copy2D/3D? */
 

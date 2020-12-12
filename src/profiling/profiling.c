@@ -577,7 +577,7 @@ int starpu_bus_get_ngpus(int busid)
 	int ngpus = bus_ngpus[busid];
 	if (!ngpus)
 		/* Unknown number of GPUs, assume it's shared by all GPUs */
-		ngpus = topology->ncudagpus+topology->nopenclgpus;
+		ngpus = topology->ndevices[STARPU_CUDA_WORKER]+topology->ndevices[STARPU_OPENCL_WORKER];
 	return ngpus;
 }
 

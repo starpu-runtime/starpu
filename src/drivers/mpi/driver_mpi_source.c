@@ -310,17 +310,17 @@ void *_starpu_mpi_src_worker(void *arg)
 
                 /* unsigned memnode = baseworker->memory_node; */
 
-                _starpu_driver_start(baseworker, _STARPU_FUT_MPI_KEY, 0);
+                _starpu_driver_start(baseworker, STARPU_CPU_WORKER, 0);
 
 #ifdef STARPU_USE_FXT
                 for (i = 1; i < worker_set->nworkers; i++)
-                        _starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_MPI_KEY, 0);
+                        _starpu_worker_start(&worker_set->workers[i], STARPU_MPI_WORKER, 0);
 #endif
 
                 // Current task for a thread managing a worker set has no sense.
                 _starpu_set_current_task(NULL);
 
-                for (i = 0; i < config->topology.nmpicores[devid]; i++)
+                for (i = 0; i < config->topology.nworker[STARPU_MPI_MS_WORKER][devid]; i++)
                 {
                         struct _starpu_worker *worker = &config->workers[baseworkerid+i];
                         snprintf(worker->name, sizeof(worker->name), "MPI_MS %u core %u", devid, i);
@@ -546,20 +546,10 @@ void _starpu_mpi_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 
 struct _starpu_node_ops _starpu_driver_mpi_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_mpi_copy_interface_from_mpi_to_cpu,
-	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
-	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_interface_to[STARPU_DISK_RAM] = NULL,
-	.copy_interface_to[STARPU_MIC_RAM] = NULL,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_mpi_to_mpi,
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_mpi_copy_data_from_mpi_to_cpu,
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_data_to[STARPU_DISK_RAM] = NULL,
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
 	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_mpi_to_mpi,
 
 	/* TODO: copy2D/3D? */

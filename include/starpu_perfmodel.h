@@ -35,8 +35,6 @@ extern "C"
 struct starpu_task;
 struct starpu_data_descr;
 
-#define STARPU_NARCH STARPU_ANY_WORKER
-
 /**
    todo
 */
@@ -408,7 +406,7 @@ int starpu_perfmodel_set_per_devices_size_base(struct starpu_perfmodel *model, i
 */
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, char *path, size_t maxlen, unsigned nimpl);
 
-char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
+const char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
 
 /**
    Return the architecture name for \p arch

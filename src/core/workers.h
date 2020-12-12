@@ -59,8 +59,6 @@
 
 #include <datawizard/datawizard.h>
 
-#include <starpu_parameters.h>
-
 #define STARPU_MAX_PIPELINE 4
 
 enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
@@ -271,57 +269,32 @@ struct _starpu_machine_topology
 	/** custom hwloc tree*/
 	struct starpu_tree *tree;
 
-	/** Total number of CPU cores, as detected by the topology code. May
-	 * be different from the actual number of CPU workers.
-	 */
-	unsigned nhwcpus;
-
 	/** Total number of PUs (i.e. threads), as detected by the topology code. May
-	 * be different from the actual number of PU workers.
+	 * be different from the actual number of CPU workers.
 	 */
 	unsigned nhwpus;
 
-	/** Total number of CUDA devices, as detected. May be different
-	 * from the actual number of CUDA workers.
+	/** Total number of devices, as detected. May be different from the
+	 * actual number of devices run by StarPU.
 	 */
-	unsigned nhwcudagpus;
-
-	/** Total number of OpenCL devices, as detected. May be
-	 * different from the actual number of OpenCL workers.
+	unsigned nhwdevices[STARPU_NARCH];
+	/** Total number of worker for each device, as detected. May be different from the
+	 * actual number of workers run by StarPU.
 	 */
-	unsigned nhwopenclgpus;
+	unsigned nhwworker[STARPU_NARCH][STARPU_NMAXDEVS];
 
-	/** Total number of MPI nodes, as detected. May be different
-	 * from the actual number of node workers.
+	/** Actual number of devices used by StarPU.
 	 */
-	unsigned nhwmpi;
+	unsigned ndevices[STARPU_NARCH];
 
-	/** Actual number of CPU workers used by StarPU. */
-	unsigned ncpus;
+	/** Number of worker per device
+	 */
+	unsigned nworker[STARPU_NARCH][STARPU_NMAXDEVS];
 
-	/** Actual number of CUDA GPUs used by StarPU. */
-	unsigned ncudagpus;
-	unsigned nworkerpercuda;
+	/** Whether we should have one thread per stream */
 	int cuda_th_per_stream;
+	/** Whether we should have one thread per device */
 	int cuda_th_per_dev;
-
-	/** Actual number of OpenCL workers used by StarPU. */
-	unsigned nopenclgpus;
-
-	/** Actual number of MPI workers used by StarPU. */
-	unsigned nmpidevices;
-        unsigned nhwmpidevices;
-
-	unsigned nhwmpicores[STARPU_MAXMPIDEVS]; /**< Each MPI node has its set of cores. */
-	unsigned nmpicores[STARPU_MAXMPIDEVS];
-
-	/** Topology of MP nodes (MIC) as well as necessary
-	 * objects to communicate with them. */
-	unsigned nhwmicdevices;
-	unsigned nmicdevices;
-
-	unsigned nhwmiccores[STARPU_MAXMICDEVS]; /**< Each MIC node has its set of cores. */
-	unsigned nmiccores[STARPU_MAXMICDEVS];
 
 	/** Indicates the successive logical PU identifier that should be used
 	 * to bind the workers. It is either filled according to the
@@ -386,16 +359,8 @@ struct _starpu_machine_config
 	/** Which MPI do we use? */
 	int current_mpi_deviceid;
 
-	/** Memory node for cpus, if only one */
-	int cpus_nodeid;
-	/** Memory node for CUDA, if only one */
-	int cuda_nodeid;
-	/** Memory node for OpenCL, if only one */
-	int opencl_nodeid;
-	/** Memory node for MIC, if only one */
-	int mic_nodeid;
-	/** Memory node for MPI, if only one */
-	int mpi_nodeid;
+	/** Memory node for different worker types, if only one */
+	int arch_nodeid [STARPU_NARCH];
 
 	/** Separate out previous variables from per-worker data. */
 	char padding1[STARPU_CACHELINE_SIZE];
@@ -449,6 +414,31 @@ struct _starpu_machine_config
 	/** When >0, StarPU should stop performance counters collection. */
 	int perf_counter_pause_depth;
 };
+
+/** Provides information for a device driver */
+struct starpu_driver_info {
+	const char *name_upper;	/**< Name of worker type in upper case */
+	const char *name_var;	/**< Name of worker type for environment variables */
+	const char *name_lower;	/**< Name of worker type in lower case */
+	enum starpu_node_kind memory_kind;	/**< Kind of memory in device */
+	double alpha;	/**< Typical relative speed compared to a CPU core */
+};
+
+/** Device driver information, indexed by enum starpu_worker_archtype */
+extern struct starpu_driver_info starpu_driver_info[STARPU_NARCH];
+
+void starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct starpu_driver_info *info);
+
+/** Provides information for a memory node driver */
+struct starpu_memory_driver_info {
+	const char *name_upper;	/**< Name of memory in upper case */
+	enum starpu_worker_archtype worker_archtype;	/**< Kind of device */
+};
+
+/** Memory driver information, indexed by enum starpu_node_kind */
+extern struct starpu_memory_driver_info starpu_memory_driver_info[STARPU_MAX_RAM+1];
+
+void starpu_memory_driver_info_register(enum starpu_node_kind kind, const struct starpu_memory_driver_info *info);
 
 extern int _starpu_worker_parallel_blocks;
 
@@ -507,9 +497,9 @@ unsigned _starpu_worker_can_block(unsigned memnode, struct _starpu_worker *worke
 void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
 /** This function initializes the current driver for the given worker */
-void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
+void _starpu_driver_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync);
 /** This function initializes the current thread for the given worker */
-void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
+void _starpu_worker_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync);
 
 static inline unsigned _starpu_worker_get_count(void)
 {
@@ -657,8 +647,6 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 	return id;
 }
 #define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)
-
-enum starpu_node_kind _starpu_worker_get_node_kind(enum starpu_worker_archtype type);
 
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
 

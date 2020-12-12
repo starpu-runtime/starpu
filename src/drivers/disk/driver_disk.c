@@ -23,6 +23,16 @@
 #include <datawizard/coherency.h>
 #include <datawizard/memory_nodes.h>
 
+static struct starpu_memory_driver_info memory_driver_info = {
+	.name_upper = "Disk",
+	.worker_archtype = (enum starpu_worker_archtype) -1,
+};
+
+void _starpu_disk_preinit(void)
+{
+	starpu_memory_driver_info_register(STARPU_DISK_RAM, &memory_driver_info);
+}
+
 int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel)
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_CPU_RAM);
@@ -251,21 +261,11 @@ void _starpu_disk_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 
 struct _starpu_node_ops _starpu_driver_disk_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_disk_copy_interface_from_disk_to_cpu,
-	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
-	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
 	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_disk_to_disk,
-	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_disk_copy_data_from_disk_to_cpu,
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
 	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_disk_to_disk,
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	/* TODO: copy2D/3D? */
 

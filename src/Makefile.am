@@ -155,7 +155,6 @@ noinst_HEADERS = 						\
 	util/starpu_clusters_create.h				\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
-	starpu_parameters.h					\
 	sched_policies/prio_deque.h				\
 	sched_policies/sched_component.h
 
@@ -327,6 +326,7 @@ endif
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda_init.c
 if STARPU_USE_CUDA
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
 else
@@ -338,6 +338,7 @@ endif
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cublas.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cusparse.c
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_init.c
 if STARPU_USE_OPENCL
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_utils.c
@@ -382,6 +383,7 @@ endif
 #										#
 #########################################
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_init.c
 if STARPU_USE_MIC
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_common.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_source.c
@@ -395,6 +397,7 @@ endif
 #                                       #
 #########################################
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_init.c
 if STARPU_USE_MPI_MASTER_SLAVE
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_common.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_source.c

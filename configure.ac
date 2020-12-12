@@ -1737,9 +1737,6 @@ AC_ARG_ENABLE(maxmicthreads, [AS_HELP_STRING([--enable-maxmicthreads=<number>],
 			nmaxmicthreads=$enableval, nmaxmicthreads=120)
 AC_MSG_RESULT($nmaxmicthread)
 
-AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmicthreads],
-	[maximum number of MIC cores])
-
 AC_ARG_WITH(coi-dir,
 	[AS_HELP_STRING([--with-coi-dir=<path>],
 	[specify the MIC's COI installation directory])],
@@ -2367,6 +2364,20 @@ nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nm
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
+nmaxdevs=0
+if test $nmaxdevs -lt $nmaxcudadev; then
+	nmaxdevs=$nmaxcudadev
+fi
+if test $nmaxdevs -lt $nmaxopencldev; then
+	nmaxdevs=$nmaxopencldev
+fi
+if test $nmaxdevs -lt $nmaxmicdev; then
+	nmaxdevs=$nmaxmicdev
+fi
+if test $nmaxdevs -lt $nmaxmpidev; then
+	nmaxdevs=$nmaxmpidev
+fi
+AC_DEFINE_UNQUOTED(STARPU_NMAXDEVS, [$nmaxdevs], [Maximum number of device per device arch])
 
 # Computes the maximun number of combined worker
 nmaxcombinedworkers=`expr $maxcpus + $nmaxmicthreads`

@@ -81,6 +81,7 @@ static const intptr_t fstarpu_cuda_worker = STARPU_CUDA_WORKER;
 static const intptr_t fstarpu_opencl_worker = STARPU_OPENCL_WORKER;
 static const intptr_t fstarpu_mic_worker = STARPU_MIC_WORKER;
 static const intptr_t fstarpu_any_worker = STARPU_ANY_WORKER;
+static const intptr_t fstarpu_narch = STARPU_NARCH;
 
 static const intptr_t fstarpu_nmaxbufs = STARPU_NMAXBUFS;
 
@@ -174,6 +175,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_OPENCL_WORKER"))	{ return fstarpu_opencl_worker; }
 	else if (!strcmp(s, "FSTARPU_MIC_WORKER"))	{ return fstarpu_mic_worker; }
 	else if (!strcmp(s, "FSTARPU_ANY_WORKER"))	{ return fstarpu_any_worker; }
+	else if (!strcmp(s, "FSTARPU_NARCH"))	{ return fstarpu_narch; }
 
 	else if (!strcmp(s, "FSTARPU_NMAXBUFS"))	{ return fstarpu_nmaxbufs; }
 
