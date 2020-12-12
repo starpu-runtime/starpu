@@ -637,6 +637,8 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 					starpu_prefetch_task_input_on_node(task, config->opencl_nodeid);
 				else if (task->where == STARPU_MIC && config->mic_nodeid >= 0)
 					starpu_prefetch_task_input_on_node(task, config->mic_nodeid);
+				else if (task->where == STARPU_MPI_MS && config->mpi_nodeid >= 0)
+					starpu_prefetch_task_input_on_node(task, config->mpi_nodeid);
 			}
 
 			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
