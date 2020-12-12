@@ -37,11 +37,8 @@
 #include <starpu.h>
 
 /* some key to identify the worker kind */
-#define _STARPU_FUT_CPU_KEY	0x101
-#define _STARPU_FUT_CUDA_KEY	0x102
-#define _STARPU_FUT_OPENCL_KEY	0x103
-#define _STARPU_FUT_MIC_KEY	0x104
-#define _STARPU_FUT_MPI_KEY	0x106
+#define _STARPU_FUT_WORKER_KEY(kind) (kind - 0x100)
+#define _STARPU_FUT_KEY_WORKER(key) (key - 0x100)
 
 #define _STARPU_FUT_WORKER_INIT_START	0x5100
 #define _STARPU_FUT_WORKER_INIT_END	0x5101
@@ -736,10 +733,9 @@ do {									\
 		FUT_DO_ALWAYS_PROBE2(FUT_NEW_LWP_CODE, cpuid, _starpu_gettid()); \
 } while (0)
 
-/* workerkind = _STARPU_FUT_CPU_KEY for instance */
 #define _STARPU_TRACE_WORKER_INIT_START(workerkind, workerid, devid, memnode, bindid, sync)	do {\
 	if (_starpu_fxt_started) \
-		FUT_DO_ALWAYS_PROBE7(_STARPU_FUT_WORKER_INIT_START, workerkind, workerid, devid, memnode, bindid, sync, _starpu_gettid()); \
+		FUT_DO_ALWAYS_PROBE7(_STARPU_FUT_WORKER_INIT_START, _STARPU_FUT_WORKER_KEY(workerkind), workerid, devid, memnode, bindid, sync, _starpu_gettid()); \
 } while (0)
 
 #define _STARPU_TRACE_WORKER_INIT_END(__workerid)		do {\
@@ -929,7 +925,7 @@ do {										\
 
 #define _STARPU_TRACE_WORKER_DEINIT_END(workerkind)		do {\
 	if (_starpu_fxt_started) \
-		FUT_DO_ALWAYS_PROBE2(_STARPU_FUT_WORKER_DEINIT_END, workerkind, _starpu_gettid()); \
+		FUT_DO_ALWAYS_PROBE2(_STARPU_FUT_WORKER_DEINIT_END, _STARPU_FUT_WORKER_KEY(workerkind), _starpu_gettid()); \
 } while(0)
 
 #define _STARPU_TRACE_WORKER_SCHEDULING_START	\

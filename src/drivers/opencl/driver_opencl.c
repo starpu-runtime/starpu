@@ -623,7 +623,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 {
 	int devid = worker->devid;
 
-	_starpu_driver_start(worker, _STARPU_FUT_OPENCL_KEY, 0);
+	_starpu_driver_start(worker, STARPU_OPENCL_WORKER, 0);
 
 	_starpu_opencl_init_context(devid);
 
@@ -853,7 +853,7 @@ int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
         _starpu_opencl_deinit_context(devid);
 
 	worker->worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_OPENCL_KEY);
+	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_OPENCL_WORKER);
 
 	return 0;
 }

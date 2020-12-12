@@ -770,23 +770,23 @@ static void _starpu_worker_deinit(struct _starpu_worker *workerarg)
 }
 
 #ifdef STARPU_USE_FXT
-void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync)
+void _starpu_worker_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync)
 {
 	unsigned devid = worker->devid;
 	unsigned memnode = worker->memory_node;
-	_STARPU_TRACE_WORKER_INIT_START(fut_key, worker->workerid, devid, memnode, worker->bindid, sync);
+	_STARPU_TRACE_WORKER_INIT_START(archtype, worker->workerid, devid, memnode, worker->bindid, sync);
 }
 #endif
 
-void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync STARPU_ATTRIBUTE_UNUSED)
+void _starpu_driver_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync STARPU_ATTRIBUTE_UNUSED)
 {
-	(void) fut_key;
+	(void) archtype;
 	int devid = worker->devid;
 	(void) devid;
 
 #ifdef STARPU_USE_FXT
 	_STARPU_TRACE_REGISTER_THREAD(worker->bindid);
-	_starpu_worker_start(worker, fut_key, sync);
+	_starpu_worker_start(worker, archtype, sync);
 #endif
 	_starpu_set_local_worker_key(worker);
 

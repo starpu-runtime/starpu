@@ -208,7 +208,7 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 {
 	int devid = cpu_worker->devid;
 
-	_starpu_driver_start(cpu_worker, _STARPU_FUT_CPU_KEY, 1);
+	_starpu_driver_start(cpu_worker, STARPU_CPU_WORKER, 1);
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
 	starpu_pthread_setname(cpu_worker->short_name);
@@ -435,7 +435,7 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
 	cpu_worker->worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CPU_KEY);
+	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_CPU_WORKER);
 
 	return 0;
 }

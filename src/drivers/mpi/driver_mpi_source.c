@@ -310,11 +310,11 @@ void *_starpu_mpi_src_worker(void *arg)
 
                 /* unsigned memnode = baseworker->memory_node; */
 
-                _starpu_driver_start(baseworker, _STARPU_FUT_MPI_KEY, 0);
+                _starpu_driver_start(baseworker, STARPU_CPU_WORKER, 0);
 
 #ifdef STARPU_USE_FXT
                 for (i = 1; i < worker_set->nworkers; i++)
-                        _starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_MPI_KEY, 0);
+                        _starpu_worker_start(&worker_set->workers[i], STARPU_MPI_WORKER, 0);
 #endif
 
                 // Current task for a thread managing a worker set has no sense.

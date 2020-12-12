@@ -530,9 +530,9 @@ unsigned _starpu_worker_can_block(unsigned memnode, struct _starpu_worker *worke
 void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
 /** This function initializes the current driver for the given worker */
-void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
+void _starpu_driver_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync);
 /** This function initializes the current thread for the given worker */
-void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
+void _starpu_worker_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync);
 
 static inline unsigned _starpu_worker_get_count(void)
 {

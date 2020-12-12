@@ -684,12 +684,12 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	int lastdevid = -1;
 	unsigned i;
 
-	_starpu_driver_start(worker0, _STARPU_FUT_CUDA_KEY, 0);
+	_starpu_driver_start(worker0, STARPU_CUDA_WORKER, 0);
 	_starpu_set_local_worker_set_key(worker_set);
 
 #ifdef STARPU_USE_FXT
 	for (i = 1; i < worker_set->nworkers; i++)
-		_starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_CUDA_KEY, 0);
+		_starpu_worker_start(&worker_set->workers[i], STARPU_CUDA_WORKER, 0);
 #endif
 
 	for (i = 0; i < worker_set->nworkers; i++)
@@ -1067,7 +1067,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 	}
 
 	worker_set->workers[0].worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
+	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_CUDA_WORKER);
 
 	return 0;
 }
