@@ -35,8 +35,6 @@ extern "C"
 struct starpu_task;
 struct starpu_data_descr;
 
-#define STARPU_NARCH STARPU_ANY_WORKER
-
 /**
    todo
 */

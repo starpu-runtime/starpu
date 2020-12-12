@@ -205,7 +205,7 @@ void _starpu__workers_c__register_kobs(void)
 	/* TODO */
 }
 
-struct starpu_driver_info starpu_driver_info[STARPU_MAX_WORKER+1];
+struct starpu_driver_info starpu_driver_info[STARPU_NARCH];
 
 void starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct starpu_driver_info *info)
 {

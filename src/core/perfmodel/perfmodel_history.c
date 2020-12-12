@@ -53,7 +53,7 @@ static int current_arch_comb;
 static int nb_arch_combs;
 static starpu_pthread_rwlock_t arch_combs_mutex;
 static int historymaxerror;
-static char ignore_devid[STARPU_ANY_WORKER];
+static char ignore_devid[STARPU_NARCH];
 
 /* How many executions a codelet will have to be measured before we
  * consider that calibration will provide a value good enough for scheduling */
