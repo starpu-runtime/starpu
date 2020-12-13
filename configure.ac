@@ -1970,12 +1970,13 @@ if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
 	FFLAGS+=" -gdwarf-2 -g3"
 	FCFLAGS+=" -gdwarf-2 -g3"
 	LDFLAGS+=" -gdwarf-2 -g3"
+else
+	CFLAGS+=" -g "
+	CXXFLAGS+=" -g "
+	FFLAGS+=" -g "
+	FCFLAGS+=" -g "
+	LDFLAGS+=" -g "
 fi
-CFLAGS+=" -g "
-CXXFLAGS+=" -g "
-FFLAGS+=" -g "
-FCFLAGS+=" -g "
-LDFLAGS+=" -g "
 
 if test x$enable_spinlock_check = xyes; then
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
