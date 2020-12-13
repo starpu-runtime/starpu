@@ -628,8 +628,8 @@ int main(int argc, char **argv)
 				STARPU_ABORT();
 			}
 
-			/* Make the gnuplot scrit executable for the owner */
-			ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR);
+			/* Make the gnuplot scrit executable */
+			ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR|S_IXGRP|S_IXOTH);
 			if (ret)
 			{
 				perror("chmod");
