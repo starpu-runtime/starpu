@@ -198,8 +198,6 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 		}
 		free(values);
 
-		energy = energy * 0.23 / 1.0e9 / ntasks;
-
 		/*removes all events from a PAPI event set */
 		if ( (retval = PAPI_cleanup_eventset(EventSet)) != PAPI_OK)
 			ERROR_RETURN(retval);
@@ -242,7 +240,7 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 
 	arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
 
-	starpu_perfmodel_update_history(model, task, arch, cpuid, nimpl, energy);
+	starpu_perfmodel_update_history_n(model, task, arch, cpuid, nimpl, energy / ntasks, ntasks);
 
 	return retval;
 }
