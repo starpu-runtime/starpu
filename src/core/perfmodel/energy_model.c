@@ -266,6 +266,12 @@ static int add_event(int eventSet, int socket)
 		retval = PAPI_add_named_event(eventSet, buf);
 		if (retval != PAPI_OK)
 		{
+			if (!strcmp(event_names[i], "rapl::RAPL_ENERGY_DRAM:cpu=%d"))
+			{
+				/* Ok, too bad */
+				_STARPU_DISP("Note: DRAM energy measurement not available\n");
+				return PAPI_OK;
+			}
 			_STARPU_DISP("cannot add event '%s': %d\n", buf, retval);
 			return retval;
 		}
