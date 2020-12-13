@@ -608,10 +608,15 @@ int main(int argc, char **argv)
 #endif
 
 			if (options.energy_symbol)
+			{
 				snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "%s/starpu_power_%s.gp", directory, options.symbol);
+				snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_power_%s_avg.data", directory, options.symbol);
+			}
 			else
+			{
 				snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "%s/starpu_%s.gp", directory, options.symbol);
-			snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_%s_avg.data", directory, options.symbol);
+				snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_%s_avg.data", directory, options.symbol);
+			}
 
 			FILE *gnuplot_file = fopen(gnuplot_file_name, "w+");
 			STARPU_ASSERT_MSG(gnuplot_file, "Cannot create file <%s>\n", gnuplot_file_name);
