@@ -151,7 +151,7 @@ static void write_gp(int argc, char **argv)
 	}
 
 	/* Make the gnuplot scrit executable for the owner */
-	ret = chmod(file_name, sb.st_mode|S_IXUSR);
+	ret = chmod(file_name, sb.st_mode|S_IXUSR|S_IXGRP|S_IXOTH);
 	if (ret)
 	{
 		perror("chmod");
