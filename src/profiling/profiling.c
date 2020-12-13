@@ -201,11 +201,13 @@ void _starpu_profiling_papi_task_start_counters(struct starpu_task *task)
 		for(i=0; i<papi_nevents; i++)
 		{
 			int ret = PAPI_add_event(profiling_info->papi_event_set, papi_events[i]);
+#ifdef PAPI_ECMP_DISABLED
 			if (ret == PAPI_ECMP_DISABLED && !warned_component_unavailable)
 			{
 				_STARPU_MSG("Error while registering Papi event: Component containing event is disabled. Try running `papi_component_avail` to get more information.\n");
 				warned_component_unavailable = 1;
 			}
+#endif
 			profiling_info->papi_values[i]=0;
 		}
 		PAPI_reset(profiling_info->papi_event_set);
