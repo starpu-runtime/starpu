@@ -13,6 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
+#undef NDEBUG
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -373,12 +374,14 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
     task->flops=flops;
   }
 
+  task->callback_func=&cb_func;
+
 	/*call starpu_task_submit method*/
   Py_BEGIN_ALLOW_THREADS
 	int ret = starpu_task_submit(task);
-  Py_END_ALLOW_THREADS
 	assert(ret==0);
-	task->callback_func=&cb_func;
+  Py_END_ALLOW_THREADS
+	
 	if (strcmp(tp_perf, "PyCapsule")==0)
 	{
 		struct starpu_perfmodel *perf =(struct starpu_perfmodel *) func_cl->model;
