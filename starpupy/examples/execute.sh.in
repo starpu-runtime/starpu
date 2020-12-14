@@ -20,6 +20,19 @@ exampledir=@STARPU_SRC_DIR@/starpupy/examples
 modpath=@STARPU_BUILD_DIR@/src/.libs:
 pypath=@STARPU_BUILD_DIR@/starpupy/src/build:$PYTHONPATH
 
+valgrind=""
+gdb=""
+if test "$1" == "--valgrind"
+then
+    valgrind=1
+    shift
+fi
+if test "$1" == "--gdb"
+then
+    gdb=1
+    shift
+fi
+
 examplefile=$1
 if test -f $examplefile
 then
@@ -34,7 +47,13 @@ fi
 shift
 
 set -x
-#PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath PYTHONMALLOC=malloc valgrind --track-origins=yes @PYTHON@ $pythonscript $*
-#PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath gdb --args @PYTHON@ $pythonscript $*
-PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath @PYTHON@ $pythonscript $*
+if test "$valgrind" == "1"
+then
+    PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath PYTHONMALLOC=malloc valgrind --track-origins=yes @PYTHON@ $pythonscript $*
+elif test "$gdb" == "1"
+then
+    PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath gdb --args @PYTHON@ $pythonscript $*
+else
+    PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath @PYTHON@ $pythonscript $*
+fi
 
