@@ -69,9 +69,6 @@ static int add_event(int EventSet, int socket);
 /*must be initialized to PAPI_NULL before calling PAPI_create_event*/
 static int EventSet = PAPI_NULL;
 
-/*This is where we store the values we read from the eventset */
-static long long *values;
-
 #endif
 
 static double t1;
@@ -101,8 +98,6 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 		hwloc_topology_t topology = config->topology.hwtopology;
 
 		nsockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PACKAGE);
-
-		_STARPU_CALLOC(values, nsockets * N_EVTS,sizeof(long long));
 
 		if ((retval = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT)
 			ERROR_RETURN(retval);
@@ -180,6 +175,9 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 	{
 		STARPU_ASSERT_MSG(workerid == -1, "For CPUs we cannot measure each worker separately, use where = STARPU_CPU and leave workerid as -1\n");
 
+		/*This is where we store the values we read from the eventset */
+		long long values[nsockets*N_EVTS];
+
 		/* Stop counting and store the values into the array */
 		if ( (retval = PAPI_stop(EventSet, values)) != PAPI_OK)
 			ERROR_RETURN(retval);
@@ -198,7 +196,6 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 				      delta, t, delta/(t*1.0E-6));
 			}
 		}
-		free(values);
 
 		/*removes all events from a PAPI event set */
 		if ( (retval = PAPI_cleanup_eventset(EventSet)) != PAPI_OK)
