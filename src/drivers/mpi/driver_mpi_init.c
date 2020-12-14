@@ -17,7 +17,8 @@
 #include <core/workers.h>
 #include <drivers/mpi/driver_mpi_source.h>
 
-static struct starpu_driver_info driver_info = {
+static struct starpu_driver_info driver_info =
+{
 	.name_upper = "MPI_MS",
 	.name_var = "MPI_MS",
 	.name_lower = "mpi_ms",
@@ -25,7 +26,8 @@ static struct starpu_driver_info driver_info = {
 	.alpha = 1.0f,
 };
 
-static struct starpu_memory_driver_info memory_driver_info = {
+static struct starpu_memory_driver_info memory_driver_info =
+{
 	.name_upper = "MPI_MS",
 	.worker_archtype = STARPU_MPI_MS_WORKER,
 };

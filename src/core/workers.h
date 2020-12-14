@@ -416,7 +416,8 @@ struct _starpu_machine_config
 };
 
 /** Provides information for a device driver */
-struct starpu_driver_info {
+struct starpu_driver_info
+{
 	const char *name_upper;	/**< Name of worker type in upper case */
 	const char *name_var;	/**< Name of worker type for environment variables */
 	const char *name_lower;	/**< Name of worker type in lower case */
@@ -430,7 +431,8 @@ extern struct starpu_driver_info starpu_driver_info[STARPU_NARCH];
 void starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct starpu_driver_info *info);
 
 /** Provides information for a memory node driver */
-struct starpu_memory_driver_info {
+struct starpu_memory_driver_info
+{
 	const char *name_upper;	/**< Name of memory in upper case */
 	enum starpu_worker_archtype worker_archtype;	/**< Kind of device */
 };

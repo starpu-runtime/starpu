@@ -170,7 +170,8 @@ static unsigned interleave(unsigned i)
 		return 0;
 }
 
-enum sleep_type {
+enum sleep_type
+{
 	PAUSE,
 	NOP,
 	SYNC,

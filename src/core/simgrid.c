@@ -360,7 +360,8 @@ void _starpu_start_simgrid(int *argc, char **argv)
 #ifdef HAVE_SG_LINK_BANDWIDTH_SET
 		sg_link_t *links = sg_link_list();
 		int count = sg_link_count(), i;
-		for (i = 0; i < count; i++) {
+		for (i = 0; i < count; i++)
+		{
 			sg_link_bandwidth_set(links[i], limit_bandwidth * 1000000.);
 		}
 #else

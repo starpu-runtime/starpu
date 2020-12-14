@@ -56,8 +56,11 @@ static const int N_EVTS = 2;
 
 static int nsockets;
 
-static const char* event_names[] = { "rapl::RAPL_ENERGY_PKG:cpu=%d",
-				     "rapl::RAPL_ENERGY_DRAM:cpu=%d"};
+static const char* event_names[] =
+{
+	"rapl::RAPL_ENERGY_PKG:cpu=%d",
+	"rapl::RAPL_ENERGY_DRAM:cpu=%d"
+};
 
 static int add_event(int EventSet, int socket);
 
