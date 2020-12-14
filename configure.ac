@@ -1010,7 +1010,6 @@ if test "x$enable_sc_hypervisor" = "xyes"; then
   AC_DEFINE(STARPU_USE_SC_HYPERVISOR, [1], [enable sc_hypervisor lib])
 #   PKG_CHECK_MODULES([SC_HYPERVISOR], [libsc_hypervisor], [], build_sc_hypervisor="yes")
    STARPU_SC_HYPERVISOR="-lsc_hypervisor"
-   STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $STARPU_SC_HYPERVISOR"
    build_sc_hypervisor="yes"
 else
    build_sc_hypervisor="no"
