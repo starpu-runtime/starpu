@@ -4425,7 +4425,7 @@ void _starpu_fxt_number_events_file_init(struct starpu_fxt_options *options)
 			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->number_events_path, strerror(errno));
 
 		/* FUT_SETUP_CODE is the event with the maximal value */
-		number_events = calloc(FUT_SETUP_CODE+1, sizeof(uint64_t));
+		_STARPU_CALLOC(number_events, FUT_SETUP_CODE+1, sizeof(uint64_t));
 	}
 	else
 		number_events_file = NULL;

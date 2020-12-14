@@ -102,8 +102,7 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 
 		nsockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PACKAGE);
 
-		values=calloc(nsockets * N_EVTS,sizeof(long long));
-		STARPU_ASSERT(values);
+		_STARPU_CALLOC(values, nsockets * N_EVTS,sizeof(long long));
 
 		if ((retval = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT)
 			ERROR_RETURN(retval);
