@@ -32,7 +32,7 @@ $(top_builddir)/starpupy/src/starpu/%.c: $(abs_top_srcdir)/starpupy/src/%.c
 	$(V_ln) $(LN_S) $< $@
 
 all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD)
-	$(PYTHON) setup.py build
+	$(PYTHON) setup.py build $(PYTHON_DEBUG)
 
 install:
 	@if test -d $(prefix)/lib/python* ; \
