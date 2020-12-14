@@ -3397,11 +3397,11 @@ then
 		PYTHON_NUMPY_DIR="`$PYTHON -c "import numpy ; print(numpy.get_include())"`"
 	fi
 	AC_SUBST(PYTHON_NUMPY_DIR)
-	PYTHON_DEBUG=""
+	PYTHON_SETUP_OPTIONS=""
 	if test x$enable_debug = xyes ; then
-	   PYTHON_DEBUG="--debug"
+	   PYTHON_SETUP_OPTIONS="--debug"
 	fi
-	AC_SUBST(PYTHON_DEBUG)
+	AC_SUBST(PYTHON_SETUP_OPTIONS)
 fi
 AM_CONDITIONAL(STARPU_BUILD_STARPUPY, [test x$starpupy_support = xyes])
 
