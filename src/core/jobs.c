@@ -347,19 +347,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 				_starpu_spin_unlock(&handle->header_lock);
 		}
 	}
+
 	/* Check nowhere before releasing the sequential consistency (which may
 	 * unregister the handle and free its switch_cl, and thus task->cl here.  */
 	unsigned nowhere = !task->cl || task->cl->where == STARPU_NOWHERE || task->where == STARPU_NOWHERE;
-	/* If this is a continuation, we do not release task dependencies now.
-	 * Task dependencies will be released only when the continued task
-	 * fully completes */
-	if (!continuation)
-	{
-		/* Tell other tasks that we don't exist any more, thus no need for
-		 * implicit dependencies any more.  */
-		_starpu_release_task_enforce_sequential_consistency(j);
-	}
-
 	/* If the job was executed on a combined worker there is no need for the
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
@@ -394,6 +385,16 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	void (*callback)(void *) = task->callback_func;
 	if (!callback && task->cl)
 		callback = task->cl->callback_func;
+
+	/* If this is a continuation, we do not release task dependencies now.
+	 * Task dependencies will be released only when the continued task
+	 * fully completes */
+	if (!continuation)
+	{
+		/* Tell other tasks that we don't exist any more, thus no need for
+		 * implicit dependencies any more.  */
+		_starpu_release_task_enforce_sequential_consistency(j);
+	}
 
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
