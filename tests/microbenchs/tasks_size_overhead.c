@@ -228,6 +228,8 @@ int main(int argc, char **argv)
 		goto error;
 	}
 
+	if (mincpus <= 0)
+		mincpus = 1;
 	/* For each number of cpus, benchmark */
 	for (ncpus= mincpus; ncpus <= maxcpus; ncpus += cpustep)
 	{
