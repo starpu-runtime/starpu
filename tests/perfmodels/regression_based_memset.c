@@ -328,6 +328,9 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 
 	/* Use a scheduler which doesn't choose the implementation */
+#ifdef STARPU_HAVE_UNSETENV
+	unsetenv("STARPU_SCHED");
+#endif
 	conf.sched_policy_name = "eager";
 	conf.calibrate = 1;
 
@@ -345,15 +348,19 @@ int main(int argc, char **argv)
 	{
 		memset_cl.cpu_funcs[1] = NULL;
 		bench_energy(-1, STARPU_CPU, STARPU_CPU_WORKER, 0, &memset_cl);
+#ifdef STARPU_HAVE_UNSETENV
 		memset_cl.cpu_funcs[1] = memset_cpu;
 		memset_cl.cpu_funcs[0] = NULL;
 		bench_energy(-1, STARPU_CPU, STARPU_CPU_WORKER, 1, &memset_cl);
+#endif
 
 		nl_memset_cl.cpu_funcs[1] = NULL;
 		bench_energy(-1, STARPU_CPU, STARPU_CPU_WORKER, 0, &nl_memset_cl);
+#ifdef STARPU_HAVE_UNSETENV
 		nl_memset_cl.cpu_funcs[1] = memset_cpu;
 		nl_memset_cl.cpu_funcs[0] = NULL;
 		bench_energy(-1, STARPU_CPU, STARPU_CPU_WORKER, 1, &nl_memset_cl);
+#endif
 	}
 
 	for (i = 0; i < starpu_cuda_worker_get_count(); i++)
