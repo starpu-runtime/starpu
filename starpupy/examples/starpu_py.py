@@ -16,7 +16,6 @@
 import starpu
 import time
 import asyncio
-import numpy as np
 
 ############################################################################
 #function no input no output print hello world
@@ -92,13 +91,6 @@ def sub_deco(x,a):
 
 ###############################################################################
 
-def scal(a, t):
-	for i in range(len(t)):
-		t[i]=t[i]*a
-	return t
-
-t=np.array([1,2,3,4,5,6,7,8,9,10])
-
 async def main():
 	#submit function "hello"
     fut = starpu.task_submit()(hello)
@@ -142,12 +134,6 @@ async def main():
     res7 = await fut7
     print("The first argument of this function is the result of Example 8")
     print("The result of function is", res7)
-
-    fut8 = starpu.task_submit()(scal, 2, t)
-    res8 = await fut8
-    print("The result of Example 10 is", res8)
-    print("The return array is", t)
-    #print("The result type is", type(res8))
 
 asyncio.run(main())
 

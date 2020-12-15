@@ -3404,6 +3404,7 @@ then
 	AC_SUBST(PYTHON_SETUP_OPTIONS)
 fi
 AM_CONDITIONAL(STARPU_BUILD_STARPUPY, [test x$starpupy_support = xyes])
+AM_CONDITIONAL(STARPU_STARPUPY_NUMPY, [test x$numpy_avail = xyes])
 
 ##########################################
 # Documentation                          #
@@ -3567,7 +3568,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
   chmod +x starpupy/examples/execute.sh
-  for x in starpupy/examples/starpu_py.sh starpupy/examples/starpu_py_parallel.sh; do
+  for x in starpupy/examples/starpu_py.sh starpupy/examples/starpu_py_np.sh starpupy/examples/starpu_py_parallel.sh; do
       test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
   done
   chmod +x julia/examples/execute.sh

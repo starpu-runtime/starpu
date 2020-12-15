@@ -22,7 +22,10 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+
+#ifdef STARPU_PYTHON_HAVE_NUMPY
 #include <numpy/arrayobject.h>
+#endif
 
 /*macro*/
 #if defined(Py_DEBUG) || defined(DEBUG)
@@ -167,11 +170,14 @@ static size_t sizebase (struct starpu_task *task, unsigned nimpl)
 	PyObject *obj=cst->rv;
 	/*get the length of result*/
 	const char *tp = Py_TYPE(obj)->tp_name;
+#ifdef STARPU_PYTHON_HAVE_NUMPY
 	/*if the result is a numpy array*/ 
 	if (strcmp(tp, "numpy.ndarray")==0)
 		n = PyArray_SIZE(obj);
+	else
+#endif
 	/*if the result is a list*/
-	else if (strcmp(tp, "list")==0)
+	if (strcmp(tp, "list")==0)
 		n = PyList_Size(obj);
 	/*else error*/
 	else
@@ -520,10 +526,10 @@ PyInit_starpupy(void)
 	assert(ret==0);
 	/*python asysncio import*/
 	asyncio_module = PyImport_ImportModule("asyncio");
-  #ifdef STARPU_PYTHON_HAVE_NUMPY
-  /*numpy import array*/
-  import_array();
-  #endif
+#ifdef STARPU_PYTHON_HAVE_NUMPY
+	/*numpy import array*/
+	import_array();
+#endif
 	/*module import initialization*/
 	return PyModule_Create(&starpupymodule);
 }

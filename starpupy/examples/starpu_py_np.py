@@ -13,31 +13,28 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+import starpu
+import asyncio
+import numpy as np
 
-include $(top_srcdir)/starpu.mk
 
-SUBDIRS =
+###############################################################################
 
-CLEANFILES = *.gcno *.gcda *.linkinfo
+def scal(a, t):
+	for i in range(len(t)):
+		t[i]=t[i]*a
+	return t
 
-TESTS	=
-TESTS	+=	starpu_py.sh
-TESTS	+=	starpu_py_parallel.sh
+t=np.array([1,2,3,4,5,6,7,8,9,10])
 
-if STARPU_STARPUPY_NUMPY
-TESTS	+=	starpu_py_np.sh
-endif
+async def main():
+    fut8 = starpu.task_submit()(scal, 2, t)
+    res8 = await fut8
+    print("The result of Example 10 is", res8)
+    print("The return array is", t)
+    #print("The result type is", type(res8))
 
-EXTRA_DIST	=		\
-	starpu_py_parallel.py	\
-	starpu_py_parallel.sh	\
-	starpu_py.py		\
-	starpu_py.sh		\
-	starpu_py_np.py		\
-	starpu_py_np.sh
+asyncio.run(main())
 
-python_sourcesdir = $(libdir)/starpu/python
-dist_python_sources_DATA	=	\
-	starpu_py_parallel.py	\
-	starpu_py.py
 
+#starpu.task_wait_for_all()
