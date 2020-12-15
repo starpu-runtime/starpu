@@ -634,7 +634,14 @@ int main(int argc, char **argv)
 			}
 
 			/* Make the gnuplot scrit executable */
-			ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR|S_IXGRP|S_IXOTH);
+			ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR
+#ifdef S_IXGRP
+								 |S_IXGRP
+#endif
+#ifdef S_IXOTH
+								 |S_IXOTH
+#endif
+								 );
 			if (ret)
 			{
 				perror("chmod");
