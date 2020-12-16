@@ -96,12 +96,20 @@ int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const s
 	if (attr && attr->stacksize)
 		sg_actor_set_stacksize(*thread, attr->stacksize);
 #endif
+#ifdef HAVE_SG_ACTOR_SET_DATA
+	sg_actor_set_data(*thread, tsd);
+#else
 	sg_actor_data_set(*thread, tsd);
+#endif
 	sg_actor_start(*thread, _starpu_simgrid_thread_start, 2, _args);
 #else
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
 #ifdef HAVE_SG_ACTOR_DATA
+#ifdef HAVE_SG_ACTOR_SET_DATA
+	sg_actor_set_data(*thread, tsd);
+#else
 	sg_actor_data_set(*thread, tsd);
+#endif
 #endif
 #endif
 #ifndef HAVE_SG_ACTOR_SET_STACKSIZE
@@ -328,7 +336,9 @@ extern void *smpi_process_get_user_data();
 int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 {
 	void **array;
-#ifdef HAVE_SG_ACTOR_DATA
+#ifdef HAVE_SG_ACTOR_GET_DATA
+	array = sg_actor_get_data(sg_actor_self());
+#elif defined(HAVE_SG_ACTOR_DATA)
 	array = sg_actor_data(sg_actor_self());
 #else
 #if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
@@ -355,7 +365,9 @@ int starpu_pthread_setspecific(starpu_pthread_key_t key, const void *pointer)
 void* starpu_pthread_getspecific(starpu_pthread_key_t key)
 {
 	void **array;
-#ifdef HAVE_SG_ACTOR_DATA
+#ifdef HAVE_SG_ACTOR_GET_DATA
+	array = sg_actor_get_data(sg_actor_self());
+#elif defined(HAVE_SG_ACTOR_DATA)
 	array = sg_actor_data(sg_actor_self());
 #else
 #if defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)
