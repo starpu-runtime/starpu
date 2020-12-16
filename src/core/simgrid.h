@@ -24,6 +24,9 @@
 extern "C"
 {
 #endif
+
+/* Note: when changing something here, update the include list in configure.ac
+ * in the part that tries to enable stdc++11 */
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
