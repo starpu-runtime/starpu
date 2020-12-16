@@ -15,5 +15,5 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-STARPU_CALIBRATE=1 $(dirname $0)/execute.sh starpu_py_parallel.py
+STARPU_CALIBRATE=1 $(dirname $0)/execute.sh starpu_py_parallel.py $*
 
