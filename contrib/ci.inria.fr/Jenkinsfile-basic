@@ -62,7 +62,7 @@ pipeline
 			{
 				script
 				{
-					labelToSelect = 'unix'
+					labelToSelect = 'unix2'
 					listOfNodeNames = jenkins.model.Jenkins.instance.nodes.collect
 					{
 						node -> node.getLabelString().contains(labelToSelect) ? node.name : null
