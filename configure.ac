@@ -3525,50 +3525,55 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
-  mkdir -p tests/microbenchs
-  test -e tests/microbenchs/tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_data_overhead.sh tests/microbenchs/
-  test -e tests/microbenchs/sync_tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/sync_tasks_data_overhead.sh tests/microbenchs/
-  test -e tests/microbenchs/async_tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/async_tasks_data_overhead.sh tests/microbenchs/
-  test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
-  test -e tests/microbenchs/tasks_size_overhead_sched.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_sched.sh tests/microbenchs/
-  test -e tests/microbenchs/tasks_size_overhead_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_scheds.sh tests/microbenchs/
-  test -e tests/microbenchs/tasks_size_overhead.gp || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.gp tests/microbenchs/
-  test -e tests/microbenchs/microbench.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/microbench.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_independent_heterogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_heterogeneous_tasks_data.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_independent_heterogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_heterogeneous_tasks.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh tests/microbenchs/
-  test -e tests/microbenchs/bandwidth_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/bandwidth_scheds.sh tests/microbenchs/
-  mkdir -p tests/energy
-  test -e tests/energy/static.sh || ln -sf $ac_abs_top_srcdir/tests/energy/static.sh tests/energy/
-  test -e tests/energy/dynamic.sh || ln -sf $ac_abs_top_srcdir/tests/energy/dynamic.sh tests/energy/
-  mkdir -p tests/datawizard
-  test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
-  mkdir -p tests/overlap
-  test -e tests/overlap/overlap.sh || ln -sf $ac_abs_top_srcdir/tests/overlap/overlap.sh tests/overlap/
-  mkdir -p tests/model-checking
-  test -e tests/model-checking/prio_list.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/prio_list.sh tests/model-checking/
-  test -e tests/model-checking/barrier.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/barrier.sh tests/model-checking/
-  mkdir -p examples/heat
-  test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
-  mkdir -p examples/lu
-  test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
-  mkdir -p examples/cholesky
-  test -e examples/cholesky/cholesky.sh || ln -sf $ac_abs_top_srcdir/examples/cholesky/cholesky.sh examples/cholesky/
-  mkdir -p examples/mult
-  test -e examples/mult/sgemm.sh || ln -sf $ac_abs_top_srcdir/examples/mult/sgemm.sh examples/mult/
-  mkdir -p examples/scheduler
-  test -e examples/scheduler/schedulers.sh || ln -sf $ac_abs_top_srcdir/examples/scheduler/schedulers.sh examples/scheduler
-  test -e examples/scheduler/schedulers_context.sh || ln -sf $ac_abs_top_srcdir/examples/scheduler/schedulers_context.sh examples/scheduler
-  test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
-  test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
-  test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
   chmod +x julia/examples/execute.sh
-  for x in julia/examples/check_deps/check_deps.sh julia/examples/mult/mult_starpu.sh julia/examples/mult/perf.sh julia/examples/variable/variable.sh julia/examples/task_insert_color/task_insert_color.sh julia/examples/vector_scal/vector_scal.sh julia/examples/mandelbrot/mandelbrot.sh julia/examples/callback/callback.sh julia/examples/dependency/task_dep.sh julia/examples/dependency/tag_dep.sh julia/examples/dependency/end_dep.sh julia/examples/axpy/axpy.sh julia/examples/gemm/gemm.sh julia/examples/cholesky/cholesky.sh; do
+  for x in \
+    tests/microbenchs/tasks_data_overhead.sh \
+    tests/microbenchs/sync_tasks_data_overhead.sh \
+    tests/microbenchs/async_tasks_data_overhead.sh \
+    tests/microbenchs/tasks_size_overhead.sh \
+    tests/microbenchs/tasks_size_overhead_sched.sh \
+    tests/microbenchs/tasks_size_overhead_scheds.sh \
+    tests/microbenchs/tasks_size_overhead.gp \
+    tests/microbenchs/microbench.sh \
+    tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh \
+    tests/microbenchs/parallel_independent_heterogeneous_tasks_data.sh \
+    tests/microbenchs/parallel_independent_heterogeneous_tasks.sh \
+    tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh \
+    tests/microbenchs/parallel_independent_homogeneous_tasks.sh \
+    tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh \
+    tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh \
+    tests/microbenchs/bandwidth_scheds.sh \
+    tests/energy/static.sh \
+    tests/energy/dynamic.sh \
+    tests/datawizard/locality.sh \
+    tests/overlap/overlap.sh \
+    tests/model-checking/prio_list.sh \
+    tests/model-checking/barrier.sh \
+    examples/heat/heat.sh \
+    examples/lu/lu.sh \
+    examples/cholesky/cholesky.sh \
+    examples/mult/sgemm.sh \
+    examples/scheduler/schedulers.sh \
+    examples/scheduler/schedulers_context.sh \
+    tools/starpu_paje_draw_histogram.R \
+    tools/starpu_paje_state_stats.R \
+    tools/starpu_trace_state_stats.py \
+    julia/examples/check_deps/check_deps.sh \
+    julia/examples/mult/mult_starpu.sh \
+    julia/examples/mult/perf.sh \
+    julia/examples/variable/variable.sh \
+    julia/examples/task_insert_color/task_insert_color.sh \
+    julia/examples/vector_scal/vector_scal.sh \
+    julia/examples/mandelbrot/mandelbrot.sh \
+    julia/examples/callback/callback.sh \
+    julia/examples/dependency/task_dep.sh \
+    julia/examples/dependency/tag_dep.sh \
+    julia/examples/dependency/end_dep.sh \
+    julia/examples/axpy/axpy.sh \
+    julia/examples/gemm/gemm.sh \
+    julia/examples/cholesky/cholesky.sh; \
+  ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
 ])
