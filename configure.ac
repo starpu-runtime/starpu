@@ -3572,7 +3572,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     julia/examples/dependency/end_dep.sh \
     julia/examples/axpy/axpy.sh \
     julia/examples/gemm/gemm.sh \
-    julia/examples/cholesky/cholesky.sh; \
+    julia/examples/cholesky/cholesky.sh \
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
