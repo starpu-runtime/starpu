@@ -70,7 +70,8 @@ void codelet_func(void *buffers[], void *cl_arg)
 	}
 
 	/*check the arguments of python function passed in*/
-	for (int i=0; i < PyTuple_Size(cst->argList); i++)
+	int i;
+	for(i=0; i < PyTuple_Size(cst->argList); i++)
 	{
 		PyObject *obj = PyTuple_GetItem(cst->argList, i);
 		const char *tp = Py_TYPE(obj)->tp_name;
@@ -81,16 +82,16 @@ void codelet_func(void *buffers[], void *cl_arg)
 			/*replace the Future argument to its result*/
 			PyTuple_SetItem(cst->argList, i, fut_result);
 		}
-    /*else if (strcmp(tp, "numpy.ndarray")==0)
-    {
-      printf("array is %p\n", obj);
-    }*/
+		/*else if (strcmp(tp, "numpy.ndarray")==0)
+		  {
+		  printf("array is %p\n", obj);
+		  }*/
 	}
 
 	/*call the python function*/
 	PyObject *pRetVal = PyObject_CallObject(cst->f, cst->argList);
-    //const char *tp = Py_TYPE(pRetVal)->tp_name;
-    //printf("return value type is %s\n", tp);
+	//const char *tp = Py_TYPE(pRetVal)->tp_name;
+	//printf("return value type is %s\n", tp);
 	cst->rv = pRetVal;
 
 	//Py_DECREF(cst->f);
@@ -117,7 +118,7 @@ void cb_func(void *v)
 	Py_DECREF(cst->rv);
 	Py_DECREF(cst->fut);
 	Py_DECREF(cst->lp);
-    Py_DECREF(cst->argList);
+	Py_DECREF(cst->argList);
 
 	//Py_DECREF(perfmodel);
 	struct starpu_codelet *func_cl=(struct starpu_codelet *) task->cl;
@@ -134,10 +135,6 @@ void cb_func(void *v)
 	/*deallocate task*/
 	free(task->cl);
 	free(task->cl_arg);
-    if (task->name!=NULL)
-    {
-      free(task->name);
-    }
 }
 
 /***********************************************************************************/
@@ -171,7 +168,7 @@ static size_t sizebase (struct starpu_task *task, unsigned nimpl)
 	/*get the length of result*/
 	const char *tp = Py_TYPE(obj)->tp_name;
 #ifdef STARPU_PYTHON_HAVE_NUMPY
-	/*if the result is a numpy array*/ 
+	/*if the result is a numpy array*/
 	if (strcmp(tp, "numpy.ndarray")==0)
 		n = PyArray_SIZE(obj);
 	else
@@ -275,7 +272,8 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	/*set one of fut attribute to the task pointer*/
 	PyObject_SetAttrString(fut, "starpu_task", PyTask);
 	/*check the arguments of python function passed in*/
-	for (int i=1; i < PyTuple_Size(args)-1; i++)
+	int i;
+	for(i=1; i < PyTuple_Size(args)-1; i++)
 	{
 		PyObject *obj=PyTuple_GetItem(args, i);
 		const char* tp = Py_TYPE(obj)->tp_name;
@@ -297,8 +295,8 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	func_cl->cpu_funcs[0]=&codelet_func;
 
 	/*check whether the option perfmodel is None*/
-    PyObject *dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);/*the last argument is the option dictionary*/
-    PyObject *perfmodel = PyDict_GetItemString(dict_option, "perfmodel");
+	PyObject *dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);/*the last argument is the option dictionary*/
+	PyObject *perfmodel = PyDict_GetItemString(dict_option, "perfmodel");
 	const char *tp_perf = Py_TYPE(perfmodel)->tp_name;
 	if (strcmp(tp_perf, "PyCapsule")==0)
 	{
@@ -318,76 +316,77 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	Py_INCREF(loop);
 
 	/*pass args in argList*/
-    if (PyTuple_Size(args)==2)/*function no arguments*/
-      cst->argList = PyTuple_New(0);
-    else
-    {/*function has arguments*/
-      cst->argList = PyTuple_New(PyTuple_Size(args)-2);
-      for (int i=0; i < PyTuple_Size(args)-2; i++)
-      {
-        PyObject *tmp=PyTuple_GetItem(args, i+1);
-        PyTuple_SetItem(cst->argList, i, tmp);
-        Py_INCREF(PyTuple_GetItem(cst->argList, i));
-      }
-    }
+	if (PyTuple_Size(args)==2)/*function no arguments*/
+		cst->argList = PyTuple_New(0);
+	else
+	{/*function has arguments*/
+		cst->argList = PyTuple_New(PyTuple_Size(args)-2);
+		int i;
+		for(i=0; i < PyTuple_Size(args)-2; i++)
+		{
+			PyObject *tmp=PyTuple_GetItem(args, i+1);
+			PyTuple_SetItem(cst->argList, i, tmp);
+			Py_INCREF(PyTuple_GetItem(cst->argList, i));
+		}
+	}
 
 	task->cl=func_cl;
 	task->cl_arg=cst;
 
-  /*pass optional values name=None, synchronous=1, priority=0, color=None, flops=None, perfmodel=None*/
-  /*const char * name*/
-  PyObject *PyName = PyDict_GetItemString(dict_option, "name");
-  const char *name_type = Py_TYPE(PyName)->tp_name;
-  if (strcmp(name_type, "NoneType")!=0)
-  {
-    PyObject *pStrObj = PyUnicode_AsUTF8String(PyName);
-    char* name_str = PyBytes_AsString(pStrObj);
-    char* name = strdup(name_str);
-    //printf("name is %s\n", name);
-    task->name=name;
-    Py_DECREF(pStrObj);
-  }
+	/*pass optional values name=None, synchronous=1, priority=0, color=None, flops=None, perfmodel=None*/
+	/*const char * name*/
+	PyObject *PyName = PyDict_GetItemString(dict_option, "name");
+	const char *name_type = Py_TYPE(PyName)->tp_name;
+	if (strcmp(name_type, "NoneType")!=0)
+	{
+		PyObject *pStrObj = PyUnicode_AsUTF8String(PyName);
+		char* name_str = PyBytes_AsString(pStrObj);
+		char* name = strdup(name_str);
+		//printf("name is %s\n", name);
+		task->name=name;
+		Py_DECREF(pStrObj);
+	}
 
-  /*unsigned synchronous:1*/
-  PyObject *PySync = PyDict_GetItemString(dict_option, "synchronous");
-  unsigned sync=PyLong_AsUnsignedLong(PySync);
-  //printf("sync is %u\n", sync);
-  task->synchronous=sync;
+	/*unsigned synchronous:1*/
+	PyObject *PySync = PyDict_GetItemString(dict_option, "synchronous");
+	unsigned sync=PyLong_AsUnsignedLong(PySync);
+	//printf("sync is %u\n", sync);
+	task->synchronous=sync;
 
-  /*int priority*/
-  PyObject *PyPrio = PyDict_GetItemString(dict_option, "priority");
-  int prio=PyLong_AsLong(PyPrio);
-  //printf("prio is %d\n", prio);
-  task->priority=prio;
+	/*int priority*/
+	PyObject *PyPrio = PyDict_GetItemString(dict_option, "priority");
+	int prio=PyLong_AsLong(PyPrio);
+	//printf("prio is %d\n", prio);
+	task->priority=prio;
 
-  /*unsigned color*/
-  PyObject *PyColor = PyDict_GetItemString(dict_option, "color");
-  const char *color_type = Py_TYPE(PyColor)->tp_name;
-  if (strcmp(color_type, "NoneType")!=0)
-  {
-    unsigned color=PyLong_AsUnsignedLong(PyColor);
-    //printf("color is %u\n", color);
-    task->color=color;
-  }
+	/*unsigned color*/
+	PyObject *PyColor = PyDict_GetItemString(dict_option, "color");
+	const char *color_type = Py_TYPE(PyColor)->tp_name;
+	if (strcmp(color_type, "NoneType")!=0)
+	{
+		unsigned color=PyLong_AsUnsignedLong(PyColor);
+		//printf("color is %u\n", color);
+		task->color=color;
+	}
 
-  /*double flops*/
-  PyObject *PyFlops = PyDict_GetItemString(dict_option, "flops");
-  const char *flops_type = Py_TYPE(PyFlops)->tp_name;
-  if (strcmp(flops_type, "NoneType")!=0)
-  {
-    double flops=PyFloat_AsDouble(PyFlops);
-    //printf("flops is %f\n", flop);
-    task->flops=flops;
-  }
+	/*double flops*/
+	PyObject *PyFlops = PyDict_GetItemString(dict_option, "flops");
+	const char *flops_type = Py_TYPE(PyFlops)->tp_name;
+	if (strcmp(flops_type, "NoneType")!=0)
+	{
+		double flops=PyFloat_AsDouble(PyFlops);
+		//printf("flops is %f\n", flop);
+		task->flops=flops;
+	}
 
-  task->callback_func=&cb_func;
+	task->callback_func=&cb_func;
 
 	/*call starpu_task_submit method*/
-  Py_BEGIN_ALLOW_THREADS
-	int ret = starpu_task_submit(task);
-	assert(ret==0);
-  Py_END_ALLOW_THREADS
-	
+	Py_BEGIN_ALLOW_THREADS
+		int ret = starpu_task_submit(task);
+		assert(ret==0);
+	Py_END_ALLOW_THREADS
+
 	if (strcmp(tp_perf, "PyCapsule")==0)
 	{
 		struct starpu_perfmodel *perf =(struct starpu_perfmodel *) func_cl->model;
@@ -408,7 +407,7 @@ static PyObject* starpu_task_wait_for_all_wrapper(PyObject *self, PyObject *args
 		starpu_task_wait_for_all();
 	Py_END_ALLOW_THREADS
 
-		/*return type is void*/
+	/*return type is void*/
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -448,50 +447,50 @@ static PyObject* starpu_cpu_worker_get_count_wrapper(PyObject *self, PyObject *a
 /*wrapper get min priority method*/
 static PyObject* starpu_sched_get_min_priority_wrapper(PyObject *self, PyObject *args)
 {
-  /*call starpu_sched_get_min_priority*/
-  int min_prio=starpu_sched_get_min_priority();
+	/*call starpu_sched_get_min_priority*/
+	int min_prio=starpu_sched_get_min_priority();
 
-  /*return type is int*/
-  return Py_BuildValue("i", min_prio);
+	/*return type is int*/
+	return Py_BuildValue("i", min_prio);
 }
 
 /*wrapper get max priority method*/
 static PyObject* starpu_sched_get_max_priority_wrapper(PyObject *self, PyObject *args)
 {
-  /*call starpu_sched_get_max_priority*/
-  int max_prio=starpu_sched_get_max_priority();
+	/*call starpu_sched_get_max_priority*/
+	int max_prio=starpu_sched_get_max_priority();
 
-  /*return type is int*/
-  return Py_BuildValue("i", max_prio);
+	/*return type is int*/
+	return Py_BuildValue("i", max_prio);
 }
 
 /*wrapper get the number of no completed submitted tasks method*/
 static PyObject* starpu_task_nsubmitted_wrapper(PyObject *self, PyObject *args)
 {
-  /*call starpu_task_nsubmitted*/
-  int num_task=starpu_task_nsubmitted();
+	/*call starpu_task_nsubmitted*/
+	int num_task=starpu_task_nsubmitted();
 
-  /*Return the number of submitted tasks which have not completed yet */
-  return Py_BuildValue("i", num_task);
+	/*Return the number of submitted tasks which have not completed yet */
+	return Py_BuildValue("i", num_task);
 }
 /***********************************************************************************/
 
 /***************The module’s method table and initialization function**************/
 /*method table*/
-static PyMethodDef starpupyMethods[] = 
-{ 
-  {"_task_submit", starpu_task_submit_wrapper, METH_VARARGS, "submit the task"}, /*submit method*/
-  {"task_wait_for_all", starpu_task_wait_for_all_wrapper, METH_VARARGS, "wait the task"}, /*wait for all method*/
-  {"pause", starpu_pause_wrapper, METH_VARARGS, "suspend the processing of new tasks by workers"}, /*pause method*/
-  {"resume", starpu_resume_wrapper, METH_VARARGS, "resume the workers polling for new tasks"}, /*resume method*/
-  {"cpu_worker_get_count", starpu_cpu_worker_get_count_wrapper, METH_VARARGS, "return the number of CPUs controlled by StarPU"}, /*get count cpu method*/
-  {"init_perfmodel", init_perfmodel, METH_VARARGS, "initialize struct starpu_perfmodel"}, /*initialize perfmodel*/
-  {"free_perfmodel", free_perfmodel, METH_VARARGS, "free struct starpu_perfmodel"}, /*free perfmodel*/
-  {"save_history_based_model", starpu_save_history_based_model_wrapper, METH_VARARGS, "save the performance model"}, /*save the performance model*/
-  {"sched_get_min_priority", starpu_sched_get_min_priority_wrapper, METH_VARARGS, "get the number of min priority"}, /*get the number of min priority*/
-  {"sched_get_max_priority", starpu_sched_get_max_priority_wrapper, METH_VARARGS, "get the number of max priority"}, /*get the number of max priority*/
-  {"task_nsubmitted", starpu_task_nsubmitted_wrapper, METH_VARARGS, "get the number of submitted tasks which have not completed yet"}, /*get the number of submitted tasks which have not completed yet*/
-  {NULL, NULL}
+static PyMethodDef starpupyMethods[] =
+{
+	{"_task_submit", starpu_task_submit_wrapper, METH_VARARGS, "submit the task"}, /*submit method*/
+	{"task_wait_for_all", starpu_task_wait_for_all_wrapper, METH_VARARGS, "wait the task"}, /*wait for all method*/
+	{"pause", starpu_pause_wrapper, METH_VARARGS, "suspend the processing of new tasks by workers"}, /*pause method*/
+	{"resume", starpu_resume_wrapper, METH_VARARGS, "resume the workers polling for new tasks"}, /*resume method*/
+	{"cpu_worker_get_count", starpu_cpu_worker_get_count_wrapper, METH_VARARGS, "return the number of CPUs controlled by StarPU"}, /*get count cpu method*/
+	{"init_perfmodel", init_perfmodel, METH_VARARGS, "initialize struct starpu_perfmodel"}, /*initialize perfmodel*/
+	{"free_perfmodel", free_perfmodel, METH_VARARGS, "free struct starpu_perfmodel"}, /*free perfmodel*/
+	{"save_history_based_model", starpu_save_history_based_model_wrapper, METH_VARARGS, "save the performance model"}, /*save the performance model*/
+	{"sched_get_min_priority", starpu_sched_get_min_priority_wrapper, METH_VARARGS, "get the number of min priority"}, /*get the number of min priority*/
+	{"sched_get_max_priority", starpu_sched_get_max_priority_wrapper, METH_VARARGS, "get the number of max priority"}, /*get the number of max priority*/
+	{"task_nsubmitted", starpu_task_nsubmitted_wrapper, METH_VARARGS, "get the number of submitted tasks which have not completed yet"}, /*get the number of submitted tasks which have not completed yet*/
+	{NULL, NULL}
 };
 
 /*deallocation function*/
