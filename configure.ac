@@ -208,7 +208,6 @@ if test x$enable_simgrid = xyes ; then
 	# disable MPI support by default
 	default_enable_mpi=no
 
-	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	AC_LANG_PUSH([C++])
 	if test x$enable_shared = xno ; then
 		# When linking statically, libtool does not realize we need libstdc++ for simgrid_cpp.cpp
@@ -216,17 +215,35 @@ if test x$enable_simgrid = xyes ; then
 		LIBS="$LIBS -lstdc++"
 	fi
 
+	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	case \ $CXXFLAGS\  in
 	*\ -std=*\ *) ;;
 	*)
-		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-				  #ifdef STARPU_HAVE_SIMGRID_MSG_H
-				  #include <simgrid/msg.h>
-				  #include <simgrid/host.h>
-				  #else
-				  #include <msg/msg.h>
-				  #endif
-				  ]])],,
+	# Make sure our C++ compiler can compile simgrid headers
+	SIMGRID_INCLUDES="
+#ifdef STARPU_HAVE_SIMGRID_MSG_H
+#include <simgrid/msg.h>
+#include <simgrid/host.h>
+#elif defined(STARPU_HAVE_MSG_MSG_H)
+#include <msg/msg.h>
+#endif
+
+#ifdef STARPU_HAVE_XBT_BASE_H
+#include <xbt/base.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_VERSION_H
+#include <simgrid/version.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_ZONE_H
+#include <simgrid/zone.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+#include <simgrid/host.h>
+#endif
+
+#include <xbt/xbt_os_time.h>
+"
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[$SIMGRID_INCLUDES]])],,
 				  CXXFLAGS="-std=c++11 $CXXFLAGS")
 		;;
 	esac
