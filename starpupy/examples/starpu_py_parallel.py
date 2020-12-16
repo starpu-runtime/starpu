@@ -20,6 +20,7 @@ import asyncio
 from math import sqrt
 from math import log10
 import numpy as np
+import sys
 
 #generate a list to store functions
 g_func=[]
@@ -39,7 +40,7 @@ def func2():
 	print ("Example 3:")
 	return 12
 g_func.append(starpu.joblib.delayed(func2)())
- 
+
 #function has 2 int inputs and 1 int output
 def exp(a,b):
 	res_exp=a**b
@@ -75,18 +76,18 @@ def add_scal(a, t1, t2):
 	return t1
 
 def scal_arr(a, t):
-    for i in range(len(t)):
-        t[i]=t[i]*a[i]
-    return t
+	for i in range(len(t)):
+		t[i]=t[i]*a[i]
+	return t
 
 def multi(a,b):
 	res_multi=a*b
 	return res_multi
 
 def multi_2arr(a, b):
-    for i in range(len(a)):
-        a[i]=a[i]*b[i]
-    return a
+        for i in range(len(a)):
+                a[i]=a[i]*b[i]
+        return a
 
 def multi_list(l):
 	res = []
@@ -103,14 +104,13 @@ def log10_arr(t):
 #################scikit test###################
 DEFAULT_JOBLIB_BACKEND = starpu.joblib.get_active_backend()[0].__class__
 class MyBackend(DEFAULT_JOBLIB_BACKEND):  # type: ignore
-    def __init__(self, *args, **kwargs):
-        self.count = 0
-        super().__init__(*args, **kwargs)
+        def __init__(self, *args, **kwargs):
+                self.count = 0
+                super().__init__(*args, **kwargs)
 
-    def start_call(self):
-        self.count += 1
-        return super().start_call()
-
+        def start_call(self):
+                self.count += 1
+                return super().start_call()
 
 starpu.joblib.register_parallel_backend('testing', MyBackend)
 
@@ -118,20 +118,27 @@ with starpu.joblib.parallel_backend("testing") as (ba, n_jobs):
 	print("backend and n_jobs is", ba, n_jobs)
 ###############################################
 
-
 N=100
 # A=np.arange(N)
 # B=np.arange(N)
 # a=np.arange(N)
 # b=np.arange(N, 2*N, 1)
 
-for x in [10, 100, 1000, 10000, 100000, 1000000, 10000000]:
+displayPlot=False
+listX=[10, 100, 1000, 10000]
+for arg in sys.argv[1:]:
+        if arg == "-long":
+                listX = [10, 100, 1000, 10000, 100000, 1000000, 10000000]
+        if arg == "-plot":
+                displayPlot=True
+
+for x in listX:
 	for X in range(x, x*10, x):
 		print("X=",X)
 		starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_list")(starpu.joblib.delayed(log10)(i+1)for i in range(X))
 		A=np.arange(1,X+1,1)
 		starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_arr")(starpu.joblib.delayed(log10_arr)(A))
-		
+
 print("************************")
 print("parallel Normal version:")
 print("************************")
@@ -326,14 +333,14 @@ async def main():
 
 asyncio.run(main())
 
-starpu.perfmodel_plot(perfmodel="sqrt",view=False)
-starpu.perfmodel_plot(perfmodel="multi",view=False)
-starpu.perfmodel_plot(perfmodel="scal_arr",view=False)
-starpu.perfmodel_plot(perfmodel="multi_list",view=False)
-starpu.perfmodel_plot(perfmodel="multi_2arr",view=False)
-starpu.perfmodel_plot(perfmodel="scal",view=False)
-starpu.perfmodel_plot(perfmodel="add_scal",view=False)
-starpu.perfmodel_plot(perfmodel="func",view=False)
+starpu.perfmodel_plot(perfmodel="sqrt",view=displayPlot)
+starpu.perfmodel_plot(perfmodel="multi",view=displayPlot)
+starpu.perfmodel_plot(perfmodel="scal_arr",view=displayPlot)
+starpu.perfmodel_plot(perfmodel="multi_list",view=displayPlot)
+starpu.perfmodel_plot(perfmodel="multi_2arr",view=displayPlot)
+starpu.perfmodel_plot(perfmodel="scal",view=displayPlot)
+starpu.perfmodel_plot(perfmodel="add_scal",view=displayPlot)
+starpu.perfmodel_plot(perfmodel="func",view=displayPlot)
 
-starpu.perfmodel_plot(perfmodel="log_list")
-starpu.perfmodel_plot(perfmodel="log_arr")
+starpu.perfmodel_plot(perfmodel="log_list",view=displayPlot)
+starpu.perfmodel_plot(perfmodel="log_arr",view=displayPlot)
