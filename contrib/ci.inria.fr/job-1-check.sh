@@ -41,8 +41,8 @@ env > $PWD/env
 
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz ../$tarball
+touch --date="last hour" $(find $basename)
 cd $basename
-touch configure
 mkdir build
 cd build
 
