@@ -24,5 +24,5 @@ Version: @PACKAGE_VERSION@
 Cflags: -I${includedir}/starpu/@STARPU_EFFECTIVE_VERSION@ -DSTARPU_USE_DEPRECATED_API
 Libs: -L${libdir} -lstarpumpi-@STARPU_EFFECTIVE_VERSION@
 Libs.private: @LDFLAGS@ @LIBS@ @STARPU_EXPORTED_LIBS@
-Requires: starpu-1.3
+Requires: libstarpu
 Requires.private:
