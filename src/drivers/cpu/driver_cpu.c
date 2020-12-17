@@ -59,6 +59,27 @@
 #include <windows.h>
 #endif
 
+static struct starpu_driver_info driver_info =
+{
+	.name_upper = "CPU",
+	.name_var = "CPU",
+	.name_lower = "cpu",
+	.memory_kind = STARPU_CPU_RAM,
+	.alpha = 0.5f,
+};
+
+static struct starpu_memory_driver_info memory_driver_info =
+{
+	.name_upper = "NUMA",
+	.worker_archtype = STARPU_CPU_WORKER,
+};
+
+void _starpu_cpu_preinit(void)
+{
+	starpu_driver_info_register(STARPU_CPU_WORKER, &driver_info);
+	starpu_memory_driver_info_register(STARPU_CPU_RAM, &memory_driver_info);
+}
+
 
 #ifdef STARPU_USE_CPU
 /* Actually launch the job on a cpu worker.
@@ -189,7 +210,7 @@ int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
 {
 	int devid = cpu_worker->devid;
 
-	_starpu_driver_start(cpu_worker, _STARPU_FUT_CPU_KEY, 1);
+	_starpu_driver_start(cpu_worker, STARPU_CPU_WORKER, 1);
 	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
 	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
 	starpu_pthread_setname(cpu_worker->short_name);
@@ -360,7 +381,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	 * job. */
 
 	/* can a cpu perform that task ? */
-	if (!_STARPU_CPU_MAY_PERFORM(j))
+	if (!_STARPU_MAY_PERFORM(j, CPU))
 	{
 		/* put it and the end of the queue ... XXX */
 		_starpu_push_task_to_workers(task);
@@ -416,7 +437,7 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	_starpu_free_all_automatically_allocated_buffers(memnode);
 
 	cpu_worker->worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CPU_KEY);
+	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_CPU_WORKER);
 
 	return 0;
 }

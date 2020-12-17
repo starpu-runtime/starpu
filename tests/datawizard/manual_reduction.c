@@ -206,8 +206,10 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 
 	starpu_conf_init(&conf);
-	conf.nmic = 0;
-	conf.nmpi_ms = 0;
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.ncuda = -1;
+	conf.nopencl = -1;
 
 	variable = INIT_VALUE;
 

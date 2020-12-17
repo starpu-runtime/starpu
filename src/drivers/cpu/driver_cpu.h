@@ -22,6 +22,8 @@
 #include <common/config.h>
 #include <datawizard/node_ops.h>
 
+void _starpu_cpu_preinit(void);
+
 extern struct _starpu_driver_ops _starpu_driver_cpu_ops;
 extern struct _starpu_node_ops _starpu_driver_cpu_node_ops;
 

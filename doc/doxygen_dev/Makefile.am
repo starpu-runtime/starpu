@@ -172,7 +172,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/common/list.h	\
 	$(top_srcdir)/src/debug/starpu_debug_helpers.h	\
 	$(top_srcdir)/src/debug/traces/starpu_fxt.h	\
-	$(top_srcdir)/src/starpu_parameters.h	\
 	$(top_srcdir)/src/sched_policies/fifo_queues.h	\
 	$(top_srcdir)/src/sched_policies/helper_mct.h	\
 	$(top_srcdir)/src/sched_policies/sched_component.h	\

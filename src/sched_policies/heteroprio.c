@@ -37,6 +37,8 @@
 #define DBL_MAX __DBL_MAX__
 #endif
 
+#define STARPU_NB_TYPES STARPU_NARCH
+
 /* A bucket corresponds to a Pair of priorities
  * When a task is pushed with a priority X, it will be stored
  * into the bucket X.
@@ -107,8 +109,16 @@ struct _starpu_heteroprio_data
 	unsigned nb_workers_per_arch_index[STARPU_NB_TYPES];
 };
 
+
+static int starpu_heteroprio_types_to_arch(enum starpu_worker_archtype arch)
+{
+	if (arch >= STARPU_NARCH)
+		return 0;
+	return STARPU_WORKER_TO_MASK(arch);
+}
+
 /** Tell how many prio there are for a given arch */
-void starpu_heteroprio_set_nb_prios(unsigned sched_ctx_id, enum starpu_heteroprio_types arch, unsigned max_prio)
+void starpu_heteroprio_set_nb_prios(unsigned sched_ctx_id, enum starpu_worker_archtype arch, unsigned max_prio)
 {
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
@@ -118,7 +128,7 @@ void starpu_heteroprio_set_nb_prios(unsigned sched_ctx_id, enum starpu_heteropri
 }
 
 /** Set the mapping for a given arch prio=>bucket */
-inline void starpu_heteroprio_set_mapping(unsigned sched_ctx_id, enum starpu_heteroprio_types arch, unsigned source_prio, unsigned dest_bucket_id)
+inline void starpu_heteroprio_set_mapping(unsigned sched_ctx_id, enum starpu_worker_archtype arch, unsigned source_prio, unsigned dest_bucket_id)
 {
 	STARPU_ASSERT(dest_bucket_id < STARPU_HETEROPRIO_MAX_PRIO);
 
@@ -126,12 +136,12 @@ inline void starpu_heteroprio_set_mapping(unsigned sched_ctx_id, enum starpu_het
 
 	hp->prio_mapping_per_arch_index[arch][source_prio] = dest_bucket_id;
 
-	hp->buckets[dest_bucket_id].valid_archs |= starpu_heteroprio_types_to_arch[arch];
+	hp->buckets[dest_bucket_id].valid_archs |= starpu_heteroprio_types_to_arch(arch);
 	_STARPU_DEBUG("Adding arch %d to bucket %u\n", arch, dest_bucket_id);
 }
 
 /** Tell which arch is the faster for the tasks of a bucket (optional) */
-inline void starpu_heteroprio_set_faster_arch(unsigned sched_ctx_id, enum starpu_heteroprio_types arch, unsigned bucket_id)
+inline void starpu_heteroprio_set_faster_arch(unsigned sched_ctx_id, enum starpu_worker_archtype arch, unsigned bucket_id)
 {
 	STARPU_ASSERT(bucket_id < STARPU_HETEROPRIO_MAX_PRIO);
 
@@ -143,7 +153,7 @@ inline void starpu_heteroprio_set_faster_arch(unsigned sched_ctx_id, enum starpu
 }
 
 /** Tell how slow is a arch for the tasks of a bucket (optional) */
-inline void starpu_heteroprio_set_arch_slow_factor(unsigned sched_ctx_id, enum starpu_heteroprio_types arch, unsigned bucket_id, float slow_factor)
+inline void starpu_heteroprio_set_arch_slow_factor(unsigned sched_ctx_id, enum starpu_worker_archtype arch, unsigned bucket_id, float slow_factor)
 {
 	STARPU_ASSERT(bucket_id < STARPU_HETEROPRIO_MAX_PRIO);
 
@@ -160,52 +170,22 @@ static inline void default_init_sched(unsigned sched_ctx_id)
 	int max_prio = starpu_sched_ctx_get_max_priority(sched_ctx_id);
 	STARPU_ASSERT(min_prio >= 0);
 	STARPU_ASSERT(max_prio >= 0);
+
+	enum starpu_worker_archtype type;
+
 	// By default each type of devices uses 1 bucket and no slow factor
-#ifdef STARPU_USE_CPU
-	if (starpu_cpu_worker_get_count() > 0)
-		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CPU_IDX, max_prio-min_prio+1);
-#endif
-#ifdef STARPU_USE_CUDA
-	if (starpu_cuda_worker_get_count() > 0)
-		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_CUDA_IDX, max_prio-min_prio+1);
-#endif
-#ifdef STARPU_USE_OPENCL
-	if (starpu_opencl_worker_get_count() > 0)
-		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_OPENCL_IDX, max_prio-min_prio+1);
-#endif
-#ifdef STARPU_USE_MIC
-	if (starpu_mic_worker_get_count() > 0)
-		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MIC_IDX, max_prio-min_prio+1);
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	if (starpu_mpi_ms_worker_get_count() > 0)
-		starpu_heteroprio_set_nb_prios(sched_ctx_id, STARPU_MPI_MS_IDX, max_prio-min_prio+1);
-#endif
+	for (type = 0; type < STARPU_NARCH; type++)
+		if (starpu_worker_get_count_by_type(type) > 0)
+			starpu_heteroprio_set_nb_prios(sched_ctx_id, type, max_prio-min_prio+1);
 
 	// Direct mapping
 	int prio;
 	for(prio=min_prio ; prio<=max_prio ; prio++)
 	{
-#ifdef STARPU_USE_CPU
-		if (starpu_cpu_worker_get_count() > 0)
-			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CPU_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_CUDA
-		if (starpu_cuda_worker_get_count() > 0)
-			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_CUDA_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_OPENCL
-		if (starpu_opencl_worker_get_count() > 0)
-			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_OPENCL_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_MIC
-		if (starpu_mic_worker_get_count() > 0)
-			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MIC_IDX, prio, prio);
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-		if (starpu_mpi_ms_worker_get_count() > 0)
-			starpu_heteroprio_set_mapping(sched_ctx_id, STARPU_MPI_MS_IDX, prio, prio);
-#endif
+		// By default each type of devices uses 1 bucket and no slow factor
+		for (type = 0; type < STARPU_NARCH; type++)
+			if (starpu_worker_get_count_by_type(type) > 0)
+				starpu_heteroprio_set_mapping(sched_ctx_id, type, prio, prio);
 	}
 }
 
@@ -249,7 +229,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 			const unsigned mapped_prio = hp->prio_mapping_per_arch_index[arch_index][idx_prio];
 			STARPU_ASSERT(mapped_prio <= STARPU_HETEROPRIO_MAX_PRIO);
 			STARPU_ASSERT(hp->buckets[mapped_prio].slow_factors_per_index[arch_index] >= 0.0);
-			STARPU_ASSERT(hp->buckets[mapped_prio].valid_archs & starpu_heteroprio_types_to_arch[arch_index]);
+			STARPU_ASSERT(hp->buckets[mapped_prio].valid_archs & starpu_heteroprio_types_to_arch(arch_index));
 			check_archs[mapped_prio]      = 1;
 			check_all_archs[mapped_prio] += 1;
 		}
@@ -257,7 +237,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 		{
 			/* Ensure the current arch use a bucket or someone else can use it */
 			STARPU_ASSERT(check_archs[idx_prio] == 1 || hp->buckets[idx_prio].valid_archs == 0
-				      || (hp->buckets[idx_prio].valid_archs & ~starpu_heteroprio_types_to_arch[arch_index]) != 0);
+				      || (hp->buckets[idx_prio].valid_archs & ~starpu_heteroprio_types_to_arch(arch_index)) != 0);
 		}
 	}
 	/* Ensure that if a valid_archs = (STARPU_CPU|STARPU_CUDA) then check_all_archs[] = 2 for example */
@@ -267,7 +247,7 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 		unsigned nb_arch_on_bucket = 0;
 		for(arch_index = 0; arch_index < STARPU_NB_TYPES; ++arch_index)
 		{
-			if(hp->buckets[idx_prio].valid_archs & starpu_heteroprio_types_to_arch[arch_index])
+			if(hp->buckets[idx_prio].valid_archs & starpu_heteroprio_types_to_arch(arch_index))
 			{
 				nb_arch_on_bucket += 1;
 			}
@@ -310,32 +290,10 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 		memset(&hp->workers_heteroprio[workerid], 0, sizeof(hp->workers_heteroprio[workerid]));
 		/* if the worker has already belonged to this context
 		   the queue and the synchronization variables have been already initialized */
-			_starpu_prio_deque_init(&hp->workers_heteroprio[workerid].tasks_queue);
-			switch(starpu_worker_get_type(workerid))
-			{
-			case STARPU_CPU_WORKER:
-				hp->workers_heteroprio[workerid].arch_type = STARPU_CPU;
-				hp->workers_heteroprio[workerid].arch_index = STARPU_CPU_IDX;
-				break;
-			case STARPU_CUDA_WORKER:
-				hp->workers_heteroprio[workerid].arch_type = STARPU_CUDA;
-				hp->workers_heteroprio[workerid].arch_index = STARPU_CUDA_IDX;
-				break;
-			case STARPU_OPENCL_WORKER:
-				hp->workers_heteroprio[workerid].arch_type = STARPU_OPENCL;
-				hp->workers_heteroprio[workerid].arch_index = STARPU_OPENCL_IDX;
-				break;
-			case STARPU_MIC_WORKER:
-				hp->workers_heteroprio[workerid].arch_type = STARPU_MIC;
-				hp->workers_heteroprio[workerid].arch_index = STARPU_MIC_IDX;
-				break;
-			case STARPU_MPI_MS_WORKER:
-				hp->workers_heteroprio[workerid].arch_type = STARPU_MPI_MS;
-				hp->workers_heteroprio[workerid].arch_index = STARPU_MPI_MS_IDX;
-				break;
-			default:
-				STARPU_ASSERT(0);
-			}
+		enum starpu_worker_archtype arch_index = starpu_worker_get_type(workerid);
+		_starpu_prio_deque_init(&hp->workers_heteroprio[workerid].tasks_queue);
+		hp->workers_heteroprio[workerid].arch_index = arch_index;
+		hp->workers_heteroprio[workerid].arch_type = starpu_heteroprio_types_to_arch(arch_index);
 		hp->nb_workers_per_arch_index[hp->workers_heteroprio[workerid].arch_index]++;
 
 	}
@@ -379,7 +337,7 @@ static int push_task_heteroprio_policy(struct starpu_task *task)
 	for(arch_index = 0; arch_index < STARPU_NB_TYPES; ++arch_index)
 	{
 		/* We test the archs on the bucket and not on task->where since it is restrictive */
-		if(bucket->valid_archs & starpu_heteroprio_types_to_arch[arch_index])
+		if(bucket->valid_archs & starpu_heteroprio_types_to_arch(arch_index))
 			hp->nb_remaining_tasks_per_arch_index[arch_index] += 1;
 	}
 
@@ -512,7 +470,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 				for(arch_index = 0; arch_index < STARPU_NB_TYPES; ++arch_index)
 				{
 					/* We test the archs on the bucket and not on task->where since it is restrictive */
-					if(bucket->valid_archs & starpu_heteroprio_types_to_arch[arch_index])
+					if(bucket->valid_archs & starpu_heteroprio_types_to_arch(arch_index))
 					{
 						hp->nb_remaining_tasks_per_arch_index[arch_index] -= 1;
 					}

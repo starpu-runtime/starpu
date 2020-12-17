@@ -112,8 +112,8 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		nummaxids = starpu_worker_get_count() + starpu_combined_worker_get_count();
 		if (starpu_memory_nodes_get_count() > nummaxids)
 			nummaxids = starpu_memory_nodes_get_count();
-		if (STARPU_ANY_WORKER > nummaxids)
-			nummaxids = STARPU_ANY_WORKER;
+		if (STARPU_NARCH > nummaxids)
+			nummaxids = STARPU_NARCH;
 
 		if (sched == 0)
 			decide_flags = flags & STARPU_SCHED_SIMPLE_DECIDE_MASK;
@@ -154,7 +154,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			/* Count available architecture types */
 			enum starpu_worker_archtype type;
 			nbelow = 0;
-			for (type = STARPU_CPU_WORKER; type < STARPU_ANY_WORKER; type++)
+			for (type = 0; type < STARPU_NARCH; type++)
 			{
 				if (starpu_worker_get_count_by_type(type))
 				{

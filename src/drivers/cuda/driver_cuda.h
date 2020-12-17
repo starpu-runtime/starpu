@@ -22,6 +22,8 @@
 
 #include <common/config.h>
 
+void _starpu_cuda_preinit(void);
+
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <cuda_runtime_api.h>

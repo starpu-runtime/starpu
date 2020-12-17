@@ -170,7 +170,8 @@ static unsigned interleave(unsigned i)
 		return 0;
 }
 
-enum sleep_type {
+enum sleep_type
+{
 	PAUSE,
 	NOP,
 	SYNC,
@@ -186,10 +187,7 @@ static float bench(int *argc, char ***argv, unsigned nbusy, unsigned ncpus, int 
 
 	starpu_conf_init(&conf);
 	conf.precedence_over_environment_variables = 1;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
-	conf.nmic = 0;
-	conf.nmpi_ms = 0;
+	starpu_conf_noworker(&conf);
 	conf.ncpus = ncpus;
 
 	if (intl && sleep == PAUSE)
@@ -284,10 +282,8 @@ int main(int argc, char **argv)
 
 	starpu_conf_init(&conf);
 	conf.precedence_over_environment_variables = 1;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
-	conf.nmic = 0;
-	conf.nmpi_ms = 0;
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
 
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

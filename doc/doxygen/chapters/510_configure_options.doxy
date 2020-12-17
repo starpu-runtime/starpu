@@ -442,7 +442,7 @@ $ STARPU_SILENT=1 mpirun -np 2 ./insert_task
 <dd>
 \anchor enable-nmad
 \addindex __configure__--enable-nmad
-Enable the NewMadeleine implementation for StarPU-MPI.
+Enable the NewMadeleine implementation for StarPU-MPI. See \ref Nmad for more details.
 </dd>
 
 <dt>--disable-fortran</dt>

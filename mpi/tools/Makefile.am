@@ -20,11 +20,9 @@ include $(top_srcdir)/starpu-notests.mk
 
 SUBDIRS =
 
-AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/mpi/include -I$(top_builddir)/src -I$(top_srcdir)/src -DSTARPU_REPLAY_MPI
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_srcdir)/mpi/include -I$(top_builddir)/src -I$(top_srcdir)/src -DSTARPU_REPLAY_MPI $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
-LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la $(FXT_LIBS)
-LIBS += $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la $(STARPU_EXPORTED_LIBS)
 
 CC=$(CC_OR_MPICC)
 CCLD=$(CC_OR_MPICC)

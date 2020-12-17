@@ -71,7 +71,7 @@ _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 	/* As OpenCL must have been initialized before calling this function,
 	 * `nb_device' is ensured to be correctly set. */
 	STARPU_ASSERT(init_done == 1);
-	config->topology.nhwopenclgpus = nb_devices;
+	config->topology.nhwdevices[STARPU_OPENCL_WORKER] = nb_devices;
 }
 
 static void _starpu_opencl_limit_gpu_mem_if_needed(unsigned devid)
@@ -623,7 +623,7 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 {
 	int devid = worker->devid;
 
-	_starpu_driver_start(worker, _STARPU_FUT_OPENCL_KEY, 0);
+	_starpu_driver_start(worker, STARPU_OPENCL_WORKER, 0);
 
 	_starpu_opencl_init_context(devid);
 
@@ -817,7 +817,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 		worker->current_task = task;
 
 	/* can OpenCL do that task ? */
-	if (!_STARPU_OPENCL_MAY_PERFORM(j))
+	if (!_STARPU_MAY_PERFORM(j, OPENCL))
 	{
 		/* this is not a OpenCL task */
 		_starpu_worker_refuse_task(worker, task);
@@ -853,7 +853,7 @@ int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
         _starpu_opencl_deinit_context(devid);
 
 	worker->worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_OPENCL_KEY);
+	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_OPENCL_WORKER);
 
 	return 0;
 }
@@ -1356,21 +1356,11 @@ int _starpu_opencl_is_direct_access_supported(unsigned node, unsigned handling_n
 #ifdef STARPU_SIMGRID
 struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = NULL,
-	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
 	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_interface_to[STARPU_DISK_RAM] = NULL,
-	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = NULL,
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
 	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_data_to[STARPU_DISK_RAM] = NULL,
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.wait_request_completion = NULL,
 	.test_request_completion = NULL,
@@ -1382,21 +1372,11 @@ struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 #else
 struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_opencl_copy_interface_from_opencl_to_cpu,
-	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
 	.copy_interface_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_opencl_to_opencl,
-	.copy_interface_to[STARPU_DISK_RAM] = NULL,
-	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_opencl_copy_data_from_opencl_to_cpu,
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
 	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_opencl_to_opencl,
-	.copy_data_to[STARPU_DISK_RAM] = NULL,
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	/* TODO: copy2D/3D? */
 

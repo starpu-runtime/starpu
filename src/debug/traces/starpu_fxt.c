@@ -39,30 +39,18 @@
 #include <starpu_hash.h>
 
 #define CPUS_WORKER_COLORS_NB	8
-#define CUDA_WORKER_COLORS_NB	9
-#define OPENCL_WORKER_COLORS_NB 9
-#define MIC_WORKER_COLORS_NB	9
-#define MPI_MS_WORKER_COLORS_NB	9
-#define OTHER_WORKER_COLORS_NB	4
+#define ACCEL_WORKER_COLORS_NB	9
 
 /* How many times longer an idle period has to be before the smoothing
  * heuristics avoids averaging codelet gflops */
 #define IDLE_FACTOR 2
 
 static char *cpus_worker_colors[CPUS_WORKER_COLORS_NB] = {"/greens9/7", "/greens9/6", "/greens9/5", "/greens9/4",  "/greens9/9", "/greens9/3",  "/greens9/2",  "/greens9/1"  };
-static char *cuda_worker_colors[CUDA_WORKER_COLORS_NB] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
-static char *opencl_worker_colors[OPENCL_WORKER_COLORS_NB] = {"/blues9/9", "/blues9/6", "/blues9/3", "/blues9/1", "/blues9/8", "/blues9/7", "/blues9/4", "/blues9/2",  "/blues9/1"};
-static char *mic_worker_colors[MIC_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
-static char *mpi_ms_worker_colors[MPI_MS_WORKER_COLORS_NB] = {"/reds9/9", "/reds9/6", "/reds9/3", "/reds9/1", "/reds9/8", "/reds9/7", "/reds9/4", "/reds9/2",  "/reds9/1"};
-static char *other_worker_colors[OTHER_WORKER_COLORS_NB] = {"/greys9/9", "/greys9/8", "/greys9/7", "/greys9/6"};
+static char *accel_worker_colors[ACCEL_WORKER_COLORS_NB] = {"/ylorrd9/9", "/ylorrd9/6", "/ylorrd9/3", "/ylorrd9/1", "/ylorrd9/8", "/ylorrd9/7", "/ylorrd9/4", "/ylorrd9/2",  "/ylorrd9/1"};
 static char *worker_colors[STARPU_NMAXWORKERS];
 
-static unsigned opencl_index = 0;
-static unsigned cuda_index = 0;
 static unsigned cpus_index = 0;
-static unsigned mic_index = 0;
-static unsigned mpi_ms_index = 0;
-static unsigned other_index = 0;
+static unsigned accel_index = 0;
 static uint64_t* number_events = NULL;
 
 static unsigned long fut_keymask;
@@ -205,7 +193,8 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "Name: %s\n", task->name);
 	if (task->model_name)
 		fprintf(tasks_file, "Model: %s\n", task->model_name);
-	if (task->file) {
+	if (task->file)
+	{
 		fprintf(tasks_file, "File: %s\n", task->file);
 		fprintf(tasks_file, "Line: %d\n", task->line);
 	}
@@ -395,14 +384,6 @@ out:
 	free(data);
 }
 
-static void set_next_other_worker_color(int workerid)
-{
-	if (workerid >= STARPU_NMAXWORKERS)
-		return;
-	worker_colors[workerid] = other_worker_colors[other_index++];
-	if (other_index == OTHER_WORKER_COLORS_NB) other_index = 0;
-}
-
 static void set_next_cpu_worker_color(int workerid)
 {
 	if (workerid >= STARPU_NMAXWORKERS)
@@ -411,36 +392,12 @@ static void set_next_cpu_worker_color(int workerid)
 	if (cpus_index == CPUS_WORKER_COLORS_NB) cpus_index = 0;
 }
 
-static void set_next_cuda_worker_color(int workerid)
+static void set_next_accel_worker_color(int workerid)
 {
 	if (workerid >= STARPU_NMAXWORKERS)
 		return;
-	worker_colors[workerid] = cuda_worker_colors[cuda_index++];
-	if (cuda_index == CUDA_WORKER_COLORS_NB) cuda_index = 0;
-}
-
-static void set_next_opencl_worker_color(int workerid)
-{
-	if (workerid >= STARPU_NMAXWORKERS)
-		return;
-	worker_colors[workerid] = opencl_worker_colors[opencl_index++];
-	if (opencl_index == OPENCL_WORKER_COLORS_NB) opencl_index = 0;
-}
-
-static void set_next_mic_worker_color(int workerid)
-{
-	if (workerid >= STARPU_NMAXWORKERS)
-		return;
-	worker_colors[workerid] = mic_worker_colors[mic_index++];
-	if (mic_index == MIC_WORKER_COLORS_NB) mic_index = 0;
-}
-
-static void set_next_mpi_ms_worker_color(int workerid)
-{
-	if (workerid >= STARPU_NMAXWORKERS)
-		return;
-	worker_colors[workerid] = mpi_ms_worker_colors[mpi_ms_index++];
-	if (mpi_ms_index == MPI_MS_WORKER_COLORS_NB) mpi_ms_index = 0;
+	worker_colors[workerid] = accel_worker_colors[accel_index++];
+	if (accel_index == ACCEL_WORKER_COLORS_NB) accel_index = 0;
 }
 
 static const char *get_worker_color(int workerid)
@@ -1231,56 +1188,24 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 
 	new_thread = register_worker_id(prefixTOnodeid(prefix), threadid, workerid, set);
 
-	char *kindstr = "";
+	const char *kindstr;
 	struct starpu_perfmodel_arch arch;
 	arch.ndevices = 1;
 	_STARPU_MALLOC(arch.devices, sizeof(struct starpu_perfmodel_device));
 
-	switch (ev->param[0])
-	{
-		case _STARPU_FUT_APPS_KEY:
-			set_next_other_worker_color(workerid);
-			kindstr = "APPS";
-			break;
-		case _STARPU_FUT_CPU_KEY:
-			set_next_cpu_worker_color(workerid);
-			kindstr = "CPU";
-			arch.devices[0].type = STARPU_CPU_WORKER;
-			arch.devices[0].devid = 0;
-			arch.devices[0].ncores = 1;
-			break;
-		case _STARPU_FUT_CUDA_KEY:
-			set_next_cuda_worker_color(workerid);
-			kindstr = "CUDA";
-			arch.devices[0].type = STARPU_CUDA_WORKER;
-			arch.devices[0].devid = devid;
-			arch.devices[0].ncores = 1;
-			break;
-		case _STARPU_FUT_OPENCL_KEY:
-			set_next_opencl_worker_color(workerid);
-			kindstr = "OPENCL";
-			arch.devices[0].type = STARPU_OPENCL_WORKER;
-			arch.devices[0].devid = devid;
-			arch.devices[0].ncores = 1;
-			break;
-		case _STARPU_FUT_MIC_KEY:
-			set_next_mic_worker_color(workerid);
-			kindstr = "mic";
-			arch.devices[0].type = STARPU_MIC_WORKER;
-			arch.devices[0].devid = devid;
-			arch.devices[0].ncores = 1;
-			break;
-		case _STARPU_FUT_MPI_KEY:
-			set_next_mpi_ms_worker_color(workerid);
-			kindstr = "mpi_ms";
-			arch.devices[0].type = STARPU_MPI_MS_WORKER;
-			arch.devices[0].devid = devid;
-			arch.devices[0].ncores = 1;
-			break;
+	enum starpu_worker_archtype archtype = _STARPU_FUT_KEY_WORKER(ev->param[0]);
+	STARPU_ASSERT(archtype >= 0 && archtype < STARPU_NARCH);
 
-		default:
-			STARPU_ABORT();
-	}
+	kindstr = starpu_worker_get_type_as_string(archtype);
+	arch.devices[0].type = archtype;
+	arch.devices[0].devid = 0;
+	arch.devices[0].ncores = 1;
+
+	if (archtype == STARPU_CPU_WORKER)
+		set_next_cpu_worker_color(workerid);
+	else
+		set_next_accel_worker_color(workerid);
+
 	double now = get_event_time_stamp(ev, options);
 
 	if (out_paje_file)
@@ -4205,7 +4130,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 	if (out_paje_file && !options->no_bus)
 	{
-		while (!_starpu_communication_list_empty(&communication_list)) {
+		while (!_starpu_communication_list_empty(&communication_list))
+		{
 			struct _starpu_communication*itor;
 			itor = _starpu_communication_list_pop_front(&communication_list);
 
@@ -4499,7 +4425,7 @@ void _starpu_fxt_number_events_file_init(struct starpu_fxt_options *options)
 			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->number_events_path, strerror(errno));
 
 		/* FUT_SETUP_CODE is the event with the maximal value */
-		number_events = calloc(FUT_SETUP_CODE+1, sizeof(uint64_t));
+		_STARPU_CALLOC(number_events, FUT_SETUP_CODE+1, sizeof(uint64_t));
 	}
 	else
 		number_events_file = NULL;

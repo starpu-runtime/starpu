@@ -86,7 +86,7 @@ void mp_cpy_kernel(void *descr[], void *cl_arg)
 
 	const struct starpu_data_interface_ops *interface_ops = _starpu_data_interface_get_ops(interface_id);
 	const struct starpu_data_copy_methods *copy_methods = interface_ops->copy_methods;
-	
+
 	void *dst_interface = descr[0];
 	void *src_interface = descr[1];
 
@@ -151,7 +151,7 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 
 	unsigned *interface_id;
 	_STARPU_MALLOC(interface_id, sizeof(*interface_id));
-	*interface_id = dst_handle->ops->interfaceid; 
+	*interface_id = dst_handle->ops->interfaceid;
 	task->cl_arg = interface_id;
 	task->cl_arg_size = sizeof(*interface_id);
 	task->cl_arg_free = 1;
@@ -181,7 +181,8 @@ int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_ha
 int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous)
 {
 	_starpu_spin_lock(&src_handle->header_lock);
-	if (src_handle->readonly_dup) {
+	if (src_handle->readonly_dup)
+	{
 		/* Already a ro duplicate, just return it with one more ref */
 		*dst_handle = src_handle->readonly_dup;
 		_starpu_spin_unlock(&src_handle->header_lock);
@@ -190,7 +191,8 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 		_starpu_spin_unlock(&(*dst_handle)->header_lock);
 		return 0;
 	}
-	if (src_handle->readonly) {
+	if (src_handle->readonly)
+	{
 		src_handle->aliases++;
 		_starpu_spin_unlock(&src_handle->header_lock);
 		*dst_handle = src_handle;

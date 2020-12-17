@@ -16,9 +16,11 @@
 
 include $(top_srcdir)/starpu-notests.mk
 
-AM_CFLAGS = $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(FFTWF_CFLAGS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/starpufft/include/ -I$(top_builddir)/include -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(HWLOC_CFLAGS)
-LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(FFTW_LIBS) $(FFTWF_LIBS) $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_CUFFT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+AM_CFLAGS += $(FFTWF_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/starpufft/include/ -I$(top_builddir)/include -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_H_CPPFLAGS)
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
+LIBS += $(FFTW_LIBS) $(FFTWF_LIBS)
+LIBS += $(STARPU_CUDA_LDFLAGS) $(STARPU_CUFFT_LDFLAGS)
 
 lib_LTLIBRARIES = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la
 

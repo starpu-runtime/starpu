@@ -290,7 +290,11 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 
 	cudaFree(d_buffer);
 
+#if CUDART_VERSION >= 4000
+	cudaDeviceReset();
+#else
 	cudaThreadExit();
+#endif
 }
 
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
@@ -400,7 +404,11 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cudaSetDevice(src);
 	cudaFree(s_buffer);
 
+#if CUDART_VERSION >= 4000
+	cudaDeviceReset();
+#else
 	cudaThreadExit();
+#endif
 }
 #endif
 #endif
@@ -3037,7 +3045,7 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	int busid = starpu_bus_get_id(src_node, dst_node);
 	int direct = starpu_bus_get_direct(busid);
 #endif
-	float ngpus = topology->ncudagpus+topology->nopenclgpus;
+	float ngpus = topology->ndevices[STARPU_CUDA_WORKER]+topology->ndevices[STARPU_OPENCL_WORKER];
 #ifdef STARPU_DEVEL
 #warning FIXME: ngpus should not be used e.g. for slow disk transfers...
 #endif

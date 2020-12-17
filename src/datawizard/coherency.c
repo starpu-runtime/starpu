@@ -139,26 +139,24 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 			 * 	Unless peer transfer is supported (and it would then have been selected above).
 			 * 	Other should be ok */
 
-			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM ||
-			    starpu_node_get_kind(i) == STARPU_OPENCL_RAM ||
-			    starpu_node_get_kind(i) == STARPU_MIC_RAM)
-				i_gpu = i;
-
 			if (starpu_node_get_kind(i) == STARPU_CPU_RAM ||
                             starpu_node_get_kind(i) == STARPU_MPI_MS_RAM)
 				i_ram = i;
-			if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
+			else if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
 				i_disk = i;
+			else
+				i_gpu = i;
 		}
 	}
 
 	/* we have to use cpu_ram in first */
 	if (i_ram != -1)
 		src_node = i_ram;
-	/* no luck we have to use the disk memory */
 	else if (i_gpu != -1)
+	/* otherwise a gpu */
 		src_node = i_gpu;
 	else
+	/* no luck we have to use the disk memory */
 		src_node = i_disk;
 
 	STARPU_ASSERT(src_node != -1);

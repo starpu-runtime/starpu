@@ -88,6 +88,11 @@ static double compute_expected_time(double now, double predicted_end, double pre
 
 double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, double min_exp_end_of_task, double max_exp_end_of_workers, double transfer_len, double local_energy)
 {
+	if(isnan(local_energy))
+		/* Energy not calibrated yet, but we cannot do this
+		 * automatically anyway, so ignoring this for now */
+		local_energy = 0.;
+
 	/* Note: the expected end includes the data transfer duration, which we want to be able to tune separately */
 	
 	/* min_exp_end_of_task is the minimum end time of the task over all workers */

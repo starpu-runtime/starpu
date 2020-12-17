@@ -98,6 +98,7 @@ int main(int argc, char **argv)
         return ret;
 
 enodev:
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(handle);
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one

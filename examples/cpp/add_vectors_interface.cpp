@@ -61,9 +61,9 @@ class my_allocator
 		node = a.get_node();
 	}
 
-	explicit my_allocator(const unsigned node)
+	explicit my_allocator(const unsigned thenode)
 	{
-		this->node = node;
+		this->node = thenode;
 	}
 
 	pointer allocate(size_type n, const void * = 0)
@@ -175,10 +175,8 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	.cuda_to_ram = NULL,
 	.cuda_to_cuda = NULL,
-	.cuda_to_opencl = NULL,
 
 	.opencl_to_ram = NULL,
-	.opencl_to_cuda = NULL,
 	.opencl_to_opencl = NULL,
 
 	.mic_to_ram = NULL,
@@ -216,9 +214,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	NULL,
 	NULL,
-	NULL,
 
-	NULL,
 	NULL,
 	NULL,
 

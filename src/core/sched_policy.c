@@ -417,6 +417,10 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 int _starpu_push_task(struct _starpu_job *j)
 {
+#ifdef STARPU_SIMGRID
+	//if (_starpu_simgrid_task_push_cost())
+		starpu_sleep(0.000001);
+#endif
 	if(j->task->prologue_callback_func)
 	{
 		_starpu_set_current_task(j->task);
@@ -625,14 +629,16 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				&& starpu_get_prefetch_flag()
 				&& starpu_memory_nodes_get_count() > 1)
 			{
-				if (task->where == STARPU_CPU && config->cpus_nodeid >= 0)
-					starpu_prefetch_task_input_on_node(task, config->cpus_nodeid);
-				else if (task->where == STARPU_CUDA && config->cuda_nodeid >= 0)
-					starpu_prefetch_task_input_on_node(task, config->cuda_nodeid);
-				else if (task->where == STARPU_OPENCL && config->opencl_nodeid >= 0)
-					starpu_prefetch_task_input_on_node(task, config->opencl_nodeid);
-				else if (task->where == STARPU_MIC && config->mic_nodeid >= 0)
-					starpu_prefetch_task_input_on_node(task, config->mic_nodeid);
+				enum starpu_worker_archtype type;
+				for (type = 0; type < STARPU_NARCH; type++)
+				{
+					if (task->where == (int32_t) STARPU_WORKER_TO_MASK(type))
+					{
+						if (config->arch_nodeid[type] >= 0)
+							starpu_prefetch_task_input_on_node(task, config->arch_nodeid[type]);
+						break;
+					}
+				}
 			}
 
 			STARPU_ASSERT(sched_ctx->sched_policy->push_task);
