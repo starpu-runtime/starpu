@@ -196,8 +196,11 @@ print("the program execution time is", end_exec5-start_exec5)
 print("the cpu execution time is", end_cpu5-start_cpu5)
 
 print("--(multi_2arr)(A, B)")
-A=np.arange(N)
-B=np.arange(N, 2*N, 1)
+# A=np.arange(N)
+# B=np.arange(N, 2*N, 1)
+n, m = 4, 5
+A = np.arange(n*m).reshape(n, m)
+B = np.arange(n*m, 2*n*m, 1).reshape(n, m)
 print("The input arrays are A", A, "B", B)
 start_exec6=time.time()
 start_cpu6=time.process_time()
