@@ -42,6 +42,7 @@ env > $PWD/env
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz ../$tarball
 cd $basename
+touch configure
 mkdir build
 cd build
 
