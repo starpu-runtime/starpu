@@ -632,7 +632,8 @@ int _starpu_push_task_to_workers(struct starpu_task *task)
 				enum starpu_worker_archtype type;
 				for (type = 0; type < STARPU_NARCH; type++)
 				{
-					if (task->where == (int32_t) STARPU_WORKER_TO_MASK(type)) {
+					if (task->where == (int32_t) STARPU_WORKER_TO_MASK(type))
+					{
 						if (config->arch_nodeid[type] >= 0)
 							starpu_prefetch_task_input_on_node(task, config->arch_nodeid[type]);
 						break;

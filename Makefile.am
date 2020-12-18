@@ -53,6 +53,10 @@ if STARPU_BUILD_STARPURM
 SUBDIRS += starpurm
 endif
 
+if STARPU_BUILD_STARPUPY
+SUBDIRS += starpupy
+endif
+
 if STARPU_BUILD_SC_HYPERVISOR
 SUBDIRS += sc_hypervisor
 endif

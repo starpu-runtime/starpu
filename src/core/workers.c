@@ -1402,7 +1402,8 @@ int _starpu_get_catch_signals(void)
 	return _starpu_config.conf.catch_signals;
 }
 
-void starpu_drivers_preinit(void) {
+void starpu_drivers_preinit(void)
+{
 	_starpu_cpu_preinit();
 	_starpu_cuda_preinit();
 	_starpu_opencl_preinit();

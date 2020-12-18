@@ -17,7 +17,8 @@
 #include <core/workers.h>
 #include <drivers/opencl/driver_opencl.h>
 
-static struct starpu_driver_info driver_info = {
+static struct starpu_driver_info driver_info =
+{
 	.name_upper = "OpenCL",
 	.name_var = "OPENCL",
 	.name_lower = "opencl",
@@ -25,7 +26,8 @@ static struct starpu_driver_info driver_info = {
 	.alpha = 12.22f,
 };
 
-static struct starpu_memory_driver_info memory_driver_info = {
+static struct starpu_memory_driver_info memory_driver_info =
+{
 	.name_upper = "OpenCL",
 	.worker_archtype = STARPU_OPENCL_WORKER,
 };

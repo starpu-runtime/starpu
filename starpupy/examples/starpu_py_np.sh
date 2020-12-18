@@ -1,3 +1,4 @@
+#!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
@@ -13,11 +14,6 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-from starpu import starpupy
-import asyncio
 
-def delayed(f):
-	def submit(*args,**kwargs):
-		fut = starpupy.task_submit(f, *args,**kwargs)
-		return fut
-	return submit
+$(dirname $0)/execute.sh starpu_py_np.py $*
+

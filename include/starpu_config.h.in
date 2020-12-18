@@ -317,4 +317,6 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_HAVE_STATEMENT_EXPRESSIONS
 #undef STARPU_PERF_MODEL_DIR
 
+#undef STARPU_PYTHON_HAVE_NUMPY
+
 #endif

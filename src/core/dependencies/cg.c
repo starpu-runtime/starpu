@@ -221,7 +221,8 @@ void _starpu_notify_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg
 					tag_successors->ndeps_completed = 0;
 					/* This releases the lock */
 					_starpu_tag_set_ready(tag);
-				} else
+				}
+				else
 					_starpu_spin_unlock(&tag->lock);
 				break;
 			}

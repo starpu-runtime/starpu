@@ -23,7 +23,8 @@
 #include <datawizard/coherency.h>
 #include <datawizard/memory_nodes.h>
 
-static struct starpu_memory_driver_info memory_driver_info = {
+static struct starpu_memory_driver_info memory_driver_info =
+{
 	.name_upper = "Disk",
 	.worker_archtype = (enum starpu_worker_archtype) -1,
 };

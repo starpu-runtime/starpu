@@ -193,7 +193,8 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "Name: %s\n", task->name);
 	if (task->model_name)
 		fprintf(tasks_file, "Model: %s\n", task->model_name);
-	if (task->file) {
+	if (task->file)
+	{
 		fprintf(tasks_file, "File: %s\n", task->file);
 		fprintf(tasks_file, "Line: %d\n", task->line);
 	}
@@ -4129,7 +4130,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 	if (out_paje_file && !options->no_bus)
 	{
-		while (!_starpu_communication_list_empty(&communication_list)) {
+		while (!_starpu_communication_list_empty(&communication_list))
+		{
 			struct _starpu_communication*itor;
 			itor = _starpu_communication_list_pop_front(&communication_list);
 
@@ -4423,7 +4425,7 @@ void _starpu_fxt_number_events_file_init(struct starpu_fxt_options *options)
 			STARPU_ABORT_MSG("Failed to open '%s' (err %s)", options->number_events_path, strerror(errno));
 
 		/* FUT_SETUP_CODE is the event with the maximal value */
-		number_events = calloc(FUT_SETUP_CODE+1, sizeof(uint64_t));
+		_STARPU_CALLOC(number_events, FUT_SETUP_CODE+1, sizeof(uint64_t));
 	}
 	else
 		number_events_file = NULL;

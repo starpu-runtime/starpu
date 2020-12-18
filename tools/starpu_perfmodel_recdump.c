@@ -58,7 +58,8 @@ struct _footprint_list* add_footprint(struct _footprint_list* list, uint32_t foo
 	if(l) return list;
 	else
 	{
-		struct _footprint_list * res = malloc(sizeof(struct _footprint_list));
+		struct _footprint_list *res;
+		_STARPU_MALLOC(res, sizeof(struct _footprint_list));
 		res->footprint = footprint;
 		res->next = list;
 		return res;
@@ -294,7 +295,7 @@ int main(int argc, char **argv)
 					HASH_FIND_STR(models, model_name, model);
 					if (model == NULL)
 					{
-						model = malloc(sizeof(*model));
+						_STARPU_MALLOC(model, sizeof(*model));
 						model->name = model_name;
 						model->footprints = NULL;
 						memset(&model->model, 0, sizeof(model->model));

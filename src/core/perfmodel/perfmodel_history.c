@@ -1243,7 +1243,8 @@ void _starpu_initialize_registered_performance_models(void)
 	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
 	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
 
-	for (archtype = 0; archtype < STARPU_NARCH; archtype++) {
+	for (archtype = 0; archtype < STARPU_NARCH; archtype++)
+	{
 		char name[128];
 		const char *arch = starpu_worker_get_type_as_env_var(archtype);
 		int def = archtype == STARPU_CPU_WORKER ? 1 : 0;
@@ -1518,8 +1519,8 @@ int starpu_perfmodel_unload_model(struct starpu_perfmodel *model)
 	return 0;
 }
 
-int starpu_perfmodel_deinit(struct starpu_perfmodel *model){
-
+int starpu_perfmodel_deinit(struct starpu_perfmodel *model)
+{
 	_starpu_deinitialize_performance_model(model);
 	free(model->state);
 	model->state = NULL;

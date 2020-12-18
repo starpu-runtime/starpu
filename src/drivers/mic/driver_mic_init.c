@@ -17,7 +17,8 @@
 #include <core/workers.h>
 #include <drivers/mic/driver_mic_source.h>
 
-static struct starpu_driver_info driver_info = {
+static struct starpu_driver_info driver_info =
+{
 	.name_upper = "MIC",
 	.name_var = "MIC",
 	.name_lower = "mic",
@@ -25,7 +26,8 @@ static struct starpu_driver_info driver_info = {
 	.alpha = 0.5f,
 };
 
-static struct starpu_memory_driver_info memory_driver_info = {
+static struct starpu_memory_driver_info memory_driver_info =
+{
 	.name_upper = "MIC",
 	.worker_archtype = STARPU_MIC_WORKER,
 };

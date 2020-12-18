@@ -527,7 +527,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	/* If no input data is given to gnuplot, we at least need to specify an
 	 * arbitrary range. */
 	if (options->with_fxt_file == 0 || options->gflops)
-		fprintf(gnuplot_file, "set xrange [1:10**9]\n\n");
+		fprintf(gnuplot_file, "set xrange [1 < * < 10**5 : 10**6 < * < 10**9]\n\n");
 
 	int first = 1;
 	fprintf(gnuplot_file, "plot\t");
@@ -608,10 +608,15 @@ int main(int argc, char **argv)
 #endif
 
 			if (options.energy_symbol)
+			{
 				snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "%s/starpu_power_%s.gp", directory, options.symbol);
+				snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_power_%s_avg.data", directory, options.symbol);
+			}
 			else
+			{
 				snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "%s/starpu_%s.gp", directory, options.symbol);
-			snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_%s_avg.data", directory, options.symbol);
+				snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_%s_avg.data", directory, options.symbol);
+			}
 
 			FILE *gnuplot_file = fopen(gnuplot_file_name, "w+");
 			STARPU_ASSERT_MSG(gnuplot_file, "Cannot create file <%s>\n", gnuplot_file_name);
@@ -628,8 +633,15 @@ int main(int argc, char **argv)
 				STARPU_ABORT();
 			}
 
-			/* Make the gnuplot scrit executable for the owner */
-			ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR);
+			/* Make the gnuplot scrit executable */
+			ret = chmod(gnuplot_file_name, sb.st_mode|S_IXUSR
+#ifdef S_IXGRP
+								 |S_IXGRP
+#endif
+#ifdef S_IXOTH
+								 |S_IXOTH
+#endif
+								 );
 			if (ret)
 			{
 				perror("chmod");

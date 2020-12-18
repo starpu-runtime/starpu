@@ -180,7 +180,8 @@ int starpu_memory_node_get_devid(unsigned node)
 	return _starpu_descr.devid[node];
 }
 
-enum starpu_worker_archtype starpu_memory_node_get_worker_archtype(enum starpu_node_kind node_kind) {
+enum starpu_worker_archtype starpu_memory_node_get_worker_archtype(enum starpu_node_kind node_kind)
+{
 	enum starpu_worker_archtype archtype = starpu_memory_driver_info[node_kind].worker_archtype;
 	STARPU_ASSERT_MSG(archtype != (enum starpu_worker_archtype) -1, "ambiguous memory node kind %d", node_kind);
 	return archtype;

@@ -56,8 +56,11 @@ static const int N_EVTS = 2;
 
 static int nsockets;
 
-static const char* event_names[] = { "rapl::RAPL_ENERGY_PKG:cpu=%d",
-				     "rapl::RAPL_ENERGY_DRAM:cpu=%d"};
+static const char* event_names[] =
+{
+	"rapl::RAPL_ENERGY_PKG:cpu=%d",
+	"rapl::RAPL_ENERGY_DRAM:cpu=%d"
+};
 
 static int add_event(int EventSet, int socket);
 
@@ -65,9 +68,6 @@ static int add_event(int EventSet, int socket);
 
 /*must be initialized to PAPI_NULL before calling PAPI_create_event*/
 static int EventSet = PAPI_NULL;
-
-/*This is where we store the values we read from the eventset */
-static long long *values;
 
 #endif
 
@@ -98,9 +98,6 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 		hwloc_topology_t topology = config->topology.hwtopology;
 
 		nsockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PACKAGE);
-
-		values=calloc(nsockets * N_EVTS,sizeof(long long));
-		STARPU_ASSERT(values);
 
 		if ((retval = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT)
 			ERROR_RETURN(retval);
@@ -178,6 +175,9 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 	{
 		STARPU_ASSERT_MSG(workerid == -1, "For CPUs we cannot measure each worker separately, use where = STARPU_CPU and leave workerid as -1\n");
 
+		/*This is where we store the values we read from the eventset */
+		long long values[nsockets*N_EVTS];
+
 		/* Stop counting and store the values into the array */
 		if ( (retval = PAPI_stop(EventSet, values)) != PAPI_OK)
 			ERROR_RETURN(retval);
@@ -196,9 +196,6 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 				      delta, t, delta/(t*1.0E-6));
 			}
 		}
-		free(values);
-
-		energy = energy * 0.23 / 1.0e9 / ntasks;
 
 		/*removes all events from a PAPI event set */
 		if ( (retval = PAPI_cleanup_eventset(EventSet)) != PAPI_OK)
@@ -242,7 +239,7 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 
 	arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
 
-	starpu_perfmodel_update_history(model, task, arch, cpuid, nimpl, energy);
+	starpu_perfmodel_update_history_n(model, task, arch, cpuid, nimpl, energy / ntasks, ntasks);
 
 	return retval;
 }
@@ -266,6 +263,12 @@ static int add_event(int eventSet, int socket)
 		retval = PAPI_add_named_event(eventSet, buf);
 		if (retval != PAPI_OK)
 		{
+			if (!strcmp(event_names[i], "rapl::RAPL_ENERGY_DRAM:cpu=%d"))
+			{
+				/* Ok, too bad */
+				_STARPU_DISP("Note: DRAM energy measurement not available\n");
+				return PAPI_OK;
+			}
 			_STARPU_DISP("cannot add event '%s': %d\n", buf, retval);
 			return retval;
 		}

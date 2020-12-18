@@ -73,7 +73,7 @@ def sub(a,b,c):
 ###############################################################################
 
 #using decorator wrap the function with input
-@starpu.delayed
+@starpu.delayed(name="test")
 def add_deco(a,b,c):
 	#time.sleep(1)
 	print ("Example 8:")
@@ -83,7 +83,7 @@ def add_deco(a,b,c):
 ###############################################################################
 
 #using decorator wrap the function with input
-@starpu.delayed
+@starpu.delayed(color=1)
 def sub_deco(x,a):
 	print ("Example 9:")
 	print ("This is a function with input and output wrapped by the decorator function:")
@@ -93,34 +93,34 @@ def sub_deco(x,a):
 
 async def main():
 	#submit function "hello"
-    fut = starpu.task_submit(hello)
+    fut = starpu.task_submit()(hello)
     await fut
 
     #submit function "func1"
-    fut1 = starpu.task_submit(func1)
+    fut1 = starpu.task_submit()(func1)
     await fut1
 
     #apply starpu.delayed(func1_deco())
     await func1_deco()
 
 	#submit function "func2"
-    fut2 = starpu.task_submit(func2)
+    fut2 = starpu.task_submit()(func2)
     res2 = await fut2
 	#print the result of function
     print("This is a function no input and the return value is", res2)
 
     #submit function "multi"
-    fut3 = starpu.task_submit(multi, 2, 3)
+    fut3 = starpu.task_submit()(multi, 2, 3)
     res3 = await fut3
     print("The result of function multi is :", res3)
 
 	#submit function "add"
-    fut4 = starpu.task_submit(add, 1.2, 2.5, 3.6, 4.9)
+    fut4 = starpu.task_submit()(add, 1.2, 2.5, 3.6, 4.9)
     res4 = await fut4
     print("The result of function add is :", res4)
 
 	#submit function "sub"
-    fut5 = starpu.task_submit(sub, 6, 2, 5.9)
+    fut5 = starpu.task_submit()(sub, 6, 2, 5.9)
     res5 = await fut5
     print("The result of function sub is:", res5)
 

@@ -202,3 +202,15 @@ AC_DEFUN([IS_SUPPORTED_FLAG],
 	IS_SUPPORTED_FFLAG($1)
 	IS_SUPPORTED_FCFLAG($1)
 ])
+
+# AC_PYTHON_MODULE(modulename, [action-if-found], [action-if-not-found])
+# Check if the given python module is available
+AC_DEFUN([AC_PYTHON_MODULE],
+[
+	echo "import $1" | $PYTHON - 2>/dev/null
+	if test $? -ne 0 ; then
+	   	$3
+	else
+		$2
+	fi
+])

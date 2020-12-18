@@ -60,8 +60,7 @@ endif STARPU_HAVE_WINDOWS
 
 lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined									\
-  -version-info $(libstarpu_so_version)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined -version-info $(libstarpu_so_version)
 
 if STARPU_HAVE_DARWIN
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS += \

@@ -13,8 +13,17 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+from starpu import starpupy
+import starpu
+import asyncio
+from functools import partial
 
-
-from.starpupy import *
-from .delay import *
-from . import joblib
+def delayed(f=None,*, name=None, synchronous=0, priority=0, color=None, flops=None, perfmodel=None):
+	# add options of task_submit
+	if f is None:
+		return partial(delayed, name=name, synchronous=synchronous, priority=priority, color=color, flops=flops, perfmodel=perfmodel)
+	def submit(*args):
+		fut = starpu.task_submit(name=name, synchronous=synchronous, priority=priority,\
+								 color=color, flops=flops, perfmodel=perfmodel)(f, *args)
+		return fut
+	return submit
