@@ -102,20 +102,20 @@ def log10_arr(t):
 ########################################################
 
 #################scikit test###################
-DEFAULT_JOBLIB_BACKEND = starpu.joblib.get_active_backend()[0].__class__
-class MyBackend(DEFAULT_JOBLIB_BACKEND):  # type: ignore
-        def __init__(self, *args, **kwargs):
-                self.count = 0
-                super().__init__(*args, **kwargs)
+# DEFAULT_JOBLIB_BACKEND = starpu.joblib.get_active_backend()[0].__class__
+# class MyBackend(DEFAULT_JOBLIB_BACKEND):  # type: ignore
+#         def __init__(self, *args, **kwargs):
+#                 self.count = 0
+#                 super().__init__(*args, **kwargs)
 
-        def start_call(self):
-                self.count += 1
-                return super().start_call()
+#         def start_call(self):
+#                 self.count += 1
+#                 return super().start_call()
 
-starpu.joblib.register_parallel_backend('testing', MyBackend)
+# starpu.joblib.register_parallel_backend('testing', MyBackend)
 
-with starpu.joblib.parallel_backend("testing") as (ba, n_jobs):
-	print("backend and n_jobs is", ba, n_jobs)
+# with starpu.joblib.parallel_backend("testing") as (ba, n_jobs):
+# 	print("backend and n_jobs is", ba, n_jobs)
 ###############################################
 
 N=100
