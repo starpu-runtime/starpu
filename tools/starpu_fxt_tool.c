@@ -208,7 +208,11 @@ static int parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	int ret = parse_args(argc, argv);
-	if (ret) return ret;
+	if (ret)
+	{
+		starpu_fxt_options_shutdown(&options);
+		return ret;
+	}
 
 	starpu_fxt_generate_trace(&options);
 
