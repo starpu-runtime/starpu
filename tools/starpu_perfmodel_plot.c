@@ -98,9 +98,13 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 	/* Default options */
 	starpu_fxt_options_init(&options->fxt_options);
 
+	free(options->fxt_options.out_paje_path);
 	options->fxt_options.out_paje_path = NULL;
+	free(options->fxt_options.activity_path);
 	options->fxt_options.activity_path = NULL;
+	free(options->fxt_options.distrib_time_path);
 	options->fxt_options.distrib_time_path = NULL;
+	free(options->fxt_options.dag_path);
 	options->fxt_options.dag_path = NULL;
 
 	options->fxt_options.dumped_codelets = &options->dumped_codelets;
@@ -602,8 +606,6 @@ int main(int argc, char **argv)
 				STARPU_ASSERT(data_file);
 				dump_data_file(data_file, &options);
 				fclose(data_file);
-				free(options.fxt_options.dir);
-				starpu_fxt_options_shutdown(&options.fxt_options);
 			}
 #endif
 
@@ -655,5 +657,9 @@ int main(int argc, char **argv)
 	}
 	starpu_perfmodel_free_sampling();
 	free(directory);
+#ifdef STARPU_USE_FXT
+	free(options.fxt_options.dir);
+	starpu_fxt_options_shutdown(&options.fxt_options);
+#endif
 	return ret;
 }
