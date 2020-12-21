@@ -42,9 +42,11 @@ install:
 	fi
 	$(PYTHON) setup.py install
 
+if STARPU_BUILD_STARPUPY
 clean-local:
 	$(PYTHON) setup.py clean
 	rm -f starpu/*py starpu/*c
+endif
 
 distclean-local:
 	rm -rf build
