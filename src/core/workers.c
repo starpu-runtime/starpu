@@ -1009,7 +1009,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
         if (pconfig->topology.ndevices[STARPU_MPI_MS_WORKER] > 0)
         {
                 struct _starpu_worker_set * worker_set_zero = &mpi_worker_set[0];
-                struct _starpu_worker * worker_zero = &worker_set_zero->workers[0];
+                struct _starpu_worker * worker_zero STARPU_ATTRIBUTE_UNUSED = &worker_set_zero->workers[0];
                 STARPU_PTHREAD_CREATE_ON(
                                 "zero",
                                 &worker_set_zero->worker_thread,
