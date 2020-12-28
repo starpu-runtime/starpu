@@ -463,7 +463,7 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
  * Discover the topology of the machine
  */
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 static void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 						int *current, int *workers_gpuid,
 						const char *varname, unsigned nhwgpus,
