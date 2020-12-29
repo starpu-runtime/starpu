@@ -17,8 +17,8 @@ include $(top_srcdir)/starpu.mk
 
 AM_CFLAGS += -Wno-unused
 AM_CXXFLAGS += -Wno-unused
-AM_FFLAGS += -Wno-unused
-AM_FCFLAGS += -Wno-unused
+AM_FFLAGS += -Wno-unused -Wno-unused-dummy-argument
+AM_FCFLAGS += -Wno-unused -Wno-unused-dummy-argument
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)

@@ -20,8 +20,8 @@ include $(top_srcdir)/starpu.mk
 
 AM_CFLAGS += $(MAGMA_CFLAGS) -Wno-unused
 AM_CXXFLAGS += $(MAGMA_CFLAGS) -Wno-unused
-AM_FFLAGS += $(MAGMA_CFLAGS) -Wno-unused
-AM_FCFLAGS += $(MAGMA_CFLAGS) -Wno-unused
+AM_FFLAGS += $(MAGMA_CFLAGS) -Wno-unused -Wno-unused-dummy-argument
+AM_FCFLAGS += $(MAGMA_CFLAGS) -Wno-unused -Wno-unused-dummy-argument
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)

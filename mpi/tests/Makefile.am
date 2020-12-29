@@ -85,8 +85,8 @@ endif
 
 AM_CFLAGS += -Wno-unused
 AM_CXXFLAGS += -Wno-unused
-AM_FFLAGS += -Wno-unused
-AM_FCFLAGS += -Wno-unused
+AM_FFLAGS += -Wno-unused -Wno-unused-dummy-argument
+AM_FCFLAGS += -Wno-unused -Wno-unused-dummy-argument
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/ $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(STARPU_CUDA_LDFLAGS)
