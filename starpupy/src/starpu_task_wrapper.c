@@ -293,6 +293,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	/*initialize func_cl with default values*/
 	starpu_codelet_init(func_cl);
 	func_cl->cpu_funcs[0]=&codelet_func;
+	func_cl->cpu_funcs_name[0]="codelet_func";
 
 	/*check whether the option perfmodel is None*/
 	PyObject *dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);/*the last argument is the option dictionary*/
