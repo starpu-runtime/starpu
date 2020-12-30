@@ -183,4 +183,6 @@ int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
 
 void _starpu_util_init(void);
 
+enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
+
 #endif // __COMMON_UTILS_H__

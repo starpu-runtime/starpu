@@ -33,7 +33,6 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 #include <core/topology.h>
-#include <core/workers.h>
 
 static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
 {

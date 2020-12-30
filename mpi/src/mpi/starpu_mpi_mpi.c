@@ -41,7 +41,6 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 #include <core/topology.h>
-#include <core/workers.h>
 
 #ifdef STARPU_USE_MPI_MPI
 

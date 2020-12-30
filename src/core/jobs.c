@@ -765,14 +765,14 @@ struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker)
 		}
 	}
 
-	if (!starpu_task_list_empty(&worker->local_tasks))
-		task = starpu_task_list_pop_front(&worker->local_tasks);
+	if (!starpu_task_prio_list_empty(&worker->local_tasks))
+		task = starpu_task_prio_list_pop_front_highest(&worker->local_tasks);
 
 	_starpu_pop_task_end(task);
 	return task;
 }
 
-int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task, int prio)
+int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task)
 {
 	/* Check that the worker is able to execute the task ! */
 	STARPU_ASSERT(task && task->cl);
@@ -815,13 +815,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	}
 	else
 	{
-#ifdef STARPU_DEVEL
-#warning FIXME use a prio_list
-#endif
-		if (prio)
-			starpu_task_list_push_front(&worker->local_tasks, task);
-		else
-			starpu_task_list_push_back(&worker->local_tasks, task);
+		starpu_task_prio_list_push_back(&worker->local_tasks, task);
 	}
 
 	starpu_wake_worker_locked(worker->workerid);

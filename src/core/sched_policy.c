@@ -372,10 +372,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 		}
 //		if(task->sched_ctx != _starpu_get_initial_sched_ctx()->id)
 
-		if(task->priority > 0)
-			return _starpu_push_local_task(worker, task, 1);
-		else
-			return _starpu_push_local_task(worker, task, 0);
+		return _starpu_push_local_task(worker, task);
 	}
 	else
 	{
@@ -406,7 +403,7 @@ static int _starpu_push_task_on_specific_worker(struct starpu_task *task, int wo
 
 			_STARPU_TRACE_JOB_PUSH(alias, alias->priority);
 			worker = _starpu_get_worker_struct(combined_workerid[j]);
-			ret |= _starpu_push_local_task(worker, alias, 0);
+			ret |= _starpu_push_local_task(worker, alias);
 		}
 
 		return ret;
@@ -1033,7 +1030,7 @@ pick:
 	}
 
 	task->mf_skip = 1;
-	starpu_task_list_push_back(&worker->local_tasks, task);
+	starpu_task_prio_list_push_back(&worker->local_tasks, task);
 	goto pick;
 
 profiling:
@@ -1175,16 +1172,11 @@ void _starpu_wait_on_sched_event(void)
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
 
-/* The scheduling policy may put tasks directly into a worker's local queue so
- * that it is not always necessary to create its own queue when the local queue
- * is sufficient. If "back" not null, the task is put at the back of the queue
- * where the worker will pop tasks first. Setting "back" to 0 therefore ensures
- * a FIFO ordering. */
-int starpu_push_local_task(int workerid, struct starpu_task *task, int prio)
+int starpu_push_local_task(int workerid, struct starpu_task *task, int back STARPU_ATTRIBUTE_UNUSED)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
-	return  _starpu_push_local_task(worker, task, prio);
+	return  _starpu_push_local_task(worker, task);
 }
 
 void _starpu_print_idle_time()

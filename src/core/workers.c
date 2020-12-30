@@ -681,7 +681,7 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 	/* memory_node initialized by topology.c */
 	STARPU_PTHREAD_COND_INIT(&workerarg->sched_cond, NULL);
 	STARPU_PTHREAD_MUTEX_INIT(&workerarg->sched_mutex, NULL);
-	starpu_task_list_init(&workerarg->local_tasks);
+	starpu_task_prio_list_init(&workerarg->local_tasks);
 	_starpu_ctx_change_list_init(&workerarg->ctx_change_list);
 	workerarg->local_ordered_tasks = NULL;
 	workerarg->local_ordered_tasks_size = 0;
@@ -1785,7 +1785,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 		}
 
 out:
-		STARPU_ASSERT(starpu_task_list_empty(&worker->local_tasks));
+		STARPU_ASSERT(starpu_task_prio_list_empty(&worker->local_tasks));
 		for (n = 0; n < worker->local_ordered_tasks_size; n++)
 			STARPU_ASSERT(worker->local_ordered_tasks[n] == NULL);
 		_starpu_sched_ctx_list_delete(&worker->sched_ctx_list);

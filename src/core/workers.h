@@ -61,8 +61,6 @@
 
 #define STARPU_MAX_PIPELINE 4
 
-enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
-
 struct _starpu_ctx_change_list;
 
 /** This is initialized by _starpu_worker_init() */
@@ -125,7 +123,7 @@ LIST_TYPE(_starpu_worker,
 	     * subsequent processing once worker completes the ongoing scheduling
 	     * operation */
 	struct _starpu_ctx_change_list ctx_change_list;
-	struct starpu_task_list local_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue */
+	struct starpu_task_prio_list local_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
 	unsigned local_ordered_tasks_size; /**< this records the size of local_ordered_tasks */
 	unsigned current_ordered_task; /**< this records the index (within local_ordered_tasks) of the next ordered task to be executed */

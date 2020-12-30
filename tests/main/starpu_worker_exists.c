@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#define BUILDING_STARPU
 #include <starpu.h>
 #include "core/workers.h"
 #include "../helper.h"
