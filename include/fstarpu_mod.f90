@@ -965,7 +965,7 @@ module fstarpu_mod
                 end subroutine fstarpu_vector_data_register
 
                 ! void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
-                subroutine fstarpu_vector_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                subroutine fstarpu_vector_ptr_register(dh, node, ptr, dev_handle, offset) &
                                 bind(C,name="starpu_vector_ptr_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr), intent(out) :: dh
@@ -1003,7 +1003,7 @@ module fstarpu_mod
                 end subroutine fstarpu_variable_data_register
 
                 ! void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
-                subroutine fstarpu_variable_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                subroutine fstarpu_variable_ptr_register(dh, node, ptr, dev_handle, offset) &
                                 bind(C,name="starpu_variable_ptr_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr), intent(out) :: dh
@@ -1669,7 +1669,7 @@ module fstarpu_mod
                 end function fstarpu_data_descr_array_alloc
 
                 ! struct starpu_data_descr *fstarpu_data_descr_alloc(void);
-                function fstarpu_data_descr_alloc (nb) bind(C)
+                function fstarpu_data_descr_alloc () bind(C)
                         use iso_c_binding, only: c_ptr
                         type(c_ptr) :: fstarpu_data_descr_alloc
                 end function fstarpu_data_descr_alloc
