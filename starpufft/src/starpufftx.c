@@ -28,7 +28,7 @@
 #define _externC extern
 #include "cudax_kernels.h"
 
-#if defined(FLOAT) || defined(STARPU_HAVE_CUFFTDOUBLECOMPLEX)
+#if defined(STARPUFFT_FLOAT) || defined(STARPU_HAVE_CUFFTDOUBLECOMPLEX)
 #  define __STARPU_USE_CUDA
 #else
 #  undef __STARPU_USE_CUDA
@@ -172,7 +172,7 @@ compute_roots(STARPUFFT(plan) plan)
 }
 
 /* Only CUDA capability >= 1.3 supports doubles, rule old card out.  */
-#ifdef DOUBLE
+#ifdef STARPUFFT_DOUBLE
 static int can_execute(unsigned workerid, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED) {
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 		return 1;
