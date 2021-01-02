@@ -61,7 +61,7 @@ extern "C"
    expression as unlikely.
 */
 #ifdef __GNUC__
-#  define STARPU_UNLIKELY(expr)          (__builtin_expect(!!(expr),0))
+#  define STARPU_UNLIKELY(expr)          (__builtin_expect((expr),0))
 #else
 #  define STARPU_UNLIKELY(expr)          (expr)
 #endif
