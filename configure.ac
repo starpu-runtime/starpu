@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Guillaume Beauchamp
@@ -610,7 +610,16 @@ if test x$enable_mpi = xyes -o x$build_mpi_master_slave = xyes ; then
     # On Darwin (and maybe other systems ?) the linker will fail (undefined
     # references to MPI_*). We manually add the required flags to fix this
     # issue.
-    AC_SUBST(MPICC_LDFLAGS, `$mpicc_path --showme:link`)
+
+    # openmpi version
+    MPICC_LDFLAGS=`$mpicc_path --showme:link`
+
+    if test -z "$MPICC_LDFLAGS"
+    then
+	# mpich version
+	MPICC_LDFLAGS=`$mpicc_path -cc='' -link_info`
+    fi
+    AC_SUBST(MPICC_LDFLAGS)
 else
     cc_or_mpicc=$CC
 fi
