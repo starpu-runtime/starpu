@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -21,6 +21,9 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU -DSTARPU_DATADIR='"$(da
 AM_CPPFLAGS += $(STARPU_H_CPPFLAGS)
 AM_CPPFLAGS += $(FXT_CFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(STARPU_RCCE_CFLAGS) $(STARPU_RCCE_CPPFLAGS)
 LIBS += -lm $(LIBSTARPU_LDFLAGS)
+if STARPU_USE_MPI_MASTER_SLAVE
+LIBS += $(MPICC_LDFLAGS)
+endif
 
 SUBDIRS =
 
