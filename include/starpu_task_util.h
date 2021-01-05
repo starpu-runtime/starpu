@@ -510,6 +510,27 @@ void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, vo
 void starpu_codelet_unpack_args(void *cl_arg, ...);
 
 /**
+   Initialize struct starpu_codelet_pack_arg_data before calling
+   starpu_codelet_unpack_arg(). This will pass the starpu_task->cl_arg 
+   and starpu_task->cl_arg_size to the content of struct starpu_codelet_pack_arg_data.
+*/
+void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void **cl_arg, size_t *cl_arg_size);
+
+/**
+   Unpack one argument from struct starpu_codelet_pack_arg \p state into ptr.
+   That structure has to be initialized before with starpu_codelet_unpack_arg_init().
+*/
+void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void **ptr);
+
+void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state);
+
+/**
+   Call this function during unpacking to skip saving the argument in ptr.
+*/
+void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *state);
+
+
+/**
    Similar to starpu_codelet_unpack_args(), but if any parameter is 0,
    copy the part of \p cl_arg that has not been read in \p buffer
    which can then be used in a later call to one of the unpack
