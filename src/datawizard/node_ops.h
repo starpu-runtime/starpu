@@ -50,10 +50,10 @@ typedef int (*update_map_t)(uintptr_t src, size_t src_offset, unsigned src_node,
 
 struct _starpu_node_ops
 {
-	copy_interface_func_t copy_interface_to[STARPU_MPI_MS_RAM+1];
-	copy_data_t copy_data_to[STARPU_MPI_MS_RAM+1];
-	copy2d_data_t copy2d_data_to[STARPU_MPI_MS_RAM+1];
-	copy3d_data_t copy3d_data_to[STARPU_MPI_MS_RAM+1];
+	copy_interface_func_t copy_interface_to[STARPU_MAX_RAM+1];
+	copy_data_t copy_data_to[STARPU_MAX_RAM+1];
+	copy2d_data_t copy2d_data_to[STARPU_MAX_RAM+1];
+	copy3d_data_t copy3d_data_to[STARPU_MAX_RAM+1];
 	void (*wait_request_completion)(struct _starpu_async_channel *async_channel);
 	unsigned (*test_request_completion)(struct _starpu_async_channel *async_channel);
 	int (*is_direct_access_supported)(unsigned node, unsigned handling_node);

@@ -39,20 +39,20 @@ void cpu_show_bcsr(void *descr[], void *arg)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 
-	printf("\nnnz %d elemsize %d\n", nnz, elemsize);
+	printf("\nnnz %u elemsize %u\n", nnz, elemsize);
 
 	for (i = 0; i < nrow; i++)
 	{
 		uint32_t row_start = rowptr[i] - firstentry;
 		uint32_t row_end = rowptr[i+1] - firstentry;
 
-		printf("row %d\n", i);
+		printf("row %u\n", i);
 
 		for (j = row_start; j < row_end; j++)
 		{
 			int *block = nzval + j * r*c;
 
-			printf( " column %d\n", colind[j]);
+			printf( " column %u\n", colind[j]);
 
 			for (y = 0; y < r; y++)
 			{
@@ -116,14 +116,15 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 
 	conf.precedence_over_environment_variables = 1;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
-	conf.nmic = 0;
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
+	conf.nmpi_ms = -1;
 
 	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV)
 		return STARPU_TEST_SKIPPED;
 
-	if (starpu_cpu_worker_get_count() == 0 || starpu_memory_nodes_get_count() > 1) {
+	if (starpu_cpu_worker_get_count() == 0 || starpu_memory_nodes_get_count() > 1)
+	{
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}

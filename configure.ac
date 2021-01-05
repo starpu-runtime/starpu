@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Guillaume Beauchamp
@@ -18,7 +18,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-AC_INIT([StarPU], [1.3.99], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://starpu.gforge.inria.fr/])
+AC_INIT([StarPU], [1.3.99], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://gitlab.inria.fr/starpu/starpu])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -149,6 +149,18 @@ AC_ARG_WITH(simgrid-lib-dir,
 	], [simgrid_lib_dir=no])
 
 if test x$enable_simgrid = xyes ; then
+	PKG_CHECK_MODULES([SIMGRID], [simgrid], [], [:])
+
+	if test "$simgrid_include_dir" != "no" ; then
+		SIMGRID_CFLAGS="-I$simgrid_include_dir $SIMGRID_CFLAGS"
+	fi
+	if test "$simgrid_lib_dir" != "no" ; then
+		SIMGRID_LIBS="-L$simgrid_lib_dir $SIMGRID_LIBS"
+	fi
+	if test "$simgrid_dir" != "no" ; then
+		SIMGRID_CFLAGS="-I$simgrid_dir/include $SIMGRID_CFLAGS"
+		SIMGRID_LIBS="-L$simgrid_dir/lib $SIMGRID_LIBS"
+	fi
    	if test -n "$SIMGRID_CFLAGS" ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
 	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
@@ -156,20 +168,6 @@ if test x$enable_simgrid = xyes ; then
 	fi
 	if test -n "$SIMGRID_LIBS" ; then
 		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
-	fi
-	if test "$simgrid_dir" != "no" ; then
-	   	CFLAGS="-I$simgrid_dir/include $CFLAGS"
-	   	CXXFLAGS="-I$simgrid_dir/include $CXXFLAGS"
-	   	NVCCFLAGS="-I$simgrid_dir/include $NVCCFLAGS"
-	   	LDFLAGS="-L$simgrid_dir/lib $LDFLAGS"
-	fi
-	if test "$simgrid_include_dir" != "no" ; then
-	   	CFLAGS="-I$simgrid_include_dir $CFLAGS"
-	   	CXXFLAGS="-I$simgrid_include_dir $CXXFLAGS"
-	   	NVCCFLAGS="-I$simgrid_include_dir $NVCCFLAGS"
-	fi
-	if test "$simgrid_lib_dir" != "no" ; then
-	   	LDFLAGS="-L$simgrid_lib_dir $LDFLAGS"
 	fi
 	AC_HAVE_LIBRARY([simgrid], [],
 		[
@@ -199,8 +197,8 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
 
 	# Latest functions
-	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init sg_actor_set_stacksize sg_actor_on_exit MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_data])
-	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data SMPI_thread_create sg_zone_get_by_name sg_link_name sg_link_bandwidth_set sg_host_route sg_host_self sg_host_list sg_host_speed simcall_process_create sg_config_continue_after_help])
+	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init sg_actor_set_stacksize sg_actor_on_exit MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_get_data sg_actor_set_data sg_actor_data])
+	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data SMPI_thread_create sg_zone_get_by_name sg_link_get_name sg_link_name sg_link_set_bandwidth sg_link_bandwidth_set sg_host_get_route sg_host_route sg_host_self sg_host_list sg_host_get_speed sg_host_speed simcall_process_create sg_config_continue_after_help])
 	AC_CHECK_FUNCS([simgrid_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMGRID_INIT], [1], [Define to 1 if you have the `simgrid_init' function.])])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_FUNCS([sg_actor_sleep_for sg_actor_self sg_actor_ref sg_host_get_properties sg_host_send_to sg_host_sendto sg_cfg_set_int sg_actor_self_execute sg_actor_execute simgrid_get_clock])
@@ -220,7 +218,6 @@ if test x$enable_simgrid = xyes ; then
 	# disable MPI support by default
 	default_enable_mpi=no
 
-	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	AC_LANG_PUSH([C++])
 	if test x$enable_shared = xno ; then
 		# When linking statically, libtool does not realize we need libstdc++ for simgrid_cpp.cpp
@@ -228,17 +225,35 @@ if test x$enable_simgrid = xyes ; then
 		LIBS="$LIBS -lstdc++"
 	fi
 
-	case \ $CXXFLAGS\  in 
+	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
+	case \ $CXXFLAGS\  in
 	*\ -std=*\ *) ;;
-	*) 
-		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-				  #ifdef STARPU_HAVE_SIMGRID_MSG_H
-				  #include <simgrid/msg.h>
-				  #include <simgrid/host.h>
-				  #else
-				  #include <msg/msg.h>
-				  #endif
-				  ]])],,
+	*)
+	# Make sure our C++ compiler can compile simgrid headers
+	SIMGRID_INCLUDES="
+#ifdef STARPU_HAVE_SIMGRID_MSG_H
+#include <simgrid/msg.h>
+#include <simgrid/host.h>
+#elif defined(STARPU_HAVE_MSG_MSG_H)
+#include <msg/msg.h>
+#endif
+
+#ifdef STARPU_HAVE_XBT_BASE_H
+#include <xbt/base.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_VERSION_H
+#include <simgrid/version.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_ZONE_H
+#include <simgrid/zone.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_HOST_H
+#include <simgrid/host.h>
+#endif
+
+#include <xbt/xbt_os_time.h>
+"
+		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[$SIMGRID_INCLUDES]])],,
 				  CXXFLAGS="-std=c++11 $CXXFLAGS")
 		;;
 	esac
@@ -250,6 +265,8 @@ if test x$enable_simgrid = xyes ; then
 		AC_DEFINE(STARPU_SIMGRID_MC, [1], [Define this to enable Model Checker in simgrid execution])
 		AC_PATH_PROG([SIMGRID_MC], [simgrid-mc], [no], [$simgrid_dir/bin:$PATH])
 		LDFLAGS="$LDFLAGS -Wl,-znorelro -Wl,-znoseparate-code"
+		# libsimgrid needs to be linked from binaries themselves for MC to work
+		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS -lsimgrid"
 	fi
 fi
 AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
@@ -450,6 +467,10 @@ if test x$enable_mpi = xyes -a x$enable_nmad = xyes ; then
     build_nmad_lib=yes
     build_mpi_lib=no
     PKG_CHECK_MODULES([NMAD],[nmad])
+    AC_CHECK_DECL([piom_ltask_set_bound_thread_os_indexes], have_piom_ltask_set_bound_thread_os_indexes=yes, have_piom_ltask_set_bound_thread_os_indexes=no, [[#include <pioman.h>]])
+    if test x$have_piom_ltask_set_bound_thread_os_indexes = xyes; then
+      AC_DEFINE(HAVE_PIOM_LTASK_SET_BOUND_THREAD_OS_INDEXES, [1], [piom_ltask_set_bound_thread_os_indexes is availabe])
+    fi
 else
     build_nmad_lib=no
 fi
@@ -565,6 +586,7 @@ if test x$enable_mpi = xyes ; then
 	    CXXFLAGS="$CXXFLAGS -fPIC"
 	    NVCCFLAGS="$NVCCFLAGS --compiler-options -fPIC"
 	    FFLAGS="$FFLAGS -fPIC"
+	    FCLAGS="$FFLAGS -fPIC"
         fi
     fi
 fi
@@ -600,7 +622,16 @@ if test x$enable_mpi = xyes -o x$build_mpi_master_slave = xyes ; then
     # On Darwin (and maybe other systems ?) the linker will fail (undefined
     # references to MPI_*). We manually add the required flags to fix this
     # issue.
-    AC_SUBST(MPICC_LDFLAGS, `$mpicc_path --showme:link`)
+
+    # openmpi version
+    MPICC_LDFLAGS=`$mpicc_path --showme:link`
+
+    if test -z "$MPICC_LDFLAGS"
+    then
+	# mpich version
+	MPICC_LDFLAGS=`$mpicc_path -cc='' -link_info`
+    fi
+    AC_SUBST(MPICC_LDFLAGS)
 else
     cc_or_mpicc=$CC
 fi
@@ -736,7 +767,10 @@ if test x"$enable_native_winthreads" = xyes ; then
 		AC_DEFINE(STARPU_NATIVE_WINTHREADS,[1],[Using native windows threads]),
 		AC_MSG_ERROR([pthread_create unavailable]))
 else
-    AC_CHECK_LIB([pthread], [pthread_create])
+    AC_CHECK_LIB([pthread], [pthread_create], [
+        LIBS="$LIBS -lpthread"
+        STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS -lpthread"
+    ])
 fi
 
 AC_SEARCH_LIBS([sqrt],[m],,AC_MSG_ERROR([math library unavailable]))
@@ -857,8 +891,8 @@ AC_CHECK_FUNCS([mkdtemp])
 
 AC_CHECK_FUNCS([pread pwrite])
 
-AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--disable-hdf5], [disable HDF5 support])],
-                    enable_hdf5=$enableval, enable_hdf5=maybe)
+AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--enable-hdf5], [disable HDF5 support])],
+                    enable_hdf5=$enableval, enable_hdf5=no)
 
 if test "x$enable_hdf5" != xno ; then
 	AC_ARG_WITH(hdf5-include-dir,
@@ -917,8 +951,11 @@ fi
 
 if test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes" -a "x$enable_hdf5" != "xno"; then
         AC_DEFINE([STARPU_HAVE_HDF5], [1], [Define to 1 if you have the <hdf5.h> header file.])
+	enable_hdf5=yes
+else
+	enable_hdf5=no
 fi
-AM_CONDITIONAL(STARPU_HAVE_HDF5, test  "x$enable_libraries_hdf5" = "xyes" -a "x$enable_include_hdf5" = "xyes" -a "x$enable_hdf5" != "xno")
+AM_CONDITIONAL(STARPU_HAVE_HDF5, test "x$enable_hdf5" = "xyes")
 
 
 # This defines HAVE_SYNC_VAL_COMPARE_AND_SWAP
@@ -1294,9 +1331,9 @@ if test x$enable_cuda = xyes; then
 	STARPU_CUFFT_LDFLAGS="-lcufft"
 
 	AC_LANG_PUSH([C++])
-	case \ $NVCCFLAGS\  in 
+	case \ $NVCCFLAGS\  in
 	*\ -std=*\ *) ;;
-	*) 
+	*)
 		SAVED_CXX="$CXX"
 		CXX="$NVCC"
 		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
@@ -1319,7 +1356,7 @@ if test x$enable_cuda = xyes; then
 
 	#in case this is a 64bit setup, we tell nvcc to use a -m64 flag, if missing from existing flags
 	if test x$SIZEOF_VOID_P = x8; then
-		case \ $NVCCFLAGS\  in 
+		case \ $NVCCFLAGS\  in
 			*\ -m64\ *) ;;
 			*) NVCCFLAGS="${NVCCFLAGS} -m64" ;;
 		esac
@@ -1745,9 +1782,6 @@ AC_ARG_ENABLE(maxmicthreads, [AS_HELP_STRING([--enable-maxmicthreads=<number>],
 			nmaxmicthreads=$enableval, nmaxmicthreads=120)
 AC_MSG_RESULT($nmaxmicthread)
 
-AC_DEFINE_UNQUOTED(STARPU_MAXMICCORES, [$nmaxmicthreads],
-	[maximum number of MIC cores])
-
 AC_ARG_WITH(coi-dir,
 	[AS_HELP_STRING([--with-coi-dir=<path>],
 	[specify the MIC's COI installation directory])],
@@ -1954,6 +1988,7 @@ if test x$enable_debug = xyes; then
 	FCFLAGS="$FCFLAGS -O0"
 	enable_spinlock_check=yes
 	if test x$GCC = xyes; then
+		IS_SUPPORTED_FLAG(-Og)
 		if test x$starpu_windows != xyes ; then
 			if test x$enable_fstack_protector_all = xyes ; then
 			   CFLAGS="$CFLAGS -fstack-protector-all"
@@ -1980,12 +2015,13 @@ if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
 	FFLAGS+=" -gdwarf-2 -g3"
 	FCFLAGS+=" -gdwarf-2 -g3"
 	LDFLAGS+=" -gdwarf-2 -g3"
+else
+	CFLAGS+=" -g "
+	CXXFLAGS+=" -g "
+	FFLAGS+=" -g "
+	FCFLAGS+=" -g "
+	LDFLAGS+=" -g "
 fi
-CFLAGS+=" -g "
-CXXFLAGS+=" -g "
-FFLAGS+=" -g "
-FCFLAGS+=" -g "
-LDFLAGS+=" -g "
 
 if test x$enable_spinlock_check = xyes; then
 	AC_DEFINE(STARPU_SPINLOCK_CHECK, [1], [check spinlock use])
@@ -2095,8 +2131,10 @@ if test x$use_fxt = xyes; then
 	LIBS="$LIBS $FXT_LIBS"
 	save_LDFLAGS="$LDFLAGS"
 	LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
-   	AC_CHECK_FUNCS([enable_fut_flush])
-   	AC_CHECK_FUNCS([fut_set_filename])
+	AC_CHECK_FUNCS([fxt_close])
+	AC_CHECK_FUNCS([fxt_blockev_leave])
+	AC_CHECK_FUNCS([enable_fut_flush])
+	AC_CHECK_FUNCS([fut_set_filename])
 	AC_CHECK_FUNCS([fut_setup_flush_callback])
 	LDFLAGS="$save_LDFLAGS"
 	LIBS="$save_LIBS"
@@ -2112,10 +2150,6 @@ if test x$use_fxt = xyes; then
                 # variable privatization to work
 		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
 	fi
-
-	AC_CHECK_LIB([papi], [PAPI_library_init],
-		     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
-		      PAPI_LIBS=-lpapi])
 
 	##########################################
 	# Poti is a library to generate paje trace files
@@ -2143,6 +2177,13 @@ AC_MSG_RESULT($enable_fxt_lock)
 if  test x$enable_fxt_lock = xyes; then
 	AC_DEFINE(STARPU_FXT_LOCK_TRACES, [1], [enable additional locking systems FxT traces])
 fi
+
+AC_CHECK_LIB([papi], [PAPI_library_init],
+	     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
+	      PAPI_LIBS=-lpapi])
+AC_SUBST(PAPI_LIBS)
+
+AM_CONDITIONAL([STARPU_USE_PAPI], [test "x$PAPI_LIBS" != "x"])
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
 AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
@@ -2369,6 +2410,20 @@ nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nm
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
+nmaxdevs=0
+if test $nmaxdevs -lt $nmaxcudadev; then
+	nmaxdevs=$nmaxcudadev
+fi
+if test $nmaxdevs -lt $nmaxopencldev; then
+	nmaxdevs=$nmaxopencldev
+fi
+if test $nmaxdevs -lt $nmaxmicdev; then
+	nmaxdevs=$nmaxmicdev
+fi
+if test $nmaxdevs -lt $nmaxmpidev; then
+	nmaxdevs=$nmaxmpidev
+fi
+AC_DEFINE_UNQUOTED(STARPU_NMAXDEVS, [$nmaxdevs], [Maximum number of device per device arch])
 
 # Computes the maximun number of combined worker
 nmaxcombinedworkers=`expr $maxcpus + $nmaxmicthreads`
@@ -2434,8 +2489,8 @@ AC_SUBST(STARPU_EXPORT_DYNAMIC)
 # Computes the maximum number of different kernels a message-passing sink
 # can lookup for and launch.
 AC_MSG_CHECKING(Maximum number of message-passing kernels)
-AC_ARG_ENABLE(maxmpkernels, [AS_HELP_STRING([
-	      -enable-maxmpkernels=<number>],
+AC_ARG_ENABLE(maxmpkernels, [AS_HELP_STRING(
+	      [-enable-maxmpkernels=<number>],
 	      [maximum number of kernels a message-passing sink can lookup
 	      for and execute])],
 	      maxmpkernels=$enableval, maxmpkernels=10)
@@ -2449,64 +2504,35 @@ AC_DEFINE_UNQUOTED(STARPU_MAXMPKERNELS, [$maxmpkernels],
 #                                                                             #
 ###############################################################################
 
-# IS_SUPPORTED_CFLAG(flag)
-# ------------------------
-# Check if the CFLAGS `flag' is supported by the compiler
-AC_DEFUN([IS_SUPPORTED_CFLAG],
-[
-	AC_REQUIRE([AC_PROG_CC])
-
-	AC_MSG_CHECKING([whether compiler support $1])
-
-	SAVED_CFLAGS="$CFLAGS"
-	CFLAGS="$1" # -we10006"
-
-	AC_LINK_IFELSE(
-		AC_LANG_PROGRAM(
-			[[]],
-			[[
-				AC_LANG_SOURCE([
-					const char *hello = "Hello World";
-				])
-			]]
-		),
-		[
-			m4_default_nblank([$2], [GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"])
-			AC_MSG_RESULT(yes)
-			option_available=1
-		],
-		[
-			AC_MSG_RESULT(no)
-			option_available=0
-		]
-	)
-	CFLAGS="$SAVED_CFLAGS"
-])
-
-IS_SUPPORTED_CFLAG(-Wall)
+IS_SUPPORTED_FLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
 IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
 if test x$enable_perf_debug = xyes; then
-	IS_SUPPORTED_CFLAG(-no-pie)
-	IS_SUPPORTED_CFLAG(-no-PIE)
-	IS_SUPPORTED_CFLAG(-fno-pie)
+	IS_SUPPORTED_FLAG(-no-pie)
+	IS_SUPPORTED_FLAG(-no-PIE)
+	IS_SUPPORTED_FLAG(-fno-pie)
 fi
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
-	IS_SUPPORTED_CFLAG(-Wextra)
-	IS_SUPPORTED_CFLAG(-Wunused)
+	IS_SUPPORTED_FLAG(-Wextra)
+	IS_SUPPORTED_FLAG(-Wunused)
 	IS_SUPPORTED_CFLAG(-Wundef)
-	IS_SUPPORTED_CFLAG(-Wshadow)
+	IS_SUPPORTED_CXXFLAG(-Wundef)
+	IS_SUPPORTED_FLAG(-Wshadow)
 	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
-	IS_SUPPORTED_CFLAG(-fno-common)
+	IS_SUPPORTED_CXXFLAG(-Werror=pointer-arith)
+	IS_SUPPORTED_FLAG(-fno-common)
 	if test x$enable_debug = xyes; then
-		IS_SUPPORTED_CFLAG(-fno-optimize-sibling-calls)
+		IS_SUPPORTED_FLAG(-fno-optimize-sibling-calls)
 	fi
 fi
 AM_CONDITIONAL([STARPU_DEVEL],[test "x$STARPU_DEVEL" != x])
 
 AC_SUBST(GLOBAL_AM_CFLAGS)
+AC_SUBST(GLOBAL_AM_CXXFLAGS)
+AC_SUBST(GLOBAL_AM_FFLAGS)
+AC_SUBST(GLOBAL_AM_FCFLAGS)
 
 # Same value as Automake's, for use in other places.
 pkglibdir="\${libdir}/$PACKAGE"
@@ -2692,6 +2718,7 @@ if test x$enable_simgrid = xno; then
   if test -n "{OPENMP_CFLAGS}"; then
      CFLAGS="${CFLAGS} ${OPENMP_CFLAGS}"
      STARPU_OMP_LDFLAGS="${OPENMP_CFLAGS}"
+     STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS ${OPENMP_CFLAGS}"
   fi
 fi
 AM_CONDITIONAL([STARPU_HAVE_OPENMP],[test x$enable_simgrid = xno -a -n "$OPENMP_CFLAGS"])
@@ -2721,7 +2748,7 @@ if test "x$use_mpi_master_slave" = "xyes" ; then
       AC_MSG_ERROR([MPI Master-Slave and SOCL can not be used at the same time !])
    fi
    if test "x$enable_socl" = "xmaybe" ; then
-     enable_socl=no 
+     enable_socl=no
    fi
 fi
 
@@ -3013,15 +3040,12 @@ AC_SUBST(BLAS_LIB,$blas_lib)
 #			 Multiple linear regression			      #
 #                                                                             #
 ###############################################################################
-if test x$enable_simgrid = xyes ; then
-	# There is no need for building mlr models in simgrid mode
-	default_enable_mlr=no
-else
-	default_enable_mlr=yes
-fi
-AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--disable-mlr],
-			[Disable multiple linear regression models])],
-			enable_mlr=$enableval, enable_mlr=$default_enable_mlr)
+AC_ARG_ENABLE(mlr, [AS_HELP_STRING([--enable-mlr],
+			[Enable multiple linear regression models])],
+			enable_mlr=$enableval, enable_mlr=no)
+AC_ARG_ENABLE(mlr-system-blas, [AS_HELP_STRING([--enable-mlr-system-blas],
+			[Make the multiple linear regression models use the system BLAS instead of min-dgels])],
+			enable_mlr_blas=$enableval, enable_mlr_blas=no)
 
 AC_MSG_CHECKING(whether multiple linear regression models are disabled)
 if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
@@ -3032,11 +3056,11 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 	if test x$blas_lib = xnone ; then
 	   use_system_lapack=no
 	fi
-	if test x$use_system_lapack = xyes; then
+	if test x$enable_mlr_blas = xyes -a x$use_system_lapack = xyes; then
 	   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use reflapack library])
 		LDFLAGS="-llapack $LDFLAGS"
 	else
-		if test x$blas_lib = xmkl; then
+		if test x$enable_mlr_blas=xyes -a x$blas_lib = xmkl; then
 		   	AC_DEFINE(STARPU_MLR_MODEL, [1], [use mkl library])
 		else
 			AC_MSG_CHECKING(whether min-dgels is linked)
@@ -3053,9 +3077,6 @@ if test x$enable_mlr = xyes -a "$starpu_windows" != "yes" ; then
 					install_min_dgels=no
 					support_mlr=no
 				else
-					if test ! -d $PWD/min-dgels; then
-						cp -r $srcdir/min-dgels $PWD/
-					fi
 					AC_MSG_RESULT(yes)
 					DGELS_LIBS="-Wl,--start-group $STARPU_BUILD_DIR/min-dgels/build/minlibblas.a $STARPU_BUILD_DIR/min-dgels/build/minlibdgels.a $STARPU_BUILD_DIR/min-dgels/build/minlibf2c.a -Wl,--end-group"
 					AC_DEFINE(STARPU_MLR_MODEL, [1], [use user defined library])
@@ -3122,7 +3143,7 @@ AM_CONDITIONAL(STARPU_BUILD_STARPUFFT_EXAMPLES, [test x$enable_starpufft_example
 ##########################################
 
 have_valid_hwloc=no
-SAVED_LDFLAGS="${LDFLAGS}"
+SAVED_LIBS="${LIBS}"
 SAVED_CPPFLAGS="${CPPFLAGS}"
 SAVED_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
 AC_ARG_WITH([hwloc],
@@ -3167,7 +3188,7 @@ AS_IF([test "$have_valid_hwloc" = "no" -a "$use_hwloc" != "no"],
       [AC_MSG_ERROR([libhwloc or pkg-config was not found on your system. If the target machine is hyperthreaded the performance may be impacted a lot.  It is strongly recommended to install libhwloc and pkg-config. However, if you really want to use StarPU without enabling libhwloc, please restart configure by specifying the option '--without-hwloc'.])]
      )
 
-LDFLAGS="${HWLOC_LIBS} ${SAVED_LDFLAGS}"
+LIBS="${HWLOC_LIBS} ${SAVED_LIBS}"
 CPPFLAGS="${HWLOC_CFLAGS} ${SAVED_CPPFLAGS}"
 
 AS_IF([test "$have_valid_hwloc" = "yes"],
@@ -3179,9 +3200,10 @@ AS_IF([test "$have_valid_hwloc" = "yes"],
 
 AC_CHECK_FUNCS([hwloc_topology_dup])
 AC_CHECK_FUNCS([hwloc_topology_set_components])
+AC_CHECK_FUNCS([hwloc_cpukinds_get_nr])
 AM_CONDITIONAL(STARPU_HWLOC_HAVE_TOPOLOGY_DUP, test $ac_cv_func_hwloc_topology_dup = yes)
 
-LDFLAGS="${SAVED_LDFLAGS}"
+LIBS="${SAVED_LIBS}"
 CPPFLAGS="${SAVED_CPPFLAGS}"
 export PKG_CONFIG_PATH=$SAVED_PKG_CONFIG_PATH
 
@@ -3293,9 +3315,9 @@ then
 			[AS_HELP_STRING([--with-dlb-include-dir=<path>],
 			[specify where DLB headers are installed])],
 			[dlb_inc_dirs="$withval"], [dlb_inc_dirs=""])
-	
+
 		dlb_inc_dirs="${dlb_inc_dirs} /usr/include/dlb"
-	
+
 		dlb_incdir_found=no
 		for dlb_incdir in $dlb_inc_dirs
 		do
@@ -3316,18 +3338,18 @@ then
 				unset ac_cv_header_dlb_h
 			fi
 		done
-	
+
 		AC_ARG_WITH(dlb-lib-dir,
 			[AS_HELP_STRING([--with-dlb-lib-dir=<path>],
 			[specify where DLB libraries are installed])],
 			[dlb_lib_dirs="$withval"], [dlb_lib_dirs=""])
-	
+
 		dlb_lib_dirs="${dlb_lib_dirs} /usr/lib/dlb"
-	
+
 		dlb_libdir_found=no
 		for dlb_libdir in $dlb_lib_dirs
 		do
-			if test -n "$dlb_libdir" 
+			if test -n "$dlb_libdir"
 			then
 				SAVED_LDFLAGS="${LDFLAGS}"
 				LDFLAGS=-L${dlb_libdir}
@@ -3344,7 +3366,7 @@ then
 				unset ac_cv_lib_dlb_DLB_Init
 			fi
 		done
-	
+
 		SAVED_CPPFLAGS="${CPPFLAGS}"
 		SAVED_CFLAGS="${CFLAGS}"
 		SAVED_LDFLAGS="${LDFLAGS}"
@@ -3356,7 +3378,7 @@ then
 		CPPFLAGS="$SAVED_CPPFLAGS"
 		CFLAGS="$SAVED_CFLAGS"
 		LIBS="$SAVED_LIBS"
-	
+
 		SAVED_CPPFLAGS="${CPPFLAGS}"
 		SAVED_CFLAGS="${CFLAGS}"
 		SAVED_LDFLAGS="${LDFLAGS}"
@@ -3372,13 +3394,13 @@ then
 		CPPFLAGS="$SAVED_CPPFLAGS"
 		CFLAGS="$SAVED_CFLAGS"
 		LIBS="$SAVED_LIBS"
-	
+
 		if test "x$dlb_incdir_found" != "xyes" -o "x$dlb_libdir_found" != "xyes"
 		then
 			enable_dlb=no
 		fi
 	fi
-	
+
 	AC_MSG_CHECKING(whether DLB support should be enabled)
 	AC_MSG_RESULT($enable_dlb)
 	if test "x$enable_dlb" != "xno"
@@ -3408,19 +3430,70 @@ AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
 			enable_starpurm_examples=$enableval, enable_starpurm_examples=no)
 AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples = xyes])
 
+#####################################
+# StarPUPy                          #
+#####################################
 
+starpupy_support=no
+AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU python interface])],
+                    enable_starpupy=$enableval, enable_starpupy=no)
+if test "x$enable_starpupy" != xno
+then
+	starpupy_support=yes
+	AC_CHECK_PROGS([PYTHON], python3)
+	if test "$ac_cv_prog_PYTHON" == ""
+	then
+		AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
+	fi
+	AC_SUBST(PYTHON)
+	AC_MSG_CHECKING(for python3 module joblib)
+	AC_PYTHON_MODULE(joblib,[joblib_avail=yes],[joblib_avail=no])
+	AC_MSG_RESULT($joblib_avail)
+	if test "$joblib_avail" = "no" ; then
+		AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface])
+	fi
+	AC_MSG_CHECKING(for python3 module numpy)
+	AC_PYTHON_MODULE(numpy,[numpy_avail=yes],[numpy_avail=no])
+	AC_MSG_RESULT($numpy_avail)
+	PYTHON_NUMPY_DIR=""
+	if test "$numpy_avail" = "yes" ; then
+	   	AC_DEFINE(STARPU_PYTHON_HAVE_NUMPY, [1], [Python3 numpy package available])
+		PYTHON_NUMPY_DIR="`$PYTHON -c "import numpy ; print(numpy.get_include())"`"
+	fi
+	AC_SUBST(PYTHON_NUMPY_DIR)
+	PYTHON_SETUP_OPTIONS=""
+	if test x$enable_debug = xyes ; then
+	   PYTHON_SETUP_OPTIONS="--debug"
+	fi
+	AC_SUBST(PYTHON_SETUP_OPTIONS)
+fi
+AM_CONDITIONAL(STARPU_BUILD_STARPUPY, [test x$starpupy_support = xyes])
+AM_CONDITIONAL(STARPU_STARPUPY_NUMPY, [test x$numpy_avail = xyes])
 
 ##########################################
 # Documentation                          #
 ##########################################
 
+def_enable_build_doc="yes"
+available_doc="no"
+if test -d "$srcdir/doc/doxygen/html" ; then
+   def_enable_build_doc="no"
+   available_doc="yes"
+fi
+
 AC_ARG_ENABLE(build-doc, [AS_HELP_STRING([--disable-build-doc],
 			[disable building of documentation])],
-			enable_build_doc=$enableval, enable_build_doc=yes)
+			enable_build_doc=$enableval, enable_build_doc=$def_enable_build_doc)
 
 AC_ARG_ENABLE(build-doc-pdf, [AS_HELP_STRING([--enable-build-doc-pdf],
 			[enable building of PDF documentation])],
 			enable_build_doc_pdf=$enableval, enable_build_doc_pdf=no)
+
+available_doc_pdf="no"
+if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
+   enable_build_doc_pdf="no"
+   available_doc_pdf="yes"
+fi
 
 # Check whether doxygen needed tools are installed
 AC_PATH_PROG(doxygencommand, doxygen)
@@ -3437,17 +3510,6 @@ if test "$epstopdfcommand" = "" ; then
    enable_build_doc_pdf="no"
 fi
 
-available_doc="no"
-if test -d "$srcdir/doc/doxygen/html" ; then
-   enable_build_doc="no"
-   available_doc="yes"
-fi
-available_doc_pdf="no"
-if test -f "$srcdir/doc/doxygen/starpu.pdf" ; then
-   enable_build_doc="no"
-   enable_build_doc_pdf="no"
-   available_doc_pdf="yes"
-fi
 AC_MSG_CHECKING(whether HTML documentation should be compiled)
 AC_MSG_RESULT($enable_build_doc)
 AC_MSG_CHECKING(whether HTML documentation is available)
@@ -3490,20 +3552,26 @@ AC_SUBST(JULIA, $juliapath)
 #                                                                             #
 ###############################################################################
 
+# these are the flags needed to compile starpu.h
+STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $SIMGRID_CFLAGS $OPENMP_CFLAGS"
+AC_SUBST([STARPU_H_CPPFLAGS])
+
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
-LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
-AC_SUBST([LIBSTARPU_LINK])
-
+# these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
 if test "x$enable_shared" = xno; then
-        # No .so, so application will unexpected have to know which -l to
+        # No .so, so application will unexpectedly have to know which -l to
         # use. Give them in .pc file.
 	AC_DEFINE(STARPU_STATIC_ONLY, [1], [Only static compilation was made])
-	STARPU_EXPORTED_LIBS="$LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
+	STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $LDFLAGS $LIBS $LIBSTARPU_LDFLAGS"
 fi
 AC_SUBST(STARPU_EXPORTED_LIBS)
+
+LIBSTARPU_LINK=libstarpu-$STARPU_EFFECTIVE_VERSION.la
+LIBSTARPU_LINK="$LIBSTARPU_LINK $STARPU_EXPORTED_LIBS"
+AC_SUBST([LIBSTARPU_LINK])
 
 # File configuration
 AC_CONFIG_COMMANDS([executable-scripts], [
@@ -3526,50 +3594,60 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
-  mkdir -p tests/microbenchs
-  test -e tests/microbenchs/tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_data_overhead.sh tests/microbenchs/
-  test -e tests/microbenchs/sync_tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/sync_tasks_data_overhead.sh tests/microbenchs/
-  test -e tests/microbenchs/async_tasks_data_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/async_tasks_data_overhead.sh tests/microbenchs/
-  test -e tests/microbenchs/tasks_size_overhead.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.sh tests/microbenchs/
-  test -e tests/microbenchs/tasks_size_overhead_sched.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_sched.sh tests/microbenchs/
-  test -e tests/microbenchs/tasks_size_overhead_scheds.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead_scheds.sh tests/microbenchs/
-  test -e tests/microbenchs/tasks_size_overhead.gp || ln -sf $ac_abs_top_srcdir/tests/microbenchs/tasks_size_overhead.gp tests/microbenchs/
-  test -e tests/microbenchs/microbench.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/microbench.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_independent_heterogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_heterogeneous_tasks_data.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_independent_heterogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_heterogeneous_tasks.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_independent_homogeneous_tasks.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_independent_homogeneous_tasks.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh tests/microbenchs/
-  test -e tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh || ln -sf $ac_abs_top_srcdir/tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh tests/microbenchs/
-  mkdir -p tests/energy
-  test -e tests/energy/static.sh || ln -sf $ac_abs_top_srcdir/tests/energy/static.sh tests/energy/
-  test -e tests/energy/dynamic.sh || ln -sf $ac_abs_top_srcdir/tests/energy/dynamic.sh tests/energy/
-  mkdir -p tests/datawizard
-  test -e tests/datawizard/locality.sh || ln -sf $ac_abs_top_srcdir/tests/datawizard/locality.sh tests/datawizard/
-  mkdir -p tests/overlap
-  test -e tests/overlap/overlap.sh || ln -sf $ac_abs_top_srcdir/tests/overlap/overlap.sh tests/overlap/
-  mkdir -p tests/model-checking
-  test -e tests/model-checking/prio_list.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/prio_list.sh tests/model-checking/
-  test -e tests/model-checking/barrier.sh || ln -sf $ac_abs_top_srcdir/tests/model-checking/barrier.sh tests/model-checking/
-  mkdir -p examples/heat
-  test -e examples/heat/heat.sh || ln -sf $ac_abs_top_srcdir/examples/heat/heat.sh examples/heat/
-  mkdir -p examples/lu
-  test -e examples/lu/lu.sh || ln -sf $ac_abs_top_srcdir/examples/lu/lu.sh examples/lu/
-  mkdir -p examples/cholesky
-  test -e examples/cholesky/cholesky.sh || ln -sf $ac_abs_top_srcdir/examples/cholesky/cholesky.sh examples/cholesky/
-  mkdir -p examples/mult
-  test -e examples/mult/sgemm.sh || ln -sf $ac_abs_top_srcdir/examples/mult/sgemm.sh examples/mult/
-  mkdir -p examples/scheduler
-  test -e examples/scheduler/schedulers.sh || ln -sf $ac_abs_top_srcdir/examples/scheduler/schedulers.sh examples/scheduler
-  test -e examples/scheduler/schedulers_context.sh || ln -sf $ac_abs_top_srcdir/examples/scheduler/schedulers_context.sh examples/scheduler
-  test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
-  test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
-  test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
-  chmod +x julia/examples/execute.sh
-  for x in julia/examples/check_deps/check_deps.sh julia/examples/mult/mult_starpu.sh julia/examples/mult/perf.sh julia/examples/variable/variable.sh julia/examples/task_insert_color/task_insert_color.sh julia/examples/vector_scal/vector_scal.sh julia/examples/mandelbrot/mandelbrot.sh julia/examples/callback/callback.sh julia/examples/dependency/task_dep.sh julia/examples/dependency/tag_dep.sh julia/examples/dependency/end_dep.sh julia/examples/axpy/axpy.sh julia/examples/gemm/gemm.sh julia/examples/cholesky/cholesky.sh; do
+  chmod +x starpupy/examples/execute.sh
+  for x in starpupy/examples/starpu_py.sh starpupy/examples/starpu_py_np.sh starpupy/examples/starpu_py_parallel.sh; do
       test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
+  done
+  chmod +x julia/examples/execute.sh
+  for x in \
+    tests/microbenchs/tasks_data_overhead.sh \
+    tests/microbenchs/sync_tasks_data_overhead.sh \
+    tests/microbenchs/async_tasks_data_overhead.sh \
+    tests/microbenchs/tasks_size_overhead.sh \
+    tests/microbenchs/tasks_size_overhead_sched.sh \
+    tests/microbenchs/tasks_size_overhead_scheds.sh \
+    tests/microbenchs/tasks_size_overhead.gp \
+    tests/microbenchs/microbench.sh \
+    tests/microbenchs/parallel_dependent_homogeneous_tasks_data.sh \
+    tests/microbenchs/parallel_independent_heterogeneous_tasks_data.sh \
+    tests/microbenchs/parallel_independent_heterogeneous_tasks.sh \
+    tests/microbenchs/parallel_independent_homogeneous_tasks_data.sh \
+    tests/microbenchs/parallel_independent_homogeneous_tasks.sh \
+    tests/microbenchs/parallel_redux_homogeneous_tasks_data.sh \
+    tests/microbenchs/parallel_redux_heterogeneous_tasks_data.sh \
+    tests/microbenchs/bandwidth_scheds.sh \
+    tests/energy/static.sh \
+    tests/energy/dynamic.sh \
+    tests/datawizard/locality.sh \
+    tests/overlap/overlap.sh \
+    tests/model-checking/prio_list.sh \
+    tests/model-checking/barrier.sh \
+    examples/heat/heat.sh \
+    examples/lu/lu.sh \
+    examples/cholesky/cholesky.sh \
+    examples/mult/sgemm.sh \
+    examples/scheduler/schedulers.sh \
+    examples/scheduler/schedulers_context.sh \
+    tools/starpu_paje_draw_histogram.R \
+    tools/starpu_paje_state_stats.R \
+    tools/starpu_trace_state_stats.py \
+    julia/examples/check_deps/check_deps.sh \
+    julia/examples/mult/mult_starpu.sh \
+    julia/examples/mult/perf.sh \
+    julia/examples/variable/variable.sh \
+    julia/examples/task_insert_color/task_insert_color.sh \
+    julia/examples/vector_scal/vector_scal.sh \
+    julia/examples/mandelbrot/mandelbrot.sh \
+    julia/examples/callback/callback.sh \
+    julia/examples/dependency/task_dep.sh \
+    julia/examples/dependency/tag_dep.sh \
+    julia/examples/dependency/end_dep.sh \
+    julia/examples/axpy/axpy.sh \
+    julia/examples/gemm/gemm.sh \
+    julia/examples/cholesky/cholesky.sh \
+  ; do
+      test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
 ])
 
@@ -3636,10 +3714,17 @@ AC_OUTPUT([
 	starpurm/src/Makefile
 	starpurm/examples/Makefile
 	starpurm/starpurm-1.3.pc
+	starpupy/src/setup.cfg
+	starpupy/src/setup.py
+	starpupy/Makefile
+	starpupy/src/Makefile
+	starpupy/examples/Makefile
+	starpupy/examples/execute.sh
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
 	tests/loader-cross.sh
+	tests/model-checking/Makefile
 	tests/model-checking/starpu-mc.sh
 	examples/loader-cross.sh
 	examples/stencil/loader-cross.sh
@@ -3648,6 +3733,7 @@ AC_OUTPUT([
 	mpi/tests/Makefile
 	mpi/examples/Makefile
 	mpi/tools/Makefile
+	mpi/GNUmakefile
 	sc_hypervisor/Makefile
 	sc_hypervisor/src/Makefile
 	sc_hypervisor/examples/Makefile
@@ -3708,7 +3794,8 @@ AC_MSG_NOTICE([
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $use_mpi_master_slave
 	       FFT Support:                                   $fft_support
-	       Resource Management enable:                    $starpurm_support
+	       Resource Management enabled:                   $starpurm_support
+	       Python Interface enabled:                      $starpupy_support
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
@@ -3716,6 +3803,7 @@ AC_MSG_NOTICE([
                Scheduler Hypervisor:                          $build_sc_hypervisor
                simgrid enabled:                               $enable_simgrid
                ayudame enabled:                               $ayu_msg
+               HDF5 enabled:                                  $enable_hdf5
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr

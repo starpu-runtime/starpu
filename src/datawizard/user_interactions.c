@@ -227,7 +227,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 			*pre_sync_jobid = pre_sync_job->job_id;
 
 		wrapper->post_sync_task = starpu_task_create();
-		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_post";
+		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_release";
 		wrapper->post_sync_task->detach = 1;
 		wrapper->post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
 		post_sync_job = _starpu_get_job_associated_to_task(wrapper->post_sync_task);
@@ -485,16 +485,26 @@ int starpu_data_acquire_try(starpu_data_handle_t handle, enum starpu_data_access
 
 /* This function must be called after starpu_data_acquire so that the
  * application release the data */
-void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
+void starpu_data_release_to_on_node(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int node)
 {
 	STARPU_ASSERT(handle);
 
+	if (mode == STARPU_RW)
+		/* They are equivalent here, and current_mode is never STARPU_RW */
+		mode = STARPU_W;
+
+	STARPU_ASSERT_MSG(mode == STARPU_NONE ||
+			  mode == handle->current_mode ||
+			  (mode == STARPU_R &&
+			     handle->current_mode == STARPU_W),
+		"We only support releasing from W to R");
+
 	/* In case there are some implicit dependencies, unlock the "post sync" tasks */
-	_starpu_unlock_post_sync_tasks(handle);
+	_starpu_unlock_post_sync_tasks(handle, mode);
 
 	/* The application can now release the rw-lock */
 	if (node >= 0)
-		_starpu_release_data_on_node(handle, 0, &handle->per_node[node]);
+		_starpu_release_data_on_node(handle, 0, mode, &handle->per_node[node]);
 	else
 	{
 		_starpu_spin_lock(&handle->header_lock);
@@ -505,17 +515,27 @@ void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
 				handle->per_node[i].refcnt--;
 		}
 		handle->busy_count--;
-		if (!_starpu_notify_data_dependencies(handle))
+		if (!_starpu_notify_data_dependencies(handle, mode))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 }
 
-void starpu_data_release(starpu_data_handle_t handle)
+void starpu_data_release_on_node(starpu_data_handle_t handle, int node)
+{
+	starpu_data_release_to_on_node(handle, STARPU_NONE, node);
+}
+
+void starpu_data_release_to(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	int home_node = handle->home_node;
 	if (home_node < 0)
 		home_node = STARPU_MAIN_RAM;
-	starpu_data_release_on_node(handle, home_node);
+	starpu_data_release_to_on_node(handle, mode, home_node);
+}
+
+void starpu_data_release(starpu_data_handle_t handle)
+{
+	starpu_data_release_to(handle, STARPU_NONE);
 }
 
 static void _prefetch_data_on_node(void *arg)
@@ -531,7 +551,7 @@ static void _prefetch_data_on_node(void *arg)
 		_starpu_data_acquire_wrapper_finished(wrapper);
 
 	_starpu_spin_lock(&handle->header_lock);
-	if (!_starpu_notify_data_dependencies(handle))
+	if (!_starpu_notify_data_dependencies(handle, STARPU_NONE))
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
@@ -581,7 +601,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 		/* In case there was a temporary handle (eg. used for reduction), this
 		 * handle may have requested to be destroyed when the data is released
 		 * */
-		if (!_starpu_notify_data_dependencies(handle))
+		if (!_starpu_notify_data_dependencies(handle, STARPU_NONE))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 	else if (!async)
@@ -666,6 +686,37 @@ static void _starpu_data_wont_use(void *data)
 
 void starpu_data_wont_use(starpu_data_handle_t handle)
 {
+	if (!handle->initialized)
+		/* No value atm actually */
+		return;
+
+	if (starpu_data_get_nb_children(handle) != 0)
+	{
+		int i;
+		for(i=0 ; i<starpu_data_get_nb_children(handle) ; i++)
+			starpu_data_wont_use(starpu_data_get_child(handle, i));
+		return;
+	}
+
+	if (handle->partitioned != 0)
+	{
+		unsigned i;
+		for(i=0 ; i<handle->partitioned; i++)
+		{
+			unsigned j;
+			for(j=0 ; j<handle->active_readonly_nchildren[i] ; j++)
+				starpu_data_wont_use(handle->active_readonly_children[i][j]);
+		}
+	}
+
+	if (handle->active_nchildren != 0)
+	{
+		unsigned j;
+		for(j=0 ; j<handle->active_nchildren ; j++)
+			starpu_data_wont_use(handle->active_children[j]);
+		return;
+	}
+
 	_STARPU_TRACE_DATA_WONT_USE(handle);
 	starpu_data_acquire_on_node_cb_sequential_consistency_quick(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_R, _starpu_data_wont_use, handle, 1, 1);
 }

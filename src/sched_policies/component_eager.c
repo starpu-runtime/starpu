@@ -24,6 +24,7 @@ struct _starpu_eager_data
 {
 	struct starpu_sched_component *target;
 	starpu_pthread_mutex_t scheduling_mutex;
+	int ntasks;
 };
 
 static int eager_push_task(struct starpu_sched_component * component, struct starpu_task * task)
@@ -33,6 +34,12 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	struct _starpu_eager_data *d = component->data;
 	struct starpu_sched_component *target;
+
+	if (d->ntasks == 0)
+		/* We have already pushed a task down */
+		return 1;
+	if (d->ntasks > 0)
+		d->ntasks--;
 
 	if ((target = d->target))
 	{
@@ -99,7 +106,7 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 	return 1;
 }
 
-/* Note: we can't use starpu_sched_component_pump_to because if a fifo below
+/* Note: we can't use starpu_sched_component_pump_to ourself because if a fifo below
  * refuses a task, we have no way to push it back to a fifo above. */
 static int eager_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
 {
@@ -108,10 +115,22 @@ static int eager_can_push(struct starpu_sched_component * component, struct star
 	STARPU_COMPONENT_MUTEX_LOCK(&d->scheduling_mutex);
 	/* Target flow of tasks to this child */
 	d->target = to;
+	/* But make pump above push only one task */
+	d->ntasks = 1;
 	success = starpu_sched_component_can_push(component, to);
 	d->target = NULL;
+	d->ntasks = -1;
 	STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
 	return success;
+}
+
+static struct starpu_task *eager_pull_task(struct starpu_sched_component * component, struct starpu_sched_component * to)
+{
+	/* We can't directly pull (in case the obtained task does not match
+	 * the constraints of `to'), but we can try to push, and components
+	 * below will cope with it */
+	eager_can_push(component, to);
+	return NULL;
 }
 
 static void eager_deinit_data(struct starpu_sched_component *component)
@@ -134,10 +153,12 @@ struct starpu_sched_component * starpu_sched_component_eager_create(struct starp
 	struct _starpu_eager_data *data;
 	_STARPU_MALLOC(data, sizeof(*data));
 	data->target = NULL;
+	data->ntasks = -1;
 	STARPU_PTHREAD_MUTEX_INIT(&data->scheduling_mutex, NULL);
 
 	component->data = data;
 	component->push_task = eager_push_task;
+	component->pull_task = eager_pull_task;
 	component->can_push = eager_can_push;
 	component->can_pull = starpu_sched_component_can_pull_all;
 	component->deinit_data = eager_deinit_data;

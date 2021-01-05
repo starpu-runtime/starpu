@@ -47,13 +47,13 @@ void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req)
 			/* We were last, release data */
 			free(coop_sends->reqs_array);
 			free(coop_sends);
-			starpu_data_release(req->data_handle);
+			starpu_data_release_on_node(req->data_handle, STARPU_MAIN_RAM);
 		}
 	}
 	else
 	{
 		/* Trivial request */
-		starpu_data_release(req->data_handle);
+		starpu_data_release_on_node(req->data_handle, STARPU_MAIN_RAM);
 	}
 }
 
@@ -268,7 +268,11 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 	if (first)
 	{
 		/* We were first, we are responsible for acquiring the data for everybody */
-		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_coop_sends_data_ready, coop_sends, sequential_consistency, 0, &req->pre_sync_jobid, NULL);
+		long pre_sync_jobid;
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_coop_sends_data_ready, coop_sends, sequential_consistency, 0, &pre_sync_jobid, NULL);
+		coop_sends->pre_sync_jobid = pre_sync_jobid;
 	}
+	else
+		req->pre_sync_jobid = coop_sends->pre_sync_jobid;
 }
 

@@ -5,6 +5,8 @@
    <prop id="network/TCP_gamma" value="-1"></prop>
    <prop id="network/latency_factor" value="1"></prop>
    <prop id="network/bandwidth_factor" value="1"></prop>
+   <prop id="network/weight_S" value="0.0"></prop>
+   <prop id="network/crosstraffic" value="0"></prop>
  </config>
  <AS  id="AS0"  routing="Full">
    <host id="MAIN" power="1"/>

@@ -120,7 +120,7 @@ static int _starpu_count_bit_static(unsigned long e)
 #endif
 }
 
-static inline struct starpu_bitmap *starpu_bitmap_create()
+static inline struct starpu_bitmap *starpu_bitmap_create(void)
 {
 	return (struct starpu_bitmap *) calloc(1, sizeof(struct starpu_bitmap));
 }

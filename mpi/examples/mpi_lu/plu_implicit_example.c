@@ -112,7 +112,10 @@ static void parse_args(int argc, char **argv)
 
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
-		size = 16;
+	{
+		size = 4;
+		nblocks = 4;
+	}
 #endif
 }
 
@@ -249,6 +252,7 @@ int main(int argc, char **argv)
 	int rank;
 	int world_size;
 	int ret;
+	unsigned i, j;
 
 	starpu_srand48((long int)time(NULL));
 
@@ -376,6 +380,18 @@ int main(int argc, char **argv)
 	/*
 	 * 	Termination
 	 */
+	for (j = 0; j < nblocks; j++)
+	{
+		for (i = 0; i < nblocks; i++)
+		{
+			starpu_data_unregister(dataA_handles[j+nblocks*i]);
+			TYPE *blockptr = dataA[j+i*nblocks];
+			if (blockptr != STARPU_POISON_PTR)
+				starpu_free(blockptr);
+		}
+	}
+	free(dataA_handles);
+	free(dataA);
 
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();

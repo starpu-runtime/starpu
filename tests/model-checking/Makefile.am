@@ -13,25 +13,37 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-STARPU=../../
-CPPFLAGS=-I$(STARPU)/src -I$(STARPU)/include -I.
-CFLAGS+=-Wall -Wextra -g -DNOCONFIG
-LDFLAGS+=-lsimgrid -lm -Wl,-znorelro -Wl,-znoseparate-code
+include $(top_srcdir)/starpu.mk
+
+EXTRA_DIST =				\
+	platform.xml	\
+	prio_list.sh	\
+	barrier.sh	\
+	starpu-mc.sh.in
+
+AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_builddir)/include -I$(top_srcdir)/include $(SIMGRID_CFLAGS)
+AM_LDFLAGS  = -Wl,-znorelro -Wl,-znoseparate-code
+
+noinst_PROGRAMS = \
+		  prio_list \
+		  prio_list2 \
+		  starpu_barrier
+
+if !STARPU_QUICK_CHECK
+SHELL_TESTS = prio_list.sh
+#SHELL_TESTS += barrier.sh
+endif
 
 MC_FLAGS=--cfg=model-check/reduction:none
 
-ifeq (1,0)
-MC_FLAGS+=--cfg=contexts/factory:ucontext
-MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
-MC_FLAGS+=--cfg=model-check/visited:1000
-endif
+#MC_FLAGS+=--cfg=contexts/factory:ucontext
+#MC_FLAGS+=--cfg=model-check/sparse-checkpoint:yes
+#MC_FLAGS+=--cfg=model-check/visited:1000
 
 # To record the failing trace
-ifeq (1,0)
-MC_FLAGS+=--cfg=model-check/record:1
-# And replay it without simgrid-mc
+#MC_FLAGS+=--cfg=model-check/record:1
+## And replay it without simgrid-mc
 #MC_FLAGS+=--cfg=model-check/reply:'1;3;4'
-endif
 
 # To see which simix calls are made
 #MC_FLAGS+=--log=simix_popping.thres:debug
@@ -47,8 +59,3 @@ test-barrier: starpu_barrier
 
 debug-barrier: starpu_barrier
 	simgrid-mc ./starpu_barrier platform.xml MAIN --log=mc_safety.thres:debug $(MC_FLAGS)
-
-all: prio_list prio_list2 starpu_barrier
-
-clean:
-	rm -f prio_list prio_list2 starpu_barrier

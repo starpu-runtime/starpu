@@ -16,6 +16,8 @@
 /*
  * Basic send receive benchmark.
  * Inspired a lot from NewMadeleine examples/benchmarks/nm_bench_sendrecv.c
+ *
+ * The option --bidir is available to do full-duplex communications.
  */
 
 #include <starpu_mpi.h>
@@ -23,13 +25,25 @@
 #include "abstract_sendrecv_bench.h"
 
 
+static inline void man()
+{
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "\t-h --help   display this help\n");
+	fprintf(stderr, "\t-p          pause workers during benchmark\n");
+	fprintf(stderr, "\t--bidir     full-duplex communications\n");
+	exit(EXIT_SUCCESS);
+}
+
+
 int main(int argc, char **argv)
 {
 	int ret, rank, worldsize;
 	int pause_workers = 0;
+	int i = 0;
+	int bidir = 0;
 
 
-	for (int i = 1; i < argc; i++)
+	for (i = 1; i < argc; i++)
 	{
 		if (strcmp(argv[i], "-p") == 0)
 		{
@@ -38,15 +52,17 @@ int main(int argc, char **argv)
 		}
 		else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
-			fprintf(stderr, "Options:\n");
-			fprintf(stderr, "\t-h --help   display this help\n");
-			fprintf(stderr, "\t-p          pause workers during benchmark\n");
-			exit(EXIT_SUCCESS);
+			man();
+		}
+		else if (strcmp(argv[i], "--bidir") == 0)
+		{
+			bidir = 1;
+			printf("Communications will be full-duplex.\n");
 		}
 		else
 		{
 			fprintf(stderr,"Unrecognized option %s\n", argv[i]);
-			exit(EXIT_FAILURE);
+			man();
 		}
 	}
 
@@ -67,6 +83,12 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
+#if !defined(STARPU_LONG_CHECK)
+	if (rank == 0)
+	{
+		printf("To have a more precise benchmark, configure StarPU with --enable-long-check\n");
+	}
+#endif
 
 	if (pause_workers)
 	{
@@ -74,7 +96,7 @@ int main(int argc, char **argv)
 		starpu_pause();
 	}
 
-	sendrecv_bench(rank, NULL);
+	sendrecv_bench(rank, NULL, bidir);
 
 	if (pause_workers)
 	{

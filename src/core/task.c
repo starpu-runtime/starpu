@@ -288,8 +288,8 @@ void starpu_task_init(struct starpu_task *task)
 
 	task->detach = 1;
 
-#if STARPU_TASK_INVALID != 0
-	task->status = STARPU_TASK_INVALID;
+#if STARPU_TASK_INIT != 0
+	task->status = STARPU_TASK_INIT;
 #endif
 
 	task->predicted = NAN;
@@ -737,9 +737,9 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	if (task->status == STARPU_TASK_STOPPED || task->status == STARPU_TASK_FINISHED)
-		task->status = STARPU_TASK_INVALID;
+		task->status = STARPU_TASK_INIT;
 	else
-		STARPU_ASSERT(task->status == STARPU_TASK_INVALID);
+		STARPU_ASSERT(task->status == STARPU_TASK_INIT);
 
 	if (j->internal)
 	{
@@ -841,6 +841,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	_STARPU_LOG_IN();
 	STARPU_ASSERT(task);
 	STARPU_ASSERT_MSG(task->magic == _STARPU_TASK_MAGIC, "Tasks must be created with starpu_task_create, or initialized with starpu_task_init.");
+	STARPU_ASSERT_MSG(starpu_is_initialized(), "starpu_init must be called (and return no error) before submitting tasks.");
 
 	int ret;
 	{
@@ -911,6 +912,8 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		_STARPU_TRACE_TASK_SUBMIT(j,
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
+		_STARPU_TRACE_TASK_NAME(j);
+		_STARPU_TRACE_TASK_LINE(j);
 	}
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
@@ -947,10 +950,13 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 
 	/* If profiling is activated, we allocate a structure to store the
 	 * appropriate info. */
-	struct starpu_profiling_task_info *info;
+	struct starpu_profiling_task_info *info = task->profiling_info;
 	int profiling = starpu_profiling_status_get();
-	info = _starpu_allocate_profiling_info_if_needed(task);
-	task->profiling_info = info;
+	if (!info)
+	{
+		info = _starpu_allocate_profiling_info_if_needed(task);
+		task->profiling_info = info;
+	}
 
 	/* The task is considered as block until we are sure there remains not
 	 * dependency. */
@@ -978,6 +984,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	return ret;
 }
 
+#undef starpu_task_submit
 int starpu_task_submit(struct starpu_task *task)
 {
 	return _starpu_task_submit(task, 0);
@@ -1038,7 +1045,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	_starpu_increment_nready_tasks_of_sched_ctx(j->task->sched_ctx, j->task->flops, j->task);
 	_starpu_job_set_ordered_buffers(j);
 
-	STARPU_ASSERT(task->status == STARPU_TASK_INVALID);
+	STARPU_ASSERT(task->status == STARPU_TASK_INIT);
 	task->status = STARPU_TASK_READY;
 	_starpu_profiling_set_task_push_start_time(task);
 
@@ -1048,7 +1055,7 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 
 	struct _starpu_worker *worker;
 	worker = _starpu_get_worker_struct(workerid);
-	starpu_task_list_push_back(&worker->local_tasks, task);
+	starpu_task_prio_list_push_back(&worker->local_tasks, task);
 	starpu_wake_worker_locked(worker->workerid);
 
 	_starpu_profiling_set_task_push_end_time(task);
@@ -1448,38 +1455,29 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 	switch (node_kind)
 	{
 		case STARPU_CPU_RAM:
-			switch(starpu_node_get_kind(handle->mf_node))
-			{
-				case STARPU_CPU_RAM:
-					return 0;
-				case STARPU_CUDA_RAM:      /* Fall through */
-				case STARPU_OPENCL_RAM:
-				case STARPU_MIC_RAM:
-                                case STARPU_MPI_MS_RAM:
-					return 1;
-				default:
-					STARPU_ABORT();
-			}
-			break;
-		case STARPU_CUDA_RAM:    /* Fall through */
-		case STARPU_OPENCL_RAM:
 		case STARPU_MIC_RAM:
 		case STARPU_MPI_MS_RAM:
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
-					return 1;
-				case STARPU_CUDA_RAM:
-				case STARPU_OPENCL_RAM:
 				case STARPU_MIC_RAM:
                                 case STARPU_MPI_MS_RAM:
 					return 0;
 				default:
-					STARPU_ABORT();
+					return 1;
 			}
 			break;
 		default:
-			STARPU_ABORT();
+			switch(starpu_node_get_kind(handle->mf_node))
+			{
+				case STARPU_CPU_RAM:
+				case STARPU_MIC_RAM:
+                                case STARPU_MPI_MS_RAM:
+					return 1;
+				default:
+					return 0;
+			}
+			break;
 	}
 	/* that instruction should never be reached */
 	return -EINVAL;
@@ -1639,7 +1637,7 @@ struct starpu_task *starpu_task_ft_create_retry
 	new_task->failed = 0;
 	new_task->scheduled = 0;
 	new_task->prefetched = 0;
-	new_task->status = STARPU_TASK_INVALID;
+	new_task->status = STARPU_TASK_INIT;
 	new_task->profiling_info = NULL;
 	new_task->prev = NULL;
 	new_task->next = NULL;

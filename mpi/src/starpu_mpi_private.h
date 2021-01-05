@@ -27,6 +27,8 @@
 #include <common/starpu_spinlock.h>
 #include <core/simgrid.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -61,6 +63,7 @@ void _starpu_mpi_set_debug_level_max(int level);
 extern int _starpu_mpi_fake_world_size;
 extern int _starpu_mpi_fake_world_rank;
 extern int _starpu_mpi_use_prio;
+extern int _starpu_mpi_nobind;
 extern int _starpu_mpi_thread_cpuid;
 extern int _starpu_mpi_use_coop_sends;
 extern int _starpu_mpi_mem_throttle;
@@ -193,6 +196,9 @@ struct _starpu_mpi_coop_sends
 	struct _starpu_mpi_req **reqs_array;
 	unsigned n;
 	unsigned redirects_sent;
+
+	/* Used to trace dependencies */
+	long pre_sync_jobid;
 };
 
 /** Initialized in starpu_mpi_data_register_comm */
@@ -200,7 +206,7 @@ struct _starpu_mpi_data
 {
 	int magic;
 	struct _starpu_mpi_node_tag node_tag;
-	int *cache_sent;
+	char *cache_sent;
 	int cache_received;
 
 	/** Rendez-vous data for opportunistic cooperative sends */
@@ -245,7 +251,8 @@ LIST_TYPE(_starpu_mpi_req,
 
 	int ret;
 
-	enum _starpu_mpi_request_type request_type; /* 0 send, 1 recv */
+	/** 0 send, 1 recv */
+	enum _starpu_mpi_request_type request_type;
 
 	unsigned submitted;
 	unsigned completed;
@@ -295,6 +302,11 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
  */
 void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control, int submit_data);
 
+/*
+ * Fills post_sync_jobid with the reduction synchronization task jobid
+ */
+void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, long * const post_sync_jobid);
+
 void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req);
 void _starpu_mpi_request_init(struct _starpu_mpi_req **req);
 struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_handle,
@@ -314,8 +326,10 @@ struct _starpu_mpi_argc_argv
 	int *argc;
 	char ***argv;
 	MPI_Comm comm;
-	int fargc;	// Fortran argc
-	char **fargv;	// Fortran argv
+	/** Fortran argc */
+	int fargc;
+	/** Fortran argv */
+	char **fargv;
 	int rank;
 	int world_size;
 };

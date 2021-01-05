@@ -43,13 +43,14 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size;
 	int mpi_init;
+	int i;
 
 	int niter = DEFAULT_NITER;
 	int data_size = DEFAULT_DATA_SIZE;
 	int sleep_time = DEFAULT_SLEEP_TIME;
 	int method = DEFAULT_METHOD;
 
-	for (int i = 1; i < argc; i++)
+	for (i = 1; i < argc; i++)
 	{
 		if (strcmp(argv[i], "-n") == 0)
 		{
@@ -134,6 +135,7 @@ int main(int argc, char **argv)
 	int loop;
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 	int sender;
+	int r = 0;
 
 	if (method == 0) // ping pongs
 	{
@@ -161,7 +163,7 @@ int main(int argc, char **argv)
 			sender = loop % size;
 			if (sender == rank)
 			{
-				for (int r = 0; r < size; r++)
+				for (r = 0; r < size; r++)
 				{
 					if (r != rank)
 					{
@@ -175,7 +177,7 @@ int main(int argc, char **argv)
 				MPI_Status status;
 				starpu_mpi_recv(tab_handle, sender, (rank * niter) + loop, MPI_COMM_WORLD, &status);
 
-				for (int r = 0; r < (size-1); r++)
+				for (r = 0; r < (size-1); r++)
 					starpu_sleep(sleep_time / 1000);
 			}
 		}

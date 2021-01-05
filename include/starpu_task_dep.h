@@ -210,6 +210,13 @@ void starpu_tag_remove(starpu_tag_t id);
 */
 void starpu_tag_notify_from_apps(starpu_tag_t id);
 
+/**
+   Atomically call starpu_tag_notify_from_apps() and starpu_tag_restart() on tag
+   \p id.
+   This is useful with cyclic graphs, when we want to safely trigger its startup.
+*/
+void starpu_tag_notify_restart_from_apps(starpu_tag_t id);
+
 struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
 
 /** @} */

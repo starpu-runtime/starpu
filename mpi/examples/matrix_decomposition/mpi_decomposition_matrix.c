@@ -26,17 +26,27 @@ int my_distrib(int y, int x, int nb_nodes)
 }
 
 
-void matrix_display(float ***bmat, int rank)
+void matrix_display(float ***bmat, int rank, int nodes)
 {
-	if (display)
-	{
-		unsigned y;
-		printf("[%d] Input :\n", rank);
+	int n;
 
-		for(y=0 ; y<nblocks ; y++)
+	if (!display)
+		return;
+
+	starpu_mpi_barrier(MPI_COMM_WORLD);
+
+	for (n = 0; n < rank; n++)
+		starpu_mpi_barrier(MPI_COMM_WORLD);
+
+	unsigned y;
+	printf("[%d] Input :\n", rank);
+
+	for(y=0 ; y<nblocks ; y++)
+	{
+		unsigned x;
+		for(x=0 ; x<=y ; x++)
 		{
-			unsigned x;
-			for(x=0 ; x<nblocks ; x++)
+			if (my_distrib(y, x, nodes) == rank)
 			{
 				unsigned j;
 				printf("Block %u,%u :\n", x, y);
@@ -45,7 +55,7 @@ void matrix_display(float ***bmat, int rank)
 					unsigned i;
 					for (i = 0; i < BLOCKSIZE; i++)
 					{
-						if (i <= j)
+						if (x < y || i <= j)
 						{
 							printf("%2.2f\t", bmat[y][x][j +i*BLOCKSIZE]);
 						}
@@ -59,6 +69,11 @@ void matrix_display(float ***bmat, int rank)
 			}
 		}
 	}
+
+	starpu_mpi_barrier(MPI_COMM_WORLD);
+
+	for (n = rank+1; n < nodes; n++)
+		starpu_mpi_barrier(MPI_COMM_WORLD);
 }
 
 /* Note: bmat is indexed by bmat[m][n][mm+nn*BLOCKSIZE],
@@ -78,6 +93,7 @@ void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere)
 			if (alloc_everywhere || (mpi_rank == rank))
 			{
 				starpu_malloc((void **)&(*bmat)[m][n], BLOCKSIZE*BLOCKSIZE*sizeof(float));
+				if (mpi_rank == rank)
 				for (nn = 0; nn < BLOCKSIZE; nn++)
 				{
 					for (mm = 0; mm < BLOCKSIZE; mm++)

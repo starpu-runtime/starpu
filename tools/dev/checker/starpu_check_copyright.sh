@@ -16,7 +16,7 @@
 #
 REP=${1:-.}
 
-find $REP -not -path "*build*" -not -path "*tools/perfmodels/sampling*" -not -path "*starpu-top*"  -not -path "*min-dgels*" -not -name ".gitignore" -not -name "*.eps"  -not -name "*.pdf" -not -name "*.png" -not -path "*.deps*" -type f > /tmp/list_$$
+find $REP -not -path "*build*" -not -path "*.git*" -not -path "*tools/perfmodels/sampling*" -not -path "*starpu-top*"  -not -path "*min-dgels*" -not -name ".gitignore" -not -name "*.eps"  -not -name "*.pdf" -not -name "*.png" -not -path "*.deps*" -type f > /tmp/list_$$
 
 for f in $(cat /tmp/list_$$)
 do

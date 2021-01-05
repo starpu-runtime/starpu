@@ -34,8 +34,18 @@
 
 #include <core/dependencies/implicit_data_deps.h>
 
+/** Make data transfers progress on node \p memory_node.
+ *
+ * If \p push_requests is 1, it can start new transfers
+ *
+ * If \p may_alloc is 1, it can allocate destination data for transfers
+ * (this is not possible e.g. when spinning for a handle lock)
+ */
 int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests);
+/** Call ___starpu_datawizard_progress() for all memory nodes driven by the
+ * current worker */
 int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests);
+/** Call __starpu_datawizard_progress with push_requests = 1 */
 void _starpu_datawizard_progress(unsigned may_alloc);
 
 #endif // __DATAWIZARD_H__

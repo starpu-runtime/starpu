@@ -16,8 +16,7 @@
 
 #include <starpu.h>
 
-/* XXX Why cant we dereference a handle without this one ? */
-#include <core/sched_policy.h>
+#include <datawizard/coherency.h>
 
 #include <assert.h>
 

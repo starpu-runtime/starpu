@@ -47,7 +47,7 @@ int test(int rank, int node, int *before, int *after, int task_insert, int data_
 	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
-	if (starpu_cpu_worker_get_count() <= 0)
+	if (starpu_cpu_worker_get_count() == 0)
 	{
 		// If there is no cpu to execute the codelet, mpi will block trying to do the post-execution communication
 		ret = -ENODEV;

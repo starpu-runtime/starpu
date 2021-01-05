@@ -63,10 +63,21 @@ static struct _starpu_cg *create_cg_tag(unsigned ntags, struct _starpu_tag *tag)
 
 	cg->ntags = ntags;
 	cg->remaining = ntags;
+#ifdef STARPU_DEBUG
+	cg->ndeps = ntags;
+	cg->deps = NULL;
+	cg->done = NULL;
+#endif
 	cg->cg_type = STARPU_CG_TAG;
 
 	cg->succ.tag = tag;
 	tag->tag_successors.ndeps++;
+#ifdef STARPU_DEBUG
+	_STARPU_REALLOC(tag->tag_successors.deps, tag->tag_successors.ndeps * sizeof(tag->tag_successors.deps[0]));
+	_STARPU_REALLOC(tag->tag_successors.done, tag->tag_successors.ndeps * sizeof(tag->tag_successors.done[0]));
+	tag->tag_successors.deps[tag->tag_successors.ndeps-1] = cg;
+	tag->tag_successors.done[tag->tag_successors.ndeps-1] = 0;
+#endif
 
 	return cg;
 }
@@ -109,12 +120,22 @@ static void _starpu_tag_free(void *_tag)
 			unsigned STARPU_ATTRIBUTE_UNUSED remaining = STARPU_ATOMIC_ADD(&cg->remaining, -1);
 
 			if (!ntags && (cg->cg_type == STARPU_CG_TAG))
+			{
 				/* Last tag this cg depends on, cg becomes unreferenced */
+#ifdef STARPU_DEBUG
+				free(cg->deps);
+				free(cg->done);
+#endif
 				free(cg);
+			}
 		}
 
 #ifdef STARPU_DYNAMIC_DEPS_SIZE
 		free(tag->tag_successors.succ);
+#endif
+#ifdef STARPU_DEBUG
+		free(tag->tag_successors.deps);
+		free(tag->tag_successors.done);
 #endif
 
 		_starpu_spin_unlock(&tag->lock);
@@ -210,13 +231,17 @@ static struct _starpu_tag *gettag_struct(starpu_tag_t id)
 	return tag;
 }
 
-/* lock should be taken */
+/* lock should be taken, and this releases it */
 void _starpu_tag_set_ready(struct _starpu_tag *tag)
 {
 	/* mark this tag as ready to run */
 	tag->state = STARPU_READY;
 	/* declare it to the scheduler ! */
 	struct _starpu_job *j = tag->job;
+
+	STARPU_ASSERT(!STARPU_AYU_EVENT || tag->id < STARPU_AYUDAME_OFFSET);
+	STARPU_AYU_PRERUNTASK(tag->id + STARPU_AYUDAME_OFFSET, -1);
+	STARPU_AYU_POSTRUNTASK(tag->id + STARPU_AYUDAME_OFFSET);
 
 	/* In case the task job is going to be scheduled immediately, and if
 	 * the task is "empty", calling _starpu_push_task would directly try to enforce
@@ -227,14 +252,9 @@ void _starpu_tag_set_ready(struct _starpu_tag *tag)
 	/* enforce data dependencies */
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	_starpu_enforce_deps_starting_from_task(j);
-
-	_starpu_spin_lock(&tag->lock);
-	STARPU_ASSERT(!STARPU_AYU_EVENT || tag->id < STARPU_AYUDAME_OFFSET);
-	STARPU_AYU_PRERUNTASK(tag->id + STARPU_AYUDAME_OFFSET, -1);
-	STARPU_AYU_POSTRUNTASK(tag->id + STARPU_AYUDAME_OFFSET);
 }
 
-/* the lock must be taken ! */
+/* the lock of the tag must already be taken ! */
 static void _starpu_tag_add_succ(struct _starpu_tag *tag, struct _starpu_cg *cg)
 {
 	STARPU_ASSERT(tag);
@@ -290,6 +310,33 @@ void starpu_tag_notify_from_apps(starpu_tag_t id)
 	_starpu_notify_tag_dependencies(tag);
 }
 
+void _starpu_notify_restart_tag_dependencies(struct _starpu_tag *tag)
+{
+	_starpu_spin_lock(&tag->lock);
+
+	if (tag->state == STARPU_DONE)
+	{
+		tag->state = STARPU_BLOCKED;
+		_starpu_spin_unlock(&tag->lock);
+		return;
+	}
+
+	_STARPU_TRACE_TAG_DONE(tag);
+
+	tag->state = STARPU_BLOCKED;
+
+	_starpu_notify_cg_list(tag, &tag->tag_successors);
+
+	_starpu_spin_unlock(&tag->lock);
+}
+
+void starpu_tag_notify_restart_from_apps(starpu_tag_t id)
+{
+	struct _starpu_tag *tag = gettag_struct(id);
+
+	_starpu_notify_restart_tag_dependencies(tag);
+}
+
 void _starpu_tag_declare(starpu_tag_t id, struct _starpu_job *job)
 {
 	_STARPU_TRACE_TAG(id, job);
@@ -337,9 +384,19 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 	struct _starpu_cg *cg = create_cg_tag(ndeps, tag_child);
 	_starpu_spin_unlock(&tag_child->lock);
 
+#ifdef STARPU_DEBUG
+	_STARPU_MALLOC(cg->deps, ndeps * sizeof(cg->deps[0]));
+	_STARPU_MALLOC(cg->done, ndeps * sizeof(cg->done[0]));
+#endif
+
 	for (i = 0; i < ndeps; i++)
 	{
 		starpu_tag_t dep_id = array[i];
+
+#ifdef STARPU_DEBUG
+		cg->deps[i] = (void*) (uintptr_t) dep_id;
+		cg->done[i] = 0;
+#endif
 
 		/* id depends on dep_id
 		 * so cg should be among dep_id's successors*/
@@ -348,12 +405,10 @@ void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t
 		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
-		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || dep_id < STARPU_AYUDAME_OFFSET);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 		STARPU_AYU_ADDDEPENDENCY(dep_id+STARPU_AYUDAME_OFFSET, 0, id+STARPU_AYUDAME_OFFSET);
-		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
 	}
 }
@@ -386,12 +441,10 @@ void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...)
 		struct _starpu_tag *tag_dep = gettag_struct(dep_id);
 		STARPU_ASSERT(tag_dep != tag_child);
 		_starpu_spin_lock(&tag_dep->lock);
-		_starpu_spin_lock(&tag_child->lock);
 		_starpu_tag_add_succ(tag_dep, cg);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || dep_id < STARPU_AYUDAME_OFFSET);
 		STARPU_ASSERT(!STARPU_AYU_EVENT || id < STARPU_AYUDAME_OFFSET);
 		STARPU_AYU_ADDDEPENDENCY(dep_id+STARPU_AYUDAME_OFFSET, 0, id+STARPU_AYUDAME_OFFSET);
-		_starpu_spin_unlock(&tag_child->lock);
 		_starpu_spin_unlock(&tag_dep->lock);
 	}
 	va_end(pa);

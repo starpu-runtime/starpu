@@ -13,14 +13,17 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+include $(top_srcdir)/starpu.mk
 SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
+AM_CFLAGS	+= $(DLB_CFLAGS)
 AM_CPPFLAGS	= -I$(top_srcdir)/include -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_builddir)/include
-AM_CPPFLAGS	+= -I$(top_srcdir)/starpurm/include -I$(top_srcdir)/starpurm/src -I$(top_builddir)/starpurm/src -I$(top_builddir)/starpurm/include
-AM_CFLAGS	= -Wall -g $(HWLOC_CFLAGS) $(DLB_CFLAGS)
-LDADD	= $(top_builddir)/starpurm/src/libstarpurm-@STARPU_EFFECTIVE_VERSION@.la $(HWLOC_LIBS) $(DLB_LIBS)
+AM_CPPFLAGS	+= -I$(top_srcdir)/starpurm/include -I$(top_srcdir)/starpurm/src -I$(top_builddir)/starpurm/src -I$(top_builddir)/starpurm/include $(STARPU_H_CPPFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/starpurm/src/libstarpurm-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
+LIBS += $(HWLOC_LIBS) $(DLB_LIBS)
 
 examplebindir = $(libdir)/starpu/examples/starpurm
 

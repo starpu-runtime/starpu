@@ -18,6 +18,25 @@
 #include "complex_interface.h"
 #include "complex_codelet.h"
 
+void copy_complex_codelet_cpu(void *descr[], void *_args)
+{
+	int i;
+	int nx = STARPU_COMPLEX_GET_NX(descr[0]);
+
+	double *i_real = STARPU_COMPLEX_GET_REAL(descr[0]);
+	double *i_imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[0]);
+
+	double *o_real = STARPU_COMPLEX_GET_REAL(descr[1]);
+	double *o_imaginary = STARPU_COMPLEX_GET_IMAGINARY(descr[1]);
+
+	for(i=0 ; i<nx ; i++)
+	{
+		o_real[i] = i_real[i];
+		o_imaginary[i] = i_imaginary[i];
+	}
+
+}
+
 static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nimpl)
 {
 	(void) task;
@@ -58,6 +77,7 @@ extern void copy_complex_codelet_opencl(void *buffers[], void *args);
 
 struct starpu_codelet cl_copy =
 {
+	.cpu_funcs = {copy_complex_codelet_cpu},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {copy_complex_codelet_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -82,6 +102,7 @@ int main(void)
 	starpu_data_handle_t handle1;
 	starpu_data_handle_t handle2;
 	starpu_data_handle_t handle3;
+	starpu_data_handle_t handle4;
 
 	double real = 45.0;
 	double imaginary = 12.0;
@@ -106,6 +127,9 @@ int main(void)
 #endif
 	starpu_complex_data_register(&handle1, STARPU_MAIN_RAM, &real, &imaginary, 1);
 	starpu_complex_data_register(&handle2, STARPU_MAIN_RAM, &copy_real, &copy_imaginary, 1);
+	/* Create a vector of two complexs.  */
+	starpu_complex_data_register(&handle3, -1, 0, 0, 2);
+	starpu_complex_data_register(&handle4, -1, 0, 0, 1);
 
 	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1")+1, STARPU_R, handle1, 0);
 	if (ret == -ENODEV) goto end;
@@ -168,9 +192,6 @@ int main(void)
 	copy_imaginary = 77.0;
 	starpu_data_release(handle2);
 
-	/* Create a vector of two complexs.  */
-	starpu_complex_data_register(&handle3, -1, 0, 0, 2);
-
 	/* Split it in two pieces (thus one complex each).  */
 	struct starpu_data_filter f =
 	{
@@ -198,6 +219,8 @@ int main(void)
 
 	/* Show it.  */
 	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle3", strlen("handle3")+1, STARPU_R, handle3, 0);
+	if (ret == -ENODEV) goto end;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
 	/* Get the real and imaginary vectors.  */
 	struct starpu_data_filter fcanon =
@@ -227,6 +250,27 @@ int main(void)
 
 	starpu_data_unpartition(handle3, STARPU_MAIN_RAM);
 
+	/* Use helper starpu_data_cpy */
+	starpu_data_cpy(handle4, handle1, 0, NULL, NULL);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle4", strlen("handle4")+1, STARPU_R, handle4, 0);
+	if (ret == -ENODEV) goto end;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
+	/* Compare two different complexs.  */
+	ret = starpu_task_insert(&cl_compare,
+				 STARPU_R, handle1,
+				 STARPU_R, handle4,
+				 STARPU_VALUE, &compare_ptr, sizeof(compare_ptr),
+				 0);
+	if (ret == -ENODEV) goto end;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	starpu_task_wait_for_all();
+	if (compare != 1)
+	{
+	     FPRINTF(stderr, "Complex numbers should be similar\n");
+	     goto end;
+	}
+
 end:
 #ifdef STARPU_USE_OPENCL
 	{
@@ -236,6 +280,8 @@ end:
 #endif
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
+	starpu_data_unregister(handle3);
+	starpu_data_unregister(handle4);
 	starpu_shutdown();
 	if (ret == -ENODEV) return 77; else return !compare;
 }

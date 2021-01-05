@@ -17,6 +17,8 @@
 // This program checks that the implementation of the multiformat data
 // interface only uses StarPU's public API
 
+#define starpu_interface_multiformat_ops my_starpu_interface_multiformat_ops
+#define starpu_multiformat_data_register my_starpu_multiformat_data_register
 #include "../../src/datawizard/interfaces/multiformat_interface.c"
 
 int main()

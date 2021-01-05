@@ -106,7 +106,7 @@ static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, MPI_Datat
 	unsigned ldy = starpu_tensor_get_local_ldy(data_handle);
 	unsigned ldz = starpu_tensor_get_local_ldz(data_handle);
 	unsigned ldt = starpu_tensor_get_local_ldt(data_handle);
-	size_t elemsize = starpu_block_get_elemsize(data_handle);
+	size_t elemsize = starpu_tensor_get_elemsize(data_handle);
 
 	MPI_Datatype datatype_3dlayer;
 	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_3dlayer);

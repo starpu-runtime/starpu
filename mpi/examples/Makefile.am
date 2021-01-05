@@ -26,7 +26,7 @@ noinst_PROGRAMS		=
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=
 else
-loader_CPPFLAGS 	= 	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/mpi/examples/$(LOADER)
@@ -47,10 +47,10 @@ endif
 endif
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER	 	=	$(MPI) $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
 if STARPU_MPI_CHECK
@@ -97,7 +97,7 @@ if STARPU_USE_CUDA
 if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(HWLOC_CFLAGS)
+NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(STARPU_H_CPPFLAGS)
 
 .cu.cubin:
 	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
@@ -107,10 +107,15 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -
 endif
 endif
 
-AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la -lm @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+AM_CFLAGS += $(MAGMA_CFLAGS) -Wno-unused
+AM_CXXFLAGS += $(MAGMA_CFLAGS) -Wno-unused
+AM_FFLAGS += $(MAGMA_CFLAGS) -Wno-unused -Wno-unused-dummy-argument
+AM_FCFLAGS += $(MAGMA_CFLAGS) -Wno-unused -Wno-unused-dummy-argument
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include $(STARPU_H_CPPFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la $(STARPU_EXPORTED_LIBS)
+LIBS += $(STARPU_CUDA_LDFLAGS)
+LIBS += -lm $(MAGMA_LIBS)
 
 ###################
 # Stencil example #
@@ -126,6 +131,17 @@ examplebin_PROGRAMS +=		\
 starpu_mpi_EXAMPLES	+=	\
 	stencil/stencil5_lb
 endif
+
+##################
+# Cache examples #
+##################
+examplebin_PROGRAMS +=		\
+	cache/cache		\
+	cache/cache_disable
+starpu_mpi_EXAMPLES +=		\
+	cache/cache		\
+	cache/cache_disable
+
 
 ##################
 # MPI LU example #
@@ -144,7 +160,9 @@ examplebin_PROGRAMS += 			\
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=	\
 	mpi_lu/plu_implicit_example_float	\
-	mpi_lu/plu_implicit_example_double
+	mpi_lu/plu_implicit_example_double	\
+	mpi_lu/plu_outofcore_example_float	\
+	mpi_lu/plu_outofcore_example_double
 endif
 
 mpi_lu_plu_example_float_LDADD =	\
@@ -453,7 +471,6 @@ benchs_sendrecv_bench_SOURCES += benchs/abstract_sendrecv_bench.c
 
 benchs_sendrecv_parallel_tasks_bench_SOURCES = benchs/sendrecv_parallel_tasks_bench.c
 benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/bench_helper.c
-benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/abstract_sendrecv_bench.c
 
 benchs_burst_SOURCES = benchs/burst.c
 benchs_burst_SOURCES += benchs/burst_helper.c

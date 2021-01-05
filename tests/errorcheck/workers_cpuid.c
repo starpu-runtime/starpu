@@ -22,7 +22,7 @@
  * expected binding does happen
  */
 
-#if !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC)
+#if !defined(STARPU_USE_CPU) || !defined(STARPU_HAVE_HWLOC) || !defined(STARPU_HAVE_SETENV)
 #warning no cpu are available. Skipping test
 int main(void)
 {
@@ -102,10 +102,8 @@ static int test_combination(long *combination, unsigned n)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.precedence_over_environment_variables = 1;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
-	conf.nmic = 0;
-	conf.nmpi_ms = 0;
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -130,7 +128,6 @@ static long * generate_arrangement(int arr_size, long *set, int set_size)
 	int i;
 
 	STARPU_ASSERT(arr_size <= set_size);
-	srandom(time(0));
 
 	for (i=0; i<arr_size; i++)
 	{

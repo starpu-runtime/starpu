@@ -35,7 +35,7 @@ extern "C"
 
 struct starpu_fxt_codelet_event
 {
-	char symbol[256];
+	char symbol[2048];
 	int workerid;
 	char perfmodel_archname[256];
 	uint32_t hash;
@@ -69,47 +69,43 @@ struct starpu_fxt_options
 	char *number_events_path;
 	char *anim_path;
 	char *states_path;
+	char *dir;
+	char worker_names[STARPU_NMAXWORKERS][256];
+	int nworkers;
+	struct starpu_perfmodel_arch worker_archtypes[STARPU_NMAXWORKERS];
 
 	/**
 	   In case we are going to gather multiple traces (e.g in the case of
 	   MPI processes), we may need to prefix the name of the containers.
 	*/
 	char *file_prefix;
-	/**
-	   In case we are going to gather multiple traces (e.g in the case of
-	   MPI processes), we may need to prefix the name of the containers.
-	*/
-	uint64_t file_offset;
-	/**
-	   In case we are going to gather multiple traces (e.g in the case of
-	   MPI processes), we may need to prefix the name of the containers.
-	*/
-	int file_rank;
 
 	/**
-	   Output parameters
+	   In case we are going to gather multiple traces (e.g in the case of
+	   MPI processes), this variable stores the time offset with the rank 0.
 	*/
-	char worker_names[STARPU_NMAXWORKERS][256];
+	uint64_t file_offset;
+
 	/**
-	   Output parameters
+	   In case we are going to gather multiple traces (e.g in the case of
+	   MPI processes), this variable stores the MPI rank of the trace file.
 	*/
-	struct starpu_perfmodel_arch worker_archtypes[STARPU_NMAXWORKERS];
-	/**
-	   Output parameters
-	*/
-	int nworkers;
+	int file_rank;
 
 	/**
 	   In case we want to dump the list of codelets to an external tool
 	*/
 	struct starpu_fxt_codelet_event **dumped_codelets;
+
 	/**
-	   In case we want to dump the list of codelets to an external tool
+	   In case we want to dump the list of codelets to an external tool, number
+	   of dumped codelets.
 	*/
 	long dumped_codelets_count;
 };
 
 void starpu_fxt_options_init(struct starpu_fxt_options *options);
+void starpu_fxt_options_shutdown(struct starpu_fxt_options *options);
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
 
 /**
@@ -135,12 +131,14 @@ void starpu_fxt_start_profiling(void);
    start recording it again, etc.
 */
 void starpu_fxt_stop_profiling(void);
+
 void starpu_fxt_write_data_trace(char *filename_in);
+void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir);
 
 /**
     Wrapper to get value of env variable STARPU_FXT_TRACE
 */
-int starpu_fxt_is_enabled();
+int starpu_fxt_is_enabled(void);
 
 /**
    Add an event in the execution trace if FxT is enabled.

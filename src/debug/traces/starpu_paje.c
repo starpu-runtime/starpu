@@ -28,6 +28,7 @@
 int _starpu_poti_extendedSetState = -1;
 int _starpu_poti_semiExtendedSetState = -1;
 int _starpu_poti_MemoryEvent = -1;
+int _starpu_poti_CommLinkStart = -1;
 int _starpu_poti_MpiLinkStart = -1;
 #endif
 #endif
@@ -62,6 +63,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 						     "SubmitOrder string"
 						     );
 #ifdef HAVE_POTI_USER_NEWEVENT
+	_starpu_poti_CommLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 1, "Handle string");
 	if (options->memory_states)
 	{
 		_starpu_poti_MemoryEvent = poti_header_DeclareEvent (PAJE_NewEvent,
@@ -71,7 +73,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 							     "Size string",
 							     "Dest string");
 	}
-	_starpu_poti_MpiLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 1, "MPITAG string");
+	_starpu_poti_MpiLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 2, "MPITAG string", "Handle string");
 #endif
 #else
 	poti_header(1,1);
@@ -230,15 +232,16 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	fprintf(file, "%%	StartContainer	string\n");
 	fprintf(file, "%%	Key	string\n");
 	fprintf(file, "%%	MPITAG	string\n");
+	fprintf(file, "%%	Handle	string\n");
 	fprintf(file, "%%EndEventDef\n");
-	fprintf(file, "%%EventDef	PajeEndLink	24\n");
+	fprintf(file, "%%EventDef	PajeStartLink	24\n");
 	fprintf(file, "%%	Time	date\n");
 	fprintf(file, "%%	Type	string\n");
 	fprintf(file, "%%	Container	string\n");
 	fprintf(file, "%%	Value	string\n");
-	fprintf(file, "%%	EndContainer	string\n");
+	fprintf(file, "%%	StartContainer	string\n");
 	fprintf(file, "%%	Key	string\n");
-	fprintf(file, "%%	MPITAG	string\n");
+	fprintf(file, "%%	Handle	string\n");
 	fprintf(file, "%%EndEventDef\n");
 #endif
 

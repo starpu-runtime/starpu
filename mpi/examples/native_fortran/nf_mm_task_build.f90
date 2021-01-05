@@ -169,7 +169,7 @@ program nf_mm
         do b_col=1,NB
            do b_row=1,NB
               task = fstarpu_mpi_task_build((/ c_loc(comm_world), cl_mm, &
-                   				FSTARPU_R,  dh_A(b_row), &
+                                                FSTARPU_R,  dh_A(b_row), &
                                                 FSTARPU_R,  dh_B(b_col), &
                                                 FSTARPU_RW, dh_C(b_row,b_col), &
                                                 C_NULL_PTR /))
@@ -177,7 +177,7 @@ program nf_mm
                  ret = fstarpu_task_submit(task)
               endif
               call fstarpu_mpi_task_post_build((/ c_loc(comm_world), cl_mm, &
-                   				FSTARPU_R,  dh_A(b_row), &
+                                                FSTARPU_R,  dh_A(b_row), &
                                                 FSTARPU_R,  dh_B(b_col), &
                                                 FSTARPU_RW, dh_C(b_row,b_col), &
                                                 C_NULL_PTR /))

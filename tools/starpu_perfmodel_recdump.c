@@ -58,7 +58,8 @@ struct _footprint_list* add_footprint(struct _footprint_list* list, uint32_t foo
 	if(l) return list;
 	else
 	{
-		struct _footprint_list * res = malloc(sizeof(struct _footprint_list));
+		struct _footprint_list *res;
+		_STARPU_MALLOC(res, sizeof(struct _footprint_list));
 		res->footprint = footprint;
 		res->next = list;
 		return res;
@@ -90,7 +91,8 @@ void print_archs(FILE* output)
 	{
 		struct starpu_perfmodel_arch* arch = starpu_worker_get_perf_archtype(workerid, STARPU_NMAX_SCHED_CTXS);
 		comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-		STARPU_ASSERT(comb >= 0);
+		if (comb < 0) continue; // Ignore architecture which is not present in any perfmodel
+
 		if(comb != old_comb)
 		{
 			if(nb_workers > 0)
@@ -122,7 +124,7 @@ void print_archs(FILE* output)
 	{
 		unsigned printed = 0;
 		char name[32];
-		fprintf(output, "MemoryNode: %d\n", node);
+		fprintf(output, "MemoryNode: %u\n", node);
 		starpu_memory_node_get_name(node, name, sizeof(name));
 		fprintf(output, "Name: %s\n", name);
 		fprintf(output, "Size: %ld\n", (long) starpu_memory_get_total(node));
@@ -135,7 +137,7 @@ void print_archs(FILE* output)
 					fprintf(output, "Workers:");
 					printed = 1;
 				}
-				fprintf(output, " %d", workerid);
+				fprintf(output, " %u", workerid);
 			}
 		}
 		if (printed)
@@ -149,8 +151,8 @@ void print_archs(FILE* output)
 		{
 			if (src != dst)
 			{
-				fprintf(output, "MemoryNodeSrc: %d\n", src);
-				fprintf(output, "MemoryNodeDst: %d\n", dst);
+				fprintf(output, "MemoryNodeSrc: %u\n", src);
+				fprintf(output, "MemoryNodeDst: %u\n", dst);
 				fprintf(output, "Bandwidth: %f\n", starpu_transfer_bandwidth(src, dst));
 				fprintf(output, "Latency: %f\n", starpu_transfer_latency(src, dst));
 				fprintf(output, "\n");
@@ -293,7 +295,7 @@ int main(int argc, char **argv)
 					HASH_FIND_STR(models, model_name, model);
 					if (model == NULL)
 					{
-						model = malloc(sizeof(*model));
+						_STARPU_MALLOC(model, sizeof(*model));
 						model->name = model_name;
 						model->footprints = NULL;
 						memset(&model->model, 0, sizeof(model->model));
@@ -385,8 +387,10 @@ int main(int argc, char **argv)
 					l = ltmp;
 				}
 
+				starpu_perfmodel_unload_model(&model->model);
 				free(model->name);
 				HASH_DEL(models, model);
+				free(model);
 			}
 		}
 		fclose(input);

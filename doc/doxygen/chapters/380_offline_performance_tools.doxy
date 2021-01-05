@@ -59,7 +59,7 @@ StarPU can use the FxT library (see
 https://savannah.nongnu.org/projects/fkt/) to generate traces
 with a limited runtime overhead.
 
-You can get a tarball from http://download.savannah.gnu.org/releases/fkt/
+You can get a tarball from http://download.savannah.gnu.org/releases/fkt/?C=M
 
 Compiling and installing the FxT library in the <c>$FXTDIR</c> path is
 done following the standard procedure:
@@ -84,7 +84,11 @@ Or you can simply point the <c>PKG_CONFIG_PATH</c> to
 When FxT is enabled, a trace is generated when StarPU is terminated by calling
 starpu_shutdown(). The trace is a binary file whose name has the form
 <c>prof_file_XXX_YYY</c> where <c>XXX</c> is the user name, and
-<c>YYY</c> is the pid of the process that used StarPU. This file is saved in the
+<c>YYY</c> is the MPI id of the process that used StarPU (or 0 when running a sequential program).
+One can change
+the name of the file by setting the environnement variable \ref
+STARPU_FXT_SUFFIX, its contents will be used instead of <c>prof_file_XXX</c>.
+This file is saved in the
 <c>/tmp/</c> directory by default, or by the directory specified by
 the environment variable \ref STARPU_FXT_PREFIX.
 
@@ -104,8 +108,10 @@ $ starpu_fxt_tool -i /tmp/prof_file_something
 \endverbatim
 
 Or alternatively, setting the environment variable \ref STARPU_GENERATE_TRACE
-to <c>1</c> before application execution will make StarPU do it automatically at
-application shutdown.
+to <c>1</c> before application execution will make StarPU
+automatically generate all traces at application shutdown. Note that
+if the environment variable \ref STARPU_FXT_PREFIX is set, files will
+be generated in the given directory.
 
 One can also set the environment variable \ref
 STARPU_GENERATE_TRACE_OPTIONS to specify options, see
@@ -394,7 +400,7 @@ starpu_perfmodel_load_symbol(). The source code of the tool
 
 An XML output can also be printed by using the <c>-x</c> option:
 \verbatim
-tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based 
+$ tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based 
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE StarPUPerfmodel SYSTEM "starpu-perfmodel.dtd">
 <!-- symbol non_linear_memset_regression_based -->
@@ -418,6 +424,12 @@ tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based
 The tool <c>starpu_perfmodel_plot</c> can be used to draw performance
 models. It writes a <c>.gp</c> file in the current directory, to be
 run with the tool <c>gnuplot</c>, which shows the corresponding curve.
+
+\verbatim
+$ tools/starpu_perfmodel_plot -s non_linear_memset_regression_based 
+$ gnuplot starpu_non_linear_memset_regression_based.gp
+$ gv starpu_non_linear_memset_regression_based.eps
+\endverbatim
 
 \image html starpu_non_linear_memset_regression_based.png
 \image latex starpu_non_linear_memset_regression_based.eps "" width=\textwidth
@@ -475,6 +487,53 @@ histogram of the codelet execution time distribution.
 
 \image html distrib_data_histo.png
 \image latex distrib_data_histo.eps "" width=\textwidth
+
+\section EnergyOfCodelets Energy Of Codelets
+
+A performance model of the energy of codelets can also be recorded thanks to
+the starpu_codelet::energy_model field of the starpu_codelet structure. StarPU usually cannot
+record this automatically since the energy measurement probes are usually not
+fine-grain enough.  It is however possible to measure it by writing a program
+that submits batches of tasks, let StarPU measure the energy requirement of
+the batch, and compute an average, see \ref MeasuringEnergyandPower .
+
+The energy performance model can then be displayed in Joules with
+<c>starpu_perfmodel_display</c> just like the time performance model.  The
+<c>starpu_perfmodel_plot</c> needs an extra <c>-e</c> option to display the
+proper unit in the graph:
+
+\verbatim
+$ tools/starpu_perfmodel_plot -e -s non_linear_memset_regression_based_energy
+$ gnuplot starpu_non_linear_memset_regression_based_energy.gp
+$ gv starpu_non_linear_memset_regression_based_energy.eps
+\endverbatim
+
+\image html starpu_non_linear_memset_regression_based_energy.png
+\image latex starpu_non_linear_memset_regression_based_energy.eps "" width=\textwidth
+
+The <c>-f</c> option can also be used to display the performance in terms of GFlop/s/W, i.e. the efficiency:
+
+\verbatim
+$ tools/starpu_perfmodel_plot -f -e -s non_linear_memset_regression_based_energy
+$ gnuplot starpu_non_linear_memset_regression_based_energy.gp
+$ gv starpu_non_linear_memset_regression_based_energy.eps
+\endverbatim
+
+\image html starpu_non_linear_memset_regression_based_energy_flops.png
+\image latex starpu_non_linear_memset_regression_based_energy_flops.eps "" width=\textwidth
+
+We clearly see here that it is much more energy-efficient to stay in the L3 cache.
+
+One can combine the two time and energy performance models to draw Watts:
+
+\verbatim
+$ tools/starpu_perfmodel_plot -se non_linear_memset_regression_based non_linear_memset_regression_based_energy
+$ gnuplot starpu_power_non_linear_memset_regression_based.gp
+$ gv starpu_power_non_linear_memset_regression_based.eps
+\endverbatim
+
+\image html starpu_power_non_linear_memset_regression_based.png
+\image latex starpu_power_non_linear_memset_regression_based.eps "" width=\textwidth
 
 \section DataTrace Data trace and tasks length
 
@@ -545,7 +604,7 @@ S: Start time
 Here's an example on how to use it:
 
 \verbatim
-$ python starpu_trace_state_stats.py trace.rec | column -t -s ","
+$ starpu_trace_state_stats.py trace.rec | column -t -s ","
 "Name"		"Count" "Type"	"Duration"
 "Callback"       220	Runtime	0.075978
 "chol_model_11"  10	Task	565.176

@@ -62,6 +62,7 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	j->exclude_from_dag = 1;
+	_STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(j);
 }
 
 /* create an internal struct _starpu_job structure to encapsulate the task */
@@ -82,7 +83,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 
 	job->task = task;
 
-#ifndef STARPU_USE_FXT
+#if !defined(STARPU_USE_FXT) && !defined(STARPU_DEBUG)
 	if (_starpu_bound_recording || _starpu_task_break_on_push != -1 || _starpu_task_break_on_sched != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_exec != -1 || STARPU_AYU_EVENT)
 #endif
 	{
@@ -346,19 +347,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 				_starpu_spin_unlock(&handle->header_lock);
 		}
 	}
+
 	/* Check nowhere before releasing the sequential consistency (which may
 	 * unregister the handle and free its switch_cl, and thus task->cl here.  */
 	unsigned nowhere = !task->cl || task->cl->where == STARPU_NOWHERE || task->where == STARPU_NOWHERE;
-	/* If this is a continuation, we do not release task dependencies now.
-	 * Task dependencies will be released only when the continued task
-	 * fully completes */
-	if (!continuation)
-	{
-		/* Tell other tasks that we don't exist any more, thus no need for
-		 * implicit dependencies any more.  */
-		_starpu_release_task_enforce_sequential_consistency(j);
-	}
-
 	/* If the job was executed on a combined worker there is no need for the
 	 * scheduler to process it : the task structure doesn't contain any valuable
 	 * data as it's not linked to an actual worker */
@@ -387,6 +379,23 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	if (_starpu_graph_record)
 		_starpu_graph_drop_job(j);
 
+	/* Get callback pointer for codelet before notifying dependencies, in
+	   case dependencies free the codelet (see starpu_data_unregister for
+	   instance) */
+	void (*callback)(void *) = task->callback_func;
+	if (!callback && task->cl)
+		callback = task->cl->callback_func;
+
+	/* If this is a continuation, we do not release task dependencies now.
+	 * Task dependencies will be released only when the continued task
+	 * fully completes */
+	if (!continuation)
+	{
+		/* Tell other tasks that we don't exist any more, thus no need for
+		 * implicit dependencies any more.  */
+		_starpu_release_task_enforce_sequential_consistency(j);
+	}
+
 	/* Task does not have a cl, but has explicit data dependencies, we need
 	 * to tell them that we will not exist any more before notifying the
 	 * tasks waiting for us
@@ -403,8 +412,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		if (!_starpu_data_check_not_busy(handle))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
-
-	_STARPU_TRACE_TASK_NAME(j);
 
 	/* If this is a continuation, we do not notify task/tag dependencies
 	 * now. Task/tag dependencies will be notified only when the continued
@@ -424,7 +431,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		/* the callback is executed after the dependencies so that we may remove the tag
 		 * of the task itself */
-		if (task->callback_func)
+		if (callback)
 		{
 			int profiling = starpu_profiling_status_get();
 			if (profiling && task->profiling_info)
@@ -434,7 +441,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			 * within the callback */
 			_starpu_set_local_worker_status(STATUS_CALLBACK);
 
-
 			/* Perhaps we have nested callbacks (eg. with chains of empty
 			 * tasks). So we store the current task and we will restore it
 			 * later. */
@@ -443,7 +449,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_set_current_task(task);
 
 			_STARPU_TRACE_START_CALLBACK(j);
-			task->callback_func(task->callback_arg);
+			if (callback)
+				callback(task->callback_arg);
 			_STARPU_TRACE_END_CALLBACK(j);
 
 			_starpu_set_current_task(current_task);
@@ -758,14 +765,14 @@ struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker)
 		}
 	}
 
-	if (!starpu_task_list_empty(&worker->local_tasks))
-		task = starpu_task_list_pop_front(&worker->local_tasks);
+	if (!starpu_task_prio_list_empty(&worker->local_tasks))
+		task = starpu_task_prio_list_pop_front_highest(&worker->local_tasks);
 
 	_starpu_pop_task_end(task);
 	return task;
 }
 
-int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task, int prio)
+int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task)
 {
 	/* Check that the worker is able to execute the task ! */
 	STARPU_ASSERT(task && task->cl);
@@ -808,13 +815,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	}
 	else
 	{
-#ifdef STARPU_DEVEL
-#warning FIXME use a prio_list
-#endif
-		if (prio)
-			starpu_task_list_push_front(&worker->local_tasks, task);
-		else
-			starpu_task_list_push_back(&worker->local_tasks, task);
+		starpu_task_prio_list_push_back(&worker->local_tasks, task);
 	}
 
 	starpu_wake_worker_locked(worker->workerid);

@@ -144,24 +144,10 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node CUDA node to the \p dst_interface interface on the \p
-	   dst_node OpenCL node. Return 0 on success.
-	*/
-	int (*cuda_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node OpenCL node to the \p dst_interface interface on the
 	   \p dst_node CPU node. Return 0 on success.
 	*/
 	int (*opencl_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node OpenCL node to the \p dst_interface interface on the
-	   \p dst_node CUDA node. Return 0 on success.
-	*/
-	int (*opencl_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
@@ -229,9 +215,9 @@ struct starpu_data_copy_methods
 	*/
 	int (*cuda_to_cuda_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_cudaStream_t stream);
 #else
-	int (*ram_to_cuda_async)();
-	int (*cuda_to_ram_async)();
-	int (*cuda_to_cuda_async)();
+	int (*ram_to_cuda_async)(void);
+	int (*cuda_to_ram_async)(void);
+	int (*cuda_to_cuda_async)(void);
 #endif
 
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
@@ -266,9 +252,9 @@ struct starpu_data_copy_methods
 	*/
 	int (*opencl_to_opencl_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, cl_event *event);
 #else
-	int (*ram_to_opencl_async)();
-	int (*opencl_to_ram_async)();
-	int (*opencl_to_opencl_async)();
+	int (*ram_to_opencl_async)(void);
+	int (*opencl_to_ram_async)(void);
+	int (*opencl_to_opencl_async)(void);
 #endif
 
 	/**
@@ -496,6 +482,7 @@ struct starpu_data_interface_ops
 	   Compare the data size and layout of two interfaces (nx, ny, ld, elemsize,
 	   etc.), to be used for indexing performance models. It should return 1 if
 	   the two interfaces size and layout match computation-wise, and 0 otherwise.
+	   It does *not* compare the actual content of the interfaces.
 	*/
 	int 		 (*compare)			(void *data_interface_a, void *data_interface_b);
 
@@ -688,6 +675,11 @@ starpu_ssize_t starpu_data_get_max_size(starpu_data_handle_t handle);
 starpu_data_handle_t starpu_data_lookup(const void *ptr);
 
 int starpu_data_get_home_node(starpu_data_handle_t handle);
+
+/**
+   Print basic informations on \p handle on \p node
+ */
+void starpu_data_print(starpu_data_handle_t handle, unsigned node, FILE *stream);
 
 /**
    Return the next available id for a newly created data interface

@@ -31,7 +31,7 @@ check_PROGRAMS	=	$(STARPU_FFT_EXAMPLES)
 if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
-loader_CPPFLAGS 	=  	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS 	=  	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/starpufft/tests/$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 noinst_PROGRAMS		+=	loader
@@ -45,17 +45,18 @@ endif
 
 endif
 
-AM_CFLAGS = -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(MAGMA_CFLAGS) $(HWLOC_CFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS) $(MAGMA_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/starpufft/include -I$(top_srcdir)/starpufft/src
-AM_LDFLAGS = $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(FXT_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+AM_CFLAGS += -Wno-unused
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/starpufft/include -I$(top_srcdir)/starpufft/src $(STARPU_H_CPPFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(STARPU_EXPORTED_LIBS)
+LIBS += $(STARPU_CUDA_LDFLAGS)
 
 examplebin_PROGRAMS =
 examplebin_PROGRAMS +=	\
 	testf 		\
 	test
 STARPU_FFT_EXAMPLES = testf
-testf_LDADD = ../src/libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTWF_LIBS)
+testf_LDADD = $(FFTWF_LIBS)
 
 # If we don't have CUDA, we assume that we have fftw available in double
 # precision anyway, we just want to make sure that if CUFFT is used, it also
@@ -67,11 +68,11 @@ if STARPU_HAVE_CUFFTDOUBLECOMPLEX
 STARPU_FFT_EXAMPLES += test
 endif
 endif
-test_LDADD = ../src/libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu-@STARPU_EFFECTIVE_VERSION@.la $(FFTW_LIBS)
+test_LDADD = $(FFTW_LIBS)
 
 TESTS = $(STARPU_FFT_EXAMPLES)
 
 
 #check_PROGRAMS += examples/test_threads examples/testf_threads
-#examples_test_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3_threads
-#examples_testf_threads_LDADD = libstarpufft-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/libstarpu.la -lfftw3f_threads
+#examples_test_threads_LDADD = -lfftw3_threads
+#examples_testf_threads_LDADD = -lfftw3f_threads

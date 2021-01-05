@@ -20,10 +20,9 @@ include $(top_srcdir)/starpu.mk
 
 SUBDIRS =
 
-AM_CFLAGS = $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(GLOBAL_AM_CFLAGS)
-LIBS = $(top_builddir)/src/@LIBSTARPU_LINK@ @LIBS@ $(FXT_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src
-AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/tools/ -I$(top_srcdir)/mpi/ -I$(top_builddir)/src -I$(top_srcdir)/src $(STARPU_H_CPPFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 
 bin_PROGRAMS =
 dist_bin_SCRIPTS =
@@ -285,6 +284,7 @@ EXTRA_DIST =				\
 	dev/cppcheck/suppressions.txt	\
 	dev/valgrind/bash.suppr		\
 	dev/valgrind/fxt.suppr		\
+	dev/valgrind/glpk.suppr		\
 	dev/valgrind/hdf5.suppr		\
 	dev/valgrind/hwloc.suppr	\
 	dev/valgrind/libc.suppr		\
@@ -295,6 +295,7 @@ EXTRA_DIST =				\
 	dev/valgrind/openmpi.suppr	\
 	dev/valgrind/openmp.suppr	\
 	dev/valgrind/padico.suppr	\
+	dev/valgrind/papi.suppr		\
 	dev/valgrind/pthread.suppr	\
 	dev/valgrind/starpu.suppr	\
 	dev/valgrind/valgrind.suppr	\
@@ -330,7 +331,7 @@ if !STARPU_HAVE_WINDOWS
 ## test loader program
 if !STARPU_CROSS_COMPILING
 LOADER			=	loader
-loader_CPPFLAGS =  $(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
+loader_CPPFLAGS =  $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/tools/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
 noinst_PROGRAMS		+=	loader
@@ -366,15 +367,15 @@ STARPU_TOOLS += 			\
 	starpu_fxt_stats		\
 	starpu_fxt_data_trace
 
-starpu_fxt_tool_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_fxt_tool_CPPFLAGS = $(AM_CPPFLAGS) $(FXT_CFLAGS)
 starpu_fxt_tool_LDADD = $(FXT_LIBS)
 starpu_fxt_tool_LDFLAGS = $(FXT_LDFLAGS)
 
-starpu_fxt_stats_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_fxt_stats_CPPFLAGS = $(AM_CPPFLAGS) $(FXT_CFLAGS)
 starpu_fxt_stats_LDADD = $(FXT_LIBS)
 starpu_fxt_stats_LDFLAGS = $(FXT_LDFLAGS)
 
-starpu_fxt_data_trace_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_fxt_data_trace_CPPFLAGS = $(AM_CPPFLAGS) $(FXT_CFLAGS)
 starpu_fxt_data_trace_LDADD = $(FXT_LIBS)
 starpu_fxt_data_trace_LDFLAGS = $(FXT_LDFLAGS)
 endif
@@ -399,7 +400,7 @@ starpu_replay_SOURCES = \
 
 endif
 
-starpu_perfmodel_plot_CPPFLAGS = $(AM_CFLAGS) $(AM_CPPFLAGS) $(FXT_CFLAGS)
+starpu_perfmodel_plot_CPPFLAGS = $(AM_CPPFLAGS) $(FXT_CFLAGS)
 
 if STARPU_LONG_CHECK
 STARPU_TOOLS	+=			\

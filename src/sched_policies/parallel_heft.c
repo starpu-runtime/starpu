@@ -22,7 +22,6 @@
 #include <limits.h>
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
-#include <starpu_parameters.h>
 #include <core/detect_combined_workers.h>
 #include <core/sched_policy.h>
 #include <core/task.h>

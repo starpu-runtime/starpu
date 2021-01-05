@@ -187,6 +187,21 @@ double starpu_timing_now(void);
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 /**
+   Create a copy of \p src_handle, and return a new handle in \p dst_handle,
+   which is to be used only for read accesses. This allows StarPU to optimize it
+   by not actually copying the data whenever possible (e.g. it may possibly
+   simply return src_handle itself).
+   The parameter \p asynchronous indicates whether the function should block
+   or not. In the case of an asynchronous call, it is possible to synchronize
+   with the termination of this operation either by the means of implicit
+   dependencies (if enabled) or by calling starpu_task_wait_for_all(). If
+   \p callback_func is not <c>NULL</c>, this callback function is executed after
+   the handle has been copied, and it is given the pointer \p
+   callback_arg as argument.
+*/
+int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous);
+
+/**
    Call hwloc-ps to display binding of each processus and thread running on
    the machine.<br>
    Use the environment variable \ref STARPU_DISPLAY_BINDINGS to automatically

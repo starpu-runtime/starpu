@@ -245,6 +245,8 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 	_STARPU_MPI_DEBUG(2, "Test request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
 
+	STARPU_VALGRIND_YIELD();
+
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag);
 
 	/* we must do a test_locked to avoid race condition :
@@ -344,7 +346,7 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_ev
 				// req->ptr is freed by starpu_data_unpack
 				starpu_data_unpack(req->data_handle, req->ptr, req->count);
 			else
-				free(req->ptr);
+				starpu_free_on_node_flags(STARPU_MAIN_RAM, (uintptr_t) req->ptr, req->count, 0);
 		}
 		else
 		{
@@ -451,7 +453,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
 
 #ifndef STARPU_SIMGRID
-	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
+	if (!_starpu_mpi_nobind && starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
 	{
 		char hostname[65];
 		gethostname(hostname, sizeof(hostname));
@@ -623,7 +625,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	 * required for piom_ltask_set_bound_thread_indexes() */
 	_starpu_mpi_do_initialize(argc_argv);
 
-	if (_starpu_mpi_thread_cpuid < 0)
+	if (!_starpu_mpi_nobind && _starpu_mpi_thread_cpuid < 0)
 	{
 		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
 	}
@@ -632,8 +634,18 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 
 	/* Tell pioman to use a bound thread for communication progression:
 	 * share the same core as StarPU's MPI thread, the MPI thread has very low activity with NMAD backend */
+#ifdef HAVE_PIOM_LTASK_SET_BOUND_THREAD_OS_INDEXES
+	/* We prefer to give the OS index of the core, because StarPU can have
+	 * a different vision of the topology, especially if STARPU_WORKERS_GETBIND
+	 * is enabled */
+	int indexes[1] = { starpu_get_pu_os_index((unsigned) _starpu_mpi_thread_cpuid) };
+	if (!_starpu_mpi_nobind)
+		piom_ltask_set_bound_thread_os_indexes(HWLOC_OBJ_PU, indexes, 1);
+#else
 	int indexes[1] = { _starpu_mpi_thread_cpuid };
-	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
+	if (!_starpu_mpi_nobind)
+		piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
+#endif
 
 	/* Register some hooks for communication progress if needed */
 	int polling_point_prog, polling_point_idle;

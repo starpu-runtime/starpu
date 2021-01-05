@@ -63,6 +63,11 @@ int main(int argc, char *argv[])
 			fprintf(stderr, "Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 			exit(EXIT_SUCCESS);
 		}
+		else if (strncmp(argv[1], "--version", 9) == 0 || strncmp(argv[1], "-v", 2) == 0)
+		{
+			fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
+			exit(EXIT_FAILURE);
+		}
 	}
 
 #ifdef STARPU_HAVE_SETENV
@@ -187,8 +192,10 @@ int main(int argc, char *argv[])
 	starpu_shutdown();
 	HASH_ITER(hh, models, model, tmp)
 	{
-		free(model->name);
 		HASH_DEL(models, model);
+		starpu_perfmodel_unload_model(&model->model);
+		free(model->name);
+		free(model);
 	}
 	return 0;
 }

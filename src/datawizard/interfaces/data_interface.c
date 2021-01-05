@@ -30,6 +30,9 @@
 #include <util/openmp_runtime_support.h>
 #endif
 
+static struct starpu_data_interface_ops **_id_to_ops_array;
+static unsigned _id_to_ops_array_size;
+
 /* Entry in the `registered_handles' hash table.  */
 struct handle_entry
 {
@@ -66,6 +69,9 @@ void _starpu_data_interface_shutdown()
 	}
 
 	_starpu_spin_destroy(&registered_handles_lock);
+	free(_id_to_ops_array);
+	_id_to_ops_array = NULL;
+	_id_to_ops_array_size = 0;
 
 	HASH_ITER(hh, registered_handles, entry, tmp)
 	{
@@ -138,8 +144,16 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
 			return &starpu_interface_multiformat_ops;
 
 		default:
-			STARPU_ABORT();
-			return NULL;
+		{
+			if (interface_id-STARPU_MAX_INTERFACE_ID > _id_to_ops_array_size || _id_to_ops_array[interface_id-STARPU_MAX_INTERFACE_ID]==NULL)
+			{
+				_STARPU_MSG("There is no 'struct starpu_data_interface_ops' registered for interface %d\n", interface_id);
+				STARPU_ABORT();
+				return NULL;
+			}
+			else
+				return _id_to_ops_array[interface_id-STARPU_MAX_INTERFACE_ID];
+		}
 	}
 }
 
@@ -259,73 +273,17 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	STARPU_ASSERT(handle);
 
-	/* initialize the new lock */
-	_starpu_data_requester_prio_list_init0(&handle->req_list);
-	//handle->refcnt = 0;
-	//handle->unlocking_reqs = 0;
-	//handle->busy_count = 0;
-	//handle->busy_waiting = 0;
-	STARPU_PTHREAD_MUTEX_INIT0(&handle->busy_mutex, NULL);
-	STARPU_PTHREAD_COND_INIT0(&handle->busy_cond, NULL);
-	_starpu_spin_init(&handle->header_lock);
-
 	/* first take care to properly lock the data */
 	_starpu_spin_lock(&handle->header_lock);
 
-	/* there is no hierarchy yet */
-	//handle->nchildren = 0;
-	//handle->nplans = 0;
-	//handle->switch_cl = NULL;
-	//handle->partitioned = 0;
-	//handle->readonly = 0;
-	handle->active = 1;
-	//handle->active_ro = 0;
 	handle->root_handle = handle;
 	//handle->father_handle = NULL;
-	//handle->active_children = NULL;
-	//handle->active_readonly_children = NULL;
-	//handle->nactive_readonly_children = 0;
 	//handle->nsiblings = 0;
 	//handle->siblings = NULL;
 	//handle->sibling_index = 0; /* could be anything for the root */
 	handle->depth = 1; /* the tree is just a node yet */
-        //handle->mpi_data = NULL; /* invalid until set */
 
-	//handle->is_not_important = 0;
-
-	handle->sequential_consistency =
-		starpu_data_get_default_sequential_consistency_flag();
-	handle->initialized = home_node != -1;
-	handle->ooc = 1;
-
-	STARPU_PTHREAD_MUTEX_INIT0(&handle->sequential_consistency_mutex, NULL);
-	handle->last_submitted_mode = STARPU_R;
-	//handle->last_sync_task = NULL;
-	//handle->last_submitted_accessors.task = NULL;
-	handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
-	handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
-	//handle->post_sync_tasks = NULL;
-
-	/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
-	STARPU_HG_DISABLE_CHECKING(handle->post_sync_tasks_cnt);
-	//handle->post_sync_tasks_cnt = 0;
-
-	/* By default, there are no methods available to perform a reduction */
-	//handle->redux_cl = NULL;
-	//handle->init_cl = NULL;
-
-	//handle->reduction_refcnt = 0;
-	_starpu_data_requester_prio_list_init0(&handle->reduction_req_list);
-	//handle->reduction_tmp_handles = NULL;
-	//handle->write_invalidation_req = NULL;
-
-#ifdef STARPU_USE_FXT
-	//handle->last_submitted_ghost_sync_id_is_valid = 0;
-	//handle->last_submitted_ghost_sync_id = 0;
-	//handle->last_submitted_ghost_accessors_id = NULL;
-#endif
-
-	handle->wt_mask = wt_mask;
+	handle->active = 1;
 
 	/* Store some values directly in the handle not to recompute them all
 	 * the time. */
@@ -333,15 +291,23 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	handle->home_node = home_node;
 
-	if (_starpu_global_arbiter)
-		/* Just for testing purpose */
-		starpu_data_assign_arbiter(handle, _starpu_global_arbiter);
-	else
-	{
-		//handle->arbiter = NULL;
-	}
-	_starpu_data_requester_prio_list_init0(&handle->arbitered_req_list);
-	handle->last_locality = -1;
+	handle->wt_mask = wt_mask;
+
+	//handle->aliases = 0;
+	//handle->readonly_dup = NULL;
+	//handle->readonly_dup_of = NULL;
+
+	//handle->is_not_important = 0;
+
+	handle->sequential_consistency =
+		starpu_data_get_default_sequential_consistency_flag();
+	handle->initialized = home_node != -1;
+	//handle->readonly = 0;
+	handle->ooc = 1;
+
+	/* By default, there are no methods available to perform a reduction */
+	//handle->redux_cl = NULL;
+	//handle->init_cl = NULL;
 
 	/* that new data is invalid from all nodes perpective except for the
 	 * home node */
@@ -373,9 +339,6 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 		replicate->mapped = 0;
 	}
-
-	//handle->per_worker = NULL;
-	//handle->user_data = NULL;
 
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
@@ -452,14 +415,49 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	STARPU_HG_DISABLE_CHECKING(handle->busy_count);
 
 	handle->magic = 42;
-	handle->ops = interface_ops;
-	handle->mf_node = mf_node;
-	//handle->mpi_data = NULL;
-	//handle->partition_automatic_disabled = 0;
 
+	/* When not specified, the fields are initialized in _starpu_register_new_data and _starpu_data_partition */
+
+	_starpu_data_requester_prio_list_init0(&handle->req_list);
+	//handle->refcnt = 0;
+	//handle->unlocking_reqs = 0;
+	//handle->current_mode = STARPU_NONE;
+	_starpu_spin_init(&handle->header_lock);
+
+	//handle->busy_count = 0;
+	//handle->busy_waiting = 0;
+	STARPU_PTHREAD_MUTEX_INIT0(&handle->busy_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT0(&handle->busy_cond, NULL);
+
+	//handle->root_handle
+	//handle->father_handle
+	//handle->active_children = NULL;
+	//handle->active_nchildren = 0;
+	//handle->active_readonly_children = NULL;
+	//handle->active_readonly_nchildren = NULL;
+	//handle->nactive_readonly_children = 0;
+	//handle->nsiblings
+	//handle->siblings
+	//handle->sibling_index
+	//handle->depth
+
+	/* there is no hierarchy yet */
+	//handle->children = NULL;
+	//handle->nchildren = 0;
+	//handle->nplans = 0;
+	//handle->switch_cl = NULL;
+	//handle->switch_cl_nparts = 0;
+	//handle->partitioned = 0;
+	//handle->part_readonly = 0;
+
+	//handle->active
+	//handle->active_ro = 0;
+
+	//handle->per_node below
+
+	handle->ops = interface_ops;
 	size_t interfacesize = interface_ops->interface_size;
 
-	_starpu_memory_stats_init(handle);
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		_starpu_memory_stats_init_per_node(handle, node);
@@ -473,6 +471,78 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
 		if (handle->ops->init) handle->ops->init(replicate->data_interface);
 	}
+
+	//handle->per_worker = NULL;
+	//handle->ops above
+
+	//handle->footprint
+
+	//handle->home_node
+	//handle->wt_mask
+	//handle->aliases = 0;
+	//handle->is_not_important
+	//handle->sequential_consistency
+	//handle->initialized
+	//handle->readonly
+	//handle->ooc
+	//handle->lazy_unregister = 0;
+	//handle->partition_automatic_disabled = 0;
+	//handle->removed_from_context_hash = 0;
+
+	STARPU_PTHREAD_MUTEX_INIT0(&handle->sequential_consistency_mutex, NULL);
+
+	handle->last_submitted_mode = STARPU_R;
+	//handle->last_sync_task = NULL;
+	//handle->last_submitted_accessors.task = NULL;
+	handle->last_submitted_accessors.next = &handle->last_submitted_accessors;
+	handle->last_submitted_accessors.prev = &handle->last_submitted_accessors;
+
+#ifdef STARPU_USE_FXT
+	//handle->last_submitted_ghost_sync_id_is_valid = 0;
+	//handle->last_submitted_ghost_sync_id = 0;
+	//handle->last_submitted_ghost_accessors_id = NULL;
+#endif
+
+	//handle->post_sync_tasks = NULL;
+	/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
+	STARPU_HG_DISABLE_CHECKING(handle->post_sync_tasks_cnt);
+	//handle->post_sync_tasks_cnt = 0;
+
+	//handle->redux_cl
+	//handle->init_cl
+
+	//handle->reduction_refcnt = 0;
+
+	_starpu_data_requester_prio_list_init0(&handle->reduction_req_list);
+
+	//handle->reduction_tmp_handles = NULL;
+
+	//handle->write_invalidation_req = NULL;
+
+        //handle->mpi_data = NULL; /* invalid until set */
+
+	_starpu_memory_stats_init(handle);
+
+	handle->mf_node = mf_node;
+
+        //handle->unregister_hook = NULL;
+
+	if (_starpu_global_arbiter)
+		/* Just for testing purpose */
+		starpu_data_assign_arbiter(handle, _starpu_global_arbiter);
+	else
+	{
+		//handle->arbiter = NULL;
+	}
+	_starpu_data_requester_prio_list_init0(&handle->arbitered_req_list);
+
+	handle->last_locality = -1;
+
+	//handle->dimensions = 0;
+	//handle->coordinates = {};
+
+	//handle->user_data = NULL;
+
 
 	return 0;
 }
@@ -495,9 +565,29 @@ void starpu_data_register(starpu_data_handle_t *handleptr, int home_node,
 	STARPU_ASSERT(handleptr);
 	*handleptr = handle;
 
+	/* check the interfaceid is set */
+	STARPU_ASSERT(ops->interfaceid != STARPU_UNKNOWN_INTERFACE_ID);
+
 	/* fill the interface fields with the appropriate method */
 	STARPU_ASSERT(ops->register_data_handle);
 	ops->register_data_handle(handle, home_node, data_interface);
+
+	if ((unsigned)ops->interfaceid >= STARPU_MAX_INTERFACE_ID)
+	{
+		if ((unsigned)ops->interfaceid > _id_to_ops_array_size)
+		{
+			if (!_id_to_ops_array_size)
+			{
+				_id_to_ops_array_size = 16;
+			}
+			else
+			{
+				_id_to_ops_array_size *= 2;
+			}
+			_STARPU_REALLOC(_id_to_ops_array, _id_to_ops_array_size * sizeof(struct starpu_data_interface_ops *));
+		}
+		_id_to_ops_array[ops->interfaceid-STARPU_MAX_INTERFACE_ID] = ops;
+	}
 
 	_starpu_register_new_data(handle, home_node, 0);
 	_STARPU_TRACE_HANDLE_DATA_REGISTER(handle);
@@ -698,12 +788,12 @@ void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, 
 	{
 		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, STARPU_FETCH, 0, NULL, NULL, 0, origin);
 		STARPU_ASSERT(!ret);
-		_starpu_release_data_on_node(handle, handle->home_node, replicate);
+		_starpu_release_data_on_node(handle, 0, STARPU_NONE, replicate);
 	}
 	else
 	{
 		_starpu_spin_lock(&handle->header_lock);
-		if (!_starpu_notify_data_dependencies(handle))
+		if (!_starpu_notify_data_dependencies(handle, STARPU_NONE))
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 }
@@ -733,6 +823,39 @@ void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_
 	handle->unregister_hook = func;
 }
 
+/*
+ * We are about to unregister this R/O data. There might be still other aliases,
+ * in which case this returns 0. If not, users are not supposed to see it
+ * any more, so detach it from their sight and return 1 to let unregistration happen.
+ */
+static int _starpu_ro_data_detach(starpu_data_handle_t handle)
+{
+	_starpu_spin_lock(&handle->header_lock);
+	if (handle->aliases)
+	{
+		handle->aliases--;
+		_starpu_spin_unlock(&handle->header_lock);
+		return 0;
+	}
+	if (handle->readonly_dup)
+	{
+		STARPU_ASSERT(handle->readonly_dup->readonly_dup_of == handle);
+		handle->readonly_dup->readonly_dup_of = NULL;
+		handle->readonly_dup = NULL;
+	}
+	if (handle->readonly_dup_of)
+	{
+		STARPU_ASSERT(handle->readonly_dup_of->readonly_dup == handle);
+		handle->readonly_dup_of->readonly_dup = NULL;
+		handle->readonly_dup_of = NULL;
+	}
+	/* So that unregistration can use write dependencies to wait for
+	 * anything to finish */
+	handle->readonly = 0;
+        _starpu_spin_unlock(&handle->header_lock);
+	return 1;
+}
+
 /* Unregister the data handle, perhaps we don't need to update the home_node
  * (in that case coherent is set to 0)
  * nowait is for internal use when we already know for sure that we won't have to wait.
@@ -746,13 +869,20 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	/* TODO: also check that it has the latest coherency */
 	STARPU_ASSERT(!(nowait && handle->busy_count != 0));
 
+	if (!_starpu_ro_data_detach(handle))
+		return;
+
 	int sequential_consistency = handle->sequential_consistency;
 	if (sequential_consistency && !nowait)
 	{
+		/* We will acquire it in write mode to catch all dependencies,
+		 * but possibly it's not actually initialized. Fake it to avoid
+		 getting caught doing it */
+		handle->initialized = 1;
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_data_unregister must not be called from a task or callback, perhaps you can use starpu_data_unregister_submit instead");
 
 		/* If sequential consistency is enabled, wait until data is available */
-		_starpu_data_wait_until_available(handle, STARPU_RW, "starpu_data_unregister");
+		_starpu_data_wait_until_available(handle, handle->readonly?STARPU_R:STARPU_RW, "starpu_data_unregister");
 	}
 
 	if (coherent && !nowait)
@@ -939,6 +1069,7 @@ retry_busy:
 
 	_starpu_data_clear_implicit(handle);
 	free(handle->active_readonly_children);
+	free(handle->active_readonly_nchildren);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
@@ -946,6 +1077,9 @@ retry_busy:
 
 	STARPU_HG_ENABLE_CHECKING(handle->post_sync_tasks_cnt);
 	STARPU_HG_ENABLE_CHECKING(handle->busy_count);
+
+	_starpu_data_requester_prio_list_deinit(&handle->req_list);
+	_starpu_data_requester_prio_list_deinit(&handle->reduction_req_list);
 
 	if (handle->switch_cl)
 	{
@@ -990,6 +1124,9 @@ void starpu_data_unregister_submit(starpu_data_handle_t handle)
 {
 	STARPU_ASSERT_MSG(handle->magic == 42, "data %p is invalid (was it already registered?)", handle);
 	STARPU_ASSERT_MSG(!handle->lazy_unregister, "data %p can not be unregistered twice", handle);
+
+	if (!_starpu_ro_data_detach(handle))
+		return;
 
 	/* Wait for all task dependencies on this handle before putting it for free */
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, handle->initialized?STARPU_RW:STARPU_W, _starpu_data_unregister_submit_cb, handle);
@@ -1165,4 +1302,66 @@ unsigned starpu_data_get_coordinates_array(starpu_data_handle_t handle, unsigned
 		dims[i] = handle->coordinates[i];
 
 	return dimensions;
+}
+
+void starpu_data_print(starpu_data_handle_t handle, unsigned node, FILE *stream)
+{
+	if (handle->ops == NULL)
+		fprintf(stream, "Undefined");
+	else
+	{
+		switch (handle->ops->interfaceid)
+		{
+		case(STARPU_MATRIX_INTERFACE_ID):
+			fprintf(stream, "Matrix");
+			break;
+		case(STARPU_BLOCK_INTERFACE_ID):
+			fprintf(stream, "Block");
+			break;
+		case(STARPU_VECTOR_INTERFACE_ID):
+			fprintf(stream, "Vector");
+			break;
+		case(STARPU_CSR_INTERFACE_ID):
+			fprintf(stream, "CSR");
+			break;
+		case(STARPU_BCSR_INTERFACE_ID):
+			fprintf(stream, "BCSR");
+			break;
+		case(STARPU_VARIABLE_INTERFACE_ID):
+			fprintf(stream, "Variable");
+			break;
+		case(STARPU_VOID_INTERFACE_ID):
+			fprintf(stream, "Void");
+			break;
+		case(STARPU_MULTIFORMAT_INTERFACE_ID):
+			fprintf(stream, "Multfiformat");
+			break;
+		case(STARPU_COO_INTERFACE_ID):
+			fprintf(stream, "COO");
+			break;
+		case(STARPU_TENSOR_INTERFACE_ID):
+			fprintf(stream, "Tensor");
+			break;
+		case(STARPU_UNKNOWN_INTERFACE_ID ):
+			fprintf(stream, "UNKNOWN");
+			break;
+		default:
+			fprintf(stream, "User interface with id %d", handle->ops->interfaceid);
+			break;
+		}
+	}
+	void *data_interface = NULL;
+	if (starpu_data_test_if_allocated_on_node(handle, node))
+		data_interface = starpu_data_get_interface_on_node(handle, node);
+	if (starpu_data_test_if_allocated_on_node(handle, handle->home_node))
+		data_interface = starpu_data_get_interface_on_node(handle, handle->home_node);
+	if (handle->ops && handle->ops->describe && data_interface)
+	{
+		char buffer[1024];
+		handle->ops->describe(data_interface, buffer, sizeof(buffer));
+		fprintf(stream, " %s\n", buffer);
+	}
+	else
+		fprintf(stream, "\n");
+
 }

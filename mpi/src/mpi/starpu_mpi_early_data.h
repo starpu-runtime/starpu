@@ -25,6 +25,8 @@
 #include <common/uthash.h>
 #include <starpu_mpi_private.h>
 
+/** @file */
+
 #ifdef STARPU_USE_MPI_MPI
 
 #ifdef __cplusplus
@@ -59,7 +61,9 @@ void _starpu_mpi_early_data_shutdown(void);
 struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_create(struct _starpu_mpi_envelope *envelope, int source, MPI_Comm comm) STARPU_ATTRIBUTE_MALLOC;
 struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu_mpi_node_tag *node_tag);
 void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data_handle);
+void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle);
 
+// Not used now but needed for fault tolerance
 struct _starpu_mpi_early_data_handle_tag_hashlist *_starpu_mpi_early_data_extract(struct _starpu_mpi_node_tag *node_tag);
 
 #ifdef __cplusplus

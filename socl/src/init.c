@@ -16,7 +16,7 @@
  */
 
 #include <stdlib.h>
-#include "../src/core/workers.h"
+#include "../src/common/utils.h"
 #include "socl.h"
 #include "gc.h"
 #include "mem_objects.h"

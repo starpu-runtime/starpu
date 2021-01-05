@@ -23,7 +23,7 @@
 
 StarPU can use Simgrid in order to simulate execution on an arbitrary
 platform. This was tested with SimGrid from 3.11 to 3.16, and 3.18 to
-3.25. SimGrid versions 3.25 and above need to be configured with -Denable_msg=ON .
+3.26. SimGrid version 3.25 needs to be configured with -Denable_msg=ON .
 Other versions may have compatibility issues. 3.17 notably does not build at
 all. MPI simulation does not work with version 3.22.
 
@@ -167,8 +167,12 @@ theory results), see the \ref STARPU_SIMGRID_TRANSFER_COST, \ref STARPU_SIMGRID_
 
 \section SimulationMPIApplications MPI Applications
 
-StarPU-MPI applications can also be run in SimGrid mode. It needs to be compiled
-with \c smpicc, and run using the <c>starpu_smpirun</c> script, for instance:
+StarPU-MPI applications can also be run in SimGrid mode. smpi currently requires
+that StarPU be build statically only, so <c>--disable-shared</c> needs to be
+passed to <c>./configure</c>.
+
+The application needs to be compiled with \c smpicc, and run using the
+<c>starpu_smpirun</c> script, for instance:
 
 \verbatim
 $ STARPU_SCHED=dmda starpu_smpirun -platform cluster.xml -hostfile hostfile ./mpi/tests/pingpong
@@ -181,6 +185,13 @@ will just replicate the architecture referred by
 in case of a heterogeneous platform, it is possible to use the
 option <c>-hostfile-platform</c> in <c>starpu_smpirun</c>, that will define
 \ref STARPU_MPI_HOSTNAMES with the hostnames of your hostfile.
+
+So as to use FxT traces, libfxt also needs to be built statically, <b>and</b>
+with dynamic linking flags, i.e. with
+
+\verbatim
+CFLAGS=-fPIC ./configure --enable-static
+\endverbatim
 
 \section SimulationDebuggingApplications Debugging Applications
 

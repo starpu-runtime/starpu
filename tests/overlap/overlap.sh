@@ -25,6 +25,8 @@
 set -e
 
 PREFIX=$(dirname $0)
+rm -rf $PREFIX/overlap.traces
+mkdir -p $PREFIX/overlap.traces
 
 if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/overlap
@@ -32,46 +34,48 @@ if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
 	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap
 fi
 
-STARPU_SCHED=dmdas STARPU_FXT_PREFIX=$PREFIX/ $PREFIX/overlap
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -x -s overlap_sleep_1024_24
-[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump -o perfs.rec
-[ -f perfs.rec ]
+export STARPU_FXT_PREFIX=$PREFIX/overlap.traces
+
+STARPU_SCHED=dmdas $PREFIX/overlap
 if [ -x $PREFIX/../../tools/starpu_fxt_tool ];
 then
-	$STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_plot -s overlap_sleep_1024_24 -i $PREFIX/prof_file_${USER}_0
-	[ -f starpu_overlap_sleep_1024_24.gp -a -f starpu_overlap_sleep_1024_24.data -a -f starpu_overlap_sleep_1024_24_avg.data ]
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_plot -o $STARPU_FXT_PREFIX -s overlap_sleep_1024_24 -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
+	[ -f $STARPU_FXT_PREFIX/starpu_overlap_sleep_1024_24.gp -a -f $STARPU_FXT_PREFIX/starpu_overlap_sleep_1024_24.data -a -f $STARPU_FXT_PREFIX/starpu_overlap_sleep_1024_24_avg.data ]
 
 	# Generate paje, dag, data, etc.
-	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -memory-states -label-deps -i $PREFIX/prof_file_${USER}_0
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_tool -d $STARPU_FXT_PREFIX -memory-states -label-deps -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
 
-	$PREFIX/../../tools/starpu_paje_sort paje.trace
-	! type pj_dump || pj_dump -e 0 < paje.trace
+	$PREFIX/../../tools/starpu_paje_sort $STARPU_FXT_PREFIX/paje.trace
+	! type pj_dump || pj_dump -e 0 < $STARPU_FXT_PREFIX/paje.trace
 
-	$PREFIX/../../tools/starpu_codelet_profile distrib.data overlap_sleep_1024_24
-	[ -f distrib.data.gp -a \( -f distrib.data.0 -o -f distrib.data.1 -o -f distrib.data.2 -o -f distrib.data.3 -o -f distrib.data.4 \) ]
+	$PREFIX/../../tools/starpu_codelet_profile $STARPU_FXT_PREFIX/distrib.data overlap_sleep_1024_24
+	[ -f $STARPU_FXT_PREFIX/distrib.data.gp -a \( -f $STARPU_FXT_PREFIX/distrib.data.0 -o -f $STARPU_FXT_PREFIX/distrib.data.1 -o -f $STARPU_FXT_PREFIX/distrib.data.2 -o -f $STARPU_FXT_PREFIX/distrib.data.3 -o -f $STARPU_FXT_PREFIX/distrib.data.4 -o -f $STARPU_FXT_PREFIX/distrib.data.5 -o -f $STARPU_FXT_PREFIX/distrib.data.6 \) ]
 
-	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_data_trace $PREFIX/prof_file_${USER}_0 overlap_sleep_1024_24
-	[ -f data_trace.gp ]
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_data_trace -d $STARPU_FXT_PREFIX $STARPU_FXT_PREFIX/prof_file_${USER}_0 overlap_sleep_1024_24
+	[ -f $STARPU_FXT_PREFIX/data_trace.gp ]
 
-	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_stats -i $PREFIX/prof_file_${USER}_0
-	$STARPU_LAUNCH $PREFIX/../../tools/starpu_tasks_rec_complete tasks.rec tasks2.rec
-	python $PREFIX/../../tools/starpu_trace_state_stats.py trace.rec
-	$PREFIX/../../tools/starpu_workers_activity activity.data
-	[ -f activity.eps ]
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_stats -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
+	$STARPU_LAUNCH $PREFIX/../../tools/starpu_tasks_rec_complete $STARPU_FXT_PREFIX/tasks.rec $STARPU_FXT_PREFIX/tasks2.rec
+	python3 $PREFIX/../../tools/starpu_trace_state_stats.py $STARPU_FXT_PREFIX/trace.rec
+	$PREFIX/../../tools/starpu_workers_activity -d $STARPU_FXT_PREFIX $STARPU_FXT_PREFIX/activity.data
+	[ -f $STARPU_FXT_PREFIX/activity.eps ]
 
 	# needs some R packages
-	$PREFIX/../../tools/starpu_paje_draw_histogram paje.trace || true
-	$PREFIX/../../tools/starpu_paje_state_stats paje.trace || true
-	$PREFIX/../../tools/starpu_paje_summary paje.trace || true
-	$PREFIX/../../tools/starpu_codelet_histo_profile distrib.data || true
-	[ -f distrib.data.overlap_sleep_1024_24.0.a3d3725e.1024.pdf ] || true
+	$PREFIX/../../tools/starpu_paje_draw_histogram $STARPU_FXT_PREFIX/paje.trace || true
+	$PREFIX/../../tools/starpu_paje_state_stats $STARPU_FXT_PREFIX/paje.trace || true
+	$PREFIX/../../tools/starpu_paje_summary $STARPU_FXT_PREFIX/paje.trace || true
+	$PREFIX/../../tools/starpu_codelet_histo_profile $STARPU_FXT_PREFIX/distrib.data || true
+	[ -f $STARPU_FXT_PREFIX/distrib.data.overlap_sleep_1024_24.0.a3d3725e.1024.pdf ] || true
 
 	if [ -x $PREFIX/../../tools/starpu_replay ]; then
-		$STARPU_LAUNCH $PREFIX/../../tools/starpu_replay tasks.rec
+		$STARPU_LAUNCH $PREFIX/../../tools/starpu_replay $STARPU_FXT_PREFIX/tasks.rec
 	fi
 
-	[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump tasks.rec -o perfs2.rec
-	[ -f perfs2.rec ]
+	[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump $STARPU_FXT_PREFIX/tasks.rec -o $STARPU_FXT_PREFIX/perfs2.rec
+	[ -f $STARPU_FXT_PREFIX/perfs2.rec ]
 fi
 
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -s overlap_sleep_1024_24
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_display ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_display -x -s overlap_sleep_1024_24
+[ ! -x $PREFIX/../../tools/starpu_perfmodel_recdump ] || $STARPU_LAUNCH $PREFIX/../../tools/starpu_perfmodel_recdump -o $STARPU_FXT_PREFIX/perfs.rec
+[ -f $STARPU_FXT_PREFIX/perfs.rec ]

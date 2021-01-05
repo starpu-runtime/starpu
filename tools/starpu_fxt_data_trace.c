@@ -32,13 +32,14 @@ static void usage()
         fprintf(stderr, "Options:\n");
 	fprintf(stderr, "   -h, --help          display this help and exit\n");
 	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
+	fprintf(stderr, "   -d directory        where to save output files (by default current directory)\n");
 	fprintf(stderr, "    filename           specify the FxT trace input file.\n");
 	fprintf(stderr, "    codeletX           specify the codelet name to profile (by default, all codelets are profiled)\n");
         fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
         fprintf(stderr, "\n");
 }
 
-static int parse_args(int argc, char **argv)
+static int parse_args(int argc, char **argv, int *pos, char **directory)
 {
 	int i;
 
@@ -54,38 +55,50 @@ static int parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			usage();
-			return EXIT_SUCCESS;
+			exit(EXIT_FAILURE);
 		}
 
 		if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
 		{
 		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
-			return EXIT_SUCCESS;
+			exit(EXIT_FAILURE);
 		}
+
+		if (strcmp(argv[i], "-d") == 0)
+		{
+			free(*directory);
+			*directory = strdup(argv[++i]);
+			*pos += 2;
+			continue;
+		}
+
 	}
 	return 0;
 }
 
-static void write_gp(int argc, char **argv)
+static void write_gp(char *dir, int argc, char **argv)
 {
-	FILE *codelet_list = fopen("codelet_list", "r");
+	char codelet_filename[256];
+	snprintf(codelet_filename, sizeof(codelet_filename), "%s/codelet_list", dir);
+	FILE *codelet_list = fopen(codelet_filename, "r");
 	if(!codelet_list)
 	{
-		perror("Error while opening codelet_list:");
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", codelet_filename, strerror(errno));
 		exit(-1);
 	}
 	char codelet_name[MAX_LINE_SIZE];
-	const char *file_name = "data_trace.gp";
+	char file_name[256];
+	snprintf(file_name, sizeof(file_name), "%s/data_trace.gp", dir);
 	FILE *plt = fopen(file_name, "w+");
 	if(!plt)
 	{
-		perror("Error while creating data_trace.gp:");
+		STARPU_ABORT_MSG("Failed to open '%s' (err %s)", file_name, strerror(errno));
 		exit(-1);
 	}
 
 	fprintf(plt, "#!/usr/bin/gnuplot -persist\n\n");
 	fprintf(plt, "set term postscript eps enhanced color\n");
-	fprintf(plt, "set output \"data_trace.eps\"\n");
+	fprintf(plt, "set output \"%s/data_trace.eps\"\n", dir);
 	fprintf(plt, "set title \"Data trace\"\n");
 	fprintf(plt, "set logscale x\n");
 	fprintf(plt, "set logscale y\n");
@@ -125,7 +138,7 @@ static void write_gp(int argc, char **argv)
 		}
 		else
 		{
-			fprintf(plt, "\"%s\" using 2:1 with dots lw 1 title \"%s\"", codelet_name, codelet_name);
+			fprintf(plt, "\"%s/%s\" using 2:1 with dots lw 1 title \"%s\"", dir, codelet_name, codelet_name);
 		}
 	}
 	fprintf(plt, "\n");
@@ -151,21 +164,36 @@ static void write_gp(int argc, char **argv)
 	}
 
 	/* Make the gnuplot scrit executable for the owner */
-	ret = chmod(file_name, sb.st_mode|S_IXUSR);
+	ret = chmod(file_name, sb.st_mode|S_IXUSR
+#ifdef S_IXGRP
+					 |S_IXGRP
+#endif
+#ifdef S_IXOTH
+					 |S_IXOTH
+#endif
+					 );
+
 	if (ret)
 	{
 		perror("chmod");
 		STARPU_ABORT();
 	}
-	fprintf(stdout, "Gnuplot file <data_trace.gp> has been successfully created.\n");
+	fprintf(stdout, "Gnuplot file <%s/data_trace.gp> has been successfully created.\n", dir);
 }
 
 int main(int argc, char **argv)
 {
-	int ret = parse_args(argc, argv);
-	if (ret) return ret;
-	starpu_fxt_write_data_trace(argv[1]);
-	write_gp(argc - 2, argv + 2);
+	char *directory = strdup(".");
+	int pos=0;
+	int ret = parse_args(argc, argv, &pos, &directory);
+	if (ret)
+	{
+		free(directory);
+		return ret;
+	}
+	starpu_fxt_write_data_trace_in_dir(argv[1+pos], directory);
+	write_gp(directory, argc - (2 + pos), argv + 2 + pos);
 	starpu_perfmodel_free_sampling();
+	free(directory);
 	return 0;
 }

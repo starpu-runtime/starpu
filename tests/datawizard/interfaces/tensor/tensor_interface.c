@@ -18,7 +18,7 @@
 #include "../test_interfaces.h"
 #include "../../../helper.h"
 
-#define NX 16
+#define NX 4
 #define NY NX
 #define NZ NX
 #define NT NX

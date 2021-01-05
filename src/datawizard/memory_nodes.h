@@ -45,7 +45,7 @@ struct _starpu_memory_node_descr
 	enum starpu_node_kind nodes[STARPU_MAXNODES];
 	struct _starpu_node_ops *node_ops[STARPU_MAXNODES];
 
-	/* Get the device id associated to this node, or -1 if not applicable */
+	/** Get the device id associated to this node, or -1 if not applicable */
 	int devid[STARPU_MAXNODES];
 
 	unsigned nworkers[STARPU_MAXNODES];
@@ -55,7 +55,7 @@ struct _starpu_memory_node_descr
 #endif
 
 	// TODO move this 2 lists outside struct _starpu_memory_node_descr
-	/* Every worker is associated to a condition variable on which the
+	/** Every worker is associated to a condition variable on which the
 	 * worker waits when there is task available. It is possible that
 	 * multiple worker share the same condition variable, so we maintain a
 	 * list of all these condition variables so that we can wake up all
@@ -63,7 +63,7 @@ struct _starpu_memory_node_descr
 	starpu_pthread_rwlock_t conditions_rwlock;
 	struct _starpu_cond_and_worker conditions_attached_to_node[STARPU_MAXNODES][STARPU_NMAXWORKERS];
 	struct _starpu_cond_and_worker conditions_all[STARPU_MAXNODES*STARPU_NMAXWORKERS];
-	/* the number of queues attached to each node */
+	/** the number of queues attached to each node */
 	unsigned total_condition_count;
 	unsigned condition_count[STARPU_MAXNODES];
 	unsigned mapped[STARPU_MAXNODES];

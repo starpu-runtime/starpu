@@ -87,10 +87,12 @@ void display_complex_codelet(void *descr[], void *_args)
 	if (_args)
 		starpu_codelet_unpack_args(_args, &msg);
 
+	FPRINTF(stderr, "[%s]\n", _args?msg:NULL);
 	for(i=0 ; i<nx ; i++)
 	{
-		FPRINTF(stderr, "[%s] Complex[%d] = %3.2f + %3.2f i\n", _args?msg:NULL, i, real[i], imaginary[i]);
+		FPRINTF(stderr, "\tComplex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
 	}
+	fflush(stderr);
 }
 
 struct starpu_codelet cl_display =

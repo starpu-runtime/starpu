@@ -463,8 +463,8 @@ int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
 	STARPU_ASSERT_MSG(ld2_src >= numblocks_1 * ld1_src, "block group size %lu is bigger than group ld %lu in source", (unsigned long) numblocks_1 * ld1_src, (unsigned long) ld2_src);
 	STARPU_ASSERT_MSG(ld2_dst >= numblocks_1 * ld1_dst, "block group size %lu is bigger than group ld %lu in destination", (unsigned long) numblocks_1 * ld1_dst, (unsigned long) ld2_dst);
 
-	if (ld1_src * ld2_src == blocksize * numblocks_1 &&
-	    ld1_dst * ld2_dst == blocksize * numblocks_1)
+	if (ld2_src == blocksize * numblocks_1 &&
+	    ld2_dst == blocksize * numblocks_1)
 		/* Optimize contiguous case */
 		return starpu_interface_copy(src, src_offset, src_node,
 					     dst, dst_offset, dst_node,
@@ -513,8 +513,8 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
 	STARPU_ASSERT_MSG(ld3_src >= numblocks_2 * ld2_src, "block group group size %lu is bigger than group group ld %lu in source", (unsigned long) numblocks_2 * ld2_src, (unsigned long) ld3_src);
 	STARPU_ASSERT_MSG(ld3_dst >= numblocks_2 * ld2_dst, "block group group size %lu is bigger than group group ld %lu in destination", (unsigned long) numblocks_2 * ld2_dst, (unsigned long) ld3_dst);
 
-	if (ld1_src * ld2_src * ld3_src == blocksize * numblocks_1 * numblocks_2 &&
-	    ld1_dst * ld2_dst * ld3_dst == blocksize * numblocks_1 * numblocks_2)
+	if (ld3_src == blocksize * numblocks_1 * numblocks_2 &&
+	    ld3_dst == blocksize * numblocks_1 * numblocks_2)
 		/* Optimize contiguous case */
 		return starpu_interface_copy(src, src_offset, src_node,
 					     dst, dst_offset, dst_node,

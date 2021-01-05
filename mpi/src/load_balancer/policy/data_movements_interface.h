@@ -16,27 +16,29 @@
 
 #include <starpu.h>
 
+/** @file */
+
 #ifndef __DATA_MOVEMENTS_INTERFACE_H
 #define __DATA_MOVEMENTS_INTERFACE_H
 
-/* interface for data_movements */
+/** interface for data_movements */
 struct data_movements_interface
 {
-	/* Data tags table */
-	int *tags;
-	/* Ranks table (where to move the corresponding data) */
+	/** Data tags table */
+	starpu_mpi_tag_t *tags;
+	/** Ranks table (where to move the corresponding data) */
 	int *ranks;
-	/* Size of the tables */
+	/** Size of the tables */
 	int size;
 };
 
-void data_movements_data_register(starpu_data_handle_t *handle, unsigned home_node, int *ranks, int *tags, int size);
+void data_movements_data_register(starpu_data_handle_t *handle, unsigned home_node, int *ranks, starpu_mpi_tag_t *tags, int size);
 
-int **data_movements_get_ref_tags_table(starpu_data_handle_t handle);
+starpu_mpi_tag_t **data_movements_get_ref_tags_table(starpu_data_handle_t handle);
 int **data_movements_get_ref_ranks_table(starpu_data_handle_t handle);
 int data_movements_reallocate_tables(starpu_data_handle_t handle, int size);
 
-int *data_movements_get_tags_table(starpu_data_handle_t handle);
+starpu_mpi_tag_t *data_movements_get_tags_table(starpu_data_handle_t handle);
 int *data_movements_get_ranks_table(starpu_data_handle_t handle);
 int data_movements_get_size_tables(starpu_data_handle_t handle);
 

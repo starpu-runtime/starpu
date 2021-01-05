@@ -1,7 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,19 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef _STARPU_PARAMETERS_H
-#define _STARPU_PARAMETERS_H
+#include <starpu.h>
 
-/** @file */
-
-/* Parameters which are not worth being added to ./configure options, but
- * still interesting to easily change */
-
-/* Assumed relative performance ratios */
-/* TODO: benchmark a bit instead */
-#define _STARPU_CPU_ALPHA	1.0f
-#define _STARPU_CUDA_ALPHA	13.33f
-#define _STARPU_OPENCL_ALPHA	12.22f
-#define _STARPU_MIC_ALPHA	0.5f
-#define _STARPU_MPI_MS_ALPHA	1.0f
-#endif /* _STARPU_PARAMETERS_H */
+extern void cuda_host_increment(void *descr[], void *_args);
+extern void cpu_increment(void *descr[], void *arg);
+extern struct starpu_codelet increment_codelet;

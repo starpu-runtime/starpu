@@ -101,3 +101,15 @@ Error handling
   --enable-fast.
 
 	STARPU_ASSERT(j->terminated != 0)
+
+
+
+Makefile.am
+-----------
+
+Dependency libraries are appended to LIBS.
+Only real LDFLAGS such as -no-undefined go to LDFLAGS.
+
+If a program foo needs more libraries, it can put then in foo_LDADD.
+
+(No, AM_LDADD does not exist)

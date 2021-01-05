@@ -115,7 +115,7 @@ soclCreateBuffer(cl_context   context,
 	// If not MEM_USE_HOST_PTR, we need to alloc the buffer ourselves
 	if (!(flags & CL_MEM_USE_HOST_PTR))
 	{
-		mem->ptr = valloc(size);
+		mem->ptr = malloc(size);
 		if (mem->ptr == NULL)
 		{
 			if (errcode_ret != NULL)

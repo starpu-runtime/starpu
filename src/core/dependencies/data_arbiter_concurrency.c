@@ -533,7 +533,7 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 }
 void ___starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 #else // LOCK_OR_DELEGATE
-void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
+void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode)
 #endif
 {
 	starpu_arbiter_t arbiter = handle->arbiter;
@@ -546,10 +546,21 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 	{
 		/* No waiter, just remove our reference */
 		_starpu_spin_lock(&handle->header_lock);
-		STARPU_ASSERT(handle->refcnt > 0);
-		handle->refcnt--;
-		STARPU_ASSERT(handle->busy_count > 0);
-		handle->busy_count--;
+		if (down_to_mode == STARPU_NONE)
+		{
+			STARPU_ASSERT(handle->refcnt > 0);
+			handle->refcnt--;
+			STARPU_ASSERT(handle->busy_count > 0);
+			handle->busy_count--;
+		}
+		else
+		{
+			/* Downgrade from W or RW down to R, keeping the same reference,
+			 * but thus allowing other readers without allowing writers.  */
+			STARPU_ASSERT(down_to_mode == STARPU_R &&
+				      handle->current_mode == STARPU_W);
+			handle->current_mode = down_to_mode;
+		}
 #ifndef LOCK_OR_DELEGATE
 		STARPU_PTHREAD_MUTEX_UNLOCK(&arbiter->mutex);
 #endif
@@ -562,10 +573,21 @@ void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle)
 
 	/* There is a waiter, remove our reference */
 	_starpu_spin_lock(&handle->header_lock);
-	STARPU_ASSERT(handle->refcnt > 0);
-	handle->refcnt--;
-	STARPU_ASSERT(handle->busy_count > 0);
-	handle->busy_count--;
+	if (down_to_mode == STARPU_NONE)
+	{
+		STARPU_ASSERT(handle->refcnt > 0);
+		handle->refcnt--;
+		STARPU_ASSERT(handle->busy_count > 0);
+		handle->busy_count--;
+	}
+	else
+	{
+		/* Downgrade from W or RW down to R, keeping the same reference,
+		 * but thus allowing other readers without allowing writers.  */
+		STARPU_ASSERT(down_to_mode == STARPU_R &&
+			      handle->current_mode == STARPU_W);
+		handle->current_mode = down_to_mode;
+	}
 	/* There should be at least one busy_count reference for the waiter
 	 * (thus we don't risk to see the handle disappear below) */
 	STARPU_ASSERT(handle->busy_count > 0);

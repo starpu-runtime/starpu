@@ -15,15 +15,20 @@
 #
 include $(top_srcdir)/starpu.mk
 
-AM_CFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CFLAGS) -Wno-unused
-AM_CXXFLAGS = $(HWLOC_CFLAGS) $(FXT_CFLAGS) -Wall $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(GLOBAL_AM_CXXFLAGS) -Wno-unused
-LDADD = $(top_builddir)/src/@LIBSTARPU_LINK@ $(HWLOC_LIBS) $(FXT_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/
-AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@ $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_COI_LDFLAGS) $(STARPU_SCIF_LDFLAGS) $(FXT_LDFLAGS)
+AM_CFLAGS += -Wno-unused
+AM_CXXFLAGS += -Wno-unused
+AM_FFLAGS += -Wno-unused -Wno-unused-dummy-argument
+AM_FCFLAGS += -Wno-unused -Wno-unused-dummy-argument
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_H_CPPFLAGS)
+AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
+LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
+LIBS += $(HWLOC_LIBS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
 
 EXTRA_DIST =					\
 	helper.h				\
 	datawizard/locality.sh			\
+	main/increment_codelet.h		\
 	overlap/overlap.sh			\
 	datawizard/scal.h			\
 	datawizard/mpi_like.h			\
@@ -42,6 +47,7 @@ EXTRA_DIST =					\
 	microbenchs/parallel_independent_heterogeneous_tasks.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks_data.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks.sh	\
+	microbenchs/bandwidth_scheds.sh		\
 	energy/static.sh			\
 	energy/dynamic.sh			\
 	energy/perfs.gp				\
@@ -65,14 +71,10 @@ EXTRA_DIST =					\
 	datawizard/interfaces/tensor/tensor_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
-	microbenchs/microbench.sh \
-	model-checking/platform.xml \
-	model-checking/prio_list.sh \
-	model-checking/barrier.sh \
-	model-checking/starpu-mc.sh.in
+	microbenchs/microbench.sh
 
 CLEANFILES = 					\
-	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec perfs2.rec fortran90/starpu_mod.f90
+	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg
 
 BUILT_SOURCES =
 SUBDIRS =
@@ -146,6 +148,7 @@ XFAIL_TESTS	=				\
 myPROGRAMS =
 
 myPROGRAMS +=					\
+	main/callback				\
 	main/bind				\
 	main/mkdtemp				\
 	main/execute_schedule			\
@@ -247,6 +250,7 @@ myPROGRAMS +=				\
 	main/subgraph_repeat_tag		\
 	main/subgraph_repeat_regenerate		\
 	main/subgraph_repeat_regenerate_tag	\
+	main/subgraph_repeat_regenerate_tag_cycle	\
 	main/empty_task_sync_point		\
 	main/empty_task_sync_point_tasks	\
 	main/tag_wait_api			\
@@ -266,6 +270,7 @@ myPROGRAMS +=				\
 	datawizard/acquire_cb_insert		\
 	datawizard/acquire_release		\
 	datawizard/acquire_release2		\
+	datawizard/acquire_release_to		\
 	datawizard/acquire_try			\
 	datawizard/bcsr				\
 	datawizard/cache			\
@@ -274,6 +279,7 @@ myPROGRAMS +=				\
 	datawizard/copy				\
 	datawizard/data_implicit_deps		\
 	datawizard/data_lookup			\
+	datawizard/data_register		\
 	datawizard/scratch			\
 	datawizard/scratch_reuse		\
 	datawizard/sync_and_notify_data		\
@@ -321,6 +327,7 @@ myPROGRAMS +=				\
 	datawizard/partition_dep   		\
 	datawizard/partition_lazy		\
 	datawizard/partition_init		\
+	datawizard/partition_wontuse		\
 	datawizard/gpu_register   		\
 	datawizard/gpu_ptr_register   		\
 	datawizard/variable_parameters		\
@@ -344,6 +351,7 @@ myPROGRAMS +=				\
 	errorcheck/workers_cpuid		\
 	fault-tolerance/retry			\
 	helper/starpu_data_cpy			\
+	helper/starpu_data_dup_ro		\
 	helper/starpu_create_sync_task		\
 	microbenchs/async_tasks_overhead	\
 	microbenchs/sync_tasks_overhead		\
@@ -352,6 +360,7 @@ myPROGRAMS +=				\
 	microbenchs/prefetch_data_on_node 	\
 	microbenchs/redundant_buffer		\
 	microbenchs/matrix_as_vector		\
+	microbenchs/bandwidth			\
 	overlap/gpu_concurrency			\
 	parallel_tasks/explicit_combined_worker	\
 	parallel_tasks/parallel_kernels		\
@@ -359,11 +368,11 @@ myPROGRAMS +=				\
 	parallel_tasks/parallel_kernels_spmd	\
 	parallel_tasks/spmd_peager		\
 	parallel_tasks/cuda_only		\
-	perfmodels/regression_based		\
-	perfmodels/regression_based_01		\
-	perfmodels/regression_based_02		\
-	perfmodels/regression_based_03		\
-	perfmodels/regression_based_04		\
+	perfmodels/regression_based_memset	\
+	perfmodels/regression_based_check	\
+	perfmodels/regression_based_multiimpl	\
+	perfmodels/regression_based_energy	\
+	perfmodels/regression_based_gpu		\
 	perfmodels/non_linear_regression_based	\
 	perfmodels/feed				\
 	perfmodels/user_base			\
@@ -417,6 +426,8 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.sh
 if !STARPU_SIMGRID
 if !STARPU_USE_MPI_MASTER_SLAVE
+examplebin_PROGRAMS += \
+	microbenchs/bandwidth
 SHELL_TESTS += \
 	microbenchs/tasks_data_overhead.sh \
 	microbenchs/sync_tasks_data_overhead.sh \
@@ -440,6 +451,7 @@ endif
 if !STARPU_USE_MPI_MASTER_SLAVE
 SHELL_TESTS += \
 	datawizard/locality.sh \
+	microbenchs/bandwidth_scheds.sh \
 	overlap/overlap.sh
 endif
 
@@ -448,19 +460,7 @@ endif
 ################################
 
 if STARPU_SIMGRID_MC
-model_checking_prio_list_LDADD = 
-model_checking_prio_list_LDFLAGS = 
-noinst_PROGRAMS += model-checking/prio_list
-if !STARPU_QUICK_CHECK
-SHELL_TESTS += model-checking/prio_list.sh
-endif
-
-model_checking_starpu_barrier_LDADD = 
-model_checking_starpu_barrier_LDFLAGS = 
-noinst_PROGRAMS += model-checking/starpu_barrier
-if !STARPU_QUICK_CHECK
-#SHELL_TESTS += model-checking/barrier.sh
-endif
+SUBDIRS += model-checking
 endif
 
 #######################
@@ -488,6 +488,17 @@ datawizard_acquire_release2_SOURCES +=		\
 endif
 if STARPU_USE_OPENCL
 datawizard_acquire_release2_SOURCES +=		\
+	datawizard/acquire_release_opencl.c
+endif
+
+datawizard_acquire_release_to_SOURCES =		\
+	datawizard/acquire_release_to.c
+if STARPU_USE_CUDA
+datawizard_acquire_release_to_SOURCES +=		\
+	datawizard/acquire_release_cuda.cu
+endif
+if STARPU_USE_OPENCL
+datawizard_acquire_release_to_SOURCES +=		\
 	datawizard/acquire_release_opencl.c
 endif
 
@@ -641,30 +652,42 @@ main_insert_task_where_SOURCES +=		\
 endif
 
 main_subgraph_repeat_SOURCES =		\
-	main/subgraph_repeat.c
+	main/subgraph_repeat.c		\
+	main/increment_codelet.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_SOURCES +=		\
 	main/increment.cu
 endif
 
 main_subgraph_repeat_tag_SOURCES =		\
-	main/subgraph_repeat_tag.c
+	main/subgraph_repeat_tag.c		\
+	main/increment_codelet.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_tag_SOURCES +=		\
 	main/increment.cu
 endif
 
 main_subgraph_repeat_regenerate_SOURCES =		\
-	main/subgraph_repeat_regenerate.c
+	main/subgraph_repeat_regenerate.c		\
+	main/increment_codelet.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_SOURCES +=		\
 	main/increment.cu
 endif
 
 main_subgraph_repeat_regenerate_tag_SOURCES =		\
-	main/subgraph_repeat_regenerate_tag.c
+	main/subgraph_repeat_regenerate_tag.c		\
+	main/increment_codelet.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_tag_SOURCES +=		\
+	main/increment.cu
+endif
+
+main_subgraph_repeat_regenerate_tag_cycle_SOURCES =		\
+	main/subgraph_repeat_regenerate_tag_cycle.c		\
+	main/increment_codelet.c
+if STARPU_USE_CUDA
+main_subgraph_repeat_regenerate_tag_cycle_SOURCES +=		\
 	main/increment.cu
 endif
 
@@ -786,6 +809,14 @@ if STARPU_HAVE_FC
 fortran90_init_01_SOURCES =	\
 	fortran90/starpu_mod.f90	\
 	fortran90/init_01.f90
+endif
+
+helper_starpu_data_dup_ro_SOURCES =		\
+	helper/starpu_data_dup_ro.c		\
+	main/increment_codelet.c
+if STARPU_USE_CUDA
+helper_starpu_data_dup_ro_SOURCES +=		\
+	main/increment.cu
 endif
 
 ###################
@@ -995,26 +1026,26 @@ overlap_gpu_concurrency_SOURCES+=\
 	overlap/long_kernel.cu
 endif
 
-perfmodels_regression_based_SOURCES=\
-	perfmodels/regression_based.c
+perfmodels_regression_based_memset_SOURCES=\
+	perfmodels/regression_based_memset.c
 
-perfmodels_regression_based_01_SOURCES=\
-	perfmodels/regression_based_01.c
+perfmodels_regression_based_check_SOURCES=\
+	perfmodels/regression_based_check.c
 
-perfmodels_regression_based_02_SOURCES=\
-	perfmodels/regression_based_02.c
+perfmodels_regression_based_multiimpl_SOURCES=\
+	perfmodels/regression_based_multiimpl.c
 
-perfmodels_regression_based_03_SOURCES=\
-	perfmodels/regression_based_03.c
+perfmodels_regression_based_energy_SOURCES=\
+	perfmodels/regression_based_energy.c
 
-perfmodels_regression_based_04_SOURCES=\
-	perfmodels/regression_based_04.c
+perfmodels_regression_based_gpu_SOURCES=\
+	perfmodels/regression_based_gpu.c
 
 if STARPU_USE_OPENCL
-perfmodels_regression_based_SOURCES+=\
+perfmodels_regression_based_memset_SOURCES+=\
 	perfmodels/opencl_memset.c
 
-perfmodels_regression_based_04_SOURCES+=\
+perfmodels_regression_based_gpu_SOURCES+=\
 	perfmodels/opencl_memset.c
 
 nobase_STARPU_OPENCL_DATA_DATA += \

@@ -69,7 +69,8 @@ create as many CUDA workers as there are CUDA devices.
 \anchor STARPU_NWORKER_PER_CUDA
 \addindex __env__STARPU_NWORKER_PER_CUDA
 Specify the number of workers per CUDA device, and thus the number of kernels
-which will be concurrently running on the devices. The default value is 1.
+which will be concurrently running on the devices, i.e. the number of CUDA
+streams. The default value is 1.
 </dd>
 
 <dt>STARPU_CUDA_THREAD_PER_WORKER</dt>
@@ -227,7 +228,14 @@ and the third (resp. second and fourth) workers will be put on CPU #0
 This variable is ignored if the field
 starpu_conf::use_explicit_workers_bindid passed to starpu_init() is
 set.
+</dd>
 
+<dt>STARPU_WORKERS_COREID</dt>
+<dd>
+\anchor STARPU_WORKERS_COREID
+\addindex __env__STARPU_WORKERS_COREID
+Same as \ref STARPU_WORKERS_CPUID, but bind the workers to cores instead of PUs
+(hyperthreads).
 </dd>
 
 <dt>STARPU_MAIN_THREAD_BIND</dt>
@@ -246,6 +254,14 @@ When defined, this make StarPU bind the thread that calls starpu_initialize() to
 the given CPU ID.
 </dd>
 
+<dt>STARPU_MAIN_THREAD_COREID</dt>
+<dd>
+\anchor STARPU_MAIN_THREAD_COREID
+\addindex __env__STARPU_MAIN_THREAD_COREID
+Same as \ref STARPU_MAIN_THREAD_CPUID, but bind the thread that calls
+starpu_initialize() to the given core, instead of the PU (hyperthread).
+</dd>
+
 <dt>STARPU_MPI_THREAD_CPUID</dt>
 <dd>
 \anchor STARPU_MPI_THREAD_CPUID
@@ -253,6 +269,22 @@ the given CPU ID.
 When defined, this make StarPU bind its MPI thread to the given CPU ID. Setting
 it to -1 (the default value) will use a reserved CPU, subtracted from the CPU
 workers.
+</dd>
+
+<dt>STARPU_MPI_THREAD_COREID</dt>
+<dd>
+\anchor STARPU_MPI_THREAD_COREID
+\addindex __env__STARPU_MPI_THREAD_COREID
+Same as \ref STARPU_MPI_THREAD_CPUID, but bind the MPI thread to the given core
+ID, instead of the PU (hyperthread).
+</dd>
+
+<dt>STARPU_MPI_NOBIND</dt>
+<dd>
+\anchor STARPU_MPI_NOBIND
+\addindex __env__STARPU_MPI_NOBIND
+Setting it to non-zero will prevent StarPU from binding the MPI to
+a separate core. This is for instance useful when running the testsuite on a single system.
 </dd>
 
 <dt>STARPU_WORKERS_CUDAID</dt>
@@ -924,6 +956,22 @@ has been configured with the option \ref enable-verbose "--enable-verbose". Also
 disable the display of StarPU information and warning messages.
 </dd>
 
+<dt>STARPU_MPI_DEBUG_LEVEL_MIN</dt>
+<dd>
+\anchor STARPU_MPI_DEBUG_LEVEL_MIN
+\addindex __env__STARPU_MPI_DEBUG_LEVEL_MIN
+Set the minimum level of debug when StarPU
+has been configured with the option \ref enable-mpi-verbose "--enable-mpi-verbose".
+</dd>
+
+<dt>STARPU_MPI_DEBUG_LEVEL_MAX</dt>
+<dd>
+\anchor STARPU_MPI_DEBUG_LEVEL_MAX
+\addindex __env__STARPU_MPI_DEBUG_LEVEL_MAX
+Set the maximum level of debug when StarPU
+has been configured with the option \ref enable-mpi-verbose "--enable-mpi-verbose".
+</dd>
+
 <dt>STARPU_LOGFILENAME</dt>
 <dd>
 \anchor STARPU_LOGFILENAME
@@ -935,14 +983,21 @@ Specify in which file the debugging output should be saved to.
 <dd>
 \anchor STARPU_FXT_PREFIX
 \addindex __env__STARPU_FXT_PREFIX
-Specify in which directory to save the trace generated if FxT is enabled. It needs to have a trailing '/' character.
+Specify in which directory to save the generated trace if FxT is enabled.
+</dd>
+
+<dt>STARPU_FXT_SUFFIX</dt>
+<dd>
+\anchor STARPU_FXT_SUFFIX
+\addindex __env__STARPU_FXT_SUFFIX
+Specify in which file to save the generated trace if FxT is enabled.
 </dd>
 
 <dt>STARPU_FXT_TRACE</dt>
 <dd>
 \anchor STARPU_FXT_TRACE
 \addindex __env__STARPU_FXT_TRACE
-Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY . The default is 1 (generate it)
+Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY (the directory and file name can be changed with \ref STARPU_FXT_PREFIX and \ref STARPU_FXT_SUFFIX). The default is 1 (generate it)
 </dd>
 
 <dt>STARPU_LIMIT_CUDA_devid_MEM</dt>
@@ -1189,7 +1244,7 @@ StarPU for internal data structures during execution.
 \addindex __env__STARPU_BUS_STATS
 When defined, statistics about data transfers will be displayed when calling
 starpu_shutdown() (\ref Profiling). By default, statistics are printed
-on the standard error stream, use the environement variable \ref
+on the standard error stream, use the environment variable \ref
 STARPU_BUS_STATS_FILE to define another filename.
 </dd>
 
@@ -1209,7 +1264,7 @@ When defined, statistics about the workers will be displayed when calling
 starpu_shutdown() (\ref Profiling). When combined with the
 environment variable \ref STARPU_PROFILING, it displays the energy
 consumption (\ref Energy-basedScheduling).  By default, statistics are
-printed on the standard error stream, use the environement variable
+printed on the standard error stream, use the environment variable
 \ref STARPU_WORKER_STATS_FILE to define another filename.
 </dd>
 

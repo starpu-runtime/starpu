@@ -51,9 +51,9 @@ int main(void)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.precedence_over_environment_variables = 1;
+	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
-	conf.nopencl = 0;
-	conf.ncuda = 0;
+	conf.nmpi_ms = -1;
 
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

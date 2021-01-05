@@ -112,7 +112,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		if (do_execute && mpi_rank != STARPU_MPI_PER_NODE && mpi_rank != me)
 		{
 			/* The node is going to execute the codelet, but it does not own the data, it needs to receive the data from the owner node */
-			int already_received = _starpu_mpi_cache_received_data_set(data);
+			int already_received = starpu_mpi_cached_receive_set(data);
 			if (already_received == 0)
 			{
 				if (data_tag == -1)
@@ -126,7 +126,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 		if (!do_execute && mpi_rank == me)
 		{
 			/* The node owns the data, but another node is going to execute the codelet, the node needs to send the data to the executee node. */
-			int already_sent = _starpu_mpi_cache_sent_data_set(data, xrank);
+			int already_sent = starpu_mpi_cached_send_set(data, xrank);
 			if (already_sent == 0)
 			{
 				if (data_tag == -1)
@@ -182,8 +182,8 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 		if (mode & STARPU_W || mode & STARPU_REDUX)
 		{
 			/* The data has been modified, it MUST be removed from the cache */
-			_starpu_mpi_cache_sent_data_clear(data);
-			_starpu_mpi_cache_received_data_clear(data);
+			starpu_mpi_cached_send_clear(data);
+			starpu_mpi_cached_receive_clear(data);
 		}
 	}
 	else
@@ -505,6 +505,14 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			(void)va_arg(varg_list_copy, void *);
 		}
+		else if (arg_type==STARPU_TASK_FILE)
+		{
+			(void)va_arg(varg_list_copy, const char *);
+		}
+		else if (arg_type==STARPU_TASK_LINE)
+		{
+			(void)va_arg(varg_list_copy, int);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -661,6 +669,7 @@ int _starpu_mpi_task_insert_v(MPI_Comm comm, struct starpu_codelet *codelet, va_
 	return val;
 }
 
+#undef starpu_mpi_task_insert
 int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
 	va_list varg_list;
@@ -672,6 +681,7 @@ int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	return ret;
 }
 
+#undef starpu_mpi_insert_task
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
 	va_list varg_list;
@@ -683,6 +693,7 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 	return ret;
 }
 
+#undef starpu_mpi_task_build
 struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *codelet, ...)
 {
 	va_list varg_list;
@@ -726,6 +737,7 @@ struct _starpu_mpi_redux_data_args
 	int node;
 	MPI_Comm comm;
 	struct starpu_task *taskB;
+	long taskC_jobid;
 };
 
 void _starpu_mpi_redux_data_dummy_func(void *buffers[], void *cl_arg)
@@ -792,20 +804,27 @@ void _starpu_mpi_redux_data_recv_callback(void *callback_arg)
 	starpu_mpi_irecv_detached_sequential_consistency(args->new_handle, args->node, args->data_tag, args->comm, _starpu_mpi_redux_data_detached_callback, args, 0);
 }
 
+
+void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, long * const post_sync_jobid)
+{
+	*post_sync_jobid = ((const struct _starpu_mpi_redux_data_args *) redux_data_args)->taskC_jobid;
+}
+
+
 /* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
  * a data previously accessed in REDUX mode gets accessed in R mode. */
 void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
 {
 	int me, rank, nb_nodes;
-	starpu_mpi_tag_t tag;
+	starpu_mpi_tag_t data_tag;
 
 	rank = starpu_mpi_data_get_rank(data_handle);
-	tag = starpu_mpi_data_get_tag(data_handle);
+	data_tag = starpu_mpi_data_get_tag(data_handle);
 	if (rank == -1)
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 	}
-	if (tag == -1)
+	if (data_tag == -1)
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 	}
@@ -821,7 +840,9 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 		int i;
 
 		// taskC depends on all taskBs created
+		// Creating synchronization task and use its jobid for tracing
 		struct starpu_task *taskC = starpu_task_create();
+		const long taskC_jobid = starpu_task_get_job_id(taskC);
 		taskC->cl = &_starpu_mpi_redux_data_readwrite_cl;
 		STARPU_TASK_SET_HANDLE(taskC, data_handle, 0);
 
@@ -851,9 +872,11 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 				struct _starpu_mpi_redux_data_args *args;
 				_STARPU_MPI_MALLOC(args, sizeof(struct _starpu_mpi_redux_data_args));
 				args->data_handle = data_handle;
-				args->data_tag = tag;
+				args->data_tag = data_tag;
 				args->node = i;
 				args->comm = comm;
+
+				args->taskC_jobid = taskC_jobid;
 
 				// We need to create taskB early as
 				// taskC declares a dependancy on it
@@ -878,7 +901,7 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 	else
 	{
 		_STARPU_MPI_DEBUG(1, "Sending redux handle to %d ...\n", rank);
-		starpu_mpi_isend_detached_prio(data_handle, rank, tag, prio, comm, NULL, NULL);
+		starpu_mpi_isend_detached_prio(data_handle, rank, data_tag, prio, comm, NULL, NULL);
 		starpu_task_insert(data_handle->init_cl, STARPU_W, data_handle, 0);
 	}
 	/* FIXME: In order to prevent simultaneous receive submissions

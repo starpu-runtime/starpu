@@ -25,8 +25,8 @@
 #include <cufft.h>
 #endif
 
-#undef  FLOAT
-#define DOUBLE
+#undef  STARPUFFT_FLOAT
+#define STARPUFFT_DOUBLE
 
 typedef double real;
 #if defined(STARPU_HAVE_FFTW) && !defined(__CUDACC__) 

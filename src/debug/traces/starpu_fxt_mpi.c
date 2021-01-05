@@ -331,7 +331,9 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 
 			char str_mpi_tag[STARPU_POTI_STR_LEN];
 			snprintf(str_mpi_tag, sizeof(str_mpi_tag), "%ld", mpi_tag);
-			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 1, str_mpi_tag);
+			char str_handle[STARPU_POTI_STR_LEN];
+			snprintf(str_handle, sizeof(str_handle), "%lx", send_handle);
+			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 2, str_mpi_tag, str_handle);
 
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
@@ -340,7 +342,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 #else
 			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo_mpi	%f\n", start_date, src, current_out_bandwidth[src]);
 			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi_mpi	%f\n", start_date, dst, current_in_bandwidth[dst]);
-			fprintf(out_paje_file, "23	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu	%ld\n", start_date, (unsigned long)size, src, id, mpi_tag);
+			fprintf(out_paje_file, "23	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu	%ld	%lx\n", start_date, (unsigned long)size, src, id, mpi_tag, send_handle);
 			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
 #endif
 
@@ -354,10 +356,10 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 				fprintf(out_comms_file, "SendHandle: %lx\n", send_handle);
 				fprintf(out_comms_file, "RecvHandle: %lx\n", recv_handle);
 				if (cur->jobid != -1)
-					fprintf(out_comms_file, "SendJobId: %d_%lu\n", src, cur->jobid);
+					fprintf(out_comms_file, "SendJobId: %d_%ld\n", src, cur->jobid);
 				if (match->jobid != -1)
-					fprintf(out_comms_file, "RecvJobId: %d_%lu\n", dst, match->jobid);
-				fprintf(out_comms_file, "Size: %ld\n", size);
+					fprintf(out_comms_file, "RecvJobId: %d_%ld\n", dst, match->jobid);
+				fprintf(out_comms_file, "Size: %lu\n", (unsigned long)size);
 				fprintf(out_comms_file, "\n");
 			}
 		}
@@ -372,7 +374,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 	if (nb_wrong_comm_timing == 1)
 		_STARPU_MSG("Warning: a communication finished before it started !\n");
 	else if (nb_wrong_comm_timing > 1)
-		_STARPU_MSG("Warning: %d communications finished before they started !\n", nb_wrong_comm_timing);
+		_STARPU_MSG("Warning: %u communications finished before they started !\n", nb_wrong_comm_timing);
 }
 
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks STARPU_ATTRIBUTE_UNUSED, FILE *out_paje_file, FILE* out_comms_file)

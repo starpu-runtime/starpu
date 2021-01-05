@@ -59,11 +59,7 @@
 
 #include <datawizard/datawizard.h>
 
-#include <starpu_parameters.h>
-
 #define STARPU_MAX_PIPELINE 4
-
-enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
 
 struct _starpu_ctx_change_list;
 
@@ -127,7 +123,7 @@ LIST_TYPE(_starpu_worker,
 	     * subsequent processing once worker completes the ongoing scheduling
 	     * operation */
 	struct _starpu_ctx_change_list ctx_change_list;
-	struct starpu_task_list local_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue */
+	struct starpu_task_prio_list local_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue */
 	struct starpu_task **local_ordered_tasks; /**< this queue contains tasks that have been explicitely submitted to that queue with an explicit order */
 	unsigned local_ordered_tasks_size; /**< this records the size of local_ordered_tasks */
 	unsigned current_ordered_task; /**< this records the index (within local_ordered_tasks) of the next ordered task to be executed */
@@ -204,7 +200,7 @@ LIST_TYPE(_starpu_worker,
 	int enable_knob;
 	int bindid_requested;
 
-	/* Keep this last, to make sure to separate worker data in separate
+	  /** Keep this last, to make sure to separate worker data in separate
 	  cache lines. */
 	char padding[STARPU_CACHELINE_SIZE];
 );
@@ -228,7 +224,7 @@ struct _starpu_combined_worker
 	hwloc_bitmap_t hwloc_cpu_set;
 #endif
 
-	/* Keep this last, to make sure to separate worker data in separate
+	/** Keep this last, to make sure to separate worker data in separate
 	  cache lines. */
 	char padding[STARPU_CACHELINE_SIZE];
 };
@@ -271,57 +267,32 @@ struct _starpu_machine_topology
 	/** custom hwloc tree*/
 	struct starpu_tree *tree;
 
-	/** Total number of CPU cores, as detected by the topology code. May
-	 * be different from the actual number of CPU workers.
-	 */
-	unsigned nhwcpus;
-
 	/** Total number of PUs (i.e. threads), as detected by the topology code. May
-	 * be different from the actual number of PU workers.
+	 * be different from the actual number of CPU workers.
 	 */
 	unsigned nhwpus;
 
-	/** Total number of CUDA devices, as detected. May be different
-	 * from the actual number of CUDA workers.
+	/** Total number of devices, as detected. May be different from the
+	 * actual number of devices run by StarPU.
 	 */
-	unsigned nhwcudagpus;
-
-	/** Total number of OpenCL devices, as detected. May be
-	 * different from the actual number of OpenCL workers.
+	unsigned nhwdevices[STARPU_NARCH];
+	/** Total number of worker for each device, as detected. May be different from the
+	 * actual number of workers run by StarPU.
 	 */
-	unsigned nhwopenclgpus;
+	unsigned nhwworker[STARPU_NARCH][STARPU_NMAXDEVS];
 
-	/** Total number of MPI nodes, as detected. May be different
-	 * from the actual number of node workers.
+	/** Actual number of devices used by StarPU.
 	 */
-	unsigned nhwmpi;
+	unsigned ndevices[STARPU_NARCH];
 
-	/** Actual number of CPU workers used by StarPU. */
-	unsigned ncpus;
+	/** Number of worker per device
+	 */
+	unsigned nworker[STARPU_NARCH][STARPU_NMAXDEVS];
 
-	/** Actual number of CUDA GPUs used by StarPU. */
-	unsigned ncudagpus;
-	unsigned nworkerpercuda;
+	/** Whether we should have one thread per stream */
 	int cuda_th_per_stream;
+	/** Whether we should have one thread per device */
 	int cuda_th_per_dev;
-
-	/** Actual number of OpenCL workers used by StarPU. */
-	unsigned nopenclgpus;
-
-	/** Actual number of MPI workers used by StarPU. */
-	unsigned nmpidevices;
-        unsigned nhwmpidevices;
-
-	unsigned nhwmpicores[STARPU_MAXMPIDEVS]; /**< Each MPI node has its set of cores. */
-	unsigned nmpicores[STARPU_MAXMPIDEVS];
-
-	/** Topology of MP nodes (MIC) as well as necessary
-	 * objects to communicate with them. */
-	unsigned nhwmicdevices;
-	unsigned nmicdevices;
-
-	unsigned nhwmiccores[STARPU_MAXMICDEVS]; /**< Each MIC node has its set of cores. */
-	unsigned nmiccores[STARPU_MAXMICDEVS];
 
 	/** Indicates the successive logical PU identifier that should be used
 	 * to bind the workers. It is either filled according to the
@@ -386,18 +357,10 @@ struct _starpu_machine_config
 	/** Which MPI do we use? */
 	int current_mpi_deviceid;
 
-	/** Memory node for cpus, if only one */
-	int cpus_nodeid;
-	/** Memory node for CUDA, if only one */
-	int cuda_nodeid;
-	/** Memory node for OpenCL, if only one */
-	int opencl_nodeid;
-	/** Memory node for MIC, if only one */
-	int mic_nodeid;
-	/** Memory node for MPI, if only one */
-	int mpi_nodeid;
+	/** Memory node for different worker types, if only one */
+	int arch_nodeid [STARPU_NARCH];
 
-	/* Separate out previous variables from per-worker data. */
+	/** Separate out previous variables from per-worker data. */
 	char padding1[STARPU_CACHELINE_SIZE];
 
 	/** Basic workers : each of this worker is running its own driver and
@@ -410,7 +373,7 @@ struct _starpu_machine_config
 
 	starpu_pthread_mutex_t submitted_mutex;
 
-	/* Separate out previous mutex from the rest of the data. */
+	/** Separate out previous mutex from the rest of the data. */
 	char padding2[STARPU_CACHELINE_SIZE];
 
 	/** Translation table from bindid to worker IDs */
@@ -449,6 +412,33 @@ struct _starpu_machine_config
 	/** When >0, StarPU should stop performance counters collection. */
 	int perf_counter_pause_depth;
 };
+
+/** Provides information for a device driver */
+struct starpu_driver_info
+{
+	const char *name_upper;	/**< Name of worker type in upper case */
+	const char *name_var;	/**< Name of worker type for environment variables */
+	const char *name_lower;	/**< Name of worker type in lower case */
+	enum starpu_node_kind memory_kind;	/**< Kind of memory in device */
+	double alpha;	/**< Typical relative speed compared to a CPU core */
+};
+
+/** Device driver information, indexed by enum starpu_worker_archtype */
+extern struct starpu_driver_info starpu_driver_info[STARPU_NARCH];
+
+void starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct starpu_driver_info *info);
+
+/** Provides information for a memory node driver */
+struct starpu_memory_driver_info
+{
+	const char *name_upper;	/**< Name of memory in upper case */
+	enum starpu_worker_archtype worker_archtype;	/**< Kind of device */
+};
+
+/** Memory driver information, indexed by enum starpu_node_kind */
+extern struct starpu_memory_driver_info starpu_memory_driver_info[STARPU_MAX_RAM+1];
+
+void starpu_memory_driver_info_register(enum starpu_node_kind kind, const struct starpu_memory_driver_info *info);
 
 extern int _starpu_worker_parallel_blocks;
 
@@ -507,9 +497,9 @@ unsigned _starpu_worker_can_block(unsigned memnode, struct _starpu_worker *worke
 void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
 /** This function initializes the current driver for the given worker */
-void _starpu_driver_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
+void _starpu_driver_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync);
 /** This function initializes the current thread for the given worker */
-void _starpu_worker_start(struct _starpu_worker *worker, unsigned fut_key, unsigned sync);
+void _starpu_worker_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync);
 
 static inline unsigned _starpu_worker_get_count(void)
 {
@@ -658,8 +648,6 @@ static inline unsigned __starpu_worker_get_id_check(const char *f, int l)
 }
 #define _starpu_worker_get_id_check(f,l) __starpu_worker_get_id_check(f,l)
 
-enum starpu_node_kind _starpu_worker_get_node_kind(enum starpu_worker_archtype type);
-
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx);
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid);
@@ -803,6 +791,10 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
 	}
 }
 
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_enter_sched_op(worker) __starpu_worker_enter_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
+static inline void __starpu_worker_enter_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
+#else
 /** Mark the beginning of a scheduling operation by the worker. No worker
  * blocking operations on parallel tasks and no scheduling context change
  * operations must be performed on contexts containing the worker, on
@@ -819,9 +811,6 @@ static inline void _starpu_worker_process_block_in_parallel_requests(struct _sta
  *
  * Must be called with worker's sched_mutex held.
  */
-#ifdef STARPU_SPINLOCK_CHECK
-static inline void __starpu_worker_enter_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
-#else
 static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const worker)
 #endif
 {
@@ -864,18 +853,17 @@ static inline void _starpu_worker_enter_sched_op(struct _starpu_worker * const w
 	worker->relax_on_func = func;
 #endif
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_enter_sched_op(worker) __starpu_worker_enter_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
-#endif
 
+void _starpu_worker_apply_deferred_ctx_changes(void);
+
+#ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_leave_sched_op(worker) __starpu_worker_leave_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
+static inline void __starpu_worker_leave_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
+#else
 /** Mark the end of a scheduling operation by the worker.
  *
  * Must be called with worker's sched_mutex held.
  */
-void _starpu_worker_apply_deferred_ctx_changes(void);
-#ifdef STARPU_SPINLOCK_CHECK
-static inline void __starpu_worker_leave_sched_op(struct _starpu_worker * const worker, const char*file, int line, const char* func)
-#else
 static inline void _starpu_worker_leave_sched_op(struct _starpu_worker * const worker)
 #endif
 {
@@ -890,9 +878,6 @@ static inline void _starpu_worker_leave_sched_op(struct _starpu_worker * const w
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	_starpu_worker_apply_deferred_ctx_changes();
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_leave_sched_op(worker) __starpu_worker_leave_sched_op((worker), __FILE__, __LINE__, __starpu_func__)
-#endif
 
 static inline int _starpu_worker_sched_op_pending(void)
 {
@@ -962,11 +947,12 @@ static inline void _starpu_worker_leave_changing_ctx_op(struct _starpu_worker * 
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 }
 
-/** Temporarily allow other worker to access current worker state, when still scheduling,
- * but the scheduling has not yet been made or is already done */
 #ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_on() __starpu_worker_relax_on(__FILE__, __LINE__, __starpu_func__)
 static inline void __starpu_worker_relax_on(const char*file, int line, const char* func)
 #else
+/** Temporarily allow other worker to access current worker state, when still scheduling,
+ * but the scheduling has not yet been made or is already done */
 static inline void _starpu_worker_relax_on(void)
 #endif
 {
@@ -990,15 +976,13 @@ static inline void _starpu_worker_relax_on(void)
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_relax_on() __starpu_worker_relax_on(__FILE__, __LINE__, __starpu_func__)
-#endif
 #define starpu_worker_relax_on _starpu_worker_relax_on
 
-/** Same, but with current worker mutex already held */
 #ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_on_locked(worker) __starpu_worker_relax_on_locked(worker,__FILE__, __LINE__, __starpu_func__)
 static inline void __starpu_worker_relax_on_locked(struct _starpu_worker *worker, const char*file, int line, const char* func)
 #else
+/** Same, but with current worker mutex already held */
 static inline void _starpu_worker_relax_on_locked(struct _starpu_worker *worker)
 #endif
 {
@@ -1017,11 +1001,9 @@ static inline void _starpu_worker_relax_on_locked(struct _starpu_worker *worker)
 #endif
 	STARPU_PTHREAD_COND_BROADCAST(&worker->sched_cond);
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_relax_on_locked(worker) __starpu_worker_relax_on_locked(worker,__FILE__, __LINE__, __starpu_func__)
-#endif
 
 #ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_off() __starpu_worker_relax_off(__FILE__, __LINE__, __starpu_func__)
 static inline void __starpu_worker_relax_off(const char*file, int line, const char* func)
 #else
 static inline void _starpu_worker_relax_off(void)
@@ -1048,12 +1030,10 @@ static inline void _starpu_worker_relax_off(void)
 #endif
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_relax_off() __starpu_worker_relax_off(__FILE__, __LINE__, __starpu_func__)
-#endif
 #define starpu_worker_relax_off _starpu_worker_relax_off
 
 #ifdef STARPU_SPINLOCK_CHECK
+#define _starpu_worker_relax_off_locked() __starpu_worker_relax_off_locked(__FILE__, __LINE__, __starpu_func__)
 static inline void __starpu_worker_relax_off_locked(const char*file, int line, const char* func)
 #else
 static inline void _starpu_worker_relax_off_locked(void)
@@ -1078,9 +1058,6 @@ static inline void _starpu_worker_relax_off_locked(void)
 	worker->relax_off_func = func;
 #endif
 }
-#ifdef STARPU_SPINLOCK_CHECK
-#define _starpu_worker_relax_off_locked() __starpu_worker_relax_off_locked(__FILE__, __LINE__, __starpu_func__)
-#endif
 
 static inline int _starpu_worker_get_relax_state(void)
 {
@@ -1201,8 +1178,8 @@ void _starpu_worker_refuse_task(struct _starpu_worker *worker, struct starpu_tas
 void _starpu_set_catch_signals(int do_catch_signal);
 int _starpu_get_catch_signals(void);
 
-/* Performance Monitoring */
-static inline int _starpu_perf_counter_paused(void) 
+/** Performance Monitoring */
+static inline int _starpu_perf_counter_paused(void)
 {
 	STARPU_RMB();
 	return STARPU_UNLIKELY(_starpu_config.perf_counter_pause_depth > 0);

@@ -35,8 +35,6 @@ extern "C"
 struct starpu_task;
 struct starpu_data_descr;
 
-#define STARPU_NARCH STARPU_ANY_WORKER
-
 /**
    todo
 */
@@ -312,6 +310,36 @@ struct starpu_perfmodel
 void starpu_perfmodel_init(struct starpu_perfmodel *model);
 
 /**
+   Deinitialize the \p model performance model structure. You need to call this 
+   before deallocating the structure. You will probably want to call 
+   starpu_perfmodel_unload_model() before calling this function, to save the perfmodel.
+*/   
+int starpu_perfmodel_deinit(struct starpu_perfmodel *model);
+
+/**
+   starpu_energy_start - start counting hardware events in an event set
+
+   - \p workerid is the worker on which calibration is to be performed (in the case of GPUs, use -1 for CPUs)
+   - \p archi is the type of architecture on which calibration will be run
+*/
+
+int starpu_energy_start(int workerid, enum starpu_worker_archtype archi);
+
+/**
+   starpu_energy_stop - stop counting hardware events in an event set
+
+   - \p model is the energy performance model to be filled with the result
+   - \p task is a task specimen, so the performance model folds the result according to the parameter sizes of the task.
+   - \p nimpl is the implementation number run during calibration
+   - \p ntasks is the number of tasks run during calibration
+   - \p workerid is the worker on which calibration was performed (in the case of GPUs, use -1 for CPUs)
+   - \p archi is the type of architecture on which calibration was run
+*/
+
+int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi);
+
+
+/**
    Load the performance model found in the file named \p filename. \p model has to be
    completely zero, and will be filled with the information stored in the given file.
 */
@@ -331,6 +359,11 @@ int starpu_perfmodel_load_symbol(const char *symbol, struct starpu_perfmodel *mo
    through the function starpu_perfmodel_load_symbol()
 */
 int starpu_perfmodel_unload_model(struct starpu_perfmodel *model);
+
+/**
+	Save the performance model in its file.
+*/
+void starpu_save_history_based_model(struct starpu_perfmodel *model);
 
 /**
   Fills \p path (supposed to be \p maxlen long) with the full path to the
@@ -373,7 +406,7 @@ int starpu_perfmodel_set_per_devices_size_base(struct starpu_perfmodel *model, i
 */
 void starpu_perfmodel_debugfilepath(struct starpu_perfmodel *model, struct starpu_perfmodel_arch *arch, char *path, size_t maxlen, unsigned nimpl);
 
-char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
+const char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
 
 /**
    Return the architecture name for \p arch
@@ -381,7 +414,7 @@ char* starpu_perfmodel_get_archtype_name(enum starpu_worker_archtype archtype);
 void starpu_perfmodel_get_arch_name(struct starpu_perfmodel_arch *arch, char *archname, size_t maxlen, unsigned nimpl);
 
 /**
-   Return the estimated time of a task with the given model and the given footprint.
+   Return the estimated time in µs of a task with the given model and the given footprint.
 */
 double starpu_perfmodel_history_based_expected_perf(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, uint32_t footprint);
 
@@ -402,14 +435,30 @@ int starpu_perfmodel_print_estimations(struct starpu_perfmodel *model, uint32_t 
 int starpu_perfmodel_list_combs(FILE *output, struct starpu_perfmodel *model);
 
 /**
-   Feed the performance model model with an explicit
-   measurement measured (in µs), in addition to measurements done by StarPU
+   Feed the performance model \p model with one explicit
+   measurement (in µs or J), in addition to measurements done by StarPU
    itself. This can be useful when the application already has an
    existing set of measurements done in good conditions, that StarPU
    could benefit from instead of doing on-line measurements. An example
    of use can be seen in \ref PerformanceModelExample.
+
+   Note that this records only one measurement, and StarPU would ignore
+   the first measurement (since it is usually disturbed by library loading
+   etc.). Make sure to call this function several times to record all your
+   measurements.
+
+   You can also call starpu_perfmodel_update_history_n() to directly provide an
+   average performed on several tasks.
 */
 void starpu_perfmodel_update_history(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned cpuid, unsigned nimpl, double measured);
+
+/**
+   Feed the performance model \p model with an explicit average measurement (in µs or J).
+
+   This is similar to starpu_perfmodel_update_history(), but records a batch of
+   \p number measurements provided as the average of the measurements \p average_measured.
+*/
+void starpu_perfmodel_update_history_n(struct starpu_perfmodel *model, struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned cpuid, unsigned nimpl, double average_measured, unsigned number);
 
 /**
    Print the directory name storing performance models on \p output

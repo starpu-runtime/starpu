@@ -80,6 +80,9 @@ int main(void)
 	/* Invalidate one random piece we don't care coherency about */
 	starpu_data_invalidate_submit(handles[NPARTS/2]);
 
+	/* Try to wontuse the whole thing */
+	starpu_data_wont_use(handle);
+
 	/* Clean */
 	starpu_data_unpartition_submit(handle, NPARTS, handles, -1);
 	starpu_data_partition_clean(handle, NPARTS, handles);

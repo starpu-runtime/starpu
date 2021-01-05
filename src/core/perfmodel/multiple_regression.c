@@ -236,6 +236,9 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, unsigned long nn, unsigne
 	if( info != 0 )
 	{
 		_STARPU_DISP("Warning: Problems when executing dgels_ function. It seems like the diagonal element %ld is zero.\n Multiple linear regression model will not be written into perfmodel file.\n", info);
+		free(X);
+		free(Y);
+		free(work);
 		return 1;
 	}
 
@@ -326,7 +329,7 @@ int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, doubl
 		/* Basic validation of the model accuracy */
 		starpu_validate_mlr(coeff, ncoeff, codelet_name);
 #else
-		_STARPU_DISP("Warning: StarPU was compiled with '--disable-mlr' option or on Windows machine, thus multiple linear regression model will not be computed.\n");
+		_STARPU_DISP("Warning: StarPU was compiled without '--enable-mlr' option, thus multiple linear regression model will not be computed.\n");
 		for(i=0; i<ncoeff; i++)
 			coeff[i] = 0.;
 #endif //STARPU_MLR_MODEL

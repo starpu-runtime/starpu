@@ -18,29 +18,21 @@ __kernel void block_opencl(__global int *block,
 			   int ldy, int ldz,
 			   int factor, __global int *err)
 {
-        const int id = get_global_id(0);
-	if (id > 0)
+	const int idx = get_global_id(0);
+	const int idy = get_global_id(1);
+	const int idz = get_global_id(2);
+	if (idx >= nx)
+		return;
+	if (idy >= ny)
+		return;
+	if (idz >= nz)
 		return;
 
-	unsigned int i, j, k;
-	int val = 0;
-	for (k = 0; k < nz; k++)
-	{
-		for (j = 0; j < ny; j++)
-		{
-			for (i = 0; i < nx; i++)
-			{
-                                if (block[(k*ldz)+(j*ldy)+i] != factor * val)
-				{
-					*err = 1;
-					return;
-				}
-				else
-				{
-					block[(k*ldz)+(j*ldy)+i] *= -1;
-					val++;
-				}
-			}
-		}
-	}
+	int val = idz*ny*nx+idy*nx+idx;
+	int i = (idz*ldz)+(idy*ldy)+idx;
+
+	if (block[i] != factor * val)
+		*err = 1;
+	else
+		block[i] *= -1;
 }

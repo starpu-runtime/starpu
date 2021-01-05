@@ -27,7 +27,7 @@ struct _starpu_prio_deque
 	struct starpu_task_prio_list list;
 	unsigned ntasks;
 	unsigned nprocessed;
-	// Assumptions: 
+	// Assumptions:
 	// exp_len is the sum of predicted_length + predicted_tansfer of all tasks in list
 	// exp_start is the time at which the first task of list can start
 	// exp_end = exp_start + exp_end

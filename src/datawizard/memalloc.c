@@ -354,7 +354,8 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 			unsigned cnt = 0;
 
 			/* some other node may have the copy */
-			_STARPU_TRACE_DATA_STATE_INVALID(handle, src_node);
+			if (src_replicate->state != STARPU_INVALID)
+				_STARPU_TRACE_DATA_STATE_INVALID(handle, src_node);
 			src_replicate->state = STARPU_INVALID;
 
 			/* count the number of copies */
@@ -370,7 +371,8 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 
 			if (cnt == 1)
 			{
-				_STARPU_TRACE_DATA_STATE_OWNER(handle, last);
+				if (handle->per_node[last].state != STARPU_OWNER)
+					_STARPU_TRACE_DATA_STATE_OWNER(handle, last);
 				handle->per_node[last].state = STARPU_OWNER;
 			}
 
@@ -1520,7 +1522,8 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			/* First try to flush data explicitly marked for freeing */
 			size_t freed = flush_memchunk_cache(dst_node, reclaim);
 
-			if (freed >= reclaim) {
+			if (freed >= reclaim)
+			{
 				/* That freed enough data, retry allocating */
 				prefetch_out_of_memory[dst_node] = 0;
 				continue;
@@ -1557,7 +1560,8 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			_starpu_memory_reclaim_generic(dst_node, 0, reclaim);
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
 			prefetch_out_of_memory[dst_node] = 0;
-		} else
+		}
+		else
 			prefetch_out_of_memory[dst_node] = 0;
 	}
 	while((allocated_memory == -ENOMEM) && attempts++ < 2);

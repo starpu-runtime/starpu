@@ -208,7 +208,7 @@ struct starpu_sched_policy
    Return an <c>NULL</c>-terminated array of all the predefined
    scheduling policies.
 */
-struct starpu_sched_policy **starpu_sched_get_predefined_policies();
+struct starpu_sched_policy **starpu_sched_get_predefined_policies(void);
 
 /**
    When there is no available task for a worker, StarPU blocks this
@@ -294,9 +294,8 @@ int starpu_worker_can_execute_task_first_impl(unsigned workerid, struct starpu_t
 /**
    The scheduling policy may put tasks directly into a worker’s local
    queue so that it is not always necessary to create its own queue
-   when the local queue is sufficient. If \p back is not 0, \p task is
-   put at the back of the queue where the worker will pop tasks first.
-   Setting \p back to 0 therefore ensures a FIFO ordering.
+   when the local queue is sufficient. \p back is ignored: the task priority is
+   used to order tasks in this queue.
 */
 int starpu_push_local_task(int workerid, struct starpu_task *task, int back);
 

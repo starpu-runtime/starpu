@@ -92,9 +92,8 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 
-	if (data->ntasks_threshold != 0 && queue->ntasks >= data->ntasks_threshold)
+	if (!is_pushback && data->ntasks_threshold != 0 && queue->ntasks >= data->ntasks_threshold)
 	{
-		STARPU_ASSERT(!is_pushback);
 		ret = 1;
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
@@ -106,7 +105,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 		else
 			exp_len = queue->exp_len;
 
-		if (data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold)
+		if (!is_pushback && data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold)
 		{
 			static int warned;
 			if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
@@ -114,7 +113,6 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 				_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
 				warned = 1;
 			}
-			STARPU_ASSERT(!is_pushback);
 			ret = 1;
 			STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		}

@@ -225,9 +225,22 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 		struct _starpu_job *post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
 
+		if (mode & STARPU_R)
+			STARPU_ASSERT_MSG(handle->initialized || handle->init_cl, "Handle %p is not initialized, it cannot be read", handle);
+
 		if (mode & STARPU_W || mode == STARPU_REDUX)
 		{
+
+			STARPU_ASSERT_MSG(!handle->readonly, "Read-only handle %p can not be written to", handle);
+
 			handle->initialized = 1;
+			/* We will change our value, disconnect from our readonly duplicates */
+			if (handle->readonly_dup)
+			{
+				STARPU_ASSERT(handle->readonly_dup->readonly_dup_of == handle);
+				handle->readonly_dup->readonly_dup_of = NULL;
+				handle->readonly_dup = NULL;
+			}
 			if (write_hook)
 				write_hook(handle);
 		}
@@ -603,18 +616,25 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
         _STARPU_LOG_OUT();
 }
 
-void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle)
+void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	struct _starpu_task_wrapper_list *post_sync_tasks = NULL;
 	unsigned do_submit_tasks = 0;
+	unsigned last_cnt;
 
 	/* Here helgrind would shout that this is an unprotected access, but
 	 * count can only be zero if we don't have to care about
 	 * post_sync_tasks_cnt at all.  */
-	if (STARPU_RUNNING_ON_VALGRIND || handle->post_sync_tasks_cnt)
+	if (handle->post_sync_tasks_cnt)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
-		if (--handle->post_sync_tasks_cnt == 0)
+		last_cnt = handle->post_sync_tasks_cnt;
+
+		if (mode == STARPU_NONE)
+			/* Last release from us */
+			handle->post_sync_tasks_cnt--;
+
+		if (last_cnt == 1)
 		{
 			/* unlock all tasks : we need not hold the lock while unlocking all these tasks */
 			do_submit_tasks = 1;

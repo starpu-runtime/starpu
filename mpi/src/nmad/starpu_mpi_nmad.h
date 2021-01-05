@@ -23,6 +23,8 @@
 #include <common/config.h>
 #include <common/list.h>
 
+/** @file */
+
 #ifdef STARPU_USE_MPI_NMAD
 
 #ifdef __cplusplus

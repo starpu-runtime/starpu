@@ -23,6 +23,8 @@
 #include <common/config.h>
 #include <common/list.h>
 
+/** @file */
+
 #ifdef STARPU_USE_MPI_MPI
 
 #ifdef __cplusplus
@@ -45,6 +47,7 @@ void _starpu_mpi_early_request_check_termination(void);
 void _starpu_mpi_early_request_enqueue(struct _starpu_mpi_req *req);
 struct _starpu_mpi_req* _starpu_mpi_early_request_dequeue(starpu_mpi_tag_t data_tag, int source, MPI_Comm comm);
 
+// Not used now but needed for fault tolerance
 struct _starpu_mpi_early_request_tag_hashlist *_starpu_mpi_early_request_extract(starpu_mpi_tag_t data_tag, int source, MPI_Comm comm);
 
 #ifdef __cplusplus

@@ -85,8 +85,10 @@
 #define _STARPU_UYIELD() ((void)0)
 #endif
 #if defined(STARPU_HAVE_SCHED_YIELD) && defined(STARPU_HAVE_HELGRIND_H)
+#define STARPU_VALGRIND_YIELD() do { if (STARPU_RUNNING_ON_VALGRIND) sched_yield(); } while (0)
 #define STARPU_UYIELD() do { if (STARPU_RUNNING_ON_VALGRIND) sched_yield(); else _STARPU_UYIELD(); } while (0)
 #else
+#define STARPU_VALGRIND_YIELD() do { } while (0)
 #define STARPU_UYIELD() _STARPU_UYIELD()
 #endif
 
@@ -150,7 +152,7 @@ char *_starpu_mkdtemp(char *tmpl);
 int _starpu_mkpath(const char *s, mode_t mode);
 void _starpu_mkpath_and_check(const char *s, mode_t mode);
 char *_starpu_mktemp(const char *directory, int flags, int *fd);
-/* This version creates a hierarchy of n temporary directories, useful when
+/** This version creates a hierarchy of n temporary directories, useful when
  * creating a lot of temporary files to be stored in the same place */
 char *_starpu_mktemp_many(const char *directory, int depth, int flags, int *fd);
 void _starpu_rmtemp_many(char *path, int depth);
@@ -180,5 +182,7 @@ const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
 
 void _starpu_util_init(void);
+
+enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
 
 #endif // __COMMON_UTILS_H__

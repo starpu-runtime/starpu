@@ -759,8 +759,16 @@ add fine-graph starpu_mpi_cache_flush() calls during the algorithm; the effect
 for the data deallocation will be the same, but it will additionally release some
 pressure from the StarPU-MPI cache hash table during task submission.
 
-One can determine whether a piece of is cached with starpu_mpi_cached_receive()
-and starpu_mpi_cached_send().
+One can determine whether a piece of data is cached with
+starpu_mpi_cached_receive() and starpu_mpi_cached_send().
+
+Functions starpu_mpi_cached_receive_set() and
+starpu_mpi_cached_send_set() are automatically called by
+starpu_mpi_task_insert() but can also be called directly by the
+application. Functions starpu_mpi_cached_send_clear() and
+starpu_mpi_cached_receive_clear() must be called to clear data from
+the cache. They are also automatically called when using
+starpu_mpi_task_insert().
 
 The whole caching behavior can be disabled thanks to the \ref STARPU_MPI_CACHE
 environment variable. The variable \ref STARPU_MPI_CACHE_STATS can be set to <c>1</c>
@@ -1002,17 +1010,46 @@ data transfers and supports data matrices which do not fit in memory (out-of-cor
 </li>
 </ul>
 
-\section MPIImplementation Notes about the Implementation
 
-StarPU-MPI is implemented directly on top of MPI.
+\section Nmad Using the NewMadeleine communication library
 
-Since the release 1.3.0, an implementation on top of NewMadeleine, an
-optimizing communication library for high-performance networks, is
-also provided. To use it, one needs to install NewMadeleine (see
-http://pm2.gforge.inria.fr/newmadeleine/) and enable the \c configure
-option \ref enable-nmad "--enable-nmad".
+NewMadeleine (see http://pm2.gforge.inria.fr/newmadeleine/, part of the PM2
+project) is an optimizing communication library for high-performance networks.
+NewMadeleine provides its own interface, but also an MPI interface (called
+MadMPI). Thus there are two possibilities to use NewMadeleine with StarPU:
 
-Both implementations provide the same public API.
+<ul>
+<li>
+using the NewMadeleine's native interface. StarPU supports this interface from
+its release 1.3.0, by enabling the \c configure option \ref enable-nmad
+"--enable-nmad". In this case, StarPU relies directly on NewMadeleine to make
+communications progress and NewMadeleine has to be built with the profile
+<c>pukabi+madmpi.conf</c>.
+</li>
+<li>
+using the NewMadeleine's MPI interface (MadMPI). StarPU will use the standard
+MPI API and NewMadeleine will handle the calls to the MPI API. In this case,
+StarPU makes communications progress and thus communication progress has to be
+disabled in NewMadeleine by compiling it with the profile
+<c>pukabi+madmpi-mini.conf</c>.
+</li>
+</ul>
+
+To build NewMadeleine, download the latest version from the website (or,
+better, use the Git version to use the most recent version), then:
+\code{.sh}
+cd pm2/scripts
+./pm2-build-packages ./<the profile you chose> --prefix=<installation prefix>
+\endcode
+
+With Guix, the NewMadeleine's native interface can be used by setting the
+parameter \c \-\-with-input=openmpi=nmad and MadMPI can be used with \c
+\-\-with-input=openmpi=nmad-mini.
+
+Whatever implementation (NewMadeleine or MadMPI) is used by StarPU, the public
+MPI interface of StarPU (described in \ref API_MPI_Support) is the same.
+
+
 
 \section MPIMasterSlave MPI Master Slave Support
 

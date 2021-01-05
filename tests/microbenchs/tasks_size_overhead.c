@@ -165,8 +165,8 @@ int main(int argc, char **argv)
 
 	/* Get number of CPUs */
 	starpu_conf_init(&conf);
-	conf.ncuda = 0;
-	conf.nopencl = 0;
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
 #ifdef STARPU_SIMGRID
 	/* This will get serialized, avoid spending too much time on it. */
 	maxcpus = 2;
@@ -228,6 +228,8 @@ int main(int argc, char **argv)
 		goto error;
 	}
 
+	if (mincpus <= 0)
+		mincpus = 1;
 	/* For each number of cpus, benchmark */
 	for (ncpus= mincpus; ncpus <= maxcpus; ncpus += cpustep)
 	{

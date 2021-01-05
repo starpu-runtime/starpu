@@ -33,8 +33,7 @@ PROGRAM f90_example
   TYPE(type_mesh_elt),POINTER    :: elt   => NULL()
   INTEGER(KIND=C_INT)            :: i,Nelt,res,cpus
   INTEGER(KIND=C_INT)            :: starpu_maj,starpu_min,starpu_rev
-  INTEGER(KIND=C_INT)            :: neq,ng,nb,it,it_tot
-  REAL(KIND=C_DOUBLE)            :: r, coeff2
+  INTEGER(KIND=C_INT)            :: it,it_tot
 
   !Initialization with arbitrary data
   Nelt           = 2

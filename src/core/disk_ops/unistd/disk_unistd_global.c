@@ -37,7 +37,6 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/data_request.h>
 #include <datawizard/memory_manager.h>
-#include <starpu_parameters.h>
 #include <common/uthash.h>
 
 #ifdef STARPU_HAVE_WINDOWS

@@ -33,11 +33,7 @@ int main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.precedence_over_environment_variables = 1;
-	conf.ncpus = 0;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
-	conf.nmic = 0;
-        conf.nmpi_ms = 0;
+	starpu_conf_noworker(&conf);
 
 	/* starpu_init should return -ENODEV */
         ret = starpu_initialize(&conf, &argc, &argv);

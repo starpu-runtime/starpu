@@ -322,7 +322,8 @@ main(void)
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_unload_opencl(&opencl_program);
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-        starpu_opencl_unload_opencl(&opencl_conversion_program);
+        ret = starpu_opencl_unload_opencl(&opencl_conversion_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
 #endif
 	starpu_shutdown();
 

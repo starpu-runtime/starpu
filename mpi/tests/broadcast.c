@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 {
 	int ret, rank, size;
 	starpu_data_handle_t handle;
-	int var;
+	int var=-1;
 	int mpi_init;
 	MPI_Status status;
 

@@ -37,11 +37,8 @@ int main(int argc, char **argv)
 
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
 	conf.ncpus = 2;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
-	conf.nmic = 0;
-	conf.nmpi_ms = 0;
 	{
 		const char *sched_pol_name = starpu_getenv("STARPU_SCHED");
 		if (sched_pol_name != NULL && strcmp(sched_pol_name, "prio") != 0)

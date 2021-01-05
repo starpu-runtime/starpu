@@ -65,11 +65,11 @@ struct starpu_perf_counter_set;
 /**
   Start collecting performance counter values.
   */
-void starpu_perf_counter_collection_start();
+void starpu_perf_counter_collection_start(void);
 /**
   Stop collecting performance counter values.
   */
-void starpu_perf_counter_collection_stop();
+void starpu_perf_counter_collection_stop(void);
 
 /**
   Translate scope name constant string to scope id.
@@ -170,7 +170,7 @@ void starpu_perf_counter_set_per_codelet_listener(struct starpu_codelet *cl, str
 /**
   Unset the global listener.
   */
-void starpu_perf_counter_unset_global_listener();
+void starpu_perf_counter_unset_global_listener(void);
 /**
   Unset the per_worker listener.
   */

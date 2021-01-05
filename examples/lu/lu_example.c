@@ -40,6 +40,7 @@ static unsigned no_prio=0;
 unsigned bound = 0;
 unsigned bounddeps = 0;
 unsigned boundprio = 0;
+char *directory =  NULL;
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
@@ -102,9 +103,13 @@ static void parse_args(int argc, char **argv)
 			bounddeps = 1;
 			boundprio = 1;
 		}
+		else if (strcmp(argv[i], "-directory") == 0)
+		{
+			directory = strdup(argv[++i]);
+		}
 		else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
-			fprintf(stderr,"usage: lu [-size n] [-nblocks b] [-piv] [-no-stride] [-profile] [-bound] [-bounddeps] [-bounddepsprio]\n");
+			fprintf(stderr,"usage: lu [-size n] [-nblocks b] [-piv] [-no-stride] [-profile] [-bound] [-bounddeps] [-bounddepsprio] [-directory d]\n");
 			fprintf(stderr,"Default is size %lu and nblocks %u\n", size, nblocks);
 			exit(0);
 		}
@@ -420,17 +425,23 @@ int main(int argc, char **argv)
 	{
 		if (bounddeps)
 		{
-			FILE *f = fopen("lu.pl", "w");
+			if (!directory)
+				directory = strdup(".");
+			char filename[256];
+			snprintf(filename, sizeof(filename), "%s/%s", directory, "lu.pl");
+			FILE *f = fopen(filename, "w");
 			starpu_bound_print_lp(f);
-			FPRINTF(stderr,"system printed to lu.pl\n");
+			FPRINTF(stderr,"system printed to %s\n", filename);
 			fclose(f);
-			f = fopen("lu.mps", "w");
+			snprintf(filename, sizeof(filename), "%s/%s", directory, "lu.mps");
+			f = fopen(filename, "w");
 			starpu_bound_print_mps(f);
-			FPRINTF(stderr,"system printed to lu.mps\n");
+			FPRINTF(stderr,"system printed to %s\n", filename);
 			fclose(f);
-			f = fopen("lu.dot", "w");
+			snprintf(filename, sizeof(filename), "%s/%s", directory, "lu.dot");
+			f = fopen(filename, "w");
 			starpu_bound_print_dot(f);
-			FPRINTF(stderr,"system printed to lu.mps\n");
+			FPRINTF(stderr,"system printed to %s\n", filename);
 			fclose(f);
 		}
 	}
@@ -458,6 +469,7 @@ int main(int argc, char **argv)
 	starpu_cublas_shutdown();
 
 	starpu_shutdown();
+	free(directory);
 
 	if (ret == -ENODEV) return 77; else return 0;
 }

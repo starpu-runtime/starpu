@@ -28,23 +28,7 @@
 
 const char* _starpu_node_get_prefix(enum starpu_node_kind kind)
 {
-	switch (kind)
-	{
-		case STARPU_CPU_RAM:
-			return "NUMA";
-		case STARPU_CUDA_RAM:
-			return "CUDA";
-		case STARPU_OPENCL_RAM:
-			return "OpenCL";
-		case STARPU_DISK_RAM:
-			return "Disk";
-		case STARPU_MIC_RAM:
-			return "MIC";
-		case STARPU_MPI_MS_RAM:
-			return "MPI_MS";
-		case STARPU_UNUSED:
-		default:
-			STARPU_ASSERT(0);
-			return "unknown";
-	}
+	const char *ret = starpu_memory_driver_info[kind].name_upper;
+	STARPU_ASSERT(ret);
+	return ret;
 }

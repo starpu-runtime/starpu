@@ -61,9 +61,9 @@ class my_allocator
 		node = a.get_node();
 	}
 
-	explicit my_allocator(const unsigned node)
+	explicit my_allocator(const unsigned thenode)
 	{
-		this->node = node;
+		this->node = thenode;
 	}
 
 	pointer allocate(size_type n, const void * = 0)
@@ -175,10 +175,8 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	.cuda_to_ram = NULL,
 	.cuda_to_cuda = NULL,
-	.cuda_to_opencl = NULL,
 
 	.opencl_to_ram = NULL,
-	.opencl_to_cuda = NULL,
 	.opencl_to_opencl = NULL,
 
 	.mic_to_ram = NULL,
@@ -216,9 +214,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	NULL,
 	NULL,
-	NULL,
 
-	NULL,
 	NULL,
 	NULL,
 
@@ -375,7 +371,7 @@ static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned hom
 
 /* declare a new data with the vector interface */
 void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
-                        std::vector<MY_TYPE>* vec, uint32_t nx, size_t elemsize)
+			      std::vector<MY_TYPE>* vec, uint32_t nx, size_t elemsize)
 {
 #if __cplusplus >= 201103L
 	struct vector_cpp_interface vector =
@@ -402,6 +398,11 @@ void vector_cpp_data_register(starpu_data_handle_t *handleptr, int home_node,
 		0
 	};
 #endif
+
+	if (interface_vector_cpp_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
+	{
+		interface_vector_cpp_ops.interfaceid = (enum starpu_data_interface_id )starpu_data_interface_get_next_id();
+	}
 
 	starpu_data_register(handleptr, home_node, &vector, &interface_vector_cpp_ops);
 }

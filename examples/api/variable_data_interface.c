@@ -17,6 +17,11 @@
 // This program checks that the implementation of the variable data
 // interface only uses StarPU's public API
 
+#define starpu_interface_variable_ops my_starpu_interface_variable_ops
+#define starpu_variable_data_register my_starpu_variable_data_register
+#define starpu_variable_ptr_register my_starpu_variable_ptr_register
+#define starpu_variable_get_local_ptr my_starpu_variable_get_local_ptr
+#define starpu_variable_get_elemsize my_starpu_variable_get_elemsize
 #include "../../src/datawizard/interfaces/variable_interface.c"
 
 int main()

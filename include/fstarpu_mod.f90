@@ -92,6 +92,14 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_CUDA_ASYNC
         type(c_ptr), bind(C) :: FSTARPU_OPENCL_ASYNC
 
+        !type(c_ptr), bind(C) :: FSTARPU_PER_WORKER
+        !type(c_ptr), bind(C) :: FSTARPU_PER_ARCH
+        !type(c_ptr), bind(C) :: FSTARPU_PER_COMMON
+        type(c_ptr), bind(C) :: FSTARPU_HISTORY_BASED
+        type(c_ptr), bind(C) :: FSTARPU_REGRESSION_BASED
+        type(c_ptr), bind(C) :: FSTARPU_NL_REGRESSION_BASED
+        type(c_ptr), bind(C) :: FSTARPU_MULTIPLE_REGRESSION_BASED
+
         ! (some) portable iso_c_binding types
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_DOUBLE
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_FLOAT
@@ -649,6 +657,18 @@ module fstarpu_mod
                         character(c_char), intent(in) :: cl_name
                 end subroutine fstarpu_codelet_set_name
 
+                subroutine fstarpu_codelet_set_model (cl, cl_perfmodel) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: cl_perfmodel
+                end subroutine fstarpu_codelet_set_model
+
+                subroutine fstarpu_codelet_set_energy_model (cl, cl_perfmodel) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: cl_perfmodel
+                end subroutine fstarpu_codelet_set_energy_model
+
                 subroutine fstarpu_codelet_add_cpu_func (cl, f_ptr) bind(C)
                         use iso_c_binding, only: c_ptr, c_funptr
                         type(c_ptr), value, intent(in) :: cl
@@ -713,6 +733,28 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl
                         type(c_ptr), value, intent(in) :: where ! C function expects an intptr_t
                 end subroutine fstarpu_codelet_set_where
+
+                function fstarpu_perfmodel_allocate () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_perfmodel_allocate
+                end function fstarpu_perfmodel_allocate
+
+                subroutine fstarpu_perfmodel_free (model) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: model
+                end subroutine fstarpu_perfmodel_free
+
+                subroutine fstarpu_perfmodel_set_symbol (model, model_symbol) bind(C)
+                        use iso_c_binding, only: c_ptr, c_char
+                        type(c_ptr), value, intent(in) :: model
+                        character(c_char), intent(in) :: model_symbol
+                end subroutine fstarpu_perfmodel_set_symbol
+
+                subroutine fstarpu_perfmodel_set_type (model, type) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: model
+                        type(c_ptr), value, intent(in) :: type ! C function expects an intptr_t
+                end subroutine fstarpu_perfmodel_set_type
 
                 ! == starpu_data_interface.h ==
 
@@ -1012,7 +1054,7 @@ module fstarpu_mod
                 end subroutine fstarpu_vector_data_register
 
                 ! void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
-                subroutine fstarpu_vector_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                subroutine fstarpu_vector_ptr_register(dh, node, ptr, dev_handle, offset) &
                                 bind(C,name="starpu_vector_ptr_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr), intent(out) :: dh
@@ -1050,7 +1092,7 @@ module fstarpu_mod
                 end subroutine fstarpu_variable_data_register
 
                 ! void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
-                subroutine fstarpu_variable_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                subroutine fstarpu_variable_ptr_register(dh, node, ptr, dev_handle, offset) &
                                 bind(C,name="starpu_variable_ptr_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr), intent(out) :: dh
@@ -1716,7 +1758,7 @@ module fstarpu_mod
                 end function fstarpu_data_descr_array_alloc
 
                 ! struct starpu_data_descr *fstarpu_data_descr_alloc(void);
-                function fstarpu_data_descr_alloc (nb) bind(C)
+                function fstarpu_data_descr_alloc () bind(C)
                         use iso_c_binding, only: c_ptr
                         type(c_ptr) :: fstarpu_data_descr_alloc
                 end function fstarpu_data_descr_alloc
@@ -2433,6 +2475,21 @@ module fstarpu_mod
                             fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA_ASYNC"//C_NULL_CHAR)
                         FSTARPU_OPENCL_ASYNC = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL_ASYNC"//C_NULL_CHAR)
+
+                        !FSTARPU_PER_WORKER = &
+                        !        fstarpu_get_constant(C_CHAR_"FSTARPU_PER_WORKER"//C_NULL_CHAR)
+                        !FSTARPU_PER_ARCH = &
+                        !        fstarpu_get_constant(C_CHAR_"FSTARPU_PER_ARCH"//C_NULL_CHAR)
+                        !FSTARPU_PER_COMMON = &
+                        !        fstarpu_get_constant(C_CHAR_"FSTARPU_PER_COMMON"//C_NULL_CHAR)
+                        FSTARPU_HISTORY_BASED = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_HISTORY_BASED"//C_NULL_CHAR)
+                        FSTARPU_REGRESSION_BASED = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_REGRESSION_BASED"//C_NULL_CHAR)
+                        FSTARPU_NL_REGRESSION_BASED = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_NL_REGRESSION_BASED"//C_NULL_CHAR)
+                        FSTARPU_MULTIPLE_REGRESSION_BASED = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_MULTIPLE_REGRESSION_BASED"//C_NULL_CHAR)
 
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_C_DOUBLE        = sz_to_p(c_sizeof(FSTARPU_SZ_C_DOUBLE_dummy))

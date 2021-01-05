@@ -73,9 +73,8 @@ static int test_cpu(void)
 	conf.precedence_over_environment_variables = 1;
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
+	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
-	conf.ncuda = 0;
-	conf.nopencl = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)
 	{
@@ -135,9 +134,8 @@ static int test_cuda(void)
 	conf.precedence_over_environment_variables = 1;
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
-	conf.ncpus = 0;
+	starpu_conf_noworker(&conf);
 	conf.ncuda = 1;
-	conf.nopencl = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_cuda_worker_get_count() == 0)
 	{
@@ -225,8 +223,8 @@ static int test_opencl(void)
 	conf.precedence_over_environment_variables = 1;
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
+	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
-	conf.ncuda = 0;
 	conf.nopencl = 1;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV || starpu_opencl_worker_get_count() == 0)

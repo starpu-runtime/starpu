@@ -92,29 +92,26 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		}
 		starpu_data_wont_use(sdatakk);
 
-		for (m = k+1; m<nblocks; m++)
+		for (n = k+1; n<nblocks; n++)
 		{
-                        starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
-			for (n = k+1; n<nblocks; n++)
+                        starpu_data_handle_t sdatank = starpu_data_get_sub_data(dataA, 2, n, k);
+			for (m = n; m<nblocks; m++)
 			{
-				if (n <= m)
-                                {
-					starpu_data_handle_t sdatank = starpu_data_get_sub_data(dataA, 2, n, k);
-					starpu_data_handle_t sdatamn = starpu_data_get_sub_data(dataA, 2, m, n);
+				starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
+				starpu_data_handle_t sdatamn = starpu_data_get_sub_data(dataA, 2, m, n);
 
-					ret = starpu_task_insert(&cl22,
-								 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
-								 STARPU_R, sdatamk,
-								 STARPU_R, sdatank,
-								 cl22.modes[2], sdatamn,
-								 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
-								 STARPU_TAG_ONLY, TAG22(k,m,n),
-								 0);
-					if (ret == -ENODEV) return 77;
-					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-                                }
+				ret = starpu_task_insert(&cl22,
+							 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+							 STARPU_R, sdatamk,
+							 STARPU_R, sdatank,
+							 cl22.modes[2], sdatamn,
+							 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+							 STARPU_TAG_ONLY, TAG22(k,m,n),
+							 0);
+				if (ret == -ENODEV) return 77;
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 			}
-			starpu_data_wont_use(sdatamk);
+			starpu_data_wont_use(sdatank);
 		}
 		starpu_iteration_pop();
 	}
@@ -208,6 +205,14 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 static void execute_cholesky(unsigned size, unsigned nblocks)
 {
 	float *mat = NULL;
+
+	/*
+	 * create a simple definite positive symetric matrix example
+	 *
+	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
+	 *
+	 * and make it better conditioned by adding one on the diagonal.
+	 */
 
 #ifndef STARPU_SIMGRID
 	unsigned m,n;
@@ -327,11 +332,6 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 int main(int argc, char **argv)
 {
-	/* create a simple definite positive symetric matrix example
-	 *
-	 *	Hilbert matrix : h(i,j) = 1/(i+j+1)
-	 * */
-
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
 #endif

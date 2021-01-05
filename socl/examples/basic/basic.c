@@ -192,7 +192,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
       check(err, "clGetEventProfilingInfo");\
       err = clGetEventProfilingInfo(event, CL_PROFILING_COMMAND_END, sizeof(cl_ulong), &t1, NULL);\
       check(err, "clGetEventProfilingInfo");\
-      printf("Profiling %s: %lu nanoseconds\n", label, t1-t0);\
+      printf("Profiling %s: %llu nanoseconds\n", label, (unsigned long long) (t1-t0));\
    } while (0);
 
    DURATION(eventW1, "first buffer writing");

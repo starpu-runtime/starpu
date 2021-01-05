@@ -80,6 +80,18 @@ void _starpu_fxt_component_new(uint64_t component, char *name)
 	COMPONENT_ADD(components, ptr, comp);
 }
 
+void _starpu_fxt_component_deinit(void)
+{
+	struct component *comp, *tmp;
+	HASH_ITER(hh, components, comp, tmp)
+	{
+		HASH_DEL(components, comp);
+		free(comp->children);
+		free(comp->name);
+		free(comp);
+	}
+}
+
 static void fxt_component_dump(FILE *file, struct component *comp, unsigned depth)
 {
 	unsigned i;

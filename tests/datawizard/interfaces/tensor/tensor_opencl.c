@@ -87,12 +87,12 @@ test_tensor_opencl_func(void *buffers[], void *args)
 	}
 			
 	{
-                size_t global = 1;
+		size_t global[3] = {nx, ny, nz*nt};
 		err = clEnqueueNDRangeKernel(queue,
 					     kernel,
-					     1,
+					     3,
 					     NULL,
-					     &global,
+					     global,
 					     NULL,
 					     0,
 					     NULL,

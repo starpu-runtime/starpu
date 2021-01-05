@@ -155,8 +155,10 @@ struct _starpu_data_state
 	struct _starpu_data_state *root_handle; /** root of the tree */
 	struct _starpu_data_state *father_handle; /** father of the node, NULL if the current node is the root */
 	starpu_data_handle_t *active_children; /** The currently active set of read-write children */
+	unsigned active_nchildren;
 	starpu_data_handle_t **active_readonly_children; /** The currently active set of read-only children */
-	unsigned nactive_readonly_children; /** Size of active_readonly_children array */
+	unsigned *active_readonly_nchildren; /** Size of active_readonly_children[i] array */
+	unsigned nactive_readonly_children; /** Size of active_readonly_children and active_readonly_nchildren arrays. Actual use is given by 'partitioned' */
 	/** Our siblings in the father partitioning */
 	unsigned nsiblings; /** How many siblings */
 	starpu_data_handle_t *siblings;
@@ -180,13 +182,14 @@ struct _starpu_data_state
 	 */
 	unsigned partitioned;
 	/** Whether a partition plan is currently submitted in readonly mode */
-	unsigned readonly:1;
+	unsigned part_readonly:1;
 
 	/** Whether our father is currently partitioned into ourself */
 	unsigned active:1;
 	unsigned active_ro:1;
 
-	/** describe the state of the data in term of coherency */
+	/** describe the state of the data in term of coherency
+	 * This is execution-time state. */
 	struct _starpu_data_replicate per_node[STARPU_MAXNODES];
 	struct _starpu_data_replicate *per_worker;
 
@@ -201,16 +204,39 @@ struct _starpu_data_state
 	/** what is the default write-through mask for that data ? */
 	uint32_t wt_mask;
 
+	/** for a readonly handle, the number of times that we have returned again the
+	    same handle and thus the number of times we have to ignore unregistration requests */
+	unsigned aliases;
+	/** for a non-readonly handle, a readonly-only duplicate, that we can
+	    return from starpu_data_dup_ro */
+	starpu_data_handle_t readonly_dup;
+	/** for a readonly handle, the non-readonly handle that is referencing
+	    is in its readonly_dup field. */
+	starpu_data_handle_t readonly_dup_of;
+
 	/** in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */
-	unsigned is_not_important;
+	unsigned is_not_important:1;
 
 	/** Does StarPU have to enforce some implicit data-dependencies ? */
-	unsigned sequential_consistency;
-	/** Is the data initialized, or a task is already submitted to initialize it */
-	unsigned initialized;
+	unsigned sequential_consistency:1;
+	/** Is the data initialized, or a task is already submitted to initialize it
+	 * This is submission-time initialization state. */
+	unsigned initialized:1;
+	/** Whether we shall not ever write to this handle, thus allowing various optimizations */
+	unsigned readonly:1;
 	/** Can the data be pushed to the disk? */
-	unsigned ooc;
+	unsigned ooc:1;
+
+	/** Whether lazy unregistration was requested throught starpu_data_unregister_submit */
+	unsigned lazy_unregister:1;
+
+	/** Whether automatic planned partitioning/unpartitioning should not be done */
+	int partition_automatic_disabled:1;
+
+#ifdef STARPU_OPENMP
+	unsigned removed_from_context_hash:1;
+#endif
 
 	/** This lock should protect any operation to enforce
 	 * sequential_consistency */
@@ -264,12 +290,6 @@ struct _starpu_data_state
 	/** Final request for write invalidation */
 	struct _starpu_data_request *write_invalidation_req;
 
-	unsigned lazy_unregister;
-
-#ifdef STARPU_OPENMP
-	unsigned removed_from_context_hash;
-#endif
-
         /** Used for MPI */
 	void *mpi_data;
 
@@ -288,8 +308,6 @@ struct _starpu_data_state
 	/** Last worker that took this data in locality mode, or -1 if nobody
 	 * took it yet */
 	int last_locality;
-
-	int partition_automatic_disabled;
 
 	/** Application-provided coordinates. The maximum dimension (5) is
 	  * relatively arbitrary. */
@@ -312,6 +330,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 /** This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
+				  enum starpu_data_access_mode down_to_mode,
 				  struct _starpu_data_replicate *replicate);
 
 void _starpu_update_data_state(starpu_data_handle_t handle,
@@ -334,6 +353,9 @@ void _starpu_release_nowhere_task_output(struct _starpu_job *j);
 
 struct _starpu_worker;
 STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
+/** Fetch the data parameters for task \p task
+ * Setting \p async to 1 allows to only start the fetches, and call
+ * \p _starpu_fetch_task_input_tail later when the transfers are finished */
 int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, int async);
 void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job *j, struct _starpu_worker *worker);
 void _starpu_fetch_nowhere_task_input(struct _starpu_job *j);

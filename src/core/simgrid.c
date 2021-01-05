@@ -357,11 +357,16 @@ void _starpu_start_simgrid(int *argc, char **argv)
 	int limit_bandwidth = starpu_get_env_number("STARPU_LIMIT_BANDWIDTH");
 	if (limit_bandwidth >= 0)
 	{
-#ifdef HAVE_SG_LINK_BANDWIDTH_SET
+#if defined(HAVE_SG_LINK_BANDWIDTH_SET) || defined(HAVE_SG_LINK_SET_BANDWIDTH)
 		sg_link_t *links = sg_link_list();
 		int count = sg_link_count(), i;
-		for (i = 0; i < count; i++) {
+		for (i = 0; i < count; i++)
+		{
+#ifdef HAVE_SG_LINK_SET_BANDWIDTH
+			sg_link_set_bandwidth(links[i], limit_bandwidth * 1000000.);
+#else
 			sg_link_bandwidth_set(links[i], limit_bandwidth * 1000000.);
+#endif
 		}
 #else
 		_STARPU_DISP("Warning: STARPU_LIMIT_BANDWIDTH set to %d but this requires simgrid 3.26, thus ignored\n", limit_bandwidth);
@@ -492,7 +497,11 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 
 #if defined(HAVE_SG_ACTOR_ATTACH) && defined (HAVE_SG_ACTOR_DATA)
 		sg_actor_t actor = sg_actor_attach("main", NULL, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
+#ifdef HAVE_SG_ACTOR_SET_DATA
+		sg_actor_set_data(actor, tsd);
+#else
 		sg_actor_data_set(actor, tsd);
+#endif
 #else
 		MSG_process_attach("main", tsd, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
 #endif
@@ -519,7 +528,11 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 #ifdef HAVE_SG_ACTOR_DATA
+#ifdef HAVE_SG_ACTOR_SET_DATA
+		sg_actor_set_data(sg_actor_self(), tsd);
+#else
 		sg_actor_data_set(sg_actor_self(), tsd);
+#endif
 #else
 		smpi_process_set_user_data(tsd);
 #endif
@@ -723,7 +736,7 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 	{
 		length = starpu_task_worker_expected_length(starpu_task, workerid, sched_ctx_id, j->nimpl);
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
-				  "Codelet %s does not have a perfmodel (in directory %s), or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated",
+				  "Codelet %s does not have a perfmodel (in directory %s), or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated, or fix the STARPU_HOSTNAME and STARPU_PERF_MODEL_DIR environment variables",
 				  _starpu_job_get_model_name(j), _starpu_get_perf_model_dir_codelet());
                 /* TODO: option to add variance according to performance model,
                  * to be able to easily check scheduling robustness */
@@ -735,6 +748,9 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 		 * to be able to easily check scheduling robustness */
 	}
 
+#ifdef HAVE_SG_HOST_GET_SPEED
+	flops = length/1000000.0*sg_host_get_speed(sg_host_self());
+#else
 #if defined(HAVE_SG_HOST_SPEED) || defined(sg_host_speed)
 #  if defined(HAVE_SG_HOST_SELF) || defined(sg_host_self)
 	flops = length/1000000.0*sg_host_speed(sg_host_self());
@@ -745,6 +761,7 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 	flops = length/1000000.0*MSG_host_get_speed(MSG_host_self());
 #else
 	flops = length/1000000.0*MSG_get_host_speed(MSG_host_self());
+#endif
 #endif
 
 #ifndef HAVE_SG_ACTOR_SELF_EXECUTE
@@ -1210,12 +1227,20 @@ starpu_pthread_t _starpu_simgrid_actor_create(const char *name, xbt_main_func_t 
 	_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 #ifdef HAVE_SG_ACTOR_INIT
 	actor = sg_actor_init(name, host);
+#ifdef HAVE_SG_ACTOR_SET_DATA
+	sg_actor_set_data(actor, tsd);
+#else
 	sg_actor_data_set(actor, tsd);
+#endif
 	sg_actor_start(actor, code, argc, argv);
 #else
 	actor = MSG_process_create_with_arguments(name, code, tsd, host, argc, argv);
 #ifdef HAVE_SG_ACTOR_DATA
+#ifdef HAVE_SG_ACTOR_SET_DATA
+	sg_actor_set_data(actor, tsd);
+#else
 	sg_actor_data_set(actor, tsd);
+#endif
 #endif
 #endif
 	return actor;
@@ -1251,7 +1276,7 @@ starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node)
 
 void _starpu_simgrid_count_ngpus(void)
 {
-#if (defined(HAVE_SG_LINK_NAME) || defined sg_link_name) && (SIMGRID_VERSION >= 31300)
+#if (defined(HAVE_SG_LINK_GET_NAME) || defined(HAVE_SG_LINK_NAME) || defined sg_link_name) && (SIMGRID_VERSION >= 31300)
 	unsigned src, dst;
 	starpu_sg_host_t ramhost = _starpu_simgrid_get_host_by_name("RAM");
 
@@ -1261,7 +1286,7 @@ void _starpu_simgrid_count_ngpus(void)
 		{
 			int busid;
 			starpu_sg_host_t srchost, dsthost;
-#if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
+#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(SD_link_t), NULL);
 			SD_link_t *route;
 #else
@@ -1281,8 +1306,12 @@ void _starpu_simgrid_count_ngpus(void)
 
 			srchost = _starpu_simgrid_get_memnode_host(src);
 			dsthost = _starpu_simgrid_get_memnode_host(dst);
-#if defined(HAVE_SG_HOST_ROUTE)  || defined(sg_host_route)
+#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE)  || defined(sg_host_route)
+#ifdef HAVE_SG_HOST_GET_ROUTE
+			sg_host_get_route(srchost, dsthost, route_dynar);
+#else
 			sg_host_route(srchost, dsthost, route_dynar);
+#endif
 			routesize = xbt_dynar_length(route_dynar);
 			route = xbt_dynar_to_array(route_dynar);
 #else
@@ -1293,7 +1322,13 @@ void _starpu_simgrid_count_ngpus(void)
 			/* If it goes through "Host", do not care, there is no
 			 * direct transfer support */
 			for (i = 0; i < routesize; i++)
-				if (!strcmp(sg_link_name(route[i]), "Host"))
+				if (
+#ifdef HAVE_SG_LINK_GET_NAME
+					!strcmp(sg_link_get_name(route[i]), "Host")
+#else
+					!strcmp(sg_link_name(route[i]), "Host")
+#endif
+					)
 					break;
 			if (i < routesize)
 				continue;
@@ -1302,7 +1337,11 @@ void _starpu_simgrid_count_ngpus(void)
 			through = -1;
 			for (i = 0; i < routesize; i++)
 			{
+#ifdef HAVE_SG_LINK_GET_NAME
+				name = sg_link_get_name(route[i]);
+#else
 				name = sg_link_name(route[i]);
+#endif
 				size_t len = strlen(name);
 				if (!strcmp(" through", name+len-8))
 					through = i;
@@ -1315,7 +1354,11 @@ void _starpu_simgrid_count_ngpus(void)
 				_STARPU_DEBUG("Didn't find through-link for %d->%d\n", src, dst);
 				continue;
 			}
+#ifdef HAVE_SG_LINK_GET_NAME
+			name = sg_link_get_name(route[through]);
+#else
 			name = sg_link_name(route[through]);
+#endif
 
 			/*
 			 * count how many direct routes go through it between
@@ -1339,10 +1382,14 @@ void _starpu_simgrid_count_ngpus(void)
 
 				starpu_sg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
 				int routesize2;
-#if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
+#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(SD_link_t), NULL);
 				SD_link_t *route2;
+#ifdef HAVE_SG_HOST_GET_ROUTE
+				sg_host_get_route(srchost2, ramhost, route_dynar2);
+#else
 				sg_host_route(srchost2, ramhost, route_dynar2);
+#endif
 				routesize2 = xbt_dynar_length(route_dynar2);
 				route2 = xbt_dynar_to_array(route_dynar2);
 #else
@@ -1351,19 +1398,25 @@ void _starpu_simgrid_count_ngpus(void)
 #endif
 
 				for (i = 0; i < routesize2; i++)
-					if (!strcmp(name, sg_link_name(route2[i])))
+					if (
+#ifdef HAVE_SG_LINK_GET_NAME
+						!strcmp(name, sg_link_get_name(route2[i]))
+#else
+						!strcmp(name, sg_link_name(route2[i]))
+#endif
+						)
 					{
 						/* This GPU goes through this PCI bridge to access RAM */
 						ngpus++;
 						break;
 					}
-#if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
+#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 				free(route2);
 #endif
 			}
 			_STARPU_DEBUG("%d->%d through %s, %u GPUs\n", src, dst, name, ngpus);
 			starpu_bus_set_ngpus(busid, ngpus);
-#if defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
+#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 			free(route);
 #endif
 		}

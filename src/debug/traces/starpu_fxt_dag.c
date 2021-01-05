@@ -110,6 +110,12 @@ void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, con
 		fprintf(out_file, "\t \"task_%s%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\"]\n", prefix, job_id, label, color);
 }
 
+void _starpu_fxt_dag_set_task_line(const char *prefix, unsigned long job_id, const char *file, int line)
+{
+	if (out_file)
+		fprintf(out_file, "\t \"task_%s%lu\" [ href=\"%s#%d\" ]\n", prefix, job_id, file, line);
+}
+
 void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id)
 {
 	if (out_file)

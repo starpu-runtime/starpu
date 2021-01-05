@@ -24,6 +24,9 @@
 extern "C"
 {
 #endif
+
+/* Note: when changing something here, update the include list in configure.ac
+ * in the part that tries to enable stdc++11 */
 #ifdef STARPU_SIMGRID
 #ifdef STARPU_HAVE_SIMGRID_MSG_H
 #include <simgrid/msg.h>
@@ -73,7 +76,7 @@ union _starpu_async_channel_event;
 int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event);
 int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event);
 void _starpu_simgrid_sync_gpus(void);
-/* Return the number of hosts prefixed by PREFIX */
+/** Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
 starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name);

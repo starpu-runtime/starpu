@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -16,6 +16,14 @@
 #
 
 include $(top_srcdir)/starpu-notests.mk
+
+AM_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU -DSTARPU_DATADIR='"$(datadir)"'
+AM_CPPFLAGS += $(STARPU_H_CPPFLAGS)
+AM_CPPFLAGS += $(FXT_CFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(STARPU_RCCE_CFLAGS) $(STARPU_RCCE_CPPFLAGS)
+LIBS += -lm $(LIBSTARPU_LDFLAGS)
+if STARPU_USE_MPI_MASTER_SLAVE
+LIBS += $(MPICC_LDFLAGS)
+endif
 
 SUBDIRS =
 
@@ -55,11 +63,7 @@ endif STARPU_HAVE_WINDOWS
 
 lib_LTLIBRARIES = libstarpu-@STARPU_EFFECTIVE_VERSION@.la
 
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU  $(GLOBAL_AM_CFLAGS) $(HWLOC_CFLAGS) $(STARPU_CUDA_CPPFLAGS) $(STARPU_OPENCL_CPPFLAGS) $(FXT_CFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(STARPU_RCCE_CFLAGS) $(STARPU_RCCE_CPPFLAGS) -DSTARPU_DATADIR='"$(datadir)"'
-
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LIBADD = -lm $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(LIBSTARPU_LDFLAGS)
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) $(FXT_LDFLAGS) -no-undefined									\
-  -version-info $(libstarpu_so_version)
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS = $(ldflags) -no-undefined -version-info $(libstarpu_so_version)
 
 if STARPU_HAVE_DARWIN
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_LDFLAGS += \
@@ -153,7 +157,6 @@ noinst_HEADERS = 						\
 	util/starpu_clusters_create.h				\
 	util/starpu_task_insert_utils.h				\
 	util/starpu_data_cpy.h					\
-	starpu_parameters.h					\
 	sched_policies/prio_deque.h				\
 	sched_policies/sched_component.h
 
@@ -195,6 +198,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	core/disk_ops/disk_unistd.c                             \
 	core/disk_ops/unistd/disk_unistd_global.c		\
 	core/perfmodel/perfmodel_history.c			\
+        core/perfmodel/energy_model.c                           \
 	core/perfmodel/perfmodel_bus.c				\
 	core/perfmodel/perfmodel.c				\
 	core/perfmodel/perfmodel_print.c			\
@@ -324,6 +328,7 @@ endif
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda_init.c
 if STARPU_USE_CUDA
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda.c
 else
@@ -335,6 +340,7 @@ endif
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cublas.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/starpu_cusparse.c
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_init.c
 if STARPU_USE_OPENCL
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl_utils.c
@@ -379,6 +385,7 @@ endif
 #										#
 #########################################
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_init.c
 if STARPU_USE_MIC
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_common.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_source.c
@@ -392,6 +399,7 @@ endif
 #                                       #
 #########################################
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_init.c
 if STARPU_USE_MPI_MASTER_SLAVE
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_common.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mpi/driver_mpi_source.c

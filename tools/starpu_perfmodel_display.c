@@ -156,6 +156,7 @@ int main(int argc, char **argv)
 #endif
 
 	parse_args(argc, argv);
+	starpu_drivers_preinit();
 	starpu_perfmodel_initialize();
 
         if (plist)

@@ -24,12 +24,13 @@ usage()
     echo "  can be processed by this script to generate a plot named activity.eps"
     echo ""
     echo "  Typical usage:"
-    echo "     ./starpu_fxt_tool -i /tmp/prof_file_foo"
+    echo "     ./starpu_fxt_tool -i /tmp/prof_file_foo &&"
     echo "     $PROGNAME activity.data"
     echo ""
     echo "Options:"
     echo "	-h, --help          display this help and exit"
     echo "	-v, --version       output version information and exit"
+    echo "	-d directory        where to save output files, by default current directory"
     echo ""
     echo "Report bugs to <@PACKAGE_BUGREPORT@>"
     exit 0
@@ -44,6 +45,12 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$1" = "" ] ; then
     usage
 fi
 
+odir="."
+if [ "$1" = "-d" ]
+then
+    odir=$2
+    shift ; shift
+fi
 if [ ! -f $1 ] ; then
     echo "Error. File <$1> not found"
     echo ""
@@ -54,11 +61,12 @@ fi
 inputfile_with_counters=$1
 
 # We extract the counters out of the input file
-inputfile=.$inputfile_with_counters.activity
-inputfile_cnt_ready=.$1.cnt_ready
-inputfile_cnt_submitted=.$1.cnt_submitted
-set_profiling_list=.$1.set_profiling_list
-names=.$1.names
+dir=$(dirname $1)
+inputfile=$dir/.$(basename $1).activity
+inputfile_cnt_ready=$dir/.$(basename $1).cnt_ready
+inputfile_cnt_submitted=$dir/.$(basename $1).cnt_submitted
+set_profiling_list=$dir/.$(basename $1).set_profiling_list
+names=$dir/.$(basename $1).names
 
 grep "^set_profiling" $inputfile_with_counters > $set_profiling_list
 grep "0$" $set_profiling_list | cut -f 2 | sort -n > $set_profiling_list.disable
@@ -82,32 +90,31 @@ total_heigth=$(echo "$heigth + ($heigth * $nworkers)"|bc -l)
 # In case 3 arguments are provided, the 2nd (resp. 3rd) indicates the start
 # (resp. the end) of the interval to be displayed.
 if [ $# -ge 3 ]; then
-starttime=$2
-endtime=$3
+    starttime=$2
+    endtime=$3
 else
-#if profiling is explicitely enabled (resp. disabled) at some point, we set the
-# default start (rest. end) point when we enable (resp. disable) profiling for
-# the first time.
-profiling_enable_cnt=`wc -l $set_profiling_list.enable|sed -e "s/\(.*\) .*/\1/"`
-if [ $profiling_enable_cnt -ge 1 ]; then
-starttime=`head -1 $set_profiling_list.enable`
-else
-starttime=$(cut -f 2 $inputfile |sort -n|head -1)
-fi
+    #if profiling is explicitely enabled (resp. disabled) at some point, we set the
+    # default start (rest. end) point when we enable (resp. disable) profiling for
+    # the first time.
+    profiling_enable_cnt=`wc -l $set_profiling_list.enable|sed -e "s/\(.*\) .*/\1/"`
+    if [ $profiling_enable_cnt -ge 1 ]; then
+	starttime=`head -1 $set_profiling_list.enable`
+    else
+	starttime=$(cut -f 2 $inputfile |sort -n|head -1)
+    fi
 
-# TODO test if last disable > first enable
+    # TODO test if last disable > first enable
 
-profiling_disable_cnt=$(wc -l $set_profiling_list.disable|sed -e "s/\(.*\) .*/\1/")
-if [ $profiling_disable_cnt -ge 1 ]; then
-endtime=`tail -1 $set_profiling_list.disable`
-else
-endtime=$(cut -f 2 $inputfile |sort -n|tail -1)
-fi
+    profiling_disable_cnt=$(wc -l $set_profiling_list.disable|sed -e "s/\(.*\) .*/\1/")
+    if [ $profiling_disable_cnt -ge 1 ]; then
+	endtime=`tail -1 $set_profiling_list.disable`
+    else
+	endtime=$(cut -f 2 $inputfile |sort -n|tail -1)
+    fi
 
-# The values in the file are in ms, we display seconds
-starttime=$(echo "$starttime * 0.001 "| bc -l)
-endtime=$(echo "$endtime * 0.001 "| bc -l)
-
+    # The values in the file are in ms, we display seconds
+    starttime=$(echo "$starttime * 0.001 "| bc -l)
+    endtime=$(echo "$endtime * 0.001 "| bc -l)
 fi
 
 echo "START $starttime END $endtime"
@@ -115,7 +122,7 @@ echo "START $starttime END $endtime"
 # Gnuplot header
 cat > gnuplotcmd << EOF
 set term postscript eps enhanced color
-set output "activity.eps"
+set output "$odir/activity.eps"
 set xrange [$starttime:$endtime]
 set size $width,$total_heigth
 set multiplot;

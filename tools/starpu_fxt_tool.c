@@ -32,7 +32,8 @@ static void usage()
 	fprintf(stderr, "   -i <input file[s]>  specify the input file[s]. Several files can be provided,\n");
 	fprintf(stderr, "                       or the option specified several times for MPI execution\n");
 	fprintf(stderr, "                       case\n");
-        fprintf(stderr, "   -o <output file>    specify the output file\n");
+        fprintf(stderr, "   -o <output file>    specify the paje output filename\n");
+	fprintf(stderr, "   -d <directory>      specify the directory in which to save files\n");
         fprintf(stderr, "   -c                  use a different colour for every type of task\n");
 	fprintf(stderr, "   -no-events          do not show events\n");
 	fprintf(stderr, "   -no-counter         do not show scheduler counters\n");
@@ -77,11 +78,18 @@ static int parse_args(int argc, char **argv)
 			continue;
 		}
 
+		if (strcmp(argv[i], "-d") == 0)
+		{
+			options.dir = argv[++i];
+			reading_input_filenames = 0;
+			continue;
+		}
+
 		if (strcmp(argv[i], "-i") == 0)
 		{
 			if (options.ninputfiles >= STARPU_FXT_MAX_FILES)
 			{
-				fprintf(stderr, "Error: The number of trace files is superior to STARPU_FXT_MAX_FILES (%u)\nPlease recompile StarPU with a bigger --enable-fxt-max-files\n", STARPU_FXT_MAX_FILES);
+				fprintf(stderr, "Error: The number of trace files is superior to STARPU_FXT_MAX_FILES (%d)\nPlease recompile StarPU with a bigger --enable-fxt-max-files\n", STARPU_FXT_MAX_FILES);
 				return 7;
 			}
 			options.filenames[options.ninputfiles++] = argv[++i];
@@ -162,14 +170,14 @@ static int parse_args(int argc, char **argv)
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			usage();
-			return EXIT_SUCCESS;
+			return 77;
 		}
 
 		if (strcmp(argv[i], "-v") == 0
 		 || strcmp(argv[i], "--version") == 0)
 		{
 		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
-			return EXIT_SUCCESS;
+			return 77;
 		}
 
 		/* That's pretty dirty: if the reading_input_filenames flag is
@@ -179,7 +187,7 @@ static int parse_args(int argc, char **argv)
 		{
 			if (options.ninputfiles >= STARPU_FXT_MAX_FILES)
 			{
-				fprintf(stderr, "Error: The number of trace files is superior to STARPU_FXT_MAX_FILES (%u)\nPlease recompile StarPU with a bigger --enable-fxt-max-files\n", STARPU_FXT_MAX_FILES);
+				fprintf(stderr, "Error: The number of trace files is superior to STARPU_FXT_MAX_FILES (%d)\nPlease recompile StarPU with a bigger --enable-fxt-max-files\n", STARPU_FXT_MAX_FILES);
 				return 7;
 			}
 			options.filenames[options.ninputfiles++] = argv[i];
@@ -193,15 +201,22 @@ static int parse_args(int argc, char **argv)
                 usage();
 		return 77;
 	}
+
 	return 0;
 }
 
 int main(int argc, char **argv)
 {
 	int ret = parse_args(argc, argv);
-	if (ret) return ret;
+	if (ret)
+	{
+		starpu_fxt_options_shutdown(&options);
+		return ret;
+	}
 
 	starpu_fxt_generate_trace(&options);
+
+	starpu_fxt_options_shutdown(&options);
 
 	return 0;
 }

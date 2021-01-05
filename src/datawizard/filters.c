@@ -238,19 +238,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		memset(child, 0, sizeof(*child));
 		_starpu_data_handle_init(child, ops, initial_handle->mf_node);
 
-		//child->nchildren = 0;
-		//child->nplans = 0;
-		//child->switch_cl = NULL;
-		//child->partitioned = 0;
-		//child->readonly = 0;
-		child->active = inherit_state;
-		//child->active_ro = 0;
-                //child->mpi_data = NULL;
 		child->root_handle = initial_handle->root_handle;
 		child->father_handle = initial_handle;
-		//child->active_children = NULL;
-		//child->active_readonly_children = NULL;
-		//child->nactive_readonly_children = 0;
+
 		child->nsiblings = nparts;
 		if (inherit_state)
 		{
@@ -261,58 +251,26 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		child->sibling_index = i;
 		child->depth = initial_handle->depth + 1;
 
-		child->is_not_important = initial_handle->is_not_important;
-		child->wt_mask = initial_handle->wt_mask;
-		child->home_node = initial_handle->home_node;
+		child->active = inherit_state;
 
-		/* initialize the chunk lock */
-		_starpu_data_requester_prio_list_init(&child->req_list);
-		_starpu_data_requester_prio_list_init(&child->reduction_req_list);
-		//child->reduction_tmp_handles = NULL;
-		//child->write_invalidation_req = NULL;
-		//child->refcnt = 0;
-		//child->unlocking_reqs = 0;
-		//child->busy_count = 0;
-		//child->busy_waiting = 0;
-		STARPU_PTHREAD_MUTEX_INIT0(&child->busy_mutex, NULL);
-		STARPU_PTHREAD_COND_INIT0(&child->busy_cond, NULL);
-		//child->reduction_refcnt = 0;
-		_starpu_spin_init(&child->header_lock);
+		child->home_node = initial_handle->home_node;
+		child->wt_mask = initial_handle->wt_mask;
+
+		child->aliases = initial_handle->aliases;
+		//child->readonly_dup = NULL;
+		//child->readonly_dup_of = NULL;
+
+		child->is_not_important = initial_handle->is_not_important;
 
 		child->sequential_consistency = initial_handle->sequential_consistency;
 		child->initialized = initial_handle->initialized;
+		child->readonly = initial_handle->readonly;
 		child->ooc = initial_handle->ooc;
-
-		STARPU_PTHREAD_MUTEX_INIT0(&child->sequential_consistency_mutex, NULL);
-		child->last_submitted_mode = STARPU_R;
-		//child->last_sync_task = NULL;
-		//child->last_submitted_accessors.task = NULL;
-		child->last_submitted_accessors.next = &child->last_submitted_accessors;
-		child->last_submitted_accessors.prev = &child->last_submitted_accessors;
-		//child->post_sync_tasks = NULL;
-		/* Tell helgrind that the race in _starpu_unlock_post_sync_tasks is fine */
-		STARPU_HG_DISABLE_CHECKING(child->post_sync_tasks_cnt);
-		//child->post_sync_tasks_cnt = 0;
 
 		/* The methods used for reduction are propagated to the
 		 * children. */
 		child->redux_cl = initial_handle->redux_cl;
 		child->init_cl = initial_handle->init_cl;
-
-#ifdef STARPU_USE_FXT
-		//child->last_submitted_ghost_sync_id_is_valid = 0;
-		//child->last_submitted_ghost_sync_id = 0;
-		//child->last_submitted_ghost_accessors_id = NULL;
-#endif
-
-		if (_starpu_global_arbiter)
-			/* Just for testing purpose */
-			starpu_data_assign_arbiter(child, _starpu_global_arbiter);
-		else
-		{
-			//child->arbiter = NULL;
-		}
-		_starpu_data_requester_prio_list_init0(&child->arbitered_req_list);
 
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
@@ -352,9 +310,6 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			STARPU_ASSERT_MSG(!(!inherit_state && child_replicate->automatically_allocated && child_replicate->allocated), "partition planning is currently not supported when handle has some automatically allocated buffers");
 			f->filter_func(initial_interface, child_interface, f, i, nparts);
 		}
-
-		//child->per_worker = NULL;
-		//child->user_data = NULL;
 
 		/* We compute the size and the footprint of the child once and
 		 * store it in the handle */
@@ -620,7 +575,7 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 void starpu_data_partition(starpu_data_handle_t initial_handle, struct starpu_data_filter *f)
 {
 	unsigned nparts = _starpu_data_partition_nparts(initial_handle, f);
-	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "there should not be mutiple filters applied on the same data %p, futher filtering has to be done on children", initial_handle);
+	STARPU_ASSERT_MSG(initial_handle->nchildren == 0, "there should not be multiple filters applied on the same data %p, further filtering has to be done on children", initial_handle);
 	STARPU_ASSERT_MSG(initial_handle->nplans == 0, "partition planning and synchronous partitioning is not supported");
 
 	initial_handle->children = NULL;
@@ -707,9 +662,10 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned == 0, "One can't submit several partition plannings at the same time");
-	STARPU_ASSERT_MSG(initial_handle->readonly == 0, "One can't submit a partition planning while a readonly partitioning is active");
+	STARPU_ASSERT_MSG(initial_handle->part_readonly == 0, "One can't submit a partition planning while a readonly partitioning is active");
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	initial_handle->partitioned++;
+	initial_handle->active_nchildren = children[0]->nsiblings;
 	initial_handle->active_children = children[0]->siblings;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
@@ -767,16 +723,18 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	_starpu_spin_lock(&initial_handle->header_lock);
-	STARPU_ASSERT_MSG(initial_handle->partitioned == 0 || initial_handle->readonly, "One can't submit a readonly partition planning at the same time as a readwrite partition planning");
+	STARPU_ASSERT_MSG(initial_handle->partitioned == 0 || initial_handle->part_readonly, "One can't submit a readonly partition planning at the same time as a readwrite partition planning");
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
 	initial_handle->partitioned++;
-	initial_handle->readonly = 1;
+	initial_handle->part_readonly = 1;
 	if (initial_handle->nactive_readonly_children < initial_handle->partitioned)
 	{
 		_STARPU_REALLOC(initial_handle->active_readonly_children, initial_handle->partitioned * sizeof(initial_handle->active_readonly_children[0]));
+		_STARPU_REALLOC(initial_handle->active_readonly_nchildren, initial_handle->partitioned * sizeof(initial_handle->active_readonly_nchildren[0]));
 		initial_handle->nactive_readonly_children = initial_handle->partitioned;
 	}
 	initial_handle->active_readonly_children[initial_handle->partitioned-1] = children[0]->siblings;
+	initial_handle->active_readonly_nchildren[initial_handle->partitioned-1] = children[0]->nsiblings;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
 	for (i = 0; i < nparts; i++)
@@ -804,11 +762,13 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned == 1, "One can't upgrade a readonly partition planning to readwrite while other readonly partition plannings are active");
-	STARPU_ASSERT_MSG(initial_handle->readonly == 1, "One can only upgrade a readonly partition planning");
+	STARPU_ASSERT_MSG(initial_handle->part_readonly == 1, "One can only upgrade a readonly partition planning");
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
-	initial_handle->readonly = 0;
+	initial_handle->part_readonly = 0;
+	initial_handle->active_nchildren = initial_handle->active_readonly_nchildren[0];
 	initial_handle->active_children = initial_handle->active_readonly_children[0];
 	initial_handle->active_readonly_children[0] = NULL;
+	initial_handle->active_readonly_nchildren[0] = 0;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
 	unsigned i;
@@ -833,7 +793,7 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
-	if (initial_handle->readonly)
+	if (initial_handle->part_readonly)
 	{
 		/* Replace this children set with the last set in the list of readonly children sets */
 		for (i = 0; i < initial_handle->partitioned-1; i++)
@@ -841,18 +801,22 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 			if (initial_handle->active_readonly_children[i] == children[0]->siblings)
 			{
 				initial_handle->active_readonly_children[i] = initial_handle->active_readonly_children[initial_handle->partitioned-1];
+				initial_handle->active_readonly_nchildren[i] = initial_handle->active_readonly_nchildren[initial_handle->partitioned-1];
 				initial_handle->active_readonly_children[initial_handle->partitioned-1] = NULL;
+				initial_handle->active_readonly_nchildren[initial_handle->partitioned-1] = 0;
 				break;
 			}
 		}
 	}
 	else
 	{
+		initial_handle->active_nchildren = 0;
 		initial_handle->active_children = NULL;
 	}
 	initial_handle->partitioned--;
 	if (!initial_handle->partitioned)
-		initial_handle->readonly = 0;
+		initial_handle->part_readonly = 0;
+	initial_handle->active_nchildren = 0;
 	initial_handle->active_children = NULL;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
@@ -928,7 +892,7 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 	_starpu_spin_lock(&initial_handle->header_lock);
 	STARPU_ASSERT_MSG(initial_handle->partitioned >= 1, "No partition planning is active for handle %p", initial_handle);
 	STARPU_ASSERT_MSG(nparts > 0, "One can't partition into 0 parts");
-	initial_handle->readonly = 1;
+	initial_handle->part_readonly = 1;
 	_starpu_spin_unlock(&initial_handle->header_lock);
 
 	unsigned i, n;
@@ -955,7 +919,7 @@ void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gatheri
 		/* It's already unpartitioned */
 		return;
 	_STARPU_DEBUG("ancestor %p needs unpartitioning\n", ancestor);
-	if (ancestor->readonly)
+	if (ancestor->part_readonly)
 	{
 		unsigned n = ancestor->partitioned;
 		/* Uh, has to go through all read-only partitions */
@@ -1002,16 +966,16 @@ static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor,
 		_STARPU_DEBUG("ancestor %p was ready\n", ancestor);
 
 	/* We shouldn't be called for nothing */
-	STARPU_ASSERT(!ancestor->partitioned || !target || ancestor->active_children != target->siblings || (ancestor->readonly && write));
+	STARPU_ASSERT(!ancestor->partitioned || !target || ancestor->active_children != target->siblings || (ancestor->part_readonly && write));
 
 	/* Then unpartition ancestor if needed */
 	if (ancestor->partitioned &&
 			/* Not the right children, unpartition ourself */
 			((target && write && ancestor->active_children != target->siblings) ||
-			 (target && !write && !ancestor->readonly) ||
+			 (target && !write && !ancestor->part_readonly) ||
 			/* We are partitioned and we want to write or some child
 			 * is writing and we want to read, unpartition ourself*/
-			(!target && (write || !ancestor->readonly))))
+			(!target && (write || !ancestor->part_readonly))))
 	{
 #ifdef STARPU_DEVEL
 #warning FIXME: better choose gathering node
@@ -1030,14 +994,14 @@ static void _starpu_data_partition_access_look_up(starpu_data_handle_t ancestor,
 	if (ancestor->partitioned)
 	{
 		/* That must be readonly, otherwise we would have unpartitioned it */
-		STARPU_ASSERT(ancestor->readonly);
+		STARPU_ASSERT(ancestor->part_readonly);
 		if (write)
 		{
 			_STARPU_DEBUG("ancestor %p is already partitioned RO, turn RW\n", ancestor);
 			/* Already partitioned, normally it's already for the target */
 			STARPU_ASSERT(ancestor->active_children == target->siblings);
 			/* And we are here just because we haven't partitioned rw */
-			STARPU_ASSERT(ancestor->readonly && write);
+			STARPU_ASSERT(ancestor->part_readonly && write);
 			/* So we just need to upgrade ro to rw */
 			starpu_data_partition_readwrite_upgrade_submit(ancestor, target->nsiblings, target->siblings);
 		}

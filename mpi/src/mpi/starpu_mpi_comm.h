@@ -25,6 +25,8 @@
 
 #include <mpi/starpu_mpi_mpi_backend.h>
 
+/** @file */
+
 #ifdef __cplusplus
 extern "C"
 {

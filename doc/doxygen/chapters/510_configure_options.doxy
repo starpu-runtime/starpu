@@ -442,7 +442,7 @@ $ STARPU_SILENT=1 mpirun -np 2 ./insert_task
 <dd>
 \anchor enable-nmad
 \addindex __configure__--enable-nmad
-Enable the NewMadeleine implementation for StarPU-MPI.
+Enable the NewMadeleine implementation for StarPU-MPI. See \ref Nmad for more details.
 </dd>
 
 <dt>--disable-fortran</dt>
@@ -571,11 +571,11 @@ Specify the blas library to be used by some of the examples. Librairies availabl
 Enable linking with LevelDB if available
 </dd>
 
-<dt>--disable-hdf5</dt>
+<dt>--enable-hdf5</dt>
 <dd>
-\anchor disable-hdf5
-\addindex __configure__--disable-hdf5
-Disable building HDF5 support.
+\anchor enable-hdf5
+\addindex __configure__--enable-hdf5
+Enable building HDF5 support.
 </dd>
 
 <dt>--with-hdf5-include-dir=<c>path</c></dt>
@@ -761,11 +761,19 @@ of this parameter must be in [0..100]. The default value of
 this parameter is 10. Experimental.
 </dd>
 
-<dt>--disable-mlr</dt>
+<dt>--enable-mlr</dt>
 <dd>
-\anchor disable-mlr
-\addindex __configure__--disable-mlr
-Allow to disable multiple linear regression models (see \ref PerformanceModelExample)
+\anchor enable-mlr
+\addindex __configure__--enable-mlr
+Allow to enable multiple linear regression models (see \ref PerformanceModelExample)
+</dd>
+
+<dt>--enable-mlr-system-blas</dt>
+<dd>
+\anchor enable-mlr-system-blas
+\addindex __configure__--enable-mlr-system-blas
+Allow to make multiple linear regression models use the system-provided BLAS for dgels
+(see \ref PerformanceModelExample)
 </dd>
 
 </dl>

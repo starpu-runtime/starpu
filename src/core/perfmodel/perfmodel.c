@@ -126,18 +126,8 @@ double starpu_worker_get_relative_speedup(struct starpu_perfmodel_arch* perf_arc
 	int dev;
 	for(dev = 0; dev < perf_arch->ndevices; dev++)
 	{
-		double coef = 0.0;
-		if (perf_arch->devices[dev].type == STARPU_CPU_WORKER)
-			coef = _STARPU_CPU_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_CUDA_WORKER)
-			coef = _STARPU_CUDA_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_OPENCL_WORKER)
-			coef = _STARPU_OPENCL_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_MIC_WORKER)
-			coef = _STARPU_MIC_ALPHA;
-		else if (perf_arch->devices[dev].type == STARPU_MPI_MS_WORKER)
-			coef = _STARPU_MPI_MS_ALPHA;
-
+		enum starpu_worker_archtype archtype = perf_arch->devices[dev].type;
+		double coef = starpu_driver_info[archtype].alpha;
 		speedup += coef * (perf_arch->devices[dev].ncores);
 	}
 	return speedup;
@@ -305,7 +295,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 		if (!_starpu_data_is_multiformat_handle(handle))
 			continue;
 
-		node_kind = _starpu_worker_get_node_kind(arch->devices[0].type);
+		node_kind = starpu_worker_get_memory_node_kind(arch->devices[0].type);
 		if (!_starpu_handle_needs_conversion_task_for_arch(handle, node_kind))
 			continue;
 

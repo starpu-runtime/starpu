@@ -211,7 +211,7 @@ the application code on a thread launched by the application, or automatically
 by StarPU on a device-dependent CPU thread launched by StarPU. Whether a
 worker's operation cycle is managed automatically or
 not is controlled per session by the field \c not_launched_drivers of the \c
-starpu_conf struct, and is decided in \ref _starpu_launch_drivers() function.
+starpu_conf struct, and is decided in \c _starpu_launch_drivers function.
 
 When managed automatically, cycles of operations for a worker are handled by the corresponding
 driver specific <code>_starpu_<DRV>_worker()</code> function, where \c DRV is a driver name such as
@@ -220,7 +220,7 @@ Otherwise, the application must supply a thread which will repeatedly call \ref
 starpu_driver_run_once() for the corresponding worker.
 
 In both cases, control is then transferred to 
-\ref _starpu_cpu_driver_run_once() (or the corresponding driver specific func).
+\c _starpu_cpu_driver_run_once (or the corresponding driver specific func).
 The cycle of operations typically includes, at least, the following operations:
 
 - <b>task scheduling</b>
@@ -270,7 +270,7 @@ driving) progress, with a call to \ref __starpu_datawizard_progress(),
 
 Once the worker has a pending task assigned and the input data for that task are
 available in the memory node reachable by the worker's computing unit, the
-worker calls \ref _starpu_cpu_driver_execute_task() (or the corresponding driver
+worker calls \c _starpu_cpu_driver_execute_task (or the corresponding driver
 specific function) to proceed to the execution of the task.
 
 
@@ -312,12 +312,12 @@ writing.
 When the set of workers assigned to a scheduling context is about to be
 modified, all the workers in the union between the workers belonging to the
 scheduling context before the change and the workers expected to belong to the
-scheduling context after the change must be notified using the \ref
-notify_workers_about_changing_ctx_pending() function prior to the update. After
+scheduling context after the change must be notified using the
+\c notify_workers_about_changing_ctx_pending function prior to the update. After
 the update, all the workers in that same union must be notified for the update
-completion with a call to \ref notify_workers_about_changing_ctx_done().
+completion with a call to \c notify_workers_about_changing_ctx_done.
 
-The function \ref notify_workers_about_changing_ctx_pending() places every
+The function \c notify_workers_about_changing_ctx_pending places every
 worker passed in argument in a state compatible with changing the scheduling
 context assignment of that worker, possibly blocking until that worker leaves
 incompatible states such as a pending scheduling operation. If the caller of

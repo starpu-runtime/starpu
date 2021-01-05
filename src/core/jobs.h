@@ -52,10 +52,7 @@ struct _starpu_worker;
 /** codelet function */
 typedef void (*_starpu_cl_func_t)(void **, void *);
 
-#define _STARPU_CPU_MAY_PERFORM(j)	((j)->task->where & STARPU_CPU)
-#define _STARPU_CUDA_MAY_PERFORM(j)      ((j)->task->where & STARPU_CUDA)
-#define _STARPU_OPENCL_MAY_PERFORM(j)	((j)->task->where & STARPU_OPENCL)
-#define _STARPU_MIC_MAY_PERFORM(j)	((j)->task->where & STARPU_MIC)
+#define _STARPU_MAY_PERFORM(j, arch)	((j)->task->where & STARPU_##arch)
 
 struct _starpu_data_descr
 {
@@ -272,10 +269,8 @@ size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_p
 struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker);
 
 /** Put a task into the pool of tasks that are explicitly attributed to the
- * specified worker. If "back" is set, the task is put at the back of the list.
- * Considering the tasks are popped from the back, this value should be 0 to
- * enforce a FIFO ordering. */
-int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task, int prio);
+ * specified worker. */
+int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task);
 
 #define _STARPU_JOB_GET_ORDERED_BUFFER_INDEX(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].index : job->ordered_buffers[i].index)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].handle : job->ordered_buffers[i].handle)

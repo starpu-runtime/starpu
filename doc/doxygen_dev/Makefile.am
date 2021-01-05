@@ -67,6 +67,10 @@ chapters =	\
 images =
 
 if STARPU_BUILD_DOC
+EXTRA_DIST += \
+	      $(top_srcdir)/doc/doxygen_dev/chapters/version.sty \
+	      $(top_srcdir)/doc/doxygen_dev/chapters/version.html
+
 config.h: $(top_srcdir)/src/common/config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 	@$(SED) -i '1s/^/\/\*\* \@file \*\/\n/' $@
@@ -168,7 +172,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/common/list.h	\
 	$(top_srcdir)/src/debug/starpu_debug_helpers.h	\
 	$(top_srcdir)/src/debug/traces/starpu_fxt.h	\
-	$(top_srcdir)/src/starpu_parameters.h	\
 	$(top_srcdir)/src/sched_policies/fifo_queues.h	\
 	$(top_srcdir)/src/sched_policies/helper_mct.h	\
 	$(top_srcdir)/src/sched_policies/sched_component.h	\
@@ -244,9 +247,4 @@ endif
 
 EXTRA_DIST += doxygen.cfg refman.tex \
 	      $(chapters) $(images)
-
-# Rule to update documentation on web server. Should only be used locally.
-PUBLISHHOST	?= gforge
-update-web: $(DOX_PDF)
-	scp -pr starpu_dev.pdf html_dev $(PUBLISHHOST):/home/groups/starpu/htdocs/files/doc
 

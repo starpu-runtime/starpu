@@ -141,26 +141,24 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 			 * 	Unless peer transfer is supported (and it would then have been selected above).
 			 * 	Other should be ok */
 
-			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM ||
-			    starpu_node_get_kind(i) == STARPU_OPENCL_RAM ||
-			    starpu_node_get_kind(i) == STARPU_MIC_RAM)
-				i_gpu = i;
-
 			if (starpu_node_get_kind(i) == STARPU_CPU_RAM ||
                             starpu_node_get_kind(i) == STARPU_MPI_MS_RAM)
 				i_ram = i;
-			if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
+			else if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
 				i_disk = i;
+			else
+				i_gpu = i;
 		}
 	}
 
 	/* we have to use cpu_ram in first */
 	if (i_ram != -1)
 		src_node = i_ram;
-	/* no luck we have to use the disk memory */
 	else if (i_gpu != -1)
+	/* otherwise a gpu */
 		src_node = i_gpu;
 	else
+	/* no luck we have to use the disk memory */
 		src_node = i_disk;
 
 	STARPU_ASSERT(src_node != -1);
@@ -198,10 +196,12 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 		unsigned node;
 		for (node = 0; node < nnodes; node++)
 		{
-                       _STARPU_TRACE_DATA_STATE_INVALID(handle, node);
+			if (handle->per_node[node].state != STARPU_INVALID)
+			       _STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 			handle->per_node[node].state = STARPU_INVALID;
 		}
-               _STARPU_TRACE_DATA_STATE_OWNER(handle, requesting_node);
+		if (requesting_replicate->state != STARPU_OWNER)
+			_STARPU_TRACE_DATA_STATE_OWNER(handle, requesting_node);
 		requesting_replicate->state = STARPU_OWNER;
 		if (handle->home_node != -1 && handle->per_node[handle->home_node].state == STARPU_INVALID)
 			/* Notify that this MC is now dirty */
@@ -217,13 +217,15 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 			for (node = 0; node < nnodes; node++)
 			{
 				struct _starpu_data_replicate *replicate = &handle->per_node[node];
-                               if (replicate->state != STARPU_INVALID)
-			       {
-                                       _STARPU_TRACE_DATA_STATE_SHARED(handle, node);
+				if (replicate->state != STARPU_INVALID)
+				{
+					if (replicate->state != STARPU_SHARED)
+						_STARPU_TRACE_DATA_STATE_SHARED(handle, node);
 					replicate->state = STARPU_SHARED;
-                               }
+				}
 			}
-                       _STARPU_TRACE_DATA_STATE_SHARED(handle, requesting_node);
+			if (requesting_replicate->state != STARPU_SHARED)
+				_STARPU_TRACE_DATA_STATE_SHARED(handle, requesting_node);
 			requesting_replicate->state = STARPU_SHARED;
 		}
 	}
@@ -891,7 +893,7 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
 
 /* in case the data was accessed on a write mode, do not forget to
  * make it accessible again once it is possible ! */
-void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_wt_mask, struct _starpu_data_replicate *replicate)
+void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_wt_mask, enum starpu_data_access_mode down_to_mode, struct _starpu_data_replicate *replicate)
 {
 	uint32_t wt_mask;
 	wt_mask = default_wt_mask | handle->wt_mask;
@@ -916,14 +918,17 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
 
-	/* Release refcnt taken by fetch_data_on_node */
-	replicate->refcnt--;
-	STARPU_ASSERT_MSG(replicate->refcnt >= 0, "handle %p released too many times", handle);
+	if (down_to_mode == STARPU_NONE)
+	{
+		/* Release refcnt taken by fetch_data_on_node */
+		replicate->refcnt--;
+		STARPU_ASSERT_MSG(replicate->refcnt >= 0, "handle %p released too many times", handle);
 
-	STARPU_ASSERT_MSG(handle->busy_count > 0, "handle %p released too many times", handle);
-	handle->busy_count--;
+		STARPU_ASSERT_MSG(handle->busy_count > 0, "handle %p released too many times", handle);
+		handle->busy_count--;
+	}
 
-	if (!_starpu_notify_data_dependencies(handle))
+	if (!_starpu_notify_data_dependencies(handle, down_to_mode))
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
@@ -1258,7 +1263,7 @@ enomem:
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 
-		_starpu_release_data_on_node(handle, 0, local_replicate);
+		_starpu_release_data_on_node(handle, 0, STARPU_NONE, local_replicate);
 	}
 
 	return -1;
@@ -1367,13 +1372,13 @@ void __starpu_push_task_output(struct _starpu_job *j)
 		if (node == -1)
 		{
 			/* NOWHERE case, just notify dependencies */
-			if (!_starpu_notify_data_dependencies(handle))
+			if (!_starpu_notify_data_dependencies(handle, STARPU_NONE))
 				_starpu_spin_unlock(&handle->header_lock);
 		}
 		else
 		{
 			_starpu_spin_unlock(&handle->header_lock);
-			_starpu_release_data_on_node(handle, 0, local_replicate);
+			_starpu_release_data_on_node(handle, 0, STARPU_NONE, local_replicate);
 		}
 	}
 

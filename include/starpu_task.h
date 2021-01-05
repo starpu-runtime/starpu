@@ -48,39 +48,43 @@ extern "C"
 #define STARPU_NOWHERE	((1ULL)<<0)
 
 /**
+  Convert from enum starpu_worker_archtype to worker type mask for use in "where" fields
+  */
+#define STARPU_WORKER_TO_MASK(worker_archtype) (1ULL << (worker_archtype + 1))
+/**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a CPU processing unit.
 */
-#define STARPU_CPU	((1ULL)<<1)
+#define STARPU_CPU	STARPU_WORKER_TO_MASK(STARPU_CPU_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a CUDA processing unit.
 */
-#define STARPU_CUDA	((1ULL)<<3)
+#define STARPU_CUDA	STARPU_WORKER_TO_MASK(STARPU_CUDA_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a OpenCL processing unit.
 */
-#define STARPU_OPENCL	((1ULL)<<6)
+#define STARPU_OPENCL	STARPU_WORKER_TO_MASK(STARPU_OPENCL_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a MIC processing unit.
 */
-#define STARPU_MIC	((1ULL)<<7)
+#define STARPU_MIC	STARPU_WORKER_TO_MASK(STARPU_MIC_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
    executed on a MPI Slave processing unit.
 */
-#define STARPU_MPI_MS	((1ULL)<<9)
+#define STARPU_MPI_MS	STARPU_WORKER_TO_MASK(STARPU_MPI_MS_WORKER)
 
 /**
    Value to be set in starpu_codelet::flags to execute the codelet
@@ -144,8 +148,9 @@ enum starpu_codelet_type
 
 enum starpu_task_status
 {
-	STARPU_TASK_INVALID,     /**< The task has just been initialized. */
-#define STARPU_TASK_INVALID 0
+	STARPU_TASK_INIT,        /**< The task has just been initialized. */
+#define STARPU_TASK_INIT 0
+#define STARPU_TASK_INVALID STARPU_TASK_INIT  /**< old name for STARPU_TASK_INIT */
 	STARPU_TASK_BLOCKED,     /**< The task has just been
 				    submitted, and its dependencies has not been checked yet. */
 	STARPU_TASK_READY,       /**< The task is ready for execution. */
@@ -545,6 +550,20 @@ struct starpu_codelet
 	unsigned color;
 
 	/**
+	   Optional field, the default value is <c>NULL</c>. This is a
+	   function pointer of prototype <c>void (*f)(void *)</c>
+	   which specifies a possible callback. If this pointer is
+	   non-<c>NULL</c>, the callback function is executed on the
+	   host after the execution of the task. If the task defines a
+	   callback, the codelet callback is not called, unless called
+	   within the task callback function.
+	   The callback is passed the value contained in the
+	   starpu_task::callback_arg field. No callback is executed if
+	   the field is set to <c>NULL</c>.
+	*/
+	void (*callback_func)(void *);
+
+	/**
 	   Various flags for the codelet.
 	 */
 	int flags;
@@ -586,6 +605,18 @@ struct starpu_task
 	   ::STARPU_NAME followed by the const char *.
 	*/
 	const char *name;
+
+	/**
+	   Optional file name where the task was submitted. This can be useful
+	   for debugging purposes.
+	*/
+	const char *file;
+
+	/**
+	  Optional line number where the task was submitted. This can be useful
+	   for debugging purposes.
+	*/
+	int line;
 
 	/**
 	   Pointer to the corresponding structure starpu_codelet. This
@@ -762,7 +793,7 @@ struct starpu_task
 	   <c>NULL</c>.
 
 	   With starpu_task_insert() and alike this can be specified thanks to
-	   ::STARPU_CALLBACK_ARG followed by the function pointer, or thanks to
+	   ::STARPU_CALLBACK_ARG followed by the argument pointer, or thanks to
 	   ::STARPU_CALLBACK_WITH_ARG or
 	   ::STARPU_CALLBACK_WITH_ARG_NFREE followed by the function
 	   pointer and the argument.
@@ -1245,7 +1276,7 @@ struct starpu_task
 	.detach = 1,					\
 	.destroy = 0,					\
 	.regenerate = 0,				\
-	.status = STARPU_TASK_INVALID,			\
+	.status = STARPU_TASK_INIT,			\
 	.profiling_info = NULL,				\
 	.predicted = NAN,				\
 	.predicted_transfer = NAN,			\
@@ -1421,6 +1452,16 @@ void starpu_task_destroy(struct starpu_task *task);
    that the field starpu_task::synchronous is set to 0.
 */
 int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
+
+#ifdef STARPU_USE_FXT
+static inline int starpu_task_submit_line(struct starpu_task *task, const char *file, int line)
+{
+	task->file = file;
+	task->line = line;
+	return starpu_task_submit(task);
+}
+#define starpu_task_submit(task) starpu_task_submit_line((task), __FILE__, __LINE__)
+#endif
 
 /**
    Submit \p task to StarPU with dependency bypass.

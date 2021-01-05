@@ -87,15 +87,11 @@ advantage of their specificities in a portable fashion.
 || III. Getting StarPU ||
 ++=====================++
 
-StarPU is available on https://gforge.inria.fr/projects/starpu/.
+StarPU is available on https://gitlab.inria.fr/starpu/starpu
 
-The project's SVN repository can be checked out through anonymous
-access with the following command(s).
+The GIT repository access can be checked out with the following command.
 
-$ svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk
-$ svn checkout --username anonsvn https://scm.gforge.inria.fr/svn/starpu/trunk
-
-The password is 'anonsvn'
+$ git clone git@gitlab.inria.fr:starpu/starpu.git
 
 ++=============================++
 || IV. Building and Installing ||

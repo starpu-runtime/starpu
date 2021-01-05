@@ -76,6 +76,7 @@ chapters =	\
 	chapters/370_online_performance_tools.doxy		\
 	chapters/380_offline_performance_tools.doxy		\
 	chapters/390_faq.doxy		\
+	chapters/400_python.doxy		\
 	chapters/401_out_of_core.doxy		\
 	chapters/410_mpi_support.doxy		\
 	chapters/415_fault_tolerance.doxy	\
@@ -145,6 +146,10 @@ images = 	\
 	chapters/images/temanejo.png
 
 if STARPU_BUILD_DOC
+EXTRA_DIST += \
+	      $(top_srcdir)/doc/doxygen/chapters/version.sty \
+	      $(top_srcdir)/doc/doxygen/chapters/version.html
+
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 
@@ -301,8 +306,4 @@ endif
 EXTRA_DIST += doxygen.cfg refman.tex \
 	      $(chapters) $(images)
 
-# Rule to update documentation on web server. Should only be used locally.
-PUBLISHHOST	?= gforge
-update-web: $(DOX_PDF)
-	scp -pr starpu.pdf html $(PUBLISHHOST):/home/groups/starpu/htdocs/files/doc
 

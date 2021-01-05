@@ -18,14 +18,17 @@
 
 __kernel void fblock_opencl(__global int* block, unsigned offset, int nx, int ny, int nz, unsigned ldy, unsigned ldz, int factor)
 {
-        int i, j, k;
-        block = (__global char *)block + offset;
-        for(k=0; k<nz ; k++)
-	{
-                for(j=0; j<ny ; j++)
-		{
-                        for(i=0; i<nx ; i++)
-                                block[(k*ldz)+(j*ldy)+i] = factor;
-                }
-        }
+	const int idx = get_global_id(0);
+	const int idy = get_global_id(1);
+	const int idz = get_global_id(2);
+	if (idx >= nx)
+		return;
+	if (idy >= ny)
+		return;
+	if (idz >= nz)
+		return;
+
+	block = (__global int*) ((__global char *)block + offset);
+	int i = idz*ldz + idy*ldy + idx;
+	block[i] = factor;
 }

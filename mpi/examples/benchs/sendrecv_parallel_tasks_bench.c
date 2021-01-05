@@ -34,7 +34,6 @@
 #include <starpu_mpi.h>
 #include "helper.h"
 #include "bench_helper.h"
-#include "abstract_sendrecv_bench.h"
 
 #define NB_WARMUP_PINGPONGS 10
 
@@ -56,6 +55,8 @@ void cpu_task(void* descr[], void* args)
 	double t1, t2;
 	int asked_worker;
 	int current_worker = starpu_worker_get_id();
+	uint64_t j = 0;
+	uint64_t k = 0;
 
 	starpu_codelet_unpack_args(args, &mpi_rank, &asked_worker, &s, &handle_send, &handle_recv);
 
@@ -64,7 +65,7 @@ void cpu_task(void* descr[], void* args)
 	iterations = bench_nb_iterations(iterations, s);
 	double* lats = malloc(sizeof(double) * iterations);
 
-	for (uint64_t j = 0; j < NB_WARMUP_PINGPONGS; j++)
+	for (j = 0; j < NB_WARMUP_PINGPONGS; j++)
 	{
 		if (mpi_rank == 0)
 		{
@@ -78,7 +79,7 @@ void cpu_task(void* descr[], void* args)
 		}
 	}
 
-	for (uint64_t j = 0; j < iterations; j++)
+	for (j = 0; j < iterations; j++)
 	{
 		if (mpi_rank == 0)
 		{
@@ -107,7 +108,7 @@ void cpu_task(void* descr[], void* args)
 		const double d9_lat = lats[9 * (iterations - 1) / 10];
 		double avg_lat = 0.0;
 
-		for(uint64_t k = 0; k < iterations; k++)
+		for(k = 0; k < iterations; k++)
 		{
 			avg_lat += lats[k];
 		}
@@ -167,6 +168,8 @@ int main(int argc, char **argv)
 	unsigned cpu_count = starpu_cpu_worker_get_count();
 	unsigned* mpi_tags = malloc(cpu_count * sizeof(unsigned));
 	unsigned tag = 0;
+	uint64_t s = 0;
+	unsigned i = 0;
 
 	int* workers = malloc(cpu_count * sizeof(int));
 	float** vectors_send = malloc(cpu_count * sizeof(float*));
@@ -174,11 +177,11 @@ int main(int argc, char **argv)
 	starpu_data_handle_t* handles_send = malloc(cpu_count * sizeof(starpu_data_handle_t));
 	starpu_data_handle_t* handles_recv = malloc(cpu_count * sizeof(starpu_data_handle_t));
 
-	for (uint64_t s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
+	for (s = NX_MIN; s <= NX_MAX; s = bench_next_size(s))
 	{
 		starpu_pause();
 
-		for (unsigned i = 0; i < cpu_count; i++)
+		for (i = 0; i < cpu_count; i++)
 		{
 			workers[i] = i;
 			vectors_send[i] = malloc(s);
@@ -201,7 +204,7 @@ int main(int argc, char **argv)
 		starpu_resume();
 		starpu_task_wait_for_all();
 
-		for (unsigned i = 0; i < cpu_count; i++)
+		for (i = 0; i < cpu_count; i++)
 		{
 			starpu_data_unregister(handles_send[i]);
 			starpu_data_unregister(handles_recv[i]);

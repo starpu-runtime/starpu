@@ -23,7 +23,7 @@
 #include <starpu_sched_component.h>
 
 
-/* lock and unlock drivers for modifying schedulers */
+/** lock and unlock drivers for modifying schedulers */
 void _starpu_sched_component_lock_all_workers(void);
 void _starpu_sched_component_unlock_all_workers(void);
 
