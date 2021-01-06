@@ -40,7 +40,7 @@ rm -rf ${basename}/build
 mkdir ${basename}/build
 cd ${basename}/build
 
-export PATH=/c/Builds:/c/MinGW/bin/:/c/MinGW/mingw32/bin/:/c/MinGW/msys/1.0/bin:"/c/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin":"/c/Program Files/Microsoft Visual Studio 11.0/Common7/IDE":$oldPATH
+export PATH=/c/Builds:c:/msys64/mingw64/bin:"/c/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin":"/c/Program Files/Microsoft Visual Studio 11.0/Common7/IDE":$oldPATH
 #export HWLOC=/c/StarPU/hwloc-win32-build-1.11.0
 
 prefix=${PWD}/../../${winball}
