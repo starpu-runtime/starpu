@@ -136,14 +136,22 @@ def future_generator(iterable, n_jobs, dict_task):
 		for i in range(n_block):
 			# generate the argument list
 			L_args=[]
+			sizebase=0
 			for j in range(len(args)):
 				if type(args[j]) is np.ndarray or isinstance(args[j],types.GeneratorType):
 					L_args.append(args_split[j][i])
+					if sizebase==0:
+						sizebase=len(args_split[j][i])
+					else:
+						if sizebase==len(args_split[j][i]):
+							continue
+						else:
+							raise SystemExit('Error: all arrays should be split into equal size')
 				else:
 					L_args.append(args[j])
 			#print("L_args is", L_args)
 			fut=starpu.task_submit(name=dict_task['name'], synchronous=dict_task['synchronous'], priority=dict_task['priority'],\
-								   color=dict_task['color'], flops=dict_task['flops'], perfmodel=dict_task['perfmodel'])\
+								   color=dict_task['color'], flops=dict_task['flops'], perfmodel=dict_task['perfmodel'], sizebase=sizebase)\
 				                  (f, *L_args)
 			L_fut.append(fut)
 		return L_fut
@@ -169,8 +177,9 @@ def future_generator(iterable, n_jobs, dict_task):
 		# operation in each split list
 		L_fut=[]
 		for i in range(len(L_split)):
+			sizebase=len(L_split[i])
 			fut=starpu.task_submit(name=dict_task['name'], synchronous=dict_task['synchronous'], priority=dict_task['priority'],\
-								   color=dict_task['color'], flops=dict_task['flops'], perfmodel=dict_task['perfmodel'])\
+								   color=dict_task['color'], flops=dict_task['flops'], perfmodel=dict_task['perfmodel'], sizebase=sizebase)\
 				                  (lf, L_split[i])
 			L_fut.append(fut)
 		return L_fut

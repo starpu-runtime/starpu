@@ -41,12 +41,12 @@ def dict_perf_generator(perfsymbol):
 	return p
 
 #add options in function task_submit
-def task_submit(*, name=None, synchronous=0, priority=0, color=None, flops=None, perfmodel=None):
+def task_submit(*, name=None, synchronous=0, priority=0, color=None, flops=None, perfmodel=None, sizebase=0):
 	if perfmodel==None:
-		dict_option={'name': name, 'synchronous': synchronous, 'priority': priority, 'color': color, 'flops': flops, 'perfmodel': None}
+		dict_option={'name': name, 'synchronous': synchronous, 'priority': priority, 'color': color, 'flops': flops, 'perfmodel': None, 'sizebase': sizebase}
 	else:
 		p=dict_perf_generator(perfmodel)
-		dict_option={'name': name, 'synchronous': synchronous, 'priority': priority, 'color': color, 'flops': flops, 'perfmodel': p.get_struct()}
+		dict_option={'name': name, 'synchronous': synchronous, 'priority': priority, 'color': color, 'flops': flops, 'perfmodel': p.get_struct(), 'sizebase': sizebase}
 
 	def call_task_submit(f, *args):
 		fut=starpupy._task_submit(f, *args, dict_option)
