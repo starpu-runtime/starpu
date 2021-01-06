@@ -520,7 +520,7 @@ void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, 
    Unpack one argument from struct starpu_codelet_pack_arg \p state into ptr.
    That structure has to be initialized before with starpu_codelet_unpack_arg_init().
 */
-void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void **ptr);
+void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr);
 
 void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state);
 
