@@ -698,6 +698,8 @@ case "$target" in
   starpu_darwin=yes
   AC_DEFINE(STARPU_HAVE_DARWIN, [1], [Define this on darwin.])
   ;;
+*)
+  AC_ERROR(target $target unknown)
 esac
 AM_CONDITIONAL([STARPU_HAVE_WINDOWS], [test "x$starpu_windows" = "xyes"])
 AM_CONDITIONAL([STARPU_LINUX_SYS], [test "x$starpu_linux" = "xyes"])
