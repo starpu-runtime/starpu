@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -642,6 +642,8 @@ endif
 datawizard_test_arbiter_SOURCES =	\
 	datawizard/test_arbiter.cpp
 
+main_starpu_worker_exists_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 
 main_insert_task_where_SOURCES =		\
@@ -819,12 +821,18 @@ helper_starpu_data_dup_ro_SOURCES +=		\
 	main/increment.cu
 endif
 
+datawizard_interfaces_copy_interfaces_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+
+datawizard_data_register_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+
 ###################
 # Block interface #
 ###################
 datawizard_interfaces_block_block_interface_SOURCES= \
 	datawizard/interfaces/test_interfaces.c  \
 	datawizard/interfaces/block/block_interface.c
+
+datawizard_interfaces_block_block_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
 
 if STARPU_USE_CUDA
 datawizard_interfaces_block_block_interface_SOURCES+= \
@@ -845,6 +853,8 @@ datawizard_interfaces_tensor_tensor_interface_SOURCES= \
 	datawizard/interfaces/test_interfaces.c  \
 	datawizard/interfaces/tensor/tensor_interface.c
 
+datawizard_interfaces_tensor_tensor_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+
 if STARPU_USE_CUDA
 datawizard_interfaces_tensor_tensor_interface_SOURCES+= \
 	datawizard/interfaces/tensor/tensor_cuda.cu
@@ -863,6 +873,8 @@ endif
 datawizard_interfaces_bcsr_bcsr_interface_SOURCES= \
 	datawizard/interfaces/test_interfaces.c \
 	datawizard/interfaces/bcsr/bcsr_interface.c
+
+datawizard_interfaces_bcsr_bcsr_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
 
 if STARPU_USE_CUDA
 datawizard_interfaces_bcsr_bcsr_interface_SOURCES+= \
@@ -883,6 +895,8 @@ datawizard_interfaces_coo_coo_interface_SOURCES= \
 	datawizard/interfaces/test_interfaces.c \
 	datawizard/interfaces/coo/coo_interface.c
 
+datawizard_interfaces_coo_coo_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+
 if STARPU_USE_CUDA
 datawizard_interfaces_coo_coo_interface_SOURCES+= \
 	datawizard/interfaces/coo/coo_cuda.cu
@@ -902,6 +916,8 @@ datawizard_interfaces_csr_csr_interface_SOURCES= \
 	datawizard/interfaces/test_interfaces.c  \
 	datawizard/interfaces/csr/csr_interface.c
 
+datawizard_interfaces_csr_csr_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+
 if STARPU_USE_CUDA
 datawizard_interfaces_csr_csr_interface_SOURCES+= \
 	datawizard/interfaces/csr/csr_cuda.cu
@@ -915,9 +931,14 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 endif
 
 
+####################
+# Vector interface #
+####################
 datawizard_interfaces_vector_vector_interface_SOURCES =               \
 	datawizard/interfaces/vector/vector_interface.c               \
 	datawizard/interfaces/test_interfaces.c
+
+datawizard_interfaces_vector_vector_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
 
 if STARPU_USE_CUDA
 datawizard_interfaces_vector_vector_interface_SOURCES +=               \
@@ -937,6 +958,8 @@ endif
 datawizard_interfaces_matrix_matrix_interface_SOURCES= \
 	datawizard/interfaces/test_interfaces.c        \
 	datawizard/interfaces/matrix/matrix_interface.c
+
+datawizard_interfaces_matrix_matrix_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
 
 if STARPU_USE_CUDA
 datawizard_interfaces_matrix_matrix_interface_SOURCES+= \
@@ -958,6 +981,8 @@ datawizard_interfaces_multiformat_multiformat_interface_SOURCES =           \
 	datawizard/interfaces/test_interfaces.c                             \
 	datawizard/interfaces/multiformat/multiformat_interface.c           \
 	datawizard/interfaces/multiformat/multiformat_conversion_codelets.c
+
+datawizard_interfaces_multiformat_multiformat_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
 
 if STARPU_USE_CUDA
 datawizard_interfaces_multiformat_multiformat_interface_SOURCES+=                  \
@@ -995,9 +1020,14 @@ datawizard_interfaces_multiformat_advanced_same_handle_SOURCES= \
 	datawizard/interfaces/multiformat/advanced/same_handle.c
 
 
+######################
+# Variable interface #
+######################
 datawizard_interfaces_variable_variable_interface_SOURCES=   \
 	datawizard/interfaces/test_interfaces.c              \
 	datawizard/interfaces/variable/variable_interface.c
+
+datawizard_interfaces_variable_variable_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
 
 if STARPU_USE_CUDA
 datawizard_interfaces_variable_variable_interface_SOURCES+= \
@@ -1018,6 +1048,7 @@ datawizard_interfaces_void_void_interface_SOURCES=\
 	datawizard/interfaces/test_interfaces.c        \
 	datawizard/interfaces/void/void_interface.c
 
+datawizard_interfaces_void_void_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
 
 overlap_gpu_concurrency_SOURCES=\
 	overlap/gpu_concurrency.c
@@ -1064,6 +1095,7 @@ perfmodels_feed_SOURCES=\
 	perfmodels/feed.c
 
 sched_policies_execute_all_tasks_LDFLAGS = $(AM_LDFLAGS) -lm
+sched_policies_execute_all_tasks_CFLAGS = $(AM_LDFLAGS) $(FXT_CFLAGS)
 
 # Fortran90 tests
 
