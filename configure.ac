@@ -681,7 +681,7 @@ AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
 case "$target" in
-*-*-mingw*|*-*-cygwin*)
+*-*-mingw*|*-*-cygwin*|*-*-msys*)
   starpu_windows=yes
   libext=a
   AC_DEFINE(STARPU_HAVE_WINDOWS, [1], [Define this on windows.])
