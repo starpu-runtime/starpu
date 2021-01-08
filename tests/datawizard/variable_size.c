@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2017-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -90,7 +90,7 @@ void variable_size_data_register(starpu_data_handle_t *handleptr, unsigned x, un
 	{
 		starpu_interface_variable_size_ops.interfaceid = starpu_data_interface_get_next_id();
 	}
-	struct variable_size_interface interface =
+	struct variable_size_interface vsinterface =
 	{
 		.id = starpu_interface_variable_size_ops.interfaceid,
 		.x = x,
@@ -98,20 +98,19 @@ void variable_size_data_register(starpu_data_handle_t *handleptr, unsigned x, un
 	};
 
 	/* Simulate that tiles close to the diagonal are more dense */
-	interface.size = FULLSIZE * (starpu_lrand48() % 1024 + 1024) / 2048. * (N-sqrt(abs((int)x-(int)y)*N)) / N;
+	vsinterface.size = FULLSIZE * (starpu_lrand48() % 1024 + 1024) / 2048. * (N-sqrt(abs((int)x-(int)y)*N)) / N;
 	/* Round to page size */
-	interface.size -= interface.size & (65536-1);
+	vsinterface.size -= interface.size & (65536-1);
 
-	_starpu_simgrid_data_new(interface.size);
+	_starpu_simgrid_data_new(vsinterface.size);
 
-	starpu_data_register(handleptr, -1, &interface, &starpu_interface_variable_size_ops);
+	starpu_data_register(handleptr, -1, &vsinterface, &starpu_interface_variable_size_ops);
 }
 
 static size_t variable_size_get_size(starpu_data_handle_t handle)
 {
-	struct variable_size_interface *interface =
-		starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
-	return interface->size;
+	struct variable_size_interface *vsinterface = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	return vsinterface->size;
 }
 
 static uint32_t variable_size_footprint(starpu_data_handle_t handle)
@@ -143,8 +142,7 @@ static starpu_ssize_t describe_variable_size(void *data_interface, char *buf, si
 }
 
 /* returns the size of the allocated area */
-static starpu_ssize_t allocate_variable_size_on_node(void *data_interface,
-						   unsigned dst_node)
+static starpu_ssize_t allocate_variable_size_on_node(void *data_interface, unsigned dst_node)
 {
 	struct variable_size_interface *variable_interface = data_interface;
 	variable_interface->ptr = starpu_malloc_on_node_flags(dst_node, variable_interface->size, STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT | STARPU_MEMORY_OVERFLOW);
@@ -154,8 +152,7 @@ static starpu_ssize_t allocate_variable_size_on_node(void *data_interface,
 	return 0;
 }
 
-static void free_variable_size_on_node(void *data_interface,
-					unsigned node)
+static void free_variable_size_on_node(void *data_interface, unsigned node)
 {
 	struct variable_size_interface *variable_interface = data_interface;
 	starpu_free_on_node(node, variable_interface->ptr, variable_interface->size);
@@ -205,7 +202,6 @@ static struct starpu_data_interface_ops starpu_interface_variable_size_ops =
 	/* We want to observe actual allocations/deallocations */
 	.dontcache = 1,
 };
-
 
 
 static void kernel(void *descr[], void *cl_arg)
