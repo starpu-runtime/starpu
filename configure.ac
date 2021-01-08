@@ -80,6 +80,8 @@ AC_PROG_FC
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_OPENMP
+AC_CHECK_PROGS(PROG_FIND,find)
+
 
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
