@@ -25,7 +25,7 @@ if test -z "$tarball" ; then
     exit 2
 fi
 
-export PATH=/usr/bin:$PATH
+export PATH=/usr/bin:/bin:$PATH
 
 basename=$(basename $tarball .tar.gz)
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
