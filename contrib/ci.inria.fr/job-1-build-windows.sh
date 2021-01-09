@@ -18,14 +18,13 @@
 set -e
 
 oldPATH=$PATH
+export PATH=/c/Builds:/usr/bin:/bin:"/c/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin":"/c/Program Files/Microsoft Visual Studio 11.0/Common7/IDE":$oldPATH
 
 tarball=$(ls -tr starpu*.tar.gz | tail -1)
 if test -z "$tarball" ; then
     echo Tarball not available
     exit 2
 fi
-
-export PATH=/usr/bin:/bin:$PATH
 
 basename=$(basename $tarball .tar.gz)
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
@@ -40,20 +39,19 @@ rm -rf ${basename}/build
 mkdir ${basename}/build
 cd ${basename}/build
 
-export PATH=/c/Builds:/c/msys64/mingw64/bin:"/c/Program Files (x86)/Microsoft Visual Studio 11.0/VC/bin":"/c/Program Files/Microsoft Visual Studio 11.0/Common7/IDE":$oldPATH
 #export HWLOC=/c/StarPU/hwloc-win32-build-1.11.0
 
 prefix=${PWD}/../../${winball}
 rm -rf $prefix
 
+#--with-hwloc=${HWLOC}
+options="--without-hwloc --enable-quick-check --enable-debug --enable-verbose --enable-native-winthreads"
 day=$(date +%u)
 if test $day -le 5
 then
-#    ../configure --prefix=$prefix --with-hwloc=${HWLOC} --disable-build-examples --enable-quick-check --enable-debug --enable-verbose --enable-native-winthreads
-    ../configure --prefix=$prefix --without-hwloc --disable-build-examples --enable-quick-check --enable-debug --enable-verbose --enable-native-winthreads
+    ../configure --prefix=$prefix $options --disable-build-examples
 else
-#    ../configure --prefix=$prefix --with-hwloc=${HWLOC} --enable-quick-check --enable-debug --enable-verbose --enable-native-winthreads
-    ../configure --prefix=$prefix --without-hwloc --enable-quick-check --enable-debug --enable-verbose --enable-native-winthreads
+    ../configure --prefix=$prefix $options
 fi
 
 make
