@@ -15,7 +15,7 @@ REM See the GNU Lesser General Public License in COPYING.LGPL for more details.
 REM
 
 set oldPATH=%PATH%
-set PATH=%PATH%;C:\MinGW\msys\1.0\bin;c:\MinGW\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29333\bin\Hostx64\x64;C:\Users\Administrator\AppData\Local\Programs\Python\Python37-32
+set PATH=C:\MinGW\msys\1.0\bin;c:\MinGW\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Tools\MSVC\14.28.29333\bin\Hostx64\x64;C:\Users\Administrator\AppData\Local\Programs\Python\Python37-32;%PATH%
 sh -c "./job-1-build-windows.sh"
 set PATH=%oldPATH%
 set HWLOC=c:\StarPU\hwloc-win32-build-1.11.0
