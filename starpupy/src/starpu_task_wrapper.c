@@ -383,15 +383,12 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	/*pass optional values name=None, synchronous=1, priority=0, color=None, flops=None, perfmodel=None, sizebase=0*/
 	/*const char * name*/
 	PyObject *PyName = PyDict_GetItemString(dict_option, "name");
-	const char *name_type = Py_TYPE(PyName)->tp_name;
-	if (strcmp(name_type, "NoneType")!=0)
+	if (PyName!=Py_None)
 	{
-		PyObject *pStrObj = PyUnicode_AsUTF8String(PyName);
-		char* name_str = PyBytes_AsString(pStrObj);
+		char* name_str = PyUnicode_AsUTF8(PyName);
 		char* name = strdup(name_str);
 		//printf("name is %s\n", name);
 		task->name=name;
-		Py_DECREF(pStrObj);
 	}
 
 	/*unsigned synchronous:1*/
@@ -408,8 +405,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 	/*unsigned color*/
 	PyObject *PyColor = PyDict_GetItemString(dict_option, "color");
-	const char *color_type = Py_TYPE(PyColor)->tp_name;
-	if (strcmp(color_type, "NoneType")!=0)
+	if (PyColor!=Py_None)
 	{
 		unsigned color=PyLong_AsUnsignedLong(PyColor);
 		//printf("color is %u\n", color);
@@ -418,11 +414,10 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 	/*double flops*/
 	PyObject *PyFlops = PyDict_GetItemString(dict_option, "flops");
-	const char *flops_type = Py_TYPE(PyFlops)->tp_name;
-	if (strcmp(flops_type, "NoneType")!=0)
+	if (PyFlops!=Py_None)
 	{
 		double flops=PyFloat_AsDouble(PyFlops);
-		//printf("flops is %f\n", flop);
+		//printf("flops is %f\n", flops);
 		task->flops=flops;
 	}
 
