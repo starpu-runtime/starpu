@@ -18,7 +18,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-AC_INIT([StarPU], [1.3.99], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://gitlab.inria.fr/starpu/starpu])
+AC_INIT([StarPU], [1.3.99], [starpu-devel@inria.fr], [starpu], [http://gitlab.inria.fr/starpu/starpu])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -87,6 +87,7 @@ AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
+AC_PATH_PROGS(PROG_FIND,find)
 
 dnl locate pkg-config
 PKG_PROG_PKG_CONFIG
@@ -681,7 +682,7 @@ AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
 case "$target" in
-*-*-mingw*|*-*-cygwin*)
+*-*-mingw*|*-*-cygwin*|*-*-msys*)
   starpu_windows=yes
   libext=a
   AC_DEFINE(STARPU_HAVE_WINDOWS, [1], [Define this on windows.])

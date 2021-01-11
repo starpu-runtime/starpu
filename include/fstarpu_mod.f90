@@ -358,7 +358,7 @@ module fstarpu_mod
                 ! int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
                 function fstarpu_worker_get_by_devid(typeid, devid) bind(C)
                         use iso_c_binding, only: c_int, c_ptr
-                        integer(c_int)              :: fstarpu_worker_get_by_type
+                        integer(c_int)              :: fstarpu_worker_get_by_devid
                         type(c_ptr),value,intent(in) :: typeid ! c_intptr_t expected by C func
                         integer(c_int),value,intent(in) :: devid
                 end function fstarpu_worker_get_by_devid
@@ -2534,9 +2534,16 @@ module fstarpu_mod
                 function fstarpu_int_to_cptr(i) bind(C)
                         use iso_c_binding
                         type(c_ptr) :: fstarpu_int_to_cptr
-                        integer :: i
+                        integer(c_int) :: i
                         fstarpu_int_to_cptr = transfer(int(i,kind=c_intptr_t),C_NULL_PTR)
                 end function fstarpu_int_to_cptr
+
+                function fstarpu_long_to_cptr(i) bind(C)
+                        use iso_c_binding
+                        type(c_ptr) :: fstarpu_long_to_cptr
+                        integer(c_long) :: i
+                        fstarpu_long_to_cptr = transfer(int(i,kind=c_intptr_t),C_NULL_PTR)
+                end function fstarpu_long_to_cptr
 
                 ! Note: do not add binding declarations here in 'CONTAINS'
                 ! section, because the compiler generates empty functions for
