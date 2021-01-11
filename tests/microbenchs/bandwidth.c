@@ -25,7 +25,7 @@
  * kernels and number of idle workers.
  */
 
-#ifdef STARPU_QUICK_CHECK
+#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK)
 static size_t size = 1024;
 static unsigned cpustep = 4;
 #else
