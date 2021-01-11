@@ -71,10 +71,11 @@ void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, 
 	state->nargs = 0;
 }
 
-void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr)
+void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t size)
 {
 	size_t ptr_size;
 	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
+	assert(ptr_size==size);
 	state->current_offset += sizeof(ptr_size);
 
 	memcpy(ptr, state->arg_buffer+state->current_offset, ptr_size);
