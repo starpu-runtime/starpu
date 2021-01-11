@@ -201,10 +201,9 @@ void cb_func(void *v)
 	starpu_codelet_unpack_arg(&data, &loop, sizeof(loop));
 	/*skip sb*/
 	starpu_codelet_unpack_discard_arg(&data);
-	/*get rv char*/
+	/*get rv_data_size*/
 	starpu_codelet_unpack_arg(&data, &rv_data_size, sizeof(rv_data_size));
-    rv_data = (char *)malloc(rv_data_size);
-    starpu_codelet_unpack_arg(&data, rv_data, rv_data_size);
+   
 	//starpu_codelet_unpack_arg(&data, &rv, sizeof(rv));
 
 	/*make sure we own the GIL*/
@@ -218,6 +217,8 @@ void cb_func(void *v)
 	/*else use cloudpickle to load rv*/
 	else
 	{
+		rv_data = (char *)malloc(rv_data_size);
+    	starpu_codelet_unpack_arg(&data, rv_data, rv_data_size);
 		rv=starpu_cloudpickle_loads(rv_data, rv_data_size);
 	}
 
