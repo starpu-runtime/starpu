@@ -94,12 +94,12 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 	/*get func_py char*/
 	starpu_codelet_unpack_arg(&data, &func_data_size, sizeof(func_data_size));
     func_data = (char *)malloc(func_data_size);
-    starpu_codelet_unpack_arg(&data, &func_data, sizeof(func_data));
+    starpu_codelet_unpack_arg(&data, func_data, func_data_size);
 	//starpu_codelet_unpack_arg(&data, &func_py, sizeof(func_py));
 	/*get argList char*/
 	starpu_codelet_unpack_arg(&data, &arg_data_size, sizeof(arg_data_size));
     arg_data = (char *)malloc(arg_data_size);
-    starpu_codelet_unpack_arg(&data, &arg_data, sizeof(arg_data));
+    starpu_codelet_unpack_arg(&data, arg_data, arg_data_size);
 	//starpu_codelet_unpack_arg(&data, &argList, sizeof(argList));
 	/*skip fut*/
 	starpu_codelet_unpack_discard_arg(&data);
@@ -159,7 +159,7 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 		Py_ssize_t rv_data_size;
 		char* rv_data = starpu_cloudpickle_dumps(rv, &rv_data_size);
 		starpu_codelet_pack_arg(&data, &rv_data_size, sizeof(rv_data_size));
-	    starpu_codelet_pack_arg(&data, &rv_data, sizeof(rv_data));
+	    starpu_codelet_pack_arg(&data, rv_data, rv_data_size);
 	}
 	
 	//starpu_codelet_pack_arg(&data, &rv, sizeof(rv));
@@ -204,7 +204,7 @@ void cb_func(void *v)
 	/*get rv char*/
 	starpu_codelet_unpack_arg(&data, &rv_data_size, sizeof(rv_data_size));
     rv_data = (char *)malloc(rv_data_size);
-    starpu_codelet_unpack_arg(&data, &rv_data, sizeof(rv_data));
+    starpu_codelet_unpack_arg(&data, rv_data, rv_data_size);
 	//starpu_codelet_unpack_arg(&data, &rv, sizeof(rv));
 
 	/*make sure we own the GIL*/
@@ -455,12 +455,12 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	Py_ssize_t func_data_size;
 	char* func_data = starpu_cloudpickle_dumps(func_py, &func_data_size);
 	starpu_codelet_pack_arg(&data, &func_data_size, sizeof(func_data_size));
-    starpu_codelet_pack_arg(&data, &func_data, sizeof(func_data));
+    starpu_codelet_pack_arg(&data, func_data, func_data_size);
 	//starpu_codelet_pack_arg(&data, &func_py, sizeof(func_py));
 	Py_ssize_t arg_data_size;
 	char* arg_data = starpu_cloudpickle_dumps(argList, &arg_data_size);
 	starpu_codelet_pack_arg(&data, &arg_data_size, sizeof(arg_data_size));
-    starpu_codelet_pack_arg(&data, &arg_data, sizeof(arg_data));
+    starpu_codelet_pack_arg(&data, arg_data, arg_data_size);
 	//starpu_codelet_pack_arg(&data, &argList, sizeof(argList));
 	starpu_codelet_pack_arg(&data, &fut, sizeof(fut));
 	starpu_codelet_pack_arg(&data, &loop, sizeof(loop));
