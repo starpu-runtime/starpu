@@ -599,8 +599,10 @@ static void pack_unpack(struct data_interface_test_summary *s)
 			struct starpu_task *task;
 			void *mem = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, size, 0);
 
+			starpu_data_acquire(dummy_handle, STARPU_W);
 			starpu_data_unpack(dummy_handle, mem, size);
 			starpu_data_unpack(dummy_handle, ptr, size);
+			starpu_data_release(dummy_handle);
 
 			factor = -factor;
 			err = create_task(&task, STARPU_CPU_WORKER, -1);
