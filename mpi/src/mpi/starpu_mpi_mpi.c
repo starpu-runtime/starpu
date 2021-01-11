@@ -403,7 +403,9 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_starpu_mpi_simgrid_wait_req(&req->backend->data_request, &req->status_store, &req->queue, &req->done);
 #endif
 
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle);
+	// this trace event is the start of the communication link:
+	// the last parameter, set to 0, is for communication priority (not used in this MPI backend)
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req->node_tag.node.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle, 0);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
@@ -892,6 +894,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 				_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 			}
 		}
+		// for recv requests, this event is the end of the communication link:
 		_STARPU_MPI_TRACE_TERMINATED(req, req->node_tag.node.rank, req->node_tag.data_tag);
 	}
 

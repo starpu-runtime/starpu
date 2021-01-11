@@ -656,6 +656,18 @@ do {									\
         FUT_RAW_ALWAYS_PROBE7(FUT_CODE(CODE, 7),P1,P2,P3,P4,P5,P6,P7); \
 } while (0)
 
+#ifndef FUT_RAW_ALWAYS_PROBE8
+#define FUT_RAW_ALWAYS_PROBE8(CODE,P1,P2,P3,P4,P5,P6,P7,P8) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(8)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);*(__args++)=(unsigned long)(P6);*(__args++)=(unsigned long)(P7);*(__args++)=(unsigned long)(P8);				\
+		fut_commitstampedbuffer(FUT_SIZE(8)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE8(CODE,P1,P2,P3,P4,P5,P6,P7,P8) do { \
+        FUT_RAW_ALWAYS_PROBE8(FUT_CODE(CODE, 8),P1,P2,P3,P4,P5,P6,P7,P8); \
+} while (0)
 
 /* full probes */
 #ifndef FUT_FULL_PROBE0
@@ -722,6 +734,13 @@ do {									\
 } while(0)
 #endif
 
+#ifndef FUT_FULL_PROBE8
+#define FUT_FULL_PROBE8(KEYMASK,CODE,P1,P2,P3,P4,P5,P6,P7,P8) do { \
+        if( KEYMASK & fut_active ) { \
+                FUT_RAW_ALWAYS_PROBE8(FUT_CODE(CODE, 8),P1,P2,P3,P4,P5,P6,P7,P8); \
+        } \
+} while(0)
+#endif
 
 #define _STARPU_TRACE_NEW_MEM_NODE(nodeid)			do {\
 	if (_starpu_fxt_started) \

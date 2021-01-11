@@ -73,7 +73,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 							     "Size string",
 							     "Dest string");
 	}
-	_starpu_poti_MpiLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 2, "MPITAG string", "Handle string");
+	_starpu_poti_MpiLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 4, "MPITAG string", "MPIType string", "Priority string", "Handle string");
 #endif
 #else
 	poti_header(1,1);
@@ -232,6 +232,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	fprintf(file, "%%	StartContainer	string\n");
 	fprintf(file, "%%	Key	string\n");
 	fprintf(file, "%%	MPITAG	string\n");
+	fprintf(file, "%%	MPIType	string\n");
+	fprintf(file, "%%	Priority	string\n");
 	fprintf(file, "%%	Handle	string\n");
 	fprintf(file, "%%EndEventDef\n");
 	fprintf(file, "%%EventDef	PajeStartLink	24\n");

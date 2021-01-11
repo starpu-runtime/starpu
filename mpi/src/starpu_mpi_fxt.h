@@ -29,6 +29,9 @@ extern "C"
 {
 #endif
 
+#define _STARPU_MPI_FUT_POINT_TO_POINT_SEND		0x100
+#define _STARPU_MPI_FUT_COLLECTIVE_SEND			0x101
+
 #define _STARPU_MPI_FUT_START				0x5201
 #define _STARPU_MPI_FUT_STOP				0x5202
 #define _STARPU_MPI_FUT_BARRIER				0x5203
@@ -60,6 +63,7 @@ extern "C"
 #define _STARPU_MPI_FUT_DRIVER_RUN_BEGIN		0x5216
 #define _STARPU_MPI_FUT_DRIVER_RUN_END			0x5217
 #define _STARPU_MPI_FUT_DATA_SET_TAG			0x5218
+// available codes: 0x5219 and > 0x5220
 
 #ifdef STARPU_USE_FXT
 
@@ -73,8 +77,8 @@ extern "C"
 } while (0)
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(dest, data_tag, size)	\
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
-#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(dest, data_tag, size, jobid, handle)	\
-	FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_END, (dest), (data_tag), (size), (jobid), (handle), _starpu_gettid());
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(type, dest, data_tag, size, jobid, handle, prio)	\
+	FUT_FULL_PROBE8(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_END, (type), (dest), (data_tag), (size), (jobid), (handle), (prio), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(src, data_tag)	\
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(src, data_tag)	\
@@ -150,7 +154,7 @@ extern "C"
 #define _STARPU_MPI_TRACE_STOP(a, b)				do {} while(0);
 #define _STARPU_MPI_TRACE_BARRIER(a, b, c)			do {} while(0);
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(a, b, c)		do {} while(0);
-#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(a, b, c, d, e)	do {} while(0);
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(a, b, c, d, e, f, g)	do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(a, b)		do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(a, b)		do {} while(0);
 #define _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(a, b, c)		do {} while(0);

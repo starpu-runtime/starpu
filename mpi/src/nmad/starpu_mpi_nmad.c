@@ -111,6 +111,10 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &data);
 	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
 
+	// this trace event is the start of the communication link:
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req->node_tag.node.rank, req->node_tag.data_tag,
+			starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle, req->prio);
+
 	if (req->sync == 0)
 	{
 		req->ret = nm_sr_send_isend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
@@ -121,8 +125,6 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 		req->ret = nm_sr_send_issend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Issend returning %d", req->ret);
 	}
-
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle);
 
 	_starpu_mpi_handle_pending_request(req);
 
@@ -353,7 +355,10 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_ev
 			_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 		}
 	}
+
+	// for recv requests, this event is the end of the communication link:
 	_STARPU_MPI_TRACE_TERMINATED(req, req->node_tag.node.rank, req->node_tag.data_tag);
+
 	_starpu_mpi_release_req_data(req);
 
 	/* Execute the specified callback, if any */
