@@ -189,7 +189,6 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	starpu_resume();
-	starpu_shutdown();
 	HASH_ITER(hh, models, model, tmp)
 	{
 		HASH_DEL(models, model);
@@ -197,6 +196,7 @@ int main(int argc, char *argv[])
 		free(model->name);
 		free(model);
 	}
+	starpu_shutdown();
 	return 0;
 }
 
