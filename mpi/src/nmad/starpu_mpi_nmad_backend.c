@@ -52,6 +52,7 @@ void _starpu_mpi_nmad_backend_request_init(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_CALLOC(req->backend, 1, sizeof(struct _starpu_mpi_req_backend));
 	piom_cond_init(&req->backend->req_cond, 0);
+	req->backend->data_request = NM_SR_REQUEST_NULL;
 }
 
 void _starpu_mpi_nmad_backend_request_fill(struct _starpu_mpi_req *req, MPI_Comm comm, int is_internal_req)

@@ -41,9 +41,9 @@ struct _starpu_mpi_req_backend
 	nm_sr_request_t size_req;
 
 	/** When datatype is unknown */
-	struct nm_data_s unknown_datatype_body;
-	struct nm_data_s unknown_datatype_data;
-	struct nm_data_s unknown_datatype_size;
+	struct nm_data_s unknown_datatype_body; // part of unknown_datatype_data
+	struct nm_data_s unknown_datatype_data; // will contain size of the datatype and data itself (represented by unknown_datatype_body)
+	struct nm_data_s unknown_datatype_size; // to fetch the size of the datatype
 };
 
 #endif // STARPU_USE_MPI_NMAD

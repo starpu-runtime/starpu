@@ -553,8 +553,12 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		/* we signal that the request is completed.*/
 
 		free(c);
-
 	}
+
+
+	/** Now, shutting down MPI **/
+
+
 	STARPU_ASSERT_MSG(callback_lfstack_pop(&callback_stack)==NULL, "List of callback not empty.");
 	STARPU_ASSERT_MSG(nb_pending_requests==0, "Request still pending.");
 
@@ -615,11 +619,11 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
-        STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
-        STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
 
-        STARPU_PTHREAD_MUTEX_INIT(&mpi_wait_for_all_running_mutex, NULL);
-        STARPU_PTHREAD_COND_INIT(&mpi_wait_for_all_running_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mpi_wait_for_all_running_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&mpi_wait_for_all_running_cond, NULL);
 
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
@@ -696,21 +700,21 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	/* Launch thread used for nmad callbacks */
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
-        STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-        while (!running)
-                STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	while (!running)
+		STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-        return 0;
+	return 0;
 }
 
 void _starpu_mpi_progress_shutdown(void **value)
 {
 	/* kill the progression thread */
-        STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-        running = 0;
-        STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	running = 0;
+	STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	starpu_sem_post(&callback_sem);
 
@@ -718,11 +722,11 @@ void _starpu_mpi_progress_shutdown(void **value)
 
 	callback_lfstack_destroy(&callback_stack);
 
-        STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
-        STARPU_PTHREAD_COND_DESTROY(&progress_cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
+	STARPU_PTHREAD_COND_DESTROY(&progress_cond);
 
-        STARPU_PTHREAD_MUTEX_DESTROY(&mpi_wait_for_all_running_mutex);
-        STARPU_PTHREAD_COND_DESTROY(&mpi_wait_for_all_running_cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&mpi_wait_for_all_running_mutex);
+	STARPU_PTHREAD_COND_DESTROY(&mpi_wait_for_all_running_cond);
 }
 
 static int64_t _starpu_mpi_tag_max = INT64_MAX;

@@ -231,7 +231,7 @@ LIST_TYPE(_starpu_mpi_req,
 	char *datatype_name;
 	void *ptr;
 	starpu_ssize_t count;
-	int registered_datatype;
+	int registered_datatype; // = 0: datatype is not predefined by StarPU; = 1: otherwise; initialized with -1
 
 	struct _starpu_mpi_req_backend *backend;
 

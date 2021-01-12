@@ -127,17 +127,18 @@ static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, cons
 
 	if (event & NM_SR_EVENT_RECV_DATA)
 	{
-		nm_data_contiguous_build(&(req->backend->unknown_datatype_size), &(req->count), sizeof(int));
-
+		// Header arrived, so get the size of the datatype and store it in req->count:
+		nm_data_contiguous_build(&(req->backend->unknown_datatype_size), &(req->count), sizeof(starpu_ssize_t));
 		int ret = nm_sr_recv_peek(req->backend->session, &(req->backend->data_request), &(req->backend->unknown_datatype_size));
 		STARPU_ASSERT_MSG(ret == NM_ESUCCESS, "nm_sr_recv_peek returned %d", ret);
 
+		// Now we know the size of the datatype, allocate the buffer:
 		req->ptr = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, req->count, 0);
 		STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld", req->count);
 
+		// Last step: give this buffer to NewMadeleine to receive data:
 		nm_mpi_nmad_data_get(&(req->backend->unknown_datatype_body), (void*) req->ptr, req->datatype, req->count);
-
-		// warning: this function requires valid pointers for future usage
+		// warning: this function requires valid pointers for future usage:
 		starpu_nm_datatype_unknown_build(&(req->backend->unknown_datatype_data), &(req->count), &(req->backend->unknown_datatype_body));
 		nm_sr_recv_unpack_data(req->backend->session, &(req->backend->data_request), &(req->backend->unknown_datatype_data));
 	}
@@ -157,6 +158,9 @@ void _starpu_mpi_irecv_unknown_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag);
 
+	/* we post a recv without giving a buffer because we don't know the required size of this buffer,
+	 * the buffer will be allocated and provided to nmad when the header of data will be received,
+	 * in _starpu_mpi_unknown_datatype_recv_callback() */
 	nm_sr_recv_init(req->backend->session, &(req->backend->data_request));
 	nm_sr_request_set_ref(&(req->backend->data_request), req);
 	nm_sr_request_monitor(req->backend->session, &(req->backend->data_request), NM_SR_EVENT_FINALIZED | NM_SR_EVENT_RECV_DATA,
