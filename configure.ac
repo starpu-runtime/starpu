@@ -3576,9 +3576,6 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
   chmod +x starpupy/examples/execute.sh
-  for x in starpupy/examples/starpu_py.sh starpupy/examples/starpu_py_np.sh starpupy/examples/starpu_py_parallel.sh; do
-      test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
-  done
   chmod +x julia/examples/execute.sh
   for x in \
     tests/microbenchs/tasks_data_overhead.sh \
@@ -3626,6 +3623,9 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     julia/examples/axpy/axpy.sh \
     julia/examples/gemm/gemm.sh \
     julia/examples/cholesky/cholesky.sh \
+    starpupy/examples/starpu_py.sh \
+    starpupy/examples/starpu_py_np.sh \
+    starpupy/examples/starpu_py_parallel.sh \
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
