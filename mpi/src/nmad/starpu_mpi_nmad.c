@@ -43,7 +43,7 @@
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
-#ifdef STARPU_VERBOSE
+#if defined(STARPU_VERBOSE) || defined(STARPU_MPI_VERBOSE)
 char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
 
@@ -201,12 +201,12 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 /*                                                      */
 /********************************************************/
 
-#define _starpu_mpi_req_status(PUBLIC_REQ,STATUS) do {			\
+#define _starpu_mpi_req_status(PUBLIC_REQ,STATUS) do { \
 	STATUS->MPI_SOURCE=PUBLIC_REQ->node_tag.node.rank; /**< field name mandatory by spec */ \
 	STATUS->MPI_TAG=PUBLIC_REQ->node_tag.data_tag;    /**< field name mandatory by spec */ \
 	STATUS->MPI_ERROR=PUBLIC_REQ->ret;  /**< field name mandatory by spec */ \
 	STATUS->size=PUBLIC_REQ->count;       /**< size of data received */ \
-	STATUS->cancelled=0;  /**< whether request was cancelled */	\
+	STATUS->cancelled=0;  /**< whether request was cancelled */ \
 } while(0)
 
 int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
@@ -316,7 +316,7 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 /*                                                      */
 /********************************************************/
 
-#ifdef STARPU_VERBOSE
+#if defined(STARPU_VERBOSE) || defined(STARPU_MPI_VERBOSE)
 char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 {
 	switch (request_type)
