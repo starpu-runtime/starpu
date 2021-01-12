@@ -27,7 +27,7 @@
 #ifndef STARPU_QUICK_CHECK
 #define N	1000
 #else
-#define N	100
+#define N	10
 #endif
 #define VECTORSIZE	1024
 
