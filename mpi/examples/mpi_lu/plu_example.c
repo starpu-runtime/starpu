@@ -264,7 +264,8 @@ static void init_matrix(int rank)
 					unsigned tmp;
 					for (tmp = 0; tmp < size/nblocks; tmp++)
 					{
-						(*blockptr)[tmp*((size/nblocks)+1)] += (TYPE)10*nblocks;
+						(*blockptr)[tmp*((size/nblocks)+1)] += 1;
+						(*blockptr)[tmp*((size/nblocks)+1)] *= 100;
 					}
 				}
 
