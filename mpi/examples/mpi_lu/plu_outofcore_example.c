@@ -227,6 +227,20 @@ static void init_matrix(int rank)
 				starpu_matrix_data_register(handleptr, disk_node,
 					(uintptr_t) disk_objs[j+nblocks*i], size/nblocks,
 					size/nblocks, size/nblocks, sizeof(TYPE));
+				starpu_data_acquire_on_node(*handleptr, STARPU_MAIN_RAM, STARPU_W);
+				void *interface = starpu_data_get_interface_on_node(*handleptr, STARPU_MAIN_RAM);
+				TYPE *data = (void*) STARPU_MATRIX_GET_PTR(interface);
+				fill_block_with_random(data, size, nblocks);
+				if (i == j)
+				{
+					unsigned tmp;
+					for (tmp = 0; tmp < size/nblocks; tmp++)
+					{
+						data[tmp*((size/nblocks)+1)] += 1;
+						data[tmp*((size/nblocks)+1)] *= 100;
+					}
+				}
+				starpu_data_release_on_node(*handleptr, STARPU_MAIN_RAM);
 			}
 			else
 			{
