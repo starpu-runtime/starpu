@@ -27,7 +27,7 @@
 
 #if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS)
 static size_t size = 1024;
-static unsigned cpustep = 4;
+static unsigned cpustep = 8;
 #else
 /* Must be bigger than available cache size per core, 64MiB should be enough */
 static size_t size = 64UL << 20;
