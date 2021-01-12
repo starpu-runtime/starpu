@@ -1970,8 +1970,10 @@ else
 	FCFLAGS="-O3 $FCFLAGS"
 fi
 
+AC_MSG_CHECKING(whether gdb information should be enabled)
 AC_ARG_ENABLE(gdb, [AS_HELP_STRING([--disable-gdb], [disable gdb information])],
 			enable_gdb=$enableval, enable_gdb=yes)
+AC_MSG_RESULT($enable_gdb)
 
 AC_MSG_CHECKING(whether full gdb information should be enabled)
 AC_ARG_ENABLE(full-gdb-information, [AS_HELP_STRING([--disable-full-gdb-information], [disable full gdb information])],
