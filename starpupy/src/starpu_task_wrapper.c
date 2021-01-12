@@ -92,14 +92,22 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 	starpu_codelet_unpack_arg_init(&data, &task->cl_arg, &task->cl_arg_size);
 
 	/*get func_py char*/
-	starpu_codelet_unpack_arg(&data, &func_data_size, sizeof(func_data_size));
-    func_data = (char *)malloc(func_data_size);
-    starpu_codelet_unpack_arg(&data, func_data, func_data_size);
+	// starpu_codelet_unpack_arg(&data, &func_data_size, sizeof(func_data_size));
+    // func_data = (char *)malloc(func_data_size);
+    // starpu_codelet_unpack_arg(&data, func_data, func_data_size);
+    /*skip func_data_size*/
+    starpu_codelet_unpack_discard_arg(&data);
+    /*get func_data*/
+    starpu_codelet_pick_arg(&data, &func_data, &func_data_size);
 	//starpu_codelet_unpack_arg(&data, &func_py, sizeof(func_py));
 	/*get argList char*/
-	starpu_codelet_unpack_arg(&data, &arg_data_size, sizeof(arg_data_size));
-    arg_data = (char *)malloc(arg_data_size);
-    starpu_codelet_unpack_arg(&data, arg_data, arg_data_size);
+	// starpu_codelet_unpack_arg(&data, &arg_data_size, sizeof(arg_data_size));
+    // arg_data = (char *)malloc(arg_data_size);
+    // starpu_codelet_unpack_arg(&data, arg_data, arg_data_size);
+    /*skip arg_data_size*/
+    starpu_codelet_unpack_discard_arg(&data);
+    /*get arg_data*/
+    starpu_codelet_pick_arg(&data, &arg_data, &arg_data_size);
 	//starpu_codelet_unpack_arg(&data, &argList, sizeof(argList));
 	/*skip fut*/
 	starpu_codelet_unpack_discard_arg(&data);
@@ -217,8 +225,9 @@ void cb_func(void *v)
 	/*else use cloudpickle to load rv*/
 	else
 	{
-		rv_data = (char *)malloc(rv_data_size);
-    	starpu_codelet_unpack_arg(&data, rv_data, rv_data_size);
+		// rv_data = (char *)malloc(rv_data_size);
+        // starpu_codelet_unpack_arg(&data, rv_data, rv_data_size);
+		starpu_codelet_pick_arg(&data, &rv_data, &rv_data_size);
 		rv=starpu_cloudpickle_loads(rv_data, rv_data_size);
 	}
 

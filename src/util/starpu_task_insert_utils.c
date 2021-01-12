@@ -84,6 +84,29 @@ void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void 
 	state->nargs++;
 }
 
+void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
+{
+	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
+	state->current_offset += sizeof(*size);
+
+	*ptr = malloc(*size);
+	memcpy(*ptr, state->arg_buffer+state->current_offset, *size);
+	state->current_offset += *size;
+
+	state->nargs++;
+}
+
+void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
+{
+	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
+	state->current_offset += sizeof(*size);
+	
+	*ptr = state->arg_buffer+state->current_offset;
+	state->current_offset += *size;
+
+	state->nargs++;
+}
+
 void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state)
 {
 

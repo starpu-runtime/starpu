@@ -517,10 +517,27 @@ void starpu_codelet_unpack_args(void *cl_arg, ...);
 void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void **cl_arg, size_t *cl_arg_size);
 
 /**
-   Unpack one argument from struct starpu_codelet_pack_arg \p state into ptr.
+   Unpack one argument from struct starpu_codelet_pack_arg \p state into ptr with a copy. 
    That structure has to be initialized before with starpu_codelet_unpack_arg_init().
+   Size is stored in starpu_task->cl_arg, and it is a known parameter in this function .
 */
 void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t size);
+
+/**
+   Unpack one argument from struct starpu_codelet_pack_arg \p state into ptr with a copy.
+   That structure has to be initialized before with starpu_codelet_unpack_arg_init(). 
+   Size is stored in starpu_task->cl_arg, and it is an unknown parameter in this function. 
+   It will be returned from starpu_task->cl_arg with a copy.
+*/
+void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size);
+
+/**
+   Unpack one argument from struct starpu_codelet_pack_arg \p state into ptr, and the pointer of ptr will be returned.
+   That structure has to be initialized before with starpu_codelet_unpack_arg_init(). 
+   Size is stored in starpu_task->cl_arg, and it is an unknown parameter in this function. 
+   It will be returned from starpu_task->cl_arg with a copy.
+*/
+void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size); 
 
 void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state);
 
