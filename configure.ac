@@ -1570,22 +1570,33 @@ else
 	FCFLAGS="-O3 $FCFLAGS"
 fi
 
+AC_ARG_ENABLE(gdb, [AS_HELP_STRING([--disable-gdb], [disable gdb information])],
+			enable_gdb=$enableval, enable_gdb=yes)
+
 AC_MSG_CHECKING(whether full gdb information should be enabled)
 AC_ARG_ENABLE(full-gdb-information, [AS_HELP_STRING([--disable-full-gdb-information], [disable full gdb information])],
 			enable_full_gdb_information=$enableval, enable_full_gdb_information=yes)
 AC_MSG_RESULT($enable_full_gdb_information)
-if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
-	CFLAGS+=" -gdwarf-2 -g3"
-	CXXFLAGS+=" -gdwarf-2 -g3"
-	FFLAGS+=" -gdwarf-2 -g3"
-	FCFLAGS+=" -gdwarf-2 -g3"
-	LDFLAGS+=" -gdwarf-2 -g3"
+if test x$enable_gdb = xyes; then
+	if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
+		CFLAGS+=" -gdwarf-2 -g3"
+		CXXFLAGS+=" -gdwarf-2 -g3"
+		FFLAGS+=" -gdwarf-2 -g3"
+		FCFLAGS+=" -gdwarf-2 -g3"
+		LDFLAGS+=" -gdwarf-2 -g3"
+	else
+		CFLAGS+=" -g "
+		CXXFLAGS+=" -g "
+		FFLAGS+=" -g "
+		FCFLAGS+=" -g "
+		LDFLAGS+=" -g "
+	fi
 else
-	CFLAGS+=" -g "
-	CXXFLAGS+=" -g "
-	FFLAGS+=" -g "
-	FCFLAGS+=" -g "
-	LDFLAGS+=" -g "
+	CFLAGS+=" -g0 "
+	CXXFLAGS+=" -g0 "
+	FFLAGS+=" -g0 "
+	FCFLAGS+=" -g0 "
+	LDFLAGS+=" -g0 "
 fi
 
 if test x$enable_spinlock_check = xyes; then
