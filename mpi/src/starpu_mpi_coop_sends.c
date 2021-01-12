@@ -266,12 +266,8 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 	free(tofree);
 
 	if (first)
-	{
 		/* We were first, we are responsible for acquiring the data for everybody */
-		long pre_sync_jobid;
-		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_coop_sends_data_ready, coop_sends, sequential_consistency, 0, &pre_sync_jobid, NULL);
-		coop_sends->pre_sync_jobid = pre_sync_jobid;
-	}
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_coop_sends_data_ready, coop_sends, sequential_consistency, 0, &coop_sends->pre_sync_jobid, NULL);
 	else
 		req->pre_sync_jobid = coop_sends->pre_sync_jobid;
 }
