@@ -352,7 +352,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 			snprintf(str_priority, sizeof(str_priority), "%d", cur->prio);
 			char str_handle[STARPU_POTI_STR_LEN];
 			snprintf(str_handle, sizeof(str_handle), "%lx", send_handle);
-			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 3, str_mpi_tag, get_mpi_type_str(cur->type), str_priority, str_handle);
+			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 4, str_mpi_tag, get_mpi_type_str(cur->type), str_priority, str_handle);
 
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
