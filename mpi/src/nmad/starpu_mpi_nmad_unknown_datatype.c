@@ -94,6 +94,10 @@ void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
 	nm_sr_send_set_priority(req->backend->session, &(req->backend->data_request), req->prio);
 	nm_sr_send_header(req->backend->session, &(req->backend->data_request), sizeof(starpu_ssize_t));
 
+	// this trace event is the start of the communication link:
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req->node_tag.node.rank, req->node_tag.data_tag,
+			starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle, req->prio);
+
 	if (req->sync == 0)
 	{
 		req->ret = nm_sr_send_isend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
@@ -104,10 +108,6 @@ void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
 		req->ret = nm_sr_send_issend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "nm_sr_send_issend returning %d", req->ret);
 	}
-
-	// this trace event is the start of the communication link:
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req->node_tag.node.rank, req->node_tag.data_tag,
-			starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle, req->prio);
 
 	_starpu_mpi_handle_pending_request(req);
 
