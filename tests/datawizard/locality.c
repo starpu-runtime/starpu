@@ -29,9 +29,13 @@
 #include <starpu.h>
 #include "../helper.h"
 
+#ifdef STARPU_USE_FXT
+#define N 5
+#define ITER 5
+#else
 #define N 50
-
 #define ITER 50
+#endif
 
 int task_worker[N][ITER];
 int worker_task[STARPU_NMAXWORKERS][N*ITER];
