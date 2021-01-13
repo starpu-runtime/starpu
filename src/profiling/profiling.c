@@ -97,9 +97,11 @@ static void _starpu_profiling_reset_counters()
 
 int starpu_profiling_status_set(int status)
 {
-	int worker;
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	unsigned worker;
+	for (worker = 0; worker < starpu_worker_get_count(); worker++)
 	{
+		struct _starpu_worker *worker_struct = _starpu_get_worker_struct(worker);
+		STARPU_PTHREAD_MUTEX_LOCK(&worker_struct->sched_mutex);
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[worker]);
 	}
 
@@ -116,9 +118,11 @@ int starpu_profiling_status_set(int status)
 		_starpu_profiling_reset_counters();
 	}
 
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	for (worker = 0; worker < starpu_worker_get_count(); worker++)
 	{
+		struct _starpu_worker *worker_struct = _starpu_get_worker_struct(worker);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[worker]);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_struct->sched_mutex);
 	}
 
 	return prev_value;
