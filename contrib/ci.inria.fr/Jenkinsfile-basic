@@ -34,7 +34,7 @@ pipeline
 		{
 			steps
 			{
-				node('autotools2')
+				node('autotools')
 				{
 					checkout scm
 					sh 'contrib/ci.inria.fr/job-0-tarball.sh'
