@@ -5,7 +5,8 @@ int main(int argc, char *argv[])
 {
 	int NOMBRE_DE_TAILLES_DE_MATRICES = atoi(argv[1]);
 	int NOMBRE_ALGO_TESTE = atoi(argv[2]);
-	
+	int ECHELLE_X = atoi(argv[3]);
+	int START_X = atoi(argv[4]);
 	long where_to_write = 0; int k =0;
 	long ligne[10] = {0};
 	int index = 0;
@@ -22,19 +23,19 @@ int main(int argc, char *argv[])
     fichier_out = fopen("GFlops_data_out.txt", "w+");
     if (fichier_in != NULL)
     {
-		
-		
 		for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) {
 			k = j;
 			while (k != 0) { fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops); k--; }
 			
 			fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
-			fprintf(fichier_out,"%s",str1);
+			//~ fprintf(fichier_out,"%s",str1);
+			fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
 			rewind(fichier_in);	
 			for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) {
 				if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) {
 					fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
 					fprintf(fichier_out,"	%s",GFlops);
+					//~ fprintf(fichier_out,"	%d",ECHELLE_X*(i+1)+START_X);
 				}
 				else {
 					fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);

@@ -1,4 +1,4 @@
-./configure --enable-simgrid --disable-mpi --with-fxt
+./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid
 make install
 make -j4
 echo "INITIALISATION OK"
