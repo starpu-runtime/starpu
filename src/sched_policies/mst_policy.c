@@ -19,6 +19,7 @@
 /* Maximum Spanning tree
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 #include <starpu.h>
@@ -40,12 +41,12 @@ struct mst_sched_data
 {
 	struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
 	struct starpu_task_list list_if_fifo_full; /* List used if the fifo list is not empty. It means that task from the last iteration haven't been pushed, thus we need to pop task from this list */
-	
+	struct starpu_task_list SIGMA; /* order in which task will go out */
 	/* All the pointer use to navigate through the linked list */
 	struct my_list *temp_pointer_1;
 	struct my_list *temp_pointer_2;
 	struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */
-	
+	int id;
 	struct starpu_task_list sched_list;
      	starpu_pthread_mutex_t policy_mutex;
 };
@@ -66,10 +67,13 @@ static int mst_push_task(struct starpu_sched_component *component, struct starpu
 /* The function that sort the tasks in packages */
 static struct starpu_task *mst_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	int i, j, i_bis, j_bis, count, tab_runner = 0;
 	struct mst_sched_data *data = component->data;
 
 	struct starpu_task *task1 = NULL;
-	struct starpu_task *task2 = NULL;
+	struct starpu_task *temp_task_1 = NULL;
+	struct starpu_task *temp_task_2 = NULL;
+	//~ struct starpu_task *task2 = NULL;
  
 	int NT = 0;
 		
@@ -77,52 +81,157 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 
 	/* If one or more task have been refused */
 	if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
-		printf("ok0\n");
 		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		//~ printf("Task %p is getting out of pull_task\n",task1);
 		return task1;
 	}
-	printf("ok1\n");
 	/* If the linked list is empty, we can pull more tasks */
-	//~ if ((data->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) {
-	if (starpu_task_list_empty(&data->popped_task_list)) {
-		printf("ok1.5\n");
+	//OLD
+	//~ if (starpu_task_list_empty(&data->popped_task_list)) {
+	//SIGMA
+	if (starpu_task_list_empty(&data->SIGMA)) {
 		if (!starpu_task_list_empty(&data->sched_list)) {
-			printf("ok2\n");
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
+				data->id = NT;
 				NT++;
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p\n",task1); }
+				printf("%p\n",task1);
 				starpu_task_list_push_back(&data->popped_task_list,task1);
+				//~ data->id = NT;
 			} 		
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",NT); }
 			
-			printf("2.5\n");
-			task1 = starpu_task_list_pop_front(&data->popped_task_list);
+			int matrice_adjacence[NT][NT]; for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { matrice_adjacence[i][j] = 0; } } 
+			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
+			temp_task_2  = starpu_task_list_begin(&data->popped_task_list);
+			temp_task_2  = starpu_task_list_next(temp_task_2);
+			for (i = 0; i < NT; i++) {
+				for (j = i + 1; j < NT; j++) {
+					for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+						for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
+							if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) { matrice_adjacence[i][j]++; }
+						}
+					}
+					temp_task_2  = starpu_task_list_next(temp_task_2);
+				}
+				temp_task_1  = starpu_task_list_next(temp_task_1);
+				temp_task_2 = temp_task_1;
+				if (i + 1 != NT) { temp_task_2  = starpu_task_list_next(temp_task_2); }
+			}				
+			/* Affichage de la matrice d'adjacence */
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Matrice d'adjacence :\n"); for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { printf("%d ",matrice_adjacence[i][j]); } printf("\n"); } }	
+				// Array to store constructed MST
+				int parent[NT];
+				// Key values used to pick minimum weight edge in cut
+				int key[NT];
+				// To represent set of vertices included in MST
+				bool mstSet[NT];
+				int tab_SIGMA[NT];
+				//~ const char* tab_SIGMA[NT];
+
+				// Initialize all keys as 0
+				for (int i = 0; i < NT; i++) { 
+					key[i] = 0, mstSet[i] = false; }
+
+				// Always include first 1st vertex in MST.
+				// Make key 0 so that this vertex is picked as first vertex.
+				key[0] = 1;
+				parent[0] = INT_MAX; // First node is always root of MST
+				
+				for (count = 0; count < NT - 1; count++) {
+					// Pick the minimum key vertex from the
+					// set of vertices not yet included in MST
+					int max = -1, max_index;
+
+					for (int v = 0; v < NT; v++)
+						if (mstSet[v] == false && key[v] > max)
+							max = key[v], max_index = v;
+										
+					int u = max_index;
+
+					// Add the picked vertex to the MST Set	
+					mstSet[u] = true;
+					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("u = %d\n",u); }
+					temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i = 0; i < u; i++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
+					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Add %p to sigma\n",temp_task_1); }
+					//~ return temp_task_1;
+					//~ starpu_task_list_push_back(&data->SIGMA,temp_task_1);
+					//~ tab_SIGMA[tab_runner] = starpu_task_get_name(temp_task_1);
+					//~ printf("dans tab_sigma %p\n",tab_SIGMA[tab_runner]);
+					tab_SIGMA[tab_runner] = data->id;
+					tab_runner++;
+
+					// Update key value and parent index of
+					// the adjacent vertices of the picked vertex.
+					// Consider only those vertices which are not
+					// yet included in MST
+					for (int v = 0; v < NT; v++)
+						// matrice_adjacence[u][v] is non zero only for adjacent vertices of m
+						// mstSet[v] is false for vertices not yet included in MST
+						// Update the key only if graph[u][v] is greater than key[v]
+						if (matrice_adjacence[u][v] && mstSet[v] == false && matrice_adjacence[u][v] > key[v])
+							parent[v] = u, key[v] = matrice_adjacence[u][v];
+				}
+					
+				/* On met le dernier sommet dans sigma */
+				for (i = 0; i < NT; i++) {
+					if (mstSet[i] == false) {
+						temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i_bis = 0; i_bis < i; i_bis++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
+						if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Dernier sommet: add %p to sigma\n",temp_task_1); }
+						//~ starpu_task_list_push_back(&data->SIGMA,temp_task_1);
+						//~ tab_SIGMA[NT - 1] = starpu_task_get_name(temp_task_1);
+						tab_SIGMA[NT - 1] = data->id;
+						//~ mstSet[i] = NT-1;
+					}
+				}
+				//~ printf("mstSet:	"); for (i = 0; i < NT; i++) { printf("%d ",i); }
+				
+				/* I put the task in order in SIGMA */
+				i = 0;
+				while (i != NT) {
+					temp_task_1  = starpu_task_list_pop_front(&data->popped_task_list);
+					if (tab_SIGMA[i] == data->id) {
+						starpu_task_list_push_back(&data->SIGMA,temp_task_1);
+						i++;
+					}
+					else { 
+						starpu_task_list_push_back(&data->popped_task_list,temp_task_1);
+					}
+				}
+				
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\nFin de MST\n"); }
+			//~ }
+			
+			//OLD
+			//~ task1 = starpu_task_list_pop_front(&data->popped_task_list);
+			//Avec SIGMA
+			task1 = starpu_task_list_pop_front(&data->SIGMA);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			printf("Task %p is getting out of pull_task\n",task1);
 			return task1;
 		}
 		else {
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			printf("ici\n");
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			//~ printf("Task %p is getting out of pull_task\n",task1);
 			return task1; 
 		}
-		//~ task1 = starpu_task_list_pop_front(&data->sched_list);
-		
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ return task1;
 	}
 	else { 
-		printf("ok3\n");
-		task1 = starpu_task_list_pop_front(&data->popped_task_list);
+		//OLD
+		//~ task1 = starpu_task_list_pop_front(&data->popped_task_list);
+		//SIGMA
+		task1 = starpu_task_list_pop_front(&data->SIGMA);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		printf("Task %p is getting out of pull_task\n",task1);
 		return task1;
 	}
-	printf("ok4\n");
 	//~ return task1;
 }
 
@@ -176,6 +285,7 @@ struct starpu_sched_component *starpu_sched_component_mst_create(struct starpu_s
 	starpu_task_list_init(&data->sched_list);
 	starpu_task_list_init(&data->list_if_fifo_full);
 	starpu_task_list_init(&data->popped_task_list);
+	starpu_task_list_init(&data->SIGMA);
 	//~ starpu_task_list_init(&my_data->sub_list);
  
 	//~ my_data->next = NULL;
