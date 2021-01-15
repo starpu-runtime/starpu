@@ -42,7 +42,7 @@
 #include "starpu_mpi_nmad_backend.h"
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
-void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
+void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req, nm_sr_event_t event);
 #if defined(STARPU_VERBOSE) || defined(STARPU_MPI_VERBOSE)
 char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
@@ -331,7 +331,7 @@ char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 }
 #endif
 
-void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event)
+void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req, nm_sr_event_t event)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -340,8 +340,6 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_ev
 
 	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 	{
-		nm_mpi_nmad_data_release(req->datatype);
-
 		if (req->registered_datatype == 0)
 		{
 			if (req->request_type == RECV_REQ)
@@ -352,6 +350,7 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_ev
 		}
 		else
 		{
+			nm_mpi_nmad_data_release(req->datatype);
 			_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 		}
 	}
@@ -398,15 +397,15 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_ev
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event, const nm_sr_event_info_t*event_info, void*ref)
+void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event, const nm_sr_event_info_t* event_info, void* ref)
 {
-	_starpu_mpi_handle_request_termination(ref,event);
+	_starpu_mpi_handle_request_termination(ref, event);
 }
 
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)
 {
-	nm_sr_request_set_ref(&(req->backend->data_request), req);
-	nm_sr_request_monitor(req->backend->session, &(req->backend->data_request), NM_SR_EVENT_FINALIZED,_starpu_mpi_handle_request_termination_callback);
+	nm_sr_request_set_ref(&req->backend->data_request, req);
+	nm_sr_request_monitor(req->backend->session, &req->backend->data_request, NM_SR_EVENT_FINALIZED, _starpu_mpi_handle_request_termination_callback);
 }
 
 #if 0
