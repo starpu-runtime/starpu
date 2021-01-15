@@ -70,8 +70,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 
 	struct starpu_task *task1 = NULL;
  
-	int NT = 0; /* Variable used to track the number of tasks that have been popped */
-
+	int NT = 0;
 		
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
@@ -82,20 +81,38 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 		return task1;
 	}
 
-	/* Pulling all tasks and counting them */
+	/* If the linked list is empty, we can pull more tasks */
+	//~ if ((data->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) {
+		if (!starpu_task_list_empty(&data->sched_list)) {
+			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				NT++;
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 		
-	
-	
-	
-	
-
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",NT); }
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		return task1;
+	//~ } /* Else of if ((data->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) { */
+	//~ if (!starpu_task_list_empty(&data->temp_pointer_1->sub_list)) {
+		//~ task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list); 
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		//~ return task1;
+	//~ }
+	//~ if ((data->temp_pointer_1->next != NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) {
+		//~ /* The list is empty and it's not the last one, so we go on the next link */
+		//~ data->temp_pointer_1 = data->temp_pointer_1->next;
+		//~ while (starpu_task_list_empty(&data->temp_pointer_1->sub_list)) { data->temp_pointer_1 = data->temp_pointer_1->next; }
+			//~ task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list); 
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->temp_pointer_1->sub_list)\n",task1); }
+			//~ return task1;
+		//~ }
+	task1 = starpu_task_list_pop_front(&data->popped_task_list);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	return task1;
-	
 }
 
 static int mst_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
@@ -146,7 +163,7 @@ struct starpu_sched_component *starpu_sched_component_mst_create(struct starpu_s
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	starpu_task_list_init(&data->sched_list);
-	//~ starpu_task_list_init(&data->list_if_fifo_full);
+	starpu_task_list_init(&data->list_if_fifo_full);
 	starpu_task_list_init(&data->popped_task_list);
 	//~ starpu_task_list_init(&my_data->sub_list);
  
