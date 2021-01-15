@@ -44,12 +44,26 @@ struct mst_sched_data
 	struct starpu_task_list SIGMA; /* order in which task will go out */
 	/* All the pointer use to navigate through the linked list */
 	struct my_list *temp_pointer_1;
-	struct my_list *temp_pointer_2;
 	struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */
-	int id;
 	struct starpu_task_list sched_list;
      	starpu_pthread_mutex_t policy_mutex;
 };
+
+struct my_list
+{
+	int index;
+	struct starpu_task_list sub_list; /* The list containing the tasks */
+	struct my_list *next;	
+};
+
+/* Put a link at the beginning of the linked list */
+void insertion_mst(struct mst_sched_data *a)
+{
+    struct my_list *new = malloc(sizeof(*new)); /* Creation of a new link */
+	starpu_task_list_init(&new->sub_list);
+    new->next = a->temp_pointer_1;
+    a->temp_pointer_1 = new;
+}
 
 /* Pushing the tasks */		
 static int mst_push_task(struct starpu_sched_component *component, struct starpu_task *task)
@@ -96,7 +110,6 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				data->id = NT;
 				NT++;
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p\n",task1); }
 				printf("%p\n",task1);
@@ -123,7 +136,19 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 				if (i + 1 != NT) { temp_task_2  = starpu_task_list_next(temp_task_2); }
 			}				
 			/* Affichage de la matrice d'adjacence */
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Matrice d'adjacence :\n"); for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { printf("%d ",matrice_adjacence[i][j]); } printf("\n"); } }	
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Matrice d'adjacence :\n"); for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { printf("%d ",matrice_adjacence[i][j]); } printf("\n"); } }
+			
+			//NEW
+			int do_not_add_more = 0;
+			while (!starpu_task_list_empty(&data->popped_task_list)) {	
+				starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->popped_task_list));
+				data->temp_pointer_1->index = do_not_add_more;
+				if (do_not_add_more != NT-1) { insertion_mst(data); }
+				do_not_add_more++;
+			}
+			data->first_link = data->temp_pointer_1;
+			
+				
 				// Array to store constructed MST
 				int parent[NT];
 				// Key values used to pick minimum weight edge in cut
@@ -155,14 +180,14 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 
 					// Add the picked vertex to the MST Set	
 					mstSet[u] = true;
-					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("u = %d\n",u); }
-					temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i = 0; i < u; i++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
+					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("u = %d\n",u); }
+					//~ temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i = 0; i < u; i++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
 					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Add %p to sigma\n",temp_task_1); }
 					//~ return temp_task_1;
 					//~ starpu_task_list_push_back(&data->SIGMA,temp_task_1);
 					//~ tab_SIGMA[tab_runner] = starpu_task_get_name(temp_task_1);
 					//~ printf("dans tab_sigma %p\n",tab_SIGMA[tab_runner]);
-					tab_SIGMA[tab_runner] = data->id;
+					tab_SIGMA[tab_runner] = u;
 					tab_runner++;
 
 					// Update key value and parent index of
@@ -180,26 +205,31 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 				/* On met le dernier sommet dans sigma */
 				for (i = 0; i < NT; i++) {
 					if (mstSet[i] == false) {
-						temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i_bis = 0; i_bis < i; i_bis++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
+						//~ temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i_bis = 0; i_bis < i; i_bis++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
 						if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Dernier sommet: add %p to sigma\n",temp_task_1); }
 						//~ starpu_task_list_push_back(&data->SIGMA,temp_task_1);
 						//~ tab_SIGMA[NT - 1] = starpu_task_get_name(temp_task_1);
-						tab_SIGMA[NT - 1] = data->id;
+						tab_SIGMA[NT - 1] = i;
 						//~ mstSet[i] = NT-1;
 					}
 				}
 				//~ printf("mstSet:	"); for (i = 0; i < NT; i++) { printf("%d ",i); }
 				
-				/* I put the task in order in SIGMA */
+				printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n");
 				i = 0;
+				data->temp_pointer_1 = data->first_link;
 				while (i != NT) {
-					temp_task_1  = starpu_task_list_pop_front(&data->popped_task_list);
-					if (tab_SIGMA[i] == data->id) {
-						starpu_task_list_push_back(&data->SIGMA,temp_task_1);
+					//~ temp_task_1  = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);
+					if (tab_SIGMA[i] == data->temp_pointer_1->index) {
+					//~ if (strcmp(char_SIGMA[i],starpu_task_get_name(temp_task_1) == 0)) {
+						starpu_task_list_push_back(&data->SIGMA,starpu_task_list_pop_front(&data->temp_pointer_1->sub_list));
 						i++;
+						data->temp_pointer_1 = data->first_link;
+						//~ printf("ok3\n");
 					}
 					else { 
-						starpu_task_list_push_back(&data->popped_task_list,temp_task_1);
+						//~ starpu_task_list_push_back(&data->popped_task_list,temp_task_1);
+						data->temp_pointer_1 = data->temp_pointer_1->next;
 					}
 				}
 				
@@ -278,7 +308,7 @@ struct starpu_sched_component *starpu_sched_component_mst_create(struct starpu_s
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "mst");
 	
 	struct mst_sched_data *data;
-	//~ struct my_list *my_data = malloc(sizeof(*my_data));
+	struct my_list *my_data = malloc(sizeof(*my_data));
 	_STARPU_MALLOC(data, sizeof(*data));
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
@@ -286,10 +316,10 @@ struct starpu_sched_component *starpu_sched_component_mst_create(struct starpu_s
 	starpu_task_list_init(&data->list_if_fifo_full);
 	starpu_task_list_init(&data->popped_task_list);
 	starpu_task_list_init(&data->SIGMA);
-	//~ starpu_task_list_init(&my_data->sub_list);
+	starpu_task_list_init(&my_data->sub_list);
  
-	//~ my_data->next = NULL;
-	//~ data->temp_pointer_1 = my_data;
+	my_data->next = NULL;
+	data->temp_pointer_1 = my_data;
 	
 	component->data = data;
 	component->push_task = mst_push_task;

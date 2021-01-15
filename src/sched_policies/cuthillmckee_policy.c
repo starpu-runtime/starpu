@@ -176,7 +176,7 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 					
 					
 			//~ tab_SIGMA[tab_runner_bis] = indice_poids_aretes_min;		
-			temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i = 0; i < indice_poids_aretes_min; i++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
+			//~ temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i = 0; i < indice_poids_aretes_min; i++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Add %p to sigma\n",temp_task_1); }
 			tab_SIGMA[tab_runner_bis] = indice_poids_aretes_min;
 			//~ printf("ok1\n");
@@ -213,7 +213,7 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 							
 							/* Ajout à tab_SIGMA */
 							//~ tab_SIGMA[tab_runner_bis] = indice_poids_aretes_min;
-							temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i = 0; i < indice_poids_aretes_min; i++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
+							//~ temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i = 0; i < indice_poids_aretes_min; i++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
 							//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Add %p to sigma\n",temp_task_1); }
 							tab_SIGMA[tab_runner_bis] = indice_poids_aretes_min;
 							//~ strcpy(char_SIGMA[tab_runner_bis],starpu_task_get_name(temp_task_1));	
