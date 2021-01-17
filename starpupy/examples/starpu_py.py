@@ -129,11 +129,11 @@ async def main():
     res6 = await fut6
     print("The result of function is", res6)
 
- #    #apply starpu.delayed(sub_deco)
- #    fut7 = sub_deco(fut6, 1)
- #    res7 = await fut7
- #    print("The first argument of this function is the result of Example 8")
- #    print("The result of function is", res7)
+    #apply starpu.delayed(sub_deco)
+    fut7 = sub_deco(fut6, 1)
+    res7 = await fut7
+    print("The first argument of this function is the result of Example 8")
+    print("The result of function is", res7)
 
 asyncio.run(main())
 
