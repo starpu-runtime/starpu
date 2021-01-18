@@ -58,6 +58,7 @@ static struct starpu_sched_policy *predefined_policies[] =
 	&_starpu_sched_modular_eager_prio_policy,
 	&_starpu_sched_modular_gemm_policy,
 	&_starpu_sched_AATO_policy,
+	&_starpu_sched_HFP_policy,
 	&_starpu_sched_mst_policy,
 	&_starpu_sched_cuthillmckee_policy,
 	&_starpu_sched_modular_prio_policy,

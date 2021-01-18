@@ -301,6 +301,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_gemm.c				\
 	sched_policies/AATO.c				\
 	sched_policies/mst_policy.c				\
+	sched_policies/HFP.c				\
 	sched_policies/cuthillmckee_policy.c				\
 	sched_policies/modular_prio.c				\
 	sched_policies/modular_prio_prefetching.c				\
