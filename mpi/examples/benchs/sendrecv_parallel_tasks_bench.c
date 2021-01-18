@@ -49,7 +49,12 @@
 void cpu_task(void* descr[], void* args)
 {
 	int mpi_rank;
-	uint64_t iterations = LOOPS_DEFAULT / 100;
+	uint64_t iterations =
+#ifdef STARPU_QUICK_CHECK
+		10;
+#else
+	LOOPS_DEFAULT / 100;
+#endif
 	uint64_t s;
 	starpu_data_handle_t handle_send, handle_recv;
 	double t1, t2;
