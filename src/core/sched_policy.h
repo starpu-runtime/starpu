@@ -96,6 +96,7 @@ extern struct starpu_sched_policy _starpu_sched_modular_eager_prefetching_policy
 extern struct starpu_sched_policy _starpu_sched_modular_eager_prio_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_gemm_policy;
 extern struct starpu_sched_policy _starpu_sched_AATO_policy;
+extern struct starpu_sched_policy _starpu_sched_random_order_policy;
 extern struct starpu_sched_policy _starpu_sched_HFP_policy;
 extern struct starpu_sched_policy _starpu_sched_mst_policy;
 extern struct starpu_sched_policy _starpu_sched_cuthillmckee_policy;

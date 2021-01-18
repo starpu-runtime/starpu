@@ -96,6 +96,8 @@ static struct starpu_task *a_remplir_pull_task(struct starpu_sched_component *co
 			} 		
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",NT); }
 			
+			/* Write here */
+			
 			task1 = starpu_task_list_pop_front(&data->popped_task_list);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
