@@ -42,7 +42,7 @@
 #include "starpu_mpi_nmad_backend.h"
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
-void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req, nm_sr_event_t event);
+void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 #if defined(STARPU_VERBOSE) || defined(STARPU_MPI_VERBOSE)
 char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
@@ -331,7 +331,7 @@ char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 }
 #endif
 
-void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req, nm_sr_event_t event)
+void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -399,7 +399,7 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req, nm_sr_e
 
 void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event, const nm_sr_event_info_t* event_info, void* ref)
 {
-	_starpu_mpi_handle_request_termination(ref, event);
+	_starpu_mpi_handle_request_termination(ref);
 }
 
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req)

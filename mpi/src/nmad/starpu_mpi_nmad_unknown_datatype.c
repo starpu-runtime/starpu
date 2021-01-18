@@ -30,7 +30,7 @@
 extern char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
 
-extern void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
+extern void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
 extern void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 
 
@@ -118,7 +118,7 @@ static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, cons
 	}
 	else if (event & NM_SR_EVENT_FINALIZED)
 	{
-		_starpu_mpi_handle_request_termination(req, event);
+		_starpu_mpi_handle_request_termination(req);
 	}
 }
 
