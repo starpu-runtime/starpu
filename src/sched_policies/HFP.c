@@ -109,13 +109,22 @@ struct my_list* HFP_delete_link(struct HFP_sched_data* a)
 	return a->first_link;
 }
 
-int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) {
-	printf("J a %d taches et %d données\n",J->nb_task_in_sub_list,J->package_nb_data);
+struct *my_list(struct my_list *a) 
+{
+	
+
+int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
+{
+	int split_ij = 0;
+	//~ printf("I a %d taches et %d données\n",I->nb_task_in_sub_list,I->package_nb_data);
+	//~ printf("J a %d taches et %d données\n",J->nb_task_in_sub_list,J->package_nb_data);
+	//~ printf("Split de last ij de I = %d\n",I->split_last_ij);
+	//~ printf("Split de last ij de J = %d\n",J->split_last_ij);
 	/* evaluation: 0 = tout, 1 = début, 2 = fin */
 	struct starpu_task *task = NULL; bool insertion_ok = false;										
 	bool donnee_deja_presente = false; int j = 0; int i = 0;
-	int nb_donnee_a_ajouter_tache_en_cours = 0; int common_data_last_package = 0; long int poids_tache_en_cours = 0; long int poids = 0;
-	int index_tab_donnee_I = 0; int index_tab_donnee_J = 0;
+	int common_data_last_package = 0; long int poids_tache_en_cours = 0; long int poids = 0;
+	int index_tab_donnee_I = 0; int index_tab_donnee_J = 0; int parcours_liste = 0; int i_bis = 0;
 	
 	starpu_data_handle_t * donnee_J = malloc((J->package_nb_data) * sizeof(J->package_data[0]));
 	for (i = 0; i < J->package_nb_data; i++) { donnee_J[i] = NULL; }
@@ -127,44 +136,137 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 		}
 		index_tab_donnee_I = I->package_nb_data;
 	}
-	else if (evaluation_I == 1) { 
-		//~ task = starpu_task_list_begin(&I->sub_list);
-		//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-			//~ donnee_I[i] = STARPU_TASK_GET_HANDLE(task,i);
-			//~ poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
-		//~ }
-		//~ index_tab_donnee_I = STARPU_TASK_GET_NBUFFERS(task);											
-		//~ while(1) {
-			//~ task = starpu_task_list_next(task);
-			//~ poids_tache_en_cours = 0; nb_donnee_a_ajouter_tache_en_cours = 0;
-			//~ starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
-			//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
-			//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-				//~ donnee_deja_presente = false;
-				//~ for (j = 0; j < J->package_nb_data; j++) {
-					//~ if (STARPU_TASK_GET_HANDLE(task,i) == donnee_I[j]) {
-						//~ donnee_deja_presente = true;
-						//~ break; 
-					//~ }																									
-				//~ }												
-				//~ if (donnee_deja_presente == false) { 
-					//~ poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i)); 				
-					//~ tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task,i); 
-					//~ nb_donnee_a_ajouter_tache_en_cours++; 
-				//~ }
-			//~ }
-			//~ if (poids + poids_tache_en_cours <= GPU_RAM_M) {
-				//~ for (i = 0; i < nb_donnee_a_ajouter_tache_en_cours; i++) {
-					//~ if (tab_tache_en_cours[i] != NULL) { donnee_J[index_tab_donnee_J] = tab_tache_en_cours[i]; 
-						//~ index_tab_donnee_J++;
-					//~ }											
-				//~ } 
-				//~ poids += poids_tache_en_cours;
-			//~ }
-			//~ else { break; }											
-		//~ }
+	else if (evaluation_I == 1 && IJ_inferieur_GPU_RAM == false) {
+		poids = 0; insertion_ok = false;
+		task = starpu_task_list_begin(&I->sub_list);
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+			donnee_I[i] = STARPU_TASK_GET_HANDLE(task,i);
+			poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
+		}
+		index_tab_donnee_I = STARPU_TASK_GET_NBUFFERS(task);
+		while(1) {
+			task = starpu_task_list_next(task);
+			poids_tache_en_cours = 0;
+			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				donnee_deja_presente = false;
+				for (j = 0; j < I->package_nb_data; j++) {
+					if (STARPU_TASK_GET_HANDLE(task,i) == donnee_I[j]) {
+						donnee_deja_presente = true;
+						break; 
+					}																									
+				}												
+				if (donnee_deja_presente == false) { 
+					poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i)); 				
+					tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task,i); 
+				}
+			}
+			if (poids + poids_tache_en_cours <= GPU_RAM_M) {
+				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+					if (tab_tache_en_cours[i] != NULL) { donnee_I[index_tab_donnee_I] = tab_tache_en_cours[i]; 
+						index_tab_donnee_I++;
+						insertion_ok = true;
+					}											
+				} 
+				if (insertion_ok == true) { poids += poids_tache_en_cours; }
+				insertion_ok = false;
+			}
+			else { break; }											
+		}
+		printf("Poids a la fin pour i1 : %li\n",poids);	
 	}
-	else if (evaluation_I == 2) { }
+	else if (evaluation_I == 2 && IJ_inferieur_GPU_RAM == false) { 
+		poids = 0;
+		i_bis = 1; insertion_ok = false;
+		task = starpu_task_list_begin(&I->sub_list);
+		while(starpu_task_list_next(task) != NULL) { 
+			task = starpu_task_list_next(task);
+			//~ printf("%p\n",task);
+		}
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+			donnee_I[i] = STARPU_TASK_GET_HANDLE(task,i);
+			poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
+		}
+		index_tab_donnee_I = STARPU_TASK_GET_NBUFFERS(task);
+		while(1) {
+			i_bis++;
+			task = starpu_task_list_begin(&I->sub_list);
+			for (parcours_liste = I->nb_task_in_sub_list - i_bis; parcours_liste > 0; parcours_liste--) {
+				task = starpu_task_list_next(task);
+			}
+			poids_tache_en_cours = 0;
+			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				donnee_deja_presente = false;
+				for (j = 0; j < I->package_nb_data; j++) {
+					if (STARPU_TASK_GET_HANDLE(task,i) == donnee_I[j]) {
+						donnee_deja_presente = true;
+						break; 
+					}																									
+				}												
+				if (donnee_deja_presente == false) { 
+					poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i)); 				
+					tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task,i); 
+				}
+			}
+			if (poids + poids_tache_en_cours <= GPU_RAM_M) {
+				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+					if (tab_tache_en_cours[i] != NULL) { donnee_I[index_tab_donnee_I] = tab_tache_en_cours[i]; 
+						index_tab_donnee_I++;
+						insertion_ok = true;
+					}											
+				} 
+				if (insertion_ok == true) { poids += poids_tache_en_cours; }
+				insertion_ok = false;
+			}
+			else { break; }											
+		}
+		printf("Poids a la fin pour i2 : %li\n",poids);	
+	}
+	else if (IJ_inferieur_GPU_RAM == true) {
+		if (evaluation_I == 0) { printf("Error evaluation de I alors que I et J <= GPU_RAM\n"); exit(0); }
+		if (evaluation_I == 2) { split_ij = I->nb_task_in_sub_list - I->split_last_ij + 1; } else { split_ij = I->split_last_ij + 1; }
+		task = starpu_task_list_begin(&I->sub_list);
+		if (evaluation_I == 2) { 
+			while(starpu_task_list_next(task) != NULL) { 
+				task = starpu_task_list_next(task);
+			}
+		}
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+			donnee_I[i] = STARPU_TASK_GET_HANDLE(task,i);
+		}
+		index_tab_donnee_I = STARPU_TASK_GET_NBUFFERS(task);
+		for (i_bis = 2; i_bis < split_ij; i_bis++) {
+			if (evaluation_I == 2) { 
+				task = starpu_task_list_begin(&I->sub_list);
+				for (parcours_liste = I->nb_task_in_sub_list - i_bis; parcours_liste > 0; parcours_liste--) {
+					task = starpu_task_list_next(task);
+				}
+			}
+			else { task = starpu_task_list_next(task); }	
+			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				donnee_deja_presente = false;
+				for (j = 0; j < I->package_nb_data; j++) {
+					if (STARPU_TASK_GET_HANDLE(task,i) == donnee_I[j]) {
+						donnee_deja_presente = true;
+						break; 
+					}																									
+				}												
+				if (donnee_deja_presente == false) { 
+					tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task,i); 
+				}
+			}
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				if (tab_tache_en_cours[i] != NULL) { donnee_I[index_tab_donnee_I] = tab_tache_en_cours[i]; 
+					index_tab_donnee_I++;
+				}											
+			} 
+		} 
+	}
 	
 	if (evaluation_J == 0) {
 		for (i = 0; i < J->package_nb_data; i++) {
@@ -172,47 +274,37 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 		}
 		index_tab_donnee_J = J->package_nb_data;
 	}
-	else if (evaluation_J == 1) { 
+	else if (evaluation_J == 1 && IJ_inferieur_GPU_RAM == false) {
+		poids = 0; insertion_ok = false;
 		task = starpu_task_list_begin(&J->sub_list);
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 			donnee_J[i] = STARPU_TASK_GET_HANDLE(task,i);
 			poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
 		}
 		index_tab_donnee_J = STARPU_TASK_GET_NBUFFERS(task);
-		//~ int ite = 0;											
 		while(1) {
-			//~ ite++;
-		//~ for (int i_bis = 0; i_bis < J->package_nb_data; i_bis++) {
 			task = starpu_task_list_next(task);
-			poids_tache_en_cours = 0; nb_donnee_a_ajouter_tache_en_cours = 0;
+			poids_tache_en_cours = 0;
 			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 				donnee_deja_presente = false;
-				//~ ite++;
 				for (j = 0; j < J->package_nb_data; j++) {
 					if (STARPU_TASK_GET_HANDLE(task,i) == donnee_J[j]) {
 						donnee_deja_presente = true;
-						printf("break\n");
 						break; 
 					}																									
 				}												
 				if (donnee_deja_presente == false) { 
-					printf("on va ajouter\n");
 					poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i)); 				
 					tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task,i); 
-					nb_donnee_a_ajouter_tache_en_cours++; 
 				}
-				//~ donnee_deja_presente = false;
 			}
-			printf("poids = %li, poids en cours = %li\n",poids,poids_tache_en_cours);
-			//~ printf("donne parcouru = %d\n",ite);
 			if (poids + poids_tache_en_cours <= GPU_RAM_M) {
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 					if (tab_tache_en_cours[i] != NULL) { donnee_J[index_tab_donnee_J] = tab_tache_en_cours[i]; 
 						index_tab_donnee_J++;
 						insertion_ok = true;
-						printf("insertion\n");
 					}											
 				} 
 				if (insertion_ok == true) { poids += poids_tache_en_cours; }
@@ -220,22 +312,115 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			}
 			else { break; }											
 		}	
+		printf("Poids a la fin pour j1 : %li\n",poids);	
 	}
-	else if (evaluation_J == 2) { 
-			
+	else if (evaluation_J == 2 && IJ_inferieur_GPU_RAM == false) {
+		poids = 0;
+		i_bis = 1; insertion_ok = false;
+		/* Se placer sur la dernière tâche du paquet J */
+		task = starpu_task_list_begin(&J->sub_list);
+		//~ printf("%p\n",task);
+		while(starpu_task_list_next(task) != NULL) { 
+			task = starpu_task_list_next(task);
+		}
+		//~ printf("-----\nJe suis sur la tâche %p\n",task);	
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+			donnee_J[i] = STARPU_TASK_GET_HANDLE(task,i);
+			poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
+		}
+		index_tab_donnee_J = STARPU_TASK_GET_NBUFFERS(task);
+		while(1) {
+			//~ printf("début du while\n");
+			i_bis++;
+			task = starpu_task_list_begin(&J->sub_list);
+			for (parcours_liste = J->nb_task_in_sub_list - i_bis; parcours_liste > 0; parcours_liste--) {
+				task = starpu_task_list_next(task);
+			}
+			//~ printf("Je suis sur la tâche %p\n",task);			
+			poids_tache_en_cours = 0;
+			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				donnee_deja_presente = false;
+				for (j = 0; j < J->package_nb_data; j++) {
+					if (STARPU_TASK_GET_HANDLE(task,i) == donnee_J[j]) {
+						donnee_deja_presente = true;
+						break; 
+					}																									
+				}												
+				if (donnee_deja_presente == false) { 
+					poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i)); 				
+					tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task,i); 
+				}
+			}
+			if (poids + poids_tache_en_cours <= GPU_RAM_M) {
+				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+					if (tab_tache_en_cours[i] != NULL) { donnee_J[index_tab_donnee_J] = tab_tache_en_cours[i]; 
+						index_tab_donnee_J++;
+						insertion_ok = true;
+					}											
+				} 
+				if (insertion_ok == true) { poids += poids_tache_en_cours; }
+				insertion_ok = false;
+			}
+			else { break; }											
+		}
+		printf("Poids a la fin pour j2 : %li\n",poids);		
 	}
-	printf("I a un index de %d et %d données\n",index_tab_donnee_I,I->package_nb_data);		
-	printf("J a un index de %d et %d données\n",index_tab_donnee_J,J->package_nb_data);		
-	printf("Poids de 1 donnée 1: %li\n",starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,0))); 							
-	printf("Poids de 1 donnée 2: %li\n",starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,1))); 							
-	printf("Poids de 1 donnée 3: %li\n",starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,2))); 							
+	else if (IJ_inferieur_GPU_RAM == true) {
+		if (evaluation_J == 0) { printf("Error evaluation de J alors que I et J <= GPU_RAM\n"); exit(0); }
+		if (evaluation_J == 2) { split_ij = J->nb_task_in_sub_list - J->split_last_ij + 1; } else { split_ij = J->split_last_ij + 1; }
+		task = starpu_task_list_begin(&J->sub_list);
+		if (evaluation_J == 2) { 
+			while(starpu_task_list_next(task) != NULL) { 
+				task = starpu_task_list_next(task);
+			}
+		}
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+			donnee_J[i] = STARPU_TASK_GET_HANDLE(task,i);
+		}
+		index_tab_donnee_J = STARPU_TASK_GET_NBUFFERS(task);
+		for (i_bis = 2; i_bis < split_ij; i_bis++) {
+			if (evaluation_J == 2) { 
+				task = starpu_task_list_begin(&J->sub_list);
+				for (parcours_liste = J->nb_task_in_sub_list - i_bis; parcours_liste > 0; parcours_liste--) {
+					task = starpu_task_list_next(task);
+				}
+			}
+			else { task = starpu_task_list_next(task); }	
+			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				donnee_deja_presente = false;
+				for (j = 0; j < J->package_nb_data; j++) {
+					if (STARPU_TASK_GET_HANDLE(task,i) == donnee_J[j]) {
+						donnee_deja_presente = true;
+						break; 
+					}																									
+				}												
+				if (donnee_deja_presente == false) { 
+					tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task,i); 
+				}
+			}
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				if (tab_tache_en_cours[i] != NULL) { donnee_J[index_tab_donnee_J] = tab_tache_en_cours[i]; 
+					index_tab_donnee_J++;
+				}											
+			} 
+		} 
+	}
+	//~ printf("I a un index de %d et %d données\n",index_tab_donnee_I,I->package_nb_data);		
+	//~ printf("J a un index de %d et %d données\n",index_tab_donnee_J,J->package_nb_data);
 	printf("Données de I:"); for (i = 0; i < index_tab_donnee_I; i++) { printf(" %p",donnee_I[i]); }
 	printf("\n");
 	printf("Données de J:"); for (i = 0; i < index_tab_donnee_J; i++) { printf(" %p",donnee_J[i]); }
+	printf("\n");
 	for (i = 0; i < index_tab_donnee_I; i++) {
 		for (j = 0; j < index_tab_donnee_J; j++) {
 			if (donnee_I[i] == donnee_J[j]) {
 				common_data_last_package++;
+				printf("%p\n",donnee_I[i]);
+				break;
 			}
 		}
 	}
@@ -288,7 +473,7 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
 	bool donnee_deja_presente = false;
-	int nb_donnee_a_ajouter_tache_en_cours = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int index_tab_donnee_i1 = 0; long int poids_tache_en_cours = 0; long int poids = 0; int ordre_U_fait = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0; int index_tab_donnee_j1 = 0; int index_tab_donnee_j2 = 0; int index_tab_donnee_i2 = 0;
+	int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int index_tab_donnee_i1 = 0; long int poids_tache_en_cours = 0; long int poids = 0; int ordre_U_fait = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0; int index_tab_donnee_j1 = 0; int index_tab_donnee_j2 = 0; int index_tab_donnee_i2 = 0;
 	struct HFP_sched_data *data = component->data;
 	
 	/* Variables */
@@ -516,7 +701,11 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 								for (j_bis = 0; j_bis < nb_pop; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
 								nb_common_data--;
 								
-								if (starpu_get_env_number_default("ORDER_U",0) == 1) { 
+								if (starpu_get_env_number_default("ORDER_U",0) == 1) {
+									printf("I a %d taches et %d données\n",data->temp_pointer_1->nb_task_in_sub_list,data->temp_pointer_1->package_nb_data);
+									printf("J a %d taches et %d données\n",data->temp_pointer_2->nb_task_in_sub_list,data->temp_pointer_2->package_nb_data);
+									printf("Split de last ij de I = %d\n",data->temp_pointer_1->split_last_ij);
+									printf("Split de last ij de J = %d\n",data->temp_pointer_2->split_last_ij); 
 									printf("Poids paquet i : %li / Poids paquet j : %li / M : %li\n",weight_package_i,weight_package_j,GPU_RAM_M);
 									ordre_U_fait = 0;
 									if (data->temp_pointer_1->nb_task_in_sub_list == 1 && data->temp_pointer_2->nb_task_in_sub_list == 1) {
@@ -525,66 +714,9 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 									}
 									else if (weight_package_i > GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
 										printf("I > PU_RAM et J <= PU_RAM\n");
-										/* Remplir i1 */											
-										poids = 0;
-										poids_tache_en_cours = 0;
-										ordre_U_fait = 1;
-										index_tab_donnee_i1 = 0;
-										common_data_last_package_i1_j = 0; common_data_last_package_i2_j = 0;
-										starpu_data_handle_t * donnee_i1 = malloc((data->temp_pointer_1->package_nb_data) * sizeof(data->temp_pointer_1->package_data[0]));
-										//~ for (i_bis = 0; i_bis < data->temp_pointer_1->package_nb_data; i_bis++) { donnee_i1[i_bis] = NULL; }
-										temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list);
-										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
-											donnee_i1[i_bis] = STARPU_TASK_GET_HANDLE(temp_task_1,i_bis);
-											poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis));
-										}
-										index_tab_donnee_i1 = STARPU_TASK_GET_NBUFFERS(temp_task_1);											
-										while(1) {
-											temp_task_1 = starpu_task_list_next(temp_task_1);
-											poids_tache_en_cours = 0; nb_donnee_a_ajouter_tache_en_cours = 0;
-											starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(temp_task_1)) * sizeof(data->temp_pointer_1->package_data[0]));
-											for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) { tab_tache_en_cours[i_bis] = NULL; }
-											for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
-												donnee_deja_presente = false;
-												for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) {
-													if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == donnee_i1[j_bis]) {
-														donnee_deja_presente = true;
-														break; 
-													}													
-												}
-												if (donnee_deja_presente == false) { poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); tab_tache_en_cours[i_bis] = STARPU_TASK_GET_HANDLE(temp_task_1,i_bis); 
-												nb_donnee_a_ajouter_tache_en_cours++; }
-											}
-											if (poids + poids_tache_en_cours <= GPU_RAM_M) {
-												for (i_bis = 0; i_bis < nb_donnee_a_ajouter_tache_en_cours; i_bis++) {
-													if (tab_tache_en_cours[i_bis] != NULL) { donnee_i1[index_tab_donnee_i1] = tab_tache_en_cours[i_bis]; }
-												} poids += poids_tache_en_cours;
-												
-											}
-											else { break; }											
-										}
-										/* A faire : remplir i2 */
-										/* ... */
-											
-										printf("taille_i1 = %d / taille_i2 = %d\n",index_tab_donnee_i1,index_tab_donnee_i2);
-										printf("Données de i1:"); for (i_bis = 0; i_bis < index_tab_donnee_i1; i_bis++) { printf(" %p",donnee_i1[i_bis]); }
-										//~ printf("Données de i2:"); for (i_bis = 0; i_bis < index_tab_donnee_i2; i_bis++) { printf(" %p",donnee_i1[i_bis]); }
-										//~ printf("Données de J:"); for (i_bis = 0; i_bis < pointeur_paquet_2->nb_donnee_paquet; i_bis++) { printf(" %d",pointeur_paquet_2->tab_donnee_paquet[i_bis]); }
-										for (i_bis = 0; i_bis < index_tab_donnee_i1; i_bis++) {
-											for (j_bis = 0; j_bis < data->temp_pointer_2->package_nb_data; j_bis++) {
-												if (donnee_i1[i_bis] == data->temp_pointer_2->package_data[j_bis]) {
-													common_data_last_package_i1_j++;
-												}
-											}
-										}														
-										//~ for (i_bis = 0; i_bis < taille_i2; i_bis++) {
-										//~ for (j_bis = 0; j_bis < pointeur_paquet_2->nb_donnee_paquet; j_bis++) {
-												//~ if (sous_paquet_i2[i_bis] == pointeur_paquet_2->tab_donnee_paquet[j_bis]) {
-													//~ common_data_last_package_i2_j++;
-												//~ }
-											//~ }
-										//~ }																					
-										printf("i1j = %d / i1j = %d\n",common_data_last_package_i1_j,common_data_last_package_i2_j);
+										common_data_last_package_i1_j = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 1, 0, false,GPU_RAM_M);					
+										common_data_last_package_i2_j = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 2, 0, false,GPU_RAM_M);					
+										printf("\ni1j = %d / i2j = %d\n",common_data_last_package_i1_j,common_data_last_package_i2_j);
 										if (common_data_last_package_i1_j > common_data_last_package_i2_j) {
 											printf("SWITCH PAQUET I\n");
 											//~ interReverseLL(pointeur_paquet_1);
@@ -593,60 +725,8 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 									}
 									else if (weight_package_i <= GPU_RAM_M && weight_package_j > GPU_RAM_M) {
 										printf("I <= PU_RAM et J > PU_RAM\n");
-										/* Remplir j1 */											
-										//~ poids = 0;
-										//~ poids_tache_en_cours = 0;
-										//~ ordre_U_fait = 1;
-										//~ index_tab_donnee_j1 = 0;
-										//~ common_data_last_package_i_j1 = 0; common_data_last_package_i_j2 = 0;
-										//~ starpu_data_handle_t * donnee_j1 = malloc((data->temp_pointer_2->package_nb_data) * sizeof(data->temp_pointer_2->package_data[0]));
-										//~ printf("taille de donnee_j1 = %d\n",data->temp_pointer_2->package_nb_data);
-										//~ temp_task_1 = starpu_task_list_begin(&data->temp_pointer_2->sub_list);
-										//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
-											//~ donnee_j1[i_bis] = STARPU_TASK_GET_HANDLE(temp_task_1,i_bis);
-											//~ poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis));
-										//~ }
-										//~ index_tab_donnee_j1 = STARPU_TASK_GET_NBUFFERS(temp_task_1);											
-										//~ while(1) {
-											//~ temp_task_1 = starpu_task_list_next(temp_task_1);
-											//~ poids_tache_en_cours = 0; nb_donnee_a_ajouter_tache_en_cours = 0;
-											//~ starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(temp_task_1)) * sizeof(data->temp_pointer_2->package_data[0]));
-											//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) { tab_tache_en_cours[i_bis] = NULL; }
-											//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
-												//~ donnee_deja_presente = false;
-												//~ for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) {
-													//~ if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == donnee_j1[j_bis]) {
-														//~ donnee_deja_presente = true;
-														//~ break; 
-													//~ }
-																										
-												//~ }												
-												//~ if (donnee_deja_presente == false) { poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); tab_tache_en_cours[i_bis] = STARPU_TASK_GET_HANDLE(temp_task_1,i_bis); 
-												//~ nb_donnee_a_ajouter_tache_en_cours++; }
-											//~ }
-											//~ if (poids + poids_tache_en_cours <= GPU_RAM_M) {
-												//~ for (i_bis = 0; i_bis < nb_donnee_a_ajouter_tache_en_cours; i_bis++) {
-													//~ if (tab_tache_en_cours[i_bis] != NULL) { donnee_j1[index_tab_donnee_j1] = tab_tache_en_cours[i_bis]; 
-														//~ index_tab_donnee_j1++;}														
-												//~ } poids += poids_tache_en_cours;
-												
-											//~ }
-											//~ else { break; }											
-										//~ }
-										//~ /* A faire : remplir j2 */
-										//~ /* ... */
-											
-										//~ printf("taille_j1 = %d / taille_j2 = %d\n",index_tab_donnee_j1,index_tab_donnee_j2);
-										//~ printf("nb data du paquet de base : %d\n",data->temp_pointer_1->package_nb_data);
-										//~ printf("Données de j1:"); for (i_bis = 0; i_bis < index_tab_donnee_j1; i_bis++) { printf(" %p",donnee_j1[i_bis]); }
-										//~ for (i_bis = 0; i_bis < index_tab_donnee_j1; i_bis++) {
-											//~ for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) {
-												//~ if (donnee_j1[i_bis] == data->temp_pointer_1->package_data[j_bis]) {
-													//~ common_data_last_package_i_j1++;
-												//~ }
-											//~ }
-										//~ }	
 										common_data_last_package_i_j1 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 0, 1, false,GPU_RAM_M);					
+										common_data_last_package_i_j2 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 0, 2, false,GPU_RAM_M);					
 										printf("\nij1 = %d / ij2 = %d\n",common_data_last_package_i_j1,common_data_last_package_i_j2);
 										if (common_data_last_package_i_j2 > common_data_last_package_i_j1) {
 											printf("SWITCH PAQUET J\n");
@@ -654,12 +734,64 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 										}
 										else { printf("Pas de switch\n"); }
 									}
-									else if (weight_package_i > GPU_RAM_M && weight_package_j > GPU_RAM_M) {
-										
-									}
+									else {
+										if (weight_package_i > GPU_RAM_M && weight_package_j > GPU_RAM_M) {
+											printf("I > PU_RAM et J > PU_RAM\n");
+											common_data_last_package_i1_j1 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 1, 1, false,GPU_RAM_M);					
+											common_data_last_package_i1_j2 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 1, 2, false,GPU_RAM_M);
+											common_data_last_package_i2_j1 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 2, 1, false,GPU_RAM_M);					
+											common_data_last_package_i2_j2 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 2, 2, false,GPU_RAM_M);
+										}
+										else if (weight_package_i <= GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
+											printf("I <= PU_RAM et J <= PU_RAM\n");
+											printf("Tâches de I\n");
+											temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list);
+											printf("%p:",temp_task_1);
+											printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));
+											while (starpu_task_list_next(temp_task_1) != NULL) { temp_task_1 = starpu_task_list_next(temp_task_1); printf("%p:",temp_task_1); printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));}
+											printf("Tâches de J\n");
+											temp_task_1 = starpu_task_list_begin(&data->temp_pointer_2->sub_list);
+											printf("%p:",temp_task_1); printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));
+											while (starpu_task_list_next(temp_task_1) != NULL) { temp_task_1 = starpu_task_list_next(temp_task_1); printf("%p:",temp_task_1); printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));}
+											
+											//~ printf("I a %d taches et %d données\n",data->temp_pointer_1->nb_task_in_sub_list,data->temp_pointer_1->package_nb_data);
+											//~ printf("J a %d taches et %d données\n",data->temp_pointer_2->nb_task_in_sub_list,data->temp_pointer_2->package_nb_data);
+											//~ printf("Split de last ij de I = %d\n",data->temp_pointer_1->split_last_ij);
+											//~ printf("Split de last ij de J = %d\n",data->temp_pointer_2->split_last_ij);
+											common_data_last_package_i1_j1 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 1, 1, true,GPU_RAM_M);					
+											common_data_last_package_i1_j2 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 1, 2, true,GPU_RAM_M);
+											common_data_last_package_i2_j1 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 2, 1, true,GPU_RAM_M);					
+											common_data_last_package_i2_j2 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 2, 2, true,GPU_RAM_M);
+										}
+										else { printf("Erreur dans ordre U, aucun cas choisi\n"); exit(0); }
+										printf("i1j1 = %d / i1j2 = %d / i2j1 = %d / i2j2 = %d\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2);
+										max_common_data_last_package = common_data_last_package_i2_j1;
+										if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
+										if (max_common_data_last_package < common_data_last_package_i1_j2) { max_common_data_last_package = common_data_last_package_i1_j2; }
+										if (max_common_data_last_package < common_data_last_package_i2_j2) { max_common_data_last_package = common_data_last_package_i2_j2; }
+										if (max_common_data_last_package == common_data_last_package_i2_j1) {
+											printf("Pas de switch\n");
+										}								
+										else if (max_common_data_last_package == common_data_last_package_i1_j2) {
+											printf("SWITCH PAQUET I ET J\n");	
+											HFP_reverse_sub_list(data->temp_pointer_1);															
+											HFP_reverse_sub_list(data->temp_pointer_2);															
+											//~ interReverseLL(pointeur_paquet_1);
+											//~ interReverseLL(pointeur_paquet_2);
+										}
+										else if (max_common_data_last_package == common_data_last_package_i2_j2) {
+											printf("SWITCH PAQUET J\n");
+											HFP_reverse_sub_list(data->temp_pointer_2);									
+										}
+										else { /* max_common_data_last_package == common_data_last_package_i1_j1 */
+											printf("SWITCH PAQUET I\n");
+											HFP_reverse_sub_list(data->temp_pointer_1);								
+										}		
+									}							
 									printf("Fin de l'ordre U sans doublons\n");
 								}
 								
+								data->temp_pointer_1->split_last_ij = data->temp_pointer_1->nb_task_in_sub_list;
 								while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) {
 								starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list)); 
 								data->temp_pointer_1->nb_task_in_sub_list ++; }
