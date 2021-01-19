@@ -109,9 +109,18 @@ struct my_list* HFP_delete_link(struct HFP_sched_data* a)
 	return a->first_link;
 }
 
-struct *my_list(struct my_list *a) 
+struct my_list* HFP_reverse_sub_list(struct my_list *a) 
 {
-	
+	struct starpu_task_list b;
+	starpu_task_list_init(&b);
+	while (!starpu_task_list_empty(&a->sub_list)) {				
+		starpu_task_list_push_front(&b,starpu_task_list_pop_front(&a->sub_list));
+	}
+	while (!starpu_task_list_empty(&b)) {				
+		starpu_task_list_push_back(&a->sub_list,starpu_task_list_pop_front(&b));
+	}
+	return a; 	
+}
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
 {
@@ -330,13 +339,11 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 		}
 		index_tab_donnee_J = STARPU_TASK_GET_NBUFFERS(task);
 		while(1) {
-			//~ printf("début du while\n");
 			i_bis++;
 			task = starpu_task_list_begin(&J->sub_list);
 			for (parcours_liste = J->nb_task_in_sub_list - i_bis; parcours_liste > 0; parcours_liste--) {
 				task = starpu_task_list_next(task);
 			}
-			//~ printf("Je suis sur la tâche %p\n",task);			
 			poids_tache_en_cours = 0;
 			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
@@ -472,8 +479,7 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	bool donnee_deja_presente = false;
-	int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int index_tab_donnee_i1 = 0; long int poids_tache_en_cours = 0; long int poids = 0; int ordre_U_fait = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0; int index_tab_donnee_j1 = 0; int index_tab_donnee_j2 = 0; int index_tab_donnee_i2 = 0;
+	int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int index_tab_donnee_i1 = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
 	struct HFP_sched_data *data = component->data;
 	
 	/* Variables */
@@ -707,10 +713,8 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 									printf("Split de last ij de I = %d\n",data->temp_pointer_1->split_last_ij);
 									printf("Split de last ij de J = %d\n",data->temp_pointer_2->split_last_ij); 
 									printf("Poids paquet i : %li / Poids paquet j : %li / M : %li\n",weight_package_i,weight_package_j,GPU_RAM_M);
-									ordre_U_fait = 0;
 									if (data->temp_pointer_1->nb_task_in_sub_list == 1 && data->temp_pointer_2->nb_task_in_sub_list == 1) {
 										printf("I = 1 et J = 1\n"); 
-										ordre_U_fait = 1;
 									}
 									else if (weight_package_i > GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
 										printf("I > PU_RAM et J <= PU_RAM\n");
@@ -774,18 +778,22 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 										}								
 										else if (max_common_data_last_package == common_data_last_package_i1_j2) {
 											printf("SWITCH PAQUET I ET J\n");	
-											HFP_reverse_sub_list(data->temp_pointer_1);															
-											HFP_reverse_sub_list(data->temp_pointer_2);															
-											//~ interReverseLL(pointeur_paquet_1);
-											//~ interReverseLL(pointeur_paquet_2);
+											//~ HFP_reverse_sub_list(data->temp_pointer_1);															
+											//~ HFP_reverse_sub_list(data->temp_pointer_2);															
 										}
 										else if (max_common_data_last_package == common_data_last_package_i2_j2) {
+											printf("Tâches du paquet %d:\n",data->temp_pointer_2->index_package);
+											for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+												printf("%p / ",temp_task_1); } 
 											printf("SWITCH PAQUET J\n");
-											HFP_reverse_sub_list(data->temp_pointer_2);									
+											data->temp_pointer_2 = HFP_reverse_sub_list(data->temp_pointer_2);	
+											printf("Tâches du paquet %d:\n",data->temp_pointer_2->index_package);
+											for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+												printf("%p /",temp_task_1); }								
 										}
 										else { /* max_common_data_last_package == common_data_last_package_i1_j1 */
 											printf("SWITCH PAQUET I\n");
-											HFP_reverse_sub_list(data->temp_pointer_1);								
+											//~ HFP_reverse_sub_list(data->temp_pointer_1);								
 										}		
 									}							
 									printf("Fin de l'ordre U sans doublons\n");
