@@ -464,7 +464,6 @@ int main(int argc, char **argv)
 
 		starpu_fxt_start_profiling();
 		start = starpu_timing_now();
-		starpu_sleep(1);
 
 		unsigned x, y, z, iter;
 		for (iter = 0; iter < niter; iter++)
