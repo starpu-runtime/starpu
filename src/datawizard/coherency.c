@@ -1005,9 +1005,13 @@ int starpu_prefetch_task_input_for_prio(struct starpu_task *task, unsigned worke
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 			continue;
 
+// XXX for maxime: we need to prefetch allocations otherwise we may not have
+// memory left for them after prefetching lots of stuff...
+#if 0
 		if (!(mode & STARPU_R))
 			/* Don't bother prefetching some data which will be overwritten */
 			continue;
+#endif
 
 		int node = _starpu_task_data_get_node_on_worker(task, index, worker);
 
