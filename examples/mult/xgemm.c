@@ -535,6 +535,7 @@ int main(int argc, char **argv)
 					}
 					starpu_data_wont_use(Ctile);
 				}
+				starpu_task_wait_for_all();
 			}
 		} else if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
 			//~ printf("random\n");
