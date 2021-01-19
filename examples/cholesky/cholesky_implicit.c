@@ -68,7 +68,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
                 ret = starpu_task_insert(&cl11,
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
-					 STARPU_RW, sdatakk,
+					 STARPU_R, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					 STARPU_TAG_ONLY, TAG11(k),
@@ -83,7 +83,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                         ret = starpu_task_insert(&cl21,
 						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
-						 STARPU_RW, sdatamk,
+						 STARPU_R, sdatamk,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 						 STARPU_TAG_ONLY, TAG21(m,k),
 						 0);
