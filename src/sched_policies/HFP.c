@@ -16,6 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 #include <starpu.h>
@@ -84,7 +85,6 @@ void HFP_insertion(struct HFP_sched_data *a)
 /* Delete all the empty packages */
 struct my_list* HFP_delete_link(struct HFP_sched_data* a)
 {
-	printf("ok\n");
 	while (a->first_link != NULL && a->first_link->package_nb_data == 0) {
 		a->temp_pointer_1 = a->first_link;
 		a->first_link = a->first_link->next;
@@ -107,6 +107,139 @@ struct my_list* HFP_delete_link(struct HFP_sched_data* a)
 		}
 	}
 	return a->first_link;
+}
+
+int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) {
+	printf("J a %d taches et %d données\n",J->nb_task_in_sub_list,J->package_nb_data);
+	/* evaluation: 0 = tout, 1 = début, 2 = fin */
+	struct starpu_task *task = NULL; bool insertion_ok = false;										
+	bool donnee_deja_presente = false; int j = 0; int i = 0;
+	int nb_donnee_a_ajouter_tache_en_cours = 0; int common_data_last_package = 0; long int poids_tache_en_cours = 0; long int poids = 0;
+	int index_tab_donnee_I = 0; int index_tab_donnee_J = 0;
+	
+	starpu_data_handle_t * donnee_J = malloc((J->package_nb_data) * sizeof(J->package_data[0]));
+	for (i = 0; i < J->package_nb_data; i++) { donnee_J[i] = NULL; }
+	starpu_data_handle_t * donnee_I = malloc((I->package_nb_data) * sizeof(I->package_data[0]));
+	
+	if (evaluation_I == 0) {
+		for (i = 0; i < I->package_nb_data; i++) {
+			donnee_I[i] = I->package_data[i];
+		}
+		index_tab_donnee_I = I->package_nb_data;
+	}
+	else if (evaluation_I == 1) { 
+		//~ task = starpu_task_list_begin(&I->sub_list);
+		//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+			//~ donnee_I[i] = STARPU_TASK_GET_HANDLE(task,i);
+			//~ poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
+		//~ }
+		//~ index_tab_donnee_I = STARPU_TASK_GET_NBUFFERS(task);											
+		//~ while(1) {
+			//~ task = starpu_task_list_next(task);
+			//~ poids_tache_en_cours = 0; nb_donnee_a_ajouter_tache_en_cours = 0;
+			//~ starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(I->package_data[0]));
+			//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
+			//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				//~ donnee_deja_presente = false;
+				//~ for (j = 0; j < J->package_nb_data; j++) {
+					//~ if (STARPU_TASK_GET_HANDLE(task,i) == donnee_I[j]) {
+						//~ donnee_deja_presente = true;
+						//~ break; 
+					//~ }																									
+				//~ }												
+				//~ if (donnee_deja_presente == false) { 
+					//~ poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i)); 				
+					//~ tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task,i); 
+					//~ nb_donnee_a_ajouter_tache_en_cours++; 
+				//~ }
+			//~ }
+			//~ if (poids + poids_tache_en_cours <= GPU_RAM_M) {
+				//~ for (i = 0; i < nb_donnee_a_ajouter_tache_en_cours; i++) {
+					//~ if (tab_tache_en_cours[i] != NULL) { donnee_J[index_tab_donnee_J] = tab_tache_en_cours[i]; 
+						//~ index_tab_donnee_J++;
+					//~ }											
+				//~ } 
+				//~ poids += poids_tache_en_cours;
+			//~ }
+			//~ else { break; }											
+		//~ }
+	}
+	else if (evaluation_I == 2) { }
+	
+	if (evaluation_J == 0) {
+		for (i = 0; i < J->package_nb_data; i++) {
+			donnee_J[i] = J->package_data[i];
+		}
+		index_tab_donnee_J = J->package_nb_data;
+	}
+	else if (evaluation_J == 1) { 
+		task = starpu_task_list_begin(&J->sub_list);
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+			donnee_J[i] = STARPU_TASK_GET_HANDLE(task,i);
+			poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
+		}
+		index_tab_donnee_J = STARPU_TASK_GET_NBUFFERS(task);
+		//~ int ite = 0;											
+		while(1) {
+			//~ ite++;
+		//~ for (int i_bis = 0; i_bis < J->package_nb_data; i_bis++) {
+			task = starpu_task_list_next(task);
+			poids_tache_en_cours = 0; nb_donnee_a_ajouter_tache_en_cours = 0;
+			starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(task)) * sizeof(J->package_data[0]));
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) { tab_tache_en_cours[i] = NULL; }
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				donnee_deja_presente = false;
+				//~ ite++;
+				for (j = 0; j < J->package_nb_data; j++) {
+					if (STARPU_TASK_GET_HANDLE(task,i) == donnee_J[j]) {
+						donnee_deja_presente = true;
+						printf("break\n");
+						break; 
+					}																									
+				}												
+				if (donnee_deja_presente == false) { 
+					printf("on va ajouter\n");
+					poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i)); 				
+					tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task,i); 
+					nb_donnee_a_ajouter_tache_en_cours++; 
+				}
+				//~ donnee_deja_presente = false;
+			}
+			printf("poids = %li, poids en cours = %li\n",poids,poids_tache_en_cours);
+			//~ printf("donne parcouru = %d\n",ite);
+			if (poids + poids_tache_en_cours <= GPU_RAM_M) {
+				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+					if (tab_tache_en_cours[i] != NULL) { donnee_J[index_tab_donnee_J] = tab_tache_en_cours[i]; 
+						index_tab_donnee_J++;
+						insertion_ok = true;
+						printf("insertion\n");
+					}											
+				} 
+				if (insertion_ok == true) { poids += poids_tache_en_cours; }
+				insertion_ok = false;
+			}
+			else { break; }											
+		}	
+	}
+	else if (evaluation_J == 2) { 
+			
+	}
+	printf("I a un index de %d et %d données\n",index_tab_donnee_I,I->package_nb_data);		
+	printf("J a un index de %d et %d données\n",index_tab_donnee_J,J->package_nb_data);		
+	printf("Poids de 1 donnée 1: %li\n",starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,0))); 							
+	printf("Poids de 1 donnée 2: %li\n",starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,1))); 							
+	printf("Poids de 1 donnée 3: %li\n",starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,2))); 							
+	printf("Données de I:"); for (i = 0; i < index_tab_donnee_I; i++) { printf(" %p",donnee_I[i]); }
+	printf("\n");
+	printf("Données de J:"); for (i = 0; i < index_tab_donnee_J; i++) { printf(" %p",donnee_J[i]); }
+	for (i = 0; i < index_tab_donnee_I; i++) {
+		for (j = 0; j < index_tab_donnee_J; j++) {
+			if (donnee_I[i] == donnee_J[j]) {
+				common_data_last_package++;
+			}
+		}
+	}
+	return common_data_last_package;
 }
 
 /* Give a color for each package. Written in the file Data_coordinates.txt */
@@ -154,6 +287,8 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	bool donnee_deja_presente = false;
+	int nb_donnee_a_ajouter_tache_en_cours = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int index_tab_donnee_i1 = 0; long int poids_tache_en_cours = 0; long int poids = 0; int ordre_U_fait = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0; int index_tab_donnee_j1 = 0; int index_tab_donnee_j2 = 0; int index_tab_donnee_i2 = 0;
 	struct HFP_sched_data *data = component->data;
 	
 	/* Variables */
@@ -382,10 +517,148 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 								nb_common_data--;
 								
 								if (starpu_get_env_number_default("ORDER_U",0) == 1) { 
-								
-							 
+									printf("Poids paquet i : %li / Poids paquet j : %li / M : %li\n",weight_package_i,weight_package_j,GPU_RAM_M);
+									ordre_U_fait = 0;
+									if (data->temp_pointer_1->nb_task_in_sub_list == 1 && data->temp_pointer_2->nb_task_in_sub_list == 1) {
+										printf("I = 1 et J = 1\n"); 
+										ordre_U_fait = 1;
+									}
+									else if (weight_package_i > GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
+										printf("I > PU_RAM et J <= PU_RAM\n");
+										/* Remplir i1 */											
+										poids = 0;
+										poids_tache_en_cours = 0;
+										ordre_U_fait = 1;
+										index_tab_donnee_i1 = 0;
+										common_data_last_package_i1_j = 0; common_data_last_package_i2_j = 0;
+										starpu_data_handle_t * donnee_i1 = malloc((data->temp_pointer_1->package_nb_data) * sizeof(data->temp_pointer_1->package_data[0]));
+										//~ for (i_bis = 0; i_bis < data->temp_pointer_1->package_nb_data; i_bis++) { donnee_i1[i_bis] = NULL; }
+										temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list);
+										for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+											donnee_i1[i_bis] = STARPU_TASK_GET_HANDLE(temp_task_1,i_bis);
+											poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis));
+										}
+										index_tab_donnee_i1 = STARPU_TASK_GET_NBUFFERS(temp_task_1);											
+										while(1) {
+											temp_task_1 = starpu_task_list_next(temp_task_1);
+											poids_tache_en_cours = 0; nb_donnee_a_ajouter_tache_en_cours = 0;
+											starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(temp_task_1)) * sizeof(data->temp_pointer_1->package_data[0]));
+											for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) { tab_tache_en_cours[i_bis] = NULL; }
+											for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+												donnee_deja_presente = false;
+												for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) {
+													if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == donnee_i1[j_bis]) {
+														donnee_deja_presente = true;
+														break; 
+													}													
+												}
+												if (donnee_deja_presente == false) { poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); tab_tache_en_cours[i_bis] = STARPU_TASK_GET_HANDLE(temp_task_1,i_bis); 
+												nb_donnee_a_ajouter_tache_en_cours++; }
+											}
+											if (poids + poids_tache_en_cours <= GPU_RAM_M) {
+												for (i_bis = 0; i_bis < nb_donnee_a_ajouter_tache_en_cours; i_bis++) {
+													if (tab_tache_en_cours[i_bis] != NULL) { donnee_i1[index_tab_donnee_i1] = tab_tache_en_cours[i_bis]; }
+												} poids += poids_tache_en_cours;
+												
+											}
+											else { break; }											
+										}
+										/* A faire : remplir i2 */
+										/* ... */
+											
+										printf("taille_i1 = %d / taille_i2 = %d\n",index_tab_donnee_i1,index_tab_donnee_i2);
+										printf("Données de i1:"); for (i_bis = 0; i_bis < index_tab_donnee_i1; i_bis++) { printf(" %p",donnee_i1[i_bis]); }
+										//~ printf("Données de i2:"); for (i_bis = 0; i_bis < index_tab_donnee_i2; i_bis++) { printf(" %p",donnee_i1[i_bis]); }
+										//~ printf("Données de J:"); for (i_bis = 0; i_bis < pointeur_paquet_2->nb_donnee_paquet; i_bis++) { printf(" %d",pointeur_paquet_2->tab_donnee_paquet[i_bis]); }
+										for (i_bis = 0; i_bis < index_tab_donnee_i1; i_bis++) {
+											for (j_bis = 0; j_bis < data->temp_pointer_2->package_nb_data; j_bis++) {
+												if (donnee_i1[i_bis] == data->temp_pointer_2->package_data[j_bis]) {
+													common_data_last_package_i1_j++;
+												}
+											}
+										}														
+										//~ for (i_bis = 0; i_bis < taille_i2; i_bis++) {
+										//~ for (j_bis = 0; j_bis < pointeur_paquet_2->nb_donnee_paquet; j_bis++) {
+												//~ if (sous_paquet_i2[i_bis] == pointeur_paquet_2->tab_donnee_paquet[j_bis]) {
+													//~ common_data_last_package_i2_j++;
+												//~ }
+											//~ }
+										//~ }																					
+										printf("i1j = %d / i1j = %d\n",common_data_last_package_i1_j,common_data_last_package_i2_j);
+										if (common_data_last_package_i1_j > common_data_last_package_i2_j) {
+											printf("SWITCH PAQUET I\n");
+											//~ interReverseLL(pointeur_paquet_1);
+										}
+										else { printf("Pas de switch\n"); }
+									}
+									else if (weight_package_i <= GPU_RAM_M && weight_package_j > GPU_RAM_M) {
+										printf("I <= PU_RAM et J > PU_RAM\n");
+										/* Remplir j1 */											
+										//~ poids = 0;
+										//~ poids_tache_en_cours = 0;
+										//~ ordre_U_fait = 1;
+										//~ index_tab_donnee_j1 = 0;
+										//~ common_data_last_package_i_j1 = 0; common_data_last_package_i_j2 = 0;
+										//~ starpu_data_handle_t * donnee_j1 = malloc((data->temp_pointer_2->package_nb_data) * sizeof(data->temp_pointer_2->package_data[0]));
+										//~ printf("taille de donnee_j1 = %d\n",data->temp_pointer_2->package_nb_data);
+										//~ temp_task_1 = starpu_task_list_begin(&data->temp_pointer_2->sub_list);
+										//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+											//~ donnee_j1[i_bis] = STARPU_TASK_GET_HANDLE(temp_task_1,i_bis);
+											//~ poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis));
+										//~ }
+										//~ index_tab_donnee_j1 = STARPU_TASK_GET_NBUFFERS(temp_task_1);											
+										//~ while(1) {
+											//~ temp_task_1 = starpu_task_list_next(temp_task_1);
+											//~ poids_tache_en_cours = 0; nb_donnee_a_ajouter_tache_en_cours = 0;
+											//~ starpu_data_handle_t * tab_tache_en_cours = malloc((STARPU_TASK_GET_NBUFFERS(temp_task_1)) * sizeof(data->temp_pointer_2->package_data[0]));
+											//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) { tab_tache_en_cours[i_bis] = NULL; }
+											//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+												//~ donnee_deja_presente = false;
+												//~ for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) {
+													//~ if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == donnee_j1[j_bis]) {
+														//~ donnee_deja_presente = true;
+														//~ break; 
+													//~ }
+																										
+												//~ }												
+												//~ if (donnee_deja_presente == false) { poids_tache_en_cours += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1,i_bis)); tab_tache_en_cours[i_bis] = STARPU_TASK_GET_HANDLE(temp_task_1,i_bis); 
+												//~ nb_donnee_a_ajouter_tache_en_cours++; }
+											//~ }
+											//~ if (poids + poids_tache_en_cours <= GPU_RAM_M) {
+												//~ for (i_bis = 0; i_bis < nb_donnee_a_ajouter_tache_en_cours; i_bis++) {
+													//~ if (tab_tache_en_cours[i_bis] != NULL) { donnee_j1[index_tab_donnee_j1] = tab_tache_en_cours[i_bis]; 
+														//~ index_tab_donnee_j1++;}														
+												//~ } poids += poids_tache_en_cours;
+												
+											//~ }
+											//~ else { break; }											
+										//~ }
+										//~ /* A faire : remplir j2 */
+										//~ /* ... */
+											
+										//~ printf("taille_j1 = %d / taille_j2 = %d\n",index_tab_donnee_j1,index_tab_donnee_j2);
+										//~ printf("nb data du paquet de base : %d\n",data->temp_pointer_1->package_nb_data);
+										//~ printf("Données de j1:"); for (i_bis = 0; i_bis < index_tab_donnee_j1; i_bis++) { printf(" %p",donnee_j1[i_bis]); }
+										//~ for (i_bis = 0; i_bis < index_tab_donnee_j1; i_bis++) {
+											//~ for (j_bis = 0; j_bis < data->temp_pointer_1->package_nb_data; j_bis++) {
+												//~ if (donnee_j1[i_bis] == data->temp_pointer_1->package_data[j_bis]) {
+													//~ common_data_last_package_i_j1++;
+												//~ }
+											//~ }
+										//~ }	
+										common_data_last_package_i_j1 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 0, 1, false,GPU_RAM_M);					
+										printf("\nij1 = %d / ij2 = %d\n",common_data_last_package_i_j1,common_data_last_package_i_j2);
+										if (common_data_last_package_i_j2 > common_data_last_package_i_j1) {
+											printf("SWITCH PAQUET J\n");
+											//~ interReverseLL(pointeur_paquet_1);
+										}
+										else { printf("Pas de switch\n"); }
+									}
+									else if (weight_package_i > GPU_RAM_M && weight_package_j > GPU_RAM_M) {
+										
+									}
+									printf("Fin de l'ordre U sans doublons\n");
 								}
-								//~ algo4prime:
 								
 								while (!starpu_task_list_empty(&data->temp_pointer_2->sub_list)) {
 								starpu_task_list_push_back(&data->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->temp_pointer_2->sub_list)); 
