@@ -454,23 +454,27 @@ define starpu-print-data
     starpu-print-task $tasklist->task
     set $tasklist = $tasklist->next
   end
-  printf "Requester tasks\n"
-  set $requesterlist = $data->req_list.list._head
-  while $requesterlist != 0x0
-    printf "mode: "
-    starpu-print-mode $requesterlist->mode
-    printf "\n"
-    starpu-print-job $requesterlist->j
-    set $requesterlist = $requesterlist->_next
-  end
-  printf "Arbitered requester tasks\n"
-  set $requesterlist = $data->arbitered_req_list.list._head
-  while $requesterlist != 0x0
-    printf "mode: "
-    starpu-print-mode $requesterlist->mode
-    printf "\n"
-    starpu-print-job $requesterlist->j
-    set $requesterlist = $requesterlist->_next
+  if _starpu_debug
+    printf "Requester tasks\n"
+    set $requesterlist = $data->req_list.list._head
+    while $requesterlist != 0x0
+      printf "mode: "
+      starpu-print-mode $requesterlist->mode
+      printf "\n"
+      starpu-print-job $requesterlist->j
+      set $requesterlist = $requesterlist->_next
+    end
+    printf "Arbitered requester tasks\n"
+    set $requesterlist = $data->arbitered_req_list.list._head
+    while $requesterlist != 0x0
+      printf "mode: "
+      starpu-print-mode $requesterlist->mode
+      printf "\n"
+      starpu-print-job $requesterlist->j
+      set $requesterlist = $requesterlist->_next
+    end
+  else
+    printf "Printing requester tasks not supported yet without --enable-debug, sorry!\n"
   end
   if ($data->nchildren)
     printf "%d children\n", $data->nchildren
