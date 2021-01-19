@@ -116,11 +116,16 @@ static int random_order_push_task(struct starpu_sched_component *component, stru
 static struct starpu_task *random_order_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
 	struct random_order_sched_data *data = component->data;
+	
+	struct my_list *my_data = malloc(sizeof(*my_data));
+	my_data->next = NULL;
+	data->temp_pointer_1 = my_data;
+	starpu_task_list_init(&my_data->sub_list);
+	
 	int random_number = 0;
 	struct starpu_task *task1 = NULL;
 	struct starpu_task *temp_task_1 = NULL;
 	struct starpu_task *temp_task_2 = NULL;
-	//~ struct starpu_task *task2 = NULL;
  
 	int NT = 0; int i = 0; int link_index = 0; int do_not_add_more = 0;
 		
@@ -130,10 +135,8 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 	if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 		return task1;
 	}
-	//~ if (starpu_task_list_empty(&data->popped_task_list)) {
 	if (starpu_task_list_empty(&data->random_list)) {
 		if (!starpu_task_list_empty(&data->sched_list)) {
 			while (!starpu_task_list_empty(&data->sched_list)) {				
@@ -143,26 +146,26 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 		
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",NT); }
-			
-			
+					
 			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
 			//~ data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_1)*sizeof(data->temp_pointer_1->package_data[0]));
-			
+			printf("ok0\n");
 			/* One task == one link in the linked list */
 			do_not_add_more = NT - 1;
 			for (temp_task_1  = starpu_task_list_begin(&data->popped_task_list); temp_task_1 != starpu_task_list_end(&data->popped_task_list); temp_task_1  = temp_task_2) {
+				printf("ok0.5\n");
 				temp_task_2 = starpu_task_list_next(temp_task_1);
 				temp_task_1 = starpu_task_list_pop_front(&data->popped_task_list);
-				//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(temp_task_1); i++) {
-					//~ data->temp_pointer_1->package_data[i] = STARPU_TASK_GET_HANDLE(temp_task_1,i);
-				//~ }
+				printf("ok0.6\n");
 				data->temp_pointer_1->package_nb_data = 1;
+				printf("ok0.7\n");
 				/* We sort our datas in the packages */
 				/* Pushing the task and the number of the package in the package*/
 				starpu_task_list_push_back(&data->temp_pointer_1->sub_list,temp_task_1);
+				printf("ok0.8\n");
 				data->temp_pointer_1->index_package = link_index;
 				/* Initialization of the lists last_packages */
-				
+				printf("ok1\n");
 				link_index++;
 				//~ data->temp_pointer_1->nb_task_in_sub_list ++;
 				
@@ -182,10 +185,14 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 				NT--;
 				//~ task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);
 			}
+			//~ free(&data->temp_pointer_1->package_nb_data);
+			//~ free(data);
+			//~ random_order_free(data);
 			
 			
 			//~ task1 = starpu_task_list_pop_front(&data->popped_task_list);
 			task1 = starpu_task_list_pop_front(&data->random_list);
+			//~ free(data->temp_pointer_1->package_nb_data);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 			return task1;
@@ -238,7 +245,7 @@ static int random_order_can_push(struct starpu_sched_component * component, stru
 
 static int random_order_can_pull(struct starpu_sched_component * component)
 {
-	struct random_order_sched_data *data = component->data;
+	struct random_order_sched_data *data = component->data;		
 	return starpu_sched_component_can_pull(component);
 }
 
