@@ -637,7 +637,8 @@ starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRI
 
 /* Size of each chunk, 32MiB granularity brings 128 chunks to be allocated in
  * order to fill a 4GiB GPU. */
-#define CHUNK_SIZE (32*1024*1024)
+// XXX For maxime: reduce to 16MiB so that the alloc_max is smaller than a C tile
+#define CHUNK_SIZE (16*1024*1024)
 
 /* Maximum segment size we will allocate in chunks */
 #define CHUNK_ALLOC_MAX (CHUNK_SIZE / 8)
