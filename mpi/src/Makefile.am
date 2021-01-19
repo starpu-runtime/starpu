@@ -21,6 +21,8 @@ CCLD=$(MPICC)
 
 BUILT_SOURCES =
 
+SUBDIRS =
+
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
 AM_CFLAGS += $(FXT_CFLAGS) $(NMAD_CFLAGS)
