@@ -625,12 +625,12 @@ if test x$enable_mpi = xyes -o x$build_mpi_master_slave = xyes ; then
     # issue.
 
     # openmpi version
-    MPICC_LDFLAGS=`$mpicc_path --showme:link`
+    MPICC_LDFLAGS=`$mpicc_path --showme:link 2>/dev/null`
 
     if test -z "$MPICC_LDFLAGS"
     then
 	# mpich version
-	MPICC_LDFLAGS=`$mpicc_path -cc='' -link_info`
+	MPICC_LDFLAGS=`$mpicc_path -link_info | awk '{$1=""; print}'`
     fi
     AC_SUBST(MPICC_LDFLAGS)
 else
