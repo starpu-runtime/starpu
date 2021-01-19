@@ -119,8 +119,8 @@ async def main():
     res4 = await fut4
     print("The result of function add is :", res4)
 
-	#submit function "sub"
-    fut5 = starpu.task_submit()(sub, 6, 2, 5.9)
+	#submit function "sub" but only provide function name
+    fut5 = starpu.task_submit()("sub", 6, 2, 5.9)
     res5 = await fut5
     print("The result of function sub is:", res5)
 

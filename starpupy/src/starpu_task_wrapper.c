@@ -54,15 +54,15 @@ static PyObject *cloudpickle_module; /*cloudpickle module*/
 // 	PyObject *fut; /*asyncio.Future*/
 // 	PyObject *lp; /*asyncio.Eventloop*/
 // };
-static char* starpu_cloudpickle_dumps(PyObject *obj, PyObject **obj_bytes, Py_ssize_t* obj_data_size)
+static char* starpu_cloudpickle_dumps(PyObject *obj, PyObject **obj_bytes, Py_ssize_t *obj_data_size)
 {
-
+	
 	PyObject *dumps = PyObject_GetAttrString(cloudpickle_module, "dumps");
 	*obj_bytes= PyObject_CallFunctionObjArgs(dumps, obj, NULL);
 
 	char* obj_data;
     PyBytes_AsStringAndSize(*obj_bytes, &obj_data, obj_data_size);
-
+    
 	return obj_data;
 }
 
@@ -79,7 +79,7 @@ static PyObject* starpu_cloudpickle_loads(char* pyString, Py_ssize_t pyString_si
 }
 
 /* prologue_callback_func*/
-void prologue_cb_func(void * cl_arg)
+void prologue_cb_func(void *cl_arg)
 {
 	PyObject *func_data;
 	Py_ssize_t func_data_size;
@@ -132,7 +132,7 @@ void prologue_cb_func(void * cl_arg)
 
 	/*use cloudpickle to dump dumps argList*/
 	Py_ssize_t arg_data_size;
-	PyObject* arg_bytes;
+	PyObject *arg_bytes;
 	char* arg_data = starpu_cloudpickle_dumps(argList, &arg_bytes, &arg_data_size);
     starpu_codelet_pack_arg(&data, arg_data, arg_data_size);
     Py_DECREF(arg_bytes);
@@ -153,10 +153,10 @@ void prologue_cb_func(void * cl_arg)
 /*function passed to starpu_codelet.cpu_func*/
 void starpupy_codelet_func(void *buffers[], void *cl_arg)
 {
-	char * func_data;
+	char* func_data;
     Py_ssize_t func_data_size;
 	PyObject *func_py; /*the python function passed in*/
-	char * arg_data;
+	char* arg_data;
     Py_ssize_t arg_data_size;
 	PyObject *argList; /*argument list of python function passed in*/
 
@@ -195,8 +195,27 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 	/*make sure we own the GIL*/
 	PyGILState_STATE state = PyGILState_Ensure();
 
-	/*use cloudpickle to load func_py and argList*/
-	func_py=starpu_cloudpickle_loads(func_data, func_data_size);
+	/*use cloudpickle to load function (maybe only function name)*/
+	PyObject *pFunc=starpu_cloudpickle_loads(func_data, func_data_size);
+	
+	/* if the function name is passed in*/
+	const char* tp_func = Py_TYPE(pFunc)->tp_name;
+	if (strcmp(tp_func, "str")==0)
+	{
+		/*getattr(sys.modules[__name__], "<functionname>")*/
+		/*get sys.modules*/
+		PyObject *sys_modules = PyImport_GetModuleDict();
+		/*get sys.modules[__name__]*/
+		PyObject *sys_modules_name=PyDict_GetItemString(sys_modules,"__main__");
+		/*get function object*/
+		func_py=PyObject_GetAttr(sys_modules_name,pFunc);
+	}
+	else
+	{
+		func_py=pFunc;
+	}
+	
+	/*use cloudpickle to load argList*/
 	argList=starpu_cloudpickle_loads(arg_data, arg_data_size);
 
 	/*verify that the function is a proper callable*/
@@ -246,7 +265,7 @@ void cb_func(void *v)
 {
 	PyObject *fut; /*asyncio.Future*/
 	PyObject *loop; /*asyncio.Eventloop*/
-	char * rv_data;
+	char* rv_data;
     Py_ssize_t rv_data_size;
 	PyObject *rv; /*return value when using PyObject_CallObject call the function f*/
 
@@ -523,12 +542,11 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
     	
 	/*use cloudpickle to dump func_py*/
 	Py_ssize_t func_data_size;
-	PyObject* func_bytes;
+	PyObject *func_bytes;
 	char* func_data = starpu_cloudpickle_dumps(func_py, &func_bytes, &func_data_size);
     starpu_codelet_pack_arg(&data, func_data, func_data_size);
     Py_DECREF(func_bytes);
 	//starpu_codelet_pack_arg(&data, &func_py, sizeof(func_py));
-
     /*pack argList*/
 	starpu_codelet_pack_arg(&data, &argList, sizeof(argList));
 	/*pack fut*/
