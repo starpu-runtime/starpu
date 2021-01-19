@@ -34,6 +34,9 @@
 #define PRINTF /* O or 1 */
 #define ORDER_U /* O or 1 */
 
+int NT;
+int N;
+
 /* Structure used to acces the struct my_list. There are also task's list */
 struct HFP_sched_data
 {
@@ -107,6 +110,110 @@ struct my_list* HFP_delete_link(struct HFP_sched_data* a)
 		}
 	}
 	return a->first_link;
+}
+
+/* Give a color for each package. Written in the file Data_coordinates.txt */
+static void rgb(int num, int *r, int *g, int *b)
+{
+    int i = 0;
+
+    if (num < 7) {
+	num ++;
+	*r = num & 1 ? 255 : 0;
+	*g = num & 2 ? 255 : 0;
+	*b = num & 4 ? 255 : 0;
+	return;
+    }
+
+    num -= 7;
+
+    *r = 0; *g = 0; *b = 0;
+    for (i = 0; i < 8; i++) {
+        *r = *r << 1 | ((num & 1) >> 0);
+        *g = *g << 1 | ((num & 2) >> 1);
+        *b = *b << 1 | ((num & 4) >> 2);
+        num >>= 3;
+    }
+}
+
+void init_visualisation_tache_matrice_format_tex()
+{
+	FILE * fcoordinate; /* Coordinates at each iteration */
+	fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "w");
+	fprintf(fcoordinate,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
+	FILE * fcoordinate_order; /* Order in wich the task go out */
+	fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "w");
+	fprintf(fcoordinate_order,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
+	fclose(fcoordinate);
+	fclose(fcoordinate_order);
+}
+
+void end_visualisation_tache_matrice_format_tex()
+{
+	printf("dans end\n");
+	FILE * fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "a");
+	FILE * fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "a");
+	//~ fseek(fcoordinate_order, 0, SEEK_END);
+	fprintf(fcoordinate,"\\caption{HFP packing}\\end{figure}\n\n\\end{document}");
+	fprintf(fcoordinate_order,"\\caption{Task's processing order}\\end{figure}\n\n\\end{document}");
+	fclose(fcoordinate);
+	fclose(fcoordinate_order);
+}
+
+void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[][N], int nb_of_loop)
+{
+	int i, j, red, green, blue = 0;
+	printf("ecriture ite %d\n",nb_of_loop);
+	//~ printf("tab order: %d\n",tab_order[0][0]);
+	//~ printf("NT: %d\n",NT);
+	//~ printf("N: %d\n",N);
+	//~ "\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]\n\\begin{subfigure}{.5\\textwidth}\\centering\n\\resizebox{\\columnwidth}{!}{%\n\\begin{tabular}{|");
+	/* Output files */
+	//~ FILE * fcoordinate; /* Coordinates at each iteration */
+	FILE * fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "a");
+	//~ fprintf(fcoordinate,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
+	//~ FILE * fcoordinate_order; /* Order in wich the task go out */
+	FILE * fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "a");
+	//~ fprintf(fcoordinate_order,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
+	fprintf(fcoordinate,"\n\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{|");
+	fprintf(fcoordinate_order,"\n\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{|"); 
+	for (i = 0; i < N - 1; i++) {
+		fprintf(fcoordinate,"c|");
+		fprintf(fcoordinate_order,"c|");
+	}
+	printf("ok\n");
+	fprintf(fcoordinate,"c}\n");
+	fprintf(fcoordinate_order,"c}\n");
+	for (i = 0; i < N; i++) { 
+		for (j = 0; j < N - 1; j++) {
+			if (tab_paquet[j][i] == 0) { red = 255; green = 255; blue = 255; }
+			else if (tab_paquet[j][i] == 6) { red = 70; green = 130; blue = 180; }
+			else { rgb(tab_paquet[j][i], &red, &green, &blue); }
+			fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_paquet[j][i]);
+			fprintf(fcoordinate_order,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_order[j][i]);
+		}
+		if (tab_paquet[j][i] == 0) { red = 255; green = 255; blue = 255; }
+		else if (tab_paquet[j][i] == 6) { red = 70; green = 130; blue = 180; }
+		else { rgb(tab_paquet[j][i], &red, &green, &blue); }
+		fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_paquet[j][i]); 
+		fprintf(fcoordinate_order,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_order[j][i]); 
+		fprintf(fcoordinate," \\\\"); fprintf(fcoordinate,"\\hline");
+		fprintf(fcoordinate_order," \\\\"); fprintf(fcoordinate_order,"\\hline");
+	}
+	if (nb_of_loop > 1 && nb_of_loop%2 == 0) { 
+		fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\end{subfigure} \\\\",nb_of_loop); 
+		fprintf(fcoordinate_order, "\\end{tabular} \\caption{Itération %d} \\end{subfigure} \\\\",nb_of_loop);
+		if (nb_of_loop == 10) { 
+			fprintf(fcoordinate,"\\end{figure}\\begin{figure}[H]\\ContinuedFloat");
+			fprintf(fcoordinate_order,"\\end{figure}\\begin{figure}[H]\\ContinuedFloat");
+		}
+	}
+	else { 
+		fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\end{subfigure}",nb_of_loop); 
+		fprintf(fcoordinate_order, "\\end{tabular} \\caption{Itération %d} \\end{subfigure}",nb_of_loop); 
+	}
+	fprintf(fcoordinate,"\n");
+	fprintf(fcoordinate_order,"\n");
 }
 
 struct my_list* HFP_reverse_sub_list(struct my_list *a) 
@@ -183,7 +290,7 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			}
 			else { break; }											
 		}
-		printf("Poids a la fin pour i1 : %li\n",poids);	
+		//~ printf("Poids a la fin pour i1 : %li\n",poids);	
 	}
 	else if (evaluation_I == 2 && IJ_inferieur_GPU_RAM == false) { 
 		poids = 0;
@@ -232,7 +339,7 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			}
 			else { break; }											
 		}
-		printf("Poids a la fin pour i2 : %li\n",poids);	
+		//~ printf("Poids a la fin pour i2 : %li\n",poids);	
 	}
 	else if (IJ_inferieur_GPU_RAM == true) {
 		if (evaluation_I == 0) { printf("Error evaluation de I alors que I et J <= GPU_RAM\n"); exit(0); }
@@ -321,7 +428,7 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			}
 			else { break; }											
 		}	
-		printf("Poids a la fin pour j1 : %li\n",poids);	
+		//~ printf("Poids a la fin pour j1 : %li\n",poids);	
 	}
 	else if (evaluation_J == 2 && IJ_inferieur_GPU_RAM == false) {
 		poids = 0;
@@ -372,7 +479,7 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			}
 			else { break; }											
 		}
-		printf("Poids a la fin pour j2 : %li\n",poids);		
+		//~ printf("Poids a la fin pour j2 : %li\n",poids);		
 	}
 	else if (IJ_inferieur_GPU_RAM == true) {
 		if (evaluation_J == 0) { printf("Error evaluation de J alors que I et J <= GPU_RAM\n"); exit(0); }
@@ -418,44 +525,20 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 	}
 	//~ printf("I a un index de %d et %d données\n",index_tab_donnee_I,I->package_nb_data);		
 	//~ printf("J a un index de %d et %d données\n",index_tab_donnee_J,J->package_nb_data);
-	printf("Données de I:"); for (i = 0; i < index_tab_donnee_I; i++) { printf(" %p",donnee_I[i]); }
-	printf("\n");
-	printf("Données de J:"); for (i = 0; i < index_tab_donnee_J; i++) { printf(" %p",donnee_J[i]); }
-	printf("\n");
+	//~ printf("Données de I:"); for (i = 0; i < index_tab_donnee_I; i++) { printf(" %p",donnee_I[i]); }
+	//~ printf("\n");
+	//~ printf("Données de J:"); for (i = 0; i < index_tab_donnee_J; i++) { printf(" %p",donnee_J[i]); }
+	//~ printf("\n");
 	for (i = 0; i < index_tab_donnee_I; i++) {
 		for (j = 0; j < index_tab_donnee_J; j++) {
 			if (donnee_I[i] == donnee_J[j]) {
 				common_data_last_package++;
-				printf("%p\n",donnee_I[i]);
+				//~ printf("%p\n",donnee_I[i]);
 				break;
 			}
 		}
 	}
 	return common_data_last_package;
-}
-
-/* Give a color for each package. Written in the file Data_coordinates.txt */
-static void rgb(int num, int *r, int *g, int *b)
-{
-    int i = 0;
-
-    if (num < 7) {
-	num ++;
-	*r = num & 1 ? 255 : 0;
-	*g = num & 2 ? 255 : 0;
-	*b = num & 4 ? 255 : 0;
-	return;
-    }
-
-    num -= 7;
-
-    *r = 0; *g = 0; *b = 0;
-    for (i = 0; i < 8; i++) {
-        *r = *r << 1 | ((num & 1) >> 0);
-        *g = *g << 1 | ((num & 2) >> 1);
-        *b = *b << 1 | ((num & 4) >> 2);
-        num >>= 3;
-    }
 }
 
 /* Comparator used to sort the data of a packages to erase the duplicate in O(n) */
@@ -484,7 +567,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	
 	/* Variables */
 	/* Variables used to calculate, navigate through a loop or other things */
-	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; double number_tasks = 0; int random_value = 0;
+	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; int random_value = 0;
 	/* double mean_task_by_packages = 0; */ double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0;  double moyenne = 0; double ecart_type = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0; int red = 0; int green = 0; int blue = 0; int temp_i_bis = 0;
 	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL;
@@ -548,7 +631,9 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 		
-			number_tasks = nb_pop;
+			NT = nb_pop;
+			N = sqrt(NT);
+			printf("NT = %d\n",NT);
 					
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",nb_pop); }
 			
@@ -596,6 +681,19 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			
 			data->temp_pointer_2 = data->first_link;
 			index_head_2++;
+			
+			/* Matrix used to store all the common data weights between packages */
+			int coordinate_visualization_matrix_size = N;
+			int coordinate_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
+			int coordinate_order_visualization_matrix[coordinate_visualization_matrix_size][coordinate_visualization_matrix_size];
+			for (i_bis = 0; i_bis < N; i_bis++) {
+				for (j_bis = 0; j_bis < N; j_bis++) {
+					coordinate_visualization_matrix[j_bis][i_bis] = 0;
+					coordinate_order_visualization_matrix[j_bis][i_bis] = 0;
+				}
+			}
+			
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { init_visualisation_tache_matrice_format_tex(); }
 			
 			/* THE while loop. Stop when no more packaging are possible */
 			while (packaging_impossible == 0) {
@@ -748,15 +846,15 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 										}
 										else if (weight_package_i <= GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
 											printf("I <= PU_RAM et J <= PU_RAM\n");
-											printf("Tâches de I\n");
-											temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list);
-											printf("%p:",temp_task_1);
-											printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));
-											while (starpu_task_list_next(temp_task_1) != NULL) { temp_task_1 = starpu_task_list_next(temp_task_1); printf("%p:",temp_task_1); printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));}
-											printf("Tâches de J\n");
-											temp_task_1 = starpu_task_list_begin(&data->temp_pointer_2->sub_list);
-											printf("%p:",temp_task_1); printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));
-											while (starpu_task_list_next(temp_task_1) != NULL) { temp_task_1 = starpu_task_list_next(temp_task_1); printf("%p:",temp_task_1); printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));}
+											//~ printf("Tâches de I\n");
+											//~ temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list);
+											//~ printf("%p:",temp_task_1);
+											//~ printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));
+											//~ while (starpu_task_list_next(temp_task_1) != NULL) { temp_task_1 = starpu_task_list_next(temp_task_1); printf("%p:",temp_task_1); printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));}
+											//~ printf("Tâches de J\n");
+											//~ temp_task_1 = starpu_task_list_begin(&data->temp_pointer_2->sub_list);
+											//~ printf("%p:",temp_task_1); printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));
+											//~ while (starpu_task_list_next(temp_task_1) != NULL) { temp_task_1 = starpu_task_list_next(temp_task_1); printf("%p:",temp_task_1); printf(" %p %p %p\n",STARPU_TASK_GET_HANDLE(temp_task_1,0),STARPU_TASK_GET_HANDLE(temp_task_1,1),STARPU_TASK_GET_HANDLE(temp_task_1,2));}
 											
 											//~ printf("I a %d taches et %d données\n",data->temp_pointer_1->nb_task_in_sub_list,data->temp_pointer_1->package_nb_data);
 											//~ printf("J a %d taches et %d données\n",data->temp_pointer_2->nb_task_in_sub_list,data->temp_pointer_2->package_nb_data);
@@ -778,22 +876,28 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 										}								
 										else if (max_common_data_last_package == common_data_last_package_i1_j2) {
 											printf("SWITCH PAQUET I ET J\n");	
-											//~ HFP_reverse_sub_list(data->temp_pointer_1);															
-											//~ HFP_reverse_sub_list(data->temp_pointer_2);															
+											data->temp_pointer_1 = HFP_reverse_sub_list(data->temp_pointer_1);									
+											data->temp_pointer_2 = HFP_reverse_sub_list(data->temp_pointer_2);
 										}
 										else if (max_common_data_last_package == common_data_last_package_i2_j2) {
-											printf("Tâches du paquet %d:\n",data->temp_pointer_2->index_package);
-											for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
-												printf("%p / ",temp_task_1); } 
+											//~ printf("Tâches du paquet %d:\n",data->temp_pointer_2->index_package);
+											//~ for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+												//~ printf("%p / ",temp_task_1); } 
 											printf("SWITCH PAQUET J\n");
 											data->temp_pointer_2 = HFP_reverse_sub_list(data->temp_pointer_2);	
-											printf("Tâches du paquet %d:\n",data->temp_pointer_2->index_package);
-											for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
-												printf("%p /",temp_task_1); }								
+											//~ printf("Tâches du paquet %d:\n",data->temp_pointer_2->index_package);
+											//~ for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+												//~ printf("%p /",temp_task_1); }								
 										}
 										else { /* max_common_data_last_package == common_data_last_package_i1_j1 */
+											//~ printf("Tâches du paquet %d:\n",data->temp_pointer_1->index_package);
+											//~ for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+												//~ printf("%p / ",temp_task_1); } 
 											printf("SWITCH PAQUET I\n");
-											//~ HFP_reverse_sub_list(data->temp_pointer_1);								
+											//~ printf("Tâches du paquet %d:\n",data->temp_pointer_1->index_package);
+											//~ for (temp_task_1  = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+												//~ printf("%p / ",temp_task_1); } 
+											data->temp_pointer_1 = HFP_reverse_sub_list(data->temp_pointer_1);									
 										}		
 									}							
 									printf("Fin de l'ordre U sans doublons\n");
@@ -846,19 +950,24 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				data->temp_pointer_1 = data->first_link;
 				data->temp_pointer_1 = HFP_delete_link(data);
 				tab_runner = 0;
-					/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task */
+				printf("NT en bas = %d\n",NT);
+				/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task */
 					while (data->temp_pointer_1 != NULL) {
-						//~ for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
-							//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1,2),2,temp_tab_coordinates);
-							//~ coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = number_tasks - data->temp_pointer_1->index_package - 1;
-							//~ coordinate_order_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = tab_runner;
-							//~ tab_runner++;	
-							//~ temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
-						//~ }			
+						for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
+							starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1,2),2,temp_tab_coordinates);
+							coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = NT - data->temp_pointer_1->index_package - 1;
+							//~ printf("tab : %d\n",coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]]);
+							coordinate_order_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = tab_runner;
+							tab_runner++;	
+							temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
+						}			
 						//~ temp_moyenne += data->temp_pointer_1->nb_task_in_sub_list;
 						link_index++;
 						data->temp_pointer_1 = data->temp_pointer_1->next;
 					} 
+					printf("tab : %d\n",coordinate_visualization_matrix[0][0]);
+					printf("order : %d\n",coordinate_order_visualization_matrix[0][0]);
+					if (starpu_get_env_number_default("PRINTF",0) == 1) { visualisation_tache_matrice_format_tex(coordinate_visualization_matrix,coordinate_order_visualization_matrix,nb_of_loop); }
 			 
 			/* Else we are using algorithm 3 */					
 			if (link_index == 1) {  goto end_algo3; }
@@ -902,6 +1011,8 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			temp_task_1  = starpu_task_list_begin(&data->temp_pointer_1->sub_list);
 			data->temp_pointer_1 = data->first_link;
 		}
+		
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); }
 		
 		/* We pop the first task of the first package */
 		task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);

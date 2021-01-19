@@ -426,3 +426,13 @@ trace.html
 trace.rec
 packages_data.txt
 start_test_maxime
+Output_maxime/Data_coordinates.pdf
+Output_maxime/Data_coordinates.tex
+Output_maxime/Data_coordinates_order.pdf
+Output_maxime/Data_coordinates_order.tex
+examples/loader
+examples/stencil/loader
+julia/examples/execute.sh
+socl/vendors/nvidia.icd
+tests/energy/energy_efficiency
+tests/main/display_binding
