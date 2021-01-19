@@ -562,13 +562,17 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int index_tab_donnee_i1 = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
 	struct HFP_sched_data *data = component->data;
 	
+	//~ struct my_list *my_data = malloc(sizeof(*my_data));
+	//~ my_data->next = NULL;
+	//~ data->temp_pointer_1 = my_data;
+	//~ starpu_task_list_init(&my_data->sub_list);
+	
+	int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int index_tab_donnee_i1 = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
 	/* Variables */
 	/* Variables used to calculate, navigate through a loop or other things */
-	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; int random_value = 0;
-	/* double mean_task_by_packages = 0; */ double temp_moyenne = 0; double temp_variance = 0; double temp_ecart_type = 0;  double moyenne = 0; double ecart_type = 0;
+	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0;int random_value = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0; int red = 0; int green = 0; int blue = 0; int temp_i_bis = 0;
 	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL;
 	int Nb_package_forbidden = 0; int Nb_package = 0;
@@ -621,9 +625,18 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return task1;
 	}
+	
+	
 
 	/* If the linked list is empty, we can pull more tasks */
 	if ((data->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) {
+		
+		//Ajout pour cholesky car les tâches arrivent pas en même temps
+		struct my_list *my_data = malloc(sizeof(*my_data));
+		my_data->next = NULL;
+		data->temp_pointer_1 = my_data;
+		starpu_task_list_init(&my_data->sub_list);
+		
 		if (!starpu_task_list_empty(&data->sched_list)) {
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
@@ -633,11 +646,13 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			} 		
 			NT = nb_pop;
 			N = sqrt(NT);
-			printf("NT = %d\n",NT);
+			//~ printf("NT = %d\n",NT);
 					
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",nb_pop); }
 			
 			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
+			const char* appli = starpu_task_get_name(temp_task_1);	
+			//~ printf("appli: %s\n",appli);
 			data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_1)*sizeof(data->temp_pointer_1->package_data[0]));
 			
 			/* One task == one link in the linked list */
@@ -717,7 +732,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 						if (min_nb_task_in_sub_list == data->temp_pointer_1->nb_task_in_sub_list) { nb_min_task_packages++; } }
 					if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list); }
 					/* Then we create the common data matrix */
-					printf("nb pop = %d\n",nb_pop);
+					//~ printf("nb pop = %d\n",nb_pop);
 					for (data->temp_pointer_1 = data->first_link; data->temp_pointer_1 != NULL; data->temp_pointer_1 = data->temp_pointer_1->next) {
 						for (data->temp_pointer_2 = data->temp_pointer_1->next; data->temp_pointer_2 != NULL; data->temp_pointer_2 = data->temp_pointer_2->next) {
 							for (i = 0; i < data->temp_pointer_1->package_nb_data; i++) {
@@ -950,23 +965,21 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				data->temp_pointer_1 = data->first_link;
 				data->temp_pointer_1 = HFP_delete_link(data);
 				tab_runner = 0;
-				printf("NT en bas = %d\n",NT);
+				
 				/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task */
 					while (data->temp_pointer_1 != NULL) {
+					if (appli == "starpu_sgemm_gemm") {
 						for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 							starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1,2),2,temp_tab_coordinates);
 							coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = NT - data->temp_pointer_1->index_package - 1;
-							//~ printf("tab : %d\n",coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]]);
 							coordinate_order_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = tab_runner;
 							tab_runner++;	
 							temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
-						}			
-						//~ temp_moyenne += data->temp_pointer_1->nb_task_in_sub_list;
+						}
+					}			
 						link_index++;
 						data->temp_pointer_1 = data->temp_pointer_1->next;
 					} 
-					printf("tab : %d\n",coordinate_visualization_matrix[0][0]);
-					printf("order : %d\n",coordinate_order_visualization_matrix[0][0]);
 					if (starpu_get_env_number_default("PRINTF",0) == 1) { visualisation_tache_matrice_format_tex(coordinate_visualization_matrix,coordinate_order_visualization_matrix,nb_of_loop); }
 			 
 			/* Else we are using algorithm 3 */					
@@ -977,7 +990,6 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			nb_pop = link_index;
 			/* If we have only one package we don't have to do more packages */			
 			if (nb_pop == 1) {  packaging_impossible = 1; }
-			
 		} /* End of while (packaging_impossible == 0) { */
 		/* We are in algorithm 3, we remove the size limit of a package */
 		GPU_limit_switch = 0; goto algo3;
@@ -1087,7 +1099,6 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	struct HFP_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	_STARPU_MALLOC(data, sizeof(*data));
-	data->ALGO_USED_READER = starpu_get_env_number_default("ALGO_USED",1);
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	starpu_task_list_init(&data->sched_list);
