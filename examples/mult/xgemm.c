@@ -321,7 +321,9 @@ static struct starpu_codelet cl_gemm0 =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_W},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_W},
+	.modes = {STARPU_R, STARPU_R, STARPU_R},
 	.model = &starpu_gemm_model
 };
 
@@ -338,7 +340,8 @@ static struct starpu_codelet cl_gemm =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.modes = {STARPU_R, STARPU_R, STARPU_R},
 	.model = &starpu_gemm_model
 };
 
@@ -776,6 +779,7 @@ enodev:
 		{
 			starpu_data_handle_t subhandle = starpu_data_get_sub_data(C_handle, 2, x, y);
 			starpu_data_acquire(subhandle, STARPU_W);
+			//~ starpu_data_acquire(subhandle, STARPU_R);
 			starpu_data_release(subhandle);
 		}
 	}
