@@ -59,6 +59,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	start = starpu_timing_now();
 
+	starpu_pause(); /* To get all tasks at once, resume at the end of the loop for (k = 0; k < nblocks; k++) */
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
@@ -118,7 +119,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		}
 		starpu_iteration_pop();
 	}
-
+	starpu_resume();
 	starpu_task_wait_for_all();
 
 	end = starpu_timing_now();
