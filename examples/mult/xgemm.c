@@ -500,15 +500,17 @@ int main(int argc, char **argv)
 		start = starpu_timing_now();
 
 		unsigned x, y, z, iter;
-
+		/* Matrice 3D */
 		if (tiled)
 		{
 			for (iter = 0; iter < niter; iter++)
 			{
+				starpu_pause(); /* To get all tasks at once */
 				for (x = 0; x < nslicesx; x++)
 				for (y = 0; y < nslicesy; y++)
 				{
 					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
+					//~ starpu_pause();
 					for (z = 0; z < nslicesz; z++)
 					{
 						struct starpu_task *task = starpu_task_create();
@@ -533,8 +535,10 @@ int main(int argc, char **argv)
 						}
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 					}
+					//~ starpu_resume();
 					starpu_data_wont_use(Ctile);
 				}
+				starpu_resume(); /* Because I paused above */
 				starpu_task_wait_for_all();
 			}
 		} else if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
