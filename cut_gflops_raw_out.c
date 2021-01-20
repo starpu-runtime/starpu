@@ -7,46 +7,76 @@ int main(int argc, char *argv[])
 	int NOMBRE_ALGO_TESTE = atoi(argv[2]);
 	int ECHELLE_X = atoi(argv[3]);
 	int START_X = atoi(argv[4]);
-	long where_to_write = 0; int k =0;
+	long where_to_write = 0; int k = 0;
 	long ligne[10] = {0};
 	int index = 0;
 	int first_loop = 0;
 	int i = 0; int j = 0;
 	char str1[10];
+	int count = 0;
 	char str2[10];
 	char str3[10];
 	char str4[10];
 	char GFlops[10];
+	char c;
     FILE* fichier_in = NULL;
     FILE* fichier_out = NULL;
-    fichier_in = fopen("GFlops_raw_out.txt", "r");
-    fichier_out = fopen("GFlops_data_out.txt", "w+");
+    fichier_in = fopen("Output_maxime/GFlops_raw_out.txt", "r");
+    fichier_out = fopen("Output_maxime/GFlops_data_out.txt", "w+");
     if (fichier_in != NULL)
     {
+		c = fgetc(fichier_in);
+		while (c != '\n') {
+			c = fgetc(fichier_in);
+			if (c == '	') { count++; }
+		}
+		rewind(fichier_in);
 		for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) {
-			k = j;
-			while (k != 0) { fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops); k--; }
-			
-			fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
-			//~ fprintf(fichier_out,"%s",str1);
 			fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
-			rewind(fichier_in);	
+			//~ for (k = 0; k < count; k++) {
+				//~ fsancf(fichier_in);
+			//~ }
+			//~ fscanf(fichier_in, "%s",GFlops);
+			//~ rewind(fichier_in);
 			for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) {
 				if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) {
-					fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
+					for (k = 0; k < count; k++) {
+						fscanf(fichier_in,"%s",str1);
+					}
+					fscanf(fichier_in, "%s",GFlops);
 					fprintf(fichier_out,"	%s",GFlops);
-					//~ fprintf(fichier_out,"	%d",ECHELLE_X*(i+1)+START_X);
 				}
 				else {
-					fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
+					for (k = 0; k < count + 1; k++) {
+						fscanf(fichier_in,"%s",str1);
+					}
 				}
 			}
 			fprintf(fichier_out,"\n"); 
 			rewind(fichier_in);
 		}
+				
+		//~ for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) {
+			//~ k = j;
+			//~ while (k != 0) { fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops); k--; }
+			//~ fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
+			//~ fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
+			//~ rewind(fichier_in);	
+			//~ for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) {
+				//~ if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) {
+					//~ fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
+					//~ fprintf(fichier_out,"	%s",GFlops);
+				//~ }
+				//~ else {
+					//~ fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
+				//~ }
+			//~ }
+			//~ fprintf(fichier_out,"\n"); 
+			//~ rewind(fichier_in);
+		//~ }
 		
 		fclose(fichier_in);
-			fclose(fichier_out);
+		fclose(fichier_out);
     }
     else
     {

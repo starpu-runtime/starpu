@@ -115,12 +115,17 @@ static int random_order_push_task(struct starpu_sched_component *component, stru
 /* The function that sort the tasks in packages */
 static struct starpu_task *random_order_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	//~ starpu_pause();
+	//~ starpu_resume();
+	//~ starpu_task_wait_for_all();
+	
 	struct random_order_sched_data *data = component->data;
 	
-	struct my_list *my_data = malloc(sizeof(*my_data));
-	my_data->next = NULL;
-	data->temp_pointer_1 = my_data;
-	starpu_task_list_init(&my_data->sub_list);
+	//Ajout pour quand les taches arrive pas en meme temps, a enlever ou commenter si on pause/resume
+	//~ struct my_list *my_data = malloc(sizeof(*my_data));
+	//~ my_data->next = NULL;
+	//~ data->temp_pointer_1 = my_data;
+	//~ starpu_task_list_init(&my_data->sub_list);
 	
 	int random_number = 0;
 	struct starpu_task *task1 = NULL;
@@ -149,23 +154,22 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 					
 			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
 			//~ data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_1)*sizeof(data->temp_pointer_1->package_data[0]));
-			printf("ok0\n");
 			/* One task == one link in the linked list */
 			do_not_add_more = NT - 1;
 			for (temp_task_1  = starpu_task_list_begin(&data->popped_task_list); temp_task_1 != starpu_task_list_end(&data->popped_task_list); temp_task_1  = temp_task_2) {
-				printf("ok0.5\n");
+				//~ printf("ok0.5\n");
 				temp_task_2 = starpu_task_list_next(temp_task_1);
 				temp_task_1 = starpu_task_list_pop_front(&data->popped_task_list);
-				printf("ok0.6\n");
+				//~ printf("ok0.6\n");
 				data->temp_pointer_1->package_nb_data = 1;
-				printf("ok0.7\n");
+				//~ printf("ok0.7\n");
 				/* We sort our datas in the packages */
 				/* Pushing the task and the number of the package in the package*/
 				starpu_task_list_push_back(&data->temp_pointer_1->sub_list,temp_task_1);
-				printf("ok0.8\n");
+				//~ printf("ok0.8\n");
 				data->temp_pointer_1->index_package = link_index;
 				/* Initialization of the lists last_packages */
-				printf("ok1\n");
+				//~ printf("ok1\n");
 				link_index++;
 				//~ data->temp_pointer_1->nb_task_in_sub_list ++;
 				
@@ -177,7 +181,7 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 			for (i = 0; i < temp_NT; i++) {
 				data->temp_pointer_1 = data->first_link;
 				random_number = rand()%NT;
-				printf("Il y a %d tâche, random = %d\n",NT,random_number);
+				//~ printf("Il y a %d tâche, random = %d\n",NT,random_number);
 				while (random_number != 0) { data->temp_pointer_1 = data->temp_pointer_1->next; random_number--; }
 				data->temp_pointer_1->package_nb_data = 0;
 				starpu_task_list_push_back(&data->random_list,starpu_task_list_pop_front(&data->temp_pointer_1->sub_list));
