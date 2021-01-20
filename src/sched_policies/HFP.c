@@ -70,6 +70,7 @@ struct my_list
 /* Empty a task's list. We use this for the lists last_package */
 void HFP_empty_list(struct starpu_task_list *a)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("empty list\n"); }
 	struct starpu_task *task = NULL;
 	for (task  = starpu_task_list_begin(a); task != starpu_task_list_end(a); task = starpu_task_list_next(task)) {
 		starpu_task_list_erase(a,task);
@@ -79,6 +80,7 @@ void HFP_empty_list(struct starpu_task_list *a)
 /* Put a link at the beginning of the linked list */
 void HFP_insertion(struct HFP_sched_data *a)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("insertion\n"); }
     struct my_list *new = malloc(sizeof(*new)); /* Creation of a new link */
 	starpu_task_list_init(&new->sub_list);
     new->next = a->temp_pointer_1;
@@ -88,6 +90,7 @@ void HFP_insertion(struct HFP_sched_data *a)
 /* Delete all the empty packages */
 struct my_list* HFP_delete_link(struct HFP_sched_data* a)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Delete link\n"); }
 	while (a->first_link != NULL && a->first_link->package_nb_data == 0) {
 		a->temp_pointer_1 = a->first_link;
 		a->first_link = a->first_link->next;
@@ -115,6 +118,7 @@ struct my_list* HFP_delete_link(struct HFP_sched_data* a)
 /* Give a color for each package. Written in the file Data_coordinates.txt */
 static void rgb(int num, int *r, int *g, int *b)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("rgb\n"); }
     int i = 0;
 
     if (num < 7) {
@@ -138,6 +142,7 @@ static void rgb(int num, int *r, int *g, int *b)
 
 void init_visualisation_tache_matrice_format_tex()
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("init visualisation\n"); }
 	FILE * fcoordinate; /* Coordinates at each iteration */
 	fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "w");
 	fprintf(fcoordinate,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
@@ -150,6 +155,7 @@ void init_visualisation_tache_matrice_format_tex()
 
 void end_visualisation_tache_matrice_format_tex()
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("end visualisation\n"); }
 	//~ printf("dans end\n");
 	FILE * fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "a");
 	FILE * fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "a");
@@ -162,6 +168,7 @@ void end_visualisation_tache_matrice_format_tex()
 
 void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[][N], int nb_of_loop)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Visualisation matrice\n"); }
 	int i, j, red, green, blue = 0;
 	//~ printf("tab order: %d\n",tab_order[0][0]);
 	//~ printf("NT: %d\n",NT);
@@ -216,6 +223,7 @@ void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[]
 
 struct my_list* HFP_reverse_sub_list(struct my_list *a) 
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("reverse sub list\n"); }
 	struct starpu_task_list b;
 	starpu_task_list_init(&b);
 	while (!starpu_task_list_empty(&a->sub_list)) {				
@@ -229,6 +237,7 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("get common data\n"); }
 	int split_ij = 0;
 	//~ printf("dans get I a %d taches et %d données\n",I->nb_task_in_sub_list,I->package_nb_data);
 	//~ printf("dans get J a %d taches et %d données\n",J->nb_task_in_sub_list,J->package_nb_data);
@@ -541,12 +550,14 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 
 /* Comparator used to sort the data of a packages to erase the duplicate in O(n) */
 int HFP_pointeurComparator ( const void * first, const void * second ) {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("comparator\n"); }
   return ( *(int*)first - *(int*)second );
 }
 
 /* Pushing the tasks */		
 static int HFP_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Push task\n"); }
 	struct HFP_sched_data *data = component->data;
     STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_task_list_push_front(&data->sched_list, task);
@@ -560,6 +571,7 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Pull task\n"); }
 	struct HFP_sched_data *data = component->data;
 	
 	//~ struct my_list *my_data = malloc(sizeof(*my_data));
@@ -621,6 +633,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 		return task1;
 	}
 	
@@ -1034,12 +1047,13 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				/* Lines like this under and at the beggining of this function are for printing the tasks getting out */
 				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 			}
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 			return task1;
 	} /* Else of if ((data->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) { */
 	if (!starpu_task_list_empty(&data->temp_pointer_1->sub_list)) {
 		task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 		return task1;
 	}
 	if ((data->temp_pointer_1->next != NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) {
@@ -1048,13 +1062,14 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		while (starpu_task_list_empty(&data->temp_pointer_1->sub_list)) { data->temp_pointer_1 = data->temp_pointer_1->next; }
 			task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->temp_pointer_1->sub_list)\n",task1); }
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->temp_pointer_1->sub_list)\n",task1); }
 			return task1;
 	}		
 }
 
 static int HFP_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Début HFP_can_push\n"); }
 	struct HFP_sched_data *data = component->data;
 	int didwork = 0;
 
@@ -1063,7 +1078,7 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 
 	if (task)
 	{
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, %p couldn't take our task %p \n", to, task); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, %p couldn't take our task %p \n", to, task); }
 		/* Oops, we couldn't push everything, put back this task */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		starpu_task_list_push_back(&data->list_if_fifo_full, task);
@@ -1072,26 +1087,29 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 	else
 	{
 		/* Can I uncomment this part ? */
-		//~ {
-			//~ if (didwork)
-				//~ fprintf(stderr, "pushed some tasks to %p\n", to);
-			//~ else
-				//~ fprintf(stderr, "I didn't have anything for %p\n", to);
-		//~ }
+		{
+			if (didwork)
+				fprintf(stderr, "pushed some tasks to %p\n", to);
+			else
+				fprintf(stderr, "I didn't have anything for %p\n", to);
+		}
 	}
 
 	/* There is room now */
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Fin HFP_can_push\n"); }
 	return didwork || starpu_sched_component_can_push(component, to);
 }
 
 static int HFP_can_pull(struct starpu_sched_component * component)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("can pull\n"); }
 	struct HFP_sched_data *data = component->data;
 	return starpu_sched_component_can_pull(component);
 }
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("component\n"); }
 	srandom(time(0)); /* For the random selection in ALGO 4 */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
 	
@@ -1119,6 +1137,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 
 static void initialize_HFP_center_policy(unsigned sched_ctx_id)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("initialize\n"); }
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_HFP_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
@@ -1130,6 +1149,7 @@ static void initialize_HFP_center_policy(unsigned sched_ctx_id)
 
 static void deinitialize_HFP_center_policy(unsigned sched_ctx_id)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("deinitialize\n"); }
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(tree);
 }

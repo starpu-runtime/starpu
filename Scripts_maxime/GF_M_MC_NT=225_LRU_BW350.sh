@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 # ./cut_gflops_raw_out NOMBRE_DE_TAILLES_DE_MATRICES NOMBRE_ALGO_TESTE ECHELLE_X START_X
 
-cd..
+#~ cd..
 #~ ./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid
 #~ make install
 #~ make -j4
@@ -10,9 +10,9 @@ export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 truncate -s 0 Output_maxime/GFlops_raw_out.txt
 ulimit -S -s 50000
 NB_ALGO_TESTE=6
-NB_TAILLE_TESTE=2
-ECHELLE_X=25
-START_X=7
+NB_TAILLE_TESTE=10
+ECHELLE_X=50
+START_X=0
 FICHIER=GF_M_MC_NT=225_LRU_BW350
 echo "########## Random ##########"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -52,7 +52,7 @@ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 done
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
 ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X
-mv GFlops_data_out.txt /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Matrice_ligne/${FICHIER:0}.txt
+mv Output_maxime/GFlops_data_out.txt /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Matrice_ligne/${FICHIER:0}.txt
 Rscript /home/gonthier/these_gonthier_maxime/Starpu/R/ScriptR/Matrice_ligne/${FICHIER:0}.R
 mv /home/gonthier/starpu/Rplots.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Matrice_ligne/${FICHIER:0}.pdf
 echo Fin du script
