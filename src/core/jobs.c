@@ -32,6 +32,8 @@
 #include <core/workers.h>
 
 static int max_memory_use;
+static int task_progress;
+static unsigned long njobs_finished;
 static unsigned long njobs, maxnjobs;
 
 #ifdef STARPU_DEBUG
@@ -43,6 +45,7 @@ static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIAL
 void _starpu_job_init(void)
 {
 	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
+	task_progress = starpu_get_env_number_default("STARPU_TASK_PROGRESS", 0);
 #ifdef STARPU_DEBUG
 	_starpu_job_multilist_head_init_all_submitted(&all_jobs_list);
 #endif
@@ -278,6 +281,13 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		j->task->nb_termination_call_required -= 1;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		if (nb != 0) return;
+	}
+
+	if (task_progress)
+	{
+		unsigned long jobs = STARPU_ATOMIC_ADDL(&njobs_finished, 1);
+
+		printf("\r%lu tasks finished...", jobs);
 	}
 
 	struct starpu_task *task = j->task;
