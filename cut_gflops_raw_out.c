@@ -21,9 +21,9 @@ int main(int argc, char *argv[])
 	char c;
     FILE* fichier_in = NULL;
     FILE* fichier_out = NULL;
-    fichier_in = fopen("Output_maxime/GFlops_raw_out.txt", "r");
+    fichier_in = fopen(argv[5], "r");
     //~ fichier_in = fopen("Output_maxime/GFlops_raw_out_2.txt", "r");
-    fichier_out = fopen("Output_maxime/GFlops_data_out.txt", "w+");
+    fichier_out = fopen(argv[6], "w+");
     if (fichier_in != NULL)
     {
 		c = fgetc(fichier_in);
