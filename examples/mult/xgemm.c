@@ -321,9 +321,9 @@ static struct starpu_codelet cl_gemm0 =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_W},
+	.modes = {STARPU_R, STARPU_R, STARPU_W},
 	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.modes = {STARPU_R, STARPU_R, STARPU_R},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
 	.model = &starpu_gemm_model
 };
 
@@ -519,7 +519,8 @@ int main(int argc, char **argv)
 						struct starpu_task *task = starpu_task_create();
 
 						if (z == 0)
-							task->cl = &cl_gemm0;
+							//~ task->cl = &cl_gemm0;
+							task->cl = &cl_gemm;
 						else
 							task->cl = &cl_gemm;
 
