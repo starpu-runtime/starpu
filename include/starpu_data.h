@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -536,6 +536,32 @@ void *starpu_data_get_user_data(starpu_data_handle_t handle);
   Check whether data \p handle can be evicted now from node \p node
 */
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node);
+
+/**
+   Type for a data victim selector
+
+   This is the type of function to be registered with
+   starpu_data_register_victim_selector().
+*/
+typedef starpu_data_handle_t starpu_data_victim_selector(unsigned node);
+
+/**
+   Register a data victim selector.
+
+   This register function \p selector to be called when StarPU needs to make
+   room on a given memory node.  The selector returns the handle which should
+   preferrably be evicted from the memory node.
+
+   The selector can for instance use starpu_data_is_on_node() to determine which
+   handles are on the memory node.
+
+   It *must* use starpu_data_can_evict() to check whether the data can be
+   evicted. Otherwise eviction will fail, the selector called again, only to
+   fail again, etc. without any possible progress.
+
+   This is very experimental for now.
+*/
+void starpu_data_register_victim_selector(starpu_data_victim_selector selector);
 
 /** @} */
 
