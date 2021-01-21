@@ -558,6 +558,11 @@ void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data);
 */
 void *starpu_data_get_user_data(starpu_data_handle_t handle);
 
+/**
+  Check whether data \p handle can be evicted now from node \p node
+*/
+int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node);
+
 /** @} */
 
 #ifdef __cplusplus

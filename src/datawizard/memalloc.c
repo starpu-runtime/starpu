@@ -545,17 +545,8 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	free(mc);
 }
 
-/* This function is called for memory chunks that are possibly in used (ie. not
- * in the cache). They should therefore still be associated to a handle. */
-/* mc_lock is held and may be temporarily released! */
-static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list, enum _starpu_is_prefetch is_prefetch)
+int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node)
 {
-	size_t freed = 0;
-
-	starpu_data_handle_t handle;
-	handle = mc->data;
-	STARPU_ASSERT(handle);
-
 	/* This data should be written through to this node, avoid dropping it! */
 	if (handle->wt_mask & (1<<node))
 		return 0;
@@ -567,6 +558,23 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	/* This data cannnot be pushed outside CPU memory */
 	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
 		&& starpu_memory_nodes_get_numa_count() == 1)
+		return 0;
+
+	return 1;
+}
+
+/* This function is called for memory chunks that are possibly in used (ie. not
+ * in the cache). They should therefore still be associated to a handle. */
+/* mc_lock is held and may be temporarily released! */
+static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list, enum _starpu_is_prefetch is_prefetch)
+{
+	size_t freed = 0;
+
+	starpu_data_handle_t handle;
+	handle = mc->data;
+	STARPU_ASSERT(handle);
+
+	if (!starpu_data_can_evict(handle, node))
 		return 0;
 
 	if (diduse_barrier && !mc->diduse)
