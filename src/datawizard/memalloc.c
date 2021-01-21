@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -543,17 +543,8 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	free(mc);
 }
 
-/* This function is called for memory chunks that are possibly in used (ie. not
- * in the cache). They should therefore still be associated to a handle. */
-/* mc_lock is held and may be temporarily released! */
-static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list, enum _starpu_is_prefetch is_prefetch)
+int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node)
 {
-	size_t freed = 0;
-
-	starpu_data_handle_t handle;
-	handle = mc->data;
-	STARPU_ASSERT(handle);
-
 	/* This data should be written through to this node, avoid dropping it! */
 	if (handle->wt_mask & (1<<node))
 		return 0;
@@ -565,6 +556,23 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	/* This data cannnot be pushed outside CPU memory */
 	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
 		&& starpu_memory_nodes_get_numa_count() == 1)
+		return 0;
+
+	return 1;
+}
+
+/* This function is called for memory chunks that are possibly in used (ie. not
+ * in the cache). They should therefore still be associated to a handle. */
+/* mc_lock is held and may be temporarily released! */
+static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list, enum _starpu_is_prefetch is_prefetch)
+{
+	size_t freed = 0;
+
+	starpu_data_handle_t handle;
+	handle = mc->data;
+	STARPU_ASSERT(handle);
+
+	if (!starpu_data_can_evict(handle, node))
 		return 0;
 
 	if (diduse_barrier && !mc->diduse)
@@ -841,6 +849,12 @@ restart:
 	return success;
 }
 
+static starpu_data_victim_selector *victim_selector;
+void starpu_data_register_victim_selector(starpu_data_victim_selector selector)
+{
+	victim_selector = selector;
+}
+
 /*
  * Try to find a buffer currently in use on the memory node which has the given
  * footprint.
@@ -848,11 +862,17 @@ restart:
 static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, enum _starpu_is_prefetch is_prefetch)
 {
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
+	starpu_data_handle_t victim = NULL;
 	int success = 0;
 
 	if (is_prefetch >= STARPU_IDLEFETCH)
 		/* Do not evict a MC just for an idle fetch */
 		return 0;
+
+	if (is_prefetch < STARPU_PREFETCH && victim_selector)
+		/* Ask someone who knows the future */
+		victim = victim_selector(node);
+
 	/*
 	 * We have to unlock mc_lock before locking header_lock, so we have
 	 * to be careful with the list.  We try to do just one pass, by
@@ -874,6 +894,9 @@ restart:
 
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
+			continue;
+		if (victim && mc->data != victim)
+			/* We were advised some precise data */
 			continue;
 		if (!mc->wontuse && is_prefetch >= STARPU_PREFETCH)
 			/* Do not evict something that we might reuse, just for a prefetch */
@@ -966,8 +989,13 @@ out:
 static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim)
 {
 	size_t freed = 0;
+	starpu_data_handle_t victim = NULL;
 
 	struct _starpu_mem_chunk *mc, *next_mc;
+
+	if (!force && victim_selector)
+		/* Ask someone who knows the future */
+		victim = victim_selector(node);
 
 	/*
 	 * We have to unlock mc_lock before locking header_lock, so we have
@@ -994,6 +1022,9 @@ restart2:
 			struct _starpu_mem_chunk *orig_next_mc = next_mc;
 			if (mc->remove_notify)
 				/* Somebody already working here, skip */
+				continue;
+			if (victim && mc->data != victim)
+				/* We were advised some precise data */
 				continue;
 			if (next_mc)
 			{

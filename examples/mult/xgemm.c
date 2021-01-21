@@ -446,7 +446,10 @@ static void parse_args(int argc, char **argv)
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
 			fprintf(stderr,"Usage: %s [-3d] [-nblocks n] [-nblocksx x] [-nblocksy y] [-nblocksz z] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname] [-nsleeps nsleeps]\n", argv[0]);
-			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter, nsleeps);
+			if (tiled)
+				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, niter, nsleeps);
+			else
+				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter, nsleeps);
 			exit(EXIT_SUCCESS);
 		}
 		else
@@ -457,10 +460,100 @@ static void parse_args(int argc, char **argv)
 	}
 }
 
+/* Don't do this at home, kids, this is really dumb!  */
+starpu_data_handle_t dumb_victim_selector(unsigned node)
+{
+	static unsigned next_evicted; // index of next data to evict, to avoid getting stuck. Yes this is awful.
+	starpu_data_handle_t handle;
+	unsigned x, y, z, index = 0;
+
+	if (tiled) {
+		if (next_evicted == nslicesy*nslicesz + nslicesx+nslicesz + nslicesx*nslicesy)
+			next_evicted = 0;
+
+		for (y = 0; y < nslicesy; y++)
+		for (z = 0; z < nslicesz; z++)
+		{
+			if (index++ < next_evicted)
+				continue;
+			handle = starpu_data_get_sub_data(A_handle, 2, z, y);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+
+		for (x = 0; x < nslicesx; x++)
+		for (z = 0; z < nslicesz; z++)
+		{
+			if (index++ < next_evicted)
+				continue;
+			handle = starpu_data_get_sub_data(B_handle, 2, x, z);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+
+		for (x = 0; x < nslicesx; x++)
+		for (y = 0; y < nslicesy; y++)
+		{
+			if (index++ < next_evicted)
+				continue;
+			handle = starpu_data_get_sub_data(C_handle, 2, x, y);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+	}
+	else
+	{
+		if (next_evicted == 3*nslicesx*nslicesy)
+			next_evicted = 0;
+
+		for (x = 0; x < nslicesx; x++)
+		for (y = 0; y < nslicesy; y++)
+		{
+			if (index++ < next_evicted)
+				continue;
+
+			handle = starpu_data_get_sub_data(A_handle, 1, y);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+
+		for (x = 0; x < nslicesx; x++)
+		for (y = 0; y < nslicesy; y++)
+		{
+			if (index++ < next_evicted)
+				continue;
+
+			handle = starpu_data_get_sub_data(B_handle, 1, x);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+
+		for (x = 0; x < nslicesx; x++)
+		for (y = 0; y < nslicesy; y++)
+		{
+			if (index++ < next_evicted)
+				continue;
+
+			handle = starpu_data_get_sub_data(C_handle, 2, x, y);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+	}
+
+	/* Uh :/ */
+	//fprintf(stderr,"uh, no evictable data\n");
+	next_evicted = 0;
+	return NULL;
+
+done:
+	next_evicted = index;
+	//fprintf(stderr,"evicting %p\n", handle);
+	return handle;
+}
+
 int main(int argc, char **argv)
 {
-	//Ajout pour randomiser l'ordre d'arrivé des tâches
-	srandom(starpu_get_env_number_default("SEED",1));
+	//Ajout pour randomiser l'ordre d'arrivé des tâches srandom(starpu_get_env_number_default("SEED",1));
 	
 	//Ajout pour le Z layout
 	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0; int j_bis = 0; int y_z_layout = 0; int y_z_layout_i = 0;
@@ -484,6 +577,8 @@ int main(int argc, char **argv)
 
 	init_problem_data();
 	partition_mult_data();
+
+	starpu_data_register_victim_selector(dumb_victim_selector);
 
 	PRINTF("# ");
 	if (print_hostname)
