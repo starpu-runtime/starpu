@@ -231,7 +231,7 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 	}
 				
 				/* I put the task in order in SIGMA */
-				printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n");
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n"); }
 				//~ printf("char_SIGMA[i] :\n"); for (i = 0; i < NT; i++) { printf("%p\n",char_SIGMA[i]); }
 				//~ for (i = 0; i < NT; i++) {
 					//~ temp_task_1  = starpu_task_list_pop_front(&data->popped_task_list);
@@ -264,7 +264,7 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 			task1 = starpu_task_list_pop_front(&data->SIGMA);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-			printf("Task %p is getting out of pull_task\n",task1);
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 			return task1;
 		}
 		else {
@@ -278,7 +278,7 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 		task1 = starpu_task_list_pop_front(&data->SIGMA);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-		printf("Task %p is getting out of pull_task\n",task1);
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 		return task1;
 	}
 }

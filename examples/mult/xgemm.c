@@ -321,8 +321,8 @@ static struct starpu_codelet cl_gemm0 =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
 	//~ .modes = {STARPU_R, STARPU_R, STARPU_W},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.modes = {STARPU_R, STARPU_R, STARPU_R},
 	.model = &starpu_gemm_model
 };

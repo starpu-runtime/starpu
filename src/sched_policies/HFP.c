@@ -626,6 +626,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	starpu_ssize_t GPU_RAM_M = 0;
 	STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component));
 	GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
+	printf("GPU RAM:%d\n",GPU_RAM_M);
 	
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
@@ -659,7 +660,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			N = sqrt(NT);
 			//~ printf("NT = %d\n",NT);
 					
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",nb_pop); }
+			if (starpu_get_env_number_default("PRINTF",0) == 2) { printf("%d task(s) have been pulled\n",nb_pop); }
 			
 			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
 			const char* appli = starpu_task_get_name(temp_task_1);	
@@ -754,7 +755,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 										matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(data->temp_pointer_2->package_data[j]) + starpu_data_get_size(data->temp_pointer_1->package_data[i]);
 									} } } index_head_2++; } index_head_1++; index_head_2 = index_head_1 + 1; }
 				/* Code to print the common data matrix */
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
+				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < nb_pop; i++) { for (j = 0; j < nb_pop; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
 				
 				/* Getting the number of package that have data in commons */
 				for (i = 0; i < nb_pop; i++) {
@@ -853,7 +854,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 										else { printf("Pas de switch\n"); }
 									}
 									else if (weight_package_i <= GPU_RAM_M && weight_package_j > GPU_RAM_M) {
-										printf("I <= PU_RAM et J > PU_RAM\n");
+										//~ printf("I <= PU_RAM et J > PU_RAM\n");
 										common_data_last_package_i_j1 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 0, 1, false,GPU_RAM_M);					
 										common_data_last_package_i_j2 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 0, 2, false,GPU_RAM_M);					
 										printf("\nij1 = %d / ij2 = %d\n",common_data_last_package_i_j1,common_data_last_package_i_j2);
@@ -865,7 +866,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 									}
 									else {
 										if (weight_package_i > GPU_RAM_M && weight_package_j > GPU_RAM_M) {
-											printf("I > PU_RAM et J > PU_RAM\n");
+											//~ printf("I > PU_RAM et J > PU_RAM\n");
 											common_data_last_package_i1_j1 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 1, 1, false,GPU_RAM_M);					
 											common_data_last_package_i1_j2 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 1, 2, false,GPU_RAM_M);
 											common_data_last_package_i2_j1 = get_common_data_last_package(data->temp_pointer_1, data->temp_pointer_2, 2, 1, false,GPU_RAM_M);					
@@ -1089,9 +1090,9 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 		/* Can I uncomment this part ? */
 		{
 			if (didwork)
-				fprintf(stderr, "pushed some tasks to %p\n", to);
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "pushed some tasks to %p\n", to); }
 			else
-				fprintf(stderr, "I didn't have anything for %p\n", to);
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "I didn't have anything for %p\n", to); }
 		}
 	}
 

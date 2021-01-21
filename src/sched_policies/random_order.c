@@ -147,7 +147,7 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				NT++;
-				printf("%p\n",task1);
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p\n",task1); }
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 		
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",NT); }
