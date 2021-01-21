@@ -668,10 +668,10 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				printf("Tâche %p---------\n",task1);
-				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
-					printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
-				}
+				//~ printf("Tâche %p---------\n",task1);
+				//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
+					//~ printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
+				//~ }
 				nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 		

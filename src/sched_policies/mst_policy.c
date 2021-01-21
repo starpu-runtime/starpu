@@ -112,7 +112,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				NT++;
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p\n",task1); }
-				printf("%p\n",task1);
+				//~ printf("%p\n",task1);
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 				//~ data->id = NT;
 			} 		
@@ -215,7 +215,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 				}
 				//~ printf("mstSet:	"); for (i = 0; i < NT; i++) { printf("%d ",i); }
 				
-				printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n");
+				//~ printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n");
 				i = 0;
 				data->temp_pointer_1 = data->first_link;
 				while (i != NT) {
@@ -242,7 +242,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 			task1 = starpu_task_list_pop_front(&data->SIGMA);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-			printf("Task %p is getting out of pull_task\n",task1);
+			//~ printf("Task %p is getting out of pull_task\n",task1);
 			return task1;
 		}
 		else {
@@ -259,7 +259,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 		task1 = starpu_task_list_pop_front(&data->SIGMA);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-		printf("Task %p is getting out of pull_task\n",task1);
+		//~ printf("Task %p is getting out of pull_task\n",task1);
 		return task1;
 	}
 	//~ return task1;
