@@ -10,7 +10,7 @@ make -C src/
 echo "MAKE OK!"
 export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 #~ truncate -s 0 Output_maxime/GFlops_raw_out.txt
-ulimit -S -s 50000
+ulimit -S -s 5000000
 NB_ALGO_TESTE=6
 NB_TAILLE_TESTE=3
 ECHELLE_X=50
