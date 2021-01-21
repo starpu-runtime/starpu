@@ -1305,6 +1305,14 @@ be convenient for letting the application initialize data etc. before starting
 to look for idle time.
 </dd>
 
+<dt>STARPU_TASK_PROGRESS</dt>
+<dd>
+\anchor STARPU_TASK_PROGRESS
+\addindex __env__STARPU_TASK_PROGRESS
+Print the progression of tasks. This is convenient to determine whether a
+program is making progress in task execution, or is just stuck.
+</dd>
+
 <dt>STARPU_TASK_BREAK_ON_PUSH</dt>
 <dd>
 \anchor STARPU_TASK_BREAK_ON_PUSH
