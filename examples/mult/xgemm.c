@@ -415,7 +415,10 @@ static void parse_args(int argc, char **argv)
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
 			fprintf(stderr,"Usage: %s [-3d] [-nblocks n] [-nblocksx x] [-nblocksy y] [-nblocksz z] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname] [-nsleeps nsleeps]\n", argv[0]);
-			fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter, nsleeps);
+			if (tiled)
+				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, niter, nsleeps);
+			else
+				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter, nsleeps);
 			exit(EXIT_SUCCESS);
 		}
 		else
