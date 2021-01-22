@@ -84,7 +84,7 @@ static starpu_sem_t callback_sem;
 
 void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSED)
 {
-	STARPU_ATOMIC_ADD( &nb_pending_requests, 1);
+	STARPU_ATTRIBUTE_UNUSED int new_nb = STARPU_ATOMIC_ADD( &nb_pending_requests, 1);
 }
 
 /********************************************************/
