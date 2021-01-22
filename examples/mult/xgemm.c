@@ -32,6 +32,7 @@
 #define RECURSIVE_MATRIX_LAYOUT
 #define RANDOM_DATA_ACCESS
 #define SEED
+#include <starpu_data_maxime.h>
 
 #include <limits.h>
 #include <string.h>
@@ -554,13 +555,48 @@ done:
 //~ starpu_data_is_on_node : savoir si une donnée est bien sur la mémoire
 /* une idée pourrait être dans hfp simuler la mémoire et voir quand elle sera pleine et aura besoin d'évincer,
  * et la j'appelle cette fonction
+ * pre_exec_hook pour connaitre la tâche en cours
 /* Evicting data used in the longest time  */
 starpu_data_handle_t belady_victim_selector(unsigned node)
 {
+	//~ printf("Début belady_victim_selector\n");
 	static unsigned next_evicted; // index of next data to evict, to avoid getting stuck. Yes this is awful.
 	starpu_data_handle_t handle;
-	unsigned x, y, z, index = 0;
-
+	unsigned x, y, z, index, i, j = 0;
+	int nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
+	
+	if (task_currently_treated != NULL) {
+		for (i = 0; i < nb_different_data; i++) {
+			if (starpu_data_is_on_node(all_data_needed[i], node)) {
+				nb_data_on_node++;
+			}
+		}
+		printf("Data on node :\n");
+		starpu_data_handle_t * data_on_node = malloc(nb_data_on_node*sizeof(all_data_needed[0]));
+		for (i = 0; i < nb_different_data; i++) {
+			if (starpu_data_is_on_node(all_data_needed[i], node)) {
+				data_on_node[j] = all_data_needed[i];
+				printf("%p\n",data_on_node[j]);
+				j++;
+			}
+		}
+		//~ printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, index_task_currently_treated, task_position_in_data_use_order[index_task_currently_treated]);
+		
+		//~ printf("Mes données étaient :\n");
+		//~ printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[index_task_currently_treated]-3],data_use_order[task_position_in_data_use_order[index_task_currently_treated]-2],data_use_order[task_position_in_data_use_order[index_task_currently_treated]-1]);
+		//~ printf("Les données suiv sont\n");
+		//~ printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[index_task_currently_treated]],data_use_order[task_position_in_data_use_order[index_task_currently_treated]+1],data_use_order[task_position_in_data_use_order[index_task_currently_treated]+2]);
+		
+		
+	
+	}
+	
+	//Savoir a quelle tache on est donne ou on est dans la liste des taches ordonné.
+	//De la on peut deduire la donnée utilisé dans le + longtemps qui est sur node
+	//Mais attention a ne pas evincer une donnée qui sera utilisé par la tache suivante
+	//Pour savoir le nb de data que utilise la prochaine simplement regardé la diff entre
+	//task_position_in_data_use_order[index_task_currently_treated] et task_position_in_data_use_order[index_task_currently_treated+1]
+	
 	if (tiled) {
 		if (next_evicted == nslicesy*nslicesz + nslicesx+nslicesz + nslicesx*nslicesy)
 			next_evicted = 0;
@@ -635,13 +671,13 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 	}
 
 	/* Uh :/ */
-	fprintf(stderr,"uh, no evictable data\n");
+	//~ fprintf(stderr,"uh, no evictable data\n");
 	next_evicted = 0;
 	return NULL;
 
 done:
 	next_evicted = index;
-	fprintf(stderr,"evicting %p\n", handle);
+	//~ fprintf(stderr,"evicting %p\n", handle);
 	return handle;
 }
 

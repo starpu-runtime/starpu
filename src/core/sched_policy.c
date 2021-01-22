@@ -26,6 +26,7 @@
 #include <common/barrier.h>
 #include <core/debug.h>
 #include <core/task.h>
+#include <starpu_data_maxime.h>
 
 static int use_prefetch = 0;
 static double idle[STARPU_NMAXWORKERS];
@@ -1130,7 +1131,8 @@ void _starpu_sched_pre_exec_hook(struct starpu_task *task)
 			}
 		}
 	}
-
+	task_currently_treated = task;
+	index_task_currently_treated++;
 }
 
 void _starpu_sched_post_exec_hook(struct starpu_task *task)

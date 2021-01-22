@@ -16,6 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <starpu_data_maxime.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
@@ -236,34 +237,31 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 	return a; 	
 }
 
-//~ static void get_ordre_eviction_chargement_donnee_belady(struct my_list *a, starpu_ssize_t GPU_RAM_M, starpu_data_handle_t * ordre_utilisation_donnee)
-//~ {
-	
-	//~ printf("Fin de la fonction get_ordre_eviction_chargement_donnee_belady\n");
-//~ }
-
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
-static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES, starpu_ssize_t GPU_RAM_M)
+static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
 {
-	FILE * f_ordre = fopen("Output_maxime/ordre_utilisation_donnees.txt", "w");
-	FILE * f_liste = fopen("Output_maxime/liste_donnees.txt", "w");
-	struct starpu_task *task = NULL; int i = 0; int j = 0;
-	//~ starpu_data_handle_t * ordre_utilisation_donnee = malloc(NB_TOTAL_DONNEES*sizeof(a->package_data[0]));
+	struct starpu_task *task = NULL; 
+	int i = 0; int j = 0; int k = 0;
+	total_nb_data = NB_TOTAL_DONNEES;
+	total_nb_task = NT;
+	data_use_order = malloc(total_nb_data*sizeof(a->package_data[0]));
+	task_position_in_data_use_order = malloc(total_nb_task*sizeof(int));
 	for (task = starpu_task_list_begin(&a->sub_list); task != starpu_task_list_end(&a->sub_list); task = starpu_task_list_next(task)) {
-		printf("tache ; %p\n", task);
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-			fprintf(f_ordre, "%p\n" ,STARPU_TASK_GET_HANDLE(task,i));
-			//~ ordre_utilisation_donnee[j] = STARPU_TASK_GET_HANDLE(task,i);
-			//~ j++;
+			data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
+			k++;
+			//~ printf("%p\n",STARPU_TASK_GET_HANDLE(task,i));
 		}
+		if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
+		else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
+		j++;
 	}
+	all_data_needed = malloc(a->package_nb_data*sizeof(a->package_data[0]));
 	for (i = 0; i < a->package_nb_data; i++) {
-		fprintf(f_liste, "%p\n",a->package_data[i]);
+		all_data_needed[i] = a->package_data[i]; 
 	}
-	fclose(f_ordre);
-	fclose(f_liste);
-	printf("Fin de la fonction get_ordre_utilisation_donnee\n");
-	//~ get_ordre_eviction_chargement_donnee_belady(a, GPU_RAM_M, ordre_utilisation_donnee);
+	nb_different_data = a->package_nb_data;
+	index_task_currently_treated = 0;
 }
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
@@ -658,7 +656,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 		return task1;
 	}	
 
@@ -675,10 +673,10 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				printf("Tâche %p---------\n",task1);
-				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
-					printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
-				}
+				//~ printf("Tâche %p---------\n",task1);
+				//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
+					//~ printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
+				//~ }
 				nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 		
@@ -1072,18 +1070,18 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		
 		//Belady
 		if (starpu_get_env_number_default("BELADY",0) == 1) {
-			get_ordre_utilisation_donnee(data->first_link, NB_TOTAL_DONNEES, GPU_RAM_M);
+			get_ordre_utilisation_donnee(data->first_link, NB_TOTAL_DONNEES);
 		}
 		
 		/* We pop the first task of the first package */
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 		task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);
 		}
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			/* We remove the first list of the first link of the linked list */
 			if (task1 != NULL) { 
 				/* Lines like this under and at the beggining of this function are for printing the tasks getting out */
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 			}
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 			return task1;
@@ -1091,7 +1089,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	if (!starpu_task_list_empty(&data->temp_pointer_1->sub_list)) {
 		task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 		return task1;
 	}
 	if ((data->temp_pointer_1->next != NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) {
@@ -1100,7 +1098,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		while (starpu_task_list_empty(&data->temp_pointer_1->sub_list)) { data->temp_pointer_1 = data->temp_pointer_1->next; }
 			task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->temp_pointer_1->sub_list)\n",task1); }
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->temp_pointer_1->sub_list)\n",task1); }
 			return task1;
 	}		
 }
