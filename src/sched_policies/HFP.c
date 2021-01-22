@@ -236,26 +236,34 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 	return a; 	
 }
 
-static void get_ordre_eviction_chargement_donnee_belady(struct my_list *a, starpu_ssize_t GPU_RAM_M, starpu_data_handle_t * ordre_utilisation_donnee)
-{
+//~ static void get_ordre_eviction_chargement_donnee_belady(struct my_list *a, starpu_ssize_t GPU_RAM_M, starpu_data_handle_t * ordre_utilisation_donnee)
+//~ {
 	
-	printf("Fin de la fonction get_ordre_eviction_chargement_donnee_belady\n");
-}
+	//~ printf("Fin de la fonction get_ordre_eviction_chargement_donnee_belady\n");
+//~ }
 
+/* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
 static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES, starpu_ssize_t GPU_RAM_M)
 {
+	FILE * f_ordre = fopen("Output_maxime/ordre_utilisation_donnees.txt", "w");
+	FILE * f_liste = fopen("Output_maxime/liste_donnees.txt", "w");
 	struct starpu_task *task = NULL; int i = 0; int j = 0;
-	starpu_data_handle_t * ordre_utilisation_donnee = malloc(NB_TOTAL_DONNEES*sizeof(a->package_data[0]));
+	//~ starpu_data_handle_t * ordre_utilisation_donnee = malloc(NB_TOTAL_DONNEES*sizeof(a->package_data[0]));
 	for (task = starpu_task_list_begin(&a->sub_list); task != starpu_task_list_end(&a->sub_list); task = starpu_task_list_next(task)) {
-		printf("Tâche %p---------\n",task);
+		printf("tache ; %p\n", task);
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-			printf("%p\n",STARPU_TASK_GET_HANDLE(task,i));
-			ordre_utilisation_donnee[j] = STARPU_TASK_GET_HANDLE(task,i);
-			j++;
+			fprintf(f_ordre, "%p\n" ,STARPU_TASK_GET_HANDLE(task,i));
+			//~ ordre_utilisation_donnee[j] = STARPU_TASK_GET_HANDLE(task,i);
+			//~ j++;
 		}
 	}
+	for (i = 0; i < a->package_nb_data; i++) {
+		fprintf(f_liste, "%p\n",a->package_data[i]);
+	}
+	fclose(f_ordre);
+	fclose(f_liste);
 	printf("Fin de la fonction get_ordre_utilisation_donnee\n");
-	get_ordre_eviction_chargement_donnee_belady(a, GPU_RAM_M, ordre_utilisation_donnee);
+	//~ get_ordre_eviction_chargement_donnee_belady(a, GPU_RAM_M, ordre_utilisation_donnee);
 }
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
@@ -602,10 +610,10 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	//~ data->temp_pointer_1 = my_data;
 	//~ starpu_task_list_init(&my_data->sub_list);
 	int NB_TOTAL_DONNEES = 0;
-	int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int index_tab_donnee_i1 = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
+	int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
 	/* Variables */
 	/* Variables used to calculate, navigate through a loop or other things */
-	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0;int random_value = 0;
+	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0;
 	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL;
 		 
@@ -637,7 +645,6 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	long int max_common_data_last_package = 0;
 	long int weight_package_i = 0; /* Used for ORDER_U too */
 	long int weight_package_j = 0;
-	long int temp_weight = 0;
 		
 	/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
 	starpu_ssize_t GPU_RAM_M = 0;
@@ -668,10 +675,10 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				//~ printf("Tâche %p---------\n",task1);
-				//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
-					//~ printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
-				//~ }
+				printf("Tâche %p---------\n",task1);
+				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
+					printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
+				}
 				nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 		
@@ -1063,12 +1070,13 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); }
 		
+		//Belady
 		if (starpu_get_env_number_default("BELADY",0) == 1) {
-			printf("Début Belady\n");
 			get_ordre_utilisation_donnee(data->first_link, NB_TOTAL_DONNEES, GPU_RAM_M);
 		}
 		
 		/* We pop the first task of the first package */
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 		task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);
 		}
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
