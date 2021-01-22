@@ -192,8 +192,6 @@ int main(int argc, char **argv)
 	// Free memory
 	free(data_handles);
 
-	starpu_mpi_barrier(MPI_COMM_WORLD); // Why adding a barrier helps to to avoid a blocking at the end of the program (observed with nmad) ?
-
 	starpu_mpi_shutdown();
 	return (rank == 0) ? ret : 0;
 }

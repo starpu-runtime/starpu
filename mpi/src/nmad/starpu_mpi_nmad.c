@@ -548,8 +548,13 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			c->req->completed=1;
 			piom_cond_signal(&(c->req->backend->req_cond), REQ_FINALIZED);
 		}
-		STARPU_ATOMIC_ADD( &nb_pending_requests, -1);
+
 		/* we signal that the request is completed.*/
+		int pending_remaining = STARPU_ATOMIC_ADD(&nb_pending_requests, -1);
+		if (!pending_remaining)
+		{
+			STARPU_PTHREAD_COND_BROADCAST(&mpi_wait_for_all_running_cond);
+		}
 
 		free(c);
 	}
