@@ -541,13 +541,107 @@ starpu_data_handle_t dumb_victim_selector(unsigned node)
 	}
 
 	/* Uh :/ */
-	//fprintf(stderr,"uh, no evictable data\n");
+	//~ fprintf(stderr,"uh, no evictable data\n");
 	next_evicted = 0;
 	return NULL;
 
 done:
 	next_evicted = index;
-	//fprintf(stderr,"evicting %p\n", handle);
+	//~ fprintf(stderr,"evicting %p\n", handle);
+	return handle;
+}
+
+//~ starpu_data_is_on_node : savoir si une donnée est bien sur la mémoire
+/* une idée pourrait être dans hfp simuler la mémoire et voir quand elle sera pleine et aura besoin d'évincer,
+ * et la j'appelle cette fonction
+/* Evicting data used in the longest time  */
+starpu_data_handle_t belady_victim_selector(unsigned node)
+{
+	static unsigned next_evicted; // index of next data to evict, to avoid getting stuck. Yes this is awful.
+	starpu_data_handle_t handle;
+	unsigned x, y, z, index = 0;
+
+	if (tiled) {
+		if (next_evicted == nslicesy*nslicesz + nslicesx+nslicesz + nslicesx*nslicesy)
+			next_evicted = 0;
+
+		for (y = 0; y < nslicesy; y++)
+		for (z = 0; z < nslicesz; z++)
+		{
+			if (index++ < next_evicted)
+				continue;
+			handle = starpu_data_get_sub_data(A_handle, 2, z, y);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+
+		for (x = 0; x < nslicesx; x++)
+		for (z = 0; z < nslicesz; z++)
+		{
+			if (index++ < next_evicted)
+				continue;
+			handle = starpu_data_get_sub_data(B_handle, 2, x, z);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+
+		for (x = 0; x < nslicesx; x++)
+		for (y = 0; y < nslicesy; y++)
+		{
+			if (index++ < next_evicted)
+				continue;
+			handle = starpu_data_get_sub_data(C_handle, 2, x, y);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+	}
+	else
+	{
+		if (next_evicted == 3*nslicesx*nslicesy)
+			next_evicted = 0;
+
+		for (x = 0; x < nslicesx; x++)
+		for (y = 0; y < nslicesy; y++)
+		{
+			if (index++ < next_evicted)
+				continue;
+
+			handle = starpu_data_get_sub_data(A_handle, 1, y);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+
+		for (x = 0; x < nslicesx; x++)
+		for (y = 0; y < nslicesy; y++)
+		{
+			if (index++ < next_evicted)
+				continue;
+
+			handle = starpu_data_get_sub_data(B_handle, 1, x);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+
+		for (x = 0; x < nslicesx; x++)
+		for (y = 0; y < nslicesy; y++)
+		{
+			if (index++ < next_evicted)
+				continue;
+
+			handle = starpu_data_get_sub_data(C_handle, 2, x, y);
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+				goto done;
+		}
+	}
+
+	/* Uh :/ */
+	fprintf(stderr,"uh, no evictable data\n");
+	next_evicted = 0;
+	return NULL;
+
+done:
+	next_evicted = index;
+	fprintf(stderr,"evicting %p\n", handle);
 	return handle;
 }
 
@@ -577,8 +671,10 @@ int main(int argc, char **argv)
 
 	init_problem_data();
 	partition_mult_data();
-
-	starpu_data_register_victim_selector(dumb_victim_selector);
+	
+	//Mettre un if belady=1 pour plus tard ici (avec ma fct du coup)
+	if (starpu_get_env_number_default("BELADY",0) == 1) { starpu_data_register_victim_selector(belady_victim_selector); }
+	//~ starpu_data_register_victim_selector(dumb_victim_selector);
 
 	PRINTF("# ");
 	if (print_hostname)
