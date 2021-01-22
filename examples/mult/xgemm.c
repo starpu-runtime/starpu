@@ -562,16 +562,17 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 	//~ printf("Début belady_victim_selector\n");
 	static unsigned next_evicted; // index of next data to evict, to avoid getting stuck. Yes this is awful.
 	starpu_data_handle_t handle;
-	unsigned x, y, z, index, i, j = 0;
+	unsigned x, y, z, index;
+	int nb_data_next_task = 0; int i = 0; int j = 0;
 	int nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
-	
+	int * a_ne_pas_evincer;
 	if (task_currently_treated != NULL) {
 		for (i = 0; i < nb_different_data; i++) {
 			if (starpu_data_is_on_node(all_data_needed[i], node)) {
 				nb_data_on_node++;
 			}
 		}
-		printf("Data on node :\n");
+		printf("Il y a %d data on node :\n",nb_data_on_node);
 		starpu_data_handle_t * data_on_node = malloc(nb_data_on_node*sizeof(all_data_needed[0]));
 		for (i = 0; i < nb_different_data; i++) {
 			if (starpu_data_is_on_node(all_data_needed[i], node)) {
@@ -584,11 +585,38 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 		
 		//~ printf("Mes données étaient :\n");
 		//~ printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[index_task_currently_treated]-3],data_use_order[task_position_in_data_use_order[index_task_currently_treated]-2],data_use_order[task_position_in_data_use_order[index_task_currently_treated]-1]);
-		//~ printf("Les données suiv sont\n");
+		//~ printf("Les données suivantes sont\n");
 		//~ printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[index_task_currently_treated]],data_use_order[task_position_in_data_use_order[index_task_currently_treated]+1],data_use_order[task_position_in_data_use_order[index_task_currently_treated]+2]);
 		
-		
-	
+		nb_data_next_task = task_position_in_data_use_order[index_task_currently_treated + 1] - task_position_in_data_use_order[index_task_currently_treated];
+		printf("Nb data next task : %d\n",nb_data_next_task);
+		int a_ne_pas_evincer[nb_data_next_task];
+		//Remplissage des données à ne pas évincer car elles sont utilisé par la prochaine tâche
+		for (i = 0; i < nb_data_next_task; i++) { a_ne_pas_evincer[i] = 0; }
+		for (i = 0; i < nb_data_next_task; i++) { 
+			for (j = 0; j < nb_data_on_node; j++) { 
+				if(data_use_order[task_position_in_data_use_order[index_task_currently_treated + i]] == data_on_node[j]) { 
+					a_ne_pas_evincer[i] = 1; 
+				} 
+			} 
+		}
+		for (i = 0; i < nb_data_next_task; i++) {	
+			/* On regarde si la donnée est pas déjà sur M par hasard */
+			if (starpu_data_is_on_node(data_use_order[task_position_in_data_use_order[index_task_currently_treated + i]], node)) {
+				printf("La donnée %p est déjà sur M\n",data_use_order[task_position_in_data_use_order[index_task_currently_treated + i]]);
+				break;
+			}
+			else {
+				for (j = 1; j < total_nb_data; j++) {
+					if(starpu_data_is_on_node(data_use_order[total_nb_data - j], node) && 
+					a_ne_pas_evincer[i] != 1) {
+						//evincer
+						printf("On évince :\n");
+						break;
+					}
+				}
+			}
+		}
 	}
 	
 	//Savoir a quelle tache on est donne ou on est dans la liste des taches ordonné.
