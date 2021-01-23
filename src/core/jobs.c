@@ -287,7 +287,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		unsigned long jobs = STARPU_ATOMIC_ADDL(&njobs_finished, 1);
 
-		printf("\r%lu tasks finished...", jobs);
+		printf("\r%lu tasks finished...\n", jobs);
 	}
 
 	struct starpu_task *task = j->task;
