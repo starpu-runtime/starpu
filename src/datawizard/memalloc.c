@@ -855,6 +855,40 @@ void starpu_data_register_victim_selector(starpu_data_victim_selector selector)
 	victim_selector = selector;
 }
 
+void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, unsigned *_n)
+{
+	unsigned allocated = 16;
+	unsigned n = 0;
+	starpu_data_handle_t *handles;
+	struct _starpu_mem_chunk *mc;
+
+	_STARPU_MALLOC(handles, allocated * sizeof(*handles));
+
+	_starpu_spin_lock(&mc_lock[node]);
+
+	for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
+	     mc != _starpu_mem_chunk_list_end(&mc_list[node]);
+	     mc = _starpu_mem_chunk_list_next(mc))
+	{
+		if (mc->data)
+		{
+			if (n == allocated)
+			{
+				allocated *= 2;
+				_STARPU_REALLOC(handles, allocated * sizeof(*handles));
+			}
+			n++;
+			handles[n] = mc->data;
+		}
+	}
+
+	_starpu_spin_unlock(&mc_lock[node]);
+
+	printf("returning %d handles\n", n);
+	*_handles = handles;
+	*_n = n;
+}
+
 /*
  * Try to find a buffer currently in use on the memory node which has the given
  * footprint.
