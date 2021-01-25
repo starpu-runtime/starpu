@@ -908,7 +908,7 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 		/* Ask someone who knows the future */
 		victim = victim_selector(node);
 
-		if (victim->footprint != footprint)
+		if (victim && victim->footprint != footprint)
 			/* Don't even bother looking for it, it won't fit anyway */
 			return 0;
 	}
