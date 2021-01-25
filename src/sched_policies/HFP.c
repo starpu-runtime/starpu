@@ -240,7 +240,7 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
 static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
 {
-	//~ FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
+	FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
 	struct starpu_task *task = NULL; 
 	int i = 0; int j = 0; int k = 0;
 	total_nb_data = NB_TOTAL_DONNEES;
@@ -251,7 +251,7 @@ static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 			data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
 			k++;
-			//~ fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
+			fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
 		}
 		if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
 		else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
@@ -263,6 +263,7 @@ static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES
 	}
 	nb_different_data = a->package_nb_data;
 	index_task_currently_treated = 0;
+	fclose(f);
 }
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 

@@ -25,7 +25,8 @@
 #include <common/uthash.h>
 
 /* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
-const unsigned starpu_memstrategy_data_size_coefficient=2;
+//~ const unsigned starpu_memstrategy_data_size_coefficient=2;
+const unsigned starpu_memstrategy_data_size_coefficient=1;
 
 /* Minimum percentage of available memory in each node */
 static unsigned minimum_p;

@@ -3,7 +3,7 @@
 
 #include <starpu.h>
 
-struct starpu_task *task_currently_treated;
+extern struct starpu_task *task_currently_treated;
 
 /**
    Task currently treated. 
@@ -43,5 +43,7 @@ int * task_position_in_data_use_order;
 int total_nb_task;
 
 int index_task_currently_treated;
+
+int last_index_task_currently_treated;
 
 #endif
