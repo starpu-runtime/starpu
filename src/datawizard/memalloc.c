@@ -1130,6 +1130,7 @@ void starpu_memchunk_tidy(unsigned node)
 	if (!can_evict(node))
 		return;
 
+	// TODO: ideally we would use the Belady order here as well.
 	if (mc_clean_nb[node] < (mc_nb[node] * minimum_clean_p) / 100)
 	{
 		struct _starpu_mem_chunk *mc, *orig_next_mc, *next_mc;
