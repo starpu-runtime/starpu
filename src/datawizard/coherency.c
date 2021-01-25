@@ -907,7 +907,7 @@ static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handl
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-int starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio)
+int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum _starpu_is_prefetch prefetch)
 {
 #ifdef STARPU_OPENMP
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -915,7 +915,7 @@ int starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, i
 	if (j->discontinuous != 0)
 		return 0;
 #endif
-	STARPU_ASSERT_MSG(!task->prefetched, "Prefetching was already requested for this task! Did you set 'prefetches' to 1 in the starpu_sched_policy structure?");
+	STARPU_ASSERT_MSG(prefetch != STARPU_PREFETCH || !task->prefetched, "Prefetching was already requested for this task! Did you set 'prefetches' to 1 in the starpu_sched_policy structure?");
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
@@ -942,13 +942,24 @@ int starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, i
 			node = _starpu_task_data_get_node_on_worker(task, index, worker);
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
-		task_prefetch_data_on_node(handle, node, replicate, mode, prio);
-
-		_starpu_set_data_requested_flag_if_needed(handle, replicate);
+		if (prefetch == STARPU_PREFETCH)
+		{
+			task_prefetch_data_on_node(handle, node, replicate, mode, prio);
+			_starpu_set_data_requested_flag_if_needed(handle, replicate);
+		}
+		else
+			idle_prefetch_data_on_node(handle, node, replicate, mode, prio);
 	}
-	task->prefetched = 1;
+
+	if (prefetch == STARPU_PREFETCH)
+		task->prefetched = 1;
 
 	return 0;
+}
+
+int starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio)
+{
+	return _starpu_prefetch_task_input_prio(task, target_node, worker, prio, STARPU_PREFETCH);
 }
 
 int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned target_node, int prio)
@@ -967,36 +978,7 @@ int starpu_prefetch_task_input_on_node(struct starpu_task *task, unsigned node)
 
 int starpu_idle_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio)
 {
-	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
-	unsigned index;
-
-	for (index = 0; index < nbuffers; index++)
-	{
-		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
-		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
-
-		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
-			continue;
-
-// XXX for maxime: we need to prefetch allocations otherwise we may not have
-// memory left for them after prefetching lots of stuff...
-#if 0
-		if (!(mode & STARPU_R))
-			/* Don't bother prefetching some data which will be overwritten */
-			continue;
-#endif
-
-		int node;
-		if (target_node >= 0)
-			node = _starpu_task_data_get_node_on_node(task, index, target_node);
-		else
-			node = _starpu_task_data_get_node_on_worker(task, index, worker);
-
-		struct _starpu_data_replicate *replicate = &handle->per_node[node];
-		idle_prefetch_data_on_node(handle, node, replicate, mode, prio);
-	}
-
-	return 0;
+	return _starpu_prefetch_task_input_prio(task, target_node, worker, prio, STARPU_IDLEFETCH);
 }
 
 int starpu_idle_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned target_node, int prio)
