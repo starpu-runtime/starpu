@@ -884,7 +884,7 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, u
 
 	_starpu_spin_unlock(&mc_lock[node]);
 
-	printf("returning %d handles\n", n);
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("returning %d handles\n", n); }
 	*_handles = handles;
 	*_n = n;
 }
