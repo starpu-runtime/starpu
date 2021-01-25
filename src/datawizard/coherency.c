@@ -935,7 +935,7 @@ int starpu_prefetch_task_input_on_node_prio(struct starpu_task *task, unsigned t
 			continue;
 #endif
 
-		fprintf(stderr,"prefetch %p for %p\n", handle, task);
+		//~ fprintf(stderr,"prefetch %p for %p\n", handle, task);
 		int node = _starpu_task_data_get_node_on_node(task, index, target_node);
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
