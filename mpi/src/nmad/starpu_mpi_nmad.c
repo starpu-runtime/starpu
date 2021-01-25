@@ -360,16 +360,21 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 
 	_starpu_mpi_release_req_data(req);
 
-	/* Execute the specified callback, if any */
 	if (req->callback)
 	{
+		/* Callbacks are executed outside of this function, later by the
+		 * progression thread.
+		 * Indeed this current function is executed by a NewMadeleine handler,
+		 * and possibly inside of a PIOman ltask. In such context, some locking
+		 * or system calls can be forbidden to avoid any deadlock, thus
+		 * callbacks are deported outside of this handler. */
 		struct callback_lfstack_cell_s* c = padico_malloc(sizeof(struct callback_lfstack_cell_s));
 		c->req = req;
+		callback_lfstack_push(&callback_stack, c);
+
 		/* The main thread can exit without waiting
 		* the end of the detached request. Callback thread
 		* must then be kept alive if they have a callback.*/
-
-		callback_lfstack_push(&callback_stack, c);
 		starpu_sem_post(&callback_sem);
 	}
 	else
