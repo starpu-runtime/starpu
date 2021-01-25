@@ -1584,16 +1584,6 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			}
 			reclaim -= freed;
 
-			/* Try to reuse an allocated data with the same interface (to avoid spurious free/alloc) */
-			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint, is_prefetch))
-				break;
-			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint, is_prefetch))
-			{
-				reused = 1;
-				allocated_memory = data_size;
-				break;
-			}
-
 			if (is_prefetch)
 			{
 				/* It's just prefetch, don't bother existing allocations */
@@ -1601,6 +1591,17 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 				prefetch_out_of_memory[dst_node] = 1;
 				/* TODO: ideally we should not even try to allocate when we know we have not freed anything */
 				continue;
+			}
+
+			/* Try to reuse an allocated data with the same interface (to avoid spurious free/alloc) */
+			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint, is_prefetch))
+				break;
+
+			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint, is_prefetch))
+			{
+				reused = 1;
+				allocated_memory = data_size;
+				break;
 			}
 
 			if (!told_reclaiming)
