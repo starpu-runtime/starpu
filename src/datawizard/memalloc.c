@@ -25,7 +25,6 @@
 #include <common/uthash.h>
 
 /* When reclaiming memory to allocate, we reclaim MAX(what_is_to_reclaim_on_device, data_size_coefficient*data_size) */
-//~ const unsigned starpu_memstrategy_data_size_coefficient=2;
 const unsigned starpu_memstrategy_data_size_coefficient=1;
 
 /* Minimum percentage of available memory in each node */
@@ -856,6 +855,40 @@ void starpu_data_register_victim_selector(starpu_data_victim_selector selector)
 	victim_selector = selector;
 }
 
+void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, unsigned *_n)
+{
+	unsigned allocated = 16;
+	unsigned n = 0;
+	starpu_data_handle_t *handles;
+	struct _starpu_mem_chunk *mc;
+
+	_STARPU_MALLOC(handles, allocated * sizeof(*handles));
+
+	_starpu_spin_lock(&mc_lock[node]);
+
+	for (mc = _starpu_mem_chunk_list_begin(&mc_list[node]);
+	     mc != _starpu_mem_chunk_list_end(&mc_list[node]);
+	     mc = _starpu_mem_chunk_list_next(mc))
+	{
+		if (mc->data)
+		{
+			if (n == allocated)
+			{
+				allocated *= 2;
+				_STARPU_REALLOC(handles, allocated * sizeof(*handles));
+			}
+			n++;
+			handles[n] = mc->data;
+		}
+	}
+
+	_starpu_spin_unlock(&mc_lock[node]);
+
+	printf("returning %d handles\n", n);
+	*_handles = handles;
+	*_n = n;
+}
+
 /*
  * Try to find a buffer currently in use on the memory node which has the given
  * footprint.
@@ -871,8 +904,14 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 		return 0;
 
 	if (is_prefetch < STARPU_PREFETCH && victim_selector)
+	{
 		/* Ask someone who knows the future */
 		victim = victim_selector(node);
+
+		if (victim->footprint != footprint)
+			/* Don't even bother looking for it, it won't fit anyway */
+			return 0;
+	}
 
 	/*
 	 * We have to unlock mc_lock before locking header_lock, so we have
@@ -1551,16 +1590,6 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			}
 			reclaim -= freed;
 
-			/* Try to reuse an allocated data with the same interface (to avoid spurious free/alloc) */
-			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint, is_prefetch))
-				break;
-			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint, is_prefetch))
-			{
-				reused = 1;
-				allocated_memory = data_size;
-				break;
-			}
-
 			if (is_prefetch)
 			{
 				/* It's just prefetch, don't bother existing allocations */
@@ -1568,6 +1597,17 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 				prefetch_out_of_memory[dst_node] = 1;
 				/* TODO: ideally we should not even try to allocate when we know we have not freed anything */
 				continue;
+			}
+
+			/* Try to reuse an allocated data with the same interface (to avoid spurious free/alloc) */
+			if (_starpu_has_not_important_data && try_to_reuse_not_important_mc(dst_node, handle, replicate, footprint, is_prefetch))
+				break;
+
+			if (try_to_reuse_potentially_in_use_mc(dst_node, handle, replicate, footprint, is_prefetch))
+			{
+				reused = 1;
+				allocated_memory = data_size;
+				break;
 			}
 
 			if (!told_reclaiming)

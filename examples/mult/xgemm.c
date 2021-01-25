@@ -469,6 +469,11 @@ starpu_data_handle_t dumb_victim_selector(unsigned node)
 	starpu_data_handle_t handle;
 	unsigned x, y, z, index = 0;
 
+	starpu_data_handle_t handles;
+	unsigned n;
+	starpu_data_get_node_data(node, &handles, &n); // Just for fun
+	free(handles);
+
 	if (tiled) {
 		if (next_evicted == nslicesy*nslicesz + nslicesx+nslicesz + nslicesx*nslicesy)
 			next_evicted = 0;

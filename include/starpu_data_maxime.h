@@ -3,7 +3,7 @@
 
 #include <starpu.h>
 
-extern struct starpu_task *task_currently_treated;
+struct starpu_task *task_currently_treated;
 
 /**
    Task currently treated. 
