@@ -243,10 +243,12 @@ static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES
 	FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
 	struct starpu_task *task = NULL; 
 	int i = 0; int j = 0; int k = 0;
+	
 	total_nb_data = NB_TOTAL_DONNEES;
 	total_nb_task = NT;
 	data_use_order = malloc(total_nb_data*sizeof(a->package_data[0]));
 	task_position_in_data_use_order = malloc(total_nb_task*sizeof(int));
+	
 	for (task = starpu_task_list_begin(&a->sub_list); task != starpu_task_list_end(&a->sub_list); task = starpu_task_list_next(task)) {
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 			data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
@@ -257,12 +259,16 @@ static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES
 		else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
 		j++;
 	}
+	
 	all_data_needed = malloc(a->package_nb_data*sizeof(a->package_data[0]));
+	
 	for (i = 0; i < a->package_nb_data; i++) {
 		all_data_needed[i] = a->package_data[i]; 
 	}
+	
 	nb_different_data = a->package_nb_data;
 	index_task_currently_treated = 0;
+	
 	fclose(f);
 }
 
@@ -1174,7 +1180,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 }
 
 static void initialize_HFP_center_policy(unsigned sched_ctx_id)
-{
+{	
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("initialize\n"); }
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_HFP_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
@@ -1192,6 +1198,13 @@ static void deinitialize_HFP_center_policy(unsigned sched_ctx_id)
 	starpu_sched_tree_destroy(tree);
 }
 
+void get_current_tasks(struct starpu_task *task, unsigned sci)
+{
+	task_currently_treated = task;
+	index_task_currently_treated++;
+	starpu_sched_component_worker_pre_exec_hook(task,sci);
+}
+
 struct starpu_sched_policy _starpu_sched_HFP_policy =
 {
 	.init_sched = initialize_HFP_center_policy,
@@ -1200,7 +1213,9 @@ struct starpu_sched_policy _starpu_sched_HFP_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.pre_exec_hook = get_current_tasks,
+	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	//~ .post_exec_hook = get_last_finished_task,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "HFP",
