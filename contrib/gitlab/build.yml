@@ -1,9 +1,0 @@
----
-build:
-  stage: build
-  script:
-    - type sh
-    - ls ./contrib/gitlab/build.sh
-    - ./contrib/gitlab/build.sh
-    - ls ./contrib/gitlab/build.sh
-
