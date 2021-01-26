@@ -23,5 +23,3 @@ build:
     - ./contrib/gitlab/build.sh
   rules:
     - when : manual
-    
-
