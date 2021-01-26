@@ -240,36 +240,26 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
 static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
 {
-	FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
+	//~ FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
 	struct starpu_task *task = NULL; 
 	int i = 0; int j = 0; int k = 0;
 	
 	total_nb_data = NB_TOTAL_DONNEES;
-	total_nb_task = NT;
 	data_use_order = malloc(total_nb_data*sizeof(a->package_data[0]));
-	task_position_in_data_use_order = malloc(total_nb_task*sizeof(int));
+	task_position_in_data_use_order = malloc(NT*sizeof(int));
 	
 	for (task = starpu_task_list_begin(&a->sub_list); task != starpu_task_list_end(&a->sub_list); task = starpu_task_list_next(task)) {
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 			data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
 			k++;
-			fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
+			//~ fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
 		}
 		if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
 		else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
 		j++;
 	}
-	
-	all_data_needed = malloc(a->package_nb_data*sizeof(a->package_data[0]));
-	
-	for (i = 0; i < a->package_nb_data; i++) {
-		all_data_needed[i] = a->package_data[i]; 
-	}
-	
-	nb_different_data = a->package_nb_data;
 	index_task_currently_treated = 0;
-	
-	fclose(f);
+	//~ fclose(f);
 }
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
@@ -607,7 +597,7 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
-{
+{	
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Pull task\n"); }
 	struct HFP_sched_data *data = component->data;
 	
@@ -1215,7 +1205,6 @@ struct starpu_sched_policy _starpu_sched_HFP_policy =
 	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = get_current_tasks,
 	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
-	//~ .post_exec_hook = get_last_finished_task,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "HFP",

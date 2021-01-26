@@ -558,14 +558,9 @@ done:
 	return handle;
 }
 
-//~ starpu_data_is_on_node : savoir si une donnée est bien sur la mémoire
-/* une idée pourrait être dans hfp simuler la mémoire et voir quand elle sera pleine et aura besoin d'évincer,
- * et la j'appelle cette fonction
- * pre_exec_hook pour connaitre la tâche en cours */
+/* Almost Belady while tasks are being executed */
 starpu_data_handle_t belady_victim_selector(unsigned node)
 {
-	//~ unsigned index = 0;
-	//~ static unsigned next_evicted; // index of next data to evict, to avoid getting stuck. Yes this is awful.
 	bool donnee_ok = false; int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int nb_task_on_node_found = 0;
 	starpu_data_handle_t handle; int l = 0;
@@ -590,7 +585,7 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 			//~ }
 		//~ }
 		
-		//New memory read, a simplifier en suppr data_on_node et all_data_needed definitivement si ca marche
+		//New memory read
 		starpu_data_handle_t *handles;
 		unsigned n;
 		starpu_data_get_node_data(node, &handles, &n);
@@ -601,7 +596,7 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 			if (handles[i] == NULL) { nb_nil++; }
 		}
 		nb_data_on_node = n - nb_nil;
-		starpu_data_handle_t * data_on_node = malloc(nb_data_on_node*sizeof(all_data_needed[0]));
+		starpu_data_handle_t * data_on_node = malloc(nb_data_on_node*sizeof(handles[1]));
 		for (i = 0; i < n;) { if (handles[i] != NULL) { data_on_node[j] = handles[i]; j++; } i++; }
 		//~ for (i = 0; i < nb_data_on_node; i++) { 
 			//~ printf("Data on data_on_node : %p\n",data_on_node[i]);
