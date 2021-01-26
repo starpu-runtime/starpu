@@ -19,6 +19,8 @@ SUBDIRS=
 @STARPU_BUILD_EXAMPLES_TRUE@SUBDIRS += examples
 @STARPU_BUILD_TESTS_TRUE@SUBDIRS += tests
 
+all:
+
 check: check-recursive
 
 # divide by 4 the number of jobs to run in parallel, since mpirun will start 4
