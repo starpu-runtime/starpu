@@ -610,7 +610,9 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < nblocks; i++)
 		{
-			starpu_data_unregister(dataA_handles[j+nblocks*i]);
+			starpu_data_handle_t handle = dataA_handles[j+nblocks*i];
+			if (handle != STARPU_POISON_PTR)
+				starpu_data_unregister(handle);
 			TYPE *blockptr = dataA[j+i*nblocks];
 			if (blockptr != STARPU_POISON_PTR)
 				starpu_free(blockptr);
