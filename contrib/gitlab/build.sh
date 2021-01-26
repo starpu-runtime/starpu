@@ -1,6 +1,7 @@
 #!/bin/sh
 
 ls -ls
-ping dalton.bordeaux.inria.fr
+./contrib/ci.inria.fr/job-0-tarball.sh
+
 
 
