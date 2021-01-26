@@ -1,0 +1,5 @@
+stages:
+  - build
+
+include:
+  - contrib/gitlab/build.yml
