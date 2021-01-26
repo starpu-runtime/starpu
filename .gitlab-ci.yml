@@ -22,6 +22,6 @@ build:
   script:
     - ./contrib/gitlab/build.sh
   rules:
-    - when : never
+    - when : manual
     
 
