@@ -919,9 +919,12 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
+	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p est soumis par l'ordo au prefetch\n",task); }
+
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, index);
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Data de la tâche ci-dessus: %p	",handle); }
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, index);
 
 		if (mode & (STARPU_SCRATCH|STARPU_REDUX))
@@ -945,8 +948,6 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 
 	if (prefetch == STARPU_PREFETCH)
 		task->prefetched = 1;
-	
-	printf("%p est soumis par l'ordo au prefetch\n",task);
 
 	return 0;
 }
