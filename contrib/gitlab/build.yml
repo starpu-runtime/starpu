@@ -2,5 +2,5 @@
 build:
   stage: build
   script:
-    - contrib/gitlab/build.sh
+    - ./contrib/gitlab/build.sh
 
