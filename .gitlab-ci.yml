@@ -22,4 +22,6 @@ build:
   script:
     - ./contrib/gitlab/build.sh
   rules:
-    - when : manual
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: never  # Prevent pipeline run for push event
+    - when: always # Run pipeline for all other cases
