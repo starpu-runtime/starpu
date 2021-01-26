@@ -36,7 +36,7 @@
 
 static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
 {
-	unsigned node = STARPU_MAIN_RAM; // For now
+	unsigned node = STARPU_MAIN_RAM; // XXX For now
 
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, _starpu_mpi_submit_ready_request(req) is called and

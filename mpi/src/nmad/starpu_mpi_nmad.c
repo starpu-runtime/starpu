@@ -138,7 +138,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 	if (req->registered_datatype == 1)
 	{
 		req->count = 1;
-		req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
 
 		_starpu_mpi_isend_data_func(req);
 	}
@@ -185,7 +185,7 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	if (req->registered_datatype == 1)
 	{
 		req->count = 1;
-		req->ptr = starpu_data_handle_to_pointer(req->data_handle, STARPU_MAIN_RAM);
+		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
 		_starpu_mpi_irecv_data_func(req);
 	}
 	else
@@ -344,9 +344,9 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 		{
 			if (req->request_type == RECV_REQ)
 				// req->ptr is freed by starpu_data_unpack
-				starpu_data_unpack(req->data_handle, req->ptr, req->count);
+				starpu_data_unpack_node(req->data_handle, req->node, req->ptr, req->count);
 			else
-				starpu_free_on_node_flags(STARPU_MAIN_RAM, (uintptr_t) req->ptr, req->count, 0);
+				starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
 		}
 		else
 		{
