@@ -884,8 +884,8 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, u
 				allocated *= 2;
 				_STARPU_REALLOC(handles, allocated * sizeof(*handles));
 			}
-			n++;
 			handles[n] = mc->data;
+			n++;
 		}
 	}
 
