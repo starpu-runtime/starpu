@@ -817,6 +817,7 @@ static void wait_tag_and_fetch_handle(starpu_tag_t tag, starpu_data_handle_t han
 //	fprintf(stderr, "Rank %d : tag %lx is done\n", rank, tag);
 
 	starpu_data_acquire(handle, STARPU_R);
+	starpu_data_release(handle);
 
 //	starpu_data_unregister(handle);
 }
