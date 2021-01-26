@@ -3,5 +3,6 @@ build:
   stage: build
   script:
     - ls -ls contrib/gitlab
+    - type bash
     - ./contrib/gitlab/build.sh
 
