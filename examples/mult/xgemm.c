@@ -653,9 +653,9 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 									if (donnee_ok == true) {
 									//~ if (starpu_get_env_number_default("PRINTF",0) == 1) {	printf("On évince %p\n",data_on_node[j]); }
 										if (last_evicted != data_on_node[j]) { 
-											printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
+											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
 											printf("Données de M:\n"); for (i = 0; i < nb_data_on_node; i++) { printf("%p / ",data_on_node[i]); } printf("\n");
-											printf("On évince %p\n",data_on_node[j]); 
+											printf("On évince %p\n",data_on_node[j]); }
 										}
 										last_evicted = data_on_node[j];
 										starpu_data_handle_t returned_handle = data_on_node[j];
@@ -709,9 +709,9 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 					}
 					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On évince : %p\n",data_on_node[donnee_utilise_dans_le_plus_longtemps]); }
 					if (last_evicted != data_on_node[donnee_utilise_dans_le_plus_longtemps]) { 
-						printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
+						if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
 						printf("Données de M et leurs prochaine apparition:\n"); for (i = 0; i < nb_data_on_node; i++) { printf("%p  = %d / ",data_on_node[i],prochaine_utilisation_donnee[i]); } printf("\n");
-						printf("On évince : %p\n",data_on_node[donnee_utilise_dans_le_plus_longtemps]); 
+						printf("On évince : %p\n",data_on_node[donnee_utilise_dans_le_plus_longtemps]); }
 					}
 					last_evicted = data_on_node[donnee_utilise_dans_le_plus_longtemps];	
 					starpu_data_handle_t returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
