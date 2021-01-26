@@ -908,6 +908,10 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 		/* Ask someone who knows the future */
 		victim = victim_selector(node);
 
+		if (victim == STARPU_DATA_NO_VICTIM)
+			/* He told me we should not make any victim */
+			return 0;
+
 		if (victim && victim->footprint != footprint)
 			/* Don't even bother looking for it, it won't fit anyway */
 			return 0;
@@ -1034,8 +1038,15 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 	struct _starpu_mem_chunk *mc, *next_mc;
 
 	if (!force && victim_selector)
+	{
 		/* Ask someone who knows the future */
 		victim = victim_selector(node);
+
+		if (victim == STARPU_DATA_NO_VICTIM)
+			/* He told me we should not make any victim */
+			return 0;
+	}
+
 
 	/*
 	 * We have to unlock mc_lock before locking header_lock, so we have

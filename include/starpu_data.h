@@ -562,6 +562,7 @@ typedef starpu_data_handle_t starpu_data_victim_selector(unsigned node);
    This is very experimental for now.
 */
 void starpu_data_register_victim_selector(starpu_data_victim_selector selector);
+#define STARPU_DATA_NO_VICTIM ((starpu_data_handle_t) -1)
 
 /**
    Return the set of data stored on a node
