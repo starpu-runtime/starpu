@@ -612,7 +612,7 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 			if (data_exist == 0) {
 				printf("La donnée %p n'est jamais utilisé\n",data_on_node[i]);
 				//Insérer breakpoint
-				exit(0);
+				//~ exit(0);
 			}
 		}
 			
