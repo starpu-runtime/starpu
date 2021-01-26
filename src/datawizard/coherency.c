@@ -945,6 +945,8 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 
 	if (prefetch == STARPU_PREFETCH)
 		task->prefetched = 1;
+	
+	printf("%p est soumis par l'ordo au prefetch\n",task);
 
 	return 0;
 }

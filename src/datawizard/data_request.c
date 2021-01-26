@@ -298,6 +298,7 @@ void _starpu_post_data_request(struct _starpu_data_request *r)
 	STARPU_ASSERT(starpu_node_get_kind(handling_node) == STARPU_CPU_RAM || _starpu_memory_node_get_nworkers(handling_node));
 
 //	_STARPU_DEBUG("POST REQUEST\n");
+	printf("Requête envoyé\n");
 
 	/* If some dependencies are not fulfilled yet, we don't actually post the request */
 	if (r->ndeps > 0)
@@ -347,6 +348,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	unsigned do_delete = 0;
 	starpu_data_handle_t handle = r->handle;
 	enum starpu_data_access_mode mode = r->mode;
+	printf("request complete pour %p\n",handle);
 
 	struct _starpu_data_replicate *src_replicate = r->src_replicate;
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
@@ -467,6 +469,8 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	}
 }
 
+int can_print = 1;
+
 /* TODO : accounting to see how much time was spent working for other people ... */
 static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc, enum _starpu_is_prefetch prefetch)
 {
@@ -514,6 +518,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 
 	if (r->retval == -ENOMEM)
 	{
+		if (can_print == 1) { printf("Pas assez de mémoire pour %p\n",handle); can_print = 0; }
 		/* If there was not enough memory, we will try to redo the
 		 * request later. */
 		_starpu_spin_unlock(&handle->header_lock);
@@ -522,6 +527,8 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 
 	if (r->retval == -EAGAIN)
 	{
+		can_print = 1;
+		printf("On a pu faire un transfert pour %p\n",handle);
 		/* The request was successful, but could not be terminated
 		 * immediately. We will handle the completion of the request
 		 * asynchronously. The request is put in the list of "pending"
