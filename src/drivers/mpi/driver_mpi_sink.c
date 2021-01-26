@@ -45,11 +45,11 @@ void _starpu_mpi_sink_deinit(struct _starpu_mp_node *node)
 void (*_starpu_mpi_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
 {
 #ifdef RTLD_DEFAULT
-        void *dl_handle = dlopen(RTLD_DEFAULT, RTLD_NOW);
+        return dlsym(RTLD_DEFAULT, func_name);
 #else
         void *dl_handle = dlopen(NULL, RTLD_NOW);
-#endif
         return dlsym(dl_handle, func_name);
+#endif
 }
 
 void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node)
