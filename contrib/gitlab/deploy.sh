@@ -1,3 +1,4 @@
+#!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2021       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
@@ -13,22 +14,8 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
----
-stages:
-  - build
-  - deploy
 
-build:
-  stage: build
-  script:
-    - ./contrib/gitlab/build.sh
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: never  # Prevent pipeline run for push event
-    - when: always # Run pipeline for all other cases
+./contrib/ci.inria.fr/job-1-check.sh
 
-deploy:
-  stage: deploy
-  script
-    - ./contrib/gitlab/deploy.sh
+
 
