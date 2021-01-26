@@ -223,6 +223,10 @@ void _starpu_mic_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_A
 
 void (*_starpu_mic_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
 {
+#ifdef RTLD_DEFAULT
+	void *dl_handle = dlopen(RTLD_DEFAULT, RTLD_NOW);
+#else
 	void *dl_handle = dlopen(NULL, RTLD_NOW);
+#endif
 	return dlsym(dl_handle, func_name);
 }
