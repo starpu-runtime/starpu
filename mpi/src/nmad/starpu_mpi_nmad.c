@@ -445,7 +445,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 	if (req->reserved_size)
 	{
 		/* The core will have really allocated the reception buffer now, release our reservation */
-		starpu_memory_deallocate(STARPU_MAIN_RAM, req->reserved_size);
+		starpu_memory_deallocate(req->node, req->reserved_size);
 		req->reserved_size = 0;
 	}
 
