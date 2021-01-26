@@ -29,6 +29,6 @@ build:
 
 deploy:
   stage: deploy
-  script
+  script:
     - ./contrib/gitlab/deploy.sh
 
