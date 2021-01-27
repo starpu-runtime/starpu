@@ -15,12 +15,21 @@
 #
 ---
 stages:
-  - check
+  - build
+  - deploy
 
-check:
-  stage: check
+build:
+  stage: build
   script:
     - ./contrib/gitlab/build.sh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: never  # Prevent pipeline run for push event
+    - when: always # Run pipeline for all other cases
+
+deploy:
+  stage: deploy
+  script:
     - ./contrib/gitlab/deploy.sh
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
