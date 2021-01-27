@@ -124,7 +124,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
-							 enum _starpu_is_prefetch is_prefetch,
+							 enum starpu_is_prefetch is_prefetch,
 							 int prio,
 							 unsigned is_write_invalidation,
 							 const char *origin)
@@ -472,7 +472,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 //~ int can_print = 1;
 
 /* TODO : accounting to see how much time was spent working for other people ... */
-static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc, enum _starpu_is_prefetch prefetch)
+static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc, enum starpu_is_prefetch prefetch)
 {
 	starpu_data_handle_t handle = r->handle;
 
@@ -550,7 +550,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	return 0;
 }
 
-static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list *reqlist, unsigned src_node, unsigned may_alloc, unsigned n, unsigned *pushed, enum _starpu_is_prefetch prefetch)
+static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list *reqlist, unsigned src_node, unsigned may_alloc, unsigned n, unsigned *pushed, enum starpu_is_prefetch prefetch)
 {
 	struct _starpu_data_request *r;
 	struct _starpu_data_request_prio_list new_data_requests[prefetch + 1]; /* Indexed by prefetch level */
@@ -856,7 +856,7 @@ int _starpu_check_that_no_data_request_is_pending(unsigned node)
 }
 
 
-void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum _starpu_is_prefetch prefetch)
+void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_is_prefetch prefetch)
 {
 	STARPU_ASSERT(r->prefetch > prefetch);
 	r->prefetch=prefetch;
