@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
 	setenv("STARPU_OPENCL_PROGRAM_DIR", STARPU_SRC_DIR, 1);
 
 	/* set SIGALARM handler */
-	sa.sa_flags = 0;
+	sa.sa_flags = SA_RESETHAND | SA_NODEFER;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_handler = test_cleaner;
 	if (-1 == sigaction(SIGALRM, &sa, NULL))
