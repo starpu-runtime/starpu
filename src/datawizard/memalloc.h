@@ -65,12 +65,6 @@ LIST_TYPE(_starpu_mem_chunk,
 	/** Was this chunk marked as "won't use"? */
 	unsigned wontuse:1;
 
-	/** The number of prefetches that we made for this mc for various tasks
-	 * This is also the number of tasks that we will wait to see use this mc before
-	 * we attempt to evict it.
-	 */
-	unsigned nb_tasks_prefetch;
-
 	/** the size of the data is only set when calling _starpu_request_mem_chunk_removal(),
 	 * it is needed to estimate how much memory is in mc_cache, and by
 	 * free_memory_on_node() which is called when the handle is no longer

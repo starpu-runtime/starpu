@@ -295,6 +295,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			{
 				//child_replicate->initialized = 0;
 			}
+			//child_replicate->nb_tasks_prefetch = 0;
 
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);

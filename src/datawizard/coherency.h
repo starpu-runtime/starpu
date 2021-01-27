@@ -82,6 +82,12 @@ struct _starpu_data_replicate
 	uint32_t requested;
 	struct _starpu_data_request *request[STARPU_MAXNODES];
 
+	/** The number of prefetches that we made for this replicate for various tasks
+	 * This is also the number of tasks that we will wait to see use the mc before
+	 * we attempt to evict it.
+	 */
+	unsigned nb_tasks_prefetch;
+
         /** Pointer to memchunk for LRU strategy */
 	struct _starpu_mem_chunk * mc;
 };
