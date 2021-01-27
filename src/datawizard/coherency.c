@@ -406,7 +406,7 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 /* handle->lock should be taken. r is returned locked. The node parameter
  * indicate either the source of the request, or the destination for a
  * write-only request. */
-static struct _starpu_data_request *_starpu_search_existing_data_request(struct _starpu_data_replicate *replicate, unsigned node, enum starpu_data_access_mode mode, enum _starpu_is_prefetch is_prefetch)
+static struct _starpu_data_request *_starpu_search_existing_data_request(struct _starpu_data_replicate *replicate, unsigned node, enum starpu_data_access_mode mode, enum starpu_is_prefetch is_prefetch)
 {
 	struct _starpu_data_request *r;
 
@@ -469,7 +469,7 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
-								  enum starpu_data_access_mode mode, enum _starpu_is_prefetch is_prefetch,
+								  enum starpu_data_access_mode mode, enum starpu_is_prefetch is_prefetch,
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
@@ -736,7 +736,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 }
 
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *dst_replicate,
-			       enum starpu_data_access_mode mode, unsigned detached, enum _starpu_is_prefetch is_prefetch, unsigned async,
+			       enum starpu_data_access_mode mode, unsigned detached, enum starpu_is_prefetch is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
         _STARPU_LOG_IN();
@@ -917,7 +917,7 @@ static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handl
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum _starpu_is_prefetch prefetch)
+int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum starpu_is_prefetch prefetch)
 {
 #ifdef STARPU_OPENMP
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);

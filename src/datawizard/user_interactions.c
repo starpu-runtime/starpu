@@ -68,7 +68,7 @@ struct user_interaction_wrapper
 	starpu_pthread_mutex_t lock;
 	unsigned finished;
 	unsigned detached;
-	enum _starpu_is_prefetch prefetch;
+	enum starpu_is_prefetch prefetch;
 	unsigned async;
 	int prio;
 	void (*callback)(void *);
@@ -555,7 +555,7 @@ static void _prefetch_data_on_node(void *arg)
 }
 
 static
-int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, enum _starpu_is_prefetch prefetch, int prio)
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, enum starpu_is_prefetch prefetch, int prio)
 {
 	STARPU_ASSERT(handle);
 

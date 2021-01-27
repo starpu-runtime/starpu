@@ -2202,7 +2202,7 @@ static void handle_mpi_data_set_tag(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	data->mpi_tag = tag;
 }
 
-static const char *copy_link_type(enum _starpu_is_prefetch prefetch)
+static const char *copy_link_type(enum starpu_is_prefetch prefetch)
 {
 	switch (prefetch)
 	{
@@ -2220,7 +2220,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	unsigned dst = ev->param[1];
 	unsigned size = ev->param[2];
 	unsigned comid = ev->param[3];
-	enum _starpu_is_prefetch prefetch = ev->param[4];
+	enum starpu_is_prefetch prefetch = ev->param[4];
 	unsigned long handle = ev->param[5];
 	const char *link_type = copy_link_type(prefetch);
 
@@ -2304,7 +2304,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	unsigned dst = ev->param[1];
 	unsigned long size = ev->param[2];
 	unsigned comid = ev->param[3];
-	enum _starpu_is_prefetch prefetch = ev->param[4];
+	enum starpu_is_prefetch prefetch = ev->param[4];
 	const char *link_type = copy_link_type(prefetch);
 
 	char *prefix = options->file_prefix;
