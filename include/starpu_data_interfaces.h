@@ -622,14 +622,27 @@ enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t 
 /**
    Execute the packing operation of the interface of the data
    registered at \p handle (see starpu_data_interface_ops). This
-   packing operation must allocate a buffer large enough at \p ptr and copy
+   packing operation must allocate a buffer large enough at \p ptr on node \p node and copy
    into the newly allocated buffer the data associated to \p handle. \p count
    will be set to the size of the allocated buffer. If \p ptr is <c>NULL</c>, the
    function should not copy the data in the buffer but just set \p count to
    the size of the buffer which would have been allocated. The special
    value -1 indicates the size is yet unknown.
 */
+int starpu_data_pack_node(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+
+/**
+   Like starpu_data_pack_node(), but for the local memory node.
+*/
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);
+
+/**
+   Unpack in handle the data located at \p ptr of size \p count allocated
+   on node \p node as described by the interface of the data. The interface
+   registered at \p handle must define a unpacking operation (see
+   starpu_data_interface_ops).
+*/
+int starpu_data_unpack_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 /**
    Unpack in handle the data located at \p ptr of size \p count as

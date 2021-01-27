@@ -225,6 +225,7 @@ LIST_TYPE(_starpu_mpi_req,
 	starpu_data_handle_t data_handle;
 
 	int prio;
+	unsigned node;	/* Which StarPU memory node this will read from / write to */
 
 	/** description of the data to be sent/received */
 	MPI_Datatype datatype;

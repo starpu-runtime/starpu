@@ -25,6 +25,7 @@ void _starpu_mpi_request_init(struct _starpu_mpi_req **req)
 	/* Initialize the request structure */
 	//(*req)->data_handle = NULL;
 	//(*req)->prio = 0;
+	(*req)->node = STARPU_MAIN_RAM; // XXX For now
 
 	//(*req)->datatype = 0;
 	//(*req)->datatype_name = NULL;

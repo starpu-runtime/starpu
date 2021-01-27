@@ -45,7 +45,7 @@ void starpu_my_data_compare_codelet_cpu(void *descr[], void *_args)
 	*compare = (d0 == d1 && c0 == c1);
 }
 
-void _starpu_my_data_datatype_allocate(MPI_Datatype *mpi_datatype)
+void _starpu_my_data_datatype_allocate(unsigned node, MPI_Datatype *mpi_datatype)
 {
 	int ret;
 	int blocklengths[2] = {1, 1};
@@ -68,10 +68,10 @@ void _starpu_my_data_datatype_allocate(MPI_Datatype *mpi_datatype)
 	free(myinterface);
 }
 
-int starpu_my_data_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
+int starpu_my_data_datatype_allocate(starpu_data_handle_t handle, unsigned node, MPI_Datatype *mpi_datatype)
 {
 	(void)handle;
-	_starpu_my_data_datatype_allocate(mpi_datatype);
+	_starpu_my_data_datatype_allocate(node, mpi_datatype);
 	return 0;
 }
 
@@ -80,7 +80,7 @@ void starpu_my_data_datatype_free(MPI_Datatype *mpi_datatype)
 	MPI_Type_free(mpi_datatype);
 }
 
-int starpu_my_data2_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
+int starpu_my_data2_datatype_allocate(starpu_data_handle_t handle, unsigned node, MPI_Datatype *mpi_datatype)
 {
 	(void)handle;
 	(void)mpi_datatype;
@@ -315,7 +315,7 @@ void starpu_my_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 	if (interface_data_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
 		interface_data_ops.interfaceid = starpu_data_interface_get_next_id();
-		starpu_mpi_interface_datatype_register(interface_data_ops.interfaceid, starpu_my_data_datatype_allocate, starpu_my_data_datatype_free);
+		starpu_mpi_interface_datatype_node_register(interface_data_ops.interfaceid, starpu_my_data_datatype_allocate, starpu_my_data_datatype_free);
 	}
 
 	struct starpu_my_data_interface data =
@@ -357,7 +357,7 @@ void starpu_my_data2_register(starpu_data_handle_t *handleptr, unsigned home_nod
 	if (interface_data2_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
 		interface_data2_ops.interfaceid = starpu_data_interface_get_next_id();
-		starpu_mpi_interface_datatype_register(interface_data2_ops.interfaceid, starpu_my_data2_datatype_allocate, starpu_my_data2_datatype_free);
+		starpu_mpi_interface_datatype_node_register(interface_data2_ops.interfaceid, starpu_my_data2_datatype_allocate, starpu_my_data2_datatype_free);
 	}
 
 	struct starpu_my_data_interface data =

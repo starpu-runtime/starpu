@@ -575,9 +575,14 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch) == 0)
 			{
 				_starpu_update_data_state(handle, dst_replicate, mode);
-				if (is_prefetch == STARPU_TASK_PREFETCH)
-					/* Make sure it stays there */
-					dst_replicate->mc->nb_tasks_prefetch++;
+				if (dst_replicate->mc)
+				{
+					if (is_prefetch == STARPU_TASK_PREFETCH)
+						/* Make sure it stays there */
+						dst_replicate->mc->nb_tasks_prefetch++;
+
+					_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
+				}
 
 				_starpu_spin_unlock(&handle->header_lock);
 
@@ -745,7 +750,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
 
-	if (is_prefetch > STARPU_FETCH)
+	if (mode & STARPU_R && is_prefetch > STARPU_FETCH)
 	{
 		unsigned src_node_mask = 0;
 

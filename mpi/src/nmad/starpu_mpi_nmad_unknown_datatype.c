@@ -50,7 +50,7 @@ void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
 
 	_STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag, 0);
 
-	starpu_data_pack(req->data_handle, &req->ptr, &req->count);
+	starpu_data_pack_node(req->data_handle, req->node, &req->ptr, &req->count);
 
 	req->backend->unknown_datatype_v[0].iov_base = &req->count;
 	req->backend->unknown_datatype_v[0].iov_len = sizeof(starpu_ssize_t);
@@ -102,7 +102,7 @@ static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, cons
 		nm_sr_recv_peek(req->backend->session, &req->backend->data_request, &data_header);
 
 		// Now we know the size, allocate the buffer:
-		req->ptr = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, req->count, 0);
+		req->ptr = (void *)starpu_malloc_on_node_flags(req->node, req->count, 0);
 		STARPU_ASSERT_MSG(req->ptr, "cannot allocate message of size %ld", req->count);
 
 		/* Last step: give this buffer to NewMadeleine to receive data

@@ -817,6 +817,7 @@ static void wait_tag_and_fetch_handle(starpu_tag_t tag, starpu_data_handle_t han
 //	fprintf(stderr, "Rank %d : tag %lx is done\n", rank, tag);
 
 	starpu_data_acquire(handle, STARPU_R);
+	starpu_data_release(handle);
 
 //	starpu_data_unregister(handle);
 }
@@ -899,8 +900,6 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size, unsig
 		starpu_iteration_pop();
 	}
 
-	int wait_ret = starpu_mpi_wait_for_all(MPI_COMM_WORLD);
-	STARPU_ASSERT(wait_ret == MPI_SUCCESS);
 	int barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
