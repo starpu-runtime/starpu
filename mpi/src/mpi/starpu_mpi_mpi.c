@@ -984,42 +984,39 @@ static void _starpu_mpi_early_data_cb(void* arg)
 	_STARPU_MPI_DEBUG(3, "Done, handling request %p termination of the already received request\n",args->req);
 	// If the request is detached, we need to call _starpu_mpi_handle_request_termination
 	// as it will not be called automatically as the request is not in the list detached_requests
-	if (args->req)
+	if (args->req->detached)
 	{
-		if (args->req->detached)
+		/* have the internal request destroyed now or when completed */
+		STARPU_PTHREAD_MUTEX_LOCK(&args->req->backend->internal_req->backend->req_mutex);
+		if (args->req->backend->internal_req->backend->to_destroy)
 		{
-			/* have the internal request destroyed now or when completed */
-			STARPU_PTHREAD_MUTEX_LOCK(&args->req->backend->internal_req->backend->req_mutex);
-			if (args->req->backend->internal_req->backend->to_destroy)
-			{
-				/* The request completed first, can now destroy it */
-				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->internal_req->backend->req_mutex);
-				_starpu_mpi_request_destroy(args->req->backend->internal_req);
-			}
-			else
-			{
-				/* The request didn't complete yet, tell it to destroy it when it completes */
-				args->req->backend->internal_req->backend->to_destroy = 1;
-				STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->internal_req->backend->req_mutex);
-			}
-			_starpu_mpi_handle_request_termination(args->req);
-			_starpu_mpi_request_destroy(args->req);
+			/* The request completed first, can now destroy it */
+			STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->internal_req->backend->req_mutex);
+			_starpu_mpi_request_destroy(args->req->backend->internal_req);
 		}
 		else
 		{
-			// else: If the request is not detached its termination will
-			// be handled when calling starpu_mpi_wait
-			// We store in the application request the internal MPI
-			// request so that it can be used by starpu_mpi_wait
-			args->req->backend->data_request = args->req->backend->internal_req->backend->data_request;
-			STARPU_PTHREAD_MUTEX_LOCK(&args->req->backend->req_mutex);
-			args->req->submitted = 1;
-			STARPU_PTHREAD_COND_BROADCAST(&args->req->backend->req_cond);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->req_mutex);
-#ifdef STARPU_SIMGRID
-			args->req->done = 1;
-#endif
+			/* The request didn't complete yet, tell it to destroy it when it completes */
+			args->req->backend->internal_req->backend->to_destroy = 1;
+			STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->internal_req->backend->req_mutex);
 		}
+		_starpu_mpi_handle_request_termination(args->req);
+		_starpu_mpi_request_destroy(args->req);
+	}
+	else
+	{
+		// else: If the request is not detached its termination will
+		// be handled when calling starpu_mpi_wait
+		// We store in the application request the internal MPI
+		// request so that it can be used by starpu_mpi_wait
+		args->req->backend->data_request = args->req->backend->internal_req->backend->data_request;
+		STARPU_PTHREAD_MUTEX_LOCK(&args->req->backend->req_mutex);
+		args->req->submitted = 1;
+		STARPU_PTHREAD_COND_BROADCAST(&args->req->backend->req_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&args->req->backend->req_mutex);
+#ifdef STARPU_SIMGRID
+		args->req->done = 1;
+#endif
 	}
 
 	free(args);
