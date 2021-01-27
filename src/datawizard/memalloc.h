@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,9 +59,6 @@ LIST_TYPE(_starpu_mem_chunk,
 	unsigned home:1;
 	/** Whether the memchunk is in the clean part of the mc_list */
 	unsigned clean:1;
-	/** Was this chunk used since it got allocated?  */
-	/* FIXME: probably useless now with nb_tasks_prefetch */
-	unsigned diduse:1;
 	/** Was this chunk marked as "won't use"? */
 	unsigned wontuse:1;
 

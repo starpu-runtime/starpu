@@ -43,9 +43,6 @@ static unsigned target_clean_p;
 /* Whether CPU memory has been explicitly limited by user */
 static int limit_cpu_mem;
 
-/* Prevent memchunks from being evicted from memory before they are actually used */
-static int diduse_barrier;
-
 /* This per-node RW-locks protect mc_list and memchunk_cache entries */
 /* Note: handle header lock is always taken before this (normal add/remove case) */
 static struct _starpu_spinlock mc_lock[STARPU_MAXNODES];
@@ -207,7 +204,6 @@ void _starpu_init_mem_chunk_lists(void)
 	minimum_clean_p = starpu_get_env_number_default("STARPU_MINIMUM_CLEAN_BUFFERS", 5);
 	target_clean_p = starpu_get_env_number_default("STARPU_TARGET_CLEAN_BUFFERS", 10);
 	limit_cpu_mem = starpu_get_env_number("STARPU_LIMIT_CPU_MEM");
-	diduse_barrier = starpu_get_env_number_default("STARPU_DIDUSE_BARRIER", 0);
 }
 
 void _starpu_deinit_mem_chunk_lists(void)
@@ -584,10 +580,6 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	STARPU_ASSERT(handle);
 
 	if (!starpu_data_can_evict(handle, node, is_prefetch))
-		return 0;
-
-	if (diduse_barrier && !mc->diduse)
-		/* Hasn't been used yet, avoid evicting it */
 		return 0;
 
 	/* REDUX memchunk */
@@ -1410,7 +1402,6 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->chunk_interface = NULL;
 	mc->size_interface = interface_size;
 	mc->remove_notify = NULL;
-	mc->diduse = 0;
 	mc->wontuse = 0;
 
 	return mc;
@@ -1771,8 +1762,6 @@ void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *mc, unsigned node)
 		/* Don't bother */
 		return;
 	_starpu_spin_lock(&mc_lock[node]);
-	/* Avoid preventing it from being evicted */
-	mc->diduse = 1;
 	mc->wontuse = 1;
 	if (mc->data && mc->data->home_node != -1)
 	{

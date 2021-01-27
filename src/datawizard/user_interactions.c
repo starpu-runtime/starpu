@@ -113,17 +113,6 @@ static inline void _starpu_data_acquire_wrapper_fini(struct user_interaction_wra
 	STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
 }
 
-/* Called when the fetch into target memory is done, we're done! */
-static inline void _starpu_data_acquire_fetch_done(struct user_interaction_wrapper *wrapper)
-{
-	if (wrapper->node >= 0)
-	{
-		struct _starpu_data_replicate *replicate = &wrapper->handle->per_node[wrapper->node];
-		if (replicate->mc)
-			replicate->mc->diduse = 1;
-	}
-}
-
 /* Called when the data acquisition is done, to launch the fetch into target memory */
 static inline void _starpu_data_acquire_launch_fetch(struct user_interaction_wrapper *wrapper, int async, void (*callback)(void *), void *callback_arg)
 {
@@ -154,8 +143,6 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 	 * function. */
 	if (wrapper->post_sync_task)
 		_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
-
-	_starpu_data_acquire_fetch_done(wrapper);
 
 	wrapper->callback(wrapper->callback_arg);
 
@@ -327,7 +314,6 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 	STARPU_ASSERT(handle);
 
 	_starpu_data_acquire_launch_fetch(wrapper, 0, NULL, NULL);
-	_starpu_data_acquire_fetch_done(wrapper);
 	_starpu_data_acquire_wrapper_finished(wrapper);
 }
 
@@ -412,7 +398,6 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 	{
 		/* no one has locked this data yet, so we proceed immediately */
 		_starpu_data_acquire_launch_fetch(&wrapper, 0, NULL, NULL);
-		_starpu_data_acquire_fetch_done(&wrapper);
 	}
 	else
 	{
@@ -467,7 +452,6 @@ int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum 
 	{
 		/* no one has locked this data yet, so we proceed immediately */
 		_starpu_data_acquire_launch_fetch(&wrapper, 0, NULL, NULL);
-		_starpu_data_acquire_fetch_done(&wrapper);
 	}
 	else
 	{

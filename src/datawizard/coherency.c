@@ -1207,7 +1207,6 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		_starpu_spin_lock(&handle->header_lock);
 		if (local_replicate->mc)
 		{
-			local_replicate->mc->diduse = 1;
 			if (task->prefetched && local_replicate->initialized &&
 				/* See prefetch conditions in
 				 * starpu_prefetch_task_input_on_node_prio and alike */
