@@ -1,51 +1,68 @@
 #!/usr/bin/bash
-# ./cut_gflops_raw_out NOMBRE_DE_TAILLES_DE_MATRICES NOMBRE_ALGO_TESTE
-
-#~ cd..
-#~ ./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid
-#~ make install
-#~ make -j4
-#~ echo "MAKE OK!"
+start=`date +%s`
+sudo make -j4
 export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
-truncate -s 0 GFlops_raw_out.txt
-ulimit -S -s 50000
-NB_ALGO_TESTE=6
-NB_TAILLE_TESTE=10
-TAILLE=5
+ulimit -S -s 5000000
+NB_ALGO_TESTE=8
+NB_TAILLE_TESTE=8
+ECHELLE_X=5
+START_X=0
 FICHIER=GF_NT_MC_LRU_BW350_CM500_RANDOMTASKS
-echo "############## Random ##############"
+FICHIER_RAW=Output_maxime/GFlops_raw_out_3.txt
+DOSSIER=Random_tasks
+truncate -s 0 ${FICHIER_RAW:0}
+echo "############## Random_order ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 
-	STARPU_SCHED=random STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 RANDOM_DATA_ACCESS=1 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*TAILLE*i)) -nblocks $((TAILLE*i)) -iter 1 | tail -n 1 >> GFlops_raw_out.txt
+	N=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=random_order STARPU_LIMIT_BANDWIDTH=350 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=500 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 done
 echo "############## Dmdar ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 
-	STARPU_SCHED=dmdar STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 RANDOM_DATA_ACCESS=1 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*TAILLE*i)) -nblocks $((TAILLE*i)) -iter 1 | tail -n 1 >> GFlops_raw_out.txt
+	N=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=dmdar STARPU_LIMIT_BANDWIDTH=350 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 done
 echo "############## HFP ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 
-	ALGO_USED=5 STARPU_SCHED=AATO STARPU_NTASKS_THRESHOLD=30 ORDER_U=0 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 RANDOM_DATA_ACCESS=1 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*TAILLE*i)) -nblocks $((TAILLE*i)) -iter 1 | tail -n 1 >> GFlops_raw_out.txt
+	N=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_CUDA_PIPELINE=4 ORDER_U=0 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 done
 echo "############## HFP U ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 
-	ALGO_USED=5 STARPU_SCHED=AATO STARPU_NTASKS_THRESHOLD=30 ORDER_U=1 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 RANDOM_DATA_ACCESS=1 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*TAILLE*i)) -nblocks $((TAILLE*i)) -iter 1 | tail -n 1 >> GFlops_raw_out.txt
+	N=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 RANDOM_TASK_ORDER=0 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 done
 echo "############## MST ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 
-	STARPU_SCHED=mst STARPU_NTASKS_THRESHOLD=30 RANDOM_DATA_ACCESS=1 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*TAILLE*i)) -nblocks $((TAILLE*i)) -iter 1 | tail -n 1 >> GFlops_raw_out.txt
+	N=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=mst STARPU_NTASKS_THRESHOLD=30 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 done
 echo "############## CM ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 
-	STARPU_SCHED=cuthillmckee STARPU_NTASKS_THRESHOLD=30 RANDOM_DATA_ACCESS=1 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*TAILLE*i)) -nblocks $((TAILLE*i)) -iter 1 | tail -n 1 >> GFlops_raw_out.txt
+	N=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=cuthillmckee STARPU_NTASKS_THRESHOLD=30 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+done
+echo "############## HFP BELADY ##############"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	N=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 BELADY=1 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_CUDA_PIPELINE=4 ORDER_U=0 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+done
+echo "############## HFP U BELADY ##############"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	N=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 BELADY=1 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=500 RANDOM_TASK_ORDER=0 STARPU_DIDUSE_BARRIER=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 done
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE
-mv GFlops_data_out.txt /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Matrice_ligne/${FICHIER:0}.txt
-Rscript /home/gonthier/these_gonthier_maxime/Starpu/R/ScriptR/Matrice_ligne/${FICHIER:0}.R
-mv /home/gonthier/starpu/Rplots.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Matrice_ligne/${FICHIER:0}.pdf
-echo Fin du script
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW:0} ../these_gonthier_maxime/Starpu/R/Data/${DOSSIER}/${FICHIER:0}.txt
+Rscript /home/gonthier/these_gonthier_maxime/Starpu/R/ScriptR/${DOSSIER}/${FICHIER:0}.R
+mv /home/gonthier/starpu/Rplots.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/${DOSSIER}/${FICHIER:0}.pdf
+end=`date +%s`
+runtime=$((end-start))
+echo "Fin du script, l'execution a durée" $((runtime/60)) "minutes."
