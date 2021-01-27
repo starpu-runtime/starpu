@@ -116,7 +116,7 @@ static struct starpu_codelet memset_cl =
 	.model = &model,
 	.energy_model = &energy_model,
 	.nbuffers = 1,
-	.modes = {STARPU_W}
+	.modes = {STARPU_SCRATCH}
 };
 
 static struct starpu_codelet nl_memset_cl =
@@ -134,7 +134,7 @@ static struct starpu_codelet nl_memset_cl =
 	.model = &nl_model,
 	.energy_model = &nl_energy_model,
 	.nbuffers = 1,
-	.modes = {STARPU_W}
+	.modes = {STARPU_SCRATCH}
 };
 
 static void test_memset(int nelems, struct starpu_codelet *codelet)

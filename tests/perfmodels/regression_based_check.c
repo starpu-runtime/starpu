@@ -73,7 +73,7 @@ static struct starpu_codelet memset_cl =
 	.cpu_funcs_name = {"memset_cpu"},
 	.model = &model,
 	.nbuffers = 1,
-	.modes = {STARPU_W}
+	.modes = {STARPU_SCRATCH}
 };
 
 static struct starpu_codelet nl_memset_cl =
@@ -82,7 +82,7 @@ static struct starpu_codelet nl_memset_cl =
 	.cpu_funcs_name = {"memset_cpu"},
 	.model = &nl_model,
 	.nbuffers = 1,
-	.modes = {STARPU_W}
+	.modes = {STARPU_SCRATCH}
 };
 
 static void test_memset(int nelems, struct starpu_codelet *codelet)
