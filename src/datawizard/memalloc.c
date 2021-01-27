@@ -973,7 +973,7 @@ out:
  * flag is set, the memory is freed regardless of coherency concerns (this
  * should only be used at the termination of StarPU for instance).
  */
-static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim)
+static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch)
 {
 	size_t freed = 0;
 
@@ -1057,7 +1057,7 @@ restart2:
 	return freed;
 }
 
-size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t reclaim)
+size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch)
 {
 	size_t freed = 0;
 
@@ -1081,7 +1081,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 
 	/* try to free all allocated data potentially in use */
 	if (force || (reclaim && freed<reclaim))
-		freed += free_potentially_in_use_mc(node, force, reclaim);
+		freed += free_potentially_in_use_mc(node, force, reclaim, is_prefetch);
 
 	return freed;
 
@@ -1094,7 +1094,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
  */
 size_t _starpu_free_all_automatically_allocated_buffers(unsigned node)
 {
-	return _starpu_memory_reclaim_generic(node, 1, 0);
+	return _starpu_memory_reclaim_generic(node, 1, 0, STARPU_FETCH);
 }
 
 /* Periodic tidy of available memory  */
@@ -1298,7 +1298,7 @@ void starpu_memchunk_tidy(unsigned node)
 	}
 
 	_STARPU_TRACE_START_MEMRECLAIM(node,2);
-	free_potentially_in_use_mc(node, 0, amount);
+	free_potentially_in_use_mc(node, 0, amount, STARPU_PREFETCH);
 	_STARPU_TRACE_END_MEMRECLAIM(node,2);
 out:
 	(void) STARPU_ATOMIC_ADD(&tidying[node], -1);
@@ -1556,7 +1556,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			}
 			/* That was not enough, we have to really reclaim */
 			_STARPU_TRACE_START_MEMRECLAIM(dst_node,is_prefetch);
-			_starpu_memory_reclaim_generic(dst_node, 0, reclaim);
+			_starpu_memory_reclaim_generic(dst_node, 0, reclaim, is_prefetch);
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
 			prefetch_out_of_memory[dst_node] = 0;
 		}
