@@ -34,10 +34,89 @@
 #include <core/task.h>
 #include <core/topology.h>
 
-int _starpu_mpi_choose_node(starpu_data_handle_t data_handle, enum starpu_data_access_mode mode)
+int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
-	/* TODO */
 	return STARPU_MAIN_RAM;
+
+	/* TODO: this is completely untested */
+	if (mode & STARPU_W)
+	{
+		/* TODO: lookup NIC location */
+		/* Where to receive the data? */
+		if (handle->home_node >= 0 && starpu_node_get_kind(handle->home_node) == STARPU_CPU_RAM)
+			/* For now, better use the home node to avoid duplicates */
+			return handle->home_node;
+
+		if (starpu_memory_nodes_get_numa_count() == 1)
+			return STARPU_MAIN_RAM;
+
+		/* Several potential places */
+		unsigned i;
+		for (i = 0; i < STARPU_MAXNODES; i++)
+		{
+			/* TODO: we may want to take as a hint that it's allocated on the GPU as
+			 * a clue that we want to push to the GPU */
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM &&
+				handle->per_node[i].allocated)
+				/* This node already has allocated buffers, let's just use it */
+				return i;
+		}
+
+		/* No luck, take the least loaded node */
+		starpu_ssize_t maximum = 0;
+		starpu_ssize_t needed = _starpu_data_get_alloc_size(handle);
+		unsigned node;
+
+		for (i = 0; i < STARPU_MAXNODES; i++)
+		{
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+			{
+				starpu_ssize_t size = starpu_memory_get_available(i);
+				if (size >= needed && size > maximum)
+				{
+					node = i;
+					maximum = size;
+				}
+			}
+		}
+		return node;
+	}
+	else
+	{
+		if (starpu_memory_nodes_get_numa_count() == 1)
+			return STARPU_MAIN_RAM;
+
+		/* Several potential places */
+		unsigned i;
+		for (i = 0; i < STARPU_MAXNODES; i++)
+		{
+			/* TODO: GPUDirect */
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM &&
+				handle->per_node[i].state != STARPU_INVALID)
+				/* This node already has the value, let's just use it */
+				/* TODO: rather pick up place next to NIC */
+				return i;
+		}
+
+		/* No luck, take the least loaded node, to transfer from e.g. GPU */
+		starpu_ssize_t maximum = 0;
+		starpu_ssize_t needed = _starpu_data_get_alloc_size(handle);
+		unsigned node;
+
+		for (i = 0; i < STARPU_MAXNODES; i++)
+		{
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+			{
+				starpu_ssize_t size = starpu_memory_get_available(i);
+				if (size >= needed && size > maximum)
+				{
+					node = i;
+					maximum = size;
+				}
+			}
+		}
+		return node;
+	}
 }
 
 static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_data_access_mode mode)
