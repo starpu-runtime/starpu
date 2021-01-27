@@ -590,8 +590,16 @@ if test x$enable_mpi = xyes ; then
 	    FCLAGS="$FFLAGS -fPIC"
         fi
     fi
+
+    enable_mpi_sync_clocks=no
+    PKG_CHECK_MODULES([MPI_SYNC_CLOCKS],[mpi_sync_clocks],[enable_mpi_sync_clocks=yes],[enable_mpi_sync_clocks=no])
+    if test x$enable_mpi_sync_clocks = xyes ; then
+	MPI_SYNC_CLOCKS_LDFLAGS="$(pkg-config --libs mpi_sync_clocks)"
+	MPI_SYNC_CLOCKS_CFLAGS="$(pkg-config --cflags mpi_sync_clocks)"
+    fi
 fi
 
+AM_CONDITIONAL(STARPU_MPI_SYNC_CLOCKS, test x$enable_mpi_sync_clocks = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI_MPI, test x$build_mpi_lib = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI_NMAD, test x$build_nmad_lib = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI, test x$build_nmad_lib = xyes -o x$build_mpi_lib = xyes)

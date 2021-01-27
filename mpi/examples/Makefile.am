@@ -455,6 +455,14 @@ starpu_mpi_EXAMPLES	+=	\
 	benchs/sendrecv_bench	\
 	benchs/burst
 
+if STARPU_MPI_SYNC_CLOCKS
+examplebin_PROGRAMS +=		\
+	benchs/bcast_bench
+
+starpu_mpi_EXAMPLES	+=	\
+	benchs/bcast_bench
+endif
+
 if !STARPU_USE_MPI_MPI
 starpu_mpi_EXAMPLES	+=	\
 	benchs/sendrecv_parallel_tasks_bench
@@ -470,6 +478,11 @@ endif
 benchs_sendrecv_bench_SOURCES = benchs/sendrecv_bench.c
 benchs_sendrecv_bench_SOURCES += benchs/bench_helper.c
 benchs_sendrecv_bench_SOURCES += benchs/abstract_sendrecv_bench.c
+
+benchs_bcast_bench_SOURCES = benchs/bcast_bench.c
+benchs_bcast_bench_SOURCES += benchs/bench_helper.c
+benchs_bcast_bench_LDADD = $(MPI_SYNC_CLOCKS_LDFLAGS)
+benchs_bcast_bench_CFLAGS = $(MPI_SYNC_CLOCKS_CFLAGS)
 
 benchs_sendrecv_parallel_tasks_bench_SOURCES = benchs/sendrecv_parallel_tasks_bench.c
 benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/bench_helper.c
