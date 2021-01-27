@@ -586,7 +586,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 		/* Hasn't been used yet, avoid evicting it */
 		return 0;
 
-	if (mc->nb_tasks_prefetch && is_prefetch >= STARPU_TASK_PREFETCH)
+	if (is_prefetch >= STARPU_TASK_PREFETCH && handle->per_node[node].nb_tasks_prefetch)
 		/* We have not finished executing the tasks this was prefetched for */
 		return 0;
 
@@ -952,7 +952,7 @@ restart:
 		if (!mc->wontuse && is_prefetch >= STARPU_PREFETCH)
 			/* Do not evict something that we might reuse, just for a prefetch */
 			continue;
-		if (mc->nb_tasks_prefetch && is_prefetch >= STARPU_TASK_PREFETCH)
+		if (is_prefetch >= STARPU_TASK_PREFETCH && mc->data->per_node[node].nb_tasks_prefetch)
 			/* Do not evict something that we will reuse, just for a task prefetch */
 			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
@@ -1411,7 +1411,6 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	mc->size_interface = interface_size;
 	mc->remove_notify = NULL;
 	mc->diduse = 0;
-	mc->nb_tasks_prefetch = 0;
 	mc->wontuse = 0;
 
 	return mc;

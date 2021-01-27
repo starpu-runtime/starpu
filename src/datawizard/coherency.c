@@ -525,7 +525,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			{
 				if (is_prefetch == STARPU_TASK_PREFETCH)
 					/* Make sure it stays there */
-					dst_replicate->mc->nb_tasks_prefetch++;
+					dst_replicate->nb_tasks_prefetch++;
 
 				_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
 			}
@@ -577,7 +577,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 				{
 					if (is_prefetch == STARPU_TASK_PREFETCH)
 						/* Make sure it stays there */
-						dst_replicate->mc->nb_tasks_prefetch++;
+						dst_replicate->nb_tasks_prefetch++;
 
 					_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
 				}
@@ -1219,8 +1219,8 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 				 * Now that we added a reference for the task, we can relieve that.  */
 				/* Note: the replicate might have been evicted in between, thus not 100% sure
 				 * that our prefetch request is still recorded here.  */
-				if (local_replicate->mc->nb_tasks_prefetch > 0)
-					local_replicate->mc->nb_tasks_prefetch--;
+				if (local_replicate->nb_tasks_prefetch > 0)
+					local_replicate->nb_tasks_prefetch--;
 			}
 		}
 		_starpu_spin_unlock(&handle->header_lock);
