@@ -72,7 +72,6 @@ struct user_interaction_wrapper
 	unsigned async;
 	int prio;
 	void (*callback)(void *);
-	void (*callback_fetch_data)(void *); // called after fetch_data
 	void *callback_arg;
 	struct starpu_task *pre_sync_task;
 	struct starpu_task *post_sync_task;
