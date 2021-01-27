@@ -68,8 +68,10 @@ int main(int argc, char **argv)
 
 		for(src=1 ; src<size ; src++)
 		{
+			starpu_data_acquire(handles[src], STARPU_R);
 			void *ptr = starpu_data_get_local_ptr(handles[src]);
 			value += *((int *)ptr);
+			starpu_data_release(handles[src]);
 			starpu_data_unregister(handles[src]);
 		}
 
