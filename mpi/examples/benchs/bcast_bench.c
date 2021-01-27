@@ -143,6 +143,11 @@ static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int 
       starpu_mpi_isend(data_handle, &reqs[i-1], i, data_tag, MPI_COMM_WORLD);
     }
 
+    for (i = 0; i < nb_dest_nodes; i++)
+    {
+      starpu_mpi_wait(&reqs[i], MPI_STATUS_IGNORE);
+    }
+
     for (int i = 1; i <= nb_dest_nodes; i++)
     {
       starpu_variable_data_register(&time_handle, STARPU_MAIN_RAM, (uintptr_t) &t_end, sizeof(double));
