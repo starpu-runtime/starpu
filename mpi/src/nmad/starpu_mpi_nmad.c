@@ -93,7 +93,7 @@ void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSE
 /*                                                      */
 /********************************************************/
 
-static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
+static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -131,8 +131,10 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
+void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 {
+	_STARPU_MPI_LOG_IN();
+
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 
 	if (req->registered_datatype == 1)
@@ -140,12 +142,14 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
 
-		_starpu_mpi_isend_data_func(req);
+		_starpu_mpi_isend_known_datatype(req);
 	}
 	else
 	{
 		_starpu_mpi_isend_unknown_datatype(req);
 	}
+
+	_STARPU_MPI_LOG_OUT();
 }
 
 /********************************************************/
@@ -154,7 +158,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 /*                                                      */
 /********************************************************/
 
-static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
+static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -177,7 +181,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
+void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -186,13 +190,14 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	{
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
-		_starpu_mpi_irecv_data_func(req);
+		_starpu_mpi_irecv_known_datatype(req);
 	}
 	else
 	{
 		_starpu_mpi_irecv_unknown_datatype(req);
 	}
 
+	_STARPU_MPI_LOG_OUT();
 }
 
 /********************************************************/
