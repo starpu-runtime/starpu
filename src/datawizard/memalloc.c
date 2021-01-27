@@ -550,7 +550,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	free(mc);
 }
 
-int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node)
+int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
 	/* This data should be written through to this node, avoid dropping it! */
 	if (handle->wt_mask & (1<<node))
@@ -563,6 +563,10 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node)
 	/* This data cannnot be pushed outside CPU memory */
 	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
 		&& starpu_memory_nodes_get_numa_count() == 1)
+		return 0;
+
+	if (is_prefetch >= STARPU_TASK_PREFETCH && handle->per_node[node].nb_tasks_prefetch)
+		/* We have not finished executing the tasks this was prefetched for */
 		return 0;
 
 	return 1;
@@ -579,15 +583,11 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	handle = mc->data;
 	STARPU_ASSERT(handle);
 
-	if (!starpu_data_can_evict(handle, node))
+	if (!starpu_data_can_evict(handle, node, is_prefetch))
 		return 0;
 
 	if (diduse_barrier && !mc->diduse)
 		/* Hasn't been used yet, avoid evicting it */
-		return 0;
-
-	if (is_prefetch >= STARPU_TASK_PREFETCH && handle->per_node[node].nb_tasks_prefetch)
-		/* We have not finished executing the tasks this was prefetched for */
 		return 0;
 
 	/* REDUX memchunk */
