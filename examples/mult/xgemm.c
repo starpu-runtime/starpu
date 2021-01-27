@@ -463,7 +463,7 @@ static void parse_args(int argc, char **argv)
 }
 
 /* Don't do this at home, kids, this is really dumb!  */
-starpu_data_handle_t dumb_victim_selector(unsigned node)
+starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch)
 {
 	static unsigned next_evicted; // index of next data to evict, to avoid getting stuck. Yes this is awful.
 	starpu_data_handle_t handle;
@@ -484,7 +484,7 @@ starpu_data_handle_t dumb_victim_selector(unsigned node)
 			if (index++ < next_evicted)
 				continue;
 			handle = starpu_data_get_sub_data(A_handle, 2, z, y);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 
@@ -494,7 +494,7 @@ starpu_data_handle_t dumb_victim_selector(unsigned node)
 			if (index++ < next_evicted)
 				continue;
 			handle = starpu_data_get_sub_data(B_handle, 2, x, z);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 
@@ -504,7 +504,7 @@ starpu_data_handle_t dumb_victim_selector(unsigned node)
 			if (index++ < next_evicted)
 				continue;
 			handle = starpu_data_get_sub_data(C_handle, 2, x, y);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 	}
@@ -520,7 +520,7 @@ starpu_data_handle_t dumb_victim_selector(unsigned node)
 				continue;
 
 			handle = starpu_data_get_sub_data(A_handle, 1, y);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 
@@ -531,7 +531,7 @@ starpu_data_handle_t dumb_victim_selector(unsigned node)
 				continue;
 
 			handle = starpu_data_get_sub_data(B_handle, 1, x);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 
@@ -542,7 +542,7 @@ starpu_data_handle_t dumb_victim_selector(unsigned node)
 				continue;
 
 			handle = starpu_data_get_sub_data(C_handle, 2, x, y);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node))
+			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 	}
@@ -561,7 +561,7 @@ done:
 starpu_data_handle_t last_evicted;
 
 /* Almost Belady while tasks are being executed */
-starpu_data_handle_t belady_victim_selector(unsigned node)
+starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch)
 {
 	bool donnee_ok = false; int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int nb_task_on_node_found = 0;
@@ -640,7 +640,7 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 					if (task_position_in_data_use_order[used_index_task_currently_treated] + nb_data_next_task > total_nb_data) {
 						//Means I'm on the last task, so we can evict any task as long as it's not one we will use
 						for (j = 0; j < nb_data_on_node; j++) { 
-								if (starpu_data_can_evict(data_on_node[j], node)) {
+								if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) {
 									donnee_ok = true;
 									if (nb_task_on_node_found != nb_data_next_task) {
 									for (l = 0; l < nb_data_next_task; l++) {
@@ -672,7 +672,7 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 						for (j = 0; j < nb_data_on_node; j++) { prochaine_utilisation_donnee[j] = INT_MAX; }
 						//Care if a task is never use again and is on node, we must evict it
 						for (j = 0; j < nb_data_on_node; j++) { 
-							if (starpu_data_can_evict(data_on_node[j], node)) {
+							if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) {
 								donnee_ok = true;
 								if (nb_task_on_node_found != nb_data_next_task) {
 									for (l = 0; l < nb_data_next_task; l++) {

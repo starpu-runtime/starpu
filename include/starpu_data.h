@@ -563,7 +563,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
    This is the type of function to be registered with
    starpu_data_register_victim_selector().
 */
-typedef starpu_data_handle_t starpu_data_victim_selector(unsigned node);
+typedef starpu_data_handle_t starpu_data_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch);
 
 /**
    Register a data victim selector.
