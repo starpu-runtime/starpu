@@ -71,6 +71,7 @@ struct user_interaction_wrapper
 	enum starpu_is_prefetch prefetch;
 	unsigned async;
 	int prio;
+	void (*callback_acquired)(void *, int *node, enum starpu_data_access_mode mode);
 	void (*callback)(void *);
 	void *callback_arg;
 	struct starpu_task *pre_sync_task;
@@ -152,6 +153,12 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 /* Called when the data acquisition is done, launch the fetch into target memory */
 static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 {
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
+
+	if (wrapper->callback_acquired)
+		/* This can change the node at will according to the current data situation */
+		wrapper->callback_acquired(wrapper->callback_arg, &wrapper->node, wrapper->mode);
+
 	_starpu_data_acquire_launch_fetch(arg, 1, _starpu_data_acquire_fetch_data_callback, arg);
 }
 
@@ -173,7 +180,10 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 
 /* The data must be released by calling starpu_data_release later on */
 int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
-							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
+							  enum starpu_data_access_mode mode,
+							  void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
+							  void (*callback)(void *arg),
+							  void *arg,
 							  int sequential_consistency, int quick,
 							  long *pre_sync_jobid, long *post_sync_jobid)
 {
@@ -190,6 +200,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	_starpu_data_acquire_wrapper_init(wrapper, handle, node, mode);
 	wrapper->async = 1;
 
+	wrapper->callback_acquired = callback_acquired;
 	wrapper->callback = callback;
 	wrapper->callback_arg = arg;
 	wrapper->pre_sync_task = NULL;
@@ -263,7 +274,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_hand
 							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 							  int sequential_consistency, int quick)
 {
-	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, callback, arg, sequential_consistency, quick, NULL, NULL);
+	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, NULL, callback, arg, sequential_consistency, quick, NULL, NULL);
 }
 
 int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,

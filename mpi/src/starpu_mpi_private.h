@@ -187,6 +187,8 @@ MULTILIST_CREATE_TYPE(_starpu_mpi_req, coop_sends)
 /** One bag of cooperative sends */
 struct _starpu_mpi_coop_sends
 {
+	starpu_data_handle_t data_handle;
+
 	/** List of send requests */
 	struct _starpu_mpi_req_multilist_coop_sends reqs;
 	struct _starpu_mpi_data *mpi_data;
@@ -319,6 +321,9 @@ struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_hand
 						  starpu_ssize_t count);
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
+
+int _starpu_mpi_choose_node(starpu_data_handle_t data_handle, enum starpu_data_access_mode mode);
+
 void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 
 struct _starpu_mpi_argc_argv
