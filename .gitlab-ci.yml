@@ -22,6 +22,12 @@ build:
   stage: build
   script:
     - ./contrib/gitlab/build.sh
+  artifacts:
+    paths:
+      - *.tar.gz
+      - starpu.pdf
+      - starpu_dev.pdf
+      - contrib/ci.inria.fr/job-1-check.sh
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: never  # Prevent pipeline run for push event
@@ -30,6 +36,7 @@ build:
 deploy:
   stage: deploy
   script:
+    - ls
     - ./contrib/gitlab/deploy.sh
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
