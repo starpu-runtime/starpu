@@ -270,20 +270,15 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 			   void *dst_interface, unsigned dst_node,
 			   void *async_data)
 {
-	struct starpu_my_data *src_data = src_interface;
-	struct starpu_my_data *dst_data = dst_interface;
+	struct starpu_my_data_interface *src = src_interface;
+	struct starpu_my_data_interface *dst = dst_interface;
 	int ret = 0;
 
-	fprintf(stderr, "copying data src_data.d=%d src_data.c %c\n", src_data->d, src_data->c);
+	fprintf(stderr, "copying data src=%p to dst=%p\n", src->ptr, dst->ptr);
 
-	if (starpu_interface_copy((uintptr_t) src_data->d, 0, src_node,
-				  (uintptr_t) dst_data->d, 0, dst_node,
-				  sizeof(src_data->d), async_data))
-		ret = -EAGAIN;
-	if (starpu_interface_copy((uintptr_t) src_data->c, 0, src_node,
-				  (uintptr_t) dst_data->c, 0, dst_node,
-				  sizeof(src_data->c),
-				  async_data))
+	if (starpu_interface_copy(src->dev_handle, src->offset, src_node,
+				  dst->dev_handle, dst->offset, dst_node,
+				  sizeof(int) + sizeof(char), async_data))
 		ret = -EAGAIN;
 	return ret;
 }
