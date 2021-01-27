@@ -274,7 +274,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 	struct starpu_my_data_interface *dst = dst_interface;
 	int ret = 0;
 
-	fprintf(stderr, "copying data src=%p to dst=%p\n", src->ptr, dst->ptr);
+	fprintf(stderr, "copying data src=%p to dst=%p\n", (void*) src->ptr, (void*) dst->ptr);
 
 	if (starpu_interface_copy(src->dev_handle, src->offset, src_node,
 				  dst->dev_handle, dst->offset, dst_node,
