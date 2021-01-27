@@ -63,8 +63,6 @@ static starpu_pthread_cond_t mpi_wait_for_all_running_cond;
 static int mpi_wait_for_all_running = 0;
 static starpu_pthread_mutex_t mpi_wait_for_all_running_mutex;
 
-extern struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count);
-
 /* Count running requests: this counter is incremented just before StarPU
  * submits a MPI request, and decremented when a MPI request finishes. */
 static volatile int nb_pending_requests = 0;
