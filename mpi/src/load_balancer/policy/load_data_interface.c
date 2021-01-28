@@ -191,8 +191,7 @@ static int load_data_pack_data(starpu_data_handle_t handle, unsigned node, void 
 	*count = load_data_get_size(handle);
 	if (ptr != NULL)
 	{
-		char *data;
-		starpu_malloc_flags((void**) &data, *count, 0);
+		char *data = (void*) starpu_malloc_on_node_flags(node, *count, 0);
 		*ptr = data;
 		memcpy(data, ld_interface, *count);
 	}
