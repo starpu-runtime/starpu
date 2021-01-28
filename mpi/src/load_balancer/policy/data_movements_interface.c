@@ -187,8 +187,7 @@ static int data_movements_pack_data(starpu_data_handle_t handle, unsigned node, 
 	*count = data_movements_get_size(handle);
 	if (ptr != NULL)
 	{
-		char *data;
-		starpu_malloc_flags((void**) &data, *count, 0);
+		char *data = (void*) starpu_malloc_on_node_flags(node, *count, 0);
 		assert(data);
 		*ptr = data;
 		memcpy(data, &dm_interface->size, sizeof(int));
