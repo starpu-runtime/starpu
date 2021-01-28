@@ -1266,26 +1266,28 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 		//Because I started at 1 and not 0
 		int used_index_task_currently_treated = index_task_currently_treated - 1;
 		
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, index_task_currently_treated, task_position_in_data_use_order[index_task_currently_treated]); }
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]); }
 		
 		//~ if ((data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]]) != NULL) {
 		if (task_position_in_data_use_order[index_task_currently_treated] != total_nb_data) {
-			nb_data_next_task = task_position_in_data_use_order[used_index_task_currently_treated + 2] - task_position_in_data_use_order[used_index_task_currently_treated];
+			//~ nb_data_next_task = task_position_in_data_use_order[used_index_task_currently_treated + 2] - task_position_in_data_use_order[used_index_task_currently_treated];
+			nb_data_next_task = task_position_in_data_use_order[used_index_task_currently_treated] - task_position_in_data_use_order[used_index_task_currently_treated - 1];
 
-			//~ printf("nb dara next :%d\n",nb_data_next_task);
-			//~ printf("Données des 2 tâches en cours : ");
-			//~ for (i = 0; i < nb_data_next_task; i++) {
-				//~ printf("%p ",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + i]); } printf ("\n"); 
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("nb data next :%d\n",nb_data_next_task);
+			printf("Données de la tâche en cours : ");
+			for (i = 0; i < nb_data_next_task; i++) {
+				printf("%p ",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); } printf ("\n"); 
+			}
 			
 			for (i = 0; i < nb_data_next_task; i++) {	
 				/* On regarde si la donnée est pas déjà sur M par hasard */
-				starpu_data_query_status(data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + i], node, &is_allocated, NULL, NULL);
-				if (is_allocated) {
-					if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("La donnée %p est déjà sur M\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + i]); }
+				starpu_data_query_status(data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1], node, &is_allocated, NULL, NULL);
+				if (is_allocated && i == 1000) {
+					if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("La donnée %p est déjà sur M\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); }
 				}
 				else {
 					//Savoir quand sera utilisé chaque tâche de la mem. Si la tâche appartient a la prochaine tache evidemment on l'interdit.
-					nb_task_on_node_found = 0;
+					//~ nb_task_on_node_found = 0;
 					//~ if (task_position_in_data_use_order[used_index_task_currently_treated] + nb_data_next_task > total_nb_data) {
 						//~ printf("on lastdddddddddddddddddddddddddddddddddddd\n\n\n");
 						//~ //Means I'm on the last task, so we can evict any task as long as it's not one we will use
@@ -1347,6 +1349,7 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 										for (k = task_position_in_data_use_order[used_index_task_currently_treated]; k < total_nb_data; k++) {
 											if (data_on_node[j] == data_use_order[k]) {
 												prochaine_utilisation_donnee[j] = k;
+												break;
 											}
 										}
 									//~ }
