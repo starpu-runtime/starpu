@@ -1206,6 +1206,7 @@ starpu_data_handle_t last_evicted;
 /* Almost Belady while tasks are being executed */
 starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch)
 {
+	int p = 0;
 	bool donnee_ok = false; int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int nb_task_on_node_found = 0; int l = 0;
 	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
@@ -1259,6 +1260,13 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 				//~ exit(0);
 			//~ }
 		//~ }
+		
+		//~ for (p = 0; p < nb_data_on_node; p++) {
+			//~ if (starpu_data_can_evict(data_on_node[p], node, is_prefetch)) {
+				//~ printf("Can evict %p\n",data_on_node[p]); }
+			//~ else {
+				//~ printf("Can't evict %p\n",data_on_node[p]); } 
+		//~ }
 			
 		
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, index_task_currently_treated, task_position_in_data_use_order[index_task_currently_treated]); }
@@ -1296,9 +1304,19 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 										}
 									}
 								}
+					
 									if (donnee_ok == true) {
 										if (last_evicted != data_on_node[j]) { 
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
+											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("---\nLa tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
+												for (p = 0; p < nb_data_on_node; p++) {
+													if (starpu_data_can_evict(data_on_node[p], node, is_prefetch)) {
+														printf("Can evict %p\n",data_on_node[p]); }
+													else {
+														printf("Can't evict %p\n",data_on_node[p]); } }
+												printf("Données de la tâche en cours :\n");
+												printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]+1],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 2]);
+												printf("Données de la deuxième tâche en cours (la suivante)\n");
+												printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 3],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]+4],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 5]);
 											printf("Données de M:\n"); for (i = 0; i < nb_data_on_node; i++) { printf("%p / ",data_on_node[i]); } printf("\n");
 											printf("On évince %p\n",data_on_node[j]); }
 										}
@@ -1348,13 +1366,26 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 					
 					for (j = 0; j < nb_data_on_node; j++) {
 						if (prochaine_utilisation_donnee[j] > distance_donnee_utilise_dans_le_plus_longtemps) {
+							if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) {
 								donnee_utilise_dans_le_plus_longtemps = j;
 								distance_donnee_utilise_dans_le_plus_longtemps = prochaine_utilisation_donnee[j]; 
+							}
 						}
 					}
+					
 					if (last_evicted != data_on_node[donnee_utilise_dans_le_plus_longtemps]) { 
-						if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
-						printf("Données de M et leurs prochaine apparition:\n"); for (i = 0; i < nb_data_on_node; i++) { printf("%p  = %d / ",data_on_node[i],prochaine_utilisation_donnee[i]); } printf("\n");
+						if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("---\nLa tâche en cours est %p, position %d dans le tableau d'ordre des données\n",task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
+					for (p = 0; p < nb_data_on_node; p++) {
+						if (starpu_data_can_evict(data_on_node[p], node, is_prefetch)) {
+							printf("Can evict %p\n",data_on_node[p]); }
+						else {
+							printf("Can't evict %p\n",data_on_node[p]); } 
+					}
+							printf("Données de la tâche en cours : ");
+							printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]+1],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 2]);
+							printf("Données de la deuxième tâche en cours (la suivante) : ");
+							printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 3],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]+4],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 5]);
+							printf("Données de M et leurs prochaine apparition:\n"); for (i = 0; i < nb_data_on_node; i++) { printf("%p  = %d / ",data_on_node[i],prochaine_utilisation_donnee[i]); } printf("\n");
 						printf("On évince : %p\n",data_on_node[donnee_utilise_dans_le_plus_longtemps]); }
 					}
 					last_evicted = data_on_node[donnee_utilise_dans_le_plus_longtemps];	
@@ -1370,9 +1401,9 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 	} else { if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("task current = null\n"); } }
 
 	/* Uh :/ */
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr,"uh, no evictable data\n"); }
-	return NULL;
-	//~ return STARPU_DATA_NO_VICTIM;
+	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr,"uh, no evictable data\n"); }
+	//~ return NULL;
+	return STARPU_DATA_NO_VICTIM;
 }
 
 struct starpu_sched_policy _starpu_sched_HFP_policy =
