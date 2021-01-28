@@ -965,7 +965,7 @@ out:
  * flag is set, the memory is freed regardless of coherency concerns (this
  * should only be used at the termination of StarPU for instance).
  */
-static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch)
+static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
 {
 	size_t freed = 0;
 
