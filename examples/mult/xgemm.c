@@ -469,7 +469,7 @@ starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch
 	starpu_data_handle_t handle;
 	unsigned x, y, z, index = 0;
 
-	starpu_data_handle_t handles;
+	starpu_data_handle_t *handles;
 	unsigned n;
 	starpu_data_get_node_data(node, &handles, &n); // Just for fun
 	free(handles);
