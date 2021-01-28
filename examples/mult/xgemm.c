@@ -473,6 +473,7 @@ starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch
 	unsigned n;
 	starpu_data_get_node_data(node, &handles, &n); // Just for fun
 	free(handles);
+	int is_allocated;
 
 	if (tiled) {
 		if (next_evicted == nslicesy*nslicesz + nslicesx+nslicesz + nslicesx*nslicesy)
@@ -484,7 +485,8 @@ starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch
 			if (index++ < next_evicted)
 				continue;
 			handle = starpu_data_get_sub_data(A_handle, 2, z, y);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
+			starpu_data_query_status(handle, node, &is_allocated, NULL, NULL);
+			if (is_allocated && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 
@@ -494,7 +496,8 @@ starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch
 			if (index++ < next_evicted)
 				continue;
 			handle = starpu_data_get_sub_data(B_handle, 2, x, z);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
+			starpu_data_query_status(handle, node, &is_allocated, NULL, NULL);
+			if (is_allocated && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 
@@ -504,7 +507,8 @@ starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch
 			if (index++ < next_evicted)
 				continue;
 			handle = starpu_data_get_sub_data(C_handle, 2, x, y);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
+			starpu_data_query_status(handle, node, &is_allocated, NULL, NULL);
+			if (is_allocated && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 	}
@@ -520,7 +524,8 @@ starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch
 				continue;
 
 			handle = starpu_data_get_sub_data(A_handle, 1, y);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
+			starpu_data_query_status(handle, node, &is_allocated, NULL, NULL);
+			if (is_allocated && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 
@@ -531,7 +536,8 @@ starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch
 				continue;
 
 			handle = starpu_data_get_sub_data(B_handle, 1, x);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
+			starpu_data_query_status(handle, node, &is_allocated, NULL, NULL);
+			if (is_allocated && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 
@@ -542,7 +548,8 @@ starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch
 				continue;
 
 			handle = starpu_data_get_sub_data(C_handle, 2, x, y);
-			if (starpu_data_is_on_node(handle, node) && starpu_data_can_evict(handle, node, is_prefetch))
+			starpu_data_query_status(handle, node, &is_allocated, NULL, NULL);
+			if (is_allocated && starpu_data_can_evict(handle, node, is_prefetch))
 				goto done;
 		}
 	}

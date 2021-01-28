@@ -1210,11 +1210,13 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 	int nb_task_on_node_found = 0; int l = 0;
 	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
 	unsigned nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
+	int is_allocated;
 	if (task_currently_treated != NULL) {
 		
 		//Old memory read
 		//~ for (i = 0; i < nb_different_data; i++) {
-			//~ if (starpu_data_is_on_node(all_data_needed[i], node)) {
+			//~ starpu_data_query_status(all_data_needed[i], node, &is_allocated, NULL, NULL);
+			//~ if (is_allocated) {
 				//~ nb_data_on_node++;
 			//~ }
 		//~ }
@@ -1222,7 +1224,8 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 		//~ if (nb_data_on_node == 0) { goto done; }
 		//~ starpu_data_handle_t * data_on_node = malloc(nb_data_on_node*sizeof(all_data_needed[0]));
 		//~ for (i = 0; i < nb_different_data; i++) {
-			//~ if (starpu_data_is_on_node(all_data_needed[i], node)) {
+			//~ starpu_data_query_status(all_data_needed[i], node, &is_allocated, NULL, NULL);
+			//~ if (is_allocated) {
 				//~ data_on_node[j] = all_data_needed[i];
 				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p\n",data_on_node[j]); }
 				//~ j++;
@@ -1273,7 +1276,8 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 			
 			for (i = 0; i < nb_data_next_task; i++) {	
 				/* On regarde si la donnée est pas déjà sur M par hasard */
-				if (starpu_data_is_on_node(data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + i], node)) {
+				starpu_data_query_status(data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + i], node, &is_allocated, NULL, NULL);
+				if (is_allocated) {
 					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("La donnée %p est déjà sur M\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + i]); }
 				}
 				else {
