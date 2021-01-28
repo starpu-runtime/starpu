@@ -728,8 +728,8 @@ starpu_data_handle_t belady_victim_selector(unsigned node)
 	/* Uh :/ */
 	done:
 	if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr,"uh, no evictable data\n"); }
-	return NULL;
-	//~ return STARPU_DATA_NO_VICTIM;
+	//~ return NULL;
+	return STARPU_DATA_NO_VICTIM;
 }
 
 int main(int argc, char **argv)
