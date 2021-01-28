@@ -565,6 +565,10 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 		/* We have not finished executing the tasks this was prefetched for */
 		return 0;
 
+	if (!may_free_subtree(handle, node))
+		/* Somebody refers to it */
+		return 0;
+
 	return 1;
 }
 
