@@ -1012,7 +1012,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				
 				/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task */
 					while (data->temp_pointer_1 != NULL) {
-					if ((appli == "starpu_sgemm_gemm") && (starpu_get_env_number_default("PRINTF",0) == 1)) {
+					if ((strcmp(appli,"starpu_sgemm_gemm") == 0) && (starpu_get_env_number_default("PRINTF",0) == 1)) {
 						for (temp_task_1 = starpu_task_list_begin(&data->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 							starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1,2),2,temp_tab_coordinates);
 							coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = NT - data->temp_pointer_1->index_package - 1;
@@ -1102,7 +1102,8 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from starpu_task_list_empty(&data->temp_pointer_1->sub_list)\n",task1); }
 			return task1;
-	}		
+	}
+	return NULL;		
 }
 
 static int HFP_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
@@ -1141,7 +1142,7 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 static int HFP_can_pull(struct starpu_sched_component * component)
 {
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("can pull\n"); }
-	struct HFP_sched_data *data = component->data;
+	//~ struct HFP_sched_data *data = component->data;
 	return starpu_sched_component_can_pull(component);
 }
 
