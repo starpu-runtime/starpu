@@ -265,7 +265,7 @@ static int lock_all_subtree(starpu_data_handle_t handle)
 	return 1;
 }
 
-static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
+static unsigned may_free_handle(starpu_data_handle_t handle, unsigned node)
 {
 	/* we only free if no one refers to the leaf */
 	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
@@ -283,6 +283,15 @@ static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
 				/* Some task is writing to the handle somewhere */
 				return 0;
 	}
+
+	/* no problem was found */
+	return 1;
+}
+
+static unsigned may_free_subtree(starpu_data_handle_t handle, unsigned node)
+{
+	if (!may_free_handle(handle, node))
+		return 0;
 
 	/* look into all sub-subtrees children */
 	unsigned child;
@@ -558,6 +567,10 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 
 	if (is_prefetch >= STARPU_TASK_PREFETCH && handle->per_node[node].nb_tasks_prefetch)
 		/* We have not finished executing the tasks this was prefetched for */
+		return 0;
+
+	if (!may_free_handle(handle, node))
+		/* Somebody refers to it */
 		return 0;
 
 	return 1;
