@@ -1230,6 +1230,19 @@ int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *co
 	return starpu_data_pack_node(handle, starpu_worker_get_local_memory_node(), ptr, count);
 }
 
+int starpu_data_peek_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	STARPU_ASSERT_MSG(handle->ops->peek_data, "The datatype interface %s (%d) does not have an peek operation", handle->ops->name, handle->ops->interfaceid);
+	int ret;
+	ret = handle->ops->peek_data(handle, node, ptr, count);
+	return ret;
+}
+
+int starpu_data_peek(starpu_data_handle_t handle, void *ptr, size_t count)
+{
+	return starpu_data_peek_node(handle, starpu_worker_get_local_memory_node(), ptr, count);
+}
+
 int starpu_data_unpack_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);

@@ -201,7 +201,7 @@ static int data_movements_pack_data(starpu_data_handle_t handle, unsigned node, 
 	return 0;
 }
 
-static int data_movements_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int data_movements_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	char *data = ptr;
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -221,7 +221,15 @@ static int data_movements_unpack_data(starpu_data_handle_t handle, unsigned node
 		memcpy(dm_interface->ranks, data+sizeof(int)+(dm_interface->size*sizeof(starpu_mpi_tag_t)), dm_interface->size*sizeof(int));
 	}
 
-    return 0;
+	return 0;
+}
+
+static int data_movements_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	data_movements_peek_data(handle, node, ptr, count);
+	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
+
+	return 0;
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node,
@@ -262,6 +270,7 @@ static struct starpu_data_interface_ops interface_data_movements_ops =
 	.interface_size = sizeof(struct data_movements_interface),
 	.to_pointer = NULL,
 	.pack_data = data_movements_pack_data,
+	.peek_data = data_movements_peek_data,
 	.unpack_data = data_movements_unpack_data,
 	.describe = NULL
 };

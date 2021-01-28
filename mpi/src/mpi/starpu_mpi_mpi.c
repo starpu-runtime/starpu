@@ -887,8 +887,8 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 				}
 				else if (req->request_type == RECV_REQ)
 				{
-					// req->ptr is freed by starpu_data_unpack
-					starpu_data_unpack_node(req->data_handle, req->node, req->ptr, req->count);
+					starpu_data_peek_node(req->data_handle, req->node, req->ptr, req->count);
+					starpu_free_on_node_flags(req->node, (uintptr_t)req->ptr, req->count, 0);
 					starpu_memory_deallocate(req->node, req->count);
 				}
 			}
@@ -946,11 +946,15 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		}
 		else
 		{
-			STARPU_MPI_ASSERT_MSG(itf_dst->unpack_data, "The data interface does not define an unpack function\n");
-			// FIXME: args->buffer is in args->buffer_node, not req->node
-			// There is conflation between the memory node for the handle and the memory node for the buffer
-			// Actually we may not want unpack_data to free the buffer, for the case when we are participating to a collective send
-			itf_dst->unpack_data(args->data_handle, args->req->node, args->buffer, itf_src->get_size(args->early_handle));
+			STARPU_MPI_ASSERT_MSG(itf_dst->peek_data || itf_dst->unpack_data , "The data interface does not define an unpack function\n");
+			// FIXME: Actually we may not want unpack_data to free the buffer, for the case when we are participating to a collective send
+			if (itf_dst->peek_data)
+			{
+				itf_dst->peek_data(args->data_handle, args->req->node, args->buffer, itf_src->get_size(args->early_handle));
+				starpu_free_on_node_flags(args->buffer_node, (uintptr_t) args->buffer, itf_src->get_size(args->early_handle), 0);
+			}
+			else
+				itf_dst->unpack_data(args->data_handle, args->req->node, args->buffer, itf_src->get_size(args->early_handle));
 			args->buffer = NULL;
 		}
 	}

@@ -321,7 +321,7 @@ struct starpu_data_copy_methods
 	   data blocks. If the interface is more involved than
 	   this, i.e. it needs to collect pieces of data before
 	   transferring, starpu_data_interface_ops::pack_data and
-	   starpu_data_interface_ops::unpack_data should be implemented instead,
+	   starpu_data_interface_ops::peek_data should be implemented instead,
 	   and the core will just transfer the resulting data buffer.
 	*/
 	int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
@@ -540,6 +540,12 @@ struct starpu_data_interface_ops
 	int (*pack_data) (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 
 	/**
+	   Read the data handle from the contiguous buffer at the address
+	   \p ptr of size \p count.
+	*/
+	int (*peek_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+
+	/**
 	   Unpack the data handle from the contiguous buffer at the address
 	   \p ptr of size \p count.
 	   The memory at the address \p ptr should be freed after the data unpacking operation.
@@ -637,9 +643,25 @@ int starpu_data_pack_node(starpu_data_handle_t handle, unsigned node, void **ptr
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);
 
 /**
+   Read in handle's \p node replicate the data located at \p ptr
+   of size \p count as described by the interface of the data. The interface
+   registered at \p handle must define a peeking operation (see
+   starpu_data_interface_ops).
+*/
+int starpu_data_peek_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+
+/**
+   Read in handle's local replicate the data located at \p ptr
+   of size \p count as described by the interface of the data. The interface
+   registered at \p handle must define a peeking operation (see
+   starpu_data_interface_ops).
+*/
+int starpu_data_peek(starpu_data_handle_t handle, void *ptr, size_t count);
+
+/**
    Unpack in handle the data located at \p ptr of size \p count allocated
    on node \p node as described by the interface of the data. The interface
-   registered at \p handle must define a unpacking operation (see
+   registered at \p handle must define an unpacking operation (see
    starpu_data_interface_ops).
 */
 int starpu_data_unpack_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);

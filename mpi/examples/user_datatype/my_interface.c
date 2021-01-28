@@ -201,6 +201,15 @@ static int data_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr
 	return 0;
 }
 
+static int data_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	(void)handle;
+	(void)node;
+	(void)ptr;
+	STARPU_ASSERT_MSG(0, "The data interface has been registered with starpu_mpi_datatype_register(). Calling the unpack_data function should not happen\n");
+	return 0;
+}
+
 static int data_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	(void)handle;
@@ -231,7 +240,7 @@ static int data_pack_data2(starpu_data_handle_t handle, unsigned node, void **pt
 	return 0;
 }
 
-static int data_unpack_data2(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int data_peek_data2(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	(void)count;
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -243,6 +252,12 @@ static int data_unpack_data2(starpu_data_handle_t handle, unsigned node, void *p
 	char *x = ptr;
 	x += sizeof(int);
 	memcpy(&data->c, x, sizeof(char));
+	return 0;
+}
+
+static int data_unpack_data2(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	data_peek_data2(handle, node, ptr, count);
 
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 	return 0;
@@ -301,6 +316,7 @@ static struct starpu_data_interface_ops interface_data_ops =
 	.interface_size = sizeof(struct starpu_my_data_interface),
 	.to_pointer = data_to_pointer,
 	.pack_data = data_pack_data,
+	.peek_data = data_peek_data,
 	.unpack_data = data_unpack_data,
 	.describe = data_describe
 };
@@ -343,6 +359,7 @@ static struct starpu_data_interface_ops interface_data2_ops =
 	.interface_size = sizeof(struct starpu_my_data_interface),
 	.to_pointer = data_to_pointer,
 	.pack_data = data_pack_data2,
+	.peek_data = data_peek_data2,
 	.unpack_data = data_unpack_data2,
 	.describe = data_describe
 };
