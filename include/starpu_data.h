@@ -471,7 +471,7 @@ int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned
 
 /**
    Check whether a valid copy of \p handle is currently available on
-   memory node \p node.
+   memory node \p node (or a transfer request for getting so is ongoing).
 */
 unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node);
 
