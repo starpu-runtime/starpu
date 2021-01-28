@@ -896,7 +896,7 @@ parameter of the function, <c>interface_complex_ops</c>, will be
 described below.
 
 \code{.c}
-void starpu_complex_data_register(starpu_data_handle_t *handle,
+void starpu_complex_data_register(starpu_data_handle_t *handleptr,
      unsigned home_node, double *real, double *imaginary, int nx)
 {
         struct starpu_complex_interface complex =
