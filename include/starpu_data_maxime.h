@@ -45,4 +45,6 @@ extern int index_task_currently_treated;
    Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
 */
 
+starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch);
+
 #endif
