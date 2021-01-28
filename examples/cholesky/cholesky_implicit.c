@@ -26,6 +26,7 @@
 
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
+#include <starpu_data_maxime.h>
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
@@ -131,7 +132,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	double timing = end - start;
 
 	double flop = FLOPS_SPOTRF(nx);
-
+	
 	if(with_ctxs_p || with_noctxs_p || chole1_p || chole2_p)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
 	else
@@ -343,7 +344,6 @@ int main(int argc, char **argv)
         STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	//starpu_fxt_stop_profiling();
-
 	init_sizes();
 
 	parse_args(argc, argv);
@@ -362,6 +362,8 @@ int main(int argc, char **argv)
 #endif
 
 	starpu_cublas_init();
+	
+	if (starpu_get_env_number_default("BELADY",0) == 1) { starpu_data_register_victim_selector(belady_victim_selector); }
 
 	if(with_ctxs_p)
 	{
