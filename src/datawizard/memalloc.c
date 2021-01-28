@@ -716,6 +716,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	    /* unlock the tree */
 	    unlock_all_subtree(handle);
 	}
+	if (freed ==1 && starpu_get_env_number_default("PRINTF",0) == 1) { printf("Eviction dans try_to_throw_mem_chunk de %p\n",handle); }
 	return freed;
 }
 
