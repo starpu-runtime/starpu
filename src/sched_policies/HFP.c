@@ -237,6 +237,16 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 	return a; 	
 }
 
+static void get_weight_all_different_data(struct my_list *a, starpu_ssize_t GPU_RAM_M)
+{
+	printf("Taille de la matrice : %d\n",GPU_RAM_M);
+	long int weight_all_different_data = 0;
+	for (int i = 0; i < a->package_nb_data; i++) {
+		weight_all_different_data += starpu_data_get_size(a->package_data[i]); 
+	}
+	printf("Poids de toutes les données différentes : %li\n",weight_all_different_data);
+}
+
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
 static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
 {
@@ -1075,6 +1085,8 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			get_ordre_utilisation_donnee(data->first_link, NB_TOTAL_DONNEES);
 		}
 		
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->first_link, GPU_RAM_M); }
+		
 		/* We pop the first task of the first package */
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 		task1 = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);
@@ -1371,7 +1383,9 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 							//~ }
 						}
 					}
-					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) { printf("error\n"); exit(0); }
+					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) { 
+						return STARPU_DATA_NO_VICTIM;  
+					}
 					
 					if (last_evicted != data_on_node[donnee_utilise_dans_le_plus_longtemps]) { 
 						if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("---\nLa tâche en cours est %p, position %d dans le tableau d'ordre des données\n",task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
@@ -1397,7 +1411,10 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 				}
 			}
 	}
-	else { if (starpu_get_env_number_default("PRINTF",0) == 1) { TEST++; printf("On est sur la dernière tâche il faudrait sortir la %d\n",TEST); return NULL; } }
+	else { if (starpu_get_env_number_default("PRINTF",0) == 1) { TEST++; printf("On est sur la dernière tâche il faudrait sortir la %d\n",TEST); 
+		return NULL;
+		//~ return STARPU_DATA_NO_VICTIM;
+		 } }
 	} else { if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("task current = null\n"); } }
 
 	/* Uh :/ */
