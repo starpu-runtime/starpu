@@ -383,6 +383,26 @@ void starpu_arbiter_destroy(starpu_arbiter_t arbiter);
 int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node);
 
 /**
+   Prefetch levels
+
+   Data requests are ordered by priorities, but also by prefetching level,
+   between data that a task wants now, and data that we will probably want
+   "soon".
+*/
+enum starpu_is_prefetch
+{
+	/** A task really needs it now! */
+	STARPU_FETCH = 0,
+	/** A task will need it soon */
+	STARPU_TASK_PREFETCH = 1,
+	/** It is a good idea to have it asap */
+	STARPU_PREFETCH = 2,
+	/** Get this here when you have time to */
+	STARPU_IDLEFETCH = 3,
+	STARPU_NFETCH
+};
+
+/**
    Issue a fetch request for the data \p handle to \p node, i.e.
    requests that the data be replicated to the given node as soon as possible, so that it is
    available there for tasks. If \p async is 0, the call will
@@ -535,7 +555,7 @@ void *starpu_data_get_user_data(starpu_data_handle_t handle);
 /**
   Check whether data \p handle can be evicted now from node \p node
 */
-int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node);
+int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch);
 
 /**
    Type for a data victim selector
@@ -543,7 +563,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node);
    This is the type of function to be registered with
    starpu_data_register_victim_selector().
 */
-typedef starpu_data_handle_t starpu_data_victim_selector(unsigned node);
+typedef starpu_data_handle_t starpu_data_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch);
 
 /**
    Register a data victim selector.

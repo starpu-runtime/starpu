@@ -404,7 +404,7 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 /* handle->lock should be taken. r is returned locked. The node parameter
  * indicate either the source of the request, or the destination for a
  * write-only request. */
-static struct _starpu_data_request *_starpu_search_existing_data_request(struct _starpu_data_replicate *replicate, unsigned node, enum starpu_data_access_mode mode, enum _starpu_is_prefetch is_prefetch)
+static struct _starpu_data_request *_starpu_search_existing_data_request(struct _starpu_data_replicate *replicate, unsigned node, enum starpu_data_access_mode mode, enum starpu_is_prefetch is_prefetch)
 {
 	struct _starpu_data_request *r;
 
@@ -467,7 +467,7 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
-								  enum starpu_data_access_mode mode, enum _starpu_is_prefetch is_prefetch,
+								  enum starpu_data_access_mode mode, enum starpu_is_prefetch is_prefetch,
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
@@ -525,7 +525,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			{
 				if (is_prefetch == STARPU_TASK_PREFETCH)
 					/* Make sure it stays there */
-					dst_replicate->mc->nb_tasks_prefetch++;
+					dst_replicate->nb_tasks_prefetch++;
 
 				_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
 			}
@@ -573,9 +573,14 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch) == 0)
 			{
 				_starpu_update_data_state(handle, dst_replicate, mode);
-				if (is_prefetch == STARPU_TASK_PREFETCH)
-					/* Make sure it stays there */
-					dst_replicate->mc->nb_tasks_prefetch++;
+				if (dst_replicate->mc)
+				{
+					if (is_prefetch == STARPU_TASK_PREFETCH)
+						/* Make sure it stays there */
+						dst_replicate->nb_tasks_prefetch++;
+
+					_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
+				}
 
 				_starpu_spin_unlock(&handle->header_lock);
 
@@ -729,7 +734,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 }
 
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *dst_replicate,
-			       enum starpu_data_access_mode mode, unsigned detached, enum _starpu_is_prefetch is_prefetch, unsigned async,
+			       enum starpu_data_access_mode mode, unsigned detached, enum starpu_is_prefetch is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
         _STARPU_LOG_IN();
@@ -907,7 +912,7 @@ static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handl
 	_starpu_spin_unlock(&handle->header_lock);
 }
 
-int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum _starpu_is_prefetch prefetch)
+int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum starpu_is_prefetch prefetch)
 {
 #ifdef STARPU_OPENMP
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
@@ -1202,7 +1207,6 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		_starpu_spin_lock(&handle->header_lock);
 		if (local_replicate->mc)
 		{
-			local_replicate->mc->diduse = 1;
 			if (task->prefetched && local_replicate->initialized &&
 				/* See prefetch conditions in
 				 * starpu_prefetch_task_input_on_node_prio and alike */
@@ -1214,8 +1218,8 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 				 * Now that we added a reference for the task, we can relieve that.  */
 				/* Note: the replicate might have been evicted in between, thus not 100% sure
 				 * that our prefetch request is still recorded here.  */
-				if (local_replicate->mc->nb_tasks_prefetch > 0)
-					local_replicate->mc->nb_tasks_prefetch--;
+				if (local_replicate->nb_tasks_prefetch > 0)
+					local_replicate->nb_tasks_prefetch--;
 			}
 		}
 		_starpu_spin_unlock(&handle->header_lock);

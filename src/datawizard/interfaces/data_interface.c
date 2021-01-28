@@ -354,6 +354,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		replicate->memory_node = node;
 		//replicate->relaxed_coherency = 0;
 		//replicate->refcnt = 0;
+		//replicate->nb_tasks_prefetch = 0;
 
 		if ((int) node == home_node)
 		{
@@ -404,23 +405,24 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_data_replicate *replicate;
-		unsigned node;
+		//unsigned node;
 		replicate = &handle->per_worker[worker];
-		replicate->allocated = 0;
-		replicate->automatically_allocated = 0;
+		//replicate->allocated = 0;
+		//replicate->automatically_allocated = 0;
 		replicate->state = STARPU_INVALID;
-		replicate->refcnt = 0;
+		//replicate->refcnt = 0;
 		replicate->handle = handle;
-		replicate->requested = 0;
+		//replicate->requested = 0;
+		//replicate->nb_tasks_prefetch = 0;
 
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			replicate->request[node] = NULL;
-		}
+		//for (node = 0; node < STARPU_MAXNODES; node++)
+		//{
+		//	replicate->request[node] = NULL;
+		//}
 
 		/* Assuming being used for SCRATCH for now, patched when entering REDUX mode */
 		replicate->relaxed_coherency = 1;
-		replicate->initialized = 0;
+		//replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
 
 		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
