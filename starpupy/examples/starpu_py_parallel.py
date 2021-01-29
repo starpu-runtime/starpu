@@ -15,6 +15,7 @@
 #
 import starpu
 import starpu.joblib
+from starpu import starpupy
 import time
 import asyncio
 from math import sqrt
@@ -348,3 +349,5 @@ starpu.perfmodel_plot(perfmodel="func",view=displayPlot)
 
 starpu.perfmodel_plot(perfmodel="log_list",view=displayPlot)
 starpu.perfmodel_plot(perfmodel="log_arr",view=displayPlot)
+
+starpupy.shutdown()

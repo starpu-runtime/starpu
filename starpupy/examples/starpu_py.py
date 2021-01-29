@@ -13,9 +13,12 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+from math import sqrt
 import starpu
+from starpu import starpupy
 import time
 import asyncio
+
 
 ############################################################################
 #function no input no output print hello world
@@ -120,7 +123,7 @@ async def main():
     print("The result of function add is :", res4)
 
 	#submit function "sub" but only provide function name
-    fut5 = starpu.task_submit()("sub", 6, 2, 5.9)
+    fut5 = starpu.task_submit()(sub, 6, 2, 5.9)
     res5 = await fut5
     print("The result of function sub is:", res5)
 
@@ -135,7 +138,11 @@ async def main():
     print("The first argument of this function is the result of Example 8")
     print("The result of function is", res7)
 
+    fut8 = starpu.task_submit()("sqrt", 4)
+    res8 = await fut8
+    print("The result of function sqrt is:", res8)
+
 asyncio.run(main())
 
-
+starpupy.shutdown()
 #starpu.task_wait_for_all()
