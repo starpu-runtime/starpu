@@ -61,6 +61,7 @@ int main(int argc, char **argv)
 		|| starpu_mic_worker_get_count() != 0
 		|| starpu_mpi_ms_worker_get_count() != 0)
 	{
+		starpu_shutdown();
 		fprintf(stderr, "example needs exactly two cpu cores.\n");
 		return 77;
 	}
