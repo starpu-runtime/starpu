@@ -378,6 +378,7 @@ void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 {
 	_mpi_backend._starpu_mpi_backend_data_clear(data_handle);
 	_starpu_mpi_cache_data_clear(data_handle);
+	_starpu_spin_destroy(&((struct _starpu_mpi_data*) data_handle->mpi_data)->coop_lock);
 	free(data_handle->mpi_data);
 	data_handle->mpi_data = NULL;
 }
