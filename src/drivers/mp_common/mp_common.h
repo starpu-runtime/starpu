@@ -139,6 +139,9 @@ struct mp_task
 	void **interfaces;
 	unsigned nb_interfaces;
 	void *cl_arg;
+	unsigned cl_arg_size;
+	void *cl_ret;
+	unsigned cl_ret_size;
 	unsigned coreid;
 	enum starpu_codelet_type type;
 	int is_parallel_task;

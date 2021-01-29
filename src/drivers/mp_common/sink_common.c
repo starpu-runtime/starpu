@@ -511,7 +511,7 @@ static void _starpu_sink_common_pre_execution_message(struct _starpu_mp_node *no
 	_starpu_sink_common_append_message(node, message);
 }
 
-/* Append to the message list a "STARPU_EXECUTION_COMPLETED" message
+/* Append to the message list a "STARPU_EXECUTION_COMPLETED" message and cl_ret
  */
 static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_node *node, struct mp_task *task)
 {
@@ -521,9 +521,22 @@ static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_no
 		message->type = STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED;
 	else
 		message->type = STARPU_MP_COMMAND_EXECUTION_COMPLETED;
-	_STARPU_MALLOC(message->buffer, sizeof(int));
-	*(int*) message->buffer = task->coreid;
+
 	message->size = sizeof(int);
+
+	/* If the user didn't give any cl_ret, there is no need to send it */
+	 if (task->cl_ret)
+	 {
+	 	STARPU_ASSERT(task->cl_ret_size);
+	 	message->size += task->cl_ret_size;
+	 }
+
+	_STARPU_MALLOC(message->buffer, message->size);
+
+	*(int*) message->buffer = task->coreid;
+
+	 if (task->cl_ret)
+	 	memcpy( message->buffer+sizeof(int), task->cl_ret, task->cl_ret_size);
 
 	/* Append the message to the queue */
 	_starpu_sink_common_append_message(node, message);
@@ -602,8 +615,21 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 	{
 		if (_starpu_get_disable_kernels() <= 0)
 		{
+			struct starpu_task s_task;
+			starpu_task_init(&s_task);
+
+			/*copy cl_arg and cl_arg_size from mp_task into starpu_task*/
+			(&s_task)->cl_arg=task->cl_arg;
+			(&s_task)->cl_arg_size=task->cl_arg_size;
+
+			_starpu_set_current_task(&s_task);
 			/* execute the task */
 			task->kernel(task->interfaces,task->cl_arg);
+			_starpu_set_current_task(NULL);
+
+			/*copy cl_ret and cl_ret_size from starpu_task into mp_task*/
+			task->cl_ret=(&s_task)->cl_ret;
+			task->cl_ret_size=(&s_task)->cl_ret_size;
 		}
 	}
 
@@ -756,6 +782,7 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node, void *arg, int ar
 		unsigned cl_arg_size = arg_size - (arg_ptr - (uintptr_t) arg);
 		_STARPU_MALLOC(task->cl_arg, cl_arg_size);
 		memcpy(task->cl_arg, (void *) arg_ptr, cl_arg_size);
+		task->cl_arg_size=cl_arg_size;
 	}
 	else
 		task->cl_arg = NULL;
