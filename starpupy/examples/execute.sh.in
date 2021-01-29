@@ -24,15 +24,16 @@ LOADER=@PYTHON@
 
 read_arg()
 {
+    do_shift=0
     if test "$1" == "--valgrind"
     then
 	export PYTHONMALLOC=malloc
 	LOADER="valgrind --track-origins=yes @PYTHON@"
-	if test "$2" = "shift" ; then shift ; fi
+	do_shift=1
     elif test "$1" == "--gdb"
     then
 	LOADER="gdb --args @PYTHON@"
-	if test "$2" = "shift" ; then shift ; fi
+	do_shift=1
     elif test "$1" == "--mpirun"
     then
 	if test "$MPI_LAUNCHER"
@@ -41,12 +42,17 @@ read_arg()
 	else
 	    LOADER="mpiexec -np 2 @PYTHON@"
 	fi
-	if test "$2" = "shift" ; then shift ; fi
+	do_shift=1
     fi
 }
-for x in $@
+
+for x in $*
 do
-    read_arg $x "shift"
+    read_arg $x
+    if test $do_shift == 1
+    then
+	shift
+    fi
 done
 for x in $LOADER_ARGS
 do
