@@ -1232,7 +1232,7 @@ int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *co
 
 int starpu_data_peek_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
-	STARPU_ASSERT_MSG(handle->ops->peek_data, "The datatype interface %s (%d) does not have an peek operation", handle->ops->name, handle->ops->interfaceid);
+	STARPU_ASSERT_MSG(handle->ops->peek_data, "The datatype interface %s (%d) does not have a peek operation", handle->ops->name, handle->ops->interfaceid);
 	int ret;
 	ret = handle->ops->peek_data(handle, node, ptr, count);
 	return ret;
