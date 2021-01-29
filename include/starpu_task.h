@@ -770,6 +770,24 @@ struct starpu_task
 	size_t cl_arg_size;
 
 	/**
+	   Optional pointer which points to the return value of submitted task.
+	   The default value is <c>NULL</c>. starpu_codelet_pack_arg() 
+	   and starpu_codelet_unpack_arg() can be used to respectively
+	   pack and unpack the return value into and form it. starpu_task::cl_ret 
+	   can be used for MPI support. The only requirement is that
+	   the size of the return value must be set in starpu_task::cl_ret_size .
+	*/
+	void *cl_ret;
+
+	/**
+	   Optional field. The buffer of starpu_codelet_pack_arg() 
+	   and starpu_codelet_unpack_arg() can be allocated with 
+	   the starpu_task::cl_ret_size bytes starting at address starpu_task::cl_ret.
+	   starpu_task::cl_ret_size can be used for MPI supoort.
+	*/
+	size_t cl_ret_size;
+
+	/**
 	   Optional field, the default value is <c>NULL</c>. This is a
 	   function pointer of prototype <c>void (*f)(void *)</c>
 	   which specifies a possible callback. If this pointer is
@@ -853,6 +871,14 @@ struct starpu_task
 	   ::STARPU_CL_ARGS.
 	*/
 	unsigned cl_arg_free:1;
+
+	/**
+	   Optional field. In case starpu_task::cl_ret was allocated
+	   by the application through <c>malloc()</c>, setting
+	   starpu_task::cl_ret_free to 1 makes StarPU automatically
+	   call <c>free(cl_ret)</c> when destroying the task.
+	*/
+	unsigned cl_ret_free:1;
 
 	/**
 	   Optional field. In case starpu_task::callback_arg was
@@ -1264,6 +1290,8 @@ struct starpu_task
 	.where = -1,					\
 	.cl_arg = NULL,					\
 	.cl_arg_size = 0,				\
+	.cl_ret = NULL,					\
+	.cl_ret_size = 0,				\
 	.callback_func = NULL,				\
 	.callback_arg = NULL,				\
 	.priority = STARPU_DEFAULT_PRIO,		\

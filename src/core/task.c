@@ -383,6 +383,10 @@ void _starpu_task_destroy(struct starpu_task *task)
 		if (task->cl_arg_free)
 			free(task->cl_arg);
 
+		/* Does user want StarPU release cl_ret ? */
+		if (task->cl_ret_free)
+			free(task->cl_ret);
+
 		/* Does user want StarPU release callback_arg ? */
 		if (task->callback_arg_free)
 			free(task->callback_arg);
