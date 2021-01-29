@@ -106,7 +106,6 @@ static int _starpu_src_common_process_completed_job(struct _starpu_mp_node *node
 	{
 		/* Copy cl_ret into the task */
 		unsigned cl_ret_size = arg_size - (arg_ptr - (uintptr_t) arg);
-		printf("cl_ret_size in master is %d\n", cl_ret_size);
 		_STARPU_MALLOC(task->cl_ret, cl_ret_size);
 		memcpy(task->cl_ret, (void *) arg_ptr, cl_ret_size);
 	}
