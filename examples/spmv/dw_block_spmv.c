@@ -344,5 +344,7 @@ int main(STARPU_ATTRIBUTE_UNUSED int argc,
 	FPRINTF(stderr, "Flop %e\n", totalflop);
 	FPRINTF(stderr, "GFlops : %2.2f\n", totalflop/timing/1000);
 
+	starpu_shutdown();
+
 	return 0;
 }
