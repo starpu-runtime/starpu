@@ -58,7 +58,7 @@ static char* starpu_cloudpickle_dumps(PyObject *obj, PyObject **obj_bytes, Py_ss
 
 static PyObject* starpu_cloudpickle_loads(char* pyString, Py_ssize_t pyString_size)
 {
-	PyObject *cloudpickle_module = PyImport_ImportModule("cloudpickle");
+	PyObject *cloudpickle_module = PyImport_ImportModule("pickle");
 	PyObject *loads = PyObject_GetAttrString(cloudpickle_module, "loads");
 	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(pyString, pyString_size);
 	PyObject *obj = PyObject_CallFunctionObjArgs(loads, obj_bytes_str, NULL);
