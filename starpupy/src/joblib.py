@@ -94,7 +94,7 @@ def future_generator(iterable, n_jobs, dict_task):
 		# the function is always the first element
 		f=iterable[0]
 		# get the name of formal arguments of f
-		formal_args=inspect.getargspec(f).args
+		formal_args=inspect.getfullargspec(f).args
 		# get the arguments list
 		args=[]
 		# argument is arbitrary in iterable[1]
