@@ -346,8 +346,20 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 		if (req->registered_datatype == 0)
 		{
 			if (req->request_type == RECV_REQ)
-				starpu_data_peek_node(req->data_handle, req->node, req->ptr, req->count);
-			starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
+			{
+				if (starpu_data_get_interface_ops(req->data_handle)->peek_data)
+				{
+					starpu_data_peek_node(req->data_handle, req->node, req->ptr, req->count);
+					starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
+				}
+				else
+				{
+					// req->ptr is freed by starpu_data_unpack
+					starpu_data_unpack_node(req->data_handle, req->node, req->ptr, req->count);
+				}
+			}
+			else
+				starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
 		}
 		else
 		{
