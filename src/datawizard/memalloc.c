@@ -890,9 +890,6 @@ restart:
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
 			continue;
-		if (is_prefetch >= STARPU_TASK_PREFETCH && mc->data->per_node[node].nb_tasks_prefetch)
-			/* Do not evict something that we will reuse, just for a task prefetch */
-			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
 			continue;
