@@ -890,9 +890,6 @@ restart:
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
 			continue;
-		if (!mc->wontuse && is_prefetch >= STARPU_PREFETCH)
-			/* Do not evict something that we might reuse, just for a prefetch */
-			continue;
 		if (is_prefetch >= STARPU_TASK_PREFETCH && mc->data->per_node[node].nb_tasks_prefetch)
 			/* Do not evict something that we will reuse, just for a task prefetch */
 			continue;
