@@ -27,19 +27,6 @@
 #include <numpy/arrayobject.h>
 #endif
 
-/*macro*/
-#if defined(Py_DEBUG) || defined(DEBUG)
-extern void _Py_CountReferences(FILE*);
-#define CURIOUS(x) { fprintf(stderr, __FILE__ ":%d ", __LINE__); x; }
-#else
-#define CURIOUS(x)
-#endif
-#define MARKER()        CURIOUS(fprintf(stderr, "\n"))
-#define DESCRIBE(x)     CURIOUS(fprintf(stderr, "  " #x "=%d\n", x))
-#define DESCRIBE_HEX(x) CURIOUS(fprintf(stderr, "  " #x "=%08x\n", x))
-#define COUNTREFS()     CURIOUS(_Py_CountReferences(stderr))
-/*******/
-
 /*********************Functions passed in task_submit wrapper***********************/
 
 static PyObject *asyncio_module; /*python asyncio module*/
@@ -47,6 +34,10 @@ static PyObject *asyncio_module; /*python asyncio module*/
 static char* starpu_cloudpickle_dumps(PyObject *obj, PyObject **obj_bytes, Py_ssize_t *obj_data_size)
 {
 	PyObject *cloudpickle_module = PyImport_ImportModule("cloudpickle");
+	if (cloudpickle_module == NULL) {
+        printf("can't find cloudpickle module\n");
+		exit(1);
+    }
 	PyObject *dumps = PyObject_GetAttrString(cloudpickle_module, "dumps");
 	*obj_bytes= PyObject_CallFunctionObjArgs(dumps, obj, NULL);
 
@@ -58,8 +49,12 @@ static char* starpu_cloudpickle_dumps(PyObject *obj, PyObject **obj_bytes, Py_ss
 
 static PyObject* starpu_cloudpickle_loads(char* pyString, Py_ssize_t pyString_size)
 {
-	PyObject *cloudpickle_module = PyImport_ImportModule("pickle");
-	PyObject *loads = PyObject_GetAttrString(cloudpickle_module, "loads");
+	PyObject *pickle_module = PyImport_ImportModule("pickle");
+	if (pickle_module == NULL) {
+        printf("can't find pickle module\n");
+		exit(1);
+    }
+	PyObject *loads = PyObject_GetAttrString(pickle_module, "loads");
 	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(pyString, pyString_size);
 	PyObject *obj = PyObject_CallFunctionObjArgs(loads, obj_bytes_str, NULL);
 
