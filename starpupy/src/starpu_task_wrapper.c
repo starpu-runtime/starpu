@@ -663,7 +663,9 @@ static PyObject* starpu_task_nsubmitted_wrapper(PyObject *self, PyObject *args)
 static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 {
 	/*call starpu_shutdown method*/
+	Py_BEGIN_ALLOW_THREADS
 	starpu_shutdown();
+	Py_END_ALLOW_THREADS
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
