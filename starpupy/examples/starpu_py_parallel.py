@@ -126,7 +126,7 @@ N=100
 # b=np.arange(N, 2*N, 1)
 
 displayPlot=False
-listX=[10, 100, 1000, 10000]
+listX=[10, 100]
 for arg in sys.argv[1:]:
         if arg == "-long":
                 listX = [10, 100, 1000, 10000, 100000, 1000000, 10000000]
@@ -135,7 +135,7 @@ for arg in sys.argv[1:]:
 
 for x in listX:
 	for X in range(x, x*10, x):
-		print("X=",X)
+		#print("X=",X)
 		starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_list")(starpu.joblib.delayed(log10)(i+1)for i in range(X))
 		A=np.arange(1,X+1,1)
 		starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_arr")(starpu.joblib.delayed(log10_arr)(A))
