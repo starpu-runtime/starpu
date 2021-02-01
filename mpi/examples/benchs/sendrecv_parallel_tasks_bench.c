@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -75,11 +75,11 @@ void cpu_task(void* descr[], void* args)
 		if (mpi_rank == 0)
 		{
 			starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
-			starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, NULL);
+			starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		}
 		else
 		{
-			starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, NULL);
+			starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
 		}
 	}
@@ -90,14 +90,14 @@ void cpu_task(void* descr[], void* args)
 		{
 			t1 = starpu_timing_now();
 			starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
-			starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, NULL);
+			starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			t2 = starpu_timing_now();
 
 			lats[j] =  (t2 - t1) / 2;
 		}
 		else
 		{
-			starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, NULL);
+			starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 			starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
 		}
 	}
