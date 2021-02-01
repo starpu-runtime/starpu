@@ -955,12 +955,6 @@ restart:
 		if (victim && mc->data != victim)
 			/* We were advised some precise data */
 			continue;
-		if (!mc->wontuse && is_prefetch >= STARPU_PREFETCH)
-			/* Do not evict something that we might reuse, just for a prefetch */
-			continue;
-		if (is_prefetch >= STARPU_TASK_PREFETCH && mc->data->per_node[node].nb_tasks_prefetch)
-			/* Do not evict something that we will reuse, just for a task prefetch */
-			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
 			continue;
@@ -1614,7 +1608,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 
 			if (is_prefetch >= STARPU_IDLEFETCH)
 			{
-				/* It's just prefetch, don't bother existing allocations */
+				/* It's just idle fetch, don't bother existing allocations */
 				/* And don't bother tracing allocation attempts */
 				prefetch_out_of_memory[dst_node] = 1;
 				/* TODO: ideally we should not even try to allocate when we know we have not freed anything */
@@ -1640,10 +1634,20 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			}
 			/* That was not enough, we have to really reclaim */
 			_STARPU_TRACE_START_MEMRECLAIM(dst_node,is_prefetch);
-			_starpu_memory_reclaim_generic(dst_node, 0, reclaim, is_prefetch);
+			freed = _starpu_memory_reclaim_generic(dst_node, 0, reclaim, is_prefetch);
 			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
+
+			if (!freed && is_prefetch >= STARPU_FETCH)
+			{
+				/* It's just prefetch, don't bother tracing allocation attempts */
+				prefetch_out_of_memory[dst_node] = 1;
+				/* TODO: ideally we should not even try to allocate when we know we have not freed anything */
+				continue;
+			}
+
 			prefetch_out_of_memory[dst_node] = 0;
-		} else
+		}
+		else
 			prefetch_out_of_memory[dst_node] = 0;
 	}
 	while((allocated_memory == -ENOMEM) && attempts++ < 2);
