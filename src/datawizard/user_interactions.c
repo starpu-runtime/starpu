@@ -28,6 +28,12 @@ static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum sta
 	if (!(mode & STARPU_R))
 		return;
 
+	if (((handle->nplans && !handle->nchildren) || handle->siblings)
+		&& handle->partition_automatic_disabled == 0)
+	{
+		_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
+	}
+
 	if (!handle->initialized && handle->init_cl)
 	{
 		int ret = starpu_task_insert(handle->init_cl, STARPU_W, handle, 0);
