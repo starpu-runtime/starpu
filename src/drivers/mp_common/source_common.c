@@ -108,6 +108,7 @@ static int _starpu_src_common_process_completed_job(struct _starpu_mp_node *node
 		unsigned cl_ret_size = arg_size - (arg_ptr - (uintptr_t) arg);
 		_STARPU_MALLOC(task->cl_ret, cl_ret_size);
 		memcpy(task->cl_ret, (void *) arg_ptr, cl_ret_size);
+		task->cl_ret_size=cl_ret_size;
 	}
 	else
 		task->cl_ret = NULL;
