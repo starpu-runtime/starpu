@@ -1612,7 +1612,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			}
 			reclaim -= freed;
 
-			if (is_prefetch)
+			if (is_prefetch >= STARPU_IDLEFETCH)
 			{
 				/* It's just prefetch, don't bother existing allocations */
 				/* And don't bother tracing allocation attempts */
