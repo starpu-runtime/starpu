@@ -68,8 +68,8 @@ int main(int argc, char **argv)
 		// We want handle0 to be received as early_data and as starpu_mpi_data_register() has not be called, it will be received as raw memory, and then unpacked with MPI_Unpack()
 		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle0 init value", strlen("node1 handle0 init value")+1, STARPU_R, handle0, 0);
 		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle1 init value", strlen("node1 handle1 init value")+1, STARPU_R, handle1, 0);
-		starpu_mpi_recv(handle1, 0, 20, MPI_COMM_WORLD, NULL);
-		starpu_mpi_recv(handle0, 0, 10, MPI_COMM_WORLD, NULL);
+		starpu_mpi_recv(handle1, 0, 20, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		starpu_mpi_recv(handle0, 0, 10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle0 received value", strlen("node1 handle0 received value")+1, STARPU_R, handle0, 0);
 		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle1 received value", strlen("node1 handle1 received value")+1, STARPU_R, handle1, 0);
 	}
