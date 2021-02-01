@@ -191,6 +191,8 @@ int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, starpu_mpi_
    Perform a standard-mode, blocking receive in \p data_handle from
    the node \p source using the message tag \p data_tag within the
    communicator \p comm.
+   The value of \p status cannot be NULL, use the predefined value
+   MPI_STATUS_IGNORE to ignore the status.
 */
 int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, MPI_Status *status);
 
@@ -271,6 +273,8 @@ int starpu_mpi_issend_detached_prio(starpu_data_handle_t data_handle, int dest, 
 
 /**
    Return when the operation identified by request \p req is complete.
+   The value of \p status cannot be NULL, use the predefined value
+   MPI_STATUS_IGNORE to ignore the status.
 */
 int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status);
 

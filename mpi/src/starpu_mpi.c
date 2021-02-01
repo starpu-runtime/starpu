@@ -214,6 +214,8 @@ int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_h
 
 int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, MPI_Status *status)
 {
+	STARPU_ASSERT_MSG(status != NULL || status == MPI_STATUS_IGNORE, "MPI_Status value cannot be NULL or different from MPI_STATUS_IGNORE");
+
 	starpu_mpi_req req;
 
 	_STARPU_MPI_LOG_IN();
@@ -227,6 +229,7 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag
 
 int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 {
+	STARPU_ASSERT_MSG(status != NULL || status == MPI_STATUS_IGNORE, "MPI_Status value cannot be NULL or different from MPI_STATUS_IGNORE");
 	return _starpu_mpi_wait(public_req, status);
 }
 
