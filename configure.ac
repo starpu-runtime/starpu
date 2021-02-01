@@ -3430,7 +3430,13 @@ then
 	AC_PYTHON_MODULE(joblib,[joblib_avail=yes],[joblib_avail=no])
 	AC_MSG_RESULT($joblib_avail)
 	if test "$joblib_avail" = "no" ; then
-		AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface])
+		AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface (consider running 'pip3 install joblib')])
+	fi
+	AC_MSG_CHECKING(for python3 module cloudpickle)
+	AC_PYTHON_MODULE(cloudpickle,[cloudpickle_avail=yes],[cloudpickle_avail=no])
+	AC_MSG_RESULT($cloudpickle_avail)
+	if test "$cloudpickle_avail" = "no" ; then
+		AC_MSG_ERROR([python3 module cloudpickle missing, cannot build StarPU python interface (consider running 'pip3 install cloudpickle')])
 	fi
 	AC_MSG_CHECKING(for python3 module numpy)
 	AC_PYTHON_MODULE(numpy,[numpy_avail=yes],[numpy_avail=no])
