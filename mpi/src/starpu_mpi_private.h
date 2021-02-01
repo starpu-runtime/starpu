@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -187,6 +187,8 @@ MULTILIST_CREATE_TYPE(_starpu_mpi_req, coop_sends)
 /** One bag of cooperative sends */
 struct _starpu_mpi_coop_sends
 {
+	starpu_data_handle_t data_handle;
+
 	/** List of send requests */
 	struct _starpu_mpi_req_multilist_coop_sends reqs;
 	struct _starpu_mpi_data *mpi_data;
@@ -225,13 +227,14 @@ LIST_TYPE(_starpu_mpi_req,
 	starpu_data_handle_t data_handle;
 
 	int prio;
+	unsigned node;	/* Which StarPU memory node this will read from / write to */
 
 	/** description of the data to be sent/received */
 	MPI_Datatype datatype;
 	char *datatype_name;
 	void *ptr;
 	starpu_ssize_t count;
-	int registered_datatype;
+	int registered_datatype; // = 0: datatype is not predefined by StarPU; = 1: otherwise; initialized with -1
 
 	struct _starpu_mpi_req_backend *backend;
 
@@ -318,6 +321,9 @@ struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_hand
 						  starpu_ssize_t count);
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
+
+int _starpu_mpi_choose_node(starpu_data_handle_t data_handle, enum starpu_data_access_mode mode);
+
 void _starpu_mpi_data_flush(starpu_data_handle_t data_handle);
 
 struct _starpu_mpi_argc_argv

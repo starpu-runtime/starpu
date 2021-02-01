@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,7 +62,7 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		MPI_Datatype mpi_datatype;
-		_starpu_my_data_datatype_allocate(&mpi_datatype);
+		_starpu_my_data_datatype_allocate(STARPU_MAIN_RAM, &mpi_datatype);
 		MPI_Send(&my0, 1, mpi_datatype, 1, 42, MPI_COMM_WORLD);
 		starpu_my_data_datatype_free(&mpi_datatype);
 	}
@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 		MPI_Datatype mpi_datatype;
 		MPI_Status status;
 		struct starpu_my_data myx;
-		_starpu_my_data_datatype_allocate(&mpi_datatype);
+		_starpu_my_data_datatype_allocate(STARPU_MAIN_RAM, &mpi_datatype);
 		MPI_Recv(&myx, 1, mpi_datatype, 0, 42, MPI_COMM_WORLD, &status);
 		FPRINTF(stderr, "[mpi] Received value: '%c' %d\n", myx.c, myx.d);
 		starpu_my_data_datatype_free(&mpi_datatype);

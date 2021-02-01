@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -201,7 +201,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 									unsigned donotread,
 									struct _starpu_data_request *req,
 									unsigned may_alloc,
-									enum _starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED)
+									enum starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED)
 {
 	if (!donotread)
 	{

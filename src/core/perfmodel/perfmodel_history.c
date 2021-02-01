@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -1591,11 +1591,17 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 
 	if(comb == -1)
 		goto docal;
+
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 	if (model->state->per_arch[comb] == NULL)
+	{
 		// The model has not been executed on this combination
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 		goto docal;
+	}
 
 	regmodel = &model->state->per_arch[comb][nimpl].regression;
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 
 	if (regmodel->valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
                 exp = regmodel->alpha*pow((double)size, regmodel->beta);
@@ -1627,21 +1633,28 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1)
 		goto docal;
+
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 	if (model->state->per_arch[comb] == NULL)
+	{
 		// The model has not been executed on this combination
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 		goto docal;
+	}
 
 	regmodel = &model->state->per_arch[comb][nimpl].regression;
 
 	if (regmodel->nl_valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
+	{
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
+	}
 	else
 	{
 		uint32_t key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 		struct starpu_perfmodel_per_arch *per_arch_model = &model->state->per_arch[comb][nimpl];
 		struct starpu_perfmodel_history_table *history;
 
-		STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 		history = per_arch_model->history;
 		HASH_FIND_UINT32_T(history, &key, entry);
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
@@ -1678,10 +1691,16 @@ double _starpu_multiple_regression_based_job_expected_perf(struct starpu_perfmod
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 	if(comb == -1)
 		goto docal;
+
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 	if (model->state->per_arch[comb] == NULL)
+	{
 		// The model has not been executed on this combination
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 		goto docal;
+	}
 	reg_model = &model->state->per_arch[comb][nimpl].regression;
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 	if (reg_model->coeff == NULL)
 		goto docal;
 
@@ -1734,13 +1753,17 @@ double _starpu_history_based_job_expected_perf(struct starpu_perfmodel *model, s
 	key = _starpu_compute_buffers_footprint(model, arch, nimpl, j);
 	if(comb == -1)
 		goto docal;
+
+	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 	if (model->state->per_arch[comb] == NULL)
+	{
 		// The model has not been executed on this combination
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 		goto docal;
+	}
 
 	per_arch_model = &model->state->per_arch[comb][nimpl];
 
-	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
 	history = per_arch_model->history;
 	HASH_FIND_UINT32_T(history, &key, elt);
 	entry = (elt == NULL) ? NULL : elt->history_entry;

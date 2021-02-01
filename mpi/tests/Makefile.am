@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -85,8 +85,8 @@ endif
 
 AM_CFLAGS += -Wno-unused
 AM_CXXFLAGS += -Wno-unused
-AM_FFLAGS += -Wno-unused
-AM_FCFLAGS += -Wno-unused
+AM_FFLAGS += -Wno-unused -Wno-unused-dummy-argument
+AM_FCFLAGS += -Wno-unused -Wno-unused-dummy-argument
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/ $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(STARPU_CUDA_LDFLAGS)
@@ -261,3 +261,5 @@ mpi_earlyrecv2_SOURCES = mpi_earlyrecv2.c
 mpi_earlyrecv2_SOURCES += ../../examples/interface/complex_interface.c
 mpi_earlyrecv2_sync_SOURCES = mpi_earlyrecv2_sync.c
 mpi_earlyrecv2_sync_SOURCES += ../../examples/interface/complex_interface.c
+
+early_stuff_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)

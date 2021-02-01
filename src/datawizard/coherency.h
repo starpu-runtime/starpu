@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -81,6 +81,12 @@ struct _starpu_data_replicate
 	 */
 	uint32_t requested;
 	struct _starpu_data_request *request[STARPU_MAXNODES];
+
+	/** The number of prefetches that we made for this replicate for various tasks
+	 * This is also the number of tasks that we will wait to see use the mc before
+	 * we attempt to evict it.
+	 */
+	unsigned nb_tasks_prefetch;
 
         /** Pointer to memchunk for LRU strategy */
 	struct _starpu_mem_chunk * mc;
@@ -316,7 +322,7 @@ struct _starpu_data_state
  * async means that _starpu_fetch_data_on_node will wait for completion of the request
  */
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *replicate,
-			       enum starpu_data_access_mode mode, unsigned detached, enum _starpu_is_prefetch is_prefetch, unsigned async,
+			       enum starpu_data_access_mode mode, unsigned detached, enum starpu_is_prefetch is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 /** This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
@@ -363,7 +369,7 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
  */
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
-								  enum starpu_data_access_mode mode, enum _starpu_is_prefetch is_prefetch,
+								  enum starpu_data_access_mode mode, enum starpu_is_prefetch is_prefetch,
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 

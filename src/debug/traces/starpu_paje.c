@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2019  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -73,7 +73,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 							     "Size string",
 							     "Dest string");
 	}
-	_starpu_poti_MpiLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 2, "MPITAG string", "Handle string");
+	_starpu_poti_MpiLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 4, "MPITAG string", "MPIType string", "Priority string", "Handle string");
 #endif
 #else
 	poti_header(1,1);
@@ -232,6 +232,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	fprintf(file, "%%	StartContainer	string\n");
 	fprintf(file, "%%	Key	string\n");
 	fprintf(file, "%%	MPITAG	string\n");
+	fprintf(file, "%%	MPIType	string\n");
+	fprintf(file, "%%	Priority	string\n");
 	fprintf(file, "%%	Handle	string\n");
 	fprintf(file, "%%EndEventDef\n");
 	fprintf(file, "%%EventDef	PajeStartLink	24\n");

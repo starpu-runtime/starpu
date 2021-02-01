@@ -18,7 +18,7 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-AC_INIT([StarPU], [1.3.99], [starpu-devel@lists.gforge.inria.fr], [starpu], [http://gitlab.inria.fr/starpu/starpu])
+AC_INIT([StarPU], [1.3.99], [starpu-devel@inria.fr], [starpu], [http://gitlab.inria.fr/starpu/starpu])
 AC_CONFIG_SRCDIR(include/starpu.h)
 AC_CONFIG_AUX_DIR([build-aux])
 
@@ -87,6 +87,7 @@ AC_PROG_INSTALL
 AC_PROG_MKDIR_P
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
+AC_PATH_PROGS(PROG_FIND,find)
 
 dnl locate pkg-config
 PKG_PROG_PKG_CONFIG
@@ -589,8 +590,16 @@ if test x$enable_mpi = xyes ; then
 	    FCLAGS="$FFLAGS -fPIC"
         fi
     fi
+
+    enable_mpi_sync_clocks=no
+    PKG_CHECK_MODULES([MPI_SYNC_CLOCKS],[mpi_sync_clocks],[enable_mpi_sync_clocks=yes],[enable_mpi_sync_clocks=no])
+    if test x$enable_mpi_sync_clocks = xyes ; then
+	MPI_SYNC_CLOCKS_LDFLAGS="$(pkg-config --libs mpi_sync_clocks)"
+	MPI_SYNC_CLOCKS_CFLAGS="$(pkg-config --cflags mpi_sync_clocks)"
+    fi
 fi
 
+AM_CONDITIONAL(STARPU_MPI_SYNC_CLOCKS, test x$enable_mpi_sync_clocks = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI_MPI, test x$build_mpi_lib = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI_NMAD, test x$build_nmad_lib = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI, test x$build_nmad_lib = xyes -o x$build_mpi_lib = xyes)
@@ -624,12 +633,12 @@ if test x$enable_mpi = xyes -o x$build_mpi_master_slave = xyes ; then
     # issue.
 
     # openmpi version
-    MPICC_LDFLAGS=`$mpicc_path --showme:link`
+    MPICC_LDFLAGS=`$mpicc_path --showme:link 2>/dev/null`
 
     if test -z "$MPICC_LDFLAGS"
     then
 	# mpich version
-	MPICC_LDFLAGS=`$mpicc_path -cc='' -link_info`
+	MPICC_LDFLAGS=`$mpicc_path -link_info | awk '{$1=""; print}'`
     fi
     AC_SUBST(MPICC_LDFLAGS)
 else
@@ -681,7 +690,7 @@ AC_PATH_PROGS([STARPU_MS_LIB], [lib])
 AC_ARG_VAR([STARPU_MS_LIB], [Path to Microsoft's Visual Studio `lib' tool])
 AM_CONDITIONAL([STARPU_HAVE_MS_LIB], [test "x$STARPU_MS_LIB" != "x"])
 case "$target" in
-*-*-mingw*|*-*-cygwin*)
+*-*-mingw*|*-*-cygwin*|*-*-msys*)
   starpu_windows=yes
   libext=a
   AC_DEFINE(STARPU_HAVE_WINDOWS, [1], [Define this on windows.])
@@ -1985,22 +1994,35 @@ else
 	FCFLAGS="-O3 $FCFLAGS"
 fi
 
+AC_MSG_CHECKING(whether gdb information should be enabled)
+AC_ARG_ENABLE(gdb, [AS_HELP_STRING([--disable-gdb], [disable gdb information])],
+			enable_gdb=$enableval, enable_gdb=yes)
+AC_MSG_RESULT($enable_gdb)
+
 AC_MSG_CHECKING(whether full gdb information should be enabled)
 AC_ARG_ENABLE(full-gdb-information, [AS_HELP_STRING([--disable-full-gdb-information], [disable full gdb information])],
 			enable_full_gdb_information=$enableval, enable_full_gdb_information=yes)
 AC_MSG_RESULT($enable_full_gdb_information)
-if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
-	CFLAGS+=" -gdwarf-2 -g3"
-	CXXFLAGS+=" -gdwarf-2 -g3"
-	FFLAGS+=" -gdwarf-2 -g3"
-	FCFLAGS+=" -gdwarf-2 -g3"
-	LDFLAGS+=" -gdwarf-2 -g3"
+if test x$enable_gdb = xyes; then
+	if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
+		CFLAGS+=" -gdwarf-2 -g3"
+		CXXFLAGS+=" -gdwarf-2 -g3"
+		FFLAGS+=" -gdwarf-2 -g3"
+		FCFLAGS+=" -gdwarf-2 -g3"
+		LDFLAGS+=" -gdwarf-2 -g3"
+	else
+		CFLAGS+=" -g "
+		CXXFLAGS+=" -g "
+		FFLAGS+=" -g "
+		FCFLAGS+=" -g "
+		LDFLAGS+=" -g "
+	fi
 else
-	CFLAGS+=" -g "
-	CXXFLAGS+=" -g "
-	FFLAGS+=" -g "
-	FCFLAGS+=" -g "
-	LDFLAGS+=" -g "
+	CFLAGS+=" -g0 "
+	CXXFLAGS+=" -g0 "
+	FFLAGS+=" -g0 "
+	FCFLAGS+=" -g0 "
+	LDFLAGS+=" -g0 "
 fi
 
 if test x$enable_spinlock_check = xyes; then
@@ -3416,7 +3438,7 @@ AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples 
 
 starpupy_support=no
 AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU python interface])],
-                    enable_starpupy=$enableval, enable_starpupy=yes)
+                    enable_starpupy=$enableval, enable_starpupy=no)
 if test "x$enable_starpupy" != xno
 then
 	starpupy_support=yes
@@ -3580,11 +3602,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
-  chmod +x tools/starpu_trace_state_stats.py
   chmod +x starpupy/examples/execute.sh
-  for x in starpupy/examples/starpu_py.sh starpupy/examples/starpu_py_np.sh starpupy/examples/starpu_py_parallel.sh; do
-      test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
-  done
   chmod +x julia/examples/execute.sh
   for x in \
     tests/microbenchs/tasks_data_overhead.sh \
@@ -3632,6 +3650,9 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     julia/examples/axpy/axpy.sh \
     julia/examples/gemm/gemm.sh \
     julia/examples/cholesky/cholesky.sh \
+    starpupy/examples/starpu_py.sh \
+    starpupy/examples/starpu_py_np.sh \
+    starpupy/examples/starpu_py_parallel.sh \
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done

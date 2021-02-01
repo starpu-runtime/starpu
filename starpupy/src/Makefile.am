@@ -34,7 +34,7 @@ $(top_builddir)/starpupy/src/starpu/%.c: $(abs_top_srcdir)/starpupy/src/%.c
 all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD)
 	$(PYTHON) setup.py build $(PYTHON_SETUP_OPTIONS)
 
-install:
+install-exec-local:
 	@if test -d $(prefix)/lib/python* ; \
 	then	\
 		chmod u+w $(prefix)/lib/python* ; \
@@ -42,15 +42,17 @@ install:
 	fi
 	$(PYTHON) setup.py install
 
+if STARPU_BUILD_STARPUPY
 clean-local:
 	$(PYTHON) setup.py clean
 	rm -fr build
 	rm -f starpu/*py starpu/*c
+endif
 
 distclean-local:
 	rm -rf build
 
-uninstall:
+uninstall-local:
 	rm -rf $(prefix)/lib/python*/site-packages/starpu*
 	rm -rf $(prefix)/lib/python*/site-packages/tmp/starpu*
 

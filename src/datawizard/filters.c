@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -295,6 +295,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			{
 				//child_replicate->initialized = 0;
 			}
+			//child_replicate->nb_tasks_prefetch = 0;
 
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);

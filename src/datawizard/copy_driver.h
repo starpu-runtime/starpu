@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,19 +46,6 @@ extern "C"
 
 struct _starpu_data_request;
 struct _starpu_data_replicate;
-
-enum _starpu_is_prefetch
-{
- 	/** A task really needs it now! */
- 	STARPU_FETCH = 0,
-	/** A task will need it soon */
-	STARPU_TASK_PREFETCH = 1,
-	/** It is a good idea to have it asap */
-	STARPU_PREFETCH = 2,
-	/** Get this here when you have time to */
-	STARPU_IDLEFETCH = 3,
-	STARPU_NFETCH
-};
 
 #ifdef STARPU_USE_MIC
 /** MIC needs memory_node to know which MIC is concerned.
@@ -145,7 +132,7 @@ int _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 				    unsigned donotread,
 				    struct _starpu_data_request *req,
 				    unsigned may_alloc,
-				    enum _starpu_is_prefetch prefetch);
+				    enum starpu_is_prefetch prefetch);
 
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel);
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel);

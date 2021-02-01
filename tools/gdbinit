@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -454,23 +454,27 @@ define starpu-print-data
     starpu-print-task $tasklist->task
     set $tasklist = $tasklist->next
   end
-  printf "Requester tasks\n"
-  set $requesterlist = $data->req_list.list._head
-  while $requesterlist != 0x0
-    printf "mode: "
-    starpu-print-mode $requesterlist->mode
-    printf "\n"
-    starpu-print-job $requesterlist->j
-    set $requesterlist = $requesterlist->_next
-  end
-  printf "Arbitered requester tasks\n"
-  set $requesterlist = $data->arbitered_req_list.list._head
-  while $requesterlist != 0x0
-    printf "mode: "
-    starpu-print-mode $requesterlist->mode
-    printf "\n"
-    starpu-print-job $requesterlist->j
-    set $requesterlist = $requesterlist->_next
+  if _starpu_debug
+    printf "Requester tasks\n"
+    set $requesterlist = $data->req_list.list._head
+    while $requesterlist != 0x0
+      printf "mode: "
+      starpu-print-mode $requesterlist->mode
+      printf "\n"
+      starpu-print-job $requesterlist->j
+      set $requesterlist = $requesterlist->_next
+    end
+    printf "Arbitered requester tasks\n"
+    set $requesterlist = $data->arbitered_req_list.list._head
+    while $requesterlist != 0x0
+      printf "mode: "
+      starpu-print-mode $requesterlist->mode
+      printf "\n"
+      starpu-print-job $requesterlist->j
+      set $requesterlist = $requesterlist->_next
+    end
+  else
+    printf "Printing requester tasks not supported yet without --enable-debug, sorry!\n"
   end
   if ($data->nchildren)
     printf "%d children\n", $data->nchildren
@@ -752,8 +756,8 @@ define starpu-memusage
     set $home_b = 0
     set $ooc = 0
     set $ooc_b = 0
-    set $diduse = 0
-    set $diduse_b = 0
+    set $prefetch = 0
+    set $prefetch_b = 0
     set $redux = 0
     set $redux_b = 0
     set $relax = 0
@@ -782,6 +786,7 @@ define starpu-memusage
     set pagination off
     while $mc != 0
       set $handle = $mc->data
+      set $replicate = &$handle->per_node[$node]
       set $size = _starpu_data_get_size($handle)
       set $total = $total + 1
       if $total % 100 == 0
@@ -800,9 +805,9 @@ define starpu-memusage
         set $ooc = $ooc + 1
 	set $ooc_b = $ooc_b + $size
       end
-      if $mc->diduse
-        set $diduse = $diduse + 1
-	set $diduse_b = $diduse_b + $size
+      if $replicate->nb_tasks_prefetch
+        set $prefetch = $prefetch + 1
+	set $prefetch_b = $prefetch_b + $size
       end
       if $mc->relaxed_coherency == 2
         set $redux = $redux + 1
@@ -821,15 +826,15 @@ define starpu-memusage
       if $mc->relaxed_coherency == 0
         set $normal = $normal + 1
 	set $normal_b = $normal_b + $size
-	if $handle->per_node[$node].state == STARPU_OWNER
+	if $replicate->state == STARPU_OWNER
 	  set $owner = $owner + 1
 	  set $owner_b = $owner_b + $size
 	end
-	if $handle->per_node[$node].state == STARPU_SHARED
+	if $replicate->state == STARPU_SHARED
 	  set $shared = $shared + 1
 	  set $shared_b = $shared_b + $size
 	end
-	if $handle->per_node[$node].state == STARPU_INVALID
+	if $replicate->state == STARPU_INVALID
 	  set $invalid = $invalid + 1
 	  set $invalid_b = $invalid_b + $size
 	end
@@ -837,7 +842,7 @@ define starpu-memusage
 	  set $nosubdataref = $nosubdataref + 1
 	  set $nosubdataref_b = $nosubdataref_b + $size
 	end
-        if $handle->per_node[$node].refcnt == 0
+        if $replicate->refcnt == 0
           set $nodataref = $nodataref + 1
 	  set $nodataref_b = $nodataref_b + $size
 	else
@@ -863,7 +868,7 @@ define starpu-memusage
 	    set $writing = $writing + 1
 	    set $writing_b = $writing_b + $size
 	  end
-	  if $handle->per_node[$node].request[$node] != 0
+	  if $replicate->request[$node] != 0
 	    set $overwriting = $overwriting + 1
 	    set $overwriting_b = $overwriting_b + $size
 	  end
@@ -877,7 +882,7 @@ define starpu-memusage
     printf "  WT: %u, %uMiB\n", $wt, $wt_b / 1048576
     printf "  home: %u, %uMiB\n", $home, $home_b / 1048576
     printf "  OOC: %u, %uMiB\n", $ooc, $ooc_b / 1048576
-    printf "  diduse: %u, %uMiB\n", $diduse, $diduse_b / 1048576
+    printf "  prefetch: %u, %uMiB\n", $prefetch, $prefetch_b / 1048576
     printf "  redux: %u, %uMiB\n", $redux, $redux_b / 1048576
     printf "  relax: %u, %uMiB\n", $relax, $relax_b / 1048576
     printf "    noref: %u, %uMiB\n", $noref, $noref_b / 1048576

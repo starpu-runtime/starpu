@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -68,11 +68,11 @@ struct user_interaction_wrapper
 	starpu_pthread_mutex_t lock;
 	unsigned finished;
 	unsigned detached;
-	enum _starpu_is_prefetch prefetch;
+	enum starpu_is_prefetch prefetch;
 	unsigned async;
 	int prio;
+	void (*callback_acquired)(void *, int *node, enum starpu_data_access_mode mode);
 	void (*callback)(void *);
-	void (*callback_fetch_data)(void *); // called after fetch_data
 	void *callback_arg;
 	struct starpu_task *pre_sync_task;
 	struct starpu_task *post_sync_task;
@@ -113,17 +113,6 @@ static inline void _starpu_data_acquire_wrapper_fini(struct user_interaction_wra
 	STARPU_PTHREAD_MUTEX_DESTROY(&wrapper->lock);
 }
 
-/* Called when the fetch into target memory is done, we're done! */
-static inline void _starpu_data_acquire_fetch_done(struct user_interaction_wrapper *wrapper)
-{
-	if (wrapper->node >= 0)
-	{
-		struct _starpu_data_replicate *replicate = &wrapper->handle->per_node[wrapper->node];
-		if (replicate->mc)
-			replicate->mc->diduse = 1;
-	}
-}
-
 /* Called when the data acquisition is done, to launch the fetch into target memory */
 static inline void _starpu_data_acquire_launch_fetch(struct user_interaction_wrapper *wrapper, int async, void (*callback)(void *), void *callback_arg)
 {
@@ -155,8 +144,6 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 	if (wrapper->post_sync_task)
 		_starpu_add_post_sync_tasks(wrapper->post_sync_task, handle);
 
-	_starpu_data_acquire_fetch_done(wrapper);
-
 	wrapper->callback(wrapper->callback_arg);
 
 	_starpu_data_acquire_wrapper_fini(wrapper);
@@ -166,6 +153,12 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 /* Called when the data acquisition is done, launch the fetch into target memory */
 static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 {
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
+
+	if (wrapper->callback_acquired)
+		/* This can change the node at will according to the current data situation */
+		wrapper->callback_acquired(wrapper->callback_arg, &wrapper->node, wrapper->mode);
+
 	_starpu_data_acquire_launch_fetch(arg, 1, _starpu_data_acquire_fetch_data_callback, arg);
 }
 
@@ -187,7 +180,10 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 
 /* The data must be released by calling starpu_data_release later on */
 int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
-							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
+							  enum starpu_data_access_mode mode,
+							  void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
+							  void (*callback)(void *arg),
+							  void *arg,
 							  int sequential_consistency, int quick,
 							  long *pre_sync_jobid, long *post_sync_jobid)
 {
@@ -204,6 +200,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	_starpu_data_acquire_wrapper_init(wrapper, handle, node, mode);
 	wrapper->async = 1;
 
+	wrapper->callback_acquired = callback_acquired;
 	wrapper->callback = callback;
 	wrapper->callback_arg = arg;
 	wrapper->pre_sync_task = NULL;
@@ -277,7 +274,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_hand
 							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 							  int sequential_consistency, int quick)
 {
-	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, callback, arg, sequential_consistency, quick, NULL, NULL);
+	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, NULL, callback, arg, sequential_consistency, quick, NULL, NULL);
 }
 
 int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
@@ -327,7 +324,6 @@ static inline void _starpu_data_acquire_continuation(void *arg)
 	STARPU_ASSERT(handle);
 
 	_starpu_data_acquire_launch_fetch(wrapper, 0, NULL, NULL);
-	_starpu_data_acquire_fetch_done(wrapper);
 	_starpu_data_acquire_wrapper_finished(wrapper);
 }
 
@@ -412,7 +408,6 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 	{
 		/* no one has locked this data yet, so we proceed immediately */
 		_starpu_data_acquire_launch_fetch(&wrapper, 0, NULL, NULL);
-		_starpu_data_acquire_fetch_done(&wrapper);
 	}
 	else
 	{
@@ -467,7 +462,6 @@ int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum 
 	{
 		/* no one has locked this data yet, so we proceed immediately */
 		_starpu_data_acquire_launch_fetch(&wrapper, 0, NULL, NULL);
-		_starpu_data_acquire_fetch_done(&wrapper);
 	}
 	else
 	{
@@ -556,7 +550,7 @@ static void _prefetch_data_on_node(void *arg)
 }
 
 static
-int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, enum _starpu_is_prefetch prefetch, int prio)
+int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigned node, unsigned async, enum starpu_data_access_mode mode, enum starpu_is_prefetch prefetch, int prio)
 {
 	STARPU_ASSERT(handle);
 

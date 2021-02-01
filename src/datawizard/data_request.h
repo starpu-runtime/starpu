@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -81,7 +81,7 @@ LIST_TYPE(_starpu_data_request,
 	unsigned completed;
 
 	/** Whether this is just a prefetch request */
-	enum _starpu_is_prefetch prefetch;
+	enum starpu_is_prefetch prefetch;
 
 	/** Number of tasks which used this as a prefetch */
 	unsigned nb_tasks_prefetch;
@@ -151,7 +151,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
-							 enum _starpu_is_prefetch is_prefetch,
+							 enum starpu_is_prefetch is_prefetch,
 							 int prio,
 							 unsigned is_write_invalidation,
 							 const char *origin) STARPU_ATTRIBUTE_MALLOC;
@@ -162,5 +162,5 @@ void _starpu_data_request_append_callback(struct _starpu_data_request *r,
 					  void (*callback_func)(void *),
 					  void *callback_arg);
 
-void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum _starpu_is_prefetch prefetch);
+void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_is_prefetch prefetch);
 #endif // __DATA_REQUEST_H__

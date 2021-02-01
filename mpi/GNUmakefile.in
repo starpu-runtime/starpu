@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,10 @@ SUBDIRS=
 @STARPU_BUILD_EXAMPLES_TRUE@SUBDIRS += examples
 @STARPU_BUILD_TESTS_TRUE@SUBDIRS += tests
 
-check: check-recursive
+all:
+
+@STARPU_SIMGRID_FALSE@check: check-recursive
+@STARPU_SIMGRID_FALSE@	:
 
 # divide by 4 the number of jobs to run in parallel, since mpirun will start 4
 # processes in the tests and examples

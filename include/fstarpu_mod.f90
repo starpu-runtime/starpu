@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -358,7 +358,7 @@ module fstarpu_mod
                 ! int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
                 function fstarpu_worker_get_by_devid(typeid, devid) bind(C)
                         use iso_c_binding, only: c_int, c_ptr
-                        integer(c_int)              :: fstarpu_worker_get_by_type
+                        integer(c_int)              :: fstarpu_worker_get_by_devid
                         type(c_ptr),value,intent(in) :: typeid ! c_intptr_t expected by C func
                         integer(c_int),value,intent(in) :: devid
                 end function fstarpu_worker_get_by_devid
@@ -1054,7 +1054,7 @@ module fstarpu_mod
                 end subroutine fstarpu_vector_data_register
 
                 ! void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
-                subroutine fstarpu_vector_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                subroutine fstarpu_vector_ptr_register(dh, node, ptr, dev_handle, offset) &
                                 bind(C,name="starpu_vector_ptr_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr), intent(out) :: dh
@@ -1092,7 +1092,7 @@ module fstarpu_mod
                 end subroutine fstarpu_variable_data_register
 
                 ! void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
-                subroutine fstarpu_variable_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                subroutine fstarpu_variable_ptr_register(dh, node, ptr, dev_handle, offset) &
                                 bind(C,name="starpu_variable_ptr_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr), intent(out) :: dh
@@ -1758,7 +1758,7 @@ module fstarpu_mod
                 end function fstarpu_data_descr_array_alloc
 
                 ! struct starpu_data_descr *fstarpu_data_descr_alloc(void);
-                function fstarpu_data_descr_alloc (nb) bind(C)
+                function fstarpu_data_descr_alloc () bind(C)
                         use iso_c_binding, only: c_ptr
                         type(c_ptr) :: fstarpu_data_descr_alloc
                 end function fstarpu_data_descr_alloc
@@ -2534,9 +2534,16 @@ module fstarpu_mod
                 function fstarpu_int_to_cptr(i) bind(C)
                         use iso_c_binding
                         type(c_ptr) :: fstarpu_int_to_cptr
-                        integer :: i
+                        integer(c_int) :: i
                         fstarpu_int_to_cptr = transfer(int(i,kind=c_intptr_t),C_NULL_PTR)
                 end function fstarpu_int_to_cptr
+
+                function fstarpu_long_to_cptr(i) bind(C)
+                        use iso_c_binding
+                        type(c_ptr) :: fstarpu_long_to_cptr
+                        integer(c_long) :: i
+                        fstarpu_long_to_cptr = transfer(int(i,kind=c_intptr_t),C_NULL_PTR)
+                end function fstarpu_long_to_cptr
 
                 ! Note: do not add binding declarations here in 'CONTAINS'
                 ! section, because the compiler generates empty functions for

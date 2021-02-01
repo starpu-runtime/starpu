@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -258,6 +258,7 @@ static uint32_t footprint_vector_cpp_interface_crc32(starpu_data_handle_t handle
 static int vector_cpp_compare(void *data_interface_a, void *data_interface_b);
 static void display_vector_cpp_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+static int peek_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static starpu_ssize_t vector_cpp_describe(void *data_interface, char *buf, size_t size);
 
@@ -287,6 +288,7 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	.dontcache = 0,
 	.get_mf_ops = NULL,
 	.pack_data = pack_vector_cpp_handle,
+	.peek_data = peek_vector_cpp_handle,
 	.unpack_data = unpack_vector_cpp_handle,
 	.name = (char *) "VECTOR_CPP_INTERFACE"
 };
@@ -315,6 +317,7 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	0,
 	NULL,
 	pack_vector_cpp_handle,
+	peek_vector_cpp_handle,
 	unpack_vector_cpp_handle,
 	(char *) "VECTOR_CPP_INTERFACE"
 };
@@ -458,7 +461,7 @@ static int pack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, vo
 	return 0;
 }
 
-static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int peek_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -467,6 +470,13 @@ static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, 
 
 	STARPU_ASSERT(count == vector_interface->elemsize * vector_interface->nx);
 	memcpy((void*)vector_interface->ptr, ptr, count);
+
+	return 0;
+}
+
+static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	peek_vector_cpp_handle(handle, node, ptr, count);
 
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 

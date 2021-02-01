@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,9 +25,9 @@
  * kernels and number of idle workers.
  */
 
-#ifdef STARPU_QUICK_CHECK
+#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS)
 static size_t size = 1024;
-static unsigned cpustep = 4;
+static unsigned cpustep = 8;
 #else
 /* Must be bigger than available cache size per core, 64MiB should be enough */
 static size_t size = 64UL << 20;
@@ -318,7 +318,7 @@ int main(int argc, char **argv)
 		}
 		sched = bench(&argc, &argv, n, total_ncpus, 0, SCHED);
 		sched_int = bench(&argc, &argv, n, total_ncpus, 1, SCHED);
-		printf("%d\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",
+		printf("%u\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n",
 				n,
 				alone/1000,
 				sched/1000, sched*100/alone,

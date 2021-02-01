@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -208,7 +208,11 @@ static int parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	int ret = parse_args(argc, argv);
-	if (ret) return ret;
+	if (ret)
+	{
+		starpu_fxt_options_shutdown(&options);
+		return ret;
+	}
 
 	starpu_fxt_generate_trace(&options);
 

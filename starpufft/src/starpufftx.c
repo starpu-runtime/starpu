@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@
 #define _externC extern
 #include "cudax_kernels.h"
 
-#if defined(FLOAT) || defined(STARPU_HAVE_CUFFTDOUBLECOMPLEX)
+#if defined(STARPUFFT_FLOAT) || defined(STARPU_HAVE_CUFFTDOUBLECOMPLEX)
 #  define __STARPU_USE_CUDA
 #else
 #  undef __STARPU_USE_CUDA
@@ -172,7 +172,7 @@ compute_roots(STARPUFFT(plan) plan)
 }
 
 /* Only CUDA capability >= 1.3 supports doubles, rule old card out.  */
-#ifdef DOUBLE
+#ifdef STARPUFFT_DOUBLE
 static int can_execute(unsigned workerid, struct starpu_task *task STARPU_ATTRIBUTE_UNUSED, unsigned nimpl STARPU_ATTRIBUTE_UNUSED) {
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 		return 1;

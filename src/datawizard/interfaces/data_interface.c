@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -320,6 +320,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		replicate->memory_node = node;
 		//replicate->relaxed_coherency = 0;
 		//replicate->refcnt = 0;
+		//replicate->nb_tasks_prefetch = 0;
 
 		if ((int) node == home_node)
 		{
@@ -367,23 +368,24 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_data_replicate *replicate;
-		unsigned node;
+		//unsigned node;
 		replicate = &handle->per_worker[worker];
-		replicate->allocated = 0;
-		replicate->automatically_allocated = 0;
+		//replicate->allocated = 0;
+		//replicate->automatically_allocated = 0;
 		replicate->state = STARPU_INVALID;
-		replicate->refcnt = 0;
+		//replicate->refcnt = 0;
 		replicate->handle = handle;
-		replicate->requested = 0;
+		//replicate->requested = 0;
+		//replicate->nb_tasks_prefetch = 0;
 
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			replicate->request[node] = NULL;
-		}
+		//for (node = 0; node < STARPU_MAXNODES; node++)
+		//{
+		//	replicate->request[node] = NULL;
+		//}
 
 		/* Assuming being used for SCRATCH for now, patched when entering REDUX mode */
 		replicate->relaxed_coherency = 1;
-		replicate->initialized = 0;
+		//replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
 
 		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
@@ -1217,18 +1219,41 @@ int starpu_data_interface_get_next_id(void)
 	return _data_interface_number-1;
 }
 
-int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
+int starpu_data_pack_node(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
 	STARPU_ASSERT_MSG(handle->ops->pack_data, "The datatype interface %s (%d) does not have a pack operation", handle->ops->name, handle->ops->interfaceid);
-	return handle->ops->pack_data(handle, starpu_worker_get_local_memory_node(), ptr, count);
+	return handle->ops->pack_data(handle, node, ptr, count);
+}
+
+int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
+{
+	return starpu_data_pack_node(handle, starpu_worker_get_local_memory_node(), ptr, count);
+}
+
+int starpu_data_peek_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	STARPU_ASSERT_MSG(handle->ops->peek_data, "The datatype interface %s (%d) does not have a peek operation", handle->ops->name, handle->ops->interfaceid);
+	int ret;
+	ret = handle->ops->peek_data(handle, node, ptr, count);
+	return ret;
+}
+
+int starpu_data_peek(starpu_data_handle_t handle, void *ptr, size_t count)
+{
+	return starpu_data_peek_node(handle, starpu_worker_get_local_memory_node(), ptr, count);
+}
+
+int starpu_data_unpack_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
+	int ret;
+	ret = handle->ops->unpack_data(handle, node, ptr, count);
+	return ret;
 }
 
 int starpu_data_unpack(starpu_data_handle_t handle, void *ptr, size_t count)
 {
-	STARPU_ASSERT_MSG(handle->ops->unpack_data, "The datatype interface %s (%d) does not have an unpack operation", handle->ops->name, handle->ops->interfaceid);
-	int ret;
-	ret = handle->ops->unpack_data(handle, starpu_worker_get_local_memory_node(), ptr, count);
-	return ret;
+	return starpu_data_unpack_node(handle, starpu_worker_get_local_memory_node(), ptr, count);
 }
 
 size_t starpu_data_get_size(starpu_data_handle_t handle)

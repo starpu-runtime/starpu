@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -120,35 +120,35 @@ int main(int argc, char **argv)
 		int *xx;
 
 		starpu_mpi_recv(data[0], 0, 12, newcomm, MPI_STATUS_IGNORE);
-		starpu_data_acquire(data[0], STARPU_RW);
+		starpu_data_acquire(data[0], STARPU_R);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
-		starpu_data_release(data[0]);
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, *xx);
 		STARPU_ASSERT_MSG(x==*xx, "Received value %d is incorrect (should be %d)\n", *xx, x);
+		starpu_data_release(data[0]);
 
 		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
 		starpu_mpi_recv(data[0], 0, 22, newcomm, MPI_STATUS_IGNORE);
-		starpu_data_acquire(data[0], STARPU_RW);
+		starpu_data_acquire(data[0], STARPU_R);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
-		starpu_data_release(data[0]);
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, *xx);
 		STARPU_ASSERT_MSG(x==*xx, "Received value %d is incorrect (should be %d)\n", *xx, x);
+		starpu_data_release(data[0]);
 	}
 
 	if (rank == 0)
 	{
-		starpu_data_acquire(data[2], STARPU_RW);
+		starpu_data_acquire(data[2], STARPU_R);
 		int rvalue = *((int *)starpu_variable_get_local_ptr(data[2]));
 		starpu_data_release(data[2]);
 		FPRINTF_MPI(stderr, "sending value %d to %d and receiving from %d\n", rvalue, 1, size-1);
 		starpu_mpi_send(data[2], 1, 44, MPI_COMM_WORLD);
 		starpu_mpi_recv(data[2], size-1, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		starpu_data_acquire(data[2], STARPU_RW);
+		starpu_data_acquire(data[2], STARPU_R);
 		int *xx = (int *)starpu_variable_get_local_ptr(data[2]);
-		starpu_data_release(data[2]);
 		FPRINTF_MPI(stderr, "Value back is %d\n", *xx);
 		STARPU_ASSERT_MSG(*xx == rvalue + (2*(size-1)), "Received value %d is incorrect (should be %d)\n", *xx, rvalue + (2*(size-1)));
+		starpu_data_release(data[2]);
 	}
 	else
 	{

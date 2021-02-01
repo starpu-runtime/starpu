@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -344,6 +344,7 @@ int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size, starpu_
 int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, starpu_mpi_tag_t *data_tag, MPI_Comm *comm, starpu_tag_t tag);
 
 typedef int (*starpu_mpi_datatype_allocate_func_t)(starpu_data_handle_t, MPI_Datatype *);
+typedef int (*starpu_mpi_datatype_node_allocate_func_t)(starpu_data_handle_t, unsigned node, MPI_Datatype *);
 typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);
 
 /**
@@ -365,6 +366,26 @@ int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatyp
    \ref ExchangingUserDefinedDataInterface for an example.
 */
 int starpu_mpi_interface_datatype_register(enum starpu_data_interface_id id, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
+
+/**
+   Register functions to create and free a MPI datatype for the given
+   handle.
+   Similar to starpu_mpi_interface_datatype_register().
+   It is important that the function is called before any
+   communication can take place for a data with the given handle. See
+   \ref ExchangingUserDefinedDataInterface for an example.
+*/
+int starpu_mpi_datatype_node_register(starpu_data_handle_t handle, starpu_mpi_datatype_node_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
+
+/**
+   Register functions to create and free a MPI datatype for the given
+   interface id.
+   Similar to starpu_mpi_datatype_register().
+   It is important that the function is called before any
+   communication can take place for a data with the given handle. See
+   \ref ExchangingUserDefinedDataInterface for an example.
+*/
+int starpu_mpi_interface_datatype_node_register(enum starpu_data_interface_id id, starpu_mpi_datatype_node_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
 
 /**
    Unregister the MPI datatype functions stored for the interface of

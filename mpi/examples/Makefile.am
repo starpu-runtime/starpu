@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -109,8 +109,8 @@ endif
 
 AM_CFLAGS += $(MAGMA_CFLAGS) -Wno-unused
 AM_CXXFLAGS += $(MAGMA_CFLAGS) -Wno-unused
-AM_FFLAGS += $(MAGMA_CFLAGS) -Wno-unused
-AM_FCFLAGS += $(MAGMA_CFLAGS) -Wno-unused
+AM_FFLAGS += $(MAGMA_CFLAGS) -Wno-unused -Wno-unused-dummy-argument
+AM_FCFLAGS += $(MAGMA_CFLAGS) -Wno-unused -Wno-unused-dummy-argument
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la $(STARPU_EXPORTED_LIBS)
@@ -159,6 +159,8 @@ examplebin_PROGRAMS += 			\
 
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=	\
+	mpi_lu/plu_example_float	\
+	mpi_lu/plu_example_double	\
 	mpi_lu/plu_implicit_example_float	\
 	mpi_lu/plu_implicit_example_double	\
 	mpi_lu/plu_outofcore_example_float	\
@@ -453,6 +455,14 @@ starpu_mpi_EXAMPLES	+=	\
 	benchs/sendrecv_bench	\
 	benchs/burst
 
+if STARPU_MPI_SYNC_CLOCKS
+examplebin_PROGRAMS +=		\
+	benchs/bcast_bench
+
+starpu_mpi_EXAMPLES	+=	\
+	benchs/bcast_bench
+endif
+
 if !STARPU_USE_MPI_MPI
 starpu_mpi_EXAMPLES	+=	\
 	benchs/sendrecv_parallel_tasks_bench
@@ -468,6 +478,11 @@ endif
 benchs_sendrecv_bench_SOURCES = benchs/sendrecv_bench.c
 benchs_sendrecv_bench_SOURCES += benchs/bench_helper.c
 benchs_sendrecv_bench_SOURCES += benchs/abstract_sendrecv_bench.c
+
+benchs_bcast_bench_SOURCES = benchs/bcast_bench.c
+benchs_bcast_bench_SOURCES += benchs/bench_helper.c
+benchs_bcast_bench_LDADD = $(MPI_SYNC_CLOCKS_LDFLAGS)
+benchs_bcast_bench_CFLAGS = $(MPI_SYNC_CLOCKS_CFLAGS)
 
 benchs_sendrecv_parallel_tasks_bench_SOURCES = benchs/sendrecv_parallel_tasks_bench.c
 benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/bench_helper.c

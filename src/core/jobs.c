@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -32,6 +32,8 @@
 #include <core/workers.h>
 
 static int max_memory_use;
+static int task_progress;
+static unsigned long njobs_finished;
 static unsigned long njobs, maxnjobs;
 
 #ifdef STARPU_DEBUG
@@ -43,6 +45,7 @@ static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIAL
 void _starpu_job_init(void)
 {
 	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
+	task_progress = starpu_get_env_number_default("STARPU_TASK_PROGRESS", 0);
 #ifdef STARPU_DEBUG
 	_starpu_job_multilist_head_init_all_submitted(&all_jobs_list);
 #endif
@@ -279,6 +282,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		j->task->nb_termination_call_required -= 1;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		if (nb != 0) return;
+	}
+
+	if (task_progress)
+	{
+		unsigned long jobs = STARPU_ATOMIC_ADDL(&njobs_finished, 1);
+
+		printf("\r%lu tasks finished...", jobs);
+		fflush(stdout);
 	}
 
 	struct starpu_task *task = j->task;
@@ -765,14 +776,14 @@ struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker)
 		}
 	}
 
-	if (!starpu_task_list_empty(&worker->local_tasks))
-		task = starpu_task_list_pop_front(&worker->local_tasks);
+	if (!starpu_task_prio_list_empty(&worker->local_tasks))
+		task = starpu_task_prio_list_pop_front_highest(&worker->local_tasks);
 
 	_starpu_pop_task_end(task);
 	return task;
 }
 
-int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task, int prio)
+int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task)
 {
 	/* Check that the worker is able to execute the task ! */
 	STARPU_ASSERT(task && task->cl);
@@ -815,13 +826,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 	}
 	else
 	{
-#ifdef STARPU_DEVEL
-#warning FIXME use a prio_list
-#endif
-		if (prio)
-			starpu_task_list_push_front(&worker->local_tasks, task);
-		else
-			starpu_task_list_push_back(&worker->local_tasks, task);
+		starpu_task_prio_list_push_back(&worker->local_tasks, task);
 	}
 
 	starpu_wake_worker_locked(worker->workerid);

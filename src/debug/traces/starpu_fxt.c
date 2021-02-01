@@ -1,9 +1,9 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2013       Thibaut Lambert
- * Copyright (C) 2017-2020  Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2017-2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -2202,7 +2202,7 @@ static void handle_mpi_data_set_tag(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	data->mpi_tag = tag;
 }
 
-static const char *copy_link_type(enum _starpu_is_prefetch prefetch)
+static const char *copy_link_type(enum starpu_is_prefetch prefetch)
 {
 	switch (prefetch)
 	{
@@ -2220,7 +2220,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	unsigned dst = ev->param[1];
 	unsigned size = ev->param[2];
 	unsigned comid = ev->param[3];
-	enum _starpu_is_prefetch prefetch = ev->param[4];
+	enum starpu_is_prefetch prefetch = ev->param[4];
 	unsigned long handle = ev->param[5];
 	const char *link_type = copy_link_type(prefetch);
 
@@ -2304,7 +2304,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	unsigned dst = ev->param[1];
 	unsigned long size = ev->param[2];
 	unsigned comid = ev->param[3];
-	enum _starpu_is_prefetch prefetch = ev->param[4];
+	enum starpu_is_prefetch prefetch = ev->param[4];
 	const char *link_type = copy_link_type(prefetch);
 
 	char *prefix = options->file_prefix;
@@ -2990,11 +2990,13 @@ static void handle_mpi_isend_submit_begin(struct fxt_ev_64 *ev, struct starpu_fx
 static int mpi_warned;
 static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int dest = ev->param[0];
-	int mpi_tag = ev->param[1];
-	size_t size = ev->param[2];
-	long jobid = ev->param[3];
-	unsigned long handle = ev->param[4];
+	unsigned type = ev->param[0];
+	int dest = ev->param[1];
+	int mpi_tag = ev->param[2];
+	size_t size = ev->param[3];
+	long jobid = ev->param[4];
+	unsigned long handle = ev->param[5];
+	int prio = ev->param[6];
 	double date = get_event_time_stamp(ev, options);
 
 	if (out_paje_file)
@@ -3011,7 +3013,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle);
+		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle, type, prio);
 }
 
 static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)

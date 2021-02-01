@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -176,7 +176,7 @@ static void test_cleaner(int sig)
 	kill(-child_gid, SIGQUIT);
 	waitpid(child_pid, &status, 0);
 	launch_gdb(test_name);
-	raise(SIGQUIT);
+	raise(SIGALRM);
 	exit(EXIT_FAILURE);
 }
 
@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
 	setenv("STARPU_OPENCL_PROGRAM_DIR", STARPU_SRC_DIR, 1);
 
 	/* set SIGALARM handler */
-	sa.sa_flags = 0;
+	sa.sa_flags = SA_RESETHAND | SA_NODEFER;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_handler = test_cleaner;
 	if (-1 == sigaction(SIGALRM, &sa, NULL))

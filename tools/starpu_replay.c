@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Erwan Leria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -274,6 +274,7 @@ static struct starpu_data_interface_ops replay_interface_ops =
 	.interface_size = sizeof(struct replay_interface),
 	.display = display_replay,
 	.pack_data = NULL,
+	.peek_data = NULL,
 	.unpack_data = NULL,
 	.describe = describe_replay,
 

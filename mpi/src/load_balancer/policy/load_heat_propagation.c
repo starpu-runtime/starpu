@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -114,6 +114,7 @@ static void balance(starpu_data_handle_t load_data_cpy)
 		}
 	}
 
+	starpu_data_acquire_on_node(data_movements_handles[my_rank], STARPU_MAIN_RAM, STARPU_RW);
 	/* We found it */
 	if (less_loaded >= 0)
 	{
@@ -128,7 +129,7 @@ static void balance(starpu_data_handle_t load_data_cpy)
 			int nhandles = 0;
 			user_itf->get_data_unit_to_migrate(&handles, &nhandles, less_loaded);
 
-			data_movements_reallocate_tables(data_movements_handles[my_rank], nhandles);
+			data_movements_reallocate_tables(data_movements_handles[my_rank], STARPU_MAIN_RAM, nhandles);
 
 			if (nhandles)
 			{
@@ -145,10 +146,11 @@ static void balance(starpu_data_handle_t load_data_cpy)
 			}
 		}
 		else
-			data_movements_reallocate_tables(data_movements_handles[my_rank], 0);
+			data_movements_reallocate_tables(data_movements_handles[my_rank], STARPU_MAIN_RAM, 0);
 	}
 	else
-		data_movements_reallocate_tables(data_movements_handles[my_rank], 0);
+		data_movements_reallocate_tables(data_movements_handles[my_rank], STARPU_MAIN_RAM, 0);
+	starpu_data_release_on_node(data_movements_handles[my_rank], STARPU_MAIN_RAM);
 }
 
 static void exchange_load_data_infos(starpu_data_handle_t load_data_cpy)
@@ -559,10 +561,11 @@ static int deinit_heat()
 
 	unsigned int ndata_to_move_back = HASH_COUNT(mdh);
 
+	starpu_data_acquire_on_node(data_movements_handles[my_rank], STARPU_MAIN_RAM, STARPU_RW);
 	if (ndata_to_move_back)
 	{
 		_STARPU_DEBUG("Move back %u data on node %d ..\n", ndata_to_move_back, my_rank);
-		data_movements_reallocate_tables(data_movements_handles[my_rank], ndata_to_move_back);
+		data_movements_reallocate_tables(data_movements_handles[my_rank], STARPU_MAIN_RAM, ndata_to_move_back);
 
 		starpu_mpi_tag_t *tags = data_movements_get_tags_table(data_movements_handles[my_rank]);
 		int *ranks = data_movements_get_ranks_table(data_movements_handles[my_rank]);
@@ -577,7 +580,8 @@ static int deinit_heat()
 		}
 	}
 	else
-		data_movements_reallocate_tables(data_movements_handles[my_rank], 0);
+		data_movements_reallocate_tables(data_movements_handles[my_rank], STARPU_MAIN_RAM, 0);
+	starpu_data_release_on_node(data_movements_handles[my_rank], STARPU_MAIN_RAM);
 
 	exchange_data_movements_infos();
 	move_back_data();
@@ -612,7 +616,9 @@ static int deinit_heat()
 	for (i = 0; i < world_size; i++)
 	{
 		starpu_mpi_cache_flush(MPI_COMM_WORLD, data_movements_handles[i]);
-		data_movements_reallocate_tables(data_movements_handles[i], 0);
+		starpu_data_acquire_on_node(data_movements_handles[i], STARPU_MAIN_RAM, STARPU_W);
+		data_movements_reallocate_tables(data_movements_handles[i], STARPU_MAIN_RAM, 0);
+		starpu_data_release_on_node(data_movements_handles[i], STARPU_MAIN_RAM);
 		starpu_data_unregister(data_movements_handles[i]);
 	}
 	free(data_movements_handles);

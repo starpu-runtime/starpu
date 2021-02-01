@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -298,8 +298,14 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_hand
    to retrieve the jobid of the synchronization tasks. \e pre_sync_jobid happens
    just before the acquisition, and \e post_sync_jobid happens just after the
    release.
+
+   callback_acquired is called when the data is acquired in terms of semantic,
+   but the data is not fetched yet. It is given a pointer to the node, which it
+   can modify if it wishes so.
+
+   This is a very internal interface, subject to changes, do not use this.
 */
-int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback)(void *), void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid);
+int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode), void (*callback)(void *arg), void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid);
 
 /**
    The application can call this function instead of starpu_data_acquire() so as to
@@ -409,6 +415,26 @@ void starpu_arbiter_destroy(starpu_arbiter_t arbiter);
 int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node);
 
 /**
+   Prefetch levels
+
+   Data requests are ordered by priorities, but also by prefetching level,
+   between data that a task wants now, and data that we will probably want
+   "soon".
+*/
+enum starpu_is_prefetch
+{
+	/** A task really needs it now! */
+	STARPU_FETCH = 0,
+	/** A task will need it soon */
+	STARPU_TASK_PREFETCH = 1,
+	/** It is a good idea to have it asap */
+	STARPU_PREFETCH = 2,
+	/** Get this here when you have time to */
+	STARPU_IDLEFETCH = 3,
+	STARPU_NFETCH
+};
+
+/**
    Issue a fetch request for the data \p handle to \p node, i.e.
    requests that the data be replicated to the given node as soon as possible, so that it is
    available there for tasks. If \p async is 0, the call will
@@ -445,7 +471,7 @@ int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned
 
 /**
    Check whether a valid copy of \p handle is currently available on
-   memory node \p node.
+   memory node \p node (or a transfer request for getting so is ongoing).
 */
 unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node);
 
@@ -557,6 +583,11 @@ void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data);
    Retrieve the field \c user_data previously set for the \p handle.
 */
 void *starpu_data_get_user_data(starpu_data_handle_t handle);
+
+/**
+  Check whether data \p handle can be evicted now from node \p node
+*/
+int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch);
 
 /** @} */
 
