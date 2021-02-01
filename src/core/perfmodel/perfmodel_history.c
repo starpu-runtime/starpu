@@ -201,15 +201,24 @@ size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_p
 	struct starpu_task *task = j->task;
 	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 
-	if (model && model->state->per_arch && comb != -1 && model->state->per_arch[comb] && model->state->per_arch[comb][impl].size_base)
+	if (model && model->state->per_arch && comb != -1)
 	{
-		return model->state->per_arch[comb][impl].size_base(task, arch, impl);
+		starpu_perfmodel_per_arch_size_base size_base = NULL;
+
+		STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
+		if (model->state->per_arch[comb])
+			size_base = model->state->per_arch[comb][impl].size_base;
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
+
+		if (size_base)
+			return size_base(task, arch, impl);
 	}
-	else if (model && model->size_base)
+
+	if (model && model->size_base)
 	{
 		return model->size_base(task, impl);
 	}
-	else
+
 	{
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 		size_t size = 0;
