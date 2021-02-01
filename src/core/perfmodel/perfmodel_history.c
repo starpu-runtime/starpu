@@ -197,29 +197,20 @@ struct starpu_perfmodel_arch *starpu_perfmodel_arch_comb_fetch(int comb)
 	return arch_combs[comb];
 }
 
-size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned impl, struct _starpu_job *j)
+static size_t __starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned impl, struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
 	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 
-	if (model && model->state->per_arch && comb != -1)
+	if (model && model->state->per_arch && comb != -1 && model->state->per_arch[comb] && model->state->per_arch[comb][impl].size_base)
 	{
-		starpu_perfmodel_per_arch_size_base size_base = NULL;
-
-		STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
-		if (model->state->per_arch[comb])
-			size_base = model->state->per_arch[comb][impl].size_base;
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
-
-		if (size_base)
-			return size_base(task, arch, impl);
+		return model->state->per_arch[comb][impl].size_base(task, arch, impl);
 	}
-
-	if (model && model->size_base)
+	else if (model && model->size_base)
 	{
 		return model->size_base(task, impl);
 	}
-
+	else
 	{
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 		size_t size = 0;
@@ -232,6 +223,17 @@ size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_p
 		}
 		return size;
 	}
+}
+
+size_t _starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned impl, struct _starpu_job *j)
+{
+	size_t ret;
+	if (model)
+		STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
+	ret = __starpu_job_get_data_size(model, arch, impl, j);
+	if (model)
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
+	return ret;
 }
 
 /*
@@ -1610,13 +1612,11 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 	struct starpu_perfmodel_regression_model *regmodel = NULL;
 
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-	size = _starpu_job_get_data_size(model, arch, nimpl, j);
-
-	if(comb == -1)
-		goto docal;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
-	if (model->state->per_arch[comb] == NULL)
+	size = __starpu_job_get_data_size(model, arch, nimpl, j);
+
+	if (comb == -1 || model->state->per_arch[comb] == NULL)
 	{
 		// The model has not been executed on this combination
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
@@ -1652,13 +1652,12 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 	struct starpu_perfmodel_regression_model *regmodel;
 	struct starpu_perfmodel_history_table *entry = NULL;
 
-	size = _starpu_job_get_data_size(model, arch, nimpl, j);
 	comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
-	if(comb == -1)
-		goto docal;
 
 	STARPU_PTHREAD_RWLOCK_RDLOCK(&model->state->model_rwlock);
-	if (model->state->per_arch[comb] == NULL)
+	size = __starpu_job_get_data_size(model, arch, nimpl, j);
+
+	if (comb == -1 || model->state->per_arch[comb] == NULL)
 	{
 		// The model has not been executed on this combination
 		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
@@ -1941,7 +1940,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 					entry->mean = measured;
 				}
 
-				entry->size = _starpu_job_get_data_size(model, arch, impl, j);
+				entry->size = __starpu_job_get_data_size(model, arch, impl, j);
 				entry->flops = j->task->flops;
 
 				entry->footprint = key;
@@ -2007,7 +2006,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 			reg_model = &per_arch_model->regression;
 
 			/* update the regression model */
-			size_t job_size = _starpu_job_get_data_size(model, arch, impl, j);
+			size_t job_size = __starpu_job_get_data_size(model, arch, impl, j);
 			double logy, logx;
 			logx = log((double)job_size);
 			logy = log(measured);
@@ -2073,7 +2072,7 @@ void _starpu_update_perfmodel_history(struct _starpu_job *j, struct starpu_perfm
 
 		STARPU_ASSERT(j->footprint_is_computed);
 
-		fprintf(f, "0x%x\t%lu\t%f\t%f\t%f\t%u\t\t", j->footprint, (unsigned long) _starpu_job_get_data_size(model, arch, impl, j), measured, task->predicted, task->predicted_transfer, cpuid);
+		fprintf(f, "0x%x\t%lu\t%f\t%f\t%f\t%u\t\t", j->footprint, (unsigned long) __starpu_job_get_data_size(model, arch, impl, j), measured, task->predicted, task->predicted_transfer, cpuid);
 		unsigned i;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
