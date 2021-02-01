@@ -51,7 +51,7 @@ int main(void)
 	int ret;
 	starpu_data_handle_t handle, handles[NPARTS];
 	int i;
-	char d;
+	char d[SIZE];
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
