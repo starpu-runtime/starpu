@@ -142,11 +142,10 @@ def future_generator(iterable, n_jobs, dict_task):
 					L_args.append(args_split[j][i])
 					if sizebase==0:
 						sizebase=len(args_split[j][i])
+					elif sizebase==len(args_split[j][i]):
+						continue
 					else:
-						if sizebase==len(args_split[j][i]):
-							continue
-						else:
-							raise SystemExit('Error: all arrays should be split into equal size')
+						raise SystemExit('Error: all arrays should be split into equal size')
 				else:
 					L_args.append(args[j])
 			#print("L_args is", L_args)
