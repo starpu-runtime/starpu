@@ -141,6 +141,36 @@ static void init_problem_data(void)
 #endif
 }
 
+void nop(void *descr[], void *arg)
+{
+	(void) descr;
+	(void) arg;
+}
+
+static struct starpu_codelet redux_cl =
+{
+	.where = STARPU_NOWHERE,
+	.cpu_funcs = {nop},
+	.cpu_funcs_name = {"nop"},
+	.cuda_funcs = {nop},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_R},
+	.model = &starpu_perfmodel_nop
+};
+
+static struct starpu_codelet init_cl =
+{
+	.where = STARPU_NOWHERE,
+	.cpu_funcs = {nop},
+	.cpu_funcs_name = {"nop"},
+	.cuda_funcs = {nop},
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 1,
+	.modes = {STARPU_W},
+	.model = &starpu_perfmodel_nop
+};
+
 static void partition_mult_data(void)
 {
 	unsigned x, y, z;
@@ -151,6 +181,7 @@ static void partition_mult_data(void)
 		zdim, zdim, xdim, sizeof(TYPE));
 	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C,
 		ydim, ydim, xdim, sizeof(TYPE));
+	starpu_data_set_reduction_methods(C_handle, &redux_cl, &init_cl);
 
 	struct starpu_data_filter vert;
 	memset(&vert, 0, sizeof(vert));
@@ -343,7 +374,8 @@ static struct starpu_codelet cl_gemm =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.modes = {STARPU_R, STARPU_R, STARPU_R},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
+	.modes = {STARPU_R, STARPU_R, STARPU_REDUX},
 	.model = &starpu_gemm_model
 };
 
