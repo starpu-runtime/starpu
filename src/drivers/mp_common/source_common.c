@@ -88,14 +88,30 @@ static int _starpu_src_common_process_completed_job(struct _starpu_mp_node *node
 {
 	int coreid;
 
-	STARPU_ASSERT(sizeof(coreid) == arg_size);
+	uintptr_t arg_ptr = (uintptr_t) arg;
 
-	coreid = *(int *) arg;
+	coreid = *(int *) arg_ptr;
+	arg_ptr += sizeof(coreid);
 
 	struct _starpu_worker *worker = &workerset->workers[coreid];
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(worker->current_task);
 
+	struct starpu_task *task = j->task;
+	STARPU_ASSERT(task);
+
 	struct _starpu_worker * old_worker = _starpu_get_local_worker_key();
+
+	/* Was cl_ret sent ? */
+	if (arg_size > arg_ptr - (uintptr_t) arg)
+	{
+		/* Copy cl_ret into the task */
+		unsigned cl_ret_size = arg_size - (arg_ptr - (uintptr_t) arg);
+		_STARPU_MALLOC(task->cl_ret, cl_ret_size);
+		memcpy(task->cl_ret, (void *) arg_ptr, cl_ret_size);
+		task->cl_ret_size=cl_ret_size;
+	}
+	else
+		task->cl_ret = NULL;
 
         /* if arg is not copied we release the mutex */
         if (!stored)

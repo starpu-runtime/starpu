@@ -14,6 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 import starpu
+from starpu import starpupy
 import asyncio
 import numpy as np
 
@@ -36,5 +37,4 @@ async def main():
 
 asyncio.run(main())
 
-
-#starpu.task_wait_for_all()
+starpupy.shutdown()

@@ -63,6 +63,66 @@ void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, vo
 	*cl_arg_size = state->arg_buffer_size;
 }
 
+void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void **cl_arg, size_t *cl_arg_size)
+{
+	state->arg_buffer = *cl_arg;
+	state->arg_buffer_size = *cl_arg_size;
+	state->current_offset = sizeof(int);
+	state->nargs = 0;
+}
+
+void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t size)
+{
+	size_t ptr_size;
+	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
+	assert(ptr_size==size);
+	state->current_offset += sizeof(ptr_size);
+
+	memcpy(ptr, state->arg_buffer+state->current_offset, ptr_size);
+	state->current_offset += ptr_size;
+
+	state->nargs++;
+}
+
+void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
+{
+	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
+	state->current_offset += sizeof(*size);
+
+	*ptr = malloc(*size);
+	memcpy(*ptr, state->arg_buffer+state->current_offset, *size);
+	state->current_offset += *size;
+
+	state->nargs++;
+}
+
+void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
+{
+	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
+	state->current_offset += sizeof(*size);
+	
+	*ptr = state->arg_buffer+state->current_offset;
+	state->current_offset += *size;
+
+	state->nargs++;
+}
+
+void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state)
+{
+
+}
+
+void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *state)
+{
+	size_t ptr_size;
+	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
+	
+	state->current_offset += sizeof(ptr_size);
+	state->current_offset += ptr_size;
+
+	state->nargs++;
+}
+
 int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_list varg_list)
 {
 	int arg_type;
