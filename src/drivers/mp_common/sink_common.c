@@ -619,8 +619,8 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 			starpu_task_init(&s_task);
 
 			/*copy cl_arg and cl_arg_size from mp_task into starpu_task*/
-			(&s_task)->cl_arg=task->cl_arg;
-			(&s_task)->cl_arg_size=task->cl_arg_size;
+			s_task.cl_arg=task->cl_arg;
+			s_task.cl_arg_size=task->cl_arg_size;
 
 			_starpu_set_current_task(&s_task);
 			/* execute the task */
@@ -628,8 +628,8 @@ static void _starpu_sink_common_execute_kernel(struct _starpu_mp_node *node, int
 			_starpu_set_current_task(NULL);
 
 			/*copy cl_ret and cl_ret_size from starpu_task into mp_task*/
-			task->cl_ret=(&s_task)->cl_ret;
-			task->cl_ret_size=(&s_task)->cl_ret_size;
+			task->cl_ret=s_task.cl_ret;
+			task->cl_ret_size=s_task.cl_ret_size;
 		}
 	}
 
