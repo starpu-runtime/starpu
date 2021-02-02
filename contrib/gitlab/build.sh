@@ -17,5 +17,15 @@
 
 ./contrib/ci.inria.fr/job-0-tarball.sh
 
+tarball=$(ls -tr starpu-*.tar.gz | tail -1)
+
+if test -z "$tarball"
+then
+    echo Error. No tar.gz file
+    ls
+    pwd
+    exit 1
+fi
+
 
 

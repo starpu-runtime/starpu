@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -292,9 +292,9 @@ void gemm_add_polling_dependencies()
 {
 	starpu_tag_t nb_tasks = (starpu_tag_t) nslices * (starpu_tag_t) nslices;
 	unsigned nb_workers = starpu_worker_get_count();
-	starpu_tag_t synchro_tag = 0;
-	starpu_tag_t previous_tag = 0;
-	starpu_tag_t next_tag = 0;
+	starpu_tag_t synchro_tag;
+	starpu_tag_t previous_tag;
+	starpu_tag_t next_tag;
 
 	for (synchro_tag = nb_workers+1; synchro_tag <= nb_tasks; synchro_tag += (nb_workers+1))
 	{

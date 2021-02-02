@@ -122,7 +122,7 @@ static int time_index(int size, int bench, int node)
 
 static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int nb_nodes_id, int size_id, int bench_id)
 {
-	double t_end;
+	double t_end = 0.0;
 	int i;
 	starpu_data_handle_t time_handle;
 
@@ -146,7 +146,7 @@ static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int 
 			starpu_mpi_wait(&reqs[i], MPI_STATUS_IGNORE);
 		}
 
-		for (int i = 1; i <= nb_dest_nodes; i++)
+		for (i = 1; i <= nb_dest_nodes; i++)
 		{
 			starpu_variable_data_register(&time_handle, STARPU_MAIN_RAM, (uintptr_t) &t_end, sizeof(double));
 			starpu_mpi_recv(time_handle, i, time_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
@@ -217,8 +217,8 @@ static inline void man()
 int main(int argc, char **argv)
 {
 	int pause_workers = 0;
-	int nb_nodes_id = 0;
-	int size_id = 0;
+	int nb_nodes_id;
+	int size_id;
 	int ret, method, nb_dest_nodes, s, b, i, array_size;
 	starpu_data_handle_t data_handle;
 	float* msg;

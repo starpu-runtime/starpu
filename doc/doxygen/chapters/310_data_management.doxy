@@ -1194,7 +1194,7 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 
 	return 0;
 }
-\encode
+\endcode
 
 And complex_unpack_data() just calls complex_peek_data() and releases the bytes array.
 

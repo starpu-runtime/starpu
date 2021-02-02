@@ -45,7 +45,7 @@ void task_cpu(void *descr[], void *args)
 
 void split_callback(void *arg)
 {
-	(arg);
+	(void)arg;
 	struct starpu_task *task = starpu_task_get_current();
 	starpu_data_handle_t value_handle, sub_handles[PARTS];
 

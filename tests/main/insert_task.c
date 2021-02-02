@@ -121,11 +121,7 @@ enodev:
 
 int main(void)
 {
-        int x; float f;
-        int i, ret;
-	int ifactor=12;
-	float ffactor=10.0;
-        starpu_data_handle_t data_handles[2];
+        int ret;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
