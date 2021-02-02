@@ -667,7 +667,10 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 	free(children[0]->siblings);
 
 	for (i = 0; i < nparts; i++)
+	{
+		children[i]->siblings = NULL;
 		starpu_data_unregister_submit(children[i]);
+	}
 
 	_starpu_spin_lock(&root_handle->header_lock);
 	root_handle->nplans--;
