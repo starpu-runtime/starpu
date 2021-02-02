@@ -122,7 +122,7 @@ static int time_index(int size, int bench, int node)
 
 static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int nb_nodes_id, int size_id, int bench_id)
 {
-	double t_end;
+	double t_end = 0.0;
 	int i;
 	starpu_data_handle_t time_handle;
 
