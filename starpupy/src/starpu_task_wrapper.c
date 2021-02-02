@@ -69,7 +69,7 @@ static PyObject* starpu_cloudpickle_loads(char* pyString, Py_ssize_t pyString_si
 void prologue_cb_func(void *cl_arg)
 {
 	PyObject *func_data;
-	Py_ssize_t func_data_size;
+	size_t func_data_size;
 	PyObject *argList;
 	PyObject *fut;
 	PyObject *loop;
@@ -84,7 +84,7 @@ void prologue_cb_func(void *cl_arg)
 	starpu_codelet_unpack_arg_init(&data_org, &task->cl_arg, &task->cl_arg_size);
 
 	/*get func_py char**/
-	starpu_codelet_pick_arg(&data_org, &func_data, &func_data_size);
+	starpu_codelet_pick_arg(&data_org, (void**)&func_data, &func_data_size);
 	/*get argList*/
 	starpu_codelet_unpack_arg(&data_org, &argList, sizeof(argList));
 	/*get fut*/
@@ -140,10 +140,10 @@ void prologue_cb_func(void *cl_arg)
 void starpupy_codelet_func(void *buffers[], void *cl_arg)
 {
 	char* func_data;
-	Py_ssize_t func_data_size;
+	size_t func_data_size;
 	PyObject *func_py; /*the python function passed in*/
 	char* arg_data;
-	Py_ssize_t arg_data_size;
+	size_t arg_data_size;
 	PyObject *argList; /*argument list of python function passed in*/
 
 	/*make sure we own the GIL*/
@@ -157,9 +157,9 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 	starpu_codelet_unpack_arg_init(&data, &task->cl_arg, &task->cl_arg_size);
 
 	/*get func_py char**/
-	starpu_codelet_pick_arg(&data, &func_data, &func_data_size);
+	starpu_codelet_pick_arg(&data, (void**)&func_data, &func_data_size);
 	/*get argList char**/
-	starpu_codelet_pick_arg(&data, &arg_data, &arg_data_size);
+	starpu_codelet_pick_arg(&data, (void**)&arg_data, &arg_data_size);
 	/*skip fut*/
 	starpu_codelet_unpack_discard_arg(&data);
 	/*skip loop*/
@@ -239,7 +239,7 @@ void cb_func(void *v)
 	PyObject *fut; /*asyncio.Future*/
 	PyObject *loop; /*asyncio.Eventloop*/
 	char* rv_data;
-	Py_ssize_t rv_data_size;
+	size_t rv_data_size;
 	PyObject *rv; /*return value when using PyObject_CallObject call the function f*/
 
 	/*make sure we own the GIL*/
@@ -277,7 +277,7 @@ void cb_func(void *v)
 	/*else use cloudpickle to load rv*/
 	else
 	{
-		starpu_codelet_pick_arg(&data_ret, &rv_data, &rv_data_size);
+		starpu_codelet_pick_arg(&data_ret, (void**)&rv_data, &rv_data_size);
 		rv=starpu_cloudpickle_loads(rv_data, rv_data_size);
 	}
 
@@ -350,12 +350,6 @@ static size_t sizebase (struct starpu_task *task, unsigned nimpl)
 	starpu_codelet_unpack_arg(&data, &sb, sizeof(sb));
 
 	return sb;
-}
-
-static void del_Perf(PyObject *obj)
-{
-	struct starpu_perfmodel *perf=(struct starpu_perfmodel*)PyCapsule_GetPointer(obj, "Perf");
-	free(perf);
 }
 
 /*initialization of perfmodel*/
@@ -520,7 +514,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	PyObject *PyName = PyDict_GetItemString(dict_option, "name");
 	if (PyName!=Py_None)
 	{
-		char* name_str = PyUnicode_AsUTF8(PyName);
+		const char* name_str = PyUnicode_AsUTF8(PyName);
 		char* name = strdup(name_str);
 		//printf("name is %s\n", name);
 		task->name=name;
