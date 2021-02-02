@@ -3,7 +3,7 @@ start=`date +%s`
 sudo make -j4
 export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 ulimit -S -s 5000000
-NB_ALGO_TESTE=6
+NB_ALGO_TESTE=8
 NB_TAILLE_TESTE=10
 ECHELLE_X=50
 START_X=0
@@ -65,4 +65,4 @@ Rscript /home/gonthier/these_gonthier_maxime/Starpu/R/ScriptR/${DOSSIER}/${FICHI
 mv /home/gonthier/starpu/Rplots.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/${DOSSIER}/${FICHIER:0}.pdf
 end=`date +%s`
 runtime=$((end-start))
-echo "Fin du script, l'execution a durée" $((runtime/60)) "minutes."
+echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."

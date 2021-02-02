@@ -64,4 +64,4 @@ Rscript /home/gonthier/these_gonthier_maxime/Starpu/R/ScriptR/${DOSSIER}/${FICHI
 mv /home/gonthier/starpu/Rplots.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/${DOSSIER}/${FICHIER:0}.pdf
 end=`date +%s`
 runtime=$((end-start))
-echo "Fin du script, l'execution a durée" $((runtime/60)) "minutes."
+echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
