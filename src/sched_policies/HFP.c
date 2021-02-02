@@ -239,7 +239,7 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 
 static void get_weight_all_different_data(struct my_list *a, starpu_ssize_t GPU_RAM_M)
 {
-	printf("Taille de la matrice : %d\n",GPU_RAM_M);
+	printf("Taille de la matrice : %ld\n",GPU_RAM_M);
 	long int weight_all_different_data = 0;
 	for (int i = 0; i < a->package_nb_data; i++) {
 		weight_all_different_data += starpu_data_get_size(a->package_data[i]); 
@@ -251,8 +251,8 @@ static void get_weight_all_different_data(struct my_list *a, starpu_ssize_t GPU_
 static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
 {
 	/* ces deux fichiers sont juste utile pour le débuggage, on pourra les suppr plus tard */
-	FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
-	FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt","w");
+	//~ FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
+	//~ FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt","w");
 	struct starpu_task *task = NULL; 
 	int i = 0; int j = 0; int k = 0;
 	
@@ -261,19 +261,19 @@ static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES
 	task_position_in_data_use_order = malloc(NT*sizeof(int));
 	
 	for (task = starpu_task_list_begin(&a->sub_list); task != starpu_task_list_end(&a->sub_list); task = starpu_task_list_next(task)) {
-		fprintf(f_2,"%p\n",task);
+		//~ fprintf(f_2,"%p\n",task);
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 			data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
 			k++;
-			fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
+			//~ fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
 		}
 		if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
 		else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
 		j++;
 	}
 	index_task_currently_treated = 0;
-	fclose(f);
-	fclose(f_2);
+	//~ fclose(f);
+	//~ fclose(f_2);
 }
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
@@ -1194,7 +1194,6 @@ static void initialize_HFP_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
-			STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
@@ -1213,39 +1212,16 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 	starpu_sched_component_worker_pre_exec_hook(task,sci);
 }
 
-starpu_data_handle_t last_evicted;
-
-int TEST = 0;
+//~ starpu_data_handle_t last_evicted;
 
 /* Almost Belady while tasks are being executed */
 starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-	int p = 0;
-	bool donnee_ok = false; int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
-	int nb_task_on_node_found = 0; int l = 0;
+	int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
 	unsigned nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
 	int is_allocated;
 	if (task_currently_treated != NULL) {
-		
-		//Old memory read
-		//~ for (i = 0; i < nb_different_data; i++) {
-			//~ starpu_data_query_status(all_data_needed[i], node, &is_allocated, NULL, NULL);
-			//~ if (is_allocated) {
-				//~ nb_data_on_node++;
-			//~ }
-		//~ }
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d data on node :\n",nb_data_on_node); }
-		//~ if (nb_data_on_node == 0) { goto done; }
-		//~ starpu_data_handle_t * data_on_node = malloc(nb_data_on_node*sizeof(all_data_needed[0]));
-		//~ for (i = 0; i < nb_different_data; i++) {
-			//~ starpu_data_query_status(all_data_needed[i], node, &is_allocated, NULL, NULL);
-			//~ if (is_allocated) {
-				//~ data_on_node[j] = all_data_needed[i];
-				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p\n",data_on_node[j]); }
-				//~ j++;
-			//~ }
-		//~ }
 		
 		//New memory read
 		//~ starpu_data_handle_t *handles;
@@ -1295,7 +1271,7 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 				/* On regarde si la donnée est pas déjà sur M par hasard */
 				starpu_data_query_status(data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1], node, &is_allocated, NULL, NULL);
 				if (is_allocated && i == 1000) {
-					if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("La donnée %p est déjà sur M\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); }
+					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La donnée %p est déjà sur M\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); }
 				}
 				else {
 					//Savoir quand sera utilisé chaque tâche de la mem. Si la tâche appartient a la prochaine tache evidemment on l'interdit.
@@ -1341,7 +1317,10 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 						//~ }
 					//~ }
 					//~ else {
-						int prochaine_utilisation_donnee[nb_data_on_node];
+						//~ int prochaine_utilisation_donnee[nb_data_on_node];
+						int *prochaine_utilisation_donnee;
+						prochaine_utilisation_donnee = malloc(nb_data_on_node*sizeof(int));
+						
 						for (j = 0; j < nb_data_on_node; j++) { prochaine_utilisation_donnee[j] = INT_MAX; }
 						//Care if a task is never use again and is on node, we must evict it
 						for (j = 0; j < nb_data_on_node; j++) { 
@@ -1383,39 +1362,47 @@ starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefet
 							//~ }
 						}
 					}
-					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) { 
+					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) {
+						free(data_on_node); 
+						free(prochaine_utilisation_donnee);
 						return STARPU_DATA_NO_VICTIM;  
 					}
 					
-					if (last_evicted != data_on_node[donnee_utilise_dans_le_plus_longtemps]) { 
-						if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("---\nLa tâche en cours est %p, position %d dans le tableau d'ordre des données\n",task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
-					for (p = 0; p < nb_data_on_node; p++) {
-						if (starpu_data_can_evict(data_on_node[p], node, is_prefetch)) {
-							printf("Can evict %p\n",data_on_node[p]); }
-						else {
-							printf("Can't evict %p\n",data_on_node[p]); } 
-					}
-							printf("Données de la tâche en cours : ");
-							printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]+1],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 2]);
-							printf("Données de la deuxième tâche en cours (la suivante) : ");
-							printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 3],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]+4],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 5]);
-							printf("Données de M et leurs prochaine apparition:\n"); for (i = 0; i < nb_data_on_node; i++) { printf("%p  = %d / ",data_on_node[i],prochaine_utilisation_donnee[i]); } printf("\n");
-						printf("On évince : %p\n",data_on_node[donnee_utilise_dans_le_plus_longtemps]); }
-					}
-					last_evicted = data_on_node[donnee_utilise_dans_le_plus_longtemps];	
+					//~ if (last_evicted != data_on_node[donnee_utilise_dans_le_plus_longtemps]) { 
+						//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("---\nLa tâche en cours est %p, position %d dans le tableau d'ordre des données\n",task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
+					//~ for (p = 0; p < nb_data_on_node; p++) {
+						//~ if (starpu_data_can_evict(data_on_node[p], node, is_prefetch)) {
+							//~ printf("Can evict %p\n",data_on_node[p]); }
+						//~ else {
+							//~ printf("Can't evict %p\n",data_on_node[p]); } 
+					//~ }
+							//~ printf("Données de la tâche en cours : ");
+							//~ printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]+1],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 2]);
+							//~ printf("Données de la deuxième tâche en cours (la suivante) : ");
+							//~ printf("%p %p %p\n",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 3],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated]+4],data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] + 5]);
+							//~ printf("Données de M et leurs prochaine apparition:\n"); for (i = 0; i < nb_data_on_node; i++) { printf("%p  = %d / ",data_on_node[i],prochaine_utilisation_donnee[i]); } printf("\n");
+						//~ printf("On évince : %p\n",data_on_node[donnee_utilise_dans_le_plus_longtemps]); }
+					//~ }
+					//~ last_evicted = data_on_node[donnee_utilise_dans_le_plus_longtemps];	
 					starpu_data_handle_t returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
 					free(data_on_node);
+					free(prochaine_utilisation_donnee);
 					return returned_handle;
 					//~ }
 													
 				}
 			}
 	}
-	else { if (starpu_get_env_number_default("PRINTF",0) == 1) { TEST++; printf("On est sur la dernière tâche il faudrait sortir la %d\n",TEST); 
+	else {
+		 if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On est sur la dernière tâche il faudrait sortir la\n"); } 
+		free(data_on_node);
 		return NULL;
 		//~ return STARPU_DATA_NO_VICTIM;
-		 } }
-	} else { if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("task current = null\n"); } }
+		 }
+	} 
+	else { 
+		if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("task current = null\n"); } 
+		}
 
 	/* Uh :/ */
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr,"uh, no evictable data\n"); }
