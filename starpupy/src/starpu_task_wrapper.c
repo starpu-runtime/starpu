@@ -715,7 +715,9 @@ static struct PyModuleDef starpupymodule =
 PyMODINIT_FUNC
 PyInit_starpupy(void)
 {
+#if PY_MAJOR_VERSION < 3 || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 9)
 	PyEval_InitThreads();
+#endif
 	//PyThreadState* st = PyEval_SaveThread();
 	Py_BEGIN_ALLOW_THREADS
 	/*starpu initialization*/
