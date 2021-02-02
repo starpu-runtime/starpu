@@ -8,7 +8,7 @@ NB_TAILLE_TESTE=10
 ECHELLE_X=50
 START_X=0
 FICHIER=GF_M_CHO_N=15_BW350
-FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
+FICHIER_RAW=Output_maxime/GFlops_raw_out_2.txt
 DOSSIER=Cholesky
 truncate -s 0 ${FICHIER_RAW:0}
 echo "########## Random ##########"
