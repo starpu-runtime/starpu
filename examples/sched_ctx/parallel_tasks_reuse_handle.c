@@ -172,7 +172,7 @@ static struct starpu_codelet sum_cl =
 int main(void)
 {
 	int ntasks = NTASKS;
-	int ret, j, k;
+	int ret;
 	unsigned ncpus = 0;
 
 	ret = starpu_init(NULL);
@@ -207,7 +207,7 @@ int main(void)
 
 	for (i = 0; i < ntasks; i++)
 	{
-		struct starpu_task * t;
+		struct starpu_task *t;
 		t=starpu_task_build(&sum_cl,
 				    STARPU_RW,handle1,
 				    STARPU_R,handle2,
