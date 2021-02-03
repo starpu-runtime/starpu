@@ -1215,7 +1215,7 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 //~ starpu_data_handle_t last_evicted;
 
 /* Almost Belady while tasks are being executed */
-starpu_data_handle_t belady_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch)
+starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
 	int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;

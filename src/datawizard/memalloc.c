@@ -919,7 +919,7 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 	if (is_prefetch < STARPU_PREFETCH && victim_selector)
 	{
 		/* Ask someone who knows the future */
-		victim = victim_selector(node, is_prefetch);
+		victim = victim_selector(handle, node, is_prefetch);
 
 		if (victim == STARPU_DATA_NO_VICTIM)
 			/* He told me we should not make any victim */
@@ -1047,7 +1047,7 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 	if (!force && victim_selector)
 	{
 		/* Ask someone who knows the future */
-		victim = victim_selector(node, is_prefetch);
+		victim = victim_selector(NULL, node, is_prefetch);
 
 		if (victim == STARPU_DATA_NO_VICTIM)
 			/* He told me we should not make any victim */
