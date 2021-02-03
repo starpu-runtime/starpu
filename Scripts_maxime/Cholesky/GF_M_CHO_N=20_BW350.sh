@@ -6,55 +6,55 @@ ulimit -S -s 5000000
 NB_ALGO_TESTE=8
 NB_TAILLE_TESTE=9
 ECHELLE_X=100
-START_X=50
+START_X=-50
 FICHIER=GF_M_CHO_N=20_BW350
 FICHIER_RAW=Output_maxime/GFlops_raw_out_2.txt
 DOSSIER=Cholesky
-#~ truncate -s 0 ${FICHIER_RAW:0}
-#~ echo "########## Random ##########"
-#~ for ((i=0 ; i<(($NB_TAILLE_TESTE)); i++))
-	#~ do 
-	#~ M=$((START_X+i*ECHELLE_X))
-	#~ STARPU_SCHED=random_order STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
-#~ done
-#~ echo "########## Dmdar ##########"
-#~ for ((i=0 ; i<(($NB_TAILLE_TESTE)); i++))
-	#~ do 
-	#~ M=$((START_X+i*ECHELLE_X))
-	#~ STARPU_SCHED=dmdar STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
-#~ done
-#~ echo "########## HFP ##########"
-#~ for ((i=0 ; i<(($NB_TAILLE_TESTE)); i++))
-	#~ do 
-	#~ M=$((START_X+i*ECHELLE_X))
-	#~ STARPU_SCHED=HFP ORDER_U=0 STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
-#~ done
-#~ echo "########## HFP U ##########"
-#~ for ((i=0 ; i<(($NB_TAILLE_TESTE)); i++))
-	#~ do 
-	#~ M=$((START_X+i*ECHELLE_X))
-	#~ STARPU_SCHED=HFP ORDER_U=1 STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
-#~ done
-#~ echo "########## MST ##########"
-#~ for ((i=0 ; i<(($NB_TAILLE_TESTE)); i++))
-	#~ do 
-	#~ M=$((START_X+i*ECHELLE_X))
-	#~ STARPU_SCHED=mst STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
-#~ done
-#~ echo "########## CM ##########"
-#~ for ((i=0 ; i<(($NB_TAILLE_TESTE)); i++))
-	#~ do 
-	#~ M=$((START_X+i*ECHELLE_X))
-	#~ STARPU_SCHED=cuthillmckee STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
-#~ done
-#~ echo "########## HFP BELADY ##########"
-#~ for ((i=0 ; i<(($NB_TAILLE_TESTE)); i++))
-	#~ do 
-	#~ M=$((START_X+i*ECHELLE_X))
-	#~ STARPU_SCHED=HFP ORDER_U=0 STARPU_LIMIT_BANDWIDTH=350 BELADY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
-#~ done
+truncate -s 0 ${FICHIER_RAW:0}
+echo "########## Random ##########"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	M=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=random_order STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
+done
+echo "########## Dmdar ##########"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	M=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=dmdar STARPU_LIMIT_BANDWIDTH=350 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
+done
+echo "########## HFP ##########"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	M=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=HFP ORDER_U=0 STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
+done
+echo "########## HFP U ##########"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	M=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=HFP ORDER_U=1 STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
+done
+echo "########## MST ##########"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	M=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=mst STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
+done
+echo "########## CM ##########"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	M=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=cuthillmckee STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
+done
+echo "########## HFP BELADY ##########"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	M=$((START_X+i*ECHELLE_X))
+	STARPU_SCHED=HFP ORDER_U=0 STARPU_LIMIT_BANDWIDTH=350 BELADY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
+done
 echo "########## HFP U BELADY ##########"
-for ((i=0 ; i<(($NB_TAILLE_TESTE)); i++))
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 
 	M=$((START_X+i*ECHELLE_X))
 	STARPU_SCHED=HFP ORDER_U=1 STARPU_LIMIT_BANDWIDTH=350 BELADY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*20)) -nblocks 20 | tail -n 1 >> ${FICHIER_RAW:0}
