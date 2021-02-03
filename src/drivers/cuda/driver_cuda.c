@@ -1783,7 +1783,7 @@ void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 		starpu_sleep(0.000750);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 	/* CUDA also synchronizes roughly everything on cudaFree */
-	_starpu_simgrid_sync_gpus();
+	//~ _starpu_simgrid_sync_gpus();
 #else
 	cudaError_t err;
 	unsigned devid = starpu_memory_node_get_devid(dst_node);
