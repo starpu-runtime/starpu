@@ -495,7 +495,7 @@ static void parse_args(int argc, char **argv)
 }
 
 /* Don't do this at home, kids, this is really dumb!  */
-starpu_data_handle_t dumb_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch)
+starpu_data_handle_t dumb_victim_selector(starpu_data_handle_t *toload, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
 	static unsigned next_evicted; // index of next data to evict, to avoid getting stuck. Yes this is awful.
 	starpu_data_handle_t handle;

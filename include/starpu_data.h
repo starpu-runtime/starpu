@@ -562,8 +562,12 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 
    This is the type of function to be registered with
    starpu_data_register_victim_selector().
+
+   \p toload, when different from NULL, specifies that we are looking for a
+   victim with the same shape as this data, so that the buffer can simply be
+   reused without any free/alloc operations (that are very costly with CUDA).
 */
-typedef starpu_data_handle_t starpu_data_victim_selector(unsigned node, enum starpu_is_prefetch is_prefetch);
+typedef starpu_data_handle_t starpu_data_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
 
 /**
    Register a data victim selector.
