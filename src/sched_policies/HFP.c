@@ -149,10 +149,14 @@ void init_visualisation_tache_matrice_format_tex()
 	fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "w");
 	fprintf(fcoordinate,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
 	FILE * fcoordinate_order; /* Order in wich the task go out */
+	FILE * fcoordinate_order_last; /* Order in wich the task go out */
 	fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "w");
+	fcoordinate_order_last = fopen("Output_maxime/Data_coordinates_order_last.tex", "w");
 	fprintf(fcoordinate_order,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
+	fprintf(fcoordinate_order_last,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
 	fclose(fcoordinate);
 	fclose(fcoordinate_order);
+	fclose(fcoordinate_order_last);
 }
 
 void end_visualisation_tache_matrice_format_tex()
@@ -161,36 +165,29 @@ void end_visualisation_tache_matrice_format_tex()
 	//~ printf("dans end\n");
 	FILE * fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "a");
 	FILE * fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "a");
+	FILE * fcoordinate_order_last = fopen("Output_maxime/Data_coordinates_order_last.tex", "a");
 	//~ fseek(fcoordinate_order, 0, SEEK_END);
 	fprintf(fcoordinate,"\\caption{HFP packing}\\end{figure}\n\n\\end{document}");
 	fprintf(fcoordinate_order,"\\caption{Task's processing order}\\end{figure}\n\n\\end{document}");
+	fprintf(fcoordinate_order_last,"\\caption{Task's processing order}\\end{figure}\n\n\\end{document}");
 	fclose(fcoordinate);
 	fclose(fcoordinate_order);
+	fclose(fcoordinate_order_last);
 }
 
-void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[][N], int nb_of_loop)
+void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[][N], int nb_of_loop, int link_index)
 {
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Visualisation matrice\n"); }
 	int i, j, red, green, blue = 0;
-	//~ printf("tab order: %d\n",tab_order[0][0]);
-	//~ printf("NT: %d\n",NT);
-	//~ printf("N: %d\n",N);
-	//~ "\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]\n\\begin{subfigure}{.5\\textwidth}\\centering\n\\resizebox{\\columnwidth}{!}{%\n\\begin{tabular}{|");
-	/* Output files */
-	//~ FILE * fcoordinate; /* Coordinates at each iteration */
 	FILE * fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "a");
-	//~ fprintf(fcoordinate,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
-	//~ FILE * fcoordinate_order; /* Order in wich the task go out */
 	FILE * fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "a");
-	//~ fprintf(fcoordinate_order,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
 	fprintf(fcoordinate,"\n\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{|");
 	fprintf(fcoordinate_order,"\n\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{|"); 
 	for (i = 0; i < N - 1; i++) {
 		fprintf(fcoordinate,"c|");
 		fprintf(fcoordinate_order,"c|");
 	}
-	fprintf(fcoordinate,"c}\n");
-	fprintf(fcoordinate_order,"c}\n");
+	fprintf(fcoordinate,"c|}\n\\hline");
+	fprintf(fcoordinate_order,"c|}\n\\hline");
 	for (i = 0; i < N; i++) { 
 		for (j = 0; j < N - 1; j++) {
 			if (tab_paquet[j][i] == 0) { red = 255; green = 255; blue = 255; }
@@ -208,19 +205,45 @@ void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[]
 		fprintf(fcoordinate_order," \\\\"); fprintf(fcoordinate_order,"\\hline");
 	}
 	if (nb_of_loop > 1 && nb_of_loop%2 == 0) { 
-		fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\end{subfigure} \\\\",nb_of_loop); 
-		fprintf(fcoordinate_order, "\\end{tabular} \\caption{Itération %d} \\end{subfigure} \\\\",nb_of_loop);
+		fprintf(fcoordinate, "\\end{tabular} \\caption{Iteration %d} \\end{subfigure} \\\\",nb_of_loop); 
+		fprintf(fcoordinate_order, "\\end{tabular} \\caption{Iteration %d} \\end{subfigure} \\\\",nb_of_loop);
 		if (nb_of_loop == 10) { 
 			fprintf(fcoordinate,"\\end{figure}\\begin{figure}[H]\\ContinuedFloat");
 			fprintf(fcoordinate_order,"\\end{figure}\\begin{figure}[H]\\ContinuedFloat");
 		}
 	}
 	else { 
-		fprintf(fcoordinate, "\\end{tabular} \\caption{Itération %d} \\end{subfigure}",nb_of_loop); 
-		fprintf(fcoordinate_order, "\\end{tabular} \\caption{Itération %d} \\end{subfigure}",nb_of_loop); 
+		fprintf(fcoordinate, "\\end{tabular} \\caption{Iteration %d} \\end{subfigure}",nb_of_loop); 
+		fprintf(fcoordinate_order, "\\end{tabular} \\caption{Iteration %d} \\end{subfigure}",nb_of_loop); 
 	}
 	fprintf(fcoordinate,"\n");
 	fprintf(fcoordinate_order,"\n");
+	fclose(fcoordinate);
+	fclose(fcoordinate_order);
+	if (link_index == 1) { 
+		FILE * fcoordinate_order_last = fopen("Output_maxime/Data_coordinates_order_last.tex", "a");
+		fprintf(fcoordinate_order_last,"\n\\centering\\begin{tabular}{|"); 
+	for (i = 0; i < N - 1; i++) {
+		fprintf(fcoordinate_order_last,"c|");
+	}
+	fprintf(fcoordinate_order_last,"c|}\n\\hline");
+	for (i = 0; i < N; i++) { 
+		for (j = 0; j < N - 1; j++) {
+			if (tab_paquet[j][i] == 0) { red = 255; green = 255; blue = 255; }
+			else if (tab_paquet[j][i] == 6) { red = 70; green = 130; blue = 180; }
+			else { rgb(tab_paquet[j][i], &red, &green, &blue); }
+			fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_order[j][i]);
+		}
+		if (tab_paquet[j][i] == 0) { red = 255; green = 255; blue = 255; }
+		else if (tab_paquet[j][i] == 6) { red = 70; green = 130; blue = 180; }
+		else { rgb(tab_paquet[j][i], &red, &green, &blue); }
+		fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_order[j][i]); 
+		fprintf(fcoordinate_order_last," \\\\"); fprintf(fcoordinate_order_last,"\\hline");
+	}
+		fprintf(fcoordinate_order_last, "\\end{tabular} \\caption{Iteration %d}",nb_of_loop); 
+	fprintf(fcoordinate_order_last,"\n");
+		fclose(fcoordinate_order_last);
+	}
 }
 
 struct my_list* HFP_reverse_sub_list(struct my_list *a) 
@@ -1034,7 +1057,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 						link_index++;
 						data->temp_pointer_1 = data->temp_pointer_1->next;
 					} 
-					if (starpu_get_env_number_default("PRINTF",0) == 1) { visualisation_tache_matrice_format_tex(coordinate_visualization_matrix,coordinate_order_visualization_matrix,nb_of_loop); }
+					if (starpu_get_env_number_default("PRINTF",0) == 1) { visualisation_tache_matrice_format_tex(coordinate_visualization_matrix,coordinate_order_visualization_matrix,nb_of_loop,link_index); }
 			 
 			/* We have 1 package only */					
 			if (link_index == 1) {  goto end_algo3; }
