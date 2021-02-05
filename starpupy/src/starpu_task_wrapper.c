@@ -220,15 +220,15 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 		PyObject *rv_bytes;
 		char* rv_data = starpu_cloudpickle_dumps(rv, &rv_bytes, &rv_data_size);
 		starpu_codelet_pack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
-	    starpu_codelet_pack_arg(&data_ret, rv_data, rv_data_size);
-	    Py_DECREF(rv_bytes);
+		starpu_codelet_pack_arg(&data_ret, rv_data, rv_data_size);
+		Py_DECREF(rv_bytes);
 	}
 
-    /*store the return value in task_>cl_ret*/
-    starpu_codelet_pack_arg_fini(&data_ret, &task->cl_ret, &task->cl_ret_size);
+	/*store the return value in task_>cl_ret*/
+	starpu_codelet_pack_arg_fini(&data_ret, &task->cl_ret, &task->cl_ret_size);
 
-    Py_DECREF(func_py);
-    Py_DECREF(argList);
+	Py_DECREF(func_py);
+	Py_DECREF(argList);
 
 	/*restore previous GIL state*/
 	PyGILState_Release(state);
@@ -730,12 +730,13 @@ PyInit_starpupy(void)
 
 	StarpupyError = PyErr_NewException("starpupy.error", NULL, NULL);
 	Py_XINCREF(StarpupyError);
-    if (PyModule_AddObject(m, "error", StarpupyError) < 0) {
-        Py_XDECREF(StarpupyError);
-        Py_CLEAR(StarpupyError);
-        Py_DECREF(m);
-        return NULL;
-    }
+	if (PyModule_AddObject(m, "error", StarpupyError) < 0)
+	{
+		Py_XDECREF(StarpupyError);
+		Py_CLEAR(StarpupyError);
+		Py_DECREF(m);
+		return NULL;
+	}
 
 #if PY_MAJOR_VERSION < 3 || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 9)
 	PyEval_InitThreads();
