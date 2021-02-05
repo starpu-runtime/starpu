@@ -1012,7 +1012,7 @@ restart2:
 				next_mc->remove_notify = &next_mc;
 			}
 			/* Note: this may unlock mc_list! */
-			freed += try_to_throw_mem_chunk(mc, node, NULL, 0, STARPU_FETCH);
+			freed += try_to_throw_mem_chunk(mc, node, NULL, 0, is_prefetch);
 
 			if (orig_next_mc)
 			{
