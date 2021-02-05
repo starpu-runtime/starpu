@@ -3448,6 +3448,14 @@ then
 		AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
 	fi
 	AC_SUBST(PYTHON)
+	PYTHON_INCLUDE_DIRS="`$PYTHON -c "from sysconfig import get_paths as gp; print(gp()@<:@'include'@:>@)"`"
+	SAVED_CPPFLAGS="${CPPFLAGS}"
+	CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDE_DIRS"
+	AC_CHECK_HEADERS([Python.h],[have_python_h=yes],[have_python_h=no])
+	if test "$have_python_h" = "no" ; then
+		AC_MSG_ERROR([Python.h missing, cannot build StarPU python interface (consider installing python-dev)])
+		CPPFLAGS=${SAVED_CPPFLAGS}
+	fi
 	AC_MSG_CHECKING(for python3 module joblib)
 	AC_PYTHON_MODULE(joblib,[joblib_avail=yes],[joblib_avail=no])
 	AC_MSG_RESULT($joblib_avail)
