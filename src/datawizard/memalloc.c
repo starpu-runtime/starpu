@@ -1635,9 +1635,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 				told_reclaiming = 1;
 			}
 			/* That was not enough, we have to really reclaim */
-			//_STARPU_TRACE_START_MEMRECLAIM(dst_node,is_prefetch);
+			_STARPU_TRACE_START_MEMRECLAIM(dst_node,is_prefetch);
 			freed = _starpu_memory_reclaim_generic(dst_node, 0, reclaim, is_prefetch);
-			//_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
+			_STARPU_TRACE_END_MEMRECLAIM(dst_node,is_prefetch);
 
 			if (!freed && is_prefetch >= STARPU_FETCH)
 			{
