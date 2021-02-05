@@ -948,9 +948,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #ifdef STARPU_SIMGRID
 	if (!res)
 		starpu_pthread_wait_wait(&worker0->wait);
-#else
-	if (!res)
-		return 0;
 #endif
 
 	for (i = 0; i < (int) worker_set->nworkers; i++)
