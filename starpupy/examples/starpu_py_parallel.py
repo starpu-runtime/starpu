@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -136,9 +136,13 @@ for arg in sys.argv[1:]:
 for x in listX:
 	for X in range(x, x*10, x):
 		#print("X=",X)
-		starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_list")(starpu.joblib.delayed(log10)(i+1)for i in range(X))
-		A=np.arange(1,X+1,1)
-		starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_arr")(starpu.joblib.delayed(log10_arr)(A))
+		try :
+			starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_list")(starpu.joblib.delayed(log10)(i+1)for i in range(X))
+			A=np.arange(1,X+1,1)
+			starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_arr")(starpu.joblib.delayed(log10_arr)(A))
+		except starpupy.error as e:
+			print("No worker to execute the job")
+			exit(77)
 
 print("************************")
 print("parallel Normal version:")
@@ -335,7 +339,11 @@ async def main():
 	res10=await fut10
 	#print(res9)
 
-asyncio.run(main())
+try:
+        asyncio.run(main())
+except starpupy.error as e:
+        starpupy.shutdown()
+        exit(77)
 
 starpu.perfmodel_plot(perfmodel="sqrt",view=displayPlot)
 starpu.perfmodel_plot(perfmodel="multi",view=displayPlot)
