@@ -728,7 +728,7 @@ PyInit_starpupy(void)
 	if (m == NULL)
 		return NULL;
 
-	StarpupyError = PyErr_NewException("StarPUPy.Error", NULL, NULL);
+	StarpupyError = PyErr_NewException("starpupy.error", NULL, NULL);
 	Py_XINCREF(StarpupyError);
     if (PyModule_AddObject(m, "error", StarpupyError) < 0) {
         Py_XDECREF(StarpupyError);
