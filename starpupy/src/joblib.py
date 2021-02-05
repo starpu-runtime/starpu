@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2021       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -92,6 +92,8 @@ def future_generator(iterable, n_jobs, dict_task):
 		n_block=cpu_count()+1+n_jobs
 	else:
 		n_block=n_jobs
+	if (n_block <= 0):
+		n_block = 1
 
 	# if arguments is tuple format
 	if type(iterable) is tuple:
