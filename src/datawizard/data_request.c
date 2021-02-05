@@ -618,8 +618,9 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 				/* Prefetching more there would make the situation even worse */
 				break;
 		}
+		else
+			(*pushed)++;
 
-		(*pushed)++;
 		if (starpu_timing_now() - start >= MAX_PUSH_TIME)
 		{
 			/* We have spent a lot of time doing requests, skip pushing more for now */
