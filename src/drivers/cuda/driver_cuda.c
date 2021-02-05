@@ -941,8 +941,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #endif
 
 	/* Something done, make some progress */
-	res = !idle_tasks || !idle_transfers;
-	res |= __starpu_datawizard_progress(1, 1);
+	res = __starpu_datawizard_progress(1, 1);
 
 	/* And pull tasks */
 	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, worker0->memory_node);
