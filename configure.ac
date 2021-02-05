@@ -3438,7 +3438,7 @@ AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples 
 
 starpupy_support=no
 AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU python interface])],
-                    enable_starpupy=$enableval, enable_starpupy=no)
+                    enable_starpupy=$enableval, enable_starpupy=yes)
 if test "x$enable_starpupy" != xno
 then
 	starpupy_support=yes
