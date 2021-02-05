@@ -625,8 +625,9 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 				/* Prefetching more there would make the situation even worse */
 				break;
 		}
-
+		else
 		(*pushed)++;
+
 		if (starpu_timing_now() - start >= MAX_PUSH_TIME)
 		{
 			/* We have spent a lot of time doing requests, skip pushing more for now */
@@ -676,6 +677,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 #ifdef STARPU_SIMGRID
 		if (*pushed)
 		{
+			// FIXME!!
 			/* We couldn't process the request due to missing
 			 * space. Advance the clock a bit to let eviction have
 			 * the time to make some room for us. Ideally we should
@@ -683,7 +685,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 			 * for eviction to happen.
 			 */
 			starpu_sleep(0.000001);
-			_starpu_wake_all_blocked_workers_on_node(src_node);
+			//_starpu_wake_all_blocked_workers_on_node(src_node);
 		}
 #elif !defined(STARPU_NON_BLOCKING_DRIVERS)
 		_starpu_wake_all_blocked_workers_on_node(src_node);
