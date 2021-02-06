@@ -792,8 +792,7 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	}
 #endif
 
-	res = !idle_tasks || !idle_transfers;
-	res |= __starpu_datawizard_progress(1, 1);
+	res = __starpu_datawizard_progress(1, 1);
 
 	task = _starpu_get_worker_task(worker, workerid, memnode);
 
