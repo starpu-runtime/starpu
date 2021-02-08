@@ -34,7 +34,7 @@ pipeline
 		{
 			steps
 			{
-				node('autotools')
+				node('autotools2')
 				{
 					checkout scm
 					sh 'contrib/ci.inria.fr/job-0-tarball.sh'
@@ -62,7 +62,7 @@ pipeline
 			{
 				script
 				{
-					labelToSelect = 'unix'
+					labelToSelect = 'unix2'
 					listOfNodeNames = jenkins.model.Jenkins.instance.nodes.collect
 					{
 						node -> node.getLabelString().contains(labelToSelect) ? node.name : null
