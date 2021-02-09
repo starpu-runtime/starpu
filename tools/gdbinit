@@ -390,6 +390,7 @@ define starpu-print-data
   printf "Home node %d\n", $data->home_node
   printf "RWlock refs %d\n", $data->refcnt
   printf "Busy count %d\n", $data->busy_count
+  printf "Initialization submitted %d\n", $data->initialized
   printf "Current mode "
   starpu-print-mode $data->current_mode
   printf "\n"
