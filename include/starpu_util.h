@@ -257,6 +257,10 @@ extern "C"
 	_starpu_abort();				\
 } while(0)
 
+#if defined(STARPU_HAVE_WINDOWS)
+  #undef STARPU_HAVE_STRERROR_R
+#endif
+
 #if defined(STARPU_HAVE_STRERROR_R)
 #if (! defined(__GLIBC__) || !__GLIBC__) || ((_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600) && (! defined(_GNU_SOURCE)))
 /* XSI-compliant version of strerror_r returns an int */
