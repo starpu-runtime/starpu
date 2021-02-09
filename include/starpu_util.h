@@ -257,7 +257,7 @@ extern "C"
 	_starpu_abort();				\
 } while(0)
 
-#if defined(STARPU_HAVE_WINDOWS)
+#if defined(_MSC_VER)
   #undef STARPU_HAVE_STRERROR_R
 #endif
 
