@@ -15,7 +15,6 @@ truncate -s 0 ${FICHIER_RAW:0}
 truncate -s 0 ${FICHIER_RAW_DT:0}
 truncate -s 0 ${FICHIER_BUS:0}
 DOSSIER=Cholesky
-truncate -s 0 ${FICHIER_RAW:0}
 echo "############## Random ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	do 

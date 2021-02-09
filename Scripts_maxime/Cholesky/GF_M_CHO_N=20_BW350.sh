@@ -1,5 +1,4 @@
 #!/usr/bin/bash
-start=`date +%s`
 export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 ulimit -S -s 5000000
 NB_ALGO_TESTE=8
@@ -62,6 +61,3 @@ gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
 ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW:0} ../these_gonthier_maxime/Starpu/R/Data/${DOSSIER}/${FICHIER:0}.txt
 Rscript /home/gonthier/these_gonthier_maxime/Starpu/R/ScriptR/${DOSSIER}/${FICHIER:0}.R
 mv /home/gonthier/starpu/Rplots.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/${DOSSIER}/${FICHIER:0}.pdf
-end=`date +%s`
-runtime=$((end-start))
-echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
