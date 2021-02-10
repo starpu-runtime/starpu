@@ -20,7 +20,10 @@ import time
 import asyncio
 from math import sqrt
 from math import log10
-import numpy as np
+try:
+    import numpy as np
+except:
+    exit(77)
 import sys
 
 #generate a list to store functions
