@@ -44,12 +44,14 @@ void _starpu_mpi_datatype_shutdown(void)
 
 static int handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
+	struct starpu_matrix_interface *matrix_interface = starpu_data_get_interface_on_node(data_handle, STARPU_MAIN_RAM);
+
 	int ret;
 
-	unsigned nx = starpu_matrix_get_nx(data_handle);
-	unsigned ny = starpu_matrix_get_ny(data_handle);
-	unsigned ld = starpu_matrix_get_local_ld(data_handle);
-	size_t elemsize = starpu_matrix_get_elemsize(data_handle);
+	unsigned nx = STARPU_MATRIX_GET_NX(matrix_interface);
+	unsigned ny = STARPU_MATRIX_GET_NY(matrix_interface);
+	unsigned ld = STARPU_MATRIX_GET_LD(matrix_interface);
+	size_t elemsize = STARPU_MATRIX_GET_ELEMSIZE(matrix_interface);
 
 	ret = MPI_Type_vector(ny, nx*elemsize, ld*elemsize, MPI_BYTE, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
@@ -66,14 +68,16 @@ static int handle_to_datatype_matrix(starpu_data_handle_t data_handle, MPI_Datat
 
 static int handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
+	struct starpu_block_interface *block_interface = starpu_data_get_interface_on_node(data_handle, STARPU_MAIN_RAM);
+
 	int ret;
 
-	unsigned nx = starpu_block_get_nx(data_handle);
-	unsigned ny = starpu_block_get_ny(data_handle);
-	unsigned nz = starpu_block_get_nz(data_handle);
-	unsigned ldy = starpu_block_get_local_ldy(data_handle);
-	unsigned ldz = starpu_block_get_local_ldz(data_handle);
-	size_t elemsize = starpu_block_get_elemsize(data_handle);
+	unsigned nx = STARPU_BLOCK_GET_NX(block_interface);
+	unsigned ny = STARPU_BLOCK_GET_NY(block_interface);
+	unsigned nz = STARPU_BLOCK_GET_NZ(block_interface);
+	unsigned ldy = STARPU_BLOCK_GET_LDY(block_interface);
+	unsigned ldz = STARPU_BLOCK_GET_LDZ(block_interface);
+	size_t elemsize = STARPU_BLOCK_GET_ELEMSIZE(block_interface);
 
 	MPI_Datatype datatype_2dlayer;
 	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
@@ -97,10 +101,12 @@ static int handle_to_datatype_block(starpu_data_handle_t data_handle, MPI_Dataty
 
 static int handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
+	struct starpu_vector_interface *vector_interface = starpu_data_get_interface_on_node(data_handle, STARPU_MAIN_RAM);
+
 	int ret;
 
-	unsigned nx = starpu_vector_get_nx(data_handle);
-	size_t elemsize = starpu_vector_get_elemsize(data_handle);
+	unsigned nx = STARPU_VECTOR_GET_NX(vector_interface);
+	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(vector_interface);
 
 	ret = MPI_Type_contiguous(nx*elemsize, MPI_BYTE, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
@@ -117,9 +123,11 @@ static int handle_to_datatype_vector(starpu_data_handle_t data_handle, MPI_Datat
 
 static int handle_to_datatype_variable(starpu_data_handle_t data_handle, MPI_Datatype *datatype)
 {
+	struct starpu_variable_interface *variable_interface = starpu_data_get_interface_on_node(data_handle, STARPU_MAIN_RAM);
+
 	int ret;
 
-	size_t elemsize = starpu_variable_get_elemsize(data_handle);
+	size_t elemsize = STARPU_VARIABLE_GET_ELEMSIZE(variable_interface);
 
 	ret = MPI_Type_contiguous(elemsize, MPI_BYTE, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
