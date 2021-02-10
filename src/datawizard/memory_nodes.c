@@ -151,6 +151,7 @@ void _starpu_memory_node_register_condition(struct _starpu_worker *worker, starp
 #undef starpu_worker_get_memory_node
 unsigned starpu_worker_get_memory_node(unsigned workerid)
 {
+	(void) workerid;
 	return _starpu_worker_get_memory_node(workerid);
 }
 
@@ -167,12 +168,10 @@ void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned m
 	}
 }
 
+#undef starpu_worker_get_local_memory_node
 unsigned starpu_worker_get_local_memory_node(void)
 {
-	struct _starpu_worker *worker = _starpu_get_local_worker_key();
-	if (!worker)
-		return STARPU_MAIN_RAM;
-	return worker->memory_node;
+	return _starpu_worker_get_local_memory_node();
 }
 
 int starpu_memory_node_get_devid(unsigned node)
