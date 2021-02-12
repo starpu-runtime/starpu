@@ -107,7 +107,7 @@ void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **
 	state->nargs++;
 }
 
-void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state)
+void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state STARPU_ATTRIBUTE_UNUSED)
 {
 
 }
