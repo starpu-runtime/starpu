@@ -71,7 +71,8 @@ static int parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-o") == 0)
 		{
-			options.out_paje_path = argv[++i];
+			free(options.out_paje_path);
+			options.out_paje_path = strdup(argv[++i]);
 			reading_input_filenames = 0;
 			continue;
 		}
