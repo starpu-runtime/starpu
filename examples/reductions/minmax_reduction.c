@@ -95,7 +95,7 @@ static struct starpu_codelet minmax_redux_codelet =
 {
 	.cpu_funcs = {minmax_redux_cpu_func},
 	.cpu_funcs_name = {"minmax_redux_cpu_func"},
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
 	.name = "redux"
 };

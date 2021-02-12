@@ -643,7 +643,8 @@ struct starpu_codelet accumulate_variable_cl =
         .cpu_funcs = { accumulate_variable_cpu },
         .cpu_funcs_name = { "accumulate_variable_cpu" },
         .cuda_funcs = { accumulate_variable_cuda },
-        .nbuffers = 1,
+        .nbuffers = 2,
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 }
 \endcode
 

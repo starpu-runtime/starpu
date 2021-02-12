@@ -280,12 +280,21 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					redux_task->cl = handle->redux_cl;
 					STARPU_ASSERT(redux_task->cl);
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0)))
-						STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_RW, 0);
+						STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_RW|STARPU_COMMUTE, 0);
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1)))
 						STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_R, 1);
 
-					STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 0) == STARPU_RW, "First parameter of reduction codelet %p has to be RW", redux_task->cl);
+					STARPU_ASSERT_MSG((STARPU_CODELET_GET_MODE(redux_task->cl, 0) & ~STARPU_COMMUTE) == STARPU_RW, "First parameter of reduction codelet %p has to be RW", redux_task->cl);
 					STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 1) == STARPU_R, "Second parameter of reduction codelet %p has to be R", redux_task->cl);
+					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0) & STARPU_COMMUTE))
+					{
+						static int warned;
+						if (!warned)
+						{
+							warned = 1;
+							_STARPU_DISP("Warning: for reductions, codelet %p should have STARPU_COMMUTE along STARPU_RW\n", redux_task->cl);
+						}
+					}
 
 					STARPU_TASK_SET_HANDLE(redux_task, replicate_array[i], 0);
 					STARPU_TASK_SET_HANDLE(redux_task, replicate_array[i+step], 1);

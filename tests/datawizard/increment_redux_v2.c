@@ -138,7 +138,7 @@ static struct starpu_codelet redux_cl =
 #endif
 	.cpu_funcs = {redux_cpu_kernel},
 	.cpu_funcs_name = {"redux_cpu_kernel"},
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2
 };
 

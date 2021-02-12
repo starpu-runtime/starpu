@@ -120,7 +120,7 @@ struct starpu_codelet accumulate_variable_cl =
 	.cuda_funcs = {accumulate_variable_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
 	.model = &accumulate_variable_model
 };
@@ -164,7 +164,7 @@ struct starpu_codelet accumulate_vector_cl =
 	.cuda_funcs = {accumulate_vector_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
 	.model = &accumulate_vector_model
 };

@@ -560,8 +560,10 @@ struct starpu_codelet;
 /**
    Set the codelets to be used for \p handle when it is accessed in the
    mode ::STARPU_REDUX. Per-worker buffers will be initialized with
-   the codelet \p init_cl, and reduction between per-worker buffers will be
-   done with the codelet \p redux_cl.
+   the codelet \p init_cl (which has to take one handle with STARPU_W), and
+   reduction between per-worker buffers will be done with the codelet \p
+   redux_cl (which has to take a first accumulation handle with
+   STARPU_RW|STARPU_COMMUTE, and a second contribution handle with STARPU_R).
 */
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl);
 

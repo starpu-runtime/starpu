@@ -54,6 +54,7 @@ New features:
 
 Small changes:
   * Add a synthetic energy efficiency testcase.
+  * Make reduction methods want the commute flag.
 
 StarPU 1.3.8
 ====================================================================
