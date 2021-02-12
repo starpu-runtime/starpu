@@ -1,14 +1,14 @@
 #!/usr/bin/bash
-start=`date +%s`
-sudo make -j4
+PATH_STARPU=$1
+PATH_R=$2
 export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 ulimit -S -s 5000000
 NB_ALGO_TESTE=8
-NB_TAILLE_TESTE=10
+NB_TAILLE_TESTE=$3
 ECHELLE_X=50
 START_X=0
 FICHIER=GF_M_CHO_N=15_BW350
-FICHIER_RAW=Output_maxime/GFlops_raw_out_2.txt
+FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_2.txt
 DOSSIER=Cholesky
 truncate -s 0 ${FICHIER_RAW:0}
 echo "########## Random ##########"
@@ -60,9 +60,6 @@ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	STARPU_SCHED=HFP ORDER_U=1 STARPU_LIMIT_BANDWIDTH=350 BELADY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$M STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/cholesky/cholesky_implicit -size $((960*15)) -nblocks 15 | tail -n 1 >> ${FICHIER_RAW:0}
 done
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW:0} ../these_gonthier_maxime/Starpu/R/Data/${DOSSIER}/${FICHIER:0}.txt
-Rscript /home/gonthier/these_gonthier_maxime/Starpu/R/ScriptR/${DOSSIER}/${FICHIER:0}.R
-mv /home/gonthier/starpu/Rplots.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/${DOSSIER}/${FICHIER:0}.pdf
-end=`date +%s`
-runtime=$((end-start))
-echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER:0}.txt
+Rscript ${PATH_R}/R/ScriptR/${DOSSIER}/${FICHIER:0}.R ${PATH_R}/R/Data/${DOSSIER}/${FICHIER}.txt
+mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/${FICHIER:0}.pdf

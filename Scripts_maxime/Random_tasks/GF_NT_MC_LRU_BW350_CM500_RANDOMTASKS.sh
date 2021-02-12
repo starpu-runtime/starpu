@@ -1,17 +1,18 @@
 #!/usr/bin/bash
-start=`date +%s`
+PATH_STARPU=$1
+PATH_R=$2
 export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 ulimit -S -s 5000000
 NB_ALGO_TESTE=8
-NB_TAILLE_TESTE=10
+NB_TAILLE_TESTE=$3
 ECHELLE_X=5
 START_X=0
 DOSSIER=Random_tasks
 FICHIER=GF_NT_MC_LRU_BW350_CM500_RANDOMTASKS
 FICHIER_DT=DT_NT_MC_LRU_BW350_CM500_RANDOMTASKS
-FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
-FICHIER_RAW_DT=Output_maxime/GFlops_raw_out_3.txt
-FICHIER_BUS=Output_maxime/BUS_STATS_1.txt
+FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_1.txt
+FICHIER_RAW_DT=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_3.txt
+FICHIER_BUS=${PATH_STARPU}/starpu/Output_maxime/BUS_STATS_1.txt
 truncate -s 0 ${FICHIER_RAW:0}
 truncate -s 0 ${FICHIER_RAW_DT:0}
 truncate -s 0 ${FICHIER_BUS:0}
@@ -72,13 +73,10 @@ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 	sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 done
 gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
-./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} ../these_gonthier_maxime/Starpu/R/Data/${DOSSIER}/${FICHIER_DT:0}.txt
-Rscript /home/gonthier/these_gonthier_maxime/Starpu/R/ScriptR/${DOSSIER}/${FICHIER_DT:0}.R
-mv /home/gonthier/starpu/Rplots.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/${DOSSIER}/${FICHIER_DT:0}.pdf
+./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER_DT:0}.txt
+Rscript ${PATH_R}/R/ScriptR/${DOSSIER}/${FICHIER_DT:0}.R ${PATH_R}/R/Data/${DOSSIER}/${FICHIER_DT}.txt
+mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/${FICHIER_DT:0}.pdf
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW:0} ../these_gonthier_maxime/Starpu/R/Data/${DOSSIER}/${FICHIER:0}.txt
-Rscript /home/gonthier/these_gonthier_maxime/Starpu/R/ScriptR/${DOSSIER}/${FICHIER:0}.R
-mv /home/gonthier/starpu/Rplots.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/${DOSSIER}/${FICHIER:0}.pdf
-end=`date +%s`
-runtime=$((end-start))
-echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER:0}.txt
+Rscript ${PATH_R}/R/ScriptR/${DOSSIER}/${FICHIER:0}.R ${PATH_R}/R/Data/${DOSSIER}/${FICHIER}.txt
+mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/${FICHIER:0}.pdf
