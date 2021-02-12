@@ -1047,7 +1047,7 @@ end
 define starpu-mpi-print-detached-requests
     set $list = (struct _starpu_mpi_req_list) detached_requests
     if $list
-	set $request = $list.list._head
+	set $request = $list._head
         while $request
             starpu-mpi-print-request $request
 	    set $request = $request->_next
