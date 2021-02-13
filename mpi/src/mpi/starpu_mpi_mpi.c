@@ -1112,9 +1112,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 	_starpu_mpi_early_data_add(early_data_handle);
 
 	starpu_data_handle_t data_handle;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 	data_handle = _starpu_mpi_tag_get_data_handle_from_tag(envelope->data_tag);
-	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 
 	if (data_handle && starpu_data_get_interface_id(data_handle) < STARPU_MAX_INTERFACE_ID)
 	{
