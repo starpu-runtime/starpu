@@ -167,8 +167,6 @@ void _starpu_mpi_submit_ready_request(void *arg)
 
 	_STARPU_MPI_DEBUG(0, "new req %p srcdst %d tag %"PRIi64" and type %s %d\n", req, req->node_tag.node.rank, req->node_tag.data_tag, _starpu_mpi_request_type(req->request_type), req->backend->is_internal_req);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-
 	if (req->request_type == RECV_REQ)
 	{
 		/* Case : the request is the internal receive request submitted
@@ -191,9 +189,11 @@ void _starpu_mpi_submit_ready_request(void *arg)
 				req->ptr = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, req->count, 0);
 			}
 
+			STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 					  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr,
 					  req->datatype_name, (int)req->count, req->registered_datatype);
+
 			_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
 			_STARPU_MPI_INC_READY_REQUESTS(+1);
 
@@ -203,6 +203,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 		}
 		else
 		{
+			STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 			/* test whether some data with the given tag and source have already been received by StarPU-MPI*/
 			struct _starpu_mpi_early_data_handle *early_data_handle = _starpu_mpi_early_data_find(&req->node_tag);
 
@@ -274,6 +275,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 	}
 	else
 	{
+		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		if (req->request_type == SEND_REQ)
 			_starpu_mpi_req_prio_list_push_front(&ready_send_requests, req);
 		else
