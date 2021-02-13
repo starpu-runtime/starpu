@@ -198,12 +198,8 @@ void _starpu_mpi_submit_ready_request(void *arg)
 			_STARPU_MPI_INC_READY_REQUESTS(+1);
 
 			/* inform the starpu mpi thread that the request has been pushed in the ready_requests list */
-			STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-			STARPU_PTHREAD_MUTEX_LOCK(&req->backend->posted_mutex);
 			req->posted = 1;
 			STARPU_PTHREAD_COND_BROADCAST(&req->backend->posted_cond);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&req->backend->posted_mutex);
-			STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		}
 		else
 		{
@@ -1144,11 +1140,9 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 
 	// We wait until the request is pushed in the
 	// ready_request list
-	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-	STARPU_PTHREAD_MUTEX_LOCK(&(early_data_handle->req->backend->posted_mutex));
 	while (!(early_data_handle->req->posted))
-		STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req->backend->posted_cond), &(early_data_handle->req->backend->posted_mutex));
-	STARPU_PTHREAD_MUTEX_UNLOCK(&(early_data_handle->req->backend->posted_mutex));
+		STARPU_PTHREAD_COND_WAIT(&(early_data_handle->req->backend->posted_cond), &progress_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 #ifdef STARPU_DEVEL
 #warning check if req_ready is still necessary
