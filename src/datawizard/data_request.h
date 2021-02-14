@@ -135,9 +135,9 @@ void _starpu_init_data_request_lists(void);
 void _starpu_deinit_data_request_lists(void);
 void _starpu_post_data_request(struct _starpu_data_request *r);
 /** returns 0 if we have pushed all requests, -EBUSY or -ENOMEM otherwise */
-int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
-int _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
-int _starpu_handle_node_idle_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
+int _starpu_handle_node_data_requests(unsigned handling_node, unsigned may_alloc, unsigned *pushed);
+int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned may_alloc, unsigned *pushed);
+int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned may_alloc, unsigned *pushed);
 
 int _starpu_handle_pending_node_data_requests(unsigned src_node);
 int _starpu_handle_all_pending_node_data_requests(unsigned src_node);
