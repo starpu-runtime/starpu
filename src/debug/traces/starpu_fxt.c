@@ -4657,6 +4657,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 {
+	starpu_drivers_preinit();
 	_starpu_fxt_options_set_dir(options);
 	_starpu_fxt_dag_init(options->dag_path);
 	_starpu_fxt_distrib_file_init(options);
