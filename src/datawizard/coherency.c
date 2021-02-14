@@ -631,7 +631,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 
 		/* Try to reuse a request if possible */
 #ifdef STARPU_DEVEL
-#warning We do not actually want to reuse an existing request when our request is for a task with low priority, that will get executed much later. We don't want to wire down the data in between, at worse that could hog the complete gpu memory...
+#warning We do not actually want to reuse an existing request when our request is for a task with low priority, that will get executed much later. We don t want to wire down the data in between, at worse that could hog the complete gpu memory...
 #endif
 		r = _starpu_search_existing_data_request(hop_dst_replicate,
 				(mode & STARPU_R)?hop_src_node:hop_dst_node,
