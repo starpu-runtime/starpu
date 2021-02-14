@@ -52,6 +52,7 @@
 #endif
 
 #ifdef STARPU_PAPI
+#ifdef STARPU_HAVE_HWLOC
 static const int N_EVTS = 2;
 
 static int nsockets;
@@ -68,7 +69,7 @@ static int add_event(int EventSet, int socket);
 
 /*must be initialized to PAPI_NULL before calling PAPI_create_event*/
 static int EventSet = PAPI_NULL;
-
+#endif
 #endif
 
 static double t1;
@@ -80,7 +81,7 @@ static nvmlDevice_t device;
 #endif
 #endif
 
-int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
+int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker_archtype archi)
 {
 	t1 = starpu_timing_now();
 
