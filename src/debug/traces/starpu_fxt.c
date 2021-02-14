@@ -4207,18 +4207,6 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		free(options->worker_archtypes[i].devices);
 
-	struct _starpu_symbol_name *itor, *next;
-	for (itor = _starpu_symbol_name_list_begin(&symbol_list);
-		itor != _starpu_symbol_name_list_end(&symbol_list);
-		itor = next)
-	{
-		next = _starpu_symbol_name_list_next(itor);
-
-		_starpu_symbol_name_list_erase(&symbol_list, itor);
-		free(itor->name);
-		_starpu_symbol_name_delete(itor);
-	}
-
 	_starpu_fxt_component_deinit();
 
 	free_worker_ids();
@@ -4608,6 +4596,17 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 static
 void _starpu_fxt_paje_file_close(void)
 {
+	struct _starpu_symbol_name *itor, *next;
+	for (itor = _starpu_symbol_name_list_begin(&symbol_list);
+		itor != _starpu_symbol_name_list_end(&symbol_list);
+		itor = next)
+	{
+		next = _starpu_symbol_name_list_next(itor);
+
+		_starpu_symbol_name_list_erase(&symbol_list, itor);
+		free(itor->name);
+		_starpu_symbol_name_delete(itor);
+	}
 	if (out_paje_file)
 		fclose(out_paje_file);
 }
