@@ -78,7 +78,7 @@ int main(void)
 	int ret;
 	/* We have 17 toggles to try below, thus 2^17 possibilities */
 	unsigned loop, nloops = 128*1024;
-	unsigned duration = 1000;
+	unsigned duration = 100;
 
 	starpu_data_handle_t handle1, handle2;
 
