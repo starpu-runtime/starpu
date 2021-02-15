@@ -22,7 +22,6 @@ int main(int argc, char *argv[])
     FILE* fichier_in = NULL;
     FILE* fichier_out = NULL;
     fichier_in = fopen(argv[5], "r");
-    //~ fichier_in = fopen("Output_maxime/GFlops_raw_out_2.txt", "r");
     fichier_out = fopen(argv[6], "w+");
     if (fichier_in != NULL)
     {
@@ -34,11 +33,6 @@ int main(int argc, char *argv[])
 		rewind(fichier_in);
 		for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) {
 			fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
-			//~ for (k = 0; k < count; k++) {
-				//~ fsancf(fichier_in);
-			//~ }
-			//~ fscanf(fichier_in, "%s",GFlops);
-			//~ rewind(fichier_in);
 			for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) {
 				if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) {
 					for (k = 0; k < count; k++) {
@@ -55,33 +49,13 @@ int main(int argc, char *argv[])
 			}
 			fprintf(fichier_out,"\n"); 
 			rewind(fichier_in);
-		}
-				
-		//~ for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) {
-			//~ k = j;
-			//~ while (k != 0) { fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops); k--; }
-			//~ fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
-			//~ fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
-			//~ rewind(fichier_in);	
-			//~ for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) {
-				//~ if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) {
-					//~ fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
-					//~ fprintf(fichier_out,"	%s",GFlops);
-				//~ }
-				//~ else {
-					//~ fscanf(fichier_in, "%s	%s %s %s %s",str1,str2,str3,str4,GFlops);
-				//~ }
-			//~ }
-			//~ fprintf(fichier_out,"\n"); 
-			//~ rewind(fichier_in);
-		//~ }
-		
+		}	
 		fclose(fichier_in);
 		fclose(fichier_out);
     }
     else
     {
-        printf("Impossible d'ouvrir le fichier GFlops_raw_out.txt");
+        printf("Impossible d'ouvrir le fichier RAW.txt");
     }
     return 0;
 }
