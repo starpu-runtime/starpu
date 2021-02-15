@@ -31,12 +31,6 @@ static int ____starpu_datawizard_progress(unsigned memory_node, unsigned peer_st
 	int ret = 0;
 	unsigned peer_node;
 
-#ifdef STARPU_SIMGRID
-	/* XXX */
-	starpu_sleep(0.000001);
-#endif
-	STARPU_UYIELD();
-
 	/* in case some other driver requested data */
 	for (peer_node = peer_start; peer_node < peer_end; peer_node++)
 	{
@@ -96,6 +90,12 @@ static int ___starpu_datawizard_progress(unsigned memory_node, unsigned nnodes, 
 {
 	int ret = 0;
 	unsigned peer_node;
+
+#ifdef STARPU_SIMGRID
+	/* XXX */
+	starpu_sleep(0.000001);
+#endif
+	STARPU_UYIELD();
 
 	/* First handle all incoming transfers */
 	ret |= ____starpu_datawizard_progress(memory_node, 0, nnodes, _STARPU_DATA_REQUEST_IN, may_alloc, push_requests);
