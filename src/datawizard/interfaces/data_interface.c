@@ -375,7 +375,6 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 		replicate->state = STARPU_INVALID;
 		//replicate->refcnt = 0;
 		replicate->handle = handle;
-		//replicate->requested = 0;
 		//replicate->nb_tasks_prefetch = 0;
 
 		//for (node = 0; node < STARPU_MAXNODES; node++)

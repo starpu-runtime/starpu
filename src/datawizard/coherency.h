@@ -79,7 +79,6 @@ struct _starpu_data_replicate
 	   flag when it assigns a task to a queue, policies which do not
 	   use this hint can simply ignore it.
 	 */
-	uint32_t requested;
 	struct _starpu_data_request *request[STARPU_MAXNODES];
 
 	/** The number of prefetches that we made for this replicate for various tasks
