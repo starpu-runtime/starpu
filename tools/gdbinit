@@ -693,7 +693,12 @@ define starpu-print-requests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    starpu-print-requests-list data_requests[$node]
+    set $node2 = 0
+    while $node2 < _starpu_descr.nnodes
+      starpu-print-requests-list data_requests[$node][$node2][0]
+      starpu-print-requests-list data_requests[$node][$node2][1]
+      set $node2 = $node2 + 1
+    end
     set $node = $node + 1
   end
 end
@@ -702,8 +707,14 @@ define starpu-print-prequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    printf "%u pending requests\n", data_requests_npending[$node]
-    starpu-print-requests-list data_requests_pending[$node]
+    set $node2 = 0
+    while $node2 < _starpu_descr.nnodes
+      printf "%u pending requests from %u\n", data_requests_npending[$node][$node2][0], $node2
+      starpu-print-requests-list data_requests_pending[$node][$node2][0]
+      printf "%u pending requests to %u\n", data_requests_npending[$node][$node2][1], $node2
+      starpu-print-requests-list data_requests_pending[$node][$node2][1]
+      set $node2 = $node2 + 1
+    end
     set $node = $node + 1
   end
 end
@@ -730,7 +741,12 @@ define starpu-print-frequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    starpu-print-requests-list prefetch_requests[$node]
+    set $node2 = 0
+    while $node2 < _starpu_descr.nnodes
+      starpu-print-requests-list prefetch_requests[$node][$node2][0]
+      starpu-print-requests-list prefetch_requests[$node][$node2][1]
+      set $node2 = $node2 + 1
+    end
     set $node = $node + 1
   end
 end
@@ -739,7 +755,12 @@ define starpu-print-irequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    starpu-print-requests-list idle_requests[$node]
+    set $node2 = 0
+    while $node2 < _starpu_descr.nnodes
+      starpu-print-requests-list idle_requests[$node][$node2][0]
+      starpu-print-requests-list idle_requests[$node][$node2][1]
+      set $node2 = $node2 + 1
+    end
     set $node = $node + 1
   end
 end
