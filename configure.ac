@@ -2260,9 +2260,6 @@ if test x$maxnodes = x0 ; then
 	if test x$enable_simgrid = xyes ; then
 		# We need the room for the virtual CUDA/OpenCL devices
 		nodes=`expr 4 + $nmaxcudadev + $nmaxopencldev + $nmaxmicdev + 1 + $nmaxmpidev`
-		if test $nodes -gt 32 ; then
-			nodes=32
-		fi
 	else
 		# We have one memory node shared by all CPU workers, one node per GPU
 		# and per MIC device
@@ -2298,8 +2295,7 @@ if test x$maxnodes = x0 ; then
 	done
 fi
 if test $maxnodes -gt 32 ; then
-	# FIXME: at least use uint64 so we can have 64 memory nodes
-	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
+	AC_MSG_WARN([Note: the wt_mask feature only supports 32 memory nodes])
 fi
 
 AC_MSG_CHECKING(maximum number of memory nodes)
