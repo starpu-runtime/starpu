@@ -380,7 +380,9 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 		//for (node = 0; node < STARPU_MAXNODES; node++)
 		//{
 		//	replicate->request[node] = NULL;
+		//	replicate->last_request[node] = NULL;
 		//}
+		//replicate->load_request = NULL;
 
 		/* Assuming being used for SCRATCH for now, patched when entering REDUX mode */
 		replicate->relaxed_coherency = 1;

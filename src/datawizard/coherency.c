@@ -494,8 +494,11 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		unsigned nnodes = starpu_memory_nodes_get_count();
 		for (i = 0; i < nnodes; i++)
 			for (j = 0; j < nnodes; j++)
-				if (handle->per_node[i].request[j])
+			{
+				struct _starpu_data_request *r;
+				for (r = handle->per_node[i].request[j]; r; r = r->next_same_req)
 					nwait++;
+			}
 		/* If the request is not detached (i.e. the caller really wants
 		 * proper ownership), no new requests will appear because a
 		 * reference will be kept on the dst replicate, which will
@@ -531,6 +534,25 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 					dst_replicate->nb_tasks_prefetch++;
 
 				_starpu_memchunk_recently_used(dst_replicate->mc, requesting_node);
+			}
+
+			if (task)
+			{
+				unsigned j;
+				unsigned nnodes = starpu_memory_nodes_get_count();
+				/* Cancel any existing (prefetch) request */
+				struct _starpu_data_request *r2;
+				for (j = 0; j < nnodes; j++)
+				{
+					for (r2 = dst_replicate->request[j]; r2; r2 = r2->next_same_req)
+					{
+						if (r2->task && r2->task == task)
+						{
+							r2->canceled = 1;
+							break;
+						}
+					}
+				}
 			}
 		}
 
@@ -706,8 +728,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		for (i = 0; i < nnodes; i++)
 			for (j = 0; j < nnodes; j++)
 			{
-				struct _starpu_data_request *r2 = handle->per_node[i].request[j];
-				if (r2)
+				struct _starpu_data_request *r2;
+				for (r2 = handle->per_node[i].request[j]; r2; r2 = r2->next_same_req)
 				{
 					_starpu_spin_lock(&r2->lock);
 					if (is_prefetch < r2->prefetch)

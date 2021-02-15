@@ -90,8 +90,11 @@ LIST_TYPE(_starpu_data_request,
 	/** Whether we have already added our reference to the dst replicate. */
 	unsigned added_ref:1;
 
+	/** Whether the request was canceled before being handled (because the transfer already happened another way). */
+	unsigned canceled:2;
+
 	/** Whether this is just a prefetch request */
-	enum starpu_is_prefetch prefetch;
+	enum starpu_is_prefetch prefetch:3;
 
 	/** Task this request is for */
 	struct starpu_task *task;
@@ -108,6 +111,10 @@ LIST_TYPE(_starpu_data_request,
 	/** The request will not actually be submitted until there remains
 	 * dependencies. */
 	unsigned ndeps;
+
+	/** Some further tasks may have requested prefetches for the same data
+	 * much later on, link with them */
+	struct _starpu_data_request *next_same_req;
 
 	/** in case we have a chain of request (eg. for nvidia multi-GPU), this
 	 * is the list of requests which are waiting for this one. */

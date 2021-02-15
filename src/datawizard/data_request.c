@@ -105,6 +105,7 @@ static void _starpu_data_request_unlink(struct _starpu_data_request *r)
 	else
 	{
 		unsigned node;
+		struct _starpu_data_request **prevp, *prev;
 
 		if (r->mode & STARPU_R)
 			/* If this is a read request, we store the pending requests
@@ -115,10 +116,25 @@ static void _starpu_data_request_unlink(struct _starpu_data_request *r)
 			 * we use the destination node to cache the request. */
 			node = r->dst_replicate->memory_node;
 
-		STARPU_ASSERT(r->dst_replicate->request[node] == r);
-		r->dst_replicate->request[node] = NULL;
-	}
+		/* Look for ourself in the list, we should be not very far. */
+		for (prevp = &r->dst_replicate->request[node], prev = NULL;
+		     *prevp && *prevp != r;
+		     prev = *prevp, prevp = &prev->next_same_req)
+			;
 
+		STARPU_ASSERT(*prevp == r);
+		*prevp = r->next_same_req;
+
+		if (!r->next_same_req)
+		{
+			/* I was last */
+			STARPU_ASSERT(r->dst_replicate->last_request[node] == r);
+			if (prev)
+				r->dst_replicate->last_request[node] = prev;
+			else
+				r->dst_replicate->last_request[node] = NULL;
+		}
+	}
 }
 
 static void _starpu_data_request_destroy(struct _starpu_data_request *r)
@@ -185,12 +201,14 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	STARPU_ASSERT(starpu_node_get_kind(handling_node) == STARPU_CPU_RAM || _starpu_memory_node_get_nworkers(handling_node));
 	r->completed = 0;
 	r->added_ref = 0;
+	r->canceled = 0;
 	r->prefetch = is_prefetch;
 	r->task = task;
 	r->nb_tasks_prefetch = 0;
 	r->prio = prio;
 	r->retval = -1;
 	r->ndeps = ndeps;
+	r->next_same_req = NULL;
 	r->next_req_count = 0;
 	r->callbacks = NULL;
 	r->com_id = 0;
@@ -220,8 +238,11 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 		else
 			node = dst_replicate->memory_node;
 
-		STARPU_ASSERT(!dst_replicate->request[node]);
-		dst_replicate->request[node] = r;
+		if (!dst_replicate->request[node])
+			dst_replicate->request[node] = r;
+		else
+			dst_replicate->last_request[node]->next_same_req = r;
+		dst_replicate->last_request[node] = r;
 
 		if (mode & STARPU_R)
 		{
@@ -392,7 +413,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
 
 
-	if (dst_replicate)
+	if (r->canceled < 2 && dst_replicate)
 	{
 #ifdef STARPU_MEMORY_STATS
 		enum _starpu_cache_state old_src_replicate_state = src_replicate->state;
@@ -400,6 +421,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 
 		_starpu_spin_checklocked(&handle->header_lock);
 		_starpu_update_data_state(handle, r->dst_replicate, mode);
+		dst_replicate->load_request = NULL;
 
 #ifdef STARPU_MEMORY_STATS
 		if (src_replicate->state == STARPU_INVALID)
@@ -422,7 +444,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 #endif
 	}
 
-	if (r->com_id > 0)
+	if (r->canceled < 2 && r->com_id > 0)
 	{
 #ifdef STARPU_USE_FXT
 		unsigned src_node = src_replicate->memory_node;
@@ -454,7 +476,7 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	/* Remove a reference on the destination replicate for the request */
 	if (dst_replicate)
 	{
-		if (dst_replicate->mc)
+		if (r->canceled < 2 && dst_replicate->mc)
 			/* Make sure it stays there for the task.  */
 			dst_replicate->nb_tasks_prefetch += r->nb_tasks_prefetch;
 
@@ -510,6 +532,14 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	}
 }
 
+void _starpu_data_request_complete_wait(void *arg)
+{
+	struct _starpu_data_request *r = arg;
+	_starpu_spin_lock(&r->handle->header_lock);
+	_starpu_spin_lock(&r->lock);
+	starpu_handle_data_request_completion(r);
+}
+
 /* TODO : accounting to see how much time was spent working for other people ... */
 static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc)
 {
@@ -533,6 +563,32 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 
 	struct _starpu_data_replicate *src_replicate = r->src_replicate;
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
+
+	if (r->canceled)
+	{
+		/* Ok, canceled before starting copies etc. */
+		r->canceled = 2;
+		/* Nothing left to do */
+		starpu_handle_data_request_completion(r);
+		return 0;
+	}
+
+	struct _starpu_data_request *r2 = dst_replicate->load_request;
+	if (r2 && r2 != r)
+	{
+		/* Oh, some other transfer is already loading the value. Just wait for it */
+		r->canceled = 2;
+		_starpu_spin_unlock(&r->lock);
+		_starpu_spin_lock(&r2->lock);
+		_starpu_data_request_append_callback(r2, _starpu_data_request_complete_wait, r);
+		_starpu_spin_unlock(&r2->lock);
+		_starpu_spin_unlock(&handle->header_lock);
+		return 0;
+	}
+
+	/* We are loading this replicate.
+	 * Note: we might fail to allocate memory, but we will keep on and others will wait for us. */
+	dst_replicate->load_request = r;
 
 	enum starpu_data_access_mode r_mode = r->mode;
 

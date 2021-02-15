@@ -72,14 +72,13 @@ struct _starpu_data_replicate
 	 * */
 	unsigned automatically_allocated:1;
 
-	/** To help the scheduling policies to make some decision, we
-	   may keep a track of the tasks that are likely to request
-	   this data on the current node.
-	   It is the responsability of the scheduling _policy_ to set that
-	   flag when it assigns a task to a queue, policies which do not
-	   use this hint can simply ignore it.
-	 */
+	/** This tracks the list of requests to provide the value */
 	struct _starpu_data_request *request[STARPU_MAXNODES];
+	/** This points to the last entry of request, to easily append to the list */
+	struct _starpu_data_request *last_request[STARPU_MAXNODES];
+
+	/* Which request is loading data here */
+	struct _starpu_data_request *load_request;
 
 	/** The number of prefetches that we made for this replicate for various tasks
 	 * This is also the number of tasks that we will wait to see use the mc before
