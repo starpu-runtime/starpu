@@ -705,6 +705,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		//~ starpu_task_list_init(&my_data->sub_list);
 		
 		if (!starpu_task_list_empty(&data->sched_list)) {
+			time_t start, end; time(&start);
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
@@ -1109,6 +1110,12 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		}
 		
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->first_link, GPU_RAM_M); }
+		
+		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
+		FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
+		fprintf(f_time,"%d\n",time_taken);
+		fclose(f_time);
+		
 		
 		/* We pop the first task of the first package */
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }

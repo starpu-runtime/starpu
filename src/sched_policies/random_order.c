@@ -114,11 +114,7 @@ static int random_order_push_task(struct starpu_sched_component *component, stru
 
 /* The function that sort the tasks in packages */
 static struct starpu_task *random_order_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
-{
-	//~ starpu_pause();
-	//~ starpu_resume();
-	//~ starpu_task_wait_for_all();
-	
+{	
 	struct random_order_sched_data *data = component->data;
 	
 	//Ajout pour quand les taches arrive pas en meme temps, a enlever ou commenter si on pause/resume
@@ -144,6 +140,7 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 	}
 	if (starpu_task_list_empty(&data->random_list)) {
 		if (!starpu_task_list_empty(&data->sched_list)) {
+			time_t start, end; time(&start); 
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				NT++;
@@ -194,7 +191,11 @@ static struct starpu_task *random_order_pull_task(struct starpu_sched_component 
 			//~ random_order_free(data);
 			
 			
-			//~ task1 = starpu_task_list_pop_front(&data->popped_task_list);
+			time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
+			FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
+			fprintf(f_time,"%d\n",time_taken);
+			fclose(f_time);
+			
 			task1 = starpu_task_list_pop_front(&data->random_list);
 			//~ free(data->temp_pointer_1->package_nb_data);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);

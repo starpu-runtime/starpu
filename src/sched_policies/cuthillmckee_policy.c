@@ -105,6 +105,7 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 	/* If the linked list is empty, we can pull more tasks */
 	if (starpu_task_list_empty(&data->SIGMA)) {
 		if (!starpu_task_list_empty(&data->sched_list)) {
+			time_t start, end; time(&start); 
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
@@ -248,6 +249,11 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 				
 				
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\nFin de cuthillmckee\n"); }
+				
+			time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
+			FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
+			fprintf(f_time,"%d\n",time_taken);
+			fclose(f_time);
 			
 			
 			task1 = starpu_task_list_pop_front(&data->SIGMA);
