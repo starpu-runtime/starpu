@@ -553,7 +553,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
 	/* This data should be written through to this node, avoid dropping it! */
-	if (handle->wt_mask & (1<<node))
+	if (node < sizeof(handle->wt_mask) * 8 && handle->wt_mask & (1<<node))
 		return 0;
 
 	/* This data was registered from this node, we will not be able to drop it anyway */
@@ -1179,7 +1179,7 @@ void starpu_memchunk_tidy(unsigned node)
 			if (
 				/* This data should be written through to this node, avoid
 				 * dropping it! */
-				handle->wt_mask & (1<<node)
+				(node < sizeof(handle->wt_mask) * 8 && handle->wt_mask & (1<<node))
 				/* This is partitioned, don't care about the
 				 * whole data, we'll work on the subdatas.  */
 			     || handle->nchildren

@@ -864,8 +864,13 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
 void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_wt_mask, enum starpu_data_access_mode down_to_mode, struct _starpu_data_replicate *replicate)
 {
 	uint32_t wt_mask;
+	const size_t max_wt_mask = sizeof(wt_mask) * 8;
+	unsigned wt_count = starpu_memory_nodes_get_count();
+	if (wt_count > max_wt_mask)
+		wt_count = max_wt_mask;
+
 	wt_mask = default_wt_mask | handle->wt_mask;
-	wt_mask &= (1<<starpu_memory_nodes_get_count())-1;
+	wt_mask &= (1ULL<<max_wt_mask)-1;
 
 	/* Note that it is possible that there is no valid copy of the data (if
 	 * starpu_data_invalidate was called for instance). In that case, we do
@@ -874,7 +879,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	unsigned memory_node = replicate->memory_node;
 
 	if (replicate->state != STARPU_INVALID && handle->current_mode & STARPU_W)
-	if (wt_mask & ~(1<<memory_node))
+	if (wt_mask && (memory_node >= max_wt_mask || wt_mask & ~(1<<memory_node)))
 		_starpu_write_through_data(handle, memory_node, wt_mask);
 
 	int cpt = 0;
