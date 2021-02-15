@@ -165,7 +165,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->handling_node = handling_node;
 	if (is_write_invalidation)
 	{
-		r->peer_node = 0;
+		r->peer_node = handling_node;
 		r->inout = _STARPU_DATA_REQUEST_IN;
 	}
 	else if (dst_replicate->memory_node == handling_node)
@@ -173,7 +173,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 		if (src_replicate)
 			r->peer_node = src_replicate->memory_node;
 		else
-			r->peer_node = 0;
+			r->peer_node = handling_node;
 		r->inout = _STARPU_DATA_REQUEST_IN;
 	}
 	else
