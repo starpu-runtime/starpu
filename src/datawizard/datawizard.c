@@ -60,7 +60,6 @@ static int ___starpu_datawizard_progress(unsigned memory_node, unsigned peer_nod
 		if (pushed)
 			ret = 1;
 	}
-	_starpu_execute_registered_progression_hooks();
 
 	return ret;
 }
@@ -82,6 +81,7 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 				ret |=  ___starpu_datawizard_progress(numa, numa2, _STARPU_DATA_REQUEST_IN, may_alloc, push_requests);
 				ret |=  ___starpu_datawizard_progress(numa, numa2, _STARPU_DATA_REQUEST_OUT, may_alloc, push_requests);
 			}
+		_starpu_execute_registered_progression_hooks();
 
 		return ret;
 	}
@@ -103,6 +103,8 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 				ret |= ___starpu_datawizard_progress(memnode, memnode2, _STARPU_DATA_REQUEST_OUT, may_alloc, push_requests);
 			}
         }
+
+	_starpu_execute_registered_progression_hooks();
 
         return ret;
 }
