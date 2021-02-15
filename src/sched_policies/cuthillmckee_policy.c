@@ -35,6 +35,7 @@
 #include "starpu_stdlib.h"
 #include "common/list.h"
 #define PRINTF /* O or 1 */
+#define REVERSE /* O or 1 */
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct cuthillmckee_sched_data
@@ -84,13 +85,10 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 {
 	int i, j, i_bis, j_bis, tab_runner, tab_runner_bis, nb_voisins = 0;
 	int poids_aretes_min = INT_MAX; int indice_poids_aretes_min = INT_MAX;
-	int poids_aretes_min_bis = INT_MAX; int indice_poids_aretes_min_bis = INT_MAX;
 	struct cuthillmckee_sched_data *data = component->data;
-
 	struct starpu_task *task1 = NULL;
 	struct starpu_task *temp_task_1 = NULL;
 	struct starpu_task *temp_task_2 = NULL;
-	//~ struct starpu_task *task2 = NULL;
  
 	int NT = 0;
 		
@@ -149,10 +147,8 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 			
 			
 				
-				int poids_aretes[NT]; int voisins_vi[NT];	
+				int poids_aretes[NT];
 				int tab_SIGMA[NT];	for (i = 0; i < NT; i++) { tab_SIGMA[i] = -1; }	
-				char char_SIGMA[NT][25];	
-				//~ const char char_SIGMA[NT][14];	
 	
 	/* Calcul du poids des arêtes de chaque sommet */		
 	for (i = 0; i < NT; i++) {
@@ -212,15 +208,8 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 								poids_aretes_min = matrice_adjacence[tab_SIGMA[tab_runner]][j]; indice_poids_aretes_min = j; } }			
 							
 							/* Ajout à tab_SIGMA */
-							//~ tab_SIGMA[tab_runner_bis] = indice_poids_aretes_min;
-							//~ temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i = 0; i < indice_poids_aretes_min; i++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
-							//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Add %p to sigma\n",temp_task_1); }
 							tab_SIGMA[tab_runner_bis] = indice_poids_aretes_min;
-							//~ strcpy(char_SIGMA[tab_runner_bis],starpu_task_get_name(temp_task_1));	
-							//~ strcpy(char_SIGMA[tab_runner_bis],temp_task_1);	
-							
-					
-							 tab_runner_bis++;
+							tab_runner_bis++;
 							/* On supprime ce sommet de la liste des possibilité et on recommence à chercher le max parmi les voisins */
 							poids_aretes[indice_poids_aretes_min] = -1;
 					} nb_voisins = 0; tab_runner++;
@@ -228,21 +217,22 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 				
 			}
 		}
-	}
-				
+	}		
 				/* I put the task in order in SIGMA */
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n"); }
-				//~ printf("char_SIGMA[i] :\n"); for (i = 0; i < NT; i++) { printf("%p\n",char_SIGMA[i]); }
-				//~ for (i = 0; i < NT; i++) {
-					//~ temp_task_1  = starpu_task_list_pop_front(&data->popped_task_list);
-					//~ for (j = 0; j < tab_SIGMA[i]; j++) {
-						//~ temp_task_1  = starpu_task_list_pop_front(&data->popped_task_list);
-					//~ }
-					//~ starpu_task_list_push_back(&data->SIGMA,temp_task_1);
-					//~ for (i_bis = i; i_bis < NT; i_bis++) { tab_SIGMA[i_bis] = tab_SIGMA[i_bis] - 1; }
+				
+				if (starpu_get_env_number_default("REVERSE",0) == 1) {
+					int tab_SIGMA_2[NT];
+					for (i = NT - 1, j = 0; i >= 0; i--, j++)
+						tab_SIGMA_2[j] = tab_SIGMA[i];
+					for (i = 0; i < NT; i++)
+						tab_SIGMA[i] = tab_SIGMA_2[i];
+					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("tab_SIGMA_reversed[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n"); }
+				}
 				
 				i = 0;
 				data->temp_pointer_1 = data->first_link;
+				
 				while (i != NT) {
 					//~ temp_task_1  = starpu_task_list_pop_front(&data->temp_pointer_1->sub_list);
 					if (tab_SIGMA[i] == data->temp_pointer_1->index) {
@@ -250,16 +240,15 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 						starpu_task_list_push_back(&data->SIGMA,starpu_task_list_pop_front(&data->temp_pointer_1->sub_list));
 						i++;
 						data->temp_pointer_1 = data->first_link;
-						//~ printf("ok3\n");
 					}
 					else { 
-						//~ starpu_task_list_push_back(&data->popped_task_list,temp_task_1);
 						data->temp_pointer_1 = data->temp_pointer_1->next;
 					}
 				}
 				
 				
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\nFin de cuthillmckee\n"); }
+			
 			
 			task1 = starpu_task_list_pop_front(&data->SIGMA);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
