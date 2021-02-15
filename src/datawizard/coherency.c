@@ -405,15 +405,17 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 /* handle->lock should be taken. r is returned locked. The node parameter
  * indicate either the source of the request, or the destination for a
  * write-only request. */
-static struct _starpu_data_request *_starpu_search_existing_data_request(struct _starpu_data_replicate *replicate, unsigned node, enum starpu_data_access_mode mode, enum starpu_is_prefetch is_prefetch)
+static struct _starpu_data_request *_starpu_search_existing_data_request(struct _starpu_data_replicate *replicate, unsigned node, enum starpu_data_access_mode mode, struct starpu_task *task, enum starpu_is_prefetch is_prefetch)
 {
 	struct _starpu_data_request *r;
 
-	r = replicate->request[node];
-
-	if (r)
+	for (r = replicate->request[node]; r; r = r->next_same_req)
 	{
 		_starpu_spin_checklocked(&r->handle->header_lock);
+
+		if (task && r->task && task != r->task)
+			/* Do not collapse requests for different tasks */
+			continue;
 
 		_starpu_spin_lock(&r->lock);
 
@@ -439,9 +441,12 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 
 		if (mode & STARPU_W)
 			r->mode = (enum starpu_data_access_mode) ((int) r->mode | (int)  STARPU_W);
+
+		/* We collapse with this request */
+		return r;
 	}
 
-	return r;
+	return NULL;
 }
 
 
@@ -658,7 +663,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 #endif
 		r = _starpu_search_existing_data_request(hop_dst_replicate,
 				(mode & STARPU_R)?hop_src_node:hop_dst_node,
-							 mode, is_prefetch);
+							 mode, task, is_prefetch);
 
 		reused_requests[hop] = !!r;
 
