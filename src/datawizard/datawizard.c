@@ -26,7 +26,7 @@
 #include <core/simgrid.h>
 #endif
 
-int ___starpu_datawizard_progress(unsigned memory_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned push_requests)
+int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests)
 {
 	int ret = 0;
 
@@ -37,7 +37,7 @@ int ___starpu_datawizard_progress(unsigned memory_node, unsigned peer_node, enum
 	STARPU_UYIELD();
 
 	/* in case some other driver requested data */
-	if (_starpu_handle_pending_node_data_requests(memory_node, peer_node, inout))
+	if (_starpu_handle_pending_node_data_requests(memory_node))
 		ret = 1;
 
 	starpu_memchunk_tidy(memory_node);
@@ -46,16 +46,16 @@ int ___starpu_datawizard_progress(unsigned memory_node, unsigned peer_node, enum
 	{
 		/* Some transfers have finished, or the driver requests to really push more */
 		unsigned pushed;
-		if (_starpu_handle_node_data_requests(memory_node, peer_node, inout, may_alloc, &pushed) == 0)
+		if (_starpu_handle_node_data_requests(memory_node, may_alloc, &pushed) == 0)
 		{
 			if (pushed)
 				ret = 1;
 			/* We pushed all pending requests, we can afford pushing
 			 * prefetch requests */
-			_starpu_handle_node_prefetch_requests(memory_node, peer_node, inout, may_alloc, &pushed);
-			if (_starpu_check_that_no_data_request_is_pending(memory_node, peer_node, inout))
+			_starpu_handle_node_prefetch_requests(memory_node, may_alloc, &pushed);
+			if (_starpu_check_that_no_data_request_is_pending(memory_node))
 				/* No pending transfer, push some idle transfer */
-				_starpu_handle_node_idle_requests(memory_node, peer_node, inout, may_alloc, &pushed);
+				_starpu_handle_node_idle_requests(memory_node, may_alloc, &pushed);
 		}
 		if (pushed)
 			ret = 1;
@@ -68,20 +68,16 @@ int ___starpu_datawizard_progress(unsigned memory_node, unsigned peer_node, enum
 int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
-        unsigned memnode, memnode2;
+        unsigned memnode;
 
 	if (!worker)
 	{
 		/* Call from main application, only make RAM requests progress */
 		int ret = 0;
 		int nnumas = starpu_memory_nodes_get_numa_count();
-		int numa, numa2;
+		int numa;
 		for (numa = 0; numa < nnumas; numa++)
-			for (numa2 = 0; numa2 < nnumas; numa2++)
-			{
-				ret |=  ___starpu_datawizard_progress(numa, numa2, _STARPU_DATA_REQUEST_IN, may_alloc, push_requests);
-				ret |=  ___starpu_datawizard_progress(numa, numa2, _STARPU_DATA_REQUEST_OUT, may_alloc, push_requests);
-			}
+			ret |=  ___starpu_datawizard_progress(numa, may_alloc, push_requests);
 
 		return ret;
 	}
@@ -97,11 +93,7 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
         for (memnode = 0; memnode < nnodes; memnode++)
         {
                 if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
-			for (memnode2 = 0; memnode2 < nnodes; memnode2++)
-			{
-				ret |= ___starpu_datawizard_progress(memnode, memnode2, _STARPU_DATA_REQUEST_IN, may_alloc, push_requests);
-				ret |= ___starpu_datawizard_progress(memnode, memnode2, _STARPU_DATA_REQUEST_OUT, may_alloc, push_requests);
-			}
+                        ret |= ___starpu_datawizard_progress(memnode, may_alloc, push_requests);
         }
 
         return ret;
@@ -110,16 +102,4 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 void _starpu_datawizard_progress(unsigned may_alloc)
 {
         __starpu_datawizard_progress(may_alloc, 1);
-}
-
-void _starpu_datawizard_handle_all_pending_node_data_requests(unsigned memnode)
-{
-	unsigned nnodes = starpu_memory_nodes_get_count();
-	unsigned memnode2;
-
-	for (memnode2 = 0; memnode2 < nnodes; memnode2++)
-	{
-		_starpu_handle_all_pending_node_data_requests(memnode, memnode2, _STARPU_DATA_REQUEST_IN);
-		_starpu_handle_all_pending_node_data_requests(memnode, memnode2, _STARPU_DATA_REQUEST_OUT);
-	}
 }

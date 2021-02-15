@@ -31,7 +31,6 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
-#include <datawizard/datawizard.h>
 #include <core/task.h>
 #include <common/knobs.h>
 
@@ -840,7 +839,7 @@ int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
 
 	unsigned memnode = worker->memory_node;
 
-	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
+	_starpu_handle_all_pending_node_data_requests(memnode);
 
 	/* In case there remains some memory that was automatically
 	 * allocated by StarPU, we release it now. Note that data

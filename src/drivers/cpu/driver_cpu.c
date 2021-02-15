@@ -40,7 +40,6 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
-#include <datawizard/datawizard.h>
 #include <core/simgrid.h>
 #include <core/task.h>
 #include <core/disk.h>
@@ -430,7 +429,7 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	unsigned memnode = cpu_worker->memory_node;
-	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
+	_starpu_handle_all_pending_node_data_requests(memnode);
 
 	/* In case there remains some memory that was automatically
 	 * allocated by StarPU, we release it now. Note that data

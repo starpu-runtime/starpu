@@ -32,8 +32,8 @@
  * Data interfaces should also have to declare how many asynchronous requests
  * they have actually started (think of e.g. csr).
  */
-#define MAX_PENDING_REQUESTS_PER_NODE 5
-#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 2
+#define MAX_PENDING_REQUESTS_PER_NODE 20
+#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 10
 #define MAX_PENDING_IDLE_REQUESTS_PER_NODE 1
 /** Maximum time in us that we can afford pushing requests before going back to the driver loop, e.g. for checking GPU task termination */
 #define MAX_PUSH_TIME 1000
@@ -45,10 +45,6 @@ struct _starpu_callback_list
 	void (*callback_func)(void *);
 	void *callback_arg;
 	struct _starpu_callback_list *next;
-};
-
-enum _starpu_data_request_inout {
-	_STARPU_DATA_REQUEST_IN, _STARPU_DATA_REQUEST_OUT
 };
 
 /** This represents a data request, i.e. we want some data to get transferred
@@ -67,8 +63,6 @@ LIST_TYPE(_starpu_data_request,
 	 * the node can make the CUDA/OpenCL calls.
 	 */
 	unsigned handling_node;
-	unsigned peer_node;
-	enum _starpu_data_request_inout inout;
 
 	/*
 	 * What the destination node wants to do with the data: write to it,
@@ -141,15 +135,15 @@ void _starpu_init_data_request_lists(void);
 void _starpu_deinit_data_request_lists(void);
 void _starpu_post_data_request(struct _starpu_data_request *r);
 /** returns 0 if we have pushed all requests, -EBUSY or -ENOMEM otherwise */
-int _starpu_handle_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned *pushed);
-int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned *pushed);
-int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned *pushed);
+int _starpu_handle_node_data_requests(unsigned handling_node, unsigned may_alloc, unsigned *pushed);
+int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned may_alloc, unsigned *pushed);
+int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned may_alloc, unsigned *pushed);
 
-int _starpu_handle_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
-int _starpu_handle_all_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
+int _starpu_handle_pending_node_data_requests(unsigned src_node);
+int _starpu_handle_all_pending_node_data_requests(unsigned src_node);
 
-int _starpu_check_that_no_data_request_exists(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
-int _starpu_check_that_no_data_request_is_pending(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
+int _starpu_check_that_no_data_request_exists(unsigned node);
+int _starpu_check_that_no_data_request_is_pending(unsigned node);
 
 struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,
 							 struct _starpu_data_replicate *src_replicate,

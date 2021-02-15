@@ -1153,6 +1153,25 @@ void _starpu_sched_post_exec_hook(struct starpu_task *task)
 	}
 }
 
+void _starpu_wait_on_sched_event(void)
+{
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&worker->sched_mutex);
+
+	_starpu_handle_all_pending_node_data_requests(worker->memory_node);
+
+	if (_starpu_machine_is_running())
+	{
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+		STARPU_PTHREAD_COND_WAIT(&worker->sched_cond,
+					  &worker->sched_mutex);
+#endif
+	}
+
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
+}
+
 int starpu_push_local_task(int workerid, struct starpu_task *task, int back STARPU_ATTRIBUTE_UNUSED)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
