@@ -743,13 +743,23 @@ PyInit_starpupy(void)
 #endif
 	/*starpu initialization*/
 	int ret;
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
 	Py_BEGIN_ALLOW_THREADS
-	ret = starpu_init(NULL);
+	ret = starpu_init(&conf);
 	Py_END_ALLOW_THREADS
 	if (ret!=0)
 	{
 		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_init", ret);
 		return NULL;
+	}
+
+	if (conf.sched_policy_name && !strcmp(conf.sched_policy_name, "graph_test"))
+	{
+		/* FIXME: should call starpu_do_schedule when appropriate, the graph_test scheduler needs it. */
+		fprintf(stderr,"TODO: The graph_test scheduler needs starpu_do_schedule calls\n");
+		exit(77);
 	}
 
 	/*python asysncio import*/
