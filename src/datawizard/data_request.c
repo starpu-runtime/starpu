@@ -102,19 +102,19 @@ static void _starpu_data_request_unlink(struct _starpu_data_request *r)
 		STARPU_ASSERT(r->mode == STARPU_W);
 		r->handle->write_invalidation_req = NULL;
 	}
-	else if (r->mode & STARPU_R)
-	{
-		/* If this is a read request, we store the pending requests
-		 * between src and dst. */
-		unsigned node = r->src_replicate->memory_node;
-		STARPU_ASSERT(r->dst_replicate->request[node] == r);
-		r->dst_replicate->request[node] = NULL;
-	}
 	else
 	{
-		/* If this is a write only request, then there is no source and
-		 * we use the destination node to cache the request. */
-		unsigned node = r->dst_replicate->memory_node;
+		unsigned node;
+
+		if (r->mode & STARPU_R)
+			/* If this is a read request, we store the pending requests
+			 * between src and dst. */
+			node = r->src_replicate->memory_node;
+		else
+			/* If this is a write only request, then there is no source and
+			 * we use the destination node to cache the request. */
+			node = r->dst_replicate->memory_node;
+
 		STARPU_ASSERT(r->dst_replicate->request[node] == r);
 		r->dst_replicate->request[node] = NULL;
 	}
