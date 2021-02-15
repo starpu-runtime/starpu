@@ -1396,7 +1396,9 @@ struct starpu_task
 		if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->cl->nbuffers > STARPU_NMAXBUFS) \
 			if ((task)->dyn_modes) (task)->dyn_modes[i] = mode; else (task)->modes[i] = mode; \
 		else							\
-			STARPU_CODELET_SET_MODE((task)->cl, mode, i);	\
+			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE((task)->cl, i)==mode,	\
+				"Task <%s> can't set its  %dth buffer mode and the codelet it derives from uses %d", \
+				(task)->cl->name, i, mode);	\
 	} while(0)
 
 /**
