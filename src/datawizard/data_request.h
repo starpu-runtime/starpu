@@ -148,7 +148,7 @@ int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned peer_node
 int _starpu_handle_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
 int _starpu_handle_all_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
 
-int _starpu_check_that_no_data_request_exists(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
+int _starpu_check_that_no_data_request_exists(unsigned handling_node);
 int _starpu_check_that_no_data_request_is_pending(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
 
 struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,

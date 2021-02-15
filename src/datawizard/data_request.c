@@ -853,7 +853,7 @@ int _starpu_handle_all_pending_node_data_requests(unsigned handling_node, unsign
 
 /* Note: the returned value will be outdated since the locks are not taken at
  * entry/exit */
-int _starpu_check_that_no_data_request_exists(unsigned node, unsigned peer_node, enum _starpu_data_request_inout inout)
+static int __starpu_check_that_no_data_request_exists(unsigned node, unsigned peer_node, enum _starpu_data_request_inout inout)
 {
 	int no_request;
 	int no_pending;
@@ -868,6 +868,17 @@ int _starpu_check_that_no_data_request_exists(unsigned node, unsigned peer_node,
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[node][peer_node][inout]);
 
 	return no_request && no_pending;
+}
+
+int _starpu_check_that_no_data_request_exists(unsigned node)
+{
+	unsigned peer_node, nnodes = starpu_memory_nodes_get_count();
+
+	for (peer_node = 0; peer_node < nnodes; peer_node++)
+		if (!__starpu_check_that_no_data_request_exists(node, peer_node, _STARPU_DATA_REQUEST_IN)
+		 || !__starpu_check_that_no_data_request_exists(node, peer_node, _STARPU_DATA_REQUEST_OUT))
+		 return 0;
+	 return 1;
 }
 
 /* Note: the returned value will be outdated since the locks are not taken at
