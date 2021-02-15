@@ -203,11 +203,19 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 									unsigned may_alloc,
 									enum starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED)
 {
+	_starpu_spin_checklocked(&handle->header_lock);
+
 	if (!donotread)
 	{
 		STARPU_ASSERT(src_replicate->allocated);
 		STARPU_ASSERT(src_replicate->refcnt);
 	}
+
+	/* For prefetches, we take a reference on the destination only now that
+	 * we will really try to fetch the data (instead of in
+	 * _starpu_create_data_request) */
+	if (req->prefetch > STARPU_FETCH)
+		dst_replicate->refcnt++;
 
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
