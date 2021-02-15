@@ -598,9 +598,6 @@ define starpu-print-replicate
   if $repl->automatically_allocated
     printf " automatically allocated"
   end
-  if $repl->requested
-    printf " requested"
-  end
   printf "\n"
   printf "MC %p\n", $repl->mc
 end

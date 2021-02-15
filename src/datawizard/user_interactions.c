@@ -756,7 +756,7 @@ void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int 
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			if (handle->per_node[memory_node].requested & (1UL << node))
+			if (handle->per_node[memory_node].request[node])
 			{
 				requested = 1;
 				break;
