@@ -51,6 +51,7 @@ New features:
     starpu_mpi_interface_datatype_node_register which will be needed for
     MPI/NUMA/GPUDirect.
   * Add peek_data interface method.
+  * Add STARPU_MPI_REDUX
 
 Small changes:
   * Add a synthetic energy efficiency testcase.

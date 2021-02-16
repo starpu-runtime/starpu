@@ -25,6 +25,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_RW
         type(c_ptr), bind(C) :: FSTARPU_SCRATCH
         type(c_ptr), bind(C) :: FSTARPU_REDUX
+        type(c_ptr), bind(C) :: FSTARPU_MPI_REDUX
         type(c_ptr), bind(C) :: FSTARPU_COMMUTE
         type(c_ptr), bind(C) :: FSTARPU_SSEND
         type(c_ptr), bind(C) :: FSTARPU_LOCALITY
@@ -2395,6 +2396,7 @@ module fstarpu_mod
                         FSTARPU_RW      = fstarpu_get_constant(C_CHAR_"FSTARPU_RW"//C_NULL_CHAR)
                         FSTARPU_SCRATCH = fstarpu_get_constant(C_CHAR_"FSTARPU_SCRATCH"//C_NULL_CHAR)
                         FSTARPU_REDUX   = fstarpu_get_constant(C_CHAR_"FSTARPU_REDUX"//C_NULL_CHAR)
+                        FSTARPU_MPI_REDUX   = fstarpu_get_constant(C_CHAR_"FSTARPU_MPI_REDUX"//C_NULL_CHAR)
                         FSTARPU_COMMUTE   = fstarpu_get_constant(C_CHAR_"FSTARPU_COMMUTE"//C_NULL_CHAR)
                         FSTARPU_SSEND   = fstarpu_get_constant(C_CHAR_"FSTARPU_SSEND"//C_NULL_CHAR)
                         FSTARPU_LOCALITY   = fstarpu_get_constant(C_CHAR_"FSTARPU_LOCALITY"//C_NULL_CHAR)

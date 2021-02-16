@@ -110,7 +110,15 @@ enum starpu_data_access_mode
 				   src/sched_policies/work_stealing_policy.c
 				   source code.
 				*/
-	STARPU_ACCESS_MODE_MAX=(1<<7) /**< todo */
+	STARPU_MPI_REDUX=(1<<7), /** Inter-node reduction only. Codelets 
+				    contributing to these reductions should
+				    be registered with STARPU_RW | STARPU_COMMUTE 
+				    access modes.
+			            When inserting these tasks through the
+				    MPI layer however, the access mode needs
+				    to be STARPU_MPI_REDUX. */
+	STARPU_ACCESS_MODE_MAX=(1<<8) /** The purpose of ACCESS_MODE_MAX is to
+					be the maximum of this enum. */
 };
 
 struct starpu_data_interface_ops;

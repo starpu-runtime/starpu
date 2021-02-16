@@ -290,6 +290,23 @@ starpu_mpi_EXAMPLES +=				\
 	matrix_mult/mm
 endif
 
+########################
+# MPI STARPU_MPI_REDUX #
+########################
+
+examplebin_PROGRAMS +=		\
+	mpi_redux/mpi_redux
+
+matrix_mult_mm_SOURCES	=		\
+	mpi_redux/mpi_redux.c
+
+matrix_mult_mm_LDADD =			\
+	-lm
+
+if !STARPU_SIMGRID
+starpu_mpi_EXAMPLES +=				\
+	mpi_redux/mpi_redux
+endif
 ##########################################
 # Native Fortran MPI Matrix mult example #
 ##########################################
@@ -335,7 +352,30 @@ starpu_mpi_EXAMPLES +=				\
 endif
 endif
 endif
+########################################
+# Native Fortran MPI STARPU_REDUX test #
+########################################
 
+if STARPU_HAVE_MPIFORT
+if !STARPU_SANITIZE
+examplebin_PROGRAMS +=		\
+	native_fortran/nf_mpi_redux
+
+native_fortran_nf_mpi_redux_SOURCES	=			\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
+	native_fortran/nf_mpi_redux.f90	
+
+native_fortran_nf_mpi_redux_LDADD =					\
+	-lm
+
+if !STARPU_SIMGRID
+starpu_mpi_EXAMPLES +=				\
+	native_fortran/nf_mpi_redux
+endif
+endif
+endif
+ 						
 ###################
 # complex example #
 ###################

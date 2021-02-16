@@ -744,6 +744,37 @@ starpu_mpi_data_set_rank(data, STARPU_MPI_PER_NODE);
 
 The data can then be used just like pernode above.
 
+\section MPIMpiRedux Inter-node reduction
+
+One might want to leverage a reduction pattern across several nodes.
+Using \c STARPU_REDUX, one can obtain reduction patterns across several nodes,
+however each core across the contributing nodes will spawn their own
+contribution to work with. In the case that these allocations or the
+required reductions are too expensive to execute for each contribution,
+the access mode \c STARPU_MPI_REDUX tells StarPU to spawn only one contribution 
+on node executing tasks partaking in the reduction.
+
+Tasks producing a result in the inter-node reduction should be registered as
+accessing the contribution through \c STARPU_RW|STARPU_COMMUTE mode.
+
+\code{.c}
+static struct starpu_codelet contrib_cl =
+{
+	.cpu_funcs = {cpu_contrib}, /* cpu implementation(s) of the routine */
+	.nbuffers = 1, /* number of data handles referenced by this routine */
+	.modes = {STARPU_RW | STARPU_COMMUTE} /* access modes for the contribution */
+	.name = "contribution"
+};
+\endcode
+
+When inserting these tasks, the access mode handed out to the StarPU-MPI layer
+should be \c STARPU_MPI_REDUX. Assuming \c data is owned by node 0 and we want node
+1 to compute the contribution, we could do the following.
+
+\code{.c}
+starpu_mpi_task_insert(MPI_COMM_WORLD, &contrib_cl, STARPU_MPI_REDUX, data, EXECUTE_ON_NODE, 1); /* Node 1 computes it */
+\endcode
+
 \section MPIPriorities Priorities
 
 All send functions have a <c>_prio</c> variant which takes an additional
