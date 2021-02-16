@@ -296,11 +296,6 @@ static int cg(void)
 	delta_0 = delta_new;
 	starpu_data_release(rtr_handle);
 
-	FPRINTF(stderr, "************** PARAMETERS ***************\n");
-	FPRINTF(stderr, "Problem size (-n): %lld\n", n);
-	FPRINTF(stderr, "Maximum number of iterations (-maxiter): %d\n", i_max);
-	FPRINTF(stderr, "Number of blocks (-nblocks): %d\n", nblocks);
-	FPRINTF(stderr, "Reduction (-no-reduction): %s\n", use_reduction ? "enabled" : "disabled");
 	FPRINTF(stderr, "Delta limit: %e\n", (double) (eps*eps*delta_0));
 
 	FPRINTF(stderr, "**************** INITIAL ****************\n");
@@ -370,15 +365,12 @@ static int cg(void)
 	}
 
 	end = starpu_timing_now();
-
 	double timing = end - start;
-	FPRINTF(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
-	FPRINTF(stderr, "Seconds per iteration : %2.2e\n", timing/10e6/i);
-	return 0;
-}
 
-static int check(void)
-{
+	FPRINTF(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
+	FPRINTF(stderr, "Seconds per iteration : %2.2e seconds\n", timing/10e6/i);
+	FPRINTF(stderr, "Number of iterations per second : %2.2e it/s\n", i/(timing/10e6));
+
 	return 0;
 }
 
@@ -427,6 +419,7 @@ static void parse_args(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	int ret;
+	double start, end;
 
 	/* Not supported yet */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
@@ -441,9 +434,19 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 
+	FPRINTF(stderr, "************** PARAMETERS ***************\n");
+	FPRINTF(stderr, "Problem size (-n): %lld\n", n);
+	FPRINTF(stderr, "Maximum number of iterations (-maxiter): %d\n", i_max);
+	FPRINTF(stderr, "Number of blocks (-nblocks): %d\n", nblocks);
+	FPRINTF(stderr, "Reduction (-no-reduction): %s\n", use_reduction ? "enabled" : "disabled");
+
+	start = starpu_timing_now();
 	generate_random_problem();
 	register_data();
 	partition_data();
+	end = starpu_timing_now();
+
+	FPRINTF(stderr, "Problem intialization timing : %2.2f seconds\n", (end-start)/10e6);
 
 	ret = cg();
 	if (ret == -ENODEV)
@@ -451,8 +454,6 @@ int main(int argc, char **argv)
 		ret = 77;
 		goto enodev;
 	}
-
-	ret = check();
 
 	starpu_task_wait_for_all();
 
