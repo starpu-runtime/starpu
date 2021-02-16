@@ -531,12 +531,6 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated);
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->refcnt);
 
-	/* For prefetches, we take a reference on the destination only now that
-	 * we will really try to fetch the data (instead of in
-	 * _starpu_create_data_request) */
-	if (r->prefetch > STARPU_FETCH)
-		dst_replicate->refcnt++;
-
 	_starpu_spin_unlock(&r->lock);
 
 	/* FIXME: the request may get upgraded from here to freeing it... */
