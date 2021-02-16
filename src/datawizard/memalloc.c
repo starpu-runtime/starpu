@@ -556,6 +556,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	handle = mc->data;
 	STARPU_ASSERT(handle);
 
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	/* This data should be written through to this node, avoid dropping it! */
 	if (node < sizeof(handle->wt_mask) * 8 && handle->wt_mask & (1<<node))
 		return 0;
