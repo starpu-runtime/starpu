@@ -556,11 +556,6 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	{
 		/* If there was not enough memory, we will try to redo the
 		 * request later. */
-
-		if (r->prefetch > STARPU_FETCH)
-			/* Drop ref until next try */
-			dst_replicate->refcnt--;
-
 		_starpu_spin_unlock(&handle->header_lock);
 		return -ENOMEM;
 	}
