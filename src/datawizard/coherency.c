@@ -413,6 +413,7 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 	{
 		_starpu_spin_checklocked(&r->handle->header_lock);
 
+		if (starpu_get_env_number_default("DMDAR_FIX", 0) == 1)
 		if (task && r->task && task != r->task)
 			/* Do not collapse requests for different tasks */
 			continue;
