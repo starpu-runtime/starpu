@@ -706,9 +706,13 @@ define starpu-print-prequests
     printf "Node %u:\n", $node
     set $node2 = 0
     while $node2 < _starpu_descr.nnodes
-      printf "%u pending requests from %u\n", data_requests_npending[$node][$node2][0], $node2
+      if data_requests_npending[$node][$node2][0]
+        printf "%u pending requests from %u\n", data_requests_npending[$node][$node2][0], $node2
+      end
       starpu-print-requests-list data_requests_pending[$node][$node2][0]
-      printf "%u pending requests to %u\n", data_requests_npending[$node][$node2][1], $node2
+      if data_requests_npending[$node][$node2][1]
+        printf "%u pending requests to %u\n", data_requests_npending[$node][$node2][1], $node2
+      end
       starpu-print-requests-list data_requests_pending[$node][$node2][1]
       set $node2 = $node2 + 1
     end
