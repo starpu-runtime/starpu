@@ -443,8 +443,8 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 		if(task)
 		{
 			_starpu_worker_task_list_transfer_started(list, task);
-			STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
 			starpu_push_task_end(task);
+			STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
 			goto ret;
 		}
 		STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
@@ -470,8 +470,8 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 			STARPU_COMPONENT_MUTEX_LOCK(&list->mutex);
 			_starpu_worker_task_list_add(list, task);
 			_starpu_worker_task_list_transfer_started(list, task);
-			STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
 			starpu_push_task_end(task);
+			STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
 			goto ret;
 		}
 		struct starpu_sched_component * combined_worker_component = starpu_sched_component_worker_get(component->tree->sched_ctx_id, workerid);
@@ -486,8 +486,8 @@ static struct starpu_task * simple_worker_pull_task(struct starpu_sched_componen
 		STARPU_COMPONENT_MUTEX_LOCK(&list->mutex);
 		_starpu_worker_task_list_add(list, task);
 		_starpu_worker_task_list_transfer_started(list, task);
-		STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
 		starpu_push_task_end(task);
+		STARPU_COMPONENT_MUTEX_UNLOCK(&list->mutex);
 	}
 ret:
 	return task;
