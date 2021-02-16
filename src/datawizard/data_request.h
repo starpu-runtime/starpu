@@ -85,7 +85,10 @@ LIST_TYPE(_starpu_data_request,
 	struct _starpu_async_channel async_channel;
 
 	/** Whether the transfer is completed. */
-	unsigned completed;
+	unsigned completed:1;
+
+	/** Whether we have already added our reference to the dst replicate. */
+	unsigned added_ref:1;
 
 	/** Whether this is just a prefetch request */
 	enum starpu_is_prefetch prefetch;

@@ -183,6 +183,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	}
 	STARPU_ASSERT(starpu_node_get_kind(handling_node) == STARPU_CPU_RAM || _starpu_memory_node_get_nworkers(handling_node));
 	r->completed = 0;
+	r->added_ref = 0;
 	r->prefetch = is_prefetch;
 	r->nb_tasks_prefetch = 0;
 	r->prio = prio;
@@ -197,7 +198,10 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	/* For a fetch, take a reference as soon as now on the target, to avoid
 	 * replicate eviction */
 	if (is_prefetch == STARPU_FETCH && dst_replicate)
+	{
+		r->added_ref = 1;
 		dst_replicate->refcnt++;
+	}
 	handle->busy_count++;
 
 	if (is_write_invalidation)
@@ -452,8 +456,11 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 			/* Make sure it stays there for the task.  */
 			dst_replicate->nb_tasks_prefetch += r->nb_tasks_prefetch;
 
-		STARPU_ASSERT(dst_replicate->refcnt > 0);
-		dst_replicate->refcnt--;
+		if (r->added_ref)
+		{
+			STARPU_ASSERT(dst_replicate->refcnt > 0);
+			dst_replicate->refcnt--;
+		}
 	}
 	STARPU_ASSERT(handle->busy_count > 0);
 	handle->busy_count--;
@@ -526,7 +533,6 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
 
 	enum starpu_data_access_mode r_mode = r->mode;
-	unsigned added_ref = 0;
 
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate);
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated);
@@ -537,7 +543,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	 * _starpu_create_data_request) */
 	if (r->prefetch > STARPU_FETCH)
 	{
-		added_ref = 1;	/* Note: we might get upgraded while trying to allocate */
+		r->added_ref = 1;	/* Note: we might get upgraded while trying to allocate */
 		dst_replicate->refcnt++;
 	}
 
@@ -561,9 +567,13 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 		/* If there was not enough memory, we will try to redo the
 		 * request later. */
 
-		if (added_ref)
+		if (r->prefetch > STARPU_FETCH)
+		{
+			STARPU_ASSERT(r->added_ref);
 			/* Drop ref until next try */
+			r->added_ref = 0;
 			dst_replicate->refcnt--;
+		}
 
 		_starpu_spin_unlock(&handle->header_lock);
 		return -ENOMEM;
@@ -901,9 +911,12 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_
 	_starpu_spin_checklocked(&r->handle->header_lock);
 	STARPU_ASSERT(r->prefetch > prefetch);
 
-	if (prefetch == STARPU_FETCH)
+	if (prefetch == STARPU_FETCH && !r->added_ref)
+	{
 		/* That would have been done by _starpu_create_data_request */
+		r->added_ref = 1;
 		r->dst_replicate->refcnt++;
+	}
 
 	r->prefetch=prefetch;
 
