@@ -194,9 +194,8 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 
 	_starpu_spin_lock(&r->lock);
 
-	/* For a fetch, take a reference as soon as now on the target, to avoid
-	 * replicate eviction */
-	if (is_prefetch == STARPU_FETCH && dst_replicate)
+	/* Take a reference on the target for the request to be able to write it */
+	if (dst_replicate)
 		dst_replicate->refcnt++;
 	handle->busy_count++;
 
@@ -883,13 +882,7 @@ int _starpu_check_that_no_data_request_is_pending(unsigned node, unsigned peer_n
 
 void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_is_prefetch prefetch)
 {
-	_starpu_spin_checklocked(&r->handle->header_lock);
 	STARPU_ASSERT(r->prefetch > prefetch);
-
-	if (prefetch == STARPU_FETCH)
-		/* That would have been done by _starpu_create_data_request */
-		r->dst_replicate->refcnt++;
-
 	r->prefetch=prefetch;
 
 	if (prefetch >= STARPU_IDLEFETCH)
