@@ -1610,10 +1610,10 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 	}
 
 	regmodel = &model->state->per_arch[comb][nimpl].regression;
-	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 
 	if (regmodel->valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
                 exp = regmodel->alpha*pow((double)size, regmodel->beta);
+	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 
 docal:
 	STARPU_HG_DISABLE_CHECKING(model->benchmarking);
@@ -1654,8 +1654,8 @@ double _starpu_non_linear_regression_based_job_expected_perf(struct starpu_perfm
 
 	if (regmodel->nl_valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
 	{
-		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 		exp = regmodel->a*pow((double)size, regmodel->b) + regmodel->c;
+		STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 	}
 	else
 	{
