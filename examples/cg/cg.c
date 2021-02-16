@@ -296,7 +296,14 @@ static int cg(void)
 	delta_0 = delta_new;
 	starpu_data_release(rtr_handle);
 
-	FPRINTF(stderr, "*************** INITIAL ************ \n");
+	FPRINTF(stderr, "************** PARAMETERS ***************\n");
+	FPRINTF(stderr, "Problem size (-n): %lld\n", n);
+	FPRINTF(stderr, "Maximum number of iterations (-maxiter): %d\n", i_max);
+	FPRINTF(stderr, "Number of blocks (-nblocks): %d\n", nblocks);
+	FPRINTF(stderr, "Reduction (-no-reduction): %s\n", use_reduction ? "enabled" : "disabled");
+	FPRINTF(stderr, "Delta limit: %e\n", (double) (eps*eps*delta_0));
+
+	FPRINTF(stderr, "**************** INITIAL ****************\n");
 	FPRINTF(stderr, "Delta 0: %e\n", delta_new);
 
 	double start;
