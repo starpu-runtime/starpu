@@ -90,6 +90,15 @@
 }
 
 {
+   suppr7
+   Helgrind:Race
+   ...
+   fun:event_base_loop
+   fun:progress_engine
+   ...
+}
+
+{
    suppr8
    Memcheck:Leak
    ...
