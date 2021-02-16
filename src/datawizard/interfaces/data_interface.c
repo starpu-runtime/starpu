@@ -1032,6 +1032,7 @@ retry_busy:
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
+		STARPU_ASSERT(!local->refcnt);
 		if (local->allocated)
 		{
 			_starpu_data_unregister_ram_pointer(handle, node);
@@ -1048,6 +1049,7 @@ retry_busy:
 		for (worker = 0; worker < nworkers; worker++)
 		{
 			struct _starpu_data_replicate *local = &handle->per_worker[worker];
+			STARPU_ASSERT(!local->refcnt);
 			/* free the data copy in a lazy fashion */
 			if (local->allocated && local->automatically_allocated)
 				_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);
