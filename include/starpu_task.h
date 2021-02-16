@@ -1395,10 +1395,11 @@ struct starpu_task
 	do {								\
 		if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->cl->nbuffers > STARPU_NMAXBUFS) \
 			if ((task)->dyn_modes) (task)->dyn_modes[i] = mode; else (task)->modes[i] = mode; \
-		else {							\
+		else \
+		{							\
 			enum starpu_data_access_mode cl_mode = STARPU_CODELET_GET_MODE((task)->cl, i); \
 			STARPU_ASSERT_MSG(cl_mode == mode,	\
-				"Task <%s> can't set its  %dth buffer mode to %d and the codelet it derives from uses %d", \
+				"Task <%s> can't set its  %d-th buffer mode to %d as the codelet it derives from uses %d", \
 				(task)->cl->name, i, mode, cl_mode);	\
 		} \
 	} while(0)

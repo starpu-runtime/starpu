@@ -47,7 +47,8 @@ struct _starpu_callback_list
 	struct _starpu_callback_list *next;
 };
 
-enum _starpu_data_request_inout {
+enum _starpu_data_request_inout
+{
 	_STARPU_DATA_REQUEST_IN, _STARPU_DATA_REQUEST_OUT
 };
 

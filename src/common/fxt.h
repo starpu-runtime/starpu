@@ -342,7 +342,7 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_FULL_PROBE1STR
@@ -356,7 +356,7 @@ do {									\
     if(KEYMASK & fut_active) {						\
 	_STARPU_FUT_ALWAYS_PROBE1STR(CODE, P1, str);		\
     }									\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_ALWAYS_PROBE2STR
@@ -377,7 +377,7 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_FULL_PROBE2STR
@@ -388,7 +388,7 @@ do {									\
     if(KEYMASK & fut_active) {						\
 	_STARPU_FUT_ALWAYS_PROBE2STR(CODE, P1, P2, str);		\
     }									\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_ALWAYS_PROBE3STR
@@ -410,7 +410,7 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_FULL_PROBE3STR
@@ -421,7 +421,7 @@ do {									\
     if(KEYMASK & fut_active) {						\
 	_STARPU_FUT_ALWAYS_PROBE3STR(CODE, P1, P2, P3, str);	\
     }									\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_ALWAYS_PROBE4STR
@@ -444,7 +444,7 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_FULL_PROBE4STR
@@ -455,7 +455,7 @@ do {									\
     if(KEYMASK & fut_active) {						\
 	_STARPU_FUT_ALWAYS_PROBE4STR(CODE, P1, P2, P3, P4, str);	\
     }									\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_ALWAYS_PROBE5STR
@@ -479,7 +479,7 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_FULL_PROBE5STR
@@ -490,7 +490,7 @@ do {									\
     if(KEYMASK & fut_active) {						\
 	_STARPU_FUT_ALWAYS_PROBE5STR(CODE, P1, P2, P3, P4, P5, str);	\
     }									\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_ALWAYS_PROBE6STR
@@ -515,7 +515,7 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_FULL_PROBE6STR
@@ -526,7 +526,7 @@ do {									\
     if(KEYMASK & fut_active) {						\
 	_STARPU_FUT_ALWAYS_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str);	\
     }									\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_ALWAYS_PROBE7STR
@@ -552,7 +552,7 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
-} while (0);
+} while (0)
 #endif
 
 #ifdef FUT_FULL_PROBE7STR
@@ -563,7 +563,7 @@ do {									\
     if(KEYMASK & fut_active) {						\
 	_STARPU_FUT_ALWAYS_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str);	\
     }									\
-} while (0);
+} while (0)
 #endif
 
 #ifndef FUT_RAW_PROBE7
@@ -787,7 +787,7 @@ do {									\
 		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
 		FUT_FULL_PROBE7(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_CODELET_DETAILS, ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->flops / 1000 / ((job)->task->cl && job->task->cl->type != STARPU_SEQ ? j->task_size : 1), (job)->task->tag_id, workerid, ((job)->job_id)); \
 	}								\
-} while(0);
+} while(0)
 
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)			\
 do {									\
@@ -796,7 +796,7 @@ do {									\
 	char _archname[32]=""; \
 	starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
 	_STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _starpu_gettid(), _archname); \
-} while(0);
+} while(0)
 
 #define _STARPU_TRACE_START_EXECUTING()				\
 	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_WORKER_VERBOSE, _STARPU_FUT_START_EXECUTING, _starpu_gettid());
@@ -898,7 +898,7 @@ do {										\
 	else {									\
 		FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TAG_DONE, (tag)->id, _starpu_gettid(), 0);\
 	}									\
-} while(0);
+} while(0)
 
 #define _STARPU_TRACE_DATA_NAME(handle, name) \
 	_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_DATA_NAME, handle, name)
