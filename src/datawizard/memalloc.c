@@ -169,7 +169,10 @@ void _starpu_mem_chunk_disk_register(unsigned disk_memnode)
 	{
 		enum starpu_node_kind kind = starpu_node_get_kind(i);
 		if (kind == STARPU_CPU_RAM)
+		{
+			STARPU_HG_DISABLE_CHECKING(evictable[i]);
 			evictable[i] = 1;
+		}
 	}
 }
 
