@@ -766,7 +766,7 @@ define starpu-memusage
   set scheduler-locking on
   set $node = 0
   while $node < _starpu_descr.nnodes
-    printf "\n\nNode %u:\n", $node
+    printf "\n\nNode %u (%dMiB):\n", $node, global_size[$node] >> 20
     set $total = 0
     set $total_b = 0
     set $wt = 0
