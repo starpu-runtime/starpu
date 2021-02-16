@@ -692,7 +692,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node][peer_node][inout]);
 		while (!_starpu_data_request_list_empty(&remain_list))
 		{
-			r = _starpu_data_request_list_pop_front(&remain_list);
+			r = _starpu_data_request_list_pop_back(&remain_list);
 			if (r->prefetch >= STARPU_IDLEFETCH)
 				_starpu_data_request_prio_list_push_front(&idle_requests[handling_node][r->peer_node][r->inout], r);
 			else if (r->prefetch > STARPU_FETCH)
