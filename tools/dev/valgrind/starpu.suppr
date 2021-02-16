@@ -102,6 +102,20 @@
 }
 
 {
+   locking order. It's not a problem when it's a trylock... but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
+   Helgrind:LockOrder
+   fun:pthread_rwlock_trywrlock_WRK
+   ...
+}
+
+{
+   locking order. It's not a problem when it's a trylock... but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
+   Helgrind:LockOrder
+   fun:pthread_rwlock_tryrdlock_WRK
+   ...
+}
+
+{
    mc / handle locking order1
    Helgrind:LockOrder
    ...
