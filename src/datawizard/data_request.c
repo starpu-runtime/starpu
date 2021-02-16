@@ -194,8 +194,9 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 
 	_starpu_spin_lock(&r->lock);
 
-	/* Take a reference on the target for the request to be able to write it */
-	if (dst_replicate)
+	/* For a fetch, take a reference as soon as now on the target, to avoid
+	 * replicate eviction */
+	if (is_prefetch == STARPU_FETCH && dst_replicate)
 		dst_replicate->refcnt++;
 	handle->busy_count++;
 
@@ -525,10 +526,20 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	struct _starpu_data_replicate *dst_replicate = r->dst_replicate;
 
 	enum starpu_data_access_mode r_mode = r->mode;
+	unsigned added_ref = 0;
 
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate);
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated);
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->refcnt);
+
+	/* For prefetches, we take a reference on the destination only now that
+	 * we will really try to fetch the data (instead of in
+	 * _starpu_create_data_request) */
+	if (r->prefetch > STARPU_FETCH)
+	{
+		added_ref = 1;	/* Note: we might get upgraded while trying to allocate */
+		dst_replicate->refcnt++;
+	}
 
 	_starpu_spin_unlock(&r->lock);
 
@@ -549,6 +560,11 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	{
 		/* If there was not enough memory, we will try to redo the
 		 * request later. */
+
+		if (added_ref)
+			/* Drop ref until next try */
+			dst_replicate->refcnt--;
+
 		_starpu_spin_unlock(&handle->header_lock);
 		return -ENOMEM;
 	}
@@ -882,7 +898,13 @@ int _starpu_check_that_no_data_request_is_pending(unsigned node, unsigned peer_n
 
 void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_is_prefetch prefetch)
 {
+	_starpu_spin_checklocked(&r->handle->header_lock);
 	STARPU_ASSERT(r->prefetch > prefetch);
+
+	if (prefetch == STARPU_FETCH)
+		/* That would have been done by _starpu_create_data_request */
+		r->dst_replicate->refcnt++;
+
 	r->prefetch=prefetch;
 
 	if (prefetch >= STARPU_IDLEFETCH)
