@@ -134,6 +134,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
+							 struct starpu_task *task,
 							 enum starpu_is_prefetch is_prefetch,
 							 int prio,
 							 unsigned is_write_invalidation,
@@ -185,6 +186,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->completed = 0;
 	r->added_ref = 0;
 	r->prefetch = is_prefetch;
+	r->task = task;
 	r->nb_tasks_prefetch = 0;
 	r->prio = prio;
 	r->retval = -1;

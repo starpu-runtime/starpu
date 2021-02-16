@@ -53,7 +53,7 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
 
 	_starpu_spin_lock(&handle->header_lock);
 
-	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, STARPU_PREFETCH, 0, 0, "starpu_data_request_allocation");
+	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, NULL, STARPU_PREFETCH, 0, 0, "starpu_data_request_allocation");
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
@@ -126,7 +126,7 @@ static inline void _starpu_data_acquire_launch_fetch(struct user_interaction_wra
 	starpu_data_handle_t handle = wrapper->handle;
 	struct _starpu_data_replicate *replicate = node >= 0 ? &handle->per_node[node] : NULL;
 
-	int ret = _starpu_fetch_data_on_node(handle, node, replicate, wrapper->mode, wrapper->detached, wrapper->prefetch, async, callback, callback_arg, wrapper->prio, "_starpu_data_acquire_launch_fetch");
+	int ret = _starpu_fetch_data_on_node(handle, node, replicate, wrapper->mode, wrapper->detached, NULL, wrapper->prefetch, async, callback, callback_arg, wrapper->prio, "_starpu_data_acquire_launch_fetch");
 	STARPU_ASSERT(!ret);
 }
 

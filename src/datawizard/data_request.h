@@ -93,6 +93,9 @@ LIST_TYPE(_starpu_data_request,
 	/** Whether this is just a prefetch request */
 	enum starpu_is_prefetch prefetch;
 
+	/** Task this request is for */
+	struct starpu_task *task;
+
 	/** Number of tasks which used this as a prefetch */
 	unsigned nb_tasks_prefetch;
 
@@ -161,6 +164,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
+							 struct starpu_task *task,
 							 enum starpu_is_prefetch is_prefetch,
 							 int prio,
 							 unsigned is_write_invalidation,
