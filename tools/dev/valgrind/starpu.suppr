@@ -29,6 +29,13 @@
 }
 
 {
+   don't care about data status query race, this is just a hint
+   Helgrind:Race
+   fun:starpu_data_query_status
+   ...
+}
+
+{
    known race, but not problematic in practice, see comment in _starpu_tag_clear
    Helgrind:LockOrder
    ...
