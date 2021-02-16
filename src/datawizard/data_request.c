@@ -573,22 +573,25 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 		return 0;
 	}
 
-	struct _starpu_data_request *r2 = dst_replicate->load_request;
-	if (r2 && r2 != r)
+	if (dst_replicate)
 	{
-		/* Oh, some other transfer is already loading the value. Just wait for it */
-		r->canceled = 2;
-		_starpu_spin_unlock(&r->lock);
-		_starpu_spin_lock(&r2->lock);
-		_starpu_data_request_append_callback(r2, _starpu_data_request_complete_wait, r);
-		_starpu_spin_unlock(&r2->lock);
-		_starpu_spin_unlock(&handle->header_lock);
-		return 0;
-	}
+		struct _starpu_data_request *r2 = dst_replicate->load_request;
+		if (r2 && r2 != r)
+		{
+			/* Oh, some other transfer is already loading the value. Just wait for it */
+			r->canceled = 2;
+			_starpu_spin_unlock(&r->lock);
+			_starpu_spin_lock(&r2->lock);
+			_starpu_data_request_append_callback(r2, _starpu_data_request_complete_wait, r);
+			_starpu_spin_unlock(&r2->lock);
+			_starpu_spin_unlock(&handle->header_lock);
+			return 0;
+		}
 
-	/* We are loading this replicate.
-	 * Note: we might fail to allocate memory, but we will keep on and others will wait for us. */
-	dst_replicate->load_request = r;
+		/* We are loading this replicate.
+		 * Note: we might fail to allocate memory, but we will keep on and others will wait for us. */
+		dst_replicate->load_request = r;
+	}
 
 	enum starpu_data_access_mode r_mode = r->mode;
 
