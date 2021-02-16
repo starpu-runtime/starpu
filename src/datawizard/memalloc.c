@@ -552,6 +552,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
+	STARPU_ASSERT(node < STARPU_MAXNODES);
 	/* This data should be written through to this node, avoid dropping it! */
 	if (node < sizeof(handle->wt_mask) * 8 && handle->wt_mask & (1<<node))
 		return 0;

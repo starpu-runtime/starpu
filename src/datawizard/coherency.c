@@ -864,8 +864,10 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle)
 void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_wt_mask, enum starpu_data_access_mode down_to_mode, struct _starpu_data_replicate *replicate)
 {
 	uint32_t wt_mask;
-	const size_t max_wt_mask = sizeof(wt_mask) * 8;
+	size_t max_wt_mask = sizeof(wt_mask) * 8;
 	unsigned wt_count = starpu_memory_nodes_get_count();
+	if (max_wt_mask > STARPU_MAXNODES)
+		max_wt_mask = STARPU_MAXNODES;
 	if (wt_count > max_wt_mask)
 		wt_count = max_wt_mask;
 
