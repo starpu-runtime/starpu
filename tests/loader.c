@@ -265,7 +265,9 @@ int main(int argc, char *argv[])
 	}
 
 #ifdef STARPU_SIMGRID
-	timeout *= 10;
+#ifdef STARPU_DEBUG
+	timeout *= 20;
+#endif
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
