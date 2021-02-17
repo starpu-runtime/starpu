@@ -12,7 +12,6 @@ FICHIER_DT=DT_NT_M3D_BW350_CM500
 FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_1.txt
 FICHIER_RAW_DT=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_3.txt
 FICHIER_BUS=${PATH_STARPU}/starpu/Output_maxime/BUS_STATS_1.txt
-DOSSIER=Matrice3D
 truncate -s 0 ${FICHIER_RAW:0}
 truncate -s 0 ${FICHIER_RAW_DT:0}
 truncate -s 0 ${FICHIER_BUS:0}
