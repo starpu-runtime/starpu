@@ -602,7 +602,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	/* For prefetches, we take a reference on the destination only now that
 	 * we will really try to fetch the data (instead of in
 	 * _starpu_create_data_request) */
-	if (r->prefetch > STARPU_FETCH)
+	if (dst_replicate && r->prefetch > STARPU_FETCH)
 	{
 		r->added_ref = 1;	/* Note: we might get upgraded while trying to allocate */
 		dst_replicate->refcnt++;
