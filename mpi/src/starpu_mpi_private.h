@@ -211,8 +211,8 @@ struct _starpu_mpi_data
 	char *cache_sent;
 	int cache_received;
 
-	/** Rendez-vous data for opportunistic cooperative sends */
-	/** Needed to synchronize between submit thread and workers */
+	/** Rendez-vous data for opportunistic cooperative sends,
+	  * Needed to synchronize between submit thread and workers */
 	struct _starpu_spinlock coop_lock;
 	/** Current cooperative send bag */
 	struct _starpu_mpi_coop_sends *coop_sends;
