@@ -203,6 +203,12 @@ struct _starpu_mpi_coop_sends
 	long pre_sync_jobid;
 };
 
+/** cf. redux_map field : this is the value
+ * put in this field whenever a node contributes
+ * to the reduction of the data.
+ * Only the owning node keeps track of all the contributing nodes. */
+#define REDUX_CONTRIB ((char*) -1)
+
 /** Initialized in starpu_mpi_data_register_comm */
 struct _starpu_mpi_data
 {
@@ -210,6 +216,10 @@ struct _starpu_mpi_data
 	struct _starpu_mpi_node_tag node_tag;
 	char *cache_sent;
 	int cache_received;
+
+	/** Array used to store the contributing nodes to this data
+	  * when it is accessed in REDUX mode. */
+	char* redux_map;
 
 	/** Rendez-vous data for opportunistic cooperative sends,
 	  * Needed to synchronize between submit thread and workers */

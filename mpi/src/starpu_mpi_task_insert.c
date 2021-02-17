@@ -617,6 +617,18 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 
 	for(i=0 ; i<nb_data ; i++)
 	{
+		struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) descrs[i].handle->mpi_data;
+		if (descrs[i].mode & STARPU_REDUX || descrs[i].mode & STARPU_MPI_REDUX)
+		{
+			if (me == starpu_mpi_data_get_rank(descrs[i].handle))
+			{ 
+				if (mpi_data->redux_map == NULL)
+					_STARPU_CALLOC(mpi_data->redux_map, 0, STARPU_MAXNODES * sizeof(mpi_data->redux_map[0]));
+				mpi_data->redux_map [xrank] = 1;
+			}
+			else if (me == xrank)
+				mpi_data->redux_map = REDUX_CONTRIB;
+		} 
 		_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 		_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
 	}
@@ -813,6 +825,11 @@ void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, 
 
 /* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
  * a data previously accessed in REDUX mode gets accessed in R mode. */
+/* FIXME: In order to prevent simultaneous receive submissions
+ * on the same handle, we need to wait that all the starpu_mpi
+ * tasks are done before submitting next tasks. The current
+ * version of the implementation does not support multiple
+ * simultaneous receive requests on the same handle.*/
 void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
 {
 	int me, rank, nb_nodes;
@@ -820,6 +837,7 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 
 	rank = starpu_mpi_data_get_rank(data_handle);
 	data_tag = starpu_mpi_data_get_tag(data_handle);
+	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 	if (rank == -1)
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
@@ -832,12 +850,16 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 	starpu_mpi_comm_rank(comm, &me);
 	starpu_mpi_comm_size(comm, &nb_nodes);
 
-	_STARPU_MPI_DEBUG(1, "Doing reduction for data %p on node %d with %d nodes ...\n", data_handle, rank, nb_nodes);
-
+	_STARPU_MPI_DEBUG(50, "Doing reduction for data %p on node %d with %d nodes ...\n", data_handle, rank, nb_nodes);
 	// need to count how many nodes have the data in redux mode
 	if (me == rank)
 	{
-		int i;
+		int i,j;
+		_STARPU_MPI_DEBUG(50, "Who is in the map ?\n");
+		for (j = 0; j<nb_nodes; j++)
+		{
+			_STARPU_MPI_DEBUG(50, "%d is in the map ? %d\n", j, mpi_data->redux_map[j]);
+		}
 
 		// taskC depends on all taskBs created
 		// Creating synchronization task and use its jobid for tracing
@@ -848,8 +870,9 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 
 		for(i=0 ; i<nb_nodes ; i++)
 		{
-			if (i != rank)
+			if (i != rank && mpi_data->redux_map[i])
 			{
+				_STARPU_MPI_DEBUG(5, "%d takes part in the reduction of %p \n", i, data_handle);
 				/* We need to make sure all is
 				 * executed after data_handle finished
 				 * its last read access, we hence do
@@ -893,24 +916,34 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 						   STARPU_CALLBACK_WITH_ARG_NFREE, _starpu_mpi_redux_data_recv_callback, args,
 						   0);
 			}
+			else
+			{
+				_STARPU_MPI_DEBUG(5, "%d is not in the map or is me\n", i);
+			}
 		}
 
 		int ret = starpu_task_submit(taskC);
 		STARPU_ASSERT(ret == 0);
 	}
-	else
+	else if (mpi_data->redux_map)
 	{
-		_STARPU_MPI_DEBUG(1, "Sending redux handle to %d ...\n", rank);
+		STARPU_ASSERT(mpi_data->redux_map == REDUX_CONTRIB);
+		_STARPU_MPI_DEBUG(5, "Sending redux handle to %d ...\n", rank);
 		starpu_mpi_isend_detached_prio(data_handle, rank, data_tag, prio, comm, NULL, NULL);
 		starpu_data_invalidate_submit(data_handle);
 	}
-	/* FIXME: In order to prevent simultaneous receive submissions
-	 * on the same handle, we need to wait that all the starpu_mpi
-	 * tasks are done before submitting next tasks. The current
-	 * version of the implementation does not support multiple
-	 * simultaneous receive requests on the same handle.*/
-	starpu_task_wait_for_all();
-
+	else
+	{
+		_STARPU_MPI_DEBUG(5, "I am not in the map of %d, I am %d ...\n", rank, me);
+	}
+	if (mpi_data->redux_map != NULL) 
+	{ 
+		_STARPU_MPI_DEBUG(100, "waiting for redux tasks with %d\n", rank);
+		starpu_task_wait_for_all();
+	}
+	if (me == rank)
+		free(mpi_data->redux_map);
+	mpi_data->redux_map = NULL;
 }
 void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 {

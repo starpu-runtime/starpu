@@ -375,7 +375,32 @@ starpu_mpi_EXAMPLES +=				\
 endif
 endif
 endif
- 						
+
+########################################
+# Native Fortran MPI STARPU_REDUX test #
+########################################
+
+if STARPU_HAVE_MPIFORT
+if !STARPU_SANITIZE
+examplebin_PROGRAMS +=		\
+	native_fortran/nf_redux_test
+
+native_fortran_nf_redux_test_SOURCES	=			\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
+	native_fortran/nf_redux_test.f90	
+
+native_fortran_nf_redux_test_LDADD =					\
+	-lm
+
+if !STARPU_SIMGRID
+starpu_mpi_EXAMPLES +=				\
+	native_fortran/nf_redux_test
+endif
+endif
+endif
+
+
 ###################
 # complex example #
 ###################
@@ -467,6 +492,7 @@ native_fortran/nf_mm_cl.o: fstarpu_mod.mod
 native_fortran/nf_mm.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_mm_task_build.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_basic_ring.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
+native_fortran/nf_redux_test.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_mpi_redux.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 endif
 endif

@@ -561,6 +561,10 @@ int starpu_mpi_data_get_rank(starpu_data_handle_t handle);
    Return the tag of the given data.
 */
 starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t handle);
+/**
+   Return the redux map of the given data.
+*/
+char* starpu_mpi_data_get_redux_map(starpu_data_handle_t handle);
 
 /**
    Symbol kept for backward compatibility. Call function starpu_mpi_data_get_tag()

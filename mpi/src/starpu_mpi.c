@@ -448,6 +448,12 @@ starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t data)
 	return ((struct _starpu_mpi_data *)(data->mpi_data))->node_tag.data_tag;
 }
 
+char* starpu_mpi_data_get_redux_map(starpu_data_handle_t data)
+{
+	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
+	return ((struct _starpu_mpi_data *)(data->mpi_data))->redux_map;
+}
+
 void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
 {
 	int me, rank;
