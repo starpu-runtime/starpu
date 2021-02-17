@@ -251,7 +251,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "\n");
 		fprintf(tasks_file, "Modes:");
 		for (i = 0; i < task->ndata; i++)
-			fprintf(tasks_file, " %s%s%s%s%s",
+			fprintf(tasks_file, " %s%s%s%s%s%s",
 				(task->data[i].mode & STARPU_R)?"R":"",
 				(task->data[i].mode & STARPU_W)?"W":"",
 				(task->data[i].mode & STARPU_SCRATCH)?"S":"",
