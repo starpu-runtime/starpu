@@ -721,6 +721,15 @@ for that environment variable to be used, and the
 STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
 </dd>
 
+<dt>STARPU_SIMGRID</dt>
+<dd>
+\anchor STARPU_SIMGRID
+\addindex __env__STARPU_SIMGRID
+When set to 1 (the default is 0), this makes StarPU check that it was really
+build with simulation support. This is convenient in scripts to avoid using a
+native version, that would try to update performance models...
+</dd>
+
 <dt>STARPU_SIMGRID_TRANSFER_COST</dt>
 <dd>
 \anchor STARPU_SIMGRID_TRANSFER_COST

@@ -29,6 +29,7 @@ Small features:
     STARPU_MPI_THREAD_COREID environment variables to bind threads to cores
     instead of hyperthreads.
   * New STARPU_TASK_PROGRESS environment variable to show task progression.
+  * Add STARPU_SIMGRID environment variable guard against native builds.
 
 StarPU 1.3.7
 ====================================================================
