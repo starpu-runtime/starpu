@@ -507,7 +507,7 @@ static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel 
 	fprintf(gnuplot_file, "#!/usr/bin/gnuplot -persist\n");
 	fprintf(gnuplot_file, "\n");
 	fprintf(gnuplot_file, "set term postscript eps enhanced color\n");
-	fprintf(gnuplot_file, "set output \"starpu_%s%s.eps\"\n", options->energy_symbol?"power_":"", options->symbol);
+	fprintf(gnuplot_file, "set output \"starpu_%s%s.eps\"\n", options->energy_symbol?"power_":options->gflops?"gflops_":"", options->symbol);
 	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", symbol);
 	fprintf(gnuplot_file, "set xlabel \"Total data size\"\n");
 	if (options->energy_symbol)
