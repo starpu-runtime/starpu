@@ -616,6 +616,11 @@ int main(int argc, char **argv)
 				snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "%s/starpu_power_%s.gp", directory, options.symbol);
 				snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_power_%s_avg.data", directory, options.symbol);
 			}
+			else if (options.gflops)
+			{
+				snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "%s/starpu_gflops_%s.gp", directory, options.symbol);
+				snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_gflops_%s_avg.data", directory, options.symbol);
+			}
 			else
 			{
 				snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "%s/starpu_%s.gp", directory, options.symbol);
