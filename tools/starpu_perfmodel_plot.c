@@ -439,13 +439,15 @@ static void dump_data_file(FILE *data_file, struct _perfmodel_plot_options *opti
 
 static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel *model, struct _perfmodel_plot_options *options)
 {
+	char hostname[64];
 	char *symbol = replace_char(options->symbol, '_', '-');
 
+	_starpu_gethostname(hostname, sizeof(hostname));
 	fprintf(gnuplot_file, "#!/usr/bin/gnuplot -persist\n");
 	fprintf(gnuplot_file, "\n");
 	fprintf(gnuplot_file, "set term postscript eps enhanced color\n");
 	fprintf(gnuplot_file, "set output \"starpu_%s.eps\"\n", options->symbol);
-	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", symbol);
+	fprintf(gnuplot_file, "set title \"Model for codelet %s on %s\"\n", symbol, hostname);
 	fprintf(gnuplot_file, "set xlabel \"Total data size\"\n");
 	if (options->gflops)
 		if (options->energy)
