@@ -1531,6 +1531,14 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_STARPU_DISP("Warning: STARPU_ENABLE_STATS is enabled, which slows down a bit\n");
 	}
 
+#ifndef STARPU_SIMGRID
+	if (starpu_get_env_number_default("STARPU_SIMGRID", 0))
+	{
+		_STARPU_DISP("Simulation mode requested, but this libstarpu was built without simgrid support, please recompile\n");
+		return -EINVAL;
+	}
+#endif
+
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;
 	WSAStartup(MAKEWORD(1,0), &wsadata);
