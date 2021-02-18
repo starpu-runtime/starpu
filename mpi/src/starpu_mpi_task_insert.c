@@ -617,9 +617,9 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 
 	for(i=0 ; i<nb_data ; i++)
 	{
-		struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) descrs[i].handle->mpi_data;
-		if (descrs[i].mode & STARPU_REDUX || descrs[i].mode & STARPU_MPI_REDUX)
+		if ((descrs[i].mode & STARPU_REDUX || descrs[i].mode & STARPU_MPI_REDUX) && descrs[i].handle)
 		{
+			struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) descrs[i].handle->mpi_data;
 			if (me == starpu_mpi_data_get_rank(descrs[i].handle))
 			{ 
 				if (mpi_data->redux_map == NULL)
