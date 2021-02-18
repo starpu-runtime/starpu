@@ -25,25 +25,9 @@ int main(int argc, char *argv[])
     fichier_out = fopen(argv[6], "w+");
     if (fichier_in != NULL)
     {
-		//~ for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) {
-			//~ fprintf(fichier_out,"%d\n",ECHELLE_X*(j+1)+START_X); }
-		//~ rewind(fichier_out);
 		
-		count = 11;
-		//~ for (k = 0; k < count; k++) {
-			//~ fscanf(fichier_in,"%s",str1);
-		//~ }
-		//~ fscanf(fichier_in, "%s",Datatransfers);
-		//~ fprintf(fichier_out,"	%s\n",Datatransfers);
-		//~ c = fgetc(fichier_in);
-		//~ while (c != '\n') {
-			//~ c = fgetc(fichier_in);
-		//~ }
-		//~ for (k = 0; k < count; k++) {
-			//~ fscanf(fichier_in,"%s",str1);
-		//~ }
-		//~ fscanf(fichier_in, "%s",Datatransfers);
-		//~ fprintf(fichier_out,"	%s\n",Datatransfers);
+		count = 5;
+		
 		
 		for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) {
 			fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
@@ -54,18 +38,14 @@ int main(int argc, char *argv[])
 					}
 					fscanf(fichier_in, "%s",Datatransfers);
 					fprintf(fichier_out,"	%s",Datatransfers);
-					for (k = 0; k < 4; k++) {
+					for (k = 0; k < 10; k++) {
 						fscanf(fichier_in,"%s",str1);
 					}
 				}
 				else {
-					for (k = 0; k < count + 5; k++) {
+					for (k = 0; k < count + 11; k++) {
 						fscanf(fichier_in,"%s",str1);
 					}
-					//~ c = fgetc(fichier_in);
-					//~ while (c != '\n') {
-						//~ c = fgetc(fichier_in);
-					//~ }
 				}
 			}
 			fprintf(fichier_out,"\n"); 
