@@ -450,3 +450,11 @@ tests/energy/energy_efficiency
 tests/main/display_binding
 Output_maxime/GFlops_raw_out_1.txt
 Output_maxime/GFlops_raw_out_2.txt
+Output_maxime/Data_coordinates_order_last.pdf
+Output_maxime/Data_coordinates_order_last.tex
+Output_maxime/Execution_time_raw.txt
+Output_maxime/test.txt
+cut_datatransfers_raw_out
+Output_maxime/BUS_STATS_1.txt
+Output_maxime/GFlops_raw_out_1.txt
+Output_maxime/GFlops_raw_out_2.txt
