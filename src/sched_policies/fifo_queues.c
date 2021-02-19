@@ -346,7 +346,7 @@ int _starpu_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_
 
 size_t _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker)
 {
-	int cnt = 0;
+	size_t cnt = 0;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
