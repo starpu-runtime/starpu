@@ -621,9 +621,11 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 		{
 			struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) descrs[i].handle->mpi_data;
 			if (me == starpu_mpi_data_get_rank(descrs[i].handle))
-			{ 
+			{
+				int size;
+				starpu_mpi_comm_size(comm, &size);
 				if (mpi_data->redux_map == NULL)
-					_STARPU_CALLOC(mpi_data->redux_map, STARPU_MAXNODES, sizeof(mpi_data->redux_map[0]));
+					_STARPU_CALLOC(mpi_data->redux_map, size, sizeof(mpi_data->redux_map[0]));
 				mpi_data->redux_map [xrank] = 1;
 			}
 			else if (me == xrank)
