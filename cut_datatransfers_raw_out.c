@@ -36,6 +36,7 @@ int main(int argc, char *argv[])
 					for (k = 0; k < count; k++) {
 						fscanf(fichier_in,"%s",str1);
 					}
+					//~ printf("ok\n");
 					fscanf(fichier_in, "%s",Datatransfers);
 					fprintf(fichier_out,"	%s",Datatransfers);
 					for (k = 0; k < 10; k++) {
@@ -48,6 +49,7 @@ int main(int argc, char *argv[])
 					}
 				}
 			}
+			//~ printf("ok\n");
 			fprintf(fichier_out,"\n"); 
 			rewind(fichier_in);
 		}
