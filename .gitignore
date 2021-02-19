@@ -458,3 +458,6 @@ cut_datatransfers_raw_out
 Output_maxime/BUS_STATS_1.txt
 Output_maxime/GFlops_raw_out_1.txt
 Output_maxime/GFlops_raw_out_2.txt
+Output_maxime/BUS_STATS_1.txt
+Output_maxime/GFlops_raw_out_1.txt
+Output_maxime/GFlops_raw_out_2.txt
