@@ -344,7 +344,7 @@ int _starpu_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_
 	return ((num_priorities-1)/(max-min)) * (priority - min);
 }
 
-int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
+size_t _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
 {
 	int cnt = 0;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -361,7 +361,7 @@ int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
 		starpu_data_query_status(handle, buffer_node, NULL, &is_valid, NULL);
 
 		if (!is_valid)
-			cnt++;
+			cnt+=starpu_data_get_size(handle);
 	}
 
 	return cnt;
@@ -384,7 +384,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 		int first_task_priority = task->priority;
 
-		int non_ready_best = INT_MAX;
+		size_t non_ready_best = SIZE_MAX;
 
 		for (current = task; current; current = current->next)
 		{
@@ -392,7 +392,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 			if (priority >= first_task_priority)
 			{
-				int non_ready = _starpu_count_non_ready_buffers(current, workerid);
+				size_t non_ready = _starpu_count_non_ready_buffers(current, workerid);
 				if (non_ready < non_ready_best)
 				{
 					non_ready_best = non_ready;
