@@ -71,6 +71,7 @@
 static int long long n = 4096;
 static int nblocks = 8;
 static int use_reduction = 1;
+static int display_result = 0;
 
 static starpu_data_handle_t A_handle, b_handle, x_handle;
 static TYPE *A, *b, *x;
@@ -264,6 +265,27 @@ static void display_matrix(void)
 }
 #endif
 
+static void display_x_result(void)
+{
+	unsigned b, i;
+	starpu_data_handle_t sub;
+
+	FPRINTF(stderr, "Computed X vector:\n");
+
+	unsigned block_size = n / nblocks;
+
+	for (b = 0; b < nblocks; b++)
+	{
+		sub = starpu_data_get_sub_data(x_handle, 1, b);
+		starpu_data_acquire(sub, STARPU_R);
+		for (i = 0; i < block_size; i++)
+		{
+			FPRINTF(stderr, "% 02.2e\n", x[b*block_size + i]);
+		}
+		starpu_data_release(sub);
+	}
+}
+
 /*
  *	Main loop
  */
@@ -385,6 +407,13 @@ static void parse_args(int argc, char **argv)
 			continue;
 		}
 
+		if (strcmp(argv[i], "-display-result") == 0)
+		{
+			display_result = 1;
+			continue;
+		}
+
+
 	        if (strcmp(argv[i], "-maxiter") == 0)
 		{
 			i_max = atoi(argv[++i]);
@@ -410,7 +439,7 @@ static void parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-help") == 0)
 		{
-			FPRINTF(stderr, "usage: %s [-h] [-nblocks #blocks] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
+			FPRINTF(stderr, "usage: %s [-h] [-nblocks #blocks] [-display-result] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
 			exit(-1);
 		}
         }
@@ -456,6 +485,11 @@ int main(int argc, char **argv)
 	}
 
 	starpu_task_wait_for_all();
+
+	if (display_result)
+	{
+		display_x_result();
+	}
 
 enodev:
 	unregister_data();
