@@ -142,6 +142,7 @@ static void test_memset(int nelems, struct starpu_codelet *codelet)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+	starpu_do_schedule();
 	starpu_data_unregister(handle);
 }
 
