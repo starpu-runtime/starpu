@@ -623,7 +623,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 			if (me == starpu_mpi_data_get_rank(descrs[i].handle))
 			{ 
 				if (mpi_data->redux_map == NULL)
-					_STARPU_CALLOC(mpi_data->redux_map, 0, STARPU_MAXNODES * sizeof(mpi_data->redux_map[0]));
+					_STARPU_CALLOC(mpi_data->redux_map, STARPU_MAXNODES, sizeof(mpi_data->redux_map[0]));
 				mpi_data->redux_map [xrank] = 1;
 			}
 			else if (me == xrank)
