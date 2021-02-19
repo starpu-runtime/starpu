@@ -104,7 +104,7 @@ struct starpu_task *_starpu_prio_deque_deque_first_ready_task(struct _starpu_pri
 
 			if (priority >= first_task_priority)
 			{
-				size_t non_ready = _starpu_count_non_ready_buffers(current, workerid);
+				size_t non_ready = _starpu_size_non_ready_buffers(current, workerid);
 				if (non_ready < non_ready_best)
 				{
 					non_ready_best = non_ready;
