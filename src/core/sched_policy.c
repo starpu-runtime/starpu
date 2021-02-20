@@ -206,7 +206,7 @@ struct starpu_sched_policy *_starpu_select_sched_policy(struct _starpu_machine_c
 	if (selected_policy)
 		return selected_policy;
 
-	/* If no policy was specified, we use the eager policy by default */
+	/* If no policy was specified, we use the lws policy by default */
 	return &_starpu_sched_lws_policy;
 }
 
