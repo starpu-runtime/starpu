@@ -646,6 +646,6 @@
    <insert_a_suppression_name_here>
    Helgrind:LockOrder
    ...
-   mca_bml_r2_add_procs
+   fun:mca_bml_r2_add_procs
    ...
 }
