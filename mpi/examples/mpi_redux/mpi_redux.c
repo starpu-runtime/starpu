@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 			printf("computed result ---> %f expected %f\n", a, 1.0 + (comm_size - 1.0)*(comm_size)/2.0 + work_coef*nworkers*((comm_size-1)*3.0 + tmp));
 		}
 		starpu_data_unregister(a_h);
-		for (work_node=1; work_node < comm_size-1;work_node++)
+		for (work_node=0; work_node < comm_size;work_node++)
 			starpu_data_unregister(b_h[work_node]);
 		starpu_mpi_barrier(MPI_COMM_WORLD);
 	}
