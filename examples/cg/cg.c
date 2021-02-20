@@ -267,20 +267,20 @@ static void display_matrix(void)
 
 static void display_x_result(void)
 {
-	unsigned b, i;
+	int j, i;
 	starpu_data_handle_t sub;
 
 	FPRINTF(stderr, "Computed X vector:\n");
 
-	unsigned block_size = n / nblocks;
+	int block_size = n / nblocks;
 
-	for (b = 0; b < nblocks; b++)
+	for (j = 0; j < nblocks; j++)
 	{
-		sub = starpu_data_get_sub_data(x_handle, 1, b);
+		sub = starpu_data_get_sub_data(x_handle, 1, j);
 		starpu_data_acquire(sub, STARPU_R);
 		for (i = 0; i < block_size; i++)
 		{
-			FPRINTF(stderr, "% 02.2e\n", x[b*block_size + i]);
+			FPRINTF(stderr, "% 02.2e\n", x[j*block_size + i]);
 		}
 		starpu_data_release(sub);
 	}
