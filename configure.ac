@@ -3809,11 +3809,11 @@ AC_MSG_NOTICE([
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
-               SOCL test suite:                               $run_socl_check
-               Scheduler Hypervisor:                          $build_sc_hypervisor
-               simgrid enabled:                               $enable_simgrid
-               ayudame enabled:                               $ayu_msg
-               HDF5 enabled:                                  $enable_hdf5
+	       SOCL test suite:                               $run_socl_check
+	       Scheduler Hypervisor:                          $build_sc_hypervisor
+	       simgrid enabled:                               $enable_simgrid
+	       ayudame enabled:                               $ayu_msg
+	       HDF5 enabled:                                  $enable_hdf5
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr
