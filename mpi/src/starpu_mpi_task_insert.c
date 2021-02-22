@@ -630,7 +630,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 			}
 			else if (me == xrank)
 				mpi_data->redux_map = REDUX_CONTRIB;
-		} 
+		}
 		_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 		_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
 	}
@@ -938,8 +938,8 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 	{
 		_STARPU_MPI_DEBUG(5, "I am not in the map of %d, I am %d ...\n", rank, me);
 	}
-	if (mpi_data->redux_map != NULL) 
-	{ 
+	if (mpi_data->redux_map != NULL)
+	{
 		_STARPU_MPI_DEBUG(100, "waiting for redux tasks with %d\n", rank);
 		starpu_task_wait_for_all();
 	}

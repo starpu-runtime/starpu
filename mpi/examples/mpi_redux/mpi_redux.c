@@ -13,7 +13,7 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
- 
+
 /*
  * This example illustrates how to use the STARPU_MPI_REDUX mode
  * and compare it with the standard STARPU_REDUX.
@@ -21,7 +21,7 @@
  * In order to make this comparison salliant, the init codelet is not
  * a task that set the handle to a neutral element but rather depends
  * on the working node.
- * This is not a proper way to use a reduction pattern however it 
+ * This is not a proper way to use a reduction pattern however it
  * can be analogous to the cost/weight of each contribution.
  */
 
@@ -34,7 +34,6 @@
 #include "helper.h"
 #include <unistd.h>
 
-
 static void cl_cpu_work(void *handles[], void*arg)
 {
 	(void)arg;
@@ -46,7 +45,7 @@ static void cl_cpu_work(void *handles[], void*arg)
 	printf("%f\n",*a);
 }
 
-static struct starpu_codelet work_cl = 
+static struct starpu_codelet work_cl =
 {
 	.cpu_funcs = { cl_cpu_work },
 	.nbuffers = 2,
@@ -54,7 +53,7 @@ static struct starpu_codelet work_cl =
 	.name = "task_init"
 };
 
-static struct starpu_codelet mpi_work_cl = 
+static struct starpu_codelet mpi_work_cl =
 {
 	.cpu_funcs = { cl_cpu_work },
 	.nbuffers = 2,
@@ -71,7 +70,7 @@ static void cl_cpu_task_init(void *handles[], void*arg)
 	*a = starpu_mpi_world_rank();
 }
 
-static struct starpu_codelet task_init_cl = 
+static struct starpu_codelet task_init_cl =
 {
 	.cpu_funcs = { cl_cpu_task_init },
 	.nbuffers = 1,
@@ -89,7 +88,7 @@ static void cl_cpu_task_red(void *handles[], void*arg)
 	*ad = *ad + *as;
 }
 
-static struct starpu_codelet task_red_cl = 
+static struct starpu_codelet task_red_cl =
 {
 	.cpu_funcs = { cl_cpu_task_red },
 	.nbuffers = 2,
@@ -113,7 +112,7 @@ int main(int argc, char *argv[])
        		return STARPU_TEST_SKIPPED;
 	}
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &comm_size);
-	if (comm_size< 2)
+	if (comm_size < 2)
 	{
         	FPRINTF(stderr, "We need at least 2 nodes.\n");
         	starpu_mpi_shutdown();
@@ -159,7 +158,7 @@ int main(int argc, char *argv[])
 		starpu_mpi_data_register(a_h, tag++, 0);
 		for (j=0;j<comm_size;j++)
 			starpu_mpi_data_register(b_h[j], tag++, j);
-		
+
 		starpu_data_set_reduction_methods(a_h, &task_red_cl, &task_init_cl);
 		starpu_fxt_start_profiling();
 		for (work_node=1; work_node < comm_size;work_node++)
@@ -185,7 +184,7 @@ int main(int argc, char *argv[])
 		starpu_mpi_redux_data(MPI_COMM_WORLD, a_h);
 		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 		starpu_mpi_barrier(MPI_COMM_WORLD);
-		if (comm_rank == 0) 
+		if (comm_rank == 0)
 		{
 			double tmp = 0.0;
 			for (work_node = 1; work_node < comm_size ; work_node++)
@@ -200,6 +199,3 @@ int main(int argc, char *argv[])
 	starpu_mpi_shutdown();
 	return 0;
 }
-
-
-

@@ -100,7 +100,7 @@ void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **
 {
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
-	
+
 	*ptr = state->arg_buffer+state->current_offset;
 	state->current_offset += *size;
 
@@ -116,7 +116,7 @@ void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *stat
 {
 	size_t ptr_size;
 	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
-	
+
 	state->current_offset += sizeof(ptr_size);
 	state->current_offset += ptr_size;
 
@@ -369,24 +369,24 @@ void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starp
 
 	starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, 1);
 	STARPU_TASK_SET_HANDLE(task, handle, *current_buffer);
-	
+
 	enum starpu_data_access_mode arg_mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND;
 
-	/* MPI_REDUX should be interpreted as RW|COMMUTE by the "ground" StarPU layer.*/ 
-	if (arg_mode & STARPU_MPI_REDUX) 
+	/* MPI_REDUX should be interpreted as RW|COMMUTE by the "ground" StarPU layer.*/
+	if (arg_mode & STARPU_MPI_REDUX)
 	{
 		arg_mode = STARPU_RW|STARPU_COMMUTE;
 	}
-	if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes)) 
-	{ 
+	if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
+	{
 		STARPU_TASK_SET_MODE(task, arg_mode,* current_buffer);
 	}
 	else if (STARPU_CODELET_GET_MODE(cl, *current_buffer))
 	{
 		STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == arg_mode,
-			"The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-			cl->name, STARPU_CODELET_GET_MODE(cl, *current_buffer),
-			*current_buffer, arg_mode);
+				  "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
+				  cl->name, STARPU_CODELET_GET_MODE(cl, *current_buffer),
+				  *current_buffer, arg_mode);
 	}
 	else
 	{
