@@ -17,6 +17,7 @@
 stages:
   - build
   - deploy
+  - simgrid
 
 build:
   stage: build
@@ -34,6 +35,15 @@ deploy:
   stage: deploy
   script:
     - ./contrib/gitlab/deploy.sh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: never  # Prevent pipeline run for push event
+    - when: always # Run pipeline for all other cases
+
+simgrid:
+  stage: simgrid
+  script:
+    - ./contrib/gitlab/simgrid.sh
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: never  # Prevent pipeline run for push event
