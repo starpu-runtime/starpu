@@ -15,7 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-STARPU_USER_CONFIGURE_OPTIONS="--enable-simgrid --disable-mpi" ./contrib/ci.inria.fr/job-1-check.sh
+STARPU_USER_CONFIGURE_OPTIONS="--enable-simgrid --disable-mpi --disable-mpi-check" ./contrib/ci.inria.fr/job-1-check.sh
 
 
 
