@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -726,10 +726,11 @@ static void save_history_based_model(struct starpu_perfmodel *model)
 
 	/* overwrite existing file, or create it */
 	FILE *f;
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	STARPU_ASSERT_MSG(f, "Could not save performance model %s\n", path);
 
 	_starpu_fwrlock(f);
+	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 	dump_model_file(f, model);
 	_starpu_fwrunlock(f);
