@@ -167,9 +167,7 @@ if test x$enable_simgrid = xyes ; then
 	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
 	   	NVCCFLAGS="$SIMGRID_CFLAGS $NVCCFLAGS"
 	fi
-	if test -n "$SIMGRID_LIBS" ; then
-		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
-	fi
+	SAVED_LIBS="${LIBS}"
 	AC_HAVE_LIBRARY([simgrid], [],
 		[
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
@@ -207,6 +205,8 @@ if test x$enable_simgrid = xyes ; then
 
 	# Oldies for compatibility with older simgrid
 	AC_CHECK_FUNCS([MSG_get_as_by_name MSG_zone_get_by_name MSG_environment_get_routing_root MSG_host_get_speed])
+	LIBS="${SAVED_LIBS}"
+	SIMGRID_LDFLAGS="$SIMGRID_LIBS -lsimgrid"
 
 	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
@@ -3569,7 +3569,7 @@ STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $
 AC_SUBST([STARPU_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
