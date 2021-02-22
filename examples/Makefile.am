@@ -106,6 +106,7 @@ examplebin_PROGRAMS =
 noinst_HEADERS = 				\
 	axpy/axpy.h                             \
 	cg/cg.h					\
+	cg/cg_kernels.c				\
 	heat/lu_kernels_model.h			\
 	heat/dw_sparse_cg.h			\
 	heat/heat.h				\
