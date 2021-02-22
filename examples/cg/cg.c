@@ -19,11 +19,6 @@
 #include <starpu.h>
 #include <common/blas.h>
 
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
-#endif
-
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 /*
  *	Conjugate Gradient
@@ -68,33 +63,34 @@
 
 #include "cg.h"
 
-static int long long n = 4096;
-static int nblocks = 8;
-static int use_reduction = 1;
-static int display_result = 0;
+static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nblocks);
 
-static starpu_data_handle_t A_handle, b_handle, x_handle;
+#define HANDLE_TYPE_VECTOR starpu_data_handle_t
+#define HANDLE_TYPE_MATRIX starpu_data_handle_t
+#define TASK_INSERT(cl, ...) starpu_task_insert(cl, ##__VA_ARGS__)
+#define GET_VECTOR_BLOCK(v, i) starpu_data_get_sub_data(v, 1, i)
+#define GET_MATRIX_BLOCK(m, i, j) starpu_data_get_sub_data(m, 2, i, j)
+#define BARRIER()
+#define GET_DATA_HANDLE(handle)
+#define FPRINTF_SERVER FPRINTF
+
+#include "cg_kernels.c"
+
+
+
 static TYPE *A, *b, *x;
-
-#ifdef STARPU_QUICK_CHECK
-static int i_max = 5;
-#elif !defined(STARPU_LONG_CHECK)
-static int i_max = 100;
-#else
-static int i_max = 1000;
-#endif
-static double eps = (10e-14);
-
-static starpu_data_handle_t r_handle, d_handle, q_handle;
 static TYPE *r, *d, *q;
 
-static starpu_data_handle_t dtq_handle, rtr_handle;
-static TYPE dtq, rtr;
 
-extern struct starpu_codelet accumulate_variable_cl;
-extern struct starpu_codelet accumulate_vector_cl;
-extern struct starpu_codelet bzero_variable_cl;
-extern struct starpu_codelet bzero_vector_cl;
+static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nblocks)
+{
+	unsigned b;
+
+	for (b = 0; b < nblocks; b++)
+		starpu_data_cpy(starpu_data_get_sub_data(dst, 1, b), starpu_data_get_sub_data(src, 1, b), 1, NULL, NULL);
+	return 0;
+}
+
 
 /*
  *	Generate Input data
@@ -286,164 +282,22 @@ static void display_x_result(void)
 	}
 }
 
-/*
- *	Main loop
- */
-
-static int cg(void)
-{
-	double delta_new, delta_0;
-
-	int i = 0;
-	int ret;
-
-	/* r <- b */
-	ret = copy_handle(r_handle, b_handle, nblocks);
-	if (ret == -ENODEV) return ret;
-
-	/* r <- r - A x */
-	ret = gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction);
-	if (ret == -ENODEV) return ret;
-
-	/* d <- r */
-	ret = copy_handle(d_handle, r_handle, nblocks);
-	if (ret == -ENODEV) return ret;
-
-	/* delta_new = dot(r,r) */
-	ret = dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
-	if (ret == -ENODEV) return ret;
-
-	starpu_data_acquire(rtr_handle, STARPU_R);
-	delta_new = rtr;
-	delta_0 = delta_new;
-	starpu_data_release(rtr_handle);
-
-	FPRINTF(stderr, "Delta limit: %e\n", (double) (eps*eps*delta_0));
-
-	FPRINTF(stderr, "**************** INITIAL ****************\n");
-	FPRINTF(stderr, "Delta 0: %e\n", delta_new);
-
-	double start;
-	double end;
-	start = starpu_timing_now();
-
-	while ((i < i_max) && ((double)delta_new > (double)(eps*eps*delta_0)))
-	{
-		double delta_old;
-		double alpha, beta;
-
-		starpu_iteration_push(i);
-
-		/* q <- A d */
-		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0, nblocks, use_reduction);
-
-		/* dtq <- dot(d,q) */
-		dot_kernel(d_handle, q_handle, dtq_handle, nblocks, use_reduction);
-
-		/* alpha = delta_new / dtq */
-		starpu_data_acquire(dtq_handle, STARPU_R);
-		alpha = delta_new/dtq;
-		starpu_data_release(dtq_handle);
-
-		/* x <- x + alpha d */
-		axpy_kernel(x_handle, d_handle, alpha, nblocks);
-
-		if ((i % 50) == 0)
-		{
-			/* r <- b */
-			copy_handle(r_handle, b_handle, nblocks);
-
-			/* r <- r - A x */
-			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction);
-		}
-		else
-		{
-			/* r <- r - alpha q */
-			axpy_kernel(r_handle, q_handle, -alpha, nblocks);
-		}
-
-		/* delta_new = dot(r,r) */
-		dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
-
-		starpu_data_acquire(rtr_handle, STARPU_R);
-		delta_old = delta_new;
-		delta_new = rtr;
-		beta = delta_new / delta_old;
-		starpu_data_release(rtr_handle);
-
-		/* d <- beta d + r */
-		scal_axpy_kernel(d_handle, beta, r_handle, 1.0, nblocks);
-
-		if ((i % 10) == 0)
-		{
-			/* We here take the error as ||r||_2 / (n||b||_2) */
-			double error = sqrt(delta_new/delta_0)/(1.0*n);
-			FPRINTF(stderr, "*****************************************\n");
-			FPRINTF(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
-		}
-
-		starpu_iteration_pop();
-		i++;
-	}
-
-	end = starpu_timing_now();
-	double timing = end - start;
-
-	FPRINTF(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
-	FPRINTF(stderr, "Seconds per iteration : %2.2e seconds\n", timing/10e6/i);
-	FPRINTF(stderr, "Number of iterations per second : %2.2e it/s\n", i/(timing/10e6));
-
-	return 0;
-}
 
 static void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)
 	{
-	        if (strcmp(argv[i], "-n") == 0)
-		{
-			n = (int long long)atoi(argv[++i]);
-			continue;
-		}
-
-		if (strcmp(argv[i], "-display-result") == 0)
-		{
-			display_result = 1;
-			continue;
-		}
-
-
-	        if (strcmp(argv[i], "-maxiter") == 0)
-		{
-			i_max = atoi(argv[++i]);
-			if (i_max <= 0)
-			{
-				FPRINTF(stderr, "the number of iterations must be positive, not %d\n", i_max);
-				exit(EXIT_FAILURE);
-			}
-			continue;
-		}
-
-	        if (strcmp(argv[i], "-nblocks") == 0)
-		{
-			nblocks = atoi(argv[++i]);
-			continue;
-		}
-
-	        if (strcmp(argv[i], "-no-reduction") == 0)
-		{
-			use_reduction = 0;
-			continue;
-		}
-
 		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-help") == 0)
 		{
-			FPRINTF(stderr, "usage: %s [-h] [-nblocks #blocks] [-display-result] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
+			FPRINTF_SERVER(stderr, "usage: %s [-h] [-nblocks #blocks] [-display-result] [-n problem_size] [-no-reduction] [-maxiter i]\n", argv[0]);
 			exit(-1);
 		}
-        }
+	}
+
+	parse_common_args(argc, argv);
 }
+
 
 int main(int argc, char **argv)
 {

@@ -272,9 +272,25 @@ starpu_mpi_EXAMPLES +=				\
 	matrix_decomposition/mpi_cholesky_distributed
 endif
 
-########################
+##############
+# CG example #
+##############
+
+if !STARPU_NO_BLAS_LIB
+examplebin_PROGRAMS += cg/cg
+starpu_mpi_EXAMPLES += cg/cg
+
+cg_cg_SOURCES =					\
+	cg/cg.c						\
+	../../examples/common/blas.c
+
+cg_cg_LDADD =					\
+	$(STARPU_BLAS_LDFLAGS)
+endif
+
+###########################
 # MPI Matrix mult example #
-########################
+###########################
 
 examplebin_PROGRAMS +=		\
 	matrix_mult/mm
@@ -307,6 +323,7 @@ if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
 	mpi_redux/mpi_redux
 endif
+
 ##########################################
 # Native Fortran MPI Matrix mult example #
 ##########################################
@@ -352,6 +369,7 @@ starpu_mpi_EXAMPLES +=				\
 endif
 endif
 endif
+
 ########################################
 # Native Fortran MPI STARPU_REDUX test #
 ########################################

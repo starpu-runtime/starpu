@@ -869,7 +869,6 @@ if !STARPU_NO_BLAS_LIB
 
 cg_cg_SOURCES =					\
 	cg/cg.c					\
-	cg/cg_kernels.c				\
 	common/blas.c
 
 cg_cg_LDADD =					\
