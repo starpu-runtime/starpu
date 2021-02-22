@@ -63,7 +63,7 @@ fi
 
 export CC=gcc
 
-CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check --disable-build-doc"
+CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check --disable-build-doc  --with-mpiexec-args=-oversubscribe"
 CONFIGURE_CHECK=""
 day=$(date +%u)
 if test $day -le 5
@@ -76,7 +76,6 @@ fi
 
 export STARPU_TIMEOUT_ENV=1800
 export MPIEXEC_TIMEOUT=1800
-export MPIEXEC_ARGS="--oversubscribe"
 
 make
 #make check
