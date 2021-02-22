@@ -4,7 +4,7 @@ program nf_mpi_redux
   use fstarpu_mpi_mod
 
   implicit none
-  
+
   integer, target                         :: ret, np, i, j, trial
   type(c_ptr)                             :: work_cl, task_rw_cl,task_red_cl, task_ini_cl
   character(kind=c_char,len=*), parameter :: name=C_CHAR_"task"//C_NULL_CHAR
@@ -18,7 +18,7 @@ program nf_mpi_redux
   type(c_ptr)                             :: task_mode, codelet_mode
   integer, target                         :: comm_world,comm_w_rank, comm_size
   integer(c_int), target                  :: w_node, nworkers, work_coef
-  
+
   call fstarpu_fxt_autostart_profiling(0)
   ret = fstarpu_init(c_null_ptr)
   ret = fstarpu_mpi_init(1)
@@ -76,7 +76,7 @@ program nf_mpi_redux
     write(*,'(" ")')
     a = 1.0
     write(*,*) "init a = ", a
-  else 
+  else
     b(comm_w_rank) = 1.0 / (comm_w_rank + 1.0)
     write(*,*) "init b_",comm_w_rank,"=", b(comm_w_rank), " AT ", &
 c_loc(bhdl(comm_w_rank)) ! This is not really meaningful
@@ -90,7 +90,7 @@ c_loc(bhdl(comm_w_rank)) ! This is not really meaningful
     do i=1,comm_size-1
         call fstarpu_variable_data_register(bhdl(i), -1, c_null_ptr,c_sizeof(b(i)))
     end do
-  else 
+  else
     call fstarpu_variable_data_register(ahdl, -1, c_null_ptr,c_sizeof(a))
     do i=1,comm_size-1
       if (i.eq.comm_w_rank) then
@@ -110,8 +110,8 @@ c_loc(bhdl(comm_w_rank)) ! This is not really meaningful
   call fstarpu_data_set_reduction_methods(ahdl,task_red_cl,task_ini_cl)
 
   err = fstarpu_mpi_barrier(comm_world)
-  
-  
+
+
   call fstarpu_fxt_start_profiling()
   do w_node=1,comm_size-1
     do i=1,work_coef*nworkers
@@ -125,7 +125,7 @@ c_loc(bhdl(comm_w_rank)) ! This is not really meaningful
   end do
   call fstarpu_mpi_redux_data(comm_world, ahdl)
   err = fstarpu_mpi_wait_for_all(comm_world)
-  
+
   if(comm_w_rank.eq.0) then
     tmp = 0
     do w_node=1,comm_size-1
@@ -133,24 +133,24 @@ c_loc(bhdl(comm_w_rank)) ! This is not really meaningful
     end do
     write(*,*) 'computed result ---> ',a, "expected =",&
       1.0 + (comm_size-1.0)*(comm_size)/2.0 + work_coef*nworkers*((comm_size-1.0)*3.0 + tmp)
-  end if 
+  end if
   err = fstarpu_mpi_barrier(comm_world)
   call fstarpu_data_unregister(ahdl)
   do w_node=1,comm_size-1
     call fstarpu_data_unregister(bhdl(w_node))
   end do
   call fstarpu_codelet_free(work_cl)
-  
+
   end do
-  
+
   call fstarpu_fxt_stop_profiling()
   call fstarpu_codelet_free(task_red_cl)
   call fstarpu_codelet_free(task_ini_cl)
 
-  
+
   err = fstarpu_mpi_shutdown()
   call fstarpu_shutdown()
-  deallocate(b, bhdl)  
+  deallocate(b, bhdl)
   stop
 
 contains
@@ -159,7 +159,7 @@ contains
     use iso_c_binding       ! C interfacing module
     use fstarpu_mod         ! StarPU interfacing module
     implicit none
-    
+
     type(c_ptr), value, intent(in) :: buffers, cl_args ! cl_args is unused
     integer(c_int) :: ret, worker_id
     integer        :: comm_rank
@@ -172,20 +172,19 @@ contains
 
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 0), a)
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 1), b)
-    call sleep(1.d0)
+    call nf_sleep(1.d0)
     old_a = a
     a = old_a + 3.0 + b
     write(*,*) "task   (c_w_rank:",comm_rank," worker_id:",worker_id,") from ",old_a,"to",a
-    
+
     return
   end subroutine cl_cpu_task
-
 
   recursive subroutine cl_cpu_task_red (buffers, cl_args) bind(C)
     use iso_c_binding       ! C interfacing module
     use fstarpu_mod         ! StarPU interfacing module
     implicit none
-    
+
     type(c_ptr), value, intent(in) :: buffers, cl_args ! cl_args is unused
     integer(c_int) :: ret, worker_id
     integer, target                         :: comm_rank
@@ -197,9 +196,9 @@ contains
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 1), as)
     old_ad = ad
     ad = ad + as
-    call sleep(1.d0)
+    call nf_sleep(1.d0)
     write(*,*) "red_cl (c_w_rank:",comm_rank,"worker_id:",worker_id,")",as, old_ad, ' ---> ',ad
-    
+
     return
   end subroutine cl_cpu_task_red
 
@@ -207,8 +206,8 @@ contains
     use iso_c_binding       ! C interfacing module
     use fstarpu_mod         ! StarPU interfacing module
     implicit none
-    
-    type(c_ptr), value, intent(in) :: buffers, cl_args 
+
+    type(c_ptr), value, intent(in) :: buffers, cl_args
         ! cl_args is unused
     integer(c_int) :: ret, worker_id
     integer, target                         :: comm_rank
@@ -216,7 +215,7 @@ contains
     worker_id = fstarpu_worker_get_id()
     comm_rank  = fstarpu_mpi_world_rank()
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 0), a)
-    call sleep(0.5d0)
+    call nf_sleep(0.5d0)
     ! As this codelet is run by each worker in the REDUX mode case
     ! this initialization makes salient the number of copies spawned
     write(*,*) "ini_cl (c_w_rank:",comm_rank,"worker_id:",worker_id,") set to", comm_rank, "(was",a,")"
@@ -224,8 +223,7 @@ contains
     return
   end subroutine cl_cpu_task_ini
 
-
-  subroutine sleep(t)
+  subroutine nf_sleep(t)
     implicit none
     integer :: t_start, t_end, t_rate
     real(kind(1.d0))     :: ta, t
@@ -235,6 +233,6 @@ contains
        ta = real(t_end-t_start)/real(t_rate)
        if(ta.gt.t) return
     end do
-  end subroutine sleep
+  end subroutine nf_sleep
 
 end program
