@@ -75,6 +75,9 @@ fi
 ../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS
 
 export STARPU_TIMEOUT_ENV=1800
+export MPIEXEC_TIMEOUT=1800
+export MPIEXEC_ARGS="--oversubscribe"
+
 make
 #make check
 (make -k check || true) 2>&1 | tee  ../check_$$
