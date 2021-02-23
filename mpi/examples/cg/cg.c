@@ -20,7 +20,6 @@
 #include <starpu_mpi.h>
 #include <common/blas.h>
 
-
 /*
  * Distributed version of Conjugate Gradient implemented in examples/cg/cg.c
  *
@@ -58,12 +57,10 @@ static TYPE **q;
 
 #include "../../../examples/cg/cg_kernels.c"
 
-
 static int my_distrib(const int y, const int x)
 {
 	return (y%nodes_q)*nodes_p + (x%nodes_p);
 }
-
 
 static int copy_handle(starpu_data_handle_t* dst, starpu_data_handle_t* src, unsigned nblocks)
 {
@@ -80,11 +77,9 @@ static int copy_handle(starpu_data_handle_t* dst, starpu_data_handle_t* src, uns
 	return 0;
 }
 
-
 /*
  *	Generate Input data
  */
-
 static void generate_random_problem(void)
 {
 	unsigned nn, mm, m, n, mpi_rank;
@@ -331,7 +326,6 @@ static void display_x_result(void)
 	}
 }
 
-
 static void parse_args(int argc, char **argv)
 {
 	int i;
@@ -353,7 +347,6 @@ static void parse_args(int argc, char **argv)
 	parse_common_args(argc, argv);
 }
 
-
 int main(int argc, char **argv)
 {
 	int worldsize, ret;
@@ -374,7 +367,7 @@ int main(int argc, char **argv)
 
 	if (worldsize % nodes_p != 0)
 	{
-		FPRINTF_SERVER(stderr, "Node grid width must divide the number of nodes.\n");
+		FPRINTF_SERVER(stderr, "Node grid (%d) width must divide the number of nodes (%d).\n", nodes_p, worldsize);
 		starpu_mpi_shutdown();
 		return 1;
 	}
@@ -382,7 +375,7 @@ int main(int argc, char **argv)
 
 	if (n % nblocks != 0)
 	{
-		FPRINTF_SERVER(stderr, "The number of blocks must divide the matrix size.\n");
+		FPRINTF_SERVER(stderr, "The number of blocks (%d) must divide the matrix size (%d).\n", nblocks, n);
 		starpu_mpi_shutdown();
 		return 1;
 	}
@@ -404,7 +397,7 @@ int main(int argc, char **argv)
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	end = starpu_timing_now();
 
-	FPRINTF_SERVER(stderr, "Problem intialization timing : %2.2f seconds\n", (end-start)/10e6);
+	FPRINTF_SERVER(stderr, "Problem initialization timing : %2.2f seconds\n", (end-start)/10e6);
 
 	ret = cg();
 	if (ret == -ENODEV)
