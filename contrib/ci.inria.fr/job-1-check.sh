@@ -42,7 +42,6 @@ cd $basename
     env|grep -v LS_COLORS | grep '^[A-Z]'|grep -v BASH_FUNC | grep '=' | sed 's/=/=\"/'| sed 's/$/\"/' | sed 's/^/export /'
     echo "cd \$oldPWD"
 ) > ${PWD}/env
-env > $PWD/env
 
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz ../$tarball
