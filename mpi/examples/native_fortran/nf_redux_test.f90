@@ -1,10 +1,25 @@
+! StarPU --- Runtime system for heterogeneous multicore architectures.
+!
+! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+!
+! StarPU is free software; you can redistribute it and/or modify
+! it under the terms of the GNU Lesser General Public License as published by
+! the Free Software Foundation; either version 2.1 of the License, or (at
+! your option) any later version.
+!
+! StarPU is distributed in the hope that it will be useful, but
+! WITHOUT ANY WARRANTY; without even the implied warranty of
+! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+!
+! See the GNU Lesser General Public License in COPYING.LGPL for more details.
+!
 program main
   use iso_c_binding
   use fstarpu_mod
   use fstarpu_mpi_mod
 
   implicit none
-  
+
   integer, target                         :: ret, np, i, j
   type(c_ptr)                             :: task_cl, task_rw_cl, task_red_cl, task_ini_cl
   character(kind=c_char,len=*), parameter :: name=C_CHAR_"task"//C_NULL_CHAR
@@ -15,7 +30,7 @@ program main
   type(c_ptr)                             :: a1hdl, a2hdl, b1hdl, b2hdl
   integer, target                         :: comm, comm_world, comm_w_rank, comm_size
   integer(c_int), target                  :: w_node
-  
+
   call fstarpu_fxt_autostart_profiling(0)
   ret = fstarpu_init(c_null_ptr)
   ret = fstarpu_mpi_init(1)
@@ -93,8 +108,7 @@ program main
   call fstarpu_data_set_reduction_methods(a2hdl, task_red_cl,task_ini_cl)
 
   err = fstarpu_mpi_barrier(comm_world)
-  
-  
+
   call fstarpu_fxt_start_profiling()
 
   w_node = 3
@@ -113,12 +127,12 @@ program main
              FSTARPU_R, b2hdl,                                &
              FSTARPU_EXECUTE_ON_NODE, c_loc(w_node),          &
              C_NULL_PTR /))
-  
+
   call fstarpu_mpi_redux_data(comm_world, a1hdl)
   call fstarpu_mpi_redux_data(comm_world, a2hdl)
   ! write(*,*) "waiting all tasks ..."
   err = fstarpu_mpi_wait_for_all(comm_world)
-  
+
   if(comm_w_rank.eq.0) then
      write(*,*) 'computed result ---> ',a1, "expected =",4.5
   end if
@@ -129,16 +143,16 @@ program main
   call fstarpu_data_unregister(a2hdl)
   call fstarpu_data_unregister(b1hdl)
   call fstarpu_data_unregister(b2hdl)
-  
+
   call fstarpu_fxt_stop_profiling()
   call fstarpu_codelet_free(task_cl)
   call fstarpu_codelet_free(task_red_cl)
   call fstarpu_codelet_free(task_ini_cl)
 
-  
+
   err = fstarpu_mpi_shutdown()
   call fstarpu_shutdown()
-  
+
   stop
 
 contains
@@ -147,7 +161,7 @@ contains
     use iso_c_binding       ! C interfacing module
     use fstarpu_mod         ! StarPU interfacing module
     implicit none
-    
+
     type(c_ptr), value, intent(in) :: buffers, cl_args ! cl_args is unused
     integer(c_int) :: ret, worker_id
     integer        :: comm_rank
@@ -194,8 +208,8 @@ contains
     use iso_c_binding       ! C interfacing module
     use fstarpu_mod         ! StarPU interfacing module
     implicit none
-    
-    type(c_ptr), value, intent(in) :: buffers, cl_args 
+
+    type(c_ptr), value, intent(in) :: buffers, cl_args
         ! cl_args is unused
     integer(c_int) :: ret
     integer, target                         :: comm_rank
