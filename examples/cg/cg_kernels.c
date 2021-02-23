@@ -31,14 +31,16 @@ static const TYPE gm1 = -1.0;
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-static int long long n = 4096;
 static int nblocks = 8;
 
 #ifdef STARPU_QUICK_CHECK
 static int i_max = 5;
+static int long long n = 2048;
 #elif !defined(STARPU_LONG_CHECK)
+static int long long n = 4096;
 static int i_max = 100;
 #else
+static int long long n = 4096;
 static int i_max = 1000;
 #endif
 static double eps = (10e-14);
