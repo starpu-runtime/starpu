@@ -68,8 +68,10 @@ fi
 
 export CC=gcc
 
+set +e
 mpiexec -oversubscribe pwd 2>/dev/null
 ret=$?
+set -e
 ARGS=""
 if test "$ret" = "0"
 then
