@@ -168,6 +168,7 @@ if test x$enable_simgrid = xyes ; then
 	   	NVCCFLAGS="$SIMGRID_CFLAGS $NVCCFLAGS"
 	fi
 	SAVED_LIBS="${LIBS}"
+	LIBS="$SIMGRID_LIBS $LIBS"
 	AC_HAVE_LIBRARY([simgrid], [],
 		[
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
