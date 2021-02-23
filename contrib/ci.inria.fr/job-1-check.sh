@@ -68,7 +68,15 @@ fi
 
 export CC=gcc
 
-CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check --disable-build-doc  --with-mpiexec-args=-oversubscribe"
+mpiexec -oversubscribe pwd 2>/dev/null
+ret=$?
+ARGS=""
+if test "$ret" = "0"
+then
+    ARGS="--with-mpiexec-args=-oversubscribe"
+fi
+
+CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check --disable-build-doc $ARGS"
 CONFIGURE_CHECK=""
 day=$(date +%u)
 if test $day -le 5
