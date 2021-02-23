@@ -160,34 +160,33 @@ contains
 
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 0), a)
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 1), b)
-    call sleep(1.d0)
+    call nf_sleep(1.d0)
     old_a = a
     a = 3.0 + b
     write(*,*) "task   (c_w_rank:",comm_rank,") from ",old_a,"to",a
-    
+
     return
   end subroutine cl_cpu_task
-
 
   recursive subroutine cl_cpu_task_red (buffers, cl_args) bind(C)
     use iso_c_binding       ! C interfacing module
     use fstarpu_mod         ! StarPU interfacing module
     implicit none
-    
+
     type(c_ptr), value, intent(in) :: buffers, cl_args ! cl_args is unused
     integer(c_int) :: ret
     integer, target                         :: comm_rank
     real(kind(1.d0)), pointer :: as, ad
     real(kind(1.d0))           :: old_ad
-    
+
     comm_rank  = fstarpu_mpi_world_rank()
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 0), ad)
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 1), as)
     old_ad = ad
     ad = ad + as
-    call sleep(1.d0)
+    call nf_sleep(1.d0)
     write(*,*) "red_cl (c_w_rank:",comm_rank,")",as, old_ad, ' ---> ',ad
-    
+
     return
   end subroutine cl_cpu_task_red
 
@@ -204,14 +203,13 @@ contains
 
     comm_rank  = fstarpu_mpi_world_rank()
     call c_f_pointer(fstarpu_variable_get_ptr(buffers, 0), a)
-    call sleep(0.5d0)
+    call nf_sleep(0.5d0)
     a = 0.0
     write(*,*) "ini_cl (c_w_rank:",comm_rank,")"
     return
   end subroutine cl_cpu_task_ini
 
-
-  subroutine sleep(t)
+  subroutine nf_sleep(t)
     implicit none
     integer :: t_start, t_end, t_rate
     real(kind(1.d0))     :: ta, t
@@ -221,6 +219,6 @@ contains
        ta = real(t_end-t_start)/real(t_rate)
        if(ta.gt.t) return
     end do
-  end subroutine sleep
+  end subroutine nf_sleep
 
 end program main
