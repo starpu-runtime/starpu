@@ -89,7 +89,7 @@ void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **p
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
 
-	*ptr = malloc(*size);
+	_STARPU_MALLOC(*ptr, *size);
 	memcpy(*ptr, state->arg_buffer+state->current_offset, *size);
 	state->current_offset += *size;
 
