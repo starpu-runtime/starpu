@@ -315,10 +315,10 @@ endif
 examplebin_PROGRAMS +=		\
 	mpi_redux/mpi_redux
 
-matrix_mult_mm_SOURCES	=		\
+mpi_redux_mpi_redux_SOURCES	=		\
 	mpi_redux/mpi_redux.c
 
-matrix_mult_mm_LDADD =			\
+mpi_redux_mpi_redux_LDADD =			\
 	-lm
 
 if !STARPU_SIMGRID
