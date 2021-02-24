@@ -375,7 +375,7 @@ int main(int argc, char **argv)
 
 	if (n % nblocks != 0)
 	{
-		FPRINTF_SERVER(stderr, "The number of blocks (%d) must divide the matrix size (%d).\n", nblocks, n);
+		FPRINTF_SERVER(stderr, "The number of blocks (%d) must divide the matrix size (%lld).\n", nblocks, n);
 		starpu_mpi_shutdown();
 		return 1;
 	}
