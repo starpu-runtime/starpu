@@ -133,6 +133,7 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
         int ret = 0;
 	unsigned nnodes = starpu_memory_nodes_get_count();
 
+	if (nnodes > 1)
         for (memnode = 0; memnode < nnodes; memnode++)
         {
                 if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
