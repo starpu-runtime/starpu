@@ -207,7 +207,6 @@ if test x$enable_simgrid = xyes ; then
 	# Oldies for compatibility with older simgrid
 	AC_CHECK_FUNCS([MSG_get_as_by_name MSG_zone_get_by_name MSG_environment_get_routing_root MSG_host_get_speed])
 	LIBS="${SAVED_LIBS}"
-	SIMGRID_LDFLAGS="$SIMGRID_LIBS -lsimgrid"
 
 	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
@@ -226,6 +225,7 @@ if test x$enable_simgrid = xyes ; then
 		SIMGRID_LIBS="$SIMGRID_LIBS -lstdc++"
 		LIBS="$LIBS -lstdc++"
 	fi
+	SIMGRID_LDFLAGS="$SIMGRID_LIBS -lsimgrid"
 
 	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	case \ $CXXFLAGS\  in
@@ -268,7 +268,7 @@ if test x$enable_simgrid = xyes ; then
 		AC_PATH_PROG([SIMGRID_MC], [simgrid-mc], [no], [$simgrid_dir/bin:$PATH])
 		LDFLAGS="$LDFLAGS -Wl,-znorelro -Wl,-znoseparate-code"
 		# libsimgrid needs to be linked from binaries themselves for MC to work
-		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $SIMGRID_LIBS -lsimgrid"
+		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $SIMGRID_LDFLAGS"
 	fi
 fi
 AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
