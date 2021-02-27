@@ -274,7 +274,7 @@ fi
 AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
-AC_SUBST(SIMGRID_LIBS)
+AC_SUBST(SIMGRID_LDFLAGS)
 AC_MSG_CHECKING(whether SimGrid is enabled)
 AC_MSG_RESULT($enable_simgrid)
 
