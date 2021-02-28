@@ -619,7 +619,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 
 int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, STARPU_FETCH, 0);
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, STARPU_FETCH, STARPU_DEFAULT_PRIO);
 }
 
 int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio)
@@ -629,7 +629,7 @@ int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node
 
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return starpu_data_prefetch_on_node_prio(handle, node, async, 0);
+	return starpu_data_prefetch_on_node_prio(handle, node, async, STARPU_DEFAULT_PRIO);
 }
 
 int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio)
@@ -639,7 +639,7 @@ int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned
 
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return starpu_data_idle_prefetch_on_node_prio(handle, node, async, 0);
+	return starpu_data_idle_prefetch_on_node_prio(handle, node, async, STARPU_DEFAULT_PRIO);
 }
 
 static void _starpu_data_wont_use(void *data)
