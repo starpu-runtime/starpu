@@ -1319,8 +1319,8 @@ do {										\
 #define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)          \
        FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_DATA_STATE_SHARED, handle, node)
 
-#define _STARPU_TRACE_DATA_REQUEST_CREATED(handle, orig, dest, prio, is_pre)          \
-       FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_DATA_REQUEST_CREATED, orig, dest, prio, handle, is_pre)
+#define _STARPU_TRACE_DATA_REQUEST_CREATED(handle, orig, dest, prio, is_pre, req)          \
+       FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_DSM_VERBOSE, _STARPU_FUT_DATA_REQUEST_CREATED, orig, dest, prio, handle, is_pre, req)
 
 
 #else // !STARPU_USE_FXT
@@ -1451,7 +1451,7 @@ do {										\
 #define _STARPU_TRACE_DATA_STATE_INVALID(handle, node)	do {(void)(handle); (void)(node);} while(0)
 #define _STARPU_TRACE_DATA_STATE_OWNER(handle, node)	do {(void)(handle); (void)(node);} while(0)
 #define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)	do {(void)(handle); (void)(node);} while(0)
-#define _STARPU_TRACE_DATA_REQUEST_CREATED(handle, orig, dest, prio, is_pre) do {(void)(handle); (void)(orig); (void)(dest); (void)(prio); (void)(is_pre);} while(0)
+#define _STARPU_TRACE_DATA_REQUEST_CREATED(handle, orig, dest, prio, is_pre, req) do {(void)(handle); (void)(orig); (void)(dest); (void)(prio); (void)(is_pre); (void)(req); } while(0)
 #define _STARPU_TRACE_PAPI_TASK_EVENT(event_id, task, value) do {(void)(event_id); (void)(task); (void)(value);} while(0)
 
 #endif // STARPU_USE_FXT
