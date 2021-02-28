@@ -118,7 +118,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 				if (data_tag == -1)
 					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, mpi_rank);
-				starpu_mpi_irecv_detached(data, mpi_rank, data_tag, comm, NULL, NULL);
+				starpu_mpi_irecv_detached_prio(data, mpi_rank, data_tag, prio, comm, NULL, NULL);
 			}
 			// else the node has already received the data
 		}

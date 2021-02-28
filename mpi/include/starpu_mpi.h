@@ -232,6 +232,11 @@ int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dest, s
 int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
 
 /**
+   Same of starpu_mpi_irecv_detached but with the \p prio parameter.
+*/
+int starpu_mpi_irecv_detached_prio(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg);
+
+/**
    Post a nonblocking receive in \p data_handle from the node \p
    source using the message tag \p data_tag within the communicator \p
    comm. On completion, the \p callback function is called with the

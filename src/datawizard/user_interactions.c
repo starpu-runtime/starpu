@@ -191,7 +191,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 							  void (*callback)(void *arg),
 							  void *arg,
 							  int sequential_consistency, int quick,
-							  long *pre_sync_jobid, long *post_sync_jobid)
+							  long *pre_sync_jobid, long *post_sync_jobid, int prio)
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
@@ -211,6 +211,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	wrapper->callback_arg = arg;
 	wrapper->pre_sync_task = NULL;
 	wrapper->post_sync_task = NULL;
+	wrapper->prio = prio;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int handle_sequential_consistency = handle->sequential_consistency;
@@ -225,6 +226,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
 		wrapper->pre_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
+		wrapper->pre_sync_task->priority = prio;
 		pre_sync_job = _starpu_get_job_associated_to_task(wrapper->pre_sync_task);
 		if (pre_sync_jobid)
 			*pre_sync_jobid = pre_sync_job->job_id;
@@ -233,6 +235,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_release";
 		wrapper->post_sync_task->detach = 1;
 		wrapper->post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
+		wrapper->post_sync_task->priority = prio;
 		post_sync_job = _starpu_get_job_associated_to_task(wrapper->post_sync_task);
 		if (post_sync_jobid)
 			*post_sync_jobid = post_sync_job->job_id;
@@ -280,7 +283,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_hand
 							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 							  int sequential_consistency, int quick)
 {
-	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, NULL, callback, arg, sequential_consistency, quick, NULL, NULL);
+	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, NULL, callback, arg, sequential_consistency, quick, NULL, NULL, STARPU_DEFAULT_PRIO);
 }
 
 int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
