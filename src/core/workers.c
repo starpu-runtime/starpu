@@ -1168,6 +1168,8 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	/* Do not start performance counter collection by default */
 	conf->start_perf_counter_collection = 0;
+
+	conf->cuda_only_fast_alloc_other_memnodes = starpu_get_env_number_default("STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES", 0);
 	return 0;
 }
 

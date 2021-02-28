@@ -601,7 +601,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		{
 			/* And this is the main RAM without pinning, really no need for a
 			 * request, just quickly allocate and be done */
-			if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch) == 0)
+			if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch, 0) == 0)
 			{
 				_starpu_update_data_state(handle, dst_replicate, mode);
 				if (dst_replicate->mc)
@@ -778,7 +778,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(1);
+		_starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
@@ -918,7 +918,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(1);
+		_starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);

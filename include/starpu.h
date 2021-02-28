@@ -471,6 +471,14 @@ struct starpu_conf
 	   Maximum spinning backoff of drivers. Default value: \c 32
 	 */
 	unsigned driver_spinning_backoff_max;
+
+	/**
+	   Specify if CUDA workers should do only fast allocations
+	   when running the datawizard progress of
+	   other memory nodes. This will pass STARPU_DATAWIZARD_ONLY_FAST_ALLOC.
+	   Default value is 0, allowing CUDA workers to do slow allocations.
+	 */
+	int cuda_only_fast_alloc_other_memnodes;
 };
 
 /**

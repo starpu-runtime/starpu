@@ -260,7 +260,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	return r;
 }
 
-int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc)
+int _starpu_wait_data_request_completion(struct _starpu_data_request *r, enum _starpu_may_alloc may_alloc)
 {
 	int retval;
 	int do_delete = 0;
@@ -541,7 +541,7 @@ void _starpu_data_request_complete_wait(void *arg)
 }
 
 /* TODO : accounting to see how much time was spent working for other people ... */
-static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc)
+static int starpu_handle_data_request(struct _starpu_data_request *r, enum _starpu_may_alloc may_alloc)
 {
 	starpu_data_handle_t handle = r->handle;
 
@@ -663,7 +663,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned m
 	return 0;
 }
 
-static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list reqlist[STARPU_MAXNODES][STARPU_MAXNODES][2], unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned n, unsigned *pushed, enum starpu_is_prefetch prefetch)
+static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list reqlist[STARPU_MAXNODES][STARPU_MAXNODES][2], unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned n, unsigned *pushed, enum starpu_is_prefetch prefetch)
 {
 	struct _starpu_data_request *r;
 	unsigned i;
@@ -793,17 +793,17 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 	return ret;
 }
 
-int _starpu_handle_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned *pushed)
+int _starpu_handle_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed)
 {
 	return __starpu_handle_node_data_requests(data_requests, handling_node, peer_node, inout, may_alloc, MAX_PENDING_REQUESTS_PER_NODE, pushed, STARPU_FETCH);
 }
 
-int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned *pushed)
+int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed)
 {
 	return __starpu_handle_node_data_requests(prefetch_requests, handling_node, peer_node, inout, may_alloc, MAX_PENDING_PREFETCH_REQUESTS_PER_NODE, pushed, STARPU_PREFETCH);
 }
 
-int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned *pushed)
+int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed)
 {
 	return __starpu_handle_node_data_requests(idle_requests, handling_node, peer_node, inout, may_alloc, MAX_PENDING_IDLE_REQUESTS_PER_NODE, pushed, STARPU_IDLEFETCH);
 }

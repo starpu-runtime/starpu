@@ -936,13 +936,13 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	if (!idle_tasks)
 	{
 		/* No task ready yet, no better thing to do than waiting */
-		__starpu_datawizard_progress(1, !idle_transfers);
+		__starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, !idle_transfers);
 		return 0;
 	}
 #endif
 
 	/* Something done, make some progress */
-	res = __starpu_datawizard_progress(1, 1);
+	res = __starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
 
 	/* And pull tasks */
 	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, worker0->memory_node);

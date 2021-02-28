@@ -26,7 +26,7 @@
 #include <core/simgrid.h>
 #endif
 
-static int ____starpu_datawizard_progress(unsigned memory_node, unsigned peer_start, unsigned peer_end, enum  _starpu_data_request_inout inout, unsigned may_alloc, unsigned push_requests)
+static int ____starpu_datawizard_progress(unsigned memory_node, unsigned peer_start, unsigned peer_end, enum  _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned push_requests)
 {
 	int ret = 0;
 	unsigned peer_node;
@@ -86,7 +86,7 @@ static int ____starpu_datawizard_progress(unsigned memory_node, unsigned peer_st
 	return ret;
 }
 
-static int ___starpu_datawizard_progress(unsigned memory_node, unsigned nnodes, unsigned may_alloc, unsigned push_requests)
+static int ___starpu_datawizard_progress(unsigned memory_node, unsigned nnodes, enum _starpu_may_alloc may_alloc, unsigned push_requests)
 {
 	int ret = 0;
 	unsigned peer_node;
@@ -107,7 +107,7 @@ static int ___starpu_datawizard_progress(unsigned memory_node, unsigned nnodes, 
 	return ret;
 }
 
-int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
+int __starpu_datawizard_progress(enum _starpu_may_alloc may_alloc, unsigned push_requests)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
         unsigned memnode;
@@ -130,22 +130,27 @@ int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests)
 		worker = &worker->set->workers[0];
 
 	unsigned current_worker_id = worker->workerid;
-        int ret = 0;
+	int ret = 0;
 	unsigned nnodes = starpu_memory_nodes_get_count();
 
 	if (nnodes > 1)
-        for (memnode = 0; memnode < nnodes; memnode++)
-        {
-                if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
-			ret |=  ___starpu_datawizard_progress(memnode, nnodes, may_alloc, push_requests);
-        }
+		for (memnode = 0; memnode < nnodes; memnode++)
+		{
+			if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
+			{
+				if(_starpu_config.conf.cuda_only_fast_alloc_other_memnodes && worker->arch == STARPU_CUDA_WORKER && worker->memory_node != memnode)
+					ret |=  ___starpu_datawizard_progress(memnode, nnodes, STARPU_DATAWIZARD_ONLY_FAST_ALLOC, push_requests);
+				else
+					ret |=  ___starpu_datawizard_progress(memnode, nnodes, may_alloc, push_requests);
+				}
+		}
 
 	_starpu_execute_registered_progression_hooks();
 
         return ret;
 }
 
-void _starpu_datawizard_progress(unsigned may_alloc)
+void _starpu_datawizard_progress(enum _starpu_may_alloc may_alloc)
 {
         __starpu_datawizard_progress(may_alloc, 1);
 }

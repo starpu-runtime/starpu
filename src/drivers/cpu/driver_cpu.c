@@ -342,7 +342,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		return ret;
 	}
 
-	res = __starpu_datawizard_progress(1, 1);
+	res = __starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
 
 	if (!pending_task)
 		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);

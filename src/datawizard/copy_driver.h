@@ -47,6 +47,13 @@ extern "C"
 struct _starpu_data_request;
 struct _starpu_data_replicate;
 
+enum _starpu_may_alloc
+{
+	STARPU_DATAWIZARD_DO_NOT_ALLOC,
+	STARPU_DATAWIZARD_DO_ALLOC,
+	STARPU_DATAWIZARD_ONLY_FAST_ALLOC
+};
+
 #ifdef STARPU_USE_MIC
 /** MIC needs memory_node to know which MIC is concerned.
  * mark is used to wait asynchronous request.
@@ -131,7 +138,7 @@ int _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 				    struct _starpu_data_replicate *dst_replicate,
 				    unsigned donotread,
 				    struct _starpu_data_request *req,
-				    unsigned may_alloc,
+				    enum _starpu_may_alloc may_alloc,
 				    enum starpu_is_prefetch prefetch);
 
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel);

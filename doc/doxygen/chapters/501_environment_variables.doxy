@@ -473,6 +473,16 @@ todo
 todo
 </dd>
 
+<dt>STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES</dt>
+<dd>
+\anchor STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
+\addindex __env__STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
+Specify if CUDA workers should do only fast allocations
+when running the datawizard progress of
+other memory nodes. This will pass STARPU_DATAWIZARD_ONLY_FAST_ALLOC.
+Default value is 0, allowing CUDA workers to do slow allocations.
+</dd>
+
 </dl>
 
 \section ConfiguringTheSchedulingEngine Configuring The Scheduling Engine

@@ -978,7 +978,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 		}
 	}
 
-        res |= __starpu_datawizard_progress(1, 1);
+        res |= __starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
 
         /* Handle message which have been store */
         _starpu_src_common_handle_stored_async(mp_node);

@@ -143,7 +143,7 @@ LIST_TYPE(_starpu_data_requester,
 
 	int prio;
 
-	/** if this is more complicated ... (eg. application request) 
+	/** if this is more complicated ... (eg. application request)
 	 * NB: this callback is not called with the lock taken !
 	 */
 	void (*ready_data_callback)(void *argcb);
@@ -155,9 +155,9 @@ void _starpu_init_data_request_lists(void);
 void _starpu_deinit_data_request_lists(void);
 void _starpu_post_data_request(struct _starpu_data_request *r);
 /** returns 0 if we have pushed all requests, -EBUSY or -ENOMEM otherwise */
-int _starpu_handle_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned *pushed);
-int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned *pushed);
-int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned may_alloc, unsigned *pushed);
+int _starpu_handle_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed);
+int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed);
+int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed);
 
 int _starpu_handle_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
 int _starpu_handle_all_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
@@ -177,7 +177,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 unsigned is_write_invalidation,
 							 const char *origin) STARPU_ATTRIBUTE_MALLOC;
 
-int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc);
+int _starpu_wait_data_request_completion(struct _starpu_data_request *r, enum _starpu_may_alloc may_alloc);
 
 void _starpu_data_request_append_callback(struct _starpu_data_request *r,
 					  void (*callback_func)(void *),
