@@ -58,6 +58,7 @@ define starpu-print-task
   printf "\tsynchronous:\t\t\t<%d>\n", $task->synchronous
   printf "\texecute_on_a_specific_worker:\t<%d>\n", $task->execute_on_a_specific_worker
   printf "\tworkerid:\t\t\t<%d>\n", $task->workerid
+  printf "\tpriority:\t\t\t<%d>\n", $task->priority
   printf "\tdetach:\t\t\t\t<%d>\n", $task->detach
   printf "\tdestroy:\t\t\t<%d>\n", $task->destroy
   printf "\tregenerate:\t\t\t<%d>\n", $task->regenerate
