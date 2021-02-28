@@ -50,6 +50,9 @@ static unsigned nready_process;
 /* Number of send requests to submit to MPI at the same time */
 static unsigned ndetached_send;
 
+/* Force allocation of early data */
+static int early_data_force_allocate;
+
 #ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void);
 #endif
@@ -1164,7 +1167,7 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 
 	// TODO: rather select some memory node next to the NIC
 	unsigned buffer_node = STARPU_MAIN_RAM;
-	if (data_handle && starpu_data_get_interface_id(data_handle) < STARPU_MAX_INTERFACE_ID)
+	if (data_handle && starpu_data_get_interface_id(data_handle) < STARPU_MAX_INTERFACE_ID && !early_data_force_allocate)
 	{
 		/* We know which data will receive it and we won't have to unpack, use just the same kind of data.  */
 		early_data_handle->buffer = NULL;
@@ -1635,6 +1638,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 
 	nready_process = starpu_get_env_number_default("STARPU_MPI_NREADY_PROCESS", 10);
 	ndetached_send = starpu_get_env_number_default("STARPU_MPI_NDETACHED_SEND", 10);
+	early_data_force_allocate = starpu_get_env_number_default("STARPU_MPI_EARLYDATA_ALLOCATE", 0);
 
 #ifdef STARPU_SIMGRID
 	STARPU_PTHREAD_MUTEX_INIT(&wait_counter_mutex, NULL);
