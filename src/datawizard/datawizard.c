@@ -133,17 +133,16 @@ int __starpu_datawizard_progress(enum _starpu_may_alloc may_alloc, unsigned push
 	int ret = 0;
 	unsigned nnodes = starpu_memory_nodes_get_count();
 
-	if (nnodes > 1)
-		for (memnode = 0; memnode < nnodes; memnode++)
+	for (memnode = 0; memnode < nnodes; memnode++)
+	{
+		if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
 		{
-			if (_starpu_worker_drives_memory[current_worker_id][memnode] == 1)
-			{
-				if(_starpu_config.conf.cuda_only_fast_alloc_other_memnodes && worker->arch == STARPU_CUDA_WORKER && worker->memory_node != memnode)
-					ret |=  ___starpu_datawizard_progress(memnode, nnodes, STARPU_DATAWIZARD_ONLY_FAST_ALLOC, push_requests);
-				else
-					ret |=  ___starpu_datawizard_progress(memnode, nnodes, may_alloc, push_requests);
-				}
-		}
+			if(_starpu_config.conf.cuda_only_fast_alloc_other_memnodes && worker->arch == STARPU_CUDA_WORKER && worker->memory_node != memnode)
+				ret |=  ___starpu_datawizard_progress(memnode, nnodes, STARPU_DATAWIZARD_ONLY_FAST_ALLOC, push_requests);
+			else
+				ret |=  ___starpu_datawizard_progress(memnode, nnodes, may_alloc, push_requests);
+			}
+	}
 
 	_starpu_execute_registered_progression_hooks();
 
