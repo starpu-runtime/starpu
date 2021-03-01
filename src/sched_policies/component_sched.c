@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -370,9 +370,10 @@ int starpu_sched_tree_push_task(struct starpu_task * task)
 int starpu_sched_component_push_task(struct starpu_sched_component *from STARPU_ATTRIBUTE_UNUSED, struct starpu_sched_component *to, struct starpu_task *task)
 {
 	int pushback;
+	int priority = task->priority;
 	pushback = to->push_task(to, task);
 	if (!pushback)
-		_STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task);
+		_STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task, priority);
 	return pushback;
 }
 

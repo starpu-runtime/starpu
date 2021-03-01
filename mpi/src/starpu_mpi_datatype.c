@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,7 +106,7 @@ static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, MPI_Datat
 	unsigned ldy = starpu_tensor_get_local_ldy(data_handle);
 	unsigned ldz = starpu_tensor_get_local_ldz(data_handle);
 	unsigned ldt = starpu_tensor_get_local_ldt(data_handle);
-	size_t elemsize = starpu_block_get_elemsize(data_handle);
+	size_t elemsize = starpu_tensor_get_elemsize(data_handle);
 
 	MPI_Datatype datatype_3dlayer;
 	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_3dlayer);
@@ -207,6 +207,27 @@ static starpu_mpi_datatype_allocate_func_t handle_to_datatype_funcs[STARPU_MAX_I
 	[STARPU_VOID_INTERFACE_ID]	= handle_to_datatype_void,
 	[STARPU_MULTIFORMAT_INTERFACE_ID] = NULL,
 };
+
+MPI_Datatype _starpu_mpi_datatype_get_user_defined_datatype(starpu_data_handle_t data_handle)
+{
+	enum starpu_data_interface_id id = starpu_data_get_interface_id(data_handle);
+	if (id < STARPU_MAX_INTERFACE_ID) return 0;
+
+	struct _starpu_mpi_datatype_funcs *table;
+	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+	HASH_FIND_INT(_starpu_mpi_datatype_funcs_table, &id, table);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_mpi_datatype_funcs_table_mutex);
+	if (table && table->allocate_datatype_func)
+	{
+		MPI_Datatype datatype;
+		int ret = table->allocate_datatype_func(data_handle, &datatype);
+		if (ret == 0)
+			return datatype;
+		else
+			return 0;
+	}
+	return 0;
+}
 
 void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req)
 {

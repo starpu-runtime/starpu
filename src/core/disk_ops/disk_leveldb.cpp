@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,6 @@
 #include <core/perfmodel/perfmodel.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memory_manager.h>
-#include <starpu_parameters.h>
 
 #define NITER	_starpu_calibration_minimum
 

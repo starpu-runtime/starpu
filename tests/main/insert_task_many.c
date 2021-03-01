@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,7 +51,7 @@ struct starpu_codelet codelet_dyn =
 	.nbuffers = NPARAMS,
 };
 
-/* This will warn out at compilation time when maxbuffers is less than NPARAMS.
+/* When maxbuffers is less than NPARAMS we will miss some access modes.
  * That is on purpose: we here check that we still behave correctly in that case.
  * We are just not able to check the parameter access modes.  */
 struct starpu_codelet codelet_toomany =
@@ -70,13 +70,27 @@ struct starpu_codelet codelet_toomany =
 		STARPU_RW,
 		STARPU_R,
 		STARPU_RW|STARPU_COMMUTE,
+#if STARPU_NMAXBUFS >= 9
 		STARPU_R,
+#endif
+#if STARPU_NMAXBUFS >= 10
 		STARPU_RW|STARPU_COMMUTE,
+#endif
+#if STARPU_NMAXBUFS >= 11
 		STARPU_R,
+#endif
+#if STARPU_NMAXBUFS >= 12
 		STARPU_R,
+#endif
+#if STARPU_NMAXBUFS >= 13
 		STARPU_SCRATCH,
+#endif
+#if STARPU_NMAXBUFS >= 14
 		STARPU_SCRATCH,
+#endif
+#if STARPU_NMAXBUFS >= 15
 		STARPU_SCRATCH,
+#endif
 	}
 };
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,23 +28,7 @@
 
 const char* _starpu_node_get_prefix(enum starpu_node_kind kind)
 {
-	switch (kind)
-	{
-		case STARPU_CPU_RAM:
-			return "NUMA";
-		case STARPU_CUDA_RAM:
-			return "CUDA";
-		case STARPU_OPENCL_RAM:
-			return "OpenCL";
-		case STARPU_DISK_RAM:
-			return "Disk";
-		case STARPU_MIC_RAM:
-			return "MIC";
-		case STARPU_MPI_MS_RAM:
-			return "MPI_MS";
-		case STARPU_UNUSED:
-		default:
-			STARPU_ASSERT(0);
-			return "unknown";
-	}
+	const char *ret = starpu_memory_driver_info[kind].name_upper;
+	STARPU_ASSERT(ret);
+	return ret;
 }

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,6 +18,8 @@
 #define __STARPU_MPI_NMAD_BACKEND_H__
 
 #include <common/config.h>
+
+/** @file */
 
 #ifdef __cplusplus
 extern "C"
@@ -38,10 +40,10 @@ struct _starpu_mpi_req_backend
 	piom_cond_t req_cond;
 	nm_sr_request_t size_req;
 
-	// When datatype is unknown:
-	struct nm_data_s unknown_datatype_body;
-	struct nm_data_s unknown_datatype_data;
-	struct nm_data_s unknown_datatype_size;
+	/** When datatype is unknown */
+	struct nm_data_s unknown_datatype_body; // part of unknown_datatype_data
+	struct nm_data_s unknown_datatype_data; // will contain size of the datatype and data itself (represented by unknown_datatype_body)
+	struct nm_data_s unknown_datatype_size; // to fetch the size of the datatype
 };
 
 #endif // STARPU_USE_MPI_NMAD

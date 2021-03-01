@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -112,7 +112,7 @@ int _starpu_mkpath(const char *s, mode_t mode)
 	{
 		if (!S_ISDIR(sb.st_mode))
 		{
-			_STARPU_MSG("Error: %s is not a directory:\n", path);
+			_STARPU_MSG("Error: %s already exists and is not a directory:\n", path);
 			STARPU_ABORT();
 		}
 		/* It already exists and is a directory.  */
@@ -528,7 +528,7 @@ void _starpu_gethostname(char *hostname, size_t size)
 
 	if (force_mpi_hostnames && force_mpi_hostnames[0])
 	{
-		char *host, *srv_hosts;
+		char *host=NULL, *srv_hosts;
 		srv_hosts = strdup(force_mpi_hostnames);
 		int rank;
 		if (starpu_mpi_world_rank)

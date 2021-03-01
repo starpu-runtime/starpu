@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,64 @@
 #include <sys/time.h>
 #include <limits.h>
 #include <math.h>
+
+/* This is from magma
+
+  -- Innovative Computing Laboratory
+  -- Electrical Engineering and Computer Science Department
+  -- University of Tennessee
+  -- (C) Copyright 2009
+
+  Redistribution  and  use  in  source and binary forms, with or without
+  modification,  are  permitted  provided  that the following conditions
+  are met:
+
+  * Redistributions  of  source  code  must  retain  the above copyright
+    notice,  this  list  of  conditions  and  the  following  disclaimer.
+  * Redistributions  in  binary  form must reproduce the above copyright
+    notice,  this list of conditions and the following disclaimer in the
+    documentation  and/or other materials provided with the distribution.
+  * Neither  the  name of the University of Tennessee, Knoxville nor the
+    names of its contributors may be used to endorse or promote products
+    derived from this software without specific prior written permission.
+
+  THIS  SOFTWARE  IS  PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  ``AS IS''  AND  ANY  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+  A  PARTICULAR  PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+  HOLDERS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+  SPECIAL,  EXEMPLARY,  OR  CONSEQUENTIAL  DAMAGES  (INCLUDING,  BUT NOT
+  LIMITED  TO,  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+  DATA,  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+  THEORY  OF  LIABILITY,  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  OF  THIS  SOFTWARE,  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+  */
+
+#define FMULS_POTRF(__n) ((double)(__n) * (((1. / 6.) * (double)(__n) + 0.5) * (double)(__n) + (1. / 3.)))
+#define FADDS_POTRF(__n) ((double)(__n) * (((1. / 6.) * (double)(__n)      ) * (double)(__n) - (1. / 6.)))
+
+#define FLOPS_SPOTRF(__n) (     FMULS_POTRF((__n)) +       FADDS_POTRF((__n)) )
+
+#define FMULS_TRMM_2(__m, __n) (0.5 * (double)(__n) * (double)(__m) * ((double)(__m)+1.))
+#define FADDS_TRMM_2(__m, __n) (0.5 * (double)(__n) * (double)(__m) * ((double)(__m)-1.))
+
+#define FMULS_TRMM(__m, __n) ( /*( (__side) == PlasmaLeft ) ? FMULS_TRMM_2((__m), (__n)) :*/ FMULS_TRMM_2((__n), (__m)) )
+#define FADDS_TRMM(__m, __n) ( /*( (__side) == PlasmaLeft ) ? FADDS_TRMM_2((__m), (__n)) :*/ FADDS_TRMM_2((__n), (__m)) )
+
+#define FMULS_TRSM FMULS_TRMM
+#define FADDS_TRSM FMULS_TRMM
+
+#define FLOPS_STRSM(__m, __n) (     FMULS_TRSM((__m), (__n)) +       FADDS_TRSM((__m), (__n)) )
+
+
+#define FMULS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
+#define FADDS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
+
+#define FLOPS_SGEMM(__m, __n, __k) (     FMULS_GEMM((__m), (__n), (__k)) +       FADDS_GEMM((__m), (__n), (__k)) )
+
+/* End of magma code */
 
 /*
  *	Create the codelets
@@ -68,6 +126,340 @@ static struct starpu_codelet cl22 =
 	.color = 0x00ff00,
 };
 
+static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int nodes)
+{
+	unsigned k, m, n;
+	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
+	unsigned nn = size/nblocks;
+
+	for (k = 0; k < nblocks; k++)
+	{
+		starpu_iteration_push(k);
+
+		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+				       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+				       STARPU_RW, data_handles[k][k],
+				       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
+				       0);
+
+		for (m = k+1; m<nblocks; m++)
+		{
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+					       STARPU_R, data_handles[k][k],
+					       STARPU_RW, data_handles[m][k],
+					       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
+					       0);
+
+			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][k]);
+			if (my_distrib(k, k, nodes) == rank)
+				starpu_data_wont_use(data_handles[k][k]);
+		}
+
+		for (n = k+1; n<nblocks; n++)
+		{
+			for (m = n; m<nblocks; m++)
+			{
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[n][k],
+						       STARPU_R, data_handles[m][k],
+						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+						       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+						       0);
+			}
+
+			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][k]);
+			if (my_distrib(n, k, nodes) == rank)
+				starpu_data_wont_use(data_handles[n][k]);
+		}
+		starpu_iteration_pop();
+	}
+}
+
+/* TODO: generate from compiler polyhedral analysis of classical algorithm */
+static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, int nodes)
+{
+	unsigned k, m, n;
+	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
+	unsigned nn = size/nblocks;
+
+	/* Column */
+	for (n = 0; n<nblocks; n++)
+	{
+		starpu_iteration_push(n);
+
+		/* First handle the diagonal block */
+		/* Row */
+		m = n;
+
+		for (k = 0; k < n; k++)
+		{
+			/* Accumulate updates from TRSMs */
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+					       STARPU_R, data_handles[n][k],
+					       STARPU_R, data_handles[m][k],
+					       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+					       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+					       0);
+
+			/* Nobody else will need it */
+			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[m][k]);
+			starpu_data_wont_use(data_handles[m][k]);
+		}
+
+		k = n;
+		/* Factorize */
+		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+				       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+				       STARPU_RW, data_handles[k][k],
+				       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
+				       0);
+
+		/* Row */
+		for (m = n + 1; m<nblocks; m++)
+		{
+			for (k = 0; k < n; k++)
+			{
+				/* Accumulate updates from TRSMs */
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[n][k],
+						       STARPU_R, data_handles[m][k],
+						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+						       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+						       0);
+
+			}
+			k = n;
+			/* Solve */
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+					       STARPU_R, data_handles[k][k],
+					       STARPU_RW, data_handles[m][k],
+					       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
+					       0);
+		}
+
+		/* We won't need it any more */
+		starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
+		starpu_data_wont_use(data_handles[n][n]);
+
+		starpu_iteration_pop();
+	}
+}
+
+/* TODO: generate from compiler polyhedral analysis of classical algorithm */
+static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int rank, int nodes)
+{
+	unsigned a;
+	unsigned k, m, n;
+	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
+	unsigned nn = size/nblocks;
+
+	/* double-antidiagonal number:
+	 * - a=0 contains (0,0) plus (1,0)
+	 * - a=1 contains (2,0), (1,1) plus (3,0), (2, 1)
+	 * - etc.
+	 */
+	for (a = 0; a < nblocks; a++)
+	{
+		starpu_iteration_push(a);
+
+		unsigned nfirst;
+		if (2*a < nblocks)
+			nfirst = 0;
+		else
+			nfirst = 2*a - (nblocks-1);
+
+		/* column within first antidiagonal for a */
+		for (n = nfirst; n <= a; n++)
+		{
+			/* row */
+			m = 2*a-n;
+
+			/* Accumulate updates from TRSMs */
+			for (k = 0; k < n; k++)
+			{
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[n][k],
+						       STARPU_R, data_handles[m][k],
+						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+						       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+						       0);
+
+				if (m == nblocks-1)
+				{
+					/* Nobody else will need it */
+					starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][k]);
+					starpu_data_wont_use(data_handles[n][k]);
+				}
+			}
+
+			/* k = n */
+			if (n < a)
+			{
+				/* non-diagonal block, solve */
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[k][k],
+						       STARPU_RW, data_handles[m][k],
+						       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
+						       0);
+			}
+			else
+			{
+				/* diagonal block, factorize */
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+						       STARPU_RW, data_handles[k][k],
+						       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
+						       0);
+			}
+
+			if (m == nblocks - 1)
+			{
+				/* We do not need the potrf result any more */
+				starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
+				starpu_data_wont_use(data_handles[n][n]);
+			}
+		}
+
+		/* column within second antidiagonal for a */
+		for (n = nfirst; n <= a; n++)
+		{
+			/* row */
+			m = 2*a-n + 1;
+
+			if (m >= nblocks)
+				/* Skip first item when even number of tiles */
+				continue;
+
+			/* Accumulate updates from TRSMs */
+			for (k = 0; k < n; k++)
+			{
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[n][k],
+						       STARPU_R, data_handles[m][k],
+						       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+						       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+						       0);
+
+				if (m == nblocks-1)
+				{
+					/* Nobody else will need it */
+					starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][k]);
+					starpu_data_wont_use(data_handles[n][k]);
+				}
+			}
+			/* non-diagonal block, solve */
+			k = n;
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+					       STARPU_R, data_handles[k][k],
+					       STARPU_RW, data_handles[m][k],
+					       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
+					       0);
+
+			if (m == nblocks - 1)
+			{
+				/* We do not need the potrf result any more */
+				starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
+				starpu_data_wont_use(data_handles[n][n]);
+			}
+		}
+
+		starpu_iteration_pop();
+	}
+}
+
+/* TODO: generate from compiler polyhedral analysis of classical algorithm */
+static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int nodes)
+{
+	unsigned a;
+	int k, m, n;
+	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
+	unsigned nn = size/nblocks;
+
+	/*
+	 * This is basically similar to above, except that we shift k according to the priorities set in the algorithm, so that gemm prio ~= 2*nblocks - a
+	 * double-antidiagonal number:
+	 * - a=0 contains (0,0) plus (1,0)
+	 * - a=1 contains (2,0), (1,1) plus (3,0), (2, 1)
+	 * - etc.
+	 */
+	for (a = 0; a < 4*nblocks; a++)
+	{
+		starpu_iteration_push(a);
+
+		for (k = 0; k < (int) nblocks; k++)
+		{
+			n = k;
+			/* Should be m = a-k-n; for potrf and trsm to respect
+			   priorities, but needs to be this for dependencies */
+			m = a-2*k-n;
+
+			if (m == n)
+			{
+				/* diagonal block, factorize */
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
+						       STARPU_RW, data_handles[k][k],
+						       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
+						       0);
+			}
+			else if (m >= n && m < (int) nblocks)
+			{
+				/* non-diagonal block, solve */
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						       STARPU_R, data_handles[k][k],
+						       STARPU_RW, data_handles[m][k],
+						       STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
+						       0);
+			}
+
+			if (m == (int) nblocks - 1)
+			{
+				/* We do not need the potrf result any more */
+				starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
+				starpu_data_wont_use(data_handles[n][n]);
+			}
+
+			/* column within antidiagonal for a */
+			for (n = k + 1; n < (int) nblocks; n++)
+			{
+				/* row */
+				m = a-2*k-n;
+
+				if (m >= n && m < (int) nblocks)
+				{
+					/* Update */
+					starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+							       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+							       STARPU_R, data_handles[n][k],
+							       STARPU_R, data_handles[m][k],
+							       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
+							       STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+							       0);
+					if (m == (int) nblocks - 1)
+					{
+						/* Nobody else will need it */
+						starpu_data_wont_use(data_handles[n][k]);
+						starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][k]);
+					}
+				}
+			}
+
+		}
+
+		starpu_iteration_pop();
+	}
+}
+
 /*
  *	code to bootstrap the factorization
  *	and construct the DAG
@@ -79,8 +471,6 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	starpu_data_handle_t **data_handles;
 	unsigned k, m, n;
 
-	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
-
 	/* create all the DAG nodes */
 
 	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
@@ -91,7 +481,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 		for(n = 0; n < nblocks ; n++)
 		{
 			int mpi_rank = my_distrib(m, n, nodes);
-			if (mpi_rank == rank)
+			if (mpi_rank == rank || (check && rank == 0))
 			{
 				//fprintf(stderr, "[%d] Owning data[%d][%d]\n", rank, n, m);
 				starpu_matrix_data_register(&data_handles[m][n], STARPU_MAIN_RAM, (uintptr_t)matA[m][n],
@@ -119,50 +509,17 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	start = starpu_timing_now();
 
-	for (k = 0; k < nblocks; k++)
+	switch (submission)
 	{
-		starpu_iteration_push(k);
-
-		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
-				       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
-				       STARPU_RW, data_handles[k][k],
-				       0);
-
-		for (m = k+1; m<nblocks; m++)
-		{
-			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
-					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
-					       STARPU_R, data_handles[k][k],
-					       STARPU_RW, data_handles[m][k],
-					       0);
-
-			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[k][k]);
-			if (my_distrib(k, k, nodes) == rank)
-				starpu_data_wont_use(data_handles[k][k]);
-
-			for (n = k+1; n<nblocks; n++)
-			{
-				if (n <= m)
-				{
-					starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
-							       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
-							       STARPU_R, data_handles[n][k],
-							       STARPU_R, data_handles[m][k],
-							       STARPU_RW | STARPU_COMMUTE, data_handles[m][n],
-							       0);
-				}
-			}
-
-			starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[m][k]);
-			if (my_distrib(m, k, nodes) == rank)
-				starpu_data_wont_use(data_handles[m][k]);
-		}
-		starpu_iteration_pop();
+		case TRIANGLES:		run_cholesky(data_handles, rank, nodes); break;
+		case COLUMNS:		run_cholesky_column(data_handles, rank, nodes); break;
+		case ANTIDIAGONALS:	run_cholesky_antidiagonal(data_handles, rank, nodes); break;
+		case PRIOS:		run_cholesky_prio(data_handles, rank, nodes); break;
+		default: STARPU_ABORT();
 	}
 
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	starpu_mpi_barrier(MPI_COMM_WORLD);
-
 	end = starpu_timing_now();
 
 	for (m = 0; m < nblocks; m++)
@@ -170,7 +527,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 		for(n = 0; n < nblocks ; n++)
 		{
 			/* Get back data on node 0 for the check */
-			if (check)
+			if (check && data_handles[m][n])
 				starpu_mpi_get_data_on_node(MPI_COMM_WORLD, data_handles[m][n], 0);
 
 			if (data_handles[m][n])
@@ -183,7 +540,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	if (rank == 0)
 	{
 		*timing = end - start;
-		*flops = (1.0f*size*size*size)/3.0f;
+		*flops = FLOPS_SPOTRF(size);
 	}
 }
 
@@ -248,24 +605,20 @@ void dw_cholesky_check_computation(float ***matA, int rank, int nodes, int *corr
 	{
 		for (m = 0; m < nblocks; m++)
 		{
-			int mpi_rank = my_distrib(m, n, nodes);
-			if (mpi_rank == rank)
+			for (nn = BLOCKSIZE*n ; nn < BLOCKSIZE*(n+1); nn++)
 			{
-				for (nn = (size/nblocks)*n ; nn < (size/nblocks)*n+(size/nblocks); nn++)
+				for (mm = BLOCKSIZE*m ; mm < BLOCKSIZE*(m+1); mm++)
 				{
-					for (mm = (size/nblocks)*m ; mm < (size/nblocks)*m+(size/nblocks); mm++)
+					if (nn <= mm)
 					{
-						if (nn <= mm)
+						float orig = (1.0f/(1.0f+nn+mm)) + ((nn == mm)?1.0f*size:0.0f);
+						float err = fabsf(test_mat[mm +nn*size] - orig) / orig;
+						if (err > epsilon)
 						{
-							float orig = (1.0f/(1.0f+nn+mm)) + ((nn == mm)?1.0f*size:0.0f);
-							float err = fabsf(test_mat[mm +nn*size] - orig) / orig;
-							if (err > epsilon)
-							{
-								FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.20f != %2.20f (err %2.20f)\n", rank, nn, mm, test_mat[mm +nn*size], orig, err);
-								*correctness = 0;
-								*flops = 0;
-								break;
-							}
+							FPRINTF(stderr, "[%d] Error[%u, %u] --> %2.20f != %2.20f (err %2.20f)\n", rank, nn, mm, test_mat[mm +nn*size], orig, err);
+							*correctness = 0;
+							*flops = 0;
+							break;
 						}
 					}
 				}

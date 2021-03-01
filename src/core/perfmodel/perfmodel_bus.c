@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -290,7 +290,11 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 
 	cudaFree(d_buffer);
 
+#if CUDART_VERSION >= 4000
+	cudaDeviceReset();
+#else
 	cudaThreadExit();
+#endif
 }
 
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
@@ -318,9 +322,11 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
 		cures = cudaDeviceCanAccessPeer(&can, src, dst);
+		(void) cudaGetLastError();
 		if (!cures && can)
 		{
 			cures = cudaDeviceEnablePeerAccess(dst, 0);
+			(void) cudaGetLastError();
 			if (!cures)
 			{
 				_STARPU_DISP("GPU-Direct %d -> %d\n", dst, src);
@@ -344,9 +350,11 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	if (starpu_get_env_number("STARPU_ENABLE_CUDA_GPU_GPU_DIRECT") != 0)
 	{
 		cures = cudaDeviceCanAccessPeer(&can, dst, src);
+		(void) cudaGetLastError();
 		if (!cures && can)
 		{
 			cures = cudaDeviceEnablePeerAccess(src, 0);
+			(void) cudaGetLastError();
 			if (!cures)
 			{
 				_STARPU_DISP("GPU-Direct %d -> %d\n", src, dst);
@@ -396,7 +404,11 @@ static void measure_bandwidth_between_dev_and_dev_cuda(int src, int dst)
 	cudaSetDevice(src);
 	cudaFree(s_buffer);
 
+#if CUDART_VERSION >= 4000
+	cudaDeviceReset();
+#else
 	cudaThreadExit();
+#endif
 }
 #endif
 #endif
@@ -884,7 +896,7 @@ static void load_bus_affinity_file_content(void)
 	_STARPU_DEBUG("loading affinities from %s\n", path);
 
 	f = fopen(path, "r");
-	STARPU_ASSERT(f);
+	STARPU_ASSERT_MSG(f, "Error when reading from file '%s'", path);
 
 	locked = _starpu_frdlock(f) == 0;
 
@@ -899,7 +911,7 @@ static void load_bus_affinity_file_content(void)
 
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%u\t", &dummy);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 
 		STARPU_ASSERT(dummy == gpu);
 
@@ -907,11 +919,11 @@ static void load_bus_affinity_file_content(void)
 		for (numa = 0; numa < nnumas; numa++)
 		{
 			ret = fscanf(f, "%u\t", &cuda_affinity_matrix[gpu][numa]);
-			STARPU_ASSERT(ret == 1);
+			STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		}
 
 		ret = fscanf(f, "\n");
-		STARPU_ASSERT(ret == 0);
+		STARPU_ASSERT_MSG(ret == 0, "Error when reading from file '%s'", path);
 	}
 #endif /* !STARPU_USE_CUDA */
 #ifdef STARPU_USE_OPENCL
@@ -923,7 +935,7 @@ static void load_bus_affinity_file_content(void)
 
 		_starpu_drop_comments(f);
 		ret = fscanf(f, "%u\t", &dummy);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 
 		STARPU_ASSERT(dummy == gpu);
 
@@ -931,11 +943,11 @@ static void load_bus_affinity_file_content(void)
 		for (numa = 0; numa < nnumas; numa++)
 		{
 			ret = fscanf(f, "%u\t", &opencl_affinity_matrix[gpu][numa]);
-			STARPU_ASSERT(ret == 1);
+			STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		}
 
 		ret = fscanf(f, "\n");
-		STARPU_ASSERT(ret == 0);
+		STARPU_ASSERT_MSG(ret == 0, "Error when reading from file '%s'", path);
 	}
 #endif /* !STARPU_USE_OPENCL */
 	if (locked)
@@ -1055,12 +1067,12 @@ static int check_bus_affinity_file(void)
 	_STARPU_DEBUG("loading affinities from %s\n", path);
 
 	f = fopen(path, "r");
-	STARPU_ASSERT(f);
+	STARPU_ASSERT_MSG(f, "Error when reading from file '%s'", path);
 
 	locked = _starpu_frdlock(f) == 0;
 
 	ret = fscanf(f, "# GPU\t");
-	STARPU_ASSERT(ret == 0);
+	STARPU_ASSERT_MSG(ret == 0, "Error when reading from file '%s'", path);
 
 	ret = fscanf(f, "NUMA%u\t", &dummy);
 
@@ -1673,7 +1685,7 @@ static void write_bus_bandwidth_file_content(void)
 	_STARPU_DEBUG("writing bandwidth to %s\n", path);
 
 	f = fopen(path, "w+");
-	STARPU_ASSERT(f);
+	STARPU_ASSERT_MSG(f, "Error when opening file (writing) '%s'", path);
 
 	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
@@ -2041,24 +2053,24 @@ static void check_bus_config_file(void)
 
 		// Loading configuration from file
 		f = fopen(path, "r");
-		STARPU_ASSERT(f);
+		STARPU_ASSERT_MSG(f, "Error when reading from file '%s'", path);
 		locked = _starpu_frdlock(f) == 0;
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_cpus);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_numa);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_cuda);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_opencl);
-		STARPU_ASSERT(ret == 1);
+		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
 		ret = fscanf(f, "%u\t", &read_mic);
@@ -2113,7 +2125,7 @@ static void write_bus_config_file_content(void)
 	_STARPU_DEBUG("writing config to %s\n", path);
 
 	f = fopen(path, "w+");
-	STARPU_ASSERT(f);
+	STARPU_ASSERT_MSG(f, "Error when opening file (writing) '%s'", path);
 	locked = _starpu_fwrlock(f) == 0;
 	_starpu_fftruncate(f, 0);
 
@@ -2662,13 +2674,15 @@ static void write_bus_platform_file_content(int version)
 			"   <prop id=\"network/TCP%cgamma\" value=\"-1\"></prop>\n"
 			"   <prop id=\"network/latency%cfactor\" value=\"1\"></prop>\n"
 			"   <prop id=\"network/bandwidth%cfactor\" value=\"1\"></prop>\n"
+			"   <prop id=\"network/crosstraffic\" value=\"0\"></prop>\n"
+			"   <prop id=\"network/weight%cS\" value=\"0.0\"></prop>\n"
 			" </config>\n"
 			" <AS  id=\"AS0\"  routing=\"Full\">\n"
 			"   <host id=\"MAIN\" %s=\"1%s\"/>\n",
 			version == 3
 			? "http://simgrid.gforge.inria.fr/simgrid.dtd"
 			: "http://simgrid.gforge.inria.fr/simgrid/simgrid.dtd",
-			version, dash, dash, dash, speed, flops);
+			version, dash, dash, dash, dash, speed, flops);
 
 	for (i = 0; i < ncpus; i++)
 		/* TODO: host memory for out-of-core simulation */
@@ -3031,7 +3045,7 @@ double starpu_transfer_predict(unsigned src_node, unsigned dst_node, size_t size
 	int busid = starpu_bus_get_id(src_node, dst_node);
 	int direct = starpu_bus_get_direct(busid);
 #endif
-	float ngpus = topology->ncudagpus+topology->nopenclgpus;
+	float ngpus = topology->ndevices[STARPU_CUDA_WORKER]+topology->ndevices[STARPU_OPENCL_WORKER];
 #ifdef STARPU_DEVEL
 #warning FIXME: ngpus should not be used e.g. for slow disk transfers...
 #endif

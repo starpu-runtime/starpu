@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,7 @@ endif
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
-	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html \;)
+	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html \;)
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html
 else
@@ -50,7 +50,7 @@ EXTRA_DIST += $(top_srcdir)/doc/doxygen/html
 DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen/html
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
-	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html \;)
+	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html \;)
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html
 endif
@@ -76,6 +76,7 @@ chapters =	\
 	chapters/370_online_performance_tools.doxy		\
 	chapters/380_offline_performance_tools.doxy		\
 	chapters/390_faq.doxy		\
+	chapters/400_python.doxy		\
 	chapters/401_out_of_core.doxy		\
 	chapters/410_mpi_support.doxy		\
 	chapters/415_fault_tolerance.doxy	\
@@ -145,6 +146,10 @@ images = 	\
 	chapters/images/temanejo.png
 
 if STARPU_BUILD_DOC
+EXTRA_DIST += \
+	      $(top_srcdir)/doc/doxygen/chapters/version.sty \
+	      $(top_srcdir)/doc/doxygen/chapters/version.html
+
 starpu_config.h: $(top_srcdir)/include/starpu_config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 
@@ -301,8 +306,4 @@ endif
 EXTRA_DIST += doxygen.cfg refman.tex \
 	      $(chapters) $(images)
 
-# Rule to update documentation on web server. Should only be used locally.
-PUBLISHHOST	?= gforge
-update-web: $(DOX_PDF)
-	scp -pr starpu.pdf html $(PUBLISHHOST):/home/groups/starpu/htdocs/files/doc
 

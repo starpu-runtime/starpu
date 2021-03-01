@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,8 +28,8 @@ void _starpu_submit_job_enforce_arbitered_deps(struct _starpu_job *j, unsigned b
 void _starpu_submit_job_take_data_deps(struct _starpu_job *j);
 void _starpu_enforce_data_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data);
 
-int _starpu_notify_data_dependencies(starpu_data_handle_t handle);
-void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle);
+int _starpu_notify_data_dependencies(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode);
+void _starpu_notify_arbitered_dependencies(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode);
 
 unsigned _starpu_attempt_to_submit_data_request_from_apps(starpu_data_handle_t handle,
 							  enum starpu_data_access_mode mode,

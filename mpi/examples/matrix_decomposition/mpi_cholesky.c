@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -51,14 +51,14 @@ int main(int argc, char **argv)
 	parse_args(argc, argv, nodes);
 
 	matrix_init(&bmat, rank, nodes, 1);
-	matrix_display(bmat, rank);
+	matrix_display(bmat, rank, nodes);
 
 	dw_cholesky(bmat, size/nblocks, rank, nodes, &timing, &flops);
 
 #ifndef STARPU_SIMGRID
-	matrix_display(bmat, rank);
+	matrix_display(bmat, rank, nodes);
 
-	if (check)
+	if (check && rank == 0)
 		dw_cholesky_check_computation(bmat, rank, nodes, &correctness, &flops, 0.001);
 #endif
 
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
 	starpu_mpi_shutdown();
 
 #ifndef STARPU_SIMGRID
-	if (check)
+	if (check && rank == 0)
 		assert(correctness);
 #endif
 

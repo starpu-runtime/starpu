@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -120,7 +120,7 @@ static int _starpu_count_bit_static(unsigned long e)
 #endif
 }
 
-static inline struct starpu_bitmap *starpu_bitmap_create()
+static inline struct starpu_bitmap *starpu_bitmap_create(void)
 {
 	return (struct starpu_bitmap *) calloc(1, sizeof(struct starpu_bitmap));
 }

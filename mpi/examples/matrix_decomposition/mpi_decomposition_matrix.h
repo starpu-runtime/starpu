@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,7 +21,7 @@
 /* Returns the MPI node number where data indexes index is */
 int my_distrib(int y, int x, int nb_nodes);
 
-void matrix_display(float ***bmat, int rank);
+void matrix_display(float ***bmat, int rank, int nodes);
 void matrix_init(float ****bmat, int rank, int nodes, int alloc_everywhere);
 void matrix_free(float ****bmat, int rank, int nodes, int alloc_everywhere);
 

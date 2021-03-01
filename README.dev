@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -101,3 +101,15 @@ Error handling
   --enable-fast.
 
 	STARPU_ASSERT(j->terminated != 0)
+
+
+
+Makefile.am
+-----------
+
+Dependency libraries are appended to LIBS.
+Only real LDFLAGS such as -no-undefined go to LDFLAGS.
+
+If a program foo needs more libraries, it can put then in foo_LDADD.
+
+(No, AM_LDADD does not exist)

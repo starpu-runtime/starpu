@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,6 +27,15 @@ extern unsigned check;
 extern unsigned display;
 extern int dblockx;
 extern int dblocky;
+
+enum submission
+{
+	TRIANGLES,
+	COLUMNS,
+	ANTIDIAGONALS,
+	PRIOS,
+};
+extern enum submission submission;
 
 void parse_args(int argc, char **argv, int nodes);
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Simon Archipoff
  *
@@ -510,11 +510,11 @@ static double simple_worker_estimated_load(struct starpu_sched_component * compo
 	struct _starpu_worker * worker = _starpu_sched_component_worker_get_worker(component);
 	int nb_task = 0;
 	STARPU_COMPONENT_MUTEX_LOCK(&worker->mutex);
-	struct starpu_task_list list = worker->local_tasks;
+	struct starpu_task_prio_list *list = &worker->local_tasks;
 	struct starpu_task * task;
-	for(task = starpu_task_list_front(&list);
-	    task != starpu_task_list_end(&list);
-	    task = starpu_task_list_next(task))
+	for(task = starpu_task_prio_list_begin(list);
+	    task != starpu_task_prio_list_end(list);
+	    task = starpu_task_prio_list_next(list, task))
 		nb_task++;
 	STARPU_COMPONENT_MUTEX_UNLOCK(&worker->mutex);
 	struct _starpu_worker_component_data * d = component->data;

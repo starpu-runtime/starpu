@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -87,10 +87,12 @@ void display_complex_codelet(void *descr[], void *_args)
 	if (_args)
 		starpu_codelet_unpack_args(_args, &msg);
 
+	FPRINTF(stderr, "[%s]\n", _args?msg:NULL);
 	for(i=0 ; i<nx ; i++)
 	{
-		FPRINTF(stderr, "[%s] Complex[%d] = %3.2f + %3.2f i\n", _args?msg:NULL, i, real[i], imaginary[i]);
+		FPRINTF(stderr, "\tComplex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
 	}
+	fflush(stderr);
 }
 
 struct starpu_codelet cl_display =

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,6 +43,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <starpu.h>
+
+#ifdef STARPU_QUICK_CHECK
+#define NTASKS 10
+#else
+#define NTASKS 1000
+#endif
 
 static long sum;
 
@@ -185,7 +191,7 @@ int main(void)
 		vector_mn[1] = n;
 		starpu_data_release(vector_mn_handle);
 
-		for (j = 0; j < 42; j++)
+		for (j = 0; j < NTASKS; j++)
 		{
 			starpu_insert_task(&cl_init,
 					   STARPU_R, vector_mn_handle,
@@ -200,6 +206,12 @@ int main(void)
 
 	starpu_data_unregister(vector_mn_handle);
 	free(vector_mn);
+	starpu_shutdown();
+
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		return 77;
+	starpu_perfmodel_dump_xml(stdout, &cl_model_final);
 	starpu_shutdown();
 
 	return 0;

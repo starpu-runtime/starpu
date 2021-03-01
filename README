@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -87,15 +87,11 @@ advantage of their specificities in a portable fashion.
 || III. Getting StarPU ||
 ++=====================++
 
-StarPU is available on https://gforge.inria.fr/projects/starpu/.
+StarPU is available on https://gitlab.inria.fr/starpu/starpu
 
-The project's SVN repository can be checked out through anonymous
-access with the following command(s).
+The GIT repository access can be checked out with the following command.
 
-$ svn checkout svn://scm.gforge.inria.fr/svn/starpu/trunk
-$ svn checkout --username anonsvn https://scm.gforge.inria.fr/svn/starpu/trunk
-
-The password is 'anonsvn'
+$ git clone git@gitlab.inria.fr:starpu/starpu.git
 
 ++=============================++
 || IV. Building and Installing ||
@@ -194,4 +190,4 @@ renamings), use the tools/dev/rename.sh script
 ++=============++
 
 For any questions regarding StarPU, please contact the starpu-devel
-mailing-list at starpu-devel@lists.gforge.inria.fr .
+mailing-list at starpu-devel@inria.fr.

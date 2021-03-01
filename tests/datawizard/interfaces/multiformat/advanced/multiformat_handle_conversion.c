@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,7 @@ extern struct stats global_stats;
 static void
 create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 {
+	int ret;
 	FPRINTF(stderr, "***** Starting Task 1\n");
 	struct starpu_codelet cl =
 	{
@@ -60,7 +61,8 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	task->synchronous = SYNCHRONOUS;
 	task->cl = &cl;
 	task->handles[0] = handles[0];
-	assert(starpu_task_submit(task) == 0);
+	ret = starpu_task_submit(task);
+	assert(ret == 0);
 
 #ifdef STARPU_USE_CPU
 	FPRINTF(stderr, "***** Starting Task 2\n");
@@ -76,7 +78,8 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	task2->synchronous = SYNCHRONOUS;
 	task2->cl = &cl2;
 	task2->handles[0] = handles[1];
-	assert(starpu_task_submit(task2) == 0);
+	ret = starpu_task_submit(task2);
+	assert(ret == 0);
 #endif /* !STARPU_USE_CPU */
 
 	FPRINTF(stderr, "***** Starting Task 3\n");
@@ -105,9 +108,11 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 	task3->cl = &cl3;
 	task3->handles[0] = handles[0];
 	task3->handles[1] = handles[1];
-	assert(starpu_task_submit(task3) == 0);
+	ret = starpu_task_submit(task3);
+	assert(ret == 0);
 
-	assert(starpu_task_wait_for_all() == 0);
+	ret = starpu_task_wait_for_all();
+	assert(ret == 0);
 
 	FPRINTF(stderr, "***** End of all tasks\n");
 	return;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -349,6 +349,7 @@ typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);
 /**
    Register functions to create and free a MPI datatype for the given
    handle.
+   Similar to starpu_mpi_interface_datatype_register().
    It is important that the function is called before any
    communication can take place for a data with the given handle. See
    \ref ExchangingUserDefinedDataInterface for an example.
@@ -421,11 +422,38 @@ void starpu_mpi_cache_flush_all_data(MPI_Comm comm);
 int starpu_mpi_cached_receive(starpu_data_handle_t data_handle);
 
 /**
+ * If \p data is already available in the reception cache, return 1
+ * If \p data is NOT available in the reception cache, add it to the
+ * cache and return 0
+ * Return 0 if the communication cache is not enabled
+ */
+int starpu_mpi_cached_receive_set(starpu_data_handle_t data);
+
+/**
+ * Remove \p data from the reception cache
+ */
+void starpu_mpi_cached_receive_clear(starpu_data_handle_t data);
+
+/**
    Test whether \p data_handle is cached for emission to node \p dest,
    i.e. the value was previously sent to \p dest, and not flushed
    since then.
 */
 int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest);
+
+/**
+ * If \p data is already available in the emission cache for node
+ * \p dest, return 1
+ * If \p data is NOT available in the emission cache for node \p dest,
+ * add it to the cache and return 0
+ * Return 0 if the communication cache is not enabled
+ */
+int starpu_mpi_cached_send_set(starpu_data_handle_t data, int dest);
+
+/**
+ * Remove \p data from the emission cache
+ */
+void starpu_mpi_cached_send_clear(starpu_data_handle_t data);
 
 /** @} */
 
@@ -569,11 +597,19 @@ starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t handle);
    STARPU_MPI_CACHE).
 */
 int starpu_mpi_task_insert(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_mpi_task_insert(comm, cl, ...) \
+	starpu_mpi_task_insert((comm), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
 
 /**
    Call starpu_mpi_task_insert(). Symbol kept for backward compatibility.
 */
 int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_mpi_insert_task(comm, cl, ...) \
+	starpu_mpi_insert_task((comm), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
 
 /**
    Create a task corresponding to \p codelet with the following given
@@ -589,6 +625,10 @@ int starpu_mpi_insert_task(MPI_Comm comm, struct starpu_codelet *codelet, ...);
    creates it, with the SAME list of arguments.
 */
 struct starpu_task *starpu_mpi_task_build(MPI_Comm comm, struct starpu_codelet *codelet, ...);
+#ifdef STARPU_USE_FXT
+#define starpu_mpi_task_build(comm, cl, ...) \
+	starpu_mpi_task_build((comm), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
+#endif
 
 /**
    MUST be called after a call to starpu_mpi_task_build(),

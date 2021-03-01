@@ -7,13 +7,17 @@ ADDITIONAL=additional
 
 all:
 	mkdir -p build
-	[ -d "$(CLAPACK)" ] || cp -a $(srcdir)/$(CLAPACK) .
+	[ -d "$(CLAPACK)" ] || ( cp -a $(srcdir)/$(CLAPACK) . ; chmod -R +rwX $(CLAPACK) )
 	cd $(CLAPACK) && $(MAKE) blaslib CC="$(CC)" LD="$(LD)"
 	cd $(CLAPACK) && $(MAKE) f2clib CC="$(CC)" LD="$(LD)"
-	[ -d "$(ADDITIONAL)" ] || cp -a $(srcdir)/$(ADDITIONAL) .
+	[ -d "$(ADDITIONAL)" ] || ( cp -a $(srcdir)/$(ADDITIONAL) . ; chmod -R +rwX $(ADDITIONAL) )
 	cd $(ADDITIONAL) && $(CC) -c -fPIC *.c && ar cr ../build/minlibdgels.a *.o && ranlib ../build/minlibdgels.a
 
 install:
+installcheck:
+uninstall:
+distuninstallcheck:
+dvi:
 
 clean:
 	-cd $(CLAPACK) && $(MAKE) clean && rm -rf *~
@@ -21,6 +25,7 @@ clean:
 	rm -rf build *~
 
 distclean: clean
+	[ -f Makefile.in ] || rm -fr $(CLAPACK) $(ADDITIONAL)
 
 # This part is needed by StarPU
 

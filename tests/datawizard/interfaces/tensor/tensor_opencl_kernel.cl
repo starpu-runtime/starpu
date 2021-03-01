@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,32 +18,24 @@ __kernel void tensor_opencl(__global int *tensor,
 			   int ldy, int ldz, int ldt,
 			   int factor, __global int *err)
 {
-        const int id = get_global_id(0);
-	if (id > 0)
+	const int idx = get_global_id(0);
+	const int idy = get_global_id(1);
+	const int idz = get_global_id(2) % nz;
+	const int idt = get_global_id(2) / nz;
+	if (idx >= nx)
+		return;
+	if (idy >= ny)
+		return;
+	if (idz >= nz)
+		return;
+	if (idt >= nt)
 		return;
 
-	unsigned int i, j, k, l;
-	int val = 0;
-	for (l = 0; l < nt; l++)
-	{
-	    for (k = 0; k < nz; k++)
-	    {
-		for (j = 0; j < ny; j++)
-		{
-			for (i = 0; i < nx; i++)
-			{
-                                if (tensor[(l*ldt)+(k*ldz)+(j*ldy)+i] != factor * val)
-				{
-					*err = 1;
-					return;
-				}
-				else
-				{
-					tensor[(l*ldt)+(k*ldz)+(j*ldy)+i] *= -1;
-					val++;
-				}
-			}
-		}
-	    }
-	}
+	int val = idt*nz*ny*nx+idz*ny*nx+idy*nx+idx;
+	int i = (idt*ldt)+(idz*ldz)+(idy*ldy)+idx;
+
+	if (tensor[i] != factor * val)
+		*err = 1;
+	else
+		tensor[i] *= -1;
 }

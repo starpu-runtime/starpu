@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -290,20 +290,20 @@
 
 #endif
 
-/* Create a file that will contain StarPU's log */
+/** Create a file that will contain StarPU's log */
 void _starpu_open_debug_logfile(void);
 
-/* Close StarPU's log file */
+/** Close StarPU's log file */
 void _starpu_close_debug_logfile(void);
 
-/* Write into StarPU's log file */
+/** Write into StarPU's log file */
 void _starpu_print_to_logfile(const char *format, ...) STARPU_ATTRIBUTE_FORMAT(printf, 1, 2);
 
-/* Tell gdb whether FXT is compiled in or not */
+/** Tell gdb whether FXT is compiled in or not */
 extern int _starpu_use_fxt;
 
 #if defined(STARPU_USE_AYUDAME1)
-/* Get an Ayudame id for CL */
+/** Get an Ayudame id for CL */
 int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl);
 #endif
 

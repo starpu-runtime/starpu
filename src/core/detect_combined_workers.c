@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -252,7 +252,7 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	int cpu_workers[STARPU_NMAXWORKERS];
 	unsigned ncpus = 0;
 #ifdef STARPU_USE_MIC
-	unsigned nb_mics = _starpu_get_machine_config()->topology.nmicdevices;
+	unsigned nb_mics = _starpu_get_machine_config()->topology.ndevices[STARPU_MIC_WORKER];
 	unsigned * nmics_table;
 	int * mic_id;
 	int ** mic_workers;

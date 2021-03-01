@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -65,11 +65,11 @@ struct starpu_perf_counter_set;
 /**
   Start collecting performance counter values.
   */
-void starpu_perf_counter_collection_start();
+void starpu_perf_counter_collection_start(void);
 /**
   Stop collecting performance counter values.
   */
-void starpu_perf_counter_collection_stop();
+void starpu_perf_counter_collection_stop(void);
 
 /**
   Translate scope name constant string to scope id.
@@ -170,7 +170,7 @@ void starpu_perf_counter_set_per_codelet_listener(struct starpu_codelet *cl, str
 /**
   Unset the global listener.
   */
-void starpu_perf_counter_unset_global_listener();
+void starpu_perf_counter_unset_global_listener(void);
 /**
   Unset the per_worker listener.
   */

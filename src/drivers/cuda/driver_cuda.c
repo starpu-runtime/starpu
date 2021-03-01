@@ -110,7 +110,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	/* Discover the number of CUDA devices. Fill the result in CONFIG. */
 
 #ifdef STARPU_SIMGRID
-	config->topology.nhwcudagpus = _starpu_simgrid_get_nbhosts("CUDA");
+	config->topology.nhwdevices[STARPU_CUDA_WORKER] = _starpu_simgrid_get_nbhosts("CUDA");
 #else
 	int cnt;
 	cudaError_t cures;
@@ -118,7 +118,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	cures = cudaGetDeviceCount (&cnt);
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
-	config->topology.nhwcudagpus = cnt;
+	config->topology.nhwdevices[STARPU_CUDA_WORKER] = cnt;
 #ifdef HAVE_LIBNVIDIA_ML
 	nvmlInit();
 #endif
@@ -336,9 +336,13 @@ static void init_device_context(unsigned devid, unsigned memnode)
 			{
 				int can;
 				cures = cudaDeviceCanAccessPeer(&can, devid, worker->devid);
+				(void) cudaGetLastError();
+
 				if (!cures && can)
 				{
 					cures = cudaDeviceEnablePeerAccess(worker->devid, 0);
+					(void) cudaGetLastError();
+
 					if (!cures)
 					{
 						_STARPU_DEBUG("Enabled GPU-Direct %d -> %d\n", worker->devid, devid);
@@ -680,12 +684,12 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	int lastdevid = -1;
 	unsigned i;
 
-	_starpu_driver_start(worker0, _STARPU_FUT_CUDA_KEY, 0);
+	_starpu_driver_start(worker0, STARPU_CUDA_WORKER, 0);
 	_starpu_set_local_worker_set_key(worker_set);
 
 #ifdef STARPU_USE_FXT
 	for (i = 1; i < worker_set->nworkers; i++)
-		_starpu_worker_start(&worker_set->workers[i], _STARPU_FUT_CUDA_KEY, 0);
+		_starpu_worker_start(&worker_set->workers[i], STARPU_CUDA_WORKER, 0);
 #endif
 
 	for (i = 0; i < worker_set->nworkers; i++)
@@ -706,7 +710,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 		init_device_context(devid, memnode);
 
 #ifndef STARPU_SIMGRID
-		if (worker->config->topology.nworkerpercuda > 1 && props[devid].concurrentKernels == 0)
+		if (worker->config->topology.nworker[STARPU_CUDA_WORKER][devid] > 1 && props[devid].concurrentKernels == 0)
 			_STARPU_DISP("Warning: STARPU_NWORKER_PER_CUDA is %u, but CUDA device %u does not support concurrent kernel execution!\n", worker_set->nworkers, devid);
 #endif /* !STARPU_SIMGRID */
 	}
@@ -719,7 +723,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 		struct _starpu_worker *worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
 		unsigned workerid = worker->workerid;
-		unsigned subdev = i % _starpu_get_machine_config()->topology.nworkerpercuda;
+		unsigned subdev = i % _starpu_get_machine_config()->topology.nworker[STARPU_CUDA_WORKER][devid];
 
 		float size = (float) global_mem[devid] / (1<<30);
 #ifdef STARPU_SIMGRID
@@ -960,7 +964,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		j = _starpu_get_job_associated_to_task(task);
 
 		/* can CUDA do that task ? */
-		if (!_STARPU_CUDA_MAY_PERFORM(j))
+		if (!_STARPU_MAY_PERFORM(j, CUDA))
 		{
 			/* this is neither a cuda or a cublas task */
 			_starpu_worker_refuse_task(worker, task);
@@ -1059,7 +1063,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 	}
 
 	worker_set->workers[0].worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(_STARPU_FUT_CUDA_KEY);
+	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_CUDA_WORKER);
 
 	return 0;
 }
@@ -1166,6 +1170,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 		{
 			cures = cudaMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
 		}
+		(void) cudaGetLastError();
 		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 	}
 
@@ -1185,6 +1190,7 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 		{
 			cures = cudaMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
 		}
+		(void) cudaGetLastError();
 
 		if (!cures)
 			cures = cudaDeviceSynchronize();
@@ -1242,12 +1248,14 @@ starpu_cuda_copy2d_async_sync(void *src_ptr, unsigned src_node,
 			double start;
 			starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
 			cures = cudaMemcpy3DPeerAsync(&p, stream);
+			(void) cudaGetLastError();
 		}
 
 		/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
 		if (stream == NULL || cures)
 		{
 			cures = cudaMemcpy3DPeer(&p);
+			(void) cudaGetLastError();
 
 			if (!cures)
 				cures = cudaDeviceSynchronize();
@@ -1339,6 +1347,7 @@ starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node,
 		if (stream == NULL || cures)
 		{
 			cures = cudaMemcpy3DPeer(&p);
+			(void) cudaGetLastError();
 
 			if (!cures)
 				cures = cudaDeviceSynchronize();
@@ -1819,37 +1828,17 @@ struct _starpu_driver_ops _starpu_driver_cuda_ops =
 #ifdef STARPU_SIMGRID
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = NULL,
 	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
-	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_interface_to[STARPU_DISK_RAM] = NULL,
-	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = NULL,
 	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_data_to[STARPU_DISK_RAM] = NULL,
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy2d_data_to[STARPU_UNUSED] = NULL,
 	.copy2d_data_to[STARPU_CPU_RAM] = NULL,
 	.copy2d_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy2d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy2d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy2d_data_to[STARPU_MIC_RAM] = NULL,
-	.copy2d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy3d_data_to[STARPU_UNUSED] = NULL,
 	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
 	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
-	.copy3d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy3d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy3d_data_to[STARPU_MIC_RAM] = NULL,
-	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.wait_request_completion = NULL,
 	.test_request_completion = NULL,
@@ -1861,31 +1850,15 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 #else
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cpu,
 	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cuda,
-	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_interface_to[STARPU_DISK_RAM] = NULL,
-	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy_data_from_cuda_to_cpu,
 	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cuda_to_cuda,
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy_data_to[STARPU_DISK_RAM] = NULL,
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy2d_data_to[STARPU_UNUSED] = NULL,
 	.copy2d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cpu,
 	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
-	.copy2d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy2d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy2d_data_to[STARPU_MIC_RAM] = NULL,
-	.copy2d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
-	.copy3d_data_to[STARPU_UNUSED] = NULL,
 #if 0
 	.copy3d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cpu,
 	.copy3d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cuda,
@@ -1893,10 +1866,6 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
 	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
 #endif
-	.copy3d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy3d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy3d_data_to[STARPU_MIC_RAM] = NULL,
-	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.wait_request_completion = _starpu_cuda_wait_request_completion,
 	.test_request_completion = _starpu_cuda_test_request_completion,

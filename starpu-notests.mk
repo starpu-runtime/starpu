@@ -13,6 +13,12 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+AM_CFLAGS = $(GLOBAL_AM_CFLAGS)
+AM_CXXFLAGS = $(GLOBAL_AM_CXXFLAGS)
+AM_FFLAGS = $(GLOBAL_AM_FFLAGS)
+AM_FCFLAGS = $(GLOBAL_AM_FCFLAGS)
+
 recheck:
 	-cat /dev/null
 

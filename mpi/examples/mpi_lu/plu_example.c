@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -37,8 +37,8 @@
 static unsigned long size = 4096;
 static unsigned nblocks = 16;
 static unsigned check = 0;
-static int p = 1;
-static int q = 1;
+static int p = -1;
+static int q = -1;
 static unsigned display = 0;
 static unsigned no_prio = 0;
 
@@ -133,7 +133,10 @@ static void parse_args(int rank, int argc, char **argv)
 
 #ifdef STARPU_HAVE_VALGRIND_H
 	if (RUNNING_ON_VALGRIND)
-		size = 16;
+	{
+		size = 4;
+		nblocks = 4;
+	}
 #endif
 }
 
@@ -265,7 +268,8 @@ static void init_matrix(int rank)
 					unsigned tmp;
 					for (tmp = 0; tmp < size/nblocks; tmp++)
 					{
-						(*blockptr)[tmp*((size/nblocks)+1)] += (TYPE)10*nblocks;
+						(*blockptr)[tmp*((size/nblocks)+1)] += 1;
+						(*blockptr)[tmp*((size/nblocks)+1)] *= 100;
 					}
 				}
 
@@ -434,6 +438,7 @@ int main(int argc, char **argv)
 	int rank;
 	int world_size;
 	int ret;
+	unsigned i, j;
 
 	/*
 	 *	Initialization
@@ -462,7 +467,14 @@ int main(int argc, char **argv)
 	/* We disable sequential consistency in this example */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
-	STARPU_ASSERT(p*q == world_size);
+	if (p == -1 && q==-1)
+	{
+		fprintf(stderr, "Setting default values for p and q\n");
+		p = (q % 2 == 0) ? 2 : 1;
+		q = world_size / p;
+
+	}
+	STARPU_ASSERT_MSG(p*q == world_size, "p=%d, q=%d, world_size=%d\n", p, q, world_size);
 
 	starpu_cublas_init();
 
@@ -594,6 +606,18 @@ int main(int argc, char **argv)
 	/*
 	 * 	Termination
 	 */
+	for (j = 0; j < nblocks; j++)
+	{
+		for (i = 0; i < nblocks; i++)
+		{
+			starpu_data_unregister(dataA_handles[j+nblocks*i]);
+			TYPE *blockptr = dataA[j+i*nblocks];
+			if (blockptr != STARPU_POISON_PTR)
+				starpu_free(blockptr);
+		}
+	}
+	free(dataA_handles);
+	free(dataA);
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);

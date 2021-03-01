@@ -47,6 +47,19 @@ extern "C"
 struct _starpu_data_request;
 struct _starpu_data_replicate;
 
+enum _starpu_is_prefetch
+{
+ 	/** A task really needs it now! */
+ 	STARPU_FETCH = 0,
+	/** A task will need it soon */
+	STARPU_TASK_PREFETCH = 1,
+	/** It is a good idea to have it asap */
+	STARPU_PREFETCH = 2,
+	/** Get this here when you have time to */
+	STARPU_IDLEFETCH = 3,
+	STARPU_NFETCH
+};
+
 #ifdef STARPU_USE_MIC
 /** MIC needs memory_node to know which MIC is concerned.
  * mark is used to wait asynchronous request.

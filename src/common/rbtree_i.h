@@ -44,7 +44,8 @@
  * architectures, as long as the nodes aren't embedded in structures with
  * special alignment constraints such as member packing.
  */
-struct starpu_rbtree_node {
+struct starpu_rbtree_node
+{
     uintptr_t parent;
     struct starpu_rbtree_node *children[2];
 };
@@ -52,7 +53,8 @@ struct starpu_rbtree_node {
 /**
  * Red-black tree structure.
  */
-struct starpu_rbtree {
+struct starpu_rbtree
+{
     struct starpu_rbtree_node *root;
 };
 

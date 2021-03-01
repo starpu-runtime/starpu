@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -316,7 +316,7 @@ void starpu_profiling_worker_helper_display_summary(void);
    option \ref enable-memory-stats "--enable-memory-stats" (see \ref
    MemoryFeedback).
 */
-void starpu_data_display_memory_stats();
+void starpu_data_display_memory_stats(void);
 
 /** @} */
 

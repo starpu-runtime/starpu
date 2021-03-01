@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,7 @@ static void* comm_thread_func(void* arg)
 		fprintf(stderr, "[%s] No core was available for the comm thread. You should increase STARPU_RESERVE_NCPU or decrease STARPU_NCPU\n", hostname);
 	}
 
-	sendrecv_bench(mpi_rank, &thread_barrier);
+	sendrecv_bench(mpi_rank, &thread_barrier, /* half-duplex communications */ 0);
 
 	return NULL;
 }

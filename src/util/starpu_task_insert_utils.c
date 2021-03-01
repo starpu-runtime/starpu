@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -248,6 +248,14 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		else if (arg_type==STARPU_TASK_SCHED_DATA)
 		{
 			(void)va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_TASK_FILE)
+		{
+			(void)va_arg(varg_list, const char *);
+		}
+		else if (arg_type==STARPU_TASK_LINE)
+		{
+			(void)va_arg(varg_list, int);
 		}
 		else
 		{
@@ -610,6 +618,14 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			task->sched_data = va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_TASK_FILE)
+		{
+			task->file = va_arg(varg_list, const char *);
+		}
+		else if (arg_type==STARPU_TASK_LINE)
+		{
+			task->line = va_arg(varg_list, int);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -935,6 +951,16 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			arg_i++;
 			task->sched_data = (void*)arglist[arg_i];
 		}
+		else if (arg_type == STARPU_TASK_FILE)
+		{
+			arg_i++;
+			task->file = arglist[arg_i];
+		}
+		else if (arg_type == STARPU_TASK_LINE)
+		{
+			arg_i++;
+			task->line = *(int *)arglist[arg_i];
+		}
 		else
 		{
 			STARPU_ABORT_MSG("unknown/unsupported argument %d, did you perhaps forget to end arguments with 0?", arg_type);
@@ -981,6 +1007,7 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 }
 
 /* Fortran interface to task_insert */
+#undef starpu_task_submit
 void fstarpu_task_insert(void **arglist)
 {
 	struct starpu_codelet *cl = arglist[0];

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2017       Guillaume Beauchamp
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -51,6 +51,10 @@ endif
 
 if STARPU_BUILD_STARPURM
 SUBDIRS += starpurm
+endif
+
+if STARPU_BUILD_STARPUPY
+SUBDIRS += starpupy
 endif
 
 if STARPU_BUILD_SC_HYPERVISOR
@@ -198,7 +202,7 @@ ctags-local:
 # The pmccabe tool, see <http://www.parisc-linux.org/~bame/pmccabe/>.
 PMCCABE = pmccabe
 
-VC_URL = "https://gforge.inria.fr/scm/viewvc.php/trunk/%FILENAME%?view=markup&root=starpu"
+VC_URL = "https://gitlab.inria.fr/starpu/starpu/-/blob/master/%FILENAME%"
 
 # Generate a cyclomatic complexity report.  Note that examples and tests are
 # excluded because they're not particularly relevant, and more importantly

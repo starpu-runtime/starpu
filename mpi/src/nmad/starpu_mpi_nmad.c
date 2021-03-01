@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -43,7 +43,7 @@
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_event_t event);
-#ifdef STARPU_VERBOSE
+#if defined(STARPU_VERBOSE) || defined(STARPU_MPI_VERBOSE)
 char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
 
@@ -111,6 +111,10 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	nm_sr_send_pack_data(req->backend->session, &(req->backend->data_request), &data);
 	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
 
+	// this trace event is the start of the communication link:
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req->node_tag.node.rank, req->node_tag.data_tag,
+			starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle, req->prio);
+
 	if (req->sync == 0)
 	{
 		req->ret = nm_sr_send_isend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
@@ -121,8 +125,6 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 		req->ret = nm_sr_send_issend(req->backend->session, &(req->backend->data_request), req->backend->gate, req->node_tag.data_tag);
 		STARPU_ASSERT_MSG(req->ret == NM_ESUCCESS, "MPI_Issend returning %d", req->ret);
 	}
-
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle);
 
 	_starpu_mpi_handle_pending_request(req);
 
@@ -199,12 +201,12 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 /*                                                      */
 /********************************************************/
 
-#define _starpu_mpi_req_status(PUBLIC_REQ,STATUS) do {			\
+#define _starpu_mpi_req_status(PUBLIC_REQ,STATUS) do { \
 	STATUS->MPI_SOURCE=PUBLIC_REQ->node_tag.node.rank; /**< field name mandatory by spec */ \
 	STATUS->MPI_TAG=PUBLIC_REQ->node_tag.data_tag;    /**< field name mandatory by spec */ \
 	STATUS->MPI_ERROR=PUBLIC_REQ->ret;  /**< field name mandatory by spec */ \
 	STATUS->size=PUBLIC_REQ->count;       /**< size of data received */ \
-	STATUS->cancelled=0;  /**< whether request was cancelled */	\
+	STATUS->cancelled=0;  /**< whether request was cancelled */ \
 } while(0)
 
 int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
@@ -244,6 +246,8 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 	STARPU_MPI_ASSERT_MSG(!req->detached, "MPI_Test cannot be called on a detached request");
 	_STARPU_MPI_DEBUG(2, "Test request %p type %s tag %ld src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
 			  req, _starpu_mpi_request_type(req->request_type), req->node_tag.data_tag, req->node_tag.node.rank, req->data_handle, req->ptr, req->datatype_name, (int)req->count, req->registered_datatype);
+
+	STARPU_VALGRIND_YIELD();
 
 	_STARPU_MPI_TRACE_UTESTING_BEGIN(req->node_tag.node.rank, req->node_tag.data_tag);
 
@@ -312,7 +316,7 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 /*                                                      */
 /********************************************************/
 
-#ifdef STARPU_VERBOSE
+#if defined(STARPU_VERBOSE) || defined(STARPU_MPI_VERBOSE)
 char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 {
 	switch (request_type)
@@ -344,14 +348,17 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req,nm_sr_ev
 				// req->ptr is freed by starpu_data_unpack
 				starpu_data_unpack(req->data_handle, req->ptr, req->count);
 			else
-				free(req->ptr);
+				starpu_free_on_node_flags(STARPU_MAIN_RAM, (uintptr_t) req->ptr, req->count, 0);
 		}
 		else
 		{
 			_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 		}
 	}
+
+	// for recv requests, this event is the end of the communication link:
 	_STARPU_MPI_TRACE_TERMINATED(req, req->node_tag.node.rank, req->node_tag.data_tag);
+
 	_starpu_mpi_release_req_data(req);
 
 	/* Execute the specified callback, if any */
@@ -451,7 +458,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	struct _starpu_mpi_argc_argv *argc_argv = (struct _starpu_mpi_argc_argv *) arg;
 
 #ifndef STARPU_SIMGRID
-	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
+	if (!_starpu_mpi_nobind && starpu_bind_thread_on(_starpu_mpi_thread_cpuid, 0, "MPI") < 0)
 	{
 		char hostname[65];
 		gethostname(hostname, sizeof(hostname));
@@ -546,8 +553,12 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		/* we signal that the request is completed.*/
 
 		free(c);
-
 	}
+
+
+	/** Now, shutting down MPI **/
+
+
 	STARPU_ASSERT_MSG(callback_lfstack_pop(&callback_stack)==NULL, "List of callback not empty.");
 	STARPU_ASSERT_MSG(nb_pending_requests==0, "Request still pending.");
 
@@ -608,11 +619,11 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
-        STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
-        STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&progress_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&progress_cond, NULL);
 
-        STARPU_PTHREAD_MUTEX_INIT(&mpi_wait_for_all_running_mutex, NULL);
-        STARPU_PTHREAD_COND_INIT(&mpi_wait_for_all_running_cond, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&mpi_wait_for_all_running_mutex, NULL);
+	STARPU_PTHREAD_COND_INIT(&mpi_wait_for_all_running_cond, NULL);
 
 	starpu_sem_init(&callback_sem, 0, 0);
 	running = 0;
@@ -623,7 +634,7 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	 * required for piom_ltask_set_bound_thread_indexes() */
 	_starpu_mpi_do_initialize(argc_argv);
 
-	if (_starpu_mpi_thread_cpuid < 0)
+	if (!_starpu_mpi_nobind && _starpu_mpi_thread_cpuid < 0)
 	{
 		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
 	}
@@ -632,8 +643,18 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 
 	/* Tell pioman to use a bound thread for communication progression:
 	 * share the same core as StarPU's MPI thread, the MPI thread has very low activity with NMAD backend */
+#ifdef HAVE_PIOM_LTASK_SET_BOUND_THREAD_OS_INDEXES
+	/* We prefer to give the OS index of the core, because StarPU can have
+	 * a different vision of the topology, especially if STARPU_WORKERS_GETBIND
+	 * is enabled */
+	int indexes[1] = { starpu_get_pu_os_index((unsigned) _starpu_mpi_thread_cpuid) };
+	if (!_starpu_mpi_nobind)
+		piom_ltask_set_bound_thread_os_indexes(HWLOC_OBJ_PU, indexes, 1);
+#else
 	int indexes[1] = { _starpu_mpi_thread_cpuid };
-	piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
+	if (!_starpu_mpi_nobind)
+		piom_ltask_set_bound_thread_indexes(HWLOC_OBJ_PU, indexes, 1);
+#endif
 
 	/* Register some hooks for communication progress if needed */
 	int polling_point_prog, polling_point_idle;
@@ -679,21 +700,21 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 	/* Launch thread used for nmad callbacks */
 	STARPU_PTHREAD_CREATE(&progress_thread, NULL, _starpu_mpi_progress_thread_func, argc_argv);
 
-        STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-        while (!running)
-                STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	while (!running)
+		STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
-        return 0;
+	return 0;
 }
 
 void _starpu_mpi_progress_shutdown(void **value)
 {
 	/* kill the progression thread */
-        STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
-        running = 0;
-        STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+	running = 0;
+	STARPU_PTHREAD_COND_BROADCAST(&progress_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 
 	starpu_sem_post(&callback_sem);
 
@@ -701,11 +722,11 @@ void _starpu_mpi_progress_shutdown(void **value)
 
 	callback_lfstack_destroy(&callback_stack);
 
-        STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
-        STARPU_PTHREAD_COND_DESTROY(&progress_cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&progress_mutex);
+	STARPU_PTHREAD_COND_DESTROY(&progress_cond);
 
-        STARPU_PTHREAD_MUTEX_DESTROY(&mpi_wait_for_all_running_mutex);
-        STARPU_PTHREAD_COND_DESTROY(&mpi_wait_for_all_running_cond);
+	STARPU_PTHREAD_MUTEX_DESTROY(&mpi_wait_for_all_running_mutex);
+	STARPU_PTHREAD_COND_DESTROY(&mpi_wait_for_all_running_cond);
 }
 
 static int64_t _starpu_mpi_tag_max = INT64_MAX;

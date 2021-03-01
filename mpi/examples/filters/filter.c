@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,7 +59,7 @@ void vector_filter(void *father_interface, void *child_interface, struct starpu_
 
 	STARPU_ASSERT_MSG(nchunks <= nx, "%u parts for %u elements", nchunks, nx);
 	STARPU_ASSERT(nchunks == 2);
-	STARPU_ASSERT_MSG((nx % nchunks) == 0, "nx=%d is not a multiple of nchunks %d\n", nx, nchunks);
+	STARPU_ASSERT_MSG((nx % nchunks) == 0, "nx=%u is not a multiple of nchunks %u\n", nx, nchunks);
 
 	vector_child->id = vector_father->id;
 	vector_child->nx = nx/2;

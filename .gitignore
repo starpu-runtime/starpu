@@ -20,6 +20,8 @@
 ,*
 .libs
 .deps
+*.orig
+*.rej
 *.o
 *.lo
 *.la

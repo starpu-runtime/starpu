@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -91,6 +91,14 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
         type(c_ptr), bind(C) :: FSTARPU_CUDA_ASYNC
         type(c_ptr), bind(C) :: FSTARPU_OPENCL_ASYNC
+
+        !type(c_ptr), bind(C) :: FSTARPU_PER_WORKER
+        !type(c_ptr), bind(C) :: FSTARPU_PER_ARCH
+        !type(c_ptr), bind(C) :: FSTARPU_PER_COMMON
+        type(c_ptr), bind(C) :: FSTARPU_HISTORY_BASED
+        type(c_ptr), bind(C) :: FSTARPU_REGRESSION_BASED
+        type(c_ptr), bind(C) :: FSTARPU_NL_REGRESSION_BASED
+        type(c_ptr), bind(C) :: FSTARPU_MULTIPLE_REGRESSION_BASED
 
         ! (some) portable iso_c_binding types
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_DOUBLE
@@ -350,7 +358,7 @@ module fstarpu_mod
                 ! int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
                 function fstarpu_worker_get_by_devid(typeid, devid) bind(C)
                         use iso_c_binding, only: c_int, c_ptr
-                        integer(c_int)              :: fstarpu_worker_get_by_type
+                        integer(c_int)              :: fstarpu_worker_get_by_devid
                         type(c_ptr),value,intent(in) :: typeid ! c_intptr_t expected by C func
                         integer(c_int),value,intent(in) :: devid
                 end function fstarpu_worker_get_by_devid
@@ -649,6 +657,18 @@ module fstarpu_mod
                         character(c_char), intent(in) :: cl_name
                 end subroutine fstarpu_codelet_set_name
 
+                subroutine fstarpu_codelet_set_model (cl, cl_perfmodel) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: cl_perfmodel
+                end subroutine fstarpu_codelet_set_model
+
+                subroutine fstarpu_codelet_set_energy_model (cl, cl_perfmodel) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: cl_perfmodel
+                end subroutine fstarpu_codelet_set_energy_model
+
                 subroutine fstarpu_codelet_add_cpu_func (cl, f_ptr) bind(C)
                         use iso_c_binding, only: c_ptr, c_funptr
                         type(c_ptr), value, intent(in) :: cl
@@ -713,6 +733,28 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl
                         type(c_ptr), value, intent(in) :: where ! C function expects an intptr_t
                 end subroutine fstarpu_codelet_set_where
+
+                function fstarpu_perfmodel_allocate () bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_perfmodel_allocate
+                end function fstarpu_perfmodel_allocate
+
+                subroutine fstarpu_perfmodel_free (model) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: model
+                end subroutine fstarpu_perfmodel_free
+
+                subroutine fstarpu_perfmodel_set_symbol (model, model_symbol) bind(C)
+                        use iso_c_binding, only: c_ptr, c_char
+                        type(c_ptr), value, intent(in) :: model
+                        character(c_char), intent(in) :: model_symbol
+                end subroutine fstarpu_perfmodel_set_symbol
+
+                subroutine fstarpu_perfmodel_set_type (model, type) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: model
+                        type(c_ptr), value, intent(in) :: type ! C function expects an intptr_t
+                end subroutine fstarpu_perfmodel_set_type
 
                 ! == starpu_data_interface.h ==
 
@@ -1012,7 +1054,7 @@ module fstarpu_mod
                 end subroutine fstarpu_vector_data_register
 
                 ! void starpu_vector_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
-                subroutine fstarpu_vector_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                subroutine fstarpu_vector_ptr_register(dh, node, ptr, dev_handle, offset) &
                                 bind(C,name="starpu_vector_ptr_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr), intent(out) :: dh
@@ -1050,7 +1092,7 @@ module fstarpu_mod
                 end subroutine fstarpu_variable_data_register
 
                 ! void starpu_variable_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset);
-                subroutine fstarpu_variable_ptr_register(dh, node, ptr, dev_handle, offset, ld) &
+                subroutine fstarpu_variable_ptr_register(dh, node, ptr, dev_handle, offset) &
                                 bind(C,name="starpu_variable_ptr_register")
                         use iso_c_binding, only: c_ptr, c_int, c_size_t
                         type(c_ptr), intent(out) :: dh
@@ -1716,7 +1758,7 @@ module fstarpu_mod
                 end function fstarpu_data_descr_array_alloc
 
                 ! struct starpu_data_descr *fstarpu_data_descr_alloc(void);
-                function fstarpu_data_descr_alloc (nb) bind(C)
+                function fstarpu_data_descr_alloc () bind(C)
                         use iso_c_binding, only: c_ptr
                         type(c_ptr) :: fstarpu_data_descr_alloc
                 end function fstarpu_data_descr_alloc
@@ -2434,6 +2476,21 @@ module fstarpu_mod
                         FSTARPU_OPENCL_ASYNC = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL_ASYNC"//C_NULL_CHAR)
 
+                        !FSTARPU_PER_WORKER = &
+                        !        fstarpu_get_constant(C_CHAR_"FSTARPU_PER_WORKER"//C_NULL_CHAR)
+                        !FSTARPU_PER_ARCH = &
+                        !        fstarpu_get_constant(C_CHAR_"FSTARPU_PER_ARCH"//C_NULL_CHAR)
+                        !FSTARPU_PER_COMMON = &
+                        !        fstarpu_get_constant(C_CHAR_"FSTARPU_PER_COMMON"//C_NULL_CHAR)
+                        FSTARPU_HISTORY_BASED = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_HISTORY_BASED"//C_NULL_CHAR)
+                        FSTARPU_REGRESSION_BASED = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_REGRESSION_BASED"//C_NULL_CHAR)
+                        FSTARPU_NL_REGRESSION_BASED = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_NL_REGRESSION_BASED"//C_NULL_CHAR)
+                        FSTARPU_MULTIPLE_REGRESSION_BASED = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_MULTIPLE_REGRESSION_BASED"//C_NULL_CHAR)
+
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_C_DOUBLE        = sz_to_p(c_sizeof(FSTARPU_SZ_C_DOUBLE_dummy))
                         FSTARPU_SZ_C_FLOAT        = sz_to_p(c_sizeof(FSTARPU_SZ_C_FLOAT_dummy))
@@ -2477,9 +2534,16 @@ module fstarpu_mod
                 function fstarpu_int_to_cptr(i) bind(C)
                         use iso_c_binding
                         type(c_ptr) :: fstarpu_int_to_cptr
-                        integer :: i
+                        integer(c_int) :: i
                         fstarpu_int_to_cptr = transfer(int(i,kind=c_intptr_t),C_NULL_PTR)
                 end function fstarpu_int_to_cptr
+
+                function fstarpu_long_to_cptr(i) bind(C)
+                        use iso_c_binding
+                        type(c_ptr) :: fstarpu_long_to_cptr
+                        integer(c_long) :: i
+                        fstarpu_long_to_cptr = transfer(int(i,kind=c_intptr_t),C_NULL_PTR)
+                end function fstarpu_long_to_cptr
 
                 ! Note: do not add binding declarations here in 'CONTAINS'
                 ! section, because the compiler generates empty functions for

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -115,7 +115,7 @@ soclCreateBuffer(cl_context   context,
 	// If not MEM_USE_HOST_PTR, we need to alloc the buffer ourselves
 	if (!(flags & CL_MEM_USE_HOST_PTR))
 	{
-		mem->ptr = valloc(size);
+		mem->ptr = malloc(size);
 		if (mem->ptr == NULL)
 		{
 			if (errcode_ret != NULL)

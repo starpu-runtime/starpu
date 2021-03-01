@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -41,7 +41,6 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 #include <core/topology.h>
-#include <core/workers.h>
 
 #ifdef STARPU_USE_MPI_MPI
 
@@ -132,6 +131,7 @@ struct _starpu_mpi_early_data_cb_args
 	starpu_data_handle_t early_handle;
 	struct _starpu_mpi_req *req;
 	void *buffer;
+	size_t size;
 };
 
 void _starpu_mpi_submit_ready_request_inc(struct _starpu_mpi_req *req)
@@ -202,7 +202,7 @@ void _starpu_mpi_submit_ready_request(void *arg)
 			else
 			{
 				STARPU_ASSERT(req->count);
-				_STARPU_MPI_MALLOC(req->ptr, req->count);
+				req->ptr = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, req->count, 0);
 			}
 
 			_STARPU_MPI_DEBUG(3, "Pushing internal starpu_mpi_irecv request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d \n",
@@ -224,12 +224,12 @@ void _starpu_mpi_submit_ready_request(void *arg)
 			/* test whether some data with the given tag and source have already been received by StarPU-MPI*/
 			struct _starpu_mpi_early_data_handle *early_data_handle = _starpu_mpi_early_data_find(&req->node_tag);
 
-			/* Case: a receive request for a data with the given tag and source has already been
-			 * posted by StarPU. Asynchronously requests a Read permission over the temporary handle ,
-			 * so as when the internal receive is completed, the _starpu_mpi_early_data_cb function
-			 * will be called to bring the data back to the original data handle associated to the request.*/
 			if (early_data_handle)
 			{
+				/* Case: a receive request for a data with the given tag and source has already been
+				 * posted to MPI by StarPU. Asynchronously requests a Read permission over the temporary handle ,
+				 * so as when the internal receive is completed, the _starpu_mpi_early_data_cb function
+				 * will be called to bring the data back to the original data handle associated to the request.*/
 				STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 				STARPU_PTHREAD_MUTEX_LOCK(&(early_data_handle->req_mutex));
 				while (!(early_data_handle->req_ready))
@@ -248,20 +248,21 @@ void _starpu_mpi_submit_ready_request(void *arg)
 				cb_args->data_handle = req->data_handle;
 				cb_args->early_handle = early_data_handle->handle;
 				cb_args->buffer = early_data_handle->buffer;
+				cb_args->size = early_data_handle->size;
 				cb_args->req = req;
 
 				_STARPU_MPI_DEBUG(3, "Calling data_acquire_cb on starpu_mpi_copy_cb..\n");
 				STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
-				starpu_data_acquire_cb(early_data_handle->handle,STARPU_R,_starpu_mpi_early_data_cb,(void*) cb_args);
+				starpu_data_acquire_on_node_cb(early_data_handle->handle,STARPU_MAIN_RAM,STARPU_R,_starpu_mpi_early_data_cb,(void*) cb_args);
 				STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 			}
-			/* Case: no matching data has been received. Store the receive request as an early_request. */
 			else
 			{
 				struct _starpu_mpi_req *sync_req = _starpu_mpi_sync_data_find(req->node_tag.data_tag, req->node_tag.node.rank, req->node_tag.node.comm);
 				_STARPU_MPI_DEBUG(3, "----------> Looking for sync data for tag %"PRIi64" and src %d = %p\n", req->node_tag.data_tag, req->node_tag.node.rank, sync_req);
 				if (sync_req)
 				{
+					/* Case: we already received the send envelope, we can proceed with the receive */
 					req->sync = 1;
 					_starpu_mpi_datatype_allocate(req->data_handle, req);
 					if (req->registered_datatype == 1)
@@ -273,14 +274,16 @@ void _starpu_mpi_submit_ready_request(void *arg)
 					{
 						req->count = sync_req->count;
 						STARPU_ASSERT(req->count);
-						_STARPU_MPI_MALLOC(req->ptr, req->count);
+						req->ptr = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, req->count, 0);
 					}
 					_starpu_mpi_req_list_push_front(&ready_recv_requests, req);
 					_STARPU_MPI_INC_READY_REQUESTS(+1);
+					/* Throw away the dumb request that was only used to know that we got the envelope */
 					_starpu_mpi_request_destroy(sync_req);
 				}
 				else
 				{
+					/* Case: no matching data has been received. Store the receive request as an early_request. */
 					_STARPU_MPI_DEBUG(3, "Adding the pending receive request %p (srcdst %d tag %"PRIi64") into the request hashmap\n", req, req->node_tag.node.rank, req->node_tag.data_tag);
 					_starpu_mpi_early_request_enqueue(req);
 				}
@@ -400,7 +403,9 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_starpu_mpi_simgrid_wait_req(&req->backend->data_request, &req->status_store, &req->queue, &req->done);
 #endif
 
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(req->node_tag.node.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle);
+	// this trace event is the start of the communication link:
+	// the last parameter, set to 0, is for communication priority (not used in this MPI backend)
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req->node_tag.node.rank, req->node_tag.data_tag, starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle, 0);
 
 	/* somebody is perhaps waiting for the MPI request to be posted */
 	STARPU_PTHREAD_MUTEX_LOCK(&req->backend->req_mutex);
@@ -682,6 +687,8 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 	STARPU_MPI_ASSERT_MSG(!req->detached, "MPI_Test cannot be called on a detached request");
 
+	STARPU_VALGRIND_YIELD();
+
 #ifdef STARPU_SIMGRID
 	ret = req->ret = _starpu_mpi_simgrid_mpi_test(&req->done, flag);
 	if (*flag)
@@ -754,6 +761,12 @@ static void _starpu_mpi_barrier_func(struct _starpu_mpi_req *barrier_req)
 {
 	_STARPU_MPI_LOG_IN();
 
+	/* FIXME: rather use MPI_Ibarrier and make it a detached request.
+	 * We'd then be able to introduce starpu_mpi_ibarrier, and make
+	 * starpu_mpi_barrier just call starpu_mpi_ibarrier(); starpu_mpi_wait();
+	 * That'll solve locking issue when intermixing starpu_mpi_barrier with
+	 * other communications.
+	 */
 	barrier_req->ret = MPI_Barrier(barrier_req->node_tag.node.comm);
 	STARPU_MPI_ASSERT_MSG(barrier_req->ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_error_code(barrier_req->ret));
 
@@ -850,8 +863,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	if (req->backend->internal_req)
 	{
-		free(req->backend->early_data_handle);
-		req->backend->early_data_handle = NULL;
+		_starpu_mpi_early_data_delete(req->backend->early_data_handle);
 	}
 	else
 	{
@@ -882,6 +894,7 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 				_starpu_mpi_datatype_free(req->data_handle, &req->datatype);
 			}
 		}
+		// for recv requests, this event is the end of the communication link:
 		_STARPU_MPI_TRACE_TERMINATED(req, req->node_tag.node.rank, req->node_tag.data_tag);
 	}
 
@@ -906,6 +919,8 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
+/* This is called when the data is now received in the early data handle, we can
+ * now copy it over to the real handle. */
 static void _starpu_mpi_early_data_cb(void* arg)
 {
 	struct _starpu_mpi_early_data_cb_args *args = arg;
@@ -915,9 +930,23 @@ static void _starpu_mpi_early_data_cb(void* arg)
 		/* Data has been received as a raw memory, it has to be unpacked */
 		struct starpu_data_interface_ops *itf_src = starpu_data_get_interface_ops(args->early_handle);
 		struct starpu_data_interface_ops *itf_dst = starpu_data_get_interface_ops(args->data_handle);
-		STARPU_MPI_ASSERT_MSG(itf_dst->unpack_data, "The data interface does not define an unpack function\n");
-		itf_dst->unpack_data(args->data_handle, STARPU_MAIN_RAM, args->buffer, itf_src->get_size(args->early_handle));
-		args->buffer = NULL;
+		MPI_Datatype datatype = _starpu_mpi_datatype_get_user_defined_datatype(args->data_handle);
+
+		if (datatype)
+		{
+			int position=0;
+			void *ptr = starpu_data_get_local_ptr(args->data_handle);
+			MPI_Unpack(args->buffer, itf_src->get_size(args->early_handle), &position, ptr, 1, datatype, args->req->node_tag.node.comm);
+			starpu_free_on_node_flags(STARPU_MAIN_RAM, (uintptr_t) args->buffer, args->size, 0);
+			args->buffer = NULL;
+			_starpu_mpi_datatype_free(args->data_handle, &datatype);
+		}
+		else
+		{
+			STARPU_MPI_ASSERT_MSG(itf_dst->unpack_data, "The data interface does not define an unpack function\n");
+			itf_dst->unpack_data(args->data_handle, STARPU_MAIN_RAM, args->buffer, itf_src->get_size(args->early_handle));
+			args->buffer = NULL;
+		}
 	}
 	else
 	{
@@ -938,9 +967,12 @@ static void _starpu_mpi_early_data_cb(void* arg)
 	}
 
 	_STARPU_MPI_DEBUG(3, "Done, handling release of early_handle..\n");
-	starpu_data_release(args->early_handle);
+	starpu_data_release_on_node(args->early_handle, STARPU_MAIN_RAM);
 
 	_STARPU_MPI_DEBUG(3, "Done, handling unregister of early_handle..\n");
+	/* XXX: note that we have already freed the registered buffer above. In
+	 * principle that's unsafe. As of now it is fine because StarPU has no
+	 reason to access it. */
 	starpu_data_unregister_submit(args->early_handle);
 
 	_STARPU_MPI_DEBUG(3, "Done, handling request %p termination of the already received request\n",args->req);
@@ -1082,8 +1114,6 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 		_starpu_mpi_req_list_push_back(&detached_requests, req);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
 
-		starpu_wake_all_blocked_workers();
-
 		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 		STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
@@ -1130,9 +1160,10 @@ static void _starpu_mpi_receive_early_data(struct _starpu_mpi_envelope *envelope
 		 * we are going to receive the data as a raw memory, and give it
 		 * to the application when it post a receive for this tag
 		 */
-		_STARPU_MPI_DEBUG(3, "Posting a receive for a data of size %d which has not yet been registered\n", (int)early_data_handle->env->size);
-		early_data_handle->buffer = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, early_data_handle->env->size, 0);
-		starpu_variable_data_register(&early_data_handle->handle, STARPU_MAIN_RAM, (uintptr_t) early_data_handle->buffer, early_data_handle->env->size);
+		_STARPU_MPI_DEBUG(3, "Posting a receive for a data of size %d which has not yet been registered\n", (int)envelope->size);
+		early_data_handle->buffer = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, envelope->size, 0);
+		early_data_handle->size = envelope->size;
+		starpu_variable_data_register(&early_data_handle->handle, STARPU_MAIN_RAM, (uintptr_t) early_data_handle->buffer, envelope->size);
 		//_starpu_mpi_early_data_add(early_data_handle);
 	}
 
@@ -1184,14 +1215,14 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		_starpu_mpi_thread_cpuid = starpu_get_next_bindid(STARPU_THREAD_ACTIVE, NULL, 0);
 	}
 
-	if (starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
+	if (!_starpu_mpi_nobind && starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI") < 0)
 	{
 		char hostname[65];
 		gethostname(hostname, sizeof(hostname));
 		_STARPU_DISP("[%s] No core was available for the MPI thread. You should use STARPU_RESERVE_NCPU to leave one core available for MPI, or specify one core less in STARPU_NCPU\n", hostname);
 	}
 	_starpu_mpi_do_initialize(argc_argv);
-	if (_starpu_mpi_thread_cpuid >= 0)
+	if (!_starpu_mpi_nobind && _starpu_mpi_thread_cpuid >= 0)
 		/* In case MPI changed the binding */
 		starpu_bind_thread_on(_starpu_mpi_thread_cpuid, STARPU_THREAD_ACTIVE, "MPI");
 #else
@@ -1430,7 +1461,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 						else
 						{
 							early_request->count = envelope->size;
-							_STARPU_MPI_MALLOC(early_request->ptr, early_request->count);
+							early_request->ptr = (void *)starpu_malloc_on_node_flags(STARPU_MAIN_RAM, early_request->count, 0);
 							starpu_memory_allocate(STARPU_MAIN_RAM, early_request->count, STARPU_MEMORY_OVERFLOW);
 
 							STARPU_MPI_ASSERT_MSG(early_request->ptr, "cannot allocate message of size %ld\n", early_request->count);
@@ -1483,6 +1514,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		starpu_pthread_wait_wait(&_starpu_mpi_thread_wait);
 		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
 #endif
+		STARPU_VALGRIND_YIELD();
 	}
 
 	_STARPU_MPI_TRACE_POLLING_END();
@@ -1515,6 +1547,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_early_request_check_termination();
 	_starpu_mpi_early_data_check_termination();
 	_starpu_mpi_sync_data_check_termination();
+	_starpu_mpi_req_prio_list_deinit(&ready_send_requests);
 
 	if (argc_argv->initialize_mpi)
 	{

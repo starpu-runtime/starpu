@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,8 @@
 // This program checks that the implementation of the void data
 // interface only uses StarPU's public API
 
+#define starpu_interface_void_ops my_starpu_interface_void_ops
+#define starpu_void_data_register my_starpu_void_data_register
 #include "../../src/datawizard/interfaces/void_interface.c"
 
 int main()

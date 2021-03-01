@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,9 +26,9 @@
 #  define ELEMENTS 1000
 #endif
 
-typedef void (*test_func)(starpu_data_handle_t *, int, int, int);
+typedef void (*test_func)(starpu_data_handle_t *, int, int, starpu_mpi_tag_t);
 
-void test_handle_irecv_isend_detached(starpu_data_handle_t *handles, int nb_handles, int rank, int tag)
+void test_handle_irecv_isend_detached(starpu_data_handle_t *handles, int nb_handles, int rank, starpu_mpi_tag_t tag)
 {
 	int i;
 	(void)rank;
@@ -42,7 +42,7 @@ void test_handle_irecv_isend_detached(starpu_data_handle_t *handles, int nb_hand
 		starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, handles[i], 0, NULL, NULL);
 }
 
-void test_handle_recv_send(starpu_data_handle_t *handles, int nb_handles, int rank, int tag)
+void test_handle_recv_send(starpu_data_handle_t *handles, int nb_handles, int rank, starpu_mpi_tag_t tag)
 {
 	int i;
 

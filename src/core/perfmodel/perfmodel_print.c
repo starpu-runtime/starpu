@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -30,7 +30,7 @@ void _starpu_perfmodel_print_history_based(struct starpu_perfmodel_per_arch *per
 	ptr = per_arch_model->list;
 
 	if (!parameter && ptr)
-		fprintf(output, "# hash\t\tsize\t\tflops\t\tmean (us)\tstddev (us)\t\tn\n");
+		fprintf(output, "# hash\t\tsize\t\tflops\t\tmean (us or J)\tstddev (us or J)\t\tn\n");
 
 	while (ptr)
 	{
@@ -172,6 +172,7 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 
 int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output)
 {
+	_starpu_init_and_load_perfmodel(model);
 	if (arch == NULL)
 	{
 		int comb, impl;

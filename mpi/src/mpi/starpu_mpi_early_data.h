@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,8 @@
 #include <common/uthash.h>
 #include <starpu_mpi_private.h>
 
+/** @file */
+
 #ifdef STARPU_USE_MPI_MPI
 
 #ifdef __cplusplus
@@ -34,9 +36,9 @@ extern "C"
 
 LIST_TYPE(_starpu_mpi_early_data_handle,
 	  starpu_data_handle_t handle;
-	  struct _starpu_mpi_envelope *env;
 	  struct _starpu_mpi_req *req;
 	  void *buffer;
+	  size_t size;
 	  int req_ready;
 	  struct _starpu_mpi_node_tag node_tag;
 	  starpu_pthread_mutex_t req_mutex;
@@ -50,6 +52,8 @@ struct _starpu_mpi_early_data_handle_tag_hashlist
 	starpu_mpi_tag_t data_tag;
 };
 
+struct _starpu_mpi_envelope;
+
 void _starpu_mpi_early_data_init(void);
 void _starpu_mpi_early_data_check_termination(void);
 void _starpu_mpi_early_data_shutdown(void);
@@ -57,7 +61,9 @@ void _starpu_mpi_early_data_shutdown(void);
 struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_create(struct _starpu_mpi_envelope *envelope, int source, MPI_Comm comm) STARPU_ATTRIBUTE_MALLOC;
 struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu_mpi_node_tag *node_tag);
 void _starpu_mpi_early_data_add(struct _starpu_mpi_early_data_handle *early_data_handle);
+void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle);
 
+// Not used now but needed for fault tolerance
 struct _starpu_mpi_early_data_handle_tag_hashlist *_starpu_mpi_early_data_extract(struct _starpu_mpi_node_tag *node_tag);
 
 #ifdef __cplusplus

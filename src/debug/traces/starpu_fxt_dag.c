@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -108,6 +108,12 @@ void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, con
 {
 	if (out_file)
 		fprintf(out_file, "\t \"task_%s%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\"]\n", prefix, job_id, label, color);
+}
+
+void _starpu_fxt_dag_set_task_line(const char *prefix, unsigned long job_id, const char *file, int line)
+{
+	if (out_file)
+		fprintf(out_file, "\t \"task_%s%lu\" [ href=\"%s#%d\" ]\n", prefix, job_id, file, line);
 }
 
 void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id)

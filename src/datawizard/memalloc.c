@@ -1601,7 +1601,8 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 			/* First try to flush data explicitly marked for freeing */
 			size_t freed = flush_memchunk_cache(dst_node, reclaim);
 
-			if (freed >= reclaim) {
+			if (freed >= reclaim)
+			{
 				/* That freed enough data, retry allocating */
 				prefetch_out_of_memory[dst_node] = 0;
 				continue;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -187,6 +187,21 @@ double starpu_timing_now(void);
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
 
 /**
+   Create a copy of \p src_handle, and return a new handle in \p dst_handle,
+   which is to be used only for read accesses. This allows StarPU to optimize it
+   by not actually copying the data whenever possible (e.g. it may possibly
+   simply return src_handle itself).
+   The parameter \p asynchronous indicates whether the function should block
+   or not. In the case of an asynchronous call, it is possible to synchronize
+   with the termination of this operation either by the means of implicit
+   dependencies (if enabled) or by calling starpu_task_wait_for_all(). If
+   \p callback_func is not <c>NULL</c>, this callback function is executed after
+   the handle has been copied, and it is given the pointer \p
+   callback_arg as argument.
+*/
+int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t src_handle, int asynchronous);
+
+/**
    Call hwloc-ps to display binding of each processus and thread running on
    the machine.<br>
    Use the environment variable \ref STARPU_DISPLAY_BINDINGS to automatically
@@ -202,9 +217,10 @@ int starpu_get_pu_os_index(unsigned logical_index);
 
 #ifdef STARPU_HAVE_HWLOC
 /**
-   Get a copy of the hwloc topology used by StarPU.
+   Get the hwloc topology used by StarPU. One can use this pointer to get
+   information about topology, but not to change settings related to topology.
 */
-int starpu_get_hwloc_topology(hwloc_topology_t* topology);
+hwloc_topology_t starpu_get_hwloc_topology(void);
 #endif
 /** @} */
 

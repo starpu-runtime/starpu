@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,6 +23,8 @@
 #include <starpu_mic.h>
 #include <common/config.h>
 
+void _starpu_mic_preinit(void);
+
 #ifdef STARPU_USE_MIC
 
 #include <source/COIProcess_source.h>
@@ -34,7 +36,7 @@
 
 extern struct _starpu_node_ops _starpu_driver_mic_node_ops;
 
-/* Array of structures containing all the informations useful to send
+/** Array of structures containing all the informations useful to send
  * and receive informations with devices */
 extern struct _starpu_mp_node *_starpu_mic_nodes[STARPU_MAXMICDEVS];
 

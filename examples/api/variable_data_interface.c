@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,11 @@
 // This program checks that the implementation of the variable data
 // interface only uses StarPU's public API
 
+#define starpu_interface_variable_ops my_starpu_interface_variable_ops
+#define starpu_variable_data_register my_starpu_variable_data_register
+#define starpu_variable_ptr_register my_starpu_variable_ptr_register
+#define starpu_variable_get_local_ptr my_starpu_variable_get_local_ptr
+#define starpu_variable_get_elemsize my_starpu_variable_get_elemsize
 #include "../../src/datawizard/interfaces/variable_interface.c"
 
 int main()

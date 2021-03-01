@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,7 +27,7 @@ struct _starpu_prio_deque
 	struct starpu_task_prio_list list;
 	unsigned ntasks;
 	unsigned nprocessed;
-	// Assumptions: 
+	// Assumptions:
 	// exp_len is the sum of predicted_length + predicted_tansfer of all tasks in list
 	// exp_start is the time at which the first task of list can start
 	// exp_end = exp_start + exp_end

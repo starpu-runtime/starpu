@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017,2019  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -36,6 +36,8 @@ LIST_TYPE(mpi_transfer,
 	long jobid;
 	double bandwidth;
 	unsigned long handle;
+	unsigned type;
+	int prio;
 );
 
 /* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
@@ -120,7 +122,7 @@ unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
 unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 unsigned mpi_sends_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio)
 {
 	STARPU_ASSERT(src >= 0);
 	if (src >= STARPU_FXT_MAX_FILES)
@@ -149,6 +151,8 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 	mpi_sends[src][slot].date = date;
 	mpi_sends[src][slot].jobid = jobid;
 	mpi_sends[src][slot].handle = handle;
+	mpi_sends[src][slot].type = type;
+	mpi_sends[src][slot].prio = prio;
 }
 
 void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle)
@@ -217,6 +221,19 @@ struct mpi_transfer *try_to_match_send_transfer(int src STARPU_ATTRIBUTE_UNUSED,
 }
 
 static unsigned long mpi_com_id = 0;
+
+static const char* get_mpi_type_str(unsigned mpi_type)
+{
+	switch (mpi_type)
+	{
+		case _STARPU_MPI_FUT_POINT_TO_POINT_SEND:
+			return "PointToPoint";
+		case _STARPU_MPI_FUT_COLLECTIVE_SEND:
+			return "Collective";
+		default:
+			return "Unknown";
+	}
+}
 
 static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comms_file, unsigned n)
 {
@@ -331,7 +348,11 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 
 			char str_mpi_tag[STARPU_POTI_STR_LEN];
 			snprintf(str_mpi_tag, sizeof(str_mpi_tag), "%ld", mpi_tag);
-			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 1, str_mpi_tag);
+			char str_priority[STARPU_POTI_STR_LEN];
+			snprintf(str_priority, sizeof(str_priority), "%d", cur->prio);
+			char str_handle[STARPU_POTI_STR_LEN];
+			snprintf(str_handle, sizeof(str_handle), "%lx", send_handle);
+			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 4, str_mpi_tag, get_mpi_type_str(cur->type), str_priority, str_handle);
 
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
@@ -340,7 +361,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 #else
 			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo_mpi	%f\n", start_date, src, current_out_bandwidth[src]);
 			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi_mpi	%f\n", start_date, dst, current_in_bandwidth[dst]);
-			fprintf(out_paje_file, "23	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu	%ld\n", start_date, (unsigned long)size, src, id, mpi_tag);
+			fprintf(out_paje_file, "23	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu	%ld	%s	%d	%lx\n", start_date, (unsigned long)size, src, id, mpi_tag, get_mpi_type_str(cur->type), cur->prio, send_handle);
 			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
 #endif
 
@@ -354,10 +375,12 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 				fprintf(out_comms_file, "SendHandle: %lx\n", send_handle);
 				fprintf(out_comms_file, "RecvHandle: %lx\n", recv_handle);
 				if (cur->jobid != -1)
-					fprintf(out_comms_file, "SendJobId: %d_%lu\n", src, cur->jobid);
+					fprintf(out_comms_file, "SendJobId: %d_%ld\n", src, cur->jobid);
 				if (match->jobid != -1)
-					fprintf(out_comms_file, "RecvJobId: %d_%lu\n", dst, match->jobid);
-				fprintf(out_comms_file, "Size: %ld\n", size);
+					fprintf(out_comms_file, "RecvJobId: %d_%ld\n", dst, match->jobid);
+				fprintf(out_comms_file, "Size: %lu\n", (unsigned long)size);
+				fprintf(out_comms_file, "Priority: %d\n", cur->prio);
+				fprintf(out_comms_file, "Type: %s\n", get_mpi_type_str(cur->type));
 				fprintf(out_comms_file, "\n");
 			}
 		}
@@ -372,7 +395,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 	if (nb_wrong_comm_timing == 1)
 		_STARPU_MSG("Warning: a communication finished before it started !\n");
 	else if (nb_wrong_comm_timing > 1)
-		_STARPU_MSG("Warning: %d communications finished before they started !\n", nb_wrong_comm_timing);
+		_STARPU_MSG("Warning: %u communications finished before they started !\n", nb_wrong_comm_timing);
 }
 
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks STARPU_ATTRIBUTE_UNUSED, FILE *out_paje_file, FILE* out_comms_file)

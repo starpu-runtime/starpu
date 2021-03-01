@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,8 +23,9 @@
 #include <starpu_mpi_ms.h>
 #include <datawizard/node_ops.h>
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
+void _starpu_mpi_ms_preinit(void);
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
 extern struct _starpu_node_ops _starpu_driver_mpi_node_ops;
 
 /** Array of structures containing all the informations useful to send

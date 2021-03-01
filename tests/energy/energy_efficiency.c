@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Bérangère Subervie
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -308,9 +308,9 @@ int main(int argc, char *argv[])
 	/* Initialize StarPU */
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
+	starpu_conf_noworker(&conf);
+	conf.ncpus = -1;
 
-	conf.ncuda = 0;
-	conf.nopencl = 0;
 	if (!getenv("STARPU_SCHED"))
 		conf.sched_policy_name = "dmdas";
 
@@ -320,11 +320,19 @@ int main(int argc, char *argv[])
 
 	unsigned N, k, m, n, iter, NITER;
 	if (argc < 2)
+#ifdef STARPU_QUICK_CHECK
+		N = 10;
+#else
 		N = 40;
+#endif
 	else
 		N = atoi(argv[1]);
 	if (argc < 3)
+#ifdef STARPU_QUICK_CHECK
+		NITER = 3;
+#else
 		NITER = 10;
+#endif
 	else
 		NITER = atoi(argv[2]);
 	if (N == 0)

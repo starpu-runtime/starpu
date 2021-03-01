@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -23,7 +23,7 @@
 #include <starpu_sched_component.h>
 
 
-/* lock and unlock drivers for modifying schedulers */
+/** lock and unlock drivers for modifying schedulers */
 void _starpu_sched_component_lock_all_workers(void);
 void _starpu_sched_component_unlock_all_workers(void);
 

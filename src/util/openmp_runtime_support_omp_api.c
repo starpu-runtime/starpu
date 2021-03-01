@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -65,7 +65,7 @@ int starpu_omp_get_max_threads()
 
 int starpu_omp_get_num_procs (void)
 {
-	/* starpu_cpu_worker_get_count defined as topology.ncpus */
+	/* starpu_cpu_worker_get_count defined as topology.nworkers[STARPU_CPU_WORKER] */
 	return starpu_cpu_worker_get_count();
 }
 

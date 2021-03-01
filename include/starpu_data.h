@@ -115,7 +115,9 @@ enum starpu_data_access_mode
 
 struct starpu_data_interface_ops;
 
-/** Set the name of the data, to be shown in various profiling tools. */
+/**
+   Set the name of the data, to be shown in various profiling tools.
+*/
 void starpu_data_set_name(starpu_data_handle_t handle, const char *name);
 
 /**
@@ -161,7 +163,13 @@ void starpu_data_unregister_no_coherency(starpu_data_handle_t handle);
 
 /**
    Destroy the data \p handle once it is no longer needed by any
-   submitted task. No coherency is assumed.
+   submitted task. No coherency is provided.
+
+   This is not safe to call starpu_data_unregister_submit() on a handle that
+   comes from the registration of a non-NULL application home buffer, since the
+   moment when the unregistration will happen is unknown to the
+   application. Only calling starpu_shutdown() allows to be sure that the data
+   was really unregistered.
 */
 void starpu_data_unregister_submit(starpu_data_handle_t handle);
 
@@ -344,11 +352,29 @@ void starpu_data_release(starpu_data_handle_t handle);
 
 /**
    Similar to starpu_data_release(), except that the data
-   will be available on the given memory \p node instead of main memory.
+   was made available on the given memory \p node instead of main memory.
    The \p node parameter must be exactly the same as the corresponding \c
    starpu_data_acquire_on_node* call.
 */
 void starpu_data_release_on_node(starpu_data_handle_t handle, int node);
+
+/**
+   Partly release the piece of data acquired by the application either by
+   starpu_data_acquire() or by starpu_data_acquire_cb(), switching the
+   acquisition down to \p down_to_mode. For now, only releasing from STARPU_RW
+   or STARPU_W acquisition down to STARPU_R is supported, or down to the same
+   acquisition.  STARPU_NONE can also be passed as \p down_to_mode, in which
+   case this is equivalent to calling starpu_data_release().
+*/
+void starpu_data_release_to(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode);
+
+/**
+   Similar to starpu_data_release_to(), except that the data
+   was made available on the given memory \p node instead of main memory.
+   The \p node parameter must be exactly the same as the corresponding \c
+   starpu_data_acquire_on_node* call.
+*/
+void starpu_data_release_to_on_node(starpu_data_handle_t handle, enum starpu_data_access_mode down_to_mode, int node);
 
 /** @} */
 

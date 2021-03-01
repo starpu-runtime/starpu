@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -57,12 +57,12 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_ANSWER_ALLOCATE,
 	STARPU_MP_COMMAND_ERROR_ALLOCATE,
 	STARPU_MP_COMMAND_FREE,
-        /* Synchronous send */
+        /** Synchronous send */
 	STARPU_MP_COMMAND_RECV_FROM_HOST,
 	STARPU_MP_COMMAND_SEND_TO_HOST,
 	STARPU_MP_COMMAND_RECV_FROM_SINK,
 	STARPU_MP_COMMAND_SEND_TO_SINK,
-        /* Asynchronous send */
+        /** Asynchronous send */
         STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC,
         STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC_COMPLETED,
 	STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC,

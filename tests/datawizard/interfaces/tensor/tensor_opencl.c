@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -87,12 +87,12 @@ test_tensor_opencl_func(void *buffers[], void *args)
 	}
 			
 	{
-                size_t global = 1;
+		size_t global[3] = {nx, ny, nz*nt};
 		err = clEnqueueNDRangeKernel(queue,
 					     kernel,
-					     1,
+					     3,
 					     NULL,
-					     &global,
+					     global,
 					     NULL,
 					     0,
 					     NULL,

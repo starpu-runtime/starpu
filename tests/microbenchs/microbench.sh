@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,9 @@
 # schedulers which are supposed to fail or succeed, and then call test_scheds
 
 set -e
+
+# disable core generation
+ulimit -c 0
 
 # Testing a specific scheduler
 if [ -n "$STARPU_SCHED" ]

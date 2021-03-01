@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -41,7 +41,7 @@ endif
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html_dev
-	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html_dev \;)
+	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html_dev \;)
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html_dev
 else
@@ -50,7 +50,7 @@ EXTRA_DIST += $(top_srcdir)/doc/doxygen_dev/html_dev
 DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen_dev/html_dev
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html_dev
-	(cd $(DOX_HTML_SRCDIR) && find . -type f -exec $(INSTALL) -c -m 644 {} $(DESTDIR)$(docdir)/manual/html_dev \;)
+	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html_dev \;)
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html_dev
 endif
@@ -67,6 +67,10 @@ chapters =	\
 images =
 
 if STARPU_BUILD_DOC
+EXTRA_DIST += \
+	      $(top_srcdir)/doc/doxygen_dev/chapters/version.sty \
+	      $(top_srcdir)/doc/doxygen_dev/chapters/version.html
+
 config.h: $(top_srcdir)/src/common/config.h.in
 	@$(SED) 's/#undef \(.*\)/#define \1 1/' $< > $@
 	@$(SED) -i '1s/^/\/\*\* \@file \*\/\n/' $@
@@ -168,7 +172,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/common/list.h	\
 	$(top_srcdir)/src/debug/starpu_debug_helpers.h	\
 	$(top_srcdir)/src/debug/traces/starpu_fxt.h	\
-	$(top_srcdir)/src/starpu_parameters.h	\
 	$(top_srcdir)/src/sched_policies/fifo_queues.h	\
 	$(top_srcdir)/src/sched_policies/helper_mct.h	\
 	$(top_srcdir)/src/sched_policies/sched_component.h	\
@@ -244,9 +247,4 @@ endif
 
 EXTRA_DIST += doxygen.cfg refman.tex \
 	      $(chapters) $(images)
-
-# Rule to update documentation on web server. Should only be used locally.
-PUBLISHHOST	?= gforge
-update-web: $(DOX_PDF)
-	scp -pr starpu_dev.pdf html_dev $(PUBLISHHOST):/home/groups/starpu/htdocs/files/doc
 

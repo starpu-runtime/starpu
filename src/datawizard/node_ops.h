@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,10 +46,10 @@ typedef int (*copy3d_data_t)(uintptr_t src_ptr, size_t src_offset, unsigned src_
 
 struct _starpu_node_ops
 {
-	copy_interface_func_t copy_interface_to[STARPU_MPI_MS_RAM+1];
-	copy_data_t copy_data_to[STARPU_MPI_MS_RAM+1];
-	copy2d_data_t copy2d_data_to[STARPU_MPI_MS_RAM+1];
-	copy3d_data_t copy3d_data_to[STARPU_MPI_MS_RAM+1];
+	copy_interface_func_t copy_interface_to[STARPU_MAX_RAM+1];
+	copy_data_t copy_data_to[STARPU_MAX_RAM+1];
+	copy2d_data_t copy2d_data_to[STARPU_MAX_RAM+1];
+	copy3d_data_t copy3d_data_to[STARPU_MAX_RAM+1];
 	void (*wait_request_completion)(struct _starpu_async_channel *async_channel);
 	unsigned (*test_request_completion)(struct _starpu_async_channel *async_channel);
 	int (*is_direct_access_supported)(unsigned node, unsigned handling_node);

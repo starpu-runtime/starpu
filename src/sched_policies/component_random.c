@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -97,6 +97,12 @@ static int random_push_task(struct starpu_sched_component * component, struct st
 	return ret_val;
 }
 
+static struct starpu_task *random_pull_task(struct starpu_sched_component * from, struct starpu_sched_component *to)
+{
+	starpu_sched_component_can_push(from, to);
+	return NULL;
+}
+
 int starpu_sched_component_is_random(struct starpu_sched_component *component)
 {
 	return component->push_task == random_push_task;
@@ -107,5 +113,6 @@ struct starpu_sched_component * starpu_sched_component_random_create(struct star
 	(void)arg;
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "random");
 	component->push_task = random_push_task;
+	component->pull_task = random_pull_task;
 	return component;
 }

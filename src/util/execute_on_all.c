@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -107,8 +107,7 @@ void starpu_execute_on_each_worker_ex(void (*func)(void *), void *arg, uint32_t 
 	unsigned nworkers = starpu_worker_get_count();
 	struct starpu_task *tasks[STARPU_NMAXWORKERS];
 
-	/* This method only work on CPU, CUDA, OPENCL */
-	STARPU_ASSERT((where & ~STARPU_CPU & ~STARPU_CUDA & ~STARPU_OPENCL) == 0);
+	STARPU_ASSERT_MSG((where & ~STARPU_CPU & ~STARPU_CUDA & ~STARPU_OPENCL) == 0, "This function is implemented only on CPU, CUDA, OpenCL");
 
 	/* create a wrapper codelet */
 	struct starpu_codelet wrapper_cl =

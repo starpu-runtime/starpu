@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,7 +33,13 @@ extern "C"
 */
 
 /**
-   structure for a driver
+   Pre-initialize drivers
+   So as to register information on device types, memory types, etc.
+*/
+void starpu_drivers_preinit(void);
+
+/**
+   structure for designating a given driver
 */
 struct starpu_driver
 {
@@ -51,8 +57,6 @@ struct starpu_driver
 		unsigned cuda_id;
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
 		cl_device_id opencl_id;
-#else
-		unsigned opencl_id;
 #endif
 	} id;
 };

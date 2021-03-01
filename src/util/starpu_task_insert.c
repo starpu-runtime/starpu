@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -130,6 +130,7 @@ struct starpu_task *_starpu_task_build_v(struct starpu_task *ptask, struct starp
 	return (ret == 0) ? task : NULL;
 }
 
+#undef starpu_task_submit
 int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 {
 	struct starpu_task *task;
@@ -152,6 +153,7 @@ int _starpu_task_insert_v(struct starpu_codelet *cl, va_list varg_list)
 	return ret;
 }
 
+#undef starpu_task_set
 int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
@@ -162,6 +164,7 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...)
 	return 0;
 }
 
+#undef starpu_task_insert
 int starpu_task_insert(struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
@@ -173,6 +176,7 @@ int starpu_task_insert(struct starpu_codelet *cl, ...)
 	return ret;
 }
 
+#undef starpu_insert_task
 int starpu_insert_task(struct starpu_codelet *cl, ...)
 {
 	va_list varg_list;
@@ -184,6 +188,7 @@ int starpu_insert_task(struct starpu_codelet *cl, ...)
 	return ret;
 }
 
+#undef starpu_task_build
 struct starpu_task *starpu_task_build(struct starpu_codelet *cl, ...)
 {
 	struct starpu_task *task;

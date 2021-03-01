@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2019       Mael Keryell
  *
@@ -204,9 +204,9 @@ double median_time(unsigned nb_test, unsigned xdim, unsigned ydim, unsigned zdim
 {
 	unsigned i;
 
-	float * A = (float *) valloc(zdim*ydim*sizeof(float));
-	float * B = (float *) valloc(xdim*zdim*sizeof(float));
-	float * C = (float *) valloc(xdim*ydim*sizeof(float));
+	float * A = (float *) malloc(zdim*ydim*sizeof(float));
+	float * B = (float *) malloc(xdim*zdim*sizeof(float));
+	float * C = (float *) malloc(xdim*ydim*sizeof(float));
 
 	double exec_times[nb_test];
 

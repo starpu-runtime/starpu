@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018,2019  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -50,6 +50,7 @@ void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t f
 void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color);
 void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ, const char *label);
 void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color);
+void _starpu_fxt_dag_set_task_line(const char *prefix, unsigned long job_id, const char *file, int line);
 void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_sync_point(void);
@@ -59,7 +60,7 @@ void _starpu_fxt_dag_add_sync_point(void);
  */
 
 int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank);
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle);
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio);
 void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle);
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file, FILE* out_comms_file);
 
@@ -68,6 +69,7 @@ void _starpu_fxt_write_paje_header(FILE *file, struct starpu_fxt_options *option
 extern int _starpu_poti_extendedSetState;
 extern int _starpu_poti_semiExtendedSetState;
 extern int _starpu_poti_MemoryEvent;
+extern int _starpu_poti_CommLinkStart;
 extern int _starpu_poti_MpiLinkStart;
 
 /*
@@ -81,6 +83,7 @@ void _starpu_fxt_component_push(FILE *output, struct starpu_fxt_options *options
 void _starpu_fxt_component_pull(FILE *output, struct starpu_fxt_options *options, double timestamp, int workerid, uint64_t from, uint64_t to, uint64_t task, unsigned prio);
 void _starpu_fxt_component_dump(FILE *output);
 void _starpu_fxt_component_finish(FILE *output);
+void _starpu_fxt_component_deinit(void);
 
 #endif // STARPU_USE_FXT
 

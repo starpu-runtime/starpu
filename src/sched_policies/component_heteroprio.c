@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2020       Télécom-Sud Paris
  *
@@ -434,9 +434,12 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 			/* Didn't find it, add one */
 			data->naccel++;
 
-			float *newaccel = malloc(data->naccel * sizeof(*newaccel));
-			struct _starpu_prio_deque **newbuckets = malloc(data->naccel * sizeof(*newbuckets));
-			struct _starpu_prio_deque *newbucket = malloc(sizeof(*newbucket));
+			float *newaccel;
+			_STARPU_MALLOC(newaccel, data->naccel * sizeof(*newaccel));
+			struct _starpu_prio_deque **newbuckets;
+			_STARPU_MALLOC(newbuckets, data->naccel * sizeof(*newbuckets));
+			struct _starpu_prio_deque *newbucket;
+			_STARPU_MALLOC(newbucket, sizeof(*newbucket));
 			_starpu_prio_deque_init(newbucket);
 			int inserted = 0;
 

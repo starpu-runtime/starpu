@@ -3,7 +3,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -277,13 +277,13 @@ def usage():
     print("")
     print("EXAMPLES:")
     print("# Compute event statistics and report them to stdout:")
-    print("python starpu_trace_state_stats.py trace.rec")
+    print("starpu_trace_state_stats.py trace.rec")
     print("")
     print("# Compute event stats, times and efficiencies:")
-    print("python starpu_trace_state_stats.py -te trace.rec")
+    print("starpu_trace_state_stats.py -te trace.rec")
     print("")
     print("# Compute correct task efficiency with the sequential task time:")
-    print("python starpu_trace_state_stats.py -s=60093.950614 trace.rec")
+    print("starpu_trace_state_stats.py -s=60093.950614 trace.rec")
 
 def main():
     try:

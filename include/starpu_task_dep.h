@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2016       Uppsala University
  *
@@ -209,6 +209,13 @@ void starpu_tag_remove(starpu_tag_t id);
    starpu_tag_restart().
 */
 void starpu_tag_notify_from_apps(starpu_tag_t id);
+
+/**
+   Atomically call starpu_tag_notify_from_apps() and starpu_tag_restart() on tag
+   \p id.
+   This is useful with cyclic graphs, when we want to safely trigger its startup.
+*/
+void starpu_tag_notify_restart_from_apps(starpu_tag_t id);
 
 struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
 
