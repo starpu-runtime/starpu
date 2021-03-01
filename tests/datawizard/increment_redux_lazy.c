@@ -22,8 +22,6 @@
  * initializing the variable
  */
 
-static starpu_data_handle_t handle;
-
 /*
  *	Reduction methods
  */
@@ -211,6 +209,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 	unsigned *var;
+	starpu_data_handle_t handle;
 
 	/* Not supported yet */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)

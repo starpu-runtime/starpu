@@ -22,9 +22,6 @@
  * intermixing with non-REDUX accesses
  */
 
-static unsigned var = 0;
-static starpu_data_handle_t handle;
-
 /*
  *	Reduction methods
  */
@@ -245,6 +242,8 @@ struct starpu_codelet increment_cl_redux =
 int main(int argc, char **argv)
 {
 	int ret;
+	unsigned var = 0;
+	starpu_data_handle_t handle;
 
 	/* Not supported yet */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
