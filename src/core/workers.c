@@ -1168,6 +1168,8 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	/* Do not start performance counter collection by default */
 	conf->start_perf_counter_collection = 0;
+
+	conf->cuda_only_fast_alloc_other_memnodes = starpu_get_env_number_default("STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES", 0);
 	return 0;
 }
 
@@ -1530,6 +1532,14 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	{
 		_STARPU_DISP("Warning: STARPU_ENABLE_STATS is enabled, which slows down a bit\n");
 	}
+
+#ifndef STARPU_SIMGRID
+	if (starpu_get_env_number_default("STARPU_SIMGRID", 0))
+	{
+		_STARPU_DISP("Simulation mode requested, but this libstarpu was built without simgrid support, please recompile\n");
+		return -EINVAL;
+	}
+#endif
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 	WSADATA wsadata;

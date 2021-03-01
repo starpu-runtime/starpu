@@ -21,6 +21,7 @@ unusedFunction
 unmatchedSuppression
 unusedStructMember
 missingInclude
+constArgument
 
 *:starpufft/*
 *:min-dgels/*

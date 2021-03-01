@@ -63,8 +63,6 @@ struct starpu_task *_starpu_pop_every_task(struct _starpu_sched_ctx *sched_ctx);
 void _starpu_sched_post_exec_hook(struct starpu_task *task);
 int _starpu_pop_task_end(struct starpu_task *task);
 
-void _starpu_wait_on_sched_event(void);
-
 struct starpu_task *_starpu_create_conversion_task(starpu_data_handle_t handle,
 						   unsigned int node) STARPU_ATTRIBUTE_MALLOC;
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,74 +27,208 @@
 #include <numpy/arrayobject.h>
 #endif
 
-/*macro*/
-#if defined(Py_DEBUG) || defined(DEBUG)
-extern void _Py_CountReferences(FILE*);
-#define CURIOUS(x) { fprintf(stderr, __FILE__ ":%d ", __LINE__); x; }
-#else
-#define CURIOUS(x)
-#endif
-#define MARKER()        CURIOUS(fprintf(stderr, "\n"))
-#define DESCRIBE(x)     CURIOUS(fprintf(stderr, "  " #x "=%d\n", x))
-#define DESCRIBE_HEX(x) CURIOUS(fprintf(stderr, "  " #x "=%08x\n", x))
-#define COUNTREFS()     CURIOUS(_Py_CountReferences(stderr))
-/*******/
-
 /*********************Functions passed in task_submit wrapper***********************/
 
-static PyObject *asyncio_module; /*python asyncio library*/
+static PyObject *StarpupyError; /*starpupy error exception*/
+static PyObject *asyncio_module; /*python asyncio module*/
 
-/*structure contains parameters which are passed to starpu_task.cl_arg*/
-struct codelet_args
+static char* starpu_cloudpickle_dumps(PyObject *obj, PyObject **obj_bytes, Py_ssize_t *obj_data_size)
 {
-	PyObject *f; /*the python function passed in*/
-	PyObject *argList; /*argument list of python function passed in*/
-	PyObject *rv; /*return value when using PyObject_CallObject call the function f*/
-	PyObject *fut; /*asyncio.Future*/
-	PyObject *lp; /*asyncio.Eventloop*/
-};
+	PyObject *cloudpickle_module = PyImport_ImportModule("cloudpickle");
+	if (cloudpickle_module == NULL)
+	{
+		printf("can't find cloudpickle module\n");
+		exit(1);
+	}
+	PyObject *dumps = PyObject_GetAttrString(cloudpickle_module, "dumps");
+	*obj_bytes= PyObject_CallFunctionObjArgs(dumps, obj, NULL);
 
-/*function passed to starpu_codelet.cpu_func*/
-void codelet_func(void *buffers[], void *cl_arg)
+	char* obj_data;
+	PyBytes_AsStringAndSize(*obj_bytes, &obj_data, obj_data_size);
+
+	return obj_data;
+}
+
+static PyObject* starpu_cloudpickle_loads(char* pyString, Py_ssize_t pyString_size)
 {
-	struct codelet_args *cst = (struct codelet_args*) cl_arg;
+	PyObject *pickle_module = PyImport_ImportModule("pickle");
+	if (pickle_module == NULL)
+	{
+		printf("can't find pickle module\n");
+		exit(1);
+	}
+	PyObject *loads = PyObject_GetAttrString(pickle_module, "loads");
+	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(pyString, pyString_size);
+	PyObject *obj = PyObject_CallFunctionObjArgs(loads, obj_bytes_str, NULL);
+
+	Py_DECREF(obj_bytes_str);
+
+	return obj;
+}
+
+/* prologue_callback_func*/
+void prologue_cb_func(void *cl_arg)
+{
+	PyObject *func_data;
+	size_t func_data_size;
+	PyObject *argList;
+	PyObject *fut;
+	PyObject *loop;
+	int sb;
 
 	/*make sure we own the GIL*/
 	PyGILState_STATE state = PyGILState_Ensure();
 
-	/*verify that the function is a proper callable*/
-	if (!PyCallable_Check(cst->f))
-	{
-		printf("py_callback: expected a callable function\n");
-		exit(1);
-	}
+	struct starpu_task *task = starpu_task_get_current();
+	/*Initialize struct starpu_codelet_unpack_arg_data*/
+	struct starpu_codelet_pack_arg_data data_org;
+	starpu_codelet_unpack_arg_init(&data_org, &task->cl_arg, &task->cl_arg_size);
 
-	/*check the arguments of python function passed in*/
+	/*get func_py char**/
+	starpu_codelet_pick_arg(&data_org, (void**)&func_data, &func_data_size);
+	/*get argList*/
+	starpu_codelet_unpack_arg(&data_org, &argList, sizeof(argList));
+	/*get fut*/
+	starpu_codelet_unpack_arg(&data_org, &fut, sizeof(fut));
+	/*get loop*/
+	starpu_codelet_unpack_arg(&data_org, &loop, sizeof(loop));
+	/*get sb*/
+	starpu_codelet_unpack_arg(&data_org, &sb, sizeof(sb));
+
+	/*Repack the data*/
+	/*Initialize struct starpu_codelet_pack_arg_data*/
+	struct starpu_codelet_pack_arg_data data;
+	starpu_codelet_pack_arg_init(&data);
+
+	/*repack func_data*/
+	starpu_codelet_pack_arg(&data, func_data, func_data_size);
+
+	/*check if there is Future in argList, if so, get the Future result*/
 	int i;
-	for(i=0; i < PyTuple_Size(cst->argList); i++)
+	for(i=0; i < PyTuple_Size(argList); i++)
 	{
-		PyObject *obj = PyTuple_GetItem(cst->argList, i);
-		const char *tp = Py_TYPE(obj)->tp_name;
+		PyObject *obj=PyTuple_GetItem(argList, i);
+		const char* tp = Py_TYPE(obj)->tp_name;
 		if(strcmp(tp, "_asyncio.Future") == 0)
 		{
 			/*if one of arguments is Future, get its result*/
 			PyObject *fut_result = PyObject_CallMethod(obj, "result", NULL);
 			/*replace the Future argument to its result*/
-			PyTuple_SetItem(cst->argList, i, fut_result);
+			PyTuple_SetItem(argList, i, fut_result);
 		}
-		/*else if (strcmp(tp, "numpy.ndarray")==0)
-		  {
-		  printf("array is %p\n", obj);
-		  }*/
 	}
 
-	/*call the python function*/
-	PyObject *pRetVal = PyObject_CallObject(cst->f, cst->argList);
-	//const char *tp = Py_TYPE(pRetVal)->tp_name;
-	//printf("return value type is %s\n", tp);
-	cst->rv = pRetVal;
+	/*use cloudpickle to dump dumps argList*/
+	Py_ssize_t arg_data_size;
+	PyObject *arg_bytes;
+	char* arg_data = starpu_cloudpickle_dumps(argList, &arg_bytes, &arg_data_size);
+	starpu_codelet_pack_arg(&data, arg_data, arg_data_size);
+	Py_DECREF(arg_bytes);
+	/*repack fut*/
+	starpu_codelet_pack_arg(&data, &fut, sizeof(fut));
+	/*repack loop*/
+	starpu_codelet_pack_arg(&data, &loop, sizeof(loop));
+	/*repack sb*/
+	starpu_codelet_pack_arg(&data, &sb, sizeof(sb));
+	/*finish repacking data and store the struct in cl_arg*/
+	starpu_codelet_pack_arg_fini(&data, &task->cl_arg, &task->cl_arg_size);
 
-	//Py_DECREF(cst->f);
+	/*restore previous GIL state*/
+	PyGILState_Release(state);
+}
+
+/*function passed to starpu_codelet.cpu_func*/
+void starpupy_codelet_func(void *buffers[], void *cl_arg)
+{
+	char* func_data;
+	size_t func_data_size;
+	PyObject *func_py; /*the python function passed in*/
+	char* arg_data;
+	size_t arg_data_size;
+	PyObject *argList; /*argument list of python function passed in*/
+
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
+	//struct codelet_args *cst = (struct codelet_args*) cl_arg;
+
+	struct starpu_task *task = starpu_task_get_current();
+	/*Initialize struct starpu_codelet_unpack_arg_data*/
+	struct starpu_codelet_pack_arg_data data;
+	starpu_codelet_unpack_arg_init(&data, &task->cl_arg, &task->cl_arg_size);
+
+	/*get func_py char**/
+	starpu_codelet_pick_arg(&data, (void**)&func_data, &func_data_size);
+	/*get argList char**/
+	starpu_codelet_pick_arg(&data, (void**)&arg_data, &arg_data_size);
+	/*skip fut*/
+	starpu_codelet_unpack_discard_arg(&data);
+	/*skip loop*/
+	starpu_codelet_unpack_discard_arg(&data);
+	/*skip sb*/
+	starpu_codelet_unpack_discard_arg(&data);
+
+	/*use cloudpickle to load function (maybe only function name)*/
+	PyObject *pFunc=starpu_cloudpickle_loads(func_data, func_data_size);
+
+	/* if the function name is passed in*/
+	const char* tp_func = Py_TYPE(pFunc)->tp_name;
+	if (strcmp(tp_func, "str")==0)
+	{
+		/*getattr(sys.modules[__name__], "<functionname>")*/
+		/*get sys.modules*/
+		PyObject *sys_modules = PyImport_GetModuleDict();
+		/*get sys.modules[__name__]*/
+		PyObject *sys_modules_name=PyDict_GetItemString(sys_modules,"__main__");
+		/*get function object*/
+		func_py=PyObject_GetAttr(sys_modules_name,pFunc);
+	}
+	else
+	{
+		func_py=pFunc;
+	}
+
+	/*use cloudpickle to load argList*/
+	argList=starpu_cloudpickle_loads(arg_data, arg_data_size);
+
+	/*verify that the function is a proper callable*/
+	if (!PyCallable_Check(func_py))
+	{
+		printf("py_callback: expected a callable function\n");
+		exit(1);
+	}
+
+	/*call the python function get the return value rv*/
+	PyObject *rv = PyObject_CallObject(func_py, argList);
+
+	/*Initialize struct starpu_codelet_pack_arg_data for return value*/
+	struct starpu_codelet_pack_arg_data data_ret;
+	starpu_codelet_pack_arg_init(&data_ret);
+
+	/*if the result is None type, pack NULL without using cloudpickle*/
+	if (rv==Py_None)
+	{
+		char* rv_data=NULL;
+		Py_ssize_t rv_data_size=0;
+		starpu_codelet_pack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
+	    starpu_codelet_pack_arg(&data_ret, &rv_data, sizeof(rv_data));
+	}
+	/*else use cloudpickle to dump rv*/
+	else
+	{
+		Py_ssize_t rv_data_size;
+		PyObject *rv_bytes;
+		char* rv_data = starpu_cloudpickle_dumps(rv, &rv_bytes, &rv_data_size);
+		starpu_codelet_pack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
+		starpu_codelet_pack_arg(&data_ret, rv_data, rv_data_size);
+		Py_DECREF(rv_bytes);
+	}
+
+	/*store the return value in task_>cl_ret*/
+	starpu_codelet_pack_arg_fini(&data_ret, &task->cl_ret, &task->cl_ret_size);
+
+	Py_DECREF(func_py);
+	Py_DECREF(argList);
 
 	/*restore previous GIL state*/
 	PyGILState_Release(state);
@@ -103,24 +237,61 @@ void codelet_func(void *buffers[], void *cl_arg)
 /*function passed to starpu_task.callback_func*/
 void cb_func(void *v)
 {
-	struct starpu_task *task = starpu_task_get_current();
-	struct codelet_args *cst = (struct codelet_args*) task->cl_arg;
+	PyObject *fut; /*asyncio.Future*/
+	PyObject *loop; /*asyncio.Eventloop*/
+	char* rv_data;
+	size_t rv_data_size;
+	PyObject *rv; /*return value when using PyObject_CallObject call the function f*/
 
 	/*make sure we own the GIL*/
 	PyGILState_STATE state = PyGILState_Ensure();
 
+	struct starpu_task *task = starpu_task_get_current();
+
+	/*Initialize struct starpu_codelet_unpack_arg_data data*/
+	struct starpu_codelet_pack_arg_data data;
+	starpu_codelet_unpack_arg_init(&data, &task->cl_arg, &task->cl_arg_size);
+
+	/*skip func_py*/
+	starpu_codelet_unpack_discard_arg(&data);
+	/*skip argList*/
+	starpu_codelet_unpack_discard_arg(&data);
+	/*get fut*/
+	starpu_codelet_unpack_arg(&data, &fut, sizeof(fut));
+	/*get loop*/
+	starpu_codelet_unpack_arg(&data, &loop, sizeof(loop));
+	/*skip sb*/
+	starpu_codelet_unpack_discard_arg(&data);
+
+	/*Initialize struct starpu_codelet_unpack_arg_data data*/
+	struct starpu_codelet_pack_arg_data data_ret;
+	starpu_codelet_unpack_arg_init(&data_ret, &task->cl_ret, &task->cl_ret_size);
+	/*get rv_data_size*/
+	starpu_codelet_unpack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
+
+	/*if the rv_data_size is 0, the result is None type*/
+	if (rv_data_size==0)
+	{
+		starpu_codelet_unpack_discard_arg(&data_ret);
+		rv=Py_None;
+	}
+	/*else use cloudpickle to load rv*/
+	else
+	{
+		starpu_codelet_pick_arg(&data_ret, (void**)&rv_data, &rv_data_size);
+		rv=starpu_cloudpickle_loads(rv_data, rv_data_size);
+	}
+
 	/*set the Future result and mark the Future as done*/
-	PyObject *set_result = PyObject_GetAttrString(cst->fut, "set_result");
-	PyObject *loop_callback = PyObject_CallMethod(cst->lp, "call_soon_threadsafe", "(O,O)", set_result, cst->rv);
+	PyObject *set_result = PyObject_GetAttrString(fut, "set_result");
+	PyObject *loop_callback = PyObject_CallMethod(loop, "call_soon_threadsafe", "(O,O)", set_result, rv);
 
 	Py_DECREF(loop_callback);
 	Py_DECREF(set_result);
-	Py_DECREF(cst->rv);
-	Py_DECREF(cst->fut);
-	Py_DECREF(cst->lp);
-	Py_DECREF(cst->argList);
+	Py_DECREF(rv);
+	Py_DECREF(fut);
+	Py_DECREF(loop);
 
-	//Py_DECREF(perfmodel);
 	struct starpu_codelet *func_cl=(struct starpu_codelet *) task->cl;
 	if (func_cl->model != NULL)
 	{
@@ -160,35 +331,26 @@ static PyObject *PyTask_FromTask(struct starpu_task *task)
 /***********************************************************************************/
 static size_t sizebase (struct starpu_task *task, unsigned nimpl)
 {
-	int n=0;
-	struct codelet_args *cst = (struct codelet_args*) task->cl_arg;
+	int sb;
 
-	/*get the result of function*/
-	PyObject *obj=cst->rv;
-	/*get the length of result*/
-	const char *tp = Py_TYPE(obj)->tp_name;
-#ifdef STARPU_PYTHON_HAVE_NUMPY
-	/*if the result is a numpy array*/
-	if (strcmp(tp, "numpy.ndarray")==0)
-		n = PyArray_SIZE(obj);
-	else
-#endif
-	/*if the result is a list*/
-	if (strcmp(tp, "list")==0)
-		n = PyList_Size(obj);
-	/*else error*/
-	else
-	{
-		printf("starpu_perfmodel::size_base: the type of function result is unrecognized\n");
-		exit(1);
-	}
-	return n;
-}
+	/*Initialize struct starpu_codelet_unpack_arg_data*/
+	struct starpu_codelet_pack_arg_data data;
+	starpu_codelet_unpack_arg_init(&data, &task->cl_arg, &task->cl_arg_size);
 
-static void del_Perf(PyObject *obj)
-{
-	struct starpu_perfmodel *perf=(struct starpu_perfmodel*)PyCapsule_GetPointer(obj, "Perf");
-	free(perf);
+	/*skip func_py*/
+	//starpu_codelet_unpack_discard_arg(&data);
+	starpu_codelet_unpack_discard_arg(&data);
+	/*skip argList*/
+	//starpu_codelet_unpack_discard_arg(&data);
+	starpu_codelet_unpack_discard_arg(&data);
+	/*skip fut*/
+	starpu_codelet_unpack_discard_arg(&data);
+	/*skip loop*/
+	starpu_codelet_unpack_discard_arg(&data);
+	/*get sb*/
+	starpu_codelet_unpack_arg(&data, &sb, sizeof(sb));
+
+	return sb;
 }
 
 /*initialization of perfmodel*/
@@ -261,6 +423,9 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 	/*first argument in args is always the python function passed in*/
 	PyObject *func_py = PyTuple_GetItem(args, 0);
+
+	Py_INCREF(fut);
+	Py_INCREF(loop);
 	Py_INCREF(func_py);
 
 	/*allocate a task structure and initialize it with default values*/
@@ -292,8 +457,8 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	struct starpu_codelet *func_cl=(struct starpu_codelet*)malloc(sizeof(struct starpu_codelet));
 	/*initialize func_cl with default values*/
 	starpu_codelet_init(func_cl);
-	func_cl->cpu_funcs[0]=&codelet_func;
-	func_cl->cpu_funcs_name[0]="codelet_func";
+	func_cl->cpu_funcs[0]=&starpupy_codelet_func;
+	func_cl->cpu_funcs_name[0]="starpupy_codelet_func";
 
 	/*check whether the option perfmodel is None*/
 	PyObject *dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);/*the last argument is the option dictionary*/
@@ -307,45 +472,53 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		Py_INCREF(perfmodel);
 	}
 
-	/*allocate a new codelet structure to pass the python function, asyncio.Future and Event loop*/
-	struct codelet_args *cst = (struct codelet_args*)malloc(sizeof(struct codelet_args));
-	cst->f = func_py;
-	cst->fut = fut;
-	cst->lp = loop;
+	/*Initialize struct starpu_codelet_pack_arg_data*/
+	struct starpu_codelet_pack_arg_data data;
+	starpu_codelet_pack_arg_init(&data);
 
-	Py_INCREF(fut);
-	Py_INCREF(loop);
+	/*argument list of python function passed in*/
+	PyObject *argList;
 
 	/*pass args in argList*/
 	if (PyTuple_Size(args)==2)/*function no arguments*/
-		cst->argList = PyTuple_New(0);
+		argList = PyTuple_New(0);
 	else
-	{/*function has arguments*/
-		cst->argList = PyTuple_New(PyTuple_Size(args)-2);
+	{
+		/*function has arguments*/
+		argList = PyTuple_New(PyTuple_Size(args)-2);
 		int i;
 		for(i=0; i < PyTuple_Size(args)-2; i++)
 		{
 			PyObject *tmp=PyTuple_GetItem(args, i+1);
-			PyTuple_SetItem(cst->argList, i, tmp);
-			Py_INCREF(PyTuple_GetItem(cst->argList, i));
+			PyTuple_SetItem(argList, i, tmp);
+			Py_INCREF(PyTuple_GetItem(argList, i));
 		}
 	}
 
-	task->cl=func_cl;
-	task->cl_arg=cst;
+	/*use cloudpickle to dump func_py*/
+	Py_ssize_t func_data_size;
+	PyObject *func_bytes;
+	char* func_data = starpu_cloudpickle_dumps(func_py, &func_bytes, &func_data_size);
+    starpu_codelet_pack_arg(&data, func_data, func_data_size);
+    Py_DECREF(func_bytes);
+    /*pack argList*/
+	starpu_codelet_pack_arg(&data, &argList, sizeof(argList));
+	/*pack fut*/
+	starpu_codelet_pack_arg(&data, &fut, sizeof(fut));
+	/*pack loop*/
+	starpu_codelet_pack_arg(&data, &loop, sizeof(loop));
 
-	/*pass optional values name=None, synchronous=1, priority=0, color=None, flops=None, perfmodel=None*/
+	task->cl=func_cl;
+
+	/*pass optional values name=None, synchronous=1, priority=0, color=None, flops=None, perfmodel=None, sizebase=0*/
 	/*const char * name*/
 	PyObject *PyName = PyDict_GetItemString(dict_option, "name");
-	const char *name_type = Py_TYPE(PyName)->tp_name;
-	if (strcmp(name_type, "NoneType")!=0)
+	if (PyName!=Py_None)
 	{
-		PyObject *pStrObj = PyUnicode_AsUTF8String(PyName);
-		char* name_str = PyBytes_AsString(pStrObj);
+		const char* name_str = PyUnicode_AsUTF8(PyName);
 		char* name = strdup(name_str);
 		//printf("name is %s\n", name);
 		task->name=name;
-		Py_DECREF(pStrObj);
 	}
 
 	/*unsigned synchronous:1*/
@@ -362,8 +535,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 	/*unsigned color*/
 	PyObject *PyColor = PyDict_GetItemString(dict_option, "color");
-	const char *color_type = Py_TYPE(PyColor)->tp_name;
-	if (strcmp(color_type, "NoneType")!=0)
+	if (PyColor!=Py_None)
 	{
 		unsigned color=PyLong_AsUnsignedLong(PyColor);
 		//printf("color is %u\n", color);
@@ -372,21 +544,36 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 	/*double flops*/
 	PyObject *PyFlops = PyDict_GetItemString(dict_option, "flops");
-	const char *flops_type = Py_TYPE(PyFlops)->tp_name;
-	if (strcmp(flops_type, "NoneType")!=0)
+	if (PyFlops!=Py_None)
 	{
 		double flops=PyFloat_AsDouble(PyFlops);
-		//printf("flops is %f\n", flop);
+		//printf("flops is %f\n", flops);
 		task->flops=flops;
 	}
 
+	/*int sizebase*/
+	PyObject *PySB = PyDict_GetItemString(dict_option, "sizebase");
+	int sb=PyLong_AsLong(PySB);
+	//printf("pack sizebase is %d\n", sb);
+	/*pack sb*/
+	starpu_codelet_pack_arg(&data, &sb, sizeof(sb));
+
+	/*finish packing data and store the struct in cl_arg*/
+	starpu_codelet_pack_arg_fini(&data, &task->cl_arg, &task->cl_arg_size);
+
+	task->prologue_callback_func=&prologue_cb_func;
 	task->callback_func=&cb_func;
 
 	/*call starpu_task_submit method*/
+	int ret;
 	Py_BEGIN_ALLOW_THREADS
-		int ret = starpu_task_submit(task);
-		assert(ret==0);
+	ret = starpu_task_submit(task);
 	Py_END_ALLOW_THREADS
+	if (ret!=0)
+	{
+		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_task_submit", ret);
+		return NULL;
+	}
 
 	if (strcmp(tp_perf, "PyCapsule")==0)
 	{
@@ -474,6 +661,19 @@ static PyObject* starpu_task_nsubmitted_wrapper(PyObject *self, PyObject *args)
 	/*Return the number of submitted tasks which have not completed yet */
 	return Py_BuildValue("i", num_task);
 }
+
+/*wrapper shutdown method*/
+static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
+{
+	/*call starpu_shutdown method*/
+	Py_BEGIN_ALLOW_THREADS
+	starpu_shutdown();
+	Py_END_ALLOW_THREADS
+
+	/*return type is void*/
+	Py_INCREF(Py_None);
+	return Py_None;
+}
 /***********************************************************************************/
 
 /***************The module’s method table and initialization function**************/
@@ -491,6 +691,7 @@ static PyMethodDef starpupyMethods[] =
 	{"sched_get_min_priority", starpu_sched_get_min_priority_wrapper, METH_VARARGS, "get the number of min priority"}, /*get the number of min priority*/
 	{"sched_get_max_priority", starpu_sched_get_max_priority_wrapper, METH_VARARGS, "get the number of max priority"}, /*get the number of max priority*/
 	{"task_nsubmitted", starpu_task_nsubmitted_wrapper, METH_VARARGS, "get the number of submitted tasks which have not completed yet"}, /*get the number of submitted tasks which have not completed yet*/
+	{"shutdown", starpu_shutdown_wrapper, METH_VARARGS, "shutdown starpu"}, /*shutdown starpu*/
 	{NULL, NULL}
 };
 
@@ -520,17 +721,55 @@ static struct PyModuleDef starpupymodule =
 PyMODINIT_FUNC
 PyInit_starpupy(void)
 {
+	PyObject *m;
+
+	/*module import initialization*/
+	m = PyModule_Create(&starpupymodule);
+	if (m == NULL)
+		return NULL;
+
+	StarpupyError = PyErr_NewException("starpupy.error", NULL, NULL);
+	Py_XINCREF(StarpupyError);
+	if (PyModule_AddObject(m, "error", StarpupyError) < 0)
+	{
+		Py_XDECREF(StarpupyError);
+		Py_CLEAR(StarpupyError);
+		Py_DECREF(m);
+		return NULL;
+	}
+
+#if PY_MAJOR_VERSION < 3 || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 9)
 	PyEval_InitThreads();
+#endif
 	/*starpu initialization*/
-	int ret = starpu_init(NULL);
-	assert(ret==0);
+	int ret;
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	Py_BEGIN_ALLOW_THREADS
+	ret = starpu_init(&conf);
+	Py_END_ALLOW_THREADS
+	if (ret!=0)
+	{
+		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_init", ret);
+		return NULL;
+	}
+
+	if (conf.sched_policy_name && !strcmp(conf.sched_policy_name, "graph_test"))
+	{
+		/* FIXME: should call starpu_do_schedule when appropriate, the graph_test scheduler needs it. */
+		fprintf(stderr,"TODO: The graph_test scheduler needs starpu_do_schedule calls\n");
+		exit(77);
+	}
+
 	/*python asysncio import*/
 	asyncio_module = PyImport_ImportModule("asyncio");
+
 #ifdef STARPU_PYTHON_HAVE_NUMPY
 	/*numpy import array*/
 	import_array();
 #endif
-	/*module import initialization*/
-	return PyModule_Create(&starpupymodule);
+	
+	return m;
 }
 /***********************************************************************************/

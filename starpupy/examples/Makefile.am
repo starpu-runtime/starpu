@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,12 +20,19 @@ SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
+if STARPU_USE_MPI_MASTER_SLAVE
+TESTS_ENVIRONMENT	=	$(MPI_RUN_ARGS) MPI_LAUNCHER="$(MPI_LAUNCHER)" LOADER_ARGS="--mpirun"
+endif
+
 TESTS	=
+
+if !STARPU_SIMGRID
 TESTS	+=	starpu_py.sh
 TESTS	+=	starpu_py_parallel.sh
 
 if STARPU_STARPUPY_NUMPY
 TESTS	+=	starpu_py_np.sh
+endif
 endif
 
 EXTRA_DIST	=		\

@@ -473,6 +473,16 @@ todo
 todo
 </dd>
 
+<dt>STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES</dt>
+<dd>
+\anchor STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
+\addindex __env__STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
+Specify if CUDA workers should do only fast allocations
+when running the datawizard progress of
+other memory nodes. This will pass STARPU_DATAWIZARD_ONLY_FAST_ALLOC.
+Default value is 0, allowing CUDA workers to do slow allocations.
+</dd>
+
 </dl>
 
 \section ConfiguringTheSchedulingEngine Configuring The Scheduling Engine
@@ -736,6 +746,27 @@ STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
 When set to a positive value, this makes the starpu_mpi_*recv* functions
 block when the memory allocation required for network reception overflows the
 available main memory (as typically set by \ref STARPU_LIMIT_CPU_MEM)
+</dd>
+
+<dt>STARPU_MPI_EARLYDATA_ALLOCATE</dt>
+<dd>
+\anchor STARPU_MPI_EARLYDATA_ALLOCATE
+\addindex __env__STARPU_MPI_EARLYDATA_ALLOCATE
+When set to 1, the MPI Driver will immediately allocate the data for early
+requests instead of issuing a data request and blocking. The default value is 0,
+issuing a data request. Because it is an early request and we do not know its
+real priority, the data request will assume \ref STARPU_DEFAULT_PRIO. In cases
+where there are many data requests with priorities greater than
+\ref STARPU_DEFAULT_PRIO the MPI drive could be blocked for long periods.
+</dd>
+
+<dt>STARPU_SIMGRID</dt>
+<dd>
+\anchor STARPU_SIMGRID
+\addindex __env__STARPU_SIMGRID
+When set to 1 (the default is 0), this makes StarPU check that it was really
+build with simulation support. This is convenient in scripts to avoid using a
+native version, that would try to update performance models...
 </dd>
 
 <dt>STARPU_SIMGRID_TRANSFER_COST</dt>

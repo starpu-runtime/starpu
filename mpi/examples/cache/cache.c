@@ -73,7 +73,7 @@ void test(struct starpu_codelet *codelet, enum starpu_data_access_mode mode, sta
 
 int main(int argc, char **argv)
 {
-	int rank, n;
+	int rank;
 	int ret;
 	unsigned val = 42;
 	starpu_data_handle_t data;

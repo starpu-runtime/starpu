@@ -26,4 +26,11 @@ void _starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size);
 
 int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int flags);
 int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags);
+
+/**
+   Returns whether when allocating data on \p dst_node, we will do pinning, i.e.
+   the allocation will be very expensive, and should thus be moved out from the
+   critical path
+  */
+int _starpu_malloc_willpin_on_node(unsigned dst_node);
 #endif

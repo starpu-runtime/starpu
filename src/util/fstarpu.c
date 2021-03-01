@@ -27,6 +27,7 @@ static const intptr_t fstarpu_w	= STARPU_W;
 static const intptr_t fstarpu_rw	= STARPU_RW;
 static const intptr_t fstarpu_scratch	= STARPU_SCRATCH;
 static const intptr_t fstarpu_redux	= STARPU_REDUX;
+static const intptr_t fstarpu_mpi_redux	= STARPU_MPI_REDUX;
 static const intptr_t fstarpu_commute	= STARPU_COMMUTE;
 static const intptr_t fstarpu_ssend	= STARPU_SSEND;
 static const intptr_t fstarpu_locality	= STARPU_LOCALITY;
@@ -121,6 +122,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_RW"))	{ return fstarpu_rw; }
 	else if	(!strcmp(s, "FSTARPU_SCRATCH"))	{ return fstarpu_scratch; }
 	else if	(!strcmp(s, "FSTARPU_REDUX"))	{ return fstarpu_redux; }
+	else if	(!strcmp(s, "FSTARPU_MPI_REDUX"))	{ return fstarpu_mpi_redux; }
 	else if	(!strcmp(s, "FSTARPU_COMMUTE"))	{ return fstarpu_commute; }
 	else if	(!strcmp(s, "FSTARPU_SSEND"))	{ return fstarpu_ssend; }
 	else if	(!strcmp(s, "FSTARPU_LOCALITY"))	{ return fstarpu_locality; }

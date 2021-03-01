@@ -16,6 +16,7 @@
 
 #define TYPE float
 #define MPI_TYPE	MPI_FLOAT
+#define CUBLAS_TYPE	TYPE
 
 #define STARPU_PLU(name)       starpu_pslu_##name
 
@@ -39,3 +40,5 @@
 #define CPU_IAMAX	STARPU_ISAMAX
 
 #define PIVOT_THRESHHOLD	10e-5
+
+#define ISZERO(f)	(fpclassify(f) == FP_ZERO)

@@ -45,7 +45,7 @@ void starpu_my_data_compare_codelet_cpu(void *descr[], void *_args)
 	*compare = (d0 == d1 && c0 == c1);
 }
 
-void _starpu_my_data_datatype_allocate(MPI_Datatype *mpi_datatype)
+void _starpu_my_data_datatype_allocate(unsigned node, MPI_Datatype *mpi_datatype)
 {
 	int ret;
 	int blocklengths[2] = {1, 1};
@@ -68,10 +68,10 @@ void _starpu_my_data_datatype_allocate(MPI_Datatype *mpi_datatype)
 	free(myinterface);
 }
 
-int starpu_my_data_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
+int starpu_my_data_datatype_allocate(starpu_data_handle_t handle, unsigned node, MPI_Datatype *mpi_datatype)
 {
 	(void)handle;
-	_starpu_my_data_datatype_allocate(mpi_datatype);
+	_starpu_my_data_datatype_allocate(node, mpi_datatype);
 	return 0;
 }
 
@@ -80,7 +80,7 @@ void starpu_my_data_datatype_free(MPI_Datatype *mpi_datatype)
 	MPI_Type_free(mpi_datatype);
 }
 
-int starpu_my_data2_datatype_allocate(starpu_data_handle_t handle, MPI_Datatype *mpi_datatype)
+int starpu_my_data2_datatype_allocate(starpu_data_handle_t handle, unsigned node, MPI_Datatype *mpi_datatype)
 {
 	(void)handle;
 	(void)mpi_datatype;
@@ -201,6 +201,15 @@ static int data_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr
 	return 0;
 }
 
+static int data_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	(void)handle;
+	(void)node;
+	(void)ptr;
+	STARPU_ASSERT_MSG(0, "The data interface has been registered with starpu_mpi_datatype_register(). Calling the unpack_data function should not happen\n");
+	return 0;
+}
+
 static int data_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	(void)handle;
@@ -231,7 +240,7 @@ static int data_pack_data2(starpu_data_handle_t handle, unsigned node, void **pt
 	return 0;
 }
 
-static int data_unpack_data2(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int data_peek_data2(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	(void)count;
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -243,6 +252,12 @@ static int data_unpack_data2(starpu_data_handle_t handle, unsigned node, void *p
 	char *x = ptr;
 	x += sizeof(int);
 	memcpy(&data->c, x, sizeof(char));
+	return 0;
+}
+
+static int data_unpack_data2(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	data_peek_data2(handle, node, ptr, count);
 
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 	return 0;
@@ -270,20 +285,15 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 			   void *dst_interface, unsigned dst_node,
 			   void *async_data)
 {
-	struct starpu_my_data *src_data = src_interface;
-	struct starpu_my_data *dst_data = dst_interface;
+	struct starpu_my_data_interface *src = src_interface;
+	struct starpu_my_data_interface *dst = dst_interface;
 	int ret = 0;
 
-	fprintf(stderr, "copying data src_data.d=%d src_data.c %c\n", src_data->d, src_data->c);
+	fprintf(stderr, "copying data src=%p to dst=%p\n", (void*) src->ptr, (void*) dst->ptr);
 
-	if (starpu_interface_copy((uintptr_t) src_data->d, 0, src_node,
-				  (uintptr_t) dst_data->d, 0, dst_node,
-				  sizeof(src_data->d), async_data))
-		ret = -EAGAIN;
-	if (starpu_interface_copy((uintptr_t) src_data->c, 0, src_node,
-				  (uintptr_t) dst_data->c, 0, dst_node,
-				  sizeof(src_data->c),
-				  async_data))
+	if (starpu_interface_copy(src->dev_handle, src->offset, src_node,
+				  dst->dev_handle, dst->offset, dst_node,
+				  sizeof(int) + sizeof(char), async_data))
 		ret = -EAGAIN;
 	return ret;
 }
@@ -306,6 +316,7 @@ static struct starpu_data_interface_ops interface_data_ops =
 	.interface_size = sizeof(struct starpu_my_data_interface),
 	.to_pointer = data_to_pointer,
 	.pack_data = data_pack_data,
+	.peek_data = data_peek_data,
 	.unpack_data = data_unpack_data,
 	.describe = data_describe
 };
@@ -315,7 +326,7 @@ void starpu_my_data_register(starpu_data_handle_t *handleptr, unsigned home_node
 	if (interface_data_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
 		interface_data_ops.interfaceid = starpu_data_interface_get_next_id();
-		starpu_mpi_interface_datatype_register(interface_data_ops.interfaceid, starpu_my_data_datatype_allocate, starpu_my_data_datatype_free);
+		starpu_mpi_interface_datatype_node_register(interface_data_ops.interfaceid, starpu_my_data_datatype_allocate, starpu_my_data_datatype_free);
 	}
 
 	struct starpu_my_data_interface data =
@@ -348,6 +359,7 @@ static struct starpu_data_interface_ops interface_data2_ops =
 	.interface_size = sizeof(struct starpu_my_data_interface),
 	.to_pointer = data_to_pointer,
 	.pack_data = data_pack_data2,
+	.peek_data = data_peek_data2,
 	.unpack_data = data_unpack_data2,
 	.describe = data_describe
 };
@@ -357,7 +369,7 @@ void starpu_my_data2_register(starpu_data_handle_t *handleptr, unsigned home_nod
 	if (interface_data2_ops.interfaceid == STARPU_UNKNOWN_INTERFACE_ID)
 	{
 		interface_data2_ops.interfaceid = starpu_data_interface_get_next_id();
-		starpu_mpi_interface_datatype_register(interface_data2_ops.interfaceid, starpu_my_data2_datatype_allocate, starpu_my_data2_datatype_free);
+		starpu_mpi_interface_datatype_node_register(interface_data2_ops.interfaceid, starpu_my_data2_datatype_allocate, starpu_my_data2_datatype_free);
 	}
 
 	struct starpu_my_data_interface data =

@@ -197,6 +197,8 @@ int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, starpu_mpi_
    Perform a standard-mode, blocking receive in \p data_handle from
    the node \p source using the message tag \p data_tag within the
    communicator \p comm.
+   The value of \p status cannot be NULL, use the predefined value
+   MPI_STATUS_IGNORE to ignore the status.
 */
 int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, MPI_Status *status);
 
@@ -228,6 +230,11 @@ int starpu_mpi_isend_detached_prio(starpu_data_handle_t data_handle, int dest, s
    completion of the request.
 */
 int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, void (*callback)(void *), void *arg);
+
+/**
+   Same of starpu_mpi_irecv_detached but with the \p prio parameter.
+*/
+int starpu_mpi_irecv_detached_prio(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg);
 
 /**
    Post a nonblocking receive in \p data_handle from the node \p
@@ -277,6 +284,8 @@ int starpu_mpi_issend_detached_prio(starpu_data_handle_t data_handle, int dest, 
 
 /**
    Return when the operation identified by request \p req is complete.
+   The value of \p status cannot be NULL, use the predefined value
+   MPI_STATUS_IGNORE to ignore the status.
 */
 int starpu_mpi_wait(starpu_mpi_req *req, MPI_Status *status);
 
@@ -344,6 +353,7 @@ int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size, starpu_
 int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_handle_t *data_handle, int *source, starpu_mpi_tag_t *data_tag, MPI_Comm *comm, starpu_tag_t tag);
 
 typedef int (*starpu_mpi_datatype_allocate_func_t)(starpu_data_handle_t, MPI_Datatype *);
+typedef int (*starpu_mpi_datatype_node_allocate_func_t)(starpu_data_handle_t, unsigned node, MPI_Datatype *);
 typedef void (*starpu_mpi_datatype_free_func_t)(MPI_Datatype *);
 
 /**
@@ -365,6 +375,26 @@ int starpu_mpi_datatype_register(starpu_data_handle_t handle, starpu_mpi_datatyp
    \ref ExchangingUserDefinedDataInterface for an example.
 */
 int starpu_mpi_interface_datatype_register(enum starpu_data_interface_id id, starpu_mpi_datatype_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
+
+/**
+   Register functions to create and free a MPI datatype for the given
+   handle.
+   Similar to starpu_mpi_interface_datatype_register().
+   It is important that the function is called before any
+   communication can take place for a data with the given handle. See
+   \ref ExchangingUserDefinedDataInterface for an example.
+*/
+int starpu_mpi_datatype_node_register(starpu_data_handle_t handle, starpu_mpi_datatype_node_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
+
+/**
+   Register functions to create and free a MPI datatype for the given
+   interface id.
+   Similar to starpu_mpi_datatype_register().
+   It is important that the function is called before any
+   communication can take place for a data with the given handle. See
+   \ref ExchangingUserDefinedDataInterface for an example.
+*/
+int starpu_mpi_interface_datatype_node_register(enum starpu_data_interface_id id, starpu_mpi_datatype_node_allocate_func_t allocate_datatype_func, starpu_mpi_datatype_free_func_t free_datatype_func);
 
 /**
    Unregister the MPI datatype functions stored for the interface of
@@ -536,6 +566,10 @@ int starpu_mpi_data_get_rank(starpu_data_handle_t handle);
    Return the tag of the given data.
 */
 starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t handle);
+/**
+   Return the redux map of the given data.
+*/
+char* starpu_mpi_data_get_redux_map(starpu_data_handle_t handle);
 
 /**
    Symbol kept for backward compatibility. Call function starpu_mpi_data_get_tag()

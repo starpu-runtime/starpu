@@ -59,9 +59,6 @@ LIST_TYPE(_starpu_mem_chunk,
 	unsigned home:1;
 	/** Whether the memchunk is in the clean part of the mc_list */
 	unsigned clean:1;
-	/** Was this chunk used since it got allocated?
-	    FIXME: probably useless now with nb_tasks_prefetch */
-	unsigned diduse:1;
 	/** Was this chunk marked as "won't use"? */
 	unsigned wontuse:1;
 
@@ -86,7 +83,7 @@ void _starpu_init_mem_chunk_lists(void);
 void _starpu_deinit_mem_chunk_lists(void);
 void _starpu_mem_chunk_init_last(void);
 void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node, size_t size);
-int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_is_prefetch is_prefetch);
+int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_is_prefetch is_prefetch, int only_fast_alloc);
 size_t _starpu_free_all_automatically_allocated_buffers(unsigned node);
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node);
 void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *m, unsigned nodec);

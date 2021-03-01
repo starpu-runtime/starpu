@@ -119,7 +119,7 @@ test_coo_opencl_func(void *buffers[], void *args)
 				  0,
 				  NULL,
 				  NULL);
-	if (coo_config.copy_failed != 0)
+	if (coo_config.copy_failed != SUCCESS)
 	{
 		fprintf(stderr, "FUCK copy_failed  %d\n",
 			coo_config.copy_failed);

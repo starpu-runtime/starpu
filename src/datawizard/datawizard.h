@@ -34,18 +34,19 @@
 
 #include <core/dependencies/implicit_data_deps.h>
 
-/** Make data transfers progress on node \p memory_node.
+
+/** Make data transfers progress on all memory nodes driven by the current worker.
  *
  * If \p push_requests is 1, it can start new transfers
  *
- * If \p may_alloc is 1, it can allocate destination data for transfers
+ * If \p may_alloc is STARPU_DATAWIZARD_DO_ALLOC, it can allocate destination data for transfers
  * (this is not possible e.g. when spinning for a handle lock)
  */
-int ___starpu_datawizard_progress(unsigned memory_node, unsigned may_alloc, unsigned push_requests);
-/** Call ___starpu_datawizard_progress() for all memory nodes driven by the
- * current worker */
-int __starpu_datawizard_progress(unsigned may_alloc, unsigned push_requests);
+int __starpu_datawizard_progress(enum _starpu_may_alloc may_alloc, unsigned push_requests);
 /** Call __starpu_datawizard_progress with push_requests = 1 */
-void _starpu_datawizard_progress(unsigned may_alloc);
+void _starpu_datawizard_progress(enum _starpu_may_alloc may_alloc);
+
+/** Check for all pending data request progress on node \p memory_node */
+void _starpu_datawizard_handle_all_pending_node_data_requests(unsigned memnode);
 
 #endif // __DATAWIZARD_H__

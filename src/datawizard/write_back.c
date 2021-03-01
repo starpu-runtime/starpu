@@ -50,7 +50,7 @@ void _starpu_write_through_data(starpu_data_handle_t handle, unsigned requesting
 				while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 				{
 					cpt++;
-					__starpu_datawizard_progress(1, 1);
+					__starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
 				}
 				if (cpt == STARPU_SPIN_MAXTRY)
 					_starpu_spin_lock(&handle->header_lock);
@@ -64,7 +64,7 @@ void _starpu_write_through_data(starpu_data_handle_t handle, unsigned requesting
 
 				struct _starpu_data_request *r;
 				r = _starpu_create_request_to_fetch_data(handle, &handle->per_node[node],
-									 STARPU_R, STARPU_IDLEFETCH, 1, wt_callback, handle, 0, "_starpu_write_through_data");
+									 STARPU_R, NULL, STARPU_IDLEFETCH, 1, wt_callback, handle, 0, "_starpu_write_through_data");
 
 			        /* If no request was created, the handle was already up-to-date on the
 			         * node */

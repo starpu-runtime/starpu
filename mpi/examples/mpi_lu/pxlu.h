@@ -22,6 +22,7 @@
 #include <starpu_mpi.h>
 #ifdef STARPU_USE_CUDA
 #include <cublas.h>
+#include <starpu_cublas_v2.h>
 #endif
 
 #define BLAS3_FLOP(n1,n2,n3)    \

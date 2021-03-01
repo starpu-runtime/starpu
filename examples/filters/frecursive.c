@@ -41,9 +41,9 @@ void cpu_codelet(void *buffers[], void *cl_arg)
 
 static struct starpu_codelet cl =
 {
-        .cpu_funcs[0] = cpu_codelet,
+        .cpu_funcs = {cpu_codelet},
         .nbuffers = 1,
-	.modes[0] = STARPU_RW,
+	.modes = {STARPU_RW},
 };
 
 #define NX 400

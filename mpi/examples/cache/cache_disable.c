@@ -34,7 +34,7 @@ struct starpu_codelet mycodelet_r =
 
 int main(int argc, char **argv)
 {
-	int rank, n;
+	int rank;
 	int ret;
 	unsigned *val;
 	starpu_data_handle_t data;

@@ -176,7 +176,7 @@ static void test_cleaner(int sig)
 	kill(-child_gid, SIGQUIT);
 	waitpid(child_pid, &status, 0);
 	launch_gdb(test_name);
-	raise(SIGQUIT);
+	raise(SIGALRM);
 	exit(EXIT_FAILURE);
 }
 
@@ -265,7 +265,9 @@ int main(int argc, char *argv[])
 	}
 
 #ifdef STARPU_SIMGRID
-	timeout *= 10;
+#ifdef STARPU_DEBUG
+	timeout *= 20;
+#endif
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -359,7 +361,7 @@ int main(int argc, char *argv[])
 	setenv("STARPU_OPENCL_PROGRAM_DIR", STARPU_SRC_DIR, 1);
 
 	/* set SIGALARM handler */
-	sa.sa_flags = 0;
+	sa.sa_flags = SA_RESETHAND | SA_NODEFER;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_handler = test_cleaner;
 	if (-1 == sigaction(SIGALRM, &sa, NULL))
@@ -404,7 +406,9 @@ int main(int argc, char *argv[])
 			launcher_argv[i++] = argv[x++];
 		}
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_DEBUG
 		launcher_argv[i++] = "--cfg=contexts/factory:thread";
+#endif
 #endif
 		launcher_argv[i++] = NULL;
 		execvp(*launcher_argv, launcher_argv);

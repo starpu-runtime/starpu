@@ -58,6 +58,7 @@ define starpu-print-task
   printf "\tsynchronous:\t\t\t<%d>\n", $task->synchronous
   printf "\texecute_on_a_specific_worker:\t<%d>\n", $task->execute_on_a_specific_worker
   printf "\tworkerid:\t\t\t<%d>\n", $task->workerid
+  printf "\tpriority:\t\t\t<%d>\n", $task->priority
   printf "\tdetach:\t\t\t\t<%d>\n", $task->detach
   printf "\tdestroy:\t\t\t<%d>\n", $task->destroy
   printf "\tregenerate:\t\t\t<%d>\n", $task->regenerate
@@ -390,6 +391,7 @@ define starpu-print-data
   printf "Home node %d\n", $data->home_node
   printf "RWlock refs %d\n", $data->refcnt
   printf "Busy count %d\n", $data->busy_count
+  printf "Initialization submitted %d\n", $data->initialized
   printf "Current mode "
   starpu-print-mode $data->current_mode
   printf "\n"
@@ -454,23 +456,27 @@ define starpu-print-data
     starpu-print-task $tasklist->task
     set $tasklist = $tasklist->next
   end
-  printf "Requester tasks\n"
-  set $requesterlist = $data->req_list.list._head
-  while $requesterlist != 0x0
-    printf "mode: "
-    starpu-print-mode $requesterlist->mode
-    printf "\n"
-    starpu-print-job $requesterlist->j
-    set $requesterlist = $requesterlist->_next
-  end
-  printf "Arbitered requester tasks\n"
-  set $requesterlist = $data->arbitered_req_list.list._head
-  while $requesterlist != 0x0
-    printf "mode: "
-    starpu-print-mode $requesterlist->mode
-    printf "\n"
-    starpu-print-job $requesterlist->j
-    set $requesterlist = $requesterlist->_next
+  if _starpu_debug
+    printf "Requester tasks\n"
+    set $requesterlist = $data->req_list.list._head
+    while $requesterlist != 0x0
+      printf "mode: "
+      starpu-print-mode $requesterlist->mode
+      printf "\n"
+      starpu-print-job $requesterlist->j
+      set $requesterlist = $requesterlist->_next
+    end
+    printf "Arbitered requester tasks\n"
+    set $requesterlist = $data->arbitered_req_list.list._head
+    while $requesterlist != 0x0
+      printf "mode: "
+      starpu-print-mode $requesterlist->mode
+      printf "\n"
+      starpu-print-job $requesterlist->j
+      set $requesterlist = $requesterlist->_next
+    end
+  else
+    printf "Printing requester tasks not supported yet without --enable-debug, sorry!\n"
   end
   if ($data->nchildren)
     printf "%d children\n", $data->nchildren
@@ -601,9 +607,6 @@ define starpu-print-replicate
   if $repl->automatically_allocated
     printf " automatically allocated"
   end
-  if $repl->requested
-    printf " requested"
-  end
   printf "\n"
   printf "MC %p\n", $repl->mc
 end
@@ -688,7 +691,12 @@ define starpu-print-requests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    starpu-print-requests-list data_requests[$node]
+    set $node2 = 0
+    while $node2 < _starpu_descr.nnodes
+      starpu-print-requests-list data_requests[$node][$node2][0]
+      starpu-print-requests-list data_requests[$node][$node2][1]
+      set $node2 = $node2 + 1
+    end
     set $node = $node + 1
   end
 end
@@ -697,8 +705,18 @@ define starpu-print-prequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    printf "%u pending requests\n", data_requests_npending[$node]
-    starpu-print-requests-list data_requests_pending[$node]
+    set $node2 = 0
+    while $node2 < _starpu_descr.nnodes
+      if data_requests_npending[$node][$node2][0]
+        printf "%u pending requests from %u\n", data_requests_npending[$node][$node2][0], $node2
+      end
+      starpu-print-requests-list data_requests_pending[$node][$node2][0]
+      if data_requests_npending[$node][$node2][1]
+        printf "%u pending requests to %u\n", data_requests_npending[$node][$node2][1], $node2
+      end
+      starpu-print-requests-list data_requests_pending[$node][$node2][1]
+      set $node2 = $node2 + 1
+    end
     set $node = $node + 1
   end
 end
@@ -725,7 +743,12 @@ define starpu-print-frequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    starpu-print-requests-list prefetch_requests[$node]
+    set $node2 = 0
+    while $node2 < _starpu_descr.nnodes
+      starpu-print-requests-list prefetch_requests[$node][$node2][0]
+      starpu-print-requests-list prefetch_requests[$node][$node2][1]
+      set $node2 = $node2 + 1
+    end
     set $node = $node + 1
   end
 end
@@ -734,7 +757,12 @@ define starpu-print-irequests
   set $node = 0
   while $node < _starpu_descr.nnodes
     printf "Node %u:\n", $node
-    starpu-print-requests-list idle_requests[$node]
+    set $node2 = 0
+    while $node2 < _starpu_descr.nnodes
+      starpu-print-requests-list idle_requests[$node][$node2][0]
+      starpu-print-requests-list idle_requests[$node][$node2][1]
+      set $node2 = $node2 + 1
+    end
     set $node = $node + 1
   end
 end
@@ -743,7 +771,7 @@ define starpu-memusage
   set scheduler-locking on
   set $node = 0
   while $node < _starpu_descr.nnodes
-    printf "\n\nNode %u:\n", $node
+    printf "\n\nNode %u (%d/MiB/%dMiB):\n", $node, used_size[$node] >> 20, global_size[$node] >> 20
     set $total = 0
     set $total_b = 0
     set $wt = 0
@@ -789,7 +817,7 @@ define starpu-memusage
         printf "\rinspected %d data...", $total
       end
       set $total_b = $total_b + $size
-      if $handle->wt_mask & (1 << $node)
+      if $node < sizeof($handle->wt_mask) * 8 && $handle->wt_mask & (1 << $node)
         set $wt = $wt + 1
 	set $wt_b = $wt_b + $size
       end
@@ -1042,7 +1070,7 @@ end
 define starpu-mpi-print-detached-requests
     set $list = (struct _starpu_mpi_req_list) detached_requests
     if $list
-	set $request = $list.list._head
+	set $request = $list._head
         while $request
             starpu-mpi-print-request $request
 	    set $request = $request->_next

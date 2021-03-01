@@ -33,7 +33,7 @@
 
 int main(int argc, char **argv)
 {
-	double * A,*B,*C,*D,*E,*F;
+	double *A, *F;
 
 	/* limit main ram to force to push in disk */
 	setenv("STARPU_LIMIT_CPU_MEM", "160", 1);

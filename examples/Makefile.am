@@ -106,6 +106,7 @@ examplebin_PROGRAMS =
 noinst_HEADERS = 				\
 	axpy/axpy.h                             \
 	cg/cg.h					\
+	cg/cg_kernels.c				\
 	heat/lu_kernels_model.h			\
 	heat/dw_sparse_cg.h			\
 	heat/heat.h				\
@@ -869,7 +870,6 @@ if !STARPU_NO_BLAS_LIB
 
 cg_cg_SOURCES =					\
 	cg/cg.c					\
-	cg/cg_kernels.c				\
 	common/blas.c
 
 cg_cg_LDADD =					\

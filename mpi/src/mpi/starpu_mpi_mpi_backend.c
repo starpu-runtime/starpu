@@ -54,7 +54,6 @@ void _starpu_mpi_mpi_backend_request_init(struct _starpu_mpi_req *req)
 
 	STARPU_PTHREAD_MUTEX_INIT0(&req->backend->req_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT0(&req->backend->req_cond, NULL);
-	STARPU_PTHREAD_MUTEX_INIT0(&req->backend->posted_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT0(&req->backend->posted_cond, NULL);
 
 	//req->backend->other_request = NULL;
@@ -80,7 +79,6 @@ void _starpu_mpi_mpi_backend_request_destroy(struct _starpu_mpi_req *req)
 {
 	STARPU_PTHREAD_MUTEX_DESTROY(&req->backend->req_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&req->backend->req_cond);
-	STARPU_PTHREAD_MUTEX_DESTROY(&req->backend->posted_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&req->backend->posted_cond);
 	free(req->backend);
 	req->backend = NULL;

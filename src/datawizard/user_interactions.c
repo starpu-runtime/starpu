@@ -29,6 +29,12 @@ static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum sta
 	if (!(mode & STARPU_R))
 		return;
 
+	if (((handle->nplans && !handle->nchildren) || handle->siblings)
+		&& handle->partition_automatic_disabled == 0)
+	{
+		_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
+	}
+
 	if (!handle->initialized && handle->init_cl)
 	{
 		int ret = starpu_task_insert(handle->init_cl, STARPU_W, handle, 0);
@@ -47,7 +53,7 @@ int starpu_data_request_allocation(starpu_data_handle_t handle, unsigned node)
 
 	_starpu_spin_lock(&handle->header_lock);
 
-	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, STARPU_PREFETCH, 0, 0, "starpu_data_request_allocation");
+	r = _starpu_create_data_request(handle, NULL, &handle->per_node[node], node, STARPU_NONE, 0, NULL, STARPU_PREFETCH, 0, 0, "starpu_data_request_allocation");
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
@@ -71,8 +77,8 @@ struct user_interaction_wrapper
 	enum starpu_is_prefetch prefetch;
 	unsigned async;
 	int prio;
+	void (*callback_acquired)(void *, int *node, enum starpu_data_access_mode mode);
 	void (*callback)(void *);
-	void (*callback_fetch_data)(void *); // called after fetch_data
 	void *callback_arg;
 	struct starpu_task *pre_sync_task;
 	struct starpu_task *post_sync_task;
@@ -120,7 +126,7 @@ static inline void _starpu_data_acquire_launch_fetch(struct user_interaction_wra
 	starpu_data_handle_t handle = wrapper->handle;
 	struct _starpu_data_replicate *replicate = node >= 0 ? &handle->per_node[node] : NULL;
 
-	int ret = _starpu_fetch_data_on_node(handle, node, replicate, wrapper->mode, wrapper->detached, wrapper->prefetch, async, callback, callback_arg, wrapper->prio, "_starpu_data_acquire_launch_fetch");
+	int ret = _starpu_fetch_data_on_node(handle, node, replicate, wrapper->mode, wrapper->detached, NULL, wrapper->prefetch, async, callback, callback_arg, wrapper->prio, "_starpu_data_acquire_launch_fetch");
 	STARPU_ASSERT(!ret);
 }
 
@@ -153,6 +159,12 @@ static void _starpu_data_acquire_fetch_data_callback(void *arg)
 /* Called when the data acquisition is done, launch the fetch into target memory */
 static void _starpu_data_acquire_continuation_non_blocking(void *arg)
 {
+	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
+
+	if (wrapper->callback_acquired)
+		/* This can change the node at will according to the current data situation */
+		wrapper->callback_acquired(wrapper->callback_arg, &wrapper->node, wrapper->mode);
+
 	_starpu_data_acquire_launch_fetch(arg, 1, _starpu_data_acquire_fetch_data_callback, arg);
 }
 
@@ -174,9 +186,12 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 
 /* The data must be released by calling starpu_data_release later on */
 int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node,
-							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
+							  enum starpu_data_access_mode mode,
+							  void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode),
+							  void (*callback)(void *arg),
+							  void *arg,
 							  int sequential_consistency, int quick,
-							  long *pre_sync_jobid, long *post_sync_jobid)
+							  long *pre_sync_jobid, long *post_sync_jobid, int prio)
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
@@ -191,10 +206,12 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 	_starpu_data_acquire_wrapper_init(wrapper, handle, node, mode);
 	wrapper->async = 1;
 
+	wrapper->callback_acquired = callback_acquired;
 	wrapper->callback = callback;
 	wrapper->callback_arg = arg;
 	wrapper->pre_sync_task = NULL;
 	wrapper->post_sync_task = NULL;
+	wrapper->prio = prio;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 	int handle_sequential_consistency = handle->sequential_consistency;
@@ -209,6 +226,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		wrapper->pre_sync_task->callback_func = starpu_data_acquire_cb_pre_sync_callback;
 		wrapper->pre_sync_task->callback_arg = wrapper;
 		wrapper->pre_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
+		wrapper->pre_sync_task->priority = prio;
 		pre_sync_job = _starpu_get_job_associated_to_task(wrapper->pre_sync_task);
 		if (pre_sync_jobid)
 			*pre_sync_jobid = pre_sync_job->job_id;
@@ -217,6 +235,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		wrapper->post_sync_task->name = "_starpu_data_acquire_cb_release";
 		wrapper->post_sync_task->detach = 1;
 		wrapper->post_sync_task->type = STARPU_TASK_TYPE_DATA_ACQUIRE;
+		wrapper->post_sync_task->priority = prio;
 		post_sync_job = _starpu_get_job_associated_to_task(wrapper->post_sync_task);
 		if (post_sync_jobid)
 			*post_sync_jobid = post_sync_job->job_id;
@@ -264,7 +283,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_hand
 							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
 							  int sequential_consistency, int quick)
 {
-	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, callback, arg, sequential_consistency, quick, NULL, NULL);
+	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, NULL, callback, arg, sequential_consistency, quick, NULL, NULL, STARPU_DEFAULT_PRIO);
 }
 
 int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t handle, int node,
@@ -600,7 +619,7 @@ int _starpu_prefetch_data_on_node_with_mode(starpu_data_handle_t handle, unsigne
 
 int starpu_data_fetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, STARPU_FETCH, 0);
+	return _starpu_prefetch_data_on_node_with_mode(handle, node, async, STARPU_R, STARPU_FETCH, STARPU_DEFAULT_PRIO);
 }
 
 int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio)
@@ -610,7 +629,7 @@ int starpu_data_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node
 
 int starpu_data_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return starpu_data_prefetch_on_node_prio(handle, node, async, 0);
+	return starpu_data_prefetch_on_node_prio(handle, node, async, STARPU_DEFAULT_PRIO);
 }
 
 int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned node, unsigned async, int prio)
@@ -620,7 +639,7 @@ int starpu_data_idle_prefetch_on_node_prio(starpu_data_handle_t handle, unsigned
 
 int starpu_data_idle_prefetch_on_node(starpu_data_handle_t handle, unsigned node, unsigned async)
 {
-	return starpu_data_idle_prefetch_on_node_prio(handle, node, async, 0);
+	return starpu_data_idle_prefetch_on_node_prio(handle, node, async, STARPU_DEFAULT_PRIO);
 }
 
 static void _starpu_data_wont_use(void *data)
@@ -801,7 +820,7 @@ void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int 
 		unsigned node;
 		for (node = 0; node < STARPU_MAXNODES; node++)
 		{
-			if (handle->per_node[memory_node].requested & (1UL << node))
+			if (handle->per_node[memory_node].request[node])
 			{
 				requested = 1;
 				break;

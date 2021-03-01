@@ -274,6 +274,7 @@ static struct starpu_data_interface_ops replay_interface_ops =
 	.interface_size = sizeof(struct replay_interface),
 	.display = display_replay,
 	.pack_data = NULL,
+	.peek_data = NULL,
 	.unpack_data = NULL,
 	.describe = describe_replay,
 

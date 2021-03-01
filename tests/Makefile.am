@@ -339,6 +339,7 @@ myPROGRAMS +=				\
 	datawizard/test_arbiter			\
 	datawizard/invalidate_pending_requests	\
 	datawizard/temporary_partition		\
+	datawizard/partitioned_initialization	\
 	datawizard/temporary_partition_implicit	\
 	datawizard/redux_acquire		\
 	disk/disk_copy				\

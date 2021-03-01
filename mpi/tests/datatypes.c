@@ -88,8 +88,12 @@ void check_variable(starpu_data_handle_t handle_s, starpu_data_handle_t handle_r
 
 	STARPU_ASSERT(starpu_variable_get_elemsize(handle_s) == starpu_variable_get_elemsize(handle_r));
 
+	starpu_data_acquire(handle_s, STARPU_R);
 	v_s = (float *)starpu_variable_get_local_ptr(handle_s);
+	starpu_data_release(handle_s);
+	starpu_data_acquire(handle_r, STARPU_R);
 	v_r = (float *)starpu_variable_get_local_ptr(handle_r);
+	starpu_data_release(handle_r);
 
 	if (*v_s == *v_r)
 	{

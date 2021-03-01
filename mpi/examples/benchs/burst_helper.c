@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -86,7 +86,7 @@ void burst_free_data(int rank)
 void burst_bidir(int rank)
 {
 	int other_rank = (rank == 0) ? 1 : 0;
-	int i = 0;
+	int i;
 
 	FPRINTF(stderr, "Simultaneous....start (rank %d)\n", rank);
 
@@ -123,7 +123,7 @@ void burst_bidir(int rank)
 void burst_unidir(int sender, int receiver, int rank)
 {
 	FPRINTF(stderr, "%d -> %d... start (rank %d)\n", sender, receiver, rank);
-	int i = 0;
+	int i;
 
 	if (rank == receiver)
 	{
@@ -163,8 +163,7 @@ void burst_unidir(int sender, int receiver, int rank)
 void burst_bidir_half_postponed(int rank)
 {
 	int other_rank = (rank == 0) ? 1 : 0;
-	int received = 0;
-	int i = 0;
+	int i;
 
 	FPRINTF(stderr, "Half/half burst...start (rank %d)\n", rank);
 

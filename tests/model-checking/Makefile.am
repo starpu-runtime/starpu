@@ -23,6 +23,7 @@ EXTRA_DIST =				\
 
 AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_builddir)/include -I$(top_srcdir)/include $(SIMGRID_CFLAGS)
 AM_LDFLAGS  = -Wl,-znorelro -Wl,-znoseparate-code
+LIBS += $(SIMGRID_LDFLAGS)
 
 noinst_PROGRAMS = \
 		  prio_list \
