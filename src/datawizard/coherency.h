@@ -86,12 +86,6 @@ struct _starpu_data_replicate
 	 */
 	unsigned nb_tasks_prefetch;
 
-	/** The number of prefetches that we made for this replicate for various tasks
-	 * This is also the number of tasks that we will wait to see use the mc before
-	 * we attempt to evict it.
-	 */
-	unsigned nb_tasks_prefetch;
-
         /** Pointer to memchunk for LRU strategy */
 	struct _starpu_mem_chunk * mc;
 };
@@ -374,12 +368,8 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
  */
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
-<<<<<<< HEAD
-								  enum starpu_data_access_mode mode, enum starpu_is_prefetch is_prefetch,
-=======
 								  enum starpu_data_access_mode mode,
 								  struct starpu_task *task, enum starpu_is_prefetch is_prefetch,
->>>>>>> master
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 

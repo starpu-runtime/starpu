@@ -562,10 +562,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-<<<<<<< HEAD
-=======
 	STARPU_ASSERT(node < STARPU_MAXNODES);
->>>>>>> master
 	/* This data should be written through to this node, avoid dropping it! */
 	if (node < sizeof(handle->wt_mask) * 8 && handle->wt_mask & (1<<node))
 		return 0;
@@ -961,12 +958,6 @@ restart:
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
 			continue;
-<<<<<<< HEAD
-		if (victim && mc->data != victim)
-			/* We were advised some precise data */
-			continue;
-=======
->>>>>>> master
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
 			continue;
@@ -1049,11 +1040,7 @@ out:
  * flag is set, the memory is freed regardless of coherency concerns (this
  * should only be used at the termination of StarPU for instance).
  */
-<<<<<<< HEAD
-static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch)
-=======
 static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
->>>>>>> master
 {
 	size_t freed = 0;
 	starpu_data_handle_t victim = NULL;
@@ -1539,11 +1526,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
  *
  */
 
-<<<<<<< HEAD
-static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, enum starpu_is_prefetch is_prefetch)
-=======
 static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned dst_node, enum starpu_is_prefetch is_prefetch, int only_fast_alloc)
->>>>>>> master
 {
 	unsigned attempts = 0;
 	starpu_ssize_t allocated_memory;
@@ -1727,11 +1710,7 @@ out:
 	return allocated_memory;
 }
 
-<<<<<<< HEAD
-int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_is_prefetch is_prefetch)
-=======
 int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_is_prefetch is_prefetch, int only_fast_alloc)
->>>>>>> master
 {
 	starpu_ssize_t allocated_memory;
 

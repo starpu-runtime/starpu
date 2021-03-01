@@ -373,25 +373,6 @@ static struct starpu_codelet cl_gemm =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.modes = {STARPU_R, STARPU_R, STARPU_R},
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_REDUX},
-	.model = &starpu_gemm_model
-};
-
-static struct starpu_codelet cl_gemm =
-{
-	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
-	.max_parallelism = INT_MAX,
-	.cpu_funcs = {cpu_gemm},
-	.cpu_funcs_name = {"cpu_gemm"},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cublas_gemm},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1},
-#endif
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &starpu_gemm_model
 };
@@ -745,54 +726,6 @@ int main(int argc, char **argv)
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
 					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
-		for (iter = 0; iter < niter; iter++)
-		{
-			if (tiled)
-			{
-				for (x = 0; x < nslicesx; x++)
-				for (y = 0; y < nslicesy; y++)
-				{
-					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
-					for (z = 0; z < nslicesz; z++)
-					{
-						struct starpu_task *task = starpu_task_create();
-
-						if (z == 0)
-							task->cl = &cl_gemm0;
-						else
-							task->cl = &cl_gemm;
-
-						task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
-						task->handles[1] = starpu_data_get_sub_data(B_handle, 2, x, z);
-						task->handles[2] = Ctile;
-
-						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz);
-
-						ret = starpu_task_submit(task);
-						if (ret == -ENODEV)
-						{
-						     check = 0;
-						     ret = 77;
-						     goto enodev;
-						}
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					}
-					starpu_data_wont_use(Ctile);
-				}
-			}
-			else
-			{
-				for (x = 0; x < nslicesx; x++)
-				for (y = 0; y < nslicesy; y++)
-				{
-					struct starpu_task *task = starpu_task_create();
-
-					task->cl = &cl_gemm0;
-
-					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
-					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
-					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);
-
 					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
 
 					ret = starpu_task_submit(task);
@@ -882,13 +815,6 @@ int main(int argc, char **argv)
 				}
 				starpu_resume();
 				starpu_task_wait_for_all();
-					     check = 0;
-					     ret = 77;
-					     goto enodev;
-					}
-					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					starpu_data_wont_use(starpu_data_get_sub_data(C_handle, 2, x, y));
-				}
 			}
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}

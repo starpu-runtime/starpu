@@ -534,12 +534,6 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 	}
 }
 
-<<<<<<< HEAD
-//~ int can_print = 1;
-
-/* TODO : accounting to see how much time was spent working for other people ... */
-static int starpu_handle_data_request(struct _starpu_data_request *r, unsigned may_alloc, enum starpu_is_prefetch prefetch)
-=======
 void _starpu_data_request_complete_wait(void *arg)
 {
 	struct _starpu_data_request *r = arg;
@@ -550,7 +544,6 @@ void _starpu_data_request_complete_wait(void *arg)
 
 /* TODO : accounting to see how much time was spent working for other people ... */
 static int starpu_handle_data_request(struct _starpu_data_request *r, enum _starpu_may_alloc may_alloc)
->>>>>>> master
 {
 	starpu_data_handle_t handle = r->handle;
 
@@ -675,11 +668,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, enum _star
 	return 0;
 }
 
-<<<<<<< HEAD
-static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list *reqlist, unsigned src_node, unsigned may_alloc, unsigned n, unsigned *pushed, enum starpu_is_prefetch prefetch)
-=======
 static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list reqlist[STARPU_MAXNODES][STARPU_MAXNODES][2], unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned n, unsigned *pushed, enum starpu_is_prefetch prefetch)
->>>>>>> master
 {
 	struct _starpu_data_request *r;
 	unsigned i;
@@ -800,11 +789,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 			 * for eviction to happen.
 			 */
 			starpu_sleep(0.000001);
-<<<<<<< HEAD
-			//_starpu_wake_all_blocked_workers_on_node(src_node);
-=======
 			_starpu_wake_all_blocked_workers_on_node(handling_node);
->>>>>>> master
 		}
 #elif !defined(STARPU_NON_BLOCKING_DRIVERS)
 		_starpu_wake_all_blocked_workers_on_node(handling_node);

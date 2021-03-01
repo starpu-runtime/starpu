@@ -473,13 +473,9 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
-<<<<<<< HEAD
-								  enum starpu_data_access_mode mode, enum starpu_is_prefetch is_prefetch,
-=======
 								  enum starpu_data_access_mode mode,
 								  struct starpu_task *task,
 								  enum starpu_is_prefetch is_prefetch,
->>>>>>> master
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
@@ -772,12 +768,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 }
 
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *dst_replicate,
-<<<<<<< HEAD
-			       enum starpu_data_access_mode mode, unsigned detached, enum starpu_is_prefetch is_prefetch, unsigned async,
-=======
 			       enum starpu_data_access_mode mode, unsigned detached,
 			       struct starpu_task *task, enum starpu_is_prefetch is_prefetch, unsigned async,
->>>>>>> master
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
         _STARPU_LOG_IN();
@@ -945,29 +937,6 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 		_starpu_spin_unlock(&handle->header_lock);
 }
 
-<<<<<<< HEAD
-static void _starpu_set_data_requested_flag_if_needed(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate)
-{
-	int cpt = 0;
-	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
-	{
-		cpt++;
-		_starpu_datawizard_progress(1);
-	}
-	if (cpt == STARPU_SPIN_MAXTRY)
-		_starpu_spin_lock(&handle->header_lock);
-
-	if (replicate->state == STARPU_INVALID)
-	{
-		unsigned dst_node = replicate->memory_node;
-		replicate->requested |= 1UL << dst_node;
-	}
-
-	_starpu_spin_unlock(&handle->header_lock);
-}
-
-=======
->>>>>>> master
 int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio, enum starpu_is_prefetch prefetch)
 {
 #ifdef STARPU_OPENMP
@@ -999,18 +968,9 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		if (prefetch == STARPU_PREFETCH)
-<<<<<<< HEAD
-		{
-			task_prefetch_data_on_node(handle, node, replicate, mode, prio);
-			_starpu_set_data_requested_flag_if_needed(handle, replicate);
-		}
-		else
-			idle_prefetch_data_on_node(handle, node, replicate, mode, prio);
-=======
 			task_prefetch_data_on_node(handle, node, replicate, mode, task, prio);
 		else
 			idle_prefetch_data_on_node(handle, node, replicate, mode, task, prio);
->>>>>>> master
 	}
 
 	if (prefetch == STARPU_PREFETCH)
@@ -1019,10 +979,6 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 	return 0;
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 int starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, int worker, int prio)
 {
 	return _starpu_prefetch_task_input_prio(task, target_node, worker, prio, STARPU_PREFETCH);
