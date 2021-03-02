@@ -295,7 +295,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	struct starpu_task *end_rdep = NULL;
 	unsigned sched_ctx = task->sched_ctx;
 	double flops = task->flops;
-	void (*epilogue_callback)(void *) = task->epilogue_callback_func;
 
 	const unsigned continuation =
 #ifdef STARPU_OPENMP
@@ -306,6 +305,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		;
 	if (!continuation)
 	{
+		void (*epilogue_callback)(void *) = task->epilogue_callback_func;
 		/* the epilogue callback is executed before the dependencies release*/
 		if (epilogue_callback)
 		{
@@ -325,8 +325,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_set_current_task(task);
 
 			_STARPU_TRACE_START_CALLBACK(j);
-			if (epilogue_callback)
-				epilogue_callback(task->epilogue_callback_arg);
+			epilogue_callback(task->epilogue_callback_arg);
 			_STARPU_TRACE_END_CALLBACK(j);
 
 			_starpu_set_current_task(current_task);
@@ -494,8 +493,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_set_current_task(task);
 
 			_STARPU_TRACE_START_CALLBACK(j);
-			if (callback)
-				callback(task->callback_arg);
+			callback(task->callback_arg);
 			_STARPU_TRACE_END_CALLBACK(j);
 
 			_starpu_set_current_task(current_task);
