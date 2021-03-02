@@ -296,7 +296,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	unsigned sched_ctx = task->sched_ctx;
 	double flops = task->flops;
 	void (*epilogue_callback)(void *) = task->epilogue_callback_func;
-	
+
 	const unsigned continuation =
 #ifdef STARPU_OPENMP
 		j->continuation
