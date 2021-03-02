@@ -343,7 +343,23 @@ extern "C"
 */
 #define STARPU_TASK_LINE	 (43<<STARPU_MODE_SHIFT)
 
-#define STARPU_SHIFTED_MODE_MAX (44<<STARPU_MODE_SHIFT)
+/**
+   Used when calling starpu_task_insert(), must be followed by a
+   pointer to a epilogue callback function
+*/
+#define STARPU_EPILOGUE_CALLBACK   (44<<STARPU_MODE_SHIFT)
+
+/**
+   Used when calling starpu_task_insert(), must be followed by a
+   pointer to be given as an argument to the epilogue callback
+   function
+*/
+#define STARPU_EPILOGUE_CALLBACK_ARG   (45<<STARPU_MODE_SHIFT)
+
+/**
+   This has to be the last mode value plus 1
+*/
+#define STARPU_SHIFTED_MODE_MAX (46<<STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.

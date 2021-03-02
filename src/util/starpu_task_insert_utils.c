@@ -196,6 +196,14 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 		{
 			(void)va_arg(varg_list, void *);
 		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
+		{
+			(void)va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list, void *);
+		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
 			va_arg(varg_list, _starpu_callback_func_t);
@@ -544,6 +552,15 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 			task->callback_arg = va_arg(varg_list, void *);
 			task->callback_arg_free = 0;
 		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
+		{
+			task->epilogue_callback_func = va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
+		{
+			task->epilogue_callback_arg = va_arg(varg_list, void *);
+			task->epilogue_callback_arg_free = 1;
+		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
 			task->prologue_callback_func = va_arg(varg_list, _starpu_callback_func_t);
@@ -856,6 +873,17 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			arg_i++;
 			task->callback_arg = arglist[arg_i];
 			task->callback_arg_free = 0;
+		}
+		else if (arg_type == STARPU_EPILOGUE_CALLBACK)
+		{
+			arg_i++;
+			task->epilogue_callback_func = (_starpu_callback_func_t)arglist[arg_i];
+		}
+		else if (arg_type == STARPU_EPILOGUE_CALLBACK_ARG)
+		{
+			arg_i++;
+			task->epilogue_callback_arg = arglist[arg_i];
+			task->epilogue_callback_arg_free = 1;
 		}
 		else if (arg_type == STARPU_PROLOGUE_CALLBACK)
 		{

@@ -825,6 +825,9 @@ struct starpu_task
 	   is executed before task dependencies release. The callback is passed 
 	   the value contained in the starpu_task::epilogue_callback_arg field. 
 	   No callback is executed if the field is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_EPILOGUE_CALLBACK followed by the function pointer.
 	*/
 	void (*epilogue_callback_func)(void *);
 	/**
@@ -832,6 +835,9 @@ struct starpu_task
 	   the pointer passed to the epilogue callback function. This field is
 	   ignored if the field starpu_task::epilogue_callback_func is set to
 	   <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_EPILOGUE_CALLBACK_ARG followed by the argument.
 	*/
 	void *epilogue_callback_arg;
 

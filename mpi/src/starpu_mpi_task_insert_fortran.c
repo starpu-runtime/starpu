@@ -225,6 +225,16 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* void* */
 		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
+        {
+			arg_i++;
+			/* _starpu_callback_func_t */
+		}
+        else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
+        {
+			arg_i++;
+			/* void* */
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			arg_i++;
@@ -256,32 +266,32 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			/* unsigned* */
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
-                {
+        {
 			arg_i++;
 			/* _starpu_callback_func_t */
 		}
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
-                {
+        else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+        {
 			arg_i++;
 			/* void* */
-                }
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
-                {
+        }
+        else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+        {
 			arg_i++;
 			/* void* */
-                }
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
-                {
+        }
+        else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+        {
 			arg_i++;
 			/* _starpu_callback_func_t */
-                }
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
-                {
+        }
+        else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+        {
 			arg_i++;
 			/* void* */
 		}
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
-                {
+        else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
+        {
 			arg_i++;
 			/* void* */
 		}
