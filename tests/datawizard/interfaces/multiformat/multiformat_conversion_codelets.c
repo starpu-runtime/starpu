@@ -41,13 +41,15 @@ extern void cpu_to_cuda_cuda_func(void *buffers[], void *args); struct starpu_co
 {
 	.cuda_funcs = {cpu_to_cuda_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 
 struct starpu_codelet cuda_to_cpu_cl =
 {
 	.cpu_funcs = {cuda_to_cpu},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 #endif
 
@@ -73,13 +75,15 @@ extern void cpu_to_opencl_opencl_func(void *buffers[], void *args);
 struct starpu_codelet cpu_to_opencl_cl =
 {
 	.opencl_funcs = {cpu_to_opencl_opencl_func},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 
 struct starpu_codelet opencl_to_cpu_cl =
 {
 	.cpu_funcs = {opencl_to_cpu},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 #endif
 #ifdef STARPU_USE_MIC
@@ -123,14 +127,16 @@ struct starpu_codelet cpu_to_mic_cl =
 {
 	.where = STARPU_MIC,
 	.cpu_funcs_name = {"cpu_to_mic"},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 
 struct starpu_codelet mic_to_cpu_cl =
 {
 	.where = STARPU_CPU,
 	.cpu_funcs = {mic_to_cpu},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 #endif
 

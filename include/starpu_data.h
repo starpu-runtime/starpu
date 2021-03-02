@@ -110,7 +110,15 @@ enum starpu_data_access_mode
 				   src/sched_policies/work_stealing_policy.c
 				   source code.
 				*/
-	STARPU_ACCESS_MODE_MAX=(1<<7) /**< todo */
+	STARPU_MPI_REDUX=(1<<7), /** Inter-node reduction only. Codelets 
+				    contributing to these reductions should
+				    be registered with STARPU_RW | STARPU_COMMUTE 
+				    access modes.
+			            When inserting these tasks through the
+				    MPI layer however, the access mode needs
+				    to be STARPU_MPI_REDUX. */
+	STARPU_ACCESS_MODE_MAX=(1<<8) /** The purpose of ACCESS_MODE_MAX is to
+					be the maximum of this enum. */
 };
 
 struct starpu_data_interface_ops;
@@ -305,7 +313,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_hand
 
    This is a very internal interface, subject to changes, do not use this.
 */
-int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode), void (*callback)(void *arg), void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid);
+int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_data_handle_t handle, int node, enum starpu_data_access_mode mode, void (*callback_acquired)(void *arg, int *node, enum starpu_data_access_mode mode), void (*callback)(void *arg), void *arg, int sequential_consistency, int quick, long *pre_sync_jobid, long *post_sync_jobid, int prio);
 
 /**
    The application can call this function instead of starpu_data_acquire() so as to
@@ -560,8 +568,10 @@ struct starpu_codelet;
 /**
    Set the codelets to be used for \p handle when it is accessed in the
    mode ::STARPU_REDUX. Per-worker buffers will be initialized with
-   the codelet \p init_cl, and reduction between per-worker buffers will be
-   done with the codelet \p redux_cl.
+   the codelet \p init_cl (which has to take one handle with STARPU_W), and
+   reduction between per-worker buffers will be done with the codelet \p
+   redux_cl (which has to take a first accumulation handle with
+   STARPU_RW|STARPU_COMMUTE, and a second contribution handle with STARPU_R).
 */
 void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starpu_codelet *redux_cl, struct starpu_codelet *init_cl);
 

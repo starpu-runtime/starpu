@@ -375,13 +375,14 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 		replicate->state = STARPU_INVALID;
 		//replicate->refcnt = 0;
 		replicate->handle = handle;
-		//replicate->requested = 0;
 		//replicate->nb_tasks_prefetch = 0;
 
 		//for (node = 0; node < STARPU_MAXNODES; node++)
 		//{
 		//	replicate->request[node] = NULL;
+		//	replicate->last_request[node] = NULL;
 		//}
+		//replicate->load_request = NULL;
 
 		/* Assuming being used for SCRATCH for now, patched when entering REDUX mode */
 		replicate->relaxed_coherency = 1;
@@ -785,7 +786,7 @@ void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, 
 	}
 	if (valid)
 	{
-		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, STARPU_FETCH, 0, NULL, NULL, 0, origin);
+		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, NULL, STARPU_FETCH, 0, NULL, NULL, 0, origin);
 		STARPU_ASSERT(!ret);
 		_starpu_release_data_on_node(handle, 0, STARPU_NONE, replicate);
 	}
@@ -1033,6 +1034,7 @@ retry_busy:
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
+		STARPU_ASSERT(!local->refcnt);
 		if (local->allocated)
 		{
 			_starpu_data_unregister_ram_pointer(handle, node);
@@ -1049,6 +1051,7 @@ retry_busy:
 		for (worker = 0; worker < nworkers; worker++)
 		{
 			struct _starpu_data_replicate *local = &handle->per_worker[worker];
+			STARPU_ASSERT(!local->refcnt);
 			/* free the data copy in a lazy fashion */
 			if (local->allocated && local->automatically_allocated)
 				_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);

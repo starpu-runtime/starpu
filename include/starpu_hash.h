@@ -39,6 +39,14 @@ extern "C"
 uint32_t starpu_hash_crc32c_be_n(const void *input, size_t n, uint32_t inputcrc);
 
 /**
+   Compute the CRC of a pointer value seeded by the \p inputcrc
+   <em>current state</em>. The return value should be considered as the new
+   <em>current state</em> for future CRC computation. This is used for computing
+   data size footprint.
+*/
+uint32_t starpu_hash_crc32c_be_ptr(void *input, uint32_t inputcrc);
+
+/**
    Compute the CRC of a 32bit number seeded by the \p inputcrc
    <em>current state</em>. The return value should be considered as the new
    <em>current state</em> for future CRC computation. This is used for computing

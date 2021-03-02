@@ -200,7 +200,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 									struct _starpu_data_replicate *dst_replicate,
 									unsigned donotread,
 									struct _starpu_data_request *req,
-									unsigned may_alloc,
+									enum _starpu_may_alloc may_alloc,
 									enum starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED)
 {
 	if (!donotread)
@@ -215,11 +215,11 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	/* first make sure the destination has an allocated buffer */
 	if (!dst_replicate->allocated)
 	{
-		if (!may_alloc || _starpu_is_reclaiming(dst_node))
+		if (may_alloc==STARPU_DATAWIZARD_DO_NOT_ALLOC || _starpu_is_reclaiming(dst_node))
 			/* We're not supposed to allocate there at the moment */
 			return -ENOMEM;
 
-		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, req ? req->prefetch : STARPU_FETCH);
+		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, prefetch, may_alloc==STARPU_DATAWIZARD_ONLY_FAST_ALLOC);
 		if (ret_alloc)
 			return -ENOMEM;
 	}

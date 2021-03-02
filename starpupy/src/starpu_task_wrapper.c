@@ -29,6 +29,7 @@
 
 /*********************Functions passed in task_submit wrapper***********************/
 
+static PyObject *StarpupyError; /*starpupy error exception*/
 static PyObject *asyncio_module; /*python asyncio module*/
 
 static char* starpu_cloudpickle_dumps(PyObject *obj, PyObject **obj_bytes, Py_ssize_t *obj_data_size)
@@ -233,15 +234,15 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 		PyObject *rv_bytes;
 		char* rv_data = starpu_cloudpickle_dumps(rv, &rv_bytes, &rv_data_size);
 		starpu_codelet_pack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
-	    starpu_codelet_pack_arg(&data_ret, rv_data, rv_data_size);
-	    Py_DECREF(rv_bytes);
+		starpu_codelet_pack_arg(&data_ret, rv_data, rv_data_size);
+		Py_DECREF(rv_bytes);
 	}
 
-    /*store the return value in task_>cl_ret*/
-    starpu_codelet_pack_arg_fini(&data_ret, &task->cl_ret, &task->cl_ret_size);
+	/*store the return value in task_>cl_ret*/
+	starpu_codelet_pack_arg_fini(&data_ret, &task->cl_ret, &task->cl_ret_size);
 
-    Py_DECREF(func_py);
-    Py_DECREF(argList);
+	Py_DECREF(func_py);
+	Py_DECREF(argList);
 
 	/*restore previous GIL state*/
 	PyGILState_Release(state);
@@ -578,10 +579,15 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	task->epilogue_callback_func=&cb_func;
 
 	/*call starpu_task_submit method*/
+	int ret;
 	Py_BEGIN_ALLOW_THREADS
-		int ret = starpu_task_submit(task);
-		assert(ret==0);
+	ret = starpu_task_submit(task);
 	Py_END_ALLOW_THREADS
+	if (ret!=0)
+	{
+		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_task_submit", ret);
+		return NULL;
+	}
 
 	if (strcmp(tp_perf, "PyCapsule")==0)
 	{
@@ -729,15 +735,46 @@ static struct PyModuleDef starpupymodule =
 PyMODINIT_FUNC
 PyInit_starpupy(void)
 {
+	PyObject *m;
+
+	/*module import initialization*/
+	m = PyModule_Create(&starpupymodule);
+	if (m == NULL)
+		return NULL;
+
+	StarpupyError = PyErr_NewException("starpupy.error", NULL, NULL);
+	Py_XINCREF(StarpupyError);
+	if (PyModule_AddObject(m, "error", StarpupyError) < 0)
+	{
+		Py_XDECREF(StarpupyError);
+		Py_CLEAR(StarpupyError);
+		Py_DECREF(m);
+		return NULL;
+	}
+
 #if PY_MAJOR_VERSION < 3 || (PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 9)
 	PyEval_InitThreads();
 #endif
-	//PyThreadState* st = PyEval_SaveThread();
-	Py_BEGIN_ALLOW_THREADS
 	/*starpu initialization*/
-	int ret = starpu_init(NULL);
-	assert(ret==0);
+	int ret;
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	Py_BEGIN_ALLOW_THREADS
+	ret = starpu_init(&conf);
 	Py_END_ALLOW_THREADS
+	if (ret!=0)
+	{
+		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_init", ret);
+		return NULL;
+	}
+
+	if (conf.sched_policy_name && !strcmp(conf.sched_policy_name, "graph_test"))
+	{
+		/* FIXME: should call starpu_do_schedule when appropriate, the graph_test scheduler needs it. */
+		fprintf(stderr,"TODO: The graph_test scheduler needs starpu_do_schedule calls\n");
+		exit(77);
+	}
 
 	/*python asysncio import*/
 	asyncio_module = PyImport_ImportModule("asyncio");
@@ -746,7 +783,7 @@ PyInit_starpupy(void)
 	/*numpy import array*/
 	import_array();
 #endif
-	/*module import initialization*/
-	return PyModule_Create(&starpupymodule);
+	
+	return m;
 }
 /***********************************************************************************/

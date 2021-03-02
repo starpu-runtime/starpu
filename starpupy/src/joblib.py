@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,11 @@ import starpu
 import asyncio
 import math
 import functools
-import numpy as np
+try:
+    import numpy as np
+    has_numpy=True
+except:
+    has_numpy=False
 import inspect
 import threading
 
@@ -88,6 +92,8 @@ def future_generator(iterable, n_jobs, dict_task):
 		n_block=cpu_count()+1+n_jobs
 	else:
 		n_block=n_jobs
+	if (n_block <= 0):
+		n_block = 1
 
 	# if arguments is tuple format
 	if type(iterable) is tuple:
@@ -113,7 +119,7 @@ def future_generator(iterable, n_jobs, dict_task):
 		for i in range(len(args)):
 			args_split.append([])
 			# if the array is an numpy array
-			if type(args[i]) is np.ndarray:
+			if has_numpy and type(args[i]) is np.ndarray:
 				# one-dimension matrix
 				if args[i].ndim==1:
 					# split numpy array
@@ -138,7 +144,7 @@ def future_generator(iterable, n_jobs, dict_task):
 			L_args=[]
 			sizebase=0
 			for j in range(len(args)):
-				if type(args[j]) is np.ndarray or isinstance(args[j],types.GeneratorType):
+				if (has_numpy and type(args[j]) is np.ndarray) or isinstance(args[j],types.GeneratorType):
 					L_args.append(args_split[j][i])
 					if sizebase==0:
 						sizebase=len(args_split[j][i])

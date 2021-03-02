@@ -45,7 +45,7 @@ static struct starpu_codelet init_codelet =
 static struct starpu_codelet redux_codelet =
 {
 	.cpu_funcs = {redux_cpu_func},
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
 	.name = "redux_codelet"
 };

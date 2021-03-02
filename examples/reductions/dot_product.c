@@ -211,7 +211,7 @@ static struct starpu_codelet redux_codelet =
 	.opencl_funcs = {redux_opencl_func},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
 	.name = "redux"
 };

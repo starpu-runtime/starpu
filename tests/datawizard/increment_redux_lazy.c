@@ -22,8 +22,6 @@
  * initializing the variable
  */
 
-static starpu_data_handle_t handle;
-
 /*
  *	Reduction methods
  */
@@ -125,7 +123,7 @@ static struct starpu_codelet redux_cl =
 #endif
 	.cpu_funcs = {redux_cpu_kernel},
 	.cpu_funcs_name = {"redux_cpu_kernel"},
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2
 };
 
@@ -211,6 +209,7 @@ int main(int argc, char **argv)
 {
 	int ret;
 	unsigned *var;
+	starpu_data_handle_t handle;
 
 	/* Not supported yet */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)

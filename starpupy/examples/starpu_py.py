@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -50,7 +50,7 @@ def func2():
 	return 12
 
 ###############################################################################
- 
+
 #function has 2 int inputs and 1 int output
 def multi(a,b):
 	print ("Example 5:")
@@ -142,7 +142,12 @@ async def main():
     res8 = await fut8
     print("The result of function sqrt is:", res8)
 
-asyncio.run(main())
+try:
+        asyncio.run(main())
+except starpupy.error as e:
+        print("No worker to execute the job")
+        starpupy.shutdown()
+        exit(77)
 
 starpupy.shutdown()
 #starpu.task_wait_for_all()

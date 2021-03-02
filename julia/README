@@ -20,8 +20,8 @@ $ make
 Then, you need to add the lib/ directory to your library path and the julia/
 directory to your Julia load path:
 
-$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib
-$ export JULIA_LOAD_PATH=$JULIA_LOAD_PATH:$PWD
+$ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/src/.lib
+$ export JULIA_LOAD_PATH=$PWD/src:$JULIA_LOAD_PATH
 
 This step can also be done by sourcing the setenv.sh script:
 

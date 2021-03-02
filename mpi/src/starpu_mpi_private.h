@@ -118,7 +118,7 @@ int _starpu_debug_rank;
 			fprintf(stderr, "[%d][starpu_mpi] :%d:%s:%d:%d:%ld:%s:%p:%ld:%d:%s:%d\n", _rank, _rank, way, node, tag, utag, _comm_name, ptr, count, __size, __starpu_func__ , __LINE__); \
 			fflush(stderr);	\
 		} \
-	} while(0);
+	} while(0)
 #  define _STARPU_MPI_COMM_TO_DEBUG(ptr, count, datatype, dest, tag, utag, comm) _STARPU_MPI_COMM_DEBUG(ptr, count, datatype, dest, tag, utag, comm, "-->")
 #  define _STARPU_MPI_COMM_FROM_DEBUG(ptr, count, datatype, source, tag, utag, comm)  _STARPU_MPI_COMM_DEBUG(ptr, count, datatype, source, tag, utag, comm, "<--")
 #  define _STARPU_MPI_DEBUG(level, fmt, ...) \
@@ -130,7 +130,7 @@ int _starpu_debug_rank;
 			fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] " fmt , (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__,## __VA_ARGS__); \
 			fflush(stderr); \
 		} \
-	} while(0);
+	} while(0)
 #else
 #  define _STARPU_MPI_COMM_DEBUG(ptr, count, datatype, node, tag, utag, comm, way)  do { } while(0)
 #  define _STARPU_MPI_COMM_TO_DEBUG(ptr, count, datatype, dest, tag, utag, comm)     do { } while(0)
@@ -141,10 +141,10 @@ int _starpu_debug_rank;
 #define _STARPU_MPI_DISP(fmt, ...) do { if (!_starpu_silent) { \
 	       				     if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
                                              fprintf(stderr, "%*s[%d][starpu_mpi][%s:%d] " fmt , (_starpu_debug_rank+1)*4, "", _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
-                                             fflush(stderr); }} while(0);
+                                             fflush(stderr); }} while(0)
 #define _STARPU_MPI_MSG(fmt, ...) do { if (_starpu_debug_rank == -1) starpu_mpi_comm_rank(MPI_COMM_WORLD, &_starpu_debug_rank); \
                                              fprintf(stderr, "[%d][starpu_mpi][%s:%d] " fmt , _starpu_debug_rank, __starpu_func__ , __LINE__ ,## __VA_ARGS__); \
-                                             fflush(stderr); } while(0);
+                                             fflush(stderr); } while(0)
 
 #ifdef STARPU_MPI_EXTRA_VERBOSE
 #  define _STARPU_MPI_LOG_IN()             do { if (!_starpu_silent) { \
@@ -203,6 +203,12 @@ struct _starpu_mpi_coop_sends
 	long pre_sync_jobid;
 };
 
+/** cf. redux_map field : this is the value
+ * put in this field whenever a node contributes
+ * to the reduction of the data.
+ * Only the owning node keeps track of all the contributing nodes. */
+#define REDUX_CONTRIB ((char*) -1)
+
 /** Initialized in starpu_mpi_data_register_comm */
 struct _starpu_mpi_data
 {
@@ -211,8 +217,12 @@ struct _starpu_mpi_data
 	char *cache_sent;
 	int cache_received;
 
-	/** Rendez-vous data for opportunistic cooperative sends */
-	/** Needed to synchronize between submit thread and workers */
+	/** Array used to store the contributing nodes to this data
+	  * when it is accessed in REDUX mode. */
+	char* redux_map;
+
+	/** Rendez-vous data for opportunistic cooperative sends,
+	  * Needed to synchronize between submit thread and workers */
 	struct _starpu_spinlock coop_lock;
 	/** Current cooperative send bag */
 	struct _starpu_mpi_coop_sends *coop_sends;

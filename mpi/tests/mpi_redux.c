@@ -14,6 +14,9 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* This test does a manual reduction: all ranks send a number to the rank 0,
+ * the rank 0 sums these numbers and sends back the result to all ranks. */
+
 #include <starpu_mpi.h>
 #include "helper.h"
 

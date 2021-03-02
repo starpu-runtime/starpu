@@ -89,7 +89,7 @@ void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **p
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
 
-	*ptr = malloc(*size);
+	_STARPU_MALLOC(*ptr, *size);
 	memcpy(*ptr, state->arg_buffer+state->current_offset, *size);
 	state->current_offset += *size;
 
@@ -100,14 +100,14 @@ void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **
 {
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
-	
+
 	*ptr = state->arg_buffer+state->current_offset;
 	state->current_offset += *size;
 
 	state->nargs++;
 }
 
-void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state)
+void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state STARPU_ATTRIBUTE_UNUSED)
 {
 
 }
@@ -116,7 +116,7 @@ void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *stat
 {
 	size_t ptr_size;
 	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
-	
+
 	state->current_offset += sizeof(ptr_size);
 	state->current_offset += ptr_size;
 
@@ -364,21 +364,29 @@ void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_
 
 void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int arg_type, starpu_data_handle_t handle)
 {
-	enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND;
 	STARPU_ASSERT(cl != NULL);
 	STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || *current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
 
 	starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, 1);
-
 	STARPU_TASK_SET_HANDLE(task, handle, *current_buffer);
+
+	enum starpu_data_access_mode arg_mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND;
+
+	/* MPI_REDUX should be interpreted as RW|COMMUTE by the "ground" StarPU layer.*/
+	if (arg_mode & STARPU_MPI_REDUX)
+	{
+		arg_mode = STARPU_RW|STARPU_COMMUTE;
+	}
 	if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
-		STARPU_TASK_SET_MODE(task, mode,* current_buffer);
+	{
+		STARPU_TASK_SET_MODE(task, arg_mode,* current_buffer);
+	}
 	else if (STARPU_CODELET_GET_MODE(cl, *current_buffer))
 	{
-		STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == mode,
-				"The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-				cl->name, STARPU_CODELET_GET_MODE(cl, *current_buffer),
-				*current_buffer, mode);
+		STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == arg_mode,
+				  "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
+				  cl->name, STARPU_CODELET_GET_MODE(cl, *current_buffer),
+				  *current_buffer, arg_mode);
 	}
 	else
 	{
@@ -386,7 +394,7 @@ void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starp
 #  warning shall we print a warning to the user
 		/* Morse uses it to avoid having to set it in the codelet structure */
 #endif
-		STARPU_CODELET_SET_MODE(cl, mode, *current_buffer);
+		STARPU_CODELET_SET_MODE(cl, arg_mode, *current_buffer);
 	}
 
 	(*current_buffer)++;
@@ -460,7 +468,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
-		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
+		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
 		{
 			/* We have an access mode : we expect to find a handle */
 			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
@@ -753,7 +761,8 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		if (arg_type & STARPU_R
 			|| arg_type & STARPU_W
 			|| arg_type & STARPU_SCRATCH
-			|| arg_type & STARPU_REDUX)
+			|| arg_type & STARPU_REDUX
+			|| arg_type & STARPU_MPI_REDUX)
 		{
 			arg_i++;
 			starpu_data_handle_t handle = arglist[arg_i];

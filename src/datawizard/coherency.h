@@ -72,15 +72,13 @@ struct _starpu_data_replicate
 	 * */
 	unsigned automatically_allocated:1;
 
-	/** To help the scheduling policies to make some decision, we
-	   may keep a track of the tasks that are likely to request
-	   this data on the current node.
-	   It is the responsability of the scheduling _policy_ to set that
-	   flag when it assigns a task to a queue, policies which do not
-	   use this hint can simply ignore it.
-	 */
-	uint32_t requested;
+	/** This tracks the list of requests to provide the value */
 	struct _starpu_data_request *request[STARPU_MAXNODES];
+	/** This points to the last entry of request, to easily append to the list */
+	struct _starpu_data_request *last_request[STARPU_MAXNODES];
+
+	/* Which request is loading data here */
+	struct _starpu_data_request *load_request;
 
 	/** The number of prefetches that we made for this replicate for various tasks
 	 * This is also the number of tasks that we will wait to see use the mc before
@@ -322,7 +320,8 @@ struct _starpu_data_state
  * async means that _starpu_fetch_data_on_node will wait for completion of the request
  */
 int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *replicate,
-			       enum starpu_data_access_mode mode, unsigned detached, enum starpu_is_prefetch is_prefetch, unsigned async,
+			       enum starpu_data_access_mode mode, unsigned detached,
+			       struct starpu_task *task, enum starpu_is_prefetch is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 /** This releases a reference on the handle */
 void _starpu_release_data_on_node(struct _starpu_data_state *state, uint32_t default_wt_mask,
@@ -369,7 +368,8 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
  */
 struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_handle_t handle,
 								  struct _starpu_data_replicate *dst_replicate,
-								  enum starpu_data_access_mode mode, enum starpu_is_prefetch is_prefetch,
+								  enum starpu_data_access_mode mode,
+								  struct starpu_task *task, enum starpu_is_prefetch is_prefetch,
 								  unsigned async,
 								  void (*callback_func)(void *), void *callback_arg, int prio, const char *origin);
 

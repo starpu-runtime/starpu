@@ -265,7 +265,9 @@ int main(int argc, char *argv[])
 	}
 
 #ifdef STARPU_SIMGRID
-	timeout *= 10;
+#ifdef STARPU_DEBUG
+	timeout *= 20;
+#endif
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -404,7 +406,9 @@ int main(int argc, char *argv[])
 			launcher_argv[i++] = argv[x++];
 		}
 #ifdef STARPU_SIMGRID
+#ifdef STARPU_DEBUG
 		launcher_argv[i++] = "--cfg=contexts/factory:thread";
+#endif
 #endif
 		launcher_argv[i++] = NULL;
 		execvp(*launcher_argv, launcher_argv);

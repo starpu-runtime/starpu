@@ -180,8 +180,10 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	struct starpu_task * task;
 	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
 		task = _starpu_fifo_pop_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx), -1);
+	else if (to->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS)
+		task = _starpu_fifo_pop_task(queue, starpu_bitmap_first(&to->workers_in_ctx));
 	else
-		task = _starpu_fifo_pop_task(queue, starpu_worker_get_id_check());
+		task = _starpu_fifo_pop_task(queue, -1);
 	if(task && data->exp)
 	{
 		if(!isnan(task->predicted))

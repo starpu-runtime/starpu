@@ -861,7 +861,28 @@ struct starpu_task
 	*/
 	void *prologue_callback_arg;
 
+	/** Optional field, the default value is <c>NULL</c>. This is a
+	   function pointer of prototype <c>void (*f)(void*)</c>
+	   which specifies a possible callback. If this pointer is
+	   non-<c>NULL</c>, the callback function is executed on the host
+	   when the task is pop-ed from the scheduler, just before getting
+	   executed. The callback is passed the value contained in the
+	   starpu_task::prologue_callback_pop_arg field.
+	   No callback is executed if the field is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK_POP followed by the function pointer.
+	*/
 	void (*prologue_callback_pop_func)(void *);
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is
+	   the pointer passed to the prologue_callback_pop function. This
+	   field is ignored if the field
+	   starpu_task::prologue_callback_pop_func is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG followed by the argument.
+	   */
 	void *prologue_callback_pop_arg;
 
 	/**
@@ -1424,8 +1445,13 @@ struct starpu_task
 	do {								\
 		if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->cl->nbuffers > STARPU_NMAXBUFS) \
 			if ((task)->dyn_modes) (task)->dyn_modes[i] = mode; else (task)->modes[i] = mode; \
-		else							\
-			STARPU_CODELET_SET_MODE((task)->cl, mode, i);	\
+		else \
+		{							\
+			enum starpu_data_access_mode cl_mode = STARPU_CODELET_GET_MODE((task)->cl, i); \
+			STARPU_ASSERT_MSG(cl_mode == mode,	\
+				"Task <%s> can't set its  %d-th buffer mode to %d as the codelet it derives from uses %d", \
+				(task)->cl->name, i, mode, cl_mode);	\
+		} \
 	} while(0)
 
 /**

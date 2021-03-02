@@ -17,7 +17,7 @@
 
 exampledir=@STARPU_SRC_DIR@/starpupy/examples
 
-modpath=@STARPU_BUILD_DIR@/src/.libs:
+modpath=@STARPU_BUILD_DIR@/src/.libs${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 pypath=@STARPU_BUILD_DIR@/starpupy/src/build:$PYTHONPATH
 
 LOADER=@PYTHON@

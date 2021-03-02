@@ -167,9 +167,8 @@ if test x$enable_simgrid = xyes ; then
 	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
 	   	NVCCFLAGS="$SIMGRID_CFLAGS $NVCCFLAGS"
 	fi
-	if test -n "$SIMGRID_LIBS" ; then
-		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
-	fi
+	SAVED_LIBS="${LIBS}"
+	LIBS="$SIMGRID_LIBS $LIBS"
 	AC_HAVE_LIBRARY([simgrid], [],
 		[
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
@@ -207,6 +206,7 @@ if test x$enable_simgrid = xyes ; then
 
 	# Oldies for compatibility with older simgrid
 	AC_CHECK_FUNCS([MSG_get_as_by_name MSG_zone_get_by_name MSG_environment_get_routing_root MSG_host_get_speed])
+	LIBS="${SAVED_LIBS}"
 
 	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
@@ -225,6 +225,7 @@ if test x$enable_simgrid = xyes ; then
 		SIMGRID_LIBS="$SIMGRID_LIBS -lstdc++"
 		LIBS="$LIBS -lstdc++"
 	fi
+	SIMGRID_LDFLAGS="$SIMGRID_LIBS -lsimgrid"
 
 	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	case \ $CXXFLAGS\  in
@@ -267,13 +268,13 @@ if test x$enable_simgrid = xyes ; then
 		AC_PATH_PROG([SIMGRID_MC], [simgrid-mc], [no], [$simgrid_dir/bin:$PATH])
 		LDFLAGS="$LDFLAGS -Wl,-znorelro -Wl,-znoseparate-code"
 		# libsimgrid needs to be linked from binaries themselves for MC to work
-		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS -lsimgrid"
+		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $SIMGRID_LDFLAGS"
 	fi
 fi
 AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
-AC_SUBST(SIMGRID_LIBS)
+AC_SUBST(SIMGRID_LDFLAGS)
 AC_MSG_CHECKING(whether SimGrid is enabled)
 AC_MSG_RESULT($enable_simgrid)
 
@@ -2304,9 +2305,6 @@ if test x$maxnodes = x0 ; then
 	if test x$enable_simgrid = xyes ; then
 		# We need the room for the virtual CUDA/OpenCL devices
 		nodes=`expr 4 + $nmaxcudadev + $nmaxopencldev + $nmaxmicdev + 1 + $nmaxmpidev`
-		if test $nodes -gt 32 ; then
-			nodes=32
-		fi
 	else
 		# We have one memory node shared by all CPU workers, one node per GPU
 		# and per MIC device
@@ -2342,8 +2340,7 @@ if test x$maxnodes = x0 ; then
 	done
 fi
 if test $maxnodes -gt 32 ; then
-	# FIXME: at least use uint64 so we can have 64 memory nodes
-	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
+	AC_MSG_WARN([Note: the wt_mask feature only supports 32 memory nodes])
 fi
 
 AC_MSG_CHECKING(maximum number of memory nodes)
@@ -3448,6 +3445,14 @@ then
 		AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
 	fi
 	AC_SUBST(PYTHON)
+	PYTHON_INCLUDE_DIRS="`$PYTHON -c "from sysconfig import get_paths as gp; print(gp()@<:@'include'@:>@)"`"
+	SAVED_CPPFLAGS="${CPPFLAGS}"
+	CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDE_DIRS"
+	AC_CHECK_HEADERS([Python.h],[have_python_h=yes],[have_python_h=no])
+	if test "$have_python_h" = "no" ; then
+		AC_MSG_ERROR([Python.h missing, cannot build StarPU python interface (consider installing python-dev)])
+	fi
+	CPPFLAGS=${SAVED_CPPFLAGS}
 	AC_MSG_CHECKING(for python3 module joblib)
 	AC_PYTHON_MODULE(joblib,[joblib_avail=yes],[joblib_avail=no])
 	AC_MSG_RESULT($joblib_avail)
@@ -3565,7 +3570,7 @@ STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $
 AC_SUBST([STARPU_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
@@ -3805,11 +3810,11 @@ AC_MSG_NOTICE([
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
-               SOCL test suite:                               $run_socl_check
-               Scheduler Hypervisor:                          $build_sc_hypervisor
-               simgrid enabled:                               $enable_simgrid
-               ayudame enabled:                               $ayu_msg
-               HDF5 enabled:                                  $enable_hdf5
+	       SOCL test suite:                               $run_socl_check
+	       Scheduler Hypervisor:                          $build_sc_hypervisor
+	       simgrid enabled:                               $enable_simgrid
+	       ayudame enabled:                               $ayu_msg
+	       HDF5 enabled:                                  $enable_hdf5
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr

@@ -43,7 +43,7 @@
 #endif
 #endif
 
-#define ERROR_RETURN(retval) do { fprintf(stderr, "Error %d %s:line %d: \n", retval,__FILE__,__LINE__);  return(retval); } while (0)
+#define ERROR_RETURN(retval, function) do { PAPI_perror(function); fprintf(stderr, "Error %d %s:line %d\n", retval,__FILE__,__LINE__);  return(retval); } while (0)
 
 #if 0
 #define debug(fmt, ...) printf(fmt, ## __VA_ARGS__)
@@ -52,6 +52,7 @@
 #endif
 
 #ifdef STARPU_PAPI
+#ifdef STARPU_HAVE_HWLOC
 static const int N_EVTS = 2;
 
 static int nsockets;
@@ -68,7 +69,7 @@ static int add_event(int EventSet, int socket);
 
 /*must be initialized to PAPI_NULL before calling PAPI_create_event*/
 static int EventSet = PAPI_NULL;
-
+#endif
 #endif
 
 static double t1;
@@ -80,7 +81,7 @@ static nvmlDevice_t device;
 #endif
 #endif
 
-int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
+int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker_archtype archi)
 {
 	t1 = starpu_timing_now();
 
@@ -100,11 +101,11 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 		nsockets = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_PACKAGE);
 
 		if ((retval = PAPI_library_init(PAPI_VER_CURRENT)) != PAPI_VER_CURRENT)
-			ERROR_RETURN(retval);
+			ERROR_RETURN(retval, "PAPI_library_init");
 
 		/* Creating the eventset */
 		if ((retval = PAPI_create_eventset(&EventSet)) != PAPI_OK)
-			ERROR_RETURN(retval);
+			ERROR_RETURN(retval, "PAPI_create_eventset");
 
 		int i;
 		for (i = 0 ; i < nsockets ; i ++ )
@@ -112,19 +113,25 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi)
 			/* return the index of socket */
 			hwloc_obj_t obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_PACKAGE, i);
 			if ( (retval = add_event(EventSet, obj->os_index)) != PAPI_OK)
-				ERROR_RETURN(retval);
+			{
+				if (retval == PAPI_EPERM)
+					_STARPU_DISP("PAPI could not access counters due to permissions errors. Perhaps your system requires to run measurements as root?\n");
+				else if (retval == PAPI_ENOEVNT)
+					_STARPU_DISP("PAPI could not access counters. Perhaps your system requires to run measurements as root?\n");
+				ERROR_RETURN(retval, "PAPI_add_named_event");
+			}
 		}
 
 		/* get the number of events in the event set */
 		number = 0;
 		if ( (retval = PAPI_list_events(EventSet, NULL, &number)) != PAPI_OK)
-			ERROR_RETURN(retval);
+			ERROR_RETURN(retval, "PAPI_list_events");
 
 		debug("There are %d events in the event set\n", number);
 
 		/* Start counting */
 		if ( (retval = PAPI_start(EventSet)) != PAPI_OK)
-			ERROR_RETURN(retval);
+			ERROR_RETURN(retval, "PAPI_start");
 
 		return retval;
 	}
@@ -180,7 +187,7 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 
 		/* Stop counting and store the values into the array */
 		if ( (retval = PAPI_stop(EventSet, values)) != PAPI_OK)
-			ERROR_RETURN(retval);
+			ERROR_RETURN(retval, "PAPI_stop");
 
 		int k,s;
 
@@ -199,11 +206,11 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 
 		/*removes all events from a PAPI event set */
 		if ( (retval = PAPI_cleanup_eventset(EventSet)) != PAPI_OK)
-			ERROR_RETURN(retval);
+			ERROR_RETURN(retval, "PAPI_cleanup_eventset");
 
 		/*deallocates the memory associated with an empty PAPI EventSet*/
 		if ( (retval = PAPI_destroy_eventset(&EventSet)) != PAPI_OK)
-			ERROR_RETURN(retval);
+			ERROR_RETURN(retval, "PAPI_destroy_eventset");
 
 		break;
 	}

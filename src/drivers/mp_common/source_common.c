@@ -978,7 +978,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 		}
 	}
 
-        res |= __starpu_datawizard_progress(1, 1);
+        res |= __starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
 
         /* Handle message which have been store */
         _starpu_src_common_handle_stored_async(mp_node);
@@ -1075,7 +1075,7 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
         for (device = 0; device < ndevices; device++)
 	{
         	_STARPU_TRACE_END_PROGRESS(memnode[device]);
-                _starpu_handle_all_pending_node_data_requests(memnode[device]);
+                _starpu_datawizard_handle_all_pending_node_data_requests(memnode[device]);
 	}
 
         /* In case there remains some memory that was automatically
@@ -1107,7 +1107,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, unsigned 
 
         _STARPU_TRACE_END_PROGRESS(memnode);
 
-        _starpu_handle_all_pending_node_data_requests(memnode);
+        _starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
         /* In case there remains some memory that was automatically
          * allocated by StarPU, we release it now. Note that data

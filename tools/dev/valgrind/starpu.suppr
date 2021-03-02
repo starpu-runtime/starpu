@@ -29,6 +29,13 @@
 }
 
 {
+   don't care about data status query race, this is just a hint
+   Helgrind:Race
+   fun:starpu_data_query_status
+   ...
+}
+
+{
    known race, but not problematic in practice, see comment in _starpu_tag_clear
    Helgrind:LockOrder
    ...
@@ -98,6 +105,20 @@
    locking order. It's not a problem when it's a trylock... but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
    Helgrind:LockOrder
    fun:mutex_trylock_WRK
+   ...
+}
+
+{
+   locking order. It's not a problem when it's a trylock... but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
+   Helgrind:LockOrder
+   fun:pthread_rwlock_trywrlock_WRK
+   ...
+}
+
+{
+   locking order. It's not a problem when it's a trylock... but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
+   Helgrind:LockOrder
+   fun:pthread_rwlock_tryrdlock_WRK
    ...
 }
 

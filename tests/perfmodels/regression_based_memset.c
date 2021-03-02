@@ -157,6 +157,7 @@ static void test_memset(int nelems, struct starpu_codelet *codelet)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+	starpu_do_schedule();
         starpu_data_unregister(handle);
 }
 
@@ -191,6 +192,7 @@ static int test_memset_energy(int nelems, int workerid, int where, enum starpu_w
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+	starpu_do_schedule();
 	for (loop = 0; loop < nloops; loop++)
 	{
 		starpu_data_unregister(handle[loop]);

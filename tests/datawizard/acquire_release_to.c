@@ -23,10 +23,8 @@
 
 #ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 10;
-#elif !defined(STARPU_LONG_CHECK)
-static unsigned ntasks = 1000;
 #else
-static unsigned ntasks = 10000;
+static unsigned ntasks = 1000;
 #endif
 
 #ifdef STARPU_USE_CUDA

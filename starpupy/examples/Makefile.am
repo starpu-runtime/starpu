@@ -25,11 +25,14 @@ TESTS_ENVIRONMENT	=	$(MPI_RUN_ARGS) MPI_LAUNCHER="$(MPI_LAUNCHER)" LOADER_ARGS="
 endif
 
 TESTS	=
+
+if !STARPU_SIMGRID
 TESTS	+=	starpu_py.sh
 TESTS	+=	starpu_py_parallel.sh
 
 if STARPU_STARPUPY_NUMPY
 TESTS	+=	starpu_py_np.sh
+endif
 endif
 
 EXTRA_DIST	=		\

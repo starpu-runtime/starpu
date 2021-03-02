@@ -1,7 +1,7 @@
 #!@REALBASH@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2021       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,7 @@
 #
 
 set -x
-export JULIA_LOAD_PATH=@STARPU_SRC_DIR@/julia:$JULIA_LOAD_PATH
+export JULIA_LOAD_PATH=@STARPU_SRC_DIR@/julia/src:$JULIA_LOAD_PATH
 export STARPU_BUILD_DIR=@STARPU_BUILD_DIR@
 export STARPU_SRC_DIR=@STARPU_SRC_DIR@
 export STARPU_JULIA_LIB=@STARPU_BUILD_DIR@/julia/src/.libs/libstarpujulia-1.3

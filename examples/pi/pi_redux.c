@@ -322,7 +322,7 @@ static struct starpu_codelet redux_codelet =
 	.cuda_funcs = {redux_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2
 };
 
