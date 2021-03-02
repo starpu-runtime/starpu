@@ -391,6 +391,10 @@ void _starpu_task_destroy(struct starpu_task *task)
 		if (task->callback_arg_free)
 			free(task->callback_arg);
 
+		/* Does user want StarPU release epilogue callback_arg ? */
+		if (task->epilogue_callback_arg_free)
+			free(task->epilogue_callback_arg);
+
 		/* Does user want StarPU release prologue_callback_arg ? */
 		if (task->prologue_callback_arg_free)
 			free(task->prologue_callback_arg);

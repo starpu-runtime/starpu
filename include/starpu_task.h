@@ -820,6 +820,23 @@ struct starpu_task
 
 	/**
 	   Optional field, the default value is <c>NULL</c>. This is a
+	   function pointer of prototype <c>void (*f)(void *)</c> which specifies
+	   a possible callback just as starpu_task::callback_func. But this function
+	   is executed before task dependencies release. The callback is passed 
+	   the value contained in the starpu_task::epilogue_callback_arg field. 
+	   No callback is executed if the field is set to <c>NULL</c>.
+	*/
+	void (*epilogue_callback_func)(void *);
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is
+	   the pointer passed to the epilogue callback function. This field is
+	   ignored if the field starpu_task::epilogue_callback_func is set to
+	   <c>NULL</c>.
+	*/
+	void *epilogue_callback_arg;
+
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is a
 	   function pointer of prototype <c>void (*f)(void *)</c>
 	   which specifies a possible callback. If this pointer is
 	   non-<c>NULL</c>, the callback function is executed on the
@@ -892,6 +909,16 @@ struct starpu_task
 	   to 0 when using ::STARPU_CALLBACK_ARG_NFREE
 	*/
 	unsigned callback_arg_free:1;
+
+
+	/**
+	   Optional field. In case starpu_task::epilogue_callback_arg was
+	   allocated by the application through <c>malloc()</c>,
+	   setting starpu_task::epilogue_callback_arg_free to 1 makes StarPU
+	   automatically call <c>free(epilogue_callback_arg)</c> when
+	   destroying the task.
+	*/
+	unsigned epilogue_callback_arg_free:1;
 
 	/**
 	   Optional field. In case starpu_task::prologue_callback_arg
@@ -1294,6 +1321,8 @@ struct starpu_task
 	.cl_ret_size = 0,				\
 	.callback_func = NULL,				\
 	.callback_arg = NULL,				\
+	.epilogue_callback_func = NULL,				\
+	.epilogue_callback_arg = NULL,				\
 	.priority = STARPU_DEFAULT_PRIO,		\
 	.use_tag = 0,					\
 	.sequential_consistency = 1,			\
