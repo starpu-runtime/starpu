@@ -129,8 +129,8 @@ async def main():
 
 	#apply starpu.delayed(add_deco)
     fut6 = add_deco(1,2,3)
-    res6 = await fut6
-    print("The result of function is", res6)
+    #res6 = await fut6
+    #print("The result of function is", res6)
 
     #apply starpu.delayed(sub_deco)
     fut7 = sub_deco(fut6, 1)
