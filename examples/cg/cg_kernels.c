@@ -34,7 +34,7 @@ static const TYPE gm1 = -1.0;
 static int nblocks = 8;
 
 #ifdef STARPU_QUICK_CHECK
-static int i_max = 5;
+static int i_max = 2;
 static int long long n = 2048;
 #elif !defined(STARPU_LONG_CHECK)
 static int long long n = 4096;

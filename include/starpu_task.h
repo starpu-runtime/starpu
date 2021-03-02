@@ -771,17 +771,17 @@ struct starpu_task
 
 	/**
 	   Optional pointer which points to the return value of submitted task.
-	   The default value is <c>NULL</c>. starpu_codelet_pack_arg() 
+	   The default value is <c>NULL</c>. starpu_codelet_pack_arg()
 	   and starpu_codelet_unpack_arg() can be used to respectively
-	   pack and unpack the return value into and form it. starpu_task::cl_ret 
+	   pack and unpack the return value into and form it. starpu_task::cl_ret
 	   can be used for MPI support. The only requirement is that
 	   the size of the return value must be set in starpu_task::cl_ret_size .
 	*/
 	void *cl_ret;
 
 	/**
-	   Optional field. The buffer of starpu_codelet_pack_arg() 
-	   and starpu_codelet_unpack_arg() can be allocated with 
+	   Optional field. The buffer of starpu_codelet_pack_arg()
+	   and starpu_codelet_unpack_arg() can be allocated with
 	   the starpu_task::cl_ret_size bytes starting at address starpu_task::cl_ret.
 	   starpu_task::cl_ret_size can be used for MPI supoort.
 	*/
@@ -804,6 +804,7 @@ struct starpu_task
 	   pointer and the argument.
 	*/
 	void (*callback_func)(void *);
+
 	/**
 	   Optional field, the default value is <c>NULL</c>. This is
 	   the pointer passed to the callback function. This field is
@@ -822,14 +823,15 @@ struct starpu_task
 	   Optional field, the default value is <c>NULL</c>. This is a
 	   function pointer of prototype <c>void (*f)(void *)</c> which specifies
 	   a possible callback just as starpu_task::callback_func. But this function
-	   is executed before task dependencies release. The callback is passed 
-	   the value contained in the starpu_task::epilogue_callback_arg field. 
+	   is executed before task dependencies release. The callback is passed
+	   the value contained in the starpu_task::epilogue_callback_arg field.
 	   No callback is executed if the field is set to <c>NULL</c>.
 
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_EPILOGUE_CALLBACK followed by the function pointer.
 	*/
 	void (*epilogue_callback_func)(void *);
+
 	/**
 	   Optional field, the default value is <c>NULL</c>. This is
 	   the pointer passed to the epilogue callback function. This field is
@@ -936,7 +938,6 @@ struct starpu_task
 	   to 0 when using ::STARPU_CALLBACK_ARG_NFREE
 	*/
 	unsigned callback_arg_free:1;
-
 
 	/**
 	   Optional field. In case starpu_task::epilogue_callback_arg was
@@ -1348,8 +1349,8 @@ struct starpu_task
 	.cl_ret_size = 0,				\
 	.callback_func = NULL,				\
 	.callback_arg = NULL,				\
-	.epilogue_callback_func = NULL,				\
-	.epilogue_callback_arg = NULL,				\
+	.epilogue_callback_func = NULL,			\
+	.epilogue_callback_arg = NULL,			\
 	.priority = STARPU_DEFAULT_PRIO,		\
 	.use_tag = 0,					\
 	.sequential_consistency = 1,			\

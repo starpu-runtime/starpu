@@ -295,8 +295,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	struct starpu_task *end_rdep = NULL;
 	unsigned sched_ctx = task->sched_ctx;
 	double flops = task->flops;
-	void (*epilogue_callback)(void *) = task->epilogue_callback_func;
-	
+
 	const unsigned continuation =
 #ifdef STARPU_OPENMP
 		j->continuation
@@ -304,15 +303,13 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		0
 #endif
 		;
+
 	if (!continuation)
 	{
+		void (*epilogue_callback)(void *) = task->epilogue_callback_func;
 		/* the epilogue callback is executed before the dependencies release*/
 		if (epilogue_callback)
 		{
-			int profiling = starpu_profiling_status_get();
-			if (profiling && task->profiling_info)
-				_starpu_clock_gettime(&task->profiling_info->callback_start_time);
-
 			/* so that we can check whether we are doing blocking calls
 			 * within the callback */
 			_starpu_set_local_worker_status(STATUS_CALLBACK);
@@ -325,18 +322,15 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_set_current_task(task);
 
 			_STARPU_TRACE_START_CALLBACK(j);
-			if (epilogue_callback)
-				epilogue_callback(task->epilogue_callback_arg);
+			epilogue_callback(task->epilogue_callback_arg);
 			_STARPU_TRACE_END_CALLBACK(j);
 
 			_starpu_set_current_task(current_task);
 
 			_starpu_set_local_worker_status(STATUS_UNKNOWN);
-
-			if (profiling && task->profiling_info)
-				_starpu_clock_gettime(&task->profiling_info->callback_end_time);
 		}
 	}
+
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
 	_starpu_job_multilist_erase_all_submitted(&all_jobs_list, j);
@@ -494,8 +488,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_set_current_task(task);
 
 			_STARPU_TRACE_START_CALLBACK(j);
-			if (callback)
-				callback(task->callback_arg);
+			callback(task->callback_arg);
 			_STARPU_TRACE_END_CALLBACK(j);
 
 			_starpu_set_current_task(current_task);
