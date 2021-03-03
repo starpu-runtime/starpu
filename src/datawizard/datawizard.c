@@ -124,6 +124,11 @@ int __starpu_datawizard_progress(enum _starpu_may_alloc may_alloc, unsigned push
 
 		return ret;
 	}
+
+	/* processing requests may release some tasks, we cannot be already
+	 * scheduling a task. */
+	STARPU_ASSERT(!worker->state_sched_op_pending);
+
 	if (worker->set)
 		/* Runing one of the workers of a worker set. The reference for
 		 * driving memory is its worker 0 (see registrations in topology.c) */
