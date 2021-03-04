@@ -154,7 +154,8 @@ struct starpu_codelet accumulate_variable_cl =
 #endif
 	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
-	.model = &accumulate_variable_model
+	.model = &accumulate_variable_model,
+	.name = "accumulate_variable"
 };
 
 #ifdef STARPU_USE_CUDA
@@ -198,7 +199,8 @@ struct starpu_codelet accumulate_vector_cl =
 #endif
 	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
-	.model = &accumulate_vector_model
+	.model = &accumulate_vector_model,
+	.name = "accumulate_vector"
 };
 
 /*
@@ -242,7 +244,8 @@ struct starpu_codelet bzero_variable_cl =
 #endif
 	.modes = {STARPU_W},
 	.nbuffers = 1,
-	.model = &bzero_variable_model
+	.model = &bzero_variable_model,
+	.name = "bzero_variable"
 };
 
 #ifdef STARPU_USE_CUDA
@@ -283,7 +286,8 @@ struct starpu_codelet bzero_vector_cl =
 #endif
 	.modes = {STARPU_W},
 	.nbuffers = 1,
-	.model = &bzero_vector_model
+	.model = &bzero_vector_model,
+	.name = "bzero_vector"
 };
 
 /*
@@ -343,7 +347,8 @@ static struct starpu_codelet dot_kernel_cl =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.model = &dot_kernel_model
+	.model = &dot_kernel_model,
+	.name = "dot_kernel"
 };
 
 int dot_kernel(HANDLE_TYPE_VECTOR v1,
@@ -427,7 +432,8 @@ static struct starpu_codelet scal_kernel_cl =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 1,
-	.model = &scal_kernel_model
+	.model = &scal_kernel_model,
+	.name = "scal_kernel"
 };
 
 /*
@@ -506,7 +512,8 @@ static struct starpu_codelet gemv_kernel_cl =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 3,
-	.model = &gemv_kernel_model
+	.model = &gemv_kernel_model,
+	.name = "gemv_kernel"
 };
 
 int gemv_kernel(HANDLE_TYPE_VECTOR v1,
@@ -611,7 +618,8 @@ static struct starpu_codelet scal_axpy_kernel_cl =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 2,
-	.model = &scal_axpy_kernel_model
+	.model = &scal_axpy_kernel_model,
+	.name = "scal_axpy_kernel"
 };
 
 int scal_axpy_kernel(HANDLE_TYPE_VECTOR v1, TYPE p1,
@@ -690,7 +698,8 @@ static struct starpu_codelet axpy_kernel_cl =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 2,
-	.model = &axpy_kernel_model
+	.model = &axpy_kernel_model,
+	.name = "axpy_kernel"
 };
 
 int axpy_kernel(HANDLE_TYPE_VECTOR v1,
