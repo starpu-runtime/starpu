@@ -54,7 +54,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 	STARPU_ASSERT(replicate->allocated);
 
 	struct starpu_codelet *init_cl = handle->init_cl;
-	STARPU_ASSERT(init_cl);
+	STARPU_ASSERT_MSG(init_cl, "There is no initialisation codelet for the reduction of the handle %p. Maybe you forget to call starpu_data_set_reduction_methods() ?", handle->root_handle);
 
 	_starpu_cl_func_t init_func = NULL;
 
