@@ -76,6 +76,8 @@ LIST_TYPE(_starpu_perfmodel,
 )
 static struct _starpu_perfmodel_list registered_models;
 
+static char _starpu_perfmodel_hostname[STR_LONG_LENGTH];
+
 void starpu_perfmodel_initialize(void)
 {
 	/* make sure the performance model directory exists (or create it) */
@@ -85,6 +87,8 @@ void starpu_perfmodel_initialize(void)
 
 	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
 	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
+
+	_starpu_gethostname(_starpu_perfmodel_hostname, sizeof(_starpu_perfmodel_hostname));
 }
 
 void _starpu_initialize_registered_performance_models(void)
@@ -1197,19 +1201,14 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 {
 	STARPU_ASSERT(path);
 
-	char hostname[STR_LONG_LENGTH];
-	_starpu_gethostname(hostname, sizeof(hostname));
-
-	snprintf(path, maxlen, "%s/%s.%s.%s.debug", _starpu_get_perf_model_dir_debug(), model->symbol, hostname, arch);
+	snprintf(path, maxlen, "%s/%s.%s.%s.debug", _starpu_get_perf_model_dir_debug(), model->symbol, _starpu_perfmodel_hostname, arch);
 }
 
 void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxlen)
 {
-	char hostname[STR_LONG_LENGTH];
-	_starpu_gethostname(hostname, sizeof(hostname));
 	const char *dot = strrchr(symbol, '.');
 
-	snprintf(path, maxlen, "%s/%s%s%s", _starpu_get_perf_model_dir_codelet(), symbol, dot?"":".", dot?"":hostname);
+	snprintf(path, maxlen, "%s/%s%s%s", _starpu_get_perf_model_dir_codelet(), symbol, dot?"":".", dot?"":_starpu_perfmodel_hostname);
 }
 
 #ifndef STARPU_SIMGRID
