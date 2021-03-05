@@ -60,6 +60,9 @@ void _starpu_init_fifo(struct _starpu_fifo_taskq *fifo)
 	fifo->exp_end = fifo->exp_start;
 	fifo->exp_len_per_priority = NULL;
 	fifo->pipeline_len = 0.0;
+	STARPU_HG_DISABLE_CHECKING(fifo->exp_start);
+	STARPU_HG_DISABLE_CHECKING(fifo->exp_len);
+	STARPU_HG_DISABLE_CHECKING(fifo->exp_end);
 }
 
 struct _starpu_fifo_taskq *_starpu_create_fifo(void)
