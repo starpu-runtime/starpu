@@ -279,7 +279,6 @@ endif
 if !STARPU_SIMGRID
 if !STARPU_NO_BLAS_LIB
 examplebin_PROGRAMS += cg/cg
-starpu_mpi_EXAMPLES += cg/cg
 
 cg_cg_SOURCES =					\
 	cg/cg.c						\
