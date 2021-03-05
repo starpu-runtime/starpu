@@ -178,6 +178,8 @@ static struct _starpu_worker_task_list * _starpu_worker_task_list_create(void)
 	/* These are only for statistics */
 	STARPU_HG_DISABLE_CHECKING(l->exp_end);
 	STARPU_HG_DISABLE_CHECKING(l->exp_start);
+	STARPU_HG_DISABLE_CHECKING(l->exp_len);
+	STARPU_HG_DISABLE_CHECKING(l->pipeline_len);
 	STARPU_PTHREAD_MUTEX_INIT(&l->mutex,NULL);
 	return l;
 }

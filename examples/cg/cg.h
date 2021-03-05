@@ -32,7 +32,6 @@
 #define TYPE	double
 #define GEMV	STARPU_DGEMV
 #define DOT	STARPU_DDOT
-#define GEMV	STARPU_DGEMV
 #define AXPY	STARPU_DAXPY
 #define SCAL	STARPU_DSCAL
 #define cublasdot	cublasDdot
@@ -44,7 +43,6 @@
 #define TYPE	float
 #define GEMV	STARPU_SGEMV
 #define DOT	STARPU_SDOT
-#define GEMV	STARPU_SGEMV
 #define AXPY	STARPU_SAXPY
 #define SCAL	STARPU_SSCAL
 #define cublasdot	cublasSdot

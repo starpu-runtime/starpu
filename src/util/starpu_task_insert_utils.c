@@ -393,7 +393,7 @@ void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starp
 	{
 		STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == arg_mode,
 				  "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-				  cl->name, STARPU_CODELET_GET_MODE(cl, *current_buffer),
+				  _starpu_codelet_get_name(cl), STARPU_CODELET_GET_MODE(cl, *current_buffer),
 				  *current_buffer, arg_mode);
 	}
 	else
@@ -443,7 +443,7 @@ void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, s
 		{
 			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == descrs[i].mode,
 					"The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-					cl->name, STARPU_CODELET_GET_MODE(cl, *current_buffer),
+					_starpu_codelet_get_name(cl), STARPU_CODELET_GET_MODE(cl, *current_buffer),
 					*current_buffer, descrs[i].mode);
 		}
 		else

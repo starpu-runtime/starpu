@@ -46,6 +46,7 @@ static int perfmodel_select_push_task(struct starpu_sched_component * component,
 		if(isnan(length))
 		{
 			static int warned;
+			STARPU_HG_DISABLE_CHECKING(warned);
 			if (!warned)
 			{
 				warned = 1;

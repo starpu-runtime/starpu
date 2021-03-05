@@ -248,8 +248,8 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 	PyGILState_Release(state);
 }
 
-/*function passed to starpu_task.callback_func*/
-void cb_func(void *v)
+/*function passed to starpu_task.epilogue_callback_func*/
+void epilogue_cb_func(void *v)
 {
 	PyObject *fut; /*asyncio.Future*/
 	PyObject *loop; /*asyncio.Eventloop*/
@@ -316,6 +316,11 @@ void cb_func(void *v)
 
 	/*restore previous GIL state*/
 	PyGILState_Release(state);
+}
+
+void cb_func(void *v)
+{
+	struct starpu_task *task = starpu_task_get_current();
 
 	/*deallocate task*/
 	free(task->cl);
@@ -576,7 +581,8 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	starpu_codelet_pack_arg_fini(&data, &task->cl_arg, &task->cl_arg_size);
 
 	task->prologue_callback_func=&prologue_cb_func;
-	task->epilogue_callback_func=&cb_func;
+	task->epilogue_callback_func=&epilogue_cb_func;
+	task->callback_func=&cb_func;
 
 	/*call starpu_task_submit method*/
 	int ret;

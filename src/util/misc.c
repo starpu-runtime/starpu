@@ -18,6 +18,19 @@
 #include <common/utils.h>
 #include <core/jobs.h>
 
+const char *_starpu_codelet_get_name(struct starpu_codelet *cl)
+{
+	if (!cl)
+		return NULL;
+
+	if (cl->name)
+		return cl->name;
+	else if (cl->model && cl->model->symbol && cl->model->symbol[0])
+		return cl->model->symbol;
+	else
+		return NULL;
+}
+
 const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl)
 {
 	if (!cl)

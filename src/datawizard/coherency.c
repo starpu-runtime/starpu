@@ -774,14 +774,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 {
         _STARPU_LOG_IN();
 
-	int cpt = 0;
-	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
-	{
-		cpt++;
-		_starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC);
-	}
-	if (cpt == STARPU_SPIN_MAXTRY)
-		_starpu_spin_lock(&handle->header_lock);
+	_starpu_spin_lock(&handle->header_lock);
 
 	if (mode & STARPU_R && is_prefetch > STARPU_FETCH)
 	{

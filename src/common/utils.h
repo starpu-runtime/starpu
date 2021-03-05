@@ -179,6 +179,9 @@ struct starpu_codelet;
 /** Returns the symbol associated to that job if any. */
 const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
 
+/** Returns the name of a codelet, or fallback to the name of the perfmodel. */
+const char *_starpu_codelet_get_name(struct starpu_codelet *cl);
+
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
 
 void _starpu_util_init(void);

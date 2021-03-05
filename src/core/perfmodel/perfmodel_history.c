@@ -76,6 +76,62 @@ LIST_TYPE(_starpu_perfmodel,
 )
 static struct _starpu_perfmodel_list registered_models;
 
+static char _starpu_perfmodel_hostname[STR_LONG_LENGTH];
+
+void starpu_perfmodel_initialize(void)
+{
+	/* make sure the performance model directory exists (or create it) */
+	_starpu_create_sampling_directory_if_needed();
+
+	_starpu_perfmodel_list_init(&registered_models);
+
+	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
+	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
+
+	_starpu_gethostname(_starpu_perfmodel_hostname, sizeof(_starpu_perfmodel_hostname));
+}
+
+void _starpu_initialize_registered_performance_models(void)
+{
+	starpu_perfmodel_initialize();
+
+	struct _starpu_machine_config *conf = _starpu_get_machine_config();
+	unsigned ncores = conf->topology.nhwworker[STARPU_CPU_WORKER][0];
+	unsigned ncuda =  conf->topology.nhwdevices[STARPU_CUDA_WORKER];
+	unsigned nopencl = conf->topology.nhwdevices[STARPU_OPENCL_WORKER];
+	unsigned nmic = 0;
+	enum starpu_worker_archtype archtype;
+#if STARPU_MAXMICDEVS > 0 || STARPU_MAXMPIDEVS > 0
+	unsigned i;
+#endif
+#if STARPU_MAXMICDEVS > 0
+	for(i = 0; i < conf->topology.nhwdevices[STARPU_MIC_WORKER]; i++)
+		nmic += conf->topology.nhwworker[STARPU_MIC_WORKER][i];
+#endif
+	unsigned nmpi = 0;
+#if STARPU_MAXMPIDEVS > 0
+	for(i = 0; i < conf->topology.nhwdevices[STARPU_MPI_MS_WORKER]; i++)
+		nmpi += conf->topology.nhwworker[STARPU_MPI_MS_WORKER][i];
+#endif
+
+	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nmpi), this is too big
+	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nmpi), and reallocate when necessary in starpu_perfmodel_arch_comb_add
+	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nmpi);
+	_STARPU_MALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
+	current_arch_comb = 0;
+	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
+	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
+
+	for (archtype = 0; archtype < STARPU_NARCH; archtype++)
+	{
+		char name[128];
+		const char *arch = starpu_worker_get_type_as_env_var(archtype);
+		int def = archtype == STARPU_CPU_WORKER ? 1 : 0;
+		snprintf(name, sizeof(name), "STARPU_PERF_MODEL_HOMOGENEOUS_%s", arch);
+		ignore_devid[archtype] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", def);
+	}
+}
+
 void _starpu_perfmodel_malloc_per_arch(struct starpu_perfmodel *model, int comb, int nb_impl)
 {
 	int i;
@@ -1145,19 +1201,14 @@ static void get_model_debug_path(struct starpu_perfmodel *model, const char *arc
 {
 	STARPU_ASSERT(path);
 
-	char hostname[STR_LONG_LENGTH];
-	_starpu_gethostname(hostname, sizeof(hostname));
-
-	snprintf(path, maxlen, "%s/%s.%s.%s.debug", _starpu_get_perf_model_dir_debug(), model->symbol, hostname, arch);
+	snprintf(path, maxlen, "%s/%s.%s.%s.debug", _starpu_get_perf_model_dir_debug(), model->symbol, _starpu_perfmodel_hostname, arch);
 }
 
 void starpu_perfmodel_get_model_path(const char *symbol, char *path, size_t maxlen)
 {
-	char hostname[STR_LONG_LENGTH];
-	_starpu_gethostname(hostname, sizeof(hostname));
 	const char *dot = strrchr(symbol, '.');
 
-	snprintf(path, maxlen, "%s/%s%s%s", _starpu_get_perf_model_dir_codelet(), symbol, dot?"":".", dot?"":hostname);
+	snprintf(path, maxlen, "%s/%s%s%s", _starpu_get_perf_model_dir_codelet(), symbol, dot?"":".", dot?"":_starpu_perfmodel_hostname);
 }
 
 #ifndef STARPU_SIMGRID
@@ -1205,64 +1256,12 @@ static void _starpu_dump_registered_models(void)
 	     node != _starpu_perfmodel_list_end(&registered_models);
 	     node  = _starpu_perfmodel_list_next(node))
 	{
-		if (node->model->is_init)
+		if (node->model->is_init && (node->model->type != STARPU_PER_WORKER && node->model->type != STARPU_PER_ARCH && node->model->type != STARPU_COMMON))
 			starpu_save_history_based_model(node->model);
 	}
 
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&registered_models_rwlock);
 #endif
-}
-
-void starpu_perfmodel_initialize(void)
-{
-	/* make sure the performance model directory exists (or create it) */
-	_starpu_create_sampling_directory_if_needed();
-
-	_starpu_perfmodel_list_init(&registered_models);
-
-	STARPU_PTHREAD_RWLOCK_INIT(&registered_models_rwlock, NULL);
-	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
-}
-
-void _starpu_initialize_registered_performance_models(void)
-{
-	starpu_perfmodel_initialize();
-
-	struct _starpu_machine_config *conf = _starpu_get_machine_config();
-	unsigned ncores = conf->topology.nhwworker[STARPU_CPU_WORKER][0];
-	unsigned ncuda =  conf->topology.nhwdevices[STARPU_CUDA_WORKER];
-	unsigned nopencl = conf->topology.nhwdevices[STARPU_OPENCL_WORKER];
-	unsigned nmic = 0;
-	enum starpu_worker_archtype archtype;
-#if STARPU_MAXMICDEVS > 0 || STARPU_MAXMPIDEVS > 0
-	unsigned i;
-#endif
-#if STARPU_MAXMICDEVS > 0
-	for(i = 0; i < conf->topology.nhwdevices[STARPU_MIC_WORKER]; i++)
-		nmic += conf->topology.nhwworker[STARPU_MIC_WORKER][i];
-#endif
-	unsigned nmpi = 0;
-#if STARPU_MAXMPIDEVS > 0
-	for(i = 0; i < conf->topology.nhwdevices[STARPU_MPI_MS_WORKER]; i++)
-		nmpi += conf->topology.nhwworker[STARPU_MPI_MS_WORKER][i];
-#endif
-
-	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nmpi), this is too big
-	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nmpi), and reallocate when necessary in starpu_perfmodel_arch_comb_add
-	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nmpi);
-	_STARPU_MALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
-	current_arch_comb = 0;
-	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
-	_starpu_calibration_minimum = starpu_get_env_number_default("STARPU_CALIBRATE_MINIMUM", 10);
-
-	for (archtype = 0; archtype < STARPU_NARCH; archtype++)
-	{
-		char name[128];
-		const char *arch = starpu_worker_get_type_as_env_var(archtype);
-		int def = archtype == STARPU_CPU_WORKER ? 1 : 0;
-		snprintf(name, sizeof(name), "STARPU_PERF_MODEL_HOMOGENEOUS_%s", arch);
-		ignore_devid[archtype] = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", def);
-	}
 }
 
 void _starpu_deinitialize_performance_model(struct starpu_perfmodel *model)
