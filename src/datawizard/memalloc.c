@@ -1058,6 +1058,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 	if (reclaim && !force)
 	{
 		static unsigned warned;
+		STARPU_HG_DISABLE_CHECKING(warned);
 		if (!warned)
 		{
 			if (STARPU_ATOMIC_ADD(&warned, 1) == 1)
@@ -1280,6 +1281,7 @@ void starpu_memchunk_tidy(unsigned node)
 		goto out;
 
 	static unsigned warned;
+	STARPU_HG_DISABLE_CHECKING(warned);
 	if (!warned)
 	{
 		if (STARPU_ATOMIC_ADD(&warned, 1) == 1)

@@ -274,6 +274,7 @@ void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node
 	if (elapsed > 300)
 	{
 		static int warned = 0;
+		STARPU_HG_DISABLE_CHECKING(warned);
 		if (!warned)
 		{
 			char src_name[16], dst_name[16];

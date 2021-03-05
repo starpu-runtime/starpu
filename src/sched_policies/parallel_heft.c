@@ -366,6 +366,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			if (isnan(local_task_length[worker_ctx][nimpl]))
 			{
 				static int warned;
+				STARPU_HG_DISABLE_CHECKING(warned);
 				if (!warned)
 				{
 					warned = 1;

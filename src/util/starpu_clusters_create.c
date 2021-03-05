@@ -736,6 +736,7 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 
 		if (size > 1)
 		{
+			STARPU_HG_DISABLE_CHECKING(starpu_cluster_warned);
 			if (!starpu_cluster_warned)
 			{
 				_STARPU_DISP("STARPU CLUSTERS: Caution! It seems that you have"
