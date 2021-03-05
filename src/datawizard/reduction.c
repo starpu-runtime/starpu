@@ -289,6 +289,7 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0) & STARPU_COMMUTE))
 					{
 						static int warned;
+						STARPU_HG_DISABLE_CHECKING(warned);
 						if (!warned)
 						{
 							warned = 1;
