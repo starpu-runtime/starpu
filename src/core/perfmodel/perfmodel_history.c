@@ -1213,7 +1213,7 @@ static void _starpu_dump_registered_models(void)
 	     node != _starpu_perfmodel_list_end(&registered_models);
 	     node  = _starpu_perfmodel_list_next(node))
 	{
-		if (node->model->is_init)
+		if (node->model->is_init && (node->model->type != STARPU_PER_ARCH && node->model->type != STARPU_COMMON))
 			save_history_based_model(node->model);
 	}
 
