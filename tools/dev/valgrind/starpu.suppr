@@ -132,6 +132,15 @@
 }
 
 {
+   mc / handle locking order1
+   Helgrind:LockOrder
+   ...
+   fun:__starpu_spin_lock
+   fun:try_to_throw_mem_chunk
+   ...
+}
+
+{
    mc / handle locking order2
    Helgrind:LockOrder
    ...
