@@ -59,7 +59,7 @@
    Ignore libc printf races
    Helgrind:Race
    ...
-   fun:vfprintf
+   fun:__vfprintf_internal
    ...
 }
 
