@@ -387,13 +387,13 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			(void)va_arg(varg_list_copy, void *);
 		}
 		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
-        {
+		{
 			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
 		}
-        else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
-        {
-            (void)va_arg(varg_list_copy, void *);
-        }
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			prio = va_arg(varg_list_copy, int);
@@ -419,28 +419,28 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			(void)va_arg(varg_list_copy, unsigned);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
-        {
+		{
 			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
 		}
-        else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
-        {
-            (void)va_arg(varg_list_copy, void *);
-        }
-        else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
-        {
-            (void)va_arg(varg_list_copy, void *);
-        }
-        else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
-        {
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
-        }
-        else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
-        {
-            (void)va_arg(varg_list_copy, void *);
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
 		}
-        else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
-        {
-            (void)va_arg(varg_list_copy, void *);
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
+		{
+			(void)va_arg(varg_list_copy, void *);
 		}
 		else if (arg_type==STARPU_EXECUTE_WHERE)
 		{
