@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,7 +46,7 @@ uint64_t bench_nb_iterations(int iterations, uint64_t len)
 {
 	const uint64_t max_data = NX_MAX;
 
-	if(len <= 0)
+	if(len == 0)
 		len = 1;
 
 	uint64_t data_size = ((uint64_t)iterations * (uint64_t)len);

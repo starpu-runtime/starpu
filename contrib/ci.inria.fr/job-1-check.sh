@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -37,7 +37,11 @@ basename=$(basename $tarball .tar.gz)
 export STARPU_HOME=$PWD/$basename/home
 mkdir -p $basename
 cd $basename
-env > $PWD/env
+(
+    echo "oldPWD=\${PWD}"
+    env|grep -v LS_COLORS | grep '^[A-Z]'|grep -v BASH_FUNC | grep '=' | sed 's/=/=\"/'| sed 's/$/\"/' | sed 's/^/export /'
+    echo "cd \$oldPWD"
+) > ${PWD}/env
 
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz ../$tarball
@@ -63,7 +67,17 @@ fi
 
 export CC=gcc
 
-CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check --disable-build-doc"
+set +e
+mpiexec -oversubscribe pwd 2>/dev/null
+ret=$?
+set -e
+ARGS=""
+if test "$ret" = "0"
+then
+    ARGS="--with-mpiexec-args=-oversubscribe"
+fi
+
+CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check --disable-build-doc $ARGS"
 CONFIGURE_CHECK=""
 day=$(date +%u)
 if test $day -le 5
@@ -72,12 +86,12 @@ then
 #else
     # we do a normal check, a long check takes too long on VM nodes
 fi
-../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS
+../configure $CONFIGURE_OPTIONS $CONFIGURE_CHECK  $STARPU_CONFIGURE_OPTIONS $STARPU_USER_CONFIGURE_OPTIONS
 
 export STARPU_TIMEOUT_ENV=1800
 export MPIEXEC_TIMEOUT=1800
-make
-#make check
+
+make -j4
 (make -k check || true) 2>&1 | tee  ../check_$$
 make showsuite
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -48,7 +48,6 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
 		.cuda_funcs = {wrapper_func},
 		.cpu_funcs = {wrapper_func},
 		.opencl_funcs = {wrapper_func},
-		/* XXX we do not handle Cell .. */
 		.nbuffers = 0,
 		.name = name
 	};

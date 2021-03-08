@@ -19,3 +19,9 @@ from.starpupy import *
 from .delay import *
 #from . import joblib
 from .intermedia import *
+
+import asyncio
+
+async def wait_for_fut(fut):
+	return await fut
+

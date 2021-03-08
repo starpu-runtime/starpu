@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2016       Uppsala University
@@ -60,6 +60,9 @@ void _starpu_init_fifo(struct _starpu_fifo_taskq *fifo)
 	fifo->exp_end = fifo->exp_start;
 	fifo->exp_len_per_priority = NULL;
 	fifo->pipeline_len = 0.0;
+	STARPU_HG_DISABLE_CHECKING(fifo->exp_start);
+	STARPU_HG_DISABLE_CHECKING(fifo->exp_len);
+	STARPU_HG_DISABLE_CHECKING(fifo->exp_end);
 }
 
 struct _starpu_fifo_taskq *_starpu_create_fifo(void)
@@ -352,6 +355,29 @@ int _starpu_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_
 	return ((num_priorities-1)/(max-min)) * (priority - min);
 }
 
+size_t _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker)
+{
+	size_t cnt = 0;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned index;
+
+	for (index = 0; index < nbuffers; index++)
+	{
+		starpu_data_handle_t handle;
+		unsigned buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
+
+		handle = STARPU_TASK_GET_HANDLE(task, index);
+
+		int is_valid;
+		starpu_data_query_status(handle, buffer_node, NULL, &is_valid, NULL);
+
+		if (!is_valid)
+			cnt+=starpu_data_get_size(handle);
+	}
+
+	return cnt;
+}
+
 int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
 {
 	int cnt = 0;
@@ -392,7 +418,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 		int first_task_priority = task->priority;
 
-		int non_ready_best = INT_MAX;
+		size_t non_ready_best = SIZE_MAX;
 
 		for (current = task; current; current = current->next)
 		{
@@ -400,7 +426,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 			if (priority >= first_task_priority)
 			{
-				int non_ready = _starpu_count_non_ready_buffers(current, workerid);
+				size_t non_ready = _starpu_size_non_ready_buffers(current, workerid);
 				if (non_ready < non_ready_best)
 				{
 					non_ready_best = non_ready;

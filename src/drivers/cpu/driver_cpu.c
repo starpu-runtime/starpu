@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -40,6 +40,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
+#include <datawizard/datawizard.h>
 #include <core/simgrid.h>
 #include <core/task.h>
 #include <core/disk.h>
@@ -341,7 +342,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		return ret;
 	}
 
-	res = __starpu_datawizard_progress(1, 1);
+	res = __starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
 
 	if (!pending_task)
 		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
@@ -429,7 +430,7 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	unsigned memnode = cpu_worker->memory_node;
-	_starpu_handle_all_pending_node_data_requests(memnode);
+	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
 	/* In case there remains some memory that was automatically
 	 * allocated by StarPU, we release it now. Note that data

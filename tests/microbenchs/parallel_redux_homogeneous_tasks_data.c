@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Bérangère Subervie
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -96,7 +96,7 @@ static struct starpu_codelet cl_redux =
 	.opencl_funcs = { wait_homogeneous },
 	.cpu_funcs_name = { "wait_homogeneous" },
 	.nbuffers = 2,
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.flags = STARPU_CODELET_SIMGRID_EXECUTE,
 	.model = &perf_model_redux,
 	.name = "redux",

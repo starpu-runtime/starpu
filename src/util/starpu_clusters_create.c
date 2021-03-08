@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -736,6 +736,7 @@ void _starpu_cluster(struct _starpu_cluster_group *group)
 
 		if (size > 1)
 		{
+			STARPU_HG_DISABLE_CHECKING(starpu_cluster_warned);
 			if (!starpu_cluster_warned)
 			{
 				_STARPU_DISP("STARPU CLUSTERS: Caution! It seems that you have"

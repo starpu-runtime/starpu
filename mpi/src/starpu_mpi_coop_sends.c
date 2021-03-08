@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,14 +47,31 @@ void _starpu_mpi_release_req_data(struct _starpu_mpi_req *req)
 			/* We were last, release data */
 			free(coop_sends->reqs_array);
 			free(coop_sends);
-			starpu_data_release_on_node(req->data_handle, STARPU_MAIN_RAM);
+			starpu_data_release_on_node(req->data_handle, req->node);
 		}
 	}
 	else
 	{
 		/* Trivial request */
-		starpu_data_release_on_node(req->data_handle, STARPU_MAIN_RAM);
+		starpu_data_release_on_node(req->data_handle, req->node);
 	}
+}
+
+/* The data was acquired in terms of dependencies, we can now look the
+ * current state of the handle and decide which node we prefer for the data
+ * fetch */
+static void _starpu_mpi_coop_send_acquired_callback(void *arg, int *nodep, enum starpu_data_access_mode mode)
+{
+	struct _starpu_mpi_coop_sends *coop_sends = arg;
+	int node = *nodep;
+
+	if (node < 0)
+		node = _starpu_mpi_choose_node(coop_sends->data_handle, mode);
+
+	/* Record the node in the first req */
+	_starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs)->node = node;
+
+	*nodep = node;
 }
 
 /* Comparison function for getting qsort to put requests with high priority first */
@@ -109,6 +126,8 @@ static void _starpu_mpi_coop_sends_data_ready(void *arg)
 	_STARPU_MPI_LOG_IN();
 	struct _starpu_mpi_coop_sends *coop_sends = arg;
 	struct _starpu_mpi_data *mpi_data = coop_sends->mpi_data;
+	struct _starpu_mpi_req *cur;
+	unsigned node;
 
 	/* Take the cooperative send bag out from more submissions */
 	if (mpi_data->coop_sends == coop_sends)
@@ -118,6 +137,15 @@ static void _starpu_mpi_coop_sends_data_ready(void *arg)
 			mpi_data->coop_sends = NULL;
 		_starpu_spin_unlock(&mpi_data->coop_lock);
 	}
+
+	/* Copy over the memory node number */
+	cur = _starpu_mpi_req_multilist_begin_coop_sends(&coop_sends->reqs);
+	node = cur->node;
+
+	for ( ;
+	     cur != _starpu_mpi_req_multilist_end_coop_sends(&coop_sends->reqs);
+	     cur  = _starpu_mpi_req_multilist_next_coop_sends(cur))
+		cur->node = node;
 
 	if (coop_sends->n == 1)
 	{
@@ -187,6 +215,7 @@ static int _starpu_mpi_coop_send_compatible(struct _starpu_mpi_req *req, struct 
 	       && prevreq->sequential_consistency == req->sequential_consistency;
 }
 
+
 void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
 {
 	struct _starpu_mpi_data *mpi_data = _starpu_mpi_data_get(data_handle);
@@ -250,6 +279,7 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 		{
 			/* Didn't find something to join, create one out of critical section */
 			_STARPU_MPI_CALLOC(coop_sends, 1, sizeof(*coop_sends));
+			coop_sends->data_handle = data_handle;
 			coop_sends->redirects_sent = 0;
 			coop_sends->n = 1;
 			_starpu_mpi_req_multilist_head_init_coop_sends(&coop_sends->reqs);
@@ -266,13 +296,8 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 	free(tofree);
 
 	if (first)
-	{
 		/* We were first, we are responsible for acquiring the data for everybody */
-		long pre_sync_jobid;
-		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_coop_sends_data_ready, coop_sends, sequential_consistency, 0, &pre_sync_jobid, NULL);
-		coop_sends->pre_sync_jobid = pre_sync_jobid;
-	}
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, -1, mode, _starpu_mpi_coop_send_acquired_callback, _starpu_mpi_coop_sends_data_ready, coop_sends, sequential_consistency, 0, &coop_sends->pre_sync_jobid, NULL, req->prio);
 	else
 		req->pre_sync_jobid = coop_sends->pre_sync_jobid;
 }
-

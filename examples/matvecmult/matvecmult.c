@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -127,13 +127,11 @@ static struct starpu_perfmodel starpu_matvecmult_model =
 static struct starpu_codelet cl =
 {
 #ifdef STARPU_USE_OPENCL
-        .opencl_funcs[0] = opencl_codelet,
+        .opencl_funcs = {opencl_codelet},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
         .nbuffers = 3,
-	.modes[0] = STARPU_R,
-	.modes[1] = STARPU_R,
-	.modes[2] = STARPU_RW,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &starpu_matvecmult_model
 };
 

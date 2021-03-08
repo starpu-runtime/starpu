@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -191,8 +191,7 @@ static int load_data_pack_data(starpu_data_handle_t handle, unsigned node, void 
 	*count = load_data_get_size(handle);
 	if (ptr != NULL)
 	{
-		char *data;
-		starpu_malloc_flags((void**) &data, *count, 0);
+		char *data = (void*) starpu_malloc_on_node_flags(node, *count, 0);
 		*ptr = data;
 		memcpy(data, ld_interface, *count);
 	}
@@ -200,7 +199,7 @@ static int load_data_pack_data(starpu_data_handle_t handle, unsigned node, void 
 	return 0;
 }
 
-static int load_data_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int load_data_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	char *data = ptr;
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -210,6 +209,14 @@ static int load_data_unpack_data(starpu_data_handle_t handle, unsigned node, voi
 
 	STARPU_ASSERT(count == sizeof(struct load_data_interface));
 	memcpy(ld_interface, data, count);
+
+	return 0;
+}
+
+static int load_data_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	load_data_peek_data(handle, node, ptr, count);
+	starpu_free_on_node_flags(node, (uintptr_t) ptr, count, 0);
 
 	return 0;
 }
@@ -244,6 +251,7 @@ static struct starpu_data_interface_ops interface_load_data_ops =
 	.interface_size = sizeof(struct load_data_interface),
 	.to_pointer = NULL,
 	.pack_data = load_data_pack_data,
+	.peek_data = load_data_peek_data,
 	.unpack_data = load_data_unpack_data,
 	.describe = NULL
 };

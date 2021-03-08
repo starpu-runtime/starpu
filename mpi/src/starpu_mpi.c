@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,8 +34,110 @@
 #include <core/task.h>
 #include <core/topology.h>
 
+int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+{
+	return STARPU_MAIN_RAM;
+
+	/* TODO: this is completely untested */
+	if (mode & STARPU_W)
+	{
+		/* TODO: lookup NIC location */
+		/* Where to receive the data? */
+		if (handle->home_node >= 0 && starpu_node_get_kind(handle->home_node) == STARPU_CPU_RAM)
+			/* For now, better use the home node to avoid duplicates */
+			return handle->home_node;
+
+		if (starpu_memory_nodes_get_numa_count() == 1)
+			return STARPU_MAIN_RAM;
+
+		/* Several potential places */
+		unsigned i;
+		for (i = 0; i < STARPU_MAXNODES; i++)
+		{
+			/* TODO: we may want to take as a hint that it's allocated on the GPU as
+			 * a clue that we want to push to the GPU */
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM &&
+				handle->per_node[i].allocated)
+				/* This node already has allocated buffers, let's just use it */
+				return i;
+		}
+
+		/* No luck, take the least loaded node */
+		starpu_ssize_t maximum = 0;
+		starpu_ssize_t needed = _starpu_data_get_alloc_size(handle);
+		unsigned node;
+
+		for (i = 0; i < STARPU_MAXNODES; i++)
+		{
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+			{
+				starpu_ssize_t size = starpu_memory_get_available(i);
+				if (size >= needed && size > maximum)
+				{
+					node = i;
+					maximum = size;
+				}
+			}
+		}
+		return node;
+	}
+	else
+	{
+		if (starpu_memory_nodes_get_numa_count() == 1)
+			return STARPU_MAIN_RAM;
+
+		/* Several potential places */
+		unsigned i;
+		for (i = 0; i < STARPU_MAXNODES; i++)
+		{
+			/* TODO: GPUDirect */
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM &&
+				handle->per_node[i].state != STARPU_INVALID)
+				/* This node already has the value, let's just use it */
+				/* TODO: rather pick up place next to NIC */
+				return i;
+		}
+
+		/* No luck, take the least loaded node, to transfer from e.g. GPU */
+		starpu_ssize_t maximum = 0;
+		starpu_ssize_t needed = _starpu_data_get_alloc_size(handle);
+		unsigned node;
+
+		for (i = 0; i < STARPU_MAXNODES; i++)
+		{
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM)
+			{
+				starpu_ssize_t size = starpu_memory_get_available(i);
+				if (size >= needed && size > maximum)
+				{
+					node = i;
+					maximum = size;
+				}
+			}
+		}
+		return node;
+	}
+}
+
+static void _starpu_mpi_acquired_callback(void *arg, int *nodep, enum starpu_data_access_mode mode)
+{
+	struct _starpu_mpi_req *req = arg;
+	int node = *nodep;
+
+	/* The data was acquired in terms of dependencies, we can now look the
+	 * current state of the handle and decide which node we prefer for the data
+	 * fetch */
+
+	if (node < 0)
+		node = _starpu_mpi_choose_node(req->data_handle, mode);
+
+	req->node = *nodep = node;
+}
+
 static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum starpu_data_access_mode mode, int sequential_consistency)
 {
+	int node = -1;
+
 	/* Asynchronously request StarPU to fetch the data in main memory: when
 	 * it is available in main memory, _starpu_mpi_submit_ready_request(req) is called and
 	 * the request is actually submitted */
@@ -46,20 +148,25 @@ static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum sta
 		size_t size = starpu_data_get_size(req->data_handle);
 		if (size)
 		{
+			/* FIXME: rather take the less-loaded NUMA node */
+			node = STARPU_MAIN_RAM;
+
 			/* This will potentially block */
-			starpu_memory_allocate(STARPU_MAIN_RAM, size, STARPU_MEMORY_WAIT);
+			starpu_memory_allocate(node, size, STARPU_MEMORY_WAIT);
 			req->reserved_size = size;
+			/* This also decides where we will store the data */
+			req->node = node;
 		}
 	}
 
 	if (sequential_consistency)
 	{
-		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, 1 /*sequential consistency*/, 1, &req->pre_sync_jobid, &req->post_sync_jobid);
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, node, mode, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 1 /*sequential consistency*/, 1, &req->pre_sync_jobid, &req->post_sync_jobid, req->prio);
 	}
 	else
 	{
 		/* post_sync_job_id has already been filled */
-		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, STARPU_MAIN_RAM, mode, _starpu_mpi_submit_ready_request, (void *)req, 0 /*sequential consistency*/, 1, &req->pre_sync_jobid, NULL);
+		starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(req->data_handle, node, mode, _starpu_mpi_acquired_callback, _starpu_mpi_submit_ready_request, (void *)req, 0 /*sequential consistency*/, 1, &req->pre_sync_jobid, NULL, req->prio);
 	}
 }
 
@@ -182,7 +289,7 @@ int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, starp
 	return starpu_mpi_issend_detached_prio(data_handle, dest, data_tag, 0, comm, callback, arg);
 }
 
-struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count)
+struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int prio)
 {
 	if (_starpu_mpi_fake_world_size != -1)
 	{
@@ -190,7 +297,7 @@ struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handl
 		return NULL;
 	}
 
-	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, source, data_tag, comm, detached, sync, 0, callback, arg, RECV_REQ, _mpi_backend._starpu_mpi_backend_irecv_size_func, sequential_consistency, is_internal_req, count);
+	struct _starpu_mpi_req *req = _starpu_mpi_request_fill(data_handle, source, data_tag, comm, detached, sync, prio, callback, arg, RECV_REQ, _mpi_backend._starpu_mpi_backend_irecv_size_func, sequential_consistency, is_internal_req, count);
 	_starpu_mpi_req_willpost(req);
 
 	if (sequential_consistency == 0)
@@ -210,7 +317,7 @@ int starpu_mpi_irecv(starpu_data_handle_t data_handle, starpu_mpi_req *public_re
 
 	struct _starpu_mpi_req *req;
 	_STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(source, data_tag);
-	req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 0, 0, NULL, NULL, 1, 0, 0);
+	req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 0, 0, NULL, NULL, 1, 0, 0, STARPU_DEFAULT_PRIO);
 	_STARPU_MPI_TRACE_IRECV_COMPLETE_END(source, data_tag);
 
 	STARPU_MPI_ASSERT_MSG(req, "Invalid return for _starpu_mpi_irecv_common");
@@ -224,7 +331,17 @@ int starpu_mpi_irecv_detached(starpu_data_handle_t data_handle, int source, star
 {
 	_STARPU_MPI_LOG_IN();
 
-	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 1, 0, callback, arg, 1, 0, 0);
+	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 1, 0, callback, arg, 1, 0, 0, STARPU_DEFAULT_PRIO);
+	_STARPU_MPI_LOG_OUT();
+	return 0;
+}
+
+int starpu_mpi_irecv_detached_prio(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, int prio, MPI_Comm comm, void (*callback)(void *), void *arg)
+{
+	_STARPU_MPI_LOG_IN();
+
+	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 1, 0, callback, arg, 1, 0, 0, prio);
+
 	_STARPU_MPI_LOG_OUT();
 	return 0;
 }
@@ -233,7 +350,7 @@ int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_h
 {
 	_STARPU_MPI_LOG_IN();
 
-	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 1, 0, callback, arg, sequential_consistency, 0, 0);
+	_starpu_mpi_irecv_common(data_handle, source, data_tag, comm, 1, 0, callback, arg, sequential_consistency, 0, 0, STARPU_DEFAULT_PRIO);
 
 	_STARPU_MPI_LOG_OUT();
 	return 0;
@@ -241,6 +358,8 @@ int starpu_mpi_irecv_detached_sequential_consistency(starpu_data_handle_t data_h
 
 int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, MPI_Status *status)
 {
+	STARPU_ASSERT_MSG(status != NULL || status == MPI_STATUS_IGNORE, "MPI_Status value cannot be NULL or different from MPI_STATUS_IGNORE");
+
 	starpu_mpi_req req;
 
 	_STARPU_MPI_LOG_IN();
@@ -254,6 +373,7 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag
 
 int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 {
+	STARPU_ASSERT_MSG(status != NULL || status == MPI_STATUS_IGNORE, "MPI_Status value cannot be NULL or different from MPI_STATUS_IGNORE");
 	return _mpi_backend._starpu_mpi_backend_wait(public_req, status);
 }
 
@@ -269,9 +389,13 @@ int starpu_mpi_barrier(MPI_Comm comm)
 
 void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 {
+	struct _starpu_mpi_data *data = data_handle->mpi_data;
 	_mpi_backend._starpu_mpi_backend_data_clear(data_handle);
 	_starpu_mpi_cache_data_clear(data_handle);
-	free(data_handle->mpi_data);
+	_starpu_spin_destroy(&data->coop_lock);
+	if (data->redux_map != REDUX_CONTRIB)
+		free(data->redux_map);
+	free(data);
 	data_handle->mpi_data = NULL;
 }
 
@@ -335,6 +459,12 @@ starpu_mpi_tag_t starpu_mpi_data_get_tag(starpu_data_handle_t data)
 {
 	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
 	return ((struct _starpu_mpi_data *)(data->mpi_data))->node_tag.data_tag;
+}
+
+char* starpu_mpi_data_get_redux_map(starpu_data_handle_t data)
+{
+	STARPU_ASSERT_MSG(data->mpi_data, "starpu_mpi_data_register MUST be called for data %p\n", data);
+	return ((struct _starpu_mpi_data *)(data->mpi_data))->redux_map;
 }
 
 void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)

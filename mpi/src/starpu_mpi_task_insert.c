@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -100,7 +100,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 	{
 		STARPU_ASSERT_MSG(starpu_mpi_data_get_rank(data) == STARPU_MPI_PER_NODE, "If task is replicated, it has to access only per-node data");
 	}
-	if (data && mode & STARPU_R)
+	if (data && mode & STARPU_R && !(mode & STARPU_MPI_REDUX))
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
 		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
@@ -118,7 +118,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 				if (data_tag == -1)
 					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, mpi_rank);
-				starpu_mpi_irecv_detached(data, mpi_rank, data_tag, comm, NULL, NULL);
+				starpu_mpi_irecv_detached_prio(data, mpi_rank, data_tag, prio, comm, NULL, NULL);
 			}
 			// else the node has already received the data
 		}
@@ -142,7 +142,7 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 static
 void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
-	if (mode & STARPU_W)
+	if (mode & STARPU_W && !(mode & STARPU_MPI_REDUX))
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
 		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
@@ -179,7 +179,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 {
 	if (_starpu_cache_enabled)
 	{
-		if (mode & STARPU_W || mode & STARPU_REDUX)
+		if ((mode & STARPU_W && !(mode & STARPU_MPI_REDUX)) || mode & STARPU_REDUX)
 		{
 			/* The data has been modified, it MUST be removed from the cache */
 			starpu_mpi_cached_send_clear(data);
@@ -189,7 +189,7 @@ void _starpu_mpi_clear_data_after_execution(starpu_data_handle_t data, enum star
 	else
 	{
 		/* We allocated a temporary buffer for the received data, now drop it */
-		if ((mode & STARPU_R) && do_execute)
+		if ((mode & STARPU_R && !(mode & STARPU_MPI_REDUX)) && do_execute)
 		{
 			int mpi_rank = starpu_mpi_data_get_rank(data);
 			if (mpi_rank == STARPU_MPI_PER_NODE)
@@ -254,7 +254,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 				inconsistent_execute = 0;
 			}
 		}
-		else if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
+		else if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
 		{
 			starpu_data_handle_t data = va_arg(varg_list_copy, starpu_data_handle_t);
 			enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type;
@@ -386,6 +386,14 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 		{
 			(void)va_arg(varg_list_copy, void *);
 		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			prio = va_arg(varg_list_copy, int);
@@ -411,28 +419,28 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 			(void)va_arg(varg_list_copy, unsigned);
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
-                {
+		{
 			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
 		}
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
-                {
-                        (void)va_arg(varg_list_copy, void *);
-                }
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
-                {
-                        (void)va_arg(varg_list_copy, void *);
-                }
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
-                {
-			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
-                }
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
-                {
-                        (void)va_arg(varg_list_copy, void *);
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
 		}
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
-                {
-                        (void)va_arg(varg_list_copy, void *);
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+		{
+			(void)va_arg(varg_list_copy, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+		{
+			(void)va_arg(varg_list_copy, void *);
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
+		{
+			(void)va_arg(varg_list_copy, void *);
 		}
 		else if (arg_type==STARPU_EXECUTE_WHERE)
 		{
@@ -617,6 +625,20 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 
 	for(i=0 ; i<nb_data ; i++)
 	{
+		if ((descrs[i].mode & STARPU_REDUX || descrs[i].mode & STARPU_MPI_REDUX) && descrs[i].handle)
+		{
+			struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) descrs[i].handle->mpi_data;
+			if (me == starpu_mpi_data_get_rank(descrs[i].handle))
+			{
+				int size;
+				starpu_mpi_comm_size(comm, &size);
+				if (mpi_data->redux_map == NULL)
+					_STARPU_CALLOC(mpi_data->redux_map, size, sizeof(mpi_data->redux_map[0]));
+				mpi_data->redux_map [xrank] = 1;
+			}
+			else if (me == xrank)
+				mpi_data->redux_map = REDUX_CONTRIB;
+		}
 		_starpu_mpi_exchange_data_after_execution(descrs[i].handle, descrs[i].mode, me, xrank, do_execute, prio, comm);
 		_starpu_mpi_clear_data_after_execution(descrs[i].handle, descrs[i].mode, me, do_execute);
 	}
@@ -813,6 +835,11 @@ void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, 
 
 /* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
  * a data previously accessed in REDUX mode gets accessed in R mode. */
+/* FIXME: In order to prevent simultaneous receive submissions
+ * on the same handle, we need to wait that all the starpu_mpi
+ * tasks are done before submitting next tasks. The current
+ * version of the implementation does not support multiple
+ * simultaneous receive requests on the same handle.*/
 void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
 {
 	int me, rank, nb_nodes;
@@ -820,6 +847,7 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 
 	rank = starpu_mpi_data_get_rank(data_handle);
 	data_tag = starpu_mpi_data_get_tag(data_handle);
+	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 	if (rank == -1)
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
@@ -832,12 +860,16 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 	starpu_mpi_comm_rank(comm, &me);
 	starpu_mpi_comm_size(comm, &nb_nodes);
 
-	_STARPU_MPI_DEBUG(1, "Doing reduction for data %p on node %d with %d nodes ...\n", data_handle, rank, nb_nodes);
-
+	_STARPU_MPI_DEBUG(50, "Doing reduction for data %p on node %d with %d nodes ...\n", data_handle, rank, nb_nodes);
 	// need to count how many nodes have the data in redux mode
 	if (me == rank)
 	{
-		int i;
+		int i,j;
+		_STARPU_MPI_DEBUG(50, "Who is in the map ?\n");
+		for (j = 0; j<nb_nodes; j++)
+		{
+			_STARPU_MPI_DEBUG(50, "%d is in the map ? %d\n", j, mpi_data->redux_map[j]);
+		}
 
 		// taskC depends on all taskBs created
 		// Creating synchronization task and use its jobid for tracing
@@ -848,8 +880,9 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 
 		for(i=0 ; i<nb_nodes ; i++)
 		{
-			if (i != rank)
+			if (i != rank && mpi_data->redux_map[i])
 			{
+				_STARPU_MPI_DEBUG(5, "%d takes part in the reduction of %p \n", i, data_handle);
 				/* We need to make sure all is
 				 * executed after data_handle finished
 				 * its last read access, we hence do
@@ -893,24 +926,34 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 						   STARPU_CALLBACK_WITH_ARG_NFREE, _starpu_mpi_redux_data_recv_callback, args,
 						   0);
 			}
+			else
+			{
+				_STARPU_MPI_DEBUG(5, "%d is not in the map or is me\n", i);
+			}
 		}
 
 		int ret = starpu_task_submit(taskC);
 		STARPU_ASSERT(ret == 0);
 	}
+	else if (mpi_data->redux_map)
+	{
+		STARPU_ASSERT(mpi_data->redux_map == REDUX_CONTRIB);
+		_STARPU_MPI_DEBUG(5, "Sending redux handle to %d ...\n", rank);
+		starpu_mpi_isend_detached_prio(data_handle, rank, data_tag, prio, comm, NULL, NULL);
+		starpu_data_invalidate_submit(data_handle);
+	}
 	else
 	{
-		_STARPU_MPI_DEBUG(1, "Sending redux handle to %d ...\n", rank);
-		starpu_mpi_isend_detached_prio(data_handle, rank, data_tag, prio, comm, NULL, NULL);
-		starpu_task_insert(data_handle->init_cl, STARPU_W, data_handle, 0);
+		_STARPU_MPI_DEBUG(5, "I am not in the map of %d, I am %d ...\n", rank, me);
 	}
-	/* FIXME: In order to prevent simultaneous receive submissions
-	 * on the same handle, we need to wait that all the starpu_mpi
-	 * tasks are done before submitting next tasks. The current
-	 * version of the implementation does not support multiple
-	 * simultaneous receive requests on the same handle.*/
-	starpu_task_wait_for_all();
-
+	if (mpi_data->redux_map != NULL)
+	{
+		_STARPU_MPI_DEBUG(100, "waiting for redux tasks with %d\n", rank);
+		starpu_task_wait_for_all();
+	}
+	if (me == rank)
+		free(mpi_data->redux_map);
+	mpi_data->redux_map = NULL;
 }
 void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 {

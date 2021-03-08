@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -383,9 +383,17 @@ void _starpu_task_destroy(struct starpu_task *task)
 		if (task->cl_arg_free)
 			free(task->cl_arg);
 
+		/* Does user want StarPU release cl_ret ? */
+		if (task->cl_ret_free)
+			free(task->cl_ret);
+
 		/* Does user want StarPU release callback_arg ? */
 		if (task->callback_arg_free)
 			free(task->callback_arg);
+
+		/* Does user want StarPU release epilogue callback_arg ? */
+		if (task->epilogue_callback_arg_free)
+			free(task->epilogue_callback_arg);
 
 		/* Does user want StarPU release prologue_callback_arg ? */
 		if (task->prologue_callback_arg_free)

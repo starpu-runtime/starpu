@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -36,6 +36,7 @@ static int csr_compare(void *data_interface_a, void *data_interface_b);
 static uint32_t footprint_csr_interface_crc32(starpu_data_handle_t handle);
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
 static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+static int peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 struct starpu_data_interface_ops starpu_interface_csr_ops =
@@ -53,6 +54,7 @@ struct starpu_data_interface_ops starpu_interface_csr_ops =
 	.pointer_is_inside = csr_pointer_is_inside,
 	.name = "STARPU_CSR_INTERFACE",
 	.pack_data = pack_data,
+	.peek_data = peek_data,
 	.unpack_data = unpack_data
 };
 
@@ -403,7 +405,7 @@ static int pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, sta
 	return 0;
 }
 
-static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -421,6 +423,12 @@ static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, si
 	}
 	memcpy((void*)csr->nzval, tmp, csr->nnz * csr->elemsize);
 
+	return 0;
+}
+
+static int unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	peek_data(handle, node, ptr, count);
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;

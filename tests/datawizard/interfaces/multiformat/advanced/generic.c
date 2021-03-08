@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -66,13 +66,15 @@ void cuda_to_cpu_func(void *buffers[], void *args)
 struct starpu_codelet cpu_to_cuda_cl =
 {
 	.cuda_funcs = {cpu_to_cuda_func},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 
 struct starpu_codelet cuda_to_cpu_cl =
 {
 	.cpu_funcs = {cuda_to_cpu_func},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 #endif /* !STARPU_USE_CUDA */
 
@@ -112,13 +114,15 @@ void opencl_to_cpu_func(void *buffers[], void *args)
 struct starpu_codelet cpu_to_opencl_cl =
 {
 	.opencl_funcs = {cpu_to_opencl_func},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 
 struct starpu_codelet opencl_to_cpu_cl =
 {
 	.cpu_funcs = {opencl_to_cpu_func},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 #endif /* !STARPU_USE_OPENCL */
 
@@ -169,13 +173,15 @@ void mic_to_cpu_func(void *buffers[], void *args)
 struct starpu_codelet cpu_to_mic_cl =
 {
 	.mic_funcs = {cpu_to_mic_func},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 
 struct starpu_codelet mic_to_cpu_cl =
 {
 	.cpu_funcs = {mic_to_cpu_func},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 #endif // STARPU_USE_MIC
 

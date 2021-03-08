@@ -167,9 +167,8 @@ if test x$enable_simgrid = xyes ; then
 	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
 	   	NVCCFLAGS="$SIMGRID_CFLAGS $NVCCFLAGS"
 	fi
-	if test -n "$SIMGRID_LIBS" ; then
-		LDFLAGS="$SIMGRID_LIBS $LDFLAGS"
-	fi
+	SAVED_LIBS="${LIBS}"
+	LIBS="$SIMGRID_LIBS $LIBS"
 	AC_HAVE_LIBRARY([simgrid], [],
 		[
 			AC_MSG_ERROR(Simgrid support needs simgrid installed)
@@ -207,6 +206,7 @@ if test x$enable_simgrid = xyes ; then
 
 	# Oldies for compatibility with older simgrid
 	AC_CHECK_FUNCS([MSG_get_as_by_name MSG_zone_get_by_name MSG_environment_get_routing_root MSG_host_get_speed])
+	LIBS="${SAVED_LIBS}"
 
 	AC_DEFINE(STARPU_SIMGRID, [1], [Define this to enable simgrid execution])
 	# We won't bind or detect anything
@@ -225,6 +225,7 @@ if test x$enable_simgrid = xyes ; then
 		SIMGRID_LIBS="$SIMGRID_LIBS -lstdc++"
 		LIBS="$LIBS -lstdc++"
 	fi
+	SIMGRID_LDFLAGS="$SIMGRID_LIBS -lsimgrid"
 
 	# Simgrid 3.12 & 3.13 need -std=c++11 to be able to build anything in C++...
 	case \ $CXXFLAGS\  in
@@ -267,13 +268,13 @@ if test x$enable_simgrid = xyes ; then
 		AC_PATH_PROG([SIMGRID_MC], [simgrid-mc], [no], [$simgrid_dir/bin:$PATH])
 		LDFLAGS="$LDFLAGS -Wl,-znorelro -Wl,-znoseparate-code"
 		# libsimgrid needs to be linked from binaries themselves for MC to work
-		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS -lsimgrid"
+		STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $SIMGRID_LDFLAGS"
 	fi
 fi
 AM_CONDITIONAL(STARPU_SIMGRID_MC, test x$enable_simgrid_mc = xyes)
 AM_CONDITIONAL(STARPU_SIMGRID, test x$enable_simgrid = xyes)
 AC_SUBST(SIMGRID_CFLAGS)
-AC_SUBST(SIMGRID_LIBS)
+AC_SUBST(SIMGRID_LDFLAGS)
 AC_MSG_CHECKING(whether SimGrid is enabled)
 AC_MSG_RESULT($enable_simgrid)
 
@@ -590,8 +591,16 @@ if test x$enable_mpi = xyes ; then
 	    FCLAGS="$FFLAGS -fPIC"
         fi
     fi
+
+    enable_mpi_sync_clocks=no
+    PKG_CHECK_MODULES([MPI_SYNC_CLOCKS],[mpi_sync_clocks],[enable_mpi_sync_clocks=yes],[enable_mpi_sync_clocks=no])
+    if test x$enable_mpi_sync_clocks = xyes ; then
+	MPI_SYNC_CLOCKS_LDFLAGS="$(pkg-config --libs mpi_sync_clocks)"
+	MPI_SYNC_CLOCKS_CFLAGS="$(pkg-config --cflags mpi_sync_clocks)"
+    fi
 fi
 
+AM_CONDITIONAL(STARPU_MPI_SYNC_CLOCKS, test x$enable_mpi_sync_clocks = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI_MPI, test x$build_mpi_lib = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI_NMAD, test x$build_nmad_lib = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI, test x$build_nmad_lib = xyes -o x$build_mpi_lib = xyes)
@@ -625,12 +634,12 @@ if test x$enable_mpi = xyes -o x$build_mpi_master_slave = xyes ; then
     # issue.
 
     # openmpi version
-    MPICC_LDFLAGS=`$mpicc_path --showme:link`
+    MPICC_LDFLAGS=`$mpicc_path --showme:link 2>/dev/null`
 
     if test -z "$MPICC_LDFLAGS"
     then
 	# mpich version
-	MPICC_LDFLAGS=`$mpicc_path -cc='' -link_info`
+	MPICC_LDFLAGS=`$mpicc_path -link_info | awk '{$1=""; print}'`
     fi
     AC_SUBST(MPICC_LDFLAGS)
 else
@@ -2006,22 +2015,35 @@ else
 	FCFLAGS="-O3 $FCFLAGS"
 fi
 
+AC_MSG_CHECKING(whether gdb information should be enabled)
+AC_ARG_ENABLE(gdb, [AS_HELP_STRING([--disable-gdb], [disable gdb information])],
+			enable_gdb=$enableval, enable_gdb=yes)
+AC_MSG_RESULT($enable_gdb)
+
 AC_MSG_CHECKING(whether full gdb information should be enabled)
 AC_ARG_ENABLE(full-gdb-information, [AS_HELP_STRING([--disable-full-gdb-information], [disable full gdb information])],
 			enable_full_gdb_information=$enableval, enable_full_gdb_information=yes)
 AC_MSG_RESULT($enable_full_gdb_information)
-if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
-	CFLAGS+=" -gdwarf-2 -g3"
-	CXXFLAGS+=" -gdwarf-2 -g3"
-	FFLAGS+=" -gdwarf-2 -g3"
-	FCFLAGS+=" -gdwarf-2 -g3"
-	LDFLAGS+=" -gdwarf-2 -g3"
+if test x$enable_gdb = xyes; then
+	if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
+		CFLAGS+=" -gdwarf-2 -g3"
+		CXXFLAGS+=" -gdwarf-2 -g3"
+		FFLAGS+=" -gdwarf-2 -g3"
+		FCFLAGS+=" -gdwarf-2 -g3"
+		LDFLAGS+=" -gdwarf-2 -g3"
+	else
+		CFLAGS+=" -g "
+		CXXFLAGS+=" -g "
+		FFLAGS+=" -g "
+		FCFLAGS+=" -g "
+		LDFLAGS+=" -g "
+	fi
 else
-	CFLAGS+=" -g "
-	CXXFLAGS+=" -g "
-	FFLAGS+=" -g "
-	FCFLAGS+=" -g "
-	LDFLAGS+=" -g "
+	CFLAGS+=" -g0 "
+	CXXFLAGS+=" -g0 "
+	FFLAGS+=" -g0 "
+	FCFLAGS+=" -g0 "
+	LDFLAGS+=" -g0 "
 fi
 
 if test x$enable_spinlock_check = xyes; then
@@ -2303,9 +2325,6 @@ if test x$maxnodes = x0 ; then
 	if test x$enable_simgrid = xyes ; then
 		# We need the room for the virtual CUDA/OpenCL devices
 		nodes=`expr 4 + $nmaxcudadev + $nmaxopencldev + $nmaxmicdev + 1 + $nmaxmpidev`
-		if test $nodes -gt 32 ; then
-			nodes=32
-		fi
 	else
 		# We have one memory node shared by all CPU workers, one node per GPU
 		# and per MIC device
@@ -2341,8 +2360,7 @@ if test x$maxnodes = x0 ; then
 	done
 fi
 if test $maxnodes -gt 32 ; then
-	# FIXME: at least use uint64 so we can have 64 memory nodes
-	AC_MSG_ERROR([selected number of nodes ($maxnodes) can not be greater than 32])
+	AC_MSG_WARN([Note: the wt_mask feature only supports 32 memory nodes])
 fi
 
 AC_MSG_CHECKING(maximum number of memory nodes)
@@ -3447,11 +3465,25 @@ then
 		AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
 	fi
 	AC_SUBST(PYTHON)
+	PYTHON_INCLUDE_DIRS="`$PYTHON -c "from sysconfig import get_paths as gp; print(gp()@<:@'include'@:>@)"`"
+	SAVED_CPPFLAGS="${CPPFLAGS}"
+	CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDE_DIRS"
+	AC_CHECK_HEADERS([Python.h],[have_python_h=yes],[have_python_h=no])
+	if test "$have_python_h" = "no" ; then
+		AC_MSG_ERROR([Python.h missing, cannot build StarPU python interface (consider installing python-dev)])
+	fi
+	CPPFLAGS=${SAVED_CPPFLAGS}
 	AC_MSG_CHECKING(for python3 module joblib)
 	AC_PYTHON_MODULE(joblib,[joblib_avail=yes],[joblib_avail=no])
 	AC_MSG_RESULT($joblib_avail)
 	if test "$joblib_avail" = "no" ; then
-		AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface])
+		AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface (consider running 'pip3 install joblib')])
+	fi
+	AC_MSG_CHECKING(for python3 module cloudpickle)
+	AC_PYTHON_MODULE(cloudpickle,[cloudpickle_avail=yes],[cloudpickle_avail=no])
+	AC_MSG_RESULT($cloudpickle_avail)
+	if test "$cloudpickle_avail" = "no" ; then
+		AC_MSG_ERROR([python3 module cloudpickle missing, cannot build StarPU python interface (consider running 'pip3 install cloudpickle')])
 	fi
 	AC_MSG_CHECKING(for python3 module numpy)
 	AC_PYTHON_MODULE(numpy,[numpy_avail=yes],[numpy_avail=no])
@@ -3558,7 +3590,7 @@ STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $
 AC_SUBST([STARPU_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LIBS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
@@ -3595,11 +3627,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_smpirun
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
-  chmod +x tools/starpu_trace_state_stats.py
   chmod +x starpupy/examples/execute.sh
-  for x in starpupy/examples/starpu_py.sh starpupy/examples/starpu_py_np.sh starpupy/examples/starpu_py_parallel.sh; do
-      test -e $x || mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x)
-  done
   chmod +x julia/examples/execute.sh
   for x in \
     tests/microbenchs/tasks_data_overhead.sh \
@@ -3647,6 +3675,9 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     julia/examples/axpy/axpy.sh \
     julia/examples/gemm/gemm.sh \
     julia/examples/cholesky/cholesky.sh \
+    starpupy/examples/starpu_py.sh \
+    starpupy/examples/starpu_py_np.sh \
+    starpupy/examples/starpu_py_parallel.sh \
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
@@ -3800,11 +3831,11 @@ AC_MSG_NOTICE([
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
-               SOCL test suite:                               $run_socl_check
-               Scheduler Hypervisor:                          $build_sc_hypervisor
-               simgrid enabled:                               $enable_simgrid
-               ayudame enabled:                               $ayu_msg
-               HDF5 enabled:                                  $enable_hdf5
+	       SOCL test suite:                               $run_socl_check
+	       Scheduler Hypervisor:                          $build_sc_hypervisor
+	       simgrid enabled:                               $enable_simgrid
+	       ayudame enabled:                               $ayu_msg
+	       HDF5 enabled:                                  $enable_hdf5
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -23,10 +23,42 @@
 #include <limits.h>
 
 #ifdef STARPU_USE_CUDA
+#include <cuda.h>
 #include <starpu_cublas_v2.h>
 static const TYPE gp1 = 1.0;
 static const TYPE gm1 = -1.0;
 #endif
+
+#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+
+static int nblocks = 8;
+
+#ifdef STARPU_QUICK_CHECK
+static int i_max = 5;
+static int long long n = 2048;
+#elif !defined(STARPU_LONG_CHECK)
+static int long long n = 4096;
+static int i_max = 100;
+#else
+static int long long n = 4096;
+static int i_max = 1000;
+#endif
+static double eps = (10e-14);
+
+int use_reduction = 1;
+int display_result = 0;
+
+HANDLE_TYPE_MATRIX A_handle;
+HANDLE_TYPE_VECTOR b_handle;
+HANDLE_TYPE_VECTOR x_handle;
+
+HANDLE_TYPE_VECTOR r_handle;
+HANDLE_TYPE_VECTOR d_handle;
+HANDLE_TYPE_VECTOR q_handle;
+
+starpu_data_handle_t dtq_handle;
+starpu_data_handle_t rtr_handle;
+TYPE dtq, rtr;
 
 #if 0
 static void print_vector_from_descr(unsigned nx, TYPE *v)
@@ -120,9 +152,10 @@ struct starpu_codelet accumulate_variable_cl =
 	.cuda_funcs = {accumulate_variable_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
-	.model = &accumulate_variable_model
+	.model = &accumulate_variable_model,
+	.name = "accumulate_variable"
 };
 
 #ifdef STARPU_USE_CUDA
@@ -164,9 +197,10 @@ struct starpu_codelet accumulate_vector_cl =
 	.cuda_funcs = {accumulate_vector_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
-	.model = &accumulate_vector_model
+	.model = &accumulate_vector_model,
+	.name = "accumulate_vector"
 };
 
 /*
@@ -210,7 +244,8 @@ struct starpu_codelet bzero_variable_cl =
 #endif
 	.modes = {STARPU_W},
 	.nbuffers = 1,
-	.model = &bzero_variable_model
+	.model = &bzero_variable_model,
+	.name = "bzero_variable"
 };
 
 #ifdef STARPU_USE_CUDA
@@ -251,7 +286,8 @@ struct starpu_codelet bzero_vector_cl =
 #endif
 	.modes = {STARPU_W},
 	.nbuffers = 1,
-	.model = &bzero_vector_model
+	.model = &bzero_vector_model,
+	.name = "bzero_vector"
 };
 
 /*
@@ -311,11 +347,12 @@ static struct starpu_codelet dot_kernel_cl =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.model = &dot_kernel_model
+	.model = &dot_kernel_model,
+	.name = "dot_kernel"
 };
 
-int dot_kernel(starpu_data_handle_t v1,
-	       starpu_data_handle_t v2,
+int dot_kernel(HANDLE_TYPE_VECTOR v1,
+	       HANDLE_TYPE_VECTOR v2,
 	       starpu_data_handle_t s,
 	       unsigned nblocks,
 	       int use_reduction)
@@ -327,21 +364,21 @@ int dot_kernel(starpu_data_handle_t v1,
 		starpu_data_invalidate_submit(s);
 	else
 	{
-		ret = starpu_task_insert(&bzero_variable_cl, STARPU_W, s, 0);
+		ret = TASK_INSERT(&bzero_variable_cl, STARPU_W, s, 0);
 		if (ret == -ENODEV) return ret;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 	}
 
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
-		ret = starpu_task_insert(&dot_kernel_cl,
+		ret = TASK_INSERT(&dot_kernel_cl,
 					 use_reduction?STARPU_REDUX:STARPU_RW, s,
-					 STARPU_R, starpu_data_get_sub_data(v1, 1, b),
-					 STARPU_R, starpu_data_get_sub_data(v2, 1, b),
+					 STARPU_R, GET_VECTOR_BLOCK(v1, b),
+					 STARPU_R, GET_VECTOR_BLOCK(v2, b),
 					 STARPU_TAG_ONLY, (starpu_tag_t) b,
 					 0);
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 	}
 	return 0;
 }
@@ -395,7 +432,8 @@ static struct starpu_codelet scal_kernel_cl =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 1,
-	.model = &scal_kernel_model
+	.model = &scal_kernel_model,
+	.name = "scal_kernel"
 };
 
 /*
@@ -474,12 +512,13 @@ static struct starpu_codelet gemv_kernel_cl =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 3,
-	.model = &gemv_kernel_model
+	.model = &gemv_kernel_model,
+	.name = "gemv_kernel"
 };
 
-int gemv_kernel(starpu_data_handle_t v1,
-		starpu_data_handle_t matrix,
-		starpu_data_handle_t v2,
+int gemv_kernel(HANDLE_TYPE_VECTOR v1,
+		HANDLE_TYPE_MATRIX matrix,
+		HANDLE_TYPE_VECTOR v2,
 		TYPE p1, TYPE p2,
 		unsigned nblocks,
 		int use_reduction)
@@ -489,13 +528,13 @@ int gemv_kernel(starpu_data_handle_t v1,
 
 	for (b2 = 0; b2 < nblocks; b2++)
 	{
-		ret = starpu_task_insert(&scal_kernel_cl,
-					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b2),
+		ret = TASK_INSERT(&scal_kernel_cl,
+					 STARPU_RW, GET_VECTOR_BLOCK(v1, b2),
 					 STARPU_VALUE, &p1, sizeof(p1),
 					 STARPU_TAG_ONLY, (starpu_tag_t) b2,
 					 0);
 		if (ret == -ENODEV) return ret;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 	}
 
 	for (b2 = 0; b2 < nblocks; b2++)
@@ -503,15 +542,15 @@ int gemv_kernel(starpu_data_handle_t v1,
 		for (b1 = 0; b1 < nblocks; b1++)
 		{
 			TYPE one = 1.0;
-			ret = starpu_task_insert(&gemv_kernel_cl,
-						 use_reduction?STARPU_REDUX:STARPU_RW,	starpu_data_get_sub_data(v1, 1, b2),
-						 STARPU_R,	starpu_data_get_sub_data(matrix, 2, b2, b1),
-						 STARPU_R,	starpu_data_get_sub_data(v2, 1, b1),
+			ret = TASK_INSERT(&gemv_kernel_cl,
+						 use_reduction?STARPU_REDUX:STARPU_RW,	GET_VECTOR_BLOCK(v1, b2),
+						 STARPU_R,	GET_MATRIX_BLOCK(matrix, b2, b1),
+						 STARPU_R,	GET_VECTOR_BLOCK(v2, b1),
 						 STARPU_VALUE,	&one,	sizeof(one),
 						 STARPU_VALUE,	&p2,	sizeof(p2),
 						 STARPU_TAG_ONLY, ((starpu_tag_t)b2) * nblocks + b1,
 						 0);
-			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+			STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 		}
 	}
 	return 0;
@@ -579,26 +618,27 @@ static struct starpu_codelet scal_axpy_kernel_cl =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 2,
-	.model = &scal_axpy_kernel_model
+	.model = &scal_axpy_kernel_model,
+	.name = "scal_axpy_kernel"
 };
 
-int scal_axpy_kernel(starpu_data_handle_t v1, TYPE p1,
-		     starpu_data_handle_t v2, TYPE p2,
+int scal_axpy_kernel(HANDLE_TYPE_VECTOR v1, TYPE p1,
+		     HANDLE_TYPE_VECTOR v2, TYPE p2,
 		     unsigned nblocks)
 {
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
 		int ret;
-		ret = starpu_task_insert(&scal_axpy_kernel_cl,
-					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b),
-					 STARPU_R,  starpu_data_get_sub_data(v2, 1, b),
+		ret = TASK_INSERT(&scal_axpy_kernel_cl,
+					 STARPU_RW, GET_VECTOR_BLOCK(v1, b),
+					 STARPU_R,  GET_VECTOR_BLOCK(v2, b),
 					 STARPU_VALUE, &p1, sizeof(p1),
 					 STARPU_VALUE, &p2, sizeof(p2),
 					 STARPU_TAG_ONLY, (starpu_tag_t) b,
 					 0);
 		if (ret == -ENODEV) return ret;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 	}
 	return 0;
 }
@@ -658,33 +698,181 @@ static struct starpu_codelet axpy_kernel_cl =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	.nbuffers = 2,
-	.model = &axpy_kernel_model
+	.model = &axpy_kernel_model,
+	.name = "axpy_kernel"
 };
 
-int axpy_kernel(starpu_data_handle_t v1,
-		starpu_data_handle_t v2, TYPE p1,
+int axpy_kernel(HANDLE_TYPE_VECTOR v1,
+		HANDLE_TYPE_VECTOR v2, TYPE p1,
 		unsigned nblocks)
 {
 	unsigned b;
 	for (b = 0; b < nblocks; b++)
 	{
 		int ret;
-		ret = starpu_task_insert(&axpy_kernel_cl,
-					 STARPU_RW, starpu_data_get_sub_data(v1, 1, b),
-					 STARPU_R,  starpu_data_get_sub_data(v2, 1, b),
+		ret = TASK_INSERT(&axpy_kernel_cl,
+					 STARPU_RW, GET_VECTOR_BLOCK(v1, b),
+					 STARPU_R,  GET_VECTOR_BLOCK(v2, b),
 					 STARPU_VALUE, &p1, sizeof(p1),
 					 STARPU_TAG_ONLY, (starpu_tag_t) b,
 					 0);
 		if (ret == -ENODEV) return ret;
-		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 	}
 	return 0;
 }
 
-int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nblocks)
+
+/*
+ *	Main loop
+ */
+int cg(void)
 {
-	unsigned b;
-	for (b = 0; b < nblocks; b++)
-		starpu_data_cpy(starpu_data_get_sub_data(dst, 1, b), starpu_data_get_sub_data(src, 1, b), 1, NULL, NULL);
+	TYPE delta_new, delta_0, error, delta_old, alpha, beta;
+	double start, end, timing;
+	int i = 0, ret;
+
+	/* r <- b */
+	ret = copy_handle(r_handle, b_handle, nblocks);
+	if (ret == -ENODEV) return ret;
+
+	/* r <- r - A x */
+	ret = gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction);
+	if (ret == -ENODEV) return ret;
+
+	/* d <- r */
+	ret = copy_handle(d_handle, r_handle, nblocks);
+	if (ret == -ENODEV) return ret;
+
+	/* delta_new = dot(r,r) */
+	ret = dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
+	if (ret == -ENODEV) return ret;
+
+	GET_DATA_HANDLE(rtr_handle);
+	starpu_data_acquire(rtr_handle, STARPU_R);
+	delta_new = rtr;
+	delta_0 = delta_new;
+	starpu_data_release(rtr_handle);
+
+	FPRINTF_SERVER(stderr, "Delta limit: %e\n", (double) (eps*eps*delta_0));
+
+	FPRINTF_SERVER(stderr, "**************** INITIAL ****************\n");
+	FPRINTF_SERVER(stderr, "Delta 0: %e\n", delta_new);
+
+	BARRIER();
+	start = starpu_timing_now();
+
+	while ((i < i_max) && ((double)delta_new > (double)(eps*eps*delta_0)))
+	{
+		starpu_iteration_push(i);
+
+		/* q <- A d */
+		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0, nblocks, use_reduction);
+
+		/* dtq <- dot(d,q) */
+		dot_kernel(d_handle, q_handle, dtq_handle, nblocks, use_reduction);
+
+		/* alpha = delta_new / dtq */
+		GET_DATA_HANDLE(dtq_handle);
+		starpu_data_acquire(dtq_handle, STARPU_R);
+		alpha = delta_new / dtq;
+		starpu_data_release(dtq_handle);
+
+		/* x <- x + alpha d */
+		axpy_kernel(x_handle, d_handle, alpha, nblocks);
+
+		if ((i % 50) == 0)
+		{
+			/* r <- b */
+			copy_handle(r_handle, b_handle, nblocks);
+
+			/* r <- r - A x */
+			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction);
+		}
+		else
+		{
+			/* r <- r - alpha q */
+			axpy_kernel(r_handle, q_handle, -alpha, nblocks);
+		}
+
+		/* delta_new = dot(r,r) */
+		dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
+
+		GET_DATA_HANDLE(rtr_handle);
+		starpu_data_acquire(rtr_handle, STARPU_R);
+		delta_old = delta_new;
+		delta_new = rtr;
+		beta = delta_new / delta_old;
+		starpu_data_release(rtr_handle);
+
+		/* d <- beta d + r */
+		scal_axpy_kernel(d_handle, beta, r_handle, 1.0, nblocks);
+
+		if ((i % 10) == 0)
+		{
+			/* We here take the error as ||r||_2 / (n||b||_2) */
+			error = sqrt(delta_new/delta_0)/(1.0*n);
+			FPRINTF_SERVER(stderr, "*****************************************\n");
+			FPRINTF_SERVER(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
+		}
+
+		starpu_iteration_pop();
+		i++;
+	}
+
+	BARRIER();
+	end = starpu_timing_now();
+	timing = end - start;
+
+	error = sqrt(delta_new/delta_0)/(1.0*n);
+	FPRINTF_SERVER(stderr, "*****************************************\n");
+	FPRINTF_SERVER(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
+	FPRINTF_SERVER(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
+	FPRINTF_SERVER(stderr, "Seconds per iteration : %2.2e seconds\n", timing/10e6/i);
+	FPRINTF_SERVER(stderr, "Number of iterations per second : %2.2e it/s\n", i/(timing/10e6));
+
 	return 0;
+}
+
+
+void parse_common_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-n") == 0)
+		{
+			n = (int long long)atoi(argv[++i]);
+			continue;
+		}
+
+		if (strcmp(argv[i], "-display-result") == 0)
+		{
+			display_result = 1;
+			continue;
+		}
+
+		if (strcmp(argv[i], "-maxiter") == 0)
+		{
+			i_max = atoi(argv[++i]);
+			if (i_max <= 0)
+			{
+				FPRINTF_SERVER(stderr, "the number of iterations must be positive, not %d\n", i_max);
+				exit(EXIT_FAILURE);
+			}
+			continue;
+		}
+
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
+			nblocks = atoi(argv[++i]);
+			continue;
+		}
+
+		if (strcmp(argv[i], "-no-reduction") == 0)
+		{
+			use_reduction = 0;
+			continue;
+		}
+	}
 }

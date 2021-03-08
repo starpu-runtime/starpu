@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -37,6 +37,14 @@ extern "C"
    data size footprint.
 */
 uint32_t starpu_hash_crc32c_be_n(const void *input, size_t n, uint32_t inputcrc);
+
+/**
+   Compute the CRC of a pointer value seeded by the \p inputcrc
+   <em>current state</em>. The return value should be considered as the new
+   <em>current state</em> for future CRC computation. This is used for computing
+   data size footprint.
+*/
+uint32_t starpu_hash_crc32c_be_ptr(void *input, uint32_t inputcrc);
 
 /**
    Compute the CRC of a 32bit number seeded by the \p inputcrc

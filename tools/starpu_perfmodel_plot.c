@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -502,13 +502,15 @@ static void dump_data_file(FILE *data_file, struct _perfmodel_plot_options *opti
 
 static void display_selected_models(FILE *gnuplot_file, struct starpu_perfmodel *model, struct starpu_perfmodel *energy_model, struct _perfmodel_plot_options *options)
 {
+	char hostname[64];
 	char *symbol = replace_char(options->symbol, '_', '-');
 
+	_starpu_gethostname(hostname, sizeof(hostname));
 	fprintf(gnuplot_file, "#!/usr/bin/gnuplot -persist\n");
 	fprintf(gnuplot_file, "\n");
 	fprintf(gnuplot_file, "set term postscript eps enhanced color\n");
-	fprintf(gnuplot_file, "set output \"starpu_%s%s.eps\"\n", options->energy_symbol?"power_":"", options->symbol);
-	fprintf(gnuplot_file, "set title \"Model for codelet %s\"\n", symbol);
+	fprintf(gnuplot_file, "set output \"starpu_%s%s.eps\"\n", options->energy_symbol?"power_":options->gflops?"gflops_":"", options->symbol);
+	fprintf(gnuplot_file, "set title \"Model for codelet %s on %s\"\n", symbol, hostname);
 	fprintf(gnuplot_file, "set xlabel \"Total data size\"\n");
 	if (options->energy_symbol)
 		fprintf(gnuplot_file, "set ylabel \"Power (W)\"\n");
@@ -613,6 +615,11 @@ int main(int argc, char **argv)
 			{
 				snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "%s/starpu_power_%s.gp", directory, options.symbol);
 				snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_power_%s_avg.data", directory, options.symbol);
+			}
+			else if (options.gflops)
+			{
+				snprintf(gnuplot_file_name, sizeof(gnuplot_file_name), "%s/starpu_gflops_%s.gp", directory, options.symbol);
+				snprintf(options.avg_file_name, sizeof(options.avg_file_name), "%s/starpu_gflops_%s_avg.data", directory, options.symbol);
 			}
 			else
 			{

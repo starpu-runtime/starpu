@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -268,7 +268,8 @@ static void init_matrix(int rank)
 					unsigned tmp;
 					for (tmp = 0; tmp < size/nblocks; tmp++)
 					{
-						(*blockptr)[tmp*((size/nblocks)+1)] += (TYPE)10*nblocks;
+						(*blockptr)[tmp*((size/nblocks)+1)] += 1;
+						(*blockptr)[tmp*((size/nblocks)+1)] *= 100;
 					}
 				}
 
@@ -437,7 +438,7 @@ int main(int argc, char **argv)
 	int rank;
 	int world_size;
 	int ret;
-	unsigned i, j;
+	unsigned i, j, k;
 
 	/*
 	 *	Initialization
@@ -609,7 +610,9 @@ int main(int argc, char **argv)
 	{
 		for (i = 0; i < nblocks; i++)
 		{
-			starpu_data_unregister(dataA_handles[j+nblocks*i]);
+			starpu_data_handle_t handle = dataA_handles[j+nblocks*i];
+			if (handle != STARPU_POISON_PTR)
+				starpu_data_unregister(handle);
 			TYPE *blockptr = dataA[j+i*nblocks];
 			if (blockptr != STARPU_POISON_PTR)
 				starpu_free(blockptr);
@@ -618,15 +621,76 @@ int main(int argc, char **argv)
 	free(dataA_handles);
 	free(dataA);
 
+#ifdef SINGLE_TMP11
+	starpu_data_unregister(tmp_11_block_handle);
+	starpu_free(tmp_11_block);
+#else
+	for (k = 0; k < nblocks; k++)
+	{
+		if (tmp_11_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_11_block_handles[k]);
+			starpu_free(tmp_11_block[k]);
+		}
+	}
+	free(tmp_11_block_handles);
+	free(tmp_11_block);
+#endif
+
+	for (k = 0; k < nblocks; k++)
+	{
+#ifdef SINGLE_TMP1221
+		if (tmp_12_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_12_block_handles);
+			starpu_free(tmp_12_block[k]);
+		}
+
+		if (tmp_21_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_21_block_handles[k]);
+			starpu_free(tmp_21_block[k]);
+		}
+#else
+	for (i = 0; i < 2; i++)
+	{
+		if (tmp_12_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_12_block_handles[i][k]);
+			starpu_free(tmp_12_block[i][k]);
+		}
+
+		if (tmp_21_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_21_block_handles[i][k]);
+			starpu_free(tmp_21_block[i][k]);
+		}
+	}
+#endif
+	}
+
+#ifdef SINGLE_TMP1221
+	free(tmp_12_block_handles);
+	free(tmp_21_block_handles);
+	free(tmp_12_block);
+	free(tmp_21_block);
+#else
+	for (i = 0; i < 2; i++)
+	{
+		free(tmp_12_block_handles[i]);
+		free(tmp_21_block_handles[i]);
+		free(tmp_12_block[i]);
+		free(tmp_21_block[i]);
+	}
+#endif
+
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);
 
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
 
-#if 0
 	MPI_Finalize();
-#endif
 
 	return 0;
 }

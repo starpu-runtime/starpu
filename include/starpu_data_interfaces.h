@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -321,7 +321,7 @@ struct starpu_data_copy_methods
 	   data blocks. If the interface is more involved than
 	   this, i.e. it needs to collect pieces of data before
 	   transferring, starpu_data_interface_ops::pack_data and
-	   starpu_data_interface_ops::unpack_data should be implemented instead,
+	   starpu_data_interface_ops::peek_data should be implemented instead,
 	   and the core will just transfer the resulting data buffer.
 	*/
 	int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
@@ -555,6 +555,12 @@ struct starpu_data_interface_ops
 	int (*pack_data) (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 
 	/**
+	   Read the data handle from the contiguous buffer at the address
+	   \p ptr of size \p count.
+	*/
+	int (*peek_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+
+	/**
 	   Unpack the data handle from the contiguous buffer at the address
 	   \p ptr of size \p count.
 	   The memory at the address \p ptr should be freed after the data unpacking operation.
@@ -637,14 +643,43 @@ enum starpu_data_interface_id starpu_data_get_interface_id(starpu_data_handle_t 
 /**
    Execute the packing operation of the interface of the data
    registered at \p handle (see starpu_data_interface_ops). This
-   packing operation must allocate a buffer large enough at \p ptr and copy
+   packing operation must allocate a buffer large enough at \p ptr on node \p node and copy
    into the newly allocated buffer the data associated to \p handle. \p count
    will be set to the size of the allocated buffer. If \p ptr is <c>NULL</c>, the
    function should not copy the data in the buffer but just set \p count to
    the size of the buffer which would have been allocated. The special
    value -1 indicates the size is yet unknown.
 */
+int starpu_data_pack_node(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+
+/**
+   Like starpu_data_pack_node(), but for the local memory node.
+*/
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);
+
+/**
+   Read in handle's \p node replicate the data located at \p ptr
+   of size \p count as described by the interface of the data. The interface
+   registered at \p handle must define a peeking operation (see
+   starpu_data_interface_ops).
+*/
+int starpu_data_peek_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+
+/**
+   Read in handle's local replicate the data located at \p ptr
+   of size \p count as described by the interface of the data. The interface
+   registered at \p handle must define a peeking operation (see
+   starpu_data_interface_ops).
+*/
+int starpu_data_peek(starpu_data_handle_t handle, void *ptr, size_t count);
+
+/**
+   Unpack in handle the data located at \p ptr of size \p count allocated
+   on node \p node as described by the interface of the data. The interface
+   registered at \p handle must define an unpacking operation (see
+   starpu_data_interface_ops).
+*/
+int starpu_data_unpack_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 
 /**
    Unpack in handle the data located at \p ptr of size \p count as

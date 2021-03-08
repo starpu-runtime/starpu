@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -118,6 +118,7 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 			if (!task->cl || task->cl->model == NULL)
 			{
 				static unsigned _warned;
+				STARPU_HG_DISABLE_CHECKING(_warned);
 				if (STARPU_ATOMIC_ADD(&_warned, 1) == 1)
 				{
 					_STARPU_DISP("Warning: graph_test needs performance models for all tasks, including %s\n",

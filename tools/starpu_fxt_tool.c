@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -73,7 +73,8 @@ static int parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-o") == 0)
 		{
-			options.out_paje_path = argv[++i];
+			free(options.out_paje_path);
+			options.out_paje_path = strdup(argv[++i]);
 			reading_input_filenames = 0;
 			continue;
 		}

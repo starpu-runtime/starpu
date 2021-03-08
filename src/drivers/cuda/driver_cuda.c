@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -37,6 +37,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
+#include <datawizard/datawizard.h>
 #include <core/task.h>
 #include <common/knobs.h>
 
@@ -935,14 +936,13 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	if (!idle_tasks)
 	{
 		/* No task ready yet, no better thing to do than waiting */
-		__starpu_datawizard_progress(1, !idle_transfers);
+		__starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, !idle_transfers);
 		return 0;
 	}
 #endif
 
 	/* Something done, make some progress */
-	res = !idle_tasks || !idle_transfers;
-	res |= __starpu_datawizard_progress(1, 1);
+	res = __starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
 
 	/* And pull tasks */
 	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, worker0->memory_node);
@@ -950,9 +950,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #ifdef STARPU_SIMGRID
 	if (!res)
 		starpu_pthread_wait_wait(&worker0->wait);
-#else
-	if (!res)
-		return 0;
 #endif
 
 	for (i = 0; i < (int) worker_set->nworkers; i++)
@@ -972,35 +969,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		{
 			/* this is neither a cuda or a cublas task */
 			_starpu_worker_refuse_task(worker, task);
-#if 0
-			if (worker->pipeline_length)
-			{
-				int j;
-				for (j = 0; j < worker->ntasks; j++)
-				{
-					const int j_mod = (j+worker->first_task)%STARPU_MAX_PIPELINE;
-					if (task == worker->current_tasks[j_mod])
-					{
-						worker->current_tasks[j_mod] = NULL;
-						if (j == 0)
-						{
-							worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
-							_starpu_set_current_task(NULL);
-						}
-						break;
-					}
-				}
-				STARPU_ASSERT(j<worker->ntasks);
-			}
-			else
-			{
-				worker->current_task = NULL;
-				_starpu_set_current_task(NULL);
-			}
-			worker->ntasks--;
-			int res = _starpu_push_task_to_workers(task);
-			STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
-#endif
 			continue;
 		}
 
@@ -1039,7 +1007,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 		if (!usersleft)
                 {
 			/* I'm last, deinitialize device */
-			_starpu_handle_all_pending_node_data_requests(memnode);
+			_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
 			/* In case there remains some memory that was automatically
 			 * allocated by StarPU, we release it now. Note that data

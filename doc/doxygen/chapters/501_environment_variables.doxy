@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -481,6 +481,16 @@ todo
 todo
 </dd>
 
+<dt>STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES</dt>
+<dd>
+\anchor STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
+\addindex __env__STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
+Specify if CUDA workers should do only fast allocations
+when running the datawizard progress of
+other memory nodes. This will pass STARPU_DATAWIZARD_ONLY_FAST_ALLOC.
+Default value is 0, allowing CUDA workers to do slow allocations.
+</dd>
+
 </dl>
 
 \section ConfiguringTheSchedulingEngine Configuring The Scheduling Engine
@@ -744,6 +754,27 @@ STARPU_MPI_DRIVER_CALL_FREQUENCY environment variable set to a positive value.
 When set to a positive value, this makes the starpu_mpi_*recv* functions
 block when the memory allocation required for network reception overflows the
 available main memory (as typically set by \ref STARPU_LIMIT_CPU_MEM)
+</dd>
+
+<dt>STARPU_MPI_EARLYDATA_ALLOCATE</dt>
+<dd>
+\anchor STARPU_MPI_EARLYDATA_ALLOCATE
+\addindex __env__STARPU_MPI_EARLYDATA_ALLOCATE
+When set to 1, the MPI Driver will immediately allocate the data for early
+requests instead of issuing a data request and blocking. The default value is 0,
+issuing a data request. Because it is an early request and we do not know its
+real priority, the data request will assume \ref STARPU_DEFAULT_PRIO. In cases
+where there are many data requests with priorities greater than
+\ref STARPU_DEFAULT_PRIO the MPI drive could be blocked for long periods.
+</dd>
+
+<dt>STARPU_SIMGRID</dt>
+<dd>
+\anchor STARPU_SIMGRID
+\addindex __env__STARPU_SIMGRID
+When set to 1 (the default is 0), this makes StarPU check that it was really
+build with simulation support. This is convenient in scripts to avoid using a
+native version, that would try to update performance models...
 </dd>
 
 <dt>STARPU_SIMGRID_TRANSFER_COST</dt>
@@ -1131,15 +1162,6 @@ GPUs (or in main memory, when using out of core), when performing an asynchronou
 writeback pass. The default is 10%.
 </dd>
 
-<dt>STARPU_DIDUSE_BARRIER</dt>
-<dd>
-\anchor STARPU_DIDUSE_BARRIER
-\addindex __env__STARPU_DIDUSE_BARRIER
-When set to 1, StarPU will never evict a piece of data if it has not been used
-by at least one task. This avoids odd behaviors under high memory pressure, but
-can lead to deadlocks, so is to be considered experimental only.
-</dd>
-
 <dt>STARPU_DISK_SWAP</dt>
 <dd>
 \anchor STARPU_DISK_SWAP
@@ -1311,6 +1333,14 @@ dog is reached, thus allowing to catch the situation in gdb, etc
 Delay the activation of the watchdog by the given time (in µs). This can
 be convenient for letting the application initialize data etc. before starting
 to look for idle time.
+</dd>
+
+<dt>STARPU_TASK_PROGRESS</dt>
+<dd>
+\anchor STARPU_TASK_PROGRESS
+\addindex __env__STARPU_TASK_PROGRESS
+Print the progression of tasks. This is convenient to determine whether a
+program is making progress in task execution, or is just stuck.
 </dd>
 
 <dt>STARPU_TASK_BREAK_ON_PUSH</dt>

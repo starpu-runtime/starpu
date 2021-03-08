@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -39,6 +39,9 @@ static inline void _starpu_prio_deque_init(struct _starpu_prio_deque *pdeque)
 {
 	memset(pdeque,0,sizeof(*pdeque));
 	starpu_task_prio_list_init(&pdeque->list);
+	STARPU_HG_DISABLE_CHECKING(pdeque->exp_start);
+	STARPU_HG_DISABLE_CHECKING(pdeque->exp_end);
+	STARPU_HG_DISABLE_CHECKING(pdeque->exp_len);
 }
 
 static inline void _starpu_prio_deque_destroy(struct _starpu_prio_deque *pdeque)

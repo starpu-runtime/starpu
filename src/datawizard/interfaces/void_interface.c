@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,7 @@ static uint32_t footprint_void_interface_crc32(starpu_data_handle_t handle);
 static int void_compare(void *data_interface_a, void *data_interface_b);
 static void display_void_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_void_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+static int peek_void_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static int unpack_void_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
 
@@ -51,6 +52,7 @@ struct starpu_data_interface_ops starpu_interface_void_ops =
 	.interface_size = 0,
 	.display = display_void_interface,
 	.pack_data = pack_void_handle,
+	.peek_data = peek_void_handle,
 	.unpack_data = unpack_void_handle,
 	.describe = describe,
 	.pointer_is_inside = void_pointer_is_inside,
@@ -101,6 +103,14 @@ static int pack_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
 {
 	*count = 0;
 	*ptr = NULL;
+	return 0;
+}
+
+static int peek_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
+			      unsigned node STARPU_ATTRIBUTE_UNUSED,
+			      void *ptr STARPU_ATTRIBUTE_UNUSED,
+			      size_t count STARPU_ATTRIBUTE_UNUSED)
+{
 	return 0;
 }
 

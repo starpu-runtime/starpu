@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -129,6 +129,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 		if (!is_pushback && data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold)
 		{
 			static int warned;
+			STARPU_HG_DISABLE_CHECKING(warned);
 			if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
 			{
 				_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);

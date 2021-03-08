@@ -202,6 +202,7 @@ static struct starpu_data_interface_ops starpu_interface_variable_size_ops =
 	.interface_size = sizeof(struct variable_size_interface),
 	.display = display_variable_size,
 	.pack_data = NULL,
+	.peek_data = NULL,
 	.unpack_data = NULL,
 	.describe = describe_variable_size,
 

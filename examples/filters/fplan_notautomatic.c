@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2018-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2018-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +45,7 @@ void task_cpu(void *descr[], void *args)
 
 void split_callback(void *arg)
 {
-	(arg);
+	(void)arg;
 	struct starpu_task *task = starpu_task_get_current();
 	starpu_data_handle_t value_handle, sub_handles[PARTS];
 

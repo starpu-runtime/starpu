@@ -25,9 +25,9 @@
  * kernels and number of idle workers.
  */
 
-#ifdef STARPU_QUICK_CHECK
+#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS)
 static size_t size = 1024;
-static unsigned cpustep = 4;
+static unsigned cpustep = 8;
 #else
 /* Must be bigger than available cache size per core, 64MiB should be enough */
 static size_t size = 64UL << 20;
@@ -291,7 +291,7 @@ int main(int argc, char **argv)
 	total_ncpus = starpu_cpu_worker_get_count();
 
 	buffers = malloc(total_ncpus * sizeof(*buffers));
-	starpu_execute_on_each_worker_ex(initialize_buffer, NULL, STARPU_CPU, "init_buffer");
+	starpu_execute_on_each_worker_ex(initialize_buffer, NULL, STARPU_CPU, "initialize_buffer");
 	starpu_shutdown();
 
 	if (total_ncpus == 0)

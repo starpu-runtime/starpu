@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -166,6 +166,7 @@ unsigned _starpu_memory_node_get_mapped(unsigned node)
 #undef starpu_worker_get_memory_node
 unsigned starpu_worker_get_memory_node(unsigned workerid)
 {
+	(void) workerid;
 	return _starpu_worker_get_memory_node(workerid);
 }
 
@@ -182,12 +183,10 @@ void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned m
 	}
 }
 
+#undef starpu_worker_get_local_memory_node
 unsigned starpu_worker_get_local_memory_node(void)
 {
-	struct _starpu_worker *worker = _starpu_get_local_worker_key();
-	if (!worker)
-		return STARPU_MAIN_RAM;
-	return worker->memory_node;
+	return _starpu_worker_get_local_memory_node();
 }
 
 int starpu_memory_node_get_devid(unsigned node)

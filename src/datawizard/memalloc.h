@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,17 +59,8 @@ LIST_TYPE(_starpu_mem_chunk,
 	unsigned home:1;
 	/** Whether the memchunk is in the clean part of the mc_list */
 	unsigned clean:1;
-	/** Was this chunk used since it got allocated?
-	    FIXME: probably useless now with nb_tasks_prefetch */
-	unsigned diduse:1;
 	/** Was this chunk marked as "won't use"? */
 	unsigned wontuse:1;
-
-	/** The number of prefetches that we made for this mc for various tasks
-	 * This is also the number of tasks that we will wait to see use this mc before
-	 * we attempt to evict it.
-	 */
-	unsigned nb_tasks_prefetch;
 
 	/** the size of the data is only set when calling _starpu_request_mem_chunk_removal(),
 	 * it is needed to estimate how much memory is in mc_cache, and by
@@ -92,14 +83,14 @@ void _starpu_init_mem_chunk_lists(void);
 void _starpu_deinit_mem_chunk_lists(void);
 void _starpu_mem_chunk_init_last(void);
 void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node, size_t size);
-int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum _starpu_is_prefetch is_prefetch);
+int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, enum starpu_is_prefetch is_prefetch, int only_fast_alloc);
 size_t _starpu_free_all_automatically_allocated_buffers(unsigned node);
 void _starpu_memchunk_recently_used(struct _starpu_mem_chunk *mc, unsigned node);
 void _starpu_memchunk_wont_use(struct _starpu_mem_chunk *m, unsigned nodec);
 void _starpu_memchunk_dirty(struct _starpu_mem_chunk *mc, unsigned node);
 
 void _starpu_display_memory_stats_by_node(int node);
-size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t reclaim);
+size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch);
 int _starpu_is_reclaiming(unsigned node);
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
 unsigned starpu_data_test_if_mapped_on_node(starpu_data_handle_t handle, unsigned memory_node);

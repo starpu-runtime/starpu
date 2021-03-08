@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -222,8 +222,8 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 									struct _starpu_data_replicate *dst_replicate,
 									unsigned donotread,
 									struct _starpu_data_request *req,
-									unsigned may_alloc,
-									enum _starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED)
+									enum _starpu_may_alloc may_alloc,
+									enum starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED)
 {
 	if (!donotread)
 	{
@@ -270,11 +270,11 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	/* first make sure the destination has an allocated buffer */
 	if (!dst_replicate->allocated && !dst_replicate->mapped)
 	{
-		if (!may_alloc || _starpu_is_reclaiming(dst_node))
+		if (may_alloc==STARPU_DATAWIZARD_DO_NOT_ALLOC || _starpu_is_reclaiming(dst_node))
 			/* We're not supposed to allocate there at the moment */
 			return -ENOMEM;
 
-		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, req ? req->prefetch : STARPU_FETCH);
+		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, prefetch, may_alloc==STARPU_DATAWIZARD_ONLY_FAST_ALLOC);
 		if (ret_alloc)
 			return -ENOMEM;
 	}
@@ -364,6 +364,7 @@ void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node
 	if (elapsed > 300)
 	{
 		static int warned = 0;
+		STARPU_HG_DISABLE_CHECKING(warned);
 		if (!warned)
 		{
 			char src_name[16], dst_name[16];

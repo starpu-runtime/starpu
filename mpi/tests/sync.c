@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -76,15 +76,19 @@ int main(int argc, char **argv)
 		int *xx;
 
 		starpu_mpi_recv(data[0], other_rank, 12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		starpu_data_acquire(data[0], STARPU_R);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
 		FPRINTF_MPI(stderr, "received %d\n", *xx);
 		STARPU_ASSERT_MSG(x==*xx, "Received value %d is incorrect (should be %d)\n", *xx, x);
+		starpu_data_release(data[0]);
 
 		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(unsigned));
 		starpu_mpi_data_register(data[1], 22, 0);
 		starpu_mpi_recv(data[0],  other_rank, 22, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		starpu_data_acquire(data[0], STARPU_R);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
 		STARPU_ASSERT_MSG(x==*xx, "Received value %d is incorrect (should be %d)\n", *xx, x);
+		starpu_data_release(data[0]);
 	}
 
 	starpu_data_unregister(data[0]);

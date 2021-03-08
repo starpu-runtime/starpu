@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -122,7 +122,7 @@ parallel tasks (still experimental). Should not be used when several contexts us
 it are being executed simultaneously.
 
 - The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
-supports parallel tasks (still experimental). Should not be used when several 
+supports parallel tasks (still experimental). Should not be used when several
 contexts using it are being executed simultaneously.
 
 \subsection ExistingModularizedSchedulers Modularized Schedulers
@@ -188,7 +188,7 @@ already gives the good results that a precise estimation would give.
 Note: by default StarPU does not let CPU workers sleep, to let them react to
 task release as quickly as possible. For idle time to really let CPU cores save
 energy, one needs to use the \ref enable-blocking-drivers
-"--enable-blocking-drivers" configuration option.
+"--enable-blocking-drivers" \c configure option.
 
 If the application can provide some energy consumption performance model (through
 the field starpu_codelet::energy_model), StarPU will
@@ -244,7 +244,7 @@ get Joules.
 
 \subsection MeasuringEnergyandPower Measuring energy and power with StarPU
 
-We have extended the performance model of StarPU to measure energy and power values of CPUs. These values are measured using the existing Performance API (PAPI) analysis library. PAPI provides the tool designer and application engineer with a consistent interface and methodology for use of the performance counter hardware found in most major microprocessors. PAPI enables software engineers to see, in near real time, the relation between software performance and processor events. 
+We have extended the performance model of StarPU to measure energy and power values of CPUs. These values are measured using the existing Performance API (PAPI) analysis library. PAPI provides the tool designer and application engineer with a consistent interface and methodology for use of the performance counter hardware found in most major microprocessors. PAPI enables software engineers to see, in near real time, the relation between software performance and processor events.
 
 
 - To measure energy consumption of CPUs, we use the <c>RAPL</c> events, which are available on CPU architecture:
@@ -268,40 +268,33 @@ Depending on the system configuration, the user may have to run this as <b>root<
 Since the measurement is for all the the CPUs and the memory, the approach taken
 here is to run a series of tasks on all of them and to take the overall measurement.
 
-- The example below illustrates the energy and power measurements, using <c>starpu_energy_start()</c> and <c>starpu_energy_stop()</c> functions. 
- 
-In this example, we launch several tasks of the same type in parallel. To perform the energy requirement measurement of a program, we call <c>starpu_energy_start(void)</c> function, which initializes energy measurement counters and <c>starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned ntasks)</c> to stop counting and update the performance model. This ends up yielding the average energy requirement of a single task. The example below illustrates this for a given task type.
+- The example below illustrates the energy and power measurements, using starpu_energy_start() and starpu_energy_stop() functions.
 
-
+In this example, we launch several tasks of the same type in parallel. To perform the energy requirement measurement of a program, we call starpu_energy_start() function, which initializes energy measurement counters and starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi) to stop counting and update the performance model. This ends up yielding the average energy requirement of a single task. The example below illustrates this for a given task type.
 
 \code{.c}
-
-      
-       
         unsigned N = starpu_cpu_worker_get_count() * 40;
 
         starpu_energy_start(-1, STARPU_CPU_WORKER);
 
-        for (i = 0 ; i < N ; i++)
+        for (i = 0; i < N; i++)
 	  starpu_task_insert(&cl, STARPU_EXECUTE_WHERE, STARPU_CPU, STARPU_R, arg1, STARPU_RW, arg2, 0);
 
         starpu_task_t *specimen = starpu_task_build(&cl, STARPU_R, arg1, STARPU_RW, arg2, 0);
         starpu_energy_stop(&codelet.energy_model, specimen, 0, N, -1, STARPU_CPU_WORKER);
 
        . . .
-
 \endcode
 
-The example starts 40 times more tasks of the same type than there are CPU execution unit. Once the tasks are distributed over all CPUs, the latter are all executing the same type of tasks (with the same data size and parameters); each CPU will in the end execute 40 tasks. A specimen task is then constructed and passed to <c>starpu_energy_stop</c> function, which will fold into the performance model the energy requirement measurement for that type and size of task.
+The example starts 40 times more tasks of the same type than there are CPU execution unit. Once the tasks are distributed over all CPUs, the latter are all executing the same type of tasks (with the same data size and parameters); each CPU will in the end execute 40 tasks. A specimen task is then constructed and passed to the starpu_energy_stop() function, which will fold into the performance model the energy requirement measurement for that type and size of task.
 
-For the energy and power measurements, depending on the system configuration the user may have to run an application as a <b>root</b> to use PAPI library.
+For the energy and power measurements, depending on the system configuration the user may have to run applications as <b>root</b> to use PAPI library.
 
-<c>starpu_energy_stop()</c> function uses <c>PAPI_stop()</c> to stop counting and store the values into the array. we calculate both energy in <c>Joules</c> and power consumption in <c>Watt</c>. We call starpu_perfmodel_update_history() function in the perfmormance model to provide explicit measurements.
+The starpu_energy_stop() function uses <c>PAPI_stop()</c> to stop counting and store the values into the array. We calculate both energy in <c>Joules</c> and power consumption in <c>Watt</c>. We call the starpu_perfmodel_update_history() function in the perfmormance model to provide explicit measurements.
 
 - In the CUDA case, nvml provides per-GPU energy measurement. We can thus calibrate the performance models per GPU:
 
 \code{.c}
-       
         unsigned N = 40;
 
 	for (i = 0; i < starpu_cuda_worker_get_count(); i++) {
@@ -309,15 +302,13 @@ For the energy and power measurements, depending on the system configuration the
 
 		starpu_energy_start(workerid, STARPU_CUDA_WORKER);
 
-		for (i = 0 ; i < N ; i++)
+		for (i = 0; i < N; i++)
 		  starpu_task_insert(&cl, STARPU_EXECUTE_ON_WORKER, workerid, STARPU_R, arg1, STARPU_RW, arg2, 0);
 
 		starpu_task_t *specimen = starpu_task_build(&cl, STARPU_R, arg1, STARPU_RW, arg2, 0);
 		starpu_energy_stop(&codelet.energy_model, specimen, 0, N, workerid, STARPU_CUDA_WORKER);
 
        }
-       . . .
-
 \endcode
 
 - A complete example is available in <c>tests/perfmodels/regression_based_memset.c</c>
@@ -341,7 +332,7 @@ or equivalently
 starpu_task_insert(&cl, ..., STARPU_EXECUTE_ON_WORKER, starpu_worker_get_by_type(STARPU_CUDA_WORKER, 0), ...);
 \endcode
 
-One can also specify a set worker(s) which are allowed to take the task, as an
+One can also specify a set of worker(s) which are allowed to take the task, as an
 array of bit, for instance to allow workers 2 and 42:
 
 \code{.c}
@@ -368,7 +359,7 @@ contexts, otherwise the workers' corresponding scheduling structures may not be 
 the execution of the application may deadlock. Moreover, the hypervisor should not be used when
 statically scheduling tasks.
 
-\section Configuring Heteroprio
+\section configuringHeteroprio Configuring Heteroprio
 
 Within Heteroprio, one priority per processing unit type is assigned  to each task, such that a task has several
 priorities. Each worker pops the task that has the highest priority for the hardware type it uses, which
@@ -384,24 +375,21 @@ CPU workers can compute all of them, but CUDA workers can only execute
 tasks of types 0 and 1, and is expected to go 20 and 30 time
 faster than the CPU, respectively.
 \code{.c}
-// In the file that init StarPU
 #include <starpu_heteroprio.h>
 
-////////////////////////////////////////////////////
-
-// Before calling starpu_init
+ // Before calling starpu_init
 struct starpu_conf conf;
 starpu_conf_init(&conf);
-// Inform StarPU to use Heteroprio
+ // Inform StarPU to use Heteroprio
 conf.sched_policy_name = "heteroprio";
-// Inform StarPU about the function that will init the priorities in Heteroprio
-// where init_heteroprio is a function to implement
+ // Inform StarPU about the function that will init the priorities in Heteroprio
+ // where init_heteroprio is a function to implement
 conf.sched_policy_init = &init_heteroprio;
-// Do other things with conf if needed, then init StarPU
+ // Do other things with conf if needed, then init StarPU
 starpu_init(&conf);
+\endcode
 
-////////////////////////////////////////////////////
-
+\code{.c}
 void init_heteroprio(unsigned sched_ctx) {
   // CPU uses 5 buckets and visits them in the natural order
   starpu_heteroprio_set_nb_prios(ctx, STARPU_CPU_WORKER, 5);
@@ -411,7 +399,7 @@ void init_heteroprio(unsigned sched_ctx) {
     // If there is no CUDA worker we must tell that CPU is faster
     starpu_heteroprio_set_faster_arch(ctx, STARPU_CPU_WORKER, idx);
   }
-  
+
   if(starpu_cuda_worker_get_count()){
     // CUDA is enabled and uses 2 buckets
     starpu_heteroprio_set_nb_prios(ctx, STARPU_CUDA_WORKER, 2);
@@ -424,7 +412,7 @@ void init_heteroprio(unsigned sched_ctx) {
     starpu_heteroprio_set_faster_arch(ctx, STARPU_CUDA_WORKER, 1);
     // And CPU is 30 times slower
     starpu_heteroprio_set_arch_slow_factor(ctx, STARPU_CPU_WORKER, 1, 30.0f);
-    
+
     // For bucket 0 CUDA is the fastest
     starpu_heteroprio_set_faster_arch(ctx, STARPU_CUDA_WORKER, 0);
     // And CPU is 20 times slower
@@ -433,7 +421,7 @@ void init_heteroprio(unsigned sched_ctx) {
 }
 \endcode
 
-Then, when a task is inserted <b>the priority of the task will be used to 
+Then, when a task is inserted <b>the priority of the task will be used to
 select in which bucket is has to be stored</b>.
 So, in the given example, the priority of a task will be between 0 and 4 included.
 However, tasks of priorities 0-1 must provide CPU and CUDA kernels, and

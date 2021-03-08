@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -365,6 +365,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 			if (isnan(local_task_length[worker_ctx][nimpl]))
 			{
 				static int warned;
+				STARPU_HG_DISABLE_CHECKING(warned);
 				if (!warned)
 				{
 					warned = 1;

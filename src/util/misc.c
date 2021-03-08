@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,6 +17,19 @@
 #include <starpu.h>
 #include <common/utils.h>
 #include <core/jobs.h>
+
+const char *_starpu_codelet_get_name(struct starpu_codelet *cl)
+{
+	if (!cl)
+		return NULL;
+
+	if (cl->name)
+		return cl->name;
+	else if (cl->model && cl->model->symbol && cl->model->symbol[0])
+		return cl->model->symbol;
+	else
+		return NULL;
+}
 
 const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl)
 {

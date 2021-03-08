@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
 
 #define TYPE float
 #define MPI_TYPE	MPI_FLOAT
+#define CUBLAS_TYPE	TYPE
 
 #define STARPU_PLU(name)       starpu_pslu_##name
 
@@ -39,3 +40,5 @@
 #define CPU_IAMAX	STARPU_ISAMAX
 
 #define PIVOT_THRESHHOLD	10e-5
+
+#define ISZERO(f)	(fpclassify(f) == FP_ZERO)

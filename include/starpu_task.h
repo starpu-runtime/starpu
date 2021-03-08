@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2016       Uppsala University
  *
@@ -770,12 +770,53 @@ struct starpu_task
 	size_t cl_arg_size;
 
 	/**
+	   Optional pointer which points to the return value of submitted task.
+	   The default value is <c>NULL</c>. starpu_codelet_pack_arg()
+	   and starpu_codelet_unpack_arg() can be used to respectively
+	   pack and unpack the return value into and form it. starpu_task::cl_ret
+	   can be used for MPI support. The only requirement is that
+	   the size of the return value must be set in starpu_task::cl_ret_size .
+	*/
+	void *cl_ret;
+
+	/**
+	   Optional field. The buffer of starpu_codelet_pack_arg()
+	   and starpu_codelet_unpack_arg() can be allocated with
+	   the starpu_task::cl_ret_size bytes starting at address starpu_task::cl_ret.
+	   starpu_task::cl_ret_size can be used for MPI supoort.
+	*/
+	size_t cl_ret_size;
+
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is a
+	   function pointer of prototype <c>void (*f)(void *)</c> which
+	   specifies a possible callback. If this pointer is non-<c>NULL</c>,
+	   the callback function is executed on the host after the execution of
+	   the task. Contrary to starpu_task::callback_func, it is called
+	   before releasing tasks which depend on this task, so those cannot be
+	   already executing. The callback is passed
+	   the value contained in the starpu_task::epilogue_callback_arg field.
+	   No callback is executed if the field is set to <c>NULL</c>.
+	*/
+	void (*epilogue_callback_func)(void *);
+
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is
+	   the pointer passed to the epilogue callback function. This field is
+	   ignored if the field starpu_task::epilogue_callback_func is set to
+	   <c>NULL</c>.
+	*/
+	void *epilogue_callback_arg;
+
+	/**
 	   Optional field, the default value is <c>NULL</c>. This is a
 	   function pointer of prototype <c>void (*f)(void *)</c>
 	   which specifies a possible callback. If this pointer is
 	   non-<c>NULL</c>, the callback function is executed on the
-	   host after the execution of the task. Tasks which depend on
-	   it might already be executing. The callback is passed the
+	   host after the execution of the task. Contrary to
+	   starpu_task::epilogue_callback, it is called after releasing
+	   tasks which depend on this task, so those
+	   might already be executing. The callback is passed the
 	   value contained in the starpu_task::callback_arg field. No
 	   callback is executed if the field is set to <c>NULL</c>.
 
@@ -786,6 +827,7 @@ struct starpu_task
 	   pointer and the argument.
 	*/
 	void (*callback_func)(void *);
+
 	/**
 	   Optional field, the default value is <c>NULL</c>. This is
 	   the pointer passed to the callback function. This field is
@@ -826,7 +868,28 @@ struct starpu_task
 	*/
 	void *prologue_callback_arg;
 
+	/** Optional field, the default value is <c>NULL</c>. This is a
+	   function pointer of prototype <c>void (*f)(void*)</c>
+	   which specifies a possible callback. If this pointer is
+	   non-<c>NULL</c>, the callback function is executed on the host
+	   when the task is pop-ed from the scheduler, just before getting
+	   executed. The callback is passed the value contained in the
+	   starpu_task::prologue_callback_pop_arg field.
+	   No callback is executed if the field is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK_POP followed by the function pointer.
+	*/
 	void (*prologue_callback_pop_func)(void *);
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is
+	   the pointer passed to the prologue_callback_pop function. This
+	   field is ignored if the field
+	   starpu_task::prologue_callback_pop_func is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG followed by the argument.
+	   */
 	void *prologue_callback_pop_arg;
 
 	/**
@@ -855,6 +918,14 @@ struct starpu_task
 	unsigned cl_arg_free:1;
 
 	/**
+	   Optional field. In case starpu_task::cl_ret was allocated
+	   by the application through <c>malloc()</c>, setting
+	   starpu_task::cl_ret_free to 1 makes StarPU automatically
+	   call <c>free(cl_ret)</c> when destroying the task.
+	*/
+	unsigned cl_ret_free:1;
+
+	/**
 	   Optional field. In case starpu_task::callback_arg was
 	   allocated by the application through <c>malloc()</c>,
 	   setting starpu_task::callback_arg_free to 1 makes StarPU
@@ -866,6 +937,15 @@ struct starpu_task
 	   to 0 when using ::STARPU_CALLBACK_ARG_NFREE
 	*/
 	unsigned callback_arg_free:1;
+
+	/**
+	   Optional field. In case starpu_task::epilogue_callback_arg was
+	   allocated by the application through <c>malloc()</c>,
+	   setting starpu_task::epilogue_callback_arg_free to 1 makes StarPU
+	   automatically call <c>free(epilogue_callback_arg)</c> when
+	   destroying the task.
+	*/
+	unsigned epilogue_callback_arg_free:1;
 
 	/**
 	   Optional field. In case starpu_task::prologue_callback_arg
@@ -1264,8 +1344,12 @@ struct starpu_task
 	.where = -1,					\
 	.cl_arg = NULL,					\
 	.cl_arg_size = 0,				\
+	.cl_ret = NULL,					\
+	.cl_ret_size = 0,				\
 	.callback_func = NULL,				\
 	.callback_arg = NULL,				\
+	.epilogue_callback_func = NULL,			\
+	.epilogue_callback_arg = NULL,			\
 	.priority = STARPU_DEFAULT_PRIO,		\
 	.use_tag = 0,					\
 	.sequential_consistency = 1,			\
@@ -1367,8 +1451,13 @@ struct starpu_task
 	do {								\
 		if ((task)->cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (task)->cl->nbuffers > STARPU_NMAXBUFS) \
 			if ((task)->dyn_modes) (task)->dyn_modes[i] = mode; else (task)->modes[i] = mode; \
-		else							\
-			STARPU_CODELET_SET_MODE((task)->cl, mode, i);	\
+		else \
+		{							\
+			enum starpu_data_access_mode cl_mode = STARPU_CODELET_GET_MODE((task)->cl, i); \
+			STARPU_ASSERT_MSG(cl_mode == mode,	\
+				"Task <%s> can't set its  %d-th buffer mode to %d as the codelet it derives from uses %d", \
+				(task)->cl->name, i, mode, cl_mode);	\
+		} \
 	} while(0)
 
 /**

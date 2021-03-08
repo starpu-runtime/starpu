@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,7 +33,7 @@
 
 int main(int argc, char **argv)
 {
-	double * A,*B,*C,*D,*E,*F;
+	double *A, *F;
 
 	/* limit main ram to force to push in disk */
 	setenv("STARPU_LIMIT_CPU_MEM", "160", 1);

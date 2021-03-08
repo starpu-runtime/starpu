@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -23,6 +23,7 @@ EXTRA_DIST =				\
 
 AM_CPPFLAGS = -I$(top_builddir)/src -I$(top_srcdir)/src -I$(top_builddir)/include -I$(top_srcdir)/include $(SIMGRID_CFLAGS)
 AM_LDFLAGS  = -Wl,-znorelro -Wl,-znoseparate-code
+LIBS += $(SIMGRID_LDFLAGS)
 
 noinst_PROGRAMS = \
 		  prio_list \

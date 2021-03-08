@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -76,9 +76,9 @@ static struct starpu_task *create_dummy_task(int write, int data, unsigned durat
 int main(void)
 {
 	int ret;
-	/* We have 27 toggles to try below, thus 2^27 possibilities */
+	/* We have 17 toggles to try below, thus 2^17 possibilities */
 	unsigned loop, nloops = 128*1024;
-	unsigned duration = 1000;
+	unsigned duration = 100;
 
 	starpu_data_handle_t handle1, handle2;
 

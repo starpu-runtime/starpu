@@ -1,6 +1,6 @@
 ! StarPU --- Runtime system for heterogeneous multicore architectures.
 !
-! Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+! Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 !
 ! StarPU is free software; you can redistribute it and/or modify
 ! it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_RW
         type(c_ptr), bind(C) :: FSTARPU_SCRATCH
         type(c_ptr), bind(C) :: FSTARPU_REDUX
+        type(c_ptr), bind(C) :: FSTARPU_MPI_REDUX
         type(c_ptr), bind(C) :: FSTARPU_COMMUTE
         type(c_ptr), bind(C) :: FSTARPU_SSEND
         type(c_ptr), bind(C) :: FSTARPU_LOCALITY
@@ -36,11 +37,15 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_TASK_DEPS_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_WITH_ARG
+        type(c_ptr), bind(C) :: FSTARPU_CALLBACK_WITH_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_ARG
+        type(c_ptr), bind(C) :: FSTARPU_CALLBACK_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_ARG
+        type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_POP
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_POP_ARG
+        type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_PRIORITY
         type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_NODE
         type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_DATA
@@ -2395,6 +2400,7 @@ module fstarpu_mod
                         FSTARPU_RW      = fstarpu_get_constant(C_CHAR_"FSTARPU_RW"//C_NULL_CHAR)
                         FSTARPU_SCRATCH = fstarpu_get_constant(C_CHAR_"FSTARPU_SCRATCH"//C_NULL_CHAR)
                         FSTARPU_REDUX   = fstarpu_get_constant(C_CHAR_"FSTARPU_REDUX"//C_NULL_CHAR)
+                        FSTARPU_MPI_REDUX   = fstarpu_get_constant(C_CHAR_"FSTARPU_MPI_REDUX"//C_NULL_CHAR)
                         FSTARPU_COMMUTE   = fstarpu_get_constant(C_CHAR_"FSTARPU_COMMUTE"//C_NULL_CHAR)
                         FSTARPU_SSEND   = fstarpu_get_constant(C_CHAR_"FSTARPU_SSEND"//C_NULL_CHAR)
                         FSTARPU_LOCALITY   = fstarpu_get_constant(C_CHAR_"FSTARPU_LOCALITY"//C_NULL_CHAR)
@@ -2406,12 +2412,19 @@ module fstarpu_mod
                         FSTARPU_TASK_DEPS_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_TASK_DEPS_ARRAY"//C_NULL_CHAR)
                         FSTARPU_CALLBACK        = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_WITH_ARG       = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_WITH_ARG"//C_NULL_CHAR)
+                        FSTARPU_CALLBACK_WITH_ARG_NFREE       = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_WITH_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_ARG    = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_ARG"//C_NULL_CHAR)
+                        FSTARPU_CALLBACK_ARG_NFREE    = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK       = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK_ARG   = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_ARG"//C_NULL_CHAR)
+                        FSTARPU_PROLOGUE_CALLBACK_ARG_NFREE   = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK_POP   = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_POP"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK_POP_ARG       = &
                                 fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_POP_ARG"//C_NULL_CHAR)
+                        FSTARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE       = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_PRIORITY        = fstarpu_get_constant(C_CHAR_"FSTARPU_PRIORITY"//C_NULL_CHAR)
                         FSTARPU_EXECUTE_ON_NODE = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_NODE"//C_NULL_CHAR)
                         FSTARPU_EXECUTE_ON_DATA = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_DATA"//C_NULL_CHAR)

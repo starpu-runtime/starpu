@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -478,6 +478,14 @@ struct starpu_conf
 	   Maximum spinning backoff of drivers. Default value: \c 32
 	 */
 	unsigned driver_spinning_backoff_max;
+
+	/**
+	   Specify if CUDA workers should do only fast allocations
+	   when running the datawizard progress of
+	   other memory nodes. This will pass STARPU_DATAWIZARD_ONLY_FAST_ALLOC.
+	   Default value is 0, allowing CUDA workers to do slow allocations.
+	 */
+	int cuda_only_fast_alloc_other_memnodes;
 };
 
 /**

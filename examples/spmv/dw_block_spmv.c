@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -337,6 +337,8 @@ int main(int argc, char *argv[])
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 	FPRINTF(stderr, "Flop %e\n", totalflop);
 	FPRINTF(stderr, "GFlops : %2.2f\n", totalflop/timing/1000);
+
+	starpu_shutdown();
 
 	return 0;
 }

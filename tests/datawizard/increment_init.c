@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -22,8 +22,6 @@
  * is used to initialize a handle when it is registered from NULL, and when
  * starpu_data_invalidate is called
  */
-
-static starpu_data_handle_t handle;
 
 /*
  *	Reduction methods
@@ -147,6 +145,7 @@ int main(void)
 {
 	unsigned *pvar = NULL;
 	int ret;
+	starpu_data_handle_t handle;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -147,7 +147,7 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
 	return 0;
 }
 
-static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int complex_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	char *data = ptr;
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -158,6 +158,13 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 	STARPU_ASSERT(count == 2 * complex_interface->nx * sizeof(double));
 	memcpy(complex_interface->real, data, complex_interface->nx*sizeof(double));
 	memcpy(complex_interface->imaginary, data+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
+
+	return 0;
+}
+
+static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	complex_peek_data(handle, node, ptr, count);
 
 	starpu_free_on_node_flags(node, (uintptr_t) ptr, count, 0);
 
@@ -217,6 +224,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.to_pointer = NULL,
 	.pointer_is_inside = complex_pointer_is_inside,
 	.pack_data = complex_pack_data,
+	.peek_data = complex_peek_data,
 	.unpack_data = complex_unpack_data,
 	.describe = complex_describe,
 	.compare = complex_compare

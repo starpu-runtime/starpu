@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -1328,7 +1328,7 @@ static void write_bus_latency_file_content(void)
 
 	_STARPU_DEBUG("writing latencies to %s\n", path);
 
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	if (!f)
 	{
 		perror("fopen write_bus_latency_file_content");
@@ -1337,6 +1337,7 @@ static void write_bus_latency_file_content(void)
 		STARPU_ABORT();
 	}
 	locked = _starpu_fwrlock(f) == 0;
+	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
@@ -1684,10 +1685,11 @@ static void write_bus_bandwidth_file_content(void)
 
 	_STARPU_DEBUG("writing bandwidth to %s\n", path);
 
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	STARPU_ASSERT_MSG(f, "Error when opening file (writing) '%s'", path);
 
 	locked = _starpu_fwrlock(f) == 0;
+	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
@@ -2124,9 +2126,10 @@ static void write_bus_config_file_content(void)
 
 	_STARPU_DEBUG("writing config to %s\n", path);
 
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	STARPU_ASSERT_MSG(f, "Error when opening file (writing) '%s'", path);
 	locked = _starpu_fwrlock(f) == 0;
+	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# Current configuration\n");
@@ -2655,7 +2658,7 @@ static void write_bus_platform_file_content(int version)
 
 	_STARPU_DEBUG("writing platform to %s\n", path);
 
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	if (!f)
 	{
 		perror("fopen write_bus_platform_file_content");
@@ -2664,6 +2667,7 @@ static void write_bus_platform_file_content(int version)
 		STARPU_ABORT();
 	}
 	locked = _starpu_fwrlock(f) == 0;
+	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f,

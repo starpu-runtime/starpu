@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -520,7 +520,7 @@ It can also be convenient to try simulated benchmarks, if you want to give a try
 at CPU-GPU scheduling without actually having a GPU at hand. This can be done by
 using the SimGrid version of StarPU: first install the SimGrid simulator from
 http://simgrid.gforge.inria.fr/ (we tested with SimGrid from 3.11 to 3.16, and
-3.18 to 3.25. SimGrid versions 3.25 and above need to be configured with -Denable_msg=ON.
+3.18 to 3.25. SimGrid versions 3.25 and above need to be configured with \c -Denable_msg=ON.
 Other versions may have compatibility issues, 3.17 notably does
 not build at all. MPI simulation does not work with version 3.22).
 Then configure StarPU with \ref enable-simgrid

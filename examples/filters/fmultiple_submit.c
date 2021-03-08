@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -98,7 +98,7 @@ struct starpu_codelet cl_check_scale =
 
 int main(void)
 {
-	unsigned j, n=1;
+	unsigned n=1;
 	int matrix[NX][NY];
 	int ret, i;
 

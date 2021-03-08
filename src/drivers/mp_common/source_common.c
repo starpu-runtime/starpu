@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -88,14 +88,30 @@ static int _starpu_src_common_process_completed_job(struct _starpu_mp_node *node
 {
 	int coreid;
 
-	STARPU_ASSERT(sizeof(coreid) == arg_size);
+	uintptr_t arg_ptr = (uintptr_t) arg;
 
-	coreid = *(int *) arg;
+	coreid = *(int *) arg_ptr;
+	arg_ptr += sizeof(coreid);
 
 	struct _starpu_worker *worker = &workerset->workers[coreid];
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(worker->current_task);
 
+	struct starpu_task *task = j->task;
+	STARPU_ASSERT(task);
+
 	struct _starpu_worker * old_worker = _starpu_get_local_worker_key();
+
+	/* Was cl_ret sent ? */
+	if (arg_size > arg_ptr - (uintptr_t) arg)
+	{
+		/* Copy cl_ret into the task */
+		unsigned cl_ret_size = arg_size - (arg_ptr - (uintptr_t) arg);
+		_STARPU_MALLOC(task->cl_ret, cl_ret_size);
+		memcpy(task->cl_ret, (void *) arg_ptr, cl_ret_size);
+		task->cl_ret_size=cl_ret_size;
+	}
+	else
+		task->cl_ret = NULL;
 
         /* if arg is not copied we release the mutex */
         if (!stored)
@@ -962,7 +978,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 		}
 	}
 
-        res |= __starpu_datawizard_progress(1, 1);
+        res |= __starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
 
         /* Handle message which have been store */
         _starpu_src_common_handle_stored_async(mp_node);
@@ -1059,7 +1075,7 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
         for (device = 0; device < ndevices; device++)
 	{
         	_STARPU_TRACE_END_PROGRESS(memnode[device]);
-                _starpu_handle_all_pending_node_data_requests(memnode[device]);
+                _starpu_datawizard_handle_all_pending_node_data_requests(memnode[device]);
 	}
 
         /* In case there remains some memory that was automatically
@@ -1091,7 +1107,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, unsigned 
 
         _STARPU_TRACE_END_PROGRESS(memnode);
 
-        _starpu_handle_all_pending_node_data_requests(memnode);
+        _starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
         /* In case there remains some memory that was automatically
          * allocated by StarPU, we release it now. Note that data

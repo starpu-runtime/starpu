@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -610,6 +610,11 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	if (_starpu_worker_trylock(victim))
 	{
 		/* victim is busy, don't bother it, come back later */
+#ifdef STARPU_SIMGRID
+		starpu_sleep(0.000001);
+		/* Make sure we come back and not block */
+		starpu_wake_worker_no_relax(workerid);
+#endif
 		return NULL;
 	}
 	if (ws->per_worker[victim].running && ws->per_worker[victim].queue.ntasks > 0)

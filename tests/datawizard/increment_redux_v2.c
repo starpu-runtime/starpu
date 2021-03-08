@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,9 +21,6 @@
  * Check that STARPU_REDUX works with a mere incrementation, but
  * intermixing with non-REDUX accesses
  */
-
-static unsigned var = 0;
-static starpu_data_handle_t handle;
 
 /*
  *	Reduction methods
@@ -138,7 +135,7 @@ static struct starpu_codelet redux_cl =
 #endif
 	.cpu_funcs = {redux_cpu_kernel},
 	.cpu_funcs_name = {"redux_cpu_kernel"},
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2
 };
 
@@ -245,6 +242,8 @@ struct starpu_codelet increment_cl_redux =
 int main(int argc, char **argv)
 {
 	int ret;
+	unsigned var = 0;
+	starpu_data_handle_t handle;
 
 	/* Not supported yet */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)

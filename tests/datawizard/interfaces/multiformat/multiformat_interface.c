@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -95,7 +95,7 @@ void test_multiformat_mic_func(void *buffers[], void *args)
 		FPRINTF(stderr, "(%d %d) [%d]", soa->x[i], soa->y[i], factor);
 		if (soa->x[i] != i * factor || soa->y[i] != i * factor)
 		{
-			multiformat_config.copy_failed = 1;
+			multiformat_config.copy_failed = FAILURE;
 		}
 		soa->x[i] = -soa->x[i];
 		soa->y[i] = -soa->y[i];

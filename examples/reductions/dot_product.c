@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -186,7 +186,6 @@ void redux_opencl_func(void *buffers[], void *args)
 	{
 		size_t global=1;
                 size_t local=1;
-                size_t s;
                 cl_device_id device;
 
                 starpu_opencl_get_device(devid, &device);
@@ -212,7 +211,7 @@ static struct starpu_codelet redux_codelet =
 	.opencl_funcs = {redux_opencl_func},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
 	.name = "redux"
 };
@@ -301,7 +300,6 @@ void dot_opencl_func(void *buffers[], void *cl_arg)
 	{
 		size_t global=1;
                 size_t local=1;
-                size_t s;
                 cl_device_id device;
 
                 starpu_opencl_get_device(devid, &device);

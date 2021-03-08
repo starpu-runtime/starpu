@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -74,7 +74,7 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 				inconsistent_execute = 0;
 			}
 		}
-		else if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
+		else if (arg_type_nocommute & STARPU_R || arg_type_nocommute & STARPU_W || arg_type_nocommute & STARPU_RW || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
 		{
 			arg_i++;
 			starpu_data_handle_t data = arglist[arg_i];
@@ -225,6 +225,16 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* void* */
 		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
+		{
+			arg_i++;
+			/* _starpu_callback_func_t */
+		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
+		{
+			arg_i++;
+			/* void* */
+		}
 		else if (arg_type==STARPU_PRIORITY)
 		{
 			arg_i++;
@@ -256,32 +266,32 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			/* unsigned* */
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
-                {
+		{
 			arg_i++;
 			/* _starpu_callback_func_t */
 		}
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
-                {
-			arg_i++;
-			/* void* */
-                }
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
-                {
-			arg_i++;
-			/* void* */
-                }
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
-                {
-			arg_i++;
-			/* _starpu_callback_func_t */
-                }
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
-                {
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
+		{
 			arg_i++;
 			/* void* */
 		}
-                else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
-                {
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
+		{
+			arg_i++;
+			/* void* */
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
+		{
+			arg_i++;
+			/* _starpu_callback_func_t */
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
+		{
+			arg_i++;
+			/* void* */
+		}
+		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
+		{
 			arg_i++;
 			/* void* */
 		}

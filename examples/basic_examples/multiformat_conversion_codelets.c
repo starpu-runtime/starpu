@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -41,6 +41,7 @@ struct starpu_codelet cpu_to_cuda_cl =
 	.cuda_funcs = {cpu_to_cuda_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.name = "codelet_cpu_to_cuda"
 };
 
@@ -48,6 +49,7 @@ struct starpu_codelet cuda_to_cpu_cl =
 {
 	.cpu_funcs = {cuda_to_cpu},
 	.nbuffers = 1,
+	.modes = {STARPU_RW},
 	.name = "codelet_cude_to_cpu"
 };
 #endif
@@ -73,12 +75,14 @@ struct starpu_codelet cpu_to_opencl_cl =
 {
 	.opencl_funcs = {cpu_to_opencl_opencl_func},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_RW},
 };
 
 struct starpu_codelet opencl_to_cpu_cl =
 {
 	.cpu_funcs = {opencl_to_cpu},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = {STARPU_RW},
 };
 #endif

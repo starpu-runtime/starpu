@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -105,7 +105,7 @@ static int value_pack_data(starpu_data_handle_t handle, unsigned node, void **pt
 	return 0;
 }
 
-static int value_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int value_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	(void)count;
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -117,6 +117,12 @@ static int value_unpack_data(starpu_data_handle_t handle, unsigned node, void *p
 
 	assert(value_interface->value[0] == 36);
 
+	return 0;
+}
+
+static int value_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	value_peek_data(handle, node, ptr, count);
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;
@@ -152,6 +158,7 @@ static struct starpu_data_interface_ops interface_value_ops =
 	.interface_size = sizeof(struct starpu_value_interface),
 	.to_pointer = value_to_pointer,
 	.pack_data = value_pack_data,
+	.peek_data = value_peek_data,
 	.unpack_data = value_unpack_data
 };
 

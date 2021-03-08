@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -225,8 +225,12 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 		struct _starpu_job *pre_sync_job = _starpu_get_job_associated_to_task(pre_sync_task);
 		struct _starpu_job *post_sync_job = _starpu_get_job_associated_to_task(post_sync_task);
 
-		if (mode & STARPU_R)
-			STARPU_ASSERT_MSG(handle->initialized || handle->init_cl, "Handle %p is not initialized, it cannot be read", handle);
+		if (mode & STARPU_R && !handle->initialized)
+		{
+			STARPU_ASSERT_MSG(handle->init_cl, "Handle %p is not initialized, it cannot be read", handle);
+			/* The task will initialize it with init_cl */
+			handle->initialized = 1;
+		}
 
 		if (mode & STARPU_W || mode == STARPU_REDUX)
 		{

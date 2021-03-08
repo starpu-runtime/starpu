@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -310,10 +310,10 @@ struct starpu_perfmodel
 void starpu_perfmodel_init(struct starpu_perfmodel *model);
 
 /**
-   Deinitialize the \p model performance model structure. You need to call this 
-   before deallocating the structure. You will probably want to call 
+   Deinitialize the \p model performance model structure. You need to call this
+   before deallocating the structure. You will probably want to call
    starpu_perfmodel_unload_model() before calling this function, to save the perfmodel.
-*/   
+*/
 int starpu_perfmodel_deinit(struct starpu_perfmodel *model);
 
 /**
@@ -322,7 +322,6 @@ int starpu_perfmodel_deinit(struct starpu_perfmodel *model);
    - \p workerid is the worker on which calibration is to be performed (in the case of GPUs, use -1 for CPUs)
    - \p archi is the type of architecture on which calibration will be run
 */
-
 int starpu_energy_start(int workerid, enum starpu_worker_archtype archi);
 
 /**
@@ -335,7 +334,6 @@ int starpu_energy_start(int workerid, enum starpu_worker_archtype archi);
    - \p workerid is the worker on which calibration was performed (in the case of GPUs, use -1 for CPUs)
    - \p archi is the type of architecture on which calibration was run
 */
-
 int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi);
 
 

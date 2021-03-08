@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -25,6 +25,13 @@
    don't care about cache miss stats
    Helgrind:Race
    fun:_starpu_msi_cache_miss
+   ...
+}
+
+{
+   don't care about data status query race, this is just a hint
+   Helgrind:Race
+   fun:starpu_data_query_status
    ...
 }
 
@@ -102,6 +109,20 @@
 }
 
 {
+   locking order. It's not a problem when it's a trylock... but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
+   Helgrind:LockOrder
+   fun:pthread_rwlock_trywrlock_WRK
+   ...
+}
+
+{
+   locking order. It's not a problem when it's a trylock... but helgrind doesn't handle that :/ https://bugs.kde.org/show_bug.cgi?id=243232
+   Helgrind:LockOrder
+   fun:pthread_rwlock_tryrdlock_WRK
+   ...
+}
+
+{
    mc / handle locking order1
    Helgrind:LockOrder
    ...
@@ -111,11 +132,29 @@
 }
 
 {
+   mc / handle locking order1
+   Helgrind:LockOrder
+   ...
+   fun:__starpu_spin_lock
+   fun:try_to_throw_mem_chunk
+   ...
+}
+
+{
    mc / handle locking order2
    Helgrind:LockOrder
    ...
    fun:__starpu_spin_lock
    fun:try_to_find_reusable_mem_chunk
+   ...
+}
+
+{
+   mc / handle locking order2
+   Helgrind:LockOrder
+   ...
+   fun:__starpu_spin_lock
+   fun:try_to_find_reusable_mc
    ...
 }
 
