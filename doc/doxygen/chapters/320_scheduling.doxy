@@ -59,7 +59,7 @@ default. When a worker becomes idle, it steals a task from neighbour workers. It
 also takes into account priorities.
 
 - The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
-priority specified by the programmer (between -5 and 5).
+priority specified by the programmer.
 
 - The <b>heteroprio</b> scheduler uses different priorities for the different processing units.
 This scheduler must be configured to work correclty and to expect high-performance
