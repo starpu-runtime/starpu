@@ -405,6 +405,7 @@ static void run_opencl(int async, struct data_interface_test_summary *s)
 
 static void run_mic(int async, struct data_interface_test_summary *s)
 {
+	(void)async;
 	int err;
 
 	err = ram_to_mic();

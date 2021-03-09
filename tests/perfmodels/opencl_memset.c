@@ -70,10 +70,12 @@ void _memset_opencl(void *buffers[], void *args, const char *name)
 
 void memset_opencl(void *buffers[], void *args, const char *kernel)
 {
+	(void)kernel;
 	_memset_opencl(buffers, args, "_memset_opencl");
 }
 
 void memset0_opencl(void *buffers[], void *args, const char *kernel)
 {
+	(void)kernel;
 	_memset_opencl(buffers, args, "_memset0_opencl");
 }

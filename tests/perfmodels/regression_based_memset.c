@@ -163,6 +163,7 @@ static void test_memset(int nelems, struct starpu_codelet *codelet)
 
 static int test_memset_energy(int nelems, int workerid, int where, enum starpu_worker_archtype archtype, int impl, struct starpu_codelet *codelet)
 {
+	(void)impl;
 	int nloops;
 	int loop;
 

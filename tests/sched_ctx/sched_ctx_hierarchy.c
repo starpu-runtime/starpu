@@ -17,12 +17,6 @@
 #include <starpu.h>
 #include "../helper.h"
 
-void free_codelet(void *arg)
-{
-	// The argument of the function is automatically freed by StarPU
-	//	free(arg);
-}
-
 void func_cpu_bis(void *descr[], void *_args)
 {
 	(void)descr;
@@ -48,7 +42,6 @@ void func_cpu_bis(void *descr[], void *_args)
 				   STARPU_VALUE, &msg, sizeof(msg),
 				   STARPU_VALUE, &nntasks, sizeof(ntasks),
 				   STARPU_VALUE, &worker_id, sizeof(worker_id),
-				   STARPU_CALLBACK_WITH_ARG, free_codelet, codelet,
 				   0);
 	}
 }
@@ -83,7 +76,6 @@ void func_cpu(void *descr[], void *_args)
 				   STARPU_VALUE, &msg, sizeof(msg),
 				   STARPU_VALUE, &nntasks, sizeof(nntasks),
 				   STARPU_VALUE, &worker_id, sizeof(worker_id),
-				   STARPU_CALLBACK_WITH_ARG, free_codelet, codelet,
 				   0);
 	}
 }

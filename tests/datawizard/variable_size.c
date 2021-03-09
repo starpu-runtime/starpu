@@ -115,6 +115,7 @@ static size_t variable_size_get_size(starpu_data_handle_t handle)
 
 static size_t variable_size_get_max_size(starpu_data_handle_t handle)
 {
+	(void)handle;
 	return FULLSIZE;
 }
 

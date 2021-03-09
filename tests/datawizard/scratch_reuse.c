@@ -33,6 +33,7 @@ int main(void)
 
 static void kernel(void *buffers[], void *cl_args)
 {
+	(void)cl_args;
 	STARPU_ASSERT(STARPU_MATRIX_GET_PTR(buffers[0]) != 0);
 }
 
