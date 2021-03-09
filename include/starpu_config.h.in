@@ -57,6 +57,14 @@
 #undef STARPU_USE_CUDA
 
 /**
+   Defined when StarPU has been installed with
+   NVidia-ML support. It should be used in your code to detect the
+   availability of NVML-related functions.
+   @ingroup API_CUDA_Extensions
+*/
+#undef STARPU_HAVE_LIBNVIDIA_ML
+
+/**
    Defined when StarPU has been installed with OpenCL support. It
    should be used in your code to detect the availability of OpenCL as
    shown in \ref FullSourceCodeVectorScal.

@@ -1409,7 +1409,7 @@ if test x$enable_cuda = xyes; then
 		AC_CHECK_DECLS([nvmlDeviceGetTotalEnergyConsumption], [
 			AC_CHECK_FUNCS([nvmlDeviceGetTotalEnergyConsumption])
 			], [], [[#include <nvml.h>]])
-		AC_DEFINE([HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
+		AC_DEFINE([STARPU_HAVE_LIBNVIDIA_ML], [1], [Define to 1 if you have the nvidia-ml library])
 		STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lnvidia-ml"
 	fi
 	AC_MSG_CHECKING(whether nvidia-ml should be used)

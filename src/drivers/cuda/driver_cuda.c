@@ -31,7 +31,7 @@
 #ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
 #endif
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
 #include <nvml.h>
 #endif
 #include <datawizard/memory_manager.h>
@@ -63,7 +63,7 @@
 static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
 static nvmlDevice_t nvmlDev[STARPU_MAXCUDADEVS];
 #endif
 int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
@@ -105,6 +105,13 @@ static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 	return global_mem[devid];
 }
 
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+nvmlDevice_t starpu_cuda_get_nvmldev(unsigned devid)
+{
+	return nvmlDev[devid];
+}
+#endif
+
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 {
@@ -120,7 +127,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
 	config->topology.nhwdevices[STARPU_CUDA_WORKER] = cnt;
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
 	nvmlInit();
 #endif
 #endif
@@ -738,7 +745,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
 #if defined(STARPU_HAVE_DOMAINID) && !defined(STARPU_SIMGRID)
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
 		char busid[13];
 		snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
 		nvmlDeviceGetHandleByPciBusId(busid, &nvmlDev[devid]);

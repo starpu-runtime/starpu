@@ -71,6 +71,7 @@ Small features:
     instead of hyperthreads.
   * New STARPU_TASK_PROGRESS environment variable to show task progression.
   * Add STARPU_SIMGRID environment variable guard against native builds.
+  * Add starpu_cuda_get_nvmldev function.
 
 StarPU 1.3.7
 ====================================================================
