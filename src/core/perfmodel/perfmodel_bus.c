@@ -49,6 +49,9 @@
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#include <hwloc/nvml.h>
+#endif
 #ifndef HWLOC_API_VERSION
 #define HWLOC_OBJ_PU HWLOC_OBJ_PROC
 #endif
@@ -2366,12 +2369,51 @@ static int find_platform_path_up(hwloc_obj_t obj1, hwloc_obj_t obj2, double band
 	return ret;
 }
 
+static hwloc_obj_t get_hwloc_cuda_obj(hwloc_topology_t topology, unsigned devid)
+{
+	hwloc_obj_t res;
+	struct cudaDeviceProp props;
+	cudaError_t cures;
+
+	res = hwloc_cuda_get_device_osdev_by_index(topology, devid);
+	if (res)
+		return res;
+
+	cures = cudaGetDeviceProperties(&props, devid);
+	if (cures == cudaSuccess)
+	{
+		res = hwloc_get_pcidev_by_busid(topology, props.pciDomainID, props.pciBusID, props.pciDeviceID, 0);
+		if (res)
+			return res;
+
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+		nvmlDevice_t nvmldev = _starpu_cuda_get_nvmldev(&props);
+
+		if (nvmldev)
+		{
+			unsigned int index;
+			if (nvmlDeviceGetIndex(nvmldev, &index) == NVML_SUCCESS)
+			{
+				res = hwloc_nvml_get_device_osdev_by_index(topology, index);
+				if (res)
+					return res;
+			}
+
+			res = hwloc_nvml_get_device_osdev(topology, nvmldev);
+			if (res)
+				return res;
+		}
+#endif
+	}
+	return NULL;
+}
+
 /* find the path between cuda i and cuda j, and update the maximum bandwidth along the path */
 static int find_platform_cuda_path(hwloc_topology_t topology, unsigned i, unsigned j, double bandwidth)
 {
 	hwloc_obj_t cudai, cudaj;
-	cudai = hwloc_cuda_get_device_osdev_by_index(topology, i);
-	cudaj = hwloc_cuda_get_device_osdev_by_index(topology, j);
+	cudai = get_hwloc_cuda_obj(topology, i);
+	cudaj = get_hwloc_cuda_obj(topology, j);
 
 	if (!cudai || !cudaj)
 		return 0;
@@ -2832,7 +2874,7 @@ static void write_bus_platform_file_content(int version)
 				if (i != j)
 					if (!find_platform_cuda_path(topology, i, j, 1000000. / cudadev_timing_dtod[i][j]))
 					{
-						_STARPU_DISP("Warning: could not get CUDA location from hwloc, please make sure that hwloc has its cuda plugin enabled\n");
+						_STARPU_DISP("Warning: could not get CUDA location from hwloc\n");
 						clean_topology(hwloc_get_root_obj(topology));
 						hwloc_topology_destroy(topology);
 						goto flat_cuda;
