@@ -1355,7 +1355,7 @@ if test x$enable_cuda = xyes; then
 		      STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcusparse"])
 	AC_CHECK_DECLS([cusparseSetStream], [], [], [[#include <cusparse.h>]])
 
-	LDFLAGS="${LDFLAGS} -lnvidia-ml"
+	LIBS="${LIBS} -lnvidia-ml"
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM(
 		[[#include <nvml.h>]],
 		[[nvmlInit();]]
