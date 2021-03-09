@@ -104,6 +104,18 @@ static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 }
 
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
+nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props)
+{
+	char busid[13];
+	nvmlDevice_t ret;
+
+	snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props->pciDomainID, props->pciBusID, props->pciDeviceID);
+	if (nvmlDeviceGetHandleByPciBusId(busid, &ret) != NVML_SUCCESS)
+		ret = NULL;
+
+	return ret;
+}
+
 nvmlDevice_t starpu_cuda_get_nvmldev(unsigned devid)
 {
 	return nvmlDev[devid];
@@ -741,9 +753,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
 #if defined(STARPU_HAVE_DOMAINID) && !defined(STARPU_SIMGRID)
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
-		char busid[13];
-		snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
-		nvmlDeviceGetHandleByPciBusId(busid, &nvmlDev[devid]);
+		nvmlDev[devid] = _starpu_cuda_get_nvmldev(&props[devid]);
 #endif
 		if (props[devid].pciDomainID)
 			snprintf(worker->name, sizeof(worker->name), "CUDA %u.%u (%s %.1f GiB %04x:%02x:%02x.0)", devid, subdev, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
