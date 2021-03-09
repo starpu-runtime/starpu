@@ -490,10 +490,9 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	{
 		_starpu_spin_checklocked(&handle->header_lock);
 		mc->size = _starpu_data_get_alloc_size(handle);
-	}
 
-	if (mc->replicate)
 		mc->replicate->mc=NULL;
+	}
 
 	/* free the actual buffer */
 	size = free_memory_on_node(mc, node);
