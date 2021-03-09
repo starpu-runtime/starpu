@@ -2826,6 +2826,7 @@ static void write_bus_platform_file_content(int version)
 				if (i != j)
 					if (!find_platform_cuda_path(topology, i, j, 1000000. / cudadev_timing_dtod[i][j]))
 					{
+						_STARPU_DISP("Warning: could not get CUDA location from hwloc, please make sure that hwloc has its cuda plugin enabled\n");
 						clean_topology(hwloc_get_root_obj(topology));
 						hwloc_topology_destroy(topology);
 						goto flat_cuda;
