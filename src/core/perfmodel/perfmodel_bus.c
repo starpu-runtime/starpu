@@ -2853,19 +2853,97 @@ static void write_bus_platform_file_content(int version)
 
 #if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
-	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0))
+	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0) && ncuda > 0)
 	{
 		hwloc_topology_t topology;
 		hwloc_topology_init(&topology);
 		_starpu_topology_filter(topology);
 		hwloc_topology_load(topology);
 
-		/* First find paths and record measured bandwidth along the path */
+		char nvlink[ncuda][ncuda];
+		char nvlinkhost[ncuda];
+		memset(nvlink, 0, sizeof(nvlink));
+		memset(nvlinkhost, 0, sizeof(nvlinkhost));
+
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+		/* First find NVLinks */
+		struct cudaDeviceProp props[ncuda];
+
+		for (i = 0; i < ncuda; i++)
+		{
+			cudaError_t cures = cudaGetDeviceProperties(&props[i], i);
+			if (cures != cudaSuccess)
+				props[i].name[0] = 0;
+		}
+
 		for (i = 0; i < ncuda; i++)
 		{
 			unsigned j;
+
+			if (!props[i].name[0])
+				continue;
+
+			nvmlDevice_t nvmldev;
+			nvmldev = _starpu_cuda_get_nvmldev(&props[i]);
+			if (!nvmldev)
+				continue;
+
+			for (j = 0; j < NVML_NVLINK_MAX_LINKS; j++)
+			{
+				nvmlEnableState_t active;
+				nvmlReturn_t ret;
+				nvmlPciInfo_t pci;
+				unsigned k;
+
+				ret = nvmlDeviceGetNvLinkState(nvmldev, j, &active);
+				if (ret != NVML_SUCCESS)
+					continue;
+				if (active != NVML_FEATURE_ENABLED)
+					continue;
+				ret = nvmlDeviceGetNvLinkRemotePciInfo(nvmldev, j, &pci);
+				if (ret != NVML_SUCCESS)
+					continue;
+
+				hwloc_obj_t obj = hwloc_get_pcidev_by_busid(topology,
+						pci.domain, pci.bus, pci.device, 0);
+				if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE && (obj->attr->pcidev.class_id >> 8 == 0x06))
+				{
+					switch (obj->attr->pcidev.vendor_id)
+					{
+					case 0x1014:
+						/* IBM OpenCAPI port, direct CPU-GPU NVLink */
+						/* TODO: NUMA affinity */
+						nvlinkhost[i] = 1;
+						continue;
+					case 0x10de:
+						/* TODO: NVIDIA NVSwitch */
+						continue;
+					}
+				}
+
+				/* Otherwise, link to another GPU? */
+				for (k = i+1; k < ncuda; k++)
+				{
+					if (pci.domain == props[k].pciDomainID
+					 && pci.bus == props[k].pciBusID
+					 && pci.device == props[k].pciDeviceID)
+					{
+						nvlink[i][k] = 1;
+						nvlink[k][i] = 1;
+						break;
+					}
+				}
+			}
+		}
+#endif
+
+		/* Find paths and record measured bandwidth along the path */
+		for (i = 0; i < ncuda; i++)
+		{
+			unsigned j;
+
 			for (j = 0; j < ncuda; j++)
-				if (i != j)
+				if (i != j && !nvlink[i][j] && !nvlinkhost[i] && !nvlinkhost[j])
 					if (!find_platform_cuda_path(topology, i, j, 1000000. / cudadev_timing_dtod[i][j]))
 					{
 						_STARPU_DISP("Warning: could not get CUDA location from hwloc\n");
@@ -2873,15 +2951,20 @@ static void write_bus_platform_file_content(int version)
 						hwloc_topology_destroy(topology);
 						goto flat_cuda;
 					}
+
 			/* Record RAM/CUDA bandwidths */
-			find_platform_forward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 0));
-			find_platform_backward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 1));
+			if (!nvlinkhost[i])
+			{
+				find_platform_forward_path(hwloc_cuda_get_device_osdev_by_index(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 0));
+				find_platform_backward_path(hwloc_cuda_get_device_osdev_by_index(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 1));
+			}
 		}
 
 		/* Ok, found path in all cases, can emit advanced platform routes */
 		fprintf(f, "\n");
 		emit_topology_bandwidths(f, hwloc_get_root_obj(topology), Bps, s);
 		fprintf(f, "\n");
+
 		for (i = 0; i < ncuda; i++)
 		{
 			unsigned j;
@@ -2890,20 +2973,35 @@ static void write_bus_platform_file_content(int version)
 				{
 					fprintf(f, "   <route src=\"CUDA%u\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i, j);
 					fprintf(f, "    <link_ctn id=\"CUDA%u-CUDA%u\"/>\n", i, j);
-					emit_platform_path_up(f,
-							get_hwloc_cuda_obj(topology, i),
-							get_hwloc_cuda_obj(topology, j));
+					if (!nvlink[i][j])
+					{
+						if (nvlinkhost[i] && nvlinkhost[j])
+							/* TODO: NUMA affinity */
+							fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+						else
+							emit_platform_path_up(f,
+									hwloc_cuda_get_device_osdev_by_index(topology, i),
+									hwloc_cuda_get_device_osdev_by_index(topology, j));
+					}
 					fprintf(f, "   </route>\n");
 				}
 
 			fprintf(f, "   <route src=\"CUDA%u\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
 			fprintf(f, "    <link_ctn id=\"CUDA%u-RAM\"/>\n", i);
-			emit_platform_forward_path(f, get_hwloc_cuda_obj(topology, i));
+			if (nvlinkhost[i])
+				/* TODO: NUMA affinity */
+				fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+			else
+				emit_platform_forward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 
 			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i);
 			fprintf(f, "    <link_ctn id=\"RAM-CUDA%u\"/>\n", i);
-			emit_platform_backward_path(f, get_hwloc_cuda_obj(topology, i));
+			if (nvlinkhost[i])
+				/* TODO: NUMA affinity */
+				fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+			else
+				emit_platform_backward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
 			fprintf(f, "   </route>\n");
 		}
 
