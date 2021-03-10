@@ -53,6 +53,10 @@ New features:
   * Add peek_data interface method.
   * Add STARPU_MPI_REDUX
 
+Small features:
+  * New configure option --with-check-cflags to define flags for C,
+    CXX and Fortran compilers
+
 Small changes:
   * Add a synthetic energy efficiency testcase.
   * Make reduction methods want the commute flag.

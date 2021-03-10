@@ -139,6 +139,13 @@ Disable the usage of the ICC compiler. When found, some specific ICC
 examples are compiled.
 </dd>
 
+<dt>--with-check-flags</dt>
+<dd>
+\anchor with-check-flags
+\addindex __configure__--with-check-flags
+Specify flags which will be given to C, CXX and Fortran compilers when valid
+</dd>
+
 </dl>
 
 Additionally, the script <c>configure</c> recognize many variables, which
