@@ -2874,8 +2874,8 @@ static void write_bus_platform_file_content(int version)
 						goto flat_cuda;
 					}
 			/* Record RAM/CUDA bandwidths */
-			find_platform_forward_path(hwloc_cuda_get_device_osdev_by_index(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 0));
-			find_platform_backward_path(hwloc_cuda_get_device_osdev_by_index(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 1));
+			find_platform_forward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 0));
+			find_platform_backward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 1));
 		}
 
 		/* Ok, found path in all cases, can emit advanced platform routes */
@@ -2891,19 +2891,19 @@ static void write_bus_platform_file_content(int version)
 					fprintf(f, "   <route src=\"CUDA%u\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i, j);
 					fprintf(f, "    <link_ctn id=\"CUDA%u-CUDA%u\"/>\n", i, j);
 					emit_platform_path_up(f,
-							hwloc_cuda_get_device_osdev_by_index(topology, i),
-							hwloc_cuda_get_device_osdev_by_index(topology, j));
+							get_hwloc_cuda_obj(topology, i),
+							get_hwloc_cuda_obj(topology, j));
 					fprintf(f, "   </route>\n");
 				}
 
 			fprintf(f, "   <route src=\"CUDA%u\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
 			fprintf(f, "    <link_ctn id=\"CUDA%u-RAM\"/>\n", i);
-			emit_platform_forward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
+			emit_platform_forward_path(f, get_hwloc_cuda_obj(topology, i));
 			fprintf(f, "   </route>\n");
 
 			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i);
 			fprintf(f, "    <link_ctn id=\"RAM-CUDA%u\"/>\n", i);
-			emit_platform_backward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
+			emit_platform_backward_path(f, get_hwloc_cuda_obj(topology, i));
 			fprintf(f, "   </route>\n");
 		}
 
