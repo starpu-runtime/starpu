@@ -81,6 +81,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 				unsigned handling_node;
 
 				/* Avoid indirect transfers */
+				/* TODO: but with NVLink, that might be better than a "direct" transfer that actually goes through the Host! */
 				if (!link_supports_direct_transfers(handle, i, destination, &handling_node))
 					continue;
 
