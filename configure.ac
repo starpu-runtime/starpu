@@ -2473,6 +2473,16 @@ AC_SUBST(GLOBAL_AM_CFLAGS)
 pkglibdir="\${libdir}/$PACKAGE"
 AC_SUBST([pkglibdir])
 
+AC_ARG_WITH(check-flags, [AS_HELP_STRING([--with-check-flags],
+			 [Specify flags for C and Fortran compilers])],
+			 check_flags=$withval, check_flags="")
+if test "x$check_flags" != "x" ; then
+	for xflag in $check_flags
+	do
+		IS_SUPPORTED_FLAG($xflag)
+	done
+fi
+
 ###############################################################################
 #                                                                             #
 #                               Fortran                                       #
