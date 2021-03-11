@@ -75,13 +75,6 @@ extern "C"
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
-   executed on a MIC processing unit.
-*/
-#define STARPU_MIC	STARPU_WORKER_TO_MASK(STARPU_MIC_WORKER)
-
-/**
-   To be used when setting the field starpu_codelet::where (or
-   starpu_task::where) to specify the codelet (or the task) may be
    executed on a MPI Slave processing unit.
 */
 #define STARPU_MPI_MS	STARPU_WORKER_TO_MASK(STARPU_MPI_MS_WORKER)
@@ -176,16 +169,6 @@ typedef void (*starpu_cuda_func_t)(void **, void*);
    OpenCL implementation of a codelet.
 */
 typedef void (*starpu_opencl_func_t)(void **, void*);
-
-/**
-   MIC implementation of a codelet.
-*/
-typedef void (*starpu_mic_kernel_t)(void **, void*);
-
-/**
-  MIC kernel for a codelet
-*/
-typedef starpu_mic_kernel_t (*starpu_mic_func_t)(void);
 
 /**
    MPI Master Slave kernel for a codelet
@@ -397,22 +380,6 @@ struct starpu_codelet
 
 	/**
 	   Optional array of function pointers to a function which
-	   returns the MIC implementation of the codelet. The
-	   functions prototype must be:
-	   \code{.c}
-	   starpu_mic_kernel_t mic_func(struct starpu_codelet *cl, unsigned nimpl)
-	   \endcode
-	   If the field starpu_codelet::where is set, then the field
-	   starpu_codelet::mic_funcs is ignored if ::STARPU_MIC does
-	   not appear in the field starpu_codelet::where. It can be
-	   <c>NULL</c> if starpu_codelet::cpu_funcs_name is
-	   non-<c>NULL</c>, in which case StarPU will simply make a
-	   symbol lookup to get the implementation.
-	*/
-	starpu_mic_func_t mic_funcs[STARPU_MAXIMPLEMENTATIONS];
-
-	/**
-	   Optional array of function pointers to a function which
 	   returns the MPI Master Slave implementation of the codelet.
 	   The functions prototype must be:
 	   \code{.c}
@@ -431,8 +398,8 @@ struct starpu_codelet
 	   Optional array of strings which provide the name of the CPU
 	   functions referenced in the array
 	   starpu_codelet::cpu_funcs. This can be used when running on
-	   MIC devices for StarPU to simply look
-	   up the MIC function implementation through its name.
+	   MPI MS devices for StarPU to simply look
+	   up the MPI MS function implementation through its name.
 	*/
 	const char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
 
@@ -907,10 +874,7 @@ struct starpu_task
 	   by the application through <c>malloc()</c>, setting
 	   starpu_task::cl_arg_free to 1 makes StarPU automatically
 	   call <c>free(cl_arg)</c> when destroying the task. This
-	   saves the user from defining a callback just for that. This
-	   is mostly useful when targetting MIC, where the
-	   codelet does not execute in the same memory space as the
-	   main thread.
+	   saves the user from defining a callback just for that.
 
 	   With starpu_task_insert() and alike this is set to 1 when using
 	   ::STARPU_CL_ARGS.

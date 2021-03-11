@@ -76,7 +76,6 @@ int main(void)
 	struct starpu_task *task;
 
 	starpu_conf_init(&conf);
-	conf.nmic = 0;
 	conf.nmpi_ms = 0;
 
         ret = starpu_init(&conf);

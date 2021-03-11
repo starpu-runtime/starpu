@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -89,7 +89,6 @@ function starpu_translate_headers()
                                "starpu_cpu_worker_get_count",
                                "starpu_cuda_worker_get_count",
                                "starpu_opencl_worker_get_count",
-                               "starpu_mic_worker_get_count",
                                "STARPU_CPU",
                                "STARPU_CUDA",
                                "STARPU_CUDA_ASYNC",

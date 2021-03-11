@@ -35,12 +35,6 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node STARPU_A
 static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node, cl_event *event);
 static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node, cl_event *event);
 #endif
-#ifdef STARPU_USE_MIC
-static int copy_ram_to_mic(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_mic_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_ram_to_mic_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-static int copy_mic_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-#endif
 
 static const struct starpu_data_copy_methods multiformat_copy_data_methods_s =
 {
@@ -64,12 +58,6 @@ static const struct starpu_data_copy_methods multiformat_copy_data_methods_s =
 	.opencl_to_opencl = copy_opencl_to_opencl,
         .ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
-#endif
-#ifdef STARPU_USE_MIC
-	.ram_to_mic = copy_ram_to_mic,
-	.mic_to_ram = copy_mic_to_ram,
-	.ram_to_mic_async = copy_ram_to_mic_async,
-	.mic_to_ram_async = copy_mic_to_ram_async,
 #endif
 };
 
@@ -127,10 +115,6 @@ static void *multiformat_to_pointer(void *data_interface, unsigned node)
 		case STARPU_OPENCL_RAM:
 			return multiformat_interface->opencl_ptr;
 #endif
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_RAM:
-			return multiformat_interface->mic_ptr;
-#endif
 		default:
 			STARPU_ABORT();
 	}
@@ -155,11 +139,6 @@ static int multiformat_pointer_is_inside(void *data_interface, unsigned node, vo
 		case STARPU_OPENCL_RAM:
 			return (char*) ptr >= (char*) multiformat_interface->opencl_ptr &&
 				(char*) ptr < (char*) multiformat_interface->opencl_ptr + multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize;
-#endif
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_RAM:
-			return (char*) ptr >= (char*) multiformat_interface->mic_ptr &&
-				(char*) ptr < (char*) multiformat_interface->mic_ptr + multiformat_interface->nx * multiformat_interface->ops->mic_elemsize;
 #endif
 		default:
 			STARPU_ABORT();
@@ -187,9 +166,6 @@ static void register_multiformat_handle(starpu_data_handle_t handle, unsigned ho
 #ifdef STARPU_USE_OPENCL
 			local_interface->opencl_ptr = multiformat_interface->opencl_ptr;
 #endif
-#ifdef STARPU_USE_MIC
-			local_interface->mic_ptr    = multiformat_interface->mic_ptr;
-#endif
 		}
 		else
 		{
@@ -199,9 +175,6 @@ static void register_multiformat_handle(starpu_data_handle_t handle, unsigned ho
 #endif
 #ifdef STARPU_USE_OPENCL
 			local_interface->opencl_ptr = NULL;
-#endif
-#ifdef STARPU_USE_MIC
-			local_interface->mic_ptr    = NULL;
 #endif
 		}
 		local_interface->id = multiformat_interface->id;
@@ -222,7 +195,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handleptr,
 		.cpu_ptr    = ptr,
 		.cuda_ptr   = NULL,
 		.opencl_ptr = NULL,
-		.mic_ptr    = NULL,
 		.nx         = nobjects,
 		.ops        = format_ops
 	};
@@ -247,9 +219,6 @@ static int multiformat_compare(void *data_interface_a, void *data_interface_b)
 #endif
 #ifdef STARPU_USE_OPENCL
 		&& (multiformat_a->ops->opencl_elemsize == multiformat_b->ops->opencl_elemsize)
-#endif
-#ifdef STARPU_USE_MIC
-		&& (multiformat_a->ops->mic_elemsize == multiformat_b->ops->mic_elemsize)
 #endif
 		;
 }
@@ -310,20 +279,9 @@ static starpu_ssize_t allocate_multiformat_buffer_on_node(void *data_interface_,
 		goto fail_opencl;
 	multiformat_interface->opencl_ptr = (void *) addr;
 #endif
-#ifdef STARPU_USE_MIC
-	size = multiformat_interface->nx * multiformat_interface->ops->mic_elemsize;
-	allocated_memory += size;
-	addr = starpu_malloc_on_node(dst_node, size);
-	if (!addr)
-		goto fail_mic;
-	multiformat_interface->mic_ptr = (void *) addr;
-#endif
 
 	return allocated_memory;
 
-#ifdef STARPU_USE_MIC
-fail_mic:
-#endif
 #ifdef STARPU_USE_OPENCL
 	starpu_free_on_node(dst_node, (uintptr_t) multiformat_interface->opencl_ptr, multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize);
 fail_opencl:
@@ -355,15 +313,7 @@ static void free_multiformat_buffer_on_node(void *data_interface, unsigned node)
 				   multiformat_interface->nx * multiformat_interface->ops->opencl_elemsize);
 	multiformat_interface->opencl_ptr = NULL;
 #endif
-#ifdef STARPU_USE_MIC
-	starpu_free_on_node(node, (uintptr_t) multiformat_interface->mic_ptr,
-				   multiformat_interface->nx * multiformat_interface->ops->mic_elemsize);
-	multiformat_interface->mic_ptr = NULL;
-#endif
 }
-
-
-
 
 /*
  * Copy methods
@@ -715,72 +665,5 @@ static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
 
 	STARPU_ASSERT_MSG(0, "XXX multiformat copy OpenCL-OpenCL not supported yet (TODO)");
 	return 0;
-}
-#endif
-
-#ifdef STARPU_USE_MIC
-static int copy_mic_common_ram_to_mic(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node,
-						   int (*copy_func)(void *, unsigned, void *, unsigned, size_t))
-{
-	struct starpu_multiformat_interface *src_multiformat = src_interface;
-	struct starpu_multiformat_interface *dst_multiformat = dst_interface;
-
-	STARPU_ASSERT(src_multiformat != NULL);
-	STARPU_ASSERT(dst_multiformat != NULL);
-	STARPU_ASSERT(dst_multiformat->ops != NULL);
-
-	size_t size = dst_multiformat->nx * dst_multiformat->ops->mic_elemsize;
-	if (src_multiformat->mic_ptr == NULL)
-	{
-		src_multiformat->mic_ptr = malloc(size);
-		if (src_multiformat->mic_ptr == NULL)
-			return -ENOMEM;
-	}
-
-	copy_func(src_multiformat->cpu_ptr, src_node, dst_multiformat->cpu_ptr, dst_node, size);
-
-	starpu_interface_data_copy(src_node, dst_node, size);
-
-	return 0;
-}
-
-static int copy_mic_common_mic_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node,
-						   int (*copy_func)(void *, unsigned, void *, unsigned, size_t))
-{
-	struct starpu_multiformat_interface *src_multiformat = src_interface;
-	struct starpu_multiformat_interface *dst_multiformat = dst_interface;
-
-	STARPU_ASSERT(src_multiformat != NULL);
-	STARPU_ASSERT(dst_multiformat != NULL);
-	STARPU_ASSERT(dst_multiformat->ops != NULL);
-
-	size_t size = src_multiformat->nx * src_multiformat->ops->mic_elemsize;
-	copy_func(src_multiformat->mic_ptr, src_node, dst_multiformat->mic_ptr, dst_node, size);
-
-	starpu_interface_data_copy(src_node, dst_node, size);
-
-	return 0;
-}
-
-static int copy_ram_to_mic(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_mic_common_ram_to_mic(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_ram_to_mic);
-}
-
-static int copy_mic_to_ram(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	return copy_mic_common_mic_to_ram(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_mic_to_ram);
-}
-
-static int copy_ram_to_mic_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	copy_mic_common_ram_to_mic(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_ram_to_mic_async);
-	return -EAGAIN;
-}
-
-static int copy_mic_to_ram_async(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node)
-{
-	copy_mic_common_mic_to_ram(src_interface, src_node, dst_interface, dst_node, _starpu_mic_copy_mic_to_ram_async);
-	return -EAGAIN;
 }
 #endif

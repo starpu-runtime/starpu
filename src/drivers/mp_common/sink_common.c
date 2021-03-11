@@ -25,9 +25,6 @@
 #include <common/barrier.h>
 #include <core/workers.h>
 #include <common/barrier_counter.h>
-#ifdef STARPU_USE_MIC
-#include <common/COISysInfo_common.h>
-#endif
 
 #include "sink_common.h"
 
@@ -42,9 +39,7 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 	char *node_kind = starpu_getenv("STARPU_SINK");
 	STARPU_ASSERT(node_kind);
 
-	if (!strcmp(node_kind, "STARPU_MIC"))
-		return STARPU_NODE_MIC_SINK;
-	else if (!strcmp(node_kind, "STARPU_MPI_MS"))
+	if (!strcmp(node_kind, "STARPU_MPI_MS"))
 		return STARPU_NODE_MPI_SINK;
 	else
 		return STARPU_NODE_INVALID_KIND;

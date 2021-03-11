@@ -54,18 +54,6 @@ enum _starpu_may_alloc
 	STARPU_DATAWIZARD_ONLY_FAST_ALLOC
 };
 
-#ifdef STARPU_USE_MIC
-/** MIC needs memory_node to know which MIC is concerned.
- * mark is used to wait asynchronous request.
- * signal is used to test asynchronous request. */
-struct _starpu_mic_async_event
-{
-	unsigned memory_node;
-	int mark;
-	uint64_t *signal;
-};
-#endif
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 LIST_TYPE(_starpu_mpi_ms_event_request,
         MPI_Request request;
@@ -112,9 +100,6 @@ union _starpu_async_channel_event
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         struct _starpu_mpi_ms_async_event mpi_ms_event;
-#endif
-#ifdef STARPU_USE_MIC
-        struct _starpu_mic_async_event mic_event;
 #endif
         struct _starpu_disk_async_event disk_event;
 };

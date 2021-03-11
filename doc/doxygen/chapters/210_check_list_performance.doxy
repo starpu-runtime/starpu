@@ -344,7 +344,6 @@ having to calibrate performance models for each GPU of a homogeneous set of GPU
 devices for instance, the model can be shared by setting
 <c>export STARPU_PERF_MODEL_HOMOGENEOUS_CUDA=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_CUDA),
 <c>export STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL),
-<c>export STARPU_PERF_MODEL_HOMOGENEOUS_MIC=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_MIC),
 <c>export STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS=1</c> (\ref STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS) depending on your GPU device type.
 
 To force continuing calibration,

@@ -79,13 +79,6 @@ MODULE starpu_mod
      END SUBROUTINE starpu_asynchronous_opencl_copy_disabled
   END INTERFACE
 
-  ! starpu_asynchronous_mic_copy_disabled
-  INTERFACE
-     SUBROUTINE starpu_asynchronous_mic_copy_disabled() BIND(C)
-       USE iso_c_binding
-     END SUBROUTINE starpu_asynchronous_mic_copy_disabled
-  END INTERFACE
-
   ! starpu_display_stats
   INTERFACE
      SUBROUTINE starpu_display_stats() BIND(C)

@@ -23,7 +23,6 @@
 #include <drivers/opencl/driver_opencl.h>
 #include <drivers/mpi/driver_mpi_common.h>
 #include <drivers/mpi/driver_mpi_source.h>
-#include <drivers/mic/driver_mic_source.h>
 #include <drivers/disk/driver_disk.h>
 
 const char* _starpu_node_get_prefix(enum starpu_node_kind kind)

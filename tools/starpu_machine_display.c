@@ -143,9 +143,6 @@ int main(int argc, char **argv)
 	starpu_worker_display_names(stdout, STARPU_CPU_WORKER);
 	starpu_worker_display_names(stdout, STARPU_CUDA_WORKER);
 	starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
-#ifdef STARPU_USE_MIC
-	starpu_worker_display_names(stdout, STARPU_MIC_WORKER);
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
 #endif

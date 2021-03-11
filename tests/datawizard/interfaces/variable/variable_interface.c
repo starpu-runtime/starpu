@@ -23,7 +23,7 @@ static starpu_data_handle_t variable_handle;
 static starpu_data_handle_t variable2_handle;
 
 /* Codelets */
-#if defined(STARPU_USE_CPU) || defined(STARPU_USE_MIC)
+#if defined(STARPU_USE_CPU)
 void test_variable_cpu_func(void *buffers[], void *args);
 #endif
 #ifdef STARPU_USE_CUDA
@@ -43,9 +43,6 @@ struct test_config variable_config =
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_func  = test_variable_opencl_func,
-#endif
-#ifdef STARPU_USE_MIC
-	.cpu_func_name = "test_variable_cpu_func",
 #endif
 	.handle       = &variable_handle,
 	.dummy_handle = &variable2_handle,
@@ -100,7 +97,6 @@ int main(int argc, char **argv)
 
 	conf.ncuda = 2;
 	conf.nopencl = 1;
-	conf.nmic = -1;
 
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)

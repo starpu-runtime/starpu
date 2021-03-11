@@ -30,8 +30,7 @@ enum e_starpurm_unit_type
 	starpurm_unit_cpu    = 0,
 	starpurm_unit_opencl = 1,
 	starpurm_unit_cuda   = 2,
-	starpurm_unit_mic    = 3,
-	starpurm_unit_ntypes = 4
+	starpurm_unit_ntypes = 3
 };
 
 struct s_starpurm
@@ -87,9 +86,6 @@ struct s_starpurm
 
 	/** Cpuset of all StarPU CUDA workers. */
 	hwloc_cpuset_t all_cuda_device_workers_cpuset;
-
-	/** Cpuset of all StarPU MIC workers. */
-	hwloc_cpuset_t all_mic_device_workers_cpuset;
 
 	/** Cpuset of all StarPU device workers. */
 	hwloc_cpuset_t all_device_workers_cpuset;

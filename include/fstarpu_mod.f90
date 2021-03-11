@@ -71,7 +71,6 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_CPU_WORKER
         type(c_ptr), bind(C) :: FSTARPU_CUDA_WORKER
         type(c_ptr), bind(C) :: FSTARPU_OPENCL_WORKER
-        type(c_ptr), bind(C) :: FSTARPU_MIC_WORKER
         type(c_ptr), bind(C) :: FSTARPU_ANY_WORKER
 
         integer(c_int), bind(C) :: FSTARPU_NMAXBUFS
@@ -90,7 +89,6 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_CPU
         type(c_ptr), bind(C) :: FSTARPU_CUDA
         type(c_ptr), bind(C) :: FSTARPU_OPENCL
-        type(c_ptr), bind(C) :: FSTARPU_MIC
 
         type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE
         type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
@@ -190,12 +188,6 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: nopencl
                 end subroutine fstarpu_conf_set_nopencl
 
-                subroutine fstarpu_conf_set_nmic (conf, nmic) bind(C)
-                        use iso_c_binding, only: c_ptr, c_int
-                        type(c_ptr), value, intent(in) :: conf
-                        integer(c_int), value, intent(in) :: nmic
-                end subroutine fstarpu_conf_set_nmic
-
                 ! starpu_init: see fstarpu_init
                 ! starpu_initialize: see fstarpu_init
 
@@ -232,12 +224,6 @@ module fstarpu_mod
                         use iso_c_binding, only: c_int
                         integer(c_int) :: fstarpu_asynchronous_opencl_copy_disabled
                 end function fstarpu_asynchronous_opencl_copy_disabled
-
-                ! int starpu_asynchronous_mic_copy_disabled(void);
-                function fstarpu_asynchronous_mic_copy_disabled() bind(C,name="starpu_asynchronous_mic_copy_disabled")
-                        use iso_c_binding, only: c_int
-                        integer(c_int) :: fstarpu_asynchronous_mic_copy_disabled
-                end function fstarpu_asynchronous_mic_copy_disabled
 
                 ! void starpu_display_stats();
                 subroutine fstarpu_display_stats() bind(C,name="starpu_display_stats")
@@ -288,12 +274,6 @@ module fstarpu_mod
                         use iso_c_binding, only: c_int
                         integer(c_int)              :: fstarpu_opencl_worker_get_count
                 end function fstarpu_opencl_worker_get_count
-
-                ! unsigned starpu_mic_worker_get_count(void);
-                function fstarpu_mic_worker_get_count() bind(C,name="starpu_mic_worker_get_count")
-                        use iso_c_binding, only: c_int
-                        integer(c_int)              :: fstarpu_mic_worker_get_count
-                end function fstarpu_mic_worker_get_count
 
                 ! int starpu_worker_get_id(void);
                 function fstarpu_worker_get_id() bind(C,name="starpu_worker_get_id")
@@ -703,12 +683,6 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl
                         type(c_ptr), value, intent(in) :: flags ! C function expects an intptr_t
                 end subroutine fstarpu_codelet_add_opencl_flags
-
-                subroutine fstarpu_codelet_add_mic_func (cl, f_ptr) bind(C)
-                        use iso_c_binding, only: c_ptr, c_funptr
-                        type(c_ptr), value, intent(in) :: cl
-                        type(c_funptr), value, intent(in) :: f_ptr
-                end subroutine fstarpu_codelet_add_mic_func
 
                 subroutine fstarpu_codelet_add_buffer (cl, mode) bind(C)
                         use iso_c_binding, only: c_ptr
@@ -2445,7 +2419,6 @@ module fstarpu_mod
                         FSTARPU_CPU_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_CPU_WORKER"//C_NULL_CHAR)
                         FSTARPU_CUDA_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA_WORKER"//C_NULL_CHAR)
                         FSTARPU_OPENCL_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL_WORKER"//C_NULL_CHAR)
-                        FSTARPU_MIC_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_MIC_WORKER"//C_NULL_CHAR)
                         FSTARPU_ANY_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_ANY_WORKER"//C_NULL_CHAR)
 
                         FSTARPU_NMAXBUFS   = int(p_to_ip(fstarpu_get_constant(C_CHAR_"FSTARPU_NMAXBUFS"//C_NULL_CHAR)),c_int)
@@ -2477,8 +2450,6 @@ module fstarpu_mod
                             fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA"//C_NULL_CHAR)
                         FSTARPU_OPENCL = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL"//C_NULL_CHAR)
-                        FSTARPU_MIC = &
-                            fstarpu_get_constant(C_CHAR_"FSTARPU_MIC"//C_NULL_CHAR)
 
                         FSTARPU_CODELET_SIMGRID_EXECUTE = &
                              fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE"//C_NULL_CHAR)

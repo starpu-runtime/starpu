@@ -65,7 +65,6 @@ of the following strings as argument and returns the corresponding ID:
 <li><c>"cpu"</c></li>
 <li><c>"opencl"</c></li>
 <li><c>"cuda"</c></li>
-<li><c>"mic"</c></li>
 </ul>
 The \c cpu pseudo device type is defined for convenience and designates CPU
 cores. The number of units of each type available for computation can be

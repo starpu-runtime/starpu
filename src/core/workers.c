@@ -44,7 +44,6 @@
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
-#include <drivers/mic/driver_mic_source.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/disk/driver_disk.h>
 
@@ -293,10 +292,6 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->opencl_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
-			case STARPU_MIC_WORKER:
-				if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mic_funcs[impl] != NULL)
-					test_implementation = 1;
-				break;
                         case STARPU_MPI_MS_WORKER:
                                 if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
                                         test_implementation = 1;
@@ -355,11 +350,6 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	    _starpu_worker_exists_and_can_execute(task, STARPU_OPENCL_WORKER))
 		return 1;
 #endif
-#ifdef STARPU_USE_MIC
-	if ((task->where & STARPU_MIC) &&
-	    _starpu_worker_exists_and_can_execute(task, STARPU_MIC_WORKER))
-		return 1;
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	if ((task->where & STARPU_MPI_MS) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_MPI_MS_WORKER))
@@ -391,7 +381,6 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	case STARPU_ANY_WORKER:
 	{
 		int cpu_func_enabled=1, cuda_func_enabled=1, opencl_func_enabled=1;
-		/* TODO: MIC */
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 		starpu_cpu_func_t cpu_func = _starpu_task_get_cpu_nth_implementation(cl, nimpl);
@@ -422,13 +411,6 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	{
 		starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, nimpl);
 		return func != NULL;
-	}
-	case STARPU_MIC_WORKER:
-	{
-		starpu_mic_func_t func = _starpu_task_get_mic_nth_implementation(cl, nimpl);
-		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
-
-		return func != NULL || func_name != NULL;
 	}
 	case STARPU_MPI_MS_WORKER:
 	{
@@ -929,32 +911,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			}
 #endif
 
-#ifdef STARPU_USE_MIC
-			case STARPU_MIC_WORKER:
-			{
-				/* We spawn only one thread
-				 * per MIC device, which will control all MIC
-				 * workers of this device. (by using a worker set). */
-				struct _starpu_worker_set *worker_set = workerarg->set;
-				if (worker_set->workers != workerarg)
-					break;
-
-				worker_set->set_is_initialized = 0;
-				worker_set->wait_for_set_initialization = 1;
-				workerarg->wait_for_worker_initialization = 0;
-
-				STARPU_PTHREAD_CREATE_ON(
-						"MIC",
-						&worker_set->worker_thread,
-						NULL,
-						_starpu_mic_src_worker,
-						worker_set,
-						_starpu_simgrid_get_host_by_worker(workerarg));
-
-				break;
-			}
-#endif /* STARPU_USE_MIC */
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 			case STARPU_MPI_MS_WORKER:
 			{
@@ -1101,11 +1057,9 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->reserve_ncpus++;
 	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
-	conf->nmic = starpu_get_env_number("STARPU_NMIC");
 	conf->nmpi_ms = starpu_get_env_number("STARPU_NMPI_MS");
 	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
 	conf->bus_calibrate = starpu_get_env_number("STARPU_BUS_CALIBRATE");
-	conf->mic_sink_program_path = starpu_getenv("STARPU_MIC_PROGRAM_PATH");
 
 	if (conf->calibrate == -1)
 	     conf->calibrate = 0;
@@ -1116,7 +1070,6 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_bindid = 0; /* TODO */
 	conf->use_explicit_workers_cuda_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
-	conf->use_explicit_workers_mic_deviceid = 0; /* TODO */
 	conf->use_explicit_workers_mpi_ms_deviceid = 0; /* TODO */
 
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
@@ -1147,14 +1100,6 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->disable_asynchronous_opencl_copy = 0;
 #endif
 
-#if defined(STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY)
-	conf->disable_asynchronous_mic_copy = 1;
-#else
-	conf->disable_asynchronous_mic_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY");
-	if (conf->disable_asynchronous_mic_copy == -1)
-		conf->disable_asynchronous_mic_copy = 0;
-#endif
-
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY)
     conf->disable_asynchronous_mpi_ms_copy = 1;
 #else
@@ -1181,7 +1126,6 @@ int starpu_conf_noworker(struct starpu_conf *conf)
 	conf->ncpus = 0;
 	conf->ncuda = 0;
 	conf->nopencl = 0;
-	conf->nmic = 0;
 	conf->nmpi_ms = 0;
 	return 0;
 }
@@ -1231,7 +1175,6 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->precedence_over_environment_variables);
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY", &conf->disable_asynchronous_mic_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->precedence_over_environment_variables);
 }
 
@@ -1412,7 +1355,6 @@ void starpu_drivers_preinit(void)
 	_starpu_cpu_preinit();
 	_starpu_cuda_preinit();
 	_starpu_opencl_preinit();
-	_starpu_mic_preinit();
 	_starpu_mpi_ms_preinit();
 	_starpu_disk_preinit();
 }
@@ -1568,8 +1510,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	/* Make a copy of arrays */
 	if (_starpu_config.conf.sched_policy_name)
 		_starpu_config.conf.sched_policy_name = strdup(_starpu_config.conf.sched_policy_name);
-	if (_starpu_config.conf.mic_sink_program_path)
-		_starpu_config.conf.mic_sink_program_path = strdup(_starpu_config.conf.mic_sink_program_path);
 	if (_starpu_config.conf.n_cuda_opengl_interoperability)
 	{
 		size_t size = _starpu_config.conf.n_cuda_opengl_interoperability * sizeof(*_starpu_config.conf.cuda_opengl_interoperability);
@@ -2022,7 +1962,6 @@ void starpu_shutdown(void)
 
 	/* Clear memory */
 	free((char*) _starpu_config.conf.sched_policy_name);
-	free(_starpu_config.conf.mic_sink_program_path);
 	if (_starpu_config.conf.n_cuda_opengl_interoperability)
 		free(_starpu_config.conf.cuda_opengl_interoperability);
 	if (_starpu_config.conf.n_not_launched_drivers)
@@ -2173,19 +2112,9 @@ int starpu_asynchronous_opencl_copy_disabled(void)
 	return _starpu_config.conf.disable_asynchronous_opencl_copy;
 }
 
-int starpu_asynchronous_mic_copy_disabled(void)
-{
-	return _starpu_config.conf.disable_asynchronous_mic_copy;
-}
-
 int starpu_asynchronous_mpi_ms_copy_disabled(void)
 {
         return _starpu_config.conf.disable_asynchronous_mpi_ms_copy;
-}
-
-unsigned starpu_mic_worker_get_count(void)
-{
-	return starpu_worker_get_count_by_type(STARPU_MIC_WORKER);
 }
 
 unsigned starpu_mpi_ms_worker_get_count(void)

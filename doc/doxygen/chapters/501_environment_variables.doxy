@@ -141,21 +141,6 @@ devices. By setting the environment variable \ref STARPU_OPENCL_ONLY_ON_CPUS
 to 1, the OpenCL driver will ONLY enable CPU devices.
 </dd>
 
-<dt>STARPU_NMIC</dt>
-<dd>
-\anchor STARPU_NMIC
-\addindex __env__STARPU_NMIC
-MIC equivalent of the environment variable \ref STARPU_NCUDA, i.e. the number of
-MIC devices to use.
-</dd>
-
-<dt>STARPU_NMICTHREADS</dt>
-<dd>
-\anchor STARPU_NMICTHREADS
-\addindex __env__STARPU_NMICTHREADS
-Number of threads to use on the MIC devices.
-</dd>
-
 <dt>STARPU_NMPI_MS</dt>
 <dd>
 \anchor STARPU_NMPI_MS
@@ -314,17 +299,6 @@ starpu_conf::use_explicit_workers_opencl_gpuid passed to starpu_init()
 is set.
 </dd>
 
-<dt>STARPU_WORKERS_MICID</dt>
-<dd>
-\anchor STARPU_WORKERS_MICID
-\addindex __env__STARPU_WORKERS_MICID
-MIC equivalent of the \ref STARPU_WORKERS_CUDAID environment variable.
-
-This variable is ignored if the field
-starpu_conf::use_explicit_workers_mic_deviceid passed to starpu_init()
-is set.
-</dd>
-
 <dt>STARPU_WORKER_TREE</dt>
 <dd>
 \anchor STARPU_WORKER_TREE
@@ -406,13 +380,6 @@ fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 </dd>
 
-<dt>STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY</dt>
-<dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
-\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
-Disable asynchronous copies between CPU and MIC devices.
-</dd>
-
 <dt>STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY</dt>
 <dd>
 \anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
@@ -450,27 +417,6 @@ Set minimum exponential backoff of number of cycles to pause when spinning. Defa
 \anchor STARPU_BACKOFF_MAX
 \addindex __env__STARPU_BACKOFF_MAX
 Set maximum exponential backoff of number of cycles to pause when spinning. Default value is 32.
-</dd>
-
-<dt>STARPU_MIC_SINK_PROGRAM_NAME</dt>
-<dd>
-\anchor STARPU_MIC_SINK_PROGRAM_NAME
-\addindex __env__STARPU_MIC_SINK_PROGRAM_NAME
-todo
-</dd>
-
-<dt>STARPU_MIC_SINK_PROGRAM_PATH</dt>
-<dd>
-\anchor STARPU_MIC_SINK_PROGRAM_PATH
-\addindex __env__STARPU_MIC_SINK_PROGRAM_PATH
-todo
-</dd>
-
-<dt>STARPU_MIC_PROGRAM_PATH</dt>
-<dd>
-\anchor STARPU_MIC_PROGRAM_PATH
-\addindex __env__STARPU_MIC_PROGRAM_PATH
-todo
 </dd>
 
 <dt>STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES</dt>
@@ -912,16 +858,6 @@ When this is set to 1, StarPU will assume that all OPENCL devices have the same
 performance, and thus share performance models for them, thus allowing kernel
 calibration to be much faster, since measurements only have to be once for all
 OPENCL GPUs.
-</dd>
-
-<dt>STARPU_PERF_MODEL_HOMOGENEOUS_MIC</dt>
-<dd>
-\anchor STARPU_PERF_MODEL_HOMOGENEOUS_MIC
-\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MIC
-When this is set to 1, StarPU will assume that all MIC devices have the same
-performance, and thus share performance models for them, thus allowing kernel
-calibration to be much faster, since measurements only have to be once for all
-MIC GPUs.
 </dd>
 
 <dt>STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS</dt>

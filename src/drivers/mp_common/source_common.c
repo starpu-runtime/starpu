@@ -758,7 +758,7 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
         return -EAGAIN;
 }
 
-/* 5 functions to determine the executable to run on the device (MIC, MPI).
+/* 5 functions to determine the executable to run on the device (MPI).
  */
 static void _starpu_src_common_cat_3(char *final, const size_t len, const char *first, const char *second, const char *third)
 {
@@ -790,80 +790,6 @@ static int _starpu_src_common_test_suffixes(char *located_file_name, const size_
 		_starpu_src_common_cat_2(located_file_name, len, base, suffixes[i]);
 		if (access(located_file_name, R_OK) == 0)
 			return 0;
-	}
-
-	return 1;
-}
-
-int _starpu_src_common_locate_file(char *located_file_name, size_t len,
-				   const char *env_file_name, const char *env_mic_path,
-				   const char *config_file_name, const char *actual_file_name,
-				   const char **suffixes)
-{
-	if (env_file_name != NULL)
-	{
-		if (access(env_file_name, R_OK) == 0)
-		{
-			strncpy(located_file_name, env_file_name, len-1);
-			located_file_name[len-1] = '\0';
-			return 0;
-		}
-		else if(env_mic_path != NULL)
-		{
-			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, env_file_name);
-
-			return access(located_file_name, R_OK);
-		}
-	}
-	else if (config_file_name != NULL)
-	{
-		if (access(config_file_name, R_OK) == 0)
-		{
-			strncpy(located_file_name, config_file_name, len-1);
-			located_file_name[len-1] = '\0';
-			return 0;
-		}
-		else if (env_mic_path != NULL)
-		{
-			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, config_file_name);
-
-			return access(located_file_name, R_OK);
-		}
-	}
-	else if (actual_file_name != NULL)
-	{
-		if (_starpu_src_common_test_suffixes(located_file_name, len, actual_file_name, suffixes) == 0)
-			return 0;
-
-		if (env_mic_path != NULL)
-		{
-			char actual_cpy[1024];
-			strncpy(actual_cpy, actual_file_name, sizeof(actual_cpy)-1);
-			actual_cpy[sizeof(actual_cpy)-1] = '\0';
-
-			char *last =  strrchr(actual_cpy, '/');
-			while (last != NULL)
-			{
-				char tmp[1024];
-
-				_starpu_src_common_dir_cat(tmp, sizeof(tmp), env_mic_path, last);
-
-				if (access(tmp, R_OK) == 0)
-				{
-					strncpy(located_file_name, tmp, len-1);
-					located_file_name[len-1] = '\0';
-					return 0;
-				}
-
-				if (_starpu_src_common_test_suffixes(located_file_name, len, tmp, suffixes) == 0)
-					return 0;
-
-				*last = '\0';
-				char *last_tmp = strrchr(actual_cpy, '/');
-				*last = '/';
-				last = last_tmp;
-			}
-		}
 	}
 
 	return 1;

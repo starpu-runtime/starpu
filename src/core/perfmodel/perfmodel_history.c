@@ -99,14 +99,9 @@ void _starpu_initialize_registered_performance_models(void)
 	unsigned ncores = conf->topology.nhwworker[STARPU_CPU_WORKER][0];
 	unsigned ncuda =  conf->topology.nhwdevices[STARPU_CUDA_WORKER];
 	unsigned nopencl = conf->topology.nhwdevices[STARPU_OPENCL_WORKER];
-	unsigned nmic = 0;
 	enum starpu_worker_archtype archtype;
-#if STARPU_MAXMICDEVS > 0 || STARPU_MAXMPIDEVS > 0
+#if STARPU_MAXMPIDEVS > 0
 	unsigned i;
-#endif
-#if STARPU_MAXMICDEVS > 0
-	for(i = 0; i < conf->topology.nhwdevices[STARPU_MIC_WORKER]; i++)
-		nmic += conf->topology.nhwworker[STARPU_MIC_WORKER][i];
 #endif
 	unsigned nmpi = 0;
 #if STARPU_MAXMPIDEVS > 0
@@ -114,9 +109,9 @@ void _starpu_initialize_registered_performance_models(void)
 		nmpi += conf->topology.nhwworker[STARPU_MPI_MS_WORKER][i];
 #endif
 
-	// We used to allocate 2**(ncores + ncuda + nopencl + nmic + nmpi), this is too big
-	// We now allocate only 2*(ncores + ncuda + nopencl + nmic + nmpi), and reallocate when necessary in starpu_perfmodel_arch_comb_add
-	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmic + nmpi);
+	// We used to allocate 2**(ncores + ncuda + nopencl + nmpi), this is too big
+	// We now allocate only 2*(ncores + ncuda + nopencl + nmpi), and reallocate when necessary in starpu_perfmodel_arch_comb_add
+	nb_arch_combs = 2 * (ncores + ncuda + nopencl + nmpi);
 	_STARPU_MALLOC(arch_combs, nb_arch_combs*sizeof(struct starpu_perfmodel_arch*));
 	current_arch_comb = 0;
 	historymaxerror = starpu_get_env_number_default("STARPU_HISTORY_MAX_ERROR", STARPU_HISTORYMAXERROR);
@@ -942,8 +937,8 @@ static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 		{
 			fprintf(f, "####################\n");
 			fprintf(f, "# DEV_%d\n", dev);
-			fprintf(f, "# device type (CPU - %d, CUDA - %d, OPENCL - %d, MIC - %d, MPI_MS - %d)\n",
-				STARPU_CPU_WORKER, STARPU_CUDA_WORKER, STARPU_OPENCL_WORKER, STARPU_MIC_WORKER, STARPU_MPI_MS_WORKER);
+			fprintf(f, "# device type (CPU - %d, CUDA - %d, OPENCL - %d, MPI_MS - %d)\n",
+				STARPU_CPU_WORKER, STARPU_CUDA_WORKER, STARPU_OPENCL_WORKER, STARPU_MPI_MS_WORKER);
 			fprintf(f, "%u\n", arch_combs[comb]->devices[dev].type);
 
 			fprintf(f, "####################\n");

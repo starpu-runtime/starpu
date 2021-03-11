@@ -47,10 +47,6 @@
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
-#ifdef STARPU_USE_MIC
-#include <drivers/mic/driver_mic_source.h>
-#endif /* STARPU_USE_MIC */
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 #include <drivers/mpi/driver_mpi_source.h>
 #endif
@@ -319,14 +315,6 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
-	/*** Indicates the successive MIC devices that should be used
-	 * by the MIC driver.  It is either filled according to the
-	 * user's explicit parameters (from starpu_conf) or according
-	 * to the STARPU_WORKERS_MICID env. variable. Otherwise, they
-	 * are taken in ID order. */
-	/** TODO */
-	/** unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
-
 	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
 
 };
@@ -350,9 +338,6 @@ struct _starpu_machine_config
 
 	/** Which GPU(s) do we use for OpenCL ? */
 	int current_opencl_gpuid;
-
-	/** Which MIC do we use? */
-	int current_mic_deviceid;
 
 	/** Which MPI do we use? */
 	int current_mpi_deviceid;

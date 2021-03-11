@@ -91,7 +91,7 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 	(void)task;
 	(void)nimpl;
 	enum starpu_worker_archtype type = starpu_worker_get_type(workerid);
-	if (type == STARPU_CPU_WORKER || type == STARPU_OPENCL_WORKER || type == STARPU_MIC_WORKER)
+	if (type == STARPU_CPU_WORKER || type == STARPU_OPENCL_WORKER)
 		return 1;
 
 #ifdef STARPU_USE_CUDA

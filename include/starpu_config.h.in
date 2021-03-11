@@ -73,13 +73,6 @@
 #undef STARPU_USE_OPENCL
 
 /**
-   Defined when StarPU has been installed with MIC support. It should
-   be used in your code to detect the availability of MIC.
-   @ingroup API_MIC_Extensions
-*/
-#undef STARPU_USE_MIC
-
-/**
    Defined when StarPU has been installed with MPI Master Slave
    support. It should be used in your code to detect the availability
    of MPI Master Slave.
@@ -231,13 +224,6 @@
    @ingroup API_OpenCL_Extensions
 */
 #undef STARPU_MAXOPENCLDEVS
-
-/**
-   Define the maximum number of MIC devices that are supported by
-   StarPU.
-   @ingroup API_MIC_Extensions
-*/
-#undef STARPU_MAXMICDEVS
 
 /**
    Define the maximum number of workers managed by StarPU.

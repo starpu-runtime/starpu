@@ -65,9 +65,6 @@ void data_interface_test_summary_print(FILE *f, struct data_interface_test_summa
 	FPRINTF(f, "\tCPU    -> OpenCL : %s\n", enum_to_string(s->cpu_to_opencl_async));
 	FPRINTF(f, "\tOpenCL -> CPU    : %s\n", enum_to_string(s->opencl_to_cpu_async));
 	FPRINTF(f, "\n");
-	FPRINTF(f, "\tCPU    -> MIC    : %s\n", enum_to_string(s->cpu_to_mic_async));
-	FPRINTF(f, "\tMIC    -> CPU    : %s\n", enum_to_string(s->mic_to_cpu_async));
-	FPRINTF(f, "\n");
 
 	FPRINTF(f, "Synchronous :\n");
 	FPRINTF(f, "\tCPU    -> CUDA   : %s\n", enum_to_string(s->cpu_to_cuda));
@@ -77,8 +74,6 @@ void data_interface_test_summary_print(FILE *f, struct data_interface_test_summa
 	FPRINTF(f, "\tCPU    -> OpenCL : %s\n", enum_to_string(s->cpu_to_opencl));
 	FPRINTF(f, "\tOpenCL -> CPU    : %s\n", enum_to_string(s->opencl_to_cpu));
 	FPRINTF(f, "\n");
-	FPRINTF(f, "\tCPU    -> MIC    : %s\n", enum_to_string(s->cpu_to_mic));
-	FPRINTF(f, "\tMIC    -> CPU    : %s\n",	enum_to_string(s->mic_to_cpu));
 
 	FPRINTF(f, "\n");
 	FPRINTF(f, "CPU -> CPU          : %s\n", enum_to_string(s->cpu_to_cpu));
@@ -113,10 +108,6 @@ static void summary_init(struct data_interface_test_summary *s)
 	s->opencl_to_cpu         = UNTESTED;
 	s->cpu_to_opencl_async   = UNTESTED;
 	s->opencl_to_cpu_async   = UNTESTED;
-	s->cpu_to_mic            = UNTESTED;
-	s->mic_to_cpu            = UNTESTED;
-	s->cpu_to_mic_async      = UNTESTED;
-	s->mic_to_cpu_async      = UNTESTED;
 	s->to_pointer            = UNTESTED;
 	s->pointer_is_inside     = UNTESTED;
 	s->pack                  = UNTESTED;
@@ -146,12 +137,10 @@ static int create_task(struct starpu_task **taskp, enum starpu_worker_archtype t
 	static int cpu_workers[STARPU_MAXCPUS];
 	static int cuda_workers[STARPU_MAXCUDADEVS];
 	static int opencl_workers[STARPU_MAXOPENCLDEVS];
-	static int mic_workers[STARPU_MAXMICDEVS];
 
 	static int n_cpus = -1;
 	static int n_cudas = -1;
 	static int n_opencls = -1;
-	static int n_mics = -1;
 
 	if (n_cpus == -1) /* First time here */
 	{
@@ -162,7 +151,6 @@ static int create_task(struct starpu_task **taskp, enum starpu_worker_archtype t
 		n_cpus = starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, cpu_workers, STARPU_MAXCPUS);
 		n_cudas = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, cuda_workers, STARPU_MAXCUDADEVS);
 		n_opencls = starpu_worker_get_ids_by_type(STARPU_OPENCL_WORKER, opencl_workers, STARPU_MAXOPENCLDEVS);
-		n_mics = starpu_worker_get_ids_by_type(STARPU_MIC_WORKER, mic_workers, STARPU_MAXMICDEVS);
 	}
 
 	int *workers;
@@ -203,17 +191,6 @@ static int create_task(struct starpu_task **taskp, enum starpu_worker_archtype t
 		}
 		workers = opencl_workers;
 		cl.opencl_funcs[0] = current_config->opencl_func;
-	}
-	else if (type == STARPU_MIC_WORKER)
-	{
-		if (n_mics == 0) return -ENODEV;
-		if (id != -1 && id >= n_mics)
-		{
-			FPRINTF(stderr, "Not enough MIC workers\n");
-			return -ENODEV;
-		}
-		workers = mic_workers;
-		cl.cpu_funcs_name[0] = current_config->cpu_func_name;
 	}
 	else
 	{
@@ -327,40 +304,6 @@ static enum exit_code opencl_to_ram(void)
 	FPRINTF(stderr, "[%s] : %d\n", __starpu_func__, current_config->copy_failed);
 	return current_config->copy_failed;
 }
-
-static enum exit_code ram_to_mic()
-{
-	int err;
-	struct starpu_task *task;
-
-	err = create_task(&task, STARPU_MIC_WORKER, -1);
-	if (err != 0)
-		return NO_DEVICE;
-
-	err = starpu_task_submit(task);
-	if (err != 0)
-		return TASK_SUBMISSION_FAILURE;
-
-	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
-	return current_config->copy_failed;
-}
-
-static enum exit_code mic_to_ram()
-{
-	int err;
-	struct starpu_task *task;
-
-	err = create_task(&task, STARPU_CPU_WORKER, -1);
-	if (err != 0)
-		return NO_DEVICE;
-
-	err = starpu_task_submit(task);
-	if (err != 0)
-		return TASK_SUBMISSION_FAILURE;
-
-	FPRINTF(stderr, "[%s] : %d\n", __func__, current_config->copy_failed);
-	return current_config->copy_failed;
-}
 /* End of the <device1>_to_<device2> functions. */
 
 static void run_cuda(int async, struct data_interface_test_summary *s)
@@ -401,20 +344,6 @@ static void run_opencl(int async, struct data_interface_test_summary *s)
 
 	err = opencl_to_ram();
 	set_field(s, async==1?&s->opencl_to_cpu_async:&s->opencl_to_cpu, err);
-}
-
-static void run_mic(int async, struct data_interface_test_summary *s)
-{
-	(void)async;
-	int err;
-
-	err = ram_to_mic();
-	set_field(s, &s->cpu_to_mic_async, err);
-	if (err != SUCCESS)
-		return;
-
-	err = mic_to_ram();
-	set_field(s, &s->mic_to_cpu_async, err);
 }
 
 static void ram_to_ram(struct data_interface_test_summary *s)
@@ -465,7 +394,6 @@ static void run_async(struct data_interface_test_summary *s)
 	}
 	run_cuda(1, s);
 	run_opencl(1, s);
-	run_mic(1, s);
 }
 
 static void run_sync(struct data_interface_test_summary *s)
@@ -483,14 +411,11 @@ static void run_sync(struct data_interface_test_summary *s)
 	new_copy_methods.cuda_to_ram_async = NULL;
 	new_copy_methods.ram_to_opencl_async = NULL;
 	new_copy_methods.opencl_to_ram_async = NULL;
-	new_copy_methods.ram_to_mic_async = NULL;
-	new_copy_methods.mic_to_ram_async = NULL;
 
 	handle->ops->copy_methods = &new_copy_methods;
 
 	run_cuda(0, s);
 	run_opencl(0, s);
-	run_mic(0, s);
 
 	handle->ops->copy_methods = old_copy_methods;
 }
@@ -638,9 +563,6 @@ static int load_conf(struct test_config *config)
 #endif
 #ifdef STARPU_USE_OPENCL
 	    !config->opencl_func ||
-#endif
-#ifdef STARPU_USE_MIC
-	    !config->cpu_func_name ||
 #endif
 	    !config->handle)
 	{

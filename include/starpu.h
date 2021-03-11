@@ -173,13 +173,6 @@ struct starpu_conf
 	int nopencl;
 
 	/**
-	   Number of MIC devices that StarPU can use. This can also be
-	   specified with the environment variable \ref STARPU_NMIC.
-	   (default = -1)
-	*/
-	int nmic;
-
-	/**
 	   Number of MPI Master Slave devices that StarPU can use.
 	   This can also be specified with the environment variable
 	   \ref STARPU_NMPI_MS.
@@ -245,24 +238,6 @@ struct starpu_conf
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
 	/**
-	   If this flag is set, the MIC workers will be attached to
-	   the MIC devices specified in the array
-	   starpu_conf::workers_mic_deviceid. Otherwise, StarPU
-	   affects the MIC devices in a round-robin fashion. This can
-	   also be specified with the environment variable \ref
-	   STARPU_WORKERS_MICID.
-	   (default = 0)
-	*/
-	unsigned use_explicit_workers_mic_deviceid;
-
-	/**
-	   If the flag starpu_conf::use_explicit_workers_mic_deviceid
-	   is set, the array contains the logical identifiers of the
-	   MIC devices to be used.
-	*/
-	unsigned workers_mic_deviceid[STARPU_NMAXWORKERS];
-
-	/**
 	   If this flag is set, the MPI Master Slave workers will be
 	   attached to the MPI Master Slave devices specified in the
 	   array starpu_conf::workers_mpi_ms_deviceid. Otherwise,
@@ -317,14 +292,6 @@ struct starpu_conf
 	int single_combined_worker;
 
 	/**
-	   Path to the kernel to execute on the MIC device, compiled
-	   for MIC architecture. When set to <c>NULL</c>, StarPU
-	   automatically looks next to the host program location.
-	   (default = <c>NULL</c>)
-	*/
-	char *mic_sink_program_path;
-
-	/**
 	   This flag should be set to 1 to disable asynchronous copies
 	   between CPUs and all accelerators.
 	   The AMD implementation of OpenCL is known to fail when
@@ -369,19 +336,6 @@ struct starpu_conf
 	   (default = 0)
 	*/
 	int disable_asynchronous_opencl_copy;
-
-	/**
-	   This flag should be set to 1 to disable asynchronous copies
-	   between CPUs and MIC accelerators.
-	   This can also be specified with the environment variable
-	   \ref STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY.
-	   This can also be specified at compilation time by giving to
-	   the configure script the option \ref
-	   disable-asynchronous-mic-copy
-	   "--disable-asynchronous-mic-copy".
-	   (default = 0).
-	*/
-	int disable_asynchronous_mic_copy;
 
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
@@ -608,12 +562,6 @@ int starpu_asynchronous_cuda_copy_disabled(void);
    accelerators are disabled.
 */
 int starpu_asynchronous_opencl_copy_disabled(void);
-
-/**
-   Return 1 if asynchronous data transfers between CPU and MIC devices
-   are disabled.
-*/
-int starpu_asynchronous_mic_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers between CPU and MPI Slave

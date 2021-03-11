@@ -41,7 +41,7 @@ void func_cpu(void *descr[], void *_args)
 struct starpu_codelet codelet =
 {
 	.cpu_funcs = {func_cpu},
-	/* starpu_task_get_current() doesn't work on MIC */
+	/* starpu_task_get_current() doesn't work on MPI Master Slave */
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
 };
@@ -49,7 +49,7 @@ struct starpu_codelet codelet =
 struct starpu_codelet codelet_minus1 =
 {
 	.cpu_funcs = {func_cpu},
-	/* starpu_task_get_current() doesn't work on MIC */
+	/* starpu_task_get_current() doesn't work on MPI Master Slave */
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = STARPU_NMAXBUFS-1,
 };
@@ -57,7 +57,7 @@ struct starpu_codelet codelet_minus1 =
 struct starpu_codelet codelet_exactly =
 {
 	.cpu_funcs = {func_cpu},
-	/* starpu_task_get_current() doesn't work on MIC */
+	/* starpu_task_get_current() doesn't work on MPI Master Slave */
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = STARPU_NMAXBUFS,
 };
@@ -65,7 +65,7 @@ struct starpu_codelet codelet_exactly =
 struct starpu_codelet codelet_plus1 =
 {
 	.cpu_funcs = {func_cpu},
-	/* starpu_task_get_current() doesn't work on MIC */
+	/* starpu_task_get_current() doesn't work on MPI Master Slave */
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = STARPU_NMAXBUFS+1,
 };
@@ -73,7 +73,7 @@ struct starpu_codelet codelet_plus1 =
 struct starpu_codelet codelet_plus5 =
 {
 	.cpu_funcs = {func_cpu},
-	/* starpu_task_get_current() doesn't work on MIC */
+	/* starpu_task_get_current() doesn't work on MPI Master Slave */
 	/* .cpu_funcs_name = {"func_cpu"}, */
 	.nbuffers = STARPU_NMAXBUFS+5,
 };

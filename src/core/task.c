@@ -695,18 +695,6 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 
 	some_impl = 0;
 	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
-		if (cl->mic_funcs[i])
-		{
-			some_impl = 1;
-			break;
-		}
-	if (some_impl && is_where_unset)
-	{
-		where |= STARPU_MIC;
-	}
-
-	some_impl = 0;
-	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 		if (cl->mpi_ms_funcs[i])
 		{
 			some_impl = 1;
@@ -726,7 +714,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		}
 	if (some_impl && is_where_unset)
 	{
-		where |= STARPU_MIC|STARPU_MPI_MS;
+		where |= STARPU_MPI_MS;
 	}
 	cl->where = where;
 
@@ -1463,12 +1451,10 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 	switch (node_kind)
 	{
 		case STARPU_CPU_RAM:
-		case STARPU_MIC_RAM:
 		case STARPU_MPI_MS_RAM:
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
-				case STARPU_MIC_RAM:
                                 case STARPU_MPI_MS_RAM:
 					return 0;
 				default:
@@ -1479,7 +1465,6 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
-				case STARPU_MIC_RAM:
                                 case STARPU_MPI_MS_RAM:
 					return 1;
 				default:

@@ -83,9 +83,6 @@ struct test_config bcsr_config =
 #ifdef STARPU_USE_OPENCL
 	.opencl_func   = test_bcsr_opencl_func,
 #endif /* !STARPU_USE_OPENCL */
-#ifdef STARPU_USE_MIC
-	.cpu_func_name = "test_bcsr_cpu_func",
-#endif
 	.handle        = &bcsr_handle,
 	.dummy_handle  = &bcsr2_handle,
 	.copy_failed   = SUCCESS,
@@ -184,7 +181,6 @@ main(int argc, char **argv)
 
 	conf.ncuda = 2;
 	conf.nopencl = 1;
-	conf.nmic = -1;
 
 	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		return STARPU_TEST_SKIPPED;

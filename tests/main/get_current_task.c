@@ -49,8 +49,8 @@ static struct starpu_codelet dummy_cl =
 	.cuda_funcs = {check_task_func},
 	.cpu_funcs = {check_task_func},
 	.opencl_funcs = {check_task_func},
-	/* starpu_task_get_current()) is not working on MIC */
-	/*.cpu_funcs_name = {"check_task_func"},*/
+	/* starpu_task_get_current()) is not working on MPI Master Slave mode */
+	/* .cpu_funcs_name = {"check_task_func"}, */
 	.model = NULL,
 	.nbuffers = 0
 };

@@ -94,7 +94,6 @@ static unsigned nnumas = 0;
 static unsigned ncuda = 0;
 static unsigned nopencl = 0;
 #ifndef STARPU_SIMGRID
-static unsigned nmic = 0;
 static unsigned nmpi_ms = 0;
 
 /* Benchmarking the performance of the bus */
@@ -126,11 +125,6 @@ static uint64_t opencl_size[STARPU_MAXCUDADEVS];
 static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
 static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
 #endif
-
-#ifdef STARPU_USE_MIC
-static double mic_time_host_to_device[STARPU_MAXNODES] = {0.0};
-static double mic_time_device_to_host[STARPU_MAXNODES] = {0.0};
-#endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static double mpi_time_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
@@ -826,23 +820,8 @@ static void benchmark_all_gpu_devices(void)
 	}
 #endif
 
-#ifdef STARPU_USE_MIC
-	/* TODO: implement real calibration ! For now we only put an arbitrary
-	 * value for each device during at the declaration as a bug fix, else
-	 * we get problems on heft scheduler */
-	nmic = _starpu_mic_src_get_device_count();
-
-	for (i = 0; i < STARPU_MAXNODES; i++)
-	{
-		mic_time_host_to_device[i] = 0.1;
-		mic_time_device_to_host[i] = 0.1;
-	}
-#endif /* STARPU_USE_MIC */
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-
 	_starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
-
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
 #ifdef STARPU_HAVE_HWLOC
@@ -1355,9 +1334,6 @@ static void write_bus_latency_file_content(void)
 #ifdef STARPU_USE_OPENCL
 	maxnode += nopencl;
 #endif
-#ifdef STARPU_USE_MIC
-	maxnode += nmic;
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	maxnode += nmpi_ms;
 #endif
@@ -1430,11 +1406,6 @@ static void write_bus_latency_file_content(void)
 				if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
 						latency += search_bus_best_latency(dst-b_low, "OpenCL", 1);
 				b_low += nopencl;
-#endif
-#ifdef STARPU_USE_MIC
-				b_up += nmic;
-				/* TODO Latency MIC */
-				b_low += nmic;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 				b_up += nmpi_ms;
@@ -1707,9 +1678,6 @@ static void write_bus_bandwidth_file_content(void)
 #ifdef STARPU_USE_OPENCL
 	maxnode += nopencl;
 #endif
-#ifdef STARPU_USE_MIC
-	maxnode += nmic;
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	maxnode += nmpi_ms;
 #endif
@@ -1778,14 +1746,6 @@ static void write_bus_bandwidth_file_content(void)
 				if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
 					slowness += search_bus_best_timing(dst-b_low, "OpenCL", 1);
 				b_low += nopencl;
-#endif
-#ifdef STARPU_USE_MIC
-				b_up += nmic;
-				if (src >= b_low && src < b_up)
-					slowness += mic_time_device_to_host[src-b_low];
-				if (dst >= b_low && dst < b_up)
-					slowness += mic_time_host_to_device[dst-b_low];
-				b_low += nmic;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 				b_up += nmpi_ms;
@@ -2052,7 +2012,7 @@ static void check_bus_config_file(void)
 	{
 		FILE *f;
 		int ret;
-		unsigned read_cuda = -1, read_opencl = -1, read_mic = -1, read_mpi_ms = -1;
+		unsigned read_cuda = -1, read_opencl = -1, read_mpi_ms = -1;
 		unsigned read_cpus = -1, read_numa = -1;
 		int locked;
 
@@ -2078,11 +2038,6 @@ static void check_bus_config_file(void)
 		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
-		ret = fscanf(f, "%u\t", &read_mic);
-		if (ret == 0)
-			read_mic = 0;
-		_starpu_drop_comments(f);
-
 		ret = fscanf(f, "%u\t", &read_mpi_ms);
 		if (ret == 0)
 			read_mpi_ms = 0;
@@ -2101,9 +2056,6 @@ static void check_bus_config_file(void)
 #ifdef STARPU_USE_OPENCL
 		nopencl = _starpu_opencl_get_device_count();
 #endif
-#ifdef STARPU_USE_MIC
-		nmic = _starpu_mic_src_get_device_count();
-#endif /* STARPU_USE_MIC */
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		nmpi_ms = _starpu_mpi_src_get_device_count();
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
@@ -2113,7 +2065,6 @@ static void check_bus_config_file(void)
 		compare_value_and_recalibrate("NUMA", read_numa, nnumas);
 		compare_value_and_recalibrate("CUDA", read_cuda, ncuda);
 		compare_value_and_recalibrate("OpenCL", read_opencl, nopencl);
-		compare_value_and_recalibrate("MIC", read_mic, nmic);
 		compare_value_and_recalibrate("MPI Master-Slave", read_mpi_ms, nmpi_ms);
 	}
 }
@@ -2140,7 +2091,6 @@ static void write_bus_config_file_content(void)
 	fprintf(f, "%u # Number of NUMA nodes\n", nnumas);
 	fprintf(f, "%u # Number of CUDA devices\n", ncuda);
 	fprintf(f, "%u # Number of OpenCL devices\n", nopencl);
-	fprintf(f, "%u # Number of MIC devices\n", nmic);
 	fprintf(f, "%u # Number of MPI devices\n", nmpi_ms);
 
 	if (locked)
@@ -3141,9 +3091,6 @@ void _starpu_load_bus_performance_files(void)
 #endif
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_SIMGRID)
 	nmpi_ms = _starpu_mpi_src_get_device_count();
-#endif
-#if defined(STARPU_USE_MIC) || defined(STARPU_USE_SIMGRID)
-	nmic = _starpu_mic_src_get_device_count();
 #endif
 
 #ifndef STARPU_SIMGRID

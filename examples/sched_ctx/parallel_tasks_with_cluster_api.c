@@ -67,7 +67,6 @@ int main(void)
 	int ret, i;
 	struct starpu_cluster_machine *clusters;
 
-	setenv("STARPU_NMIC","0",1);
 	setenv("STARPU_NMPI_MS","0",1);
 
 	ret = starpu_init(NULL);

@@ -198,13 +198,12 @@ static int push_task_peager_policy(struct starpu_task *task)
 	while(workers->has_next(workers, &it))
 	{
 		int workerid = workers->get_next(workers, &it);
-		/* If this is not a CPU or a MIC, then the workerid simply grabs tasks from the fifo */
+		/* If this is not a CPU then the workerid simply grabs tasks from the fifo */
 		if (starpu_worker_is_combined_worker(workerid))
 		{
 			continue;
 		}
-		if (starpu_worker_get_type(workerid) != STARPU_MIC_WORKER
-				&& starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
+		if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
 		{
 			starpu_wake_worker_relax_light(workerid);
 			continue;
@@ -229,8 +228,8 @@ static struct starpu_task *pop_task_peager_policy(unsigned sched_ctx_id)
 
 	int workerid = starpu_worker_get_id_check();
 
-	/* If this is not a CPU or a MIC, then the worker simply grabs tasks from the fifo */
-	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER && starpu_worker_get_type(workerid) != STARPU_MIC_WORKER)
+	/* If this is not a CPU then the worker simply grabs tasks from the fifo */
+	if (starpu_worker_get_type(workerid) != STARPU_CPU_WORKER)
 	{
 		struct starpu_task *task;
 		starpu_worker_relax_on();

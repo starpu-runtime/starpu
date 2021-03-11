@@ -310,7 +310,6 @@ void starpurm_unregister_polling_service(const char *service_name, starpurm_poll
    - \c "cpu": regular CPU unit;
    - \c "opencl": OpenCL device unit;
    - \c "cuda": nVidia CUDA device unit;
-   - \c "mic": Intel KNC type device unit.
 */
 int starpurm_get_device_type_id(const char *type_str);
 

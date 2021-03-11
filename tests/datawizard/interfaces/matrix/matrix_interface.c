@@ -46,9 +46,6 @@ struct test_config matrix_config =
 #ifdef STARPU_USE_OPENCL
 	.opencl_func   = test_matrix_opencl_func,
 #endif
-#ifdef STARPU_USE_MIC
-	.cpu_func_name = "test_matrix_cpu_func", 
-#endif
 	.handle        = &matrix_handle,
 	.dummy_handle  = &matrix2_handle,
 	.copy_failed   = SUCCESS,
@@ -122,7 +119,6 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.ncuda = 2;
 	conf.nopencl = 1;
-	conf.nmic = -1;
 
 	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0)
 		goto enodev;
