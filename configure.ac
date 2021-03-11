@@ -2404,7 +2404,11 @@ if test x$enable_simgrid != xyes; then
         nmaxmpidev=1
     fi
 fi
-nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + $nmaxmicthreads + 15 \) / 16 \) `
+nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+if test $nmaxworkers = 0
+then
+	nmaxworkers=16
+fi
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXWORKERS, [$nmaxworkers], [Maximum number of workers])
