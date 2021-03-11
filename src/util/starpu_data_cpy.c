@@ -166,7 +166,7 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 	task->synchronous = !asynchronous;
 
 	int ret = _starpu_task_submit_internally(task);
-	STARPU_ASSERT(!ret);
+	STARPU_ASSERT_MSG(!ret, "Task data copy failed with code: %d\n", ret);
 
 	return 0;
 }
