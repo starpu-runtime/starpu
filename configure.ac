@@ -2479,7 +2479,10 @@ AC_ARG_WITH(check-flags, [AS_HELP_STRING([--with-check-flags],
 if test "x$check_flags" != "x" ; then
 	for xflag in $check_flags
 	do
-		IS_SUPPORTED_FLAG($xflag)
+	   	IS_SUPPORTED_CFLAG($x)
+	   	IS_SUPPORTED_CXXFLAG($x)
+	   	IS_SUPPORTED_FFLAG($x)
+	   	IS_SUPPORTED_FCFLAG($x)
 	done
 fi
 
