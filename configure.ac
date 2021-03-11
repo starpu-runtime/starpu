@@ -487,6 +487,12 @@ AC_ARG_ENABLE(mpi-master-slave, [AS_HELP_STRING([--enable-mpi-master-slave],
                               [Enable StarPU to run with the master-slave mode])],
               use_mpi_master_slave=$enableval,
               use_mpi_master_slave=no)
+
+# in case it is explicitely required, but mpicc is not available, this is an error
+if test x$use_mpi_master_slave = xyes -a ! -x "$mpicc_path"; then
+   AC_MSG_ERROR([Compiler MPI '$mpicc_path' not valid])
+fi
+
 #We can only build MPI Master Slave if User wants it and MPI compiler are available
 if test x$use_mpi_master_slave = xyes -a x$mpicc_path != xno -a x${mpicxx_path} != xno ; then
     build_mpi_master_slave=yes
@@ -2709,7 +2715,7 @@ if test x$starpu_windows = xyes ; then
    enable_openmp=no
    openmp_msg="disabled on windows"
 fi
-if test "x$use_mpi_master_slave" = "xyes" ; then
+if test "x$build_mpi_master_slave" = "xyes" ; then
    enable_openmp=no
    openmp_msg="incompatibility with MPI master slave support"
 fi
@@ -2755,7 +2761,7 @@ if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
 fi
 
 # MPI Master Slave and SOCL are not compatible
-if test "x$use_mpi_master_slave" = "xyes" ; then
+if test "x$build_mpi_master_slave" = "xyes" ; then
    if test "x$enable_socl" = "xyes" ; then
       AC_MSG_ERROR([MPI Master-Slave and SOCL can not be used at the same time !])
    fi
@@ -3816,7 +3822,7 @@ AC_MSG_NOTICE([
 	       StarPU MPI enabled:                            $build_mpi_lib
 	       StarPU MPI(nmad) enabled:                      $build_nmad_lib
 	       MPI test suite:                                $running_mpi_check
-	       Master-Slave MPI enabled:                      $use_mpi_master_slave
+	       Master-Slave MPI enabled:                      $build_mpi_master_slave
 	       FFT Support:                                   $fft_support
 	       Resource Management enabled:                   $starpurm_support
 	       Python Interface enabled:                      $starpupy_support
