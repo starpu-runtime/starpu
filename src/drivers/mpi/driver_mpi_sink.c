@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #include <mpi.h>
 #include <dlfcn.h>
 
@@ -85,7 +84,11 @@ void _starpu_mpi_sink_launch_workers(struct _starpu_mp_node *node)
         }
 }
 
-void _starpu_mpi_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, int coreid, int * core_table, int nb_core)
+void _starpu_mpi_sink_bind_thread(const struct _starpu_mp_node *mp_node, int coreid, int *core_table, int nb_core)
 {
         //TODO
+	(void)mp_node;
+	(void)coreid;
+	(void)core_table;
+	(void)nb_core;
 }

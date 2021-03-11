@@ -255,7 +255,7 @@ struct _starpu_mp_node
         void (*dt_recv_from_device) (const struct _starpu_mp_node *, int, void *, int, void *);
 
         /** Test async transfers */
-        int (*dt_test) (struct _starpu_async_channel *);
+        unsigned int (*dt_test) (struct _starpu_async_channel *);
 
         void (*(*get_kernel_from_job)   (const struct _starpu_mp_node *,struct _starpu_job *))(void);
         void (*(*lookup)                (const struct _starpu_mp_node *, char* ))(void);

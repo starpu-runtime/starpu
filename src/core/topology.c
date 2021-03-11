@@ -84,7 +84,6 @@ static int _starpu_get_logical_numa_node_worker(unsigned workerid);
 #define STARPU_NUMA_MAIN_RAM (-1)
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
-
 struct handle_entry
 {
 	UT_hash_handle hh;
@@ -96,7 +95,9 @@ struct handle_entry
 static struct handle_entry *devices_using_cuda;
 #  endif
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 static unsigned may_bind_automatically[STARPU_NARCH] = { 0 };
+#endif
 
 #endif // defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 

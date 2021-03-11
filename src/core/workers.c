@@ -829,21 +829,20 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &pconfig->workers[worker];
-		unsigned devid = workerarg->devid;
 		workerarg->wait_for_worker_initialization = 0;
 
 		_STARPU_DEBUG("initialising worker %u/%u\n", worker, nworkers);
 
 		_starpu_init_worker_queue(workerarg);
 
-		struct starpu_driver driver;
-		driver.type = workerarg->arch;
 		switch (workerarg->arch)
 		{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
 			{
-				driver.id.cpu_id = devid;
+				struct starpu_driver driver;
+				driver.type = workerarg->arch;
+				driver.id.cpu_id = workerarg->devid;
 				workerarg->driver_ops = &_starpu_driver_cpu_ops;
 				workerarg->wait_for_worker_initialization = 1;
 
@@ -868,7 +867,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 			{
-				driver.id.cuda_id = devid;
+				struct starpu_driver driver;
+				driver.type = workerarg->arch;
+				driver.id.cuda_id = workerarg->devid;
 				workerarg->driver_ops = &_starpu_driver_cuda_ops;
 				struct _starpu_worker_set *worker_set = workerarg->set;
 
@@ -903,7 +904,9 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			case STARPU_OPENCL_WORKER:
 			{
 #ifndef STARPU_SIMGRID
-				starpu_opencl_get_device(devid, &driver.id.opencl_id);
+				struct starpu_driver driver;
+				driver.type = workerarg->arch;
+				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
 				workerarg->driver_ops = &_starpu_driver_opencl_ops;
 				workerarg->wait_for_worker_initialization = 1;
 
