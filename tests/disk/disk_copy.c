@@ -68,7 +68,7 @@ int dotest(struct starpu_disk_ops *ops, void *param)
 	conf.precedence_over_environment_variables = 1;
 	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
-	conf.nmpi_ms = -1;
+	conf.nmpi_ms = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) goto enodev;
 
