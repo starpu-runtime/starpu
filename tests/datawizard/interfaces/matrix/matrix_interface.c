@@ -120,8 +120,15 @@ int main(int argc, char **argv)
 	conf.ncuda = 2;
 	conf.nopencl = 1;
 
-	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0)
-		goto enodev;
+	int ret = starpu_initialize(&conf, &argc, &argv);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	if(starpu_cpu_worker_get_count() == 0)
+	{
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	register_data();
 
