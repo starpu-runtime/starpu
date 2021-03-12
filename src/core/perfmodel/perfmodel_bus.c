@@ -2880,9 +2880,9 @@ static void write_bus_platform_file_content(int version)
 				/* Otherwise, link to another GPU? */
 				for (k = i+1; k < ncuda; k++)
 				{
-					if (pci.domain == props[k].pciDomainID
-					 && pci.bus == props[k].pciBusID
-					 && pci.device == props[k].pciDeviceID)
+					if ((int) pci.domain == props[k].pciDomainID
+					 && (int) pci.bus == props[k].pciBusID
+					 && (int) pci.device == props[k].pciDeviceID)
 					{
 						nvlink[i][k] = 1;
 						nvlink[k][i] = 1;
