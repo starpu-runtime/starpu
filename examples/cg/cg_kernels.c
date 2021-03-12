@@ -354,8 +354,7 @@ static struct starpu_codelet dot_kernel_cl =
 int dot_kernel(HANDLE_TYPE_VECTOR v1,
 	       HANDLE_TYPE_VECTOR v2,
 	       starpu_data_handle_t s,
-	       unsigned nblocks,
-	       int use_reduction)
+	       unsigned nblocks)
 {
 	int ret;
 
@@ -520,8 +519,7 @@ int gemv_kernel(HANDLE_TYPE_VECTOR v1,
 		HANDLE_TYPE_MATRIX matrix,
 		HANDLE_TYPE_VECTOR v2,
 		TYPE p1, TYPE p2,
-		unsigned nblocks,
-		int use_reduction)
+		unsigned nblocks)
 {
 	unsigned b1, b2;
 	int ret;
@@ -737,7 +735,7 @@ int cg(void)
 	if (ret == -ENODEV) return ret;
 
 	/* r <- r - A x */
-	ret = gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction);
+	ret = gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks);
 	if (ret == -ENODEV) return ret;
 
 	/* d <- r */
@@ -745,7 +743,7 @@ int cg(void)
 	if (ret == -ENODEV) return ret;
 
 	/* delta_new = dot(r,r) */
-	ret = dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
+	ret = dot_kernel(r_handle, r_handle, rtr_handle, nblocks);
 	if (ret == -ENODEV) return ret;
 
 	GET_DATA_HANDLE(rtr_handle);
@@ -767,10 +765,10 @@ int cg(void)
 		starpu_iteration_push(i);
 
 		/* q <- A d */
-		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0, nblocks, use_reduction);
+		gemv_kernel(q_handle, A_handle, d_handle, 0.0, 1.0, nblocks);
 
 		/* dtq <- dot(d,q) */
-		dot_kernel(d_handle, q_handle, dtq_handle, nblocks, use_reduction);
+		dot_kernel(d_handle, q_handle, dtq_handle, nblocks);
 
 		/* alpha = delta_new / dtq */
 		GET_DATA_HANDLE(dtq_handle);
@@ -787,7 +785,7 @@ int cg(void)
 			copy_handle(r_handle, b_handle, nblocks);
 
 			/* r <- r - A x */
-			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks, use_reduction);
+			gemv_kernel(r_handle, A_handle, x_handle, 1.0, -1.0, nblocks);
 		}
 		else
 		{
@@ -796,7 +794,7 @@ int cg(void)
 		}
 
 		/* delta_new = dot(r,r) */
-		dot_kernel(r_handle, r_handle, rtr_handle, nblocks, use_reduction);
+		dot_kernel(r_handle, r_handle, rtr_handle, nblocks);
 
 		GET_DATA_HANDLE(rtr_handle);
 		starpu_data_acquire(rtr_handle, STARPU_R);
