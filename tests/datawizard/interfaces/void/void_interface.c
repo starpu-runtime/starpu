@@ -84,7 +84,4 @@ int main(int argc, char **argv)
 	data_interface_test_summary_print(stderr, &summary);
 
 	return data_interface_test_summary_success(&summary);
-
-enodev:
-	return STARPU_TEST_SKIPPED;
 }

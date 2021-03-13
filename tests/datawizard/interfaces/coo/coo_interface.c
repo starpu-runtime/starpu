@@ -175,7 +175,4 @@ main(int argc, char **argv)
 
 	starpu_shutdown();
 	return data_interface_test_summary_success(&summary);
-
-enodev:
-	return STARPU_TEST_SKIPPED;
 }
