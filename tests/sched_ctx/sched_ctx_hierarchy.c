@@ -17,6 +17,8 @@
 #include <starpu.h>
 #include "../helper.h"
 
+struct starpu_codelet mycodelet_bis;
+
 void func_cpu_bis(void *descr[], void *_args)
 {
 	(void)descr;
@@ -34,11 +36,8 @@ void func_cpu_bis(void *descr[], void *_args)
 	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [tasks %d]\n", msg, worker_id, worker_name, ntasks);
 	if (ntasks > 0)
 	{
-		struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
-		codelet->cpu_funcs[0] = func_cpu_bis;
-		codelet->cpu_funcs_name[0] = "func_cpu_bis";
 		int nntasks = ntasks - 1;
-		starpu_task_insert(codelet,
+		starpu_task_insert(&mycodelet_bis,
 				   STARPU_VALUE, &msg, sizeof(msg),
 				   STARPU_VALUE, &nntasks, sizeof(ntasks),
 				   STARPU_VALUE, &worker_id, sizeof(worker_id),
@@ -68,17 +67,20 @@ void func_cpu(void *descr[], void *_args)
 	FPRINTF(stderr, "[msg '%c'] [worker id %d] [worker name %s] [sched_ctx_id %u] [tasks %d] [buffer %p]\n", msg, worker_id, worker_name, sched_ctx_id, ntasks, sched_ctx_id_p);
 	if (ntasks > 0)
 	{
-		struct starpu_codelet *codelet = calloc(1,sizeof(*codelet));
-		codelet->cpu_funcs[0] = func_cpu_bis;
-		codelet->cpu_funcs_name[0] = "func_cpu_bis";
 		int nntasks = ntasks - 1;
-		starpu_task_insert(codelet,
+		starpu_task_insert(&mycodelet_bis,
 				   STARPU_VALUE, &msg, sizeof(msg),
 				   STARPU_VALUE, &nntasks, sizeof(nntasks),
 				   STARPU_VALUE, &worker_id, sizeof(worker_id),
 				   0);
 	}
 }
+
+struct starpu_codelet mycodelet_bis =
+{
+	.cpu_funcs = {func_cpu_bis},
+	.cpu_funcs_name = {"func_cpu_bis"},
+};
 
 struct starpu_codelet mycodelet =
 {
