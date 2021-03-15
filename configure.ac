@@ -2070,10 +2070,6 @@ if test x$maxnodes = x0 ; then
 			# odd number.
 			nodes=`expr $nodes + $nmaxopencldev`
 		fi
-		if test x$enable_rcce = xyes ; then
-			# Only 1 memory node for the shared memory.
-			nodes=`expr $nodes + 1`
-		fi
 
 		#nmaxmpidev = 0 if mpi master-slave is disabled
 		nodes=`expr $nodes + $nmaxmpidev`
@@ -2215,12 +2211,12 @@ AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibratio
 #                                                                             #
 ###############################################################################
 
-AM_CONDITIONAL([STARPU_USE_MP], [test "x$build_mpi_master_slave" = "xyes" -o "x$enable_rcce" = "xyes"])
+AM_CONDITIONAL([STARPU_USE_MP], [test "x$build_mpi_master_slave" = "xyes"])
 
 AC_ARG_ENABLE([export-dynamic], [AS_HELP_STRING([--disable-export-dynamic],
 			  [Prevent the linker from adding all symbols to the dynamic symbol table])], [], [])
 
-if test x$build_mpi_master_slave = xyes -o x$enable_rcce = xyes ; then
+if test x$build_mpi_master_slave = xyes ; then
 	AC_DEFINE(STARPU_USE_MP, [1], [Message-passing SINKs support
 		  is enabled])
 
@@ -3326,7 +3322,7 @@ STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $
 AC_SUBST([STARPU_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_RCCE_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_COI_LDFLAGS $STARPU_SCIF_LDFLAGS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
