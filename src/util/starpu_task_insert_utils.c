@@ -63,10 +63,10 @@ void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, vo
 	*cl_arg_size = state->arg_buffer_size;
 }
 
-void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void **cl_arg, size_t *cl_arg_size)
+void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void *cl_arg, size_t cl_arg_size)
 {
-	state->arg_buffer = *cl_arg;
-	state->arg_buffer_size = *cl_arg_size;
+	state->arg_buffer = cl_arg;
+	state->arg_buffer_size = cl_arg_size;
 	state->current_offset = sizeof(int);
 	state->nargs = 0;
 }
@@ -75,11 +75,11 @@ void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void 
 {
 	size_t ptr_size;
 	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
-	assert(ptr_size==size);
-	state->current_offset += sizeof(ptr_size);
+	STARPU_ASSERT_MSG(ptr_size==size, "The given size (%ld) is not the size of the next argument (%ld)\n", size, ptr_size);
+	state->current_offset += sizeof(size);
 
 	memcpy(ptr, state->arg_buffer+state->current_offset, ptr_size);
-	state->current_offset += ptr_size;
+	state->current_offset += size;
 
 	state->nargs++;
 }
@@ -107,9 +107,12 @@ void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **
 	state->nargs++;
 }
 
-void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state STARPU_ATTRIBUTE_UNUSED)
+void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state)
 {
-
+	if (state->current_offset < state->arg_buffer_size)
+	{
+		_STARPU_MSG("Arguments still need to be unpacked from the starpu_codelet_pack_arg_data (offset %ld - buffer_size %ld)\n", state->current_offset, state->arg_buffer_size);
+	}
 }
 
 void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *state)
