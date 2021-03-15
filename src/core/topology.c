@@ -1995,6 +1995,9 @@ static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine
 		}
 	}
 
+	/* Don't eat all memory for ourself */
+	global_mem *= 0.9;
+
 	if (limit < 0)
 		// No limit is defined, we return the global memory size
 		return global_mem;

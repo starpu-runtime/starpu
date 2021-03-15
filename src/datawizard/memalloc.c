@@ -1394,7 +1394,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	_starpu_spin_unlock(&mc_lock[node]);
 
 	/*
-	 * Unless the user has provided a main RAM limitation, we would fill
+	 * Unless we have a memory limitation, we would fill
 	 * memory with cached data and then eventually swap.
 	 */
 	/*
@@ -1402,11 +1402,12 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
 	 * wouldn't even re-use these allocations!
 	 */
-	if (handle->ops->dontcache || (starpu_node_get_kind(node) == STARPU_CPU_RAM
-#ifdef STARPU_USE_ALLOCATION_CACHE
-				&& limit_cpu_mem < 0
+	if (handle->ops->dontcache
+			|| !_starpu_memory_manager_get_global_memory_size(node)
+#ifndef STARPU_USE_ALLOCATION_CACHE
+			|| starpu_node_get_kind(node) == STARPU_CPU_RAM
 #endif
-				))
+			)
 	{
 		/* Free data immediately */
 		free_memory_on_node(mc, node);
