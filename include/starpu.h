@@ -569,8 +569,23 @@ int starpu_asynchronous_opencl_copy_disabled(void);
 */
 int starpu_asynchronous_mpi_ms_copy_disabled(void);
 
+/**
+   Call starpu_profiling_bus_helper_display_summary() and
+   starpu_profiling_worker_helper_display_summary()
+ */
 void starpu_display_stats(void);
 
+/** @} */
+
+/**
+   @defgroup API_Versioning Versioning
+   @{
+*/
+
+/**
+   Return as 3 integers the version of StarPU used when running the
+   application.
+*/
 void starpu_get_version(int *major, int *minor, int *release);
 
 /** @} */

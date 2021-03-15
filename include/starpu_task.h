@@ -1360,6 +1360,13 @@ struct starpu_task
    SettingManyDataHandlesForATask)
 */
 #define STARPU_TASK_GET_HANDLE(task, i) (((task)->dyn_handles) ? (task)->dyn_handles[i] : (task)->handles[i])
+
+/**
+   Return all the data handles of \p task. If \p task is defined
+   with a static or dynamic number of handles, will either return all
+   the element of the field starpu_task::handles or all the elements
+   of the field starpu_task::dyn_handles (see \ref SettingManyDataHandlesForATask)
+*/
 #define STARPU_TASK_GET_HANDLES(task) (((task)->dyn_handles) ? (task)->dyn_handles : (task)->handles)
 
 /**

@@ -105,7 +105,6 @@ chapters =	\
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
 	chapters/api/fft_support.doxy \
-	chapters/api/versioning.doxy \
 	chapters/api/threads.doxy
 
 images = 	\
