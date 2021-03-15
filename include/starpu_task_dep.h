@@ -217,6 +217,9 @@ void starpu_tag_notify_from_apps(starpu_tag_t id);
 */
 void starpu_tag_notify_restart_from_apps(starpu_tag_t id);
 
+/**
+   Return the task associated to the tag \p id
+ */
 struct starpu_task *starpu_tag_get_task(starpu_tag_t id);
 
 /** @} */

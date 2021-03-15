@@ -1539,6 +1539,9 @@ int starpu_task_submit_nodeps(struct starpu_task *task) STARPU_WARN_UNUSED_RESUL
 */
 int starpu_task_submit_to_ctx(struct starpu_task *task, unsigned sched_ctx_id);
 
+/**
+   Return 1 if \p task is terminated
+*/
 int starpu_task_finished(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
 
 /**
