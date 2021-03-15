@@ -612,13 +612,13 @@ tasks or tags, or to be submitted in callbacks, etc.
 The obvious way is of course to make kernel functions empty, but such task will
 thus have to wait for a worker to become ready, transfer data, etc.
 
-A much lighter way to define a synchronization task is to set its starpu_task::cl
-field to <c>NULL</c>. The task will thus be a mere synchronization point,
+A much lighter way to define a synchronization task is to set its field starpu_task::cl
+to <c>NULL</c>. The task will thus be a mere synchronization point,
 without any data access or execution content: as soon as its dependencies become
 available, it will terminate, call the callbacks, and release dependencies.
 
-An intermediate solution is to define a codelet with its
-starpu_codelet::where field set to \ref STARPU_NOWHERE, for instance:
+An intermediate solution is to define a codelet with its field
+starpu_codelet::where set to \ref STARPU_NOWHERE, for instance:
 
 \code{.c}
 struct starpu_codelet cl =
