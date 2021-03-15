@@ -163,7 +163,7 @@ struct _starpu_mp_node
 	/*Is starpu running*/
 	int is_running;
 
-	/** Buffer used for scif data transfers, allocated
+	/** Buffer used for data transfers, allocated
 	 * during node initialization.
 	 * Size : BUFFER_SIZE */
 	void *buffer;
