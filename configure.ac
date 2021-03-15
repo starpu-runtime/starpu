@@ -2148,6 +2148,9 @@ fi
 if test $maxcpus == 0
 then
 	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* 64 \) + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+elif test $nmaxmpidev == 0
+then
+	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
 else
 	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
 fi
