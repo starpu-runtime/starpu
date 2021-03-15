@@ -1124,7 +1124,7 @@ according to the interface, passing it the pointers, and checking whether it
 returned \c -EAGAIN, which means the copy is asynchronous, and StarPU will
 appropriately wait for it thanks to the pointer \c async_data.
 
-This copy method is referenced in a structure \ref starpu_data_copy_methods:
+This copy method is referenced in a structure \ref starpu_data_copy_methods
 
 \code{.c}
 static const struct starpu_data_copy_methods complex_copy_methods =
