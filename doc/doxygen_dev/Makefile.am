@@ -216,6 +216,7 @@ $(DOX_TAG): $(dox_inputs)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	@cp $(top_srcdir)/doc/doxygen_dev/chapters/version.sty $(DOX_LATEX_DIR)
+	@cp $(top_srcdir)/doc/doxygen_dev/modules.tex $(DOX_LATEX_DIR)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
 	@cd $(DOX_LATEX_DIR) ;\
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\
