@@ -90,6 +90,7 @@ static void get_ordre_utilisation_donnee_mst(struct mst_sched_data *a, int NB_TO
 	struct starpu_task *task = NULL; 
 	int i = 0; int j = 0; int k = 0;
 	
+	total_nb_data = NB_TOTAL_DONNEES; 
 	task = starpu_task_list_begin(&a->SIGMA);
 	data_use_order = malloc(NB_TOTAL_DONNEES*sizeof(STARPU_TASK_GET_HANDLE(task,0)));
 	task_position_in_data_use_order = malloc(NT*sizeof(int));

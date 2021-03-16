@@ -70,6 +70,7 @@ struct my_list
 	struct starpu_task_list sub_list; /* The list containing the tasks */
 	struct my_list *next;
 	int split_last_ij; /* The separator of the last state of the current package */
+	starpu_data_handle_t * data_use_order; /* Order in which data will be loaded. used for Belady */
 };
 
 /* Empty a task's list. We use this for the lists last_package */
@@ -248,6 +249,7 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 	return a; 	
 }
 
+/* Get weight of all different data. Only works if you have only one package */
 static void get_weight_all_different_data(struct my_list *a, starpu_ssize_t GPU_RAM_M)
 {
 	printf("Taille de la matrice : %ld\n",GPU_RAM_M);
@@ -259,32 +261,37 @@ static void get_weight_all_different_data(struct my_list *a, starpu_ssize_t GPU_
 }
 
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
-static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
+static void get_ordre_utilisation_donnee(struct HFP_sched_data* a, int NB_TOTAL_DONNEES)
 {
 	/* ces deux fichiers sont juste utile pour le débuggage, on pourra les suppr plus tard */
-	//~ FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
-	//~ FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt","w");
+	FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
+	FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt","w");
 	struct starpu_task *task = NULL; 
 	int i = 0; int j = 0; int k = 0;
-	
+	a->temp_pointer_1 = a->first_link;
 	total_nb_data = NB_TOTAL_DONNEES;
-	data_use_order = malloc(total_nb_data*sizeof(a->package_data[0]));
 	task_position_in_data_use_order = malloc(NT*sizeof(int));
+	index_task_currently_treated = 0; /* Initialized to 0 here. We need it in get_current_task. Could be initialized elsewhere though */
 	
-	for (task = starpu_task_list_begin(&a->sub_list); task != starpu_task_list_end(&a->sub_list); task = starpu_task_list_next(task)) {
-		//~ fprintf(f_2,"%p\n",task);
-		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-			data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
-			k++;
-			//~ fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
+	while (a->temp_pointer_1 != NULL) {
+		a->temp_pointer_1->data_use_order = malloc(total_nb_data*sizeof(a->temp_pointer_1->package_data[0]));
+		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
+			fprintf(f_2,"%p\n",task);
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				a->temp_pointer_1->data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
+				k++;
+				fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
+			}
+			if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
+			else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
+			j++;
 		}
-		if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
-		else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
-		j++;
+		a->temp_pointer_1 = a->temp_pointer_1->next;
+		fprintf(f_2,"-------------\n");
+		fprintf(f,"-------------\n");
 	}
-	index_task_currently_treated = 0;
-	//~ fclose(f);
-	//~ fclose(f_2);
+	fclose(f);
+	fclose(f_2);
 }
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
@@ -1131,9 +1138,10 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		
 		/* Belady */
 		if (starpu_get_env_number_default("BELADY",0) == 1) {
-			get_ordre_utilisation_donnee(data->first_link, NB_TOTAL_DONNEES);
+			get_ordre_utilisation_donnee(data, NB_TOTAL_DONNEES);
 		}
 		
+		/* If you want to get the sum of weight of all different data. Only works if you have only one package */
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->first_link, GPU_RAM_M); }
 		
 		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
@@ -1276,13 +1284,34 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 }
 
 /* Almost Belady while tasks are being executed */
-starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
+starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, struct starpu_sched_component *component, struct starpu_sched_component *to, struct HFP_sched_data* a)
 {
 	//~ printf("BELADY\n");
 	int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
 	unsigned nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
 	int is_allocated;
+	
+	/* Getting on the sub_list corresponding to the current GPU */
+	if (starpu_get_env_number_default("MULTIGPU",0) == 0) { }
+	else { 	
+		printf("Il y a %u GPUs\n", component->nchildren);
+		printf("\nChildren 1 : %p / ", component->children[0]);
+		printf("Children 2 : %p / ", component->children[1]);
+		printf("Children 3 : %p / ", component->children[2]);
+		printf("to : %p\n", to);
+		
+		a->temp_pointer_1 = a->first_link;
+		for (i = 0; i < component->nchildren; i++) {
+			if (to == component->children[i]) {
+				break;
+			}
+			else {
+				a->temp_pointer_1 = a->temp_pointer_1->next;
+			}
+		}
+	}
+	
 	if (task_currently_treated != NULL) {
 		
 		//New memory read

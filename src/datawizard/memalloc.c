@@ -26,7 +26,7 @@
 
 /* Variables used for Belady in xgemm.c and HFP.c */
 struct starpu_task *task_currently_treated = NULL;
-starpu_data_handle_t * data_use_order;
+//~ starpu_data_handle_t * data_use_order;
 int total_nb_data;
 int * task_position_in_data_use_order;
 int index_task_currently_treated;
