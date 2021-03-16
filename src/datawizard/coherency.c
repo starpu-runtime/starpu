@@ -912,7 +912,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC);
+		_starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);

@@ -132,7 +132,7 @@ static unsigned _starpu_attempt_to_submit_data_request(unsigned request_from_cod
 		while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 		{
 			cpt++;
-			_starpu_datawizard_progress(STARPU_DATAWIZARD_DO_NOT_ALLOC);
+			_starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_NOT_ALLOC);
 		}
 		if (cpt == STARPU_SPIN_MAXTRY)
 			_starpu_spin_lock(&handle->header_lock);
@@ -266,7 +266,7 @@ static void _starpu_take_data(unsigned request_from_codelet,
 		while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 		{
 			cpt++;
-			_starpu_datawizard_progress(STARPU_DATAWIZARD_DO_NOT_ALLOC);
+			_starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_NOT_ALLOC);
 		}
 		if (cpt == STARPU_SPIN_MAXTRY)
 			_starpu_spin_lock(&handle->header_lock);

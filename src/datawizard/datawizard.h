@@ -39,7 +39,7 @@
  *
  * If \p push_requests is 1, it can start new transfers
  *
- * If \p may_alloc is STARPU_DATAWIZARD_DO_ALLOC, it can allocate destination data for transfers
+ * If \p may_alloc is _STARPU_DATAWIZARD_DO_ALLOC, it can allocate destination data for transfers
  * (this is not possible e.g. when spinning for a handle lock)
  */
 int __starpu_datawizard_progress(enum _starpu_may_alloc may_alloc, unsigned push_requests);

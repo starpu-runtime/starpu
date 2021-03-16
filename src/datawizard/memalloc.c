@@ -1588,7 +1588,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(STARPU_DATAWIZARD_DO_NOT_ALLOC);
+		_starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_NOT_ALLOC);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);

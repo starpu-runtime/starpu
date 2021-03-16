@@ -1373,9 +1373,10 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 			    * used, we cannot be a sink. */
 	unsigned worker;
 
+#if !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MP)
 	(void)argc;
 	(void)argv;
-
+#endif
 	/* This initializes _starpu_silent, thus needs to be early */
 	_starpu_util_init();
 

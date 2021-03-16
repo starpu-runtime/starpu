@@ -788,12 +788,12 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	if (!idle_tasks)
 	{
 		/* No task ready yet, no better thing to do than waiting */
-		__starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, !idle_transfers);
+		__starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, !idle_transfers);
 		return 0;
 	}
 #endif
 
-	res = __starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
+	res = __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
 	task = _starpu_get_worker_task(worker, workerid, memnode);
 
