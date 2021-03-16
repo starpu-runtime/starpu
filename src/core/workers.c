@@ -1176,6 +1176,9 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_MIN_PRIO", &conf->global_sched_ctx_min_priority, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_MAX_PRIO", &conf->global_sched_ctx_max_priority, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_CATCH_SIGNALS", &conf->catch_signals, conf->precedence_over_environment_variables);
 }
 
 struct starpu_tree* starpu_workers_get_tree(void)
