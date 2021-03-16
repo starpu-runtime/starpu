@@ -129,7 +129,13 @@ struct starpu_conf
 	   (default = <c>NULL</c>)
 	*/
 	struct starpu_sched_policy *sched_policy;
-	void (*sched_policy_init)(unsigned);
+
+	/**
+	   Callback function that can later be used by the scheduler.
+	   The scheduler can retrieve this function by calling
+	   starpu_sched_ctx_get_sched_policy_callback()
+	*/
+	void (*sched_policy_callback)(unsigned);
 
 	/**
 	   For all parameters specified in this structure that can
