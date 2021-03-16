@@ -91,6 +91,9 @@ void func_dup_arg(void *descr[], void *_args)
 
         FPRINTF(stderr, "[codelet dup_arg] values: %d %c %d\n", *factor, *c, *x);
 	assert(*factor == 12 && *c == 'n' && *x == 42);
+	free(factor);
+	free(c);
+	free(x);
 }
 
 struct starpu_codelet mycodelet_dup_arg =
