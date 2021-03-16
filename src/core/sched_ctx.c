@@ -2782,7 +2782,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 	if(config->topology.nsched_ctxs == 1)
 	{
 		/*we have all available resources */
-		npus = starpu_worker_get_nids_by_type(arch, pus, max);
+		npus = _starpu_worker_get_nids_by_type(arch, pus, max);
 /*TODO: hierarchical ctxs: get max good workers: close one to another */
 		for(i = 0; i < npus; i++)
 			workers[(*nw)++] = pus[i];
@@ -2790,7 +2790,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 	else
 	{
 		unsigned enough_ressources = 0;
-		npus = starpu_worker_get_nids_ctx_free_by_type(arch, pus, max);
+		npus = _starpu_worker_get_nids_ctx_free_by_type(arch, pus, max);
 
 		for(i = 0; i < npus; i++)
 			workers[(*nw)++] = pus[i];

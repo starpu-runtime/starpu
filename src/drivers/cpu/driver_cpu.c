@@ -59,7 +59,7 @@
 #include <windows.h>
 #endif
 
-static struct starpu_driver_info driver_info =
+static struct _starpu_driver_info driver_info =
 {
 	.name_upper = "CPU",
 	.name_var = "CPU",
@@ -68,7 +68,7 @@ static struct starpu_driver_info driver_info =
 	.alpha = 0.5f,
 };
 
-static struct starpu_memory_driver_info memory_driver_info =
+static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "NUMA",
 	.worker_archtype = STARPU_CPU_WORKER,
@@ -76,8 +76,8 @@ static struct starpu_memory_driver_info memory_driver_info =
 
 void _starpu_cpu_preinit(void)
 {
-	starpu_driver_info_register(STARPU_CPU_WORKER, &driver_info);
-	starpu_memory_driver_info_register(STARPU_CPU_RAM, &memory_driver_info);
+	_starpu_driver_info_register(STARPU_CPU_WORKER, &driver_info);
+	_starpu_memory_driver_info_register(STARPU_CPU_RAM, &memory_driver_info);
 }
 
 

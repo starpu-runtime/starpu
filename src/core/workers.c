@@ -204,16 +204,16 @@ void _starpu__workers_c__register_kobs(void)
 	/* TODO */
 }
 
-struct starpu_driver_info starpu_driver_info[STARPU_NARCH];
+struct _starpu_driver_info starpu_driver_info[STARPU_NARCH];
 
-void starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct starpu_driver_info *info)
+void _starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct _starpu_driver_info *info)
 {
 	starpu_driver_info[archtype] = *info;
 }
 
-struct starpu_memory_driver_info starpu_memory_driver_info[STARPU_MAX_RAM+1];
+struct _starpu_memory_driver_info starpu_memory_driver_info[STARPU_MAX_RAM+1];
 
-void starpu_memory_driver_info_register(enum starpu_node_kind kind, const struct starpu_memory_driver_info *info)
+void _starpu_memory_driver_info_register(enum starpu_node_kind kind, const struct _starpu_memory_driver_info *info)
 {
 	starpu_memory_driver_info[kind] = *info;
 }
@@ -2436,7 +2436,7 @@ int starpu_wake_worker_no_relax(int workerid)
 	return starpu_wakeup_worker_no_relax(workerid, sched_cond, sched_mutex);
 }
 
-int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
+int _starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
 
@@ -2458,7 +2458,7 @@ int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *worker
 	return cnt;
 }
 
-int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
+int _starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize)
 {
 	unsigned nworkers = starpu_worker_get_count();
 	int cnt = 0;
