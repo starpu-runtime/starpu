@@ -99,7 +99,8 @@ extern "C"
    It has to be initialized with starpu_conf_init(). When the default
    value is used, StarPU automatically selects the number of
    processing units and takes the default scheduling policy. The
-   environment variables overwrite the equivalent parameters.
+   environment variables overwrite the equivalent parameters unless
+   starpu_conf::precedence_over_environment_variables is set.
 */
 struct starpu_conf
 {
@@ -151,7 +152,7 @@ struct starpu_conf
 	/**
 	   Number of CPU cores that StarPU can use. This can also be
 	   specified with the environment variable \ref STARPU_NCPU.
-	   (default = -1)
+	   (default = \c -1)
 	*/
 	int ncpus;
 
@@ -166,7 +167,7 @@ struct starpu_conf
 	   Number of CUDA devices that StarPU can use. This can also
 	   be specified with the environment variable \ref
 	   STARPU_NCUDA.
-	   (default = -1)
+	   (default = \c -1)
 	*/
 	int ncuda;
 
@@ -174,7 +175,7 @@ struct starpu_conf
 	   Number of OpenCL devices that StarPU can use. This can also
 	   be specified with the environment variable \ref
 	   STARPU_NOPENCL.
-	   (default = -1)
+	   (default = \c -1)
 	*/
 	int nopencl;
 
@@ -182,7 +183,7 @@ struct starpu_conf
 	   Number of MPI Master Slave devices that StarPU can use.
 	   This can also be specified with the environment variable
 	   \ref STARPU_NMPI_MS.
-	   (default = -1)
+	   (default = \c -1)
 	*/
         int nmpi_ms;
 
@@ -192,7 +193,7 @@ struct starpu_conf
 	   StarPU automatically selects where to bind the different
 	   workers. This can also be specified with the environment
 	   variable \ref STARPU_WORKERS_CPUID.
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	unsigned use_explicit_workers_bindid;
 
@@ -203,7 +204,7 @@ struct starpu_conf
 	   indicates the logical identifier of the processor which
 	   should execute the i-th worker. Note that the logical
 	   ordering of the CPUs is either determined by the OS, or
-	   provided by the hwloc library in case it is available.
+	   provided by the \c hwloc library in case it is available.
 	*/
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
 
@@ -214,7 +215,7 @@ struct starpu_conf
 	   affects the CUDA devices in a round-robin fashion. This can
 	   also be specified with the environment variable \ref
 	   STARPU_WORKERS_CUDAID.
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	unsigned use_explicit_workers_cuda_gpuid;
 
@@ -232,7 +233,7 @@ struct starpu_conf
 	   affects the OpenCL devices in a round-robin fashion. This
 	   can also be specified with the environment variable \ref
 	   STARPU_WORKERS_OPENCLID.
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	unsigned use_explicit_workers_opencl_gpuid;
 
@@ -249,7 +250,7 @@ struct starpu_conf
 	   array starpu_conf::workers_mpi_ms_deviceid. Otherwise,
 	   StarPU affects the MPI Master Slave devices in a
 	   round-robin fashion.
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	unsigned use_explicit_workers_mpi_ms_deviceid;
 
@@ -266,7 +267,7 @@ struct starpu_conf
 	   this value is equal to -1, the default value is used. This
 	   can also be specified with the environment variable \ref
 	   STARPU_BUS_CALIBRATE.
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	int bus_calibrate;
 
@@ -278,7 +279,7 @@ struct starpu_conf
 	   2, the existing performance models will be overwritten.
 	   This can also be specified with the environment variable
 	   \ref STARPU_CALIBRATE.
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	int calibrate;
 
@@ -293,7 +294,7 @@ struct starpu_conf
 	   worker sizes to look for the most efficient ones.
 	   This can also be specified with the environment variable
 	   \ref STARPU_SINGLE_COMBINED_WORKER.
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	int single_combined_worker;
 
@@ -309,7 +310,7 @@ struct starpu_conf
 	   This can also be specified at compilation time by giving to
 	   the configure script the option \ref
 	   disable-asynchronous-copy "--disable-asynchronous-copy".
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	int disable_asynchronous_copy;
 
@@ -322,7 +323,7 @@ struct starpu_conf
 	   the configure script the option \ref
 	   disable-asynchronous-cuda-copy
 	   "--disable-asynchronous-cuda-copy".
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	int disable_asynchronous_cuda_copy;
 
@@ -339,7 +340,7 @@ struct starpu_conf
 	   the configure script the option \ref
 	   disable-asynchronous-opencl-copy
 	   "--disable-asynchronous-opencl-copy".
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	int disable_asynchronous_opencl_copy;
 
@@ -352,7 +353,7 @@ struct starpu_conf
 	   the configure script the option \ref
 	   disable-asynchronous-mpi-master-slave-copy
 	   "--disable-asynchronous-mpi-master-slave-copy".
-	   (default = 0).
+	   (default = \c 0).
 	*/
 	int disable_asynchronous_mpi_ms_copy;
 
@@ -382,7 +383,7 @@ struct starpu_conf
 	   The number of StarPU drivers that should not be launched by
 	   StarPU, i.e number of elements of the array
 	   starpu_conf::not_launched_drivers.
-	   (default = 0)
+	   (default = \c 0)
 	*/
 	unsigned n_not_launched_drivers;
 
@@ -395,8 +396,20 @@ struct starpu_conf
 	*/
 	uint64_t trace_buffer_size;
 
+	/**
+	   Set the mininum priority used by priorities-aware
+	   schedulers.
+	   This also can be specified with the environment variable \ref
+	   STARPU_MIN_PRIO
+	*/
 	int global_sched_ctx_min_priority;
 
+	/**
+	   Set the maxinum priority used by priorities-aware
+	   schedulers.
+	   This also can be specified with the environment variable \ref
+	   STARPU_MAX_PRIO
+	*/
 	int global_sched_ctx_max_priority;
 
 #ifdef STARPU_WORKER_CALLBACKS
@@ -405,14 +418,14 @@ struct starpu_conf
 #endif
 
 	/**
-	   Specify if StarPU should catch SIGINT, SIGSEGV and SIGTRAP
+	   Specify if StarPU should catch \c SIGINT, \c SIGSEGV and \c SIGTRAP
 	   signals to make sure final actions (e.g dumping FxT trace
 	   files) are done even though the application has crashed. By
 	   default (value = \c 1), signals are catched. It should be
 	   disabled on systems which already catch these signals for
 	   their own needs (e.g JVM)
 	   This can also be specified with the environment variable
-	   \ref STARPU_CATCH_SIGNALS
+	   \ref STARPU_CATCH_SIGNALS.
 	 */
 	int catch_signals;
 
@@ -423,20 +436,24 @@ struct starpu_conf
 	unsigned start_perf_counter_collection;
 
 	/**
-	   Minimum spinning backoff of drivers. Default value: \c 1
+	   Minimum spinning backoff of drivers (default = \c 1)
 	 */
 	unsigned driver_spinning_backoff_min;
 
 	/**
-	   Maximum spinning backoff of drivers. Default value: \c 32
+	   Maximum spinning backoff of drivers. (default = \c 32)
 	 */
 	unsigned driver_spinning_backoff_max;
 
 	/**
 	   Specify if CUDA workers should do only fast allocations
 	   when running the datawizard progress of
-	   other memory nodes. This will pass STARPU_DATAWIZARD_ONLY_FAST_ALLOC.
-	   Default value is 0, allowing CUDA workers to do slow allocations.
+	   other memory nodes. This will pass the interval value
+	   _STARPU_DATAWIZARD_ONLY_FAST_ALLOC to the allocation method.
+	   Default value is 0, allowing CUDA workers to do slow
+	   allocations.
+	   This can also be specified with the environment variable
+	   \ref STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES.
 	 */
 	int cuda_only_fast_alloc_other_memnodes;
 };
@@ -458,9 +475,11 @@ int starpu_conf_init(struct starpu_conf *conf);
    starpu_conf::ncpus = 0, starpu_conf::ncuda = 0, etc.
 
    This allows to portably enable only a given type of worker:
-
-   starpu_conf_noworker(&conf);
+   <br/>
+   <c>
+   starpu_conf_noworker(&conf);<br/>
    conf.ncpus = -1;
+   </c>
 */
 int starpu_conf_noworker(struct starpu_conf *conf);
 
@@ -477,7 +496,8 @@ int starpu_init(struct starpu_conf *conf) STARPU_WARN_UNUSED_RESULT;
 
 /**
    Similar to starpu_init(), but also take the \p argc and \p argv as
-   defined by the application.
+   defined by the application, which is necessary when running in
+   Simgrid mode or MPI Master Slave mode.
    Do not call starpu_init() and starpu_initialize() in the same
    program.
 */
@@ -509,6 +529,7 @@ void starpu_shutdown(void);
    should be used to unfreeze the workers.
 */
 void starpu_pause(void);
+
 /**
    Symmetrical call to starpu_pause(), used to resume the workers
    polling for new tasks.
@@ -526,7 +547,7 @@ void starpu_resume(void);
 /**
    Return a PU binding ID which can be used to bind threads with
    starpu_bind_thread_on(). \p flags can be set to
-   STARPU_THREAD_ACTIVE or 0. When \p npreferred is set to non-zero,
+   ::STARPU_THREAD_ACTIVE or 0. When \p npreferred is set to non-zero,
    \p preferred is an array of size \p npreferred in which a
    preference of PU binding IDs can be set. By default StarPU will
    return the first PU available for binding.
@@ -542,7 +563,7 @@ unsigned starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned np
    so the caller can tell the user how to avoid the issue.
 
    \p name should be set to a unique string so that different calls
-   with the same name for the same cpuid does not produce a warning.
+   with the same name for the same \p cpuid does not produce a warning.
 */
 int starpu_bind_thread_on(int cpuid, unsigned flags, const char *name);
 

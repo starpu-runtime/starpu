@@ -333,8 +333,11 @@ This permits to test the performance effect of GPU-Direct.
 \addindex __env__STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
 Specify if CUDA workers should do only fast allocations
 when running the datawizard progress of
-other memory nodes. This will pass STARPU_DATAWIZARD_ONLY_FAST_ALLOC.
+other memory nodes. This will pass the internal value
+_STARPU_DATAWIZARD_ONLY_FAST_ALLOC to allocation methods.
 Default value is 0, allowing CUDA workers to do slow allocations.
+
+This can also be specified with starpu_conf::cuda_only_fast_alloc_other_memnodes.
 </dd>
 
 </dl>
@@ -496,6 +499,7 @@ Use <c>STARPU_SCHED=help</c> to get the list of available schedulers.
 \anchor STARPU_MIN_PRIO_env
 \addindex __env__STARPU_MIN_PRIO
 Set the mininum priority used by priorities-aware schedulers.
+The flag can also be set through the field starpu_conf::global_sched_ctx_min_priority.
 </dd>
 
 <dt>STARPU_MAX_PRIO</dt>
@@ -503,6 +507,7 @@ Set the mininum priority used by priorities-aware schedulers.
 \anchor STARPU_MAX_PRIO_env
 \addindex __env__STARPU_MAX_PRIO
 Set the maximum priority used by priorities-aware schedulers.
+The flag can also be set through the field starpu_conf::global_sched_ctx_max_priority.
 </dd>
 
 <dt>STARPU_CALIBRATE</dt>
