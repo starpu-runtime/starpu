@@ -24,12 +24,23 @@
 #include <starpu.h>
 #include <common/uthash.h>
 
-/* Variables used for Belady in xgemm.c and HFP.c */
+/* Variables used for Belady in xgemm.c and HFP.c and mst.c */
 struct starpu_task *task_currently_treated = NULL;
-//~ starpu_data_handle_t * data_use_order;
-int total_nb_data;
+starpu_data_handle_t * data_use_order;
+int *summed_nb_data_each_gpu;
+int *summed_nb_task_each_gpu;
 int * task_position_in_data_use_order;
 int index_task_currently_treated;
+//~ struct gpu_list
+//~ {
+    //~ struct data_use_order *first_gpu;
+//~ };
+//~ struct data_use_order
+//~ {
+   //~ starpu_data_handle_t * data;
+   //~ struct data_use_order *next_gpu;
+   //~ int total_nb_data
+//~ };
 
 /* When reclaiming memory to allocate, we reclaim data_size_coefficient*data_size */
 const unsigned starpu_memstrategy_data_size_coefficient=2;

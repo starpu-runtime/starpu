@@ -13,21 +13,32 @@ extern struct starpu_task *task_currently_treated;
    Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node).
 */
 
-//~ extern starpu_data_handle_t * data_use_order;
+extern starpu_data_handle_t * data_use_order;
 
 //~ /**
-   //~ Order in which data will be used after HFP packing.
+   //~ Order in which data will be used after HFP packing in each package/GPU.
    //~ Filled in HFP.c in static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
    //~ Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
 //~ */
+//~ extern struct data_use_order
+//~ {
+   //~ starpu_data_handle_t * data;
+   //~ struct data_use_order *next_gpu;
+   //~ int total_nb_data;
+//~ };
+//~ extern struct gpu_list
+//~ {
+    //~ struct data_use_order *first_gpu;
+//~ };
 
-extern int total_nb_data;
+extern int *summed_nb_data_each_gpu;
+extern int *summed_nb_task_each_gpu;
 
-/**
-   Total number of data. Used to initialize starpu_data_handle_t * data_use_order and to know when to stop.
-   Filled in HFP.c in static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
-   Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
-*/
+//~ /**
+   //~ Total number of data of a package. Used to initialize starpu_data_handle_t * data_use_order and to know when to stop.
+   //~ Filled in HFP.c in static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
+   //~ Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
+//~ */
 
 extern int * task_position_in_data_use_order;
 
@@ -45,6 +56,6 @@ extern int index_task_currently_treated;
    Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
 */
 
-starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, struct starpu_sched_component *component, struct starpu_sched_component *to, struct HFP_sched_data* a);
+starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
 
 #endif
