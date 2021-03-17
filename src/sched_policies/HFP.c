@@ -672,6 +672,18 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 	return 0;
 }
 
+/* Need an empty data structure to build packages
+ * Output a task list ordered. Son it's HFP if we have only one package at the end
+ * Used for now to reorder task inside a package after load balancing
+ * Can be used as main HFP like in pull task later
+ */
+struct starpu_task_list hierarchical_fair_packing (struct HFP_sched_data *building, struct starpu_task_list task_list) {
+	struct starpu_task *task;
+	task = starpu_task_list_pop_front(&task_list);
+	starpu_task_list_push_back(&task_list, task);
+	return task_list;
+}
+
 void print_packages_in_terminal (struct HFP_sched_data *a, int nb_of_loop) {
 	int link_index = 0; int i = 0;
 	struct starpu_task *task;
@@ -716,6 +728,7 @@ bool is_empty(struct my_list* a)
 
 /* Push back in a package a task
  * Used in load_balance
+ * Does not manage to migrate data of the task too
  */
 void merge_task_and_package (struct my_list *package, struct starpu_task *task)
 {
@@ -754,53 +767,55 @@ void merge_task_and_package (struct my_list *package, struct starpu_task *task)
 void load_balance (struct HFP_sched_data *a, int number_gpu)
 {
 	int min_number_task_in_package, package_with_min_number_task, i, j, max_number_task_in_package, package_with_max_number_task, number_task_to_steal = 0;
+	bool load_balance_needed = true;
 	printf("A package should have %d or %d tasks\n", NT/number_gpu, NT/number_gpu+1);
 	/* Selecting the smallest and biggest package */
-	a->temp_pointer_1 = a->first_link;
-	min_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
-	max_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
-	package_with_min_number_task = 0;
-	package_with_max_number_task = 0;
-	while (a->temp_pointer_1 != NULL) {
-		a->temp_pointer_1 = a->temp_pointer_1->next;
-		i++;
-		if (min_number_task_in_package > a->temp_pointer_1->nb_task_in_sub_list) {
-			min_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
-			package_with_min_number_task = i;
-		}
-		if (max_number_task_in_package < a->temp_pointer_1->nb_task_in_sub_list) {
-			max_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
-			package_with_max_number_task = i;
-		}
-	}
-	
-	/* Stealing as much task from the last tasks of the biggest packages */
-	if (package_with_min_number_task == package_with_max_number_task) {
-		printf("All packages have the same number of tasks\n");
-	}
-	else {
+	while (load_balance_needed == true) { 
 		a->temp_pointer_1 = a->first_link;
-		for (i = 0; i < package_with_min_number_task; i++) {
+		min_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
+		max_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
+		package_with_min_number_task = 0;
+		package_with_max_number_task = 0;
+		i = 0;
+		a->temp_pointer_1 = a->temp_pointer_1->next;
+		while (a->temp_pointer_1 != NULL) {
+			i++;
+			if (min_number_task_in_package > a->temp_pointer_1->nb_task_in_sub_list) {
+				min_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
+				package_with_min_number_task = i;
+			}
+			if (max_number_task_in_package < a->temp_pointer_1->nb_task_in_sub_list) {
+				max_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
+				package_with_max_number_task = i;
+			}
 			a->temp_pointer_1 = a->temp_pointer_1->next;
 		}
-		a->temp_pointer_2 = a->first_link;
-		for (i = 0; i < package_with_max_number_task; i++) {
-			a->temp_pointer_2 = a->temp_pointer_2->next;
-		}
-		if (a->temp_pointer_2->nb_task_in_sub_list - ((NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list) >= NT/number_gpu) {
-			number_task_to_steal = (NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list;
+		printf("min et max : %d et %d\n",min_number_task_in_package, max_number_task_in_package);
+		/* Stealing as much task from the last tasks of the biggest packages */
+		if (package_with_min_number_task == package_with_max_number_task || min_number_task_in_package ==  max_number_task_in_package-1) {
+			printf("All packages have the same number of tasks +/- 1 task\n");
+			load_balance_needed = false;
 		}
 		else {
-			number_task_to_steal = a->temp_pointer_2->nb_task_in_sub_list - NT/number_gpu;
-			/* Need to loop here in order to steal from another package */
+			a->temp_pointer_1 = a->first_link;
+			for (i = 0; i < package_with_min_number_task; i++) {
+				a->temp_pointer_1 = a->temp_pointer_1->next;
+			}
+			a->temp_pointer_2 = a->first_link;
+			for (i = 0; i < package_with_max_number_task; i++) {
+				a->temp_pointer_2 = a->temp_pointer_2->next;
+			}
+			if (a->temp_pointer_2->nb_task_in_sub_list - ((NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list) >= NT/number_gpu) {
+				number_task_to_steal = (NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list;
+			}
+			else {
+				number_task_to_steal = a->temp_pointer_2->nb_task_in_sub_list - NT/number_gpu;
+			}
+			for (i = 0; i < number_task_to_steal; i++) {
+				merge_task_and_package(a->temp_pointer_1, starpu_task_list_pop_back(&a->temp_pointer_2->sub_list));
+				a->temp_pointer_2->nb_task_in_sub_list--;
+			}
 		}
-		for (i = 0; i < number_task_to_steal; i++) {
-			merge_task_and_package(a->temp_pointer_1, starpu_task_list_pop_back(&a->temp_pointer_2->sub_list));
-		}
-	/* If it need more task steal from the second biggest and so on */
-	//TODO
-	/* Loop while we have packages with the same number of tasks + or - 1 task */
-	//TODO
 	}
 }
 
@@ -809,6 +824,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 {
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Pull task\n"); }
 	struct HFP_sched_data *data = component->data;
+	struct HFP_sched_data *building_structure = component->data;
 	
 	/* Variables used to calculate, navigate through a loop or other things */
 	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0; int NB_TOTAL_DONNEES = 0;
@@ -1255,8 +1271,18 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		/* Task stealing. Only in cases of multigpu */
 		if (starpu_get_env_number_default("MULTIGPU",0) != 0) {
 			load_balance(data, component->nchildren);
-			print_packages_in_terminal(data, nb_of_loop);
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { print_packages_in_terminal(data, nb_of_loop); }
 		}
+		/* Re-apply HFP on each package. 
+		 * Once task stealing is done we need to re-apply HFP. For this I use an other instance of HFP_sched_data.
+		 * It is in another function, if it work we can also put the packing above in it.
+		 */
+		 if (starpu_get_env_number_default("MULTIGPU",0) != 0) {
+			 //TODO : itérer sur tous les paquets
+			 //TODO : need to return a list so we can empty the list in data and reput task in it 
+			 data->first_link->sub_list = hierarchical_fair_packing(building_structure, data->first_link->sub_list);
+			 if (starpu_get_env_number_default("PRINTF",0) == 1) { print_packages_in_terminal(data, nb_of_loop); }
+		 }
 		
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); }
 		
@@ -1279,12 +1305,12 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		}
 		/* Else de if (!starpu_task_list_empty(&data->sched_list)), il faut donc return une tâche */
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p on time %lf\n",task1,to,starpu_timing_now()); }			
+			if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }			
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }			
 			return task1; /* Renvoie nil içi */
 	} /* End of if ((data->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->temp_pointer_1->sub_list))) { */
 		task1 = get_task_to_return(component, to, data);
-		if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p on time %lf\n",task1,to,starpu_timing_now()); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return task1;
