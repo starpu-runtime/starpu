@@ -329,7 +329,7 @@ int main(int argc, char **argv)
 	partition_data();
 	end = starpu_timing_now();
 
-	FPRINTF(stderr, "Problem intialization timing : %2.2f seconds\n", (end-start)/10e6);
+	FPRINTF(stderr, "Problem intialization timing : %2.2f seconds\n", (end-start)/1e6);
 
 	ret = cg();
 	if (ret == -ENODEV)

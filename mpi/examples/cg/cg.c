@@ -397,7 +397,7 @@ int main(int argc, char **argv)
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	end = starpu_timing_now();
 
-	FPRINTF_SERVER(stderr, "Problem initialization timing : %2.2f seconds\n", (end-start)/10e6);
+	FPRINTF_SERVER(stderr, "Problem initialization timing : %2.2f seconds\n", (end-start)/1e6);
 
 	ret = cg();
 	if (ret == -ENODEV)

@@ -825,9 +825,9 @@ int cg(void)
 	error = sqrt(delta_new/delta_0)/(1.0*n);
 	FPRINTF_SERVER(stderr, "*****************************************\n");
 	FPRINTF_SERVER(stderr, "iter %d DELTA %e - %e\n", i, delta_new, error);
-	FPRINTF_SERVER(stderr, "Total timing : %2.2f seconds\n", timing/10e6);
-	FPRINTF_SERVER(stderr, "Seconds per iteration : %2.2e seconds\n", timing/10e6/i);
-	FPRINTF_SERVER(stderr, "Number of iterations per second : %2.2e it/s\n", i/(timing/10e6));
+	FPRINTF_SERVER(stderr, "Total timing : %2.2f seconds\n", timing/1e6);
+	FPRINTF_SERVER(stderr, "Seconds per iteration : %2.2e seconds\n", timing/1e6/i);
+	FPRINTF_SERVER(stderr, "Number of iterations per second : %2.2e it/s\n", i/(timing/1e6));
 
 	return 0;
 }
