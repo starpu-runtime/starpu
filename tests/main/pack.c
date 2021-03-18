@@ -112,11 +112,17 @@ void func_pick_arg(void *descr[], void *_args)
 
 	(void)descr;
 
-	size_t psize = sizeof(int) + 3*sizeof(size_t) + sizeof(int) + sizeof(char) + sizeof(int);
+	size_t psize = sizeof(int) + 3*sizeof(size_t) + sizeof(int) + 4*sizeof(char) + sizeof(int);
 	struct starpu_codelet_pack_arg_data state;
 	starpu_codelet_unpack_arg_init(&state, _args, psize);
 	starpu_codelet_pick_arg(&state, (void**)&factor, &size);
 	assert(size == sizeof(*factor));
+	starpu_codelet_pick_arg(&state, (void**)&c, &size);
+	assert(size == sizeof(*c));
+	starpu_codelet_pick_arg(&state, (void**)&c, &size);
+	assert(size == sizeof(*c));
+	starpu_codelet_pick_arg(&state, (void**)&c, &size);
+	assert(size == sizeof(*c));
 	starpu_codelet_pick_arg(&state, (void**)&c, &size);
 	assert(size == sizeof(*c));
 	starpu_codelet_pick_arg(&state, (void**)&x, &size);
@@ -220,6 +226,9 @@ int main(void)
 		struct starpu_codelet_pack_arg_data state;
 		starpu_codelet_pack_arg_init(&state);
 		starpu_codelet_pack_arg(&state, &factor, sizeof(factor));
+		starpu_codelet_pack_arg(&state, &c, sizeof(c));
+		starpu_codelet_pack_arg(&state, &c, sizeof(c));
+		starpu_codelet_pack_arg(&state, &c, sizeof(c));
 		starpu_codelet_pack_arg(&state, &c, sizeof(c));
 		starpu_codelet_pack_arg(&state, &x, sizeof(x));
 		starpu_codelet_pack_arg_fini(&state, &task->cl_arg, &task->cl_arg_size);
