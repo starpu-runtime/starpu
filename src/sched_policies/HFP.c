@@ -684,7 +684,7 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 	int link_index = 0; int i = 0;
 	struct starpu_task *task;
-	long int total_weight = 0;
+	//~ long int total_weight = 0;
 	a->temp_pointer_1 = a->first_link;
 	while (a->temp_pointer_1 != NULL) { link_index++; a->temp_pointer_1 = a->temp_pointer_1->next;				
 				} a->temp_pointer_1 = a->first_link;
@@ -693,14 +693,14 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 			link_index = 0;	
 			while (a->temp_pointer_1 != NULL) {
 				printf("Le paquet %d contient %d tâche(s) et %d données\n",link_index,a->temp_pointer_1->nb_task_in_sub_list,a->temp_pointer_1->package_nb_data);
-				for (i = 0; i < a->temp_pointer_1->package_nb_data; i++) {
-					total_weight+= starpu_data_get_size(a->temp_pointer_1->package_data[i]);
-				}
+				//~ for (i = 0; i < a->temp_pointer_1->package_nb_data; i++) {
+					//~ total_weight+= starpu_data_get_size(a->temp_pointer_1->package_data[i]);
+				//~ }
 				for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
 					printf("%p\n",task);
 				}
-				printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
-				total_weight = 0;
+				//~ printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
+				//~ total_weight = 0;
 				link_index++;
 				a->temp_pointer_1 = a->temp_pointer_1->next;
 				printf("-----\n");
@@ -738,7 +738,8 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 	paquets_data->first_link = paquets_data->temp_pointer_1;
 		
 	int number_of_package_to_build = 1; /* 1 because we want to order just a sub list. To change with an args if we use this elsewhere. */
-	
+	struct starpu_task_list non_connexe;
+	starpu_task_list_init(&non_connexe);
 	int nb_duplicate_data = 0; long int weight_two_packages; /* Used to store the weight the merging of two packages would be. It is then used to see if it's inferior to the size of the RAM of the GPU */
 	long int max_value_common_data_matrix = 0; /* Store the maximum weight of the commons data between two packages for all the tasks */
 	long int common_data_last_package_i1_j1 = 0; /* Variables used to compare the affinity between sub package 1i and 1j, 1i and 2j etc... */
@@ -797,7 +798,6 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 			} */
 			
 			/* if (starpu_get_env_number_default("PRINTF",0) == 1) { init_visualisation_tache_matrice_format_tex(); } */
-			print_packages_in_terminal(paquets_data, nb_of_loop);
 			/* THE while loop. Stop when no more packaging are possible */
 			while (packaging_impossible == 0) {
 				beggining_while_packaging_impossible:
@@ -826,7 +826,7 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 										matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]) + starpu_data_get_size(paquets_data->temp_pointer_1->package_data[i]);
 									} } } index_head_2++; } index_head_1++; index_head_2 = index_head_1 + 1; }
 				/* Code to print the common data matrix */
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
+				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
 				
 				/* Getting back to the beginning of the linked list */
 				paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_2 = paquets_data->first_link;
@@ -877,9 +877,16 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 				paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_2 = paquets_data->first_link;
 				}	
 				if (max_value_common_data_matrix == 0) { 
-					/* It means that P_i share no data with others, so we put it in the end of the list */
-					//TODO
-				}	
+					/* It means that P_i share no data with others, so we put it in the end of the list
+					 * For this we use a separate list that we merge at the end
+					 * We will put this list at the end of the rest of the packages */
+					printf("graphe non connexe\n");
+					while (!starpu_task_list_empty(&paquets_data->temp_pointer_1->sub_list)) { 
+						starpu_task_list_push_back(&non_connexe,starpu_task_list_pop_front(&paquets_data->temp_pointer_1->sub_list));
+					}
+					paquets_data->temp_pointer_1->package_nb_data = 0;
+				}
+				else {
 				i_bis = 0; j_bis = 0; i = 0; j = 0;
 				for (i = 0; i < number_task; i++) {
 					if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) {
@@ -905,15 +912,15 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 								
 								if (starpu_get_env_number_default("ORDER_U",0) == 1) {
 									if (paquets_data->temp_pointer_1->nb_task_in_sub_list == 1 && paquets_data->temp_pointer_2->nb_task_in_sub_list == 1) {
-										if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I = 1 et J = 1\n"); }
+										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I = 1 et J = 1\n"); }
 									}
 									else if (weight_package_i > GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
-										if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I > PU_RAM et J <= PU_RAM\n"); }
+										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I > PU_RAM et J <= PU_RAM\n"); }
 										common_data_last_package_i1_j = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 1, 0, false,GPU_RAM_M);					
 										common_data_last_package_i2_j = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 0, false,GPU_RAM_M);					
-										if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\ni1j = %d / i2j = %d\n",common_data_last_package_i1_j,common_data_last_package_i2_j); }
+										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\ni1j = %d / i2j = %d\n",common_data_last_package_i1_j,common_data_last_package_i2_j); }
 										if (common_data_last_package_i1_j > common_data_last_package_i2_j) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I\n"); }
 											paquets_data->temp_pointer_1 = HFP_reverse_sub_list(paquets_data->temp_pointer_1);
 										}
 									}
@@ -921,7 +928,7 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 										common_data_last_package_i_j1 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 0, 1, false,GPU_RAM_M);					
 										common_data_last_package_i_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 0, 2, false,GPU_RAM_M);					
 										if (common_data_last_package_i_j2 > common_data_last_package_i_j1) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET J\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET J\n"); }
 											paquets_data->temp_pointer_2 = HFP_reverse_sub_list(paquets_data->temp_pointer_2);
 										}
 									}
@@ -933,36 +940,36 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 											common_data_last_package_i2_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 2, false,GPU_RAM_M);
 										}
 										else if (weight_package_i <= GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I <= PU_RAM et J <= PU_RAM\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I <= PU_RAM et J <= PU_RAM\n"); }
 											common_data_last_package_i1_j1 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 1, 1, true,GPU_RAM_M);					
 											common_data_last_package_i1_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 1, 2, true,GPU_RAM_M);
 											common_data_last_package_i2_j1 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 1, true,GPU_RAM_M);					
 											common_data_last_package_i2_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 2, true,GPU_RAM_M);
 										}
 										else { printf("Erreur dans ordre U, aucun cas choisi\n"); exit(0); }
-										if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("i1j1 = %ld / i1j2 = %ld / i2j1 = %ld / i2j2 = %ld\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2); }
+										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("i1j1 = %ld / i1j2 = %ld / i2j1 = %ld / i2j2 = %ld\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2); }
 										max_common_data_last_package = common_data_last_package_i2_j1;
 										if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
 										if (max_common_data_last_package < common_data_last_package_i1_j2) { max_common_data_last_package = common_data_last_package_i1_j2; }
 										if (max_common_data_last_package < common_data_last_package_i2_j2) { max_common_data_last_package = common_data_last_package_i2_j2; }
 										if (max_common_data_last_package == common_data_last_package_i2_j1) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Pas de switch\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Pas de switch\n"); }
 										}								
 										else if (max_common_data_last_package == common_data_last_package_i1_j2) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I ET J\n");	}
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I ET J\n");	}
 											paquets_data->temp_pointer_1 = HFP_reverse_sub_list(paquets_data->temp_pointer_1);									
 											paquets_data->temp_pointer_2 = HFP_reverse_sub_list(paquets_data->temp_pointer_2);
 										}
 										else if (max_common_data_last_package == common_data_last_package_i2_j2) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET J\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET J\n"); }
 											paquets_data->temp_pointer_2 = HFP_reverse_sub_list(paquets_data->temp_pointer_2);	
 										}
 										else { /* max_common_data_last_package == common_data_last_package_i1_j1 */
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I\n"); }
 											paquets_data->temp_pointer_1 = HFP_reverse_sub_list(paquets_data->temp_pointer_1);									
 										}		
 									}							
-									if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Fin de l'ordre U sans doublons\n"); }
+									//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Fin de l'ordre U sans doublons\n"); }
 								}
 								
 								paquets_data->temp_pointer_1->split_last_ij = paquets_data->temp_pointer_1->nb_task_in_sub_list;
@@ -1008,6 +1015,7 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 						}
 					}
 					paquets_data->temp_pointer_1=paquets_data->temp_pointer_1->next; paquets_data->temp_pointer_2=paquets_data->first_link;
+				}
 				}			
 				
 				break_merging_1:
@@ -1045,6 +1053,12 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 		GPU_limit_switch = 0; goto beggining_while_packaging_impossible;
 		
 		end_while_packaging_impossible:
+		
+		/* Add tasks or packages that were not connexe */
+		while(!starpu_task_list_empty(&non_connexe)) {
+			starpu_task_list_push_back(&paquets_data->first_link->sub_list, starpu_task_list_pop_front(&non_connexe));
+			paquets_data->first_link->nb_task_in_sub_list++;
+		}
 				
 		return paquets_data->first_link->sub_list;
 }
@@ -1230,7 +1244,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				//~ printf("Tâche %p---------\n",task1);
+				printf("Tâche %p\n",task1);
 				//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
 					//~ printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
 				//~ }
@@ -1241,9 +1255,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			N = sqrt(NT);
 			data->p->NP = NT;
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("NT = %d\n",NT); }
-					
-			if (starpu_get_env_number_default("PRINTF",0) == 2 || starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",nb_pop); }
-			
+				
 			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
 			const char* appli = starpu_task_get_name(temp_task_1);	
 			//~ printf("appli: %s\n",appli);
@@ -1328,7 +1340,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 						if (min_nb_task_in_sub_list > data->p->temp_pointer_1->nb_task_in_sub_list) { min_nb_task_in_sub_list = data->p->temp_pointer_1->nb_task_in_sub_list; } }
 					for (data->p->temp_pointer_1 = data->p->first_link; data->p->temp_pointer_1 != NULL; data->p->temp_pointer_1 = data->p->temp_pointer_1->next) {
 						if (min_nb_task_in_sub_list == data->p->temp_pointer_1->nb_task_in_sub_list) { nb_min_task_packages++; } }
-					if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list); }
+					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list); }
 					/* Then we create the common data matrix */
 					//~ printf("nb pop = %d\n",nb_pop);
 					for (data->p->temp_pointer_1 = data->p->first_link; data->p->temp_pointer_1 != NULL; data->p->temp_pointer_1 = data->p->temp_pointer_1->next) {
@@ -1427,15 +1439,15 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 									//~ printf("Split de last ij de J = %d\n",data->p->temp_pointer_2->split_last_ij); 
 									//~ printf("Poids paquet i : %li / Poids paquet j : %li / M : %li\n",weight_package_i,weight_package_j,GPU_RAM_M);
 									if (data->p->temp_pointer_1->nb_task_in_sub_list == 1 && data->p->temp_pointer_2->nb_task_in_sub_list == 1) {
-										if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I = 1 et J = 1\n"); }
+										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I = 1 et J = 1\n"); }
 									}
 									else if (weight_package_i > GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
-										if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I > PU_RAM et J <= PU_RAM\n"); }
+										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I > PU_RAM et J <= PU_RAM\n"); }
 										common_data_last_package_i1_j = get_common_data_last_package(data->p->temp_pointer_1, data->p->temp_pointer_2, 1, 0, false,GPU_RAM_M);					
 										common_data_last_package_i2_j = get_common_data_last_package(data->p->temp_pointer_1, data->p->temp_pointer_2, 2, 0, false,GPU_RAM_M);					
-										if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\ni1j = %d / i2j = %d\n",common_data_last_package_i1_j,common_data_last_package_i2_j); }
+										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\ni1j = %d / i2j = %d\n",common_data_last_package_i1_j,common_data_last_package_i2_j); }
 										if (common_data_last_package_i1_j > common_data_last_package_i2_j) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I\n"); }
 											data->p->temp_pointer_1 = HFP_reverse_sub_list(data->p->temp_pointer_1);
 										}
 										else { 
@@ -1448,7 +1460,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 										common_data_last_package_i_j2 = get_common_data_last_package(data->p->temp_pointer_1, data->p->temp_pointer_2, 0, 2, false,GPU_RAM_M);					
 										//~ printf("\nij1 = %d / ij2 = %d\n",common_data_last_package_i_j1,common_data_last_package_i_j2);
 										if (common_data_last_package_i_j2 > common_data_last_package_i_j1) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET J\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET J\n"); }
 											data->p->temp_pointer_2 = HFP_reverse_sub_list(data->p->temp_pointer_2);
 										}
 										else { 
@@ -1464,7 +1476,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 											common_data_last_package_i2_j2 = get_common_data_last_package(data->p->temp_pointer_1, data->p->temp_pointer_2, 2, 2, false,GPU_RAM_M);
 										}
 										else if (weight_package_i <= GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I <= PU_RAM et J <= PU_RAM\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I <= PU_RAM et J <= PU_RAM\n"); }
 											//~ printf("Tâches de I\n");
 											//~ temp_task_1 = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list);
 											//~ printf("%p:",temp_task_1);
@@ -1485,16 +1497,16 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 											common_data_last_package_i2_j2 = get_common_data_last_package(data->p->temp_pointer_1, data->p->temp_pointer_2, 2, 2, true,GPU_RAM_M);
 										}
 										else { printf("Erreur dans ordre U, aucun cas choisi\n"); exit(0); }
-										if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("i1j1 = %ld / i1j2 = %ld / i2j1 = %ld / i2j2 = %ld\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2); }
+										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("i1j1 = %ld / i1j2 = %ld / i2j1 = %ld / i2j2 = %ld\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2); }
 										max_common_data_last_package = common_data_last_package_i2_j1;
 										if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
 										if (max_common_data_last_package < common_data_last_package_i1_j2) { max_common_data_last_package = common_data_last_package_i1_j2; }
 										if (max_common_data_last_package < common_data_last_package_i2_j2) { max_common_data_last_package = common_data_last_package_i2_j2; }
 										if (max_common_data_last_package == common_data_last_package_i2_j1) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Pas de switch\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Pas de switch\n"); }
 										}								
 										else if (max_common_data_last_package == common_data_last_package_i1_j2) {
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I ET J\n");	}
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I ET J\n");	}
 											data->p->temp_pointer_1 = HFP_reverse_sub_list(data->p->temp_pointer_1);									
 											data->p->temp_pointer_2 = HFP_reverse_sub_list(data->p->temp_pointer_2);
 										}
@@ -1502,7 +1514,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 											//~ printf("Tâches du paquet %d:\n",data->p->temp_pointer_2->index_package);
 											//~ for (temp_task_1  = starpu_task_list_begin(&data->p->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->p->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 												//~ printf("%p / ",temp_task_1); } 
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET J\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET J\n"); }
 											data->p->temp_pointer_2 = HFP_reverse_sub_list(data->p->temp_pointer_2);	
 											//~ printf("Tâches du paquet %d:\n",data->p->temp_pointer_2->index_package);
 											//~ for (temp_task_1  = starpu_task_list_begin(&data->p->temp_pointer_2->sub_list); temp_task_1 != starpu_task_list_end(&data->p->temp_pointer_2->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
@@ -1512,14 +1524,14 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 											//~ printf("Tâches du paquet %d:\n",data->p->temp_pointer_1->index_package);
 											//~ for (temp_task_1  = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 												//~ printf("%p / ",temp_task_1); } 
-											if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I\n"); }
+											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I\n"); }
 											//~ printf("Tâches du paquet %d:\n",data->p->temp_pointer_1->index_package);
 											//~ for (temp_task_1  = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); temp_task_1  = starpu_task_list_next(temp_task_1)) {
 												//~ printf("%p / ",temp_task_1); } 
 											data->p->temp_pointer_1 = HFP_reverse_sub_list(data->p->temp_pointer_1);									
 										}		
 									}							
-									if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Fin de l'ordre U sans doublons\n"); }
+									//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Fin de l'ordre U sans doublons\n"); }
 								}
 								
 								data->p->temp_pointer_1->split_last_ij = data->p->temp_pointer_1->nb_task_in_sub_list;
@@ -1605,26 +1617,25 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				
 		data->p->temp_pointer_1 = data->p->first_link;	
 		
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { print_packages_in_terminal(data->p, nb_of_loop); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		
 		/* Task stealing. Only in cases of multigpu */
 		if (starpu_get_env_number_default("MULTIGPU",0) == 2) {
 			load_balance(data->p, component->nchildren);
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { print_packages_in_terminal(data->p, nb_of_loop); }
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
 		/* Re-apply HFP on each package. 
 		 * Once task stealing is done we need to re-apply HFP. For this I use an other instance of HFP_sched_data.
 		 * It is in another function, if it work we can also put the packing above in it.
+		 * Only with MULTIGPU = 2 because if we don't do load balance there is no point in re-applying HFP.
 		 */
-		 if (starpu_get_env_number_default("MULTIGPU",0) != 0) {
-			 //TODO : itérer sur tous les paquets
-			 //TODO : need to return a list so we can empty the list in data and reput task in it 
+		 if (starpu_get_env_number_default("MULTIGPU",0) == 2) {
 			 data->p->temp_pointer_1 = data->p->first_link;
 			 while (data->p->temp_pointer_1 != NULL) { 
 				data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
 				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 			}
-			 if (starpu_get_env_number_default("PRINTF",0) == 1) { print_packages_in_terminal(data->p, nb_of_loop); }
+			 if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After execution of HFP on each package we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		 }
 		
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); }
