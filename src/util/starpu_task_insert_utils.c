@@ -939,9 +939,8 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		}
 		else if (arg_type == STARPU_EXECUTE_WHERE)
 		{
-			assert(0);
 			arg_i++;
-			unsigned long long where = *(unsigned long long *)arglist[arg_i];
+			int32_t where = (int32_t)(intptr_t)arglist[arg_i];
 			task->where = where;
 		}
 		else if (arg_type == STARPU_EXECUTE_ON_WORKER)
