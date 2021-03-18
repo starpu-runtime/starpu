@@ -37,7 +37,7 @@
 #define PRINTF /* O or 1 */
 #define ORDER_U /* O or 1 */
 #define BELADY /* O or 1 */
-#define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance */
+#define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet */
 
 int NT;
 int N;
@@ -113,6 +113,14 @@ void HFP_insertion(struct paquets *a)
 	starpu_task_list_init(&new->sub_list);
     new->next = a->temp_pointer_1;
     a->temp_pointer_1 = new;
+}
+
+/* Put a link at the beginning of the linked list */
+void insertion_use_order(struct gpu_list *a)
+{
+    struct use_order *new = malloc(sizeof(*new));
+    new->next_gpu = a->pointer;
+    a->pointer = new;
 }
 
 /* Delete all the empty packages */
@@ -284,45 +292,57 @@ static void get_weight_all_different_data(struct my_list *a, starpu_ssize_t GPU_
 	printf("Poids de toutes les données différentes : %li\n",weight_all_different_data);
 }
 
+/* Takes a task list and return the total number of data that will be used.
+ * It means that it is the sum of the number of data for each task of the list.
+ */
+int get_total_number_data_task_list(struct starpu_task_list a) 
+{
+	int total_nb_data_list = 0;
+	for (struct starpu_task *task = starpu_task_list_begin(&a); task != starpu_task_list_end(&a); task = starpu_task_list_next(task)) 
+	{
+		total_nb_data_list +=  STARPU_TASK_GET_NBUFFERS(task);
+	}
+	return total_nb_data_list;
+}
+
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
 static void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu)
 {
+	int k = 0;
+	struct gpu_list *gpu_data = malloc(sizeof(*gpu_data));
+	struct use_order *use_order_data = malloc(sizeof(*use_order_data));
+	use_order_data->next_gpu = NULL;
+	gpu_data->pointer = use_order_data;
+	gpu_data->first_gpu = gpu_data->pointer;
+	
 	/* ces deux fichiers sont juste utile pour le débuggage, on pourra les suppr plus tard */
 	FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
 	FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt","w");
-	struct starpu_task *task = NULL; 
-	int i = 0; int j = 0; int k = 0; int l = 0;
+	//~ struct starpu_task *task = NULL; 
 	a->temp_pointer_1 = a->first_link;
-	task_position_in_data_use_order = malloc(NT*sizeof(int));
-	index_task_currently_treated = 0; /* Initialized to 0 here. We need it in get_current_task. Could be initialized elsewhere though */
-	summed_nb_data_each_gpu = malloc(nb_gpu*sizeof(int));
-	summed_nb_task_each_gpu = malloc(nb_gpu*sizeof(int));
-	data_use_order = malloc(NB_TOTAL_DONNEES*sizeof(a->temp_pointer_1->package_data[0]));
-	while (a->temp_pointer_1 != NULL) {
-		//~ j = 0;
-		if (l == 0) { 
-			summed_nb_data_each_gpu[l] = a->temp_pointer_1->total_nb_data_package;
-			summed_nb_task_each_gpu[l] = a->temp_pointer_1->nb_task_in_sub_list;
-		}
-		else {
-			summed_nb_data_each_gpu[l] = a->temp_pointer_1->total_nb_data_package + summed_nb_data_each_gpu[l-1];
-			summed_nb_task_each_gpu[l] = a->temp_pointer_1->nb_task_in_sub_list + summed_nb_task_each_gpu[l-1];
-		}
-		l++;
-		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
+	//~ index_task_currently_treated = 0; /* Initialized to 0 here. We need it in get_current_task. Could be initialized elsewhere though */
+	while (a->temp_pointer_1 != NULL) 
+	{
+		use_order_data->total_nb_data = get_total_number_data_task_list(a->temp_pointer_1->sub_list);
+		use_order_data->data_list = malloc(use_order_data->total_nb_data*sizeof(a->temp_pointer_1->package_data[0]));
+		use_order_data->last_position_in_data_use_order = 0;
+		for (struct starpu_task *task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
+		{
 			fprintf(f_2,"%p\n",task);
-			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-				data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
+			for (int i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				use_order_data->data_list[k] = STARPU_TASK_GET_HANDLE(task,i);
 				k++;
 				fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
 				printf("Donnée de %p : %p\n",task,STARPU_TASK_GET_HANDLE(task,i));
 			}
-			if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
-			else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
-			j++;
+			//~ if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
+			//~ else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
+			//~ j++;
 		}
+		k = 0;
 		a->temp_pointer_1 = a->temp_pointer_1->next;
-		//~ data_use_order = data_use_order->next_gpu;
+		insertion_use_order(gpu_data);
+		//~ use_order_data = use_order_data->next_gpu;
 		fprintf(f_2,"-------------\n");
 		fprintf(f,"-------------\n");
 	}
@@ -747,7 +767,7 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 	long int common_data_last_package_i2_j2 = 0; long int max_common_data_last_package = 0;
 	long int weight_package_i = 0; /* Used for ORDER_U too */
 	long int weight_package_j = 0; int i = 0;
-	int bool_data_common = 0; int GPU_limit_switch = 0; int temp_nb_min_task_packages = 0; int i_bis = 0; int j_bis = 0; int j = 0; int tab_runner = 0; int index_head_1 = 0; int index_head_2 = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
+	int bool_data_common = 0; int GPU_limit_switch = 1; int temp_nb_min_task_packages = 0; int i_bis = 0; int j_bis = 0; int j = 0; int tab_runner = 0; int index_head_1 = 0; int index_head_2 = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0;
 	struct starpu_task *task; int nb_of_loop = 0; int packaging_impossible = 0; int link_index = 0; int NB_TOTAL_DONNEES = 0;
 	task  = starpu_task_list_begin(&task_list);
@@ -880,7 +900,7 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 					/* It means that P_i share no data with others, so we put it in the end of the list
 					 * For this we use a separate list that we merge at the end
 					 * We will put this list at the end of the rest of the packages */
-					printf("graphe non connexe\n");
+					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("graphe non connexe\n"); }
 					while (!starpu_task_list_empty(&paquets_data->temp_pointer_1->sub_list)) { 
 						starpu_task_list_push_back(&non_connexe,starpu_task_list_pop_front(&paquets_data->temp_pointer_1->sub_list));
 					}
@@ -1120,7 +1140,7 @@ void load_balance (struct paquets *a, int number_gpu)
 {
 	int min_number_task_in_package, package_with_min_number_task, i, max_number_task_in_package, package_with_max_number_task, number_task_to_steal = 0;
 	bool load_balance_needed = true;
-	printf("A package should have %d or %d tasks\n", NT/number_gpu, NT/number_gpu+1);
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("A package should have %d or %d tasks\n", NT/number_gpu, NT/number_gpu+1); }
 	/* Selecting the smallest and biggest package */
 	while (load_balance_needed == true) { 
 		a->temp_pointer_1 = a->first_link;
@@ -1142,10 +1162,10 @@ void load_balance (struct paquets *a, int number_gpu)
 			}
 			a->temp_pointer_1 = a->temp_pointer_1->next;
 		}
-		printf("min et max : %d et %d\n",min_number_task_in_package, max_number_task_in_package);
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("min et max : %d et %d\n",min_number_task_in_package, max_number_task_in_package); }
 		/* Stealing as much task from the last tasks of the biggest packages */
 		if (package_with_min_number_task == package_with_max_number_task || min_number_task_in_package ==  max_number_task_in_package-1) {
-			printf("All packages have the same number of tasks +/- 1 task\n");
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("All packages have the same number of tasks +/- 1 task\n"); }
 			load_balance_needed = false;
 		}
 		else {
@@ -1244,7 +1264,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				printf("Tâche %p\n",task1);
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Tâche %p\n",task1); }
 				//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
 					//~ printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
 				//~ }
@@ -1620,7 +1640,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		
 		/* Task stealing. Only in cases of multigpu */
-		if (starpu_get_env_number_default("MULTIGPU",0) == 2) {
+		if (starpu_get_env_number_default("MULTIGPU",0) == 2 || starpu_get_env_number_default("MULTIGPU",0) == 3) {
 			load_balance(data->p, component->nchildren);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
@@ -1629,7 +1649,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		 * It is in another function, if it work we can also put the packing above in it.
 		 * Only with MULTIGPU = 2 because if we don't do load balance there is no point in re-applying HFP.
 		 */
-		 if (starpu_get_env_number_default("MULTIGPU",0) == 2) {
+		 if (starpu_get_env_number_default("MULTIGPU",0) == 3) {
 			 data->p->temp_pointer_1 = data->p->first_link;
 			 while (data->p->temp_pointer_1 != NULL) { 
 				data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
@@ -1771,7 +1791,7 @@ static void deinitialize_HFP_center_policy(unsigned sched_ctx_id)
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
 	task_currently_treated = task;
-	index_task_currently_treated++;	
+	//~ index_task_currently_treated++;	
 	starpu_sched_component_worker_pre_exec_hook(task,sci);
 }
 
@@ -1780,41 +1800,43 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
  */
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-
 	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Début de Belady\n"); }
 	int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
-	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
+	int k = 0; int j = 0; int i = 0;
 	unsigned nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
 	int is_allocated;
-	//~ struct data_use_order = struct gpu_list->first_gpu;
 		
 	/* Getting on the sub_list corresponding to the current GPU */
 	int current_gpu = starpu_memory_node_get_devid(node);
-	//~ printf("\ncurrent gpu = %d\n",current_gpu);
 	assert(starpu_node_get_kind(node) == 2); /* 2 = STARPU_CUDA_RAM */
-	//~ for (i = 0; i < starpu_memory_node_get_devid(node); i++) {
-		//~ data_use_order = data_use_order->next_gpu;
-	//~ }
+	struct gpu_list *gpu_data;
+	struct use_order *use_order_data = gpu_data->first_gpu;
+	for (i = 0; i < current_gpu; i++) 
+	{ 
+		use_order_data = use_order_data->next_gpu;
+	}
+	//TODO mettre un use_order_data->last data += le nb de doné de la tache courante; à la fin
 	
 	if (task_currently_treated != NULL && task_currently_treated->cl != NULL) {
 		starpu_data_handle_t *data_on_node;
 		starpu_data_get_node_data(node, &data_on_node, &nb_data_on_node);
 		
-		//Because I started at 1 and not 0
-		int used_index_task_currently_treated = index_task_currently_treated - 1;
+		//~ //Because I started at 1 and not 0
+		//~ int used_index_task_currently_treated = index_task_currently_treated - 1;
 		
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données\n",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1)
+			printf("La tâche en cours est %p\n",task_currently_treated);
 		
 		printf("Donnés de la tache %p en cours : %p %p et %p\n",task_currently_treated,STARPU_TASK_GET_HANDLE(task_currently_treated,0),STARPU_TASK_GET_HANDLE(task_currently_treated,1),STARPU_TASK_GET_HANDLE(task_currently_treated,2));
 		int nb = STARPU_TASK_GET_NBUFFERS(task_currently_treated);
 		printf("Nb de données de la tâche : %d\n",nb);
 		
-		//A CHANGER
-		if (task_position_in_data_use_order[index_task_currently_treated] != summed_nb_data_each_gpu[current_gpu]) {
+		//~ //A CHANGER
+		//~ if (task_position_in_data_use_order[index_task_currently_treated] != summed_nb_data_each_gpu[current_gpu]) {
 		//~ if (STARPU_TASK_GET_HANDLE(task_currently_treated,1) != data_use_order[summed_nb_data_each_gpu[current_gpu]) {
 			//~ nb_data_next_task = task_position_in_data_use_order[used_index_task_currently_treated] - task_position_in_data_use_order[used_index_task_currently_treated - 1];
 			
-			/* pas les bonnesdonnées la mais dans le fichier ca a l'air bon 
+			//~ /* pas les bonnesdonnées la mais dans le fichier ca a l'air bon 
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("nb data next :%d\n",nb_data_next_task);
 			//~ printf("Données de la tâche en cours : ");
 			//~ for (i = 0; i < nb_data_next_task; i++) {
@@ -1825,14 +1847,15 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Data on node : %p\n",data_on_node[i]); }
 			}
 
-			//tenir compte avec variable globale de l'index des données de la tache en cours dans le tableau. Pour
-			//cela regarder le num de gpu, et faire ndonnnégpu1 + ndonnégpu2 + donné courante de la tache courante
+			//~ //tenir compte avec variable globale de l'index des données de la tache en cours dans le tableau. Pour
+			//~ //cela regarder le num de gpu, et faire ndonnnégpu1 + ndonnégpu2 + donné courante de la tache courante
 			
 			for (i = 0; i < nb; i++) {	
 				/* On regarde si la donnée est pas déjà sur M par hasard */
 				starpu_data_query_status(STARPU_TASK_GET_HANDLE(task_currently_treated,i), node, &is_allocated, NULL, NULL);
-				/* //~ if (is_allocated && i == 1000) { */
-				if (is_allocated && i == 1000) { /* pk 1000 la ? a tester */
+				//~ /* //~ if (is_allocated && i == 1000) { */
+				//~ if (is_allocated && i == 1000) { /* pk 1000 la ? a tester */
+				if (is_allocated) { /* pk 1000 la ? a tester */
 					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La donnée %p est déjà sur M\n",STARPU_TASK_GET_HANDLE(task_currently_treated,i)); }
 				}
 				else {
@@ -1844,8 +1867,10 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 							if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) {
 								//N'est pas utilisé par la suite
 								/* modifier le 11111 j'ai juste mis ca la pour que ca compile */
-								for (k = summed_nb_data_each_gpu[current_gpu] - 11111; k < summed_nb_data_each_gpu[current_gpu]; k++) {
-									if (data_on_node[j] == data_use_order[k]) {
+								//~ for (k = summed_nb_data_each_gpu[current_gpu] - 11111; k < summed_nb_data_each_gpu[current_gpu]; k++) {
+								for (k = use_order_data->last_position_in_data_use_order; k < use_order_data->total_nb_data; k++) 
+								{
+									if (data_on_node[j] == use_order_data->data_list[k]) {
 										prochaine_utilisation_donnee[j] = k;
 										break;
 									}
@@ -1875,20 +1900,16 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 				}
 			}
 	}
-	else {
-		 if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On est sur la dernière tâche il faudrait sortir la\n"); } 
+	else 
+	{
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On est sur la dernière tâche il faudrait sortir la\n"); } 
 		free(data_on_node);
 		return NULL;
 		/* return STARPU_DATA_NO_VICTIM; */
-		 }
 	} 
-	else { 
+	else 
 		if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("task current = null\n"); } 
-		}
 
-	/* Uh :/ 
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr,"uh, no evictable data\n"); }
-	return NULL; */
 	return STARPU_DATA_NO_VICTIM;
 }
 

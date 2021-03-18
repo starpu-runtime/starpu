@@ -13,23 +13,25 @@ extern struct starpu_task *task_currently_treated;
    Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node).
 */
 
-extern starpu_data_handle_t * data_use_order;
+//~ extern starpu_data_handle_t * data_use_order;
 
 //~ /**
    //~ Order in which data will be used after HFP packing in each package/GPU.
    //~ Filled in HFP.c in static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
    //~ Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
 //~ */
-//~ extern struct data_use_order
-//~ {
-   //~ starpu_data_handle_t * data;
-   //~ struct data_use_order *next_gpu;
-   //~ int total_nb_data;
-//~ };
-//~ extern struct gpu_list
-//~ {
-    //~ struct data_use_order *first_gpu;
-//~ };
+struct use_order
+{
+   starpu_data_handle_t *data_list;
+   struct use_order *next_gpu;
+   int total_nb_data;
+   int last_position_in_data_use_order;
+};
+struct gpu_list
+{
+    struct use_order *pointer;
+    struct use_order *first_gpu;
+};
 
 extern int *summed_nb_data_each_gpu;
 extern int *summed_nb_task_each_gpu;
@@ -40,21 +42,21 @@ extern int *summed_nb_task_each_gpu;
    //~ Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
 //~ */
 
-extern int * task_position_in_data_use_order;
+//~ extern int * task_position_in_data_use_order;
 
-/**
-   Task position in starpu_data_handle_t * data_use_order.
-   Filled in HFP.c in static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
-   Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
-*/
+//~ /**
+   //~ Task position in starpu_data_handle_t * data_use_order.
+   //~ Filled in HFP.c in static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
+   //~ Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
+//~ */
 
-extern int index_task_currently_treated;
+//~ extern int index_task_currently_treated;
 
-/**
-   Index of task position in starpu_data_handle_t * data_use_order.
-   Incremented in HFP.c in void get_current_tasks(struct starpu_task *task, unsigned sci).
-   Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
-*/
+//~ /**
+   //~ Index of task position in starpu_data_handle_t * data_use_order.
+   //~ Incremented in HFP.c in void get_current_tasks(struct starpu_task *task, unsigned sci).
+   //~ Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
+//~ */
 
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
 
