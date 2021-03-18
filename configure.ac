@@ -2014,11 +2014,11 @@ if test x$enable_fast = xyes; then
 	AC_DEFINE(STARPU_NO_ASSERT, [1], [disable assertions])
 else
         # fortify gets really enabled only with optimizations, avoid enabling it
-        # when they optimizations are not enabled, because with some glibc it
+        # when optimizations are not enabled, because with some glibc it
         # spews a lot of warnings.
 	if test x$enable_debug != xyes; then
 		if test x$GCC = xyes; then
-			CPPFLAGS="$CPPFLAGS -D_FORTIFY_SOURCE=1"
+			CPPFLAGS="-D_FORTIFY_SOURCE=1 $CPPFLAGS"
 		fi
 	fi
 fi
