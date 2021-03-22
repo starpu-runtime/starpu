@@ -2,12 +2,17 @@
 start=`date +%s`
 #~ ./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid
 #~ sudo make install
-#~ sudo make -j4
+sudo make -j4
 
 #### Matrice 2D ####
-#~ bash Scripts_maxime/Matrice_ligne/GF_M_MC_NT=225_LRU_BW350.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
-#~ bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW350_CM500.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
-bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW350_CM500_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+	#### 1 GPU ####
+	#~ bash Scripts_maxime/Matrice_ligne/GF_M_MC_NT=225_LRU_BW350.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+	#~ bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW350_CM500.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+	#### Multi GPU ####
+	bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW1050_CM167_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+	bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW1050_CM250_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+	bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW1050_CM500_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+	#~ bash Scripts_maxime/Matrice_ligne/HFP_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
 
 #### Matrice 3D ####
 #~ bash Scripts_maxime/Matrice3D/GF_M_M3D_N=15_BW350.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10

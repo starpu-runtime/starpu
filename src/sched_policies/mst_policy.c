@@ -386,7 +386,7 @@ static void deinitialize_mst_center_policy(unsigned sched_ctx_id)
 void get_current_tasks_mst(struct starpu_task *task, unsigned sci)
 {
 	task_currently_treated = task;
-	index_task_currently_treated++;	
+	//~ index_task_currently_treated++;	
 	starpu_sched_component_worker_pre_exec_hook(task,sci);
 }
 
