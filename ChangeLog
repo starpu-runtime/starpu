@@ -82,6 +82,8 @@ Small features:
   * Add STARPU_SIMGRID environment variable guard against native builds.
   * Add starpu_cuda_get_nvmldev function.
   * Add starpu_sched_tree_deinitialize function.
+  * Add STARPU_SCHED_SORTED_ABOVE and STARPU_SCHED_SORTED_BELOW environment
+    variables.
 
 StarPU 1.3.7
 ====================================================================

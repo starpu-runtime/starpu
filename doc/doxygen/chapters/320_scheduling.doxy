@@ -155,11 +155,14 @@ Heterogeneous Earliest Finish Time.
 It needs that every task submitted to StarPU have a
 defined performance model (\ref PerformanceModelCalibration)
 to work efficiently, but can handle tasks without a performance
-model. <b>modular-heft</b> just takes tasks by priority order. <b>modular-heft2</b> takes
+model. <b>modular-heft</b> just takes tasks by order. <b>modular-heft2</b> takes
 at most 5 tasks of the same priority and checks which one fits best.
 <b>modular-heft-prio</b> is similar to <b>modular-heft</b>, but only decides the memory
 node, not the exact worker, just pushing tasks to one central queue per memory
-node.
+node. By default, they sort tasks by priorities and privilege running first
+a task which has most of its data already available on the target. These can
+however be changed with \ref STARPU_SCHED_SORTED_ABOVE, \ref
+STARPU_SCHED_SORTED_BELOW, and \ref STARPU_SCHED_READY .
 
 - <b>modular-heteroprio</b> is a Heteroprio Scheduler: \n
 Maps tasks to worker similarly to HEFT, but first attribute accelerated tasks to

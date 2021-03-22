@@ -583,6 +583,22 @@ pick up a task which has most of its data already available. Setting this to 0
 disables this.
 </dd>
 
+<dt>STARPU_SCHED_SORTED_ABOVE</dt>
+<dd>
+\anchor STARPU_SCHED_SORTED_ABOVE
+\addindex __env__STARPU_SCHED_SORTED_ABOVE
+For a modular scheduler with queues above the decision component, it is
+usually sorted by priority. Setting this to 0 disables this.
+</dd>
+
+<dt>STARPU_SCHED_SORTED_BELOW</dt>
+<dd>
+\anchor STARPU_SCHED_SORTED_BELOW
+\addindex __env__STARPU_SCHED_SORTED_BELOW
+For a modular scheduler with queues below the decision component, they are
+usually sorted by priority. Setting this to 0 disables this.
+</dd>
+
 <dt>STARPU_IDLE_POWER</dt>
 <dd>
 \anchor STARPU_IDLE_POWER
