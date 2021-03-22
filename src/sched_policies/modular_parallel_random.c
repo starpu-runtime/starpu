@@ -31,16 +31,10 @@ static void initialize_parallel_random_fifo_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 
-static void deinitialize_parallel_random_fifo_center_policy(unsigned sched_ctx_id)
-{
-	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_sched_tree_destroy(tree);
-}
-
 struct starpu_sched_policy _starpu_sched_modular_parallel_random_policy =
 {
 	.init_sched = initialize_parallel_random_fifo_center_policy,
-	.deinit_sched = deinitialize_parallel_random_fifo_center_policy,
+	.deinit_sched = starpu_sched_tree_deinitialize,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,
@@ -66,16 +60,10 @@ static void initialize_parallel_random_prio_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 
-static void deinitialize_parallel_random_prio_center_policy(unsigned sched_ctx_id)
-{
-	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_sched_tree_destroy(tree);
-}
-
 struct starpu_sched_policy _starpu_sched_modular_parallel_random_prio_policy =
 {
 	.init_sched = initialize_parallel_random_prio_center_policy,
-	.deinit_sched = deinitialize_parallel_random_prio_center_policy,
+	.deinit_sched = starpu_sched_tree_deinitialize,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,
