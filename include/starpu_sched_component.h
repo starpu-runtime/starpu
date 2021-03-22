@@ -215,6 +215,10 @@ struct starpu_sched_tree *starpu_sched_tree_create(unsigned sched_ctx_id) STARPU
    destroy tree and free all non shared component in it.
 */
 void starpu_sched_tree_destroy(struct starpu_sched_tree *tree);
+/**
+   calls starpu_sched_tree_destroy, ready for use for starpu_sched_policy::deinit_sched field.
+ */
+void starpu_sched_tree_deinitialize(unsigned sched_ctx_id);
 struct starpu_sched_tree *starpu_sched_tree_get(unsigned sched_ctx_id);
 /**
    recursively set all starpu_sched_component::workers, do not take into account shared parts (except workers).
