@@ -31,6 +31,8 @@ Small features:
   * New configure option --with-check-cflags to define flags for C,
     CXX and Fortran compilers
   * Add starpu_sched_tree_deinitialize function.
+  * Add STARPU_SCHED_SORTED_ABOVE and STARPU_SCHED_SORTED_BELOW environment
+    variables.
 
 StarPU 1.3.7
 ====================================================================
