@@ -284,15 +284,15 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 }
 
 /* Get weight of all different data. Only works if you have only one package */
-static void get_weight_all_different_data(struct my_list *a, starpu_ssize_t GPU_RAM_M)
-{
-	printf("Taille de la matrice : %ld\n",GPU_RAM_M);
-	long int weight_all_different_data = 0;
-	for (int i = 0; i < a->package_nb_data; i++) {
-		weight_all_different_data += starpu_data_get_size(a->package_data[i]); 
-	}
-	printf("Poids de toutes les données différentes : %li\n",weight_all_different_data);
-}
+//~ static void get_weight_all_different_data(struct my_list *a, starpu_ssize_t GPU_RAM_M)
+//~ {
+	//~ printf("Taille de la matrice : %ld\n",GPU_RAM_M);
+	//~ long int weight_all_different_data = 0;
+	//~ for (int i = 0; i < a->package_nb_data; i++) {
+		//~ weight_all_different_data += starpu_data_get_size(a->package_data[i]); 
+	//~ }
+	//~ printf("Poids de toutes les données différentes : %li\n",weight_all_different_data);
+//~ }
 
 /* Takes a task list and return the total number of data that will be used.
  * It means that it is the sum of the number of data for each task of the list.
@@ -713,8 +713,11 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 	struct starpu_task *task;
 	//~ long int total_weight = 0;
 	a->temp_pointer_1 = a->first_link;
-	while (a->temp_pointer_1 != NULL) { link_index++; a->temp_pointer_1 = a->temp_pointer_1->next;				
-				} a->temp_pointer_1 = a->first_link;
+	while (a->temp_pointer_1 != NULL) 
+	{ 
+		link_index++; a->temp_pointer_1 = a->temp_pointer_1->next;				
+	} 
+	a->temp_pointer_1 = a->first_link;
 			printf("-----\nOn a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
 			printf("-----\n");
 			link_index = 0;	
@@ -1337,18 +1340,25 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	/* If one or more task have been refused */
-	if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
-		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); /* On prends dans la fifo */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo on gpu %p\n", task1, to); }
-		return task1;
-	}	
+	//~ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
+		//~ data->p->temp_pointer_1 = data->p->first_link;
+		//~ for (i = 0; i < component->nchildren; i++) {
+			//~ if (to == component->children[i]) {
+				//~ break;
+			//~ }
+			//~ else {
+				//~ data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+			//~ }
+		//~ }
+		//~ starpu_task_list_push_front(starpu_task_list_pop_back(&data->list_if_fifo_full), data->p->temp_pointer_1->sub_list);
+		//~ task1 = get_task_to_return(component, to, data->p); 
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo on gpu %p\n", task1, to); }
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		//~ return task1;
+	//~ }	
 	/* If the linked list is empty, we can pull more tasks */
-	//~ if ((data->p->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))) {
 	if (is_empty(data->p->first_link) == true) {
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("is empty a renvoyé vrai\n"); }
 		if (!starpu_task_list_empty(&data->sched_list)) { /* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
-			//~ printf("sched list n'est pas vide\n");
 			time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
 			/* Pulling all tasks and counting them */
@@ -1766,6 +1776,10 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		/* If you want to get the sum of weight of all different data. Only works if you have only one package */
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->p->first_link, GPU_RAM_M); }
 		
+		/* We prefetch data for each task for modular-heft-HFP */
+		//~ starpu_prefetch_task_input_on_node_prio(task1, 
+		//~ starpu_idle_prefetch_task_input_on_node_prio
+		
 		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
 		FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
 		fprintf(f_time,"%d\n",time_taken);
@@ -1803,7 +1817,19 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, %p couldn't take our task %p \n", to, task); }
 		/* Oops, we couldn't push everything, put back this task */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-		starpu_task_list_push_back(&data->list_if_fifo_full, task);
+		//~ starpu_task_list_push_back(&data->list_if_fifo_full, task);
+		data->p->temp_pointer_1 = data->p->first_link;
+		for (int i = 0; i < component->nchildren; i++) {
+			if (to == component->children[i]) {
+				break;
+			}
+			else {
+				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+			}
+		}
+		starpu_task_list_push_front(&data->p->temp_pointer_1->sub_list, task);
+		//~ task1 = get_task_to_return(component, to, data->p); 
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo on gpu %p\n", task1,
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	}
 	else
