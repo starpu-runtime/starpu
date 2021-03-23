@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2020       Maxime Gonthier
  *
@@ -2033,4 +2033,35 @@ struct starpu_sched_policy _starpu_sched_HFP_policy =
 	.policy_name = "HFP",
 	.policy_description = "Affinity aware task ordering",
 	.worker_type = STARPU_WORKER_LIST,
+};
+
+static void initialize_heft_hfp_policy(unsigned sched_ctx_id)
+{
+	starpu_sched_component_initialize_simple_schedulers(sched_ctx_id, 1, (starpu_sched_component_create_t) starpu_sched_component_mct_create, NULL,
+			STARPU_SCHED_SIMPLE_PRE_DECISION,
+			(starpu_sched_component_create_t) starpu_sched_component_HFP_create, NULL,
+			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
+			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
+			STARPU_SCHED_SIMPLE_PERFMODEL |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
+			STARPU_SCHED_SIMPLE_IMPL);
+}
+
+struct starpu_sched_policy _starpu_sched_modular_heft_HFP_policy =
+{
+	.init_sched = initialize_heft_hfp_policy,
+	.deinit_sched = starpu_sched_tree_deinitialize,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.pop_every_task = NULL,
+	.policy_name = "modular-heft-HFP",
+	.policy_description = "heft modular policy",
+	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
