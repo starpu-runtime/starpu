@@ -52,6 +52,7 @@ New features:
     MPI/NUMA/GPUDirect.
   * Add peek_data interface method.
   * Add STARPU_MPI_REDUX
+  * Add starpu_data_query_status2 function.
 
 Small changes:
   * Add a synthetic energy efficiency testcase.
