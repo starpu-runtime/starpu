@@ -723,9 +723,9 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 				//~ for (i = 0; i < a->temp_pointer_1->package_nb_data; i++) {
 					//~ total_weight+= starpu_data_get_size(a->temp_pointer_1->package_data[i]);
 				//~ }
-				//~ for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
-					//~ printf("%p\n",task);
-				//~ }
+				for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
+					printf("%p\n",task);
+				}
 				//~ printf("Le poids des données du paquet %d est : %li\n",link_index,total_weight);
 				//~ total_weight = 0;
 				link_index++;
@@ -1340,7 +1340,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); /* On prends dans la fifo */
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo\n",task1); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo on gpu %p\n", task1, to); }
 		return task1;
 	}	
 	/* If the linked list is empty, we can pull more tasks */
@@ -1777,12 +1777,12 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		}
 		/* Else de if (!starpu_task_list_empty(&data->sched_list)), il faut donc return une tâche */
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }			
+			if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }			
 			return task1; /* Renvoie nil içi */
 	} /* End of if ((data->p->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))) { */
 		//~ printf("ok\n");
 		task1 = get_task_to_return(component, to, data->p);
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return task1;
 	printf("Ah return NULL :(\n");
