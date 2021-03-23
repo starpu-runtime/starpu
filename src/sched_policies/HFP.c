@@ -39,9 +39,9 @@
 #define BELADY /* O or 1 */
 #define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet */
 
-int NT;
-int N;
-double EXPECTED_TIME;
+static int NT;
+static int N;
+static double EXPECTED_TIME;
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct HFP_sched_data
