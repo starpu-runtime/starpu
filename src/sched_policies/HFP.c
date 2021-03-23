@@ -1365,10 +1365,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Tâche %p\n",task1); }
-				//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
-					//~ printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
-				//~ }	
-				EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);						
+				if (starpu_get_env_number_default("MULTIGPU",0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}					
 				nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 	
@@ -1390,7 +1387,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(temp_task_1); i++) {
 					data->p->temp_pointer_1->package_data[i] = STARPU_TASK_GET_HANDLE(temp_task_1,i);
 				}
-				data->p->temp_pointer_1->expected_time = starpu_task_expected_length(temp_task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
+				if (starpu_get_env_number_default("MULTIGPU",0) != 0) { data->p->temp_pointer_1->expected_time = starpu_task_expected_length(temp_task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0); }
 				data->p->temp_pointer_1->package_nb_data = STARPU_TASK_GET_NBUFFERS(temp_task_1);
 				NB_TOTAL_DONNEES+=STARPU_TASK_GET_NBUFFERS(temp_task_1);
 				/* We sort our datas in the packages */
@@ -1777,8 +1774,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->p->first_link, GPU_RAM_M); }
 		
 		/* We prefetch data for each task for modular-heft-HFP */
-		//~ starpu_prefetch_task_input_on_node_prio(task1, 
-		//~ starpu_idle_prefetch_task_input_on_node_prio
+		//~ prefetch_each_task(data->p);
 		
 		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
 		FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
