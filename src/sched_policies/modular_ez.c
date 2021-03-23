@@ -236,7 +236,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		if (last_pre_decision_component)
 			starpu_sched_component_connect(last_pre_decision_component, decision_component);
 		else
-			last_pre_decision_component = decision_component;
+			pre_decision_component = decision_component;
 
 		/* First, a fifo if requested */
 		if (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE)
