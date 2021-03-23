@@ -678,14 +678,19 @@ int HFP_pointeurComparator ( const void * first, const void * second ) {
 /* Called in HFP_pull_task when we need to return a task. It is used when we have multiple GPUs */
 static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a)
 {
+	printf("Début get task to return\n");
 	int i = 0;
-	if (starpu_get_env_number_default("MULTIGPU",0) == 0) { return starpu_task_list_pop_front(&a->temp_pointer_1->sub_list); }
+	if (starpu_get_env_number_default("MULTIGPU",0) == 0) 
+	{ 
+		a->temp_pointer_1 = a->first_link; 
+		return starpu_task_list_pop_front(&a->temp_pointer_1->sub_list); 
+	}
 	else { 	
-		//~ printf("Il y a %u GPUs\n", component->nchildren);
-		//~ printf("\nChildren 1 : %p / ", component->children[0]);
-		//~ printf("Children 2 : %p / ", component->children[1]);
-		//~ printf("Children 3 : %p / ", component->children[2]);
-		//~ printf("to : %p\n", to);
+		printf("Il y a %u GPUs\n", component->nchildren);
+		printf("\nChildren 1 : %p / ", component->children[0]);
+		printf("Children 2 : %p / ", component->children[1]);
+		printf("Children 3 : %p / ", component->children[2]);
+		printf("to : %p\n", to);
 		
 		a->temp_pointer_1 = a->first_link;
 		for (i = 0; i < component->nchildren; i++) {
@@ -698,9 +703,9 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 		}
 		if (!starpu_task_list_empty(&a->temp_pointer_1->sub_list)) { 
 			struct starpu_task *task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list); 
-			//~ if (to == component->children[0]) { printf("GPU 1\n");  }
-			//~ if (to == component->children[1]) { printf("GPU 2\n");  }
-			//~ if (to == component->children[2]) { printf("GPU 3\n");  }
+			if (to == component->children[0]) { printf("GPU 1\n");  }
+			if (to == component->children[1]) { printf("GPU 2\n");  }
+			if (to == component->children[2]) { printf("GPU 3\n");  }
 			return task;
 		}
 		else { return NULL; }
@@ -736,6 +741,22 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 				printf("-----\n");
 			}
 			a->temp_pointer_1 = a->first_link;
+}
+
+void prefetch_each_task(struct paquets *a, struct starpu_sched_component *component)
+{
+	printf("ok\n");
+	struct starpu_task *task;
+	a->temp_pointer_1 = a->first_link;
+	
+	while (a->temp_pointer_1 != NULL) {
+		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
+			printf("ok1\n");
+			starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)), 0);
+			//~ starpu_idle_prefetch_task_input_on_node_prio
+		}
+		a->temp_pointer_1 = a->temp_pointer_1->next;
+	}
 }
 
 /* Pushing the tasks */		
@@ -1774,7 +1795,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->p->first_link, GPU_RAM_M); }
 		
 		/* We prefetch data for each task for modular-heft-HFP */
-		//~ prefetch_each_task(data->p);
+		prefetch_each_task(data->p, component);
 		
 		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
 		FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
@@ -1782,7 +1803,9 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		fclose(f_time);
 		
 		/* We pop the first task of the first package. We look at the current GPU if we are in multi GPU in order to assign the first task of the corresponding package */
+		printf("avant get task to return 1\n");
 		task1 = get_task_to_return(component, to, data->p);
+		printf("apres get task to return 1\n");
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task depuis boucle de création de paquets d'HFP\n",task1); }	
 		}
 		/* Else de if (!starpu_task_list_empty(&data->sched_list)), il faut donc return une tâche */
