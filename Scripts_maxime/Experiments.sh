@@ -13,12 +13,14 @@ sudo make -j4
 		#~ bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW1050_CM250_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
 		#~ bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW1050_CM500_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
 		#~ bash Scripts_maxime/Matrice_ligne/HFP_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
-
+	#### Test ####
+		bash Scripts_maxime/Matrice_ligne/TEST_M2D.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+	
 #### Matrice 3D ####
 	#### 1 GPU ####
 		#~ bash Scripts_maxime/Matrice3D/GF_M_M3D_N=15_BW350.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
 		#~ bash Scripts_maxime/Matrice3D/GF_NT_M3D_BW350_CM500.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8
-		bash Scripts_maxime/Matrice3D/GF_NT_M3D_BW350_CM500_DMDARFIXED_MODULARHEFT.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8
+		#~ bash Scripts_maxime/Matrice3D/GF_NT_M3D_BW350_CM500_DMDARFIXED_MODULARHEFT.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8
 	#### Multi GPU ####
 		#~ bash Scripts_maxime/Matrice3D/GF_NT_M3D_BW350_CM500_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8
 

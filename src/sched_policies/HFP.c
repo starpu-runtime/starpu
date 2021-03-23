@@ -37,7 +37,8 @@
 #define PRINTF /* O or 1 */
 #define ORDER_U /* O or 1 */
 #define BELADY /* O or 1 */
-#define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet */
+#define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet */
+#define MODULAR_HEFT_HFP_MODE /* 0 we use starpu_prefetch_task_input_on_node_prio, 1 we use starpu_prefetch_task_input_on_node_prio */
 
 static int NT;
 static int N;
@@ -678,7 +679,6 @@ int HFP_pointeurComparator ( const void * first, const void * second ) {
 /* Called in HFP_pull_task when we need to return a task. It is used when we have multiple GPUs */
 static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a)
 {
-	printf("Début get task to return\n");
 	int i = 0;
 	if (starpu_get_env_number_default("MULTIGPU",0) == 0) 
 	{ 
@@ -686,11 +686,11 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 		return starpu_task_list_pop_front(&a->temp_pointer_1->sub_list); 
 	}
 	else { 	
-		printf("Il y a %u GPUs\n", component->nchildren);
-		printf("\nChildren 1 : %p / ", component->children[0]);
-		printf("Children 2 : %p / ", component->children[1]);
-		printf("Children 3 : %p / ", component->children[2]);
-		printf("to : %p\n", to);
+		//~ printf("Il y a %u GPUs\n", component->nchildren);
+		//~ printf("\nChildren 1 : %p / ", component->children[0]);
+		//~ printf("Children 2 : %p / ", component->children[1]);
+		//~ printf("Children 3 : %p / ", component->children[2]);
+		//~ printf("to : %p\n", to);
 		
 		a->temp_pointer_1 = a->first_link;
 		for (i = 0; i < component->nchildren; i++) {
@@ -703,9 +703,9 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 		}
 		if (!starpu_task_list_empty(&a->temp_pointer_1->sub_list)) { 
 			struct starpu_task *task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list); 
-			if (to == component->children[0]) { printf("GPU 1\n");  }
-			if (to == component->children[1]) { printf("GPU 2\n");  }
-			if (to == component->children[2]) { printf("GPU 3\n");  }
+			//~ if (to == component->children[0]) { printf("GPU 1\n");  }
+			//~ if (to == component->children[1]) { printf("GPU 2\n");  }
+			//~ if (to == component->children[2]) { printf("GPU 3\n");  }
 			return task;
 		}
 		else { return NULL; }
@@ -743,17 +743,22 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 			a->temp_pointer_1 = a->first_link;
 }
 
+/* Giving prefetch for each task to modular-heft-HFP */
 void prefetch_each_task(struct paquets *a, struct starpu_sched_component *component)
 {
-	printf("ok\n");
 	struct starpu_task *task;
 	a->temp_pointer_1 = a->first_link;
 	
 	while (a->temp_pointer_1 != NULL) {
 		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
-			printf("ok1\n");
-			starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)), 0);
-			//~ starpu_idle_prefetch_task_input_on_node_prio
+			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 0)
+			{  
+				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)), 0);
+			}
+			else
+			{  
+				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)), 0);
+			}
 		}
 		a->temp_pointer_1 = a->temp_pointer_1->next;
 	}
@@ -1766,7 +1771,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
 		/* Task stealing with expected time */
-		if (starpu_get_env_number_default("MULTIGPU",0) == 4) {
+		if (starpu_get_env_number_default("MULTIGPU",0) == 4 || starpu_get_env_number_default("MULTIGPU",0) == 5) {
 			load_balance_expected_time(data->p, component->nchildren);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
@@ -1775,7 +1780,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		 * It is in another function, if it work we can also put the packing above in it.
 		 * Only with MULTIGPU = 2 because if we don't do load balance there is no point in re-applying HFP.
 		 */
-		 if (starpu_get_env_number_default("MULTIGPU",0) == 3) {
+		 if (starpu_get_env_number_default("MULTIGPU",0) == 3 || starpu_get_env_number_default("MULTIGPU",0) == 5) {
 			 data->p->temp_pointer_1 = data->p->first_link;
 			 while (data->p->temp_pointer_1 != NULL) { 
 				data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
@@ -1918,6 +1923,7 @@ static void initialize_HFP_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }

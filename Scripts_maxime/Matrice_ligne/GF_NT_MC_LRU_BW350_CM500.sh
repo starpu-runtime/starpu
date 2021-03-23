@@ -21,7 +21,7 @@ truncate -s 0 ${FICHIER_BUS:0}
 truncate -s 0 ${FICHIER_RAW_TIME:0}
 echo "############## Random_order ##############"
 for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-	do 
+	do
 	N=$((START_X+i*ECHELLE_X))
 	STARPU_SCHED=random_order STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=350 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=500 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 	sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
