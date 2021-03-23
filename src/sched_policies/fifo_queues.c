@@ -355,9 +355,9 @@ int _starpu_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_
 	return ((num_priorities-1)/(max-min)) * (priority - min);
 }
 
-size_t _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker)
+void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, size_t *non_readyp, size_t *non_loadingp)
 {
-	size_t cnt = 0;
+	size_t non_ready = 0, non_loading = 0;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
@@ -368,14 +368,19 @@ size_t _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker)
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
 
-		int is_valid;
-		starpu_data_query_status(handle, buffer_node, NULL, &is_valid, NULL);
+		int is_valid, is_loading;
+		starpu_data_query_status2(handle, buffer_node, NULL, &is_valid, &is_loading, NULL);
 
 		if (!is_valid)
-			cnt+=starpu_data_get_size(handle);
+		{
+			non_ready+=starpu_data_get_size(handle);
+			if (!is_loading)
+				non_loading+=starpu_data_get_size(handle);
+		}
 	}
 
-	return cnt;
+	*non_readyp = non_ready;
+	*non_loadingp = non_loading;
 }
 
 int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
@@ -419,6 +424,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 		int first_task_priority = task->priority;
 
 		size_t non_ready_best = SIZE_MAX;
+		size_t non_loading_best = SIZE_MAX;
 
 		for (current = task; current; current = current->next)
 		{
@@ -426,14 +432,21 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 			if (priority >= first_task_priority)
 			{
-				size_t non_ready = _starpu_size_non_ready_buffers(current, workerid);
+				size_t non_ready, non_loading;
+				_starpu_size_non_ready_buffers(current, workerid, &non_ready, &non_loading);
 				if (non_ready < non_ready_best)
 				{
 					non_ready_best = non_ready;
+					non_loading_best = non_loading;
 					task = current;
 
 					if (non_ready == 0)
 						break;
+				}
+				else if (non_ready == non_ready_best && non_loading < non_loading_best)
+				{
+					non_loading_best = non_loading;
+					task = current;
 				}
 			}
 		}
