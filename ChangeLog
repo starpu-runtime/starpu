@@ -52,6 +52,7 @@ New features:
     MPI/NUMA/GPUDirect.
   * Add peek_data interface method.
   * Add STARPU_MPI_REDUX
+  * Add starpu_data_query_status2 function.
 
 Small features:
   * New configure option --with-check-cflags to define flags for C,

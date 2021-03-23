@@ -560,6 +560,17 @@ unsigned starpu_data_get_ooc_flag(starpu_data_handle_t handle);
 
 /**
    Query the status of \p handle on the specified \p memory_node.
+
+   \p is_allocated tells whether memory was allocated there for the data.
+   \p is_valid tells whether the actual value is available there.
+   \p is_loading tells whether the actual value is getting loaded there.
+   \p is_requested tells whether the actual value is requested to be loaded
+   there by some fetch/prefetch/idlefetch request.
+*/
+void starpu_data_query_status2(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_loading, int *is_requested);
+
+/**
+   Same as starpu_data_query_status2(), but without the is_loading parameter.
 */
 void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested);
 
