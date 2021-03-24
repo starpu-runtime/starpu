@@ -55,6 +55,16 @@ struct _starpu_pthread_args
 	void *arg;
 };
 
+#if (SIMGRID_VERSION >= 32600)
+typedef void _starpu_simgrid_main_ret;
+#define _STARPU_SIMGRID_MAIN_RETURN do { } while (0)
+#else
+typedef int _starpu_simgrid_main_ret;
+#define _STARPU_SIMGRID_MAIN_RETURN return 0
+#endif
+_starpu_simgrid_main_ret
+_starpu_simgrid_thread_start(int argc, char *argv[]);
+
 #define MAX_TSD 16
 
 #define STARPU_MPI_AS_PREFIX "StarPU-MPI"
