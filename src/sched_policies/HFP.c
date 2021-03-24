@@ -746,6 +746,7 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 /* Giving prefetch for each task to modular-heft-HFP */
 void prefetch_each_task(struct paquets *a, struct starpu_sched_component *component)
 {
+	printf("début\n");
 	struct starpu_task *task;
 	a->temp_pointer_1 = a->first_link;
 	
@@ -762,6 +763,7 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *compon
 		}
 		a->temp_pointer_1 = a->temp_pointer_1->next;
 	}
+	printf("ok\n");
 }
 
 /* Pushing the tasks */		
@@ -1246,7 +1248,8 @@ void load_balance_expected_time (struct paquets *a, int number_gpu)
 				ite += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				//~ printf("ite = %f\n", ite);
 				a->temp_pointer_2->expected_time = a->temp_pointer_2->expected_time - starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
-				merge_task_and_package(a->temp_pointer_1, task);		
+				merge_task_and_package(a->temp_pointer_1, task);
+				a->temp_pointer_2->nb_task_in_sub_list--;		
 			}
 			//~ printf("expected time du gros paquet = %f\n", a->temp_pointer_2->expected_time);
 			//~ printf("expected time du petit paquet = %f\n", a->temp_pointer_1->expected_time);
@@ -1366,22 +1369,12 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	/* If one or more task have been refused */
-	//~ if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
-		//~ data->p->temp_pointer_1 = data->p->first_link;
-		//~ for (i = 0; i < component->nchildren; i++) {
-			//~ if (to == component->children[i]) {
-				//~ break;
-			//~ }
-			//~ else {
-				//~ data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-			//~ }
-		//~ }
-		//~ starpu_task_list_push_front(starpu_task_list_pop_back(&data->list_if_fifo_full), data->p->temp_pointer_1->sub_list);
-		//~ task1 = get_task_to_return(component, to, data->p); 
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo on gpu %p\n", task1, to); }
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ return task1;
-	//~ }	
+	if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
+		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo\n",task1); }
+		return task1;
+	}	
 	/* If the linked list is empty, we can pull more tasks */
 	if (is_empty(data->p->first_link) == true) {
 		if (!starpu_task_list_empty(&data->sched_list)) { /* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
@@ -1808,9 +1801,9 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		fclose(f_time);
 		
 		/* We pop the first task of the first package. We look at the current GPU if we are in multi GPU in order to assign the first task of the corresponding package */
-		printf("avant get task to return 1\n");
+		//~ printf("avant get task to return 1\n");
 		task1 = get_task_to_return(component, to, data->p);
-		printf("apres get task to return 1\n");
+		//~ printf("apres get task to return 1\n");
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task depuis boucle de création de paquets d'HFP\n",task1); }	
 		}
 		/* Else de if (!starpu_task_list_empty(&data->sched_list)), il faut donc return une tâche */
@@ -1838,20 +1831,26 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 
 	if (task)
 	{
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, %p couldn't take our task %p \n", to, task); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, %p couldn't take our task %p \n", to, task); }
 		/* Oops, we couldn't push everything, put back this task */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		//~ starpu_task_list_push_back(&data->list_if_fifo_full, task);
 		data->p->temp_pointer_1 = data->p->first_link;
-		for (int i = 0; i < component->nchildren; i++) {
-			if (to == component->children[i]) {
-				break;
+		if (data->p->temp_pointer_1->next == NULL) { starpu_task_list_push_back(&data->list_if_fifo_full, task); }
+		else {
+			//A corriger. En fait il faut push back dans une fifo a part puis pop back dans cette fifo dans pull task
+			//Ici le pb c'est si plusieurs taches se font refusé
+			for (int i = 0; i < component->nchildren; i++) {
+				if (to == component->children[i]) {
+					break;
+				}
+				else {
+					printf("next\n");
+					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+				}
 			}
-			else {
-				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-			}
+			starpu_task_list_push_front(&data->p->temp_pointer_1->sub_list, task);
 		}
-		starpu_task_list_push_front(&data->p->temp_pointer_1->sub_list, task);
 		//~ task1 = get_task_to_return(component, to, data->p); 
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo on gpu %p\n", task1,
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
