@@ -14,7 +14,8 @@ sudo make -j4
 		#~ bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW1050_CM500_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
 		#~ bash Scripts_maxime/Matrice_ligne/HFP_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
 	#### Test ####
-		bash Scripts_maxime/Matrice_ligne/TEST_M2D.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+		#~ bash Scripts_maxime/Matrice_ligne/TEST_M2D_1GPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+		bash Scripts_maxime/Matrice_ligne/TEST_M2D_3GPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2
 	
 #### Matrice 3D ####
 	#### 1 GPU ####
