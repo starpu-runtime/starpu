@@ -710,7 +710,7 @@ void _starpu_simgrid_wait_tasks(int workerid)
 }
 
 /* Task execution submitted by StarPU */
-void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, double length, unsigned *finished)
+void _starpu_simgrid_submit_job(int workerid, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch STARPU_ATTRIBUTE_UNUSED, double length, unsigned *finished)
 {
 	struct starpu_task *starpu_task = j->task;
 	double flops;
@@ -1269,12 +1269,8 @@ void _starpu_simgrid_count_ngpus(void)
 		{
 			int busid;
 			starpu_sg_host_t srchost, dsthost;
-#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(SD_link_t), NULL);
-			SD_link_t *route;
-#else
-			const SD_link_t *route;
-#endif
+			SD_link_t link;
 			int i, routesize;
 			int through;
 			unsigned src2;
@@ -1296,23 +1292,28 @@ void _starpu_simgrid_count_ngpus(void)
 			sg_host_route(srchost, dsthost, route_dynar);
 #endif
 			routesize = xbt_dynar_length(route_dynar);
-			route = xbt_dynar_to_array(route_dynar);
 #else
+			const SD_link_t *route = SD_route_get_list(srchost, dsthost);
 			routesize = SD_route_get_size(srchost, dsthost);
-			route = SD_route_get_list(srchost, dsthost);
+			for (i = 0; i < routesize; i++)
+				xbt_dynar_push(route_dynar, &route[i]);
+			free(route);
 #endif
 
 			/* If it goes through "Host", do not care, there is no
 			 * direct transfer support */
 			for (i = 0; i < routesize; i++)
+			{
+				xbt_dynar_get_cpy(route_dynar, i, &link);
 				if (
 #ifdef HAVE_SG_LINK_GET_NAME
-					!strcmp(sg_link_get_name(route[i]), "Host")
+					!strcmp(sg_link_get_name(link), "Host")
 #else
-					!strcmp(sg_link_name(route[i]), "Host")
+					!strcmp(sg_link_name(link), "Host")
 #endif
 					)
 					break;
+			}
 			if (i < routesize)
 				continue;
 
@@ -1320,10 +1321,11 @@ void _starpu_simgrid_count_ngpus(void)
 			through = -1;
 			for (i = 0; i < routesize; i++)
 			{
+				xbt_dynar_get_cpy(route_dynar, i, &link);
 #ifdef HAVE_SG_LINK_GET_NAME
-				name = sg_link_get_name(route[i]);
+				name = sg_link_get_name(link);
 #else
-				name = sg_link_name(route[i]);
+				name = sg_link_name(link);
 #endif
 				size_t len = strlen(name);
 				if (!strcmp(" through", name+len-8))
@@ -1337,10 +1339,12 @@ void _starpu_simgrid_count_ngpus(void)
 				_STARPU_DEBUG("Didn't find through-link for %d->%d\n", src, dst);
 				continue;
 			}
+
+			xbt_dynar_get_cpy(route_dynar, through, &link);
 #ifdef HAVE_SG_LINK_GET_NAME
-			name = sg_link_get_name(route[through]);
+			name = sg_link_get_name(link);
 #else
-			name = sg_link_name(route[through]);
+			name = sg_link_name(link);
 #endif
 
 			/*
@@ -1365,27 +1369,30 @@ void _starpu_simgrid_count_ngpus(void)
 
 				starpu_sg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
 				int routesize2;
-#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(SD_link_t), NULL);
-				SD_link_t *route2;
+#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 #ifdef HAVE_SG_HOST_GET_ROUTE
 				sg_host_get_route(srchost2, ramhost, route_dynar2);
 #else
 				sg_host_route(srchost2, ramhost, route_dynar2);
 #endif
 				routesize2 = xbt_dynar_length(route_dynar2);
-				route2 = xbt_dynar_to_array(route_dynar2);
 #else
 				const SD_link_t *route2 = SD_route_get_list(srchost2, ramhost);
 				routesize2 = SD_route_get_size(srchost2, ramhost);
+				for (i = 0; i < routesize2; i++)
+					xbt_dynar_push(route_dynar2, &route2[i]);
+				free(route2);
 #endif
 
 				for (i = 0; i < routesize2; i++)
+				{
+					xbt_dynar_get_cpy(route_dynar, i, &link);
 					if (
 #ifdef HAVE_SG_LINK_GET_NAME
-						!strcmp(name, sg_link_get_name(route2[i]))
+						!strcmp(name, sg_link_get_name(link))
 #else
-						!strcmp(name, sg_link_name(route2[i]))
+						!strcmp(name, sg_link_name(link))
 #endif
 						)
 					{
@@ -1393,15 +1400,10 @@ void _starpu_simgrid_count_ngpus(void)
 						ngpus++;
 						break;
 					}
-#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
-				free(route2);
-#endif
+				}
 			}
 			_STARPU_DEBUG("%d->%d through %s, %u GPUs\n", src, dst, name, ngpus);
 			starpu_bus_set_ngpus(busid, ngpus);
-#if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
-			free(route);
-#endif
 		}
 #endif
 }
