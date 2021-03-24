@@ -1305,12 +1305,16 @@ void load_balance (struct paquets *a, int number_gpu)
 			for (i = 0; i < package_with_max_number_task; i++) {
 				a->temp_pointer_2 = a->temp_pointer_2->next;
 			}
-			if (a->temp_pointer_2->nb_task_in_sub_list - ((NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list) >= NT/number_gpu) {
+			printf("NT = %d, NT/number gpu = %d\n", NT, NT/number_gpu);
+			if ((NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list == 0) { number_task_to_steal = 1; }
+			else if (a->temp_pointer_2->nb_task_in_sub_list - ((NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list) >= NT/number_gpu) {
 				number_task_to_steal = (NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list;
 			}
 			else {
 				number_task_to_steal = a->temp_pointer_2->nb_task_in_sub_list - NT/number_gpu;
+				printf ("NT/number = %d pointer 2 task = %d\n", NT/number_gpu, a->temp_pointer_2->nb_task_in_sub_list);
 			}
+			printf("to steal = %d\n",number_task_to_steal);
 			for (i = 0; i < number_task_to_steal; i++) {
 				merge_task_and_package(a->temp_pointer_1, starpu_task_list_pop_back(&a->temp_pointer_2->sub_list));
 				a->temp_pointer_2->nb_task_in_sub_list--;
@@ -1386,7 +1390,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) {
 		task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo refused list\n",task1); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to); }
 		return task1;
 	}	
 	/* If the linked list is empty, we can pull more tasks */
