@@ -38,7 +38,7 @@
 #define ORDER_U /* O or 1 */
 #define BELADY /* O or 1 */
 #define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet */
-#define MODULAR_HEFT_HFP_MODE /* 0 we use starpu_prefetch_task_input_on_node_prio, 1 we use starpu_prefetch_task_input_on_node_prio */
+#define MODULAR_HEFT_HFP_MODE /* 0 we don't use heft, 1 we use starpu_prefetch_task_input_on_node_prio, 2 we use starpu_prefetch_task_input_on_node_prio */
 
 static int NT;
 static int N;
@@ -48,7 +48,7 @@ static double EXPECTED_TIME;
 struct HFP_sched_data
 {
 	struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
-	struct starpu_task_list list_if_fifo_full; /* List used if the fifo list is not empty. It means that task from the last iteration haven't been pushed, thus we need to pop task from this list */
+	//~ struct starpu_task_list list_if_fifo_full; /* List used if the fifo list is not empty. It means that task from the last iteration haven't been pushed, thus we need to pop task from this list */
 	
 	/* All the pointer use to navigate through the linked list */
 	//~ struct my_list *temp_pointer_1;
@@ -71,6 +71,7 @@ struct my_list
 	int index_package; /* Used to write in Data_coordinates.txt and keep track of the initial index of the package */
 	starpu_data_handle_t * package_data; /* List of all the data in the packages. We don't put two times the duplicates */
 	struct starpu_task_list sub_list; /* The list containing the tasks */
+	struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
 	struct my_list *next;
 	int split_last_ij; /* The separator of the last state of the current package */
 	//~ starpu_data_handle_t * data_use_order; /* Order in which data will be loaded. used for Belady */
@@ -746,24 +747,26 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 /* Giving prefetch for each task to modular-heft-HFP */
 void prefetch_each_task(struct paquets *a, struct starpu_sched_component *component)
 {
-	printf("début\n");
 	struct starpu_task *task;
 	a->temp_pointer_1 = a->first_link;
 	
 	while (a->temp_pointer_1 != NULL) {
 		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
-			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 0)
+			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 1)
 			{  
 				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)), 0);
 			}
-			else
+			else if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 2)
 			{  
 				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)), 0);
+			}
+			else
+			{
+				printf("Wrong environement variable MODULAR_HEFT_HFP_MODE\n"); exit(0);
 			}
 		}
 		a->temp_pointer_1 = a->temp_pointer_1->next;
 	}
-	printf("ok\n");
 }
 
 /* Pushing the tasks */		
@@ -1369,10 +1372,21 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	/* If one or more task have been refused */
-	if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
-		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
+	data->p->temp_pointer_1 = data->p->first_link;
+	if (data->p->temp_pointer_1->next != NULL) { 
+		for (i = 0; i < component->nchildren; i++) {
+			if (to == component->children[i]) {
+				break;
+			}
+			else {
+				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+			}
+		}
+	}
+	if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) {
+		task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo\n",task1); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo refused list\n",task1); }
 		return task1;
 	}	
 	/* If the linked list is empty, we can pull more tasks */
@@ -1793,7 +1807,9 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->p->first_link, GPU_RAM_M); }
 		
 		/* We prefetch data for each task for modular-heft-HFP */
-		prefetch_each_task(data->p, component);
+		if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0) {
+			prefetch_each_task(data->p, component);
+		}
 		
 		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
 		FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
@@ -1836,7 +1852,7 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		//~ starpu_task_list_push_back(&data->list_if_fifo_full, task);
 		data->p->temp_pointer_1 = data->p->first_link;
-		if (data->p->temp_pointer_1->next == NULL) { starpu_task_list_push_back(&data->list_if_fifo_full, task); }
+		if (data->p->temp_pointer_1->next == NULL) { starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task); }
 		else {
 			//A corriger. En fait il faut push back dans une fifo a part puis pop back dans cette fifo dans pull task
 			//Ici le pb c'est si plusieurs taches se font refusé
@@ -1845,11 +1861,10 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 					break;
 				}
 				else {
-					printf("next\n");
 					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 				}
 			}
-			starpu_task_list_push_front(&data->p->temp_pointer_1->sub_list, task);
+			starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task);
 		}
 		//~ task1 = get_task_to_return(component, to, data->p); 
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo on gpu %p\n", task1,
@@ -1891,9 +1906,10 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	starpu_task_list_init(&data->sched_list);
-	starpu_task_list_init(&data->list_if_fifo_full);
+	//~ starpu_task_list_init(&data->list_if_fifo_full);
 	starpu_task_list_init(&data->popped_task_list);
 	starpu_task_list_init(&my_data->sub_list);
+	starpu_task_list_init(&my_data->refused_fifo_list);
  
 	//~ my_data->next = NULL;
 	//~ data->temp_pointer_1 = my_data;
