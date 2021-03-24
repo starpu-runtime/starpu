@@ -88,14 +88,15 @@ extern "C"
 #define STARPU_EXECUTE_ON_DATA	 (7<<STARPU_MODE_SHIFT)
 
 /**
-   Used when calling starpu_task_in_sert(), must be followed by an array of
+   Used when calling starpu_task_insert(), must be followed by an array of
    handles and the number of elements in the array (as int). This is equivalent
-   to passing the handles as separate parameters with STARPU_R/W/RW.
+   to passing the handles as separate parameters with ::STARPU_R,
+   ::STARPU_W or ::STARPU_RW.
 */
 #define STARPU_DATA_ARRAY        (8<<STARPU_MODE_SHIFT)
 
 /**
-   Used when calling starpu_task_in_sert(), must be followed by an array of
+   Used when calling starpu_task_insert(), must be followed by an array of
    struct starpu_data_descr and the number of elements in the array (as int).
    This is equivalent to passing the handles with the corresponding modes.
 */
@@ -322,8 +323,7 @@ extern "C"
 
 /**
    Used when calling starpu_task_insert() and alike, must be followed
-   by a void* specifying the value to be set in the sched_data field of the
-   task.
+   by a void* specifying the value to be set in starpu_task::sched_data
  */
 #define STARPU_TASK_SCHED_DATA (41<<STARPU_MODE_SHIFT)
 
@@ -374,7 +374,6 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
 #define starpu_task_set(task, cl, ...) \
 	starpu_task_set((task), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
-
 
 /**
    Create a task corresponding to \p cl with the following arguments.

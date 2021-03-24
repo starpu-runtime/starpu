@@ -670,6 +670,7 @@ struct starpu_task
 	   when using ::STARPU_R and alike.
 	*/
 	starpu_data_handle_t handles[STARPU_NMAXBUFS];
+
 	/**
 	   Array of Data pointers to the memory node where execution
 	   will happen, managed by the DSM.
@@ -677,6 +678,7 @@ struct starpu_task
 	   This is filled by StarPU.
 	*/
 	void *interfaces[STARPU_NMAXBUFS];
+
 	/**
 	   Used only when starpu_codelet::nbuffers is \ref
 	   STARPU_VARIABLE_NBUFFERS.
@@ -764,6 +766,9 @@ struct starpu_task
 	   already executing. The callback is passed
 	   the value contained in the starpu_task::epilogue_callback_arg field.
 	   No callback is executed if the field is set to <c>NULL</c>.
+
+	   With starpu_task_insert() and alike this can be specified thanks to
+	   ::STARPU_EPILOGUE_CALLBACK followed by the function pointer.
 	*/
 	void (*epilogue_callback_func)(void *);
 
@@ -835,7 +840,8 @@ struct starpu_task
 	*/
 	void *prologue_callback_arg;
 
-	/** Optional field, the default value is <c>NULL</c>. This is a
+	/**
+	   Optional field, the default value is <c>NULL</c>. This is a
 	   function pointer of prototype <c>void (*f)(void*)</c>
 	   which specifies a possible callback. If this pointer is
 	   non-<c>NULL</c>, the callback function is executed on the host
@@ -848,6 +854,7 @@ struct starpu_task
 	   ::STARPU_PROLOGUE_CALLBACK_POP followed by the function pointer.
 	*/
 	void (*prologue_callback_pop_func)(void *);
+
 	/**
 	   Optional field, the default value is <c>NULL</c>. This is
 	   the pointer passed to the prologue_callback_pop function. This
