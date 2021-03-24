@@ -61,8 +61,6 @@ static int _starpu_futex_wake = FUTEX_WAKE;
 
 #ifdef STARPU_SIMGRID
 
-extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
-
 int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2)
 {
 	return t1 == t2;

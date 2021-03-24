@@ -381,9 +381,8 @@ void _starpu_start_simgrid(int *argc, char **argv)
 	simgrid_transfer_cost = starpu_get_env_number_default("STARPU_SIMGRID_TRANSFER_COST", 1);
 }
 
-static int main_ret;
-
-static int do_starpu_main(int argc, char *argv[])
+static int
+run_starpu_main(int argc, char *argv[])
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
@@ -394,8 +393,16 @@ static int do_starpu_main(int argc, char *argv[])
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
 	}
 
-	main_ret = starpu_main(argc, argv);
-	return main_ret;
+	return starpu_main(argc, argv);
+}
+
+static int main_ret;
+
+static _starpu_simgrid_main_ret
+do_starpu_main(int argc, char *argv[])
+{
+	main_ret = run_starpu_main(argc, argv);
+	_STARPU_SIMGRID_MAIN_RETURN;
 }
 
 /* We need it only when using smpi */
@@ -432,7 +439,7 @@ int main(int argc, char **argv)
          * constructor and MSG_process_attach, directly jump to real main */
 	if (simgrid_started == 3)
 	{
-		return do_starpu_main(argc, argv);
+		return run_starpu_main(argc, argv);
 	}
 
 	/* Managed to catch application's main, initialize simgrid first */
@@ -1206,7 +1213,7 @@ void _starpu_simgrid_sync_gpus(void)
 	_starpu_simgrid_wait_transfers();
 }
 
-int
+_starpu_simgrid_main_ret
 _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 {
 	void *(*f)(void*) = (void*) (uintptr_t) strtol(argv[0], NULL, 16);
@@ -1218,7 +1225,7 @@ _starpu_simgrid_thread_start(int argc STARPU_ATTRIBUTE_UNUSED, char *argv[])
 
 	/* _args is freed with process context */
 	f(arg);
-	return 0;
+	_STARPU_SIMGRID_MAIN_RETURN;
 }
 
 starpu_pthread_t _starpu_simgrid_actor_create(const char *name, xbt_main_func_t code, starpu_sg_host_t host, int argc, char *argv[])
