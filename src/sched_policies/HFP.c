@@ -117,6 +117,7 @@ void HFP_insertion(struct paquets *a)
     struct my_list *new = malloc(sizeof(*new)); /* Creation of a new link */
 	starpu_task_list_init(&new->sub_list);
     new->next = a->temp_pointer_1;
+    new->nb_task_in_sub_list = 0;
     a->temp_pointer_1 = new;
 }
 
@@ -682,14 +683,14 @@ int HFP_pointeurComparator ( const void * first, const void * second ) {
 static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a)
 {
 	int i = 0;
-	if (starpu_get_env_number_default("MULTIGPU",0) == 0) 
-	{ 
+	if (starpu_get_env_number_default("MULTIGPU",0) == 0 && starpu_get_env_number_default("HMETIS",0) == 0)
+	{
 		a->temp_pointer_1 = a->first_link; 
 		return starpu_task_list_pop_front(&a->temp_pointer_1->sub_list); 
 	}
 	else { 	
 		//~ printf("Il y a %u GPUs\n", component->nchildren);
-		//~ printf("\nChildren 1 : %p / ", component->children[0]);
+		//~ printf("Children 1 : %p / ", component->children[0]);
 		//~ printf("Children 2 : %p / ", component->children[1]);
 		//~ printf("Children 3 : %p / ", component->children[2]);
 		//~ printf("to : %p\n", to);
@@ -1324,10 +1325,11 @@ void load_balance (struct paquets *a, int number_gpu)
 	}
 }
 
-void hmetis(int nb_package_to_build, struct paquets *p, struct starpu_task_list *l, int nb_gpu) 
+void hmetis(int nb_package_to_build, struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
 {
 	FILE *f = fopen("Output_maxime/input_hMETIS.txt", "w+");
-	fprintf(f,"blanck\n");
+	//TODO a corriger
+	fprintf(f,"blanckk\n");
 	NT = 0;
 	int i = 0; struct starpu_task *task_1; struct starpu_task *task_2; struct starpu_task *task_3; int NT = 0; bool first_write_on_line = true; bool already_counted = false;
 	int index_task_1 = 1; int index_task_2 = 0; int number_hyperedge = 0; int j = 0; int k = 0; int m = 0;
@@ -1357,7 +1359,6 @@ void hmetis(int nb_package_to_build, struct paquets *p, struct starpu_task_list 
 			}
 			if (already_counted == false) 
 			{	
-				printf("%p\n", STARPU_TASK_GET_HANDLE(task_1, i));
 				first_write_on_line = true;
 				index_task_2 = index_task_1 + 1;
 				for (task_2 = starpu_task_list_next(task_1); task_2 != starpu_task_list_end(l); task_2 = starpu_task_list_next(task_2))
@@ -1396,17 +1397,21 @@ void hmetis(int nb_package_to_build, struct paquets *p, struct starpu_task_list 
 	rewind(f);
 	fprintf(f, "%d %d 10\n", number_hyperedge, NT); /* Number of hyperedges, number of task, 10 for weighted vertices but non weighted */ 
 	fclose(f);	
+	//TODO : remplacer le 3 par nb_gpu ici
 	int cr = system("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/shmetis Output_maxime/input_hMETIS.txt 3 2");
 	if (cr != 0) 
 	{
         printf("Impossible de lancer la commande\n");
         exit(0);
     }
+    starpu_task_list_init(&p->temp_pointer_1->refused_fifo_list);
     for (i = 1; i < nb_gpu; i++)
     {
 		HFP_insertion(p);
+		starpu_task_list_init(&p->temp_pointer_1->refused_fifo_list);
+		printf("new link\n");
 	}
-	p->temp_pointer_1 = p->first_link;
+	p->first_link = p->temp_pointer_1;
 	char str[2];
 	sprintf(str, "%d", nb_gpu);
 	int size = strlen("Output_maxime/input_hMETIS.txt.part.") + strlen(str);
@@ -1423,10 +1428,26 @@ void hmetis(int nb_package_to_build, struct paquets *p, struct starpu_task_list 
 			printf("error fscanf in hMETIS\n"); exit(0);
 		}
 		printf("%d\n", number);
+		p->temp_pointer_1 = p->first_link;
+		for (j = 0; j < number; j++) 
+		{
+			p->temp_pointer_1 = p->temp_pointer_1->next;
+		}
+		starpu_task_list_push_back(&p->temp_pointer_1->sub_list, starpu_task_list_pop_front(l));
+		p->temp_pointer_1->nb_task_in_sub_list++;
 	}
 	fclose(f_2);
-	printf("ok\n");
-	exit(0);
+	print_packages_in_terminal(p, 0);
+	/* Apply HFP on each package if we have the right option */
+	if (starpu_get_env_number_default("HMETIS",0) == 2)
+	{
+		p->temp_pointer_1 = p->first_link;
+		for (i = 0; i < nb_gpu; i++) 
+		{
+			hierarchical_fair_packing(p->temp_pointer_1->sub_list, p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
+			p->temp_pointer_1 = p->temp_pointer_1->next;
+		}
+	}
 }
 
 /* The function that sort the tasks in packages */
@@ -1479,7 +1500,6 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	//~ STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component)); /* If we have only one GPU uncomment this */
 	GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Max size of a package = %ld\n",GPU_RAM_M); }
-	
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	/* If one or more task have been refused */
 	data->p->temp_pointer_1 = data->p->first_link;
@@ -1507,16 +1527,22 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			
 			if (starpu_get_env_number_default("HMETIS",0) != 0) 
 			{
-				hmetis(number_of_package_to_build, data->p, &data->sched_list, component->nchildren);
+				hmetis(number_of_package_to_build, data->p, &data->sched_list, component->nchildren, GPU_RAM_M);
+				task1 = get_task_to_return(component, to, data->p);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from hmetis on gpu %p\n",task1, to); }
+				return task1;
 			}
+			//~ else
+			//~ {
 			
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Tâche %p\n",task1); }
-				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
-					printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
-				}
+				//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
+					//~ printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
+				//~ }
 				if (starpu_get_env_number_default("MULTIGPU",0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}					
 				nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list,task1);
@@ -1935,18 +1961,17 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		fprintf(f_time,"%d\n",time_taken);
 		fclose(f_time);
 		
+		//~ end_hfp:
+		
+		
 		/* We pop the first task of the first package. We look at the current GPU if we are in multi GPU in order to assign the first task of the corresponding package */
-		//~ printf("avant get task to return 1\n");
 		task1 = get_task_to_return(component, to, data->p);
-		//~ printf("apres get task to return 1\n");
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task depuis boucle de création de paquets d'HFP\n",task1); }	
 		}
 		/* Else de if (!starpu_task_list_empty(&data->sched_list)), il faut donc return une tâche */
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }			
+			if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
 			return task1; /* Renvoie nil içi */
 	} /* End of if ((data->p->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))) { */
-		//~ printf("ok\n");
 		task1 = get_task_to_return(component, to, data->p);
 		if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -2040,6 +2065,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	paquets_data->temp_pointer_1 = my_data;
 	paquets_data->first_link = paquets_data->temp_pointer_1;
 	data->p = paquets_data;
+	data->p->temp_pointer_1->nb_task_in_sub_list = 0;
 	
 	component->data = data;
 	component->push_task = HFP_push_task;
