@@ -39,6 +39,7 @@
 #define BELADY /* O or 1 */
 #define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet */
 #define MODULAR_HEFT_HFP_MODE /* 0 we don't use heft, 1 we use starpu_prefetch_task_input_on_node_prio, 2 we use starpu_prefetch_task_input_on_node_prio */
+#define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package */
 
 static int NT;
 static int N;
@@ -1323,6 +1324,111 @@ void load_balance (struct paquets *a, int number_gpu)
 	}
 }
 
+void hmetis(int nb_package_to_build, struct paquets *p, struct starpu_task_list *l, int nb_gpu) 
+{
+	FILE *f = fopen("Output_maxime/input_hMETIS.txt", "w+");
+	fprintf(f,"blanck\n");
+	NT = 0;
+	int i = 0; struct starpu_task *task_1; struct starpu_task *task_2; struct starpu_task *task_3; int NT = 0; bool first_write_on_line = true; bool already_counted = false;
+	int index_task_1 = 1; int index_task_2 = 0; int number_hyperedge = 0; int j = 0; int k = 0; int m = 0;
+	for (task_1 = starpu_task_list_begin(l); task_1 != starpu_task_list_end(l); task_1 = starpu_task_list_next(task_1))
+	{
+		printf("Tâche 1 %p\n", task_1);
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task_1); i++) 
+		{
+			task_3 = starpu_task_list_begin(l);
+			already_counted = false;
+			//~ printf("index task 1 = %d\n", index_task_1);
+			for (k = 1; k < index_task_1; k++) 
+			{
+				for (m = 0; m < STARPU_TASK_GET_NBUFFERS(task_3); m++)
+				{
+					if (STARPU_TASK_GET_HANDLE(task_1, i) == STARPU_TASK_GET_HANDLE(task_3, m))
+					{
+						already_counted = true;
+						break;
+					}
+				}
+				if (already_counted == true)
+				{
+					break;
+				}
+				task_3 = starpu_task_list_next(task_3);
+			}
+			if (already_counted == false) 
+			{	
+				printf("%p\n", STARPU_TASK_GET_HANDLE(task_1, i));
+				first_write_on_line = true;
+				index_task_2 = index_task_1 + 1;
+				for (task_2 = starpu_task_list_next(task_1); task_2 != starpu_task_list_end(l); task_2 = starpu_task_list_next(task_2))
+				{
+					//~ printf("Tâche 2 %p\n", task_2);
+					for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task_2); j++)
+					{
+						if (STARPU_TASK_GET_HANDLE(task_1, i) == STARPU_TASK_GET_HANDLE(task_2, j))
+						{
+							if (first_write_on_line == true) 
+							{
+								first_write_on_line = false;			
+								fprintf(f, "%d %d", index_task_1, index_task_2);
+								number_hyperedge++;
+							}
+							else 
+							{
+								fprintf(f, " %d", index_task_2);
+							}
+						}
+					}
+					index_task_2++;
+				}
+				if (first_write_on_line == false) { fprintf(f, "\n"); }
+			}
+		}
+		index_task_1++;
+		NT++;
+	}
+	/* Printing expected time of each task */
+	for (task_1 = starpu_task_list_begin(l); task_1 != starpu_task_list_end(l); task_1 = starpu_task_list_next(task_1))
+	{
+		fprintf(f, "%f\n", starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0));			
+	}
+	/* Printing informations for hMETIS on the first line */
+	rewind(f);
+	fprintf(f, "%d %d 10\n", number_hyperedge, NT); /* Number of hyperedges, number of task, 10 for weighted vertices but non weighted */ 
+	fclose(f);	
+	int cr = system("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/shmetis Output_maxime/input_hMETIS.txt 3 2");
+	if (cr != 0) 
+	{
+        printf("Impossible de lancer la commande\n");
+        exit(0);
+    }
+    for (i = 1; i < nb_gpu; i++)
+    {
+		HFP_insertion(p);
+	}
+	p->temp_pointer_1 = p->first_link;
+	char str[2];
+	sprintf(str, "%d", nb_gpu);
+	int size = strlen("Output_maxime/input_hMETIS.txt.part.") + strlen(str);
+	char *path2 = (char *)malloc(size);
+	strcpy(path2, "Output_maxime/input_hMETIS.txt.part.");
+	strcat(path2, str);
+	FILE *f_2 = fopen(path2, "r");
+	int number; int error;
+	for (i = 0; i < NT; i++) 
+	{
+		error = fscanf(f_2, "%d", &number);
+		if (error == 0) 
+		{
+			printf("error fscanf in hMETIS\n"); exit(0);
+		}
+		printf("%d\n", number);
+	}
+	fclose(f_2);
+	printf("ok\n");
+	exit(0);
+}
+
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
@@ -1398,10 +1504,19 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		if (!starpu_task_list_empty(&data->sched_list)) { /* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
 			time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
+			
+			if (starpu_get_env_number_default("HMETIS",0) != 0) 
+			{
+				hmetis(number_of_package_to_build, data->p, &data->sched_list, component->nchildren);
+			}
+			
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Tâche %p\n",task1); }
+				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
+					printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
+				}
 				if (starpu_get_env_number_default("MULTIGPU",0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}					
 				nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list,task1);
