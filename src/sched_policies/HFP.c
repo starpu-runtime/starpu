@@ -694,7 +694,6 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 	{
 		a->temp_pointer_1 = a->first_link; 
 		task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task); }
 		return task;
 	}
 	else { 	
@@ -718,7 +717,6 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 			//~ if (to == component->children[0]) { printf("GPU 1\n");  }
 			//~ if (to == component->children[1]) { printf("GPU 2\n");  }
 			//~ if (to == component->children[2]) { printf("GPU 3\n");  }
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task); }
 			return task;
 		}
 		else { return NULL; }
@@ -2025,7 +2023,7 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 
 	if (task)
 	{
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, %p couldn't take our task %p \n", to, task); }
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, %p couldn't take our task %p \n", to, task); }
 		/* Oops, we couldn't push everything, put back this task */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		//~ starpu_task_list_push_back(&data->list_if_fifo_full, task);
@@ -2117,7 +2115,7 @@ static void initialize_HFP_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
-			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY | /* ready of dmdaar plugged into HFP */
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
@@ -2129,10 +2127,15 @@ static void deinitialize_HFP_center_policy(unsigned sched_ctx_id)
 	starpu_sched_tree_destroy(tree);
 }
 
+void get_current_tasks_heft(struct starpu_task *task, unsigned sci)
+{
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task); }
+	starpu_sched_component_worker_pre_exec_hook(task,sci);
+}
+
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
 	task_currently_treated = task;
-	//~ index_task_currently_treated++;	
 	starpu_sched_component_worker_pre_exec_hook(task,sci);
 }
 
@@ -2302,7 +2305,8 @@ struct starpu_sched_policy _starpu_sched_modular_heft_HFP_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.pre_exec_hook = get_current_tasks_heft, /* Getting current task for printing diff later on */
+	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "modular-heft-HFP",
