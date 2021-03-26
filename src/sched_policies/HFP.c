@@ -679,14 +679,23 @@ int HFP_pointeurComparator ( const void * first, const void * second ) {
   return ( *(int*)first - *(int*)second );
 }
 
+void print_effective_order_in_file (struct starpu_task *task)
+{
+	FILE *f = fopen("Output_maxime/Task_order_effective.txt", "a");
+	fprintf(f, "%p\n",task);
+	fclose(f);
+}
+
 /* Called in HFP_pull_task when we need to return a task. It is used when we have multiple GPUs */
 static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a)
 {
-	int i = 0;
+	int i = 0; struct starpu_task *task;
 	if (starpu_get_env_number_default("MULTIGPU",0) == 0 && starpu_get_env_number_default("HMETIS",0) == 0)
 	{
 		a->temp_pointer_1 = a->first_link; 
-		return starpu_task_list_pop_front(&a->temp_pointer_1->sub_list); 
+		task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task); }
+		return task;
 	}
 	else { 	
 		//~ printf("Il y a %u GPUs\n", component->nchildren);
@@ -705,10 +714,11 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 			}
 		}
 		if (!starpu_task_list_empty(&a->temp_pointer_1->sub_list)) { 
-			struct starpu_task *task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list); 
+			task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list); 
 			//~ if (to == component->children[0]) { printf("GPU 1\n");  }
 			//~ if (to == component->children[1]) { printf("GPU 2\n");  }
 			//~ if (to == component->children[2]) { printf("GPU 3\n");  }
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task); }
 			return task;
 		}
 		else { return NULL; }
@@ -1323,6 +1333,22 @@ void load_balance (struct paquets *a, int number_gpu)
 			}
 		}
 	}
+}
+
+void print_order_in_file_hfp (struct paquets *p)
+{
+	p->temp_pointer_1 = p->first_link;
+	FILE *f = fopen("Output_maxime/Task_order_HFP.txt", "w");
+	struct starpu_task *task;
+	while (p->temp_pointer_1 != NULL) 
+	{
+		for (task = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task != starpu_task_list_end(&p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
+		{
+			fprintf(f, "%p\n",task);
+		}
+		p->temp_pointer_1 = p->temp_pointer_1->next;
+	}
+	fclose(f);
 }
 
 void hmetis(int nb_package_to_build, struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
@@ -1963,6 +1989,14 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		
 		//~ end_hfp:
 		
+		/* Printing in a file the order produced by HFP. If we use modular-heft-HFP, we can compare this order with the one done by modular-heft */
+		if (starpu_get_env_number_default("PRINTF",0) == 1)
+		{
+			print_order_in_file_hfp(data->p);
+			FILE *f = fopen("Output_maxime/Task_order_effective.txt", "w"); /* Just to empty it before */
+			fclose(f);
+		}
+	
 		
 		/* We pop the first task of the first package. We look at the current GPU if we are in multi GPU in order to assign the first task of the corresponding package */
 		task1 = get_task_to_return(component, to, data->p);
