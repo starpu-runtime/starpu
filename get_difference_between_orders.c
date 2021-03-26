@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <stdio.h>
 
 int main(int argc, char *argv[])
@@ -12,17 +13,31 @@ int main(int argc, char *argv[])
     if (fichier_hfp != NULL && fichier_effectif != NULL)
     {
 		/* Print beggining */
-		fprintf(f, "	x	y\n");
+		fprintf(fichier_out, "	x	y\n");
 		while (fscanf(fichier_hfp, "%s", str1) == 1) //expect 1 successful conversion
 		{
+		  printf("ok0 %s\n", str1);
 		  //process buffer
-		  fprintf(f, "%s	%d", str1, x);
+		  fprintf(fichier_out, "%s	%d", str1, x);
 		  x++;
-		  fscanf(fichier_effectif, "%s", str2
+		  rewind(fichier_effectif);
+		  fscanf(fichier_effectif, "%s", str2);
+		  y = 0;
+		  while (strcmp(str1, str2) != 0)
+		  {
+			 fscanf(fichier_effectif, "%s", str2);
+			 y++;
+			 printf("ok1, %d\n", y);
+		 }
+		 printf("ok2\n");
+		 fprintf(fichier_out, "	%d\n", y); 
 		}
-		if (feof(stream)) 
+		if (feof(fichier_hfp)) 
 		{
 		  //hit end of file
+		  fclose(fichier_hfp);
+		  fclose(fichier_effectif);
+		  fclose(fichier_out);
 		  return 0;
 		}
 		else
