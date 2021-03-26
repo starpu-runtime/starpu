@@ -40,6 +40,7 @@
 #define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet */
 #define MODULAR_HEFT_HFP_MODE /* 0 we don't use heft, 1 we use starpu_prefetch_task_input_on_node_prio, 2 we use starpu_prefetch_task_input_on_node_prio */
 #define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package */
+#define READY /* 0 we don't use ready in initialize_HFP_center_policy, 1 we do */
 
 static int NT;
 static int N;
@@ -2110,14 +2111,25 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 
 static void initialize_HFP_center_policy(unsigned sched_ctx_id)
 {	
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Initialize\n"); }
-	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_HFP_create, NULL,
+	if (starpu_get_env_number_default("READY", 1) == 1) 
+	{ 
+		starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_HFP_create, NULL,
+				STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
+				STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
+				STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+				STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY | /* ready of dmdar plugged into HFP */
+				STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
+				STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
+	}
+	else
+	{
+		starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_HFP_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
-			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY | /* ready of dmdaar plugged into HFP */
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
+	}
 }
 
 static void deinitialize_HFP_center_policy(unsigned sched_ctx_id)
