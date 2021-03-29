@@ -344,8 +344,20 @@ unsigned starpu_worker_get_local_memory_node(void);
 */
 unsigned starpu_worker_get_memory_node(unsigned workerid);
 
+/**
+   Return the number of memory nodes
+*/
 unsigned starpu_memory_nodes_get_count(void);
+
+/**
+   Return in \p name the name of a memory node (NUMA 0, CUDA 0, etc.)
+   \p size is the size of the \p name array.
+*/
 int starpu_memory_node_get_name(unsigned node, char *name, size_t size);
+
+/**
+   Return the number of NUMA nodes used by StarPU
+*/
 int starpu_memory_nodes_get_numa_count(void);
 
 /**
