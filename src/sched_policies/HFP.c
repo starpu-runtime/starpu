@@ -16,6 +16,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <limits.h>
 #include <starpu_data_maxime.h> //Nécessaire pour Belady
 #include <stdbool.h>
 #include <stdlib.h>
@@ -34,13 +35,22 @@
 #include "starpu_stdlib.h"
 #include "common/list.h"
 #include <assert.h>
-#define PRINTF /* O or 1 */
+#define PRINTF /* O we print nothing, 1 we print in terminal and also fill data coordinate order, task order etc... so it can take more time. */
 #define ORDER_U /* O or 1 */
 #define BELADY /* O or 1 */
 #define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet */
-#define MODULAR_HEFT_HFP_MODE /* 0 we don't use heft, 1 we use starpu_prefetch_task_input_on_node_prio, 2 we use starpu_prefetch_task_input_on_node_prio. Put it at 1 or 2 if you use modular-heft-HFP, else it will crash. the 0 is just here so we don't do prefetch when we use regular HFP. */
+#define MODULAR_HEFT_HFP_MODE /* 0 we don't use heft, 1 we use starpu_prefetch_task_input_on_node_prio, 2 we use starpu_prefetch_task_input_on_node_prio. Put it at 1 or 2 if you use modular-heft-HFP, else it will crash. the 0 is just here so we don't do prefetch when we use regular HFP. If we do not use modular-heft-HFP, always put this environemment variable on 0. */
 #define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package */
 #define READY /* 0 we don't use ready in initialize_HFP_center_policy, 1 we do */
+
+/* Other environmment variable you should use with HFP: 
+ * STARPU_NTASKS_THRESHOLD=30  
+ * STARPU_MINIMUM_CLEAN_BUFFERS=0
+ * STARPU_TARGET_CLEAN_BUFFERS=0 
+ * STARPU_CUDA_PIPELINE=4
+ * STARPU_NCPU=0
+ * STARPU_NOPENCL=0
+ */
 
 static int NT;
 static int N;
@@ -707,9 +717,8 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 		if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0)
 		{
 			package_min_expected_time_pulled_out = 0;
-			min_expected_time_pulled_out = a->temp_pointer_1->expected_time_pulled_out;
-			a->temp_pointer_1 = a->temp_pointer_1->next;
-			for (i = 1; i < nb_gpu; i++) {
+			min_expected_time_pulled_out = DBL_MAX;
+			for (i = 0; i < nb_gpu; i++) {
 				/* We also need to check that the package is not empty */
 				if (a->temp_pointer_1->expected_time_pulled_out < min_expected_time_pulled_out && !starpu_task_list_empty(&a->temp_pointer_1->sub_list)) {
 					min_expected_time_pulled_out = a->temp_pointer_1->expected_time_pulled_out;
@@ -723,6 +732,7 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 			}
 			task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 			a->temp_pointer_1->expected_time_pulled_out += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0); 
+			printf("reutn %p\n", task);
 			return task;
 		}
 		else
