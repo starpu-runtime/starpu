@@ -682,6 +682,19 @@ int HFP_pointeurComparator ( const void * first, const void * second ) {
 
 void print_effective_order_in_file (struct starpu_task *task)
 {
+	//~ int i = 0;
+	//~ for (i = 0; i < component->nchildren; i++) {
+		//~ if (to == component->children[i]) {
+			//~ break;
+		//~ }
+	//~ }
+	//~ char str[2];
+	//~ sprintf(str, "%d", i);
+	//~ int size = strlen("Output_maxime/Task_order_effective_.txt") + strlen(str);
+	//~ char *path = (char *)malloc(size);
+	//~ strcpy(path, "Output_maxime/Task_order_effective_");
+	//~ strcat(path, str);
+	//~ strcat(path, ".txt");
 	FILE *f = fopen("Output_maxime/Task_order_effective.txt", "a");
 	fprintf(f, "%p\n",task);
 	fclose(f);
@@ -898,7 +911,7 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 										matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]) + starpu_data_get_size(paquets_data->temp_pointer_1->package_data[i]);
 									} } } index_head_2++; } index_head_1++; index_head_2 = index_head_1 + 1; }
 				/* Code to print the common data matrix */
-				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
 				
 				/* Getting back to the beginning of the linked list */
 				paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_2 = paquets_data->first_link;
@@ -1345,6 +1358,7 @@ void print_order_in_file_hfp (struct paquets *p)
 		{
 			fprintf(f, "%p\n",task);
 		}
+		fprintf(f, "End\n");
 		p->temp_pointer_1 = p->temp_pointer_1->next;
 	}
 	fclose(f);
@@ -1515,10 +1529,21 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	long int weight_package_j = 0;
 	int number_of_package_to_build = 0;
 	
-	if (starpu_get_env_number_default("MULTIGPU",0) != 0) {
-		number_of_package_to_build = component->nchildren; 
+	/* Getting the number of GPUs */
+	if (starpu_get_env_number_default("MULTIGPU",0) != 0) 
+	{
+		unsigned nnodes = starpu_memory_nodes_get_count();
+		for (i = 0; i < nnodes; i++)
+		{
+			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM)
+			{
+				number_of_package_to_build++;
+			} 
+		}
+		printf("to build : %d\n", number_of_package_to_build);
 	}
-	else { number_of_package_to_build = 1; }
+	else { number_of_package_to_build = 1; } 
+	exit(0);
 	
 	/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
 	starpu_ssize_t GPU_RAM_M = 0;
