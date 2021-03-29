@@ -1489,6 +1489,25 @@ void hmetis(int nb_package_to_build, struct paquets *p, struct starpu_task_list 
 	}
 }
 
+int get_number_GPU()
+{
+	int return_value = 0;
+	if (starpu_get_env_number_default("MULTIGPU",0) != 0) 
+	{
+		unsigned nnodes = starpu_memory_nodes_get_count();
+		for (int i = 0; i < nnodes; i++)
+		{
+			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM)
+			{
+				return_value++;
+			} 
+		}
+		printf("to build : %d\n", return_value);
+	}
+	else { return_value = 1; }
+	return return_value;
+}
+
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
@@ -1530,20 +1549,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	int number_of_package_to_build = 0;
 	
 	/* Getting the number of GPUs */
-	if (starpu_get_env_number_default("MULTIGPU",0) != 0) 
-	{
-		unsigned nnodes = starpu_memory_nodes_get_count();
-		for (i = 0; i < nnodes; i++)
-		{
-			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM)
-			{
-				number_of_package_to_build++;
-			} 
-		}
-		printf("to build : %d\n", number_of_package_to_build);
-	}
-	else { number_of_package_to_build = 1; } 
-	exit(0);
+	number_of_package_to_build = get_number_GPU(); 
 	
 	/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
 	starpu_ssize_t GPU_RAM_M = 0;
