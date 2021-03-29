@@ -701,7 +701,7 @@ void print_effective_order_in_file (struct starpu_task *task)
 }
 
 /* Called in HFP_pull_task when we need to return a task. It is used when we have multiple GPUs */
-static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a)
+static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
 	int i = 0; struct starpu_task *task;
 	if (starpu_get_env_number_default("MULTIGPU",0) == 0 && starpu_get_env_number_default("HMETIS",0) == 0)
@@ -718,7 +718,7 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 		//~ printf("to : %p\n", to);
 		
 		a->temp_pointer_1 = a->first_link;
-		for (i = 0; i < component->nchildren; i++) {
+		for (i = 0; i < nb_gpu; i++) {
 			if (to == component->children[i]) {
 				break;
 			}
@@ -1502,7 +1502,6 @@ int get_number_GPU()
 				return_value++;
 			} 
 		}
-		printf("to build : %d\n", return_value);
 	}
 	else { return_value = 1; }
 	return return_value;
@@ -1560,7 +1559,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	/* If one or more task have been refused */
 	data->p->temp_pointer_1 = data->p->first_link;
 	if (data->p->temp_pointer_1->next != NULL) { 
-		for (i = 0; i < component->nchildren; i++) {
+		for (i = 0; i < number_of_package_to_build; i++) {
 			if (to == component->children[i]) {
 				break;
 			}
@@ -1583,8 +1582,8 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			
 			if (starpu_get_env_number_default("HMETIS",0) != 0) 
 			{
-				hmetis(number_of_package_to_build, data->p, &data->sched_list, component->nchildren, GPU_RAM_M);
-				task1 = get_task_to_return(component, to, data->p);
+				hmetis(number_of_package_to_build, data->p, &data->sched_list, number_of_package_to_build, GPU_RAM_M);
+				task1 = get_task_to_return(component, to, data->p, number_of_package_to_build);
 				STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from hmetis on gpu %p\n",task1, to); }
 				return task1;
@@ -1975,12 +1974,12 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		
 		/* Task stealing. Only in cases of multigpu */
 		if (starpu_get_env_number_default("MULTIGPU",0) == 2 || starpu_get_env_number_default("MULTIGPU",0) == 3) {
-			load_balance(data->p, component->nchildren);
+			load_balance(data->p, number_of_package_to_build);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
 		/* Task stealing with expected time */
 		if (starpu_get_env_number_default("MULTIGPU",0) == 4 || starpu_get_env_number_default("MULTIGPU",0) == 5) {
-			load_balance_expected_time(data->p, component->nchildren);
+			load_balance_expected_time(data->p, number_of_package_to_build);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
 		/* Re-apply HFP on each package. 
@@ -2001,7 +2000,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		
 		/* Belady */
 		if (starpu_get_env_number_default("BELADY",0) == 1) {
-			get_ordre_utilisation_donnee(data->p, NB_TOTAL_DONNEES, component->nchildren);
+			get_ordre_utilisation_donnee(data->p, NB_TOTAL_DONNEES, number_of_package_to_build);
 		}
 		
 		/* If you want to get the sum of weight of all different data. Only works if you have only one package */
@@ -2029,14 +2028,14 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	
 		
 		/* We pop the first task of the first package. We look at the current GPU if we are in multi GPU in order to assign the first task of the corresponding package */
-		task1 = get_task_to_return(component, to, data->p);
+		task1 = get_task_to_return(component, to, data->p, number_of_package_to_build);
 		}
 		/* Else de if (!starpu_task_list_empty(&data->sched_list)), il faut donc return une tâche */
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
 			return task1; /* Renvoie nil içi */
 	} /* End of if ((data->p->temp_pointer_1->next == NULL) && (starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))) { */
-		task1 = get_task_to_return(component, to, data->p);
+		task1 = get_task_to_return(component, to, data->p, number_of_package_to_build);
 		if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return task1;
@@ -2060,11 +2059,12 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		//~ starpu_task_list_push_back(&data->list_if_fifo_full, task);
 		data->p->temp_pointer_1 = data->p->first_link;
+		int nb_gpu = get_number_GPU();
 		if (data->p->temp_pointer_1->next == NULL) { starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task); }
 		else {
 			//A corriger. En fait il faut push back dans une fifo a part puis pop back dans cette fifo dans pull task
 			//Ici le pb c'est si plusieurs taches se font refusé
-			for (int i = 0; i < component->nchildren; i++) {
+			for (int i = 0; i < nb_gpu; i++) {
 				if (to == component->children[i]) {
 					break;
 				}
