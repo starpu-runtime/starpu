@@ -790,21 +790,24 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 }
 
 /* Giving prefetch for each task to modular-heft-HFP */
-void prefetch_each_task(struct paquets *a, struct starpu_sched_component *component)
+void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to)
 {
 	struct starpu_task *task;
+	int i = 0;
 	a->temp_pointer_1 = a->first_link;
 	
 	while (a->temp_pointer_1 != NULL) {
 		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
 			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 1)
 			{  
-				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)), 0);
-				printf("prefetch of %p\n", task);
+				//~ starpu_worker_get_memory_node(starpu_bitmap_first(&to->workers_in_ctx))));
+				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&to->children[i]->workers_in_ctx)), 0);
+				printf("prefetch of %p on gpu %p\n", task, to->children[i]);
 			}
 			else if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 2)
 			{  
-				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)), 0);
+				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&to->children[i]->workers_in_ctx)), 0);
+				printf("prefetch of %p on gpu %p\n", task, to->children[i]);
 			}
 			else
 			{
@@ -812,6 +815,7 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *compon
 			}
 		}
 		a->temp_pointer_1 = a->temp_pointer_1->next;
+		i++;
 	}
 }
 
@@ -2048,7 +2052,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		
 		/* We prefetch data for each task for modular-heft-HFP */
 		if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0) {
-			prefetch_each_task(data->p, component);
+			prefetch_each_task(data->p, to);
 		}
 		
 		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
@@ -2218,12 +2222,15 @@ static void deinitialize_HFP_center_policy(unsigned sched_ctx_id)
 
 void get_current_tasks_heft(struct starpu_task *task, unsigned sci)
 {
+	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task, "HEFT"); }
 	if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task); }
 	starpu_sched_component_worker_pre_exec_hook(task,sci);
 }
 
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task); }
+	/* récuperer ordre Ready */
 	task_currently_treated = task;
 	starpu_sched_component_worker_pre_exec_hook(task,sci);
 }
