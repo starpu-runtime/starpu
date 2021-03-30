@@ -21,6 +21,7 @@ ulimit -S -s 5000000
 N=$((TAILLE_TESTE))
 if [ $DOSSIER = "Matrice_ligne" ]
 	then
+	NT=$((N*N))
 	if [ $MODEL = "HFPR" ]
 		then
 		if [ $GPU == "1" ]
@@ -54,6 +55,7 @@ if [ $DOSSIER = "Matrice_ligne" ]
 fi
 if [ $DOSSIER = "Matrice3D" ]
 	then
+	NT=$((N*N*4))
 	if [ $MODEL = "HFPR" ]
 		then
 		if [ $GPU == "1" ]
@@ -84,5 +86,5 @@ fi
 # Tracage des GFlops
 gcc -o get_difference_between_orders get_difference_between_orders.c
 ./get_difference_between_orders Output_maxime/Task_order_HFP_0 Output_maxime/Task_order_effective_0 ${PATH_R}/R/Data/${DOSSIER}/Difference_between_orders/${FICHIER:0}.txt
-Rscript ${PATH_R}/R/ScriptR/Difference_between_orders/Diff_HFP_HEFT_BW350_CM500.R ${PATH_R}/R/Data/${DOSSIER}/Difference_between_orders/${FICHIER}.txt
+Rscript ${PATH_R}/R/ScriptR/Difference_between_orders/Diff_HFP_HEFT_BW350_CM500.R ${PATH_R}/R/Data/${DOSSIER}/Difference_between_orders/${FICHIER}.txt $((GPU)) $((NT))
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/Difference_between_orders/${FICHIER:0}.pdf
