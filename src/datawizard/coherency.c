@@ -1431,15 +1431,18 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 // XXX : this is just a hint, so we don't take the lock ...
 //	STARPU_PTHREAD_SPIN_LOCK(&handle->header_lock);
 
+//~ printf("On est sur la node %d, ", node);
+
 	if (handle->per_node[node].state != STARPU_INVALID)
 	{
 		ret  = 1;
+		//~ printf("handle %p is not invalid, ", handle);
 	}
 	else
 	{
 		unsigned i;
 		unsigned nnodes = starpu_memory_nodes_get_count();
-
+		//~ printf("handle %p is invalid, ", handle);
 		for (i = 0; i < nnodes; i++)
 		{
 			if (handle->per_node[node].request[i])
@@ -1449,6 +1452,6 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 	}
 
 //	STARPU_PTHREAD_SPIN_UNLOCK(&handle->header_lock);
-
+	//~ printf("ret = %d\n",ret);
 	return ret;
 }

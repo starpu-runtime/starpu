@@ -18,9 +18,11 @@ sudo make -j4
 	#### Test ####
 		#~ bash Scripts_maxime/Matrice_ligne/TEST_M2D_1GPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8
 	#### Difference between orders ####
-		bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HEFT_BW350_CM500_1GPU HEFT 1
-		bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HEFT_BW350_CM500_3GPU HEFT 3
-		bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HFPR_BW350_CM500_1GPU HFPR 1
+		#~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HEFT_BW350_CM500_1GPU HEFT 1
+		#~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HEFT_BW350_CM500_3GPU HEFT 3
+		#~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HFPR_BW350_CM500_1GPU HFPR 1
+	#### HMETIS ####
+		bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW1050_CM250_MULTIGPU_HMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 9
 	
 #### Matrice 3D ####
 	#### 1 GPU ####

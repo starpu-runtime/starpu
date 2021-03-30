@@ -1485,8 +1485,8 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	fclose(f);	
 	fclose(f_3);	
 	//TODO : remplacer le 3 par nb_gpu ici
-	//TODO tester différents paramètres de hmetis
-	int cr = system("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/shmetis Output_maxime/input_hMETIS.txt 3 2");
+	//TODO tester différents paramètres de hmetis et donc modifier ici
+	int cr = system("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/shmetis Output_maxime/input_hMETIS.txt 3 1");
 	if (cr != 0) 
 	{
         printf("Impossible de lancer la commande\n");

@@ -1,9 +1,11 @@
 #!/usr/bin/bash
+#~ M2D
 #~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HEFT_BW350_CM500_1GPU HEFT 1
 #~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HEFT_BW350_CM500_3GPU HEFT 3
 #~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HFPR_BW350_CM500_1GPU HFPR 1
 #~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Diff_HFP_HFPR_BW350_CM500_3GPU HFPR 3
 
+#~ M3D
 #~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice3D Diff_HFP_HEFT_BW350_CM500_1GPU_M3D HEFT 1
 #~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice3D Diff_HFP_HEFT_BW350_CM500_3GPU_M3D HEFT 3
 
@@ -71,7 +73,7 @@ if [ $DOSSIER = "Matrice3D" ]
 		fi
 		if [ $GPU == "3" ]
 			then
-			STARPU_SCHED=modular-heft-HFP PRINTF=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=1050 STARPU_LIMIT_CUDA_MEM=250 STARPU_NCPU=0 STARPU_NCUDA=3 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1
+			STARPU_SCHED=modular-heft-HFP MULTIGPU=4 MODULAR_HEFT_HFP_MODE=2 PRINTF=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=1050 STARPU_LIMIT_CUDA_MEM=250 STARPU_NCPU=0 STARPU_NCUDA=3 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1
 			cat "Output_maxime/Task_order_HFP_1" >> "Output_maxime/Task_order_HFP_0"
 			cat "Output_maxime/Task_order_HFP_2" >> "Output_maxime/Task_order_HFP_0"
 			cat "Output_maxime/Task_order_effective_1" >> "Output_maxime/Task_order_effective_0"
