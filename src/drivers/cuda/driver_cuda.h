@@ -28,6 +28,9 @@ void _starpu_cuda_preinit(void);
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <cublas.h>
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#include <nvml.h>
+#endif
 #endif
 
 #include <starpu.h>
@@ -45,6 +48,9 @@ extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_M
 void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
 void _starpu_init_cuda(void);
 void *_starpu_cuda_worker(void *);
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props);
+#endif
 #else
 #  define _starpu_cuda_discover_devices(config) ((void) config)
 #endif

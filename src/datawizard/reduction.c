@@ -20,7 +20,6 @@
 #include <util/starpu_data_cpy.h>
 #include <core/task.h>
 #include <datawizard/datawizard.h>
-#include <drivers/mic/driver_mic_source.h>
 #include <drivers/mp_common/source_common.h>
 #include <datawizard/memory_nodes.h>
 
@@ -54,7 +53,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 	STARPU_ASSERT(replicate->allocated);
 
 	struct starpu_codelet *init_cl = handle->init_cl;
-	STARPU_ASSERT(init_cl);
+	STARPU_ASSERT_MSG(init_cl, "There is no initialisation codelet for the reduction of the handle %p. Maybe you forget to call starpu_data_set_reduction_methods() ?", handle->root_handle);
 
 	_starpu_cl_func_t init_func = NULL;
 
@@ -75,11 +74,6 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 		case STARPU_OPENCL_WORKER:
 			init_func = _starpu_task_get_opencl_nth_implementation(init_cl, 0);
 			break;
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_WORKER:
-			init_func = _starpu_mic_src_get_kernel_from_codelet(init_cl, 0);
-			break;
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		case STARPU_MPI_MS_WORKER:
 			init_func = _starpu_mpi_ms_src_get_kernel_from_codelet(init_cl, 0); 
@@ -94,22 +88,6 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 
 	switch (starpu_worker_get_type(workerid))
 	{
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_WORKER:
-		{
-			struct _starpu_mp_node *node = _starpu_mic_src_get_actual_thread_mp_node();
-			int devid = _starpu_get_worker_struct(workerid)->devid;
-			void * arg;
-			int arg_size;
-			_starpu_src_common_execute_kernel(node,
-					(void(*)(void))init_func, devid,
-					STARPU_SEQ, 0, 0, &handle, 
-					&(replicate->data_interface), 1,
-					NULL, 0, 1);
-			_starpu_src_common_wait_completed_execution(node,devid,&arg,&arg_size);
-			break;
-		}
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		case STARPU_MPI_MS_WORKER:
 		{
@@ -280,12 +258,22 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					redux_task->cl = handle->redux_cl;
 					STARPU_ASSERT(redux_task->cl);
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0)))
-						STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_RW, 0);
+						STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_RW|STARPU_COMMUTE, 0);
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1)))
 						STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_R, 1);
 
-					STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 0) == STARPU_RW, "First parameter of reduction codelet %p has to be RW", redux_task->cl);
+					STARPU_ASSERT_MSG((STARPU_CODELET_GET_MODE(redux_task->cl, 0) & ~STARPU_COMMUTE) == STARPU_RW, "First parameter of reduction codelet %p has to be RW", redux_task->cl);
 					STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 1) == STARPU_R, "Second parameter of reduction codelet %p has to be R", redux_task->cl);
+					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0) & STARPU_COMMUTE))
+					{
+						static int warned;
+						STARPU_HG_DISABLE_CHECKING(warned);
+						if (!warned)
+						{
+							warned = 1;
+							_STARPU_DISP("Warning: for reductions, codelet %p should have STARPU_COMMUTE along STARPU_RW\n", redux_task->cl);
+						}
+					}
 
 					STARPU_TASK_SET_HANDLE(redux_task, replicate_array[i], 0);
 					STARPU_TASK_SET_HANDLE(redux_task, replicate_array[i+step], 1);

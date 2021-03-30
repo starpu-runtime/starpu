@@ -47,7 +47,7 @@ void _starpu_mpi_common_mp_recv(const struct _starpu_mp_node *node, void *msg, i
 void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len, void * event);
 void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len, void * event);
 
-unsigned _starpu_mpi_common_test_event(struct _starpu_async_channel * event);
+unsigned int _starpu_mpi_common_test_event(struct _starpu_async_channel * event);
 void _starpu_mpi_common_wait_request_completion(struct _starpu_async_channel * event);
 
 void _starpu_mpi_common_barrier(void);

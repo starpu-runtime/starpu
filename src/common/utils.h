@@ -71,11 +71,7 @@
 #define STARPU_HG_DISABLE_CHECKING(variable) VALGRIND_HG_DISABLE_CHECKING(&(variable), sizeof(variable))
 #define STARPU_HG_ENABLE_CHECKING(variable)  VALGRIND_HG_ENABLE_CHECKING(&(variable), sizeof(variable))
 
-#if defined(__KNC__) || defined(__KNF__)
-#define STARPU_DEBUG_PREFIX "[starpu-mic]"
-#else
 #define STARPU_DEBUG_PREFIX "[starpu]"
-#endif
 
 /* This is needed in some places to make valgrind yield to another thread to be
  * able to progress.  */
@@ -178,6 +174,9 @@ const char *_starpu_job_get_task_name(struct _starpu_job *j);
 struct starpu_codelet;
 /** Returns the symbol associated to that job if any. */
 const char *_starpu_codelet_get_model_name(struct starpu_codelet *cl);
+
+/** Returns the name of a codelet, or fallback to the name of the perfmodel. */
+const char *_starpu_codelet_get_name(struct starpu_codelet *cl);
 
 int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
 

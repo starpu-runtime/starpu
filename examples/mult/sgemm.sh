@@ -28,12 +28,6 @@ PREFIX=$(dirname $0)
 rm -rf $PREFIX/sgemm.traces
 mkdir -p $PREFIX/sgemm.traces
 
-if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
-	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/sgemm
-	# in case libtool got into play
-	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/sgemm" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/sgemm
-fi
-
 export STARPU_FXT_PREFIX=$PREFIX/sgemm.traces
 
 STARPU_SCHED=dmdas $PREFIX/sgemm -check

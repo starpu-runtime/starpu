@@ -46,7 +46,7 @@ recommended.  It allows for topology aware scheduling, which improves
 performance. <c>hwloc</c> is available in major free operating system
 distributions, and for most operating systems. Make sure to not only install
 a <c>hwloc</c> or <c>libhwloc</c> package, but also <c>hwloc-devel</c> or
-<c>libhwloc-dev</c> so as to have hwloc headers etc.
+<c>libhwloc-dev</c> so as to have \c hwloc headers etc.
 
 If <c>libhwloc</c> is installed in a standard
 location, no option is required, it will be detected automatically,
@@ -520,7 +520,7 @@ It can also be convenient to try simulated benchmarks, if you want to give a try
 at CPU-GPU scheduling without actually having a GPU at hand. This can be done by
 using the SimGrid version of StarPU: first install the SimGrid simulator from
 http://simgrid.gforge.inria.fr/ (we tested with SimGrid from 3.11 to 3.16, and
-3.18 to 3.25. SimGrid versions 3.25 and above need to be configured with -Denable_msg=ON.
+3.18 to 3.25. SimGrid versions 3.25 and above need to be configured with \c -Denable_msg=ON.
 Other versions may have compatibility issues, 3.17 notably does
 not build at all. MPI simulation does not work with version 3.22).
 Then configure StarPU with \ref enable-simgrid

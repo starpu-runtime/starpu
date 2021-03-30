@@ -106,8 +106,8 @@ struct _starpu_mpi_backend _mpi_backend =
 	._starpu_mpi_backend_wait = _starpu_mpi_wait,
 	._starpu_mpi_backend_test = _starpu_mpi_test,
 
-	._starpu_mpi_backend_isend_size_func = _starpu_mpi_isend_size_func,
-	._starpu_mpi_backend_irecv_size_func = _starpu_mpi_irecv_size_func,
+	._starpu_mpi_backend_isend_size_func = _starpu_mpi_isend_func,
+	._starpu_mpi_backend_irecv_size_func = _starpu_mpi_irecv_func,
 };
 
 #endif /* STARPU_USE_MPI_NMAD*/

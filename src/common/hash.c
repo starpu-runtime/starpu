@@ -46,6 +46,11 @@ uint32_t starpu_hash_crc32c_be_n(const void *input, size_t n, uint32_t inputcrc)
 	return crc;
 }
 
+uint32_t starpu_hash_crc32c_be_ptr(void *input, uint32_t inputcrc)
+{
+	return starpu_hash_crc32c_be_n(&input, sizeof(input), inputcrc);
+}
+
 uint32_t starpu_hash_crc32c_be(uint32_t input, uint32_t inputcrc)
 {
 	uint8_t *p = (uint8_t *)&input;

@@ -19,7 +19,7 @@ include $(top_srcdir)/starpu-notests.mk
 
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -DBUILDING_STARPU -DSTARPU_DATADIR='"$(datadir)"'
 AM_CPPFLAGS += $(STARPU_H_CPPFLAGS)
-AM_CPPFLAGS += $(FXT_CFLAGS) $(STARPU_COI_CPPFLAGS) $(STARPU_SCIF_CPPFLAGS) $(STARPU_RCCE_CFLAGS) $(STARPU_RCCE_CPPFLAGS)
+AM_CPPFLAGS += $(FXT_CFLAGS)
 LIBS += -lm $(LIBSTARPU_LDFLAGS)
 if STARPU_USE_MPI_MASTER_SLAVE
 LIBS += $(MPICC_LDFLAGS)
@@ -143,9 +143,6 @@ noinst_HEADERS = 						\
 	drivers/opencl/driver_opencl.h				\
 	drivers/opencl/driver_opencl_utils.h			\
 	debug/starpu_debug_helpers.h				\
-	drivers/mic/driver_mic_common.h				\
-	drivers/mic/driver_mic_source.h				\
-	drivers/mic/driver_mic_sink.h				\
 	drivers/mpi/driver_mpi_common.h				\
 	drivers/mpi/driver_mpi_source.h				\
 	drivers/mpi/driver_mpi_sink.h				\
@@ -377,20 +374,6 @@ if STARPU_USE_MP
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mp_common/mp_common.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mp_common/source_common.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mp_common/sink_common.c
-endif
-
-#########################################
-#										#
-#	     MIC compilation				#
-#										#
-#########################################
-
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_init.c
-if STARPU_USE_MIC
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_common.c
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_source.c
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_sink.c
-libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/mic/driver_mic_utils.c
 endif
 
 #########################################

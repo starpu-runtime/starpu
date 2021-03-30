@@ -48,6 +48,7 @@ char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 #endif
 
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
+static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem);
 
 #ifdef STARPU_USE_FXT
 static void _starpu_mpi_add_sync_point_in_fxt(void);
@@ -62,8 +63,6 @@ static volatile int running = 0;
 static starpu_pthread_cond_t mpi_wait_for_all_running_cond;
 static int mpi_wait_for_all_running = 0;
 static starpu_pthread_mutex_t mpi_wait_for_all_running_mutex;
-
-extern struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, int data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count);
 
 /* Count running requests: this counter is incremented just before StarPU
  * submits a MPI request, and decremented when a MPI request finishes. */
@@ -93,7 +92,7 @@ void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSE
 /*                                                      */
 /********************************************************/
 
-static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
+static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -131,8 +130,10 @@ static void _starpu_mpi_isend_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
+void _starpu_mpi_isend_func(struct _starpu_mpi_req *req)
 {
+	_STARPU_MPI_LOG_IN();
+
 	_starpu_mpi_datatype_allocate(req->data_handle, req);
 
 	if (req->registered_datatype == 1)
@@ -140,12 +141,14 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
 
-		_starpu_mpi_isend_data_func(req);
+		_starpu_mpi_isend_known_datatype(req);
 	}
 	else
 	{
 		_starpu_mpi_isend_unknown_datatype(req);
 	}
+
+	_STARPU_MPI_LOG_OUT();
 }
 
 /********************************************************/
@@ -154,7 +157,7 @@ void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req)
 /*                                                      */
 /********************************************************/
 
-static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
+static void _starpu_mpi_irecv_known_datatype(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -177,7 +180,7 @@ static void _starpu_mpi_irecv_data_func(struct _starpu_mpi_req *req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
+void _starpu_mpi_irecv_func(struct _starpu_mpi_req *req)
 {
 	_STARPU_MPI_LOG_IN();
 
@@ -186,13 +189,14 @@ void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req)
 	{
 		req->count = 1;
 		req->ptr = starpu_data_handle_to_pointer(req->data_handle, req->node);
-		_starpu_mpi_irecv_data_func(req);
+		_starpu_mpi_irecv_known_datatype(req);
 	}
 	else
 	{
 		_starpu_mpi_irecv_unknown_datatype(req);
 	}
 
+	_STARPU_MPI_LOG_OUT();
 }
 
 /********************************************************/
@@ -226,8 +230,9 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	if (status!=MPI_STATUS_IGNORE)
 		_starpu_mpi_req_status(req,status);
 
-	_starpu_mpi_request_destroy(req);
+	_starpu_mpi_request_end(req, 1);
 	*public_req = NULL;
+
 	_STARPU_MPI_LOG_OUT();
 	return MPI_SUCCESS;
 }
@@ -261,7 +266,7 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 
 	if(*flag)
 	{
-		_starpu_mpi_request_destroy(req);
+		_starpu_mpi_request_end(req, 1);
 		*public_req = NULL;
 	}
 	_STARPU_MPI_LOG_OUT();
@@ -331,6 +336,25 @@ char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
 }
 #endif
 
+static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem)
+{
+	/* Destroying a request and decrementing the number of pending requests
+	 * should be done together, so let's wrap these two things in a
+	 * function. This means instead of calling _starpu_mpi_request_destroy(),
+	 * you should call this function. */
+	_starpu_mpi_request_destroy(req);
+
+	int pending_remaining = STARPU_ATOMIC_ADD(&nb_pending_requests, -1);
+	if (!pending_remaining)
+	{
+		STARPU_PTHREAD_COND_BROADCAST(&mpi_wait_for_all_running_cond);
+		if (post_callback_sem && !running)
+		{
+			starpu_sem_post(&callback_sem);
+		}
+	}
+}
+
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 {
 	_STARPU_MPI_LOG_IN();
@@ -343,8 +367,18 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 		if (req->registered_datatype == 0)
 		{
 			if (req->request_type == RECV_REQ)
-				// req->ptr is freed by starpu_data_unpack
-				starpu_data_unpack_node(req->data_handle, req->node, req->ptr, req->count);
+			{
+				if (starpu_data_get_interface_ops(req->data_handle)->peek_data)
+				{
+					starpu_data_peek_node(req->data_handle, req->node, req->ptr, req->count);
+					starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
+				}
+				else
+				{
+					// req->ptr is freed by starpu_data_unpack
+					starpu_data_unpack_node(req->data_handle, req->node, req->ptr, req->count);
+				}
+			}
 			else
 				starpu_free_on_node_flags(req->node, (uintptr_t) req->ptr, req->count, 0);
 		}
@@ -381,8 +415,8 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 	{
 		if(req->detached)
 		{
-			_starpu_mpi_request_destroy(req);
 			// a detached request wont be wait/test (and freed inside).
+			_starpu_mpi_request_end(req, 1);
 		}
 		else
 		{
@@ -390,13 +424,6 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 			 * terminated now (should be done after the callback)*/
 			req->completed = 1;
 			piom_cond_signal(&req->backend->req_cond, REQ_FINALIZED);
-		}
-		int pending_remaining = STARPU_ATOMIC_ADD(&nb_pending_requests, -1);
-		if (!pending_remaining)
-		{
-			STARPU_PTHREAD_COND_BROADCAST(&mpi_wait_for_all_running_cond);
-			if (!running)
-				starpu_sem_post(&callback_sem);
 		}
 	}
 	_STARPU_MPI_LOG_OUT();
@@ -542,23 +569,15 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 			}
 		}
 
-
 		c->req->callback(c->req->callback_arg);
 		if (c->req->detached)
 		{
-			_starpu_mpi_request_destroy(c->req);
+			_starpu_mpi_request_end(c->req, 0);
 		}
 		else
 		{
 			c->req->completed=1;
 			piom_cond_signal(&(c->req->backend->req_cond), REQ_FINALIZED);
-		}
-
-		/* we signal that the request is completed.*/
-		int pending_remaining = STARPU_ATOMIC_ADD(&nb_pending_requests, -1);
-		if (!pending_remaining)
-		{
-			STARPU_PTHREAD_COND_BROADCAST(&mpi_wait_for_all_running_cond);
 		}
 
 		free(c);

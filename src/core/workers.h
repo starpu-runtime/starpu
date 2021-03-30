@@ -47,10 +47,6 @@
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
 
-#ifdef STARPU_USE_MIC
-#include <drivers/mic/driver_mic_source.h>
-#endif /* STARPU_USE_MIC */
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 #include <drivers/mpi/driver_mpi_source.h>
 #endif
@@ -319,14 +315,6 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
-	/*** Indicates the successive MIC devices that should be used
-	 * by the MIC driver.  It is either filled according to the
-	 * user's explicit parameters (from starpu_conf) or according
-	 * to the STARPU_WORKERS_MICID env. variable. Otherwise, they
-	 * are taken in ID order. */
-	/** TODO */
-	/** unsigned workers_mic_deviceid[STARPU_NMAXWORKERS]; */
-
 	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
 
 };
@@ -350,9 +338,6 @@ struct _starpu_machine_config
 
 	/** Which GPU(s) do we use for OpenCL ? */
 	int current_opencl_gpuid;
-
-	/** Which MIC do we use? */
-	int current_mic_deviceid;
 
 	/** Which MPI do we use? */
 	int current_mpi_deviceid;
@@ -414,7 +399,7 @@ struct _starpu_machine_config
 };
 
 /** Provides information for a device driver */
-struct starpu_driver_info
+struct _starpu_driver_info
 {
 	const char *name_upper;	/**< Name of worker type in upper case */
 	const char *name_var;	/**< Name of worker type for environment variables */
@@ -424,21 +409,21 @@ struct starpu_driver_info
 };
 
 /** Device driver information, indexed by enum starpu_worker_archtype */
-extern struct starpu_driver_info starpu_driver_info[STARPU_NARCH];
+extern struct _starpu_driver_info starpu_driver_info[STARPU_NARCH];
 
-void starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct starpu_driver_info *info);
+void _starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct _starpu_driver_info *info);
 
 /** Provides information for a memory node driver */
-struct starpu_memory_driver_info
+struct _starpu_memory_driver_info
 {
 	const char *name_upper;	/**< Name of memory in upper case */
 	enum starpu_worker_archtype worker_archtype;	/**< Kind of device */
 };
 
 /** Memory driver information, indexed by enum starpu_node_kind */
-extern struct starpu_memory_driver_info starpu_memory_driver_info[STARPU_MAX_RAM+1];
+extern struct _starpu_memory_driver_info starpu_memory_driver_info[STARPU_MAX_RAM+1];
 
-void starpu_memory_driver_info_register(enum starpu_node_kind kind, const struct starpu_memory_driver_info *info);
+void _starpu_memory_driver_info_register(enum starpu_node_kind kind, const struct _starpu_memory_driver_info *info);
 
 extern int _starpu_worker_parallel_blocks;
 
@@ -592,11 +577,11 @@ static inline struct _starpu_sched_ctx* _starpu_get_initial_sched_ctx(void)
 	return &_starpu_config.sched_ctxs[STARPU_GLOBAL_SCHED_CTX];
 }
 
-int starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
+int _starpu_worker_get_nids_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
 /** returns workers not belonging to any context, be careful no mutex is used,
    the list might not be updated */
-int starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
+int _starpu_worker_get_nids_ctx_free_by_type(enum starpu_worker_archtype type, int *workerids, int maxsize);
 
 static inline unsigned _starpu_worker_mutex_is_sched_mutex(int workerid, starpu_pthread_mutex_t *mutex)
 {

@@ -108,6 +108,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 		if (!is_pushback && data->exp_len_threshold != 0.0 && exp_len >= data->exp_len_threshold)
 		{
 			static int warned;
+			STARPU_HG_DISABLE_CHECKING(warned);
 			if(data->exp_len_threshold != 0.0 && task->predicted > data->exp_len_threshold && !warned)
 			{
 				_STARPU_DISP("Warning : a predicted task length (%lf) exceeds the expected length threshold (%lf) of a prio component queue, you should reconsider the value of this threshold. This message will not be printed again for further thresholds exceeding.\n",task->predicted,data->exp_len_threshold);
@@ -180,8 +181,10 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	struct starpu_task * task;
 	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
 		task = _starpu_fifo_pop_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx), -1);
+	else if (to->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS)
+		task = _starpu_fifo_pop_task(queue, starpu_bitmap_first(&to->workers_in_ctx));
 	else
-		task = _starpu_fifo_pop_task(queue, starpu_worker_get_id_check());
+		task = _starpu_fifo_pop_task(queue, -1);
 	if(task && data->exp)
 	{
 		if(!isnan(task->predicted))

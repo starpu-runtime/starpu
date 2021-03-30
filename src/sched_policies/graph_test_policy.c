@@ -118,6 +118,7 @@ static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _sta
 			if (!task->cl || task->cl->model == NULL)
 			{
 				static unsigned _warned;
+				STARPU_HG_DISABLE_CHECKING(_warned);
 				if (STARPU_ATOMIC_ADD(&_warned, 1) == 1)
 				{
 					_STARPU_DISP("Warning: graph_test needs performance models for all tasks, including %s\n",

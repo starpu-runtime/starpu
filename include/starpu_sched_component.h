@@ -215,6 +215,10 @@ struct starpu_sched_tree *starpu_sched_tree_create(unsigned sched_ctx_id) STARPU
    destroy tree and free all non shared component in it.
 */
 void starpu_sched_tree_destroy(struct starpu_sched_tree *tree);
+/**
+   calls starpu_sched_tree_destroy, ready for use for starpu_sched_policy::deinit_sched field.
+ */
+void starpu_sched_tree_deinitialize(unsigned sched_ctx_id);
 struct starpu_sched_tree *starpu_sched_tree_get(unsigned sched_ctx_id);
 /**
    recursively set all starpu_sched_component::workers, do not take into account shared parts (except workers).
@@ -787,6 +791,13 @@ struct starpu_sched_tree *starpu_sched_component_make_scheduler(unsigned sched_c
    Request that the fifos below keep track of expected duration, start and end time of theirs elements
 */
 #define STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP	(1<<13)
+
+/**
+   Request to prepend a component before the decision component. This should be
+   used alone and followed by the component creation function pointer and its
+   data.
+*/
+#define STARPU_SCHED_SIMPLE_PRE_DECISION	(1<<14)
 
 /**
    Create a simple modular scheduler tree around a scheduling decision-making

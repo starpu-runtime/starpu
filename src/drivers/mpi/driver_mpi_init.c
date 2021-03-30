@@ -17,7 +17,7 @@
 #include <core/workers.h>
 #include <drivers/mpi/driver_mpi_source.h>
 
-static struct starpu_driver_info driver_info =
+static struct _starpu_driver_info driver_info =
 {
 	.name_upper = "MPI_MS",
 	.name_var = "MPI_MS",
@@ -26,7 +26,7 @@ static struct starpu_driver_info driver_info =
 	.alpha = 1.0f,
 };
 
-static struct starpu_memory_driver_info memory_driver_info =
+static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "MPI_MS",
 	.worker_archtype = STARPU_MPI_MS_WORKER,
@@ -34,6 +34,6 @@ static struct starpu_memory_driver_info memory_driver_info =
 
 void _starpu_mpi_ms_preinit(void)
 {
-	starpu_driver_info_register(STARPU_MPI_MS_WORKER, &driver_info);
-	starpu_memory_driver_info_register(STARPU_MPI_MS_RAM, &memory_driver_info);
+	_starpu_driver_info_register(STARPU_MPI_MS_WORKER, &driver_info);
+	_starpu_memory_driver_info_register(STARPU_MPI_MS_RAM, &memory_driver_info);
 }

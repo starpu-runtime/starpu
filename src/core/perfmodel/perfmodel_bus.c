@@ -49,6 +49,9 @@
 
 #ifdef STARPU_HAVE_HWLOC
 #include <hwloc.h>
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#include <hwloc/nvml.h>
+#endif
 #ifndef HWLOC_API_VERSION
 #define HWLOC_OBJ_PU HWLOC_OBJ_PROC
 #endif
@@ -91,7 +94,6 @@ static unsigned nnumas = 0;
 static unsigned ncuda = 0;
 static unsigned nopencl = 0;
 #ifndef STARPU_SIMGRID
-static unsigned nmic = 0;
 static unsigned nmpi_ms = 0;
 
 /* Benchmarking the performance of the bus */
@@ -123,11 +125,6 @@ static uint64_t opencl_size[STARPU_MAXCUDADEVS];
 static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
 static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
 #endif
-
-#ifdef STARPU_USE_MIC
-static double mic_time_host_to_device[STARPU_MAXNODES] = {0.0};
-static double mic_time_device_to_host[STARPU_MAXNODES] = {0.0};
-#endif /* STARPU_USE_MIC */
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static double mpi_time_device_to_device[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS] = {{0.0}};
@@ -823,23 +820,8 @@ static void benchmark_all_gpu_devices(void)
 	}
 #endif
 
-#ifdef STARPU_USE_MIC
-	/* TODO: implement real calibration ! For now we only put an arbitrary
-	 * value for each device during at the declaration as a bug fix, else
-	 * we get problems on heft scheduler */
-	nmic = _starpu_mic_src_get_device_count();
-
-	for (i = 0; i < STARPU_MAXNODES; i++)
-	{
-		mic_time_host_to_device[i] = 0.1;
-		mic_time_device_to_host[i] = 0.1;
-	}
-#endif /* STARPU_USE_MIC */
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-
 	_starpu_mpi_common_measure_bandwidth_latency(mpi_time_device_to_device, mpi_latency_device_to_device);
-
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 
 #ifdef STARPU_HAVE_HWLOC
@@ -1328,7 +1310,7 @@ static void write_bus_latency_file_content(void)
 
 	_STARPU_DEBUG("writing latencies to %s\n", path);
 
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	if (!f)
 	{
 		perror("fopen write_bus_latency_file_content");
@@ -1337,6 +1319,7 @@ static void write_bus_latency_file_content(void)
 		STARPU_ABORT();
 	}
 	locked = _starpu_fwrlock(f) == 0;
+	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
@@ -1350,9 +1333,6 @@ static void write_bus_latency_file_content(void)
 #endif
 #ifdef STARPU_USE_OPENCL
 	maxnode += nopencl;
-#endif
-#ifdef STARPU_USE_MIC
-	maxnode += nmic;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	maxnode += nmpi_ms;
@@ -1426,11 +1406,6 @@ static void write_bus_latency_file_content(void)
 				if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
 						latency += search_bus_best_latency(dst-b_low, "OpenCL", 1);
 				b_low += nopencl;
-#endif
-#ifdef STARPU_USE_MIC
-				b_up += nmic;
-				/* TODO Latency MIC */
-				b_low += nmic;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 				b_up += nmpi_ms;
@@ -1684,10 +1659,11 @@ static void write_bus_bandwidth_file_content(void)
 
 	_STARPU_DEBUG("writing bandwidth to %s\n", path);
 
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	STARPU_ASSERT_MSG(f, "Error when opening file (writing) '%s'", path);
 
 	locked = _starpu_fwrlock(f) == 0;
+	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# ");
@@ -1701,9 +1677,6 @@ static void write_bus_bandwidth_file_content(void)
 #endif
 #ifdef STARPU_USE_OPENCL
 	maxnode += nopencl;
-#endif
-#ifdef STARPU_USE_MIC
-	maxnode += nmic;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	maxnode += nmpi_ms;
@@ -1773,14 +1746,6 @@ static void write_bus_bandwidth_file_content(void)
 				if (dst >= b_low && dst < b_up && !(src >= numa_low && dst < numa_up))
 					slowness += search_bus_best_timing(dst-b_low, "OpenCL", 1);
 				b_low += nopencl;
-#endif
-#ifdef STARPU_USE_MIC
-				b_up += nmic;
-				if (src >= b_low && src < b_up)
-					slowness += mic_time_device_to_host[src-b_low];
-				if (dst >= b_low && dst < b_up)
-					slowness += mic_time_host_to_device[dst-b_low];
-				b_low += nmic;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 				b_up += nmpi_ms;
@@ -2047,7 +2012,7 @@ static void check_bus_config_file(void)
 	{
 		FILE *f;
 		int ret;
-		unsigned read_cuda = -1, read_opencl = -1, read_mic = -1, read_mpi_ms = -1;
+		unsigned read_cuda = -1, read_opencl = -1, read_mpi_ms = -1;
 		unsigned read_cpus = -1, read_numa = -1;
 		int locked;
 
@@ -2073,11 +2038,6 @@ static void check_bus_config_file(void)
 		STARPU_ASSERT_MSG(ret == 1, "Error when reading from file '%s'", path);
 		_starpu_drop_comments(f);
 
-		ret = fscanf(f, "%u\t", &read_mic);
-		if (ret == 0)
-			read_mic = 0;
-		_starpu_drop_comments(f);
-
 		ret = fscanf(f, "%u\t", &read_mpi_ms);
 		if (ret == 0)
 			read_mpi_ms = 0;
@@ -2096,9 +2056,6 @@ static void check_bus_config_file(void)
 #ifdef STARPU_USE_OPENCL
 		nopencl = _starpu_opencl_get_device_count();
 #endif
-#ifdef STARPU_USE_MIC
-		nmic = _starpu_mic_src_get_device_count();
-#endif /* STARPU_USE_MIC */
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		nmpi_ms = _starpu_mpi_src_get_device_count();
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
@@ -2108,7 +2065,6 @@ static void check_bus_config_file(void)
 		compare_value_and_recalibrate("NUMA", read_numa, nnumas);
 		compare_value_and_recalibrate("CUDA", read_cuda, ncuda);
 		compare_value_and_recalibrate("OpenCL", read_opencl, nopencl);
-		compare_value_and_recalibrate("MIC", read_mic, nmic);
 		compare_value_and_recalibrate("MPI Master-Slave", read_mpi_ms, nmpi_ms);
 	}
 }
@@ -2124,9 +2080,10 @@ static void write_bus_config_file_content(void)
 
 	_STARPU_DEBUG("writing config to %s\n", path);
 
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	STARPU_ASSERT_MSG(f, "Error when opening file (writing) '%s'", path);
 	locked = _starpu_fwrlock(f) == 0;
+	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f, "# Current configuration\n");
@@ -2134,7 +2091,6 @@ static void write_bus_config_file_content(void)
 	fprintf(f, "%u # Number of NUMA nodes\n", nnumas);
 	fprintf(f, "%u # Number of CUDA devices\n", ncuda);
 	fprintf(f, "%u # Number of OpenCL devices\n", nopencl);
-	fprintf(f, "%u # Number of MIC devices\n", nmic);
 	fprintf(f, "%u # Number of MPI devices\n", nmpi_ms);
 
 	if (locked)
@@ -2363,12 +2319,51 @@ static int find_platform_path_up(hwloc_obj_t obj1, hwloc_obj_t obj2, double band
 	return ret;
 }
 
+static hwloc_obj_t get_hwloc_cuda_obj(hwloc_topology_t topology, unsigned devid)
+{
+	hwloc_obj_t res;
+	struct cudaDeviceProp props;
+	cudaError_t cures;
+
+	res = hwloc_cuda_get_device_osdev_by_index(topology, devid);
+	if (res)
+		return res;
+
+	cures = cudaGetDeviceProperties(&props, devid);
+	if (cures == cudaSuccess)
+	{
+		res = hwloc_get_pcidev_by_busid(topology, props.pciDomainID, props.pciBusID, props.pciDeviceID, 0);
+		if (res)
+			return res;
+
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+		nvmlDevice_t nvmldev = _starpu_cuda_get_nvmldev(&props);
+
+		if (nvmldev)
+		{
+			unsigned int index;
+			if (nvmlDeviceGetIndex(nvmldev, &index) == NVML_SUCCESS)
+			{
+				res = hwloc_nvml_get_device_osdev_by_index(topology, index);
+				if (res)
+					return res;
+			}
+
+			res = hwloc_nvml_get_device_osdev(topology, nvmldev);
+			if (res)
+				return res;
+		}
+#endif
+	}
+	return NULL;
+}
+
 /* find the path between cuda i and cuda j, and update the maximum bandwidth along the path */
 static int find_platform_cuda_path(hwloc_topology_t topology, unsigned i, unsigned j, double bandwidth)
 {
 	hwloc_obj_t cudai, cudaj;
-	cudai = hwloc_cuda_get_device_osdev_by_index(topology, i);
-	cudaj = hwloc_cuda_get_device_osdev_by_index(topology, j);
+	cudai = get_hwloc_cuda_obj(topology, i);
+	cudaj = get_hwloc_cuda_obj(topology, j);
 
 	if (!cudai || !cudaj)
 		return 0;
@@ -2655,7 +2650,7 @@ static void write_bus_platform_file_content(int version)
 
 	_STARPU_DEBUG("writing platform to %s\n", path);
 
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	if (!f)
 	{
 		perror("fopen write_bus_platform_file_content");
@@ -2664,6 +2659,7 @@ static void write_bus_platform_file_content(int version)
 		STARPU_ABORT();
 	}
 	locked = _starpu_fwrlock(f) == 0;
+	fseek(f, 0, SEEK_SET);
 	_starpu_fftruncate(f, 0);
 
 	fprintf(f,
@@ -2813,34 +2809,118 @@ static void write_bus_platform_file_content(int version)
 #warning TODO: use libnvml to get NVLink links, otherwise numbers will be bogusly propagated through PCI topology
 #endif
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
-	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0))
+	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0) && ncuda > 0)
 	{
 		hwloc_topology_t topology;
 		hwloc_topology_init(&topology);
 		_starpu_topology_filter(topology);
 		hwloc_topology_load(topology);
 
-		/* First find paths and record measured bandwidth along the path */
+		char nvlink[ncuda][ncuda];
+		char nvlinkhost[ncuda];
+		memset(nvlink, 0, sizeof(nvlink));
+		memset(nvlinkhost, 0, sizeof(nvlinkhost));
+
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+		/* First find NVLinks */
+		struct cudaDeviceProp props[ncuda];
+
+		for (i = 0; i < ncuda; i++)
+		{
+			cudaError_t cures = cudaGetDeviceProperties(&props[i], i);
+			if (cures != cudaSuccess)
+				props[i].name[0] = 0;
+		}
+
 		for (i = 0; i < ncuda; i++)
 		{
 			unsigned j;
+
+			if (!props[i].name[0])
+				continue;
+
+			nvmlDevice_t nvmldev;
+			nvmldev = _starpu_cuda_get_nvmldev(&props[i]);
+			if (!nvmldev)
+				continue;
+
+			for (j = 0; j < NVML_NVLINK_MAX_LINKS; j++)
+			{
+				nvmlEnableState_t active;
+				nvmlReturn_t ret;
+				nvmlPciInfo_t pci;
+				unsigned k;
+
+				ret = nvmlDeviceGetNvLinkState(nvmldev, j, &active);
+				if (ret != NVML_SUCCESS)
+					continue;
+				if (active != NVML_FEATURE_ENABLED)
+					continue;
+				ret = nvmlDeviceGetNvLinkRemotePciInfo(nvmldev, j, &pci);
+				if (ret != NVML_SUCCESS)
+					continue;
+
+				hwloc_obj_t obj = hwloc_get_pcidev_by_busid(topology,
+						pci.domain, pci.bus, pci.device, 0);
+				if (obj && obj->type == HWLOC_OBJ_PCI_DEVICE && (obj->attr->pcidev.class_id >> 8 == 0x06))
+				{
+					switch (obj->attr->pcidev.vendor_id)
+					{
+					case 0x1014:
+						/* IBM OpenCAPI port, direct CPU-GPU NVLink */
+						/* TODO: NUMA affinity */
+						nvlinkhost[i] = 1;
+						continue;
+					case 0x10de:
+						/* TODO: NVIDIA NVSwitch */
+						continue;
+					}
+				}
+
+				/* Otherwise, link to another GPU? */
+				for (k = i+1; k < ncuda; k++)
+				{
+					if ((int) pci.domain == props[k].pciDomainID
+					 && (int) pci.bus == props[k].pciBusID
+					 && (int) pci.device == props[k].pciDeviceID)
+					{
+						nvlink[i][k] = 1;
+						nvlink[k][i] = 1;
+						break;
+					}
+				}
+			}
+		}
+#endif
+
+		/* Find paths and record measured bandwidth along the path */
+		for (i = 0; i < ncuda; i++)
+		{
+			unsigned j;
+
 			for (j = 0; j < ncuda; j++)
-				if (i != j)
+				if (i != j && !nvlink[i][j] && !nvlinkhost[i] && !nvlinkhost[j])
 					if (!find_platform_cuda_path(topology, i, j, 1000000. / cudadev_timing_dtod[i][j]))
 					{
+						_STARPU_DISP("Warning: could not get CUDA location from hwloc\n");
 						clean_topology(hwloc_get_root_obj(topology));
 						hwloc_topology_destroy(topology);
 						goto flat_cuda;
 					}
+
 			/* Record RAM/CUDA bandwidths */
-			find_platform_forward_path(hwloc_cuda_get_device_osdev_by_index(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 0));
-			find_platform_backward_path(hwloc_cuda_get_device_osdev_by_index(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 1));
+			if (!nvlinkhost[i])
+			{
+				find_platform_forward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 0));
+				find_platform_backward_path(get_hwloc_cuda_obj(topology, i), 1000000. / search_bus_best_timing(i, "CUDA", 1));
+			}
 		}
 
 		/* Ok, found path in all cases, can emit advanced platform routes */
 		fprintf(f, "\n");
 		emit_topology_bandwidths(f, hwloc_get_root_obj(topology), Bps, s);
 		fprintf(f, "\n");
+
 		for (i = 0; i < ncuda; i++)
 		{
 			unsigned j;
@@ -2849,20 +2929,35 @@ static void write_bus_platform_file_content(int version)
 				{
 					fprintf(f, "   <route src=\"CUDA%u\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i, j);
 					fprintf(f, "    <link_ctn id=\"CUDA%u-CUDA%u\"/>\n", i, j);
-					emit_platform_path_up(f,
-							hwloc_cuda_get_device_osdev_by_index(topology, i),
-							hwloc_cuda_get_device_osdev_by_index(topology, j));
+					if (!nvlink[i][j])
+					{
+						if (nvlinkhost[i] && nvlinkhost[j])
+							/* TODO: NUMA affinity */
+							fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+						else
+							emit_platform_path_up(f,
+									get_hwloc_cuda_obj(topology, i),
+									get_hwloc_cuda_obj(topology, j));
+					}
 					fprintf(f, "   </route>\n");
 				}
 
 			fprintf(f, "   <route src=\"CUDA%u\" dst=\"RAM\" symmetrical=\"NO\">\n", i);
 			fprintf(f, "    <link_ctn id=\"CUDA%u-RAM\"/>\n", i);
-			emit_platform_forward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
+			if (nvlinkhost[i])
+				/* TODO: NUMA affinity */
+				fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+			else
+				emit_platform_forward_path(f, get_hwloc_cuda_obj(topology, i));
 			fprintf(f, "   </route>\n");
 
 			fprintf(f, "   <route src=\"RAM\" dst=\"CUDA%u\" symmetrical=\"NO\">\n", i);
 			fprintf(f, "    <link_ctn id=\"RAM-CUDA%u\"/>\n", i);
-			emit_platform_backward_path(f, hwloc_cuda_get_device_osdev_by_index(topology, i));
+			if (nvlinkhost[i])
+				/* TODO: NUMA affinity */
+				fprintf(f, "    <link_ctn id=\"Host\"/>\n");
+			else
+				emit_platform_backward_path(f, get_hwloc_cuda_obj(topology, i));
 			fprintf(f, "   </route>\n");
 		}
 
@@ -2996,9 +3091,6 @@ void _starpu_load_bus_performance_files(void)
 #endif
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_SIMGRID)
 	nmpi_ms = _starpu_mpi_src_get_device_count();
-#endif
-#if defined(STARPU_USE_MIC) || defined(STARPU_USE_SIMGRID)
-	nmic = _starpu_mic_src_get_device_count();
 #endif
 
 #ifndef STARPU_SIMGRID

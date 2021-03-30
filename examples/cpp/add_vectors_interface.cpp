@@ -171,15 +171,12 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.ram_to_ram = NULL,
 	.ram_to_cuda = NULL,
 	.ram_to_opencl = NULL,
-	.ram_to_mic = NULL,
 
 	.cuda_to_ram = NULL,
 	.cuda_to_cuda = NULL,
 
 	.opencl_to_ram = NULL,
 	.opencl_to_opencl = NULL,
-
-	.mic_to_ram = NULL,
 
 	.ram_to_mpi_ms = NULL,
 	.mpi_ms_to_ram = NULL,
@@ -196,9 +193,6 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.ram_to_mpi_ms_async = NULL,
 	.mpi_ms_to_ram_async = NULL,
 	.mpi_ms_to_mpi_ms_async = NULL,
-
-	.ram_to_mic_async = NULL,
-	.mic_to_ram_async = NULL,
 
 	.any_to_any = vector_interface_copy_any_to_any,
 };
@@ -258,6 +252,7 @@ static uint32_t footprint_vector_cpp_interface_crc32(starpu_data_handle_t handle
 static int vector_cpp_compare(void *data_interface_a, void *data_interface_b);
 static void display_vector_cpp_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+static int peek_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static starpu_ssize_t vector_cpp_describe(void *data_interface, char *buf, size_t size);
 
@@ -287,6 +282,7 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	.dontcache = 0,
 	.get_mf_ops = NULL,
 	.pack_data = pack_vector_cpp_handle,
+	.peek_data = peek_vector_cpp_handle,
 	.unpack_data = unpack_vector_cpp_handle,
 	.name = (char *) "VECTOR_CPP_INTERFACE"
 };
@@ -315,6 +311,7 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	0,
 	NULL,
 	pack_vector_cpp_handle,
+	peek_vector_cpp_handle,
 	unpack_vector_cpp_handle,
 	(char *) "VECTOR_CPP_INTERFACE"
 };
@@ -458,7 +455,7 @@ static int pack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, vo
 	return 0;
 }
 
-static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int peek_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -467,6 +464,13 @@ static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, 
 
 	STARPU_ASSERT(count == vector_interface->elemsize * vector_interface->nx);
 	memcpy((void*)vector_interface->ptr, ptr, count);
+
+	return 0;
+}
+
+static int unpack_vector_cpp_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	peek_vector_cpp_handle(handle, node, ptr, count);
 
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
@@ -580,7 +584,6 @@ int main(int argc, char **argv)
 	bool fail;
 
 	starpu_conf_init(&conf);
-	conf.nmic = 0;
 	conf.nmpi_ms = 0;
 
 	// initialize StarPU with default configuration

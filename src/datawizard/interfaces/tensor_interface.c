@@ -37,6 +37,7 @@ static uint32_t footprint_tensor_interface_crc32(starpu_data_handle_t handle);
 static int tensor_compare(void *data_interface_a, void *data_interface_b);
 static void display_tensor_interface(starpu_data_handle_t handle, FILE *f);
 static int pack_tensor_handle(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
+static int peek_tensor_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static int unpack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size);
 
@@ -55,6 +56,7 @@ struct starpu_data_interface_ops starpu_interface_tensor_ops =
 	.interface_size = sizeof(struct starpu_tensor_interface),
 	.display = display_tensor_interface,
 	.pack_data = pack_tensor_handle,
+	.peek_data = peek_tensor_handle,
 	.unpack_data = unpack_tensor_handle,
 	.describe = describe,
 	.name = "STARPU_TENSOR_INTERFACE"
@@ -277,7 +279,7 @@ static int pack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *
 	return 0;
 }
 
-static int unpack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int peek_tensor_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
 
@@ -338,6 +340,12 @@ static int unpack_tensor_handle(starpu_data_handle_t handle, unsigned node, void
 		}
 	}
 
+	return 0;
+}
+
+static int unpack_tensor_handle(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	peek_tensor_handle(handle, node, ptr, count);
 	starpu_free_on_node_flags(node, (uintptr_t)ptr, count, 0);
 
 	return 0;

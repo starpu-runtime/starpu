@@ -56,6 +56,8 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 	struct starpu_sched_component *last = NULL;	/* Stores the last created component, from top to bottom */
 	unsigned i, j, n;
 	struct starpu_sched_component *userchoice_component = NULL;
+	struct starpu_sched_component *pre_decision_component = NULL;
+	struct starpu_sched_component *last_pre_decision_component = NULL;
 	struct starpu_sched_component *decision_component = NULL;
 	struct starpu_sched_component *no_perfmodel_component = NULL;
 	struct starpu_sched_component *calibrator_component = NULL;
@@ -93,13 +95,24 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		(void) create_decision_component;
 		(void) data;
 
+		while ((flags & STARPU_SCHED_SIMPLE_PRE_DECISION) == STARPU_SCHED_SIMPLE_PRE_DECISION)
+		{
+			STARPU_ASSERT(flags == STARPU_SCHED_SIMPLE_PRE_DECISION);
+			(void) va_arg(varg_list, starpu_sched_component_create_t);
+			(void) va_arg(varg_list, void *);
+			flags = va_arg(varg_list, unsigned);
+		}
+
+		int above_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_ABOVE", flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO ? 1 : 0);
+		int below_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_BELOW", flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO ? 1 : 0);
+
 		/* Create combined workers if requested */
 		if (flags & STARPU_SCHED_SIMPLE_COMBINED_WORKERS)
 			starpu_sched_find_all_worker_combinations();
 
 		/* Components parameters */
 
-		if (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO || flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO)
+		if (above_prio || below_prio)
 		{
 			/* The application may use any integer */
 			if (starpu_sched_ctx_min_priority_is_set(sched_ctx_id) == 0)
@@ -188,6 +201,27 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		void *data = va_arg(varg_list, void *);
 		flags = va_arg(varg_list, unsigned);
 
+		while ((flags & STARPU_SCHED_SIMPLE_PRE_DECISION) == STARPU_SCHED_SIMPLE_PRE_DECISION)
+		{
+			starpu_sched_component_create_t create_pre_decision_component = va_arg(varg_list, starpu_sched_component_create_t);
+			void *pre_data = va_arg(varg_list, void *);
+			flags = va_arg(varg_list, unsigned);
+			struct starpu_sched_component *component;
+
+			component = create_pre_decision_component(t, pre_data);
+
+			if (pre_decision_component)
+				/* Connect after previous pre-decision component */
+				starpu_sched_component_connect(pre_decision_component, component);
+			else
+				/* We are the first pre-decision component */
+				pre_decision_component = component;
+			last_pre_decision_component = component;
+		}
+
+		int above_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_ABOVE", flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO ? 1 : 0);
+		int below_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_BELOW", flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO ? 1 : 0);
+
 		if (nbelow == 1 && !(flags & STARPU_SCHED_SIMPLE_DECIDE_ALWAYS))
 		{
 			/* Oh, no choice, we don't actually need to decide, just
@@ -201,12 +235,16 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		{
 			decision_component = create_decision_component(t, data);
 		}
+		if (last_pre_decision_component)
+			starpu_sched_component_connect(last_pre_decision_component, decision_component);
+		else
+			pre_decision_component = decision_component;
 
 		/* First, a fifo if requested */
 		if (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE)
 		{
 			struct starpu_sched_component *fifo_above;
-			if (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO)
+			if (above_prio)
 			{
 				fifo_above = starpu_sched_component_prio_create(t, NULL);
 			}
@@ -233,7 +271,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 				{
 					.calibrator_component = calibrator_component,
 					.no_perfmodel_component = no_perfmodel_component,
-					.perfmodel_component = decision_component,
+					.perfmodel_component = pre_decision_component,
 				};
 
 			struct starpu_sched_component * perfmodel_select_component = starpu_sched_component_perfmodel_select_create(t, &perfmodel_select_data);
@@ -243,7 +281,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			else
 				starpu_sched_component_connect(last, perfmodel_select_component);
 
-			starpu_sched_component_connect(perfmodel_select_component, decision_component);
+			starpu_sched_component_connect(perfmodel_select_component, pre_decision_component);
 			starpu_sched_component_connect(perfmodel_select_component, calibrator_component);
 			starpu_sched_component_connect(perfmodel_select_component, no_perfmodel_component);
 		}
@@ -252,13 +290,11 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			/* No perfmodel calibration */
 			if (!last)
 				/* Plug decision_component directly */
-				last = t->root = decision_component;
+				t->root = pre_decision_component;
 			else
-				/* Plug decision_component to fifo */
-				starpu_sched_component_connect(last, decision_component);
+				/* Plug decision components to fifo */
+				starpu_sched_component_connect(last, pre_decision_component);
 		}
-		/* Silence static analysis warnings */
-		(void) last;
 
 		/* Take default ntasks_threshold */
 		unsigned ntasks_threshold;
@@ -309,7 +345,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 					&& i >= starpu_worker_get_count()))
 			{
 				struct starpu_sched_component *fifo_below;
-				if (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO)
+				if (below_prio)
 				{
 					fifo_below = starpu_sched_component_prio_create(t, &prio_data);
 				}

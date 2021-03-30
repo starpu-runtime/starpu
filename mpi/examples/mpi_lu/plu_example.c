@@ -438,7 +438,7 @@ int main(int argc, char **argv)
 	int rank;
 	int world_size;
 	int ret;
-	unsigned i, j;
+	unsigned i, j, k;
 
 	/*
 	 *	Initialization
@@ -620,6 +620,69 @@ int main(int argc, char **argv)
 	}
 	free(dataA_handles);
 	free(dataA);
+
+#ifdef SINGLE_TMP11
+	starpu_data_unregister(tmp_11_block_handle);
+	starpu_free(tmp_11_block);
+#else
+	for (k = 0; k < nblocks; k++)
+	{
+		if (tmp_11_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_11_block_handles[k]);
+			starpu_free(tmp_11_block[k]);
+		}
+	}
+	free(tmp_11_block_handles);
+	free(tmp_11_block);
+#endif
+
+	for (k = 0; k < nblocks; k++)
+	{
+#ifdef SINGLE_TMP1221
+		if (tmp_12_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_12_block_handles);
+			starpu_free(tmp_12_block[k]);
+		}
+
+		if (tmp_21_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_21_block_handles[k]);
+			starpu_free(tmp_21_block[k]);
+		}
+#else
+	for (i = 0; i < 2; i++)
+	{
+		if (tmp_12_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_12_block_handles[i][k]);
+			starpu_free(tmp_12_block[i][k]);
+		}
+
+		if (tmp_21_block_is_needed(rank, nblocks, k))
+		{
+			starpu_data_unregister(tmp_21_block_handles[i][k]);
+			starpu_free(tmp_21_block[i][k]);
+		}
+	}
+#endif
+	}
+
+#ifdef SINGLE_TMP1221
+	free(tmp_12_block_handles);
+	free(tmp_21_block_handles);
+	free(tmp_12_block);
+	free(tmp_21_block);
+#else
+	for (i = 0; i < 2; i++)
+	{
+		free(tmp_12_block_handles[i]);
+		free(tmp_21_block_handles[i]);
+		free(tmp_12_block[i]);
+		free(tmp_21_block[i]);
+	}
+#endif
 
 	barrier_ret = MPI_Barrier(MPI_COMM_WORLD);
 	STARPU_ASSERT(barrier_ret == MPI_SUCCESS);

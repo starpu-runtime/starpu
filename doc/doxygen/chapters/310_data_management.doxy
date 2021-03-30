@@ -93,8 +93,8 @@ starpu_block_data_register(&block_handle, STARPU_MAIN_RAM, (uintptr_t)block, nx,
 
 3D matrices can be partitioned along the x dimension by
 using starpu_block_filter_block(), or along the y dimension
-by using starpu_block_filter_vertical_block, or along the
-z dimension by using starpu_block_filter_depth_block. They
+by using starpu_block_filter_vertical_block(), or along the
+z dimension by using starpu_block_filter_depth_block(). They
 can also be partitioned with some overlapping by using
 starpu_block_filter_block_shadow(), starpu_block_filter_vertical_block_shadow(),
 or starpu_block_filter_depth_block_shadow().
@@ -206,23 +206,23 @@ need to be set within the original allocation. To reserve room for increasing
 the NX/NY values, one can use starpu_matrix_data_register_allocsize() instead of
 starpu_matrix_data_register(), to specify the allocation size to be used instead
 of the default NX*NY*ELEMSIZE. To support this, the data interface
-has to implement the starpu_data_interface_ops::alloc_footprint and
-starpu_data_interface_ops::alloc_compare methods, for proper StarPU allocation
+has to implement the functions starpu_data_interface_ops::alloc_footprint and
+starpu_data_interface_ops::alloc_compare, for proper StarPU allocation
 management.
 
 A more involved case is changing the amount of allocated data.
 The task implementation can just reallocate the buffer during its execution, and
 set the proper new values in the interface structure, e.g. nx, ny, ld, etc. so
-that the StarPU core knows the new data layout. The starpu_data_interface_ops
-structure however then needs to have the starpu_data_interface_ops::dontcache
-field set to 1, to prevent StarPU from trying to perform any cached allocation,
+that the StarPU core knows the new data layout. The structure starpu_data_interface_ops
+however then needs to have the field starpu_data_interface_ops::dontcache
+set to 1, to prevent StarPU from trying to perform any cached allocation,
 since the allocated size will vary. An example is available in
 <c>tests/datawizard/variable_size.c</c>. The example uses its own data
 interface so as to contain some simulation information for data growth, but the
 principle can be applied for any data interface.
 
-The principle is to use <c>starpu_malloc_on_node_flags</c> to make the new
-allocation, and use <c>starpu_free_on_node_flags</c> to release any previous
+The principle is to use starpu_malloc_on_node_flags() to make the new
+allocation, and use starpu_free_on_node_flags() to release any previous
 allocation. The flags have to be precisely like in the example:
 
 \code{.c}
@@ -244,7 +244,7 @@ stored in the data and the actually allocated buffer. For instance, the vector
 interface uses the <c>nx</c> field for the former, and the <c>allocsize</c> for
 the latter. This allows for lazy reallocation to avoid reallocating the buffer
 everytime to exactly match the actual number of elements. Computations and data
-transfers will use <c>nx</c> field, while allocation functions will use the
+transfers will use the field <c>nx</c>, while allocation functions will use the field
 <c>allocsize</c>. One just has to make sure that <c>allocsize</c> is always
 bigger or equal to <c>nx</c>.
 
@@ -254,12 +254,12 @@ Important note: one can not change the size of a partitioned data.
 \section DataManagement Data Management
 
 When the application allocates data, whenever possible it should use
-the starpu_malloc() function, which will ask CUDA or OpenCL to make
-the allocation itself and pin the corresponding allocated memory, or to use the
-starpu_memory_pin() function to pin memory allocated by other ways, such as local arrays. This
+the function starpu_malloc(), which will ask CUDA or OpenCL to make
+the allocation itself and pin the corresponding allocated memory, or to use the function
+starpu_memory_pin() to pin memory allocated by other ways, such as local arrays. This
 is needed to permit asynchronous data transfer, i.e. permit data
 transfer to overlap with computations. Otherwise, the trace will show
-that the <c>DriverCopyAsync</c> state takes a lot of time, this is
+that the state <c>DriverCopyAsync</c> takes a lot of time, this is
 because CUDA or OpenCL then reverts to synchronous transfers.
 
 The application can provide its own allocation function by calling
@@ -351,8 +351,8 @@ before submitting tasks, which will thus guide StarPU toward an initial task
 distribution (since StarPU will try to avoid further transfers).
 
 This can be achieved by giving the function starpu_data_prefetch_on_node() the
-handle and the desired target memory node. The
-starpu_data_idle_prefetch_on_node() variant can be used to issue the transfer
+handle and the desired target memory node. The variant
+starpu_data_idle_prefetch_on_node() can be used to issue the transfer
 only when the bus is idle.
 
 Conversely, one can advise StarPU that some data will not be useful in the
@@ -434,8 +434,8 @@ __kernel void opencl_kernel(__global int *vector, unsigned offset)
 }
 \endcode
 
-When the sub-data is not of the same type as the original data, the
-starpu_data_filter::get_child_ops field needs to be set appropriately for StarPU
+When the sub-data is not of the same type as the original data, the field
+starpu_data_filter::get_child_ops needs to be set appropriately for StarPU
 to know which type should be used.
 
 StarPU provides various interfaces and filters for matrices, vectors, etc.,
@@ -476,9 +476,8 @@ starpu_data_partition_plan(handle, &f_vert, vert_handle);
 
 starpu_data_partition_plan() returns the handles for the partition in <c>vert_handle</c>.
 
-One can then submit tasks working on the main handle, and tasks working on
-<c>vert_handle</c> handles. Between using the main handle and <c>vert_handle</c>
-handles, StarPU will automatically call starpu_data_partition_submit() and
+One can then submit tasks working on the main handle, and tasks working on the handles
+<c>vert_handle</c>. Between using the main handle and the handles <c>vert_handle</c>, StarPU will automatically call starpu_data_partition_submit() and
 starpu_data_unpartition_submit().
 
 All this code is asynchronous, just submitting which tasks, partitioning and
@@ -544,7 +543,7 @@ ret = starpu_task_insert(&cl_switch, STARPU_RW, handle,
 			0);
 \endcode
 
-The execution of the <c>switch</c> task will get back the matrix data into the
+The execution of the task <c>switch</c> will get back the matrix data into the
 main memory, and thus the vertical slices will get the updated value there.
 
 Again, we prefer to make sure that we don't accidentally access the matrix through the whole-matrix handle:
@@ -557,7 +556,7 @@ And now we can start using vertical slices, etc.
 
 \section DataPointers Handles data buffer pointers
 
-A simple understanding of starpu handles is that it's a collection of buffers on
+A simple understanding of StarPU handles is that it's a collection of buffers on
 each memory node of the machine, which contain the same data.  The picture is
 however made more complex with the OpenCL support and with partitioning.
 
@@ -565,21 +564,28 @@ When partitioning a handle, the data buffers of the subhandles will indeed
 be inside the data buffers of the main handle (to save transferring data
 back and forth between the main handle and the subhandles). But in OpenCL,
 a <c>cl_mem</c> is not a pointer, but an opaque value on which pointer
-arithmetic can not be used. That is why data interfaces contain three members:
-<c>dev_handle</c>, <c>offset</c>, and <c>ptr</c>. The <c>dev_handle</c> member
-is what the allocation function returned, and one can not do arithmetic on
-it. The <c>offset</c> member is the offset inside the allocated area, most often
-it will be 0 because data start at the beginning of the allocated area, but
-when the handle is partitioned, the subhandles will have varying <c>offset</c>
-values, for each subpiece. The <c>ptr</c> member, in the non-OpenCL case, i.e.
-when pointer arithmetic can be used on <c>dev_handle</c>, is just the sum of
+arithmetic can not be used. That is why data interfaces contain three fields:
+<c>dev_handle</c>, <c>offset</c>, and <c>ptr</c>.
+<ul>
+<li> The field <c>dev_handle</c> is what the allocation function
+returned, and one can not do arithmetic on it.
+</li>
+<li> The field <c>offset</c> is the offset inside the allocated area,
+most often it will be 0 because data start at the beginning of the
+allocated area, but when the handle is partitioned, the subhandles
+will have varying <c>offset</c> values, for each subpiece.
+</li>
+<li> The field <c>ptr</c>, in the non-OpenCL case, i.e. when pointer
+arithmetic can be used on <c>dev_handle</c>, is just the sum of
 <c>dev_handle</c> and <c>offset</c>, provided for convenience.
+</li>
+</ul>
 
 This means that:
 <ul>
 <li>computation kernels can use <c>ptr</c> in non-OpenCL implementations.</li>
 <li>computation kernels have to use <c>dev_handle</c> and <c>offset</c> in the OpenCL implementation.</li>
-<li>allocation methods of data interfaces have to store the value returned by starpu_malloc_on_node in <c>dev_handle</c> and <c>ptr</c>, and set <c>offset</c> to 0.</li>
+<li>allocation methods of data interfaces have to store the value returned by starpu_malloc_on_node() in <c>dev_handle</c> and <c>ptr</c>, and set <c>offset</c> to 0.</li>
 <li>partitioning filters have to copy over <c>dev_handle</c> without modifying it, set in the child different values of <c>offset</c>, and set <c>ptr</c> accordingly as the sum of <c>dev_handle</c> and <c>offset</c>.</li>
 </ul>
 
@@ -589,8 +595,8 @@ StarPU provides a series of predefined filters in \ref API_Data_Partition, but
 additional filters can be defined by the application. The principle is that the
 filter function just fills the memory location of the <c>i-th</c> subpart of a data.
 Examples are provided in <c>src/datawizard/interfaces/*_filters.c</c>,
-and see \ref starpu_data_filter::filter_func for the details.
-The starpu_filter_nparts_compute_chunk_size_and_offset() helper can be used to
+check \ref starpu_data_filter::filter_func for further details.
+The helper function starpu_filter_nparts_compute_chunk_size_and_offset() can be used to
 compute the division of pieces of data.
 
 \section DataReduction Data Reduction
@@ -643,7 +649,8 @@ struct starpu_codelet accumulate_variable_cl =
         .cpu_funcs = { accumulate_variable_cpu },
         .cpu_funcs_name = { "accumulate_variable_cpu" },
         .cuda_funcs = { accumulate_variable_cuda },
-        .nbuffers = 1,
+        .nbuffers = 2,
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 }
 \endcode
 
@@ -708,7 +715,7 @@ of submission. In some applicative cases, the write contributions can actually
 be performed in any order without affecting the eventual result. In this case
 it is useful to drop the strictly sequential semantic, to improve parallelism
 by allowing StarPU to reorder the write accesses. This can be done by using
-the ::STARPU_COMMUTE data access flag. Accesses without this flag will however
+the data access flag ::STARPU_COMMUTE. Accesses without this flag will however
 properly be serialized against accesses with this flag. For instance:
 
 \code{.c}
@@ -738,7 +745,7 @@ already serialized, and thus by default StarPU uses the Dijkstra solution which
 scales very well in terms of overhead: tasks will just acquire data one by one
 by data handle pointer value order.
 
-When sequential ordering is disabled or the ::STARPU_COMMUTE flag is used, there
+When sequential ordering is disabled or the flag ::STARPU_COMMUTE is used, there
 may be a lot of concurrent accesses to the same data, and the Dijkstra solution
 gets only poor parallelism, typically in some pathological cases which do happen
 in various applications. In this case, one can use a data access arbiter, which
@@ -751,7 +758,7 @@ will acquire them arbiter by arbiter, in arbiter pointer value order.
 
 See the <c>tests/datawizard/test_arbiter.cpp</c> example.
 
-Arbiters however do not support the ::STARPU_REDUX flag yet.
+Arbiters however do not support the flag ::STARPU_REDUX yet.
 
 \section TemporaryBuffers Temporary Buffers
 
@@ -884,11 +891,13 @@ struct starpu_complex_interface
 That structure stores enough to describe <b>one</b> buffer of such kind of
 data. It is used for the buffer stored in the main memory, another instance
 is used for the buffer stored in a GPU, etc. A <i>data handle</i> is thus a
-collection of such structures, to remember each buffer on each memory node.
+collection of such structures, to describe each buffer on each memory node.
 
 Note: one should not take pointers into such structures, because StarPU needs
 to be able to copy over the content of it to various places, for instance to
 efficiently migrate a data buffer from one data handle to another data handle.
+
+\subsection DefiningANewDataInterface_registration Data registration
 
 Registering such a data to StarPU is easily done using the function
 starpu_data_register(). The last
@@ -896,7 +905,7 @@ parameter of the function, <c>interface_complex_ops</c>, will be
 described below.
 
 \code{.c}
-void starpu_complex_data_register(starpu_data_handle_t *handle,
+void starpu_complex_data_register(starpu_data_handle_t *handleptr,
      unsigned home_node, double *real, double *imaginary, int nx)
 {
         struct starpu_complex_interface complex =
@@ -918,8 +927,8 @@ void starpu_complex_data_register(starpu_data_handle_t *handle,
 The <c>struct starpu_complex_interface complex</c> is here used just to store the
 parameters that the user provided to <c>starpu_complex_data_register</c>.
 starpu_data_register() will first allocate the handle, and
-then pass the <c>starpu_complex_interface</c> structure to the
-starpu_data_interface_ops::register_data_handle method, which records them
+then pass the structure <c>starpu_complex_interface</c> to the method
+starpu_data_interface_ops::register_data_handle, which records them
 within the data handle (it is called once per node by starpu_data_register()):
 
 \code{.c}
@@ -971,8 +980,8 @@ static struct starpu_data_interface_ops interface_complex_ops =
 };
 \endcode
 
-Functions need to be defined to access the different fields of the
-complex interface from a StarPU data handle.
+Convenience functions can defined to access the different fields of the
+complex interface from a StarPU data handle after a call to starpu_data_acquire():
 
 \code{.c}
 double *starpu_complex_get_real(starpu_data_handle_t handle)
@@ -1022,14 +1031,189 @@ The whole code for this complex data interface is available in the
 directory <c>examples/interface/</c>.
 
 
+\subsection DefiningANewDataInterface_allocation Data allocation
+
+To be able to run tasks on GPUs etc. StarPU needs to know how to allocate a
+buffer for the interface. In our example, two allocations are needed in the
+allocation method \c complex_allocate_data_on_node(): one for the real part and one
+for the imaginary part.
+
+\code{.c}
+static starpu_ssize_t complex_allocate_data_on_node(void *data_interface, unsigned node)
+{
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
+
+	double *addr_real = NULL;
+	double *addr_imaginary = NULL;
+	starpu_ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
+
+	addr_real = (double*) starpu_malloc_on_node(node, requested_memory);
+	if (!addr_real)
+		goto fail_real;
+	addr_imaginary = (double*) starpu_malloc_on_node(node, requested_memory);
+	if (!addr_imaginary)
+		goto fail_imaginary;
+
+	/* update the data properly in consequence */
+	complex_interface->real = addr_real;
+	complex_interface->imaginary = addr_imaginary;
+
+	return 2*requested_memory;
+
+fail_imaginary:
+	starpu_free_on_node(node, (uintptr_t) addr_real, requested_memory);
+fail_real:
+	return -ENOMEM;
+}
+\endcode
+
+Here we try to allocate the two parts. If either of them fails, we return
+\c -ENOMEM. If they succeed, we can record the obtained pointers and returned the
+amount of allocated memory (for memory usage accounting).
+
+Conversely, \c complex_free_data_on_node() frees the two parts:
+
+\code{.c}
+static void complex_free_data_on_node(void *data_interface, unsigned node)
+{
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
+	starpu_ssize_t requested_memory = complex_interface->nx * sizeof(complex_interface->real[0]);
+
+	starpu_free_on_node(node, (uintptr_t) complex_interface->real, requested_memory);
+	starpu_free_on_node(node, (uintptr_t) complex_interface->imaginary, requested_memory);
+}
+\endcode
+
+We we have not made anything particular for GPUs or whatsoever: it is
+starpu_free_on_node() which knows how to actually make the allocation, and
+returns the resulting pointer, be it in main memory, in GPU memory, etc.
+
+\subsection DefiningANewDataInterface_copy Data copy
+
+Now that StarPU knows how to allocate/free a buffer, it needs to be able to
+copy over data into/from it. Defining a method \c copy_any_to_any() allows StarPU to
+perform direct transfers between main memory and GPU memory.
+
+\code{.c}
+static int copy_any_to_any(void *src_interface, unsigned src_node,
+			   void *dst_interface, unsigned dst_node,
+			   void *async_data)
+{
+	struct starpu_complex_interface *src_complex = src_interface;
+	struct starpu_complex_interface *dst_complex = dst_interface;
+	int ret = 0;
+
+
+	if (starpu_interface_copy((uintptr_t) src_complex->real, 0, src_node,
+				    (uintptr_t) dst_complex->real, 0, dst_node,
+				     src_complex->nx*sizeof(src_complex->real[0]),
+				     async_data))
+		ret = -EAGAIN;
+	if (starpu_interface_copy((uintptr_t) src_complex->imaginary, 0, src_node,
+				    (uintptr_t) dst_complex->imaginary, 0, dst_node,
+				     src_complex->nx*sizeof(src_complex->imaginary[0]),
+				     async_data))
+		ret = -EAGAIN;
+	return ret;
+}
+\endcode
+
+We here again have no idea what is main memory or GPU memory, or even if the
+copy is synchronous or asynchronous: we just call starpu_interface_copy()
+according to the interface, passing it the pointers, and checking whether it
+returned \c -EAGAIN, which means the copy is asynchronous, and StarPU will
+appropriately wait for it thanks to the pointer \c async_data.
+
+This copy method is referenced in a structure \ref starpu_data_copy_methods
+
+\code{.c}
+static const struct starpu_data_copy_methods complex_copy_methods =
+{
+	.any_to_any = copy_any_to_any
+};
+\endcode
+
+which was referenced in the structure \ref starpu_data_interface_ops above.
+
+Other fields of \ref starpu_data_copy_methods allow to provide optimized
+variants, notably for the case of 2D or 3D matrix tiles with non-trivial ld.
+
+\subsection DefiningANewDataInterface_pack Data pack/peek/unpack
+
+The copy methods allow for RAM/GPU transfers, but is not enough for e.g.
+transferring over MPI. That requires defining the pack/peek/unpack methods. The
+principle is that the method starpu_data_interface_ops::pack_data concatenates
+the buffer data into a newly-allocated contiguous bytes array, conversely
+starpu_data_interface_ops::peek_data extracts from a bytes array into the
+buffer data, and starpu_data_interface_ops::unpack_data does the same as
+starpu_data_interface_ops::peek_data but also frees the bytes array.
+
+\code{.c}
+static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
+{
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *)
+		starpu_data_get_interface_on_node(handle, node);
+
+	*count = complex_get_size(handle);
+	if (ptr != NULL)
+	{
+		char *data;
+		data = (void*) starpu_malloc_on_node_flags(node, *count, 0);
+		*ptr = data;
+		memcpy(data, complex_interface->real, complex_interface->nx*sizeof(double));
+		memcpy(data+complex_interface->nx*sizeof(double), complex_interface->imaginary, complex_interface->nx*sizeof(double));
+	}
+
+	return 0;
+}
+\endcode
+
+\c complex_pack_data() first computes the size to be allocated, then allocates it,
+and copies over into it the content of the two real and imaginary arrays.
+
+\code{.c}
+static int complex_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	char *data = ptr;
+	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+
+	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *)
+		starpu_data_get_interface_on_node(handle, node);
+
+	STARPU_ASSERT(count == 2 * complex_interface->nx * sizeof(double));
+	memcpy(complex_interface->real, data, complex_interface->nx*sizeof(double));
+	memcpy(complex_interface->imaginary, data+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
+
+	return 0;
+}
+\endcode
+
+\c complex_peek_data() simply uses \c memcpy() to copy over from the bytes array into the data buffer.
+
+\code{.c}
+static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	complex_peek_data(handle, node, ptr, count);
+
+	starpu_free_on_node_flags(node, (uintptr_t) ptr, count, 0);
+
+	return 0;
+}
+\endcode
+
+And \c complex_unpack_data() just calls \c complex_peek_data() and releases the bytes array.
+
+
 \section SpecifyingATargetNode Specifying A Target Node For Task Data
 
 When executing a task on a GPU for instance, StarPU would normally copy all the
 needed data for the tasks on the embedded memory of the GPU.  It may however
 happen that the task kernel would rather have some of the datas kept in the
 main memory instead of copied in the GPU, a pivoting vector for instance.
-This can be achieved by setting the starpu_codelet::specific_nodes flag to
-<c>1</c>, and then fill the starpu_codelet::nodes array (or starpu_codelet::dyn_nodes when
+This can be achieved by setting the flag starpu_codelet::specific_nodes to
+<c>1</c>, and then fill the array starpu_codelet::nodes (or starpu_codelet::dyn_nodes when
 starpu_codelet::nbuffers is greater than \ref STARPU_NMAXBUFS) with the node numbers
 where data should be copied to, or ::STARPU_SPECIFIC_NODE_LOCAL to let
 StarPU copy it to the memory node where the task will be executed.

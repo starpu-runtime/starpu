@@ -32,10 +32,6 @@
 
 #ifdef STARPU_USE_MP
 
-#ifdef STARPU_USE_MIC
-#include <scif.h>
-#endif /* STARPU_USE_MIC */
-
 #define BUFFER_SIZE 65536
 
 #define STARPU_MP_SRC_NODE 0
@@ -87,8 +83,6 @@ const char *_starpu_mp_common_command_to_string(const int command);
 
 enum _starpu_mp_node_kind
 {
-	STARPU_NODE_MIC_SINK,
-	STARPU_NODE_MIC_SOURCE,
 	STARPU_NODE_MPI_SINK,
 	STARPU_NODE_MPI_SOURCE,
 	STARPU_NODE_INVALID_KIND
@@ -98,9 +92,6 @@ const char *_starpu_mp_common_node_kind_to_string(const int kind);
 
 union _starpu_mp_connection
 {
-#ifdef STARPU_USE_MIC
-	scif_epd_t mic_endpoint;
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	int mpi_remote_nodeid;
 #endif
@@ -139,6 +130,9 @@ struct mp_task
 	void **interfaces;
 	unsigned nb_interfaces;
 	void *cl_arg;
+	unsigned cl_arg_size;
+	void *cl_ret;
+	unsigned cl_ret_size;
 	unsigned coreid;
 	enum starpu_codelet_type type;
 	int is_parallel_task;
@@ -169,7 +163,7 @@ struct _starpu_mp_node
 	/*Is starpu running*/
 	int is_running;
 
-	/** Buffer used for scif data transfers, allocated
+	/** Buffer used for data transfers, allocated
 	 * during node initialization.
 	 * Size : BUFFER_SIZE */
 	void *buffer;
@@ -179,36 +173,14 @@ struct _starpu_mp_node
 	 */
 	int peer_id;
 
-	/** Only MIC use this for now !!
-	 * This is the devid both for the sink and the host. */
-	int devid;
-
-	/** Only MIC use this for now !!
-	 *  Is the number ok MIC on the system. */
-	unsigned int nb_mp_sinks;
-
 	/** Connection used for command passing between the host thread and the
 	 * sink it controls */
 	union _starpu_mp_connection mp_connection;
-
-        /** Only MIC use this for now !!
-         * Connection used for data transfers between the host and his sink. */
-        union _starpu_mp_connection host_sink_dt_connection;
 
         /** Mutex to protect the interleaving of communications when using one thread per node,
          * for instance, when a thread transfers piece of data and an other wants to use
          * a sink_to_sink communication */
         starpu_pthread_mutex_t connection_mutex;
-
-        /** Only MIC use this for now !!
-         * Only sink use this for now !!
-         * Connection used for data transfer between devices.
-         * A sink opens a connection with each other sink,
-         * thus each sink can directly send data to each other.
-         * For sink :
-         *  - sink_sink_dt_connections[i] is the connection to the sink number i.
-         *  - sink_sink_dt_connections[j] is not initialized for the sink number j. */
-        union _starpu_mp_connection *sink_sink_dt_connections;
 
         /** This list contains events
          * about asynchronous request
@@ -252,7 +224,7 @@ struct _starpu_mp_node
         void (*dt_recv_from_device) (const struct _starpu_mp_node *, int, void *, int, void *);
 
         /** Test async transfers */
-        int (*dt_test) (struct _starpu_async_channel *);
+        unsigned int (*dt_test) (struct _starpu_async_channel *);
 
         void (*(*get_kernel_from_job)   (const struct _starpu_mp_node *,struct _starpu_job *))(void);
         void (*(*lookup)                (const struct _starpu_mp_node *, char* ))(void);

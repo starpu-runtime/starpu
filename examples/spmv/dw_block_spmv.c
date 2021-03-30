@@ -338,5 +338,7 @@ int main(int argc, char *argv[])
 	FPRINTF(stderr, "Flop %e\n", totalflop);
 	FPRINTF(stderr, "GFlops : %2.2f\n", totalflop/timing/1000);
 
+	starpu_shutdown();
+
 	return 0;
 }

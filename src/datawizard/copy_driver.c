@@ -24,7 +24,6 @@
 #include <drivers/mpi/driver_mpi_sink.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_common.h>
-#include <drivers/mic/driver_mic_source.h>
 #include <common/fxt.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memalloc.h>
@@ -200,8 +199,8 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 									struct _starpu_data_replicate *dst_replicate,
 									unsigned donotread,
 									struct _starpu_data_request *req,
-									unsigned may_alloc,
-									enum _starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED)
+									enum _starpu_may_alloc may_alloc,
+									enum starpu_is_prefetch prefetch STARPU_ATTRIBUTE_UNUSED)
 {
 	if (!donotread)
 	{
@@ -215,11 +214,11 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	/* first make sure the destination has an allocated buffer */
 	if (!dst_replicate->allocated)
 	{
-		if (!may_alloc || _starpu_is_reclaiming(dst_node))
+		if (may_alloc==_STARPU_DATAWIZARD_DO_NOT_ALLOC || _starpu_is_reclaiming(dst_node))
 			/* We're not supposed to allocate there at the moment */
 			return -ENOMEM;
 
-		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, req ? req->prefetch : STARPU_FETCH);
+		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, prefetch, may_alloc==_STARPU_DATAWIZARD_ONLY_FAST_ALLOC);
 		if (ret_alloc)
 			return -ENOMEM;
 	}
@@ -274,6 +273,7 @@ void starpu_interface_end_driver_copy_async(unsigned src_node, unsigned dst_node
 	if (elapsed > 300)
 	{
 		static int warned = 0;
+		STARPU_HG_DISABLE_CHECKING(warned);
 		if (!warned)
 		{
 			char src_name[16], dst_name[16];

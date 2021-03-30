@@ -155,8 +155,8 @@ starpu_task::name or by using \ref STARPU_NAME when calling
 starpu_task_insert().
 
 Tasks are assigned default colors based on the worker which executed
-them (green for CPUs, yellow/orange/red for CUDAs, blue for OpenCLs,
-red for MICs, ...). To use a different color for every type of task,
+them (green for CPUs, yellow/orange/red for CUDAs, blue for OpenCLs, ...).
+To use a different color for every type of task,
 one can specify the option <c>-c</c> to <c>starpu_fxt_tool</c> or in
 \ref STARPU_GENERATE_TRACE_OPTIONS. Tasks can also be given a specific
 color by setting the field starpu_codelet::color or the
@@ -515,12 +515,12 @@ The <c>-f</c> option can also be used to display the performance in terms of GFl
 
 \verbatim
 $ tools/starpu_perfmodel_plot -f -e -s non_linear_memset_regression_based_energy
-$ gnuplot starpu_non_linear_memset_regression_based_energy.gp
-$ gv starpu_non_linear_memset_regression_based_energy.eps
+$ gnuplot starpu_gflops_non_linear_memset_regression_based_energy.gp
+$ gv starpu_gflops_non_linear_memset_regression_based_energy.eps
 \endverbatim
 
-\image html starpu_non_linear_memset_regression_based_energy_flops.png
-\image latex starpu_non_linear_memset_regression_based_energy_flops.eps "" width=\textwidth
+\image html starpu_gflops_non_linear_memset_regression_based_energy.png
+\image latex starpu_gflops_non_linear_memset_regression_based_energy.eps "" width=\textwidth
 
 We clearly see here that it is much more energy-efficient to stay in the L3 cache.
 

@@ -64,11 +64,13 @@ void locked_func_n1(void)
 
 void master_g1(void *arg)
 {
+	(void)arg;
 	starpu_omp_init_nest_lock(&omp_nest_lock);
 }
 
 void master_g2(void *arg)
 {
+	(void)arg;
 	starpu_omp_destroy_nest_lock(&omp_nest_lock);
 }
 

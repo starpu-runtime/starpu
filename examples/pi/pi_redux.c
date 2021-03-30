@@ -76,7 +76,6 @@ static void init_rng(void *arg)
 	switch (starpu_worker_get_type(workerid))
 	{
 		case STARPU_CPU_WORKER:
-		case STARPU_MIC_WORKER:
 			/* create a seed */
 			starpu_srand48_r((long int)workerid, &randbuffer[PADDING*workerid]);
 
@@ -322,7 +321,7 @@ static struct starpu_codelet redux_codelet =
 	.cuda_funcs = {redux_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2
 };
 

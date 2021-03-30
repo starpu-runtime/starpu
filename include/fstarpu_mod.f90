@@ -25,6 +25,7 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_RW
         type(c_ptr), bind(C) :: FSTARPU_SCRATCH
         type(c_ptr), bind(C) :: FSTARPU_REDUX
+        type(c_ptr), bind(C) :: FSTARPU_MPI_REDUX
         type(c_ptr), bind(C) :: FSTARPU_COMMUTE
         type(c_ptr), bind(C) :: FSTARPU_SSEND
         type(c_ptr), bind(C) :: FSTARPU_LOCALITY
@@ -36,11 +37,15 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_TASK_DEPS_ARRAY
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_WITH_ARG
+        type(c_ptr), bind(C) :: FSTARPU_CALLBACK_WITH_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_CALLBACK_ARG
+        type(c_ptr), bind(C) :: FSTARPU_CALLBACK_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_ARG
+        type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_POP
         type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_POP_ARG
+        type(c_ptr), bind(C) :: FSTARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE
         type(c_ptr), bind(C) :: FSTARPU_PRIORITY
         type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_NODE
         type(c_ptr), bind(C) :: FSTARPU_EXECUTE_ON_DATA
@@ -66,7 +71,6 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_CPU_WORKER
         type(c_ptr), bind(C) :: FSTARPU_CUDA_WORKER
         type(c_ptr), bind(C) :: FSTARPU_OPENCL_WORKER
-        type(c_ptr), bind(C) :: FSTARPU_MIC_WORKER
         type(c_ptr), bind(C) :: FSTARPU_ANY_WORKER
 
         integer(c_int), bind(C) :: FSTARPU_NMAXBUFS
@@ -85,7 +89,6 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_CPU
         type(c_ptr), bind(C) :: FSTARPU_CUDA
         type(c_ptr), bind(C) :: FSTARPU_OPENCL
-        type(c_ptr), bind(C) :: FSTARPU_MIC
 
         type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE
         type(c_ptr), bind(C) :: FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT
@@ -185,12 +188,6 @@ module fstarpu_mod
                         integer(c_int), value, intent(in) :: nopencl
                 end subroutine fstarpu_conf_set_nopencl
 
-                subroutine fstarpu_conf_set_nmic (conf, nmic) bind(C)
-                        use iso_c_binding, only: c_ptr, c_int
-                        type(c_ptr), value, intent(in) :: conf
-                        integer(c_int), value, intent(in) :: nmic
-                end subroutine fstarpu_conf_set_nmic
-
                 ! starpu_init: see fstarpu_init
                 ! starpu_initialize: see fstarpu_init
 
@@ -227,12 +224,6 @@ module fstarpu_mod
                         use iso_c_binding, only: c_int
                         integer(c_int) :: fstarpu_asynchronous_opencl_copy_disabled
                 end function fstarpu_asynchronous_opencl_copy_disabled
-
-                ! int starpu_asynchronous_mic_copy_disabled(void);
-                function fstarpu_asynchronous_mic_copy_disabled() bind(C,name="starpu_asynchronous_mic_copy_disabled")
-                        use iso_c_binding, only: c_int
-                        integer(c_int) :: fstarpu_asynchronous_mic_copy_disabled
-                end function fstarpu_asynchronous_mic_copy_disabled
 
                 ! void starpu_display_stats();
                 subroutine fstarpu_display_stats() bind(C,name="starpu_display_stats")
@@ -283,12 +274,6 @@ module fstarpu_mod
                         use iso_c_binding, only: c_int
                         integer(c_int)              :: fstarpu_opencl_worker_get_count
                 end function fstarpu_opencl_worker_get_count
-
-                ! unsigned starpu_mic_worker_get_count(void);
-                function fstarpu_mic_worker_get_count() bind(C,name="starpu_mic_worker_get_count")
-                        use iso_c_binding, only: c_int
-                        integer(c_int)              :: fstarpu_mic_worker_get_count
-                end function fstarpu_mic_worker_get_count
 
                 ! int starpu_worker_get_id(void);
                 function fstarpu_worker_get_id() bind(C,name="starpu_worker_get_id")
@@ -698,12 +683,6 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl
                         type(c_ptr), value, intent(in) :: flags ! C function expects an intptr_t
                 end subroutine fstarpu_codelet_add_opencl_flags
-
-                subroutine fstarpu_codelet_add_mic_func (cl, f_ptr) bind(C)
-                        use iso_c_binding, only: c_ptr, c_funptr
-                        type(c_ptr), value, intent(in) :: cl
-                        type(c_funptr), value, intent(in) :: f_ptr
-                end subroutine fstarpu_codelet_add_mic_func
 
                 subroutine fstarpu_codelet_add_buffer (cl, mode) bind(C)
                         use iso_c_binding, only: c_ptr
@@ -2395,6 +2374,7 @@ module fstarpu_mod
                         FSTARPU_RW      = fstarpu_get_constant(C_CHAR_"FSTARPU_RW"//C_NULL_CHAR)
                         FSTARPU_SCRATCH = fstarpu_get_constant(C_CHAR_"FSTARPU_SCRATCH"//C_NULL_CHAR)
                         FSTARPU_REDUX   = fstarpu_get_constant(C_CHAR_"FSTARPU_REDUX"//C_NULL_CHAR)
+                        FSTARPU_MPI_REDUX   = fstarpu_get_constant(C_CHAR_"FSTARPU_MPI_REDUX"//C_NULL_CHAR)
                         FSTARPU_COMMUTE   = fstarpu_get_constant(C_CHAR_"FSTARPU_COMMUTE"//C_NULL_CHAR)
                         FSTARPU_SSEND   = fstarpu_get_constant(C_CHAR_"FSTARPU_SSEND"//C_NULL_CHAR)
                         FSTARPU_LOCALITY   = fstarpu_get_constant(C_CHAR_"FSTARPU_LOCALITY"//C_NULL_CHAR)
@@ -2406,12 +2386,19 @@ module fstarpu_mod
                         FSTARPU_TASK_DEPS_ARRAY = fstarpu_get_constant(C_CHAR_"FSTARPU_TASK_DEPS_ARRAY"//C_NULL_CHAR)
                         FSTARPU_CALLBACK        = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_WITH_ARG       = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_WITH_ARG"//C_NULL_CHAR)
+                        FSTARPU_CALLBACK_WITH_ARG_NFREE       = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_WITH_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_CALLBACK_ARG    = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_ARG"//C_NULL_CHAR)
+                        FSTARPU_CALLBACK_ARG_NFREE    = fstarpu_get_constant(C_CHAR_"FSTARPU_CALLBACK_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK       = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK_ARG   = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_ARG"//C_NULL_CHAR)
+                        FSTARPU_PROLOGUE_CALLBACK_ARG_NFREE   = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK_POP   = fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_POP"//C_NULL_CHAR)
                         FSTARPU_PROLOGUE_CALLBACK_POP_ARG       = &
                                 fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_POP_ARG"//C_NULL_CHAR)
+                        FSTARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE       = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE"//C_NULL_CHAR)
                         FSTARPU_PRIORITY        = fstarpu_get_constant(C_CHAR_"FSTARPU_PRIORITY"//C_NULL_CHAR)
                         FSTARPU_EXECUTE_ON_NODE = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_NODE"//C_NULL_CHAR)
                         FSTARPU_EXECUTE_ON_DATA = fstarpu_get_constant(C_CHAR_"FSTARPU_EXECUTE_ON_DATA"//C_NULL_CHAR)
@@ -2432,7 +2419,6 @@ module fstarpu_mod
                         FSTARPU_CPU_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_CPU_WORKER"//C_NULL_CHAR)
                         FSTARPU_CUDA_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA_WORKER"//C_NULL_CHAR)
                         FSTARPU_OPENCL_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL_WORKER"//C_NULL_CHAR)
-                        FSTARPU_MIC_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_MIC_WORKER"//C_NULL_CHAR)
                         FSTARPU_ANY_WORKER   = fstarpu_get_constant(C_CHAR_"FSTARPU_ANY_WORKER"//C_NULL_CHAR)
 
                         FSTARPU_NMAXBUFS   = int(p_to_ip(fstarpu_get_constant(C_CHAR_"FSTARPU_NMAXBUFS"//C_NULL_CHAR)),c_int)
@@ -2464,8 +2450,6 @@ module fstarpu_mod
                             fstarpu_get_constant(C_CHAR_"FSTARPU_CUDA"//C_NULL_CHAR)
                         FSTARPU_OPENCL = &
                             fstarpu_get_constant(C_CHAR_"FSTARPU_OPENCL"//C_NULL_CHAR)
-                        FSTARPU_MIC = &
-                            fstarpu_get_constant(C_CHAR_"FSTARPU_MIC"//C_NULL_CHAR)
 
                         FSTARPU_CODELET_SIMGRID_EXECUTE = &
                              fstarpu_get_constant(C_CHAR_"FSTARPU_CODELET_SIMGRID_EXECUTE"//C_NULL_CHAR)

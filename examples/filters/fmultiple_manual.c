@@ -124,7 +124,7 @@ struct starpu_codelet cl_switch =
 
 int main(void)
 {
-	unsigned j, n=1;
+	unsigned n=1;
 	int matrix[NX][NY];
 	int ret, i;
 

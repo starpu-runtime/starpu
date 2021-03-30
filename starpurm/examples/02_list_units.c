@@ -22,15 +22,14 @@
 
 int main(int argc, char *argv[])
 {
-	int ids[4];
+	int ids[3];
 	int i;
 	starpurm_initialize();
 	ids[0] = starpurm_get_device_type_id("cpu");
 	ids[1] = starpurm_get_device_type_id("opencl");
 	ids[2] = starpurm_get_device_type_id("cuda");
-	ids[3] = starpurm_get_device_type_id("mic");
 
-	for (i=0; i<4; i++)
+	for (i=0; i<3; i++)
 	{
 		const int id = ids[i];
 		if (id == -1)

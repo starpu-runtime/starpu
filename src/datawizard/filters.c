@@ -193,7 +193,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 		int home_node = initial_handle->home_node;
 		if (home_node < 0 || (starpu_node_get_kind(home_node) != STARPU_CPU_RAM))
 			home_node = STARPU_MAIN_RAM;
-		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[home_node], STARPU_FETCH);
+		int ret = _starpu_allocate_memory_on_node(initial_handle, &initial_handle->per_node[home_node], STARPU_FETCH, 0);
 #ifdef STARPU_DEVEL
 #warning we should reclaim memory if allocation failed
 #endif
@@ -295,6 +295,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			{
 				//child_replicate->initialized = 0;
 			}
+			//child_replicate->nb_tasks_prefetch = 0;
 
 			/* update the interface */
 			void *initial_interface = starpu_data_get_interface_on_node(initial_handle, node);
@@ -634,7 +635,10 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 	free(children[0]->siblings);
 
 	for (i = 0; i < nparts; i++)
+	{
+		children[i]->siblings = NULL;
 		starpu_data_unregister_submit(children[i]);
+	}
 
 	_starpu_spin_lock(&root_handle->header_lock);
 	root_handle->nplans--;

@@ -44,8 +44,17 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	int *A, *C;
 
 	/* Initialize StarPU with default configuration */
-	int ret = starpu_init(NULL);
-
+	/* Initialize StarPU without GPU devices to make sure the memory of the GPU devices will not be used */
+	// Ignore environment variables as we want to force the exact number of workers
+	struct starpu_conf conf;
+	int ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return EXIT_FAILURE;
+	conf.precedence_over_environment_variables = 1;
+	starpu_conf_noworker(&conf);
+	conf.ncpus = 1;
+	conf.nmpi_ms = 0;
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) goto enodev;
 
 	/* Initialize path and name */

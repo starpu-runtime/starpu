@@ -31,7 +31,7 @@
 struct s_starpurm_unit
 {
 	/* Opaque unit id.
-	 * 
+	 *
 	 * For StarPU-RM, this id is used as an index to array starpurm->units[].
 	 */
 	int id;
@@ -654,20 +654,17 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 	hwloc_topology_load(rm->topology);
 	rm->global_cpuset = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(rm->global_cpuset);
-	
+
 	rm->initially_owned_cpuset_mask = hwloc_bitmap_dup(initially_owned_cpuset);
 
 	rm->all_cpu_workers_cpuset = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(rm->all_cpu_workers_cpuset);
-	
+
 	rm->all_opencl_device_workers_cpuset = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(rm->all_opencl_device_workers_cpuset);
-	
+
 	rm->all_cuda_device_workers_cpuset = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(rm->all_cuda_device_workers_cpuset);
-	
-	rm->all_mic_device_workers_cpuset = hwloc_bitmap_alloc();
-	hwloc_bitmap_zero(rm->all_mic_device_workers_cpuset);
 
 	rm->all_device_workers_cpuset = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(rm->all_device_workers_cpuset);
@@ -722,10 +719,7 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 	const int cuda_nunits = starpu_worker_get_count_by_type(STARPU_CUDA_WORKER);
 	rm->nunits_by_type[starpurm_unit_cuda] = cuda_nunits;
 
-	const int mic_nunits = starpu_worker_get_count_by_type(STARPU_MIC_WORKER);
-	rm->nunits_by_type[starpurm_unit_mic] = mic_nunits;
-
-	const int nunits = cpu_nunits + opencl_nunits + cuda_nunits + mic_nunits;
+	const int nunits = cpu_nunits + opencl_nunits + cuda_nunits;
 	rm->nunits = nunits;
 	rm->units = calloc(nunits, sizeof(*rm->units));
 
@@ -799,27 +793,6 @@ void starpurm_initialize_with_cpuset(const hwloc_cpuset_t initially_owned_cpuset
 		pthread_cond_init(&rm->units[unitid].unit_available_cond, NULL);
 		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
 		hwloc_bitmap_or(rm->all_cuda_device_workers_cpuset, rm->all_cuda_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-		hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
-		unitid++;
-	}
-
-	int mic_workerids[mic_nunits];
-	starpu_worker_get_ids_by_type(STARPU_MIC_WORKER, mic_workerids, mic_nunits);
-	rm->unit_offsets_by_type[starpurm_unit_mic] = unitid;
-	for (i = 0; i < mic_nunits; i++)
-	{
-		rm->units[unitid].id = unitid;
-		rm->units[unitid].type = starpurm_unit_mic;
-		rm->units[unitid].selected = 1; /* enabled by default */
-		rm->units[unitid].workerid = mic_workerids[i];
-		if (max_worker_id < rm->units[unitid].workerid)
-		{
-			max_worker_id = rm->units[unitid].workerid;
-		}
-		rm->units[unitid].worker_cpuset = starpu_worker_get_hwloc_cpuset(rm->units[unitid].workerid);
-		pthread_cond_init(&rm->units[unitid].unit_available_cond, NULL);
-		hwloc_bitmap_or(rm->global_cpuset, rm->global_cpuset, rm->units[unitid].worker_cpuset);
-		hwloc_bitmap_or(rm->all_mic_device_workers_cpuset, rm->all_mic_device_workers_cpuset, rm->units[unitid].worker_cpuset);
 		hwloc_bitmap_or(rm->all_device_workers_cpuset, rm->all_device_workers_cpuset, rm->units[unitid].worker_cpuset);
 		unitid++;
 	}
@@ -905,7 +878,7 @@ void starpurm_shutdown(void)
 	assert(_starpurm != NULL);
 	assert(_starpurm->state != state_uninitialized);
 	struct s_starpurm *rm = _starpurm;
-	
+
 	if (rm->starpu_in_pause)
 	{
 		starpu_resume();
@@ -935,7 +908,6 @@ void starpurm_shutdown(void)
 	hwloc_bitmap_free(rm->all_cpu_workers_cpuset);
 	hwloc_bitmap_free(rm->all_opencl_device_workers_cpuset);
 	hwloc_bitmap_free(rm->all_cuda_device_workers_cpuset);
-	hwloc_bitmap_free(rm->all_mic_device_workers_cpuset);
 	hwloc_bitmap_free(rm->all_device_workers_cpuset);
 	hwloc_bitmap_free(rm->selected_cpuset);
 	hwloc_bitmap_free(rm->initially_owned_cpuset_mask);
@@ -1358,7 +1330,7 @@ void starpurm_signal_block_condition(starpurm_block_cond_t *cond)
 	assert(0);
 }
 
- 
+
 void starpurm_register_polling_service(const char *service_name, starpurm_polling_t function, void *data)
 {
 	/* unimplemented */
@@ -1380,8 +1352,6 @@ int starpurm_get_device_type_id(const char *type_str)
 		return starpurm_unit_opencl;
 	if (strcmp(type_str, "cuda") == 0)
 		return starpurm_unit_cuda;
-	if (strcmp(type_str, "mic") == 0)
-		return starpurm_unit_mic;
 	return -1;
 }
 
@@ -1393,8 +1363,6 @@ const char *starpurm_get_device_type_name(int type_id)
 		return "opencl";
 	if (type_id == starpurm_unit_cuda)
 		return "cuda";
-	if (type_id == starpurm_unit_mic)
-		return "mic";
 	return NULL;
 }
 
@@ -1694,15 +1662,6 @@ static hwloc_cpuset_t starpurm_get_all_cuda_device_workers_cpuset(void)
 	return hwloc_bitmap_dup(rm->all_cuda_device_workers_cpuset);
 }
 
-static hwloc_cpuset_t starpurm_get_all_mic_device_workers_cpuset(void)
-{
-	assert(_starpurm != NULL);
-	assert(_starpurm->state != state_uninitialized);
-	struct s_starpurm *rm = _starpurm;
-
-	return hwloc_bitmap_dup(rm->all_mic_device_workers_cpuset);
-}
-
 hwloc_cpuset_t starpurm_get_all_device_workers_cpuset(void)
 {
 	assert(_starpurm != NULL);
@@ -1721,8 +1680,6 @@ hwloc_cpuset_t starpurm_get_all_device_workers_cpuset_by_type(int typeid)
 		return starpurm_get_all_opencl_device_workers_cpuset();
 	if (typeid == starpurm_unit_cuda)
 		return starpurm_get_all_cuda_device_workers_cpuset();
-	if (typeid == starpurm_unit_mic)
-		return starpurm_get_all_mic_device_workers_cpuset();
 	hwloc_cpuset_t empty_bitmap = hwloc_bitmap_alloc();
 	hwloc_bitmap_zero(empty_bitmap);
 	return empty_bitmap;

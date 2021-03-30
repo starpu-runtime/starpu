@@ -31,12 +31,13 @@
 #ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
 #endif
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
 #include <nvml.h>
 #endif
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
+#include <datawizard/datawizard.h>
 #include <core/task.h>
 #include <common/knobs.h>
 
@@ -62,7 +63,7 @@
 static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
 static nvmlDevice_t nvmlDev[STARPU_MAXCUDADEVS];
 #endif
 int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
@@ -104,6 +105,25 @@ static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 	return global_mem[devid];
 }
 
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props)
+{
+	char busid[13];
+	nvmlDevice_t ret;
+
+	snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props->pciDomainID, props->pciBusID, props->pciDeviceID);
+	if (nvmlDeviceGetHandleByPciBusId(busid, &ret) != NVML_SUCCESS)
+		ret = NULL;
+
+	return ret;
+}
+
+nvmlDevice_t starpu_cuda_get_nvmldev(unsigned devid)
+{
+	return nvmlDev[devid];
+}
+#endif
+
 void
 _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 {
@@ -119,7 +139,7 @@ _starpu_cuda_discover_devices (struct _starpu_machine_config *config)
 	if (STARPU_UNLIKELY(cures != cudaSuccess))
 		cnt = 0;
 	config->topology.nhwdevices[STARPU_CUDA_WORKER] = cnt;
-#ifdef HAVE_LIBNVIDIA_ML
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
 	nvmlInit();
 #endif
 #endif
@@ -737,10 +757,8 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 #if defined(STARPU_HAVE_BUSID) && !defined(STARPU_SIMGRID)
 #if defined(STARPU_HAVE_DOMAINID) && !defined(STARPU_SIMGRID)
-#ifdef HAVE_LIBNVIDIA_ML
-		char busid[13];
-		snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
-		nvmlDeviceGetHandleByPciBusId(busid, &nvmlDev[devid]);
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+		nvmlDev[devid] = _starpu_cuda_get_nvmldev(&props[devid]);
 #endif
 		if (props[devid].pciDomainID)
 			snprintf(worker->name, sizeof(worker->name), "CUDA %u.%u (%s %.1f GiB %04x:%02x:%02x.0)", devid, subdev, devname, size, props[devid].pciDomainID, props[devid].pciBusID, props[devid].pciDeviceID);
@@ -935,14 +953,13 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 	if (!idle_tasks)
 	{
 		/* No task ready yet, no better thing to do than waiting */
-		__starpu_datawizard_progress(1, !idle_transfers);
+		__starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, !idle_transfers);
 		return 0;
 	}
 #endif
 
 	/* Something done, make some progress */
-	res = !idle_tasks || !idle_transfers;
-	res |= __starpu_datawizard_progress(1, 1);
+	res = __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
 	/* And pull tasks */
 	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, worker0->memory_node);
@@ -950,9 +967,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 #ifdef STARPU_SIMGRID
 	if (!res)
 		starpu_pthread_wait_wait(&worker0->wait);
-#else
-	if (!res)
-		return 0;
 #endif
 
 	for (i = 0; i < (int) worker_set->nworkers; i++)
@@ -972,35 +986,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 		{
 			/* this is neither a cuda or a cublas task */
 			_starpu_worker_refuse_task(worker, task);
-#if 0
-			if (worker->pipeline_length)
-			{
-				int j;
-				for (j = 0; j < worker->ntasks; j++)
-				{
-					const int j_mod = (j+worker->first_task)%STARPU_MAX_PIPELINE;
-					if (task == worker->current_tasks[j_mod])
-					{
-						worker->current_tasks[j_mod] = NULL;
-						if (j == 0)
-						{
-							worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
-							_starpu_set_current_task(NULL);
-						}
-						break;
-					}
-				}
-				STARPU_ASSERT(j<worker->ntasks);
-			}
-			else
-			{
-				worker->current_task = NULL;
-				_starpu_set_current_task(NULL);
-			}
-			worker->ntasks--;
-			int res = _starpu_push_task_to_workers(task);
-			STARPU_ASSERT_MSG(res == 0, "_starpu_push_task_to_workers() unexpectedly returned = %d\n", res);
-#endif
 			continue;
 		}
 
@@ -1039,7 +1024,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 		if (!usersleft)
                 {
 			/* I'm last, deinitialize device */
-			_starpu_handle_all_pending_node_data_requests(memnode);
+			_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
 			/* In case there remains some memory that was automatically
 			 * allocated by StarPU, we release it now. Note that data

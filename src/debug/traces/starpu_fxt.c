@@ -251,11 +251,12 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "\n");
 		fprintf(tasks_file, "Modes:");
 		for (i = 0; i < task->ndata; i++)
-			fprintf(tasks_file, " %s%s%s%s%s",
+			fprintf(tasks_file, " %s%s%s%s%s%s",
 				(task->data[i].mode & STARPU_R)?"R":"",
 				(task->data[i].mode & STARPU_W)?"W":"",
 				(task->data[i].mode & STARPU_SCRATCH)?"S":"",
 				(task->data[i].mode & STARPU_REDUX)?"X":"",
+				(task->data[i].mode & STARPU_MPI_REDUX)?"X-mpi":"",
 				(task->data[i].mode & STARPU_COMMUTE)?"C":"");
 		fprintf(tasks_file, "\n");
 		fprintf(tasks_file, "Sizes:");
@@ -763,15 +764,20 @@ static void memnode_pop_state(double time, const char *prefix, unsigned int memn
 #endif
 }
 
-static void memnode_event(double time, const char *prefix, unsigned int memnodeid, const char *name, unsigned long handle, unsigned long info, unsigned long size, unsigned int dest, struct starpu_fxt_options *options)
+static void memnode_event(double time, const char *prefix, unsigned int memnodeid, const char *name, unsigned long handle, unsigned long value, unsigned long info, long size_prio, unsigned int dest, struct starpu_fxt_options *options)
 {
 	if (!options->memory_states)
+		return;
+	// If there is not a valid memory node, we cant associate it
+	if((int)memnodeid < 0)
 		return;
 #ifdef STARPU_HAVE_POTI
 	char container[STARPU_POTI_STR_LEN];
 	char p_handle[STARPU_POTI_STR_LEN];
+	char p_value[STARPU_POTI_STR_LEN];
 	memmanager_container_alias(container, STARPU_POTI_STR_LEN, prefix, memnodeid);
 	snprintf(p_handle, sizeof(p_handle), "%lx", handle);
+	snprintf(p_value, sizeof(p_value), "%lx", value);
 
 #ifdef HAVE_POTI_USER_NEWEVENT
 	char p_dest[STARPU_POTI_STR_LEN];
@@ -780,15 +786,15 @@ static void memnode_event(double time, const char *prefix, unsigned int memnodei
 
 	memmanager_container_alias(p_dest, STARPU_POTI_STR_LEN, prefix, dest);
 	snprintf(p_info, sizeof(p_info), "%lu", info);
-	snprintf(p_size, sizeof(p_size), "%lu", size);
+	snprintf(p_size, sizeof(p_size), "%ld", size_prio);
 
-	poti_user_NewEvent(_starpu_poti_MemoryEvent, time, container, name, "0", 4,
+	poti_user_NewEvent(_starpu_poti_MemoryEvent, time, container, name, p_value, 4,
 			   p_handle, p_info, p_size, p_dest);
 #else
 	poti_NewEvent(time, container, name, p_handle);
 #endif
 #else
-	fprintf(out_paje_file, "22    %.9f    %s %smm%u  0 %lx %lu %lu %smm%u\n", time, name, prefix, memnodeid, handle, info, size, prefix, dest);
+	fprintf(out_paje_file, "22    %.9f    %s %smm%u  %lx %lx %lu %ld %smm%u\n", time, name, prefix, memnodeid, value, handle, info, size_prio, prefix, dest);
 #endif
 }
 
@@ -2202,7 +2208,7 @@ static void handle_mpi_data_set_tag(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	data->mpi_tag = tag;
 }
 
-static const char *copy_link_type(enum _starpu_is_prefetch prefetch)
+static const char *copy_link_type(enum starpu_is_prefetch prefetch)
 {
 	switch (prefetch)
 	{
@@ -2220,7 +2226,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	unsigned dst = ev->param[1];
 	unsigned size = ev->param[2];
 	unsigned comid = ev->param[3];
-	enum _starpu_is_prefetch prefetch = ev->param[4];
+	enum starpu_is_prefetch prefetch = ev->param[4];
 	unsigned long handle = ev->param[5];
 	const char *link_type = copy_link_type(prefetch);
 
@@ -2232,7 +2238,7 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 		{
 			double time = get_event_time_stamp(ev, options);
 			memnode_push_state(time, prefix, dst, "Co");
-			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCo", handle, comid, size, src, options);
+			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCo", handle, 0, comid, size, src, options);
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN], src_memnode_container[STARPU_POTI_STR_LEN];
 			char program_container[STARPU_POTI_STR_LEN];
@@ -2304,7 +2310,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	unsigned dst = ev->param[1];
 	unsigned long size = ev->param[2];
 	unsigned comid = ev->param[3];
-	enum _starpu_is_prefetch prefetch = ev->param[4];
+	enum starpu_is_prefetch prefetch = ev->param[4];
 	const char *link_type = copy_link_type(prefetch);
 
 	char *prefix = options->file_prefix;
@@ -2351,7 +2357,7 @@ static void handle_end_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		{
 			double time = get_event_time_stamp(ev, options);
 			memnode_pop_state(time, prefix, dst);
-			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCoE", handle, comid, size, src, options);
+			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCoE", handle, 0, comid, size, src, options);
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
 			char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
@@ -2378,7 +2384,7 @@ static void handle_start_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_f
 		if (out_paje_file)
 		{
 			memnode_push_state(get_event_time_stamp(ev, options), prefix, dst, "CoA");
-			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCoA", 0, 0, 0, src, options);
+			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCoA", 0, 0, 0, 0, src, options);
 		}
 
 }
@@ -2394,7 +2400,7 @@ static void handle_end_driver_copy_async(struct fxt_ev_64 *ev, struct starpu_fxt
 		if (out_paje_file)
 		{
 			memnode_pop_state(get_event_time_stamp(ev, options), prefix, dst);
-			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCoAE", 0, 0, 0, src, options);
+			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCoAE", 0, 0, 0, 0, src, options);
 		}
 }
 
@@ -2408,32 +2414,36 @@ static void handle_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options
 		memnode_set_state(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr);
 }
 
+static void handle_data_request(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
+{
+	unsigned memnode = ev->param[0];
+	unsigned dest = ev->param[1];
+	unsigned prio = ev->param[2];
+	unsigned long handle = ev->param[3];
+	unsigned prefe = ev->param[4];
+	unsigned long request = ev->param[5];
+
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, request, prefe, prio, dest, options);
+}
+
 static void handle_memnode_event_start_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
 	unsigned size = ev->param[2];
 	unsigned long handle = ev->param[3];
 
-	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, size, memnode, options);
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, size, memnode, options);
 }
 
 static void handle_memnode_event_start_4(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
 {
 	unsigned memnode = ev->param[0];
-	unsigned dest = ev->param[1];
-	if(strcmp(eventstr, "rc")==0)
-	{
-		//If it is a Request Create, use dest normally
-	}
-	else
-	{
-		dest = memnode;
-	}
+	//unsigned dest = ev->param[1]; // Not used
 	unsigned size = ev->param[2];
 	unsigned long handle = ev->param[3];
 	unsigned prefe = ev->param[4];
 
-	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, prefe, size, dest, options);
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, prefe, size, memnode, options);
 }
 
 static void handle_memnode_event_end_3(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
@@ -2442,7 +2452,7 @@ static void handle_memnode_event_end_3(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	unsigned long handle = ev->param[2];
 	unsigned info = ev->param[3];
 
-	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, info, 0, memnode, options);
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, info, 0, memnode, options);
 }
 
 static void handle_memnode_event_start_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
@@ -2450,7 +2460,7 @@ static void handle_memnode_event_start_2(struct fxt_ev_64 *ev, struct starpu_fxt
 	unsigned memnode = ev->param[0];
 	unsigned long handle = ev->param[2];
 
-	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, memnode, options);
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, 0, memnode, options);
 }
 
 static void handle_memnode_event_end_2(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
@@ -2458,7 +2468,7 @@ static void handle_memnode_event_end_2(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	unsigned memnode = ev->param[0];
 	unsigned long handle = ev->param[2];
 
-	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, memnode, options);
+	memnode_event(get_event_time_stamp(ev, options), options->file_prefix, memnode, eventstr, handle, 0, 0, 0, memnode, options);
 }
 
 static void handle_push_memnode_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *eventstr)
@@ -3702,13 +3712,12 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				if (options->memory_states)
 					handle_data_state(&ev, options, "SS");
 				break;
-                       case _STARPU_FUT_DATA_REQUEST_CREATED:
-                               if (!options->no_bus && options->memory_states)
-                               {
-                                       handle_memnode_event_start_4(&ev, options, "rc");
-                               }
-                               break;
-
+			case _STARPU_FUT_DATA_REQUEST_CREATED:
+				if (!options->no_bus && options->memory_states)
+				{
+					handle_data_request(&ev, options, "rc");
+				}
+				break;
 		  case _STARPU_FUT_PAPI_TASK_EVENT_VALUE:
 				handle_papi_event(&ev, options);
 				break;
@@ -4207,18 +4216,6 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
 		free(options->worker_archtypes[i].devices);
 
-	struct _starpu_symbol_name *itor, *next;
-	for (itor = _starpu_symbol_name_list_begin(&symbol_list);
-		itor != _starpu_symbol_name_list_end(&symbol_list);
-		itor = next)
-	{
-		next = _starpu_symbol_name_list_next(itor);
-
-		_starpu_symbol_name_list_erase(&symbol_list, itor);
-		free(itor->name);
-		_starpu_symbol_name_delete(itor);
-	}
-
 	_starpu_fxt_component_deinit();
 
 	free_worker_ids();
@@ -4608,6 +4605,17 @@ void _starpu_fxt_paje_file_init(struct starpu_fxt_options *options)
 static
 void _starpu_fxt_paje_file_close(void)
 {
+	struct _starpu_symbol_name *itor, *next;
+	for (itor = _starpu_symbol_name_list_begin(&symbol_list);
+		itor != _starpu_symbol_name_list_end(&symbol_list);
+		itor = next)
+	{
+		next = _starpu_symbol_name_list_next(itor);
+
+		_starpu_symbol_name_list_erase(&symbol_list, itor);
+		free(itor->name);
+		_starpu_symbol_name_delete(itor);
+	}
 	if (out_paje_file)
 		fclose(out_paje_file);
 }
@@ -4658,6 +4666,7 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 
 void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 {
+	starpu_drivers_preinit();
 	_starpu_fxt_options_set_dir(options);
 	_starpu_fxt_dag_init(options->dag_path);
 	_starpu_fxt_distrib_file_init(options);

@@ -114,6 +114,9 @@ int starpu_profiling_status_set(int status)
 	{
 		struct _starpu_worker *worker_struct = _starpu_get_worker_struct(worker);
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_struct->sched_mutex);
+	}
+	for (worker = 0; worker < starpu_worker_get_count(); worker++)
+	{
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[worker]);
 	}
 

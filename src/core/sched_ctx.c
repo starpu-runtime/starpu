@@ -532,7 +532,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 						   int min_prio_set, int min_prio,
 						   int max_prio_set, int max_prio,
 						   unsigned awake_workers,
-						   void (*sched_policy_init)(unsigned),
+						   void (*sched_policy_callback)(unsigned),
 						   void * user_data,
 						   int nsub_ctxs, int *sub_ctxs, int nsms)
 {
@@ -589,7 +589,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 	sched_ctx->main_master = -1;
 	sched_ctx->perf_arch.devices = NULL;
 	sched_ctx->perf_arch.ndevices = 0;
-	sched_ctx->init_sched = sched_policy_init;
+	sched_ctx->callback_sched = sched_policy_callback;
 	sched_ctx->user_data = user_data;
 	sched_ctx->sms_start_idx = 0;
 	sched_ctx->sms_end_idx = STARPU_NMAXSMS;
@@ -2673,10 +2673,10 @@ int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id)
 	return -1;
 }
 
-void (*starpu_sched_ctx_get_sched_policy_init(unsigned sched_ctx_id))(unsigned)
+void (*starpu_sched_ctx_get_sched_policy_callback(unsigned sched_ctx_id))(unsigned)
 {
 	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-	return sched_ctx->init_sched;
+	return sched_ctx->callback_sched;
 }
 
 unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *awake_workers)
@@ -2782,7 +2782,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 	if(config->topology.nsched_ctxs == 1)
 	{
 		/*we have all available resources */
-		npus = starpu_worker_get_nids_by_type(arch, pus, max);
+		npus = _starpu_worker_get_nids_by_type(arch, pus, max);
 /*TODO: hierarchical ctxs: get max good workers: close one to another */
 		for(i = 0; i < npus; i++)
 			workers[(*nw)++] = pus[i];
@@ -2790,7 +2790,7 @@ static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_wo
 	else
 	{
 		unsigned enough_ressources = 0;
-		npus = starpu_worker_get_nids_ctx_free_by_type(arch, pus, max);
+		npus = _starpu_worker_get_nids_ctx_free_by_type(arch, pus, max);
 
 		for(i = 0; i < npus; i++)
 			workers[(*nw)++] = pus[i];

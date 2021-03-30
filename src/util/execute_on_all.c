@@ -48,7 +48,6 @@ void starpu_execute_on_specific_workers(void (*func)(void*), void * arg, unsigne
 		.cuda_funcs = {wrapper_func},
 		.cpu_funcs = {wrapper_func},
 		.opencl_funcs = {wrapper_func},
-		/* XXX we do not handle Cell .. */
 		.nbuffers = 0,
 		.name = name
 	};

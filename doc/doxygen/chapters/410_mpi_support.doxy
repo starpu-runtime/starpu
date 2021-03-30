@@ -355,16 +355,43 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
     memcpy(complex_interface->real, ptr, complex_interface->nx*sizeof(double));
     memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
 
+    starpu_free_on_node_flags(node, (uintptr_t) ptr, count, 0);
+
     return 0;
 }
+\endcode
 
+And the starpu_data_interface_ops::peek_data operation does
+the same, but without freeing the buffer. Of course one can
+implement starpu_data_interface_ops::unpack_data as merely calling
+starpu_data_interface_ops::peek_data and do the free:
+
+\code{.c}
+static int complex_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+    STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
+    STARPU_ASSERT(count == complex_get_size(handle));
+
+    struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) starpu_data_get_interface_on_node(handle, node);
+
+    memcpy(complex_interface->real, ptr, complex_interface->nx*sizeof(double));
+    memcpy(complex_interface->imaginary, ptr+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
+
+    return 0;
+}
+\endcode
+
+\code{.c}
 static struct starpu_data_interface_ops interface_complex_ops =
 {
     ...
     .pack_data = complex_pack_data,
+    .peek_data = complex_peek_data
     .unpack_data = complex_unpack_data
 };
 \endcode
+
+
 
 Instead of defining pack and unpack operations, users may want to
 attach a MPI type to their user-defined data interface. The function
@@ -443,7 +470,7 @@ starpu_mpi_barrier(MPI_COMM_WORLD);
 \section MPIInsertTaskUtility MPI Insert Task Utility
 
 To save the programmer from having to explicit all communications, StarPU
-provides an "MPI Insert Task Utility". The principe is that the application
+provides an "MPI Insert Task Utility". The principle is that the application
 decides a distribution of the data over the MPI nodes by allocating it and
 notifying StarPU of this decision, i.e. tell StarPU which MPI node "owns"
 which data. It also decides, for each handle, an MPI tag which will be used to
@@ -544,7 +571,7 @@ to provide a dynamic policy.
 
 A function starpu_mpi_task_build() is also provided with the aim to
 only construct the task structure. All MPI nodes need to call the
-function, which posts the required send/recv on the various nodes which have to.
+function, which posts the required send/recv on the various nodes as needed.
 Only the node which is to execute the task will then return a
 valid task structure, others will return <c>NULL</c>. This node must submit the task.
 All nodes then need to call the function starpu_mpi_task_post_build() -- with the same
@@ -610,7 +637,7 @@ saves, a quick and easy way is to measure the submission time of just one of the
 MPI nodes. This can be achieved by running the application on just one MPI node
 with the following environment variables:
 
-\code
+\code{.sh}
 export STARPU_DISABLE_KERNELS=1
 export STARPU_MPI_FAKE_RANK=2
 export STARPU_MPI_FAKE_SIZE=1024
@@ -716,6 +743,37 @@ starpu_mpi_data_set_rank(data, STARPU_MPI_PER_NODE);
 \endcode
 
 The data can then be used just like pernode above.
+
+\section MPIMpiRedux Inter-node reduction
+
+One might want to leverage a reduction pattern across several nodes.
+Using \c STARPU_REDUX, one can obtain reduction patterns across several nodes,
+however each core across the contributing nodes will spawn their own
+contribution to work with. In the case that these allocations or the
+required reductions are too expensive to execute for each contribution,
+the access mode \c STARPU_MPI_REDUX tells StarPU to spawn only one contribution 
+on node executing tasks partaking in the reduction.
+
+Tasks producing a result in the inter-node reduction should be registered as
+accessing the contribution through \c STARPU_RW|STARPU_COMMUTE mode.
+
+\code{.c}
+static struct starpu_codelet contrib_cl =
+{
+	.cpu_funcs = {cpu_contrib}, /* cpu implementation(s) of the routine */
+	.nbuffers = 1, /* number of data handles referenced by this routine */
+	.modes = {STARPU_RW | STARPU_COMMUTE} /* access modes for the contribution */
+	.name = "contribution"
+};
+\endcode
+
+When inserting these tasks, the access mode handed out to the StarPU-MPI layer
+should be \c STARPU_MPI_REDUX. Assuming \c data is owned by node 0 and we want node
+1 to compute the contribution, we could do the following.
+
+\code{.c}
+starpu_mpi_task_insert(MPI_COMM_WORLD, &contrib_cl, STARPU_MPI_REDUX, data, EXECUTE_ON_NODE, 1); /* Node 1 computes it */
+\endcode
 
 \section MPIPriorities Priorities
 
@@ -1037,6 +1095,7 @@ disabled in NewMadeleine by compiling it with the profile
 
 To build NewMadeleine, download the latest version from the website (or,
 better, use the Git version to use the most recent version), then:
+
 \code{.sh}
 cd pm2/scripts
 ./pm2-build-packages ./<the profile you chose> --prefix=<installation prefix>

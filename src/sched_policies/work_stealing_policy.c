@@ -610,6 +610,11 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	if (_starpu_worker_trylock(victim))
 	{
 		/* victim is busy, don't bother it, come back later */
+#ifdef STARPU_SIMGRID
+		starpu_sleep(0.000001);
+		/* Make sure we come back and not block */
+		starpu_wake_worker_no_relax(workerid);
+#endif
 		return NULL;
 	}
 	if (ws->per_worker[victim].running && ws->per_worker[victim].queue.ntasks > 0)

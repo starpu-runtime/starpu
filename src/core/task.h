@@ -102,11 +102,6 @@ static inline starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(st
 	return cl->opencl_funcs[nimpl];
 }
 
-static inline starpu_mic_func_t _starpu_task_get_mic_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->mic_funcs[nimpl];
-}
-
 static inline starpu_mpi_ms_func_t _starpu_task_get_mpi_ms_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->mpi_ms_funcs[nimpl];

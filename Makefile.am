@@ -53,8 +53,10 @@ if STARPU_BUILD_STARPURM
 SUBDIRS += starpurm
 endif
 
+if STARPU_USE_CPU
 if STARPU_BUILD_STARPUPY
 SUBDIRS += starpupy
+endif
 endif
 
 if STARPU_BUILD_SC_HYPERVISOR
@@ -89,7 +91,6 @@ versinclude_HEADERS = 				\
 	include/starpu_opencl.h			\
 	include/starpu_openmp.h			\
 	include/starpu_sink.h			\
-	include/starpu_mic.h			\
 	include/starpu_mpi_ms.h			\
 	include/starpu_expert.h			\
 	include/starpu_profiling.h		\
@@ -160,7 +161,7 @@ else
 txtdir = ${docdir}
 endif
 txt_DATA = AUTHORS COPYING.LGPL README README.dev STARPU-REVISION
-EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README README.dev STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl mic-configure
+EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README README.dev STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl
 
 DISTCLEANFILES = STARPU-REVISION
 

@@ -40,7 +40,6 @@ LIST_TYPE(_starpu_mpi_early_data_handle,
 	  void *buffer;
 	  size_t size;
 	  unsigned buffer_node;
-	  int req_ready;
 	  struct _starpu_mpi_node_tag node_tag;
 	  starpu_pthread_mutex_t req_mutex;
 	  starpu_pthread_cond_t req_cond;

@@ -111,12 +111,14 @@ void check_variable(starpu_data_handle_t handle, int i, int rank, int *error)
 {
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 
+	starpu_data_acquire_on_node(handle, starpu_worker_get_local_memory_node(), STARPU_R);
 	int *rvalue = (int *)starpu_data_get_local_ptr(handle);
 	if (*rvalue != i*other_rank)
 	{
 		FPRINTF_MPI(stderr, "Incorrect received value: %d != %d\n", *rvalue, i*other_rank);
 		*error = 1;
 	}
+	starpu_data_release(handle);
 }
 
 int exchange_variable(int rank, int detached)

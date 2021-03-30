@@ -115,6 +115,7 @@ static size_t variable_size_get_size(starpu_data_handle_t handle)
 
 static size_t variable_size_get_max_size(starpu_data_handle_t handle)
 {
+	(void)handle;
 	return FULLSIZE;
 }
 
@@ -202,6 +203,7 @@ static struct starpu_data_interface_ops starpu_interface_variable_size_ops =
 	.interface_size = sizeof(struct variable_size_interface),
 	.display = display_variable_size,
 	.pack_data = NULL,
+	.peek_data = NULL,
 	.unpack_data = NULL,
 	.describe = describe_variable_size,
 

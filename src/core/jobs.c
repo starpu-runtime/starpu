@@ -288,14 +288,14 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		unsigned long jobs = STARPU_ATOMIC_ADDL(&njobs_finished, 1);
 
-		printf("\r%lu tasks finished...", jobs);
-		fflush(stdout);
+		fprintf(stderr,"\r%lu tasks finished (last %lu %p)...", jobs, j->job_id, j->task);
 	}
 
 	struct starpu_task *task = j->task;
 	struct starpu_task *end_rdep = NULL;
 	unsigned sched_ctx = task->sched_ctx;
 	double flops = task->flops;
+
 	const unsigned continuation =
 #ifdef STARPU_OPENMP
 		j->continuation
@@ -303,6 +303,34 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		0
 #endif
 		;
+
+	if (!continuation)
+	{
+		void (*epilogue_callback)(void *) = task->epilogue_callback_func;
+		/* the epilogue callback is executed before the dependencies release*/
+		if (epilogue_callback)
+		{
+			/* so that we can check whether we are doing blocking calls
+			 * within the callback */
+			_starpu_set_local_worker_status(STATUS_CALLBACK);
+
+			/* Perhaps we have nested callbacks (eg. with chains of empty
+			 * tasks). So we store the current task and we will restore it
+			 * later. */
+			struct starpu_task *current_task = starpu_task_get_current();
+
+			_starpu_set_current_task(task);
+
+			_STARPU_TRACE_START_CALLBACK(j);
+			epilogue_callback(task->epilogue_callback_arg);
+			_STARPU_TRACE_END_CALLBACK(j);
+
+			_starpu_set_current_task(current_task);
+
+			_starpu_set_local_worker_status(STATUS_UNKNOWN);
+		}
+	}
+
 #ifdef STARPU_DEBUG
 	STARPU_PTHREAD_MUTEX_LOCK(&all_jobs_list_mutex);
 	_starpu_job_multilist_erase_all_submitted(&all_jobs_list, j);
@@ -460,8 +488,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_set_current_task(task);
 
 			_STARPU_TRACE_START_CALLBACK(j);
-			if (callback)
-				callback(task->callback_arg);
+			callback(task->callback_arg);
 			_STARPU_TRACE_END_CALLBACK(j);
 
 			_starpu_set_current_task(current_task);

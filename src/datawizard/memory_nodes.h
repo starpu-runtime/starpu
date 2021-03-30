@@ -117,12 +117,19 @@ static inline enum starpu_node_kind _starpu_node_get_kind(unsigned node)
 }
 #define starpu_node_get_kind _starpu_node_get_kind
 
+#if STARPU_MAXNODES == 1
+#define _starpu_memory_nodes_get_count() 1
+#else
 static inline unsigned _starpu_memory_nodes_get_count(void)
 {
 	return _starpu_descr.nnodes;
 }
+#endif
 #define starpu_memory_nodes_get_count _starpu_memory_nodes_get_count
 
+#if STARPU_MAXNODES == 1
+#define _starpu_worker_get_memory_node(workerid) 0
+#else
 static inline unsigned _starpu_worker_get_memory_node(unsigned workerid)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
@@ -139,6 +146,20 @@ static inline unsigned _starpu_worker_get_memory_node(unsigned workerid)
 	return config->combined_workers[workerid - nworkers].memory_node;
 
 }
+#endif
 #define starpu_worker_get_memory_node _starpu_worker_get_memory_node
+
+#if STARPU_MAXNODES == 1
+#define _starpu_worker_get_local_memory_node() 0
+#else
+static inline unsigned _starpu_worker_get_local_memory_node(void)
+{
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+	if (!worker)
+		return STARPU_MAIN_RAM;
+	return worker->memory_node;
+}
+#endif
+#define starpu_worker_get_local_memory_node _starpu_worker_get_local_memory_node
 
 #endif // __MEMORY_NODES_H__

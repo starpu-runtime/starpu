@@ -363,7 +363,7 @@ static void _starpu_mpi_common_polling_node(struct _starpu_mp_node * node)
 /* - In device to device communications, the first ack received by host
  * is considered as the sender (but it cannot be, in fact, the sender)
  */
-unsigned _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
+unsigned int _starpu_mpi_common_test_event(struct _starpu_async_channel * event)
 {
         if (event->event.mpi_ms_event.requests != NULL && !_starpu_mpi_ms_event_request_list_empty(event->event.mpi_ms_event.requests))
         {

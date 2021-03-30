@@ -24,6 +24,10 @@
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#include <nvml.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -128,6 +132,14 @@ int starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node, void *dst_pt
    starpu_conf::cuda_opengl_interoperability.
 */
 void starpu_cuda_set_device(unsigned devid);
+
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+/**
+  Return the nvml device for a CUDA device
+*/
+nvmlDevice_t starpu_cuda_get_nvmldev(unsigned devid);
+#endif
+
 
 /** @} */
 

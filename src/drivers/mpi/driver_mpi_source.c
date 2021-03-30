@@ -213,14 +213,14 @@ starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_
 	if (func)
 	{
 		/* We execute the function contained in the codelet, it must return a
-		 * pointer to the function to execute on the device, either specified
-		 * directly by the user or by a call to starpu_mic_get_func().
+		 * pointer to the function to execute on the device, specified
+		 * directly by the user
 		 */
 		kernel = func();
 	}
 	else
 	{
-		/* If user dont define any starpu_mic_fun_t in cl->mic_func we try to use
+		/* If user dont define any starpu_mpi_ms_func_t in cl->mpi_ms_func we try to use
 		 * cpu_func_name.
 		 */
 		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);

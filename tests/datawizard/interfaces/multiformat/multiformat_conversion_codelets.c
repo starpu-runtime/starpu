@@ -41,13 +41,15 @@ extern void cpu_to_cuda_cuda_func(void *buffers[], void *args); struct starpu_co
 {
 	.cuda_funcs = {cpu_to_cuda_cuda_func},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 
 struct starpu_codelet cuda_to_cpu_cl =
 {
 	.cpu_funcs = {cuda_to_cpu},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 #endif
 
@@ -73,64 +75,14 @@ extern void cpu_to_opencl_opencl_func(void *buffers[], void *args);
 struct starpu_codelet cpu_to_opencl_cl =
 {
 	.opencl_funcs = {cpu_to_opencl_opencl_func},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 
 struct starpu_codelet opencl_to_cpu_cl =
 {
 	.cpu_funcs = {opencl_to_cpu},
-	.nbuffers = 1
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
 };
 #endif
-#ifdef STARPU_USE_MIC
-void mic_to_cpu(void *buffers[], void *arg)
-{
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	FPRINTF(stderr, "Entering %s\n", __func__);
-	struct struct_of_arrays *src = STARPU_MULTIFORMAT_GET_MIC_PTR(buffers[0]);
-	struct point *dst = STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);
-	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
-	int i;
-	for (i = 0; i < n; i++)
-	{
-		dst[i].x = src->x[i];
-		dst[i].y = src->y[i];
-	}
-}
-
-void cpu_to_mic(void *buffers[], void *arg)
-{
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	FPRINTF(stderr, "Entering %s\n", __func__);
-	struct point *src = STARPU_MULTIFORMAT_GET_CPU_PTR(buffers[0]);
-	struct struct_of_arrays *dst = STARPU_MULTIFORMAT_GET_MIC_PTR(buffers[0]);
-	int n = STARPU_MULTIFORMAT_GET_NX(buffers[0]);
-	int i;
-	for (i = 0; i < n; i++)
-	{
-		dst->x[i] = src[i].x;
-		dst->y[i] = src[i].y;
-	}
-}
-
-struct starpu_codelet cpu_to_mic_cl =
-{
-	.where = STARPU_MIC,
-	.cpu_funcs_name = {"cpu_to_mic"},
-	.nbuffers = 1
-};
-
-struct starpu_codelet mic_to_cpu_cl =
-{
-	.where = STARPU_CPU,
-	.cpu_funcs = {mic_to_cpu},
-	.nbuffers = 1
-};
-#endif
-

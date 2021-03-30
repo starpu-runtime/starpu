@@ -88,14 +88,30 @@ static int _starpu_src_common_process_completed_job(struct _starpu_mp_node *node
 {
 	int coreid;
 
-	STARPU_ASSERT(sizeof(coreid) == arg_size);
+	uintptr_t arg_ptr = (uintptr_t) arg;
 
-	coreid = *(int *) arg;
+	coreid = *(int *) arg_ptr;
+	arg_ptr += sizeof(coreid);
 
 	struct _starpu_worker *worker = &workerset->workers[coreid];
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(worker->current_task);
 
+	struct starpu_task *task = j->task;
+	STARPU_ASSERT(task);
+
 	struct _starpu_worker * old_worker = _starpu_get_local_worker_key();
+
+	/* Was cl_ret sent ? */
+	if (arg_size > arg_ptr - (uintptr_t) arg)
+	{
+		/* Copy cl_ret into the task */
+		unsigned cl_ret_size = arg_size - (arg_ptr - (uintptr_t) arg);
+		_STARPU_MALLOC(task->cl_ret, cl_ret_size);
+		memcpy(task->cl_ret, (void *) arg_ptr, cl_ret_size);
+		task->cl_ret_size=cl_ret_size;
+	}
+	else
+		task->cl_ret = NULL;
 
         /* if arg is not copied we release the mutex */
         if (!stored)
@@ -742,7 +758,7 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
         return -EAGAIN;
 }
 
-/* 5 functions to determine the executable to run on the device (MIC, MPI).
+/* 5 functions to determine the executable to run on the device (MPI).
  */
 static void _starpu_src_common_cat_3(char *final, const size_t len, const char *first, const char *second, const char *third)
 {
@@ -774,80 +790,6 @@ static int _starpu_src_common_test_suffixes(char *located_file_name, const size_
 		_starpu_src_common_cat_2(located_file_name, len, base, suffixes[i]);
 		if (access(located_file_name, R_OK) == 0)
 			return 0;
-	}
-
-	return 1;
-}
-
-int _starpu_src_common_locate_file(char *located_file_name, size_t len,
-				   const char *env_file_name, const char *env_mic_path,
-				   const char *config_file_name, const char *actual_file_name,
-				   const char **suffixes)
-{
-	if (env_file_name != NULL)
-	{
-		if (access(env_file_name, R_OK) == 0)
-		{
-			strncpy(located_file_name, env_file_name, len-1);
-			located_file_name[len-1] = '\0';
-			return 0;
-		}
-		else if(env_mic_path != NULL)
-		{
-			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, env_file_name);
-
-			return access(located_file_name, R_OK);
-		}
-	}
-	else if (config_file_name != NULL)
-	{
-		if (access(config_file_name, R_OK) == 0)
-		{
-			strncpy(located_file_name, config_file_name, len-1);
-			located_file_name[len-1] = '\0';
-			return 0;
-		}
-		else if (env_mic_path != NULL)
-		{
-			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, config_file_name);
-
-			return access(located_file_name, R_OK);
-		}
-	}
-	else if (actual_file_name != NULL)
-	{
-		if (_starpu_src_common_test_suffixes(located_file_name, len, actual_file_name, suffixes) == 0)
-			return 0;
-
-		if (env_mic_path != NULL)
-		{
-			char actual_cpy[1024];
-			strncpy(actual_cpy, actual_file_name, sizeof(actual_cpy)-1);
-			actual_cpy[sizeof(actual_cpy)-1] = '\0';
-
-			char *last =  strrchr(actual_cpy, '/');
-			while (last != NULL)
-			{
-				char tmp[1024];
-
-				_starpu_src_common_dir_cat(tmp, sizeof(tmp), env_mic_path, last);
-
-				if (access(tmp, R_OK) == 0)
-				{
-					strncpy(located_file_name, tmp, len-1);
-					located_file_name[len-1] = '\0';
-					return 0;
-				}
-
-				if (_starpu_src_common_test_suffixes(located_file_name, len, tmp, suffixes) == 0)
-					return 0;
-
-				*last = '\0';
-				char *last_tmp = strrchr(actual_cpy, '/');
-				*last = '/';
-				last = last_tmp;
-			}
-		}
 	}
 
 	return 1;
@@ -962,7 +904,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 		}
 	}
 
-        res |= __starpu_datawizard_progress(1, 1);
+        res |= __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
         /* Handle message which have been store */
         _starpu_src_common_handle_stored_async(mp_node);
@@ -1059,7 +1001,7 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
         for (device = 0; device < ndevices; device++)
 	{
         	_STARPU_TRACE_END_PROGRESS(memnode[device]);
-                _starpu_handle_all_pending_node_data_requests(memnode[device]);
+                _starpu_datawizard_handle_all_pending_node_data_requests(memnode[device]);
 	}
 
         /* In case there remains some memory that was automatically
@@ -1091,7 +1033,7 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, unsigned 
 
         _STARPU_TRACE_END_PROGRESS(memnode);
 
-        _starpu_handle_all_pending_node_data_requests(memnode);
+        _starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
         /* In case there remains some memory that was automatically
          * allocated by StarPU, we release it now. Note that data

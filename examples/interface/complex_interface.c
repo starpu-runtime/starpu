@@ -147,7 +147,7 @@ static int complex_pack_data(starpu_data_handle_t handle, unsigned node, void **
 	return 0;
 }
 
-static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int complex_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
 {
 	char *data = ptr;
 	STARPU_ASSERT(starpu_data_test_if_allocated_on_node(handle, node));
@@ -158,6 +158,13 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 	STARPU_ASSERT(count == 2 * complex_interface->nx * sizeof(double));
 	memcpy(complex_interface->real, data, complex_interface->nx*sizeof(double));
 	memcpy(complex_interface->imaginary, data+complex_interface->nx*sizeof(double), complex_interface->nx*sizeof(double));
+
+	return 0;
+}
+
+static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	complex_peek_data(handle, node, ptr, count);
 
 	starpu_free_on_node_flags(node, (uintptr_t) ptr, count, 0);
 
@@ -178,9 +185,9 @@ static int complex_compare(void *data_interface_a, void *data_interface_b)
 	return (complex_a->nx == complex_b->nx);
 }
 
-static int copy_any_to_any(void *src_interface, unsigned src_node,
-			   void *dst_interface, unsigned dst_node,
-			   void *async_data)
+int copy_any_to_any(void *src_interface, unsigned src_node,
+		    void *dst_interface, unsigned dst_node,
+		    void *async_data)
 {
 	struct starpu_complex_interface *src_complex = src_interface;
 	struct starpu_complex_interface *dst_complex = dst_interface;
@@ -199,12 +206,12 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 	return ret;
 }
 
-static const struct starpu_data_copy_methods complex_copy_methods =
+const struct starpu_data_copy_methods complex_copy_methods =
 {
 	.any_to_any = copy_any_to_any
 };
 
-static struct starpu_data_interface_ops interface_complex_ops =
+struct starpu_data_interface_ops interface_complex_ops =
 {
 	.register_data_handle = complex_register_data_handle,
 	.allocate_data_on_node = complex_allocate_data_on_node,
@@ -217,6 +224,7 @@ static struct starpu_data_interface_ops interface_complex_ops =
 	.to_pointer = NULL,
 	.pointer_is_inside = complex_pointer_is_inside,
 	.pack_data = complex_pack_data,
+	.peek_data = complex_peek_data,
 	.unpack_data = complex_unpack_data,
 	.describe = complex_describe,
 	.compare = complex_compare

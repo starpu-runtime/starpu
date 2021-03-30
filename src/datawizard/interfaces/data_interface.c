@@ -320,6 +320,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 		replicate->memory_node = node;
 		//replicate->relaxed_coherency = 0;
 		//replicate->refcnt = 0;
+		//replicate->nb_tasks_prefetch = 0;
 
 		if ((int) node == home_node)
 		{
@@ -367,23 +368,25 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 	for (worker = 0; worker < nworkers; worker++)
 	{
 		struct _starpu_data_replicate *replicate;
-		unsigned node;
+		//unsigned node;
 		replicate = &handle->per_worker[worker];
-		replicate->allocated = 0;
-		replicate->automatically_allocated = 0;
+		//replicate->allocated = 0;
+		//replicate->automatically_allocated = 0;
 		replicate->state = STARPU_INVALID;
-		replicate->refcnt = 0;
+		//replicate->refcnt = 0;
 		replicate->handle = handle;
-		replicate->requested = 0;
+		//replicate->nb_tasks_prefetch = 0;
 
-		for (node = 0; node < STARPU_MAXNODES; node++)
-		{
-			replicate->request[node] = NULL;
-		}
+		//for (node = 0; node < STARPU_MAXNODES; node++)
+		//{
+		//	replicate->request[node] = NULL;
+		//	replicate->last_request[node] = NULL;
+		//}
+		//replicate->load_request = NULL;
 
 		/* Assuming being used for SCRATCH for now, patched when entering REDUX mode */
 		replicate->relaxed_coherency = 1;
-		replicate->initialized = 0;
+		//replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
 
 		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
@@ -783,7 +786,7 @@ void _starpu_check_if_valid_and_fetch_data_on_node(starpu_data_handle_t handle, 
 	}
 	if (valid)
 	{
-		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, STARPU_FETCH, 0, NULL, NULL, 0, origin);
+		int ret = _starpu_fetch_data_on_node(handle, handle->home_node, replicate, STARPU_R, 0, NULL, STARPU_FETCH, 0, NULL, NULL, 0, origin);
 		STARPU_ASSERT(!ret);
 		_starpu_release_data_on_node(handle, 0, STARPU_NONE, replicate);
 	}
@@ -952,15 +955,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 					break;
 				}
 #endif
-#ifdef STARPU_USE_MIC
-				case STARPU_MIC_RAM:
-				{
-					struct starpu_multiformat_data_interface_ops *mf_ops;
-					mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
-					cl = mf_ops->mic_to_cpu_cl;
-					break;
-				}
-#endif
 				case STARPU_CPU_RAM:      /* Impossible ! */
 				default:
 					STARPU_ABORT();
@@ -1031,6 +1025,7 @@ retry_busy:
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
+		STARPU_ASSERT(!local->refcnt);
 		if (local->allocated)
 		{
 			_starpu_data_unregister_ram_pointer(handle, node);
@@ -1047,6 +1042,7 @@ retry_busy:
 		for (worker = 0; worker < nworkers; worker++)
 		{
 			struct _starpu_data_replicate *local = &handle->per_worker[worker];
+			STARPU_ASSERT(!local->refcnt);
 			/* free the data copy in a lazy fashion */
 			if (local->allocated && local->automatically_allocated)
 				_starpu_request_mem_chunk_removal(handle, local, starpu_worker_get_memory_node(worker), size);
@@ -1226,6 +1222,19 @@ int starpu_data_pack_node(starpu_data_handle_t handle, unsigned node, void **ptr
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count)
 {
 	return starpu_data_pack_node(handle, starpu_worker_get_local_memory_node(), ptr, count);
+}
+
+int starpu_data_peek_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
+	STARPU_ASSERT_MSG(handle->ops->peek_data, "The datatype interface %s (%d) does not have a peek operation", handle->ops->name, handle->ops->interfaceid);
+	int ret;
+	ret = handle->ops->peek_data(handle, node, ptr, count);
+	return ret;
+}
+
+int starpu_data_peek(starpu_data_handle_t handle, void *ptr, size_t count)
+{
+	return starpu_data_peek_node(handle, starpu_worker_get_local_memory_node(), ptr, count);
 }
 
 int starpu_data_unpack_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)

@@ -23,8 +23,6 @@
  * starpu_data_invalidate is called
  */
 
-static starpu_data_handle_t handle;
-
 /*
  *	Reduction methods
  */
@@ -147,6 +145,7 @@ int main(void)
 {
 	unsigned *pvar = NULL;
 	int ret;
+	starpu_data_handle_t handle;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

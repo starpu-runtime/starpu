@@ -20,6 +20,7 @@
 
 void my_func(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned nb = STARPU_VECTOR_GET_NX(buffers[0]);
         int *v = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 
@@ -40,6 +41,7 @@ struct starpu_codelet my_codelet =
 
 void display_func(void *buffers[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned nb = STARPU_VECTOR_GET_NX(buffers[0]);
         int *v = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
 

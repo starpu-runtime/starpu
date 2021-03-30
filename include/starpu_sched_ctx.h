@@ -336,7 +336,12 @@ void starpu_sched_ctx_move_task_to_ctx_locked(struct starpu_task *task, unsigned
 
 int starpu_sched_ctx_get_worker_rank(unsigned sched_ctx_id);
 
-void (*starpu_sched_ctx_get_sched_policy_init(unsigned sched_ctx_id))(unsigned);
+/**
+   Return the function associated with the scheduler context \p
+   sched_ctx_id which was given through the field
+   starpu_conf::sched_policy_callback
+*/
+void (*starpu_sched_ctx_get_sched_policy_callback(unsigned sched_ctx_id))(unsigned);
 
 unsigned starpu_sched_ctx_has_starpu_scheduler(unsigned sched_ctx_id, unsigned *awake_workers);
 

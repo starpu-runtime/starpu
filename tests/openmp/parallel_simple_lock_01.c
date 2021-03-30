@@ -54,11 +54,13 @@ void locked_func(void)
 
 void master_g1(void *arg)
 {
+	(void)arg;
 	starpu_omp_init_lock(&omp_lock);
 }
 
 void master_g2(void *arg)
 {
+	(void)arg;
 	starpu_omp_destroy_lock(&omp_lock);
 }
 

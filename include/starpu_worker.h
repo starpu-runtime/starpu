@@ -48,9 +48,8 @@ enum starpu_node_kind
 	STARPU_CUDA_RAM=2,
 	STARPU_OPENCL_RAM=3,
 	STARPU_DISK_RAM=4,
-	STARPU_MIC_RAM=5,
-	STARPU_MPI_MS_RAM=6,
-	STARPU_MAX_RAM=6
+	STARPU_MPI_MS_RAM=5,
+	STARPU_MAX_RAM=5
 };
 
 /**
@@ -65,7 +64,6 @@ enum starpu_worker_archtype
 	STARPU_CPU_WORKER=0,        /**< CPU core */
 	STARPU_CUDA_WORKER=1,       /**< NVIDIA CUDA device */
 	STARPU_OPENCL_WORKER=2,     /**< OpenCL device */
-	STARPU_MIC_WORKER=3,        /**< Intel MIC device */
 	STARPU_MPI_MS_WORKER=5,     /**< MPI Slave device */
 	STARPU_NARCH = 6,           /**< Number of arch types */
 	STARPU_ANY_WORKER=255       /**< any worker, used in the hypervisor */
@@ -185,20 +183,9 @@ unsigned starpu_cuda_worker_get_count(void);
 unsigned starpu_opencl_worker_get_count(void);
 
 /**
-   Return the number of MIC workers controlled by StarPU.
-*/
-unsigned starpu_mic_worker_get_count(void);
-
-/**
    Return the number of MPI Master Slave workers controlled by StarPU.
 */
 unsigned starpu_mpi_ms_worker_get_count(void);
-
-/**
-   Return the number of MIC devices controlled by StarPU. The return
-   value should be at most \ref STARPU_MAXMICDEVS.
-*/
-unsigned starpu_mic_device_get_count(void);
 
 /**
    Return the identifier of the current worker, i.e the one associated
@@ -357,8 +344,20 @@ unsigned starpu_worker_get_local_memory_node(void);
 */
 unsigned starpu_worker_get_memory_node(unsigned workerid);
 
+/**
+   Return the number of memory nodes
+*/
 unsigned starpu_memory_nodes_get_count(void);
+
+/**
+   Return in \p name the name of a memory node (NUMA 0, CUDA 0, etc.)
+   \p size is the size of the \p name array.
+*/
 int starpu_memory_node_get_name(unsigned node, char *name, size_t size);
+
+/**
+   Return the number of NUMA nodes used by StarPU
+*/
 int starpu_memory_nodes_get_numa_count(void);
 
 /**

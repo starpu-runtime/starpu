@@ -20,12 +20,6 @@ set -e
 
 PREFIX=$(dirname $0)
 
-if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
-	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/heat
-	# in case libtool got into play
-	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/heat" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/heat
-fi
-
 $STARPU_LAUNCH $PREFIX/heat -shape 0
 $STARPU_LAUNCH $PREFIX/heat -shape 1
 # sometimes lead to pivot being 0

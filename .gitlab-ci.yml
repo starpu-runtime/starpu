@@ -30,10 +30,19 @@ build:
       when: never  # Prevent pipeline run for push event
     - when: always # Run pipeline for all other cases
 
-deploy:
+check:
   stage: deploy
   script:
     - ./contrib/gitlab/deploy.sh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+      when: never  # Prevent pipeline run for push event
+    - when: always # Run pipeline for all other cases
+
+simgrid:
+  stage: deploy
+  script:
+    - ./contrib/gitlab/simgrid.sh
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: never  # Prevent pipeline run for push event

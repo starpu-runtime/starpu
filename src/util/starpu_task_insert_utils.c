@@ -63,6 +63,69 @@ void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, vo
 	*cl_arg_size = state->arg_buffer_size;
 }
 
+void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void *cl_arg, size_t cl_arg_size)
+{
+	state->arg_buffer = cl_arg;
+	state->arg_buffer_size = cl_arg_size;
+	state->current_offset = sizeof(int);
+	state->nargs = 0;
+}
+
+void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t size)
+{
+	size_t ptr_size;
+	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
+	STARPU_ASSERT_MSG(ptr_size==size, "The given size (%ld) is not the size of the next argument (%ld)\n", size, ptr_size);
+	state->current_offset += sizeof(size);
+
+	memcpy(ptr, state->arg_buffer+state->current_offset, ptr_size);
+	state->current_offset += size;
+
+	state->nargs++;
+}
+
+void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
+{
+	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
+	state->current_offset += sizeof(*size);
+
+	_STARPU_MALLOC(*ptr, *size);
+	memcpy(*ptr, state->arg_buffer+state->current_offset, *size);
+	state->current_offset += *size;
+
+	state->nargs++;
+}
+
+void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
+{
+	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
+	state->current_offset += sizeof(*size);
+
+	*ptr = state->arg_buffer+state->current_offset;
+	state->current_offset += *size;
+
+	state->nargs++;
+}
+
+void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state)
+{
+	if (state->current_offset < state->arg_buffer_size)
+	{
+		_STARPU_MSG("Arguments still need to be unpacked from the starpu_codelet_pack_arg_data (offset %ld - buffer_size %ld)\n", state->current_offset, state->arg_buffer_size);
+	}
+}
+
+void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *state)
+{
+	size_t ptr_size;
+	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
+
+	state->current_offset += sizeof(ptr_size);
+	state->current_offset += ptr_size;
+
+	state->nargs++;
+}
+
 int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_list varg_list)
 {
 	int arg_type;
@@ -133,6 +196,14 @@ int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_lis
 			(void)va_arg(varg_list, void *);
 		}
 		else if (arg_type==STARPU_CALLBACK_ARG_NFREE)
+		{
+			(void)va_arg(varg_list, void *);
+		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
+		{
+			(void)va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
 		{
 			(void)va_arg(varg_list, void *);
 		}
@@ -304,21 +375,29 @@ void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_
 
 void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int *current_buffer, int arg_type, starpu_data_handle_t handle)
 {
-	enum starpu_data_access_mode mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND;
 	STARPU_ASSERT(cl != NULL);
 	STARPU_ASSERT_MSG(cl->nbuffers == STARPU_VARIABLE_NBUFFERS || *current_buffer < cl->nbuffers, "Too many data passed to starpu_task_insert");
 
 	starpu_task_insert_data_make_room(cl, task, allocated_buffers, *current_buffer, 1);
-
 	STARPU_TASK_SET_HANDLE(task, handle, *current_buffer);
+
+	enum starpu_data_access_mode arg_mode = (enum starpu_data_access_mode) arg_type & ~STARPU_SSEND;
+
+	/* MPI_REDUX should be interpreted as RW|COMMUTE by the "ground" StarPU layer.*/
+	if (arg_mode & STARPU_MPI_REDUX)
+	{
+		arg_mode = STARPU_RW|STARPU_COMMUTE;
+	}
 	if (cl->nbuffers == STARPU_VARIABLE_NBUFFERS || (cl->nbuffers > STARPU_NMAXBUFS && !cl->dyn_modes))
-		STARPU_TASK_SET_MODE(task, mode,* current_buffer);
+	{
+		STARPU_TASK_SET_MODE(task, arg_mode,* current_buffer);
+	}
 	else if (STARPU_CODELET_GET_MODE(cl, *current_buffer))
 	{
-		STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == mode,
-				"The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-				cl->name, STARPU_CODELET_GET_MODE(cl, *current_buffer),
-				*current_buffer, mode);
+		STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == arg_mode,
+				  "The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
+				  _starpu_codelet_get_name(cl), STARPU_CODELET_GET_MODE(cl, *current_buffer),
+				  *current_buffer, arg_mode);
 	}
 	else
 	{
@@ -326,7 +405,7 @@ void starpu_task_insert_data_process_arg(struct starpu_codelet *cl, struct starp
 #  warning shall we print a warning to the user
 		/* Morse uses it to avoid having to set it in the codelet structure */
 #endif
-		STARPU_CODELET_SET_MODE(cl, mode, *current_buffer);
+		STARPU_CODELET_SET_MODE(cl, arg_mode, *current_buffer);
 	}
 
 	(*current_buffer)++;
@@ -367,7 +446,7 @@ void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, s
 		{
 			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(cl, *current_buffer) == descrs[i].mode,
 					"The codelet <%s> defines the access mode %d for the buffer %d which is different from the mode %d given to starpu_task_insert\n",
-					cl->name, STARPU_CODELET_GET_MODE(cl, *current_buffer),
+					_starpu_codelet_get_name(cl), STARPU_CODELET_GET_MODE(cl, *current_buffer),
 					*current_buffer, descrs[i].mode);
 		}
 		else
@@ -400,7 +479,7 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 
 	while((arg_type = va_arg(varg_list, int)) != 0)
 	{
-		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
+		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX || arg_type & STARPU_MPI_REDUX)
 		{
 			/* We have an access mode : we expect to find a handle */
 			starpu_data_handle_t handle = va_arg(varg_list, starpu_data_handle_t);
@@ -475,6 +554,15 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			task->callback_arg = va_arg(varg_list, void *);
 			task->callback_arg_free = 0;
+		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
+		{
+			task->epilogue_callback_func = va_arg(varg_list, _starpu_callback_func_t);
+		}
+		else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
+		{
+			task->epilogue_callback_arg = va_arg(varg_list, void *);
+			task->epilogue_callback_arg_free = 1;
 		}
 		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
 		{
@@ -693,7 +781,8 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		if (arg_type & STARPU_R
 			|| arg_type & STARPU_W
 			|| arg_type & STARPU_SCRATCH
-			|| arg_type & STARPU_REDUX)
+			|| arg_type & STARPU_REDUX
+			|| arg_type & STARPU_MPI_REDUX)
 		{
 			arg_i++;
 			starpu_data_handle_t handle = arglist[arg_i];
@@ -788,6 +877,17 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			task->callback_arg = arglist[arg_i];
 			task->callback_arg_free = 0;
 		}
+		else if (arg_type == STARPU_EPILOGUE_CALLBACK)
+		{
+			arg_i++;
+			task->epilogue_callback_func = (_starpu_callback_func_t)arglist[arg_i];
+		}
+		else if (arg_type == STARPU_EPILOGUE_CALLBACK_ARG)
+		{
+			arg_i++;
+			task->epilogue_callback_arg = arglist[arg_i];
+			task->epilogue_callback_arg_free = 1;
+		}
 		else if (arg_type == STARPU_PROLOGUE_CALLBACK)
 		{
 			arg_i++;
@@ -839,9 +939,8 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		}
 		else if (arg_type == STARPU_EXECUTE_WHERE)
 		{
-			assert(0);
 			arg_i++;
-			unsigned long long where = *(unsigned long long *)arglist[arg_i];
+			int32_t where = (int32_t)(intptr_t)arglist[arg_i];
 			task->where = where;
 		}
 		else if (arg_type == STARPU_EXECUTE_ON_WORKER)

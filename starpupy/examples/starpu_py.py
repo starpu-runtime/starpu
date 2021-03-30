@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,9 +13,12 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+from math import sqrt
 import starpu
+from starpu import starpupy
 import time
 import asyncio
+
 
 ############################################################################
 #function no input no output print hello world
@@ -47,7 +50,7 @@ def func2():
 	return 12
 
 ###############################################################################
- 
+
 #function has 2 int inputs and 1 int output
 def multi(a,b):
 	print ("Example 5:")
@@ -119,15 +122,15 @@ async def main():
     res4 = await fut4
     print("The result of function add is :", res4)
 
-	#submit function "sub"
+	#submit function "sub" but only provide function name
     fut5 = starpu.task_submit()(sub, 6, 2, 5.9)
     res5 = await fut5
     print("The result of function sub is:", res5)
 
 	#apply starpu.delayed(add_deco)
     fut6 = add_deco(1,2,3)
-    res6 = await fut6
-    print("The result of function is", res6)
+    #res6 = await fut6
+    #print("The result of function is", res6)
 
     #apply starpu.delayed(sub_deco)
     fut7 = sub_deco(fut6, 1)
@@ -135,7 +138,16 @@ async def main():
     print("The first argument of this function is the result of Example 8")
     print("The result of function is", res7)
 
-asyncio.run(main())
+    fut8 = starpu.task_submit()("sqrt", 4)
+    res8 = await fut8
+    print("The result of function sqrt is:", res8)
 
+try:
+        asyncio.run(main())
+except starpupy.error as e:
+        print("No worker to execute the job")
+        starpupy.shutdown()
+        exit(77)
 
+starpupy.shutdown()
 #starpu.task_wait_for_all()

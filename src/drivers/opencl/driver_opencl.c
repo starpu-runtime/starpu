@@ -31,6 +31,7 @@
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
+#include <datawizard/datawizard.h>
 #include <core/task.h>
 #include <common/knobs.h>
 
@@ -787,13 +788,12 @@ int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 	if (!idle_tasks)
 	{
 		/* No task ready yet, no better thing to do than waiting */
-		__starpu_datawizard_progress(1, !idle_transfers);
+		__starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, !idle_transfers);
 		return 0;
 	}
 #endif
 
-	res = !idle_tasks || !idle_transfers;
-	res |= __starpu_datawizard_progress(1, 1);
+	res = __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
 	task = _starpu_get_worker_task(worker, workerid, memnode);
 
@@ -840,7 +840,7 @@ int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
 
 	unsigned memnode = worker->memory_node;
 
-	_starpu_handle_all_pending_node_data_requests(memnode);
+	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
 	/* In case there remains some memory that was automatically
 	 * allocated by StarPU, we release it now. Note that data

@@ -16,6 +16,7 @@
 
 #define TYPE double
 #define MPI_TYPE	MPI_DOUBLE
+#define CUBLAS_TYPE	TYPE
 
 #define STARPU_PLU(name)       starpu_pdlu_##name
 
@@ -39,3 +40,5 @@
 #define CPU_IAMAX	STARPU_IDAMAX
 
 #define PIVOT_THRESHHOLD	10e-10
+
+#define ISZERO(f)	(fpclassify(f) == FP_ZERO)

@@ -27,6 +27,7 @@ static const intptr_t fstarpu_w	= STARPU_W;
 static const intptr_t fstarpu_rw	= STARPU_RW;
 static const intptr_t fstarpu_scratch	= STARPU_SCRATCH;
 static const intptr_t fstarpu_redux	= STARPU_REDUX;
+static const intptr_t fstarpu_mpi_redux	= STARPU_MPI_REDUX;
 static const intptr_t fstarpu_commute	= STARPU_COMMUTE;
 static const intptr_t fstarpu_ssend	= STARPU_SSEND;
 static const intptr_t fstarpu_locality	= STARPU_LOCALITY;
@@ -79,7 +80,6 @@ static const intptr_t fstarpu_sched_ctx = STARPU_SCHED_CTX;
 static const intptr_t fstarpu_cpu_worker = STARPU_CPU_WORKER;
 static const intptr_t fstarpu_cuda_worker = STARPU_CUDA_WORKER;
 static const intptr_t fstarpu_opencl_worker = STARPU_OPENCL_WORKER;
-static const intptr_t fstarpu_mic_worker = STARPU_MIC_WORKER;
 static const intptr_t fstarpu_any_worker = STARPU_ANY_WORKER;
 static const intptr_t fstarpu_narch = STARPU_NARCH;
 
@@ -99,7 +99,6 @@ static const intptr_t fstarpu_starpu_nowhere	= STARPU_NOWHERE;
 static const intptr_t fstarpu_starpu_cpu	= STARPU_CPU;
 static const intptr_t fstarpu_starpu_cuda	= STARPU_CUDA;
 static const intptr_t fstarpu_starpu_opencl	= STARPU_OPENCL;
-static const intptr_t fstarpu_starpu_mic	= STARPU_MIC;
 
 static const intptr_t fstarpu_starpu_codelet_simgrid_execute	= STARPU_CODELET_SIMGRID_EXECUTE;
 static const intptr_t fstarpu_starpu_codelet_simgrid_execute_and_inject	= STARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT;
@@ -121,6 +120,7 @@ intptr_t fstarpu_get_constant(char *s)
 	else if	(!strcmp(s, "FSTARPU_RW"))	{ return fstarpu_rw; }
 	else if	(!strcmp(s, "FSTARPU_SCRATCH"))	{ return fstarpu_scratch; }
 	else if	(!strcmp(s, "FSTARPU_REDUX"))	{ return fstarpu_redux; }
+	else if	(!strcmp(s, "FSTARPU_MPI_REDUX"))	{ return fstarpu_mpi_redux; }
 	else if	(!strcmp(s, "FSTARPU_COMMUTE"))	{ return fstarpu_commute; }
 	else if	(!strcmp(s, "FSTARPU_SSEND"))	{ return fstarpu_ssend; }
 	else if	(!strcmp(s, "FSTARPU_LOCALITY"))	{ return fstarpu_locality; }
@@ -173,7 +173,6 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_CPU_WORKER"))	{ return fstarpu_cpu_worker; }
 	else if (!strcmp(s, "FSTARPU_CUDA_WORKER"))	{ return fstarpu_cuda_worker; }
 	else if (!strcmp(s, "FSTARPU_OPENCL_WORKER"))	{ return fstarpu_opencl_worker; }
-	else if (!strcmp(s, "FSTARPU_MIC_WORKER"))	{ return fstarpu_mic_worker; }
 	else if (!strcmp(s, "FSTARPU_ANY_WORKER"))	{ return fstarpu_any_worker; }
 	else if (!strcmp(s, "FSTARPU_NARCH"))	{ return fstarpu_narch; }
 
@@ -193,7 +192,6 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_CPU"))	{ return fstarpu_starpu_cpu; }
 	else if (!strcmp(s, "FSTARPU_CUDA"))	{ return fstarpu_starpu_cuda; }
 	else if (!strcmp(s, "FSTARPU_OPENCL"))	{ return fstarpu_starpu_opencl; }
-	else if (!strcmp(s, "FSTARPU_MIC"))	{ return fstarpu_starpu_mic; }
 
 	else if (!strcmp(s, "FSTARPU_CODELET_SIMGRID_EXECUTE"))	{ return fstarpu_starpu_codelet_simgrid_execute; }
 	else if (!strcmp(s, "FSTARPU_CODELET_SIMGRID_EXECUTE_AND_INJECT"))	{ return fstarpu_starpu_codelet_simgrid_execute_and_inject; }
@@ -257,12 +255,6 @@ void fstarpu_conf_set_nopencl(struct starpu_conf *conf, int nopencl)
 {
 	STARPU_ASSERT(nopencl >= 0 && nopencl <= STARPU_NMAXWORKERS);
 	conf->nopencl = nopencl;
-}
-
-void fstarpu_conf_set_nmic(struct starpu_conf *conf, int nmic)
-{
-	STARPU_ASSERT(nmic >= 0 && nmic <= STARPU_NMAXWORKERS);
-	conf->nmic = nmic;
 }
 
 void fstarpu_conf_set_calibrate(struct starpu_conf *conf, int calibrate)
@@ -385,21 +377,6 @@ void fstarpu_codelet_add_opencl_flags(struct starpu_codelet *cl, intptr_t flags)
 		}
 	}
 	_STARPU_ERROR("fstarpu: too many opencl flags in Fortran codelet");
-}
-
-void fstarpu_codelet_add_mic_func(struct starpu_codelet *cl, void *f_ptr)
-{
-	const size_t max_mic_funcs = sizeof(cl->mic_funcs)/sizeof(cl->mic_funcs[0])-1;
-	unsigned i;
-	for (i = 0; i < max_mic_funcs; i++)
-	{
-		if (cl->mic_funcs[i] == NULL)
-		{
-			cl->mic_funcs[i] = f_ptr;
-			return;
-		}
-	}
-	_STARPU_ERROR("fstarpu: too many mic functions in Fortran codelet");
 }
 
 void fstarpu_codelet_add_buffer(struct starpu_codelet *cl, intptr_t _mode)

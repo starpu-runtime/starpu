@@ -33,13 +33,13 @@
 #include <drivers/disk/driver_disk.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <drivers/cuda/driver_cuda.h>
-#include <drivers/mic/driver_mic_source.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/disk/driver_disk.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
+#include <datawizard/datawizard.h>
 #include <core/simgrid.h>
 #include <core/task.h>
 #include <core/disk.h>
@@ -59,7 +59,7 @@
 #include <windows.h>
 #endif
 
-static struct starpu_driver_info driver_info =
+static struct _starpu_driver_info driver_info =
 {
 	.name_upper = "CPU",
 	.name_var = "CPU",
@@ -68,7 +68,7 @@ static struct starpu_driver_info driver_info =
 	.alpha = 0.5f,
 };
 
-static struct starpu_memory_driver_info memory_driver_info =
+static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "NUMA",
 	.worker_archtype = STARPU_CPU_WORKER,
@@ -76,8 +76,8 @@ static struct starpu_memory_driver_info memory_driver_info =
 
 void _starpu_cpu_preinit(void)
 {
-	starpu_driver_info_register(STARPU_CPU_WORKER, &driver_info);
-	starpu_memory_driver_info_register(STARPU_CPU_RAM, &memory_driver_info);
+	_starpu_driver_info_register(STARPU_CPU_WORKER, &driver_info);
+	_starpu_memory_driver_info_register(STARPU_CPU_RAM, &memory_driver_info);
 }
 
 
@@ -341,7 +341,7 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		return ret;
 	}
 
-	res = __starpu_datawizard_progress(1, 1);
+	res = __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
 	if (!pending_task)
 		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
@@ -429,7 +429,7 @@ int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
 	_STARPU_TRACE_WORKER_DEINIT_START;
 
 	unsigned memnode = cpu_worker->memory_node;
-	_starpu_handle_all_pending_node_data_requests(memnode);
+	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
 	/* In case there remains some memory that was automatically
 	 * allocated by StarPU, we release it now. Note that data
@@ -555,11 +555,6 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
 #endif
 	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_cpu_to_disk,
-#ifdef STARPU_USE_MIC
-	.copy_interface_to[STARPU_MIC_RAM] = _starpu_mic_copy_interface_from_cpu_to_mic,
-#else
-	.copy_interface_to[STARPU_MIC_RAM] = NULL,
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_cpu_to_mpi,
 #else
@@ -579,11 +574,6 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
 #endif
 	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
-#ifdef STARPU_USE_MIC
-	.copy_data_to[STARPU_MIC_RAM] = _starpu_mic_copy_data_from_cpu_to_mic,
-#else
-	.copy_data_to[STARPU_MIC_RAM] = NULL,
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_cpu_to_mpi,
 #else
@@ -599,7 +589,6 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 #endif
 	.copy2d_data_to[STARPU_OPENCL_RAM] = NULL,
 	.copy2d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy2d_data_to[STARPU_MIC_RAM] = NULL,
 	.copy2d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.copy3d_data_to[STARPU_UNUSED] = NULL,
@@ -615,7 +604,6 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 #endif
 	.copy3d_data_to[STARPU_OPENCL_RAM] = NULL,
 	.copy3d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy3d_data_to[STARPU_MIC_RAM] = NULL,
 	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.wait_request_completion = NULL,

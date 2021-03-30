@@ -32,7 +32,6 @@
 #define TYPE	double
 #define GEMV	STARPU_DGEMV
 #define DOT	STARPU_DDOT
-#define GEMV	STARPU_DGEMV
 #define AXPY	STARPU_DAXPY
 #define SCAL	STARPU_DSCAL
 #define cublasdot	cublasDdot
@@ -44,7 +43,6 @@
 #define TYPE	float
 #define GEMV	STARPU_SGEMV
 #define DOT	STARPU_SDOT
-#define GEMV	STARPU_SGEMV
 #define AXPY	STARPU_SAXPY
 #define SCAL	STARPU_SSCAL
 #define cublasdot	cublasSdot
@@ -53,30 +51,5 @@
 #define cublasgemv	cublasSgemv
 #define cublasscal	cublasSscal
 #endif
-
-int dot_kernel(starpu_data_handle_t v1,
-	       starpu_data_handle_t v2,
-	       starpu_data_handle_t s,
-	       unsigned nblocks,
-	       int use_reduction);
-
-int gemv_kernel(starpu_data_handle_t v1,
-                starpu_data_handle_t matrix, 
-                starpu_data_handle_t v2,
-                TYPE p1, TYPE p2,
-		unsigned nblocks,
-		int use_reduction);
-
-int axpy_kernel(starpu_data_handle_t v1,
-		starpu_data_handle_t v2, TYPE p1,
-		unsigned nblocks);
-
-int scal_axpy_kernel(starpu_data_handle_t v1, TYPE p1,
-		     starpu_data_handle_t v2, TYPE p2,
-		     unsigned nblocks);
-
-int copy_handle(starpu_data_handle_t dst,
-		starpu_data_handle_t src,
-		unsigned nblocks);
 
 #endif /* __STARPU_EXAMPLE_CG_H__ */

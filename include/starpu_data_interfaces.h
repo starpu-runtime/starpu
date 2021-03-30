@@ -123,13 +123,6 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node CPU node to the \p dst_interface interface on the \p
-	   dst_node MIC node. Return 0 on success.
-	*/
-	int (*ram_to_mic)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CUDA node to the \p dst_interface interface on the \p
 	   dst_node CPU node. Return 0 on success.
 	*/
@@ -155,13 +148,6 @@ struct starpu_data_copy_methods
 	   \p dst_node OpenCL node. Return 0 on success.
 	*/
 	int (*opencl_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MIC node to the \p dst_interface interface on the \p
-	   dst_node CPU node. Return 0 on success.
-	*/
-	int (*mic_to_ram)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
@@ -289,26 +275,6 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node CPU node to the \p dst_interface interface on the \p
-	   dst_node MIC node. Must return 0 if the transfer was actually
-	   completed completely synchronously, or <c>-EAGAIN</c> if at least
-	   some transfers are still ongoing and should be awaited for by the
-	   core.
-	*/
-	int (*ram_to_mic_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MIC node to the \p dst_interface interface on the \p
-	   dst_node CPU node. Must return 0 if the transfer was actually
-	   completed completely synchronously, or <c>-EAGAIN</c> if at least
-	   some transfers are still ongoing and should be awaited for by the
-	   core.
-	*/
-	int (*mic_to_ram_async)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node node to the \p dst_interface interface on the \p
 	   dst_node node. This is meant to be implemented through the
 	   starpu_interface_copy() helper, to which async_data should be
@@ -321,7 +287,7 @@ struct starpu_data_copy_methods
 	   data blocks. If the interface is more involved than
 	   this, i.e. it needs to collect pieces of data before
 	   transferring, starpu_data_interface_ops::pack_data and
-	   starpu_data_interface_ops::unpack_data should be implemented instead,
+	   starpu_data_interface_ops::peek_data should be implemented instead,
 	   and the core will just transfer the resulting data buffer.
 	*/
 	int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
@@ -540,6 +506,12 @@ struct starpu_data_interface_ops
 	int (*pack_data) (starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count);
 
 	/**
+	   Read the data handle from the contiguous buffer at the address
+	   \p ptr of size \p count.
+	*/
+	int (*peek_data) (starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+
+	/**
 	   Unpack the data handle from the contiguous buffer at the address
 	   \p ptr of size \p count.
 	   The memory at the address \p ptr should be freed after the data unpacking operation.
@@ -637,9 +609,25 @@ int starpu_data_pack_node(starpu_data_handle_t handle, unsigned node, void **ptr
 int starpu_data_pack(starpu_data_handle_t handle, void **ptr, starpu_ssize_t *count);
 
 /**
+   Read in handle's \p node replicate the data located at \p ptr
+   of size \p count as described by the interface of the data. The interface
+   registered at \p handle must define a peeking operation (see
+   starpu_data_interface_ops).
+*/
+int starpu_data_peek_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
+
+/**
+   Read in handle's local replicate the data located at \p ptr
+   of size \p count as described by the interface of the data. The interface
+   registered at \p handle must define a peeking operation (see
+   starpu_data_interface_ops).
+*/
+int starpu_data_peek(starpu_data_handle_t handle, void *ptr, size_t count);
+
+/**
    Unpack in handle the data located at \p ptr of size \p count allocated
    on node \p node as described by the interface of the data. The interface
-   registered at \p handle must define a unpacking operation (see
+   registered at \p handle must define an unpacking operation (see
    starpu_data_interface_ops).
 */
 int starpu_data_unpack_node(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count);
@@ -2021,9 +2009,6 @@ struct starpu_multiformat_data_interface_ops
 	size_t cuda_elemsize;                     /**< size of each element on CUDA devices */
 	struct starpu_codelet *cpu_to_cuda_cl;    /**< pointer to a codelet which converts from CPU to CUDA */
 	struct starpu_codelet *cuda_to_cpu_cl;    /**< pointer to a codelet which converts from CUDA to CPU */
-	size_t mic_elemsize;                      /**< size of each element on MIC devices */
-	struct starpu_codelet *cpu_to_mic_cl;     /**< pointer to a codelet which converts from CPU to MIC */
-	struct starpu_codelet *mic_to_cpu_cl;     /**< pointer to a codelet which converts from MIC to CPU */
 };
 
 struct starpu_multiformat_interface
@@ -2033,7 +2018,6 @@ struct starpu_multiformat_interface
 	void *cpu_ptr;
 	void *cuda_ptr;
 	void *opencl_ptr;
-	void *mic_ptr;
 	uint32_t nx;
 	struct starpu_multiformat_data_interface_ops *ops;
 };
@@ -2060,10 +2044,6 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_nod
    Return the local pointer to the data with OpenCL format.
 */
 #define STARPU_MULTIFORMAT_GET_OPENCL_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->opencl_ptr)
-/**
-   Return the local pointer to the data with MIC format.
- */
-#define STARPU_MULTIFORMAT_GET_MIC_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->mic_ptr)
 /**
    Return the number of elements in the data.
  */

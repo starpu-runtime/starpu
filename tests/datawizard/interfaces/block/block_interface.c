@@ -45,9 +45,6 @@ struct test_config block_config =
 #ifdef STARPU_USE_OPENCL
 	.opencl_func   = test_block_opencl_func,
 #endif
-#ifdef STARPU_USE_MIC
-	.cpu_func_name = "test_block_cpu_func",
-#endif
 	.handle        = &_block_handle,
 	.dummy_handle  = &_block2_handle,
 	.copy_failed   = SUCCESS,
@@ -139,10 +136,16 @@ main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	conf.ncuda = 2;
 	conf.nopencl = 1;
-	conf.nmic = -1;
 
-	if (starpu_initialize(&conf, &argc, &argv) == -ENODEV || starpu_cpu_worker_get_count() == 0)
-		goto enodev;
+	int ret = starpu_initialize(&conf, &argc, &argv);
+	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	if(starpu_cpu_worker_get_count() == 0)
+	{
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 
 	register_data();
 
@@ -155,8 +158,5 @@ main(int argc, char **argv)
 	data_interface_test_summary_print(stderr, &summary);
 
 	return data_interface_test_summary_success(&summary);
-
-enodev:
-	return STARPU_TEST_SKIPPED;
 }
 

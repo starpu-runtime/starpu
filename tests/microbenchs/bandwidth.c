@@ -49,6 +49,7 @@ static unsigned interleave(unsigned i);
 /* Initialize the buffer locally */
 void initialize_buffer(void *foo)
 {
+	(void) foo;
 	unsigned id = starpu_worker_get_id();
 #ifdef STARPU_HAVE_POSIX_MEMALIGN
 	int ret = posix_memalign(&buffers[id], getpagesize(), 2*size);
@@ -62,6 +63,7 @@ void initialize_buffer(void *foo)
 /* Actual transfer codelet */
 void bw_func(void *descr[], void *arg)
 {
+	(void)descr;
 	int id = (uintptr_t) arg;
 	void *src = buffers[id];
 	void *dst = (void*) ((uintptr_t)src + size);
@@ -92,6 +94,8 @@ static struct starpu_codelet bw_codelet =
 /* Codelet that waits for completion while doing lots of cpu yields (nop). */
 void nop_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	STARPU_PTHREAD_BARRIER_WAIT(&barrier_begin);
 	while (!finished)
 	{
@@ -112,6 +116,8 @@ static struct starpu_codelet nop_codelet =
 /* Codelet that waits for completion while aggressively reading the finished variable. */
 void sync_func(void *descr[], void *arg)
 {
+	(void)descr;
+	(void)arg;
 	STARPU_PTHREAD_BARRIER_WAIT(&barrier_begin);
 	while (!finished)
 	{
@@ -291,7 +297,7 @@ int main(int argc, char **argv)
 	total_ncpus = starpu_cpu_worker_get_count();
 
 	buffers = malloc(total_ncpus * sizeof(*buffers));
-	starpu_execute_on_each_worker_ex(initialize_buffer, NULL, STARPU_CPU, "init_buffer");
+	starpu_execute_on_each_worker_ex(initialize_buffer, NULL, STARPU_CPU, "initialize_buffer");
 	starpu_shutdown();
 
 	if (total_ncpus == 0)

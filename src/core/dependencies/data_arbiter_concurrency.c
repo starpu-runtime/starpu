@@ -286,7 +286,7 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 		while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 		{
 			cpt++;
-			_starpu_datawizard_progress(0);
+			_starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_NOT_ALLOC);
 		}
 		if (cpt == STARPU_SPIN_MAXTRY)
 			_starpu_spin_lock(&handle->header_lock);

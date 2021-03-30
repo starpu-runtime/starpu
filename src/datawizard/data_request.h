@@ -32,8 +32,8 @@
  * Data interfaces should also have to declare how many asynchronous requests
  * they have actually started (think of e.g. csr).
  */
-#define MAX_PENDING_REQUESTS_PER_NODE 20
-#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 10
+#define MAX_PENDING_REQUESTS_PER_NODE 5
+#define MAX_PENDING_PREFETCH_REQUESTS_PER_NODE 2
 #define MAX_PENDING_IDLE_REQUESTS_PER_NODE 1
 /** Maximum time in us that we can afford pushing requests before going back to the driver loop, e.g. for checking GPU task termination */
 #define MAX_PUSH_TIME 1000
@@ -45,6 +45,11 @@ struct _starpu_callback_list
 	void (*callback_func)(void *);
 	void *callback_arg;
 	struct _starpu_callback_list *next;
+};
+
+enum _starpu_data_request_inout
+{
+	_STARPU_DATA_REQUEST_IN, _STARPU_DATA_REQUEST_OUT
 };
 
 /** This represents a data request, i.e. we want some data to get transferred
@@ -63,6 +68,8 @@ LIST_TYPE(_starpu_data_request,
 	 * the node can make the CUDA/OpenCL calls.
 	 */
 	unsigned handling_node;
+	unsigned peer_node;
+	enum _starpu_data_request_inout inout;
 
 	/*
 	 * What the destination node wants to do with the data: write to it,
@@ -78,10 +85,19 @@ LIST_TYPE(_starpu_data_request,
 	struct _starpu_async_channel async_channel;
 
 	/** Whether the transfer is completed. */
-	unsigned completed;
+	unsigned completed:1;
+
+	/** Whether we have already added our reference to the dst replicate. */
+	unsigned added_ref:1;
+
+	/** Whether the request was canceled before being handled (because the transfer already happened another way). */
+	unsigned canceled:2;
 
 	/** Whether this is just a prefetch request */
-	enum _starpu_is_prefetch prefetch;
+	enum starpu_is_prefetch prefetch:3;
+
+	/** Task this request is for */
+	struct starpu_task *task;
 
 	/** Number of tasks which used this as a prefetch */
 	unsigned nb_tasks_prefetch;
@@ -95,6 +111,10 @@ LIST_TYPE(_starpu_data_request,
 	/** The request will not actually be submitted until there remains
 	 * dependencies. */
 	unsigned ndeps;
+
+	/** Some further tasks may have requested prefetches for the same data
+	 * much later on, link with them */
+	struct _starpu_data_request *next_same_req;
 
 	/** in case we have a chain of request (eg. for nvidia multi-GPU), this
 	 * is the list of requests which are waiting for this one. */
@@ -123,7 +143,7 @@ LIST_TYPE(_starpu_data_requester,
 
 	int prio;
 
-	/** if this is more complicated ... (eg. application request) 
+	/** if this is more complicated ... (eg. application request)
 	 * NB: this callback is not called with the lock taken !
 	 */
 	void (*ready_data_callback)(void *argcb);
@@ -135,15 +155,15 @@ void _starpu_init_data_request_lists(void);
 void _starpu_deinit_data_request_lists(void);
 void _starpu_post_data_request(struct _starpu_data_request *r);
 /** returns 0 if we have pushed all requests, -EBUSY or -ENOMEM otherwise */
-int _starpu_handle_node_data_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
-int _starpu_handle_node_prefetch_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
-int _starpu_handle_node_idle_requests(unsigned src_node, unsigned may_alloc, unsigned *pushed);
+int _starpu_handle_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed);
+int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed);
+int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed);
 
-int _starpu_handle_pending_node_data_requests(unsigned src_node);
-int _starpu_handle_all_pending_node_data_requests(unsigned src_node);
+int _starpu_handle_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
+int _starpu_handle_all_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
 
-int _starpu_check_that_no_data_request_exists(unsigned node);
-int _starpu_check_that_no_data_request_is_pending(unsigned node);
+int _starpu_check_that_no_data_request_exists(unsigned handling_node);
+int _starpu_check_that_no_data_request_is_pending(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout);
 
 struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t handle,
 							 struct _starpu_data_replicate *src_replicate,
@@ -151,16 +171,17 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 							 int handling_node,
 							 enum starpu_data_access_mode mode,
 							 unsigned ndeps,
-							 enum _starpu_is_prefetch is_prefetch,
+							 struct starpu_task *task,
+							 enum starpu_is_prefetch is_prefetch,
 							 int prio,
 							 unsigned is_write_invalidation,
 							 const char *origin) STARPU_ATTRIBUTE_MALLOC;
 
-int _starpu_wait_data_request_completion(struct _starpu_data_request *r, unsigned may_alloc);
+int _starpu_wait_data_request_completion(struct _starpu_data_request *r, enum _starpu_may_alloc may_alloc);
 
 void _starpu_data_request_append_callback(struct _starpu_data_request *r,
 					  void (*callback_func)(void *),
 					  void *callback_arg);
 
-void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum _starpu_is_prefetch prefetch);
+void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_is_prefetch prefetch);
 #endif // __DATA_REQUEST_H__

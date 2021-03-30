@@ -271,8 +271,10 @@ static void create_task_11_real(unsigned k)
 	struct starpu_task *task = create_task(TAG11(k));
 
 	task->cl = &STARPU_PLU(cl11);
+	task->color = 0xffff00;
 
 	task->cl_arg = create_debug_info(k, k, k);
+	task->cl_arg_free = 1;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = STARPU_PLU(get_block_handle)(k, k);
@@ -430,8 +432,10 @@ static void create_task_12_real(unsigned k, unsigned j)
 #endif
 //	task->cl = &STARPU_PLU(cl12);
 	task->cl = &STARPU_PLU(cl21);
+	task->color = 0x8080ff;
 
 	task->cl_arg = create_debug_info(j, j, k);
+	task->cl_arg_free = 1;
 
 	unsigned diag_block_is_local = (get_block_rank(k, k) == rank);
 
@@ -615,8 +619,10 @@ static void create_task_21_real(unsigned k, unsigned i)
 #endif
 //	task->cl = &STARPU_PLU(cl21);
 	task->cl = &STARPU_PLU(cl12);
+	task->color = 0x8080c0;
 
 	task->cl_arg = create_debug_info(i, i, k);
+	task->cl_arg_free = 1;
 
 	unsigned diag_block_is_local = (get_block_rank(k, k) == rank);
 
@@ -713,8 +719,10 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	struct starpu_task *task = create_task(TAG22(k, i, j));
 
 	task->cl = &STARPU_PLU(cl22);
+	task->color = 0x00ff00;
 
 	task->cl_arg = create_debug_info(i, j, k);
+	task->cl_arg_free = 1;
 
 	/* which sub-data is manipulated ? */
 

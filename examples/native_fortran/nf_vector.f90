@@ -94,7 +94,11 @@ program nf_vector
         !     . . .
         !     C_NULL_PTR
         !   )/
-        call fstarpu_insert_task((/ cl_vec, FSTARPU_R, dh_va, FSTARPU_RW.ior.FSTARPU_LOCALITY, dh_vb, C_NULL_PTR /))
+        call fstarpu_insert_task((/ cl_vec, &
+                FSTARPU_R, dh_va, &
+                FSTARPU_RW.ior.FSTARPU_LOCALITY, dh_vb, &
+                FSTARPU_EXECUTE_WHERE, FSTARPU_CPU, & ! for illustration, not required here
+                C_NULL_PTR /))
 
         ! wait for task completion
         call fstarpu_task_wait_for_all()
