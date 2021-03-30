@@ -25,8 +25,9 @@ int main(int argc, char *argv[])
 		  while (strcmp(str1, str2) != 0)
 		  {
 			 fscanf(fichier_effectif, "%s", str2);
+			 if (feof(fichier_effectif)) { y = 0; break; }
 			 y++;
-		 }
+		  }
 		 fprintf(fichier_out, "	%d\n", y); 
 		}
 		if (feof(fichier_hfp)) 

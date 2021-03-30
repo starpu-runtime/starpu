@@ -682,20 +682,13 @@ int HFP_pointeurComparator ( const void * first, const void * second ) {
 
 void print_effective_order_in_file (struct starpu_task *task)
 {
-	//~ int i = 0;
-	//~ for (i = 0; i < component->nchildren; i++) {
-		//~ if (to == component->children[i]) {
-			//~ break;
-		//~ }
-	//~ }
-	//~ char str[2];
-	//~ sprintf(str, "%d", i);
-	//~ int size = strlen("Output_maxime/Task_order_effective_.txt") + strlen(str);
-	//~ char *path = (char *)malloc(size);
-	//~ strcpy(path, "Output_maxime/Task_order_effective_");
-	//~ strcat(path, str);
-	//~ strcat(path, ".txt");
-	FILE *f = fopen("Output_maxime/Task_order_effective.txt", "a");
+	char str[2];
+	sprintf(str, "%d", starpu_worker_get_id());
+	int size = strlen("Output_maxime/Task_order_effective_") + strlen(str);
+	char *path = (char *)malloc(size);
+	strcpy(path, "Output_maxime/Task_order_effective_");
+	strcat(path, str);
+	FILE *f = fopen(path, "a");
 	fprintf(f, "%p\n",task);
 	fclose(f);
 }
@@ -732,7 +725,7 @@ static struct starpu_task *get_task_to_return(struct starpu_sched_component *com
 			}
 			task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 			a->temp_pointer_1->expected_time_pulled_out += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0); 
-			printf("reutn %p\n", task);
+			//~ printf("reutn %p\n", task);
 			return task;
 		}
 		else
@@ -1379,19 +1372,36 @@ void load_balance (struct paquets *a, int number_gpu)
 
 void print_order_in_file_hfp (struct paquets *p)
 {
+	char str[2]; unsigned i = 0;
+	//~ sprintf(str, "%d", starpu_worker_get_id());
+	int size = 0;
+	char *path = NULL;
+	//~ strcpy(path, "Output_maxime/Task_order_effective_");
+	//~ strcat(path, str);
+	//~ FILE *f = fopen(path, "a");
+	//~ fprintf(f, "%p\n",task);
+	//~ fclose(f);
+	
 	p->temp_pointer_1 = p->first_link;
-	FILE *f = fopen("Output_maxime/Task_order_HFP.txt", "w");
+	//~ FILE *f = fopen("Output_maxime/Task_order_HFP", "w");
 	struct starpu_task *task;
 	while (p->temp_pointer_1 != NULL) 
 	{
+		sprintf(str, "%d", i);
+		size = strlen("Output_maxime/Task_order_HFP_") + strlen(str);
+		path = (char *)malloc(size);
+		strcpy(path, "Output_maxime/Task_order_HFP_");
+		strcat(path, str);
+		FILE *f = fopen(path, "w");
 		for (task = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task != starpu_task_list_end(&p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
 		{
 			fprintf(f, "%p\n",task);
 		}
-		fprintf(f, "End\n");
 		p->temp_pointer_1 = p->temp_pointer_1->next;
+		i++;
+		fclose(f);
 	}
-	fclose(f);
+	//~ fclose(f);
 }
 
 void hmetis(int nb_package_to_build, struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
@@ -2051,9 +2061,14 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		/* Printing in a file the order produced by HFP. If we use modular-heft-HFP, we can compare this order with the one done by modular-heft */
 		if (starpu_get_env_number_default("PRINTF",0) == 1)
 		{
+			/* TODO: A corriger c'est juste une solution temporaire en 3 GPUs seulement */
 			printf("printing order in file\n");
 			print_order_in_file_hfp(data->p);
-			FILE *f = fopen("Output_maxime/Task_order_effective.txt", "w"); /* Just to empty it before */
+			FILE *f = fopen("Output_maxime/Task_order_effective_0", "w"); /* Just to empty it before */
+			fclose(f);
+			f = fopen("Output_maxime/Task_order_effective_1", "w"); /* Just to empty it before */
+			fclose(f);
+			f = fopen("Output_maxime/Task_order_effective_2", "w"); /* Just to empty it before */
 			fclose(f);
 		}
 	
