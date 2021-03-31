@@ -867,13 +867,13 @@ do {									\
 	const char *name = _starpu_job_get_task_name((job));			\
 	if (name)					                        \
 	{									\
-		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, name);\
+		_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), name); \
 	}									\
 	else {									\
-		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, "unknown");\
+		_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), "unknown");\
 	}									\
 	if (model_name)					\
-		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_MODEL_NAME, (job)->job_id, model_name); \
+		_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_MODEL_NAME, (job)->job_id, _starpu_gettid(), model_name); \
 } while(0)
 
 #define _STARPU_TRACE_TASK_COLOR(job)						\

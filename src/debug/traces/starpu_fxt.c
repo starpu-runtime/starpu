@@ -2817,7 +2817,7 @@ static void handle_task_exclude_from_dag(struct fxt_ev_64 *ev, struct starpu_fxt
 static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
-	char *name = get_fxt_string(ev,1);
+	char *name = get_fxt_string(ev,2);
 
 	char *prefix = options->file_prefix;
 	struct task_info *task = get_task(job_id, options->file_rank);
