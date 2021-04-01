@@ -1,7 +1,0 @@
-
-#---------------------
-Data transfer stats:
-	NUMA 0 -> CUDA 0	7.5806 GB	257.1061 MB/s	(transfers : 2208 - avg 3.5156 MB)
-	CUDA 0 -> NUMA 0	0.0000 GB	0.0000 MB/s	(transfers : 0 - avg -nan MB)
-Total transfers: 7.5806 GB
-#---------------------
