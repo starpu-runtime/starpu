@@ -1693,19 +1693,19 @@ static struct starpu_fxt_codelet_event *dumped_codelets;
 
 static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
+	unsigned long job_id = ev->param[0];
+	size_t codelet_size = ev->param[1];
+	uint32_t codelet_hash = ev->param[2];
 	int worker = ev->param[3];
+	long unsigned int threadid = ev->param[4];
+	char *name = get_fxt_string(ev, 5);
+
 	if (worker < 0) return;
 
 	char *prefix = options->file_prefix;
-
 	double end_codelet_time = get_event_time_stamp(ev, options);
 	double last_end_codelet_time = last_codelet_end[worker];
 	last_codelet_end[worker] = end_codelet_time;
-
-	size_t codelet_size = ev->param[1];
-	uint32_t codelet_hash = ev->param[2];
-	long unsigned int threadid = ev->param[4];
-	char *name = get_fxt_string(ev, 5);
 
 	const char *state = "I";
 	if (find_sync(prefixTOnodeid(prefix), threadid))
@@ -1715,9 +1715,9 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (trace_file)
 		recfmt_worker_set_state(end_codelet_time, worker, state, "Other");
 
-	struct task_info *task = get_task(ev->param[0], options->file_rank);
+	struct task_info *task = get_task(job_id, options->file_rank);
 
-	get_task(ev->param[0], options->file_rank)->end_time = end_codelet_time;
+	task->end_time = end_codelet_time;
 	update_accumulated_time(worker, 0.0, end_codelet_time - task->start_time, end_codelet_time, 0);
 
 	struct _starpu_computation *peer = ongoing_computation[worker];

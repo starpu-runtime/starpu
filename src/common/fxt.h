@@ -879,9 +879,9 @@ do {									\
 #define _STARPU_TRACE_TASK_COLOR(job)						\
 do { \
 	if ((job)->task->color != 0) \
-		FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->color, _starpu_gettid()); \
+		FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->color); \
 	else if ((job)->task->cl && (job)->task->cl->color != 0) \
-		FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->cl->color, _starpu_gettid()); \
+		FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->cl->color); \
 } while(0)
 
 #define _STARPU_TRACE_TASK_DONE(job)						\
