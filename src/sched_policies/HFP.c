@@ -169,6 +169,7 @@ static void rgb(int num, int *r, int *g, int *b)
 		*r = num & 1 ? 255 : 0;
 		*g = num & 2 ? 255 : 0;
 		*b = num & 4 ? 255 : 0;
+		//~ *b = num & 3 ? 255 : 0;
 		return;
     }
     num -= 7; *r = 0; *g = 0; *b = 0;
@@ -176,6 +177,7 @@ static void rgb(int num, int *r, int *g, int *b)
         *r = *r << 1 | ((num & 1) >> 0);
         *g = *g << 1 | ((num & 2) >> 1);
         *b = *b << 1 | ((num & 4) >> 2);
+        //~ *b = *b << 1 | ((num & 3) >> 2);
         num >>= 3;
     }
 }
@@ -1477,11 +1479,6 @@ void visualisation_data_gpu_in_file_hfp_format_tex (struct paquets *p)
 			fprintf(f,"c|");
 		}
 		fprintf(f,"c|}\\hline\\diagbox{GPUs}{Data}&");
-		for (i = 0; i < N - 1; i++) 
-		{
-			fprintf(f,"%d&", i);
-		}
-		fprintf(f,"%d\\\\\\hline", N - 1);
 		p->temp_pointer_1 = p->first_link;	
 		i = 0;
 		while (p->temp_pointer_1 != NULL) 
@@ -1493,9 +1490,41 @@ void visualisation_data_gpu_in_file_hfp_format_tex (struct paquets *p)
 			p->temp_pointer_1 = p->temp_pointer_1->next;
 			i++;				
 		}
+		for (i = 0; i < N - 1; i++) 
+		{
+			red = 0;
+			green = 0;
+			blue = 0;
+			for (k = 0; k < Ngpu; k++) {
+				if (data_use_in_gpus[i][k] != 0)
+				{
+					if (k%3 == 0) { red = 1; }
+					if (k%3 == 1) { green = 1; }
+					if (k%3 == 2) { blue = 1; }
+				}
+			}
+			fprintf(f,"\\cellcolor[RGB]{%d,%d,%d}%d&", red*255, green*255, blue*255, i);
+		}
+		red = 0;
+		green = 0;
+		blue = 0;
+		for (k = 0; k < Ngpu; k++) {
+			if (data_use_in_gpus[N - 1][k] != 0)
+			{
+				if (k%3 == 0) { red = 1; }
+				if (k%3 == 1) { green = 1; }
+				if (k%3 == 2) { blue = 1; }
+			}
+		}
+		fprintf(f,"\\cellcolor[RGB]{%d,%d,%d}%d\\\\\\hline", red*255, green*255, blue*255, N - 1);
 		for (i = 0; i < Ngpu; i++) {
-			rgb(i, &red, &green, &blue);
-			fprintf(f, " \\cellcolor[RGB]{%d,%d,%d}GPU %d&", red, green, blue, i);
+			red = 0;
+			green = 0;
+			blue = 0;
+			if (i%3 == 0) { red = 1; }
+			if (i%3 == 1) { green = 1; }
+			if (i%3 == 2) { blue = 1; }
+			fprintf(f, " \\cellcolor[RGB]{%d,%d,%d}GPU %d&", red*255, green*255, blue*255, i);
 			for (k = 0; k < N - 1; k++) {
 				fprintf(f, "%d&", data_use_in_gpus[k][i]);
 			}
