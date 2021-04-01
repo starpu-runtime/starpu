@@ -52,9 +52,11 @@
  * STARPU_NOPENCL=0
  */
 
+const char* appli;
 static int NT;
 static int N;
 static double EXPECTED_TIME;
+int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct HFP_sched_data
@@ -252,7 +254,6 @@ void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[]
 	fclose(fcoordinate);
 	fclose(fcoordinate_order);
 	//TODO 3 = solution temporaire ici aussi
-	printf("link index = %d\n", link_index);
 	if (link_index == 1 || (starpu_get_env_number_default("MULTIGPU",0) != 0 && link_index == 3)) { 
 		FILE * fcoordinate_order_last = fopen("Output_maxime/Data_coordinates_order_last.tex", "a");
 		fprintf(fcoordinate_order_last,"\n\\centering\\begin{tabular}{|"); 
@@ -682,6 +683,11 @@ int HFP_pointeurComparator ( const void * first, const void * second ) {
   return ( *(int*)first - *(int*)second );
 }
 
+void visualisation_tache_matrice_format_tex_HEFT()
+{
+	
+}
+
 void print_effective_order_in_file (struct starpu_task *task)
 {
 	char str[2];
@@ -693,6 +699,20 @@ void print_effective_order_in_file (struct starpu_task *task)
 	FILE *f = fopen(path, "a");
 	fprintf(f, "%p\n",task);
 	fclose(f);
+	
+	if (starpu_get_env_number_default("PRINTF",0) == 1)
+	{ 
+		f = fopen("Output_maxime/Data_coordinates_order_last_HEFT.txt", "a");
+		int temp_tab_coordinates[2];
+		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task,2),2,temp_tab_coordinates);
+		fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
+		fclose(f);
+		index_current_task_heft++;
+		if (index_current_task_heft == NT)
+		{
+			visualisation_tache_matrice_format_tex_HEFT();
+		}
+	}
 }
 
 /* Called in HFP_pull_task when we need to return a task. It is used when we have multiple GPUs
@@ -1659,7 +1679,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("NT = %d\n",NT); }
 				
 			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
-			const char* appli = starpu_task_get_name(temp_task_1);	
+			appli = starpu_task_get_name(temp_task_1);	
 			//~ printf("appli: %s\n",appli);
 			data->p->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_1)*sizeof(data->p->temp_pointer_1->package_data[0]));
 			
@@ -2081,6 +2101,8 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			f = fopen("Output_maxime/Task_order_effective_1", "w"); /* Just to empty it before */
 			fclose(f);
 			f = fopen("Output_maxime/Task_order_effective_2", "w"); /* Just to empty it before */
+			fclose(f);
+			f = fopen("Output_maxime/Data_coordinates_order_last_HEFT.txt", "w");
 			fclose(f);
 		}
 	
