@@ -251,7 +251,9 @@ void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[]
 	fprintf(fcoordinate_order,"\n");
 	fclose(fcoordinate);
 	fclose(fcoordinate_order);
-	if (link_index == 1) { 
+	//TODO 3 = solution temporaire ici aussi
+	printf("link index = %d\n", link_index);
+	if (link_index == 1 || (starpu_get_env_number_default("MULTIGPU",0) != 0 && link_index == 3)) { 
 		FILE * fcoordinate_order_last = fopen("Output_maxime/Data_coordinates_order_last.tex", "a");
 		fprintf(fcoordinate_order_last,"\n\\centering\\begin{tabular}{|"); 
 	for (i = 0; i < N - 1; i++) {
@@ -2073,6 +2075,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			/* TODO: A corriger c'est juste une solution temporaire en 3 GPUs seulement */
 			printf("printing order in file\n");
 			print_order_in_file_hfp(data->p);
+			//TODO corriger la manière dont je vide si il y a plus de 3 GPUs
 			FILE *f = fopen("Output_maxime/Task_order_effective_0", "w"); /* Just to empty it before */
 			fclose(f);
 			f = fopen("Output_maxime/Task_order_effective_1", "w"); /* Just to empty it before */
