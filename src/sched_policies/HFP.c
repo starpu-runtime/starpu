@@ -52,6 +52,7 @@
  * STARPU_NOPENCL=0
  */
 
+static int Ngpu;
 const char* appli;
 static int NT;
 static int N;
@@ -1456,47 +1457,68 @@ void load_balance (struct paquets *a, int number_gpu)
  * Also print the number of use in each GPU.
  * TODO : Faire marcher cette fonction avec n GPUs
  */
-void print_data_gpu_in_file_hfp (struct paquets *p)
+void visualisation_data_gpu_in_file_hfp_format_tex (struct paquets *p)
 {
-	FILE *f = fopen("Output_maxime/Data_in_gpu_HFP.txt", "w");
 	struct starpu_task *task;
-	//~ int i = 0;
-	p->temp_pointer_1 = p->first_link;	
-	//~ print_packages_in_terminal(p, 0);
-	//~ int link_index = 0;
-	//~ p->temp_pointer_1 = p->first_link;
-	while (p->temp_pointer_1 != NULL) 
-	{ 
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	int red, green, blue;
+	int temp_tab_coordinates[2];
+	int data_use_in_gpus[N*2][Ngpu + 1]; /* [la donnée][son nombre d'utilisation dans le gpu] */
+	FILE *f = fopen("Output_maxime/Data_in_gpu_HFP.tex", "w");
+	fprintf(f, "\\documentclass{article}\\usepackage{diagbox}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\\begin{document}\n\n\n\\begin{figure}[H]\n");
+	for (j = 0; j < 2; j++) 
+	{
+		for (i = 0; i < N*2; i++) { for (k = 0; k < Ngpu + 1; k++) { data_use_in_gpus[i][k] = 0; } }
+		fprintf(f, "\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{|");
+		for (i = 0; i < N; i++) 
+		{
+			fprintf(f,"c|");
+		}
+		fprintf(f,"c|}\\hline\\diagbox{GPUs}{Data}&");
+		for (i = 0; i < N - 1; i++) 
+		{
+			fprintf(f,"%d&", i);
+		}
+		fprintf(f,"%d\\\\\\hline", N - 1);
+		p->temp_pointer_1 = p->first_link;	
+		i = 0;
+		while (p->temp_pointer_1 != NULL) 
+		{
+			for (task = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task != starpu_task_list_end(&p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
+				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task,2),2,temp_tab_coordinates);
+				data_use_in_gpus[temp_tab_coordinates[j]][i]++;	
+			}
+			p->temp_pointer_1 = p->temp_pointer_1->next;
+			i++;				
+		}
+		for (i = 0; i < Ngpu; i++) {
+			rgb(i, &red, &green, &blue);
+			fprintf(f, " \\cellcolor[RGB]{%d,%d,%d}GPU %d&", red, green, blue, i);
+			for (k = 0; k < N - 1; k++) {
+				fprintf(f, "%d&", data_use_in_gpus[k][i]);
+			}
+			fprintf(f, "%d\\\\\\hline", data_use_in_gpus[N - 1][i]);
+		}
+		fprintf(f, "\\end{tabular}\\caption{Data from matrix ");
+		if (j == 0) { fprintf(f, "A"); } else { fprintf(f, "B"); }
+		fprintf(f, "}\\end{subfigure}");
+	}
+	fprintf(f, "\\caption{Number of use of a data in each GPU}\\end{figure}\n\n\n\\end{document}");
+	fclose(f);
+	
+	print_packages_in_terminal(p, 0);
+	
+	p->temp_pointer_1 = p->first_link;
+	printf("Real task and data:\n");
+	while (p->temp_pointer_1 != NULL) {
 		for (task = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task != starpu_task_list_end(&p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
-			
-		}				
-	} 
-	//~ p->temp_pointer_1 = p->first_link;
-			//~ link_index = 0;	
-			//~ while (p->temp_pointer_1 != NULL) {
-				//~ printf("Le paquet %d contient %d tâche(s) et %d données, expected time = %f\n",link_index,p->temp_pointer_1->nb_task_in_sub_list,p->temp_pointer_1->package_nb_data,p->temp_pointer_1->expected_time);
-				//~ for (task = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task != starpu_task_list_end(&p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
-					//~ printf("%p\n",task);
-				//~ }
-				//~ printf("Données : \n");
-				//~ for (i = 0; i < p->temp_pointer_1->package_nb_data; i++) {
-					//~ printf("%p\n",p->temp_pointer_1->package_data[i]);
-				//~ }
-				//~ link_index++;
-				//~ p->temp_pointer_1 = p->temp_pointer_1->next;
-				//~ printf("-----\n");
-			//~ }
-			//~ p->temp_pointer_1 = p->first_link;
-			//~ printf("Real task and data:\n");
-			//~ while (p->temp_pointer_1 != NULL) {
-				//~ for (task = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task != starpu_task_list_end(&p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
-				//~ printf("%p : %p %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
-			//~ }
-			//~ p->temp_pointer_1 = p->temp_pointer_1->next;
-				//~ printf("-----\n");
-			//~ }	
-				
-	//~ exit(0);
+			printf("%p : %p %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
+		}
+		p->temp_pointer_1 = p->temp_pointer_1->next;
+		printf("-----\n");
+	}
 }
 
 /* Print the order in one file for each GPU and also print in a tex file the coordinate for 2D matrix */
@@ -2216,7 +2238,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		if (starpu_get_env_number_default("PRINTF",0) == 1)
 		{
 			print_order_in_file_hfp(data->p);
-			print_data_gpu_in_file_hfp(data->p);
+			if (strcmp(appli,"starpu_sgemm_gemm") == 0) { visualisation_data_gpu_in_file_hfp_format_tex(data->p); }
 			//TODO corriger la manière dont je vide si il y a plus de 3 GPUs
 			FILE *f = fopen("Output_maxime/Task_order_effective_0", "w"); /* Just to empty it before */
 			fclose(f);
@@ -2307,6 +2329,8 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Create\n"); }
 	srandom(time(0)); /* If we need a random selection */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
+	
+	Ngpu = get_number_GPU();
 	
 	struct HFP_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
