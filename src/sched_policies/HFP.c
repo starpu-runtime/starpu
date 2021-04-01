@@ -685,7 +685,96 @@ int HFP_pointeurComparator ( const void * first, const void * second ) {
 
 void visualisation_tache_matrice_format_tex_HEFT()
 {
-	
+	int i, j, red, green, blue, x, y, gpu;
+	int tab_order[N][N];
+	int tab_gpu[N][N];
+	char *str1;
+	char *str2;
+	char *str3;
+	FILE * fcoordinate_order_last = fopen("Output_maxime/Data_coordinates_order_last_HEFT.tex", "w");
+	FILE *f_input = fopen("Output_maxime/Data_coordinates_order_last_HEFT.txt", "r");
+	fprintf(fcoordinate_order_last,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]\n\\centering\\begin{tabular}{|");
+	for (i = 0; i < N - 1; i++) 
+	{
+		fprintf(fcoordinate_order_last,"c|");
+	}
+	i = 0;
+	fprintf(fcoordinate_order_last,"c|}\n\\hline");
+	if (f_input != NULL && fcoordinate_order_last != NULL)
+    {
+//~ 2	1	0
+//~ 4	0	2
+//~ 2	4	1
+//~ 3	1	0
+//~ 4	1	2
+//~ 3	4	1
+//~ 3	0	0
+//~ 4	2	2
+//~ 4	4	1
+//~ void read_ints (const char* file_name)
+//~ {
+  //~ FILE* file = fopen (file_name, "r");
+  //~ int i = 0;
+
+  //~ fscanf (file, "%d", &i);    
+  while (!feof (f_input))
+    {  
+     
+      fscanf(f_input, "%d	%d	%d", &x, &y, &gpu);
+      printf("x = %d, y = %d\n", x, y);
+	tab_order[x][y] = i;
+	tab_gpu[x][y] = gpu;
+		i++;     
+    }
+			//~ while (fscanf(f_input, "%d	%d	%d", &x, &y, &gpu) == 1)
+			//~ {
+				//~ x = atoi(str1);
+				//~ y = atoi(str2);
+				//~ gpu = atoi(str3);
+				//~ printf("x = %d, y = %d\n", x, y);
+				//~ tab_order[x][y] = i;
+				//~ tab_gpu[x][y] = gpu;
+				//~ i++;
+			//~ }
+			//~ if (feof(f_input)) 
+			//~ {
+				
+			//~ }
+			//~ else
+			//~ {
+			  //~ printf("Error while reading in visualisation_tache_matrice_format_tex_HEFT()\n");
+			//~ }
+    }
+    else
+    {
+        printf("Impossible d'ouvrir au moins 1 fichier dans visualisation_tache_matrice_format_tex_HEFT()\n"); 
+    }
+    for (i = 0; i < N; i++) 
+	{ 
+		for (j = 0; j < N; j++) 
+		{
+			printf("%d %d\n", tab_order[i][j], tab_gpu[i][j]);
+		}
+	}
+	for (i = 0; i < N; i++) 
+	{ 
+		for (j = 0; j < N - 1; j++) 
+		{
+			if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
+			else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
+			else { rgb(tab_gpu[j][i], &red, &green, &blue); }
+			fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_order[j][i]);
+		}
+		if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
+		else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
+		else { rgb(tab_gpu[j][i], &red, &green, &blue); }
+		fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_order[j][i]); 
+		fprintf(fcoordinate_order_last," \\\\"); fprintf(fcoordinate_order_last,"\\hline");
+	}
+	fprintf(fcoordinate_order_last, "\\end{tabular}\n\\caption{Task's processing order}\\end{figure}\n\n\\end{document}"); 
+
+	fclose(fcoordinate_order_last);  
+	fclose(f_input);
 }
 
 void print_effective_order_in_file (struct starpu_task *task)
