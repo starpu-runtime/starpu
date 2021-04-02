@@ -1674,10 +1674,38 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	fclose(f_3);	
 	//TODO : remplacer le 3 par nb_gpu ici
 	//TODO tester différents paramètres de hmetis et donc modifier ici
-	int cr = system("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/shmetis Output_maxime/input_hMETIS.txt 3 1");
+	f = fopen("Output_maxime/hMETIS_parameters.txt", "r");
+	
+	//~ Nparts : nombre de paquets.
+	//~ UBfactor : 1 - 49, a tester. Déséquilibre autorisé.
+	//~ Nruns : 1 - inf, a tester. 1 par défaut. Plus on test plus ce sera bon mais ce sera plus long.
+	//~ CType : 1 - 5, a tester. 1 par défaut.
+	//~ RType :  1 - 3, a tester. 1 par défaut.
+	//~ Vcycle : 1. Sélectionne la meilleure des Nruns. 
+	//~ Reconst : 0 - 1, a tester. 0 par défaut. Normalement ca ne devrait rien changer car ca joue juste sur le fait de reconstruire les hyperedges ou non.
+	//~ dbglvl : 0. Sert à montrer des infos de debug; Si besoin mettre (1, 2 ou 4).
+
+	int size = strlen("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis Output_maxime/input_hMETIS.txt_");
+	char buffer[100];
+    while (fscanf(f, "%s", buffer) == 1)
+    {
+        printf("Line read = %s\n", buffer);
+        size += sizeof(buffer);
+    }
+    rewind(f);
+    char *system_call = (char *)malloc(size);
+    strcpy(system_call, "../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis Output_maxime/input_hMETIS.txt");
+    while (fscanf(f, "%s", buffer)== 1)
+    {
+		strcat(system_call, " ");
+        strcat(system_call, buffer);
+    }
+	printf("system call will be: %s\n", system_call);
+	//~ int cr = system("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/shmetis Output_maxime/input_hMETIS.txt 3 1");
+	int cr = system(system_call);
 	if (cr != 0) 
 	{
-        printf("Impossible de lancer la commande\n");
+        printf("Error when calling system(../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis\n");
         exit(0);
     }
     starpu_task_list_init(&p->temp_pointer_1->refused_fifo_list);
@@ -1689,7 +1717,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	p->first_link = p->temp_pointer_1;
 	char str[2];
 	sprintf(str, "%d", nb_gpu);
-	int size = strlen("Output_maxime/input_hMETIS.txt.part.") + strlen(str);
+	size = strlen("Output_maxime/input_hMETIS.txt.part.") + strlen(str);
 	char *path2 = (char *)malloc(size);
 	strcpy(path2, "Output_maxime/input_hMETIS.txt.part.");
 	strcat(path2, str);
@@ -1712,7 +1740,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		p->temp_pointer_1->nb_task_in_sub_list++;
 	}
 	fclose(f_2);
-	print_packages_in_terminal(p, 0);
+	//~ print_packages_in_terminal(p, 0);
 	/* Apply HFP on each package if we have the right option */
 	if (starpu_get_env_number_default("HMETIS",0) == 2)
 	{
@@ -2232,6 +2260,23 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		 * Only with MULTIGPU = 2 because if we don't do load balance there is no point in re-applying HFP.
 		 */
 		 if (starpu_get_env_number_default("MULTIGPU",0) == 3 || starpu_get_env_number_default("MULTIGPU",0) == 5) {
+			 
+			 data->p->temp_pointer_1 = data->p->first_link;
+	struct starpu_task *task;
+	FILE *f = fopen("Output_maxime/temp.txt", "w");
+	while (data->p->temp_pointer_1 != NULL) 
+	{
+		
+		for (task = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
+		{
+			fprintf(f, "%p\n",task);
+		}
+		data->p->temp_pointer_1 = data->p->temp_pointer_1->next;	
+	}
+	fclose(f);
+			 
+			 
+			 
 			 data->p->temp_pointer_1 = data->p->first_link;
 			 while (data->p->temp_pointer_1 != NULL) { 
 				data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
