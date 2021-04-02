@@ -32,7 +32,7 @@ sudo make -j4
 		#~ bash Scripts_maxime/Matrice3D/GF_NT_M3D_BW350_CM500.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8
 		#~ bash Scripts_maxime/Matrice3D/GF_NT_M3D_BW350_CM500_DMDARFIXED_MODULARHEFT.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8
 	#### Multi GPU ####
-		#~ bash Scripts_maxime/Matrice3D/GF_NT_M3D_3GPU_BW1050_CM250.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 7
+		bash Scripts_maxime/Matrice3D/GF_NT_M3D_3GPU_BW1050_CM250.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8
 	#### Difference between orders ####
 		#~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice3D Diff_HFP_HEFT_BW350_CM500
 	#### Varying threshold ####
@@ -51,8 +51,12 @@ sudo make -j4
 #~ bash Scripts_maxime/CMvsRCM/GF_NT_CMvsRCM_CHO.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 7
 
 #### hMETIS ####
-	bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne UBfactor
-	
+	#~ bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Matrice_ligne UBfactor
+	#~ bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice_ligne Nruns
+	#~ bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice_ligne CType
+	#~ bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 3 Matrice_ligne RType
+	#~ bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne Reconst
+	#~ bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 4 Matrice_ligne Vcycle
 
 end=`date +%s`
 runtime=$((end-start))
