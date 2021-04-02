@@ -1689,7 +1689,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	char buffer[100];
     while (fscanf(f, "%s", buffer) == 1)
     {
-        printf("Line read = %s\n", buffer);
+        //~ printf("Line read = %s\n", buffer);
         size += sizeof(buffer);
     }
     rewind(f);
@@ -1700,7 +1700,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		strcat(system_call, " ");
         strcat(system_call, buffer);
     }
-	printf("system call will be: %s\n", system_call);
+	printf("System call will be: %s\n", system_call);
 	//~ int cr = system("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/shmetis Output_maxime/input_hMETIS.txt 3 1");
 	int cr = system(system_call);
 	if (cr != 0) 
