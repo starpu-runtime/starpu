@@ -57,5 +57,5 @@ done
 # Tracage des GFlops
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
 ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER:0}.txt
-Rscript ${PATH_R}/R/ScriptR/${DOSSIER}/GF_TH_MC_LRU_BW1050_CM250_MULTIGPU.R ${PATH_R}/R/Data/${DOSSIER}/GF_TH_MC_LRU_BW1050_CM250_MULTIGPU.txt
+Rscript ${PATH_R}/R/ScriptR/GF_TH/GF_TH_BW1050_CM250_MULTIGPU.R ${PATH_R}/R/Data/${DOSSIER}/GF_TH_MC_LRU_BW1050_CM250_MULTIGPU.txt
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/GF_TH_MC_LRU_BW1050_CM250_MULTIGPU.pdf

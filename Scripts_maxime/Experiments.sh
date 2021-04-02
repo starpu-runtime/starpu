@@ -24,7 +24,7 @@ sudo make -j4
 	#### HMETIS ####
 		#~ bash Scripts_maxime/Matrice_ligne/GF_NT_MC_LRU_BW1050_CM250_MULTIGPU_HMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 9
 	#### Varying threshold ####
-		bash Scripts_maxime/Matrice_ligne/GF_TH_MC_LRU_BW1050_CM250_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
+		#~ bash Scripts_maxime/Matrice_ligne/GF_TH_MC_LRU_BW1050_CM250_MULTIGPU.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
 	
 #### Matrice 3D ####
 	#### 1 GPU ####
@@ -35,6 +35,8 @@ sudo make -j4
 		#~ bash Scripts_maxime/Matrice3D/GF_NT_M3D_3GPU_BW1050_CM250.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 7
 	#### Difference between orders ####
 		#~ bash Scripts_maxime/get_difference_between_orders.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 20 Matrice3D Diff_HFP_HEFT_BW350_CM500
+	#### Varying threshold ####
+		#~ bash Scripts_maxime/Matrice3D/GF_TH_M3D_3GPU_BW1050_CM250.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8
 
 #### Cholesky ####
 	#~ bash Scripts_maxime/Cholesky/GF_M_CHO_N=20_BW350.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 9
@@ -47,6 +49,10 @@ sudo make -j4
 
 #~ bash Scripts_maxime/CMvsRCM/GF_NT_CMvsRCM_MC.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10
 #~ bash Scripts_maxime/CMvsRCM/GF_NT_CMvsRCM_CHO.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 7
+
+#### hMETIS ####
+	bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne UBfactor
+	
 
 end=`date +%s`
 runtime=$((end-start))
