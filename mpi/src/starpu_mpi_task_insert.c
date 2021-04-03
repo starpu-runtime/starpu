@@ -781,6 +781,7 @@ static struct starpu_perfmodel dumb_model =
 	.cost_function	= cost_function
 };
 
+/* FIXME: we can probably use STARPU_NOWHERE for these? */
 static
 struct starpu_codelet _starpu_mpi_redux_data_read_cl =
 {
