@@ -1400,12 +1400,13 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	/*
 	 * This is particularly important when
 	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
-	 * wouldn't even re-use these allocations!
+	 * wouldn't even ever re-use these allocations!
 	 */
 	if (handle->ops->dontcache
-			|| !_starpu_memory_manager_get_global_memory_size(node)
+			|| (starpu_node_get_kind(node) == STARPU_CPU_RAM &&
+			    !_starpu_malloc_willpin_on_node(node))
 #ifndef STARPU_USE_ALLOCATION_CACHE
-			|| starpu_node_get_kind(node) == STARPU_CPU_RAM
+			|| !_starpu_memory_manager_get_global_memory_size(node)
 #endif
 			)
 	{
