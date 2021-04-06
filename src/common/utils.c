@@ -623,7 +623,7 @@ char *starpu_getenv(const char *str)
 	return getenv(str);
 }
 
-int _strings_ncmp(const char *strings[], const char *str)
+static int _strings_ncmp(const char *strings[], const char *str)
 {
 	int pos = 0;
 	while (strings[pos])

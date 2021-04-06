@@ -37,8 +37,8 @@
 #define _STARPU_INITIAL_THREAD_STACKSIZE 2097152
 
 static struct starpu_omp_global _global_state;
-starpu_pthread_key_t omp_thread_key;
-starpu_pthread_key_t omp_task_key;
+starpu_pthread_key_t _starpu_omp_thread_key;
+starpu_pthread_key_t _starpu_omp_task_key;
 
 struct starpu_omp_global *_starpu_omp_global_state = NULL;
 double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get_wtick */
@@ -60,24 +60,24 @@ static void starpu_omp_task_preempt(void);
 
 struct starpu_omp_thread *_starpu_omp_get_thread(void)
 {
-	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
+	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
 	return thread;
 }
 
 static inline void _starpu_omp_set_thread(struct starpu_omp_thread *thread)
 {
-	STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, thread);
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_thread_key, thread);
 }
 
 struct starpu_omp_task *_starpu_omp_get_task(void)
 {
-	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+	struct starpu_omp_task *task = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_task_key);
 	return task;
 }
 
 static inline void _starpu_omp_set_task(struct starpu_omp_task *task)
 {
-	STARPU_PTHREAD_SETSPECIFIC(omp_task_key, task);
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_task_key, task);
 }
 
 struct starpu_omp_region *_starpu_omp_get_region_at_level(int level)
@@ -915,8 +915,8 @@ void _starpu_omp_dummy_init(void)
 {
 	if (_starpu_omp_global_state != &_global_state)
 	{
-		STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
-		STARPU_PTHREAD_KEY_CREATE(&omp_task_key, NULL);
+		STARPU_PTHREAD_KEY_CREATE(&_starpu_omp_thread_key, NULL);
+		STARPU_PTHREAD_KEY_CREATE(&_starpu_omp_task_key, NULL);
 	}
 }
 
@@ -927,8 +927,8 @@ void _starpu_omp_dummy_shutdown(void)
 {
 	if (_starpu_omp_global_state != &_global_state)
 	{
-		STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
-		STARPU_PTHREAD_KEY_DELETE(omp_task_key);
+		STARPU_PTHREAD_KEY_DELETE(_starpu_omp_thread_key);
+		STARPU_PTHREAD_KEY_DELETE(_starpu_omp_task_key);
 	}
 }
 
@@ -953,8 +953,8 @@ int starpu_omp_init(void)
 
 	_starpu_omp_global_state = &_global_state;
 
-	STARPU_PTHREAD_KEY_CREATE(&omp_thread_key, NULL);
-	STARPU_PTHREAD_KEY_CREATE(&omp_task_key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&_starpu_omp_thread_key, NULL);
+	STARPU_PTHREAD_KEY_CREATE(&_starpu_omp_task_key, NULL);
 	_global_state.initial_device = create_omp_device_struct();
 	_global_state.initial_region = create_omp_region_struct(NULL, _global_state.initial_device);
 	_global_state.initial_thread = create_omp_thread_struct(_global_state.initial_region);
@@ -1022,8 +1022,8 @@ void starpu_omp_shutdown(void)
 	_starpu_spin_unlock(&_global_state.hash_workers_lock);
 	_starpu_spin_destroy(&_global_state.hash_workers_lock);
 	_starpu_omp_environment_exit();
-	STARPU_PTHREAD_KEY_DELETE(omp_task_key);
-	STARPU_PTHREAD_KEY_DELETE(omp_thread_key);
+	STARPU_PTHREAD_KEY_DELETE(_starpu_omp_task_key);
+	STARPU_PTHREAD_KEY_DELETE(_starpu_omp_thread_key);
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_deinit_late();
 #endif

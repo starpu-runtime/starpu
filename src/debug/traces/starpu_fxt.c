@@ -120,7 +120,7 @@ struct task_info
 	int mpi_rank;
 };
 
-struct task_info *tasks_info;
+static struct task_info *tasks_info;
 
 static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 {
@@ -300,7 +300,7 @@ struct data_info
 	long mpi_tag;
 };
 
-struct data_info *data_info;
+static struct data_info *data_info;
 
 static struct data_info *get_data(unsigned long handle, int mpi_rank)
 {
@@ -600,7 +600,7 @@ static char *scheduler_container_alias(char *output, int len, const char *prefix
 
 static int nworkers = 0;
 
-struct worker_entry
+static struct worker_entry
 {
 	UT_hash_handle hh;
 	unsigned long tid;
@@ -4832,7 +4832,7 @@ struct parse_task
 
 static struct parse_task tasks[STARPU_NMAXWORKERS];
 
-struct starpu_data_trace_kernel
+static struct starpu_data_trace_kernel
 {
 	UT_hash_handle hh;
 	char *name;

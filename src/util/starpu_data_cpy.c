@@ -79,7 +79,7 @@ static void common_data_cpy_func(void *descr[], void *cl_arg)
 
 }
 
-void mp_cpy_kernel(void *descr[], void *cl_arg)
+static void mp_cpy_kernel(void *descr[], void *cl_arg)
 {
 	unsigned interface_id = *(unsigned *)cl_arg;
 
@@ -98,7 +98,7 @@ void mp_cpy_kernel(void *descr[], void *cl_arg)
 
 }
 
-struct starpu_perfmodel copy_model =
+static struct starpu_perfmodel copy_model =
 {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "starpu_data_cpy"

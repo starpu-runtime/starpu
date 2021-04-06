@@ -119,7 +119,7 @@ static struct sched_component_list helper_make_scheduler(struct starpu_sched_tre
 	return l;
 }
 /* return the firt component in prefix order such as component->obj == obj, or NULL */
-struct starpu_sched_component * _find_sched_component_with_obj(struct starpu_sched_component * component, hwloc_obj_t obj)
+static struct starpu_sched_component * _find_sched_component_with_obj(struct starpu_sched_component * component, hwloc_obj_t obj)
 {
 	if(component == NULL)
 		return NULL;

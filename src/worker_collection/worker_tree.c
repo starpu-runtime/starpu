@@ -356,7 +356,7 @@ static void tree_init_iterator_for_parallel_tasks(struct starpu_worker_collectio
 	}
 }
 
-struct starpu_worker_collection worker_tree =
+struct starpu_worker_collection starpu_worker_tree =
 {
 	.has_next = tree_has_next,
 	.get_next = tree_get_next,

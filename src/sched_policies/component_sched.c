@@ -216,7 +216,7 @@ void starpu_sched_component_destroy_rec(struct starpu_sched_component * componen
 		starpu_sched_component_destroy(component);
 }
 
-void set_properties(struct starpu_sched_component * component)
+static void set_properties(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
 	component->properties = 0;

@@ -154,8 +154,8 @@ struct starpu_worker_collection
 	void (*init_iterator_for_parallel_tasks)(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it, struct starpu_task *task);
 };
 
-extern struct starpu_worker_collection worker_list;
-extern struct starpu_worker_collection worker_tree;
+extern struct starpu_worker_collection starpu_worker_list;
+extern struct starpu_worker_collection starpu_worker_tree;
 
 /**
    Return the number of workers (i.e. processing units executing

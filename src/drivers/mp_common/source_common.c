@@ -802,8 +802,8 @@ void _starpu_src_common_init_switch_env(unsigned this)
         save_thread_env[this].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
         save_thread_env[this].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
 #ifdef STARPU_OPENMP
-        save_thread_env[this].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
-        save_thread_env[this].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+        save_thread_env[this].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
+        save_thread_env[this].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_task_key);
 #endif
 }
 
@@ -813,16 +813,16 @@ static void _starpu_src_common_switch_env(unsigned old, unsigned new)
         save_thread_env[old].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
         save_thread_env[old].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
 #ifdef STARPU_OPENMP
-        save_thread_env[old].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
-        save_thread_env[old].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+        save_thread_env[old].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
+        save_thread_env[old].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_task_key);
 #endif
 
         _starpu_set_current_task(save_thread_env[new].current_task);
         STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_key, save_thread_env[new].current_worker);
         STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_set_key, save_thread_env[new].current_worker_set);
 #ifdef STARPU_OPENMP
-        STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, save_thread_env[new].current_omp_thread);
-        STARPU_PTHREAD_SETSPECIFIC(omp_task_key, save_thread_env[new].current_omp_task);
+        STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_thread_key, save_thread_env[new].current_omp_thread);
+        STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_task_key, save_thread_env[new].current_omp_task);
 #endif
 }
 #endif

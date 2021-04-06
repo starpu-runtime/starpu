@@ -109,18 +109,18 @@ static struct mpi_transfer *mpi_sends[STARPU_FXT_MAX_FILES] = {NULL};
 static struct mpi_transfer *mpi_recvs[STARPU_FXT_MAX_FILES] = {NULL};
 
 /* number of available slots in the lists  */
-unsigned mpi_sends_list_size[STARPU_FXT_MAX_FILES] = {0};
-unsigned mpi_recvs_list_size[STARPU_FXT_MAX_FILES] = {0};
+static unsigned mpi_sends_list_size[STARPU_FXT_MAX_FILES] = {0};
+static unsigned mpi_recvs_list_size[STARPU_FXT_MAX_FILES] = {0};
 
 /* number of slots actually used in the list  */
-unsigned mpi_sends_used[STARPU_FXT_MAX_FILES] = {0};
-unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
+static unsigned mpi_sends_used[STARPU_FXT_MAX_FILES] = {0};
+static unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
 
 /* number of slots already matched at the beginning of the list. This permits
  * going through the lists from the beginning to match each and every
  * transfer, thus avoiding a quadratic complexity. */
-unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
-unsigned mpi_sends_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
+static unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
+static unsigned mpi_sends_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio)
 {

@@ -34,7 +34,7 @@ static struct starpu_task * userchoice_pull_task(struct starpu_sched_component *
 	return starpu_sched_component_parents_pull_task(component, to);
 }
 
-int userchoice_can_pull(struct starpu_sched_component * component)
+static int userchoice_can_pull(struct starpu_sched_component * component)
 {
 	_STARPU_DISP("stage component is not supposed to be pull from...\n");
 	return starpu_sched_component_can_pull(component);

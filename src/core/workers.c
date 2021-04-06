@@ -108,7 +108,7 @@ static void global_knobs__get(const struct starpu_perf_knob * const knob, void *
 	}
 }
 
-void worker_knobs__set(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value)
+static void worker_knobs__set(const struct starpu_perf_knob * const knob, void *context, const struct starpu_perf_knob_value * const value)
 {
 	const unsigned workerid = *(unsigned *)context;
 	struct _starpu_worker * const worker = _starpu_get_worker_struct(workerid);
@@ -127,7 +127,7 @@ void worker_knobs__set(const struct starpu_perf_knob * const knob, void *context
 		abort();
 	}
 }
-void worker_knobs__get(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value)
+static void worker_knobs__get(const struct starpu_perf_knob * const knob, void *context,       struct starpu_perf_knob_value * const value)
 {
 	const unsigned workerid = *(unsigned *)context;
 	struct _starpu_worker * const worker = _starpu_get_worker_struct(workerid);
