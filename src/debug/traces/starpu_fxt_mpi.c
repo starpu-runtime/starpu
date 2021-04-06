@@ -106,18 +106,18 @@ static struct mpi_transfer *mpi_sends[MAX_MPI_NODES] = {NULL};
 static struct mpi_transfer *mpi_recvs[MAX_MPI_NODES] = {NULL};
 
 /* number of available slots in the lists  */
-unsigned mpi_sends_list_size[MAX_MPI_NODES] = {0};
-unsigned mpi_recvs_list_size[MAX_MPI_NODES] = {0};
+static unsigned mpi_sends_list_size[MAX_MPI_NODES] = {0};
+static unsigned mpi_recvs_list_size[MAX_MPI_NODES] = {0};
 
 /* number of slots actually used in the list  */
-unsigned mpi_sends_used[MAX_MPI_NODES] = {0};
-unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
+static unsigned mpi_sends_used[MAX_MPI_NODES] = {0};
+static unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
 
 /* number of slots already matched at the beginning of the list. This permits
  * going through the lists from the beginning to match each and every
  * transfer, thus avoiding a quadratic complexity. */
-unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
-unsigned mpi_sends_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
+static unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
+static unsigned mpi_sends_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid)
 {

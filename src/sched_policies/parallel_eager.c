@@ -30,7 +30,7 @@ struct _starpu_peager_common_data
 	int ref_count;
 };
 
-struct _starpu_peager_common_data *_peager_common_data = NULL;
+static struct _starpu_peager_common_data *_peager_common_data = NULL;
 
 struct _starpu_peager_data
 {

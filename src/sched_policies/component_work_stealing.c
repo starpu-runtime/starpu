@@ -189,7 +189,7 @@ static struct starpu_task * pull_task(struct starpu_sched_component * component,
 		return NULL;
 }
 
-double _ws_estimated_end(struct starpu_sched_component * component)
+static double _ws_estimated_end(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(starpu_sched_component_is_work_stealing(component));
 	struct _starpu_component_work_stealing_data * wsd = component->data;
@@ -211,7 +211,7 @@ double _ws_estimated_end(struct starpu_sched_component * component)
 	return (sum_start + sum_len) / nb_workers;
 }
 
-double _ws_estimated_load(struct starpu_sched_component * component)
+static double _ws_estimated_load(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(starpu_sched_component_is_work_stealing(component));
 	struct _starpu_component_work_stealing_data * wsd = component->data;
@@ -326,7 +326,7 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 }
 
 
-void _ws_add_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
+static void _ws_add_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
 {
 	struct _starpu_component_work_stealing_data * wsd = component->data;
 	starpu_sched_component_add_child(component, child);
@@ -347,7 +347,7 @@ void _ws_add_child(struct starpu_sched_component * component, struct starpu_sche
 	wsd->mutexes[component->nchildren - 1] = mutex;
 }
 
-void _ws_remove_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
+static void _ws_remove_child(struct starpu_sched_component * component, struct starpu_sched_component * child)
 {
 	struct _starpu_component_work_stealing_data * wsd = component->data;
 
@@ -374,7 +374,7 @@ void _ws_remove_child(struct starpu_sched_component * component, struct starpu_s
 	}
 }
 
-void _work_stealing_component_deinit_data(struct starpu_sched_component * component)
+static void _work_stealing_component_deinit_data(struct starpu_sched_component * component)
 {
 	struct _starpu_component_work_stealing_data * wsd = component->data;
 	free(wsd->per_worker);

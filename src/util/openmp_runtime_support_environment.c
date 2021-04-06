@@ -112,7 +112,7 @@ static int read_int_var(const char *str, int *dst)
 	return 1;
 }
 
-int _strings_cmp(const char *strings[], const char *str)
+static int _strings_cmp(const char *strings[], const char *str)
 {
 	int mode = 0;
 	while (strings[mode])

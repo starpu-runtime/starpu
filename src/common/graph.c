@@ -37,16 +37,16 @@ static starpu_pthread_rwlock_t graph_lock;
 int _starpu_graph_record;
 
 /* This list contains all nodes without incoming dependency */
-struct _starpu_graph_node_multilist_top top;
+static struct _starpu_graph_node_multilist_top top;
 /* This list contains all nodes without outgoing dependency */
-struct _starpu_graph_node_multilist_bottom bottom;
+static struct _starpu_graph_node_multilist_bottom bottom;
 /* This list contains all nodes */
-struct _starpu_graph_node_multilist_all all;
+static struct _starpu_graph_node_multilist_all all;
 
 /* Protects the dropped list, always taken before graph lock */
 static starpu_pthread_mutex_t dropped_lock;
 /* This list contains all dropped nodes, i.e. the job terminated by the corresponding node is still int he graph */
-struct _starpu_graph_node_multilist_dropped dropped;
+static struct _starpu_graph_node_multilist_dropped dropped;
 
 void _starpu_graph_init(void)
 {

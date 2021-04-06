@@ -35,13 +35,13 @@ int main()
         starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs, ncpus);
 
 	struct starpu_worker_collection *co = (struct starpu_worker_collection*)malloc(sizeof(struct starpu_worker_collection));
-	co->has_next = worker_list.has_next;
-	co->get_next = worker_list.get_next;
-	co->add = worker_list.add;
-	co->remove = worker_list.remove;
-	co->init = worker_list.init;
-	co->deinit = worker_list.deinit;
-	co->init_iterator = worker_list.init_iterator;
+	co->has_next = starpu_worker_list.has_next;
+	co->get_next = starpu_worker_list.get_next;
+	co->add = starpu_worker_list.add;
+	co->remove = starpu_worker_list.remove;
+	co->init = starpu_worker_list.init;
+	co->deinit = starpu_worker_list.deinit;
+	co->init_iterator = starpu_worker_list.init_iterator;
 	co->type = STARPU_WORKER_LIST;
 
 	FPRINTF(stderr, "ncpus %u\n", ncpus);

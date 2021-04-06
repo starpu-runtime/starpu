@@ -445,7 +445,7 @@ double starpu_task_bundle_expected_data_transfer_time(starpu_task_bundle_t bundl
 
 				/* Insert the handle in the sorted list in case
 				 * it's not already in that list. */
-				_insertion_handle_sorted(&handles, handle, mode);
+				_starpu_insertion_handle_sorted(&handles, handle, mode);
 			}
 		}
 

@@ -75,7 +75,7 @@ struct composed_component
 /* this function actualy build the composed component data by changing the list of
  * (component_create_fun, arg_create_fun) into a tree where all components have 1 childs
  */
-struct composed_component create_composed_component(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe * recipe
+static struct composed_component create_composed_component(struct starpu_sched_tree *tree, struct starpu_sched_component_composed_recipe * recipe
 #ifdef STARPU_HAVE_HWLOC
 						    ,hwloc_obj_t obj
 #endif
@@ -121,7 +121,7 @@ static int composed_component_push_task(struct starpu_sched_component * componen
 	return starpu_sched_component_push_task(component,c->top,task);
 }
 
-struct starpu_task * composed_component_pull_task(struct starpu_sched_component *component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
+static struct starpu_task * composed_component_pull_task(struct starpu_sched_component *component, struct starpu_sched_component * to STARPU_ATTRIBUTE_UNUSED)
 {
 	struct composed_component *c = component->data;
 	struct starpu_task *task;
@@ -145,7 +145,7 @@ struct starpu_task * composed_component_pull_task(struct starpu_sched_component 
 	return task;
 }
 
-double composed_component_estimated_load(struct starpu_sched_component * component)
+static double composed_component_estimated_load(struct starpu_sched_component * component)
 {
 	struct composed_component * c = component->data;
 	return c->top->estimated_load(c->top);
@@ -185,7 +185,7 @@ static void composed_component_notify_change_workers(struct starpu_sched_compone
 	}
 }
 
-void composed_component_deinit_data(struct starpu_sched_component * _component)
+static void composed_component_deinit_data(struct starpu_sched_component * _component)
 {
 	struct composed_component *c = _component->data;
 	c->bottom->children = NULL;
