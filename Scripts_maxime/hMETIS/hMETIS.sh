@@ -1,5 +1,7 @@
 #!/usr/bin/bash
 #bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne UBfactor
+#bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne Workingset
+#bash Scripts_maxime/hMETIS/hMETIS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice3D Workingset
 
 	#~ //~ Nparts : nombre de paquets.
 	#~ //~ UBfactor : 1 - 49, a tester. Déséquilibre autorisé.
@@ -136,9 +138,50 @@ if [ $DOSSIER = "Matrice_ligne" ]
 			STARPU_SCHED=HFP HMETIS=2 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=1050 STARPU_LIMIT_CUDA_MEM=250 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=3 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*40)) -nblocks 40 -iter 1 | tail -n 1 >> ${FICHIER_RAW}
 		done
 	fi
+	if [ $MODEL = "Workingset" ]
+	then
+		START_X=0
+		ECHELLE_X=5
+		echo "############## HMETIS Working set ##############"
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			do 
+			N=$((START_X+i*ECHELLE_X))
+			echo "3 1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
+			STARPU_SCHED=HFP HMETIS=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=1050 STARPU_LIMIT_CUDA_MEM=250 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=3 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW}
+		done
+		echo "############## HMETIS Working set + HFP ##############"
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			do 
+			N=$((START_X+i*ECHELLE_X))
+			echo "3 1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
+			STARPU_SCHED=HFP HMETIS=2 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=1050 STARPU_LIMIT_CUDA_MEM=250 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=3 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW}
+		done
+	fi
+fi
+if [ $DOSSIER = "Matrice3D" ]
+	then
+	if [ $MODEL = "Workingset" ]
+	then
+		START_X=0
+		ECHELLE_X=5
+		echo "############## HMETIS Working set ##############"
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			do 
+			N=$((START_X+i*ECHELLE_X))
+			echo "3 1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
+			STARPU_SCHED=HFP HMETIS=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=1050 STARPU_LIMIT_CUDA_MEM=250 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=3 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW}		
+		done
+		echo "############## HMETIS Working set + HFP ##############"
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			do 
+			N=$((START_X+i*ECHELLE_X))
+			echo "3 1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
+			STARPU_SCHED=HFP HMETIS=2 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=1050 STARPU_LIMIT_CUDA_MEM=250 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=3 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW}		
+		done
+	fi
 fi
 # Tracage des GFlops
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
 ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/hMETIS/GF_${MODEL}.txt
-Rscript ${PATH_R}/R/ScriptR/hMETIS/hMETIS.R ${PATH_R}/R/Data/${DOSSIER}/hMETIS/GF_${MODEL}.txt ${MODEL}
+Rscript ${PATH_R}/R/ScriptR/hMETIS/hMETIS.R ${PATH_R}/R/Data/${DOSSIER}/hMETIS/GF_${MODEL}.txt ${MODEL} ${DOSSIER}
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/hMETIS/GF_${MODEL}.pdf
