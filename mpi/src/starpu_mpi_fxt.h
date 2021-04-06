@@ -77,8 +77,8 @@ extern "C"
 } while (0)
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(dest, data_tag, size)	\
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
-#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(type, dest, data_tag, size, jobid, handle, prio)	\
-	FUT_FULL_PROBE8(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_END, (type), (dest), (data_tag), (size), (jobid), (handle), (prio), _starpu_gettid());
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(type, req, prio)	\
+	FUT_FULL_PROBE8(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_END, (type), (req)->node_tag.node.rank, (req)->node_tag.data_tag, starpu_data_get_size((req)->data_handle), (req)->pre_sync_jobid, (req)->data_handle, (prio), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(src, data_tag)	\
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(src, data_tag)	\
@@ -95,9 +95,9 @@ extern "C"
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_COMPLETE_END, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_COMPLETE_END(type, rank, data_tag)		\
 	if (type == RECV_REQ) { _STARPU_MPI_TRACE_IRECV_COMPLETE_END((rank), (data_tag)); } else if (type == SEND_REQ) { _STARPU_MPI_TRACE_ISEND_COMPLETE_END((rank), (data_tag), 0); }
-#define _STARPU_MPI_TRACE_TERMINATED(req, rank, data_tag)		\
-	if ((req)->request_type == RECV_REQ) FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_TERMINATED, (rank), (data_tag), (req)->post_sync_jobid, _starpu_gettid(), (req)->data_handle); else \
-	if ((req)->request_type == SEND_REQ) FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_TERMINATED, (rank), (data_tag), _starpu_gettid());
+#define _STARPU_MPI_TRACE_TERMINATED(req)		\
+	if ((req)->request_type == RECV_REQ) FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_TERMINATED, (req)->node_tag.node.rank, (req)->node_tag.data_tag, (req)->post_sync_jobid, _starpu_gettid(), (req)->data_handle); else \
+	if ((req)->request_type == SEND_REQ) FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_TERMINATED, (req)->node_tag.node.rank, (req)->node_tag.data_tag, _starpu_gettid());
 #define _STARPU_MPI_TRACE_SLEEP_BEGIN()	\
 	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_SLEEP_BEGIN, _starpu_gettid());
 #define _STARPU_MPI_TRACE_SLEEP_END()	\
@@ -154,13 +154,13 @@ extern "C"
 #define _STARPU_MPI_TRACE_STOP(a, b)				do {} while(0);
 #define _STARPU_MPI_TRACE_BARRIER(a, b, c, d)			do {} while(0);
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(a, b, c)		do {} while(0);
-#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(a, b, c, d, e, f, g)	do {} while(0);
+#define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(a, b, c)	do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(a, b)		do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(a, b)		do {} while(0);
 #define _STARPU_MPI_TRACE_ISEND_COMPLETE_BEGIN(a, b, c)		do {} while(0);
 #define _STARPU_MPI_TRACE_COMPLETE_BEGIN(a, b, c)		do {} while(0);
 #define _STARPU_MPI_TRACE_COMPLETE_END(a, b, c)			do {} while(0);
-#define _STARPU_MPI_TRACE_TERMINATED(a, b, c)			do {} while(0);
+#define _STARPU_MPI_TRACE_TERMINATED(a)			do {} while(0);
 #define _STARPU_MPI_TRACE_ISEND_COMPLETE_END(a, b, c)		do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_COMPLETE_BEGIN(a, b)		do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_COMPLETE_END(a, b)		do {} while(0);

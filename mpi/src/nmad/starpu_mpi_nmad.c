@@ -112,8 +112,7 @@ static void _starpu_mpi_isend_known_datatype(struct _starpu_mpi_req *req)
 	nm_sr_send_set_priority(req->backend->session, &req->backend->data_request, req->prio);
 
 	// this trace event is the start of the communication link:
-	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req->node_tag.node.rank, req->node_tag.data_tag,
-			starpu_data_get_size(req->data_handle), req->pre_sync_jobid, req->data_handle, req->prio);
+	_STARPU_MPI_TRACE_ISEND_SUBMIT_END(_STARPU_MPI_FUT_POINT_TO_POINT_SEND, req, req->prio);
 
 	if (req->sync == 0)
 	{
@@ -391,7 +390,7 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 	}
 
 	// for recv requests, this event is the end of the communication link:
-	_STARPU_MPI_TRACE_TERMINATED(req, req->node_tag.node.rank, req->node_tag.data_tag);
+	_STARPU_MPI_TRACE_TERMINATED(req);
 
 	_starpu_mpi_release_req_data(req);
 
