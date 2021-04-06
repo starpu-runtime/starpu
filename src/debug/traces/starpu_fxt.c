@@ -1548,7 +1548,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
-	char *name = get_fxt_string(ev, 1);
+	char *name = get_fxt_string(ev, 2);
 	task->model_name = strdup(name);
 }
 
