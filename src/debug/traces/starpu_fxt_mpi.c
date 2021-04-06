@@ -38,6 +38,7 @@ LIST_TYPE(mpi_transfer,
 	unsigned long handle;
 	unsigned type;
 	int prio;
+	int numa_node;
 );
 
 struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in, int *key, int *rank)
@@ -134,7 +135,7 @@ static unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
  * transfer, thus avoiding a quadratic complexity. */
 static unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio, int numa_node)
 {
 	STARPU_ASSERT(src >= 0);
 	if (src >= STARPU_FXT_MAX_FILES)
@@ -165,9 +166,10 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 	mpi_sends[src][slot].handle = handle;
 	mpi_sends[src][slot].type = type;
 	mpi_sends[src][slot].prio = prio;
+	mpi_sends[src][slot].numa_node = numa_node;
 }
 
-void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle)
+void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle, int numa_node)
 {
 	if (dst >= STARPU_FXT_MAX_FILES)
 		return;
@@ -194,6 +196,7 @@ void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst,
 	mpi_recvs[dst][slot].date = date;
 	mpi_recvs[dst][slot].jobid = jobid;
 	mpi_recvs[dst][slot].handle = handle;
+	mpi_recvs[dst][slot].numa_node = numa_node;
 }
 
 static
@@ -312,6 +315,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 		long mpi_tag = cur->mpi_tag;
 		size_t size = cur->size;
 		unsigned long send_handle = cur->handle;
+		int send_numa_node = cur->numa_node;
 
 		if (dst < STARPU_FXT_MAX_FILES)
 			match = try_to_match_send_transfer(src, dst, mpi_tag);
@@ -322,6 +326,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 		{
 			float end_date = match->date;
 			unsigned long recv_handle = match->handle;
+			int recv_numa_node = match->numa_node;
 			struct mpi_transfer *prev;
 
 			if (end_date <= start_date)
@@ -393,6 +398,8 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 				fprintf(out_comms_file, "Size: %lu\n", (unsigned long)size);
 				fprintf(out_comms_file, "Priority: %d\n", cur->prio);
 				fprintf(out_comms_file, "Type: %s\n", get_mpi_type_str(cur->type));
+				fprintf(out_comms_file, "SendNumaNode: %d\n", send_numa_node);
+				fprintf(out_comms_file, "RecvNumaNode: %d\n", recv_numa_node);
 				fprintf(out_comms_file, "\n");
 			}
 		}

@@ -684,6 +684,19 @@ do {									\
         FUT_RAW_ALWAYS_PROBE8(FUT_CODE(CODE, 8),P1,P2,P3,P4,P5,P6,P7,P8); \
 } while (0)
 
+#ifndef FUT_RAW_ALWAYS_PROBE9
+#define FUT_RAW_ALWAYS_PROBE9(CODE,P1,P2,P3,P4,P5,P6,P7,P8,P9) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(9)); \
+		*(__args++)=(unsigned long)(P1);*(__args++)=(unsigned long)(P2);*(__args++)=(unsigned long)(P3);*(__args++)=(unsigned long)(P4);*(__args++)=(unsigned long)(P5);*(__args++)=(unsigned long)(P6);*(__args++)=(unsigned long)(P7);*(__args++)=(unsigned long)(P8);*(__args++)=(unsigned long)(P9);				\
+		fut_commitstampedbuffer(FUT_SIZE(9)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE9(CODE,P1,P2,P3,P4,P5,P6,P7,P8,P9) do { \
+        FUT_RAW_ALWAYS_PROBE9(FUT_CODE(CODE, 9),P1,P2,P3,P4,P5,P6,P7,P8,P9); \
+} while (0)
+
 /* full probes */
 #ifndef FUT_FULL_PROBE0
 #define FUT_FULL_PROBE0(KEYMASK,CODE) do { \
@@ -753,6 +766,14 @@ do {									\
 #define FUT_FULL_PROBE8(KEYMASK,CODE,P1,P2,P3,P4,P5,P6,P7,P8) do { \
         if( KEYMASK & fut_active ) { \
                 FUT_RAW_ALWAYS_PROBE8(FUT_CODE(CODE, 8),P1,P2,P3,P4,P5,P6,P7,P8); \
+        } \
+} while(0)
+#endif
+
+#ifndef FUT_FULL_PROBE9
+#define FUT_FULL_PROBE9(KEYMASK,CODE,P1,P2,P3,P4,P5,P6,P7,P8,P9) do { \
+        if( KEYMASK & fut_active ) { \
+                FUT_RAW_ALWAYS_PROBE9(FUT_CODE(CODE, 9),P1,P2,P3,P4,P5,P6,P7,P8,P9); \
         } \
 } while(0)
 #endif

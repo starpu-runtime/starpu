@@ -215,6 +215,13 @@ void starpu_display_bindings(void);
 */
 int starpu_get_pu_os_index(unsigned logical_index);
 
+/**
+   Returns on which NUMA node (in logical numbering) the buffer targeted by \p
+   ptr is allocated.  If \c hwloc is not used or if there is no NUMA node, it
+   returns -1.
+*/
+int starpu_get_memory_location(void* ptr);
+
 #ifdef STARPU_HAVE_HWLOC
 /**
    Get the hwloc topology used by StarPU. One can use this pointer to get

@@ -65,6 +65,8 @@ New features:
   * Support for hierarchical tasks
   * Support mapping memory between CPU RAM and GPU RAM, instead of copying
     data.
+  * New function starpu_get_memory_location() and register in traces on which
+    NUMA node are buffers used for MPI.
 
 Small features:
   * New configure option --with-check-cflags to define flags for C,

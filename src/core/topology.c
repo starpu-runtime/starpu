@@ -1967,3 +1967,43 @@ unsigned _starpu_get_nhyperthreads()
 
 	return config->topology.nhwpus / config->topology.nhwworker[STARPU_CPU_WORKER][0];
 }
+
+int starpu_get_memory_location(void* ptr)
+{
+	if (ptr == NULL)
+	{
+		return -1;
+	}
+
+#ifdef STARPU_HAVE_HWLOC
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	struct _starpu_machine_topology *topology = &config->topology;
+
+	hwloc_bitmap_t set = hwloc_bitmap_alloc();
+	/* we check only where is located the first byte (checking the whole
+	 * buffer would require its size and the buffer can be spread accross
+	 * several NUMA nodes, so more complex to deal with */
+	int ret = hwloc_get_area_memlocation(topology->hwtopology, ptr, 1, set, 0);
+	if (ret != 0)
+	{
+		hwloc_bitmap_free(set);
+		return -1;
+	}
+
+	int id = hwloc_bitmap_first(set);
+	hwloc_bitmap_free(set);
+	hwloc_obj_t numa_node = hwloc_get_numanode_obj_by_os_index(topology->hwtopology, id);
+	if (numa_node)
+	{
+		return numa_node->logical_index;
+	}
+	else
+	{
+		// We can't find a matching NUMA node, this can happen on machine without NUMA node
+		return -1;
+	}
+#else
+	/* we could use move_pages() */
+	return -1;
+#endif
+}

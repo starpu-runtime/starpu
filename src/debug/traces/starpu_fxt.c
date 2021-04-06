@@ -3116,6 +3116,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	long jobid = ev->param[4];
 	unsigned long handle = ev->param[5];
 	int prio = ev->param[6];
+	int numa_node = ev->param[7];
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
@@ -3129,7 +3130,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle, type, prio);
+		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle, type, prio, numa_node);
 }
 
 static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3180,6 +3181,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 	int mpi_tag = ev->param[1];
 	long jobid = ev->param[2];
 	unsigned long handle = ev->param[4];
+	int numa_node = ev->param[5];
 	double date = get_event_time_stamp(ev, options);
 
 	if (options->file_rank < 0)
@@ -3191,7 +3193,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle);
+		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle, numa_node);
 }
 
 static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
