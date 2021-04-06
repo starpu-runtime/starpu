@@ -4199,7 +4199,7 @@ void starpu_fxt_options_init(struct starpu_fxt_options *options)
 	options->activity_path = "activity.data";
 }
 
-void _set_dir(char *dir, char **option)
+static void _set_dir(char *dir, char **option)
 {
 	if (*option)
 	{
