@@ -714,22 +714,23 @@ void visualisation_tache_matrice_format_tex(char *algo)
 	fprintf(fcoordinate_order_last,"c|}\n\\hline");
 	if (f_input != NULL && fcoordinate_order_last != NULL)
     {    
-  while (!feof (f_input))
-    {  
-     
-      if (fscanf(f_input, "%d	%d	%d", &x, &y, &gpu) != 1)
-      {
-		  //~ printf("error fscanf in visualisation_tache_matrice_format_tex_HEFT\n");
-	  }
-	tab_order[x][y] = i;
-	tab_gpu[x][y] = gpu;
-		i++;     
-    }
+		while (!feof (f_input))
+		{  
+		 
+		  if (fscanf(f_input, "%d	%d	%d", &x, &y, &gpu) != 1)
+		  {
+			  //~ printf("error fscanf in visualisation_tache_matrice_format_tex_HEFT\n");
+		  }
+			tab_order[x][y] = i;
+			tab_gpu[x][y] = gpu;
+			i++;     
+		}
     }
     else
     {
-        printf("Impossible d'ouvrir au moins 1 fichier dans visualisation_tache_matrice_format_tex_HEFT()\n"); 
+        printf("Impossible d'ouvrir au moins 1 fichier dans visualisation_tache_matrice_format_tex()\n"); 
     }
+    tab_order[x][y] = tab_order[x][y] - 1;
 	for (i = 0; i < N; i++) 
 	{ 
 		for (j = 0; j < N - 1; j++) 
@@ -881,12 +882,12 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to)
 			{  
 				//~ starpu_worker_get_memory_node(starpu_bitmap_first(&to->workers_in_ctx))));
 				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&to->children[i]->workers_in_ctx)), 0);
-				//~ printf("prefetch of %p on gpu %p\n", task, to->children[i]);
+				printf("prefetch of %p on gpu %p\n", task, to->children[i]);
 			}
 			else if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 2)
 			{  
 				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&to->children[i]->workers_in_ctx)), 0);
-				//~ printf("prefetch of %p on gpu %p\n", task, to->children[i]);
+				printf("prefetch of %p on gpu %p\n", task, to->children[i]);
 			}
 			else
 			{
