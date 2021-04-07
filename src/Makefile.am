@@ -410,4 +410,4 @@ dist-hook:
 		nm $$j | $(GREP) -e "U \($$look\)$$" && { echo $$j ; failed=1 ; } ; \
 	done ; \
 	[ $$failed == 0 ]
-	[ -z "$$(nm -n .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.so | grep -v " [Ua-z] " | grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|_fini\|_edata\|bss_start\|_end\)" )" ]
+	nm -n .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.so | grep -v " [Ua-z] " | grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|_fini\|_edata\|bss_start\|_end\)" | (! grep .)
