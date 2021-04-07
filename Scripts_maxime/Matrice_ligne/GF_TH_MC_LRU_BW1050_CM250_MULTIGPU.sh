@@ -5,8 +5,8 @@ export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 ulimit -S -s 5000000
 NB_ALGO_TESTE=7
 NB_TAILLE_TESTE=$3
-ECHELLE_X=30
-START_X=-30 
+ECHELLE_X=5
+START_X=-5
 FICHIER=GF_TH_MC_LRU_BW1050_CM250_MULTIGPU
 FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_3.txt
 DOSSIER=Matrice_ligne
