@@ -878,6 +878,10 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to)
 	
 	while (a->temp_pointer_1 != NULL) {
 		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
+			/* Putting in workerid the information of the gpu HFP choosed. then in helper_mct, we will use this information to influence
+			 * the expected time
+			 */
+			task->workerid = i;
 			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 1)
 			{  
 				//~ starpu_worker_get_memory_node(starpu_bitmap_first(&to->workers_in_ctx))));
