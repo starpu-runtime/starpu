@@ -25,8 +25,6 @@
 #include <common/thread.h>
 #include <starpu.h>
 
-#pragma GCC visibility push(hidden)
-
 #ifdef STARPU_SPINLOCK_CHECK
 
 /* We don't care about performance */
@@ -133,7 +131,5 @@ static inline int __starpu_spin_unlock(struct _starpu_spinlock *lock, const char
 	__starpu_spin_unlock(lock, __FILE__, __LINE__, __starpu_func__)
 
 #define STARPU_SPIN_MAXTRY 10 
-
-#pragma GCC visibility pop
 
 #endif // __STARPU_SPINLOCK_H__
