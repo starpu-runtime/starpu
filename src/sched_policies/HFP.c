@@ -42,6 +42,7 @@
 #define MODULAR_HEFT_HFP_MODE /* 0 we don't use heft, 1 we use starpu_prefetch_task_input_on_node_prio, 2 we use starpu_prefetch_task_input_on_node_prio. Put it at 1 or 2 if you use modular-heft-HFP, else it will crash. the 0 is just here so we don't do prefetch when we use regular HFP. If we do not use modular-heft-HFP, always put this environemment variable on 0. */
 #define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package */
 #define READY /* 0 we don't use ready in initialize_HFP_center_policy, 1 we do */
+#define PRINT3D /* 1 we print coordinates and visualize data. Neede to differentiate 2D from 3D */
 
 /* Other environmment variable you should use with HFP: 
  * STARPU_NTASKS_THRESHOLD=30  
@@ -1472,9 +1473,9 @@ void visualisation_data_gpu_in_file_hfp_format_tex (struct paquets *p)
 	int k = 0;
 	int red, green, blue;
 	int temp_tab_coordinates[2];
-	int data_use_in_gpus[N*2][Ngpu + 1]; /* [la donnée][son nombre d'utilisation dans le gpu] */
 	FILE *f = fopen("Output_maxime/Data_in_gpu_HFP.tex", "w");
 	fprintf(f, "\\documentclass{article}\\usepackage{diagbox}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\\begin{document}\n\n\n\\begin{figure}[H]\n");
+	int data_use_in_gpus[N*2][Ngpu + 1];
 	for (j = 0; j < 2; j++) 
 	{
 		for (i = 0; i < N*2; i++) { for (k = 0; k < Ngpu + 1; k++) { data_use_in_gpus[i][k] = 0; } }
@@ -1541,18 +1542,6 @@ void visualisation_data_gpu_in_file_hfp_format_tex (struct paquets *p)
 	}
 	fprintf(f, "\\caption{Number of use of a data in each GPU}\\end{figure}\n\n\n\\end{document}");
 	fclose(f);
-	
-	//~ print_packages_in_terminal(p, 0);
-	
-	//~ p->temp_pointer_1 = p->first_link;
-	//~ printf("Real task and data:\n");
-	//~ while (p->temp_pointer_1 != NULL) {
-		//~ for (task = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task != starpu_task_list_end(&p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
-			//~ printf("%p : %p %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
-		//~ }
-		//~ p->temp_pointer_1 = p->temp_pointer_1->next;
-		//~ printf("-----\n");
-	//~ }
 }
 
 /* Print the order in one file for each GPU and also print in a tex file the coordinate for 2D matrix */
@@ -1874,6 +1863,10 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			} 	
 			NT = nb_pop;
 			N = sqrt(NT);
+			if(starpu_get_env_number_default("PRINT3D",0) == 1) 
+			{
+				N = N/2; /* So i can print just like a 2D matrix */
+			}
 			data->p->NP = NT;
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("NT = %d\n",NT); }
 				
@@ -2316,7 +2309,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		if (starpu_get_env_number_default("PRINTF",0) == 1)
 		{
 			print_order_in_file_hfp(data->p);
-			if (strcmp(appli,"starpu_sgemm_gemm") == 0) { visualisation_data_gpu_in_file_hfp_format_tex(data->p); }
+			visualisation_data_gpu_in_file_hfp_format_tex(data->p);
 			//TODO corriger la manière dont je vide si il y a plus de 3 GPUs
 			FILE *f = fopen("Output_maxime/Task_order_effective_0", "w"); /* Just to empty it before */
 			fclose(f);

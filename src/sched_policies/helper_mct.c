@@ -150,7 +150,18 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 		unsigned icomponent = suitable_components[i];
 		struct starpu_sched_component * c = component->children[icomponent];
 		/* Estimated availability of worker */
-		double estimated_end = c->estimated_end(c);
+		double estimated_end;
+		/* Trying to influence the task repartition based on the packing from HFP */
+		if (starpu_bitmap_first(&component->children[i]->workers_in_ctx) != task->workerid)
+		{
+			//~ estimated_end = c->estimated_end(c)*1.1;
+			//~ estimated_end = c->estimated_end(c)*1;
+			estimated_end = c->estimated_end(c)*1.05;
+		}
+		else
+		{
+			estimated_end = c->estimated_end(c);
+		}
 		if (estimated_end < now)
 			estimated_end = now;
 		estimated_ends_with_task[icomponent] = compute_expected_time(now,
