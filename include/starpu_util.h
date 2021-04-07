@@ -95,12 +95,30 @@ extern "C"
 #endif
 
 /**
-   When building with a GNU C Compiler, defined to __attribute__((visibility ("internal")))
+   When building with a GNU C Compiler, defined to __attribute__((visibility ("default")))
 */
 #ifdef __GNUC__
-#  define STARPU_ATTRIBUTE_INTERNAL      __attribute__ ((visibility ("internal")))
+#  define STARPU_ATTRIBUTE_VISIBILITY_DEFAULT      __attribute__ ((visibility ("default")))
 #else
-#  define STARPU_ATTRIBUTE_INTERNAL
+#  define STARPU_ATTRIBUTE_VISIBILITY_DEFAULT
+#endif
+
+/**
+   When building with a GNU C Compiler, defined to #pragma GCC visibility push(hidden)
+*/
+#ifdef __GNUC__
+#  define STARPU_VISIBILITY_PUSH_HIDDEN      #pragma GCC visibility push(hidden)
+#else
+#  define STARPU_VISIBILITY_PUSH_HIDDEN
+#endif
+
+/**
+   When building with a GNU C Compiler, defined to #pragma GCC visibility pop
+*/
+#ifdef __GNUC__
+#  define STARPU_VISIBILITY_POP      #pragma GCC visibility pop
+#else
+#  define STARPU_VISIBILITY_POP
 #endif
 
 /**

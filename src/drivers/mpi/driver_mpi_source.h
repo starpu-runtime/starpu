@@ -23,6 +23,8 @@
 #include <starpu_mpi_ms.h>
 #include <datawizard/node_ops.h>
 
+#pragma GCC visibility push(hidden)
+
 void _starpu_mpi_ms_preinit(void);
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -67,5 +69,7 @@ starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_
 void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);
 
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
+
+#pragma GCC visibility pop
 
 #endif	/* __DRIVER_MPI_SOURCE_H__ */

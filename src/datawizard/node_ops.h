@@ -23,6 +23,8 @@
 #include <common/config.h>
 #include <datawizard/copy_driver.h>
 
+#pragma GCC visibility push(hidden)
+
 typedef int (*copy_interface_func_t)(starpu_data_handle_t handle, void *src_interface, unsigned src_node,
 				void *dst_interface, unsigned dst_node,
 				struct _starpu_data_request *req);
@@ -59,5 +61,7 @@ struct _starpu_node_ops
 };
 
 const char* _starpu_node_get_prefix(enum starpu_node_kind kind);
+
+#pragma GCC visibility pop
 
 #endif // __NODE_OPS_H__

@@ -47,6 +47,8 @@
 #include <cuda.h>
 #endif
 
+#pragma GCC visibility push(hidden)
+
 struct _starpu_worker;
 
 /** codelet function */
@@ -286,5 +288,7 @@ int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *t
 #define _STARPU_JOB_GET_ORDERED_BUFFERS(job) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers : &job->ordered_buffers[0])
 
 #define _STARPU_JOB_GET_DEP_SLOTS(job) (((job)->dyn_dep_slots) ? (job)->dyn_dep_slots : (job)->dep_slots)
+
+#pragma GCC visibility pop
 
 #endif // __JOBS_H__

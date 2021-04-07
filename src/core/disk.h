@@ -31,6 +31,8 @@ extern "C"
 #include <datawizard/copy_driver.h>
 #include <datawizard/malloc.h>
 
+#pragma GCC visibility push(hidden)
+
 /** interface to manipulate memory disk */
 void * _starpu_disk_alloc (unsigned node, size_t size) STARPU_ATTRIBUTE_MALLOC;
 
@@ -66,5 +68,7 @@ void _starpu_swap_init(void);
 #ifdef __cplusplus
 }
 #endif
+
+#pragma GCC visibility pop
 
 #endif /* __DISK_H__ */

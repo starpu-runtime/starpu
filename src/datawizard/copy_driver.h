@@ -39,6 +39,8 @@
 #include <mpi.h>
 #endif
 
+#pragma GCC visibility push(hidden)
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -132,5 +134,7 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 #ifdef __cplusplus
 }
 #endif
+
+#pragma GCC visibility pop
 
 #endif // __COPY_DRIVER_H__

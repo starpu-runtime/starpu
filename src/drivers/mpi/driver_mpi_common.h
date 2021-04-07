@@ -22,6 +22,8 @@
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mpi/driver_mpi_source.h>
 
+#pragma GCC visibility push(hidden)
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 
 #define SYNC_TAG 44
@@ -55,5 +57,7 @@ void _starpu_mpi_common_barrier(void);
 void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS]);
 
 #endif  /* STARPU_USE_MPI_MASTER_SLAVE */
+
+#pragma GCC visibility pop
 
 #endif	/* __DRIVER_MPI_COMMON_H__ */

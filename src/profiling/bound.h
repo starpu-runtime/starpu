@@ -23,6 +23,8 @@
 #include <starpu_bound.h>
 #include <core/jobs.h>
 
+#pragma GCC visibility push(hidden)
+
 /** Are we recording? */
 extern int _starpu_bound_recording;
 
@@ -40,5 +42,7 @@ extern void _starpu_bound_job_id_dep(starpu_data_handle_t handle, struct _starpu
 
 /** Clear recording */
 extern void starpu_bound_clear(void);
+
+#pragma GCC visibility pop
 
 #endif // __BOUND_H__

@@ -22,6 +22,8 @@
 #include <starpu.h>
 #include <common/config.h>
 
+#pragma GCC visibility push(hidden)
+
 /** we do not necessarily want to allocate room for 256 dependencies, but we
    want to handle the few situation where there are a lot of dependencies as
    well */
@@ -131,5 +133,7 @@ void _starpu_notify_cg_list(void *pred, struct _starpu_cg_list *successors);
 void _starpu_notify_job_start_cg_list(void *pred, struct _starpu_cg_list *successors, _starpu_notify_job_start_data *data);
 void _starpu_notify_task_dependencies(struct _starpu_job *j);
 void _starpu_notify_job_start_tasks(struct _starpu_job *j, _starpu_notify_job_start_data *data);
+
+#pragma GCC visibility pop
 
 #endif // __CG_H__

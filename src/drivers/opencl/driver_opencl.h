@@ -36,6 +36,8 @@
 #include <core/workers.h>
 #include <datawizard/node_ops.h>
 
+#pragma GCC visibility push(hidden)
+
 void _starpu_opencl_preinit(void);
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -88,5 +90,7 @@ int _starpu_opencl_copy_data_from_cpu_to_opencl(uintptr_t src, size_t src_offset
 int _starpu_opencl_is_direct_access_supported(unsigned node, unsigned handling_node);
 uintptr_t _starpu_opencl_malloc_on_node(unsigned dst_node, size_t size, int flags);
 void _starpu_opencl_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+
+#pragma GCC visibility pop
 
 #endif //  __DRIVER_OPENCL_H__

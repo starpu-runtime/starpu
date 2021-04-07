@@ -34,6 +34,8 @@
 extern
 #endif
 
+#pragma GCC visibility push(hidden)
+
 struct starpu_cluster_machine
 {
 	unsigned id;
@@ -125,6 +127,8 @@ static struct starpu_codelet _starpu_cluster_bind_cl=
 
 typedef void (*starpu_binding_function)(void*);
 starpu_binding_function _starpu_cluster_type_get_func(enum starpu_cluster_types type);
+
+#pragma GCC visibility pop
 
 #endif
 #endif /* __STARPU_CLUSTERS_CREATE_H__ */

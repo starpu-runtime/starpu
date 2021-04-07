@@ -25,6 +25,8 @@
 #include <starpu.h>
 #include <core/task.h>
 
+#pragma GCC visibility push(hidden)
+
 struct _starpu_fifo_taskq
 {
 	/** the actual list */
@@ -71,5 +73,7 @@ int _starpu_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_
 int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker);
 void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, size_t *non_ready, size_t *non_loading);
 struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities);
+
+#pragma GCC visibility pop
 
 #endif // __FIFO_QUEUES_H__

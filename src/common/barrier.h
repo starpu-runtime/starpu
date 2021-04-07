@@ -19,6 +19,8 @@
 
 #include <starpu_thread.h>
 
+#pragma GCC visibility push(hidden)
+
 /** @file */
 
 struct _starpu_barrier
@@ -37,5 +39,7 @@ int _starpu_barrier_init(struct _starpu_barrier *barrier, int count);
 int _starpu_barrier_destroy(struct _starpu_barrier *barrier);
 
 int _starpu_barrier_wait(struct _starpu_barrier *barrier);
+
+#pragma GCC visibility pop
 
 #endif // __COMMON_BARRIER_H__

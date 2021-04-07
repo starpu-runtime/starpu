@@ -20,6 +20,8 @@
 #include <starpu_scheduler.h>
 #include <core/task.h>
 
+#pragma GCC visibility push(hidden)
+
 /** @file */
 
 struct _starpu_prio_deque
@@ -136,5 +138,7 @@ struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_
 struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque *, int workerid, int *skipped);
 
 struct starpu_task *_starpu_prio_deque_deque_first_ready_task(struct _starpu_prio_deque *, unsigned workerid);
+
+#pragma GCC visibility pop
 
 #endif /* __PRIO_DEQUE_H__ */

@@ -24,6 +24,8 @@
 #include <common/config.h>
 #include <core/jobs.h>
 
+#pragma GCC visibility push(hidden)
+
 /** Compute the footprint that characterizes the job and cache it into the job
  * structure. */
 uint32_t _starpu_compute_buffers_footprint(struct starpu_perfmodel *model, struct starpu_perfmodel_arch * arch, unsigned nimpl, struct _starpu_job *j);
@@ -33,5 +35,7 @@ uint32_t _starpu_compute_data_footprint(starpu_data_handle_t handle);
 
 /** Compute the footprint that characterizes the allocation of the data handle. */
 uint32_t _starpu_compute_data_alloc_footprint(starpu_data_handle_t handle);
+
+#pragma GCC visibility pop
 
 #endif // __FOOTPRINT_H__

@@ -33,6 +33,8 @@
 #include <datawizard/memstats.h>
 #include <datawizard/data_request.h>
 
+#pragma GCC visibility push(hidden)
+
 enum _starpu_cache_state
 {
 	STARPU_OWNER,
@@ -378,6 +380,8 @@ void _starpu_data_start_reduction_mode(starpu_data_handle_t handle);
 void _starpu_data_end_reduction_mode(starpu_data_handle_t handle);
 void _starpu_data_end_reduction_mode_terminate(starpu_data_handle_t handle);
 
-void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func);
+void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
+#pragma GCC visibility pop
 
 #endif // __COHERENCY__H__

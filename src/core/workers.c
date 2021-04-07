@@ -184,11 +184,11 @@ static starpu_pthread_cond_t init_cond = STARPU_PTHREAD_COND_INITIALIZER;
 static int init_count = 0;
 static enum initialization initialized = UNINITIALIZED;
 
-int _starpu_keys_initialized STARPU_ATTRIBUTE_INTERNAL;
-starpu_pthread_key_t _starpu_worker_key STARPU_ATTRIBUTE_INTERNAL;
-starpu_pthread_key_t _starpu_worker_set_key STARPU_ATTRIBUTE_INTERNAL;
+int _starpu_keys_initialized;
+starpu_pthread_key_t _starpu_worker_key;
+starpu_pthread_key_t _starpu_worker_set_key;
 
-struct _starpu_machine_config _starpu_config STARPU_ATTRIBUTE_INTERNAL;
+struct _starpu_machine_config _starpu_config;
 
 static int check_entire_platform;
 

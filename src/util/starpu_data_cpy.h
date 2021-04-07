@@ -21,9 +21,13 @@
 
 #include <starpu.h>
 
+#pragma GCC visibility push(hidden)
+
 int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
 			int asynchronous, void (*callback_func)(void*), void *callback_arg,
 			int reduction, struct starpu_task *reduction_dep_task);
+
+#pragma GCC visibility pop
 
 #endif // __STARPU_DATA_CPY_H__
 

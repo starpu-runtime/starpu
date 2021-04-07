@@ -26,6 +26,8 @@
 #include <core/task.h>
 #include <drivers/mp_common/mp_common.h>
 
+#pragma GCC visibility push(hidden)
+
 enum _starpu_mp_command _starpu_src_common_wait_command_sync(struct _starpu_mp_node *node, void ** arg, int* arg_size);
 int _starpu_src_common_store_message(struct _starpu_mp_node *node, void * arg, int arg_size, enum _starpu_mp_command answer);
 
@@ -66,6 +68,8 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, unsigned 
 void _starpu_src_common_init_switch_env(unsigned this);
 void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int ndevices, struct _starpu_mp_node ** mp_node);
 #endif
+
+#pragma GCC visibility pop
 
 #endif /* STARPU_USE_MP */
 

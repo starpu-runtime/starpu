@@ -25,6 +25,8 @@
 #include <starpu.h>
 #include <common/config.h>
 
+#pragma GCC visibility push(hidden)
+
 /** Performance Monitoring */
 #define STARPU_ASSERT_PERF_COUNTER_SCOPE_DEFINED(t) STARPU_ASSERT( \
 		(t == starpu_perf_counter_scope_global ) \
@@ -357,5 +359,7 @@ void _starpu__dmda_c__register_knobs(void); /* module: dmda.c */
 void _starpu__workers_c__unregister_knobs(void);	/* module: workers.c */
 void _starpu__task_c__unregister_knobs(void); /* module: task.c */
 void _starpu__dmda_c__unregister_knobs(void); /* module: dmda.c */
+
+#pragma GCC visibility pop
 
 #endif // __KNOBS_H__

@@ -21,6 +21,8 @@
 
 #include <starpu_thread.h>
 
+#pragma GCC visibility push(hidden)
+
 /** struct _starpu_task_bundle_entry
  * ================================
  * Purpose
@@ -132,5 +134,7 @@ void _starpu_task_bundle_destroy(starpu_task_bundle_t bundle);
  * 			Access mode of the handle.
  */
 void _starpu_insertion_handle_sorted(struct _starpu_handle_list **listp, starpu_data_handle_t handle, enum starpu_data_access_mode mode);
+
+#pragma GCC visibility pop
 
 #endif // __CORE_TASK_BUNDLE_H__

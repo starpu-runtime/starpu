@@ -21,6 +21,8 @@
 
 #include <core/jobs.h>
 
+#pragma GCC visibility push(hidden)
+
 void _starpu_job_set_ordered_buffers(struct _starpu_job *j);
 
 unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j);
@@ -39,6 +41,8 @@ unsigned _starpu_attempt_to_submit_arbitered_data_request(unsigned request_from_
 						       starpu_data_handle_t handle, enum starpu_data_access_mode mode,
 						       void (*callback)(void *), void *argcb,
 						       struct _starpu_job *j, unsigned buffer_index);
+
+#pragma GCC visibility pop
 
 #endif // __DATA_CONCURRENCY_H__
 

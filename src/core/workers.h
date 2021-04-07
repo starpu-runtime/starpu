@@ -55,6 +55,8 @@
 
 #include <datawizard/datawizard.h>
 
+#pragma GCC visibility push(hidden)
+
 #define STARPU_MAX_PIPELINE 4
 
 struct _starpu_ctx_change_list;
@@ -427,10 +429,10 @@ void _starpu_memory_driver_info_register(enum starpu_node_kind kind, const struc
 
 extern int _starpu_worker_parallel_blocks;
 
-extern struct _starpu_machine_config _starpu_config STARPU_ATTRIBUTE_INTERNAL;
-extern int _starpu_keys_initialized STARPU_ATTRIBUTE_INTERNAL;
-extern starpu_pthread_key_t _starpu_worker_key STARPU_ATTRIBUTE_INTERNAL;
-extern starpu_pthread_key_t _starpu_worker_set_key STARPU_ATTRIBUTE_INTERNAL;
+extern struct _starpu_machine_config _starpu_config;
+extern int _starpu_keys_initialized;
+extern starpu_pthread_key_t _starpu_worker_key;
+extern starpu_pthread_key_t _starpu_worker_set_key;
 
 /** Three functions to manage argv, argc */
 void _starpu_set_argc_argv(int *argc, char ***argv);
@@ -461,7 +463,7 @@ static inline unsigned _starpu_machine_is_running(void)
 void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machine_config *pconfig);
 
 /** Check if there is a worker that may execute the task. */
-uint32_t _starpu_worker_exists(struct starpu_task *);
+uint32_t _starpu_worker_exists(struct starpu_task *) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 /** Is there a worker that can execute CUDA code ? */
 uint32_t _starpu_can_submit_cuda_task(void);
@@ -1152,7 +1154,7 @@ static inline int _starpu_wake_worker_relax(int workerid)
 }
 #define starpu_wake_worker_relax _starpu_wake_worker_relax
 
-int starpu_wake_worker_relax_light(int workerid);
+int starpu_wake_worker_relax_light(int workerid) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 /**
  * Allow a worker pulling a task it cannot execute to properly refuse it and
@@ -1171,5 +1173,7 @@ static inline int _starpu_perf_counter_paused(void)
 }
 
 /* @}*/
+
+#pragma GCC visibility pop
 
 #endif // __WORKERS_H__

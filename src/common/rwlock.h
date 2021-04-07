@@ -20,6 +20,8 @@
 #include <stdint.h>
 #include <starpu.h>
 
+#pragma GCC visibility push(hidden)
+
 /** @file */
 
 /** Dummy implementation of a RW-lock using a spinlock. */
@@ -49,5 +51,7 @@ int _starpu_take_rw_lock_read_try(struct _starpu_rw_lock *lock);
 
 /** Unlock the RW-lock. */
 void _starpu_release_rw_lock(struct _starpu_rw_lock *lock);
+
+#pragma GCC visibility pop
 
 #endif

@@ -36,6 +36,8 @@
 #include <hwloc.h>
 #endif
 
+#pragma GCC visibility push(hidden)
+
 #define NO_RESIZE -1
 #define REQ_RESIZE 0
 #define DO_RESIZE 1
@@ -317,4 +319,7 @@ static inline unsigned _starpu_sched_ctx_worker_is_master_for_child_ctx(unsigned
 /** Go through the list of deferred ctx changes of the current worker and apply
  * any ctx change operation found until the list is empty */
 void _starpu_worker_apply_deferred_ctx_changes(void);
+
+#pragma GCC visibility pop
+
 #endif // __SCHED_CONTEXT_H__

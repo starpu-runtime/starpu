@@ -25,6 +25,8 @@
 #include <starpu_util.h>
 #include <common/config.h>
 
+#pragma GCC visibility push(hidden)
+
 /** Create a task profiling info structure (with the proper time stamps) in case
  * profiling is enabled. */
 struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(struct starpu_task *task);
@@ -80,5 +82,7 @@ void _starpu_profiling_init(void);
 void _starpu_profiling_start(void);
 
 void _starpu_profiling_terminate(void);
+
+#pragma GCC visibility pop
 
 #endif // __PROFILING_H__

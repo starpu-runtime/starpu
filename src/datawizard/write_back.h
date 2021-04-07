@@ -22,10 +22,14 @@
 #include <starpu.h>
 #include <datawizard/coherency.h>
 
+#pragma GCC visibility push(hidden)
+
 /** If a write-through mask is associated to that data handle, this propagates
  * the the current value of the data onto the different memory nodes in the
  * write_through_mask. */
 void _starpu_write_through_data(starpu_data_handle_t handle, unsigned requesting_node,
 					   uint32_t write_through_mask);
+
+#pragma GCC visibility pop
 
 #endif // __DW_WRITE_BACK_H__

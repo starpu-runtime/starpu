@@ -22,4 +22,8 @@
 #include <starpu.h>
 #include <common/config.h>
 
+#pragma GCC visibility push(hidden)
+
+#pragma GCC visibility pop
+
 #endif // __COMBINED_WORKERS_H__

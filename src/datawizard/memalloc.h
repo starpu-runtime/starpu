@@ -28,6 +28,8 @@
 #include <datawizard/copy_driver.h>
 #include <datawizard/data_request.h>
 
+#pragma GCC visibility push(hidden)
+
 struct _starpu_data_replicate;
 
 /** While associated with a handle, the content is protected by the handle lock, except a few fields
@@ -94,5 +96,7 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 int _starpu_is_reclaiming(unsigned node);
 
 void _starpu_mem_chunk_disk_register(unsigned disk_memnode);
+
+#pragma GCC visibility pop
 
 #endif

@@ -19,6 +19,8 @@
 
 #include <common/list.h>
 
+#pragma GCC visibility push(hidden)
+
 /** @file */
 
 MULTILIST_CREATE_TYPE(_starpu_graph_node, all)
@@ -117,5 +119,7 @@ void _starpu_graph_compute_descendants(void);
  * Apply func on each job of the graph
 */
 void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph_node *node), void *data);
+
+#pragma GCC visibility pop
 
 #endif /* __GRAPH_H__ */

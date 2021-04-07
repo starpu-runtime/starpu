@@ -25,6 +25,8 @@
 #include <sys/syscall.h>
 #endif
 
+#pragma GCC visibility push(hidden)
+
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
@@ -64,4 +66,7 @@ int starpu_unistd_global_full_write (void * base, void * obj, void * ptr, size_t
 #ifdef STARPU_UNISTD_USE_COPY
 void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size);
 #endif
+
+#pragma GCC visibility pop
+
 #endif

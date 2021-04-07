@@ -30,6 +30,8 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <datawizard/copy_driver.h>
 
+#pragma GCC visibility push(hidden)
+
 #ifdef STARPU_USE_MP
 
 #define BUFFER_SIZE 65536
@@ -246,5 +248,7 @@ enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_n
 
 
 #endif /* STARPU_USE_MP */
+
+#pragma GCC visibility pop
 
 #endif /* __MP_COMMON_H__ */

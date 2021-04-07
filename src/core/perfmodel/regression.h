@@ -25,6 +25,10 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu.h>
 
+#pragma GCC visibility push(hidden)
+
 int _starpu_regression_non_linear_power(struct starpu_perfmodel_history_list *ptr, double *a, double *b, double *c);
+
+#pragma GCC visibility pop
 
 #endif // __REGRESSION_H__

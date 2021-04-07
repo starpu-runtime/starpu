@@ -34,6 +34,7 @@
 
 #include <core/dependencies/implicit_data_deps.h>
 
+#pragma GCC visibility push(hidden)
 
 /** Make data transfers progress on all memory nodes driven by the current worker.
  *
@@ -48,5 +49,7 @@ void _starpu_datawizard_progress(enum _starpu_may_alloc may_alloc);
 
 /** Check for all pending data request progress on node \p memory_node */
 void _starpu_datawizard_handle_all_pending_node_data_requests(unsigned memnode);
+
+#pragma GCC visibility pop
 
 #endif // __DATAWIZARD_H__

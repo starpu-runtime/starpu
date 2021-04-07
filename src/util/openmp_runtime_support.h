@@ -36,6 +36,8 @@
 #endif
 #include <ucontext.h>
 
+#pragma GCC visibility push(hidden)
+
 extern starpu_pthread_key_t omp_thread_key;
 extern starpu_pthread_key_t omp_task_key;
 
@@ -416,5 +418,7 @@ int _starpu_omp_get_region_thread_num(const struct starpu_omp_region *const regi
 void _starpu_omp_dummy_init(void);
 void _starpu_omp_dummy_shutdown(void);
 #endif // STARPU_OPENMP
+
+#pragma GCC visibility pop
 
 #endif // __OPENMP_RUNTIME_SUPPORT_H__

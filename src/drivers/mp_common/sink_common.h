@@ -27,6 +27,8 @@
 
 #include <drivers/mp_common/mp_common.h>
 
+#pragma GCC visibility push(hidden)
+
 /** Represent the topology of sink devices, contains useful informations about
  * their capabilities
  * XXX: unused.
@@ -51,7 +53,8 @@ void _starpu_sink_common_free(const struct _starpu_mp_node *mp_node STARPU_ATTRI
 
 void* _starpu_sink_thread(void * thread_arg);
 
-#endif /* STARPU_USE_MP */
+#pragma GCC visibility pop
 
+#endif /* STARPU_USE_MP */
 
 #endif /* __SINK_COMMON_H__ */

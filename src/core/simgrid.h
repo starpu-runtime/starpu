@@ -49,6 +49,8 @@ extern "C"
 
 #include <xbt/xbt_os_time.h>
 
+#pragma GCC visibility push(hidden)
+
 struct _starpu_pthread_args
 {
 	void *(*f)(void*);
@@ -136,6 +138,8 @@ void _starpu_simgrid_xbt_thread_create(const char *name, starpu_pthread_attr_t *
 			xbt_os_timer_free(__timer);		\
 		}	\
 	}
+
+#pragma GCC visibility pop
 
 #else // !STARPU_SIMGRID
 #define _SIMGRID_TIMER_BEGIN(cond) {

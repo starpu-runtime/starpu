@@ -26,6 +26,8 @@
 #include <core/task_bundle.h>
 #include <stdio.h>
 
+#pragma GCC visibility push(hidden)
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -63,7 +65,7 @@ struct starpu_perfmodel_arch;
 
 extern unsigned _starpu_calibration_minimum;
 
-char *_starpu_get_perf_model_dir_codelet();
+char *_starpu_get_perf_model_dir_codelet() STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 char *_starpu_get_perf_model_dir_bus();
 char *_starpu_get_perf_model_dir_debug();
 
@@ -96,8 +98,8 @@ unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 
 void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, double latency_write, double latency_read, unsigned node, const char *name);
 
-void _starpu_write_double(FILE *f, const char *format, double val);
-int _starpu_read_double(FILE *f, char *format, double *val);
+void _starpu_write_double(FILE *f, const char *format, double val) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+int _starpu_read_double(FILE *f, char *format, double *val) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen);
 
 void _starpu_perfmodel_realloc(struct starpu_perfmodel *model, int nb);
@@ -111,5 +113,7 @@ hwloc_topology_t _starpu_perfmodel_get_hwtopology();
 #ifdef __cplusplus
 }
 #endif
+
+#pragma GCC visibility pop
 
 #endif // __PERFMODEL_H__
