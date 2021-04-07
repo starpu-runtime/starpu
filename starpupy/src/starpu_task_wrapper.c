@@ -440,6 +440,12 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	/*create a asyncio.Future object*/
 	PyObject *fut = PyObject_CallMethod(loop, "create_future", NULL);
 
+	if (fut == NULL)
+	{
+		PyErr_Format(StarpupyError, "Can't find asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+		return NULL;
+	}
+
 	/*first argument in args is always the python function passed in*/
 	PyObject *func_py = PyTuple_GetItem(args, 0);
 
