@@ -103,6 +103,10 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_NL_REGRESSION_BASED
         type(c_ptr), bind(C) :: FSTARPU_MULTIPLE_REGRESSION_BASED
 
+        type(c_ptr), bind(C) :: FSTARPU_SEQ
+        type(c_ptr), bind(C) :: FSTARPU_SPMD
+        type(c_ptr), bind(C) :: FSTARPU_FORKJOIN
+
         ! (some) portable iso_c_binding types
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_DOUBLE
         type(c_ptr), bind(C) :: FSTARPU_SZ_C_FLOAT
@@ -712,6 +716,18 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl
                         type(c_ptr), value, intent(in) :: where ! C function expects an intptr_t
                 end subroutine fstarpu_codelet_set_where
+
+                subroutine fstarpu_codelet_set_type (cl, type_constant) bind(C)
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: cl
+                        type(c_ptr), value, intent(in) :: type_constant ! C function expects an intptr_t
+                end subroutine fstarpu_codelet_set_type
+
+                subroutine fstarpu_codelet_set_max_parallelism (cl, max_parallelism) bind(C)
+                        use iso_c_binding, only: c_ptr,c_int
+                        type(c_ptr), value, intent(in) :: cl
+                        integer(c_int), value, intent(in) :: max_parallelism
+                end subroutine fstarpu_codelet_set_max_parallelism
 
                 function fstarpu_perfmodel_allocate () bind(C)
                         use iso_c_binding, only: c_ptr
@@ -2474,6 +2490,13 @@ module fstarpu_mod
                                 fstarpu_get_constant(C_CHAR_"FSTARPU_NL_REGRESSION_BASED"//C_NULL_CHAR)
                         FSTARPU_MULTIPLE_REGRESSION_BASED = &
                                 fstarpu_get_constant(C_CHAR_"FSTARPU_MULTIPLE_REGRESSION_BASED"//C_NULL_CHAR)
+
+                        FSTARPU_SEQ = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_SEQ"//C_NULL_CHAR)
+                        FSTARPU_SPMD = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_SPMD"//C_NULL_CHAR)
+                        FSTARPU_FORKJOIN = &
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_FORKJOIN"//C_NULL_CHAR)
 
                         ! Initialize size constants as 'c_ptr'
                         FSTARPU_SZ_C_DOUBLE        = sz_to_p(c_sizeof(FSTARPU_SZ_C_DOUBLE_dummy))

@@ -113,6 +113,10 @@ static const intptr_t fstarpu_regression_based	= STARPU_REGRESSION_BASED;
 static const intptr_t fstarpu_nl_regression_based	= STARPU_NL_REGRESSION_BASED;
 static const intptr_t fstarpu_multiple_regression_based	= STARPU_MULTIPLE_REGRESSION_BASED;
 
+static const intptr_t fstarpu_seq	= STARPU_SEQ;
+static const intptr_t fstarpu_spmd	= STARPU_SPMD;
+static const intptr_t fstarpu_forkjoin	= STARPU_FORKJOIN;
+
 intptr_t fstarpu_get_constant(char *s)
 {
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
@@ -205,6 +209,10 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_REGRESSION_BASED"))	{ return fstarpu_regression_based; }
 	else if (!strcmp(s, "FSTARPU_NL_REGRESSION_BASED"))	{ return fstarpu_nl_regression_based; }
 	else if (!strcmp(s, "FSTARPU_MULTIPLE_REGRESSION_BASED"))	{ return fstarpu_multiple_regression_based; }
+
+	else if (!strcmp(s, "FSTARPU_SEQ"))	{ return fstarpu_seq; }
+	else if (!strcmp(s, "FSTARPU_SPMD"))	{ return fstarpu_spmd; }
+	else if (!strcmp(s, "FSTARPU_FORKJOIN"))	{ return fstarpu_forkjoin; }
 
 	else { _STARPU_ERROR("unknown constant"); }
 }
@@ -425,6 +433,24 @@ void fstarpu_codelet_set_where(struct starpu_codelet *cl, intptr_t where)
 {
 	STARPU_ASSERT(where >= 0);
 	cl->where = (uint32_t)where;
+}
+
+void fstarpu_codelet_set_type(struct starpu_codelet *cl, intptr_t type_constant)
+{
+	STARPU_ASSERT(type_constant == STARPU_SEQ || type_constant == STARPU_SPMD || type_constant == STARPU_FORKJOIN);
+	cl->type = (int)type_constant;
+}
+
+void fstarpu_codelet_set_max_parallelism(struct starpu_codelet *cl, int max_parallelism)
+{
+	if (max_parallelism >= 1)
+	{
+		cl->max_parallelism = max_parallelism;
+	}
+	else
+	{
+		_STARPU_ERROR("fstarpu: invalid max_parallelism parameter");
+	}
 }
 
 STARPU_ATTRIBUTE_MALLOC

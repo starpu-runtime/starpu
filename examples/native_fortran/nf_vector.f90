@@ -73,6 +73,12 @@ program nf_vector
         ! optionally set 'where' field to CPU only
         call fstarpu_codelet_set_where(cl_vec, FSTARPU_CPU)
 
+        ! set 'type' field to SEQ (for demonstration purpose)
+        call fstarpu_codelet_set_type(cl_vec, FSTARPU_SEQ)
+
+        ! set 'max_parallelism' field to 1 (for demonstration purpose)
+        call fstarpu_codelet_set_max_parallelism(cl_vec, 1)
+
         ! add a Read-only mode data buffer to the codelet
         call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_R)
 
