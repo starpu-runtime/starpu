@@ -86,6 +86,7 @@ struct data_parameter_info
 	unsigned long handle;
 	unsigned long size;
 	int mode;
+	int numa_node;
 };
 
 struct task_info
@@ -274,6 +275,10 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "Sizes:");
 		for (i = 0; i < task->ndata; i++)
 			fprintf(tasks_file, " %lu", task->data[i].size);
+		fprintf(tasks_file, "\n");
+		fprintf(tasks_file, "NumaNodes:");
+		for (i = 0; i < task->ndata; i++)
+			fprintf(tasks_file, " %d", task->data[i].numa_node);
 		fprintf(tasks_file, "\n");
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
@@ -1775,6 +1780,7 @@ static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	task->data[task->ndata].handle = ev->param[1];
 	task->data[task->ndata].size = ev->param[2];
 	task->data[task->ndata].mode = ev->param[3];
+	task->data[task->ndata].numa_node = ev->param[4];
 	task->ndata++;
 }
 
