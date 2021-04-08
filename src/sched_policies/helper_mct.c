@@ -28,6 +28,7 @@
 #define _STARPU_SCHED_ALPHA_DEFAULT 1.0
 #define _STARPU_SCHED_BETA_DEFAULT 1.0
 #define _STARPU_SCHED_GAMMA_DEFAULT 1000.0
+#define MCTMULTIPLIER
 
 struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_component_mct_data *params)
 {
@@ -150,18 +151,20 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 		unsigned icomponent = suitable_components[i];
 		struct starpu_sched_component * c = component->children[icomponent];
 		/* Estimated availability of worker */
-		double estimated_end;
+		double estimated_end = c->estimated_end(c);
 		/* Trying to influence the task repartition based on the packing from HFP */
-		if (starpu_bitmap_first(&component->children[i]->workers_in_ctx) != task->workerid)
+		printf("estimated end before = %f\n", estimated_end);
+		if (starpu_get_env_number_default("MCTMULTIPLIER", 0) != 0)
 		{
-			//~ estimated_end = c->estimated_end(c)*1.1;
-			//~ estimated_end = c->estimated_end(c)*1;
-			estimated_end = c->estimated_end(c)*1.05;
+			if (starpu_bitmap_first(&component->children[i]->workers_in_ctx) != task->workerid)
+			{
+				double multiplier = (double)starpu_get_env_number_default("MCTMULTIPLIER", 0);
+				multiplier = multiplier/100;
+				printf("x%f\n", multiplier);
+				estimated_end = estimated_end*multiplier;
+			}
 		}
-		else
-		{
-			estimated_end = c->estimated_end(c);
-		}
+		printf("estimated end after = %f\n", estimated_end);
 		if (estimated_end < now)
 			estimated_end = now;
 		estimated_ends_with_task[icomponent] = compute_expected_time(now,

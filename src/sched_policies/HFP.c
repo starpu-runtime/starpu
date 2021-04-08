@@ -42,7 +42,7 @@
 #define MODULAR_HEFT_HFP_MODE /* 0 we don't use heft, 1 we use starpu_prefetch_task_input_on_node_prio, 2 we use starpu_prefetch_task_input_on_node_prio. Put it at 1 or 2 if you use modular-heft-HFP, else it will crash. the 0 is just here so we don't do prefetch when we use regular HFP. If we do not use modular-heft-HFP, always put this environemment variable on 0. */
 #define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package */
 #define READY /* 0 we don't use ready in initialize_HFP_center_policy, 1 we do */
-#define PRINT3D /* 1 we print coordinates and visualize data. Neede to differentiate 2D from 3D */
+#define PRINT3D /* 1 we print coordinates and visualize data. Needed to differentiate 2D from 3D */
 
 /* Other environmment variable you should use with HFP: 
  * STARPU_NTASKS_THRESHOLD=30  
@@ -691,8 +691,7 @@ int HFP_pointeurComparator ( const void * first, const void * second ) {
 
 void visualisation_tache_matrice_format_tex(char *algo)
 {
-	int i, j, red, green, blue, x, y, gpu;
-	int tab_order[N][N];
+	int i, j, red, green, blue, x, y, gpu, k;
 	int tab_gpu[N][N];
 	int size = strlen("Output_maxime/Data_coordinates_order_last_.tex") + strlen(algo);
 	char *path = (char *)malloc(size);
@@ -706,49 +705,115 @@ void visualisation_tache_matrice_format_tex(char *algo)
 	strcat(path, algo);
 	strcat(path, ".txt");
 	FILE *f_input = fopen(path, "r");
-	fprintf(fcoordinate_order_last,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]\n\\centering\\begin{tabular}{|");
-	for (i = 0; i < N - 1; i++) 
+	fprintf(fcoordinate_order_last,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
+	i = 0; k = 0;
+	if (starpu_get_env_number_default("PRINT3D", 0) != 0) /* Printing a 3D matrix, we print 4 tabular because we have nblocksz 4 */
 	{
-		fprintf(fcoordinate_order_last,"c|");
-	}
-	i = 0;
-	fprintf(fcoordinate_order_last,"c|}\n\\hline");
-	if (f_input != NULL && fcoordinate_order_last != NULL)
-    {    
-		while (!feof (f_input))
-		{  
-		 
-		  if (fscanf(f_input, "%d	%d	%d", &x, &y, &gpu) != 1)
-		  {
-			  //~ printf("error fscanf in visualisation_tache_matrice_format_tex_HEFT\n");
-		  }
-			tab_order[x][y] = i;
-			tab_gpu[x][y] = gpu;
-			i++;     
+		int tab_order_1[4][N][N]; for (k = 0; k < 4; k++) {for (i = 0; i < N; i++) {for (j = 0; j < N; j++) {tab_order_1[k][i][j] = -1; } } }
+		i = 0;
+		if (f_input != NULL && fcoordinate_order_last != NULL)
+		{    
+			while (!feof (f_input))
+			{  
+			  if (fscanf(f_input, "%d	%d	%d", &x, &y, &gpu) != 3)
+			  {
+				  //~ perror("error fscanf in visualisation_tache_matrice_format_tex\n"); exit(EXIT_FAILURE);
+			  }
+				if (tab_order_1[0][x][y] == -1) {
+					tab_order_1[0][x][y] = i;
+				}
+				else if (tab_order_1[1][x][y] == -1) {
+					tab_order_1[1][x][y] = i;
+				}
+				else if (tab_order_1[2][x][y] == -1) {
+					tab_order_1[2][x][y] = i;
+				}
+				else {
+					tab_order_1[3][x][y] = i;
+				}
+				tab_gpu[x][y] = gpu;
+				i++;     
+			}
 		}
-    }
-    else
-    {
-        printf("Impossible d'ouvrir au moins 1 fichier dans visualisation_tache_matrice_format_tex()\n"); 
-    }
-    tab_order[x][y] = tab_order[x][y] - 1;
-	for (i = 0; i < N; i++) 
-	{ 
-		for (j = 0; j < N - 1; j++) 
+		else
 		{
+			perror("Impossible d'ouvrir au moins 1 fichier dans visualisation_tache_matrice_format_tex()\n"); exit(EXIT_FAILURE);
+		}
+		//~ tab_order_1[0][x][y] = tab_order_1[0][x][y] - 1;
+		//~ tab_order_1[1][x][y] = tab_order_1[1][x][y] - 1;
+		//~ tab_order_1[2][x][y] = tab_order_1[2][x][y] - 1;
+		tab_order_1[3][x][y] = tab_order_1[3][x][y] - 1;
+		for (k = 0; k < 4; k++)
+		{
+			fprintf(fcoordinate_order_last, "\n\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{|");
+			for (i = 0; i < N - 1; i++) 
+			{
+				fprintf(fcoordinate_order_last,"c|");
+			}
+			fprintf(fcoordinate_order_last,"c|}\n\\hline");
+			for (i = 0; i < N; i++) 
+			{ 
+				for (j = 0; j < N - 1; j++) 
+				{
+					if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
+					else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
+					else { rgb(tab_gpu[j][i], &red, &green, &blue); }
+					fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_order_1[k][j][i]);
+				}
+				if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
+				else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
+				else { rgb(tab_gpu[j][i], &red, &green, &blue); }
+				fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_order_1[k][j][i]); 
+				fprintf(fcoordinate_order_last," \\\\"); fprintf(fcoordinate_order_last,"\\hline");
+			}
+			fprintf(fcoordinate_order_last, "\\end{tabular}\\caption{Z = %d}\\end{subfigure}\n", k + 1); 
+		}
+		fprintf(fcoordinate_order_last, "\n\\caption{Task's processing order on a 3D matrix}\\end{figure}\n\n\\end{document}"); 
+	}
+	else /* Printing a 2D matrix so only one matrix */
+	{
+		fprintf(fcoordinate_order_last, "\n\\centering\\begin{tabular}{|");
+		for (i = 0; i < N - 1; i++) 
+		{
+			fprintf(fcoordinate_order_last,"c|");
+		}
+		fprintf(fcoordinate_order_last,"c|}\n\\hline");
+		int tab_order[N][N];
+		if (f_input != NULL && fcoordinate_order_last != NULL)
+		{    
+			while (!feof (f_input))
+			{  
+			  if (fscanf(f_input, "%d	%d	%d", &x, &y, &gpu) != 3)
+			  {
+				  perror("error fscanf in visualisation_tache_matrice_format_tex_HEFT\n"); exit(EXIT_FAILURE);
+			  }
+				tab_order[x][y] = i;
+				tab_gpu[x][y] = gpu;
+				i++;     
+			}
+		}
+		else
+		{
+			perror("Impossible d'ouvrir au moins 1 fichier dans visualisation_tache_matrice_format_tex()\n"); exit(EXIT_FAILURE);
+		}
+		tab_order[x][y] = tab_order[x][y] - 1;
+		for (i = 0; i < N; i++) 
+		{ 
+			for (j = 0; j < N - 1; j++) 
+			{
+				if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
+				else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
+				else { rgb(tab_gpu[j][i], &red, &green, &blue); }
+				fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_order[j][i]);
+			}
 			if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
 			else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
 			else { rgb(tab_gpu[j][i], &red, &green, &blue); }
-			fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_order[j][i]);
+			fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_order[j][i]); 
+			fprintf(fcoordinate_order_last," \\\\"); fprintf(fcoordinate_order_last,"\\hline");
 		}
-		if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
-		else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
-		else { rgb(tab_gpu[j][i], &red, &green, &blue); }
-		fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_order[j][i]); 
-		fprintf(fcoordinate_order_last," \\\\"); fprintf(fcoordinate_order_last,"\\hline");
+		fprintf(fcoordinate_order_last, "\\end{tabular}\n\\caption{Task's processing order}\\end{figure}\n\n\\end{document}"); 
 	}
-	fprintf(fcoordinate_order_last, "\\end{tabular}\n\\caption{Task's processing order}\\end{figure}\n\n\\end{document}"); 
-
 	fclose(fcoordinate_order_last);  
 	fclose(f_input);
 }
