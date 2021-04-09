@@ -944,7 +944,7 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 			printf("-----\n");
 			link_index = 0;	
 			while (a->temp_pointer_1 != NULL) {
-				printf("Le paquet %d contient %d tâche(s) et %d données, expected time = %f\n",link_index,a->temp_pointer_1->nb_task_in_sub_list,a->temp_pointer_1->package_nb_data,a->temp_pointer_1->expected_time);
+				printf("Le paquet %d contient %d tâche(s) et %d données, expected task time = %f, expected package time = %f\n",link_index,a->temp_pointer_1->nb_task_in_sub_list,a->temp_pointer_1->package_nb_data,a->temp_pointer_1->expected_time, a->temp_pointer_1->expected_package_computation_time);
 				for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
 					printf("%p : %p %p %p\n",task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
 				}
@@ -1422,8 +1422,9 @@ struct data_on_node *init_data_list(starpu_data_handle_t d)
 /* For gemm that has C tile put in won't use if they are never used again */
 bool is_it_a_C_tile_data_never_used_again(starpu_data_handle_t h, int i, struct starpu_task_list *l, struct starpu_task *current_task)
 {	
+	//~ printf("task %p, i = %d\n", current_task, i);
 	struct starpu_task *task = NULL;
-	if (i%2 == 0)
+	if (i == 2)
 	{
 		/* Getting on the right data/right task */
 		for (task = starpu_task_list_begin(l); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
@@ -1495,7 +1496,7 @@ bool SearchTheData (struct data_on_node *pNode, starpu_data_handle_t iElement, i
     {
         if(pNode->pointer_data_list->h == iElement)
         {
-			pNode->pointer_data_list->last_use = use_order;
+			if (use_order != -2) { pNode->pointer_data_list->last_use = use_order; }
             return true;
         }
         else
@@ -1509,11 +1510,10 @@ bool SearchTheData (struct data_on_node *pNode, starpu_data_handle_t iElement, i
 /* Replace the least recently used data on memory with the new one.
  * But we need to look that it's not a data used by current task too!
  */
-void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle_t data_to_load, int use_order, struct starpu_task *current_task, struct starpu_task_list *l)
+void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle_t data_to_load, int use_order, struct starpu_task *current_task, struct starpu_task_list *l, int index_handle)
 {
 	int i = 0;
 	bool data_currently_used = false;
-	int ith_handle_least_recent_use = 0;
 	int least_recent_use = INT_MAX;
 	for (a->pointer_data_list = a->first_data; a->pointer_data_list != NULL; a->pointer_data_list = a->pointer_data_list->next)
 	{
@@ -1531,7 +1531,6 @@ void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle
 			if (data_currently_used == false)
 			{		
 				least_recent_use = a->pointer_data_list->last_use;
-				ith_handle_least_recent_use = i;
 			}
 		}
 	}
@@ -1539,9 +1538,9 @@ void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle
 	{
 		if (least_recent_use == a->pointer_data_list->last_use)
 		{
-			printf("Données utilisé il y a le plus longtemps : %p | %d\n", a->pointer_data_list->h, a->pointer_data_list->last_use);
+			//~ printf("Données utilisé il y a le plus longtemps : %p | %d\n", a->pointer_data_list->h, a->pointer_data_list->last_use);
 			a->pointer_data_list->h = data_to_load;
-			if (is_it_a_C_tile_data_never_used_again(a->pointer_data_list->h, ith_handle_least_recent_use, l, current_task) == true)
+			if (is_it_a_C_tile_data_never_used_again(a->pointer_data_list->h, index_handle, l, current_task) == true)
 			{
 				a->pointer_data_list->last_use = -1;
 			}
@@ -1562,6 +1561,7 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 {
 	int i, use_order = 1;
 	struct starpu_task *task;
+	struct starpu_task *next_task;
 	double time_to_add = 0;
 	
 	task = starpu_task_list_begin(&l->sub_list);
@@ -1576,28 +1576,28 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 		use_order++;
 	}
 	//~ afficher_data_on_node(l);
-	for (task = starpu_task_list_next(task); task != starpu_task_list_end(&l->sub_list); task = starpu_task_list_next(task))
+	for (next_task = starpu_task_list_next(task); next_task != starpu_task_list_end(&l->sub_list); next_task = starpu_task_list_next(next_task))
 	{
 		//~ printf("On task %p\n", task);
 		time_to_add = 0;
-		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(next_task); i++)
 		{
-			if (SearchTheData(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order) == false)
+			if (SearchTheData(l->pointer_node, STARPU_TASK_GET_HANDLE(next_task, i), use_order) == false)
 			{
 				//~ printf("Data not on memory, memory used = %ld, want to add %ld\n", l->pointer_node->memory_used, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
-				if (l->pointer_node->memory_used + starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i))) <= GPU_RAM)
+				if (l->pointer_node->memory_used + starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(next_task, i))) <= GPU_RAM)
 				{
-					insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, i, &l->sub_list, task);
+					insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(next_task, i), use_order, i, &l->sub_list, task);
 					use_order++;
-					time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
+					time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(next_task, i)));
 				}
 				else
 				{
 					/* Need to evict a data and replace it */
 					//~ printf("Memory full, need to evict\n");
-					replace_least_recently_used_data(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, task, &l->sub_list);
+					replace_least_recently_used_data(l->pointer_node, STARPU_TASK_GET_HANDLE(next_task, i), use_order, task, &l->sub_list, i);
 					use_order++;
-					time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
+					time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(next_task, i)));
 				}
 			}
 			else
@@ -1609,15 +1609,43 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 		/* Who cost more time ? Task T_{i-1} or data load from T_{i} */
 		if (time_to_add > starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0))
 		{
+			//~ printf("adding %f from data\n", time_to_add);
 			l->expected_package_computation_time += time_to_add;
 		}
 		else
 		{
+			//~ printf("addding %f from task %p\n", starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0), task);
 			l->expected_package_computation_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 		}
+		task = starpu_task_list_next(task);
 	}
+	//~ printf("la %p %p\n", task, next_task);
+	l->expected_package_computation_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 	afficher_data_on_node(l);
 }
+
+/* Adding or removing a task, lighter than version above */
+//~ double get_expected_package_computation_time_added (struct my_list *l, starpu_ssize_t GPU_RAM, struct starpu_task *task)
+//~ {
+		//~ printf("On task %p in new_get_expected\n", task);
+		//~ int time_to_add = 0;
+		//~ for (int i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		//~ {
+			//~ if (SearchTheData(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), -2) == false)
+			//~ {
+					//~ time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
+			//~ }
+		//~ }
+		//~ /* Who cost more time ? Task T_{i-1} or data load from T_{i} */
+		//~ if (time_to_add > starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0))
+		//~ {
+			//~ return time_to_add;
+		//~ }
+		//~ else
+		//~ {
+			//~ return starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
+		//~ }
+//~ }
 
 /* Equilibrates package in order to have packages with the same expected computation time, 
  * including transfers and computation/transfers overlap.
@@ -1645,11 +1673,74 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 	while (p->temp_pointer_1 != NULL)
 	{
 		get_expected_package_computation_time(p->temp_pointer_1, GPU_RAM);
+		printf("Expected time : %f\n", p->temp_pointer_1->expected_package_computation_time);
 		p->temp_pointer_1 = p->temp_pointer_1->next;
 	}
 	print_packages_in_terminal(p, 0);
 	
-	exit(0);
+	int package_with_min_expected_time, package_with_max_expected_time;
+	double min_expected_time, max_expected_time;
+	bool load_balance_needed = true;
+	int percentage = 5;//TODO faire convergence
+	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("A package should have %f time +/- 5 percent\n", EXPECTED_TIME/number_gpu); }
+	/* Selecting the smallest and biggest package */
+	while (load_balance_needed == true) { 
+		p->temp_pointer_1 = p->first_link;
+		min_expected_time = p->temp_pointer_1->expected_package_computation_time;
+		max_expected_time = p->temp_pointer_1->expected_package_computation_time;
+		package_with_min_expected_time = 0;
+		package_with_max_expected_time = 0;
+		int i = 0;
+		p->temp_pointer_1 = p->temp_pointer_1->next;
+		while (p->temp_pointer_1 != NULL) {
+			i++;
+			if (min_expected_time > p->temp_pointer_1->expected_package_computation_time) {
+				min_expected_time = p->temp_pointer_1->expected_package_computation_time;
+				package_with_min_expected_time = i;
+			}
+			if (max_expected_time < p->temp_pointer_1->expected_package_computation_time) {
+				max_expected_time = p->temp_pointer_1->expected_package_computation_time;
+				package_with_max_expected_time = i;
+			}
+			p->temp_pointer_1 = p->temp_pointer_1->next;
+		}
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("min et max : %f et %f, paquets %d et %d\n",min_expected_time, max_expected_time, package_with_min_expected_time, package_with_max_expected_time); }
+		/* Stealing as much task from the last tasks of the biggest packages */
+		if (package_with_min_expected_time == package_with_max_expected_time || min_expected_time >=  max_expected_time - ((percentage*max_expected_time)/100)) {
+		//~ if (package_with_min_expected_time == package_with_max_expected_time) {
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("All packages have the same expected time +/- %d percent\n", percentage); }
+			load_balance_needed = false;
+		}
+		else {
+			/* Getting on the right packages */
+			p->temp_pointer_1 = p->first_link;
+			for (i = 0; i < package_with_min_expected_time; i++) {
+				p->temp_pointer_1 = p->temp_pointer_1->next;
+			}
+			p->temp_pointer_2 = p->first_link;
+			for (i = 0; i < package_with_max_expected_time; i++) {
+				p->temp_pointer_2 = p->temp_pointer_2->next;
+			}
+			while (p->temp_pointer_1->expected_package_computation_time >= p->temp_pointer_2->expected_package_computation_time - ((p->temp_pointer_2->expected_package_computation_time*max_expected_time)/100)) {
+				task = starpu_task_list_pop_back(&p->temp_pointer_2->sub_list);
+				printf("stealing %p\n", task);
+				merge_task_and_package(p->temp_pointer_1, task);
+				p->temp_pointer_2->nb_task_in_sub_list--;
+				free(p->temp_pointer_1->pointer_node);
+				free(p->temp_pointer_2->pointer_node);
+				get_expected_package_computation_time(p->temp_pointer_1, GPU_RAM);
+				get_expected_package_computation_time(p->temp_pointer_2, GPU_RAM);
+				printf("expected time du gros paquet = %f\n", p->temp_pointer_2->expected_package_computation_time);
+				printf("expected time du petit paquet = %f\n", p->temp_pointer_1->expected_package_computation_time);
+				if ( p->temp_pointer_1->expected_package_computation_time >= p->temp_pointer_2->expected_package_computation_time)
+				{
+					break;
+				}
+			}
+		}
+	}
+	print_packages_in_terminal(p, 0);
+	//~ exit(0);
 }
 
 //~ printf("%f\n", starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0));
