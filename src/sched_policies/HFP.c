@@ -1420,11 +1420,27 @@ struct data_on_node *init_data_list(starpu_data_handle_t d)
 }
 
 /* For gemm that has C tile put in won't use if they are never used again */
-bool is_it_a_C_tile_data_never_used_again(struct data_on_node *a, starpu_data_handle_t h, int i)
-{
+bool is_it_a_C_tile_data_never_used_again(starpu_data_handle_t h, int i, struct starpu_task_list *l, struct starpu_task *current_task)
+{	
+	struct starpu_task *task = NULL;
 	if (i%2 == 0)
 	{
-			
+		/* Getting on the right data/right task */
+		for (task = starpu_task_list_begin(l); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
+		{
+			if (current_task == task)
+			{
+				break;
+			}
+		}
+		for (task = starpu_task_list_next(task); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
+		{
+			if (h == STARPU_TASK_GET_HANDLE(task, 2))
+			{
+				return false;
+			}
+		}
+		return true;
 	}
 	else
 	{
@@ -1432,7 +1448,7 @@ bool is_it_a_C_tile_data_never_used_again(struct data_on_node *a, starpu_data_ha
 	}
 }
 
-void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvNombre, int use_order, int i)
+void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvNombre, int use_order, int i, struct starpu_task_list *l, struct starpu_task *current_task)
 {
     struct handle *nouveau = malloc(sizeof(*nouveau));
     if (liste == NULL || nouveau == NULL)
@@ -1442,7 +1458,7 @@ void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvN
     liste->memory_used += starpu_data_get_size(nvNombre);
     nouveau->h = nvNombre;
     nouveau->next = liste->first_data;
-    if (is_it_a_C_tile_data_nver_used_again(liste->first_link, nouveau->h, i) == true)
+    if (is_it_a_C_tile_data_never_used_again(nouveau->h, i, l, current_task) == true)
     {
 		nouveau->last_use = -1;
 	}
@@ -1493,16 +1509,18 @@ bool SearchTheData (struct data_on_node *pNode, starpu_data_handle_t iElement, i
 /* Replace the least recently used data on memory with the new one.
  * But we need to look that it's not a data used by current task too!
  */
-void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle_t data_to_load, int use_order, struct starpu_task *current_task)
+void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle_t data_to_load, int use_order, struct starpu_task *current_task, struct starpu_task_list *l)
 {
+	int i = 0;
 	bool data_currently_used = false;
+	int ith_handle_least_recent_use = 0;
 	int least_recent_use = INT_MAX;
 	for (a->pointer_data_list = a->first_data; a->pointer_data_list != NULL; a->pointer_data_list = a->pointer_data_list->next)
 	{
 		data_currently_used = false;
 		if (least_recent_use > a->pointer_data_list->last_use)
 		{
-			for (int i = 0; i < STARPU_TASK_GET_NBUFFERS(current_task); i++)
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(current_task); i++)
 			{
 				if (STARPU_TASK_GET_HANDLE(current_task, i) == a->pointer_data_list->h)
 				{
@@ -1523,7 +1541,7 @@ void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle
 		{
 			printf("Données utilisé il y a le plus longtemps : %p | %d\n", a->pointer_data_list->h, a->pointer_data_list->last_use);
 			a->pointer_data_list->h = data_to_load;
-			if (is_it_a_C_tile_data_never_used_again(a->first_data, a->pointer_data_list->h, ith_handle_least_recent_use) == true)
+			if (is_it_a_C_tile_data_never_used_again(a->pointer_data_list->h, ith_handle_least_recent_use, l, current_task) == true)
 			{
 				a->pointer_data_list->last_use = -1;
 			}
@@ -1553,7 +1571,7 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 	/* Put the remaining data on simulated memory */
 	for (i = 1; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
-		insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, i);
+		insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, i, &l->sub_list, task);
 		l->expected_package_computation_time += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
 		use_order++;
 	}
@@ -1569,7 +1587,7 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 				//~ printf("Data not on memory, memory used = %ld, want to add %ld\n", l->pointer_node->memory_used, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
 				if (l->pointer_node->memory_used + starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i))) <= GPU_RAM)
 				{
-					insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order);
+					insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, i, &l->sub_list, task);
 					use_order++;
 					time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
 				}
@@ -1577,7 +1595,7 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 				{
 					/* Need to evict a data and replace it */
 					//~ printf("Memory full, need to evict\n");
-					replace_least_recently_used_data(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, task);
+					replace_least_recently_used_data(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, task, &l->sub_list);
 					use_order++;
 					time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
 				}
