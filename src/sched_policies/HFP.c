@@ -38,7 +38,7 @@
 #define PRINTF /* O we print nothing, 1 we print in terminal and also fill data coordinate order, task order etc... so it can take more time. */
 #define ORDER_U /* O or 1 */
 #define BELADY /* O or 1 */
-#define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet */
+#define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet, 6 : load balance avec expected time d'un paquet en comptant transferts et overlap, 7 : pareil que 6 + HFP sur chaque paquet */
 #define MODULAR_HEFT_HFP_MODE /* 0 we don't use heft, 1 we use starpu_prefetch_task_input_on_node_prio, 2 we use starpu_prefetch_task_input_on_node_prio. Put it at 1 or 2 if you use modular-heft-HFP, else it will crash. the 0 is just here so we don't do prefetch when we use regular HFP. If we do not use modular-heft-HFP, always put this environemment variable on 0. */
 #define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package */
 #define READY /* 0 we don't use ready in initialize_HFP_center_policy, 1 we do */
@@ -92,8 +92,10 @@ struct my_list
 	int split_last_ij; /* The separator of the last state of the current package */
 	//~ starpu_data_handle_t * data_use_order; /* Order in which data will be loaded. used for Belady */
 	int total_nb_data_package;
-	double expected_time;
-	double expected_time_pulled_out;
+	double expected_time; /* Only task's time */
+	double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
+	double expected_package_computation_time; /* Computation time with transfer and overlap */
+	struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
 };
 
 struct paquets
@@ -104,6 +106,20 @@ struct paquets
 	struct my_list *temp_pointer_3;
 	struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */     	
     int NP; /* Number of packages */
+};
+
+struct data_on_node /* Simulate memory, list of handles */
+{
+	struct handle *pointer_data_list;
+	struct handle *first_data;
+	long int memory_used;
+};
+
+struct handle /* The handles from above */
+{
+	starpu_data_handle_t h;
+	int last_use;
+	struct handle *next;
 };
 
 /* Empty a task's list. We use this for the lists last_package */
@@ -930,7 +946,7 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 			while (a->temp_pointer_1 != NULL) {
 				printf("Le paquet %d contient %d tâche(s) et %d données, expected time = %f\n",link_index,a->temp_pointer_1->nb_task_in_sub_list,a->temp_pointer_1->package_nb_data,a->temp_pointer_1->expected_time);
 				for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
-					printf("%p\n",task);
+					printf("%p : %p %p %p\n",task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
 				}
 				link_index++;
 				a->temp_pointer_1 = a->temp_pointer_1->next;
@@ -1382,6 +1398,240 @@ void merge_task_and_package (struct my_list *package, struct starpu_task *task)
 	package->total_nb_data_package += STARPU_TASK_GET_NBUFFERS(task);	
 	package->expected_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	
 	starpu_task_list_push_back(&package->sub_list, task); 						
+}
+
+struct data_on_node *init_data_list(starpu_data_handle_t d)
+{
+	struct data_on_node *liste = malloc(sizeof(*liste));
+    struct handle *element = malloc(sizeof(*element));
+
+    if (liste == NULL || element == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+	
+	liste->memory_used = starpu_data_get_size(d);
+    element->h = d;
+    element->last_use = 0;
+    element->next = NULL;
+    liste->first_data = element;
+
+    return liste;
+}
+
+/* For gemm that has C tile put in won't use if they are never used again */
+bool is_it_a_C_tile_data_never_used_again(struct data_on_node *a, starpu_data_handle_t h, int i)
+{
+	if (i%2 == 0)
+	{
+			
+	}
+	else
+	{
+		return false;
+	}
+}
+
+void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvNombre, int use_order, int i)
+{
+    struct handle *nouveau = malloc(sizeof(*nouveau));
+    if (liste == NULL || nouveau == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+    liste->memory_used += starpu_data_get_size(nvNombre);
+    nouveau->h = nvNombre;
+    nouveau->next = liste->first_data;
+    if (is_it_a_C_tile_data_nver_used_again(liste->first_link, nouveau->h, i) == true)
+    {
+		nouveau->last_use = -1;
+	}
+	else
+	{
+		nouveau->last_use = use_order;
+	}
+    liste->first_data = nouveau;
+}
+
+void afficher_data_on_node(struct my_list *liste)
+{
+    if (liste == NULL)
+    {
+        exit(EXIT_FAILURE);
+    }
+
+    struct handle *actuel = liste->pointer_node->first_data;
+	
+	printf("Memory used = %ld | Expected time = %f / ", liste->pointer_node->memory_used, liste->expected_package_computation_time);
+    while (actuel != NULL)
+    {
+        printf("%p | %d -> ", actuel->h, actuel->last_use);
+        actuel = actuel->next;
+    }
+    printf("NULL\n");
+}
+
+/* Search a data on the linked list of data */
+bool SearchTheData (struct data_on_node *pNode, starpu_data_handle_t iElement, int use_order)
+{
+	pNode->pointer_data_list = pNode->first_data;
+    while (pNode->pointer_data_list != NULL)
+    {
+        if(pNode->pointer_data_list->h == iElement)
+        {
+			pNode->pointer_data_list->last_use = use_order;
+            return true;
+        }
+        else
+        {
+            pNode->pointer_data_list = pNode->pointer_data_list->next;
+        }
+    }
+    return false;
+}
+
+/* Replace the least recently used data on memory with the new one.
+ * But we need to look that it's not a data used by current task too!
+ */
+void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle_t data_to_load, int use_order, struct starpu_task *current_task)
+{
+	bool data_currently_used = false;
+	int least_recent_use = INT_MAX;
+	for (a->pointer_data_list = a->first_data; a->pointer_data_list != NULL; a->pointer_data_list = a->pointer_data_list->next)
+	{
+		data_currently_used = false;
+		if (least_recent_use > a->pointer_data_list->last_use)
+		{
+			for (int i = 0; i < STARPU_TASK_GET_NBUFFERS(current_task); i++)
+			{
+				if (STARPU_TASK_GET_HANDLE(current_task, i) == a->pointer_data_list->h)
+				{
+					data_currently_used = true;
+					break;
+				}
+			}
+			if (data_currently_used == false)
+			{		
+				least_recent_use = a->pointer_data_list->last_use;
+				ith_handle_least_recent_use = i;
+			}
+		}
+	}
+	for (a->pointer_data_list = a->first_data; a->pointer_data_list != NULL; a->pointer_data_list = a->pointer_data_list->next)
+	{
+		if (least_recent_use == a->pointer_data_list->last_use)
+		{
+			printf("Données utilisé il y a le plus longtemps : %p | %d\n", a->pointer_data_list->h, a->pointer_data_list->last_use);
+			a->pointer_data_list->h = data_to_load;
+			if (is_it_a_C_tile_data_never_used_again(a->first_data, a->pointer_data_list->h, ith_handle_least_recent_use) == true)
+			{
+				a->pointer_data_list->last_use = -1;
+			}
+			else
+			{
+				a->pointer_data_list->last_use = use_order;
+			}			
+			break;
+		}
+	}
+}
+
+/* Return expected time of the list of task + fill a struct of data on the node,
+ * so we can more easily simulate adding, removing task in a list, 
+ * without re-calculating everything.
+ */
+void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GPU_RAM)
+{
+	int i, use_order = 1;
+	struct starpu_task *task;
+	double time_to_add = 0;
+	
+	task = starpu_task_list_begin(&l->sub_list);
+	/* Init linked list of data in this package */
+	l->pointer_node = init_data_list(STARPU_TASK_GET_HANDLE(task, 0));
+	l->expected_package_computation_time = starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 0)));
+	/* Put the remaining data on simulated memory */
+	for (i = 1; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+	{
+		insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, i);
+		l->expected_package_computation_time += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
+		use_order++;
+	}
+	//~ afficher_data_on_node(l);
+	for (task = starpu_task_list_next(task); task != starpu_task_list_end(&l->sub_list); task = starpu_task_list_next(task))
+	{
+		//~ printf("On task %p\n", task);
+		time_to_add = 0;
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		{
+			if (SearchTheData(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order) == false)
+			{
+				//~ printf("Data not on memory, memory used = %ld, want to add %ld\n", l->pointer_node->memory_used, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
+				if (l->pointer_node->memory_used + starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i))) <= GPU_RAM)
+				{
+					insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order);
+					use_order++;
+					time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
+				}
+				else
+				{
+					/* Need to evict a data and replace it */
+					//~ printf("Memory full, need to evict\n");
+					replace_least_recently_used_data(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, task);
+					use_order++;
+					time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
+				}
+			}
+			else
+			{
+				/* A data already on memory will be used, need to increment use_order */
+				use_order++;
+			}
+		}
+		/* Who cost more time ? Task T_{i-1} or data load from T_{i} */
+		if (time_to_add > starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0))
+		{
+			l->expected_package_computation_time += time_to_add;
+		}
+		else
+		{
+			l->expected_package_computation_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
+		}
+	}
+	afficher_data_on_node(l);
+}
+
+/* Equilibrates package in order to have packages with the same expected computation time, 
+ * including transfers and computation/transfers overlap.
+ * Called in HFP_pull_task once all packages are done.
+ * It is called when MULTIGPU = 6 or 7.
+ * TODO : do the actual load balance
+ */
+void load_balance_expected_package_computation_time (struct paquets *p, starpu_ssize_t GPU_RAM)
+{
+	if (strcmp(appli,"starpu_sgemm_gemm") != 0)
+	{
+		/* What is different mainly is with the task of C that is in won't use for LRU with gemms once it used 
+		 * We do something in replace_least_recently_used_data that maybe we can't do in cholesky or random graphs? */
+		perror("load_balance_expected_package_computation_time not implemented yet for non-gemm applications\n"); exit(EXIT_FAILURE);
+	}
+	struct starpu_task *task;
+	task = starpu_task_list_begin(&p->temp_pointer_1->sub_list);
+	//~ double task_duration = starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
+	//~ double transfer_duration = starpu_transfer_predict(0,1,starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0));
+	printf("Durée d'une tâche : %f\n", starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0));
+	printf("Durée des transferts : %f %f %f\n", starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 0))), starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 1))), starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 2))));
+	printf("GPU_RAM = %ld\n", GPU_RAM);
+	printf("Taille des données : %ld %ld %ld\n-----\n", starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 0)), starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 1)), starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 2)));
+	p->temp_pointer_1 = p->first_link;
+	while (p->temp_pointer_1 != NULL)
+	{
+		get_expected_package_computation_time(p->temp_pointer_1, GPU_RAM);
+		p->temp_pointer_1 = p->temp_pointer_1->next;
+	}
+	print_packages_in_terminal(p, 0);
+	
+	exit(0);
 }
 
 //~ printf("%f\n", starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0));
@@ -1942,11 +2192,11 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
 			
 			//TEST, a retirer
-			if (starpu_get_env_number_default("TEST", 0) == 1) {
-			data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->sched_list, 100, GPU_RAM_M);
-			NT = 100; N = 10;
-			print_order_in_file_hfp(data->p);
-			exit(0); }
+			//~ if (starpu_get_env_number_default("TEST", 0) == 1) {
+			//~ data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->sched_list, 100, GPU_RAM_M);
+			//~ NT = 100; N = 10;
+			//~ print_order_in_file_hfp(data->p);
+			//~ exit(0); }
 				
 			if (starpu_get_env_number_default("HMETIS",0) != 0) 
 			{
@@ -2339,39 +2589,41 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		
-		/* Task stealing. Only in cases of multigpu */
+		/* Task stealing based on the number of tasks. Only in cases of multigpu */
 		if (starpu_get_env_number_default("MULTIGPU",0) == 2 || starpu_get_env_number_default("MULTIGPU",0) == 3) {
 			load_balance(data->p, number_of_package_to_build);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
-		/* Task stealing with expected time */
+		/* Task stealing with expected time of each task */
 		if (starpu_get_env_number_default("MULTIGPU",0) == 4 || starpu_get_env_number_default("MULTIGPU",0) == 5) {
 			load_balance_expected_time(data->p, number_of_package_to_build);
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+		}
+		/* Task stealing with expected time of each package, with transfers and overlap */
+		if (starpu_get_env_number_default("MULTIGPU",0) == 6 || starpu_get_env_number_default("MULTIGPU",0) == 7) {
+			load_balance_expected_package_computation_time(data->p, GPU_RAM_M);
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected package computation time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
 		/* Re-apply HFP on each package. 
 		 * Once task stealing is done we need to re-apply HFP. For this I use an other instance of HFP_sched_data.
 		 * It is in another function, if it work we can also put the packing above in it.
 		 * Only with MULTIGPU = 2 because if we don't do load balance there is no point in re-applying HFP.
 		 */
-		 if (starpu_get_env_number_default("MULTIGPU",0) == 3 || starpu_get_env_number_default("MULTIGPU",0) == 5) {
+		 if (starpu_get_env_number_default("MULTIGPU",0) == 3 || starpu_get_env_number_default("MULTIGPU",0) == 5 || starpu_get_env_number_default("MULTIGPU",0) == 7) {
 			 
-			 data->p->temp_pointer_1 = data->p->first_link;
-	struct starpu_task *task;
-	FILE *f = fopen("Output_maxime/temp.txt", "w");
-	while (data->p->temp_pointer_1 != NULL) 
-	{
-		
-		for (task = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
-		{
-			fprintf(f, "%p\n",task);
-		}
-		data->p->temp_pointer_1 = data->p->temp_pointer_1->next;	
-	}
-	fclose(f);
-			 
-			 
-			 
+					 //~ data->p->temp_pointer_1 = data->p->first_link;
+			//~ struct starpu_task *task;
+			//~ FILE *f = fopen("Output_maxime/temp.txt", "w");
+			//~ while (data->p->temp_pointer_1 != NULL) 
+			//~ {
+				
+				//~ for (task = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
+				//~ {
+					//~ fprintf(f, "%p\n",task);
+				//~ }
+				//~ data->p->temp_pointer_1 = data->p->temp_pointer_1->next;	
+			//~ }
+			//~ fclose(f);			 
 			 data->p->temp_pointer_1 = data->p->first_link;
 			 while (data->p->temp_pointer_1 != NULL) { 
 				data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
@@ -2405,17 +2657,6 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		/* Printing in a file the order produced by HFP. If we use modular-heft-HFP, we can compare this order with the one done by modular-heft. We also print here the number of gpu in which a data is used for HFP's order. */
 		if (starpu_get_env_number_default("PRINTF",0) == 1)
 		{
-			//~ print_order_in_file_hfp(data->p);
-			//~ visualisation_data_gpu_in_file_hfp_format_tex(data->p);
-			//~ //TODO corriger la manière dont je vide si il y a plus de 3 GPUs
-			//~ FILE *f = fopen("Output_maxime/Task_order_effective_0", "w"); /* Just to empty it before */
-			//~ fclose(f);
-			//~ f = fopen("Output_maxime/Task_order_effective_1", "w"); /* Just to empty it before */
-			//~ fclose(f);
-			//~ f = fopen("Output_maxime/Task_order_effective_2", "w"); /* Just to empty it before */
-			//~ fclose(f);
-			//~ f = fopen("Output_maxime/Data_coordinates_order_last_HEFT.txt", "w");
-			//~ fclose(f);
 			init_visualisation(data->p);
 		}
 	
