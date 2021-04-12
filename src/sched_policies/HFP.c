@@ -43,6 +43,7 @@
 #define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package */
 #define READY /* 0 we don't use ready in initialize_HFP_center_policy, 1 we do */
 #define PRINT3D /* 1 we print coordinates and visualize data. Needed to differentiate 2D from 3D */
+#define TASKSTEALING /* 0 we don't use it, 1 a gpu can steal task from an other package if it has finished all it tasks */
 
 /* Other environmment variable you should use with HFP: 
  * STARPU_NTASKS_THRESHOLD=30  
@@ -1679,10 +1680,12 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 	print_packages_in_terminal(p, 0);
 	
 	int package_with_min_expected_time, package_with_max_expected_time;
+	int last_package_with_min_expected_time = 0;
+	int last_package_with_max_expected_time = 0;
 	double min_expected_time, max_expected_time;
 	bool load_balance_needed = true;
-	int percentage = 5;//TODO faire convergence
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("A package should have %f time +/- 5 percent\n", EXPECTED_TIME/number_gpu); }
+	int percentage = 1; /* percentage of difference between packages */
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("All package should have same time +/- %d percent\n", percentage); }
 	/* Selecting the smallest and biggest package */
 	while (load_balance_needed == true) { 
 		p->temp_pointer_1 = p->first_link;
@@ -1705,9 +1708,16 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 			p->temp_pointer_1 = p->temp_pointer_1->next;
 		}
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("min et max : %f et %f, paquets %d et %d\n",min_expected_time, max_expected_time, package_with_min_expected_time, package_with_max_expected_time); }
+		
+		/* To avoid looping indefintly */
+		if (last_package_with_min_expected_time == package_with_max_expected_time && last_package_with_max_expected_time == package_with_min_expected_time)
+		{
+			printf("loop\n");
+			break;
+		}
+		
 		/* Stealing as much task from the last tasks of the biggest packages */
 		if (package_with_min_expected_time == package_with_max_expected_time || min_expected_time >=  max_expected_time - ((percentage*max_expected_time)/100)) {
-		//~ if (package_with_min_expected_time == package_with_max_expected_time) {
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("All packages have the same expected time +/- %d percent\n", percentage); }
 			load_balance_needed = false;
 		}
@@ -1734,9 +1744,12 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 				printf("expected time du petit paquet = %f\n", p->temp_pointer_1->expected_package_computation_time);
 				if ( p->temp_pointer_1->expected_package_computation_time >= p->temp_pointer_2->expected_package_computation_time)
 				{
+					printf("break\n");
 					break;
 				}
 			}
+			last_package_with_min_expected_time = package_with_min_expected_time;
+			last_package_with_max_expected_time = package_with_max_expected_time;
 		}
 	}
 	print_packages_in_terminal(p, 0);
