@@ -16,26 +16,26 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <limits.h>
-#include <starpu_data_maxime.h> //Nécessaire pour Belady
-//~ #include <schedulers/HFP.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <time.h>
-#include <starpu.h>
-#include <starpu_sched_component.h>
-#include <starpu_scheduler.h>
-#include "core/task.h"
-#include "prio_deque.h"
-#include <starpu_perfmodel.h>
+//~ #include <limits.h>
+//~ #include <starpu_data_maxime.h> //Nécessaire pour Belady
+#include <schedulers/HFP.h>
+//~ #include <stdbool.h>
+//~ #include <stdlib.h>
+//~ #include <time.h>
+//~ #include <starpu.h>
+//~ #include <starpu_sched_component.h>
+//~ #include <starpu_scheduler.h>
+//~ #include "core/task.h"
+//~ #include "prio_deque.h"
+//~ #include <starpu_perfmodel.h>
 #include "helper_mct.h"
-#include <stdio.h>
-#include <float.h>
-#include <core/sched_policy.h>
-#include <core/task.h>
-#include "starpu_stdlib.h"
-#include "common/list.h"
-#include <assert.h>
+//~ #include <stdio.h>
+//~ #include <float.h>
+//~ #include <core/sched_policy.h>
+//~ #include <core/task.h>
+//~ #include "starpu_stdlib.h"
+//~ #include "common/list.h"
+//~ #include <assert.h>
 #define PRINTF /* O we print nothing, 1 we print in terminal and also fill data coordinate order, task order etc... so it can take more time. */
 #define ORDER_U /* O or 1 */
 #define BELADY /* O or 1 */
@@ -55,13 +55,13 @@
  * STARPU_NOPENCL=0
  */
 
-static int Ngpu;
-const char* appli;
-static int NT;
-static int N;
-static double EXPECTED_TIME;
-int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
-static starpu_ssize_t GPU_RAM_M;
+//~ static int Ngpu;
+//~ const char* appli;
+//~ static int NT;
+//~ static int N;
+//~ static double EXPECTED_TIME;
+//~ int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
+//~ static starpu_ssize_t GPU_RAM_M;
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct HFP_sched_data
