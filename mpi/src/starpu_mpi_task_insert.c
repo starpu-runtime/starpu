@@ -843,13 +843,14 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	synchro->cl = &_starpu_mpi_redux_data_synchro_cl;
 	STARPU_TASK_SET_HANDLE(synchro, data_handle, 0);
 	current_level = 0;
-	current_level = 0;
 	while (nb_contrib != 1)
 	{
 		if (nb_contrib%arity == 0) next_nb_contrib = nb_contrib/arity;
 		else next_nb_contrib = nb_contrib/arity + 1;
 		for (step = 0; step < next_nb_contrib; step++) 
 		{
+			root_in_step = 0;
+			me_in_step = 0;
 			for (node = step*arity ; node < nb_nodes && node < (step+1)*arity ; node++)
 			{
 				if (contributors[node] == rank) root_in_step = 1;
