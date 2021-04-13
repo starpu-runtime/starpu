@@ -314,8 +314,16 @@ void starpu_data_partition_not_automatic(starpu_data_handle_t handle);
    Partition a block-sparse matrix into dense matrices.
    starpu_data_filter::get_child_ops needs to be set to
    starpu_bcsr_filter_canonical_block_child_ops()
+   and starpu_data_filter::get_nchildren set to
+   starpu_bcsr_filter_canonical_block_get_nchildren().
 */
 void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Return the number of children obtained with starpu_bcsr_filter_canonical_block().
+*/
+unsigned starpu_bcsr_filter_canonical_block_get_nchildren(struct starpu_data_filter *f, starpu_data_handle_t handle)
+;
 /**
    Return the child_ops of the partition obtained with starpu_bcsr_filter_canonical_block().
 */
