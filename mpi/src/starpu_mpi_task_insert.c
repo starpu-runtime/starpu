@@ -822,9 +822,9 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	starpu_mpi_comm_rank(comm, &me);
 	starpu_mpi_comm_size(comm, &nb_nodes);
 
-	int current_step, nb_contrib, next_nb_contrib;
-	int i, j, substep, node;
-	char root_in_substep, me_in_substep;
+	int current_level, nb_contrib, next_nb_contrib;
+	int i, j, step, node;
+	char root_in_step, me_in_step;
 	for (i=0;i<nb_nodes;i++) 
 	{
 		if (mpi_data->redux_map[i]) nb_contrib++;
@@ -842,34 +842,34 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	const long synchro_jobid = starpu_task_get_job_id(synchro);
 	synchro->cl = &_starpu_mpi_redux_data_synchro_cl;
 	STARPU_TASK_SET_HANDLE(synchro, data_handle, 0);
-	current_step = 0;
-	current_step = 0;
+	current_level = 0;
+	current_level = 0;
 	while (nb_contrib != 1)
 	{
 		if (nb_contrib%arity == 0) next_nb_contrib = nb_contrib/arity;
 		else next_nb_contrib = nb_contrib/arity + 1;
-		for (substep = 0; substep < next_nb_contrib; substep++) 
+		for (step = 0; step < next_nb_contrib; step++) 
 		{
-			for (node = substep*arity ; node < nb_nodes && node < (substep+1)*arity ; node++)
+			for (node = step*arity ; node < nb_nodes && node < (step+1)*arity ; node++)
 			{
-				if (contributors[node] == rank) root_in_substep = 1;
-				if (contributors[node] == me) me_in_substep = 1;
+				if (contributors[node] == rank) root_in_step = 1;
+				if (contributors[node] == me) me_in_step = 1;
 			}
-			/* FIXME: if the root node is note in the substep, then we agree the node
-			 * with the lowest id reduces the substep : we could agree on another
+			/* FIXME: if the root node is note in the step, then we agree the node
+			 * with the lowest id reduces the step : we could agree on another
 			 * node to better load balance in the case of multiple reductions involving
 			 * the same sets of nodes 
 			 */
-			if (root_in_substep) reducing_node = rank;
-			else reducing_node = contributors[substep*arity]; 
+			if (root_in_step) reducing_node = rank;
+			else reducing_node = contributors[step*arity]; 
 
 			if (me == reducing_node)
 			{
-				for (node = substep*arity ; node < nb_contrib && node < (substep+1)*arity ; node++)
+				for (node = step*arity ; node < nb_contrib && node < (step+1)*arity ; node++)
 				{
 					if (me != contributors[node]) {
-						_STARPU_MPI_DEBUG(5, "%d takes part in the reduction of %p towards %d (step %dth substep %dth) \n", 
-								contributors[node], data_handle, reducing_node, current_step, substep);
+						_STARPU_MPI_DEBUG(5, "%d takes part in the reduction of %p towards %d (%dth level ; %dth step) \n", 
+								contributors[node], data_handle, reducing_node, current_level, step);
 						/* We need to make sure all is
 						 * executed after data_handle finished
 						 * its last read access, we hence do
@@ -892,7 +892,7 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 					}
 				}
 			}
-			else if (me_in_substep)
+			else if (me_in_step)
 			{
 				_STARPU_MPI_DEBUG(5, "Sending redux handle to %d ...\n", reducing_node);
 				starpu_mpi_isend_detached_prio(data_handle, reducing_node, data_tag, prio, comm, NULL, NULL);
