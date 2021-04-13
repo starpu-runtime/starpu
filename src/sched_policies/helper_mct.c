@@ -153,8 +153,7 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 		/* Estimated availability of worker */
 		double estimated_end = c->estimated_end(c);
 		/* Trying to influence the task repartition based on the packing from HFP */
-		printf("estimated end before = %f\n", estimated_end);
-		if (starpu_get_env_number_default("MCTMULTIPLIER", 0) != 0)
+		if (starpu_get_env_number_default("MCTMULTIPLIER", 100) != 100)
 		{
 			if (starpu_bitmap_first(&component->children[i]->workers_in_ctx) != task->workerid)
 			{
@@ -164,7 +163,6 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 				estimated_end = estimated_end*multiplier;
 			}
 		}
-		printf("estimated end after = %f\n", estimated_end);
 		if (estimated_end < now)
 			estimated_end = now;
 		estimated_ends_with_task[icomponent] = compute_expected_time(now,

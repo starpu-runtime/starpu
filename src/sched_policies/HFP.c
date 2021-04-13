@@ -53,6 +53,7 @@
  * STARPU_CUDA_PIPELINE=4
  * STARPU_NCPU=0
  * STARPU_NOPENCL=0
+ * MCTMULTIPLIER
  */
 
 //~ static int Ngpu;
