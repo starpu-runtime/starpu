@@ -1968,9 +1968,9 @@ unsigned _starpu_get_nhyperthreads()
 	return config->topology.nhwpus / config->topology.nhwworker[STARPU_CPU_WORKER][0];
 }
 
-int starpu_get_memory_location(void* ptr)
+int starpu_get_memory_location_bitmap(void* ptr, size_t size)
 {
-	if (ptr == NULL)
+	if (ptr == NULL || size == 0)
 	{
 		return -1;
 	}
@@ -1980,30 +1980,44 @@ int starpu_get_memory_location(void* ptr)
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	hwloc_bitmap_t set = hwloc_bitmap_alloc();
-	/* we check only where is located the first byte (checking the whole
-	 * buffer would require its size and the buffer can be spread accross
-	 * several NUMA nodes, so more complex to deal with */
-	int ret = hwloc_get_area_memlocation(topology->hwtopology, ptr, 1, set, 0);
+	int ret = hwloc_get_area_memlocation(topology->hwtopology, ptr, size, set, HWLOC_MEMBIND_BYNODESET);
 	if (ret != 0)
 	{
 		hwloc_bitmap_free(set);
-		return -1;
+		return -2;
 	}
 
-	int id = hwloc_bitmap_first(set);
+	if (hwloc_bitmap_iszero(set) || hwloc_bitmap_isfull(set))
+	{
+		hwloc_bitmap_free(set);
+		return -3;
+	}
+
+	/* We could maybe use starpu_bitmap, but that seems a little bit
+	 * overkill and it would make recording it in traces harder.
+	 * An integer should be large enough to store the possible indexes of NUMA nodes ! */
+	int ret_bitmap = 0;
+	unsigned i = 0;
+	hwloc_bitmap_foreach_begin(i, set)
+	{
+		hwloc_obj_t numa_node = hwloc_get_numanode_obj_by_os_index(topology->hwtopology, i);
+		if (numa_node)
+		{
+			ret_bitmap |= (1 << numa_node->logical_index);
+		}
+		else
+		{
+			// We can't find a matching NUMA node, this can happen on machine without NUMA node
+			hwloc_bitmap_free(set);
+			return -4;
+		}
+	}
+	hwloc_bitmap_foreach_end();
+
 	hwloc_bitmap_free(set);
-	hwloc_obj_t numa_node = hwloc_get_numanode_obj_by_os_index(topology->hwtopology, id);
-	if (numa_node)
-	{
-		return numa_node->logical_index;
-	}
-	else
-	{
-		// We can't find a matching NUMA node, this can happen on machine without NUMA node
-		return -1;
-	}
+	return ret_bitmap;
 #else
-	/* we could use move_pages() */
-	return -1;
+	/* we could use move_pages(), but please, rather use hwloc ! */
+	return -5;
 #endif
 }

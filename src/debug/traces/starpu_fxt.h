@@ -41,6 +41,12 @@
 #include <starpu.h>
 #include "../../../include/starpu_fxt.h"
 
+#ifdef STARPU_HAVE_POTI
+#include <poti.h>
+#define STARPU_POTI_STR_LEN 200
+#endif
+#define STARPU_TRACE_STR_LEN 200
+
 #pragma GCC visibility push(hidden)
 
 extern char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][(FXT_MAX_PARAMS-5)*sizeof(unsigned long)];
@@ -66,8 +72,8 @@ void _starpu_fxt_dag_add_sync_point(void);
  */
 
 struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in, int *key, int *rank);
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio, int numa_node);
-void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle, int numa_node);
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio, int numa_nodes_bitmap);
+void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle, int numa_nodes_bitmap);
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file, FILE* out_comms_file);
 
 void _starpu_fxt_write_paje_header(FILE *file, struct starpu_fxt_options *options);

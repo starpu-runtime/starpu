@@ -282,6 +282,7 @@ myPROGRAMS +=				\
 	datawizard/acquire_release2		\
 	datawizard/acquire_release_to		\
 	datawizard/acquire_try			\
+	datawizard/allocate_many_numa_nodes	\
 	datawizard/bcsr				\
 	datawizard/cache			\
 	datawizard/commute			\

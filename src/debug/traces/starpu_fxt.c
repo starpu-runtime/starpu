@@ -23,11 +23,6 @@
 #include <datawizard/copy_driver.h>
 #include <string.h>
 
-#ifdef STARPU_HAVE_POTI
-#include <poti.h>
-#define STARPU_POTI_STR_LEN 200
-#endif
-#define STARPU_TRACE_STR_LEN 200
 
 #ifdef STARPU_PAPI
 #include <papi.h>
@@ -86,7 +81,7 @@ struct data_parameter_info
 	unsigned long handle;
 	unsigned long size;
 	int mode;
-	int numa_node;
+	int numa_nodes_bitmap;
 };
 
 struct task_info
@@ -192,6 +187,32 @@ static int show_task(struct task_info *task, struct starpu_fxt_options *options)
 	return 1;
 }
 
+void convert_numa_nodes_bitmap_to_str(int bitmap, char* str)
+{
+	if (bitmap < 0)
+	{
+		sprintf(str, "%d", bitmap);
+	}
+	else
+	{
+		int i = 0;
+		int first = 1;
+		for (; i < sizeof(bitmap)*8; i++)
+		{
+			if (bitmap & (1 << i))
+			{
+				if (first)
+				{
+					sprintf(str, "%d", i);
+					first = 0;
+				}
+				else
+					sprintf(str, "%s,%d", str, i);
+			}
+		}
+	}
+}
+
 static void task_dump(struct task_info *task, struct starpu_fxt_options *options)
 {
 	char *prefix = options->file_prefix;
@@ -278,7 +299,11 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "\n");
 		fprintf(tasks_file, "NumaNodes:");
 		for (i = 0; i < task->ndata; i++)
-			fprintf(tasks_file, " %d", task->data[i].numa_node);
+		{
+			char str[STARPU_TRACE_STR_LEN] = "";
+			convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, str);
+			fprintf(tasks_file, " %s", str);
+		}
 		fprintf(tasks_file, "\n");
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
@@ -1780,7 +1805,7 @@ static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	task->data[task->ndata].handle = ev->param[1];
 	task->data[task->ndata].size = ev->param[2];
 	task->data[task->ndata].mode = ev->param[3];
-	task->data[task->ndata].numa_node = ev->param[4];
+	task->data[task->ndata].numa_nodes_bitmap = ev->param[4];
 	task->ndata++;
 }
 
@@ -3122,7 +3147,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	long jobid = ev->param[4];
 	unsigned long handle = ev->param[5];
 	int prio = ev->param[6];
-	int numa_node = ev->param[7];
+	int numa_nodes_bitmap = ev->param[7];
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
@@ -3136,7 +3161,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle, type, prio, numa_node);
+		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle, type, prio, numa_nodes_bitmap);
 }
 
 static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3187,7 +3212,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 	int mpi_tag = ev->param[1];
 	long jobid = ev->param[2];
 	unsigned long handle = ev->param[4];
-	int numa_node = ev->param[5];
+	int numa_nodes_bitmap = ev->param[5];
 	double date = get_event_time_stamp(ev, options);
 
 	if (options->file_rank < 0)
@@ -3199,7 +3224,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle, numa_node);
+		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle, numa_nodes_bitmap);
 }
 
 static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
