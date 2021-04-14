@@ -19,6 +19,7 @@
 #include <starpu_scheduler.h>
 #include <float.h>
 #include <limits.h>
+#include <schedulers/HFP.h>
 
 /* The scheduling strategy look like this :
  *
@@ -69,7 +70,8 @@ struct starpu_sched_policy _starpu_sched_modular_heft_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.pre_exec_hook = get_current_tasks_heft,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "modular-heft",
