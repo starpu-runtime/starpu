@@ -203,6 +203,12 @@ module fstarpu_mod
                 subroutine fstarpu_resume() bind(C,name="starpu_resume")
                 end subroutine fstarpu_resume
 
+                ! int starpu_is_paused(void);
+                function fstarpu_is_paused() bind(C,name="starpu_is_paused")
+                        use iso_c_binding, only: c_int
+                        integer(c_int) :: fstarpu_is_paused
+                end function fstarpu_is_paused
+
                 ! void starpu_shutdown(void);
                 subroutine fstarpu_shutdown () bind(C,name="starpu_shutdown")
                 end subroutine fstarpu_shutdown

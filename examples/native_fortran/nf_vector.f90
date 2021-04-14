@@ -29,6 +29,7 @@ program nf_vector
         type(c_ptr) :: dh_vb    ! a pointer for the 'vb' vector data handle
         integer(c_int) :: err   ! return status for fstarpu_init
         integer(c_int) :: ncpu  ! number of cpus workers
+        integer(c_int) :: bool_ret
 
         allocate(va(5))
         va = (/ (i,i=1,5) /)
@@ -47,6 +48,26 @@ program nf_vector
         if (ncpu == 0) then
                 call fstarpu_shutdown()
                 stop 77
+        end if
+
+        ! illustrate use of pause/resume/is_paused
+        bool_ret = fstarpu_is_paused()
+        if (bool_ret /= 0) then
+                stop 1
+        end if
+
+        call fstarpu_pause
+
+        bool_ret = fstarpu_is_paused()
+        if (bool_ret == 0) then
+                stop 1
+        end if
+
+        call fstarpu_resume
+
+        bool_ret = fstarpu_is_paused()
+        if (bool_ret /= 0) then
+                stop 1
         end if
 
         ! allocate an empty perfmodel structure

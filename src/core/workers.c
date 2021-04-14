@@ -1792,6 +1792,12 @@ void starpu_resume()
 	starpu_fxt_trace_user_event_string("starpu_resume");
 }
 
+int starpu_is_paused()
+{
+	STARPU_RMB();
+	return _starpu_config.pause_depth > 0;
+}
+
 unsigned _starpu_worker_can_block(unsigned memnode STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *worker STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_NON_BLOCKING_DRIVERS
