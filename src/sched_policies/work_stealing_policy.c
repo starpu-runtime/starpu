@@ -711,6 +711,15 @@ int ws_push_task(struct starpu_task *task)
 	return 0;
 }
 
+static void ws_push_task_notify(struct starpu_task *task, int workerid, int perf_workerid, unsigned sched_ctx_id)
+{
+	(void)task;
+	(void)perf_workerid;
+
+	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+	ws->per_worker[workerid].busy = 1;
+}
+
 static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworkers)
 {
 	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
@@ -785,6 +794,7 @@ struct starpu_sched_policy _starpu_sched_ws_policy =
 	.remove_workers = ws_remove_workers,
 	.push_task = ws_push_task,
 	.pop_task = ws_pop_task,
+	.push_task_notify = ws_push_task_notify,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
@@ -896,6 +906,7 @@ struct starpu_sched_policy _starpu_sched_lws_policy =
 	.remove_workers = ws_remove_workers,
 	.push_task = ws_push_task,
 	.pop_task = ws_pop_task,
+	.push_task_notify = ws_push_task_notify,
 	.pre_exec_hook = NULL,
 	.post_exec_hook = NULL,
 	.pop_every_task = NULL,
