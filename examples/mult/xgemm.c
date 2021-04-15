@@ -25,13 +25,13 @@
 #error "Do not compile xgemm.c directly, compile sgemm.c or dgemm.c"
 #endif
 
-//To randomize the order of tasks
+/* To randomize tasks or their order */
 #include <time.h>
 #include <stdlib.h>
-#define RANDOM_TASK_ORDER
-#define RECURSIVE_MATRIX_LAYOUT
-#define RANDOM_DATA_ACCESS
-#define SEED
+#define RANDOM_TASK_ORDER /* only for 2D matrix */
+#define RECURSIVE_MATRIX_LAYOUT /* only for 2D matrix */
+#define RANDOM_DATA_ACCESS /* only for 2D matrix */
+//~ #define RANDOM_TASK_GRAPH /* only for 3D matrix but it has nothing to do with a 3D matrix I just used the code for 3D matrix */
 #include <starpu_data_maxime.h>
 
 #include <limits.h>
@@ -71,6 +71,7 @@ static unsigned check = 0;
 static unsigned bound = 0;
 static unsigned print_hostname = 0;
 static unsigned tiled = 0;
+static unsigned random_task_graph = 0; /* Create a random taks graph with variable number of data per task. use option -random to use it. */
 
 static TYPE *A, *B, *C;
 static starpu_data_handle_t A_handle, B_handle, C_handle;
@@ -193,7 +194,7 @@ static void partition_mult_data(void)
 	horiz.filter_func = starpu_matrix_filter_block;
 	horiz.nchildren = nslicesy;
 
-	if (tiled)
+	if (tiled || random_task_graph)
 	{
 		struct starpu_data_filter vertA;
 		memset(&vertA, 0, sizeof(vertA));
@@ -341,6 +342,7 @@ static struct starpu_perfmodel starpu_gemm_model =
 	.symbol = STARPU_GEMM_STR(gemm)
 };
 
+/* Codelet for 2D matrix */
 static struct starpu_codelet cl_gemm0 =
 {
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
@@ -360,6 +362,7 @@ static struct starpu_codelet cl_gemm0 =
 	.model = &starpu_gemm_model
 };
 
+/* Codelet for 3D matrix */
 static struct starpu_codelet cl_gemm =
 {
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
@@ -378,12 +381,35 @@ static struct starpu_codelet cl_gemm =
 	.model = &starpu_gemm_model
 };
 
+/* Codelet for random task graph */
+static struct starpu_codelet cl_random_task_graph =
+{
+	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {cpu_gemm},
+	.cpu_funcs_name = {"cpu_random_task_graph"},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {cublas_gemm},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = STARPU_VARIABLE_NBUFFERS,
+	.modes = {STARPU_R, STARPU_R, STARPU_R},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.model = &starpu_gemm_model
+};
+
 static void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)
 	{
-		if (strcmp(argv[i], "-3d") == 0)
+		if (strcmp(argv[i], "-random") == 0)
+		{
+			random_task_graph = 1;
+		}
+		else if (strcmp(argv[i], "-3d") == 0)
 		{
 			tiled = 1;
 		}
@@ -597,9 +623,7 @@ done:
 }
 
 int main(int argc, char **argv)
-{
-	//Ajout pour randomiser l'ordre d'arrivé des tâches srandom(starpu_get_env_number_default("SEED",1));
-	
+{	
 	//Ajout pour le Z layout
 	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0; int j_bis = 0; int y_z_layout = 0; int y_z_layout_i = 0;
 	
@@ -688,9 +712,57 @@ int main(int argc, char **argv)
 				starpu_resume(); /* Because I paused above */
 				starpu_task_wait_for_all();
 			}
-		} else if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
-			//~ printf("random\n");
-			//If environment variable RANDOM_TASK_ORDER == 1
+		} 
+		else if (random_task_graph)
+		{
+			int nb_handle = 0;
+			printf("Random task set in main of xgemm.c\n");
+			for (iter = 0; iter < niter; iter++)
+			{
+				starpu_pause(); /* To get all tasks at once */
+				for (x = 0; x < nslicesx; x++)
+				for (y = 0; y < nslicesy; y++)
+				{
+					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
+					starpu_data_invalidate(Ctile);
+					for (z = 0; z < nslicesz; z++)
+					{
+						struct starpu_task *task = starpu_task_create();
+
+						if (z == 0)
+							task->cl = &cl_random_task_graph;
+						else
+							task->cl = &cl_random_task_graph;
+						
+						nb_handle = random()%10 + 1; /* the max number of handle should be a env var later. +1 so we don't have 0. */
+						printf("%d handle for %p\n", nb_handle, task); 
+						for (i_bis = 0; i_bis < nb_handle; i_bis++)
+						{
+							//~ task->handles[i] = starpu_data_get_sub_data(1, 2, z, y);
+						}
+						//~ task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
+						//~ task->handles[1] = starpu_data_get_sub_data(B_handle, 2, x, z);
+						//~ task->handles[2] = Ctile;
+						
+						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz);
+
+						ret = starpu_task_submit(task);
+						if (ret == -ENODEV)
+						{
+						     check = 0;
+						     ret = 77;
+						     goto enodev;
+						}
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+					}
+					starpu_data_wont_use(Ctile);
+				}
+				starpu_resume(); /* Because I paused above */
+				starpu_task_wait_for_all();
+			}
+		}
+		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
+			/* Randomize the order in which task are sent, but the tasks are the same */
 			unsigned i = 0; unsigned j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; unsigned temp = 0; unsigned k = 0; unsigned n = 0;
 			for (iter = 0; iter < niter; iter++)
 			{
@@ -744,7 +816,7 @@ int main(int argc, char **argv)
 			//End If environment variable RANDOM_TASK_ORDER == 1
 		}
 		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 1 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
-			// RECURSIVE_MATRIX_LAYOUT == 1, cela annule le random=1
+			/* Tasks arrive in a "Z-order" */
 			unsigned i = 0; unsigned j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; unsigned temp = 0; unsigned k = 0; unsigned n = 0;
 			for (iter = 0; iter < niter; iter++)
 			{
@@ -820,6 +892,7 @@ int main(int argc, char **argv)
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
 		else if (starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 1) {
+			/* Each task takes as data a random line and a random column from A and B */
 			for (iter = 0; iter < niter; iter++)
 			{
 				starpu_pause();
@@ -851,7 +924,7 @@ int main(int argc, char **argv)
 			}	
 		}
 		else { 
-			//If environment variable RANDOM_TASK_ORDER == 0
+			/* Normal execution of xgemm */
 			for (iter = 0; iter < niter; iter++)
 			{
 				starpu_pause();
