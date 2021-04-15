@@ -377,20 +377,30 @@ endif
 
 if STARPU_HAVE_MPIFORT
 if !STARPU_SANITIZE
-examplebin_PROGRAMS +=		\
-	native_fortran/nf_mpi_redux
+examplebin_PROGRAMS +=				\
+	native_fortran/nf_mpi_redux		\
+	native_fortran/nf_mpi_redux_tree
 
-native_fortran_nf_mpi_redux_SOURCES	=			\
+native_fortran_nf_mpi_redux_SOURCES =		\
 	native_fortran/fstarpu_mpi_mod.f90	\
 	native_fortran/fstarpu_mod.f90		\
 	native_fortran/nf_mpi_redux.f90	
 
-native_fortran_nf_mpi_redux_LDADD =					\
+native_fortran_nf_mpi_redux_LDADD =		\
+	-lm
+
+native_fortran_nf_mpi_redux_tree_SOURCES =	\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
+	native_fortran/nf_mpi_redux_tree.f90	
+
+native_fortran_nf_mpi_redux_tree_LDADD =	\
 	-lm
 
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
-	native_fortran/nf_mpi_redux
+	native_fortran/nf_mpi_redux		\
+	native_fortran/nf_mpi_redux_tree
 endif
 endif
 endif

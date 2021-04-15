@@ -796,6 +796,17 @@ void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle);
 void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio);
 
 /**
+   Perform a reduction on the given data \p handle. 
+   Nodes perform the reduction through in a tree-based fashion.
+   The tree use is an \p arity - ary tree.
+*/
+void starpu_mpi_redux_data_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int arity);
+
+/**
+   Similar to starpu_mpi_redux_data_tree, but take a priority \p prio.
+*/
+void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int prio, int arity);
+/**
    Scatter data among processes of the communicator based on the
    ownership of the data. For each data of the array \p data_handles,
    the process \p root sends the data to the process owning this data.

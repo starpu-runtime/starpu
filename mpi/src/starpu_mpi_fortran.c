@@ -123,6 +123,14 @@ void fstarpu_mpi_redux_data_prio(MPI_Fint comm, starpu_data_handle_t data_handle
 {
 	starpu_mpi_redux_data_prio(MPI_Comm_f2c(comm), data_handle, prio);
 }
+void fstarpu_mpi_redux_data_tree(MPI_Fint comm, starpu_data_handle_t data_handle, int arity)
+{
+	starpu_mpi_redux_data_tree(MPI_Comm_f2c(comm), data_handle, arity);
+}
+void fstarpu_mpi_redux_data_prio_tree(MPI_Fint comm, starpu_data_handle_t data_handle, int prio, int arity)
+{
+	starpu_mpi_redux_data_prio_tree(MPI_Comm_f2c(comm), data_handle, prio, arity);
+}
 
 /* scatter/gather */
 int fstarpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int cnt, int root, MPI_Fint comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg)

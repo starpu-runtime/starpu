@@ -304,6 +304,25 @@ module fstarpu_mpi_mod
                         integer(c_int), value, intent(in) :: prio
                 end subroutine fstarpu_mpi_redux_data_prio
 
+                ! void starpu_mpi_redux_data_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int arity);
+                subroutine fstarpu_mpi_redux_data_tree(mpi_comm,dh, arity) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: arity
+                end subroutine fstarpu_mpi_redux_data_tree
+
+                ! void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int prio, int arity);
+                subroutine fstarpu_mpi_redux_data_prio_tree(mpi_comm,dh, prio, arity) bind(C)
+                        use iso_c_binding
+                        implicit none
+                        integer(c_int), value, intent(in) :: mpi_comm
+                        type(c_ptr), value, intent(in) :: dh
+                        integer(c_int), value, intent(in) :: prio
+                        integer(c_int), value, intent(in) :: arity
+                end subroutine fstarpu_mpi_redux_data_prio_tree
+
                 ! int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg);
                 function fstarpu_mpi_scatter_detached (dhs, cnt, root, mpi_comm, scallback, sarg, rcallback, rarg) bind(C)
                         use iso_c_binding
