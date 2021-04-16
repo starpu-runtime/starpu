@@ -38,6 +38,9 @@
  * STARPU_NCPU=0
  * STARPU_NOPENCL=0
  * MCTMULTIPLIER=XXX
+ * RANDOM_TASK_ORDER
+ * RECURSIVE_MATRIX_LAYOUT
+ * RANDOM_DATA_ACCESS
  */
  
 /* used for modular-heft for visualisation */
@@ -2443,11 +2446,11 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Tâche %p\n",task1);
-					//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
-						//~ printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
-					//~ }
-				//~ }
+				if (starpu_get_env_number_default("PRINTF",0) != 0) { printf("Tâche %p\n",task1);
+					for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
+						printf("%p\n",STARPU_TASK_GET_HANDLE(task1,i));
+					}
+				}
 				if (starpu_get_env_number_default("MULTIGPU",0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}					
 				nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list,task1);

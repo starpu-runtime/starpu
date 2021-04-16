@@ -51,6 +51,7 @@ EXTRA_DIST = 					\
 	spmv/matrix_market/examples/fidapm05.mtx \
 	mult/xgemm.c				\
 	mult/sgemm.sh				\
+	random_task_graph/random_task_graph.c \
 	lu/xlu.c				\
 	lu/xlu_pivot.c				\
 	lu/xlu_implicit.c			\
@@ -312,6 +313,7 @@ endif
 if !STARPU_NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
+	random_task_graph/random_task_graph		\
 	mult/dgemm				\
 	lu/lu_example_float			\
 	lu/lu_example_double			\

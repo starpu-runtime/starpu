@@ -4,7 +4,6 @@
 #include <starpu.h>
 #include <limits.h>
 #include <starpu_data_maxime.h>
-//~ #include <schedulers/HFP.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
@@ -14,7 +13,6 @@
 #include "core/task.h"
 #include "../sched_policies/prio_deque.h"
 #include <starpu_perfmodel.h>
-//~ #include "../sched_policies/helper_mct.h"
 #include <stdio.h>
 #include <float.h>
 #include <core/sched_policy.h>
@@ -28,58 +26,18 @@ const char* appli;
 static int NT;
 static int N;
 static double EXPECTED_TIME;
-int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
+static int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
 static starpu_ssize_t GPU_RAM_M;
 
 struct HFP_sched_data;
-//~ {
-	//~ struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
-	//~ struct paquets *p;
-	
-	//~ struct starpu_task_list sched_list;
-     	//~ starpu_pthread_mutex_t policy_mutex;
-//~ };
 
 struct my_list;
-//~ {
-	//~ int package_nb_data; 
-	//~ int nb_task_in_sub_list;
-	//~ int index_package; /* Used to write in Data_coordinates.txt and keep track of the initial index of the package */
-	//~ starpu_data_handle_t * package_data; /* List of all the data in the packages. We don't put two times the duplicates */
-	//~ struct starpu_task_list sub_list; /* The list containing the tasks */
-	//~ struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
-	//~ struct my_list *next;
-	//~ int split_last_ij; /* The separator of the last state of the current package */
-	//~ int total_nb_data_package;
-	//~ double expected_time; /* Only task's time */
-	//~ double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
-	//~ double expected_package_computation_time; /* Computation time with transfer and overlap */
-	//~ struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
-//~ };
 
 struct paquets;
-//~ {		
-	//~ /* All the pointer use to navigate through the linked list */
-	//~ struct my_list *temp_pointer_1;
-	//~ struct my_list *temp_pointer_2;
-	//~ struct my_list *temp_pointer_3;
-	//~ struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */     	
-    //~ int NP; /* Number of packages */
-//~ };
 
 struct data_on_node; /* Simulate memory, list of handles */
-//~ {
-	//~ struct handle *pointer_data_list;
-	//~ struct handle *first_data;
-	//~ long int memory_used;
-//~ };
 
 struct handle; /* The handles from above */
-//~ {
-	//~ starpu_data_handle_t h;
-	//~ int last_use;
-	//~ struct handle *next;
-//~ };
 
 //~ /* Empty a task's list. We use this for the lists last_package */
 void HFP_empty_list(struct starpu_task_list *a);
