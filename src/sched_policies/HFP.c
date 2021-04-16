@@ -1320,6 +1320,7 @@ void interlacing_task_list (struct paquets *a, int interlacing_mode)
  * better divide tasks between GPUs */
 static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("get task to return\n"); }
 	int max_task_time = 0;	
 	int index_package_max_task_time = 0;
 	a->temp_pointer_1 = a->first_link; 
@@ -2157,7 +2158,6 @@ void print_order_in_file_hfp (struct paquets *p)
 		i++;
 		fclose(f);
 	}
-	printf("fin while print order\n");
 	if (starpu_get_env_number_default("PRINTF",0) == 1 && (strcmp(appli,"starpu_sgemm_gemm") == 0))
 	{
 		i = 0;
@@ -2339,9 +2339,9 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 
 void init_visualisation (struct paquets *a)
 {
-	printf("début init\n");
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("début init\n"); }
 	print_order_in_file_hfp(a);
-	visualisation_data_gpu_in_file_hfp_format_tex(a);
+	if (starpu_get_env_number_default("MULTIGPU",0) != 0) { visualisation_data_gpu_in_file_hfp_format_tex(a); }
 	//TODO corriger la manière dont je vide si il y a plus de 3 GPUs
 	FILE *f = fopen("Output_maxime/Task_order_effective_0", "w"); /* Just to empty it before */
 	fclose(f);
@@ -2351,7 +2351,7 @@ void init_visualisation (struct paquets *a)
 	fclose(f);
 	f = fopen("Output_maxime/Data_coordinates_order_last_HEFT.txt", "w");
 	fclose(f);
-	printf("init ok\n");
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("init visualisation ok\n"); }
 }
 
 int get_number_GPU()
@@ -2445,7 +2445,8 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
-			
+			printf("appli : %s\n", appli);
+			if (appli == NULL) { appli = "random"; }
 			//TEST, a retirer
 			//~ if (starpu_get_env_number_default("TEST", 0) == 1) {
 			//~ data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->sched_list, 100, GPU_RAM_M);

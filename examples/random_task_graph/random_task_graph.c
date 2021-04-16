@@ -47,8 +47,11 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
-
-//~ static TYPE *A, *B, *C;
+#define TIME 0.010
+#define TIME_CUDA_COEFFICIENT 10
+//~ #define TIME_OPENCL_COEFFICIENT 5
+//~ #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
+//~ #define NB_FLOAT 400000
 int number_task = 0;
 
 /* When the task is done, task->callback_func(task->callback_arg) is called. Any
@@ -70,6 +73,31 @@ struct params
 	float f;
 };
 
+void wait_CUDA(void *descr[], void *_args)
+{
+	(void)descr;
+	(void)_args;
+	starpu_sleep(TIME/TIME_CUDA_COEFFICIENT);
+}
+
+double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
+{
+	(void) t; (void) i;
+	STARPU_ASSERT(a->ndevices == 1);
+	if (a->devices[0].type == STARPU_CUDA_WORKER)
+	{
+		return TIME/TIME_CUDA_COEFFICIENT * 1000000;
+	}
+	STARPU_ASSERT(0);
+	return 0.0;
+}
+
+static struct starpu_perfmodel perf_model =
+{
+	.type = STARPU_PER_ARCH,
+	.arch_cost_function = cost_function,
+};
+
 /* Codelet for random task graph */
 static struct starpu_codelet cl_random_task_graph =
 {
@@ -78,15 +106,15 @@ static struct starpu_codelet cl_random_task_graph =
 	//~ .cpu_funcs = {cpu_mult},
 	//~ .cpu_funcs_name = {"cpu_gemm"},
 //~ #ifdef STARPU_USE_CUDA
-	//~ .cuda_funcs = {func},
+	.cuda_funcs = {wait_CUDA},
 //~ #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 //~ #endif
 	//~ .cuda_flags = {STARPU_CUDA_ASYNC},
 	//~ .nbuffers = STARPU_VARIABLE_NBUFFERS,
 	.nbuffers = 1,
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
-	//~ .model = &starpu_gemm_model
+	.modes = {STARPU_R, STARPU_R, STARPU_R},
+	.model = &perf_model
 };
 
 static void parse_args(int argc, char **argv)
@@ -156,7 +184,7 @@ int main(int argc, char **argv)
 		/* the task uses codelet "cl" */
 		//~ task->cl = &cl_random_task_graph;
 		task->cl = &cl_random_task_graph;
-
+		
 		/* It is possible to pass buffers that are not managed by the DSM to the
 		 * kernels: the second argument of the "cpu_func" function is a pointer to a
 		 * buffer that contains information for the codelet (cl_arg stands for
@@ -192,8 +220,8 @@ int main(int argc, char **argv)
 	
 	end = starpu_timing_now();
 	double timing = end - start;
-	double flops = 2.0*number_task;
-	PRINTF("  %d 	\t%.1f\n", number_task, flops/timing/1000.0);
+	double flops = number_task;
+	PRINTF("  %d		%f		\t%.10f\n", number_task, timing, flops/timing);
 	
 	/* terminate StarPU: statistics and other debug outputs are not
 	 * guaranteed to be generated unless this function is called. Once it
