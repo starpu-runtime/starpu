@@ -29,10 +29,26 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
+//~ #include <limits.h>
+//~ #include <string.h>
+//~ #include <unistd.h>
+//~ #include <math.h>
+//~ #include <stdbool.h>
+//~ #include <sys/types.h>
+//~ #include <starpu.h>
+//~ #include <starpu_fxt.h>
+
+//~ #include <common/blas.h>
+//~ #include <cuda.h>
+//~ #include <starpu_cublas_v2.h>
+//~ static const TYPE p1 = 1.0;
+//~ static const TYPE m1 = -1.0;
+//~ static const TYPE v0 = 0.0;
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
 
+//~ static TYPE *A, *B, *C;
 int number_task = 0;
 
 /* When the task is done, task->callback_func(task->callback_arg) is called. Any
@@ -54,72 +70,24 @@ struct params
 	float f;
 };
 
-//~ static void cublas_mult(void *descr[], void *arg, const TYPE *beta)
-//~ {
-	//~ (void)arg;
-	//~ TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
-	//~ TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
-	//~ TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
-
-	//~ unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
-	//~ unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
-	//~ unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
-
-	//~ unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
-	//~ unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
-	//~ unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
-
-	//~ cudaStream_t stream = starpu_cuda_get_local_stream();
-
-	//~ if (nxC == ldC)
-		//~ cudaMemsetAsync(subC, 0, sizeof(*subC) * nxC * nyC, stream);
-	//~ else
-	//~ {
-		//~ unsigned i;
-		//~ for (i = 0; i < nyC; i++)
-			//~ cudaMemsetAsync(subC + i*ldC, 0, sizeof(*subC) * nxC, stream);
-	//~ }
-
-	//~ cublasStatus_t status = CUBLAS_GEMM(starpu_cublas_get_local_handle(),
-			//~ CUBLAS_OP_N, CUBLAS_OP_N,
-			//~ nxC, nyC, nyA,
-			//~ &p1, subA, ldA, subB, ldB,
-			//~ beta, subC, ldC);
-	//~ if (status != CUBLAS_STATUS_SUCCESS)
-		//~ STARPU_CUBLAS_REPORT_ERROR(status);
-//~ }
-
-//~ static void cublas_gemm0(void *descr[], void *arg)
-//~ {
-	//~ cublas_mult(descr, arg, &v0);
-//~ }
-
 /* Codelet for random task graph */
 static struct starpu_codelet cl_random_task_graph =
 {
-	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
+	//~ .type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	//~ .max_parallelism = INT_MAX,
-	//~ .cpu_funcs = {cpu_gemm0},
-	//~ .cpu_funcs_name = {"cpu_gemm0"},
+	//~ .cpu_funcs = {cpu_mult},
+	//~ .cpu_funcs_name = {"cpu_gemm"},
 //~ #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {func},
+	//~ .cuda_funcs = {func},
 //~ #elif defined(STARPU_SIMGRID)
-	//~ .cuda_funcs = {(void*)1},
+	.cuda_funcs = {(void*)1},
 //~ #endif
 	//~ .cuda_flags = {STARPU_CUDA_ASYNC},
-	.nbuffers = STARPU_VARIABLE_NBUFFERS,
-	//~ .nbuffers = 1,
-	.modes = {STARPU_R, STARPU_R, STARPU_R},
+	//~ .nbuffers = STARPU_VARIABLE_NBUFFERS,
+	.nbuffers = 1,
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
 	//~ .model = &starpu_gemm_model
 };
-
-void cpu_func(void *buffers[], void *cl_arg)
-{
-	(void)buffers;
-	struct params *params = (struct params *) cl_arg;
-
-	FPRINTF(stdout, "Hello world (params = {%i, %f} )\n", params->i, params->f);
-}
 
 static void parse_args(int argc, char **argv)
 {
@@ -143,15 +111,14 @@ int main(int argc, char **argv)
 {
 	double start, end;
 	printf("Main of examples/random_task_graph/random_task_graph.c\n");
-	struct starpu_codelet cl;
-	cl.nbuffers = STARPU_VARIABLE_NBUFFERS;
-	struct starpu_task *task;
+	//~ struct starpu_codelet cl;
+	//~ cl.nbuffers = STARPU_VARIABLE_NBUFFERS;
 	int value=42;
-	struct params params = {1, 2.0f};
+	//~ struct params params = {1, 2.0f};
 	int ret;
 	int i = 0;
-	starpu_data_handle_t handle;
-	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
+	starpu_data_handle_t handle1;
+	starpu_variable_data_register(&handle1, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
 	//~ starpu_data_unregister(handle);
 	
 	parse_args(argc, argv);
@@ -170,14 +137,16 @@ int main(int argc, char **argv)
 	/* create a new task that is non-blocking by default : the task is not
 	 * submitted to the scheduler until the starpu_task_submit function is
 	 * called */
-	 starpu_pause(); /* To get all tasks at once */
+	starpu_pause(); /* To get all tasks at once */
 	for (i = 0; i < number_task; i++)
 	{
-		task = starpu_task_create();
+		printf("Create task\n");
+		struct starpu_task *task = starpu_task_create();
 
-		//~ starpu_codelet_init(&cl);
+		//~ starpu_codelet_init(&cl_random_task_graph);
 		/* this codelet may only be executed on a CPU, and its cpu
 		* implementation is function "cpu_func" */
+		//~ printf("After init codelet\n");
 		//~ cl.cpu_funcs[0] = cpu_func;
 		//~ cl.cpu_funcs_name[0] = "cpu_func";
 		/* the codelet does not manipulate any data that is managed
@@ -185,8 +154,8 @@ int main(int argc, char **argv)
 		//~ cl.name="random_task_graph";
 
 		/* the task uses codelet "cl" */
+		//~ task->cl = &cl_random_task_graph;
 		task->cl = &cl_random_task_graph;
-		//~ task->cl = &cl;
 
 		/* It is possible to pass buffers that are not managed by the DSM to the
 		 * kernels: the second argument of the "cpu_func" function is a pointer to a
@@ -203,28 +172,28 @@ int main(int argc, char **argv)
 		 * will be called on a CPU */
 		//~ task->callback_func = callback_func;
 		//~ task->callback_arg = (void*) (uintptr_t) 0x42;
-
+		
 		/* starpu_task_submit will be a blocking call */
 		//~ task->synchronous = 1;
-		task->cl->nbuffers = 1;
-		task->handles[0] = handle;
-		//~ printf("%p\n", task->handles[0]);
-	
+		//~ task->cl->nbuffers = 1;
+		task->handles[0] = handle1;
+		printf("%p\n", task->handles[0]);
+		
 		/* submit the task to StarPU */
+		printf("Before submit\n");
 		ret = starpu_task_submit(task);
+		printf("After submit\n");
+		if (ret == -ENODEV) goto enodev;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 	starpu_resume(); /* Because I paused above */
 	starpu_task_wait_for_all();
-	starpu_data_unregister(handle);
+	starpu_data_unregister(handle1);
 	
 	end = starpu_timing_now();
 	double timing = end - start;
 	double flops = 2.0*number_task;
 	PRINTF("  %d 	\t%.1f\n", number_task, flops/timing/1000.0);
-	
-	if (ret == -ENODEV) goto enodev;
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	
 	/* terminate StarPU: statistics and other debug outputs are not
 	 * guaranteed to be generated unless this function is called. Once it

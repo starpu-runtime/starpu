@@ -54,6 +54,8 @@ struct my_list* HFP_delete_link(struct paquets* a);
 /* Give a color for each package. Written in the file Data_coordinates.txt */
 static void rgb(int num, int *r, int *g, int *b);
 
+void interlacing_task_list (struct paquets *a, int interlacing_mode);
+
 void end_visualisation_tache_matrice_format_tex();
 
 void visualisation_tache_matrice_format_tex(char *algo);
