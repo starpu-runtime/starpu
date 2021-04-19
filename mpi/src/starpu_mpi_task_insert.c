@@ -910,6 +910,7 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 	int nb_nodes, nb_contrib, i;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 	starpu_mpi_comm_size(comm, &nb_nodes);
+	nb_contrib=0;
 	for (i=0;i<nb_nodes;i++) 
 	{
 		if (mpi_data->redux_map[i]) nb_contrib++;
