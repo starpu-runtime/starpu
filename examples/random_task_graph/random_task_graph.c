@@ -19,53 +19,21 @@
  * Number of tasks: -ntasks x
  * Number of different data: -ndata x
  * Degree max of a task: -degreemax x
- * For now the number of degree of a task is a random number between 1 and degreemax
+ * The degree of a task is a random number between 1 and degreemax
  */
 
 #include <stdio.h>
 #include <stdint.h>
 #include <starpu.h>
-
-//~ #include <limits.h>
-//~ #include <time.h>
-//~ #include <string.h>
-//~ #include <unistd.h>
-//~ #include <math.h>
-//~ #include <stdbool.h>
-//~ #include <sys/types.h>
-//~ #include <starpu.h>
-//~ #include <starpu_fxt.h>
-//~ #include <common/blas.h>
-
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
-#define TIME 0.010
+#define TIME 0.010 /* original value */
+//~ #define TIME 0.1
 #define TIME_CUDA_COEFFICIENT 10
-//~ #define TIME_OPENCL_COEFFICIENT 5
-//~ #define SECONDS_SCALE_COEFFICIENT_TIMING_NOW 1000000
-//~ #define NB_FLOAT 400000
+#define SEED
 int number_task = 0;
 int number_data = 0;
 int degree_max = 0;
-
-/* When the task is done, task->callback_func(task->callback_arg) is called. Any
- * callback function must have the prototype void (*)(void *).
- * NB: Callback are NOT allowed to perform potentially blocking operations */
-//~ void callback_func(void *callback_arg)
-//~ {
-        //~ FPRINTF(stdout, "Callback function got argument %p\n", callback_arg);
-//~ }
-
-/* Every implementation of a codelet must have this prototype, the first
- * argument (buffers) describes the buffers/streams that are managed by the
- * DSM; the second arguments references read-only data that is passed as an
- * argument of the codelet (task->cl_arg). Here, "buffers" is unused as there
- * are no data input/output managed by the DSM (cl.nbuffers = 0) */
-struct params
-{
-	int i;
-	float f;
-};
 
 void wait_CUDA(void *descr[], void *_args)
 {
@@ -95,20 +63,8 @@ static struct starpu_perfmodel perf_model =
 /* Codelet for random task graph */
 static struct starpu_codelet cl_random_task_graph =
 {
-	//~ .type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
-	//~ .max_parallelism = INT_MAX,
-	//~ .cpu_funcs = {cpu_mult},
-	//~ .cpu_funcs_name = {"cpu_gemm"},
-//~ #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {wait_CUDA},
-//~ #elif defined(STARPU_SIMGRID)
-	//~ .cuda_funcs = {(void*)1},
-//~ #endif
-	//~ .cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
-	//~ .nbuffers = 1,
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
-	//~ .modes = {STARPU_R},
 	.model = &perf_model
 };
 
@@ -147,6 +103,7 @@ static void parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	srandom(starpu_get_env_number_default("SEED", 0));
 	double start, end;
 	parse_args(argc, argv);
 	printf("Main of examples/random_task_graph/random_task_graph.c, %d tasks, %d different data, degree max of a task of %d\n", number_task, number_data, degree_max);
@@ -163,8 +120,6 @@ int main(int argc, char **argv)
 	int i = 0;
 	int j = 0;
 	int random_degree = 0;
-	//~ starpu_data_handle_t new_handle;
-	//~ starpu_variable_data_register(&new_handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
 	starpu_data_handle_t * tab_handle = malloc(number_data*sizeof(starpu_data_handle_t));
 	int * forbidden_data = malloc(number_data*sizeof(int));
 	printf("Set of data: ");
@@ -213,10 +168,7 @@ int main(int argc, char **argv)
 		}
 		printf("Created task %p, with %d data:", task, random_degree);
 		for (j = 0; j < random_degree; j++) { printf(" %p", task->handles[j]); } printf("\n");
-		
-		//~ task->cl->nbuffers = 1;
-		//~ task->handles[0] = new_handle;
-		
+				
 		/* submit the task to StarPU */
 		ret = starpu_task_submit(task);
 		if (ret == -ENODEV) { goto enodev; }
@@ -227,15 +179,17 @@ int main(int argc, char **argv)
 	
 	for (i = 0; i < number_data; i++)
 	{
-		//~ starpu_data_unregister(new_handle);
 		starpu_data_unregister(tab_handle[i]);
 	}
 	
 	end = starpu_timing_now();
 	double timing = end - start;
-	double flops = number_task;
-	PRINTF("# Nb task \tGFlops\n");
-	PRINTF("  %d		%f		\t%.10f\n", number_task, timing, flops/timing);
+	double temp_number_task = number_task;
+	//~ double flops = 960*temp_number_task*960*temp_number_task*960*4; /* In xgemm */
+	double flops = 960*temp_number_task*960*temp_number_task*100;
+	printf("flops : %f\n", flops);
+	PRINTF("# Nbtasks\tms\tGFlops\n");
+	PRINTF("%d\t%.0f\t%.10f\n", number_task, timing/1000.0, flops/timing/1000.0);
 	
 	starpu_shutdown();
 
