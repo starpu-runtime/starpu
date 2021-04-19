@@ -167,6 +167,8 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 
 void init_visualisation (struct paquets *a);
 
+void HFP_insertion_end(struct paquets *a);
+
 int get_number_GPU();
 
 /* The function that sort the tasks in packages */

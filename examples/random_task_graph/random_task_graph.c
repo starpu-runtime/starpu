@@ -23,13 +23,15 @@
  */
 
 #include <stdio.h>
+#include <math.h>
 #include <stdint.h>
 #include <starpu.h>
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
 #define TIME 0.010 /* original value */
-//~ #define TIME 0.1
-#define TIME_CUDA_COEFFICIENT 10
+//~ #define TIME 0.011
+//~ #define TIME_CUDA_COEFFICIENT 10 /* original value */
+#define TIME_CUDA_COEFFICIENT 1
 #define SEED
 int number_task = 0;
 int number_data = 0;
@@ -185,11 +187,10 @@ int main(int argc, char **argv)
 	end = starpu_timing_now();
 	double timing = end - start;
 	double temp_number_task = number_task;
-	//~ double flops = 960*temp_number_task*960*temp_number_task*960*4; /* In xgemm */
-	double flops = 960*temp_number_task*960*temp_number_task*100;
-	printf("flops : %f\n", flops);
+	double flops = 960*temp_number_task*960*960*4; /* In xgemm */
+	//~ double flops = 960*temp_number_task*960*temp_number_task*100;
 	PRINTF("# Nbtasks\tms\tGFlops\n");
-	PRINTF("%d\t%.0f\t%.10f\n", number_task, timing/1000.0, flops/timing/1000.0);
+	PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000.0, flops/timing/1000.0);
 	
 	starpu_shutdown();
 

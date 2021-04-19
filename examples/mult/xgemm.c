@@ -71,7 +71,7 @@ static unsigned check = 0;
 static unsigned bound = 0;
 static unsigned print_hostname = 0;
 static unsigned tiled = 0;
-static unsigned random_task_graph = 0; /* Create a random taks graph with variable number of data per task. use option -random to use it. */
+//~ static unsigned random_task_graph = 0; /* Create a random taks graph with variable number of data per task. use option -random to use it. */
 
 static TYPE *A, *B, *C;
 static starpu_data_handle_t A_handle, B_handle, C_handle;
@@ -113,6 +113,7 @@ static void init_problem_data(void)
 	starpu_malloc_flags((void **)&A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_malloc_flags((void **)&B, xdim*zdim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_malloc_flags((void **)&C, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	//~ starpu_malloc_flags((void **)&RANDOM, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 
 #ifndef STARPU_SIMGRID
 	/* fill the A and B matrices */
@@ -139,6 +140,14 @@ static void init_problem_data(void)
 			C[j+i*ydim] = (TYPE)(0);
 		}
 	}
+	
+	//~ for (j=0; j < ydim; j++)
+	//~ {
+		//~ for (i=0; i < xdim; i++)
+		//~ {
+			//~ RANDOM[j+i*ydim] = (TYPE)(0);
+		//~ }
+	//~ }
 #endif
 }
 
@@ -178,10 +187,14 @@ static void partition_mult_data(void)
 
 	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A,
 		ydim, ydim, zdim, sizeof(TYPE));
+	//~ starpu_matrix_data_register(&RANDOM_handle, STARPU_MAIN_RAM, (uintptr_t)RANDOM,
+		//~ ydim, ydim, zdim, sizeof(TYPE));
 	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B,
 		zdim, zdim, xdim, sizeof(TYPE));
 	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C,
 		ydim, ydim, xdim, sizeof(TYPE));
+	//~ starpu_matrix_data_register(&RANDOM_handle, STARPU_MAIN_RAM, (uintptr_t)RANDOM,
+		//~ ydim, ydim, xdim, sizeof(TYPE));
 	starpu_data_set_reduction_methods(C_handle, &redux_cl, &init_cl);
 
 	struct starpu_data_filter vert;
@@ -194,7 +207,7 @@ static void partition_mult_data(void)
 	horiz.filter_func = starpu_matrix_filter_block;
 	horiz.nchildren = nslicesy;
 
-	if (tiled || random_task_graph)
+	if (tiled)
 	{
 		struct starpu_data_filter vertA;
 		memset(&vertA, 0, sizeof(vertA));
@@ -224,6 +237,7 @@ static void partition_mult_data(void)
 		starpu_data_partition(A_handle, &horiz);
 
 		starpu_data_map_filters(C_handle, 2, &vert, &horiz);
+		//~ starpu_data_map_filters(RANDOM_handle, 2, &vert, &horiz);
 	}
 
 	for (x = 0; x < nslicesx; x++)
@@ -381,35 +395,12 @@ static struct starpu_codelet cl_gemm =
 	.model = &starpu_gemm_model
 };
 
-/* Codelet for random task graph */
-static struct starpu_codelet cl_random_task_graph =
-{
-	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
-	.max_parallelism = INT_MAX,
-	.cpu_funcs = {cpu_gemm},
-	.cpu_funcs_name = {"cpu_random_task_graph"},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cublas_gemm},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1},
-#endif
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-	.nbuffers = STARPU_VARIABLE_NBUFFERS,
-	.modes = {STARPU_R, STARPU_R, STARPU_R},
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.model = &starpu_gemm_model
-};
-
 static void parse_args(int argc, char **argv)
 {
 	int i;
 	for (i = 1; i < argc; i++)
 	{
-		if (strcmp(argv[i], "-random") == 0)
-		{
-			random_task_graph = 1;
-		}
-		else if (strcmp(argv[i], "-3d") == 0)
+		if (strcmp(argv[i], "-3d") == 0)
 		{
 			tiled = 1;
 		}
@@ -707,54 +698,6 @@ int main(int argc, char **argv)
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 					}
 					//~ starpu_resume();
-					starpu_data_wont_use(Ctile);
-				}
-				starpu_resume(); /* Because I paused above */
-				starpu_task_wait_for_all();
-			}
-		} 
-		else if (random_task_graph)
-		{
-			int nb_handle = 0;
-			printf("Random task set in main of xgemm.c\n");
-			for (iter = 0; iter < niter; iter++)
-			{
-				starpu_pause(); /* To get all tasks at once */
-				for (x = 0; x < nslicesx; x++)
-				for (y = 0; y < nslicesy; y++)
-				{
-					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
-					starpu_data_invalidate(Ctile);
-					for (z = 0; z < nslicesz; z++)
-					{
-						struct starpu_task *task = starpu_task_create();
-
-						if (z == 0)
-							task->cl = &cl_random_task_graph;
-						else
-							task->cl = &cl_random_task_graph;
-						
-						nb_handle = random()%10 + 1; /* the max number of handle should be a env var later. +1 so we don't have 0. */
-						printf("%d handle for %p\n", nb_handle, task); 
-						for (i_bis = 0; i_bis < nb_handle; i_bis++)
-						{
-							//~ task->handles[i] = starpu_data_get_sub_data(1, 2, z, y);
-						}
-						//~ task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
-						//~ task->handles[1] = starpu_data_get_sub_data(B_handle, 2, x, z);
-						//~ task->handles[2] = Ctile;
-						
-						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz);
-
-						ret = starpu_task_submit(task);
-						if (ret == -ENODEV)
-						{
-						     check = 0;
-						     ret = 77;
-						     goto enodev;
-						}
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					}
 					starpu_data_wont_use(Ctile);
 				}
 				starpu_resume(); /* Because I paused above */

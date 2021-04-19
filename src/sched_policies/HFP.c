@@ -2523,7 +2523,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				temp_task_2 = starpu_task_list_next(temp_task_1);
 				temp_task_1 = starpu_task_list_pop_front(&data->popped_task_list);
 				
-				/* New */
+				/* New because of wrong above */
 				data->p->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(temp_task_1)*sizeof(data->p->temp_pointer_1->package_data[0]));
 				
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(temp_task_1); i++) {
