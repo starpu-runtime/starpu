@@ -1320,7 +1320,6 @@ void interlacing_task_list (struct paquets *a, int interlacing_mode)
  * better divide tasks between GPUs */
 static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("get task to return\n"); }
 	int max_task_time = 0;	
 	int index_package_max_task_time = 0;
 	a->temp_pointer_1 = a->first_link; 
@@ -2473,7 +2472,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				if (starpu_get_env_number_default("PRINTF",0) != 0) { printf("Tâche %p : ",task1);
+				if (starpu_get_env_number_default("PRINTF",0) != 0) { printf("Tâche %p, %d donnée(s) : ",task1, STARPU_TASK_GET_NBUFFERS(task1));
 					for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
 						printf("%p ",STARPU_TASK_GET_HANDLE(task1,i));
 					}
