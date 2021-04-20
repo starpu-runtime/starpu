@@ -2589,9 +2589,9 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 						if (min_nb_task_in_sub_list == data->p->temp_pointer_1->nb_task_in_sub_list) { nb_min_task_packages++; } }
 					if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list); }
 					/* Then we create the common data matrix */
-					printf("nb pop = %d\n",nb_pop);
+					//~ printf("nb pop = %d\n",nb_pop);
 						
-					//~ print_packages_in_terminal(data->p, 0);	
+					print_packages_in_terminal(data->p, 0);	
 										
 					for (data->p->temp_pointer_1 = data->p->first_link; data->p->temp_pointer_1 != NULL; data->p->temp_pointer_1 = data->p->temp_pointer_1->next) 
 					{
@@ -2675,20 +2675,25 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 									if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { 
 										max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } 
 							} j_bis++; } tab_runner++; } 
-							data->p->temp_pointer_1=data->p->temp_pointer_1->next;
+							data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 							j_bis = 0; }
 				data->p->temp_pointer_1 = data->p->first_link; data->p->temp_pointer_2 = data->p->first_link;
 				}	
-				printf("max common data = %ld\n", max_value_common_data_matrix);
+				printf("max common data = %ld, limit switch = %d\n", max_value_common_data_matrix, GPU_limit_switch);
 				if (max_value_common_data_matrix == 0 && GPU_limit_switch == 0) { 
 					/* It means that P_i share no data with others, so we put it in the end of the list
 					 * For this we use a separate list that we merge at the end
 					 * We will put this list at the end of the rest of the packages */
 					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Graphe non connexe\n"); }
+					while (data->p->temp_pointer_1->nb_task_in_sub_list != min_nb_task_in_sub_list)
+					{
+						data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+					}
 					while (!starpu_task_list_empty(&data->p->temp_pointer_1->sub_list)) { 
 						starpu_task_list_push_back(&non_connexe, starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list));
 					}
 					data->p->temp_pointer_1->package_nb_data = 0;
+					data->p->NP--;
 				}
 				else {
 				i_bis = 0; j_bis = 0; i = 0; j = 0;
@@ -2835,6 +2840,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				break_merging:
 				
 				data->p->temp_pointer_1 = data->p->first_link;
+				printf("delete\n");
 				data->p->temp_pointer_1 = HFP_delete_link(data->p);
 				tab_runner = 0;
 				
@@ -2870,7 +2876,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			if (nb_pop == 1) {  packaging_impossible = 1; }
 		} /* End of while (packaging_impossible == 0) { */
 		/* We remove the size limit of a package */
-		GPU_limit_switch = 0; goto algo3;
+		printf("Remove limit switch\n"); GPU_limit_switch = 0; goto algo3;
 		
 		end_algo3:
 						
@@ -2878,17 +2884,18 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		/* Add packages that were not connexe at the end of the package list */
 		if (!starpu_task_list_empty(&non_connexe))
 		{
-			printf("filling with non connnexe tesks\n");
-			HFP_insertion_end(data->p);
-			while (data->p->temp_pointer_1->next != NULL)
-			{
-				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-			}
+			printf("filling with non connnexe tasks\n");
+			/* If I want a separate package do that */
+			//~ HFP_insertion_end(data->p);
+			//~ while (data->p->temp_pointer_1->next != NULL)
+			//~ {
+				//~ data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+			//~ }
 			while(!starpu_task_list_empty(&non_connexe)) {
 				starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, starpu_task_list_pop_front(&non_connexe));
 				data->p->temp_pointer_1->nb_task_in_sub_list++;
 			}
-			data->p->temp_pointer_1 = data->p->first_link;	
+			//~ data->p->temp_pointer_1 = data->p->first_link;	
 		}
 		
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
