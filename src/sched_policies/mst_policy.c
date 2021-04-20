@@ -211,9 +211,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 
 					// Add the picked vertex to the MST Set	
 					mstSet[u] = true;
-					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("u = %d\n",u); }
-					//~ temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i = 0; i < u; i++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
-					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Add %p to sigma\n",temp_task_1); }
+					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Add %p to sigma\n",temp_task_1); }
 					//~ return temp_task_1;
 					//~ starpu_task_list_push_back(&data->SIGMA,temp_task_1);
 					//~ tab_SIGMA[tab_runner] = starpu_task_get_name(temp_task_1);
@@ -237,7 +235,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 				for (i = 0; i < NT; i++) {
 					if (mstSet[i] == false) {
 						//~ temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i_bis = 0; i_bis < i; i_bis++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
-						if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Dernier sommet: add %p to sigma\n",temp_task_1); }
+						//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Dernier sommet: add %p to sigma\n",temp_task_1); }
 						//~ starpu_task_list_push_back(&data->SIGMA,temp_task_1);
 						//~ tab_SIGMA[NT - 1] = starpu_task_get_name(temp_task_1);
 						tab_SIGMA[NT - 1] = i;
@@ -278,19 +276,14 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 			fprintf(f_time,"%d\n",time_taken);
 			fclose(f_time);
 			
-			//OLD
-			//~ task1 = starpu_task_list_pop_front(&data->popped_task_list);
-			//Avec SIGMA
 			task1 = starpu_task_list_pop_front(&data->SIGMA);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-			//~ printf("Task %p is getting out of pull_task\n",task1);
 			return task1;
 		}
 		else {
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-			//~ printf("Task %p is getting out of pull_task\n",task1);
 			return task1; 
 		}
 	}
@@ -298,7 +291,6 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 		task1 = starpu_task_list_pop_front(&data->SIGMA);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-		//~ printf("Task %p is getting out of pull_task\n",task1);
 		return task1;
 	}
 }

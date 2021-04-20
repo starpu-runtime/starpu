@@ -1721,11 +1721,16 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 					 * For this we use a separate list that we merge at the end
 					 * We will put this list at the end of the rest of the packages */
 					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("graphe non connexe\n"); }
+					while (paquets_data->temp_pointer_1->nb_task_in_sub_list != min_nb_task_in_sub_list)
+					{
+						paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next;
+					}
 					while (!starpu_task_list_empty(&paquets_data->temp_pointer_1->sub_list)) { 
 						starpu_task_list_push_back(&non_connexe,starpu_task_list_pop_front(&paquets_data->temp_pointer_1->sub_list));
 					}
 					paquets_data->temp_pointer_1->package_nb_data = 0;
-				}
+					paquets_data->NP--;
+				}	
 				else {
 				i_bis = 0; j_bis = 0; i = 0; j = 0;
 				for (i = 0; i < number_task; i++) {
@@ -2494,7 +2499,9 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				if (starpu_get_env_number_default("PRINTF",0) != 0) { printf("Tâche %p, %d donnée(s) : ",task1, STARPU_TASK_GET_NBUFFERS(task1));
+				if (starpu_get_env_number_default("PRINTF",0) != 0) 
+				{ 
+					printf("Tâche %p, %d donnée(s) : ",task1, STARPU_TASK_GET_NBUFFERS(task1));
 					for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
 						printf("%p ",STARPU_TASK_GET_HANDLE(task1, i));
 					}
@@ -2505,7 +2512,6 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 	
 			NT = nb_pop;
-			printf("Il y a %d tâches\n", NT);
 			N = sqrt(NT);
 			if(starpu_get_env_number_default("PRINT3D",0) == 1) 
 			{
@@ -2591,7 +2597,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 					/* Then we create the common data matrix */
 					//~ printf("nb pop = %d\n",nb_pop);
 						
-					print_packages_in_terminal(data->p, 0);	
+					//~ print_packages_in_terminal(data->p, 0);	
 										
 					for (data->p->temp_pointer_1 = data->p->first_link; data->p->temp_pointer_1 != NULL; data->p->temp_pointer_1 = data->p->temp_pointer_1->next) 
 					{
@@ -2679,7 +2685,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 							j_bis = 0; }
 				data->p->temp_pointer_1 = data->p->first_link; data->p->temp_pointer_2 = data->p->first_link;
 				}	
-				printf("max common data = %ld, limit switch = %d\n", max_value_common_data_matrix, GPU_limit_switch);
+				//~ printf("max common data = %ld, limit switch = %d\n", max_value_common_data_matrix, GPU_limit_switch);
 				if (max_value_common_data_matrix == 0 && GPU_limit_switch == 0) { 
 					/* It means that P_i share no data with others, so we put it in the end of the list
 					 * For this we use a separate list that we merge at the end
@@ -2840,7 +2846,6 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				break_merging:
 				
 				data->p->temp_pointer_1 = data->p->first_link;
-				printf("delete\n");
 				data->p->temp_pointer_1 = HFP_delete_link(data->p);
 				tab_runner = 0;
 				
@@ -2876,7 +2881,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			if (nb_pop == 1) {  packaging_impossible = 1; }
 		} /* End of while (packaging_impossible == 0) { */
 		/* We remove the size limit of a package */
-		printf("Remove limit switch\n"); GPU_limit_switch = 0; goto algo3;
+		GPU_limit_switch = 0; goto algo3;
 		
 		end_algo3:
 						
@@ -2884,7 +2889,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		/* Add packages that were not connexe at the end of the package list */
 		if (!starpu_task_list_empty(&non_connexe))
 		{
-			printf("filling with non connnexe tasks\n");
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("filling with non connnexe tasks\n"); }
 			/* If I want a separate package do that */
 			//~ HFP_insertion_end(data->p);
 			//~ while (data->p->temp_pointer_1->next != NULL)
@@ -2927,17 +2932,26 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
 				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 			}
-			 if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After execution of HFP on each package we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+			if (starpu_get_env_number_default("PRINTF",0) == 1) 
+			{ 
+				printf("After execution of HFP on each package we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); 
+			}
 		 }
 		 
 		 /* Interlacing package task list order */
 		 if (starpu_get_env_number_default("INTERLACING",0) != 0)
 		 {
-			 printf("Before interlacing we have:\n");
-			 print_packages_in_terminal(data->p, 0);
+			 if (starpu_get_env_number_default("PRINTF",0) == 1) 
+			 { 
+				printf("Before interlacing we have:\n");
+				print_packages_in_terminal(data->p, 0);
+			 }
 			 interlacing_task_list(data->p, starpu_get_env_number_default("INTERLACING",0));
-			 printf("After interlacing we have:\n");
-			 print_packages_in_terminal(data->p, 0);
+			 if (starpu_get_env_number_default("PRINTF",0) == 1) 
+			 { 
+				printf("After interlacing we have:\n");
+				print_packages_in_terminal(data->p, 0);
+			}
 		 }
 		
 		/* if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); } */

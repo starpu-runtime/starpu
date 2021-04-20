@@ -28,29 +28,31 @@
 #include <starpu.h>
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
-#define TIME 0.010 /* original value */
+//~ #define TIME 0.010 /* original value */
 //~ #define TIME 0.011
 //~ #define TIME_CUDA_COEFFICIENT 10 /* original value */
-#define TIME_CUDA_COEFFICIENT 1
+//~ #define TIME_CUDA_COEFFICIENT 1
 #define SEED
 int number_task = 0;
 int number_data = 0;
 int degree_max = 0;
 
-void wait_CUDA(void *descr[], void *_args)
+void wait_CUDA (void *descr[], void *_args)
 {
 	(void)descr;
 	(void)_args;
-	starpu_sleep(TIME/TIME_CUDA_COEFFICIENT);
+	starpu_sleep(0.011);
+	//~ starpu_sleep(TIME/TIME_CUDA_COEFFICIENT); /* original value */
 }
 
-double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
+double cost_function (struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
 {
 	(void) t; (void) i;
 	STARPU_ASSERT(a->ndevices == 1);
 	if (a->devices[0].type == STARPU_CUDA_WORKER)
 	{
-		return TIME/TIME_CUDA_COEFFICIENT * 1000000;
+		//~ return TIME/TIME_CUDA_COEFFICIENT * 1000000; /* Original value */
+		return 11000;
 	}
 	STARPU_ASSERT(0);
 	return 0.0;
@@ -108,7 +110,7 @@ int main(int argc, char **argv)
 	srandom(starpu_get_env_number_default("SEED", 0));
 	double start, end;
 	parse_args(argc, argv);
-	printf("Main of examples/random_task_graph/random_task_graph.c, %d tasks, %d different data, degree max of a task of %d\n", number_task, number_data, degree_max);
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Main of examples/random_task_graph/random_task_graph.c, %d tasks, %d different data, degree max of a task of %d\n", number_task, number_data, degree_max); }
 	int random_data = 0;
 	int ret;
 	int k = 0;
@@ -124,15 +126,15 @@ int main(int argc, char **argv)
 	int random_degree = 0;
 	starpu_data_handle_t * tab_handle = malloc(number_data*sizeof(starpu_data_handle_t));
 	int * forbidden_data = malloc(number_data*sizeof(int));
-	printf("Set of data: ");
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Set of data: "); }
 	for (i = 0; i < number_data; i++)
 	{
 		starpu_data_handle_t new_handle;
 		starpu_variable_data_register(&new_handle, STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(value));
 		tab_handle[i] = new_handle;
-		printf("%p ", new_handle);
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p ", new_handle); }
 	}
-	printf("\n");
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\n"); }
 
 	start = starpu_timing_now();
 	starpu_pause();
@@ -154,7 +156,6 @@ int main(int argc, char **argv)
 		{
 			/* A task can't have two times the same data. So I put 1 in forbidden_data in the corresponding space. Each time our random number pass over a forbidden data, I add 1 to random_data. Also the modulo for random_data is on the number of remaining data. */
 			random_data = random()%(number_data - number_forbidden_data);
-			printf("random_data = %d\n", random_data);
 			for (k = 0; k <= random_data; k++)
 			{
 				if (forbidden_data[k] == 1)
@@ -162,14 +163,13 @@ int main(int argc, char **argv)
 					random_data++;
 				}
 			}
-			printf("Adding %p\n", tab_handle[random_data]);
 			task->handles[j] = tab_handle[random_data];
 			forbidden_data[random_data] = 1;
 			number_forbidden_data++;
 			task->modes[j] = STARPU_R; /* Acces mode of each data set here because the codelet won't work if the number of data is variable */
 		}
-		printf("Created task %p, with %d data:", task, random_degree);
-		for (j = 0; j < random_degree; j++) { printf(" %p", task->handles[j]); } printf("\n");
+		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Created task %p, with %d data:", task, random_degree);
+		for (j = 0; j < random_degree; j++) { printf(" %p", task->handles[j]); } printf("\n"); }
 				
 		/* submit the task to StarPU */
 		ret = starpu_task_submit(task);
@@ -187,10 +187,12 @@ int main(int argc, char **argv)
 	end = starpu_timing_now();
 	double timing = end - start;
 	double temp_number_task = number_task;
-	double flops = 960*temp_number_task*960*960*4; /* In xgemm */
-	//~ double flops = 960*temp_number_task*960*temp_number_task*100;
+	//~ double flops = 960*temp_number_task*960*960*4;
+	double flops = 960*temp_number_task*960*960*4;
+	printf("flops : %f, time : %f\n", flops, timing);
 	PRINTF("# Nbtasks\tms\tGFlops\n");
-	PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000.0, flops/timing/1000.0);
+	PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000.0, flops/timing/1000);
+	//~ PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000, flops/timing/1000);
 	
 	starpu_shutdown();
 
