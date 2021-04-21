@@ -120,7 +120,12 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 	
-	int value=42;	
+	//~ int value=42;	
+	//~ int value1[1];	
+	int value[1000000];	
+	//~ printf("%ld\n", sizeof(value1));
+	//~ printf("%ld\n", sizeof(value));
+	//~ exit(0);
 	int i = 0;
 	int j = 0;
 	int random_degree = 0;
