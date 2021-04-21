@@ -779,7 +779,8 @@ void visualisation_tache_matrice_format_tex(char *algo)
 		}
 		else
 		{
-			perror("Impossible d'ouvrir au moins 1 fichier dans visualisation_tache_matrice_format_tex()\n"); exit(EXIT_FAILURE);
+			perror("Impossible d'ouvrir au moins 1 fichier dans visualisation_tache_matrice_format_tex()\n"); 
+			exit(EXIT_FAILURE);
 		}
 		tab_order_1[3][x][y] = tab_order_1[3][x][y] - 1;
 		for (k = 0; k < 4; k++)
@@ -1189,9 +1190,9 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
  */
 void load_balance_expected_package_computation_time (struct paquets *p, starpu_ssize_t GPU_RAM)
 {
-	if (strcmp(appli,"starpu_sgemm_gemm") != 0)
+	if (strcmp(appli, "starpu_sgemm_gemm") != 0)
 	{
-		/* What is different mainly is with the task of C that is in won't use for LRU with gemms once it used 
+		/* What is different mainly is with the task of C that is in won't use for LRU with gemms once it used.
 		 * We do something in replace_least_recently_used_data that maybe we can't do in cholesky or random graphs? */
 		perror("load_balance_expected_package_computation_time not implemented yet for non-gemm applications\n"); exit(EXIT_FAILURE);
 	}
@@ -2265,6 +2266,10 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		NT++;
 	}
 	N = sqrt(NT);
+	if(starpu_get_env_number_default("PRINT3D",0) == 1) 
+	{
+		N = N/2; /* So i can print just like a 2D matrix */
+	}
 	/* Printing expected time of each task */
 	for (task_1 = starpu_task_list_begin(l); task_1 != starpu_task_list_end(l); task_1 = starpu_task_list_next(task_1))
 	{
@@ -2347,10 +2352,30 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		p->temp_pointer_1->nb_task_in_sub_list++;
 	}
 	fclose(f_2);
+		
 	//~ print_packages_in_terminal(p, 0);
 	/* Apply HFP on each package if we have the right option */
 	if (starpu_get_env_number_default("HMETIS",0) == 2)
-	{
+	{ 
+		if (starpu_get_env_number_default("PRINTF",0) == 1)
+		{
+			i = 0;
+			p->temp_pointer_1 = p->first_link;
+			FILE *f = fopen("Output_maxime/Data_coordinates_order_last_hMETIS.txt", "w");
+			int temp_tab_coordinates[2];
+			while (p->temp_pointer_1 != NULL)
+			{
+				for (task_1 = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task_1 != starpu_task_list_end(&p->temp_pointer_1->sub_list); task_1 = starpu_task_list_next(task_1)) 
+				{
+					starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task_1,2),2,temp_tab_coordinates);
+					fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i);
+				}
+				p->temp_pointer_1 = p->temp_pointer_1->next;
+				i++;
+			}
+			fclose(f);
+			visualisation_tache_matrice_format_tex("hMETIS"); /* So I can get the matrix visualisation before tempering it with HFP */
+		}
 		p->temp_pointer_1 = p->first_link;
 		for (i = 0; i < nb_gpu; i++) 
 		{
@@ -2365,7 +2390,10 @@ void init_visualisation (struct paquets *a)
 {
 	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("début init\n"); }
 	print_order_in_file_hfp(a);
-	if (starpu_get_env_number_default("MULTIGPU",0) != 0) { visualisation_data_gpu_in_file_hfp_format_tex(a); }
+	if (starpu_get_env_number_default("MULTIGPU",0) != 0 && (strcmp(appli, "starpu_sgemm_gemm") == 0))
+	{ 
+		visualisation_data_gpu_in_file_hfp_format_tex(a); 
+	}
 	//TODO corriger la manière dont je vide si il y a plus de 3 GPUs
 	FILE *f = fopen("Output_maxime/Task_order_effective_0", "w"); /* Just to empty it before */
 	fclose(f);
