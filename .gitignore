@@ -487,3 +487,12 @@ Output_maxime/input_hMETIS.txt.part.3
 Output_maxime/temp_input_hMETIS.txt
 get_difference_between_orders
 log.txt
+Output_maxime/Data_coordinates_order_last_hMETIS.log
+Output_maxime/Data_coordinates_order_last_hMETIS.pdf
+Output_maxime/Data_coordinates_order_last_hMETIS.tex
+Output_maxime/Data_coordinates_order_last_hMETIS.txt
+Output_maxime/hMETIS_parameters.txt
+Output_maxime/output_script_testing_2.txt
+Output_maxime/temp.txt
+examples/random_task_graph/random_task_graph
+nbuffers
