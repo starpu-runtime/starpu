@@ -31,7 +31,6 @@
 #define RANDOM_TASK_ORDER /* only for 2D matrix */
 #define RECURSIVE_MATRIX_LAYOUT /* only for 2D matrix */
 #define RANDOM_DATA_ACCESS /* only for 2D matrix */
-//~ #define RANDOM_TASK_GRAPH /* only for 3D matrix but it has nothing to do with a 3D matrix I just used the code for 3D matrix */
 #include <starpu_data_maxime.h>
 
 #include <limits.h>
@@ -71,7 +70,6 @@ static unsigned check = 0;
 static unsigned bound = 0;
 static unsigned print_hostname = 0;
 static unsigned tiled = 0;
-//~ static unsigned random_task_graph = 0; /* Create a random taks graph with variable number of data per task. use option -random to use it. */
 
 static TYPE *A, *B, *C;
 static starpu_data_handle_t A_handle, B_handle, C_handle;
@@ -113,7 +111,6 @@ static void init_problem_data(void)
 	starpu_malloc_flags((void **)&A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_malloc_flags((void **)&B, xdim*zdim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_malloc_flags((void **)&C, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
-	//~ starpu_malloc_flags((void **)&RANDOM, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 
 #ifndef STARPU_SIMGRID
 	/* fill the A and B matrices */
@@ -141,13 +138,6 @@ static void init_problem_data(void)
 		}
 	}
 	
-	//~ for (j=0; j < ydim; j++)
-	//~ {
-		//~ for (i=0; i < xdim; i++)
-		//~ {
-			//~ RANDOM[j+i*ydim] = (TYPE)(0);
-		//~ }
-	//~ }
 #endif
 }
 
@@ -187,14 +177,10 @@ static void partition_mult_data(void)
 
 	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A,
 		ydim, ydim, zdim, sizeof(TYPE));
-	//~ starpu_matrix_data_register(&RANDOM_handle, STARPU_MAIN_RAM, (uintptr_t)RANDOM,
-		//~ ydim, ydim, zdim, sizeof(TYPE));
 	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B,
 		zdim, zdim, xdim, sizeof(TYPE));
 	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C,
 		ydim, ydim, xdim, sizeof(TYPE));
-	//~ starpu_matrix_data_register(&RANDOM_handle, STARPU_MAIN_RAM, (uintptr_t)RANDOM,
-		//~ ydim, ydim, xdim, sizeof(TYPE));
 	starpu_data_set_reduction_methods(C_handle, &redux_cl, &init_cl);
 
 	struct starpu_data_filter vert;
@@ -237,7 +223,6 @@ static void partition_mult_data(void)
 		starpu_data_partition(A_handle, &horiz);
 
 		starpu_data_map_filters(C_handle, 2, &vert, &horiz);
-		//~ starpu_data_map_filters(RANDOM_handle, 2, &vert, &horiz);
 	}
 
 	for (x = 0; x < nslicesx; x++)
