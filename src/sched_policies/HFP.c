@@ -27,7 +27,7 @@
 #define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package */
 #define READY /* 0 we don't use ready in initialize_HFP_center_policy, 1 we do */
 #define PRINT3D /* 1 we print coordinates and visualize data. Needed to differentiate 2D from 3D */
-#define TASK_STEALING /* 0 we don't use it, 1 when a gpu (so a package) has finished all it tasks, it steal a task, starting by the end of the package of the package that has the most tasks left. It can be done with load balance on but was first thinked to be used with no load balance bbut |GPU| packages (MULTIGPU=1), 2 same than 1 but we steal from the package that has the biggest expected package time, 3 same than 2 but we always steal half (arondi à l'inférieur) of the package at once (in term of task duration). . All that is implemented in get_task_to_return */
+#define TASK_STEALING /* 0 we don't use it, 1 when a gpu (so a package) has finished all it tasks, it steal a task, starting by the end of the package of the package that has the most tasks left. It can be done with load balance on but was first thinked to be used with no load balance bbut |GPU| packages (MULTIGPU=1), 2 same than 1 but we steal from the package that has the biggest expected package time, 3 same than 2 but we always steal half (arondi à l'inférieur) of the package at once (in term of task duration). All that is implemented in get_task_to_return */
 #define PRINTHEFT_NT /* To precise the number of task for printing visualisation for modular-heft. If it is in 3D you also need PRINT3D=1. Also needed on something different than 0 to print diferences. */
 #define INTERLACING /* 0 we don't use it, 1 we start giving task at the middle of the package then do right, left and so on. */
 
@@ -43,8 +43,8 @@
  * RECURSIVE_MATRIX_LAYOUT
  * RANDOM_DATA_ACCESS
  */
- 
-/* used for modular-heft for visualisation */
+
+/* Used for modular-heft for visualisation */
 void initialize_global_variable(struct starpu_task *task)
 {
 	NT = starpu_get_env_number_default("PRINTHEFT_NT", 0);
@@ -119,7 +119,8 @@ struct handle /* The handles from above */
 void HFP_empty_list(struct starpu_task_list *a)
 {
 	struct starpu_task *task = NULL;
-	for (task  = starpu_task_list_begin(a); task != starpu_task_list_end(a); task = starpu_task_list_next(task)) {
+	for (task  = starpu_task_list_begin(a); task != starpu_task_list_end(a); task = starpu_task_list_next(task))
+	{
 		starpu_task_list_erase(a,task);
 	}
 }
