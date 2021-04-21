@@ -62,6 +62,7 @@ static struct starpu_perfmodel perf_model =
 {
 	.type = STARPU_PER_ARCH,
 	.arch_cost_function = cost_function,
+	.symbol = "random_set_of_task",
 };
 
 /* Codelet for random task graph */
