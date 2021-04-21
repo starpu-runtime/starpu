@@ -978,9 +978,16 @@ void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvN
     liste->memory_used += starpu_data_get_size(nvNombre);
     nouveau->h = nvNombre;
     nouveau->next = liste->first_data;
-    if (is_it_a_C_tile_data_never_used_again(nouveau->h, i, l, current_task) == true)
+    if (strcmp(appli, "starpu_sgemm_gemm") == 0) 
     {
-		nouveau->last_use = -1;
+		if (is_it_a_C_tile_data_never_used_again(nouveau->h, i, l, current_task) == true)
+		{
+			nouveau->last_use = -1;
+		}
+		else
+		{
+			nouveau->last_use = use_order;
+		}
 	}
 	else
 	{
@@ -1028,6 +1035,7 @@ bool SearchTheData (struct data_on_node *pNode, starpu_data_handle_t iElement, i
 
 /* Replace the least recently used data on memory with the new one.
  * But we need to look that it's not a data used by current task too!
+ * We remove first data from C if we are in a gemm application..0
  */
 void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle_t data_to_load, int use_order, struct starpu_task *current_task, struct starpu_task_list *l, int index_handle)
 {
@@ -1059,14 +1067,21 @@ void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle
 		{
 			//~ printf("Données utilisé il y a le plus longtemps : %p | %d\n", a->pointer_data_list->h, a->pointer_data_list->last_use);
 			a->pointer_data_list->h = data_to_load;
-			if (is_it_a_C_tile_data_never_used_again(a->pointer_data_list->h, index_handle, l, current_task) == true)
+			if (strcmp(appli, "starpu_sgemm_gemm") == 0) 
 			{
-				a->pointer_data_list->last_use = -1;
+				if (is_it_a_C_tile_data_never_used_again(a->pointer_data_list->h, index_handle, l, current_task) == true)
+				{
+					a->pointer_data_list->last_use = -1;
+				}
+				else
+				{
+					a->pointer_data_list->last_use = use_order;
+				}
 			}
-			else
+			else 
 			{
 				a->pointer_data_list->last_use = use_order;
-			}			
+			}		
 			break;
 		}
 	}
@@ -1190,12 +1205,12 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
  */
 void load_balance_expected_package_computation_time (struct paquets *p, starpu_ssize_t GPU_RAM)
 {
-	if (strcmp(appli, "starpu_sgemm_gemm") != 0)
-	{
+	//~ if (strcmp(appli, "starpu_sgemm_gemm") && strcmp(appli, "random_set_of_task") != 0)
+	//~ {
 		/* What is different mainly is with the task of C that is in won't use for LRU with gemms once it used.
 		 * We do something in replace_least_recently_used_data that maybe we can't do in cholesky or random graphs? */
-		perror("load_balance_expected_package_computation_time not implemented yet for non-gemm applications\n"); exit(EXIT_FAILURE);
-	}
+		//~ perror("load_balance_expected_package_computation_time not implemented yet for non-gemm applications\n"); exit(EXIT_FAILURE);
+	//~ }
 	struct starpu_task *task;
 	task = starpu_task_list_begin(&p->temp_pointer_1->sub_list);
 	//~ double task_duration = starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
