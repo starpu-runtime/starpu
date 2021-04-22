@@ -164,7 +164,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 		return task1;
 	}	
 	/* If the linked list is empty, we can pull more tasks */
-	if (starpu_task_list_empty(&SIGMA)) {
+	if (is_empty(data->p->first_link) == true) {
 		if (!starpu_task_list_empty(&data->sched_list)) {
 			time_t start, end; time(&start); 
 			
@@ -211,15 +211,23 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 			/* Affichage de la matrice d'adjacence */
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Matrice d'adjacence :\n"); for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { printf("%d ",matrice_adjacence[i][j]); } printf("\n"); } }
 			
+			struct my_list *temp_sub_list = malloc(sizeof(*temp_sub_list));
+			struct paquets *temp_paquets = malloc(sizeof(*temp_paquets));
+	
+			starpu_task_list_init(&temp_sub_list->sub_list);
+			temp_sub_list->next = NULL;
+	temp_paquets->temp_pointer_1 = temp_sub_list;
+	temp_paquets->first_link = temp_paquets->temp_pointer_1;
+			
 			//NEW
 			int do_not_add_more = 0;
 			while (!starpu_task_list_empty(&data->popped_task_list)) {	
-				starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list,starpu_task_list_pop_front(&data->popped_task_list));
-				data->p->temp_pointer_1->index_package = do_not_add_more;
-				if (do_not_add_more != NT-1) { HFP_insertion(data->p); }
+				starpu_task_list_push_back(&temp_paquets->temp_pointer_1->sub_list, starpu_task_list_pop_front(&data->popped_task_list));
+				temp_paquets->temp_pointer_1->index_package = do_not_add_more;
+				if (do_not_add_more != NT-1) { HFP_insertion(temp_paquets); }
 				do_not_add_more++;
 			}
-			data->p->first_link = data->p->temp_pointer_1;
+			temp_paquets->first_link = temp_paquets->temp_pointer_1;
 			
 				
 				// Array to store constructed MST
@@ -285,20 +293,20 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 						//~ mstSet[i] = NT-1;
 					}
 				}				
-				printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n");
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n"); }
 				i = 0;
-				data->p->temp_pointer_1 = data->p->first_link;
+				temp_paquets->temp_pointer_1 = temp_paquets->first_link;
 				while (i != NT) {
 					//~ temp_task_1  = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
-					if (tab_SIGMA[i] == data->p->temp_pointer_1->index_package) {
+					if (tab_SIGMA[i] == temp_paquets->temp_pointer_1->index_package) {
 					//~ if (strcmp(char_SIGMA[i],starpu_task_get_name(temp_task_1) == 0)) {
-						starpu_task_list_push_back(&SIGMA, starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list));
+						starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, starpu_task_list_pop_front(&temp_paquets->temp_pointer_1->sub_list));
 						i++;
-						data->p->temp_pointer_1 = data->p->first_link;
+						temp_paquets->temp_pointer_1 = temp_paquets->first_link;
 					}
-					else { 
+					else {
 						//~ starpu_task_list_push_back(&data->popped_task_list,temp_task_1);
-						data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+						temp_paquets->temp_pointer_1 = temp_paquets->temp_pointer_1->next;
 					}
 				}
 				
@@ -316,9 +324,9 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 			fprintf(f_time,"%d\n",time_taken);
 			fclose(f_time);
 			
-			task1 = starpu_task_list_pop_front(&SIGMA);
+			task1 = get_task_to_return(component, to, data->p, number_of_package_to_build);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
 			return task1;
 		}
 		else {
@@ -328,9 +336,9 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 		}
 	}
 	else { 
-		task1 = starpu_task_list_pop_front(&SIGMA);
+		task1 = get_task_to_return(component, to, data->p, number_of_package_to_build);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+		if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
 		return task1;
 	}
 }
