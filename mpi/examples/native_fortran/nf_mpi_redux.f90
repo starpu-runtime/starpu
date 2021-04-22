@@ -43,7 +43,7 @@ program nf_mpi_redux
   comm_size  = fstarpu_mpi_world_size()
   if (comm_size.lt.2) then
     write(*,'(" ")')
-    write(*,'("This application is meant to run with at least two nodes.")')
+    write(*,'("This application is meant to run with at least two nodes (found ",i4," ; i am ",i4,").")') comm_size, comm_w_rank
     stop 2
   end if
   allocate(b(comm_size-1), bhdl(comm_size-1))
@@ -58,7 +58,7 @@ program nf_mpi_redux
   task_red_cl = fstarpu_codelet_allocate()
   call fstarpu_codelet_set_name(task_red_cl, namered)
   call fstarpu_codelet_add_cpu_func(task_red_cl,C_FUNLOC(cl_cpu_task_red))
-  call fstarpu_codelet_add_buffer(task_red_cl, FSTARPU_RW)
+  call fstarpu_codelet_add_buffer(task_red_cl, FSTARPU_RW.ior.FSTARPU_COMMUTE)
   call fstarpu_codelet_add_buffer(task_red_cl, FSTARPU_R)
 
   task_ini_cl = fstarpu_codelet_allocate()
@@ -70,91 +70,90 @@ program nf_mpi_redux
 
   do trial=1,2
 
-  if (trial.eq.1) then
-        write(*,*) "Using STARPU_MPI_REDUX"
-        codelet_mode = FSTARPU_RW.ior.FSTARPU_COMMUTE
-        task_mode = FSTARPU_MPI_REDUX
-  else if (trial.eq.2) then
-        write(*,*) "Using STARPU_REDUX"
-        codelet_mode = FSTARPU_REDUX
-        task_mode = FSTARPU_REDUX
-  end if
-  ! allocate and fill codelet structs
-  work_cl = fstarpu_codelet_allocate()
-  call fstarpu_codelet_set_name(work_cl, name)
-  call fstarpu_codelet_add_cpu_func(work_cl, C_FUNLOC(cl_cpu_task))
-  call fstarpu_codelet_add_buffer(work_cl, codelet_mode)
-  call fstarpu_codelet_add_buffer(work_cl, FSTARPU_R)
-  err = fstarpu_mpi_barrier(comm_world)
+    if (trial.eq.2) then
+          write(*,*) "Using STARPU_MPI_REDUX"
+          codelet_mode = FSTARPU_RW.ior.FSTARPU_COMMUTE
+          task_mode = FSTARPU_MPI_REDUX
+    else if (trial.eq.1) then
+          write(*,*) "Using STARPU_REDUX"
+          codelet_mode = FSTARPU_REDUX
+          task_mode = FSTARPU_REDUX
+    end if
+    ! allocate and fill codelet structs
+    work_cl = fstarpu_codelet_allocate()
+    call fstarpu_codelet_set_name(work_cl, name)
+    call fstarpu_codelet_add_cpu_func(work_cl, C_FUNLOC(cl_cpu_task))
+    call fstarpu_codelet_add_buffer(work_cl, codelet_mode)
+    call fstarpu_codelet_add_buffer(work_cl, FSTARPU_R)
+    err = fstarpu_mpi_barrier(comm_world)
 
-  if(comm_w_rank.eq.0) then
-    write(*,'(" ")')
-    a = 1.0
-    write(*,*) "init a = ", a
-  else
-    b(comm_w_rank) = 1.0 / (comm_w_rank + 1.0)
-    write(*,*) "init b_",comm_w_rank,"=", b(comm_w_rank), " AT ", &
-c_loc(bhdl(comm_w_rank)) ! This is not really meaningful
-  end if
+    if(comm_w_rank.eq.0) then
+      write(*,'(" ")')
+      a = 1.0
+      write(*,*) "init a = ", a
+    else
+      b(comm_w_rank) = 1.0 / (comm_w_rank + 1.0)
+      write(*,*) "init b_",comm_w_rank,"=", b(comm_w_rank)
+    end if
 
-  err = fstarpu_mpi_barrier(comm_world)
+    err = fstarpu_mpi_barrier(comm_world)
 
-  tag = 0
-  if(comm_w_rank.eq.0) then
-    call fstarpu_variable_data_register(ahdl, 0, c_loc(a),c_sizeof(a))
+    tag = 0
+    if(comm_w_rank.eq.0) then
+      call fstarpu_variable_data_register(ahdl, 0, c_loc(a),c_sizeof(a))
+      do i=1,comm_size-1
+          call fstarpu_variable_data_register(bhdl(i), -1, c_null_ptr,c_sizeof(b(i)))
+      end do
+    else
+      call fstarpu_variable_data_register(ahdl, -1, c_null_ptr,c_sizeof(a))
+      do i=1,comm_size-1
+        if (i.eq.comm_w_rank) then
+          call fstarpu_variable_data_register(bhdl(i), 0, c_loc(b(i)),c_sizeof(b(i)))
+        else
+          call fstarpu_variable_data_register(bhdl(i), -1, c_null_ptr,c_sizeof(b(i)))
+        end if
+      end do
+    end if
+    call fstarpu_mpi_data_register(ahdl,  tag,  0)
     do i=1,comm_size-1
-        call fstarpu_variable_data_register(bhdl(i), -1, c_null_ptr,c_sizeof(b(i)))
+       call fstarpu_mpi_data_register(bhdl(i), tag+i,i)
     end do
-  else
-    call fstarpu_variable_data_register(ahdl, -1, c_null_ptr,c_sizeof(a))
-    do i=1,comm_size-1
-      if (i.eq.comm_w_rank) then
-        call fstarpu_variable_data_register(bhdl(i), 0, c_loc(b(i)),c_sizeof(b(i)))
-      else
-        call fstarpu_variable_data_register(bhdl(i), -1, c_null_ptr,c_sizeof(b(i)))
-      end if
-    end do
-  end if
-  call fstarpu_mpi_data_register(ahdl,  tag,  0)
-  do i=1,comm_size-1
-     call fstarpu_mpi_data_register(bhdl(i), tag+i,i)
-  end do
 
-  tag = tag + comm_size
+    tag = tag + comm_size
 
-  call fstarpu_data_set_reduction_methods(ahdl,task_red_cl,task_ini_cl)
+    call fstarpu_data_set_reduction_methods(ahdl,task_red_cl,task_ini_cl)
 
-  err = fstarpu_mpi_barrier(comm_world)
+    err = fstarpu_mpi_barrier(comm_world)
 
 
-  call fstarpu_fxt_start_profiling()
-  do w_node=1,comm_size-1
-    do i=1,work_coef*nworkers
-      call fstarpu_mpi_task_insert( (/ c_loc(comm_world),   &
-             work_cl,                                         &
-             task_mode, ahdl,                            &
-             FSTARPU_R, bhdl(w_node),                      &
-             FSTARPU_EXECUTE_ON_NODE, c_loc(w_node),          &
-             C_NULL_PTR /))
-    end do
-  end do
-  call fstarpu_mpi_redux_data(comm_world, ahdl)
-  err = fstarpu_mpi_wait_for_all(comm_world)
-
-  if(comm_w_rank.eq.0) then
-    tmp = 0
+    call fstarpu_fxt_start_profiling()
     do w_node=1,comm_size-1
-      tmp = tmp + 1.0 / (w_node+1.0)
+      do i=1,work_coef*nworkers
+        call fstarpu_mpi_task_insert( (/ c_loc(comm_world),   &
+               work_cl,                                         &
+               task_mode, ahdl,                            &
+               FSTARPU_R, bhdl(w_node),                      &
+               FSTARPU_EXECUTE_ON_NODE, c_loc(w_node),          &
+               C_NULL_PTR /))
+      end do
     end do
-    write(*,*) 'computed result ---> ',a, "expected =",&
-      1.0 + (comm_size-1.0)*(comm_size)/2.0 + work_coef*nworkers*((comm_size-1.0)*3.0 + tmp)
-  end if
-  err = fstarpu_mpi_barrier(comm_world)
-  call fstarpu_data_unregister(ahdl)
-  do w_node=1,comm_size-1
-    call fstarpu_data_unregister(bhdl(w_node))
-  end do
-  call fstarpu_codelet_free(work_cl)
+    call fstarpu_mpi_redux_data(comm_world, ahdl)
+    err = fstarpu_mpi_wait_for_all(comm_world)
+
+    if(comm_w_rank.eq.0) then
+      tmp = 0
+      do w_node=1,comm_size-1
+        tmp = tmp + 1.0 / (w_node+1.0)
+      end do
+      write(*,*) 'computed result ---> ',a, "expected =",&
+        1.0 + (comm_size-1.0)*(comm_size)/2.0 + work_coef*nworkers*((comm_size-1.0)*3.0 + tmp)
+    end if
+    err = fstarpu_mpi_barrier(comm_world)
+    call fstarpu_data_unregister(ahdl)
+    do w_node=1,comm_size-1
+      call fstarpu_data_unregister(bhdl(w_node))
+    end do
+    call fstarpu_codelet_free(work_cl)
 
   end do
 
@@ -166,7 +165,7 @@ c_loc(bhdl(comm_w_rank)) ! This is not really meaningful
   err = fstarpu_mpi_shutdown()
   call fstarpu_shutdown()
   deallocate(b, bhdl)
-  stop
+  stop 0
 
 contains
 

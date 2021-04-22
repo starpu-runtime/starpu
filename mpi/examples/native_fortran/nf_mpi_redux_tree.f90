@@ -28,7 +28,7 @@ program nf_mpi_redux
   real(kind(1.d0)), target                :: a,tmp
   real(kind(1.d0)), target, allocatable   :: b(:)
   integer(kind=8)                         :: tag, err
-  type(c_ptr)                             :: ahdl
+  type(c_ptr), target                     :: ahdl
   type(c_ptr), target, allocatable        :: bhdl(:)
   type(c_ptr)                             :: task_mode, codelet_mode
   integer, target                         :: comm_world,comm_w_rank, comm_size
@@ -73,7 +73,7 @@ program nf_mpi_redux
   call fstarpu_codelet_add_buffer(work_cl, FSTARPU_R)
   err = fstarpu_mpi_barrier(comm_world)
 
-  do arity=2,2 !comm_size
+  do arity=2,comm_size
 
     if(comm_w_rank.eq.0) then
       write(*,'(" ")')
@@ -139,24 +139,19 @@ program nf_mpi_redux
     err = fstarpu_mpi_barrier(comm_world)
     call fstarpu_data_unregister(ahdl)
     do w_node=1,comm_size-1
-      call fstarpu_data_unregister(bhdl(w_node))
+       call fstarpu_data_unregister(bhdl(w_node))
     end do
 
-    write(*,*) "before stop"
     call fstarpu_fxt_stop_profiling()
   end do
 
-  write(*,*) "before free stop"
   call fstarpu_codelet_free(work_cl)
   call fstarpu_codelet_free(task_red_cl)
   call fstarpu_codelet_free(task_ini_cl)
 
 
-  write(*,*) "before mpi shutdown"
   err = fstarpu_mpi_shutdown()
-  write(*,*) "before shutdown"
   call fstarpu_shutdown()
-  write(*,*) "before dealloc"
   deallocate(b, bhdl)
   stop 0
 

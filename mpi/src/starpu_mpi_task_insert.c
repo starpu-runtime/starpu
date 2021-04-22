@@ -892,7 +892,6 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 		nb_contrib = next_nb_contrib;
 		current_level++;
 	}
-	if (mpi_data->redux_map != NULL) free(mpi_data->redux_map);
 }
 
 void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
