@@ -342,132 +342,125 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",NT); }
 			
 			/* Debut code a mettre dnas mst */
+			//~ data->p->temp_pointer_1 = data->p->first_link;
+				//~ for (i = 0; i < number_of_package_to_build; i++) 
+				//~ {
+					data->p->temp_pointer_1->sub_list = mst(data->popped_task_list, NT, GPU_RAM_M);
+					//~ data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+				//~ }
 			
-			int matrice_adjacence[NT][NT]; for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { matrice_adjacence[i][j] = 0; } } 
-			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
-			temp_task_2  = starpu_task_list_begin(&data->popped_task_list);
-			temp_task_2  = starpu_task_list_next(temp_task_2);
-			for (i = 0; i < NT; i++) {
-				for (j = i + 1; j < NT; j++) {
-					for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
-						for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
-							if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) { matrice_adjacence[i][j]++; }
-						}
-					}
-					temp_task_2  = starpu_task_list_next(temp_task_2);
-				}
-				temp_task_1  = starpu_task_list_next(temp_task_1);
-				temp_task_2 = temp_task_1;
-				if (i + 1 != NT) { temp_task_2  = starpu_task_list_next(temp_task_2); }
-			}				
+			
+			//~ int matrice_adjacence[NT][NT]; for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { matrice_adjacence[i][j] = 0; } } 
+			//~ temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
+			//~ temp_task_2  = starpu_task_list_begin(&data->popped_task_list);
+			//~ temp_task_2  = starpu_task_list_next(temp_task_2);
+			//~ for (i = 0; i < NT; i++) {
+				//~ for (j = i + 1; j < NT; j++) {
+					//~ for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
+						//~ for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
+							//~ if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) { matrice_adjacence[i][j]++; }
+						//~ }
+					//~ }
+					//~ temp_task_2  = starpu_task_list_next(temp_task_2);
+				//~ }
+				//~ temp_task_1  = starpu_task_list_next(temp_task_1);
+				//~ temp_task_2 = temp_task_1;
+				//~ if (i + 1 != NT) { temp_task_2  = starpu_task_list_next(temp_task_2); }
+			//~ }				
 			/* Affichage de la matrice d'adjacence */
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Matrice d'adjacence :\n"); for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { printf("%d ",matrice_adjacence[i][j]); } printf("\n"); } }
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Matrice d'adjacence :\n"); for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { printf("%d ",matrice_adjacence[i][j]); } printf("\n"); } }
 			
-			struct my_list *temp_sub_list = malloc(sizeof(*temp_sub_list));
-			struct paquets *temp_paquets = malloc(sizeof(*temp_paquets));
+			//~ struct my_list *temp_sub_list = malloc(sizeof(*temp_sub_list));
+			//~ struct paquets *temp_paquets = malloc(sizeof(*temp_paquets));
 	
-			starpu_task_list_init(&temp_sub_list->sub_list);
-			temp_sub_list->next = NULL;
-	temp_paquets->temp_pointer_1 = temp_sub_list;
-	temp_paquets->first_link = temp_paquets->temp_pointer_1;
+			//~ starpu_task_list_init(&temp_sub_list->sub_list);
+			//~ temp_sub_list->next = NULL;
+	//~ temp_paquets->temp_pointer_1 = temp_sub_list;
+	//~ temp_paquets->first_link = temp_paquets->temp_pointer_1;
 			
 			//NEW
-			int do_not_add_more = 0;
-			while (!starpu_task_list_empty(&data->popped_task_list)) {	
-				starpu_task_list_push_back(&temp_paquets->temp_pointer_1->sub_list, starpu_task_list_pop_front(&data->popped_task_list));
-				temp_paquets->temp_pointer_1->index_package = do_not_add_more;
-				if (do_not_add_more != NT-1) { HFP_insertion(temp_paquets); }
-				do_not_add_more++;
-			}
-			temp_paquets->first_link = temp_paquets->temp_pointer_1;
+			//~ int do_not_add_more = 0;
+			//~ while (!starpu_task_list_empty(&data->popped_task_list)) {	
+				//~ starpu_task_list_push_back(&temp_paquets->temp_pointer_1->sub_list, starpu_task_list_pop_front(&data->popped_task_list));
+				//~ temp_paquets->temp_pointer_1->index_package = do_not_add_more;
+				//~ if (do_not_add_more != NT-1) { HFP_insertion(temp_paquets); }
+				//~ do_not_add_more++;
+			//~ }
+			//~ temp_paquets->first_link = temp_paquets->temp_pointer_1;
 			
 				
 				// Array to store constructed MST
-				//~ int parent[NT];
 				// Key values used to pick minimum weight edge in cut
-				int key[NT];
+				//~ int key[NT];
 				// To represent set of vertices included in MST
-				bool mstSet[NT];
-				int tab_SIGMA[NT];
-				//~ const char* tab_SIGMA[NT];
+				//bool mstSet[NT];
+				//~ int tab_SIGMA[NT];
 
 				// Initialize all keys as 0
-				for (int i = 0; i < NT; i++) { 
-					key[i] = 0, mstSet[i] = false; }
+				//~ for (int i = 0; i < NT; i++) { 
+					//~ key[i] = 0, mstSet[i] = false; }
 
 				// Always include first 1st vertex in MST.
 				// Make key 0 so that this vertex is picked as first vertex.
-				key[0] = 1;
-				//~ parent[0] = INT_MAX; // First node is always root of MST
+				//~ key[0] = 1;
 				
-				for (count = 0; count < NT - 1; count++) {
+				//~ for (count = 0; count < NT - 1; count++) {
 					// Pick the minimum key vertex from the
 					// set of vertices not yet included in MST
-					int max = -1, max_index = 0;
+					//~ int max = -1, max_index = 0;
 
-					for (int v = 0; v < NT; v++)
-						if (mstSet[v] == false && key[v] > max)
-							max = key[v], max_index = v;
+					//~ for (int v = 0; v < NT; v++)
+						//~ if (mstSet[v] == false && key[v] > max)
+							//~ max = key[v], max_index = v;
 										
-					int u = max_index;
+					//~ int u = max_index;
 
 					// Add the picked vertex to the MST Set	
-					mstSet[u] = true;
-					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Add %p to sigma\n",temp_task_1); }
-					//~ return temp_task_1;
-					//~ starpu_task_list_push_back(&SIGMA,temp_task_1);
-					//~ tab_SIGMA[tab_runner] = starpu_task_get_name(temp_task_1);
-					//~ printf("dans tab_sigma %p\n",tab_SIGMA[tab_runner]);
-					tab_SIGMA[tab_runner] = u;
-					tab_runner++;
+					//~ mstSet[u] = true;
+			
+					//~ tab_SIGMA[tab_runner] = u;
+					//~ tab_runner++;
 
 					// Update key value and parent index of
 					// the adjacent vertices of the picked vertex.
 					// Consider only those vertices which are not
 					// yet included in MST
-					for (int v = 0; v < NT; v++)
+					//~ for (int v = 0; v < NT; v++)
 						// matrice_adjacence[u][v] is non zero only for adjacent vertices of m
 						// mstSet[v] is false for vertices not yet included in MST
 						// Update the key only if graph[u][v] is greater than key[v]
-						if (matrice_adjacence[u][v] && mstSet[v] == false && matrice_adjacence[u][v] > key[v])
-							//~ parent[v] = u, key[v] = matrice_adjacence[u][v];
-							key[v] = matrice_adjacence[u][v];
-				}
+						//~ if (matrice_adjacence[u][v] && mstSet[v] == false && matrice_adjacence[u][v] > key[v])
+							//~ key[v] = matrice_adjacence[u][v];
+				//~ }
 					
 				/* On met le dernier sommet dans sigma */
-				for (i = 0; i < NT; i++) {
-					if (mstSet[i] == false) {
-						//~ temp_task_1  = starpu_task_list_begin(&data->popped_task_list); for (i_bis = 0; i_bis < i; i_bis++) { temp_task_1  = starpu_task_list_next(temp_task_1); }
-						//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Dernier sommet: add %p to sigma\n",temp_task_1); }
-						//~ starpu_task_list_push_back(&SIGMA,temp_task_1);
-						//~ tab_SIGMA[NT - 1] = starpu_task_get_name(temp_task_1);
-						tab_SIGMA[NT - 1] = i;
-						//~ mstSet[i] = NT-1;
-					}
-				}				
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n"); }
-				i = 0;
-				temp_paquets->temp_pointer_1 = temp_paquets->first_link;
-				while (i != NT) {
-					//~ temp_task_1  = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
-					if (tab_SIGMA[i] == temp_paquets->temp_pointer_1->index_package) {
-					//~ if (strcmp(char_SIGMA[i],starpu_task_get_name(temp_task_1) == 0)) {
-						starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, starpu_task_list_pop_front(&temp_paquets->temp_pointer_1->sub_list));
-						i++;
-						temp_paquets->temp_pointer_1 = temp_paquets->first_link;
-					}
-					else {
-						//~ starpu_task_list_push_back(&data->popped_task_list,temp_task_1);
-						temp_paquets->temp_pointer_1 = temp_paquets->temp_pointer_1->next;
-					}
-				}
+				//~ for (i = 0; i < NT; i++) {
+					//~ if (mstSet[i] == false) {
+					
+						//~ tab_SIGMA[NT - 1] = i;
+					//~ }
+				//~ }				
+				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n"); }
+				//~ i = 0;
+				//~ temp_paquets->temp_pointer_1 = temp_paquets->first_link;
+				//~ while (i != NT) {
+					//~ if (tab_SIGMA[i] == temp_paquets->temp_pointer_1->index_package) {
+						//~ starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, starpu_task_list_pop_front(&temp_paquets->temp_pointer_1->sub_list));
+						//~ i++;
+						//~ temp_paquets->temp_pointer_1 = temp_paquets->first_link;
+					//~ }
+					//~ else {
+						//~ temp_paquets->temp_pointer_1 = temp_paquets->temp_pointer_1->next;
+					//~ }
+				//~ }
 				
+				/*
 				//Belady
 				//~ if (starpu_get_env_number_default("BELADY",0) == 1) {
 					//~ get_ordre_utilisation_donnee_mst(data, NB_TOTAL_DONNEES);
-				//~ }
+				//~ } */
 				
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Fin de MST\n"); }
+				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Fin de MST\n"); }
 			
 			/* Fin code a mettre ndas mst */
 
