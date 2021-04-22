@@ -67,10 +67,19 @@ struct paquets
     int NP; /* Number of packages */
 };
 
-struct data_on_node; /* Simulate memory, list of handles */
+struct data_on_node /* Simulate memory, list of handles */
+{
+	struct handle *pointer_data_list;
+	struct handle *first_data;
+	long int memory_used;
+};
 
-struct handle; /* The handles from above */
-
+struct handle /* The handles from above */
+{
+	starpu_data_handle_t h;
+	int last_use;
+	struct handle *next;
+};
 //~ /* Empty a task's list. We use this for the lists last_package */
 void HFP_empty_list(struct starpu_task_list *a);
 

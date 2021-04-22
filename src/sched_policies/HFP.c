@@ -24,7 +24,7 @@
 #define BELADY /* O or 1 */
 #define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet, 6 : load balance avec expected time d'un paquet en comptant transferts et overlap, 7 : pareil que 6 + HFP sur chaque paquet */
 #define MODULAR_HEFT_HFP_MODE /* 0 we don't use heft, 1 we use starpu_prefetch_task_input_on_node_prio, 2 we use starpu_prefetch_task_input_on_node_prio. Put it at 1 or 2 if you use modular-heft-HFP, else it will crash. the 0 is just here so we don't do prefetch when we use regular HFP. If we do not use modular-heft-HFP, always put this environemment variable on 0. */
-#define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package */
+#define HMETIS /* 0 we don't use hMETIS, 1 we use it to form |GPU| package, 2 same as 1 but we then apply HFP on each package. For mst if it is equal to 1 we form |GPU| packages then apply mst on each package. */
 #define READY /* 0 we don't use ready in initialize_HFP_center_policy, 1 we do */
 #define PRINT3D /* 1 we print coordinates and visualize data. Needed to differentiate 2D from 3D */
 #define TASK_STEALING /* 0 we don't use it, 1 when a gpu (so a package) has finished all it tasks, it steal a task, starting by the end of the package of the package that has the most tasks left. It can be done with load balance on but was first thinked to be used with no load balance bbut |GPU| packages (MULTIGPU=1), 2 same than 1 but we steal from the package that has the biggest expected package time, 3 same than 2 but we always steal half (arondi à l'inférieur) of the package at once (in term of task duration). All that is implemented in get_task_to_return */
@@ -102,19 +102,19 @@ void initialize_global_variable(struct starpu_task *task)
     //~ int NP; /* Number of packages */
 //~ };
 
-struct data_on_node /* Simulate memory, list of handles */
-{
-	struct handle *pointer_data_list;
-	struct handle *first_data;
-	long int memory_used;
-};
+//~ struct data_on_node /* Simulate memory, list of handles */
+//~ {
+	//~ struct handle *pointer_data_list;
+	//~ struct handle *first_data;
+	//~ long int memory_used;
+//~ };
 
-struct handle /* The handles from above */
-{
-	starpu_data_handle_t h;
-	int last_use;
-	struct handle *next;
-};
+//~ struct handle /* The handles from above */
+//~ {
+	//~ starpu_data_handle_t h;
+	//~ int last_use;
+	//~ struct handle *next;
+//~ };
 
 /* Empty a task's list. We use this for the lists last_package */
 void HFP_empty_list(struct starpu_task_list *a)
@@ -944,14 +944,14 @@ struct data_on_node *init_data_list(starpu_data_handle_t d)
     element->last_use = 0;
     element->next = NULL;
     liste->first_data = element;
-
+	printf ("init data list ok\n");
     return liste;
 }
 
 /* For gemm that has C tile put in won't use if they are never used again */
 bool is_it_a_C_tile_data_never_used_again(starpu_data_handle_t h, int i, struct starpu_task_list *l, struct starpu_task *current_task)
 {	
-	//~ printf("task %p, i = %d\n", current_task, i);
+	printf("task %p, i = %d\n", current_task, i);
 	struct starpu_task *task = NULL;
 	if (i == 2)
 	{
@@ -980,22 +980,28 @@ bool is_it_a_C_tile_data_never_used_again(starpu_data_handle_t h, int i, struct 
 
 void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvNombre, int use_order, int i, struct starpu_task_list *l, struct starpu_task *current_task)
 {
+	printf("début insertion_data_on_node\n");
     struct handle *nouveau = malloc(sizeof(*nouveau));
     if (liste == NULL || nouveau == NULL)
     {
+		perror("List in void insertion_data_on_node is NULL\n");
         exit(EXIT_FAILURE);
     }
     liste->memory_used += starpu_data_get_size(nvNombre);
     nouveau->h = nvNombre;
     nouveau->next = liste->first_data;
+    printf("iciii\n");
     if (strcmp(appli, "starpu_sgemm_gemm") == 0) 
     {
+		printf("its a gemm appli\n");
 		if (is_it_a_C_tile_data_never_used_again(nouveau->h, i, l, current_task) == true)
 		{
+			printf("true\n");
 			nouveau->last_use = -1;
 		}
 		else
 		{
+			printf("false\n");
 			nouveau->last_use = use_order;
 		}
 	}
@@ -1004,6 +1010,7 @@ void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvN
 		nouveau->last_use = use_order;
 	}
     liste->first_data = nouveau;
+    printf("insert ok\n");
 }
 
 void afficher_data_on_node(struct my_list *liste)
@@ -1137,6 +1144,7 @@ void merge_task_and_package (struct my_list *package, struct starpu_task *task)
  */
 void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GPU_RAM)
 {
+	printf("la\n");
 	if (l->nb_task_in_sub_list < 1)
 	{
 		l->expected_package_computation_time = 0;
@@ -1154,6 +1162,7 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 	/* Put the remaining data on simulated memory */
 	for (i = 1; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
+		printf("ici\n");
 		insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, i, &l->sub_list, task);
 		l->expected_package_computation_time += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
 		use_order++;
@@ -1161,7 +1170,7 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 	//~ afficher_data_on_node(l);
 	for (next_task = starpu_task_list_next(task); next_task != starpu_task_list_end(&l->sub_list); next_task = starpu_task_list_next(next_task))
 	{
-		//~ printf("On task %p\n", task);
+		printf("On task %p\n", task);
 		time_to_add = 0;
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(next_task); i++)
 		{
@@ -1466,7 +1475,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 					while (a->temp_pointer_2 != NULL)
 					{
 						get_expected_package_computation_time(a->temp_pointer_2, GPU_RAM_M);
-						//~ printf("%f\n", a->temp_pointer_2->expected_package_computation_time);
+						printf("%f\n", a->temp_pointer_2->expected_package_computation_time);
 						a->temp_pointer_2 = a->temp_pointer_2->next;
 					}
 					i = 0;
@@ -1493,6 +1502,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 						}
 							if (starpu_get_env_number_default("TASK_STEALING",0) == 3)
 							{
+								print_packages_in_terminal(a, 0);
 								/* We steal half of the package in terms of task duration */
 								while (a->temp_pointer_1->expected_time < a->temp_pointer_2->expected_time/2)
 								{
@@ -2401,7 +2411,9 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		{
 			p->temp_pointer_1 = p->temp_pointer_1->next;
 		}
-		starpu_task_list_push_back(&p->temp_pointer_1->sub_list, starpu_task_list_pop_front(l));
+		task_1 = starpu_task_list_pop_front(l);
+		p->temp_pointer_1->expected_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
+		starpu_task_list_push_back(&p->temp_pointer_1->sub_list, task_1);
 		p->temp_pointer_1->nb_task_in_sub_list++;
 	}
 	fclose(f_2);

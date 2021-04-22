@@ -308,7 +308,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 	if (is_empty(data->p->first_link) == true) {
 		if (!starpu_task_list_empty(&data->sched_list)) {
 			time_t start, end; time(&start); 
-			
+			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
 			if (starpu_get_env_number_default("HMETIS",0) != 0) 
 			{
 				hmetis(data->p, &data->sched_list, number_of_package_to_build, GPU_RAM_M);
