@@ -31,6 +31,8 @@
 #define PRINTHEFT_NT /* To precise the number of task for printing visualisation for modular-heft. If it is in 3D you also need PRINT3D=1. Also needed on something different than 0 to print diferences. */
 #define INTERLACING /* 0 we don't use it, 1 we start giving task at the middle of the package then do right, left and so on. */
 
+static int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
+
 /* Other environmment variable you should use with HFP: 
  * STARPU_NTASKS_THRESHOLD=30  
  * STARPU_MINIMUM_CLEAN_BUFFERS=0
@@ -63,43 +65,42 @@ void initialize_global_variable(struct starpu_task *task)
 }
 
 /* Structure used to acces the struct my_list. There are also task's list */
-struct HFP_sched_data
-{
-	struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
-	//~ struct starpu_task_list list_if_fifo_full; /* List used if the fifo list is not empty. It means that task from the last iteration haven't been pushed, thus we need to pop task from this list */	
-	struct paquets *p;
-	struct starpu_task_list sched_list;
-     	starpu_pthread_mutex_t policy_mutex;   	
-};
+//~ struct HFP_sched_data
+//~ {
+	//~ struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
+	//~ struct paquets *p;
+	//~ struct starpu_task_list sched_list;
+     	//~ starpu_pthread_mutex_t policy_mutex;   	
+//~ };
 
-/* Structure used to store all the variable we need and the tasks of each package. Each link is a package */
-struct my_list
-{
-	int package_nb_data; 
-	int nb_task_in_sub_list;
-	int index_package; /* Used to write in Data_coordinates.txt and keep track of the initial index of the package */
-	starpu_data_handle_t * package_data; /* List of all the data in the packages. We don't put two times the duplicates */
-	struct starpu_task_list sub_list; /* The list containing the tasks */
-	struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
-	struct my_list *next;
-	int split_last_ij; /* The separator of the last state of the current package */
-	//~ starpu_data_handle_t * data_use_order; /* Order in which data will be loaded. used for Belady */
-	int total_nb_data_package;
-	double expected_time; /* Only task's time */
-	double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
-	double expected_package_computation_time; /* Computation time with transfer and overlap */
-	struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
-};
+//~ /* Structure used to store all the variable we need and the tasks of each package. Each link is a package */
+//~ struct my_list
+//~ {
+	//~ int package_nb_data; 
+	//~ int nb_task_in_sub_list;
+	//~ int index_package; /* Used to write in Data_coordinates.txt and keep track of the initial index of the package */
+	//~ starpu_data_handle_t * package_data; /* List of all the data in the packages. We don't put two times the duplicates */
+	//~ struct starpu_task_list sub_list; /* The list containing the tasks */
+	//~ struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
+	//~ struct my_list *next;
+	//~ int split_last_ij; /* The separator of the last state of the current package */
+	//starpu_data_handle_t * data_use_order; /* Order in which data will be loaded. used for Belady */
+	//~ int total_nb_data_package;
+	//~ double expected_time; /* Only task's time */
+	//~ double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
+	//~ double expected_package_computation_time; /* Computation time with transfer and overlap */
+	//~ struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
+//~ };
 
-struct paquets
-{		
-	/* All the pointer use to navigate through the linked list */
-	struct my_list *temp_pointer_1;
-	struct my_list *temp_pointer_2;
-	struct my_list *temp_pointer_3;
-	struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */     	
-    int NP; /* Number of packages */
-};
+//~ struct paquets
+//~ {		
+	//~ /* All the pointer use to navigate through the linked list */
+	//~ struct my_list *temp_pointer_1;
+	//~ struct my_list *temp_pointer_2;
+	//~ struct my_list *temp_pointer_3;
+	//~ struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */     	
+    //~ int NP; /* Number of packages */
+//~ };
 
 struct data_on_node /* Simulate memory, list of handles */
 {
@@ -162,22 +163,27 @@ void insertion_use_order(struct gpu_list *a)
 /* Delete all the empty packages */
 struct my_list* HFP_delete_link(struct paquets* a)
 {
-	while (a->first_link != NULL && a->first_link->package_nb_data == 0) {
+	while (a->first_link != NULL && a->first_link->package_nb_data == 0)
+	{
 		a->temp_pointer_1 = a->first_link;
 		a->first_link = a->first_link->next;
 		free(a->temp_pointer_1);
 	}
-	if (a->first_link != NULL) {
+	if (a->first_link != NULL)
+	{
 		a->temp_pointer_2 = a->first_link;
 		a->temp_pointer_3 = a->first_link->next;
-		while (a->temp_pointer_3 != NULL) {
-			while (a->temp_pointer_3 != NULL && a->temp_pointer_3->package_nb_data == 0) {
+		while (a->temp_pointer_3 != NULL)
+		{
+			while (a->temp_pointer_3 != NULL && a->temp_pointer_3->package_nb_data == 0)
+			{
 				a->temp_pointer_1 = a->temp_pointer_3;
 				a->temp_pointer_3 = a->temp_pointer_3->next;
 				a->temp_pointer_2->next = a->temp_pointer_3;
 				free(a->temp_pointer_1);
 			}
-			if (a->temp_pointer_3 != NULL) {
+			if (a->temp_pointer_3 != NULL)
+			{
 				a->temp_pointer_2 = a->temp_pointer_3;
 				a->temp_pointer_3 = a->temp_pointer_3->next;
 			}
@@ -187,10 +193,12 @@ struct my_list* HFP_delete_link(struct paquets* a)
 }
 
 /* Give a color for each package. Written in the file Data_coordinates.txt */
-static void rgb(int num, int *r, int *g, int *b)
+//~ static void rgb(int num, int *r, int *g, int *b)
+void rgb(int num, int *r, int *g, int *b)
 {
     int i = 0;
-    if (num < 7) {
+    if (num < 7)
+    {
 		num ++;
 		*r = num & 1 ? 255 : 0;
 		*g = num & 2 ? 255 : 0;
@@ -199,7 +207,8 @@ static void rgb(int num, int *r, int *g, int *b)
 		return;
     }
     num -= 7; *r = 0; *g = 0; *b = 0;
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 8; i++)
+    {
         *r = *r << 1 | ((num & 1) >> 0);
         *g = *g << 1 | ((num & 2) >> 1);
         *b = *b << 1 | ((num & 4) >> 2);
@@ -350,7 +359,7 @@ struct gpu_list *gpu_data;
 struct use_order *use_order_data;;
 
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
-static void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu)
+void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu)
 {
 	int k = 0;
 	//~ struct gpu_list *gpu_data = malloc(sizeof(*gpu_data));
@@ -1355,7 +1364,7 @@ void interlacing_task_list (struct paquets *a, int interlacing_mode)
  * In case of modular-heft-HFP, it needs to do a round robin on the task it returned. So we use expected_time_pulled_out, 
  * an element of struct my_list in order to track which package pulled out the least expected task time. So heft can can
  * better divide tasks between GPUs */
-static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
+struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
 	int max_task_time = 0;	
 	int index_package_max_task_time = 0;
@@ -3130,7 +3139,8 @@ static int HFP_can_pull(struct starpu_sched_component * component)
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Create\n"); }
-	srandom(time(0)); /* If we need a random selection */
+	//~ srandom(time(0)); /* If we need a random selection */
+	srandom(starpu_get_env_number_default("SEED", 0)); /* If we need a random selection */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
 	
 	Ngpu = get_number_GPU();

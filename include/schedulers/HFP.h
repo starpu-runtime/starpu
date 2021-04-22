@@ -24,16 +24,48 @@
 static int Ngpu;
 const char* appli;
 static int NT;
-static int N;
-static double EXPECTED_TIME;
-static int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
+int N;
+double EXPECTED_TIME;
+//~ int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
 static starpu_ssize_t GPU_RAM_M;
 
-struct HFP_sched_data;
+/* Structure used to acces the struct my_list. There are also task's list */
+struct HFP_sched_data
+{
+	struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
+	struct paquets *p;
+	struct starpu_task_list sched_list;
+     	starpu_pthread_mutex_t policy_mutex;   	
+};
 
-struct my_list;
+/* Structure used to store all the variable we need and the tasks of each package. Each link is a package */
+struct my_list
+{
+	int package_nb_data; 
+	int nb_task_in_sub_list;
+	int index_package; /* Used to write in Data_coordinates.txt and keep track of the initial index of the package */
+	starpu_data_handle_t * package_data; /* List of all the data in the packages. We don't put two times the duplicates */
+	struct starpu_task_list sub_list; /* The list containing the tasks */
+	struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
+	struct my_list *next;
+	int split_last_ij; /* The separator of the last state of the current package */
+	//~ starpu_data_handle_t * data_use_order; /* Order in which data will be loaded. used for Belady */
+	int total_nb_data_package;
+	double expected_time; /* Only task's time */
+	double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
+	double expected_package_computation_time; /* Computation time with transfer and overlap */
+	struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
+};
 
-struct paquets;
+struct paquets
+{		
+	/* All the pointer use to navigate through the linked list */
+	struct my_list *temp_pointer_1;
+	struct my_list *temp_pointer_2;
+	struct my_list *temp_pointer_3;
+	struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */     	
+    int NP; /* Number of packages */
+};
 
 struct data_on_node; /* Simulate memory, list of handles */
 
@@ -52,7 +84,8 @@ void insertion_use_order(struct gpu_list *a);
 struct my_list* HFP_delete_link(struct paquets* a);
 
 /* Give a color for each package. Written in the file Data_coordinates.txt */
-static void rgb(int num, int *r, int *g, int *b);
+void rgb(int num, int *r, int *g, int *b);
+//~ static void rgb(int num, int *r, int *g, int *b);
 
 void interlacing_task_list (struct paquets *a, int interlacing_mode);
 
@@ -70,7 +103,7 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a);
 int get_total_number_data_task_list(struct starpu_task_list a);
 
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
-static void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu);
+void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu);
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M);
 
@@ -92,13 +125,13 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
  * In case of modular-heft-HFP, it needs to do a round robin on the task it returned. So we use expected_time_pulled_out, 
  * an element of struct my_list in order to track which package pulled out the least expected task time. So heft can can
  * better divide tasks between GPUs */
-static struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu);
+struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu);
 
 /* Giving prefetch for each task to modular-heft-HFP */
 void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to);
 
 /* Pushing the tasks */		
-static int HFP_push_task(struct starpu_sched_component *component, struct starpu_task *task);
+//~ static int HFP_push_task(struct starpu_sched_component *component, struct starpu_task *task);
 
 /* Need an empty data paquets_data to build packages
  * Output a task list ordered. So it's HFP if we have only one package at the end
@@ -172,17 +205,17 @@ void HFP_insertion_end(struct paquets *a);
 int get_number_GPU();
 
 /* The function that sort the tasks in packages */
-static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to);
+//~ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to);
 
-static int HFP_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to);
+//~ static int HFP_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to);
 
-static int HFP_can_pull(struct starpu_sched_component * component);
+//~ static int HFP_can_pull(struct starpu_sched_component * component);
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED);
 
-static void initialize_HFP_center_policy(unsigned sched_ctx_id);
+//~ static void initialize_HFP_center_policy(unsigned sched_ctx_id);
 
-static void deinitialize_HFP_center_policy(unsigned sched_ctx_id);
+//~ static void deinitialize_HFP_center_policy(unsigned sched_ctx_id);
 
 void get_current_tasks_heft(struct starpu_task *task, unsigned sci);
 
@@ -194,7 +227,7 @@ void get_current_tasks(struct starpu_task *task, unsigned sci);
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
 
 
-static void initialize_heft_hfp_policy(unsigned sched_ctx_id);
+//~ static void initialize_heft_hfp_policy(unsigned sched_ctx_id);
 
 struct starpu_sched_policy _starpu_sched_HFP_policy;
 
