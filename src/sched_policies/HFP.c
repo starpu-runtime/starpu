@@ -2552,7 +2552,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
-			printf("appli : %s\n", appli);
+			//~ printf("appli : %s\n", appli);
 			//TEST, a retirer
 			//~ if (starpu_get_env_number_default("TEST", 0) == 1) {
 			//~ data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->sched_list, 100, GPU_RAM_M);
