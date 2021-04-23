@@ -119,11 +119,6 @@ void init_problem_callback(void *arg)
 	}
 }
 
-unsigned get_bcsr_nchildren(struct starpu_data_filter *f, starpu_data_handle_t handle)
-{
-  return (unsigned)starpu_bcsr_get_nnz(handle);
-}
-
 void call_filters(void)
 {
 
@@ -131,7 +126,7 @@ void call_filters(void)
 	struct starpu_data_filter vector_in_f, vector_out_f;
 
 	bcsr_f.filter_func    = starpu_bcsr_filter_canonical_block;
-	bcsr_f.get_nchildren = get_bcsr_nchildren;
+	bcsr_f.get_nchildren = starpu_bcsr_filter_canonical_block_get_nchildren;
 	/* the children use a matrix interface ! */
 	bcsr_f.get_child_ops = starpu_bcsr_filter_canonical_block_child_ops;
 

@@ -537,6 +537,11 @@ void starpu_pause(void);
 void starpu_resume(void);
 
 /**
+   Return !0 if task processing by workers is currently paused, 0 otherwise.
+ */
+int starpu_is_paused(void);
+
+/**
    Value to be passed to starpu_get_next_bindid() and
    starpu_bind_thread_on() when binding a thread which will
    significantly eat CPU time, and should thus have its own dedicated
