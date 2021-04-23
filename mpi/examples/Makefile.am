@@ -523,6 +523,7 @@ native_fortran/nf_mm_task_build.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.
 native_fortran/nf_basic_ring.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_redux_test.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_mpi_redux.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
+native_fortran/nf_mpi_redux_tree.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 endif
 endif
 
