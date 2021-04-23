@@ -33,6 +33,8 @@
 #include <valgrind/helgrind.h>
 #endif
 
+#pragma GCC visibility push(hidden)
+
 #ifndef DO_CREQ_v_WW
 #define DO_CREQ_v_WW(_creqF, _ty1F, _arg1F, _ty2F, _arg2F) ((void)0)
 #endif
@@ -71,11 +73,7 @@
 #define STARPU_HG_DISABLE_CHECKING(variable) VALGRIND_HG_DISABLE_CHECKING(&(variable), sizeof(variable))
 #define STARPU_HG_ENABLE_CHECKING(variable)  VALGRIND_HG_ENABLE_CHECKING(&(variable), sizeof(variable))
 
-#if defined(__KNC__) || defined(__KNF__)
-#define STARPU_DEBUG_PREFIX "[starpu-mic]"
-#else
 #define STARPU_DEBUG_PREFIX "[starpu]"
-#endif
 
 /* This is needed in some places to make valgrind yield to another thread to be
  * able to progress.  */
@@ -147,8 +145,8 @@
 #define _STARPU_IS_ZERO(a) (fpclassify(a) == FP_ZERO)
 #endif
 
-char *_starpu_mkdtemp_internal(char *tmpl);
-char *_starpu_mkdtemp(char *tmpl);
+char *_starpu_mkdtemp_internal(char *tmpl) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+char *_starpu_mkdtemp(char *tmpl) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 int _starpu_mkpath(const char *s, mode_t mode);
 void _starpu_mkpath_and_check(const char *s, mode_t mode);
 char *_starpu_mktemp(const char *directory, int flags, int *fd);
@@ -164,7 +162,7 @@ int _starpu_frdunlock(FILE *file);
 int _starpu_fwrlock(FILE *file);
 int _starpu_fwrunlock(FILE *file);
 char *_starpu_get_home_path(void);
-void _starpu_gethostname(char *hostname, size_t size);
+void _starpu_gethostname(char *hostname, size_t size) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 /** If FILE is currently on a comment line, eat it.  */
 void _starpu_drop_comments(FILE *f);
@@ -187,5 +185,7 @@ int _starpu_check_mutex_deadlock(starpu_pthread_mutex_t *mutex);
 void _starpu_util_init(void);
 
 enum initialization { UNINITIALIZED = 0, CHANGING, INITIALIZED };
+
+#pragma GCC visibility pop
 
 #endif // __COMMON_UTILS_H__

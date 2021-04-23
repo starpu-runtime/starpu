@@ -24,7 +24,6 @@
 #include <drivers/mpi/driver_mpi_sink.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_common.h>
-#include <drivers/mic/driver_mic_source.h>
 #include <common/fxt.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memalloc.h>
@@ -270,11 +269,11 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	/* first make sure the destination has an allocated buffer */
 	if (!dst_replicate->allocated && !dst_replicate->mapped)
 	{
-		if (may_alloc==STARPU_DATAWIZARD_DO_NOT_ALLOC || _starpu_is_reclaiming(dst_node))
+		if (may_alloc==_STARPU_DATAWIZARD_DO_NOT_ALLOC || _starpu_is_reclaiming(dst_node))
 			/* We're not supposed to allocate there at the moment */
 			return -ENOMEM;
 
-		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, prefetch, may_alloc==STARPU_DATAWIZARD_ONLY_FAST_ALLOC);
+		int ret_alloc = _starpu_allocate_memory_on_node(handle, dst_replicate, prefetch, may_alloc==_STARPU_DATAWIZARD_ONLY_FAST_ALLOC);
 		if (ret_alloc)
 			return -ENOMEM;
 	}

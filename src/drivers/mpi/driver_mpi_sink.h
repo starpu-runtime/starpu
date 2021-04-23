@@ -21,6 +21,8 @@
 
 #include <drivers/mp_common/sink_common.h>
 
+#pragma GCC visibility push(hidden)
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 
 void _starpu_mpi_sink_init(struct _starpu_mp_node *node);
@@ -30,5 +32,7 @@ void _starpu_mpi_sink_bind_thread(const struct _starpu_mp_node *mp_node STARPU_A
 void (*_starpu_mpi_sink_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void);
 
 #endif  /* STARPU_USE_MPI_MASTER_SLAVE */
+
+#pragma GCC visibility pop
 
 #endif	/* __DRIVER_MPI_SINK_H__ */

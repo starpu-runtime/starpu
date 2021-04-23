@@ -171,15 +171,12 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.ram_to_ram = NULL,
 	.ram_to_cuda = NULL,
 	.ram_to_opencl = NULL,
-	.ram_to_mic = NULL,
 
 	.cuda_to_ram = NULL,
 	.cuda_to_cuda = NULL,
 
 	.opencl_to_ram = NULL,
 	.opencl_to_opencl = NULL,
-
-	.mic_to_ram = NULL,
 
 	.ram_to_mpi_ms = NULL,
 	.mpi_ms_to_ram = NULL,
@@ -196,9 +193,6 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.ram_to_mpi_ms_async = NULL,
 	.mpi_ms_to_ram_async = NULL,
 	.mpi_ms_to_mpi_ms_async = NULL,
-
-	.ram_to_mic_async = NULL,
-	.mic_to_ram_async = NULL,
 
 	.any_to_any = vector_interface_copy_any_to_any,
 };
@@ -590,7 +584,6 @@ int main(int argc, char **argv)
 	bool fail;
 
 	starpu_conf_init(&conf);
-	conf.nmic = 0;
 	conf.nmpi_ms = 0;
 
 	// initialize StarPU with default configuration

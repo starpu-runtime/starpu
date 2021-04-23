@@ -18,6 +18,8 @@
 #ifndef __DRIVERS_H__
 #define __DRIVERS_H__
 
+#pragma GCC visibility push(hidden)
+
 /** @file */
 
 struct _starpu_driver_ops
@@ -27,5 +29,7 @@ struct _starpu_driver_ops
 	int (*run_once)(struct _starpu_worker *worker);
 	int (*deinit)(struct _starpu_worker *worker);
 };
+
+#pragma GCC visibility pop
 
 #endif // __DRIVERS_H__

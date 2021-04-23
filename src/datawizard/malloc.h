@@ -17,6 +17,8 @@
 #ifndef __ALLOC_H__
 #define __ALLOC_H__
 
+#pragma GCC visibility push(hidden)
+
 /** @file */
 
 void _starpu_malloc_init(unsigned dst_node);
@@ -33,4 +35,7 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
    critical path
   */
 int _starpu_malloc_willpin_on_node(unsigned dst_node);
+
+#pragma GCC visibility pop
+
 #endif

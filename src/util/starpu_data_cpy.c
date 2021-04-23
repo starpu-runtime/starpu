@@ -21,7 +21,6 @@
 #include <core/workers.h>
 #include <datawizard/datawizard.h>
 #include <util/starpu_data_cpy.h>
-#include <starpu_mic.h>
 #include <datawizard/memory_nodes.h>
 
 static void common_data_cpy_func(void *descr[], void *cl_arg)
@@ -80,7 +79,7 @@ static void common_data_cpy_func(void *descr[], void *cl_arg)
 
 }
 
-void mp_cpy_kernel(void *descr[], void *cl_arg)
+static void mp_cpy_kernel(void *descr[], void *cl_arg)
 {
 	unsigned interface_id = *(unsigned *)cl_arg;
 
@@ -99,20 +98,7 @@ void mp_cpy_kernel(void *descr[], void *cl_arg)
 
 }
 
-static starpu_mic_kernel_t mic_cpy_func()
-{
-#ifdef STARPU_USE_MIC
-	starpu_mic_func_symbol_t mic_symbol = NULL;
-	starpu_mic_register_kernel(&mic_symbol, "mp_cpy_kernel");
-
-	return starpu_mic_get_kernel(mic_symbol);
-#else
-	STARPU_ABORT();
-	return NULL;
-#endif
-}
-
-struct starpu_perfmodel copy_model =
+static struct starpu_perfmodel copy_model =
 {
 	.type = STARPU_HISTORY_BASED,
 	.symbol = "starpu_data_cpy"
@@ -120,11 +106,10 @@ struct starpu_perfmodel copy_model =
 
 static struct starpu_codelet copy_cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL|STARPU_MIC,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
 	.cpu_funcs = {common_data_cpy_func},
 	.cuda_funcs = {common_data_cpy_func},
 	.opencl_funcs = {common_data_cpy_func},
-	.mic_funcs = {mic_cpy_func},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R},
 	.model = &copy_model
@@ -166,7 +151,7 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 	task->synchronous = !asynchronous;
 
 	int ret = _starpu_task_submit_internally(task);
-	STARPU_ASSERT(!ret);
+	STARPU_ASSERT_MSG(!ret, "Task data copy failed with code: %d\n", ret);
 
 	return 0;
 }

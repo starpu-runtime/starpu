@@ -27,12 +27,16 @@
 #include <starpu.h>
 #include <starpu_util.h>
 
+#pragma GCC visibility push(hidden)
+
 /**
  * _starpu_timing_init must be called prior to using any of these timing
  * functions.
  */
 void _starpu_timing_init(void);
-void _starpu_clock_gettime(struct timespec *ts);
+void _starpu_clock_gettime(struct timespec *ts) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
+#pragma GCC visibility pop
 
 #endif /* TIMING_H */
 

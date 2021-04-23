@@ -23,6 +23,8 @@
 #include <common/config.h>
 #include <core/jobs.h>
 
+#pragma GCC visibility push(hidden)
+
 /** Internal version of starpu_task_destroy: don't check task->destroy flag */
 void _starpu_task_destroy(struct starpu_task *task);
 
@@ -102,11 +104,6 @@ static inline starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(st
 	return cl->opencl_funcs[nimpl];
 }
 
-static inline starpu_mic_func_t _starpu_task_get_mic_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
-{
-	return cl->mic_funcs[nimpl];
-}
-
 static inline starpu_mpi_ms_func_t _starpu_task_get_mpi_ms_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->mpi_ms_funcs[nimpl];
@@ -126,6 +123,7 @@ void _starpu_watchdog_shutdown(void);
 int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void);
 int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_ctx);
 
+#pragma GCC visibility pop
 
 #ifdef BUILDING_STARPU
 LIST_CREATE_TYPE_NOSTRUCT(starpu_task, prev, next);

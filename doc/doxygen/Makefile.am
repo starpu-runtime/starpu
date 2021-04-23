@@ -81,7 +81,6 @@ chapters =	\
 	chapters/410_mpi_support.doxy		\
 	chapters/415_fault_tolerance.doxy	\
 	chapters/420_fft_support.doxy		\
-	chapters/430_mic_support.doxy		\
 	chapters/450_native_fortran_support.doxy		\
 	chapters/460_socl_opencl_extensions.doxy		\
 	chapters/470_simgrid.doxy		\
@@ -106,7 +105,6 @@ chapters =	\
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
 	chapters/api/fft_support.doxy \
-	chapters/api/versioning.doxy \
 	chapters/api/threads.doxy
 
 images = 	\
@@ -214,7 +212,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_fxt.h		\
 	$(top_srcdir)/include/starpu_hash.h		\
 	$(top_srcdir)/include/starpu_helper.h		\
-	$(top_srcdir)/include/starpu_mic.h		\
 	$(top_srcdir)/include/starpu_mpi_ms.h		\
 	$(top_srcdir)/include/starpu_mod.f90		\
 	$(top_srcdir)/include/starpu_opencl.h		\

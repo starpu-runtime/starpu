@@ -23,11 +23,15 @@
 #include <stdarg.h>
 #include <starpu.h>
 
+#pragma GCC visibility push(hidden)
+
 typedef void (*_starpu_callback_func_t)(void *);
 
 int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_list varg_list);
-int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, va_list varg_list);
-int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, void **arglist);
+int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, va_list varg_list) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *task, void **arglist) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
+#pragma GCC visibility pop
 
 #endif // __STARPU_TASK_INSERT_UTILS_H__
 

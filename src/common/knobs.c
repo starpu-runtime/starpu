@@ -426,7 +426,7 @@ void starpu_perf_counter_set_per_codelet_listener(struct starpu_codelet *cl, str
 
 /* - */
 
-void unset_listener(struct starpu_perf_counter_sample *sample)
+static void unset_listener(struct starpu_perf_counter_sample *sample)
 {
 	_starpu_spin_lock(&sample->lock);
 	STARPU_ASSERT(sample->listener != NULL);

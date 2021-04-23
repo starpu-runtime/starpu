@@ -120,7 +120,7 @@ struct task_info
 	int mpi_rank;
 };
 
-struct task_info *tasks_info;
+static struct task_info *tasks_info;
 
 static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 {
@@ -300,7 +300,7 @@ struct data_info
 	long mpi_tag;
 };
 
-struct data_info *data_info;
+static struct data_info *data_info;
 
 static struct data_info *get_data(unsigned long handle, int mpi_rank)
 {
@@ -600,7 +600,7 @@ static char *scheduler_container_alias(char *output, int len, const char *prefix
 
 static int nworkers = 0;
 
-struct worker_entry
+static struct worker_entry
 {
 	UT_hash_handle hh;
 	unsigned long tid;
@@ -1548,7 +1548,7 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 static void handle_model_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	struct task_info *task = get_task(ev->param[0], options->file_rank);
-	char *name = get_fxt_string(ev, 1);
+	char *name = get_fxt_string(ev, 2);
 	task->model_name = strdup(name);
 }
 
@@ -1693,19 +1693,19 @@ static struct starpu_fxt_codelet_event *dumped_codelets;
 
 static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
+	unsigned long job_id = ev->param[0];
+	size_t codelet_size = ev->param[1];
+	uint32_t codelet_hash = ev->param[2];
 	int worker = ev->param[3];
+	long unsigned int threadid = ev->param[4];
+	char *name = get_fxt_string(ev, 5);
+
 	if (worker < 0) return;
 
 	char *prefix = options->file_prefix;
-
 	double end_codelet_time = get_event_time_stamp(ev, options);
 	double last_end_codelet_time = last_codelet_end[worker];
 	last_codelet_end[worker] = end_codelet_time;
-
-	size_t codelet_size = ev->param[1];
-	uint32_t codelet_hash = ev->param[2];
-	long unsigned int threadid = ev->param[4];
-	char *name = get_fxt_string(ev, 5);
 
 	const char *state = "I";
 	if (find_sync(prefixTOnodeid(prefix), threadid))
@@ -1715,9 +1715,9 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (trace_file)
 		recfmt_worker_set_state(end_codelet_time, worker, state, "Other");
 
-	struct task_info *task = get_task(ev->param[0], options->file_rank);
+	struct task_info *task = get_task(job_id, options->file_rank);
 
-	get_task(ev->param[0], options->file_rank)->end_time = end_codelet_time;
+	task->end_time = end_codelet_time;
 	update_accumulated_time(worker, 0.0, end_codelet_time - task->start_time, end_codelet_time, 0);
 
 	struct _starpu_computation *peer = ongoing_computation[worker];
@@ -2817,7 +2817,7 @@ static void handle_task_exclude_from_dag(struct fxt_ev_64 *ev, struct starpu_fxt
 static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
-	char *name = get_fxt_string(ev,1);
+	char *name = get_fxt_string(ev,2);
 
 	char *prefix = options->file_prefix;
 	struct task_info *task = get_task(job_id, options->file_rank);
@@ -4832,7 +4832,7 @@ struct parse_task
 
 static struct parse_task tasks[STARPU_NMAXWORKERS];
 
-struct starpu_data_trace_kernel
+static struct starpu_data_trace_kernel
 {
 	UT_hash_handle hh;
 	char *name;

@@ -39,6 +39,8 @@
 #include <mpi.h>
 #endif
 
+#pragma GCC visibility push(hidden)
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -49,22 +51,10 @@ struct _starpu_data_replicate;
 
 enum _starpu_may_alloc
 {
-	STARPU_DATAWIZARD_DO_NOT_ALLOC,
-	STARPU_DATAWIZARD_DO_ALLOC,
-	STARPU_DATAWIZARD_ONLY_FAST_ALLOC
+	_STARPU_DATAWIZARD_DO_NOT_ALLOC,
+	_STARPU_DATAWIZARD_DO_ALLOC,
+	_STARPU_DATAWIZARD_ONLY_FAST_ALLOC
 };
-
-#ifdef STARPU_USE_MIC
-/** MIC needs memory_node to know which MIC is concerned.
- * mark is used to wait asynchronous request.
- * signal is used to test asynchronous request. */
-struct _starpu_mic_async_event
-{
-	unsigned memory_node;
-	int mark;
-	uint64_t *signal;
-};
-#endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 LIST_TYPE(_starpu_mpi_ms_event_request,
@@ -113,9 +103,6 @@ union _starpu_async_channel_event
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         struct _starpu_mpi_ms_async_event mpi_ms_event;
 #endif
-#ifdef STARPU_USE_MIC
-        struct _starpu_mic_async_event mic_event;
-#endif
         struct _starpu_disk_async_event disk_event;
 };
 
@@ -147,5 +134,7 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 #ifdef __cplusplus
 }
 #endif
+
+#pragma GCC visibility pop
 
 #endif // __COPY_DRIVER_H__

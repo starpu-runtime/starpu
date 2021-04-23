@@ -295,7 +295,7 @@ static void list_init_iterator_for_parallel_tasks(struct starpu_worker_collectio
 	workers->nunblocked_workers = nub;
 }
 
-struct starpu_worker_collection worker_list =
+struct starpu_worker_collection starpu_worker_list =
 {
 	.has_next = list_has_next,
 	.get_next = list_get_next,

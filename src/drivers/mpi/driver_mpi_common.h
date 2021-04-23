@@ -22,6 +22,8 @@
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mpi/driver_mpi_source.h>
 
+#pragma GCC visibility push(hidden)
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 
 #define SYNC_TAG 44
@@ -47,7 +49,7 @@ void _starpu_mpi_common_mp_recv(const struct _starpu_mp_node *node, void *msg, i
 void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len, void * event);
 void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len, void * event);
 
-unsigned _starpu_mpi_common_test_event(struct _starpu_async_channel * event);
+unsigned int _starpu_mpi_common_test_event(struct _starpu_async_channel * event);
 void _starpu_mpi_common_wait_request_completion(struct _starpu_async_channel * event);
 
 void _starpu_mpi_common_barrier(void);
@@ -55,5 +57,7 @@ void _starpu_mpi_common_barrier(void);
 void _starpu_mpi_common_measure_bandwidth_latency(double bandwidth_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS], double latency_dtod[STARPU_MAXMPIDEVS][STARPU_MAXMPIDEVS]);
 
 #endif  /* STARPU_USE_MPI_MASTER_SLAVE */
+
+#pragma GCC visibility pop
 
 #endif	/* __DRIVER_MPI_COMMON_H__ */

@@ -25,6 +25,8 @@
 #include <core/jobs.h>
 #include <common/utils.h>
 
+#pragma GCC visibility push(hidden)
+
 void _starpu_driver_start_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch,
 			      int rank, int profiling);
 void _starpu_driver_end_job(struct _starpu_worker *args, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch,
@@ -36,4 +38,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int workerid, unsigned memnode);
 /** Get from the scheduler tasks to be executed on the workers \p workers */
 int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_task ** tasks, int nworker, unsigned memnode);
+
+#pragma GCC visibility pop
+
 #endif // __DRIVER_COMMON_H__

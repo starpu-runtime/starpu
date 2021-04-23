@@ -758,7 +758,7 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
         return -EAGAIN;
 }
 
-/* 5 functions to determine the executable to run on the device (MIC, MPI).
+/* 5 functions to determine the executable to run on the device (MPI).
  */
 static void _starpu_src_common_cat_3(char *final, const size_t len, const char *first, const char *second, const char *third)
 {
@@ -795,80 +795,6 @@ static int _starpu_src_common_test_suffixes(char *located_file_name, const size_
 	return 1;
 }
 
-int _starpu_src_common_locate_file(char *located_file_name, size_t len,
-				   const char *env_file_name, const char *env_mic_path,
-				   const char *config_file_name, const char *actual_file_name,
-				   const char **suffixes)
-{
-	if (env_file_name != NULL)
-	{
-		if (access(env_file_name, R_OK) == 0)
-		{
-			strncpy(located_file_name, env_file_name, len-1);
-			located_file_name[len-1] = '\0';
-			return 0;
-		}
-		else if(env_mic_path != NULL)
-		{
-			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, env_file_name);
-
-			return access(located_file_name, R_OK);
-		}
-	}
-	else if (config_file_name != NULL)
-	{
-		if (access(config_file_name, R_OK) == 0)
-		{
-			strncpy(located_file_name, config_file_name, len-1);
-			located_file_name[len-1] = '\0';
-			return 0;
-		}
-		else if (env_mic_path != NULL)
-		{
-			_starpu_src_common_dir_cat(located_file_name, len, env_mic_path, config_file_name);
-
-			return access(located_file_name, R_OK);
-		}
-	}
-	else if (actual_file_name != NULL)
-	{
-		if (_starpu_src_common_test_suffixes(located_file_name, len, actual_file_name, suffixes) == 0)
-			return 0;
-
-		if (env_mic_path != NULL)
-		{
-			char actual_cpy[1024];
-			strncpy(actual_cpy, actual_file_name, sizeof(actual_cpy)-1);
-			actual_cpy[sizeof(actual_cpy)-1] = '\0';
-
-			char *last =  strrchr(actual_cpy, '/');
-			while (last != NULL)
-			{
-				char tmp[1024];
-
-				_starpu_src_common_dir_cat(tmp, sizeof(tmp), env_mic_path, last);
-
-				if (access(tmp, R_OK) == 0)
-				{
-					strncpy(located_file_name, tmp, len-1);
-					located_file_name[len-1] = '\0';
-					return 0;
-				}
-
-				if (_starpu_src_common_test_suffixes(located_file_name, len, tmp, suffixes) == 0)
-					return 0;
-
-				*last = '\0';
-				char *last_tmp = strrchr(actual_cpy, '/');
-				*last = '/';
-				last = last_tmp;
-			}
-		}
-	}
-
-	return 1;
-}
-
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
 void _starpu_src_common_init_switch_env(unsigned this)
 {
@@ -876,8 +802,8 @@ void _starpu_src_common_init_switch_env(unsigned this)
         save_thread_env[this].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
         save_thread_env[this].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
 #ifdef STARPU_OPENMP
-        save_thread_env[this].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
-        save_thread_env[this].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+        save_thread_env[this].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
+        save_thread_env[this].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_task_key);
 #endif
 }
 
@@ -887,16 +813,16 @@ static void _starpu_src_common_switch_env(unsigned old, unsigned new)
         save_thread_env[old].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
         save_thread_env[old].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
 #ifdef STARPU_OPENMP
-        save_thread_env[old].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(omp_thread_key);
-        save_thread_env[old].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(omp_task_key);
+        save_thread_env[old].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
+        save_thread_env[old].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_task_key);
 #endif
 
         _starpu_set_current_task(save_thread_env[new].current_task);
         STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_key, save_thread_env[new].current_worker);
         STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_set_key, save_thread_env[new].current_worker_set);
 #ifdef STARPU_OPENMP
-        STARPU_PTHREAD_SETSPECIFIC(omp_thread_key, save_thread_env[new].current_omp_thread);
-        STARPU_PTHREAD_SETSPECIFIC(omp_task_key, save_thread_env[new].current_omp_task);
+        STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_thread_key, save_thread_env[new].current_omp_thread);
+        STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_task_key, save_thread_env[new].current_omp_task);
 #endif
 }
 #endif
@@ -978,7 +904,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 		}
 	}
 
-        res |= __starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC, 1);
+        res |= __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
         /* Handle message which have been store */
         _starpu_src_common_handle_stored_async(mp_node);

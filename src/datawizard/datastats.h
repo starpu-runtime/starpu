@@ -24,6 +24,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#pragma GCC visibility push(hidden)
+
 extern int _starpu_enable_stats;
 
 void _starpu_datastats_init();
@@ -62,5 +64,7 @@ void __starpu_data_allocation_inc_stats(unsigned node STARPU_ATTRIBUTE_UNUSED);
 } while (0)
 
 void _starpu_display_alloc_cache_stats(FILE *stream);
+
+#pragma GCC visibility pop
 
 #endif // __DATASTATS_H__

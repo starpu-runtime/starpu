@@ -185,9 +185,9 @@ static int complex_compare(void *data_interface_a, void *data_interface_b)
 	return (complex_a->nx == complex_b->nx);
 }
 
-static int copy_any_to_any(void *src_interface, unsigned src_node,
-			   void *dst_interface, unsigned dst_node,
-			   void *async_data)
+int copy_any_to_any(void *src_interface, unsigned src_node,
+		    void *dst_interface, unsigned dst_node,
+		    void *async_data)
 {
 	struct starpu_complex_interface *src_complex = src_interface;
 	struct starpu_complex_interface *dst_complex = dst_interface;
@@ -206,12 +206,12 @@ static int copy_any_to_any(void *src_interface, unsigned src_node,
 	return ret;
 }
 
-static const struct starpu_data_copy_methods complex_copy_methods =
+const struct starpu_data_copy_methods complex_copy_methods =
 {
 	.any_to_any = copy_any_to_any
 };
 
-static struct starpu_data_interface_ops interface_complex_ops =
+struct starpu_data_interface_ops interface_complex_ops =
 {
 	.register_data_handle = complex_register_data_handle,
 	.allocate_data_on_node = complex_allocate_data_on_node,

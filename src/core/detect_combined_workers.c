@@ -241,54 +241,18 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 	if(sched_ctx_id == STARPU_NMAX_SCHED_CTXS)
 		sched_ctx_id = 0;
 	int min, max;
-#ifdef STARPU_USE_MIC
-	unsigned j;
-	int mic_min, mic_max;
-#endif
-
 	struct starpu_worker_collection* workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
 
 	/* We put the id of all CPU workers in this array */
 	int cpu_workers[STARPU_NMAXWORKERS];
 	unsigned ncpus = 0;
-#ifdef STARPU_USE_MIC
-	unsigned nb_mics = _starpu_get_machine_config()->topology.ndevices[STARPU_MIC_WORKER];
-	unsigned * nmics_table;
-	int * mic_id;
-	int ** mic_workers;
-	_STARPU_MALLOC(mic_id, sizeof(int)*nb_mics);
-	_STARPU_MALLOC(nmics_table, sizeof(unsigned)*nb_mics);
-	_STARPU_MALLOC(mic_workers, sizeof(int*)*nb_mics);
-	for(j=0; j<nb_mics; j++)
-	{
-		mic_id[j] = -1;
-		nmics_table[j] = 0;
-		_STARPU_MALLOC(mic_workers[j], sizeof(int)*STARPU_NMAXWORKERS);
-	}
-#endif /* STARPU_USE_MIC */
 
 	for (i = 0; i < nworkers; i++)
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerids[i]);
 		if (worker->arch == STARPU_CPU_WORKER)
 			cpu_workers[ncpus++] = i;
-#ifdef STARPU_USE_MIC
-		else if(worker->arch == STARPU_MIC_WORKER)
-		{
-			for(j=0; j<nb_mics && mic_id[j] != worker->devid && mic_id[j] != -1; j++);
-			if(j<nb_mics)
-			{
-				if(mic_id[j] == -1)
-				{
-					mic_id[j] = worker->devid;
-				}
-				mic_workers[j][nmics_table[j]++] = i;
-			}
-		}
-#endif /* STARPU_USE_MIC */
-
 	}
-
 
 	min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
 	if (min < 2)
@@ -298,23 +262,6 @@ static void find_and_assign_combinations_without_hwloc(int *workerids, int nwork
 		max = ncpus;
 
 	assign_combinations_without_hwloc(workers,cpu_workers,ncpus,min,max);
-#ifdef STARPU_USE_MIC
-	mic_min = starpu_get_env_number("STARPU_MIN_WORKERSIZE");
-	mic_max = starpu_get_env_number("STARPU_MAX_WORKERSIZE");
-	if (mic_min < 2)
-		mic_min = 2;
-	for(j=0; j<nb_mics; j++)
-	{
-		int _mic_max = mic_max;
-		if (_mic_max == -1 || _mic_max > (int) nmics_table[j])
-			_mic_max = nmics_table[j];
-		assign_combinations_without_hwloc(workers,mic_workers[j],nmics_table[j],mic_min,_mic_max);
-		free(mic_workers[j]);
-	}
-	free(mic_id);
-	free(nmics_table);
-	free(mic_workers);
-#endif /* STARPU_USE_MIC */
 }
 
 #endif /* STARPU_HAVE_HWLOC */

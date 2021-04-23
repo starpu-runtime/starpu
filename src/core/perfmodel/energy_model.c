@@ -169,7 +169,7 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi)
 {
 	double energy = 0.;
-	int retval;
+	int retval = 0;
 	unsigned cpuid = 0;
 	double t2 = starpu_timing_now();
 	double t STARPU_ATTRIBUTE_UNUSED = t2 - t1;
@@ -221,7 +221,7 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 	case STARPU_CUDA_WORKER:
 	{
 		STARPU_ASSERT_MSG(workerid != -1, "For CUDA GPUs we measure each GPU separately, please specify a worker\n");
-		int ret = nvmlDeviceGetTotalEnergyConsumption(device, &energy_end );
+		int ret = nvmlDeviceGetTotalEnergyConsumption(device, &energy_end);
 		if (ret != NVML_SUCCESS)
 			return -1;
 		energy = (energy_end - energy_begin) / 1000.;

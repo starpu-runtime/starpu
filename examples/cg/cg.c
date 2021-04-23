@@ -76,11 +76,8 @@ static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsig
 
 #include "cg_kernels.c"
 
-
-
 static TYPE *A, *b, *x;
 static TYPE *r, *d, *q;
-
 
 static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nblocks)
 {
@@ -91,11 +88,9 @@ static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsig
 	return 0;
 }
 
-
 /*
  *	Generate Input data
  */
-
 static void generate_random_problem(void)
 {
 	int i, j;
@@ -314,6 +309,11 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	if (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() + starpu_opencl_worker_get_count() == 0)
+	{
+		starpu_shutdown();
+		return 77;
+	}
 
 	starpu_cublas_init();
 
@@ -329,7 +329,7 @@ int main(int argc, char **argv)
 	partition_data();
 	end = starpu_timing_now();
 
-	FPRINTF(stderr, "Problem intialization timing : %2.2f seconds\n", (end-start)/10e6);
+	FPRINTF(stderr, "Problem intialization timing : %2.2f seconds\n", (end-start)/1e6);
 
 	ret = cg();
 	if (ret == -ENODEV)

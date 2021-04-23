@@ -81,7 +81,7 @@ void _starpu_print_to_logfile(const char *format STARPU_ATTRIBUTE_UNUSED, ...)
 
 /* Record codelet to give ayudame nice function ids starting from 0. */
 #if defined(STARPU_USE_AYUDAME1)
-struct ayudame_codelet
+static struct ayudame_codelet
 {
 	char *name;
 	struct starpu_codelet *cl;

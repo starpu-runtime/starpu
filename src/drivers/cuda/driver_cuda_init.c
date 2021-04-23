@@ -17,7 +17,7 @@
 #include <core/workers.h>
 #include <drivers/cuda/driver_cuda.h>
 
-static struct starpu_driver_info driver_info =
+static struct _starpu_driver_info driver_info =
 {
 	.name_upper = "CUDA",
 	.name_var = "CUDA",
@@ -26,7 +26,7 @@ static struct starpu_driver_info driver_info =
 	.alpha = 13.33f,
 };
 
-static struct starpu_memory_driver_info memory_driver_info =
+static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "CUDA",
 	.worker_archtype = STARPU_CUDA_WORKER,
@@ -34,6 +34,6 @@ static struct starpu_memory_driver_info memory_driver_info =
 
 void _starpu_cuda_preinit(void)
 {
-	starpu_driver_info_register(STARPU_CUDA_WORKER, &driver_info);
-	starpu_memory_driver_info_register(STARPU_CUDA_RAM, &memory_driver_info);
+	_starpu_driver_info_register(STARPU_CUDA_WORKER, &driver_info);
+	_starpu_memory_driver_info_register(STARPU_CUDA_RAM, &memory_driver_info);
 }

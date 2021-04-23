@@ -498,10 +498,9 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	{
 		_starpu_spin_checklocked(&handle->header_lock);
 		mc->size = _starpu_data_get_alloc_size(handle);
-	}
 
-	if (mc->replicate)
 		mc->replicate->mc=NULL;
+	}
 
 	/* free the actual buffer */
 	size = free_memory_on_node(mc, node);
@@ -1404,19 +1403,21 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	_starpu_spin_unlock(&mc_lock[node]);
 
 	/*
-	 * Unless the user has provided a main RAM limitation, we would fill
+	 * Unless we have a memory limitation, we would fill
 	 * memory with cached data and then eventually swap.
 	 */
 	/*
 	 * This is particularly important when
 	 * STARPU_USE_ALLOCATION_CACHE is not enabled, as we
-	 * wouldn't even re-use these allocations!
+	 * wouldn't even ever re-use these allocations!
 	 */
-	if (handle->ops->dontcache || (starpu_node_get_kind(node) == STARPU_CPU_RAM
-#ifdef STARPU_USE_ALLOCATION_CACHE
-				&& limit_cpu_mem < 0
+	if (handle->ops->dontcache
+			|| (starpu_node_get_kind(node) == STARPU_CPU_RAM &&
+			    !_starpu_malloc_willpin_on_node(node))
+#ifndef STARPU_USE_ALLOCATION_CACHE
+			|| !_starpu_memory_manager_get_global_memory_size(node)
 #endif
-				))
+			)
 	{
 		/* Free data immediately */
 		free_memory_on_node(mc, node);
@@ -1597,7 +1598,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(STARPU_DATAWIZARD_DO_NOT_ALLOC);
+		_starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_NOT_ALLOC);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);

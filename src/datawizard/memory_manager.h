@@ -21,6 +21,8 @@
 
 #include <starpu.h>
 
+#pragma GCC visibility push(hidden)
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -48,5 +50,7 @@ int _starpu_memory_manager_test_allocate_size(unsigned node, size_t size);
 #ifdef __cplusplus
 }
 #endif
+
+#pragma GCC visibility pop
 
 #endif /* __MEMORY_MANAGER_H__ */

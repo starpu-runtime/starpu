@@ -295,7 +295,6 @@ The documentation chapters include
 <li> \ref MPISupport
 <li> \ref FaultTolerance
 <li> \ref FFTSupport
-<li> \ref MICSupport
 <li> \ref NativeFortranSupport
 <li> \ref SOCLOpenclExtensions
 <li> \ref SimGridSupport

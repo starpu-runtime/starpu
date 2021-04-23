@@ -31,6 +31,8 @@
 #include <core/simgrid.h>
 #endif
 
+#pragma GCC visibility push(hidden)
+
 extern char _starpu_worker_drives_memory[STARPU_NMAXWORKERS][STARPU_MAXNODES];
 
 struct _starpu_cond_and_worker
@@ -167,5 +169,7 @@ static inline unsigned _starpu_worker_get_local_memory_node(void)
 }
 #endif
 #define starpu_worker_get_local_memory_node _starpu_worker_get_local_memory_node
+
+#pragma GCC visibility pop
 
 #endif // __MEMORY_NODES_H__

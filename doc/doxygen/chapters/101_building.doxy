@@ -46,7 +46,7 @@ recommended.  It allows for topology aware scheduling, which improves
 performance. <c>hwloc</c> is available in major free operating system
 distributions, and for most operating systems. Make sure to not only install
 a <c>hwloc</c> or <c>libhwloc</c> package, but also <c>hwloc-devel</c> or
-<c>libhwloc-dev</c> so as to have hwloc headers etc.
+<c>libhwloc-dev</c> so as to have \c hwloc headers etc.
 
 If <c>libhwloc</c> is installed in a standard
 location, no option is required, it will be detected automatically,

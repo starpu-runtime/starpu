@@ -802,7 +802,7 @@ void starpu_data_set_default_sequential_consistency_flag(unsigned flag)
 }
 
 /* Query the status of the handle on the specified memory node. */
-void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested)
+void starpu_data_query_status2(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_loading, int *is_requested)
 {
 // XXX : this is just a hint, so we don't take the lock ...
 //	_starpu_spin_lock(&handle->header_lock);
@@ -812,6 +812,9 @@ void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int 
 
 	if (is_valid)
 		*is_valid = (handle->per_node[memory_node].state != STARPU_INVALID);
+
+	if (is_loading)
+		*is_loading = handle->per_node[memory_node].load_request != NULL;
 
 	if (is_requested)
 	{
@@ -831,4 +834,9 @@ void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int 
 	}
 
 //	_starpu_spin_unlock(&handle->header_lock);
+}
+
+void starpu_data_query_status(starpu_data_handle_t handle, int memory_node, int *is_allocated, int *is_valid, int *is_requested)
+{
+	return starpu_data_query_status2(handle, memory_node, is_allocated, is_valid, NULL, is_requested);
 }

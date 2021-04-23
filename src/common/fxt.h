@@ -36,6 +36,13 @@
 #include <common/utils.h>
 #include <starpu.h>
 
+#ifdef STARPU_USE_FXT
+#include <fxt/fxt.h>
+#include <fxt/fut.h>
+#endif
+
+#pragma GCC visibility push(hidden)
+
 /* some key to identify the worker kind */
 #define _STARPU_FUT_WORKER_KEY(kind) (kind + 0x100)
 #define _STARPU_FUT_KEY_WORKER(key) (key - 0x100)
@@ -268,8 +275,6 @@ static inline unsigned long _starpu_fxt_get_job_id(void)
 }
 
 #ifdef STARPU_USE_FXT
-#include <fxt/fxt.h>
-#include <fxt/fut.h>
 
 /* Some versions of FxT do not include the declaration of the function */
 #ifdef HAVE_ENABLE_FUT_FLUSH
@@ -283,10 +288,10 @@ void fut_set_filename(char *filename);
 #endif
 #endif
 
-extern int _starpu_fxt_started;
-extern int _starpu_fxt_willstart;
-extern starpu_pthread_mutex_t _starpu_fxt_started_mutex;
-extern starpu_pthread_cond_t _starpu_fxt_started_cond;
+extern int _starpu_fxt_started STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+extern int _starpu_fxt_willstart STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+extern starpu_pthread_mutex_t _starpu_fxt_started_mutex STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+extern starpu_pthread_cond_t _starpu_fxt_started_cond STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 /** Wait until FXT is started (or not). Returns if FXT was started */
 static inline int _starpu_fxt_wait_initialisation()
@@ -308,7 +313,7 @@ static inline unsigned long _starpu_fxt_get_submit_order(void)
 	return ret;
 }
 
-long _starpu_gettid(void);
+long _starpu_gettid(void) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 /** Initialize the FxT library. */
 void _starpu_fxt_init_profiling(uint64_t trace_buffer_size);
@@ -867,21 +872,21 @@ do {									\
 	const char *name = _starpu_job_get_task_name((job));			\
 	if (name)					                        \
 	{									\
-		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, name);\
+		_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), name); \
 	}									\
 	else {									\
-		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, "unknown");\
+		_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_NAME, (job)->job_id, _starpu_gettid(), "unknown");\
 	}									\
 	if (model_name)					\
-		_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_MODEL_NAME, (job)->job_id, model_name); \
+		_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_MODEL_NAME, (job)->job_id, _starpu_gettid(), model_name); \
 } while(0)
 
 #define _STARPU_TRACE_TASK_COLOR(job)						\
 do { \
 	if ((job)->task->color != 0) \
-		FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->color, _starpu_gettid()); \
+		FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->color); \
 	else if ((job)->task->cl && (job)->task->cl->color != 0) \
-		FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->cl->color, _starpu_gettid()); \
+		FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->cl->color); \
 } while(0)
 
 #define _STARPU_TRACE_TASK_DONE(job)						\
@@ -1455,5 +1460,7 @@ do {										\
 #define _STARPU_TRACE_PAPI_TASK_EVENT(event_id, task, value) do {(void)(event_id); (void)(task); (void)(value);} while(0)
 
 #endif // STARPU_USE_FXT
+
+#pragma GCC visibility pop
 
 #endif // __FXT_H__

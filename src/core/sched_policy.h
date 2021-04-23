@@ -28,6 +28,8 @@
 
 #include <core/simgrid.h>
 
+#pragma GCC visibility push(hidden)
+
 #define _STARPU_SCHED_BEGIN \
 	_STARPU_TRACE_WORKER_SCHEDULING_PUSH;	\
 	_SIMGRID_TIMER_BEGIN(_starpu_simgrid_sched_cost())
@@ -80,13 +82,13 @@ extern struct starpu_sched_policy _starpu_sched_ws_policy;
 extern struct starpu_sched_policy _starpu_sched_prio_policy;
 extern struct starpu_sched_policy _starpu_sched_random_policy;
 extern struct starpu_sched_policy _starpu_sched_dm_policy;
-extern struct starpu_sched_policy _starpu_sched_dmda_policy;
+extern struct starpu_sched_policy _starpu_sched_dmda_policy STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 extern struct starpu_sched_policy _starpu_sched_dmda_prio_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_ready_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_sorted_policy;
 extern struct starpu_sched_policy _starpu_sched_dmda_sorted_decision_policy;
 extern struct starpu_sched_policy _starpu_sched_eager_policy;
-extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy;
+extern struct starpu_sched_policy _starpu_sched_parallel_heft_policy STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 extern struct starpu_sched_policy _starpu_sched_peager_policy;
 extern struct starpu_sched_policy _starpu_sched_heteroprio_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_eager_policy;
@@ -124,5 +126,7 @@ extern long _starpu_task_break_on_exec;
 #else
 #define _STARPU_TASK_BREAK_ON(task, what) ((void) 0)
 #endif
+
+#pragma GCC visibility pop
 
 #endif // __SCHED_POLICY_H__

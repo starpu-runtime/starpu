@@ -31,7 +31,7 @@ This means scheduling policies usually contain at least one queue of tasks to
 store them between the time when they become available, and the time when a
 worker gets to grab them.
 
-By default, StarPU uses the work-stealing scheduler <c>lws</c>. This is
+By default, StarPU uses the work-stealing scheduler \b lws. This is
 because it provides correct load balance and locality even if the application codelets do
 not have performance models. Other non-modelling scheduling policies can be
 selected among the list below, thanks to the environment variable \ref
@@ -59,7 +59,7 @@ default. When a worker becomes idle, it steals a task from neighbour workers. It
 also takes into account priorities.
 
 - The <b>prio</b> scheduler also uses a central task queue, but sorts tasks by
-priority specified by the programmer (between -5 and 5).
+priority specified by the programmer.
 
 - The <b>heteroprio</b> scheduler uses different priorities for the different processing units.
 This scheduler must be configured to work correclty and to expect high-performance
@@ -80,8 +80,8 @@ has not been done, or is insufficient yet, or if no performance model is
 specified for a codelet, every task built from this codelet will be scheduled
 using an <b>eager</b> fallback policy.
 
-<b>Troubleshooting:</b> Configuring and recompiling StarPU using the
-\ref enable-verbose "--enable-verbose" \c configure option displays some statistics at the end of
+<b>Troubleshooting:</b> Configuring and recompiling StarPU using the \c configure option
+\ref enable-verbose "--enable-verbose" displays some statistics at the end of
 execution about the percentage of tasks which have been scheduled by a DM*
 family policy using performance model hints. A low or zero percentage may be
 the sign that performance models are not converging or that codelets do not
@@ -93,19 +93,19 @@ termination time will be minimal. The difference with HEFT is that <b>dm</b>
 schedules tasks as soon as they become available, and thus in the order they
 become available, without taking priorities into account.
 
-- The <b>dmda</b> (deque model data aware) scheduler is similar to dm, but it also takes
+- The <b>dmda</b> (deque model data aware) scheduler is similar to \b dm, but it also takes
 into account data transfer time.
 
-- The <b>dmdap</b> (deque model data aware prio) scheduler is similar to dmda,
+- The <b>dmdap</b> (deque model data aware prio) scheduler is similar to \b dmda,
 except that it sorts tasks by priority order, which allows to become even closer
 to HEFT by respecting priorities after having made the scheduling decision (but
 it still schedules tasks in the order they become available).
 
-- The <b>dmdar</b> (deque model data aware ready) scheduler is similar to dmda,
+- The <b>dmdar</b> (deque model data aware ready) scheduler is similar to \b dmda,
 but it also privileges tasks whose data buffers are already available
 on the target device.
 
-- The <b>dmdas</b> combines dmdap and dmdas: it sorts tasks by priority order,
+- The <b>dmdas</b> combines \b dmdap and \b dmdas: it sorts tasks by priority order,
 but for a given priority it will privilege tasks whose data buffers are already
 available on the target device.
 
@@ -117,12 +117,12 @@ before others, and thus the latter should be ignored.
 - The <b>heft</b> (heterogeneous earliest finish time) scheduler is a deprecated
 alias for <b>dmda</b>.
 
-- The <b>pheft</b> (parallel HEFT) scheduler is similar to dmda, it also supports
-parallel tasks (still experimental). Should not be used when several contexts using
+- The <b>pheft</b> (parallel HEFT) scheduler is similar to \b dmda, it also supports
+parallel tasks (still experimental). It should not be used when several contexts using
 it are being executed simultaneously.
 
 - The <b>peager</b> (parallel eager) scheduler is similar to eager, it also
-supports parallel tasks (still experimental). Should not be used when several
+supports parallel tasks (still experimental). It should not be used when several
 contexts using it are being executed simultaneously.
 
 \subsection ExistingModularizedSchedulers Modularized Schedulers
@@ -130,7 +130,6 @@ contexts using it are being executed simultaneously.
 StarPU provides a powerful way to implement schedulers, as documented in \ref
 DefiningANewModularSchedulingPolicy . It is currently shipped with the following
 pre-defined Modularized Schedulers :
-
 
 - <b>modular-eager</b> , <b>modular-eager-prefetching</b> are eager-based Schedulers (without and with prefetching)), they are \n
 naive schedulers, which try to map a task on the first available resource
@@ -156,11 +155,14 @@ Heterogeneous Earliest Finish Time.
 It needs that every task submitted to StarPU have a
 defined performance model (\ref PerformanceModelCalibration)
 to work efficiently, but can handle tasks without a performance
-model. <b>modular-heft</b> just takes tasks by priority order. <b>modular-heft2</b> takes
+model. <b>modular-heft</b> just takes tasks by order. <b>modular-heft2</b> takes
 at most 5 tasks of the same priority and checks which one fits best.
 <b>modular-heft-prio</b> is similar to <b>modular-heft</b>, but only decides the memory
 node, not the exact worker, just pushing tasks to one central queue per memory
-node.
+node. By default, they sort tasks by priorities and privilege running first
+a task which has most of its data already available on the target. These can
+however be changed with \ref STARPU_SCHED_SORTED_ABOVE, \ref
+STARPU_SCHED_SORTED_BELOW, and \ref STARPU_SCHED_READY .
 
 - <b>modular-heteroprio</b> is a Heteroprio Scheduler: \n
 Maps tasks to worker similarly to HEFT, but first attribute accelerated tasks to
@@ -170,7 +172,7 @@ GPUs, then not-so-accelerated tasks to CPUs.
 
 Distributing tasks to balance the load induces data transfer penalty. StarPU
 thus needs to find a balance between both. The target function that the
-scheduler <c>dmda</c> of StarPU
+scheduler \b dmda of StarPU
 tries to minimize is <c>alpha * T_execution + beta * T_data_transfer</c>, where
 <c>T_execution</c> is the estimated execution time of the codelet (usually
 accurate), and <c>T_data_transfer</c> is the estimated data transfer time. The
@@ -187,13 +189,13 @@ already gives the good results that a precise estimation would give.
 
 Note: by default StarPU does not let CPU workers sleep, to let them react to
 task release as quickly as possible. For idle time to really let CPU cores save
-energy, one needs to use the \ref enable-blocking-drivers
-"--enable-blocking-drivers" \c configure option.
+energy, one needs to use the \c configure option \ref enable-blocking-drivers
+"--enable-blocking-drivers".
 
 If the application can provide some energy consumption performance model (through
 the field starpu_codelet::energy_model), StarPU will
 take it into account when distributing tasks. The target function that
-the scheduler <c>dmda</c> minimizes becomes <c>alpha * T_execution +
+the scheduler \b dmda minimizes becomes <c>alpha * T_execution +
 beta * T_data_transfer + gamma * Consumption</c> , where <c>Consumption</c>
 is the estimated task consumption in Joules. To tune this parameter, use
 <c>export STARPU_SCHED_GAMMA=3000</c> (\ref STARPU_SCHED_GAMMA) for instance, to express that each Joule
@@ -207,14 +209,16 @@ processing units), the idle power of the machine should be given by setting
 <c>export STARPU_IDLE_POWER=200</c> (\ref STARPU_IDLE_POWER) for 200W, for instance. This value can often
 be obtained from the machine power supplier, e.g. by running
 
-<c>ipmitool -I lanplus -H mymachine-ipmi -U myuser -P mypasswd sdr type Current</c>
+\verbatim
+ipmitool -I lanplus -H mymachine-ipmi -U myuser -P mypasswd sdr type Current
+\endverbatim
 
 The energy actually consumed by the total execution can be displayed by setting
 <c>export STARPU_PROFILING=1 STARPU_WORKER_STATS=1</c> (\ref STARPU_PROFILING and \ref STARPU_WORKER_STATS).
 
-For OpenCL devices, on-line task consumption measurement is currently supported through the
-<c>CL_PROFILING_POWER_CONSUMED</c> OpenCL extension, implemented in the MoviSim
-simulator.
+For OpenCL devices, on-line task consumption measurement is currently supported through the OpenCL extension
+<c>CL_PROFILING_POWER_CONSUMED</c>, implemented in the MoviSim simulator.
+
 
 For CUDA devices, on-line task consumption measurement is supported on V100
 cards and beyond. This however only works for quite long tasks, since the
@@ -222,7 +226,7 @@ measurement granularity is about 10ms.
 
 Applications can however provide explicit measurements by using the function
 starpu_perfmodel_update_history() (examplified in \ref PerformanceModelExample
-with the <c>energy_model</c> performance model). Fine-grain measurement
+with the performance model <c>energy_model</c>). Fine-grain measurement
 is often not feasible with the feedback provided by the hardware, so the
 user can for instance run a given task a thousand times, measure the global
 consumption for that series of tasks, divide it by a thousand, repeat for
@@ -235,8 +239,8 @@ starpu_perfmodel_update_history().
 
 Another way to provide the energy performance is to define a
 perfmodel with starpu_perfmodel::type ::STARPU_PER_ARCH or
-::STARPU_PER_WORKER , and set the starpu_perfmodel::arch_cost_function or
-starpu_perfmodel::worker_cost_function field to a function which shall return
+::STARPU_PER_WORKER , and set the field starpu_perfmodel::arch_cost_function or
+starpu_perfmodel::worker_cost_function to a function which shall return
 the estimated consumption of the task in Joules. Such a function can for instance
 use starpu_task_expected_length() on the task (in µs), multiplied by the
 typical power consumption of the device, e.g. in W, and divided by 1000000. to
@@ -268,9 +272,9 @@ Depending on the system configuration, the user may have to run this as <b>root<
 Since the measurement is for all the the CPUs and the memory, the approach taken
 here is to run a series of tasks on all of them and to take the overall measurement.
 
-- The example below illustrates the energy and power measurements, using starpu_energy_start() and starpu_energy_stop() functions.
+- The example below illustrates the energy and power measurements, using the functions starpu_energy_start() and starpu_energy_stop().
 
-In this example, we launch several tasks of the same type in parallel. To perform the energy requirement measurement of a program, we call starpu_energy_start() function, which initializes energy measurement counters and starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi) to stop counting and update the performance model. This ends up yielding the average energy requirement of a single task. The example below illustrates this for a given task type.
+In this example, we launch several tasks of the same type in parallel. To perform the energy requirement measurement of a program, we call starpu_energy_start(), which initializes energy measurement counters and starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task, unsigned nimpl, unsigned ntasks, int workerid, enum starpu_worker_archtype archi) to stop counting and update the performance model. This ends up yielding the average energy requirement of a single task. The example below illustrates this for a given task type.
 
 \code{.c}
         unsigned N = starpu_cpu_worker_get_count() * 40;
@@ -286,11 +290,11 @@ In this example, we launch several tasks of the same type in parallel. To perfor
        . . .
 \endcode
 
-The example starts 40 times more tasks of the same type than there are CPU execution unit. Once the tasks are distributed over all CPUs, the latter are all executing the same type of tasks (with the same data size and parameters); each CPU will in the end execute 40 tasks. A specimen task is then constructed and passed to the starpu_energy_stop() function, which will fold into the performance model the energy requirement measurement for that type and size of task.
+The example starts 40 times more tasks of the same type than there are CPU execution unit. Once the tasks are distributed over all CPUs, the latter are all executing the same type of tasks (with the same data size and parameters); each CPU will in the end execute 40 tasks. A specimen task is then constructed and passed to starpu_energy_stop(), which will fold into the performance model the energy requirement measurement for that type and size of task.
 
 For the energy and power measurements, depending on the system configuration the user may have to run applications as <b>root</b> to use PAPI library.
 
-The starpu_energy_stop() function uses <c>PAPI_stop()</c> to stop counting and store the values into the array. We calculate both energy in <c>Joules</c> and power consumption in <c>Watt</c>. We call the starpu_perfmodel_update_history() function in the perfmormance model to provide explicit measurements.
+The function starpu_energy_stop() uses <c>PAPI_stop()</c> to stop counting and store the values into the array. We calculate both energy in <c>Joules</c> and power consumption in <c>Watt</c>. We call the function starpu_perfmodel_update_history() in the perfmormance model to provide explicit measurements.
 
 - In the CUDA case, nvml provides per-GPU energy measurement. We can thus calibrate the performance models per GPU:
 
@@ -342,8 +346,8 @@ task->workerids[42/32] |= (1 << (42%32));
 task->workerids_len = 2;
 \endcode
 
-One can also specify the order in which tasks must be executed by setting the
-starpu_task::workerorder field. If this field is set to a non-zero value, it
+One can also specify the order in which tasks must be executed by setting the field
+starpu_task::workerorder. If this field is set to a non-zero value, it
 provides the per-worker consecutive order in which tasks will be executed,
 starting from 1. For a given of such task, the worker will thus not execute
 it before all the tasks with smaller order value have been executed, notably

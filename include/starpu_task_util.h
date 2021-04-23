@@ -88,14 +88,15 @@ extern "C"
 #define STARPU_EXECUTE_ON_DATA	 (7<<STARPU_MODE_SHIFT)
 
 /**
-   Used when calling starpu_task_in_sert(), must be followed by an array of
+   Used when calling starpu_task_insert(), must be followed by an array of
    handles and the number of elements in the array (as int). This is equivalent
-   to passing the handles as separate parameters with STARPU_R/W/RW.
+   to passing the handles as separate parameters with ::STARPU_R,
+   ::STARPU_W or ::STARPU_RW.
 */
 #define STARPU_DATA_ARRAY        (8<<STARPU_MODE_SHIFT)
 
 /**
-   Used when calling starpu_task_in_sert(), must be followed by an array of
+   Used when calling starpu_task_insert(), must be followed by an array of
    struct starpu_data_descr and the number of elements in the array (as int).
    This is equivalent to passing the handles with the corresponding modes.
 */
@@ -322,8 +323,7 @@ extern "C"
 
 /**
    Used when calling starpu_task_insert() and alike, must be followed
-   by a void* specifying the value to be set in the sched_data field of the
-   task.
+   by a void* specifying the value to be set in starpu_task::sched_data
  */
 #define STARPU_TASK_SCHED_DATA (41<<STARPU_MODE_SHIFT)
 
@@ -374,7 +374,6 @@ int starpu_task_set(struct starpu_task *task, struct starpu_codelet *cl, ...);
 #define starpu_task_set(task, cl, ...) \
 	starpu_task_set((task), (cl), STARPU_TASK_FILE, __FILE__, STARPU_TASK_LINE, __LINE__, ##__VA_ARGS__)
 #endif
-
 
 /**
    Create a task corresponding to \p cl with the following arguments.
@@ -486,6 +485,12 @@ void starpu_task_insert_data_process_mode_array_arg(struct starpu_codelet *cl, s
 */
 void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...);
 
+/**
+   Structure to be used for starpu_codelet_pack_arg_init() & co, and
+   starpu_codelet_unpack_arg_init() & co. The contents is public,
+   however users should not directly access it, but only use as a
+   parameter to the appropriate functions.
+*/
 struct starpu_codelet_pack_arg_data
 {
 	char *arg_buffer;
@@ -526,42 +531,45 @@ void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, vo
 void starpu_codelet_unpack_args(void *cl_arg, ...);
 
 /**
-   Initialize struct starpu_codelet_pack_arg_data before calling
-   starpu_codelet_unpack_arg(). This will pass the starpu_task->cl_arg 
-   and starpu_task->cl_arg_size to the content of struct starpu_codelet_pack_arg_data.
+   Initialize \p state with \p cl_arg and \p cl_arg_size. This has to
+   be called before calling starpu_codelet_unpack_arg().
 */
-void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void **cl_arg, size_t *cl_arg_size);
+void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void *cl_arg, size_t cl_arg_size);
 
 /**
-   Unpack one argument from struct starpu_codelet_pack_arg \p state into ptr with a copy. 
-   That structure has to be initialized before with starpu_codelet_unpack_arg_init().
-   Size is stored in starpu_task->cl_arg, and it is a known parameter in this function .
+   Unpack the next argument of size \p size from \p state into \p ptr with a copy.
+   \p state has to be initialized before with starpu_codelet_unpack_arg_init().
 */
 void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t size);
 
 /**
-   Unpack one argument from struct starpu_codelet_pack_arg \p state into ptr with a copy.
-   That structure has to be initialized before with starpu_codelet_unpack_arg_init(). 
-   Size is stored in starpu_task->cl_arg, and it is an unknown parameter in this function. 
-   It will be returned from starpu_task->cl_arg with a copy.
+   Unpack the next argument of unknown size from \p state into \p ptr
+   with a copy. \p ptr is allocated before copying in it the value of
+   the argument.
+   The size of the argument is returned in \p size.
+   \p has to be initialized before with starpu_codelet_unpack_arg_init().
 */
 void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size);
 
 /**
-   Unpack one argument from struct starpu_codelet_pack_arg \p state into ptr, and the pointer of ptr will be returned.
-   That structure has to be initialized before with starpu_codelet_unpack_arg_init(). 
-   Size is stored in starpu_task->cl_arg, and it is an unknown parameter in this function. 
-   It will be returned from starpu_task->cl_arg with a copy.
+   Unpack the next argument of unknown size from \p state into \p ptr.
+   \p ptr will be a pointer to the memory of the argument.
+   The size of the argument is returned in \p size.
+   \p has to be initialized before with starpu_codelet_unpack_arg_init().
 */
-void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size); 
+void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size);
 
+/**
+   Finish unpacking data, after calling starpu_codelet_unpack_arg_init()
+   once and starpu_codelet_unpack_arg() or starpu_codelet_dup_arg() or
+   starpu_codelet_pick_arg() several times.
+*/
 void starpu_codelet_unpack_arg_fini(struct starpu_codelet_pack_arg_data *state);
 
 /**
    Call this function during unpacking to skip saving the argument in ptr.
 */
 void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *state);
-
 
 /**
    Similar to starpu_codelet_unpack_args(), but if any parameter is 0,

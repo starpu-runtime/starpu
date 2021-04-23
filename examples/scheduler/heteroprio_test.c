@@ -121,7 +121,7 @@ int main(void)
 	assert(ret == 0);
 
 	conf.sched_policy_name = "heteroprio";
-	conf.sched_policy_init = &initSchedulerCallback;
+	conf.sched_policy_callback = &initSchedulerCallback;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		return 77;

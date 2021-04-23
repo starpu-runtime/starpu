@@ -49,11 +49,23 @@ extern "C"
 
 #include <xbt/xbt_os_time.h>
 
+#pragma GCC visibility push(hidden)
+
 struct _starpu_pthread_args
 {
 	void *(*f)(void*);
 	void *arg;
 };
+
+#if (SIMGRID_VERSION >= 32600)
+typedef void _starpu_simgrid_main_ret;
+#define _STARPU_SIMGRID_MAIN_RETURN do { } while (0)
+#else
+typedef int _starpu_simgrid_main_ret;
+#define _STARPU_SIMGRID_MAIN_RETURN return 0
+#endif
+_starpu_simgrid_main_ret
+_starpu_simgrid_thread_start(int argc, char *argv[]);
 
 #define MAX_TSD 16
 
@@ -126,6 +138,8 @@ void _starpu_simgrid_xbt_thread_create(const char *name, starpu_pthread_attr_t *
 			xbt_os_timer_free(__timer);		\
 		}	\
 	}
+
+#pragma GCC visibility pop
 
 #else // !STARPU_SIMGRID
 #define _SIMGRID_TIMER_BEGIN(cond) {

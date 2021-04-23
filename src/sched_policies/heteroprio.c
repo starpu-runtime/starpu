@@ -162,7 +162,6 @@ inline void starpu_heteroprio_set_arch_slow_factor(unsigned sched_ctx_id, enum s
 	hp->buckets[bucket_id].slow_factors_per_index[arch] = slow_factor;
 }
 
-
 /** If the user does not provide an init callback we create a single bucket for all architectures */
 static inline void default_init_sched(unsigned sched_ctx_id)
 {
@@ -206,10 +205,10 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	for(idx_prio = 0; idx_prio < STARPU_HETEROPRIO_MAX_PRIO; ++idx_prio)
 		_heteroprio_bucket_init(&hp->buckets[idx_prio]);
 
-	void (*init_sched)(unsigned) = starpu_sched_ctx_get_sched_policy_init(sched_ctx_id);
+	void (*callback_sched)(unsigned) = starpu_sched_ctx_get_sched_policy_callback(sched_ctx_id);
 
-	if(init_sched)
-		init_sched(sched_ctx_id);
+	if (callback_sched)
+		callback_sched(sched_ctx_id);
 	else
 		default_init_sched(sched_ctx_id);
 

@@ -19,5 +19,5 @@ if [ "$(basename $1)" == "starpufft.h" ] ; then
 else
     # the macro STARPU_DEPRECATED needs to be removed as it is not properly processed by doxygen
     # lines starting with // in the doxygen input files are considered as comments to be removed
-    sed -e 's/STARPU_DEPRECATED//' $1 | sed -e 's/^\/\/.*//' | sed -e 's/STARPU_TASK_LIST_INLINE//'
+    sed -e 's/STARPU_DEPRECATED//' $1 | sed -e 's/^\/\/.*//' | sed -e 's/STARPU_TASK_LIST_INLINE//' | sed -e 's/STARPU_WARN_UNUSED_RESULT//'
 fi

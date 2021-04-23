@@ -24,6 +24,8 @@
 #include <common/list.h>
 #include <common/fxt.h>
 
+#pragma GCC visibility push(hidden)
+
 struct _starpu_machine_config;
 
 #ifndef STARPU_SIMGRID
@@ -60,7 +62,7 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config);
 
 /** returns the number of hyperthreads per core */
-unsigned _starpu_get_nhyperthreads();
+unsigned _starpu_get_nhyperthreads() STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 #ifdef STARPU_HAVE_HWLOC
 /** Small convenient function to filter hwloc topology depending on HWLOC API version */
@@ -81,11 +83,13 @@ void _starpu_bind_thread_on_cpus(struct _starpu_combined_worker *combined_worker
 
 struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
-int starpu_memory_nodes_get_numa_count(void);
+int starpu_memory_nodes_get_numa_count(void) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 int starpu_memory_nodes_numa_id_to_hwloclogid(unsigned id);
 
 /** Get the memory node for data number i when task is to be executed on memory node target_node */
 int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index, unsigned target_node);
 int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned index, unsigned worker);
+
+#pragma GCC visibility pop
 
 #endif // __TOPOLOGY_H__

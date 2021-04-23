@@ -28,12 +28,6 @@ PREFIX=$(dirname $0)
 rm -rf $PREFIX/overlap.traces
 mkdir -p $PREFIX/overlap.traces
 
-if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
-	STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/overlap
-	# in case libtool got into play
-	[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/overlap
-fi
-
 export STARPU_FXT_PREFIX=$PREFIX/overlap.traces
 
 STARPU_SCHED=dmdas $PREFIX/overlap

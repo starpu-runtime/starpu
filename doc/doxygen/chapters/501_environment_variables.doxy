@@ -23,161 +23,8 @@ the following environment variables.
 
 \section EnvConfiguringWorkers Configuring Workers
 
+\subsection Basic General Configuration
 <dl>
-
-<dt>STARPU_NCPU</dt>
-<dd>
-\anchor STARPU_NCPU
-\addindex __env__STARPU_NCPU
-Specify the number of CPU workers (thus not including workers
-dedicated to control accelerators). Note that by default, StarPU will
-not allocate more CPU workers than there are physical CPUs, and that
-some CPUs are used to control the accelerators.
-</dd>
-
-<dt>STARPU_RESERVE_NCPU</dt>
-<dd>
-\anchor STARPU_RESERVE_NCPU
-\addindex __env__STARPU_RESERVE_NCPU
-Specify the number of CPU cores that should not be used by StarPU, so the
-application can use starpu_get_next_bindid() and starpu_bind_thread_on() to bind
-its own threads.
-
-This option is ignored if \ref STARPU_NCPU or starpu_conf::ncpus is set.
-</dd>
-
-<dt>STARPU_NCPUS</dt>
-<dd>
-\anchor STARPU_NCPUS
-\addindex __env__STARPU_NCPUS
-This variable is deprecated. You should use \ref STARPU_NCPU.
-</dd>
-
-<dt>STARPU_NCUDA</dt>
-<dd>
-\anchor STARPU_NCUDA
-\addindex __env__STARPU_NCUDA
-Specify the number of CUDA devices that StarPU can use. If
-\ref STARPU_NCUDA is lower than the number of physical devices, it is
-possible to select which CUDA devices should be used by the means of the
-environment variable \ref STARPU_WORKERS_CUDAID. By default, StarPU will
-create as many CUDA workers as there are CUDA devices.
-</dd>
-
-<dt>STARPU_NWORKER_PER_CUDA</dt>
-<dd>
-\anchor STARPU_NWORKER_PER_CUDA
-\addindex __env__STARPU_NWORKER_PER_CUDA
-Specify the number of workers per CUDA device, and thus the number of kernels
-which will be concurrently running on the devices, i.e. the number of CUDA
-streams. The default value is 1.
-</dd>
-
-<dt>STARPU_CUDA_THREAD_PER_WORKER</dt>
-<dd>
-\anchor STARPU_CUDA_THREAD_PER_WORKER
-\addindex __env__STARPU_CUDA_THREAD_PER_WORKER
-Specify whether the cuda driver should use one thread per stream (1) or to use
-a single thread to drive all the streams of the device or all devices (0), and
-\ref STARPU_CUDA_THREAD_PER_DEV determines whether is it one thread per device or one
-thread for all devices. The default value is 0. Setting it to 1 is contradictory
-with setting \ref STARPU_CUDA_THREAD_PER_DEV.
-</dd>
-
-<dt>STARPU_CUDA_THREAD_PER_DEV</dt>
-<dd>
-\anchor STARPU_CUDA_THREAD_PER_DEV
-\addindex __env__STARPU_CUDA_THREAD_PER_DEV
-Specify whether the cuda driver should use one thread per device (1) or to use a
-single thread to drive all the devices (0). The default value is 1.  It does not
-make sense to set this variable if \ref STARPU_CUDA_THREAD_PER_WORKER is set to to 1
-(since \ref STARPU_CUDA_THREAD_PER_DEV is then meaningless).
-</dd>
-
-<dt>STARPU_CUDA_PIPELINE</dt>
-<dd>
-\anchor STARPU_CUDA_PIPELINE
-\addindex __env__STARPU_CUDA_PIPELINE
-Specify how many asynchronous tasks are submitted in advance on CUDA
-devices. This for instance permits to overlap task management with the execution
-of previous tasks, but it also allows concurrent execution on Fermi cards, which
-otherwise bring spurious synchronizations. The default is 2. Setting the value to 0 forces a synchronous
-execution of all tasks.
-</dd>
-
-<dt>STARPU_NOPENCL</dt>
-<dd>
-\anchor STARPU_NOPENCL
-\addindex __env__STARPU_NOPENCL
-OpenCL equivalent of the environment variable \ref STARPU_NCUDA.
-</dd>
-
-<dt>STARPU_OPENCL_PIPELINE</dt>
-<dd>
-\anchor STARPU_OPENCL_PIPELINE
-\addindex __env__STARPU_OPENCL_PIPELINE
-Specify how many asynchronous tasks are submitted in advance on OpenCL
-devices. This for instance permits to overlap task management with the execution
-of previous tasks, but it also allows concurrent execution on Fermi cards, which
-otherwise bring spurious synchronizations. The default is 2. Setting the value to 0 forces a synchronous
-execution of all tasks.
-</dd>
-
-<dt>STARPU_OPENCL_ON_CPUS</dt>
-<dd>
-\anchor STARPU_OPENCL_ON_CPUS
-\addindex __env__STARPU_OPENCL_ON_CPUS
-By default, the OpenCL driver only enables GPU and accelerator
-devices. By setting the environment variable \ref STARPU_OPENCL_ON_CPUS
-to 1, the OpenCL driver will also enable CPU devices.
-</dd>
-
-<dt>STARPU_OPENCL_ONLY_ON_CPUS</dt>
-<dd>
-\anchor STARPU_OPENCL_ONLY_ON_CPUS
-\addindex __env__STARPU_OPENCL_ONLY_ON_CPUS
-By default, the OpenCL driver enables GPU and accelerator
-devices. By setting the environment variable \ref STARPU_OPENCL_ONLY_ON_CPUS
-to 1, the OpenCL driver will ONLY enable CPU devices.
-</dd>
-
-<dt>STARPU_NMIC</dt>
-<dd>
-\anchor STARPU_NMIC
-\addindex __env__STARPU_NMIC
-MIC equivalent of the environment variable \ref STARPU_NCUDA, i.e. the number of
-MIC devices to use.
-</dd>
-
-<dt>STARPU_NMICTHREADS</dt>
-<dd>
-\anchor STARPU_NMICTHREADS
-\addindex __env__STARPU_NMICTHREADS
-Number of threads to use on the MIC devices.
-</dd>
-
-<dt>STARPU_NMPI_MS</dt>
-<dd>
-\anchor STARPU_NMPI_MS
-\addindex __env__STARPU_NMPI_MS
-MPI Master Slave equivalent of the environment variable \ref STARPU_NCUDA, i.e. the number of
-MPI Master Slave devices to use.
-</dd>
-
-<dt>STARPU_NMPIMSTHREADS</dt>
-<dd>
-\anchor STARPU_NMPIMSTHREADS
-\addindex __env__STARPU_NMPIMSTHREADS
-Number of threads to use on the MPI Slave devices.
-</dd>
-
-<dt>STARPU_MPI_MASTER_NODE</dt>
-<dd>
-\anchor STARPU_MPI_MASTER_NODE
-\addindex __env__STARPU_MPI_MASTER_NODE
-This variable allows to chose which MPI node (with the MPI ID) will be the master.
-</dd>
-
 <dt>STARPU_WORKERS_NOBIND</dt>
 <dd>
 \anchor STARPU_WORKERS_NOBIND
@@ -262,6 +109,358 @@ Same as \ref STARPU_MAIN_THREAD_CPUID, but bind the thread that calls
 starpu_initialize() to the given core, instead of the PU (hyperthread).
 </dd>
 
+<dt>STARPU_WORKER_TREE</dt>
+<dd>
+\anchor STARPU_WORKER_TREE
+\addindex __env__STARPU_WORKER_TREE
+Define to 1 to enable the tree iterator in schedulers.
+</dd>
+
+<dt>STARPU_SINGLE_COMBINED_WORKER</dt>
+<dd>
+\anchor STARPU_SINGLE_COMBINED_WORKER
+\addindex __env__STARPU_SINGLE_COMBINED_WORKER
+If set, StarPU will create several workers which won't be able to work
+concurrently. It will by default create combined workers which size goes from 1
+to the total number of CPU workers in the system. \ref STARPU_MIN_WORKERSIZE
+and \ref STARPU_MAX_WORKERSIZE can be used to change this default.
+</dd>
+
+<dt>STARPU_MIN_WORKERSIZE</dt>
+<dd>
+\anchor STARPU_MIN_WORKERSIZE
+\addindex __env__STARPU_MIN_WORKERSIZE
+Specify the minimum size of the combined workers. Default value is 2.
+</dd>
+
+<dt>STARPU_MAX_WORKERSIZE</dt>
+<dd>
+\anchor STARPU_MAX_WORKERSIZE
+\addindex __env__STARPU_MAX_WORKERSIZE
+Specify the minimum size of the combined workers. Default value is the
+number of CPU workers in the system.
+</dd>
+
+<dt>STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER</dt>
+<dd>
+\anchor STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
+\addindex __env__STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
+Specify how many elements are allowed between combined workers
+created from \c hwloc information. For instance, in the case of sockets with 6
+cores without shared L2 caches, if \ref STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER is
+set to 6, no combined worker will be synthesized beyond one for the socket
+and one per core. If it is set to 3, 3 intermediate combined workers will be
+synthesized, to divide the socket cores into 3 chunks of 2 cores. If it set to
+2, 2 intermediate combined workers will be synthesized, to divide the the socket
+cores into 2 chunks of 3 cores, and then 3 additional combined workers will be
+synthesized, to divide the former synthesized workers into a bunch of 2 cores,
+and the remaining core (for which no combined worker is synthesized since there
+is already a normal worker for it).
+
+The default, 2, thus makes StarPU tend to building a binary trees of combined
+workers.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_COPY
+Disable asynchronous copies between CPU and GPU devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+
+See also \ref STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY and \ref
+STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY.
+</dd>
+
+<dt>STARPU_DISABLE_PINNING</dt>
+<dd>
+\anchor STARPU_DISABLE_PINNING
+\addindex __env__STARPU_DISABLE_PINNING
+Disable (1) or Enable (0) pinning host memory allocated through starpu_malloc(), starpu_memory_pin()
+and friends.  The default is Enabled.
+This permits to test the performance effect of memory pinning.
+</dd>
+
+<dt>STARPU_BACKOFF_MIN</dt>
+<dd>
+\anchor STARPU_BACKOFF_MIN
+\addindex __env__STARPU_BACKOFF_MIN
+Set minimum exponential backoff of number of cycles to pause when spinning. Default value is 1.
+</dd>
+
+<dt>STARPU_BACKOFF_MAX</dt>
+<dd>
+\anchor STARPU_BACKOFF_MAX
+\addindex __env__STARPU_BACKOFF_MAX
+Set maximum exponential backoff of number of cycles to pause when spinning. Default value is 32.
+</dd>
+
+<dt>STARPU_SINK</dt>
+<dd>
+\anchor STARPU_SINK
+\addindex __env__STARPU_SINK
+Defined internally by StarPU when running in master slave mode.
+</dd>
+
+<dt>STARPU_DISABLE_MAP</dt>
+<dd>
+\anchor STARPU_DISABLE_MAP
+\addindex __env__STARPU_DISABLE_MAP
+Disable (1) or Enable (0) support for memory mapping between memory nodes.  The
+default is Enabled.
+</dd>
+
+<dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>
+</dl>
+
+\subsection cpuWorkers CPU Workers
+<dl>
+<dt>STARPU_NCPU</dt>
+<dd>
+\anchor STARPU_NCPU
+\addindex __env__STARPU_NCPU
+Specify the number of CPU workers (thus not including workers
+dedicated to control accelerators). Note that by default, StarPU will
+not allocate more CPU workers than there are physical CPUs, and that
+some CPUs are used to control the accelerators.
+</dd>
+
+<dt>STARPU_RESERVE_NCPU</dt>
+<dd>
+\anchor STARPU_RESERVE_NCPU
+\addindex __env__STARPU_RESERVE_NCPU
+Specify the number of CPU cores that should not be used by StarPU, so the
+application can use starpu_get_next_bindid() and starpu_bind_thread_on() to bind
+its own threads.
+
+This option is ignored if \ref STARPU_NCPU or starpu_conf::ncpus is set.
+</dd>
+
+<dt>STARPU_NCPUS</dt>
+<dd>
+\anchor STARPU_NCPUS
+\addindex __env__STARPU_NCPUS
+This variable is deprecated. You should use \ref STARPU_NCPU.
+</dd>
+
+</dl>
+
+\subsection cudaWorkers CUDA Workers
+<dl>
+<dt>STARPU_NCUDA</dt>
+<dd>
+\anchor STARPU_NCUDA
+\addindex __env__STARPU_NCUDA
+Specify the number of CUDA devices that StarPU can use. If
+\ref STARPU_NCUDA is lower than the number of physical devices, it is
+possible to select which GPU devices should be used by the means of the
+environment variable \ref STARPU_WORKERS_CUDAID. By default, StarPU will
+create as many CUDA workers as there are GPU devices.
+</dd>
+
+<dt>STARPU_NWORKER_PER_CUDA</dt>
+<dd>
+\anchor STARPU_NWORKER_PER_CUDA
+\addindex __env__STARPU_NWORKER_PER_CUDA
+Specify the number of workers per CUDA device, and thus the number of kernels
+which will be concurrently running on the devices, i.e. the number of CUDA
+streams. The default value is 1.
+</dd>
+
+<dt>STARPU_CUDA_THREAD_PER_WORKER</dt>
+<dd>
+\anchor STARPU_CUDA_THREAD_PER_WORKER
+\addindex __env__STARPU_CUDA_THREAD_PER_WORKER
+Specify whether the cuda driver should use one thread per stream (1) or to use
+a single thread to drive all the streams of the device or all devices (0), and
+\ref STARPU_CUDA_THREAD_PER_DEV determines whether is it one thread per device or one
+thread for all devices. The default value is 0. Setting it to 1 is contradictory
+with setting \ref STARPU_CUDA_THREAD_PER_DEV.
+</dd>
+
+<dt>STARPU_CUDA_THREAD_PER_DEV</dt>
+<dd>
+\anchor STARPU_CUDA_THREAD_PER_DEV
+\addindex __env__STARPU_CUDA_THREAD_PER_DEV
+Specify whether the cuda driver should use one thread per device (1) or to use a
+single thread to drive all the devices (0). The default value is 1.  It does not
+make sense to set this variable if \ref STARPU_CUDA_THREAD_PER_WORKER is set to to 1
+(since \ref STARPU_CUDA_THREAD_PER_DEV is then meaningless).
+</dd>
+
+<dt>STARPU_CUDA_PIPELINE</dt>
+<dd>
+\anchor STARPU_CUDA_PIPELINE
+\addindex __env__STARPU_CUDA_PIPELINE
+Specify how many asynchronous tasks are submitted in advance on CUDA
+devices. This for instance permits to overlap task management with the execution
+of previous tasks, but it also allows concurrent execution on Fermi cards, which
+otherwise bring spurious synchronizations. The default is 2. Setting the value to 0 forces a synchronous
+execution of all tasks.
+</dd>
+
+<dt>STARPU_WORKERS_CUDAID</dt>
+<dd>
+\anchor STARPU_WORKERS_CUDAID
+\addindex __env__STARPU_WORKERS_CUDAID
+Similarly to the \ref STARPU_WORKERS_CPUID environment variable, it is
+possible to select which CUDA devices should be used by StarPU. On a machine
+equipped with 4 GPUs, setting <c>STARPU_WORKERS_CUDAID = "1 3"</c> and
+<c>STARPU_NCUDA=2</c> specifies that 2 CUDA workers should be created, and that
+they should use CUDA devices #1 and #3 (the logical ordering of the devices is
+the one reported by CUDA).
+
+This variable is ignored if the field
+starpu_conf::use_explicit_workers_cuda_gpuid passed to starpu_init()
+is set.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
+Disable asynchronous copies between CPU and CUDA devices.
+
+See also \ref STARPU_DISABLE_ASYNCHRONOUS_COPY and \ref
+STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY.
+</dd>
+
+<dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>
+<dd>
+\anchor STARPU_ENABLE_CUDA_GPU_GPU_DIRECT
+\addindex __env__STARPU_ENABLE_CUDA_GPU_GPU_DIRECT
+Enable (1) or Disable (0) direct CUDA transfers from GPU to GPU, without copying
+through RAM. The default is Enabled.
+This permits to test the performance effect of GPU-Direct.
+</dd>
+
+<dt>STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES</dt>
+<dd>
+\anchor STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
+\addindex __env__STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
+Specify if CUDA workers should do only fast allocations
+when running the datawizard progress of
+other memory nodes. This will pass the internal value
+_STARPU_DATAWIZARD_ONLY_FAST_ALLOC to allocation methods.
+Default value is 0, allowing CUDA workers to do slow allocations.
+
+This can also be specified with starpu_conf::cuda_only_fast_alloc_other_memnodes.
+</dd>
+
+</dl>
+
+\subsection openclWorkers OpenCL Workers
+<dl>
+<dt>STARPU_NOPENCL</dt>
+<dd>
+\anchor STARPU_NOPENCL
+\addindex __env__STARPU_NOPENCL
+Specify the number of OpenCL devices that StarPU can use. If
+\ref STARPU_NOPENCL is lower than the number of physical devices, it is
+possible to select which GPU devices should be used by the means of the
+environment variable \ref STARPU_WORKERS_OPENCLID. By default, StarPU will
+create as many OpenCL workers as there are GPU devices.
+
+Note that by default StarPU will launch CUDA workers on GPU devices.
+You need to disable CUDA to allow the creation of OpenCL workers.
+</dd>
+
+<dt>STARPU_WORKERS_OPENCLID</dt>
+<dd>
+\anchor STARPU_WORKERS_OPENCLID
+\addindex __env__STARPU_WORKERS_OPENCLID
+Similarly to the \ref STARPU_WORKERS_CPUID environment variable, it is
+possible to select which GPU devices should be used by StarPU. On a machine
+equipped with 4 GPUs, setting <c>STARPU_WORKERS_OPENCLID = "1 3"</c> and
+<c>STARPU_NOPENCL=2</c> specifies that 2 OpenCL workers should be
+created, and that they should use GPU devices #1 and #3.
+
+This variable is ignored if the field
+starpu_conf::use_explicit_workers_opencl_gpuid passed to starpu_init()
+is set.
+</dd>
+
+<dt>STARPU_OPENCL_PIPELINE</dt>
+<dd>
+\anchor STARPU_OPENCL_PIPELINE
+\addindex __env__STARPU_OPENCL_PIPELINE
+Specify how many asynchronous tasks are submitted in advance on OpenCL
+devices. This for instance permits to overlap task management with the execution
+of previous tasks, but it also allows concurrent execution on Fermi cards, which
+otherwise bring spurious synchronizations. The default is 2. Setting the value to 0 forces a synchronous
+execution of all tasks.
+</dd>
+
+<dt>STARPU_OPENCL_ON_CPUS</dt>
+<dd>
+\anchor STARPU_OPENCL_ON_CPUS
+\addindex __env__STARPU_OPENCL_ON_CPUS
+By default, the OpenCL driver only enables GPU and accelerator
+devices. By setting the environment variable \ref STARPU_OPENCL_ON_CPUS
+to 1, the OpenCL driver will also enable CPU devices.
+</dd>
+
+<dt>STARPU_OPENCL_ONLY_ON_CPUS</dt>
+<dd>
+\anchor STARPU_OPENCL_ONLY_ON_CPUS
+\addindex __env__STARPU_OPENCL_ONLY_ON_CPUS
+By default, the OpenCL driver enables GPU and accelerator
+devices. By setting the environment variable \ref STARPU_OPENCL_ONLY_ON_CPUS
+to 1, the OpenCL driver will ONLY enable CPU devices.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY
+Disable asynchronous copies between CPU and OpenCL devices.
+The AMD implementation of OpenCL is known to
+fail when copying data asynchronously. When using this implementation,
+it is therefore necessary to disable asynchronous data transfers.
+
+See also \ref STARPU_DISABLE_ASYNCHRONOUS_COPY and \ref
+STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY.
+</dd>
+</dl>
+
+
+\subsection mpimsWorkers MPI Master Slave Workers
+<dl>
+<dt>STARPU_NMPI_MS</dt>
+<dd>
+\anchor STARPU_NMPI_MS
+\addindex __env__STARPU_NMPI_MS
+Specify the number of MPI master slave devices that StarPU can use.
+</dd>
+
+<dt>STARPU_NMPIMSTHREADS</dt>
+<dd>
+\anchor STARPU_NMPIMSTHREADS
+\addindex __env__STARPU_NMPIMSTHREADS
+Number of threads to use on the MPI Slave devices.
+</dd>
+
+<dt>STARPU_MPI_MASTER_NODE</dt>
+<dd>
+\anchor STARPU_MPI_MASTER_NODE
+\addindex __env__STARPU_MPI_MASTER_NODE
+This variable allows to chose which MPI node (with the MPI ID) will be the master.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
+Disable asynchronous copies between CPU and MPI Slave devices.
+</dd>
+
+</dl>
+
+\subsection mpiConf MPI Configuration
+<dl>
+
 <dt>STARPU_MPI_THREAD_CPUID</dt>
 <dd>
 \anchor STARPU_MPI_THREAD_CPUID
@@ -287,211 +486,8 @@ Setting it to non-zero will prevent StarPU from binding the MPI to
 a separate core. This is for instance useful when running the testsuite on a single system.
 </dd>
 
-<dt>STARPU_WORKERS_CUDAID</dt>
-<dd>
-\anchor STARPU_WORKERS_CUDAID
-\addindex __env__STARPU_WORKERS_CUDAID
-Similarly to the \ref STARPU_WORKERS_CPUID environment variable, it is
-possible to select which CUDA devices should be used by StarPU. On a machine
-equipped with 4 GPUs, setting <c>STARPU_WORKERS_CUDAID = "1 3"</c> and
-<c>STARPU_NCUDA=2</c> specifies that 2 CUDA workers should be created, and that
-they should use CUDA devices #1 and #3 (the logical ordering of the devices is
-the one reported by CUDA).
-
-This variable is ignored if the field
-starpu_conf::use_explicit_workers_cuda_gpuid passed to starpu_init()
-is set.
-</dd>
-
-<dt>STARPU_WORKERS_OPENCLID</dt>
-<dd>
-\anchor STARPU_WORKERS_OPENCLID
-\addindex __env__STARPU_WORKERS_OPENCLID
-OpenCL equivalent of the \ref STARPU_WORKERS_CUDAID environment variable.
-
-This variable is ignored if the field
-starpu_conf::use_explicit_workers_opencl_gpuid passed to starpu_init()
-is set.
-</dd>
-
-<dt>STARPU_WORKERS_MICID</dt>
-<dd>
-\anchor STARPU_WORKERS_MICID
-\addindex __env__STARPU_WORKERS_MICID
-MIC equivalent of the \ref STARPU_WORKERS_CUDAID environment variable.
-
-This variable is ignored if the field
-starpu_conf::use_explicit_workers_mic_deviceid passed to starpu_init()
-is set.
-</dd>
-
-<dt>STARPU_WORKER_TREE</dt>
-<dd>
-\anchor STARPU_WORKER_TREE
-\addindex __env__STARPU_WORKER_TREE
-Define to 1 to enable the tree iterator in schedulers.
-</dd>
-
-<dt>STARPU_SINGLE_COMBINED_WORKER</dt>
-<dd>
-\anchor STARPU_SINGLE_COMBINED_WORKER
-\addindex __env__STARPU_SINGLE_COMBINED_WORKER
-If set, StarPU will create several workers which won't be able to work
-concurrently. It will by default create combined workers which size goes from 1
-to the total number of CPU workers in the system. \ref STARPU_MIN_WORKERSIZE
-and \ref STARPU_MAX_WORKERSIZE can be used to change this default.
-</dd>
-
-<dt>STARPU_MIN_WORKERSIZE</dt>
-<dd>
-\anchor STARPU_MIN_WORKERSIZE
-\addindex __env__STARPU_MIN_WORKERSIZE
-\ref STARPU_MIN_WORKERSIZE
-permits to specify the minimum size of the combined workers (instead of the default 2)
-</dd>
-
-<dt>STARPU_MAX_WORKERSIZE</dt>
-<dd>
-\anchor STARPU_MAX_WORKERSIZE
-\addindex __env__STARPU_MAX_WORKERSIZE
-\ref STARPU_MAX_WORKERSIZE
-permits to specify the minimum size of the combined workers (instead of the
-number of CPU workers in the system)
-</dd>
-
-<dt>STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER</dt>
-<dd>
-\anchor STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
-\addindex __env__STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER
-Let the user decide how many elements are allowed between combined workers
-created from hwloc information. For instance, in the case of sockets with 6
-cores without shared L2 caches, if \ref STARPU_SYNTHESIZE_ARITY_COMBINED_WORKER is
-set to 6, no combined worker will be synthesized beyond one for the socket
-and one per core. If it is set to 3, 3 intermediate combined workers will be
-synthesized, to divide the socket cores into 3 chunks of 2 cores. If it set to
-2, 2 intermediate combined workers will be synthesized, to divide the the socket
-cores into 2 chunks of 3 cores, and then 3 additional combined workers will be
-synthesized, to divide the former synthesized workers into a bunch of 2 cores,
-and the remaining core (for which no combined worker is synthesized since there
-is already a normal worker for it).
-
-The default, 2, thus makes StarPU tend to building a binary trees of combined
-workers.
-</dd>
-
-<dt>STARPU_DISABLE_ASYNCHRONOUS_COPY</dt>
-<dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_COPY
-\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_COPY
-Disable asynchronous copies between CPU and GPU devices.
-The AMD implementation of OpenCL is known to
-fail when copying data asynchronously. When using this implementation,
-it is therefore necessary to disable asynchronous data transfers.
-</dd>
-
-<dt>STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY</dt>
-<dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
-\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY
-Disable asynchronous copies between CPU and CUDA devices.
-</dd>
-
-<dt>STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY</dt>
-<dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY
-\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY
-Disable asynchronous copies between CPU and OpenCL devices.
-The AMD implementation of OpenCL is known to
-fail when copying data asynchronously. When using this implementation,
-it is therefore necessary to disable asynchronous data transfers.
-</dd>
-
-<dt>STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY</dt>
-<dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
-\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MIC_COPY
-Disable asynchronous copies between CPU and MIC devices.
-</dd>
-
-<dt>STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY</dt>
-<dd>
-\anchor STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
-\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY
-Disable asynchronous copies between CPU and MPI Slave devices.
-</dd>
-
-<dt>STARPU_DISABLE_MAP</dt>
-<dd>
-\anchor STARPU_DISABLE_MAP
-\addindex __env__STARPU_DISABLE_MAP
-Disable (1) or Enable (0) support for memory mapping between memory nodes.  The
-default is Enabled.
-</dd>
-
-<dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>
-<dd>
-\anchor STARPU_ENABLE_CUDA_GPU_GPU_DIRECT
-\addindex __env__STARPU_ENABLE_CUDA_GPU_GPU_DIRECT
-Enable (1) or Disable (0) direct CUDA transfers from GPU to GPU, without copying
-through RAM. The default is Enabled.
-This permits to test the performance effect of GPU-Direct.
-</dd>
-
-<dt>STARPU_DISABLE_PINNING</dt>
-<dd>
-\anchor STARPU_DISABLE_PINNING
-\addindex __env__STARPU_DISABLE_PINNING
-Disable (1) or Enable (0) pinning host memory allocated through starpu_malloc, starpu_memory_pin
-and friends.  The default is Enabled.
-This permits to test the performance effect of memory pinning.
-</dd>
-
-<dt>STARPU_BACKOFF_MIN</dt>
-<dd>
-\anchor STARPU_BACKOFF_MIN
-\addindex __env__STARPU_BACKOFF_MIN
-Set minimum exponential backoff of number of cycles to pause when spinning. Default value is 1.
-</dd>
-
-<dt>STARPU_BACKOFF_MAX</dt>
-<dd>
-\anchor STARPU_BACKOFF_MAX
-\addindex __env__STARPU_BACKOFF_MAX
-Set maximum exponential backoff of number of cycles to pause when spinning. Default value is 32.
-</dd>
-
-<dt>STARPU_MIC_SINK_PROGRAM_NAME</dt>
-<dd>
-\anchor STARPU_MIC_SINK_PROGRAM_NAME
-\addindex __env__STARPU_MIC_SINK_PROGRAM_NAME
-todo
-</dd>
-
-<dt>STARPU_MIC_SINK_PROGRAM_PATH</dt>
-<dd>
-\anchor STARPU_MIC_SINK_PROGRAM_PATH
-\addindex __env__STARPU_MIC_SINK_PROGRAM_PATH
-todo
-</dd>
-
-<dt>STARPU_MIC_PROGRAM_PATH</dt>
-<dd>
-\anchor STARPU_MIC_PROGRAM_PATH
-\addindex __env__STARPU_MIC_PROGRAM_PATH
-todo
-</dd>
-
-<dt>STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES</dt>
-<dd>
-\anchor STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
-\addindex __env__STARPU_CUDA_ONLY_FAST_ALLOC_OTHER_MEMNODES
-Specify if CUDA workers should do only fast allocations
-when running the datawizard progress of
-other memory nodes. This will pass STARPU_DATAWIZARD_ONLY_FAST_ALLOC.
-Default value is 0, allowing CUDA workers to do slow allocations.
-</dd>
-
 </dl>
+
 
 \section ConfiguringTheSchedulingEngine Configuring The Scheduling Engine
 
@@ -512,6 +508,7 @@ Use <c>STARPU_SCHED=help</c> to get the list of available schedulers.
 \anchor STARPU_MIN_PRIO_env
 \addindex __env__STARPU_MIN_PRIO
 Set the mininum priority used by priorities-aware schedulers.
+The flag can also be set through the field starpu_conf::global_sched_ctx_min_priority.
 </dd>
 
 <dt>STARPU_MAX_PRIO</dt>
@@ -519,6 +516,7 @@ Set the mininum priority used by priorities-aware schedulers.
 \anchor STARPU_MAX_PRIO_env
 \addindex __env__STARPU_MAX_PRIO
 Set the maximum priority used by priorities-aware schedulers.
+The flag can also be set through the field starpu_conf::global_sched_ctx_max_priority.
 </dd>
 
 <dt>STARPU_CALIBRATE</dt>
@@ -592,6 +590,22 @@ Define the execution time penalty of a joule (\ref Energy-basedScheduling).
 For a modular scheduler with sorted queues below the decision component, workers
 pick up a task which has most of its data already available. Setting this to 0
 disables this.
+</dd>
+
+<dt>STARPU_SCHED_SORTED_ABOVE</dt>
+<dd>
+\anchor STARPU_SCHED_SORTED_ABOVE
+\addindex __env__STARPU_SCHED_SORTED_ABOVE
+For a modular scheduler with queues above the decision component, it is
+usually sorted by priority. Setting this to 0 disables this.
+</dd>
+
+<dt>STARPU_SCHED_SORTED_BELOW</dt>
+<dd>
+\anchor STARPU_SCHED_SORTED_BELOW
+\addindex __env__STARPU_SCHED_SORTED_BELOW
+For a modular scheduler with queues below the decision component, they are
+usually sorted by priority. Setting this to 0 disables this.
 </dd>
 
 <dt>STARPU_IDLE_POWER</dt>
@@ -853,13 +867,6 @@ and allows studying scheduling overhead of the runtime system. However,
 it also makes simulation non-deterministic.
 </dd>
 
-<dt>STARPU_SINK</dt>
-<dd>
-\anchor STARPU_SINK
-\addindex __env__STARPU_SINK
-Variable defined by StarPU when running MPI Xeon PHI on the sink.
-</dd>
-
 </dl>
 
 \section MiscellaneousAndDebug Miscellaneous And Debug
@@ -896,7 +903,7 @@ performance model files. The default is <c>$STARPU_HOME/.starpu/sampling</c>.
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_CPU
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_CPU
-When this is set to 0, StarPU will assume that CPU devices do not have the same
+When set to 0, StarPU will assume that CPU devices do not have the same
 performance, and thus use different performance models for them, thus making
 kernel calibration much longer, since measurements have to be made for each CPU
 core.
@@ -906,7 +913,7 @@ core.
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_CUDA
-When this is set to 1, StarPU will assume that all CUDA devices have the same
+When set to 1, StarPU will assume that all CUDA devices have the same
 performance, and thus share performance models for them, thus allowing kernel
 calibration to be much faster, since measurements only have to be once for all
 CUDA GPUs.
@@ -916,27 +923,17 @@ CUDA GPUs.
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_OPENCL
-When this is set to 1, StarPU will assume that all OPENCL devices have the same
+When set to 1, StarPU will assume that all OPENCL devices have the same
 performance, and thus share performance models for them, thus allowing kernel
 calibration to be much faster, since measurements only have to be once for all
 OPENCL GPUs.
-</dd>
-
-<dt>STARPU_PERF_MODEL_HOMOGENEOUS_MIC</dt>
-<dd>
-\anchor STARPU_PERF_MODEL_HOMOGENEOUS_MIC
-\addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MIC
-When this is set to 1, StarPU will assume that all MIC devices have the same
-performance, and thus share performance models for them, thus allowing kernel
-calibration to be much faster, since measurements only have to be once for all
-MIC GPUs.
 </dd>
 
 <dt>STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS</dt>
 <dd>
 \anchor STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS
 \addindex __env__STARPU_PERF_MODEL_HOMOGENEOUS_MPI_MS
-When this is set to 1, StarPU will assume that all MPI Slave devices have the same
+When set to 1, StarPU will assume that all MPI Slave devices have the same
 performance, and thus share performance models for them, thus allowing kernel
 calibration to be much faster, since measurements only have to be once for all
 MPI Slaves.
@@ -1426,9 +1423,9 @@ accesses (see \ref ConcurrentDataAccess).
 When defined, NUMA nodes are taking into account by StarPU. Otherwise, memory
 is considered as only one node. This is experimental for now.
 
-When enabled, STARPU_MAIN_MEMORY is a pointer to the NUMA node associated to the
+When enabled, ::STARPU_MAIN_RAM is a pointer to the NUMA node associated to the
 first CPU worker if it exists, the NUMA node associated to the first GPU discovered otherwise.
-If StarPU doesn't find any NUMA node after these step, STARPU_MAIN_MEMORY is the first NUMA node
+If StarPU doesn't find any NUMA node after these step, ::STARPU_MAIN_RAM is the first NUMA node
 discovered by StarPU.
 </dd>
 
@@ -1436,15 +1433,18 @@ discovered by StarPU.
 <dd>
 \anchor STARPU_IDLE_FILE
 \addindex __env__STARPU_IDLE_FILE
-If the environment variable STARPU_IDLE_FILE is defined, a file named after its contents will be created at the end of the execution.
-The file will contain the sum of the idle times of all the workers.
+When defined, a file named after its contents will be created at the
+end of the execution. This file will contain the sum of the idle times
+of all the workers.
 </dd>
 
 <dt>STARPU_HWLOC_INPUT</dt>
 <dd>
 \anchor STARPU_HWLOC_INPUT
 \addindex __env__STARPU_HWLOC_INPUT
-If the environment variable STARPU_HWLOC_INPUT is defined to the path of an XML file, hwloc will be made to use it as input instead of detecting the current platform topology, which can save significant initialization time.
+When defined to the path of an XML file, \c hwloc will use this file
+as input instead of detecting the current platform topology, which can
+save significant initialization time.
 
 To produce this XML file, use <c>lstopo file.xml</c>
 </dd>
@@ -1453,7 +1453,7 @@ To produce this XML file, use <c>lstopo file.xml</c>
 <dd>
 \anchor STARPU_CATCH_SIGNALS
 \addindex __env__STARPU_CATCH_SIGNALS
-By default, StarPU catch signals SIGINT, SIGSEGV and SIGTRAP to
+By default, StarPU catch signals \c SIGINT, \c SIGSEGV and \c SIGTRAP to
 perform final actions such as dumping FxT trace files even though the
 application has crashed. Setting this variable to a value other than 1
 will disable this behaviour. This should be done on JVM systems which

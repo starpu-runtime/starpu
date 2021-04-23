@@ -20,9 +20,6 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mp_common/sink_common.h>
-#include <drivers/mic/driver_mic_common.h>
-#include <drivers/mic/driver_mic_source.h>
-#include <drivers/mic/driver_mic_sink.h>
 #include <drivers/mpi/driver_mpi_common.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_sink.h>
@@ -111,10 +108,6 @@ const char *_starpu_mp_common_node_kind_to_string(const int kind)
 {
 	switch(kind)
 	{
-		case STARPU_NODE_MIC_SINK:
-			return "MIC_SINK";
-		case STARPU_NODE_MIC_SOURCE:
-			return "MIC_SOURCE";
 		case STARPU_NODE_MPI_SINK:
 			return "MPI_SINK";
 		case STARPU_NODE_MPI_SOURCE:
@@ -140,60 +133,6 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 
 	switch(node->kind)
 	{
-#ifdef STARPU_USE_MIC
-		case STARPU_NODE_MIC_SOURCE:
-		{
-			node->nb_mp_sinks = starpu_mic_worker_get_count();
-			node->devid = peer_id;
-
-			node->init = _starpu_mic_src_init;
-			node->launch_workers= NULL;
-			node->deinit = _starpu_mic_src_deinit;
-			node->report_error = _starpu_mic_src_report_scif_error;
-
-			node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
-			node->mp_send = _starpu_mic_common_send;
-			node->mp_recv = _starpu_mic_common_recv;
-			node->dt_send = _starpu_mic_common_dt_send;
-			node->dt_recv = _starpu_mic_common_dt_recv;
-
-			node->get_kernel_from_job =_starpu_mic_src_get_kernel_from_job;
-			node->lookup = NULL;
-			node->bind_thread = NULL;
-			node->execute = NULL;
-			node->allocate = NULL;
-			node->free = NULL;
-		}
-		break;
-
-		case STARPU_NODE_MIC_SINK:
-		{
-			node->devid = atoi(starpu_getenv("_STARPU_MIC_DEVID"));
-			node->nb_mp_sinks = atoi(starpu_getenv("_STARPU_MIC_NB"));
-
-			node->init = _starpu_mic_sink_init;
-			node->launch_workers = _starpu_mic_sink_launch_workers;
-			node->deinit = _starpu_mic_sink_deinit;
-			node->report_error = _starpu_mic_sink_report_error;
-
-			node->mp_recv_is_ready = _starpu_mic_common_recv_is_ready;
-			node->mp_send = _starpu_mic_common_send;
-			node->mp_recv = _starpu_mic_common_recv;
-			node->dt_send = _starpu_mic_common_dt_send;
-			node->dt_recv = _starpu_mic_common_dt_recv;
-
-			node->dt_test = NULL; /* Not used now */
-
-			node->get_kernel_from_job = NULL;
-			node->lookup = _starpu_mic_sink_lookup;
-			node->bind_thread = _starpu_mic_sink_bind_thread;
-			node->execute = _starpu_sink_common_execute;
-			node->allocate = _starpu_mic_sink_allocate;
-			node->free = _starpu_mic_sink_free;
-		}
-		break;
-#endif /* STARPU_USE_MIC */
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		case STARPU_NODE_MPI_SOURCE:
 		{
@@ -278,7 +217,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
         _starpu_mp_event_list_init(&node->event_list);
 
 	/* If the node is a sink then we must initialize some field */
-	if(node->kind == STARPU_NODE_MIC_SINK || node->kind == STARPU_NODE_MPI_SINK)
+	if(node->kind == STARPU_NODE_MPI_SINK)
 	{
 		int i;
 		node->is_running = 1;
@@ -311,7 +250,7 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 	STARPU_PTHREAD_MUTEX_DESTROY(&node->message_queue_mutex);
 
 	/* If the node is a sink then we must destroy some field */
-	if(node->kind == STARPU_NODE_MIC_SINK || node->kind == STARPU_NODE_MPI_SINK)
+	if(node->kind == STARPU_NODE_MPI_SINK)
 	{
 		int i;
 		for(i=0; i<node->nb_cores; i++)
@@ -334,11 +273,11 @@ void _starpu_mp_common_node_destroy(struct _starpu_mp_node *node)
 /* Send COMMAND to RECIPIENT, along with ARG if ARG_SIZE is non-zero */
 void _starpu_mp_common_send_command(const struct _starpu_mp_node *node, const enum _starpu_mp_command command, void *arg, int arg_size)
 {
-	STARPU_ASSERT_MSG(arg_size <= BUFFER_SIZE, "Too much data (%d) for the static MIC buffer (%d), increase BUFFER_SIZE perhaps?", arg_size, BUFFER_SIZE);
+	STARPU_ASSERT_MSG(arg_size <= BUFFER_SIZE, "Too much data (%d) for the static buffer (%d), increase BUFFER_SIZE perhaps?", arg_size, BUFFER_SIZE);
 
         //printf("SEND CMD : %d - arg_size %d by %lu \n", command, arg_size, starpu_pthread_self());
 
-	/* MIC and MPI sizes are given through a int */
+	/* MPI sizes are given through a int */
 	int command_size = sizeof(enum _starpu_mp_command);
 	int arg_size_size = sizeof(int);
 
@@ -362,7 +301,7 @@ enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_n
 {
 	enum _starpu_mp_command command;
 
-	/* MIC and MPI sizes are given through a int */
+	/* MPI sizes are given through a int */
 	int command_size = sizeof(enum _starpu_mp_command);
 	int arg_size_size = sizeof(int);
 

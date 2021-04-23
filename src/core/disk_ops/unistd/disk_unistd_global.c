@@ -87,7 +87,7 @@ struct starpu_unistd_copy_thread
 	struct starpu_unistd_work_copy_list list;
 };
 
-struct starpu_unistd_copy_thread copy_thread[STARPU_MAXNODES][STARPU_MAXNODES];
+static struct starpu_unistd_copy_thread copy_thread[STARPU_MAXNODES][STARPU_MAXNODES];
 static unsigned starpu_unistd_nb_disk_opened = 0;
 /* copy_file_range syscall can return ENOSYS. Use global var to catch
  * and prevent StarPU using direct disk to disk copy */
@@ -735,7 +735,7 @@ void starpu_unistd_global_unplug(void *base)
 	free(fileBase);
 }
 
-int get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node, void *base)
+int _starpu_get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node, void *base)
 {
 	int res;
 	unsigned iter;

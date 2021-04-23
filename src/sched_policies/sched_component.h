@@ -22,6 +22,7 @@
 
 #include <starpu_sched_component.h>
 
+#pragma GCC visibility push(hidden)
 
 /** lock and unlock drivers for modifying schedulers */
 void _starpu_sched_component_lock_all_workers(void);
@@ -32,5 +33,7 @@ void _starpu_sched_component_workers_destroy(void);
 struct _starpu_worker * _starpu_sched_component_worker_get_worker(struct starpu_sched_component *);
 
 struct starpu_bitmap * _starpu_get_worker_mask(unsigned sched_ctx_id);
+
+#pragma GCC visibility pop
 
 #endif

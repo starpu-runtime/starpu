@@ -470,7 +470,7 @@ starpu_mpi_barrier(MPI_COMM_WORLD);
 \section MPIInsertTaskUtility MPI Insert Task Utility
 
 To save the programmer from having to explicit all communications, StarPU
-provides an "MPI Insert Task Utility". The principe is that the application
+provides an "MPI Insert Task Utility". The principle is that the application
 decides a distribution of the data over the MPI nodes by allocating it and
 notifying StarPU of this decision, i.e. tell StarPU which MPI node "owns"
 which data. It also decides, for each handle, an MPI tag which will be used to
@@ -571,7 +571,7 @@ to provide a dynamic policy.
 
 A function starpu_mpi_task_build() is also provided with the aim to
 only construct the task structure. All MPI nodes need to call the
-function, which posts the required send/recv on the various nodes which have to.
+function, which posts the required send/recv on the various nodes as needed.
 Only the node which is to execute the task will then return a
 valid task structure, others will return <c>NULL</c>. This node must submit the task.
 All nodes then need to call the function starpu_mpi_task_post_build() -- with the same
@@ -637,7 +637,7 @@ saves, a quick and easy way is to measure the submission time of just one of the
 MPI nodes. This can be achieved by running the application on just one MPI node
 with the following environment variables:
 
-\code
+\code{.sh}
 export STARPU_DISABLE_KERNELS=1
 export STARPU_MPI_FAKE_RANK=2
 export STARPU_MPI_FAKE_SIZE=1024
@@ -1095,6 +1095,7 @@ disabled in NewMadeleine by compiling it with the profile
 
 To build NewMadeleine, download the latest version from the website (or,
 better, use the Git version to use the most recent version), then:
+
 \code{.sh}
 cd pm2/scripts
 ./pm2-build-packages ./<the profile you chose> --prefix=<installation prefix>

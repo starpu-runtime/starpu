@@ -61,7 +61,6 @@ int main(int argc, char **argv)
 
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	conf.nmic = 0;
 	conf.nmpi_ms = 0;
 
 	// initialize StarPU with default configuration

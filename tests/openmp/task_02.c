@@ -125,6 +125,7 @@ void task_region_g(void *buffers[], void *args)
 
 void master_g1(void *arg)
 {
+	(void)arg;
 	starpu_data_handle_t region_vector_handle;
 	int i;
 
@@ -140,6 +141,7 @@ void master_g1(void *arg)
 
 void master_g2(void *arg)
 {
+	(void)arg;
 	starpu_data_handle_t region_vector_handle;
 	struct starpu_omp_task_region_attr attr;
 	int i;
@@ -178,6 +180,8 @@ void master_g2(void *arg)
 
 void parallel_region_f(void *buffers[], void *args)
 {
+	(void)buffers;
+	(void)args;
 	starpu_omp_master(master_g1, NULL);
 	starpu_omp_barrier();
 	{

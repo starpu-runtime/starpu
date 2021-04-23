@@ -28,6 +28,8 @@
 #include <common/prio_list.h>
 #include <common/starpu_spinlock.h>
 
+#pragma GCC visibility push(hidden)
+
 /* TODO: This should be tuned according to driver capabilities
  * Data interfaces should also have to declare how many asynchronous requests
  * they have actually started (think of e.g. csr).
@@ -184,4 +186,7 @@ void _starpu_data_request_append_callback(struct _starpu_data_request *r,
 					  void *callback_arg);
 
 void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_is_prefetch prefetch);
+
+#pragma GCC visibility pop
+
 #endif // __DATA_REQUEST_H__

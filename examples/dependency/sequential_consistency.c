@@ -128,7 +128,6 @@ int main(void)
 	}
 
 	starpu_conf_init(&conf);
-	conf.nmic = 0;
 	conf.nmpi_ms = 0;
 
         ret = starpu_init(&conf);

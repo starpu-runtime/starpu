@@ -45,16 +45,10 @@ static void initialize_heteroprio_heft_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_IMPL);
 }
 
-static void deinitialize_heteroprio_heft_center_policy(unsigned sched_ctx_id)
-{
-	struct starpu_sched_tree *t = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	starpu_sched_tree_destroy(t);
-}
-
 struct starpu_sched_policy _starpu_sched_modular_heteroprio_heft_policy =
 {
 	.init_sched = initialize_heteroprio_heft_center_policy,
-	.deinit_sched = deinitialize_heteroprio_heft_center_policy,
+	.deinit_sched = starpu_sched_tree_deinitialize,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.push_task = starpu_sched_tree_push_task,

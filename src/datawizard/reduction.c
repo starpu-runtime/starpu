@@ -20,7 +20,6 @@
 #include <util/starpu_data_cpy.h>
 #include <core/task.h>
 #include <datawizard/datawizard.h>
-#include <drivers/mic/driver_mic_source.h>
 #include <drivers/mp_common/source_common.h>
 #include <datawizard/memory_nodes.h>
 
@@ -76,11 +75,6 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 		case STARPU_OPENCL_WORKER:
 			init_func = _starpu_task_get_opencl_nth_implementation(init_cl, 0);
 			break;
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_WORKER:
-			init_func = _starpu_mic_src_get_kernel_from_codelet(init_cl, 0);
-			break;
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		case STARPU_MPI_MS_WORKER:
 			init_func = _starpu_mpi_ms_src_get_kernel_from_codelet(init_cl, 0); 
@@ -95,22 +89,6 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 
 	switch (starpu_worker_get_type(workerid))
 	{
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_WORKER:
-		{
-			struct _starpu_mp_node *node = _starpu_mic_src_get_actual_thread_mp_node();
-			int devid = _starpu_get_worker_struct(workerid)->devid;
-			void * arg;
-			int arg_size;
-			_starpu_src_common_execute_kernel(node,
-					(void(*)(void))init_func, devid,
-					STARPU_SEQ, 0, 0, &handle, 
-					&(replicate->data_interface), 1,
-					NULL, 0, 1);
-			_starpu_src_common_wait_completed_execution(node,devid,&arg,&arg_size);
-			break;
-		}
-#endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		case STARPU_MPI_MS_WORKER:
 		{

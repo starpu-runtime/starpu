@@ -26,6 +26,11 @@
 #include <starpu.h>
 #include <common/config.h>
 
+#pragma GCC visibility push(hidden)
+
 /** submit asynchronous unpartitioning / partitioning to make target active read-only or read-write */
 void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write);
+
+#pragma GCC visibility pop
+
 #endif

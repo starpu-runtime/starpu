@@ -76,10 +76,6 @@ struct data_interface_test_summary
 	int opencl_to_cpu;
 	int cpu_to_opencl_async;
 	int opencl_to_cpu_async;
-	int cpu_to_mic;
-	int mic_to_cpu;
-	int cpu_to_mic_async;
-	int mic_to_cpu_async;
 
 	/* Other stuff */
 	int compare;

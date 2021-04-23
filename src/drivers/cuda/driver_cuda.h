@@ -28,11 +28,16 @@ void _starpu_cuda_preinit(void);
 #include <cuda.h>
 #include <cuda_runtime_api.h>
 #include <cublas.h>
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+#include <nvml.h>
+#endif
 #endif
 
 #include <starpu.h>
 #include <core/workers.h>
 #include <datawizard/node_ops.h>
+
+#pragma GCC visibility push(hidden)
 
 extern struct _starpu_driver_ops _starpu_driver_cuda_ops;
 extern struct _starpu_node_ops _starpu_driver_cuda_node_ops;
@@ -45,6 +50,9 @@ extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_M
 void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
 void _starpu_init_cuda(void);
 void *_starpu_cuda_worker(void *);
+#ifdef STARPU_HAVE_LIBNVIDIA_ML
+nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props);
+#endif
 #else
 #  define _starpu_cuda_discover_devices(config) ((void) config)
 #endif
@@ -85,6 +93,8 @@ int _starpu_cuda_copy3d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, 
 int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_node);
 uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags);
 void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+
+#pragma GCC visibility pop
 
 #endif //  __DRIVER_CUDA_H__
 

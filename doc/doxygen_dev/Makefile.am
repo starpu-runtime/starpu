@@ -146,9 +146,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/src/drivers/mp_common/mp_common.h	\
 	$(top_srcdir)/src/drivers/mp_common/source_common.h	\
 	$(top_srcdir)/src/drivers/driver_common/driver_common.h	\
-	$(top_srcdir)/src/drivers/mic/driver_mic_sink.h	\
-	$(top_srcdir)/src/drivers/mic/driver_mic_source.h	\
-	$(top_srcdir)/src/drivers/mic/driver_mic_common.h	\
 	$(top_srcdir)/src/profiling/profiling.h	\
 	$(top_srcdir)/src/profiling/bound.h	\
 	$(top_srcdir)/src/util/starpu_data_cpy.h	\
@@ -219,6 +216,7 @@ $(DOX_TAG): $(dox_inputs)
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
 	@cp $(top_srcdir)/doc/doxygen_dev/chapters/version.sty $(DOX_LATEX_DIR)
+	@cp $(top_srcdir)/doc/doxygen_dev/modules.tex $(DOX_LATEX_DIR)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
 	@cd $(DOX_LATEX_DIR) ;\
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\

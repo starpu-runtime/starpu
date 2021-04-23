@@ -72,14 +72,9 @@ int starpu_combined_worker_assign_workerid(int nworkers, int workerid_array[])
 		if ((id < 0) || (id >= basic_worker_count))
 			return -EINVAL;
 
-#ifdef STARPU_USE_MIC
-		STARPU_ASSERT(config->workers[id].arch == STARPU_CPU_WORKER || config->workers[id].arch == STARPU_MIC_WORKER);
-		STARPU_ASSERT(config->workers[id].worker_mask == STARPU_CPU || config->workers[id].worker_mask == STARPU_MIC);
-#else/* STARPU_USE_MIC */
 		/* We only combine CPUs */
 		STARPU_ASSERT(config->workers[id].arch == STARPU_CPU_WORKER);
 		STARPU_ASSERT(config->workers[id].worker_mask == STARPU_CPU);
-#endif /* STARPU_USE_MIC */
 	}
 
 	/* Get an id for that combined worker. Note that this is not thread

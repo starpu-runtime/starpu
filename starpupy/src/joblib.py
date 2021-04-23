@@ -32,6 +32,15 @@ except:
 import inspect
 import threading
 
+loop = asyncio.get_event_loop()
+if (loop.is_running()):	
+	try:
+		import nest_asyncio
+		nest_asyncio.apply()
+		has_nest=True
+	except ModuleNotFoundError as e:
+		has_nest=False
+
 BACKENDS={
 	#'loky': LokyBackend,
 }
@@ -245,7 +254,10 @@ class Parallel(object):
 				return res
 			#asyncio.run(asy_main())
 			#retVal=asy_main
-			loop = asyncio.get_event_loop()
+			#loop = asyncio.get_event_loop()
+			if(loop.is_running() and not has_nest):
+				raise starpupy.error("Can't find \'nest_asyncio\' module (consider running \"pip3 install nest_asyncio\" or try to remove \"-m asyncio\" when starting Python interpreter)")
+			
 			results = loop.run_until_complete(asy_main())
 			retVal = results
 		# the mode future, user needs to use asyncio module and await the Future result in main function

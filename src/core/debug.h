@@ -290,6 +290,8 @@
 
 #endif
 
+#pragma GCC visibility push(hidden)
+
 /** Create a file that will contain StarPU's log */
 void _starpu_open_debug_logfile(void);
 
@@ -309,5 +311,7 @@ int64_t _starpu_ayudame_get_func_id(struct starpu_codelet *cl);
 
 void _starpu_watchdog_init(void);
 void _starpu_watchdog_shutdown(void);
+
+#pragma GCC visibility pop
 
 #endif // __DEBUG_H__

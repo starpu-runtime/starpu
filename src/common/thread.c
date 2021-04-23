@@ -57,8 +57,6 @@ static int _starpu_futex_wake = FUTEX_WAKE;
 
 #ifdef STARPU_SIMGRID
 
-extern int _starpu_simgrid_thread_start(int argc, char *argv[]);
-
 int starpu_pthread_equal(starpu_pthread_t t1, starpu_pthread_t t2)
 {
 	return t1 == t2;
@@ -76,9 +74,12 @@ starpu_pthread_t starpu_pthread_self(void)
 int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const starpu_pthread_attr_t *attr STARPU_ATTRIBUTE_UNUSED, void *(*start_routine) (void *), void *arg, starpu_sg_host_t host)
 {
 	char **_args;
+	int ret;
 	_STARPU_MALLOC(_args, 3*sizeof(char*));
-	asprintf(&_args[0], "%p", start_routine);
-	asprintf(&_args[1], "%p", arg);
+	ret = asprintf(&_args[0], "%p", start_routine);
+	STARPU_ASSERT(ret);
+	ret = asprintf(&_args[1], "%p", arg);
+	STARPU_ASSERT(ret);
 	_args[2] = NULL;
 	if (!host)
 		host = _starpu_simgrid_get_host_by_name("MAIN");

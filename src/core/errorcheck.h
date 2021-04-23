@@ -21,6 +21,8 @@
 
 #include <starpu.h>
 
+#pragma GCC visibility push(hidden)
+
 /** This type describes in which state a worker may be. */
 enum _starpu_worker_status
 {
@@ -59,5 +61,7 @@ enum _starpu_worker_status _starpu_get_local_worker_status(void);
  * or during the execution of a task. This function indicates whether it is
  * legal to call a blocking operation in the current context. */
 unsigned _starpu_worker_may_perform_blocking_calls(void);
+
+#pragma GCC visibility pop
 
 #endif // __ERRORCHECK_H__

@@ -22,6 +22,8 @@
 #include <starpu.h>
 #include <common/config.h>
 
+#pragma GCC visibility push(hidden)
+
 #ifdef STARPU_MEMORY_STATS
 struct _starpu_memory_stats
 {
@@ -50,5 +52,7 @@ void _starpu_memory_handle_stats_loaded_shared(starpu_data_handle_t handle, unsi
 void _starpu_memory_handle_stats_loaded_owner(starpu_data_handle_t handle, unsigned node);
 void _starpu_memory_handle_stats_shared_to_owner(starpu_data_handle_t handle, unsigned node);
 void _starpu_memory_handle_stats_invalidated(starpu_data_handle_t handle, unsigned node);
+
+#pragma GCC visibility pop
 
 #endif /* __MEMSTATS_H__ */

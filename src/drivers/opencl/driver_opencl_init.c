@@ -17,7 +17,7 @@
 #include <core/workers.h>
 #include <drivers/opencl/driver_opencl.h>
 
-static struct starpu_driver_info driver_info =
+static struct _starpu_driver_info driver_info =
 {
 	.name_upper = "OpenCL",
 	.name_var = "OPENCL",
@@ -26,7 +26,7 @@ static struct starpu_driver_info driver_info =
 	.alpha = 12.22f,
 };
 
-static struct starpu_memory_driver_info memory_driver_info =
+static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "OpenCL",
 	.worker_archtype = STARPU_OPENCL_WORKER,
@@ -34,6 +34,6 @@ static struct starpu_memory_driver_info memory_driver_info =
 
 void _starpu_opencl_preinit(void)
 {
-	starpu_driver_info_register(STARPU_OPENCL_WORKER, &driver_info);
-	starpu_memory_driver_info_register(STARPU_OPENCL_RAM, &memory_driver_info);
+	_starpu_driver_info_register(STARPU_OPENCL_WORKER, &driver_info);
+	_starpu_memory_driver_info_register(STARPU_OPENCL_RAM, &memory_driver_info);
 }

@@ -66,7 +66,7 @@ struct starpu_disk_ops starpu_disk_unistd_ops =
 #else
 	.copy = NULL,
 #endif
-	.bandwidth = get_unistd_global_bandwidth_between_disk_and_main_ram,
+	.bandwidth = _starpu_get_unistd_global_bandwidth_between_disk_and_main_ram,
 #ifdef HAVE_AIO_H
 	.async_read = starpu_unistd_global_async_read,
 	.async_write = starpu_unistd_global_async_write,

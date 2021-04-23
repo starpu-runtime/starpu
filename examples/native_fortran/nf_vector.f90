@@ -29,6 +29,7 @@ program nf_vector
         type(c_ptr) :: dh_vb    ! a pointer for the 'vb' vector data handle
         integer(c_int) :: err   ! return status for fstarpu_init
         integer(c_int) :: ncpu  ! number of cpus workers
+        integer(c_int) :: bool_ret
 
         allocate(va(5))
         va = (/ (i,i=1,5) /)
@@ -47,6 +48,26 @@ program nf_vector
         if (ncpu == 0) then
                 call fstarpu_shutdown()
                 stop 77
+        end if
+
+        ! illustrate use of pause/resume/is_paused
+        bool_ret = fstarpu_is_paused()
+        if (bool_ret /= 0) then
+                stop 1
+        end if
+
+        call fstarpu_pause
+
+        bool_ret = fstarpu_is_paused()
+        if (bool_ret == 0) then
+                stop 1
+        end if
+
+        call fstarpu_resume
+
+        bool_ret = fstarpu_is_paused()
+        if (bool_ret /= 0) then
+                stop 1
         end if
 
         ! allocate an empty perfmodel structure
@@ -73,6 +94,12 @@ program nf_vector
         ! optionally set 'where' field to CPU only
         call fstarpu_codelet_set_where(cl_vec, FSTARPU_CPU)
 
+        ! set 'type' field to SEQ (for demonstration purpose)
+        call fstarpu_codelet_set_type(cl_vec, FSTARPU_SEQ)
+
+        ! set 'max_parallelism' field to 1 (for demonstration purpose)
+        call fstarpu_codelet_set_max_parallelism(cl_vec, 1)
+
         ! add a Read-only mode data buffer to the codelet
         call fstarpu_codelet_add_buffer(cl_vec, FSTARPU_R)
 
@@ -94,7 +121,11 @@ program nf_vector
         !     . . .
         !     C_NULL_PTR
         !   )/
-        call fstarpu_insert_task((/ cl_vec, FSTARPU_R, dh_va, FSTARPU_RW.ior.FSTARPU_LOCALITY, dh_vb, C_NULL_PTR /))
+        call fstarpu_insert_task((/ cl_vec, &
+                FSTARPU_R, dh_va, &
+                FSTARPU_RW.ior.FSTARPU_LOCALITY, dh_vb, &
+                FSTARPU_EXECUTE_WHERE, FSTARPU_CPU, & ! for illustration, not required here
+                C_NULL_PTR /))
 
         ! wait for task completion
         call fstarpu_task_wait_for_all()

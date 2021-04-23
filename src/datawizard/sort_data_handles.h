@@ -28,9 +28,13 @@
 #include <datawizard/coherency.h>
 #include <datawizard/memalloc.h>
 
+#pragma GCC visibility push(hidden)
+
 /** To avoid deadlocks, we reorder the different buffers accessed to by the task
  * so that we always grab the rw-lock associated to the handles in the same
  * order. */
 void _starpu_sort_task_handles(struct _starpu_data_descr descr[], unsigned nbuffers);
+
+#pragma GCC visibility pop
 
 #endif // SORT_DATA_HANDLES

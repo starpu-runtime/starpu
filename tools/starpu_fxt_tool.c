@@ -107,7 +107,7 @@ static int parse_args(int argc, char **argv)
 
 		if (strcmp(argv[i], "-number-events") == 0)
 		{
-			options.number_events_path = "number_events.data";
+			options.number_events_path = strdup("number_events.data");
 			reading_input_filenames = 0;
 			continue;
 		}

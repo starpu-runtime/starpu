@@ -712,7 +712,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 {
 	struct starpu_task *conversion_task;
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	struct starpu_multiformat_interface *format_interface;
 #endif
 
@@ -721,7 +721,7 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 	conversion_task->synchronous = 0;
 	STARPU_TASK_SET_HANDLE(conversion_task, handle, 0);
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_MIC) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	/* The node does not really matter here */
 	format_interface = (struct starpu_multiformat_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 #endif
@@ -756,15 +756,6 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 			break;
 		}
 #endif
-#ifdef STARPU_USE_MIC
-		case STARPU_MIC_RAM:
-		{
-			struct starpu_multiformat_data_interface_ops *mf_ops;
-			mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
-			conversion_task->cl = mf_ops->mic_to_cpu_cl;
-			break;
-		}
-#endif
 		default:
 			_STARPU_ERROR("Oops : %u\n", handle->mf_node);
 		}
@@ -784,15 +775,6 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 		struct starpu_multiformat_data_interface_ops *mf_ops;
 		mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
 		conversion_task->cl = mf_ops->cpu_to_opencl_cl;
-		break;
-	}
-#endif
-#ifdef STARPU_USE_MIC
-	case STARPU_MIC_RAM:
-	{
-		struct starpu_multiformat_data_interface_ops *mf_ops;
-		mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
-		conversion_task->cl = mf_ops->cpu_to_mic_cl;
 		break;
 	}
 #endif

@@ -15,6 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#pragma GCC visibility push(hidden)
+
 /** @file */
 
 struct _starpu_mct_data
@@ -69,3 +71,5 @@ void starpu_mct_compute_energy(struct starpu_sched_component *component,
 			       double *local_energy,
 			       unsigned *suitable_components,
 			       unsigned nsuitable_components);
+
+#pragma GCC visibility pop

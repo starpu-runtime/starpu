@@ -41,6 +41,8 @@
 #include <starpu.h>
 #include "../../../include/starpu_fxt.h"
 
+#pragma GCC visibility push(hidden)
+
 extern char _starpu_last_codelet_symbol[STARPU_NMAXWORKERS][(FXT_MAX_PARAMS-5)*sizeof(unsigned long)];
 
 void _starpu_fxt_dag_init(char *dag_filename);
@@ -86,5 +88,7 @@ void _starpu_fxt_component_finish(FILE *output);
 void _starpu_fxt_component_deinit(void);
 
 #endif // STARPU_USE_FXT
+
+#pragma GCC visibility pop
 
 #endif // __STARPU__FXT_H__

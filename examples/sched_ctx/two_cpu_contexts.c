@@ -44,16 +44,21 @@ int main(void)
 	int *procs2 = NULL;
 	int i;
 	int n = 20;
+
 	int ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	ncpu = starpu_cpu_worker_get_count();
 
+	ncpu = starpu_cpu_worker_get_count();
 	/* actually we really need at least 2 CPU workers such to allocate 2
 	 * non overlapping contexts */
 	if (ncpu < 2)
+	{
+		starpu_shutdown();
 		return 77;
+	}
+
 	procs = calloc(ncpu, sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, procs, ncpu);
 

@@ -17,10 +17,14 @@
 #ifndef __STARPU_OPENCL_UTILS_H__
 #define __STARPU_OPENCL_UTILS_H__
 
+#pragma GCC visibility push(hidden)
+
 /** @file */
 
 char *_starpu_opencl_get_device_type_as_string(int id);
 
 #define _STARPU_OPENCL_PLATFORM_MAX 4
+
+#pragma GCC visibility pop
 
 #endif /* __STARPU_OPENCL_UTILS_H__ */

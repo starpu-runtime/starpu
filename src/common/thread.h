@@ -21,8 +21,10 @@
 
 #include <common/utils.h>
 
+#pragma GCC visibility push(hidden)
+
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
-int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock);
+int _starpu_pthread_spin_do_lock(starpu_pthread_spinlock_t *lock) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 #endif
 
 #if defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK)
@@ -107,7 +109,7 @@ static inline int _starpu_pthread_spin_trylock(starpu_pthread_spinlock_t *lock)
 #define starpu_pthread_spin_trylock _starpu_pthread_spin_trylock
 
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)
-void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock);
+void _starpu_pthread_spin_do_unlock(starpu_pthread_spinlock_t *lock) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 #endif
 
 static inline int _starpu_pthread_spin_unlock(starpu_pthread_spinlock_t *lock)
@@ -138,6 +140,8 @@ static inline void _starpu_pthread_spin_checklocked(starpu_pthread_spinlock_t *l
 
 #endif /* defined(STARPU_SIMGRID) || (defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)) || !defined(STARPU_HAVE_PTHREAD_SPIN_LOCK) */
 
+
+#pragma GCC visibility pop
 
 #endif /* __COMMON_THREAD_H__ */
 

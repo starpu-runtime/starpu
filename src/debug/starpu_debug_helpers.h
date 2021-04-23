@@ -23,19 +23,23 @@
 #include <starpu_config.h>
 #include <starpu_util.h>
 
+#pragma GCC visibility push(hidden)
+
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
 /** Perform a ping pong between the two memory nodes */
-void _starpu_benchmark_ping_pong(starpu_data_handle_t handle, unsigned node0, unsigned node1, unsigned niter);
+void _starpu_benchmark_ping_pong(starpu_data_handle_t handle, unsigned node0, unsigned node1, unsigned niter) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 /** Display the size of different data structures */
-void _starpu_debug_display_structures_size(FILE *stream);
+void _starpu_debug_display_structures_size(FILE *stream) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 #ifdef __cplusplus
 }
 #endif
+
+#pragma GCC visibility pop
 
 #endif // __STARPU_DEBUG_HELPERS_H__

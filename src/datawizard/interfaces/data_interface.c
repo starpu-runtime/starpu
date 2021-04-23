@@ -958,15 +958,6 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 					break;
 				}
 #endif
-#ifdef STARPU_USE_MIC
-				case STARPU_MIC_RAM:
-				{
-					struct starpu_multiformat_data_interface_ops *mf_ops;
-					mf_ops = (struct starpu_multiformat_data_interface_ops *) handle->ops->get_mf_ops(format_interface);
-					cl = mf_ops->mic_to_cpu_cl;
-					break;
-				}
-#endif
 				case STARPU_CPU_RAM:      /* Impossible ! */
 				default:
 					STARPU_ABORT();

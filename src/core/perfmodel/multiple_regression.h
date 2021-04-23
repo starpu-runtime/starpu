@@ -25,6 +25,10 @@
 #include <core/perfmodel/perfmodel.h>
 #include <starpu.h>
 
+#pragma GCC visibility push(hidden)
+
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, const char **parameters_names, unsigned **combinations, const char *codelet_name);
+
+#pragma GCC visibility pop
 
 #endif // __MULTIPLE_REGRESSION_H__

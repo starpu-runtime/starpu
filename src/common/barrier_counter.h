@@ -23,6 +23,8 @@
 #include <common/utils.h>
 #include <common/barrier.h>
 
+#pragma GCC visibility push(hidden)
+
 struct _starpu_barrier_counter
 {
 	struct _starpu_barrier barrier;
@@ -53,4 +55,7 @@ int _starpu_barrier_counter_check(struct _starpu_barrier_counter *barrier_c);
 int _starpu_barrier_counter_get_reached_start(struct _starpu_barrier_counter *barrier_c);
 
 double _starpu_barrier_counter_get_reached_flops(struct _starpu_barrier_counter *barrier_c);
+
+#pragma GCC visibility pop
+
 #endif

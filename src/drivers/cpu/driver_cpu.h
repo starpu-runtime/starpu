@@ -22,6 +22,8 @@
 #include <common/config.h>
 #include <datawizard/node_ops.h>
 
+#pragma GCC visibility push(hidden)
+
 void _starpu_cpu_preinit(void);
 
 extern struct _starpu_driver_ops _starpu_driver_cpu_ops;
@@ -35,5 +37,7 @@ int _starpu_cpu_copy_data(uintptr_t src_ptr, size_t src_offset, unsigned src_nod
 int _starpu_cpu_is_direct_access_supported(unsigned node, unsigned handling_node);
 uintptr_t _starpu_cpu_malloc_on_node(unsigned dst_node, size_t size, int flags);
 void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+
+#pragma GCC visibility pop
 
 #endif //  __DRIVER_CPU_H__

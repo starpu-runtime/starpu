@@ -82,7 +82,7 @@ void prologue_cb_func(void *cl_arg)
 	struct starpu_task *task = starpu_task_get_current();
 	/*Initialize struct starpu_codelet_unpack_arg_data*/
 	struct starpu_codelet_pack_arg_data data_org;
-	starpu_codelet_unpack_arg_init(&data_org, &task->cl_arg, &task->cl_arg_size);
+	starpu_codelet_unpack_arg_init(&data_org, task->cl_arg, task->cl_arg_size);
 
 	/*get func_py char**/
 	starpu_codelet_pick_arg(&data_org, (void**)&func_data, &func_data_size);
@@ -124,7 +124,7 @@ void prologue_cb_func(void *cl_arg)
 				/*call obj = asyncio.run_coroutine_threadsafe(wait_for_fut(obj), loop)*/
 				obj = PyObject_CallMethod(asyncio_module, "run_coroutine_threadsafe", "O,O", wait_obj, loop);
 			}
-		    
+
 			/*if one of arguments is Future, get its result*/
 			PyObject *fut_result = PyObject_CallMethod(obj, "result", NULL);
 			/*replace the Future argument to its result*/
@@ -169,7 +169,7 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 	struct starpu_task *task = starpu_task_get_current();
 	/*Initialize struct starpu_codelet_unpack_arg_data*/
 	struct starpu_codelet_pack_arg_data data;
-	starpu_codelet_unpack_arg_init(&data, &task->cl_arg, &task->cl_arg_size);
+	starpu_codelet_unpack_arg_init(&data, task->cl_arg, task->cl_arg_size);
 
 	/*get func_py char**/
 	starpu_codelet_pick_arg(&data, (void**)&func_data, &func_data_size);
@@ -225,7 +225,7 @@ void starpupy_codelet_func(void *buffers[], void *cl_arg)
 		char* rv_data=NULL;
 		Py_ssize_t rv_data_size=0;
 		starpu_codelet_pack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
-	    starpu_codelet_pack_arg(&data_ret, &rv_data, sizeof(rv_data));
+		starpu_codelet_pack_arg(&data_ret, &rv_data, sizeof(rv_data));
 	}
 	/*else use cloudpickle to dump rv*/
 	else
@@ -264,7 +264,7 @@ void epilogue_cb_func(void *v)
 
 	/*Initialize struct starpu_codelet_unpack_arg_data data*/
 	struct starpu_codelet_pack_arg_data data;
-	starpu_codelet_unpack_arg_init(&data, &task->cl_arg, &task->cl_arg_size);
+	starpu_codelet_unpack_arg_init(&data, task->cl_arg, task->cl_arg_size);
 
 	/*skip func_py*/
 	starpu_codelet_unpack_discard_arg(&data);
@@ -279,7 +279,7 @@ void epilogue_cb_func(void *v)
 
 	/*Initialize struct starpu_codelet_unpack_arg_data data*/
 	struct starpu_codelet_pack_arg_data data_ret;
-	starpu_codelet_unpack_arg_init(&data_ret, &task->cl_ret, &task->cl_ret_size);
+	starpu_codelet_unpack_arg_init(&data_ret, task->cl_ret, task->cl_ret_size);
 	/*get rv_data_size*/
 	starpu_codelet_unpack_arg(&data_ret, &rv_data_size, sizeof(rv_data_size));
 
@@ -354,7 +354,7 @@ static size_t sizebase (struct starpu_task *task, unsigned nimpl)
 
 	/*Initialize struct starpu_codelet_unpack_arg_data*/
 	struct starpu_codelet_pack_arg_data data;
-	starpu_codelet_unpack_arg_init(&data, &task->cl_arg, &task->cl_arg_size);
+	starpu_codelet_unpack_arg_init(&data, task->cl_arg, task->cl_arg_size);
 
 	/*skip func_py*/
 	//starpu_codelet_unpack_discard_arg(&data);
@@ -440,6 +440,12 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	/*create a asyncio.Future object*/
 	PyObject *fut = PyObject_CallMethod(loop, "create_future", NULL);
 
+	if (fut == NULL)
+	{
+		PyErr_Format(StarpupyError, "Can't find asyncio module (try to add \"-m asyncio\" when starting Python interpreter)");
+		return NULL;
+	}
+
 	/*first argument in args is always the python function passed in*/
 	PyObject *func_py = PyTuple_GetItem(args, 0);
 
@@ -518,9 +524,9 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	Py_ssize_t func_data_size;
 	PyObject *func_bytes;
 	char* func_data = starpu_cloudpickle_dumps(func_py, &func_bytes, &func_data_size);
-    starpu_codelet_pack_arg(&data, func_data, func_data_size);
-    Py_DECREF(func_bytes);
-    /*pack argList*/
+	starpu_codelet_pack_arg(&data, func_data, func_data_size);
+	Py_DECREF(func_bytes);
+	/*pack argList*/
 	starpu_codelet_pack_arg(&data, &argList, sizeof(argList));
 	/*pack fut*/
 	starpu_codelet_pack_arg(&data, &fut, sizeof(fut));
@@ -789,7 +795,7 @@ PyInit_starpupy(void)
 	/*numpy import array*/
 	import_array();
 #endif
-	
+
 	return m;
 }
 /***********************************************************************************/

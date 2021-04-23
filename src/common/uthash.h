@@ -64,6 +64,8 @@ typedef unsigned int uint32_t;
 #include <inttypes.h>   /* uint32_t */
 #endif
 
+#pragma GCC visibility push(hidden)
+
 #define UTHASH_VERSION 1.9.3
 
 #define uthash_fatal(msg) exit(-1)        /* fatal error (out of memory,etc) */
@@ -1022,5 +1024,7 @@ typedef struct UT_hash_handle {
    unsigned keylen;                  /* enclosing struct's key len     */
    unsigned hashv;                   /* result of hash-fcn(key)        */
 } UT_hash_handle;
+
+#pragma GCC visibility pop
 
 #endif /* UTHASH_H */

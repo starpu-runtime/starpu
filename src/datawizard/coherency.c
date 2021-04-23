@@ -81,6 +81,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 				unsigned handling_node;
 
 				/* Avoid indirect transfers */
+				/* TODO: but with NVLink, that might be better than a "direct" transfer that actually goes through the Host! */
 				if (!link_supports_direct_transfers(handle, i, destination, &handling_node))
 					continue;
 
@@ -948,7 +949,7 @@ void _starpu_release_data_on_node(starpu_data_handle_t handle, uint32_t default_
 	while (cpt < STARPU_SPIN_MAXTRY && _starpu_spin_trylock(&handle->header_lock))
 	{
 		cpt++;
-		_starpu_datawizard_progress(STARPU_DATAWIZARD_DO_ALLOC);
+		_starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC);
 	}
 	if (cpt == STARPU_SPIN_MAXTRY)
 		_starpu_spin_lock(&handle->header_lock);
@@ -1069,7 +1070,7 @@ int starpu_idle_prefetch_task_input_for(struct starpu_task *task, unsigned worke
 	return starpu_idle_prefetch_task_input_for_prio(task, worker, prio);
 }
 
-struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
+static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle, enum starpu_data_access_mode mode, int workerid, unsigned node)
 {
 	if (mode & (STARPU_SCRATCH|STARPU_REDUX))
 	{

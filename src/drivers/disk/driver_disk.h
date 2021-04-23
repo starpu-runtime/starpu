@@ -22,6 +22,8 @@
 
 #include <datawizard/node_ops.h>
 
+#pragma GCC visibility push(hidden)
+
 void _starpu_disk_preinit(void);
 
 int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel);
@@ -45,5 +47,7 @@ extern struct _starpu_node_ops _starpu_driver_disk_node_ops;
 int _starpu_disk_is_direct_access_supported(unsigned node, unsigned handling_node);
 uintptr_t _starpu_disk_malloc_on_node(unsigned dst_node, size_t size, int flags);
 void _starpu_disk_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
+
+#pragma GCC visibility pop
 
 #endif
