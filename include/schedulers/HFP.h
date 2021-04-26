@@ -92,7 +92,8 @@ struct handle /* The handles from above */
 	int last_use;
 	struct handle *next;
 };
-//~ /* Empty a task's list. We use this for the lists last_package */
+
+/* Empty a task's list. We use this for the lists last_package */
 void HFP_empty_list(struct starpu_task_list *a);
 
 /* Put a link at the beginning of the linked list */
@@ -106,15 +107,12 @@ struct my_list* HFP_delete_link(struct paquets* a);
 
 /* Give a color for each package. Written in the file Data_coordinates.txt */
 void rgb(int num, int *r, int *g, int *b);
-//~ static void rgb(int num, int *r, int *g, int *b);
 
 void interlacing_task_list (struct paquets *a, int interlacing_mode);
 
 void end_visualisation_tache_matrice_format_tex();
 
 void visualisation_tache_matrice_format_tex(char *algo);
-
-//~ void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[][N], int nb_of_loop, int link_index);
 
 struct my_list* HFP_reverse_sub_list(struct my_list *a);
 
@@ -150,9 +148,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 
 /* Giving prefetch for each task to modular-heft-HFP */
 void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to);
-
-/* Pushing the tasks */		
-//~ static int HFP_push_task(struct starpu_sched_component *component, struct starpu_task *task);
 
 /* Need an empty data paquets_data to build packages
  * Output a task list ordered. So it's HFP if we have only one package at the end
@@ -225,18 +220,7 @@ void HFP_insertion_end(struct paquets *a);
 
 int get_number_GPU();
 
-/* The function that sort the tasks in packages */
-//~ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to);
-
-//~ static int HFP_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to);
-
-//~ static int HFP_can_pull(struct starpu_sched_component * component);
-
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED);
-
-//~ static void initialize_HFP_center_policy(unsigned sched_ctx_id);
-
-//~ static void deinitialize_HFP_center_policy(unsigned sched_ctx_id);
 
 void get_current_tasks_heft(struct starpu_task *task, unsigned sci);
 
@@ -246,9 +230,6 @@ void get_current_tasks(struct starpu_task *task, unsigned sci);
  * TODO : corriger belady en cas de multi gpu
  */
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
-
-
-//~ static void initialize_heft_hfp_policy(unsigned sched_ctx_id);
 
 struct starpu_sched_policy _starpu_sched_HFP_policy;
 

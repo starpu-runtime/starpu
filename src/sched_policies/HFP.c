@@ -336,7 +336,8 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 int get_total_number_data_task_list(struct starpu_task_list a) 
 {
 	int total_nb_data_list = 0;
-	for (struct starpu_task *task = starpu_task_list_begin(&a); task != starpu_task_list_end(&a); task = starpu_task_list_next(task)) 
+	struct starpu_task *task = NULL;
+	for (task = starpu_task_list_begin(&a); task != starpu_task_list_end(&a); task = starpu_task_list_next(task)) 
 	{
 		total_nb_data_list +=  STARPU_TASK_GET_NBUFFERS(task);
 	}
@@ -350,6 +351,7 @@ struct use_order *use_order_data;;
 void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu)
 {
 	int k = 0;
+	struct starpu_task *task = NULL;
 	//~ struct gpu_list *gpu_data = malloc(sizeof(*gpu_data));
 	//~ struct use_order *use_order_data = malloc(sizeof(*use_order_data));
 	gpu_data = malloc(sizeof(*gpu_data));
@@ -369,7 +371,7 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 		use_order_data->total_nb_data = get_total_number_data_task_list(a->temp_pointer_1->sub_list);
 		use_order_data->data_list = malloc(use_order_data->total_nb_data*sizeof(a->temp_pointer_1->package_data[0]));
 		use_order_data->last_position_in_data_use_order = 0;
-		for (struct starpu_task *task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
+		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
 		{
 			fprintf(f_2,"%p\n",task);
 			for (int i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
@@ -889,6 +891,8 @@ void print_effective_order_in_file (struct starpu_task *task)
 
 /* Printing each package and its content */
 void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
+	
+	int i = 0;
 	int link_index = 0;
 	struct starpu_task *task;
 	a->temp_pointer_1 = a->first_link;
@@ -904,7 +908,7 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 				printf("Le paquet %d contient %d tâche(s) et %d données, expected task time = %f, expected package time = %f\n",link_index,a->temp_pointer_1->nb_task_in_sub_list,a->temp_pointer_1->package_nb_data,a->temp_pointer_1->expected_time, a->temp_pointer_1->expected_package_computation_time);
 				for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
 					printf("%p : ",task);
-					for (int i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+					for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 					{
 						printf("%p ", STARPU_TASK_GET_HANDLE(task, i));
 					}
@@ -2462,10 +2466,11 @@ void init_visualisation (struct paquets *a)
 int get_number_GPU()
 {
 	int return_value = 0;
+	int i = 0;
 	if (starpu_get_env_number_default("MULTIGPU",0) != 0 || starpu_get_env_number_default("HMETIS",0) != 0) 
 	{
 		unsigned nnodes = starpu_memory_nodes_get_count();
-		for (int i = 0; i < nnodes; i++)
+		for (i = 0; i < nnodes; i++)
 		{
 			if (starpu_node_get_kind(i) == STARPU_CUDA_RAM)
 			{
@@ -3083,6 +3088,7 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Début HFP_can_push\n"); }
 	struct HFP_sched_data *data = component->data;
 	int didwork = 0;
+	int i = 0;
 
 	struct starpu_task *task;
 	task = starpu_sched_component_pump_to(component, to, &didwork);
@@ -3099,7 +3105,7 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 		else {
 			//A corriger. En fait il faut push back dans une fifo a part puis pop back dans cette fifo dans pull task
 			//Ici le pb c'est si plusieurs taches se font refusé
-			for (int i = 0; i < nb_gpu; i++) {
+			for (i = 0; i < nb_gpu; i++) {
 				if (to == component->children[i]) {
 					break;
 				}
@@ -3354,22 +3360,30 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	return STARPU_DATA_NO_VICTIM;
 }
 
+//~ static void do_schedule_HFP(unsigned sched_ctx_id)
+//~ static void do_schedule_HFP(struct starpu_sched_component *component)
+//~ {
+	//~ printf("here\n");
+//~ }
+
 struct starpu_sched_policy _starpu_sched_HFP_policy =
 {
 	.init_sched = initialize_HFP_center_policy,
 	.deinit_sched = deinitialize_HFP_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
+	//~ .do_schedule = do_schedule_HFP,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = get_current_tasks, /* Getting current task for Belady later on */
-	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	//.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "HFP",
 	.policy_description = "Affinity aware task ordering",
 	.worker_type = STARPU_WORKER_LIST,
 };
+
 
 static void initialize_heft_hfp_policy(unsigned sched_ctx_id)
 {
