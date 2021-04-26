@@ -3143,6 +3143,11 @@ static int HFP_can_pull(struct starpu_sched_component * component)
 	return starpu_sched_component_can_pull(component);
 }
 
+static void HFP_do_schedule(struct starpu_sched_component *component)
+{
+	printf("here\n");
+}
+
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Create\n"); }
@@ -3178,6 +3183,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	data->p->temp_pointer_1->expected_time_pulled_out = 0;
 	
 	component->data = data;
+	component->do_schedule = HFP_do_schedule;
 	component->push_task = HFP_push_task;
 	component->pull_task = HFP_pull_task;
 	component->can_push = HFP_can_push;
@@ -3361,18 +3367,14 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	return STARPU_DATA_NO_VICTIM;
 }
 
-//~ static void do_schedule_HFP(unsigned sched_ctx_id)
-//~ static void do_schedule_HFP(struct starpu_sched_component *component)
-//~ {
-	//~ printf("here\n");
-//~ }
-
 struct starpu_sched_policy _starpu_sched_HFP_policy =
 {
 	.init_sched = initialize_HFP_center_policy,
 	.deinit_sched = deinitialize_HFP_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
+	.do_schedule = starpu_sched_tree_do_schedule,
+	//~ .starpu_sched_tree_do_schedule = HFP_do_schedule,
 	//~ .do_schedule = do_schedule_HFP,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
