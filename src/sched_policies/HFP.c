@@ -351,6 +351,7 @@ struct use_order *use_order_data;;
 void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu)
 {
 	int k = 0;
+	int i = 0;
 	struct starpu_task *task = NULL;
 	//~ struct gpu_list *gpu_data = malloc(sizeof(*gpu_data));
 	//~ struct use_order *use_order_data = malloc(sizeof(*use_order_data));
@@ -374,7 +375,7 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
 		{
 			fprintf(f_2,"%p\n",task);
-			for (int i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 				use_order_data->data_list[k] = STARPU_TASK_GET_HANDLE(task,i);
 				k++;
 				fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
