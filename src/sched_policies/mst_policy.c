@@ -39,7 +39,9 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 	struct starpu_task_list SIGMA;
 	starpu_task_list_init(&SIGMA);
 	int i = 0; 
+	int count = 0;
 	int j = 0;
+	int v = 0;
 	int i_bis = 0;
 	int j_bis = 0;
 	int tab_runner = 0;
@@ -124,7 +126,7 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 	bool mstSet[number_task];
 	int tab_SIGMA[number_task];
 	// Initialize all keys as 0
-	for (int i = 0; i < number_task; i++) 
+	for (i = 0; i < number_task; i++) 
 	{ 
 		key[i] = 0, mstSet[i] = false; 
 	}
@@ -132,12 +134,12 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 	// Always include first 1st vertex in MST.
 	// Make key 0 so that this vertex is picked as first vertex.
 	key[0] = 1;
-	for (int count = 0; count < number_task - 1; count++) 
+	for (count = 0; count < number_task - 1; count++) 
 	{
 		// Pick the minimum key vertex from the
 		// set of vertices not yet included in MST
 		int max = -1, max_index = 0;
-		for (int v = 0; v < number_task; v++)
+		for (v = 0; v < number_task; v++)
 			if (mstSet[v] == false && key[v] > max)
 				max = key[v], max_index = v;
 		
@@ -151,7 +153,7 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 		// the adjacent vertices of the picked vertex.
 		// Consider only those vertices which are not
 		// yet included in MST
-		for (int v = 0; v < number_task; v++)
+		for (v = 0; v < number_task; v++)
 			// matrice_adjacence[u][v] is non zero only for adjacent vertices of m
 			// mstSet[v] is false for vertices not yet included in MST
 			// Update the key only if graph[u][v] is greater than key[v]
@@ -332,6 +334,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 
 static int mst_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
 {
+	int i = 0;
 	struct HFP_sched_data *data = component->data;
 	int didwork = 0;
 
@@ -353,7 +356,7 @@ static int mst_can_push(struct starpu_sched_component * component, struct starpu
 		}
 		else 
 		{
-			for (int i = 0; i < nb_gpu; i++) 
+			for (i = 0; i < nb_gpu; i++) 
 			{
 				if (to == component->children[i]) 
 				{
