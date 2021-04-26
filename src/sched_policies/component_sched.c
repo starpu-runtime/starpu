@@ -468,6 +468,26 @@ void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, uns
 	STARPU_COMPONENT_MUTEX_UNLOCK(&t->lock);
 }
 
+static void _starpu_sched_tree_do_schedule(struct starpu_sched_component *component)
+{
+	unsigned i;
+
+	if (component->do_schedule)
+		component->do_schedule(component);
+
+	for (i = 0; i < component->nchildren; i++)
+		_starpu_sched_tree_do_schedule(component->children[i]);
+}
+
+void starpu_sched_tree_do_schedule(unsigned sched_ctx_id)
+{
+	STARPU_ASSERT(sched_ctx_id < STARPU_NMAX_SCHED_CTXS);
+	struct starpu_sched_tree * t = starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	if (t->root)
+		_starpu_sched_tree_do_schedule(t->root);
+}
+
 static struct starpu_sched_tree *trees[STARPU_NMAX_SCHED_CTXS];
 
 struct starpu_sched_tree * starpu_sched_tree_create(unsigned sched_ctx_id)
