@@ -628,7 +628,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 		if ((descrs[i].mode & STARPU_REDUX || descrs[i].mode & STARPU_MPI_REDUX) && descrs[i].handle)
 		{
 			struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) descrs[i].handle->mpi_data;
-			int rrank = starpu_mpi_data_get_rank(descrs[i].handle);
+			rrank = starpu_mpi_data_get_rank(descrs[i].handle);
 			int size;
 			starpu_mpi_comm_size(comm, &size);
 			if (mpi_data->redux_map == NULL)
@@ -772,7 +772,8 @@ void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, 
 }
 
 
-
+/* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
+ *  * a data previously accessed in (MPI_)REDUX mode gets accessed in R mode. */
 void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int prio, int arity)
 {
 	int me, rank, nb_nodes;
