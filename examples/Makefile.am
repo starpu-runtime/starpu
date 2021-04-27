@@ -347,8 +347,10 @@ STARPU_EXAMPLES +=				\
 endif
 
 if STARPU_HAVE_CBLAS_H
+if STARPU_HAVE_CBLAS_SGEMV
 STARPU_EXAMPLES +=				\
 	spmv/dw_block_spmv
+endif
 endif
 
 if !STARPU_SIMGRID
