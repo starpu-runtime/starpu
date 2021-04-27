@@ -1,7 +1,7 @@
 module load linalg/mkl
 ./configure --prefix=/home/mgonthie/starpu
-sudo make install
-sudo make -j4
+make install
+make -j4
 echo "INITIALISATION OK"
 export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 
