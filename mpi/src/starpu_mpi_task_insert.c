@@ -618,7 +618,7 @@ int _starpu_mpi_task_build_v(MPI_Comm comm, struct starpu_codelet *codelet, stru
 
 int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struct starpu_data_descr *descrs, int nb_data, int prio)
 {
-	int me, i, rrank;
+	int me, i;
 
 	_STARPU_TRACE_TASK_MPI_POST_START();
 	starpu_mpi_comm_rank(comm, &me);
@@ -628,7 +628,7 @@ int _starpu_mpi_task_postbuild_v(MPI_Comm comm, int xrank, int do_execute, struc
 		if ((descrs[i].mode & STARPU_REDUX || descrs[i].mode & STARPU_MPI_REDUX) && descrs[i].handle)
 		{
 			struct _starpu_mpi_data *mpi_data = (struct _starpu_mpi_data *) descrs[i].handle->mpi_data;
-			rrank = starpu_mpi_data_get_rank(descrs[i].handle);
+			int rrank = starpu_mpi_data_get_rank(descrs[i].handle);
 			int size;
 			starpu_mpi_comm_size(comm, &size);
 			if (mpi_data->redux_map == NULL)

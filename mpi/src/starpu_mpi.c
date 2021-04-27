@@ -394,6 +394,7 @@ void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 	_starpu_mpi_cache_data_clear(data_handle);
 	_starpu_spin_destroy(&data->coop_lock);
 	free(data->redux_map);
+	data->redux_map = NULL;
 	free(data);
 }
 
