@@ -683,6 +683,7 @@ int main(int argc, char **argv)
 					}
 					starpu_data_wont_use(Ctile);
 				}
+				starpu_do_schedule();
 				starpu_resume(); /* Because I paused above */
 				starpu_task_wait_for_all();
 			}
@@ -736,6 +737,7 @@ int main(int argc, char **argv)
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 				}
+				starpu_do_schedule();
 				starpu_resume();
 				starpu_task_wait_for_all();
 			}
@@ -812,6 +814,7 @@ int main(int argc, char **argv)
 				     //~ ret = 77;
 				     //~ goto enodev;
 				}
+				starpu_do_schedule();
 				starpu_resume();
 				starpu_task_wait_for_all();
 			}
@@ -844,6 +847,7 @@ int main(int argc, char **argv)
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
+				starpu_do_schedule();
 				starpu_resume();
 
 				starpu_task_wait_for_all();
@@ -876,7 +880,7 @@ int main(int argc, char **argv)
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
-				//~ starpu_do_schedule();
+				starpu_do_schedule();
 				starpu_resume();
 				starpu_task_wait_for_all();
 			}	
