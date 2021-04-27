@@ -40,6 +40,8 @@ int N;
 double EXPECTED_TIME;
 //~ int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
 starpu_ssize_t GPU_RAM_M;
+bool do_schedule_done;
+
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct HFP_sched_data

@@ -973,7 +973,6 @@ bool is_it_a_C_tile_data_never_used_again(starpu_data_handle_t h, int i, struct 
 
 void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvNombre, int use_order, int i, struct starpu_task_list *l, struct starpu_task *current_task)
 {
-	printf("début insertion_data_on_node\n");
     struct handle *nouveau = malloc(sizeof(*nouveau));
     if (liste == NULL || nouveau == NULL)
     {
@@ -983,18 +982,14 @@ void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvN
     liste->memory_used += starpu_data_get_size(nvNombre);
     nouveau->h = nvNombre;
     nouveau->next = liste->first_data;
-    printf("iciii\n");
     if (strcmp(appli, "starpu_sgemm_gemm") == 0) 
     {
-		printf("its a gemm appli\n");
 		if (is_it_a_C_tile_data_never_used_again(nouveau->h, i, l, current_task) == true)
 		{
-			printf("true\n");
 			nouveau->last_use = -1;
 		}
 		else
 		{
-			printf("false\n");
 			nouveau->last_use = use_order;
 		}
 	}
@@ -1003,7 +998,6 @@ void insertion_data_on_node(struct data_on_node *liste, starpu_data_handle_t nvN
 		nouveau->last_use = use_order;
 	}
     liste->first_data = nouveau;
-    printf("insert ok\n");
 }
 
 void afficher_data_on_node(struct my_list *liste)
@@ -2489,80 +2483,46 @@ int get_number_GPU()
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
 	struct HFP_sched_data *data = component->data;
-
-	/* Variables used to calculate, navigate through a loop or other things */
+	
 	int i = 0;
-	//~ int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0; int NB_TOTAL_DONNEES = 0;
-	//~ int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0;
 	struct starpu_task *task1 = NULL; 
-	//~ struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL;	 
-	//~ int nb_pop = 0; /* Variable used to track the number of tasks that have been popped */
-	//~ int nb_common_data = 0; /* Track the number of packages that have data in commons with other packages */
-	//~ int link_index = 0; /* Track the number of packages */
-	//~ int nb_duplicate_data = 0; /* Used to store the number of duplicate data between two packages */
-	//~ long int weight_two_packages; /* Used to store the weight the merging of two packages would be. It is then used to see if it's inferior to the size of the RAM of the GPU */
-	//~ long int max_value_common_data_matrix = 0; /* Store the maximum weight of the commons data between two packages for all the tasks */
-	//~ int nb_of_loop = 0; /* Number of iteration of the while loop */
-	//~ int packaging_impossible = 0; /* We use this to stop the while loop and thus stop the packaging. 0 = false, 1 = true */
-	//~ int bool_data_common = 0; /* ""boolean"" used to check if two packages have data in commons whe we merge them */
-	//~ int GPU_limit_switch = 1; /* On 1 it means we use the size of the GPU limit. It is usefull for algorithm 3 that remove this limit at the end of it execution */	
-	//~ /* List used to store tasks in sub package and then compare them to apply order-U */
-	//~ struct starpu_task_list sub_package_1_i; /* Used for order U to store the tasks of the sub package 1 of i */
-	//~ struct starpu_task_list sub_package_2_i;
-	//~ struct starpu_task_list sub_package_1_j;
-	//~ struct starpu_task_list sub_package_2_j;
-	//~ starpu_task_list_init(&sub_package_1_i);
-	//~ starpu_task_list_init(&sub_package_2_i);
-	//~ starpu_task_list_init(&sub_package_1_j);
-	//~ starpu_task_list_init(&sub_package_2_j);
-	//~ struct starpu_task_list non_connexe;
-	//~ starpu_task_list_init(&non_connexe);
-	//~ /* Variable used to store the common data weight beetween two sub packages of packages i and j before merging */
-	//~ long int common_data_last_package_i1_j1 = 0; /* Variables used to compare the affinity between sub package 1i and 1j, 1i and 2j etc... */
-	//~ long int common_data_last_package_i1_j2 = 0; 
-	//~ long int common_data_last_package_i2_j1 = 0; 
-	//~ long int common_data_last_package_i2_j2 = 0; 
-	//~ long int max_common_data_last_package = 0;
-	//~ long int weight_package_i = 0; /* Used for ORDER_U too */
-	//~ long int weight_package_j = 0;
-	int number_of_package_to_build = 0;
 	
-	/* Getting the number of GPUs */
-	number_of_package_to_build = get_number_GPU(); 
-	
-	/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
-	//STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component)); /* If we have only one GPU uncomment this */
-	//~ GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
-	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	
-	/* If one or more task have been refused */
-	data->p->temp_pointer_1 = data->p->first_link;
-	if (data->p->temp_pointer_1->next != NULL) { 
-		for (i = 0; i < number_of_package_to_build; i++) {
-			if (to == component->children[i]) {
-				break;
-			}
-			else {
-				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+	if (do_schedule_done == true)
+	{		
+		/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
+		//STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component)); /* If we have only one GPU uncomment this */
+		//~ GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
+		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+		
+		/* If one or more task have been refused */
+		data->p->temp_pointer_1 = data->p->first_link;
+		if (data->p->temp_pointer_1->next != NULL) { 
+			for (i = 0; i < Ngpu; i++) {
+				if (to == component->children[i]) {
+					break;
+				}
+				else {
+					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+				}
 			}
 		}
+		if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) {
+			task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to); }
+			return task1;
+		}	
+		/* If the linked list is empty, we can pull more tasks */
+		if (is_empty(data->p->first_link) == true) {
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+			//~ printf("linked list empty return NULL\n");
+			return NULL;
+		} /* End of if (is_empty(data->p->first_link) == true) { */
+			task1 = get_task_to_return(component, to, data->p, Ngpu);
+			if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+			return task1;
 	}
-	if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) {
-		task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to); }
-		return task1;
-	}	
-	/* If the linked list is empty, we can pull more tasks */
-	if (is_empty(data->p->first_link) == true) {
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ printf("linked list empty return NULL\n");
-		return NULL;
-	} /* End of if (is_empty(data->p->first_link) == true) { */
-		task1 = get_task_to_return(component, to, data->p, number_of_package_to_build);
-		if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		return task1;
 	printf("Ah return NULL :(\n");
 	return NULL;		
 }
@@ -3177,7 +3137,8 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		{
 			init_visualisation(data->p);
 		}
-		}
+		do_schedule_done = true;
+		}	
 }
 
 }
@@ -3190,6 +3151,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
 	
 	Ngpu = get_number_GPU();
+	do_schedule_done = false;
 	
 	struct HFP_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
