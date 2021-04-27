@@ -1,5 +1,5 @@
 module load linalg/mkl
-./configure --prefix=/home/mgonthie/starpu
+./configure --prefix=/home/mgonthie/starpu --with-fxt
 make -j 4
 make install
 echo "INITIALISATION OK"
