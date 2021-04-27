@@ -36,6 +36,7 @@
 #include "common/list.h"
 #define PRINTF /* O or 1 */
 #define REVERSE /* O or 1 */
+int do_schedule_done = false;
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct cuthillmckee_sched_data
@@ -83,6 +84,75 @@ static int cuthillmckee_push_task(struct starpu_sched_component *component, stru
 /* The function that sort the tasks in packages */
 static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	struct cuthillmckee_sched_data  *data = component->data;
+	struct starpu_task *task1 = NULL; 
+	if (do_schedule_done == true)
+	{
+		
+		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+
+		/* If one or more task have been refused */
+		if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
+			task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			//~ printf("Task %p is getting out of pull_task\n",task1);
+			return task1;
+		}
+		/* If the linked list is empty, we can pull more tasks */
+		if (starpu_task_list_empty(&data->SIGMA)) {
+				STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+				return NULL;
+			}
+		else { 
+			task1 = starpu_task_list_pop_front(&data->SIGMA);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			return task1;
+		}
+	}
+	return NULL;
+}
+
+static int cuthillmckee_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
+{
+	struct cuthillmckee_sched_data *data = component->data;
+	int didwork = 0;
+
+	struct starpu_task *task;
+	task = starpu_sched_component_pump_to(component, to, &didwork);
+
+	if (task)
+	{
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, task %p got refused\n", task); }
+		/* Oops, we couldn't push everything, put back this task */
+		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+		starpu_task_list_push_back(&data->list_if_fifo_full, task);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	}
+	else
+	{
+		/* Can I uncomment this part ? */
+		//~ {
+			//~ if (didwork)
+				//~ fprintf(stderr, "pushed some tasks to %p\n", to);
+			//~ else
+				//~ fprintf(stderr, "I didn't have anything for %p\n", to);
+		//~ }
+	}
+
+	/* There is room now */
+	return didwork || starpu_sched_component_can_push(component, to);
+}
+
+static int cuthillmckee_can_pull(struct starpu_sched_component * component)
+{
+	return starpu_sched_component_can_pull(component);
+}
+
+static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
+{
 	int i, j, i_bis, j_bis, tab_runner, tab_runner_bis, nb_voisins = 0;
 	int poids_aretes_min = INT_MAX; int indice_poids_aretes_min = INT_MAX;
 	struct cuthillmckee_sched_data *data = component->data;
@@ -92,16 +162,6 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
  
 	int NT = 0;
 		
-	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-
-	/* If one or more task have been refused */
-	if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
-		task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-		//~ printf("Task %p is getting out of pull_task\n",task1);
-		return task1;
-	}
 	/* If the linked list is empty, we can pull more tasks */
 	if (starpu_task_list_empty(&data->SIGMA)) {
 		if (!starpu_task_list_empty(&data->sched_list)) {
@@ -254,65 +314,12 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 			FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
 			fprintf(f_time,"%d\n",time_taken);
 			fclose(f_time);
-			
-			
-			task1 = starpu_task_list_pop_front(&data->SIGMA);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-			return task1;
-		}
-		else {
-			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-			//~ printf("Task %p is getting out of pull_task\n",task1);
-			return task1; 
+		
+		do_schedule_done = true;
 		}
 	}
-	else { 
-		task1 = starpu_task_list_pop_front(&data->SIGMA);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-		return task1;
-	}
-}
-
-static int cuthillmckee_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
-{
-	struct cuthillmckee_sched_data *data = component->data;
-	int didwork = 0;
-
-	struct starpu_task *task;
-	task = starpu_sched_component_pump_to(component, to, &didwork);
-
-	if (task)
-	{
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, task %p got refused\n", task); }
-		/* Oops, we couldn't push everything, put back this task */
-		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-		starpu_task_list_push_back(&data->list_if_fifo_full, task);
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	}
-	else
-	{
-		/* Can I uncomment this part ? */
-		//~ {
-			//~ if (didwork)
-				//~ fprintf(stderr, "pushed some tasks to %p\n", to);
-			//~ else
-				//~ fprintf(stderr, "I didn't have anything for %p\n", to);
-		//~ }
-	}
-
-	/* There is room now */
-	return didwork || starpu_sched_component_can_push(component, to);
-}
-
-static int cuthillmckee_can_pull(struct starpu_sched_component * component)
-{
-	struct cuthillmckee_sched_data *data = component->data;
-	return starpu_sched_component_can_pull(component);
+		
+	
 }
 
 struct starpu_sched_component *starpu_sched_component_cuthillmckee_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
@@ -323,6 +330,8 @@ struct starpu_sched_component *starpu_sched_component_cuthillmckee_create(struct
 	struct cuthillmckee_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	_STARPU_MALLOC(data, sizeof(*data));
+	
+	do_schedule_done = false;
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	starpu_task_list_init(&data->sched_list);
@@ -335,6 +344,7 @@ struct starpu_sched_component *starpu_sched_component_cuthillmckee_create(struct
 	data->temp_pointer_1 = my_data;
 	
 	component->data = data;
+	component->do_schedule = cuthillmckee_do_schedule;
 	component->push_task = cuthillmckee_push_task;
 	component->pull_task = cuthillmckee_pull_task;
 	component->can_push = cuthillmckee_can_push;
@@ -365,6 +375,7 @@ struct starpu_sched_policy _starpu_sched_cuthillmckee_policy =
 	.deinit_sched = deinitialize_cuthillmckee_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
+	.do_schedule = starpu_sched_tree_do_schedule,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
