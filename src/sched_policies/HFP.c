@@ -2523,7 +2523,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			return task1;
 	}
-	printf("Ah return NULL :(\n");
+	//~ printf("Ah return NULL :(\n");
 	return NULL;		
 }
 
