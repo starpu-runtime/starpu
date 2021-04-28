@@ -58,7 +58,7 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 	temp_task_1  = starpu_task_list_begin(&task_list);
 	temp_task_2  = starpu_task_list_begin(&task_list);
 	temp_task_2  = starpu_task_list_next(temp_task_2);
-	
+	printf("Après task list begin, number task = %d\n", number_task);
 	/* Building the adjacency matrix */
 	for (i = 0; i < number_task; i++) 
 	{
@@ -68,7 +68,7 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 			{
 				for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) 
 				{
-					if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) 
+					if (STARPU_TASK_GET_HANDLE(temp_task_1, i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2, j_bis)) 
 					{ 
 						matrice_adjacence[i][j]++; 
 					}
@@ -330,6 +330,8 @@ static int mst_can_pull(struct starpu_sched_component * component)
 static void mst_do_schedule(struct starpu_sched_component *component)
 {
 	int i = 0;
+	struct starpu_task_list temp_task_list;
+	starpu_task_list_init(&temp_task_list);
 	int NB_TOTAL_DONNEES = 0;
 	struct HFP_sched_data *data = component->data;
 	struct starpu_task *task = NULL;
@@ -367,15 +369,19 @@ static void mst_do_schedule(struct starpu_sched_component *component)
 				{ 
 					printf("%p\n",task); 
 				}
-				starpu_task_list_push_back(&data->popped_task_list,task);
+				starpu_task_list_push_back(&temp_task_list, task);
 			} 		
 			if (starpu_get_env_number_default("PRINTF",0) == 1) 
 			{ 
 				printf("%d task(s) have been pulled\n", NT); 
 			}
-			
+			//~ task = starpu_task_list_begin(&data->popped_task_list);
+			//~ printf("tache %p\n", task);
 			/* Apply mst on the task list */
-			data->p->temp_pointer_1->sub_list = mst(data->popped_task_list, NT, GPU_RAM_M);			
+			//~ data->p->temp_pointer_1->sub_list = mst(data->popped_task_list, NT, GPU_RAM_M);			
+			data->p->temp_pointer_1->sub_list = mst(temp_task_list, NT, GPU_RAM_M);			
+			
+			
 			time(&end); int time_taken = end - start; 
 			if (starpu_get_env_number_default("PRINTF",0) == 1) 
 			{ 
@@ -404,7 +410,7 @@ struct starpu_sched_component *starpu_sched_component_mst_create(struct starpu_s
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	starpu_task_list_init(&data->sched_list);
-	starpu_task_list_init(&data->popped_task_list);
+	//~ starpu_task_list_init(&data->popped_task_list);
 	starpu_task_list_init(&my_data->sub_list);
 	starpu_task_list_init(&my_data->refused_fifo_list);
  

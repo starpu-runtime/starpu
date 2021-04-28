@@ -1,4 +1,3 @@
-module load linalg/mkl
 ./configure --prefix=/home/mgonthie/starpu
 make -j 4
 make install
