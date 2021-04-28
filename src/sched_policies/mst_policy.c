@@ -58,7 +58,6 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 	temp_task_1  = starpu_task_list_begin(&task_list);
 	temp_task_2  = starpu_task_list_begin(&task_list);
 	temp_task_2  = starpu_task_list_next(temp_task_2);
-	printf("Après task list begin, number task = %d\n", number_task);
 	/* Building the adjacency matrix */
 	for (i = 0; i < number_task; i++) 
 	{
