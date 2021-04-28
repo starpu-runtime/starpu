@@ -643,6 +643,7 @@ int main(int argc, char **argv)
 
 		starpu_fxt_start_profiling();
 		//start = starpu_timing_now(); /* Moved before starpu_resume so we don't start time during scheduling */
+		double timing = 0;
 
 		unsigned x, y, z, iter;
 		/* Matrice 3D */
@@ -688,6 +689,8 @@ int main(int argc, char **argv)
 				starpu_resume(); /* Because I paused above */
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
+				if (iter != 0)
+					timing += end - start;
 			}
 		}
 		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
@@ -744,6 +747,8 @@ int main(int argc, char **argv)
 				starpu_resume();
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
+				if (iter != 0)
+					timing += end - start;
 			}
 			//End If environment variable RANDOM_TASK_ORDER == 1
 		}
@@ -823,6 +828,8 @@ int main(int argc, char **argv)
 				starpu_resume();
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
+				if (iter != 0)
+					timing += end - start;
 			}
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
@@ -858,6 +865,8 @@ int main(int argc, char **argv)
 				starpu_resume();
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
+				if (iter != 0)
+					timing += end - start;
 			}	
 		}
 		else { 
@@ -892,6 +901,8 @@ int main(int argc, char **argv)
 				starpu_resume();
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
+				if (iter != 0)
+					timing += end - start;
 
 				for (x = 0; x < nslicesx; x++)
 				for (y = 0; y < nslicesy; y++)
@@ -904,13 +915,14 @@ int main(int argc, char **argv)
 			}	
 			//End If environment variable RANDOM_TASK_ORDER == 0
 		}
+		/* Don't count first iteration */
+		niter--;
 
 		starpu_fxt_stop_profiling();
 
 		if (bound)
 			starpu_bound_stop();
 
-		double timing = end - start;
 		double min, min_int;
 		double flops = 2.0*((unsigned long long)niter)*((unsigned long long)xdim)
 				   *((unsigned long long)ydim)*((unsigned long long)zdim);
