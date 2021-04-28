@@ -496,3 +496,5 @@ Output_maxime/output_script_testing_2.txt
 Output_maxime/temp.txt
 examples/random_task_graph/random_task_graph
 nbuffers
+Output_maxime/GFlops.txt
+cut_gflops_raw_out_mean_deviation
