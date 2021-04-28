@@ -62,5 +62,5 @@ if [ $DOSSIER = "Matrice_ligne" ]
 fi
 
 # Tracage des GFlops
-gcc -o cut_gflops_raw_out_mean_deviation cut_gflops_raw_out_mean_deviation.c -lm
-./cut_gflops_raw_out_mean_deviation $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} Output_maxime/GFlops.txt $NB_TEST_MEME_SOMMET
+gcc -o cut_gflops_raw_out cut_gflops_raw_out.c -lm
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} Output_maxime/GFlops.txt
