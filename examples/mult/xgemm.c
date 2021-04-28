@@ -416,9 +416,9 @@ static void parse_args(int argc, char **argv)
 		{
 			fprintf(stderr,"Usage: %s [-3d] [-nblocks n] [-nblocksx x] [-nblocksy y] [-nblocksz z] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname] [-nsleeps nsleeps]\n", argv[0]);
 			if (tiled)
-				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, niter, nsleeps);
+				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%ux%u blocks (size %ux%u length %u), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, xdim / nslicesx, ydim / nslicesy, zdim / nslicesz, niter, nsleeps);
 			else
-				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter, nsleeps);
+				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks (size %ux%u length %u), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, xdim / nslicesx, ydim / nslicesy, zdim, niter, nsleeps);
 			exit(EXIT_SUCCESS);
 		}
 		else
