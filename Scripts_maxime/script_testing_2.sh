@@ -1,8 +1,23 @@
 #!/usr/bin/bash
-export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
+module load linalg/mkl
 ulimit -S -s 50000000
 
-STARPU_SCHED=HFP ORDER_U=1 ./examples/mult/sgemm -xy $((960*5)) -nblocks $((5)) -iter 1
+NB_TAILLE_TESTE=1
+NB_ALGO_TESTE=6
+ECHELLE_X=5
+START_X=0 
+FICHIER_RAW=Output_maxime/GFlops_raw_out_3.txt
+truncate -s 0 ${FICHIER_RAW}
+
+STARPU_SCHED=eager ./examples/mult/sgemm -xy $((960*5)) -nblocks $((5)) -iter 1 | tail -n 1 >> ${FICHIER_RAW}
+STARPU_SCHED=dmdar ./examples/mult/sgemm -xy $((960*5)) -nblocks $((5)) -iter 1 | tail -n 1 >> ${FICHIER_RAW}
+STARPU_SCHED=mst ./examples/mult/sgemm -xy $((960*5)) -nblocks $((5)) -iter 1 | tail -n 1 >> ${FICHIER_RAW}
+STARPU_SCHED=cuthillmckee REVERSE=1 ./examples/mult/sgemm -xy $((960*5)) -nblocks $((5)) -iter 1 | tail -n 1 >> ${FICHIER_RAW}
+STARPU_SCHED=HFP ORDER_U=1 ./examples/mult/sgemm -xy $((960*5)) -nblocks $((5)) -iter 1 | tail -n 1 >> ${FICHIER_RAW}
+STARPU_SCHED=HFP ORDER_U=1 BELADY=1 ./examples/mult/sgemm -xy $((960*5)) -nblocks $((5)) -iter 1 | tail -n 1 >> ${FICHIER_RAW}
+
+gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} Output_maxime/GFlops.txt
 
 echo "Fin du script"
 
