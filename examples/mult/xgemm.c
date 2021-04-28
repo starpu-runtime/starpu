@@ -642,7 +642,7 @@ int main(int argc, char **argv)
 			starpu_bound_start(0, 0);
 
 		starpu_fxt_start_profiling();
-		start = starpu_timing_now();
+		//start = starpu_timing_now(); /* Moved before starpu_resume so we don't start time during scheduling */
 
 		unsigned x, y, z, iter;
 		/* Matrice 3D */
@@ -684,6 +684,7 @@ int main(int argc, char **argv)
 					starpu_data_wont_use(Ctile);
 				}
 				starpu_do_schedule();
+				start = starpu_timing_now();
 				starpu_resume(); /* Because I paused above */
 				starpu_task_wait_for_all();
 			}
@@ -738,6 +739,7 @@ int main(int argc, char **argv)
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 				}
 				starpu_do_schedule();
+				start = starpu_timing_now();
 				starpu_resume();
 				starpu_task_wait_for_all();
 			}
@@ -815,6 +817,7 @@ int main(int argc, char **argv)
 				     //~ goto enodev;
 				}
 				starpu_do_schedule();
+				start = starpu_timing_now();
 				starpu_resume();
 				starpu_task_wait_for_all();
 			}
@@ -848,8 +851,8 @@ int main(int argc, char **argv)
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
 				starpu_do_schedule();
+				start = starpu_timing_now();
 				starpu_resume();
-
 				starpu_task_wait_for_all();
 			}	
 		}
@@ -881,6 +884,7 @@ int main(int argc, char **argv)
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
 				starpu_do_schedule();
+				start = starpu_timing_now();
 				starpu_resume();
 				starpu_task_wait_for_all();
 			}	
