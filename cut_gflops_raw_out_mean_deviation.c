@@ -1,5 +1,5 @@
 //~ gcc -o cut_gflops_raw_out_mean_deviation cut_gflops_raw_out_mean_deviation.c -lm
-//~ ./cut_gflops_raw_out_mean_deviation 2 2 5 0 Output_maxime/GFlops_raw_out_3.txt Output_maxime/GFlops.txt 5
+//~ ./cut_gflops_raw_out_mean_deviation 2 5 5 0 Output_maxime/GFlops_raw_out_3.txt Output_maxime/GFlops.txt 5
 
 #include <stdlib.h>
 #include <stdio.h>
