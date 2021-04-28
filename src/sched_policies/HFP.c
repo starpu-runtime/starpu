@@ -1362,6 +1362,7 @@ void interlacing_task_list (struct paquets *a, int interlacing_mode)
  * better divide tasks between GPUs */
 struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
+	printf ("Début get task to return\n");
 	int max_task_time = 0;	
 	int index_package_max_task_time = 0;
 	a->temp_pointer_1 = a->first_link; 
@@ -1370,6 +1371,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 	if (starpu_get_env_number_default("MULTIGPU",0) == 0 && starpu_get_env_number_default("HMETIS",0) == 0)
 	{
 		task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
+		printf("Pop front return %p\n", task);
 		return task;
 	}
 	else { 	
@@ -2482,21 +2484,19 @@ int get_number_GPU()
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	printf("Début pull task\n");
 	struct HFP_sched_data *data = component->data;
-	
 	int i = 0;
 	struct starpu_task *task1 = NULL; 
 	
 	if (do_schedule_done == true)
 	{		
-		/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
-		//STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component)); /* If we have only one GPU uncomment this */
-		//~ GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		
 		/* If one or more task have been refused */
 		data->p->temp_pointer_1 = data->p->first_link;
-		if (data->p->temp_pointer_1->next != NULL) { 
+		if (data->p->temp_pointer_1->next != NULL) {
+			printf("Next != NULL"); 
 			for (i = 0; i < Ngpu; i++) {
 				if (to == component->children[i]) {
 					break;
@@ -2506,24 +2506,28 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 				}
 			}
 		}
-		if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) {
+		if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) 
+		{
 			task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to); }
+			printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to);
 			return task1;
-		}	
-		/* If the linked list is empty, we can pull more tasks */
-		if (is_empty(data->p->first_link) == true) {
+		}
+		
+		/* If the linked list is empty */
+		if (is_empty(data->p->first_link) == true) 
+		{
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			//~ printf("linked list empty return NULL\n");
+			printf("linked list empty return NULL\n");
 			return NULL;
-		} /* End of if (is_empty(data->p->first_link) == true) { */
-			task1 = get_task_to_return(component, to, data->p, Ngpu);
-			if (starpu_get_env_number_default("PRINTF",0) == 1 && task1 != NULL) { printf("Task %p is getting out of pull_task from gpu %p\n",task1,to); }
-			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			return task1;
+		}
+		
+		task1 = get_task_to_return(component, to, data->p, Ngpu);
+		printf("Task %p is getting out of pull_task from gpu %p\n", task1, to);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+		return task1;
 	}
-	//~ printf("Ah return NULL :(\n");
+	printf("Ah return NULL :(\n");
 	return NULL;		
 }
 
@@ -2631,7 +2635,6 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 	/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
 	//~ STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component)); /* If we have only one GPU uncomment this */
 	GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		
 	/* If the linked list is empty, we can pull more tasks */
 	if (is_empty(data->p->first_link) == true) {
@@ -3258,11 +3261,9 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	printf("current gpu = %d\n",current_gpu);
 	for (i = 0; i < current_gpu; i++) 
 	{ 
-		printf("ok\n");
 		use_order_data = use_order_data->next_gpu;
-		printf("ok2\n");
 	}
-	printf("%p\n",use_order_data->data_list[0]);
+	//~ printf("%p\n",use_order_data->data_list[0]);
 	//TODO mettre un use_order_data->last data += le nb de doné de la tache courante; à la fin
 	
 	if (task_currently_treated != NULL && task_currently_treated->cl != NULL) {
@@ -3360,7 +3361,8 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	{ 
 		if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("task current = null\n"); }
 	} 
-	return STARPU_DATA_NO_VICTIM;
+	//~ return STARPU_DATA_NO_VICTIM;
+	return NULL;
 }
 
 struct starpu_sched_policy _starpu_sched_HFP_policy =
