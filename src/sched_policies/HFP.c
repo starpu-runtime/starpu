@@ -122,6 +122,7 @@ void HFP_insertion(struct paquets *a)
     new->next = a->temp_pointer_1;
     new->nb_task_in_sub_list = 0;
     new->expected_time_pulled_out = 0;
+	starpu_task_list_init(&new->refused_fifo_list);
     a->temp_pointer_1 = new;
 }
 
@@ -1362,7 +1363,7 @@ void interlacing_task_list (struct paquets *a, int interlacing_mode)
  * better divide tasks between GPUs */
 struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
-	printf ("Début get task to return\n");
+	//printf ("Début get task to return\n");
 	int max_task_time = 0;	
 	int index_package_max_task_time = 0;
 	a->temp_pointer_1 = a->first_link; 
@@ -1371,7 +1372,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 	if (starpu_get_env_number_default("MULTIGPU",0) == 0 && starpu_get_env_number_default("HMETIS",0) == 0)
 	{
 		task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
-		printf("Pop front return %p\n", task);
 		return task;
 	}
 	else { 	
@@ -1965,7 +1965,8 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 /* Check if our struct is empty */
 bool is_empty(struct my_list* a)
 {
-	if (a == NULL) { return true; }
+	if (a == NULL) { 
+		return true; }
 	if (!starpu_task_list_empty(&a->sub_list)) {
 			return false;
 		}
@@ -2258,6 +2259,7 @@ void print_order_in_file_hfp (struct paquets *p)
 
 void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
 {
+	printf("In hmetis\n");
 	FILE *f = fopen("Output_maxime/temp_input_hMETIS.txt", "w+");
 	NT = 0;
 	int i = 0; struct starpu_task *task_1; struct starpu_task *task_2; struct starpu_task *task_3; int NT = 0; bool first_write_on_line = true; bool already_counted = false;
@@ -2484,19 +2486,20 @@ int get_number_GPU()
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	printf("Début pull task\n");
+	//printf("Début pull task\n");
 	struct HFP_sched_data *data = component->data;
 	int i = 0;
 	struct starpu_task *task1 = NULL; 
 	
 	if (do_schedule_done == true)
-	{		
+	{
+		//printf("In pull task and in the if\n");		
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		
 		/* If one or more task have been refused */
 		data->p->temp_pointer_1 = data->p->first_link;
 		if (data->p->temp_pointer_1->next != NULL) {
-			printf("Next != NULL"); 
+			//printf("Next != NULL"); 
 			for (i = 0; i < Ngpu; i++) {
 				if (to == component->children[i]) {
 					break;
@@ -2508,9 +2511,10 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		}
 		if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) 
 		{
+			//printf("in if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list))\n");
 			task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to);
+			//printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to);
 			return task1;
 		}
 		
@@ -2518,16 +2522,17 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		if (is_empty(data->p->first_link) == true) 
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			printf("linked list empty return NULL\n");
+			//printf("linked list empty return NULL\n");
 			return NULL;
 		}
 		
+		//printf("Before get task to return\n");
 		task1 = get_task_to_return(component, to, data->p, Ngpu);
-		printf("Task %p is getting out of pull_task from gpu %p\n", task1, to);
+		//printf("Task %p is getting out of pull_task from gpu %p\n", task1, to);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return task1;
 	}
-	printf("Ah return NULL :(\n");
+	//printf("Ah return NULL :(\n");
 	return NULL;		
 }
 
@@ -2543,13 +2548,15 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 
 	if (task)
 	{
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "Oops, task %p was refused by %p\n", task, to); }
+		//printf("Oops, task %p was refused by %p\n", task, to);
 		/* Oops, we couldn't push everything, put back this task */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		//~ starpu_task_list_push_back(&data->list_if_fifo_full, task);
 		data->p->temp_pointer_1 = data->p->first_link;
 		int nb_gpu = get_number_GPU();
-		if (data->p->temp_pointer_1->next == NULL) { starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task); }
+		if (data->p->temp_pointer_1->next == NULL) { 
+			//printf("pushing in refused_fifo\n"); 
+			starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task); }
 		else {
 			//A corriger. En fait il faut push back dans une fifo a part puis pop back dans cette fifo dans pull task
 			//Ici le pb c'est si plusieurs taches se font refusé
@@ -2639,6 +2646,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 	/* If the linked list is empty, we can pull more tasks */
 	if (is_empty(data->p->first_link) == true) {
 		if (!starpu_task_list_empty(&data->sched_list)) { /* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
+			//printf("starting do_schedule\n");
 			time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
@@ -3140,7 +3148,9 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		{
 			init_visualisation(data->p);
 		}
+		printf("do schedule done, gets true\n");
 		do_schedule_done = true;
+		print_packages_in_terminal(data->p, 0);
 		}	
 }
 
@@ -3148,7 +3158,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Create\n"); }
+	//printf("Create\n");
 	//~ srandom(time(0)); /* If we need a random selection */
 	srandom(starpu_get_env_number_default("SEED", 0)); /* If we need a random selection */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
