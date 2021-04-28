@@ -2484,7 +2484,7 @@ int get_number_GPU()
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	printf("Début pull task\n");
+	//printf("Début pull task\n");
 	struct HFP_sched_data *data = component->data;
 	int i = 0;
 	struct starpu_task *task1 = NULL; 
@@ -2508,6 +2508,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		}
 		if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) 
 		{
+			printf("here\n");	
 			task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to);
@@ -2518,7 +2519,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		if (is_empty(data->p->first_link) == true) 
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			printf("linked list empty return NULL\n");
+			//printf("linked list empty return NULL\n");
 			return NULL;
 		}
 		
@@ -2527,7 +2528,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return task1;
 	}
-	printf("Ah return NULL :(\n");
+	//printf("Ah return NULL :(\n");
 	return NULL;		
 }
 
