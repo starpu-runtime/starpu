@@ -790,6 +790,10 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 	}
+	if (arity < 2)
+	{
+		_STARPU_ERROR("StarPU reduction tree should be at least a binary tree for a reduction to take place.\n");
+	}
 
 	starpu_mpi_comm_rank(comm, &me);
 	starpu_mpi_comm_size(comm, &nb_nodes);

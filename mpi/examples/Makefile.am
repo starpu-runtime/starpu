@@ -312,17 +312,22 @@ endif
 ########################
 
 examplebin_PROGRAMS +=		\
-	mpi_redux/mpi_redux
+	mpi_redux/mpi_redux     \
+	mpi_redux/mpi_redux_tree
 
 mpi_redux_mpi_redux_SOURCES	=		\
-	mpi_redux/mpi_redux.c
+	mpi_redux/mpi_redux.c                   
+mpi_redux_mpi_redux_tree_SOURCES	=		\
+	mpi_redux/mpi_redux_tree.c
 
 mpi_redux_mpi_redux_LDADD =			\
 	-lm
-
+mpi_redux_mpi_redux_tree_LDADD =			\
+	-lm
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
-	mpi_redux/mpi_redux
+	mpi_redux/mpi_redux                     \
+	mpi_redux/mpi_redux_tree
 endif
 
 ##########################################
