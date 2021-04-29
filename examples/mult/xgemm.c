@@ -284,20 +284,6 @@ static void parse_args(int argc, char **argv)
 			}
 		}
 
-<<<<<<< HEAD
-=======
-		else if (strcmp(argv[i], "-nblocksz") == 0)
-		{
-			char *argptr;
-			nslicesz = strtol(argv[++i], &argptr, 10);
-			if (nslicesz == 0)
-			{
-				fprintf(stderr, "the number of blocks in Z cannot be 0!\n");
-				exit(EXIT_FAILURE);
-			}
-		}
-
->>>>>>> db61d8294... examples/mult/xgemm.c: fix code format
 		else if (strcmp(argv[i], "-x") == 0)
 		{
 			char *argptr;
