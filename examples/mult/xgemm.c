@@ -330,24 +330,44 @@ static void parse_args(int argc, char **argv)
 			nslicesx = strtol(argv[++i], &argptr, 10);
 			nslicesy = nslicesx;
 			nslicesz = nslicesx;
+			if (nslicesx == 0) {
+				fprintf(stderr, "the number of blocks in X cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
+			if (nslicesy == 0) {
+				fprintf(stderr, "the number of blocks in Y cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-nblocksx") == 0)
 		{
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
+			if (nslicesx == 0) {
+				fprintf(stderr, "the number of blocks in X cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-nblocksy") == 0)
 		{
 			char *argptr;
 			nslicesy = strtol(argv[++i], &argptr, 10);
+			if (nslicesy == 0) {
+				fprintf(stderr, "the number of blocks in Y cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-nblocksz") == 0)
 		{
 			char *argptr;
 			nslicesz = strtol(argv[++i], &argptr, 10);
+			if (nslicesz == 0) {
+				fprintf(stderr, "the number of blocks in Z cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-x") == 0)
