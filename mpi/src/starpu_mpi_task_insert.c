@@ -807,9 +807,9 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 		_STARPU_MPI_DEBUG(5, "mpi_data->redux_map[%d] = %d\n", i, mpi_data->redux_map[i]);
 		if (mpi_data->redux_map[i]) nb_contrib++;
 	}
-	if (arity < 2 || (arity==1 && nb_contrib == 1))
+	if (arity < 2 || !(arity==1 && nb_contrib == 1))
 	{
-		_STARPU_ERROR("StarPU reduction tree should be at least a binary tree for a reduction to take place.\n");
+		_STARPU_ERROR("StarPU reduction tree should be at least a binary tree for a reduction to take place (or only one contributor in a unary tree) ; asked for %d-ary tree with %d contributors\n", arity, nb_contrib);
 	}
 	_STARPU_MPI_DEBUG(5, "There is %d contributors\n", nb_contrib);
 	int contributors[nb_contrib];
