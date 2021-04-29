@@ -328,7 +328,7 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 				use_order_data->data_list[k] = STARPU_TASK_GET_HANDLE(task,i);
 				k++;
 				fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
-				printf("Donnée de %p : %p\n",task,STARPU_TASK_GET_HANDLE(task,i));
+				//~ printf("Donnée de %p : %p\n",task,STARPU_TASK_GET_HANDLE(task,i));
 			}
 			//~ if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
 			//~ else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
@@ -2605,7 +2605,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				starpu_task_list_push_back(&data->popped_task_list, task1);
 			} 	
 			NT = nb_pop;
-			printf("%d task have been pulled\n", NT);
+			//~ printf("%d task have been pulled\n", NT);
 			N = sqrt(NT);
 			if(starpu_get_env_number_default("PRINT3D",0) == 1) 
 			{
@@ -3071,7 +3071,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		{
 			init_visualisation(data->p);
 		}
-		printf("do schedule done, gets true\n");
+		//~ printf("do schedule done, gets true\n");
 		do_schedule_done = true;
 		//print_packages_in_terminal(data->p, 0);
 		}	
