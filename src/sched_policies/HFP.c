@@ -52,58 +52,6 @@ void initialize_global_variable(struct starpu_task *task)
 	fclose(f);
 }
 
-/* Structure used to acces the struct my_list. There are also task's list */
-//~ struct HFP_sched_data
-//~ {
-	//~ struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
-	//~ struct paquets *p;
-	//~ struct starpu_task_list sched_list;
-     	//~ starpu_pthread_mutex_t policy_mutex;   	
-//~ };
-
-//~ /* Structure used to store all the variable we need and the tasks of each package. Each link is a package */
-//~ struct my_list
-//~ {
-	//~ int package_nb_data; 
-	//~ int nb_task_in_sub_list;
-	//~ int index_package; /* Used to write in Data_coordinates.txt and keep track of the initial index of the package */
-	//~ starpu_data_handle_t * package_data; /* List of all the data in the packages. We don't put two times the duplicates */
-	//~ struct starpu_task_list sub_list; /* The list containing the tasks */
-	//~ struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
-	//~ struct my_list *next;
-	//~ int split_last_ij; /* The separator of the last state of the current package */
-	//starpu_data_handle_t * data_use_order; /* Order in which data will be loaded. used for Belady */
-	//~ int total_nb_data_package;
-	//~ double expected_time; /* Only task's time */
-	//~ double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
-	//~ double expected_package_computation_time; /* Computation time with transfer and overlap */
-	//~ struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
-//~ };
-
-//~ struct paquets
-//~ {		
-	//~ /* All the pointer use to navigate through the linked list */
-	//~ struct my_list *temp_pointer_1;
-	//~ struct my_list *temp_pointer_2;
-	//~ struct my_list *temp_pointer_3;
-	//~ struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */     	
-    //~ int NP; /* Number of packages */
-//~ };
-
-//~ struct data_on_node /* Simulate memory, list of handles */
-//~ {
-	//~ struct handle *pointer_data_list;
-	//~ struct handle *first_data;
-	//~ long int memory_used;
-//~ };
-
-//~ struct handle /* The handles from above */
-//~ {
-	//~ starpu_data_handle_t h;
-	//~ int last_use;
-	//~ struct handle *next;
-//~ };
-
 /* Empty a task's list. We use this for the lists last_package */
 void HFP_empty_list(struct starpu_task_list *a)
 {
@@ -399,12 +347,7 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
 {
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("get common data\n"); }
 	int split_ij = 0;
-	//~ printf("dans get I a %d taches et %d données\n",I->nb_task_in_sub_list,I->package_nb_data);
-	//~ printf("dans get J a %d taches et %d données\n",J->nb_task_in_sub_list,J->package_nb_data);
-	//~ printf("Split de last ij de I = %d\n",I->split_last_ij);
-	//~ printf("Split de last ij de J = %d\n",J->split_last_ij);
 	/* evaluation: 0 = tout, 1 = début, 2 = fin */
 	struct starpu_task *task = NULL; bool insertion_ok = false;										
 	bool donnee_deja_presente = false; int j = 0; int i = 0;
@@ -459,7 +402,6 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			}
 			else { break; }											
 		}
-		//~ printf("Poids a la fin pour i1 : %li\n",poids);	
 	}
 	else if (evaluation_I == 2 && IJ_inferieur_GPU_RAM == false) { 
 		poids = 0;
@@ -467,7 +409,6 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 		task = starpu_task_list_begin(&I->sub_list);
 		while(starpu_task_list_next(task) != NULL) { 
 			task = starpu_task_list_next(task);
-			//~ printf("%p\n",task);
 		}
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 			donnee_I[i] = STARPU_TASK_GET_HANDLE(task,i);
@@ -508,7 +449,6 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			}
 			else { break; }											
 		}
-		//~ printf("Poids a la fin pour i2 : %li\n",poids);	
 	}
 	else if (IJ_inferieur_GPU_RAM == true) {
 		if (evaluation_I == 0) { printf("Error evaluation de I alors que I et J <= GPU_RAM\n"); exit(0); }
@@ -597,18 +537,15 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			}
 			else { break; }											
 		}	
-		//~ printf("Poids a la fin pour j1 : %li\n",poids);	
 	}
 	else if (evaluation_J == 2 && IJ_inferieur_GPU_RAM == false) {
 		poids = 0;
 		i_bis = 1; insertion_ok = false;
 		/* Se placer sur la dernière tâche du paquet J */
 		task = starpu_task_list_begin(&J->sub_list);
-		//~ printf("%p\n",task);
 		while(starpu_task_list_next(task) != NULL) { 
 			task = starpu_task_list_next(task);
 		}
-		//~ printf("-----\nJe suis sur la tâche %p\n",task);	
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
 			donnee_J[i] = STARPU_TASK_GET_HANDLE(task,i);
 			poids += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
@@ -648,7 +585,6 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			}
 			else { break; }											
 		}
-		//~ printf("Poids a la fin pour j2 : %li\n",poids);		
 	}
 	else if (IJ_inferieur_GPU_RAM == true) {
 		if (evaluation_J == 0) { printf("Error evaluation de J alors que I et J <= GPU_RAM\n"); exit(0); }
@@ -692,17 +628,13 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 			} 
 		} 
 	}
-	//~ printf("I a un index de %d et %d données\n",index_tab_donnee_I,I->package_nb_data);		
-	//~ printf("J a un index de %d et %d données\n",index_tab_donnee_J,J->package_nb_data);
-	//~ printf("Données de I:"); for (i = 0; i < index_tab_donnee_I; i++) { printf(" %p",donnee_I[i]); }
-	//~ printf("\n");
-	//~ printf("Données de J:"); for (i = 0; i < index_tab_donnee_J; i++) { printf(" %p",donnee_J[i]); }
-	//~ printf("\n");
-	for (i = 0; i < index_tab_donnee_I; i++) {
-		for (j = 0; j < index_tab_donnee_J; j++) {
-			if (donnee_I[i] == donnee_J[j]) {
+	for (i = 0; i < index_tab_donnee_I; i++) 
+	{
+		for (j = 0; j < index_tab_donnee_J; j++) 
+		{
+			if (donnee_I[i] == donnee_J[j]) 
+			{
 				common_data_last_package++;
-				//~ printf("%p\n",donnee_I[i]);
 				break;
 			}
 		}
@@ -711,7 +643,8 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 }
 
 /* Comparator used to sort the data of a packages to erase the duplicate in O(n) */
-int HFP_pointeurComparator ( const void * first, const void * second ) {
+int HFP_pointeurComparator ( const void * first, const void * second ) 
+{
   return ( *(int*)first - *(int*)second );
 }
 
@@ -906,9 +839,11 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 			printf("-----\nOn a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
 			printf("-----\n");
 			link_index = 0;	
-			while (a->temp_pointer_1 != NULL) {
+			while (a->temp_pointer_1 != NULL) 
+			{
 				printf("Le paquet %d contient %d tâche(s) et %d données, expected task time = %f, expected package time = %f\n",link_index,a->temp_pointer_1->nb_task_in_sub_list,a->temp_pointer_1->package_nb_data,a->temp_pointer_1->expected_time, a->temp_pointer_1->expected_package_computation_time);
-				for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
+				for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
+				{
 					printf("%p : ",task);
 					for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 					{
@@ -1208,7 +1143,6 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
  * including transfers and computation/transfers overlap.
  * Called in HFP_pull_task once all packages are done.
  * It is called when MULTIGPU = 6 or 7.
- * TODO : do the actual load balance
  */
 void load_balance_expected_package_computation_time (struct paquets *p, starpu_ssize_t GPU_RAM)
 {
@@ -1220,20 +1154,12 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 	//~ }
 	struct starpu_task *task;
 	task = starpu_task_list_begin(&p->temp_pointer_1->sub_list);
-	//~ double task_duration = starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
-	//~ double transfer_duration = starpu_transfer_predict(0,1,starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0));
-	//~ printf("Durée d'une tâche : %f\n", starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0));
-	//~ printf("Durée des transferts : %f %f %f\n", starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 0))), starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 1))), starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 2))));
-	//~ printf("GPU_RAM = %ld\n", GPU_RAM);
-	//~ printf("Taille des données : %ld %ld %ld\n-----\n", starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 0)), starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 1)), starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, 2)));
 	p->temp_pointer_1 = p->first_link;
 	while (p->temp_pointer_1 != NULL)
 	{
 		get_expected_package_computation_time(p->temp_pointer_1, GPU_RAM);
-		//~ printf("Expected time : %f\n", p->temp_pointer_1->expected_package_computation_time);
 		p->temp_pointer_1 = p->temp_pointer_1->next;
 	}
-	//~ print_packages_in_terminal(p, 0);
 	
 	int package_with_min_expected_time, package_with_max_expected_time;
 	int last_package_with_min_expected_time = 0;
@@ -1296,8 +1222,6 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 				free(p->temp_pointer_2->pointer_node);
 				get_expected_package_computation_time(p->temp_pointer_1, GPU_RAM);
 				get_expected_package_computation_time(p->temp_pointer_2, GPU_RAM);
-				//~ printf("expected time du gros paquet = %f\n", p->temp_pointer_2->expected_package_computation_time);
-				//~ printf("expected time du petit paquet = %f\n", p->temp_pointer_1->expected_package_computation_time);
 				if ( p->temp_pointer_1->expected_package_computation_time >= p->temp_pointer_2->expected_package_computation_time)
 				{
 					break;
@@ -1305,7 +1229,6 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 			}
 			last_package_with_min_expected_time = package_with_min_expected_time;
 			last_package_with_max_expected_time = package_with_max_expected_time;
-		//~ }
 	}
 	//~ print_packages_in_terminal(p, 0);
 }
@@ -1553,7 +1476,6 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to)
 			task->workerid = i;
 			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 1)
 			{  
-				//~ starpu_worker_get_memory_node(starpu_bitmap_first(&to->workers_in_ctx))));
 				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&to->children[i]->workers_in_ctx)), 0);
 				//~ printf("prefetch of %p on gpu %p\n", task, to->children[i]);
 			}
