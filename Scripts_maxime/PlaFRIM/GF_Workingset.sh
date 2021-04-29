@@ -8,7 +8,7 @@ ECHELLE_X=5
 START_X=0  
 FICHIER_RAW=Output_maxime/GFlops_raw_out_3.txt
 module load linalg/mkl
-ulimit -S -s 5000000
+ulimit -S -s 50000000
 truncate -s 0 ${FICHIER_RAW}
 
 if [ $DOSSIER = "Matrice_ligne" ]
@@ -40,7 +40,7 @@ if [ $DOSSIER = "Matrice_ligne" ]
 		done
 		echo "############## HFP ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			do 
+			do
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=HFP BELADY=1 ORDER_U=1 STARPU_NTASK_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 11 | tail -n 1 >> ${FICHIER_RAW}
 		done

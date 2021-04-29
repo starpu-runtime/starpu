@@ -2519,7 +2519,8 @@ static int HFP_can_pull(struct starpu_sched_component * component)
 }
 
 static void HFP_do_schedule(struct starpu_sched_component *component)
-{
+{	
+	//printf("début do schedule\n");
 	struct HFP_sched_data *data = component->data;
 
 	/* Variables used to calculate, navigate through a loop or other things */
@@ -2604,6 +2605,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				starpu_task_list_push_back(&data->popped_task_list, task1);
 			} 	
 			NT = nb_pop;
+			printf("%d task have been pulled\n", NT);
 			N = sqrt(NT);
 			if(starpu_get_env_number_default("PRINT3D",0) == 1) 
 			{
@@ -3071,7 +3073,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		}
 		printf("do schedule done, gets true\n");
 		do_schedule_done = true;
-		print_packages_in_terminal(data->p, 0);
+		//print_packages_in_terminal(data->p, 0);
 		}	
 }
 
@@ -3188,8 +3190,8 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	//~ struct use_order *use_order_data = gpu_data->first_gpu;
 	//~ gpu_data->use_order_data = gpu_data->first_gpu;
 	
-	printf("%p\n",use_order_data->data_list[0]);
-	printf("current gpu = %d\n",current_gpu);
+	//printf("%p\n",use_order_data->data_list[0]);
+	//printf("current gpu = %d\n",current_gpu);
 	for (i = 0; i < current_gpu; i++) 
 	{ 
 		use_order_data = use_order_data->next_gpu;
@@ -3207,9 +3209,9 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		if (starpu_get_env_number_default("PRINTF",0) == 1)
 			printf("La tâche en cours est %p\n",task_currently_treated);
 		
-		printf("Donnés de la tache %p en cours : %p %p et %p\n",task_currently_treated,STARPU_TASK_GET_HANDLE(task_currently_treated,0),STARPU_TASK_GET_HANDLE(task_currently_treated,1),STARPU_TASK_GET_HANDLE(task_currently_treated,2));
+		//printf("Donnés de la tache %p en cours : %p %p et %p\n",task_currently_treated,STARPU_TASK_GET_HANDLE(task_currently_treated,0),STARPU_TASK_GET_HANDLE(task_currently_treated,1),STARPU_TASK_GET_HANDLE(task_currently_treated,2));
 		int nb = STARPU_TASK_GET_NBUFFERS(task_currently_treated);
-		printf("Nb de données de la tâche : %d\n",nb);
+		//printf("Nb de données de la tâche : %d\n",nb);
 		
 		//~ //A CHANGER
 		//~ if (task_position_in_data_use_order[index_task_currently_treated] != summed_nb_data_each_gpu[current_gpu]) {

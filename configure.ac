@@ -3022,6 +3022,9 @@ AM_CONDITIONAL(STARPU_HAVE_CBLAS_H, test x$have_cblas_h = xyes)
 if test x$have_cblas_h = xyes; then
     AC_DEFINE(STARPU_HAVE_CBLAS_H, [1], [The blas library has blas.h])
 fi
+if test x$blas_lib != xnone; then
+    AC_DEFINE(STARPU_HAVE_BLAS, [1], [The blas library is available])
+fi
 
 AM_CONDITIONAL(STARPU_ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(STARPU_GOTO_BLAS_LIB, test x$blas_lib = xgoto)
