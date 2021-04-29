@@ -330,11 +330,13 @@ static void parse_args(int argc, char **argv)
 			nslicesx = strtol(argv[++i], &argptr, 10);
 			nslicesy = nslicesx;
 			nslicesz = nslicesx;
-			if (nslicesx == 0) {
+			if (nslicesx == 0)
+			{
 				fprintf(stderr, "the number of blocks in X cannot be 0!\n");
 				exit(EXIT_FAILURE);
 			}
-			if (nslicesy == 0) {
+			if (nslicesy == 0)
+			{
 				fprintf(stderr, "the number of blocks in Y cannot be 0!\n");
 				exit(EXIT_FAILURE);
 			}
@@ -344,7 +346,8 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
-			if (nslicesx == 0) {
+			if (nslicesx == 0)
+			{
 				fprintf(stderr, "the number of blocks in X cannot be 0!\n");
 				exit(EXIT_FAILURE);
 			}
@@ -354,7 +357,8 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			nslicesy = strtol(argv[++i], &argptr, 10);
-			if (nslicesy == 0) {
+			if (nslicesy == 0)
+			{
 				fprintf(stderr, "the number of blocks in Y cannot be 0!\n");
 				exit(EXIT_FAILURE);
 			}
@@ -364,7 +368,8 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			nslicesz = strtol(argv[++i], &argptr, 10);
-			if (nslicesz == 0) {
+			if (nslicesz == 0)
+			{
 				fprintf(stderr, "the number of blocks in Z cannot be 0!\n");
 				exit(EXIT_FAILURE);
 			}
