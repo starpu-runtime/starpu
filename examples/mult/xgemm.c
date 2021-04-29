@@ -32,7 +32,9 @@
 #include <starpu.h>
 #include <starpu_fxt.h>
 
+#ifdef STARPU_HAVE_BLAS
 #include <common/blas.h>
+#endif
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
@@ -63,6 +65,7 @@ static starpu_data_handle_t A_handle, B_handle, C_handle;
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); }} while(0)
 
+#ifdef STARPU_HAVE_BLAS
 static int check_output(void)
 {
 	/* compute C = C - AB */
@@ -87,6 +90,7 @@ static int check_output(void)
 		return 1;
 	}
 }
+#endif
 
 static void init_problem_data(void)
 {
@@ -177,6 +181,7 @@ static void cublas_mult(void *descr[], void *arg)
 }
 #endif
 
+#ifdef STARPU_HAVE_BLAS
 void cpu_mult(void *descr[], void *arg)
 {
 	(void)arg;
@@ -215,6 +220,7 @@ void cpu_mult(void *descr[], void *arg)
 		CPU_GEMM("N", "N", nxC, new_nyC, nyA, (TYPE)1.0, subA, ldA, new_subB, ldB, (TYPE)0.0, new_subC, ldC);
 	}
 }
+#endif
 
 static struct starpu_perfmodel starpu_gemm_model =
 {
@@ -224,10 +230,12 @@ static struct starpu_perfmodel starpu_gemm_model =
 
 static struct starpu_codelet cl =
 {
+#ifdef STARPU_HAVE_BLAS
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {cpu_mult},
 	.cpu_funcs_name = {"cpu_mult"},
+#endif
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_mult},
 #elif defined(STARPU_SIMGRID)
@@ -439,9 +447,11 @@ enodev:
 	starpu_data_unregister(B_handle);
 	starpu_data_unregister(C_handle);
 
+#ifdef STARPU_HAVE_BLAS
 #ifndef STARPU_SIMGRID
 	if (check)
 		ret = check_output();
+#endif
 #endif
 
 	starpu_free_flags(A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
