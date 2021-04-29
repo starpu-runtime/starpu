@@ -328,7 +328,7 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 				use_order_data->data_list[k] = STARPU_TASK_GET_HANDLE(task,i);
 				k++;
 				fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
-				//~ printf("Donnée de %p : %p\n",task,STARPU_TASK_GET_HANDLE(task,i));
+				//printf("Donnée de %p : %p\n",task,STARPU_TASK_GET_HANDLE(task,i));
 			}
 			//~ if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
 			//~ else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
@@ -2421,7 +2421,6 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		/* If one or more task have been refused */
 		data->p->temp_pointer_1 = data->p->first_link;
 		if (data->p->temp_pointer_1->next != NULL) {
-			//printf("Next != NULL"); 
 			for (i = 0; i < Ngpu; i++) {
 				if (to == component->children[i]) {
 					break;
@@ -2433,6 +2432,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		}
 		if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) 
 		{
+			//~ printf("in refused fifo of pull_task\n");
 			task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			//printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to);
@@ -2469,7 +2469,7 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 
 	if (task)
 	{
-		//printf("Oops, task %p was refused by %p\n", task, to);
+		//~ printf("Oops, task %p was refused by %p\n", task, to);
 		/* Oops, we couldn't push everything, put back this task */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		//~ starpu_task_list_push_back(&data->list_if_fifo_full, task);
@@ -2568,7 +2568,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 	/* If the linked list is empty, we can pull more tasks */
 	if (is_empty(data->p->first_link) == true) {
 		if (!starpu_task_list_empty(&data->sched_list)) { /* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
-			//printf("starting do_schedule\n");
+			//~ printf("starting do_schedule\n");
 			time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
@@ -2662,7 +2662,6 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			} */
 			
 			/* if (starpu_get_env_number_default("PRINTF",0) == 1) { init_visualisation_tache_matrice_format_tex(); } */
-			
 			/* THE while loop. Stop when no more packaging are possible */
 			while (packaging_impossible == 0) {
 				/* algo 3's goto */
@@ -2932,7 +2931,6 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 					data->p->temp_pointer_1=data->p->temp_pointer_1->next; data->p->temp_pointer_2=data->p->first_link;
 				}	
 				}		
-				
 				break_merging:
 				
 				data->p->temp_pointer_1 = data->p->first_link;
