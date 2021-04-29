@@ -2778,6 +2778,7 @@ if test x$have_cblas_h = xyes; then
     AC_DEFINE(STARPU_HAVE_CBLAS_H, [1], [The blas library has blas.h])
 fi
 if test x$blas_lib != xnone; then
+    AC_DEFINE(STARPU_HAVE_BLAS, [1], [The blas library is available])
     SAVED_LIBS="$LIBS"
     LIBS="$LIBS -lblas"
     AC_CHECK_FUNCS([cblas_sgemv])

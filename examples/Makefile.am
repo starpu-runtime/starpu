@@ -309,6 +309,12 @@ endif
 endif
 endif
 
+if STARPU_USE_CUDA
+STARPU_EXAMPLES +=				\
+	mult/sgemm 				\
+	mult/dgemm
+endif
+
 if !STARPU_NO_BLAS_LIB
 STARPU_EXAMPLES +=				\
 	mult/sgemm 				\
@@ -672,22 +678,23 @@ endif
 # Mult example #
 ################
 
-if !STARPU_NO_BLAS_LIB
-
 mult_sgemm_SOURCES = 				\
-	mult/sgemm.c				\
-	common/blas.c
+	mult/sgemm.c
 
 mult_sgemm_LDADD =				\
 	$(STARPU_BLAS_LDFLAGS)
 
 mult_dgemm_SOURCES = 				\
-	mult/dgemm.c				\
-	common/blas.c
+	mult/dgemm.c
 
 mult_dgemm_LDADD =				\
 	$(STARPU_BLAS_LDFLAGS)
 
+if !STARPU_NO_BLAS_LIB
+mult_sgemm_SOURCES += 				\
+	common/blas.c
+mult_dgemm_SOURCES += 				\
+	common/blas.c
 endif
 
 ####################
