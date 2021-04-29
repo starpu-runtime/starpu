@@ -249,7 +249,6 @@ static void parse_args(int argc, char **argv)
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
 			nslicesy = nslicesx;
-			nslicesz = nslicesx;
 			if (nslicesx == 0)
 			{
 				fprintf(stderr, "the number of blocks in X cannot be 0!\n");
