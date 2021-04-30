@@ -36,7 +36,7 @@
 #include "common/list.h"
 #define PRINTF /* O or 1 */
 #define REVERSE /* O or 1 */
-int do_schedule_done = false;
+bool do_schedule_done_cm = false;
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct cuthillmckee_sched_data
@@ -86,7 +86,7 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 {
 	struct cuthillmckee_sched_data  *data = component->data;
 	struct starpu_task *task1 = NULL; 
-	if (do_schedule_done == true)
+	if (do_schedule_done_cm == true)
 	{
 		
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
@@ -315,7 +315,7 @@ static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
 			fprintf(f_time,"%d\n",time_taken);
 			fclose(f_time);
 		
-		do_schedule_done = true;
+		do_schedule_done_cm = true;
 		}
 	}
 		
@@ -331,7 +331,7 @@ struct starpu_sched_component *starpu_sched_component_cuthillmckee_create(struct
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	_STARPU_MALLOC(data, sizeof(*data));
 	
-	do_schedule_done = false;
+	do_schedule_done_cm = false;
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	starpu_task_list_init(&data->sched_list);
