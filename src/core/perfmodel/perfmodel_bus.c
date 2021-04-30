@@ -112,7 +112,7 @@ static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
 
 #ifndef STARPU_SIMGRID
-static uint64_t opencl_size[STARPU_MAXCUDADEVS];
+static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 #endif
 #ifdef STARPU_USE_OPENCL
 /* preference order of cores (logical indexes) */
