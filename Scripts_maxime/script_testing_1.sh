@@ -1,9 +1,10 @@
 #!/usr/bin/bash
-start=`date +%s`
+#~ start=`date +%s`
 export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
-ulimit -S -s 50000000
-#~ sudo make -C src/ -j 4
-sudo make -j 4
+#~ export STARPU_PERF_MODEL_DIR=/home/gonthier/starpu/tools/perfmodels/sampling
+#~ ulimit -S -s 50000000
+#~ sudo make -C src/ -j 6
+#~ sudo make -j 4
 
 #~ srun --exclusive -C sirocco21 --pty bash Scripts_maxime/task_stealing.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne task_stealing -i
 
@@ -32,10 +33,10 @@ sudo make -j 4
 #~ for ((i=1; i<=10; i++))
 #~ do
 	#~ N=$((5*i))
-	N=$((5))
-	STARPU_SCHED=cuthillmckee PRINTF=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=1050 STARPU_LIMIT_CUDA_MEM=250 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
+	i=$((10))
+	STARPU_SCHED=eager BELADY=0 ORDER_U=1 PRINTF=0 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_LIMIT_BANDWIDTH=1050 STARPU_LIMIT_CUDA_MEM=250 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*i)) -nblocks $((i)) -iter 11
 #~ done
 
-end=`date +%s`
-runtime=$((end-start))
-echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
+#~ end=`date +%s`
+#~ runtime=$((end-start))
+#~ echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
