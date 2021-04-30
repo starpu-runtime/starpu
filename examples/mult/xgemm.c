@@ -55,6 +55,7 @@ static const TYPE v0 = 0.0;
 #endif
 
 static unsigned niter = 10;
+static unsigned temp_niter = 10;
 static unsigned nsleeps = 1;
 static unsigned nslicesx = 4;
 static unsigned nslicesy = 4;
@@ -573,6 +574,7 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
+			temp_niter = niter;
 		}
 
 		else if (strcmp(argv[i], "-nsleeps") == 0)
@@ -725,7 +727,6 @@ int main(int argc, char **argv)
 {	
 	//Ajout pour le Z layout
 	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0; int j_bis = 0; int y_z_layout = 0; int y_z_layout_i = 0;
-	
 	double start, end;
 	int ret;
 
@@ -765,9 +766,18 @@ int main(int argc, char **argv)
 	PRINTF("# ");
 	if (print_hostname)
 		PRINTF("node\t");
-	PRINTF("x\ty\tz\tms\tGFlops");
-	if (bound)
-		PRINTF("\tTms\tTGFlops\tTims\tTiGFlops");
+	if (temp_niter > 1)
+	{
+		PRINTF("x\ty\tz\tms\tGFlops\tDeviance");
+		if (bound)
+			PRINTF("\tTms\tTGFlops\tTims\tTiGFlops\tTDeviance");
+	}
+	else
+	{
+		PRINTF("x\ty\tz\tms\tGFlops");
+		if (bound)
+			PRINTF("\tTms\tTGFlops\tTims\tTiGFlops");
+	}
 	PRINTF("\n");
 
 	unsigned sleeps;
@@ -779,6 +789,7 @@ int main(int argc, char **argv)
 		starpu_fxt_start_profiling();
 		//start = starpu_timing_now(); /* Moved before starpu_resume so we don't start time during scheduling */
 		double timing = 0;
+		double timing_iteration_i[niter];
 
 		unsigned x, y, z, iter;
 		/* Matrice 3D */
@@ -826,7 +837,10 @@ int main(int argc, char **argv)
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
 				if (iter != 0)
+				{
 					timing += end - start;
+					timing_iteration_i[iter - 1] = end - start;
+				}
 			}
 		}
 		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
@@ -886,7 +900,10 @@ int main(int argc, char **argv)
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
 				if (iter != 0)
+				{
 					timing += end - start;
+					timing_iteration_i[iter - 1] = end - start;
+				}
 			}
 			//End If environment variable RANDOM_TASK_ORDER == 1
 		}
@@ -968,7 +985,10 @@ int main(int argc, char **argv)
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
 				if (iter != 0)
+				{
 					timing += end - start;
+					timing_iteration_i[iter - 1] = end - start;
+				}
 			}
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
@@ -1007,7 +1027,10 @@ int main(int argc, char **argv)
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
 				if (iter != 0)
+				{
 					timing += end - start;
+					timing_iteration_i[iter - 1] = end - start;
+				}
 			}	
 		}
 		else { 
@@ -1045,12 +1068,11 @@ int main(int argc, char **argv)
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
 				if (iter != 0)
+				{
 					timing += end - start;
-				
-//timing2 = (end - start)*(n - start)
-//Me donne le timing de iteration i
-//timing + timing2 gflops - gflops normal
-
+					timing_iteration_i[iter - 1] = end - start;
+				}
+					
 				for (x = 0; x < nslicesx; x++)
 				for (y = 0; y < nslicesy; y++)
 				{
@@ -1083,10 +1105,27 @@ int main(int argc, char **argv)
 			gethostname(hostname, 255);
 			PRINTF("%s\t", hostname);
 		}
-		PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0);
-		if (bound)
-			PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0);
-		PRINTF("\n");
+		if (temp_niter > 1) /* We also print the deviance */
+		{
+			double deviance_timing = 0;
+			printf("timing = %f\n", timing);
+			for (iter = 0; iter < temp_niter; iter++)
+			{
+				deviance_timing += (timing_iteration_i[iter] - timing/temp_niter)*(timing_iteration_i[iter] - timing/temp_niter);
+			}
+			deviance_timing = sqrt(deviance_timing/temp_niter);
+			PRINTF("%u\t%u\t%u\t%.0f\t%.1f\t%f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0, deviance_timing/timing/1000.0);
+			if (bound)
+				PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f\t%f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0, deviance_timing/timing/1000.0);
+			PRINTF("\n");
+		}
+		else /* We don't */
+		{
+			PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0);
+			if (bound)
+				PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0);
+			PRINTF("\n");
+		}
 
 		if (sleeps < nsleeps-1)
 		{
