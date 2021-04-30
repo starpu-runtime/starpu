@@ -446,7 +446,7 @@ static struct starpu_codelet cl_gemm2d =
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {cpu_gemm2d},
-	.cpu_funcs_name = {"cpu_gemm0"},
+	.cpu_funcs_name = {"cpu_gemm2d"},
 #endif
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_gemm2d},
@@ -454,8 +454,10 @@ static struct starpu_codelet cl_gemm2d =
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
-	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_R},
+	//~ .nbuffers = 2,
+	.nbuffers = 3,
+	//~ .modes = {STARPU_R, STARPU_R},
+	.modes = {STARPU_R, STARPU_R, STARPU_R},
 	.model = &starpu_gemm_model
 };
 
@@ -858,7 +860,8 @@ int main(int argc, char **argv)
 				{
 					struct starpu_task *task = starpu_task_create();
 
-					task->cl = &cl_gemm2d;
+					//~ task->cl = &cl_gemm2d;
+					task->cl = &cl_gemm0;
 					
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
@@ -942,7 +945,8 @@ int main(int argc, char **argv)
 					for (j = 0; j < nslicesy; j++)
 					{
 						struct starpu_task *task = starpu_task_create();
-						task->cl = &cl_gemm2d;
+						//~ task->cl = &cl_gemm2d;
+						task->cl = &cl_gemm0;
 						
 						task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
 						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
@@ -976,7 +980,8 @@ int main(int argc, char **argv)
 				{
 					struct starpu_task *task = starpu_task_create();
 
-					task->cl = &cl_gemm2d;
+					//~ task->cl = &cl_gemm2d;
+					task->cl = &cl_gemm0;
 					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, random()%nslicesy);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, random()%nslicesx);
@@ -1013,7 +1018,8 @@ int main(int argc, char **argv)
 				{
 					struct starpu_task *task = starpu_task_create();
 
-					task->cl = &cl_gemm2d;
+					//~ task->cl = &cl_gemm2d;
+					task->cl = &cl_gemm0;
 					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
