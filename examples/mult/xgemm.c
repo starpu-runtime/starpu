@@ -326,6 +326,49 @@ static void cublas_gemm(void *descr[], void *arg)
 #endif
 
 #ifdef STARPU_HAVE_BLAS
+void cpu_mult2d(void *descr[], void *arg, TYPE beta)
+{
+	(void)arg;
+	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
+	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
+
+	//unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	unsigned nxC = STARPU_MATRIX_GET_NY(descr[1]);
+	//unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	unsigned nyC = STARPU_MATRIX_GET_NX(descr[0]);
+	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+
+	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	//unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	unsigned ldC = nxC;
+
+	TYPE subC[nxC*nyC];
+
+	int worker_size = starpu_combined_worker_get_size();
+
+	if (worker_size == 1)
+	{
+		/* Sequential CPU task */
+		CPU_GEMM("N", "N", nxC, nyC, nyA, (TYPE)1.0, subA, ldA, subB, ldB, beta, subC, ldC);
+	}
+	else
+	{
+		/* Parallel CPU task */
+		unsigned rank = starpu_combined_worker_get_rank();
+
+		unsigned block_size = (nyC + worker_size - 1)/worker_size;
+		unsigned new_nyC = STARPU_MIN(nyC, block_size*(rank+1)) - block_size*rank;
+
+		STARPU_ASSERT(nyC == STARPU_MATRIX_GET_NY(descr[1]));
+
+		TYPE *new_subB = &subB[block_size*rank];
+		TYPE *new_subC = &subC[block_size*rank];
+
+		CPU_GEMM("N", "N", nxC, new_nyC, nyA, (TYPE)1.0, subA, ldA, new_subB, ldB, beta, new_subC, ldC);
+	}
+}
+
 void cpu_mult(void *descr[], void *arg, TYPE beta)
 {
 	(void)arg;
@@ -374,6 +417,11 @@ void cpu_mult(void *descr[], void *arg, TYPE beta)
 	}
 }
 
+void cpu_gemm2d(void *descr[], void *arg)
+{
+	cpu_mult2d(descr, arg, 0.);
+}
+
 void cpu_gemm0(void *descr[], void *arg)
 {
 	cpu_mult(descr, arg, 0.);
@@ -394,6 +442,12 @@ static struct starpu_perfmodel starpu_gemm_model =
 /* Codelet for 2D matrix */
 static struct starpu_codelet cl_gemm2d =
 {
+#ifdef STARPU_HAVE_BLAS
+	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {cpu_gemm2d},
+	.cpu_funcs_name = {"cpu_gemm0"},
+#endif
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_gemm2d},
 #elif defined(STARPU_SIMGRID)
