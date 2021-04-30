@@ -76,6 +76,8 @@ static unsigned tiled = 0;
 static TYPE *A, *B, *C;
 static starpu_data_handle_t A_handle, B_handle, C_handle;
 
+static TYPE **Cscratch;
+
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
 
@@ -235,6 +237,38 @@ static void partition_mult_data(void)
 }
 
 #ifdef STARPU_USE_CUDA
+static void cublas_mult2d(void *descr[], void *arg, const TYPE *beta)
+{
+	(void)arg;
+	TYPE *subA = (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
+	TYPE *subB = (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
+	unsigned worker = starpu_worker_get_id_check();
+	unsigned devid = starpu_worker_get_devid(worker);
+	//TYPE *subC = (TYPE *)STARPU_MATRIX_GET_PTR(descr[2]);
+	TYPE *subC = Cscratch[devid];
+
+	//unsigned nxC = STARPU_MATRIX_GET_NX(descr[2]);
+	unsigned nxC = STARPU_MATRIX_GET_NY(descr[1]);
+	//unsigned nyC = STARPU_MATRIX_GET_NY(descr[2]);
+	unsigned nyC = STARPU_MATRIX_GET_NX(descr[0]);
+	unsigned nyA = STARPU_MATRIX_GET_NY(descr[0]);
+
+	unsigned ldA = STARPU_MATRIX_GET_LD(descr[0]);
+	unsigned ldB = STARPU_MATRIX_GET_LD(descr[1]);
+	//unsigned ldC = STARPU_MATRIX_GET_LD(descr[2]);
+	unsigned ldC = nxC;
+
+	cudaStream_t stream = starpu_cuda_get_local_stream();
+
+	cublasStatus_t status = CUBLAS_GEMM(starpu_cublas_get_local_handle(),
+			CUBLAS_OP_N, CUBLAS_OP_N,
+			nxC, nyC, nyA,
+			&p1, subA, ldA, subB, ldB,
+			beta, subC, ldC);
+	if (status != CUBLAS_STATUS_SUCCESS)
+		STARPU_CUBLAS_REPORT_ERROR(status);
+}
+
 static void cublas_mult(void *descr[], void *arg, const TYPE *beta)
 {
 	(void)arg;
@@ -268,6 +302,11 @@ static void cublas_mult(void *descr[], void *arg, const TYPE *beta)
 			beta, subC, ldC);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
+}
+
+static void cublas_gemm2d(void *descr[], void *arg)
+{
+	cublas_mult2d(descr, arg, &v0);
 }
 
 static void cublas_gemm0(void *descr[], void *arg)
@@ -348,6 +387,20 @@ static struct starpu_perfmodel starpu_gemm_model =
 };
 
 /* Codelet for 2D matrix */
+static struct starpu_codelet cl_gemm2d =
+{
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {cublas_gemm2d},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_R},
+	.model = &starpu_gemm_model
+};
+
+/* Codelet for 3D matrix */
 static struct starpu_codelet cl_gemm0 =
 {
 #ifdef STARPU_HAVE_BLAS
@@ -369,7 +422,6 @@ static struct starpu_codelet cl_gemm0 =
 	.model = &starpu_gemm_model
 };
 
-/* Codelet for 3D matrix */
 static struct starpu_codelet cl_gemm =
 {
 #ifdef STARPU_HAVE_BLAS
@@ -628,6 +680,16 @@ int main(int argc, char **argv)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	if (!tiled) {
+		unsigned ncuda = starpu_cuda_worker_get_count();
+		Cscratch = malloc(sizeof(TYPE*) * ncuda);
+		for (unsigned i = 0; i < ncuda; i++) {
+			unsigned worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, i);
+			unsigned node = starpu_worker_get_memory_node(worker);
+			Cscratch[i] = (TYPE*) starpu_malloc_on_node(node, (xdim / nslicesx) * (ydim / nslicesy) * sizeof(TYPE));
+		}
+	}
+
 	starpu_cublas_init();
 
 	init_problem_data();
@@ -736,7 +798,7 @@ int main(int argc, char **argv)
 				{
 					struct starpu_task *task = starpu_task_create();
 
-					task->cl = &cl_gemm0;
+					task->cl = &cl_gemm2d;
 					
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
@@ -819,7 +881,7 @@ int main(int argc, char **argv)
 					for (j = 0; j < nslicesy; j++)
 					{
 						struct starpu_task *task = starpu_task_create();
-						task->cl = &cl_gemm0;
+						task->cl = &cl_gemm2d;
 						
 						task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
 						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
@@ -853,7 +915,7 @@ int main(int argc, char **argv)
 				{
 					struct starpu_task *task = starpu_task_create();
 
-					task->cl = &cl_gemm0;
+					task->cl = &cl_gemm2d;
 					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, random()%nslicesy);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, random()%nslicesx);
@@ -889,7 +951,7 @@ int main(int argc, char **argv)
 				{
 					struct starpu_task *task = starpu_task_create();
 
-					task->cl = &cl_gemm0;
+					task->cl = &cl_gemm2d;
 					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
