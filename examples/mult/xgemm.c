@@ -755,6 +755,7 @@ int main(int argc, char **argv)
 						{
 						     check = 0;
 						     ret = 77;
+						     starpu_resume();
 						     goto enodev;
 						}
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -814,6 +815,7 @@ int main(int argc, char **argv)
 					if (ret == -ENODEV)
 					{
 						 ret = 77;
+						 starpu_resume();
 						 goto enodev;
 					}
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -892,7 +894,7 @@ int main(int argc, char **argv)
 						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
 						task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
 						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-						ret = starpu_task_submit(task); if (ret == -ENODEV) { ret = 77; goto enodev; }
+						ret = starpu_task_submit(task); if (ret == -ENODEV) { ret = 77; starpu_resume(); goto enodev; }
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit"); 
 						starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 					}
@@ -931,6 +933,7 @@ int main(int argc, char **argv)
 					ret = starpu_task_submit(task);
 					if (ret == -ENODEV)
 					{
+						starpu_resume();
 						 ret = 77;
 						 goto enodev;
 					}
@@ -967,6 +970,7 @@ int main(int argc, char **argv)
 					ret = starpu_task_submit(task);
 					if (ret == -ENODEV)
 					{
+						starpu_resume();
 						 ret = 77;
 						 goto enodev;
 					}
