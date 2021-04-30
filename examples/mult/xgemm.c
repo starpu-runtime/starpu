@@ -685,11 +685,13 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	
+	unsigned i = 0;
 
 	if (!tiled) {
 		unsigned ncuda = starpu_cuda_worker_get_count();
 		Cscratch = malloc(sizeof(TYPE*) * ncuda);
-		for (unsigned i = 0; i < ncuda; i++) {
+		for (i = 0; i < ncuda; i++) {
 			unsigned worker = starpu_worker_get_by_type(STARPU_CUDA_WORKER, i);
 			unsigned node = starpu_worker_get_memory_node(worker);
 			Cscratch[i] = (TYPE*) starpu_malloc_on_node(node, (xdim / nslicesx) * (ydim / nslicesy) * sizeof(TYPE));
