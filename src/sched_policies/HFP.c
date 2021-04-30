@@ -3069,7 +3069,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		{
 			init_visualisation(data->p);
 		}
-		//~ printf("do schedule done, gets true\n");
+		//printf("do schedule done, gets true\n");
 		do_schedule_done = true;
 		//print_packages_in_terminal(data->p, 0);
 		}	
@@ -3210,12 +3210,13 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		//printf("Donnés de la tache %p en cours : %p %p et %p\n",task_currently_treated,STARPU_TASK_GET_HANDLE(task_currently_treated,0),STARPU_TASK_GET_HANDLE(task_currently_treated,1),STARPU_TASK_GET_HANDLE(task_currently_treated,2));
 		int nb = STARPU_TASK_GET_NBUFFERS(task_currently_treated);
 		//printf("Nb de données de la tâche : %d\n",nb);
-		
+		printf("task avant le if = %p\n", task_currently_treated);
+		//printf("total nb data = %d\n", use_order_data->total_nb_data);
 		//~ //A CHANGER
 		//~ if (task_position_in_data_use_order[index_task_currently_treated] != summed_nb_data_each_gpu[current_gpu]) {
-		if (STARPU_TASK_GET_HANDLE(task_currently_treated,1) != use_order_data->data_list[use_order_data->total_nb_data]) {
+		//if (STARPU_TASK_GET_HANDLE(task_currently_treated, 1) != use_order_data->data_list[use_order_data->total_nb_data - 1]) {
 			//~ nb_data_next_task = task_position_in_data_use_order[used_index_task_currently_treated] - task_position_in_data_use_order[used_index_task_currently_treated - 1];
-			
+		printf("dans le if\n");	
 			//~ /* pas les bonnesdonnées la mais dans le fichier ca a l'air bon 
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("nb data next :%d\n",nb_data_next_task);
 			//~ printf("Données de la tâche en cours : ");
@@ -3278,15 +3279,15 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 					return returned_handle;
 													
 				}
-			}
-	}
-	else 
-	{
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On est sur la dernière tâche il faudrait sortir la\n"); } 
-		free(data_on_node);
-		return NULL;
+		}
+	//}
+	//else 
+	//{
+		//if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On est sur la dernière tâche il faudrait sortir la\n"); } 
+		//free(data_on_node);
+		//return NULL;
 		/* return STARPU_DATA_NO_VICTIM; */
-	} 
+	//} 
 	}
 	else 
 	{ 
