@@ -980,6 +980,10 @@ int main(int argc, char **argv)
 				end = starpu_timing_now();
 				if (iter != 0)
 					timing += end - start;
+				
+//timing2 = (end - start)*(n - start)
+//Me donne le timing de iteration i
+//timing + timing2 gflops - gflops normal
 
 				for (x = 0; x < nslicesx; x++)
 				for (y = 0; y < nslicesy; y++)
