@@ -110,16 +110,15 @@ static int check_output(void)
 
 static void init_problem_data(void)
 {
-#ifndef STARPU_SIMGRID
-	unsigned i,j;
-#endif
 
 	starpu_malloc_flags((void **)&A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_malloc_flags((void **)&B, xdim*zdim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 	starpu_malloc_flags((void **)&C, xdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
 
-#if 0
 #ifndef STARPU_SIMGRID
+#if 0
+	unsigned i,j;
+
 	/* fill the A and B matrices */
 	for (j=0; j < ydim; j++)
 	{
@@ -145,11 +144,11 @@ static void init_problem_data(void)
 		}
 	}
 	
-#endif
 #else
 	memset(A, 0, zdim*ydim*sizeof(TYPE));
 	memset(B, 0, xdim*zdim*sizeof(TYPE));
 	memset(C, 0, xdim*ydim*sizeof(TYPE));
+#endif
 #endif
 }
 
