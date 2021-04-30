@@ -84,7 +84,7 @@ static double cudadev_latency_dtod[STARPU_MAXNODES][STARPU_MAXNODES] = {{0.0}};
 static struct dev_timing cudadev_timing_per_cpu[STARPU_MAXNODES*STARPU_MAXCPUS];
 #endif
 #ifdef STARPU_USE_OPENCL
-static uint64_t opencl_size[STARPU_MAXCUDADEVS];
+static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 static int opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXCPUS];
 static double opencldev_timing_htod[STARPU_MAXNODES] = {0.0};
 static double opencldev_latency_htod[STARPU_MAXNODES] = {0.0};
