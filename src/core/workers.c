@@ -1882,7 +1882,7 @@ void starpu_shutdown(void)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	/* If the workers are frozen, no progress can be made. */
-	STARPU_ASSERT(_starpu_config.pause_depth <= 0);
+	STARPU_ASSERT_MSG(_starpu_config.pause_depth <= 0, "Did you forget to call starpu_resume before starpu_shutdown?");
 
 	starpu_task_wait_for_no_ready();
 
