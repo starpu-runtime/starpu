@@ -39,7 +39,7 @@ static int copy_handle(starpu_data_handle_t* dst, starpu_data_handle_t* src, uns
 #define BARRIER() starpu_mpi_barrier(MPI_COMM_WORLD);
 #define GET_DATA_HANDLE(handle) starpu_mpi_get_data_on_all_nodes_detached(MPI_COMM_WORLD, handle)
 
-static int block_size;
+static unsigned block_size;
 
 static int rank;
 static int nodes_p = 2;
@@ -82,7 +82,8 @@ static int copy_handle(starpu_data_handle_t* dst, starpu_data_handle_t* src, uns
  */
 static void generate_random_problem(void)
 {
-	unsigned nn, mm, m, n, mpi_rank;
+	unsigned nn, mm, m, n;
+	int mpi_rank;
 
 	A = malloc(nblocks * sizeof(TYPE **));
 	x = malloc(nblocks * sizeof(TYPE *));
@@ -142,7 +143,8 @@ static void generate_random_problem(void)
 
 static void free_data(void)
 {
-	unsigned nn, mm, m, n, mpi_rank;
+	unsigned nn, mm, m, n;
+	int mpi_rank;
 
 	for (m = 0; m < nblocks; m++)
 	{
@@ -304,7 +306,7 @@ static void unregister_data(void)
 
 static void display_x_result(void)
 {
-	int j, i;
+	unsigned j, i;
 
 	for (j = 0; j < nblocks; j++)
 	{

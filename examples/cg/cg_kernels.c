@@ -31,7 +31,7 @@ static const TYPE gm1 = -1.0;
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-static int nblocks = 8;
+static unsigned nblocks = 8;
 
 #ifdef STARPU_QUICK_CHECK
 static int i_max = 5;

@@ -258,12 +258,12 @@ static void display_matrix(void)
 
 static void display_x_result(void)
 {
-	int j, i;
+	unsigned j, i;
 	starpu_data_handle_t sub;
 
 	FPRINTF(stderr, "Computed X vector:\n");
 
-	int block_size = n / nblocks;
+	unsigned block_size = n / nblocks;
 
 	for (j = 0; j < nblocks; j++)
 	{
