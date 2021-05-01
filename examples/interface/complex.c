@@ -150,7 +150,7 @@ int main(void)
 	starpu_task_wait_for_all();
 	if (compare != 0)
 	{
-	     FPRINTF(stderr, "Complex numbers should NOT be similar\n");
+	     _FPRINTF(stderr, "Complex numbers should NOT be similar\n");
 	     goto end;
 	}
 
@@ -183,7 +183,7 @@ int main(void)
 
 	if (compare != 1)
 	{
-	     FPRINTF(stderr, "Complex numbers should be similar\n");
+	     _FPRINTF(stderr, "Complex numbers should be similar\n");
 	}
 
 	/* Put another value again */
@@ -267,7 +267,7 @@ int main(void)
 	starpu_task_wait_for_all();
 	if (compare != 1)
 	{
-	     FPRINTF(stderr, "Complex numbers should be similar\n");
+	     _FPRINTF(stderr, "Complex numbers should be similar\n");
 	     goto end;
 	}
 
