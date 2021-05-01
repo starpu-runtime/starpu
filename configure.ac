@@ -2258,10 +2258,10 @@ if test x$enable_perf_debug = xyes; then
 fi
 
 IS_SUPPORTED_FLAG(-Wextra)
+IS_SUPPORTED_FLAG(-Wunused)
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
-	IS_SUPPORTED_FLAG(-Wunused)
 	IS_SUPPORTED_CFLAG(-Wundef)
 	IS_SUPPORTED_CXXFLAG(-Wundef)
 	IS_SUPPORTED_FLAG(-Wshadow)
