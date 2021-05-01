@@ -79,12 +79,12 @@ static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsig
 static TYPE *A, *b, *x;
 static TYPE *r, *d, *q;
 
-static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nblocks)
+static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nb)
 {
-	unsigned b;
+	unsigned block;
 
-	for (b = 0; b < nblocks; b++)
-		starpu_data_cpy(starpu_data_get_sub_data(dst, 1, b), starpu_data_get_sub_data(src, 1, b), 1, NULL, NULL);
+	for (block = 0; block < nb; block++)
+		starpu_data_cpy(starpu_data_get_sub_data(dst, 1, block), starpu_data_get_sub_data(src, 1, block), 1, NULL, NULL);
 	return 0;
 }
 

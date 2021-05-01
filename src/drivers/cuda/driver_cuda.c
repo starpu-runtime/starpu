@@ -106,12 +106,12 @@ static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 }
 
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
-nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props)
+nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *dev_props)
 {
 	char busid[13];
 	nvmlDevice_t ret;
 
-	snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props->pciDomainID, props->pciBusID, props->pciDeviceID);
+	snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", dev_props->pciDomainID, dev_props->pciBusID, dev_props->pciDeviceID);
 	if (nvmlDeviceGetHandleByPciBusId(busid, &ret) != NVML_SUCCESS)
 		ret = NULL;
 
