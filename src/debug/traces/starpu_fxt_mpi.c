@@ -117,7 +117,6 @@ static unsigned mpi_recvs_used[MAX_MPI_NODES] = {0};
  * going through the lists from the beginning to match each and every
  * transfer, thus avoiding a quadratic complexity. */
 static unsigned mpi_recvs_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
-static unsigned mpi_sends_matched[MAX_MPI_NODES][MAX_MPI_NODES] = { {0} };
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid)
 {
