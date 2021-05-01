@@ -2262,6 +2262,8 @@ IS_SUPPORTED_FLAG(-Wunused)
 IS_SUPPORTED_CFLAG(-Wundef)
 IS_SUPPORTED_CXXFLAG(-Wundef)
 IS_SUPPORTED_FLAG(-Wshadow)
+IS_SUPPORTED_CFLAG(-Wpointer-arith)
+IS_SUPPORTED_CXXFLAG(-Wpointer-arith)
 
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
