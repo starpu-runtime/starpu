@@ -2633,7 +2633,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				starpu_task_list_push_back(&data->popped_task_list, task1);
 			} 	
 			NT = nb_pop;
-			//~ printf("%d task have been pulled\n", NT);
+			printf("%d task have been pulled\n", NT);
 			N = sqrt(NT);
 			if(starpu_get_env_number_default("PRINT3D",0) == 1) 
 			{
@@ -2695,6 +2695,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				/* algo 3's goto */
 				algo3:
 				nb_of_loop++;
+				printf("nb of loop : %d, nb of packages : %d\n", nb_of_loop, nb_pop);
 				packaging_impossible = 1;
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("############# Itération numéro : %d #############\n",nb_of_loop); }
 								
@@ -3098,7 +3099,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		{
 			init_visualisation(data->p);
 		}
-		//~ printf("do schedule done, gets true\n");
+		printf("do schedule done, gets true\n");
 		do_schedule_done = true;
 		//print_packages_in_terminal(data->p, 0);
 		}	

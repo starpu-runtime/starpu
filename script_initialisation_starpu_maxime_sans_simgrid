@@ -4,3 +4,5 @@ make -j 100
 make install
 echo "INITIALISATION OK"
 export STARPU_PERF_MODEL_DIR=/home/mgonthie/starpu/perfmodels/sampling
+sleep 2
+module load linalg/mkl
