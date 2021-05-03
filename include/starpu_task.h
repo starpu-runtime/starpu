@@ -1050,15 +1050,21 @@ struct starpu_task
 
 	   Set by StarPU.
 	*/
-	unsigned failed:1;
+	unsigned char failed;
 
 	/**
 	   Whether the scheduler has pushed the task on some queue
 
 	   Set by StarPU.
 	*/
-	unsigned scheduled:1;
-	unsigned prefetched:1;
+	unsigned char scheduled;
+
+	/**
+	   Whether the scheduler has prefetched the task's data
+
+	   Set by StarPU.
+	*/
+	unsigned char prefetched;
 
 	/**
 	   Optional field. If the field
