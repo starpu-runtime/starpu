@@ -29,7 +29,7 @@
 #####
 # Model for cpu0_impl0 (Comb3)
 # number of entries
-8
+9
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
@@ -69,7 +69,7 @@ a7cdf15b	44236800       	1.415578e+10   	6.657450e+05   	2.371804e+04   	5.12623
 #####
 # Model for cuda0_impl0 (Comb0)
 # number of entries
-8
+9
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
@@ -109,7 +109,7 @@ a7cdf15b	44236800       	1.415578e+10   	2.246998e+04   	1.357113e+02   	2.38181
 #####
 # Model for cuda1_impl0 (Comb2)
 # number of entries
-8
+9
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
@@ -149,7 +149,7 @@ a7cdf15b	44236800       	1.415578e+10   	2.246154e+04   	1.900893e+02   	2.35846
 #####
 # Model for cuda2_impl0 (Comb1)
 # number of entries
-8
+9
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
