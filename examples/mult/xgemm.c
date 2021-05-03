@@ -33,7 +33,9 @@
 #include <starpu.h>
 #include <starpu_fxt.h>
 
+#ifdef STARPU_HAVE_BLAS
 #include <common/blas.h>
+#endif
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
@@ -68,6 +70,7 @@ static starpu_data_handle_t A_handle, B_handle, C_handle;
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define PRINTF(fmt, ...) do { if (!getenv("STARPU_SSILENT")) {printf(fmt, ## __VA_ARGS__); fflush(stdout); }} while(0)
 
+#ifdef STARPU_HAVE_BLAS
 static int check_output(void)
 {
 	/* compute C = C - AB */
@@ -92,6 +95,7 @@ static int check_output(void)
 		return 1;
 	}
 }
+#endif
 
 static void init_problem_data(void)
 {
@@ -225,6 +229,7 @@ static void cublas_gemm(void *descr[], void *arg)
 }
 #endif
 
+#ifdef STARPU_HAVE_BLAS
 void cpu_mult(void *descr[], void *arg, TYPE beta)
 {
 	(void)arg;
@@ -273,6 +278,7 @@ void cpu_gemm(void *descr[], void *arg)
 {
 	cpu_mult(descr, arg, 1.);
 }
+#endif
 
 static struct starpu_perfmodel starpu_gemm_model =
 {
@@ -282,10 +288,12 @@ static struct starpu_perfmodel starpu_gemm_model =
 
 static struct starpu_codelet cl_gemm0 =
 {
+#ifdef STARPU_HAVE_BLAS
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {cpu_gemm0},
 	.cpu_funcs_name = {"cpu_gemm0"},
+#endif
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_gemm0},
 #elif defined(STARPU_SIMGRID)
@@ -299,10 +307,12 @@ static struct starpu_codelet cl_gemm0 =
 
 static struct starpu_codelet cl_gemm =
 {
+#ifdef STARPU_HAVE_BLAS
 	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {cpu_gemm},
 	.cpu_funcs_name = {"cpu_gemm"},
+#endif
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {cublas_gemm},
 #elif defined(STARPU_SIMGRID)
@@ -330,24 +340,49 @@ static void parse_args(int argc, char **argv)
 			nslicesx = strtol(argv[++i], &argptr, 10);
 			nslicesy = nslicesx;
 			nslicesz = nslicesx;
+			if (nslicesx == 0)
+			{
+				fprintf(stderr, "the number of blocks in X cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
+			if (nslicesy == 0)
+			{
+				fprintf(stderr, "the number of blocks in Y cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-nblocksx") == 0)
 		{
 			char *argptr;
 			nslicesx = strtol(argv[++i], &argptr, 10);
+			if (nslicesx == 0)
+			{
+				fprintf(stderr, "the number of blocks in X cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-nblocksy") == 0)
 		{
 			char *argptr;
 			nslicesy = strtol(argv[++i], &argptr, 10);
+			if (nslicesy == 0)
+			{
+				fprintf(stderr, "the number of blocks in Y cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-nblocksz") == 0)
 		{
 			char *argptr;
 			nslicesz = strtol(argv[++i], &argptr, 10);
+			if (nslicesz == 0)
+			{
+				fprintf(stderr, "the number of blocks in Z cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-x") == 0)
@@ -416,9 +451,9 @@ static void parse_args(int argc, char **argv)
 		{
 			fprintf(stderr,"Usage: %s [-3d] [-nblocks n] [-nblocksx x] [-nblocksy y] [-nblocksz z] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname] [-nsleeps nsleeps]\n", argv[0]);
 			if (tiled)
-				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, niter, nsleeps);
+				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%ux%u blocks (size %ux%u length %u), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, xdim / nslicesx, ydim / nslicesy, zdim / nslicesz, niter, nsleeps);
 			else
-				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks, %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, niter, nsleeps);
+				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%u blocks (size %ux%u length %u), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, xdim / nslicesx, ydim / nslicesy, zdim, niter, nsleeps);
 			exit(EXIT_SUCCESS);
 		}
 		else
@@ -574,9 +609,11 @@ enodev:
 	starpu_data_unregister(B_handle);
 	starpu_data_unregister(C_handle);
 
+#ifdef STARPU_HAVE_BLAS
 #ifndef STARPU_SIMGRID
 	if (check)
 		ret = check_output();
+#endif
 #endif
 
 	starpu_free_flags(A, zdim*ydim*sizeof(TYPE), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);

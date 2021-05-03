@@ -2257,13 +2257,16 @@ if test x$enable_perf_debug = xyes; then
 	IS_SUPPORTED_FLAG(-fno-pie)
 fi
 
+IS_SUPPORTED_FLAG(-Wextra)
+IS_SUPPORTED_FLAG(-Wunused)
+IS_SUPPORTED_CFLAG(-Wundef)
+IS_SUPPORTED_CXXFLAG(-Wundef)
+IS_SUPPORTED_FLAG(-Wshadow)
+IS_SUPPORTED_CFLAG(-Wpointer-arith)
+IS_SUPPORTED_CXXFLAG(-Wpointer-arith)
+
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
-	IS_SUPPORTED_FLAG(-Wextra)
-	IS_SUPPORTED_FLAG(-Wunused)
-	IS_SUPPORTED_CFLAG(-Wundef)
-	IS_SUPPORTED_CXXFLAG(-Wundef)
-	IS_SUPPORTED_FLAG(-Wshadow)
 	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
 	IS_SUPPORTED_CXXFLAG(-Werror=pointer-arith)
 	IS_SUPPORTED_FLAG(-fno-common)
@@ -2777,6 +2780,14 @@ AM_CONDITIONAL(STARPU_HAVE_CBLAS_H, test x$have_cblas_h = xyes)
 if test x$have_cblas_h = xyes; then
     AC_DEFINE(STARPU_HAVE_CBLAS_H, [1], [The blas library has blas.h])
 fi
+if test x$blas_lib != xnone; then
+    AC_DEFINE(STARPU_HAVE_BLAS, [1], [The blas library is available])
+    SAVED_LIBS="$LIBS"
+    LIBS="$LIBS -lblas"
+    AC_CHECK_FUNCS([cblas_sgemv])
+    LIBS="$SAVED_LIBS"
+fi
+AM_CONDITIONAL(STARPU_HAVE_CBLAS_SGEMV, test $HAVE_CBLAS_SGEMV = 1)
 
 AM_CONDITIONAL(STARPU_ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(STARPU_GOTO_BLAS_LIB, test x$blas_lib = xgoto)

@@ -118,7 +118,7 @@ static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 #endif
 
 #ifndef STARPU_SIMGRID
-static uint64_t opencl_size[STARPU_MAXCUDADEVS];
+static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 #endif
 #ifdef STARPU_USE_OPENCL
 /* preference order of cores (logical indexes) */

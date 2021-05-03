@@ -120,7 +120,6 @@ static unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
  * going through the lists from the beginning to match each and every
  * transfer, thus avoiding a quadratic complexity. */
 static unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
-static unsigned mpi_sends_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio)
 {

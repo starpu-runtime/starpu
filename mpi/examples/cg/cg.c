@@ -39,7 +39,7 @@ static int copy_handle(starpu_data_handle_t* dst, starpu_data_handle_t* src, uns
 #define BARRIER() starpu_mpi_barrier(MPI_COMM_WORLD);
 #define GET_DATA_HANDLE(handle) starpu_mpi_get_data_on_all_nodes_detached(MPI_COMM_WORLD, handle)
 
-static int block_size;
+static unsigned block_size;
 
 static int rank;
 static int nodes_p = 2;
@@ -57,20 +57,20 @@ static TYPE **q;
 
 #include "../../../examples/cg/cg_kernels.c"
 
-static int my_distrib(const int y, const int x)
+static int my_distrib(const int yy, const int xx)
 {
-	return (y%nodes_q)*nodes_p + (x%nodes_p);
+	return (yy%nodes_q)*nodes_p + (xx%nodes_p);
 }
 
-static int copy_handle(starpu_data_handle_t* dst, starpu_data_handle_t* src, unsigned nblocks)
+static int copy_handle(starpu_data_handle_t* dst, starpu_data_handle_t* src, unsigned nb)
 {
-	unsigned b;
+	unsigned block;
 
-	for (b = 0; b < nblocks; b++)
+	for (block = 0; block < nb; block++)
 	{
-		if (rank == my_distrib(b, 0))
+		if (rank == my_distrib(block, 0))
 		{
-			starpu_data_cpy(dst[b], src[b], /* asynchronous */ 1, /* without callback */ NULL, NULL);
+			starpu_data_cpy(dst[block], src[block], /* asynchronous */ 1, /* without callback */ NULL, NULL);
 		}
 	}
 
@@ -82,7 +82,8 @@ static int copy_handle(starpu_data_handle_t* dst, starpu_data_handle_t* src, uns
  */
 static void generate_random_problem(void)
 {
-	unsigned nn, mm, m, n, mpi_rank;
+	unsigned ii, jj, j, i;
+	int mpi_rank;
 
 	A = malloc(nblocks * sizeof(TYPE **));
 	x = malloc(nblocks * sizeof(TYPE *));
@@ -92,47 +93,47 @@ static void generate_random_problem(void)
 	d = malloc(nblocks * sizeof(TYPE *));
 	q = malloc(nblocks * sizeof(TYPE *));
 
-	for (m = 0; m < nblocks; m++)
+	for (j = 0; j < nblocks; j++)
 	{
-		A[m] = malloc(nblocks * sizeof(TYPE*));
+		A[j] = malloc(nblocks * sizeof(TYPE*));
 
-		mpi_rank = my_distrib(m, 0);
+		mpi_rank = my_distrib(j, 0);
 
 		if (mpi_rank == rank || display_result)
 		{
-			starpu_malloc((void**) &x[m], block_size*sizeof(TYPE));
+			starpu_malloc((void**) &x[j], block_size*sizeof(TYPE));
 		}
 
 		if (mpi_rank == rank)
 		{
-			starpu_malloc((void**) &b[m], block_size*sizeof(TYPE));
-			starpu_malloc((void**) &r[m], block_size*sizeof(TYPE));
-			starpu_malloc((void**) &d[m], block_size*sizeof(TYPE));
-			starpu_malloc((void**) &q[m], block_size*sizeof(TYPE));
+			starpu_malloc((void**) &b[j], block_size*sizeof(TYPE));
+			starpu_malloc((void**) &r[j], block_size*sizeof(TYPE));
+			starpu_malloc((void**) &d[j], block_size*sizeof(TYPE));
+			starpu_malloc((void**) &q[j], block_size*sizeof(TYPE));
 
-			for (mm = 0; mm < block_size; mm++)
+			for (jj = 0; jj < block_size; jj++)
 			{
-				x[m][mm] = (TYPE) 0.0;
-				b[m][mm] = (TYPE) 1.0;
-				r[m][mm] = (TYPE) 0.0;
-				d[m][mm] = (TYPE) 0.0;
-				q[m][mm] = (TYPE) 0.0;
+				x[j][jj] = (TYPE) 0.0;
+				b[j][jj] = (TYPE) 1.0;
+				r[j][jj] = (TYPE) 0.0;
+				d[j][jj] = (TYPE) 0.0;
+				q[j][jj] = (TYPE) 0.0;
 			}
 		}
 
-		for (n = 0; n < nblocks; n++)
+		for (i = 0; i < nblocks; i++)
 		{
-			mpi_rank = my_distrib(m, n);
+			mpi_rank = my_distrib(j, i);
 			if (mpi_rank == rank)
 			{
-				starpu_malloc((void**) &A[m][n], block_size*block_size*sizeof(TYPE));
+				starpu_malloc((void**) &A[j][i], block_size*block_size*sizeof(TYPE));
 
-				for (nn = 0; nn < block_size; nn++)
+				for (ii = 0; ii < block_size; ii++)
 				{
-					for (mm = 0; mm < block_size; mm++)
+					for (jj = 0; jj < block_size; jj++)
 					{
 						/* We take Hilbert matrix that is not well conditionned but definite positive: H(i,j) = 1/(1+i+j) */
-						A[m][n][mm + nn*block_size] = (TYPE) (1.0/(1.0+(nn+(m*block_size)+mm+(n*block_size))));
+						A[j][i][jj + ii*block_size] = (TYPE) (1.0/(1.0+(ii+(j*block_size)+jj+(i*block_size))));
 					}
 				}
 			}
@@ -142,35 +143,36 @@ static void generate_random_problem(void)
 
 static void free_data(void)
 {
-	unsigned nn, mm, m, n, mpi_rank;
+	unsigned ii, jj, j, i;
+	int mpi_rank;
 
-	for (m = 0; m < nblocks; m++)
+	for (j = 0; j < nblocks; j++)
 	{
-		mpi_rank = my_distrib(m, 0);
+		mpi_rank = my_distrib(j, 0);
 
 		if (mpi_rank == rank || display_result)
 		{
-			starpu_free((void*) x[m]);
+			starpu_free((void*) x[j]);
 		}
 
 		if (mpi_rank == rank)
 		{
-			starpu_free((void*) b[m]);
-			starpu_free((void*) r[m]);
-			starpu_free((void*) d[m]);
-			starpu_free((void*) q[m]);
+			starpu_free((void*) b[j]);
+			starpu_free((void*) r[j]);
+			starpu_free((void*) d[j]);
+			starpu_free((void*) q[j]);
 		}
 
-		for (n = 0; n < nblocks; n++)
+		for (i = 0; i < nblocks; i++)
 		{
-			mpi_rank = my_distrib(m, n);
+			mpi_rank = my_distrib(j, i);
 			if (mpi_rank == rank)
 			{
-				starpu_free((void*) A[m][n]);
+				starpu_free((void*) A[j][i]);
 			}
 		}
 
-		free(A[m]);
+		free(A[j]);
 	}
 
 	free(A);
@@ -183,7 +185,7 @@ static void free_data(void)
 
 static void register_data(void)
 {
-	unsigned m, n;
+	unsigned j, i;
 	int mpi_rank;
 	starpu_mpi_tag_t mpi_tag = 0;
 
@@ -194,68 +196,68 @@ static void register_data(void)
 	d_handle = malloc(nblocks*sizeof(starpu_data_handle_t));
 	q_handle = malloc(nblocks*sizeof(starpu_data_handle_t));
 
-	for (m = 0; m < nblocks; m++)
+	for (j = 0; j < nblocks; j++)
 	{
-		mpi_rank = my_distrib(m, 0);
-		A_handle[m] = malloc(nblocks*sizeof(starpu_data_handle_t));
+		mpi_rank = my_distrib(j, 0);
+		A_handle[j] = malloc(nblocks*sizeof(starpu_data_handle_t));
 
 		if (mpi_rank == rank || display_result)
 		{
-			starpu_vector_data_register(&x_handle[m], STARPU_MAIN_RAM, (uintptr_t) x[m], block_size, sizeof(TYPE));
+			starpu_vector_data_register(&x_handle[j], STARPU_MAIN_RAM, (uintptr_t) x[j], block_size, sizeof(TYPE));
 		}
 		else if (!display_result)
 		{
 			assert(mpi_rank != rank);
-			starpu_vector_data_register(&x_handle[m], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
+			starpu_vector_data_register(&x_handle[j], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
 		}
 
 		if (mpi_rank == rank)
 		{
-			starpu_vector_data_register(&b_handle[m], STARPU_MAIN_RAM, (uintptr_t) b[m], block_size, sizeof(TYPE));
-			starpu_vector_data_register(&r_handle[m], STARPU_MAIN_RAM, (uintptr_t) r[m], block_size, sizeof(TYPE));
-			starpu_vector_data_register(&d_handle[m], STARPU_MAIN_RAM, (uintptr_t) d[m], block_size, sizeof(TYPE));
-			starpu_vector_data_register(&q_handle[m], STARPU_MAIN_RAM, (uintptr_t) q[m], block_size, sizeof(TYPE));
+			starpu_vector_data_register(&b_handle[j], STARPU_MAIN_RAM, (uintptr_t) b[j], block_size, sizeof(TYPE));
+			starpu_vector_data_register(&r_handle[j], STARPU_MAIN_RAM, (uintptr_t) r[j], block_size, sizeof(TYPE));
+			starpu_vector_data_register(&d_handle[j], STARPU_MAIN_RAM, (uintptr_t) d[j], block_size, sizeof(TYPE));
+			starpu_vector_data_register(&q_handle[j], STARPU_MAIN_RAM, (uintptr_t) q[j], block_size, sizeof(TYPE));
 		}
 		else
 		{
-			starpu_vector_data_register(&b_handle[m], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
-			starpu_vector_data_register(&r_handle[m], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
-			starpu_vector_data_register(&d_handle[m], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
-			starpu_vector_data_register(&q_handle[m], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
+			starpu_vector_data_register(&b_handle[j], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
+			starpu_vector_data_register(&r_handle[j], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
+			starpu_vector_data_register(&d_handle[j], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
+			starpu_vector_data_register(&q_handle[j], -1, (uintptr_t) NULL, block_size, sizeof(TYPE));
 		}
 
-		starpu_data_set_coordinates(x_handle[m], 1, m);
-		starpu_mpi_data_register(x_handle[m], ++mpi_tag, mpi_rank);
-		starpu_data_set_coordinates(b_handle[m], 1, m);
-		starpu_mpi_data_register(b_handle[m], ++mpi_tag, mpi_rank);
-		starpu_data_set_coordinates(r_handle[m], 1, m);
-		starpu_mpi_data_register(r_handle[m], ++mpi_tag, mpi_rank);
-		starpu_data_set_coordinates(d_handle[m], 1, m);
-		starpu_mpi_data_register(d_handle[m], ++mpi_tag, mpi_rank);
-		starpu_data_set_coordinates(q_handle[m], 1, m);
-		starpu_mpi_data_register(q_handle[m], ++mpi_tag, mpi_rank);
+		starpu_data_set_coordinates(x_handle[j], 1, j);
+		starpu_mpi_data_register(x_handle[j], ++mpi_tag, mpi_rank);
+		starpu_data_set_coordinates(b_handle[j], 1, j);
+		starpu_mpi_data_register(b_handle[j], ++mpi_tag, mpi_rank);
+		starpu_data_set_coordinates(r_handle[j], 1, j);
+		starpu_mpi_data_register(r_handle[j], ++mpi_tag, mpi_rank);
+		starpu_data_set_coordinates(d_handle[j], 1, j);
+		starpu_mpi_data_register(d_handle[j], ++mpi_tag, mpi_rank);
+		starpu_data_set_coordinates(q_handle[j], 1, j);
+		starpu_mpi_data_register(q_handle[j], ++mpi_tag, mpi_rank);
 
 		if (use_reduction)
 		{
-			starpu_data_set_reduction_methods(q_handle[m], &accumulate_vector_cl, &bzero_vector_cl);
-			starpu_data_set_reduction_methods(r_handle[m], &accumulate_vector_cl, &bzero_vector_cl);
+			starpu_data_set_reduction_methods(q_handle[j], &accumulate_vector_cl, &bzero_vector_cl);
+			starpu_data_set_reduction_methods(r_handle[j], &accumulate_vector_cl, &bzero_vector_cl);
 		}
 
-		for (n = 0; n < nblocks; n++)
+		for (i = 0; i < nblocks; i++)
 		{
-			mpi_rank = my_distrib(m, n);
+			mpi_rank = my_distrib(j, i);
 
 			if (mpi_rank == rank)
 			{
-				starpu_matrix_data_register(&A_handle[m][n], STARPU_MAIN_RAM, (uintptr_t) A[m][n], block_size, block_size, block_size, sizeof(TYPE));
+				starpu_matrix_data_register(&A_handle[j][i], STARPU_MAIN_RAM, (uintptr_t) A[j][i], block_size, block_size, block_size, sizeof(TYPE));
 			}
 			else
 			{
-				starpu_matrix_data_register(&A_handle[m][n], -1, (uintptr_t) NULL, block_size, block_size, block_size, sizeof(TYPE));
+				starpu_matrix_data_register(&A_handle[j][i], -1, (uintptr_t) NULL, block_size, block_size, block_size, sizeof(TYPE));
 			}
 
-			starpu_data_set_coordinates(A_handle[m][n], 2, n, m);
-			starpu_mpi_data_register(A_handle[m][n], ++mpi_tag, mpi_rank);
+			starpu_data_set_coordinates(A_handle[j][i], 2, i, j);
+			starpu_mpi_data_register(A_handle[j][i], ++mpi_tag, mpi_rank);
 		}
 	}
 
@@ -273,22 +275,22 @@ static void register_data(void)
 
 static void unregister_data(void)
 {
-	unsigned m, n;
+	unsigned j, i;
 
-	for (m = 0; m < nblocks; m++)
+	for (j = 0; j < nblocks; j++)
 	{
-		starpu_data_unregister(x_handle[m]);
-		starpu_data_unregister(b_handle[m]);
-		starpu_data_unregister(r_handle[m]);
-		starpu_data_unregister(d_handle[m]);
-		starpu_data_unregister(q_handle[m]);
+		starpu_data_unregister(x_handle[j]);
+		starpu_data_unregister(b_handle[j]);
+		starpu_data_unregister(r_handle[j]);
+		starpu_data_unregister(d_handle[j]);
+		starpu_data_unregister(q_handle[j]);
 
-		for (n = 0; n < nblocks; n++)
+		for (i = 0; i < nblocks; i++)
 		{
-			starpu_data_unregister(A_handle[m][n]);
+			starpu_data_unregister(A_handle[j][i]);
 		}
 
-		free(A_handle[m]);
+		free(A_handle[j]);
 	}
 
 	starpu_data_unregister(dtq_handle);
@@ -304,7 +306,7 @@ static void unregister_data(void)
 
 static void display_x_result(void)
 {
-	int j, i;
+	unsigned j, i;
 
 	for (j = 0; j < nblocks; j++)
 	{
