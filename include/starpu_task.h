@@ -173,8 +173,8 @@ struct starpu_task
 
 	unsigned int mf_skip:1;
 
-	unsigned scheduled:1;
-	unsigned prefetched:1;
+	unsigned char scheduled;
+	unsigned char prefetched;
 
 	unsigned workerid;
 	unsigned workerorder;
