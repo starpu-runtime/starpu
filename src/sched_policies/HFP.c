@@ -2460,7 +2460,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		}
 		if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) 
 		{
-			//~ printf("in refused fifo of pull_task\n");
+			//printf("in refused fifo of pull_task\n");
 			task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			//printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to);
@@ -2487,7 +2487,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 
 static int HFP_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
 {
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Début HFP_can_push\n"); }
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Début HFP_can_push\n"); }
 	struct HFP_sched_data *data = component->data;
 	int didwork = 0;
 	int i = 0;
@@ -2535,13 +2535,12 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 	}
 
 	/* There is room now */
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Fin de can push\n"); }
 	return didwork || starpu_sched_component_can_push(component, to);
 }
 
 static int HFP_can_pull(struct starpu_sched_component * component)
 {
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Can pull\n"); }
+	//printf("Can pull\n");
 	//~ struct HFP_sched_data *data = component->data;
 	return starpu_sched_component_can_pull(component);
 }
@@ -2596,7 +2595,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 	/* If the linked list is empty, we can pull more tasks */
 	if (is_empty(data->p->first_link) == true) {
 		if (!starpu_task_list_empty(&data->sched_list)) { /* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
-			//~ printf("starting do_schedule\n");
+			printf("sched list not empty, starting do_schedule\n");
 			time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
@@ -3099,17 +3098,17 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		{
 			init_visualisation(data->p);
 		}
-		//~ printf("do schedule done, gets true\n");
+
+		//printf("do schedule done, gets true\n");
 		do_schedule_done = true;
 		//print_packages_in_terminal(data->p, 0);
 		}	
 }
-
+//printf("exiting do_schedule\n");
 }
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
-	//printf("Create\n");
 	//~ srandom(time(0)); /* If we need a random selection */
 	srandom(starpu_get_env_number_default("SEED", 0)); /* If we need a random selection */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
@@ -3207,6 +3206,7 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 //VERSION 1 SEUL GPU
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
+	//printf("Début de Belady\n");
 	int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
 	unsigned nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
@@ -3269,12 +3269,14 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) {
 						free(tab_data_on_node); 
 						free(prochaine_utilisation_donnee);
+						//printf("Return NO_VICTIM\n");
 						return STARPU_DATA_NO_VICTIM;  
 					}
 					
 					starpu_data_handle_t returned_handle = tab_data_on_node[donnee_utilise_dans_le_plus_longtemps];
 					free(tab_data_on_node);
 					free(prochaine_utilisation_donnee);
+					//printf("Belady return %p\n", returned_handle);
 					return returned_handle;										
 				}
 			}
@@ -3282,12 +3284,13 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	else {
 		 if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On est sur la dernière tâche il faudrait sortir la\n"); } 
 		free(tab_data_on_node);
+		//printf("Return NULL\n");
 		return NULL;
 		//~ return STARPU_DATA_NO_VICTIM;
 		 }
 	} 
 	else { 
-		if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("task current = null\n"); } 
+	//printf("task current = null\n"); 
 		}
 
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr,"uh, no evictable data\n"); }
