@@ -36,7 +36,7 @@ void cpu_codelet_A(void *descr[], void *_args)
 {
 	(void)descr;
 	int *arg = _args;
-	*arg = 1;
+	STARPU_ATOMIC_OR(arg, 1);
 	fprintf(stderr,"A");
 }
 
