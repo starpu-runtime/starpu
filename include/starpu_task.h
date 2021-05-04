@@ -956,13 +956,6 @@ struct starpu_task
 	unsigned regenerate:1;
 
 	/**
-	   @private
-	   This is only used for tasks that use multiformat handle.
-	   This should only be used by StarPU.
-	*/
-	unsigned mf_skip:1;
-
-	/**
 	   do not allocate a submitorder id for this task
 
 	   With starpu_task_insert() and alike this can be specified
@@ -970,6 +963,13 @@ struct starpu_task
 	   an unsigned.
 	*/
 	unsigned no_submitorder:1;
+
+	/**
+	   @private
+	   This is only used for tasks that use multiformat handle.
+	   This should only be used by StarPU.
+	*/
+	unsigned char mf_skip;
 
 	/**
 	   Whether the scheduler has pushed the task on some queue
