@@ -64,6 +64,14 @@
 }
 
 {
+   Ignore libc printf races
+   Helgrind:Race
+   ...
+   fun:_IO_file_xsputn
+   ...
+}
+
+{
    <insert_a_suppression_name_here>
    Memcheck:Leak
    ...
