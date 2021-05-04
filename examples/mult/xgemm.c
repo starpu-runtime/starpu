@@ -808,8 +808,8 @@ int main(int argc, char **argv)
 						struct starpu_task *task = starpu_task_create();
 
 						if (z == 0)
-							//~ task->cl = &cl_gemm0;
 							task->cl = &cl_gemm;
+							//~ task->cl = &cl_gemm;
 						else
 							task->cl = &cl_gemm;
 
@@ -836,11 +836,22 @@ int main(int argc, char **argv)
 				starpu_resume(); /* Because I paused above */
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
-				if (iter != 0)
-				{
-					timing += end - start;
-					timing_iteration_i[iter - 1] = end - start;
-				}
+				//~ if (iter != 0)
+				//~ {
+					timing = end - start;
+					//~ printf("%f\n", timing); exit(0);
+					//~ timing_iteration_i[iter - 1] = end - start;
+				//~ }
+				
+				//To add for iter > 1
+				//~ for (x = 0; x < nslicesx; x++)
+				//~ for (y = 0; y < nslicesy; y++)
+				//~ {
+					//~ starpu_data_acquire(starpu_data_get_sub_data(A_handle, 1, y), STARPU_W);
+					//~ starpu_data_release(starpu_data_get_sub_data(A_handle, 1, y));
+					//~ starpu_data_acquire(starpu_data_get_sub_data(B_handle, 1, x), STARPU_W);
+					//~ starpu_data_release(starpu_data_get_sub_data(B_handle, 1, x));
+				//~ }
 			}
 		}
 		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
@@ -1044,6 +1055,7 @@ int main(int argc, char **argv)
 					struct starpu_task *task = starpu_task_create();
 
 					//~ task->cl = &cl_gemm2d;
+					//~ task->cl = &cl_gemm;
 					task->cl = &cl_gemm0;
 					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
@@ -1071,6 +1083,7 @@ int main(int argc, char **argv)
 				{
 					timing += end - start;
 					timing_iteration_i[iter - 1] = end - start;
+					printf("%f\n", timing_iteration_i[iter - 1]);
 				}
 					
 				for (x = 0; x < nslicesx; x++)
@@ -1108,7 +1121,7 @@ int main(int argc, char **argv)
 		if (temp_niter > 1) /* We also print the deviance */
 		{
 			double deviance_timing = 0;
-			printf("timing = %f\n", timing);
+			//~ printf("timing = %f\n", timing);
 			for (iter = 0; iter < temp_niter; iter++)
 			{
 				deviance_timing += (timing_iteration_i[iter] - timing/temp_niter)*(timing_iteration_i[iter] - timing/temp_niter);
@@ -1121,9 +1134,11 @@ int main(int argc, char **argv)
 		}
 		else /* We don't */
 		{
-			PRINTF("%u\t%u\t%u\t%.0f\t%.1f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0);
+			flops = 2.0*((unsigned long long)(niter+1))*((unsigned long long)xdim)
+				   *((unsigned long long)ydim)*((unsigned long long)zdim);
+			PRINTF("%u\t%u\t%u\t%.0f\t%.1f\t%f", xdim, ydim, zdim, timing/(niter+1)/1000.0, flops/timing/1000.0, 0.0);
 			if (bound)
-				PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0);
+				PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f\t%f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0, 0.0);
 			PRINTF("\n");
 		}
 
