@@ -1192,17 +1192,19 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		int node = descrs[index].node;
 
 		struct _starpu_data_replicate *local_replicate;
+		int needs_init;
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 		_starpu_spin_lock(&handle->header_lock);
 		if (local_replicate->mc)
 			local_replicate->mc->diduse = 1;
+		needs_init = !local_replicate->initialized;
 		_starpu_spin_unlock(&handle->header_lock);
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, descrs[index].index);
 
 		/* If the replicate was not initialized yet, we have to do it now */
-		if (!(mode & STARPU_SCRATCH) && !local_replicate->initialized)
+		if (!(mode & STARPU_SCRATCH) && needs_init)
 			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
 
 #ifdef STARPU_USE_FXT
