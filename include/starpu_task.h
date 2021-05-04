@@ -171,8 +171,7 @@ struct starpu_task
 	unsigned destroy:1;
 	unsigned regenerate:1;
 
-	unsigned int mf_skip:1;
-
+	unsigned char mf_skip;
 	unsigned char scheduled;
 	unsigned char prefetched;
 
