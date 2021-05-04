@@ -84,18 +84,18 @@ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 done
 # Tracage des data transfers
 gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
-./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER_DT:0}.txt
+./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER_DT:0}.txt 0
 Rscript ${PATH_R}/R/ScriptR/${DOSSIER}/${FICHIER_DT:0}.R ${PATH_R}/R/Data/${DOSSIER}/${FICHIER_DT}.txt
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/${FICHIER_DT:0}.pdf
 
 # Tracage des GFlops
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER:0}.txt
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER:0}.txt 0
 Rscript ${PATH_R}/R/ScriptR/${DOSSIER}/${FICHIER:0}.R ${PATH_R}/R/Data/${DOSSIER}/${FICHIER}.txt
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/${FICHIER:0}.pdf
 
 # Tracage des temps d'exec hors simulation
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-./cut_gflops_raw_out $NB_TAILLE_TESTE $((NB_ALGO_TESTE-1)) $ECHELLE_X $START_X ${FICHIER_RAW_TIME:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER_TIME:0}.txt
+./cut_gflops_raw_out $NB_TAILLE_TESTE $((NB_ALGO_TESTE-1)) $ECHELLE_X $START_X ${FICHIER_RAW_TIME:0} ${PATH_R}/R/Data/${DOSSIER}/${FICHIER_TIME:0}.txt 0
 Rscript ${PATH_R}/R/ScriptR/${DOSSIER}/${FICHIER_TIME:0}.R ${PATH_R}/R/Data/${DOSSIER}/${FICHIER_TIME}.txt
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/${FICHIER_TIME:0}.pdf
