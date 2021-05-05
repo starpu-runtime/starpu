@@ -48,6 +48,6 @@ then
 fi
 shift
 #cd $srcdir/$(dirname $srcfile)
-#@JULIA@ $(basename $srcfile) $*
-@JULIA@ $srcdir/$srcfile $*
+#exec @JULIA@ $(basename $srcfile) $*
+exec @JULIA@ $srcdir/$srcfile $*
 

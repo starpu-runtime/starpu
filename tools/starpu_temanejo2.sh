@@ -24,4 +24,4 @@ PATH=$d/bin:$PATH
 LD_LIBRARY_PATH=$d/lib:$LD_LIBRARY_PATH
 PYTHONPATH=$d/lib/python2.7/site-packages:$PYTHONPATH
 export PATH LD_LIBRARY_PATH PYTHONPATH
-$d/bin/Temanejo2 -p 8888 -d 8889 -P $d/lib/libayudame.so -L $d/lib -A $cmd "$@"
+exec $d/bin/Temanejo2 -p 8888 -d 8889 -P $d/lib/libayudame.so -L $d/lib -A $cmd "$@"
