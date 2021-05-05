@@ -103,3 +103,6 @@ race:^_starpu_keys_initialized$
 
 # disable race detection on cg->ntags, see comment in code
 race:^_starpu_notify_cg$
+
+# this does not need to be safe
+race:^evictable$
