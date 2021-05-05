@@ -35,11 +35,11 @@
  * What we do here is implementing the Dijkstra solutions: handles are sorted
  * by pointer value order, and tasks call
  * _starpu_attempt_to_submit_data_request for each requested data in that order
- * (see _starpu_sort_task_handles call in _starpu_submit_job_enforce_data_deps).
+ * (see _starpu_sort_task_handles call in _starpu_concurrent_data_access).
  *
  * _starpu_attempt_to_submit_data_request will either:
  * - obtain access to the data, and thus the task can proceed with acquiring
- *   other data (see _submit_job_enforce_data_deps)
+ *   other data (see _submit_job_access_data)
  * - queue a request on the data handle
  *
  * When a task finishes, it calls _starpu_notify_data_dependencies for each
@@ -255,7 +255,7 @@ static unsigned attempt_to_submit_data_request_from_job(struct _starpu_job *j, u
 /* Acquire all data of the given job, one by one in handle pointer value order
  */
 /* No lock is held */
-static unsigned _submit_job_enforce_data_deps(struct _starpu_job *j, unsigned start_buffer_index)
+static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_buffer_index)
 {
 	unsigned buf;
 
@@ -319,7 +319,7 @@ void _starpu_job_set_ordered_buffers(struct _starpu_job *j)
 /* Sort the data used by the given job by handle pointer value order, and
  * acquire them in that order */
 /* No  lock is held */
-unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
+unsigned _starpu_concurrent_data_access(struct _starpu_job *j)
 {
 	struct starpu_codelet *cl = j->task->cl;
 
@@ -328,7 +328,7 @@ unsigned _starpu_submit_job_enforce_data_deps(struct _starpu_job *j)
 
 	_starpu_job_set_ordered_buffers(j);
 
-	return _submit_job_enforce_data_deps(j, 0);
+	return _submit_job_access_data(j, 0);
 }
 
 /* This request got fulfilled, continue with the other requests of the
@@ -342,7 +342,7 @@ static unsigned unlock_one_requester(struct _starpu_data_requester *r)
 
 	if (buffer_index + 1 < nbuffers)
 		/* not all buffers are protected yet */
-		return _submit_job_enforce_data_deps(j, buffer_index + 1);
+		return _submit_job_access_data(j, buffer_index + 1);
 	else
 		return 0;
 }

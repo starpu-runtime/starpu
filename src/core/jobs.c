@@ -624,10 +624,10 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-	/* enforce data dependencies */
-	if (_starpu_submit_job_enforce_data_deps(j))
+	/* respect data concurrent access */
+	if (_starpu_concurrent_data_access(j))
 	{
-		_STARPU_LOG_OUT_TAG("enforce_data_deps");
+		_STARPU_LOG_OUT_TAG("concurrent_data_access");
 		return 0;
 	}
 
@@ -651,7 +651,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
 	/* enforce data dependencies */
-	if (_starpu_submit_job_enforce_data_deps(j))
+	if (_starpu_concurrent_data_access(j))
 		return 0;
 
 	ret = _starpu_push_task(j);
