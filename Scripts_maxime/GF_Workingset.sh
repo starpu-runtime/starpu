@@ -1,9 +1,9 @@
 #!/usr/bin/bash
-#bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne Workingset_europar Gemini02
-#bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D Workingset_europar Gemini02
-#bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne Memory_europar Gemini02
-#bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Random_tasks Workingset_europar Gemini02
-#bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Random_tasks Workingset
+#	bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne Workingset_europar Gemini02
+#	bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D Workingset_europar Gemini02
+#	bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne Memory_europar Gemini02
+#	bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Random_tasks Workingset_europar Gemini02
+#	bash Scripts_maxime/GF_Workingset.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Random_tasks Workingset
 
 PATH_STARPU=$1
 PATH_R=$2
@@ -81,7 +81,7 @@ then
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 BELADY=1 READY=0 ORDER_U=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 BELADY=1 READY=1 ORDER_U=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 	fi
 	if [ $MODEL = "Memory_europar" ]
@@ -89,7 +89,6 @@ then
 		NB_ALGO_TESTE=8
 		ECHELLE_X=50
 		START_X=0
-		FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_2.txt
 		echo "############## Modular eager prefetching ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
@@ -136,7 +135,7 @@ then
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 BELADY=1 READY=0 ORDER_U=1 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=$((N)) BELADY=1 READY=1 ORDER_U=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 	fi
 fi
@@ -192,17 +191,17 @@ then
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		echo "############## HFPU TH30 ##############"
-		for ((i=6 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		echo "############## HFPU TH30 + BELADY ##############"
-		for ((i=6 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 BELADY=1 READY=0 ORDER_U=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
+			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 BELADY=1 READY=1 ORDER_U=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		
@@ -345,7 +344,7 @@ then
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" RANDOM_DATA_ACCESS=1 SEED=1 STARPU_CUDA_PIPELINE=4 BELADY=1 READY=0 ORDER_U=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" RANDOM_DATA_ACCESS=1 SEED=1 STARPU_CUDA_PIPELINE=4 BELADY=1 READY=1 ORDER_U=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		

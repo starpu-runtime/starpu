@@ -2,4 +2,4 @@
 sudo make -j 6
 sudo make install
 echo "INITIALISATION OK"
-export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
+export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
