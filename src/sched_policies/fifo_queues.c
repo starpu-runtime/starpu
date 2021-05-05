@@ -357,13 +357,15 @@ size_t _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker)
 	{
 		starpu_data_handle_t handle;
 		unsigned buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
+		enum starpu_data_access_mode mode;
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
+		mode = STARPU_TASK_GET_MODE(task, index);
 
 		int is_valid;
 		starpu_data_query_status(handle, buffer_node, NULL, &is_valid, NULL);
 
-		if (!is_valid)
+		if (mode & STARPU_R && !is_valid)
 			cnt+=starpu_data_get_size(handle);
 	}
 
