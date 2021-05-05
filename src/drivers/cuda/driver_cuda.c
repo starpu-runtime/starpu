@@ -1713,8 +1713,8 @@ uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	/* Sleep for the allocation */
 	STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 	if (_starpu_simgrid_cuda_malloc_cost())
-		//~ starpu_sleep(0.000175); /* original value */
-		starpu_sleep(0.002); /* To simulate malloc on cuda */
+		starpu_sleep(0.000175); /* original value */
+		//~ starpu_sleep(0.002); /* To simulate malloc on cuda */
 	if (!last[dst_node])
 		last[dst_node] = 1<<10;
 	addr = last[dst_node];
@@ -1765,8 +1765,8 @@ void _starpu_cuda_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, i
 	STARPU_PTHREAD_MUTEX_LOCK(&cuda_alloc_mutex);
 	/* Sleep for the free */
 	if (_starpu_simgrid_cuda_malloc_cost())
-		//~ starpu_sleep(0.000750); /* Original value */
-		starpu_sleep(0.002); /* To better simulate free on cuda */
+		starpu_sleep(0.000750); /* Original value */
+		//~ starpu_sleep(0.002); /* To better simulate free on cuda */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_alloc_mutex);
 	/* CUDA also synchronizes roughly everything on cudaFree */
 	//~ _starpu_simgrid_sync_gpus();
