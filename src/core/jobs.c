@@ -686,7 +686,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-	/* enforce data dependencies */
+	/* respect data concurrent access */
 	if (_starpu_concurrent_data_access(j))
 		return 0;
 
