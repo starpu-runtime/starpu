@@ -994,7 +994,7 @@ int main(int argc, char **argv)
 			}
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
-		/* This is the random 2D matrix operation we used */
+		/* This is the random 2D matrix operation we use */
 		else if (starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 1) {
 			/* Each task takes as data a random line and a random column from A and B */
 			for (iter = 0; iter < niter; iter++)
@@ -1005,8 +1005,8 @@ int main(int argc, char **argv)
 				{
 					struct starpu_task *task = starpu_task_create();
 
-					//~ task->cl = &cl_gemm2d;
-					task->cl = &cl_gemm0;
+					task->cl = &cl_gemm2d;
+					//~ task->cl = &cl_gemm0;
 					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, random()%nslicesy);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, random()%nslicesx);
@@ -1054,9 +1054,9 @@ int main(int argc, char **argv)
 				{
 					struct starpu_task *task = starpu_task_create();
 
-					//~ task->cl = &cl_gemm2d;
+					task->cl = &cl_gemm2d;
 					//~ task->cl = &cl_gemm;
-					task->cl = &cl_gemm0;
+					//~ task->cl = &cl_gemm0;
 					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
 					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
 					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
