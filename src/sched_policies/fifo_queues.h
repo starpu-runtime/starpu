@@ -71,7 +71,7 @@ struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo)
 struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo, int workerid);
 int _starpu_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_id);
 int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker);
-void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, size_t *non_ready, size_t *non_loading);
+void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, size_t *non_ready, size_t *non_allocated, size_t *non_loading);
 struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities);
 
 #pragma GCC visibility pop
