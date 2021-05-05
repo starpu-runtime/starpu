@@ -514,7 +514,7 @@ static struct
 	{ "E",	 "Executing",			 WORKER_STATE | THREAD_STATE },
 	{ "C",	 "Callback",			 WORKER_STATE | THREAD_STATE | USER_THREAD_STATE },
 	{ "H",	 "Hypervisor",			 WORKER_STATE | THREAD_STATE },
-	{ "Sc",	 "Scheduling",			 WORKER_STATE | THREAD_STATE },
+	{ "Sc",	 "Scheduling",			 WORKER_STATE | THREAD_STATE | USER_THREAD_STATE },
 	{ "I",	 "Idle",			 WORKER_STATE | THREAD_STATE },
 	{ "Sl",	 "Sleeping",			 WORKER_STATE | THREAD_STATE | COMM_THREAD_STATE },
 	{ "Bu",	 "Building task",		 THREAD_STATE | COMM_THREAD_STATE | USER_THREAD_STATE },
@@ -2010,8 +2010,6 @@ static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fx
 {
 	int worker;
 	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	if (worker < 0) return;
 
 	thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
 	if (trace_file)
@@ -2022,8 +2020,6 @@ static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt
 {
 	int worker;
 	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	if (worker < 0) return;
 
 	thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
 	if (trace_file)
