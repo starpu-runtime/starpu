@@ -766,18 +766,9 @@ int main(int argc, char **argv)
 	PRINTF("# ");
 	if (print_hostname)
 		PRINTF("node\t");
-	if (temp_niter > 1)
-	{
 		PRINTF("x\ty\tz\tms\tGFlops\tDeviance");
 		if (bound)
 			PRINTF("\tTms\tTGFlops\tTims\tTiGFlops\tTDeviance");
-	}
-	else
-	{
-		PRINTF("x\ty\tz\tms\tGFlops");
-		if (bound)
-			PRINTF("\tTms\tTGFlops\tTims\tTiGFlops");
-	}
 	PRINTF("\n");
 
 	unsigned sleeps;
@@ -1003,6 +994,7 @@ int main(int argc, char **argv)
 			}
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
+		/* This is the random 2D matrix operation we used */
 		else if (starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 1) {
 			/* Each task takes as data a random line and a random column from A and B */
 			for (iter = 0; iter < niter; iter++)
@@ -1037,10 +1029,18 @@ int main(int argc, char **argv)
 				starpu_resume();
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
-				if (iter != 0)
+				/* If I have more than 1 iteration I want the mean timing, else I don't */
+				if (temp_niter > 1) 
 				{
-					timing += end - start;
-					timing_iteration_i[iter - 1] = end - start;
+					if (iter != 0)
+					{
+						timing += end - start;
+						timing_iteration_i[iter - 1] = end - start;
+					}
+				}
+				else
+				{
+					timing = end - start;
 				}
 			}	
 		}
@@ -1079,20 +1079,27 @@ int main(int argc, char **argv)
 				starpu_resume();
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
-				if (iter != 0)
+				if (temp_niter > 1)
 				{
-					timing += end - start;
-					timing_iteration_i[iter - 1] = end - start;
-					printf("%f\n", timing_iteration_i[iter - 1]);
+					if (iter != 0)
+					{
+						timing += end - start;
+						timing_iteration_i[iter - 1] = end - start;
+						printf("%f\n", timing_iteration_i[iter - 1]);
+					}
+						
+					for (x = 0; x < nslicesx; x++)
+					for (y = 0; y < nslicesy; y++)
+					{
+						starpu_data_acquire(starpu_data_get_sub_data(A_handle, 1, y), STARPU_W);
+						starpu_data_release(starpu_data_get_sub_data(A_handle, 1, y));
+						starpu_data_acquire(starpu_data_get_sub_data(B_handle, 1, x), STARPU_W);
+						starpu_data_release(starpu_data_get_sub_data(B_handle, 1, x));
+					}
 				}
-					
-				for (x = 0; x < nslicesx; x++)
-				for (y = 0; y < nslicesy; y++)
+				else 
 				{
-					starpu_data_acquire(starpu_data_get_sub_data(A_handle, 1, y), STARPU_W);
-					starpu_data_release(starpu_data_get_sub_data(A_handle, 1, y));
-					starpu_data_acquire(starpu_data_get_sub_data(B_handle, 1, x), STARPU_W);
-					starpu_data_release(starpu_data_get_sub_data(B_handle, 1, x));
+					timing = end - start;
 				}
 			}	
 			//End If environment variable RANDOM_TASK_ORDER == 0
