@@ -4,7 +4,7 @@ start=`date +%s`
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 50000000
 #~ sudo make -C src/ -j 6
-sudo make -j 6
+#~ sudo make -j 6
 
 #~ srun --exclusive -C sirocco21 --pty bash Scripts_maxime/task_stealing.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne task_stealing -i
 
@@ -29,8 +29,8 @@ sudo make -j 6
 
 #~ STARPU_SCHED=HFP MULTIGPU=4 TASK_STEALING=3 PRINTF=0 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=4 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=250 SEED=1 STARPU_LIMIT_CUDA_MEM=1050 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=3 STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/random_task_graph/random_task_graph -ntasks 500 -ndata 100 -degreemax 2
 
-N=$((2))
-STARPU_SCHED=cuthillmckee PRINTF=1 STARPU_GENERATE_TRACE=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=sirocco ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1
+N=$((40))
+STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=30 STARPU_GENERATE_TRACE=1 ORDER_U=1 PRINTF=0 STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=sirocco ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 2
 
 end=`date +%s`
 runtime=$((end-start))
