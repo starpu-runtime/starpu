@@ -72,7 +72,7 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 	if (dataA == dataB)
 	{
 		/* Process write requests first, this is needed for proper
-		 * locking, see _submit_job_enforce_data_deps,
+		 * locking, see _submit_job_access_data,
 		 * _starpu_fetch_task_input, and _starpu_push_task_output  */
 		if (descrA->mode & STARPU_W)
 		{
