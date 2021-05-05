@@ -270,7 +270,7 @@ extern unsigned long _starpu_job_cnt;
 static inline unsigned long _starpu_fxt_get_job_id(void)
 {
 	unsigned long ret = STARPU_ATOMIC_ADDL(&_starpu_job_cnt, 1);
-	STARPU_ASSERT_MSG(_starpu_job_cnt != 0, "Oops, job_id wrapped! There are too many tasks for tracking them for profiling");
+	STARPU_ASSERT_MSG(ret != 0, "Oops, job_id wrapped! There are too many tasks for tracking them for profiling");
 	return ret;
 }
 
