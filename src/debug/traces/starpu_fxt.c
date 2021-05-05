@@ -2025,7 +2025,6 @@ static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt
 
 static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
 	char *prefix = options->file_prefix;
 
 	thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
@@ -2035,7 +2034,6 @@ static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fx
 
 static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
 	char *prefix = options->file_prefix;
 
 	thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
