@@ -780,6 +780,7 @@ int main(int argc, char **argv)
 		starpu_fxt_start_profiling();
 		//start = starpu_timing_now(); /* Moved before starpu_resume so we don't start time during scheduling */
 		double timing = 0;
+		double timing_squar = 0;
 		double timing_iteration_i[niter];
 
 		unsigned x, y, z, iter;
@@ -904,7 +905,7 @@ int main(int argc, char **argv)
 				if (iter != 0)
 				{
 					timing += end - start;
-					timing_iteration_i[iter - 1] = end - start;
+					timing_square += (end-start) * (end-start);
 				}
 			}
 			//End If environment variable RANDOM_TASK_ORDER == 1
@@ -989,7 +990,7 @@ int main(int argc, char **argv)
 				if (iter != 0)
 				{
 					timing += end - start;
-					timing_iteration_i[iter - 1] = end - start;
+					timing_square += (end-start) * (end-start);
 				}
 			}
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
@@ -1035,7 +1036,7 @@ int main(int argc, char **argv)
 					if (iter != 0)
 					{
 						timing += end - start;
-						timing_iteration_i[iter - 1] = end - start;
+						timing_square += (end-start) * (end-start);
 					}
 				}
 				else
@@ -1084,8 +1085,8 @@ int main(int argc, char **argv)
 					if (iter != 0)
 					{
 						timing += end - start;
-						timing_iteration_i[iter - 1] = end - start;
-						//~ printf("%f\n", timing_iteration_i[iter - 1]);
+						timing_square += (end-start) * (end-start);
+						//printf("%f\n", end - start);
 					}
 						
 					for (x = 0; x < nslicesx; x++)
@@ -1127,16 +1128,11 @@ int main(int argc, char **argv)
 		}
 		if (temp_niter > 1) /* We also print the deviance */
 		{
-			double deviance_timing = 0;
-			//~ printf("timing = %f\n", timing);
-			for (iter = 0; iter < temp_niter; iter++)
-			{
-				deviance_timing += (timing_iteration_i[iter] - timing/temp_niter)*(timing_iteration_i[iter] - timing/temp_niter);
-			}
-			deviance_timing = sqrt(deviance_timing/temp_niter);
-			PRINTF("%u\t%u\t%u\t%.0f\t%.1f\t%f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0, deviance_timing/timing/1000.0);
+			double average = timing/temp_niter;
+			double variance = sqrt(labs(timing_square / temp_niter - average*average));
+			PRINTF("%u\t%u\t%u\t%.0f\t%.1f\t%f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0, flops/niter/(average*average)*variance/1000.0);
 			if (bound)
-				PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f\t%f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0, deviance_timing/timing/1000.0);
+				PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f\t%f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0, flops/niter/(average*average)*variance/1000.0);
 			PRINTF("\n");
 		}
 		else /* We don't */
