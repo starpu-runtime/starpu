@@ -944,7 +944,9 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 	if (is_prefetch < STARPU_PREFETCH && victim_selector)
 	{
 		/* Ask someone who knows the future */
+		_STARPU_SCHED_BEGIN;
 		victim = victim_selector(handle, node, is_prefetch);
+		_STARPU_SCHED_END;
 
 		if (victim == STARPU_DATA_NO_VICTIM)
 			/* He told me we should not make any victim */
