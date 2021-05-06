@@ -3216,7 +3216,8 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		//New memory read
 		//~ starpu_data_handle_t *handles;
 		starpu_data_handle_t *data_on_node;
-		starpu_data_get_node_data(node, &data_on_node, &nb_data_on_node);
+		int *valid;
+		starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("nb data on node : %d\n",n); }
 		//~ for (i = 0; i < n; i++) { 
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Data on node : %p\n",handles[i]); }
@@ -3243,6 +3244,8 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		
 		//Because I started at 1 and not 0
 		int used_index_task_currently_treated = index_task_currently_treated - 1;
+
+		STARPU_ASSERT(used_index_task_currently_treated >= 0 && used_index_task_currently_treated < NT);
 		
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données, ",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]); }
 		
@@ -3354,6 +3357,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 					}
 					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) {
 						free(data_on_node); 
+						free(valid); 
 						free(prochaine_utilisation_donnee);
 						//~ printf("Return no victim\n");
 						return STARPU_DATA_NO_VICTIM; 
@@ -3361,6 +3365,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 					}
 					starpu_data_handle_t returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
 					free(data_on_node);
+					free(valid);
 					free(prochaine_utilisation_donnee);
 					//~ printf("Belady return %p\n", returned_handle);
 					return returned_handle;
@@ -3372,6 +3377,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	else {
 		 if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On est sur la dernière tâche il faudrait sortir la\n"); } 
 		free(data_on_node);
+		free(valid);
 		return NULL;
 		 }
 	} 
@@ -3415,7 +3421,8 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	
 	if (task_currently_treated != NULL && task_currently_treated->cl != NULL) {
 		starpu_data_handle_t *data_on_node;
-		starpu_data_get_node_data(node, &data_on_node, &nb_data_on_node);
+		int *valid;
+		starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 		
 		//~ //Because I started at 1 and not 0
 		//~ int used_index_task_currently_treated = index_task_currently_treated - 1;
@@ -3485,12 +3492,14 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 					}
 					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) {
 						free(data_on_node); 
+						free(valid); 
 						free(prochaine_utilisation_donnee);
 						return STARPU_DATA_NO_VICTIM;  
 					}
 					
 					starpu_data_handle_t returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
 					free(data_on_node);
+					free(valid);
 					free(prochaine_utilisation_donnee);
 					return returned_handle;
 													
@@ -3501,6 +3510,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	//{
 		//if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On est sur la dernière tâche il faudrait sortir la\n"); } 
 		//free(data_on_node);
+		//free(valid);
 		//return NULL;
 		//return STARPU_DATA_NO_VICTIM;
 	//} 

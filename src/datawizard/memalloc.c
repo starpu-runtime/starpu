@@ -893,14 +893,16 @@ void starpu_data_register_victim_selector(starpu_data_victim_selector selector)
 	victim_selector = selector;
 }
 
-void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, unsigned *_n)
+void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, int *_valid, unsigned *_n)
 {
 	unsigned allocated = 16;
 	unsigned n = 0;
 	starpu_data_handle_t *handles;
+	int *valid;
 	struct _starpu_mem_chunk *mc;
 
 	_STARPU_MALLOC(handles, allocated * sizeof(*handles));
+	_STARPU_MALLOC(valid, allocated * sizeof(*valid));
 
 	_starpu_spin_lock(&mc_lock[node]);
 
@@ -914,8 +916,10 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, u
 			{
 				allocated *= 2;
 				_STARPU_REALLOC(handles, allocated * sizeof(*handles));
+				_STARPU_REALLOC(valid, allocated * sizeof(*valid));
 			}
 			handles[n] = mc->data;
+			valid[n] = handles[n]->per_node[node].state != STARPU_INVALID;
 			n++;
 		}
 	}
@@ -924,6 +928,7 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, u
 
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("returning %d handles\n", n); }
 	*_handles = handles;
+	*_valid = handles;
 	*_n = n;
 }
 
