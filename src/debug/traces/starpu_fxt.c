@@ -2008,20 +2008,42 @@ static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt
 
 static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
+	int worker;
 	char *prefix = options->file_prefix;
+	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
 
-	thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
-	if (trace_file)
-		recfmt_thread_push_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "Sc", "Runtime");
+	if (worker >= 0)
+	{
+		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
+		if (trace_file)
+			recfmt_thread_push_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "Sc", "Runtime");
+	}
+	else
+	{
+		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
+		if (trace_file)
+			recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[0], "Sc", "User");
+	}
 }
 
 static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
+	int worker;
 	char *prefix = options->file_prefix;
+	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
 
-	thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
-	if (trace_file)
-		recfmt_thread_pop_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0]);
+	if (worker >= 0)
+	{
+		thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
+		if (trace_file)
+			recfmt_thread_pop_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0]);
+	}
+	else
+	{
+		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
+		if (trace_file)
+			recfmt_user_thread_pop_state(get_event_time_stamp(ev, options), ev->param[0]);
+	}
 }
 
 static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
