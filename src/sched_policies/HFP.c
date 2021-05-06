@@ -3225,15 +3225,15 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 			{
 				printf("Invalid data\n");
 				free(valid);
-				free(data_on_node);
 				return data_on_node[i];
 			}
 		}
 		
 		//Because I started at 1 and not 0
 		int used_index_task_currently_treated = index_task_currently_treated - 1;
-
-		STARPU_ASSERT(used_index_task_currently_treated >= 0 && used_index_task_currently_treated < NT);
+		
+		//Commenté car j'ai une boucle en dessous qui gère cela
+		//STARPU_ASSERT(used_index_task_currently_treated >= 0 && used_index_task_currently_treated < NT);
 		
 		//It means that no task of the current iteration has been sent but we need to evict data from the gpu
 		//So I will consider that the next task is the first on the linked list and evict data that will be used in
