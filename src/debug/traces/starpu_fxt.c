@@ -1866,9 +1866,9 @@ static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
 	if (worker >= 0)
 	{
-		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
+		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[1], "C", "Runtime");
+			recfmt_thread_push_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[1], "C", "Runtime");
 	}
 	else if (worker == -2)
 	{
@@ -1890,9 +1890,9 @@ static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options 
 	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
 	if (worker >= 0)
 	{
-		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "B");
+		thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[1], "B", "Runtime");
+			recfmt_thread_pop_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[1]);
 	}
 	else if (worker == -2)
 	{
@@ -1914,9 +1914,9 @@ static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
 	if (worker >= 0)
 	{
-		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
+		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "H", "Runtime");
+			recfmt_thread_push_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "H", "Runtime");
 	}
 	else if (worker == -2)
 	{
@@ -1938,9 +1938,9 @@ static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_option
 	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
 	if (worker >= 0)
 	{
-		thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
+		thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
 		if (trace_file)
-			recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "B", "Runtime");
+			recfmt_thread_pop_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0]);
 	}
 	else if (worker == -2)
 	{
