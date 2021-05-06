@@ -780,7 +780,7 @@ int main(int argc, char **argv)
 		starpu_fxt_start_profiling();
 		//start = starpu_timing_now(); /* Moved before starpu_resume so we don't start time during scheduling */
 		double timing = 0;
-		double timing_squar = 0;
+		double timing_square = 0;
 		double timing_iteration_i[niter];
 
 		unsigned x, y, z, iter;
