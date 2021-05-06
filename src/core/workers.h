@@ -59,7 +59,7 @@
 
 #include <datawizard/datawizard.h>
 
-#define STARPU_MAX_PIPELINE 4
+#define STARPU_MAX_PIPELINE 30
 
 struct _starpu_ctx_change_list;
 
