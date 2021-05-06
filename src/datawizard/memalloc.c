@@ -1071,7 +1071,9 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 	if (!force && victim_selector)
 	{
 		/* Ask someone who knows the future */
+		_STARPU_SCHED_BEGIN;
 		victim = victim_selector(NULL, node, is_prefetch);
+		_STARPU_SCHED_END;
 
 		if (victim == STARPU_DATA_NO_VICTIM)
 			/* He told me we should not make any victim */
