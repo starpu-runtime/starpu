@@ -1120,6 +1120,124 @@ static void recfmt_user_thread_pop_state(double time, long unsigned threadid)
 }
 
 /*
+ *	Fill both paje file and trace file
+ */
+
+static void do_worker_set_state(double time, const char *prefix, int workerid, const char *name, const char *type)
+{
+	if (out_paje_file)
+		worker_set_state(time, prefix, workerid, name);
+	if (trace_file)
+		recfmt_worker_set_state(time, workerid, name, type);
+}
+
+static void do_thread_set_state(double time, const char *prefix, long unsigned int threadid, const char *name, const char *type)
+{
+	if (out_paje_file)
+		thread_set_state(time, prefix, threadid, name);
+	if (trace_file)
+		recfmt_thread_set_state(time, prefixTOnodeid(prefix), threadid, name, type);
+}
+
+static void do_thread_push_state(double time, const char *prefix, long unsigned int threadid, const char *name, const char *type)
+{
+	if (out_paje_file)
+		thread_push_state(time, prefix, threadid, name);
+	if (trace_file)
+		recfmt_thread_push_state(time, prefixTOnodeid(prefix), threadid, name, type);
+}
+
+static void do_thread_pop_state(double time, const char *prefix, long unsigned int threadid)
+{
+	if (out_paje_file)
+		thread_pop_state(time, prefix, threadid);
+	if (trace_file)
+		recfmt_thread_pop_state(time, prefixTOnodeid(prefix), threadid);
+}
+
+static void do_mpicommthread_set_state(double time, const char *prefix, const char *name)
+{
+	if (out_paje_file)
+		mpicommthread_set_state(time, prefix, name);
+	if (trace_file)
+		recfmt_mpicommthread_set_state(time, name);
+}
+
+static void do_mpicommthread_push_state(double time, const char *prefix, const char *name)
+{
+	if (out_paje_file)
+		mpicommthread_push_state(time, prefix, name);
+	if (trace_file)
+		recfmt_mpicommthread_push_state(time, name);
+}
+
+static void do_mpicommthread_pop_state(double time, const char *prefix)
+{
+	if (out_paje_file)
+		mpicommthread_pop_state(time, prefix);
+	if (trace_file)
+		recfmt_mpicommthread_pop_state(time);
+}
+
+static void do_user_thread_push_state(double time, const char *prefix, long unsigned threadid, const char *name, const char *type)
+{
+	if (out_paje_file)
+		user_thread_push_state(time, prefix, threadid, name);
+	if (trace_file)
+		recfmt_user_thread_push_state(time, threadid, name, type);
+}
+
+static void do_user_thread_pop_state(double time, const char *prefix, long unsigned threadid)
+{
+	if (out_paje_file)
+		user_thread_pop_state(time, prefix, threadid);
+	if (trace_file)
+		recfmt_user_thread_pop_state(time, threadid);
+}
+
+/*
+ *	Multiplex between thread types
+ */
+
+static void do_thread_push_state_worker(double time, const char *prefix, long unsigned int threadid, const char *name, const char *type, const char *user_type)
+{
+	int worker = find_worker_id(prefixTOnodeid(prefix), threadid);
+
+	if (worker >= 0)
+	{
+		do_thread_push_state(time, prefix, threadid, name, type);
+	}
+	else if (worker == -2)
+	{
+		/* MPI thread */
+		do_mpicommthread_push_state(time, prefix, name);
+	}
+	else
+	{
+		do_user_thread_push_state(time, prefix, threadid, name, user_type);
+	}
+}
+
+static void do_thread_pop_state_worker(double time, const char *prefix, long unsigned int threadid)
+{
+	int worker = find_worker_id(prefixTOnodeid(prefix), threadid);
+
+	if (worker >= 0)
+	{
+		do_thread_pop_state(time, prefix, threadid);
+	}
+	else if (worker == -2)
+	{
+		/* MPI thread */
+		do_mpicommthread_pop_state(time, prefix);
+	}
+	else
+	{
+		do_user_thread_pop_state(time, prefix, threadid);
+	}
+}
+
+/*
  *	Initialization
  */
 
@@ -1255,9 +1373,7 @@ static void handle_worker_init_start(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 	}
 
 	/* start initialization */
-	thread_set_state(now, prefix, threadid, "In");
-	if (trace_file)
-		recfmt_thread_set_state(now, prefixTOnodeid(prefix), threadid, "In", "Runtime");
+	do_thread_set_state(now, prefix, threadid, "In", "Runtime");
 
 	if (activity_file)
 		fprintf(activity_file, "name\t%d\t%s %d\n", workerid, kindstr, devid);
@@ -1280,13 +1396,9 @@ static void handle_worker_init_end(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	else
 		worker = ev->param[1];
 
-	thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B");
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "B", "Runtime");
+	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B", "Runtime");
 
-	worker_set_state(get_event_time_stamp(ev, options), prefix, worker, "I");
-	if (trace_file)
-		recfmt_worker_set_state(get_event_time_stamp(ev, options), worker, "I", "Other");
+	do_worker_set_state(get_event_time_stamp(ev, options), prefix, worker, "I", "Other");
 
 	/* Initilize the accumulated time counters */
 	last_activity_flush_timestamp[worker] = get_event_time_stamp(ev, options);
@@ -1299,9 +1411,7 @@ static void handle_worker_deinit_start(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	char *prefix = options->file_prefix;
 	long unsigned int threadid = ev->param[0];
 
-	thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "D");
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), threadid, "D", "Runtime");
+	do_thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "D", "Runtime");
 }
 
 static void handle_worker_deinit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1494,17 +1604,17 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 	double start_codelet_time = get_event_time_stamp(ev, options);
 	double last_start_codelet_time = last_codelet_start[worker];
 	last_codelet_start[worker] = start_codelet_time;
+	char *prefix = options->file_prefix;
 
 	task->start_time = start_codelet_time;
 	task->workerid = worker;
 	task->node = node;
 
+	do_worker_set_state(start_codelet_time, prefix, ev->param[2], name, "Task");
 	if (out_paje_file)
 	{
-		char *prefix = options->file_prefix;
 		unsigned sched_ctx = ev->param[1];
 
-		worker_set_state(start_codelet_time, prefix, ev->param[2], name);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -1518,8 +1628,6 @@ static void handle_start_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_op
 #endif
 		}
 	}
-	if (trace_file)
-		recfmt_worker_set_state(start_codelet_time, ev->param[2], name, "Task");
 
 	struct _starpu_computation *comp = ongoing_computation[worker];
 	if (!comp)
@@ -1711,9 +1819,7 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	if (find_sync(prefixTOnodeid(prefix), threadid))
 		state = "B";
 
-	worker_set_state(end_codelet_time, prefix, worker, state);
-	if (trace_file)
-		recfmt_worker_set_state(end_codelet_time, worker, state, "Other");
+	do_worker_set_state(end_codelet_time, prefix, worker, state, "Other");
 
 	struct task_info *task = get_task(job_id, options->file_rank);
 
@@ -1805,10 +1911,8 @@ static void handle_start_executing(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	char *prefix = options->file_prefix;
 	long unsigned int threadid = ev->param[0];
 
-	if (out_paje_file && !find_sync(prefixTOnodeid(prefix), threadid))
-		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "E");
-	if (trace_file && !find_sync(prefixTOnodeid(prefix), threadid))
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), threadid, "E", "Runtime");
+	if (!find_sync(prefixTOnodeid(prefix), threadid))
+		do_thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "E", "Runtime");
 }
 
 static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1816,10 +1920,8 @@ static void handle_end_executing(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	char *prefix = options->file_prefix;
 	long unsigned int threadid = ev->param[0];
 
-	if (out_paje_file && !find_sync(prefixTOnodeid(prefix), threadid))
-		thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B");
-	if (trace_file && !find_sync(prefixTOnodeid(prefix), threadid))
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), threadid, "B", "Runtime");
+	if (!find_sync(prefixTOnodeid(prefix), threadid))
+		do_thread_set_state(get_event_time_stamp(ev, options), prefix, threadid, "B", "Runtime");
 }
 
 static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -1861,111 +1963,31 @@ static void handle_user_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *o
 
 static void handle_start_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
-	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
-	if (worker >= 0)
-	{
-		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
-		if (trace_file)
-			recfmt_thread_push_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[1], "C", "Runtime");
-	}
-	else if (worker == -2)
-	{
-		/* MPI thread */
-		mpicommthread_push_state(get_event_time_stamp(ev, options), options->file_prefix, "C");
-		recfmt_mpicommthread_push_state(get_event_time_stamp(ev, options), "C");
-	}
-	else
-	{
-		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C");
-		recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[1], "C", "UNK"); /* XXX */
-	}
+	do_thread_push_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "C", "Runtime", "UNK"); /* XXX */
 }
 
 static void handle_end_callback(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
-	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
-	if (worker >= 0)
-	{
-		thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
-		if (trace_file)
-			recfmt_thread_pop_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[1]);
-	}
-	else if (worker == -2)
-	{
-		/* MPI thread */
-		mpicommthread_pop_state(get_event_time_stamp(ev, options), options->file_prefix);
-		recfmt_mpicommthread_pop_state(get_event_time_stamp(ev, options));
-	}
-	else
-	{
-		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
-		recfmt_user_thread_pop_state(get_event_time_stamp(ev, options), ev->param[1]);
-	}
+	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
 }
 
 static void handle_hypervisor_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
-	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	if (worker >= 0)
-	{
-		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H");
-		if (trace_file)
-			recfmt_thread_push_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "H", "Runtime");
-	}
-	else if (worker == -2)
-	{
-		/* MPI thread */
-		mpicommthread_push_state(get_event_time_stamp(ev, options), options->file_prefix, "H");
-		recfmt_mpicommthread_push_state(get_event_time_stamp(ev, options), "H");
-	}
-	else
-	{
-		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], "H");
-		recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[1], "H", "UNK"); /* XXX */
-	}
+	do_thread_push_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "H", "Runtime", "UNK"); /* XXX */
 }
 
 static void handle_hypervisor_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
-	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	if (worker >= 0)
-	{
-		thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
-		if (trace_file)
-			recfmt_thread_pop_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0]);
-	}
-	else if (worker == -2)
-	{
-		/* MPI thread */
-		mpicommthread_pop_state(get_event_time_stamp(ev, options), options->file_prefix);
-		recfmt_mpicommthread_pop_state(get_event_time_stamp(ev, options));
-	}
-	else
-	{
-		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1]);
-		recfmt_user_thread_pop_state(get_event_time_stamp(ev, options), ev->param[1]);
-	}
+	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
 }
 
 static void handle_worker_status_on_tid(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
 {
-	int worker;
 	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
-	if (worker < 0)
+	if (find_worker_id(prefixTOnodeid(prefix), ev->param[1]) < 0)
 		return;
 
-	thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[1], newstatus, "Runtime");
+	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[1], newstatus, "Runtime");
 }
 
 static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, const char *newstatus)
@@ -1975,104 +1997,62 @@ static void handle_worker_status(struct fxt_ev_64 *ev, struct starpu_fxt_options
 	if (worker < 0)
 		return;
 
-	worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus);
-	if (trace_file)
-		recfmt_worker_set_state(get_event_time_stamp(ev, options), ev->param[1], newstatus, "Runtime");
+	do_worker_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[1], newstatus, "Runtime");
 }
 
 static double last_sleep_start[STARPU_NMAXWORKERS];
 
 static void handle_worker_scheduling_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
 	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	if (worker < 0) return;
+	if (find_worker_id(prefixTOnodeid(prefix), ev->param[0]) < 0)
+		return;
 
-	thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "Sc", "Runtime");
+	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "Sc", "Runtime");
 }
 
 static void handle_worker_scheduling_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
 	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	if (worker < 0) return;
+	if (find_worker_id(prefixTOnodeid(prefix), ev->param[0]) < 0)
+		return;
 
-	thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "B");
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "B", "Runtime");
+	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "B", "Runtime");
 }
 
 static void handle_worker_scheduling_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
-	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-
-	if (worker >= 0)
-	{
-		thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
-		if (trace_file)
-			recfmt_thread_push_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "Sc", "Runtime");
-	}
-	else
-	{
-		user_thread_push_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc");
-		if (trace_file)
-			recfmt_user_thread_push_state(get_event_time_stamp(ev, options), ev->param[0], "Sc", "User");
-	}
+	do_thread_push_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sc", "Runtime", "User");
 }
 
 static void handle_worker_scheduling_pop(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
-	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-
-	if (worker >= 0)
-	{
-		thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
-		if (trace_file)
-			recfmt_thread_pop_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0]);
-	}
-	else
-	{
-		user_thread_pop_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
-		if (trace_file)
-			recfmt_user_thread_pop_state(get_event_time_stamp(ev, options), ev->param[0]);
-	}
+	do_thread_pop_state_worker(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0]);
 }
 
 static void handle_worker_sleep_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
 	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	if (worker < 0) return;
+	int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
+	if (worker < 0)
+		return;
 
 	double start_sleep_time = get_event_time_stamp(ev, options);
 	last_sleep_start[worker] = start_sleep_time;
 
-	thread_set_state(get_event_time_stamp(ev, options), options->file_prefix, ev->param[0], "Sl");
-	if (trace_file)
-		recfmt_thread_set_state(get_event_time_stamp(ev, options), prefixTOnodeid(prefix), ev->param[0], "Sl", "Other");
+	do_thread_set_state(get_event_time_stamp(ev, options), prefix, ev->param[0], "Sl", "Other");
 }
 
 static void handle_worker_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	int worker;
 	char *prefix = options->file_prefix;
-	worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
-	if (worker < 0) return;
+	int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[0]);
+	if (worker < 0)
+		return;
 
 	double end_sleep_timestamp = get_event_time_stamp(ev, options);
 
-	thread_set_state(end_sleep_timestamp, options->file_prefix, ev->param[0], "B");
-	if (trace_file)
-		recfmt_thread_set_state(end_sleep_timestamp, prefixTOnodeid(prefix), ev->param[0], "B", "Runtime");
+	do_thread_set_state(end_sleep_timestamp, prefix, ev->param[0], "B", "Runtime");
 
 	double sleep_length = end_sleep_timestamp - last_sleep_start[worker];
 
@@ -2523,50 +2503,12 @@ static void handle_used_mem(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 static void handle_task_submit_event(struct fxt_ev_64 *ev, struct starpu_fxt_options *options, unsigned long tid, const char *eventstr)
 {
 	char *prefix = options->file_prefix;
-	int workerid = find_worker_id(prefixTOnodeid(prefix), tid);
 	double timestamp = get_event_time_stamp(ev, options);
 
-	if (workerid >= 0)
-	{
-		/* Normal worker */
-		if (eventstr)
-		{
-			thread_push_state(timestamp, prefix, tid, eventstr);
-			recfmt_thread_push_state(timestamp, prefixTOnodeid(prefix), tid, eventstr, "Runtime");
-		}
-		else
-		{
-			thread_pop_state(timestamp, prefix, tid);
-			recfmt_thread_pop_state(timestamp, prefixTOnodeid(prefix), tid);
-		}
-	}
-	else if (workerid == -2)
-	{
-		/* MPI thread */
-		if (eventstr)
-		{
-			mpicommthread_push_state(timestamp, prefix, eventstr);
-			recfmt_mpicommthread_push_state(get_event_time_stamp(ev, options), eventstr);
-		}
-		else
-		{
-			mpicommthread_pop_state(timestamp, prefix);
-			recfmt_mpicommthread_pop_state(get_event_time_stamp(ev, options));
-		}
-	}
+	if (eventstr)
+		do_thread_push_state_worker(timestamp, prefix, tid, eventstr, "Runtime", "User");
 	else
-	{
-		if (eventstr)
-		{
-			user_thread_push_state(timestamp, prefix, tid, eventstr);
-			recfmt_user_thread_push_state(timestamp, tid, eventstr, "User");
-		}
-		else
-		{
-			user_thread_pop_state(timestamp, prefix, tid);
-			recfmt_user_thread_pop_state(timestamp, tid);
-		}
-	}
+		do_thread_pop_state_worker(timestamp, prefix, tid);
 }
 
 /*
@@ -2977,10 +2919,8 @@ static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		fprintf(out_paje_file, "13	%.9f	%smpict	bwi_mpi	0.0\n", date, prefix);
 		fprintf(out_paje_file, "13	%.9f	%smpict	bwo_mpi	0.0\n", date, prefix);
 #endif
-		mpicommthread_set_state(date, prefix, "Sl");
 	}
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "Sl");
+	do_mpicommthread_set_state(date, prefix, "Sl");
 
 }
 
@@ -3007,10 +2947,7 @@ static void handle_mpi_isend_submit_begin(struct fxt_ev_64 *ev, struct starpu_fx
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "SdS");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "SdS");
+	do_mpicommthread_set_state(date, options->file_prefix, "SdS");
 }
 
 static int mpi_warned;
@@ -3025,10 +2962,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	int prio = ev->param[6];
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "P");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "P");
+	do_mpicommthread_set_state(date, options->file_prefix, "P");
 
 	if (options->file_rank < 0)
 	{
@@ -3046,60 +2980,42 @@ static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fx
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "RvS");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "RvS");
+	do_mpicommthread_set_state(date, options->file_prefix, "RvS");
 }
 
 static void handle_mpi_irecv_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "P");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "P");
+	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
 static void handle_mpi_isend_complete_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "SdC");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "SdC");
+	do_mpicommthread_set_state(date, options->file_prefix, "SdC");
 }
 
 static void handle_mpi_isend_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "P");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "P");
+	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
 static void handle_mpi_irecv_complete_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "RvC");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "RvC");
+	do_mpicommthread_set_state(date, options->file_prefix, "RvC");
 }
 
 static void handle_mpi_irecv_complete_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "P");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "P");
+	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
 static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3126,120 +3042,84 @@ static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "Sl");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "Sl");
+	do_mpicommthread_set_state(date, options->file_prefix, "Sl");
 }
 
 static void handle_mpi_sleep_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "Pl");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "Pl");
+	do_mpicommthread_set_state(date, options->file_prefix, "Pl");
 }
 
 static void handle_mpi_dtesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "DT");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "DT");
+	do_mpicommthread_set_state(date, options->file_prefix, "DT");
 }
 
 static void handle_mpi_dtesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "P");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "P");
+	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
 static void handle_mpi_utesting_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "UT");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "UT");
+	do_mpicommthread_set_state(date, options->file_prefix, "UT");
 }
 
 static void handle_mpi_utesting_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "P");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "P");
+	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
 static void handle_mpi_uwait_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "UW");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "UW");
+	do_mpicommthread_set_state(date, options->file_prefix, "UW");
 }
 
 static void handle_mpi_uwait_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_set_state(date, options->file_prefix, "P");
-	if (trace_file)
-		recfmt_mpicommthread_set_state(date, "P");
+	do_mpicommthread_set_state(date, options->file_prefix, "P");
 }
 
 static void handle_mpi_testing_detached_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_push_state(date, options->file_prefix, "TD");
-	if (trace_file)
-		recfmt_mpicommthread_push_state(date, "TD");
+	do_mpicommthread_push_state(date, options->file_prefix, "TD");
 }
 
 static void handle_mpi_testing_detached_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_pop_state(date, options->file_prefix);
-	if (trace_file)
-		recfmt_mpicommthread_pop_state(date);
+	do_mpicommthread_pop_state(date, options->file_prefix);
 }
 
 static void handle_mpi_test_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_push_state(date, options->file_prefix, "MT");
-	if (trace_file)
-		recfmt_mpicommthread_push_state(date, "MT");
+	do_mpicommthread_push_state(date, options->file_prefix, "MT");
 }
 
 static void handle_mpi_test_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	double date = get_event_time_stamp(ev, options);
 
-	if (out_paje_file)
-		mpicommthread_pop_state(date, options->file_prefix);
-	if (trace_file)
-		recfmt_mpicommthread_pop_state(date);
+	do_mpicommthread_pop_state(date, options->file_prefix);
 }
 
 static void handle_mpi_polling_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
