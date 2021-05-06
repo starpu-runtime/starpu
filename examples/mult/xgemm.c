@@ -1129,7 +1129,7 @@ int main(int argc, char **argv)
 		if (temp_niter > 1) /* We also print the deviance */
 		{
 			double average = timing/temp_niter;
-			double variance = sqrt(labs(timing_square / temp_niter - average*average));
+			double variance = sqrt(fabs(timing_square / temp_niter - average*average));
 			PRINTF("%u\t%u\t%u\t%.0f\t%.1f\t%f", xdim, ydim, zdim, timing/niter/1000.0, flops/timing/1000.0, flops/niter/(average*average)*variance/1000.0);
 			if (bound)
 				PRINTF("\t%.0f\t%.1f\t%.0f\t%.1f\t%f", min, flops/min/1000000.0, min_int, flops/min_int/1000000.0, flops/niter/(average*average)*variance/1000.0);
