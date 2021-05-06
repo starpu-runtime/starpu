@@ -649,7 +649,7 @@ void starpu_data_register_victim_selector(starpu_data_victim_selector selector);
    is returned in \p states, and the number of handles is returned in \p n. The
    arrays must be freed by the caller with free().
 */
-void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **handles, int *valid, unsigned *n);
+void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **handles, int **valid, unsigned *n);
 
 /** @} */
 

@@ -893,7 +893,7 @@ void starpu_data_register_victim_selector(starpu_data_victim_selector selector)
 	victim_selector = selector;
 }
 
-void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, int *_valid, unsigned *_n)
+void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, int **_valid, unsigned *_n)
 {
 	unsigned allocated = 16;
 	unsigned n = 0;
@@ -928,7 +928,7 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, i
 
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("returning %d handles\n", n); }
 	*_handles = handles;
-	*_valid = handles;
+	*_valid = valid;
 	*_n = n;
 }
 
