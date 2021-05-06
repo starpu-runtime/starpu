@@ -1085,7 +1085,7 @@ int main(int argc, char **argv)
 					{
 						timing += end - start;
 						timing_iteration_i[iter - 1] = end - start;
-						printf("%f\n", timing_iteration_i[iter - 1]);
+						//~ printf("%f\n", timing_iteration_i[iter - 1]);
 					}
 						
 					for (x = 0; x < nslicesx; x++)
