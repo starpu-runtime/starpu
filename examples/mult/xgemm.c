@@ -628,9 +628,11 @@ starpu_data_handle_t dumb_victim_selector(starpu_data_handle_t *toload, unsigned
 	unsigned x, y, z, index = 0;
 
 	starpu_data_handle_t *handles;
+	int *valid;
 	unsigned n;
-	starpu_data_get_node_data(node, &handles, &n); // Just for fun
+	starpu_data_get_node_data(node, &handles, &valid, &n); // Just for fun
 	free(handles);
+	free(valid);
 	int is_allocated;
 
 	if (tiled) {
