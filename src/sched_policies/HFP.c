@@ -3215,7 +3215,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	int is_allocated;
 	if (task_currently_treated != NULL) {
 		starpu_data_handle_t *data_on_node;
-		int * valid;
+		int *valid;
 		starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 		
 		//Checking if all task are truly valid. Else I return a non valid data
@@ -3224,6 +3224,8 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 			if (valid[i] == 0)
 			{
 				printf("Invalid data\n");
+				free(valid);
+				free(data_on_node);
 				return data_on_node[i];
 			}
 		}
@@ -3283,14 +3285,14 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 								distance_donnee_utilise_dans_le_plus_longtemps = prochaine_utilisation_donnee[j]; 
 						}
 					}
-					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) {
+					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) 
+					{
 						free(data_on_node); 
 						free(valid); 
 						free(prochaine_utilisation_donnee);
 						end = starpu_timing_now();
 						printf("Return no victim, it took %f micro seconds\n", end - start);
 						return STARPU_DATA_NO_VICTIM; 
-						//~ return NULL; 
 					}
 					starpu_data_handle_t returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
 					free(data_on_node);
@@ -3302,23 +3304,24 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 													
 				}
 			}
-	}
-	else {
-		 if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On est sur la dernière tâche il faudrait sortir la\n"); } 
-		free(data_on_node);
-		free(valid);
-		return NULL;
-		 }
-	} 
-	else { 
-		if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("task current = null\n"); } 
 		}
-
-	/* Uh :/ */
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr,"uh, no evictable data\n"); }
+		else 
+		{
+			//We are on the last task, we can evict any data that is not forbidden
+			for (j = 0; j < nb_data_on_node; j++) 
+			{ 
+				if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) 
+				{
+					free(data_on_node);
+					free(valid);
+					return data_on_node[j];
+				}
+			}
+		}
+	} 
+	
+	//Current task is null
 	return NULL;
-	//~ printf("Return no victim\n");
-	//~ return STARPU_DATA_NO_VICTIM;
 }
 
 /* Almost Belady while tasks are being executed 
