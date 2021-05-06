@@ -502,6 +502,10 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 
 	_starpu_mem_chunk_delete(mc);
 
+#ifdef STARPU_SIMGRID
+       starpu_pthread_queue_broadcast(&_starpu_simgrid_transfer_queue[node]);
+#endif
+
 	return size;
 }
 
