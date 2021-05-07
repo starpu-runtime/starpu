@@ -19,8 +19,8 @@ int main(int argc, char *argv[])
 	int i = 0; int j = 0;
 	char str1[10];
 	int count = 0;
-	char GFlops[10];
-	char deviance[10];
+	char GFlops[15];
+	char deviance[15];
 	char c;
     FILE* fichier_in = NULL;
     FILE* fichier_out = NULL;
