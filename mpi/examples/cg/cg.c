@@ -389,7 +389,7 @@ int main(int argc, char **argv)
 	FPRINTF_SERVER(stderr, "%d nodes (%dx%d)\n", worldsize, nodes_p, nodes_q);
 	FPRINTF_SERVER(stderr, "Problem size (-n): %lld\n", n);
 	FPRINTF_SERVER(stderr, "Maximum number of iterations (-maxiter): %d\n", i_max);
-	FPRINTF_SERVER(stderr, "Number of blocks (-nblocks): %d\n", nblocks);
+	FPRINTF_SERVER(stderr, "Number of blocks (-nblocks): %u\n", nblocks);
 	FPRINTF_SERVER(stderr, "Reduction (-no-reduction): %s\n", use_reduction ? "enabled" : "disabled");
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
