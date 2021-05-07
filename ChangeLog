@@ -35,6 +35,7 @@ Small features:
     variables.
   * Add STARPU_SCHED_SIMPLE_PRE_DECISION.
   * Add starpu_bcsr_filter_canonical_block_get_nchildren.
+  * Add unregister_data_handle handle ops.
 
 StarPU 1.3.7
 ====================================================================

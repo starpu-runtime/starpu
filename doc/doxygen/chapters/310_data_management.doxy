@@ -937,6 +937,9 @@ static void complex_register_data_handle(starpu_data_handle_t handle, unsigned h
 
 If the application provided a home node, the corresponding pointers will be
 recorded for that node. Others have no buffer allocated yet.
+Possibly the interface needs some dynamic allocation (e.g. to store an array of
+dimensions that can have variable size). The corresponding deallocation will then be
+done in starpu_data_interface_ops::unregister_data_handle.
 
 Different operations need to be defined for a data interface through
 the type starpu_data_interface_ops. We only define here the basic

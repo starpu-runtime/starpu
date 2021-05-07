@@ -269,6 +269,7 @@ static starpu_ssize_t vector_cpp_describe(void *data_interface, char *buf, size_
 static struct starpu_data_interface_ops interface_vector_cpp_ops =
 {
 	.register_data_handle = register_vector_cpp_handle,
+	.unregister_data_handle = NULL,
 	.allocate_data_on_node = allocate_vector_cpp_buffer_on_node,
 	.free_data_on_node = free_vector_cpp_buffer_on_node,
 	.init = NULL,
@@ -297,6 +298,7 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 static struct starpu_data_interface_ops interface_vector_cpp_ops =
 {
 	register_vector_cpp_handle,
+	NULL,
 	allocate_vector_cpp_buffer_on_node,
 	free_vector_cpp_buffer_on_node,
 	NULL,
