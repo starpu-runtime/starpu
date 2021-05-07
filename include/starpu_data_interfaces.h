@@ -331,6 +331,17 @@ struct starpu_data_interface_ops
 	void		 (*register_data_handle)	(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
 
 	/**
+	   Unregister a data handle.
+
+	   This iterates over all memory nodes to free any pointer in the data
+	   interface on each of them.
+
+	   At this point, free_data_on_node has been already called on each of them.
+	   This just clears anything that would still be left.
+	*/
+	void		 (*unregister_data_handle)	(starpu_data_handle_t handle);
+
+	/**
 	   Allocate data for the interface on a given node. This should use
 	   starpu_malloc_on_node() to perform the allocation(s), and fill the pointers
 	   in the data interface. It should return the size of the allocated memory, or

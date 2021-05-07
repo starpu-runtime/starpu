@@ -711,6 +711,9 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 	unsigned node;
 	unsigned nworkers = starpu_worker_get_count();
 
+	if (handle->ops->unregister_data_handle)
+		handle->ops->unregister_data_handle(handle);
+
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->per_node[node].data_interface);
 
