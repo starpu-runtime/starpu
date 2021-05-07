@@ -21,5 +21,5 @@ fi
 mv /home/gonthier/starpu/Output_maxime/GFlops.txt ${PATH_R}/R/Data/PlaFRIM/${DOSSIER}/GF_${MODEL}_${GPU}.txt
 
 # Tracage des GFlops
-Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM/${DOSSIER}/GF_${MODEL}_${GPU}.txt ${MODEL} ${DOSSIER}
+Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM/${DOSSIER}/GF_${MODEL}_${GPU}.txt ${MODEL} ${DOSSIER} ${GPU}
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM/${DOSSIER}/GF_${MODEL}_${GPU}.pdf
