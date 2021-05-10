@@ -984,6 +984,9 @@ restart:
 		if (mc->remove_notify)
 			/* Somebody already working here, skip */
 			continue;
+		if (victim && mc->data != victim)
+			/* We were advised some precise data */
+			continue;
 		if (mc->footprint != footprint || _starpu_data_interface_compare(handle->per_node[node].data_interface, handle->ops, mc->data->per_node[node].data_interface, mc->ops) != 1)
 			/* Not the right type of interface, skip */
 			continue;
