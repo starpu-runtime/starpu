@@ -912,6 +912,7 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, i
 	{
 		if (mc->data)
 		{
+			int is_valid, is_loading, is_requested;
 			if (n == allocated)
 			{
 				allocated *= 2;
@@ -919,7 +920,8 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, i
 				_STARPU_REALLOC(valid, allocated * sizeof(*valid));
 			}
 			handles[n] = mc->data;
-			valid[n] = handles[n]->per_node[node].state != STARPU_INVALID;
+			starpu_data_query_status2(mc->data, node, NULL, &is_valid, &is_loading, &is_requested);
+			valid[n] = is_valid || is_loading || is_requested;
 			n++;
 		}
 	}
