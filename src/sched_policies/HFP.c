@@ -3071,7 +3071,6 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		/* if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); } */
 		
 		/* Belady */
-		printf("here\n");
 		if (starpu_get_env_number_default("BELADY",0) == 1) {
 			//VERSION 1 GPU
 			get_ordre_utilisation_donnee_1gpu(data->p->first_link, NB_TOTAL_DONNEES);
@@ -3207,13 +3206,10 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 //VERSION 1 SEUL GPU
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-	double end = 0;
 	starpu_data_handle_t returned_handle = NULL;
-	double start = starpu_timing_now();
 	int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
 	unsigned nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
-	int is_allocated;
 	if (task_currently_treated != NULL) {
 		starpu_data_handle_t *data_on_node;
 		int *valid;
@@ -3295,7 +3291,6 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 						free(data_on_node); 
 						free(valid); 
 						free(prochaine_utilisation_donnee);
-						end = starpu_timing_now();
 						//printf("Return no victim, it took %f micro seconds\n", end - start);
 						return STARPU_DATA_NO_VICTIM; 
 					}
@@ -3303,7 +3298,6 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 					free(data_on_node);
 					free(valid);
 					free(prochaine_utilisation_donnee);
-					end = starpu_timing_now();
 					//printf("Belady return %p, it took %f micro seconds\n", returned_handle, end - start);
 					return returned_handle;
 													
