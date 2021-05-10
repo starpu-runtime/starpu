@@ -235,6 +235,12 @@ static void partition_mult_data(void)
 		starpu_data_partition(A_handle, &horiz);
 
 		starpu_data_map_filters(C_handle, 2, &vert, &horiz);
+
+		for (y = 0; y < nslicesy; y++)
+			starpu_data_set_coordinates(starpu_data_get_sub_data(A_handle, 1, y), 2, 0, y);
+
+		for (x = 0; x < nslicesx; x++)
+			starpu_data_set_coordinates(starpu_data_get_sub_data(B_handle, 1, x), 2, x, 0);
 	}
 
 	for (x = 0; x < nslicesx; x++)
