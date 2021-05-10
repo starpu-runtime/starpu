@@ -93,49 +93,49 @@ then
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=modular-eager-prefetching STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=modular-eager-prefetching STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 11 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 		echo "############## Dmdar ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=dmdar STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=dmdar STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 11 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 		echo "############## Modular heft ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=modular-heft STARPU_SCHED_SORTED_ABOVE=0 STARPU_SCHED_SORTED_BELOW=0 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=modular-heft STARPU_SCHED_SORTED_ABOVE=0 STARPU_SCHED_SORTED_BELOW=0 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 11 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 		echo "############## MST ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=mst STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=mst STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 11 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 		echo "############## RCM ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=cuthillmckee REVERSE=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=cuthillmckee REVERSE=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 11 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 		echo "############## HFPR TH30 ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=HFP READY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=HFP READY=1 ORDER_U=0 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 11 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 		echo "############## HFPU TH30 ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 ORDER_U=1 READY=0 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 ORDER_U=1 READY=0 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 11 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 		echo "############## HFPUR TH30 ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) READY=1 ORDER_U=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) READY=1 ORDER_U=1 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 11 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 	fi
 fi
@@ -149,56 +149,56 @@ then
 		truncate -s 0 ${FICHIER_RAW_DT:0}
 		truncate -s 0 ${FICHIER_BUS:0}
 		echo "############## Modular eager prefetching ##############"
-		for ((i=7 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=modular-eager-prefetching STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		echo "############## Dmdar ##############"
-		for ((i=7 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=dmdar STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		echo "############## Heft ##############"
-		for ((i=7 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=modular-heft STARPU_SCHED_SORTED_ABOVE=0 STARPU_SCHED_SORTED_BELOW=0 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		echo "############## MST ##############"
-		for ((i=7 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=mst STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		echo "############## RCM ##############"
-		for ((i=7 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=cuthillmckee REVERSE=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		echo "############## HFPR TH30 ##############"
-		for ((i=7 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 ORDER_U=0 READY=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		echo "############## HFPU TH30 ##############"
-		for ((i=7 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 ORDER_U=1 READY=0 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		echo "############## HFPUR TH30 ##############"
-		for ((i=7 ; i<=(($NB_TAILLE_TESTE)); i++))
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 READY=1 ORDER_U=1 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
@@ -206,10 +206,10 @@ then
 		done
 		
 		#Tracage data transfers
-		#~ gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
-		#~ ./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}.txt
-		#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}.txt DT_${MODEL} ${DOSSIER} ${GPU}
-		#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DT_${MODEL}_${GPU}.pdf
+		gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
+		./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}.txt
+		Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}.txt DT_${MODEL} ${DOSSIER} ${GPU}
+		mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DT_${MODEL}_${GPU}.pdf
 	fi
 fi
 if [ $DOSSIER = "Random_tasks" ]
@@ -357,7 +357,7 @@ then
 fi
 
 # Tracage des GFlops
-#~ gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-#~ ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}.txt
-#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}.txt ${MODEL} ${DOSSIER} ${GPU}
-#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/GF_${MODEL}_${GPU}.pdf
+gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}.txt
+Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}.txt ${MODEL} ${DOSSIER} ${GPU}
+mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/GF_${MODEL}_${GPU}.pdf

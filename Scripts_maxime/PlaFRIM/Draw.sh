@@ -2,6 +2,7 @@
 #~ bash Scripts_maxime/PlaFRIM/Draw.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ Matrice_ligne Workingset_PlaFRIM Sirocco10 PlaFRIM
 #~ bash Scripts_maxime/PlaFRIM/Draw.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ Matrice_ligne Workingset_PlaFRIM Sirocco09 Grid5000
 #~ bash Scripts_maxime/PlaFRIM/Draw.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ Matrice_ligne Workingset_PlaFRIM Gemini02 Grid5000
+#~ bash Scripts_maxime/PlaFRIM/Draw.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ Matrice_ligne Memory_PlaFRIM Gemini02 Grid5000
 
 PATH_STARPU=$1
 PATH_R=$2
