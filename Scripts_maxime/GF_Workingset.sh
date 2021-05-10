@@ -123,13 +123,13 @@ then
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=HFP READY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 READY=1 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=HFP READY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 		echo "############## HFPU TH30 ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
 			N=$((START_X+i*ECHELLE_X))
-			STARPU_SCHED=HFP READY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 ORDER_U=1 READY=0 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+			STARPU_SCHED=HFP STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 ORDER_U=1 READY=0 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
 		echo "############## HFPUR TH30 ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -206,10 +206,10 @@ then
 		done
 		
 		#Tracage data transfers
-		gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
-		./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}.txt
-		Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}.txt DT_${MODEL} ${DOSSIER} ${GPU}
-		mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DT_${MODEL}_${GPU}.pdf
+		#~ gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
+		#~ ./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}.txt
+		#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}.txt DT_${MODEL} ${DOSSIER} ${GPU}
+		#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DT_${MODEL}_${GPU}.pdf
 	fi
 fi
 if [ $DOSSIER = "Random_tasks" ]
@@ -357,7 +357,7 @@ then
 fi
 
 # Tracage des GFlops
-gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}.txt
-Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}.txt ${MODEL} ${DOSSIER} ${GPU}
-mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/GF_${MODEL}_${GPU}.pdf
+#~ gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
+#~ ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}.txt
+#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}.txt ${MODEL} ${DOSSIER} ${GPU}
+#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/GF_${MODEL}_${GPU}.pdf
