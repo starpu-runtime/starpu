@@ -2593,7 +2593,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 	/* If the linked list is empty, we can pull more tasks */
 	if (is_empty(data->p->first_link) == true) {
 		if (!starpu_task_list_empty(&data->sched_list)) { /* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
-			printf("sched list not empty, starting do_schedule\n");
+			//printf("sched list not empty, starting do_schedule\n");
 			time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
@@ -3220,7 +3220,6 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		{
 			if (valid[i] == 0)
 			{
-				//printf("Invalid data\n");
 				free(valid);
 				returned_handle = data_on_node[i];
 				free(data_on_node);
@@ -3268,7 +3267,8 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 							{
 										//N'est pas utilisé par la suite
 										for (k = task_position_in_data_use_order[used_index_task_currently_treated]; k < total_nb_data; k++) {
-											if (data_on_node[j] == data_use_order[k]) {
+											if (data_on_node[j] == data_use_order[k]) 
+											{
 												prochaine_utilisation_donnee[j] = k;
 												break;
 											}
@@ -3292,13 +3292,14 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 						free(valid); 
 						free(prochaine_utilisation_donnee);
 						//printf("Return no victim, it took %f micro seconds\n", end - start);
-						return STARPU_DATA_NO_VICTIM; 
+						//return STARPU_DATA_NO_VICTIM; 
+						return NULL;
 					}
 					returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
 					free(data_on_node);
 					free(valid);
 					free(prochaine_utilisation_donnee);
-					//printf("Belady return %p, it took %f micro seconds\n", returned_handle, end - start);
+					//printf("Belady return %p\n", returned_handle);
 					return returned_handle;
 													
 			}
