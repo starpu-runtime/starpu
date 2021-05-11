@@ -3206,6 +3206,7 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 //VERSION 1 SEUL GPU
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
+	//~ printf("Belady\n");
 	starpu_data_handle_t returned_handle = NULL;
 	int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
@@ -3218,7 +3219,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		//Checking if all task are truly valid. Else I return a non valid data
 		for (i = 0; i < nb_data_on_node; i++)
 		{
-			if (valid[i] == 0)
+			if (valid[i] == 0) 
 			{
 				free(valid);
 				returned_handle = data_on_node[i];
@@ -3286,26 +3287,30 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 					}
 					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) 
 					{
+						//~ printf("-1\n");
 						free(data_on_node); 
 						free(valid); 
 						free(prochaine_utilisation_donnee);
 						return STARPU_DATA_NO_VICTIM; 
+						//~ return NULL;
 					}
+					//~ printf("pas -1\n");
 					returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
 					free(data_on_node);
 					free(valid);
 					free(prochaine_utilisation_donnee);
-					return returned_handle;
-													
+					return returned_handle;									
 			}
 		}
 		else 
 		{
+			//~ printf("on last task\n");
 			//We are on the last task, we can evict any data that is not forbidden
 			for (j = 0; j < nb_data_on_node; j++) 
 			{ 
 				if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) 
 				{
+					//~ printf("last task eviction\n");
 					free(data_on_node);
 					free(valid);
 					return data_on_node[j];
@@ -3313,7 +3318,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 			}
 		}
 	} 
-	
+	//~ printf("task null return null\n");
 	//Current task is null
 	return NULL;
 	//~ return STARPU_DATA_NO_VICTIM; 
