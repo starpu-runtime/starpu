@@ -3240,14 +3240,12 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		{
 			used_index_task_currently_treated = 0;
 		}
-			//printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données, ",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
+			//~ printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données, ",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
 		
-		if (task_position_in_data_use_order[index_task_currently_treated] != total_nb_data) {
+		if (task_position_in_data_use_order[used_index_task_currently_treated] != total_nb_data) {
 			nb_data_next_task = task_position_in_data_use_order[used_index_task_currently_treated] - task_position_in_data_use_order[used_index_task_currently_treated - 1];
 
-			//~ printf("données de la tâche en cours : ");
-			//~ for (i = 0; i < nb_data_next_task; i++) {
-				//~ printf("%p ",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); } printf ("\n"); 
+			//~ printf("Données de la tâche en cours : "); for (i = 0; i < nb_data_next_task; i++) { printf("%p ",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); } printf ("\n"); 
 			
 			for (i = 0; i < nb_data_next_task; i++) {	
 				/* On regarde si la donnée est pas déjà sur M par hasard */
@@ -3291,15 +3289,12 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 						free(data_on_node); 
 						free(valid); 
 						free(prochaine_utilisation_donnee);
-						//printf("Return no victim, it took %f micro seconds\n", end - start);
-						//return STARPU_DATA_NO_VICTIM; 
-						return NULL;
+						return STARPU_DATA_NO_VICTIM; 
 					}
 					returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
 					free(data_on_node);
 					free(valid);
 					free(prochaine_utilisation_donnee);
-					//printf("Belady return %p\n", returned_handle);
 					return returned_handle;
 													
 			}
@@ -3321,6 +3316,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	
 	//Current task is null
 	return NULL;
+	//~ return STARPU_DATA_NO_VICTIM; 
 }
 
 /* Almost Belady while tasks are being executed 
