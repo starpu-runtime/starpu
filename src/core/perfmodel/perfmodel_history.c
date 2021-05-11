@@ -252,7 +252,7 @@ struct starpu_perfmodel_arch *starpu_perfmodel_arch_comb_fetch(int comb)
 static size_t __starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned impl, struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
-	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	int comb = arch == NULL ? -1 : starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 
 	if (model && model->state->per_arch && comb != -1 && model->state->per_arch[comb] && model->state->per_arch[comb][impl].size_base)
 	{

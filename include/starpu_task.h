@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2016       Uppsala University
  *
@@ -181,6 +181,18 @@ typedef void (*starpu_opencl_func_t)(void **, void*);
    Maxeler FPGA implementation of a codelet.
 */
 typedef void (*starpu_max_fpga_func_t)(void **, void*);
+
+/**
+   @ingroup API_Bubble Hierarchical Dags
+   Bubble decision function
+ */
+typedef int (*starpu_bubble_func_t)(struct starpu_task *t, void *arg);
+
+/**
+   @ingroup API_Bubble Hierarchical Dags
+   Bubble DAG generation function
+ */
+typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
 
 /**
    @deprecated
@@ -413,6 +425,17 @@ struct starpu_codelet
 	   up the MPI MS function implementation through its name.
 	*/
 	const char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
+
+	/**
+	   Optional function to decide if the task is to be
+	   transformed into a bubble
+	 */
+	starpu_bubble_func_t bubble_func;
+
+	/**
+	   Optional function to transform the task into a new graph
+	 */
+	starpu_bubble_gen_dag_func_t bubble_gen_dag_func;
 
 	/**
 	   Specify the number of arguments taken by the codelet. These
@@ -1289,6 +1312,37 @@ struct starpu_task
 #else
 	void *omp_task;
 #endif
+
+	/**
+	   When using hierarchical dags, the job identifier of the
+	   bubble task which created the current task
+	 */
+	unsigned long bubble_parent;
+
+	/**
+	   When using hierarchical dags, a pointer to the bubble
+	   decision function
+	 */
+	starpu_bubble_func_t bubble_func;
+
+	/**
+	   When using hierarchical dags, a pointer to an argument to
+	   be given when calling the bubble decision function
+	 */
+	void *bubble_func_arg;
+
+	/**
+	   When using hierarchical dags, a pointer to the bubble
+	   DAG generation function
+	 */
+	starpu_bubble_gen_dag_func_t bubble_gen_dag_func;
+
+	/**
+	   When using hierarchical dags, a pointer to an argument to
+	   be given when calling the bubble DAG generation function
+	 */
+	void *bubble_gen_dag_func_arg;
+
 	/**
 	   @private
 	   This is private to StarPU, do not modify.

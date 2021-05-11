@@ -767,6 +767,13 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 	else
 		STARPU_ASSERT(task->status == STARPU_TASK_INIT);
 
+#ifdef STARPU_BUBBLE
+	if ((j->task->bubble_func && j->task->bubble_func(j->task, j->task->bubble_func_arg)) || (j->task->cl && j->task->cl->bubble_func && j->task->cl->bubble_func(j->task, j->task->bubble_func_arg)))
+		j->is_bubble = 1;
+	else
+		j->is_bubble = 0;
+#endif
+
 	if (j->internal)
 	{
 		// Internal tasks are submitted to initial context
@@ -823,8 +830,15 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			 * for can_execute hooks */
 			if (handle->home_node != -1)
 				_STARPU_TASK_SET_INTERFACE(task, starpu_data_get_interface_on_node(handle, handle->home_node), i);
+
+			/* TODO: add a test ( && !j->is_bubble )
+			 * => require to set the is_bubble a soon as possible and not in the turn_task_into_bubble.
+			 */
 			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
 			    ((handle->nplans && !handle->nchildren) || handle->siblings)
+#ifdef STARPU_BUBBLE
+			    && !j->is_bubble
+#endif
 			    && !(mode & STARPU_NOPLAN))
 				/* This handle is involved with asynchronous
 				 * partitioning as a parent or a child, make
@@ -947,7 +961,11 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	if (task->cl && !continuation)
 	{
 		_starpu_job_set_ordered_buffers(j);
-		if (!nodeps)
+		if (!nodeps
+#ifdef STARPU_BUBBLE
+		    && !j->is_bubble
+#endif
+			)
 			_starpu_detect_implicit_data_deps(task);
 	}
 
@@ -1014,6 +1032,12 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 #undef starpu_task_submit
 int starpu_task_submit(struct starpu_task *task)
 {
+#ifdef STARPU_BUBBLE_VERBOSE
+	struct timespec tp;
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+	unsigned long long timestamp = 1000000000ULL*tp.tv_sec + tp.tv_nsec;
+	_STARPU_DEBUG("{%llu} [%s(%p)] Submission | id %lu\n", timestamp, starpu_task_get_name(task), task, starpu_task_get_job_id(task));
+#endif
 	return _starpu_task_submit(task, 0);
 }
 

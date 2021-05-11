@@ -428,6 +428,9 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->busy_waiting = 0;
 	STARPU_PTHREAD_MUTEX_INIT0(&handle->busy_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT0(&handle->busy_cond, NULL);
+#ifdef STARPU_BUBBLE
+	STARPU_PTHREAD_MUTEX_INIT0(&handle->unpartition_mutex, NULL);
+#endif
 
 	//handle->root_handle
 	//handle->father_handle
@@ -1067,6 +1070,9 @@ retry_busy:
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
+#ifdef STARPU_BUBBLE
+	STARPU_PTHREAD_MUTEX_DESTROY(&handle->unpartition_mutex);
+#endif
 
 	STARPU_HG_ENABLE_CHECKING(handle->post_sync_tasks_cnt);
 	STARPU_HG_ENABLE_CHECKING(handle->busy_count);

@@ -477,6 +477,33 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
                 {
                         task->handles_sequential_consistency = va_arg(varg_list, unsigned char *);
                 }
+#ifdef STARPU_BUBBLE
+		else if (arg_type==STARPU_BUBBLE_FUNC)
+		{
+			task->bubble_func = va_arg(varg_list, starpu_bubble_func_t);
+		}
+		else if (arg_type==STARPU_BUBBLE_FUNC_ARG)
+		{
+			task->bubble_func_arg = va_arg(varg_list, void*);
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC)
+		{
+			task->bubble_gen_dag_func = va_arg(varg_list, starpu_bubble_gen_dag_func_t);
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC_ARG)
+		{
+			task->bubble_gen_dag_func_arg = va_arg(varg_list,void*);
+		}
+		else if (arg_type==STARPU_BUBBLE_PARENT)
+		{
+			struct starpu_task *parent = va_arg(varg_list, struct starpu_task *);
+			if (parent)
+			{
+				struct _starpu_job *job = _starpu_get_job_associated_to_task(parent);
+				task->bubble_parent = job->job_id;
+			}
+		}
+#endif
 		else if (arg_type==STARPU_TASK_END_DEP)
 		{
 			int end_dep = va_arg(varg_list, int);
@@ -815,6 +842,36 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
                 {
                         task->handles_sequential_consistency = (unsigned char *)arglist[arg_i];
                 }
+#ifdef STARPU_BUBBLE
+		else if (arg_type==STARPU_BUBBLE_FUNC)
+		{
+			arg_i++;
+			task->bubble_func = (starpu_bubble_func_t)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_BUBBLE_FUNC_ARG)
+		{
+			arg_i++;
+			task->bubble_func_arg = (void *)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC)
+		{
+			arg_i++;
+			task->bubble_gen_dag_func = (starpu_bubble_gen_dag_func_t)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC_ARG)
+		{
+			arg_i++;
+			task->bubble_gen_dag_func_arg = (void*)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_BUBBLE_PARENT)
+		{
+			arg_i++;
+			struct starpu_task *parent = (struct starpu_task *)arglist[arg_i];
+			struct _starpu_job *job = _starpu_get_job_associated_to_task(parent);
+			task->bubble_parent = job->job_id;
+
+		}
+#endif
 		else if (arg_type==STARPU_TASK_END_DEP)
 		{
 			arg_i++;

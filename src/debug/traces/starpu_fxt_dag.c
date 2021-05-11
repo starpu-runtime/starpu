@@ -116,6 +116,19 @@ void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, con
 		fprintf(out_file, "\t \"task_%s%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\", fontcolor=\"%s\"]\n", prefix, job_id, label, color, fontcolor);
 }
 
+#ifdef STARPU_BUBBLE
+void _starpu_fxt_dag_set_task_bubble(const char *prefix, unsigned long job_id, int is_bubble, unsigned long bubble_parent)
+{
+	if (out_file)
+	{
+		fprintf(out_file, "\t \"task_%s%lu\" [ bubble=\"%d\" ", prefix, job_id, is_bubble);
+		if (bubble_parent)
+			fprintf(out_file, ", bubble_parent=\"%lu\"", bubble_parent);
+		fprintf(out_file, "]\n");
+	}
+}
+#endif
+
 void _starpu_fxt_dag_set_task_line(const char *prefix, unsigned long job_id, const char *file, int line)
 {
 	if (out_file)

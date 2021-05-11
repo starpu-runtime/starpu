@@ -95,6 +95,7 @@
 */
 #undef STARPU_OPENMP
 
+#undef STARPU_BUBBLE
 #undef STARPU_CLUSTER
 
 #undef STARPU_SIMGRID

@@ -241,6 +241,10 @@
 
 #define _STARPU_FUT_TASK_END_DEP	0x5188
 
+#ifdef STARPU_BUBBLE
+#define _STARPU_FUT_TASK_BUBBLE		0x5189
+#endif
+
 /* Predefined FUT key masks */
 #define _STARPU_FUT_KEYMASK_META           FUT_KEYMASK0
 #define _STARPU_FUT_KEYMASK_USER           FUT_KEYMASK1
@@ -808,7 +812,7 @@ do {									\
 	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
 	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
 	char _archname[32]=""; \
-	starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
+	if (perf_arch) starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
 	_STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _starpu_gettid(), _archname); \
     } \
 } while(0)
@@ -867,6 +871,11 @@ do {									\
 #define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ)		\
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "ghost")
 
+#ifdef STARPU_BUBBLE
+#define _STARPU_TRACE_BUBBLE_TASK_DEPS(prev_id, job_succ)		\
+	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_TASK_DEPS, (prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "bubble")
+#endif
+
 #define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(job)			\
 	do {								\
 	unsigned exclude_from_dag = (job)->exclude_from_dag;		\
@@ -886,7 +895,18 @@ do {									\
 			_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_LINE, (job)->job_id, (job)->task->line, (job)->task->file); \
 } while(0)
 
-#define _STARPU_TRACE_TASK_NAME(job)					\
+#ifdef STARPU_BUBBLE
+#define _STARPU_TRACE_BUBBLE(job)					\
+do {								\
+    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
+	unsigned int is_bubble=(job)->is_bubble;			\
+	unsigned long bubble_parent=(job)->task->bubble_parent;		\
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_BUBBLE, (job)->job_id, is_bubble, bubble_parent); \
+    } \
+} while(0)
+#endif
+
+#define _STARPU_TRACE_TASK_NAME(job)				\
 do {								\
     if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
         const char *model_name = _starpu_job_get_model_name((job));		\
@@ -1480,6 +1500,11 @@ do {										\
 #define _STARPU_TRACE_DATA_STATE_SHARED(handle, node)	do {(void)(handle); (void)(node);} while(0)
 #define _STARPU_TRACE_DATA_REQUEST_CREATED(handle, orig, dest, prio, is_pre, req) do {(void)(handle); (void)(orig); (void)(dest); (void)(prio); (void)(is_pre); (void)(req); } while(0)
 #define _STARPU_TRACE_PAPI_TASK_EVENT(event_id, task, value) do {(void)(event_id); (void)(task); (void)(value);} while(0)
+
+#ifdef STARPU_BUBBLE
+#define _STARPU_TRACE_BUBBLE_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_BUBBLE(a)			do {(void)(a);} while(0)
+#endif
 
 #endif // STARPU_USE_FXT
 

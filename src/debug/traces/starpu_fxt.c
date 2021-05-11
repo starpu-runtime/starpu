@@ -120,6 +120,10 @@ struct task_info
 	unsigned long ndata;
 	struct data_parameter_info *data;
 	int mpi_rank;
+#ifdef STARPU_BUBBLE
+	unsigned is_bubble;
+	unsigned long bubble_parent;
+#endif
 };
 
 static struct task_info *tasks_info;
@@ -163,6 +167,10 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->ndata = 0;
 		task->data = NULL;
 		task->mpi_rank = mpi_rank;
+#ifdef STARPU_BUBBLE
+		task->is_bubble = 0;
+		task->bubble_parent = 0;
+#endif
 		HASH_ADD(hh, tasks_info, job_id, sizeof(task->job_id), task);
 	}
 	else
@@ -269,6 +277,10 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "\n");
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
+#ifdef STARPU_BUBBLE
+	fprintf(tasks_file, "Bubble: %d\n", task->is_bubble);
+	fprintf(tasks_file, "ParentBubble: %lu\n", task->bubble_parent);
+#endif
 	if (task->nend_deps)
 	{
 		fprintf(tasks_file, "EndDependencies: ");
@@ -2915,6 +2927,22 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color, fontcolor);
 }
 
+#ifdef STARPU_BUBBLE
+static void handle_task_bubble(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long job_id = ev->param[0];
+	int is_bubble = (int)ev->param[1];
+	unsigned long bubble_parent = ev->param[2];
+
+	struct task_info *task = get_task(job_id, options->file_rank);
+	task->is_bubble = is_bubble;
+	task->bubble_parent = bubble_parent;
+
+	if (!task->exclude_from_dag && show_task(task, options))
+		_starpu_fxt_dag_set_task_bubble(options->file_prefix, job_id, task->is_bubble, task->bubble_parent);
+}
+#endif
+
 static void handle_task_line(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
@@ -3703,6 +3731,12 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			case _STARPU_FUT_TASK_NAME:
 				handle_task_name(&ev, options);
 				break;
+
+#ifdef STARPU_BUBBLE
+			case _STARPU_FUT_TASK_BUBBLE:
+				handle_task_bubble(&ev, options);
+				break;
+#endif
 
 			case _STARPU_FUT_TASK_LINE:
 				handle_task_line(&ev, options);

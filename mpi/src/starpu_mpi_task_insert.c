@@ -495,6 +495,24 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
                 {
                         (void)va_arg(varg_list_copy, char *);
                 }
+#ifdef STARPU_BUBBLE
+		else if (arg_type==STARPU_BUBBLE_FUNC)
+		{
+			(void)va_arg(varg_list,void*);
+		}
+		else if (arg_type==STARPU_BUBBLE_FUNC_ARG)
+		{
+			(void)va_arg(varg_list,void*);
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC)
+		{
+			(void)va_arg(varg_list,void*);
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC_ARG)
+		{
+			(void)va_arg(varg_list,void*);
+		}
+#endif
 		else if (arg_type==STARPU_TASK_END_DEP)
 		{
 			(void)va_arg(varg_list_copy, int);

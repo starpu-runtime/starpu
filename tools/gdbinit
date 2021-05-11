@@ -115,6 +115,7 @@ define starpu-print-task
   end
   printf "\tndeps_completed:\t\t<%u>\n", $job->job_successors->ndeps_completed
   printf "\tnsuccs:\t\t\t\t<%u>\n", $job->job_successors->nsuccs
+  printf "\tparent:\t\t\t\t<%lu>\n", $task->bubble_parent
   if $job
     starpu-print-job $job
   end
