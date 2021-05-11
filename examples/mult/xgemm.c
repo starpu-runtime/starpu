@@ -351,11 +351,6 @@ static void parse_args(int argc, char **argv)
 				fprintf(stderr, "the number of blocks in X cannot be 0!\n");
 				exit(EXIT_FAILURE);
 			}
-			if (nslicesy == 0)
-			{
-				fprintf(stderr, "the number of blocks in Y cannot be 0!\n");
-				exit(EXIT_FAILURE);
-			}
 		}
 
 		else if (strcmp(argv[i], "-nblocksx") == 0)
@@ -395,36 +390,66 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			xdim = strtol(argv[++i], &argptr, 10);
+			if (xdim == 0)
+			{
+				fprintf(stderr, "the X dimension cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-xy") == 0)
 		{
 			char *argptr;
 			xdim = ydim = strtol(argv[++i], &argptr, 10);
+			if (xdim == 0)
+			{
+				fprintf(stderr, "the XY dimensions cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-y") == 0)
 		{
 			char *argptr;
 			ydim = strtol(argv[++i], &argptr, 10);
+			if (ydim == 0)
+			{
+				fprintf(stderr, "the Y dimension cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-z") == 0)
 		{
 			char *argptr;
 			zdim = strtol(argv[++i], &argptr, 10);
+			if (zdim == 0)
+			{
+				fprintf(stderr, "the Z dimension cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-size") == 0)
 		{
 			char *argptr;
 			xdim = ydim = zdim = strtol(argv[++i], &argptr, 10);
+			if (xdim == 0)
+			{
+				fprintf(stderr, "the size cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-iter") == 0)
 		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
+			if (niter == 0)
+			{
+				fprintf(stderr, "the number of iterations cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-nsleeps") == 0)
