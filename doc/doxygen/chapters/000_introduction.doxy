@@ -301,6 +301,7 @@ The documentation chapters include
 <li> \ref SimGridSupport
 <li> \ref OpenMPRuntimeSupport
 <li> \ref ClusteringAMachine
+<li> \ref HierarchicalDAGS
 <li> \ref InteroperabilitySupport
 <li> \ref EclipsePlugin
 </ul>

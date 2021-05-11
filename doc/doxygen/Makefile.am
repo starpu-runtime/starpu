@@ -87,6 +87,7 @@ chapters =	\
 	chapters/470_simgrid.doxy		\
 	chapters/480_openmp_runtime_support.doxy		\
 	chapters/490_clustering_a_machine.doxy		\
+	chapters/494_bubble.doxy		\
 	chapters/495_interoperability.doxy		\
 	chapters/497_eclipse_plugin.doxy 		\
 	chapters/501_environment_variables.doxy		\
@@ -106,6 +107,7 @@ chapters =	\
 	chapters/code/disk_copy.c \
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
+	chapters/api/bubble_support.doxy \
 	chapters/api/fft_support.doxy \
 	chapters/api/threads.doxy
 

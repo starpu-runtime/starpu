@@ -488,6 +488,12 @@ default, it is enabled when an OpenCL implementation is found.
 Enable OpenMP Support (\ref OpenMPRuntimeSupport)
 </dd>
 
+<dt>--enable-bubble</dt>
+<dd>
+\anchor enable-bubble
+\addindex __configure__--enable-bubble
+Enable Hierarchical dags support (\ref Bubble)
+
 <dt>--enable-cluster</dt>
 <dd>
 \anchor enable-cluster
