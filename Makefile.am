@@ -37,6 +37,10 @@ if STARPU_USE_MPI
 SUBDIRS += mpi
 endif
 
+if STARPU_BUBBLE
+SUBDIRS += bubble
+endif
+
 if STARPU_BUILD_EXAMPLES
 SUBDIRS += examples
 endif
