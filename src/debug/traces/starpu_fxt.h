@@ -87,8 +87,8 @@ void _starpu_fxt_component_dump(FILE *output);
 void _starpu_fxt_component_finish(FILE *output);
 void _starpu_fxt_component_deinit(void);
 
-#endif // STARPU_USE_FXT
-
 #pragma GCC visibility pop
+
+#endif // STARPU_USE_FXT
 
 #endif // __STARPU__FXT_H__
