@@ -3218,7 +3218,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		//Checking if all task are truly valid. Else I return a non valid data
 		for (i = 0; i < nb_data_on_node; i++)
 		{
-			if (valid[i] == 0)
+			if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 			{
 				free(valid);
 				returned_handle = data_on_node[i];
