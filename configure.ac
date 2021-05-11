@@ -110,6 +110,35 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                            Hierarchical dags support                        #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(bubble, [AS_HELP_STRING([--enable-bubble],
+			[build the hierarchical dags (a.k.a bubble) support])],
+			enable_bubble=$enableval, enable_bubble=no)
+
+AC_MSG_CHECKING([for hierarchical dags - a.k.a bubble - support])
+
+if test x$enable_bubble = xyes; then
+	AC_DEFINE(STARPU_BUBBLE, [1], [Define this to enable hierarchical dags support])
+	default_enable_mpi=no
+fi
+
+AM_CONDITIONAL([STARPU_BUBBLE], [test "x$enable_bubble" = "xyes"])
+AC_MSG_RESULT($enable_bubble)
+
+AC_MSG_CHECKING(whether bubble debug messages should be displayed)
+AC_ARG_ENABLE(bubble-verbose, [AS_HELP_STRING([--enable-bubble-verbose],
+			[display verbose bubble messages])],
+			enable_bubble_verbose=$enableval, enable_bubble_verbose=no)
+AC_MSG_RESULT($enable_bubble_verbose)
+if test x$enable_bubble_verbose = xextra; then
+	AC_DEFINE(STARPU_BUBBLE_VERBOSE, [1], [display verbose bubble debug messages])
+fi
+
+###############################################################################
+#                                                                             #
 #                                 Drivers                                     #
 #                                                                             #
 ###############################################################################
@@ -3676,6 +3705,8 @@ AC_OUTPUT([
 	doc/doxygen_dev/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
 	min-dgels/Makefile
+	bubble/Makefile
+	bubble/tests/Makefile
 	julia/Makefile
 	julia/src/Makefile
 	julia/src/dynamic_compiler/Makefile
@@ -3739,6 +3770,7 @@ AC_MSG_NOTICE([
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr
+	       Hierarchical dags support:                     $enable_bubble
 	       JULIA enabled:                                 $enable_julia
 ])
 
