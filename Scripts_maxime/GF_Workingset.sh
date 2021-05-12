@@ -14,7 +14,6 @@ GPU=$6
 ECHELLE_X=5
 START_X=0  
 FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_1.txt
-#~ export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 5000000
 truncate -s 0 ${FICHIER_RAW}
@@ -34,7 +33,7 @@ if [ $DOSSIER = "Matrice_ligne" ]
 then
 	if [ $MODEL = "Workingset_europar" ]
 	then
-		NB_ALGO_TESTE=11
+		NB_ALGO_TESTE=12
 		echo "############## Modular eager prefetching ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do 
@@ -104,7 +103,7 @@ then
 	fi
 	if [ $MODEL = "Memory_europar" ]
 	then
-		NB_ALGO_TESTE=11
+		NB_ALGO_TESTE=12
 		ECHELLE_X=50
 		START_X=0
 		echo "############## Modular eager prefetching ##############"
@@ -173,13 +172,19 @@ then
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=HFP READY=1 ORDER_U=1 BELADY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
 		done
+		echo "############## HFPB TH30 ##############"
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			do 
+			N=$((START_X+i*ECHELLE_X))
+			STARPU_SCHED=HFP READY=0 ORDER_U=0 BELADY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((N)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*15)) -nblocks $((15)) -iter 1 | tail -n 1 >> ${FICHIER_RAW:0}
+		done
 	fi
 fi
 if [ $DOSSIER = "Matrice3D" ]
 then
 	if [ $MODEL = "Workingset_europar" ]
 	then
-		NB_ALGO_TESTE=11
+		NB_ALGO_TESTE=12
 		FICHIER_RAW_DT=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_3.txt
 		FICHIER_BUS=${PATH_STARPU}/starpu/Output_maxime/BUS_STATS_1.txt
 		truncate -s 0 ${FICHIER_RAW_DT:0}
@@ -259,6 +264,13 @@ then
 			do 
 			N=$((START_X+i*ECHELLE_X))
 			STARPU_SCHED=HFP READY=1 BELADY=1 ORDER_U=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
+			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		done
+		echo "############## HFPB TH30 ##############"
+		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			do 
+			N=$((START_X+i*ECHELLE_X))
+			STARPU_SCHED=HFP READY=0 BELADY=1 ORDER_U=0 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1 | tail -n 1 >> ${FICHIER_RAW:0} 
 			sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		done
 		
