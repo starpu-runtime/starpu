@@ -32,6 +32,8 @@ static int index_current_task_heft = 0; /* To track on which task we are in heft
  * RANDOM_TASK_ORDER
  * RECURSIVE_MATRIX_LAYOUT
  * RANDOM_DATA_ACCESS
+ * STARPU_SCHED_READY=1
+ * STARPU_CUDA_PIPELINE=30
  */
 
 /* Used for modular-heft for visualisation */
@@ -3153,25 +3155,13 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 
 static void initialize_HFP_center_policy(unsigned sched_ctx_id)
 {	
-	if (starpu_get_env_number_default("READY", 1) == 1) 
-	{ 
-		starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_HFP_create, NULL,
-				STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
-				STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
-				STARPU_SCHED_SIMPLE_FIFOS_BELOW |
-				STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY | /* ready of dmdar plugged into HFP */
-				STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
-				STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
-	}
-	else
-	{
-		starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_HFP_create, NULL,
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_HFP_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY | /* ready of dmdar plugged into HFP */
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
-	}
 }
 
 static void deinitialize_HFP_center_policy(unsigned sched_ctx_id)
