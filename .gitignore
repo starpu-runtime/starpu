@@ -498,3 +498,4 @@ examples/random_task_graph/random_task_graph
 nbuffers
 Output_maxime/GFlops.txt
 cut_gflops_raw_out_mean_deviation
+Output_maxime/BUS_STATS_1.txt
