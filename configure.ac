@@ -1938,7 +1938,6 @@ AC_CHECK_LIB([papi], [PAPI_library_init],
 	      PAPI_LIBS=-lpapi])
 AC_SUBST(PAPI_LIBS)
 
-AM_CONDITIONAL([STARPU_USE_PAPI], [test "x$PAPI_LIBS" != "x"])
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
 AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
