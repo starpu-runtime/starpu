@@ -1245,7 +1245,8 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
 
 #ifdef STARPU_USE_FXT
-		total_size += _starpu_data_get_size(handle);
+		if (fut_active)
+			total_size += _starpu_data_get_size(handle);
 #endif
 	}
 	_STARPU_TRACE_DATA_LOAD(workerid,total_size);

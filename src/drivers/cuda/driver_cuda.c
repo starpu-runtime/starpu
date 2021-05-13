@@ -677,13 +677,16 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 				STARPU_CUDA_REPORT_ERROR(cures);
 #endif
 #ifdef STARPU_USE_FXT
-			int k;
-			for (k = 0; k < (int) worker->set->nworkers; k++)
-				if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
-					break;
-			if (k == (int) worker->set->nworkers)
-				/* Everybody busy */
-				_STARPU_TRACE_START_EXECUTING();
+			if (fut_active)
+			{
+				int k;
+				for (k = 0; k < (int) worker->set->nworkers; k++)
+					if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
+						break;
+				if (k == (int) worker->set->nworkers)
+					/* Everybody busy */
+					_STARPU_TRACE_START_EXECUTING();
+			}
 #endif
 		}
 	}
@@ -934,13 +937,16 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 					_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
 			}
 #ifdef STARPU_USE_FXT
-			int k;
-			for (k = 0; k < (int) worker_set->nworkers; k++)
-				if (worker_set->workers[k].ntasks)
-					break;
-			if (k == (int) worker_set->nworkers)
-				/* Everybody busy */
-				_STARPU_TRACE_END_EXECUTING()
+			if (fut_active)
+			{
+				int k;
+				for (k = 0; k < (int) worker_set->nworkers; k++)
+					if (worker_set->workers[k].ntasks)
+						break;
+				if (k == (int) worker_set->nworkers)
+					/* Everybody busy */
+					_STARPU_TRACE_END_EXECUTING()
+			}
 #endif
 			_STARPU_TRACE_START_PROGRESS(memnode);
 		}

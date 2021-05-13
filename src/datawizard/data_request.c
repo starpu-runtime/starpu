@@ -444,15 +444,15 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 #endif
 	}
 
-	if (r->canceled < 2 && r->com_id > 0)
-	{
 #ifdef STARPU_USE_FXT
+	if (fut_active && r->canceled < 2 && r->com_id > 0)
+	{
 		unsigned src_node = src_replicate->memory_node;
 		unsigned dst_node = dst_replicate->memory_node;
 		size_t size = _starpu_data_get_size(handle);
 		_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id, r->prefetch);
-#endif
 	}
+#endif
 
 	/* Once the request has been fulfilled, we may submit the requests that
 	 * were chained to that request. */

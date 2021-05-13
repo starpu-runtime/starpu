@@ -57,6 +57,9 @@ New features:
 Small features:
   * New configure option --with-check-cflags to define flags for C,
     CXX and Fortran compilers
+  * FxT is now automatically enabled at build-time, but not enabled at
+    run-time by default any more, STARPU_FXT_TRACE needs to be explicitly set to
+    1 to enable FxT trace recording.
 
 Small changes:
   * Add a synthetic energy efficiency testcase.

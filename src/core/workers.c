@@ -953,7 +953,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		 * before starting another one, to make sure they appear in
 		 * order in the trace.
 		 */
-		if ((!workerarg->set || workerarg->set->workers == workerarg)
+		if (fut_active && (!workerarg->set || workerarg->set->workers == workerarg)
 			&& workerarg->run_by_starpu == 1 && workerarg->arch != STARPU_MPI_MS_WORKER)
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
@@ -979,10 +979,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
                 /* We use the first worker to know if everything are finished */
 #ifdef STARPU_USE_FXT
-                STARPU_PTHREAD_MUTEX_LOCK(&worker_zero->mutex);
-                while (!worker_zero->worker_is_running)
-                        STARPU_PTHREAD_COND_WAIT(&worker_zero->started_cond, &worker_zero->mutex);
-                STARPU_PTHREAD_MUTEX_UNLOCK(&worker_zero->mutex);
+		if (fut_active)
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&worker_zero->mutex);
+			while (!worker_zero->worker_is_running)
+				STARPU_PTHREAD_COND_WAIT(&worker_zero->started_cond, &worker_zero->mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker_zero->mutex);
+		}
 #endif
 
                 STARPU_PTHREAD_MUTEX_LOCK(&worker_set_zero->mutex);
@@ -1455,7 +1458,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_STARPU_DISP("Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
 #endif
 #ifdef STARPU_USE_FXT
-	_STARPU_DISP("Warning: StarPU was configured with --with-fxt, which slows down a bit, limits scalability and makes worker initialization sequential\n");
+	if (starpu_fxt_is_enabled())
+		_STARPU_DISP("Warning: FxT is enabled, which slows down a bit, limits scalability and makes worker initialization sequential\n");
 #endif
 #ifdef STARPU_FXT_LOCK_TRACES
 	_STARPU_DISP("Warning: StarPU was configured with --enable-fxt-lock, which slows down things a huge lot, and is really only meant for StarPU insides debugging. Did you really want to enable that?\n");
@@ -1475,6 +1479,13 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 			_STARPU_DISP("Warning: This system is running a 4.7 or 4.8 kernel. These have a severe scheduling performance regression issue, please upgrade to at least 4.9.\n");
 	}
 #endif
+#endif
+
+#ifndef STARPU_USE_FXT
+	if (starpu_get_env_number("STARPU_FXT_TRACE") > 0)
+	{
+		_STARPU_DISP("Warning: FxT trace is requested but StarPU was configured without FxT support\n");
+	}
 #endif
 
 	if (starpu_getenv("STARPU_ENABLE_STATS"))

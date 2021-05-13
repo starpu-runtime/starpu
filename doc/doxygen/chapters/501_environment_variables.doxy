@@ -1016,7 +1016,7 @@ Specify in which file to save the generated trace if FxT is enabled.
 <dd>
 \anchor STARPU_FXT_TRACE
 \addindex __env__STARPU_FXT_TRACE
-Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY (the directory and file name can be changed with \ref STARPU_FXT_PREFIX and \ref STARPU_FXT_SUFFIX). The default is 1 (generate it)
+Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY (the directory and file name can be changed with \ref STARPU_FXT_PREFIX and \ref STARPU_FXT_SUFFIX). The default is 0 (do not generate it)
 </dd>
 
 <dt>STARPU_LIMIT_CUDA_devid_MEM</dt>

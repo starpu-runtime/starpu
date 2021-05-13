@@ -235,10 +235,13 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 		_starpu_bus_update_profiling_info((int)src_node, (int)dst_node, size);
 
 #ifdef STARPU_USE_FXT
-		com_id = STARPU_ATOMIC_ADDL(&communication_cnt, 1);
+		if (fut_active)
+		{
+			com_id = STARPU_ATOMIC_ADDL(&communication_cnt, 1);
 
-		if (req)
-			req->com_id = com_id;
+			if (req)
+				req->com_id = com_id;
+		}
 #endif
 
 		dst_replicate->initialized = 1;

@@ -70,7 +70,14 @@ $ make
 $ make install
 \endverbatim
 
-In order to have StarPU to generate traces, StarPU should be configured with
+In order to have StarPU to generate traces, StarPU needs be configured again
+after installing FxT, and configuration show:
+
+\verbatim
+FxT trace enabled: yes
+\endverbatim
+
+If <c>configure</c> does not find FxT automatically, it can be specified by hand with
 the option \ref with-fxt "--with-fxt" :
 
 \verbatim
@@ -78,10 +85,9 @@ $ ./configure --with-fxt=$FXTDIR
 \endverbatim
 
 Or you can simply point the <c>PKG_CONFIG_PATH</c> to
-<c>$FXTDIR/lib/pkgconfig</c> and pass
-\ref with-fxt "--with-fxt" to <c>configure</c>
+<c>$FXTDIR/lib/pkgconfig</c>
 
-When FxT is enabled, a trace is generated when StarPU is terminated by calling
+When \ref STARPU_FXT_TRACE is set to 1, a trace is generated when StarPU is terminated by calling
 starpu_shutdown(). The trace is a binary file whose name has the form
 <c>prof_file_XXX_YYY</c> where <c>XXX</c> is the user name, and
 <c>YYY</c> is the MPI id of the process that used StarPU (or 0 when running a sequential program).
@@ -96,9 +102,6 @@ The additional \c configure option \ref enable-fxt-lock "--enable-fxt-lock" can
 be used to generate trace events which describes the locks behaviour during
 the execution. It is however very heavy and should not be used unless debugging
 StarPU's internal locking.
-
-The environment variable \ref STARPU_FXT_TRACE can be set to 0 to disable the
-generation of the <c>prof_file_XXX_YYY</c> file.
 
 When the FxT trace file <c>prof_file_something</c> has been generated,
 it is possible to generate different trace formats by calling:

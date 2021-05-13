@@ -1836,93 +1836,103 @@ AC_MSG_RESULT($enable_coverity)
 AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
 
 # shall we use FxT to generate trace of the execution ?
-AC_MSG_CHECKING(whether FxT traces should be generated)
-AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[[=<dir>]]], [generate fxt traces])],
+AC_ARG_ENABLE(fxt, [AS_HELP_STRING([--disable-fxt],
+		[disable FxT trace mechanisms])],, [enable_fxt=maybe])
+AC_ARG_WITH(fxt-dir,
+	[AS_HELP_STRING([--with-fxt-dir=<path>],
+	[specify FxT installation directory])],
 	[
-		if test x$withval != xno; then
-			use_fxt=yes
-			if test x$withval = xyes; then
-				AC_MSG_RESULT(yes)
-				use_fxt_from_system=yes
-			else
-				# use specified path
-				# TODO check if the dir is actually containing FxT
-				use_fxt_from_system=no
-				fxtdir=$withval
-				AC_MSG_RESULT(yes using $fxtdir)
-				AC_SUBST(FXTDIR, $fxtdir)
-			fi
-		else
-			use_fxt=no
-			AC_MSG_RESULT(no)
-		fi
+		fxt_dir="$withval"
+		use_fxt_from_system=no
+		# in case this was not explicit yet
+		enable_fxt=yes
+		AC_SUBST(FXTDIR, $fxt_dir)
 	],
 	[
-		use_fxt=no
-		AC_MSG_RESULT(no)
+		use_fxt_from_system=yes
+		fxt_dir=""
 	])
-AC_SUBST(STARPU_USE_FXT, $use_fxt)
-AM_CONDITIONAL(STARPU_USE_FXT, test x$use_fxt = xyes)
 
-if test x$use_fxt = xyes; then
-	AC_DEFINE(STARPU_USE_FXT, [1], [enable FxT traces])
-	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
-
+if test x$enable_fxt != xno; then
 	if test x$use_fxt_from_system = xno; then
 	    save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
-	    PKG_CONFIG_PATH="$fxtdir/lib/pkgconfig:$PKG_CONFIG_PATH"
-	    PKG_CHECK_MODULES([FXT],  [fxt], , [
+	    PKG_CONFIG_PATH="$fxt_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
+	    PKG_CHECK_MODULES([FXT],  [fxt], [have_valid_fxt=yes], [
+	    	have_valid_fxt=yes
 		AC_MSG_WARN([Old FxT without fxt.pc file, hoping link will succeed])
-		FXT_CFLAGS="-I$fxtdir/include/ "
-		FXT_LDFLAGS="-L$fxtdir/lib/"
+		FXT_CFLAGS="-I$fxt_dir/include/ "
+		FXT_LDFLAGS="-L$fxt_dir/lib/"
 		AC_ARG_VAR(FXT_LDFLAGS)
 		FXT_LIBS="-lfxt"
 	    ])
 	    PKG_CONFIG_PATH="$save_PKG_CONFIG_PATH"
 	else
-	    PKG_CHECK_MODULES([FXT],  [fxt])
+	    PKG_CHECK_MODULES([FXT],  [fxt], [have_valid_fxt=yes], [have_valid_fxt=no])
 	fi
-	save_LIBS="$LIBS"
-	LIBS="$LIBS $FXT_LIBS"
-	save_LDFLAGS="$LDFLAGS"
-	LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
-	AC_CHECK_FUNCS([fxt_close])
-	AC_CHECK_FUNCS([fxt_blockev_leave])
-	AC_CHECK_FUNCS([enable_fut_flush])
-	AC_CHECK_FUNCS([fut_set_filename])
-	AC_CHECK_FUNCS([fut_setup_flush_callback])
-	LDFLAGS="$save_LDFLAGS"
-	LIBS="$save_LIBS"
-	save_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $FXT_CFLAGS"
-	AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
-	AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
-	AC_CHECK_DECLS([fut_setup_flush_callback], [], [], [[#include <fut.h>]])
-	CFLAGS="$save_CFLAGS"
-
-	if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
-                # simgrid's SMPI needs fxt to be linked in statically for
-                # variable privatization to work
-		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
-	fi
-
-	##########################################
-	# Poti is a library to generate paje trace files
-	##########################################
-	PKG_CHECK_MODULES([POTI], [poti], [have_valid_poti=yes], [have_valid_poti=no])
-	AC_ARG_ENABLE(poti, [AS_HELP_STRING([--enable-poti],
-				[Enable the use of the POTI library to generate Paje traces])],
-				enable_poti=$enableval, enable_poti=no)
-	if test x$enable_poti = xyes -a x$have_valid_poti = xyes ; then
-		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
+	if test x$have_valid_fxt = xyes ; then
+		enable_fxt=yes
 		save_LIBS="$LIBS"
-		LIBS="$LIBS $POTI_LIBS"
-		AC_CHECK_FUNCS([poti_init_custom poti_user_NewEvent])
+		LIBS="$LIBS $FXT_LIBS"
+			save_LDFLAGS="$LDFLAGS"
+		LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
+		AC_CHECK_FUNCS([fxt_close])
+		AC_CHECK_FUNCS([fxt_blockev_leave])
+		AC_CHECK_FUNCS([enable_fut_flush])
+		AC_CHECK_FUNCS([fut_set_filename])
+		AC_CHECK_FUNCS([fut_setup_flush_callback])
+		LDFLAGS="$save_LDFLAGS"
 		LIBS="$save_LIBS"
-		FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
-		FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+		save_CFLAGS="$CFLAGS"
+		CFLAGS="$CFLAGS $FXT_CFLAGS"
+		AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
+		AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
+		AC_CHECK_DECLS([fut_setup_flush_callback], [], [], [[#include <fut.h>]])
+		CFLAGS="$save_CFLAGS"
+
+		if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
+	                # simgrid's SMPI needs fxt to be linked in statically for
+	                # variable privatization to work
+			FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
+		fi
+
+		AC_CHECK_LIB([papi], [PAPI_library_init],
+			     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
+			      PAPI_LIBS=-lpapi])
+
+		##########################################
+		# Poti is a library to generate paje trace files
+		##########################################
+		PKG_CHECK_MODULES([POTI], [poti], [have_valid_poti=yes], [have_valid_poti=no])
+		AC_ARG_ENABLE(poti, [AS_HELP_STRING([--enable-poti],
+					[Enable the use of the POTI library to generate Paje traces])],
+					enable_poti=$enableval, enable_poti=no)
+		if test x$enable_poti = xyes -a x$have_valid_poti = xyes ; then
+			AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
+			save_LIBS="$LIBS"
+			LIBS="$LIBS $POTI_LIBS"
+			AC_CHECK_FUNCS([poti_init_custom poti_user_NewEvent])
+			LIBS="$save_LIBS"
+			FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
+			FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+		fi
+	else
+		if test x$enable_fxt = xyes ; then
+			AC_MSG_ERROR([FxT is required but not available])
+		fi
+		enable_fxt=no
 	fi
 fi
+
+AC_MSG_CHECKING(whether FxT traces should be generated)
+AC_MSG_RESULT($enable_fxt)
+
+if test x$enable_fxt = xyes; then
+	AC_DEFINE(STARPU_USE_FXT, [1], [enable FxT traces])
+	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
+fi
+
+AC_SUBST(STARPU_USE_FXT, $enable_fxt)
+AM_CONDITIONAL(STARPU_USE_FXT, test x$enable_fxt = xyes)
 
 AC_MSG_CHECKING(whether additional locking systems FxT traces should be enabled)
 AC_ARG_ENABLE(fxt-lock, [AS_HELP_STRING([--enable-fxt-lock],
@@ -3549,7 +3559,7 @@ AC_MSG_NOTICE([
 	Magma enabled:     $have_magma
 	BLAS library:      $blas_lib
 	hwloc:             $have_valid_hwloc
-	FxT trace enabled: $use_fxt
+	FxT trace enabled: $enable_fxt
 
         Documentation HTML:  $enable_build_doc
         Documentation PDF:   $enable_build_doc_pdf
