@@ -1838,8 +1838,8 @@ AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
 # shall we use FxT to generate trace of the execution ?
 AC_ARG_ENABLE(fxt, [AS_HELP_STRING([--disable-fxt],
 		[disable FxT trace mechanisms])],, [enable_fxt=maybe])
-AC_ARG_WITH(fxt-dir,
-	[AS_HELP_STRING([--with-fxt-dir=<path>],
+AC_ARG_WITH(fxt,
+	[AS_HELP_STRING([--with-fxt=<path>],
 	[specify FxT installation directory])],
 	[
 		fxt_dir="$withval"
