@@ -2796,7 +2796,7 @@ if test x$blas_lib != xnone; then
     AC_CHECK_FUNCS([cblas_sgemv])
     LIBS="$SAVED_LIBS"
 fi
-AM_CONDITIONAL(STARPU_HAVE_CBLAS_SGEMV, test $HAVE_CBLAS_SGEMV = 1)
+AM_CONDITIONAL(STARPU_HAVE_CBLAS_SGEMV, test x$HAVE_CBLAS_SGEMV = x1)
 
 AM_CONDITIONAL(STARPU_ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(STARPU_GOTO_BLAS_LIB, test x$blas_lib = xgoto)
