@@ -55,7 +55,6 @@ static inline void STARPU_LU(common_u22)(void *descr[], int s, void *_args)
 
 #ifdef STARPU_USE_CUDA
 	cublasStatus status;
-	cudaError_t cures;
 #endif
 
 	switch (s)
@@ -181,7 +180,6 @@ static inline void STARPU_LU(common_u12)(void *descr[], int s, void *_args)
 
 #ifdef STARPU_USE_CUDA
 	cublasStatus status;
-	cudaError_t cures;
 #endif
 
 	/* solve L11 U12 = A12 (find U12) */

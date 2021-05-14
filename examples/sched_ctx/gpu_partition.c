@@ -103,8 +103,10 @@ int main(void)
 {
 	int ret, exit_value = 0;
 	int iter;
+#ifdef STARPU_USE_CUDA
 	int ncuda = 0;
 	int gpu_devid = -1;
+#endif
 
 #ifdef STARPU_DEVEL
 #warning temporary fix: skip test as cuda computation fails

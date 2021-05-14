@@ -58,7 +58,7 @@ void split_callback(void *arg)
 
 void supertask_callback(void *arg)
 {
-	(arg);
+	(void)arg;
 	starpu_data_handle_t sub_handles[PARTS];
 	int add;
 	struct starpu_task *task = starpu_task_get_current();

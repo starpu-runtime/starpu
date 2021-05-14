@@ -108,7 +108,7 @@ void early_request()
 
 int main(int argc, char **argv)
 {
-	int ret, rank, size, i;
+	int ret;
 	starpu_data_handle_t tab_handle[4];
 	int mpi_init;
 

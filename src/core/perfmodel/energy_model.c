@@ -234,7 +234,6 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 	{
 		printf("Error: worker type %d is not supported! \n", archi);
 		return -1;
-		break;
 	}
 	}
 

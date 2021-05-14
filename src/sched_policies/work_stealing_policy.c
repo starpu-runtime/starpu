@@ -500,7 +500,6 @@ static int select_victim_overload(struct _starpu_work_stealing_data *ws, unsigne
  */
 static unsigned select_worker_overload(struct _starpu_work_stealing_data *ws, struct starpu_task *task, unsigned sched_ctx_id)
 {
-	struct _starpu_work_stealing_data *ws = (struct _starpu_work_stealing_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned best_worker = 0;
 	float best_ratio = FLT_MAX;
 

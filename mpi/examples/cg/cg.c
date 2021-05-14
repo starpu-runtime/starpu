@@ -143,7 +143,7 @@ static void generate_random_problem(void)
 
 static void free_data(void)
 {
-	unsigned ii, jj, j, i;
+	unsigned j, i;
 	int mpi_rank;
 
 	for (j = 0; j < nblocks; j++)
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 
 	if (n % nblocks != 0)
 	{
-		FPRINTF_SERVER(stderr, "The number of blocks (%d) must divide the matrix size (%lld).\n", nblocks, n);
+		FPRINTF_SERVER(stderr, "The number of blocks (%u) must divide the matrix size (%lld).\n", nblocks, n);
 		starpu_mpi_shutdown();
 		return 1;
 	}

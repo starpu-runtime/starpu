@@ -497,7 +497,6 @@ int main(int argc, char *argv[])
 		for (n = 0; n < N; n++)
 			starpu_data_unregister(A[m][n]);
 
-out:
 	starpu_shutdown();
 	return 0;
 }

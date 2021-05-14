@@ -308,7 +308,7 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 void _starpu_sink_common_worker(void)
 {
 	struct _starpu_mp_node *node = NULL;
-	enum _starpu_mp_command command = STARPU_MP_COMMAND_EXIT;
+	enum _starpu_mp_command command;
 	int arg_size = 0;
 	void *arg = NULL;
 	int exit_starpu = 0;

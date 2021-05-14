@@ -95,7 +95,6 @@ struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_create(struct _star
 void _starpu_mpi_early_data_delete(struct _starpu_mpi_early_data_handle *early_data_handle)
 {
 	free(early_data_handle);
-	early_data_handle = NULL;
 }
 
 struct _starpu_mpi_early_data_handle *_starpu_mpi_early_data_find(struct _starpu_mpi_node_tag *node_tag)

@@ -198,8 +198,8 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_a
 			{
 				int ret;
 				int info;
-			cudaStream_t stream = starpu_cuda_get_local_stream();
 #if (MAGMA_VERSION_MAJOR > 1) || (MAGMA_VERSION_MAJOR == 1 && MAGMA_VERSION_MINOR >= 4)
+			cudaStream_t stream = starpu_cuda_get_local_stream();
 			cublasSetKernelStream(stream);
 			magmablasSetKernelStream(stream);
 #else

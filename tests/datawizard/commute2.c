@@ -61,7 +61,7 @@ int main(void)
 	double *res, *a;
 	unsigned n=100000, i;
 	starpu_data_handle_t res_handle, a_handle;
-	unsigned nb_tasks = 10, worker;
+	unsigned nb_tasks = 10;
 	int ret;
 
 	ret = starpu_init(NULL);
