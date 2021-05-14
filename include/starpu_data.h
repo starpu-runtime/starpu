@@ -590,6 +590,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle, struct starp
 struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle);
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node);
+unsigned starpu_data_test_if_mapped_on_node(starpu_data_handle_t handle, unsigned memory_node);
 
 void starpu_memchunk_tidy(unsigned memory_node);
 
