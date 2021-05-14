@@ -185,7 +185,7 @@ static float frequency(int worker, unsigned i)
 #define GEMM_TIME(N) (GEMM_FLOPS(TILE_SIZE) / (GEMM_GFLOPS * 1000000000.))
 static double _gemm_time(float frequency)
 {
-	double ret = GEMM_TIME(N);
+	double ret;
 
 	/* Fix according to real frequency, linear */
 	ret = GEMM_TIME(N) / (frequency / freq_fast);
