@@ -101,8 +101,8 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			flags = va_arg(varg_list, unsigned);
 		}
 
-		int above_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_ABOVE", flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO ? 1 : 0);
-		int below_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_BELOW", flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO ? 1 : 0);
+		int above_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_ABOVE", (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO) ? 1 : 0);
+		int below_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_BELOW", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO) ? 1 : 0);
 
 		/* Create combined workers if requested */
 		if (flags & STARPU_SCHED_SIMPLE_COMBINED_WORKERS)
@@ -217,8 +217,8 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 			last_pre_decision_component = component;
 		}
 
-		int above_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_ABOVE", flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO ? 1 : 0);
-		int below_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_BELOW", flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO ? 1 : 0);
+		int above_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_ABOVE", (flags & STARPU_SCHED_SIMPLE_FIFO_ABOVE_PRIO) ? 1 : 0);
+		int below_prio = starpu_get_env_number_default("STARPU_SCHED_SORTED_BELOW", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_PRIO) ? 1 : 0);
 
 		if (nbelow == 1 && !(flags & STARPU_SCHED_SIMPLE_DECIDE_ALWAYS))
 		{
@@ -313,7 +313,7 @@ void starpu_sched_component_initialize_simple_schedulers(unsigned sched_ctx_id, 
 		double exp_len_threshold = _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT;
 		exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", exp_len_threshold);
 
-		int ready = starpu_get_env_number_default("STARPU_SCHED_READY", flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY ? 1 : 0);
+		int ready = starpu_get_env_number_default("STARPU_SCHED_READY", (flags & STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY) ? 1 : 0);
 
 		struct starpu_sched_component_prio_data prio_data =
 		{
