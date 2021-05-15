@@ -35,15 +35,11 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 	struct _starpu_eager_data *d = component->data;
 	struct starpu_sched_component *target;
 
-	//STARPU_COMPONENT_MUTEX_LOCK(&d->scheduling_mutex);
-	if (d->ntasks == 0) {
+	if (d->ntasks == 0)
 		/* We have already pushed a task down */
-		//STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
 		return 1;
-	}
 	if (d->ntasks > 0)
 		d->ntasks--;
-	//STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
 
 	if ((target = d->target))
 	{
