@@ -152,15 +152,15 @@ static void free_data(void)
 
 		if (mpi_rank == rank || display_result)
 		{
-			starpu_free((void*) x[j]);
+			starpu_free_noflag((void*) x[j], block_size*sizeof(TYPE));
 		}
 
 		if (mpi_rank == rank)
 		{
-			starpu_free((void*) b[j]);
-			starpu_free((void*) r[j]);
-			starpu_free((void*) d[j]);
-			starpu_free((void*) q[j]);
+			starpu_free_noflag((void*) b[j], block_size*sizeof(TYPE));
+			starpu_free_noflag((void*) r[j], block_size*sizeof(TYPE));
+			starpu_free_noflag((void*) d[j], block_size*sizeof(TYPE));
+			starpu_free_noflag((void*) q[j], block_size*sizeof(TYPE));
 		}
 
 		for (i = 0; i < nblocks; i++)
@@ -168,7 +168,7 @@ static void free_data(void)
 			mpi_rank = my_distrib(j, i);
 			if (mpi_rank == rank)
 			{
-				starpu_free((void*) A[j][i]);
+				starpu_free_noflag((void*) A[j][i], block_size*block_size*sizeof(TYPE));
 			}
 		}
 

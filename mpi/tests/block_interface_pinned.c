@@ -61,8 +61,7 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		starpu_malloc((void **)&block,
-				BIGSIZE*BIGSIZE*BIGSIZE*sizeof(float));
+		starpu_malloc((void **)&block, BIGSIZE*BIGSIZE*BIGSIZE*sizeof(float));
 		memset(block, 0, BIGSIZE*BIGSIZE*BIGSIZE*sizeof(float));
 
 		/* fill the inner block */
@@ -140,7 +139,7 @@ int main(int argc, char **argv)
 	if (rank == 0 || rank == 1)
 	{
 		starpu_data_unregister(block_handle);
-		starpu_free(block);
+		starpu_free_noflag(block, BIGSIZE*BIGSIZE*BIGSIZE*sizeof(float));
 	}
 
 	FPRINTF(stdout, "Rank %d is done\n", rank);

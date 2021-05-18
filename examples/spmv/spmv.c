@@ -253,12 +253,12 @@ int main(int argc, char **argv)
 		}
 	}
 
-	starpu_free(nzval);
-	starpu_free(colind);
-	starpu_free(rowptr);
-	starpu_free(vector_in_ptr);
-	starpu_free(vector_out_ptr);
-	starpu_free(vector_exp_out_ptr);
+	starpu_free_noflag(nzval, nnz*sizeof(float));
+	starpu_free_noflag(colind, nnz*sizeof(uint32_t));
+	starpu_free_noflag(rowptr, (size+1)*sizeof(uint32_t));
+	starpu_free_noflag(vector_in_ptr, size*sizeof(float));
+	starpu_free_noflag(vector_out_ptr, size*sizeof(float));
+	starpu_free_noflag(vector_exp_out_ptr, size*sizeof(float));
 
 	/*
 	 *	Stop StarPU

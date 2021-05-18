@@ -113,8 +113,8 @@ enodev:
 	starpu_data_unregister(res_handle);
 	starpu_data_unregister(a_handle);
 
-	starpu_free(res);
-	starpu_free(a);
+	starpu_free_noflag(res, n*sizeof(double));
+	starpu_free_noflag(a, n*sizeof(double));
 
 	starpu_shutdown();
 	return ret == -ENODEV ? STARPU_TEST_SKIPPED : EXIT_SUCCESS;

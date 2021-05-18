@@ -159,7 +159,7 @@ int main(int argc, char **argv)
 	for (b = 0; b < nbuffers; b++)
 	{
 		starpu_data_unregister(v_handle[b]);
-		starpu_free(buffer[b]);
+		starpu_free_noflag(buffer[b], vectorsize);
 	}
 
 	starpu_shutdown();

@@ -180,7 +180,7 @@ int check_size(int nx, struct starpu_codelet *vector_codelet, struct starpu_code
 end:
 	if (ret == -ENODEV)
 		fprintf(stderr, "# Uh, ENODEV?!");
-	starpu_free(matrix);
+	starpu_free_noflag(matrix, nx*sizeof(matrix[0]));
 	starpu_task_wait_for_all();
 	return ret;
 }

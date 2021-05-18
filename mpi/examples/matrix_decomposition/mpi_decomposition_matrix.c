@@ -120,7 +120,7 @@ void matrix_free(float ****bmat, int rank, int nodes, int alloc_everywhere)
 			int mpi_rank = my_distrib(m, n, nodes);
 			if (alloc_everywhere || (mpi_rank == rank))
 			{
-				starpu_free((void *)(*bmat)[m][n]);
+				starpu_free_noflag((void *)(*bmat)[m][n], BLOCKSIZE*BLOCKSIZE*sizeof(float));
 			}
 		}
 		free((*bmat)[m]);

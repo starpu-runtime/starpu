@@ -60,6 +60,8 @@ Small features:
   * FxT is now automatically enabled at build-time, but not enabled at
     run-time by default any more, STARPU_FXT_TRACE needs to be explicitly set to
     1 to enable FxT trace recording.
+  * Deprecate starpu_free() and add new function starpu_free_noflag()
+    to specify allocated size.
 
 Small changes:
   * Add a synthetic energy efficiency testcase.

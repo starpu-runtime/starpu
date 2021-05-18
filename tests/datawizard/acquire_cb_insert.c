@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 	    f[X*(N/M)+2] != 3 || f[X*(N/M)+3] != 4)
 		ret = EXIT_FAILURE;
 
-	starpu_free(f);
+	starpu_free_noflag(f, N * sizeof(*f));
 	starpu_shutdown();
 	return ret;
 

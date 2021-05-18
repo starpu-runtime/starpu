@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 	fprintf(stderr, "Avg. transfer time : %f us\n", timing/(2*niter));
 
 	starpu_data_unregister(v_handle);
-	starpu_free(v);
+	starpu_free_noflag(v, vector_size);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;

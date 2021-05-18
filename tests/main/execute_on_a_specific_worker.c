@@ -163,14 +163,14 @@ int main(int argc, char **argv)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mutex);
 
 	starpu_data_unregister(v_handle);
-	starpu_free(v);
+	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
 	starpu_data_unregister(v_handle);
-	starpu_free(v);
+	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one

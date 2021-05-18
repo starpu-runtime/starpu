@@ -244,8 +244,8 @@ enodev:
 
 	for(iter = 0; iter < NITER; iter++)
 	{
-		starpu_free((void *)_vec_x[iter]);
-		starpu_free((void *)_vec_y[iter]);
+		starpu_free_noflag((void *)_vec_x[iter], N*sizeof(float));
+		starpu_free_noflag((void *)_vec_y[iter], N*sizeof(float));
 	}
 
 	/* Stop StarPU */
