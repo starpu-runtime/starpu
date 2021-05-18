@@ -119,6 +119,37 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	return job;
 }
 
+struct _starpu_job* _starpu_get_job_associated_to_task_slow(struct starpu_task *task, struct _starpu_job *job)
+{
+	if (job == _STARPU_JOB_UNSET)
+	{
+		job = STARPU_VAL_COMPARE_AND_SWAP_PTR(&task->starpu_private, _STARPU_JOB_UNSET, _STARPU_JOB_SETTING);
+		if (job != _STARPU_JOB_UNSET && job != _STARPU_JOB_SETTING)
+		{
+			/* Actually available in the meanwhile */
+			STARPU_RMB();
+			return job;
+		}
+
+		if (job == _STARPU_JOB_UNSET)
+		{
+			/* Ok, we have to do it */
+			job = _starpu_job_create(task);
+			STARPU_WMB();
+			task->starpu_private = job;
+			return job;
+		}
+	}
+
+	/* Saw _STARPU_JOB_SETTING, somebody is doing it, wait for it.
+	 * This is rare enough that busy-reading is fine enough. */
+	while ((job = task->starpu_private) == _STARPU_JOB_SETTING)
+		STARPU_SYNCHRONIZE();
+
+	STARPU_RMB();
+	return job;
+}
+
 void _starpu_job_destroy(struct _starpu_job *j)
 {
 	/* Wait for any code that was still working on the job (and was

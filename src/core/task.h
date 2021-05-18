@@ -47,20 +47,25 @@ int _starpu_task_submit_nodeps(struct starpu_task *task);
 
 void _starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[], int check);
 
+#define _STARPU_JOB_UNSET ((struct _starpu_job *) NULL)
+#define _STARPU_JOB_SETTING ((struct _starpu_job *) 1)
+
 /** Returns the job structure (which is the internal data structure associated
  * to a task). */
+struct _starpu_job *_starpu_get_job_associated_to_task_slow(struct starpu_task *task, struct _starpu_job *job);
 static inline struct _starpu_job *_starpu_get_job_associated_to_task(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);
 	struct _starpu_job *job = (struct _starpu_job *) task->starpu_private;
 
-	if (STARPU_UNLIKELY(!job))
+	if (STARPU_LIKELY(job != _STARPU_JOB_UNSET && job != _STARPU_JOB_SETTING))
 	{
-		job = _starpu_job_create(task);
-		task->starpu_private = job;
+		/* Already available */
+		STARPU_RMB();
+		return job;
 	}
 
-	return job;
+	return _starpu_get_job_associated_to_task_slow(task, job);
 }
 
 /** Submits starpu internal tasks to the initial context */
