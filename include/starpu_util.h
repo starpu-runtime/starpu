@@ -297,16 +297,30 @@ STARPU_ATOMIC_SOMETHINGL(or, old | value)
 #endif
 #endif
 
+/* Try to replace `old' with `value' at `ptr'. Returns true iff the swap was successful. */
 #ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_bool_compare_and_swap ((ptr), (old), (value)))
 #elif defined(STARPU_HAVE_XCHG)
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value) (_starpu_cmpxchg((ptr), (old), (value)) == (old))
 #endif
 
+#if UINTPTR_MAX == UINT64_MAX
+#define STARPU_BOOL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value)
+#else
+#define STARPU_BOOL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value)
+#endif
+
+/* Try to replace `old' with `value' at `ptr'. Returns the value actually seen at `ptr'. */
 #ifdef STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_val_compare_and_swap ((ptr), (old), (value)))
 #elif defined(STARPU_HAVE_XCHG)
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value) (_starpu_cmpxchg((ptr), (old), (value)))
+#endif
+
+#if UINTPTR_MAX == UINT64_MAX
+#define STARPU_VAL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value)
+#else
+#define STARPU_VAL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value)
 #endif
 
 #ifdef STARPU_HAVE_ATOMIC_EXCHANGE_N
