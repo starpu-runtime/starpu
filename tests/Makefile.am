@@ -150,7 +150,6 @@ myPROGRAMS +=					\
 	main/execute_schedule			\
 	main/insert_task_pack			\
 	main/insert_task_nullcodelet		\
-	main/job				\
 	main/multithreaded_init			\
 	main/empty_task				\
 	main/empty_task_chain			\
@@ -231,6 +230,7 @@ myPROGRAMS +=				\
 	main/insert_task_array			\
 	main/insert_task_many			\
 	main/insert_task_where			\
+	main/job				\
 	main/multithreaded			\
 	main/starpu_task_bundle			\
 	main/starpu_task_wait_for_all		\
