@@ -64,8 +64,8 @@ int main(void)
 	starpu_conf_init(&conf);
 	conf.precedence_over_environment_variables = 1;
 	starpu_conf_noworker(&conf);
-	conf.ncpus = 1;
-	ret = starpu_init(NULL);
+	conf.ncpus = -1;
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
