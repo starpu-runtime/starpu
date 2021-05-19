@@ -603,7 +603,7 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 #if defined(__x86_64__)
 #define STARPU_WMB() __asm__ __volatile__("sfence" ::: "memory")
 #elif defined(__aarch64__)
-#define STARPU_RMB() __asm__ __volatile__("dsb st" ::: "memory")
+#define STARPU_WMB() __asm__ __volatile__("dsb st" ::: "memory")
 #else
 #define STARPU_WMB() STARPU_SYNCHRONIZE()
 #endif
