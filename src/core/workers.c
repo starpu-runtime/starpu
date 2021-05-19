@@ -1104,11 +1104,11 @@ int starpu_conf_init(struct starpu_conf *conf)
 #endif
 
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY)
-    conf->disable_asynchronous_mpi_ms_copy = 1;
+	conf->disable_asynchronous_mpi_ms_copy = 1;
 #else
-    conf->disable_asynchronous_mpi_ms_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
-    if(conf->disable_asynchronous_mpi_ms_copy == -1)
-        conf->disable_asynchronous_mpi_ms_copy = 0;
+	conf->disable_asynchronous_mpi_ms_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
+	if(conf->disable_asynchronous_mpi_ms_copy == -1)
+		conf->disable_asynchronous_mpi_ms_copy = 0;
 #endif
 
 	/* 64MiB by default */
