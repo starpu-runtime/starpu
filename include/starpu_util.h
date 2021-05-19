@@ -607,14 +607,10 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 /**
    This macro can be used to do a synchronization.
 */
-#if defined(__i386__)
-#define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
-#elif defined(__KNC__) || defined(__KNF__)
-#define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%rsp)" ::: "memory")
-#elif defined(__x86_64__)
+#if defined(__x86_64__)
 #define STARPU_RMB() __asm__ __volatile__("lfence" ::: "memory")
-#elif defined(__ppc__) || defined(__ppc64__)
-#define STARPU_RMB() __asm__ __volatile__("sync" ::: "memory")
+#elif defined(__aarch64__)
+#define STARPU_RMB() __asm__ __volatile__("dsb ld" ::: "memory")
 #else
 #define STARPU_RMB() STARPU_SYNCHRONIZE()
 #endif
@@ -622,14 +618,10 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 /**
    This macro can be used to do a synchronization.
 */
-#if defined(__i386__)
-#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
-#elif defined(__KNC__) || defined(__KNF__)
-#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%rsp)" ::: "memory")
-#elif defined(__x86_64__)
+#if defined(__x86_64__)
 #define STARPU_WMB() __asm__ __volatile__("sfence" ::: "memory")
-#elif defined(__ppc__) || defined(__ppc64__)
-#define STARPU_WMB() __asm__ __volatile__("sync" ::: "memory")
+#elif defined(__aarch64__)
+#define STARPU_RMB() __asm__ __volatile__("dsb st" ::: "memory")
 #else
 #define STARPU_WMB() STARPU_SYNCHRONIZE()
 #endif
