@@ -1,3 +1,6 @@
+//~ gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
+//~ Pour cholesky la manière d'afficher les gflops n'est pas la même! Il affiche comme cela : 4800	112	328.9
+
 #include <stdlib.h>
 #include <stdio.h>
 
@@ -26,12 +29,8 @@ int main(int argc, char *argv[])
     FILE* fichier_out = NULL;
     fichier_in = fopen(argv[5], "r");
     fichier_out = fopen(argv[6], "w+");
-    //~ int ecart_type = atoi(argv[7]);
-    //~ if (ecart_type != 1 && ecart_type != 0)
-    //~ {
-		//~ fprintf(stderr, "Argument 7 (chose if we used deviance or not) of ./cut_gflops_raw_out must be 0 (no) or 1 (yes)\n");
-		//~ exit(EXIT_FAILURE);
-	//~ }
+    int ecart_type = 1; /* A bool basically to separate gemm for cholesky for now */
+    
     if (fichier_in != NULL)
     {
 		c = fgetc(fichier_in);
@@ -39,28 +38,37 @@ int main(int argc, char *argv[])
 			c = fgetc(fichier_in);
 			if (c == '	') { count++; }
 		}
+		if (count == 2)
+		{
+			//We are in cholesky mode
+			ecart_type = 0;
+		}
+		else
+		{
+			ecart_type = 1;
+		}
 		rewind(fichier_in);
 		for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) {
 			fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
-			//~ if (ecart_type == 0)
-			//~ {
-				//~ for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) {
-					//~ if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) {
-						//~ for (k = 0; k < count; k++) {
-							//~ fscanf(fichier_in,"%s",str1);
-						//~ }
-						//~ fscanf(fichier_in, "%s",GFlops);
-						//~ fprintf(fichier_out,"	%s",GFlops);
-					//~ }
-					//~ else {
-						//~ for (k = 0; k < count + 1; k++) {
-							//~ fscanf(fichier_in,"%s",str1);
-						//~ }
-					//~ }
-				//~ }
-			//~ }
-			//~ else
-			//~ {
+			if (ecart_type == 0)
+			{
+				for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) {
+					if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) {
+						for (k = 0; k < count; k++) {
+							fscanf(fichier_in,"%s",str1);
+						}
+						fscanf(fichier_in, "%s",GFlops);
+						fprintf(fichier_out,"	%s",GFlops);
+					}
+					else {
+						for (k = 0; k < count + 1; k++) {
+							fscanf(fichier_in,"%s",str1);
+						}
+					}
+				}
+			}
+			else
+			{
 				for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) {
 					if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) {
 						for (k = 0; k < count - 1; k++) {
@@ -75,7 +83,7 @@ int main(int argc, char *argv[])
 						}
 					}
 				}
-			//~ }
+			}
 			
 			fprintf(fichier_out,"\n"); 
 			rewind(fichier_in);
