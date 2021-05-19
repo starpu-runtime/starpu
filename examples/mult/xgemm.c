@@ -1057,12 +1057,21 @@ int main(int argc, char **argv)
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
 				/* If I have more than 1 iteration I want the mean timing, else I don't */
-				if (temp_niter > 1) 
+				if (temp_niter > 1)
 				{
 					if (iter != 0)
 					{
 						timing += end - start;
 						timing_square += (end-start) * (end-start);
+					}
+						
+					for (x = 0; x < nslicesx; x++)
+					for (y = 0; y < nslicesy; y++)
+					{
+						starpu_data_acquire(starpu_data_get_sub_data(A_handle, 1, y), STARPU_W);
+						starpu_data_release(starpu_data_get_sub_data(A_handle, 1, y));
+						starpu_data_acquire(starpu_data_get_sub_data(B_handle, 1, x), STARPU_W);
+						starpu_data_release(starpu_data_get_sub_data(B_handle, 1, x));
 					}
 				}
 				else
