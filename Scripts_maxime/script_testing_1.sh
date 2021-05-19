@@ -1,18 +1,20 @@
 #!/usr/bin/bash
+#~ bash Scripts_maxime/script_testing_1.sh
+
 start=`date +%s`
 #~ export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 50000000
 #~ sudo make -C src/ -j 6
-sudo make -j 6
+#~ sudo make -j 6
 
 #~ srun --exclusive -C sirocco21 --pty bash Scripts_maxime/task_stealing.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne task_stealing -i
 
 #~ bash Scripts_maxime/task_stealing.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne task_stealing
 
-#~ ./examples/mult/sgemm -3d -xy $((960*i)) -nblocks $((i)) -nblocksz $((4)) -iter 2
-#~ ./examples/mult/sgemm -xy $((960*i)) -nblocks $((i)) -iter 2
-#~ ./examples/cholesky/cholesky_implicit -size $((960*i)) -nblocks $((i))
+#~ ./examples/mult/sgemm -3d -xy $((960*i)) -nblocks $((N)) -nblocksz $((4)) -iter 1
+#~ ./examples/mult/sgemm -xy $((960*i)) -nblocks $((N)) -iter 2
+#~ ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
 #~ ./examples/random_task_graph/random_task_graph -ntasks 10 -ndata 10 -degreemax 5
 
 #~ libtool --mode=execute gdb --args
@@ -46,14 +48,15 @@ sudo make -j 6
 #~ STARPU_SCHED=dmdar STARPU_CUDA_PIPELINE=4 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
 #~ 10183
 HOST="gemini-2"
-N=5
+N=20
 #~ STARPU_SCHED=HFP READY=1 BELADY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1
 #~ N=20
 #~ STARPU_SCHED=HFP READY=1 BELADY=1 ORDER_U=1 PRINTF=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1
 #~ N=35
 #~ STARPU_SCHED=HFP ORDER_U=1 READY=1 BELADY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz 4 -iter 1
 
-STARPU_SCHED=HFP STARPU_BUS_CALIBRATE=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
+STARPU_SCHED=dmdar STARPU_WORKER_STATS=1 STARPU_GENERATE_TRACE=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
+#~ STARPU_SCHED=HFP BELADY=1 ORDER_U=1 STARPU_SCHED_READY=1 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 RANDOM_DATA_ACCESS=1 SEED=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 2
 		
 		#~ NB_TAILLE_TESTE=9
 		#~ echo "############## HFPR TH30 ##############"
