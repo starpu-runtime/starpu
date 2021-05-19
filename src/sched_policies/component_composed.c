@@ -225,6 +225,7 @@ struct starpu_sched_component * starpu_sched_component_composed_component_create
 	c->bottom->parents = component->parents;
 
 	component->data = c;
+	component->deinit_data = composed_component_deinit_data;
 	component->push_task = composed_component_push_task;
 	component->pull_task = composed_component_pull_task;
 	component->estimated_load = composed_component_estimated_load;
