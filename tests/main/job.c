@@ -30,9 +30,11 @@ static struct starpu_task *tasks[N];
 void dummy_func(void *arg)
 {
 	unsigned worker, i;
+	int worker0;
 	(void) arg;
 
-	if (starpu_worker_get_id_check() == 0)
+	starpu_worker_get_ids_by_type(STARPU_CPU_WORKER, &worker0, 1);
+	if ((int) starpu_worker_get_id_check() == worker0)
 		/* One worker creates the tasks */
 		for (i = 0; i < N; i++)
 		{
@@ -57,7 +59,15 @@ int main(void)
 {
 	int ret;
 	unsigned i;
+	struct starpu_conf conf;
 
+	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
+	conf.ncpus = 1;
+	conf.ncuda = 0;
+	conf.nopencl = 0;
+	conf.nmic = 0;
+	conf.nmpi_ms = 0;
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
