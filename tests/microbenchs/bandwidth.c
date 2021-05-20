@@ -35,12 +35,11 @@ int main(void)
 
 #if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS)
 static size_t size = 1024;
-static unsigned cpustep = 4;
 #else
 /* Must be bigger than available cache size per core, 64MiB should be enough */
 static size_t size = 64UL << 20;
-static unsigned cpustep = 4;
 #endif
+static unsigned cpustep = 0;
 
 static unsigned noalone = 0;
 static unsigned iter = 3;
@@ -311,6 +310,18 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 
 	result = malloc(total_ncpus * sizeof(result[0]));
+
+	if (cpustep == 0) {
+#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS)
+		cpustep = total_ncpus / 2;
+#elif defined(STARPU_LONG_CHECK)
+		cpustep = 1;
+#else
+		cpustep = total_ncpus / 8;
+#endif
+		if (cpustep == 0)
+			cpustep = 1;
+	}
 
 	printf("# nw\ta comp.\t+sched\teff%%\ta scat.\t+nop\t+sync\t+sched\teff%% vs nop\n");
 	for (n = cpustep; n <= total_ncpus; n += cpustep)
