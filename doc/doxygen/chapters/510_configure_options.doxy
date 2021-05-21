@@ -184,9 +184,9 @@ Use at most <c>count</c> CPU cores.  This information is then
 available as the macro ::STARPU_MAXCPUS.
 
 The default value is <c>auto</c>. it allows StarPU to automatically
-detect the number of CPUs on the running machine. This should not be
-used if the running host has a different number of CPUs from the
-compilation node.
+detect the number of CPUs on the build machine. This should not be
+used if the running host has a larger number of CPUs than the
+build machine.
 </dd>
 
 <dt>--enable-maxnumanodes=<c>count</c></dt>
