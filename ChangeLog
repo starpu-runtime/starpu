@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +19,11 @@ StarPU 1.2.11 (git revision xxx)
 
 Small features:
   * Add starpu_tag_notify_restart_from_apps().
+
+Small changes:
+  * Change the default value for configure option --enable-maxcpus to
+    auto. it allows StarPU to automatically use the number of CPUs
+    on the build machine.
 
 StarPU 1.2.10 (git revision beb6ac9cc07dc9ae1c838a38d11ed2dae3775996)
 ====================================================================
