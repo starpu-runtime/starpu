@@ -48,8 +48,10 @@ void dummy_func(void *arg)
 		for (i = 0; i < N; i++)
 		{
 			struct starpu_task *task;
-			while (!(task = tasks[i]))
+			while (!(task = tasks[i])) {
+				STARPU_UYIELD();
 				STARPU_SYNCHRONIZE();
+			}
 			STARPU_RMB();
 			starpu_task_get_job_id(task);
 		}
