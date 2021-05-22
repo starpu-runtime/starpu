@@ -149,7 +149,8 @@ struct _starpu_job* _starpu_get_job_associated_to_task_slow(struct starpu_task *
 
 	/* Saw _STARPU_JOB_SETTING, somebody is doing it, wait for it.
 	 * This is rare enough that busy-reading is fine enough. */
-	while ((job = task->starpu_private) == _STARPU_JOB_SETTING) {
+	while ((job = task->starpu_private) == _STARPU_JOB_SETTING)
+	{
 		STARPU_UYIELD();
 		STARPU_SYNCHRONIZE();
 	}
