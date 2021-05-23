@@ -4035,31 +4035,34 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		}
 	}
 
-	if (out_paje_file && !options->no_bus)
+	if (!options->no_bus)
 	{
 		while (!_starpu_communication_list_empty(&communication_list))
 		{
 			struct _starpu_communication*itor;
 			itor = _starpu_communication_list_pop_front(&communication_list);
 
-			/* Trace finished with this communication uncompleted, fake its termination */
+			if (out_paje_file)
+			{
+				/* Trace finished with this communication uncompleted, fake its termination */
 
-			unsigned comid = itor->comid;
-			unsigned long size = itor->size;
-			unsigned dst = itor->dst_node;
-			double time = current_computation_time;
-			const char *link_type = itor->type;
+				unsigned comid = itor->comid;
+				unsigned long size = itor->size;
+				unsigned dst = itor->dst_node;
+				double time = current_computation_time;
+				const char *link_type = itor->type;
 #ifdef STARPU_HAVE_POTI
-			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
-			char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
-			snprintf(paje_value, sizeof(paje_value), "%lu", size);
-			snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
-			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
-			memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
-			poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
+				char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
+				char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
+				snprintf(paje_value, sizeof(paje_value), "%lu", size);
+				snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
+				program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
+				memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
+				poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
 #else
-			fprintf(out_paje_file, "19	%.9f	%s	%sp	%lu	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
+				fprintf(out_paje_file, "19	%.9f	%s	%sp	%lu	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
 #endif
+			}
 			_starpu_communication_delete(itor);
 		}
 	}
