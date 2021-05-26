@@ -3334,8 +3334,8 @@ if test "$enable_julia" = "yes" ; then
    AC_PATH_PROG(juliapath, julia)
    AC_MSG_CHECKING(whether julia is available)
    AC_MSG_RESULT($juliapath)
-   if test ! -x $julia_path ; then
-      AC_MSG_ERROR(Julia compiler '$julia_path' is not valid)
+   if test ! -x $juliapath ; then
+      AC_MSG_ERROR(Julia compiler '$juliapath' is not valid)
       enable_julia=no
    fi
 fi
