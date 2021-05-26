@@ -155,7 +155,6 @@ myPROGRAMS +=					\
 	main/bind				\
 	main/mkdtemp				\
 	main/execute_schedule			\
-	main/insert_task_on_worker		\
 	main/insert_task_pack			\
 	main/insert_task_nullcodelet		\
 	main/multithreaded_init			\
