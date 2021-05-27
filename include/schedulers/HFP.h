@@ -130,7 +130,7 @@ int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluat
 /* Comparator used to sort the data of a packages to erase the duplicate in O(n) */
 int HFP_pointeurComparator ( const void * first, const void * second );
 
-void print_effective_order_in_file (struct starpu_task *task);
+void print_effective_order_in_file (struct starpu_task *task, int index_task);
 
 /* Printing each package and its content */
 void print_packages_in_terminal (struct paquets *a, int nb_of_loop);

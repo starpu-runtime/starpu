@@ -828,17 +828,28 @@ void visualisation_tache_matrice_format_tex(char *algo)
 	printf("fin visualisation\n");
 }
 
-void print_effective_order_in_file (struct starpu_task *task)
+/* Print in a file (Output_maxime/Task_order_effective_i) the effective order 
+ * (we do it from get_current_task because the ready heuristic
+ * can change our planned order). 
+ * Also print in a file each task and it data to compute later the data needed
+ * to load at each iteration.
+ * Also print coordinates in Output_maxime/Data_coordinates_order_last_HEFT.txt
+ */
+void print_effective_order_in_file (struct starpu_task *task, int index_task)
 {
 	char str[2];
-	sprintf(str, "%d", starpu_worker_get_id());
+	sprintf(str, "%d", starpu_worker_get_id()); /* To get the index of the current GPU */
+	
+	/* For the task order */
 	int size = strlen("Output_maxime/Task_order_effective_") + strlen(str);
 	char *path = (char *)malloc(size);
 	strcpy(path, "Output_maxime/Task_order_effective_");
 	strcat(path, str);
 	FILE *f = fopen(path, "a");
-	fprintf(f, "%p\n",task);
+	fprintf(f, "%p\n", task);
 	fclose(f);
+	
+	/* For the coordinates */
 	if (starpu_get_env_number_default("PRINTF",0) == 1 && (strcmp(appli,"starpu_sgemm_gemm") == 0))
 	{ 
 		f = fopen("Output_maxime/Data_coordinates_order_last_HEFT.txt", "a");
@@ -1527,7 +1538,7 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *compon
 /* Pushing the tasks */		
 static int HFP_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Push task\n"); }
+	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Push task\n"); }
 	struct HFP_sched_data *data = component->data;
     STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_task_list_push_front(&data->sched_list, task);
@@ -3094,9 +3105,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","w");
 		fprintf(f_time,"%d\n",time_taken);
 		fclose(f_time);
-		
-		//~ end_hfp:
-		
+				
 		/* Printing in a file the order produced by HFP. If we use modular-heft-HFP, we can compare this order with the one done by modular-heft. We also print here the number of gpu in which a data is used for HFP's order. */
 		if (starpu_get_env_number_default("PRINTF",0) == 1)
 		{
@@ -3107,8 +3116,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		do_schedule_done = true;
 		//print_packages_in_terminal(data->p, 0);
 		}	
-}
-//printf("exiting do_schedule\n");
+	}
 }
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
@@ -3178,27 +3186,37 @@ void get_current_tasks_heft(struct starpu_task *task, unsigned sci)
 	if (index_current_task_heft == 0 && starpu_get_env_number_default("PRINTHEFT_NT",0) != 0) 
 	{ 
 		initialize_global_variable(task);
-		print_effective_order_in_file(task);
+		print_effective_order_in_file(task, index_current_task_heft);
 	}
 	starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task); }
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { print_effective_order_in_file(task, index_task_currently_treated); }
 	task_currently_treated = task;
 	
 	//VERSION 1 GPU seulement
 	index_task_currently_treated++;
-	//printf("tache %p, index = %d\n", task_currently_treated, index_task_currently_treated);	
+	printf("tache %p, index = %d, data: %p %p %p\n", task_currently_treated, index_task_currently_treated, STARPU_TASK_GET_HANDLE(task_currently_treated, 0), STARPU_TASK_GET_HANDLE(task_currently_treated, 1), STARPU_TASK_GET_HANDLE(task_currently_treated, 2));	
 	
-	starpu_sched_component_worker_pre_exec_hook(task,sci);
+	starpu_sched_component_worker_pre_exec_hook(task, sci);
+}
+
+struct starpu_task *get_data_to_load(unsigned sched_ctx)
+{
+	struct starpu_task *task = starpu_sched_tree_pop_task(sched_ctx);
+	if (starpu_get_env_number_default("PRINTF", 0) == 1)
+	{
+		printf("Tâche %p\n", task);
+	}
+	return task;
 }
 
 //VERSION 1 SEUL GPU
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-	//~ printf("Belady\n");
+	printf("Belady\n");
 	starpu_data_handle_t returned_handle = NULL;
 	int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
 	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
@@ -3207,6 +3225,13 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		starpu_data_handle_t *data_on_node;
 		int *valid;
 		starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+		
+		printf("Data on node:\n");
+		for (i = 0; i < nb_data_on_node; i++)
+		{
+			printf("%p	", data_on_node[i]);
+		}
+		printf("\n");
 		
 		//Checking if all task are truly valid. Else I return a non valid data
 		for (i = 0; i < nb_data_on_node; i++)
@@ -3233,12 +3258,12 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		{
 			used_index_task_currently_treated = 0;
 		}
-			//~ printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données, ",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
+			printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données, ",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
 		
 		if (task_position_in_data_use_order[used_index_task_currently_treated] != total_nb_data) {
 			nb_data_next_task = task_position_in_data_use_order[used_index_task_currently_treated] - task_position_in_data_use_order[used_index_task_currently_treated - 1];
 
-			//~ printf("Données de la tâche en cours : "); for (i = 0; i < nb_data_next_task; i++) { printf("%p ",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); } printf ("\n"); 
+			printf("Données de la tâche en cours : "); for (i = 0; i < nb_data_next_task; i++) { printf("%p ",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); } printf ("\n"); 
 			
 			for (i = 0; i < nb_data_next_task; i++) {	
 				/* On regarde si la donnée est pas déjà sur M par hasard */
@@ -3456,8 +3481,9 @@ struct starpu_sched_policy _starpu_sched_HFP_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.do_schedule = starpu_sched_tree_do_schedule,
 	.push_task = starpu_sched_tree_push_task,
-	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = get_current_tasks, /* Getting current task for Belady later on */
+	.pop_task = get_data_to_load, /* To get the number of data needed for the current task, still return the task that we got with starpu_sched_tree_pop_task */
+	//.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = get_current_tasks, /* Getting current task for printing diff later on. Still call starpu_sched_component_worker_pre_exec_hook(task,sci); at the end */
 	//.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
@@ -3490,8 +3516,8 @@ struct starpu_sched_policy _starpu_sched_modular_heft_HFP_policy =
 	.do_schedule = starpu_sched_tree_do_schedule,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = get_current_tasks_heft, /* Getting current task for printing diff later on */
-	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.pre_exec_hook = get_current_tasks_heft,
+	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, 
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "modular-heft-HFP",
