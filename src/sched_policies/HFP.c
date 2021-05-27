@@ -1492,27 +1492,26 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 }
 
 /* Giving prefetch for each task to modular-heft-HFP */
-void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to)
+void prefetch_each_task(struct paquets *a, struct starpu_sched_component *component)
 {
 	struct starpu_task *task;
 	int i = 0;
 	a->temp_pointer_1 = a->first_link;
 	
 	while (a->temp_pointer_1 != NULL) {
-		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) {
-			/* Putting in workerid the information of the gpu HFP choosed. then in helper_mct, we will use this information to influence
-			 * the expected time
-			 */
+		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
+		{
+			/* Putting in workerid the information of the gpu HFP choosed. Then in helper_mct, we can use this information to influence the expected time */
 			task->workerid = i;
 			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 1)
 			{  
-				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&to->children[i]->workers_in_ctx)), 0);
-				//~ printf("prefetch of %p on gpu %p\n", task, to->children[i]);
+				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->children[i]->workers_in_ctx)), 0);
+				printf("prefetch of %p on gpu %p\n", task, component->children[i]);
 			}
 			else if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 2)
 			{  
-				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&to->children[i]->workers_in_ctx)), 0);
-				//~ printf("prefetch of %p on gpu %p\n", task, to->children[i]);
+				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->children[i]->workers_in_ctx)), 0);
+				printf("prefetch of %p on gpu %p\n", task, component->children[i]);
 			}
 			else
 			{
@@ -3084,9 +3083,9 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->p->first_link, GPU_RAM_M); }
 		
 		/* We prefetch data for each task for modular-heft-HFP */
-		//~ if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0) {
-			//~ prefetch_each_task(data->p, to);
-		//~ }
+		if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0) {
+			prefetch_each_task(data->p, component);
+		}
 		
 		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
 		FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","w");
