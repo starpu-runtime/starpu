@@ -1328,7 +1328,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 		return task;
 	}
 	else { 	
-		/* If we use modular heft i look at the expected time pulled out of each package to alternate between packages */
+		/* If we use modular heft I look at the expected time pulled out of each package to alternate between packages */
 		if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0)
 		{
 			package_min_expected_time_pulled_out = 0;
@@ -1505,13 +1505,13 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *compon
 			task->workerid = i;
 			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 1)
 			{  
-				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->children[i]->workers_in_ctx)), 0);
-				printf("prefetch of %p on gpu %p\n", task, component->children[i]);
+				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->children[0]->children[i]->workers_in_ctx)), 0);
+				//~ printf("prefetch of %p on gpu %p\n", task, component->children[0]->children[i]);
 			}
 			else if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 2)
 			{  
-				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->children[i]->workers_in_ctx)), 0);
-				printf("prefetch of %p on gpu %p\n", task, component->children[i]);
+				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->children[0]->children[i]->workers_in_ctx)), 0);
+				//~ printf("prefetch of %p on gpu %p\n", task, component->children[0]->children[i]);
 			}
 			else
 			{
@@ -1519,7 +1519,7 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *compon
 				exit(0);
 			}
 		}
-		a->temp_pointer_1 = a->temp_pointer_1->next;
+		a->temp_pointer_1 = a->temp_pointer_1->next; printf("next\n");
 		i++;
 	}
 }
@@ -1527,7 +1527,7 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *compon
 /* Pushing the tasks */		
 static int HFP_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Push task\n"); }
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Push task\n"); }
 	struct HFP_sched_data *data = component->data;
     STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_task_list_push_front(&data->sched_list, task);
@@ -2437,6 +2437,7 @@ int get_number_GPU()
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	//~ printf("pull task\n");
 	struct HFP_sched_data *data = component->data;
 	int i = 0;
 	struct starpu_task *task1 = NULL; 
@@ -2487,6 +2488,7 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 
 static int HFP_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
 {
+	//~ printf("can push\n");
 	struct HFP_sched_data *data = component->data;
 	int didwork = 0;
 	int i = 0;
@@ -2539,14 +2541,14 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 
 static int HFP_can_pull(struct starpu_sched_component * component)
 {
-	//printf("Can pull\n");
+	//~ printf("Can pull\n");
 	//~ struct HFP_sched_data *data = component->data;
 	return starpu_sched_component_can_pull(component);
 }
 
 static void HFP_do_schedule(struct starpu_sched_component *component)
 {	
-	//printf("début do schedule\n");
+	//~ printf("début do schedule\n");
 	struct HFP_sched_data *data = component->data;
 
 	/* Variables used to calculate, navigate through a loop or other things */
@@ -3083,7 +3085,8 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->p->first_link, GPU_RAM_M); }
 		
 		/* We prefetch data for each task for modular-heft-HFP */
-		if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0) {
+		if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0) 
+		{
 			prefetch_each_task(data->p, component);
 		}
 		
@@ -3110,6 +3113,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	printf("Create\n");
 	//~ srandom(time(0)); /* If we need a random selection */
 	srandom(starpu_get_env_number_default("SEED", 0)); /* If we need a random selection */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
@@ -3141,7 +3145,6 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	data->p = paquets_data;
 	data->p->temp_pointer_1->nb_task_in_sub_list = 0;
 	data->p->temp_pointer_1->expected_time_pulled_out = 0;
-	
 	component->data = data;
 	component->do_schedule = HFP_do_schedule;
 	component->push_task = HFP_push_task;
@@ -3484,6 +3487,7 @@ struct starpu_sched_policy _starpu_sched_modular_heft_HFP_policy =
 	.deinit_sched = starpu_sched_tree_deinitialize,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
+	.do_schedule = starpu_sched_tree_do_schedule,
 	.push_task = starpu_sched_tree_push_task,
 	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = get_current_tasks_heft, /* Getting current task for printing diff later on */
