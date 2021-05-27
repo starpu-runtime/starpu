@@ -1436,7 +1436,10 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 		for (i = 0; i < nnodes; i++)
 		{
 			if (handle->per_node[node].request[i])
+			{
 				ret = 1;
+				break;
+			}
 		}
 
 	}
