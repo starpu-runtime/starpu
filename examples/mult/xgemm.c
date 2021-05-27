@@ -468,7 +468,6 @@ static struct starpu_codelet cl_gemm2d =
 	.model = &starpu_gemm_model
 };
 
-/* Codelet for 3D matrix */
 static struct starpu_codelet cl_gemm0 =
 {
 #ifdef STARPU_HAVE_BLAS
@@ -490,6 +489,7 @@ static struct starpu_codelet cl_gemm0 =
 	.model = &starpu_gemm_model
 };
 
+/* Codelet for 3D matrix */
 static struct starpu_codelet cl_gemm =
 {
 #ifdef STARPU_HAVE_BLAS
@@ -802,7 +802,7 @@ int main(int argc, char **argv)
 				for (y = 0; y < nslicesy; y++)
 				{
 					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
-					starpu_data_invalidate(Ctile);
+					//~ starpu_data_invalidate(Ctile);
 					for (z = 0; z < nslicesz; z++)
 					{
 						struct starpu_task *task = starpu_task_create();
