@@ -557,6 +557,12 @@ static void parse_args(int argc, char **argv)
 			char *argptr;
 			xdim = ydim = strtol(argv[++i], &argptr, 10);
 		}
+		
+		else if (strcmp(argv[i], "-xyz") == 0)
+		{
+			char *argptr;
+			xdim = ydim = zdim = strtol(argv[++i], &argptr, 10);
+		}
 
 		else if (strcmp(argv[i], "-y") == 0)
 		{
