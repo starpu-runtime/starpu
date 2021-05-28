@@ -3121,13 +3121,14 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
-	printf("Create\n");
+	//~ printf("Create\n");
 	//~ srandom(time(0)); /* If we need a random selection */
 	srandom(starpu_get_env_number_default("SEED", 0)); /* If we need a random selection */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
 	
 	Ngpu = get_number_GPU();
 	do_schedule_done = false;
+	index_current_popped_task = malloc(sizeof(int)*Ngpu);
 	
 	struct HFP_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
@@ -3205,26 +3206,22 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 
 struct starpu_task *get_data_to_load(unsigned sched_ctx)
 {
-	int i = 0;
-	
-	//~ unsigned nb_data_on_node = 0;
-	//~ starpu_data_handle_t *data_on_node;
-	//~ int *valid;
-	//~ starpu_data_get_node_data(starpu_worker_get_memory_node(starpu_worker_get_id_check()), &data_on_node, &valid, &nb_data_on_node);
-	//~ printf("Data on node:	");
-	//~ for (i = 0; i < nb_data_on_node; i++)
-	//~ {
-		//~ printf("%p	", data_on_node[i]);
-	//~ }
-	//~ printf("\n");
-	//~ free(data_on_node);
-	//~ free(valid);
-	
-	int nb_data_to_load = 0;
 	struct starpu_task *task = starpu_sched_tree_pop_task(sched_ctx);
+	
 	if (starpu_get_env_number_default("PRINTF", 0) == 1 && task != NULL)
 	{
-		printf("Tâche %p / data = %p %p %p / worker = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()));
+		int current_gpu = starpu_worker_get_id();
+		if (Ngpu == 1)
+		{
+			current_gpu = 0;
+		}
+		printf("Ngpu = %d current = %d\n", Ngpu, current_gpu);
+		index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
+		int nb_data_to_load = 0;
+		int i = 0;
+		printf("Tâche %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
+		
+		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
 			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))
@@ -3232,8 +3229,31 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 				nb_data_to_load++;
 			}
 		}
+		
+		/* Printing the number of data to load */
+		FILE *f = NULL;
+		char str[2];
+		sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
+		/* To open the right file */
+		int size = strlen("Output_maxime/Data_to_load_GPU_") + strlen(str);
+		char *path = (char *)malloc(size);
+		strcpy(path, "Output_maxime/Data_to_load_GPU_");
+		strcat(path, str);
+	
+		if (index_current_popped_task[current_gpu] == 1)
+		{
+			/* We are on the first task so I open the file in w */
+			f = fopen(path, "w");
+			fprintf(f, "1	%d\n", nb_data_to_load);
+		}
+		else
+		{
+			f = fopen(path, "a");
+			fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
+		}
+		fclose(f);
+		printf("Nb data to load = %d\n", nb_data_to_load);
 	}
-	printf("Nb data to load = %d\n", nb_data_to_load);
 	return task;
 }
 

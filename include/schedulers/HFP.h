@@ -40,7 +40,7 @@ double EXPECTED_TIME;
 //~ int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
 starpu_ssize_t GPU_RAM_M;
 bool do_schedule_done;
-
+int *index_current_popped_task; /* Index used to track the index of a task in .pop_task. It is a separate variable from index_task_currently_treated because this one is used in get_current_task and it is not the same as popped task. It is only used in get_data_to_load(unsigned sched_ctx) to print in a file the number of data needed to load for each task and then do a visualisation in R. It's a tab because I can have multiple GPUs. */
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct HFP_sched_data
@@ -183,6 +183,8 @@ bool SearchTheData (struct data_on_node *pNode, starpu_data_handle_t iElement, i
  * But we need to look that it's not a data used by current task too!
  */
 void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle_t data_to_load, int use_order, struct starpu_task *current_task, struct starpu_task_list *l, int index_handle);
+
+struct starpu_task *get_data_to_load(unsigned sched_ctx);
 
 /* Equilibrates package in order to have packages with the same expected computation time, 
  * including transfers and computation/transfers overlap.
