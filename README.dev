@@ -113,3 +113,10 @@ Only real LDFLAGS such as -no-undefined go to LDFLAGS.
 If a program foo needs more libraries, it can put then in foo_LDADD.
 
 (No, AM_LDADD does not exist)
+
+All install rules must use $(DESTDIR) so that
+
+./configure --prefix=/usr && make && make install DESTDIR=/tmp/foobar
+
+can properly work, as it is used by distributions. That can easily checked by
+*not* running it as root.
