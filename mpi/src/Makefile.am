@@ -48,10 +48,10 @@ all-local: .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.lib
 endif STARPU_HAVE_MS_LIB
 
 install-exec-hook:
-	$(INSTALL) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.def $(libdir)
+	$(INSTALL) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.def $(DESTDIR)$(libdir)
 if STARPU_HAVE_MS_LIB
-	$(INSTALL) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.lib $(libdir)
-	$(INSTALL) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.exp $(libdir)
+	$(INSTALL) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.lib $(DESTDIR)$(libdir)
+	$(INSTALL) .libs/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.exp $(DESTDIR)$(libdir)
 endif STARPU_HAVE_MS_LIB
 
 endif STARPU_HAVE_WINDOWS
