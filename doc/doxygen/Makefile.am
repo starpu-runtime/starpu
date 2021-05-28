@@ -40,19 +40,19 @@ EXTRA_DIST += $(DOX_HTML_DIR)
 endif
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook:
-	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
-	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html \;)
+	$(MKDIR_P) $(docdir)/manual/html
+	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(docdir)/manual/html \;)
 uninstall-hook:
-	rm -rf $(DESTDIR)$(docdir)/manual/html
+	rm -rf $(docdir)/manual/html
 else
 if STARPU_AVAILABLE_DOC
 EXTRA_DIST += $(top_srcdir)/doc/doxygen/html
 DOX_HTML_SRCDIR=$(top_srcdir)/doc/doxygen/html
 install-exec-hook:
-	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
-	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html \;)
+	$(MKDIR_P) $(docdir)/manual/html
+	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(docdir)/manual/html \;)
 uninstall-hook:
-	rm -rf $(DESTDIR)$(docdir)/manual/html
+	rm -rf $(docdir)/manual/html
 endif
 if STARPU_AVAILABLE_DOC_PDF
 EXTRA_DIST += $(top_srcdir)/doc/doxygen/starpu.pdf
