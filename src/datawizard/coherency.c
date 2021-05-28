@@ -1455,3 +1455,29 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 	//~ printf("ret = %d\n",ret);
 	return ret;
 }
+
+/* Return true if a data is on memory and is not part of a prefetch */
+unsigned starpu_data_is_on_node_excluding_prefetch(starpu_data_handle_t handle, unsigned node)
+{
+	unsigned ret = 0;
+
+	if (handle->per_node[node].state != STARPU_INVALID)
+	{
+		ret  = 1;
+		printf("handle %p is not invalid, ", handle);
+	}
+	//~ else
+	//~ {
+		//~ unsigned i;
+		//~ unsigned nnodes = starpu_memory_nodes_get_count();
+		//~ printf("handle %p is invalid, ", handle);
+		//~ for (i = 0; i < nnodes; i++)
+		//~ {
+			//~ if (handle->per_node[node].request[i])
+				//~ ret = 1;
+		//~ }
+	//~ }
+	
+	printf("ret = %d\n",ret);
+	return ret;
+}

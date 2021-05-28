@@ -3207,18 +3207,18 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 {
 	int i = 0;
 	
-	unsigned nb_data_on_node = 0;
-	starpu_data_handle_t *data_on_node;
-	int *valid;
-	starpu_data_get_node_data(starpu_worker_get_memory_node(starpu_worker_get_id_check()), &data_on_node, &valid, &nb_data_on_node);
-	printf("Data on node:	");
-	for (i = 0; i < nb_data_on_node; i++)
-	{
-		printf("%p	", data_on_node[i]);
-	}
-	printf("\n");
-	free(data_on_node);
-	free(valid);
+	//~ unsigned nb_data_on_node = 0;
+	//~ starpu_data_handle_t *data_on_node;
+	//~ int *valid;
+	//~ starpu_data_get_node_data(starpu_worker_get_memory_node(starpu_worker_get_id_check()), &data_on_node, &valid, &nb_data_on_node);
+	//~ printf("Data on node:	");
+	//~ for (i = 0; i < nb_data_on_node; i++)
+	//~ {
+		//~ printf("%p	", data_on_node[i]);
+	//~ }
+	//~ printf("\n");
+	//~ free(data_on_node);
+	//~ free(valid);
 	
 	int nb_data_to_load = 0;
 	struct starpu_task *task = starpu_sched_tree_pop_task(sched_ctx);
@@ -3227,7 +3227,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		printf("Tâche %p / data = %p %p %p / worker = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()));
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
-			if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))
+			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))
 			{
 				nb_data_to_load++;
 			}
