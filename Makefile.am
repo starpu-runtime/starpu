@@ -67,6 +67,10 @@ if STARPU_USE_JULIA
 SUBDIRS += julia
 endif
 
+if STARPU_BUILD_ECLIPSE_PLUGIN
+SUBDIRS += eclipse-plugin
+endif
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc starpu-1.2.pc starpu-1.3.pc
 

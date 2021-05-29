@@ -53,6 +53,7 @@ New features:
   * Add peek_data interface method.
   * Add STARPU_MPI_REDUX
   * Add starpu_data_query_status2 function.
+  * Add a StarPU Eclipse Plugin
 
 Small features:
   * New configure option --with-check-cflags to define flags for C,

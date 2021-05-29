@@ -3344,6 +3344,35 @@ AC_SUBST(JULIA, $juliapath)
 
 ###############################################################################
 #                                                                             #
+#                         Eclipse Plugin                                      #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(eclipse-plugin, [AS_HELP_STRING([--enable-eclipse-plugin],
+			      [Build the Eclipse plugin])],
+			      enable_eclipse_plugin=$enableval, enable_eclipse_plugin=no)
+if test "$enable_eclipse_plugin" = "yes" ; then
+   AC_PATH_PROG(eclipsepath, eclipse)
+   AC_MSG_CHECKING(whether eclipse is available)
+   AC_MSG_RESULT($eclipsepath)
+   if test ! -x "$eclipsepath" ; then
+      AC_MSG_ERROR(Eclipse executable '$eclipsepath' is not valid)
+      enable_eclipse_plugin=no
+   fi
+
+   libs=$(for x in starpu-$STARPU_EFFECTIVE_VERSION $(echo $STARPU_EXPORTED_LIBS | sed 's/-l//g') $HWLOC_REQUIRES ; do echo $x ; done)
+   option_libs=$($srcdir/eclipse-plugin/tools/cproject.sh option $libs)
+   module_libs=$($srcdir/eclipse-plugin/tools/cproject.sh module $libs)
+fi
+
+AM_CONDITIONAL([STARPU_BUILD_ECLIPSE_PLUGIN], [test "x$enable_eclipse_plugin" = "xyes"])
+AC_SUBST(ECLIPSE, $eclipsepath)
+AC_SUBST(STARPU_INCLUDE_PATH, $(eval echo ${includedir}/starpu/$STARPU_EFFECTIVE_VERSION))
+AC_SUBST(STARPU_LIB_PATH, $(eval echo ${prefix}/lib))
+AC_SUBST(STARPU_MODULE_LIBS, "$module_libs")
+AC_SUBST(STARPU_OPTION_LIBS, "$option_libs")
+
+###############################################################################
+#                                                                             #
 #                                Final settings                               #
 #                                                                             #
 ###############################################################################
@@ -3540,6 +3569,10 @@ AC_OUTPUT([
 	julia/src/dynamic_compiler/Makefile
 	julia/examples/Makefile
 	julia/examples/execute.sh
+	eclipse-plugin/Makefile
+	eclipse-plugin/src/Makefile
+	eclipse-plugin/examples/Makefile
+	eclipse-plugin/examples/hello/.cproject
 ])
 
 AC_MSG_NOTICE([

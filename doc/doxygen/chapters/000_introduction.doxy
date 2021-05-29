@@ -302,6 +302,7 @@ The documentation chapters include
 <li> \ref OpenMPRuntimeSupport
 <li> \ref ClusteringAMachine
 <li> \ref InteroperabilitySupport
+<li> \ref EclipsePlugin
 </ul>
 <li> Part 5: StarPU Reference API
 <ul>
