@@ -1776,6 +1776,11 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
  */
 #define STARPU_BCSR_GET_NNZ(interface)        (((struct starpu_bcsr_interface *)(interface))->nnz)
 /**
+   Return the number of block rows in the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_NROW(interface)        (((struct starpu_bcsr_interface *)(interface))->nrow)
+/**
    Return a pointer to the non-zero values of the matrix
    designated by \p interface.
  */
@@ -1808,6 +1813,25 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
    addition to this.
  */
 #define STARPU_BCSR_GET_ROWPTR_DEV_HANDLE(interface) (((struct starpu_bcsr_interface *)(interface))->rowptr)
+/**
+   Return the base of the indexing (0 or 1 usually) in the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_FIRSTENTRY(interface)        (((struct starpu_bcsr_interface *)(interface))->firstentry)
+/**
+   Return the height of blocks in the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_R(interface)        (((struct starpu_bcsr_interface *)(interface))->r)
+/**
+   Return the width of blocks in the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_C(interface)        (((struct starpu_bcsr_interface *)(interface))->c)
+/**
+   Return the size of elements in the matrix designated by \p interface.
+ */
+#define STARPU_BCSR_GET_ELEMSIZE(interface)        (((struct starpu_bcsr_interface *)(interface))->elemsize)
 /**
    Return the offset in the arrays (coling, rowptr, nzval) of the
    matrix designated by \p interface, to be used with the device handles.
