@@ -184,6 +184,7 @@ bool SearchTheData (struct data_on_node *pNode, starpu_data_handle_t iElement, i
  */
 void replace_least_recently_used_data(struct data_on_node *a, starpu_data_handle_t data_to_load, int use_order, struct starpu_task *current_task, struct starpu_task_list *l, int index_handle);
 
+/* For visualization */
 struct starpu_task *get_data_to_load(unsigned sched_ctx);
 
 /* Equilibrates package in order to have packages with the same expected computation time, 
