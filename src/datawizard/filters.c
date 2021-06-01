@@ -750,6 +750,7 @@ void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_ha
 		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
+		handles_sequential_consistency[i+1] = sequential_consistency;
 	}
 	/* TODO: assert nparts too */
 	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_R, initial_handle,
