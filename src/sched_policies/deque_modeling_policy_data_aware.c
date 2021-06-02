@@ -22,6 +22,8 @@
 
 /* Distributed queues using performance modeling to assign tasks */
 
+#include <schedulers/HFP.h>
+
 #include <starpu_config.h>
 #include <starpu_scheduler.h>
 
@@ -273,7 +275,56 @@ static struct starpu_task *_dmda_pop_task(unsigned sched_ctx_id, int ready)
 
 static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 {
-	return _dmda_pop_task(sched_ctx_id, 1);
+	//~ return _dmda_pop_task(sched_ctx_id, 1);
+	struct starpu_task *task = _dmda_pop_task(sched_ctx_id, 1);
+	
+	if (starpu_get_env_number_default("PRINTF", 0) == 1 && task != NULL)
+	{
+		int current_gpu = starpu_worker_get_id();
+		if (Ngpu == 1)
+		{
+			current_gpu = 0;
+		}
+		printf("Ngpu = %d current = %d\n", Ngpu, current_gpu);
+		index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
+		int nb_data_to_load = 0;
+		int i = 0;
+		printf("Tâche %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
+		
+		/* Getting the number of data to load */
+		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
+		{
+			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))
+			{
+				nb_data_to_load++;
+			}
+		}
+		
+		/* Printing the number of data to load */
+		FILE *f = NULL;
+		char str[2];
+		sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
+		/* To open the right file */
+		int size = strlen("Output_maxime/Data_to_load_GPU_") + strlen(str);
+		char *path = (char *)malloc(size);
+		strcpy(path, "Output_maxime/Data_to_load_GPU_");
+		strcat(path, str);
+	
+		if (index_current_popped_task[current_gpu] == 1)
+		{
+			/* We are on the first task so I open the file in w */
+			f = fopen(path, "w");
+			fprintf(f, "1	%d\n", nb_data_to_load);
+		}
+		else
+		{
+			f = fopen(path, "a");
+			fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
+		}
+		fclose(f);
+		printf("Nb data to load = %d\n", nb_data_to_load);
+	}
+	return task;
 }
 
 static struct starpu_task *dmda_pop_task(unsigned sched_ctx_id)
@@ -883,6 +934,9 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 
 static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
+	Ngpu = get_number_GPU();
+	index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	
 	struct _starpu_dmda_data *dt;
 	_STARPU_CALLOC(dt, 1, sizeof(struct _starpu_dmda_data));
 
@@ -911,6 +965,8 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 
 static void initialize_dmda_sorted_policy(unsigned sched_ctx_id)
 {
+	index_current_task_for_visualization = 0; /* Need to init it to 0 for visualization in HFP.c */
+	
 	initialize_dmda_policy(sched_ctx_id);
 
 	/* The application may use any integer */
@@ -947,6 +1003,16 @@ static void deinitialize_dmda_policy(unsigned sched_ctx_id)
  * value of the expected start, end, length, etc... */
 static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 {
+	if (starpu_get_env_number_default("PRINT_N", 0) != 0)
+	{
+		if (index_current_task_for_visualization == 0) 
+		{ 
+			initialize_global_variable(task);
+		}
+		print_effective_order_in_file(task, index_current_task_for_visualization);
+		index_current_task_for_visualization++;
+	}
+	
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	struct _starpu_fifo_taskq *fifo = &dt->queue_array[workerid];
@@ -1075,6 +1141,7 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.simulate_push_task = dm_simulate_push_task,
 	.push_task_notify = dm_push_task_notify,
 	.pop_task = dmda_pop_task,
+	.pop_task = get_data_to_load,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
@@ -1170,7 +1237,9 @@ struct starpu_sched_policy _starpu_sched_dmda_ready_policy =
 	.simulate_push_task = dmda_simulate_push_task,
 	.push_task_notify = dmda_push_task_notify,
 	.pop_task = dmda_pop_ready_task,
+	//~ .pop_task = get_data_to_load,
 	.pre_exec_hook = dmda_pre_exec_hook,
+	//~ .pre_exec_hook = get_current_tasks_for_visualization,
 	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
 	.policy_name = "dmdar",
