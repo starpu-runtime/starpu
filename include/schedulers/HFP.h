@@ -42,6 +42,7 @@ double EXPECTED_TIME;
 starpu_ssize_t GPU_RAM_M;
 bool do_schedule_done;
 int *index_current_popped_task; /* Index used to track the index of a task in .pop_task. It is a separate variable from index_task_currently_treated because this one is used in get_current_task and it is not the same as popped task. It is only used in get_data_to_load(unsigned sched_ctx) to print in a file the number of data needed to load for each task and then do a visualisation in R. It's a tab because I can have multiple GPUs. */
+int index_current_popped_task_all_gpu; /* Index for the single data to load file */
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct HFP_sched_data
@@ -51,6 +52,8 @@ struct HFP_sched_data
 	struct starpu_task_list sched_list;
      	starpu_pthread_mutex_t policy_mutex;   	
 };
+
+void visualisation_tache_matrice_format_tex_with_data_2D();
 
 /* Structure used to store all the variable we need and the tasks of each package. Each link is a package */
 struct my_list
@@ -111,6 +114,7 @@ struct my_list* HFP_delete_link(struct paquets* a);
 
 /* Give a color for each package. Written in the file Data_coordinates.txt */
 void rgb(int num, int *r, int *g, int *b);
+void rgb_gradiant(int num, int order, int number_task_gpu, int *r, int *g, int *b);
 
 void interlacing_task_list (struct paquets *a, int interlacing_mode);
 

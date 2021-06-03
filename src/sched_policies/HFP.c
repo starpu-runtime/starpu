@@ -156,7 +156,7 @@ struct my_list* HFP_delete_link(struct paquets* a)
 	return a->first_link;
 }
 
-/* Give a color for each package. Written in the file Data_coordinates.txt */
+/* Give a color for each package. Written in the file Data_coordinates.txt. Can give a gradiant for order */
 //~ static void rgb(int num, int *r, int *g, int *b)
 void rgb(int num, int *r, int *g, int *b)
 {
@@ -181,7 +181,36 @@ void rgb(int num, int *r, int *g, int *b)
     }
 }
 
+/* Give a color for cell of a tabular used for visualization in latex. Each color is a gradiant from the color of the package */
+void rgb_gradiant(int num, int order, int number_task_gpu, int *r, int *g, int *b)
+{
+	printf("order = %d, nb tache gpu = %d\n", order, number_task_gpu);
+	int i = 0;
+    if (num < 7)
+    {
+		num ++;
+		*r = num & 1 ? 255 : 0;
+		*g = num & 2 ? 255 : 0;
+		*b = num & 4 ? 255 : 0;
+		
+		if (*r != 0) { *r = *r - (255*order)/number_task_gpu; }
+		if (*g != 0) { *g = *g - (255*order)/number_task_gpu; }
+		if (*b != 0) { *b = *b - (255*order)/number_task_gpu; }
+		return;
+    }
+    num -= 7; *r = 0; *g = 0; *b = 0;
+    for (i = 0; i < 8; i++)
+    {
+        *r = *r << 1 | ((num & 1) >> 0);
+        *g = *g << 1 | ((num & 2) >> 1);
+        *b = *b << 1 | ((num & 4) >> 2);
+        num >>= 3;
+    }
+	return;
+}
+
 /*
+ * This was used when printing at each iteration the matrix
 void init_visualisation_tache_matrice_format_tex()
 {
 	FILE * fcoordinate;
@@ -818,7 +847,7 @@ void visualisation_tache_matrice_format_tex(char *algo)
 		fprintf(fcoordinate_order_last, "\n\\caption{Task's processing order on a 3D matrix}\\end{figure}\n\n\\end{document}"); 
 	}
 	else /* Printing a 2D matrix so only one matrix */
-	{
+	{	
 		fprintf(fcoordinate_order_last, "\n\\centering\\begin{tabular}{|");
 		for (i = 0; i < N - 1; i++) 
 		{
@@ -870,6 +899,94 @@ void visualisation_tache_matrice_format_tex(char *algo)
 	printf("fin visualisation\n");
 }
 
+/* To print data order and number of data to load, only for 2D */
+void visualisation_tache_matrice_format_tex_with_data_2D()
+{
+	printf("Début de visualisation_tache_matrice_format_tex_with_data_2D()\n");
+	int i, j, red, green, blue, x, y, gpu, data_to_load, tikz_index;
+	int processing_order[Ngpu]; for (i = 0; i < Ngpu; i++) { processing_order[i] = 0; }
+	FILE * f_input_data_to_load = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "r");
+	FILE * f_input_data_coordinate = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "r");
+	FILE * f_output = fopen("Output_maxime/visualisation_matrice_2D.tex", "w");
+	
+	fprintf(f_output,"\\documentclass{article}\\usepackage{colortbl,tikz,float,caption}\\makeatletter\\tikzset{hatch distance/.store in=\\hatchdistance,hatch distance=5pt,hatch thickness/.store in=\\hatchthickness,hatch thickness=5pt}        \\pgfdeclarepatternformonly[\\hatchdistance,\\hatchthickness]{north east hatch}{\\pgfqpoint{-1pt}{-1pt}}{\\pgfqpoint{\\hatchdistance}{\\hatchdistance}}{\\pgfpoint{\\hatchdistance-1pt}{\\hatchdistance-1pt}}{\\pgfsetcolor{\\tikz@pattern@color}\\pgfsetlinewidth{\\hatchthickness}\\pgfpathmoveto{\\pgfqpoint{0pt}{0pt}}\\pgfpathlineto{\\pgfqpoint{\\hatchdistance}{\\hatchdistance}}\\pgfusepath{stroke}}\\makeatother\\usetikzlibrary{calc,shadings,patterns,tikzmark}\\newcommand\\HatchedCell[5][0pt]{\\begin{tikzpicture}[overlay,remember picture]\\path ($(pic cs:#2)!0.5!(pic cs:#3)$)coordinate(aux1)(pic cs:#4)coordinate(aux2);\\fill[#5]($(aux1)+(-0.23*0.075\\textwidth,1.9ex)$)rectangle($(aux1 |- aux2)+(0.23*0.075\\textwidth,-#1*\\baselineskip-.8ex)$);\\end{tikzpicture}}\n\n\\begin{document}\n\n\\begin{figure}[H]\\centering\\begin{tabular}{|");
+	for (i = 0; i < N - 1; i++) 
+	{
+		fprintf(f_output,"c|");
+	}
+	fprintf(f_output,"c|}\n\\hline");
+	i = 0;
+	int tab_order[N][N];
+	int tab_gpu[N][N];  
+	int tab_data_to_load[N][N];  
+	while (!feof (f_input_data_coordinate))
+	{  
+		if (fscanf(f_input_data_coordinate, "%d	%d	%d", &x, &y, &gpu) != 3) {}
+		tab_order[x][y] = processing_order[gpu];
+		processing_order[gpu]++;
+		tab_gpu[x][y] = gpu;
+		if (fscanf(f_input_data_to_load, "%d %d %d", &x, &y, &data_to_load) != 3) {}
+		tab_data_to_load[x][y] = data_to_load;
+		//~ printf("Dans visu, x = %d, y = %d, data to load = %d\n", x, y, data_to_load);
+		i++;     
+	}
+	
+	tikz_index = 1;
+	/* Because eof is one line too far */
+	tab_order[x][y] = tab_order[x][y] - 1;
+	processing_order[gpu] = processing_order[gpu] - 1;
+	//~ tab_data_to_load[x][y] = tab_data_to_load[x][y] - 1;
+	//~ printf("%d pour x = %d, y = %d\n", tab_data_to_load[x][y], x, y);
+	for (i = 0; i < N; i++) 
+	{ 
+		for (j = 0; j < N - 1; j++) 
+		{
+			if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
+			//~ else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
+			else { rgb_gradiant(tab_gpu[j][i], tab_order[j][i], processing_order[tab_gpu[j][i]], &red, &green, &blue); }
+			if (tab_data_to_load[j][i] == 1)
+			{
+				fprintf(f_output,"\\tikzmark{start%d}\\cellcolor[RGB]{%d,%d,%d}\\tikzmark{middle%d}\\tikzmark{end%d}\\HatchedCell{start%d}{middle%d}{end%d}{pattern color=black!100,pattern=north east hatch,hatch distance=4mm,hatch thickness=.3pt}&", tikz_index, red, green, blue, tikz_index, tikz_index, tikz_index, tikz_index, tikz_index);
+				tikz_index++;
+			}
+			else if (tab_data_to_load[j][i] == 2)
+			{
+				fprintf(f_output,"\\tikzmark{start%d}\\cellcolor[RGB]{%d,%d,%d}\\tikzmark{middle%d}\\tikzmark{end%d}\\HatchedCell{start%d}{middle%d}{end%d}{pattern color=black!100,pattern=north east hatch,hatch distance=2mm,hatch thickness=.3pt}&", tikz_index, red, green, blue, tikz_index, tikz_index, tikz_index, tikz_index, tikz_index);
+				tikz_index++;
+			}
+			else
+			{
+				fprintf(f_output,"\\cellcolor[RGB]{%d,%d,%d}&", red, green, blue);
+			}
+		}
+		//~ printf("tab dat to load hors de la boucle j est %d pour i = %d et j = %d\n", tab_data_to_load[j][i], i, j);
+		if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
+		//~ else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
+		else { rgb_gradiant(tab_gpu[j][i], tab_order[j][i], processing_order[tab_gpu[j][i]], &red, &green, &blue); }
+		if (tab_data_to_load[j][i] == 1)
+		{
+			fprintf(f_output,"\\tikzmark{start%d}\\cellcolor[RGB]{%d,%d,%d}\\tikzmark{middle%d}\\tikzmark{end%d}\\HatchedCell{start%d}{middle%d}{end%d}{pattern color=black!100,pattern=north east hatch,hatch distance=4mm,hatch thickness=.3pt}", tikz_index, red, green, blue, tikz_index, tikz_index, tikz_index, tikz_index, tikz_index);
+			tikz_index++;
+		}
+		else if (tab_data_to_load[j][i] == 2)
+		{
+			fprintf(f_output,"\\tikzmark{start%d}\\cellcolor[RGB]{%d,%d,%d}\\tikzmark{middle%d}\\tikzmark{end%d}\\HatchedCell{start%d}{middle%d}{end%d}{pattern color=black!100,pattern=north east hatch,hatch distance=2mm,hatch thickness=.3pt}", tikz_index, red, green, blue, tikz_index, tikz_index, tikz_index, tikz_index, tikz_index);
+			tikz_index++;
+		}
+		else
+		{
+			fprintf(f_output,"\\cellcolor[RGB]{%d,%d,%d}", red, green, blue);
+		} 
+		fprintf(f_output," \\\\\\hline");
+	}
+	fprintf(f_output, "\\end{tabular}\n\\caption{2D matrix visualization}\\end{figure}\n\n\\end{document}"); 
+	fclose(f_output);  
+	fclose(f_input_data_to_load);
+	fclose(f_input_data_coordinate);
+	
+	printf("Fin de visualisation_tache_matrice_format_tex_with_data_2D()\n");
+}
+
 /* Print in a file (Output_maxime/Task_order_effective_i) the effective order 
  * (we do it from get_current_task because the ready heuristic
  * can change our planned order). 
@@ -892,7 +1009,7 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 	fprintf(f, "%p\n", task);
 	fclose(f);
 	
-	/* For the coordinates */
+	/* For the coordinates It write the coordinates (with Z for 3D), then the GPU and then the number of data needed to load for this task */
 	if (starpu_get_env_number_default("PRINT_N", 0) != 0 && (strcmp(appli,"starpu_sgemm_gemm") == 0))
 	{ 
 		f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "a");
@@ -900,6 +1017,7 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 		int temp_tab_coordinates[2];
 		int temp_tab_coordinates_3d[3];
 		
+		/* Pour matrice 3D je récupère la coord de Z aussi */
 		if (starpu_get_env_number_default("PRINT3D", 0) != 0)
 		{
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
@@ -909,6 +1027,7 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 		}
 		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
 		fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
+		printf("Tâche en cours: %d	%d, gpu : %d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
 		fclose(f);
 		fclose(f2);
 		//~ index_current_task_for_visualization++; /* Care I do it in the file of dmdar *:
@@ -917,6 +1036,10 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 		if (index_task == NT - 1)
 		{
 			visualisation_tache_matrice_format_tex("SCHEDULER");
+			if (starpu_get_env_number_default("PRINT3D", 0) == 0)
+			{
+				visualisation_tache_matrice_format_tex_with_data_2D();
+			}
 		}
 	}
 }
@@ -3186,6 +3309,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	Ngpu = get_number_GPU();
 	do_schedule_done = false;
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_all_gpu = 0;
 	
 	struct HFP_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
@@ -3259,6 +3383,7 @@ void get_current_tasks_for_visualization(struct starpu_task *task, unsigned sci)
 
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
+	printf("Tache en cours : %p, data: %p %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
 	if (starpu_get_env_number_default("PRINTF",0) == 1) 
 	{ 
 		if (index_task_currently_treated == 0) 
@@ -3270,8 +3395,7 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 	task_currently_treated = task;
 	
 	//VERSION 1 GPU seulement
-	index_task_currently_treated++;
-	//~ printf("tache %p, index = %d, data: %p %p %p\n", task_currently_treated, index_task_currently_treated, STARPU_TASK_GET_HANDLE(task_currently_treated, 0), STARPU_TASK_GET_HANDLE(task_currently_treated, 1), STARPU_TASK_GET_HANDLE(task_currently_treated, 2));	
+	index_task_currently_treated++;	
 	
 	starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
@@ -3287,11 +3411,12 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		{
 			current_gpu = 0;
 		}
-		printf("Ngpu = %d current = %d\n", Ngpu, current_gpu);
+		//~ printf("Ngpu = %d current = %d\n", Ngpu, current_gpu);
 		index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
+		index_current_popped_task_all_gpu++;
 		int nb_data_to_load = 0;
 		int i = 0;
-		printf("Tâche %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
+		printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
 		
 		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -3304,6 +3429,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		
 		/* Printing the number of data to load */
 		FILE *f = NULL;
+		FILE *f2 = NULL;
 		char str[2];
 		sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
 		/* To open the right file */
@@ -3323,8 +3449,21 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 			f = fopen(path, "a");
 			fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
 		}
+		int tab_coordinates[2];
+		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+		if (index_current_popped_task_all_gpu == 1)
+		{
+			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
+		}
+		else
+		{
+			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
+		}
+		fprintf(f2, "%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], nb_data_to_load);
+		
 		fclose(f);
-		printf("Nb data to load = %d\n", nb_data_to_load);
+		fclose(f2);
+		//~ printf("Nb data to load = %d, index = %d\n", nb_data_to_load, index_current_popped_task_all_gpu);
 	}
 	return task;
 }
