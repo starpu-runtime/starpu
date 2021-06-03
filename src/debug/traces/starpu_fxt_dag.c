@@ -104,6 +104,12 @@ void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *
 			prefix, (unsigned long long)tag, color);
 }
 
+void _starpu_fxt_dag_add_task_end_dep(const char *prefix, unsigned long prev, unsigned long succ)
+{
+	if (out_file)
+		fprintf(out_file, "\t \"task_%s%lu\" [ end_dep=\"%lu\"]\n", prefix, prev, succ);
+}
+
 void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color)
 {
 	if (out_file)

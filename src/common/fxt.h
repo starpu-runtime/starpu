@@ -242,6 +242,7 @@
 #define _STARPU_FUT_PAPI_TASK_EVENT_VALUE   0x5186
 #define _STARPU_FUT_TASK_EXCLUDE_FROM_DAG   0x5187
 
+#define _STARPU_FUT_TASK_END_DEP	0x5188
 
 /* Predefined FUT key masks */
 #define _STARPU_FUT_KEYMASK_META           FUT_KEYMASK0
@@ -856,6 +857,9 @@ do {									\
 #define _STARPU_TRACE_TASK_DEPS(job_prev, job_succ)	\
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id, (job_succ)->task->type, 1, "task")
 
+#define _STARPU_TRACE_TASK_END_DEP(job_prev, job_succ) \
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_END_DEP, (job_prev)->job_id, (job_succ)->job_id)
+
 #define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ)		\
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "ghost")
 
@@ -1364,6 +1368,7 @@ do {										\
 #define _STARPU_TRACE_TAG(tag, job)		do {(void)(tag); (void)(job);} while(0)
 #define _STARPU_TRACE_TAG_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_TASK_END_DEP(a, b)	do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(a)	do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_NAME(a)		do {(void)(a);} while(0)
