@@ -184,29 +184,57 @@ void rgb(int num, int *r, int *g, int *b)
 /* Give a color for cell of a tabular used for visualization in latex. Each color is a gradiant from the color of the package */
 void rgb_gradiant(int num, int order, int number_task_gpu, int *r, int *g, int *b)
 {
-	printf("order = %d, nb tache gpu = %d\n", order, number_task_gpu);
 	int i = 0;
-    if (num < 7)
-    {
-		num ++;
-		*r = num & 1 ? 255 : 0;
-		*g = num & 2 ? 255 : 0;
-		*b = num & 4 ? 255 : 0;
-		
-		if (*r != 0) { *r = *r - (255*order)/number_task_gpu; }
-		if (*g != 0) { *g = *g - (255*order)/number_task_gpu; }
-		if (*b != 0) { *b = *b - (255*order)/number_task_gpu; }
-		return;
-    }
-    num -= 7; *r = 0; *g = 0; *b = 0;
-    for (i = 0; i < 8; i++)
-    {
-        *r = *r << 1 | ((num & 1) >> 0);
-        *g = *g << 1 | ((num & 2) >> 1);
-        *b = *b << 1 | ((num & 4) >> 2);
-        num >>= 3;
-    }
+	printf("GPU = %d / Order = %d / Nb tache du GPU = %d\n", num, order, number_task_gpu);
+	
+	/* Initial color for each GPU */
+	if (num == 0) { *r = 255; *g = 0; *b = 0; }
+	else if (num == 1) { *r = 0; *g = 255; *b = 0; }
+	else if (num == 2) { *r = 73; *g = 116; *b = 255; } /* Bon c'est pas le vrai bleu mais le vrai est trop sombre */
+	else if (num == 3) { *r = 255; *g = 255; *b = 0; }
+	else if (num == 4) { *r = 0; *g = 255; *b = 255; }
+	else if (num == 5) { *r = 255; *g = 0; *b = 255; }
+	else if (num == 6) { *r = 255; *g = 128; *b = 128; }
+	else if (num == 7) { *r = 128; *g = 255; *b = 128; }
+	else /* We have more then 8 GPUs. Unlikely but just in case. */
+	{
+		num -= 7; *r = 0; *g = 0; *b = 0;
+		for (i = 0; i < 8; i++)
+		{
+			*r = *r << 1 | ((num & 1) >> 0);
+			*g = *g << 1 | ((num & 2) >> 1);
+			*b = *b << 1 | ((num & 4) >> 2);
+			num >>= 3;
+		}
+	}
+	
+	/* Gradiant of this color based on the order */
+	if (*r != 0) { *r = *r - (*r*order)/(number_task_gpu*1.5); } /* J'ajoute un multiplieur au diviseur pour pas tomber dans trop sombre */
+	if (*g != 0) { *g = *g - (*g*order)/(number_task_gpu*1.5); }
+	if (*b != 0) { *b = *b - (*b*order)/(number_task_gpu*1.5); }
+	
 	return;
+    //~ if (num < 7)
+    //~ {
+		//~ num ++;
+		//~ *r = num & 1 ? 255 : 0;
+		//~ *g = num & 2 ? 255 : 0;
+		//~ *b = num & 4 ? 255 : 0;
+		
+		//~ if (*r != 0) { *r = *r - (255*order)/number_task_gpu; }
+		//~ if (*g != 0) { *g = *g - (255*order)/number_task_gpu; }
+		//~ if (*b != 0) { *b = *b - (255*order)/number_task_gpu; }
+		//~ return;
+    //~ }
+    //~ num -= 7; *r = 0; *g = 0; *b = 0;
+    //~ for (i = 0; i < 8; i++)
+    //~ {
+        //~ *r = *r << 1 | ((num & 1) >> 0);
+        //~ *g = *g << 1 | ((num & 2) >> 1);
+        //~ *b = *b << 1 | ((num & 4) >> 2);
+        //~ num >>= 3;
+    //~ }
+	//~ return;
 }
 
 /*
@@ -941,9 +969,12 @@ void visualisation_tache_matrice_format_tex_with_data_2D()
 	{ 
 		for (j = 0; j < N - 1; j++) 
 		{
-			if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
+			//~ if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
 			//~ else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
-			else { rgb_gradiant(tab_gpu[j][i], tab_order[j][i], processing_order[tab_gpu[j][i]], &red, &green, &blue); }
+			//~ else 
+			//~ { 
+				rgb_gradiant(tab_gpu[j][i], tab_order[j][i], processing_order[tab_gpu[j][i]], &red, &green, &blue); 
+			//~ }
 			if (tab_data_to_load[j][i] == 1)
 			{
 				fprintf(f_output,"\\tikzmark{start%d}\\cellcolor[RGB]{%d,%d,%d}\\tikzmark{middle%d}\\tikzmark{end%d}\\HatchedCell{start%d}{middle%d}{end%d}{pattern color=black!100,pattern=north east hatch,hatch distance=4mm,hatch thickness=.3pt}&", tikz_index, red, green, blue, tikz_index, tikz_index, tikz_index, tikz_index, tikz_index);
@@ -960,9 +991,12 @@ void visualisation_tache_matrice_format_tex_with_data_2D()
 			}
 		}
 		//~ printf("tab dat to load hors de la boucle j est %d pour i = %d et j = %d\n", tab_data_to_load[j][i], i, j);
-		if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
+		//~ if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
 		//~ else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
-		else { rgb_gradiant(tab_gpu[j][i], tab_order[j][i], processing_order[tab_gpu[j][i]], &red, &green, &blue); }
+		//~ else 
+		//~ { 
+			rgb_gradiant(tab_gpu[j][i], tab_order[j][i], processing_order[tab_gpu[j][i]], &red, &green, &blue); 
+		//~ }
 		if (tab_data_to_load[j][i] == 1)
 		{
 			fprintf(f_output,"\\tikzmark{start%d}\\cellcolor[RGB]{%d,%d,%d}\\tikzmark{middle%d}\\tikzmark{end%d}\\HatchedCell{start%d}{middle%d}{end%d}{pattern color=black!100,pattern=north east hatch,hatch distance=4mm,hatch thickness=.3pt}", tikz_index, red, green, blue, tikz_index, tikz_index, tikz_index, tikz_index, tikz_index);

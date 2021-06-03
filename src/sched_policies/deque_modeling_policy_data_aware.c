@@ -275,7 +275,6 @@ static struct starpu_task *_dmda_pop_task(unsigned sched_ctx_id, int ready)
 
 static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 {
-	//~ return _dmda_pop_task(sched_ctx_id, 1);
 	struct starpu_task *task = _dmda_pop_task(sched_ctx_id, 1);
 	
 	if (starpu_get_env_number_default("PRINTF", 0) == 1 && task != NULL)
@@ -285,11 +284,12 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 		{
 			current_gpu = 0;
 		}
-		printf("Ngpu = %d current = %d\n", Ngpu, current_gpu);
+		//~ printf("Ngpu = %d current = %d\n", Ngpu, current_gpu);
 		index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
+		index_current_popped_task_all_gpu++;
 		int nb_data_to_load = 0;
 		int i = 0;
-		printf("Tâche %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
+		printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
 		
 		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -302,6 +302,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 		
 		/* Printing the number of data to load */
 		FILE *f = NULL;
+		FILE *f2 = NULL;
 		char str[2];
 		sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
 		/* To open the right file */
@@ -321,8 +322,21 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 			f = fopen(path, "a");
 			fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
 		}
+		int tab_coordinates[2];
+		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+		if (index_current_popped_task_all_gpu == 1)
+		{
+			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
+		}
+		else
+		{
+			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
+		}
+		fprintf(f2, "%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], nb_data_to_load);
+		
 		fclose(f);
-		printf("Nb data to load = %d\n", nb_data_to_load);
+		fclose(f2);
+		//~ printf("Nb data to load = %d, index = %d\n", nb_data_to_load, index_current_popped_task_all_gpu);
 	}
 	return task;
 }
@@ -1141,7 +1155,6 @@ struct starpu_sched_policy _starpu_sched_dm_policy =
 	.simulate_push_task = dm_simulate_push_task,
 	.push_task_notify = dm_push_task_notify,
 	.pop_task = dmda_pop_task,
-	.pop_task = get_data_to_load,
 	.pre_exec_hook = dmda_pre_exec_hook,
 	.post_exec_hook = dmda_post_exec_hook,
 	.pop_every_task = dmda_pop_every_task,
