@@ -303,6 +303,16 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 void starpu_task_end_dep_release(struct starpu_task *t)
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(t);
+
+#ifdef STARPU_USE_FXT
+	struct starpu_task *current = starpu_task_get_current();
+	if (current)
+	{
+		struct _starpu_job *jcurrent = _starpu_get_job_associated_to_task(current);
+		_STARPU_TRACE_TASK_END_DEP(jcurrent, j);
+	}
+#endif
+
 	_starpu_handle_job_termination(j);
 }
 

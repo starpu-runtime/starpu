@@ -1697,3 +1697,20 @@ void starpu_task_ft_success(struct starpu_task *meta_task)
 {
 	starpu_task_end_dep_release(meta_task);
 }
+
+char *starpu_task_status_get_as_string(enum starpu_task_status status)
+{
+	switch(status)
+	{
+	case(STARPU_TASK_INIT) : return "STARPU_TASK_INIT";
+	case(STARPU_TASK_BLOCKED): return "STARPU_TASK_BLOCKED";
+	case(STARPU_TASK_READY): return "STARPU_TASK_READY";
+	case(STARPU_TASK_RUNNING): return "STARPU_TASK_RUNNING";
+	case(STARPU_TASK_FINISHED): return "STARPU_TASK_FINISHED";
+	case(STARPU_TASK_BLOCKED_ON_TAG): return "STARPU_TASK_BLOCKED_ON_TAG";
+	case(STARPU_TASK_BLOCKED_ON_TASK): return "STARPU_TASK_BLOCKED_ON_TASK";
+	case(STARPU_TASK_BLOCKED_ON_DATA): return "STARPU_TASK_BLOCKED_ON_DATA";
+	case(STARPU_TASK_STOPPED): return "STARPU_TASK_STOPPED";
+	default: return "STARPU_TASK_unknown_status";
+	}
+}

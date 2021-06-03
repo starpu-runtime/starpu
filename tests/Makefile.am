@@ -418,6 +418,7 @@ endif
 endif
 
 examplebin_PROGRAMS = \
+	main/deadlock				\
 	microbenchs/async_tasks_overhead	\
 	microbenchs/sync_tasks_overhead		\
 	microbenchs/tasks_overhead		\

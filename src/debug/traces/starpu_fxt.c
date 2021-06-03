@@ -114,6 +114,8 @@ struct task_info
 	char *parameters;
 	unsigned int ndeps;
 	unsigned long *dependencies;
+	unsigned int nend_deps;
+	unsigned long *end_dependencies;
 	char **dep_labels;
 	unsigned long ndata;
 	struct data_parameter_info *data;
@@ -155,6 +157,8 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->parameters = NULL;
 		task->ndeps = 0;
 		task->dependencies = NULL;
+		task->nend_deps = 0;
+		task->end_dependencies = NULL;
 		task->dep_labels = NULL;
 		task->ndata = 0;
 		task->data = NULL;
@@ -265,6 +269,14 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "\n");
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
+	if (task->nend_deps)
+	{
+		fprintf(tasks_file, "EndDependencies: ");
+		unsigned int j=0;
+		for(j=0 ; j<task->nend_deps-1 ; j++)
+			fprintf(tasks_file, "%lu, ", task->end_dependencies[j]);
+		fprintf(tasks_file, "%lu ", task->end_dependencies[task->nend_deps-1]);
+	}
 	fprintf(tasks_file, "\n");
 
 out:
@@ -2736,6 +2748,36 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	}
 }
 
+static void handle_task_end_dep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long dep_prev = ev->param[0];
+	unsigned long dep_succ = ev->param[1];
+
+	struct task_info *task = get_task(dep_succ, options->file_rank);
+	unsigned alloc = 0;
+
+	if (task->nend_deps == 0)
+		/* Start with 8=2^3, should be plenty in most cases */
+		alloc = 8;
+	else if (task->nend_deps >= 8)
+	{
+		/* Allocate dependencies array by powers of two */
+		if (! ((task->nend_deps - 1) & task->nend_deps)) /* Is task->ndeps a power of two? */
+		{
+			/* We have filled the previous power of two, get another one */
+			alloc = task->nend_deps * 2;
+		}
+	}
+	if (alloc)
+	{
+		_STARPU_REALLOC(task->end_dependencies, sizeof(*task->end_dependencies) * alloc);
+	}
+	task->end_dependencies[task->nend_deps++] = dep_prev;
+
+	if (!task->exclude_from_dag && show_task(task, options))
+		_starpu_fxt_dag_add_task_end_dep(options->file_prefix, dep_succ, dep_prev);
+}
+
 static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
@@ -3512,6 +3554,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_FUT_TASK_DEPS:
 				handle_task_deps(&ev, options);
+				break;
+
+			case _STARPU_FUT_TASK_END_DEP:
+				handle_task_end_dep(&ev, options);
 				break;
 
 			case _STARPU_FUT_TASK_SUBMIT:

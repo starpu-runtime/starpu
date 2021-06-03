@@ -710,6 +710,11 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
 
 void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
 {
+	starpu_data_partition_readonly_submit_sequential_consistency(initial_handle, nparts, children, initial_handle->sequential_consistency);
+}
+
+void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency)
+{
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
 	_starpu_spin_lock(&initial_handle->header_lock);
@@ -737,14 +742,22 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 
 	STARPU_ASSERT_MSG(initial_handle->initialized, "It is odd to read-only-partition a data which does not have a value yet");
 	struct starpu_data_descr descr[nparts];
+	char handles_sequential_consistency[nparts+1];
+	handles_sequential_consistency[0] = sequential_consistency;
+
 	for (i = 0; i < nparts; i++)
 	{
 		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
+		handles_sequential_consistency[i+1] = (char) children[i]->sequential_consistency;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_R, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_R, initial_handle,
+				     STARPU_DATA_MODE_ARRAY, descr, nparts,
+				     STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+				     0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 }
 
 void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
@@ -771,7 +784,8 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 		descr[i].mode = STARPU_W;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	starpu_data_invalidate_submit(initial_handle);
 }
 
@@ -898,7 +912,8 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 		n++;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
+	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert")
 }
 
 /* Unpartition everything below ancestor */
