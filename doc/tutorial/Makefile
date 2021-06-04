@@ -16,9 +16,9 @@
 CFLAGS          +=      $$(pkg-config --cflags starpu-1.3)
 LDLIBS          +=      $$(pkg-config --libs starpu-1.3)
 
-HAS_CUDA	=	$(shell starpu_machine_display 2>/dev/null | grep CUDA | head -1)
+HAS_CUDA	=	$(shell starpu_machine_display | grep "CUDA" | grep -v "No CUDA worker" | head -1)
 NVCC		?=	nvcc
-HAS_OPENCL	=	$(shell starpu_machine_display 2>/dev/null | grep OpenCL | head -1)
+HAS_OPENCL	=	$(shell starpu_machine_display | grep "OpenCL" | grep -v "No OpenCL worker" | head -1)
 
 %.o: %.cu
 	nvcc $(CFLAGS) $< -c
