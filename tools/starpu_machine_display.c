@@ -29,10 +29,11 @@ static void usage()
 	fprintf(stderr, "Usage: %s [OPTION]\n", PROGNAME);
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "\t-h, --help       display this help and exit\n");
-	fprintf(stderr, "\t-v, --version    output version information and exit\n");
-	fprintf(stderr, "\t-i, --info       display the name of the files containing the information\n");
-	fprintf(stderr, "\t-f, --force      force bus sampling and show measures \n");
+	fprintf(stderr, "\t-h, --help          display this help and exit\n");
+	fprintf(stderr, "\t-v, --version       output version information and exit\n");
+	fprintf(stderr, "\t-i, --info          display the name of the files containing the information\n");
+	fprintf(stderr, "\t-f, --force         force bus sampling and show measures \n");
+	fprintf(stderr, "\t-w, --worker <type> only show workers of the given type\n");
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Report bugs to <%s>.\n", PACKAGE_BUGREPORT);
 }
@@ -74,7 +75,7 @@ static void display_all_combined_workers(void)
 		display_combined_worker(nworkers + i);
 }
 
-static void parse_args(int argc, char **argv, int *force, int *info)
+static void parse_args(int argc, char **argv, int *force, int *info, char **worker_type)
 {
 	int i;
 
@@ -101,6 +102,10 @@ static void parse_args(int argc, char **argv, int *force, int *info)
 			fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 			exit(EXIT_FAILURE);
 		}
+		else if (strncmp(argv[i], "--worker", 8) == 0 || strncmp(argv[i], "-w", 2) == 0)
+		{
+			*worker_type = strdup(argv[++i]);
+		}
 		else
 		{
 			fprintf(stderr, "Unknown arg %s\n", argv[1]);
@@ -115,9 +120,10 @@ int main(int argc, char **argv)
 	int ret;
 	int force = 0;
 	int info = 0;
+	char *worker_type = NULL;
 	struct starpu_conf conf;
 
-	parse_args(argc, argv, &force, &info);
+	parse_args(argc, argv, &force, &info, &worker_type);
 
 	starpu_conf_init(&conf);
 	if (force)
@@ -134,6 +140,24 @@ int main(int argc, char **argv)
 	if (info)
 	{
 		starpu_bus_print_filenames(stdout);
+		starpu_shutdown();
+		return 0;
+	}
+
+	if (worker_type)
+	{
+		if (strcmp(worker_type, "CPU") == 0)
+			starpu_worker_display_names(stdout, STARPU_CPU_WORKER);
+		else if (strcmp(worker_type, "CUDA") == 0)
+			starpu_worker_display_names(stdout, STARPU_CUDA_WORKER);
+		else if (strcmp(worker_type, "OpenCL") == 0)
+			starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+		else if (strcmp(worker_type, "MPI_MS") == 0)
+			starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
+#endif
+		else
+			fprintf(stderr, "Unknown worker type '%s'\n", worker_type);
 		starpu_shutdown();
 		return 0;
 	}
