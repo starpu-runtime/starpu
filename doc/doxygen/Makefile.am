@@ -149,12 +149,11 @@ images = 	\
 	chapters/images/eclipse_hello_run.png	\
 	chapters/images/eclipse_hello_fxt.png	\
 	chapters/images/eclipse_hello_graph.png	\
-	chapters/images/eclipse_vite.png	\
-	chapters/images/eclipse_task_graph.png	\
-	chapters/images/eclipse_svg_graph.png	\
-	chapters/images/eclipse_plugin.png	\
-	chapters/images/eclipse_paje_trace.png	\
-	chapters/images/eclipse_hgraph.png
+	chapters/images/eclipse_hello_vite.png	\
+	chapters/images/eclipse_hello_svg_graph.png	\
+	chapters/images/eclipse_hello_plugin.png	\
+	chapters/images/eclipse_hello_paje_trace.png	\
+	chapters/images/eclipse_hello_hgraph.png
 
 if STARPU_BUILD_DOC
 EXTRA_DIST += \

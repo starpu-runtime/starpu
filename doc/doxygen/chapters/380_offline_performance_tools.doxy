@@ -884,8 +884,8 @@ plugin to generate and visualise the task graph of the application.
 The StarPU plugin eclipse is either available through the icons in the
 upper toolbar, or from the dropdown menu \c StarPU.
 
-\image html eclipse_plugin.png
-\image latex eclipse_plugin.png "" width=\textwidth
+\image html eclipse_hello_plugin.png
+\image latex eclipse_hello_plugin.png "" width=\textwidth
 
 To start, one first need to run the StarPU FxT tool, either through
 the \c FxT icon of the toolbar, or from the menu \c StarPU / <c>StarPU
@@ -904,11 +904,11 @@ ViTE, one can select the second command of the StarPU menu, which is
 named <c>Generate Paje Trace</c>, or click on the second icon named
 <c>Trace</c> in the toolbar.
 
-\image html eclipse_paje_trace.png
-\image latex eclipse_paje_trace.png "" width=\textwidth
+\image html eclipse_hello_paje_trace.png
+\image latex eclipse_hello_paje_trace.png "" width=\textwidth
 
-\image html eclipse_vite.png
-\image latex eclipse_vite.png "" width=\textwidth
+\image html eclipse_hello_vite.png
+\image latex eclipse_hello_vite.png "" width=\textwidth
 
 Another generated trace file is a task graph described using the DOT
 language. It is possible to get a graphical output of the graph by
@@ -929,11 +929,11 @@ task name, it will open the C file in which the task submission was
 called (if you have an editor which understands the syntax \c
 href="file.c#123").
 
-\image html eclipse_svg_graph.png
-\image latex eclipse_svg_graph.png "" width=\textwidth
+\image html eclipse_hello_svg_graph.png
+\image latex eclipse_hello_svg_graph.png "" width=\textwidth
 
-\image html eclipse_hgraph.png
-\image latex eclipse_hgraph.png "" width=\textwidth
+\image html eclipse_hello_hgraph.png
+\image latex eclipse_hello_hgraph.png "" width=\textwidth
 
 \section MemoryFeedback Memory Feedback
 
