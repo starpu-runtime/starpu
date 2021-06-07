@@ -1054,6 +1054,7 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 		/* Pour matrice 3D je récupère la coord de Z aussi */
 		if (starpu_get_env_number_default("PRINT3D", 0) != 0)
 		{
+			/* 3 for 3D no ? */
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
 			fprintf(f2, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
@@ -1095,7 +1096,7 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
 			link_index = 0;	
 			while (a->temp_pointer_1 != NULL) 
 			{
-				printf("Le paquet %d contient %d tâche(s) et %d données, expected task time = %f, expected package time = %f\n",link_index,a->temp_pointer_1->nb_task_in_sub_list,a->temp_pointer_1->package_nb_data,a->temp_pointer_1->expected_time, a->temp_pointer_1->expected_package_computation_time);
+				printf("Le paquet %d contient %d tâche(s) et %d données, expected task time = %f, expected package time = %f, split last package = %d\n",link_index,a->temp_pointer_1->nb_task_in_sub_list, a->temp_pointer_1->package_nb_data,a->temp_pointer_1->expected_time, a->temp_pointer_1->expected_package_computation_time, a->temp_pointer_1->split_last_ij);
 				for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
 				{
 					printf("%p : ",task);
@@ -1540,7 +1541,7 @@ void interlacing_task_list (struct paquets *a, int interlacing_mode)
  * better divide tasks between GPUs */
 struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
-	printf ("Début get task to return\n");	
+	//~ printf ("Début get task to return\n");	
 	int max_task_time = 0;	
 	int index_package_max_task_time = 0;
 	a->temp_pointer_1 = a->first_link; 
@@ -1549,7 +1550,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 	if (starpu_get_env_number_default("MULTIGPU", 0) == 0 && starpu_get_env_number_default("HMETIS", 0) == 0)
 	{
 		task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
-		printf("return %p\n", task);
+		//~ printf("return %p\n", task);
 		return task;
 	}
 	else { 	
@@ -1593,7 +1594,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 				task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 				a->temp_pointer_1->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				a->temp_pointer_1->nb_task_in_sub_list--;
-				printf("Return %p\n", task);
+				//~ printf("Return %p\n", task);
 				return task;
 			}
 			else
@@ -1677,7 +1678,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 									task = starpu_task_list_pop_back(&a->temp_pointer_2->sub_list);
 									a->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 									a->temp_pointer_2->nb_task_in_sub_list--;
-									printf("Stealing %p\n", task);
+									//~ printf("Stealing %p\n", task);
 									starpu_task_list_push_front(&a->temp_pointer_1->sub_list, task);
 									a->temp_pointer_1->expected_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 									a->temp_pointer_1->nb_task_in_sub_list++;
@@ -1695,9 +1696,9 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 								a->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 								a->temp_pointer_2->nb_task_in_sub_list--;
 								get_expected_package_computation_time(a->temp_pointer_2, GPU_RAM_M);	
-								printf("Stealing %p\n", task);
+								//~ printf("Stealing %p\n", task);
 							}
-							printf("Return %p\n", task);
+							//~ printf("Return %p\n", task);
 							return task;
 					}
 					else
@@ -3266,6 +3267,36 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		
+		/* Printing in a file the task coordinates coordinates with the last subpackage of each gpu for visualization in 2D.
+		 * Je le fais avant le load balance la pour pouvoir split malagrès le load balance après. Je pourrai le faire après si besoin. */
+		if (starpu_get_env_number_default("PRINTF",0) == 1) 
+		{
+			int temp_tab_coordinates[2];
+			FILE *f_last_package = fopen("Output_maxime/last_package_split.txt","w");
+			data->p->temp_pointer_1 = data->p->first_link;
+			int sub_package = 0;
+			i = 0; 
+			
+			while (data->p->temp_pointer_1 != NULL)
+			{
+				j = 1; sub_package = 0;
+				for (temp_task_1 = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); temp_task_1 = starpu_task_list_next(temp_task_1)) 
+				{
+					if (j > data->p->temp_pointer_1->split_last_ij)
+					{
+						sub_package = 1;
+					}
+					starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
+					/* Printing X Y GPU SUBPACKAGE(1 or 2) */
+					fprintf(f_last_package, "%d	%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i, sub_package);
+					j++;
+				}
+				i++;
+				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+			}
+			fclose(f_last_package);
+		}
+		
 		/* Task stealing based on the number of tasks. Only in cases of multigpu */
 		if (starpu_get_env_number_default("MULTIGPU", 0) == 2 || starpu_get_env_number_default("MULTIGPU", 0) == 3) {
 			load_balance(data->p, number_of_package_to_build);
@@ -3340,7 +3371,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		fclose(f_time);
 				
 		/* Printing in a file the order produced by HFP. If we use modular-heft-HFP, we can compare this order with the one done by modular-heft. We also print here the number of gpu in which a data is used for HFP's order. */
-		if (starpu_get_env_number_default("PRINTF",0) == 1)
+		if (starpu_get_env_number_default("PRINTF", 0) == 1)
 		{
 			init_visualisation(data->p);
 		}
@@ -3442,9 +3473,9 @@ void get_current_tasks_for_visualization(struct starpu_task *task, unsigned sci)
 
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
-	printf("Tache en cours : %p, data: %p %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
 	if (starpu_get_env_number_default("PRINTF",0) == 1) 
 	{ 
+		//~ printf("Tache en cours : %p, data: %p %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
 		if (index_task_currently_treated == 0) 
 		{ 
 			initialize_global_variable(task);
@@ -3477,7 +3508,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		int x_to_load = 0;
 		int y_to_load = 0;
 		int i = 0;
-		printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
+		//~ printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
 		
 		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
