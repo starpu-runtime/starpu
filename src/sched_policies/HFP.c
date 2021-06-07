@@ -2162,7 +2162,7 @@ bool is_empty(struct my_list* a)
 void load_balance_expected_time (struct paquets *a, int number_gpu)
 {
 	struct starpu_task *task;
-	double ite = 0; int i = 0;
+	double ite = 0; int i = 0; int index = 0;
 	int package_with_min_expected_time, package_with_max_expected_time;
 	double min_expected_time, max_expected_time, expected_time_to_steal = 0;
 	bool load_balance_needed = true;
@@ -2202,9 +2202,10 @@ void load_balance_expected_time (struct paquets *a, int number_gpu)
 			for (i = 0; i < package_with_min_expected_time; i++) {
 				a->temp_pointer_1 = a->temp_pointer_1->next;
 			}
-			a->temp_pointer_2 = a->first_link;
+			a->temp_pointer_2 = a->first_link; index = 0;
 			for (i = 0; i < package_with_max_expected_time; i++) {
 				a->temp_pointer_2 = a->temp_pointer_2->next;
+				index++;
 			}
 			if (a->temp_pointer_2->expected_time - ((EXPECTED_TIME/number_gpu) - a->temp_pointer_1->expected_time) >= EXPECTED_TIME/number_gpu) {
 				//~ printf("if\n");
@@ -2227,14 +2228,32 @@ void load_balance_expected_time (struct paquets *a, int number_gpu)
 			//~ printf("expected time to steal : %f\n", expected_time_to_steal);
 			//~ exit(0);
 			ite = 0;
+			
+			//Pour visu python. Pas implémenté dans load_balance et load_balance_expected_package_time
+			//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) 
+			//~ { 
+				FILE *f = fopen("Output_maxime/Data_stolen_load_balance.txt", "a");
+				int temp_tab_coordinates[2]; 
+			//~ }
+			
 			while (ite < expected_time_to_steal) {
 				task = starpu_task_list_pop_back(&a->temp_pointer_2->sub_list);
 				ite += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				//~ printf("ite = %f\n", ite);
 				a->temp_pointer_2->expected_time = a->temp_pointer_2->expected_time - starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
+				
+				if (starpu_get_env_number_default("PRINTF", 0) == 1)
+				{
+					starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+					fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], index);
+				}
+				
+				/* Merging */
 				merge_task_and_package(a->temp_pointer_1, task);
 				a->temp_pointer_2->nb_task_in_sub_list--;		
 			}
+			
+			fclose(f);
 			//~ printf("expected time du gros paquet = %f\n", a->temp_pointer_2->expected_time);
 			//~ printf("expected time du petit paquet = %f\n", a->temp_pointer_1->expected_time);
 			//~ exit(0);
@@ -3339,6 +3358,12 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	//~ srandom(time(0)); /* If we need a random selection */
 	srandom(starpu_get_env_number_default("SEED", 0)); /* If we need a random selection */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
+	
+	if (starpu_get_env_number_default("PRINTF", 0) == 1)
+	{
+		FILE *f = fopen("Output_maxime/Data_stolen_load_balance.txt", "w");
+		fclose(f);
+	}
 	
 	Ngpu = get_number_GPU();
 	do_schedule_done = false;
