@@ -5,7 +5,7 @@ start=`date +%s`
 #~ export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 50000000
-sudo make -C src/ -j 6
+#~ sudo make -C src/ -j 6
 #~ sudo make -j 6
 
 #~ libtool --mode=execute strace ./examples/mult/sgemm

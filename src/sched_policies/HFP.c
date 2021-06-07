@@ -937,7 +937,7 @@ void visualisation_tache_matrice_format_tex_with_data_2D()
 	FILE * f_input_data_coordinate = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "r");
 	FILE * f_output = fopen("Output_maxime/visualisation_matrice_2D.tex", "w");
 	
-	fprintf(f_output,"\\documentclass{article}\\usepackage{colortbl,tikz,float,caption}\\makeatletter\\tikzset{hatch distance/.store in=\\hatchdistance,hatch distance=5pt,hatch thickness/.store in=\\hatchthickness,hatch thickness=5pt}        \\pgfdeclarepatternformonly[\\hatchdistance,\\hatchthickness]{north east hatch}{\\pgfqpoint{-1pt}{-1pt}}{\\pgfqpoint{\\hatchdistance}{\\hatchdistance}}{\\pgfpoint{\\hatchdistance-1pt}{\\hatchdistance-1pt}}{\\pgfsetcolor{\\tikz@pattern@color}\\pgfsetlinewidth{\\hatchthickness}\\pgfpathmoveto{\\pgfqpoint{0pt}{0pt}}\\pgfpathlineto{\\pgfqpoint{\\hatchdistance}{\\hatchdistance}}\\pgfusepath{stroke}}\\makeatother\\usetikzlibrary{calc,shadings,patterns,tikzmark}\\newcommand\\HatchedCell[5][0pt]{\\begin{tikzpicture}[overlay,remember picture]\\path ($(pic cs:#2)!0.5!(pic cs:#3)$)coordinate(aux1)(pic cs:#4)coordinate(aux2);\\fill[#5]($(aux1)+(-0.23*0.075\\textwidth,1.9ex)$)rectangle($(aux1 |- aux2)+(0.23*0.075\\textwidth,-#1*\\baselineskip-.8ex)$);\\end{tikzpicture}}\n\n\\begin{document}\n\n\\begin{figure}[H]\\centering\\begin{tabular}{|");
+	fprintf(f_output,"\\documentclass{article}\\usepackage{colortbl,tikz,float,caption}\\makeatletter\\tikzset{hatch distance/.store in=\\hatchdistance,hatch distance=5pt,hatch thickness/.store in=\\hatchthickness,hatch thickness=5pt}\\pgfdeclarepatternformonly[\\hatchdistance,\\hatchthickness]{north east hatch}{\\pgfqpoint{-1pt}{-1pt}}{\\pgfqpoint{\\hatchdistance}{\\hatchdistance}}{\\pgfpoint{\\hatchdistance-1pt}{\\hatchdistance-1pt}}{\\pgfsetcolor{\\tikz@pattern@color}\\pgfsetlinewidth{\\hatchthickness}\\pgfpathmoveto{\\pgfqpoint{0pt}{0pt}}\\pgfpathlineto{\\pgfqpoint{\\hatchdistance}{\\hatchdistance}}\\pgfusepath{stroke}}\\makeatother\\usetikzlibrary{calc,shadings,patterns,tikzmark}\\newcommand\\HatchedCell[5][0pt]{\\begin{tikzpicture}[overlay,remember picture]\\path ($(pic cs:#2)!0.5!(pic cs:#3)$)coordinate(aux1)(pic cs:#4)coordinate(aux2);\\fill[#5]($(aux1)+(-0.23*0.075\\textwidth,1.9ex)$)rectangle($(aux1 |- aux2)+(0.23*0.075\\textwidth,-#1*\\baselineskip-.8ex)$);\\end{tikzpicture}}\n\n\\begin{document}\n\n\\begin{figure}[H]\\centering\\begin{tabular}{|");
 	for (i = 0; i < N - 1; i++) 
 	{
 		fprintf(f_output,"c|");
@@ -3449,6 +3449,8 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
 		index_current_popped_task_all_gpu++;
 		int nb_data_to_load = 0;
+		int x_to_load = 0;
+		int y_to_load = 0;
 		int i = 0;
 		printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
 		
@@ -3458,6 +3460,16 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))
 			{
 				nb_data_to_load++;
+				
+				/* To know if I load a line or a column */
+				if (i == 0)
+				{
+					x_to_load = 1;
+				}
+				if (i == 1)
+				{
+					y_to_load = 1;
+				}
 			}
 		}
 		
@@ -3493,7 +3505,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		{
 			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
 		}
-		fprintf(f2, "%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], nb_data_to_load);
+		fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
 		
 		fclose(f);
 		fclose(f2);
