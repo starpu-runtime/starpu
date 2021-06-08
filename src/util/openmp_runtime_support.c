@@ -57,7 +57,7 @@ static void wake_up_and_unlock_task(struct starpu_omp_task *task);
 static void wake_up_barrier(struct starpu_omp_region *parallel_region);
 static void starpu_omp_task_preempt(void);
 
-struct starpu_omp_thread *_starpu_omp_get_thread(void)
+struct starpu_omp_thread * _starpu_omp_get_thread(void)
 {
 	struct starpu_omp_thread *thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
 	return thread;
@@ -259,6 +259,11 @@ static struct starpu_omp_thread *get_local_thread(void)
 		}
 	}
 	return thread;
+}
+
+static struct starpu_omp_thread * __attribute__ ((noinline)) _get_local_thread_noinline(void)
+{
+	return get_local_thread();
 }
 
 static struct starpu_omp_critical *create_omp_critical_struct(void)
@@ -467,7 +472,11 @@ static void starpu_omp_implicit_task_exec(void *buffers[], void *cl_arg)
 	struct starpu_omp_task *task = starpu_task_get_current()->omp_task;
 	STARPU_ASSERT(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT);
 	_starpu_omp_set_task(task);
-	struct starpu_omp_thread *thread = get_local_thread();
+
+	/* get_local_thread() inlining triggers a clobbering warning with some
+	 * versions of GCC, thus we explicitly call the noinline variant */
+	struct starpu_omp_thread *thread = _get_local_thread_noinline();
+
 	if (task->state != starpu_omp_task_state_preempted)
 	{
 		task->starpu_buffers = buffers;
@@ -598,7 +607,10 @@ static void starpu_omp_explicit_task_exec(void *buffers[], void *cl_arg)
 	STARPU_ASSERT(!(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT));
 	_starpu_omp_set_task(task);
 
-	struct starpu_omp_thread *thread = get_local_thread();
+	/* get_local_thread() inlining triggers a clobbering warning with some
+	 * versions of GCC, thus we explicitly call the noinline variant */
+	struct starpu_omp_thread *thread = _get_local_thread_noinline();
+
 	if (task->state != starpu_omp_task_state_preempted)
 	{
 		if (thread == NULL)
