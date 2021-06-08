@@ -276,7 +276,7 @@ static struct starpu_task *_dmda_pop_task(unsigned sched_ctx_id, int ready)
 static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 {
 	struct starpu_task *task = _dmda_pop_task(sched_ctx_id, 1);
-	
+		
 	if (starpu_get_env_number_default("PRINTF", 0) == 1 && task != NULL)
 	{
 		int current_gpu = starpu_worker_get_id();
@@ -288,8 +288,10 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 		index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
 		index_current_popped_task_all_gpu++;
 		int nb_data_to_load = 0;
+		int x_to_load = 0;
+		int y_to_load = 0;
 		int i = 0;
-		printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
+		//~ printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
 		
 		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -297,6 +299,16 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))
 			{
 				nb_data_to_load++;
+				
+				/* To know if I load a line or a column */
+				if (i == 0)
+				{
+					x_to_load = 1;
+				}
+				if (i == 1)
+				{
+					y_to_load = 1;
+				}
 			}
 		}
 		
@@ -332,7 +344,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 		{
 			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
 		}
-		fprintf(f2, "%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], nb_data_to_load);
+		fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
 		
 		fclose(f);
 		fclose(f2);
