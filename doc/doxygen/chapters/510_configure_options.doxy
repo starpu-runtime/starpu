@@ -473,6 +473,13 @@ Enable OpenMP Support (\ref OpenMPRuntimeSupport)
 Enable cluster Support (\ref ClusteringAMachine)
 </dd>
 
+<dt>--enable-eclipse-plugin</dt>
+<dd>
+\anchor enable-eclipse-plugin
+\addindex __configure__--enable-eclipse-plugin
+Enable the StarPU Eclipse Plugin. See \ref EclipsePlugin to know how to install Eclipse.
+</dd>
+
 </dl>
 
 \section AdvancedConfiguration Advanced Configuration
