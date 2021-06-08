@@ -79,25 +79,6 @@ static void common_data_cpy_func(void *descr[], void *cl_arg)
 
 }
 
-static void mp_cpy_kernel(void *descr[], void *cl_arg)
-{
-	unsigned interface_id = *(unsigned *)cl_arg;
-
-	const struct starpu_data_interface_ops *interface_ops = _starpu_data_interface_get_ops(interface_id);
-	const struct starpu_data_copy_methods *copy_methods = interface_ops->copy_methods;
-
-	void *dst_interface = descr[0];
-	void *src_interface = descr[1];
-
-	if(copy_methods->ram_to_ram)
-		copy_methods->ram_to_ram(src_interface, STARPU_MAIN_RAM, dst_interface, STARPU_MAIN_RAM);
-	else if(copy_methods->any_to_any)
-		copy_methods->any_to_any(src_interface, STARPU_MAIN_RAM, dst_interface, STARPU_MAIN_RAM, NULL);
-	else
-		STARPU_ABORT();
-
-}
-
 static struct starpu_perfmodel copy_model =
 {
 	.type = STARPU_HISTORY_BASED,
