@@ -466,13 +466,12 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	if (starpu_get_prefetch_flag())
 	{
-		//~ starpu_prefetch_task_input_for(task, best_workerid);
 		 /* To get the data prefetched for visualization in 2D. */
 		if (starpu_get_env_number_default("PRINTF", 0) == 1)
 		{
 			print_data_to_load_prefetch(task, best_workerid);
-			starpu_prefetch_task_input_for(task, best_workerid);
 		}
+		starpu_prefetch_task_input_for(task, best_workerid);
 	}
 
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), best_workerid);
