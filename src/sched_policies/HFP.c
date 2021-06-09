@@ -60,7 +60,7 @@ void initialize_global_variable(struct starpu_task *task)
 		NT = N*N*N;
 	}
 	
-	printf("N = %d, NT = %d, NGPU = %d\n", N, NT, Ngpu);
+	//~ printf("N = %d, NT = %d, NGPU = %d\n", N, NT, Ngpu);
 	
 	appli = starpu_task_get_name(task);
 	
@@ -185,7 +185,7 @@ void rgb(int num, int *r, int *g, int *b)
 void rgb_gradiant(int num, int order, int number_task_gpu, int *r, int *g, int *b)
 {
 	int i = 0;
-	printf("GPU = %d / Order = %d / Nb tache du GPU = %d\n", num, order, number_task_gpu);
+	//~ printf("GPU = %d / Order = %d / Nb tache du GPU = %d\n", num, order, number_task_gpu);
 	
 	/* Initial color for each GPU */
 	if (num == 0) { *r = 255; *g = 0; *b = 0; }
@@ -1062,7 +1062,7 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 		}
 		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
 		fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
-		printf("Tâche en cours: %d	%d, gpu : %d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
+		//~ printf("Tâche en cours: %d	%d, gpu : %d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
 		fclose(f);
 		fclose(f2);
 		//~ index_current_task_for_visualization++; /* Care I do it in the file of dmdar *:
@@ -1551,6 +1551,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 	{
 		task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 		//~ printf("return %p\n", task);
+		if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 		return task;
 	}
 	else { 	
@@ -1595,6 +1596,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 				a->temp_pointer_1->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				a->temp_pointer_1->nb_task_in_sub_list--;
 				//~ printf("Return %p\n", task);
+				if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 				return task;
 			}
 			else
@@ -1629,6 +1631,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 						a->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 						a->temp_pointer_2->nb_task_in_sub_list--;
 						//~ printf("Stealing %p\n", task);
+						if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 						return task;
 					}
 					else
@@ -1699,6 +1702,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 								//~ printf("Stealing %p\n", task);
 							}
 							//~ printf("Return %p\n", task);
+							if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 							return task;
 					}
 					else
@@ -2677,12 +2681,126 @@ int get_number_GPU()
 	return return_value;
 }
 
-//~ #define TEST
+//~ /* Printing in a file the coordinates and the data loaded during prefetch for each task */
+//~ void print_data_to_load_prefetch_other_schedulers (struct starpu_task *task)
+//~ {
+	//~ index_current_popped_task_all_gpu_prefetch++;
+	//~ int nb_data_to_load = 0;
+	//~ int x_to_load = 0;
+	//~ int y_to_load = 0;
+	//~ int i = 0;		
+	//~ /* Getting the number of data to load */
+	//~ for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
+	//~ {
+		//~ if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))
+		//~ {
+			//~ nb_data_to_load++;
+				
+			//~ /* To know if I load a line or a column */
+			//~ if (i == 0)
+			//~ {
+				//~ x_to_load = 1;
+			//~ }
+			//~ if (i == 1)
+			//~ {
+				//~ y_to_load = 1;
+			//~ }
+		//~ }
+	//~ }
+		
+	//~ /* Printing the number of data to load */
+	//~ FILE *f2 = NULL;
+		//~ int tab_coordinates[2];
+		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+		//~ if (index_current_popped_task_all_gpu_prefetch == 1)
+		//~ {
+			//~ f2 = fopen("Output_maxime/Data_to_load_prefetch_SCHEDULER.txt", "w");
+		//~ }
+		//~ else
+		//~ {
+			//~ f2 = fopen("Output_maxime/Data_to_load_prefetch_SCHEDULER.txt", "a");
+		//~ }
+		//~ fprintf(f2, "%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load);
+		
+		//~ fclose(f2);
+//~ }
+
+/* Printing in a file the coordinates and the data loaded during prefetch for each task */
+void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
+{
+	//~ int current_gpu = starpu_worker_get_id();
+	int current_gpu = gpu_id;
+	if (Ngpu == 1)
+	{
+		current_gpu = 0;
+	}
+	index_current_popped_task_prefetch[current_gpu]++; /* Increment popped task on the right GPU */
+	index_current_popped_task_all_gpu_prefetch++;
+	int nb_data_to_load = 0;
+	int x_to_load = 0;
+	int y_to_load = 0;
+	int i = 0;		
+	/* Getting the number of data to load */
+	for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
+	{
+		if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(current_gpu)))
+		{
+			nb_data_to_load++;
+				
+			/* To know if I load a line or a column */
+			if (i == 0)
+			{
+				x_to_load = 1;
+			}
+			if (i == 1)
+			{
+				y_to_load = 1;
+			}
+		}
+	}
+		
+	/* Printing the number of data to load */
+	FILE *f = NULL;
+	FILE *f2 = NULL;
+	char str[2];
+	sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
+	/* To open the right file */
+	int size = strlen("Output_maxime/Data_to_load_prefetch_GPU_") + strlen(str);
+	char *path = (char *)malloc(size);
+	strcpy(path, "Output_maxime/Data_to_load_prefetch_GPU_");
+	strcat(path, str);
+	
+		if (index_current_popped_task_prefetch[current_gpu] == 1)
+		{
+			/* We are on the first task so I open the file in w */
+			f = fopen(path, "w");
+			fprintf(f, "1	%d\n", nb_data_to_load);
+		}
+		else
+		{
+			f = fopen(path, "a");
+			fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
+		}
+		int tab_coordinates[2];
+		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+		if (index_current_popped_task_all_gpu_prefetch == 1)
+		{
+			f2 = fopen("Output_maxime/Data_to_load_prefetch_SCHEDULER.txt", "w");
+		}
+		else
+		{
+			f2 = fopen("Output_maxime/Data_to_load_prefetch_SCHEDULER.txt", "a");
+		}
+		fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+		
+		fclose(f);
+		fclose(f2);
+}
 
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	//~ printf("pull task\n");
+	//~ printf("Début pull task\n");
 	struct HFP_sched_data *data = component->data;
 	int i = 0;
 	struct starpu_task *task1 = NULL; 
@@ -3401,7 +3519,9 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	Ngpu = get_number_GPU();
 	do_schedule_done = false;
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_all_gpu = 0;
+	index_current_popped_task_all_gpu_prefetch = 0;
 	
 	struct HFP_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));

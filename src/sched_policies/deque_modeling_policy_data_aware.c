@@ -276,7 +276,8 @@ static struct starpu_task *_dmda_pop_task(unsigned sched_ctx_id, int ready)
 static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 {
 	struct starpu_task *task = _dmda_pop_task(sched_ctx_id, 1);
-		
+	
+	/* Getting the data we need to fetch for visualization */
 	if (starpu_get_env_number_default("PRINTF", 0) == 1 && task != NULL)
 	{
 		int current_gpu = starpu_worker_get_id();
@@ -464,7 +465,15 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	task->predicted_transfer = predicted_transfer;
 
 	if (starpu_get_prefetch_flag())
-		starpu_prefetch_task_input_for(task, best_workerid);
+	{
+		//~ starpu_prefetch_task_input_for(task, best_workerid);
+		 /* To get the data prefetched for visualization in 2D. */
+		if (starpu_get_env_number_default("PRINTF", 0) == 1)
+		{
+			print_data_to_load_prefetch(task, best_workerid);
+			starpu_prefetch_task_input_for(task, best_workerid);
+		}
+	}
 
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), best_workerid);
 
@@ -962,6 +971,9 @@ static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
 	Ngpu = get_number_GPU();
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_all_gpu = 0;
+	index_current_popped_task_all_gpu_prefetch = 0;
 	
 	struct _starpu_dmda_data *dt;
 	_STARPU_CALLOC(dt, 1, sizeof(struct _starpu_dmda_data));
