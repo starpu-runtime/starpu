@@ -3279,18 +3279,20 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			
 			while (data->p->temp_pointer_1 != NULL)
 			{
-				j = 1; sub_package = 0;
+				j = 1;
 				for (temp_task_1 = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); temp_task_1 = starpu_task_list_next(temp_task_1)) 
 				{
-					if (j > data->p->temp_pointer_1->split_last_ij)
+					/* + 1 cause it's the next one that is in the other sub package */
+					if (j == data->p->temp_pointer_1->split_last_ij + 1)
 					{
-						sub_package = 1;
+						sub_package++;
 					}
 					starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
 					/* Printing X Y GPU SUBPACKAGE(1 or 2) */
 					fprintf(f_last_package, "%d	%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i, sub_package);
 					j++;
 				}
+				sub_package++;
 				i++;
 				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 			}
