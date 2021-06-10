@@ -209,8 +209,6 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
  */
 void load_balance_expected_time (struct paquets *a, int number_gpu);
 
-//~ void print_data_to_load_prefetch_other_schedulers (struct starpu_task *task);
-
 /* Equilibrates package in order to have packages with the exact same number of tasks +/-1 task 
  * Called in HFP_pull_task once all packages are done 
  */

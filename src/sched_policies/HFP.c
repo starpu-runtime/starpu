@@ -1039,7 +1039,6 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 	strcpy(path, "Output_maxime/Task_order_effective_");
 	strcat(path, str);
 	FILE *f = fopen(path, "a");
-	FILE *f2 = fopen(path, "a");
 	fprintf(f, "%p\n", task);
 	fclose(f);
 	
@@ -1047,24 +1046,23 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 	if (starpu_get_env_number_default("PRINT_N", 0) != 0 && (strcmp(appli,"starpu_sgemm_gemm") == 0))
 	{ 
 		f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "a");
-		f2 = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER_3D.txt", "a");
 		int temp_tab_coordinates[2];
-		int temp_tab_coordinates_3d[3];
-		
 		/* Pour matrice 3D je récupère la coord de Z aussi */
 		if (starpu_get_env_number_default("PRINT3D", 0) != 0)
 		{
 			/* 3 for 3D no ? */
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-			fprintf(f2, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+			fprintf(f, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
-			fprintf(f2, "	%d	%d\n", temp_tab_coordinates[0], starpu_worker_get_id());
+			fprintf(f, "	%d	%d\n", temp_tab_coordinates[0], starpu_worker_get_id());
 		}
-		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-		fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
-		//~ printf("Tâche en cours: %d	%d, gpu : %d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
+		else 
+		{
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+			fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
+		}
+		
 		fclose(f);
-		fclose(f2);
 		//~ index_current_task_for_visualization++; /* Care I do it in the file of dmdar *:
 		//~ printf("%d\n", index_current_task_for_visualization);
 		//~ if (index_current_task_for_visualization == NT - 1)
@@ -2235,22 +2233,28 @@ void load_balance_expected_time (struct paquets *a, int number_gpu)
 			ite = 0;
 			
 			//Pour visu python. Pas implémenté dans load_balance et load_balance_expected_package_time
-			//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) 
-			//~ { 
-				FILE *f = fopen("Output_maxime/Data_stolen_load_balance.txt", "a");
-				int temp_tab_coordinates[2]; 
-			//~ }
+			FILE *f = fopen("Output_maxime/Data_stolen_load_balance.txt", "a");
+			int temp_tab_coordinates[2]; 
 			
 			while (ite < expected_time_to_steal) {
 				task = starpu_task_list_pop_back(&a->temp_pointer_2->sub_list);
 				ite += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
-				//~ printf("ite = %f\n", ite);
 				a->temp_pointer_2->expected_time = a->temp_pointer_2->expected_time - starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				
 				if (starpu_get_env_number_default("PRINTF", 0) == 1)
 				{
-					starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-					fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], index);
+					if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+					{
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+						fprintf(f, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
+						fprintf(f, "	%d	%d\n", temp_tab_coordinates[0], index);
+					}
+					else
+					{
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+						fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], index);
+					}
 				}
 				
 				/* Merging */
@@ -2739,6 +2743,7 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 	int nb_data_to_load = 0;
 	int x_to_load = 0;
 	int y_to_load = 0;
+	int z_to_load = 0;
 	int i = 0;		
 	/* Getting the number of data to load */
 	for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -2755,6 +2760,10 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 			if (i == 1)
 			{
 				y_to_load = 1;
+			}
+			if (i == 2)
+			{
+				z_to_load = 1;
 			}
 		}
 	}
@@ -2791,7 +2800,17 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 		{
 			f2 = fopen("Output_maxime/Data_to_load_prefetch_SCHEDULER.txt", "a");
 		}
-		fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+		if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+		{
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+			fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
+			fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu);
+		}
+		else
+		{
+			fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+		}
 		
 		fclose(f);
 		fclose(f2);
@@ -3386,11 +3405,11 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		
 		/* Printing in a file the task coordinates coordinates with the last subpackage of each gpu for visualization in 2D.
-		 * Je le fais avant le load balance la pour pouvoir split malagrès le load balance après. Je pourrai le faire après si besoin. */
+		 * Je le fais avant le load balance la pour pouvoir split malgrès le load balance après. Je pourrai le faire après si besoin. */
 		if (starpu_get_env_number_default("PRINTF",0) == 1) 
 		{
 			int temp_tab_coordinates[2];
-			FILE *f_last_package = fopen("Output_maxime/last_package_split.txt","w");
+			FILE *f_last_package = fopen("Output_maxime/last_package_split.txt", "w");
 			data->p->temp_pointer_1 = data->p->first_link;
 			int sub_package = 0;
 			i = 0; 
@@ -3405,9 +3424,19 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 					{
 						sub_package++;
 					}
-					starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
-					/* Printing X Y GPU SUBPACKAGE(1 or 2) */
-					fprintf(f_last_package, "%d	%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i, sub_package);
+					if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+					{
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
+						fprintf(f_last_package, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 0), 2, temp_tab_coordinates);
+						fprintf(f_last_package, "	%d	%d	%d\n", temp_tab_coordinates[0], i, sub_package);
+					}
+					else
+					{
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
+						/* Printing X Y GPU SUBPACKAGE(1 - NSUBPACKAGES) */
+						fprintf(f_last_package, "%d	%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i, sub_package);
+					}
 					j++;
 				}
 				sub_package++;
@@ -3629,6 +3658,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		int nb_data_to_load = 0;
 		int x_to_load = 0;
 		int y_to_load = 0;
+		int z_to_load = 0;
 		int i = 0;
 		//~ printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
 		
@@ -3647,6 +3677,10 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 				if (i == 1)
 				{
 					y_to_load = 1;
+				}
+				if (i == 2)
+				{
+					z_to_load = 1;
 				}
 			}
 		}
@@ -3683,7 +3717,17 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		{
 			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
 		}
-		fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+		if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+		{
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+			fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
+			fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu);
+		}
+		else
+		{
+			fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+		}
 		
 		fclose(f);
 		fclose(f2);
