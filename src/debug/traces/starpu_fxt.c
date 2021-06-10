@@ -4387,6 +4387,8 @@ void _starpu_fxt_papi_file_init(struct starpu_fxt_options *options)
 	}
 	else
 		papi_file = NULL;
+#else
+	(void) options; // avoid warning about unused variable
 #endif
 }
 
