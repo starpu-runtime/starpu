@@ -760,6 +760,7 @@ int HFP_pointeurComparator ( const void * first, const void * second )
   return ( *(int*)first - *(int*)second );
 }
 
+//TODO : ne fonctionne plus en 3D car le fichier dans le quel j'écrit je met x y z gpu mainteannt et non x y gpu en 3D
 void visualisation_tache_matrice_format_tex(char *algo)
 {
 	printf("debut visualisation, %d\n", N);
@@ -846,6 +847,7 @@ void visualisation_tache_matrice_format_tex(char *algo)
 			perror("Impossible d'ouvrir au moins 1 fichier dans visualisation_tache_matrice_format_tex() dans if 3D\n"); 
 			exit(EXIT_FAILURE);
 		}
+		printf("ok\n");
 		tab_order_1[3][x][y] = tab_order_1[3][x][y] - 1;
 		for (k = 0; k < ZN; k++)
 		{
@@ -1068,7 +1070,7 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 		//~ if (index_current_task_for_visualization == NT - 1)
 		if (index_task == NT - 1)
 		{
-			visualisation_tache_matrice_format_tex("SCHEDULER");
+			//visualisation_tache_matrice_format_tex("SCHEDULER");
 			if (starpu_get_env_number_default("PRINT3D", 0) == 0)
 			{
 				visualisation_tache_matrice_format_tex_with_data_2D();
@@ -2457,7 +2459,7 @@ void print_order_in_file_hfp (struct paquets *p)
 			i++;
 		}
 		fclose(f);
-		visualisation_tache_matrice_format_tex("HFP");
+		//visualisation_tache_matrice_format_tex("HFP");
 	}
 }
 
@@ -2634,7 +2636,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 				i++;
 			}
 			fclose(f);
-			visualisation_tache_matrice_format_tex("hMETIS"); /* So I can get the matrix visualisation before tempering it with HFP */
+			//visualisation_tache_matrice_format_tex("hMETIS"); /* So I can get the matrix visualisation before tempering it with HFP */
 		}
 		p->temp_pointer_1 = p->first_link;
 		for (i = 0; i < nb_gpu; i++) 
