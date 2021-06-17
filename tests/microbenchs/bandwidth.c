@@ -304,7 +304,8 @@ int main(int argc, char **argv)
 
 	result = malloc(total_ncpus * sizeof(result[0]));
 
-	if (cpustep == 0) {
+	if (cpustep == 0)
+	{
 #if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS)
 		cpustep = total_ncpus / 2;
 #elif defined(STARPU_LONG_CHECK)
