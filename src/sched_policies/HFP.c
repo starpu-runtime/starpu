@@ -34,8 +34,6 @@
  * STARPU_CUDA_PIPELINE=30
  */
 
-
-
 /* Used for modular-heft for visualisation */
 void initialize_global_variable(struct starpu_task *task)
 {
