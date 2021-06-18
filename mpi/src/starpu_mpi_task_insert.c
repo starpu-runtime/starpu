@@ -818,7 +818,9 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	for (i=0;i<nb_nodes;i++)
 	{
 		_STARPU_MPI_DEBUG(5, "%d in reduction ? %d\n", i, mpi_data->redux_map[i]); 
-		if (mpi_data->redux_map[i]) contributors[j++] = i;
+		if (mpi_data->redux_map[i]) {
+			contributors[j++] = i;
+		}
 	}
 	for (i=0;i<nb_contrib;i++)
 	{
@@ -882,7 +884,7 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 				       	        starpu_mpi_irecv_detached_prio(new_handle, contributors[node], data_tag, prio, comm, NULL, NULL);
 					        /* Task B */
 				       		starpu_task_insert(data_handle->redux_cl, STARPU_RW|STARPU_COMMUTE, data_handle, STARPU_R, new_handle, 0);
-						starpu_data_invalidate_submit(new_handle);
+						starpu_data_unregister_submit(new_handle);
 					}
 				}
 			}
@@ -917,7 +919,9 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 	nb_contrib=0;
 	for (i=0;i<nb_nodes;i++) 
 	{
-		if (mpi_data->redux_map[i]) nb_contrib++;
+		if (mpi_data->redux_map[i]) {
+			nb_contrib++;
+		}
 	}
 	return starpu_mpi_redux_data_prio_tree(comm, data_handle, prio, nb_contrib);
 }
