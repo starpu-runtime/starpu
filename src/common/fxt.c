@@ -151,7 +151,7 @@ void starpu_fxt_stop_profiling()
 
 int starpu_fxt_is_enabled()
 {
-	return starpu_get_env_number_default("STARPU_FXT_TRACE", 1);
+	return starpu_get_env_number_default("STARPU_FXT_TRACE", 0);
 }
 
 #ifdef HAVE_FUT_SETUP_FLUSH_CALLBACK

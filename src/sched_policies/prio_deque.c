@@ -94,8 +94,10 @@ struct starpu_task *_starpu_prio_deque_deque_first_ready_task(struct _starpu_pri
 			return NULL;
 
 		int first_task_priority = task->priority;
+
 		size_t non_ready_best = SIZE_MAX;
 		size_t non_loading_best = SIZE_MAX;
+		size_t non_allocated_best = SIZE_MAX;
 
 		for (current = starpu_task_prio_list_begin(&pdeque->list);
 		     current != starpu_task_prio_list_end(&pdeque->list);
@@ -105,21 +107,34 @@ struct starpu_task *_starpu_prio_deque_deque_first_ready_task(struct _starpu_pri
 
 			if (priority >= first_task_priority)
 			{
-				size_t non_ready, non_loading;
-				_starpu_size_non_ready_buffers(current, workerid, &non_ready, &non_loading);
+				size_t non_ready, non_loading, non_allocated;
+				_starpu_size_non_ready_buffers(current, workerid, &non_ready, &non_loading, &non_allocated);
 				if (non_ready < non_ready_best)
 				{
 					non_ready_best = non_ready;
 					non_loading_best = non_loading;
+					non_allocated_best = non_allocated;
 					task = current;
 
-					if (non_ready == 0)
+					if (non_ready == 0 && non_allocated == 0)
 						break;
 				}
-				else if (non_ready == non_ready_best && non_loading < non_loading_best)
+				else if (non_ready == non_ready_best)
 				{
-					non_loading_best = non_loading;
-					task = current;
+					if (non_loading < non_loading_best)
+					{
+						non_loading_best = non_loading;
+						non_allocated_best = non_allocated;
+						task = current;
+					}
+					else if (non_loading == non_loading_best)
+					{
+						if (non_allocated < non_allocated_best)
+						{
+							non_allocated_best = non_allocated;
+							task = current;
+						}
+					}
 				}
 			}
 		}

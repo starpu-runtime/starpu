@@ -210,6 +210,8 @@ struct _starpu_data_state
 	    is in its readonly_dup field. */
 	starpu_data_handle_t readonly_dup_of;
 
+	/* The following bitfields are set from the application submission thread */
+
 	/** in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */
 	unsigned is_not_important:1;
@@ -224,15 +226,17 @@ struct _starpu_data_state
 	/** Can the data be pushed to the disk? */
 	unsigned ooc:1;
 
-	/** Whether lazy unregistration was requested throught starpu_data_unregister_submit */
-	unsigned lazy_unregister:1;
-
 	/** Whether automatic planned partitioning/unpartitioning should not be done */
 	int partition_automatic_disabled:1;
 
 #ifdef STARPU_OPENMP
 	unsigned removed_from_context_hash:1;
 #endif
+
+	/* The following field is set by StarPU at execution time */
+
+	/** Whether lazy unregistration was requested throught starpu_data_unregister_submit */
+	unsigned char lazy_unregister;
 
 	/** This lock should protect any operation to enforce
 	 * sequential_consistency */

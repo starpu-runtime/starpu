@@ -143,7 +143,7 @@ static void generate_random_problem(void)
 
 static void free_data(void)
 {
-	unsigned ii, jj, j, i;
+	unsigned j, i;
 	int mpi_rank;
 
 	for (j = 0; j < nblocks; j++)
@@ -152,15 +152,15 @@ static void free_data(void)
 
 		if (mpi_rank == rank || display_result)
 		{
-			starpu_free((void*) x[j]);
+			starpu_free_noflag((void*) x[j], block_size*sizeof(TYPE));
 		}
 
 		if (mpi_rank == rank)
 		{
-			starpu_free((void*) b[j]);
-			starpu_free((void*) r[j]);
-			starpu_free((void*) d[j]);
-			starpu_free((void*) q[j]);
+			starpu_free_noflag((void*) b[j], block_size*sizeof(TYPE));
+			starpu_free_noflag((void*) r[j], block_size*sizeof(TYPE));
+			starpu_free_noflag((void*) d[j], block_size*sizeof(TYPE));
+			starpu_free_noflag((void*) q[j], block_size*sizeof(TYPE));
 		}
 
 		for (i = 0; i < nblocks; i++)
@@ -168,7 +168,7 @@ static void free_data(void)
 			mpi_rank = my_distrib(j, i);
 			if (mpi_rank == rank)
 			{
-				starpu_free((void*) A[j][i]);
+				starpu_free_noflag((void*) A[j][i], block_size*block_size*sizeof(TYPE));
 			}
 		}
 
@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 
 	if (n % nblocks != 0)
 	{
-		FPRINTF_SERVER(stderr, "The number of blocks (%d) must divide the matrix size (%lld).\n", nblocks, n);
+		FPRINTF_SERVER(stderr, "The number of blocks (%u) must divide the matrix size (%lld).\n", nblocks, n);
 		starpu_mpi_shutdown();
 		return 1;
 	}
@@ -389,7 +389,7 @@ int main(int argc, char **argv)
 	FPRINTF_SERVER(stderr, "%d nodes (%dx%d)\n", worldsize, nodes_p, nodes_q);
 	FPRINTF_SERVER(stderr, "Problem size (-n): %lld\n", n);
 	FPRINTF_SERVER(stderr, "Maximum number of iterations (-maxiter): %d\n", i_max);
-	FPRINTF_SERVER(stderr, "Number of blocks (-nblocks): %d\n", nblocks);
+	FPRINTF_SERVER(stderr, "Number of blocks (-nblocks): %u\n", nblocks);
 	FPRINTF_SERVER(stderr, "Reduction (-no-reduction): %s\n", use_reduction ? "enabled" : "disabled");
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);

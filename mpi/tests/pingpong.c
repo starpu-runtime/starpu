@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 	int loop;
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 	int sender;
-	int r = 0;
+	int r;
 
 	if (method == 0) // ping pongs
 	{

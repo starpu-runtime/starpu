@@ -125,12 +125,12 @@ static void generate_random_problem(void)
 
 static void free_data(void)
 {
-	starpu_free(A);
-	starpu_free(b);
-	starpu_free(x);
-	starpu_free(r);
-	starpu_free(d);
-	starpu_free(q);
+	starpu_free_noflag(A, n*n*sizeof(TYPE));
+	starpu_free_noflag(b, n*sizeof(TYPE));
+	starpu_free_noflag(x, n*sizeof(TYPE));
+	starpu_free_noflag(r, n*sizeof(TYPE));
+	starpu_free_noflag(d, n*sizeof(TYPE));
+	starpu_free_noflag(q, n*sizeof(TYPE));
 }
 
 static void register_data(void)
@@ -320,7 +320,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "************** PARAMETERS ***************\n");
 	FPRINTF(stderr, "Problem size (-n): %lld\n", n);
 	FPRINTF(stderr, "Maximum number of iterations (-maxiter): %d\n", i_max);
-	FPRINTF(stderr, "Number of blocks (-nblocks): %d\n", nblocks);
+	FPRINTF(stderr, "Number of blocks (-nblocks): %u\n", nblocks);
 	FPRINTF(stderr, "Reduction (-no-reduction): %s\n", use_reduction ? "enabled" : "disabled");
 
 	start = starpu_timing_now();

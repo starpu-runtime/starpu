@@ -145,7 +145,7 @@ static void test_filters(void)
 	STARPU_ASSERT(starpu_data_lookup(ptr) == handle);
 
 	starpu_data_unregister(handle);
-	starpu_free(ptr);
+	starpu_free_noflag(ptr, VECTOR_SIZE * sizeof(*ptr));
 
 #undef CHILDREN_COUNT
 }
@@ -220,7 +220,7 @@ int main(int argc, char *argv[])
 
 		handle = starpu_data_lookup(variables[i]);
 		STARPU_ASSERT(handle == NULL);
-		starpu_free(variables[i]);
+		starpu_free_noflag(variables[i], sizeof(float));
 	}
 
 	for(i = 0; i < VECTOR_COUNT; i++)
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 
 		handle = starpu_data_lookup(vectors[i]);
 		STARPU_ASSERT(handle == NULL);
-		starpu_free(vectors[i]);
+		starpu_free_noflag(vectors[i], VECTOR_SIZE * sizeof(float));
 	}
 
 	ret = test_lazy_allocation();

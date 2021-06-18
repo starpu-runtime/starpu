@@ -21,7 +21,6 @@
 int main(int argc, char **argv)
 {
 	int ret, mpi_init;
-	MPI_Status status;
 
 	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 

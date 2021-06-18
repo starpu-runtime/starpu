@@ -314,7 +314,7 @@ void *_starpu_mpi_src_worker(void *arg)
 
 #ifdef STARPU_USE_FXT
                 for (i = 1; i < worker_set->nworkers; i++)
-                        _starpu_worker_start(&worker_set->workers[i], STARPU_MPI_WORKER, 0);
+                        _starpu_worker_start(&worker_set->workers[i], STARPU_MPI_MS_WORKER, 0);
 #endif
 
                 // Current task for a thread managing a worker set has no sense.

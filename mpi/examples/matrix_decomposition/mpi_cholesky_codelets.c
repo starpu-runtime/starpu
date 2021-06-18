@@ -469,7 +469,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	double start;
 	double end;
 	starpu_data_handle_t **data_handles;
-	unsigned k, m, n;
+	unsigned m, n;
 
 	/* create all the DAG nodes */
 

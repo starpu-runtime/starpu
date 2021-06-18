@@ -1060,7 +1060,15 @@ fi
 AC_MSG_CHECKING(maximum number of CPUs)
 AC_ARG_ENABLE(maxcpus, [AS_HELP_STRING([--enable-maxcpus=<number>],
 			[maximum number of CPUs])],
-			maxcpus=$enableval, maxcpus=64)
+			maxcpus=$enableval, maxcpus=auto)
+if test x$maxcpus == xauto
+then
+	maxcpus=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
+	if test x$maxcpus = x
+	then
+		AC_MSG_ERROR([cannot get the number of CPUS, please specify a numerical value with --enable-maxcpus])
+	fi
+fi
 AC_MSG_RESULT($maxcpus)
 AC_DEFINE_UNQUOTED(STARPU_MAXCPUS, [$maxcpus], [Maximum number of CPUs supported])
 
@@ -1836,93 +1844,103 @@ AC_MSG_RESULT($enable_coverity)
 AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
 
 # shall we use FxT to generate trace of the execution ?
-AC_MSG_CHECKING(whether FxT traces should be generated)
-AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[[=<dir>]]], [generate fxt traces])],
+AC_ARG_ENABLE(fxt, [AS_HELP_STRING([--disable-fxt],
+		[disable FxT trace mechanisms])],, [enable_fxt=maybe])
+AC_ARG_WITH(fxt,
+	[AS_HELP_STRING([--with-fxt=<path>],
+	[specify FxT installation directory])],
 	[
-		if test x$withval != xno; then
-			use_fxt=yes
-			if test x$withval = xyes; then
-				AC_MSG_RESULT(yes)
-				use_fxt_from_system=yes
-			else
-				# use specified path
-				# TODO check if the dir is actually containing FxT
-				use_fxt_from_system=no
-				fxtdir=$withval
-				AC_MSG_RESULT(yes using $fxtdir)
-				AC_SUBST(FXTDIR, $fxtdir)
-			fi
-		else
-			use_fxt=no
-			AC_MSG_RESULT(no)
-		fi
+		fxt_dir="$withval"
+		use_fxt_from_system=no
+		# in case this was not explicit yet
+		enable_fxt=yes
+		AC_SUBST(FXTDIR, $fxt_dir)
 	],
 	[
-		use_fxt=no
-		AC_MSG_RESULT(no)
+		use_fxt_from_system=yes
+		fxt_dir=""
 	])
-AC_SUBST(STARPU_USE_FXT, $use_fxt)
-AM_CONDITIONAL(STARPU_USE_FXT, test x$use_fxt = xyes)
 
-if test x$use_fxt = xyes; then
-	AC_DEFINE(STARPU_USE_FXT, [1], [enable FxT traces])
-	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
-
+if test x$enable_fxt != xno; then
 	if test x$use_fxt_from_system = xno; then
 	    save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
-	    PKG_CONFIG_PATH="$fxtdir/lib/pkgconfig:$PKG_CONFIG_PATH"
-	    PKG_CHECK_MODULES([FXT],  [fxt], , [
+	    PKG_CONFIG_PATH="$fxt_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
+	    PKG_CHECK_MODULES([FXT],  [fxt], [have_valid_fxt=yes], [
+	    	have_valid_fxt=yes
 		AC_MSG_WARN([Old FxT without fxt.pc file, hoping link will succeed])
-		FXT_CFLAGS="-I$fxtdir/include/ "
-		FXT_LDFLAGS="-L$fxtdir/lib/"
+		FXT_CFLAGS="-I$fxt_dir/include/ "
+		FXT_LDFLAGS="-L$fxt_dir/lib/"
 		AC_ARG_VAR(FXT_LDFLAGS)
 		FXT_LIBS="-lfxt"
 	    ])
 	    PKG_CONFIG_PATH="$save_PKG_CONFIG_PATH"
 	else
-	    PKG_CHECK_MODULES([FXT],  [fxt])
+	    PKG_CHECK_MODULES([FXT],  [fxt], [have_valid_fxt=yes], [have_valid_fxt=no])
 	fi
-	save_LIBS="$LIBS"
-	LIBS="$LIBS $FXT_LIBS"
-	save_LDFLAGS="$LDFLAGS"
-	LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
-	AC_CHECK_FUNCS([fxt_close])
-	AC_CHECK_FUNCS([fxt_blockev_leave])
-	AC_CHECK_FUNCS([enable_fut_flush])
-	AC_CHECK_FUNCS([fut_set_filename])
-	AC_CHECK_FUNCS([fut_setup_flush_callback])
-	LDFLAGS="$save_LDFLAGS"
-	LIBS="$save_LIBS"
-	save_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $FXT_CFLAGS"
-	AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
-	AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
-	AC_CHECK_DECLS([fut_setup_flush_callback], [], [], [[#include <fut.h>]])
-	CFLAGS="$save_CFLAGS"
-
-	if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
-                # simgrid's SMPI needs fxt to be linked in statically for
-                # variable privatization to work
-		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
-	fi
-
-	##########################################
-	# Poti is a library to generate paje trace files
-	##########################################
-	PKG_CHECK_MODULES([POTI], [poti], [have_valid_poti=yes], [have_valid_poti=no])
-	AC_ARG_ENABLE(poti, [AS_HELP_STRING([--enable-poti],
-				[Enable the use of the POTI library to generate Paje traces])],
-				enable_poti=$enableval, enable_poti=no)
-	if test x$enable_poti = xyes -a x$have_valid_poti = xyes ; then
-		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
+	if test x$have_valid_fxt = xyes ; then
+		enable_fxt=yes
 		save_LIBS="$LIBS"
-		LIBS="$LIBS $POTI_LIBS"
-		AC_CHECK_FUNCS([poti_init_custom poti_user_NewEvent])
+		LIBS="$LIBS $FXT_LIBS"
+			save_LDFLAGS="$LDFLAGS"
+		LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
+		AC_CHECK_FUNCS([fxt_close])
+		AC_CHECK_FUNCS([fxt_blockev_leave])
+		AC_CHECK_FUNCS([enable_fut_flush])
+		AC_CHECK_FUNCS([fut_set_filename])
+		AC_CHECK_FUNCS([fut_setup_flush_callback])
+		LDFLAGS="$save_LDFLAGS"
 		LIBS="$save_LIBS"
-		FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
-		FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+		save_CFLAGS="$CFLAGS"
+		CFLAGS="$CFLAGS $FXT_CFLAGS"
+		AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
+		AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
+		AC_CHECK_DECLS([fut_setup_flush_callback], [], [], [[#include <fut.h>]])
+		CFLAGS="$save_CFLAGS"
+
+		if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
+	                # simgrid's SMPI needs fxt to be linked in statically for
+	                # variable privatization to work
+			FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
+		fi
+
+		AC_CHECK_LIB([papi], [PAPI_library_init],
+			     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
+			      PAPI_LIBS=-lpapi])
+
+		##########################################
+		# Poti is a library to generate paje trace files
+		##########################################
+		PKG_CHECK_MODULES([POTI], [poti], [have_valid_poti=yes], [have_valid_poti=no])
+		AC_ARG_ENABLE(poti, [AS_HELP_STRING([--enable-poti],
+					[Enable the use of the POTI library to generate Paje traces])],
+					enable_poti=$enableval, enable_poti=no)
+		if test x$enable_poti = xyes -a x$have_valid_poti = xyes ; then
+			AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
+			save_LIBS="$LIBS"
+			LIBS="$LIBS $POTI_LIBS"
+			AC_CHECK_FUNCS([poti_init_custom poti_user_NewEvent])
+			LIBS="$save_LIBS"
+			FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
+			FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+		fi
+	else
+		if test x$enable_fxt = xyes ; then
+			AC_MSG_ERROR([FxT is required but not available])
+		fi
+		enable_fxt=no
 	fi
 fi
+
+AC_MSG_CHECKING(whether FxT traces should be generated)
+AC_MSG_RESULT($enable_fxt)
+
+if test x$enable_fxt = xyes; then
+	AC_DEFINE(STARPU_USE_FXT, [1], [enable FxT traces])
+	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
+fi
+
+AC_SUBST(STARPU_USE_FXT, $enable_fxt)
+AM_CONDITIONAL(STARPU_USE_FXT, test x$enable_fxt = xyes)
 
 AC_MSG_CHECKING(whether additional locking systems FxT traces should be enabled)
 AC_ARG_ENABLE(fxt-lock, [AS_HELP_STRING([--enable-fxt-lock],
@@ -1938,7 +1956,6 @@ AC_CHECK_LIB([papi], [PAPI_library_init],
 	      PAPI_LIBS=-lpapi])
 AC_SUBST(PAPI_LIBS)
 
-AM_CONDITIONAL([STARPU_USE_PAPI], [test "x$PAPI_LIBS" != "x"])
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
 AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
@@ -2787,7 +2804,7 @@ if test x$blas_lib != xnone; then
     AC_CHECK_FUNCS([cblas_sgemv])
     LIBS="$SAVED_LIBS"
 fi
-AM_CONDITIONAL(STARPU_HAVE_CBLAS_SGEMV, test $HAVE_CBLAS_SGEMV = 1)
+AM_CONDITIONAL(STARPU_HAVE_CBLAS_SGEMV, test x$HAVE_CBLAS_SGEMV = x1)
 
 AM_CONDITIONAL(STARPU_ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(STARPU_GOTO_BLAS_LIB, test x$blas_lib = xgoto)
@@ -3317,13 +3334,42 @@ if test "$enable_julia" = "yes" ; then
    AC_PATH_PROG(juliapath, julia)
    AC_MSG_CHECKING(whether julia is available)
    AC_MSG_RESULT($juliapath)
-   if test ! -x $julia_path ; then
-      AC_MSG_ERROR(Julia compiler '$julia_path' is not valid)
+   if test ! -x $juliapath ; then
+      AC_MSG_ERROR(Julia compiler '$juliapath' is not valid)
       enable_julia=no
    fi
 fi
 AM_CONDITIONAL([STARPU_USE_JULIA], [test "x$enable_julia" = "xyes"])
 AC_SUBST(JULIA, $juliapath)
+
+###############################################################################
+#                                                                             #
+#                         Eclipse Plugin                                      #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(eclipse-plugin, [AS_HELP_STRING([--enable-eclipse-plugin],
+			      [Build the Eclipse plugin])],
+			      enable_eclipse_plugin=$enableval, enable_eclipse_plugin=no)
+if test "$enable_eclipse_plugin" = "yes" ; then
+   AC_PATH_PROG(eclipsepath, eclipse)
+   AC_MSG_CHECKING(whether eclipse is available)
+   AC_MSG_RESULT($eclipsepath)
+   if test ! -x "$eclipsepath" ; then
+      AC_MSG_ERROR(Eclipse executable '$eclipsepath' is not valid)
+      enable_eclipse_plugin=no
+   fi
+
+   libs=$(for x in starpu-$STARPU_EFFECTIVE_VERSION $(echo $STARPU_EXPORTED_LIBS | sed 's/-l//g') $HWLOC_REQUIRES ; do echo $x ; done)
+   option_libs=$($srcdir/eclipse-plugin/tools/cproject.sh option $libs)
+   module_libs=$($srcdir/eclipse-plugin/tools/cproject.sh module $libs)
+fi
+
+AM_CONDITIONAL([STARPU_BUILD_ECLIPSE_PLUGIN], [test "x$enable_eclipse_plugin" = "xyes"])
+AC_SUBST(ECLIPSE, $eclipsepath)
+AC_SUBST(STARPU_INCLUDE_PATH, $(eval echo ${includedir}/starpu/$STARPU_EFFECTIVE_VERSION))
+AC_SUBST(STARPU_LIB_PATH, $(eval echo ${prefix}/lib))
+AC_SUBST(STARPU_MODULE_LIBS, "$module_libs")
+AC_SUBST(STARPU_OPTION_LIBS, "$option_libs")
 
 ###############################################################################
 #                                                                             #
@@ -3523,6 +3569,10 @@ AC_OUTPUT([
 	julia/src/dynamic_compiler/Makefile
 	julia/examples/Makefile
 	julia/examples/execute.sh
+	eclipse-plugin/Makefile
+	eclipse-plugin/src/Makefile
+	eclipse-plugin/examples/Makefile
+	eclipse-plugin/examples/hello/.cproject
 ])
 
 AC_MSG_NOTICE([
@@ -3550,7 +3600,7 @@ AC_MSG_NOTICE([
 	Magma enabled:     $have_magma
 	BLAS library:      $blas_lib
 	hwloc:             $have_valid_hwloc
-	FxT trace enabled: $use_fxt
+	FxT trace enabled: $enable_fxt
 
         Documentation HTML:  $enable_build_doc
         Documentation PDF:   $enable_build_doc_pdf

@@ -29,4 +29,4 @@ export STARPU_NCUDA=0
 export STARPU_NOPENCL=0
 export STARPU_WORKER_STATS=1
 export STARPU_CALIBRATE=1
-$STARPU_LAUNCH ./bfs data/graph65536.txt
+$STARPU_LAUNCH exec ./bfs data/graph65536.txt

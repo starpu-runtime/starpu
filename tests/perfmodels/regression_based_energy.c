@@ -284,14 +284,11 @@ int main(int argc, char **argv)
 	starpu_vector_data_register(&handle, -1, (uintptr_t)NULL, size, sizeof(int));
 
 	struct starpu_task *task = starpu_task_create();
-	task->cl = &memset_cl;
 	task->handles[0] = handle;
 	task->destroy = 0;
 
-	task->cl = &nl_memset_cl;
-
 	FPRINTF(stdout, "\n ////non linear regression results////\n");
-
+	task->cl = &nl_memset_cl;
 	compare_performance(size, &nl_memset_cl, task);
 
 	starpu_task_destroy(task);

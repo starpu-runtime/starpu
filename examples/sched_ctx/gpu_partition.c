@@ -103,8 +103,10 @@ int main(void)
 {
 	int ret, exit_value = 0;
 	int iter;
+#ifdef STARPU_USE_CUDA
 	int ncuda = 0;
 	int gpu_devid = -1;
+#endif
 
 #ifdef STARPU_DEVEL
 #warning temporary fix: skip test as cuda computation fails
@@ -242,8 +244,8 @@ enodev:
 
 	for(iter = 0; iter < NITER; iter++)
 	{
-		starpu_free((void *)_vec_x[iter]);
-		starpu_free((void *)_vec_y[iter]);
+		starpu_free_noflag((void *)_vec_x[iter], N*sizeof(float));
+		starpu_free_noflag((void *)_vec_y[iter], N*sizeof(float));
 	}
 
 	/* Stop StarPU */

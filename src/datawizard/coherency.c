@@ -1214,6 +1214,7 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		int node = descrs[index].node;
 
 		struct _starpu_data_replicate *local_replicate;
+		int needs_init;
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 		_starpu_spin_lock(&handle->header_lock);
@@ -1234,16 +1235,18 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 					local_replicate->nb_tasks_prefetch--;
 			}
 		}
+		needs_init = !local_replicate->initialized;
 		_starpu_spin_unlock(&handle->header_lock);
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, descrs[index].index);
 
 		/* If the replicate was not initialized yet, we have to do it now */
-		if (!(mode & STARPU_SCRATCH) && !local_replicate->initialized)
+		if (!(mode & STARPU_SCRATCH) && needs_init)
 			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
 
 #ifdef STARPU_USE_FXT
-		total_size += _starpu_data_get_size(handle);
+		if (fut_active)
+			total_size += _starpu_data_get_size(handle);
 #endif
 	}
 	_STARPU_TRACE_DATA_LOAD(workerid,total_size);
@@ -1433,7 +1436,10 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 		for (i = 0; i < nnodes; i++)
 		{
 			if (handle->per_node[node].request[i])
+			{
 				ret = 1;
+				break;
+			}
 		}
 
 	}

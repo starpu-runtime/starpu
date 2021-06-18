@@ -31,9 +31,6 @@ int main(int argc, char **argv)
 	float ***bmat;
 	int rank, nodes, ret;
 	double timing, flops;
-#ifndef STARPU_SIMGRID
-	int correctness=1;
-#endif
 
 	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");

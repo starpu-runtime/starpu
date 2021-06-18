@@ -1030,13 +1030,6 @@ struct starpu_task
 	unsigned regenerate:1;
 
 	/**
-	   @private
-	   This is only used for tasks that use multiformat handle.
-	   This should only be used by StarPU.
-	*/
-	unsigned mf_skip:1;
-
-	/**
 	   do not allocate a submitorder id for this task
 
 	   With starpu_task_insert() and alike this can be specified
@@ -1044,6 +1037,13 @@ struct starpu_task
 	   an unsigned.
 	*/
 	unsigned no_submitorder:1;
+
+	/**
+	   @private
+	   This is only used for tasks that use multiformat handle.
+	   This should only be used by StarPU.
+	*/
+	unsigned char mf_skip;
 
 	/**
 	   Whether this task has failed and will thus have to be retried
@@ -1762,6 +1762,11 @@ void starpu_task_ft_success(struct starpu_task *meta_task);
    not finished any task for STARPU_WATCHDOG_TIMEOUT seconds
 */
 void starpu_task_watchdog_set_hook(void (*hook)(void *), void *hook_arg);
+
+/**
+ * Return the given status as a string
+ */
+char *starpu_task_status_get_as_string(enum starpu_task_status status);
 
 /** @} */
 

@@ -74,7 +74,6 @@ void test_variable_opencl_func(void *buffers[], void *args)
 	{
 		size_t global = 1;
                 size_t local = 1;
-                size_t s;
                 cl_device_id device;
 
                 starpu_opencl_get_device(devid, &device);

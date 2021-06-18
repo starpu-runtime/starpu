@@ -355,9 +355,9 @@ int _starpu_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_
 	return ((num_priorities-1)/(max-min)) * (priority - min);
 }
 
-void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, size_t *non_readyp, size_t *non_loadingp)
+void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, size_t *non_readyp, size_t *non_loadingp, size_t *non_allocatedp)
 {
-	size_t non_ready = 0, non_loading = 0;
+	size_t non_ready = 0, non_loading = 0, non_allocated = 0;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
@@ -365,13 +365,18 @@ void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, s
 	{
 		starpu_data_handle_t handle;
 		unsigned buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
+		enum starpu_data_access_mode mode;
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
+		mode = STARPU_TASK_GET_MODE(task, index);
 
-		int is_valid, is_loading;
-		starpu_data_query_status2(handle, buffer_node, NULL, &is_valid, &is_loading, NULL);
+		int is_allocated, is_valid, is_loading;
+		starpu_data_query_status2(handle, buffer_node, &is_allocated, &is_valid, &is_loading, NULL);
 
-		if (!is_valid)
+		if (!is_allocated)
+			non_allocated+=starpu_data_get_size(handle);
+
+		if (mode & STARPU_R && !is_valid)
 		{
 			non_ready+=starpu_data_get_size(handle);
 			if (!is_loading)
@@ -381,6 +386,7 @@ void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, s
 
 	*non_readyp = non_ready;
 	*non_loadingp = non_loading;
+	*non_allocatedp = non_allocated;
 }
 
 int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
@@ -425,6 +431,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 		size_t non_ready_best = SIZE_MAX;
 		size_t non_loading_best = SIZE_MAX;
+		size_t non_allocated_best = SIZE_MAX;
 
 		for (current = task; current; current = current->next)
 		{
@@ -432,21 +439,34 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 			if (priority >= first_task_priority)
 			{
-				size_t non_ready, non_loading;
-				_starpu_size_non_ready_buffers(current, workerid, &non_ready, &non_loading);
+				size_t non_ready, non_loading, non_allocated;
+				_starpu_size_non_ready_buffers(current, workerid, &non_ready, &non_loading, &non_allocated);
 				if (non_ready < non_ready_best)
 				{
 					non_ready_best = non_ready;
 					non_loading_best = non_loading;
+					non_allocated_best = non_allocated;
 					task = current;
 
-					if (non_ready == 0)
+					if (non_ready == 0 && non_allocated == 0)
 						break;
 				}
-				else if (non_ready == non_ready_best && non_loading < non_loading_best)
+				else if (non_ready == non_ready_best)
 				{
-					non_loading_best = non_loading;
-					task = current;
+					if (non_loading < non_loading_best)
+					{
+						non_loading_best = non_loading;
+						non_allocated_best = non_allocated;
+						task = current;
+					}
+					else if (non_loading == non_loading_best)
+					{
+						if (non_allocated < non_allocated_best)
+						{
+							non_allocated_best = non_allocated;
+							task = current;
+						}
+					}
 				}
 			}
 		}

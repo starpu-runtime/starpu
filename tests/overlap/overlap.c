@@ -143,14 +143,14 @@ int main(int argc, char **argv)
 
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(handle);
-	starpu_free(buffer);
+	starpu_free_noflag(buffer, NTASKS*VECTORSIZE*sizeof(char));
 	starpu_shutdown();
 
 	STARPU_RETURN(EXIT_SUCCESS);
 
 enodev:
 	starpu_data_unregister(handle);
-	starpu_free(buffer);
+	starpu_free_noflag(buffer, NTASKS*VECTORSIZE*sizeof(char));
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */

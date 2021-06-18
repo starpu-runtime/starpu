@@ -621,7 +621,7 @@ static void * starpu_unistd_internal_thread(void * arg)
 				ret = pwrite(work->fd_dst, buf, work->len, work->off_dst);
 				STARPU_ASSERT_MSG(ret >= 0, "Writing failed (errno %d)", errno);
 				STARPU_ASSERT_MSG((size_t) ret == work->len, "Writing failed (value %ld instead of %ld)", (long)ret, (long)work->len);
-				starpu_free(buf);
+				starpu_free_noflag(buf, work->len);
 			}
 			else
 			{

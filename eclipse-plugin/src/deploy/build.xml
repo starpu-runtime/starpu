@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="plugin_export" name="build">
+ 	<property environment="env"/>
+	<target name="plugin_export">
+		<pde.exportPlugins destination="${env.PWD}/build/plugin" exportSource="false" exportType="directory" plugins="StarPU" useJARFormat="true"/>
+	</target>
+</project>

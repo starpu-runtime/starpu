@@ -129,14 +129,14 @@ int main(int argc, char **argv)
 	}
 
 	starpu_data_unregister(v_handle);
-	starpu_free(buffer);
+	starpu_free_noflag(buffer, VECTORSIZE);
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
 	starpu_data_unregister(v_handle);
-	starpu_free(buffer);
+	starpu_free_noflag(buffer, VECTORSIZE);
 	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one

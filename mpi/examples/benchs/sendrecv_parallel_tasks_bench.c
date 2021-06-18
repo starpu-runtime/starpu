@@ -60,8 +60,8 @@ void cpu_task(void* descr[], void* args)
 	double t1, t2;
 	int asked_worker;
 	int current_worker = starpu_worker_get_id();
-	uint64_t j = 0;
-	uint64_t k = 0;
+	uint64_t j;
+	uint64_t k;
 
 	starpu_codelet_unpack_args(args, &mpi_rank, &asked_worker, &s, &handle_send, &handle_recv);
 
@@ -171,10 +171,8 @@ int main(int argc, char **argv)
 
 
 	unsigned cpu_count = starpu_cpu_worker_get_count();
-	unsigned* mpi_tags = malloc(cpu_count * sizeof(unsigned));
-	unsigned tag = 0;
-	uint64_t s = 0;
-	unsigned i = 0;
+	uint64_t s;
+	unsigned i;
 
 	int* workers = malloc(cpu_count * sizeof(int));
 	float** vectors_send = malloc(cpu_count * sizeof(float*));
@@ -223,7 +221,6 @@ int main(int argc, char **argv)
 	free(vectors_recv);
 	free(handles_send);
 	free(handles_recv);
-	free(mpi_tags);
 
 	starpu_mpi_shutdown();
 

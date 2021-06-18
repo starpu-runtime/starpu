@@ -144,7 +144,6 @@ static struct starpu_codelet check_cl =
 
 int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)(starpu_data_handle_t *handleptr, int home_node, uintptr_t ptr, uint32_t nx, size_t elemsize), const char *text)
 {
-	int *A, *C;
 	starpu_data_handle_t handles[NDATA];
 
 	if (starpu_get_env_number_default("STARPU_DIDUSE_BARRIER", 0))

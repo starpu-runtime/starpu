@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 	STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, pointer));
 	starpu_data_unregister(handle);
 
-	starpu_free(pointer);
+	starpu_free_noflag(pointer, count * sizeof(int));
 	pointer = NULL;
 
 	/* Lazy allocation.  */

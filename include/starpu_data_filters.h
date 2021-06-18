@@ -240,6 +240,12 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
 void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
 
 /**
+ * Similar to starpu_data_partition_readonly_submit(), but allow to
+ * specify the the coherency to be used for the main data \p initial_handle
+ */
+void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency);
+
+/**
    Assume that a partitioning of \p initial_handle has already been submited
    in readonly mode through starpu_data_partition_readonly_submit(), and will upgrade
    that partitioning into read-write mode for the \p children, by invalidating \p

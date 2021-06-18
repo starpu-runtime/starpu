@@ -429,7 +429,7 @@ void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req* req)
 	_STARPU_MPI_LOG_OUT();
 }
 
-void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event, const nm_sr_event_info_t* event_info, void* ref)
+void _starpu_mpi_handle_request_termination_callback(nm_sr_event_t event STARPU_ATTRIBUTE_UNUSED, const nm_sr_event_info_t* event_info STARPU_ATTRIBUTE_UNUSED, void* ref)
 {
 	_starpu_mpi_handle_request_termination(ref);
 }
@@ -447,7 +447,7 @@ void _starpu_mpi_coop_sends_build_tree(struct _starpu_mpi_coop_sends *coop_sends
 }
 #endif
 
-void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control, int submit_data)
+void _starpu_mpi_submit_coop_sends(struct _starpu_mpi_coop_sends *coop_sends, int submit_control STARPU_ATTRIBUTE_UNUSED, int submit_data)
 {
 	unsigned i, n = coop_sends->n;
 
@@ -717,12 +717,12 @@ int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 
 	if(polling_point_prog)
 	{
-		starpu_progression_hook_register((unsigned (*)(void *))&piom_ltask_schedule, (void *)&polling_point_prog);
+		starpu_progression_hook_register((void *)&piom_ltask_schedule, (void *)&polling_point_prog);
 	}
 
 	if(polling_point_idle)
 	{
-		starpu_idle_hook_register((unsigned (*)(void *))&piom_ltask_schedule, (void *)&polling_point_idle);
+		starpu_idle_hook_register((void *)&piom_ltask_schedule, (void *)&polling_point_idle);
 	}
 
 	/* Launch thread used for nmad callbacks */

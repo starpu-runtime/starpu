@@ -249,8 +249,8 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(v_handle);
 	starpu_data_unregister(v_handle2);
-	starpu_free(v);
-	starpu_free(v2);
+	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
+	starpu_free_noflag(v2, VECTORSIZE*sizeof(unsigned));
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
@@ -258,8 +258,8 @@ int main(int argc, char **argv)
 enodev:
 	starpu_data_unregister(v_handle);
 	starpu_data_unregister(v_handle2);
-	starpu_free(v);
-	starpu_free(v2);
+	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
+	starpu_free_noflag(v2, VECTORSIZE*sizeof(unsigned));
 	starpu_shutdown();
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one

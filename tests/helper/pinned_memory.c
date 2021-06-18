@@ -40,7 +40,7 @@ int main(int argc, char **argv)
 	{
 		ret = starpu_malloc((void **)&data, SIZE);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_malloc");
-		starpu_free(data);
+		starpu_free_noflag(data, SIZE);
 	}
 
 	starpu_shutdown();

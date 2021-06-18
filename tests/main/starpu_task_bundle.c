@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 		starpu_data_unregister(handles[i]);
 	}
 
-		starpu_free(data);
+	starpu_free_noflag(data, sizeof(*data) * NB_BUNDLE);
 
 	starpu_shutdown();
 

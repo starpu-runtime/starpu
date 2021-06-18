@@ -59,9 +59,9 @@ static void alloc_matrices(void)
 
 static void free_matrices(void)
 {
-	starpu_free(A);
-	starpu_free(B);
-	starpu_free(C);
+	starpu_free_noflag(A, N*N*sizeof(double));
+	starpu_free_noflag(B, N*N*sizeof(double));
+	starpu_free_noflag(C, N*N*sizeof(double));
 }
 
 static void init_matrices(void)

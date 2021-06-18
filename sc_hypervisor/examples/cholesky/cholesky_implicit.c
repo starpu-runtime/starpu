@@ -329,7 +329,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	        }
 		free(test_mat);
 	}
-	starpu_free(mat);
+	starpu_free_noflag(mat, (size_t)size*size*sizeof(float));
 }
 
 int main(int argc, char **argv)

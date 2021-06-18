@@ -117,15 +117,17 @@ void starpu_malloc_set_align(size_t align);
    pin it in CUDA or OpenCL, so that data transfers from this buffer
    can be asynchronous, and thus permit data transfer and computation
    overlapping. The allocated buffer must be freed thanks to the
-   starpu_free() function.
+   starpu_free_noflag() function.
 */
 int starpu_malloc(void **A, size_t dim);
 
 /**
+   @deprecated
    Free memory which has previously been allocated with
-   starpu_malloc().
+   starpu_malloc(). This function is deprecated, one should use
+   starpu_free_noflag().
 */
-int starpu_free(void *A);
+int starpu_free(void *A) STARPU_DEPRECATED;
 
 /**
    Perform a memory allocation based on the constraints defined by the
@@ -139,6 +141,12 @@ int starpu_malloc_flags(void **A, size_t dim, int flags);
    allocating the memory.
 */
 int starpu_free_flags(void *A, size_t dim, int flags);
+
+/**
+   Free memory by specifying its size. Should be used for memory
+   allocated with starpu_malloc().
+*/
+int starpu_free_noflag(void *A, size_t dim);
 
 typedef int (*starpu_malloc_hook)(unsigned dst_node, void **A, size_t dim, int flags);
 typedef int (*starpu_free_hook)(unsigned dst_node, void *A, size_t dim, int flags);

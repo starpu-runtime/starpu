@@ -199,10 +199,7 @@ static void create_task_11_recv(unsigned k)
 			if (rank == get_block_rank(i, k-1))
 				tag_array[ndeps++] = TAG21(k-1, i);
 		}
-	}
 
-	if (k > 0)
-	{
 		unsigned j;
 		for (j = (k-1)+1; j < nblocks; j++)
 		{

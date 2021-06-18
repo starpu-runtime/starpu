@@ -295,7 +295,7 @@ int main( int argc, char const *argv[])
 			cpu_nb = 1;
 		}
 		int cuda_offset = rm_nb_cuda_units/2;
-		int cuda_nb = rm_nb_cuda_units/2;
+		int cuda_nb = rm_nb_cuda_units - cuda_offset;
 		spawn_tests(cpu_offset, cpu_nb, cuda_offset, cuda_nb, &test_args);
 	}
 	_wait_pending_spawns();

@@ -76,6 +76,9 @@ EXTRA_DIST =					\
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg
 
+clean-local:
+	-rm -rf overlap/overlap.traces datawizard/locality.traces
+
 BUILT_SOURCES =
 SUBDIRS =
 
@@ -235,6 +238,7 @@ myPROGRAMS +=				\
 	main/insert_task_array			\
 	main/insert_task_many			\
 	main/insert_task_where			\
+	main/job				\
 	main/multithreaded			\
 	main/starpu_task_bundle			\
 	main/starpu_task_wait_for_all		\
@@ -414,6 +418,7 @@ endif
 endif
 
 examplebin_PROGRAMS = \
+	main/deadlock				\
 	microbenchs/async_tasks_overhead	\
 	microbenchs/sync_tasks_overhead		\
 	microbenchs/tasks_overhead		\

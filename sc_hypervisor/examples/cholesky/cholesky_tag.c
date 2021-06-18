@@ -305,11 +305,11 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	starpu_data_unregister(dataA);
 }
 
-static void shutdown_system(float **matA, unsigned pinned)
+static void shutdown_system(float **matA, unsigned dim, unsigned pinned)
 {
 	if (pinned)
 	{
-		starpu_free(*matA);
+		starpu_free_noflag(*matA, (size_t)dim*dim*sizeof(float));
 	}
 	else
 	{
@@ -413,6 +413,6 @@ int main(int argc, char **argv)
 	free(test_mat);
 #endif
 
-	shutdown_system(&mat, pinned);
+	shutdown_system(&mat, size, pinned);
 	return 0;
 }

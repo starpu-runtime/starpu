@@ -37,4 +37,4 @@ else
 fi
 SUPPRESSIONS=$(for f in $(dirname $0)/*.suppr /usr/share/hwloc/hwloc-valgrind.supp; do if test -f $f ; then echo "--suppressions=$f" ; fi ; done)
 
-$RUN --keep-debuginfo=yes --num-callers=42 --error-limit=no --gen-suppressions=all $SUPPRESSIONS $*
+exec $RUN --keep-debuginfo=yes --num-callers=42 --error-limit=no --gen-suppressions=all $SUPPRESSIONS $*

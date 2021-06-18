@@ -136,7 +136,7 @@ int main(void)
 	unsigned ntasks = 1000;
 #endif
 
-	int ret, ret2;
+	int ret;
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
@@ -180,7 +180,7 @@ int main(void)
 	ret = (data == ntasks) ? EXIT_SUCCESS : EXIT_FAILURE;
 
 #ifdef STARPU_USE_OPENCL
-        ret2 = starpu_opencl_unload_opencl(&opencl_program);
+        int ret2 = starpu_opencl_unload_opencl(&opencl_program);
         STARPU_CHECK_RETURN_VALUE(ret2, "starpu_opencl_unload_opencl");
 #endif
 
