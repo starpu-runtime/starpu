@@ -291,6 +291,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 		int nb_data_to_load = 0;
 		int x_to_load = 0;
 		int y_to_load = 0;
+		int z_to_load = 0;
 		int i = 0;
 		//~ printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
 		
@@ -345,11 +346,19 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 		{
 			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
 		}
-		fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
-		
+		if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+		{
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+			fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
+			fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu);
+		}
+		else
+		{
+			fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+		}
 		fclose(f);
 		fclose(f2);
-		//~ printf("Nb data to load = %d, index = %d\n", nb_data_to_load, index_current_popped_task_all_gpu);
 	}
 	return task;
 }

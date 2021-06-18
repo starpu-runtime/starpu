@@ -20,22 +20,8 @@
  */
 
 #include <schedulers/HFP.h>
+#include <schedulers/dynamic_outer.h>
 #include "helper_mct.h"
-
-/* Structure used to acces the struct my_list. There are also task's list */
-//~ struct dynamic_outer_sched_data
-//~ {
-	//~ struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
-	//~ struct starpu_task_list list_if_fifo_full; /* List used if the fifo list is not empty. It means that task from the last iteration haven't been pushed, thus we need to pop task from this list */
-	
-	//~ /* All the pointer use to navigate through the linked list */
-	//~ struct my_list *temp_pointer_1;
-	//~ struct my_list *temp_pointer_2;
-	//~ struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */
-	
-	//~ struct starpu_task_list sched_list;
-     	//~ starpu_pthread_mutex_t policy_mutex;
-//~ };
 
 /* Pushing the tasks */		
 static int dynamic_outer_push_task(struct starpu_sched_component *component, struct starpu_task *task)
@@ -45,7 +31,6 @@ static int dynamic_outer_push_task(struct starpu_sched_component *component, str
     starpu_task_list_push_front(&data->sched_list, task);
     starpu_push_task_end(task);
     STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-    /* Tell below that they can now pull */
     component->can_pull(component);
     return 0;
 }
@@ -153,11 +138,21 @@ static void dynamic_outer_do_schedule(struct starpu_sched_component *component)
 {	
     struct HFP_sched_data *data = component->data;
     struct starpu_task *task = NULL;
+    int i = 0;
     while (!starpu_task_list_empty(&data->sched_list)) 
     {
 	task = starpu_task_list_pop_front(&data->sched_list);
 	printf("Tâche %p, %d donnée(s) : ",task, STARPU_TASK_GET_NBUFFERS(task));
-	starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, task);
+	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) 
+	{
+	    printf("%p ",STARPU_TASK_GET_HANDLE(task, i));
+	}
+	//Remplir liste de tâche utilisant une certaine donnée
+	printf("\n");
+	struct starpu_task *task_pointer = task;
+	printf("Task pointer : %p\n", task_pointer);
+	//~ starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, task);
+	starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, task_pointer);
 	do_schedule_done = true;
     }
 }
@@ -183,6 +178,13 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	data->p = paquets_data;
 	data->p->temp_pointer_1->nb_task_in_sub_list = 0;
 	data->p->temp_pointer_1->expected_time_pulled_out = 0;
+	
+	struct control_task_using_di *d;
+	struct task_using_di *t_d = malloc(sizeof(*t_d));
+	starpu_task_list_init(&t_d->l);
+	t_d->next = NULL;
+	d->pointer = t_d;
+	d->first = d->pointer;
 	
 	component->data = data;
 	component->do_schedule = dynamic_outer_do_schedule;
