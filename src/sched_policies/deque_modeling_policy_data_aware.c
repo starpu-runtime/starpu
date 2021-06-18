@@ -311,6 +311,10 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 				{
 					y_to_load = 1;
 				}
+				if (i == 2)
+				{
+					z_to_load = 1;
+				}
 			}
 		}
 		
