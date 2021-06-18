@@ -17,6 +17,7 @@
  */
 
 /* TODO : description
+ * HFP_sched_data->sched_list = liste de tâches grand T
  */
 
 #include <schedulers/HFP.h>
@@ -89,7 +90,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     }
 }
 
-static int dynamic_outer_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
+static int dynamic_outer_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
     struct HFP_sched_data *data = component->data;
     int didwork = 0;
@@ -129,9 +130,20 @@ static int dynamic_outer_can_push(struct starpu_sched_component * component, str
     return didwork || starpu_sched_component_can_push(component, to);
 }
 
-static int dynamic_outer_can_pull(struct starpu_sched_component * component)
+static int dynamic_outer_can_pull(struct starpu_sched_component *component)
 {
     return starpu_sched_component_can_pull(component);
+}
+
+struct starpu_task_list randomize_task_list(struct starpu_task_list *l)
+{
+    struct starpu_task * tab[
+}
+
+void initialization_dynamic_outer(struct starpu_sched_component *component)
+{
+    struct HFP_sched_data *data = component->data;
+    randomize_task_list(&data->sched_list);
 }
 
 static void dynamic_outer_do_schedule(struct starpu_sched_component *component)
@@ -139,6 +151,17 @@ static void dynamic_outer_do_schedule(struct starpu_sched_component *component)
     struct HFP_sched_data *data = component->data;
     struct starpu_task *task = NULL;
     int i = 0;
+    
+    if (!starpu_task_list_empty(&data->sched_list) && initialization_dynamic_outer_done == false)
+    {
+	for (task = starpu_task_list_begin(&data->sched_list); task != starpu_task_list-end(&data->sched_list); task = starpu_task_list_next(task))
+	{
+	    NT ++;
+	}
+	initialization_dynamic_outer(component)
+	initialization_dynamic_outer_done = true;
+    }
+    
     while (!starpu_task_list_empty(&data->sched_list)) 
     {
 	task = starpu_task_list_pop_front(&data->sched_list);
@@ -162,7 +185,9 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_outer");
 	
 	Ngpu = get_number_GPU();
-	do_schedule_done = false;	
+	NT = 0;
+	do_schedule_done = false;
+	initialization_dynamic_outer_done = false;	
 	struct HFP_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	struct paquets *paquets_data = malloc(sizeof(*paquets_data));
@@ -179,12 +204,12 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	data->p->temp_pointer_1->nb_task_in_sub_list = 0;
 	data->p->temp_pointer_1->expected_time_pulled_out = 0;
 	
-	struct control_task_using_di *d;
-	struct task_using_di *t_d = malloc(sizeof(*t_d));
-	starpu_task_list_init(&t_d->l);
-	t_d->next = NULL;
-	d->pointer = t_d;
-	d->first = d->pointer;
+	//~ struct control_task_using_di *d;
+	//~ struct task_using_di *t_d = malloc(sizeof(*t_d));
+	//~ starpu_task_list_init(&t_d->l);
+	//~ t_d->next = NULL;
+	//~ d->pointer = t_d;
+	//~ d->first = d->pointer;
 	
 	component->data = data;
 	component->do_schedule = dynamic_outer_do_schedule;
