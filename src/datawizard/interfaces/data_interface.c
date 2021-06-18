@@ -542,6 +542,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->coordinates = {};
 
 	//handle->user_data = NULL;
+	//handle->sched_data = NULL;
 
 
 	return 0;

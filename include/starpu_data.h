@@ -612,6 +612,18 @@ void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data);
 void *starpu_data_get_user_data(starpu_data_handle_t handle);
 
 /**
+   Set the field \c sched_data for the \p handle to \p sched_data . It can
+   then be retrieved with starpu_data_get_sched_data(). \p sched_data can be any
+   scheduler-defined value.
+*/
+void starpu_data_set_sched_data(starpu_data_handle_t handle, void* sched_data);
+
+/**
+   Retrieve the field \c sched_data previously set for the \p handle.
+*/
+void *starpu_data_get_sched_data(starpu_data_handle_t handle);
+
+/**
   Check whether data \p handle can be evicted now from node \p node
 */
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch);

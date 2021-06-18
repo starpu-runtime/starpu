@@ -2030,3 +2030,13 @@ void *starpu_data_get_user_data(starpu_data_handle_t handle)
 {
 	return handle->user_data;
 }
+
+void starpu_data_set_sched_data(starpu_data_handle_t handle, void* sched_data)
+{
+	handle->sched_data = sched_data;
+}
+
+void *starpu_data_get_sched_data(starpu_data_handle_t handle)
+{
+	return handle->sched_data;
+}
