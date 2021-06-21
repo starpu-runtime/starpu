@@ -119,14 +119,17 @@ void fstarpu_mpi_redux_data(MPI_Fint comm, starpu_data_handle_t data_handle)
 {
 	starpu_mpi_redux_data(MPI_Comm_f2c(comm), data_handle);
 }
+
 void fstarpu_mpi_redux_data_prio(MPI_Fint comm, starpu_data_handle_t data_handle, int prio)
 {
 	starpu_mpi_redux_data_prio(MPI_Comm_f2c(comm), data_handle, prio);
 }
+
 void fstarpu_mpi_redux_data_tree(MPI_Fint comm, starpu_data_handle_t data_handle, int arity)
 {
 	starpu_mpi_redux_data_tree(MPI_Comm_f2c(comm), data_handle, arity);
 }
+
 void fstarpu_mpi_redux_data_prio_tree(MPI_Fint comm, starpu_data_handle_t data_handle, int prio, int arity)
 {
 	starpu_mpi_redux_data_prio_tree(MPI_Comm_f2c(comm), data_handle, prio, arity);

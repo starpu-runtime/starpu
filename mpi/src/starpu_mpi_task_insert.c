@@ -748,7 +748,7 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
 	return _starpu_mpi_task_postbuild_v(comm, xrank, do_execute, descrs, nb_data, prio);
 }
 
-struct starpu_codelet _starpu_mpi_redux_data_synchro_cl = 
+struct starpu_codelet _starpu_mpi_redux_data_synchro_cl =
 {
 	.where = STARPU_NOWHERE,
 	.modes = {STARPU_R, STARPU_W},
@@ -770,7 +770,6 @@ void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, 
 {
 	*post_sync_jobid = ((const struct _starpu_mpi_redux_data_args *) redux_data_args)->taskC_jobid;
 }
-
 
 /* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
  *  * a data previously accessed in (MPI_)REDUX mode gets accessed in R mode. */
@@ -802,7 +801,7 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	// see hamming weight
 	//nb_contrib = std::popcount(mpi_data->redux_map); // most preferable
 	nb_contrib=0;
-	for (i=0;i<nb_nodes;i++) 
+	for (i=0;i<nb_nodes;i++)
 	{
 		_STARPU_MPI_DEBUG(5, "mpi_data->redux_map[%d] = %d\n", i, mpi_data->redux_map[i]);
 		if (mpi_data->redux_map[i]) nb_contrib++;
@@ -817,29 +816,30 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	j=0;
 	for (i=0;i<nb_nodes;i++)
 	{
-		_STARPU_MPI_DEBUG(5, "%d in reduction ? %d\n", i, mpi_data->redux_map[i]); 
-		if (mpi_data->redux_map[i]) {
+		_STARPU_MPI_DEBUG(5, "%d in reduction ? %d\n", i, mpi_data->redux_map[i]);
+		if (mpi_data->redux_map[i])
+		{
 			contributors[j++] = i;
 		}
 	}
 	for (i=0;i<nb_contrib;i++)
 	{
-		_STARPU_MPI_DEBUG(5, "%dth contributor = %d\n", i, contributors[i]); 
+		_STARPU_MPI_DEBUG(5, "%dth contributor = %d\n", i, contributors[i]);
 	}
 	// Creating synchronization task and use its jobid for tracing
 	struct starpu_task *synchro = starpu_task_create();
-//	const long synchro_jobid = starpu_task_get_job_id(synchro);
+	//const long synchro_jobid = starpu_task_get_job_id(synchro);
 	synchro->cl = &_starpu_mpi_redux_data_synchro_cl;
-//	STARPU_TASK_SET_HANDLE(synchro, data_handle, 0);
+	//STARPU_TASK_SET_HANDLE(synchro, data_handle, 0);
 
 	_STARPU_MPI_DEBUG(15, "mpi_redux _ STARTING with %d-ary tree \n", arity);
 	current_level = 0;
 	while (nb_contrib != 1)
 	{
-		_STARPU_MPI_DEBUG(5, "%dth level in the reduction \n", current_level); 
+		_STARPU_MPI_DEBUG(5, "%dth level in the reduction \n", current_level);
 		if (nb_contrib%arity == 0) next_nb_contrib = nb_contrib/arity;
 		else next_nb_contrib = nb_contrib/arity + 1;
-		for (step = 0; step < next_nb_contrib; step++) 
+		for (step = 0; step < next_nb_contrib; step++)
 		{
 			root_in_step = 0;
 			me_in_step = 0;
@@ -851,27 +851,31 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 			/* FIXME: if the root node is note in the step, then we agree the node
 			 * with the lowest id reduces the step : we could agree on another
 			 * node to better load balance in the case of multiple reductions involving
-			 * the same sets of nodes 
-			 * FIX: We chose to use the tag%arity-th contributor in the step 
+			 * the same sets of nodes
+			 * FIX: We chose to use the tag%arity-th contributor in the step
 			 */
-			if (root_in_step) {
+			if (root_in_step)
+			{
 				reducing_node = rank;
 			}
-			else if (step*arity + data_tag%arity < nb_contrib) { 
-				reducing_node = contributors[step*arity + data_tag%arity]; 
+			else if (step*arity + data_tag%arity < nb_contrib)
+			{
+				reducing_node = contributors[step*arity + data_tag%arity];
 			}
-			else { 
-				reducing_node = contributors[step*arity]; 
+			else
+			{
+				reducing_node = contributors[step*arity];
 			}
 
 			if (me == reducing_node)
 			{
-				_STARPU_MPI_DEBUG(5, "mpi_redux _ %dth level, %dth step ; chose %d node\n", current_level, step, reducing_node); 
+				_STARPU_MPI_DEBUG(5, "mpi_redux _ %dth level, %dth step ; chose %d node\n", current_level, step, reducing_node);
 				for (node = step*arity ; node < nb_contrib && node < (step+1)*arity ; node++)
 				{
-					if (me != contributors[node]) {
-						_STARPU_MPI_DEBUG(5, "%d takes part in the reduction of %p towards %d (%dth level ; %dth step) \n", 
-								contributors[node], data_handle, reducing_node, current_level, step);
+					if (me != contributors[node])
+					{
+						_STARPU_MPI_DEBUG(5, "%d takes part in the reduction of %p towards %d (%dth level ; %dth step) \n",
+								  contributors[node], data_handle, reducing_node, current_level, step);
 						/* We need to make sure all is
 						 * executed after data_handle finished
 						 * its last read access, we hence do
@@ -886,8 +890,8 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 						starpu_data_handle_t new_handle;
 						starpu_data_register_same(&new_handle, data_handle);
 						/* Task A */
-				       	        starpu_task_insert(&_starpu_mpi_redux_data_synchro_cl, 
-									STARPU_R, data_handle, 
+				       	        starpu_task_insert(&_starpu_mpi_redux_data_synchro_cl,
+									STARPU_R, data_handle,
 									STARPU_W, new_handle, 0);
 				       	        starpu_mpi_irecv_detached_prio(new_handle, contributors[node], data_tag, prio, comm, NULL, NULL);
 					        /* Task B */
@@ -925,12 +929,12 @@ void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle,
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
 	starpu_mpi_comm_size(comm, &nb_nodes);
 	nb_contrib=0;
-	for (i=0;i<nb_nodes;i++) 
+	for (i=0;i<nb_nodes;i++)
 	{
-		if (mpi_data->redux_map[i]) {
+		if (mpi_data->redux_map[i])
+		{
 			nb_contrib++;
 		}
 	}
 	return starpu_mpi_redux_data_prio_tree(comm, data_handle, prio, nb_contrib);
 }
-
