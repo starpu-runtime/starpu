@@ -811,6 +811,10 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	{
 		arity = nb_contrib;
 	}
+	if (arity < 2)
+	{
+		_STARPU_ERROR("StarPU can only operate an inter-node reduction on a tree with at least two nodes.\n");
+	}
 	_STARPU_MPI_DEBUG(5, "There is %d contributors\n", nb_contrib);
 	int contributors[nb_contrib];
 	int reducing_node;
@@ -852,9 +856,10 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 			 * with the lowest id reduces the step : we could agree on another
 			 * node to better load balance in the case of multiple reductions involving
 			 * the same sets of nodes 
+			 * FIX: We chose to use the tag%arity-th contributor in the step 
 			 */
 			if (root_in_step) reducing_node = rank;
-			else reducing_node = contributors[step*arity]; 
+			else reducing_node = contributors[step*arity + data_tag%arity]; 
 
 			if (me == reducing_node)
 			{
