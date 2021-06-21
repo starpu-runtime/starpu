@@ -130,20 +130,56 @@ static int dynamic_outer_can_push(struct starpu_sched_component *component, stru
     return didwork || starpu_sched_component_can_push(component, to);
 }
 
+void print_task_list(struct starpu_task_list *l, char *s)
+{
+    printf("%s :\n", s);
+    for (struct starpu_task *task = starpu_task_list_begin(l); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
+    {
+	printf("%p\n", task);
+    }
+    printf("\n");
+}
+
 static int dynamic_outer_can_pull(struct starpu_sched_component *component)
 {
     return starpu_sched_component_can_pull(component);
 }
 
-struct starpu_task_list randomize_task_list(struct starpu_task_list *l)
+void randomize_task_list(struct HFP_sched_data *d)
 {
-    struct starpu_task * tab[
+    int random = 0;
+    int i = 0;
+    
+    for (i = 0; i < NT; i++)
+    {
+	random = rand()%NT;
+	while (random != 0)
+	{
+	    random--;
+	    starpu_task_list_push_back(&d->sched_list, starpu_task_list_pop_front(&d->sched_list));
+	}
+	starpu_task_list_push_back(&d->popped_task_list, starpu_task_list_pop_front(&d->sched_list));
+    }
+    printf("J'ai parcouru la liste de tâche complète, puis la liste - 1 élément et ainsi de suite. Cela pour randomiser la liste de tâches initiale dans randomize_task_list. Complexité : O(NT^2)\n\n");
 }
 
 void initialization_dynamic_outer(struct starpu_sched_component *component)
 {
     struct HFP_sched_data *data = component->data;
-    randomize_task_list(&data->sched_list);
+    
+    /* Step 2 : Shuffling the task list */
+    print_task_list(&data->sched_list, "Initial task list");
+    randomize_task_list(data);
+    print_task_list(&data->popped_task_list, "After shuffling");
+    
+    /* Step 3a : For each different data, create a list of task using this data. Using the field *sched_data of the handles */
+    
+    /* Step 3b : Add pointer to point toward other data using this task */
+    
+    /* Step 4 : Creating a data list for each GPU containing all the data they did not used yet. Initially it's all the different data.
+     * On list per data type. It works only in 2D or 3D matrix multiplication for now.
+     */
+     
 }
 
 static void dynamic_outer_do_schedule(struct starpu_sched_component *component)
@@ -154,30 +190,31 @@ static void dynamic_outer_do_schedule(struct starpu_sched_component *component)
     
     if (!starpu_task_list_empty(&data->sched_list) && initialization_dynamic_outer_done == false)
     {
-	for (task = starpu_task_list_begin(&data->sched_list); task != starpu_task_list-end(&data->sched_list); task = starpu_task_list_next(task))
+	for (task = starpu_task_list_begin(&data->sched_list); task != starpu_task_list_end(&data->sched_list); task = starpu_task_list_next(task))
 	{
 	    NT ++;
 	}
-	initialization_dynamic_outer(component)
+	printf("Il y a %d tâches\n\n", NT);
+	printf("J'ai parcouru la liste de tâche complète pour savoir combien il y a de tâches au total (car j'en ai besoin dans randomize_task_list). Complexité : O(NT)\n\n");
+	initialization_dynamic_outer(component);
 	initialization_dynamic_outer_done = true;
     }
     
-    while (!starpu_task_list_empty(&data->sched_list)) 
-    {
-	task = starpu_task_list_pop_front(&data->sched_list);
-	printf("Tâche %p, %d donnée(s) : ",task, STARPU_TASK_GET_NBUFFERS(task));
-	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) 
-	{
-	    printf("%p ",STARPU_TASK_GET_HANDLE(task, i));
-	}
-	//Remplir liste de tâche utilisant une certaine donnée
-	printf("\n");
-	struct starpu_task *task_pointer = task;
-	printf("Task pointer : %p\n", task_pointer);
-	//~ starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, task);
-	starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, task_pointer);
-	do_schedule_done = true;
-    }
+    //~ while (!starpu_task_list_empty(&data->sched_list)) 
+    //~ {
+	//~ task = starpu_task_list_pop_front(&data->sched_list);
+	//~ printf("Tâche %p, %d donnée(s) : ",task, STARPU_TASK_GET_NBUFFERS(task));
+	//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) 
+	//~ {
+	    //~ printf("%p ",STARPU_TASK_GET_HANDLE(task, i));
+	//~ }
+	//~ //Remplir liste de tâche utilisant une certaine donnée
+	//~ printf("\n");
+	//~ struct starpu_task *task_pointer = task;
+	//~ printf("Task pointer : %p\n", task_pointer);
+	//~ starpu_task_list_push_back(&data->p->temp_pointer_1->sub_list, task_pointer);
+	//~ do_schedule_done = true;
+    //~ }
 }
 
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)

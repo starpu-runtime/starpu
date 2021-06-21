@@ -13,10 +13,10 @@ void initialization_dynamic_outer(struct starpu_sched_component *component);
  */
 bool initialization_dynamic_outer_done;
 
-/* Randomize a task list. Called in initialization_dynamic_outer(struct starpu_sched_component *component)
- * to randomize the initial task list.
+/* Randomize a task list. It takes the struct because I use two task list for this.
  */
-struct starpu_task_list randomize_task_list(struct starpu_task_list *l);
+void randomize_task_list(struct HFP_sched_data *d);
+
+void print_task_list(struct starpu_task_list *l, char *s);
 
 #endif
-
