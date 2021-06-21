@@ -31,4 +31,12 @@ LIST_TYPE(task_using_data,
     struct starpu_task *pointer_to_T;
 );
 
+struct pointer_in_task
+{
+    /* Pointer to the datas used by the current task */
+    struct starpu_data_handle_t *pointer_to_A;
+    struct starpu_data_handle_t *pointer_to_B;
+    struct starpu_task *pointer_to_cell; /* pointer to the cell in the main task list */
+};
+
 #endif
