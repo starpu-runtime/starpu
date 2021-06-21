@@ -854,8 +854,15 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 			 * the same sets of nodes 
 			 * FIX: We chose to use the tag%arity-th contributor in the step 
 			 */
-			if (root_in_step) reducing_node = rank;
-			else reducing_node = contributors[step*arity + data_tag%arity]; 
+			if (root_in_step) {
+				reducing_node = rank;
+			}
+			else if (step*arity + data_tag%arity < nb_contrib) { 
+				reducing_node = contributors[step*arity + data_tag%arity]; 
+			}
+			else { 
+				reducing_node = contributors[step*arity]; 
+			}
 
 			if (me == reducing_node)
 			{
