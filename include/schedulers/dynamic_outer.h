@@ -13,10 +13,22 @@ void initialization_dynamic_outer(struct starpu_sched_component *component);
  */
 bool initialization_dynamic_outer_done;
 
-/* Randomize a task list. It takes the struct because I use two task list for this.
+/* Randomize a task list. It takes the struct because I use two task list for this and I already have two in HFP_sched_data.
  */
 void randomize_task_list(struct HFP_sched_data *d);
 
+/* Just printing in the terminal 
+ */
 void print_task_list(struct starpu_task_list *l, char *s);
+
+/* Initialize for each data the set of task that use it (with pointer pointing the main task list)
+ * + in each task I add a pointer to the task list it is in.
+ */
+void initialize_task_list_using_data(struct starpu_task_list *l);
+
+LIST_TYPE(task_using_data,
+    /* Pointer to the main task list T */
+    struct starpu_task *pointer_to_T;
+);
 
 #endif

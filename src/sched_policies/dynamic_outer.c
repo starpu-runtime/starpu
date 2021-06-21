@@ -145,6 +145,44 @@ static int dynamic_outer_can_pull(struct starpu_sched_component *component)
     return starpu_sched_component_can_pull(component);
 }
 
+void initialize_task_list_using_data(struct starpu_task_list *l)
+{
+    int i = 0;
+    
+    for (struct starpu_task *task = starpu_task_list_begin(l); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
+    {
+	printf("Sur la tâche %p\n", task);
+	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+	{
+	    printf("Sur la donnée %p\n", STARPU_TASK_GET_HANDLE(task, i));
+	    if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
+	    {
+		//~ struct task_using_data_list tl;
+		//~ task_using_data_list_init(&tl);
+		struct task_using_data_list *tl = task_using_data_list_new();
+		struct task_using_data *e = task_using_data_new();
+		e->pointer_to_T = task;
+		task_using_data_list_push_front(tl, e);
+		STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
+	    }
+	    else
+	    {
+		struct task_using_data *e = task_using_data_new();
+		e->pointer_to_T = task;
+		task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
+		//~ STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
+	    }
+	    printf("Contenu de sched_data dans le handle :\n");
+	    struct task_using_data *temp;
+	    for(temp = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(task, i)->sched_data); temp != task_using_data_list_end(STARPU_TASK_GET_HANDLE(task, i)->sched_data); temp  = task_using_data_list_next(temp))
+	    {
+		printf("%p	", temp->pointer_to_T);
+	    }
+	    printf("\n");
+	}
+    }
+}
+
 void randomize_task_list(struct HFP_sched_data *d)
 {
     int random = 0;
@@ -172,21 +210,24 @@ void initialization_dynamic_outer(struct starpu_sched_component *component)
     randomize_task_list(data);
     print_task_list(&data->popped_task_list, "After shuffling");
     
-    /* Step 3a : For each different data, create a list of task using this data. Using the field *sched_data of the handles */
+    /* Step 3a : For each different data, create a list of task using this data. Using the field *sched_data of the handles.
+     * I'm using the randomized list. I don't know if it changes something. 
+     */
+    initialize_task_list_using_data(&data->popped_task_list);
     
     /* Step 3b : Add pointer to point toward other data using this task */
     
     /* Step 4 : Creating a data list for each GPU containing all the data they did not used yet. Initially it's all the different data.
      * On list per data type. It works only in 2D or 3D matrix multiplication for now.
      */
-     
+    
 }
 
 static void dynamic_outer_do_schedule(struct starpu_sched_component *component)
 {	
     struct HFP_sched_data *data = component->data;
     struct starpu_task *task = NULL;
-    int i = 0;
+    //~ int i = 0;
     
     if (!starpu_task_list_empty(&data->sched_list) && initialization_dynamic_outer_done == false)
     {
