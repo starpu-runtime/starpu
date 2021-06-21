@@ -4786,6 +4786,44 @@ static struct starpu_data_trace_kernel
 	FILE *file;
 } *kernels;
 
+static struct starpu_data_trace_kernel_job
+{
+	UT_hash_handle hh;
+	int jobid;
+	char *name;
+} *kernel_jobs;
+
+static void record_kernel_job_name(int jobid, char *name)
+{
+	struct starpu_data_trace_kernel_job *kernel_job;
+	HASH_FIND_INT(kernel_jobs, &jobid, kernel_job);
+	if (kernel_job == NULL)
+	{
+		_STARPU_MALLOC(kernel_job, sizeof(*kernel_job));
+		kernel_job->jobid = jobid;
+		HASH_ADD_INT(kernel_jobs, jobid, kernel_job);
+	}
+	else
+	{
+		free(kernel_job->name);
+	}
+	kernel_job->name = strdup(name);
+}
+
+static char *extract_kernel_job_name(int jobid)
+{
+	char *name = NULL;
+	struct starpu_data_trace_kernel_job *kernel_job;
+	HASH_FIND_INT(kernel_jobs, &jobid, kernel_job);
+	if (kernel_job != NULL)
+	{
+		name = kernel_job->name;
+		HASH_DEL(kernel_jobs, kernel_job);
+		free(kernel_job);
+	}
+	return name;
+}
+
 #define NANO_SEC_TO_MILI_SEC 0.000001
 
 static FILE *codelet_list;
@@ -4843,14 +4881,10 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
 
-	struct fxt_ev_64 ev;
-
-	int workerid=-1;
-	unsigned long has_name = 0;
-
 	while(1)
 	{
 		unsigned i;
+		struct fxt_ev_64 ev;
 		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		for (i = ev.nb_params; i < FXT_MAX_PARAMS; i++)
 			ev.param[i] = 0;
@@ -4865,26 +4899,43 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 			register_worker_id(0 /* TODO: Add nodeid here instead */, ev.param[6], ev.param[1], ev.param[5]);
 			break;
 
+		case _STARPU_FUT_TASK_NAME:
+			{
+				int jobid = (int)ev.param[0];
+				char *name = get_fxt_string(&ev,2);
+				record_kernel_job_name(jobid, name);
+			}
+			break;
+
 		case _STARPU_FUT_START_CODELET_BODY:
-			workerid = ev.param[2];
-			tasks[workerid].workerid = (unsigned)workerid;
-			tasks[workerid].exec_time = ev.time;
-			has_name = ev.param[4];
-			free(tasks[workerid].codelet_name);
-			tasks[workerid].codelet_name = strdup(has_name ? get_fxt_string(&ev, 5): "unknown");
-			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
+			{
+				int workerid = ev.param[2];
+				tasks[workerid].workerid = (unsigned)workerid;
+				tasks[workerid].exec_time = ev.time;
+			}
 			break;
 
 		case _STARPU_FUT_END_CODELET_BODY:
-			workerid = ev.param[3];
-			assert(workerid != -1);
-			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
-			write_task(dir, &tasks[workerid]);
+			{
+				int jobid = (int)ev.param[0];
+				int workerid = ev.param[3];
+				assert(workerid != -1);
+				tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
+				char *name = extract_kernel_job_name(jobid);
+				if (name == NULL)
+				{
+					name = strdup("unknown");
+				}
+				tasks[workerid].codelet_name = name;
+				write_task(dir, &tasks[workerid]);
+			}
 			break;
 
 		case _STARPU_FUT_DATA_LOAD:
-			workerid = ev.param[0];
-			tasks[workerid].data_total = ev.param[1];
+			{
+				int workerid = ev.param[0];
+				tasks[workerid].data_total = ev.param[1];
+			}
 			break;
 
 		default:
@@ -4922,19 +4973,30 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 
 	free_worker_ids();
 
-	struct starpu_data_trace_kernel *kernel=NULL, *tmp=NULL;
-	HASH_ITER(hh, kernels, kernel, tmp)
 	{
-		if(fclose(kernel->file))
+		struct starpu_data_trace_kernel *kernel=NULL, *tmp=NULL;
+		HASH_ITER(hh, kernels, kernel, tmp)
 		{
-			perror("close failed :");
-			exit(-1);
+			if(fclose(kernel->file))
+			{
+				perror("close failed :");
+				exit(-1);
+			}
+			HASH_DEL(kernels, kernel);
+			free(kernel->name);
+			free(kernel);
 		}
-		HASH_DEL(kernels, kernel);
-		free(kernel->name);
-		free(kernel);
 	}
 
+	{
+		struct starpu_data_trace_kernel_job *kernel_job=NULL, *tmp=NULL;
+		HASH_ITER(hh, kernel_jobs, kernel_job, tmp)
+		{
+			HASH_DEL(kernel_jobs, kernel_job);
+			free(kernel_job->name);
+			free(kernel_job);
+		}
+	}
 }
 
 void starpu_fxt_write_data_trace(char *filename_in)

@@ -317,6 +317,10 @@ struct _starpu_data_state
 	/** A generic pointer to data in the user land (could be anything and this
 	 * is not manage by StarPU) */
 	void *user_data;
+
+	/** A generic pointer to data in the scheduler (could be anything and this
+	 * is managed by the scheduler) */
+	void *sched_data;
 };
 
 /** This does not take a reference on the handle, the caller has to do it,
