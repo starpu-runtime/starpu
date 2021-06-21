@@ -790,7 +790,11 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	{
 		_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 	}
-
+	if (mpi_data->redux_map == NULL)
+	{
+		_STARPU_MPI_DEBUG(5, "We do not contribute to the data being reduced.\n");
+		return;
+	}
 	starpu_mpi_comm_rank(comm, &me);
 	starpu_mpi_comm_size(comm, &nb_nodes);
 
