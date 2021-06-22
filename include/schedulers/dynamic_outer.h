@@ -28,25 +28,26 @@ void print_task_list(struct starpu_task_list *l, char *s);
 /* Initialize for each data the set of task that use it (with pointer pointing the main task list)
  * + in each task I add a pointer to the task list it is in.
  */
-void initialize_task_list_using_data(struct starpu_task_list *l, struct paquets *p);
+void initialize_task_data_gpu(struct starpu_task_list *l, struct paquets *p);
 
+/* In the handles */
 LIST_TYPE(task_using_data,
     /* Pointer to the main task list T */
     struct starpu_task *pointer_to_T;
 );
 
+/* In the packages */
 LIST_TYPE(gpu_data_not_used,
     /* Pointer to the main task list T */
     starpu_data_handle_t D;
-    //~ starpu_data_handle_t B;
 );
 
-//~ struct pointer_in_task
-//~ {
-    //~ /* Pointer to the datas used by the current task */
-    //~ struct starpu_data_handle_t *pointer_to_A;
-    //~ struct starpu_data_handle_t *pointer_to_B;
-    //~ struct starpu_task *pointer_to_cell; /* pointer to the cell in the main task list */
-//~ };
+/* In a task */
+struct pointer_in_task
+{
+    /* Pointer to the datas used by the current task */
+    starpu_data_handle_t *pointer_to_D;
+    struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
+};
 
 #endif
