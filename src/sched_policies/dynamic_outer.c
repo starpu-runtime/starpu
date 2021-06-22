@@ -28,6 +28,9 @@
 static int dynamic_outer_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
     struct HFP_sched_data *data = component->data;
+    
+    //~ printf("Dans push il y a %d tâches\n\n", starpu_task_list_size(&data->sched_list));
+    
     STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
     starpu_task_list_push_front(&data->sched_list, task);
     starpu_push_task_end(task);
@@ -39,6 +42,8 @@ static int dynamic_outer_push_task(struct starpu_sched_component *component, str
 /* The function that sort the tasks in packages */
 static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+    printf("Beggining of pull task\n");
+    
     /* Step 8 : When a GPU ask for a task first check if initialization has been done.
      * If yes return the head of it package.
      * If the package is empty, go in do_schedule to pop 2 new data.
@@ -46,7 +51,8 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
      //TODO
      
     struct HFP_sched_data *data = component->data;	
-    if (do_schedule_done == true)
+    
+    if (initialization_dynamic_outer_done == true)
     {
 	int i = 0;
 	struct starpu_task *task = NULL;
@@ -76,6 +82,10 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	    printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n", task, to);
 	    return task;
 	}
+	
+	/* Applying dynamic_outer algorithm */
+	dynamic_outer_scheduling(data, i);
+	
 	/* If the linked list is empty */
 	if (is_empty(data->p->first_link) == true) 
 	{
@@ -83,7 +93,6 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	    return NULL;
 	}
 	/* Else we take the next one in the package */
-	//~ task = get_task_to_return(component, to, data->p, Ngpu);
 	task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
 	printf("Task %p is getting out of pull_task from gpu %p\n", task, to);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -94,6 +103,44 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	/* Do schedule not done yet */
 	return NULL;
     }
+}
+
+void dynamic_outer_scheduling(struct HFP_sched_data *d, int current_gpu)
+{
+    printf("Beggining of dynamic_outer_scheduling\n");
+    int i = 0;
+    starpu_data_handle_t *handle_popped = malloc(STARPU_TASK_GET_NBUFFERS(starpu_task_list_begin(&d->popped_task_list))*sizeof(STARPU_TASK_GET_HANDLE(starpu_task_list_begin(&d->popped_task_list), 0)));
+    struct gpu_data_not_used *e;
+    
+    d->p->temp_pointer_1 = d->p->first_link;
+    printf("Current GPU : %d\n", i);
+    for (i = 0; i < current_gpu; i++)
+    {
+	d->p->temp_pointer_1 = d->p->temp_pointer_1->next;
+    }
+    printf("Popped handles: ");
+    for (i = 0; i < Ndifferent_data_type; i++)
+    {
+	for (e = gpu_data_not_used_list_begin(d->p->temp_pointer_1->gpu_data[i]); e != gpu_data_not_used_list_end(d->p->temp_pointer_1->gpu_data[i]); e = gpu_data_not_used_list_next(e))
+	{
+	    printf("%p ", e->D);
+	}
+	printf("/ ");
+	e = gpu_data_not_used_list_pop_front(d->p->temp_pointer_1->gpu_data[i]);
+	handle_popped[i] = e->D;
+    }
+    printf("\nHandles popped: %p %p\n", handle_popped[0], handle_popped[1]);
+    printf("Task using these handles:");
+    for (struct task_using_data *t = task_using_data_list_begin(handle_popped[0]->sched_data); t != task_using_data_list_end(handle_popped[0]->sched_data); t = task_using_data_list_next(t))
+    {
+	printf(" %p", t->pointer_to_T);
+    }
+    printf("/ ");
+    for (struct task_using_data *t = task_using_data_list_begin(handle_popped[1]->sched_data); t != task_using_data_list_end(handle_popped[0]->sched_data); t = task_using_data_list_next(t))
+    {
+	printf(" %p", t->pointer_to_T);
+    }
+    printf("\n");
 }
 
 static int dynamic_outer_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
@@ -335,6 +382,7 @@ void initialization_dynamic_outer(struct starpu_sched_component *component)
 
 static void dynamic_outer_do_schedule(struct starpu_sched_component *component)
 {	
+    printf("Beggining of do_schedule\n");
     struct HFP_sched_data *data = component->data;
     //~ struct starpu_task *task = NULL;
     //~ int i = 0;
@@ -344,21 +392,25 @@ static void dynamic_outer_do_schedule(struct starpu_sched_component *component)
 	NT = starpu_task_list_size(&data->sched_list);
 	printf("Il y a %d tâches\n\n", NT);
 	initialization_dynamic_outer(component);
-	initialization_dynamic_outer_done = true;
+    }
+    if (initialization_dynamic_outer_done == true)
+    {
+	/* Step 5 : Pop a data from A and a data from B */
+	//TODO
+	//~ starpu_data_handle_t *popped_handles = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+	
+	/* Step 6 : Add to the corresponding package all the task we can do 
+	 * with A and/or B + the data already in memory of the corresponding GPU.
+	 */
+	//TODO
+	
+	/* Step 7 : Delete from handle list (A and B (and C)) and T the tasks added in the package.
+	 */
+	//TODO
+	
+	do_schedule_done = true;
     }
     
-    /* Step 5 : Pop a data from A and a data from B */
-    //TODO
-    
-    /* Step 6 : Add to the corresponding package all the task we can do 
-     * with A and/or B + the data already in memory of the corresponding GPU.
-     */
-    //TODO
-    
-    /* Step 7 : Delete from handle list (A and B (and C)) and T the tasks added in the package.
-     */
-    //TODO
-     
     /* Temporary code just to test what I already coded */
     //~ struct task_using_data *temp;
     //~ task = starpu_task_list_begin(&data->popped_task_list);
