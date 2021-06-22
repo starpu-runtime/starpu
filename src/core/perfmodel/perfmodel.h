@@ -65,6 +65,7 @@ struct starpu_perfmodel_arch;
 
 extern unsigned _starpu_calibration_minimum;
 
+char *_starpu_get_perf_model_dir();
 char *_starpu_get_perf_model_dir_codelet() STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 char *_starpu_get_perf_model_dir_bus();
 char *_starpu_get_perf_model_dir_debug();

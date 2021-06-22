@@ -622,6 +622,123 @@ Specify which PAPI events should be recorded in the trace (\ref PapiCounters).
 
 </dl>
 
+\section ConfiguringHeteroprio Configuring The Heteroprio Scheduler
+
+\subsection ConfiguringLaHeteroprio Configuring LAHeteroprio
+<dl>
+
+<dt>STARPU_HETEROPRIO_USE_LA</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_USE_LA
+\addindex __env__STARPU_HETEROPRIO_USE_LA
+Enable the locality aware mode of Heteroprio which guides the distribution of tasks to workers
+in order to reduce the data transfers between memory nodes.
+</dd>
+
+<dt>STARPU_LAHETEROPRIO_PUSH</dt>
+<dd>
+\anchor STARPU_LAHETEROPRIO_PUSH
+\addindex __env__STARPU_LAHETEROPRIO_PUSH
+Choose between the different push strategies for locality aware Heteroprio: 
+WORKER, LcS, LS_SDH, LS_SDH2, LS_SDHB, LC_SMWB, AUTO (by default: AUTO). These are detailed in
+\ref LAHeteroprio
+</dd>
+
+<dt>STARPU_LAHETEROPRIO_S_[ARCH]</dt>
+<dd>
+\anchor STARPU_LAHETEROPRIO_S_[ARCH]
+\addindex __env__STARPU_LAHETEROPRIO_S_arch
+Specify the number of memory nodes contained in an affinity group. An affinity
+group will be composed of the closests memory nodes to a worker of a given architecture,
+and this worker will look for tasks available inside these memory nodes, before
+considering stealing tasks outside this group.
+ARCH can be CPU, CUDA, OPENCL, MICC, SCC, MPI_MS, etc.
+</dd>
+
+<dt>STARPU_LAHETEROPRIO_PRIO_STEP_[ARCH]</dt>
+<dd>
+\anchor STARPU_LAHETEROPRIO_PRIO_STEP_[ARCH]
+\addindex __env__STARPU_LAHETEROPRIO_PRIO_STEP_arch
+Specify the number of buckets in the local memory node in which a worker will look for
+available tasks, before this worker starts looking for tasks in other memory nodes' buckets.
+ARCH indicates that this number is specific to a given arch which can be:
+CPU, CUDA, OPENCL, MICC, SCC, MPI_MS, etc.
+</dd>
+
+</dl>
+
+\subsection ConfiguringAutoHeteroprio Configuring AutoHeteroprio
+<dl>
+
+<dt>STARPU_HETEROPRIO_USE_AUTO_CALIBRATION</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_USE_AUTO_CALIBRATION
+\addindex __env__STARPU_HETEROPRIO_USE_AUTO_CALIBRATION
+Enable the auto calibration mode of Heteroprio which assign priorities to tasks automatically
+</dd>
+
+<dt>STARPU_HETEROPRIO_DATA_DIR</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_DATA_DIR
+\addindex __env__STARPU_HETEROPRIO_DATA_DIR
+Specify the path of the directory where Heteroprio stores data about program executions.
+By default, these are stored in the same directory used by perfmodel.
+</dd>
+
+<dt>STARPU_HETEROPRIO_DATA_FILE</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_DATA_FILE
+\addindex __env__STARPU_HETEROPRIO_DATA_FILE
+Specify the filename where Heteroprio will save data about the current program's execution.
+</dd>
+
+<dt>STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY
+\addindex __env__STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY
+Choose how Heteroprio groups similar tasks. It can be <c>0</c> to group
+the tasks with the same perfmodel or the same codelet's name if no perfmodel was assigned.
+Or, it could be <c>1</c> to group the tasks only by codelet's name.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_PRINT_DATA_ON_UPDATE</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_PRINT_DATA_ON_UPDATE
+\addindex __env__STARPU_AUTOHETEROPRIO_PRINT_DATA_ON_UPDATE
+Enable the printing of priorities' data every time they get updated.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_PRINT_AFTER_ORDERING</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_PRINT_AFTER_ORDERING
+\addindex __env__STARPU_AUTOHETEROPRIO_PRINT_AFTER_ORDERING
+Enable the printing of priorities' order for each architecture every time there's a reordering.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY
+\addindex __env__STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY
+Specify the heuristic which will be used to assign priorities automatically.
+It should be an integer between 0 and 27.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_ORDERING_INTERVAL</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_ORDERING_INTERVAL
+\addindex __env__STARPU_AUTOHETEROPRIO_ORDERING_INTERVAL
+Specify the period (in number of tasks pushed), between priorities reordering operations.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_FREEZE_GATHERING</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_FREEZE_GATHERING
+\addindex __env__STARPU_AUTOHETEROPRIO_FREEZE_GATHERING
+Disable data gathering from task executions.
+</dd>
+
+</dl>
+
 \section Extensions Extensions
 
 <dl>

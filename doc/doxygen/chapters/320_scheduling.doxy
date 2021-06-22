@@ -374,7 +374,11 @@ The tasks are stored inside buckets, where each bucket corresponds to a priority
 worker uses an indirect access array to know the order in which it should access the buckets. Moreover,
 all the tasks inside a bucket must be compatible with all the processing units that may access it (at least).
 
-As an example, see the following code where we have 5 types of tasks.
+These priorities are now automatically assigned by Heteroprio in auto calibration mode using heuristics.
+If you want to set these priorities manually, you can change \ref STARPU_HETEROPRIO_USE_AUTO_CALIBRATION
+and follow the example below.
+
+In this example code, we have 5 types of tasks.
 CPU workers can compute all of them, but CUDA workers can only execute
 tasks of types 0 and 1, and is expected to go 20 and 30 time
 faster than the CPU, respectively.
@@ -431,4 +435,41 @@ So, in the given example, the priority of a task will be between 0 and 4 include
 However, tasks of priorities 0-1 must provide CPU and CUDA kernels, and
 tasks of priorities 2-4 must provide CPU kernels (at least).
 
+\subsection LAHeteroprio Using locality aware Heteroprio
+
+Heteroprio supports a mode where locality is evaluated to guide the distribution
+of the tasks (see https://peerj.com/articles/cs-190.pdf).
+Currently, this mode is available using the dedicated function or an environment variable
+\ref STARPU_HETEROPRIO_USE_LA, and can be configured using environment variables.
+\code{.c}
+void starpu_heteroprio_set_use_locality(unsigned sched_ctx_id, unsigned use_locality);
+\endcode
+
+In this mode, multiple strategies are available to determine which memory node's workers are the most qualified for executing a specific task. This strategy can be set with \ref STARPU_LAHETEROPRIO_PUSH
+and available strategies are:
+- WORKER: the worker which pushed the task is preferred for the execution.
+- LCs: the node with the shortest data transfer time (estimated by StarPU) is the most qualified
+- LS_SDH: the node with the smallest data amount to be transferred will be preferred.
+- LS_SDH2: similar to LS_SDH, but data in write access is counted in a quadratic manner to give them more importance.
+- LS_SDHB: similar to LS_SDH, but data in write access is balanced with a coefficient (its value is set to 1000) and
+for the same amount of data, the one with less pieces of data to be transferred will be preferred.
+- LC_SMWB: similar to LS_SDH, but the amount of data in write access gets multiplied by a coefficient which gets closer to 2
+as the amount of data in read access gets larger than the data in write access.
+- AUTO: strategy by default, this one selects the best strategy and changes it in runtime to improve performance
+
+Other environment variables to configure LaHeteteroprio are documented in \ref ConfiguringLaHeteroprio
+
+\subsection AutoHeteroprio Using Heteroprio in auto-calibration mode
+
+In this mode, Heteroprio saves data about each program execution, in order to improve future ones.
+By default, theses files are stored in the folder used by perfmodel, but this can be changed using the
+\ref STARPU_HETEROPRIO_DATA_DIR environment variable. You can also specify the data filename directly using
+\ref STARPU_HETEROPRIO_DATA_FILE.
+
+Additionally, to assign priorities to tasks, Heteroprio needs a way to detect that some tasks are similar.
+By default, Heteroprio looks for tasks with the same perfmodel, or with the same codelet's name if no perfmodel was assigned.
+This behavior can be changed to only consider the codelet's name by setting
+\ref STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY to <c>1</c>
+
+Other environment variables to configure AutoHeteteroprio are documented in \ref ConfiguringAutoHeteroprio
 */

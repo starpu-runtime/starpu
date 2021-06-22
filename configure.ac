@@ -2042,6 +2042,21 @@ AM_CONDITIONAL([STARPU_USE_AYUDAME2], [test "x$enable_ayudame2" = "xyes"])
 STARPU_FXT_EVENT_DEFINES="`grep -E '#define\s+_STARPU_(MPI_)?FUT_' ${srcdir}/src/common/fxt.h ${srcdir}/mpi/src/starpu_mpi_fxt.h | grep 0x | grep -v 0x1 | cut -d : -f 2`"
 AC_SUBST([STARPU_FXT_EVENT_DEFINES])
 
+# Heteroprio works better if it can store information based on the program's name
+AC_MSG_CHECKING(whether the target supports program_invocation_short_name)
+AC_LINK_IFELSE([AC_LANG_SOURCE(
+	[
+		#include <stdio.h>
+		#include <errno.h>
+		int main() {
+			printf("%s\n", program_invocation_short_name);
+			return 0;
+		}
+	])],
+	[AC_DEFINE([STARPU_HAVE_PROGRAM_INVOCATION_SHORT_NAME], [1], [variable program_invocation_short_name is available]) AC_MSG_RESULT(yes)],
+	AC_MSG_RESULT(no)
+)
+
 ###############################################################################
 #                                                                             #
 #                  Miscellaneous options for StarPU                           #

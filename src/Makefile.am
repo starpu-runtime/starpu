@@ -102,6 +102,7 @@ noinst_HEADERS = 						\
 	core/detect_combined_workers.h				\
 	sched_policies/helper_mct.h				\
 	sched_policies/fifo_queues.h				\
+	sched_policies/heteroprio.h				\
 	datawizard/node_ops.h					\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
