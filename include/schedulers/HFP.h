@@ -74,6 +74,8 @@ struct my_list
 	double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
 	double expected_package_computation_time; /* Computation time with transfer and overlap */
 	struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
+	
+	
 };
 
 struct paquets
