@@ -2825,29 +2825,37 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 	const char *color;
 	char buffer[32];
+	int code;
 	if (task->color != 0)
 	{
 		snprintf(buffer, sizeof(buffer), "#%06x", task->color);
 		color = &buffer[0];
+		code = task->color / 256;
 	}
 	else if (options->per_task_colour)
 	{
-		snprintf(buffer, sizeof(buffer), "#%x%x%x",
-			 get_color_symbol_red(name)/4,
-			 get_color_symbol_green(name)/4,
-			 get_color_symbol_blue(name)/4);
+		unsigned red = get_color_symbol_red(name)/4;
+		unsigned green = get_color_symbol_green(name)/4;
+		unsigned blue = get_color_symbol_blue(name)/4;
+		snprintf(buffer, sizeof(buffer), "#%s%x%s%x%s%x",
+			 red < 16 ? "0" : "", red,
+			 green < 16 ? "0" : "", green,
+			 blue < 16 ? "0" : "", blue);
 		color = &buffer[0];
+		code = (red + green + blue) / 256;
 	}
 	else
 	{
 		color= (worker < 0)?"#aaaaaa":get_worker_color(worker);
+		code = 0;
 	}
 
 	if (!task->name)
 		task->name = strdup(name);
 
+	char *fontcolor = code <= 1 ? "white" : "black";
 	if (!task->exclude_from_dag && show_task(task, options))
-		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color);
+		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color, fontcolor);
 }
 
 static void handle_task_line(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2899,20 +2907,27 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 
 	const char *color;
 	char buffer[32];
+	int code;
 	if (options->per_task_colour)
 	{
-		snprintf(buffer, sizeof(buffer), "%.4f,%.4f,%.4f",
-			 get_color_symbol_red(name)/1024.0,
-			 get_color_symbol_green(name)/1024.0,
-			 get_color_symbol_blue(name)/1024.0);
+		unsigned red = get_color_symbol_red(name)/4;
+		unsigned green = get_color_symbol_green(name)/4;
+		unsigned blue = get_color_symbol_blue(name)/4;
+		snprintf(buffer, sizeof(buffer), "#%s%x%s%x%s%x",
+			 red < 16 ? "0" : "", red,
+			 green < 16 ? "0" : "", green,
+			 blue < 16 ? "0" : "", blue);
 		color = &buffer[0];
+		code = (red + green + blue) / 256;
 	}
 	else
 	{
 		color= (worker < 0)?"white":get_worker_color(worker);
+		code = 1;
 	}
 
-	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, color);
+	char *fontcolor = code <= 1 ? "white" : "black";
+	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, color, fontcolor);
 }
 
 static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
