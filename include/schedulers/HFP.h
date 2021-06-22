@@ -57,6 +57,8 @@ struct HFP_sched_data
 
 void visualisation_tache_matrice_format_tex_with_data_2D();
 
+void dynamic_outer_insertion(struct paquets *a);
+
 /* Structure used to store all the variable we need and the tasks of each package. Each link is a package */
 struct my_list
 {
@@ -75,7 +77,7 @@ struct my_list
 	double expected_package_computation_time; /* Computation time with transfer and overlap */
 	struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
 	
-	
+	void *gpu_data[2]; /* For dynamic outer */
 };
 
 struct paquets
@@ -139,7 +141,7 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M);
 
 /* Comparator used to sort the data of a packages to erase the duplicate in O(n) */
-int HFP_pointeurComparator ( const void * first, const void * second );
+int HFP_pointeurComparator (const void * first, const void * second );
 
 void print_effective_order_in_file (struct starpu_task *task, int index_task);
 
