@@ -806,7 +806,8 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 		_STARPU_MPI_DEBUG(5, "mpi_data->redux_map[%d] = %d\n", i, mpi_data->redux_map[i]);
 		if (mpi_data->redux_map[i]) nb_contrib++;
 	}
-	if (nb_contrib == 0) {
+	if (nb_contrib == 0)
+	{
 		/* Nothing to do! */
 		return;
 	}
