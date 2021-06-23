@@ -25,6 +25,10 @@ void randomize_task_list(struct HFP_sched_data *d);
  */
 void print_task_list(struct starpu_task_list *l, char *s);
 
+void print_packages(struct paquets *p);
+
+void print_task_using_data(starpu_data_handle_t d);
+
 void dynamic_outer_scheduling(struct HFP_sched_data *d, int current_gpu);
 
 /* Initialize for each data the set of task that use it (with pointer pointing the main task list)
@@ -48,6 +52,7 @@ struct pointer_in_task
 {
     /* Pointer to the datas used by the current task */
     starpu_data_handle_t *pointer_to_D;
+    struct task_using_data **tud;
     struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
 };
 
