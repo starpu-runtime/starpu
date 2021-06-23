@@ -88,10 +88,4 @@ int main(void)
 
 	starpu_shutdown();
 	return 0;
-
-	starpu_shutdown();
-	fprintf(stderr, "WARNING: No one can execute this task\n");
-	/* yes, we do not perform the computation but we did detect that no one
- 	 * could perform the kernel, so this is not an error from StarPU */
-	return STARPU_TEST_SKIPPED;
 }
