@@ -81,6 +81,10 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
 	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	    if (starpu_get_env_number_default("PRINTF", 0) == 1)
+	    {
+		print_data_to_load_prefetch(task, starpu_worker_get_memory_node(starpu_worker_get_id()) - 1);
+	    }
 	    return task;
 	}
 	/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
@@ -90,6 +94,10 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
 	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	    if (starpu_get_env_number_default("PRINTF", 0) == 1)
+	    {
+		print_data_to_load_prefetch(task, starpu_worker_get_memory_node(starpu_worker_get_id()) - 1);
+	    }
 	    return task;
 	}
 	/* Else I will return NULL. But I still need to unlock the mutex. */
