@@ -179,21 +179,15 @@ void dynamic_outer_scheduling(struct HFP_sched_data *d, int current_gpu)
 	    if (data_available == true)
 	    {
 		printf("Pushing %p in the package\n", t->pointer_to_T);
-		/* I need to delete this taks from the main task list and from the task list in handles it uses. */
-		//~ task_using_data *e = 
-		//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
-		//~ {
-		task_using_data_list_erase(handle_popped[i]->sched_data, t);
-		print_task_using_data(handle_popped[i]);
-		//~ task_using_data_list_erase(handle_popped[i]->sched_data, t);
-		//~ print_task_using_data(handle_popped[i]);
-		//~ task_using_data_list_erase(t->pointer_to_T->sched_data->pointer_to_D[0], t);
+		/* Deleting the task from the task list of data A, B (and C) and from the main task list. */
 		struct pointer_in_task *pt = t->pointer_to_T->sched_data;
-		printf("Pointeur dans la tâche : %p\n", pt->pointer_to_D[1]);
-		task_using_data_list_erase(pt->pointer_to_D[1]->sched_data, pt->tud[1]);
-		print_task_using_data(pt->pointer_to_D[1]);
-		
-		//~ }
+		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+		{
+		    task_using_data_list_erase(pt->pointer_to_D[j]->sched_data, pt->tud[j]);
+		    print_task_using_data(pt->pointer_to_D[j]);
+		}
+		starpu_task_list_erase(&d->popped_task_list, pt->pointer_to_cell);
+		print_task_list(&d->popped_task_list, "After deleting a task");
 		starpu_task_list_push_back(&d->p->temp_pointer_1->sub_list, t->pointer_to_T);
 	    }
 	}
