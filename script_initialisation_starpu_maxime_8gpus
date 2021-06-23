@@ -1,4 +1,4 @@
-./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid --enable-maxcudadev=8
+./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid --enable-maxcudadev=8 --with-fxt=/home/gonthier/fxt
 sudo make -j 6
 sudo make install
 echo "INITIALISATION OK"

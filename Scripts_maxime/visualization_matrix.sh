@@ -1,4 +1,5 @@
 #!/usr/bin/bash
+#~ bash Scripts_maxime/visualization_matrix.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne 1 dynamic-outer
 #~ bash Scripts_maxime/visualization_matrix.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne 3 HFP
 #~ bash Scripts_maxime/visualization_matrix.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 30 Matrice_ligne 8 HFP
 #~ bash Scripts_maxime/visualization_matrix.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 MatriceZ4 3 HFP
