@@ -29,7 +29,7 @@ void print_packages(struct paquets *p);
 
 void print_task_using_data(starpu_data_handle_t d);
 
-void dynamic_outer_scheduling(struct HFP_sched_data *d, int current_gpu);
+void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l);
 
 /* Initialize for each data the set of task that use it (with pointer pointing the main task list)
  * + in each task I add a pointer to the task list it is in.

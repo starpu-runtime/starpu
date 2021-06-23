@@ -1030,6 +1030,7 @@ void visualisation_tache_matrice_format_tex_with_data_2D()
  */
 void print_effective_order_in_file (struct starpu_task *task, int index_task)
 {
+	printf("print effective order in file\n");
 	char str[2];
 	sprintf(str, "%d", starpu_worker_get_id()); /* To get the index of the current GPU */
 	
@@ -1043,8 +1044,8 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 	fclose(f);
 	
 	/* For the coordinates It write the coordinates (with Z for 3D), then the GPU and then the number of data needed to load for this task */
-	if (starpu_get_env_number_default("PRINT_N", 0) != 0 && (strcmp(appli,"starpu_sgemm_gemm") == 0))
-	{ 
+	if (starpu_get_env_number_default("PRINT_N", 0) != 0 && (strcmp(appli, "starpu_sgemm_gemm") == 0))
+	{
 		f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "a");
 		int temp_tab_coordinates[2];
 		/* Pour matrice 3D je récupère la coord de Z aussi */
@@ -1061,7 +1062,6 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
 			fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
 		}
-		
 		fclose(f);
 		//~ index_current_task_for_visualization++; /* Care I do it in the file of dmdar *:
 		//~ printf("%d\n", index_current_task_for_visualization);
@@ -3624,7 +3624,8 @@ void get_current_tasks_for_visualization(struct starpu_task *task, unsigned sci)
 
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
-	if (starpu_get_env_number_default("PRINTF",0) == 1) 
+	printf("Get current task\n");
+	if (starpu_get_env_number_default("PRINTF", 0) == 1) 
 	{ 
 		//~ printf("Tache en cours : %p, data: %p %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
 		if (index_task_currently_treated == 0) 
@@ -3643,6 +3644,7 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 
 struct starpu_task *get_data_to_load(unsigned sched_ctx)
 {	
+	printf("Get data to load\n");
 	struct starpu_task *task = starpu_sched_tree_pop_task(sched_ctx);
 	
 	if (starpu_get_env_number_default("PRINTF", 0) == 1 && task != NULL)
