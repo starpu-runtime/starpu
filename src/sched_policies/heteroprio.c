@@ -1082,6 +1082,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 
 	if(fscanf(autoheteroprio_file, "%u", &number_of_archs) != 1)
 	{
+		fclose(autoheteroprio_file);
 		_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing a number of architectures\n");
 		return;
 	}
@@ -1094,6 +1095,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	{
 		if(fscanf(autoheteroprio_file, "%u", &arch_type) != 1)
 		{
+			fclose(autoheteroprio_file);
 			_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing an architecture id\n");
 			return;
 		}
@@ -1103,12 +1105,14 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	{
 		if(fscanf(autoheteroprio_file, "%u", &arch_type) != 1)
 		{
+			fclose(autoheteroprio_file);
 			_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing an architecture id\n");
 			return;
 		}
 	}
 	if(getc(autoheteroprio_file) != '\n')
 	{
+		fclose(autoheteroprio_file);
 		_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is improperly formatted\n");
 		return;
 	}
@@ -1121,6 +1125,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	{
 		if(fscanf(autoheteroprio_file, "%lf %lf", &avg_arch_busy_time, &avg_arch_free_time) != 2)
 		{
+			fclose(autoheteroprio_file);
 			_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing an architecture average times id\n");
 			return;
 		}
@@ -1132,6 +1137,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	}
 	if(getc(autoheteroprio_file) != '\n')
 	{
+		fclose(autoheteroprio_file);
 		_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is improperly formatted\n");
 		return;
 	}
@@ -1155,6 +1161,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 		{
 			if(fscanf(autoheteroprio_file, "%u", &arch_can_execute) != 1)
 			{
+				fclose(autoheteroprio_file);
 				_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing an architecture information for a codelet\n");
 				return;
 			}
@@ -1180,6 +1187,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 			&hp->prio_average_best[prio], &hp->prio_average_best_count[prio]
 			) != 10)
 		{
+			fclose(autoheteroprio_file);
 			_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is improperly formatted\n");
 			return;
 		}
@@ -1195,6 +1203,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 					&hp->prio_arch_proportion[archs[arch_ind]][prio]
 					) != 4)
 				{
+					fclose(autoheteroprio_file);
 					_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is improperly formatted\n");
 					return;
 				}
@@ -1204,6 +1213,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 				while((c = getc(autoheteroprio_file)) != '\n')
 					if(c == EOF)
 					{
+						fclose(autoheteroprio_file);
 						_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file ended abruptly\n");
 						return;
 					}
@@ -1214,6 +1224,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 			while((c = getc(autoheteroprio_file)) != '\n')
 				if(c == EOF)
 				{
+					fclose(autoheteroprio_file);
 					_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file ended abruptly\n");
 					return;
 				}
