@@ -53,8 +53,8 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     if (initialization_dynamic_outer_done == true)
     {
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-	printf("Beggining of pull task, GPU n°%d\n", current_gpu);
-	print_packages(data->p);
+	//~ printf("Beggining of pull task, GPU n°%d\n", current_gpu);
+	//~ print_packages(data->p);
 	int i = 0;
 	struct starpu_task *task = NULL;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
@@ -127,14 +127,14 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	//~ starpu_data_handle_t *handle_needed = malloc((Ndifferent_data_type-1)*sizeof(STARPU_TASK_GET_HANDLE(starpu_task_list_begin(&d->popped_task_list), 0)));
 	//~ d->p->temp_pointer_1 = d->p->first_link;
 	printf("Data not used yet in the current GPU: ");
-	//~ for (i = 1; i < current_gpu; i++)
-	//~ {
-	    //~ printf("next\n");
-	    //~ d->p->temp_pointer_1 = d->p->temp_pointer_1->next;
-	//~ }
 	for (i = 0; i < Ndifferent_data_type; i++)
 	{
-	    printf("la\n");
+	    /* TODO : a enlever si on gère les evictions. */
+	    if (gpu_data_not_used_list_empty(l->gpu_data[i]))
+	    {
+		goto return_random_task;
+	    }
+		
 	    for (e = gpu_data_not_used_list_begin(l->gpu_data[i]); e != gpu_data_not_used_list_end(l->gpu_data[i]); e = gpu_data_not_used_list_next(e))
 	    {
 		printf("%p ", e->D);
@@ -187,6 +187,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 		{
 		    printf("Pushing %p in the package\n", t->pointer_to_T);
 		    /* Deleting the task from the task list of data A, B (and C) and from the main task list. */
+		    //TODO : do this in an outer function as I use it two times. */
 		    struct pointer_in_task *pt = t->pointer_to_T->sched_data;
 		    for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
 		    {
@@ -194,15 +195,27 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 			print_task_using_data(pt->pointer_to_D[j]);
 		    }
 		    starpu_task_list_erase(popped_task_list, pt->pointer_to_cell);
-		    print_task_list(popped_task_list, "After deleting a task");
+		    //~ print_task_list(popped_task_list, "After deleting a task");
 		    starpu_task_list_push_back(&l->sub_list, t->pointer_to_T);
 		}
 	    }
 	}
 	if (starpu_task_list_empty(&l->sub_list)) 
 	{
-	    printf("No task were possible with the popped handles. Return head of the randomized main task list.\n");
-	    starpu_task_list_push_back(&l->sub_list, starpu_task_list_pop_front(popped_task_list));
+	    //TODO on peut remplacer le go to par une fonction externe. Surtout que je dois utiliser le ; pour faire 
+	    //un blank statement et pas avoir d'erreur
+	    return_random_task: ;
+	    
+	    struct starpu_task *task = starpu_task_list_pop_front(popped_task_list);
+	    printf("No task were possible with the popped handles. Return head of the randomized main task list: %p.\n", task);
+	    struct pointer_in_task *pt = task->sched_data;
+	    for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
+	    {
+		task_using_data_list_erase(pt->pointer_to_D[j]->sched_data, pt->tud[j]);
+		print_task_using_data(pt->pointer_to_D[j]);
+	    }
+	    starpu_task_list_erase(popped_task_list, pt->pointer_to_cell);
+	    starpu_task_list_push_back(&l->sub_list, task);
 	}
 	free(handle_popped);
     //~ }
@@ -216,20 +229,22 @@ static int dynamic_outer_can_push(struct starpu_sched_component *component, stru
     task = starpu_sched_component_pump_to(component, to, &didwork);
     if (task)
     {
-	    if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, task %p got refused\n", task); }
+	    printf("Oops, task %p got refused\n", task);
 	    /* If a task is refused I push it in the refused fifo list of the appropriate GPU's package.
 	     * This list is lloked at first when a GPU is asking for a task so we don't break the planned order. */
 	    STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	    for (int i = 0; i < Ngpu; i++) 
+	    printf("%d\n", starpu_worker_get_memory_node(starpu_worker_get_id()));
+	    data->p->temp_pointer_1 = data->p->first_link;
+	    for (int i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++) 
 	    {
-		if (to == component->children[i]) 
-		{
-		    break;
-		}
-		else 
-		{
+		//~ if (to == component->children[i]) 
+		//~ {
+		    //~ break;
+		//~ }
+		//~ else 
+		//~ {
 		    data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-		}
+		//~ }
 	    }
 	    starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);

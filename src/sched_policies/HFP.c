@@ -3624,7 +3624,6 @@ void get_current_tasks_for_visualization(struct starpu_task *task, unsigned sci)
 
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
-	printf("Get current task\n");
 	if (starpu_get_env_number_default("PRINTF", 0) == 1) 
 	{ 
 		//~ printf("Tache en cours : %p, data: %p %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
@@ -3644,7 +3643,6 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 
 struct starpu_task *get_data_to_load(unsigned sched_ctx)
 {	
-	printf("Get data to load\n");
 	struct starpu_task *task = starpu_sched_tree_pop_task(sched_ctx);
 	
 	if (starpu_get_env_number_default("PRINTF", 0) == 1 && task != NULL)
