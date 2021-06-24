@@ -3526,11 +3526,16 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 							(((float) bucket->tasks_queue_ntasks) / ((float) hp->nb_workers_per_arch_index[bucket->factor_base_arch_index])) >= bucket->slow_factors_per_index[worker->arch_index]))
 					{
 						task = starpu_task_list_pop_front(&bucket->tasks_queue[current_wgroupid]);
+						if(!starpu_worker_can_execute_task(workerid, task, 0))
+						{
+							// Put the task back because worker can't execute it (e.g. codelet.can_execute)
+							starpu_task_list_push_front(&bucket->tasks_queue[0], task);
+							break;
+						}
 						if (hp->pushStrategySet == PUSH_AUTO)
 						{
 							memcpy(best_node_previous, laqueue_pop(&bucket->auto_mn[current_wgroupid]), sizeof(unsigned) *PUSH_NB_AUTO);
 						}
-						STARPU_ASSERT(starpu_worker_can_execute_task(workerid, task, 0));
 						/*Save the task */
 						STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 						/*Update general counter */
@@ -3612,7 +3617,12 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 					))
 				{
 					task = starpu_task_list_pop_front(&bucket->tasks_queue[0]);
-					STARPU_ASSERT(starpu_worker_can_execute_task(workerid, task, 0));
+					if(!starpu_worker_can_execute_task(workerid, task, 0))
+					{
+						// Put the task back because worker can't execute it (e.g. codelet.can_execute)
+						starpu_task_list_push_front(&bucket->tasks_queue[0], task);
+						break;
+					}
 					/* Save the task */
 					STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
 					_starpu_prio_deque_push_front_task(&worker->tasks_queue, task);
