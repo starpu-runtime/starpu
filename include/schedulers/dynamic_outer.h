@@ -9,13 +9,13 @@ int Ndifferent_data_type;
  * It is only done once and it's called in static void dynamic_outer_do_schedule(struct starpu_sched_component *component).
  * The boolean initialization_dynamic_outer_done allow us to know if it has been done or not.
  */
-void initialization_dynamic_outer(struct starpu_sched_component *component);
+//~ void initialization_dynamic_outer(struct starpu_sched_component *component);
 
 void print_data_not_used_yet(struct paquets *p);
 
 /* The boolean mentionned above.
  */
-bool initialization_dynamic_outer_done;
+bool new_tasks_initialized;
 
 /* Randomize a task list. It takes the struct because I use two task list for this and I already have two in HFP_sched_data.
  */
@@ -27,6 +27,8 @@ void print_task_list(struct starpu_task_list *l, char *s);
 
 void print_packages(struct paquets *p);
 
+void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paquets *p);
+
 void print_task_using_data(starpu_data_handle_t d);
 
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l);
@@ -34,7 +36,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 /* Initialize for each data the set of task that use it (with pointer pointing the main task list)
  * + in each task I add a pointer to the task list it is in.
  */
-void initialize_task_data_gpu(struct starpu_task_list *l, struct paquets *p);
+//~ void initialize_task_data_gpu(struct starpu_task_list *l, struct paquets *p);
 
 /* In the handles */
 LIST_TYPE(task_using_data,
