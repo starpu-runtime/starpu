@@ -1274,7 +1274,7 @@ static void starpu_autoheteroprio_save_task_data(struct _starpu_heteroprio_data 
 	fprintf(autoheteroprio_file, "# number_of_archs arch_ids (");
 	for(arch_ind = 0; arch_ind < STARPU_NB_TYPES; ++arch_ind)
 	{
-		if(hp->average_arch_busy_time[arch_ind] + hp->average_arch_free_time[arch_ind] > 0)
+		if(hp->found_codelet_names_on_arch[arch_ind] > 0)
 		{
 			// Architecture was used
 			is_arch_used[arch_ind] = 1;
@@ -2649,14 +2649,12 @@ static const char *_heteroprio_get_codelet_name(enum autoheteroprio_codelet_grou
 // used by get_task_auto_priority for knowing if a submitted codelet equals an other
 static int are_same_codelets(struct _starpu_heteroprio_data *hp, const struct starpu_task *task, const char name[CODELET_MAX_NAME_LENGTH], unsigned valid_archs)
 {
-	unsigned a;
-	for(a=0;a<STARPU_NB_TYPES;++a)
+	unsigned task_valid_archs = task->where != -1 ? task->where : task->cl->where;
+
+	if(task_valid_archs != valid_archs)
 	{
-		int can_execute = starpu_worker_type_can_execute_task(a, task);
-		if(can_execute && ((valid_archs & starpu_heteroprio_types_to_arch(a)) == 0))
-		{ // are not same codelet, because different architectures
-			return 0;
-		}
+		// are not same codelet, because different architectures
+		return 0;
 	}
 
 	const char *task_name = _heteroprio_get_codelet_name(hp->codelet_grouping_strategy, task->cl);
@@ -2707,7 +2705,7 @@ static int get_task_auto_priority(struct _starpu_heteroprio_data *hp, const stru
 	unsigned arch;
 	for(arch=0;arch<STARPU_NARCH;++arch)
 	{
-		archs[arch] = starpu_worker_type_can_execute_task(arch, task);
+		archs[arch] = (starpu_heteroprio_types_to_arch(arch) & task->where) != 0;
 	}
 
 	starpu_autoheteroprio_add_task(hp, name, archs);
