@@ -1030,7 +1030,6 @@ void visualisation_tache_matrice_format_tex_with_data_2D()
  */
 void print_effective_order_in_file (struct starpu_task *task, int index_task)
 {
-	printf("print effective order in file\n");
 	char str[2];
 	sprintf(str, "%d", starpu_worker_get_id()); /* To get the index of the current GPU */
 	

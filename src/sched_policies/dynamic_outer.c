@@ -111,13 +111,13 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	//~ }
     }
     /* Do schedule not done yet */
-    printf("Return NULL\n");
+    //~ printf("Return NULL\n");
     return NULL;
 }
 
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l)
 {
-    printf("Beggining of dynamic_outer_scheduling\n");
+    //~ printf("Beggining of dynamic_outer_scheduling\n");
     /* If the package is not empty I don't look.
      * Else we have data not loaded yet (even in prefetch).
      */
@@ -502,7 +502,7 @@ void initialization_dynamic_outer(struct starpu_sched_component *component)
 
 static void dynamic_outer_do_schedule(struct starpu_sched_component *component)
 {	
-    printf("Beggining of do_schedule\n");
+    //~ printf("Beggining of do_schedule\n");
     struct HFP_sched_data *data = component->data;
     //~ struct starpu_task *task = NULL;
     //~ int i = 0;
