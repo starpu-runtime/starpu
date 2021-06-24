@@ -2745,6 +2745,13 @@ static double get_job_NOD(struct _starpu_heteroprio_data *hp, struct _starpu_job
 
 	struct _starpu_graph_node *node = job->graph_node;
 
+	if(!node)
+	{
+		// No information because the graph isn't available
+		_starpu_graph_wrunlock();
+		return 0.f;
+	}
+
 	unsigned n;
 	for(n=0;n<node->n_outgoing;++n)
 	{
@@ -2781,6 +2788,13 @@ static double get_job_NRT(struct _starpu_heteroprio_data *hp, struct _starpu_job
 	_starpu_graph_wrlock();
 
 	struct _starpu_graph_node *node = job->graph_node;
+
+	if(!node)
+	{
+		// No information because the graph isn't available
+		_starpu_graph_wrunlock();
+		return 0.f;
+	}
 
 	unsigned n;
 	for(n=0;n<node->n_outgoing;++n)
@@ -2884,6 +2898,13 @@ static double get_job_successors_best_time_sum(struct _starpu_heteroprio_data *h
 	_starpu_graph_wrlock();
 
 	struct _starpu_graph_node *node = job->graph_node;
+
+	if(!node)
+	{
+		// No information because the graph isn't available
+		_starpu_graph_wrunlock();
+		return 0.f;
+	}
 
 	unsigned n;
 	for(n=0;n<node->n_outgoing;++n)
