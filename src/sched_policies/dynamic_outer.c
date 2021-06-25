@@ -1,8 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2013       Simon Archipoff
- * Copyright (C) 2020       Maxime Gonthier
+ * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021	Maxime Gonthier
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,45 +15,31 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* TODO : description
- * HFP_sched_data->sched_list = liste de tâches grand T initial.
- * HFP_sched_data->popped_list = liste de tâches grand T randomisé.
+/* Dynamic Outer scheuling. Pop as much random data not used yet by a GPU
+ * as there are different data type.
+ * Computes all task using these data and the data already loaded on memory.
+ * if no task is available compute a random task not computed yet.
+ * Complexité :     //~ printf("J'ai parcouru la liste de tâche complète dans initialize_task_list_using_data(struct starpu_task_list *l) pour ajouter chaque tâche dans une liste dans les handles. Complexité : O(NT). J'ai également parcouru la liste de donnée de chaque GPU pour savoir lesquelles je n'avais pas encore mis dedans. complexité : O(ND^2).\n\n");
  */
 
 #include <schedulers/HFP.h>
 #include <schedulers/dynamic_outer.h>
 #include "helper_mct.h"
 
-/* Pushing the tasks */		
+/* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_outer_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
-    new_tasks_initialized = true;
-    printf("In push_task with task %p\n", task);
+    /* If this boolean is true, pull_task will know that new tasks have arrived and
+     * thus it will be able to randomize both the task list and the data list not used yet in the GPUs. 
+     */
+    new_tasks_initialized = true; 
     struct HFP_sched_data *data = component->data;
-    //~ if (!starpu_task_list_empty(&data->sched_list) && initialization_dynamic_outer_done == false)
-    //~ {
-	//~ NT = starpu_task_list_size(&data->sched_list);
-	//~ printf("Il y a %d tâches\n\n", NT);
-	//~ initialization_dynamic_outer(component);
-    //~ }
-    //~ if (initialization_dynamic_outer_done == true)
-    //~ {
-	/* Step 5 : Pop a data from A and a data from B */
-	//TODO
-		
-	/* Step 6 : Add to the corresponding package all the task we can do 
-	 * with A and/or B + the data already in memory of the corresponding GPU.
-	 */
-	//TODO
-	
-	/* Step 7 : Delete from handle list (A and B (and C)) and T the tasks added in the package.
-	 */
-	//TODO
-	
-	//~ do_schedule_done = true;
-    //~ }
+
     initialize_task_data_gpu_single_task(task, data->p);
     
+    /* Pushing the task in sched_list. It's this list that will be randomized
+     * and put in popped_task_list in pull_task.
+     */
     STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
     starpu_task_list_push_front(&data->sched_list, task);
     starpu_push_task_end(task);
@@ -63,180 +48,85 @@ static int dynamic_outer_push_task(struct starpu_sched_component *component, str
     return 0;
 }
 
-/* TODO : Si cette fonction marche bien il faut supprimer do_schedule
- * à la fois dans la policy, le .h et le .c. Il faut aussi modifier la 
- * manière dont je gère la fin de l'initialisation dans le pull task.
- * Normalement on arrive dans le pull task bien après que tout sois passé içi donc il ne devrait pas y avoir
- * de problème. Même si des tâches arrivent entre temps ce n'est pas un soucis on les ajoute içi.
+/* Initialize for:
+ * tasks -> pointer to the data it uses, pointer to the pointer of task list in the data, 
+ * pointer to the cell in the main task list (popped_task_list).
+ * data -> pointer to the tasks using this data.
+ * GPUs -> datas not used yet by this GPU.
  */
 void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paquets *p)
 {
     int i = 0;
     int j = 0;
-    //~ bool already_in_gpu_data = false;
-    //~ p->first_link = p->temp_pointer_1;
     
-    	/* Adding the data not used yet in the corresponding GPU. */
-	p->temp_pointer_1 = p->first_link;
-	for (i = 0; i < Ngpu; i++)
+    /* Adding the data not used yet in the corresponding GPU. */
+    p->temp_pointer_1 = p->first_link;
+    for (i = 0; i < Ngpu; i++)
+    {
+	for (j = 0; j < Ndifferent_data_type; j++)
 	{
-	    for (j = 0; j < Ndifferent_data_type; j++)
+	    struct gpu_data_not_used *e = gpu_data_not_used_new();
+	    e->D = STARPU_TASK_GET_HANDLE(task, j);
+	    
+	    /* If the void * of struct paquet is empty I initialize it. */ 
+	    if (p->temp_pointer_1->gpu_data[j] == NULL)
 	    {
-		if (p->temp_pointer_1->gpu_data[j] == NULL)
+		struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
+		gpu_data_not_used_list_push_front(gd, e);
+		p->temp_pointer_1->gpu_data[j] = gd; 
+	    }
+	    else
+	    {
+		if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 		{
-		    struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
-		    struct gpu_data_not_used *e = gpu_data_not_used_new();
-		    e->D = STARPU_TASK_GET_HANDLE(task, j);
-		    gpu_data_not_used_list_push_front(gd, e);
-		    p->temp_pointer_1->gpu_data[j] = gd; 
-		}
-		else
-		{
-		    if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
-		    {
-			struct gpu_data_not_used *e = gpu_data_not_used_new();
-			e->D = STARPU_TASK_GET_HANDLE(task, j);
-			gpu_data_not_used_list_push_front(p->temp_pointer_1->gpu_data[j], e);
-		    }
+		    gpu_data_not_used_list_push_front(p->temp_pointer_1->gpu_data[j], e);
 		}
 	    }
-	    p->temp_pointer_1 = p->temp_pointer_1->next;
 	}
+	p->temp_pointer_1 = p->temp_pointer_1->next;
+    }
     						
-    /* Pointer in the task. */
+    /* Adding the pointer in the task. */
     struct pointer_in_task *pt = malloc(sizeof(*pt));
     pt->pointer_to_cell = task;
     pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
     pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
-    //task->sched_data = pt; Je l'ai mis plus bas
 	
-    printf("Sur la tâche %p, ", task);
     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
     {
-	printf("sur la donnée %p, ", STARPU_TASK_GET_HANDLE(task, i));
 	/* Pointer toward the main task list in the handles. */
 	struct task_using_data *e = task_using_data_new();
+	e->pointer_to_T = task;
 	if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
 	{
 	    struct task_using_data_list *tl = task_using_data_list_new();
-	    e->pointer_to_T = task;
 	    task_using_data_list_push_front(tl, e);
 	    STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
 	}
 	else
 	{
-	    e->pointer_to_T = task;
 	    task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
 	}
 	    
-	/* For pointer in task. */
+	/* Adding the pointer in the task. */
 	pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
 	pt->tud[i] = e;
-	    
-	printf("contenu de sched_data dans le handle : ");
-	    struct task_using_data *temp;
-	    for(temp = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(task, i)->sched_data); temp != task_using_data_list_end(STARPU_TASK_GET_HANDLE(task, i)->sched_data); temp  = task_using_data_list_next(temp))
-	    {
-		printf("%p, ", temp->pointer_to_T);
-	    }
-	}
-	task->sched_data = pt;
-	
-	printf("\n");
-	
-	//~ /* Adding the data not used yet in the corresponding GPU. */
-	//~ p->temp_pointer_1 = p->first_link;
-	//~ for (i = 0; i < Ngpu; i++)
-	//~ {
-	    //~ for (j = 0; j < Ndifferent_data_type; j++)
-	    //~ {
-		//~ if (p->temp_pointer_1->gpu_data[j] == NULL)
-		//~ {
-		    //~ printf("here1\n");
-		    //~ struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
-		    //~ struct gpu_data_not_used *e = gpu_data_not_used_new();
-		    //~ e->D = STARPU_TASK_GET_HANDLE(task, j);
-		    //~ gpu_data_not_used_list_push_front(gd, e);
-		    //~ p->temp_pointer_1->gpu_data[j] = gd; 
-		//~ }
-		//~ else
-		//~ {
-		    //~ printf("here2\n");
-		    //~ if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
-		    //~ {
-			//~ printf("adding in gpu\n");
-			//~ struct gpu_data_not_used *e = gpu_data_not_used_new();
-			//~ e->D = STARPU_TASK_GET_HANDLE(task, j);
-			//~ gpu_data_not_used_list_push_front(p->temp_pointer_1->gpu_data[j], e);
-		    //~ }
-		//~ }
-	    //~ }
-	    //~ p->temp_pointer_1 = p->temp_pointer_1->next;
-	//~ }
-		
-		//Ancienne version ou je parcourais toute la liste de données dans le GPU
-		//~ if (p->temp_pointer_1->gpu_data[j] == NULL)
-		//~ {
-		    //~ struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
-		    //~ struct gpu_data_not_used *e = gpu_data_not_used_new();
-		    //~ e->D = STARPU_TASK_GET_HANDLE(task, j);
-		    //~ gpu_data_not_used_list_push_front(gd, e);
-		    //~ p->temp_pointer_1->gpu_data[j] = gd; 
-		//~ }
-		//~ else
-		//~ {
-		    //~ already_in_gpu_data = false;
-		    //~ for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(p->temp_pointer_1->gpu_data[j]); e != gpu_data_not_used_list_end(p->temp_pointer_1->gpu_data[j]); e = gpu_data_not_used_list_next(e))
-		    //~ {
-			//~ if (e->D == STARPU_TASK_GET_HANDLE(task, j))
-			//~ {
-			    //~ already_in_gpu_data = true;
-			    //~ break;
-			//~ }
-		    //~ }
-		    //~ if (already_in_gpu_data == false)
-		    //~ {
-			//~ struct gpu_data_not_used *e = gpu_data_not_used_new();
-			//~ e->D = STARPU_TASK_GET_HANDLE(task, j);
-			//~ gpu_data_not_used_list_push_front(p->temp_pointer_1->gpu_data[j], e);
-		    //~ }
-		//~ }
-	    //~ }
-	    //~ p->temp_pointer_1 = p->temp_pointer_1->next;
-	    //Fin ancienne version
-	    
-	//~ }
-    printf("\n");
-    print_data_not_used_yet(p);
-    
-    //~ printf("J'ai parcouru la liste de tâche complète dans initialize_task_list_using_data(struct starpu_task_list *l) pour ajouter chaque tâche dans une liste dans les handles. Complexité : O(NT). J'ai également parcouru la liste de donnée de chaque GPU pour savoir lesquelles je n'avais pas encore mis dedans. complexité : O(ND^2).\n\n");
+    }
+    task->sched_data = pt;
 }
 
+/* Randomize the list of data not used yet by a GPU. */
 void randomize_data_not_used_yet(struct paquets *p)
 {
-        //~ for (i = 0; i < NT; i++)
-    //~ {
-	//~ random = rand()%NT;
-	//~ while (random != 0)
-	//~ {
-	    //~ random--;
-	    //~ starpu_task_list_push_back(&d->sched_list, starpu_task_list_pop_front(&d->sched_list));
-	//~ }
-	//~ starpu_task_list_push_back(&d->popped_task_list, starpu_task_list_pop_front(&d->sched_list));
-    //~ }
-    
-    
-    p->temp_pointer_1 = p->first_link;
     int i = 0;
     int j = 0;
     int k = 0;
     int l = 0;
     int random = 0;
     int number_of_data[Ndifferent_data_type];
-    //~ struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
-    struct gpu_data_not_used *e = gpu_data_not_used_new();
-    struct gpu_data_not_used *struct_runner = gpu_data_not_used_new();
+    p->temp_pointer_1 = p->first_link;
     
+    /* I need this for the %random. */
     for (i = 0; i < Ndifferent_data_type; i++)
     {
 	number_of_data[i] = gpu_data_not_used_list_size(p->temp_pointer_1->gpu_data[i]);
@@ -244,87 +134,79 @@ void randomize_data_not_used_yet(struct paquets *p)
     
     for (i = 0; i < Ngpu; i++)
     {
-	printf("i = %d\n", i);
 	for (j = 0; j < Ndifferent_data_type; j++)
 	{
-	     struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
-	    printf("j = %d\n", j);
+	    struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
 	    for (l = 0; l < number_of_data[j]; l++)
 	    {
+		/* After each time I remove a data I can choose between a smaller number of value for random. */
 		random = rand()%(number_of_data[j]- l);
-		//~ e = gpu_data_not_used_list_pop_front(p->temp_pointer_1->gpu_data[j]);
-		printf("random = %d, e->D = %p\n", random, e->D);
-		
-		//~ struct_runner = gpu_data_not_used_list_begin(p->temp_pointer_1->gpu_data[j]);
 		for (k = 0; k < random; k++)
 		{
-		    //~ struct_runner = gpu_data_not_used_list_next(struct_runner);
 		    gpu_data_not_used_list_push_back(p->temp_pointer_1->gpu_data[j], gpu_data_not_used_list_pop_front(p->temp_pointer_1->gpu_data[j]));
 		}
-		 gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(p->temp_pointer_1->gpu_data[j]));
-		//~ gpu_data_not_used_list_insert_before(p->temp_pointer_1->gpu_data[j], e, struct_runner);
-		//~ gpu_data_not_used_list_push_back(p->temp_pointer_1->gpu_data[j], gpu_data_not_used_list_pop_front(p->temp_pointer_1->gpu_data[j]));
+		/* I use an external list. */
+		gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(p->temp_pointer_1->gpu_data[j]));
 	    }
+	    /* Then replace the list with it. */
 	    p->temp_pointer_1->gpu_data[j] = randomized_list;
 	}
 	p->temp_pointer_1 = p->temp_pointer_1->next;
     }
 }
 
-/* The function that sort the tasks in packages */
+/* Pull tasks. When it receives new task it will randomize the task list and the GPU data list.
+ * If it has no task it return NULL. Else if a task was refused it return it. Else it return the
+ * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
 static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-    printf("Beggining of pull task\n");
-    
-
     struct HFP_sched_data *data = component->data;
+    int i = 0;
+    int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     
-	    if (new_tasks_initialized == true)
-	    {
-		//~ print_data_not_used_yet(data->p);
-		//~ print_task_list(&data->sched_list, "oui");
-		NT = starpu_task_list_size(&data->sched_list);
-		printf("randomisation\n");
-		/* randomisation de grand T et des données des GPU à faire ici!
-	     * A chaque fois que l'on recoit un nouveau bloc de tâche -> il faut une var globale. */
-		randomize_task_list(data);
-		randomize_data_not_used_yet(data->p);
-		new_tasks_initialized = false;
-		//~ print_data_not_used_yet(data->p);
-		//~ print_task_list(&data->popped_task_list, "non");
-		//~ exit(0);
-	    }
-	    int i = 0;
-    	/* Getting on the right GPU's package */
-	data->p->temp_pointer_1 = data->p->first_link;
-	for (i = 1; i <starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
-	{
-	    data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-	}
+    /* New tasks from push_task. We need to randomize. 
+     * TODO: check that with other applications where task are not
+     * all available at once, this works.
+     */
+    if (new_tasks_initialized == true)
+    {
+	printf("Printing GPU's data list and main task list before randomization:\n\n");
+	print_data_not_used_yet(data->p);
+	print_task_list(&data->sched_list, "");
+	NT = starpu_task_list_size(&data->sched_list);
+	randomize_task_list(data);
+	randomize_data_not_used_yet(data->p);
+	new_tasks_initialized = false;
+	printf("Printing GPU's data list and main task list after randomization:\n\n");
+	print_data_not_used_yet(data->p);
+	print_task_list(&data->popped_task_list, "");
+    }
 	    
-    //~ print_task_list(&data->popped_task_list, "oui");
+    /* Getting on the right GPU's package.
+     * TODO: Can I do this faster with pointer directly to the cell ?
+     */
+    data->p->temp_pointer_1 = data->p->first_link;
+    for (i = 1; i < current_gpu; i++)
+    {
+	data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+    }
+    
+    /* If there are still tasks either in the packages, the main task list or the refused task,
+     * I enter here to return a task or start dynamic_outer_scheduling. Else I return NULL.
+     */
     if (!starpu_task_list_empty(&data->p->temp_pointer_1->sub_list) || !starpu_task_list_empty(&data->popped_task_list) || !starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list))
     {
-	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-	//~ printf("Beggining of pull task, GPU n°%d\n", current_gpu);
-	//~ print_packages(data->p);
-	//~ int i = 0;
+	printf("GPU n°%d is asking for a task!\n\n", current_gpu);
+	
 	struct starpu_task *task = NULL;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-
-	//~ /* Getting on the right GPU's package */
-	//~ data->p->temp_pointer_1 = data->p->first_link;
-	//~ for (i = 1; i <starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
-	//~ {
-	    //~ data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-	//~ }
 
 	/* If one or more task have been refused */
 	if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) 
 	{
 	    task = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	    printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n", task, to);
+	    printf("Task %p is getting out of pull_task from fifo refused list on GPU n°%d\n", task, current_gpu);
 	    return task;
 	}
 
@@ -334,121 +216,121 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
 	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	    
+	    /* For visualisation in python. */
 	    if (starpu_get_env_number_default("PRINTF", 0) == 1)
 	    {
 		print_data_to_load_prefetch(task, starpu_worker_get_memory_node(starpu_worker_get_id()) - 1);
 	    }
+	    
 	    return task;
 	}
 	/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
 	else if (!starpu_task_list_empty(&data->popped_task_list))
 	{
+	    print_data_not_used_yet(data->p);
 	    dynamic_outer_scheduling(&data->popped_task_list, current_gpu, data->p->temp_pointer_1);
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
 	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	    
+	    /* For visualisation in python. */
 	    if (starpu_get_env_number_default("PRINTF", 0) == 1)
 	    {
 		print_data_to_load_prefetch(task, starpu_worker_get_memory_node(starpu_worker_get_id()) - 1);
 	    }
+	    
 	    return task;
 	}
 	/* Else I will return NULL. But I still need to unlock the mutex. */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	/* If the linked list is empty */
-	//~ if (is_empty(data->p->first_link) == true) 
-	//~ {
-	    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	    //~ printf("Returned NULL in pull_task\n");
-	    //~ return NULL;
-	//~ }
     }
-    //~ else
-    //~ {
-	//~ printf("sched list empty return NULL\n");
-    //~ }
-    /* Do schedule not done yet */
-    printf("Return NULL\n");
+    
     return NULL;
 }
 
+/* Fill a package task list following dynamic_outer algorithm. */
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l)
 {
-    printf("Beggining of dynamic_outer_scheduling\n");
-    /* If the package is not empty I don't look.
-     * Else we have data not loaded yet (even in prefetch).
+    printf("Beggining of dynamic_outer_scheduling.\n\n");
+    
+    int i = 0;
+    int j = 0;
+    int next_handle = 0;
+    struct task_using_data *t = NULL;
+    struct gpu_data_not_used *e = NULL;
+    
+    /* TODO: Here if you have a random graph, you need to know exactly what data need the tasks. We can also always 
+     * pop a N number of data and check each time if we can do a task with what's in memory.
      */
-    //~ if (starpu_task_list_empty(&l->sub_list))
-    //~ {
-	int i = 0;
-	int j = 0;
-	int next_handle = 0;
-	/* Here if you have a random graph, you need to know exactly what data need the tasks. We can also always 
-	 * pop a N number of data and check each time if we can do a task with what's in memory.
+    /* Data popped that we will use. */
+    starpu_data_handle_t *handle_popped = malloc(Ndifferent_data_type*sizeof(STARPU_TASK_GET_HANDLE(starpu_task_list_begin(popped_task_list), 0)));
+    
+    /* To know if all the data needed for a task are loaded in memory. */
+    bool data_available = true; 
+    
+    for (i = 0; i < Ndifferent_data_type; i++)
+    {
+	/* If at least one data type is empty in the GPU I return a random task.
+	 * TODO: This might be wrong. This would change if we manage evictions.
 	 */
-	starpu_data_handle_t *handle_popped = malloc(Ndifferent_data_type*sizeof(STARPU_TASK_GET_HANDLE(starpu_task_list_begin(popped_task_list), 0)));
-	struct gpu_data_not_used *e = NULL;
-	bool data_available = true; /* To know if all the data needed for a task are loaded in memory. */
-	//~ starpu_data_handle_t *handle_needed = malloc((Ndifferent_data_type-1)*sizeof(STARPU_TASK_GET_HANDLE(starpu_task_list_begin(&d->popped_task_list), 0)));
-	//~ d->p->temp_pointer_1 = d->p->first_link;
-	printf("Data not used yet in the current GPU: ");
-	for (i = 0; i < Ndifferent_data_type; i++)
+	if (gpu_data_not_used_list_empty(l->gpu_data[i]))
 	{
-	    /* TODO : a enlever si on gère les evictions.
-	     * Pour l'instant si un seul des type de donnée est vide je renvoie random */
-	    if (gpu_data_not_used_list_empty(l->gpu_data[i]))
-	    {
-		goto return_random_task;
-	    }
-		
-	    for (e = gpu_data_not_used_list_begin(l->gpu_data[i]); e != gpu_data_not_used_list_end(l->gpu_data[i]); e = gpu_data_not_used_list_next(e))
-	    {
-		printf("%p ", e->D);
-	    }
-	    printf("/ ");
-	    e = gpu_data_not_used_list_pop_front(l->gpu_data[i]);
-	    handle_popped[i] = e->D;
+	    goto return_random_task;
 	}
-	printf("\nHandles popped: %p %p\n", handle_popped[0], handle_popped[1]);
-	printf("Task using these handles:");
-	for (struct task_using_data *t = task_using_data_list_begin(handle_popped[0]->sched_data); t != task_using_data_list_end(handle_popped[0]->sched_data); t = task_using_data_list_next(t))
-	{
-	    printf(" %p", t->pointer_to_T);
-	}
-	printf(" /");
-	for (struct task_using_data *t = task_using_data_list_begin(handle_popped[1]->sched_data); t != task_using_data_list_end(handle_popped[1]->sched_data); t = task_using_data_list_next(t))
-	{
-	    printf(" %p", t->pointer_to_T);
-	}
-	printf("\n");
+	/* Else I can pop a data. */
+	e = gpu_data_not_used_list_pop_front(l->gpu_data[i]);
+	handle_popped[i] = e->D;
+    }
+    
+    /* Just printing. */
+    printf("Handles popped:");
+    for (i = 0; i < Ndifferent_data_type; i++)
+    {
+	printf(" %p", handle_popped[i]);
+    }
+    printf("\n\n");
+    printf("Task using these handles:");
+    for (struct task_using_data *t = task_using_data_list_begin(handle_popped[0]->sched_data); t != task_using_data_list_end(handle_popped[0]->sched_data); t = task_using_data_list_next(t))
+    {
+	printf(" %p", t->pointer_to_T);
+    }
+    printf(" /");
+    for (struct task_using_data *t = task_using_data_list_begin(handle_popped[1]->sched_data); t != task_using_data_list_end(handle_popped[1]->sched_data); t = task_using_data_list_next(t))
+    {
+	printf(" %p", t->pointer_to_T);
+    }
+    printf("\n\n");
 	
-	/* Here, I need to find the task I can do with the data already in memory + the new data A and B.
-	 * It can also be the task using A and B.
-	 * Do I need to check the prefetch memory too ? Idk, need to test with and without it.
-	 * It would be cool to add first into the package the tasks using A then the one using 
-	 * A and B and lastly the ones using B.
-	 */
-	struct task_using_data *t = NULL;
-	for (i = 0; i < Ndifferent_data_type; i++)
+    /* Here, I need to find the task I can do with the data already in memory + the new data A and B.
+     * It can also be the task using A and B.
+     * TODO: Add first the one using A and B then alterning between task from A and from B.
+     */
+    for (i = 0; i < Ndifferent_data_type; i++)
+    {
+	for (t = task_using_data_list_begin(handle_popped[i]->sched_data); t != task_using_data_list_end(handle_popped[i]->sched_data); t = task_using_data_list_next(t))
 	{
-	    for (t = task_using_data_list_begin(handle_popped[i]->sched_data); t != task_using_data_list_end(handle_popped[i]->sched_data); t = task_using_data_list_next(t))
+	    /* I put it at false if at least one data is missing. */
+	    data_available = true; 
+	    printf("Task %p use %p\n", t->pointer_to_T, handle_popped[i]);
+	    for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T) - 1; j++)
 	    {
-		data_available = true; /* I put it at false if at least one data is missing. */
-		printf("Task %p use %p\n", t->pointer_to_T, handle_popped[i]);
-		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T) - 1; j++)
+		/* I use %nb_data_for_a_task because I don't want to check the current data type I'm on.*/
+		next_handle = (i + 1 + j)%STARPU_TASK_GET_NBUFFERS(t->pointer_to_T);
+		    
+		printf("Testing data %p\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle));
+		printf("The other handle is: %p\n", handle_popped[next_handle]);
+		
+		/* I test if the data is on memory including prefetch.
+		 * TODO: Will we need one day to test without the prefetch ?
+		 */ 
+		if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), current_gpu) && STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) != handle_popped[next_handle])
 		{
-		    next_handle = (i + 1 + j)%STARPU_TASK_GET_NBUFFERS(t->pointer_to_T);
-		    /* I use %nb_data_for_a_task because I don't want to check the current data type I'm on.*/
-		    printf("Testing data %p\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle));
-		    printf("The other handle is: %p\n", handle_popped[next_handle]);
-		    //~ if (!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), current_gpu) && STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) != handle_popped[next_handle])
-		    if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), current_gpu) && STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) != handle_popped[next_handle])
-		    {
-			printf("Data %p is not on memory nor is popped\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
-			data_available = false;
-			break;
-		    }
+		    printf("Data %p is not on memory nor is popped\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
+		    data_available = false;
+		    break;
 		}
+	    }
 		if (data_available == true)
 		{
 		    printf("Pushing %p in the package\n", t->pointer_to_T);
@@ -784,7 +666,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_outer");
 	srandom(time(NULL));
 	int i = 0;
-	Ndifferent_data_type = 2; // TODO : changer cela si on est en 3D
+	Ndifferent_data_type = 2; // TODO: changer cela si on est en 3D
 	Ngpu = get_number_GPU();
 	NT = 0;
 	new_tasks_initialized = false;
