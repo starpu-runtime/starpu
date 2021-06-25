@@ -1411,9 +1411,10 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 	_STARPU_MSG("[HETEROPRIO] Auto calibration : %s\n", hp->use_auto_calibration?"ENABLED":"DISABLED");
 	if(hp->use_auto_calibration)
 	{
-		hp->autoheteroprio_priority_ordering_policy = starpu_get_env_number_default("STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY", STARPU_HETEROPRIO_URT_DOT_DIFF_4);
-		STARPU_ASSERT_MSG(hp->autoheteroprio_priority_ordering_policy < STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be < %d.\n", STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT);
-		STARPU_ASSERT_MSG(hp->autoheteroprio_priority_ordering_policy >= 0, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be >= 0.\n");
+		const int ordering_policy = starpu_get_env_number_default("STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY", STARPU_HETEROPRIO_URT_DOT_DIFF_4); 
+		STARPU_ASSERT_MSG(ordering_policy < STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be < %d.\n", STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY_COUNT);
+		STARPU_ASSERT_MSG(ordering_policy >= 0, "STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY must be >= 0.\n");
+		hp->autoheteroprio_priority_ordering_policy = ordering_policy;
 		_STARPU_MSG("[AUTOHETEROPRIO] Priority ordering policy : %s\n", &starpu_autoheteroprio_priority_ordering_policy_names[hp->autoheteroprio_priority_ordering_policy][0]);
 
 
@@ -2636,6 +2637,10 @@ static const char *_heteroprio_get_codelet_name(enum autoheteroprio_codelet_grou
 		case BY_PERF_MODEL_OR_NAME:
 			if(cl->model && cl->model->symbol)
 				return cl->model->symbol;
+			else
+				return cl->name ? cl->name : AUTOHETEROPRIO_NO_NAME;
+			break;
+
 		case BY_NAME_ONLY:
 			return cl->name ? cl->name : AUTOHETEROPRIO_NO_NAME;
 			break;
@@ -2649,7 +2654,7 @@ static const char *_heteroprio_get_codelet_name(enum autoheteroprio_codelet_grou
 // used by get_task_auto_priority for knowing if a submitted codelet equals an other
 static int are_same_codelets(struct _starpu_heteroprio_data *hp, const struct starpu_task *task, const char name[CODELET_MAX_NAME_LENGTH], unsigned valid_archs)
 {
-	unsigned task_valid_archs = task->where != -1 ? task->where : task->cl->where;
+	unsigned task_valid_archs = task->where >= 0 ? (unsigned) task->where : task->cl->where;
 
 	if(task_valid_archs != valid_archs)
 	{
@@ -2766,7 +2771,7 @@ static double get_job_NOD(struct _starpu_heteroprio_data *hp, struct _starpu_job
 }
 
 // get job's NRT (Normalized Released Time)
-static double get_job_NRT(struct _starpu_heteroprio_data *hp, struct _starpu_job *job, unsigned priority, unsigned arch)
+static double get_job_NRT(struct _starpu_heteroprio_data *hp, struct _starpu_job *job, unsigned arch)
 {
 	STARPU_ASSERT(!hp->freeze_data_gathering);
 	STARPU_ASSERT(_starpu_graph_record == 1);
@@ -2809,7 +2814,7 @@ static double get_job_NRT(struct _starpu_heteroprio_data *hp, struct _starpu_job
 			if(successor_task->cl)
 			{
 				// if a codelet is associated to the task, we can count it in the NOD
-				unsigned successor_prio = get_task_auto_priority(hp, successor_task);
+				int successor_prio = get_task_auto_priority(hp, successor_task);
 				double successor_arch_time;
 				if(successor_prio == -1)
 				{
@@ -2870,7 +2875,7 @@ static double get_best_autoheteroprio_estimated_time(struct _starpu_heteroprio_d
 
 static double get_job_best_time(struct _starpu_heteroprio_data *hp, struct _starpu_job *job)
 {
-	unsigned task_priority = get_task_auto_priority(hp, job->task);
+	int task_priority = get_task_auto_priority(hp, job->task);
 
 	double time;
 
@@ -3262,7 +3267,7 @@ the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_m
 				unsigned arch;
 				for(arch=0;arch<STARPU_NARCH;++arch)
 				{
-					archs_NRTs[arch] = get_job_NRT(hp, job, task_priority, arch);
+					archs_NRTs[arch] = get_job_NRT(hp, job, arch);
 				}
 				add_URTs_to_data(hp, task_priority, archs_NRTs);
 
@@ -3801,7 +3806,7 @@ done:		;
 	if(!hp->freeze_data_gathering && hp->use_auto_calibration && task)
 	{
 		// register that the task has been executed on the arch type :
-		unsigned prio = get_task_auto_priority(hp, task);
+		int prio = get_task_auto_priority(hp, task);
 
 		if(prio != -1)
 		{
