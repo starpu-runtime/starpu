@@ -274,7 +274,7 @@ void randomize_data_not_used_yet(struct paquets *p)
 /* The function that sort the tasks in packages */
 static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-    //~ printf("Beggining of pull task\n");
+    printf("Beggining of pull task\n");
     
 
     struct HFP_sched_data *data = component->data;
@@ -294,25 +294,30 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 		//~ print_task_list(&data->popped_task_list, "non");
 		//~ exit(0);
 	    }
-    //~ print_task_list(&data->popped_task_list, "oui");
-    if (!is_empty(data->p->first_link) || !starpu_task_list_empty(&data->popped_task_list))
-    {
-	
-	
-    
-	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-	//~ printf("Beggining of pull task, GPU n°%d\n", current_gpu);
-	//~ print_packages(data->p);
-	int i = 0;
-	struct starpu_task *task = NULL;
-	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-
-	/* Getting on the right GPU's package */
+	    int i = 0;
+    	/* Getting on the right GPU's package */
 	data->p->temp_pointer_1 = data->p->first_link;
 	for (i = 1; i <starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
 	{
 	    data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 	}
+	    
+    //~ print_task_list(&data->popped_task_list, "oui");
+    if (!starpu_task_list_empty(&data->p->temp_pointer_1->sub_list) || !starpu_task_list_empty(&data->popped_task_list) || !starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list))
+    {
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+	//~ printf("Beggining of pull task, GPU n°%d\n", current_gpu);
+	//~ print_packages(data->p);
+	//~ int i = 0;
+	struct starpu_task *task = NULL;
+	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+
+	//~ /* Getting on the right GPU's package */
+	//~ data->p->temp_pointer_1 = data->p->first_link;
+	//~ for (i = 1; i <starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
+	//~ {
+	    //~ data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+	//~ }
 
 	/* If one or more task have been refused */
 	if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) 
@@ -363,13 +368,13 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	//~ printf("sched list empty return NULL\n");
     //~ }
     /* Do schedule not done yet */
-    //~ printf("Return NULL\n");
+    printf("Return NULL\n");
     return NULL;
 }
 
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l)
 {
-    //~ printf("Beggining of dynamic_outer_scheduling\n");
+    printf("Beggining of dynamic_outer_scheduling\n");
     /* If the package is not empty I don't look.
      * Else we have data not loaded yet (even in prefetch).
      */
@@ -389,7 +394,8 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	printf("Data not used yet in the current GPU: ");
 	for (i = 0; i < Ndifferent_data_type; i++)
 	{
-	    /* TODO : a enlever si on gère les evictions. */
+	    /* TODO : a enlever si on gère les evictions.
+	     * Pour l'instant si un seul des type de donnée est vide je renvoie random */
 	    if (gpu_data_not_used_list_empty(l->gpu_data[i]))
 	    {
 		goto return_random_task;
@@ -465,7 +471,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	    //TODO on peut remplacer le go to par une fonction externe. Surtout que je dois utiliser le ; pour faire 
 	    //un blank statement et pas avoir d'erreur
 	    return_random_task: ;
-	    
+	    printf("return random\n");
 	    struct starpu_task *task = starpu_task_list_pop_front(popped_task_list);
 	    printf("No task were possible with the popped handles. Return head of the randomized main task list: %p.\n", task);
 	    struct pointer_in_task *pt = task->sched_data;
