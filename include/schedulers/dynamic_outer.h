@@ -27,6 +27,8 @@ void randomize_task_list(struct HFP_sched_data *d);
  */
 void print_task_list(struct starpu_task_list *l, char *s);
 
+void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);
+
 void print_packages(struct paquets *p);
 
 void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paquets *p);
