@@ -36,7 +36,7 @@
 /* Used for modular-heft for visualisation */
 void initialize_global_variable(struct starpu_task *task)
 {
-	printf("Init global for visu\n");
+	//~ printf("Init global for visu\n");
 	N = starpu_get_env_number_default("PRINT_N", 0);
 	Ngpu = get_number_GPU();
 	int i = 0;

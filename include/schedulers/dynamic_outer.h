@@ -3,18 +3,8 @@
 
 int Ndifferent_data_type;
 
-/* The initialization consit of randomizing the main taks list, 
- * creating a pointer list of task for each data and creating a list of data
- * not used for each GPU and each data type (A, B and C for a matrix for example).
- * It is only done once and it's called in static void dynamic_outer_do_schedule(struct starpu_sched_component *component).
- * The boolean initialization_dynamic_outer_done allow us to know if it has been done or not.
- */
-//~ void initialization_dynamic_outer(struct starpu_sched_component *component);
-
 void print_data_not_used_yet(struct paquets *p);
 
-/* The boolean mentionned above.
- */
 bool new_tasks_initialized;
 
 void randomize_data_not_used_yet(struct paquets *p);
@@ -23,8 +13,6 @@ void randomize_data_not_used_yet(struct paquets *p);
  */
 void randomize_task_list(struct HFP_sched_data *d);
 
-/* Just printing in the terminal 
- */
 void print_task_list(struct starpu_task_list *l, char *s);
 
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);
@@ -36,11 +24,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paque
 void print_task_using_data(starpu_data_handle_t d);
 
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l);
-
-/* Initialize for each data the set of task that use it (with pointer pointing the main task list)
- * + in each task I add a pointer to the task list it is in.
- */
-//~ void initialize_task_data_gpu(struct starpu_task_list *l, struct paquets *p);
 
 /* In the handles */
 LIST_TYPE(task_using_data,

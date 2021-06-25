@@ -268,6 +268,8 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     
     /* To know if all the data needed for a task are loaded in memory. */
     bool data_available = true; 
+    /* To know if it's the task using the Ndifferent_data_type data popped. */
+    bool handle_popped_task = true;
 
     for (i = 0; i < Ndifferent_data_type; i++)
     {
@@ -312,7 +314,8 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	{
 	    /* I put it at false if at least one data is missing. */
 	    data_available = true; 
-	    printf("Task %p use %p.\n", t->pointer_to_T, handle_popped[i]);
+	    handle_popped_task = true;
+	    printf("Task %p use %p.\n", t->pointer_to_T, handle_popped[i]);	
 	    for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T) - 1; j++)
 	    {
 		/* I use %nb_data_for_a_task because I don't want to check the current data type I'm on.*/
@@ -321,11 +324,16 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 		/* I test if the data is on memory including prefetch.
 		 * TODO: Will we need one day to test without the prefetch ?
 		 */ 
-		if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), current_gpu) && STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) != handle_popped[next_handle])
+		if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) != handle_popped[next_handle])
 		{
-		    printf("Data %p is not on memory nor is popped.\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
-		    data_available = false;
-		    break;
+		    handle_popped_task = false;
+		    
+		    if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), current_gpu))
+		    {
+			printf("Data %p is not on memory nor is popped.\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
+			data_available = false;
+			break;
+		    }
 		}
 	    }
 	    if (data_available == true)
@@ -333,7 +341,17 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 		printf("Pushing %p in the package.\n", t->pointer_to_T);
 		/* Deleting the task from the task list of data A, B (and C) and from the main task list. */
 		erase_task_and_data_pointer(t->pointer_to_T, popped_task_list);
-		starpu_task_list_push_back(&l->sub_list, t->pointer_to_T);
+		
+		/* Pushing on top the task using all popped handles. */
+		if (handle_popped_task == true)
+		{
+		    printf("Pushing front\n");
+		    starpu_task_list_push_front(&l->sub_list, t->pointer_to_T);
+		}
+		else
+		{
+		    starpu_task_list_push_back(&l->sub_list, t->pointer_to_T);
+		}
 	    }
 	}
     }
