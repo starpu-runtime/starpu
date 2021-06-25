@@ -256,10 +256,18 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     
     int i = 0;
     int j = 0;
+    int pushed_task = 0;
     int next_handle = 0;
     struct task_using_data *t = NULL;
     struct gpu_data_not_used *e = NULL;
-    
+    void *task_tab[Ndifferent_data_type];
+    for (i = 0; i < Ndifferent_data_type; i++)
+    {
+	struct starpu_task_list *tl = starpu_task_list_new();
+	starpu_task_list_init(tl);
+	task_tab[i] = tl;
+    }
+
     /* TODO: Here if you have a random graph, you need to know exactly what data need the tasks. We can also always 
      * pop a N number of data and check each time if we can do a task with what's in memory.
      */
@@ -345,16 +353,35 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 		/* Pushing on top the task using all popped handles. */
 		if (handle_popped_task == true)
 		{
-		    printf("Pushing front\n");
 		    starpu_task_list_push_front(&l->sub_list, t->pointer_to_T);
 		}
 		else
 		{
-		    starpu_task_list_push_back(&l->sub_list, t->pointer_to_T);
+		    starpu_task_list_push_back(task_tab[i], t->pointer_to_T);
+		    //~ starpu_task_list_push_back(&task_tab[i], t->pointer_to_T);
+		    pushed_task++;
 		}
 	    }
 	}
     }
+    
+    print_task_list(task_tab[0], "0");
+    print_task_list(task_tab[1], "1");
+    
+    /* Pushing back interlacing all different data types. */
+    while (pushed_task > 0)
+    {
+	for (j = 0; j < Ndifferent_data_type; j++)
+	{
+	    if (!starpu_task_list_empty(task_tab[j]))
+	    {
+		printf("avant push %d, %p\n", pushed_task, starpu_task_list_begin(task_tab[j]));
+		starpu_task_list_push_back(&l->sub_list, starpu_task_list_pop_front(task_tab[j]));
+		pushed_task--;
+	    }
+	}
+    }
+    
     /* If no task have been added to the list. */
     if (starpu_task_list_empty(&l->sub_list)) 
     {
@@ -364,7 +391,9 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	erase_task_and_data_pointer(task, popped_task_list);
 	starpu_task_list_push_back(&l->sub_list, task);
     }
+    
     free(handle_popped);
+    //~ free(task_tab);
     printf("\n");
 }
 
