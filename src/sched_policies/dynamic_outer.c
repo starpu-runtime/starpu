@@ -212,6 +212,65 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paque
     //~ printf("J'ai parcouru la liste de tâche complète dans initialize_task_list_using_data(struct starpu_task_list *l) pour ajouter chaque tâche dans une liste dans les handles. Complexité : O(NT). J'ai également parcouru la liste de donnée de chaque GPU pour savoir lesquelles je n'avais pas encore mis dedans. complexité : O(ND^2).\n\n");
 }
 
+void randomize_data_not_used_yet(struct paquets *p)
+{
+        //~ for (i = 0; i < NT; i++)
+    //~ {
+	//~ random = rand()%NT;
+	//~ while (random != 0)
+	//~ {
+	    //~ random--;
+	    //~ starpu_task_list_push_back(&d->sched_list, starpu_task_list_pop_front(&d->sched_list));
+	//~ }
+	//~ starpu_task_list_push_back(&d->popped_task_list, starpu_task_list_pop_front(&d->sched_list));
+    //~ }
+    
+    
+    p->temp_pointer_1 = p->first_link;
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    int l = 0;
+    int random = 0;
+    int number_of_data[Ndifferent_data_type];
+    //~ struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
+    struct gpu_data_not_used *e = gpu_data_not_used_new();
+    struct gpu_data_not_used *struct_runner = gpu_data_not_used_new();
+    
+    for (i = 0; i < Ndifferent_data_type; i++)
+    {
+	number_of_data[i] = gpu_data_not_used_list_size(p->temp_pointer_1->gpu_data[i]);
+    }
+    
+    for (i = 0; i < Ngpu; i++)
+    {
+	printf("i = %d\n", i);
+	for (j = 0; j < Ndifferent_data_type; j++)
+	{
+	     struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
+	    printf("j = %d\n", j);
+	    for (l = 0; l < number_of_data[j]; l++)
+	    {
+		random = rand()%(number_of_data[j]- l);
+		//~ e = gpu_data_not_used_list_pop_front(p->temp_pointer_1->gpu_data[j]);
+		printf("random = %d, e->D = %p\n", random, e->D);
+		
+		//~ struct_runner = gpu_data_not_used_list_begin(p->temp_pointer_1->gpu_data[j]);
+		for (k = 0; k < random; k++)
+		{
+		    //~ struct_runner = gpu_data_not_used_list_next(struct_runner);
+		    gpu_data_not_used_list_push_back(p->temp_pointer_1->gpu_data[j], gpu_data_not_used_list_pop_front(p->temp_pointer_1->gpu_data[j]));
+		}
+		 gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(p->temp_pointer_1->gpu_data[j]));
+		//~ gpu_data_not_used_list_insert_before(p->temp_pointer_1->gpu_data[j], e, struct_runner);
+		//~ gpu_data_not_used_list_push_back(p->temp_pointer_1->gpu_data[j], gpu_data_not_used_list_pop_front(p->temp_pointer_1->gpu_data[j]));
+	    }
+	    p->temp_pointer_1->gpu_data[j] = randomized_list;
+	}
+	p->temp_pointer_1 = p->temp_pointer_1->next;
+    }
+}
+
 /* The function that sort the tasks in packages */
 static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
@@ -222,13 +281,18 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     
 	    if (new_tasks_initialized == true)
 	    {
+		//~ print_data_not_used_yet(data->p);
+		//~ print_task_list(&data->sched_list, "oui");
 		NT = starpu_task_list_size(&data->sched_list);
 		printf("randomisation\n");
 		/* randomisation de grand T et des données des GPU à faire ici!
 	     * A chaque fois que l'on recoit un nouveau bloc de tâche -> il faut une var globale. */
 		randomize_task_list(data);
-		//~ randomize_data_not_used_yet(data->p);
+		randomize_data_not_used_yet(data->p);
 		new_tasks_initialized = false;
+		//~ print_data_not_used_yet(data->p);
+		//~ print_task_list(&data->popped_task_list, "non");
+		//~ exit(0);
 	    }
     //~ print_task_list(&data->popped_task_list, "oui");
     if (!is_empty(data->p->first_link) || !starpu_task_list_empty(&data->popped_task_list))
@@ -644,7 +708,7 @@ void randomize_task_list(struct HFP_sched_data *d)
     
     for (i = 0; i < NT; i++)
     {
-	random = rand()%NT;
+	random = rand()%(NT - i);
 	while (random != 0)
 	{
 	    random--;
@@ -712,7 +776,7 @@ void randomize_task_list(struct HFP_sched_data *d)
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_outer");
-	
+	srandom(time(NULL));
 	int i = 0;
 	Ndifferent_data_type = 2; // TODO : changer cela si on est en 3D
 	Ngpu = get_number_GPU();

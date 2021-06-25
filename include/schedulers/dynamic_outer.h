@@ -17,6 +17,8 @@ void print_data_not_used_yet(struct paquets *p);
  */
 bool new_tasks_initialized;
 
+void randomize_data_not_used_yet(struct paquets *p);
+
 /* Randomize a task list. It takes the struct because I use two task list for this and I already have two in HFP_sched_data.
  */
 void randomize_task_list(struct HFP_sched_data *d);
