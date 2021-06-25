@@ -41,11 +41,11 @@ build:
     - when: always # Run pipeline for all other cases
 
 check:
-  extend: .check_template
+  extends: .check_template
   script:
     - ./contrib/gitlab/deploy.sh
 
 simgrid:
-  extend: .check_template
+  extends: .check_template
   script:
     - ./contrib/gitlab/simgrid.sh
