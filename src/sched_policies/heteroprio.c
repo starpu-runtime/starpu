@@ -1108,7 +1108,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	}
 	for(arch_ind = 0; arch_ind < ignored_archs; ++arch_ind)
 	{
-		if(fscanf(autoheteroprio_file, "%*u") != 1)
+		if(fscanf(autoheteroprio_file, "%u", &arch_type) != 1)
 		{
 			fclose(autoheteroprio_file);
 			_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing an architecture id\n");
@@ -1142,7 +1142,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	}
 	for(arch_ind = 0; arch_ind < ignored_archs; ++arch_ind)
 	{
-		if(fscanf(autoheteroprio_file, "%*f %*f") != 2)
+		if(fscanf(autoheteroprio_file, "%lf %lf", &avg_arch_busy_time, &avg_arch_free_time) != 2)
 		{
 			fclose(autoheteroprio_file);
 			_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing an architecture average times id\n");
@@ -2644,25 +2644,21 @@ static void order_priorities(struct _starpu_heteroprio_data *hp)
 }
 
 // used to get the name of a codelet, considering a codelet grouping strategy
-static const char *_heteroprio_get_codelet_name(enum autoheteroprio_codelet_grouping_strategy strategy, const struct starpu_codelet *cl)
+static const char *_heteroprio_get_codelet_name(enum autoheteroprio_codelet_grouping_strategy strategy, struct starpu_codelet *cl)
 {
+	const char *name = NULL;
 	switch(strategy)
 	{
 		case BY_PERF_MODEL_OR_NAME:
-			if(cl->model && cl->model->symbol)
-				return cl->model->symbol;
-			else
-				return cl->name ? cl->name : AUTOHETEROPRIO_NO_NAME;
+			name = _starpu_codelet_get_model_name(cl);
 			break;
 
 		case BY_NAME_ONLY:
-			return cl->name ? cl->name : AUTOHETEROPRIO_NO_NAME;
-			break;
-
-		default:
-			return AUTOHETEROPRIO_NO_NAME;
+			name = _starpu_codelet_get_name(cl);
 			break;
 	}
+
+	return name ? name : AUTOHETEROPRIO_NO_NAME;
 }
 
 // used by get_task_auto_priority for knowing if a submitted codelet equals an other
@@ -2724,7 +2720,7 @@ static int get_task_auto_priority(struct _starpu_heteroprio_data *hp, const stru
 	unsigned arch;
 	for(arch=0;arch<STARPU_NARCH;++arch)
 	{
-		archs[arch] = (starpu_heteroprio_types_to_arch(arch) & task->where) != 0;
+		archs[arch] = starpu_worker_type_can_execute_task(arch, task);
 	}
 
 	starpu_autoheteroprio_add_task(hp, name, archs);

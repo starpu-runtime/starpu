@@ -267,7 +267,7 @@ int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num);
 int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
 
 /**
-   Return true if task has a codelet for this worker type
+   Return true if worker type can execute this task
 */
 unsigned starpu_worker_type_can_execute_task(enum starpu_worker_archtype worker_type, const struct starpu_task *task);
 

@@ -2378,19 +2378,7 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 
 unsigned starpu_worker_type_can_execute_task(enum starpu_worker_archtype worker_type, const struct starpu_task *task)
 {
-	switch(worker_type)
-	{
-		case STARPU_CPU_WORKER:
-			return task->cl->cpu_funcs[0] != NULL;
-		case STARPU_CUDA_WORKER:
-			return task->cl->cuda_funcs[0] != NULL;
-		case STARPU_OPENCL_WORKER:
-			return task->cl->opencl_funcs[0] != NULL;
-		case STARPU_MPI_MS_WORKER:
-			return task->cl->mpi_ms_funcs[0] != NULL;
-		default:
-			return 0;
-	}
+	return (STARPU_WORKER_TO_MASK(worker_type) & task->where) != 0;
 }
 
 void starpu_worker_get_name(int id, char *dst, size_t maxlen)
