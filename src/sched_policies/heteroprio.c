@@ -50,6 +50,9 @@
 
 #define STR_MAX_SIZE 64
 
+#define STRINGIFY(x) _STR(x)
+#define _STR(x) #x
+
 /** Push strategy for use_locality */
 enum laheteroprio_push_strategy
 {
@@ -111,7 +114,7 @@ static void laqueue_push(struct laqueue* q, void* data)
 	if(q->current_index == q->capacity)
 	{
 		q->capacity = (q->capacity+10)*2;
-		q->data = (unsigned char*)realloc(q->data, q->size_of_element*q->capacity);
+		_STARPU_REALLOC(q->data, q->size_of_element*q->capacity);
 	}
 	memcpy(&q->data[(q->current_index++)*q->size_of_element], data, q->size_of_element);
 }
@@ -1090,8 +1093,10 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	// Count number of archs not available in this version
 	const unsigned ignored_archs = STARPU_MAX(0, (int) (number_of_archs - STARPU_NB_TYPES));
 
+	const unsigned supported_archs = STARPU_MIN(STARPU_NB_TYPES, number_of_archs);
+
 	// Reading list of supported architectures
-	for(arch_ind = 0; arch_ind < number_of_archs - ignored_archs; ++arch_ind)
+	for(arch_ind = 0; arch_ind < supported_archs; ++arch_ind)
 	{
 		if(fscanf(autoheteroprio_file, "%u", &arch_type) != 1)
 		{
@@ -1103,7 +1108,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	}
 	for(arch_ind = 0; arch_ind < ignored_archs; ++arch_ind)
 	{
-		if(fscanf(autoheteroprio_file, "%u", &arch_type) != 1)
+		if(fscanf(autoheteroprio_file, "%*u") != 1)
 		{
 			fclose(autoheteroprio_file);
 			_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing an architecture id\n");
@@ -1121,7 +1126,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 
 	// Reading architectures average times
 	double avg_arch_busy_time, avg_arch_free_time;
-	for(arch_ind = 0; arch_ind < number_of_archs; ++arch_ind)
+	for(arch_ind = 0; arch_ind < supported_archs; ++arch_ind)
 	{
 		if(fscanf(autoheteroprio_file, "%lf %lf", &avg_arch_busy_time, &avg_arch_free_time) != 2)
 		{
@@ -1133,6 +1138,15 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 		{
 			hp->average_arch_busy_time[archs[arch_ind]] = avg_arch_busy_time;
 			hp->average_arch_free_time[archs[arch_ind]] = avg_arch_free_time;
+		}
+	}
+	for(arch_ind = 0; arch_ind < ignored_archs; ++arch_ind)
+	{
+		if(fscanf(autoheteroprio_file, "%*f %*f") != 2)
+		{
+			fclose(autoheteroprio_file);
+			_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing an architecture average times id\n");
+			return;
 		}
 	}
 	if(getc(autoheteroprio_file) != '\n')
@@ -1151,7 +1165,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	unsigned ignored_lines, arch_can_execute;
 
 	// Read saved stats for each codelet
-	while(fscanf(autoheteroprio_file, "%s", codelet_name) == 1)
+	while(fscanf(autoheteroprio_file, "%" STRINGIFY(CODELET_MAX_NAME_LENGTH) "s", codelet_name) == 1)
 	{
 		memset(codelet_exec_archs, 0, STARPU_NB_TYPES * sizeof(unsigned));
 
@@ -1193,7 +1207,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 		}
 
 		// Read architecture specific data
-		for(arch_ind = 0; arch_ind < number_of_archs - ignored_archs; ++arch_ind)
+		for(arch_ind = 0; arch_ind < supported_archs; ++arch_ind)
 		{
 			if(codelet_archs[arch_ind] && archs[arch_ind] < STARPU_NB_TYPES)
 			{
@@ -3123,7 +3137,7 @@ static void autoheteroprio_update_slowdown_data(struct _starpu_heteroprio_data *
 	for(p=0;p<hp->found_codelet_names_length;++p)
 	{
 		unsigned valid_archs[STARPU_NB_TYPES] = {0};
-		double arch_times[STARPU_NB_TYPES];
+		double arch_times[STARPU_NB_TYPES] = {0.f};
 
 		for(arch = 0; arch < STARPU_NB_TYPES; ++arch)
 		{
@@ -3363,6 +3377,7 @@ the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_m
 	}
 
 	/* Retrieve the correct bucket */
+	STARPU_ASSERT(task_priority >= 0);
 	STARPU_ASSERT(task_priority < HETEROPRIO_MAX_PRIO);
 
 	struct _heteroprio_bucket* bucket = &hp->buckets[task_priority];
