@@ -27,14 +27,15 @@
 
 static void _starpu_data_check_initialized(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
-	if (!(mode & STARPU_R))
-		return;
-
 	if (((handle->nplans && !handle->nchildren) || handle->siblings)
-		&& handle->partition_automatic_disabled == 0)
+		&& handle->partition_automatic_disabled == 0
+		&& !(mode & STARPU_NOPLAN))
 	{
 		_starpu_data_partition_access_submit(handle, (mode & STARPU_W) != 0);
 	}
+
+	if (!(mode & STARPU_R))
+		return;
 
 	if (!handle->initialized && handle->init_cl)
 	{

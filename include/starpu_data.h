@@ -118,7 +118,9 @@ enum starpu_data_access_mode
 			            When inserting these tasks through the
 				    MPI layer however, the access mode needs
 				    to be ::STARPU_MPI_REDUX. */
-	STARPU_ACCESS_MODE_MAX=(1<<8) /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
+	STARPU_NOPLAN=(1<<8),	/**< Disable automatic submission of asynchronous
+				    partitioning/unpartitioning */
+	STARPU_ACCESS_MODE_MAX=(1<<9) /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
 					be the maximum of this enum. */
 };
 

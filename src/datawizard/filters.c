@@ -691,7 +691,7 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 					 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	if (!handles_sequential_consistency || handles_sequential_consistency[0])
-		starpu_data_invalidate_submit(initial_handle);
+		_starpu_data_invalidate_submit_noplan(initial_handle);
 }
 
 void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency)
@@ -787,7 +787,7 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 	/* TODO: assert nparts too */
 	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-	starpu_data_invalidate_submit(initial_handle);
+	_starpu_data_invalidate_submit_noplan(initial_handle);
 }
 
 void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency, void (*callback_func)(void *), void *callback_arg)
@@ -863,7 +863,7 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 	for (i = 0; i < nparts; i++)
 	{
 		if (!handles_sequential_consistency || handles_sequential_consistency[i+1])
-			starpu_data_invalidate_submit(children[i]);
+			_starpu_data_invalidate_submit_noplan(children[i]);
 	}
 }
 

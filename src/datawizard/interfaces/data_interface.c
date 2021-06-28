@@ -886,6 +886,9 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_data_unregister must not be called from a task or callback, perhaps you can use starpu_data_unregister_submit instead");
 
 		/* If sequential consistency is enabled, wait until data is available */
+		if (((handle->nplans && !handle->nchildren) || handle->siblings)
+			&& handle->partition_automatic_disabled == 0)
+			_starpu_data_partition_access_submit(handle, !handle->readonly);
 		_starpu_data_wait_until_available(handle, handle->readonly?STARPU_R:STARPU_RW, "starpu_data_unregister");
 	}
 
@@ -1197,6 +1200,15 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 	STARPU_ASSERT(handle);
 
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_invalidate, handle);
+
+	handle->initialized = 0;
+}
+
+void _starpu_data_invalidate_submit_noplan(starpu_data_handle_t handle)
+{
+	STARPU_ASSERT(handle);
+
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W | STARPU_NOPLAN, _starpu_data_invalidate, handle);
 
 	handle->initialized = 0;
 }

@@ -796,7 +796,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
 			    ((handle->nplans && !handle->nchildren) || handle->siblings)
 			    && handle->partition_automatic_disabled == 0
-			    )
+			    && !(mode & STARPU_NOPLAN))
 				/* This handle is involved with asynchronous
 				 * partitioning as a parent or a child, make
 				 * sure the right plan is active, submit

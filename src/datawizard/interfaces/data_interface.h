@@ -82,6 +82,8 @@ extern void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle, uns
 
 #define _starpu_data_is_multiformat_handle(handle) handle->ops->is_multiformat
 
+void _starpu_data_invalidate_submit_noplan(starpu_data_handle_t handle);
+
 #pragma GCC visibility pop
 
 #endif // __DATA_INTERFACE_H__
