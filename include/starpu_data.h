@@ -110,7 +110,10 @@ enum starpu_data_access_mode
 				   src/sched_policies/work_stealing_policy.c
 				   source code.
 				*/
-	STARPU_ACCESS_MODE_MAX=(1<<7) /**< todo */
+	STARPU_NOPLAN=(1<<8),	/**< Disable automatic submission of asynchronous
+				    partitioning/unpartitioning */
+	STARPU_ACCESS_MODE_MAX=(1<<9) /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
+					be the maximum of this enum. */
 };
 
 struct starpu_data_interface_ops;
