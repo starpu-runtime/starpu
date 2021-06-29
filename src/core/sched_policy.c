@@ -1164,7 +1164,7 @@ void _starpu_print_idle_time()
 	}
 }
 
-void starpu_sched_task_break(struct starpu_task *task)
+void starpu_sched_task_break(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED)
 {
 	_STARPU_TASK_BREAK_ON(task, sched);
 }
