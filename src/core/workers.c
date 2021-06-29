@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <strings.h>
 #ifdef __linux__
 #include <sys/utsname.h>
 #endif
@@ -54,6 +55,14 @@
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
+#endif
+
+#if defined(_WIN32)
+#ifdef __GNUC__
+#define ffs(arg) __builtin_ffs(arg)
+#else
+#define ffs(arg) _bit_scan_forward(arg)
+#endif
 #endif
 
 
