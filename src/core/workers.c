@@ -1265,7 +1265,9 @@ static void _starpu_build_tree(void)
 static starpu_pthread_mutex_t sig_handlers_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static void (*act_sigint)(int);
 static void (*act_sigsegv)(int);
+#ifdef SIGTRAP
 static void (*act_sigtrap)(int);
+#endif
 
 void _starpu_handler(int sig)
 {
