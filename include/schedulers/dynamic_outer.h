@@ -3,6 +3,8 @@
 
 int Ndifferent_data_type;
 
+bool gpu_memory_initialized;
+
 void print_data_not_used_yet(struct paquets *p);
 
 bool new_tasks_initialized;
@@ -33,7 +35,11 @@ LIST_TYPE(task_using_data,
 
 /* In the packages */
 LIST_TYPE(gpu_data_not_used,
-    starpu_data_handle_t D;
+    starpu_data_handle_t D; /* The data not used yet by the GPU. */
+);
+/* In the packages */
+LIST_TYPE(gpu_data_loaded,
+    starpu_data_handle_t D_loaded; /* The data loaded by the GPU (I simulate it it's not a mirror of what's on the node in starpu). */
 );
 
 /* In a task */

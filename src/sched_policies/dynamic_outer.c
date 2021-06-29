@@ -164,6 +164,13 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     int i = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     
+    /* Need only to be done once if all GPU have the same memory. */
+    if (gpu_memory_initialized == false)
+    {
+	GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
+	gpu_memory_initialized = true;
+    }
+    
     /* New tasks from push_task. We need to randomize. 
      * TODO: check that with other applications where task are not
      * all available at once, this works.
@@ -196,7 +203,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
      */
     if (!starpu_task_list_empty(&data->p->temp_pointer_1->sub_list) || !starpu_task_list_empty(&data->popped_task_list) || !starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list))
     {
-	printf("GPU n°%d is asking for a task!\n\n", current_gpu);
+	printf("GPU n°%d is asking for a task!\n", current_gpu);
 	
 	struct starpu_task *task = NULL;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
@@ -254,6 +261,9 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 {
     printf("Beggining of dynamic_outer_scheduling.\n\n");
     
+    /* Test mémoire */
+    printf("On GPU n°%d the memory available is: %ld\n", current_gpu, starpu_memory_get_available(current_gpu));
+    
     int i = 0;
     int j = 0;
     int pushed_task = 0;
@@ -282,7 +292,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     for (i = 0; i < Ndifferent_data_type; i++)
     {
 	/* If at least one data type is empty in the GPU I return a random task.
-	 * TODO: This might be wrong. This would change if we manage evictions.
+	 * TODO: This is useless if we add correctly data at the back of the list when evicting, so to remove.
 	 */
 	if (gpu_data_not_used_list_empty(l->gpu_data[i]))
 	{
@@ -291,6 +301,8 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	/* Else I can pop a data. */
 	e = gpu_data_not_used_list_pop_front(l->gpu_data[i]);
 	handle_popped[i] = e->D;
+	/* And I add this data to the data loaded on the GPU in the same package. */
+	//~ gpu_data_not_used_list_push_back(e->D_loaded
     }
     
     /* Just printing. */
@@ -358,16 +370,12 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 		else
 		{
 		    starpu_task_list_push_back(task_tab[i], t->pointer_to_T);
-		    //~ starpu_task_list_push_back(&task_tab[i], t->pointer_to_T);
 		    pushed_task++;
 		}
 	    }
 	}
     }
-    
-    print_task_list(task_tab[0], "0");
-    print_task_list(task_tab[1], "1");
-    
+        
     /* Pushing back interlacing all different data types. */
     while (pushed_task > 0)
     {
@@ -375,7 +383,6 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	{
 	    if (!starpu_task_list_empty(task_tab[j]))
 	    {
-		printf("avant push %d, %p\n", pushed_task, starpu_task_list_begin(task_tab[j]));
 		starpu_task_list_push_back(&l->sub_list, starpu_task_list_pop_front(task_tab[j]));
 		pushed_task--;
 	    }
@@ -393,7 +400,6 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     }
     
     free(handle_popped);
-    //~ free(task_tab);
     printf("\n");
 }
 
@@ -563,6 +569,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_outer");
 	srandom(time(NULL));
 	int i = 0;
+	
+	/* Initialization of global variables. */
 	Ndifferent_data_type = 2; // TODO: changer cela si on est en 3D ou autre
 	Ngpu = get_number_GPU();
 	NT = 0;
@@ -571,7 +579,9 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_all_gpu = 0;
 	index_current_popped_task_all_gpu_prefetch = 0;
-		
+	gpu_memory_initialized = false;
+	
+	/* Initialization of structures. */
 	struct HFP_sched_data *data;
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	struct paquets *paquets_data = malloc(sizeof(*paquets_data));

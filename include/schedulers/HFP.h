@@ -77,7 +77,8 @@ struct my_list
 	double expected_package_computation_time; /* Computation time with transfer and overlap */
 	struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
 	
-	void *gpu_data[2]; /* For dynamic outer */
+	void *gpu_data[2]; /* For dynamic outer. 2 because in 2D I have just A and B */
+	void *gpu_data_loaded[2]; /* For dynamic outer. Data loaded in simulation. */
 };
 
 struct paquets
