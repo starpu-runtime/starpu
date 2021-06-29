@@ -58,7 +58,6 @@ int main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t) &d, SIZE, sizeof(char));
-	starpu_data_invalidate(handle);
 
 	/* Fork */
 	struct starpu_data_filter f =
@@ -67,6 +66,20 @@ int main(void)
 		.nchildren = NPARTS
 	};
 	starpu_data_partition_plan(handle, &f, handles);
+
+	/* Read in parallel */
+	for (i = 0; i < NPARTS; i++)
+	{
+		starpu_data_acquire(handles[i], STARPU_R);
+	}
+
+	/* Release in parallel */
+	for (i = 0; i < NPARTS; i++)
+	{
+		starpu_data_release(handles[i]);
+	}
+
+	starpu_data_invalidate(handle);
 
 	/* Acquire in parallel */
 	for (i = 0; i < NPARTS; i++)
@@ -94,13 +107,4 @@ int main(void)
 	starpu_shutdown();
 
 	return 0;
-
-enodev:
-	starpu_data_partition_clean(handle, NPARTS, handles);
-	starpu_data_unregister(handle);
-	starpu_shutdown();
-	/* yes, we do not perform the computation but we did detect that no one
-	 * could perform the kernel, so this is not an error from StarPU */
-	fprintf(stderr, "WARNING: No one can execute this task\n");
-	return STARPU_TEST_SKIPPED;
 }
