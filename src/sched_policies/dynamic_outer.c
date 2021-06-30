@@ -368,32 +368,35 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	add_data_to_gpu_data_loaded(l, handle_popped[i], i);
     }
     
-    /* If we exceed the GPu's memory with the new data I need to evict as much data. */
-    if (l->memory_used > GPU_RAM_M)
-    {
-	struct gpu_data_in_memory *evicted_handle = NULL;
-	printf("Memory exceeded with the new data.\n");
-	for (i = 0; i < Ndifferent_data_type; i++)
+    if (starpu_get_env_number_default("EVICTION_STRATEGY", 1) == 1) {
+	/* If we exceed the GPU's memory with the new data I need to evict as much data. */
+	if (l->memory_used > GPU_RAM_M)
 	{
-	    /* I take data from the data already loaded following a FIFO rule. */
-	    evicted_handle = gpu_data_in_memory_list_pop_front(l->gpu_data_loaded[i]);
-	    l->memory_used -= starpu_data_get_size(evicted_handle->D);
-	    	    
-	    /* I call the function that evict two data from the memory immediatly. */
-	    starpu_data_evict_from_node(evicted_handle->D, current_gpu);
-	    
-	    /* I add it at the end of the data list not used by the GPU. */
-	    push_back_data_not_used_yet(evicted_handle->D, l, i);
+	    int result = 0;
+	    struct gpu_data_in_memory *evicted_handle = NULL;
+	    printf("Memory exceeded with the new data.\n");
+	    for (i = 0; i < Ndifferent_data_type; i++)
+	    {
+		/* I take data from the data already loaded following a FIFO rule. */
+		evicted_handle = gpu_data_in_memory_list_pop_front(l->gpu_data_loaded[i]);
+		l->memory_used -= starpu_data_get_size(evicted_handle->D);
+			
+		/* I call the function that evict two data from the memory immediatly. */
+		result = starpu_data_evict_from_node(evicted_handle->D, current_gpu);
+		printf("result eviction = %d\n", result);
+		/* I add it at the end of the data list not used by the GPU. */
+		push_back_data_not_used_yet(evicted_handle->D, l, i);
+	    }
 	}
-    }
-    
-    /* If the number of handle popped is equal to the number of original handle it
-     * means that we are on the set of data evicted. So we want to reshuffle it. */
-     l->number_handle_to_pop--;
-     if (l->number_handle_to_pop == 0)
-     {
-	 printf("Re-shuffle\n");
-	 randomize_data_not_used_yet_single_GPU(l);
+	
+	/* If the number of handle popped is equal to the number of original handle it
+	 * means that we are on the set of data evicted. So we want to reshuffle it. */
+	 l->number_handle_to_pop--;
+	 if (l->number_handle_to_pop == 0)
+	 {
+	     printf("Re-shuffle\n");
+	     randomize_data_not_used_yet_single_GPU(l);
+	 }
      }
     
     /* Just printing. */

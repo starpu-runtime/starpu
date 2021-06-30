@@ -1,6 +1,8 @@
 #ifndef __dynamic_outer_H__
 #define __dynamic_outer_H__
 
+#define EVICTION_STRATEGY /* 0 we use default dynamic outer without managing evictions. 1 we evict data when we know the popped handle will exceed memory and push them back in the data not used yet list. */
+
 int Ndifferent_data_type;
 
 bool gpu_memory_initialized;
