@@ -80,6 +80,7 @@ struct my_list
 	void **gpu_data; /* Data not loaded yet. */
 	void **gpu_data_loaded; /* Data loaded on memory. */
 	starpu_ssize_t memory_used; /* Memory used from the data in gpu_data_loaded. */
+	int number_handle_to_pop; /* So I can know when to re-shuffle the data not used yet. */
 };
 
 struct paquets

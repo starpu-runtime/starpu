@@ -151,7 +151,40 @@ void randomize_data_not_used_yet(struct paquets *p)
 	    /* Then replace the list with it. */
 	    p->temp_pointer_1->gpu_data[j] = randomized_list;
 	}
+	p->temp_pointer_1->number_handle_to_pop = number_of_data[0];
 	p->temp_pointer_1 = p->temp_pointer_1->next;
+    }
+}
+
+void randomize_data_not_used_yet_single_GPU(struct my_list *l)
+{
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    int random = 0;
+    int number_of_data[Ndifferent_data_type];
+    
+    for (i = 0; i < Ndifferent_data_type; i++)
+    {
+	number_of_data[i] = gpu_data_not_used_list_size(l->gpu_data[i]);
+    }
+    
+    for (i = 0; i < Ndifferent_data_type; i++)
+    {
+	struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
+	for (j = 0; j < number_of_data[i]; j++)
+	{
+	    /* After each time I remove a data I can choose between a smaller number of value for random. */
+	    random = rand()%(number_of_data[i]- j);
+	    for (k = 0; k < random; k++)
+	    {
+		gpu_data_not_used_list_push_back(l->gpu_data[i], gpu_data_not_used_list_pop_front(l->gpu_data[i]));
+	    }
+	    /* I use an external list. */
+	    gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(l->gpu_data[i]));
+	}
+	/* Then replace the list with it. */
+	l->gpu_data[i] = randomized_list;
     }
 }
 
@@ -344,6 +377,14 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	    gpu_data_not_used_list_push_back(l->gpu_data[i], e);
 	}
     }
+    
+    /* If the number of handle popped is equal to the number of original handle it
+     * means that we are on the set of data evicted. So we want to reshuffle it. */
+     l->number_handle_to_pop--;
+     if (l->number_handle_to_pop == 0)
+     {
+	 randomize_data_not_used_yet_single_GPU(l);
+     }
     
     /* Just printing. */
     printf("Handles popped:");
