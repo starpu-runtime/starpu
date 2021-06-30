@@ -650,8 +650,8 @@ $ starpu_paje_sort paje.trace
 Performance counter values could be obtained from the PAPI framework if
 <c>./configure</c> detected the libpapi.
 
-In Debian, packages <c>libpapi-dev</c> and <c>libpapi5.7</c> provide required
-files.  Package <c>papi-tools</c> contains a set of useful tools, for example
+In Debian, the <c>libpapi-dev</c> package provides the required
+files.  Additionally, the <c>papi-tools</c> package contains a set of useful tools, for example
 <c>papi_avail</c> to see which counters are available.
 
 To be able to use Papi counters, one may need to reduce the level of the kernel
