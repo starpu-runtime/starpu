@@ -655,7 +655,7 @@ files.  Package <c>papi-tools</c> contains a set of useful tools, for example
 <c>papi_avail</c> to see which counters are available.
 
 To be able to use Papi counters, one may need to reduce the level of the kernel
-parameter <c>kernel.perf_event_paranoid</c> to at least 2. See
+parameter <c>kernel.perf_event_paranoid</c> to 2 or below. See
 https://www.kernel.org/doc/html/latest/admin-guide/perf-security.html for the
 security impact of this parameter.
 
