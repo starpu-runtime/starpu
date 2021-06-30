@@ -76,9 +76,10 @@ struct my_list
 	double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
 	double expected_package_computation_time; /* Computation time with transfer and overlap */
 	struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
-	
-	void *gpu_data[2]; /* For dynamic outer. 2 because in 2D I have just A and B */
-	void *gpu_data_loaded[2]; /* For dynamic outer. Data loaded in simulation. */
+		
+	void **gpu_data; /* Data not loaded yet. */
+	void **gpu_data_loaded; /* Data loaded on memory. */
+	starpu_ssize_t memory_used; /* Memory used from the data in gpu_data_loaded. */
 };
 
 struct paquets

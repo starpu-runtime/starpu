@@ -85,7 +85,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paque
 	}
 	p->temp_pointer_1 = p->temp_pointer_1->next;
     }
-    						
+    
     /* Adding the pointer in the task. */
     struct pointer_in_task *pt = malloc(sizeof(*pt));
     pt->pointer_to_cell = task;
@@ -237,6 +237,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	{
 	    print_data_not_used_yet(data->p);
 	    dynamic_outer_scheduling(&data->popped_task_list, current_gpu, data->p->temp_pointer_1);
+	    print_data_loaded(data->p);
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
 	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -256,13 +257,30 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     return NULL;
 }
 
+void add_data_to_gpu_data_loaded(struct my_list *l, starpu_data_handle_t h, int data_type)
+{    
+    struct gpu_data_in_memory *e = gpu_data_in_memory_new();
+    e->D = h;
+	    
+    if (l->gpu_data_loaded[data_type] == NULL)
+    {
+	struct gpu_data_in_memory_list *gd = gpu_data_in_memory_list_new();
+	gpu_data_in_memory_list_push_back(gd, e);
+	l->gpu_data_loaded[data_type] = gd; 
+    }
+    else
+    {
+	gpu_data_in_memory_list_push_back(l->gpu_data_loaded[data_type], e);
+    }
+}
+
 /* Fill a package task list following dynamic_outer algorithm. */
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l)
 {
     printf("Beggining of dynamic_outer_scheduling.\n\n");
     
     /* Test mémoire */
-    printf("On GPU n°%d the memory available is: %ld\n", current_gpu, starpu_memory_get_available(current_gpu));
+    //~ printf("On GPU n°%d the memory available is: %ld\n", current_gpu, starpu_memory_get_available(current_gpu));
     
     int i = 0;
     int j = 0;
@@ -301,8 +319,28 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	/* Else I can pop a data. */
 	e = gpu_data_not_used_list_pop_front(l->gpu_data[i]);
 	handle_popped[i] = e->D;
-	/* And I add this data to the data loaded on the GPU in the same package. */
-	//~ gpu_data_not_used_list_push_back(e->D_loaded
+	
+	/* And I add this data to the data loaded on the GPU in the same package.
+	 * I also increment the memory used.
+	 */
+	l->memory_used += starpu_data_get_size(handle_popped[i]);
+	add_data_to_gpu_data_loaded(l, handle_popped[i], i);
+    }
+    
+    if (l->memory_used > GPU_RAM_M)
+    {
+	struct gpu_data_in_memory *evicted_handle = NULL;
+	printf("Memory exceeded with the new data.\n");
+	for (i = 0; i < Ndifferent_data_type; i++)
+	{
+	    /* I take data from the data already loaded following a FIFO rule. */
+	    evicted_handle = gpu_data_in_memory_list_pop_front(l->gpu_data_loaded[i]);
+	    e->D = evicted_handle->D;
+	    /* I call the function that evict two data from the memory immediatly. */
+	    //TODO function_to_evict(evicted_handle->D);
+	    /* I add them at the end of the data list not used by the GPU. */
+	    gpu_data_not_used_list_push_back(l->gpu_data[i], e);
+	}
     }
     
     /* Just printing. */
@@ -471,9 +509,14 @@ void dynamic_outer_insertion(struct paquets *a)
     starpu_task_list_init(&new->sub_list);
     new->next = a->temp_pointer_1;
     starpu_task_list_init(&new->refused_fifo_list);
+    
+    new->gpu_data = malloc(Ndifferent_data_type*sizeof(starpu_data_handle_t));
+    new->gpu_data_loaded = malloc(Ndifferent_data_type*sizeof(starpu_data_handle_t));
+    new->memory_used = 0;
     for (j = 0; j < Ndifferent_data_type; j++)
     {
 	new->gpu_data[j] = NULL;
+	new->gpu_data_loaded[j] = NULL;
     }
     a->temp_pointer_1 = new;
 }
@@ -512,6 +555,30 @@ void print_data_not_used_yet(struct paquets *p)
 	    }
 	}
 	printf("\n");
+	p->temp_pointer_1 = p->temp_pointer_1->next;
+    }
+    p->temp_pointer_1 = p->first_link;
+    printf("\n");
+}
+
+void print_data_loaded(struct paquets *p)
+{
+    int i = 0;
+    int j = 0;
+    p->temp_pointer_1 = p->first_link;
+    
+    for (i = 0; i < Ngpu; i++)
+    {
+	printf("On GPU n°%d, the data loaded are:", i + 1);
+	for (j = 0; j < Ndifferent_data_type; j++)
+	{
+	    printf("\nFor the data type n°%d:", j);
+	    for (struct gpu_data_in_memory *e = gpu_data_in_memory_list_begin(p->temp_pointer_1->gpu_data_loaded[j]); e != gpu_data_in_memory_list_end(p->temp_pointer_1->gpu_data_loaded[j]); e = gpu_data_in_memory_list_next(e))
+	    {
+		printf(" %p", e->D);
+	    }
+	}
+	printf("\nThese data weight: %ld\n", p->temp_pointer_1->memory_used);
 	p->temp_pointer_1 = p->temp_pointer_1->next;
     }
     p->temp_pointer_1 = p->first_link;
@@ -596,13 +663,16 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	paquets_data->first_link = paquets_data->temp_pointer_1;
 	data->p = paquets_data;
 	
+	data->p->temp_pointer_1->gpu_data = malloc(Ndifferent_data_type*sizeof(starpu_data_handle_t));
+	data->p->temp_pointer_1->gpu_data_loaded = malloc(Ndifferent_data_type*sizeof(starpu_data_handle_t));
+	data->p->temp_pointer_1->memory_used = 0;
 	/* Creating as much package as there are GPUs. */
 	for (i = 0; i < Ngpu - 1; i++)
 	{
 	    dynamic_outer_insertion(data->p);
 	}
 	data->p->first_link = data->p->temp_pointer_1;
-	
+
 	component->data = data;
 	//~ component->do_schedule = dynamic_outer_do_schedule;
 	component->push_task = dynamic_outer_push_task;

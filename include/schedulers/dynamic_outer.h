@@ -25,7 +25,11 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paque
 
 void print_task_using_data(starpu_data_handle_t d);
 
+void add_data_to_gpu_data_loaded(struct my_list *l, starpu_data_handle_t h, int data_type);
+
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l);
+
+void print_data_loaded(struct paquets *p);
 
 /* In the handles */
 LIST_TYPE(task_using_data,
@@ -37,9 +41,8 @@ LIST_TYPE(task_using_data,
 LIST_TYPE(gpu_data_not_used,
     starpu_data_handle_t D; /* The data not used yet by the GPU. */
 );
-/* In the packages */
-LIST_TYPE(gpu_data_loaded,
-    starpu_data_handle_t D_loaded; /* The data loaded by the GPU (I simulate it it's not a mirror of what's on the node in starpu). */
+LIST_TYPE(gpu_data_in_memory,
+    starpu_data_handle_t D; /* The data not used yet by the GPU. */
 );
 
 /* In a task */
