@@ -495,6 +495,15 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node);
 void starpu_data_wont_use(starpu_data_handle_t handle);
 
 /**
+   Advise StarPU to evict \p handle from the memory node \p node
+   StarPU will thus write its value back to its home node, before evicting it.
+   This may however fail if e.g. some task is still working on it.
+
+   If the eviction was successful, 0 is returned ; -1 is returned otherwise.
+*/
+int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node);
+
+/**
    Set the write-through mask of the data \p handle (and
    its children), i.e. a bitmask of nodes where the data should be always
    replicated after modification. It also prevents the data from being

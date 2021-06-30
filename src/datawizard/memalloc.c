@@ -1104,6 +1104,38 @@ size_t _starpu_free_all_automatically_allocated_buffers(unsigned node)
 	return _starpu_memory_reclaim_generic(node, 1, 0, STARPU_FETCH);
 }
 
+int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node)
+{
+	STARPU_ASSERT(node < STARPU_MAXNODES);
+	struct _starpu_data_replicate *replicate;
+	if (handle->per_worker)
+		replicate = &handle->per_worker[node];
+	else
+		replicate = &handle->per_node[node];
+
+	_starpu_spin_lock(&handle->header_lock);
+
+	struct _starpu_mem_chunk *mc = replicate->mc;
+	int ret = -1;
+
+	if (!mc)
+		/* Nothing there */
+		goto out;
+
+	_starpu_spin_lock(&mc_lock[node]);
+	if (mc->remove_notify)
+		/* Somebody already working here */
+		goto out_mc;
+	if (try_to_throw_mem_chunk(mc, node, NULL, 0, STARPU_FETCH) == 0)
+		goto out_mc;
+	ret = 0;
+out_mc:
+	_starpu_spin_unlock(&mc_lock[node]);
+out:
+	_starpu_spin_unlock(&handle->header_lock);
+	return ret;
+}
+
 /* Periodic tidy of available memory  */
 void starpu_memchunk_tidy(unsigned node)
 {

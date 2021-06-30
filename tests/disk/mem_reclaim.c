@@ -40,13 +40,13 @@
 
 #ifdef STARPU_QUICK_CHECK
 #  define NDATA 4
-#  define NITER 16
+#  define NITER 8
 #elif !defined(STARPU_LONG_CHECK)
 #  define NDATA 32
-#  define NITER 256
+#  define NITER 128
 #else
 #  define NDATA 128
-#  define NITER 1024
+#  define NITER 512
 #endif
 #  define MEMSIZE 1
 #  define MEMSIZE_STR "1"
@@ -180,6 +180,22 @@ int dotest(struct starpu_disk_ops *ops, char *base, void (*vector_data_register)
 	}
 	memset(values, 0, sizeof(values));
 
+	/* Work out of core */
+	for (i = 0; i < NITER; i++)
+	{
+		j = rand()%NDATA;
+		starpu_task_insert(&inc_cl, STARPU_RW, handles[j], STARPU_VALUE, &j, sizeof(j), 0);
+	}
+	starpu_task_wait_for_all();
+
+	/* forcibly evict some data, just for fun */
+	for (i = 0; i < NDATA; i++)
+	{
+		if ((rand() % 2) == 0)
+			starpu_data_evict_from_node(handles[i], STARPU_MAIN_RAM);
+	}
+
+	/* And work out of core again */
 	for (i = 0; i < NITER; i++)
 	{
 		j = rand()%NDATA;
