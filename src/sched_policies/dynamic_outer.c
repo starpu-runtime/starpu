@@ -327,6 +327,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	add_data_to_gpu_data_loaded(l, handle_popped[i], i);
     }
     
+    /* If we exceed the GPu's memory with the new data I need to evict as much data. */
     if (l->memory_used > GPU_RAM_M)
     {
 	struct gpu_data_in_memory *evicted_handle = NULL;
@@ -336,6 +337,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	    /* I take data from the data already loaded following a FIFO rule. */
 	    evicted_handle = gpu_data_in_memory_list_pop_front(l->gpu_data_loaded[i]);
 	    e->D = evicted_handle->D;
+	    l->memory_used -= starpu_data_get_size(evicted_handle->D);
 	    /* I call the function that evict two data from the memory immediatly. */
 	    //TODO function_to_evict(evicted_handle->D);
 	    /* I add them at the end of the data list not used by the GPU. */
