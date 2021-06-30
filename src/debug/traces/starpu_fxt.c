@@ -4945,6 +4945,9 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 				}
 				tasks[workerid].codelet_name = name;
 				write_task(dir, &tasks[workerid]);
+				/* codelet_name is copied in write_task() when needed */
+				tasks[workerid].codelet_name = NULL;
+				free(name);
 			}
 			break;
 
