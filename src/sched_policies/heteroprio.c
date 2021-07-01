@@ -1171,7 +1171,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 
 		// Read compatible architectures
 		ignored_lines = 0;
-		for(arch_ind = 0; arch_ind < number_of_archs; ++arch_ind)
+		for(arch_ind = 0; arch_ind < supported_archs; ++arch_ind)
 		{
 			if(fscanf(autoheteroprio_file, "%u", &arch_can_execute) != 1)
 			{
@@ -1184,6 +1184,15 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 				codelet_archs[arch_ind] = arch_can_execute;
 				if(archs[arch_ind] < STARPU_NB_TYPES)
 					codelet_exec_archs[archs[arch_ind]] = arch_can_execute;
+			}
+		}
+		for(arch_ind = 0; arch_ind < ignored_archs; ++arch_ind)
+		{
+			if(fscanf(autoheteroprio_file, "%u", &arch_can_execute) != 1)
+			{
+				fclose(autoheteroprio_file);
+				_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is missing an architecture information for a codelet\n");
+				return;
 			}
 			else if(arch_can_execute)
 			{
