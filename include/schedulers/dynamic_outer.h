@@ -21,6 +21,8 @@ void randomize_data_not_used_yet(struct paquets *p);
  */
 void randomize_task_list(struct HFP_sched_data *d);
 
+starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
+
 void print_task_list(struct starpu_task_list *l, char *s);
 
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);
@@ -59,5 +61,21 @@ struct pointer_in_task
     struct task_using_data **tud;
     struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
 };
+
+/* To control eviction I need global variables out of the package struct. */
+LIST_TYPE(data_to_evict,
+    starpu_data_handle_t D; /* The data not used yet by the GPU. */
+);
+struct data_to_evict_element
+{
+    void *element;
+    struct data_to_evict_element *next;
+};
+struct data_to_evict_control
+{
+    struct data_to_evict_element *pointeur;
+    struct data_to_evict_element *first;
+};
+void data_to_evict_insertion(struct data_to_evict_control *d);
 
 #endif
