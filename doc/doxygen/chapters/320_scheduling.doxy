@@ -448,7 +448,7 @@ void starpu_heteroprio_set_use_locality(unsigned sched_ctx_id, unsigned use_loca
 In this mode, multiple strategies are available to determine which memory node's workers are the most qualified for executing a specific task. This strategy can be set with \ref STARPU_LAHETEROPRIO_PUSH
 and available strategies are:
 - WORKER: the worker which pushed the task is preferred for the execution.
-- LCs: the node with the shortest data transfer time (estimated by StarPU) is the most qualified
+- LcS: the node with the shortest data transfer time (estimated by StarPU) is the most qualified
 - LS_SDH: the node with the smallest data amount to be transferred will be preferred.
 - LS_SDH2: similar to LS_SDH, but data in write access is counted in a quadratic manner to give them more importance.
 - LS_SDHB: similar to LS_SDH, but data in write access is balanced with a coefficient (its value is set to 1000) and
