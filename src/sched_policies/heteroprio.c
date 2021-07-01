@@ -1161,7 +1161,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	unsigned codelet_archs[STARPU_NB_TYPES];
 	unsigned codelet_exec_archs[STARPU_NB_TYPES];
 	unsigned prio = hp->found_codelet_names_length;
-	char codelet_name[CODELET_MAX_NAME_LENGTH];
+	char codelet_name[CODELET_MAX_NAME_LENGTH+1];
 	unsigned ignored_lines, arch_can_execute;
 
 	// Read saved stats for each codelet
