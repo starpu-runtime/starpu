@@ -29,6 +29,28 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 {
 	_starpu_spin_lock(&handle->header_lock);
 
+	if (init_cl)
+	{
+		STARPU_ASSERT_MSG(init_cl->nbuffers == 1, "The initialization method has to take one STARPU_W parameter");
+		STARPU_ASSERT_MSG(init_cl->modes[0] == STARPU_W, "The initialization method has to take one STARPU_W parameter");
+	}
+	if (redux_cl)
+	{
+		STARPU_ASSERT_MSG(redux_cl->nbuffers == 2, "The reduction method has to take one STARPU_RW|STARPU_COMMUTE parameter and one STARPU_R parameter");
+		if (!(redux_cl->modes[0] & STARPU_COMMUTE)) {
+			static int _warned = 0;
+			STARPU_HG_DISABLE_CHECKING(_warned);
+			if (!_warned)
+			{
+				_STARPU_DISP("Warning: The reduction method should use STARPU_COMMUTE for its first parameter");
+				_warned = 1;
+			}
+			redux_cl->modes[0] |= STARPU_COMMUTE;
+		}
+		STARPU_ASSERT_MSG(redux_cl->modes[0] == (STARPU_RW | STARPU_COMMUTE), "The first parameter of the reduction method has to use STARPU_RW|STARPU_COMMUTE");
+		STARPU_ASSERT_MSG(redux_cl->modes[1] == STARPU_R, "The second parameter of the reduction method has to use STARPU_R");
+	}
+
 	_starpu_codelet_check_deprecated_fields(redux_cl);
 	_starpu_codelet_check_deprecated_fields(init_cl);
 
@@ -262,8 +284,6 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1)))
 						STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_R, 1);
 
-					STARPU_ASSERT_MSG((STARPU_CODELET_GET_MODE(redux_task->cl, 0) & ~STARPU_COMMUTE) == STARPU_RW, "First parameter of reduction codelet %p has to be RW", redux_task->cl);
-					STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 1) == STARPU_R, "Second parameter of reduction codelet %p has to be R", redux_task->cl);
 					if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0) & STARPU_COMMUTE))
 					{
 						static int warned;
@@ -332,7 +352,6 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 
 			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 0)))
 				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_W, 0);
-			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 0) == STARPU_W, "Parameter of initialization codelet %p has to be W", redux_task->cl);
 
 			STARPU_TASK_SET_HANDLE(redux_task, handle, 0);
 
@@ -361,9 +380,6 @@ void _starpu_data_end_reduction_mode(starpu_data_handle_t handle)
 				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_RW, 0);
 			if (!(STARPU_CODELET_GET_MODE(redux_task->cl, 1)))
 				STARPU_CODELET_SET_MODE(redux_task->cl, STARPU_R, 1);
-
-			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 0) == STARPU_RW, "First parameter of reduction codelet %p has to be RW", redux_task->cl);
-			STARPU_ASSERT_MSG(STARPU_CODELET_GET_MODE(redux_task->cl, 1) == STARPU_R, "Second parameter of reduction codelet %p has to be R", redux_task->cl);
 
 			STARPU_TASK_SET_HANDLE(redux_task, handle, 0);
 			STARPU_TASK_SET_HANDLE(redux_task, replicate_array[replicate], 1);
