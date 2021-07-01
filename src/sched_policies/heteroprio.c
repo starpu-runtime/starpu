@@ -1010,8 +1010,8 @@ static void starpu_autoheteroprio_add_task(struct _starpu_heteroprio_data *hp, c
 	check_heteroprio_mapping(hp); // ensures that priorities are correctly mapped
 }
 
-static char *_heteroprio_data_dir = NULL;
 #define _HETEROPRIO_DIR_MAXLEN 256
+static char _heteroprio_data_dir[_HETEROPRIO_DIR_MAXLEN];
 
 /* Try to get the name of the program, to get specific data file for each program */
 #ifdef STARPU_HAVE_PROGRAM_INVOCATION_SHORT_NAME
@@ -1026,8 +1026,6 @@ static char *_starpu_heteroprio_get_data_dir()
 
 	if(!directory_existence_was_tested)
 	{
-		_STARPU_MALLOC(_heteroprio_data_dir, _HETEROPRIO_DIR_MAXLEN);
-
 		char *path = starpu_getenv("STARPU_HETEROPRIO_DATA_DIR");
 		if(path)
 		{
