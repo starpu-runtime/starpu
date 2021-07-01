@@ -1,7 +1,7 @@
 #ifndef __dynamic_outer_H__
 #define __dynamic_outer_H__
 
-#define EVICTION_STRATEGY /* 0 we use default dynamic outer without managing evictions. 1 we evict data when we know the popped handle will exceed memory and push them back in the data not used yet list. */
+#define EVICTION_STRATEGY_DYNAMIC_OUTER /* 0 we use default dynamic outer without managing evictions. 1 we evict data when we know the popped handle will exceed memory and push them back in the data not used yet list. */
 
 int Ndifferent_data_type;
 
@@ -20,8 +20,6 @@ void randomize_data_not_used_yet(struct paquets *p);
 /* Randomize a task list. It takes the struct because I use two task list for this and I already have two in HFP_sched_data.
  */
 void randomize_task_list(struct HFP_sched_data *d);
-
-starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
 
 void print_task_list(struct starpu_task_list *l, char *s);
 
@@ -62,7 +60,7 @@ struct pointer_in_task
     struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
 };
 
-/* To control eviction I need global variables out of the package struct. */
+/* To control eviction. */
 LIST_TYPE(data_to_evict,
     starpu_data_handle_t D; /* The data not used yet by the GPU. */
 );

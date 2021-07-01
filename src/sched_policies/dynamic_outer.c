@@ -374,7 +374,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     }
     
     starpu_data_handle_t *evicted_handles = malloc(Ndifferent_data_type*sizeof(STARPU_TASK_GET_HANDLE(starpu_task_list_begin(popped_task_list), 0)));
-    if (starpu_get_env_number_default("EVICTION_STRATEGY", 1) == 1) 
+    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
     {
 	/* If we exceed the GPU's memory with the new data I need to evict as much data. */
 	if (l->memory_used > GPU_RAM_M)

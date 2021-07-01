@@ -3,6 +3,11 @@
 
 #include <starpu.h>
 
+/* For dynamic outer. */
+starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
+/* End of for dynamic outer. */
+
+
 //~ /**
    //~ Order in which data will be used after HFP packing in each package/GPU.
    //~ Filled in HFP.c in static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)

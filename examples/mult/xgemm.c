@@ -773,8 +773,9 @@ int main(int argc, char **argv)
 	init_problem_data();
 	partition_mult_data();
 	
-	//Belady
-	if (starpu_get_env_number_default("BELADY",0) == 1) { starpu_data_register_victim_selector(belady_victim_selector); }
+	//Eviction strategy
+	if (starpu_get_env_number_default("BELADY", 0) == 1) { starpu_data_register_victim_selector(belady_victim_selector); }
+	else if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) { starpu_data_register_victim_selector(dynamic_outer_victim_selector); }
 	//~ else { starpu_data_register_victim_selector(dumb_victim_selector); }
 	
 	PRINTF("# ");
