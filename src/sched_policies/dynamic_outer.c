@@ -689,7 +689,7 @@ void randomize_task_list(struct HFP_sched_data *d)
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_outer");
-	srandom(time(NULL));
+	srandom(starpu_get_env_number_default("SEED", 0));
 	int i = 0;
 	
 	/* Initialization of global variables. */
