@@ -1230,7 +1230,9 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 					_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is improperly formatted\n");
 					return;
 				}
-				hp->prio_arch_has_time_info[archs[arch_ind]][prio] = 1;
+
+				if(hp->prio_average_time_arch_count[archs[arch_ind]][prio] > 0)
+					hp->prio_arch_has_time_info[archs[arch_ind]][prio] = 1;
 			}
 			else if(codelet_archs[arch_ind] && archs[arch_ind] >= STARPU_NB_TYPES)
 			{
