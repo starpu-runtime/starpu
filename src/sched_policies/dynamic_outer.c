@@ -563,7 +563,6 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     /* TODO: Pop head of global struct or return no victim or null. */
     
     int i = 0;
-    printf("node is %d\n", node);
     data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
     for (i = 0; i < node - 1; i++)
     {
@@ -576,12 +575,24 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     }
     else if (data_to_evict_list_empty(data_to_evict_control_c->pointeur->element))
     {
+	printf("List of data to evict empty, victim_selector return NULL\n");
 	return NULL;
     }
     else
     {
 	struct data_to_evict *d = data_to_evict_list_pop_front(data_to_evict_control_c->pointeur->element);
-	return d->D;
+	if (starpu_data_can_evict(d->D, node, is_prefetch))
+	{
+	    printf("Victim_selector return %p\n", d->D);
+	    return d->D;
+	}
+	else
+	{
+	    printf("%p is not valid to evict. Return NULL.\n", d->D);
+	    /* TODO: Should I push it back on front then ? */
+	    //~ data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element);
+	    return NULL;
+	}
     }
 }
 
