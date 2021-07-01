@@ -1221,6 +1221,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 					_STARPU_MSG("[HETEROPRIO][INITIALIZATION] Warning, autoheteroprio's data file is improperly formatted\n");
 					return;
 				}
+				hp->prio_arch_has_time_info[archs[arch_ind]][prio] = 1;
 			}
 			else if(codelet_archs[arch_ind] && archs[arch_ind] >= STARPU_NB_TYPES)
 			{
@@ -2385,6 +2386,7 @@ static void order_priorities(struct _starpu_heteroprio_data *hp)
 	STARPU_ASSERT(hp->use_auto_calibration); // priorities should only be changed during execution if in auto calibration mode
 
 	struct prio_score prio_arch[STARPU_NB_TYPES][HETEROPRIO_MAX_PRIO];
+	unsigned prio_arch_index[STARPU_NB_TYPES] = {0};
 
 	// lock the global policy mutex
 	_starpu_worker_relax_on();
@@ -2394,55 +2396,63 @@ static void order_priorities(struct _starpu_heteroprio_data *hp)
 	unsigned p, a;
 	for(p=0;p<hp->found_codelet_names_length;++p)
 	{
-		unsigned worst_arch = 0;
-		unsigned worst_arch_prio = hp->prio_mapping_per_arch_index[worst_arch][p];
-		double worstTime = get_autoheteroprio_normalized_time(hp, worst_arch_prio, worst_arch);
-
-		// We will compare the worst arch to the second worst, if no second worst we compare it to worst possible time
+		int worst_arch = -1;
+		double worstTime = -1.0f;
 		int second_worst_arch = -1;
-		int second_worst_arch_prio = -1;
-		double secondWorstTime = AUTOHETEROPRIO_EXTREMELY_LONG_TIME;
+		double secondWorstTime = -1.0f;
 
-		unsigned arch_count = 1;
-
-		// Looking for the worst and the second worst architectures (in terms of execution time)
-		for(a = 1; a < STARPU_NB_TYPES; ++a)
+		// Find the worst architecture and the second worst if there is one
+		for(a = 0; a < STARPU_NB_TYPES; ++a)
 		{
-			const unsigned prio = hp->prio_mapping_per_arch_index[a][p];
 			if((hp->buckets[p].valid_archs & starpu_heteroprio_types_to_arch(a)) == 0)
 				continue;
 
-			++arch_count;
-
-			const double arch_time = get_autoheteroprio_normalized_time(hp, prio, a);
+			const double arch_time = get_autoheteroprio_normalized_time(hp, p, a);
 			if(worstTime < arch_time)
 			{
 				second_worst_arch = worst_arch;
-				second_worst_arch_prio = worst_arch_prio;
 				secondWorstTime = worstTime;
 
 				worst_arch = a;
-				worst_arch_prio = prio;
 				worstTime = arch_time;
 			}
+			else if(secondWorstTime < arch_time)
+			{
+				second_worst_arch = a;
+				secondWorstTime = arch_time;
+			}
+		}
+		
+		// Ensure that there is at least one arch that can execute priority
+		STARPU_ASSERT(worst_arch != -1);
+
+		const double worstArchTaskProportion = get_autoheteroprio_prio_arch_proportion(hp, p, worst_arch);
+		const double URT_worst = get_autoheteroprio_URT(hp, worst_arch, p);
+
+		double secondWorstArchTaskProportion, URT_secondWorst;
+		if(second_worst_arch == -1)
+		{
+			// If there's no second worst set values to worst possible values
+			secondWorstTime = AUTOHETEROPRIO_EXTREMELY_LONG_TIME;
+			secondWorstArchTaskProportion = 0.f;
+			URT_secondWorst = 0.f;
+		}
+		else
+		{
+			secondWorstTime = get_autoheteroprio_normalized_time(hp, p, second_worst_arch);
+			secondWorstArchTaskProportion = get_autoheteroprio_prio_arch_proportion(hp, p, second_worst_arch);
+			URT_secondWorst = get_autoheteroprio_URT(hp, second_worst_arch, p);
 		}
 
-		const double worstArchTaskProportion = get_autoheteroprio_prio_arch_proportion(hp, worst_arch_prio, worst_arch);
-		const double URT_worst = get_autoheteroprio_URT(hp, worst_arch, worst_arch_prio);
-
-		const double secondWorstArchTaskProportion = second_worst_arch != -1
-			? get_autoheteroprio_prio_arch_proportion(hp, second_worst_arch_prio, second_worst_arch) : 0.f;
-		const double URT_secondWorst = second_worst_arch != -1
-			? get_autoheteroprio_URT(hp, second_worst_arch, second_worst_arch_prio) : AUTOHETEROPRIO_EXTREMELY_LONG_TIME;
-
+		// Compute scores
 		for(a=0;a<STARPU_NB_TYPES;++a)
 		{
-			if(p < hp->found_codelet_names_on_arch[a])
+			if(hp->buckets[p].valid_archs & starpu_heteroprio_types_to_arch(a))
 			{
-				unsigned prio = hp->prio_mapping_per_arch_index[a][p]; // current priority (=bucket)
 				double otherTime, otherArchTaskProportion, URT_other;
+				unsigned prio = prio_arch_index[a]++;
 
-				if(a == worst_arch)
+				if(a == (unsigned) worst_arch)
 				{
 					// Compare the worst architecture to the second worst
 					otherTime = secondWorstTime;
@@ -2459,29 +2469,29 @@ static void order_priorities(struct _starpu_heteroprio_data *hp)
 
 				const double need_other = 1.0f - otherArchTaskProportion;
 
-				double NOD = get_autoheteroprio_NOD(hp, prio);
-				double sum = get_autoheteroprio_successors_best_time_sum(hp, prio);
+				double NOD = get_autoheteroprio_NOD(hp, p);
+				double sum = get_autoheteroprio_successors_best_time_sum(hp, p);
 
-				double ownTime = get_autoheteroprio_normalized_time(hp, prio, a);
+				double ownTime = get_autoheteroprio_normalized_time(hp, p, a);
 				double archDiff = otherTime - ownTime;
 				double archRelDiff = otherTime/ownTime;
 
-				double ownArchTaskProportion = get_autoheteroprio_prio_arch_proportion(hp, prio, a);
+				double ownArchTaskProportion = get_autoheteroprio_prio_arch_proportion(hp, p, a);
 
-				double URT_own = get_autoheteroprio_URT(hp, a, prio);
+				double URT_own = get_autoheteroprio_URT(hp, a, p);
 
 				double need_own = 1.0f - get_autoheteroprio_arch_busy_proportion(hp, a);
 				double archNeedDiff = need_own-need_other;
 
 				double URT = (URT_own*need_own + URT_other*need_other);
 
-				prio_arch[a][p].index = prio;
+				prio_arch[a][prio].index = p;
 
 				if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_NOD_TIME_COMBINATION)
 				{
 					double relDiff = archRelDiff>1.0f?archRelDiff:1.0/archRelDiff;
 					double multiplier = exp(-hp->NTexpVal*(relDiff-1)*(relDiff-1));
-					prio_arch[a][p].score = archDiff + hp->NTnodPond*multiplier*NOD;
+					prio_arch[a][prio].score = archDiff + hp->NTnodPond*multiplier*NOD;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_BEST_NODS_SCORE || hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_BEST_NODS)
 				{ // TODO, implement BEST_NODS
@@ -2492,119 +2502,120 @@ static void order_priorities(struct _starpu_heteroprio_data *hp)
 					}
 					multiplier = 2.0f*multiplier - 1.0f; // bad diff becomes -1, good or equal diff 1
 
-					prio_arch[a][p].score = multiplier*NOD;
+					prio_arch[a][prio].score = multiplier*NOD;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_PURE)
 				{
-					prio_arch[a][p].score = URT;
+					prio_arch[a][prio].score = URT;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT)
 				{
-					prio_arch[a][p].score = hp->URTurt * URT + archDiff;
+					prio_arch[a][prio].score = hp->URTurt * URT + archDiff;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_2)
 				{
-					prio_arch[a][p].score = hp->URT2urt * URT + archDiff + hp->URT2prop * reLU(ownArchTaskProportion*otherArchTaskProportion*archNeedDiff);
+					prio_arch[a][prio].score = hp->URT2urt * URT + archDiff + hp->URT2prop * reLU(ownArchTaskProportion*otherArchTaskProportion*archNeedDiff);
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_PURE)
 				{
-					prio_arch[a][p].score = URT*archDiff;
+					prio_arch[a][prio].score = URT*archDiff;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_PURE_2)
 				{
-					prio_arch[a][p].score = (1.0f + URT)*archDiff;
+					prio_arch[a][prio].score = (1.0f + URT)*archDiff;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_REL_DIFF_PURE)
 				{
-					prio_arch[a][p].score = URT*archRelDiff;
+					prio_arch[a][prio].score = URT*archRelDiff;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_REL_DIFF_PURE_2)
 				{
-					prio_arch[a][p].score = (1.0f + URT)*archRelDiff;
+					prio_arch[a][prio].score = (1.0f + URT)*archRelDiff;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_2)
 				{
-					prio_arch[a][p].score = (1.0f + URT)*archDiff + hp->and2pond * ownTime * archNeedDiff;
+					prio_arch[a][prio].score = (1.0f + URT)*archDiff + hp->and2pond * ownTime * archNeedDiff;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_3)
 				{
-					prio_arch[a][p].score = (1.0f + URT)*archDiff + hp->and3pond * ownTime * reLU(archNeedDiff);
+					prio_arch[a][prio].score = (1.0f + URT)*archDiff + hp->and3pond * ownTime * reLU(archNeedDiff);
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_4)
 				{
-					prio_arch[a][p].score = (1.0f + URT)*archDiff - hp->and4pond * ownTime * reLU(-archNeedDiff);
+					prio_arch[a][prio].score = (1.0f + URT)*archDiff - hp->and4pond * ownTime * reLU(-archNeedDiff);
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_5)
 				{
-					prio_arch[a][p].score = (hp->and5xoffset + URT) * (hp->and5yoffset + archDiff);
+					prio_arch[a][prio].score = (hp->and5xoffset + URT) * (hp->and5yoffset + archDiff);
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_6)
 				{
-					prio_arch[a][p].score = (1.0f + URT)*log(1.0f + exp(archDiff));
+					prio_arch[a][prio].score = (1.0f + URT)*log(1.0f + exp(archDiff));
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_7)
 				{
-					prio_arch[a][p].score = rpg(URT)*(1+URT)*(1+archDiff)+(1-rpg(URT))*(-log(1+exp(-archDiff)));
+					prio_arch[a][prio].score = rpg(URT)*(1+URT)*(1+archDiff)+(1-rpg(URT))*(-log(1+exp(-archDiff)));
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_8)
 				{
-					prio_arch[a][p].score = (1/(1+exp(-URT))-0.5)*(1+URT)*(1+archDiff)+(1/(1+exp(-1/URT))-0.5)*(-exp(-archDiff));
+					prio_arch[a][prio].score = (1/(1+exp(-URT))-0.5)*(1+URT)*(1+archDiff)+(1/(1+exp(-1/URT))-0.5)*(-exp(-archDiff));
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_9)
 				{
-					prio_arch[a][p].score = log(hp->and9xoffset+URT)*atan(archDiff+hp->and9yoffset*URT);
+					prio_arch[a][prio].score = log(hp->and9xoffset+URT)*atan(archDiff+hp->and9yoffset*URT);
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_10)
 				{
-					prio_arch[a][p].score = (hp->and10xoffset+URT)*atan(archDiff) + hp->and10yoffset*URT;
+					prio_arch[a][prio].score = (hp->and10xoffset+URT)*atan(archDiff) + hp->and10yoffset*URT;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_11)
 				{
-					prio_arch[a][p].score = (hp->and11xoffset+URT)*(archDiff+hp->and11yoffset*URT);
+					prio_arch[a][prio].score = (hp->and11xoffset+URT)*(archDiff+hp->and11yoffset*URT);
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URTS_PER_SECONDS)
 				{
-					prio_arch[a][p].score = URT / ownTime;
+					prio_arch[a][prio].score = URT / ownTime;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URTS_PER_SECONDS_2)
 				{
-					prio_arch[a][p].score = (URT + archDiff) / ownTime;
+					prio_arch[a][prio].score = (URT + archDiff) / ownTime;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URTS_PER_SECONDS_DIFF)
 				{
-					prio_arch[a][p].score = URT / ownTime + archDiff;
+					prio_arch[a][prio].score = URT / ownTime + archDiff;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URTS_TIME_RELEASED_DIFF)
 				{
-					prio_arch[a][p].score = URT*(sum+archDiff)/ownTime;
+					prio_arch[a][prio].score = URT*(sum+archDiff)/ownTime;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URTS_TIME_COMBINATION)
 				{
 					double relDiff = archRelDiff>1.0f?archRelDiff:1.0/archRelDiff;
 					double multiplier = exp(-hp->ANTexpVal*(relDiff-1)*(relDiff-1));
-					prio_arch[a][p].score = archDiff + hp->ANTnodPond*multiplier*URT;
+					prio_arch[a][prio].score = archDiff + hp->ANTnodPond*multiplier*URT;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_NODS_PER_SECOND)
 				{
-					prio_arch[a][p].score = NOD/ownTime;
+					prio_arch[a][prio].score = NOD/ownTime;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_NODS_TIME_RELEASED)
 				{
-					prio_arch[a][p].score = NOD*sum/ownTime;
+					prio_arch[a][prio].score = NOD*sum/ownTime;
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_NODS_TIME_RELEASED_DIFF)
 				{
-					prio_arch[a][p].score = NOD*(sum+archDiff)/ownTime;
+					prio_arch[a][prio].score = NOD*(sum+archDiff)/ownTime;
 				}
 				else
 				{
 					_STARPU_MSG("[AUTOHETEROPRIO] Warning: unknown ordering policy.\n");
-					prio_arch[a][p].score = 0;
+					prio_arch[a][prio].score = 0;
 				}
 
-				if(!hp->freeze_data_gathering && hp->prio_average_time_arch_count[STARPU_CPU_WORKER][prio] < AUTOHETEROPRIO_RELEVANT_SAMPLE_SIZE)
-				{ // if we dont have enough data on execution time on CPU, we push execution on it by increasing the score
-					prio_arch[a][p].score += 99999999.;
+				if(!hp->freeze_data_gathering && hp->prio_average_time_arch_count[a][p] < AUTOHETEROPRIO_RELEVANT_SAMPLE_SIZE)
+				{
+					// if we dont have enough data on execution time, we push execution on it by increasing the score
+					prio_arch[a][prio].score += 99999999.;
 				}
 			}
 		}
@@ -2628,14 +2639,14 @@ static void order_priorities(struct _starpu_heteroprio_data *hp)
 /* // uncomment to print task names ordered by priority (TODO : use environment variable)
 	printf("priorities sorted:\n");
 	printf("CPU:\n");
-	for(p=0;p<hp->found_codelet_names_on_arch[STARPU_CPU_IDX];++p)
+	for(p=0;p<hp->found_codelet_names_on_arch[STARPU_CPU_WORKER];++p)
 	{
-		printf("%d : %s (score = %f)\n", p, hp->found_codelet_names[hp->prio_mapping_per_arch_index[STARPU_CPU_IDX][p]], prio_CPU[p].score);
+		printf("%d : %s bucket=%d (score = %f)\n", p, hp->found_codelet_names[prio_arch[STARPU_CPU_WORKER][p].index], prio_arch[STARPU_CPU_WORKER][p].index, prio_arch[STARPU_CPU_WORKER][p].score);
 	}
 	printf("GPU:\n");
-	for(p=0;p<hp->found_codelet_names_on_arch[GPU_type];++p)
+	for(p=0;p<hp->found_codelet_names_on_arch[STARPU_CUDA_WORKER];++p)
 	{
-		printf("%d : %s (score = %f)\n", p, hp->found_codelet_names[hp->prio_mapping_per_arch_index[GPU_type][p]], prio_GPU[p].score);
+		printf("%d : %s bucket=%d (score = %f)\n", p, hp->found_codelet_names[prio_arch[STARPU_CUDA_WORKER][p].index], prio_arch[STARPU_CUDA_WORKER][p].index, prio_arch[STARPU_CUDA_WORKER][p].score);
 	}
 */
 
