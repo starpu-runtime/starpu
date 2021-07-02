@@ -836,11 +836,6 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	{
 		_STARPU_MPI_DEBUG(5, "%dth contributor = %d\n", i, contributors[i]);
 	}
-	// Creating synchronization task and use its jobid for tracing
-	struct starpu_task *synchro = starpu_task_create();
-	//const long synchro_jobid = starpu_task_get_job_id(synchro);
-	synchro->cl = &_starpu_mpi_redux_data_synchro_cl;
-	//STARPU_TASK_SET_HANDLE(synchro, data_handle, 0);
 
 	_STARPU_MPI_DEBUG(15, "mpi_redux _ STARTING with %d-ary tree \n", arity);
 	current_level = 0;
