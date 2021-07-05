@@ -428,12 +428,14 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 		if (data_to_evict_control_c->pointeur->element == NULL)
 		{
 		    struct data_to_evict_list *dl = data_to_evict_list_new();
-		    data_to_evict_list_push_front(dl, d);
+		    //~ data_to_evict_list_push_front(dl, d);
+		    data_to_evict_list_push_back(dl, d);
 		    data_to_evict_control_c->pointeur->element = dl; 
 		}
 		else
 		{
-		    data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element, d);
+		    //~ data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element, d);
+		    data_to_evict_list_push_back(data_to_evict_control_c->pointeur->element, d);
 		}
 	    }
 	    /* End of eviction method n°2. */
@@ -560,40 +562,78 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-    /* TODO: Pop head of global struct or return no victim or null. */
+    //TODO a ajouter ? Ok, a mettre avant le reste
+    //Checking if all task are truly valid. Else I return a non valid data
     
-    int i = 0;
-    data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
-    for (i = 0; i < node - 1; i++)
-    {
-	data_to_evict_control_c->pointeur = data_to_evict_control_c->pointeur->next;
-    }
-    
-    if (data_to_evict_control_c->pointeur->element == NULL)
-    {
-	return NULL;
-    }
-    else if (data_to_evict_list_empty(data_to_evict_control_c->pointeur->element))
-    {
-	printf("List of data to evict empty, victim_selector return NULL\n");
-	return NULL;
-    }
-    else
-    {
-	struct data_to_evict *d = data_to_evict_list_pop_front(data_to_evict_control_c->pointeur->element);
-	if (starpu_data_can_evict(d->D, node, is_prefetch))
+    /* TODO: Devrais-je garder ce if ? */
+    //~ if (task_currently_treated != NULL) 
+    //~ {
+    printf("current task is %p index %d\n", task_currently_treated, index_task_currently_treated);
+	starpu_data_handle_t *data_on_node;
+	unsigned nb_data_on_node = 0;
+	int *valid;
+	int i = 0;
+	starpu_data_handle_t returned_handle = NULL;
+	starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+	
+	//~ printf("Data on node:\n");
+	//~ for (i = 0; i < nb_data_on_node; i++)
+	//~ {
+	    //~ printf("%p	", data_on_node[i]);
+	//~ }
+	//~ printf("\n");
+	
+	for (i = 0; i < nb_data_on_node; i++)
 	{
-	    printf("Victim_selector return %p\n", d->D);
-	    return d->D;
+	    //~ printf("valid[%d] = %d\n", i, valid[i]);
+	    if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
+	    {
+		free(valid);
+		returned_handle = data_on_node[i];
+		free(data_on_node);
+		//~ printf("Returning an invalid data.\n\n");
+		//~ exit(0);	
+		return returned_handle;
+	    }
+	}
+	
+	data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
+	for (i = 0; i < node - 1; i++)
+	{
+	    data_to_evict_control_c->pointeur = data_to_evict_control_c->pointeur->next;
+	}
+	
+	if (data_to_evict_control_c->pointeur->element == NULL)
+	{
+	    return NULL;
+	    //~ return STARPU_DATA_NO_VICTIM; 
+	}
+	else if (data_to_evict_list_empty(data_to_evict_control_c->pointeur->element))
+	{
+	    //~ printf("List of data to evict empty, victim_selector return NULL\n");
+	    return NULL;
+	    //~ return STARPU_DATA_NO_VICTIM; 
 	}
 	else
 	{
-	    printf("%p is not valid to evict. Return NULL.\n", d->D);
-	    /* TODO: Should I push it back on front then ? */
-	    //~ data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element);
-	    return NULL;
+	    printf("Is prefetch vaut %d\n", is_prefetch);
+	    struct data_to_evict *d = data_to_evict_list_pop_front(data_to_evict_control_c->pointeur->element);
+	    if (starpu_data_can_evict(d->D, node, is_prefetch))
+	    {
+		printf("Victim_selector return %p\n", d->D);
+		return d->D;
+	    }
+	    else
+	    {
+		printf("%p is not valid to evict. Return no victim.\n", d->D);
+		/* Je la remet en haut de la liste. */
+		data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element, d);
+		//~ return NULL;
+		return STARPU_DATA_NO_VICTIM; 
+	    }
 	}
-    }
+    //~ }
+    return NULL;
 }
 
 /* Erase a task from the main task list.
@@ -865,7 +905,7 @@ static void initialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
-			//~ STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
+			STARPU_SCHED_SIMPLE_FIFOS_BELOW_READY |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW_EXP |
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
