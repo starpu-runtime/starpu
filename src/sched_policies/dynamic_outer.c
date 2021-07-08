@@ -212,15 +212,15 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     if (new_tasks_initialized == true)
     {
 	printf("Printing GPU's data list and main task list before randomization:\n\n");
-	print_data_not_used_yet(data->p);
-	print_task_list(&data->sched_list, "");
+	//~ print_data_not_used_yet(data->p);
+	//~ print_task_list(&data->sched_list, "");
 	NT = starpu_task_list_size(&data->sched_list);
 	randomize_task_list(data);
 	randomize_data_not_used_yet(data->p);
 	new_tasks_initialized = false;
-	printf("Printing GPU's data list and main task list after randomization:\n\n");
-	print_data_not_used_yet(data->p);
-	print_task_list(&data->popped_task_list, "");
+	//~ printf("Printing GPU's data list and main task list after randomization:\n\n");
+	//~ print_data_not_used_yet(data->p);
+	//~ print_task_list(&data->popped_task_list, "");
     }
 	    
     /* Getting on the right GPU's package.
@@ -237,7 +237,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
      */
     if (!starpu_task_list_empty(&data->p->temp_pointer_1->sub_list) || !starpu_task_list_empty(&data->popped_task_list) || !starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list))
     {
-	printf("GPU n°%d is asking for a task!\n", current_gpu);
+	//~ printf("GPU n°%d is asking for a task!\n", current_gpu);
 	
 	struct starpu_task *task = NULL;
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
@@ -247,7 +247,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	{
 	    task = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	    printf("Task %p is getting out of pull_task from fifo refused list on GPU n°%d\n", task, current_gpu);
+	    //~ printf("Task %p is getting out of pull_task from fifo refused list on GPU n°%d\n", task, current_gpu);
 	    return task;
 	}
 
@@ -255,7 +255,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	if (!starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))
 	{
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
-	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
+	    //~ printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
 	    /* For visualisation in python. */
@@ -273,7 +273,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	    dynamic_outer_scheduling(&data->popped_task_list, current_gpu, data->p->temp_pointer_1);
 	    print_data_loaded(data->p);
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
-	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
+	    //~ printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
 	    /* For visualisation in python. */
@@ -322,7 +322,7 @@ struct data_to_evict_control *data_to_evict_control_c;
 /* Fill a package task list following dynamic_outer algorithm. */
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l)
 {
-    printf("Beggining of dynamic_outer_scheduling.\n\n");
+    //~ printf("Beggining of dynamic_outer_scheduling.\n\n");
     
     /* Test mémoire */
     //~ printf("On GPU n°%d the memory available is: %ld\n", current_gpu, starpu_memory_get_available(current_gpu));
@@ -446,18 +446,18 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	 l->number_handle_to_pop--;
 	 if (l->number_handle_to_pop == 0)
 	 {
-	     printf("Re-shuffle\n");
+	     //~ printf("Re-shuffle\n");
 	     randomize_data_not_used_yet_single_GPU(l);
 	 }
      }
     
     /* Just printing. */
-    printf("Handles popped:");
-    for (i = 0; i < Ndifferent_data_type; i++)
-    {
-	printf(" %p", handle_popped[i]);
-    }
-    printf("\n\n");
+    //~ printf("Handles popped:");
+    //~ for (i = 0; i < Ndifferent_data_type; i++)
+    //~ {
+	//~ printf(" %p", handle_popped[i]);
+    //~ }
+    //~ printf("\n\n");
     //~ printf("Task using these handles:");
     //~ for (struct task_using_data *t = task_using_data_list_begin(handle_popped[0]->sched_data); t != task_using_data_list_end(handle_popped[0]->sched_data); t = task_using_data_list_next(t))
     //~ {
@@ -499,7 +499,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 		    {
 			if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) == evicted_handles[k])
 			{
-			    printf("Data %p is the one we will evict soon.\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
+			    //~ printf("Data %p is the one we will evict soon.\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
 			    data_available = false;
 			    break;
 			}
@@ -507,7 +507,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 		    
 		    if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), current_gpu))
 		    {
-			printf("Data %p is not on memory nor is popped.\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
+			//~ printf("Data %p is not on memory nor is popped.\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
 			data_available = false;
 			break;
 		    }
@@ -515,7 +515,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	    }
 	    if (data_available == true)
 	    {
-		printf("Pushing %p in the package.\n", t->pointer_to_T);
+		//~ printf("Pushing %p in the package.\n", t->pointer_to_T);
 		/* Deleting the task from the task list of data A, B (and C) and from the main task list. */
 		erase_task_and_data_pointer(t->pointer_to_T, popped_task_list);
 		
@@ -551,13 +551,19 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     {
 	return_random_task: ;
 	struct starpu_task *task = starpu_task_list_pop_front(popped_task_list);
-	printf("No task were possible with the popped handles. Returning head of the randomized main task list: %p.\n", task);
+	//~ printf("No task were possible with the popped handles. Returning head of the randomized main task list: %p.\n", task);
 	erase_task_and_data_pointer(task, popped_task_list);
 	starpu_task_list_push_back(&l->sub_list, task);
     }
     
     free(handle_popped);
-    printf("\n");
+    //~ printf("\n");
+}
+
+starpu_data_handle_t dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim)
+{
+    /* TODO : ici enlever la donnée de la liste et l'ajouter aux not used yet.
+     * Ne pas enlever la donnée quand on al retire simplement de laliste de données à éviner comme en dessous. */
 }
 
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
@@ -568,7 +574,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     /* TODO: Devrais-je garder ce if ? */
     //~ if (task_currently_treated != NULL) 
     //~ {
-    printf("current task is %p index %d\n", task_currently_treated, index_task_currently_treated);
+    //~ printf("current task is %p index %d\n", task_currently_treated, index_task_currently_treated);
 	starpu_data_handle_t *data_on_node;
 	unsigned nb_data_on_node = 0;
 	int *valid;
@@ -591,7 +597,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 		free(valid);
 		returned_handle = data_on_node[i];
 		free(data_on_node);
-		//~ printf("Returning an invalid data.\n\n");
+		printf("Returning an invalid data.\n\n");
 		//~ exit(0);	
 		return returned_handle;
 	    }
@@ -605,22 +611,29 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	
 	if (data_to_evict_control_c->pointeur->element == NULL)
 	{
-	    return NULL;
-	    //~ return STARPU_DATA_NO_VICTIM; 
+	    printf("Pointer null return NULL.\n");
+	    //~ return NULL;
+	    return STARPU_DATA_NO_VICTIM; 
 	}
 	else if (data_to_evict_list_empty(data_to_evict_control_c->pointeur->element))
 	{
-	    //~ printf("List of data to evict empty, victim_selector return NULL\n");
-	    return NULL;
-	    //~ return STARPU_DATA_NO_VICTIM; 
+	    printf("List of data to evict empty, victim_selector return NULL\n");
+	    //~ return NULL;
+	    return STARPU_DATA_NO_VICTIM; 
 	}
 	else
 	{
-	    printf("Is prefetch vaut %d\n", is_prefetch);
+	    //~ printf("Is prefetch vaut %d\n", is_prefetch);
 	    struct data_to_evict *d = data_to_evict_list_pop_front(data_to_evict_control_c->pointeur->element);
 	    if (starpu_data_can_evict(d->D, node, is_prefetch))
 	    {
-		printf("Victim_selector return %p\n", d->D);
+			printf("Data on node:\n");
+			for (i = 0; i < nb_data_on_node; i++)
+			{
+			    printf("%p	", data_on_node[i]);
+			}
+			printf("\n");
+		printf("Victim_selector return %p. Is prefetch vaut %d.\n", d->D, is_prefetch);
 		return d->D;
 	    }
 	    else
@@ -633,6 +646,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	    }
 	}
     //~ }
+    printf("Return NULL.\n");
     return NULL;
 }
 
@@ -660,7 +674,7 @@ static int dynamic_outer_can_push(struct starpu_sched_component *component, stru
     task = starpu_sched_component_pump_to(component, to, &didwork);
     if (task)
     {
-	    printf("Oops, task %p got refused.\n", task);
+	    //~ printf("Oops, task %p got refused.\n", task);
 	    
 	    /* If a task is refused I push it in the refused fifo list of the appropriate GPU's package.
 	     * This list is lloked at first when a GPU is asking for a task so we don't break the planned order. */
@@ -836,6 +850,8 @@ void data_to_evict_insertion(struct data_to_evict_control *d)
 
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+        /* TODO: initialiser le victim_selector et victim_evicted. Et de même pour HFP. */
+    
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_outer");
 	srandom(starpu_get_env_number_default("SEED", 0));
 	int i = 0;
@@ -901,6 +917,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 
 static void initialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 {
+    
 	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_dynamic_outer_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |

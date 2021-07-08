@@ -612,6 +612,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 /* mc_lock is held and may be temporarily released! */
 static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list, enum starpu_is_prefetch is_prefetch)
 {
+    printf("Beggining of mem_chunk.\n");
 	size_t freed = 0;
 
 	starpu_data_handle_t handle;
@@ -888,10 +889,14 @@ restart:
 	return success;
 }
 
+/* Ajouter le data des package (ou le component) pour pouvoir supprimer les struct globale que j'utilise
+ * pour Belady ou duynamic outer eviction. Permetra de coder Belady multi gpu pour HFP */
 static starpu_data_victim_selector *victim_selector;
-void starpu_data_register_victim_selector(starpu_data_victim_selector selector)
+static starpu_data_victim_evicted *victim_evicted;
+void starpu_data_register_victim_selector(starpu_data_victim_selector selector, starpu_data_victim_evicted evicted)
 {
 	victim_selector = selector;
+	victim_evicted = evicted;
 }
 
 void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, int **_valid, unsigned *_n)
@@ -941,6 +946,7 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, i
  */
 static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, enum starpu_is_prefetch is_prefetch)
 {
+    printf("Beggining of try_to_reuse_potentially_in_use_mc\n");
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
 	starpu_data_handle_t victim = NULL;
 	int success = 0;
@@ -1019,7 +1025,12 @@ restart:
 		}
 	}
 	_starpu_spin_unlock(&mc_lock[node]);
-
+	
+	/* appeler fonctio call_victim_slector(succes) */
+	if (victim && victim_evicted != NULL)
+	{
+	    victim_evicted(success, victim);
+	}
 	return success;
 }
 
@@ -1074,6 +1085,7 @@ out:
  */
 static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
 {
+    printf("Beggining of free_potentially_in_use_mc\n");
 	size_t freed = 0;
 	starpu_data_handle_t victim = NULL;
 
@@ -1169,7 +1181,13 @@ restart2:
 		}
 	}
 	_starpu_spin_unlock(&mc_lock[node]);
-
+	
+	/* appeler fonctio call_victim_slector(succes) */
+	if (victim && victim_evicted != NULL)
+	{
+	    victim_evicted(freed, victim);
+	}	
+	
 	return freed;
 }
 

@@ -363,7 +363,7 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 	
-	if (starpu_get_env_number_default("BELADY",0) == 1) { starpu_data_register_victim_selector(belady_victim_selector); }
+	if (starpu_get_env_number_default("BELADY",0) == 1) { starpu_data_register_victim_selector(belady_victim_selector, NULL); }
 
 	if(with_ctxs_p)
 	{
