@@ -692,8 +692,7 @@ static void register_user_thread(double timestamp, unsigned long tid, const char
 
 static void register_mpi_thread(unsigned long nodeid, unsigned long tid)
 {
-	int ret = register_thread(nodeid, tid, -2, 0);
-	STARPU_ASSERT(ret == 1);
+	register_thread(nodeid, tid, -2, 0);
 }
 
 static int find_worker_id(unsigned long nodeid, unsigned long tid)
