@@ -213,7 +213,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     {
 	printf("Printing GPU's data list and main task list before randomization:\n\n");
 	//~ print_data_not_used_yet(data->p);
-	//~ print_task_list(&data->sched_list, "");
+	print_task_list(&data->sched_list, "");
 	NT = starpu_task_list_size(&data->sched_list);
 	randomize_task_list(data);
 	randomize_data_not_used_yet(data->p);
@@ -247,7 +247,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	{
 	    task = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	    //~ printf("Task %p is getting out of pull_task from fifo refused list on GPU n°%d\n", task, current_gpu);
+	    printf("Task %p is getting out of pull_task from fifo refused list on GPU n°%d\n", task, current_gpu);
 	    return task;
 	}
 
@@ -255,7 +255,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	if (!starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))
 	{
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
-	    //~ printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
+	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
 	    /* For visualisation in python. */
@@ -273,7 +273,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	    dynamic_outer_scheduling(&data->popped_task_list, current_gpu, data->p->temp_pointer_1);
 	    print_data_loaded(data->p);
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
-	    //~ printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
+	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
 	    /* For visualisation in python. */
@@ -560,17 +560,27 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     //~ printf("\n");
 }
 
-starpu_data_handle_t dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim)
+void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim)
 {
     /* TODO : ici enlever la donnée de la liste et l'ajouter aux not used yet.
      * Ne pas enlever la donnée quand on al retire simplement de laliste de données à éviner comme en dessous. */
+     /* If a data was not truly evicted I put it back in the list. */
+    if (success == 0)
+    {
+	data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
+	struct data_to_evict *d = data_to_evict_new();
+	d->D = victim;
+	printf("Pushing front of the task list to evict %p in dynamic_outer_victim_evicted.\n", victim);
+	data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element, d);
+    }
+    else
+    {
+	printf("Doing nothing in dynamic_outer_victim_evicted.\n");
+    }
 }
 
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
-{
-    //TODO a ajouter ? Ok, a mettre avant le reste
-    //Checking if all task are truly valid. Else I return a non valid data
-    
+{    
     /* TODO: Devrais-je garder ce if ? */
     //~ if (task_currently_treated != NULL) 
     //~ {
@@ -623,22 +633,15 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	}
 	else
 	{
-	    //~ printf("Is prefetch vaut %d\n", is_prefetch);
 	    struct data_to_evict *d = data_to_evict_list_pop_front(data_to_evict_control_c->pointeur->element);
 	    if (starpu_data_can_evict(d->D, node, is_prefetch))
 	    {
-			printf("Data on node:\n");
-			for (i = 0; i < nb_data_on_node; i++)
-			{
-			    printf("%p	", data_on_node[i]);
-			}
-			printf("\n");
 		printf("Victim_selector return %p. Is prefetch vaut %d.\n", d->D, is_prefetch);
 		return d->D;
 	    }
 	    else
 	    {
-		printf("%p is not valid to evict. Return no victim.\n", d->D);
+		//~ printf("%p is not valid to evict. Return no victim.\n", d->D);
 		/* Je la remet en haut de la liste. */
 		data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element, d);
 		//~ return NULL;

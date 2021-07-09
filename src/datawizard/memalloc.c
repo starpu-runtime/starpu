@@ -612,7 +612,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 /* mc_lock is held and may be temporarily released! */
 static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node, struct _starpu_data_replicate *replicate, unsigned is_already_in_mc_list, enum starpu_is_prefetch is_prefetch)
 {
-    printf("Beggining of mem_chunk.\n");
+    //~ printf("Beggining of mem_chunk.\n");
 	size_t freed = 0;
 
 	starpu_data_handle_t handle;
@@ -756,7 +756,19 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	    /* unlock the tree */
 	    unlock_all_subtree(handle);
 	}
-	if (freed == 1 && starpu_get_env_number_default("PRINTF",0) == 1) { printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle); }
+	if (freed == 1) 
+	{
+	     printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle); 
+	}
+	else 
+	{
+	    printf("Echec eviction de %p dans try_to_throw_mem_chunk.\n", handle);
+	    //~ if (victim_evicted != NULL)
+	    //~ {
+		//~ printf("Calling victim evicted\n");
+		//~ victim_evicted(freed, handle);
+	    //~ }
+	}
 	return freed;
 }
 
@@ -946,7 +958,7 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, i
  */
 static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, enum starpu_is_prefetch is_prefetch)
 {
-    printf("Beggining of try_to_reuse_potentially_in_use_mc\n");
+	printf("Beggining of try_to_reuse_potentially_in_use_mc.\n");
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
 	starpu_data_handle_t victim = NULL;
 	int success = 0;
@@ -967,8 +979,12 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 			return 0;
 
 		if (victim && victim->footprint != footprint)
+		{
 			/* Don't even bother looking for it, it won't fit anyway */
+			printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n");
+			victim_evicted(0, victim);
 			return 0;
+		}
 	}
 
 	/*
@@ -978,7 +994,6 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 	 * from zero. So we continue until we go through the whole list without
 	 * finding anything to free.
 	 */
-
 	_starpu_spin_lock(&mc_lock[node]);
 
 restart:
@@ -1026,10 +1041,11 @@ restart:
 	}
 	_starpu_spin_unlock(&mc_lock[node]);
 	
-	/* appeler fonctio call_victim_slector(succes) */
-	if (victim && victim_evicted != NULL)
+	printf("Succes vaut : %d dans try_to_reuse_potentially_in_use_mc.\n", success);
+	if (victim && victim_evicted != NULL && success == 0)
 	{
-	    victim_evicted(success, victim);
+	    printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc.\n");
+	    victim_evicted(0, victim);
 	}
 	return success;
 }
@@ -1085,7 +1101,7 @@ out:
  */
 static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
 {
-    printf("Beggining of free_potentially_in_use_mc\n");
+    printf("Beggining of free_potentially_in_use_mc.\n");
 	size_t freed = 0;
 	starpu_data_handle_t victim = NULL;
 
@@ -1099,8 +1115,11 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 		_STARPU_SCHED_END;
 
 		if (victim == STARPU_DATA_NO_VICTIM)
+		{
 			/* He told me we should not make any victim */
+			printf("NO_VICTIM in free_potentially_in_use_mc, return 0.\n");
 			return 0;
+		}
 	}
 
 
@@ -1182,10 +1201,11 @@ restart2:
 	}
 	_starpu_spin_unlock(&mc_lock[node]);
 	
-	/* appeler fonctio call_victim_slector(succes) */
-	if (victim && victim_evicted != NULL)
+	/* appeler fonction call_victim_slector(succes) */
+	if (victim && victim_evicted != NULL && freed == 0)
 	{
-	    victim_evicted(freed, victim);
+	    printf("Calling victim evicted in free_potentially_in_use_mc.\n");
+	    victim_evicted(0, victim);
 	}	
 	
 	return freed;
