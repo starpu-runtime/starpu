@@ -20,6 +20,7 @@
 #include <core/simgrid.h>
 #include <starpu_util.h>
 #include <starpu_profiling.h>
+#include <core/workers.h>
 
 /* we need to identify each task to generate the DAG. */
 unsigned long _starpu_job_cnt = 0;
@@ -318,6 +319,7 @@ void _starpu_stop_fxt_profiling(void)
 		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
 		if (generate_trace == 1)
 		{
+			_starpu_set_catch_signals(0);
 			char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
 			_starpu_generate_paje_trace(_starpu_prof_file_user, "paje.trace", fxt_prefix);
 		}

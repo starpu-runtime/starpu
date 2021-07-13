@@ -869,6 +869,13 @@ do {									\
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_EXCLUDE_FROM_DAG, (job)->job_id, (long unsigned)exclude_from_dag); \
 } while(0)
 
+#define _STARPU_TRACE_TASK_NAME_LINE_COLOR(job)				\
+	do {								\
+		_STARPU_TRACE_TASK_NAME(job);				\
+		_STARPU_TRACE_TASK_LINE(job);				\
+		_STARPU_TRACE_TASK_COLOR(job);				\
+	} while(0)
+
 #define _STARPU_TRACE_TASK_LINE(job)					\
 	do {								\
 		if ((job)->task->file)					\
@@ -1371,6 +1378,7 @@ do {										\
 #define _STARPU_TRACE_TASK_END_DEP(a, b)	do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(a)	do {(void)(a);} while(0)
+#define _STARPU_TRACE_TASK_NAME_LINE_COLOR(a)   do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_NAME(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_LINE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_COLOR(a)		do {(void)(a);} while(0)

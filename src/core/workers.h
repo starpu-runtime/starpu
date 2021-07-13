@@ -434,6 +434,8 @@ extern int _starpu_keys_initialized;
 extern starpu_pthread_key_t _starpu_worker_key;
 extern starpu_pthread_key_t _starpu_worker_set_key;
 
+void _starpu_set_catch_signals(int do_catch_signal);
+
 /** Three functions to manage argv, argc */
 void _starpu_set_argc_argv(int *argc, char ***argv);
 int *_starpu_get_argc();
