@@ -99,6 +99,21 @@ cudaStreamSynchronize(starpu_cuda_get_local_stream());
 as well as the use of \c cudaMemcpyAsync(), etc. for each CUDA operation one needs
 to use a version that takes the a stream parameter.
 
+If the kernel uses its own non-default stream, one can synchronize this stream
+with the StarPU-provided stream this way:
+
+\code{.c}
+cudaEvent_t event;
+call_kernel_with_its_own_stream()
+cudaEventCreateWithFlags(&event, cudaEventDisableTiming);
+cudaEventRecord(event, get_kernel_stream());
+cudaStreamWaitEvent(starpu_cuda_get_local_stream(), event, 0);
+cudaEventDestroy(event);
+\endcode
+
+This code makes the StarPU-provided stream wait for a new event, which will be
+triggered by the completion of the kernel.
+
 Unfortunately, some CUDA libraries do not have stream variants of
 kernels. This will seriously lower the potential for overlapping.
 If some CUDA calls are made without specifying this local stream,
@@ -128,21 +143,6 @@ returns immediately after having queued the kernel to the local stream. That way
 able to submit and complete data transfers while kernels are executing, instead of only at each
 kernel submission. The kernel just has to make sure that StarPU can use the
 local stream to synchronize with the kernel startup and completion.
-
-If the kernel uses its own non-default stream, one can synchronize this stream
-with the StarPU-provided stream this way:
-
-\code{.c}
-cudaEvent_t event;
-call_kernel_with_its_own_stream()
-cudaEventCreateWithFlags(&event, cudaEventDisableTiming);
-cudaEventRecord(event, get_kernel_stream());
-cudaStreamWaitEvent(starpu_cuda_get_local_stream(), event, 0);
-cudaEventDestroy(event);
-\endcode
-
-This code makes the StarPU-provided stream wait for a new event, which will be
-triggered by the completion of the kernel.
 
 Using the flag ::STARPU_CUDA_ASYNC also permits to enable concurrent kernel
 execution, on cards which support it (Kepler and later, notably). This is
