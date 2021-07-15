@@ -1274,6 +1274,7 @@ static void _starpu_build_tree(void)
 static starpu_pthread_mutex_t sig_handlers_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static void (*act_sigint)(int);
 static void (*act_sigsegv)(int);
+static void (*act_sigabrt)(int);
 #ifdef SIGTRAP
 static void (*act_sigtrap)(int);
 #endif
@@ -1299,6 +1300,13 @@ void _starpu_handler(int sig)
 		if (sig_act == NULL)
 			sig_act = SIG_DFL;
 		signal(SIGSEGV, sig_act);
+	}
+	if (sig == SIGABRT)
+	{
+		void (*sig_act)(int) = act_sigabrt;
+		if (sig_act == NULL)
+			sig_act = SIG_DFL;
+		signal(SIGABRT, sig_act);
 	}
 #ifdef SIGTRAP
 	if (sig == SIGTRAP)
@@ -1327,6 +1335,11 @@ void _starpu_catch_signals(void)
 		old_sig_act = signal(SIGSEGV, _starpu_handler);
 		if (old_sig_act != _starpu_handler)
 			act_sigsegv  = old_sig_act;
+
+		old_sig_act = signal(SIGABRT, _starpu_handler);
+		if (old_sig_act != _starpu_handler)
+			act_sigabrt  = old_sig_act;
+
 #ifdef SIGTRAP
 		old_sig_act = signal(SIGTRAP, _starpu_handler);
 		if (old_sig_act != _starpu_handler)
@@ -1346,6 +1359,13 @@ void _starpu_catch_signals(void)
 			signal(SIGSEGV, act_sigsegv);
 			act_sigsegv = NULL;
 		}
+
+		if (act_sigabrt != NULL)
+		{
+			signal(SIGABRT, act_sigsegv);
+			act_sigabrt = NULL;
+		}
+
 #ifdef SIGTRAP
 		if (act_sigtrap != NULL)
 		{
