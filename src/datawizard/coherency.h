@@ -278,8 +278,6 @@ struct _starpu_data_state
 	 * took it yet */
 	int last_locality;
 
-	int partition_automatic_disabled;
-
 	/** Application-provided coordinates. The maximum dimension (5) is
 	  * relatively arbitrary. */
 	unsigned dimensions;

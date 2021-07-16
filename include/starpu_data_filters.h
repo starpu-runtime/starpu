@@ -295,12 +295,6 @@ void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t in
 */
 void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node, int sequential_consistency);
 
-/**
-   Disable the automatic partitioning of the data \p handle for which
-   a asynchronous plan has previously been submitted
-*/
-void starpu_data_partition_not_automatic(starpu_data_handle_t handle);
-
 /** @} */
 
 /**

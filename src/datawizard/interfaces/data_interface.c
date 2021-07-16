@@ -450,7 +450,6 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	handle->ops = interface_ops;
 	handle->mf_node = mf_node;
 	handle->mpi_data = NULL;
-	handle->partition_automatic_disabled = 0;
 
 	size_t interfacesize = interface_ops->interface_size;
 
@@ -757,8 +756,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_data_unregister must not be called from a task or callback, perhaps you can use starpu_data_unregister_submit instead");
 
 		/* If sequential consistency is enabled, wait until data is available */
-		if (((handle->nplans && !handle->nchildren) || handle->siblings)
-			&& handle->partition_automatic_disabled == 0)
+		if ((handle->nplans && !handle->nchildren) || handle->siblings)
 			_starpu_data_partition_access_submit(handle, 1);
 		_starpu_data_wait_until_available(handle, STARPU_RW, "starpu_data_unregister");
 	}
