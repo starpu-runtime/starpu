@@ -486,7 +486,6 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->readonly
 	//handle->ooc
 	//handle->lazy_unregister = 0;
-	//handle->partition_automatic_disabled = 0;
 	//handle->removed_from_context_hash = 0;
 
 	STARPU_PTHREAD_MUTEX_INIT0(&handle->sequential_consistency_mutex, NULL);
@@ -886,8 +885,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_data_unregister must not be called from a task or callback, perhaps you can use starpu_data_unregister_submit instead");
 
 		/* If sequential consistency is enabled, wait until data is available */
-		if (((handle->nplans && !handle->nchildren) || handle->siblings)
-			&& handle->partition_automatic_disabled == 0)
+		if ((handle->nplans && !handle->nchildren) || handle->siblings)
 			_starpu_data_partition_access_submit(handle, !handle->readonly);
 		_starpu_data_wait_until_available(handle, handle->readonly?STARPU_R:STARPU_RW, "starpu_data_unregister");
 	}

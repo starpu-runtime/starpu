@@ -226,9 +226,6 @@ struct _starpu_data_state
 	/** Can the data be pushed to the disk? */
 	unsigned ooc:1;
 
-	/** Whether automatic planned partitioning/unpartitioning should not be done */
-	int partition_automatic_disabled:1;
-
 #ifdef STARPU_OPENMP
 	unsigned removed_from_context_hash:1;
 #endif
