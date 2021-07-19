@@ -189,6 +189,8 @@ void randomize_data_not_used_yet_single_GPU(struct my_list *l)
     l->number_handle_to_pop = number_of_data[0];
 }
 
+int number_task_out = 0;
+
 /* Pull tasks. When it receives new task it will randomize the task list and the GPU data list.
  * If it has no task it return NULL. Else if a task was refused it return it. Else it return the
  * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
@@ -254,8 +256,9 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	/* If the package is not empty I can return the head of the task list. */
 	if (!starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))
 	{
+	    number_task_out++;
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
-	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
+	    printf("Task n°%d: %p is getting out of pull_task from GPU n°%d\n", number_task_out, task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
 	    /* For visualisation in python. */
@@ -269,11 +272,12 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
 	else if (!starpu_task_list_empty(&data->popped_task_list))
 	{
+	    number_task_out++;
 	    print_data_not_used_yet(data->p);
 	    dynamic_outer_scheduling(&data->popped_task_list, current_gpu, data->p->temp_pointer_1);
 	    print_data_loaded(data->p);
 	    task = starpu_task_list_pop_front(&data->p->temp_pointer_1->sub_list);
-	    printf("Task %p is getting out of pull_task from GPU n°%d\n", task, current_gpu);
+	    printf("Task n°%d, %p is getting out of pull_task from GPU n°%d\n", number_task_out, task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
 	    /* For visualisation in python. */
@@ -608,7 +612,6 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 		returned_handle = data_on_node[i];
 		free(data_on_node);
 		printf("Returning an invalid data.\n\n");
-		//~ exit(0);	
 		return returned_handle;
 	    }
 	}
@@ -628,14 +631,21 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	else if (data_to_evict_list_empty(data_to_evict_control_c->pointeur->element))
 	{
 	    printf("List of data to evict empty, victim_selector return NULL\n");
-	    //~ return NULL;
-	    return STARPU_DATA_NO_VICTIM; 
+	    return NULL;
+	    //~ return STARPU_DATA_NO_VICTIM; 
 	}
 	else
 	{
 	    struct data_to_evict *d = data_to_evict_list_pop_front(data_to_evict_control_c->pointeur->element);
 	    if (starpu_data_can_evict(d->D, node, is_prefetch))
 	    {
+		printf("Data on node:\n");
+		for (i = 0; i < nb_data_on_node; i++)
+		{
+		    printf("%p	", data_on_node[i]);
+		}
+		printf("\n");
+	
 		printf("Victim_selector return %p. Is prefetch vaut %d.\n", d->D, is_prefetch);
 		return d->D;
 	    }
