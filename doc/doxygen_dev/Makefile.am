@@ -211,10 +211,11 @@ $(DOX_TAG): $(dox_inputs)
 	@if test -f html_dev/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html_dev/navtree.js ; fi
 	@$(SED) -i 's/.*"Files.html".*//' html_dev/pages.html
 	@if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
-	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
-	@cat $(top_srcdir)/doc/doxygen_dev/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
+	@if test -f $(DOX_LATEX_DIR)/refman.tex ; then $(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex ; fi
+	@if test -f $(DOX_LATEX_DIR)/refman.tex ; then cat $(top_srcdir)/doc/doxygen_dev/refman.tex >> $(DOX_LATEX_DIR)/refman.tex ; fi
 
 $(DOX_PDF): $(DOX_TAG) refman.tex
+	$(MKDIR_P) $(DOX_LATEX_DIR)
 	@cp $(top_srcdir)/doc/doxygen_dev/chapters/version.sty $(DOX_LATEX_DIR)
 	@cp $(top_srcdir)/doc/doxygen_dev/modules.tex $(DOX_LATEX_DIR)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex

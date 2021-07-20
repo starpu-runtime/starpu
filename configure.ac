@@ -3336,6 +3336,13 @@ AM_CONDITIONAL(STARPU_AVAILABLE_DOC, [test x$available_doc != xno])
 AM_CONDITIONAL(STARPU_BUILD_DOC_PDF, [test x$enable_build_doc_pdf != xno])
 AM_CONDITIONAL(STARPU_AVAILABLE_DOC_PDF, [test x$available_doc_pdf != xno])
 
+if test x$enable_build_doc_pdf != xno ; then
+   DOC_GENERATE_LATEX=YES
+else
+   DOC_GENERATE_LATEX=NO
+fi
+AC_SUBST(DOC_GENERATE_LATEX)
+
 ###############################################################################
 #                                                                             #
 #                                Julia                                        #
