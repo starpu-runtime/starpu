@@ -316,6 +316,8 @@ static inline unsigned long _starpu_fxt_get_submit_order(void)
 
 long _starpu_gettid(void) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
+int _starpu_generate_paje_trace_read_option(const char *option, struct starpu_fxt_options *options) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
 /** Initialize the FxT library. */
 void _starpu_fxt_init_profiling(uint64_t trace_buffer_size);
 

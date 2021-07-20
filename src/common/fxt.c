@@ -213,7 +213,7 @@ void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
 	return;
 }
 
-static void _starpu_generate_paje_trace_read_option(const char *option, struct starpu_fxt_options *options)
+int _starpu_generate_paje_trace_read_option(const char *option, struct starpu_fxt_options *options)
 {
 	if (strcmp(option, "-c") == 0)
 	{
@@ -255,10 +255,15 @@ static void _starpu_generate_paje_trace_read_option(const char *option, struct s
 	{
 		options->label_deps = 1;
 	}
+	else if (strcmp(option, "-number-events") == 0)
+	{
+		options->number_events_path = strdup("number_events.data");
+	}
 	else
 	{
-		_STARPU_MSG("Option <%s> is not a valid option for starpu_fxt_tool\n", option);
+		return 1;
 	}
+	return 0;
 }
 
 static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_paje_filename, char *dirname)
@@ -273,7 +278,9 @@ static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_p
 		char *option = strtok(trace_options, " ");
 		while (option)
 		{
-			_starpu_generate_paje_trace_read_option(option, &options);
+			int ret = _starpu_generate_paje_trace_read_option(option, &options);
+			if (ret == 1)
+				_STARPU_MSG("Option <%s> is not a valid option for starpu_fxt_tool\n", option);
 			option = strtok(NULL, " ");
 		}
 	}
