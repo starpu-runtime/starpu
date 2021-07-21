@@ -106,7 +106,7 @@ static int parse_args(int argc, char **argv)
 		/* That's pretty dirty: if the reading_input_filenames flag is
 		 * set, and that the argument does not match an option, we
 		 * assume this may be another filename */
-		if (reading_input_filenames)
+		else if (reading_input_filenames)
 		{
 			if (options.ninputfiles >= STARPU_FXT_MAX_FILES)
 			{
@@ -114,7 +114,6 @@ static int parse_args(int argc, char **argv)
 				return 7;
 			}
 			options.filenames[options.ninputfiles++] = argv[i];
-			continue;
 		}
 	}
 
