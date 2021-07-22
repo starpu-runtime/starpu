@@ -46,7 +46,7 @@ starpufft(plan) starpufft(plan_dft_r2c_1d)(int n, unsigned flags); \
 starpufft(plan) starpufft(plan_dft_c2r_1d)(int n, unsigned flags); \
 \
 void *starpufft(malloc)(size_t n); \
-void starpufft(free)(void *p); \
+void starpufft(free)(void *p, size_t dim);   \
 \
 int starpufft(execute)(starpufft(plan) p, void *in, void *out); \
 struct starpu_task *starpufft(start)(starpufft(plan) p, void *in, void *out); \
