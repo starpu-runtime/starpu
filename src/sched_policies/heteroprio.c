@@ -77,10 +77,10 @@ struct laqueue
 
 static struct laqueue laqueue_init(const long int size_of_element);
 static void laqueue_destroy(struct laqueue* q);
-static long int laqueue_size(struct laqueue* q);
+//static long int laqueue_size(struct laqueue* q);
 static void laqueue_push(struct laqueue* q, void* data);
 static void* laqueue_pop(struct laqueue* q);
-static void* laqueue_top(struct laqueue* q);
+//static void* laqueue_top(struct laqueue* q);
 
 struct starpu_laheteroprio_access_item
 {
@@ -104,10 +104,10 @@ static void laqueue_destroy(struct laqueue* q)
 	free(q->data);
 }
 
-static long int laqueue_size(struct laqueue* q)
-{
-	return q->capacity;
-}
+//static long int laqueue_size(struct laqueue* q)
+//{
+//	return q->capacity;
+//}
 
 static void laqueue_push(struct laqueue* q, void* data)
 {
@@ -127,11 +127,11 @@ static void* laqueue_pop(struct laqueue* q)
 	return data;
 }
 
-static void* laqueue_top(struct laqueue* q)
-{
-	STARPU_ASSERT(q->current_index-1 >= 0);
-	return &q->data[(q->current_index-1)*q->size_of_element];
-}
+//static void* laqueue_top(struct laqueue* q)
+//{
+//	STARPU_ASSERT(q->current_index-1 >= 0);
+//	return &q->data[(q->current_index-1)*q->size_of_element];
+//}
 
 /** How are codelet grouped by priority */
 enum autoheteroprio_codelet_grouping_strategy
@@ -2328,15 +2328,15 @@ static double get_autoheteroprio_successors_best_time_sum(struct _starpu_heterop
 }
 
 // best execution time of a prio
-static double get_autoheteroprio_best_time(struct _starpu_heteroprio_data *hp, unsigned priority)
-{
-	if(hp->prio_average_best_count[priority] > 0)
-	{
-		return hp->prio_average_best[priority];
-	}
-
-	return AUTOHETEROPRIO_FAIR_TIME;
-}
+//static double get_autoheteroprio_best_time(struct _starpu_heteroprio_data *hp, unsigned priority)
+//{
+//	if(hp->prio_average_best_count[priority] > 0)
+//	{
+//		return hp->prio_average_best[priority];
+//	}
+//
+//	return AUTOHETEROPRIO_FAIR_TIME;
+//}
 
 static double get_autoheteroprio_NOD(struct _starpu_heteroprio_data *hp, unsigned priority)
 {
@@ -2751,11 +2751,11 @@ static int get_task_auto_priority(struct _starpu_heteroprio_data *hp, const stru
 }
 
 // checks that auto-heteroprio arrays are correctly set (for debugging purposes)
-static void check_auto_heteroprio_mapping(struct _starpu_heteroprio_data *hp)
-{
-	// may be useful
-	(void) hp;
-}
+//static void check_auto_heteroprio_mapping(struct _starpu_heteroprio_data *hp)
+//{
+//	// may be useful
+//	(void) hp;
+//}
 
 static double get_job_NOD(struct _starpu_heteroprio_data *hp, struct _starpu_job *job)
 {
