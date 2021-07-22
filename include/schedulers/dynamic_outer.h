@@ -1,7 +1,8 @@
 #ifndef __dynamic_outer_H__
 #define __dynamic_outer_H__
 
-#define EVICTION_STRATEGY_DYNAMIC_OUTER /* 0 we use default dynamic outer without managing evictions. 1 we evict data when we know the popped handle will exceed memory and push them back in the data not used yet list. */
+#define EVICTION_STRATEGY_DYNAMIC_OUTER /* 0 we use default dynamic outer without managing evictions. */
+#define DATA_POP_POLICY /* 0 is the default one, we pop handles of each type from the random set of handles. 1 we pop the handles that allow to do the most task. The set of handles is randomized so if there is a tie it's the first handle encountered that is popped. */
 
 int Ndifferent_data_type;
 
@@ -60,20 +61,20 @@ struct pointer_in_task
     struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
 };
 
-/* To control eviction. */
-LIST_TYPE(data_to_evict,
-    starpu_data_handle_t D; /* The data not used yet by the GPU. */
-);
-struct data_to_evict_element
-{
-    void *element;
-    struct data_to_evict_element *next;
-};
-struct data_to_evict_control
-{
-    struct data_to_evict_element *pointeur;
-    struct data_to_evict_element *first;
-};
+//~ /* To control eviction. */
+//~ LIST_TYPE(data_to_evict,
+    //~ starpu_data_handle_t D; /* The data not used yet by the GPU. */
+//~ );
+//~ struct data_to_evict_element
+//~ {
+    //~ void *element;
+    //~ struct data_to_evict_element *next;
+//~ };
+//~ struct data_to_evict_control
+//~ {
+    //~ struct data_to_evict_element *pointeur;
+    //~ struct data_to_evict_element *first;
+//~ };
 void data_to_evict_insertion(struct data_to_evict_control *d);
 
 #endif

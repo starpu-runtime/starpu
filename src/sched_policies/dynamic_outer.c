@@ -323,6 +323,42 @@ void push_back_data_not_used_yet(starpu_data_handle_t h, struct my_list *l, int 
 struct data_to_evict_element *data_to_evict_element_e;
 struct data_to_evict_control *data_to_evict_control_c;
 
+//~ void add_data_to_data_to_evict_list(int current_gpu, struct my_list *l, starpu_data_handle_t *evicted_handles)
+//~ {
+    //~ int i = 0;
+    //~ struct gpu_data_in_memory *eh = NULL;
+    //~ /* Get on the right gpu list of data to evict. */
+    //~ data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
+    
+    //~ for (i = 0; i < current_gpu - 1; i++)
+    //~ {
+	//~ data_to_evict_control_c->pointeur = data_to_evict_control_c->pointeur->next;
+    //~ }
+    //~ for (i = 0; i < Ndifferent_data_type; i++)
+    //~ {
+	//~ /* So here we suppose that this handle will be evicted. */
+	//~ eh = gpu_data_in_memory_list_pop_front(l->gpu_data_loaded[i]);
+	//~ l->memory_used -= starpu_data_get_size(eh->D);
+	//~ evicted_handles[i] = eh->D;
+	//~ push_back_data_not_used_yet(eh->D, l, i);
+		
+	//~ /* And I add these handles in the list of handle of the corresponding gpu in a global struct. */
+	//~ struct data_to_evict *d = data_to_evict_new();
+	//~ d->D = eh->D;
+	//~ /* If the void * of struct paquet is empty I initialize it. */ 
+	//~ if (data_to_evict_control_c->pointeur->element == NULL)
+	//~ {
+	    //~ struct data_to_evict_list *dl = data_to_evict_list_new();
+	    //~ data_to_evict_list_push_back(dl, d);
+	    //~ data_to_evict_control_c->pointeur->element = dl; 
+	//~ }
+	//~ else
+	//~ {
+	    //~ data_to_evict_list_push_back(data_to_evict_control_c->pointeur->element, d);
+	//~ }
+    //~ }
+//~ }
+
 /* Fill a package task list following dynamic_outer algorithm. */
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l)
 {
@@ -377,13 +413,14 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	add_data_to_gpu_data_loaded(l, handle_popped[i], i);
     }
     
+    /* TODO : a enlever ici et plus bas car mtn je check dans le victim selector. */
     starpu_data_handle_t *evicted_handles = malloc(Ndifferent_data_type*sizeof(STARPU_TASK_GET_HANDLE(starpu_task_list_begin(popped_task_list), 0)));
     if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
     {
 	/* If we exceed the GPU's memory with the new data I need to evict as much data. */
-	if (l->memory_used > GPU_RAM_M)
-	{
-	    printf("Memory exceeded with the new data.\n");
+	//~ if (l->memory_used > GPU_RAM_M)
+	//~ {
+	    //~ printf("Memory exceeded with the new data.\n");
 	    
 	    /* This is eviction method n°1 where we evict immediatly. 
 	     * The problem is that the data is often not loaded when I try to evict it.
@@ -410,47 +447,46 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	     * in gpu_data_in_memory of the corresponding package. We also need to ignore the tasks using
 	     * these data when we fill the package with tasks.
 	     */
-	     struct gpu_data_in_memory *eh = NULL;
-	     /* Get on the right gpu list of data to evict. */
-	     data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
-	     for (i = 0; i < current_gpu - 1; i++)
-	     {
-		 data_to_evict_control_c->pointeur = data_to_evict_control_c->pointeur->next;
-	     }
-	     for (i = 0; i < Ndifferent_data_type; i++)
-	     {
-		 /* So here we suppose that this handle will be evicted. */
-		eh = gpu_data_in_memory_list_pop_front(l->gpu_data_loaded[i]);
-		l->memory_used -= starpu_data_get_size(eh->D);
-		evicted_handles[i] = eh->D;
-		push_back_data_not_used_yet(eh->D, l, i);
-		
-		/* And I add these handles in the list of handle of the corresponding gpu in a global struct. */
-		struct data_to_evict *d = data_to_evict_new();
-		d->D = eh->D;
-		/* If the void * of struct paquet is empty I initialize it. */ 
-		if (data_to_evict_control_c->pointeur->element == NULL)
-		{
-		    struct data_to_evict_list *dl = data_to_evict_list_new();
-		    //~ data_to_evict_list_push_front(dl, d);
-		    data_to_evict_list_push_back(dl, d);
-		    data_to_evict_control_c->pointeur->element = dl; 
-		}
-		else
-		{
-		    //~ data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element, d);
-		    data_to_evict_list_push_back(data_to_evict_control_c->pointeur->element, d);
-		}
-	    }
-	    /* End of eviction method n°2. */
-	}
+	    //~ struct gpu_data_in_memory *eh = NULL;
+	    //~ /* Get on the right gpu list of data to evict. */
+	    //~ data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
+	    
+	    //~ for (i = 0; i < current_gpu - 1; i++)
+	    //~ {
+		//~ data_to_evict_control_c->pointeur = data_to_evict_control_c->pointeur->next;
+	    //~ }
+	    //~ for (i = 0; i < Ndifferent_data_type; i++)
+	    //~ {
+		//~ /* So here we suppose that this handle will be evicted. */
+		//~ eh = gpu_data_in_memory_list_pop_front(l->gpu_data_loaded[i]);
+		//~ l->memory_used -= starpu_data_get_size(eh->D);
+		//~ evicted_handles[i] = eh->D;
+		//~ push_back_data_not_used_yet(eh->D, l, i);
+			
+		//~ /* And I add these handles in the list of handle of the corresponding gpu in a global struct. */
+		//~ struct data_to_evict *d = data_to_evict_new();
+		//~ d->D = eh->D;
+		//~ /* If the void * of struct paquet is empty I initialize it. */ 
+		//~ if (data_to_evict_control_c->pointeur->element == NULL)
+		//~ {
+		    //~ struct data_to_evict_list *dl = data_to_evict_list_new();
+		    //~ data_to_evict_list_push_back(dl, d);
+		    //~ data_to_evict_control_c->pointeur->element = dl; 
+		//~ }
+		//~ else
+		//~ {
+		    //~ data_to_evict_list_push_back(data_to_evict_control_c->pointeur->element, d);
+		//~ }
+	    //~ }
+	    //~ /* End of eviction method n°2. */
+	//~ }
 	
 	/* If the number of handle popped is equal to the number of original handle it
 	 * means that we are on the set of data evicted. So we want to reshuffle it. */
 	 l->number_handle_to_pop--;
 	 if (l->number_handle_to_pop == 0)
 	 {
-	     //~ printf("Re-shuffle\n");
+	     printf("Re-shuffle\n");
 	     randomize_data_not_used_yet_single_GPU(l);
 	 }
      }
@@ -583,18 +619,18 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim)
     }
 }
 
-starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
-{    
-    /* TODO: Devrais-je garder ce if ? */
-    //~ if (task_currently_treated != NULL) 
-    //~ {
-    //~ printf("current task is %p index %d\n", task_currently_treated, index_task_currently_treated);
-	starpu_data_handle_t *data_on_node;
-	unsigned nb_data_on_node = 0;
-	int *valid;
-	int i = 0;
-	starpu_data_handle_t returned_handle = NULL;
-	starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
+{
+    printf("Beggining of victim_selector. Timing is %f.\n", starpu_timing_now());
+    struct starpu_sched_component *temp_component = component;
+    struct HFP_sched_data *data = temp_component->data;
+    
+    starpu_data_handle_t *data_on_node;
+    unsigned nb_data_on_node = 0;
+    int *valid;
+    int i = 0;
+    starpu_data_handle_t returned_handle = NULL;
+    starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 	
 	//~ printf("Data on node:\n");
 	//~ for (i = 0; i < nb_data_on_node; i++)
@@ -603,61 +639,118 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	//~ }
 	//~ printf("\n");
 	
-	for (i = 0; i < nb_data_on_node; i++)
+    for (i = 0; i < nb_data_on_node; i++)
+    {
+	if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 	{
-	    //~ printf("valid[%d] = %d\n", i, valid[i]);
-	    if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
-	    {
-		free(valid);
-		returned_handle = data_on_node[i];
-		free(data_on_node);
-		printf("Returning an invalid data.\n\n");
-		return returned_handle;
-	    }
+	    free(valid);
+	    returned_handle = data_on_node[i];
+	    free(data_on_node);
+	    printf("Returning an invalid data.\n");
+	    return returned_handle;
 	}
+    }
+    
+    /* New strategie: trying to evict the data with the less task it can do. */
+    //~ min
+    //~ for (i = 0; i < nb_data_on_node; i++)
+    //~ {
 	
-	data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
-	for (i = 0; i < node - 1; i++)
-	{
-	    data_to_evict_control_c->pointeur = data_to_evict_control_c->pointeur->next;
-	}
 	
-	if (data_to_evict_control_c->pointeur->element == NULL)
-	{
-	    printf("Pointer null return NULL.\n");
-	    //~ return NULL;
-	    return STARPU_DATA_NO_VICTIM; 
-	}
-	else if (data_to_evict_list_empty(data_to_evict_control_c->pointeur->element))
-	{
-	    printf("List of data to evict empty, victim_selector return NULL\n");
-	    return NULL;
+	//~ data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
+	//~ for (i = 0; i < node - 1; i++)
+	//~ {
+	    //~ data_to_evict_control_c->pointeur = data_to_evict_control_c->pointeur->next;
+	//~ }
+	
+	//~ if (data_to_evict_control_c->pointeur->element == NULL)
+	//~ {
+	    //~ printf("Pointer null return NO_VICTIM.\n");
 	    //~ return STARPU_DATA_NO_VICTIM; 
-	}
-	else
-	{
-	    struct data_to_evict *d = data_to_evict_list_pop_front(data_to_evict_control_c->pointeur->element);
-	    if (starpu_data_can_evict(d->D, node, is_prefetch))
-	    {
-		printf("Data on node:\n");
-		for (i = 0; i < nb_data_on_node; i++)
-		{
-		    printf("%p	", data_on_node[i]);
-		}
-		printf("\n");
-	
-		printf("Victim_selector return %p. Is prefetch vaut %d.\n", d->D, is_prefetch);
-		return d->D;
-	    }
-	    else
-	    {
+	//~ }
+	//~ else if (data_to_evict_list_empty(data_to_evict_control_c->pointeur->element))
+	//~ {
+	    //~ printf("List of data to evict empty, victim_selector return NO_VICTIM\n");
+	    //~ return STARPU_DATA_NO_VICTIM; 
+	    
+	    //~ struct gpu_data_in_memory *eh = NULL;
+	    //~ /* Get on the right gpu list of data to evict. */
+	    //~ data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
+	    
+	    //~ for (i = 0; i < current_gpu - 1; i++)
+	    //~ {
+		//~ data_to_evict_control_c->pointeur = data_to_evict_control_c->pointeur->next;
+	    //~ }
+	    //~ for (i = 0; i < Ndifferent_data_type; i++)
+	    //~ {
+		//~ /* So here we suppose that this handle will be evicted. */
+		//~ eh = gpu_data_in_memory_list_pop_front(l->gpu_data_loaded[i]);
+		//~ l->memory_used -= starpu_data_get_size(eh->D);
+		//~ evicted_handles[i] = eh->D;
+		//~ push_back_data_not_used_yet(eh->D, l, i);
+			
+		//~ /* And I add these handles in the list of handle of the corresponding gpu in a global struct. */
+		//~ struct data_to_evict *d = data_to_evict_new();
+		//~ d->D = eh->D;
+		//~ /* If the void * of struct paquet is empty I initialize it. */ 
+		//~ if (data_to_evict_control_c->pointeur->element == NULL)
+		//~ {
+		    //~ struct data_to_evict_list *dl = data_to_evict_list_new();
+		    //~ data_to_evict_list_push_back(dl, d);
+		    //~ data_to_evict_control_c->pointeur->element = dl; 
+		//~ }
+		//~ else
+		//~ {
+		    //~ data_to_evict_list_push_back(data_to_evict_control_c->pointeur->element, d);
+		//~ }
+	    //~ }
+	//~ }
+	//~ else
+	//~ {
+	    //~ printf("Is prefetch vaut %d. Data on node:\n", is_prefetch);
+	    //~ for (i = 0; i < nb_data_on_node; i++)
+	    //~ {
+		//~ printf("%p	", data_on_node[i]);
+	    //~ }
+	    //~ printf("\n");
+		
+	    //~ struct data_to_evict *d = data_to_evict_list_pop_front(data_to_evict_control_c->pointeur->element);
+	    
+	    /* Version où je boucle tant que je suis pas valide. */
+	    //~ if (starpu_data_can_evict(d->D, node, is_prefetch))
+	    //~ {
+		//~ printf("Victim_selector return %p. Is prefetch vaut %d.\n", d->D, is_prefetch);
+		//~ return d->D;
+	    //~ }
+	    //~ else
+	    //~ {
 		//~ printf("%p is not valid to evict. Return no victim.\n", d->D);
-		/* Je la remet en haut de la liste. */
-		data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element, d);
-		//~ return NULL;
-		return STARPU_DATA_NO_VICTIM; 
-	    }
-	}
+		//~ /* Je la remet en haut de la liste. */
+		//~ data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element, d);
+		//~ return STARPU_DATA_NO_VICTIM; 
+	    //~ }
+	    /* Fin version 1. */
+	    
+	    /* Version où je cherche la première donnée valide à évincer. */
+	    //~ int size = data_to_evict_list_size(data_to_evict_control_c->pointeur->element);
+	    //~ printf("size = %d\n", size);
+	    //~ while (!starpu_data_can_evict(d->D, node, is_prefetch))
+	    //~ {
+		//~ printf("%p is not valid to evict. size = %d.\n", d->D, size);
+		//~ if (size <= 0) 
+		//~ {
+		    //~ data_to_evict_list_push_back(data_to_evict_control_c->pointeur->element, d); 
+		    //~ printf("NO_VICTIM.\n"); 
+		    //~ return STARPU_DATA_NO_VICTIM;  
+		//~ }
+		//~ data_to_evict_list_push_back(data_to_evict_control_c->pointeur->element, d);
+		//~ d = data_to_evict_list_pop_front(data_to_evict_control_c->pointeur->element);
+		//~ size--;
+	    //~ }
+	    //~ printf("Victim_selector return %p.\n", d->D);
+	    //~ return d->D;
+	    /* Fin version 2. */
+	//~ }
     //~ }
     printf("Return NULL.\n");
     return NULL;
@@ -861,10 +954,13 @@ void data_to_evict_insertion(struct data_to_evict_control *d)
     d->pointeur = new;
 }
 
+//~ void victim_selector_initializer(starpu_data_victim_selector selector, struct starpu_sched_component *component)
+//~ {
+    //~ victim_selector = selector;
+//~ }
+
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
-        /* TODO: initialiser le victim_selector et victim_evicted. Et de même pour HFP. */
-    
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_outer");
 	srandom(starpu_get_env_number_default("SEED", 0));
 	int i = 0;
@@ -925,6 +1021,13 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	component->pull_task = dynamic_outer_pull_task;
 	component->can_push = dynamic_outer_can_push;
 	component->can_pull = dynamic_outer_can_pull;
+	
+	/* TODO: initialiser le victim_selector et victim_evicted. Et de même pour HFP. */
+	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+	{ 
+	    starpu_data_register_victim_selector(dynamic_outer_victim_selector, dynamic_outer_victim_evicted, component); 
+	}
+	
 	return component;
 }
 
