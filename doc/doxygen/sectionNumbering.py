@@ -7,7 +7,7 @@ import sys
 files = {}
 for x in os.listdir(sys.argv[1]):
     if x.endswith(".doxy"):
-        with open(sys.argv[1]+x, "r") as fin:
+        with open(sys.argv[1]+x, "r", encoding="utf-8") as fin:
             for line in fin.readlines():
                 if "\page" in line:
                     line = line.replace("/*! \page ", "").strip()
@@ -23,8 +23,8 @@ chapter=0
 for x in htmlfiles:
     chapter+=1
     section=0
-    with open(htmldir+x, "r") as fin:
-        with open(htmldir+x+".count.html", "w") as fout:
+    with open(htmldir+x, "r", encoding="utf-8") as fin:
+        with open(htmldir+x+".count.html", "w", encoding="utf-8") as fout:
             for line in fin.readlines():
                 if "<div class=\"title\">" in line:
                     line = line.replace("<div class=\"title\">", "<div class=\"title\">"+str(chapter)+". ")
