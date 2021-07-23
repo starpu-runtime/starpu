@@ -298,12 +298,12 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
-	STARPUFFT(free)(in_orig);
-	STARPUFFT(free)(in);
-	STARPUFFT(free)(out);
+	STARPUFFT(free)(in_orig, size * sizeof(*in_orig));
+	STARPUFFT(free)(in, size * sizeof(*in));
+	STARPUFFT(free)(out, size * sizeof(*out));
 
 #ifdef STARPU_HAVE_FFTW
-	STARPUFFT(free)(out_fftw);
+	STARPUFFT(free)(out_fftw, size * sizeof(*out_fftw));
 #endif
 
 #ifdef STARPU_USE_CUDA
