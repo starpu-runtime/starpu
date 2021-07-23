@@ -45,7 +45,7 @@ cd $basename
 
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz ../$tarball
-touch --date="last hour" $(find $basename)
+touch --date="last hour" $(find $basename) || true
 cd $basename
 mkdir build
 cd build
