@@ -53,6 +53,11 @@ static int _starpu_written = 0;
 
 static int _starpu_id;
 
+/* If we use several MPI processes, we can't use STARPU_GENERATE_TRACE=1,
+ * because each MPI process will handle its own trace file, so store the world
+ * size to warn the user if needed and avoid processing partial traces. */
+static int _starpu_mpi_worldsize = 1;
+
 static unsigned int initial_key_mask = FUT_KEYMASKALL;
 
 #ifdef STARPU_SIMGRID
@@ -128,6 +133,28 @@ void starpu_profiling_set_id(int new_id)
 #endif
 }
 
+void _starpu_profiling_set_mpi_worldsize(int worldsize)
+{
+	STARPU_ASSERT(worldsize >= 1);
+	_starpu_mpi_worldsize = worldsize;
+
+	int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
+	if (generate_trace && _starpu_mpi_worldsize > 1)
+	{
+		/** TODO: make it work !
+		 * The problem is that when STARPU_GENERATE_TRACE is used, each MPI
+		 * process will generate the trace corresponding to its own execution
+		 * (which makes no sense in MPI execution with several processes).
+		 * Although letting only one StarPU process generating the trace by
+		 * using the trace files of all MPI processes is not the most
+		 * complicated thing to do, one case is not easy to deal with: what to
+		 * do when each process stored its trace file in the local memory of
+		 * the node (e.g. /tmp/) ?
+		 */
+		_STARPU_MSG("You can't use STARPU_GENERATE_TRACE=1 with several MPI processes. Use starpu_fxt_tool after application execution.\n");
+	}
+}
+
 void starpu_fxt_autostart_profiling(int autostart)
 {
 	if (autostart)
@@ -182,6 +209,7 @@ void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
 	_starpu_fxt_started = 1;
 	_starpu_written = 0;
 	_starpu_profile_set_tracefile();
+
 
 #ifdef HAVE_FUT_SET_FILENAME
 	fut_set_filename(_starpu_prof_file_user);
@@ -324,7 +352,7 @@ void _starpu_stop_fxt_profiling(void)
 
 		/* Should we generate a Paje trace directly ? */
 		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
-		if (generate_trace == 1)
+		if (_starpu_mpi_worldsize == 1 && generate_trace == 1)
 		{
 			_starpu_set_catch_signals(0);
 			char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");

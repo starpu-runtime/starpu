@@ -324,6 +324,9 @@ void _starpu_fxt_init_profiling(uint64_t trace_buffer_size);
 /** Stop the FxT library, and generate the trace file. */
 void _starpu_stop_fxt_profiling(void);
 
+/** In case we use MPI, tell the profiling system how many processes are used. */
+void _starpu_profiling_set_mpi_worldsize(int worldsize) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
 /** Generate the trace file. Used when catching signals SIGINT and SIGSEGV */
 void _starpu_fxt_dump_file(void);
 

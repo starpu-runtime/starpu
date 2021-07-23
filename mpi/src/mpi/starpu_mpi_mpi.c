@@ -1292,6 +1292,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		/* We need to record our ID in the trace before the main thread makes any MPI call */
 		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
 		starpu_profiling_set_id(argc_argv->rank);
+		_starpu_profiling_set_mpi_worldsize(argc_argv->world_size);
 		_starpu_mpi_add_sync_point_in_fxt();
 	}
 #endif //STARPU_USE_FXT
