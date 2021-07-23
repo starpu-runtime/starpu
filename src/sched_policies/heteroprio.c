@@ -3242,16 +3242,9 @@ the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_m
 	{
 		task_priority = get_task_auto_priority(hp, task);
 
-		if(!hp->freeze_data_gathering)
+		if(!hp->freeze_data_gathering && hp->priority_last_ordering >= hp->priority_ordering_interval)
 		{
-			if(hp->priority_last_ordering >= hp->priority_ordering_interval)
-			{
-				hp->priority_last_ordering = 0;
-			}
-			else
-			{
-				++hp->priority_last_ordering;
-			}
+			hp->priority_last_ordering = 0;
 		}
 
 		if(hp->priority_last_ordering == 0)
@@ -3263,9 +3256,9 @@ the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_m
 				print_priorities(hp);
 			}
 			autoheteroprio_update_slowdown_data(hp);
-
-			++hp->priority_last_ordering;
 		}
+
+		++hp->priority_last_ordering;
 
 		if(!hp->freeze_data_gathering)
 		{
