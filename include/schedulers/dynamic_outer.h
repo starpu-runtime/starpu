@@ -35,6 +35,7 @@ void print_task_using_data(starpu_data_handle_t d);
 void add_data_to_gpu_data_loaded(struct my_list *l, starpu_data_handle_t h, int data_type);
 
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l);
+void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l);
 
 void print_data_loaded(struct paquets *p);
 
