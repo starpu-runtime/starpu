@@ -139,7 +139,7 @@ void _starpu_profiling_set_mpi_worldsize(int worldsize)
 	_starpu_mpi_worldsize = worldsize;
 
 	int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
-	if (generate_trace && _starpu_mpi_worldsize > 1)
+	if (generate_trace == 1 && _starpu_mpi_worldsize > 1)
 	{
 		/** TODO: make it work !
 		 * The problem is that when STARPU_GENERATE_TRACE is used, each MPI
