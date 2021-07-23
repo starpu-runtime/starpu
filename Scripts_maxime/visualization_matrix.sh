@@ -5,7 +5,7 @@
 #~ bash Scripts_maxime/visualization_matrix.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 MatriceZ4 3 HFP
 #~ bash Scripts_maxime/visualization_matrix.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice3D 3 HFP
 
-#~ sudo make -C src/ -j 6
+make -j 6
 PATH_STARPU=$1
 PATH_R=$2
 N=$3
@@ -15,6 +15,8 @@ ORDO=$6
 BW=1050
 CM=500
 MULTI=4
+EVICTION=0
+POP_POLICY=1
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 5000000
 
@@ -25,7 +27,7 @@ fi
 
 if [ $DOSSIER = "Matrice_ligne" ]
 	then
-	STARPU_SCHED=${ORDO} STARPU_WORKER_STATS=1 STARPU_BUS_STATS=1 STARPU_GENERATE_TRACE=1 PRINTF=1 PRINT_N=$((N)) STARPU_SCHED_READY=0 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 MULTIGPU=$((MULTI)) BELADY=0 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=$((BW)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
+	STARPU_SCHED=${ORDO} SEED=1 EVICTION_STRATEGY_DYNAMIC_OUTER=$((EVICTION)) DATA_POP_POLICY=$((POP_POLICY)) STARPU_WORKER_STATS=1 STARPU_BUS_STATS=1 STARPU_GENERATE_TRACE=1 PRINTF=1 PRINT_N=$((N)) STARPU_SCHED_READY=0 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 MULTIGPU=$((MULTI)) BELADY=0 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=$((BW)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
 	python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
 fi
 if [ $DOSSIER = "MatriceZ4" ]
