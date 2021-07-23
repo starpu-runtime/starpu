@@ -46,9 +46,9 @@ check_linux:
   script:
     - ./contrib/gitlab/deploy.sh
 
-check_macos:
+check_macosx:
   extends: .check_template
-  tags : ["macos"]
+  tags : ["macosx"]
   script:
     - ./contrib/gitlab/deploy.sh
 
