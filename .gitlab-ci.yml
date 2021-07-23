@@ -40,8 +40,15 @@ build:
       when: never  # Prevent pipeline run for push event
     - when: always # Run pipeline for all other cases
 
-check:
+check_linux:
   extends: .check_template
+  tags : ["linux"]
+  script:
+    - ./contrib/gitlab/deploy.sh
+
+check_macos:
+  extends: .check_template
+  tags : ["macos"]
   script:
     - ./contrib/gitlab/deploy.sh
 
