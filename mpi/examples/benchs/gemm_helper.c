@@ -14,6 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <limits.h>
 #include <common/blas.h>
 #include "../../examples/mult/simple.h"
 #include "helper.h"
