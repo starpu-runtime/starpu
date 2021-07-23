@@ -292,11 +292,6 @@ struct _heteroprio_worker_wrapper
 	struct _starpu_prio_deque tasks_queue;
 };
 
-static unsigned heteroprio_get_worker_arch_type(struct _heteroprio_worker_wrapper* worker)
-{
-	return starpu_arch_mask_to_worker_archtype(worker->arch_type);
-}
-
 struct _starpu_heteroprio_data
 {
 	starpu_pthread_mutex_t policy_mutex;
