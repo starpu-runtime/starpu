@@ -1057,10 +1057,10 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 	}
 #endif
 
-	char path[_HETEROPRIO_DIR_MAXLEN];
+	char path[_HETEROPRIO_DIR_MAXLEN+6];
 	if(!custom_path)
 	{
-		snprintf(path, _HETEROPRIO_DIR_MAXLEN, "%s/%s.data", _starpu_heteroprio_get_data_dir(),
+		snprintf(path, _HETEROPRIO_DIR_MAXLEN+6, "%s/%s.data", _starpu_heteroprio_get_data_dir(),
 			_progname);
 	}
 
@@ -1270,10 +1270,10 @@ static void starpu_autoheteroprio_save_task_data(struct _starpu_heteroprio_data 
 {
 	const char *custom_path = starpu_getenv("STARPU_HETEROPRIO_DATA_FILE");
 
-	char path[_HETEROPRIO_DIR_MAXLEN];
+	char path[_HETEROPRIO_DIR_MAXLEN+6];
 	if(!custom_path)
 	{
-		snprintf(path, _HETEROPRIO_DIR_MAXLEN, "%s/%s.data", _starpu_heteroprio_get_data_dir(),
+		snprintf(path, _HETEROPRIO_DIR_MAXLEN+6, "%s/%s.data", _starpu_heteroprio_get_data_dir(),
 			_progname);
 	}
 
