@@ -403,6 +403,15 @@ struct _starpu_heteroprio_data
 
 	int priority_last_ordering;
 
+	// lightweight time profiling:
+
+	// busy time and free time of each arch for current execution
+	double current_arch_busy_time[STARPU_NB_TYPES];
+	double current_arch_free_time[STARPU_NB_TYPES];
+
+	// last time a worker executed either pre_exec or post_exec hook
+	double last_hook_exec_time[STARPU_NMAXWORKERS];
+
 	// task data:
 
 	unsigned found_codelet_names_length;
@@ -1453,12 +1462,6 @@ static void initialize_heteroprio_policy(unsigned sched_ctx_id)
 		hp->autoheteroprio_time_estimation_policy = starpu_get_env_number_default("STARPU_AUTOHETEROPRIO_TIME_ESTIMATION_POLICY", 0);
 	}
 
-	if(hp->use_auto_calibration && !hp->freeze_data_gathering && starpu_profiling_status_get() != STARPU_PROFILING_ENABLE)
-	{
-		starpu_profiling_status_set(STARPU_PROFILING_ENABLE);
-		_STARPU_MSG("[HETEROPRIO][INITIALIZATION] STARPU PROFILING has been enabled : needed by auto-heteroprio (STARPU_HETEROPRIO_USE_AUTO_CALIBRATION)\n");
-	}
-
 	starpu_bitmap_init(&hp->waiters);
 	if(hp->use_locality)
 	{
@@ -1817,29 +1820,10 @@ static void deinitialize_heteroprio_policy(unsigned sched_ctx_id)
 	}
 	if(hp->use_auto_calibration && !hp->freeze_data_gathering)
 	{
-		double arch_busy_time[STARPU_NB_TYPES] = {0.0f};
-		double arch_free_time[STARPU_NB_TYPES] = {0.0f};
-
-		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-		struct starpu_sched_ctx_iterator it;
-		workers->init_iterator(workers, &it);
-		while(workers->has_next(workers, &it))
-		{ // loop through workers to get executing and sleeping time
-			unsigned workerid = workers->get_next(workers, &it);
-			struct _heteroprio_worker_wrapper* worker = &hp->workers_heteroprio[workerid];
-
-			struct starpu_profiling_worker_info worker_info;
-			if(starpu_profiling_worker_get_info(workerid, &worker_info) == 0)
-			{
-				arch_busy_time[heteroprio_get_worker_arch_type(worker)] += starpu_timing_timespec_to_us(&worker_info.executing_time);
-				arch_free_time[heteroprio_get_worker_arch_type(worker)] += starpu_timing_timespec_to_us(&worker_info.sleeping_time);
-			}
-		}
-
 		// update autoheteroprio data with free and busy worker time
 		for(arch_index = 0; arch_index < STARPU_NB_TYPES; ++arch_index)
 		{
-			register_arch_times(hp, arch_index, arch_busy_time[arch_index], arch_free_time[arch_index]);
+			register_arch_times(hp, arch_index, hp->current_arch_busy_time[arch_index], hp->current_arch_free_time[arch_index]);
 		}
 
 		starpu_autoheteroprio_save_task_data(hp);
@@ -1853,6 +1837,11 @@ static void deinitialize_heteroprio_policy(unsigned sched_ctx_id)
 static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	// Retrieve current time to set as starting time for each worker
+	struct timespec tsnow;
+	_starpu_clock_gettime(&tsnow);
+	const double now = starpu_timing_timespec_to_us(&tsnow);
 
 	unsigned i;
 	for (i = 0; i < nworkers; i++)
@@ -1872,6 +1861,7 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 		hp->workers_heteroprio[workerid].arch_type = starpu_heteroprio_types_to_arch(arch_index);
 		hp->nb_workers_per_arch_index[hp->workers_heteroprio[workerid].arch_index]++;
 
+		hp->last_hook_exec_time[workerid] = now;
 	}
 }
 
@@ -3813,31 +3803,65 @@ done:		;
 		}
 	}
 
-	if(!hp->freeze_data_gathering && hp->use_auto_calibration && task)
+	return task;
+}
+
+static void pre_exec_hook_heteroprio_policy(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	(void) task;
+	const unsigned workerid = starpu_worker_get_id_check();
+	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	if(hp->freeze_data_gathering || !hp->use_auto_calibration)
+		return;
+
+	starpu_worker_relax_on();
+	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
+	starpu_worker_relax_off();
+
+	struct timespec tsnow;
+	_starpu_clock_gettime(&tsnow);
+	const double now = starpu_timing_timespec_to_us(&tsnow);
+
+	// Register free time between the post and pre hook
+	hp->current_arch_free_time[starpu_worker_get_type(workerid)] += now - hp->last_hook_exec_time[workerid];
+
+	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->policy_mutex);
+
+	hp->last_hook_exec_time[workerid] = now;
+}
+
+static void post_exec_hook_heteroprio_policy(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	const unsigned workerid = starpu_worker_get_id_check();
+	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	if(hp->freeze_data_gathering || !hp->use_auto_calibration)
+		return;
+
+	struct timespec tsnow;
+	_starpu_clock_gettime(&tsnow);
+	const double now = starpu_timing_timespec_to_us(&tsnow);
+	const double busy_time = now - hp->last_hook_exec_time[workerid];
+
+	starpu_worker_relax_on();
+	STARPU_PTHREAD_MUTEX_LOCK(&hp->policy_mutex);
+	starpu_worker_relax_off();
+
+	// Register the busy time between the pre and post hook
+	hp->current_arch_busy_time[starpu_worker_get_type(workerid)] += busy_time;
+
+	// Register task execution
+	const int prio = get_task_auto_priority(hp, task);
+	if(prio != -1)
 	{
-		// register that the task has been executed on the arch type :
-		int prio = get_task_auto_priority(hp, task);
-
-		if(prio != -1)
-		{
-			register_task_arch_execution(hp, prio, heteroprio_get_worker_arch_type(worker));
-
-			// register as well how much time it should take :
-
-			struct starpu_perfmodel_arch *arch_perfmodel = starpu_worker_get_perf_archtype(workerid, sched_ctx_id);
-
-			// Here we do something unclean, we register starPU's expected time for the task as the true actual execution time
-			// TODO : register the actual execution time instead of expected times
-			double expected_time = starpu_task_expected_length(task, arch_perfmodel, 0);
-			if(expected_time != 0 && expected_time == expected_time)
-			{
-				// is not zero and is non NAN
-				register_execution_time(hp, heteroprio_get_worker_arch_type(worker), prio, expected_time);
-			}
-		}
+		register_task_arch_execution(hp, prio, starpu_worker_get_type(workerid));
+		register_execution_time(hp, starpu_worker_get_type(workerid), prio, busy_time);
 	}
 
-	return task;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->policy_mutex);
+
+	hp->last_hook_exec_time[workerid] = now;
 }
 
 struct starpu_sched_policy _starpu_sched_heteroprio_policy =
@@ -3850,8 +3874,8 @@ struct starpu_sched_policy _starpu_sched_heteroprio_policy =
 	.simulate_push_task = NULL,
         .push_task_notify = NULL,
 	.pop_task = pop_task_heteroprio_policy,
-	.pre_exec_hook = NULL,
-        .post_exec_hook = NULL,
+	.pre_exec_hook = pre_exec_hook_heteroprio_policy,
+	.post_exec_hook = post_exec_hook_heteroprio_policy,
 	.pop_every_task = NULL,
         .policy_name = "heteroprio",
         .policy_description = "heteroprio",
