@@ -413,9 +413,6 @@ struct _starpu_heteroprio_data
 	double average_arch_busy_time[STARPU_NB_TYPES];
 	double average_arch_free_time[STARPU_NB_TYPES];
 
-	// boolean, true if there exist workers of a given type
-	unsigned has_worker_of_arch_type[STARPU_NB_TYPES];
-
 	// average prio NOD for each task
 	double prio_average_NOD[HETEROPRIO_MAX_PRIO];
 	// NOD sample size
@@ -3244,17 +3241,6 @@ the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_m
 	if(hp->use_auto_calibration)
 	{
 		task_priority = get_task_auto_priority(hp, task);
-
-		// TODO iterate worker only on first pushed task or before if possible (doesnt seem to work in initialization)
-		struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-		struct starpu_sched_ctx_iterator it;
-		workers->init_iterator(workers, &it);
-		while(workers->has_next(workers, &it))
-		{
-			unsigned workerid = workers->get_next(workers, &it);
-			unsigned worker_type = starpu_worker_get_type(workerid);
-			hp->has_worker_of_arch_type[worker_type] = 1; // update has_worker_of_arch_type here because it does not work in initialization
-		}
 
 		if(!hp->freeze_data_gathering)
 		{
