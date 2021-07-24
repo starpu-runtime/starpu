@@ -19,45 +19,12 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_vector_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+static void _starpu_vector_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks, uintptr_t shadow_size)
 {
-        struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
         struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
 
-	uint32_t nx = vector_father->nx;
-	size_t elemsize = vector_father->elemsize;
-
-	STARPU_ASSERT_MSG(nchunks <= nx, "cannot split %u elements in %u parts", nx, nchunks);
-
-	uint32_t child_nx;
-	size_t offset;
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nchunks, elemsize, id, 1, &child_nx, &offset);
-
-	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
-	vector_child->id = vector_father->id;
-	vector_child->nx = child_nx;
-	vector_child->elemsize = elemsize;
-	STARPU_ASSERT_MSG(vector_father->allocsize == vector_father->nx * vector_father->elemsize, "partitioning vector with non-trival allocsize not supported yet, patch welcome");
-	vector_child->allocsize = vector_child->nx * elemsize;
-
-	if (vector_father->dev_handle)
-	{
-		if (vector_father->ptr)
-			vector_child->ptr = vector_father->ptr + offset;
-		vector_child->dev_handle = vector_father->dev_handle;
-		vector_child->offset = vector_father->offset + offset;
-	}
-}
-
-
-void starpu_vector_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
-{
-        struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
-        struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
-
-        uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
-
-	/* actual number of elements */
+        /* actual number of elements */
 	uint32_t nx = vector_father->nx - 2 * shadow_size;
 	size_t elemsize = vector_father->elemsize;
 
@@ -82,6 +49,19 @@ void starpu_vector_filter_block_shadow(void *father_interface, void *child_inter
 		vector_child->dev_handle = vector_father->dev_handle;
 		vector_child->offset = vector_father->offset + offset;
 	}
+}
+
+void starpu_vector_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+{
+	_starpu_vector_filter_block(father_interface, child_interface, f, id, nchunks, 0);
+}
+
+
+void starpu_vector_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+{
+        uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
+
+        _starpu_vector_filter_block(father_interface, child_interface, f, id, nchunks, shadow_size);
 }
 
 

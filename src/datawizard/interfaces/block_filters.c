@@ -18,28 +18,82 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-void starpu_block_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-			       unsigned id, unsigned nparts)
+static void _starpu_block_filter_block(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+			       unsigned id, unsigned nparts, uintptr_t shadow_size)
 {
-        struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
+	struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
         struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
 
-	uint32_t nx = block_father->nx;
-        uint32_t ny = block_father->ny;
-        uint32_t nz = block_father->nz;
+        unsigned blocksize;
+	/* the element will be split, in case horizontal, it's nx, in case vertical, it's ny, in case depth, it's nz*/
+	uint32_t nn;
+	uint32_t nx;
+	uint32_t ny;
+	uint32_t nz;
+
+	switch(dim)
+	{
+		/* horizontal*/
+		case 1:
+			/* actual number of elements */
+			nx = block_father->nx - 2 * shadow_size;
+			ny = block_father->ny;
+			nz = block_father->nz;
+			nn = nx;
+			blocksize = 1;
+			break;
+		/* vertical*/
+		case 2:
+			nx = block_father->nx;
+			/* actual number of elements */
+			ny = block_father->ny - 2 * shadow_size;
+			nz = block_father->nz;
+			nn = ny;
+			blocksize = block_father->ldy;
+			break;
+		/* depth*/
+		case 3:
+			nx = block_father->nx;
+			ny = block_father->ny;
+			/* actual number of elements */
+			nz = block_father->nz - 2 * shadow_size;
+			nn = nz;
+			blocksize = block_father->ldz;
+			break;
+	}
+
 	size_t elemsize = block_father->elemsize;
 
-	STARPU_ASSERT_MSG(nparts <= nx, "cannot split %u elements in %u parts", nx, nparts);
+	STARPU_ASSERT_MSG(nparts <= nn, "cannot split %u elements in %u parts", nn, nparts);
 
-	uint32_t chunk_size;
+	uint32_t child_nn;
 	size_t offset;
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1, &chunk_size, &offset);
+	starpu_filter_nparts_compute_chunk_size_and_offset(nn, nparts, elemsize, id, blocksize, &child_nn, &offset);
+
+	child_nn += 2 * shadow_size;
 
 	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
 	block_child->id = block_father->id;
-	block_child->nx = chunk_size;
-	block_child->ny = ny;
-	block_child->nz = nz;
+
+	switch(dim)
+	{
+		case 1:
+			block_child->nx = child_nn;
+			block_child->ny = ny;
+			block_child->nz = nz;
+			break;
+		case 2:
+			block_child->nx = nx;
+			block_child->ny = child_nn;
+			block_child->nz = nz;
+			break;
+		case 3:
+			block_child->nx = nx;
+			block_child->ny = ny;
+			block_child->nz = child_nn;
+			break;
+	}
+
 	block_child->elemsize = elemsize;
 
 	if (block_father->dev_handle)
@@ -51,192 +105,46 @@ void starpu_block_filter_block(void *father_interface, void *child_interface, ST
                 block_child->dev_handle = block_father->dev_handle;
                 block_child->offset = block_father->offset + offset;
 	}
+}
+
+void starpu_block_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+			       unsigned id, unsigned nparts)
+{
+	_starpu_block_filter_block(1, father_interface, child_interface, f, id, nparts, 0);
 }
 
 void starpu_block_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				      unsigned id, unsigned nparts)
 {
-        struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
-        struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
-
         uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	/* actual number of elements */
-	uint32_t nx = block_father->nx - 2 * shadow_size;
-        uint32_t ny = block_father->ny;
-        uint32_t nz = block_father->nz;
-	size_t elemsize = block_father->elemsize;
-
-	STARPU_ASSERT_MSG(nparts <= nx, "cannot split %u elements in %u parts", nx, nparts);
-
-	uint32_t child_nx;
-	size_t offset;
-	starpu_filter_nparts_compute_chunk_size_and_offset(nx, nparts, elemsize, id, 1, &child_nx, &offset);
-
-	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
-	block_child->id = block_father->id;
-	block_child->nx = child_nx + 2 * shadow_size;
-	block_child->ny = ny;
-	block_child->nz = nz;
-	block_child->elemsize = elemsize;
-
-	if (block_father->dev_handle)
-	{
-		if (block_father->ptr)
-                	block_child->ptr = block_father->ptr + offset;
-                block_child->ldy = block_father->ldy;
-                block_child->ldz = block_father->ldz;
-                block_child->dev_handle = block_father->dev_handle;
-                block_child->offset = block_father->offset + offset;
-	}
+        _starpu_block_filter_block(1, father_interface, child_interface, f, id, nparts, shadow_size);
 }
 
 void starpu_block_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					unsigned id, unsigned nparts)
 {
-        struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
-        struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
-
-	uint32_t nx = block_father->nx;
-        uint32_t ny = block_father->ny;
-        uint32_t nz = block_father->nz;
-	size_t elemsize = block_father->elemsize;
-
-	STARPU_ASSERT_MSG(nparts <= ny, "cannot split %u elements in %u parts", ny, nparts);
-
-	uint32_t child_ny;
-	size_t offset;
-	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id, block_father->ldy, &child_ny, &offset);
-
-	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
-	block_child->id = block_father->id;
-	block_child->nx = nx;
-	block_child->ny = child_ny;
-	block_child->nz = nz;
-	block_child->elemsize = elemsize;
-
-	if (block_father->dev_handle)
-	{
-		if (block_father->ptr)
-                	block_child->ptr = block_father->ptr + offset;
-                block_child->ldy = block_father->ldy;
-                block_child->ldz = block_father->ldz;
-                block_child->dev_handle = block_father->dev_handle;
-                block_child->offset = block_father->offset + offset;
-	}
+	_starpu_block_filter_block(2, father_interface, child_interface, f, id, nparts, 0);
 }
 
 void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					       unsigned id, unsigned nparts)
 {
-        struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
-        struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
-
         uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	uint32_t nx = block_father->nx;
-	/* actual number of elements */
-        uint32_t ny = block_father->ny - 2 * shadow_size;
-        uint32_t nz = block_father->nz;
-	size_t elemsize = block_father->elemsize;
-
-	STARPU_ASSERT_MSG(nparts <= ny, "cannot split %u elements in %u parts", ny, nparts);
-
-	uint32_t child_ny;
-	size_t offset;
-
-	starpu_filter_nparts_compute_chunk_size_and_offset(ny, nparts, elemsize, id, block_father->ldy, &child_ny, &offset);
-
-	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
-	block_child->id = block_father->id;
-	block_child->nx = nx;
-	block_child->ny = child_ny + 2 * shadow_size;
-	block_child->nz = nz;
-	block_child->elemsize = elemsize;
-
-	if (block_father->dev_handle)
-	{
-		if (block_father->ptr)
-                	block_child->ptr = block_father->ptr + offset;
-                block_child->ldy = block_father->ldy;
-                block_child->ldz = block_father->ldz;
-                block_child->dev_handle = block_father->dev_handle;
-                block_child->offset = block_father->offset + offset;
-	}
+        _starpu_block_filter_block(2, father_interface, child_interface, f, id, nparts, shadow_size);
 }
 
 void starpu_block_filter_depth_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				     unsigned id, unsigned nparts)
 {
-        struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
-        struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
-
-	uint32_t nx = block_father->nx;
-        uint32_t ny = block_father->ny;
-        uint32_t nz = block_father->nz;
-	size_t elemsize = block_father->elemsize;
-
-	STARPU_ASSERT_MSG(nparts <= nz, "cannot split %u elements in %u parts", nz, nparts);
-
-	uint32_t child_nz;
-	size_t offset;
-
-	starpu_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id,
-				       block_father->ldz, &child_nz, &offset);
-
-	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
-	block_child->id = block_father->id;
-	block_child->nx = nx;
-	block_child->ny = ny;
-	block_child->nz = child_nz;
-	block_child->elemsize = elemsize;
-
-	if (block_father->dev_handle)
-	{
-		if (block_father->ptr)
-                	block_child->ptr = block_father->ptr + offset;
-                block_child->ldy = block_father->ldy;
-                block_child->ldz = block_father->ldz;
-                block_child->dev_handle = block_father->dev_handle;
-                block_child->offset = block_father->offset + offset;
-	}
+	_starpu_block_filter_block(3, father_interface, child_interface, f, id, nparts, 0);
 }
 
 void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
-        struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
-        struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
-
         uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-	uint32_t nx = block_father->nx;
-        uint32_t ny = block_father->ny;
-	/* actual number of elements */
-        uint32_t nz = block_father->nz - 2 * shadow_size;
-	size_t elemsize = block_father->elemsize;
-
-	STARPU_ASSERT_MSG(nparts <= nz, "cannot split %u elements into %u parts", nz, nparts);
-
-	uint32_t child_nz;
-	size_t offset;
-
-	starpu_filter_nparts_compute_chunk_size_and_offset(nz, nparts, elemsize, id, block_father->ldz, &child_nz, &offset);
-
-	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
-	block_child->id = block_father->id;
-	block_child->nx = nx;
-	block_child->ny = ny;
-	block_child->nz = child_nz + 2 * shadow_size;
-	block_child->elemsize = elemsize;
-
-	if (block_father->dev_handle)
-	{
-		if (block_father->ptr)
-                	block_child->ptr = block_father->ptr + offset;
-                block_child->ldy = block_father->ldy;
-                block_child->ldz = block_father->ldz;
-                block_child->dev_handle = block_father->dev_handle;
-                block_child->offset = block_father->offset + offset;
-	}
+        _starpu_block_filter_block(3, father_interface, child_interface, f, id, nparts, shadow_size);
 }
