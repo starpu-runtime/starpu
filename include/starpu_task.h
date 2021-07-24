@@ -1763,6 +1763,11 @@ void starpu_task_ft_success(struct starpu_task *meta_task);
 */
 void starpu_task_watchdog_set_hook(void (*hook)(void *), void *hook_arg);
 
+/**
+ * Return the given status as a string
+ */
+char *starpu_task_status_get_as_string(enum starpu_task_status status);
+
 /** @} */
 
 #ifdef __cplusplus

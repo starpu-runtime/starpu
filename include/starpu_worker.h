@@ -158,6 +158,16 @@ extern struct starpu_worker_collection starpu_worker_list;
 extern struct starpu_worker_collection starpu_worker_tree;
 
 /**
+   Return true if type matches one of StarPU's defined worker architectures
+*/
+unsigned starpu_worker_archtype_is_valid(enum starpu_worker_archtype type);
+
+/**
+   Convert a mask of architectures to a worker archtype
+*/
+enum starpu_worker_archtype starpu_arch_mask_to_worker_archtype(unsigned mask);
+
+/**
    Return the number of workers (i.e. processing units executing
    StarPU tasks). The return value should be at most \ref
    STARPU_NMAXWORKERS.
@@ -255,6 +265,11 @@ int starpu_worker_get_by_type(enum starpu_worker_archtype type, int num);
    returned.
 */
 int starpu_worker_get_by_devid(enum starpu_worker_archtype type, int devid);
+
+/**
+   Return true if worker type can execute this task
+*/
+unsigned starpu_worker_type_can_execute_task(enum starpu_worker_archtype worker_type, const struct starpu_task *task);
 
 /**
    Get the name of the worker \p id. StarPU associates a unique human

@@ -114,6 +114,8 @@ struct task_info
 	char *parameters;
 	unsigned int ndeps;
 	unsigned long *dependencies;
+	unsigned int nend_deps;
+	unsigned long *end_dependencies;
 	char **dep_labels;
 	unsigned long ndata;
 	struct data_parameter_info *data;
@@ -155,6 +157,8 @@ static struct task_info *get_task(unsigned long job_id, int mpi_rank)
 		task->parameters = NULL;
 		task->ndeps = 0;
 		task->dependencies = NULL;
+		task->nend_deps = 0;
+		task->end_dependencies = NULL;
 		task->dep_labels = NULL;
 		task->ndata = 0;
 		task->data = NULL;
@@ -265,6 +269,14 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		fprintf(tasks_file, "\n");
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
+	if (task->nend_deps)
+	{
+		fprintf(tasks_file, "EndDependencies: ");
+		unsigned int j=0;
+		for(j=0 ; j<task->nend_deps-1 ; j++)
+			fprintf(tasks_file, "%lu, ", task->end_dependencies[j]);
+		fprintf(tasks_file, "%lu ", task->end_dependencies[task->nend_deps-1]);
+	}
 	fprintf(tasks_file, "\n");
 
 out:
@@ -680,8 +692,7 @@ static void register_user_thread(double timestamp, unsigned long tid, const char
 
 static void register_mpi_thread(unsigned long nodeid, unsigned long tid)
 {
-	int ret = register_thread(nodeid, tid, -2, 0);
-	STARPU_ASSERT(ret == 1);
+	register_thread(nodeid, tid, -2, 0);
 }
 
 static int find_worker_id(unsigned long nodeid, unsigned long tid)
@@ -2736,6 +2747,36 @@ static void handle_task_deps(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 	}
 }
 
+static void handle_task_end_dep(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	unsigned long dep_prev = ev->param[0];
+	unsigned long dep_succ = ev->param[1];
+
+	struct task_info *task = get_task(dep_succ, options->file_rank);
+	unsigned alloc = 0;
+
+	if (task->nend_deps == 0)
+		/* Start with 8=2^3, should be plenty in most cases */
+		alloc = 8;
+	else if (task->nend_deps >= 8)
+	{
+		/* Allocate dependencies array by powers of two */
+		if (! ((task->nend_deps - 1) & task->nend_deps)) /* Is task->ndeps a power of two? */
+		{
+			/* We have filled the previous power of two, get another one */
+			alloc = task->nend_deps * 2;
+		}
+	}
+	if (alloc)
+	{
+		_STARPU_REALLOC(task->end_dependencies, sizeof(*task->end_dependencies) * alloc);
+	}
+	task->end_dependencies[task->nend_deps++] = dep_prev;
+
+	if (!task->exclude_from_dag && show_task(task, options))
+		_starpu_fxt_dag_add_task_end_dep(options->file_prefix, dep_succ, dep_prev);
+}
+
 static void handle_task_submit(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned long job_id = ev->param[0];
@@ -2783,29 +2824,39 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 	const char *color;
 	char buffer[32];
+	int code;
 	if (task->color != 0)
 	{
 		snprintf(buffer, sizeof(buffer), "#%06x", task->color);
 		color = &buffer[0];
+		code = ( (task->color & 0xff) +
+			((task->color >> 8) & 0xff) +
+			((task->color >> 16) & 0xff) ) / 256;
 	}
 	else if (options->per_task_colour)
 	{
-		snprintf(buffer, sizeof(buffer), "#%x%x%x",
-			 get_color_symbol_red(name)/4,
-			 get_color_symbol_green(name)/4,
-			 get_color_symbol_blue(name)/4);
+		unsigned red = get_color_symbol_red(name)/4;
+		unsigned green = get_color_symbol_green(name)/4;
+		unsigned blue = get_color_symbol_blue(name)/4;
+		snprintf(buffer, sizeof(buffer), "#%s%x%s%x%s%x",
+			 red < 16 ? "0" : "", red,
+			 green < 16 ? "0" : "", green,
+			 blue < 16 ? "0" : "", blue);
 		color = &buffer[0];
+		code = (red + green + blue) / 256;
 	}
 	else
 	{
 		color= (worker < 0)?"#aaaaaa":get_worker_color(worker);
+		code = 0;
 	}
 
 	if (!task->name)
 		task->name = strdup(name);
 
+	char *fontcolor = code <= 1 ? "white" : "black";
 	if (!task->exclude_from_dag && show_task(task, options))
-		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color);
+		_starpu_fxt_dag_set_task_name(options->file_prefix, job_id, task->name, color, fontcolor);
 }
 
 static void handle_task_line(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -2857,20 +2908,27 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 
 	const char *color;
 	char buffer[32];
+	int code;
 	if (options->per_task_colour)
 	{
-		snprintf(buffer, sizeof(buffer), "%.4f,%.4f,%.4f",
-			 get_color_symbol_red(name)/1024.0,
-			 get_color_symbol_green(name)/1024.0,
-			 get_color_symbol_blue(name)/1024.0);
+		unsigned red = get_color_symbol_red(name)/4;
+		unsigned green = get_color_symbol_green(name)/4;
+		unsigned blue = get_color_symbol_blue(name)/4;
+		snprintf(buffer, sizeof(buffer), "#%s%x%s%x%s%x",
+			 red < 16 ? "0" : "", red,
+			 green < 16 ? "0" : "", green,
+			 blue < 16 ? "0" : "", blue);
 		color = &buffer[0];
+		code = (red + green + blue) / 256;
 	}
 	else
 	{
 		color= (worker < 0)?"white":get_worker_color(worker);
+		code = 1;
 	}
 
-	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, color);
+	char *fontcolor = code <= 1 ? "white" : "black";
+	_starpu_fxt_dag_set_tag_done(options->file_prefix, tag_id, color, fontcolor);
 }
 
 static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3514,6 +3572,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_task_deps(&ev, options);
 				break;
 
+			case _STARPU_FUT_TASK_END_DEP:
+				handle_task_end_dep(&ev, options);
+				break;
+
 			case _STARPU_FUT_TASK_SUBMIT:
 				handle_task_submit(&ev, options);
 				break;
@@ -4035,31 +4097,34 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		}
 	}
 
-	if (out_paje_file && !options->no_bus)
+	if (!options->no_bus)
 	{
 		while (!_starpu_communication_list_empty(&communication_list))
 		{
 			struct _starpu_communication*itor;
 			itor = _starpu_communication_list_pop_front(&communication_list);
 
-			/* Trace finished with this communication uncompleted, fake its termination */
+			if (out_paje_file)
+			{
+				/* Trace finished with this communication uncompleted, fake its termination */
 
-			unsigned comid = itor->comid;
-			unsigned long size = itor->size;
-			unsigned dst = itor->dst_node;
-			double time = current_computation_time;
-			const char *link_type = itor->type;
+				unsigned comid = itor->comid;
+				unsigned long size = itor->size;
+				unsigned dst = itor->dst_node;
+				double time = current_computation_time;
+				const char *link_type = itor->type;
 #ifdef STARPU_HAVE_POTI
-			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
-			char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
-			snprintf(paje_value, sizeof(paje_value), "%lu", size);
-			snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
-			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
-			memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
-			poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
+				char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
+				char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
+				snprintf(paje_value, sizeof(paje_value), "%lu", size);
+				snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
+				program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
+				memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
+				poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
 #else
-			fprintf(out_paje_file, "19	%.9f	%s	%sp	%lu	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
+				fprintf(out_paje_file, "19	%.9f	%s	%sp	%lu	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
 #endif
+			}
 			_starpu_communication_delete(itor);
 		}
 	}
@@ -4338,6 +4403,8 @@ void _starpu_fxt_papi_file_init(struct starpu_fxt_options *options)
 	}
 	else
 		papi_file = NULL;
+#else
+	(void) options; // avoid warning about unused variable
 #endif
 }
 
@@ -4735,6 +4802,44 @@ static struct starpu_data_trace_kernel
 	FILE *file;
 } *kernels;
 
+static struct starpu_data_trace_kernel_job
+{
+	UT_hash_handle hh;
+	int jobid;
+	char *name;
+} *kernel_jobs;
+
+static void record_kernel_job_name(int jobid, char *name)
+{
+	struct starpu_data_trace_kernel_job *kernel_job;
+	HASH_FIND_INT(kernel_jobs, &jobid, kernel_job);
+	if (kernel_job == NULL)
+	{
+		_STARPU_MALLOC(kernel_job, sizeof(*kernel_job));
+		kernel_job->jobid = jobid;
+		HASH_ADD_INT(kernel_jobs, jobid, kernel_job);
+	}
+	else
+	{
+		free(kernel_job->name);
+	}
+	kernel_job->name = strdup(name);
+}
+
+static char *extract_kernel_job_name(int jobid)
+{
+	char *name = NULL;
+	struct starpu_data_trace_kernel_job *kernel_job;
+	HASH_FIND_INT(kernel_jobs, &jobid, kernel_job);
+	if (kernel_job != NULL)
+	{
+		name = kernel_job->name;
+		HASH_DEL(kernel_jobs, kernel_job);
+		free(kernel_job);
+	}
+	return name;
+}
+
 #define NANO_SEC_TO_MILI_SEC 0.000001
 
 static FILE *codelet_list;
@@ -4792,14 +4897,10 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
 
-	struct fxt_ev_64 ev;
-
-	int workerid=-1;
-	unsigned long has_name = 0;
-
 	while(1)
 	{
 		unsigned i;
+		struct fxt_ev_64 ev;
 		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
 		for (i = ev.nb_params; i < FXT_MAX_PARAMS; i++)
 			ev.param[i] = 0;
@@ -4814,26 +4915,46 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 			register_worker_id(0 /* TODO: Add nodeid here instead */, ev.param[6], ev.param[1], ev.param[5]);
 			break;
 
+		case _STARPU_FUT_TASK_NAME:
+			{
+				int jobid = (int)ev.param[0];
+				char *name = get_fxt_string(&ev,2);
+				record_kernel_job_name(jobid, name);
+			}
+			break;
+
 		case _STARPU_FUT_START_CODELET_BODY:
-			workerid = ev.param[2];
-			tasks[workerid].workerid = (unsigned)workerid;
-			tasks[workerid].exec_time = ev.time;
-			has_name = ev.param[4];
-			free(tasks[workerid].codelet_name);
-			tasks[workerid].codelet_name = strdup(has_name ? get_fxt_string(&ev, 5): "unknown");
-			//fprintf(stderr, "start codelet :[%d][%s]\n", workerid, tasks[workerid].codelet_name);
+			{
+				int workerid = ev.param[2];
+				tasks[workerid].workerid = (unsigned)workerid;
+				tasks[workerid].exec_time = ev.time;
+			}
 			break;
 
 		case _STARPU_FUT_END_CODELET_BODY:
-			workerid = ev.param[3];
-			assert(workerid != -1);
-			tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
-			write_task(dir, &tasks[workerid]);
+			{
+				int jobid = (int)ev.param[0];
+				int workerid = ev.param[3];
+				assert(workerid != -1);
+				tasks[workerid].exec_time = ev.time - tasks[workerid].exec_time;
+				char *name = extract_kernel_job_name(jobid);
+				if (name == NULL)
+				{
+					name = strdup("unknown");
+				}
+				tasks[workerid].codelet_name = name;
+				write_task(dir, &tasks[workerid]);
+				/* codelet_name is copied in write_task() when needed */
+				tasks[workerid].codelet_name = NULL;
+				free(name);
+			}
 			break;
 
 		case _STARPU_FUT_DATA_LOAD:
-			workerid = ev.param[0];
-			tasks[workerid].data_total = ev.param[1];
+			{
+				int workerid = ev.param[0];
+				tasks[workerid].data_total = ev.param[1];
+			}
 			break;
 
 		default:
@@ -4871,19 +4992,30 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 
 	free_worker_ids();
 
-	struct starpu_data_trace_kernel *kernel=NULL, *tmp=NULL;
-	HASH_ITER(hh, kernels, kernel, tmp)
 	{
-		if(fclose(kernel->file))
+		struct starpu_data_trace_kernel *kernel=NULL, *tmp=NULL;
+		HASH_ITER(hh, kernels, kernel, tmp)
 		{
-			perror("close failed :");
-			exit(-1);
+			if(fclose(kernel->file))
+			{
+				perror("close failed :");
+				exit(-1);
+			}
+			HASH_DEL(kernels, kernel);
+			free(kernel->name);
+			free(kernel);
 		}
-		HASH_DEL(kernels, kernel);
-		free(kernel->name);
-		free(kernel);
 	}
 
+	{
+		struct starpu_data_trace_kernel_job *kernel_job=NULL, *tmp=NULL;
+		HASH_ITER(hh, kernel_jobs, kernel_job, tmp)
+		{
+			HASH_DEL(kernel_jobs, kernel_job);
+			free(kernel_job->name);
+			free(kernel_job);
+		}
+	}
 }
 
 void starpu_fxt_write_data_trace(char *filename_in)

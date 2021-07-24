@@ -536,7 +536,7 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 	return starpu_unistd_global_write(base, obj, ptr, 0, size);
 }
 
-#if HAVE_AIO_H
+#if defined(HAVE_AIO_H)
 void * starpu_unistd_global_async_full_read (void * base, void * obj, void ** ptr, size_t * size, unsigned dst_node)
 {
         struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
@@ -621,7 +621,7 @@ static void * starpu_unistd_internal_thread(void * arg)
 				ret = pwrite(work->fd_dst, buf, work->len, work->off_dst);
 				STARPU_ASSERT_MSG(ret >= 0, "Writing failed (errno %d)", errno);
 				STARPU_ASSERT_MSG((size_t) ret == work->len, "Writing failed (value %ld instead of %ld)", (long)ret, (long)work->len);
-				starpu_free(buf);
+				starpu_free_noflag(buf, work->len);
 			}
 			else
 			{

@@ -21,38 +21,42 @@ extern struct starpu_opencl_program programs;
 void vector_scal_opencl(void *buffers[], void *_args)
 {
 	float *factor = _args;
-	int id, devid, err;
+	int id, devid;
+	cl_int err;
 	cl_kernel kernel;
 	cl_command_queue queue;
-	cl_event event;
 
 	/* length of the vector */
-	unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
+	unsigned int n = STARPU_VECTOR_GET_NX(buffers[0]);
 	/* OpenCL copy of the vector pointer */
 	cl_mem val = (cl_mem) STARPU_VECTOR_GET_DEV_HANDLE(buffers[0]);
 
 	id = starpu_worker_get_id();
 	devid = starpu_worker_get_devid(id);
 
-	err = starpu_opencl_load_kernel(&kernel, &queue, &programs,
-					"vector_mult_opencl", devid);   /* Name of the codelet defined above */
+	err = starpu_opencl_load_kernel(&kernel, &queue, &programs, "vector_mult_opencl", devid);
 	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 
-	err = clSetKernelArg(kernel, 0, sizeof(val), &val);
-	err |= clSetKernelArg(kernel, 1, sizeof(n), &n);
+	err = clSetKernelArg(kernel, 0, sizeof(n), &n);
+	err = clSetKernelArg(kernel, 1, sizeof(val), &val);
 	err |= clSetKernelArg(kernel, 2, sizeof(*factor), factor);
 	if (err) STARPU_OPENCL_REPORT_ERROR(err);
 
 	{
-		size_t global=1;
-		size_t local=1;
-		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, &event);
+		size_t global=n;
+		size_t local;
+                size_t s;
+                cl_device_id device;
+
+                starpu_opencl_get_device(devid, &device);
+
+                err = clGetKernelWorkGroupInfo (kernel, device, CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, &s);
+                if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+                if (local > global) local=global;
+                else global = (global + local-1) / local * local;
+
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
 		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
 	}
-
-	clFinish(queue);
-	starpu_opencl_collect_stats(event);
-	clReleaseEvent(event);
-
 	starpu_opencl_release_kernel(kernel);
 }

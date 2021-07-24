@@ -541,6 +541,12 @@ void _starpu_set_perf_model_dirs()
 	snprintf(_perf_model_dir_debug, _PERF_MODEL_DIR_MAXLEN, "%s/debug/", _perf_model_dir);
 }
 
+char *_starpu_get_perf_model_dir()
+{
+	_starpu_create_sampling_directory_if_needed();
+	return _perf_model_dir;
+}
+
 char *_starpu_get_perf_model_dir_codelet()
 {
 	_starpu_create_sampling_directory_if_needed();

@@ -5,6 +5,7 @@
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
+ * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,6 +59,9 @@
 #define BUGGED_MEMCPY3D
 #endif
 #endif
+
+/* Consider a rough 10% overhead cost */
+#define FREE_MARGIN 0.9
 
 /* the number of CUDA devices */
 static int ncudagpus = -1;
@@ -174,8 +178,7 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (limit == -1)
 	{
-		/* Use 90% of the available memory by default.  */
-		limit = totalGlobalMem / (1024*1024) * 0.9;
+		limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
 	}
 #endif
 
@@ -677,13 +680,16 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 				STARPU_CUDA_REPORT_ERROR(cures);
 #endif
 #ifdef STARPU_USE_FXT
-			int k;
-			for (k = 0; k < (int) worker->set->nworkers; k++)
-				if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
-					break;
-			if (k == (int) worker->set->nworkers)
-				/* Everybody busy */
-				_STARPU_TRACE_START_EXECUTING();
+			if (fut_active)
+			{
+				int k;
+				for (k = 0; k < (int) worker->set->nworkers; k++)
+					if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
+						break;
+				if (k == (int) worker->set->nworkers)
+					/* Everybody busy */
+					_STARPU_TRACE_START_EXECUTING();
+			}
 #endif
 		}
 	}
@@ -934,13 +940,16 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 					_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
 			}
 #ifdef STARPU_USE_FXT
-			int k;
-			for (k = 0; k < (int) worker_set->nworkers; k++)
-				if (worker_set->workers[k].ntasks)
-					break;
-			if (k == (int) worker_set->nworkers)
-				/* Everybody busy */
-				_STARPU_TRACE_END_EXECUTING()
+			if (fut_active)
+			{
+				int k;
+				for (k = 0; k < (int) worker_set->nworkers; k++)
+					if (worker_set->workers[k].ntasks)
+						break;
+				if (k == (int) worker_set->nworkers)
+					/* Everybody busy */
+					_STARPU_TRACE_END_EXECUTING()
+			}
 #endif
 			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
@@ -1743,7 +1752,7 @@ uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	size_t cuda_mem_free, cuda_mem_total;
 	cudaError_t status;
 	status = cudaMemGetInfo(&cuda_mem_free, &cuda_mem_total);
-	if (status == cudaSuccess && cuda_mem_free < (size*2))
+	if (status == cudaSuccess && cuda_mem_free * FREE_MARGIN < size)
 	{
 		addr = 0;
 	}

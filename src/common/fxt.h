@@ -242,6 +242,7 @@
 #define _STARPU_FUT_PAPI_TASK_EVENT_VALUE   0x5186
 #define _STARPU_FUT_TASK_EXCLUDE_FROM_DAG   0x5187
 
+#define _STARPU_FUT_TASK_END_DEP	0x5188
 
 /* Predefined FUT key masks */
 #define _STARPU_FUT_KEYMASK_META           FUT_KEYMASK0
@@ -315,11 +316,16 @@ static inline unsigned long _starpu_fxt_get_submit_order(void)
 
 long _starpu_gettid(void) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
+int _starpu_generate_paje_trace_read_option(const char *option, struct starpu_fxt_options *options) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+
 /** Initialize the FxT library. */
 void _starpu_fxt_init_profiling(uint64_t trace_buffer_size);
 
 /** Stop the FxT library, and generate the trace file. */
 void _starpu_stop_fxt_profiling(void);
+
+/** In case we use MPI, tell the profiling system how many processes are used. */
+void _starpu_profiling_set_mpi_worldsize(int worldsize) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
 /** Generate the trace file. Used when catching signals SIGINT and SIGSEGV */
 void _starpu_fxt_dump_file(void);
@@ -330,11 +336,12 @@ void _starpu_fxt_dump_file(void);
 #define _STARPU_FUT_COMMIT(size) do { } while (0)
 #endif
 
-#ifdef FUT_ALWAYS_PROBE1STR
+#ifdef FUT_RAW_ALWAYS_PROBE1STR
 #define _STARPU_FUT_ALWAYS_PROBE1STR(CODE, P1, str) FUT_RAW_ALWAYS_PROBE1STR(CODE, P1, str)
 #else
 #define _STARPU_FUT_ALWAYS_PROBE1STR(CODE, P1, str)	\
 do {									\
+    if( STARPU_UNLIKELY(fut_active) ) { \
 	/* No more than FXT_MAX_PARAMS args are allowed */		\
 	/* we add a \0 just in case ... */				\
 	size_t len = STARPU_MIN(strlen(str)+1, (FXT_MAX_PARAMS - 1)*sizeof(unsigned long));\
@@ -347,7 +354,7 @@ do {									\
 	snprintf((char *)futargs, len, "%s", str);			\
 	((char *)futargs)[len - 1] = '\0';				\
 	_STARPU_FUT_COMMIT(total_len);					\
-} while (0)
+    }} while (0)
 #endif
 
 #ifdef FUT_FULL_PROBE1STR
@@ -358,7 +365,7 @@ do {									\
  * by a string. */
 #define _STARPU_FUT_FULL_PROBE1STR(KEYMASK, CODE, P1, str)		\
 do {									\
-    if(KEYMASK & fut_active) {						\
+    if (STARPU_UNLIKELY(KEYMASK & fut_active)) {			\
 	_STARPU_FUT_ALWAYS_PROBE1STR(CODE, P1, str);		\
     }									\
 } while (0)
@@ -390,7 +397,7 @@ do {									\
 #else
 #define _STARPU_FUT_FULL_PROBE2STR(KEYMASK, CODE, P1, P2, str)		\
 do {									\
-    if(KEYMASK & fut_active) {						\
+    if (STARPU_UNLIKELY(KEYMASK & fut_active)) {			\
 	_STARPU_FUT_ALWAYS_PROBE2STR(CODE, P1, P2, str);		\
     }									\
 } while (0)
@@ -423,7 +430,7 @@ do {									\
 #else
 #define _STARPU_FUT_FULL_PROBE3STR(KEYMASK, CODE, P1, P2, P3, str)		\
 do {									\
-    if(KEYMASK & fut_active) {						\
+    if (STARPU_UNLIKELY(KEYMASK & fut_active)) {			\
 	_STARPU_FUT_ALWAYS_PROBE3STR(CODE, P1, P2, P3, str);	\
     }									\
 } while (0)
@@ -457,7 +464,7 @@ do {									\
 #else
 #define _STARPU_FUT_FULL_PROBE4STR(KEYMASK, CODE, P1, P2, P3, P4, str)		\
 do {									\
-    if(KEYMASK & fut_active) {						\
+    if (STARPU_UNLIKELY(KEYMASK & fut_active)) {			\
 	_STARPU_FUT_ALWAYS_PROBE4STR(CODE, P1, P2, P3, P4, str);	\
     }									\
 } while (0)
@@ -492,7 +499,7 @@ do {									\
 #else
 #define _STARPU_FUT_FULL_PROBE5STR(KEYMASK, CODE, P1, P2, P3, P4, P5, str)		\
 do {									\
-    if(KEYMASK & fut_active) {						\
+    if (STARPU_UNLIKELY(KEYMASK & fut_active)) {			\
 	_STARPU_FUT_ALWAYS_PROBE5STR(CODE, P1, P2, P3, P4, P5, str);	\
     }									\
 } while (0)
@@ -528,7 +535,7 @@ do {									\
 #else
 #define _STARPU_FUT_FULL_PROBE6STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, str)		\
 do {									\
-    if(KEYMASK & fut_active) {						\
+    if (STARPU_UNLIKELY(KEYMASK & fut_active)) {			\
 	_STARPU_FUT_ALWAYS_PROBE6STR(CODE, P1, P2, P3, P4, P5, P6, str);	\
     }									\
 } while (0)
@@ -565,7 +572,7 @@ do {									\
 #else
 #define _STARPU_FUT_FULL_PROBE7STR(KEYMASK, CODE, P1, P2, P3, P4, P5, P6, P7, str)		\
 do {									\
-    if(KEYMASK & fut_active) {						\
+    if (STARPU_UNLIKELY(KEYMASK & fut_active)) {			\
 	_STARPU_FUT_ALWAYS_PROBE7STR(CODE, P1, P2, P3, P4, P5, P6, P7, str);	\
     }									\
 } while (0)
@@ -573,7 +580,7 @@ do {									\
 
 #ifndef FUT_RAW_PROBE7
 #define FUT_RAW_PROBE7(CODE,P1,P2,P3,P4,P5,P6,P7) do {		\
-		if(fut_active) {					\
+		if(STARPU_UNLIKELY(fut_active)) {			\
 			unsigned long *__args __attribute__((unused))=	\
 				fut_getstampedbuffer(CODE,		\
 						     FUT_SIZE(7)); \
@@ -677,7 +684,7 @@ do {									\
 /* full probes */
 #ifndef FUT_FULL_PROBE0
 #define FUT_FULL_PROBE0(KEYMASK,CODE) do { \
-        if( KEYMASK & fut_active ) { \
+        if (STARPU_UNLIKELY(KEYMASK & fut_active)) { \
                 FUT_RAW_ALWAYS_PROBE0(FUT_CODE(CODE, 0)); \
         } \
 } while(0)
@@ -685,7 +692,7 @@ do {									\
 
 #ifndef FUT_FULL_PROBE1
 #define FUT_FULL_PROBE1(KEYMASK,CODE,P1) do { \
-        if( KEYMASK & fut_active ) { \
+        if (STARPU_UNLIKELY(KEYMASK & fut_active)) { \
                 FUT_RAW_ALWAYS_PROBE1(FUT_CODE(CODE, 1),P1); \
         } \
 } while(0)
@@ -693,7 +700,7 @@ do {									\
 
 #ifndef FUT_FULL_PROBE2
 #define FUT_FULL_PROBE2(KEYMASK,CODE,P1,P2) do { \
-        if( KEYMASK & fut_active ) { \
+        if (STARPU_UNLIKELY(KEYMASK & fut_active)) { \
                 FUT_RAW_ALWAYS_PROBE2(FUT_CODE(CODE, 2),P1,P2); \
         } \
 } while(0)
@@ -701,7 +708,7 @@ do {									\
 
 #ifndef FUT_FULL_PROBE3
 #define FUT_FULL_PROBE3(KEYMASK,CODE,P1,P2,P3) do { \
-        if( KEYMASK & fut_active ) { \
+        if (STARPU_UNLIKELY(KEYMASK & fut_active)) { \
                 FUT_RAW_ALWAYS_PROBE3(FUT_CODE(CODE, 3),P1,P2,P3); \
         } \
 } while(0)
@@ -709,7 +716,7 @@ do {									\
 
 #ifndef FUT_FULL_PROBE4
 #define FUT_FULL_PROBE4(KEYMASK,CODE,P1,P2,P3,P4) do { \
-        if( KEYMASK & fut_active ) { \
+        if (STARPU_UNLIKELY(KEYMASK & fut_active)) { \
                 FUT_RAW_ALWAYS_PROBE4(FUT_CODE(CODE, 4),P1,P2,P3,P4); \
         } \
 } while(0)
@@ -717,7 +724,7 @@ do {									\
 
 #ifndef FUT_FULL_PROBE5
 #define FUT_FULL_PROBE5(KEYMASK,CODE,P1,P2,P3,P4,P5) do { \
-        if( KEYMASK & fut_active ) { \
+        if (STARPU_UNLIKELY(KEYMASK & fut_active)) { \
                 FUT_RAW_ALWAYS_PROBE5(FUT_CODE(CODE, 5),P1,P2,P3,P4,P5); \
         } \
 } while(0)
@@ -725,7 +732,7 @@ do {									\
 
 #ifndef FUT_FULL_PROBE6
 #define FUT_FULL_PROBE6(KEYMASK,CODE,P1,P2,P3,P4,P5,P6) do { \
-        if( KEYMASK & fut_active ) { \
+        if (STARPU_UNLIKELY(KEYMASK & fut_active)) { \
                 FUT_RAW_ALWAYS_PROBE6(FUT_CODE(CODE, 6),P1,P2,P3,P4,P5,P6); \
         } \
 } while(0)
@@ -733,7 +740,7 @@ do {									\
 
 #ifndef FUT_FULL_PROBE7
 #define FUT_FULL_PROBE7(KEYMASK,CODE,P1,P2,P3,P4,P5,P6,P7) do { \
-        if( KEYMASK & fut_active ) { \
+        if (STARPU_UNLIKELY(KEYMASK & fut_active)) { \
                 FUT_RAW_ALWAYS_PROBE7(FUT_CODE(CODE, 7),P1,P2,P3,P4,P5,P6,P7); \
         } \
 } while(0)
@@ -769,6 +776,7 @@ do {									\
 
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)				\
 do {									\
+    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK|_STARPU_FUT_KEYMASK_TASK_VERBOSE|_STARPU_FUT_KEYMASK_DATA) & fut_active) ) { \
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid)); \
 	{								\
 		if ((job)->task->cl)					\
@@ -792,15 +800,18 @@ do {									\
 		const uint32_t __job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
 		FUT_FULL_PROBE7(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_CODELET_DETAILS, ((job)->task)->sched_ctx, __job_size, __job_hash, (job)->task->flops / 1000 / ((job)->task->cl && job->task->cl->type != STARPU_SEQ ? j->task_size : 1), (job)->task->tag_id, workerid, ((job)->job_id)); \
 	}								\
+    } \
 } while(0)
 
 #define _STARPU_TRACE_END_CODELET_BODY(job, nimpl, perf_arch, workerid)			\
 do {									\
+    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
 	const size_t job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\
 	const uint32_t job_hash = _starpu_compute_buffers_footprint((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));\
 	char _archname[32]=""; \
 	starpu_perfmodel_get_arch_name(perf_arch, _archname, 32, 0);	\
 	_STARPU_FUT_FULL_PROBE5STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_END_CODELET_BODY, (job)->job_id, (job_size), (job_hash), workerid, _starpu_gettid(), _archname); \
+    } \
 } while(0)
 
 #define _STARPU_TRACE_START_EXECUTING()				\
@@ -851,6 +862,9 @@ do {									\
 #define _STARPU_TRACE_TASK_DEPS(job_prev, job_succ)	\
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_DEPS, (job_prev)->job_id, (job_succ)->job_id, (job_succ)->task->type, 1, "task")
 
+#define _STARPU_TRACE_TASK_END_DEP(job_prev, job_succ) \
+	FUT_DO_PROBE2(_STARPU_FUT_TASK_END_DEP, (job_prev)->job_id, (job_succ)->job_id)
+
 #define _STARPU_TRACE_GHOST_TASK_DEPS(ghost_prev_id, job_succ)		\
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_TASK_DEPS, (ghost_prev_id), (job_succ)->job_id, (job_succ)->task->type, 1, "ghost")
 
@@ -860,6 +874,13 @@ do {									\
 	FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_EXCLUDE_FROM_DAG, (job)->job_id, (long unsigned)exclude_from_dag); \
 } while(0)
 
+#define _STARPU_TRACE_TASK_NAME_LINE_COLOR(job)				\
+	do {								\
+		_STARPU_TRACE_TASK_NAME(job);				\
+		_STARPU_TRACE_TASK_LINE(job);				\
+		_STARPU_TRACE_TASK_COLOR(job);				\
+	} while(0)
+
 #define _STARPU_TRACE_TASK_LINE(job)					\
 	do {								\
 		if ((job)->task->file)					\
@@ -867,7 +888,8 @@ do {									\
 } while(0)
 
 #define _STARPU_TRACE_TASK_NAME(job)					\
-	do {								\
+do {								\
+    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
         const char *model_name = _starpu_job_get_model_name((job));		\
 	const char *name = _starpu_job_get_task_name((job));			\
 	if (name)					                        \
@@ -879,14 +901,17 @@ do {									\
 	}									\
 	if (model_name)					\
 		_STARPU_FUT_FULL_PROBE2STR(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_MODEL_NAME, (job)->job_id, _starpu_gettid(), model_name); \
+    } \
 } while(0)
 
 #define _STARPU_TRACE_TASK_COLOR(job)						\
 do { \
+    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
 	if ((job)->task->color != 0) \
 		FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->color); \
 	else if ((job)->task->cl && (job)->task->cl->color != 0) \
 		FUT_FULL_PROBE2(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TASK_COLOR, (job)->job_id, (job)->task->cl->color); \
+    } \
 } while(0)
 
 #define _STARPU_TRACE_TASK_DONE(job)						\
@@ -894,6 +919,7 @@ do { \
 
 #define _STARPU_TRACE_TAG_DONE(tag)						\
 do {										\
+    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK) & fut_active) ) { \
         struct _starpu_job *job = (tag)->job;                                  \
         const char *model_name = _starpu_job_get_task_name((job));                       \
 	if (model_name)                                                         \
@@ -903,6 +929,7 @@ do {										\
 	else {									\
 		FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_TAG_DONE, (tag)->id, _starpu_gettid(), 0);\
 	}									\
+    } \
 } while(0)
 
 #define _STARPU_TRACE_DATA_NAME(handle, name) \
@@ -1288,10 +1315,10 @@ do {										\
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_POP_PRIO, _starpu_gettid(), workerid, ntasks, exp_len);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_NEW(component)		\
-	_STARPU_FUT_ALWAYS_PROBE1STR(_STARPU_FUT_SCHED_COMPONENT_NEW, component, (component)->name);
+	if (STARPU_UNLIKELY(fut_active)) _STARPU_FUT_ALWAYS_PROBE1STR(_STARPU_FUT_SCHED_COMPONENT_NEW, component, (component)->name);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_CONNECT(parent, child)		\
-	FUT_RAW_ALWAYS_PROBE2(FUT_CODE(_STARPU_FUT_SCHED_COMPONENT_CONNECT,2), parent, child);
+	if (STARPU_UNLIKELY(fut_active)) FUT_RAW_ALWAYS_PROBE2(FUT_CODE(_STARPU_FUT_SCHED_COMPONENT_CONNECT,2), parent, child);
 
 #define _STARPU_TRACE_SCHED_COMPONENT_PUSH(from, to, task, prio)		\
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PUSH, _starpu_gettid(), from, to, task, prio);
@@ -1300,6 +1327,7 @@ do {										\
 	FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_SCHED, _STARPU_FUT_SCHED_COMPONENT_PULL, _starpu_gettid(), from, to, task, (task)->priority);
 
 #define _STARPU_TRACE_HANDLE_DATA_REGISTER(handle)	do {	\
+    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_META) & fut_active) ) { \
 	const size_t __data_size = handle->ops->get_size(handle); \
 	const starpu_ssize_t __max_data_size = _starpu_data_get_max_size(handle); \
 	char __buf[(FXT_MAX_PARAMS-4)*sizeof(long)]; \
@@ -1309,6 +1337,7 @@ do {										\
 	else \
 		__buf[0] = 0; \
 	_STARPU_FUT_FULL_PROBE4STR(_STARPU_FUT_KEYMASK_META, _STARPU_FUT_HANDLE_DATA_REGISTER, handle, __data_size, __max_data_size, handle->home_node, __buf); \
+    } \
 } while (0)
 
 #define _STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle)	\
@@ -1351,8 +1380,10 @@ do {										\
 #define _STARPU_TRACE_TAG(tag, job)		do {(void)(tag); (void)(job);} while(0)
 #define _STARPU_TRACE_TAG_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_DEPS(a, b)		do {(void)(a); (void)(b);} while(0)
+#define _STARPU_TRACE_TASK_END_DEP(a, b)	do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_GHOST_TASK_DEPS(a, b)	do {(void)(a); (void)(b);} while(0)
 #define _STARPU_TRACE_TASK_EXCLUDE_FROM_DAG(a)	do {(void)(a);} while(0)
+#define _STARPU_TRACE_TASK_NAME_LINE_COLOR(a)   do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_NAME(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_LINE(a)		do {(void)(a);} while(0)
 #define _STARPU_TRACE_TASK_COLOR(a)		do {(void)(a);} while(0)

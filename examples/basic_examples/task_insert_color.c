@@ -45,7 +45,6 @@ struct starpu_codelet mycodelet_color =
 
 int main(void)
 {
-	unsigned i;
 	int value=42;
 	starpu_data_handle_t handle;
 	int ret;

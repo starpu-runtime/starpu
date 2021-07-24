@@ -87,3 +87,4 @@ INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 
 IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/images
 
+GENERATE_LATEX         = @DOC_GENERATE_LATEX@

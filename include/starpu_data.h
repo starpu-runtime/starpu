@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -117,7 +118,9 @@ enum starpu_data_access_mode
 			            When inserting these tasks through the
 				    MPI layer however, the access mode needs
 				    to be ::STARPU_MPI_REDUX. */
-	STARPU_ACCESS_MODE_MAX=(1<<8) /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
+	STARPU_NOPLAN=(1<<8),	/**< Disable automatic submission of asynchronous
+				    partitioning/unpartitioning */
+	STARPU_ACCESS_MODE_MAX=(1<<9) /**< The purpose of ::STARPU_ACCESS_MODE_MAX is to
 					be the maximum of this enum. */
 };
 
@@ -492,6 +495,15 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node);
 void starpu_data_wont_use(starpu_data_handle_t handle);
 
 /**
+   Advise StarPU to evict \p handle from the memory node \p node
+   StarPU will thus write its value back to its home node, before evicting it.
+   This may however fail if e.g. some task is still working on it.
+
+   If the eviction was successful, 0 is returned ; -1 is returned otherwise.
+*/
+int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node);
+
+/**
    Set the write-through mask of the data \p handle (and
    its children), i.e. a bitmask of nodes where the data should be always
    replicated after modification. It also prevents the data from being
@@ -604,6 +616,18 @@ void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data);
    Retrieve the field \c user_data previously set for the \p handle.
 */
 void *starpu_data_get_user_data(starpu_data_handle_t handle);
+
+/**
+   Set the field \c sched_data for the \p handle to \p sched_data . It can
+   then be retrieved with starpu_data_get_sched_data(). \p sched_data can be any
+   scheduler-defined value.
+*/
+void starpu_data_set_sched_data(starpu_data_handle_t handle, void* sched_data);
+
+/**
+   Retrieve the field \c sched_data previously set for the \p handle.
+*/
+void *starpu_data_get_sched_data(starpu_data_handle_t handle);
 
 /**
   Check whether data \p handle can be evicted now from node \p node

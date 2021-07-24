@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
+ * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1291,6 +1292,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		/* We need to record our ID in the trace before the main thread makes any MPI call */
 		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
 		starpu_profiling_set_id(argc_argv->rank);
+		_starpu_profiling_set_mpi_worldsize(argc_argv->world_size);
 		_starpu_mpi_add_sync_point_in_fxt();
 	}
 #endif //STARPU_USE_FXT

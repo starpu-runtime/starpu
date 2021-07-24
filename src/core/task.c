@@ -795,8 +795,7 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 				_STARPU_TASK_SET_INTERFACE(task, starpu_data_get_interface_on_node(handle, handle->home_node), i);
 			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
 			    ((handle->nplans && !handle->nchildren) || handle->siblings)
-			    && handle->partition_automatic_disabled == 0
-			    )
+			    && !(mode & STARPU_NOPLAN))
 				/* This handle is involved with asynchronous
 				 * partitioning as a parent or a child, make
 				 * sure the right plan is active, submit
@@ -912,8 +911,6 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		_STARPU_TRACE_TASK_SUBMIT(j,
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
-		_STARPU_TRACE_TASK_NAME(j);
-		_STARPU_TRACE_TASK_LINE(j);
 	}
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
@@ -1696,4 +1693,21 @@ void starpu_task_ft_failed(struct starpu_task *task)
 void starpu_task_ft_success(struct starpu_task *meta_task)
 {
 	starpu_task_end_dep_release(meta_task);
+}
+
+char *starpu_task_status_get_as_string(enum starpu_task_status status)
+{
+	switch(status)
+	{
+	case(STARPU_TASK_INIT) : return "STARPU_TASK_INIT";
+	case(STARPU_TASK_BLOCKED): return "STARPU_TASK_BLOCKED";
+	case(STARPU_TASK_READY): return "STARPU_TASK_READY";
+	case(STARPU_TASK_RUNNING): return "STARPU_TASK_RUNNING";
+	case(STARPU_TASK_FINISHED): return "STARPU_TASK_FINISHED";
+	case(STARPU_TASK_BLOCKED_ON_TAG): return "STARPU_TASK_BLOCKED_ON_TAG";
+	case(STARPU_TASK_BLOCKED_ON_TASK): return "STARPU_TASK_BLOCKED_ON_TASK";
+	case(STARPU_TASK_BLOCKED_ON_DATA): return "STARPU_TASK_BLOCKED_ON_DATA";
+	case(STARPU_TASK_STOPPED): return "STARPU_TASK_STOPPED";
+	default: return "STARPU_TASK_unknown_status";
+	}
 }

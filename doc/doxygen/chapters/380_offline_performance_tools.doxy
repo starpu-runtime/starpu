@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -70,7 +70,14 @@ $ make
 $ make install
 \endverbatim
 
-In order to have StarPU to generate traces, StarPU should be configured with
+In order to have StarPU to generate traces, StarPU needs be configured again
+after installing FxT, and configuration show:
+
+\verbatim
+FxT trace enabled: yes
+\endverbatim
+
+If <c>configure</c> does not find FxT automatically, it can be specified by hand with
 the option \ref with-fxt "--with-fxt" :
 
 \verbatim
@@ -78,10 +85,9 @@ $ ./configure --with-fxt=$FXTDIR
 \endverbatim
 
 Or you can simply point the <c>PKG_CONFIG_PATH</c> to
-<c>$FXTDIR/lib/pkgconfig</c> and pass
-\ref with-fxt "--with-fxt" to <c>configure</c>
+<c>$FXTDIR/lib/pkgconfig</c>
 
-When FxT is enabled, a trace is generated when StarPU is terminated by calling
+When \ref STARPU_FXT_TRACE is set to 1, a trace is generated when StarPU is terminated by calling
 starpu_shutdown(). The trace is a binary file whose name has the form
 <c>prof_file_XXX_YYY</c> where <c>XXX</c> is the user name, and
 <c>YYY</c> is the MPI id of the process that used StarPU (or 0 when running a sequential program).
@@ -96,9 +102,6 @@ The additional \c configure option \ref enable-fxt-lock "--enable-fxt-lock" can
 be used to generate trace events which describes the locks behaviour during
 the execution. It is however very heavy and should not be used unless debugging
 StarPU's internal locking.
-
-The environment variable \ref STARPU_FXT_TRACE can be set to 0 to disable the
-generation of the <c>prof_file_XXX_YYY</c> file.
 
 When the FxT trace file <c>prof_file_something</c> has been generated,
 it is possible to generate different trace formats by calling:
@@ -281,10 +284,10 @@ flow of tasks between the components of the modular scheduler.
 
 \subsubsection TimeBetweenSendRecvDataUse Analyzing Time Between MPI Data Transfer and Use by Tasks
 
-<c>starpu_fxt_tool</c> produces a file called <c>comms.rec</c> which describes all 
-MPI communications. The script <c>starpu_send_recv_data_use.py</c> uses this file 
-and <c>tasks.rec</c> in order to produce two graphs: the first one shows durations 
-between the reception of data and their usage by a task and the second one plots the 
+<c>starpu_fxt_tool</c> produces a file called <c>comms.rec</c> which describes all
+MPI communications. The script <c>starpu_send_recv_data_use.py</c> uses this file
+and <c>tasks.rec</c> in order to produce two graphs: the first one shows durations
+between the reception of data and their usage by a task and the second one plots the
 same graph but with elapsed time between send and usage of a data by the sender.
 
 \image html trace_recv_use.png
@@ -400,7 +403,7 @@ starpu_perfmodel_load_symbol(). The source code of the tool
 
 An XML output can also be printed by using the <c>-x</c> option:
 \verbatim
-$ tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based 
+$ tools/starpu_perfmodel_display -x -s non_linear_memset_regression_based
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE StarPUPerfmodel SYSTEM "starpu-perfmodel.dtd">
 <!-- symbol non_linear_memset_regression_based -->
@@ -426,7 +429,7 @@ models. It writes a <c>.gp</c> file in the current directory, to be
 run with the tool <c>gnuplot</c>, which shows the corresponding curve.
 
 \verbatim
-$ tools/starpu_perfmodel_plot -s non_linear_memset_regression_based 
+$ tools/starpu_perfmodel_plot -s non_linear_memset_regression_based
 $ gnuplot starpu_non_linear_memset_regression_based.gp
 $ gv starpu_non_linear_memset_regression_based.eps
 \endverbatim
@@ -647,12 +650,12 @@ $ starpu_paje_sort paje.trace
 Performance counter values could be obtained from the PAPI framework if
 <c>./configure</c> detected the libpapi.
 
-In Debian, packages <c>libpapi-dev</c> and <c>libpapi5.7</c> provide required
-files.  Package <c>papi-tools</c> contains a set of useful tools, for example
+In Debian, the <c>libpapi-dev</c> package provides the required
+files.  Additionally, the <c>papi-tools</c> package contains a set of useful tools, for example
 <c>papi_avail</c> to see which counters are available.
 
 To be able to use Papi counters, one may need to reduce the level of the kernel
-parameter <c>kernel.perf_event_paranoid</c> to at least 2. See
+parameter <c>kernel.perf_event_paranoid</c> to 2 or below. See
 https://www.kernel.org/doc/html/latest/admin-guide/perf-security.html for the
 security impact of this parameter.
 
@@ -837,6 +840,100 @@ An example of visualization follows:
 
 \image html starvz_visu_r.png
 \image latex starvz_visu_r.pdf "" width=\textwidth
+
+\section EclipsePluginUsage StarPU Eclipse Plugin
+
+The StarPU Eclipse Plugin provides the ability to generate the
+different traces directly from the Eclipse IDE. Once StarPU has been
+configured and installed with its Eclipse plugin (see Section \ref
+EclipsePlugin), you first need to set up your environment for StarPU.
+
+\verbatim
+cd $HOME/usr/local/starpu
+source ./bin/starpu_env
+\endverbatim
+
+To generate traces from the application, it is necessary to set \ref
+STARPU_FXT_TRACE to 1.
+
+\verbatim
+export STARPU_FXT_TRACE=1
+\endverbatim
+
+The eclipse workspace together with an example is available in \c
+lib/starpu/eclipse-plugin.
+
+\verbatim
+cd ./lib/starpu/eclipse-plugin
+eclipse -data workspace
+\endverbatim
+
+You can then open the file \c hello/hello.c, and build the application
+by pressing \c Ctrl-B.
+
+\image html eclipse_hello_build.png
+\image latex eclipse_hello_build.png "" width=\textwidth
+
+The application can now be executed.
+
+\image html eclipse_hello_run.png
+\image latex eclipse_hello_run.png "" width=\textwidth
+
+After executing the C/C++ StarPU application, one can use the StarPU
+plugin to generate and visualise the task graph of the application.
+The StarPU plugin eclipse is either available through the icons in the
+upper toolbar, or from the dropdown menu \c StarPU.
+
+\image html eclipse_hello_plugin.png
+\image latex eclipse_hello_plugin.png "" width=\textwidth
+
+To start, one first need to run the StarPU FxT tool, either through
+the \c FxT icon of the toolbar, or from the menu \c StarPU / <c>StarPU
+FxT Tool</c>. This will call the tool \c starpu_fxt_tool to generate
+traces for your application execution.
+
+A message dialog box is displayed to confirm the generation of the
+different traces.
+
+\image html eclipse_hello_fxt.png
+\image latex eclipse_hello_fxt.png "" width=\textwidth
+
+One of the generated files is a Paje trace which can be viewed with
+ViTE, a trace explorer. To open and visualise the file \c paje.trace with
+ViTE, one can select the second command of the StarPU menu, which is
+named <c>Generate Paje Trace</c>, or click on the second icon named
+<c>Trace</c> in the toolbar.
+
+\image html eclipse_hello_paje_trace.png
+\image latex eclipse_hello_paje_trace.png "" width=\textwidth
+
+\image html eclipse_hello_vite.png
+\image latex eclipse_hello_vite.png "" width=\textwidth
+
+Another generated trace file is a task graph described using the DOT
+language. It is possible to get a graphical output of the graph by
+calling the <c>graphviz library</c>. To do this, one can click on the
+third command of StarPU menu. A task graph of the application in
+the \c png format is then generated.
+
+\image html eclipse_hello_graph.png
+\image latex eclipse_hello_graph.png "" width=\textwidth
+
+In StarPU eclipse plugin, one can display the graph task directly from
+eclipse, or through a web browser. To do this, there is another
+command named <c> Generate SVG graph</c> in the StarPU menu or HGraph
+in the toolbar of eclipse.
+
+From the HTML file, you can see the graph task, and by clicking on a
+task name, it will open the C file in which the task submission was
+called (if you have an editor which understands the syntax \c
+href="file.c#123").
+
+\image html eclipse_hello_svg_graph.png
+\image latex eclipse_hello_svg_graph.png "" width=\textwidth
+
+\image html eclipse_hello_hgraph.png
+\image latex eclipse_hello_hgraph.png "" width=\textwidth
 
 \section MemoryFeedback Memory Feedback
 

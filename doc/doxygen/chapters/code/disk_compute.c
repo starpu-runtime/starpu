@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	if (f == NULL)
 		goto enoent;
 	/* take datas */
-	int size = fread(C, sizeof(int), NX, f);
+	fread(C, sizeof(int), NX, f);
 
 	/* close the file */
 	fclose(f);

@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
- * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2018,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -444,15 +444,15 @@ static void starpu_handle_data_request_completion(struct _starpu_data_request *r
 #endif
 	}
 
-	if (r->canceled < 2 && r->com_id > 0)
-	{
 #ifdef STARPU_USE_FXT
+	if (fut_active && r->canceled < 2 && r->com_id > 0)
+	{
 		unsigned src_node = src_replicate->memory_node;
 		unsigned dst_node = dst_replicate->memory_node;
 		size_t size = _starpu_data_get_size(handle);
 		_STARPU_TRACE_END_DRIVER_COPY(src_node, dst_node, size, r->com_id, r->prefetch);
-#endif
 	}
+#endif
 
 	/* Once the request has been fulfilled, we may submit the requests that
 	 * were chained to that request. */

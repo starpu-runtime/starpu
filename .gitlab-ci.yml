@@ -30,20 +30,29 @@ build:
       when: never  # Prevent pipeline run for push event
     - when: always # Run pipeline for all other cases
 
-check:
+.check_template:
   stage: deploy
-  script:
-    - ./contrib/gitlab/deploy.sh
+  needs: [build]
+  dependencies:
+    - build
   rules:
     - if: '$CI_PIPELINE_SOURCE == "push"'
       when: never  # Prevent pipeline run for push event
     - when: always # Run pipeline for all other cases
 
+check_linux:
+  extends: .check_template
+  tags : ["linux"]
+  script:
+    - ./contrib/gitlab/deploy.sh
+
+check_macosx:
+  extends: .check_template
+  tags : ["macosx"]
+  script:
+    - ./contrib/gitlab/deploy.sh
+
 simgrid:
-  stage: deploy
+  extends: .check_template
   script:
     - ./contrib/gitlab/simgrid.sh
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-      when: never  # Prevent pipeline run for push event
-    - when: always # Run pipeline for all other cases

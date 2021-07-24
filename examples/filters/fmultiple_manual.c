@@ -117,9 +117,15 @@ void empty(void *buffers[], void *cl_arg)
 
 struct starpu_codelet cl_switch =
 {
+#if 1
+	/* Check for the values */
 	.cpu_funcs = {empty},
+#else
+	/* For production code: we do not need to actually execute anything */
+	.where = STARPU_NOWHERE,
+#endif
 	.nbuffers = STARPU_VARIABLE_NBUFFERS,
-	.name = "switch"
+	.name = "switch",
 };
 
 int main(void)

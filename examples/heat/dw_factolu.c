@@ -797,12 +797,12 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 	}
 }
 
-void free_system(float *A, float *B, unsigned pinned)
+void free_system(float *A, float *B, unsigned dim, unsigned pinned)
 {
 	if (pinned)
 	{
-		starpu_free(A);
-		starpu_free(B);
+		starpu_free_noflag(A, (size_t)dim*dim*sizeof(float));
+		starpu_free_noflag(B, (size_t)dim*sizeof(float));
 	}
 	else
 	{

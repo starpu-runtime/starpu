@@ -620,14 +620,21 @@ if (PARALLEL) {
 
 if (PARALLEL) {
 	/* Allocate buffers. */
-	plan->twisted1 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->twisted1));
-	memset(plan->twisted1, 0, plan->totsize * sizeof(*plan->twisted1));
-	plan->fft1 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->fft1));
-	memset(plan->fft1, 0, plan->totsize * sizeof(*plan->fft1));
-	plan->twisted2 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->twisted2));
-	memset(plan->twisted2, 0, plan->totsize * sizeof(*plan->twisted2));
-	plan->fft2 = STARPUFFT(malloc)(plan->totsize * sizeof(*plan->fft2));
-	memset(plan->fft2, 0, plan->totsize * sizeof(*plan->fft2));
+	plan->twisted1_size = plan->totsize * sizeof(*plan->twisted1);
+	plan->twisted1 = STARPUFFT(malloc)(plan->twisted1_size);
+	memset(plan->twisted1, 0, plan->twisted1_size);
+
+	plan->fft1_size = plan->totsize * sizeof(*plan->fft1);
+	plan->fft1 = STARPUFFT(malloc)(plan->fft1_size);
+	memset(plan->fft1, 0, plan->fft1_size);
+
+	plan->twisted2_size = plan->totsize * sizeof(*plan->twisted2);
+	plan->twisted2 = STARPUFFT(malloc)(plan->twisted2_size);
+	memset(plan->twisted2, 0, plan->twisted2_size);
+
+	plan->fft2_size = plan->totsize * sizeof(*plan->fft2);
+	plan->fft2 = STARPUFFT(malloc)(plan->fft2_size);
+	memset(plan->fft2, 0, plan->fft2_size);
 
 	/* Allocate handle arrays */
 	plan->twisted1_handle = malloc(plan->totsize1 * sizeof(*plan->twisted1_handle));

@@ -139,7 +139,7 @@ define starpu-print-task-and-successor
     end
     if ($cg->cg_type == 4)
       # STARPU_CG_TASK
-      printf "dep of task %p\n", $cg->succ.job
+      printf "dep of job %p task %p\n", $cg->succ.job, $cg->succ.job->task
       starpu-print-task $cg->succ.job->task
     end
     set $i = $i + 1

@@ -154,7 +154,7 @@ void copy_blocks_into_matrix(void)
 				A_blocks[bi+nblocks*bj][i + j * blocksize];
 		}
 
-		starpu_free(A_blocks[bi+nblocks*bj]);
+		starpu_free_noflag(A_blocks[bi+nblocks*bj], (size_t)blocksize*blocksize*sizeof(TYPE));
 	}
 }
 

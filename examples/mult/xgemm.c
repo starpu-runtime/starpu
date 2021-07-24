@@ -186,6 +186,12 @@ static void partition_mult_data(void)
 		starpu_data_partition(A_handle, &horiz);
 
 		starpu_data_map_filters(C_handle, 2, &vert, &horiz);
+
+		for (y = 0; y < nslicesy; y++)
+			starpu_data_set_coordinates(starpu_data_get_sub_data(A_handle, 1, y), 2, 0, y);
+
+		for (x = 0; x < nslicesx; x++)
+			starpu_data_set_coordinates(starpu_data_get_sub_data(B_handle, 1, x), 2, x, 0);
 	}
 
 	for (x = 0; x < nslicesx; x++)
@@ -345,11 +351,6 @@ static void parse_args(int argc, char **argv)
 				fprintf(stderr, "the number of blocks in X cannot be 0!\n");
 				exit(EXIT_FAILURE);
 			}
-			if (nslicesy == 0)
-			{
-				fprintf(stderr, "the number of blocks in Y cannot be 0!\n");
-				exit(EXIT_FAILURE);
-			}
 		}
 
 		else if (strcmp(argv[i], "-nblocksx") == 0)
@@ -389,36 +390,72 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			xdim = strtol(argv[++i], &argptr, 10);
+			if (xdim == 0)
+			{
+				fprintf(stderr, "the X dimension cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-xy") == 0)
 		{
 			char *argptr;
 			xdim = ydim = strtol(argv[++i], &argptr, 10);
+			if (xdim == 0)
+			{
+				fprintf(stderr, "the XY dimensions cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+		
+		else if (strcmp(argv[i], "-xyz") == 0)
+		{
+			char *argptr;
+			xdim = ydim = zdim = strtol(argv[++i], &argptr, 10);
 		}
 
 		else if (strcmp(argv[i], "-y") == 0)
 		{
 			char *argptr;
 			ydim = strtol(argv[++i], &argptr, 10);
+			if (ydim == 0)
+			{
+				fprintf(stderr, "the Y dimension cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-z") == 0)
 		{
 			char *argptr;
 			zdim = strtol(argv[++i], &argptr, 10);
+			if (zdim == 0)
+			{
+				fprintf(stderr, "the Z dimension cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-size") == 0)
 		{
 			char *argptr;
 			xdim = ydim = zdim = strtol(argv[++i], &argptr, 10);
+			if (xdim == 0)
+			{
+				fprintf(stderr, "the size cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-iter") == 0)
 		{
 			char *argptr;
 			niter = strtol(argv[++i], &argptr, 10);
+			if (niter == 0)
+			{
+				fprintf(stderr, "the number of iterations cannot be 0!\n");
+				exit(EXIT_FAILURE);
+			}
 		}
 
 		else if (strcmp(argv[i], "-nsleeps") == 0)
@@ -449,7 +486,7 @@ static void parse_args(int argc, char **argv)
 
 		else if (strcmp(argv[i], "-help") == 0 || strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0)
 		{
-			fprintf(stderr,"Usage: %s [-3d] [-nblocks n] [-nblocksx x] [-nblocksy y] [-nblocksz z] [-x x] [-y y] [-xy n] [-z z] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname] [-nsleeps nsleeps]\n", argv[0]);
+			fprintf(stderr,"Usage: %s [-3d] [-nblocks n] [-nblocksx x] [-nblocksy y] [-nblocksz z] [-x x] [-y y] [-xy n] [-z z] [-xyz n] [-size size] [-iter iter] [-bound] [-check] [-spmd] [-hostname] [-nsleeps nsleeps]\n", argv[0]);
 			if (tiled)
 				fprintf(stderr,"Currently selected: %ux%u * %ux%u and %ux%ux%u blocks (size %ux%u length %u), %u iterations, %u sleeps\n", zdim, ydim, xdim, zdim, nslicesx, nslicesy, nslicesz, xdim / nslicesx, ydim / nslicesy, zdim / nslicesz, niter, nsleeps);
 			else

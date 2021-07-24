@@ -97,17 +97,23 @@ void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, u
 	}
 }
 
-void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color)
+void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color, const char *fontcolor)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"tag_%s%llx\" [ style=filled, fillcolor=\"%s\"]\n",
-			prefix, (unsigned long long)tag, color);
+		fprintf(out_file, "\t \"tag_%s%llx\" [ style=filled, fillcolor=\"%s\", fontcolor=\"%s\"]\n",
+			prefix, (unsigned long long)tag, color, fontcolor);
 }
 
-void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color)
+void _starpu_fxt_dag_add_task_end_dep(const char *prefix, unsigned long prev, unsigned long succ)
 {
 	if (out_file)
-		fprintf(out_file, "\t \"task_%s%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\"]\n", prefix, job_id, label, color);
+		fprintf(out_file, "\t \"task_%s%lu\" [ end_dep=\"%lu\"]\n", prefix, prev, succ);
+}
+
+void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color, const char *fontcolor)
+{
+	if (out_file)
+		fprintf(out_file, "\t \"task_%s%lu\" [ style=filled, label=\"%s\", fillcolor=\"%s\", fontcolor=\"%s\"]\n", prefix, job_id, label, color, fontcolor);
 }
 
 void _starpu_fxt_dag_set_task_line(const char *prefix, unsigned long job_id, const char *file, int line)

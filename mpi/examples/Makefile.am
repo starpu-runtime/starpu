@@ -312,17 +312,22 @@ endif
 ########################
 
 examplebin_PROGRAMS +=		\
-	mpi_redux/mpi_redux
+	mpi_redux/mpi_redux     \
+	mpi_redux/mpi_redux_tree
 
 mpi_redux_mpi_redux_SOURCES	=		\
-	mpi_redux/mpi_redux.c
+	mpi_redux/mpi_redux.c                   
+mpi_redux_mpi_redux_tree_SOURCES	=		\
+	mpi_redux/mpi_redux_tree.c
 
 mpi_redux_mpi_redux_LDADD =			\
 	-lm
-
+mpi_redux_mpi_redux_tree_LDADD =			\
+	-lm
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
-	mpi_redux/mpi_redux
+	mpi_redux/mpi_redux                     \
+	mpi_redux/mpi_redux_tree
 endif
 
 ##########################################
@@ -377,20 +382,30 @@ endif
 
 if STARPU_HAVE_MPIFORT
 if !STARPU_SANITIZE
-examplebin_PROGRAMS +=		\
-	native_fortran/nf_mpi_redux
+examplebin_PROGRAMS +=				\
+	native_fortran/nf_mpi_redux		\
+	native_fortran/nf_mpi_redux_tree
 
-native_fortran_nf_mpi_redux_SOURCES	=			\
+native_fortran_nf_mpi_redux_SOURCES =		\
 	native_fortran/fstarpu_mpi_mod.f90	\
 	native_fortran/fstarpu_mod.f90		\
 	native_fortran/nf_mpi_redux.f90	
 
-native_fortran_nf_mpi_redux_LDADD =					\
+native_fortran_nf_mpi_redux_LDADD =		\
+	-lm
+
+native_fortran_nf_mpi_redux_tree_SOURCES =	\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
+	native_fortran/nf_mpi_redux_tree.f90	
+
+native_fortran_nf_mpi_redux_tree_LDADD =	\
 	-lm
 
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
-	native_fortran/nf_mpi_redux
+	native_fortran/nf_mpi_redux		\
+	native_fortran/nf_mpi_redux_tree
 endif
 endif
 endif
@@ -441,7 +456,8 @@ starpu_mpi_EXAMPLES	+=			\
 examplebin_PROGRAMS +=				\
 	user_datatype/user_datatype		\
 	user_datatype/user_datatype2		\
-	user_datatype/user_datatype_early
+	user_datatype/user_datatype_early	\
+	user_datatype/user_datatype_interface
 
 user_datatype_user_datatype_SOURCES =		\
 	user_datatype/user_datatype.c		\
@@ -455,11 +471,16 @@ user_datatype_user_datatype_early_SOURCES =	\
 	user_datatype/user_datatype_early.c	\
 	user_datatype/my_interface.c
 
+user_datatype_user_datatype_interface_SOURCES =	\
+	user_datatype/user_datatype_interface.c	\
+	user_datatype/my_interface.c
+
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
 	user_datatype/user_datatype2		\
 	user_datatype/user_datatype_early	\
-	user_datatype/user_datatype
+	user_datatype/user_datatype		\
+	user_datatype/user_datatype_interface
 endif
 
 ###################
@@ -513,6 +534,7 @@ native_fortran/nf_mm_task_build.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.
 native_fortran/nf_basic_ring.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_redux_test.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_mpi_redux.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
+native_fortran/nf_mpi_redux_tree.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 endif
 endif
 

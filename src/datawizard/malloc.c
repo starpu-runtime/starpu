@@ -566,6 +566,11 @@ int starpu_free(void *A)
 	return starpu_free_flags(A, 0, STARPU_MALLOC_PINNED);
 }
 
+int starpu_free_noflag(void *A, size_t dim)
+{
+	return starpu_free_flags(A, dim, STARPU_MALLOC_PINNED);
+}
+
 static uintptr_t _starpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
 {
 	uintptr_t addr = 0;

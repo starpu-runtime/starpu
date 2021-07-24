@@ -86,9 +86,15 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 
 	job->task = task;
 
-#if !defined(STARPU_USE_FXT) && !defined(STARPU_DEBUG)
-	if (_starpu_bound_recording || _starpu_task_break_on_push != -1 || _starpu_task_break_on_sched != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_exec != -1 || STARPU_AYU_EVENT)
+	if (
+#if defined(STARPU_DEBUG)
+	    1
+#elif defined(STARPU_USE_FXT)
+	    fut_active
+#else
+	    _starpu_bound_recording || _starpu_task_break_on_push != -1 || _starpu_task_break_on_sched != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_exec != -1 || STARPU_AYU_EVENT
 #endif
+	   )
 	{
 		job->job_id = _starpu_fxt_get_job_id();
 		STARPU_AYU_ADDTASK(job->job_id, task);
@@ -116,6 +122,40 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 		_starpu_graph_add_job(job);
 
         _STARPU_LOG_OUT();
+	return job;
+}
+
+struct _starpu_job* _starpu_get_job_associated_to_task_slow(struct starpu_task *task, struct _starpu_job *job)
+{
+	if (job == _STARPU_JOB_UNSET)
+	{
+		job = STARPU_VAL_COMPARE_AND_SWAP_PTR(&task->starpu_private, _STARPU_JOB_UNSET, _STARPU_JOB_SETTING);
+		if (job != _STARPU_JOB_UNSET && job != _STARPU_JOB_SETTING)
+		{
+			/* Actually available in the meanwhile */
+			STARPU_RMB();
+			return job;
+		}
+
+		if (job == _STARPU_JOB_UNSET)
+		{
+			/* Ok, we have to do it */
+			job = _starpu_job_create(task);
+			STARPU_WMB();
+			task->starpu_private = job;
+			return job;
+		}
+	}
+
+	/* Saw _STARPU_JOB_SETTING, somebody is doing it, wait for it.
+	 * This is rare enough that busy-reading is fine enough. */
+	while ((job = task->starpu_private) == _STARPU_JOB_SETTING)
+	{
+		STARPU_UYIELD();
+		STARPU_SYNCHRONIZE();
+	}
+
+	STARPU_RMB();
 	return job;
 }
 
@@ -226,6 +266,7 @@ void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned co
 	j->continuation_callback_on_sleep = continuation_callback_on_sleep;
 	j->continuation_callback_on_sleep_arg = continuation_callback_on_sleep_arg;
 	j->job_successors.ndeps = 0;
+	j->job_successors.ndeps_completed = 0;
 }
 /* Prepare a currently running job for accepting a new set of
  * dependencies in anticipation of becoming a continuation. */
@@ -262,6 +303,16 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 void starpu_task_end_dep_release(struct starpu_task *t)
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(t);
+
+#ifdef STARPU_USE_FXT
+	struct starpu_task *current = starpu_task_get_current();
+	if (current)
+	{
+		struct _starpu_job *jcurrent = _starpu_get_job_associated_to_task(current);
+		_STARPU_TRACE_TASK_END_DEP(jcurrent, j);
+	}
+#endif
+
 	_starpu_handle_job_termination(j);
 }
 
@@ -348,6 +399,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #endif
 	{
 		task->status = STARPU_TASK_FINISHED;
+
+		/* already prepare for next run */
+		struct _starpu_cg_list *job_successors = &j->job_successors;
+		job_successors->ndeps_completed = 0;
 
 		/* We must have set the j->terminated flag early, so that it is
 		 * possible to express task dependencies within the callback
@@ -652,8 +707,6 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j)
 	else
 	{
 		/* existing deps (if any) are fulfilled */
-		/* already prepare for next run */
-		job_successors->ndeps_completed = 0;
 		ret = 0;
 	}
 

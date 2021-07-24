@@ -763,7 +763,7 @@ static void benchmark_all_gpu_devices(void)
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t former_cpuset = hwloc_bitmap_alloc();
 	hwloc_get_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
-#elif __linux__
+#elif defined(__linux__)
 	/* Save the current cpu binding */
 	cpu_set_t former_process_affinity;
 	int ret;
@@ -827,7 +827,7 @@ static void benchmark_all_gpu_devices(void)
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_set_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
 	hwloc_bitmap_free(former_cpuset);
-#elif __linux__
+#elif defined(__linux__)
 	/* Restore the former affinity */
 	ret = sched_setaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
 	if (ret)

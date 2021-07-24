@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2019       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2019,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -393,10 +393,9 @@ void _starpu_mpi_data_clear(starpu_data_handle_t data_handle)
 	_mpi_backend._starpu_mpi_backend_data_clear(data_handle);
 	_starpu_mpi_cache_data_clear(data_handle);
 	_starpu_spin_destroy(&data->coop_lock);
-	if (data->redux_map != REDUX_CONTRIB)
-		free(data->redux_map);
+	free(data->redux_map);
+	data->redux_map = NULL;
 	free(data);
-	data_handle->mpi_data = NULL;
 }
 
 struct _starpu_mpi_data *_starpu_mpi_data_get(starpu_data_handle_t data_handle)

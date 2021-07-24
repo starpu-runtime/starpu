@@ -253,7 +253,6 @@ int main(int argc, char **argv)
 	int world_size;
 	int ret;
 	unsigned i, j;
-
 	starpu_srand48((long int)time(NULL));
 
 	parse_args(argc, argv);
@@ -380,6 +379,7 @@ int main(int argc, char **argv)
 	/*
 	 * 	Termination
 	 */
+	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 	for (j = 0; j < nblocks; j++)
 	{
 		for (i = 0; i < nblocks; i++)
@@ -387,7 +387,7 @@ int main(int argc, char **argv)
 			starpu_data_unregister(dataA_handles[j+nblocks*i]);
 			TYPE *blockptr = dataA[j+i*nblocks];
 			if (blockptr != STARPU_POISON_PTR)
-				starpu_free(blockptr);
+				starpu_free_noflag(blockptr, blocksize);
 		}
 	}
 	free(dataA_handles);

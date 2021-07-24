@@ -87,6 +87,7 @@ chapters =	\
 	chapters/480_openmp_runtime_support.doxy		\
 	chapters/490_clustering_a_machine.doxy		\
 	chapters/495_interoperability.doxy		\
+	chapters/497_eclipse_plugin.doxy 		\
 	chapters/501_environment_variables.doxy		\
 	chapters/510_configure_options.doxy		\
 	chapters/520_files.doxy		\
@@ -141,7 +142,18 @@ images = 	\
 	chapters/images/tasks_size_overhead.eps \
 	chapters/images/tasks_size_overhead.pdf \
 	chapters/images/tasks_size_overhead.png \
-	chapters/images/temanejo.png
+	chapters/images/temanejo.png		\
+	chapters/images/eclipse_installer.png	\
+	chapters/images/eclipse_install_cdt.png	\
+	chapters/images/eclipse_hello_build.png	\
+	chapters/images/eclipse_hello_run.png	\
+	chapters/images/eclipse_hello_fxt.png	\
+	chapters/images/eclipse_hello_graph.png	\
+	chapters/images/eclipse_hello_vite.png	\
+	chapters/images/eclipse_hello_svg_graph.png	\
+	chapters/images/eclipse_hello_plugin.png	\
+	chapters/images/eclipse_hello_paje_trace.png	\
+	chapters/images/eclipse_hello_hgraph.png
 
 if STARPU_BUILD_DOC
 EXTRA_DIST += \
@@ -170,7 +182,7 @@ chapters/version.sty: $(chapters)
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
-chapters/version.html: $(chapters)
+chapters/version.html: $(chapters) $(images)
 	@for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then $(PROG_STAT) --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
         done | sort -r | head -1 > timestamp_html
@@ -264,12 +276,14 @@ $(DOX_TAG): $(dox_inputs)
 	@if test -f html/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
 	@$(SED) -i 's/.*"Files.html".*//' html/pages.html
 	@if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
-	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
-	@cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
+	@if test -f $(DOX_LATEX_DIR)/refman.tex ; then $(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex ; fi
+	@if test -f $(DOX_LATEX_DIR)/refman.tex ; then cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex ; fi
+	$(top_srcdir)/doc/doxygen/sectionNumbering.py $(top_srcdir)/doc/doxygen/chapters/ $(DOX_HTML_DIR)
 
 $(DOX_HTML_DIR): $(DOX_TAG)
 
-$(DOX_PDF): $(DOX_TAG) refman.tex
+$(DOX_PDF): $(DOX_TAG) refman.tex $(images)
+	$(MKDIR_P) $(DOX_LATEX_DIR)
 	@cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
 	@cp $(top_srcdir)/doc/doxygen/chapters/images/*pdf $(DOX_LATEX_DIR)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex

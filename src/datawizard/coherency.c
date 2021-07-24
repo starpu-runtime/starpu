@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2018,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1245,7 +1245,8 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
 
 #ifdef STARPU_USE_FXT
-		total_size += _starpu_data_get_size(handle);
+		if (fut_active)
+			total_size += _starpu_data_get_size(handle);
 #endif
 	}
 	_STARPU_TRACE_DATA_LOAD(workerid,total_size);
@@ -1435,7 +1436,10 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 		for (i = 0; i < nnodes; i++)
 		{
 			if (handle->per_node[node].request[i])
+			{
 				ret = 1;
+				break;
+			}
 		}
 
 	}

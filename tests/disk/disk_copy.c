@@ -53,7 +53,7 @@ int main(void)
 
 int dotest(struct starpu_disk_ops *ops, void *param)
 {
-	double *A,*B,*C,*D,*E,*F;
+	double *A,*F;
 	int ret;
 
 	/* limit main ram to force to push in disk */

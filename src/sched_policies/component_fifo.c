@@ -180,6 +180,9 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task;
 	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
+#ifdef STARPU_DEVEL
+#warning In eager schedulers, we never write that we want to fill the fifo before picking up a task. Eager is then ineffective since in practice the fifo wont fill
+#endif
 		task = _starpu_fifo_pop_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx), -1);
 	else if (to->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS)
 		task = _starpu_fifo_pop_task(queue, starpu_bitmap_first(&to->workers_in_ctx));

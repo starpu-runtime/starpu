@@ -240,6 +240,12 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
 void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
 
 /**
+ * Similar to starpu_data_partition_readonly_submit(), but allow to
+ * specify the the coherency to be used for the main data \p initial_handle
+ */
+void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency);
+
+/**
    Assume that a partitioning of \p initial_handle has already been submited
    in readonly mode through starpu_data_partition_readonly_submit(), and will upgrade
    that partitioning into read-write mode for the \p children, by invalidating \p
@@ -294,12 +300,6 @@ void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t in
    through the parameter \p sequential_consistency.
 */
 void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node, int sequential_consistency);
-
-/**
-   Disable the automatic partitioning of the data \p handle for which
-   a asynchronous plan has previously been submitted
-*/
-void starpu_data_partition_not_automatic(starpu_data_handle_t handle);
 
 /** @} */
 
@@ -531,12 +531,12 @@ void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_
    Given an integer \p n, \p n the number of parts it must be divided in, \p id the
    part currently considered, determines the \p chunk_size and the \p offset, taking
    into account the size of the elements stored in the data structure \p elemsize
-   and \p ld, the leading dimension, which is most often 1.
+   and \p blocksize, which is most often 1.
  */
 void
 starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 					     size_t elemsize, unsigned id,
-					     unsigned ld, unsigned *chunk_size,
+					     unsigned blocksize, unsigned *chunk_size,
 					     size_t *offset);
 
 /** @} */

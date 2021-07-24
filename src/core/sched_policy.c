@@ -494,6 +494,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	 * corresponding dependencies */
 	if (task->cl == NULL || task->where == STARPU_NOWHERE)
 	{
+		_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
 		if (!_starpu_perf_counter_paused() && !j->internal)
 		{
 			(void)STARPU_ATOMIC_ADD64(& _starpu_task__g_current_ready__value, -1);
@@ -1164,7 +1165,7 @@ void _starpu_print_idle_time()
 	}
 }
 
-void starpu_sched_task_break(struct starpu_task *task)
+void starpu_sched_task_break(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED)
 {
 	_STARPU_TASK_BREAK_ON(task, sched);
 }

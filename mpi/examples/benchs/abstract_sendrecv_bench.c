@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,9 +20,9 @@
 void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int bidir)
 {
 	uint64_t iterations = LOOPS_DEFAULT;
-	uint64_t s = 0;
-	uint64_t j = 0;
-	uint64_t k = 0;
+	uint64_t s;
+	uint64_t j;
+	uint64_t k;
 
 	if (mpi_rank >= 2)
 	{
@@ -54,7 +54,6 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 		printf("# size  (Bytes)\t|  latency \t| 10^6 B/s \t| MB/s   \t| d1    \t|median  \t| avg    \t| d9    \t| max\n");
 	}
 
-	int array_size = 0;
 	starpu_data_handle_t handle_send, handle_recv;
 	float* vector_send = NULL;
 	float* vector_recv = NULL;

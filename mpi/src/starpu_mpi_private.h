@@ -203,12 +203,6 @@ struct _starpu_mpi_coop_sends
 	long pre_sync_jobid;
 };
 
-/** cf. redux_map field : this is the value
- * put in this field whenever a node contributes
- * to the reduction of the data.
- * Only the owning node keeps track of all the contributing nodes. */
-#define REDUX_CONTRIB ((char*) -1)
-
 /** Initialized in starpu_mpi_data_register_comm */
 struct _starpu_mpi_data
 {

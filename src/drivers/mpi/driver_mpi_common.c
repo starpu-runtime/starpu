@@ -320,6 +320,7 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STAR
                 struct _starpu_mpi_ms_event_request * req = _starpu_mpi_ms_event_request_new();
 
                 res = MPI_Irecv(msg, len, MPI_BYTE, src_devid, ASYNC_TAG, MPI_COMM_WORLD, &req->request);
+                STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot Ireceive a msg with a size of %d Bytes !", len);
 
                 channel->starpu_mp_common_finished_receiver++;
                 channel->starpu_mp_common_finished_sender++;

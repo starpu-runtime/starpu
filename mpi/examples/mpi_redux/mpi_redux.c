@@ -92,7 +92,7 @@ static struct starpu_codelet task_red_cl =
 {
 	.cpu_funcs = { cl_cpu_task_red },
 	.nbuffers = 2,
-	.modes = { STARPU_RW, STARPU_R },
+	.modes = { STARPU_RW|STARPU_COMMUTE, STARPU_R },
 	.name = "task_red"
 };
 
@@ -123,7 +123,6 @@ int main(int argc, char *argv[])
 	double a, b[comm_size];
 	starpu_data_handle_t a_h, b_h[comm_size];
 	double work_coef = 2;
-	enum starpu_data_access_mode codelet_mode;
 	enum starpu_data_access_mode task_mode;
 	int i,j,work_node;
     	starpu_mpi_tag_t tag = 0;

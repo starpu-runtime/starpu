@@ -81,6 +81,9 @@ EXTRA_DIST = 					\
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.mps */*/*.mps *.dot */*.dot */*/*.dot *.pl */*.pl */*/*.pl *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90
 
+clean-local:
+	-rm -rf mult/sgemm.traces lu/lu.traces
+
 if STARPU_USE_CUDA
 
 if STARPU_COVERITY
@@ -240,7 +243,6 @@ STARPU_EXAMPLES +=				\
 	filters/fmultiple_submit_readonly	\
 	filters/fmultiple_submit_implicit	\
 	filters/frecursive			\
-	filters/fplan_notautomatic		\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2018,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -524,6 +524,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	if (old_replicate)
 	{
 		_starpu_data_unregister_ram_pointer(old_replicate->handle, node);
+		old_replicate->mc = NULL;
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
 		old_replicate->initialized = 0;
@@ -1102,6 +1103,38 @@ size_t _starpu_memory_reclaim_generic(unsigned node, unsigned force, size_t recl
 size_t _starpu_free_all_automatically_allocated_buffers(unsigned node)
 {
 	return _starpu_memory_reclaim_generic(node, 1, 0, STARPU_FETCH);
+}
+
+int starpu_data_evict_from_node(starpu_data_handle_t handle, unsigned node)
+{
+	STARPU_ASSERT(node < STARPU_MAXNODES);
+	struct _starpu_data_replicate *replicate;
+	if (handle->per_worker)
+		replicate = &handle->per_worker[node];
+	else
+		replicate = &handle->per_node[node];
+
+	_starpu_spin_lock(&handle->header_lock);
+
+	struct _starpu_mem_chunk *mc = replicate->mc;
+	int ret = -1;
+
+	if (!mc)
+		/* Nothing there */
+		goto out;
+
+	_starpu_spin_lock(&mc_lock[node]);
+	if (mc->remove_notify)
+		/* Somebody already working here */
+		goto out_mc;
+	if (try_to_throw_mem_chunk(mc, node, NULL, 0, STARPU_FETCH) == 0)
+		goto out_mc;
+	ret = 0;
+out_mc:
+	_starpu_spin_unlock(&mc_lock[node]);
+out:
+	_starpu_spin_unlock(&handle->header_lock);
+	return ret;
 }
 
 /* Periodic tidy of available memory  */
@@ -1923,4 +1956,14 @@ void starpu_data_set_user_data(starpu_data_handle_t handle, void* user_data)
 void *starpu_data_get_user_data(starpu_data_handle_t handle)
 {
 	return handle->user_data;
+}
+
+void starpu_data_set_sched_data(starpu_data_handle_t handle, void* sched_data)
+{
+	handle->sched_data = sched_data;
+}
+
+void *starpu_data_get_sched_data(starpu_data_handle_t handle)
+{
+	return handle->sched_data;
 }

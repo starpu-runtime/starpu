@@ -441,7 +441,7 @@ int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worke
 		info->executed_tasks = worker_info[workerid].executed_tasks;
 	}
 
-	STARPU_PTHREAD_MUTEX_LOCK(&_starpu_get_worker_struct(workerid)->sched_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&_starpu_get_worker_struct(workerid)->sched_mutex);
 	STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
 	if (info)
@@ -476,7 +476,7 @@ int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worke
 	_starpu_worker_reset_profiling_info_with_lock(workerid);
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_get_worker_struct(workerid)->sched_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&_starpu_get_worker_struct(workerid)->sched_mutex);
 
 	return 0;
 }

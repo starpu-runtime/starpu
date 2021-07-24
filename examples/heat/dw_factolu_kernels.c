@@ -338,7 +338,6 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, void *_arg
 
 #ifdef STARPU_USE_CUDA
 	cudaStream_t stream;
-	cublasHandle_t handle;
 	cublasStatus_t status;
 #endif
 
@@ -372,7 +371,6 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, void *_arg
 #ifdef STARPU_USE_CUDA
 		case 1:
 			stream = starpu_cuda_get_local_stream();
-			handle = starpu_cublas_get_local_handle();
 			for (z = 0; z < nx; z++)
 			{
 				float pivot;

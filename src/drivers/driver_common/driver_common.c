@@ -114,12 +114,12 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 				}
 			}
 		}
-		_STARPU_TRACE_TASK_COLOR(j);
+		_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
 		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, &sched_ctx->perf_arch, workerid);
 	}
 	else
 	{
-		_STARPU_TRACE_TASK_COLOR(j);
+		_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
 		_STARPU_TRACE_START_CODELET_BODY(j, j->nimpl, perf_arch, workerid);
 	}
 	_starpu_sched_ctx_unlock_read(sched_ctx->id);

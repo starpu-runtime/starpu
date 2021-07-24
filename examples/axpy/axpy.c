@@ -231,8 +231,8 @@ enodev:
 	if (exit_value != 77)
 		exit_value = check();
 
-	starpu_free((void *)_vec_x);
-	starpu_free((void *)_vec_y);
+	starpu_free_noflag((void *)_vec_x, N*sizeof(TYPE));
+	starpu_free_noflag((void *)_vec_y, N*sizeof(TYPE));
 
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_unload_opencl(&opencl_program);

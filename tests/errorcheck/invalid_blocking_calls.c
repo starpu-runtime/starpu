@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait");
 	starpu_data_unregister(handle);
 
-	starpu_free(data);
+	starpu_free_noflag(data, sizeof(*data));
 
 	starpu_shutdown();
 

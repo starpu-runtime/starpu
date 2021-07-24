@@ -4,6 +4,7 @@
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
+ * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <strings.h>
 #ifdef __linux__
 #include <sys/utsname.h>
 #endif
@@ -53,6 +55,14 @@
 
 #if defined(_WIN32) && !defined(__CYGWIN__)
 #include <windows.h>
+#endif
+
+#if defined(_WIN32)
+#ifdef __GNUC__
+#define ffs(arg) __builtin_ffs(arg)
+#else
+#define ffs(arg) _bit_scan_forward(arg)
+#endif
 #endif
 
 
@@ -208,6 +218,7 @@ struct _starpu_driver_info starpu_driver_info[STARPU_NARCH];
 
 void _starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct _starpu_driver_info *info)
 {
+	STARPU_ASSERT(archtype >= 0 && archtype < STARPU_NARCH);
 	starpu_driver_info[archtype] = *info;
 }
 
@@ -953,7 +964,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		 * before starting another one, to make sure they appear in
 		 * order in the trace.
 		 */
-		if ((!workerarg->set || workerarg->set->workers == workerarg)
+		if (fut_active && (!workerarg->set || workerarg->set->workers == workerarg)
 			&& workerarg->run_by_starpu == 1 && workerarg->arch != STARPU_MPI_MS_WORKER)
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
@@ -979,10 +990,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
                 /* We use the first worker to know if everything are finished */
 #ifdef STARPU_USE_FXT
-                STARPU_PTHREAD_MUTEX_LOCK(&worker_zero->mutex);
-                while (!worker_zero->worker_is_running)
-                        STARPU_PTHREAD_COND_WAIT(&worker_zero->started_cond, &worker_zero->mutex);
-                STARPU_PTHREAD_MUTEX_UNLOCK(&worker_zero->mutex);
+		if (fut_active)
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&worker_zero->mutex);
+			while (!worker_zero->worker_is_running)
+				STARPU_PTHREAD_COND_WAIT(&worker_zero->started_cond, &worker_zero->mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker_zero->mutex);
+		}
 #endif
 
                 STARPU_PTHREAD_MUTEX_LOCK(&worker_set_zero->mutex);
@@ -1101,11 +1115,11 @@ int starpu_conf_init(struct starpu_conf *conf)
 #endif
 
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY)
-    conf->disable_asynchronous_mpi_ms_copy = 1;
+	conf->disable_asynchronous_mpi_ms_copy = 1;
 #else
-    conf->disable_asynchronous_mpi_ms_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
-    if(conf->disable_asynchronous_mpi_ms_copy == -1)
-        conf->disable_asynchronous_mpi_ms_copy = 0;
+	conf->disable_asynchronous_mpi_ms_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
+	if(conf->disable_asynchronous_mpi_ms_copy == -1)
+		conf->disable_asynchronous_mpi_ms_copy = 0;
 #endif
 
 	/* 64MiB by default */
@@ -1260,7 +1274,10 @@ static void _starpu_build_tree(void)
 static starpu_pthread_mutex_t sig_handlers_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static void (*act_sigint)(int);
 static void (*act_sigsegv)(int);
+static void (*act_sigabrt)(int);
+#ifdef SIGTRAP
 static void (*act_sigtrap)(int);
+#endif
 
 void _starpu_handler(int sig)
 {
@@ -1283,6 +1300,13 @@ void _starpu_handler(int sig)
 		if (sig_act == NULL)
 			sig_act = SIG_DFL;
 		signal(SIGSEGV, sig_act);
+	}
+	if (sig == SIGABRT)
+	{
+		void (*sig_act)(int) = act_sigabrt;
+		if (sig_act == NULL)
+			sig_act = SIG_DFL;
+		signal(SIGABRT, sig_act);
 	}
 #ifdef SIGTRAP
 	if (sig == SIGTRAP)
@@ -1311,6 +1335,11 @@ void _starpu_catch_signals(void)
 		old_sig_act = signal(SIGSEGV, _starpu_handler);
 		if (old_sig_act != _starpu_handler)
 			act_sigsegv  = old_sig_act;
+
+		old_sig_act = signal(SIGABRT, _starpu_handler);
+		if (old_sig_act != _starpu_handler)
+			act_sigabrt  = old_sig_act;
+
 #ifdef SIGTRAP
 		old_sig_act = signal(SIGTRAP, _starpu_handler);
 		if (old_sig_act != _starpu_handler)
@@ -1330,6 +1359,13 @@ void _starpu_catch_signals(void)
 			signal(SIGSEGV, act_sigsegv);
 			act_sigsegv = NULL;
 		}
+
+		if (act_sigabrt != NULL)
+		{
+			signal(SIGABRT, act_sigsegv);
+			act_sigabrt = NULL;
+		}
+
 #ifdef SIGTRAP
 		if (act_sigtrap != NULL)
 		{
@@ -1455,7 +1491,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_STARPU_DISP("Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
 #endif
 #ifdef STARPU_USE_FXT
-	_STARPU_DISP("Warning: StarPU was configured with --with-fxt, which slows down a bit, limits scalability and makes worker initialization sequential\n");
+	if (starpu_fxt_is_enabled())
+		_STARPU_DISP("Warning: FxT is enabled, which slows down a bit, limits scalability and makes worker initialization sequential\n");
 #endif
 #ifdef STARPU_FXT_LOCK_TRACES
 	_STARPU_DISP("Warning: StarPU was configured with --enable-fxt-lock, which slows down things a huge lot, and is really only meant for StarPU insides debugging. Did you really want to enable that?\n");
@@ -1475,6 +1512,13 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 			_STARPU_DISP("Warning: This system is running a 4.7 or 4.8 kernel. These have a severe scheduling performance regression issue, please upgrade to at least 4.9.\n");
 	}
 #endif
+#endif
+
+#ifndef STARPU_USE_FXT
+	if (starpu_get_env_number("STARPU_FXT_TRACE") > 0)
+	{
+		_STARPU_DISP("Warning: FxT trace is requested but StarPU was configured without FxT support\n");
+	}
 #endif
 
 	if (starpu_getenv("STARPU_ENABLE_STATS"))
@@ -1991,6 +2035,24 @@ void starpu_shutdown(void)
 #endif
 }
 
+unsigned starpu_worker_archtype_is_valid(enum starpu_worker_archtype type)
+{
+	return (type >= 0 && type < STARPU_NARCH)
+		&& (starpu_driver_info[type].name_upper != NULL);
+}
+
+enum starpu_worker_archtype starpu_arch_mask_to_worker_archtype(unsigned mask)
+{
+	STARPU_ASSERT(mask && !(mask & (mask-1))); // ensures that only one bit of the mask is set
+
+	enum starpu_worker_archtype worker_type = ffs(mask)-2; // ffs(mask) is the indice of the lesser bit
+
+	STARPU_ASSERT(worker_type >= 0 && worker_type < STARPU_NARCH); // worker_type is positive and lesser than arch number
+	STARPU_ASSERT(starpu_worker_archtype_is_valid(worker_type)); // worker_type is a valid worker architecture
+
+	return worker_type;
+}
+
 #undef starpu_worker_get_count
 unsigned starpu_worker_get_count(void)
 {
@@ -2345,6 +2407,11 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 	return ndevids;
 }
 
+unsigned starpu_worker_type_can_execute_task(enum starpu_worker_archtype worker_type, const struct starpu_task *task)
+{
+	return (STARPU_WORKER_TO_MASK(worker_type) & task->where) != 0;
+}
+
 void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 {
 	char *name = _starpu_config.workers[id].name;
@@ -2536,6 +2603,7 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 
 const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 {
+	STARPU_ASSERT(type >= 0 && type < STARPU_NARCH);
 	const char *ret = starpu_driver_info[type].name_upper;
 	if (!ret)
 		ret = "unknown";
@@ -2544,6 +2612,7 @@ const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 
 const char *starpu_worker_get_type_as_env_var(enum starpu_worker_archtype type)
 {
+	STARPU_ASSERT(type >= 0 && type < STARPU_NARCH);
 	const char *ret = starpu_driver_info[type].name_var;
 	if (!ret)
 		ret = "UNKNOWN";
@@ -2757,6 +2826,7 @@ void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
 
 enum starpu_node_kind starpu_worker_get_memory_node_kind(enum starpu_worker_archtype type)
 {
+	STARPU_ASSERT(type >= 0 && type < STARPU_NARCH);
 	enum starpu_node_kind kind = starpu_driver_info[type].memory_kind;
 	STARPU_ASSERT_MSG(kind != (enum starpu_node_kind) -1, "no memory for archtype %d", type);
 	return kind;
