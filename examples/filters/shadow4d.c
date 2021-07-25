@@ -108,7 +108,7 @@ void cuda_func(void *buffers[], void *cl_arg)
         /* local copy of the destination matrix pointer */
         int *val2 = (int *)STARPU_TENSOR_GET_PTR(buffers[1]);
 
-    unsigned l;
+    unsigned k, l;
     cudaError_t cures;
 
     /* If things go right, sizes should match */
