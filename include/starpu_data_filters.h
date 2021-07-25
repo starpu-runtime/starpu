@@ -527,6 +527,91 @@ void starpu_block_filter_depth_block(void *father_interface, void *child_interfa
 */
 void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
+/** @} */
+
+/**
+   @name Predefined Tensor Filter Functions
+   Predefined partitioning functions for tensor
+   data.
+   @{
+*/
+
+/**
+  Partition a tensor along the X dimension, thus getting
+  (x/\p nparts ,y,z,t) tensors. If \p nparts does not divide x, the last
+  submatrix contains the remainder.
+ */
+void starpu_tensor_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the X dimension, with a
+   shadow border <c>filter_arg_ptr</c>, thus getting
+   ((x-2*shadow)/\p nparts +2*shadow,y,z,t) tensors. If \p nparts does not
+   divide x, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_tensor_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the Y dimension, thus getting
+   (x,y/\p nparts ,z,t) tensors. If \p nparts does not divide y, the last
+   submatrix contains the remainder.
+ */
+void starpu_tensor_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the Y dimension, with a
+   shadow border <c>filter_arg_ptr</c>, thus getting
+   (x,(y-2*shadow)/\p nparts +2*shadow,z,t) tensors. If \p nparts does not
+   divide y, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_tensor_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the Z dimension, thus getting
+   (x,y,z/\p nparts,t) tensors. If \p nparts does not divide z, the last
+   submatrix contains the remainder.
+*/
+void starpu_tensor_filter_depth_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the Z dimension, with a
+   shadow border <c>filter_arg_ptr</c>, thus getting
+   (x,y,(z-2*shadow)/\p nparts +2*shadow,t) tensors. If \p nparts does not
+   divide z, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_tensor_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the T dimension, thus getting
+   (x,y,z,t/\p nparts) tensors. If \p nparts does not divide t, the last
+   submatrix contains the remainder.
+*/
+void starpu_tensor_filter_time_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the T dimension, with a
+   shadow border <c>filter_arg_ptr</c>, thus getting
+   (x,y,z,(t-2*shadow)/\p nparts +2*shadow) tensors. If \p nparts does not
+   divide t, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_tensor_filter_time_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
 /**
    Given an integer \p n, \p n the number of parts it must be divided in, \p id the
    part currently considered, determines the \p chunk_size and the \p offset, taking

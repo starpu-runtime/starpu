@@ -236,6 +236,7 @@ STARPU_EXAMPLES +=				\
 	cpp/add_vectors_interface		\
 	filters/fread				\
 	filters/fvector				\
+	filters/ftensor				\
 	filters/fblock				\
 	filters/fmatrix				\
 	filters/fmultiple_manual		\
@@ -625,7 +626,8 @@ endif
 examplebin_PROGRAMS +=				\
 	filters/shadow				\
 	filters/shadow2d			\
-	filters/shadow3d
+	filters/shadow3d			\
+	filters/shadow4d
 
 #############################
 # Custom multiformat filter #
