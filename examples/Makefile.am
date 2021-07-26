@@ -162,7 +162,9 @@ if !STARPU_USE_MPI_MASTER_SLAVE
 SHELL_TESTS			+=	scheduler/schedulers.sh
 SHELL_TESTS			+=	scheduler/schedulers_context.sh
 if !STARPU_NO_BLAS_LIB
+if STARPU_USE_FXT
 SHELL_TESTS			+=	mult/sgemm.sh
+endif
 endif
 endif
 

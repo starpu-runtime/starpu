@@ -458,8 +458,12 @@ endif
 if !STARPU_USE_MPI_MASTER_SLAVE
 SHELL_TESTS += \
 	datawizard/locality.sh \
-	microbenchs/bandwidth_scheds.sh \
+	microbenchs/bandwidth_scheds.sh
+
+if STARPU_USE_FXT
+SHELL_TESTS += \
 	overlap/overlap.sh
+endif
 endif
 
 ################################
