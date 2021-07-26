@@ -51,16 +51,16 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		perror("open failed :");
+		exit(-1);
 	}
 
 	static fxt_t fut;
 	fut = fxt_fdopen(fd_in);
 	if (!fut)
 	{
-	        perror("fxt_fdopen :");
-	        exit(-1);
+		perror("fxt_fdopen :");
+		exit(-1);
 	}
 
 	fxt_blockev_t block;
@@ -93,8 +93,8 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
 	/* Close the trace file */
 	if (close(fd_in))
 	{
-	        perror("close failed :");
-	        exit(-1);
+		perror("close failed :");
+		exit(-1);
 	}
 
 	return func_ret;

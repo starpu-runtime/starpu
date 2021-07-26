@@ -258,8 +258,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	poti_DefineContainerType("MPICt", "P", "MPI Communication Thread");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 	poti_DefineEventType("prog_event", "P", "program event type");
-       poti_DefineEventType("pu", "P", "task push");
-       poti_DefineEventType("po", "P", "task pop");
+	poti_DefineEventType("pu", "P", "task push");
+	poti_DefineEventType("po", "P", "task pop");
 	poti_DefineEventType("register", "P", "data registration");
 	poti_DefineEventType("unregister", "P", "data unregistration");
 
@@ -269,7 +269,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	poti_DefineEventType("SO", "Mm", "data state owner");
 	poti_DefineEventType("WU", "Mm", "data wont use");
 	poti_DefineEventType("Al", "Mm", "Allocating Start");
-       poti_DefineEventType("rc", "Mm", "Request Created");
+	poti_DefineEventType("rc", "Mm", "Request Created");
 	poti_DefineEventType("AlE", "Mm", "Allocating End");
 	poti_DefineEventType("Alr", "Mm", "Allocating Async Start");
 	poti_DefineEventType("AlrE", "Mm", "Allocating Async End");

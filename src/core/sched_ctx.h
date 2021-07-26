@@ -216,19 +216,23 @@ int _starpu_get_index_in_ctx_of_workerid(unsigned sched_ctx, unsigned workerid);
 /** Get the mutex corresponding to the global workerid */
 starpu_pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched_ctx, int worker);
 
-/** Get workers belonging to a certain context, it returns the number of workers
- take care: no mutex taken, the list of workers might not be updated */
+/** Get workers belonging to a certain context, it returns the number
+ * of workers take care: no mutex taken, the list of workers might not
+ * be updated
+ */
 int _starpu_get_workers_of_sched_ctx(unsigned sched_ctx_id, int *pus, enum starpu_worker_archtype arch);
 
-/** Let the worker know it does not belong to the context and that
-   it should stop poping from it */
+/** Let the worker know it does not belong to the context and that it
+ * should stop poping from it
+ */
 void _starpu_worker_gets_out_of_ctx(unsigned sched_ctx_id, struct _starpu_worker *worker);
 
 /** Check if the worker belongs to another sched_ctx */
 unsigned _starpu_worker_belongs_to_a_sched_ctx(int workerid, unsigned sched_ctx_id);
 
-/** indicates wheather this worker should go to sleep or not
-   (if it is the last one awake in a context he should better keep awake) */
+/** indicates wheather this worker should go to sleep or not (if it is
+ * the last one awake in a context he should better keep awake)
+ */
 unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker);
 
 /** If starpu_sched_ctx_set_context() has been called, returns the context

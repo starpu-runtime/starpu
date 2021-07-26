@@ -1897,8 +1897,8 @@ static void handle_end_codelet_body(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 	ongoing_computation[worker] = comp;
 
 	if (distrib_time)
-	     fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", _starpu_last_codelet_symbol[worker],
-		     prefix, worker, (unsigned long) codelet_size, codelet_hash, codelet_length);
+		fprintf(distrib_time, "%s\t%s%d\t%ld\t%"PRIx32"\t%.9f\n", _starpu_last_codelet_symbol[worker],
+			prefix, worker, (unsigned long) codelet_size, codelet_hash, codelet_length);
 
 	if (options->dumped_codelets)
 	{
@@ -2547,9 +2547,9 @@ static void handle_job_push(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 		scheduler_container_alias(container, STARPU_POTI_STR_LEN, options->file_prefix);
 		poti_SetVariable(current_timestamp, container, "nready", (double)curq_size);
 
-               char paje_value[STARPU_POTI_STR_LEN];
-               snprintf(paje_value, sizeof(paje_value), "%u", task);
-               snprintf(container, sizeof(container), "%sp", options->file_prefix);
+		char paje_value[STARPU_POTI_STR_LEN];
+		snprintf(paje_value, sizeof(paje_value), "%u", task);
+		snprintf(container, sizeof(container), "%sp", options->file_prefix);
 		if (!options->no_events)
 			poti_NewEvent(get_event_time_stamp(ev, options), container, "pu", paje_value);
 #else
@@ -2820,7 +2820,7 @@ static void handle_task_name(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 	char *prefix = options->file_prefix;
 	struct task_info *task = get_task(job_id, options->file_rank);
-        int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
+	int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
 
 	const char *color;
 	char buffer[32];
@@ -2902,9 +2902,7 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 
 	unsigned long has_name = ev->param[2];
 	char *name = has_name?get_fxt_string(ev,3):"unknown";
-
-        int worker;
-        worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
+	int worker = find_worker_id(prefixTOnodeid(prefix), ev->param[1]);
 
 	const char *color;
 	char buffer[32];
@@ -3285,7 +3283,7 @@ void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 		/* This communication is complete */
 		_starpu_communication_list_erase(&communication_list, itor);
 
-		current_bandwidth_out_per_node[itor->src_node] +=  itor->bandwidth;
+		current_bandwidth_out_per_node[itor->src_node] += itor->bandwidth;
 		if (out_paje_file)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -3298,7 +3296,7 @@ void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 #endif
 		}
 
-		current_bandwidth_in_per_node[itor->dst_node] +=  itor->bandwidth;
+		current_bandwidth_in_per_node[itor->dst_node] += itor->bandwidth;
 		if (out_paje_file)
 		{
 #ifdef STARPU_HAVE_POTI
@@ -3361,8 +3359,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	fut = fxt_fdopen(fd_in);
 	if (!fut)
 	{
-	        perror("fxt_fdopen :");
-	        exit(-1);
+		perror("fxt_fdopen :");
+		exit(-1);
 	}
 
 	fxt_blockev_t block;
@@ -3676,12 +3674,12 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 					handle_data_request(&ev, options, "rc");
 				}
 				break;
-		  case _STARPU_FUT_PAPI_TASK_EVENT_VALUE:
+			case _STARPU_FUT_PAPI_TASK_EVENT_VALUE:
 				handle_papi_event(&ev, options);
 				break;
 			case _STARPU_FUT_DATA_COPY:
 				if (!options->no_bus)
-				     handle_data_copy();
+					handle_data_copy();
 				break;
 
 			case _STARPU_FUT_DATA_LOAD:
@@ -3740,14 +3738,14 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				if (!options->no_bus)
 				{
 					handle_push_memnode_event(&ev, options, "A");
-                                       handle_memnode_event_start_4(&ev, options, "Al");
+					handle_memnode_event_start_4(&ev, options, "Al");
 				}
 				break;
 			case _STARPU_FUT_START_ALLOC_REUSE:
 				if (!options->no_bus)
 				{
 					handle_push_memnode_event(&ev, options, "Ar");
-                                       handle_memnode_event_start_4(&ev, options, "Alr");
+					handle_memnode_event_start_4(&ev, options, "Alr");
 				}
 				break;
 			case _STARPU_FUT_END_ALLOC:
@@ -4191,8 +4189,8 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 #else
 	if (close(fd_in))
 	{
-	        perror("close failed :");
-	        exit(-1);
+		perror("close failed :");
+		exit(-1);
 	}
 #endif
 }
@@ -4598,8 +4596,8 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 	fut = fxt_fdopen(fd_in);
 	if (!fut)
 	{
-	        perror("fxt_fdopen :");
-	        exit(-1);
+		perror("fxt_fdopen :");
+		exit(-1);
 	}
 
 	fxt_blockev_t block;
@@ -4620,8 +4618,8 @@ uint64_t _starpu_fxt_find_start_time(char *filename_in)
 #else
 	if (close(fd_in))
 	{
-	        perror("close failed :");
-	        exit(-1);
+		perror("close failed :");
+		exit(-1);
 	}
 #endif
 	return (ev.time);
@@ -4882,8 +4880,8 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 	fut = fxt_fdopen(fd_in);
 	if (!fut)
 	{
-	        perror("fxt_fdopen :");
-	        exit(-1);
+		perror("fxt_fdopen :");
+		exit(-1);
 	}
 
 	char filename_out[512];
@@ -4975,8 +4973,8 @@ void starpu_fxt_write_data_trace_in_dir(char *filename_in, char *dir)
 #else
 	if (close(fd_in))
 	{
-	        perror("close failed :");
-	        exit(-1);
+		perror("close failed :");
+		exit(-1);
 	}
 #endif
 

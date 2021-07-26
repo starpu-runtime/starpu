@@ -171,9 +171,9 @@ static int tree_get_next_master(struct starpu_worker_collection *workers, struct
 static unsigned tree_has_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	if(it->possibly_parallel == 1)
-                return tree_has_next_master(workers, it);
-        else if(it->possibly_parallel == 0)
-                return tree_has_next_unblocked_worker(workers, it);
+		return tree_has_next_master(workers, it);
+	else if(it->possibly_parallel == 0)
+		return tree_has_next_unblocked_worker(workers, it);
 
 	STARPU_ASSERT(it != NULL);
 	if(workers->nworkers == 0)
@@ -229,9 +229,9 @@ static unsigned tree_has_next(struct starpu_worker_collection *workers, struct s
 static int tree_get_next(struct starpu_worker_collection *workers, struct starpu_sched_ctx_iterator *it)
 {
 	if(it->possibly_parallel == 1)
-                return tree_get_next_master(workers, it);
-        else if(it->possibly_parallel == 0)
-                return tree_get_next_unblocked_worker(workers, it);
+		return tree_get_next_master(workers, it);
+	else if(it->possibly_parallel == 0)
+		return tree_get_next_unblocked_worker(workers, it);
 
 	int ret = -1;
 

@@ -103,7 +103,7 @@ static unsigned _worker_belongs_to_ctx(struct starpu_worker_collection *workers,
 {
 	int *workerids = (int *)workers->workerids;
 	unsigned nworkers = workers->nworkers;
-	
+
 	unsigned i;
 	for(i = 0; i < nworkers; i++)
 	{
@@ -125,7 +125,7 @@ static int list_add(struct starpu_worker_collection *workers, int worker)
 		workerids[(*nworkers)++] = worker;
 		return worker;
 	}
-	else 
+	else
 		return -1;
 }
 
@@ -140,8 +140,8 @@ static int _get_first_free_worker(int *workerids, int nworkers)
 }
 
 /* rearange array of workerids in order not to have {-1, -1, 5, -1, 7}
-   and have instead {5, 7, -1, -1, -1} 
-   it is easier afterwards to iterate the array
+ * and have instead {5, 7, -1, -1, -1}
+ * it is easier afterwards to iterate the array
 */
 static void _rearange_workerids(int *workerids, int old_nworkers)
 {
@@ -171,7 +171,7 @@ static int list_remove(struct starpu_worker_collection *workers, int worker)
 
 	int *masters = (int *)workers->masters;
 	unsigned nmasters = workers->nmasters;
-	
+
 	unsigned i;
 	int found_worker = -1;
 	for(i = 0; i < nworkers; i++)
@@ -280,7 +280,7 @@ static void list_init_iterator_for_parallel_tasks(struct starpu_worker_collectio
 	unsigned nworkers = workers->nworkers;
 	unsigned i;
 	int nm = 0, nub = 0;
-	for(i = 0;  i < nworkers; i++)
+	for(i = 0; i < nworkers; i++)
 	{
 		if(!starpu_worker_is_blocked_in_parallel(workerids[i]))
 		{
@@ -307,4 +307,3 @@ struct starpu_worker_collection starpu_worker_list =
 	.init_iterator_for_parallel_tasks = list_init_iterator_for_parallel_tasks,
 	.type = STARPU_WORKER_LIST
 };
-
