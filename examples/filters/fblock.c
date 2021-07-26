@@ -157,11 +157,8 @@ int main(void)
                 task->cl_arg_size = sizeof(multiplier);
 
                 ret = starpu_task_submit(task);
-                if (ret)
-		{
-                        FPRINTF(stderr, "Error when submitting task\n");
-                        exit(ret);
-                }
+                if (ret == -ENODEV) goto enodev;
+                STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
         }
 
         /* Unpartition the data, unregister it from StarPU and shutdown */
@@ -178,8 +175,12 @@ int main(void)
         FPRINTF(stderr, "OUT Block\n");
         print_block(block, NX, NY, NZ, NX, NX*NY);
 
-	free(block);
+        free(block);
+        
+        starpu_shutdown();
+        return 0;
 
-	starpu_shutdown();
-	return 0;
+enodev:
+        starpu_shutdown();
+        return 77;
 }
