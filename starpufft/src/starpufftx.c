@@ -438,6 +438,7 @@ STARPUFFT(free)(void *p, size_t dim)
 #ifdef STARPU_USE_CUDA
 	starpu_free_noflag(p, dim);
 #else
+	(void)dim;
 #  ifdef STARPU_HAVE_FFTW
 	_FFTW(free)(p);
 #  else
