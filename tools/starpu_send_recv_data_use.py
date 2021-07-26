@@ -92,7 +92,7 @@ def plot_graph(comm_time_key, match, filename, title, xlabel):
                 workers[worker] = []
 
             eps = t["starttime"] - c[comm_time_key]
-            assert(eps > 0)
+            assert eps > 0
             durations.append(eps)
             workers[worker].append((c[comm_time_key], eps))
 
