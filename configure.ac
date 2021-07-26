@@ -1070,11 +1070,16 @@ AC_ARG_ENABLE(maxcpus, [AS_HELP_STRING([--enable-maxcpus=<number>],
 			maxcpus=$enableval, maxcpus=auto)
 if test x$maxcpus == xauto
 then
-	maxcpus=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
-	if test x$maxcpus = x
+	confcpu=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
+	if test x$confcpu = x
 	then
 		AC_MSG_ERROR([cannot get the number of CPUS, please specify a numerical value with --enable-maxcpus])
 	fi
+	maxcpus=2
+	while test $maxcpus -lt $confcpu
+	do
+		maxcpus=`expr $maxcpus \* 2`
+	done
 fi
 AC_MSG_RESULT($maxcpus)
 AC_DEFINE_UNQUOTED(STARPU_MAXCPUS, [$maxcpus], [Maximum number of CPUs supported])
