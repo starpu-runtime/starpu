@@ -19,7 +19,7 @@
 #include <datawizard/filters.h>
 
 static void _starpu_block_filter_block(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-			       unsigned id, unsigned nparts, uintptr_t shadow_size)
+				       unsigned id, unsigned nparts, uintptr_t shadow_size)
 {
 	struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
         struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
@@ -60,6 +60,8 @@ static void _starpu_block_filter_block(int dim, void *father_interface, void *ch
 			nn = nz;
 			blocksize = block_father->ldz;
 			break;
+		default:
+			STARPU_ASSERT_MSG(0, "Unknown value for dim");
 	}
 
 	size_t elemsize = block_father->elemsize;

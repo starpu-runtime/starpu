@@ -1040,11 +1040,10 @@ void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write
 	_starpu_data_partition_access_look_up(target, NULL, write);
 }
 
-void
-starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
-					     size_t elemsize, unsigned id,
-					     unsigned blocksize, unsigned *chunk_size,
-					     size_t *offset)
+void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
+							size_t elemsize, unsigned id,
+							unsigned blocksize, unsigned *chunk_size,
+							size_t *offset)
 {
 	*chunk_size = n/nparts;
 	unsigned remainder = n % nparts;

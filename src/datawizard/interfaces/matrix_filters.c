@@ -52,8 +52,10 @@ static void _starpu_matrix_filter_block(int dim, void *father_interface, void *c
 			nn = ny;
 			blocksize = matrix_father->ld;
 			break;
+		default:
+			STARPU_ASSERT_MSG(0, "Unknown value for dim");
 	}
-	
+
 	size_t elemsize = matrix_father->elemsize;
 
 	STARPU_ASSERT_MSG(nchunks <= nn, "cannot split %u elements in %u parts", nn, nchunks);
@@ -80,6 +82,8 @@ static void _starpu_matrix_filter_block(int dim, void *father_interface, void *c
 			matrix_child->nx = nx;
 			matrix_child->ny = child_nn;
 			break;
+		default:
+			STARPU_ASSERT_MSG(0, "Unknown value for dim");
 	}
 
 	matrix_child->elemsize = elemsize;
