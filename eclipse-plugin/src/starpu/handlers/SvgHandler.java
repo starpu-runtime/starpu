@@ -54,10 +54,10 @@ public class SvgHandler extends AbstractHandler {
 				else
 				{
 					String map = TraceUtils.readFileToString(workDir + "/output.map");
-					Pattern p = Pattern.compile("href=\"[^#\"]+#");
-					IPath ipath = ((IPathEditorInput) input).getPath().makeAbsolute();
-					String chemin = ipath.toString();
-					String replaceBy = "href=\"" + chemin + "#";
+					Pattern p = Pattern.compile("href=\"([^#\"/]+/)*");
+					IPath ipath = ((IPathEditorInput) input).getPath().makeAbsolute().removeLastSegments(1);
+					String path = ipath.toString();
+					String replaceBy = "href=\"" + path + "/";
 					map = p.matcher(map).replaceAll(replaceBy);
 
 					PrintWriter pw = new PrintWriter(workDir + "/output.html");
