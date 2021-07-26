@@ -55,7 +55,7 @@ public class TraceGenHandler extends AbstractHandler {
 				if (!f.isFile())
 					throw new Exception("File <" + inputfilename + "> does not exist. Have you run your application?");
 
-				String[] command = {"starpu_fxt_tool", "-i", inputfilename, "-d", TraceUtils.getRandomDirectoryName()};
+				String[] command = {"starpu_fxt_tool", "-i", inputfilename, "-d", TraceUtils.getRandomDirectoryName(), "-c", "-no-acquire"};
 				TraceUtils.runCommand(command);
 			} catch (Exception e) {
 				TraceUtils.displayMessage("Error: " + e.toString());
