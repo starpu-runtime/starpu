@@ -36,6 +36,7 @@
 #include <core/detect_combined_workers.h>
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
+#include <drivers/max/driver_max_fpga.h>
 #include <profiling/bound.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
@@ -46,6 +47,7 @@
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
+#include <drivers/max/driver_max_fpga.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/disk/driver_disk.h>
 
@@ -303,6 +305,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->opencl_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
+			case STARPU_MAX_FPGA_WORKER:
+				if (task->cl->max_fpga_funcs[impl] != NULL)
+					test_implementation = 1;
+				break;
                         case STARPU_MPI_MS_WORKER:
                                 if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
                                         test_implementation = 1;
@@ -359,6 +365,11 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	if ((task->where & STARPU_OPENCL) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_OPENCL_WORKER))
+		return 1;
+#endif
+#if defined(STARPU_USE_MAX_FPGA)
+	if ((task->where & STARPU_MAX_FPGA) &&
+	    _starpu_worker_exists_and_can_execute(task, STARPU_MAX_FPGA_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -421,6 +432,11 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	case STARPU_OPENCL_WORKER:
 	{
 		starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, nimpl);
+		return func != NULL;
+	}
+        case STARPU_MAX_FPGA_WORKER:
+	{
+		starpu_max_fpga_func_t func = _starpu_task_get_fpga_nth_implementation(cl, nimpl);
 		return func != NULL;
 	}
 	case STARPU_MPI_MS_WORKER:
@@ -922,6 +938,35 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			}
 #endif
 
+#if defined(STARPU_USE_MAX_FPGA)
+			case STARPU_MAX_FPGA_WORKER:
+			{
+				struct starpu_driver driver;
+				driver.type = workerarg->arch;
+				workerarg->driver_ops = &_starpu_driver_max_fpga_ops;
+				workerarg->wait_for_worker_initialization = 1;
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
+				{
+					workerarg->run_by_starpu = 0;
+					break;
+				}
+				STARPU_PTHREAD_CREATE_ON(
+					workerarg->name,
+					&workerarg->worker_thread,
+					NULL,
+					_starpu_max_fpga_worker,
+					workerarg,
+					_starpu_simgrid_get_host_by_worker(workerarg));
+#ifdef STARPU_USE_FXT
+				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				while (!workerarg->worker_is_running)
+					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+#endif
+				break;
+			}
+#endif
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 			case STARPU_MPI_MS_WORKER:
 			{
@@ -1071,6 +1116,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->reserve_ncpus++;
 	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
+	conf->nmax_fpga = starpu_get_env_number("STARPU_NMAX_FPGA");
 	conf->nmpi_ms = starpu_get_env_number("STARPU_NMPI_MS");
 	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
 	conf->bus_calibrate = starpu_get_env_number("STARPU_BUS_CALIBRATE");
@@ -1084,6 +1130,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_bindid = 0; /* TODO */
 	conf->use_explicit_workers_cuda_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
+	conf->use_explicit_workers_max_fpga_deviceid = 0; /* TODO */
 	conf->use_explicit_workers_mpi_ms_deviceid = 0; /* TODO */
 
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
@@ -1114,6 +1161,14 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->disable_asynchronous_opencl_copy = 0;
 #endif
 
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY)
+	conf->disable_asynchronous_max_fpga_copy = 1;
+#else
+	conf->disable_asynchronous_max_fpga_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY");
+	if (conf->disable_asynchronous_max_fpga_copy == -1)
+		conf->disable_asynchronous_max_fpga_copy = 0;
+#endif
+
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY)
 	conf->disable_asynchronous_mpi_ms_copy = 1;
 #else
@@ -1140,6 +1195,7 @@ int starpu_conf_noworker(struct starpu_conf *conf)
 	conf->ncpus = 0;
 	conf->ncuda = 0;
 	conf->nopencl = 0;
+	conf->nmax_fpga = 0;
 	conf->nmpi_ms = 0;
 	return 0;
 }
@@ -1173,6 +1229,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 		conf->reserve_ncpus++;
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl, conf->precedence_over_environment_variables);
+        _starpu_conf_set_value_against_environment("STARPU_NMAX_FPGA", &conf->nmax_fpga, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate, conf->precedence_over_environment_variables);
 #ifdef STARPU_SIMGRID
@@ -1189,6 +1246,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY", &conf->disable_asynchronous_max_fpga_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_MIN_PRIO", &conf->global_sched_ctx_min_priority, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_MAX_PRIO", &conf->global_sched_ctx_max_priority, conf->precedence_over_environment_variables);
@@ -1394,6 +1452,7 @@ void starpu_drivers_preinit(void)
 	_starpu_cpu_preinit();
 	_starpu_cuda_preinit();
 	_starpu_opencl_preinit();
+	_starpu_max_fpga_preinit();
 	_starpu_mpi_ms_preinit();
 	_starpu_disk_preinit();
 }
@@ -2182,6 +2241,11 @@ int starpu_asynchronous_cuda_copy_disabled(void)
 int starpu_asynchronous_opencl_copy_disabled(void)
 {
 	return _starpu_config.conf.disable_asynchronous_opencl_copy;
+}
+
+int starpu_asynchronous_max_fpga_copy_disabled(void)
+{
+	return _starpu_config.conf.disable_asynchronous_max_fpga_copy;
 }
 
 int starpu_asynchronous_mpi_ms_copy_disabled(void)

@@ -71,6 +71,7 @@ run(struct starpu_sched_policy *policy)
 		.cpu_funcs_name = {"A"},
 		.opencl_funcs = {A},
 		.cuda_funcs = {A},
+		.max_fpga_funcs = {A},
 		.nbuffers = 0
 	};
 
@@ -80,6 +81,7 @@ run(struct starpu_sched_policy *policy)
 		.cpu_funcs_name = {"B"},
 		.opencl_funcs = {B},
 		.cuda_funcs = {B},
+		.max_fpga_funcs = {B},
 		.nbuffers = 0
 	};
 

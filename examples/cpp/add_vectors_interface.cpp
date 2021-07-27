@@ -171,6 +171,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.ram_to_ram = NULL,
 	.ram_to_cuda = NULL,
 	.ram_to_opencl = NULL,
+	.ram_to_max_fpga = NULL,
 
 	.cuda_to_ram = NULL,
 	.cuda_to_cuda = NULL,
@@ -178,6 +179,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.opencl_to_ram = NULL,
 	.opencl_to_opencl = NULL,
 
+	.max_fpga_to_ram = NULL,
 	.ram_to_mpi_ms = NULL,
 	.mpi_ms_to_ram = NULL,
 	.mpi_ms_to_mpi_ms = NULL,
@@ -190,9 +192,8 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.opencl_to_ram_async = NULL,
 	.opencl_to_opencl_async = NULL,
 
-	.ram_to_mpi_ms_async = NULL,
-	.mpi_ms_to_ram_async = NULL,
-	.mpi_ms_to_mpi_ms_async = NULL,
+	.ram_to_max_fpga_async = NULL,
+	.max_fpga_to_ram_async = NULL,
 
 	.any_to_any = vector_interface_copy_any_to_any,
 };
@@ -205,21 +206,16 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	NULL,
 	NULL,
 	NULL,
-
-	NULL,
 	NULL,
 
 	NULL,
 	NULL,
 
 	NULL,
-
-	NULL,
-	NULL,
 	NULL,
 
 	NULL,
-	NULL,
+
 	NULL,
 
 	NULL,
@@ -234,6 +230,13 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	NULL,
 	NULL,
 
+	NULL,
+	NULL,
+
+	NULL,
+	NULL,
+
+	NULL,
 	NULL,
 	NULL,
 

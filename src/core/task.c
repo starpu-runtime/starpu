@@ -699,6 +699,22 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 #endif
 
+#ifdef STARPU_USE_MAX_FPGA
+       /* FPGA */
+	some_impl = 0;
+	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+		if (cl->max_fpga_funcs[i])
+		{
+			some_impl = 1;
+			break;
+		}
+	if (some_impl && is_where_unset)
+	{
+		where |= STARPU_MAX_FPGA;
+	}
+#endif
+
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	some_impl = 0;
 	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)

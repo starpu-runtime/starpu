@@ -235,10 +235,7 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 	if (node_ops && node_ops->is_direct_access_supported)
 		return node_ops->is_direct_access_supported(node, handling_node);
 	else
-	{
-		STARPU_ABORT_MSG("Node %s does not define the operation 'is_direct_access_supported'", _starpu_node_get_prefix(starpu_node_get_kind(node)));
-		return 1;
-	}
+		return 0;
 }
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node)

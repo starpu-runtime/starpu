@@ -47,9 +47,10 @@ enum starpu_node_kind
 	STARPU_CPU_RAM=1,
 	STARPU_CUDA_RAM=2,
 	STARPU_OPENCL_RAM=3,
-	STARPU_DISK_RAM=4,
-	STARPU_MPI_MS_RAM=5,
-	STARPU_MAX_RAM=5
+	STARPU_MAX_FPGA_RAM=4,
+	STARPU_DISK_RAM=5,
+	STARPU_MPI_MS_RAM=6,
+	STARPU_MAX_RAM=6
 };
 
 /**
@@ -64,6 +65,7 @@ enum starpu_worker_archtype
 	STARPU_CPU_WORKER=0,        /**< CPU core */
 	STARPU_CUDA_WORKER=1,       /**< NVIDIA CUDA device */
 	STARPU_OPENCL_WORKER=2,     /**< OpenCL device */
+	STARPU_MAX_FPGA_WORKER=4,   /**< Maxeler FPGA device */
 	STARPU_MPI_MS_WORKER=5,     /**< MPI Slave device */
 	STARPU_NARCH = 6,           /**< Number of arch types */
 	STARPU_ANY_WORKER=255       /**< any worker, used in the hypervisor */

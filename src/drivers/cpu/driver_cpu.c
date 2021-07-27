@@ -35,6 +35,7 @@
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/disk/driver_disk.h>
+#include <drivers/max/driver_max_fpga.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
@@ -554,6 +555,9 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 #else
 	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
 #endif
+#ifdef STARPU_USE_MAX_FPGA
+	//.copy_interface_to[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_interface_from_cpu_to_fpga,
+#endif
 	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_cpu_to_disk,
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_cpu_to_mpi,
@@ -572,6 +576,9 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_cpu_to_opencl,
 #else
 	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
+#endif
+#ifdef STARPU_USE_MAX_FPGA
+	//.copy_data_to[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_data_from_cpu_to_fpga,
 #endif
 	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
 #ifdef STARPU_USE_MPI_MASTER_SLAVE

@@ -143,6 +143,7 @@ noinst_HEADERS = 						\
 	drivers/cuda/driver_cuda.h				\
 	drivers/opencl/driver_opencl.h				\
 	drivers/opencl/driver_opencl_utils.h			\
+	drivers/max/driver_max_fpga.h				\
 	debug/starpu_debug_helpers.h				\
 	drivers/mpi/driver_mpi_common.h				\
 	drivers/mpi/driver_mpi_source.h				\
@@ -347,6 +348,11 @@ else
 if STARPU_SIMGRID
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.c
 endif
+endif
+
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/max/driver_max_fpga_init.c
+if STARPU_USE_MAX_FPGA
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/max/driver_max_fpga.c
 endif
 
 if STARPU_LINUX_SYS

@@ -27,6 +27,7 @@
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/cpu/driver_cpu.h>
+#include <drivers/max/driver_max_fpga.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_common.h>
 #include <drivers/mp_common/source_common.h>
@@ -82,7 +83,7 @@ static int _starpu_get_logical_numa_node_worker(unsigned workerid);
 #define STARPU_NUMA_UNINITIALIZED (-2)
 #define STARPU_NUMA_MAIN_RAM (-1)
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MAX_FPGA) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
 struct handle_entry
 {
 	UT_hash_handle hh;
@@ -94,7 +95,7 @@ struct handle_entry
 static struct handle_entry *devices_using_cuda;
 #  endif
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MAX_FPGA) || defined(STARPU_SIMGRID)
 static unsigned may_bind_automatically[STARPU_NARCH] = { 0 };
 #endif
 
@@ -460,7 +461,7 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
  * Discover the topology of the machine
  */
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MAX_FPGA) || defined(STARPU_SIMGRID)
 static void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 						int *current, int *workers_gpuid,
 						const char *varname, unsigned nhwgpus,
@@ -649,6 +650,30 @@ static inline int _starpu_get_next_opencl_gpuid(struct _starpu_machine_config *c
 }
 #endif
 
+#if defined(STARPU_USE_MAX_FPGA)
+static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_config *config)
+{
+	struct _starpu_machine_topology *topology = &config->topology;
+	struct starpu_conf *uconf = &config->conf;
+
+        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_max_fpga_deviceid == 0
+					    ? NULL
+					    : (int *)uconf->workers_max_fpga_deviceid,
+					    &(config->current_max_fpga_deviceid),
+					    (int *)topology->workers_max_fpga_deviceid,
+					    "STARPU_WORKERS_MAX_FPGAID",
+					    topology->nhwdevices[STARPU_MAX_FPGA_WORKER],
+					    STARPU_MAX_FPGA_WORKER);
+}
+
+static inline int _starpu_get_next_max_fpga_deviceid (struct _starpu_machine_config *config)
+{
+	unsigned i = ((config->current_max_fpga_deviceid++) % config->topology.ndevices[STARPU_MAX_FPGA_WORKER]);
+
+	return (int)config->topology.workers_max_fpga_deviceid[i];
+}
+#endif
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static inline int _starpu_get_next_mpi_deviceid(struct _starpu_machine_config *config)
 {
@@ -810,6 +835,8 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		_starpu_cuda_discover_devices(config);
 	if (config->conf.nopencl != 0)
 		_starpu_opencl_discover_devices(config);
+        if (config->conf.nmax_fpga != 0)
+		_starpu_max_fpga_discover_devices(config);
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         config->topology.nhwdevices[STARPU_MPI_MS_WORKER] = _starpu_mpi_src_get_device_count();
 #endif
@@ -1089,6 +1116,11 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (config->conf.ncuda != 0)
 		_starpu_init_cuda();
+#endif
+
+#if defined(STARPU_USE_MAX_FPGA)
+	if (config->conf.nmax_fpga != 0)
+		_starpu_init_max_fpga();
 #endif
 	_starpu_init_topology(config);
 
@@ -1575,6 +1607,77 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	topology->nworkers += topology->ndevices[STARPU_OPENCL_WORKER];
 #endif
 
+#if defined(STARPU_USE_MAX_FPGA)
+	int nmax_fpga = config->conf.nmax_fpga;
+	if (nmax_fpga != 0)
+	{
+		/* The user did not disable FPGA. We need to initialize
+ 		 * FPGA early to count the number of devices */
+		_starpu_init_max_fpga();
+		int nb_devices;
+		nb_devices = _starpu_max_fpga_get_device_count();
+
+		if (nmax_fpga == -1)
+		{
+			/* Nothing was specified, so let's choose ! */
+			nmax_fpga = nb_devices;
+			if (nmax_fpga > STARPU_MAXMAXFPGADEVS)
+			{
+				_STARPU_DISP("Warning: %d Maxeler FPGA devices available. Only %d enabled. Use configure option --enable-maxmaxfpgadev=xxx to update the maximum value of supported Maxeler FPGA devices.\n", nb_devices, STARPU_MAXMAXFPGADEVS);
+				nmax_fpga = STARPU_MAXMAXFPGADEVS;
+			}
+		}
+		else
+		{
+			/* Let's make sure this value is OK. */
+			if (nmax_fpga > nb_devices)
+			{
+				/* The user requires more Maxeler FPGA devices than
+				 * there is available */
+				_STARPU_DISP("Warning: %d Maxeler FPGA devices requested. Only %d available.\n", nmax_fpga, nb_devices);
+				nmax_fpga = nb_devices;
+			}
+			/* Let's make sure this value is OK. */
+			if (nmax_fpga > STARPU_MAXMAXFPGADEVS)
+			{
+				_STARPU_DISP("Warning: %d Maxeler FPGA devices requested. Only %d enabled. Use configure option --enable-maxmaxfpgadev=xxx to update the maximum value of supported Maxeler FPGA devices.\n", nmax_fpga, STARPU_MAXMAXFPGADEVS);
+				nmax_fpga = STARPU_MAXMAXFPGADEVS;
+			}
+		}
+	}
+
+	topology->ndevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga;
+	for (i = 0; i < nmax_fpga; i++)
+		topology->nworker[STARPU_MAX_FPGA_WORKER][i] = 1;
+	STARPU_ASSERT(topology->ndevices[STARPU_MAX_FPGA_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
+
+	_starpu_initialize_workers_max_fpga_deviceid(config);
+
+	unsigned max_fpga;
+	for (max_fpga = 0; max_fpga < topology->ndevices[STARPU_MAX_FPGA_WORKER]; max_fpga++)
+	{
+		int worker_idx = topology->nworkers + max_fpga;
+		int devid = _starpu_get_next_max_fpga_deviceid(config);
+		if (devid == -1)
+		{ // There is no more devices left
+			topology->ndevices[STARPU_MAX_FPGA_WORKER] = max_fpga;
+			break;
+		}
+		config->workers[worker_idx].arch = STARPU_MAX_FPGA_WORKER;
+		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		config->workers[worker_idx].perf_arch.ndevices = 1;
+		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_MAX_FPGA_WORKER;
+		config->workers[worker_idx].perf_arch.devices[0].devid = devid;
+		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
+		config->workers[worker_idx].subworkerid = 0;
+		config->workers[worker_idx].devid = devid;
+		config->workers[worker_idx].worker_mask = STARPU_MAX_FPGA;
+		config->worker_mask |= STARPU_MAX_FPGA;
+	}
+
+	topology->nworkers += topology->ndevices[STARPU_MAX_FPGA_WORKER];
+#endif
+
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
 	    _starpu_init_mp_config(config, &config->conf, no_mp_config);
 #endif
@@ -1606,7 +1709,8 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 #endif
 			unsigned already_busy_cpus = mpi_ms_busy_cpus
 				+ cuda_busy_cpus
-				+ topology->ndevices[STARPU_OPENCL_WORKER];
+				+ topology->ndevices[STARPU_OPENCL_WORKER]
+				+ topology->ndevices[STARPU_MAX_FPGA_WORKER];
 
 			long avail_cpus = (long) topology->nhwworker[STARPU_CPU_WORKER][0] - (long) already_busy_cpus;
 			if (avail_cpus < 0)
@@ -2315,11 +2419,19 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 	unsigned cuda_bindid[STARPU_MAXCUDADEVS];
 	int cuda_globalbindid = -1;
 #endif
+
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	unsigned opencl_init[STARPU_MAXOPENCLDEVS] = { };
 	unsigned opencl_memory_nodes[STARPU_MAXOPENCLDEVS];
 	unsigned opencl_bindid[STARPU_MAXOPENCLDEVS];
 #endif
+
+#if defined(STARPU_USE_MAX_FPGA)
+	unsigned max_fpga_init[STARPU_MAXMAXFPGADEVS] = { };
+	unsigned max_fpga_memory_nodes[STARPU_MAXMAXFPGADEVS];
+	unsigned max_fpga_bindid[STARPU_MAXMAXFPGADEVS];
+#endif
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	unsigned mpi_init[STARPU_MAXMPIDEVS] = { };
 	unsigned mpi_memory_nodes[STARPU_MAXMPIDEVS];
@@ -2349,7 +2461,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		unsigned devid STARPU_ATTRIBUTE_UNUSED = workerarg->devid;
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID) || defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_MAX_FPGA)
 		/* Perhaps the worker has some "favourite" bindings  */
 		unsigned *preferred_binding = NULL;
 		unsigned npreferred = 0;
@@ -2486,6 +2598,47 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 				break;
 			}
 #endif
+
+
+#if defined(STARPU_USE_MAX_FPGA)
+		        case STARPU_MAX_FPGA_WORKER:
+			{
+				unsigned numa;
+				if (may_bind_automatically[STARPU_MAX_FPGA_WORKER])
+				{
+					/* StarPU is allowed to bind threads automatically */
+#if 0
+/* No FPGA preference yet */
+					preferred_binding = _starpu_get_max_fpga_affinity_vector(devid);
+					npreferred = config->topology.nhwpus;
+#endif
+				}
+				if (max_fpga_init[devid])
+				{
+					memory_node = max_fpga_memory_nodes[devid];
+					workerarg->bindid = max_fpga_bindid[devid];
+				}
+				else
+				{
+					max_fpga_init[devid] = 1;
+					workerarg->bindid = max_fpga_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+
+					memory_node = max_fpga_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MAX_FPGA_RAM, devid, &_starpu_driver_max_fpga_node_ops);
+					_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
+					_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
+
+				}
+				_starpu_memory_node_add_nworkers(memory_node);
+
+				//This worker can manage transfers on NUMA nodes
+				for (numa = 0; numa < nb_numa_nodes; numa++)
+						_starpu_worker_drives_memory_node(workerarg, numa);
+
+				_starpu_worker_drives_memory_node(workerarg, memory_node);
+				break;
+			}
+#endif
+
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 		        case STARPU_OPENCL_WORKER:

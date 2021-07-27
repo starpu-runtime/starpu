@@ -75,6 +75,13 @@ extern "C"
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
+   executed on a MAX FPGA.
+*/
+#define STARPU_MAX_FPGA	STARPU_WORKER_TO_MASK(STARPU_MAX_FPGA_WORKER)
+
+/**
+   To be used when setting the field starpu_codelet::where (or
+   starpu_task::where) to specify the codelet (or the task) may be
    executed on a MPI Slave processing unit.
 */
 #define STARPU_MPI_MS	STARPU_WORKER_TO_MASK(STARPU_MPI_MS_WORKER)
@@ -169,6 +176,11 @@ typedef void (*starpu_cuda_func_t)(void **, void*);
    OpenCL implementation of a codelet.
 */
 typedef void (*starpu_opencl_func_t)(void **, void*);
+
+/**
+   Maxeler FPGA implementation of a codelet.
+*/
+typedef void (*starpu_max_fpga_func_t)(void **, void*);
 
 /**
    MPI Master Slave kernel for a codelet
@@ -377,6 +389,23 @@ struct starpu_codelet
 	   as asynchronous execution.
 	*/
 	char opencl_flags[STARPU_MAXIMPLEMENTATIONS];
+
+	/**
+           Optional array of function pointers to the Maxeler FPGA
+           implementations of the codelet. The functions prototype
+           must be:
+           \code{.c}
+           void fpga_func(void *buffers[], void *cl_arg)
+           \endcode
+           The first argument being the array of data managed by the
+           data management library, and the second argument is a
+           pointer to the argument passed from the field
+           starpu_task::cl_arg. If the field starpu_codelet::where is
+           set, then the field starpu_codelet::max_fpga_funcs is ignored if
+           ::STARPU_MAX_FPGA does not appear in the field
+           starpu_codelet::where, it must be non-<c>NULL</c> otherwise.
+        */
+	starpu_max_fpga_func_t max_fpga_funcs[STARPU_MAXIMPLEMENTATIONS];
 
 	/**
 	   Optional array of function pointers to a function which

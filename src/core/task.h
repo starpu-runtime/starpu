@@ -109,6 +109,11 @@ static inline starpu_opencl_func_t _starpu_task_get_opencl_nth_implementation(st
 	return cl->opencl_funcs[nimpl];
 }
 
+static inline starpu_max_fpga_func_t _starpu_task_get_fpga_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
+{
+	return cl->max_fpga_funcs[nimpl];
+}
+
 static inline starpu_mpi_ms_func_t _starpu_task_get_mpi_ms_nth_implementation(struct starpu_codelet *cl, unsigned nimpl)
 {
 	return cl->mpi_ms_funcs[nimpl];

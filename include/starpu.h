@@ -84,6 +84,7 @@ typedef INT_PTR intptr_t;
 #include <starpu_clusters.h>
 #include <starpu_perf_monitoring.h>
 #include <starpu_perf_steering.h>
+#include <starpu_max_fpga.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -181,6 +182,14 @@ struct starpu_conf
 	int nopencl;
 
 	/**
+	   Number of Maxeler FPGA devices that StarPU can use. This can also
+	   be specified with the environment variable \ref
+	   STARPU_NMAX_FPGA.
+	   (default = -1)
+	*/
+	int nmax_fpga;
+
+	/**
 	   Number of MPI Master Slave devices that StarPU can use.
 	   This can also be specified with the environment variable
 	   \ref STARPU_NMPI_MS.
@@ -244,6 +253,40 @@ struct starpu_conf
 	   OpenCL devices to be used.
 	*/
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
+
+	/**
+	   If this flag is set, the Maxeler FPGA workers will be attached to
+	   the Maxeler FPGA devices specified in the
+	   starpu_conf::workers_max_fpga_deviceid array. Otherwise, StarPU
+	   affects the Maxeler FPGA devices in a round-robin fashion. This
+	   can also be specified with the environment variable \ref
+	   STARPU_WORKERS_MAX_FPGAID.
+	   (default = 0)
+	*/
+        unsigned use_explicit_workers_max_fpga_deviceid;
+
+	/**
+	   If the starpu_conf::use_explicit_workers_max_fpga_deviceid flag
+	   is set, this array contains the logical identifiers of the
+	   Maxeler FPGA devices to be used.
+	*/
+	unsigned workers_max_fpga_deviceid[STARPU_NMAXWORKERS];
+
+#ifdef STARPU_USE_MAX_FPGA
+	/**
+           This allows to specify the Maxeler file(s) to be loaded on Maxeler FPGAs.
+	   This is an array of starpu_max_load, the last of which shall have
+	   file set to NULL. In order to use all available devices,
+	   starpu_max_load::engine_id_pattern can be set to "*", but only the
+           last non-NULL entry can be set so.
+
+	   If this is not set, it is assumed that the basic static SLiC
+           interface is used.
+        */
+	struct starpu_max_load *max_fpga_load;
+#else
+	void *max_fpga_load;
+#endif
 
 	/**
 	   If this flag is set, the MPI Master Slave workers will be
@@ -357,6 +400,19 @@ struct starpu_conf
 	   (default = \c 0).
 	*/
 	int disable_asynchronous_mpi_ms_copy;
+
+	/**
+	   This flag should be set to 1 to disable asynchronous copies
+	   between CPUs and Maxeler FPGA devices.
+	   This can also be specified with the environment variable
+	   \ref STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY.
+	   This can also be specified at compilation time by giving to
+	   the configure script the option \ref
+	   disable-asynchronous-fpga-copy
+	   "--disable-asynchronous-fpga-copy".
+	   (default = 0).
+	*/
+        int disable_asynchronous_max_fpga_copy;
 
 	/**
 	   Enable CUDA/OpenGL interoperation on these CUDA devices.
@@ -595,6 +651,12 @@ int starpu_asynchronous_cuda_copy_disabled(void);
    accelerators are disabled.
 */
 int starpu_asynchronous_opencl_copy_disabled(void);
+
+/**
+   Return 1 if asynchronous data transfers between CPU and Maxeler FPGA
+   devices are disabled.
+*/
+int starpu_asynchronous_max_fpga_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers between CPU and MPI Slave

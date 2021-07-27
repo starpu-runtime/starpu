@@ -30,8 +30,10 @@
 #include <datawizard/memalloc.h>
 #include <starpu_opencl.h>
 #include <starpu_cuda.h>
+#include <starpu_max_fpga.h>
 #include <profiling/profiling.h>
 #include <core/disk.h>
+#include <drivers/max/driver_max_fpga.h>
 
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>

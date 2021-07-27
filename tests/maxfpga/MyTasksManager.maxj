@@ -1,0 +1,152 @@
+package maxfpga;
+
+import com.maxeler.maxcompiler.v2.build.EngineParameters;
+//import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.managers.custom.DFELink;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.KernelBlock;
+import com.maxeler.maxcompiler.v2.managers.custom.stdlib.LMemCommandGroup;
+import com.maxeler.maxcompiler.v2.managers.custom.stdlib.LMemInterface;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.CPUTypes;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.EngineInterface;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.EngineInterface.Direction;
+import com.maxeler.maxcompiler.v2.managers.engine_interfaces.InterfaceParam;
+import com.maxeler.platform.max5.manager.MAX5CManager;
+
+public class MyTasksManager extends MAX5CManager
+{
+        private static final CPUTypes TYPE = CPUTypes.INT32;
+
+        public MyTasksManager(EngineParameters params)
+	{
+                super(params);
+                KernelBlock kernel1 = addKernel(new Task1(makeKernelParameters("Task1")));
+                KernelBlock kernel2 = addKernel(new Task2(makeKernelParameters("Task2")));
+                KernelBlock kernel3 = addKernel(new Task3(makeKernelParameters("Task3")));
+
+                LMemInterface iface = addLMemInterface();
+
+
+                kernel1.getInput("inAT1") <== addStreamFromCPU("inAT1");
+
+                kernel1.getInput("inBT1") <== addStreamFromCPU("inBT1");
+
+                DFELink outCT1 = iface.addStreamToLMem("outCT1", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+                outCT1 <== kernel1.getOutput("outCT1");
+
+
+                DFELink inAT2 = iface.addStreamFromLMem("inAT2", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+                kernel2.getInput("inAT2") <== inAT2;
+
+                DFELink inBT2 = iface.addStreamFromLMem("inBT2", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+                kernel2.getInput("inBT2") <== inBT2;
+
+                DFELink outCT2 = iface.addStreamToLMem("outCT2", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+                outCT2 <== kernel2.getOutput("outCT2");
+
+
+                DFELink inAT3 = iface.addStreamFromLMem("inAT3", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+                kernel3.getInput("inAT3") <== inAT3;
+
+                DFELink inBT3 = iface.addStreamFromLMem("inBT3", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+                kernel3.getInput("inBT3") <== inBT3;
+
+                addStreamToCPU("outCT3") <== kernel3.getOutput("outCT3");
+
+
+                createSlicInterface(interfaceT1("interfaceT1"));
+                createSlicInterface(interfaceT2("interfaceT2"));
+                createSlicInterface(interfaceT3("interfaceT3"));
+        }
+
+        public static void main(String[] args)
+	{
+                MyTasksManager manager = new MyTasksManager(new EngineParameters(args));
+
+                manager.build();
+        }
+
+        private static EngineInterface interfaceT1(String name)
+	{
+                EngineInterface ei = new EngineInterface(name);
+
+                InterfaceParam ptrC1;
+                InterfaceParam N;
+                InterfaceParam sizeInBytes;
+
+                N    = ei.addParam("N", TYPE);
+                sizeInBytes = N * TYPE.sizeInBytes();
+                ptrC1    = ei.addParam("ptrC1", TYPE);
+
+                ei.setTicks("Task1", N);
+
+                ei.setStream("inAT1", TYPE, sizeInBytes);
+                ei.setStream("inBT1", TYPE, sizeInBytes);
+                ei.setLMemLinear("outCT1", ptrC1, sizeInBytes);
+
+                ei.ignoreAll(Direction.IN_OUT);
+
+		ei.ignoreKernel("Task2");
+		ei.ignoreKernel("Task3");
+
+                return ei;
+        }
+
+
+        private static EngineInterface interfaceT2(String name)
+	{
+                EngineInterface ei = new EngineInterface(name);
+
+                InterfaceParam ptrA2;
+                InterfaceParam ptrB2;
+                InterfaceParam ptrC2;
+                InterfaceParam N;
+                InterfaceParam sizeInBytes;
+
+                N    = ei.addParam("N", TYPE);
+                sizeInBytes = N * TYPE.sizeInBytes();
+                ptrA2    = ei.addParam("ptrA2", TYPE);
+                ptrB2    = ei.addParam("ptrB2", TYPE);
+                ptrC2    = ei.addParam("ptrC2", TYPE);
+
+                ei.setTicks("Task2", N);
+
+                ei.setLMemLinear("inAT2", ptrA2, sizeInBytes);
+                ei.setLMemLinear("inBT2", ptrB2, sizeInBytes);
+                ei.setLMemLinear("outCT2", ptrC2, sizeInBytes);
+
+                ei.ignoreAll(Direction.IN_OUT);
+
+		ei.ignoreKernel("Task1");
+		ei.ignoreKernel("Task3");
+
+                return ei;
+        }
+
+       private static EngineInterface interfaceT3(String name)
+       {
+                EngineInterface ei = new EngineInterface(name);
+
+                InterfaceParam ptrA3;
+                InterfaceParam ptrB3;
+                InterfaceParam N;
+                InterfaceParam sizeInBytes;
+
+                N    = ei.addParam("N", TYPE);
+                sizeInBytes = N * TYPE.sizeInBytes();
+                ptrA3    = ei.addParam("ptrA3", TYPE);
+                ptrB3    = ei.addParam("ptrB3", TYPE);
+
+                ei.setTicks("Task3", N);
+
+                ei.setLMemLinear("inAT3", ptrA3, sizeInBytes);
+                ei.setLMemLinear("inBT3", ptrB3, sizeInBytes);
+                ei.setStream("outCT3", TYPE, sizeInBytes);
+
+                ei.ignoreAll(Direction.IN_OUT);
+
+		ei.ignoreKernel("Task1");
+		ei.ignoreKernel("Task2");
+
+                return ei;
+        }
+}

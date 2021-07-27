@@ -650,6 +650,12 @@ starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRI
  * quickly find free segments to allocate.
  */
 
+#ifdef STARPU_USE_MAX_FPGA
+// FIXME: Maxeler FPGAs want 192 byte alignment
+#define CHUNK_SIZE (128*1024*192)
+#define CHUNK_ALLOC_MAX (CHUNK_SIZE / 8)
+#define CHUNK_ALLOC_MIN (128*192)
+#else
 /* Size of each chunk, 32MiB granularity brings 128 chunks to be allocated in
  * order to fill a 4GiB GPU. */
 #define CHUNK_SIZE (32*1024*1024)
@@ -662,6 +668,7 @@ starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRI
  * 16KiB (i.e. 64x64 float) granularity eats 2MiB RAM for managing a 4GiB GPU.
  */
 #define CHUNK_ALLOC_MIN (16*1024)
+#endif
 
 /* Don't really deallocate chunks unless we have more than this many chunks
  * which are completely free. */
@@ -761,11 +768,12 @@ static struct _starpu_chunk *_starpu_new_chunk(unsigned dst_node, int flags)
 /* Return whether we should use our suballocator */
 static int _starpu_malloc_should_suballoc(unsigned dst_node, size_t size, int flags)
 {
-	return size <= CHUNK_ALLOC_MAX &&
+	return (size <= CHUNK_ALLOC_MAX &&
 		(starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM
 		 || (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM
 		     && _starpu_malloc_should_pin(flags))
-		 );
+		 ))
+	       || starpu_node_get_kind(dst_node) == STARPU_MAX_FPGA_RAM;
 }
 
 uintptr_t
@@ -939,7 +947,8 @@ starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int fl
 	{
 		/* This chunk is now empty, but avoid chunk free/alloc
 		 * ping-pong by keeping some of these.  */
-		if (nfreechunks[dst_node] >= CHUNKS_NFREE)
+		if (nfreechunks[dst_node] >= CHUNKS_NFREE &&
+                     starpu_node_get_kind(dst_node) != STARPU_MAX_FPGA_RAM)
 		{
 			/* We already have free chunks, release this one */
 			_starpu_free_on_node_flags(dst_node, chunk->base, CHUNK_SIZE, flags);

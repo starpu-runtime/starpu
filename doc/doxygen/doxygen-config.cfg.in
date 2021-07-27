@@ -32,6 +32,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu_disk.h \
 			 @top_srcdir@/include/starpu_driver.h \
 			 @top_srcdir@/include/starpu_expert.h \
+			 @top_srcdir@/include/starpu_max_fpga.h \
 			 @top_srcdir@/include/starpu_fxt.h \
 			 @top_srcdir@/include/starpu.h \
 			 @top_srcdir@/include/starpu_hash.h \

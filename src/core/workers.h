@@ -317,6 +317,14 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
+	/** Indicates the successive FPGA identifier that should be
+	 * used by the FPGA driver.  It is either filled according
+	 * to the user's explicit parameters (from starpu_conf) or
+	 * according to the STARPU_WORKERS_MAX_FPGAID env. variable.
+	 * Otherwise, they are taken in ID order.
+	 */
+	unsigned workers_max_fpga_deviceid[STARPU_NMAXWORKERS];
+
 	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
 
 };
@@ -340,6 +348,9 @@ struct _starpu_machine_config
 
 	/** Which GPU(s) do we use for OpenCL ? */
 	int current_opencl_gpuid;
+
+        /* Which FPGA(s) do we use for FPGA? */
+	int current_max_fpga_deviceid;
 
 	/** Which MPI do we use? */
 	int current_mpi_deviceid;

@@ -53,6 +53,7 @@ run(struct starpu_sched_policy *p)
 		.cpu_funcs_name = {"dummy"},
 		.cuda_funcs   = {dummy},
 		.opencl_funcs = {dummy},
+		.max_fpga_funcs   = {dummy},
 		.nbuffers     = 0
 	};
 

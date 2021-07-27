@@ -73,6 +73,13 @@
 #undef STARPU_USE_OPENCL
 
 /**
+   Defined when StarPU has been installed with FPGA support. It should
+   be used in your code to detect the availability of FPGA.
+   @ingroup API_Max_FPGA_Extensions
+*/
+#undef STARPU_USE_MAX_FPGA
+
+/**
    Defined when StarPU has been installed with MPI Master Slave
    support. It should be used in your code to detect the availability
    of MPI Master Slave.
@@ -225,6 +232,13 @@
    @ingroup API_OpenCL_Extensions
 */
 #undef STARPU_MAXOPENCLDEVS
+
+/**
+   Define the maximum number of FPGA devices that are supported by
+   StarPU.
+   @ingroup API_Max_FPGA_Extensions
+ */
+#undef STARPU_MAXMAXFPGADEVS
 
 /**
    Define the maximum number of workers managed by StarPU.

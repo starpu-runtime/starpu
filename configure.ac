@@ -1666,6 +1666,50 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                            Maxeler FPGA Settings                            #
+#                                                                             #
+###############################################################################
+
+#NUMBER OF MAXELER FPGA DEVICES
+AC_MSG_CHECKING(maximum number of Maxeler FPGA devices)
+AC_ARG_ENABLE(maxmaxfpgadev, [AS_HELP_STRING([--enable-maxmaxfpgadev=<number>],
+			[maximum number of Maxeler FPGA devices])],
+			nmaxmaxfpgadev=$enableval, nmaxmaxfpgadev=12)
+AC_MSG_RESULT($nmaxmaxfpgadev)
+AC_DEFINE_UNQUOTED(STARPU_MAXMAXFPGADEVS, [$nmaxmaxfpgadev],[maximum number of Maxeler FPGA devices])
+
+AC_ARG_ENABLE([max-fpga],
+	[AS_HELP_STRING([--disable-max-fpga],[disable support for Maxeler FPGA])],
+	[enable_max_fpga=$enableval],
+	[enable_max_fpga=maybe]
+)
+
+if test x$enable_max_fpga != xno; then
+	AC_PATH_PROG([SLIC_CONFIG], [slic-config], [not-found])
+
+	if test "x$SLIC_CONFIG" = "xnot-found"; then
+		# in case FPGA was explicitely required, but is not available, this is an error
+		if test x$enable_max_fpga = xyes; then
+			AC_MSG_ERROR(['slic-config' not found for Maxeler FPGA support])
+		fi
+		enable_max_fpga=no
+	else
+		STARPU_MAX_FPGA_CPPFLAGS="`slic-config --cflags | sed s/\'//g | sed "s/-I /-I/"`"
+		STARPU_MAX_FPGA_LDFLAGS="`slic-config --libs | sed s/\'//g | sed "s/-L /-L/" | sed "s/-L /-L/"`"
+
+		enable_max_fpga=yes
+	fi
+fi
+
+AC_SUBST(STARPU_USE_MAX_FPGA,$enable_max_fpga)
+AM_CONDITIONAL(STARPU_USE_MAX_FPGA,test x$enable_max_fpga = xyes)
+if test x$enable_max_fpga = xyes; then
+	AC_DEFINE(STARPU_USE_MAX_FPGA,[1],[Maxeler FPGA support is activated])
+fi
+
+
+###############################################################################
+#                                                                             #
 # General GPU settings                                                        #
 #                                                                             #
 ###############################################################################
@@ -1719,6 +1763,19 @@ fi
 AC_MSG_RESULT($disable_asynchronous_mpi_master_slave_copy)
 if test x$disable_asynchronous_mpi_master_slave_copy = xyes ; then
    AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY], [1], [Define to 1 to disable asynchronous copy between MPI Master and MPI Slave devices])
+fi
+
+AC_MSG_CHECKING(whether asynchronous Maxeler FPGA copy should be disabled)
+AC_ARG_ENABLE(asynchronous-max-fpga-copy, [AS_HELP_STRING([--disable-asynchronous-max-fpga-copy],
+			[disable asynchronous copy between CPU and Maxeler FPGA devices])],
+			enable_asynchronous_max_fpga_copy=$enableval, enable_asynchronous_max_fpga_copy=yes)
+disable_asynchronous_max_fpga_copy=no
+if test x$enable_asynchronous_max_fpga_copy = xno ; then
+   disable_asynchronous_max_fpga_copy=yes
+fi
+AC_MSG_RESULT($disable_asynchronous_max_fpga_copy)
+if test x$disable_asynchronous_max_fpga_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and Maxeler FPGA devices])
 fi
 
 ###############################################################################
@@ -2107,6 +2164,11 @@ if test x$maxnodes = x0 ; then
 			# odd number.
 			nodes=`expr $nodes + $nmaxopencldev`
 		fi
+		if test x$enable_max_fpga = xyes ; then
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxmaxfpgadev`
+		fi
 
 		#nmaxmpidev = 0 if mpi master-slave is disabled
 		nodes=`expr $nodes + $nmaxmpidev`
@@ -2173,6 +2235,10 @@ if test x$enable_simgrid != xyes; then
 	if test x$enable_cuda != xyes; then
 		nmaxcudadev=0
 	fi
+
+	if test x$enable_max_fpga != xyes; then
+		nmaxmaxfpgadev=0
+	fi
 	if test x$enable_opencl != xyes; then
 		nmaxopencldev=0
 	fi
@@ -2184,12 +2250,12 @@ if test x$enable_simgrid != xyes; then
 fi
 if test $maxcpus == 0
 then
-	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* 64 \) + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* 64 \) + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 elif test $nmaxmpidev == 0
 then
-	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 else
-	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 fi
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
@@ -2200,6 +2266,9 @@ if test $nmaxdevs -lt $nmaxcudadev; then
 fi
 if test $nmaxdevs -lt $nmaxopencldev; then
 	nmaxdevs=$nmaxopencldev
+fi
+if test $nmaxdevs -lt $nmaxmaxfpgadev; then
+	nmaxdevs=$nmaxmaxfpgadev
 fi
 if test $nmaxdevs -lt $nmaxmpidev; then
 	nmaxdevs=$nmaxmpidev
@@ -3405,11 +3474,11 @@ AC_SUBST(STARPU_OPTION_LIBS, "$option_libs")
 ###############################################################################
 
 # these are the flags needed to compile starpu.h
-STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $SIMGRID_CFLAGS $OPENMP_CFLAGS"
+STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $OPENMP_CFLAGS"
 AC_SUBST([STARPU_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
@@ -3604,19 +3673,21 @@ AC_OUTPUT([
 
 AC_MSG_NOTICE([
 
-	CPUs   enabled: $enable_cpu
-	CUDA   enabled: $enable_cuda
-	OpenCL enabled: $enable_opencl
+	CPUs     enabled: $enable_cpu
+	CUDA     enabled: $enable_cuda
+	OpenCL   enabled: $enable_opencl
+	Max FPGA enabled: $enable_max_fpga
 
 	Compile-time limits
 	(change these with --enable-maxcpus, --enable-maxcudadev,
-	--enable-maxopencldev, --enable-maxnodes, --enable-maxbuffers)
+	--enable-maxopencldev, --enable-maxmaxfpgadev, --enable-maxnodes, --enable-maxbuffers)
         (Note these numbers do not represent the number of detected
 	devices, but the maximum number of devices StarPU can manage)
 
 	Maximum number of CPUs:                     $maxcpus
 	Maximum number of CUDA devices:             $nmaxcudadev
 	Maximum number of OpenCL devices:           $nmaxopencldev
+	Maximum number of Maxeler FPGA devices:     $nmaxmaxfpgadev
 	Maximum number of MPI master-slave devices: $nmaxmpidev
 	Maximum number of memory nodes:             $maxnodes
 	Maximum number of task buffers:             $nmaxbuffers

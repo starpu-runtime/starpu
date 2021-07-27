@@ -123,6 +123,13 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node CPU node to the \p dst_interface interface on the \p
+	   dst_node FPGA node. Return 0 on success.
+	*/
+	int (*ram_to_max_fpga)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CUDA node to the \p dst_interface interface on the \p
 	   dst_node CPU node. Return 0 on success.
 	*/
@@ -148,6 +155,13 @@ struct starpu_data_copy_methods
 	   \p dst_node OpenCL node. Return 0 on success.
 	*/
 	int (*opencl_to_opencl)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node FPGA node to the \p dst_interface interface on the \p
+	   dst_node CPU node. Return 0 on success.
+	*/
+	int (*max_fpga_to_ram)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
@@ -242,6 +256,26 @@ struct starpu_data_copy_methods
 	int (*opencl_to_ram_async)(void);
 	int (*opencl_to_opencl_async)(void);
 #endif
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node CPU node to the \p dst_interface interface on the \p
+	   dst_node FPGA node. Must return 0 if the transfer was actually
+	   completed completely synchronously, or <c>-EAGAIN</c> if at least
+	   some transfers are still ongoing and should be awaited for by the
+	   core.
+	*/
+	int (*ram_to_max_fpga_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node FPGA node to the \p dst_interface interface on the \p
+	   dst_node CPU node. Must return 0 if the transfer was actually
+	   completed completely synchronously, or <c>-EAGAIN</c> if at least
+	   some transfers are still ongoing and should be awaited for by the
+	   core.
+	*/
+	int (*max_fpga_to_ram_async)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the

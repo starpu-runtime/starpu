@@ -120,10 +120,16 @@ static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 #ifndef STARPU_SIMGRID
 static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 #endif
+
 #ifdef STARPU_USE_OPENCL
 /* preference order of cores (logical indexes) */
 static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
 static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
+#endif
+
+#ifdef STARPU_USE_MAX_FPGA
+/* preference order of cores (logical indexes) */
+static unsigned max_fpga_affinity_matrix[STARPU_MAXMAXFPGADEVS][STARPU_MAXCPUS];
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -1107,6 +1113,13 @@ unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid)
 	return opencl_affinity_matrix[gpuid];
 }
 #endif /* STARPU_USE_OPENCL */
+
+#ifdef STARPU_USE_MAX_FPGA
+unsigned *_starpu_get_max_fpga_affinity_vector(unsigned fpgaid)
+{
+        return max_fpga_affinity_matrix[fpgaid];
+}
+#endif /* STARPU_USE_MAX_FPGA */
 
 void starpu_bus_print_affinity(FILE *f)
 {

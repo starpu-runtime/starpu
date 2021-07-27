@@ -368,6 +368,21 @@ the macro ::STARPU_MAXNODES. Reducing it allows to considerably reduce memory
 used by StarPU data structures.
 </dd>
 
+<dt>--with-max-fpga=<c>dir</c></dt>
+<dd>
+\anchor with-max-fpga
+\addindex __configure__--with-max-fpga
+Enable the Maxeler FPGA driver support, and optionally specify the location of
+the Maxeler FPGA library.
+</dd>
+
+<dt>--disable-asynchronous-max-fpga-copy</dt>
+<dd>
+\anchor disable-asynchronous-max-fpga-copy
+\addindex __configure__--disable-asynchronous-max-fpga-copy
+Disable asynchronous copies between CPU and Maxeler FPGA devices.
+</dd>
+
 </dl>
 
 \section ExtensionConfiguration Extension Configuration

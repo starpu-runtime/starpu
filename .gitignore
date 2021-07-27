@@ -26,6 +26,8 @@
 *.lo
 *.la
 *.swp
+*.swo
+*.class
 .dirstamp
 .tramp_history
 *.pc
@@ -240,7 +242,13 @@ starpu.log
 /tools/starpu_machine_display.1
 /tools/starpu_perfmodel_display.1
 /tools/starpu_perfmodel_plot.1
-/test/*.log
+/tests/*.log
+/tests/maxfpga/*.max
+/tests/maxfpga/*.h
+/tests/maxfpga/max_fpga_advanced_static
+/tests/maxfpga/max_fpga_basic_static
+/tests/maxfpga/max_fpga_dynamic
+/tests/maxfpga/max_fpga_mux
 /examples/*.log
 /tests/main/declare_deps_after_submission
 /tests/main/declare_deps_after_submission_synchronous

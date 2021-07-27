@@ -24,6 +24,7 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 LIBS += $(HWLOC_LIBS)
 LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
+LIBS += $(STARPU_MAX_FPGA_LDFLAGS)
 
 EXTRA_DIST =					\
 	helper.h				\
@@ -390,6 +391,14 @@ myPROGRAMS +=				\
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched	\
 	sched_ctx/sched_ctx_hierarchy
+
+if STARPU_USE_MAX_FPGA
+myPROGRAMS +=				\
+        maxfpga/max_fpga_basic_static	\
+        maxfpga/max_fpga_advanced_static	\
+        maxfpga/max_fpga_dynamic		\
+        maxfpga/max_fpga_mux
+endif
 endif
 
 MICROBENCHS = \
@@ -1083,6 +1092,30 @@ perfmodels_regression_based_energy_SOURCES=\
 perfmodels_regression_based_gpu_SOURCES=\
 	perfmodels/regression_based_gpu.c
 
+maxfpga_max_fpga_basic_static_SOURCES=\
+       maxfpga/max_fpga_basic_static.c
+maxfpga_max_fpga_basic_static_LDADD = $(LDADD) \
+       maxfpga/slic_MyTasks.o
+maxfpga/max_fpga_basic_static.o: maxfpga/MyTasks.max
+
+maxfpga_max_fpga_advanced_static_SOURCES=\
+       maxfpga/max_fpga_advanced_static.c
+maxfpga_max_fpga_advanced_static_LDADD = $(LDADD) \
+       maxfpga/slic_MyTasks.o
+maxfpga/max_fpga_advanced_static.o: maxfpga/MyTasks.max
+
+maxfpga_max_fpga_dynamic_SOURCES=\
+       maxfpga/max_fpga_dynamic.c
+maxfpga_max_fpga_dynamic_LDADD = $(LDADD) \
+       maxfpga/slic_MyTasks.o
+maxfpga/max_fpga_dynamic.o: maxfpga/MyTasks.max
+
+maxfpga_max_fpga_mux_SOURCES=\
+       maxfpga/max_fpga_mux.c
+maxfpga_max_fpga_mux_LDADD = $(LDADD) \
+       maxfpga/slic_MyTasksMux.o
+maxfpga/max_fpga_mux.o: maxfpga/MyTasksMux.max
+
 if STARPU_USE_OPENCL
 perfmodels_regression_based_memset_SOURCES+=\
 	perfmodels/opencl_memset.c
@@ -1122,3 +1155,25 @@ starpu_mod.mod: fortran90/starpu_mod.o
 # - list explicit dependences to control proper module files dependencies
 fortran90/init_01.o: starpu_mod.mod
 endif
+
+# Maxeler compiler
+if STARPU_USE_MAX_FPGA
+# or DFE for hardware execution
+MAX_TARGET ?= DFE_SIM
+MAX_DFE = MAX5C_$(MAX_TARGET)
+
+MAXJ=$(wildcard maxfpga/*.maxj)
+CLASS=$(MAXJ:.maxj=.class)
+$(CLASS) &: $(MAXJ)
+	maxjc -1.7 -cp $$MAXCLASSPATH $(dir $<)
+
+%.max: %Manager.class
+	CLASSPATH=$$CLASSPATH:. maxJavaRun $(shell dirname $*).$(notdir $*)Manager DFEModel=MAIA maxFileName=$(notdir $*) target=$(MAX_TARGET)
+	cp $(notdir $*)_$(MAX_DFE)/results/$(notdir $*).{max,h} $(dir $@)
+
+slic_%.o: %.max
+	sliccompile $< $@
+
+CLEANFILES += */*.max */*.class max_fpga/*.h
+endif
+
