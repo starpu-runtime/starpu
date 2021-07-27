@@ -869,6 +869,17 @@ of one of the nodes of a big cluster without actually running the rest.
 It of course does not provide computation results and timing.
 </dd>
 
+<dt>STARPU_MPI_TRACE_SYNC_CLOCKS</dt>
+<dd>
+\anchor STARPU_MPI_TRACE_SYNC_CLOCKS
+\addindex __env__STARPU_MPI_TRACE_SYNC_CLOCKS
+When \c mpi_sync_clocks is available, this library will be used to have more
+precise clock synchronization in traces coming from different nodes. However,
+the clock synchronization process can take some time (several seconds) and can
+be disabled by setting this variable to \c 0. In that case, a less precise but
+faster synchronization will be used. See \ref TraceMpi for more details.
+</dd>
+
 <dt>STARPU_MPI_DRIVER_CALL_FREQUENCY</dt>
 <dd>
 \anchor STARPU_MPI_DRIVER_CALL_FREQUENCY

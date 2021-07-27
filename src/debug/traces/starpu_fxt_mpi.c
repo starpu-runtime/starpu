@@ -40,11 +40,14 @@ LIST_TYPE(mpi_transfer,
 	int prio;
 );
 
-/* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
- * filled with the timestamp of the barrier */
-int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank)
+struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in, int *key, int *rank)
 {
-	STARPU_ASSERT(offset);
+	struct starpu_fxt_mpi_offset offset;
+	offset.nb_barriers = 0;
+	offset.local_time_start = 0;
+	offset.local_time_end = 0;
+	offset.offset_start = 0;
+	offset.offset_end = 0;
 
 	/* Open the trace file */
 	int fd_in;
@@ -67,26 +70,36 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
 	block = fxt_blockev_enter(fut);
 
 	struct fxt_ev_64 ev;
+	int ret;
+	uint64_t local_sync_time;
 
-	int func_ret = -1;
-	unsigned found = 0;
-	while(!found)
+	while (offset.nb_barriers < 2 && (ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev)) == FXT_EV_OK)
 	{
-		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
-		if (ret != FXT_EV_OK)
-		{
-			_STARPU_MSG("no more block ...\n");
-			break;
-		}
-
 		if (ev.code == _STARPU_MPI_FUT_BARRIER)
 		{
-			/* We found the sync point */
-			*offset = ev.time;
+			/* We found a sync point */
 			*rank = ev.param[0];
 			*key = ev.param[2];
-			found = 1;
-			func_ret = 0;
+			local_sync_time = (uint64_t) ((double) ev.param[3]); // It is stored as a double in the trace
+
+			if (local_sync_time == 0)
+			{
+				/* This clock synchronization was made with an
+				 * MPI_Barrier, consider the event timestamp as
+				 * a local synchronized barrier time: */
+				local_sync_time = ev.time;
+			}
+
+			if (offset.nb_barriers == 0)
+			{
+				offset.local_time_start = local_sync_time;
+			}
+			else
+			{
+				offset.local_time_end = local_sync_time;
+			}
+
+			offset.nb_barriers++;
 		}
 	}
 
@@ -97,7 +110,7 @@ int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *ke
 		exit(-1);
 	}
 
-	return func_ret;
+	return offset;
 }
 
 /*

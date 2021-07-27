@@ -25,12 +25,13 @@ SUBDIRS =
 
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
-AM_CFLAGS += $(FXT_CFLAGS) $(NMAD_CFLAGS)
+AM_CFLAGS += $(FXT_CFLAGS) $(NMAD_CFLAGS) $(MPI_SYNC_CLOCKS_CFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src $(STARPU_H_CPPFLAGS)
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 LIBS += $(FXT_LDFLAGS) $(FXT_LIBS)
 LIBS += $(NMAD_LDFLAGS) $(NMAD_LIBS)
 LIBS += $(MPICC_LDFLAGS)
+LIBS += $(MPI_SYNC_CLOCKS_LDFLAGS)
 
 ldflags =
 
@@ -115,3 +116,8 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	load_balancer/policy/load_data_interface.c	\
 	load_balancer/policy/load_heat_propagation.c	\
 	load_balancer/load_balancer.c
+
+if STARPU_USE_FXT
+libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES +=	\
+	starpu_mpi_fxt.c
+endif

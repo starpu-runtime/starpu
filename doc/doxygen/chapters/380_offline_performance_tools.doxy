@@ -1038,4 +1038,29 @@ Synthetic GFlop/s : 44.21
 // TODO: data transfer stats are similar to the ones displayed when
 // setting STARPU_BUS_STATS
 
+
+
+\section TraceMpi Tracing MPI applications
+
+When an MPI execution is traced, especially if the execution is on several
+nodes, clock synchronization issues can appear. One may notice them mainly on
+communications (they are received before they are sent, for instance).
+
+By default, StarPU does two MPI barriers with all MPI processes: one at the
+beginning of the application execution and one at the end. Then, \c
+starpu_fxt_tool considers all processes leave the barriers at the exact same
+time, which makes two points for time synchronization between MPI processes.
+
+However, a simple MPI barrier can be not precise enough, because the assumption
+_all processes leave the barriers at the exact same time_ is in reality false.
+To have a more precise barrier, one may use the [mpi_sync_clocks
+library](https://gitlab.inria.fr/pm2/pm2/-/tree/master/mpi_sync_clocks)
+(automatically provided when StarPU is built with NewMadeleine, but it can also
+be used with other MPI libraries). It provides a *synchronized* barrier, which
+aims at actually releasing all processes at the exact same time.
+Unfortunately, the gained precision costs some time (several seconds per
+barrier), that is why one can disable this precise synchronization with the
+environment variable \ref STARPU_MPI_TRACE_SYNC_CLOCKS set to \c 0, and use the
+faster MPI barrier instead.
+
 */

@@ -603,6 +603,7 @@ if test x$enable_mpi = xyes ; then
     if test x$enable_mpi_sync_clocks = xyes ; then
 	MPI_SYNC_CLOCKS_LDFLAGS="$(pkg-config --libs mpi_sync_clocks)"
 	MPI_SYNC_CLOCKS_CFLAGS="$(pkg-config --cflags mpi_sync_clocks)"
+	AC_DEFINE(STARPU_HAVE_MPI_SYNC_CLOCKS, [1], [Define to 1 if you have mpi_sync_clocks and it is meant to be used])
     fi
 fi
 

@@ -558,9 +558,65 @@ static const char *get_state_name(const char *short_name, uint32_t states)
 	return short_name;
 }
 
+static double compute_time_stamp(double ev_time, struct starpu_fxt_options *options)
+{
+	double offset = 0;
+
+	if (options->file_offset.nb_barriers < 2)
+	{
+		offset = (double) options->file_offset.offset_start;
+	}
+	else
+	{
+		/* Since a clock drift can happen during the execution, the offset to
+		 * apply at the beginning of the trace can be different from the one
+		 * to apply at the end of the trace. Thus, we make an interpolation to
+		 * know what is the offset at the considerated time. */
+		double xA = (double) options->file_offset.local_time_start;
+		double xB = (double) options->file_offset.local_time_end;
+		double yA = (double) options->file_offset.offset_start;
+		double yB = (double) options->file_offset.offset_end;
+
+		/* We interpolate offset only for times between the two synchronization
+		 * barriers, because outside of this interval, applying the
+		 * interpolated offset can lead to negative times... Moreover,
+		 * timestamps of events outside of this interval don't need to be
+		 * precise (events describing the machine, StarPU's initialization...)
+		 * */
+		if (ev_time <= xA)
+		{
+			offset = yA;
+		}
+		else if (ev_time >= xB)
+		{
+			offset = yB;
+		}
+		else
+		{
+			offset = ((yB-yA) / (xB-xA)) * (ev_time-xA) + yA;
+#ifndef STARPU_NO_ASSERT
+			// Check that the offset is correctly inside the interval:
+			if (yB > yA)
+			{
+				STARPU_ASSERT(offset >= yA && offset <= yB);
+			}
+			else
+			{
+				STARPU_ASSERT(offset <= yA && offset >= yB);
+			}
+#endif
+		}
+	}
+
+	STARPU_ASSERT((ev_time + offset) >= 0);
+	return (ev_time + offset) / 1000000.0;
+}
+
 static double get_event_time_stamp(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-	return (((double)(ev->time-options->file_offset))/1000000.0);
+	double ev_time = (double) ev->time;
+
+	return compute_time_stamp(ev_time, options);
 }
 
 /*
@@ -2932,6 +2988,7 @@ static void handle_tag_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *opt
 static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	int rank = ev->param[0];
+	double sync_time = ev->param[3];
 
 	STARPU_ASSERT(rank == options->file_rank || options->file_rank == -1);
 
@@ -2941,10 +2998,25 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 #ifdef STARPU_HAVE_POTI
 		char container[STARPU_POTI_STR_LEN], paje_value[STARPU_POTI_STR_LEN];
 		snprintf(container, sizeof(container), "%sp", options->file_prefix);
-		snprintf(paje_value, sizeof(paje_value), "%d", rank);
-		poti_NewEvent(get_event_time_stamp(ev, options), container, "prog_event", paje_value);
+		if (sync_time != 0)
+		{
+			snprintf(paje_value, sizeof(paje_value), "\"end of mpi_sync_clocks_barrier, rank %d\"", rank);
+			poti_NewEvent(compute_time_stamp(sync_time, options), container, "prog_event", paje_value);
+		}
+		else
+		{
+			snprintf(paje_value, sizeof(paje_value), "\"end of MPI_Barrier, rank %d\"", rank);
+			poti_NewEvent(get_event_time_stamp(ev, options), container, "prog_event", paje_value);
+		}
 #else
-		fprintf(out_paje_file, "9	%.9f	prog_event	%sp	%d\n", get_event_time_stamp(ev, options), options->file_prefix, rank);
+		if (sync_time != 0)
+		{
+			fprintf(out_paje_file, "9	%.9f	prog_event	%sp	\"end of mpi_sync_clocks_barrier, rank %d\"\n", compute_time_stamp(sync_time, options), options->file_prefix, rank);
+		}
+		else
+		{
+			fprintf(out_paje_file, "9	%.9f	prog_event	%sp	\"end of MPI_Barrier, rank %d\"\n", get_event_time_stamp(ev, options), options->file_prefix, rank);
+		}
 #endif
 	}
 }
@@ -4058,7 +4130,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			default:
 #ifdef STARPU_VERBOSE
 				_STARPU_MSG("unknown event.. %x at time %llx WITH OFFSET %llx\n",
-					    (unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time-options->file_offset));
+					    (unsigned)ev.code, (long long unsigned)ev.time, (long long unsigned)(ev.time-options->file_offset.offset_start));
 #endif
 				break;
 		}
@@ -4652,7 +4724,8 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		/* we usually only have a single trace */
 		uint64_t file_start_time = _starpu_fxt_find_start_time(options->filenames[0]);
 		options->file_prefix = strdup("");
-		options->file_offset = file_start_time;
+		options->file_offset.nb_barriers = 0;
+		options->file_offset.offset_start = -file_start_time;
 		options->file_rank = -1;
 
 		_starpu_fxt_parse_new_file(options->filenames[0], options);
@@ -4661,15 +4734,16 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 	{
 		unsigned inputfile;
 
-		uint64_t offsets[options->ninputfiles];
-
 		/*
 		 * Find the trace offsets:
 		 *	- If there is no sync point
 		 *		psi_k(x) = x - start_k
-		 *	- If there is a sync point sync_k
+		 *	- If there is one sync point sync_k
 		 *		psi_k(x) = x - sync_k + M
 		 *		where M = max { sync_i - start_i | there exists sync_i}
+		 *	- If there are two sync points:
+		 *		Two offsets are computed, and then offset is interpolated
+		 *		and applied in get_event_timestamp() for each timestamp.
 		 * More generally:
 		 *	- psi_k(x) = x - offset_k
 		 */
@@ -4677,66 +4751,90 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 		int unique_keys[options->ninputfiles];
 		int rank_k[options->ninputfiles];
 		uint64_t start_k[options->ninputfiles];
-		uint64_t sync_k[options->ninputfiles];
-		unsigned sync_k_exists[options->ninputfiles];
-		uint64_t M = 0;
-
-		unsigned found_one_sync_point = 0;
-		int key = 0;
+		struct starpu_fxt_mpi_offset sync_barriers[options->ninputfiles];
+		uint64_t M_start = 0;
+		uint64_t M_end = 0;
+		int key = -1;
 		unsigned display_mpi = 0;
 
-		/* Compute all start_k */
+		/* Get all trace starts */
 		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
 		{
 			uint64_t file_start = _starpu_fxt_find_start_time(options->filenames[inputfile]);
 			start_k[inputfile] = file_start;
 		}
 
-		/* Compute all sync_k if they exist */
+		/* Look for all synchronization points, if they exist */
 		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
 		{
-			int ret = _starpu_fxt_mpi_find_sync_point(options->filenames[inputfile],
-								  &sync_k[inputfile],
-								  &unique_keys[inputfile],
-								  &rank_k[inputfile]);
-			if (ret == -1)
+			sync_barriers[inputfile] = _starpu_fxt_mpi_find_sync_points(options->filenames[inputfile],
+										   &unique_keys[inputfile],
+										   &rank_k[inputfile]);
+			if (sync_barriers[inputfile].nb_barriers > 0)
 			{
-				/* There was no sync point, we assume there is no offset */
-				sync_k_exists[inputfile] = 0;
-			}
-			else
-			{
-				if (!found_one_sync_point)
+				/* Let's start by making sure all trace files come from the same execution: */
+				if (key == -1)
 				{
-					key = unique_keys[inputfile];
+					key = unique_keys[inputfile]; // key is in [0, RAND_MAX]
 					display_mpi = 1;
-					found_one_sync_point = 1;
 				}
-				else
+				else if (key != unique_keys[inputfile])
 				{
-					if (key != unique_keys[inputfile])
+					_STARPU_MSG("Warning: traces are coming from different run so we will not try to display MPI communications.\n");
+					display_mpi = 0;
+				}
+
+				/* Find what is the most important duration between start of the trace and sync point.
+				 * (see below why we need this information) */
+				STARPU_ASSERT(sync_barriers[inputfile].local_time_start >= start_k[inputfile]);
+				uint64_t diff = sync_barriers[inputfile].local_time_start - start_k[inputfile];
+				if (diff > M_start)
+				{
+					M_start = diff;
+				}
+				if (sync_barriers[inputfile].nb_barriers == 2)
+				{
+					STARPU_ASSERT(sync_barriers[inputfile].local_time_end >= sync_barriers[inputfile].local_time_start);
+					diff = sync_barriers[inputfile].local_time_end - start_k[inputfile];
+					if (diff > M_end)
 					{
-						_STARPU_MSG("Warning: traces are coming from different run so we will not try to display MPI communications.\n");
-						display_mpi = 0;
+						M_end = diff;
 					}
 				}
-
-
-				STARPU_ASSERT(sync_k[inputfile] >= start_k[inputfile]);
-
-				sync_k_exists[inputfile] = 1;
-
-				uint64_t diff = sync_k[inputfile] - start_k[inputfile];
-				if (diff > M)
-					M = diff;
 			}
 		}
 
-		/* Compute the offset */
+		/* Compute the offset for each trace file.
+		 * Note: offsets will be applied with the following formula:
+		 *   t_corrected = t + offset
+		 * The offset represents two steps:
+		 *   1. It changes the time origin of timestamps to the local sync
+		 *      point time (since we are sure the sync point occured at the same
+		 *      global time on each node, it is a valid reference point), hence:
+		 *      offset[k] = -sync_point[k]
+		 *   2. This will make timestamp of events before the sync point
+		 *      happening before 0. We correct this by adding to the offset the
+		 *      largest time difference between trace start and sync point among
+		 *      all trace files (after step 1., it is the start time which is the
+		 *      most in the past, so by taking this value, we are sure all events
+		 *      in all processes will have a positive timestamp), hence:
+		 *      offset[k] += M
+		 */
 		for (inputfile = 0; inputfile < options->ninputfiles; inputfile++)
 		{
-			offsets[inputfile] = sync_k_exists[inputfile]?
-						(sync_k[inputfile]-M):start_k[inputfile];
+			if (sync_barriers[inputfile].nb_barriers)
+			{
+				sync_barriers[inputfile].offset_start = -sync_barriers[inputfile].local_time_start + M_start;
+
+				if (sync_barriers[inputfile].nb_barriers == 2)
+				{
+					sync_barriers[inputfile].offset_end = -sync_barriers[inputfile].local_time_end + M_end;
+				}
+			}
+			else
+			{
+				sync_barriers[inputfile].offset_start = -start_k[inputfile];
+			}
 		}
 
 		/* generate the Paje trace for the different files */
@@ -4751,7 +4849,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options)
 
 			free(options->file_prefix);
 			options->file_prefix = strdup(file_prefix);
-			options->file_offset = offsets[inputfile];
+			options->file_offset = sync_barriers[inputfile];
 			options->file_rank = filerank;
 
 			_starpu_fxt_parse_new_file(options->filenames[inputfile], options);

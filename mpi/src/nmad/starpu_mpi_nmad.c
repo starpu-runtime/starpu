@@ -35,6 +35,10 @@
 #include <core/task.h>
 #include <core/topology.h>
 
+#ifdef STARPU_USE_FXT
+#include <starpu_mpi_fxt.h>
+#endif
+
 #ifdef STARPU_USE_MPI_NMAD
 
 #include <nm_sendrecv_interface.h>
@@ -50,9 +54,6 @@ char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem);
 
-#ifdef STARPU_USE_FXT
-static void _starpu_mpi_add_sync_point_in_fxt(void);
-#endif
 
 /* Condition to wake up waiting for all current MPI requests to finish */
 static starpu_pthread_t progress_thread;
@@ -525,15 +526,8 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	_starpu_mpi_datatype_init();
 
 #ifdef STARPU_USE_FXT
-	if (_starpu_fxt_wait_initialisation())
-	{
-		/* We need to record our ID in the trace before the main thread makes any MPI call */
-		_STARPU_MPI_TRACE_START(argc_argv->rank, argc_argv->world_size);
-		starpu_profiling_set_id(argc_argv->rank);
-		_starpu_profiling_set_mpi_worldsize(argc_argv->world_size);
-		_starpu_mpi_add_sync_point_in_fxt();
-	}
-#endif //STARPU_USE_FXT
+	_starpu_mpi_fxt_init(argc_argv);
+#endif
 
 	/* notify the main thread that the progression thread is ready */
 	STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
@@ -591,6 +585,10 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	STARPU_ASSERT_MSG(callback_lfstack_pop(&callback_stack)==NULL, "List of callback not empty.");
 	STARPU_ASSERT_MSG(nb_pending_requests==0, "Request still pending.");
 
+#ifdef STARPU_USE_FXT
+	_starpu_mpi_fxt_shutdown();
+#endif
+
 	if (argc_argv->initialize_mpi)
 	{
 		_STARPU_MPI_DEBUG(3, "Calling MPI_Finalize()\n");
@@ -611,40 +609,6 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 // #ifdef STARPU_MPI_ACTIVITY
 // static int hookid = - 1;
 // #endif /* STARPU_MPI_ACTIVITY */
-
-#ifdef STARPU_USE_FXT
-static void _starpu_mpi_add_sync_point_in_fxt(void)
-{
-	int rank;
-	int worldsize;
-	int ret;
-
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &worldsize);
-
-	ret = MPI_Barrier(MPI_COMM_WORLD);
-	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Barrier returning %s", _starpu_mpi_get_mpi_error_code(ret));
-
-	/* We generate a "unique" key so that we can make sure that different
-	 * FxT traces come from the same MPI run. */
-	int random_number;
-
-	/* XXX perhaps we don't want to generate a new seed if the application
-	 * specified some reproductible behaviour ? */
-	if (rank == 0)
-	{
-		srand(time(NULL));
-		random_number = rand();
-	}
-
-	ret = MPI_Bcast(&random_number, 1, MPI_INT, 0, MPI_COMM_WORLD);
-	STARPU_MPI_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Bcast returning %s", _starpu_mpi_get_mpi_error_code(ret));
-
-	_STARPU_MPI_TRACE_BARRIER(rank, worldsize, random_number);
-
-	_STARPU_MPI_DEBUG(3, "unique key %x\n", random_number);
-}
-#endif
 
 int _starpu_mpi_progress_init(struct _starpu_mpi_argc_argv *argc_argv)
 {
