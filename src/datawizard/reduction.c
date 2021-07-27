@@ -37,7 +37,8 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 	if (redux_cl)
 	{
 		STARPU_ASSERT_MSG(redux_cl->nbuffers == 2, "The reduction method has to take one STARPU_RW|STARPU_COMMUTE parameter and one STARPU_R parameter");
-		if (!(redux_cl->modes[0] & STARPU_COMMUTE)) {
+		if (!(redux_cl->modes[0] & STARPU_COMMUTE))
+		{
 			static int _warned = 0;
 			STARPU_HG_DISABLE_CHECKING(_warned);
 			if (!_warned)
