@@ -612,6 +612,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	/* Check deprecated and unset fields (where, <device>_func,
  	 * <device>_funcs) */
 
+#ifdef STARPU_USE_CPU
 	/* CPU */
 	if (cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS && cl->cpu_funcs[0])
 	{
@@ -638,7 +639,9 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		where |= STARPU_CPU;
 	}
+#endif
 
+#ifdef STARPU_USE_CUDA
 	/* CUDA */
 	if (cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS && cl->cuda_funcs[0])
 	{
@@ -665,7 +668,9 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		where |= STARPU_CUDA;
 	}
+#endif
 
+#ifdef STARPU_USE_OPENCL
 	/* OpenCL */
 	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])
 	{
@@ -692,7 +697,9 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		where |= STARPU_OPENCL;
 	}
+#endif
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
 	some_impl = 0;
 	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 		if (cl->mpi_ms_funcs[i])
@@ -716,6 +723,8 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		where |= STARPU_MPI_MS;
 	}
+#endif
+
 	cl->where = where;
 
 	STARPU_WMB();
