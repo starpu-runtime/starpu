@@ -28,7 +28,7 @@ extern "C"
 #endif
 
 /**
-   @defgroup API_Max_FPGA_Extensions FPGA Extensions
+   @defgroup API_Max_FPGA_Extensions Maxeler FPGA Extensions
    @{
 */
 
