@@ -612,7 +612,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	/* Check deprecated and unset fields (where, <device>_func,
  	 * <device>_funcs) */
 
-#ifdef STARPU_USE_CPU
+#if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID
 	/* CPU */
 	if (cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS && cl->cpu_funcs[0])
 	{
@@ -641,7 +641,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 #endif
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID
 	/* CUDA */
 	if (cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS && cl->cuda_funcs[0])
 	{
@@ -670,7 +670,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 #endif
 
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID
 	/* OpenCL */
 	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])
 	{
