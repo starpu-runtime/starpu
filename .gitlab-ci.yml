@@ -50,7 +50,7 @@ check_macosx:
   extends: .check_template
   tags : ["macosx"]
   script:
-    - ./contrib/gitlab/deploy.sh
+    - STARPU_USER_CONFIGURE_OPTIONS=--disable-mpi ./contrib/gitlab/deploy.sh
 
 simgrid:
   extends: .check_template
