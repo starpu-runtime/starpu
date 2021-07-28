@@ -234,7 +234,7 @@
 #undef STARPU_MAXOPENCLDEVS
 
 /**
-   Define the maximum number of FPGA devices that are supported by
+   Define the maximum number of Maxeler FPGA devices that are supported by
    StarPU.
    @ingroup API_Max_FPGA_Extensions
  */

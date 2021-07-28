@@ -268,8 +268,9 @@ In the <c>main</c> function, there are four important steps:
 The rest of the application (data registration, task submission, etc.)
 is as usual with StarPU.
 
-The design load can also be delegated to StarPU by specifying an array of load
-specifications in <c>starpu_conf::max_fpga_load</c>.
+The design load can also be delegated to StarPU by specifying an array
+of load specifications in <c>starpu_conf::max_fpga_load</c>, and use
+starpu_max_fpga_get_local_engine() to access the loaded max engines.
 
 Complete examples are available in <c>tests/fpga/*.c</c>
 
