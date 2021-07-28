@@ -56,6 +56,7 @@ New features:
   * Add starpu_data_evict_from_node function.
   * Add a StarPU Eclipse Plugin
   * Add support for Maxeler FPGA accelerators.
+  * Add 4D tensors filters.
 
 Small features:
   * New configure option --with-check-cflags to define flags for C,
