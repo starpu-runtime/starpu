@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -431,11 +431,11 @@ int starpu_task_submit(struct starpu_task *task)
 	* allocated. */
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	if (!j->internal)
+	if (!j->internal && limit_max_submitted_tasks >= 0 && limit_min_submitted_tasks >= 0)
 	{
 		int nsubmitted_tasks = starpu_task_nsubmitted();
-		if (limit_max_submitted_tasks >= 0 && limit_max_submitted_tasks < nsubmitted_tasks
-			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
+		if (limit_max_submitted_tasks < nsubmitted_tasks
+			&& limit_min_submitted_tasks < nsubmitted_tasks)
 			starpu_task_wait_for_n_submitted(limit_min_submitted_tasks);
 	}
 
