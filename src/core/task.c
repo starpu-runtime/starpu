@@ -904,11 +904,11 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	}
 	STARPU_ASSERT_MSG(!(nodeps && continuation), "not supported\n");
 
-	if (!j->internal)
+	if (!j->internal && limit_max_submitted_tasks >= 0 && limit_min_submitted_tasks >= 0)
 	{
 		int nsubmitted_tasks = starpu_task_nsubmitted();
-		if (limit_max_submitted_tasks >= 0 && limit_max_submitted_tasks < nsubmitted_tasks
-			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
+		if (limit_max_submitted_tasks < nsubmitted_tasks
+			&& limit_min_submitted_tasks < nsubmitted_tasks)
 		{
 			starpu_do_schedule();
 			_STARPU_TRACE_TASK_THROTTLE_START();
