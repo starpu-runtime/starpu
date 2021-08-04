@@ -612,6 +612,33 @@ void starpu_tensor_filter_time_block(void *father_interface, void *child_interfa
 */
 void starpu_tensor_filter_time_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
+/** @} */
+
+/**
+   @name Predefined Ndim Filter Functions
+   Predefined partitioning functions for ndim array
+   data.
+   @{
+*/
+
+/**
+  Partition a ndim array along the given dimension.
+  If \p nparts does not divide the element number on dimension, the last
+  submatrix contains the remainder.
+ */
+void starpu_ndim_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a ndim array along the given dimension, with a
+   shadow border <c>filter_arg_ptr</c>. If \p nparts does not
+   divide the element number on dimension, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_ndim_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
 /**
    Given an integer \p n, \p n the number of parts it must be divided in, \p id the
    part currently considered, determines the \p chunk_size and the \p offset, taking

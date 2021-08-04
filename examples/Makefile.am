@@ -241,6 +241,7 @@ STARPU_EXAMPLES +=				\
 	filters/ftensor				\
 	filters/fblock				\
 	filters/fmatrix				\
+	filters/fndim				\
 	filters/fmultiple_manual		\
 	filters/fmultiple_submit		\
 	filters/fmultiple_submit_readonly	\
@@ -629,7 +630,8 @@ examplebin_PROGRAMS +=				\
 	filters/shadow				\
 	filters/shadow2d			\
 	filters/shadow3d			\
-	filters/shadow4d
+	filters/shadow4d			\
+	filters/shadownd
 
 #############################
 # Custom multiformat filter #

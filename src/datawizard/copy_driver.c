@@ -453,6 +453,89 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
 	return ret;
 }
 
+static size_t _get_size(uint32_t* nn, size_t ndim)
+{
+    size_t size = 1;
+    unsigned i;
+    for (i=0; i<ndim; i++)
+        size *= nn[i];
+
+    return size;
+}
+
+int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t elemsize, size_t ndim,
+			    uint32_t* nn, uint32_t* ldn_src, uint32_t* ldn_dst,
+			    void *async_data)
+{
+	int ret = 0;
+	unsigned i;
+
+	for (i = 0; i < ndim-1; i++)
+	{
+		STARPU_ASSERT_MSG(ldn_src[i+1] >= nn[i] * ldn_src[i], "block size %lu is bigger than ld %lu in source", (unsigned long) nn[i] * ldn_src[i], (unsigned long) ldn_src[i+1]);
+		STARPU_ASSERT_MSG(ldn_dst[i+1] >= nn[i] * ldn_dst[i], "block size %lu is bigger than ld %lu in destination", (unsigned long) nn[i] * ldn_dst[i], (unsigned long) ldn_dst[i+1]);
+	}
+
+	if (ldn_src[ndim-1] == _get_size(nn, ndim-1) &&
+	    ldn_dst[ndim-1] == _get_size(nn, ndim-1))
+		/* Optimize contiguous case */
+		return starpu_interface_copy(src, src_offset, src_node,
+					     dst, dst_offset, dst_node,
+					     _get_size(nn, ndim) * elemsize,
+					     async_data);
+
+	if(ndim > 4)
+	{
+		for (i = 0; i < nn[ndim-1]; i++)
+		{
+			if (starpu_interface_copynd(src, src_offset + i*ldn_src[ndim-1], src_node,
+						    dst, dst_offset + i*ldn_dst[ndim-1], dst_node,
+						    elemsize, ndim-1,
+						    nn, ldn_src, ldn_dst,
+						    async_data))
+				ret = -EAGAIN;
+		}
+	}
+	else if(ndim == 4)
+	{
+		return starpu_interface_copy4d(src, src_offset, src_node,
+				    dst, dst_offset, dst_node,
+				    nn[0] * elemsize,
+				    nn[1], ldn_src[1] * elemsize, ldn_dst[1] * elemsize,
+				    nn[2], ldn_src[2] * elemsize, ldn_dst[2] * elemsize,
+				    nn[3], ldn_src[3] * elemsize, ldn_dst[3] * elemsize,
+				    async_data);
+	}
+	else if(ndim == 3)
+	{
+		return starpu_interface_copy3d(src, src_offset, src_node,
+				    dst, dst_offset, dst_node,
+				    nn[0] * elemsize,
+				    nn[1], ldn_src[1] * elemsize, ldn_dst[1] * elemsize,
+				    nn[2], ldn_src[2] * elemsize, ldn_dst[2] * elemsize,
+				    async_data);
+	}
+	else if(ndim == 2)
+	{
+		return starpu_interface_copy2d(src, src_offset, src_node,
+				    dst, dst_offset, dst_node,
+				    nn[0] * elemsize,
+				    nn[1], ldn_src[1] * elemsize, ldn_dst[1] * elemsize,
+				    async_data);
+	}
+	else if (ndim == 1)
+	{
+		return starpu_interface_copy(src, src_offset, src_node,
+					     dst, dst_offset, dst_node,
+					     nn[0] * elemsize,
+					     async_data);
+	}
+
+	return ret;
+}
+
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 #ifdef STARPU_SIMGRID

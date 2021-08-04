@@ -244,16 +244,18 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	datawizard/interfaces/bcsr_interface.c			\
 	datawizard/interfaces/coo_interface.c                   \
 	datawizard/interfaces/csr_interface.c			\
+	datawizard/interfaces/vector_filters.c			\
+	datawizard/interfaces/vector_interface.c		\
 	datawizard/interfaces/matrix_filters.c			\
 	datawizard/interfaces/matrix_interface.c		\
 	datawizard/interfaces/block_filters.c			\
 	datawizard/interfaces/block_interface.c			\
-	datawizard/interfaces/tensor_interface.c		\
-	datawizard/interfaces/vector_interface.c		\
 	datawizard/interfaces/tensor_filters.c		    \
+	datawizard/interfaces/tensor_interface.c		\
+	datawizard/interfaces/ndim_filters.c		    \
+	datawizard/interfaces/ndim_interface.c		\
 	datawizard/interfaces/bcsr_filters.c			\
 	datawizard/interfaces/csr_filters.c			\
-	datawizard/interfaces/vector_filters.c			\
 	datawizard/interfaces/variable_interface.c		\
 	datawizard/interfaces/void_interface.c			\
 	datawizard/interfaces/multiformat_interface.c           \
