@@ -102,12 +102,6 @@ static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node
     uint32_t* nn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
     memcpy(nn_cpy, nn_org, ndim*sizeof(uint32_t));
 
-    uint32_t* ldn_org = ndim_interface->ldn;
-    uint32_t* ldn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
-    memcpy(ldn_cpy, ldn_org, ndim*sizeof(uint32_t));
-
-    uint32_t* ldn_zero = (uint32_t*)calloc(ndim, sizeof(uint32_t));
-
     unsigned node;
     for (node = 0; node < STARPU_MAXNODES; node++)
     {
@@ -119,6 +113,9 @@ static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node
             local_interface->ptr = ndim_interface->ptr;
             local_interface->dev_handle = ndim_interface->dev_handle;
             local_interface->offset = ndim_interface->offset;
+            uint32_t* ldn_org = ndim_interface->ldn;
+            uint32_t* ldn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
+            memcpy(ldn_cpy, ldn_org, ndim*sizeof(uint32_t));
             local_interface->ldn  = ldn_cpy;
         }
         else
@@ -126,6 +123,7 @@ static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node
             local_interface->ptr = 0;
             local_interface->dev_handle = 0;
             local_interface->offset = 0;
+            uint32_t* ldn_zero = (uint32_t*)calloc(ndim, sizeof(uint32_t));
             local_interface->ldn  = ldn_zero;
         }
 
@@ -138,12 +136,16 @@ static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node
 
 static void unregister_ndim_handle(starpu_data_handle_t handle)
 {
-    unsigned node=0;
+    unsigned node;
+    for (node = 0; node < STARPU_MAXNODES; node++)
+    {
+        struct starpu_ndim_interface *local_interface = (struct starpu_ndim_interface *) starpu_data_get_interface_on_node(handle, node);
 
-    struct starpu_ndim_interface *local_interface = (struct starpu_ndim_interface *) starpu_data_get_interface_on_node(handle, node);
-
-    free(local_interface->nn);
-    free(local_interface->ldn);
+        if (node == 0)
+            free(local_interface->nn);
+        
+        free(local_interface->ldn);
+    }
 }
 
 /* declare a new data with the BLAS interface */
