@@ -31,6 +31,8 @@ static void _starpu_ndim_filter_block(unsigned dim, void *father_interface, void
     uint32_t *ni;
     ni = (uint32_t*)malloc(ndim*sizeof(uint32_t));
 
+    STARPU_ASSERT_MSG(dim < ndim, "dim %u must be less than %u!\n", dim, (unsigned) ndim);
+
     unsigned i;
     for (i=0; i<ndim; i++)
     {
