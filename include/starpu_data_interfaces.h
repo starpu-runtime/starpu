@@ -1512,7 +1512,7 @@ struct starpu_ndim_interface
 };
 
 /**
-   Register the \nn ndim of \p elemsize byte elements
+   Register the \p nn[0] x \p nn[1] x ... \p ndim-dimension matrix of \p elemsize byte elements
    pointed by \p ptr and initialize \p handle to represent it. Again, \p ldn,
    specifies the number of elements between two units on each dimension.
 
