@@ -60,7 +60,8 @@ struct starpu_data_interface_ops starpu_interface_ndim_ops =
     .peek_data = peek_ndim_handle,
     .unpack_data = unpack_ndim_handle,
     .describe = describe,
-    .name = "STARPU_NDIM_INTERFACE"
+    .name = "STARPU_NDIM_INTERFACE",
+    .dontcache = 1
 };
 
 static void *ndim_to_pointer(void *data_interface, unsigned node)
