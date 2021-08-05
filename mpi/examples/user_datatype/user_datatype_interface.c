@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 		starpu_mpi_irecv(my_handle3, &req, 0, 14, MPI_COMM_WORLD);
 		starpu_mpi_recv(my_handle2, 0, 12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		starpu_mpi_recv(my_handle1, 0, 10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		starpu_mpi_wait(&req, NULL);
+		starpu_mpi_wait(&req, MPI_STATUS_IGNORE);
 
 		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 rceived value", strlen("node1 rceived value")+1, STARPU_R, my_handle3, 0);
 	}
