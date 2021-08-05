@@ -1410,11 +1410,6 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	 * by freeing this.  */
 	mc->size = size;
 
-	/* Also keep the interface parameters and pointers, for later reuse
-	 * while detached, or freed */
-	_STARPU_MALLOC(mc->chunk_interface, mc->size_interface);
-	memcpy(mc->chunk_interface, replicate->data_interface, mc->size_interface);
-
 	/* This memchunk doesn't have to do with the data any more. */
 	replicate->mc = NULL;
 	mc->replicate = NULL;
@@ -1448,13 +1443,18 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 			)
 	{
 		/* Free data immediately */
+		mc->chunk_interface = replicate->data_interface;
 		free_memory_on_node(mc, node);
 
-		free(mc->chunk_interface);
 		_starpu_mem_chunk_delete(mc);
 	}
 	else
 	{
+		/* Keep the interface parameters and pointers, for later reuse
+		 * while detached, or freed */
+		_STARPU_MALLOC(mc->chunk_interface, mc->size_interface);
+		memcpy(mc->chunk_interface, replicate->data_interface, mc->size_interface);
+
 		/* put it in the list of buffers to be removed */
 		uint32_t footprint = mc->footprint;
 		struct mc_cache_entry *entry;
