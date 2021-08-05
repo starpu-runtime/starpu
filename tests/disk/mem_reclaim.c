@@ -57,6 +57,12 @@ int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
+#elif STARPU_MAXNODES == 1
+/* Cannot register a disk */
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
 #else
 
 static int (*any_to_any)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
