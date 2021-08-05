@@ -97,6 +97,7 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+        /* Unpartition the data, unregister it from StarPU and shutdown */
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
         starpu_data_unregister(handle);
 	starpu_shutdown();

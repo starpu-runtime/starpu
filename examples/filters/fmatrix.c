@@ -78,7 +78,7 @@ int main(void)
 
         ret = starpu_init(NULL);
 	if (ret == -ENODEV)
-		return 77;
+		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */
@@ -134,6 +134,7 @@ int main(void)
 	return ret;
 
 enodev:
+	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	starpu_shutdown();
 	return 77;
 }
