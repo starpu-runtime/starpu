@@ -98,10 +98,6 @@ static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node
 
     size_t ndim = ndim_interface->ndim;
 
-    uint32_t* nn_org = ndim_interface->nn;
-    uint32_t* nn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
-    memcpy(nn_cpy, nn_org, ndim*sizeof(uint32_t));
-
     unsigned node;
     for (node = 0; node < STARPU_MAXNODES; node++)
     {
@@ -128,6 +124,9 @@ static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node
         }
 
         local_interface->id = ndim_interface->id;
+        uint32_t* nn_org = ndim_interface->nn;
+        uint32_t* nn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
+        memcpy(nn_cpy, nn_org, ndim*sizeof(uint32_t));
         local_interface->nn = nn_cpy;
         local_interface->ndim = ndim_interface->ndim;
         local_interface->elemsize = ndim_interface->elemsize;
@@ -141,9 +140,7 @@ static void unregister_ndim_handle(starpu_data_handle_t handle)
     {
         struct starpu_ndim_interface *local_interface = (struct starpu_ndim_interface *) starpu_data_get_interface_on_node(handle, node);
 
-        if (node == 0)
-            free(local_interface->nn);
-        
+        free(local_interface->nn);
         free(local_interface->ldn);
     }
 }
