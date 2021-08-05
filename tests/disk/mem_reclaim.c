@@ -57,6 +57,12 @@ int main(int argc, char **argv)
 {
 	return STARPU_TEST_SKIPPED;
 }
+#elif STARPU_MAXNODES == 1
+/* Cannot register a disk */
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
 #else
 
 const struct starpu_data_copy_methods my_vector_copy_data_methods_s;

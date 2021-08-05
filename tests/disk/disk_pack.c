@@ -32,6 +32,12 @@ int main(void)
 {
 	return STARPU_TEST_SKIPPED;
 }
+#elif STARPU_MAXNODES == 1
+/* Cannot register a disk */
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
 #else
 
 /*

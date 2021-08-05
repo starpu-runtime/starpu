@@ -26,6 +26,13 @@
 #include <math.h>
 #include "../helper.h"
 
+#if STARPU_MAXNODES == 1
+/* Cannot register a disk */
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 /*
  * Try to write into disk memory
  * Use mechanism to push datas from main ram to disk ram
@@ -242,3 +249,4 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(-errno, "rmdir '%s'\n", s);
 	return ret;
 }
+#endif
