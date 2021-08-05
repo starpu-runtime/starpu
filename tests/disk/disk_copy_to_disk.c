@@ -29,6 +29,13 @@
 #include <hdf5.h>
 #endif
 
+#if STARPU_MAXNODES == 1
+/* Cannot register a disk */
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 /*
  * Try to write into disk memory
  * Use mechanism to push data from disk to disk.
@@ -412,3 +419,4 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(-errno, "rmdir '%s'\n", s);
 	return ret;
 }
+#endif
