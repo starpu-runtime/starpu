@@ -47,6 +47,8 @@ synchronize the tasks execution.
 
 \section ConfigurationImprovePerformance Configuration Which May Improve Performance
 
+If you do not plan to use support for GPUs or out-of-core, i.e. not use StarPU's ability to manage data coherency between several memory nodes, the \c configure option \ref enable-maxnodes "--enable-maxnodes=1" allows to considerably reduce StarPU's memory management overhead.
+
 The \c configure option \ref enable-fast "--enable-fast" disables all
 assertions. This makes StarPU more performant for really small tasks by
 disabling all sanity checks. Only use this for measurements and production, not for development, since this will drop all basic checks.

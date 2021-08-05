@@ -277,6 +277,13 @@ starpu_data_handle_t STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
 	return dataA_handles[j+i*nblocks];
 }
 
+#if STARPU_MAXNODES == 1
+/* Cannot register a disk */
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 int main(int argc, char **argv)
 {
 	int rank;
@@ -437,3 +444,4 @@ int main(int argc, char **argv)
 
 	return 0;
 }
+#endif
