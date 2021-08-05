@@ -28,8 +28,7 @@ static void _starpu_ndim_filter_block(unsigned dim, void *father_interface, void
 
     unsigned blocksize;
     uint32_t father_nn;
-    uint32_t *ni;
-    ni = (uint32_t*)malloc(ndim*sizeof(uint32_t));
+    uint32_t ni[ndim];
 
     STARPU_ASSERT_MSG(dim < ndim, "dim %u must be less than %u!\n", dim, (unsigned) ndim);
 
@@ -97,8 +96,6 @@ static void _starpu_ndim_filter_block(unsigned dim, void *father_interface, void
         ndim_child->dev_handle = ndim_father->dev_handle;
         ndim_child->offset = ndim_father->offset + offset;
     }
-
-    free(ni);
 }
 
 
