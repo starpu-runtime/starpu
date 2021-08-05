@@ -3418,7 +3418,7 @@ the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_m
 	char dowake[STARPU_NMAXWORKERS] = { 0 };
 #endif
 
-	workers->init_iterator(workers, &it);
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
 		unsigned worker = workers->get_next(workers, &it);
@@ -3444,10 +3444,10 @@ the HETEROPRIO_USE_LA variable to 0, or calling starpu_laheteroprio_map_wgroup_m
 	/* Let the task free */
 	STARPU_PTHREAD_MUTEX_UNLOCK(&hp->policy_mutex);
 
-#ifndef STARPU_NON_BLOCKING_DRIVERS
+#if !defined(STARPU_NON_BLOCKING_DRIVERS) || defined(STARPU_SIMGRID)
 	/* Now that we have a list of potential workers, try to wake one */
 
-	workers->init_iterator(workers, &it);
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
 	while(workers->has_next(workers, &it))
 	{
 		unsigned worker = workers->get_next(workers, &it);
