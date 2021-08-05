@@ -96,7 +96,8 @@ void display_complex_codelet(void *descr[], void *_args)
 struct starpu_codelet cl_display =
 {
 	.cpu_funcs = {display_complex_codelet},
-	.cpu_funcs_name = {"display_complex_codelet"},
+	/* MPI Master Slave does not use pack/unpack yet */
+	/* .cpu_funcs_name = {"display_complex_codelet"}, */
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 	.name = "cl_display",

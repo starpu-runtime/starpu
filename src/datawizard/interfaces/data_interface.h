@@ -31,14 +31,14 @@
  */
 union _starpu_interface
 {
+	/* struct starpu_void_interface void; void doesn't have any data */
+	struct starpu_variable_interface variable;
+	struct starpu_vector_interface vector;
 	struct starpu_matrix_interface matrix;
 	struct starpu_block_interface block;
-	struct starpu_vector_interface vector;
 	struct starpu_csr_interface csr;
-	struct starpu_coo_interface coo;
 	struct starpu_bcsr_interface bcsr;
-	struct starpu_variable_interface variable;
-	struct starpu_multiformat_interface multiformat;
+	struct starpu_coo_interface coo;
 };
 
 /** Some data interfaces or filters use this interface internally */
