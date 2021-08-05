@@ -467,6 +467,18 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	for (i = 0; i < nb_interfaces; i++)
 	{
 		starpu_data_handle_t handle = handles[i];
+		enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
+		/* Check that the interface exists in _starpu_interface */
+		STARPU_ASSERT_MSG(id == STARPU_VOID_INTERFACE_ID ||
+		                  id == STARPU_VARIABLE_INTERFACE_ID ||
+		                  id == STARPU_VECTOR_INTERFACE_ID ||
+		                  id == STARPU_MATRIX_INTERFACE_ID ||
+		                  id == STARPU_BLOCK_INTERFACE_ID ||
+		                  id == STARPU_TENSOR_INTERFACE_ID ||
+		                  id == STARPU_CSR_INTERFACE_ID ||
+		                  id == STARPU_BCSR_INTERFACE_ID ||
+		                  id == STARPU_COO_INTERFACE_ID,
+		                  "MPI-MS currently cannot work with interface type %d", id);
 
 		memcpy ((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
 		/* The sink side has no mean to get the type of each
