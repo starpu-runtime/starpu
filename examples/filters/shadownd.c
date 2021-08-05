@@ -388,28 +388,28 @@ int main(void)
     struct starpu_data_filter ft =
     {
         .filter_func = starpu_ndim_filter_block_shadow,
-        .filter_arg = 4, //Partition the array along T dimension
+        .filter_arg = 3, //Partition the array along T dimension
         .nchildren = PARTST,
         .filter_arg_ptr = (void*)(uintptr_t) SHADOWT /* Shadow width */
     };
     struct starpu_data_filter fz =
     {
         .filter_func = starpu_ndim_filter_block_shadow,
-        .filter_arg = 3, //Partition the array along Z dimension
+        .filter_arg = 2, //Partition the array along Z dimension
         .nchildren = PARTSZ,
         .filter_arg_ptr = (void*)(uintptr_t) SHADOWZ /* Shadow width */
     };
     struct starpu_data_filter fy =
     {
         .filter_func = starpu_ndim_filter_block_shadow,
-        .filter_arg = 2, //Partition the array along Y dimension
+        .filter_arg = 1, //Partition the array along Y dimension
         .nchildren = PARTSY,
         .filter_arg_ptr = (void*)(uintptr_t) SHADOWY /* Shadow width */
     };
     struct starpu_data_filter fx =
     {
         .filter_func = starpu_ndim_filter_block_shadow,
-        .filter_arg = 1, //Partition the array along X dimension
+        .filter_arg = 0, //Partition the array along X dimension
         .nchildren = PARTSX,
         .filter_arg_ptr = (void*)(uintptr_t) SHADOWX /* Shadow width */
     };
@@ -419,25 +419,25 @@ int main(void)
     struct starpu_data_filter ft2 =
     {
         .filter_func = starpu_ndim_filter_block,
-        .filter_arg = 4, //Partition the array along T dimension
+        .filter_arg = 3, //Partition the array along T dimension
         .nchildren = PARTST,
     };
     struct starpu_data_filter fz2 =
     {
         .filter_func = starpu_ndim_filter_block,
-        .filter_arg = 3, //Partition the array along Z dimension
+        .filter_arg = 2, //Partition the array along Z dimension
         .nchildren = PARTSZ,
     };
     struct starpu_data_filter fy2 =
     {
         .filter_func = starpu_ndim_filter_block,
-        .filter_arg = 2, //Partition the array along Y dimension
+        .filter_arg = 1, //Partition the array along Y dimension
         .nchildren = PARTSY,
     };
     struct starpu_data_filter fx2 =
     {
         .filter_func = starpu_ndim_filter_block,
-        .filter_arg = 1, //Partition the array along X dimension
+        .filter_arg = 0, //Partition the array along X dimension
         .nchildren = PARTSX,
     };
     starpu_data_map_filters(handle2, 4, &ft2, &fz2, &fy2, &fx2);

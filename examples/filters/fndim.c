@@ -138,7 +138,7 @@ int main(void)
     struct starpu_data_filter f =
     {
         .filter_func = starpu_ndim_filter_block,
-        .filter_arg = 1, //Partition the array along X dimension
+        .filter_arg = 0, //Partition the array along X dimension
         .nchildren = PARTS
     };
     starpu_data_partition(handle, &f);

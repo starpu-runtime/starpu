@@ -18,11 +18,13 @@
 #include <common/config.h>
 #include <datawizard/filters.h>
 
-static void _starpu_ndim_filter_block(unsigned dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+static void _starpu_ndim_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                    unsigned id, unsigned nparts, uintptr_t shadow_size)
 {
     struct starpu_ndim_interface *ndim_father = (struct starpu_ndim_interface *) father_interface;
     struct starpu_ndim_interface *ndim_child = (struct starpu_ndim_interface *) child_interface;
+
+    unsigned dim = f->filter_arg;
 
     size_t ndim = ndim_father->ndim;
 
@@ -102,15 +104,13 @@ static void _starpu_ndim_filter_block(unsigned dim, void *father_interface, void
 void starpu_ndim_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                    unsigned id, unsigned nparts)
 {
-    int dim = f->filter_arg - 1;
-    _starpu_ndim_filter_block(dim, father_interface, child_interface, f, id, nparts, 0);
+    _starpu_ndim_filter_block(father_interface, child_interface, f, id, nparts, 0);
 }
 
 void starpu_ndim_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                       unsigned id, unsigned nparts)
 {
     uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
-    int dim = f->filter_arg - 1;
 
-    _starpu_ndim_filter_block(dim, father_interface, child_interface, f, id, nparts, shadow_size);
+    _starpu_ndim_filter_block(father_interface, child_interface, f, id, nparts, shadow_size);
 }
