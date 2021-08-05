@@ -181,6 +181,7 @@ int main(void)
         return 0;
 
 enodev:
+        FPRINTF(stderr, "WARNING: No one can execute this task\n");
         starpu_shutdown();
         return 77;
 }

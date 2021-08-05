@@ -634,7 +634,7 @@ static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
     unsigned i;
     for (i=0; i<ndim+1; i++)
     {
-        ret = snprintf(buf + n, size, "%s%lu", i==0?"N":"x", i==ndim?block->elemsize:block->nn[i]);
+        ret = snprintf(buf + n, size, "%s%lu", i==0?"N":"x", (unsigned long) (i==ndim?block->elemsize:block->nn[i]));
         n += ret;
         if(size > ret)
             size -= ret;
