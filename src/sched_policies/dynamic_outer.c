@@ -782,6 +782,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     struct starpu_sched_component *temp_component = component;
     struct HFP_sched_data *data = temp_component->data;
     
+    struct starpu_task *task = NULL;
     starpu_data_handle_t *data_on_node;
     unsigned nb_data_on_node = 0;
     int *valid;
@@ -789,12 +790,12 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     starpu_data_handle_t returned_handle = NULL;
     starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 	
-	//~ printf("Data on node:\n");
-	//~ for (i = 0; i < nb_data_on_node; i++)
-	//~ {
-	    //~ printf("%p	", data_on_node[i]);
-	//~ }
-	//~ printf("\n");
+	printf("Data on node:\n");
+	for (i = 0; i < nb_data_on_node; i++)
+	{
+	    printf("%p	", data_on_node[i]);
+	}
+	printf("\n");
 	
     for (i = 0; i < nb_data_on_node; i++)
     {
@@ -808,39 +809,63 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	}
     }
     
-    /* New strategie: trying to evict the data with the less task it can do. */
-    int min_number_task = INT_MAX;
-    for (i = 0; i < nb_data_on_node; i++)
-    {
-	temp_number_of_task_min = 0;
-	for (t = task_using_data_list_begin(data_on_node[i]->sched_data); t != task_using_data_list_end(data_on_node[i]->sched_data); t = task_using_data_list_next(t))
-	{
-	    data_available = true; 
-	    for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
-	    {				    
-		/* I test if the data is on memory including prefetch. */
-		if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != data_on_node[i])
-		{
-		    if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-		    {
-			printf("Data %p is not on memory nor is popped.\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
-			data_available = false;
-			break;
-		    }
-		}
-	    }
-	    if (data_available == true)
-	    {
-		temp_number_of_task_min++;
-	    }
-	}
-	printf("%p has %d task available.\n");
-	if (temp_number_of_task_min < number_of_task_min)
-	{
-	    number_of_task_min = temp_number_of_task_min;
-	    returned_handle = data_on_node[i];
-	}
-    }
+    /* New strategie: Of all the data loaded, evict the one that can do the least task (from the task list 
+     * planned by dynamic_outer.
+     */
+     printf("On GPU n°%d.\n", node);
+     data->p->temp_pointer_1 = data->p->first_link;
+     if (starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))
+     {
+	 printf("Return NULL.\n");
+	 return NULL;
+     }
+     else
+     {
+	 nb_task_done_by_data[nb_data_on_node];
+	 for (i = 0; i < nb_data_on_node; i++) { nb_task_done_by_data = 0; }
+	 printf("Planned task are :");
+	 for (task = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
+	 {
+	     printf("%p	", task);
+	     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+	     {
+		 
+	     }
+	 }
+	 
+     }
+    //~ int min_number_task = INT_MAX;
+    //~ for (i = 0; i < nb_data_on_node; i++)
+    //~ {
+	//~ temp_number_of_task_min = 0;
+	//~ for (t = task_using_data_list_begin(data_on_node[i]->sched_data); t != task_using_data_list_end(data_on_node[i]->sched_data); t = task_using_data_list_next(t))
+	//~ {
+	    //~ data_available = true; 
+	    //~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+	    //~ {				    
+		//~ /* I test if the data is on memory including prefetch. */
+		//~ if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != data_on_node[i])
+		//~ {
+		    //~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+		    //~ {
+			//~ printf("Data %p is not on memory nor is popped.\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)); 
+			//~ data_available = false;
+			//~ break;
+		    //~ }
+		//~ }
+	    //~ }
+	    //~ if (data_available == true)
+	    //~ {
+		//~ temp_number_of_task_min++;
+	    //~ }
+	//~ }
+	//~ printf("%p has %d task available.\n");
+	//~ if (temp_number_of_task_min < number_of_task_min)
+	//~ {
+	    //~ number_of_task_min = temp_number_of_task_min;
+	    //~ returned_handle = data_on_node[i];
+	//~ }
+    //~ }
     /* End of new strategie. */
 	
 	
