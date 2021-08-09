@@ -296,12 +296,12 @@ static int lock_all_subtree(starpu_data_handle_t handle)
 
 static unsigned may_free_handle(starpu_data_handle_t handle, unsigned node)
 {
-    printf("Beggining of may_free_handle.\n");
+    //~ printf("Beggining of may_free_handle.\n");
 	/* we only free if no one refers to the leaf */
 	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
 	if (refcnt) 
 	{
-		printf("if refcnt.\n");
+		//~ printf("if refcnt.\n");
 		return 0; 
 	}
 
@@ -309,13 +309,13 @@ static unsigned may_free_handle(starpu_data_handle_t handle, unsigned node)
 	{
 		if (handle->write_invalidation_req) {
 			/* Some request is invalidating it anyway */
-			printf("invalid request.\n");
+			//~ printf("invalid request.\n");
 			return 0; }
 		unsigned n;
 		for (n = 0; n < STARPU_MAXNODES; n++)
 			if (_starpu_get_data_refcnt(handle, n)) {
 				/* Some task is writing to the handle somewhere */
-				printf("Task is writing the handle.\n");
+				//~ printf("Task is writing the handle.\n");
 				return 0; }
 	}
 
@@ -588,35 +588,35 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-    printf("Beggining of can evict.\n");
+    //~ printf("Beggining of can evict.\n");
 	STARPU_ASSERT(node < STARPU_MAXNODES);
 	/* This data should be written through to this node, avoid dropping it! */
 	if (node < sizeof(handle->wt_mask) * 8 && handle->wt_mask & (1<<node)) {
-		printf("Data should be written.\n");
+		//~ printf("Data should be written.\n");
 		return 0; }
 
 	/* This data was registered from this node, we will not be able to drop it anyway */
 	if ((int) node == handle->home_node) {
-		printf("Data was registered.\n");
+		//~ printf("Data was registered.\n");
 		return 0; }
 
 	/* This data cannnot be pushed outside CPU memory */
 	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
 		&& starpu_memory_nodes_get_numa_count() == 1) {
-		printf("Data cannot be pushed.\n");
+		//~ printf("Data cannot be pushed.\n");
 		return 0; }
 
 	if (is_prefetch >= STARPU_TASK_PREFETCH && handle->per_node[node].nb_tasks_prefetch) {
 		/* We have not finished executing the tasks this was prefetched for */
-		printf("Not finished executing the task it was prefetched for.\n");
+		//~ printf("Not finished executing the task it was prefetched for.\n");
 		return 0; }
 
 	if (!may_free_handle(handle, node)) {
 		/* Somebody refers to it */
-		printf("Data is referred to.\n");
+		//~ printf("Data is referred to.\n");
 		return 0; }
 		
-	printf("Return 1.\n");
+	//~ printf("Return 1.\n");
 	return 1;
 }
 
