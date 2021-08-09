@@ -14,28 +14,36 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* dumb kernel to fill a 3D matrix */
+/* dumb kernel to fill a 4D matrix */
 
 #include <starpu.h>
 
-void block_cpu_func(void *buffers[], void *cl_arg)
+void f4d_cpu_func(void *buffers[], void *cl_arg)
 {
-        int i, j, k;
-        int *factor = (int *) cl_arg;
-	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
-	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
-	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
-	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
-        unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
+    int i, j, k, l;
+    int *factor = (int *) cl_arg;
+    int *arr = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
+    int *nn = (int *)STARPU_NDIM_GET_NN(buffers[0]);
+    unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
+    int nx = nn[0];
+    int ny = nn[1];
+    int nz = nn[2];
+    int nt = nn[3];
+    unsigned ldy = ldn[1];
+    unsigned ldz = ldn[2];
+    unsigned ldt = ldn[3];
 
+    for(l=0; l<nt ; l++)
+    {
         for(k=0; k<nz ; k++)
-	{
-                for(j=0; j<ny ; j++)
-		{
-                        for(i=0; i<nx ; i++)
-                                block[(k*ldz)+(j*ldy)+i] *= *factor;
-                }
+        {
+            for(j=0; j<ny ; j++)
+            {
+                for(i=0; i<nx ; i++)
+                    arr[(l*ldt)+(k*ldz)+(j*ldy)+i] *= *factor;
+            }
         }
+    }
+        
 }
 

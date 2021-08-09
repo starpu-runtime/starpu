@@ -578,9 +578,17 @@ endif
 ###########
 # Filters #
 ###########
+filters_fvector_SOURCES =			\
+	filters/fvector.c			\
+	filters/fvector_cpu.c
+
+filters_fmatrix_SOURCES =			\
+	filters/fmatrix.c			\
+	filters/fmatrix_cpu.c
 
 filters_fblock_SOURCES =			\
 	filters/fblock.c			\
+	filters/fblock_print.c			\
 	filters/fblock_cpu.c
 
 if STARPU_USE_CUDA
@@ -593,6 +601,16 @@ filters_fblock_SOURCES +=			\
 nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_kernel.cl
 endif
+
+filters_ftensor_SOURCES =			\
+	filters/ftensor.c			\
+	filters/ftensor_print.c			\
+	filters/ftensor_cpu.c
+
+filters_fndim_SOURCES =			\
+	filters/fndim.c			\
+	filters/ftensor_print.c			\
+	filters/f4d_cpu.c
 
 filters_fmultiple_manual_SOURCES =		\
 	filters/fmultiple_manual.c

@@ -27,19 +27,7 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void cpu_func(void *buffers[], void *cl_arg)
-{
-        unsigned i;
-        int *factor = (int *) cl_arg;
-
-        /* length of the vector */
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-        /* local copy of the vector pointer */
-        int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
-
-        for (i = 0; i < n; i++)
-                val[i] *= *factor;
-}
+extern void vector_cpu_func(void *buffers[], void *cl_arg);
 
 int main(void)
 {
@@ -51,8 +39,8 @@ int main(void)
 
         struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func},
-                .cpu_funcs_name = {"cpu_func"},
+                .cpu_funcs = {vector_cpu_func},
+                .cpu_funcs_name = {"vector_cpu_func"},
                 .nbuffers = 1,
 		.modes = {STARPU_RW},
 		.name = "vector_scal"

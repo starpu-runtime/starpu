@@ -14,28 +14,26 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* dumb kernel to fill a 3D matrix */
+/* dumb kernel to fill a 2D matrix */
 
 #include <starpu.h>
 
-void block_cpu_func(void *buffers[], void *cl_arg)
+void matrix_cpu_func(void *buffers[], void *cl_arg)
 {
-        int i, j, k;
+        unsigned i, j;
         int *factor = (int *) cl_arg;
-	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
-	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
-	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
-	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
-        unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
 
-        for(k=0; k<nz ; k++)
-	{
-                for(j=0; j<ny ; j++)
-		{
-                        for(i=0; i<nx ; i++)
-                                block[(k*ldz)+(j*ldy)+i] *= *factor;
-                }
+        /* length of the matrix */
+        unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
+        unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
+        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+        /* local copy of the matrix pointer */
+        int *matrix = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+
+        for(j=0; j<ny ; j++)
+        {
+                for(i=0; i<nx ; i++)
+                        matrix[(j*ld)+i] *= *factor;
         }
 }
 

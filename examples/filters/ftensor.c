@@ -29,69 +29,10 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void cpu_func(void *buffers[], void *cl_arg)
-{
-    int i, j, k, l;
-    int *factor = (int *) cl_arg;
-    int *val = (int *)STARPU_TENSOR_GET_PTR(buffers[0]);
-    int nx = (int)STARPU_TENSOR_GET_NX(buffers[0]);
-    int ny = (int)STARPU_TENSOR_GET_NY(buffers[0]);
-    int nz = (int)STARPU_TENSOR_GET_NZ(buffers[0]);
-    int nt = (int)STARPU_TENSOR_GET_NT(buffers[0]);
-    unsigned ldy = STARPU_TENSOR_GET_LDY(buffers[0]);
-    unsigned ldz = STARPU_TENSOR_GET_LDZ(buffers[0]);
-    unsigned ldt = STARPU_TENSOR_GET_LDT(buffers[0]);
+extern void tensor_cpu_func(void *buffers[], void *cl_arg);
 
-    for(l=0; l<nt ; l++)
-    {
-        for(k=0; k<nz ; k++)
-        {
-            for(j=0; j<ny ; j++)
-            {
-                for(i=0; i<nx ; i++)
-                    val[(l*ldt)+(k*ldz)+(j*ldy)+i] = *factor;
-            }
-        }
-    }
-        
-}
-
-void print_tensor(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt)
-{
-        int i, j, k, l;
-        FPRINTF(stderr, "tensor=%p nx=%d ny=%d nz=%d nt=%d ldy=%u ldz=%u ldt=%u\n", tensor, nx, ny, nz, nt, ldy, ldz, ldt);
-        for(l=0 ; l<nt ; l++)
-        {
-            for(k=0 ; k<nz ; k++)
-            {
-                for(j=0 ; j<ny ; j++)
-                {
-                    for(i=0 ; i<nx ; i++)
-                    {
-                        FPRINTF(stderr, "%2d ", tensor[(l*ldt)+(k*ldz)+(j*ldy)+i]);
-                    }
-                    FPRINTF(stderr,"\n");
-                }
-                FPRINTF(stderr,"\n");
-            }
-            FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
-}
-
-void print_data(starpu_data_handle_t tensor_handle)
-{
-    int *tensor = (int *)starpu_tensor_get_local_ptr(tensor_handle);
-    int nx = starpu_tensor_get_nx(tensor_handle);
-    int ny = starpu_tensor_get_ny(tensor_handle);
-    int nz = starpu_tensor_get_nz(tensor_handle);
-    int nt = starpu_tensor_get_nt(tensor_handle);
-    unsigned ldy = starpu_tensor_get_local_ldy(tensor_handle);
-    unsigned ldz = starpu_tensor_get_local_ldz(tensor_handle);
-    unsigned ldt = starpu_tensor_get_local_ldt(tensor_handle);
-
-    print_tensor(tensor, nx, ny, nz, nt, ldy, ldz, ldt);
-}
+extern void print_tensor(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt);
+extern void print_tensor_data(starpu_data_handle_t tensor_handle);
 
 int main(void)
 {
@@ -118,8 +59,8 @@ int main(void)
     starpu_data_handle_t handle;
     struct starpu_codelet cl =
     {
-        .cpu_funcs = {cpu_func},
-        .cpu_funcs_name = {"cpu_func"},
+        .cpu_funcs = {tensor_cpu_func},
+        .cpu_funcs_name = {"tensor_cpu_func"},
         .nbuffers = 1,
         .modes = {STARPU_RW},
         .name = "tensor_scal"
@@ -133,7 +74,7 @@ int main(void)
     /* Declare data to StarPU */
     starpu_tensor_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)tensor, NX, NX*NY, NX*NY*NZ, NX, NY, NZ, NT, sizeof(int));
     FPRINTF(stderr, "IN  Tensor\n");
-    print_data(handle);
+    print_tensor_data(handle);
 
     /* Partition the tensor in PARTS sub-tensors */
     struct starpu_data_filter f =
@@ -149,7 +90,7 @@ int main(void)
     {
         starpu_data_handle_t stensor = starpu_data_get_sub_data(handle, 1, i);
         FPRINTF(stderr, "Sub tensor %d\n", i);
-        print_data(stensor);
+        print_tensor_data(stensor);
     }
 
     /* Submit a task on each sub-tensor */
@@ -173,7 +114,7 @@ int main(void)
 
     /* Unpartition the data, unregister it from StarPU and shutdown */
     starpu_data_unpartition(handle, STARPU_MAIN_RAM);
-    print_data(handle);
+    print_tensor_data(handle);
     starpu_data_unregister(handle);
 
     /* Print result tensor */

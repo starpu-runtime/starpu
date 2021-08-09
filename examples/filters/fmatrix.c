@@ -27,24 +27,7 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void cpu_func(void *buffers[], void *cl_arg)
-{
-        unsigned i, j;
-        int *factor = (int *) cl_arg;
-
-        /* length of the matrix */
-        unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
-        unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
-        /* local copy of the matrix pointer */
-        int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
-
-        for(j=0; j<ny ; j++)
-	{
-                for(i=0; i<nx ; i++)
-                        val[(j*ld)+i] *= *factor;
-        }
-}
+extern void matrix_cpu_func(void *buffers[], void *cl_arg);
 
 int main(void)
 {
@@ -69,8 +52,8 @@ int main(void)
         starpu_data_handle_t handle;
         struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func},
-                .cpu_funcs_name = {"cpu_func"},
+                .cpu_funcs = {matrix_cpu_func},
+                .cpu_funcs_name = {"matrix_cpu_func"},
                 .nbuffers = 1,
 		.modes = {STARPU_RW},
 		.name = "matrix_scal"

@@ -29,66 +29,10 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void cpu_func(void *buffers[], void *cl_arg)
-{
-    int i, j, k, l;
-    int *factor = (int *) cl_arg;
-    int *val = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
-    int *nn = (int *)STARPU_NDIM_GET_NN(buffers[0]);
-    unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
-    int nx = nn[0];
-    int ny = nn[1];
-    int nz = nn[2];
-    int nt = nn[3];
-    unsigned ldy = ldn[1];
-    unsigned ldz = ldn[2];
-    unsigned ldt = ldn[3];
+extern void f4d_cpu_func(void *buffers[], void *cl_arg);
 
-    for(l=0; l<nt ; l++)
-    {
-        for(k=0; k<nz ; k++)
-        {
-            for(j=0; j<ny ; j++)
-            {
-                for(i=0; i<nx ; i++)
-                    val[(l*ldt)+(k*ldz)+(j*ldy)+i] *= *factor;
-            }
-        }
-    }
-        
-}
-
-void print_array(int *ndim, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt)
-{
-        int i, j, k, l;
-        FPRINTF(stderr, "ndim=%p nx=%d ny=%d nz=%d nt=%d ldy=%u ldz=%u ldt=%u\n", ndim, nx, ny, nz, nt, ldy, ldz, ldt);
-        for(l=0 ; l<nt ; l++)
-        {
-            for(k=0 ; k<nz ; k++)
-            {
-                for(j=0 ; j<ny ; j++)
-                {
-                    for(i=0 ; i<nx ; i++)
-                    {
-                        FPRINTF(stderr, "%2d ", ndim[(l*ldt)+(k*ldz)+(j*ldy)+i]);
-                    }
-                    FPRINTF(stderr,"\n");
-                }
-                FPRINTF(stderr,"\n");
-            }
-            FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
-}
-
-void print_data(starpu_data_handle_t ndim_handle)
-{
-    int *ndim_arr = (int *)starpu_ndim_get_local_ptr(ndim_handle);
-    unsigned *nn = starpu_ndim_get_nn(ndim_handle);
-    unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
-
-    print_array(ndim_arr, nn[0], nn[1], nn[2], nn[3], ldn[1], ldn[2], ldn[3]);
-}
+extern void print_tensor(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt);
+extern void print_4dim_data(starpu_data_handle_t ndim_handle);
 
 int main(void)
 {
@@ -115,7 +59,8 @@ int main(void)
     starpu_data_handle_t handle;
     struct starpu_codelet cl =
     {
-        .cpu_funcs = {cpu_func},
+        .cpu_funcs = {f4d_cpu_func},
+        .cpu_funcs_name = {"f4d_cpu_func"},
         .nbuffers = 1,
         .modes = {STARPU_RW},
         .name = "ndim_scal"
@@ -132,7 +77,7 @@ int main(void)
     /* Declare data to StarPU */
     starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)ndim_arr, ldn, nn, 4, sizeof(int));
     FPRINTF(stderr, "IN  Ndim Array\n");
-    print_data(handle);
+    print_4dim_data(handle);
 
     /* Partition the ndim array in PARTS sub-ndimarrays */
     struct starpu_data_filter f =
@@ -149,7 +94,7 @@ int main(void)
     {
         starpu_data_handle_t sndim = starpu_data_get_sub_data(handle, 1, i);
         FPRINTF(stderr, "Sub Ndim Array %d\n", i);
-        print_data(sndim);
+        print_4dim_data(sndim);
     }
 
     /* Submit a task on each sub-ndimarray */
@@ -173,12 +118,12 @@ int main(void)
 
     /* Unpartition the data, unregister it from StarPU and shutdown */
     starpu_data_unpartition(handle, STARPU_MAIN_RAM);
-    print_data(handle);
+    print_4dim_data(handle);
     starpu_data_unregister(handle);
 
     /* Print result ndim array*/
     FPRINTF(stderr, "OUT Ndim Array\n");
-    print_array(ndim_arr, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
+    print_tensor(ndim_arr, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
     free(ndim_arr);
 
