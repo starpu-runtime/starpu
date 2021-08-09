@@ -570,7 +570,8 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 	add_data_to_gpu_data_loaded(l, handle_popped[i], i);
     }
     
-    /* TODO : a enlever ici et plus bas car mtn je check dans le victim selector. */
+    /* TODO : a enlever ici et plus bas car mtn je check dans le victim selector.
+     * TODO : vérifier les shuffle a la main et eneever ce qu'il faut. */
     starpu_data_handle_t *evicted_handles = malloc(Ndifferent_data_type*sizeof(STARPU_TASK_GET_HANDLE(starpu_task_list_begin(popped_task_list), 0)));
     if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
     {
@@ -857,10 +858,15 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	     }
 	    }
 	 }
-	 /* TODO : enelever de la liste de tache a faire celle qui utilisais cette donnée. Et donc ajouter cette donnée aux données
-	  * à pop ainsi qu'ajouter la tache dans les données. */
 	 printf("\n");
 	 if (returned_handle == NULL) { printf("Return NO_VICTIM.\n"); return STARPU_DATA_NO_VICTIM; }
+	 
+	 
+	/* TODO : enlever de la liste de tache a faire celle qui utilisais cette donnée. Et donc ajouter cette donnée aux données
+	  * à pop ainsi qu'ajouter la tache dans les données. Also add it to the main task list. */
+	  //~ void push_back_data_not_used_yet(starpu_data_handle_t h, struct my_list *l, int data_type)
+	    
+	  
 	 printf("Return %p.\n", returned_handle);
 	 return returned_handle;
      }
