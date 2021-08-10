@@ -29,7 +29,7 @@ static void _starpu_ndim_filter_block(void *father_interface, void *child_interf
     size_t ndim = ndim_father->ndim;
 
     unsigned blocksize;
-    uint32_t father_nn;
+    uint32_t father_nn = 0;
     uint32_t ni[ndim];
 
     STARPU_ASSERT_MSG(dim < ndim, "dim %u must be less than %u!\n", dim, (unsigned) ndim);
