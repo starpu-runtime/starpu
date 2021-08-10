@@ -749,7 +749,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     {
 	return_random_task: ;
 	struct starpu_task *task = starpu_task_list_pop_front(popped_task_list);
-	//~ printf("No task were possible with the popped handles. Returning head of the randomized main task list: %p.\n", task);
+	printf("No task were possible with the popped handles. Returning head of the randomized main task list: %p.\n", task);
 	erase_task_and_data_pointer(task, popped_task_list);
 	starpu_task_list_push_back(&l->sub_list, task);
     }
@@ -813,7 +813,9 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     /* New strategie: Of all the data loaded, evict the one that can do the least task (from the task list 
      * planned by dynamic_outer.
      * TODO : utiliser les struct globale data to evict pour eviter d'avoir a tout recalculer à chaque fois.
+     * TODO : en cas d'égalité enlever la donnée qui permet de faire le moins de tâches au global
      */
+     //TODO : se placer sur le bon gpu
      printf("On GPU n°%d.\n", node);
      data->p->temp_pointer_1 = data->p->first_link;
      if (starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))
@@ -826,7 +828,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	 int nb_task_done_by_data[nb_data_on_node];
 	 for (i = 0; i < nb_data_on_node; i++) { nb_task_done_by_data[i] = 0; }
 	 printf("Planned task are :");
-	 /* Cherche nb de tache fais par chaque donnée */
+	 /* Cherche nb de tache fais par chaque donnée parmis les données prévus qu'il reste à faire */
 	 for (task = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
 	 {
 	     printf("%p	", task);
@@ -841,6 +843,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 		}
 	     }
 	 }
+	 printf("\n");
 	  /* Cherche le min dans le tab */
 	int min_nb_task_done = INT_MAX;
 	 for (j = 0; j < nb_data_on_node; j++)
@@ -862,11 +865,29 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	 if (returned_handle == NULL) { printf("Return NO_VICTIM.\n"); return STARPU_DATA_NO_VICTIM; }
 	 
 	 
-	/* TODO : enlever de la liste de tache a faire celle qui utilisais cette donnée. Et donc ajouter cette donnée aux données
+	/* TODO : enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
 	  * à pop ainsi qu'ajouter la tache dans les données. Also add it to the main task list. */
 	  //~ void push_back_data_not_used_yet(starpu_data_handle_t h, struct my_list *l, int data_type)
-	    
-	  
+	//Suppression de la liste de planned task les taâches utilisant la données
+	printf("Avant suppression:\n");
+	print_packages_in_terminal(data->p, 0);
+	for (task = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
+	{
+	    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+	    {
+		if (STARPU_TASK_GET_HANDLE(task, i) == returned_handle)
+		{
+		    starpu_task_list_erase(&data->p->temp_pointer_1->sub_list, task);
+		    //Ajout a la liste de tâches princiales ces mêmes tâches
+		    starpu_task_list_push_back(&data->popped_task_list, task);
+		    break;
+		}
+	    }
+	} 
+	printf("Apres suppression:\n");
+	print_packages_in_terminal(data->p, 0);
+	
+	
 	 printf("Return %p.\n", returned_handle);
 	 return returned_handle;
      }
