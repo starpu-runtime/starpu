@@ -151,6 +151,7 @@ starpu_mpi_TESTS +=				\
 	mpi_earlyrecv2_sync			\
 	block_interface				\
 	block_interface_pinned			\
+	ndim_interface				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
@@ -193,6 +194,7 @@ noinst_PROGRAMS +=				\
 	early_stuff				\
 	block_interface				\
 	block_interface_pinned			\
+	ndim_interface				\
 	attr					\
 	broadcast				\
 	callback				\

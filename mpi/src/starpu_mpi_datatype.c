@@ -139,6 +139,56 @@ static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, unsigned 
 }
 
 /*
+ * 	Ndim
+ */
+
+static int handle_to_datatype_ndim(starpu_data_handle_t data_handle, unsigned node, MPI_Datatype *datatype)
+{
+	struct starpu_ndim_interface *ndim_interface = starpu_data_get_interface_on_node(data_handle, node);
+
+	int ret;
+
+	unsigned *nn = STARPU_NDIM_GET_NN(ndim_interface);
+	unsigned *ldn = STARPU_NDIM_GET_LDN(ndim_interface);
+	size_t ndim = STARPU_NDIM_GET_NDIM(ndim_interface);
+	size_t elemsize = STARPU_NDIM_GET_ELEMSIZE(ndim_interface);
+
+	if (ndim > 1)
+	{
+		MPI_Datatype datatype_ndlayer;
+		ret = MPI_Type_vector(nn[1], nn[0]*elemsize, ldn[1]*elemsize, MPI_BYTE, &datatype_ndlayer);
+		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
+
+		ret = MPI_Type_commit(&datatype_ndlayer);
+		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+		
+		MPI_Datatype oldtype = datatype_ndlayer, newtype;
+		unsigned i;
+		for (i = 2; i < ndim; i++)
+		{
+			ret = MPI_Type_create_hvector(nn[i], 1, ldn[i]*elemsize, oldtype, &newtype);
+			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
+
+			ret = MPI_Type_commit(&newtype);
+			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+			oldtype = newtype;
+		}
+		*datatype = oldtype;
+	}
+	else if (ndim == 1)
+	{
+		ret = MPI_Type_contiguous(nn[0]*elemsize, MPI_BYTE, datatype);
+		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
+
+		ret = MPI_Type_commit(datatype);
+		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+	}
+
+	return 0;
+}
+
+/*
  * 	Vector
  */
 
@@ -212,6 +262,7 @@ static starpu_mpi_datatype_node_allocate_func_t handle_to_datatype_funcs[STARPU_
 #endif
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_TENSOR_INTERFACE_ID]	= handle_to_datatype_tensor,
+	[STARPU_NDIM_INTERFACE_ID]	= handle_to_datatype_ndim,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
 	[STARPU_BCSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
@@ -348,6 +399,7 @@ static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INT
 	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_TENSOR_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
+	[STARPU_NDIM_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
