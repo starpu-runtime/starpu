@@ -83,11 +83,18 @@ static int ndim_pointer_is_inside(void *data_interface, unsigned node, void *ptr
 
     unsigned i;
     size_t buffersize = 0;
-    for (i=1; i<ndim; i++)
+    if (ndim > 0)
     {
-        buffersize += (nn[i]-1) * ldn[i] * elemsize;
+        for (i=1; i<ndim; i++)
+        {
+            buffersize += (nn[i]-1) * ldn[i] * elemsize;
+        }
+        buffersize += nn[0] * elemsize;
     }
-    buffersize += nn[0] * elemsize;
+    else if (ndim == 0)
+    {
+        buffersize = elemsize;
+    }  
 
     return (char*) ptr >= (char*) ndim_interface->ptr &&
         (char*) ptr < (char*) ndim_interface->ptr + buffersize;
@@ -110,25 +117,46 @@ static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node
             local_interface->ptr = ndim_interface->ptr;
             local_interface->dev_handle = ndim_interface->dev_handle;
             local_interface->offset = ndim_interface->offset;
-            uint32_t* ldn_org = ndim_interface->ldn;
-            uint32_t* ldn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
-            memcpy(ldn_cpy, ldn_org, ndim*sizeof(uint32_t));
-            local_interface->ldn  = ldn_cpy;
+            if (ndim > 0)
+            {
+                uint32_t* ldn_org = ndim_interface->ldn;
+                uint32_t* ldn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
+                memcpy(ldn_cpy, ldn_org, ndim*sizeof(uint32_t));
+                local_interface->ldn = ldn_cpy;
+            }
+            else if (ndim == 0)
+            {
+                local_interface->ldn = NULL;
+            }
         }
         else
         {
             local_interface->ptr = 0;
             local_interface->dev_handle = 0;
             local_interface->offset = 0;
-            uint32_t* ldn_zero = (uint32_t*)calloc(ndim, sizeof(uint32_t));
-            local_interface->ldn  = ldn_zero;
+            if (ndim > 0)
+            {
+                uint32_t* ldn_zero = (uint32_t*)calloc(ndim, sizeof(uint32_t));
+                local_interface->ldn = ldn_zero;
+            }
+            else if (ndim == 0)
+            {
+                local_interface->ldn = NULL;
+            }
         }
 
         local_interface->id = ndim_interface->id;
-        uint32_t* nn_org = ndim_interface->nn;
-        uint32_t* nn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
-        memcpy(nn_cpy, nn_org, ndim*sizeof(uint32_t));
-        local_interface->nn = nn_cpy;
+        if (ndim > 0)
+        {
+            uint32_t* nn_org = ndim_interface->nn;
+            uint32_t* nn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
+            memcpy(nn_cpy, nn_org, ndim*sizeof(uint32_t));
+            local_interface->nn = nn_cpy;
+        }
+        else if (ndim == 0)
+        {
+            local_interface->nn = NULL;
+        }
         local_interface->ndim = ndim_interface->ndim;
         local_interface->elemsize = ndim_interface->elemsize;
     }
@@ -140,9 +168,13 @@ static void unregister_ndim_handle(starpu_data_handle_t handle)
     for (node = 0; node < STARPU_MAXNODES; node++)
     {
         struct starpu_ndim_interface *local_interface = (struct starpu_ndim_interface *) starpu_data_get_interface_on_node(handle, node);
-
-        free(local_interface->nn);
-        free(local_interface->ldn);
+        
+        if (local_interface->ndim > 0)
+        {
+            free(local_interface->nn);
+            free(local_interface->ldn);
+        }
+        
     }
 }
 
@@ -167,19 +199,30 @@ void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node,
         unsigned i;
         int b = 1;
         size_t buffersize = 0;
-        for (i = 1; i < ndim; i++)
+        if (ndim > 0)
         {
-            if (nn[i])
+            for (i = 0; i < ndim; i++)
             {
-                buffersize += (nn[i]-1)*ldn[i]*elemsize;
-            }
-            else
-            {
-                b = 0;
-                break;
+                if (i > 0 && nn[i])
+                {
+                    buffersize += (nn[i]-1)*ldn[i]*elemsize;
+                }
+                else if (i == 0 && nn[0])
+                {
+                    buffersize += nn[0]*elemsize;
+                }
+                else
+                {
+                    b = 0;
+                    break;
+                }
             }
         }
-        buffersize += nn[0]*elemsize;
+        else if (ndim == 0)
+        {
+            buffersize = elemsize;
+        }
+
         if (b && elemsize)
         {
             STARPU_ASSERT_ACCESSIBLE(ptr);
@@ -199,12 +242,17 @@ void starpu_ndim_ptr_register(starpu_data_handle_t handle, unsigned node,
     ndim_interface->ptr = ptr;
     ndim_interface->dev_handle = dev_handle;
     ndim_interface->offset = offset;
-    memcpy(ndim_interface->ldn, ldn, ndim_interface->ndim*sizeof(uint32_t));
+    if (ndim_interface->ndim > 0)
+        memcpy(ndim_interface->ldn, ldn, ndim_interface->ndim*sizeof(uint32_t));
+    else if (ndim_interface->ndim == 0)
+        ndim_interface->ldn = NULL;
 }
 
 static uint32_t footprint_ndim_interface_crc32(starpu_data_handle_t handle)
 {
-    uint32_t hash = 0;
+    uint32_t hash;
+
+    hash = starpu_hash_crc32c_be(starpu_ndim_get_elemsize(handle), 0);
 
     unsigned i;
     for (i=0; i<starpu_ndim_get_ndim(handle); i++)
@@ -237,13 +285,18 @@ static int ndim_compare(void *data_interface_a, void *data_interface_b)
 
 static void display_ndim_interface(starpu_data_handle_t handle, FILE *f)
 {
-    struct starpu_ndim_interface *ndim_interface;
+    struct starpu_ndim_interface *ndim_interface = (struct starpu_ndim_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-    ndim_interface = (struct starpu_ndim_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
-
-    unsigned i;
-    for (i=0; i<ndim_interface->ndim; i++)
-        fprintf(f, "%u\t", ndim_interface->nn[i]);
+    if (ndim_interface->ndim > 0)
+    {
+        unsigned i;
+        for (i=0; i<ndim_interface->ndim; i++)
+            fprintf(f, "%u\t", ndim_interface->nn[i]);
+    }  
+    else if (ndim_interface->ndim == 0)
+    {
+        fprintf(f, "%lu\t", ndim_interface->elemsize);
+    }
 }
 
 static int _is_contiguous_ndim(uint32_t* nn, uint32_t* ldn, size_t ndim)
@@ -270,69 +323,69 @@ static size_t _get_size(uint32_t* nn, size_t ndim, size_t elemsize)
     return size;
 }
 
-static void _pack_cpy_ndim_ptr(char *cur, char* block, uint32_t* nn, uint32_t* ldn, size_t dim, size_t elemsize)
+static void _pack_cpy_ndim_ptr(char *cur, char* ndptr, uint32_t* nn, uint32_t* ldn, size_t dim, size_t elemsize)
 {
     uint32_t i = dim;
     uint32_t n;
     if(dim > 1)
     {
-        char *block_i = block;
+        char *ndptr_i = ndptr;
         for(n=0; n<nn[i]; n++)
         {
             if(_is_contiguous_ndim(nn, ldn, dim))
             {
-                memcpy(cur, block_i, _get_size(nn, i, elemsize));
+                memcpy(cur, ndptr_i, _get_size(nn, i, elemsize));
                 cur += _get_size(nn, i, elemsize);
             }
             else
             {
-                _pack_cpy_ndim_ptr(cur, block_i, nn, ldn, dim-1, elemsize);
+                _pack_cpy_ndim_ptr(cur, ndptr_i, nn, ldn, dim-1, elemsize);
             }
-            block_i += ldn[i] * elemsize;
+            ndptr_i += ldn[i] * elemsize;
         }
     }
     else if(dim == 1)
     {
-        char *block_i = block;
+        char *ndptr_i = ndptr;
         for(n=0 ; n<nn[1] ; n++)
         {
-            memcpy(cur, block_i, nn[0]*elemsize);
+            memcpy(cur, ndptr_i, nn[0]*elemsize);
             cur += nn[0]*elemsize;
-            block_i += ldn[1] * elemsize;
+            ndptr_i += ldn[1] * elemsize;
         }
     }
         
 }
 
-static void _peek_cpy_ndim_ptr(char* block, char *cur, uint32_t* nn, uint32_t* ldn, size_t dim, size_t elemsize)
+static void _peek_cpy_ndim_ptr(char* ndptr, char *cur, uint32_t* nn, uint32_t* ldn, size_t dim, size_t elemsize)
 {
     uint32_t i = dim;
     uint32_t n;
     if(dim > 1)
     {
-        char *block_i = block;
+        char *ndptr_i = ndptr;
         for(n=0; n<nn[i]; n++)
         {
             if(_is_contiguous_ndim(nn, ldn, dim))
             {
-                memcpy(block_i, cur, _get_size(nn, i, elemsize));
+                memcpy(ndptr_i, cur, _get_size(nn, i, elemsize));
                 cur += _get_size(nn, i, elemsize);
             }
             else
             {
-                _peek_cpy_ndim_ptr(block_i, cur, nn, ldn, dim-1, elemsize);
+                _peek_cpy_ndim_ptr(ndptr_i, cur, nn, ldn, dim-1, elemsize);
             }
-            block_i += ldn[i] * elemsize;
+            ndptr_i += ldn[i] * elemsize;
         }
     }
     else if(dim == 1)
     {
-        char *block_i = block;
+        char *ndptr_i = ndptr;
         for(n=0 ; n<nn[1] ; n++)
         {
-            memcpy(block_i, cur, nn[0]*elemsize);
+            memcpy(ndptr_i, cur, nn[0]*elemsize);
             cur += nn[0]*elemsize;
-            block_i += ldn[1] * elemsize;
+            ndptr_i += ldn[1] * elemsize;
         }
     }
         
@@ -354,7 +407,7 @@ static int pack_ndim_handle(starpu_data_handle_t handle, unsigned node, void **p
 
     if (ptr != NULL)
     {
-        char *block = (void *)ndim_interface->ptr;
+        char *ndptr = (void *)ndim_interface->ptr;
 
         *ptr = (void *)starpu_malloc_on_node_flags(node, *count, 0);
 
@@ -364,17 +417,22 @@ static int pack_ndim_handle(starpu_data_handle_t handle, unsigned node, void **p
         {
             if(_is_contiguous_ndim(nn, ldn, ndim))
             {
-                memcpy(cur, block, _get_size(nn, ndim, elemsize));
+                memcpy(cur, ndptr, _get_size(nn, ndim, elemsize));
             }
             else
             {
-                _pack_cpy_ndim_ptr(cur, block, nn, ldn, ndim-1, elemsize);
+                _pack_cpy_ndim_ptr(cur, ndptr, nn, ldn, ndim-1, elemsize);
             }
         }
         /*if it's a vector*/
         else if(ndim == 1)
         {
             memcpy(*ptr, (void*)ndim_interface->ptr, ndim_interface->elemsize*ndim_interface->nn[0]);
+        }
+        /*if it's a variable*/
+        else if(ndim == 0)
+        {
+            memcpy(*ptr, (void*)ndim_interface->ptr, ndim_interface->elemsize);
         }
             
     }
@@ -397,21 +455,21 @@ static int peek_ndim_handle(starpu_data_handle_t handle, unsigned node, void *pt
     STARPU_ASSERT(count == _get_size(nn, ndim, elemsize));
 
     char *cur = ptr;
-    char *block = (void *)ndim_interface->ptr;
+    char *ndptr = (void *)ndim_interface->ptr;
 
     if (ndim > 1)
     {
         if(_is_contiguous_ndim(nn, ldn, ndim))
         {
-            memcpy(block, cur, _get_size(nn, ndim, elemsize));
+            memcpy(ndptr, cur, _get_size(nn, ndim, elemsize));
         }
         else
         {
-            _peek_cpy_ndim_ptr(block, cur, nn, ldn, ndim-1, elemsize);
+            _peek_cpy_ndim_ptr(ndptr, cur, nn, ldn, ndim-1, elemsize);
         }
     }
-    /*if it's a vector*/
-    else if(ndim == 1)
+    /*if it's a vector or a variable*/
+    else if(ndim == 1 || ndim == 0)
     {
         memcpy((void*)ndim_interface->ptr, ptr, count);
     }
@@ -458,6 +516,8 @@ uint32_t starpu_ndim_get_ni(starpu_data_handle_t handle, size_t i)
     struct starpu_ndim_interface *ndim_interface = (struct starpu_ndim_interface *)
         starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+    STARPU_ASSERT_MSG(ndim_interface->ndim > 0, "The function can only be called when array dimension is greater than 0.");
+
 #ifdef STARPU_DEBUG
     STARPU_ASSERT_MSG(ndim_interface->id == STARPU_NDIM_INTERFACE_ID, "Error. The given data is not a ndim array.");
 #endif
@@ -491,6 +551,8 @@ uint32_t starpu_ndim_get_local_ldi(starpu_data_handle_t handle, size_t i)
 
     struct starpu_ndim_interface *ndim_interface = (struct starpu_ndim_interface *)
         starpu_data_get_interface_on_node(handle, node);
+
+    STARPU_ASSERT_MSG(ndim_interface->ndim > 0, "The function can only be called when array dimension is greater than 0.");
 
 #ifdef STARPU_DEBUG
     STARPU_ASSERT_MSG(ndim_interface->id == STARPU_NDIM_INTERFACE_ID, "Error. The given data is not a ndim array.");
@@ -547,11 +609,11 @@ static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsign
 {
     uintptr_t addr = 0, handle;
 
-    struct starpu_ndim_interface *dst_block = (struct starpu_ndim_interface *) data_interface_;
+    struct starpu_ndim_interface *dst_ndarr = (struct starpu_ndim_interface *) data_interface_;
 
-    uint32_t* nn = dst_block->nn;
-    size_t ndim = dst_block->ndim;
-    size_t elemsize = dst_block->elemsize;
+    uint32_t* nn = dst_ndarr->nn;
+    size_t ndim = dst_ndarr->ndim;
+    size_t elemsize = dst_ndarr->elemsize;
 
     starpu_ssize_t allocated_memory;
 
@@ -568,20 +630,24 @@ static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsign
     allocated_memory = arrsize;
 
     /* update the data properly in consequence */
-    dst_block->ptr = addr;
-    dst_block->dev_handle = handle;
-    dst_block->offset = 0;
+    dst_ndarr->ptr = addr;
+    dst_ndarr->dev_handle = handle;
+    dst_ndarr->offset = 0;
     
-    uint32_t ntmp = 1;
-    dst_block->ldn[0] = 1;
-    if (ndim > 1)
+    if (ndim > 0)
     {
+        uint32_t ntmp = 1;
+        dst_ndarr->ldn[0] = 1;
         size_t i;
         for (i=1; i<ndim; i++)
         {
             ntmp *= nn[i-1];
-            dst_block->ldn[i] = ntmp;
+            dst_ndarr->ldn[i] = ntmp;
         }
+    }
+    else if (ndim == 0)
+    {
+        dst_ndarr->ldn = NULL;
     }
         
     return allocated_memory;
@@ -599,19 +665,19 @@ static void free_ndim_buffer_on_node(void *data_interface, unsigned node)
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
 {
-    struct starpu_ndim_interface *src_block = (struct starpu_ndim_interface *) src_interface;
-    struct starpu_ndim_interface *dst_block = (struct starpu_ndim_interface *) dst_interface;
+    struct starpu_ndim_interface *src_ndarr = (struct starpu_ndim_interface *) src_interface;
+    struct starpu_ndim_interface *dst_ndarr = (struct starpu_ndim_interface *) dst_interface;
     int ret = 0;
 
-    uint32_t* nn = dst_block->nn;
-    size_t ndim = dst_block->ndim;
-    size_t elemsize = dst_block->elemsize;
+    uint32_t* nn = dst_ndarr->nn;
+    size_t ndim = dst_ndarr->ndim;
+    size_t elemsize = dst_ndarr->elemsize;
 
-    uint32_t* ldn_src = src_block->ldn;
-    uint32_t* ldn_dst = dst_block->ldn;
+    uint32_t* ldn_src = src_ndarr->ldn;
+    uint32_t* ldn_dst = dst_ndarr->ldn;
 
-    if (starpu_interface_copynd(src_block->dev_handle, src_block->offset, src_node,
-                    dst_block->dev_handle, dst_block->offset, dst_node,
+    if (starpu_interface_copynd(src_ndarr->dev_handle, src_ndarr->offset, src_node,
+                    dst_ndarr->dev_handle, dst_ndarr->offset, dst_node,
                     elemsize, ndim,
                     nn, ldn_src, ldn_dst,
                     async_data))
@@ -624,20 +690,29 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 
 static starpu_ssize_t describe(void *data_interface, char *buf, size_t size)
 {
-    struct starpu_ndim_interface *block = (struct starpu_ndim_interface *) data_interface;
+    struct starpu_ndim_interface *ndarr = (struct starpu_ndim_interface *) data_interface;
 
-    size_t ndim = block->ndim;
-    size_t ret;
-    int n = 0;
-    unsigned i;
-    for (i=0; i<ndim+1; i++)
+    size_t ndim = ndarr->ndim;
+    int n;
+    if (ndim > 0)
     {
-        ret = snprintf(buf + n, size, "%s%lu", i==0?"N":"x", (unsigned long) (i==ndim?block->elemsize:block->nn[i]));
-        n += ret;
-        if(size > ret)
-            size -= ret;
-        else
-            size = 0;
+        size_t ret;
+        n = 0;
+        unsigned i;
+        for (i=0; i<ndim+1; i++)
+        {
+            ret = snprintf(buf + n, size, "%s%lu", i==0?"N":"x", (unsigned long) (i==ndim?ndarr->elemsize:ndarr->nn[i]));
+            n += ret;
+            if(size > ret)
+                size -= ret;
+            else
+                size = 0;
+        }
     }
+    else if (ndim == 0)
+    {
+        n = snprintf(buf, size, "N%lu", (unsigned long) ndarr->elemsize);
+    }
+
     return n;
 }

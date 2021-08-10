@@ -472,20 +472,23 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 	int ret = 0;
 	unsigned i;
 
-	for (i = 0; i < ndim-1; i++)
+	if (ndim > 0)
 	{
-		STARPU_ASSERT_MSG(ldn_src[i+1] >= nn[i] * ldn_src[i], "block size %lu is bigger than ld %lu in source", (unsigned long) nn[i] * ldn_src[i], (unsigned long) ldn_src[i+1]);
-		STARPU_ASSERT_MSG(ldn_dst[i+1] >= nn[i] * ldn_dst[i], "block size %lu is bigger than ld %lu in destination", (unsigned long) nn[i] * ldn_dst[i], (unsigned long) ldn_dst[i+1]);
+		for (i = 0; i < ndim-1; i++)
+		{
+			STARPU_ASSERT_MSG(ldn_src[i+1] >= nn[i] * ldn_src[i], "block size %lu is bigger than ld %lu in source", (unsigned long) nn[i] * ldn_src[i], (unsigned long) ldn_src[i+1]);
+			STARPU_ASSERT_MSG(ldn_dst[i+1] >= nn[i] * ldn_dst[i], "block size %lu is bigger than ld %lu in destination", (unsigned long) nn[i] * ldn_dst[i], (unsigned long) ldn_dst[i+1]);
+		}
+
+		if (ldn_src[ndim-1] == _get_size(nn, ndim-1) &&
+		    ldn_dst[ndim-1] == _get_size(nn, ndim-1))
+			/* Optimize contiguous case */
+			return starpu_interface_copy(src, src_offset, src_node,
+						     dst, dst_offset, dst_node,
+						     _get_size(nn, ndim) * elemsize,
+						     async_data);
 	}
-
-	if (ldn_src[ndim-1] == _get_size(nn, ndim-1) &&
-	    ldn_dst[ndim-1] == _get_size(nn, ndim-1))
-		/* Optimize contiguous case */
-		return starpu_interface_copy(src, src_offset, src_node,
-					     dst, dst_offset, dst_node,
-					     _get_size(nn, ndim) * elemsize,
-					     async_data);
-
+		
 	if(ndim > 4)
 	{
 		for (i = 0; i < nn[ndim-1]; i++)
@@ -530,6 +533,13 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 		return starpu_interface_copy(src, src_offset, src_node,
 					     dst, dst_offset, dst_node,
 					     nn[0] * elemsize,
+					     async_data);
+	}
+	else if (ndim == 0)
+	{
+		return starpu_interface_copy(src, 0, src_node,
+					     dst, 0, dst_node,
+					     elemsize,
 					     async_data);
 	}
 
