@@ -68,6 +68,9 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paque
 	    struct gpu_data_not_used *e = gpu_data_not_used_new();
 	    e->D = STARPU_TASK_GET_HANDLE(task, j);
 	    
+	      STARPU_TASK_GET_HANDLE(task, j)->user_data = j;
+	      printf("%p is type %d\n", STARPU_TASK_GET_HANDLE(task, j), STARPU_TASK_GET_HANDLE(task, j)->user_data);
+	    
 	    /* If the void * of struct paquet is empty I initialize it. */ 
 	    if (p->temp_pointer_1->gpu_data[j] == NULL)
 	    {
@@ -97,6 +100,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paque
 	/* Pointer toward the main task list in the handles. */
 	struct task_using_data *e = task_using_data_new();
 	e->pointer_to_T = task;
+	
 	if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
 	{
 	    struct task_using_data_list *tl = task_using_data_list_new();
@@ -322,6 +326,7 @@ void push_back_data_not_used_yet(starpu_data_handle_t h, struct my_list *l, int 
 {
     struct gpu_data_not_used *e = gpu_data_not_used_new();
     e->D = h;
+    printf("ok\n");
     gpu_data_not_used_list_push_back(l->gpu_data[data_type], e);
 }
 
@@ -887,10 +892,22 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	printf("Apres suppression:\n");
 	print_packages_in_terminal(data->p, 0);
 	
+	//Ajout de la données aux données pas encore traitées du gpu
+	printf("Avant:\n");
+	print_data_not_used_yet(data->p);
+	//~ struct task_using_data *t = returned_handle->sched_data;
+	//~ for (t = task_using_data_list_begin(e->D->sched_data); 
+	//~ printf("data type = %d\n", t->data_type);
+	//~ printf("name : %s\n", returned_handle->type);
+	//~ printf("type : %d\n", starpu_data_get_user_data(STARPU_TASK_GET_HANDLE(task, j)));
+	printf("%p is type %d\n", returned_handle, returned_handle->user_data);
+	push_back_data_not_used_yet(returned_handle, data->p->temp_pointer_1, returned_handle->user_data);
+	printf("Après:\n");
+	print_data_not_used_yet(data->p);
 	
 	 printf("Return %p.\n", returned_handle);
 	 return returned_handle;
-     }
+    }
     //~ int min_number_task = INT_MAX;
     //~ for (i = 0; i < nb_data_on_node; i++)
     //~ {
