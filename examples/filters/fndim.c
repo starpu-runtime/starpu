@@ -60,7 +60,6 @@ int main(void)
     struct starpu_codelet cl =
     {
         .cpu_funcs = {f4d_cpu_func},
-        .cpu_funcs_name = {"f4d_cpu_func"},
         .nbuffers = 1,
         .modes = {STARPU_RW},
         .name = "ndim_scal"
