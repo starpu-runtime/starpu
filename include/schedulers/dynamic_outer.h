@@ -44,6 +44,10 @@ LIST_TYPE(task_using_data,
     /* Pointer to the main task list T */
     struct starpu_task *pointer_to_T;
 );
+struct datatype
+{
+    int type;
+};
 
 /* In the packages */
 LIST_TYPE(gpu_data_not_used,
@@ -62,7 +66,7 @@ struct pointer_in_task
     struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
 };
 
-//~ /* To control eviction. */
+/* To control eviction. */
 //~ LIST_TYPE(data_to_evict,
     //~ starpu_data_handle_t D; /* The data not used yet by the GPU. */
 //~ );
@@ -76,6 +80,6 @@ struct pointer_in_task
     //~ struct data_to_evict_element *pointeur;
     //~ struct data_to_evict_element *first;
 //~ };
-void data_to_evict_insertion(struct data_to_evict_control *d);
+//~ void data_to_evict_insertion(struct data_to_evict_control *d);
 
 #endif
