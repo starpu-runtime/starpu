@@ -27,6 +27,10 @@
 
 extern void block_cpu_func(void *buffers[], void *cl_arg);
 
+#ifdef STARPU_USE_CUDA
+extern void block_cuda_func(void *buffers[], void *cl_arg);
+#endif
+
 extern void print_tensor_data(starpu_data_handle_t tensor_handle);
 extern void print_block_data(starpu_data_handle_t block_handle);
 
@@ -58,6 +62,10 @@ int main(void)
     {
         .cpu_funcs = {block_cpu_func},
         .cpu_funcs_name = {"block_cpu_func"},
+#ifdef STARPU_USE_CUDA
+        .cuda_funcs = {block_cuda_func},
+        .cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
         .nbuffers = 1,
         .modes = {STARPU_RW},
         .name = "tensor_pick_block_scal"

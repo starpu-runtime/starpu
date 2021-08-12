@@ -22,7 +22,7 @@ void f4d_cpu_func(void *buffers[], void *cl_arg)
 {
     int i, j, k, l;
     int *factor = (int *) cl_arg;
-    int *arr = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
+    int *arr4d = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
     int *nn = (int *)STARPU_NDIM_GET_NN(buffers[0]);
     unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
     int nx = nn[0];
@@ -40,7 +40,7 @@ void f4d_cpu_func(void *buffers[], void *cl_arg)
             for(j=0; j<ny ; j++)
             {
                 for(i=0; i<nx ; i++)
-                    arr[(l*ldt)+(k*ldz)+(j*ldy)+i] *= *factor;
+                    arr4d[(l*ldt)+(k*ldz)+(j*ldy)+i] *= *factor;
             }
         }
     }

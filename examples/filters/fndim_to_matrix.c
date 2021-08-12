@@ -24,6 +24,10 @@
 
 extern void matrix_cpu_func(void *buffers[], void *cl_arg);
 
+#ifdef STARPU_USE_CUDA
+extern void matrix_cuda_func(void *buffers[], void *cl_arg);
+#endif
+
 extern void print_2dim_data(starpu_data_handle_t ndim_handle);
 extern void print_matrix_data(starpu_data_handle_t matrix_handle);
 
@@ -47,6 +51,10 @@ int main(void)
     {
         .cpu_funcs = {matrix_cpu_func},
         .cpu_funcs_name = {"matrix_cpu_func"},
+#ifdef STARPU_USE_CUDA
+        .cuda_funcs = {matrix_cuda_func},
+        .cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
         .nbuffers = 1,
         .modes = {STARPU_RW},
         .name = "arr2d_to_matrix_scal"

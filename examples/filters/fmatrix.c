@@ -29,6 +29,10 @@
 
 extern void matrix_cpu_func(void *buffers[], void *cl_arg);
 
+#ifdef STARPU_USE_CUDA
+extern void matrix_cuda_func(void *buffers[], void *cl_arg);
+#endif
+
 int main(void)
 {
 	unsigned j;
@@ -54,9 +58,13 @@ int main(void)
 	{
                 .cpu_funcs = {matrix_cpu_func},
                 .cpu_funcs_name = {"matrix_cpu_func"},
+#ifdef STARPU_USE_CUDA
+                .cuda_funcs = {matrix_cuda_func},
+        	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
                 .nbuffers = 1,
-		.modes = {STARPU_RW},
-		.name = "matrix_scal"
+        	.modes = {STARPU_RW},
+        	.name = "matrix_scal"
         };
 
         ret = starpu_init(NULL);

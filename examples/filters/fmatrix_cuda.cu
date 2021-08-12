@@ -14,26 +14,29 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* dumb kernel to fill a 2D matrix */
+/* dumb CUDA kernel to fill a 2D matrix */
 
 #include <starpu.h>
 
-void matrix_cpu_func(void *buffers[], void *cl_arg)
+static __global__ void fmatrix_cuda(int *matrix, int nx, int ny, unsigned ld, float factor)
 {
         int i, j;
-        int *factor = (int *) cl_arg;
-
-        /* length of the matrix */
-        int nx = (int)STARPU_MATRIX_GET_NX(buffers[0]);
-        int ny = (int)STARPU_MATRIX_GET_NY(buffers[0]);
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
-        /* local copy of the matrix pointer */
-        int *matrix = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
-
         for(j=0; j<ny ; j++)
         {
                 for(i=0; i<nx ; i++)
-                        matrix[(j*ld)+i] *= *factor;
+                        matrix[(j*ld)+i] *= factor;
         }
 }
 
+extern "C" void matrix_cuda_func(void *buffers[], void *_args)
+{
+        int *factor = (int *)_args;
+        int *matrix = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+        int nx = (int)STARPU_MATRIX_GET_NX(buffers[0]);
+        int ny = (int)STARPU_MATRIX_GET_NY(buffers[0]);
+        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
+
+        fmatrix_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(matrix, nx, ny, ld, *factor);
+        cudaError_t status = cudaGetLastError();
+        if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
+}

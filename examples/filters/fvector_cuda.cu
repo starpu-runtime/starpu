@@ -14,29 +14,24 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* dumb CUDA kernel to fill a 1D matrix */
+
 #include <starpu.h>
 
-void f3d_cpu_func(void *buffers[], void *cl_arg)
+static __global__ void fvector_cuda(int *vector, int n, float factor)
 {
-    int i, j, k;
-    int *factor = (int *) cl_arg;
-    int *arr3d = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
-    int *nn = (int *)STARPU_NDIM_GET_NN(buffers[0]);
-    unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
-    int nx = nn[0];
-    int ny = nn[1];
-    int nz = nn[2];
-    unsigned ldy = ldn[1];
-    unsigned ldz = ldn[2];
-
-    for(k=0; k<nz ; k++)
-    {
-        for(j=0; j<ny ; j++)
-        {
-            for(i=0; i<nx ; i++)
-                arr3d[(k*ldz)+(j*ldy)+i] *= *factor;
-        }
-    }
-        
+        int i;
+        for (i = 0; i < n; i++)
+                vector[i] *= factor;
 }
 
+extern "C" void vector_cuda_func(void *buffers[], void *_args)
+{
+        int *factor = (int *)_args;
+        int *vector = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
+        int n = (int)STARPU_VECTOR_GET_NX(buffers[0]);
+
+        fvector_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(vector, n, *factor);
+        cudaError_t status = cudaGetLastError();
+        if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
+}

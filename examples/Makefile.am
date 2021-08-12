@@ -596,10 +596,18 @@ endif
 filters_fvector_SOURCES =			\
 	filters/fvector.c			\
 	filters/fvector_cpu.c
+if STARPU_USE_CUDA
+filters_fvector_SOURCES +=			\
+	filters/fvector_cuda.cu
+endif
 
 filters_fmatrix_SOURCES =			\
 	filters/fmatrix.c			\
 	filters/fmatrix_cpu.c
+if STARPU_USE_CUDA
+filters_fmatrix_SOURCES +=			\
+	filters/fmatrix_cuda.cu
+endif
 
 filters_fblock_SOURCES =			\
 	filters/fblock.c			\
@@ -621,76 +629,132 @@ filters_ftensor_SOURCES =			\
 	filters/ftensor.c			\
 	filters/ftensor_print.c			\
 	filters/ftensor_cpu.c
+if STARPU_USE_CUDA
+filters_ftensor_SOURCES +=			\
+	filters/ftensor_cuda.cu
+endif
 
 filters_fndim_SOURCES =			\
 	filters/fndim.c			\
 	filters/ftensor_print.c			\
 	filters/f4d_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_SOURCES +=			\
+	filters/f4d_cuda.cu
+endif
 
 filters_fmatrix_pick_vector_SOURCES =			\
 	filters/fmatrix_pick_vector.c			\
 	filters/fmatrix_print.c			\
 	filters/fvector_cpu.c
+if STARPU_USE_CUDA
+filters_fmatrix_pick_vector_SOURCES +=			\
+	filters/fvector_cuda.cu
+endif
 
 filters_fblock_pick_matrix_SOURCES =			\
 	filters/fblock_pick_matrix.c			\
 	filters/fblock_print.c			\
 	filters/fmatrix_print.c			\
 	filters/fmatrix_cpu.c
+if STARPU_USE_CUDA
+filters_fblock_pick_matrix_SOURCES +=			\
+	filters/fmatrix_cuda.cu
+endif
 
 filters_ftensor_pick_block_SOURCES =			\
 	filters/ftensor_pick_block.c			\
 	filters/ftensor_print.c			\
 	filters/fblock_print.c			\
 	filters/fblock_cpu.c
+if STARPU_USE_CUDA
+filters_ftensor_pick_block_SOURCES +=			\
+	filters/fblock_cuda.cu
+endif
 
 filters_fndim_pick_ndim_SOURCES =			\
 	filters/fndim_pick_ndim.c			\
 	filters/ftensor_print.c			\
 	filters/fblock_print.c			\
 	filters/f3d_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_ndim_SOURCES +=			\
+	filters/f3d_cuda.cu
+endif
 
 filters_fndim_pick_tensor_SOURCES =			\
 	filters/fndim_pick_tensor.c			\
 	filters/f5d_print.c			\
 	filters/ftensor_print.c			\
 	filters/ftensor_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_tensor_SOURCES +=			\
+	filters/ftensor_cuda.cu
+endif
 
 filters_fndim_pick_block_SOURCES =			\
 	filters/fndim_pick_block.c			\
 	filters/ftensor_print.c			\
 	filters/fblock_print.c			\
 	filters/fblock_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_block_SOURCES +=			\
+	filters/fblock_cuda.cu
+endif
 
 filters_fndim_pick_matrix_SOURCES =			\
 	filters/fndim_pick_matrix.c			\
 	filters/fblock_print.c			\
 	filters/fmatrix_print.c			\
 	filters/fmatrix_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_matrix_SOURCES +=			\
+	filters/fmatrix_cuda.cu
+endif
 
 filters_fndim_pick_vector_SOURCES =			\
 	filters/fndim_pick_vector.c			\
 	filters/fmatrix_print.c			\
 	filters/fvector_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_vector_SOURCES +=			\
+	filters/fvector_cuda.cu
+endif
 
 filters_fndim_to_tensor_SOURCES =			\
 	filters/fndim_to_tensor.c			\
 	filters/ftensor_print.c			\
 	filters/ftensor_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_to_tensor_SOURCES +=			\
+	filters/ftensor_cuda.cu
+endif
 
 filters_fndim_to_block_SOURCES =			\
 	filters/fndim_to_block.c			\
 	filters/fblock_print.c			\
 	filters/fblock_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_to_block_SOURCES +=			\
+	filters/fblock_cuda.cu
+endif
 
 filters_fndim_to_matrix_SOURCES =			\
 	filters/fndim_to_matrix.c			\
 	filters/fmatrix_print.c			\
 	filters/fmatrix_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_to_matrix_SOURCES +=			\
+	filters/fmatrix_cuda.cu
+endif
 
 filters_fndim_to_vector_SOURCES =			\
 	filters/fndim_to_vector.c			\
 	filters/fvector_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_to_vector_SOURCES +=			\
+	filters/fvector_cuda.cu
+endif
 
 filters_fmultiple_manual_SOURCES =		\
 	filters/fmultiple_manual.c

@@ -29,6 +29,10 @@
 
 extern void vector_cpu_func(void *buffers[], void *cl_arg);
 
+#ifdef STARPU_USE_CUDA
+extern void vector_cuda_func(void *buffers[], void *cl_arg);
+#endif
+
 int main(void)
 {
 	int i;
@@ -41,6 +45,10 @@ int main(void)
 	{
                 .cpu_funcs = {vector_cpu_func},
                 .cpu_funcs_name = {"vector_cpu_func"},
+#ifdef STARPU_USE_CUDA
+                .cuda_funcs = {vector_cuda_func},
+                .cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
                 .nbuffers = 1,
 		.modes = {STARPU_RW},
 		.name = "vector_scal"

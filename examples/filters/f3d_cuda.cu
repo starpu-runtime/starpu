@@ -18,31 +18,33 @@
 
 #include <starpu.h>
 
-static __global__ void fblock_cuda(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float factor)
+static __global__ void f3d_cuda(int *arr3d, int nx, int ny, int nz, unsigned ldy, unsigned ldz, float factor)
 {
         int i, j, k;
+
         for(k=0; k<nz ; k++)
-	{
+        {
                 for(j=0; j<ny ; j++)
-		{
+                {
                         for(i=0; i<nx ; i++)
-                                block[(k*ldz)+(j*ldy)+i] *= factor;
+                                arr3d[(k*ldz)+(j*ldy)+i] *= factor;
                 }
         }
 }
 
-extern "C" void block_cuda_func(void *buffers[], void *_args)
+extern "C" void f3d_cuda_func(void *buffers[], void *_args)
 {
         int *factor = (int *)_args;
-	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);
-	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);
-	int ny = (int)STARPU_BLOCK_GET_NY(buffers[0]);
-	int nz = (int)STARPU_BLOCK_GET_NZ(buffers[0]);
-        unsigned ldy = STARPU_BLOCK_GET_LDY(buffers[0]);
-        unsigned ldz = STARPU_BLOCK_GET_LDZ(buffers[0]);
+        int *arr3d = (int *)STARPU_NDIM_GET_PTR(buffers[0]);
+        int *nn = (int *)STARPU_NDIM_GET_NN(buffers[0]);
+        unsigned *ldn = STARPU_NDIM_GET_LDN(buffers[0]);
+        int nx = nn[0];
+        int ny = nn[1];
+        int nz = nn[2];
+        unsigned ldy = ldn[1];
+        unsigned ldz = ldn[2];
 
-        /* TODO: use more blocks and threads in blocks */
-        fblock_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(block, nx, ny, nz, ldy, ldz, *factor);
+        f3d_cuda<<<1,1, 0, starpu_cuda_get_local_stream()>>>(arr3d, nx, ny, nz, ldy, ldz, *factor);
         cudaError_t status = cudaGetLastError();
         if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
 }

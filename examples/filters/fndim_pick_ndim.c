@@ -27,6 +27,10 @@
 
 extern void f3d_cpu_func(void *buffers[], void *cl_arg);
 
+#ifdef STARPU_USE_CUDA
+extern void f3d_cuda_func(void *buffers[], void *cl_arg);
+#endif
+
 extern void print_4dim_data(starpu_data_handle_t ndim_handle);
 extern void print_3dim_data(starpu_data_handle_t ndim_handle);
 
@@ -57,6 +61,10 @@ int main(void)
     struct starpu_codelet cl =
     {
         .cpu_funcs = {f3d_cpu_func},
+#ifdef STARPU_USE_CUDA
+        .cuda_funcs = {f3d_cuda_func},
+        .cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
         .nbuffers = 1,
         .modes = {STARPU_RW},
         .name = "arr4d_pick_arr3d_scal"
