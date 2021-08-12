@@ -21,7 +21,7 @@
 void print_5darr(int *ndim_arr, int nx, int ny, int nz, int nt, int ng, unsigned ldy, unsigned ldz, unsigned ldt, unsigned ldg)
 {
         int i, j, k, l, m;
-        FPRINTF(stderr, "5dim_array=%p nx=%d ny=%d nz=%d nt=%d ng=%d ldy=%u ldz=%u ldt=%u ldg=%u\n", ndim_arr, nx, ny, nz, nt, ng, ldy, ldz, ldt, ldg);
+        FPRINTF(stderr, "5dim array=%p nx=%d ny=%d nz=%d nt=%d ng=%d ldy=%u ldz=%u ldt=%u ldg=%u\n", ndim_arr, nx, ny, nz, nt, ng, ldy, ldz, ldt, ldg);
         for(m=0 ; m<ng ; m++)
         {
             for(l=0 ; l<nt ; l++)

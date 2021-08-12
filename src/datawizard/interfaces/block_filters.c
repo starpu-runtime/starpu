@@ -150,3 +150,102 @@ void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_
 
         _starpu_block_filter_block(3, father_interface, child_interface, f, id, nparts, shadow_size);
 }
+
+static void _starpu_block_filter_pick_matrix(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+					    unsigned id, unsigned nparts)
+{
+        struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
+        struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;
+
+        unsigned blocksize;
+
+	uint32_t nn;
+	uint32_t nx = block_father->nx;
+	uint32_t ny = block_father->ny;
+	uint32_t nz = block_father->nz;
+
+	switch(dim)
+	{
+		/* along y-axis */
+		case 1:
+			nn = ny;
+			blocksize = block_father->ldy;
+			break;
+		/* along z-axis */
+		case 2:
+			nn = nz;
+			blocksize = block_father->ldz;
+			break;
+		default:
+			STARPU_ASSERT_MSG(0, "Unknown value for dim");
+	}
+
+	size_t elemsize = block_father->elemsize;
+
+	size_t chunk_pos = (size_t)f->filter_arg_ptr;
+
+	STARPU_ASSERT_MSG(nparts <= nn, "cannot get %u matrix", nparts);
+	STARPU_ASSERT_MSG((chunk_pos + id) < nn, "the chosen matrix should be in the block");
+
+	size_t offset = (chunk_pos + id) * blocksize * elemsize;
+
+	STARPU_ASSERT_MSG(block_father->id == STARPU_BLOCK_INTERFACE_ID, "%s can only be applied on a block data", __func__);
+	matrix_child->id = STARPU_MATRIX_INTERFACE_ID;
+
+	switch(dim)
+	{
+		/* along y-axis */
+		case 1:
+			matrix_child->nx = nx;
+			matrix_child->ny = nz;
+			break;
+		/* along z-axis */
+		case 2:
+			matrix_child->nx = nx;
+			matrix_child->ny = ny;
+			break;
+		default:
+			STARPU_ASSERT_MSG(0, "Unknown value for dim");
+	}
+
+	matrix_child->elemsize = elemsize;
+	matrix_child->allocsize = matrix_child->nx * matrix_child->ny * elemsize;
+
+	if (block_father->dev_handle)
+	{
+		if (block_father->ptr)
+                	matrix_child->ptr = block_father->ptr + offset;
+                switch(dim)
+		{
+			/* along y-axis */
+			case 1:
+				matrix_child->ld = block_father->ldz;
+				break;
+			/* along z-axis */
+			case 2:
+				matrix_child->ld = block_father->ldy;
+				break;
+			default:
+				STARPU_ASSERT_MSG(0, "Unknown value for dim");
+		}
+                matrix_child->dev_handle = block_father->dev_handle;
+                matrix_child->offset = block_father->offset + offset;
+	}
+}
+
+void starpu_block_filter_pick_matrix_z(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+					    unsigned id, unsigned nparts)
+{
+        _starpu_block_filter_pick_matrix(2, father_interface, child_interface, f, id, nparts);
+}
+
+void starpu_block_filter_pick_matrix_y(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
+					    unsigned id, unsigned nparts)
+{
+        _starpu_block_filter_pick_matrix(1, father_interface, child_interface, f, id, nparts);
+}
+
+struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
+{
+	return &starpu_interface_matrix_ops;
+}

@@ -181,3 +181,39 @@ void starpu_vector_filter_list(void *father_interface, void *child_interface, st
 		vector_child->dev_handle = vector_father->dev_handle;
 	}
 }
+
+void starpu_vector_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+{
+	struct starpu_vector_interface *vector_father = (struct starpu_vector_interface *) father_interface;
+	/* each chunk becomes a variable */
+        struct starpu_variable_interface *variable_child = (struct starpu_variable_interface *) child_interface;
+
+        /* actual number of elements */
+	uint32_t nx = vector_father->nx;
+	size_t elemsize = vector_father->elemsize;
+
+	size_t chunk_pos = (size_t)f->filter_arg_ptr;
+
+	STARPU_ASSERT_MSG(nchunks <= nx, "cannot get %u variables", nchunks);
+	STARPU_ASSERT_MSG((chunk_pos + id) < nx, "the chosen variable should be in the vector");
+
+	size_t offset = (chunk_pos + id) * elemsize;
+
+	STARPU_ASSERT_MSG(vector_father->id == STARPU_VECTOR_INTERFACE_ID, "%s can only be applied on a vector data", __func__);
+
+	variable_child->id = STARPU_VARIABLE_INTERFACE_ID;
+	variable_child->elemsize = elemsize;
+
+	if (vector_father->dev_handle)
+	{
+		if (vector_father->ptr)
+			variable_child->ptr = vector_father->ptr + offset;
+		variable_child->dev_handle = vector_father->dev_handle;
+		variable_child->offset = vector_father->offset + offset;
+	}
+}
+
+struct starpu_data_interface_ops *starpu_vector_filter_pick_variable_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
+{
+	return &starpu_interface_variable_ops;
+}

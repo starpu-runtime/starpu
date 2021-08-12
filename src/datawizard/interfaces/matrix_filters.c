@@ -127,3 +127,51 @@ void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *ch
 
 	_starpu_matrix_filter_block(2, father_interface, child_interface, f, id, nchunks, shadow_size);
 }
+
+void starpu_matrix_filter_pick_vector_y(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
+{
+	struct starpu_matrix_interface *matrix_father = (struct starpu_matrix_interface *) father_interface;
+	/* each chunk becomes a vector */
+	struct starpu_vector_interface *vector_child = (struct starpu_vector_interface *) child_interface;
+
+	unsigned blocksize;
+
+	uint32_t nx;
+	uint32_t ny;
+	
+	/* actual number of elements */
+	nx = matrix_father->nx;
+	ny = matrix_father->ny;
+	blocksize = nx;
+
+	size_t elemsize = matrix_father->elemsize;
+
+	uintptr_t chunk_pos = (uintptr_t)f->filter_arg_ptr;
+
+	STARPU_ASSERT_MSG(nchunks <= nx, "cannot get %u vectors", nchunks);
+	STARPU_ASSERT_MSG((chunk_pos + id) < ny, "the chosen vector should be in the matrix");
+
+	size_t offset = (chunk_pos + id) * blocksize * elemsize;
+
+	STARPU_ASSERT_MSG(matrix_father->id == STARPU_MATRIX_INTERFACE_ID, "%s can only be applied on a matrix data", __func__);
+
+	/* update the child's interface */
+	vector_child->id = STARPU_VECTOR_INTERFACE_ID;
+	vector_child->nx = nx;
+	vector_child->elemsize = elemsize;
+	vector_child->allocsize = vector_child->nx * elemsize;
+
+	/* is the information on this node valid ? */
+	if (matrix_father->dev_handle)
+	{
+		if (matrix_father->ptr)
+			vector_child->ptr = matrix_father->ptr + offset;
+		vector_child->dev_handle = matrix_father->dev_handle;
+		vector_child->offset = matrix_father->offset + offset;
+	}
+}
+
+struct starpu_data_interface_ops *starpu_matrix_filter_pick_vector_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
+{
+	return &starpu_interface_vector_ops;
+}

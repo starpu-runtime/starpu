@@ -18,42 +18,36 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
+void print_matrix(int *matrix, int nx, int ny, unsigned ld)
 {
-        int i, j, k;
-        FPRINTF(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%u ldz=%u\n", block, nx, ny, nz, ldy, ldz);
-        for(k=0 ; k<nz ; k++)
-	{
-                for(j=0 ; j<ny ; j++)
-		{
-                        for(i=0 ; i<nx ; i++)
-			{
-                                FPRINTF(stderr, "%2d ", block[(k*ldz)+(j*ldy)+i]);
-                        }
-                        FPRINTF(stderr,"\n");
+        int i, j;
+        FPRINTF(stderr, "matrix=%p nx=%d ny=%d ld=%u\n", matrix, nx, ny, ld);
+        for(j=0 ; j<ny ; j++)
+        {
+                for(i=0 ; i<nx ; i++)
+                {
+                        FPRINTF(stderr, "%4d ", matrix[(j*ld)+i]);
                 }
                 FPRINTF(stderr,"\n");
         }
         FPRINTF(stderr,"\n");
 }
 
-void print_block_data(starpu_data_handle_t block_handle)
+void print_matrix_data(starpu_data_handle_t matrix_handle)
 {
-	int *block = (int *)starpu_block_get_local_ptr(block_handle);
-	int nx = starpu_block_get_nx(block_handle);
-	int ny = starpu_block_get_ny(block_handle);
-	int nz = starpu_block_get_nz(block_handle);
-	unsigned ldy = starpu_block_get_local_ldy(block_handle);
-	unsigned ldz = starpu_block_get_local_ldz(block_handle);
+	int *matrix = (int *)starpu_matrix_get_local_ptr(matrix_handle);
+	int nx = starpu_matrix_get_nx(matrix_handle);
+	int ny = starpu_matrix_get_ny(matrix_handle);
+	unsigned ld = starpu_matrix_get_local_ld(matrix_handle);
 
-        print_block(block, nx, ny, nz, ldy, ldz);
+    print_matrix(matrix, nx, ny, ld);
 }
 
-void print_3dim_data(starpu_data_handle_t ndim_handle)
+void print_2dim_data(starpu_data_handle_t ndim_handle)
 {
     int *ndim_arr = (int *)starpu_ndim_get_local_ptr(ndim_handle);
     unsigned *nn = starpu_ndim_get_nn(ndim_handle);
     unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
 
-    print_block(ndim_arr, nn[0], nn[1], nn[2], ldn[1], ldn[2]);
+    print_matrix(ndim_arr, nn[0], nn[1], ldn[1]);
 }

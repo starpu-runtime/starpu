@@ -238,10 +238,25 @@ STARPU_EXAMPLES +=				\
 	cpp/add_vectors_interface		\
 	filters/fread				\
 	filters/fvector				\
+	filters/fvector_pick_variable		\
 	filters/ftensor				\
+	filters/ftensor_pick_block			\
 	filters/fblock				\
+	filters/fblock_pick_matrix			\
 	filters/fmatrix				\
+	filters/fmatrix_pick_vector			\
 	filters/fndim				\
+	filters/fndim_pick_ndim				\
+	filters/fndim_pick_tensor			\
+	filters/fndim_pick_block			\
+	filters/fndim_pick_matrix			\
+	filters/fndim_pick_vector			\
+	filters/fndim_pick_variable			\
+	filters/fndim_to_tensor			\
+	filters/fndim_to_block			\
+	filters/fndim_to_matrix			\
+	filters/fndim_to_vector			\
+	filters/fndim_to_variable			\
 	filters/fmultiple_manual		\
 	filters/fmultiple_submit		\
 	filters/fmultiple_submit_readonly	\
@@ -611,6 +626,71 @@ filters_fndim_SOURCES =			\
 	filters/fndim.c			\
 	filters/ftensor_print.c			\
 	filters/f4d_cpu.c
+
+filters_fmatrix_pick_vector_SOURCES =			\
+	filters/fmatrix_pick_vector.c			\
+	filters/fmatrix_print.c			\
+	filters/fvector_cpu.c
+
+filters_fblock_pick_matrix_SOURCES =			\
+	filters/fblock_pick_matrix.c			\
+	filters/fblock_print.c			\
+	filters/fmatrix_print.c			\
+	filters/fmatrix_cpu.c
+
+filters_ftensor_pick_block_SOURCES =			\
+	filters/ftensor_pick_block.c			\
+	filters/ftensor_print.c			\
+	filters/fblock_print.c			\
+	filters/fblock_cpu.c
+
+filters_fndim_pick_ndim_SOURCES =			\
+	filters/fndim_pick_ndim.c			\
+	filters/ftensor_print.c			\
+	filters/fblock_print.c			\
+	filters/f3d_cpu.c
+
+filters_fndim_pick_tensor_SOURCES =			\
+	filters/fndim_pick_tensor.c			\
+	filters/f5d_print.c			\
+	filters/ftensor_print.c			\
+	filters/ftensor_cpu.c
+
+filters_fndim_pick_block_SOURCES =			\
+	filters/fndim_pick_block.c			\
+	filters/ftensor_print.c			\
+	filters/fblock_print.c			\
+	filters/fblock_cpu.c
+
+filters_fndim_pick_matrix_SOURCES =			\
+	filters/fndim_pick_matrix.c			\
+	filters/fblock_print.c			\
+	filters/fmatrix_print.c			\
+	filters/fmatrix_cpu.c
+
+filters_fndim_pick_vector_SOURCES =			\
+	filters/fndim_pick_vector.c			\
+	filters/fmatrix_print.c			\
+	filters/fvector_cpu.c
+
+filters_fndim_to_tensor_SOURCES =			\
+	filters/fndim_to_tensor.c			\
+	filters/ftensor_print.c			\
+	filters/ftensor_cpu.c
+
+filters_fndim_to_block_SOURCES =			\
+	filters/fndim_to_block.c			\
+	filters/fblock_print.c			\
+	filters/fblock_cpu.c
+
+filters_fndim_to_matrix_SOURCES =			\
+	filters/fndim_to_matrix.c			\
+	filters/fmatrix_print.c			\
+	filters/fmatrix_cpu.c
+
+filters_fndim_to_vector_SOURCES =			\
+	filters/fndim_to_vector.c			\
+	filters/fvector_cpu.c
 
 filters_fmultiple_manual_SOURCES =		\
 	filters/fmultiple_manual.c
