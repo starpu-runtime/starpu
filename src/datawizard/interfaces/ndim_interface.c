@@ -637,19 +637,21 @@ static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsign
     if (ndim > 0)
     {
         uint32_t ntmp = 1;
-        dst_ndarr->ldn[0] = 1;
+        uint32_t *ldn_tmp = (uint32_t*)malloc(ndim*sizeof(uint32_t));
+        ldn_tmp[0] = 1;
         size_t i;
         for (i=1; i<ndim; i++)
         {
             ntmp *= nn[i-1];
-            dst_ndarr->ldn[i] = ntmp;
+            ldn_tmp[i] = ntmp;
         }
+        dst_ndarr->ldn = ldn_tmp;
     }
     else if (ndim == 0)
     {
         dst_ndarr->ldn = NULL;
     }
-        
+    
     return allocated_memory;
 }
 
