@@ -29,6 +29,7 @@
 #include <datawizard/memory_nodes.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
+#include <drivers/mp_common/source_common.h>
 #include <common/knobs.h>
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)

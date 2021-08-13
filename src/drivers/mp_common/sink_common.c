@@ -21,6 +21,7 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <drivers/mp_common/mp_common.h>
+#include <drivers/mp_common/sink_common.h>
 #include <drivers/mpi/driver_mpi_common.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <common/barrier.h>

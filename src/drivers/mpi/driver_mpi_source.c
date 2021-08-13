@@ -59,7 +59,7 @@ struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_
 
 int _starpu_mpi_src_allocate_memory(void ** addr, size_t size, unsigned memory_node)
 {
-        const struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(memory_node);
+        struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(memory_node);
         return _starpu_src_common_allocate(mp_node, addr, size);
 }
 
