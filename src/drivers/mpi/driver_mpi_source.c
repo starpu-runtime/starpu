@@ -36,11 +36,11 @@ starpu_pthread_mutex_t htbl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
  * If a kernel has been initialized, then a lookup has already been achieved and the
  * device knows how to call it, else the host still needs to do a lookup.
  */
-struct _starpu_mpi_ms_kernel
+struct _starpu_sink_kernel
 {
 	UT_hash_handle hh;
 	char *name;
-	starpu_cpu_func_t func[STARPU_MAXMPIDEVS];
+	starpu_cpu_func_t func[];
 } *kernels;
 
 typedef void *starpu_mpi_ms_func_symbol_t;
@@ -131,12 +131,10 @@ int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst,
 							  src, dst, size, event);
 }
 
-static int starpu_mpi_ms_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const char *func_name)
+static struct _starpu_sink_kernel *starpu_mpi_ms_register_kernel(const char *func_name)
 {
-        unsigned int func_name_size = (strlen(func_name) + 1) * sizeof(char);
-
         STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
-        struct _starpu_mpi_ms_kernel *kernel;
+        struct _starpu_sink_kernel *kernel;
 
         HASH_FIND_STR(kernels, func_name, kernel);
 
@@ -144,53 +142,33 @@ static int starpu_mpi_ms_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, co
         {
                 STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
                 // Function already in the table.
-                *symbol = kernel;
-                return 0;
+                return kernel;
         }
 
-        kernel = malloc(sizeof(*kernel));
-        if (kernel == NULL)
-        {
-                STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
-                return -ENOMEM;
-        }
+        unsigned int nb_devices = _starpu_get_machine_config()->topology.ndevices[STARPU_MPI_MS_WORKER];
+        _STARPU_MALLOC(kernel, sizeof(*kernel) + nb_devices * sizeof(starpu_cpu_func_t ));
 
-        kernel->name = malloc(func_name_size);
-        if (kernel->name == NULL)
-        {
-                STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
-                free(kernel);
-                return -ENOMEM;
-        }
-
-        memcpy(kernel->name, func_name, func_name_size);
+        kernel->name = strdup(func_name);
 
         HASH_ADD_STR(kernels, name, kernel);
 
-        unsigned int nb_mpi_devices = _starpu_mpi_src_get_device_count();
         unsigned int i;
-        for (i = 0; i < nb_mpi_devices; ++i)
+        for (i = 0; i < nb_devices; ++i)
                 kernel->func[i] = NULL;
 
         STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
 
-        *symbol = kernel;
-
-        return 0;
+        return kernel;
 }
 
-static starpu_cpu_func_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symbol)
+static starpu_cpu_func_t starpu_mpi_ms_get_kernel(const char *func_name)
 {
-        int workerid = starpu_worker_get_id();
-
         /* This function has to be called in the codelet only, by the thread
          * which will handle the task */
-        if (workerid < 0)
-                return NULL;
-
+        int workerid = starpu_worker_get_id_check();
         int devid = starpu_worker_get_devid(workerid);
 
-        struct _starpu_mpi_ms_kernel *kernel = symbol;
+        struct _starpu_sink_kernel *kernel = starpu_mpi_ms_register_kernel(func_name);
 
         if (kernel->func[devid] == NULL)
         {
@@ -209,9 +187,7 @@ starpu_cpu_func_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_codel
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
 	STARPU_ASSERT_MSG(func_name, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
 
-	starpu_mpi_ms_func_symbol_t symbol;
-	starpu_mpi_ms_register_kernel(&symbol, func_name);
-	starpu_cpu_func_t kernel = starpu_mpi_ms_get_kernel(symbol);
+	starpu_cpu_func_t kernel = starpu_mpi_ms_get_kernel(func_name);
 
 	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
 
@@ -224,9 +200,7 @@ void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
 	STARPU_ASSERT_MSG(func_name, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
 
-	starpu_mpi_ms_func_symbol_t symbol;
-	starpu_mpi_ms_register_kernel(&symbol, func_name);
-        starpu_cpu_func_t kernel = starpu_mpi_ms_get_kernel(symbol);
+        starpu_cpu_func_t kernel = starpu_mpi_ms_get_kernel(func_name);
 
 	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
 
