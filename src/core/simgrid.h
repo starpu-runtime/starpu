@@ -84,9 +84,8 @@ struct _starpu_job;
 void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, double energy, unsigned *finished);
 struct _starpu_data_request;
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);
-struct _starpu_simgrid_event;
-int _starpu_simgrid_wait_transfer_event(struct _starpu_simgrid_event *event);
-int _starpu_simgrid_test_transfer_event(struct _starpu_simgrid_event *event);
+int _starpu_simgrid_wait_transfer_event(void *event);
+int _starpu_simgrid_test_transfer_event(void *event);
 void _starpu_simgrid_sync_gpus(void);
 /** Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);

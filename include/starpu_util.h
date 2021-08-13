@@ -224,10 +224,24 @@ extern "C"
 #  endif
 #endif
 
+/**
+   Unless StarPU has been configured with the option \ref enable-fast
+   "--enable-fast", this macro will abort if the pointer \p x is not pointing to
+   valid memory.
+*/
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT_ACCESSIBLE(x)	do { if (0) { (void) (x); } } while(0)
 #else
 #define STARPU_ASSERT_ACCESSIBLE(ptr)	do { volatile char __c STARPU_ATTRIBUTE_UNUSED = *(char*) (ptr); } while(0)
+#endif
+
+/**
+   This macro will abort compilation if the expression \p x is false.
+*/
+#if STARPU_GNUC_PREREQ(4, 6) && !defined __cplusplus && !defined(__STRICT_ANSI__)
+#define STARPU_STATIC_ASSERT(x)	_Static_assert(x)
+#else
+#define STARPU_STATIC_ASSERT(x)	STARPU_ASSERT(x)
 #endif
 
 /**

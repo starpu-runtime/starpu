@@ -549,7 +549,7 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 #ifdef STARPU_SIMGRID
-	_starpu_simgrid_wait_transfer_event(&async_channel->event.simgrid_event);
+	_starpu_simgrid_wait_transfer_event(&async_channel->event);
 #else /* !SIMGRID */
 	struct _starpu_node_ops *node_ops = async_channel->node_ops;
 	if (node_ops && node_ops->wait_request_completion != NULL)

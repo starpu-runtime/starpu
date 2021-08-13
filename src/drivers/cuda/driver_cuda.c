@@ -94,6 +94,14 @@ static int cuda_device_users[STARPU_MAXCUDADEVS];
 static starpu_pthread_mutex_t cuda_device_init_mutex[STARPU_MAXCUDADEVS];
 static starpu_pthread_cond_t cuda_device_init_cond[STARPU_MAXCUDADEVS];
 
+static inline cudaEvent_t *_starpu_cuda_event(starpu_async_channel_event_t *_event)
+{
+	cudaEvent_t *event;
+	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));
+	event = (void *) _event;
+	return event;
+}
+
 void _starpu_cuda_init(void)
 {
 	unsigned i;
@@ -1429,7 +1437,7 @@ unsigned _starpu_cuda_test_request_completion(struct _starpu_async_channel *asyn
 	cudaError_t cures;
 	unsigned success;
 
-	event = (*async_channel).event.cuda_event;
+	event = *_starpu_cuda_event(&async_channel->event);
 	cures = cudaEventQuery(event);
 	success = (cures == cudaSuccess);
 
@@ -1446,7 +1454,7 @@ void _starpu_cuda_wait_request_completion(struct _starpu_async_channel *async_ch
 	cudaEvent_t event;
 	cudaError_t cures;
 
-	event = (*async_channel).event.cuda_event;
+	event = *_starpu_cuda_event(&async_channel->event);
 
 	cures = cudaEventSynchronize(event);
 	if (STARPU_UNLIKELY(cures))
@@ -1480,7 +1488,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, v
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_cuda_node_ops;
-		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
+		cures = cudaEventCreateWithFlags(_starpu_cuda_event(&req->async_channel.event), cudaEventDisableTiming);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
 		stream = starpu_cuda_get_peer_transfer_stream(src_node, dst_node);
@@ -1492,7 +1500,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, v
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		}
 
-		cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
+		cures = cudaEventRecord(*_starpu_cuda_event(&req->async_channel.event), stream);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 	}
 	return ret;
@@ -1525,7 +1533,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cpu(starpu_data_handle_t handle, vo
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_cuda_node_ops;
-		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
+		cures = cudaEventCreateWithFlags(_starpu_cuda_event(&req->async_channel.event), cudaEventDisableTiming);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
 		stream = starpu_cuda_get_out_transfer_stream(src_node);
@@ -1537,7 +1545,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cpu(starpu_data_handle_t handle, vo
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		}
 
-		cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
+		cures = cudaEventRecord(*_starpu_cuda_event(&req->async_channel.event), stream);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 	}
 	return ret;
@@ -1572,7 +1580,7 @@ int _starpu_cuda_copy_interface_from_cpu_to_cuda(starpu_data_handle_t handle, vo
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_cuda_node_ops;
-		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
+		cures = cudaEventCreateWithFlags(_starpu_cuda_event(&req->async_channel.event), cudaEventDisableTiming);
 		if (STARPU_UNLIKELY(cures != cudaSuccess))
 			STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -1585,7 +1593,7 @@ int _starpu_cuda_copy_interface_from_cpu_to_cuda(starpu_data_handle_t handle, vo
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		}
 
-		cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
+		cures = cudaEventRecord(*_starpu_cuda_event(&req->async_channel.event), stream);
 		if (STARPU_UNLIKELY(cures != cudaSuccess))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}

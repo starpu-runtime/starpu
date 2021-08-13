@@ -85,6 +85,19 @@ static struct worker_runner
 } worker_runner[STARPU_NMAXWORKERS];
 static void *task_execute(void *arg);
 
+struct _starpu_simgrid_event
+{
+	unsigned finished;
+	starpu_pthread_queue_t *queue;
+};
+static inline struct _starpu_simgrid_event *_starpu_simgrid_event(starpu_async_channel_event_t *_event)
+{
+	struct _starpu_simgrid_event *event;
+	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));
+	event = (void *) _event;
+	return event;
+}
+
 size_t _starpu_default_stack_size = 8192;
 
 void _starpu_simgrid_set_stack_size(size_t stack_size)
@@ -1046,8 +1059,9 @@ static void transfer_submit(struct transfer *transfer)
 	}
 }
 
-int _starpu_simgrid_wait_transfer_event(struct _starpu_simgrid_event *event)
+int _starpu_simgrid_wait_transfer_event(void *_event)
 {
+	struct _starpu_simgrid_event *event = _event;
 	/* this is not associated to a request so it's synchronous */
 	starpu_pthread_wait_t wait;
 	starpu_pthread_wait_init(&wait);
@@ -1065,8 +1079,9 @@ int _starpu_simgrid_wait_transfer_event(struct _starpu_simgrid_event *event)
 	return 0;
 }
 
-int _starpu_simgrid_test_transfer_event(struct _starpu_simgrid_event *event)
+int _starpu_simgrid_test_transfer_event(void *_event)
 {
+	struct _starpu_simgrid_event *event = _event;
 	return event->finished;
 }
 
@@ -1171,7 +1186,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->run_node = starpu_worker_get_local_memory_node();
 
 	if (req)
-		event = &req->async_channel.event.simgrid_event;
+		event = _starpu_simgrid_event(&req->async_channel.event);
 	else
 		event = &myevent;
 	event->finished = 0;
