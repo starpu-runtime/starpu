@@ -40,8 +40,10 @@ struct _starpu_mpi_ms_kernel
 {
 	UT_hash_handle hh;
 	char *name;
-	starpu_mpi_ms_kernel_t func[STARPU_MAXMPIDEVS];
+	starpu_cpu_func_t func[STARPU_MAXMPIDEVS];
 } *kernels;
+
+typedef void *starpu_mpi_ms_func_symbol_t;
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
@@ -133,7 +135,7 @@ int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst,
 							  src, dst, size, event);
 }
 
-int starpu_mpi_ms_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const char *func_name)
+static int starpu_mpi_ms_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const char *func_name)
 {
         unsigned int func_name_size = (strlen(func_name) + 1) * sizeof(char);
 
@@ -181,7 +183,7 @@ int starpu_mpi_ms_register_kernel(starpu_mpi_ms_func_symbol_t *symbol, const cha
         return 0;
 }
 
-starpu_mpi_ms_kernel_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symbol)
+static starpu_cpu_func_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symbol)
 {
         int workerid = starpu_worker_get_id();
 
@@ -205,17 +207,17 @@ starpu_mpi_ms_kernel_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symb
         return kernel->func[devid];
 }
 
-starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl)
+starpu_cpu_func_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl)
 {
 	/* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
-	STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(func_name, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
 
 	starpu_mpi_ms_func_symbol_t symbol;
 	starpu_mpi_ms_register_kernel(&symbol, func_name);
-	starpu_mpi_ms_kernel_t kernel = starpu_mpi_ms_get_kernel(symbol);
+	starpu_cpu_func_t kernel = starpu_mpi_ms_get_kernel(symbol);
 
-	STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
 
 	return kernel;
 }
@@ -224,13 +226,13 @@ void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node
 {
         /* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
-	STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(func_name, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
 
 	starpu_mpi_ms_func_symbol_t symbol;
 	starpu_mpi_ms_register_kernel(&symbol, func_name);
-        starpu_mpi_ms_kernel_t kernel = starpu_mpi_ms_get_kernel(symbol);
+        starpu_cpu_func_t kernel = starpu_mpi_ms_get_kernel(symbol);
 
-	STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
 
         return (void (*)(void))kernel;
 }

@@ -183,11 +183,6 @@ typedef void (*starpu_opencl_func_t)(void **, void*);
 typedef void (*starpu_max_fpga_func_t)(void **, void*);
 
 /**
-   MPI Master Slave kernel for a codelet
-*/
-typedef void (*starpu_mpi_ms_kernel_t)(void **, void*);
-
-/**
    @deprecated
    Setting the field starpu_codelet::cpu_func with this macro
    indicates the codelet will have several implementations. The use of

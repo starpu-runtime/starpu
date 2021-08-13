@@ -96,7 +96,6 @@ versinclude_HEADERS = 				\
 	include/starpu_max_fpga.h		\
 	include/starpu_openmp.h			\
 	include/starpu_sink.h			\
-	include/starpu_mpi_ms.h			\
 	include/starpu_expert.h			\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\

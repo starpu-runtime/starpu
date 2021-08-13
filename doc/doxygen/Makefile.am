@@ -226,7 +226,6 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_hash.h		\
 	$(top_srcdir)/include/starpu_helper.h		\
 	$(top_srcdir)/include/starpu_max_fpga.h		\
-	$(top_srcdir)/include/starpu_mpi_ms.h		\
 	$(top_srcdir)/include/starpu_mod.f90		\
 	$(top_srcdir)/include/starpu_opencl.h		\
 	$(top_srcdir)/include/starpu_openmp.h		\

@@ -20,7 +20,6 @@
 /** @file */
 
 #include <drivers/mp_common/mp_common.h>
-#include <starpu_mpi_ms.h>
 #include <datawizard/node_ops.h>
 
 #pragma GCC visibility push(hidden)
@@ -65,7 +64,7 @@ int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node
 uintptr_t _starpu_mpi_malloc_on_node(unsigned dst_node, size_t size, int flags);
 void _starpu_mpi_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 
-starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl);
+starpu_cpu_func_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl);
 void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);
 
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
