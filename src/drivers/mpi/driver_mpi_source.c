@@ -49,50 +49,6 @@ void _starpu_mpi_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNU
 
 }
 
-/* Transfer SIZE bytes from the address pointed by SRC in the SRC_NODE memory
- * node to the address pointed by DST in the DST_NODE memory node
- */
-static int _starpu_mpi_copy_ram_to_mpi_sync(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size)
-{
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
-        return _starpu_src_common_copy_host_to_sink_sync(mp_node, src, dst, size);
-}
-
-/* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
- * node to the address pointed by DST in the DST_NODE memory node
- */
-static int _starpu_mpi_copy_mpi_to_ram_sync(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
-{
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
-        return _starpu_src_common_copy_sink_to_host_sync(mp_node, src, dst, size);
-}
-
-static int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
-{
-        return _starpu_src_common_copy_sink_to_sink_sync(_starpu_src_common_get_mp_node_from_memory_node(src_node),
-							 _starpu_src_common_get_mp_node_from_memory_node(dst_node),
-							 src, dst, size);
-}
-
-static int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, void * event)
-{
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
-        return _starpu_src_common_copy_sink_to_host_async(mp_node, src, dst, size, event);
-}
-
-static int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size, void * event)
-{
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
-        return _starpu_src_common_copy_host_to_sink_async(mp_node, src, dst, size, event);
-}
-
-static int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event)
-{
-        return _starpu_src_common_copy_sink_to_sink_async(_starpu_src_common_get_mp_node_from_memory_node(src_node),
-							  _starpu_src_common_get_mp_node_from_memory_node(dst_node),
-							  src, dst, size, event);
-}
-
 unsigned _starpu_mpi_src_get_device_count()
 {
         int nb_mpi_devices;
@@ -300,15 +256,18 @@ int _starpu_mpi_copy_data_from_mpi_to_cpu(uintptr_t src, size_t src_offset, unsi
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
 	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_CPU_RAM);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
 
 	if (async_channel)
-		return _starpu_mpi_copy_mpi_to_ram_async((void*) (src + src_offset), src_node,
-							 (void*) (dst + dst_offset), dst_node,
-							 size, async_channel);
+		return _starpu_src_common_copy_sink_to_host_async(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size, async_channel);
 	else
-		return _starpu_mpi_copy_mpi_to_ram_sync((void*) (src + src_offset), src_node,
-							(void*) (dst + dst_offset), dst_node,
-							size);
+		return _starpu_src_common_copy_sink_to_host_sync(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size);
 }
 
 int _starpu_mpi_copy_data_from_mpi_to_mpi(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
@@ -318,13 +277,19 @@ int _starpu_mpi_copy_data_from_mpi_to_mpi(uintptr_t src, size_t src_offset, unsi
 	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_MPI_MS_RAM);
 
 	if (async_channel)
-		return _starpu_mpi_copy_sink_to_sink_async((void*) (src + src_offset), src_node,
-							   (void*) (dst + dst_offset), dst_node,
-							   size, async_channel);
+		return _starpu_src_common_copy_sink_to_sink_async(
+						_starpu_src_common_get_mp_node_from_memory_node(src_node),
+						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size, async_channel);
 	else
-		return _starpu_mpi_copy_sink_to_sink_sync((void*) (src + src_offset), src_node,
-							  (void*) (dst + dst_offset), dst_node,
-							  size);
+		return _starpu_src_common_copy_sink_to_sink_sync(
+						_starpu_src_common_get_mp_node_from_memory_node(src_node),
+						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size);
 }
 
 int _starpu_mpi_copy_data_from_cpu_to_mpi(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
@@ -332,15 +297,18 @@ int _starpu_mpi_copy_data_from_cpu_to_mpi(uintptr_t src, size_t src_offset, unsi
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
 	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_MPI_MS_RAM);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
 
 	if (async_channel)
-		return _starpu_mpi_copy_ram_to_mpi_async((void*) (src + src_offset), src_node,
-							 (void*) (dst + dst_offset), dst_node,
-							 size, async_channel);
+		return _starpu_src_common_copy_host_to_sink_async(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size, async_channel);
 	else
-		return _starpu_mpi_copy_ram_to_mpi_sync((void*) (src + src_offset), src_node,
-							(void*) (dst + dst_offset), dst_node,
-							size);
+		return _starpu_src_common_copy_host_to_sink_sync(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size);
 }
 
 int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node)
