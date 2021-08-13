@@ -86,9 +86,6 @@
 #define _STARPU_FUT_DATA_COORDINATES	0x511e
 #define _STARPU_FUT_HANDLE_DATA_UNREGISTER	0x511f
 
-#define _STARPU_FUT_USER_DEFINED_START	0x5120
-#define _STARPU_FUT_USER_DEFINED_END	0x5121
-
 #define	_STARPU_FUT_NEW_MEM_NODE	0x5122
 
 #define	_STARPU_FUT_START_CALLBACK	0x5123
@@ -1048,12 +1045,6 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()	\
 	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_TASK_VERBOSE, _STARPU_FUT_TASK_WAIT_FOR_ALL_END, _starpu_gettid());
 
-#define _STARPU_TRACE_USER_DEFINED_START	\
-	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_USER, _STARPU_FUT_USER_DEFINED_START, _starpu_gettid());
-
-#define _STARPU_TRACE_USER_DEFINED_END		\
-	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_USER, _STARPU_FUT_USER_DEFINED_END, _starpu_gettid());
-
 #define _STARPU_TRACE_START_ALLOC(memnode, size, handle, is_prefetch)               \
        FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_DSM, _STARPU_FUT_START_ALLOC, memnode, _starpu_gettid(), size, handle, is_prefetch);
 
@@ -1424,8 +1415,6 @@ do {										\
 #define _STARPU_TRACE_TASK_WAIT_END()			do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_START()		do {} while(0)
 #define _STARPU_TRACE_TASK_WAIT_FOR_ALL_END()		do {} while(0)
-#define _STARPU_TRACE_USER_DEFINED_START()		do {} while(0)
-#define _STARPU_TRACE_USER_DEFINED_END()		do {} while(0)
 #define _STARPU_TRACE_START_ALLOC(memnode, size, handle, is_prefetch)       do {(void)(memnode); (void)(size); (void)(handle);} while(0)
 #define _STARPU_TRACE_END_ALLOC(memnode, handle, r)            do {(void)(memnode); (void)(handle); (void)(r);} while(0)
 #define _STARPU_TRACE_START_ALLOC_REUSE(a, size, handle, is_prefetch)       do {(void)(a); (void)(size); (void)(handle);} while(0)
