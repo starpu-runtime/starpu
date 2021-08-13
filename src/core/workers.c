@@ -115,7 +115,44 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	   task, independent of the sched_ctx, this latter may receive latter on
 	   the necessary worker - the user or the hypervisor should take care this happens */
 
-	struct _starpu_sched_ctx *sched_ctx = check_entire_platform == 1 ? _starpu_get_initial_sched_ctx() : _starpu_get_sched_ctx_struct(task->sched_ctx);
+	if (check_entire_platform && !task->cl->can_execute)
+	{
+		if (!_starpu_get_machine_config()->topology.ndevices[arch])
+			return 0;
+
+		unsigned impl;
+		for (impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
+		{
+			switch (arch)
+			{
+			case STARPU_CPU_WORKER:
+				if (task->cl->cpu_funcs[impl] != NULL)
+					return 1;
+				break;
+			case STARPU_CUDA_WORKER:
+				if (task->cl->cuda_funcs[impl] != NULL)
+					return 1;
+				break;
+			case STARPU_OPENCL_WORKER:
+				if (task->cl->opencl_funcs[impl] != NULL)
+					return 1;
+				break;
+			case STARPU_MAX_FPGA_WORKER:
+				if (task->cl->max_fpga_funcs[impl] != NULL)
+					return 1;
+				break;
+                        case STARPU_MPI_MS_WORKER:
+                                if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
+					return 1;
+                                break;
+			default:
+				STARPU_ABORT();
+			}
+		}
+		return 0;
+	}
+
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct starpu_sched_ctx_iterator it;
 	workers->init_iterator(workers, &it);
