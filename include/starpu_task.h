@@ -188,11 +188,6 @@ typedef void (*starpu_max_fpga_func_t)(void **, void*);
 typedef void (*starpu_mpi_ms_kernel_t)(void **, void*);
 
 /**
-   MPI Master Slave implementation of a codelet.
-*/
-typedef starpu_mpi_ms_kernel_t (*starpu_mpi_ms_func_t)(void);
-
-/**
    @deprecated
    Setting the field starpu_codelet::cpu_func with this macro
    indicates the codelet will have several implementations. The use of
@@ -406,22 +401,6 @@ struct starpu_codelet
            starpu_codelet::where, it must be non-<c>NULL</c> otherwise.
         */
 	starpu_max_fpga_func_t max_fpga_funcs[STARPU_MAXIMPLEMENTATIONS];
-
-	/**
-	   Optional array of function pointers to a function which
-	   returns the MPI Master Slave implementation of the codelet.
-	   The functions prototype must be:
-	   \code{.c}
-	   starpu_mpi_ms_kernel_t mpi_ms_func(struct starpu_codelet *cl, unsigned nimpl)
-	   \endcode
-	   If the field starpu_codelet::where is set, then the field
-	   starpu_codelet::mpi_ms_funcs is ignored if ::STARPU_MPI_MS
-	   does not appear in the field starpu_codelet::where. It can
-	   be <c>NULL</c> if starpu_codelet::cpu_funcs_name is
-	   non-<c>NULL</c>, in which case StarPU will simply make a
-	   symbol lookup to get the implementation.
-	*/
-	starpu_mpi_ms_func_t mpi_ms_funcs[STARPU_MAXIMPLEMENTATIONS];
 
 	/**
 	   Optional array of strings which provide the name of the CPU

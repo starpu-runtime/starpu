@@ -209,31 +209,17 @@ starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_
 {
 	starpu_mpi_ms_kernel_t kernel = NULL;
 
-	starpu_mpi_ms_func_t func = _starpu_task_get_mpi_ms_nth_implementation(cl, nimpl);
-	if (func)
+	/* Try to use cpu_func_name. */
+	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+	if (func_name)
 	{
-		/* We execute the function contained in the codelet, it must return a
-		 * pointer to the function to execute on the device, specified
-		 * directly by the user
-		 */
-		kernel = func();
-	}
-	else
-	{
-		/* If user dont define any starpu_mpi_ms_func_t in cl->mpi_ms_func we try to use
-		 * cpu_func_name.
-		 */
-		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
-		if (func_name)
-		{
-			starpu_mpi_ms_func_symbol_t symbol;
+		starpu_mpi_ms_func_symbol_t symbol;
 
-			starpu_mpi_ms_register_kernel(&symbol, func_name);
+		starpu_mpi_ms_register_kernel(&symbol, func_name);
 
-			kernel = starpu_mpi_ms_get_kernel(symbol);
-		}
+		kernel = starpu_mpi_ms_get_kernel(symbol);
 	}
-	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', mpi_ms_funcs or cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
 
 	return kernel;
 }
@@ -242,30 +228,16 @@ void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node
 {
         starpu_mpi_ms_kernel_t kernel = NULL;
 
-        starpu_mpi_ms_func_t func = _starpu_task_get_mpi_ms_nth_implementation(j->task->cl, j->nimpl);
-        if (func)
-        {
-                /* We execute the function contained in the codelet, it must return a
-                 * pointer to the function to execute on the device, either specified
-                 * directly by the user or by a call to starpu_mpi_ms_get_func().
-                 */
-                kernel = func();
-        }
-        else
-        {
-                /* If user dont define any starpu_mpi_ms_fun_t in cl->mpi_ms_func we try to use
-                 * cpu_func_name.
-                 */
-                const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
-                if (func_name)
-                {
-                        starpu_mpi_ms_func_symbol_t symbol;
+        /* Try to use cpu_func_name. */
+	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
+	if (func_name)
+	{
+		starpu_mpi_ms_func_symbol_t symbol;
 
-                        starpu_mpi_ms_register_kernel(&symbol, func_name);
+		starpu_mpi_ms_register_kernel(&symbol, func_name);
 
-                        kernel = starpu_mpi_ms_get_kernel(symbol);
-                }
-        }
+		kernel = starpu_mpi_ms_get_kernel(symbol);
+	}
         STARPU_ASSERT(kernel);
 
         return (void (*)(void))kernel;

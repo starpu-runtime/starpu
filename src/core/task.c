@@ -718,18 +718,6 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	some_impl = 0;
 	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
-		if (cl->mpi_ms_funcs[i])
-		{
-			some_impl = 1;
-			break;
-		}
-	if (some_impl && is_where_unset)
-	{
-		where |= STARPU_MPI_MS;
-	}
-
-	some_impl = 0;
-	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 		if (cl->cpu_funcs_name[i])
 		{
 			some_impl = 1;

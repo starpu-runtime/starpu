@@ -1124,8 +1124,6 @@ exposed through the name of the function in the \ref starpu_codelet::cpu_funcs_n
 Functions have to be globally-visible (i.e. not static) for StarPU to
 be able to look them up, and <c>-rdynamic</c> must be passed to gcc (or
 <c>-export-dynamic</c> to ld) so that symbols of the main program are visible.
-Optionally, you can choose the use of another function on slaves thanks to
-the field \ref starpu_codelet::mpi_ms_funcs.
 
 By default, one core is dedicated on the master node to manage the
 entire set of slaves. If the implementation of MPI you are using has a

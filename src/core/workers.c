@@ -300,7 +300,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 					return 1;
 				break;
                         case STARPU_MPI_MS_WORKER:
-                                if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
+                                if (task->cl->cpu_funcs_name[impl] != NULL)
 					return 1;
                                 break;
 			default:
@@ -347,7 +347,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 					test_implementation = 1;
 				break;
                         case STARPU_MPI_MS_WORKER:
-                                if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
+                                if (task->cl->cpu_funcs_name[impl] != NULL)
                                         test_implementation = 1;
                                 break;
 			default:
@@ -478,10 +478,8 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	}
 	case STARPU_MPI_MS_WORKER:
 	{
-		starpu_mpi_ms_func_t func = _starpu_task_get_mpi_ms_nth_implementation(cl, nimpl);
 		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
-
-		return func != NULL || func_name != NULL;
+		return func_name != NULL;
 	}
 	default:
 		STARPU_ASSERT_MSG(0, "Unknown arch type %d", arch);
