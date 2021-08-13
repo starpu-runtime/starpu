@@ -49,32 +49,33 @@ void _starpu_mpi_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNU
 
 }
 
-struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_node)
+struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node)
 {
         int devid = starpu_memory_node_get_devid(memory_node);
+	enum starpu_worker_archtype archtype = starpu_memory_node_get_worker_archtype(memory_node);
         STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 
-        return _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid];
+        return _starpu_src_nodes[archtype][devid];
 }
 
 int _starpu_mpi_src_allocate_memory(void ** addr, size_t size, unsigned memory_node)
 {
-        struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(memory_node);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(memory_node);
         return _starpu_src_common_allocate(mp_node, addr, size);
 }
 
 void _starpu_mpi_source_free_memory(void *addr, unsigned memory_node)
 {
-        struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(memory_node);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(memory_node);
         _starpu_src_common_free(mp_node, addr);
 }
 
-/* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
+/* Transfer SIZE bytes from the address pointed by SRC in the SRC_NODE memory
  * node to the address pointed by DST in the DST_NODE memory node
  */
 int _starpu_mpi_copy_ram_to_mpi_sync(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size)
 {
-        struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(dst_node);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
         return _starpu_src_common_copy_host_to_sink_sync(mp_node, src, dst, size);
 }
 
@@ -83,33 +84,33 @@ int _starpu_mpi_copy_ram_to_mpi_sync(void *src, unsigned src_node STARPU_ATTRIBU
  */
 int _starpu_mpi_copy_mpi_to_ram_sync(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
 {
-        struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(src_node);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
         return _starpu_src_common_copy_sink_to_host_sync(mp_node, src, dst, size);
 }
 
 int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
 {
-        return _starpu_src_common_copy_sink_to_sink_sync(_starpu_mpi_src_get_mp_node_from_memory_node(src_node),
-							 _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
+        return _starpu_src_common_copy_sink_to_sink_sync(_starpu_src_common_get_mp_node_from_memory_node(src_node),
+							 _starpu_src_common_get_mp_node_from_memory_node(dst_node),
 							 src, dst, size);
 }
 
 int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, void * event)
 {
-        struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(src_node);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
         return _starpu_src_common_copy_sink_to_host_async(mp_node, src, dst, size, event);
 }
 
 int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size, void * event)
 {
-        struct _starpu_mp_node *mp_node = _starpu_mpi_src_get_mp_node_from_memory_node(dst_node);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
         return _starpu_src_common_copy_host_to_sink_async(mp_node, src, dst, size, event);
 }
 
 int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event)
 {
-        return _starpu_src_common_copy_sink_to_sink_async(_starpu_mpi_src_get_mp_node_from_memory_node(src_node),
-							  _starpu_mpi_src_get_mp_node_from_memory_node(dst_node),
+        return _starpu_src_common_copy_sink_to_sink_async(_starpu_src_common_get_mp_node_from_memory_node(src_node),
+							  _starpu_src_common_get_mp_node_from_memory_node(dst_node),
 							  src, dst, size, event);
 }
 
