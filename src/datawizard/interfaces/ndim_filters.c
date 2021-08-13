@@ -90,6 +90,7 @@ static void _starpu_ndim_filter_block(void *father_interface, void *child_interf
 
     uint32_t *child_ldn;
     child_ldn = (uint32_t*)malloc(ndim*sizeof(uint32_t));
+    ndim_child->ldn = child_ldn;
     
     ndim_child->ndim = ndim;
     ndim_child->elemsize = elemsize;
@@ -102,7 +103,6 @@ static void _starpu_ndim_filter_block(void *father_interface, void *child_interf
         {
             child_ldn[i] = ndim_father->ldn[i]; 
         }
-        ndim_child->ldn = child_ldn;
         ndim_child->dev_handle = ndim_father->dev_handle;
         ndim_child->offset = ndim_father->offset + offset;
     }
@@ -253,7 +253,14 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 
     uint32_t *child_ldn;
     if (ndim > 1)
+    {
         child_ldn = (uint32_t*)malloc((ndim-1)*sizeof(uint32_t));
+	ndim_child->ldn = child_ldn;
+    }
+    else
+    {
+	ndim_child->ldn = NULL;
+    }
     
     ndim_child->ndim = ndim-1;
     ndim_child->elemsize = elemsize;
@@ -273,11 +280,6 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
                     j++;
                 }
             }
-            ndim_child->ldn = child_ldn;
-        }
-        else
-        {
-            ndim_child->ldn = NULL;
         }
         ndim_child->dev_handle = ndim_father->dev_handle;
         ndim_child->offset = ndim_father->offset + offset;
