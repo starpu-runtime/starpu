@@ -57,12 +57,12 @@ static starpu_pthread_mutex_t htbl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
  * If a kernel has been initialized, then a lookup has already been achieved and the
  * device knows how to call it, else the host still needs to do a lookup.
  */
-struct _starpu_sink_kernel
+static struct _starpu_sink_kernel
 {
 	UT_hash_handle hh;
 	char *name;
 	starpu_cpu_func_t func[];
-} *kernels;
+} *kernels[STARPU_NARCH];
 
 static unsigned mp_node_memory_node(struct _starpu_mp_node *node)
 {
@@ -563,8 +563,10 @@ static struct _starpu_sink_kernel *starpu_src_common_register_kernel(const char 
 {
         STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
         struct _starpu_sink_kernel *kernel;
+        unsigned workerid = starpu_worker_get_id_check();
+        enum starpu_worker_archtype archtype = starpu_worker_get_type(workerid);
 
-        HASH_FIND_STR(kernels, func_name, kernel);
+        HASH_FIND_STR(kernels[archtype], func_name, kernel);
 
         if (kernel != NULL)
         {
@@ -573,12 +575,12 @@ static struct _starpu_sink_kernel *starpu_src_common_register_kernel(const char 
                 return kernel;
         }
 
-        unsigned int nb_devices = _starpu_get_machine_config()->topology.ndevices[STARPU_MPI_MS_WORKER];
+        unsigned int nb_devices = _starpu_get_machine_config()->topology.ndevices[archtype];
         _STARPU_MALLOC(kernel, sizeof(*kernel) + nb_devices * sizeof(starpu_cpu_func_t ));
 
         kernel->name = strdup(func_name);
 
-        HASH_ADD_STR(kernels, name, kernel);
+        HASH_ADD_STR(kernels[archtype], name, kernel);
 
         unsigned int i;
         for (i = 0; i < nb_devices; ++i)
@@ -595,12 +597,13 @@ static starpu_cpu_func_t starpu_src_common_get_kernel(const char *func_name)
          * which will handle the task */
         int workerid = starpu_worker_get_id_check();
         int devid = starpu_worker_get_devid(workerid);
+        enum starpu_worker_archtype archtype = starpu_worker_get_type(workerid);
 
         struct _starpu_sink_kernel *kernel = starpu_src_common_register_kernel(func_name);
 
         if (kernel->func[devid] == NULL)
         {
-                struct _starpu_mp_node *node = _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid];
+                struct _starpu_mp_node *node = _starpu_src_nodes[archtype][devid];
                 int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
                 if (ret)
                         return NULL;
@@ -613,11 +616,11 @@ starpu_cpu_func_t _starpu_src_common_get_cpu_func_from_codelet(struct starpu_cod
 {
 	/* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
-	STARPU_ASSERT_MSG(func_name, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
+        STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
 
-	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
+        STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	return kernel;
 }
@@ -626,11 +629,11 @@ void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *no
 {
         /* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
-	STARPU_ASSERT_MSG(func_name, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
+        STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
         starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
 
-	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
+        STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	return (void (*)(void))kernel;
 }
