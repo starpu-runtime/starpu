@@ -740,6 +740,25 @@ int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node, 
         return -EAGAIN;
 }
 
+int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_MPI_MS_RAM);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+
+	if (async_channel)
+		return _starpu_src_common_copy_host_to_sink_async(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size, async_channel);
+	else
+		return _starpu_src_common_copy_host_to_sink_sync(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size);
+}
+
 /* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST
  * with a synchronous mode.
  */
@@ -787,6 +806,25 @@ int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node, 
         STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
         return -EAGAIN;
+}
+
+int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_CPU_RAM);
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
+
+	if (async_channel)
+		return _starpu_src_common_copy_sink_to_host_async(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size, async_channel);
+	else
+		return _starpu_src_common_copy_sink_to_host_sync(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size);
 }
 
 /* Tell the sink linked to SRC_NODE to send SIZE bytes of data pointed by SRC
@@ -882,6 +920,28 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
         STARPU_PTHREAD_MUTEX_UNLOCK(&dst_node->connection_mutex);
 
         return -EAGAIN;
+}
+
+int _starpu_src_common_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_MPI_MS_RAM);
+
+	if (async_channel)
+		return _starpu_src_common_copy_sink_to_sink_async(
+						_starpu_src_common_get_mp_node_from_memory_node(src_node),
+						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size, async_channel);
+	else
+		return _starpu_src_common_copy_sink_to_sink_sync(
+						_starpu_src_common_get_mp_node_from_memory_node(src_node),
+						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size);
 }
 
 /* 5 functions to determine the executable to run on the device (MPI).

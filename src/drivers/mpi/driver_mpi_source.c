@@ -251,66 +251,6 @@ int _starpu_mpi_copy_interface_from_cpu_to_mpi(starpu_data_handle_t handle, void
 	return ret;
 }
 
-int _starpu_mpi_copy_data_from_mpi_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
-{
-	int src_kind = starpu_node_get_kind(src_node);
-	int dst_kind = starpu_node_get_kind(dst_node);
-	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_CPU_RAM);
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
-
-	if (async_channel)
-		return _starpu_src_common_copy_sink_to_host_async(mp_node,
-						(void*) (src + src_offset),
-						(void*) (dst + dst_offset),
-						size, async_channel);
-	else
-		return _starpu_src_common_copy_sink_to_host_sync(mp_node,
-						(void*) (src + src_offset),
-						(void*) (dst + dst_offset),
-						size);
-}
-
-int _starpu_mpi_copy_data_from_mpi_to_mpi(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
-{
-	int src_kind = starpu_node_get_kind(src_node);
-	int dst_kind = starpu_node_get_kind(dst_node);
-	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_MPI_MS_RAM);
-
-	if (async_channel)
-		return _starpu_src_common_copy_sink_to_sink_async(
-						_starpu_src_common_get_mp_node_from_memory_node(src_node),
-						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
-						(void*) (src + src_offset),
-						(void*) (dst + dst_offset),
-						size, async_channel);
-	else
-		return _starpu_src_common_copy_sink_to_sink_sync(
-						_starpu_src_common_get_mp_node_from_memory_node(src_node),
-						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
-						(void*) (src + src_offset),
-						(void*) (dst + dst_offset),
-						size);
-}
-
-int _starpu_mpi_copy_data_from_cpu_to_mpi(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
-{
-	int src_kind = starpu_node_get_kind(src_node);
-	int dst_kind = starpu_node_get_kind(dst_node);
-	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_MPI_MS_RAM);
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
-
-	if (async_channel)
-		return _starpu_src_common_copy_host_to_sink_async(mp_node,
-						(void*) (src + src_offset),
-						(void*) (dst + dst_offset),
-						size, async_channel);
-	else
-		return _starpu_src_common_copy_host_to_sink_sync(mp_node,
-						(void*) (src + src_offset),
-						(void*) (dst + dst_offset),
-						size);
-}
-
 int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node)
 {
 	(void) node;
@@ -323,8 +263,8 @@ struct _starpu_node_ops _starpu_driver_mpi_node_ops =
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_mpi_copy_interface_from_mpi_to_cpu,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_mpi_to_mpi,
 
-	.copy_data_to[STARPU_CPU_RAM] = _starpu_mpi_copy_data_from_mpi_to_cpu,
-	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_mpi_to_mpi,
+	.copy_data_to[STARPU_CPU_RAM] = _starpu_src_common_copy_data_sink_to_host,
+	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_src_common_copy_data_sink_to_sink,
 
 	/* TODO: copy2D/3D? */
 

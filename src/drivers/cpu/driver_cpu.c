@@ -33,7 +33,7 @@
 #include <drivers/disk/driver_disk.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <drivers/cuda/driver_cuda.h>
-#include <drivers/mpi/driver_mpi_source.h>
+#include <drivers/mp_common/source_common.h>
 #include <drivers/disk/driver_disk.h>
 #include <drivers/max/driver_max_fpga.h>
 #include <core/sched_policy.h>
@@ -582,7 +582,7 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 #endif
 	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_cpu_to_mpi,
+	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_src_common_copy_data_host_to_sink,
 #else
 	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
 #endif
