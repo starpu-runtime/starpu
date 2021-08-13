@@ -17,6 +17,7 @@
 
 
 #include <starpu.h>
+#include <dlfcn.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <drivers/mp_common/mp_common.h>
@@ -68,6 +69,17 @@ static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node, char 
 		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_ANSWER_LOOKUP, &func, sizeof(func));
 	else
 		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_ERROR_LOOKUP, NULL, 0);
+}
+
+/* CPU version of sink lookup */
+void (*_starpu_sink_common_cpu_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
+{
+#ifdef RTLD_DEFAULT
+        return dlsym(RTLD_DEFAULT, func_name);
+#else
+        void *dl_handle = dlopen(NULL, RTLD_NOW);
+        return dlsym(dl_handle, func_name);
+#endif
 }
 
 /* Allocate a memory space and send the address of this space to the host

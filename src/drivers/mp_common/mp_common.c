@@ -190,7 +190,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->dt_test = _starpu_mpi_common_test_event;
 
 			node->get_kernel_from_job = NULL;
-			node->lookup = _starpu_mpi_sink_lookup;
+			node->lookup = _starpu_sink_common_cpu_lookup;
 			node->bind_thread = _starpu_mpi_sink_bind_thread;
 			node->execute = _starpu_sink_common_execute;
 			node->allocate = _starpu_sink_common_allocate;
