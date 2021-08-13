@@ -239,7 +239,7 @@ extern "C"
    This macro will abort compilation if the expression \p x is false.
 */
 #if STARPU_GNUC_PREREQ(4, 6) && !defined __cplusplus && !defined(__STRICT_ANSI__)
-#define STARPU_STATIC_ASSERT(x)	_Static_assert(x)
+#define STARPU_STATIC_ASSERT(x)	_Static_assert(x, #x)
 #else
 #define STARPU_STATIC_ASSERT(x)	STARPU_ASSERT(x)
 #endif
