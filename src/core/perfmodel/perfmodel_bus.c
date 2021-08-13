@@ -64,6 +64,10 @@
 #include <hwloc/cuda.h>
 #endif
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#include <mpi.h>
+#endif
+
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	32
 
