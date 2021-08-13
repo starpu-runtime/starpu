@@ -48,6 +48,22 @@ struct starpu_save_thread_env save_thread_env[STARPU_MAXMPIDEVS];
 
 struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXMPIDEVS];
 
+/* Mutex for concurrent access to the table.
+ */
+static starpu_pthread_mutex_t htbl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+
+/* Structure used by host to store informations about a kernel executable on
+ * a MPI MS device : its name, and its address on each device.
+ * If a kernel has been initialized, then a lookup has already been achieved and the
+ * device knows how to call it, else the host still needs to do a lookup.
+ */
+struct _starpu_sink_kernel
+{
+	UT_hash_handle hh;
+	char *name;
+	starpu_cpu_func_t func[];
+} *kernels;
+
 static unsigned mp_node_memory_node(struct _starpu_mp_node *node)
 {
 	return starpu_worker_get_memory_node(node->baseworkerid);
@@ -541,6 +557,82 @@ static int _starpu_src_common_execute(struct _starpu_job *j, struct _starpu_work
 					  _STARPU_TASK_GET_INTERFACES(task), STARPU_TASK_GET_NBUFFERS(task),
 					  task->cl_arg, task->cl_arg_size, 0);
 	return 0;
+}
+
+static struct _starpu_sink_kernel *starpu_src_common_register_kernel(const char *func_name)
+{
+        STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
+        struct _starpu_sink_kernel *kernel;
+
+        HASH_FIND_STR(kernels, func_name, kernel);
+
+        if (kernel != NULL)
+        {
+                STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
+                // Function already in the table.
+                return kernel;
+        }
+
+        unsigned int nb_devices = _starpu_get_machine_config()->topology.ndevices[STARPU_MPI_MS_WORKER];
+        _STARPU_MALLOC(kernel, sizeof(*kernel) + nb_devices * sizeof(starpu_cpu_func_t ));
+
+        kernel->name = strdup(func_name);
+
+        HASH_ADD_STR(kernels, name, kernel);
+
+        unsigned int i;
+        for (i = 0; i < nb_devices; ++i)
+                kernel->func[i] = NULL;
+
+        STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
+
+        return kernel;
+}
+
+static starpu_cpu_func_t starpu_src_common_get_kernel(const char *func_name)
+{
+        /* This function has to be called in the codelet only, by the thread
+         * which will handle the task */
+        int workerid = starpu_worker_get_id_check();
+        int devid = starpu_worker_get_devid(workerid);
+
+        struct _starpu_sink_kernel *kernel = starpu_src_common_register_kernel(func_name);
+
+        if (kernel->func[devid] == NULL)
+        {
+                struct _starpu_mp_node *node = _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid];
+                int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
+                if (ret)
+                        return NULL;
+        }
+
+        return kernel->func[devid];
+}
+
+starpu_cpu_func_t _starpu_src_common_get_cpu_func_from_codelet(struct starpu_codelet *cl, unsigned nimpl)
+{
+	/* Try to use cpu_func_name. */
+	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+	STARPU_ASSERT_MSG(func_name, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
+
+	starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
+
+	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
+
+	return kernel;
+}
+
+void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void)
+{
+        /* Try to use cpu_func_name. */
+	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
+	STARPU_ASSERT_MSG(func_name, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
+
+        starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
+
+	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
+
+	return (void (*)(void))kernel;
 }
 
 /* Send a request to the sink linked to the MP_NODE to allocate SIZE bytes on

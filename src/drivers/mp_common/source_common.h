@@ -41,6 +41,10 @@ int _starpu_src_common_sink_nbcores(struct _starpu_mp_node *node, int *buf);
 
 int _starpu_src_common_lookup(const struct _starpu_mp_node *node, void (**func_ptr)(void), const char *func_name);
 
+starpu_cpu_func_t _starpu_src_common_get_cpu_func_from_codelet(struct starpu_codelet *cl, unsigned nimpl);
+
+starpu_cpu_func_t _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j);
+
 int _starpu_src_common_allocate(const struct _starpu_mp_node *mp_node, void **addr, size_t size);
 
 void _starpu_src_common_free(struct _starpu_mp_node *mp_node, void *addr);

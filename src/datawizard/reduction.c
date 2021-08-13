@@ -99,7 +99,7 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 			break;
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		case STARPU_MPI_MS_WORKER:
-			init_func = _starpu_mpi_ms_src_get_kernel_from_codelet(init_cl, 0); 
+			init_func = _starpu_src_common_get_cpu_func_from_codelet(init_cl, 0);
 			break;
 #endif
 		default:

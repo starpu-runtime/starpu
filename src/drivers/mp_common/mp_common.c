@@ -20,6 +20,7 @@
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mp_common/sink_common.h>
+#include <drivers/mp_common/source_common.h>
 #include <drivers/mpi/driver_mpi_common.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_sink.h>
@@ -156,7 +157,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->dt_send_to_device = _starpu_mpi_common_send_to_device;
 			node->dt_recv_from_device = _starpu_mpi_common_recv_from_device;
 
-			node->get_kernel_from_job = _starpu_mpi_ms_src_get_kernel_from_job;
+			node->get_kernel_from_job = _starpu_src_common_get_cpu_func_from_job;
 			node->lookup = NULL;
 			node->bind_thread = NULL;
 			node->execute = NULL;
