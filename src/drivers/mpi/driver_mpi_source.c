@@ -45,10 +45,6 @@ struct _starpu_mpi_ms_kernel
 
 typedef void *starpu_mpi_ms_func_symbol_t;
 
-/* Array of structures containing all the informations useful to send
- * and receive informations with devices */
-struct _starpu_mp_node *_starpu_mpi_ms_nodes[STARPU_MAXMPIDEVS];
-
 struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 {
 	struct _starpu_worker *actual_worker = _starpu_get_local_worker_key();
@@ -57,7 +53,7 @@ struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 	int devid = actual_worker->devid;
 	STARPU_ASSERT(devid >= 0 && devid < STARPU_MAXMPIDEVS);
 
-	return _starpu_mpi_ms_nodes[devid];
+	return _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid];
 }
 
 void _starpu_mpi_source_init(struct _starpu_mp_node *node)
@@ -76,7 +72,7 @@ struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_
         int devid = starpu_memory_node_get_devid(memory_node);
         STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 
-        return _starpu_mpi_ms_nodes[devid];
+        return _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid];
 }
 
 int _starpu_mpi_src_allocate_memory(void ** addr, size_t size, unsigned memory_node)
@@ -198,7 +194,7 @@ static starpu_cpu_func_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t sy
 
         if (kernel->func[devid] == NULL)
         {
-                struct _starpu_mp_node *node = _starpu_mpi_ms_nodes[devid];
+                struct _starpu_mp_node *node = _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid];
                 int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
                 if (ret)
                         return NULL;
@@ -336,9 +332,9 @@ void *_starpu_mpi_src_worker(void *arg)
 #endif
 
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-        _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, _starpu_mpi_ms_nodes);
+        _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, _starpu_src_nodes[STARPU_MPI_MS_WORKER]);
 #else
-        _starpu_src_common_worker(worker_set, baseworkerid, _starpu_mpi_ms_nodes[devid]);
+        _starpu_src_common_worker(worker_set, baseworkerid, _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid]);
 #endif
 
         return NULL;

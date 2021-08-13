@@ -28,6 +28,10 @@
 
 #pragma GCC visibility push(hidden)
 
+/* Array of structures containing all the informations useful to send
+ * and receive informations with devices */
+extern struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXMPIDEVS];
+
 enum _starpu_mp_command _starpu_src_common_wait_command_sync(struct _starpu_mp_node *node, void ** arg, int* arg_size);
 int _starpu_src_common_store_message(struct _starpu_mp_node *node, void * arg, int arg_size, enum _starpu_mp_command answer);
 

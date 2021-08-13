@@ -692,7 +692,7 @@ static void _starpu_init_mpi_topology(struct _starpu_machine_config *config, lon
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	int nbcores;
-	_starpu_src_common_sink_nbcores(_starpu_mpi_ms_nodes[mpi_idx], &nbcores);
+	_starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx], &nbcores);
 	topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx] = nbcores;
 }
 
@@ -1234,7 +1234,7 @@ static void _starpu_init_mpi_config(struct _starpu_machine_config *config,
                 config->workers[worker_idx].worker_mask = STARPU_MPI_MS;
                 config->worker_mask |= STARPU_MPI_MS;
         }
-	_starpu_mpi_ms_nodes[mpi_idx]->baseworkerid = topology->nworkers;
+	_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx]->baseworkerid = topology->nworkers;
 
         topology->nworkers += topology->nworker[STARPU_MPI_MS_WORKER][mpi_idx];
 }
@@ -1291,7 +1291,7 @@ static void _starpu_init_mp_config(struct _starpu_machine_config *config,
 		{
 			unsigned i;
 			for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
-				_starpu_mpi_ms_nodes[i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
+				_starpu_src_nodes[STARPU_MPI_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
 
 			for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
 				_starpu_init_mpi_config(config, user_conf, i);
@@ -1304,9 +1304,9 @@ static void _starpu_init_mp_config(struct _starpu_machine_config *config,
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static void _starpu_deinit_mpi_node(int devid)
 {
-        _starpu_mp_common_send_command(_starpu_mpi_ms_nodes[devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
+        _starpu_mp_common_send_command(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
 
-        _starpu_mp_common_node_destroy(_starpu_mpi_ms_nodes[devid]);
+        _starpu_mp_common_node_destroy(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid]);
 }
 #endif
 

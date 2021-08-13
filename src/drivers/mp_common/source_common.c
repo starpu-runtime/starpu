@@ -46,6 +46,8 @@ struct starpu_save_thread_env
 struct starpu_save_thread_env save_thread_env[STARPU_MAXMPIDEVS];
 #endif
 
+struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXMPIDEVS];
+
 static unsigned mp_node_memory_node(struct _starpu_mp_node *node)
 {
 	return starpu_worker_get_memory_node(node->baseworkerid);
