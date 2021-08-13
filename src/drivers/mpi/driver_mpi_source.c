@@ -207,38 +207,30 @@ starpu_mpi_ms_kernel_t starpu_mpi_ms_get_kernel(starpu_mpi_ms_func_symbol_t symb
 
 starpu_mpi_ms_kernel_t _starpu_mpi_ms_src_get_kernel_from_codelet(struct starpu_codelet *cl, unsigned nimpl)
 {
-	starpu_mpi_ms_kernel_t kernel = NULL;
-
 	/* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
-	if (func_name)
-	{
-		starpu_mpi_ms_func_symbol_t symbol;
+	STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
-		starpu_mpi_ms_register_kernel(&symbol, func_name);
+	starpu_mpi_ms_func_symbol_t symbol;
+	starpu_mpi_ms_register_kernel(&symbol, func_name);
+	starpu_mpi_ms_kernel_t kernel = starpu_mpi_ms_get_kernel(symbol);
 
-		kernel = starpu_mpi_ms_get_kernel(symbol);
-	}
-	STARPU_ASSERT_MSG(kernel, "when STARPU_MPI_MS is defined in 'where', cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	return kernel;
 }
 
 void(* _starpu_mpi_ms_src_get_kernel_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void)
 {
-        starpu_mpi_ms_kernel_t kernel = NULL;
-
         /* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
-	if (func_name)
-	{
-		starpu_mpi_ms_func_symbol_t symbol;
+	STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
-		starpu_mpi_ms_register_kernel(&symbol, func_name);
+	starpu_mpi_ms_func_symbol_t symbol;
+	starpu_mpi_ms_register_kernel(&symbol, func_name);
+        starpu_mpi_ms_kernel_t kernel = starpu_mpi_ms_get_kernel(symbol);
 
-		kernel = starpu_mpi_ms_get_kernel(symbol);
-	}
-        STARPU_ASSERT(kernel);
+	STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
         return (void (*)(void))kernel;
 }
