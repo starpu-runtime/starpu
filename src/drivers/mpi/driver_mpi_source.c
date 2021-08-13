@@ -52,7 +52,7 @@ void _starpu_mpi_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNU
 struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node)
 {
         int devid = starpu_memory_node_get_devid(memory_node);
-	enum starpu_worker_archtype archtype = starpu_memory_node_get_worker_archtype(memory_node);
+	enum starpu_worker_archtype archtype = starpu_memory_node_get_worker_archtype(starpu_node_get_kind(memory_node));
         STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 
         return _starpu_src_nodes[archtype][devid];
