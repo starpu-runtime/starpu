@@ -73,7 +73,7 @@ void _starpu_mpi_source_free_memory(void *addr, unsigned memory_node)
 /* Transfer SIZE bytes from the address pointed by SRC in the SRC_NODE memory
  * node to the address pointed by DST in the DST_NODE memory node
  */
-int _starpu_mpi_copy_ram_to_mpi_sync(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size)
+static int _starpu_mpi_copy_ram_to_mpi_sync(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size)
 {
         struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
         return _starpu_src_common_copy_host_to_sink_sync(mp_node, src, dst, size);
@@ -82,32 +82,32 @@ int _starpu_mpi_copy_ram_to_mpi_sync(void *src, unsigned src_node STARPU_ATTRIBU
 /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
  * node to the address pointed by DST in the DST_NODE memory node
  */
-int _starpu_mpi_copy_mpi_to_ram_sync(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
+static int _starpu_mpi_copy_mpi_to_ram_sync(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size)
 {
         struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
         return _starpu_src_common_copy_sink_to_host_sync(mp_node, src, dst, size);
 }
 
-int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
+static int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size)
 {
         return _starpu_src_common_copy_sink_to_sink_sync(_starpu_src_common_get_mp_node_from_memory_node(src_node),
 							 _starpu_src_common_get_mp_node_from_memory_node(dst_node),
 							 src, dst, size);
 }
 
-int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, void * event)
+static int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, void * event)
 {
         struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
         return _starpu_src_common_copy_sink_to_host_async(mp_node, src, dst, size, event);
 }
 
-int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size, void * event)
+static int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size, void * event)
 {
         struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
         return _starpu_src_common_copy_host_to_sink_async(mp_node, src, dst, size, event);
 }
 
-int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event)
+static int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event)
 {
         return _starpu_src_common_copy_sink_to_sink_async(_starpu_src_common_get_mp_node_from_memory_node(src_node),
 							  _starpu_src_common_get_mp_node_from_memory_node(dst_node),

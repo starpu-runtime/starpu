@@ -31,8 +31,6 @@ extern struct _starpu_node_ops _starpu_driver_mpi_node_ops;
 
 /** Array of structures containing all the informations useful to send
  * and receive informations with devices */
-extern struct _starpu_mp_node *_starpu_mpi_ms_nodes[STARPU_MAXMPIDEVS];
-struct _starpu_mp_node *_starpu_mpi_src_get_mp_node_from_memory_node(int memory_node);
 struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node();
 
 unsigned _starpu_mpi_src_get_device_count();
@@ -43,14 +41,6 @@ void _starpu_mpi_source_deinit(struct _starpu_mp_node *node);
 
 int _starpu_mpi_src_allocate_memory(void ** addr, size_t size, unsigned memory_node);
 void _starpu_mpi_source_free_memory(void *addr, unsigned memory_node);
-
-int _starpu_mpi_copy_mpi_to_ram_sync(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size);
-int _starpu_mpi_copy_ram_to_mpi_sync(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size);
-int _starpu_mpi_copy_sink_to_sink_sync(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size);
-
-int _starpu_mpi_copy_mpi_to_ram_async(void *src, unsigned src_node, void *dst, unsigned dst_node STARPU_ATTRIBUTE_UNUSED, size_t size, void * event);
-int _starpu_mpi_copy_ram_to_mpi_async(void *src, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst, unsigned dst_node, size_t size, void * event);
-int _starpu_mpi_copy_sink_to_sink_async(void *src, unsigned src_node, void *dst, unsigned dst_node, size_t size, void * event);
 
 int _starpu_mpi_copy_interface_from_mpi_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
 int _starpu_mpi_copy_interface_from_mpi_to_mpi(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
