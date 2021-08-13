@@ -744,7 +744,6 @@ int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, 
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
-	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_MPI_MS_RAM);
         struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
 
 	if (async_channel)
@@ -812,7 +811,6 @@ int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, 
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
-	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_CPU_RAM);
         struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
 
 	if (async_channel)
@@ -926,7 +924,6 @@ int _starpu_src_common_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, 
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
-	STARPU_ASSERT(src_kind == STARPU_MPI_MS_RAM && dst_kind == STARPU_MPI_MS_RAM);
 
 	if (async_channel)
 		return _starpu_src_common_copy_sink_to_sink_async(
