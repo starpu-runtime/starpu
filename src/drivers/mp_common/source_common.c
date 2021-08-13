@@ -639,17 +639,29 @@ void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *no
 	return (void (*)(void))kernel;
 }
 
+struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node)
+{
+        int devid = starpu_memory_node_get_devid(memory_node);
+	enum starpu_worker_archtype archtype = starpu_memory_node_get_worker_archtype(starpu_node_get_kind(memory_node));
+        STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
+
+        return _starpu_src_nodes[archtype][devid];
+}
+
 /* Send a request to the sink linked to the MP_NODE to allocate SIZE bytes on
  * the sink.
  * In case of success, it returns 0 and *ADDR contains the address of the
  * allocated area ;
  * else it returns 1 if the allocation fail.
  */
-int _starpu_src_common_allocate(struct _starpu_mp_node *mp_node, void **addr, size_t size)
+uintptr_t _starpu_src_common_allocate(unsigned dst_node, size_t size, int flags)
 {
+	(void) flags;
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
+	uintptr_t addr;
 
         STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
@@ -661,23 +673,26 @@ int _starpu_src_common_allocate(struct _starpu_mp_node *mp_node, void **addr, si
         if (answer == STARPU_MP_COMMAND_ERROR_ALLOCATE)
         {
                 STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
-                return 1;
+                return 0;
         }
 
-	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_ALLOCATE && arg_size == sizeof(*addr));
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_ALLOCATE && arg_size == sizeof(addr));
 
-	memcpy(addr, arg, arg_size);
+	memcpy(&addr, arg, arg_size);
 
         STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
-	return 0;
+	return addr;
 }
 
 /* Send a request to the sink linked to the MP_NODE to deallocate the memory
  * area pointed by ADDR.
  */
-void _starpu_src_common_free(struct _starpu_mp_node *mp_node, void *addr)
+void _starpu_src_common_free(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
+	(void) flags;
+	(void) size;
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
         STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
         _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_FREE, &addr, sizeof(addr));
         STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);

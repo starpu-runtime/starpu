@@ -44,9 +44,9 @@ starpu_cpu_func_t _starpu_src_common_get_cpu_func_from_codelet(struct starpu_cod
 
 void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void);
 
-int _starpu_src_common_allocate(struct _starpu_mp_node *mp_node, void **addr, size_t size);
-
-void _starpu_src_common_free(struct _starpu_mp_node *mp_node, void *addr);
+struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node);
+uintptr_t _starpu_src_common_allocate(unsigned dst_node, size_t size, int flags);
+void _starpu_src_common_free(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 
 int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 				      void (*kernel)(void), unsigned coreid,

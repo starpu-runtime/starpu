@@ -49,27 +49,6 @@ void _starpu_mpi_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNU
 
 }
 
-struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node)
-{
-        int devid = starpu_memory_node_get_devid(memory_node);
-	enum starpu_worker_archtype archtype = starpu_memory_node_get_worker_archtype(starpu_node_get_kind(memory_node));
-        STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
-
-        return _starpu_src_nodes[archtype][devid];
-}
-
-int _starpu_mpi_src_allocate_memory(void ** addr, size_t size, unsigned memory_node)
-{
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(memory_node);
-        return _starpu_src_common_allocate(mp_node, addr, size);
-}
-
-void _starpu_mpi_source_free_memory(void *addr, unsigned memory_node)
-{
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(memory_node);
-        _starpu_src_common_free(mp_node, addr);
-}
-
 /* Transfer SIZE bytes from the address pointed by SRC in the SRC_NODE memory
  * node to the address pointed by DST in the DST_NODE memory node
  */
@@ -371,22 +350,6 @@ int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node
 	return (kind == STARPU_MPI_MS_RAM);
 }
 
-uintptr_t _starpu_mpi_malloc_on_node(unsigned dst_node, size_t size, int flags)
-{
-	(void) flags;
-	uintptr_t addr = 0;
-	if (_starpu_mpi_src_allocate_memory((void **)(&addr), size, dst_node))
-		addr = 0;
-	return addr;
-}
-
-void _starpu_mpi_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
-{
-	(void) flags;
-	(void) size;
-	_starpu_mpi_source_free_memory((void*) addr, dst_node);
-}
-
 struct _starpu_node_ops _starpu_driver_mpi_node_ops =
 {
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_mpi_copy_interface_from_mpi_to_cpu,
@@ -400,7 +363,7 @@ struct _starpu_node_ops _starpu_driver_mpi_node_ops =
 	.wait_request_completion = _starpu_mpi_common_wait_request_completion,
 	.test_request_completion = _starpu_mpi_common_test_event,
 	.is_direct_access_supported = _starpu_mpi_is_direct_access_supported,
-	.malloc_on_node = _starpu_mpi_malloc_on_node,
-	.free_on_node = _starpu_mpi_free_on_node,
+	.malloc_on_node = _starpu_src_common_allocate,
+	.free_on_node = _starpu_src_common_free,
 	.name = "mpi driver"
 };
