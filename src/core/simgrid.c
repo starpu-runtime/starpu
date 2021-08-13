@@ -1046,7 +1046,7 @@ static void transfer_submit(struct transfer *transfer)
 	}
 }
 
-int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event)
+int _starpu_simgrid_wait_transfer_event(struct _starpu_simgrid_event *event)
 {
 	/* this is not associated to a request so it's synchronous */
 	starpu_pthread_wait_t wait;
@@ -1065,7 +1065,7 @@ int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event
 	return 0;
 }
 
-int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event)
+int _starpu_simgrid_test_transfer_event(struct _starpu_simgrid_event *event)
 {
 	return event->finished;
 }
@@ -1139,7 +1139,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (!simgrid_transfer_cost)
 		return 0;
 
-	union _starpu_async_channel_event *event, myevent;
+	struct _starpu_simgrid_event *event, myevent;
 	double start = 0.;
 	struct transfer *transfer = transfer_new();
 
@@ -1171,7 +1171,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->run_node = starpu_worker_get_local_memory_node();
 
 	if (req)
-		event = &req->async_channel.event;
+		event = &req->async_channel.event.simgrid_event;
 	else
 		event = &myevent;
 	event->finished = 0;

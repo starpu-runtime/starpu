@@ -84,16 +84,20 @@ struct _starpu_disk_async_event
 	starpu_data_handle_t handle;
 };
 
+#ifdef STARPU_SIMGRID
+struct _starpu_simgrid_event
+{
+	unsigned finished;
+	starpu_pthread_queue_t *queue;
+};
+#endif
+
 /** this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
 union _starpu_async_channel_event
 {
 #ifdef STARPU_SIMGRID
-	struct
-	{
-		unsigned finished;
-		starpu_pthread_queue_t *queue;
-	};
+	struct _starpu_simgrid_event simgrid_event;
 #endif
 #ifdef STARPU_USE_CUDA
         cudaEvent_t cuda_event;
