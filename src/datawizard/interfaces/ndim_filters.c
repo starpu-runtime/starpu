@@ -24,6 +24,8 @@ static void _interface_assignment_ndim_to_matrix(void *ndim_interface, void *chi
 static void _interface_assignment_ndim_to_vector(void *ndim_interface, void *child_interface);
 static void _interface_assignment_ndim_to_variable(void *ndim_interface, void *child_interface);
 
+static void _interface_deallocate(void * ndim_interface);
+
 static void _starpu_ndim_filter_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
                    unsigned id, unsigned nparts, uintptr_t shadow_size)
 {
@@ -135,6 +137,8 @@ void starpu_ndim_filter_to_tensor(void *father_interface, void *child_interface,
     _starpu_ndim_filter_block(father_interface, &ndim_child, f, id, nparts, 0);
 
     _interface_assignment_ndim_to_tensor(&ndim_child, child_interface);
+
+    _interface_deallocate(&ndim_child);
 }
 
 void starpu_ndim_filter_to_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -149,6 +153,8 @@ void starpu_ndim_filter_to_block(void *father_interface, void *child_interface, 
     _starpu_ndim_filter_block(father_interface, &ndim_child, f, id, nparts, 0);
 
     _interface_assignment_ndim_to_block(&ndim_child, child_interface);
+
+    _interface_deallocate(&ndim_child);
 }
 
 void starpu_ndim_filter_to_matrix(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -163,6 +169,8 @@ void starpu_ndim_filter_to_matrix(void *father_interface, void *child_interface,
     _starpu_ndim_filter_block(father_interface, &ndim_child, f, id, nparts, 0);
 
     _interface_assignment_ndim_to_matrix(&ndim_child, child_interface);
+
+    _interface_deallocate(&ndim_child);
 }
 
 void starpu_ndim_filter_to_vector(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -177,6 +185,8 @@ void starpu_ndim_filter_to_vector(void *father_interface, void *child_interface,
     _starpu_ndim_filter_block(father_interface, &ndim_child, f, id, nparts, 0);
 
     _interface_assignment_ndim_to_vector(&ndim_child, child_interface);
+
+    _interface_deallocate(&ndim_child);
 }
 
 void starpu_ndim_filter_to_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -298,6 +308,8 @@ void starpu_ndim_filter_pick_tensor(void *father_interface, void *child_interfac
     starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
     _interface_assignment_ndim_to_tensor(&ndim_child, child_interface);
+
+    _interface_deallocate(&ndim_child);
 }
 
 void starpu_ndim_filter_pick_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -312,6 +324,8 @@ void starpu_ndim_filter_pick_block(void *father_interface, void *child_interface
     starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
     _interface_assignment_ndim_to_block(&ndim_child, child_interface);
+
+    _interface_deallocate(&ndim_child);
 }
 
 void starpu_ndim_filter_pick_matrix(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -326,6 +340,8 @@ void starpu_ndim_filter_pick_matrix(void *father_interface, void *child_interfac
     starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
     _interface_assignment_ndim_to_matrix(&ndim_child, child_interface);
+
+    _interface_deallocate(&ndim_child);
 }
 
 void starpu_ndim_filter_pick_vector(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -340,6 +356,8 @@ void starpu_ndim_filter_pick_vector(void *father_interface, void *child_interfac
     starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
     _interface_assignment_ndim_to_vector(&ndim_child, child_interface);
+
+    _interface_deallocate(&ndim_child);
 }
 
 void starpu_ndim_filter_pick_variable(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -354,6 +372,16 @@ void starpu_ndim_filter_pick_variable(void *father_interface, void *child_interf
     starpu_ndim_filter_pick_ndim(father_interface, &ndim_child, f, id, nparts);
 
     _interface_assignment_ndim_to_variable(&ndim_child, child_interface);
+
+    _interface_deallocate(&ndim_child);
+}
+
+static void _interface_deallocate(void * ndim_interface)
+{
+    struct starpu_ndim_interface *ndarr = (struct starpu_ndim_interface *) ndim_interface;
+
+    free(ndarr->nn);
+    free(ndarr->ldn);
 }
 
 struct starpu_data_interface_ops *starpu_ndim_filter_pick_tensor_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)
