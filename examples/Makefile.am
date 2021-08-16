@@ -603,6 +603,7 @@ endif
 
 filters_fmatrix_SOURCES =			\
 	filters/fmatrix.c			\
+	filters/fmatrix_print.c			\
 	filters/fmatrix_cpu.c
 if STARPU_USE_CUDA
 filters_fmatrix_SOURCES +=			\

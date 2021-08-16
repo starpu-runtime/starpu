@@ -29,22 +29,17 @@ extern void vector_cpu_func(void *buffers[], void *cl_arg);
 extern void vector_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+extern void generate_matrix_data(int *matrix, int nx, int ny, unsigned ld);
 extern void print_matrix_data(starpu_data_handle_t matrix_handle);
 
 int main(void)
 {
-	int n=1;
-        int matrix[NX*NY];
+        int *matrix;
 	int ret, i, j;
 	int factor = 12;
 
-        for(j=0 ; j<NY ; j++)
-	{
-                for(i=0 ; i<NX ; i++)
-		{
-                        matrix[(j*NX)+i] = n++;
-                }
-        }
+        matrix = (int*)malloc(NX*NY*sizeof(int));
+        generate_matrix_data(matrix, NX, NY, NX);
 
         starpu_data_handle_t handle;
         struct starpu_codelet cl =
@@ -118,6 +113,8 @@ int main(void)
         FPRINTF(stderr,"OUT Matrix: \n");
         print_matrix_data(handle);
         starpu_data_unregister(handle);
+
+        free(matrix);
 	starpu_shutdown();
 
 	return ret;

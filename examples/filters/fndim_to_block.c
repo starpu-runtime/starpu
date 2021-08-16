@@ -29,28 +29,20 @@ extern void block_cpu_func(void *buffers[], void *cl_arg);
 extern void block_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+extern void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz);
 extern void print_3dim_data(starpu_data_handle_t ndim_handle);
 extern void print_block_data(starpu_data_handle_t block_handle);
 
 int main(void)
 {
-        int *arr3d,n=0;
+        int *arr3d;
         int i, j, k;
 	int ret;
         int factor = 2;
 
         arr3d = (int*)malloc(NX*NY*NZ*sizeof(arr3d[0]));
         assert(arr3d);
-        for(k=0 ; k<NZ ; k++)
-	{
-                for(j=0 ; j<NY ; j++)
-		{
-                        for(i=0 ; i<NX ; i++)
-			{
-                                arr3d[(k*NX*NY)+(j*NX)+i] = n++;
-                        }
-                }
-        }
+        generate_block_data(arr3d, NX, NY, NZ, NX, NX*NY);
 
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =

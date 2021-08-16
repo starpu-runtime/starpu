@@ -45,9 +45,21 @@ void print_matrix_data(starpu_data_handle_t matrix_handle)
 
 void print_2dim_data(starpu_data_handle_t ndim_handle)
 {
-    int *ndim_arr = (int *)starpu_ndim_get_local_ptr(ndim_handle);
+    int *arr2d = (int *)starpu_ndim_get_local_ptr(ndim_handle);
     unsigned *nn = starpu_ndim_get_nn(ndim_handle);
     unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
 
-    print_matrix(ndim_arr, nn[0], nn[1], ldn[1]);
+    print_matrix(arr2d, nn[0], nn[1], ldn[1]);
+}
+
+void generate_matrix_data(int *matrix, int nx, int ny, unsigned ld)
+{
+    int i, j, n = 0;
+    for(j=0 ; j<ny; j++)
+    {
+        for(i=0 ; i<nx; i++)
+        {
+            matrix[(j*ld)+i] = n++;
+        }
+    }
 }

@@ -33,25 +33,18 @@ extern void matrix_cpu_func(void *buffers[], void *cl_arg);
 extern void matrix_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+extern void generate_matrix_data(int *matrix, int nx, int ny, unsigned ld);
+extern void print_matrix_data(starpu_data_handle_t matrix_handle);
+
 int main(void)
 {
 	unsigned j;
-	int n=1;
-        int matrix[NX*NY];
+        int *matrix;
 	int ret, i;
 	int factor = 12;
 
-        FPRINTF(stderr,"IN  Matrix: \n");
-        for(j=0 ; j<NY ; j++)
-	{
-                for(i=0 ; i<NX ; i++)
-		{
-                        matrix[(j*NX)+i] = n++;
-                        FPRINTF(stderr, "%4d ", matrix[(j*NX)+i]);
-                }
-                FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
+        matrix = (int*)malloc(NX*NY*sizeof(int));
+        generate_matrix_data(matrix, NX, NY, NX);
 
         starpu_data_handle_t handle;
         struct starpu_codelet cl =
@@ -74,6 +67,8 @@ int main(void)
 
 	/* Declare data to StarPU */
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
+	FPRINTF(stderr,"IN Matrix: \n");
+	print_matrix_data(handle);
 
         /* Partition the matrix in PARTS sub-matrices */
 	struct starpu_data_filter f =
@@ -100,27 +95,12 @@ int main(void)
 
         /* Unpartition the data, unregister it from StarPU and shutdown */
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
+	FPRINTF(stderr,"OUT Matrix: \n");
+        print_matrix_data(handle);
         starpu_data_unregister(handle);
-	starpu_shutdown();
 
-        /* Print result matrix */
-	n=1;
-        FPRINTF(stderr,"OUT Matrix: \n");
-        for(j=0 ; j<NY ; j++)
-	{
-                for(i=0 ; i<NX ; i++)
-		{
-                        FPRINTF(stderr, "%4d ", matrix[(j*NX)+i]);
-			if (matrix[(j*NX)+i] != (int) n*12)
-			{
-				FPRINTF(stderr, "Incorrect result %4d != %4d", matrix[(j*NX)+i], n*12);
-				ret=1;
-			}
-			n++;
-                }
-                FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
+    	free(matrix);
+	starpu_shutdown();
 
 	return ret;
 

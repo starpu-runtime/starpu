@@ -31,31 +31,20 @@ extern void block_cpu_func(void *buffers[], void *cl_arg);
 extern void block_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+extern void generate_tensor_data(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt);
 extern void print_tensor_data(starpu_data_handle_t tensor_handle);
 extern void print_block_data(starpu_data_handle_t block_handle);
 
 int main(void)
 {
-    int *tensor,n = 0;
+    int *tensor;
     int i, j, k, l;
     int ret;
     int factor = 2;
 
     tensor = (int*)malloc(NX*NY*NZ*NT*sizeof(tensor[0]));
     assert(tensor);
-    for(l=0 ; l<NT ; l++)
-    {
-        for(k=0 ; k<NZ ; k++)
-        {
-            for(j=0 ; j<NY ; j++)
-            {
-                for(i=0 ; i<NX ; i++)
-                {
-                    tensor[(l*NX*NY*NZ)+(k*NX*NY)+(j*NX)+i] = n++;
-                }
-            }
-        }
-    }
+    generate_tensor_data(tensor, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
     starpu_data_handle_t handle;
     struct starpu_codelet cl =

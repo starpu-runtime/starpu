@@ -32,35 +32,21 @@ extern void tensor_cpu_func(void *buffers[], void *cl_arg);
 extern void tensor_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+extern void generate_5dim_data(int *arr5d, int nx, int ny, int nz, int nt, int ng, unsigned ldy, unsigned ldz, unsigned ldt, unsigned ldg);
 extern void print_5dim_data(starpu_data_handle_t ndim_handle);
 extern void print_tensor_data(starpu_data_handle_t ndim_handle);
 
 int main(void)
 {
-    int *arr5d,n = 0;
+    int *arr5d;
     int i, j, k, l, m;
     int ret;
     int factor = 2;
 
     arr5d = (int*)malloc(NX*NY*NZ*NT*NG*sizeof(arr5d[0]));
     assert(arr5d);
-    FPRINTF(stderr, "IN  5-dim Array\n");
-    for(m=0 ; m<NG ; m++)
-    {
-        for(l=0 ; l<NT ; l++)
-        {
-            for(k=0 ; k<NZ ; k++)
-            {
-                for(j=0 ; j<NY ; j++)
-                {
-                    for(i=0 ; i<NX ; i++)
-                    {
-                        arr5d[(m*NX*NY*NZ*NT)+(l*NX*NY*NZ)+(k*NX*NY)+(j*NX)+i] = n++;
-                    }
-                }
-            }
-        }
-    }  
+    generate_5dim_data(arr5d, NX, NY, NZ, NT, NG, NX, NX*NY, NX*NY*NZ, NX*NY*NZ*NT);
+    
 
     starpu_data_handle_t handle;
     struct starpu_codelet cl =

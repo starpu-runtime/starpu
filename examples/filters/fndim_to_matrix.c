@@ -28,23 +28,18 @@ extern void matrix_cpu_func(void *buffers[], void *cl_arg);
 extern void matrix_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+extern void generate_matrix_data(int *matrix, int nx, int ny, unsigned ld);
 extern void print_2dim_data(starpu_data_handle_t ndim_handle);
 extern void print_matrix_data(starpu_data_handle_t matrix_handle);
 
 int main(void)
 {
-    int n=0;
-    int arr2d[NX*NY];
+    int *arr2d;
     int ret, i, j, k;
     int factor = 12;
 
-    for(j=0 ; j<NY ; j++)
-    {
-        for(i=0 ; i<NX ; i++)
-        {
-            arr2d[(j*NX)+i] = n++;
-        }
-    }
+    arr2d = (int*)malloc(NX*NY*sizeof(int));
+    generate_matrix_data(arr2d, NX, NY, NX);
 
     starpu_data_handle_t handle;
     struct starpu_codelet cl =
@@ -117,6 +112,8 @@ int main(void)
     FPRINTF(stderr,"OUT 2-dim Array: \n");
     print_2dim_data(handle);
     starpu_data_unregister(handle);
+
+    free(arr2d);
     starpu_shutdown();
 
     return 0;

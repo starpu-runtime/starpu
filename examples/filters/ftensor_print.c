@@ -57,9 +57,27 @@ void print_tensor_data(starpu_data_handle_t tensor_handle)
 
 void print_4dim_data(starpu_data_handle_t ndim_handle)
 {
-    int *ndim_arr = (int *)starpu_ndim_get_local_ptr(ndim_handle);
+    int *arr4d = (int *)starpu_ndim_get_local_ptr(ndim_handle);
     unsigned *nn = starpu_ndim_get_nn(ndim_handle);
     unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
 
-    print_tensor(ndim_arr, nn[0], nn[1], nn[2], nn[3], ldn[1], ldn[2], ldn[3]);
+    print_tensor(arr4d, nn[0], nn[1], nn[2], nn[3], ldn[1], ldn[2], ldn[3]);
+}
+
+void generate_tensor_data(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt)
+{
+    int i, j, k, l, n = 0;
+    for(l=0 ; l<nt ; l++)
+    {
+        for(k=0 ; k<nz ; k++)
+        {
+            for(j=0 ; j<ny ; j++)
+            {
+                for(i=0 ; i<nx ; i++)
+                {
+                    tensor[(l*ldt)+(k*ldz)+(j*ldy)+i] = n++;
+                }
+            }
+        }
+    }
 }

@@ -42,27 +42,19 @@ extern void opencl_func(void *buffers[], void *cl_arg);
 struct starpu_opencl_program opencl_program;
 #endif
 
+extern void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz);
 extern void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz);
 extern void print_block_data(starpu_data_handle_t block_handle);
 
 int main(void)
 {
-        int *block,n=0;
+        int *block;
         int i, j, k;
 	int ret;
 
         block = (int*)malloc(NX*NY*NZ*sizeof(block[0]));
         assert(block);
-        for(k=0 ; k<NZ ; k++)
-	{
-                for(j=0 ; j<NY ; j++)
-		{
-                        for(i=0 ; i<NX ; i++)
-			{
-                                block[(k*NX*NY)+(j*NX)+i] = n++;
-                        }
-                }
-        }
+        generate_block_data(block, NX, NY, NZ, NX, NX*NY);
 
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =

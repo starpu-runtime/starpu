@@ -35,30 +35,19 @@ extern void f4d_cpu_func(void *buffers[], void *cl_arg);
 extern void f4d_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+extern void generate_tensor_data(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt);
 extern void print_tensor(int *tensor, int nx, int ny, int nz, int nt, unsigned ldy, unsigned ldz, unsigned ldt);
 extern void print_4dim_data(starpu_data_handle_t ndim_handle);
 
 int main(void)
 {
-    int *ndim_arr,n=0;
+    int *arr4d;
     int i, j, k, l;
     int ret;
 
-    ndim_arr = (int*)malloc(NX*NY*NZ*NT*sizeof(ndim_arr[0]));
-    assert(ndim_arr);
-    for(l=0 ; l<NT ; l++)
-    {
-        for(k=0 ; k<NZ ; k++)
-        {
-            for(j=0 ; j<NY ; j++)
-            {
-                for(i=0 ; i<NX ; i++)
-                {
-                    ndim_arr[(l*NX*NY*NZ)+(k*NX*NY)+(j*NX)+i] = n++;
-                }
-            }
-        }
-    }
+    arr4d = (int*)malloc(NX*NY*NZ*NT*sizeof(int));
+    assert(arr4d);
+    generate_tensor_data(arr4d, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
     starpu_data_handle_t handle;
     struct starpu_codelet cl =
@@ -82,7 +71,7 @@ int main(void)
     unsigned ldn[4] = {1, NX, NX*NY, NX*NY*NZ};
 
     /* Declare data to StarPU */
-    starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)ndim_arr, ldn, nn, 4, sizeof(int));
+    starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)arr4d, ldn, nn, 4, sizeof(int));
     FPRINTF(stderr, "IN  Ndim Array\n");
     print_4dim_data(handle);
 
@@ -130,9 +119,9 @@ int main(void)
 
     /* Print result ndim array*/
     FPRINTF(stderr, "OUT Ndim Array\n");
-    print_tensor(ndim_arr, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
+    print_tensor(arr4d, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
-    free(ndim_arr);
+    free(arr4d);
 
     starpu_shutdown();
     return 0;
