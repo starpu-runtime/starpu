@@ -57,7 +57,7 @@ int _starpu_disk_copy_disk_to_disk(void * src, size_t src_offset, unsigned src_n
 
 unsigned _starpu_disk_test_request_completion(struct _starpu_async_channel *async_channel)
 {
-	struct _starpu_disk_event *disk_event = _starpu_disk_event(&async_channel->event);
+	struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&async_channel->event);
 	unsigned success = starpu_disk_test_request(async_channel);
 	if (disk_event->ptr != NULL && success)
 	{
@@ -77,7 +77,7 @@ unsigned _starpu_disk_test_request_completion(struct _starpu_async_channel *asyn
 
 void _starpu_disk_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
-	struct _starpu_disk_event *disk_event = _starpu_disk_event(&async_channel->event);
+	struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&async_channel->event);
 	starpu_disk_wait_request(async_channel);
 	if (disk_event->ptr != NULL)
 	{
@@ -102,7 +102,7 @@ int _starpu_disk_copy_interface_from_disk_to_cpu(starpu_data_handle_t handle, vo
 
 	int ret = 0;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-	struct _starpu_disk_event *disk_event = _starpu_disk_event(&req->async_channel.event);
+	struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&req->async_channel.event);
 
 	if (req && !starpu_asynchronous_copy_disabled())
 	{
@@ -149,7 +149,7 @@ int _starpu_disk_copy_interface_from_disk_to_disk(starpu_data_handle_t handle, v
 
 	if (req && !starpu_asynchronous_copy_disabled())
 	{
-		struct _starpu_disk_event *disk_event = _starpu_disk_event(&req->async_channel.event);
+		struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&req->async_channel.event);
 		req->async_channel.node_ops = &_starpu_driver_disk_node_ops;
 		disk_event->requests = NULL;
 		disk_event->ptr = NULL;
@@ -167,7 +167,7 @@ int _starpu_disk_copy_interface_from_cpu_to_disk(starpu_data_handle_t handle, vo
 
 	int ret = 0;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-	struct _starpu_disk_event *disk_event = _starpu_disk_event(&req->async_channel.event);
+	struct _starpu_disk_event *disk_event = _starpu_disk_get_event(&req->async_channel.event);
 
 	if (req && !starpu_asynchronous_copy_disabled())
 	{
