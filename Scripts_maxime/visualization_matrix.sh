@@ -15,7 +15,7 @@ ORDO=$6
 BW=1050
 CM=500
 MULTI=4
-EVICTION=0
+EVICTION=1
 POP_POLICY=1
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 5000000

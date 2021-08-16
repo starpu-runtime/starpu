@@ -938,6 +938,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 		    //Suppression de la liste de tâches à faire 
 		    struct pointer_in_task *pt = task->sched_data;
 		    starpu_task_list_erase(&data->p->temp_pointer_1->sub_list, pt->pointer_to_cell);
+		    print_task_list(&data->p->temp_pointer_1->sub_list, "Après suppression.\n");
 		    
 		    //Ajout de la tâche dans la liste de tâche de la donnée
 		    //~ struct task_using_data *e = task_using_data_new();
@@ -949,26 +950,56 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 		    //~ printf("deleted some things\n");
 		    
 			/* Pointer toward the main task list in the handles. */
-			struct task_using_data *e = task_using_data_new();
-			e->pointer_to_T = task;
-			
-			//Ajout a la liste de tâches principales ces mêmes tâches
-			starpu_task_list_push_back(&data->popped_task_list, e->pointer_to_T);
+			/* OLD */
+			//~ struct task_using_data *e = task_using_data_new();
+			//~ e->pointer_to_T = task;
 			
 			//~ if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
 			//~ {
+			    //~ printf("new list\n");
 			    //~ struct task_using_data_list *tl = task_using_data_list_new();
 			    //~ task_using_data_list_push_back(tl, e);
 			    //~ STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
 			//~ }
 			//~ else
 			//~ {
+			    //~ printf("Adding %p in task to do with handle %p.\n", task, STARPU_TASK_GET_HANDLE(task, i));
 			    //~ task_using_data_list_push_back(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
 			//~ }
-		    
-		    //Ajout a la liste de tâches principales ces mêmes tâches
-		    //~ starpu_task_list_push_back(&data->popped_task_list, task);
-		    
+			
+			 /* NEW */
+			//~ struct pointer_in_task *pt = malloc(sizeof(*pt));
+			pt->pointer_to_cell = task;
+			pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+			pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
+			    
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+			{
+			    /* Pointer toward the main task list in the handles. */
+			    struct task_using_data *e = task_using_data_new();
+			    e->pointer_to_T = task;
+			    
+			    if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
+			    {
+				struct task_using_data_list *tl = task_using_data_list_new();
+				task_using_data_list_push_front(tl, e);
+				STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
+			    }
+			    else
+			    {
+				task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
+			    }
+				
+			    /* Adding the pointer in the task. */
+			    pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
+			    pt->tud[i] = e;
+			}	
+			task->sched_data = pt;
+			
+			//Ajout a la liste de tâches principales ces mêmes tâches
+			//~ starpu_task_list_push_back(&data->popped_task_list, e->pointer_to_T);
+			starpu_task_list_push_back(&data->popped_task_list, task);
+
 		    break;
 		}
 	    }
@@ -984,7 +1015,9 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	d = returned_handle->user_data;
 	//~ printf("%p is type %d\n", returned_handle, d->type);
 	
-	printf("Pushing back data %p\n", returned_handle);
+	print_task_using_data(returned_handle);
+	
+	printf("Pushing back data in not used yet.%p\n", returned_handle);
 	push_back_data_not_used_yet(returned_handle, data->p->temp_pointer_1, d->type);
 	
 	//~ printf("Après:\n");
@@ -1006,7 +1039,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	    //~ task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
 	//~ }
 	
-	 //~ printf("Return %p.\n", returned_handle);
+	 printf("Return %p.\n", returned_handle);
 	 return returned_handle;
     }
     //~ int min_number_task = INT_MAX;
@@ -1145,6 +1178,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 
 /* Erase a task from the main task list.
  * Also erase pointer in the data.
+ * There was a problem here. I evict a task in a data even tho it's not on it!
  */
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l)
 {
@@ -1153,7 +1187,12 @@ void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_l
     
     for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
     {
-	task_using_data_list_erase(pt->pointer_to_D[j]->sched_data, pt->tud[j]);
+	if (pt->tud[j] != NULL) 
+	{
+	    printf("erase %p.\n", pt->tud[j]);
+	    task_using_data_list_erase(pt->pointer_to_D[j]->sched_data, pt->tud[j]);
+	    pt->tud[j] = NULL;
+	}
     }
     starpu_task_list_erase(l, pt->pointer_to_cell);
 }
