@@ -950,7 +950,7 @@ starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_d
 	for (i = 0; i < nb_data; i++)
 	{
 	    tudl = data_tab[i]->sched_data;
-	    if (task_using_data_list_size(tudl) < min)
+	    if (task_using_data_list_size(tudl) < min && starpu_data_can_evict(data_tab[i], node, is_prefetch))
 	    {
 		min = task_using_data_list_size(tudl);
 		returned_handle = data_tab[i];
@@ -1015,7 +1015,7 @@ starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_d
 		 returned_handle = data_tab[i];
 	     }
 	    }
-	    else if (min == nb_task_done_by_data[i])
+	    else if (min == nb_task_done_by_data[i] && starpu_data_can_evict(data_tab[i], node, is_prefetch))
 	    {
 		tudl = data_tab[i]->sched_data;
 		if (task_using_data_list_size(tudl) < task_using_data_list_size(returned_handle->sched_data))
@@ -1027,7 +1027,7 @@ starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_d
 	    }
 	 }
 	 printf("\n");
-	 printf("Return %p.\n", returned_handle);
+	 //~ printf("Return %p.\n", returned_handle);
 	 return returned_handle;
 	 
 	 /*
@@ -1085,6 +1085,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     returned_handle = get_handle_least_tasks(&data->p->temp_pointer_1->sub_list, data_on_node, nb_data_on_node, node, is_prefetch);
 	if (returned_handle == NULL) { 
 	    //~ return STARPU_DATA_NO_VICTIM; 
+	    //~ printf("Return NULL.\n");
 	    return NULL;
     }
 	/* Enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
@@ -1203,7 +1204,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	    //~ task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
 	//~ }
 	
-	 printf("Return %p.\n", returned_handle);
+	 printf("Return %p in victim selector.\n", returned_handle);
 	 planned_eviction = returned_handle;
 	 return returned_handle;
     //~ int min_number_task = INT_MAX;

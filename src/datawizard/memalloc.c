@@ -991,7 +991,8 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 		/* Do not evict a MC just for an idle fetch */
 		return 0;
 
-	if (is_prefetch < STARPU_PREFETCH && victim_selector)
+	//~ if (is_prefetch < STARPU_PREFETCH && victim_selector)
+	if (victim_selector)
 	{
 		/* Ask someone who knows the future */
 		_STARPU_SCHED_BEGIN;
