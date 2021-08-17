@@ -806,9 +806,22 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     //~ printf("\n");
 }
 
-starpu_data_handle_t data_to_evict_next;
+/* En cas de donnée à évincer refusé. Je la renvie à évincer.
+ * TODO : en multi gpu il faudra une liste chainée.
+ */
+starpu_data_handle_t data_to_evict_next; 
 
-void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim)
+/* Pour savoir si la donnée évincé est bien celle que l'on avais prévu.
+ * Si ce n'est pas le cas ou si ca vaut NULL alors cela signifie qu'une donnée non prévu a 
+ * été évincé. Il faut donc mettre à jour les listes dans les tâches et les données en conséquence.
+ * Cependant si on est sur la fin de l'éxécution et que les éviction sont juste la pour vider la mémoire ce n'est pas
+ * nécessaire. En réalité pour le moment je ne me rend pas compte qu'on est a la fin de l'exec. TODO : se rendre compte 
+ * qu'on est a la fin et arreter de mettre à jour les listes du coup.
+ * TODO : en multi gpu il faudra une liste.
+ */
+ starpu_data_handle_t planned_eviction;
+
+void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void *component)
 {
      /* If a data was not truly evicted I put it back in the list. */
     if (success == 0)
@@ -826,15 +839,101 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim)
     }
     else
     {
-	printf("Doing nothing in dynamic_outer_victim_evicted.\n");
+	/* Si une autre donnée a été évincé je dois mettre à jour mes listes dans les tâches, les gpus et les données et la liste principale de tâches. 
+	 */
+	if (victim != planned_eviction)
+	{
+	    printf("Victim != planned_eviction.\n");
+	    int i = 0;
+	    struct starpu_task *task = NULL;
+	        struct starpu_sched_component *temp_component = component;
+	        struct HFP_sched_data *data = temp_component->data;
+	    for (task = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
+	    {
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		{
+		    if (STARPU_TASK_GET_HANDLE(task, i) == victim)
+		    {
+			printf("Deleting task %p\n", task);
+			//Suppression de la liste de tâches à faire 
+			struct pointer_in_task *pt = task->sched_data;
+			starpu_task_list_erase(&data->p->temp_pointer_1->sub_list, pt->pointer_to_cell);
+			print_task_list(&data->p->temp_pointer_1->sub_list, "Après suppression.\n");
+			
+			//Ajout de la tâche dans la liste de tâche de la donnée
+			//~ struct task_using_data *e = task_using_data_new();
+			//~ e->pointer_to_T = task;
+			//~ print_task_using_data(STARPU_TASK_GET_HANDLE(task, i));
+			//~ printf("pushing back %p\n", task);
+			//~ task_using_data_list_push_back(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
+			//~ print_task_using_data(STARPU_TASK_GET_HANDLE(task, i));
+			//~ printf("deleted some things\n");
+			    
+			    //~ struct pointer_in_task *pt = malloc(sizeof(*pt));
+			    pt->pointer_to_cell = task;
+			    pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+			    pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
+				
+			    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+			    {
+				struct task_using_data *e = task_using_data_new();
+				e->pointer_to_T = task;
+				
+				if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
+				{
+				    struct task_using_data_list *tl = task_using_data_list_new();
+				    task_using_data_list_push_front(tl, e);
+				    STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
+				}
+				else
+				{
+				    task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
+				}
+				    
+				pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
+				pt->tud[i] = e;
+			    }	
+			    task->sched_data = pt;
+			    
+			    //Ajout a la liste de tâches principales ces mêmes tâches
+			    //~ starpu_task_list_push_back(&data->popped_task_list, e->pointer_to_T);
+			    starpu_task_list_push_back(&data->popped_task_list, task);
+
+			break;
+		    }
+		}
+	} 
+	//~ printf("Apres suppression:\n");
+	//~ print_packages_in_terminal(data->p, 0);
+	//~ print_task_list(&data->popped_task_list, "after");
+	
+	//Ajout de la données aux données pas encore traitées du gpu
+	//~ printf("Avant:\n");
+	//~ print_data_not_used_yet(data->p);
+	struct datatype *d = malloc(sizeof(*d));
+	d = victim->user_data;
+	//~ printf("%p is type %d\n", returned_handle, d->type);
+	
+	print_task_using_data(victim);
+	
+	printf("Pushing back data in not used yet.%p\n", victim);
+	push_back_data_not_used_yet(victim, data->p->temp_pointer_1, d->type);
+	}
+	else
+	{
+	    printf("La donnée évincé est la même que celle qui était prévu. Rien à faire.\n");
+	}
     }
 }
 
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-    //~ printf("Beggining of victim_selector. Timing is %f.\n", starpu_timing_now());
+    printf("Beggining of victim_selector. Timing is %f.\n", starpu_timing_now());
     
-    if (data_to_evict_next != NULL) { printf("Return data %p that was refused.\n", data_to_evict_next); data_to_evict_next = NULL; return data_to_evict_next; }
+    if (data_to_evict_next != NULL) 
+    { 
+	printf("Return data %p that was refused.\n", data_to_evict_next); data_to_evict_next = NULL; return data_to_evict_next; 
+    }
     
     struct starpu_sched_component *temp_component = component;
     struct HFP_sched_data *data = temp_component->data;
@@ -847,24 +946,21 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     starpu_data_handle_t returned_handle = NULL;
     starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 	
-	//~ printf("Data on node:\n");
-	//~ for (i = 0; i < nb_data_on_node; i++)
+    /* Je ne rentre jamais la dedans et je ne sais pas quoi faire avec planned eviction par rapport à 
+     * victim evicted. TODO : a corriger/tester.
+     */
+    //~ for (i = 0; i < nb_data_on_node; i++)
+    //~ {
+	//~ if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 	//~ {
-	    //~ printf("%p	", data_on_node[i]);
-	//~ }
-	//~ printf("\n");
-	
-    for (i = 0; i < nb_data_on_node; i++)
-    {
-	if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
-	{
-	    free(valid);
-	    returned_handle = data_on_node[i];
-	    free(data_on_node);
+	    //~ free(valid);
+	    //~ returned_handle = data_on_node[i];
+	    //~ free(data_on_node);
 	    //~ printf("Returning an invalid data.\n");
-	    return returned_handle;
-	}
-    }
+	    //~ planned_eviction = ???;
+	    //~ return returned_handle;
+	//~ }
+    //~ }
     
     /* New strategie: Of all the data loaded, evict the one that can do the least task (from the task list 
      * planned by dynamic_outer.
@@ -876,7 +972,8 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
      data->p->temp_pointer_1 = data->p->first_link;
      if (starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))
      {
-	 //~ printf("Return NULL.\n");
+	 /* TODO choisir la donnée qui permet de faire le moins de tâches restantes en global. */
+	 printf("Return NULL, sub list empty.\n");
 	 return NULL;
      }
      else
@@ -919,7 +1016,8 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	 }
 	 //~ printf("\n");
 	 if (returned_handle == NULL) { 
-	     //~ printf("Return NO_VICTIM.\n");
+	     printf("Return NO_VICTIM.\n");
+	     planned_eviction = NULL;
 	      return STARPU_DATA_NO_VICTIM; }
 	 
 	 
@@ -1040,6 +1138,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	//~ }
 	
 	 printf("Return %p.\n", returned_handle);
+	 planned_eviction = returned_handle;
 	 return returned_handle;
     }
     //~ int min_number_task = INT_MAX;
@@ -1172,7 +1271,8 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	    /* Fin version 2. */
 	//~ }
     //~ }
-    //~ printf("Return NULL.\n");
+    printf("Return NULL.\n");
+    planned_eviction = NULL;
     return NULL;
 }
 
