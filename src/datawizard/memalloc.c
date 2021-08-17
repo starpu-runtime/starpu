@@ -790,7 +790,10 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	if (freed != 0) 
 	{
 	    printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle);
-	    victim_evicted(1, handle, data_victim_selector);
+	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+	    {
+		victim_evicted(1, handle, data_victim_selector);
+	    }
 	}
 	else 
 	{
@@ -1003,7 +1006,10 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 		{
 			/* Don't even bother looking for it, it won't fit anyway */
 			printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n");
-			victim_evicted(0, victim, data_victim_selector);
+			if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+			{
+			    victim_evicted(0, victim, data_victim_selector);
+			}
 			return 0;
 		}
 	}
@@ -1066,7 +1072,10 @@ restart:
 	if (victim && victim_evicted != NULL && success == 0)
 	{
 	    printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc.\n");
-	    victim_evicted(0, victim, data_victim_selector);
+	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+	    {
+		victim_evicted(0, victim, data_victim_selector);
+	    }
 	}
 	return success;
 }
@@ -1225,8 +1234,11 @@ restart2:
 	/* appeler fonction call_victim_slector(succes) */
 	if (victim && victim_evicted != NULL && freed == 0)
 	{
-	    printf("Calling victim evicted in free_potentially_in_use_mc.\n");
-	    victim_evicted(0, victim, data_victim_selector);
+	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+	    {
+		printf("Calling victim evicted in free_potentially_in_use_mc.\n");
+		victim_evicted(0, victim, data_victim_selector);
+	    }
 	}	
 	
 	return freed;
