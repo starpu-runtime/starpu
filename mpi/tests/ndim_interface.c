@@ -122,7 +122,8 @@ int main(int argc, char **argv)
                 {
                     for (i = 0; i < SIZE; i++)
                     {
-                        assert(arr4d[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE + l*BIGSIZE*BIGSIZE*BIGSIZE] == m++);
+                        assert(arr4d[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE + l*BIGSIZE*BIGSIZE*BIGSIZE] == m);
+                        m++;
                     }
                 }
             }
@@ -152,7 +153,8 @@ int main(int argc, char **argv)
                 {
                     for (i = 0; i < SIZE; i++)
                     {
-                        assert(arr4d[i + j*SIZE + k*SIZE*SIZE + l*SIZE*SIZE*SIZE] == n++);
+                        assert(arr4d[i + j*SIZE + k*SIZE*SIZE + l*SIZE*SIZE*SIZE] == n);
+                        n++;
                         arr4d[i + j*SIZE + k*SIZE*SIZE + l*SIZE*SIZE*SIZE] = m++;
                     }
                 }
