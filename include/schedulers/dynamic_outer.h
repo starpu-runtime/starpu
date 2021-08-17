@@ -32,6 +32,8 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paque
 
 void print_task_using_data(starpu_data_handle_t d);
 
+starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_data_handle_t *data_tab, int nb_data, unsigned node, enum starpu_is_prefetch is_prefetch);
+
 void add_data_to_gpu_data_loaded(struct my_list *l, starpu_data_handle_t h, int data_type);
 
 void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l);

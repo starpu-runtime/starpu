@@ -818,6 +818,8 @@ starpu_data_handle_t data_to_evict_next;
  * nécessaire. En réalité pour le moment je ne me rend pas compte qu'on est a la fin de l'exec. TODO : se rendre compte 
  * qu'on est a la fin et arreter de mettre à jour les listes du coup.
  * TODO : en multi gpu il faudra une liste.
+ * TODO : Est-ce maintenant que je ne renvoie plus trop NULL quand la liste est vide, toujours utile ? 
+ * Si ca n'arrive que a la fin, c'est une perte de temps. A verifier donc.
  */
  starpu_data_handle_t planned_eviction;
 
@@ -926,13 +928,129 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
     }
 }
 
+/* Return the handle that can do the least tasks that already have all
+ * it data on memory. If there is a draw or if there are no task in the task list, return the 
+ * data that has the least remaining task (even if their data are not loaded on memory.
+ */
+starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_data_handle_t *data_tab, int nb_data, unsigned node, enum starpu_is_prefetch is_prefetch)
+{
+    printf("Début de get_handle_least_tasks\n");
+    /* TODO : utiliser les struct globale data to evict pour eviter d'avoir a tout recalculer à chaque fois.
+     * TODO : en cas d'égalité enlever la donnée qui permet de faire le moins de tâches au global
+     */
+    starpu_data_handle_t returned_handle = NULL;
+    int i = 0;
+    int min = 0;
+    struct task_using_data_list *tudl = task_using_data_list_new();
+    if (starpu_task_list_empty(l))
+    {
+	/* TODO choisir la donnée qui permet de faire le moins de tâches restantes en global. */
+	min = INT_MAX;
+	
+	for (i = 0; i < nb_data; i++)
+	{
+	    tudl = data_tab[i]->sched_data;
+	    if (task_using_data_list_size(tudl) < min)
+	    {
+		min = task_using_data_list_size(tudl);
+		returned_handle = data_tab[i];
+	    }
+	}
+	printf("Return %p, sub list empty.\n", returned_handle);
+	return returned_handle;
+    }
+    else
+    {
+	    int j = 0;
+	struct starpu_task *task = NULL;
+	int nb_task_done_by_data[nb_data];
+	for (i = 0; i < nb_data; i++) { nb_task_done_by_data[i] = 0; }
+	bool all_data_available = true;
+	 //~ printf("Planned task are :");
+	 /* Cherche nb de tache fais par chaque donnée parmis les données prévus qu'il reste à faire */
+	 /* TODO la ca marche pas comme voulu je crois, je veux le moins parmi celle qui ont toutes les données. */
+	 for (task = starpu_task_list_begin(l); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
+	 {
+	     printf("%p ", task);
+	     all_data_available = true;
+	     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+	     {
+		if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), node))
+		{
+		     all_data_available = false;
+		     break;
+		}
+	     }
+	     if (all_data_available == true)
+	     {
+		 for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
+		 {
+		     for (i = 0; i < nb_data; i++)
+		      {
+			  if (data_tab[i] == STARPU_TASK_GET_HANDLE(task, j))
+			  {
+			      nb_task_done_by_data[i]++;
+			      break;
+			  }
+		      }
+		 }
+	     }
+	 }
+	 printf("\n");
+	  /* Cherche le min dans le tab */
+	min = INT_MAX;
+	 for (i = 0; i < nb_data; i++)
+	 {
+	     printf("%p can do %d tasks.\n", data_tab[i], nb_task_done_by_data[i]);
+	     
+	     
+	     
+	     if (min > nb_task_done_by_data[i])
+	     {
+		 printf("It's inferior to min.\n");
+	     if (starpu_data_can_evict(data_tab[i], node, is_prefetch))
+	     {
+		 printf("I can evict it, new min.\n");
+		 min = nb_task_done_by_data[i];
+		 returned_handle = data_tab[i];
+	     }
+	    }
+	    else if (min == nb_task_done_by_data[i])
+	    {
+		tudl = data_tab[i]->sched_data;
+		if (task_using_data_list_size(tudl) < task_using_data_list_size(returned_handle->sched_data))
+		{
+		    printf("New min cause less task globally to do.\n");
+		    min = nb_task_done_by_data[i];
+		    returned_handle = data_tab[i];
+		}
+	    }
+	 }
+	 printf("\n");
+	 printf("Return %p.\n", returned_handle);
+	 return returned_handle;
+	 
+	 /*
+	 if (returned_handle == NULL) { 
+	     printf("Return NO_VICTIM.\n");
+	     planned_eviction = NULL;
+	      return STARPU_DATA_NO_VICTIM; }
+	else
+	{
+	    return returned_handle;
+	}*/
+    }
+}
+
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
     printf("Beggining of victim_selector. Timing is %f.\n", starpu_timing_now());
     
     if (data_to_evict_next != NULL) 
     { 
-	printf("Return data %p that was refused.\n", data_to_evict_next); data_to_evict_next = NULL; return data_to_evict_next; 
+	printf("Return data %p that was refused.\n", data_to_evict_next); 
+	data_to_evict_next = NULL; 
+	return data_to_evict_next; 
     }
     
     struct starpu_sched_component *temp_component = component;
@@ -942,7 +1060,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     starpu_data_handle_t *data_on_node;
     unsigned nb_data_on_node = 0;
     int *valid;
-    int i = 0; int j = 0;
+    int i = 0;
     starpu_data_handle_t returned_handle = NULL;
     starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 	
@@ -962,66 +1080,14 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	//~ }
     //~ }
     
-    /* New strategie: Of all the data loaded, evict the one that can do the least task (from the task list 
-     * planned by dynamic_outer.
-     * TODO : utiliser les struct globale data to evict pour eviter d'avoir a tout recalculer à chaque fois.
-     * TODO : en cas d'égalité enlever la donnée qui permet de faire le moins de tâches au global
-     */
-     //TODO : se placer sur le bon gpu
-     //~ printf("On GPU n°%d.\n", node);
-     data->p->temp_pointer_1 = data->p->first_link;
-     if (starpu_task_list_empty(&data->p->temp_pointer_1->sub_list))
-     {
-	 /* TODO choisir la donnée qui permet de faire le moins de tâches restantes en global. */
-	 printf("Return NULL, sub list empty.\n");
-	 return NULL;
-     }
-     else
-     {
-	 int nb_task_done_by_data[nb_data_on_node];
-	 for (i = 0; i < nb_data_on_node; i++) { nb_task_done_by_data[i] = 0; }
-	 //~ printf("Planned task are :");
-	 /* Cherche nb de tache fais par chaque donnée parmis les données prévus qu'il reste à faire */
-	 for (task = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
-	 {
-	     //~ printf("%p	", task);
-	     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-	     {
-		 for (j = 0; j < nb_data_on_node; j++)
-		 {
-		    if (STARPU_TASK_GET_HANDLE(task, i) == data_on_node[j])
-		    {
-			nb_task_done_by_data[j]++;
-		    }
-		}
-	     }
-	 }
-	 //~ printf("\n");
-	  /* Cherche le min dans le tab */
-	int min_nb_task_done = INT_MAX;
-	 for (j = 0; j < nb_data_on_node; j++)
-	 {
-	     //~ printf("%p can do %d tasks.\n", data_on_node[j], nb_task_done_by_data[j]);
-	     if (min_nb_task_done > nb_task_done_by_data[j])
-	     {
-		 //~ printf("It's inferior to min.\n");
-	     if (starpu_data_can_evict(data_on_node[j], node, is_prefetch))
-	     //~ if (starpu_data_can_evict(data_on_node[j], node, is_prefetch))
-	     {
-		 //~ printf("I can evict it, new min.\n");
-		 min_nb_task_done = nb_task_done_by_data[j];
-		 returned_handle = data_on_node[j];
-	     }
-	    }
-	 }
-	 //~ printf("\n");
-	 if (returned_handle == NULL) { 
-	     printf("Return NO_VICTIM.\n");
-	     planned_eviction = NULL;
-	      return STARPU_DATA_NO_VICTIM; }
-	 
-	 
-	/* TODO : enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
+    //TODO : se placer sur le bon gpu
+    data->p->temp_pointer_1 = data->p->first_link;
+    returned_handle = get_handle_least_tasks(&data->p->temp_pointer_1->sub_list, data_on_node, nb_data_on_node, node, is_prefetch);
+	if (returned_handle == NULL) { 
+	    //~ return STARPU_DATA_NO_VICTIM; 
+	    return NULL;
+    }
+	/* Enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
 	  * à pop ainsi qu'ajouter la tache dans les données. Also add it to the main task list. */
 	//Suppression de la liste de planned task les tâches utilisant la données
 	//~ printf("Avant suppression:\n");
@@ -1140,7 +1206,6 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	 printf("Return %p.\n", returned_handle);
 	 planned_eviction = returned_handle;
 	 return returned_handle;
-    }
     //~ int min_number_task = INT_MAX;
     //~ for (i = 0; i < nb_data_on_node; i++)
     //~ {
@@ -1271,9 +1336,9 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	    /* Fin version 2. */
 	//~ }
     //~ }
-    printf("Return NULL.\n");
-    planned_eviction = NULL;
-    return NULL;
+    //~ printf("Return NULL.\n");
+    //~ planned_eviction = NULL;
+    //~ return NULL;
 }
 
 /* Erase a task from the main task list.
