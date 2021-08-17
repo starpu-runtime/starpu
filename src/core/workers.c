@@ -1587,6 +1587,9 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_USE_FXT
 	if (starpu_fxt_is_enabled())
 		_STARPU_DISP("Warning: FxT is enabled, which slows down a bit, limits scalability and makes worker initialization sequential\n");
+#else
+	if (starpu_get_env_number("STARPU_FXT_TRACE") > 0)
+		_STARPU_DISP("Warning: FxT trace is requested but StarPU was configured without FxT support\n");
 #endif
 #ifdef STARPU_FXT_LOCK_TRACES
 	_STARPU_DISP("Warning: StarPU was configured with --enable-fxt-lock, which slows down things a huge lot, and is really only meant for StarPU insides debugging. Did you really want to enable that?\n");
@@ -1606,13 +1609,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 			_STARPU_DISP("Warning: This system is running a 4.7 or 4.8 kernel. These have a severe scheduling performance regression issue, please upgrade to at least 4.9.\n");
 	}
 #endif
-#endif
-
-#ifndef STARPU_USE_FXT
-	if (starpu_get_env_number("STARPU_FXT_TRACE") > 0)
-	{
-		_STARPU_DISP("Warning: FxT trace is requested but StarPU was configured without FxT support\n");
-	}
 #endif
 
 	if (starpu_getenv("STARPU_ENABLE_STATS"))
