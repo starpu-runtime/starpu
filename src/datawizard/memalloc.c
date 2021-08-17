@@ -631,6 +631,12 @@ void starpu_data_register_victim_selector(starpu_data_victim_selector selector, 
 	data_victim_selector = component;
 	victim_evicted = evicted;
 }
+//~ void starpu_data_register_victim_evicted(starpu_data_victim_evicted evicted, starpu_data_victim_evicted evicted, void *component)
+//~ {
+	//~ victim_selector = selector;
+	//~ data_victim_selector = component;
+	//~ victim_evicted = evicted;
+//~ }
 
 /* This function is called for memory chunks that are possibly in used (ie. not
  * in the cache). They should therefore still be associated to a handle. */
@@ -783,14 +789,15 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	//~ printf("Freed vaut %ld in try_to_throw_mem_chunk.\n", freed);
 	if (freed != 0) 
 	{
-	     printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle); 
+	    printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle);
+	    victim_evicted(1, handle, data_victim_selector);
 	}
 	else 
 	{
 	    printf("Echec eviction de %p dans try_to_throw_mem_chunk.\n", handle);
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
 	    {
-		victim_evicted(0, handle);
+		victim_evicted(0, handle, data_victim_selector);
 	    }
 	}
 	return freed;
@@ -996,7 +1003,7 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 		{
 			/* Don't even bother looking for it, it won't fit anyway */
 			printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n");
-			victim_evicted(0, victim);
+			victim_evicted(0, victim, data_victim_selector);
 			return 0;
 		}
 	}
@@ -1059,7 +1066,7 @@ restart:
 	if (victim && victim_evicted != NULL && success == 0)
 	{
 	    printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc.\n");
-	    victim_evicted(0, victim);
+	    victim_evicted(0, victim, data_victim_selector);
 	}
 	return success;
 }
@@ -1219,7 +1226,7 @@ restart2:
 	if (victim && victim_evicted != NULL && freed == 0)
 	{
 	    printf("Calling victim evicted in free_potentially_in_use_mc.\n");
-	    victim_evicted(0, victim);
+	    victim_evicted(0, victim, data_victim_selector);
 	}	
 	
 	return freed;
