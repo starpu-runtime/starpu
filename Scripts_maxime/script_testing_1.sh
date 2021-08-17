@@ -36,11 +36,12 @@ make -j 6
 
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
 
-N=15
+N=45
 NGPU=1
-ORDO="dynamic-outer"
+#~ ORDO="dynamic-outer"
+ORDO="modular-eager-prefetching"
 BW=350
-CM=70
+CM=500
 EVICTION=1
 POP_POLICY=1
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
@@ -53,4 +54,4 @@ STARPU_SCHED=${ORDO} SEED=1 EVICTION_STRATEGY_DYNAMIC_OUTER=$((EVICTION)) DATA_P
 
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
 
-#~ end=`date +%s` runtime=$((end-start)) echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
+end=`date +%s` runtime=$((end-start)) echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
