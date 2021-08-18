@@ -66,6 +66,7 @@ static starpu_pthread_mutex_t opencl_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALI
 
 #define _STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err) do { if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err); } while(0)
 
+#ifdef STARPU_USE_OPENCL
 static inline cl_event *_starpu_opencl_event(starpu_async_channel_event_t *_event)
 {
 	cl_event *event;
@@ -73,6 +74,7 @@ static inline cl_event *_starpu_opencl_event(starpu_async_channel_event_t *_even
 	event = (void *) _event;
 	return event;
 }
+#endif
 
 void
 _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
