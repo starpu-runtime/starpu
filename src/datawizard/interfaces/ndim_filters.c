@@ -206,6 +206,7 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
     struct starpu_ndim_interface *ndim_child = (struct starpu_ndim_interface *) child_interface;
 
     size_t ndim = ndim_father->ndim;
+    STARPU_ASSERT_MSG(ndim > 0, "ndim %u must be greater than 0!\n", (unsigned) ndim);
 
     unsigned dim = 0;
     if (ndim > 1)
@@ -240,11 +241,11 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
     ndim_child->id = STARPU_NDIM_INTERFACE_ID;
 
     int j;
+    uint32_t *child_dim;
+    child_dim = (uint32_t*)malloc((ndim-1)*sizeof(uint32_t));
     if (ndim > 1)
     {
         j = 0;
-        uint32_t *child_dim;
-        child_dim = (uint32_t*)malloc((ndim-1)*sizeof(uint32_t));
         for (i=0; i<ndim; i++)
         {
             if (i!=dim)
@@ -253,24 +254,13 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
                 j++;
             }
         }
-        ndim_child->nn = child_dim;
     }
-    else
-    {
-        ndim_child->nn = NULL;
-    }
-        
+    ndim_child->nn = child_dim;
 
     uint32_t *child_ldn;
-    if (ndim > 1)
-    {
-        child_ldn = (uint32_t*)malloc((ndim-1)*sizeof(uint32_t));
+    child_ldn = (uint32_t*)malloc((ndim-1)*sizeof(uint32_t));
 	ndim_child->ldn = child_ldn;
-    }
-    else
-    {
-	ndim_child->ldn = NULL;
-    }
+
     
     ndim_child->ndim = ndim-1;
     ndim_child->elemsize = elemsize;

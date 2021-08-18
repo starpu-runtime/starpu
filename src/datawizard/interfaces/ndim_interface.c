@@ -297,16 +297,7 @@ static void _pack_cpy_ndim_ptr(char *cur, char* ndptr, uint32_t* nn, uint32_t* l
         char *ndptr_i = ndptr;
         for(n=0; n<nn[i]; n++)
         {   
-            if(dim > 2)
-            {
-                _pack_cpy_ndim_ptr(cur, ndptr_i, nn, ldn, ndim, dim-1, elemsize);
-            }
-            else
-            {
-                memcpy(cur, ndptr_i, _get_size(nn, dim-1, elemsize));
-                cur += _get_size(nn, dim-1, elemsize);
-            }
-            
+            _pack_cpy_ndim_ptr(cur, ndptr_i, nn, ldn, ndim, dim-1, elemsize);
             ndptr_i += ldn[i] * elemsize;
         }
     }
@@ -327,17 +318,8 @@ static void _peek_cpy_ndim_ptr(char* ndptr, char *cur, uint32_t* nn, uint32_t* l
     {
         char *ndptr_i = ndptr;
         for(n=0; n<nn[i]; n++)
-        {   
-            if(dim > 2)
-            {
-                _pack_cpy_ndim_ptr(ndptr_i, cur, nn, ldn, ndim, dim-1, elemsize);
-            }
-            else
-            {
-                memcpy(ndptr_i, cur, _get_size(nn, dim-1, elemsize));
-                cur += _get_size(nn, dim-1, elemsize);
-            }
-            
+        {
+            _peek_cpy_ndim_ptr(ndptr_i, cur, nn, ldn, ndim, dim-1, elemsize);
             ndptr_i += ldn[i] * elemsize;
         }
     }  
@@ -560,10 +542,6 @@ static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsign
             ntmp *= nn[i-1];
             dst_ndarr->ldn[i] = ntmp;
         }
-    }
-    else if (ndim == 0)
-    {
-        dst_ndarr->ldn = NULL;
     }
         
     return allocated_memory;
