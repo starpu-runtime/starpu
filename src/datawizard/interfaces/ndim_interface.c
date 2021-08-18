@@ -281,7 +281,7 @@ static size_t _get_size(uint32_t* nn, size_t ndim, size_t elemsize)
     return size;
 }
 
-static void _pack_cpy_ndim_ptr(char *cur, char* ndptr, uint32_t* nn, uint32_t* ldn, size_t ndim, size_t dim, size_t elemsize)
+static void _pack_cpy_ndim_ptr(char *cur, char* ndptr, uint32_t* nn, uint32_t* ldn, size_t dim, size_t elemsize)
 {
     uint32_t i = dim - 1;
     uint32_t n;
@@ -289,21 +289,21 @@ static void _pack_cpy_ndim_ptr(char *cur, char* ndptr, uint32_t* nn, uint32_t* l
     if(_is_contiguous_ndim(nn, ldn, dim))
     {
         memcpy(cur, ndptr, _get_size(nn, dim, elemsize));
-        if (dim < ndim)
-            cur += _get_size(nn, dim, elemsize);
     }
     else
     {
         char *ndptr_i = ndptr;
+        size_t count = _get_size(nn, i, elemsize);
         for(n=0; n<nn[i]; n++)
         {   
-            _pack_cpy_ndim_ptr(cur, ndptr_i, nn, ldn, ndim, dim-1, elemsize);
+            _pack_cpy_ndim_ptr(cur, ndptr_i, nn, ldn, dim-1, elemsize);
+            cur += count;
             ndptr_i += ldn[i] * elemsize;
         }
     }
 }
 
-static void _peek_cpy_ndim_ptr(char* ndptr, char *cur, uint32_t* nn, uint32_t* ldn, size_t ndim, size_t dim, size_t elemsize)
+static void _peek_cpy_ndim_ptr(char* ndptr, char *cur, uint32_t* nn, uint32_t* ldn, size_t dim, size_t elemsize)
 {
     uint32_t i = dim - 1;
     uint32_t n;
@@ -311,15 +311,15 @@ static void _peek_cpy_ndim_ptr(char* ndptr, char *cur, uint32_t* nn, uint32_t* l
     if(_is_contiguous_ndim(nn, ldn, dim))
     {
         memcpy(ndptr, cur, _get_size(nn, dim, elemsize));
-        if (dim < ndim)
-            cur += _get_size(nn, dim, elemsize);
     }
     else
     {
         char *ndptr_i = ndptr;
+        size_t count = _get_size(nn, i, elemsize);
         for(n=0; n<nn[i]; n++)
         {
-            _peek_cpy_ndim_ptr(ndptr_i, cur, nn, ldn, ndim, dim-1, elemsize);
+            _peek_cpy_ndim_ptr(ndptr_i, cur, nn, ldn, dim-1, elemsize);
+            cur += count;
             ndptr_i += ldn[i] * elemsize;
         }
     }  
@@ -347,7 +347,7 @@ static int pack_ndim_handle(starpu_data_handle_t handle, unsigned node, void **p
 
         char *cur = *ptr;
 
-        _pack_cpy_ndim_ptr(cur, ndptr, nn, ldn, ndim, ndim, elemsize);
+        _pack_cpy_ndim_ptr(cur, ndptr, nn, ldn, ndim, elemsize);
     }
 
     return 0;
@@ -370,7 +370,7 @@ static int peek_ndim_handle(starpu_data_handle_t handle, unsigned node, void *pt
     char *cur = ptr;
     char *ndptr = (void *)ndim_interface->ptr;
 
-    _peek_cpy_ndim_ptr(ndptr, cur, nn, ldn, ndim, ndim, elemsize);
+    _peek_cpy_ndim_ptr(ndptr, cur, nn, ldn, ndim, elemsize);
 
     return 0;
 }
