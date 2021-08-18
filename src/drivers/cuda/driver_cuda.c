@@ -94,6 +94,7 @@ static int cuda_device_users[STARPU_MAXCUDADEVS];
 static starpu_pthread_mutex_t cuda_device_init_mutex[STARPU_MAXCUDADEVS];
 static starpu_pthread_cond_t cuda_device_init_cond[STARPU_MAXCUDADEVS];
 
+#ifdef STARPU_USE_CUDA
 static inline cudaEvent_t *_starpu_cuda_event(starpu_async_channel_event_t *_event)
 {
 	cudaEvent_t *event;
@@ -101,6 +102,7 @@ static inline cudaEvent_t *_starpu_cuda_event(starpu_async_channel_event_t *_eve
 	event = (void *) _event;
 	return event;
 }
+#endif
 
 void _starpu_cuda_init(void)
 {
