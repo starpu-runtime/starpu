@@ -69,7 +69,7 @@ static inline struct _starpu_disk_event *_starpu_disk_get_event(starpu_async_cha
 {
 	struct _starpu_disk_event *event;
 	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));
-	event = (void *) _event;
+	event = (struct _starpu_disk_event *) _event;
 	return event;
 }
 
