@@ -83,8 +83,21 @@ static int tensor_pointer_is_inside(void *data_interface, unsigned node, void *p
 	uint32_t nt = tensor_interface->nt;
 	size_t elemsize = tensor_interface->elemsize;
 
-	return (char*) ptr >= (char*) tensor_interface->ptr &&
-		(char*) ptr < (char*) tensor_interface->ptr + (nt-1)*ldt*elemsize + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize;
+	if ((char*) ptr < (char*) tensor_interface->ptr)
+		return 0;
+
+	size_t offset = ((char*)ptr - (char*)tensor_interface->ptr)/elemsize;
+
+	if(offset/ldt >= nt)
+		return 0;
+	if(offset%ldt/ldz >= nz)
+		return 0;
+	if(offset%ldt%ldz/ldy >= ny)
+		return 0;
+	if(offset%ldt%ldz%ldy >= nx)
+		return 0;
+
+	return 1;
 }
 
 static void register_tensor_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)

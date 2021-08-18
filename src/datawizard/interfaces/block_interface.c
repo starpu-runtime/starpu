@@ -81,8 +81,19 @@ static int block_pointer_is_inside(void *data_interface, unsigned node, void *pt
 	uint32_t nz = block_interface->nz;
 	size_t elemsize = block_interface->elemsize;
 
-	return (char*) ptr >= (char*) block_interface->ptr &&
-		(char*) ptr < (char*) block_interface->ptr + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize;
+	if ((char*) ptr < (char*) block_interface->ptr)
+		return 0;
+
+	size_t offset = ((char*)ptr - (char*)block_interface->ptr)/elemsize;
+
+	if(offset/ldz >= nz)
+		return 0;
+	if(offset%ldz/ldy >= ny)
+		return 0;
+	if(offset%ldz%ldy >= nx)
+		return 0;
+
+	return 1;
 }
 
 static void register_block_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)

@@ -125,8 +125,17 @@ static int matrix_pointer_is_inside(void *data_interface, unsigned node, void *p
 	uint32_t ny = matrix_interface->ny;
 	size_t elemsize = matrix_interface->elemsize;
 
-	return (char*) ptr >= (char*) matrix_interface->ptr &&
-		(char*) ptr < (char*) matrix_interface->ptr + (ny-1)*ld*elemsize + nx*elemsize;
+	if ((char*) ptr < (char*) matrix_interface->ptr)
+		return 0;
+
+	size_t offset = ((char*)ptr - (char*)matrix_interface->ptr)/elemsize;
+
+	if(offset/ld >= ny)
+		return 0;
+	if(offset%ld >= nx)
+		return 0;
+
+	return 1;
 }
 
 

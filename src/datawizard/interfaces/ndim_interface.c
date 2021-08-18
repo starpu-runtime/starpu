@@ -81,17 +81,24 @@ static int ndim_pointer_is_inside(void *data_interface, unsigned node, void *ptr
     uint32_t* nn = ndim_interface->nn;
     size_t elemsize = ndim_interface->elemsize;
 
-    unsigned i;
-    uint32_t nn0 = ndim?nn[0]:1;
-    size_t buffersize = 0;
-    for (i=1; i<ndim; i++)
-    {
-        buffersize += (nn[i]-1) * ldn[i] * elemsize;
-    }
-    buffersize += nn0 * elemsize;
+    if ((char*) ptr < (char*) ndim_interface->ptr)
+        return 0;
 
-    return (char*) ptr >= (char*) ndim_interface->ptr &&
-        (char*) ptr < (char*) ndim_interface->ptr + buffersize;
+    size_t offset = ((char*)ptr - (char*)ndim_interface->ptr)/elemsize;
+
+    if(ndim == 0 && offset >= 1)
+        return 0;
+
+    int i;
+    uint32_t d = offset;
+    for (i=ndim-1; i>=0; i--)
+    {
+        if(d/ldn[i] >= nn[i])
+            return 0;
+        d = d % ldn[i];
+    }
+
+    return 1;
 }
 
 static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
