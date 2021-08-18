@@ -58,7 +58,16 @@ static int _starpu_id;
  * size to warn the user if needed and avoid processing partial traces. */
 static int _starpu_mpi_worldsize = 1;
 
+/* Event mask used to initialize FxT. By default all events are recorded just
+ * after FxT starts, but this can be changed by calling
+ * starpu_fxt_autostart_profiling(0) */
 static unsigned int initial_key_mask = FUT_KEYMASKALL;
+
+/* Event mask used when events are actually recorded, e.g. between
+ * starpu_fxt_start|stop_profiling() calls if autostart is disabled, or at
+ * anytime otherwise. Can be changed by the user at runtime, by setting
+ * STARPU_FXT_EVENTS env var. */
+static unsigned int profiling_key_mask = 0;
 
 #ifdef STARPU_SIMGRID
 /* Give virtual time to FxT */
@@ -122,6 +131,73 @@ static void _starpu_profile_set_tracefile(void)
 	snprintf(_starpu_prof_file_user, sizeof(_starpu_prof_file_user), "%s/%s", fxt_prefix, suffix);
 }
 
+static inline unsigned int _starpu_profile_get_user_keymask(void)
+{
+	if (profiling_key_mask != 0)
+		return profiling_key_mask;
+
+	char *fxt_events = starpu_getenv("STARPU_FXT_EVENTS");
+	if (fxt_events)
+	{
+		profiling_key_mask = _STARPU_FUT_KEYMASK_META; // contains mandatory events, even when profiling is disabled
+
+		char delim[] = "|,";
+		char* sub = strtok(fxt_events, delim);
+		for (; sub != NULL; sub = strtok(NULL, delim))
+		{
+			if (!strcasecmp(sub, "USER"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_USER;
+			else if (!strcasecmp(sub, "TASK"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_TASK;
+			else if (!strcasecmp(sub, "TASK_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_TASK_VERBOSE;
+			else if (!strcasecmp(sub, "DATA"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_DATA;
+			else if (!strcasecmp(sub, "DATA_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_DATA_VERBOSE;
+			else if (!strcasecmp(sub, "WORKER"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_WORKER;
+			else if (!strcasecmp(sub, "WORKER_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_WORKER_VERBOSE;
+			else if (!strcasecmp(sub, "DSM"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_DSM;
+			else if (!strcasecmp(sub, "DSM_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_DSM_VERBOSE;
+			else if (!strcasecmp(sub, "SCHED"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_SCHED;
+			else if (!strcasecmp(sub, "SCHED_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_SCHED_VERBOSE;
+			else if (!strcasecmp(sub, "LOCK"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_LOCK;
+			else if (!strcasecmp(sub, "LOCK_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_LOCK_VERBOSE;
+			else if (!strcasecmp(sub, "EVENT"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_EVENT;
+			else if (!strcasecmp(sub, "EVENT_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_EVENT_VERBOSE;
+			else if (!strcasecmp(sub, "MPI"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_MPI;
+			else if (!strcasecmp(sub, "MPI_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_MPI_VERBOSE;
+			else if (!strcasecmp(sub, "HYP"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_HYP;
+			else if (!strcasecmp(sub, "HYP_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_HYP_VERBOSE;
+			/* Added categories here should also be added in the documentation
+			 * 501_environment_variable.doxy. */
+			else
+				_STARPU_MSG("Unknown event type '%s'\n", sub);
+		}
+	}
+	else
+	{
+		/* If user doesn't want to filter events, all events are recorded: */
+		profiling_key_mask = FUT_KEYMASKALL;
+	}
+
+	return profiling_key_mask;
+}
+
 void starpu_profiling_set_id(int new_id)
 {
 	_STARPU_DEBUG("Set id to <%d>\n", new_id);
@@ -158,7 +234,7 @@ void _starpu_profiling_set_mpi_worldsize(int worldsize)
 void starpu_fxt_autostart_profiling(int autostart)
 {
 	if (autostart)
-		initial_key_mask = FUT_KEYMASKALL;
+		initial_key_mask = _starpu_profile_get_user_keymask();
 	else
 		initial_key_mask = _STARPU_FUT_KEYMASK_META;
 }
@@ -166,7 +242,7 @@ void starpu_fxt_autostart_profiling(int autostart)
 void starpu_fxt_start_profiling()
 {
 	unsigned threadid = _starpu_gettid();
-	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
+	fut_keychange(FUT_ENABLE, _starpu_profile_get_user_keymask(), threadid);
 	_STARPU_TRACE_META("start_profiling");
 }
 

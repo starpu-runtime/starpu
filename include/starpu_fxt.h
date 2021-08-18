@@ -112,6 +112,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
    Determine whether profiling should be started by starpu_init(), or only when
    starpu_fxt_start_profiling() is called. \p autostart should be 1 to do so, or 0 to
    prevent it.
+   This function has to be called before starpu_init().
 */
 void starpu_fxt_autostart_profiling(int autostart);
 

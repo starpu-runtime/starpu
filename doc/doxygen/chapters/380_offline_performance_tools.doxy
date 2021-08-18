@@ -309,6 +309,10 @@ script:
 $ starpu_fxt_number_events_to_names.py number_events.data
 \endverbatim
 
+The number of recorded events (and thus the performance overhead introduced by
+tracing) can be reduced by setting which categories of events to record with
+the environment variable \ref STARPU_FXT_EVENTS.
+
 
 \subsection LimitingScopeTrace Limiting The Scope Of The Trace
 

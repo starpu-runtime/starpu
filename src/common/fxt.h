@@ -262,6 +262,8 @@
 #define _STARPU_FUT_KEYMASK_MPI_VERBOSE    FUT_KEYMASK17
 #define _STARPU_FUT_KEYMASK_HYP            FUT_KEYMASK18
 #define _STARPU_FUT_KEYMASK_HYP_VERBOSE    FUT_KEYMASK19
+/* When doing modifications to keymasks, also adapt
+ * _starpu_profile_get_user_keymask() in src/common/fxt.c ! */
 
 extern unsigned long _starpu_job_cnt;
 

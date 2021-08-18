@@ -1160,6 +1160,40 @@ Specify in which file to save the generated trace if FxT is enabled.
 Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY (the directory and file name can be changed with \ref STARPU_FXT_PREFIX and \ref STARPU_FXT_SUFFIX). The default is 0 (do not generate it)
 </dd>
 
+<dt>STARPU_FXT_EVENTS</dt>
+<dd>
+\anchor STARPU_FXT_EVENTS
+\addindex __env__STARPU_FXT_EVENTS
+Specify which events will be recorded in traces. By default, all events are
+recorded. One can set this variable to a comma- or pipe-separated list of the
+following categories, to record only events belonging to the selected
+categories:
+- <c>USER</c>
+- <c>TASK</c>
+- <c>TASK_VERBOSE</c>
+- <c>DATA</c>
+- <c>DATA_VERBOSE</c>
+- <c>WORKER</c>
+- <c>WORKER_VERBOSE</c>
+- <c>DSM</c>
+- <c>DSM_VERBOSE</c>
+- <c>SCHED</c>
+- <c>SCHED_VERBOSE</c>
+- <c>LOCK</c>
+- <c>LOCK_VERBOSE</c>
+- <c>EVENT</c>
+- <c>EVENT_VERBOSE</c>
+- <c>MPI</c>
+- <c>MPI_VERBOSE</c>
+- <c>HYP</c>
+- <c>HYP_VERBOSE</c>
+</dd>
+
+The choice of which categories have to be recorded is a tradeoff between
+required informations for offline analyzis and acceptable overhead introduced
+by tracing. For instance, to inspect with ViTE which tasks workers execute, one
+has to at least select the <c>TASK</c> category.
+
 <dt>STARPU_LIMIT_CUDA_devid_MEM</dt>
 <dd>
 \anchor STARPU_LIMIT_CUDA_devid_MEM
