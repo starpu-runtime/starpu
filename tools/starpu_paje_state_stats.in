@@ -21,7 +21,7 @@ set -e # fail fast
 
 # File names
 outputfile="starpu_paje_state_stats.csv"
-r_script="$(dirname $(which $0))/starpu_paje_state_stats.R"
+r_script="$(dirname $(command -v $0))/starpu_paje_state_stats.R"
 r_input=""
 
 # Command line arguments
