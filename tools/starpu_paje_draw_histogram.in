@@ -21,7 +21,7 @@ set -e # fail fast
 
 # File names
 basename="$PWD"
-r_script="$(dirname $(which $0))/starpu_paje_draw_histogram.R"
+r_script="$(dirname $(command -v $0))/starpu_paje_draw_histogram.R"
 r_input=""
 
 # Command line arguments
