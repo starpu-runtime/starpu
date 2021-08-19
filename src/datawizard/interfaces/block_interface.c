@@ -136,6 +136,8 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
 				uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t nx,
 				uint32_t ny, uint32_t nz, size_t elemsize)
 {
+	STARPU_ASSERT_MSG(ldy >= nx, "ldy = %d should not be less than nx = %d", ldy, nx);
+	STARPU_ASSERT_MSG(ldz >= nx * ny, "ldz = %d should not be less than nx * ny = %d", ldz, nx * ny);
 	struct starpu_block_interface block_interface =
 	{
 		.id = STARPU_BLOCK_INTERFACE_ID,

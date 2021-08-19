@@ -158,6 +158,14 @@ static void unregister_ndim_handle(starpu_data_handle_t handle)
 void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node,
                 uintptr_t ptr, uint32_t* ldn, uint32_t* nn, size_t ndim, size_t elemsize)
 {
+    unsigned i;
+    uint32_t ldi = 1;
+    for (i=1; i<ndim; i++)
+    {
+        ldi *= nn[i-1];
+        STARPU_ASSERT_MSG(ldn[i] >= ldi, "ldn[%d] = %d should not be less than %d", i, ldn[i], ldi);
+    }
+    
     struct starpu_ndim_interface ndim_interface =
     {
         .id = STARPU_NDIM_INTERFACE_ID,
@@ -172,7 +180,6 @@ void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node,
 #ifndef STARPU_SIMGRID
     if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
     {
-        unsigned i;
         uint32_t nn0 = ndim?nn[0]:1;
         int b = 1;
         size_t buffersize = 0;
