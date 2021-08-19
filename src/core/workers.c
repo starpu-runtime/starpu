@@ -117,8 +117,33 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 
 	if (check_entire_platform && !task->cl->can_execute)
 	{
-		if (!_starpu_get_machine_config()->topology.ndevices[arch])
-			return 0;
+		struct _starpu_machine_topology *topo = &_starpu_get_machine_config()->topology;
+
+		switch (arch)
+		{
+		case STARPU_CPU_WORKER:
+			if (!topo->ncpus)
+				return 0;
+			break;
+		case STARPU_CUDA_WORKER:
+			if (!topo->ncudagpus)
+				return 0;
+			break;
+		case STARPU_OPENCL_WORKER:
+			if (!topo->nopenclgpus)
+				return 0;
+			break;
+		case STARPU_MIC_WORKER:
+			if (!topo->nmicdevices)
+				return 0;
+			break;
+		case STARPU_MPI_MS_WORKER:
+			if (!topo->nmpidevices)
+				return 0;
+			break;
+		default:
+			STARPU_ABORT();
+		}
 
 		unsigned impl;
 		for (impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
@@ -137,10 +162,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->opencl_funcs[impl] != NULL)
 					return 1;
 				break;
-			case STARPU_MAX_FPGA_WORKER:
-				if (task->cl->max_fpga_funcs[impl] != NULL)
+                        case STARPU_MIC_WORKER:
+                                if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mic_funcs[impl] != NULL)
 					return 1;
-				break;
+                                break;
                         case STARPU_MPI_MS_WORKER:
                                 if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
 					return 1;
