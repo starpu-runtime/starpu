@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 		for(i = 0; i < count; i++)
 		{
 			int *numbers = (int *)pointer;
-			STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, numbers));
+			STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, &numbers[i]));
 			if (numbers[i] != i)
 			{
 				FPRINTF(stderr, "Incorrect value numbers[%d] == %d should be %d\n", (int)i, numbers[i], (int)i);
