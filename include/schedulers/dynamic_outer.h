@@ -51,6 +51,8 @@ struct datatype
     int type;
 };
 
+void print_data_not_used_yet_one_gpu(struct my_list *l);
+
 /* In the packages */
 LIST_TYPE(gpu_data_not_used,
     starpu_data_handle_t D; /* The data not used yet by the GPU. */
