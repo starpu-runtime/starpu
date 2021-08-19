@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 	STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, pointer));
 	starpu_data_unregister(handle);
 
-	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, 0,
+	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, count,
 				    count, 1, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
 	STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, pointer));
