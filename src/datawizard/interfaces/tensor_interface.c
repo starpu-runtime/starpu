@@ -144,8 +144,8 @@ void starpu_tensor_data_register(starpu_data_handle_t *handleptr, int home_node,
 				uint32_t ny, uint32_t nz, uint32_t nt, size_t elemsize)
 {
 	STARPU_ASSERT_MSG(ldy >= nx, "ldy = %d should not be less than nx = %d", ldy, nx);
-	STARPU_ASSERT_MSG(ldz >= nx * ny, "ldz = %d should not be less than nx * ny = %d", ldz, nx * ny);
-	STARPU_ASSERT_MSG(ldt >= nx * ny * nz, "ldt = %d should not be less than nx * ny * nz = %d", ldt, nx * ny * nz);
+	STARPU_ASSERT_MSG(ldz/ldy >= ny, "ldz/ldy = %d should not be less than ny = %d", ldz/ldy, ny);
+	STARPU_ASSERT_MSG(ldt/ldz >= nz, "ldt/ldz = %d should not be less than nz = %d", ldt/ldz, nz);
 	struct starpu_tensor_interface tensor_interface =
 	{
 		.id = STARPU_TENSOR_INTERFACE_ID,
