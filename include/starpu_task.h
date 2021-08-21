@@ -1137,11 +1137,12 @@ struct starpu_task
 	struct starpu_profiling_task_info *profiling_info;
 
 	/**
-	   This can be set to the number of floating points operations
-	   that the task will have to achieve. This is useful for
-	   easily getting GFlops curves from the tool
-	   <c>starpu_perfmodel_plot</c>, and for the hypervisor load
-	   balancing.
+	   The application can set this to the number of floating points
+	   operations that the task will have to achieve. StarPU will measure
+	   the time that the task takes, and divide the two to get the GFlop/s
+	   achieved by the task.  This will allow getting GFlops/s curves
+	   from the tool <c>starpu_perfmodel_plot</c>, and is useful for the
+	   hypervisor load balancing.
 
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_FLOPS followed by a double.

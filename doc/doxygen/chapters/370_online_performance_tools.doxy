@@ -119,7 +119,7 @@ CPU 2
 	7.152886 GFlop/s
 \endverbatim
 
-The number of GFlops is available because the starpu_task::flops field of the
+The number of GFlops/s is available because the starpu_task::flops field of the
 tasks were filled (or \ref STARPU_FLOPS used in starpu_task_insert()).
 
 When an FxT trace is generated (see \ref GeneratingTracesWithFxT), it is also

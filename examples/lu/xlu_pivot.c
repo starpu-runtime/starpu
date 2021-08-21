@@ -386,9 +386,9 @@ int STARPU_LU(lu_decomposition_pivot)(TYPE *matA, unsigned *ipiv, unsigned size,
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 
-	PRINTF("# size\tms\tGFlops");
+	PRINTF("# size\tms\tGFlop/s");
 	if (bound)
-		PRINTF("\tTms\tTGFlops");
+		PRINTF("\tTms\tTGFlop/s");
 	PRINTF("\n");
 	PRINTF("%u\t%.0f\t%.1f", n, timing/1000, flop/timing/1000.0f);
 	if (bound)
@@ -456,9 +456,9 @@ int STARPU_LU(lu_decomposition_pivot_no_stride)(TYPE **matA, unsigned *ipiv, uns
 	unsigned n = starpu_matrix_get_nx(dataAp[0])*nblocks;
 	double flop = (2.0f*n*n*n)/3.0f;
 
-	PRINTF("# size\tms\tGFlops");
+	PRINTF("# size\tms\tGFlop/s");
 	if (bound)
-		PRINTF("\tTms\tTGFlops");
+		PRINTF("\tTms\tTGFlop/s");
 	PRINTF("\n");
 	PRINTF("%u\t%.0f\t%.1f", n, timing/1000, flop/timing/1000.0f);
 	if (bound)

@@ -54,7 +54,7 @@ for size in `seq 2 $INCR $STOP` ; do
 	for STARPU_SCHED in $STARPU_SCHEDS
 	do
 		export STARPU_SCHED
-		GFLOPS=`$STARPU_LAUNCH ${ROOT}_implicit -size $((size * 960)) -nblocks $size 2> /dev/null | grep -v GFlops | cut -d '	' -f 3`
+		GFLOPS=`$STARPU_LAUNCH ${ROOT}_implicit -size $((size * 960)) -nblocks $size 2> /dev/null | grep -v GFlop/s | cut -d '	' -f 3`
 		[ -n "$GFLOPS" ] || GFLOPS='""'
 		echo -n "	$GFLOPS"
 	done
@@ -69,7 +69,7 @@ set terminal $TERMINAL
 set output "$OUTFILE"
 set key top left
 set xlabel "size"
-set ylabel "GFlops"
+set ylabel "GFlop/s"
 plot \\
 EOF
 

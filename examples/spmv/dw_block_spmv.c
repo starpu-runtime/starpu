@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 	FPRINTF(stderr, "Computation took (in ms)\n");
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 	FPRINTF(stderr, "Flop %e\n", totalflop);
-	FPRINTF(stderr, "GFlops : %2.2f\n", totalflop/timing/1000);
+	FPRINTF(stderr, "GFlop/s : %2.2f\n", totalflop/timing/1000);
 
 	starpu_shutdown();
 
