@@ -526,9 +526,9 @@ int main(int argc, char **argv)
 	PRINTF("# ");
 	if (print_hostname)
 		PRINTF("node\t");
-	PRINTF("x\ty\tz\tms\tGFlops");
+	PRINTF("x\ty\tz\tms\tGFlop/s");
 	if (bound)
-		PRINTF("\tTms\tTGFlops\tTims\tTiGFlops");
+		PRINTF("\tTms\tTGFlop/s\tTims\tTiGFlop/s");
 	PRINTF("\n");
 
 	unsigned sleeps;

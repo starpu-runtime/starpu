@@ -442,7 +442,7 @@ $ gv starpu_non_linear_memset_regression_based.eps
 \image latex starpu_non_linear_memset_regression_based.eps "" width=\textwidth
 
 When the field starpu_task::flops is set (or \ref STARPU_FLOPS is passed to
-starpu_task_insert()), <c>starpu_perfmodel_plot</c> can directly draw a GFlops
+starpu_task_insert()), <c>starpu_perfmodel_plot</c> can directly draw a GFlops/s
 curve, by simply adding the <c>-f</c> option:
 
 \verbatim
@@ -450,7 +450,7 @@ $ starpu_perfmodel_plot -f -s chol_model_11
 \endverbatim
 
 This will however disable displaying the regression model, for which we can not
-compute GFlops.
+compute GFlops/s.
 
 \image html starpu_chol_model_11_type.png
 \image latex starpu_chol_model_11_type.eps "" width=\textwidth
@@ -518,7 +518,7 @@ $ gv starpu_non_linear_memset_regression_based_energy.eps
 \image html starpu_non_linear_memset_regression_based_energy.png
 \image latex starpu_non_linear_memset_regression_based_energy.eps "" width=\textwidth
 
-The <c>-f</c> option can also be used to display the performance in terms of GFlop/s/W, i.e. the efficiency:
+The <c>-f</c> option can also be used to display the performance in terms of GFlops/s/W, i.e. the efficiency:
 
 \verbatim
 $ tools/starpu_perfmodel_plot -f -e -s non_linear_memset_regression_based_energy
@@ -1032,7 +1032,7 @@ TOTAL MSI stats	hit 1622 (66.23 %)	miss 827 (33.77 %)
 $ STARPU_STATS=0 ./examples/cholesky/cholesky_tag
 Computation took (in ms)
 518.16
-Synthetic GFlops : 44.21
+Synthetic GFlop/s : 44.21
 \endverbatim
 
 // TODO: data transfer stats are similar to the ones displayed when

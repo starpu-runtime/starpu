@@ -232,7 +232,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	double flop = (1.0f*nx*nx*nx)/3.0f;
 
-	PRINTF("# size\tms\tGFlops\n");
+	PRINTF("# size\tms\tGFlop/s\n");
 	PRINTF("%u\t%.0f\t%.1f\n", nx, timing/1000, (flop/timing/1000.0f));
 
 	return 0;

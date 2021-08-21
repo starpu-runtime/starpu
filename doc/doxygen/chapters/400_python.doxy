@@ -61,7 +61,7 @@ Setting color of the task to be used in dag.dot.
 \subsubsection flops flops
 (double, default: None)
 
-This can be set to the number of floating points operations that the task will have to achieve. This is useful for easily getting GFlops curves from the function starpu.perfmodel_plot, and for the hypervisor load balancing.
+This can be set to the number of floating points operations that the task will have to achieve. This is useful for easily getting GFlops/s curves from the function starpu.perfmodel_plot, and for the hypervisor load balancing.
 
 \subsubsection perfmodel perfmodel
 (string, default: None)

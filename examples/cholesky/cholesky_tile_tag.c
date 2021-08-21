@@ -215,7 +215,7 @@ static int cholesky_no_stride(void)
 	double timing = end - start;
 
 	double flop = (1.0f*size_p*size_p*size_p)/3.0f;
-	PRINTF("# size\tms\tGFlops\n");
+	PRINTF("# size\tms\tGFlop/s\n");
 	PRINTF("%u\t%.0f\t%.1f\n", size_p, timing/1000, (flop/timing/1000.0f));
 
 	return 0;

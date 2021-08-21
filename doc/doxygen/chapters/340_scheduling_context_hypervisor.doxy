@@ -128,7 +128,7 @@ sc_hypervisor_ctl(sched_ctx_id,
             NULL);
 \endcode
 
-The <b>Gflops rate</b> based strategy resizes the scheduling contexts such that they all finish at the same time.
+The <b>Gflops/s rate</b> based strategy resizes the scheduling contexts such that they all finish at the same time.
 The speed of each of them is computed and once one of them is significantly slower the resizing process is triggered.
 In order to do these computations users have to input the total number of instructions needed to be executed by the
 parallel kernels and the number of instruction to be executed by each
@@ -162,7 +162,7 @@ starpu_task_insert(&codelet,
 \endcode
 
 The <b>Feft</b> strategy uses a linear program to predict the best distribution of resources
-such that the application finishes in a minimum amount of time. As for the <b>Gflops rate </b>
+such that the application finishes in a minimum amount of time. As for the <b>Gflops/s rate </b>
 strategy the programmers has to indicate the total number of flops to be executed
 when registering the context. This number of flops may be updated dynamically during the execution
 of the application whenever this information is not very accurate from the beginning.

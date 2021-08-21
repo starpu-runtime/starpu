@@ -404,7 +404,7 @@ int main(int argc, char **argv)
 
 			unsigned n = size;
 			double flop = (2.0f*n*n*n)/3.0f;
-			FPRINTF(stderr, "Synthetic GFlops (TOTAL) : \n");
+			FPRINTF(stderr, "Synthetic GFlop/s (TOTAL) : \n");
 			FPRINTF(stdout, "%u	%6.2f\n", n, (flop/timing/1000.0f));
 		}
 	}

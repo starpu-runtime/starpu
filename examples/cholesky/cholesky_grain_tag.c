@@ -323,7 +323,7 @@ int cholesky_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks, un
 
 	double flop = (1.0f*size*size*size)/3.0f;
 
-	PRINTF("# size\tms\tGFlops\n");
+	PRINTF("# size\tms\tGFlop/s\n");
 	PRINTF("%u\t%.0f\t%.1f\n", size, timing/1000, (flop/timing/1000.0f));
 
 	return ret;
