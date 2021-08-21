@@ -524,7 +524,8 @@ void starpu_shutdown(void);
 void starpu_pause(void);
 /**
    Symmetrical call to starpu_pause(), used to resume the workers
-   polling for new tasks.
+   polling for new tasks. This would be typically called only once
+   having submitted all tasks.
 */
 void starpu_resume(void);
 
