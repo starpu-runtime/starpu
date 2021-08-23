@@ -52,13 +52,8 @@ static void _starpu_mpi_add_sync_point_in_fxt(void)
 	{
 		/* We generate a "unique" key so that we can make sure that different
 		* FxT traces come from the same MPI run. */
-		/* XXX perhaps we don't want to generate a new seed if the application
-		* specified some reproductible behaviour ? */
 		if (rank == 0)
-		{
-			srand(time(NULL));
-			fxt_random_number = rand();
-		}
+			fxt_random_number = time(NULL);
 
 		_STARPU_MPI_DEBUG(3, "unique key %x\n", fxt_random_number);
 
