@@ -1829,11 +1829,12 @@ AC_ARG_ENABLE(full-gdb-information, [AS_HELP_STRING([--disable-full-gdb-informat
 AC_MSG_RESULT($enable_full_gdb_information)
 if test x$enable_gdb = xyes; then
 	if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
-		CFLAGS+=" -gdwarf-2 -g3"
-		CXXFLAGS+=" -gdwarf-2 -g3"
-		FFLAGS+=" -gdwarf-2 -g3"
-		FCFLAGS+=" -gdwarf-2 -g3"
-		LDFLAGS+=" -gdwarf-2 -g3"
+	   	IS_SUPPORTED_FLAG(-gdwarf-2)
+		CFLAGS+=" -g3"
+		CXXFLAGS+=" -g3"
+		FFLAGS+=" -g3"
+		FCFLAGS+=" -g3"
+		LDFLAGS+=" -g3"
 	else
 		CFLAGS+=" -g "
 		CXXFLAGS+=" -g "
