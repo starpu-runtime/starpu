@@ -161,7 +161,7 @@ static int handle_to_datatype_ndim(starpu_data_handle_t data_handle, unsigned no
 
 		ret = MPI_Type_commit(&datatype_ndlayer);
 		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
-		
+
 		MPI_Datatype oldtype = datatype_ndlayer, newtype;
 		unsigned i;
 		for (i = 2; i < ndim; i++)

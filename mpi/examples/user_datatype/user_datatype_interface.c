@@ -91,6 +91,7 @@ int main(int argc, char **argv)
 	starpu_data_unregister(my_handle2);
 	starpu_data_unregister(my_handle3);
 
+	starpu_my_data_shutdown();
 	starpu_mpi_shutdown();
 
 	return 0;
