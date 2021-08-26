@@ -99,7 +99,9 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 
 		/* check the content of the block */
-		starpu_data_acquire(block_handle, STARPU_R);
+		ret = starpu_data_acquire(block_handle, STARPU_R);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+
 		unsigned i, j, k;
 		for (k = 0; k < SIZE; k++)
 		for (j = 0; j < SIZE; j++)
@@ -133,7 +135,6 @@ int main(int argc, char **argv)
 
 		ret = starpu_mpi_send(block_handle, 0, 0x1337, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
-
 	}
 
 	if (rank == 0 || rank == 1)

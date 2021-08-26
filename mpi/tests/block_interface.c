@@ -89,10 +89,11 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
+		MPI_Status status;
+
 		ret = starpu_mpi_send(block_handle, 1, 0x42, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 
-		MPI_Status status;
 		ret = starpu_mpi_recv(block_handle, 1, 0x1337, MPI_COMM_WORLD, &status);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 
@@ -113,6 +114,7 @@ int main(int argc, char **argv)
 	else if (rank == 1)
 	{
 		MPI_Status status;
+
 		ret = starpu_mpi_recv(block_handle, 0, 0x42, MPI_COMM_WORLD, &status);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 
@@ -134,14 +136,15 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 	}
 
-	FPRINTF(stdout, "Rank %d is done\n", rank);
-	fflush(stdout);
-
 	if (rank == 0 || rank == 1)
 	{
 		starpu_data_unregister(block_handle);
 		free(block);
 	}
+
+	FPRINTF(stdout, "Rank %d is done\n", rank);
+	fflush(stdout);
+
 	starpu_mpi_shutdown();
 
 	if (!mpi_init)
