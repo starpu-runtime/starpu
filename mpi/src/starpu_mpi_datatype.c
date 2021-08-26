@@ -411,10 +411,10 @@ static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INT
 #ifndef DYNAMIC_MATRICES
 	[STARPU_MATRIX_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 #endif
-	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
-	[STARPU_TENSOR_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
+	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
+	[STARPU_TENSOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
-	[STARPU_NDIM_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
+	[STARPU_NDIM_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
