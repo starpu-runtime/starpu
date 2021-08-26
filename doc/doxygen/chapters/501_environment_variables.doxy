@@ -440,6 +440,12 @@ equipped with 4 Maxeler FPGAs, setting <c>STARPU_WORKERS_MAX_FPGAID = "1 3"</c> 
 they should use Maxeler FPGA devices #1 and #3 (the logical ordering of the devices is
 the one reported by the Maxeler stack).
 
+<dt>STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY
+Disable asynchronous copies between CPU and Maxeler FPGA devices.
+</dd>
 
 \subsection mpimsWorkers MPI Master Slave Workers
 <dl>

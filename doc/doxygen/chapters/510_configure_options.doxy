@@ -359,6 +359,13 @@ it is therefore necessary to disable asynchronous data transfers.
 Disable asynchronous copies between CPU and MPI Slave devices.
 </dd>
 
+<dt>--disable-asynchronous-fpga-copy</dt>
+<dd>
+\anchor disable-asynchronous-fpga-copy
+\addindex __configure__--disable-asynchronous-fpga-copy
+Disable asynchronous copies between CPU and Maxeler FPGA devices.
+</dd>
+
 <dt>--enable-maxnodes=<c>count</c></dt>
 <dd>
 \anchor enable-maxnodes
