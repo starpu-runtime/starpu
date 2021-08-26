@@ -29,158 +29,152 @@
 
 int main(int argc, char **argv)
 {
-    int ret, rank, size;
-    int mpi_init;
+	int ret, rank, size;
+	int mpi_init;
 
-    MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
+	MPI_INIT_THREAD(&argc, &argv, MPI_THREAD_SERIALIZED, &mpi_init);
 
-    ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
-    STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
+	ret = starpu_mpi_init_conf(&argc, &argv, mpi_init, MPI_COMM_WORLD, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
-    starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-    starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
-    if (size < 2)
-    {
-        if (rank == 0)
-            FPRINTF(stderr, "We need at least 2 processes.\n");
+	if (size < 2)
+	{
+		if (rank == 0)
+			FPRINTF(stderr, "We need at least 2 processes.\n");
 
-        starpu_mpi_shutdown();
-        if (!mpi_init)
-            MPI_Finalize();
-        return STARPU_TEST_SKIPPED;
-    }
+		starpu_mpi_shutdown();
+		if (!mpi_init)
+			MPI_Finalize();
+		return STARPU_TEST_SKIPPED;
+	}
 
-    /* Node 0 will allocate a big 4-dim array and only register an inner part of
-     * it as the 4-dim array, Node 1 will allocate a 4-dim array of small size and
-     * register it directly. Node 0 and 1 will then exchange the content of
-     * their arrays. */
+	/* Node 0 will allocate a big 4-dim array and only register an inner part of
+	 * it as the 4-dim array, Node 1 will allocate a 4-dim array of small size and
+	 * register it directly. Node 0 and 1 will then exchange the content of
+	 * their arrays. */
 
-    int *arr4d = NULL;
-    starpu_data_handle_t arr4d_handle = NULL;
+	int *arr4d = NULL;
+	starpu_data_handle_t arr4d_handle = NULL;
 
-    if (rank == 0)
-    {
-        arr4d = calloc(BIGSIZE*BIGSIZE*BIGSIZE*BIGSIZE, sizeof(int));
-        assert(arr4d);
+	if (rank == 0)
+	{
+		arr4d = calloc(BIGSIZE*BIGSIZE*BIGSIZE*BIGSIZE, sizeof(int));
+		assert(arr4d);
 
-        /* fill the inner 4-dim array */
-        unsigned i, j, k, l;
-        int n = 0;
-        for (l = 0; l < SIZE; l++)
-        {
-            for (k = 0; k < SIZE; k++)
-            {
-                for (j = 0; j < SIZE; j++)
-                {
-                    for (i = 0; i < SIZE; i++)
-                    {
-                        arr4d[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE + l*BIGSIZE*BIGSIZE*BIGSIZE] = n++;
-                    }
-                }
-            }
-        
-        }
-        
+		/* fill the inner 4-dim array */
+		unsigned i, j, k, l;
+		int n = 0;
+		for (l = 0; l < SIZE; l++)
+		{
+			for (k = 0; k < SIZE; k++)
+			{
+				for (j = 0; j < SIZE; j++)
+				{
+					for (i = 0; i < SIZE; i++)
+					{
+						arr4d[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE + l*BIGSIZE*BIGSIZE*BIGSIZE] = n++;
+					}
+				}
+			}
+		}
 
-        unsigned nn[4] = {SIZE, SIZE, SIZE, SIZE};
-        unsigned ldn[4] = {1, BIGSIZE, BIGSIZE*BIGSIZE, BIGSIZE*BIGSIZE*BIGSIZE};
+		unsigned nn[4] = {SIZE, SIZE, SIZE, SIZE};
+		unsigned ldn[4] = {1, BIGSIZE, BIGSIZE*BIGSIZE, BIGSIZE*BIGSIZE*BIGSIZE};
 
-        starpu_ndim_data_register(&arr4d_handle, STARPU_MAIN_RAM, (uintptr_t)arr4d, ldn, nn, 4, sizeof(int));
-    }
-    else if (rank == 1)
-    {
-        arr4d = calloc(SIZE*SIZE*SIZE*SIZE, sizeof(int));
-        assert(arr4d);
+		starpu_ndim_data_register(&arr4d_handle, STARPU_MAIN_RAM, (uintptr_t)arr4d, ldn, nn, 4, sizeof(int));
+	}
+	else if (rank == 1)
+	{
+		arr4d = calloc(SIZE*SIZE*SIZE*SIZE, sizeof(int));
+		assert(arr4d);
 
-        unsigned nn[4] = {SIZE, SIZE, SIZE, SIZE};
-        unsigned ldn[4] = {1, SIZE, SIZE*SIZE, SIZE*SIZE*SIZE};
+		unsigned nn[4] = {SIZE, SIZE, SIZE, SIZE};
+		unsigned ldn[4] = {1, SIZE, SIZE*SIZE, SIZE*SIZE*SIZE};
 
-        starpu_ndim_data_register(&arr4d_handle, STARPU_MAIN_RAM, (uintptr_t)arr4d, ldn, nn, 4, sizeof(int));
-    }
+		starpu_ndim_data_register(&arr4d_handle, STARPU_MAIN_RAM, (uintptr_t)arr4d, ldn, nn, 4, sizeof(int));
+	}
 
-    if (rank == 0)
-    {
-        ret = starpu_mpi_send(arr4d_handle, 1, 0x42, MPI_COMM_WORLD);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+	if (rank == 0)
+	{
+		ret = starpu_mpi_send(arr4d_handle, 1, 0x42, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+		
+		MPI_Status status;
+		ret = starpu_mpi_recv(arr4d_handle, 1, 0x1337, MPI_COMM_WORLD, &status);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 
-        MPI_Status status;
-        ret = starpu_mpi_recv(arr4d_handle, 1, 0x1337, MPI_COMM_WORLD, &status);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+		/* check the content of the 4-dim array */
+		ret = starpu_data_acquire(arr4d_handle, STARPU_R);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
-        /* check the content of the 4-dim array */
-        ret = starpu_data_acquire(arr4d_handle, STARPU_R);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+		int m = 10;
+		unsigned i, j, k, l;
+		for (l = 0; l < SIZE; l++)
+		{
+			for (k = 0; k < SIZE; k++)
+			{
+				for (j = 0; j < SIZE; j++)
+				{
+					for (i = 0; i < SIZE; i++)
+					{
+						assert(arr4d[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE + l*BIGSIZE*BIGSIZE*BIGSIZE] == m);
+						m++;
+					}
+				}
+			}
+		}
 
-        int m = 10;
-        unsigned i, j, k, l;
-        for (l = 0; l < SIZE; l++)
-        {
-            for (k = 0; k < SIZE; k++)
-            {
-                for (j = 0; j < SIZE; j++)
-                {
-                    for (i = 0; i < SIZE; i++)
-                    {
-                        assert(arr4d[i + j*BIGSIZE + k*BIGSIZE*BIGSIZE + l*BIGSIZE*BIGSIZE*BIGSIZE] == m);
-                        m++;
-                    }
-                }
-            }
-        
-        }
-        
-        starpu_data_release(arr4d_handle);
+		starpu_data_release(arr4d_handle);
+	}
+	else if (rank == 1)
+	{
+		MPI_Status status;
+		ret = starpu_mpi_recv(arr4d_handle, 0, 0x42, MPI_COMM_WORLD, &status);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 
-    }
-    else if (rank == 1)
-    {
-        MPI_Status status;
-        ret = starpu_mpi_recv(arr4d_handle, 0, 0x42, MPI_COMM_WORLD, &status);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+		/* check the content of the 4-dim array and modify it */
+		ret = starpu_data_acquire(arr4d_handle, STARPU_RW);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 
-        /* check the content of the 4-dim array and modify it */
-        ret = starpu_data_acquire(arr4d_handle, STARPU_RW);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
+		int n = 0, m = 10;
+		unsigned i, j, k, l;
+		for (l = 0; l < SIZE; l++)
+		{
+			for (k = 0; k < SIZE; k++)
+			{
+				for (j = 0; j < SIZE; j++)
+				{
+					for (i = 0; i < SIZE; i++)
+					{
+						assert(arr4d[i + j*SIZE + k*SIZE*SIZE + l*SIZE*SIZE*SIZE] == n);
+						n++;
+						arr4d[i + j*SIZE + k*SIZE*SIZE + l*SIZE*SIZE*SIZE] = m++;
+					}
+				}
+			}
+		}
 
-        int n = 0, m = 10;
-        unsigned i, j, k, l;
-        for (l = 0; l < SIZE; l++)
-        {
-            for (k = 0; k < SIZE; k++)
-            {
-                for (j = 0; j < SIZE; j++)
-                {
-                    for (i = 0; i < SIZE; i++)
-                    {
-                        assert(arr4d[i + j*SIZE + k*SIZE*SIZE + l*SIZE*SIZE*SIZE] == n);
-                        n++;
-                        arr4d[i + j*SIZE + k*SIZE*SIZE + l*SIZE*SIZE*SIZE] = m++;
-                    }
-                }
-        
-            }
-        
-        }
-        
-        starpu_data_release(arr4d_handle);
+		starpu_data_release(arr4d_handle);
 
-        ret = starpu_mpi_send(arr4d_handle, 0, 0x1337, MPI_COMM_WORLD);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
-    }
+		ret = starpu_mpi_send(arr4d_handle, 0, 0x1337, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+	}
 
-    FPRINTF(stdout, "Rank %d is done\n", rank);
-    fflush(stdout);
+	FPRINTF(stdout, "Rank %d is done\n", rank);
+	fflush(stdout);
 
-    if (rank == 0 || rank == 1)
-    {
-        starpu_data_unregister(arr4d_handle);
-        free(arr4d);
-    }
-    starpu_mpi_shutdown();
+	if (rank == 0 || rank == 1)
+	{
+		starpu_data_unregister(arr4d_handle);
+		free(arr4d);
+	}
+	starpu_mpi_shutdown();
 
-    if (!mpi_init)
-        MPI_Finalize();
+	if (!mpi_init)
+		MPI_Finalize();
 
-    return 0;
+	return 0;
 }
