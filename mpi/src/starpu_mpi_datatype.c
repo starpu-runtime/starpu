@@ -93,6 +93,9 @@ static int handle_to_datatype_block(starpu_data_handle_t data_handle, unsigned n
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 
+	ret = MPI_Type_free(&datatype_2dlayer);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
+
 	return 0;
 }
 
@@ -135,6 +138,12 @@ static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, unsigned 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 
+	ret = MPI_Type_free(&datatype_3dlayer);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
+
+	ret = MPI_Type_free(&datatype_2dlayer);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
+
 	return 0;
 }
 
@@ -171,6 +180,9 @@ static int handle_to_datatype_ndim(starpu_data_handle_t data_handle, unsigned no
 
 			ret = MPI_Type_commit(&newtype);
 			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+			ret = MPI_Type_free(&oldtype);
+			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
 
 			oldtype = newtype;
 		}
@@ -360,7 +372,8 @@ void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _sta
 
 static void _starpu_mpi_handle_free_simple_datatype(MPI_Datatype *datatype)
 {
-	MPI_Type_free(datatype);
+	int ret = MPI_Type_free(datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
 }
 
 static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
@@ -373,7 +386,7 @@ static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 		int *array_of_ints;
 		MPI_Aint *array_of_adds;
 		MPI_Datatype *array_of_datatypes;
-		int i;
+		int i, ret;
 
 		_STARPU_MPI_MALLOC(array_of_ints, num_ints * sizeof(int));
 		_STARPU_MPI_MALLOC(array_of_adds, num_adds * sizeof(MPI_Aint));
@@ -384,7 +397,9 @@ static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
 		{
 			_starpu_mpi_handle_free_complex_datatype(&array_of_datatypes[i]);
 		}
-		MPI_Type_free(datatype);
+		ret = MPI_Type_free(datatype);
+		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
+
 		free(array_of_ints);
 		free(array_of_adds);
 		free(array_of_datatypes);
