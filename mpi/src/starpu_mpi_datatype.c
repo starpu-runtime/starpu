@@ -84,9 +84,6 @@ static int handle_to_datatype_block(starpu_data_handle_t data_handle, unsigned n
 	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
-	ret = MPI_Type_commit(&datatype_2dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
-
 	ret = MPI_Type_create_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
 
@@ -122,15 +119,9 @@ static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, unsigned 
 	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_3dlayer);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
-	ret = MPI_Type_commit(&datatype_3dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
-
 	MPI_Datatype datatype_2dlayer;
 	ret = MPI_Type_create_hvector(nz, 1, ldz*elemsize, datatype_3dlayer, &datatype_2dlayer);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
-
-	ret = MPI_Type_commit(&datatype_2dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 
 	ret = MPI_Type_create_hvector(nt, 1, ldt*elemsize, datatype_2dlayer, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
@@ -168,18 +159,12 @@ static int handle_to_datatype_ndim(starpu_data_handle_t data_handle, unsigned no
 		ret = MPI_Type_vector(nn[1], nn[0]*elemsize, ldn[1]*elemsize, MPI_BYTE, &datatype_ndlayer);
 		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
-		ret = MPI_Type_commit(&datatype_ndlayer);
-		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
-
 		MPI_Datatype oldtype = datatype_ndlayer, newtype;
 		unsigned i;
 		for (i = 2; i < ndim; i++)
 		{
 			ret = MPI_Type_create_hvector(nn[i], 1, ldn[i]*elemsize, oldtype, &newtype);
 			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
-
-			ret = MPI_Type_commit(&newtype);
-			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 
 			ret = MPI_Type_free(&oldtype);
 			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
@@ -192,11 +177,10 @@ static int handle_to_datatype_ndim(starpu_data_handle_t data_handle, unsigned no
 	{
 		ret = MPI_Type_contiguous(nn[0]*elemsize, MPI_BYTE, datatype);
 		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
-
-		ret = MPI_Type_commit(datatype);
-		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 	}
 
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 	return 0;
 }
 
@@ -374,36 +358,6 @@ static void _starpu_mpi_handle_free_simple_datatype(MPI_Datatype *datatype)
 {
 	int ret = MPI_Type_free(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
-}
-
-static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
-{
-	int num_ints, num_adds, num_datatypes, combiner;
-
-	MPI_Type_get_envelope(*datatype, &num_ints, &num_adds, &num_datatypes, &combiner);
-	if (combiner != MPI_COMBINER_NAMED)
-	{
-		int *array_of_ints;
-		MPI_Aint *array_of_adds;
-		MPI_Datatype *array_of_datatypes;
-		int i, ret;
-
-		_STARPU_MPI_MALLOC(array_of_ints, num_ints * sizeof(int));
-		_STARPU_MPI_MALLOC(array_of_adds, num_adds * sizeof(MPI_Aint));
-		_STARPU_MPI_MALLOC(array_of_datatypes, num_datatypes * sizeof(MPI_Datatype));
-
-		MPI_Type_get_contents(*datatype, num_ints, num_adds, num_datatypes, array_of_ints, array_of_adds, array_of_datatypes);
-		for(i=0 ; i<num_datatypes ; i++)
-		{
-			_starpu_mpi_handle_free_complex_datatype(&array_of_datatypes[i]);
-		}
-		ret = MPI_Type_free(datatype);
-		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
-
-		free(array_of_ints);
-		free(array_of_adds);
-		free(array_of_datatypes);
-	}
 }
 
 static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
