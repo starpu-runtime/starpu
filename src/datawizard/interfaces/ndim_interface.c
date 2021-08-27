@@ -120,7 +120,8 @@ static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node
             local_interface->offset = ndim_interface->offset;
             uint32_t* ldn_org = ndim_interface->ldn;
             uint32_t* ldn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
-            memcpy(ldn_cpy, ldn_org, ndim*sizeof(uint32_t));
+            if (ndim)
+                memcpy(ldn_cpy, ldn_org, ndim*sizeof(uint32_t));
             local_interface->ldn = ldn_cpy;
         }
         else
@@ -135,7 +136,8 @@ static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node
         local_interface->id = ndim_interface->id;
         uint32_t* nn_org = ndim_interface->nn;
         uint32_t* nn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
-        memcpy(nn_cpy, nn_org, ndim*sizeof(uint32_t));
+        if (ndim)
+            memcpy(nn_cpy, nn_org, ndim*sizeof(uint32_t));
         local_interface->nn = nn_cpy;
         local_interface->ndim = ndim_interface->ndim;
         local_interface->elemsize = ndim_interface->elemsize;
@@ -214,7 +216,8 @@ void starpu_ndim_ptr_register(starpu_data_handle_t handle, unsigned node,
     ndim_interface->ptr = ptr;
     ndim_interface->dev_handle = dev_handle;
     ndim_interface->offset = offset;
-    memcpy(ndim_interface->ldn, ldn, ndim_interface->ndim*sizeof(uint32_t));
+    if (ndim_interface->ndim)
+        memcpy(ndim_interface->ldn, ldn, ndim_interface->ndim*sizeof(uint32_t));
 }
 
 static uint32_t footprint_ndim_interface_crc32(starpu_data_handle_t handle)
