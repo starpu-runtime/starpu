@@ -68,6 +68,8 @@
 #endif
 
 
+static int asynchronous_copy_disabled[STARPU_MAX_RAM+1];
+
 /* global knobs */
 static int __g_calibrate_knob;
 static int __g_enable_catch_signal_knob;
@@ -1278,11 +1280,20 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	}
 #endif
 	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker, conf->precedence_over_environment_variables);
+
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY", &conf->disable_asynchronous_max_fpga_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->precedence_over_environment_variables);
+
+	asynchronous_copy_disabled[STARPU_CPU_RAM] = 0;
+	asynchronous_copy_disabled[STARPU_CUDA_RAM] = conf->disable_asynchronous_cuda_copy;
+	asynchronous_copy_disabled[STARPU_OPENCL_RAM] = conf->disable_asynchronous_opencl_copy;
+	asynchronous_copy_disabled[STARPU_MAX_FPGA_RAM] = conf->disable_asynchronous_max_fpga_copy;
+	asynchronous_copy_disabled[STARPU_DISK_RAM] = 0;
+	asynchronous_copy_disabled[STARPU_MPI_MS_RAM] = conf->disable_asynchronous_mpi_ms_copy;
+
 	_starpu_conf_set_value_against_environment("STARPU_MIN_PRIO", &conf->global_sched_ctx_min_priority, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_MAX_PRIO", &conf->global_sched_ctx_max_priority, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_CATCH_SIGNALS", &conf->catch_signals, conf->precedence_over_environment_variables);
@@ -2278,6 +2289,11 @@ int starpu_asynchronous_max_fpga_copy_disabled(void)
 int starpu_asynchronous_mpi_ms_copy_disabled(void)
 {
         return _starpu_config.conf.disable_asynchronous_mpi_ms_copy;
+}
+
+int starpu_asynchronous_copy_disabled_for(enum starpu_node_kind kind)
+{
+	return asynchronous_copy_disabled[kind];
 }
 
 unsigned starpu_mpi_ms_worker_get_count(void)

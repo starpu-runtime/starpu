@@ -666,6 +666,12 @@ int starpu_asynchronous_max_fpga_copy_disabled(void);
 int starpu_asynchronous_mpi_ms_copy_disabled(void);
 
 /**
+   Return 1 if asynchronous data transfers with a given kind of memory
+   are disabled.
+*/
+int starpu_asynchronous_copy_disabled_for(enum starpu_node_kind kind);
+
+/**
    Call starpu_profiling_bus_helper_display_summary() and
    starpu_profiling_worker_helper_display_summary()
  */
