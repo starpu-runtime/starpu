@@ -164,25 +164,17 @@ int _starpu_mpi_copy_interface_from_mpi_to_cpu(starpu_data_handle_t handle, void
 
 	int ret = 0;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !(copy_methods->mpi_ms_to_ram_async || copy_methods->any_to_any))
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !copy_methods->any_to_any)
 	{
 		/* this is not associated to a request so it's synchronous */
-		STARPU_ASSERT(copy_methods->mpi_ms_to_ram || copy_methods->any_to_any);
-		if (copy_methods->mpi_ms_to_ram)
-			copy_methods->mpi_ms_to_ram(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		STARPU_ASSERT(copy_methods->any_to_any);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 	}
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_mpi_node_ops;
-		if(copy_methods->mpi_ms_to_ram_async)
-			ret = copy_methods->mpi_ms_to_ram_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-		else
-		{
-			STARPU_ASSERT(copy_methods->any_to_any);
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-		}
+		STARPU_ASSERT(copy_methods->any_to_any);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 	}
 	return ret;
 }
@@ -196,25 +188,17 @@ int _starpu_mpi_copy_interface_from_mpi_to_mpi(starpu_data_handle_t handle, void
 	int ret = 0;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 
-	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !(copy_methods->mpi_ms_to_mpi_ms_async || copy_methods->any_to_any))
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !copy_methods->any_to_any)
 	{
 		/* this is not associated to a request so it's synchronous */
-		STARPU_ASSERT(copy_methods->mpi_ms_to_mpi_ms || copy_methods->any_to_any);
-		if (copy_methods->mpi_ms_to_mpi_ms)
-			copy_methods->mpi_ms_to_mpi_ms(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		STARPU_ASSERT(copy_methods->any_to_any);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 	}
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_mpi_node_ops;
-		if(copy_methods->mpi_ms_to_mpi_ms_async)
-			ret = copy_methods->mpi_ms_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-		else
-		{
-			STARPU_ASSERT(copy_methods->any_to_any);
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-		}
+		STARPU_ASSERT(copy_methods->any_to_any);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 	}
 	return ret;
 }
@@ -228,25 +212,17 @@ int _starpu_mpi_copy_interface_from_cpu_to_mpi(starpu_data_handle_t handle, void
 	int ret = 0;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 
-	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !(copy_methods->ram_to_mpi_ms_async || copy_methods->any_to_any))
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_mpi_ms_copy_disabled() || !copy_methods->any_to_any)
 	{
 		/* this is not associated to a request so it's synchronous */
-		STARPU_ASSERT(copy_methods->ram_to_mpi_ms || copy_methods->any_to_any);
-		if (copy_methods->ram_to_mpi_ms)
-			copy_methods->ram_to_mpi_ms(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		STARPU_ASSERT(copy_methods->any_to_any);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 	}
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_mpi_node_ops;
-		if(copy_methods->ram_to_mpi_ms_async)
-			ret = copy_methods->ram_to_mpi_ms_async(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-		else
-		{
-			STARPU_ASSERT(copy_methods->any_to_any);
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-		}
+		STARPU_ASSERT(copy_methods->any_to_any);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 	}
 	return ret;
 }

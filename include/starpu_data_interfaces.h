@@ -163,27 +163,6 @@ struct starpu_data_copy_methods
 	*/
 	int (*max_fpga_to_ram)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
 
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node CPU node to the \p dst_interface interface on the \p
-	   dst_node MPI Slave node. Return 0 on success.
-	*/
-	int (*ram_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MPI Slave node to the \p dst_interface interface on
-	   the \p dst_node CPU node. Return 0 on success.
-	*/
-	int (*mpi_ms_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MPI Slave node to the \p dst_interface interface on
-	   the \p dst_node MPI Slave node. Return 0 on success.
-	*/
-	int (*mpi_ms_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
 #ifdef STARPU_USE_CUDA
 	/**
 	   Define how to copy data from the \p src_interface interface on the
@@ -276,36 +255,6 @@ struct starpu_data_copy_methods
 	   core.
 	*/
 	int (*max_fpga_to_ram_async)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node CPU node to the \p dst_interface interface on the \p
-	   dst_node MPI Slave node, with the given even. Must return 0 if the
-	   transfer was actually completed completely synchronously, or
-	   <c>-EAGAIN</c> if at least some transfers are still ongoing and
-	   should be awaited for by the core.
-	*/
-	int (*ram_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MPI Slave node to the \p dst_interface interface on
-	   the \p dst_node CPU node, with the given event. Must return 0 if
-	   the transfer was actually completed completely synchronously, or
-	   <c>-EAGAIN</c> if at least some transfers are still ongoing and
-	   should be awaited for by the core.
-	*/
-	int (*mpi_ms_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MPI Slave node to the \p dst_interface interface on
-	   the \p dst_node MPI Slave node, using the given stream. Must
-	   return 0 if the transfer was actually completed completely
-	   synchronously, or <c>-EAGAIN</c> if at least some transfers are
-	   still ongoing and should be awaited for by the core.
-	*/
-	int (*mpi_ms_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
