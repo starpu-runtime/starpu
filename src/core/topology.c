@@ -2701,7 +2701,7 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 				{
 					mpi_init[devid] = 1;
 					mpi_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-					memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid, &_starpu_driver_mpi_node_ops);
+					memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid, &_starpu_driver_mpi_ms_node_ops);
 
 					for (numa = 0; numa < nb_numa_nodes; numa++)
 					{

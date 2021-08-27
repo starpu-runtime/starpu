@@ -39,6 +39,25 @@
 #include <core/simgrid.h>
 #endif
 
+struct _starpu_node_ops *_starpu_copy_node_ops[STARPU_MAX_RAM+1] = {
+#ifdef STARPU_USE_CPU
+	[STARPU_CPU_RAM] = &_starpu_driver_cpu_node_ops,
+#endif
+#ifdef STARPU_USE_CUDA
+	[STARPU_CUDA_RAM] = &_starpu_driver_cuda_node_ops,
+#endif
+#ifdef STARPU_USE_OPENCL
+	[STARPU_OPENCL_RAM] = &_starpu_driver_opencl_node_ops,
+#endif
+#ifdef STARPU_USE_MAX_FPGA
+	[STARPU_MAX_FPGA_RAM] = &_starpu_driver_max_fpga_node_ops,
+#endif
+	[STARPU_DISK_RAM] = &_starpu_driver_disk_node_ops,
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	[STARPU_MPI_MS_RAM] = &_starpu_driver_mpi_ms_node_ops,
+#endif
+};
+
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all workers on that memory node */
@@ -141,6 +160,35 @@ void starpu_wake_all_blocked_workers(void)
  * per communication */
 static unsigned long communication_cnt = 0;
 #endif
+
+int _starpu_copy_interface_any_to_any(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+
+	if (!req || starpu_asynchronous_copy_disabled() ||
+		    starpu_asynchronous_copy_disabled_for(src_kind) ||
+		    starpu_asynchronous_copy_disabled_for(dst_kind) ||
+		    !copy_methods->any_to_any)
+	{
+		/* this is not associated to a request so it's synchronous */
+		STARPU_ASSERT(copy_methods->any_to_any);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+	}
+	else
+	{
+		if (dst_kind == STARPU_CPU_RAM)
+			req->async_channel.node_ops = _starpu_copy_node_ops[src_kind];
+		else
+			req->async_channel.node_ops = _starpu_copy_node_ops[dst_kind];
+		STARPU_ASSERT(copy_methods->any_to_any);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
+	}
+	return ret;
+}
 
 static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 				    struct _starpu_data_replicate *src_replicate,

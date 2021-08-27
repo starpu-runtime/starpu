@@ -27,7 +27,7 @@
 void _starpu_mpi_ms_preinit(void);
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-extern struct _starpu_node_ops _starpu_driver_mpi_node_ops;
+extern struct _starpu_node_ops _starpu_driver_mpi_ms_node_ops;
 
 /** Array of structures containing all the informations useful to send
  * and receive informations with devices */
