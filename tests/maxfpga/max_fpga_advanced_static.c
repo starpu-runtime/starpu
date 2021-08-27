@@ -51,7 +51,8 @@ void fpga_impl(void *buffers[], void *cl_arg)
 	printf("Loading DFE memory.\n");
 
 	/* C = A+B */
-	MyTasks_interfaceT1_actions_t actT1 = {
+	MyTasks_interfaceT1_actions_t actT1 =
+	{
 		.param_N = size,
 		.param_ptrC1 = ptrCT1,
 		.instream_inAT1 = ptrA,
@@ -61,7 +62,8 @@ void fpga_impl(void *buffers[], void *cl_arg)
 	printf("T1 finished\n");
 
 	/* C = A*B */
-	MyTasks_interfaceT2_actions_t actT2 = {
+	MyTasks_interfaceT2_actions_t actT2 =
+	{
 		.param_N = size,
 		.param_ptrA2 = ptrAT2,
 		.param_ptrB2 = ptrBT2,
@@ -71,7 +73,8 @@ void fpga_impl(void *buffers[], void *cl_arg)
 	printf("T2 finished\n");
 
 	/* C = A+B */
-	MyTasks_interfaceT3_actions_t actT3 = {
+	MyTasks_interfaceT3_actions_t actT3 =
+	{
 		.param_N = size,
 		.param_ptrA3 = ptrAT3,
 		.param_ptrB3 = ptrBT3,
@@ -106,7 +109,8 @@ void fpga_impl1(void *buffers[], void *cl_arg)
 
 	printf("T1 with %p %p %zu\n", ptrA, ptrB, ptrC);
 	/* C = A+B */
-	MyTasks_interfaceT1_actions_t act = {
+	MyTasks_interfaceT1_actions_t act =
+	{
 		.param_N = size,
 		.param_ptrC1 = ptrC,
 		.instream_inAT1 = ptrA,
@@ -139,7 +143,8 @@ void fpga_impl2(void *buffers[], void *cl_arg)
 
 	printf("T2 with %zu %zu %zu\n", ptrA, ptrB, ptrC);
 	/* C = A*B */
-	MyTasks_interfaceT2_actions_t act = {
+	MyTasks_interfaceT2_actions_t act =
+	{
 		.param_N = size,
 		.param_ptrA2 = ptrA,
 		.param_ptrB2 = ptrB,
@@ -171,7 +176,8 @@ void fpga_impl3(void *buffers[], void *cl_arg)
 
 	printf("T3 with %zu %zu %p\n", ptrA, ptrB, ptrC);
 	/* C = A+B */
-	MyTasks_interfaceT3_actions_t act = {
+	MyTasks_interfaceT3_actions_t act =
+	{
 		.param_N = size,
 		.param_ptrA3 = ptrA,
 		.param_ptrB3 = ptrB,

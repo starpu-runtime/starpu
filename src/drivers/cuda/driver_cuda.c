@@ -95,7 +95,7 @@ static starpu_pthread_mutex_t cuda_device_init_mutex[STARPU_MAXCUDADEVS];
 static starpu_pthread_cond_t cuda_device_init_cond[STARPU_MAXCUDADEVS];
 
 #ifdef STARPU_USE_CUDA
-static inline cudaEvent_t *_starpu_cuda_event(starpu_async_channel_event_t *_event)
+static inline cudaEvent_t *_starpu_cuda_event(union _starpu_async_channel_event *_event)
 {
 	cudaEvent_t *event;
 	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));

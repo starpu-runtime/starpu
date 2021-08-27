@@ -144,11 +144,14 @@ static void init_device_context(unsigned devid)
 
 	_starpu_max_fpga_limit_max_fpga_mem(devid);
 
-	if (!load) {
+	if (!load)
+	{
 		/* Nothing specified, single-FPGA execution with basic static
                  * interface, file will be auto-loaded by SLiC. */
 		return;
-	} else {
+	}
+	else
+	{
 		unsigned n;
 
 		/* Which load we shall use */

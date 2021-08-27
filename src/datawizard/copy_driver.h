@@ -70,14 +70,14 @@ struct _starpu_disk_event
 
 /** this is a structure that can be queried to see whether an asynchronous
  * transfer has terminated or not */
-typedef union _starpu_async_channel_event
+union _starpu_async_channel_event
 {
 	char data[40];
-} starpu_async_channel_event_t;
+};
 
 struct _starpu_async_channel
 {
-	starpu_async_channel_event_t event;
+	union _starpu_async_channel_event event;
 	struct _starpu_node_ops *node_ops;
         /** Which node to polling when needing ACK msg */
         struct _starpu_mp_node *polling_node_sender;

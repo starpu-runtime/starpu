@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,7 +17,8 @@
 #include <core/workers.h>
 #include <drivers/max/driver_max_fpga.h>
 
-static struct _starpu_driver_info driver_info = {
+static struct _starpu_driver_info driver_info =
+{
 	.name_upper = "FPGA",
 	.name_var = "FPGA",
 	.name_lower = "fpga",
@@ -25,7 +26,8 @@ static struct _starpu_driver_info driver_info = {
 	.alpha = 0.5,
 };
 
-static struct _starpu_memory_driver_info memory_driver_info = {
+static struct _starpu_memory_driver_info memory_driver_info =
+{
 	.name_upper = "FPGA",
 	.worker_archtype = STARPU_MAX_FPGA_WORKER,
 };

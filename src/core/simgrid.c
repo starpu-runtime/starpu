@@ -90,7 +90,7 @@ struct _starpu_simgrid_event
 	unsigned finished;
 	starpu_pthread_queue_t *queue;
 };
-static inline struct _starpu_simgrid_event *_starpu_simgrid_event(starpu_async_channel_event_t *_event)
+static inline struct _starpu_simgrid_event *_starpu_simgrid_event(union _starpu_async_channel_event *_event)
 {
 	struct _starpu_simgrid_event *event;
 	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));

@@ -40,7 +40,7 @@ struct _starpu_mpi_ms_async_event
         struct _starpu_mpi_ms_event_request_list * requests;
 };
 
-static inline struct _starpu_mpi_ms_async_event *_starpu_mpi_ms_async_event(starpu_async_channel_event_t *_event)
+static inline struct _starpu_mpi_ms_async_event *_starpu_mpi_ms_async_event(union _starpu_async_channel_event *_event)
 {
 	struct _starpu_mpi_ms_async_event *event;
 	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));
