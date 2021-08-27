@@ -1367,14 +1367,6 @@ int _starpu_opencl_is_direct_access_supported(unsigned node, unsigned handling_n
 #ifdef STARPU_SIMGRID
 struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 {
-	.copy_interface_to[STARPU_CPU_RAM] = NULL,
-	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
-
-	.copy_data_to[STARPU_CPU_RAM] = NULL,
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-
-	.wait_request_completion = NULL,
-	.test_request_completion = NULL,
 	.is_direct_access_supported = _starpu_opencl_is_direct_access_supported,
 	.malloc_on_node = _starpu_opencl_malloc_on_node,
 	.free_on_node = _starpu_opencl_free_on_node,

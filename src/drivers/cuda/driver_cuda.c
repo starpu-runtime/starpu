@@ -1836,20 +1836,6 @@ struct _starpu_driver_ops _starpu_driver_cuda_ops =
 #ifdef STARPU_SIMGRID
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
-	.copy_interface_to[STARPU_CPU_RAM] = NULL,
-	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
-
-	.copy_data_to[STARPU_CPU_RAM] = NULL,
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-
-	.copy2d_data_to[STARPU_CPU_RAM] = NULL,
-	.copy2d_data_to[STARPU_CUDA_RAM] = NULL,
-
-	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
-	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
-
-	.wait_request_completion = NULL,
-	.test_request_completion = NULL,
 	.is_direct_access_supported = _starpu_cuda_is_direct_access_supported,
 	.malloc_on_node = _starpu_cuda_malloc_on_node,
 	.free_on_node = _starpu_cuda_free_on_node,
@@ -1870,9 +1856,6 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 #if 0
 	.copy3d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cpu,
 	.copy3d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cuda,
-#else
-	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
-	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
 #endif
 
 	.wait_request_completion = _starpu_cuda_wait_request_completion,
