@@ -77,7 +77,8 @@ int starpu_my_data_datatype_allocate(starpu_data_handle_t handle, unsigned node,
 
 void starpu_my_data_datatype_free(MPI_Datatype *mpi_datatype)
 {
-	MPI_Type_free(mpi_datatype);
+	int ret = MPI_Type_free(mpi_datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
 }
 
 int starpu_my_data2_datatype_allocate(starpu_data_handle_t handle, unsigned node, MPI_Datatype *mpi_datatype)
