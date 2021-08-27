@@ -48,6 +48,7 @@ static inline struct _starpu_mpi_ms_async_event *_starpu_mpi_ms_async_event(star
 	return event;
 }
 
+/* This lets the user decide which MPI rank is to be the master. Usually it's just rank 0 */
 static void _starpu_mpi_set_src_node_id()
 {
         int node_id = starpu_get_env_number("STARPU_MPI_MASTER_NODE");
