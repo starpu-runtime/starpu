@@ -29,7 +29,6 @@ static int mpi_initialized = 0;
 static int extern_initialized = 0;
 static int src_node_id;
 
-// TODO: I don't think we need a list: there is only one MPI request per datawizard request
 LIST_TYPE(_starpu_mpi_ms_event_request,
         MPI_Request request;
 );
