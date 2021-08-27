@@ -1540,10 +1540,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
                 initialized = UNINITIALIZED;
                 return -ENODEV;
         }
-
-        /* In MPI case we look at the rank to know if we are a sink */
-        if (!_starpu_mpi_common_is_src_node())
-                setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
 # endif
 
 	/* If StarPU was configured to use MP sinks, we have to control the

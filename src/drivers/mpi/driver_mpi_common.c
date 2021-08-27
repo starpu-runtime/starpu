@@ -115,6 +115,10 @@ int _starpu_mpi_common_mp_init()
         /* Find which node is the master */
         _starpu_mpi_set_src_node_id();
 
+        /* In MPI case we look at the rank to know if we are a sink */
+        if (!_starpu_mpi_common_is_src_node())
+                setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
+
         return 1;
 }
 
