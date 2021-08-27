@@ -63,7 +63,7 @@ advantage of their specificities in a portable fashion.
  * if OpenCL support is enabled
    * AMD SDK >= 2.3 if AMD driver is used
    * CUDA >= 3.2 if NVIDIA driver is used
- * extra requirements for the svn version (we usually use the Debian testing
+ * extra requirements for the git version (we usually use the Debian testing
    versions)
    * autoconf (version >= 2.60)
    * automake
@@ -74,14 +74,6 @@ advantage of their specificities in a portable fashion.
    before installing StarPU. This permits StarPU to actually map the processing
    units according to the machine topology. For more details on hwloc, see
    http://www.open-mpi.org/projects/hwloc/ .
-
- * To build the StarPU-Top tool the following packages (along with
-   their development files) are also required:
-   * libqt4-dev >= 4.7
-   * libqt4-network
-   * libqt4-opengl
-   * libqt4-sql
-   * qt4-qmake
 
 ++=====================++
 || III. Getting StarPU ||
@@ -98,7 +90,7 @@ $ git clone git@gitlab.inria.fr:starpu/starpu.git
 ++=============================++
 
 +---------------------------
-| IV.a. For svn version only
+| IV.a. For git version only
 
 Please skip this step if you are building from a tarball.
 
