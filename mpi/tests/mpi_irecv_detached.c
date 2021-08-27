@@ -80,12 +80,14 @@ int main(int argc, char **argv)
 	{
 		if ((loop % 2) == (rank%2))
 		{
-			starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
+			ret = starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		}
 		else
 		{
 			int received = 0;
-			starpu_mpi_irecv_detached(tab_handle, other_rank, loop, MPI_COMM_WORLD, callback, &received);
+			ret = starpu_mpi_irecv_detached(tab_handle, other_rank, loop, MPI_COMM_WORLD, callback, &received);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 
 			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 			while (!received)

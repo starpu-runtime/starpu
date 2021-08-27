@@ -60,6 +60,7 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 	double t1, t2, global_tstart, global_tend;
 	double* lats = malloc(sizeof(double) * LOOPS_DEFAULT);
 	starpu_mpi_req send_req, recv_req;
+	int ret;
 
 	if (thread_barrier != NULL)
 	{
@@ -88,15 +89,21 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 				t1 = starpu_timing_now();
 				if (bidir)
 				{
-					starpu_mpi_isend(handle_send, &send_req, 1, 0, MPI_COMM_WORLD);
-					starpu_mpi_irecv(handle_recv, &recv_req, 1, 1, MPI_COMM_WORLD);
-					starpu_mpi_wait(&send_req, MPI_STATUS_IGNORE);
-					starpu_mpi_wait(&recv_req, MPI_STATUS_IGNORE);
+					ret = starpu_mpi_isend(handle_send, &send_req, 1, 0, MPI_COMM_WORLD);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
+					ret = starpu_mpi_irecv(handle_recv, &recv_req, 1, 1, MPI_COMM_WORLD);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
+					ret = starpu_mpi_wait(&send_req, MPI_STATUS_IGNORE);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
+					ret = starpu_mpi_wait(&recv_req, MPI_STATUS_IGNORE);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 				}
 				else
 				{
-					starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
-					starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+					ret = starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+					ret = starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 				}
 				t2 = starpu_timing_now();
 
@@ -108,15 +115,21 @@ void sendrecv_bench(int mpi_rank, starpu_pthread_barrier_t* thread_barrier, int 
 			{
 				if (bidir)
 				{
-					starpu_mpi_irecv(handle_recv, &recv_req, 0, 0, MPI_COMM_WORLD);
-					starpu_mpi_isend(handle_send, &send_req, 0, 1, MPI_COMM_WORLD);
-					starpu_mpi_wait(&recv_req, MPI_STATUS_IGNORE);
-					starpu_mpi_wait(&send_req, MPI_STATUS_IGNORE);
+					ret = starpu_mpi_irecv(handle_recv, &recv_req, 0, 0, MPI_COMM_WORLD);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
+					ret = starpu_mpi_isend(handle_send, &send_req, 0, 1, MPI_COMM_WORLD);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
+					ret = starpu_mpi_wait(&recv_req, MPI_STATUS_IGNORE);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
+					ret = starpu_mpi_wait(&send_req, MPI_STATUS_IGNORE);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 				}
 				else
 				{
-					starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-					starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
+					ret = starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+					ret = starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 				}
 			}
 

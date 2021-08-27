@@ -164,7 +164,8 @@ int main(int argc, char *argv[])
 				0);
 			}
 		}
-		starpu_mpi_redux_data_tree(MPI_COMM_WORLD, a_h, arity);
+		ret = starpu_mpi_redux_data_tree(MPI_COMM_WORLD, a_h, arity);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_redux_data_tree");
 		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 		starpu_mpi_barrier(MPI_COMM_WORLD);
 		if (comm_rank == 0)

@@ -47,13 +47,17 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		starpu_mpi_isend(send_handle[0], &(req[0]), 1, 12, MPI_COMM_WORLD);
-		starpu_mpi_isend(send_handle[1], &(req[1]), 1, 13, MPI_COMM_WORLD);
+		ret = starpu_mpi_isend(send_handle[0], &(req[0]), 1, 12, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
+		ret = starpu_mpi_isend(send_handle[1], &(req[1]), 1, 13, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 	}
 	else if (rank == 1)
 	{
-		starpu_mpi_irecv(recv_handle[0], &(req[0]), 0, 12, MPI_COMM_WORLD);
-		starpu_mpi_irecv(recv_handle[1], &(req[1]), 0, 13, MPI_COMM_WORLD);
+		ret = starpu_mpi_irecv(recv_handle[0], &(req[0]), 0, 12, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
+		ret = starpu_mpi_irecv(recv_handle[1], &(req[1]), 0, 13, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 	}
 
 	if (rank == 0 || rank == 1)
@@ -68,7 +72,8 @@ int main(int argc, char **argv)
 				{
 					int finished = 0;
 					MPI_Status status;
-					starpu_mpi_test(&req[r], &finished, &status);
+					ret = starpu_mpi_test(&req[r], &finished, &status);
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_test");
 					STARPU_ASSERT(finished != -1);
 					if (finished)
 					{

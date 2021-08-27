@@ -159,6 +159,7 @@ void insert_work_for_one_element(struct element *el)
 {
 	starpu_data_handle_t tmp_recv;
 	starpu_data_handle_t tmp_send;
+	int ret;
 
 	starpu_vector_data_register(&tmp_recv, -1, 0, el->tag, sizeof(int));
 	starpu_vector_data_register(&tmp_send, -1, 0, el->tag, sizeof(int));
@@ -172,7 +173,9 @@ void insert_work_for_one_element(struct element *el)
 			   STARPU_RW,el->ensure_submitted_order_send,
 			   STARPU_RW,tmp_send,
 			   0);
-	starpu_mpi_isend_detached(tmp_send,el->foreign_domain,el->tag, MPI_COMM_WORLD, NULL, NULL);
+	ret = starpu_mpi_isend_detached(tmp_send,el->foreign_domain,el->tag, MPI_COMM_WORLD, NULL, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
+
 	starpu_insert_task(&submitted_order_rw,
 			   STARPU_RW,el->ensure_submitted_order_send,
 			   STARPU_RW,tmp_send,
@@ -183,7 +186,9 @@ void insert_work_for_one_element(struct element *el)
 			   STARPU_RW,el->ensure_submitted_order_recv,
 			   STARPU_W,tmp_recv,
 			   0);
-	starpu_mpi_irecv_detached(tmp_recv,el->foreign_domain,el->tag, MPI_COMM_WORLD, NULL, NULL);
+	ret = starpu_mpi_irecv_detached(tmp_recv,el->foreign_domain,el->tag, MPI_COMM_WORLD, NULL, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
+
 	//Emulate the "reading" of the recv value.
 	starpu_insert_task(&read_ghost_value_cl,
 			   STARPU_R,tmp_recv,

@@ -238,15 +238,18 @@ int starpu_mpi_send_prio(starpu_data_handle_t data_handle, int dest, starpu_mpi_
 {
 	starpu_mpi_req req;
 	MPI_Status status;
+	int ret;
 
 	_STARPU_MPI_LOG_IN();
-	starpu_mpi_isend_prio(data_handle, &req, dest, data_tag, prio, comm);
+	ret  = starpu_mpi_isend_prio(data_handle, &req, dest, data_tag, prio, comm);
+	if (ret)
+		return ret;
 
 	memset(&status, 0, sizeof(MPI_Status));
-	starpu_mpi_wait(&req, &status);
+	ret = starpu_mpi_wait(&req, &status);
 
 	_STARPU_MPI_LOG_OUT();
-	return 0;
+	return ret;
 }
 
 int starpu_mpi_send(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm)
@@ -361,14 +364,17 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag
 	STARPU_ASSERT_MSG(status != NULL || status == MPI_STATUS_IGNORE, "MPI_Status value cannot be NULL or different from MPI_STATUS_IGNORE");
 
 	starpu_mpi_req req;
+	int ret;
 
 	_STARPU_MPI_LOG_IN();
 
-	starpu_mpi_irecv(data_handle, &req, source, data_tag, comm);
-	starpu_mpi_wait(&req, status);
+	ret = starpu_mpi_irecv(data_handle, &req, source, data_tag, comm);
+	if (ret)
+		return ret;
+	ret = starpu_mpi_wait(&req, status);
 
 	_STARPU_MPI_LOG_OUT();
-	return 0;
+	return ret;
 }
 
 int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
@@ -379,6 +385,7 @@ int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 
 int starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 {
+	STARPU_ASSERT_MSG(status != NULL || status == MPI_STATUS_IGNORE, "MPI_Status value cannot be NULL or different from MPI_STATUS_IGNORE");
 	return _mpi_backend._starpu_mpi_backend_test(public_req, flag, status);
 }
 
@@ -466,7 +473,7 @@ char* starpu_mpi_data_get_redux_map(starpu_data_handle_t data)
 	return ((struct _starpu_mpi_data *)(data->mpi_data))->redux_map;
 }
 
-void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
+int starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t data_handle, int node, void (*callback)(void*), void *arg)
 {
 	int me, rank;
 	starpu_mpi_tag_t data_tag;
@@ -479,7 +486,7 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 
 	starpu_mpi_comm_rank(comm, &me);
 	if (node == rank)
-		return;
+		return 0;
 
 	data_tag = starpu_mpi_data_get_tag(data_handle);
 	if (data_tag == -1)
@@ -494,7 +501,7 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 		if (already_received == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
-			starpu_mpi_irecv_detached(data_handle, rank, data_tag, comm, callback, arg);
+			return starpu_mpi_irecv_detached(data_handle, rank, data_tag, comm, callback, arg);
 		}
 	}
 	else if (me == rank)
@@ -504,12 +511,13 @@ void starpu_mpi_get_data_on_node_detached(MPI_Comm comm, starpu_data_handle_t da
 		if (already_sent == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
-			starpu_mpi_isend_detached(data_handle, node, data_tag, comm, NULL, NULL);
+			return starpu_mpi_isend_detached(data_handle, node, data_tag, comm, NULL, NULL);
 		}
 	}
+	return 0;
 }
 
-void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
+int starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node)
 {
 	int me, rank;
 	starpu_mpi_tag_t data_tag;
@@ -522,7 +530,7 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 
 	starpu_mpi_comm_rank(comm, &me);
 	if (node == rank)
-		return;
+		return 0;
 
 	data_tag = starpu_mpi_data_get_tag(data_handle);
 	if (data_tag == -1)
@@ -538,7 +546,7 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 		if (already_received == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, rank);
-			starpu_mpi_recv(data_handle, rank, data_tag, comm, &status);
+			return starpu_mpi_recv(data_handle, rank, data_tag, comm, &status);
 		}
 	}
 	else if (me == rank)
@@ -548,9 +556,10 @@ void starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle
 		if (already_sent == 0)
 		{
 			_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data_handle, node);
-			starpu_mpi_send(data_handle, node, data_tag, comm);
+			return starpu_mpi_send(data_handle, node, data_tag, comm);
 		}
 	}
+	return 0;
 }
 
 void starpu_mpi_get_data_on_all_nodes_detached(MPI_Comm comm, starpu_data_handle_t data_handle)

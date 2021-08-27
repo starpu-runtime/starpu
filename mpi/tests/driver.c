@@ -73,23 +73,32 @@ int main(int argc, char **argv)
 	{
 		FPRINTF_MPI(stderr, "Sending values %d and %d to node %d\n", values[0], values[3], other_rank);
 		// this data will be received as an early registered data
-		starpu_mpi_isend(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
+		ret = starpu_mpi_isend(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 		// this data will be received as an early UNregistered data
-		starpu_mpi_isend(tab_handle[3], &request[1], other_rank, 3, MPI_COMM_WORLD);
+		ret = starpu_mpi_isend(tab_handle[3], &request[1], other_rank, 3, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 
-		starpu_mpi_send(tab_handle[1], other_rank, 1, MPI_COMM_WORLD);
-		starpu_mpi_recv(tab_handle[2], other_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_send(tab_handle[1], other_rank, 1, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+		ret = starpu_mpi_recv(tab_handle[2], other_rank, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+
 	}
 	else
 	{
-		starpu_mpi_recv(tab_handle[1], other_rank, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		starpu_mpi_send(tab_handle[2], other_rank, 2, MPI_COMM_WORLD);
+		ret = starpu_mpi_recv(tab_handle[1], other_rank, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+		ret = starpu_mpi_send(tab_handle[2], other_rank, 2, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 
 		// we register the data
 		starpu_variable_data_register(&tab_handle[3], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register(tab_handle[3], 3, rank);
-		starpu_mpi_irecv(tab_handle[3], &request[1], other_rank, 3, MPI_COMM_WORLD);
-		starpu_mpi_irecv(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
+		ret = starpu_mpi_irecv(tab_handle[3], &request[1], other_rank, 3, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
+		ret = starpu_mpi_irecv(tab_handle[0], &request[0], other_rank, 0, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 	}
 
 	int finished=0;
@@ -101,7 +110,8 @@ int main(int argc, char **argv)
 			{
 				int flag;
 				MPI_Status status;
-				starpu_mpi_test(&request[i], &flag, &status);
+				ret = starpu_mpi_test(&request[i], &flag, &status);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_test");
 				if (flag)
 					FPRINTF_MPI(stderr, "request[%d] = %d %p\n", i, flag, request[i]);
 			}

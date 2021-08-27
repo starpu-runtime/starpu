@@ -30,9 +30,10 @@ struct starpu_mpi_lb_conf
 	void (*get_data_unit_to_migrate)(starpu_data_handle_t **handle_unit, int *nhandles, int dst_node);
 };
 
-/* Inits the load balancer's environment with the load policy provided by the
- * user
- */
+/**
+   Inits the load balancer's environment with the load policy provided by the
+   * user
+   */
 void starpu_mpi_lb_init(const char *lb_policy_name, struct starpu_mpi_lb_conf *);
 void starpu_mpi_lb_shutdown();
 

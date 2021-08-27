@@ -33,10 +33,10 @@
 
 #define _SEND_DATA(data, mode, dest, data_tag, prio, comm, callback, arg)     \
 	do {									\
-		if (mode & STARPU_SSEND)					\
-			starpu_mpi_issend_detached_prio(data, dest, data_tag, prio, comm, callback, arg); 	\
+		if (mode & STARPU_SSEND)				\
+			return starpu_mpi_issend_detached_prio(data, dest, data_tag, prio, comm, callback, arg); \
 		else												\
-			starpu_mpi_isend_detached_prio(data, dest, data_tag, prio, comm, callback, arg);	\
+			return starpu_mpi_isend_detached_prio(data, dest, data_tag, prio, comm, callback, arg);	\
 	} while (0)
 
 static void (*pre_submit_hook)(struct starpu_task *task) = NULL;
@@ -95,7 +95,7 @@ int _starpu_mpi_find_executee_node(starpu_data_handle_t data, enum starpu_data_a
 	return 0;
 }
 
-void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
+int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
 	if (data && xrank == STARPU_MPI_PER_NODE)
 	{
@@ -119,7 +119,9 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 				if (data_tag == -1)
 					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
 				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, mpi_rank);
-				starpu_mpi_irecv_detached_prio(data, mpi_rank, data_tag, prio, comm, NULL, NULL);
+				int ret = starpu_mpi_irecv_detached_prio(data, mpi_rank, data_tag, prio, comm, NULL, NULL);
+				if (ret)
+					return ret;
 			}
 			// else the node has already received the data
 		}
@@ -138,10 +140,11 @@ void _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum 
 			// Else the data has already been sent
 		}
 	}
+	return 0;
 }
 
 static
-void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
+int _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum starpu_data_access_mode mode, int me, int xrank, int do_execute, int prio, MPI_Comm comm)
 {
 	if (mode & STARPU_W && !(mode & STARPU_MPI_REDUX))
 	{
@@ -162,7 +165,9 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 				_STARPU_MPI_DEBUG(1, "Receive data %p back from the task %d which executed the codelet ...\n", data, xrank);
 				if(data_tag == -1)
 					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-				starpu_mpi_irecv_detached(data, xrank, data_tag, comm, NULL, NULL);
+				int ret = starpu_mpi_irecv_detached(data, xrank, data_tag, comm, NULL, NULL);
+				if (ret)
+					return ret;
 			}
 		}
 		else if (do_execute)
@@ -173,6 +178,7 @@ void _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum s
 			_SEND_DATA(data, mode, mpi_rank, data_tag, prio, comm, NULL, NULL);
 		}
 	}
+	return 0;
 }
 
 static
@@ -774,7 +780,7 @@ void _starpu_mpi_redux_fill_post_sync_jobid(const void * const redux_data_args, 
 
 /* TODO: this should rather be implicitly called by starpu_mpi_task_insert when
  *  * a data previously accessed in (MPI_)REDUX mode gets accessed in R mode. */
-void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int prio, int arity)
+int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int prio, int arity)
 {
 	int me, rank, nb_nodes;
 	starpu_mpi_tag_t data_tag;
@@ -793,7 +799,7 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	if (mpi_data->redux_map == NULL)
 	{
 		_STARPU_MPI_DEBUG(5, "We do not contribute to the data being reduced.\n");
-		return;
+		return 0;
 	}
 	starpu_mpi_comm_rank(comm, &me);
 	starpu_mpi_comm_size(comm, &nb_nodes);
@@ -814,7 +820,7 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 	if (nb_contrib == 0)
 	{
 		/* Nothing to do! */
-		return;
+		return 0;
 	}
 	if (arity < 2)
 	{
@@ -895,12 +901,19 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 						starpu_data_handle_t new_handle;
 						starpu_data_register_same(&new_handle, data_handle);
 						/* Task A */
-				       	        starpu_task_insert(&_starpu_mpi_redux_data_synchro_cl,
-									STARPU_R, data_handle,
-									STARPU_W, new_handle, 0);
-				       	        starpu_mpi_irecv_detached_prio(new_handle, contributors[node], data_tag, prio, comm, NULL, NULL);
+				       	        int ret = starpu_task_insert(&_starpu_mpi_redux_data_synchro_cl,
+									     STARPU_R, data_handle,
+									     STARPU_W, new_handle, 0);
+						if (ret)
+							return ret;
+				       	        ret = starpu_mpi_irecv_detached_prio(new_handle, contributors[node], data_tag, prio, comm, NULL, NULL);
+						if (ret)
+							return ret;
+
 					        /* Task B */
-				       		starpu_task_insert(data_handle->redux_cl, STARPU_RW|STARPU_COMMUTE, data_handle, STARPU_R, new_handle, 0);
+				       		ret = starpu_task_insert(data_handle->redux_cl, STARPU_RW|STARPU_COMMUTE, data_handle, STARPU_R, new_handle, 0);
+						if (ret)
+							return ret;
 						starpu_data_unregister_submit(new_handle);
 					}
 				}
@@ -908,7 +921,9 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 			else if (me_in_step)
 			{
 				_STARPU_MPI_DEBUG(5, "Sending redux handle to %d ...\n", reducing_node);
-				starpu_mpi_isend_detached_prio(data_handle, reducing_node, data_tag, prio, comm, NULL, NULL);
+				int ret = starpu_mpi_isend_detached_prio(data_handle, reducing_node, data_tag, prio, comm, NULL, NULL);
+				if (ret)
+					return ret;
 				starpu_data_invalidate_submit(data_handle);
 			}
 			contributors[step] = reducing_node;
@@ -916,19 +931,20 @@ void starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_ha
 		nb_contrib = next_nb_contrib;
 		current_level++;
 	}
+	return 0;
 }
 
-void starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
+int starpu_mpi_redux_data(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
 	return starpu_mpi_redux_data_prio(comm, data_handle, 0);
 }
 
-void starpu_mpi_redux_data_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int arity)
+int starpu_mpi_redux_data_tree(MPI_Comm comm, starpu_data_handle_t data_handle, int arity)
 {
 	return starpu_mpi_redux_data_prio_tree(comm, data_handle, 0, arity);
 }
 
-void starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
+int starpu_mpi_redux_data_prio(MPI_Comm comm, starpu_data_handle_t data_handle, int prio)
 {
 	int nb_nodes, nb_contrib, i;
 	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;

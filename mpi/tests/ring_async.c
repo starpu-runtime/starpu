@@ -112,8 +112,10 @@ int main(int argc, char **argv)
 		{
 			MPI_Status status;
 			starpu_mpi_req req;
-			starpu_mpi_irecv(token_handle, &req, (rank+size-1)%size, tag, MPI_COMM_WORLD);
-			starpu_mpi_wait(&req, &status);
+			ret = starpu_mpi_irecv(token_handle, &req, (rank+size-1)%size, tag, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
+			ret = starpu_mpi_wait(&req, &status);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 		}
 
 		increment_token(token_handle);
@@ -128,8 +130,10 @@ int main(int argc, char **argv)
 		{
 			starpu_mpi_req req;
 			MPI_Status status;
-			starpu_mpi_isend(token_handle, &req, (rank+1)%size, tag+1, MPI_COMM_WORLD);
-			starpu_mpi_wait(&req, &status);
+			ret = starpu_mpi_isend(token_handle, &req, (rank+1)%size, tag+1, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
+			ret = starpu_mpi_wait(&req, &status);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 		}
 	}
 

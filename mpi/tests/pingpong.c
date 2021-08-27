@@ -144,13 +144,15 @@ int main(int argc, char **argv)
 			if ((loop % 2) == (rank%2))
 			{
 				//FPRINTF_MPI(stderr, "Sending to %d\n", other_rank);
-				starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
+				ret = starpu_mpi_send(tab_handle, other_rank, loop, MPI_COMM_WORLD);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 			}
 			else
 			{
 				MPI_Status status;
 				//FPRINTF_MPI(stderr, "Receiving from %d\n", other_rank);
-				starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, &status);
+				ret = starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, &status);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 			}
 
 			starpu_sleep(sleep_time / 1000);
@@ -167,7 +169,8 @@ int main(int argc, char **argv)
 				{
 					if (r != rank)
 					{
-						starpu_mpi_send(tab_handle, r, (r * niter) + loop, MPI_COMM_WORLD);
+						ret = starpu_mpi_send(tab_handle, r, (r * niter) + loop, MPI_COMM_WORLD);
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 						starpu_sleep(sleep_time / 1000);
 					}
 				}
@@ -175,7 +178,8 @@ int main(int argc, char **argv)
 			else
 			{
 				MPI_Status status;
-				starpu_mpi_recv(tab_handle, sender, (rank * niter) + loop, MPI_COMM_WORLD, &status);
+				ret = starpu_mpi_recv(tab_handle, sender, (rank * niter) + loop, MPI_COMM_WORLD, &status);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 
 				for (r = 0; r < (size-1); r++)
 					starpu_sleep(sleep_time / 1000);

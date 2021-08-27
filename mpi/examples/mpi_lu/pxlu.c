@@ -123,8 +123,9 @@ static void send_data_to_mask(starpu_data_handle_t handle, int *rank_mask, starp
 	}
 	else
 	{
-		starpu_mpi_isend_array_detached_unlock_tag(cnt, handle_array,
-				rank_array, mpi_tag_array, comm_array, tag);
+		int ret = starpu_mpi_isend_array_detached_unlock_tag(cnt, handle_array,
+								     rank_array, mpi_tag_array, comm_array, tag);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_array_detached_unlock_tag");
 	}
 }
 
@@ -143,22 +144,22 @@ static void callback_receive_when_done(void *_arg)
 {
 	struct recv_when_done_callback_arg *arg = _arg;
 
-	starpu_mpi_irecv_detached_unlock_tag(arg->handle, arg->source,
-			arg->mpi_tag, MPI_COMM_WORLD, arg->unlocked_tag);
+	int ret = starpu_mpi_irecv_detached_unlock_tag(arg->handle, arg->source,
+						       arg->mpi_tag, MPI_COMM_WORLD, arg->unlocked_tag);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached_unlock_tag");
 
 	free(arg);
 }
 
 static void receive_when_deps_are_done(unsigned ndeps, starpu_tag_t *deps_tags,
-				int source, starpu_mpi_tag_t mpi_tag,
-				starpu_data_handle_t handle,
-				starpu_tag_t partial_tag,
-				starpu_tag_t unlocked_tag)
+				       int source, starpu_mpi_tag_t mpi_tag,
+				       starpu_data_handle_t handle,
+				       starpu_tag_t partial_tag,
+				       starpu_tag_t unlocked_tag)
 {
 	STARPU_ASSERT(handle != STARPU_POISON_PTR);
 
-	struct recv_when_done_callback_arg *arg =
-		malloc(sizeof(struct recv_when_done_callback_arg));
+	struct recv_when_done_callback_arg *arg = malloc(sizeof(struct recv_when_done_callback_arg));
 
 	arg->source = source;
 	arg->mpi_tag = mpi_tag;
@@ -171,8 +172,7 @@ static void receive_when_deps_are_done(unsigned ndeps, starpu_tag_t *deps_tags,
 		return;
 	}
 
-	starpu_create_sync_task(partial_tag, ndeps, deps_tags,
-					callback_receive_when_done, arg);
+	starpu_create_sync_task(partial_tag, ndeps, deps_tags, callback_receive_when_done, arg);
 }
 
 /*

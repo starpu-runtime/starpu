@@ -180,7 +180,8 @@ int main(int argc, char *argv[])
 					0);
 			}
 		}
-		starpu_mpi_redux_data(MPI_COMM_WORLD, a_h);
+		ret = starpu_mpi_redux_data(MPI_COMM_WORLD, a_h);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_redux_data");
 		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 		starpu_mpi_barrier(MPI_COMM_WORLD);
 		if (comm_rank == 0)

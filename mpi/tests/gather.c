@@ -50,7 +50,8 @@ int main(int argc, char **argv)
 
 			FPRINTF_MPI(stderr, "receiving from node %d\n", n);
 			starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
-			starpu_mpi_recv(handle, n, 42, MPI_COMM_WORLD, &status);
+			ret = starpu_mpi_recv(handle, n, 42, MPI_COMM_WORLD, &status);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 			starpu_data_acquire(handle, STARPU_R);
 			STARPU_ASSERT_MSG(var == n, "Received incorrect value <%d> from node <%d>\n", var, n);
 			FPRINTF_MPI(stderr, "received <%d> from node %d\n", var, n);
@@ -63,7 +64,8 @@ int main(int argc, char **argv)
 		FPRINTF_MPI(stderr, "sending to node %d\n", 0);
 		var = rank;
 		starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(var));
-		starpu_mpi_send(handle, 0, 42, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(handle, 0, 42, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		starpu_data_unregister(handle);
 	}
 

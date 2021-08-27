@@ -70,6 +70,8 @@ static void starpu_mpi_array_unlock_callback(void *_arg)
 
 int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size, starpu_data_handle_t *data_handle, int *dest, starpu_mpi_tag_t *data_tag, int *prio, MPI_Comm *comm, starpu_tag_t tag)
 {
+	int ret;
+
 	if (!array_size)
 		return 0;
 	struct arg_array *arg;
@@ -84,7 +86,9 @@ int starpu_mpi_isend_array_detached_unlock_tag_prio(unsigned array_size, starpu_
 		int p = 0;
 		if (prio)
 			p = prio[elem];
-		starpu_mpi_isend_detached_prio(data_handle[elem], dest[elem], data_tag[elem], p, comm[elem], starpu_mpi_array_unlock_callback, arg);
+		ret = starpu_mpi_isend_detached_prio(data_handle[elem], dest[elem], data_tag[elem], p, comm[elem], starpu_mpi_array_unlock_callback, arg);
+		if (ret)
+			return ret;
 	}
 
 	return 0;
@@ -99,6 +103,8 @@ int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_
 {
 	if (!array_size)
 		return 0;
+
+	int ret;
 	struct arg_array *arg;
 	_STARPU_MPI_MALLOC(arg, sizeof(struct arg_array));
 
@@ -108,7 +114,9 @@ int starpu_mpi_irecv_array_detached_unlock_tag(unsigned array_size, starpu_data_
 	unsigned elem;
 	for (elem = 0; elem < array_size; elem++)
 	{
-		starpu_mpi_irecv_detached(data_handle[elem], source[elem], data_tag[elem], comm[elem], starpu_mpi_array_unlock_callback, arg);
+		ret = starpu_mpi_irecv_detached(data_handle[elem], source[elem], data_tag[elem], comm[elem], starpu_mpi_array_unlock_callback, arg);
+		if (ret)
+			return ret;
 	}
 
 	return 0;

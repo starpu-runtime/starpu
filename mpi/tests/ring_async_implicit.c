@@ -103,7 +103,8 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
+			ret = starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 		}
 
 		increment_token(token_handle);
@@ -116,7 +117,8 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
+			ret = starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 		}
 	}
 

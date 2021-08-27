@@ -61,7 +61,8 @@ int main(int argc, char **argv)
 		for(src=1 ; src<size ; src++)
 		{
 			starpu_variable_data_register(&handles[src], -1, (uintptr_t)NULL, sizeof(int));
-			starpu_mpi_irecv_detached(handles[src], src, 12+src, MPI_COMM_WORLD, callback, &received);
+			ret = starpu_mpi_irecv_detached(handles[src], src, 12+src, MPI_COMM_WORLD, callback, &received);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&mutex);
@@ -81,7 +82,8 @@ int main(int argc, char **argv)
 		for(src=1 ; src<size ; src++)
 		{
 			starpu_variable_data_register(&handles[src], STARPU_MAIN_RAM, (uintptr_t)&sum, sizeof(int));
-			starpu_mpi_send(handles[src], src, 12+src, MPI_COMM_WORLD);
+			ret = starpu_mpi_send(handles[src], src, 12+src, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 			starpu_data_unregister(handles[src]);
 		}
 	}
@@ -90,11 +92,13 @@ int main(int argc, char **argv)
 		value = rank;
 		handles = malloc(sizeof(starpu_data_handle_t));
 		starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(int));
-		starpu_mpi_send(handles[0], 0, 12+rank, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(handles[0], 0, 12+rank, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		starpu_data_unregister_submit(handles[0]);
 
 		starpu_variable_data_register(&handles[0], STARPU_MAIN_RAM, (uintptr_t)&value, sizeof(int));
-		starpu_mpi_recv(handles[0], 0, 12+rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_recv(handles[0], 0, 12+rank, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_unregister(handles[0]);
 	}
 

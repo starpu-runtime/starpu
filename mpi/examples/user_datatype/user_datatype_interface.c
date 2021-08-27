@@ -65,22 +65,29 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-		starpu_mpi_send(my_handle1, 1, 10, MPI_COMM_WORLD);
-		starpu_mpi_send(my_handle2, 1, 12, MPI_COMM_WORLD);
-		starpu_mpi_send(my_handle3, 1, 14, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(my_handle1, 1, 10, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+		ret = starpu_mpi_send(my_handle2, 1, 12, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+		ret = starpu_mpi_send(my_handle3, 1, 14, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 	}
 	else if (rank == 1)
 	{
 		starpu_mpi_req req;
 
-		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 initial value", strlen("node1 initial value")+1, STARPU_R, my_handle3, 0);
-
-		starpu_mpi_irecv(my_handle3, &req, 0, 14, MPI_COMM_WORLD);
-		starpu_mpi_recv(my_handle2, 0, 12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		starpu_mpi_recv(my_handle1, 0, 10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-		starpu_mpi_wait(&req, MPI_STATUS_IGNORE);
-
-		starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 rceived value", strlen("node1 rceived value")+1, STARPU_R, my_handle3, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 initial value", strlen("node1 initial value")+1, STARPU_R, my_handle3, 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		ret = starpu_mpi_irecv(my_handle3, &req, 0, 14, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
+		ret = starpu_mpi_recv(my_handle2, 0, 12, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+		ret = starpu_mpi_recv(my_handle1, 0, 10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+		ret = starpu_mpi_wait(&req, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 rceived value", strlen("node1 rceived value")+1, STARPU_R, my_handle3, 0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
 	starpu_task_wait_for_all();

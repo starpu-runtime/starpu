@@ -63,9 +63,15 @@ int do_test(int rank, int sdetached, int rdetached)
 		for(i=1 ; i>=0 ; i--)
 		{
 			if (sdetached)
-				starpu_mpi_isend_detached(data[i], 0, starpu_data_get_tag(data[i]), MPI_COMM_WORLD, NULL, NULL);
+			{
+				ret = starpu_mpi_isend_detached(data[i], 0, starpu_data_get_tag(data[i]), MPI_COMM_WORLD, NULL, NULL);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
+			}
 			else
-				starpu_mpi_send(data[i], 0, starpu_data_get_tag(data[i]), MPI_COMM_WORLD);
+			{
+				ret = starpu_mpi_send(data[i], 0, starpu_data_get_tag(data[i]), MPI_COMM_WORLD);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+			}
 		}
 	}
 	else if (rank == 0)
@@ -77,9 +83,15 @@ int do_test(int rank, int sdetached, int rdetached)
 		for(i=0 ; i<2 ; i++)
 		{
 			if (rdetached)
-				starpu_mpi_irecv_detached(data[i], 1, starpu_data_get_tag(data[i]), MPI_COMM_WORLD, callback, &received);
+			{
+				ret = starpu_mpi_irecv_detached(data[i], 1, starpu_data_get_tag(data[i]), MPI_COMM_WORLD, callback, &received);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
+			}
 			else
-				starpu_mpi_recv(data[i], 1, starpu_data_get_tag(data[i]), MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			{
+				ret = starpu_mpi_recv(data[i], 1, starpu_data_get_tag(data[i]), MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+			}
 		}
 
 		if (rdetached)

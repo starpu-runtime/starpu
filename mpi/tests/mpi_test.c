@@ -65,18 +65,21 @@ int main(int argc, char **argv)
 
 		if ((loop % 2) == (rank%2))
 		{
-			starpu_mpi_isend(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
+			ret = starpu_mpi_isend(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 		}
 		else
 		{
-			starpu_mpi_irecv(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
+			ret = starpu_mpi_irecv(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 		}
 
 		int finished = 0;
 		do
 		{
 			MPI_Status status;
-			starpu_mpi_test(&req, &finished, &status);
+			ret = starpu_mpi_test(&req, &finished, &status);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_test");
 #ifdef STARPU_SIMGRID
 			starpu_sleep(0.001);
 #endif
