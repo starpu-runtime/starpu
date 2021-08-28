@@ -70,6 +70,7 @@ EXTRA_DIST =					\
 	datawizard/interfaces/csr/csr_opencl_kernel.cl \
 	datawizard/interfaces/block/block_opencl_kernel.cl \
 	datawizard/interfaces/tensor/tensor_opencl_kernel.cl \
+	datawizard/interfaces/ndim/ndim_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
 	microbenchs/microbench.sh
@@ -325,6 +326,7 @@ myPROGRAMS +=				\
 	datawizard/interfaces/multiformat/advanced/multiformat_handle_conversion \
 	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/tensor/tensor_interface \
+	datawizard/interfaces/ndim/ndim_interface \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/vector_interface   \
 	datawizard/interfaces/void/void_interface \
@@ -885,6 +887,27 @@ datawizard_interfaces_tensor_tensor_interface_SOURCES+= \
 	datawizard/interfaces/tensor/tensor_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/tensor/tensor_opencl_kernel.cl
+endif
+
+###################
+# Ndim interface #
+###################
+datawizard_interfaces_ndim_ndim_interface_SOURCES= \
+	datawizard/interfaces/test_interfaces.c  \
+	datawizard/interfaces/ndim/ndim_interface.c
+
+datawizard_interfaces_ndim_ndim_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+
+if STARPU_USE_CUDA
+datawizard_interfaces_ndim_ndim_interface_SOURCES+= \
+	datawizard/interfaces/ndim/ndim_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_ndim_ndim_interface_SOURCES+= \
+	datawizard/interfaces/ndim/ndim_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/interfaces/ndim/ndim_opencl_kernel.cl
 endif
 
 ##################
