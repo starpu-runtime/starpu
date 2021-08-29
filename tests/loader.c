@@ -15,6 +15,7 @@
  */
 
 #include <common/config.h>
+#include <common/config-src-build.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>

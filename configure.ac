@@ -3586,8 +3586,12 @@ for icd in /etc/OpenCL/vendors/*.icd ; do
 done
 AC_SUBST(SOCL_VENDORS)
 
+AH_BOTTOM([
+/* Avoid leaking the source/build directories in debugging symbols of installed files */
+#include <common/config-no-src-build.h>
+])
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h starpurm/include/starpurm_config.h)
+AC_CONFIG_HEADER(src/common/config.h src/common/config-src-build.h include/starpu_config.h starpurm/include/starpurm_config.h)
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")
