@@ -3547,6 +3547,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     examples/scheduler/schedulers_context.sh \
     tools/starpu_paje_draw_histogram.R \
     tools/starpu_paje_state_stats.R \
+    tools/starpu_mlr_analysis.Rmd \
+    tools/starpu_paje_summary.Rmd \
     tools/starpu_trace_state_stats.py \
     julia/examples/check_deps/check_deps.sh \
     julia/examples/mult/mult_starpu.sh \

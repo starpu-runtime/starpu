@@ -19,7 +19,7 @@
 set -e # fail fast
 
 # File names
-SOURCE_DIR=@abs_srcdir@
+SOURCE_DIR=$(dirname $0)
 
 outputfile="mlr_analysis.html"
 analysis_script="$SOURCE_DIR/starpu_mlr_analysis.Rmd"
@@ -37,7 +37,6 @@ Options:
 
 Examples:
 $0 .starpu/sampling/codelets/tmp/test_mlr.out
-$0 
 
 Report bugs to <@PACKAGE_BUGREPORT@>
 EOF
@@ -66,15 +65,11 @@ done
 # Reading files that need to be analyzed
 shift $((OPTIND - 1))
 inputfile=$1
-if [[ $# < 1 ]]; then
-    inputfile="$SOURCE_DIR/perfmodels/sampling/codelets/tmp/mlr_init.out"
-else
 # Error if there is more than one input file
-    if [[ $# > 1 ]]; then
-	echo "Error!"
-	help_script
-	exit 2
-    fi
+if [[ $# < 1 || $# > 1 ]]; then
+    echo "Error!"
+    help_script
+    exit 2
 fi
 
 if [ ! -s $inputfile ]
