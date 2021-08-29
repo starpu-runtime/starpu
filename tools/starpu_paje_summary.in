@@ -20,7 +20,7 @@
 set -e # fail fast
 
 # File names
-SOURCE_DIR=@abs_srcdir@
+SOURCE_DIR=$(dirname $0)
 
 outputfile="summary.html"
 analysis_script="$SOURCE_DIR/starpu_paje_summary.Rmd"

@@ -3509,6 +3509,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e examples/scheduler/schedulers_context.sh || ln -sf $ac_abs_top_srcdir/examples/scheduler/schedulers_context.sh examples/scheduler
   test -e tools/starpu_paje_draw_histogram.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_draw_histogram.R tools/starpu_paje_draw_histogram.R
   test -e tools/starpu_paje_state_stats.R || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_state_stats.R tools/starpu_paje_state_stats.R
+  test -e tools/starpu_mlr_analysis.Rmd || ln -sf $ac_abs_top_srcdir/tools/starpu_mlr_analysis.Rmd tools/starpu_mlr_analysis.Rmd
+  test -e tools/starpu_paje_summary.Rmd || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_summary.Rmd tools/starpu_paje_summary.Rmd
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
 ])
