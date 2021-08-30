@@ -328,14 +328,17 @@ AC_PATH_PROG([REALBASH], [bash], , [/bin:$PATH])
 
 # Record git version
 AC_PATH_PROG(gitcommand, git)
-if test "$gitcommand" = "" ; then
-   if test -f $srcdir/STARPU-REVISION ; then
-      cp $srcdir/STARPU-REVISION .
-   else
-      echo "unknown" > ./STARPU-REVISION
-   fi
+if test -f $srcdir/STARPU-REVISION ; then
+  cp $srcdir/STARPU-REVISION .
+elif test "$gitcommand" = "" ; then
+  echo "unknown" > ./STARPU-REVISION
 else
-   git log -n 1 --pretty="%H" $srcdir > ./STARPU-REVISION
+  git log -n 1 --pretty="%H" $srcdir > ./STARPU-REVISION_tmp
+  if test -s ./STARPU-REVISION_tmp ; then
+    mv ./STARPU-REVISION_tmp ./STARPU-REVISION
+  else
+    echo "unknown" > ./STARPU-REVISION
+  fi
 fi
 
 AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
