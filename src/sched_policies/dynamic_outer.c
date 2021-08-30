@@ -753,6 +753,10 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
 	if (victim != planned_eviction)
 	{
 	    printf("Victim != planned_eviction.\n");
+	    
+	    //Abort la donnée évincé
+	    abort();
+	    
 	    int i = 0;
 	    struct starpu_task *task = NULL;
 	        struct starpu_sched_component *temp_component = component;
@@ -949,12 +953,12 @@ starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_d
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
     printf("Beggining of victim_selector. Timing is %f.\n", starpu_timing_now());
-    
     if (data_to_evict_next != NULL) 
     { 
-	printf("Return data %p that was refused.\n", data_to_evict_next); 
-	data_to_evict_next = NULL; 
-	return data_to_evict_next; 
+	printf("Return data %p that was refused.\n", data_to_evict_next);
+	starpu_data_handle_t temp_handle = data_to_evict_next;
+	data_to_evict_next = NULL;
+	return temp_handle;
     }
     
     struct starpu_sched_component *temp_component = component;
