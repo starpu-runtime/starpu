@@ -56,17 +56,17 @@
 #define BLAS3_FLOP(n1,n2,n3)    \
         (2*((uint64_t)n1)*((uint64_t)n2)*((uint64_t)n3))
 
-static unsigned size = 4*1024;
-static unsigned nblocks = 16;
-static unsigned nbigblocks = 8;
-static unsigned pinned = 0;
-static unsigned noprio = 0;
-static unsigned check = 0;
-static unsigned bound = 0;
-static unsigned with_ctxs = 0;
-static unsigned with_noctxs = 0;
-static unsigned chole1 = 0;
-static unsigned chole2 = 0;
+extern unsigned g_size;
+extern unsigned g_nblocks;
+extern unsigned g_nbigblocks;
+extern unsigned g_pinned;
+extern unsigned g_noprio;
+extern unsigned g_check;
+extern unsigned g_bound;
+extern unsigned g_with_ctxs;
+extern unsigned g_with_noctxs;
+extern unsigned g_chole1;
+extern unsigned g_chole2;
 
 void chol_cpu_codelet_update_u11(void **, void *);
 void chol_cpu_codelet_update_u21(void **, void *);
@@ -87,80 +87,9 @@ double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_
 #endif
 
 void initialize_chol_model(struct starpu_perfmodel* model, char* symbol,
-		double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
-		double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned));
+			   double (*cpu_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned),
+			   double (*cuda_cost_function)(struct starpu_task *, struct starpu_perfmodel_arch*, unsigned));
 
-static void parse_args(int argc, char **argv)
-{
-	int i;
-	for (i = 1; i < argc; i++)
-	{
-		if (strcmp(argv[i], "-with_ctxs") == 0)
-		{
-			with_ctxs = 1;
-			break;
-		}
-		if (strcmp(argv[i], "-with_noctxs") == 0)
-		{
-			with_noctxs = 1;
-			break;
-		}
-
-		if (strcmp(argv[i], "-chole1") == 0)
-		{
-			chole1 = 1;
-			break;
-		}
-
-		if (strcmp(argv[i], "-chole2") == 0)
-		{
-			chole2 = 1;
-			break;
-		}
-
-		if (strcmp(argv[i], "-size") == 0)
-		{
-		        char *argptr;
-			size = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-nblocks") == 0)
-		{
-		        char *argptr;
-			nblocks = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-nbigblocks") == 0)
-		{
-		        char *argptr;
-			nbigblocks = strtol(argv[++i], &argptr, 10);
-		}
-
-		if (strcmp(argv[i], "-pin") == 0)
-		{
-			pinned = 1;
-		}
-
-		if (strcmp(argv[i], "-no-prio") == 0)
-		{
-			noprio = 1;
-		}
-
-		if (strcmp(argv[i], "-bound") == 0)
-		{
-			bound = 1;
-		}
-
-		if (strcmp(argv[i], "-check") == 0)
-		{
-			check = 1;
-		}
-
-		if (strcmp(argv[i], "-h") == 0)
-		{
-			printf("usage : %s [-pin] [-size size] [-nblocks nblocks] [-check]\n", argv[0]);
-		}
-	}
-}
+void parse_args(int argc, char **argv);
 
 #endif /* __DW_CHOLESKY_H__ */

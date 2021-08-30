@@ -71,6 +71,7 @@ static struct starpu_codelet cl22 =
 
 static void callback_turn_spmd_on(void *arg)
 {
+	(void)arg;
 	cl22.type = STARPU_SPMD;
 }
 
@@ -83,17 +84,17 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	unsigned i,j,k;
 
-	int prio_level = noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
+	int prio_level = g_noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
 	gettimeofday(&start, NULL);
 
-	if (bound)
+	if (g_bound)
 		starpu_bound_start(0, 0);
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
-		if(k == 0 && with_ctxs)
+		if(k == 0 && g_with_ctxs)
 		{
 			 ret = starpu_task_insert(&cl11,
 						  STARPU_PRIORITY, prio_level,
@@ -130,35 +131,35 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
 
 					if(k == (nblocks-2) && j == (nblocks-1) &&
-					   i == (k + 1) && with_ctxs)
+					   i == (k + 1) && g_with_ctxs)
 					{
 						ret = starpu_task_insert(&cl22,
-								   STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
-								   STARPU_R, sdataki,
-								   STARPU_R, sdatakj,
-								   STARPU_RW, sdataij,
-								   STARPU_HYPERVISOR_TAG, hypervisor_tag,
-								   0);
+									 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
+									 STARPU_R, sdataki,
+									 STARPU_R, sdatakj,
+									 STARPU_RW, sdataij,
+									 STARPU_HYPERVISOR_TAG, hypervisor_tag,
+									 0);
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 						set_hypervisor_conf(END_BENCH, hypervisor_tag++);
 					}
-					
+
 					else
 						ret = starpu_task_insert(&cl22,
-								   STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
-								   STARPU_R, sdataki,
-								   STARPU_R, sdatakj,
-								   STARPU_RW, sdataij,
-								   0);
+									 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
+									 STARPU_R, sdataki,
+									 STARPU_R, sdatakj,
+									 STARPU_RW, sdataij,
+									 0);
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-					
+
                    }
 			}
 		}
 	}
 
 	starpu_task_wait_for_all();
-	if (bound)
+	if (g_bound)
 		starpu_bound_stop();
 
 	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
@@ -171,15 +172,15 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	double flop = (1.0f*n*n*n)/3.0f;
 
-	if(with_ctxs || with_noctxs || chole1 || chole2)
+	if(g_with_ctxs || g_with_noctxs || g_chole1 || g_chole2)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
 	else
 	{
 		FPRINTF(stderr, "Computation took (in ms)\n");
 		FPRINTF(stdout, "%2.2f\n", timing/1000);
-	
+
 		FPRINTF(stderr, "Synthetic GFlops : %2.2f\n", (flop/timing/1000.0f));
-		if (bound)
+		if (g_bound)
 		{
 			double res;
 			starpu_bound_compute(&res, NULL, 0);
@@ -215,8 +216,9 @@ static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	starpu_data_unregister(dataA);
 }
 
-static void execute_cholesky(unsigned size, unsigned nblocks)
+static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
 {
+	(void)pmat;
 	float *mat;
 	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
 
@@ -273,7 +275,7 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 	}
 #endif
 
-	if (check)
+	if (g_check)
 	{
 		FPRINTF(stderr, "compute explicit LLt ...\n");
 		for (j = 0; j < size; j++)
@@ -343,7 +345,7 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv);
 
-	if(with_ctxs || with_noctxs || chole1 || chole2)
+	if(g_with_ctxs || g_with_noctxs || g_chole1 || g_chole2)
 		parse_args_ctx(argc, argv);
 
 	ret = starpu_init(NULL);
@@ -363,24 +365,24 @@ int main(int argc, char **argv)
 
 	starpu_cublas_init();
 
-	if(with_ctxs)
+	if(g_with_ctxs)
 	{
 		construct_contexts();
 		start_2benchs(execute_cholesky);
 	}
-	else if(with_noctxs)
+	else if(g_with_noctxs)
 		start_2benchs(execute_cholesky);
-	else if(chole1)
+	else if(g_chole1)
 		start_1stbench(execute_cholesky);
-	else if(chole2)
+	else if(g_chole2)
 		start_2ndbench(execute_cholesky);
 	else
-		execute_cholesky(size, nblocks);
+		execute_cholesky(NULL, g_size, g_nblocks);
 
 	starpu_cublas_shutdown();
 	starpu_shutdown();
 
-	if(with_ctxs)
+	if(g_with_ctxs)
 		end_contexts();
 
 	return 0;

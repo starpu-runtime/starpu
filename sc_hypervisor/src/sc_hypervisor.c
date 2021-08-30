@@ -565,7 +565,7 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 
 		sender_sc_w->start_time = start_time;
 		unsigned nworkers = starpu_worker_get_count();
-		int i;
+		unsigned i;
  		for(i = 0; i < nworkers; i++)
 		{
 			sender_sc_w->start_time_w[i] = start_time;
@@ -586,7 +586,7 @@ void _reset_resize_sample_info(unsigned sender_sched_ctx, unsigned receiver_sche
 		receiver_sc_w->start_time = start_time;
 
 		unsigned nworkers = starpu_worker_get_count();
-		int i;
+		unsigned i;
  		for(i = 0; i < nworkers; i++)
 		{
 			receiver_sc_w->start_time_w[i] = (receiver_sc_w->start_time_w[i] != 0.0) ? starpu_timing_now() : 0.0;
@@ -608,9 +608,9 @@ void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sch
 	if(nworkers_to_move > 0 && hypervisor.resize[sender_sched_ctx])
 	{
 		_print_current_time();
-		unsigned j;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
 		printf("resize ctx %u with %u workers", sender_sched_ctx, nworkers_to_move);
+		unsigned j;
 		for(j = 0; j < nworkers_to_move; j++)
 			printf(" %d", workers_to_move[j]);
 		printf("\n");
@@ -621,7 +621,6 @@ void sc_hypervisor_move_workers(unsigned sender_sched_ctx, unsigned receiver_sch
 
 		if(now)
 		{
-			unsigned j;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
 			printf("remove now from ctx %u:", sender_sched_ctx);
 			for(j = 0; j < nworkers_to_move; j++)
@@ -670,8 +669,8 @@ void sc_hypervisor_add_workers_to_sched_ctx(int* workers_to_add, unsigned nworke
 	if(nworkers_to_add > 0 && hypervisor.resize[sched_ctx])
 	{
 		_print_current_time();
-		unsigned j;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
+		unsigned j;
 		printf("add to ctx %u:", sched_ctx);
 		for(j = 0; j < nworkers_to_add; j++)
 			printf(" %d", workers_to_add[j]);
@@ -703,8 +702,8 @@ void sc_hypervisor_remove_workers_from_sched_ctx(int* workers_to_remove, unsigne
 
 		if(now)
 		{
-			unsigned j;
 #ifdef STARPU_SC_HYPERVISOR_DEBUG
+			unsigned j;
 			printf("remove explicitley now from ctx %u:", sched_ctx);
 			for(j = 0; j < nworkers_to_remove; j++)
 				printf(" %d", workers_to_remove[j]);
@@ -975,8 +974,9 @@ void _update_max_diff_hierarchically(unsigned father, double diff)
 
 void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs, int max_workers)
 {
+	(void) max_workers;
 	unsigned leaves[hypervisor.nsched_ctxs];
-	unsigned nleaves = 0;
+	int nleaves = 0;
 	sc_hypervisor_get_leaves(hypervisor.sched_ctxs, hypervisor.nsched_ctxs, leaves, &nleaves);
 	int l;
 
@@ -1065,9 +1065,11 @@ void sc_hypervisor_update_resize_interval(unsigned *sched_ctxs, int nsched_ctxs,
 			norm_exec_time += elapsed_time_worker[worker] == 0.0 ? 0.0 : exec_time / elapsed_time_worker[worker];
 		}
 
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
 		double curr_time = starpu_timing_now();
 		double elapsed_time = (curr_time - hypervisor.sched_ctx_w[sched_ctx].start_time) / 1000000.0; /* in seconds */
 		int nready_tasks = starpu_sched_ctx_get_nready_tasks(sched_ctx);
+#endif
 /* 		if(norm_idle_time >= 0.9) */
 /* 		{ */
 /* 			config->max_nworkers = lrint(norm_exec_time); */
@@ -1247,7 +1249,7 @@ static void notify_idle_cycle(unsigned sched_ctx, int worker, double idle_time)
 					idle_everywhere = 1;
 
 					nsched_ctxs = starpu_worker_get_sched_ctx_list(worker, &sched_ctxs);
-					int s;
+					unsigned s;
 					for(s = 0; s < nsched_ctxs; s++)
 					{
 						if(hypervisor.sched_ctx_w[sched_ctxs[s]].sched_ctx != STARPU_NMAX_SCHED_CTXS)
@@ -1472,6 +1474,8 @@ static void notify_post_exec_task(struct starpu_task *task, size_t data_size, ui
 
 static void notify_submitted_job(struct starpu_task *task, uint32_t footprint, size_t data_size)
 {
+	(void)footprint;
+	(void)data_size;
 	unsigned sched_ctx = task->sched_ctx;
 	STARPU_PTHREAD_MUTEX_LOCK(&hypervisor.sched_ctx_w[sched_ctx].mutex);
 	hypervisor.sched_ctx_w[sched_ctx].submitted_flops += task->flops;
@@ -1484,6 +1488,8 @@ static void notify_submitted_job(struct starpu_task *task, uint32_t footprint, s
 
 static void notify_empty_ctx(unsigned sched_ctx_id, struct starpu_task *task)
 {
+	(void)sched_ctx_id;
+	(void)task;
 	sc_hypervisor_resize_ctxs(NULL, -1 , NULL, -1);
 }
 

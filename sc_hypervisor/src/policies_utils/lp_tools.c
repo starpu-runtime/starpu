@@ -48,7 +48,9 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		if(nhierarchy_levels > 1)
 			ready_flops = sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(sc_w->sched_ctx);
 
+#ifdef STARPU_SC_HYPERVISOR_DEBUG
 		int nready_tasks = starpu_sched_ctx_get_nready_tasks(sc_w->sched_ctx);
+#endif
 
 		if(sc_w->to_be_sized)
 		{
@@ -126,7 +128,6 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 
 	if(nsched_ctxs == 1)
 	{
-		int w;
 		for(w = 0; w < nw; w++)
 			res[0][w] = total_nw[w];
 		double optimal_v = 0.0;
@@ -153,7 +154,6 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		{
 			tmp_sched_ctxs[tmp_nsched_ctxs] = sched_ctxs[i];
 			tmp_flops[tmp_nsched_ctxs] = flops[i];
-			int w;
 			for(w = 0; w < ntypes_of_workers; w++)
 				tmp_v[tmp_nsched_ctxs][w] = v[i][w];
 			tmp_nsched_ctxs++;
@@ -171,7 +171,6 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		{
 			if(sched_ctxs[i] == tmp_sched_ctxs[j])
 			{
-				int w;
 				for(w = 0; w < ntypes_of_workers; w++)
 					res[i][w] = tmp_res[j][w];
 				found = 1;
@@ -180,7 +179,6 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 		}
 		if(!found)
 		{
-			int w;
 			for(w = 0; w < ntypes_of_workers; w++)
 				res[i][w] = 0.0;
 		}
@@ -234,7 +232,6 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 
 			if(ret != 0)
 			{
-				int j;
 				for(i = 0; i < nsched_ctxs; i++)
 				{
 					for(j = 0; j < nselected; j++)
@@ -257,7 +254,6 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 	if(ret == 0.0)
 	{
 		double rand_res[nw];
-		int w;
 		for(w = 0; w < nw; w++)
 			rand_res[w] = total_nw[w]/nsched_ctxs;
 		int s;
@@ -280,7 +276,6 @@ double sc_hypervisor_lp_get_nworkers_per_ctx(int nsched_ctxs, int ntypes_of_work
 #else
 		optimal_v = res[i][0] * v[i][0];
 #endif //STARPU_USE_CUDA
-		int w;
 		unsigned no_workers = 1;
 		for(w = 0; w < nw; w++)
 		{

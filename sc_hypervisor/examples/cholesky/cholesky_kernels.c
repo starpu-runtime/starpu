@@ -31,6 +31,7 @@
 
 static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
 {
+	(void)_args;
 	/* printf("22\n"); */
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -59,8 +60,8 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void
 			/* Parallel CPU kernel */
 			int rank = starpu_combined_worker_get_rank();
 
-			int block_size = (dx + worker_size - 1)/worker_size;
-			int new_dx = STARPU_MIN(dx, block_size*(rank+1)) - block_size*rank;
+			unsigned block_size = (dx + worker_size - 1)/worker_size;
+			unsigned new_dx = STARPU_MIN(dx, block_size*(rank+1)) - block_size*rank;
 
 			float *new_left = &left[block_size*rank];
 			float *new_center = &center[block_size*rank];
@@ -100,6 +101,7 @@ void chol_cublas_codelet_update_u22(void *descr[], void *_args)
 
 static inline void chol_common_codelet_update_u21(void *descr[], int s, void *_args)
 {
+	(void)_args;
 /*	printf("21\n"); */
 	float *sub11;
 	float *sub21;
@@ -148,6 +150,7 @@ void chol_cublas_codelet_update_u21(void *descr[], void *_args)
 
 static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_args)
 {
+	(void)_args;
 /*	printf("11\n"); */
 	float *sub11;
 

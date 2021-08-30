@@ -73,6 +73,8 @@ void hard_coded_handle_idle_cycle(unsigned sched_ctx, int worker)
 }
 static void hard_coded_handle_poped_task(unsigned sched_ctx, __attribute__((unused))int worker, struct starpu_task *task, uint32_t footprint)
 {
+	(void)task;
+	(void)footprint;
 	unsigned criteria = sc_hypervisor_get_resize_criteria();
         if(criteria != SC_NOTHING && criteria == SC_SPEED)
         {
