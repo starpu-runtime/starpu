@@ -129,6 +129,7 @@ noinst_HEADERS = 						\
 	common/rbtree_i.h					\
 	common/prio_list.h					\
 	common/graph.h						\
+	common/config-no-src-build.h				\
 	drivers/driver_common/driver_common.h			\
 	drivers/mp_common/mp_common.h				\
 	drivers/mp_common/source_common.h			\
