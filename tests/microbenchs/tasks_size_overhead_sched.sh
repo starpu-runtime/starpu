@@ -26,7 +26,7 @@ then
     [ -z "$STARPU_BENCH_DIR" ] || DIR="$STARPU_BENCH_DIR/"
     export TERMINAL=png
     export OUTFILE=${DIR}tasks_size_overhead_${STARPU_SCHED}.png
-    gnuplot_av=$(which gnuplot)
+    gnuplot_av=$(command -v gnuplot)
     if test -n "$gnuplot_av"
     then
 	# If gnuplot is available, plot the result
