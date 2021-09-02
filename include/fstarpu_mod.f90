@@ -652,6 +652,12 @@ module fstarpu_mod
                         character(c_char), intent(in) :: cl_name
                 end subroutine fstarpu_codelet_set_name
 
+                subroutine fstarpu_codelet_set_color (cl, cl_color) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: cl
+                        integer(c_int), value, intent(in) :: cl_color
+                end subroutine fstarpu_codelet_set_color
+
                 subroutine fstarpu_codelet_set_model (cl, cl_perfmodel) bind(C)
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), value, intent(in) :: cl

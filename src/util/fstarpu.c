@@ -302,6 +302,12 @@ void fstarpu_codelet_set_name(struct starpu_codelet *cl, const char *cl_name)
 	cl->name = cl_name;
 }
 
+void fstarpu_codelet_set_color(struct starpu_codelet *cl, int cl_color)
+{
+	STARPU_ASSERT(cl_color >= 0);
+	cl->color = (unsigned)cl_color;
+}
+
 void fstarpu_codelet_set_model(struct starpu_codelet *cl, struct starpu_perfmodel *cl_perfmodel)
 {
 	cl->model = cl_perfmodel;
