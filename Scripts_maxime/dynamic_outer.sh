@@ -1,5 +1,6 @@
 #!/usr/bin/bash
 #	bash Scripts_maxime/dynamic_outer.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne dynamic_outer Attila 1
+#	bash Scripts_maxime/dynamic_outer.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice_ligne dynamic_outer Attila 1
 
 PATH_STARPU=$1
 PATH_R=$2
