@@ -434,9 +434,13 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 		    		
 	    if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) != handle_popped)
 	    {
+		printf("Test if %p is on node for task %p?\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), t->pointer_to_T);
+		//~ struct _starpu_data_state *state = STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle);
+		//~ printf("%p.\n", state);
 		if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), current_gpu))
 		{
 		    data_available = false;
+		    printf("Not on node!\n");
 		    break;
 		}
 	    }
@@ -444,12 +448,12 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	if (data_available == true)
 	{
 	    printf("Pushing %p in the package.\n", t->pointer_to_T);
-	    print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
-	    print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
+	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
+	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
 	    erase_task_and_data_pointer(t->pointer_to_T, popped_task_list);
-	    printf("After erase\n");
-	    print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
-	    print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
+	    //~ printf("After erase\n");
+	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
+	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
 	    starpu_task_list_push_front(&l->sub_list, t->pointer_to_T);
 	}
     }
@@ -479,6 +483,8 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	erase_task_and_data_pointer(task, popped_task_list);
 	starpu_task_list_push_back(&l->sub_list, task);
     }
+    
+    /* On veut pop un autre type de donnée la prochaine fois. */
     l->data_type_to_pop = (l->data_type_to_pop + 1)%Ndifferent_data_type;
 }
 
