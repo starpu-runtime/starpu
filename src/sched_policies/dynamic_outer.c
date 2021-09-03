@@ -292,7 +292,6 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	    {
 		data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 	    }
-	    
 		    
 	    number_task_out++;
 	    if (starpu_get_env_number_default("DATA_POP_POLICY", 0) == 0)
@@ -348,7 +347,7 @@ void push_back_data_not_used_yet(starpu_data_handle_t h, struct my_list *l, int 
     gpu_data_not_used_list_push_back(l->gpu_data[data_type], e);
 }
 
-/* Fill a package's task list following dynamic_outer algorithm. It pop only one data, the one that achieve the mos tasks. */
+/* Fill a package's task list following dynamic_outer algorithm. It pop only one data, the one that achieve the most tasks. */
 void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l)
 {
     printf("Data type paquets %d : %d.\n", l->index_package, l->data_type_to_pop);
@@ -359,8 +358,10 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
     struct task_using_data *t = NULL;
     struct gpu_data_not_used *e = NULL;
     int number_of_task_max = 0;
+    int task_available_max = 0;
     int temp_number_of_task_max = 0;
     starpu_data_handle_t handle_popped = NULL;
+    struct task_using_data_list *tudl = task_using_data_list_new();
     
     if (gpu_data_not_used_list_empty(l->gpu_data[l->data_type_to_pop]))
     {
@@ -373,7 +374,8 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
     if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1)
     {
 	/* If the number of handle popped is equal to the number of original handle it
-	 * means that we are on the set of data evicted. So we want to reshuffle it. */
+	 * means that we are on the set of data evicted. So we want to reshuffle it. 
+	 * TODO : it doesn't work in multi gpu because package ae stealing task to one another!!*/
 	 l->number_handle_to_pop--;
 	 if (l->number_handle_to_pop == 0)
 	 {
@@ -413,10 +415,24 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 		temp_number_of_task_max++;
 	    }
 	}
+	
 	if (temp_number_of_task_max > number_of_task_max)
 	{
 	    number_of_task_max = temp_number_of_task_max;
+	    //~ tudl = e->D->sched_data;
+	    //~ task_available_max = task_using_data_list_size(tudl);
 	    handle_popped = e->D;
+	}
+	/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
+	else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
+	{
+	    tudl = e->D->sched_data;
+	    if (task_using_data_list_size(tudl) > task_available_max)
+	    {
+		printf("Egalité mais plus de data available.\n");
+		task_available_max = task_using_data_list_size(tudl);
+		handle_popped = e->D;
+	    }
 	}
     }
     if (number_of_task_max == 0)
@@ -1363,16 +1379,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	    printf("Insertion.\n");
 	    dynamic_outer_insertion(data->p);
 	}
-	
-		//~ paquets_data->first_link = paquets_data->temp_pointer_1;
-		
 	data->p->first_link = data->p->temp_pointer_1;
 	data->p->first_link->data_to_evict_next = NULL;
-	
-	printf("%d.\n", data->p->temp_pointer_1->index_package);
-	data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-	printf("%d.\n", data->p->temp_pointer_1->index_package);
-	//~ exit(0);
 	
 	/* Initiliazing global struct for eviction. */
 	//~ data_to_evict_element_e = malloc(sizeof(*data_to_evict_element_e)); 
