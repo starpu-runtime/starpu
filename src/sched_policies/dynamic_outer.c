@@ -731,7 +731,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
 /* En cas de donnée à évincer refusé. Je la renvoie à évincer.
  * TODO : en multi gpu il faudra une liste chainée.
  */
-starpu_data_handle_t data_to_evict_next; 
+//~ starpu_data_handle_t data_to_evict_next; 
 
 /* Pour savoir si la donnée évincé est bien celle que l'on avais prévu.
  * Si ce n'est pas le cas ou si ca vaut NULL alors cela signifie qu'une donnée non prévu a 
@@ -750,8 +750,20 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
      /* If a data was not truly evicted I put it back in the list. */
     if (success == 0)
     {
+	int i = 0;
+	struct starpu_sched_component *temp_component = component;
+	struct HFP_sched_data *data = temp_component->data;
+	
+	printf("Current gpu in victim evicted %d.\n", starpu_worker_get_memory_node(starpu_worker_get_id()));
+	
+	data->p->temp_pointer_1 = data->p->first_link;
+	for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
+	{
+	    data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+	}
+	
 	/* Version 1 seule donnée. A voir si ca marche en multi GPU */
-	data_to_evict_next = victim;
+	data->p->temp_pointer_1->data_to_evict_next = victim;
 	
 	/* Version avec liste chainée */
 	//~ data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
@@ -767,7 +779,6 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
 	//~ if (victim != planned_eviction)
 	//~ {
 	    //~ printf("Victim != planned_eviction.\n");
-	    
 	    //~ int i = 0;
 	    //~ struct starpu_task *task = NULL;
 	        //~ struct starpu_sched_component *temp_component = component;
@@ -947,23 +958,29 @@ starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_d
 /* TODO: return NULL ou ne rien faie si la dernière tâche est sorti ? De même pour la mise à jour des listes à chaque eviction de donnée. */
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-    //~ printf("Beggining of victim_selector. Timing is %f.\n", starpu_timing_now());
-    if (data_to_evict_next != NULL) 
-    { 
-	printf("Return data %p that was refused.\n", data_to_evict_next);
-	starpu_data_handle_t temp_handle = data_to_evict_next;
-	data_to_evict_next = NULL;
-	return temp_handle;
-    }
+    printf("Beggining of victim_selector. On GPU n°%d. Timing is %f.\n", starpu_worker_get_memory_node(starpu_worker_get_id()), starpu_timing_now());
     
+    int i = 0;
     struct starpu_sched_component *temp_component = component;
     struct HFP_sched_data *data = temp_component->data;
+    data->p->temp_pointer_1 = data->p->first_link;
+    for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
+    {
+	data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+    }
     
+    if (data->p->temp_pointer_1->data_to_evict_next != NULL) 
+    { 
+	printf("Return data %p that was refused.\n", data->p->temp_pointer_1->data_to_evict_next);
+	starpu_data_handle_t temp_handle = data->p->temp_pointer_1->data_to_evict_next;
+	data->p->temp_pointer_1->data_to_evict_next = NULL;
+	return temp_handle;
+    }
+        
     struct starpu_task *task = NULL;
     starpu_data_handle_t *data_on_node;
     unsigned nb_data_on_node = 0;
     int *valid;
-    int i = 0;
     starpu_data_handle_t returned_handle = NULL;
     starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 	
@@ -1189,6 +1206,7 @@ void dynamic_outer_insertion(struct paquets *a)
     new->gpu_data_loaded = malloc(Ndifferent_data_type*sizeof(starpu_data_handle_t));
     new->memory_used = 0;
     new->data_type_to_pop = 0;
+    new->data_to_evict_next = NULL;
     for (j = 0; j < Ndifferent_data_type; j++)
     {
 	new->gpu_data[j] = NULL;
@@ -1373,6 +1391,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	    dynamic_outer_insertion(data->p);
 	}
 	data->p->first_link = data->p->temp_pointer_1;
+	data->p->first_link->data_to_evict_next = NULL;
 	
 	/* Initiliazing global struct for eviction. */
 	//~ data_to_evict_element_e = malloc(sizeof(*data_to_evict_element_e)); 
@@ -1388,7 +1407,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	//~ data_to_evict_control_c->first = data_to_evict_control_c->pointeur;
 	
 	/* Init data that was refused at eviction. */
-	data_to_evict_next = NULL;
+	//~ data_to_evict_next = NULL;
 	
 	component->data = data;
 	//~ component->do_schedule = dynamic_outer_do_schedule;

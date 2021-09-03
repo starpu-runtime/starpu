@@ -82,6 +82,8 @@ struct my_list
 	starpu_ssize_t memory_used; /* Memory used from the data in gpu_data_loaded. */
 	int number_handle_to_pop; /* So I can know when to re-shuffle the data not used yet. */
 	int data_type_to_pop;
+	
+	starpu_data_handle_t data_to_evict_next; /* En cas de donnée à évincer refusé. Je la renvoie à évincer. */
 };
 
 struct paquets
