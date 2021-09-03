@@ -480,6 +480,11 @@ else
     build_nmad_lib=no
 fi
 
+# If MadMPI is used, MadMPI can't be built with PIOman (we don't want communication progression to be done in both StarPU and MadMPI):
+if test x$enable_mpi = xyes -a x$build_nmad_lib = xno -a ! -z "`$mpicc_path --showme|grep pioman`"; then
+  AC_MSG_ERROR([When using MPI backend of StarPU, NewMadeleine doesn't have to be built with PIOman.])
+fi
+
 ###############################################################################
 #                                                                             #
 #                             MPI Master Slave                                #
