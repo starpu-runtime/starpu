@@ -832,41 +832,35 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
  */
 starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-    //~ printf("Début de get_handle_least_tasks.\n");
-     /* TODO : en cas d'égalité enlever la donnée qui permet de faire le moins de tâches au global
-     */
     starpu_data_handle_t returned_handle = NULL;
     int i = 0;
     int min = 0;
     struct task_using_data_list *tudl = task_using_data_list_new();
     if (starpu_task_list_empty(l))
     {
-	/* TODO choisir la donnée qui permet de faire le moins de tâches restantes en global du coup car rien n'est prévu sur cette liste et que j'ai le droit d'évincer. */
 	min = INT_MAX;
 	
 	for (i = 0; i < nb_data_on_node; i++)
 	{
 	    tudl = data_tab[i]->sched_data;
-	    printf("Taille = %d.\n", task_using_data_list_size(tudl));
 	    if (task_using_data_list_size(tudl) < min && starpu_data_can_evict(data_tab[i], node, is_prefetch))
 	    {
 		min = task_using_data_list_size(tudl);
 		returned_handle = data_tab[i];
 	    }
 	}
-	printf("Return %p, sub list empty.\n", returned_handle);
+	//~ printf("Return %p, sub list empty.\n", returned_handle);
 	return returned_handle;
     }
     else
     {
-	    int j = 0;
+	int j = 0;
 	struct starpu_task *task = NULL;
 	int nb_task_done_by_data[nb_data_on_node];
 	for (i = 0; i < nb_data_on_node; i++) { nb_task_done_by_data[i] = 0; }
 	bool all_data_available = true;
 	 //~ printf("Planned task are :");
 	 /* Cherche nb de tache fais par chaque donnée parmis les données prévus qu'il reste à faire */
-	 /* TODO la ca marche pas comme voulu je crois, je veux le moins parmi celle qui ont toutes les données. */
 	 for (task = starpu_task_list_begin(l); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
 	 {
 	     all_data_available = true;
@@ -893,15 +887,11 @@ starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_d
 		 }
 	     }
 	 }
-	 //~ printf("\n");
-	  /* Cherche le min dans le tab */
+	/* Cherche le min dans le tab */
 	min = INT_MAX;
 	 for (i = 0; i < nb_data_on_node; i++)
 	 {
 	     //~ printf("%p can do %d tasks.\n", data_tab[i], nb_task_done_by_data[i]);
-	     
-	     
-	     
 	     if (min > nb_task_done_by_data[i])
 	     {
 		 //~ printf("It's inferior to min.\n");
@@ -917,30 +907,17 @@ starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_d
 		tudl = data_tab[i]->sched_data;
 		if (task_using_data_list_size(tudl) < task_using_data_list_size(returned_handle->sched_data))
 		{
-		    //~ printf("New min cause less task globally to do.\n");
 		    min = nb_task_done_by_data[i];
 		    returned_handle = data_tab[i];
 		}
 	    }
 	 }
-	 //~ printf("\n");
-	 printf("Return in least task handle %p.\n", returned_handle);
-	 //~ exit(0);
 	 return returned_handle;
-	 
-	 /*
-	 if (returned_handle == NULL) { 
-	     printf("Return NO_VICTIM.\n");
-	     planned_eviction = NULL;
-	      return STARPU_DATA_NO_VICTIM; }
-	else
-	{
-	    return returned_handle;
-	}*/
     }
 }
 
-/* TODO: return NULL ou ne rien faie si la dernière tâche est sorti ? De même pour la mise à jour des listes à chaque eviction de donnée. */
+/* TODO: return NULL ou ne rien faie si la dernière tâche est sorti ? De même pour la mise à jour des listes à chaque eviction de donnée.
+ * TODO je renre bcp trop dans cete focntion on perdu du temps car le timing avance lui. */
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
     printf("Beggining of victim_selector. On GPU n°%d. Timing is %f.\n", starpu_worker_get_memory_node(starpu_worker_get_id()), starpu_timing_now());
