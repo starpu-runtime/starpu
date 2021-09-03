@@ -728,20 +728,12 @@ void dynamic_outer_scheduling(struct starpu_task_list *popped_task_list, int cur
     //~ printf("\n");
 }
 
-/* En cas de donnée à évincer refusé. Je la renvoie à évincer.
- * TODO : en multi gpu il faudra une liste chainée.
- */
-//~ starpu_data_handle_t data_to_evict_next; 
-
 /* Pour savoir si la donnée évincé est bien celle que l'on avais prévu.
  * Si ce n'est pas le cas ou si ca vaut NULL alors cela signifie qu'une donnée non prévu a 
  * été évincé. Il faut donc mettre à jour les listes dans les tâches et les données en conséquence.
  * Cependant si on est sur la fin de l'éxécution et que les éviction sont juste la pour vider la mémoire ce n'est pas
- * nécessaire. En réalité pour le moment je ne me rend pas compte qu'on est a la fin de l'exec. TODO : se rendre compte 
- * qu'on est a la fin et arreter de mettre à jour les listes du coup.
- * TODO : en multi gpu il faudra une liste.
- * TODO : Est-ce maintenant que je ne renvoie plus trop NULL quand la liste est vide, toujours utile ? 
- * Si ca n'arrive que a la fin, c'est une perte de temps. Supprimé car devrait ne servir à rien.
+ * nécessaire. En réalité pour le moment je ne me rend pas compte qu'on est a la fin de l'exec. 
+ * TODO : se rendre compte qu'on est a la fin et arreter de mettre à jour les listes du coup.
  */
  //~ starpu_data_handle_t planned_eviction;
 
@@ -764,14 +756,6 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
 	
 	/* Version 1 seule donnée. A voir si ca marche en multi GPU */
 	data->p->temp_pointer_1->data_to_evict_next = victim;
-	
-	/* Version avec liste chainée */
-	//~ data_to_evict_control_c->pointeur = data_to_evict_control_c->first;
-	//~ /* TODO : se placer sur le bon GPU. */
-	//~ struct data_to_evict *d = data_to_evict_new();
-	//~ d->D = victim;
-	//~ printf("Pushing front of the task list to evict %p in dynamic_outer_victim_evicted.\n", victim);
-	//~ data_to_evict_list_push_front(data_to_evict_control_c->pointeur->element, d);
     }
     else
     {
@@ -849,8 +833,7 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
 starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_data_handle_t *data_tab, int nb_data, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
     //~ printf("Début de get_handle_least_tasks.\n");
-    /* TODO : utiliser les struct globale data to evict pour eviter d'avoir a tout recalculer à chaque fois.
-     * TODO : en cas d'égalité enlever la donnée qui permet de faire le moins de tâches au global
+     /* TODO : en cas d'égalité enlever la donnée qui permet de faire le moins de tâches au global
      */
     starpu_data_handle_t returned_handle = NULL;
     int i = 0;
@@ -963,6 +946,8 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     int i = 0;
     struct starpu_sched_component *temp_component = component;
     struct HFP_sched_data *data = temp_component->data;
+    
+    /* Se placer sur le bon GPU. */
     data->p->temp_pointer_1 = data->p->first_link;
     for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
     {
@@ -984,24 +969,20 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     starpu_data_handle_t returned_handle = NULL;
     starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
 	
-    /* Je ne rentre jamais la dedans et je ne sais pas quoi faire avec planned eviction par rapport à 
-     * victim evicted. TODO : a corriger/tester.
-     */
+    /* TODO : Je ne rentre jamsi dedans c'est bizare non ?*/
     //~ for (i = 0; i < nb_data_on_node; i++)
     //~ {
 	//~ if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 	//~ {
+	    //~ exit(0);
 	    //~ free(valid);
 	    //~ returned_handle = data_on_node[i];
 	    //~ free(data_on_node);
 	    //~ printf("Returning an invalid data.\n");
-	    //~ planned_eviction = ???;
 	    //~ return returned_handle;
 	//~ }
     //~ }
     
-    //TODO : se placer sur le bon gpu
-    data->p->temp_pointer_1 = data->p->first_link;
     returned_handle = get_handle_least_tasks(&data->p->temp_pointer_1->sub_list, data_on_node, nb_data_on_node, node, is_prefetch);
 	if (returned_handle == NULL) { 
 	    //~ return STARPU_DATA_NO_VICTIM; 
