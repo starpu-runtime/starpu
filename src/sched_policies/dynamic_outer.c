@@ -121,7 +121,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task, struct paque
     task->sched_data = pt;
 }
 
-/* Randomize the list of data not used yet by a GPU. */
+/* Randomize the list of data not used yet for all the GPU. */
 void randomize_data_not_used_yet(struct paquets *p)
 {
     int i = 0;
@@ -163,6 +163,7 @@ void randomize_data_not_used_yet(struct paquets *p)
     }
 }
 
+/* Randomize the list of data not used yet for a single GPU. */
 void randomize_data_not_used_yet_single_GPU(struct my_list *l)
 {
     int i = 0;
