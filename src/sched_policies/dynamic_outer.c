@@ -292,6 +292,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	    {
 		data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 	    }
+	    
 		    
 	    number_task_out++;
 	    if (starpu_get_env_number_default("DATA_POP_POLICY", 0) == 0)
@@ -1177,9 +1178,7 @@ void dynamic_outer_insertion(struct paquets *a)
     new->memory_used = 0;
     new->data_type_to_pop = 0;
     new->data_to_evict_next = NULL;
-    
-    new->index_package = 2;
-    
+        
     for (j = 0; j < Ndifferent_data_type; j++)
     {
 	new->gpu_data[j] = NULL;
@@ -1357,7 +1356,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	data->p->temp_pointer_1->memory_used = 0;
 	
 	data->p->temp_pointer_1->data_type_to_pop = 0;
-	data->p->temp_pointer_1->index_package = 1;
 	
 	/* Creating as much package as there are GPUs. */
 	for (i = 0; i < Ngpu - 1; i++)
