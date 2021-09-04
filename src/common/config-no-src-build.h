@@ -1,2 +1,0 @@
-#undef STARPU_SRC_DIR
-#undef STARPU_BUILD_DIR
