@@ -3513,6 +3513,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   test -e tools/starpu_paje_summary.Rmd || ln -sf $ac_abs_top_srcdir/tools/starpu_paje_summary.Rmd tools/starpu_paje_summary.Rmd
   test -e tools/starpu_trace_state_stats.py || ln -sf $ac_abs_top_srcdir/tools/starpu_trace_state_stats.py tools/starpu_trace_state_stats.py
   chmod +x tools/starpu_trace_state_stats.py
+  sed -i -e '/ STARPU_SRC_DIR /d' -e '/ STARPU_BUILD_DIR /d' src/common/config.h
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
@@ -3529,10 +3530,6 @@ for icd in /etc/OpenCL/vendors/*.icd ; do
 done
 AC_SUBST(SOCL_VENDORS)
 
-AH_BOTTOM([
-/* Avoid leaking the source/build directories in debugging symbols of installed files */
-#include <common/config-no-src-build.h>
-])
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
 AC_CONFIG_HEADER(src/common/config.h src/common/config-src-build.h include/starpu_config.h starpurm/include/starpurm_config.h)
 
