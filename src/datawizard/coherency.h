@@ -54,7 +54,8 @@ struct _starpu_data_replicate
 	char memory_node;
 
 	/** describes the state of the local data in term of coherency */
-	enum _starpu_cache_state	state: 2;
+	//~ enum _starpu_cache_state	state: 2;
+	enum _starpu_cache_state	state;
 
 	/** A buffer that is used for SCRATCH or reduction cannnot be used with
 	 * filters. */
