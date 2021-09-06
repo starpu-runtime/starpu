@@ -477,6 +477,9 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	    printf("Pushing %p in the package.\n", t->pointer_to_T);
 	    
 	    /* J'ajoute cette tâche a la liste des tâches prévu */
+	    struct planned_task *pt = planned_task_new();
+	    pt->pointer_to_planned_task = t->pointer_to_T;
+	    planned_task_list_push_back(my_planned_task, pt);
 	    
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
