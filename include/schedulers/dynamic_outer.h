@@ -77,6 +77,9 @@ LIST_TYPE(planned_task,
     /* List of task that I got in the post_exec_hook */
     struct starpu_task *pointer_to_planned_task;
 );
+
+struct planned_task *list_planned_task;
+
 //~ LIST_TYPE(data_to_evict,
     //~ starpu_data_handle_t D; /* The data not used yet by the GPU. */
 //~ );

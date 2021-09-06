@@ -462,11 +462,8 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 		    		
 	    if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) != handle_popped)
 	    {
-		printf("Test if %p is on node for task %p?\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), t->pointer_to_T);
-		//~ struct _starpu_data_state *state = STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle);
-		printf("Corresponding address of the state: %p.\n", &STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)->per_node[1].state);
-		//~ starpu_data_handle_t h;
-		//~ printf("%p.\n", &h->per_node[1].state);
+		//~ printf("Test if %p is on node for task %p?\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), t->pointer_to_T);
+		//~ printf("Corresponding address of the state: %p.\n", &STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)->per_node[1].state);
 		if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), current_gpu))
 		{
 		    data_available = false;
@@ -478,6 +475,9 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	if (data_available == true)
 	{
 	    printf("Pushing %p in the package.\n", t->pointer_to_T);
+	    
+	    /* J'ajoute cette tâche a la liste des tâches prévu */
+	    
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
 	    erase_task_and_data_pointer(t->pointer_to_T, popped_task_list);
@@ -1411,6 +1411,9 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	    starpu_data_register_victim_selector(dynamic_outer_victim_selector, dynamic_outer_victim_evicted, component); 
 	}
 	
+	/* Initialisation de la structure qui contient la liste des pointeurs des tâches passées par le post_exec_done */
+	list_planned_task = planned_task_new();
+	
 	return component;
 }
 
@@ -1435,6 +1438,7 @@ static void deinitialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of planned task. */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
+    //Supprimer de la liste de tâches prévus
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }
 
