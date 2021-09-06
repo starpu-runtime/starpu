@@ -1442,9 +1442,15 @@ static void deinitialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
     /* Je supprime de la liste de tâches prévus celle qui vient de se terminer */
-    //~ struct planned_task *pt = NULL;
-    //~ pt = planned_task_list_begin(my_planned_task);
-    //~ planned_task_list_erase(my_planned_task, pt);
+    struct planned_task *pt = planned_task_new();
+    for (pt = planned_task_list_begin(my_planned_task); pt != planned_task_list_end(my_planned_task); pt = planned_task_list_next(pt))
+    {
+	if (pt->pointer_to_planned_task == task)
+	{
+	    planned_task_list_erase(my_planned_task, pt);
+	    break;
+	}
+    }
     
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }
