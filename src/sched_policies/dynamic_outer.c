@@ -1412,7 +1412,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	}
 	
 	/* Initialisation de la structure qui contient la liste des pointeurs des tâches passées par le post_exec_done */
-	list_planned_task = planned_task_new();
+	my_planned_task = planned_task_list_new();
 	
 	return component;
 }
@@ -1438,7 +1438,11 @@ static void deinitialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of planned task. */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-    //Supprimer de la liste de tâches prévus
+    /* Je supprime de la liste de tâches prévus celle qui vient de se terminer */
+    //~ struct planned_task *pt = NULL;
+    //~ pt = planned_task_list_begin(my_planned_task);
+    //~ planned_task_list_erase(my_planned_task, pt);
+    
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }
 
