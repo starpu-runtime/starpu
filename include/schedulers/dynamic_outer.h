@@ -41,6 +41,8 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 
 void print_data_loaded(struct paquets *p);
 
+void get_task_done(struct starpu_task *task, unsigned sci);
+
 /* In the handles */
 LIST_TYPE(task_using_data,
     /* Pointer to the main task list T */
@@ -71,6 +73,10 @@ struct pointer_in_task
 };
 
 /* To control eviction. */
+LIST_TYPE(planned_task,
+    /* List of task that I got in the post_exec_hook */
+    struct starpu_task *pointer_to_planned_task;
+);
 //~ LIST_TYPE(data_to_evict,
     //~ starpu_data_handle_t D; /* The data not used yet by the GPU. */
 //~ );

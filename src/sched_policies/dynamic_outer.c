@@ -887,7 +887,7 @@ starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_d
 	for (i = 0; i < nb_data_on_node; i++) { nb_task_done_by_data[i] = 0; }
 	bool all_data_available = true;
 	 //~ printf("Planned task are :");
-	 /* Cherche nb de tache fais par chaque donnée parmis les données prévus qu'il reste à faire */
+	 /* Cherche nb de tache fais par chaque donnée parmis les tâches prévus qu'il reste à faire */
 	 for (task = starpu_task_list_begin(l); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
 	 {
 	     all_data_available = true;
@@ -1432,6 +1432,12 @@ static void deinitialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 	starpu_sched_tree_destroy(tree);
 }
 
+/* Get the task that was last executed. Used to update the task list of planned task. */
+void get_task_done(struct starpu_task *task, unsigned sci)
+{
+    starpu_sched_component_worker_post_exec_hook(task, sci);
+}
+
 struct starpu_sched_policy _starpu_sched_dynamic_outer_policy =
 {
 	.init_sched = initialize_dynamic_outer_center_policy,
@@ -1444,7 +1450,8 @@ struct starpu_sched_policy _starpu_sched_dynamic_outer_policy =
 	.pop_task = get_data_to_load,
 	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
 	.pre_exec_hook = get_current_tasks,
-	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	//~ .post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.post_exec_hook = get_task_done,
 	.pop_every_task = NULL,
 	.policy_name = "dynamic-outer",
 	.policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading 2 random data",
