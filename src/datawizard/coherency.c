@@ -186,6 +186,7 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 		unsigned node;
 		for (node = 0; node < nnodes; node++)
 		{
+			//~ printf("Invalidate %p.\n", handle);
 			if (handle->per_node[node].state != STARPU_INVALID)
 			       _STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 			handle->per_node[node].state = STARPU_INVALID;

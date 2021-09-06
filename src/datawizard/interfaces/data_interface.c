@@ -1160,7 +1160,8 @@ static void _starpu_data_invalidate(void *data)
 			/* free the data copy in a lazy fashion */
 			_starpu_request_mem_chunk_removal(handle, local, node, size);
 		}
-
+		
+		//~ printf("Invalidate %p.\n", handle);
 		if (local->state != STARPU_INVALID)
 			_STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 		local->state = STARPU_INVALID;
