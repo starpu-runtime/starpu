@@ -389,6 +389,7 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 			unsigned cnt = 0;
 
 			/* some other node may have the copy */
+			printf("Invalid. %p\n", handle);
 			if (src_replicate->state != STARPU_INVALID)
 				_STARPU_TRACE_DATA_STATE_INVALID(handle, src_node);
 			src_replicate->state = STARPU_INVALID;
@@ -647,10 +648,16 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	
 	starpu_data_handle_t handle;
 	handle = mc->data;
+	
+	//~ printf("Début de try_to_throw_mem_chunk on handle %p.\n", handle);
+	fflush(stdout);
+	
 	STARPU_ASSERT(handle);
-
-	if (!starpu_data_can_evict(handle, node, is_prefetch))
+	
+	if (!starpu_data_can_evict(handle, node, is_prefetch)) {
+	//~ printf("In if (!starpu_data_can_evict(handle, node, is_prefetch)).\n");
 		return 0;
+	    }
 
 	/* REDUX memchunk */
 	if (mc->relaxed_coherency == 2)
@@ -664,9 +671,11 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	{
 		STARPU_ASSERT(mc->replicate);
 
-		if (_starpu_spin_trylock(&handle->header_lock))
+		if (_starpu_spin_trylock(&handle->header_lock)) {
 			/* Handle is busy, abort */
+			//~ printf("In if (_starpu_spin_trylock(&handle->header_lock)).\n");
 			return 0;
+		    }
 
 		if (mc->replicate->refcnt == 0)
 		{
@@ -731,17 +740,24 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 				 * and thus release the header lock, take
 				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
+				//~ printf("Juste avant le res = transfer_subtree_to_node(handle, node, target);.\n");
+				fflush(stdout);
                                _STARPU_TRACE_END_WRITEBACK(node, handle);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
+				//~ printf("Juste avant le _starpu_spin_lock(&mc_lock[node]);.\n");
+				fflush(stdout);
 				_starpu_spin_lock(&mc_lock[node]);
+				//~ printf("Juste après le _starpu_spin_lock(&mc_lock[node]);.\n");
+				fflush(stdout);
 
 				if (!mc)
 				{
 					if (res == -1)
 					{
 						/* handle disappeared, abort without unlocking it */
+						//~ printf("In if (res == -1).\n");
 						return 0;
 					}
 				}
@@ -753,6 +769,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 					if (res == -1)
 					{
 						/* handle disappeared, abort without unlocking it */
+						//~ printf("In if (res == -1).\n");
 						return 0;
 					}
 
