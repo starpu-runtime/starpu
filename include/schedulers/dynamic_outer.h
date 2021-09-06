@@ -43,6 +43,8 @@ void print_data_loaded(struct paquets *p);
 
 void get_task_done(struct starpu_task *task, unsigned sci);
 
+void print_planned_task();
+
 /* In the handles */
 LIST_TYPE(task_using_data,
     /* Pointer to the main task list T */

@@ -480,6 +480,7 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	    struct planned_task *pt = planned_task_new();
 	    pt->pointer_to_planned_task = t->pointer_to_T;
 	    planned_task_list_push_back(my_planned_task, pt);
+	    print_planned_task();
 	    
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
@@ -1222,6 +1223,16 @@ void print_task_list(struct starpu_task_list *l, char *s)
     printf("\n");
 }
 
+void print_planned_task()
+{
+    struct planned_task *pt = planned_task_new();
+    printf("Planned task are:\n");
+    for (pt = planned_task_list_begin(my_planned_task); pt != planned_task_list_end(my_planned_task); pt = planned_task_list_next(pt))
+    {
+	printf("%p\n", pt->pointer_to_planned_task);
+    }
+}
+
 void print_data_not_used_yet(struct paquets *p)
 {
     int i = 0;
@@ -1451,6 +1462,8 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	    break;
 	}
     }
+    printf("Suppression dans planned task de %p.\n", task);
+    print_planned_task();
     
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }
