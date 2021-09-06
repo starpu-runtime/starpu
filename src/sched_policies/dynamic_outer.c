@@ -350,7 +350,7 @@ void push_back_data_not_used_yet(starpu_data_handle_t h, struct my_list *l, int 
 /* Fill a package's task list following dynamic_outer algorithm. It pop only one data, the one that achieve the most tasks. */
 void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l)
 {
-    printf("Data type paquets %d : %d.\n", l->index_package, l->data_type_to_pop);
+    //~ printf("Data type paquets %d : %d.\n", l->index_package, l->data_type_to_pop);
     
     int i = 0;
     int j = 0;
@@ -450,7 +450,7 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	l->memory_used += starpu_data_get_size(handle_popped);
 	add_data_to_gpu_data_loaded(l, handle_popped, l->data_type_to_pop);
     }
-    printf("The data adding the most task is: %p.\n", handle_popped);
+    //~ printf("The data adding the most task is: %p.\n", handle_popped);
     
     /* Adding the task to the list. TODO : this is a copy paste of the code above to test the available tasks. */
     for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
@@ -464,13 +464,13 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	    {
 		printf("Test if %p is on node for task %p?\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), t->pointer_to_T);
 		//~ struct _starpu_data_state *state = STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle);
-		//~ printf("%p.\n", &STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)->per_node[1].state);
+		printf("Corresponding address of the state: %p.\n", &STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle)->per_node[1].state);
 		//~ starpu_data_handle_t h;
 		//~ printf("%p.\n", &h->per_node[1].state);
 		if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle), current_gpu))
 		{
 		    data_available = false;
-		    printf("Not on node!\n");
+		    //~ printf("Not on node!\n");
 		    break;
 		}
 	    }
@@ -773,7 +773,7 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
 	struct starpu_sched_component *temp_component = component;
 	struct HFP_sched_data *data = temp_component->data;
 	
-	printf("Current gpu in victim evicted %d.\n", starpu_worker_get_memory_node(starpu_worker_get_id()));
+	//~ printf("Current gpu in victim evicted %d.\n", starpu_worker_get_memory_node(starpu_worker_get_id()));
 	
 	data->p->temp_pointer_1 = data->p->first_link;
 	for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
@@ -947,7 +947,7 @@ starpu_data_handle_t get_handle_least_tasks(struct starpu_task_list *l, starpu_d
  * TODO je renre bcp trop dans cete focntion on perdu du temps car le timing avance lui. */
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-    printf("Beggining of victim_selector. On GPU n°%d. Timing is %f.\n", starpu_worker_get_memory_node(starpu_worker_get_id()), starpu_timing_now());
+    //~ printf("Beggining of victim_selector. On GPU n°%d. Timing is %f.\n", starpu_worker_get_memory_node(starpu_worker_get_id()), starpu_timing_now());
     
     int i = 0;
     struct starpu_sched_component *temp_component = component;
@@ -991,8 +991,8 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     
     returned_handle = get_handle_least_tasks(&data->p->temp_pointer_1->sub_list, data_on_node, nb_data_on_node, node, is_prefetch);
 	if (returned_handle == NULL) { 
+	    //~ printf("Return NO VICTIM.\n");
 	    return STARPU_DATA_NO_VICTIM; 
-	    //~ printf("Return NULL.\n");
 	    //~ return NULL;
     }
 	/* Enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
@@ -1089,7 +1089,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	
 	//~ print_task_using_data(returned_handle);
 	
-	printf("Pushing back data in not used yet.%p\n", returned_handle);
+	//~ printf("Pushing back data in not used yet.%p\n", returned_handle);
 	push_back_data_not_used_yet(returned_handle, data->p->temp_pointer_1, d->type);
 	
 	//~ printf("Après:\n");
