@@ -74,27 +74,26 @@ struct pointer_in_task
     struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
 };
 
-/* To control eviction. */
+/* For eviction I need to get the planned task and remove from it tasks processed in the post exec hook.
+ * I use this struct in create to initialize it, in post exec hook to update the list and in dynamic_outer_scheduling
+ * to update the list when adding a task to my_list.
+ */
 LIST_TYPE(planned_task,
-    /* List of task that I got in the post_exec_hook */
     struct starpu_task *pointer_to_planned_task;
 );
 
-struct planned_task_list *my_planned_task;
+struct gpu_planned_task *my_planned_task;
+struct gpu_planned_task_control *my_planned_task_control;
 
-//~ LIST_TYPE(data_to_evict,
-    //~ starpu_data_handle_t D; /* The data not used yet by the GPU. */
-//~ );
-//~ struct data_to_evict_element
-//~ {
-    //~ void *element;
-    //~ struct data_to_evict_element *next;
-//~ };
-//~ struct data_to_evict_control
-//~ {
-    //~ struct data_to_evict_element *pointeur;
-    //~ struct data_to_evict_element *first;
-//~ };
-//~ void data_to_evict_insertion(struct data_to_evict_control *d);
+struct gpu_planned_task
+{
+    struct planned_task **pointer_to_planned_task;
+};
+struct gpu_planned_task_control
+{
+    struct gpu_planned_task *pointer;
+    struct gpu_planned_task *first;
+};
+void gpu_planned_task_insertion(struct gpu_planned_task_control *g);
 
 #endif
