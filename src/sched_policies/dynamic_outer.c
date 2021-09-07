@@ -1173,32 +1173,21 @@ static void deinitialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 	starpu_sched_tree_destroy(tree);
 }
 
-/* Get the task that was last executed. Used to update the task list of planned task. */
+/* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-    //~ printf("Dans le post exec hook avec la tâche %p.\n", task);
-    //~ printf("The planned order was:\n");
-    //~ print_planned_task();
-    //~ /* Je supprime de la liste de tâches prévus celle qui vient de se terminer */
-    //~ int i = 0;
-    //~ struct planned_task *pt = planned_task_new();
+    printf("Dans le post exec hook avec la tâche %p.\n", task);
+    int i = 0;
     
-    //~ /* Je me place sur la liste correspondant au bon gpu. */
-    //~ my_planned_task_control->pointer = my_planned_task_control->first;
-    //~ for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
-    //~ {
-	//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-    //~ }
+    /* Je me place sur la liste correspondant au bon gpu. */
+    my_pulled_task_control->pointer = my_pulled_task_control->first;
+    for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
+    {
+	my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+    }
     
-    //~ /* J'efface la tâche dans la liste de tâches */
-    //~ for (pt = planned_task_list_begin(my_planned_task_control->pointer->ptpt); pt != planned_task_list_end(my_planned_task_control->pointer->ptpt); pt = planned_task_list_next(pt))
-    //~ {
-	//~ if (pt->pointer_to_planned_task == task)
-	//~ {
-	    //~ planned_task_list_erase(my_planned_task_control->pointer->ptpt, pt);
-	    //~ break;
-	//~ }
-    //~ }
+    /* J'efface la tâche dans la liste de tâches */
+    pulled_task_list_pop_front(my_pulled_task_control->pointer->ptl);
     
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }

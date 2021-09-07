@@ -106,5 +106,6 @@ void gpu_planned_task_insertion();
 void gpu_pulled_task_initialisation();
 void gpu_pulled_task_insertion();
 void add_task_to_pulled_task(int current_gpu, struct starpu_task *task);
+void get_task_done(struct starpu_task *task, unsigned sci);
 
 #endif
