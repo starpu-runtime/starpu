@@ -81,19 +81,18 @@ struct pointer_in_task
 LIST_TYPE(planned_task,
     struct starpu_task *pointer_to_planned_task;
 );
-
-struct gpu_planned_task *my_planned_task;
-struct gpu_planned_task_control *my_planned_task_control;
-
 struct gpu_planned_task
 {
-    struct planned_task **pointer_to_planned_task;
+    struct planned_task_list *ptpt;
+    struct gpu_planned_task *next;
 };
 struct gpu_planned_task_control
 {
     struct gpu_planned_task *pointer;
     struct gpu_planned_task *first;
 };
-void gpu_planned_task_insertion(struct gpu_planned_task_control *g);
+void gpu_planned_task_initialisation();
+void gpu_planned_task_insertion();
+struct gpu_planned_task_control *my_planned_task_control;
 
 #endif

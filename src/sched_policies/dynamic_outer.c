@@ -1361,13 +1361,26 @@ void randomize_task_list(struct HFP_sched_data *d)
     //~ printf("J'ai parcouru la liste de tâche complète, puis la liste - 1 élément et ainsi de suite. Cela pour randomiser la liste de tâches initiale dans randomize_task_list. Complexité : O(NT^2)\n\n");
 }
 
-//~ void data_to_evict_insertion(struct data_to_evict_control *d)
-//~ {
-    //~ struct data_to_evict_element *new = malloc(sizeof(*new));
-    //~ new->next = d->pointeur;    
-    //~ new->element = NULL;
-    //~ d->pointeur = new;
-//~ }
+void gpu_planned_task_initialisation()
+{
+    printf("2.\n");
+    _STARPU_MALLOC( my_planned_task_control, sizeof(*my_planned_task_control));
+    struct gpu_planned_task *new = malloc(sizeof(*new));
+    struct planned_task_list *ptl = planned_task_list_new();
+    new->ptpt = ptl;
+    my_planned_task_control->pointer = new;
+    my_planned_task_control->first = my_planned_task_control->pointer;
+}
+
+void gpu_planned_task_insertion()
+{
+    printf("3.\n");
+    struct gpu_planned_task *new = malloc(sizeof(*new));
+    struct planned_task_list *ptl = planned_task_list_new();
+    new->ptpt = ptl;
+    new->next = my_planned_task_control->pointer;    
+    my_planned_task_control->pointer = new;
+}
 
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
@@ -1446,6 +1459,12 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	}
 	
 	/* Initialisation de la structure qui contient la liste des pointeurs des tâches passées par le post_exec_done */
+	printf("1.\n");
+	gpu_planned_task_initialisation();
+	for (i = 0; i < Ngpu - 1; i++)
+	{
+	    gpu_planned_task_insertion();
+	}
 	//~ my_planned_task = planned_task_list_new();
 	//~ struct planned_task *pt = NULL;
 	//~ for (i = 0; i < Ngpu; i++)
