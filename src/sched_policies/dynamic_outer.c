@@ -358,7 +358,7 @@ void add_task_to_planned_task(struct starpu_task *task, int current_gpu)
     struct planned_task *pt = planned_task_new();
     pt->pointer_to_planned_task = task;
     planned_task_list_push_back(my_planned_task_control->pointer->ptpt, pt);
-    print_planned_task();
+    //~ print_planned_task();
 }
 
 /* Fill a package's task list following dynamic_outer algorithm. It pop only one data, the one that achieve the most tasks. */
@@ -498,7 +498,8 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	    //~ printf("After erase\n");
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
-	    starpu_task_list_push_front(&l->sub_list, t->pointer_to_T);
+	    //~ starpu_task_list_push_front(&l->sub_list, t->pointer_to_T);
+	    starpu_task_list_push_back(&l->sub_list, t->pointer_to_T);
 	}
     }
     
@@ -1363,7 +1364,6 @@ void randomize_task_list(struct HFP_sched_data *d)
 
 void gpu_planned_task_initialisation()
 {
-    printf("2.\n");
     _STARPU_MALLOC( my_planned_task_control, sizeof(*my_planned_task_control));
     struct gpu_planned_task *new = malloc(sizeof(*new));
     struct planned_task_list *ptl = planned_task_list_new();
@@ -1374,7 +1374,6 @@ void gpu_planned_task_initialisation()
 
 void gpu_planned_task_insertion()
 {
-    printf("3.\n");
     struct gpu_planned_task *new = malloc(sizeof(*new));
     struct planned_task_list *ptl = planned_task_list_new();
     new->ptpt = ptl;
@@ -1423,7 +1422,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	/* Creating as much package as there are GPUs. */
 	for (i = 0; i < Ngpu - 1; i++)
 	{
-	    printf("Insertion.\n");
+	    //~ printf("Insertion.\n");
 	    dynamic_outer_insertion(data->p);
 	}
 	data->p->first_link = data->p->temp_pointer_1;
@@ -1499,6 +1498,9 @@ static void deinitialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of planned task. */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
+    printf("Dans le post exec hook avec la tâche %p.\n", task);
+    printf("The planned order was:\n");
+    print_planned_task();
     /* Je supprime de la liste de tâches prévus celle qui vient de se terminer */
     int i = 0;
     struct planned_task *pt = planned_task_new();
@@ -1519,8 +1521,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	    break;
 	}
     }
-    printf("Suppression de %p.\n", task);
-    print_planned_task();
     
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }
