@@ -76,6 +76,17 @@ void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu)
     }
 }
 
+void print_pulled_task_one_gpu(struct gpu_pulled_task *g, int current_gpu)
+{
+    struct pulled_task *p = pulled_task_new();
+    
+    printf("Pulled task for GPU %d:\n", current_gpu);
+    for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
+    {
+	printf("%p\n", p->pointer_to_pulled_task);
+    }
+}
+
 void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g)
 {
     int j = 0;    
@@ -310,9 +321,9 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
      */
     if (new_tasks_initialized == true)
     {
-	printf("Printing GPU's data list and main task list before randomization:\n\n");
-	print_data_not_used_yet();
-	print_task_list(&data->sched_list, "");
+	//~ printf("Printing GPU's data list and main task list before randomization:\n\n");
+	//~ print_data_not_used_yet();
+	//~ print_task_list(&data->sched_list, "");
 	NT = starpu_task_list_size(&data->sched_list);
 	printf("Il y a %d tâches.\n", NT);
 	randomize_task_list(data);
@@ -344,6 +355,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	/* If one or more task have been refused */
 	if (!starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list)) 
 	{
+	    /* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
 	    task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out, task, current_gpu);
@@ -355,6 +367,10 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	{
 	    number_task_out++;
 	    task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
+	    
+	    /* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
+	    add_task_to_pulled_task(current_gpu, task);
+
 	    printf("Task %d: %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
@@ -369,7 +385,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
 	else if (!starpu_task_list_empty(&data->main_task_list))
 	{
-	    /* Je me remet à nouveau sur le bon gpu, car si entre temps pull_task est rappellé ca me remet au début de la liste chainbée -__- */ 
+	    /* Je me remet à nouveau sur le bon gpu, car si entre temps pull_task est rappellé ca me remet au début de la liste chainée -______- Ca m'est aussi arrivé dans le print de dynamic_outer -___- */ 
 	    my_planned_task_control->pointer = my_planned_task_control->first;
 	    for (i = 1; i < current_gpu; i++)
 	    {
@@ -386,6 +402,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 		dynamic_outer_scheduling_one_data_popped(&data->main_task_list, current_gpu, my_planned_task_control->pointer);
 	    }
 	    task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
+	    add_task_to_pulled_task(current_gpu, task);
 	    printf("Task %d, %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
@@ -1010,9 +1027,8 @@ void gpu_pulled_task_initialisation()
 {
     _STARPU_MALLOC(my_pulled_task_control, sizeof(*my_pulled_task_control));
     struct gpu_pulled_task *new = malloc(sizeof(*new));
-    starpu_task_list_init(&new->pulled_task);
-    new->next = NULL;
-    
+    struct pulled_task_list *p = pulled_task_list_new();
+    new->ptl = p;
     my_pulled_task_control->pointer = new;
     my_pulled_task_control->first = my_pulled_task_control->pointer;
 }
@@ -1020,9 +1036,26 @@ void gpu_pulled_task_initialisation()
 void gpu_pulled_task_insertion()
 {
     struct gpu_pulled_task *new = malloc(sizeof(*new));
-     starpu_task_list_init(&new->pulled_task);
+    struct pulled_task_list *p = pulled_task_list_new();
+    new->ptl = p;
     new->next = my_pulled_task_control->pointer;    
     my_pulled_task_control->pointer = new;
+}
+
+void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
+{
+    int i = 0;
+    my_pulled_task_control->pointer = my_pulled_task_control->first;
+    for (i = 1; i < current_gpu; i++)
+    {
+	my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+    }
+    
+    struct pulled_task *p = pulled_task_new();
+    p->pointer_to_pulled_task = task;
+    pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
+    
+    print_pulled_task_one_gpu(my_pulled_task_control->pointer, current_gpu);
 }
 
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)

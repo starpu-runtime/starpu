@@ -58,10 +58,13 @@ struct gpu_planned_task_control
     struct gpu_planned_task *first;
 };
 
-/** Task out of pulled task. Updated by post_exec. **/
+/** Task out of pulled task. Updated by post_exec. I'm forced to use a list of single task and not task list because else starpu doesn't allow me to push a taks in two different task_list **/
+LIST_TYPE(pulled_task,
+    struct starpu_task *pointer_to_pulled_task;
+);
 struct gpu_pulled_task
 {
-    struct starpu_task_list pulled_task;
+    struct pulled_task_list *ptl;
     struct gpu_pulled_task *next;
 };
 struct gpu_pulled_task_control
@@ -82,6 +85,7 @@ int number_task_out; /* Just to track where I am on the exec. TODO : A supprimer
 void print_task_list(struct starpu_task_list *l, char *s);
 void print_data_not_used_yet();
 void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu);
+void print_pulled_task_one_gpu(struct gpu_pulled_task *g, int current_gpu);
 void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g);
 void print_task_using_data(starpu_data_handle_t d);
 
@@ -101,5 +105,6 @@ void gpu_planned_task_initialisation();
 void gpu_planned_task_insertion();
 void gpu_pulled_task_initialisation();
 void gpu_pulled_task_insertion();
+void add_task_to_pulled_task(int current_gpu, struct starpu_task *task);
 
 #endif
