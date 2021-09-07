@@ -491,11 +491,6 @@ uint32_t _starpu_can_submit_opencl_task(void);
  * sleeping (waiting on something to happen). */
 unsigned _starpu_worker_can_block(unsigned memnode, struct _starpu_worker *worker);
 
-/** This function must be called to block a worker. It puts the worker in a
- * sleeping state until there is some event that forces the worker to wake up.
- * */
-void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
-
 /** This function initializes the current driver for the given worker */
 void _starpu_driver_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync);
 /** This function initializes the current thread for the given worker */

@@ -210,12 +210,6 @@ void _starpu_decrement_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double r
 unsigned _starpu_increment_nready_tasks_of_sched_ctx(unsigned sched_ctx_id, double ready_flops, struct starpu_task *task);
 int _starpu_wait_for_no_ready_of_sched_ctx(unsigned sched_ctx_id);
 
-/** Return the corresponding index of the workerid in the ctx table */
-int _starpu_get_index_in_ctx_of_workerid(unsigned sched_ctx, unsigned workerid);
-
-/** Get the mutex corresponding to the global workerid */
-starpu_pthread_mutex_t *_starpu_get_sched_mutex(struct _starpu_sched_ctx *sched_ctx, int worker);
-
 /** Get workers belonging to a certain context, it returns the number
  * of workers take care: no mutex taken, the list of workers might not
  * be updated
@@ -241,8 +235,6 @@ unsigned _starpu_sched_ctx_get_current_context();
 
 /** verify that some worker can execute a certain task */
 int _starpu_workers_able_to_execute_task(struct starpu_task *task, struct _starpu_sched_ctx *sched_ctx);
-
-void _starpu_fetch_tasks_from_empty_ctx_list(struct _starpu_sched_ctx *sched_ctx);
 
 unsigned _starpu_sched_ctx_allow_hypervisor(unsigned sched_ctx_id);
 

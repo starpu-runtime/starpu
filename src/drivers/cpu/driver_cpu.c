@@ -577,12 +577,6 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cpu_to_cuda,
 #endif
 
-#if 0
-#ifdef STARPU_USE_CUDA
-	.copy3d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy3d_data_from_cpu_to_cuda,
-#endif
-#endif
-
 	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,
 	.malloc_on_node = _starpu_cpu_malloc_on_node,
 	.free_on_node = _starpu_cpu_free_on_node,

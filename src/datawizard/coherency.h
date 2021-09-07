@@ -351,8 +351,6 @@ void __starpu_push_task_output(struct _starpu_job *j);
 /** Version with driver trace */
 void _starpu_push_task_output(struct _starpu_job *j);
 
-void _starpu_release_nowhere_task_output(struct _starpu_job *j);
-
 struct _starpu_worker;
 STARPU_ATTRIBUTE_WARN_UNUSED_RESULT
 /** Fetch the data parameters for task \p task

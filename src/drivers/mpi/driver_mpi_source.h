@@ -39,13 +39,7 @@ void *_starpu_mpi_src_worker(void *arg);
 void _starpu_mpi_source_init(struct _starpu_mp_node *node);
 void _starpu_mpi_source_deinit(struct _starpu_mp_node *node);
 
-int _starpu_mpi_copy_interface_from_mpi_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_mpi_copy_interface_from_mpi_to_mpi(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_mpi_copy_interface_from_cpu_to_mpi(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-
 int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node);
-uintptr_t _starpu_mpi_malloc_on_node(unsigned dst_node, size_t size, int flags);
-void _starpu_mpi_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
 

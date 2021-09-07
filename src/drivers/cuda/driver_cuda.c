@@ -1853,11 +1853,6 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.copy2d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cpu,
 	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
 
-#if 0
-	.copy3d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cpu,
-	.copy3d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cuda,
-#endif
-
 	.wait_request_completion = _starpu_cuda_wait_request_completion,
 	.test_request_completion = _starpu_cuda_test_request_completion,
 	.is_direct_access_supported = _starpu_cuda_is_direct_access_supported,
