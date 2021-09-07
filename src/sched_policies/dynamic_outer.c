@@ -1500,38 +1500,27 @@ static void deinitialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
     /* Je supprime de la liste de tâches prévus celle qui vient de se terminer */
-    //~ struct planned_task *pt = planned_task_new();
-    //~ for (pt = planned_task_list_begin(my_planned_task); pt != planned_task_list_end(my_planned_task); pt = planned_task_list_next(pt))
-    //~ {
-	//~ if (pt->pointer_to_planned_task == task)
-	//~ {
-	    //~ planned_task_list_erase(my_planned_task, pt);
-	    //~ break;
-	//~ }
-    //~ }
-    //~ print_planned_task();
+    int i = 0;
+    struct planned_task *pt = planned_task_new();
     
-    /* Version multigpu */
-    //~ int i = 0;
-    //~ struct planned_task *pt = planned_task_new();
-    //~ pt = planned_task_list_begin(my_planned_task);
     /* Je me place sur la liste correspondant au bon gpu. */
-    //~ for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
-    //~ {
-	//~ pt = planned_task_list_next(pt);
-    //~ }
+    my_planned_task_control->pointer = my_planned_task_control->first;
+    for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
+    {
+	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+    }
+    
     /* J'efface la tâche dans la liste de tâches */
-    //~ struct starpu_task *temp_task = NULL;
-    //~ for (temp_task = starpu_task_list_begin(pt->pointer_to_planned_task); temp_task != starpu_task_list_end(pt->pointer_to_planned_task); temp_task = starpu_task_list_next(temp_task))
-    //~ {
-	//~ if (temp_task == task)
-	//~ {
-	    //~ starpu_task_list_erase(pt->pointer_to_planned_task, temp_task);
-	    //~ break;
-	//~ }
-    //~ }
-    //~ printf("Suppression de %p.\n", task);
-    //~ print_planned_task();
+    for (pt = planned_task_list_begin(my_planned_task_control->pointer->ptpt); pt != planned_task_list_end(my_planned_task_control->pointer->ptpt); pt = planned_task_list_next(pt))
+    {
+	if (pt->pointer_to_planned_task == task)
+	{
+	    planned_task_list_erase(my_planned_task_control->pointer->ptpt, pt);
+	    break;
+	}
+    }
+    printf("Suppression de %p.\n", task);
+    print_planned_task();
     
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }
