@@ -35,6 +35,7 @@ struct pointer_in_task
     starpu_data_handle_t *pointer_to_D;
     struct task_using_data **tud;
     struct starpu_task *pointer_to_cell; /* Pointer to the cell in the main task list */
+    //~ int state; /* 0 = in the main task list, 1 = in pulled_task */
 };
 
 /** Planned task. The one in dynamic outer. **/

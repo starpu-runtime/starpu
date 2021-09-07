@@ -171,6 +171,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     pt->pointer_to_cell = task;
     pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
     pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
+    //~ pt->state = 0;
 	
     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
     {
@@ -1022,7 +1023,6 @@ void gpu_pulled_task_insertion()
      starpu_task_list_init(&new->pulled_task);
     new->next = my_pulled_task_control->pointer;    
     my_pulled_task_control->pointer = new;
-    my_pulled_task_control->first = my_pulled_task_control->pointer;
 }
 
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
@@ -1058,7 +1058,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	for (i = 0; i < Ngpu - 1; i++)
 	{
 	    gpu_planned_task_insertion();
-	    printf("inser\n");
 	}
 	my_planned_task_control->first = my_planned_task_control->pointer;
 	
