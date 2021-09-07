@@ -27,9 +27,6 @@ struct datatype
 LIST_TYPE(gpu_data_not_used,
     starpu_data_handle_t D; /* The data not used yet by the GPU. */
 );
-//~ LIST_TYPE(gpu_data_in_memory, TODO : A SUPPRIMER
-    //~ starpu_data_handle_t D; /* The data not used yet by the GPU. */
-//~ );
 
 /** In a task **/
 struct pointer_in_task
@@ -49,8 +46,6 @@ struct gpu_planned_task
     struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
     
     void **gpu_data; /* Data not loaded yet. */
-    //~ void **gpu_data_loaded; /* Data loaded on memory. TODO : A SUPPRIMER*/
-    //~ starpu_ssize_t memory_used; /* Memory used from the data in gpu_data_loaded. TODO : A SUPPRIMER*/
     int number_handle_to_pop; /* So I can know when to re-shuffle the data not used yet. */
     int data_type_to_pop;
 	
@@ -85,7 +80,7 @@ int number_task_out; /* Just to track where I am on the exec. TODO : A supprimer
 /** Fonctions d'affichage **/
 void print_task_list(struct starpu_task_list *l, char *s);
 void print_data_not_used_yet();
-void print_planned_task();
+void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu);
 void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g);
 void print_task_using_data(starpu_data_handle_t d);
 
@@ -97,6 +92,7 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
 void push_back_data_not_used_yet(starpu_data_handle_t h, struct gpu_planned_task *g, int data_type);
 void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 void dynamic_outer_scheduling(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
+void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void *component);
 starpu_data_handle_t get_handle_least_tasks(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int current_gpu);
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);

@@ -65,20 +65,14 @@ void print_data_not_used_yet()
     printf("\n");
 }
 
-void print_planned_task()
+void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu)
 {
-    int i = 0;
-    my_planned_task_control->pointer = my_planned_task_control->first;
     struct starpu_task *task = NULL;
     
-    for (i = 0; i < Ngpu; i++)
+    printf("Planned task for GPU %d:\n", current_gpu);
+    for (task = starpu_task_list_begin(&g->planned_task); task != starpu_task_list_end(&g->planned_task); task = starpu_task_list_next(task))
     {
-	printf("Planned task for GPU %d:\n", i + 1);
-	for (task = starpu_task_list_begin(&my_planned_task_control->pointer->planned_task); task != starpu_task_list_end(&my_planned_task_control->pointer->planned_task); task = starpu_task_list_next(task))
-	{
-	    printf("%p\n", task);
-	}
-	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+	printf("%p\n", task);
     }
 }
 
@@ -532,9 +526,10 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
 	}
 	if (data_available == true)
 	{
-	    printf("Pushing %p in the package.\n", t->pointer_to_T);
+	    printf("Pushing %p in planned task of GPU %d\n", t->pointer_to_T, current_gpu);
 	    erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 	    starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
+	    print_planned_task_one_gpu(g, current_gpu);
 	}
     }
     
@@ -720,10 +715,6 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
     if (success == 0)
     {
 	int i = 0;
-	/* Si j'avais eu besoin de component voila comment on le récupère (pour HFP plus tard)
-	 * struct starpu_sched_component *temp_component = component;
-	 * struct HFP_sched_data *data = temp_component->data;
-	 */
 		
 	my_planned_task_control->pointer = my_planned_task_control->first;
 	for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
@@ -833,23 +824,21 @@ starpu_data_handle_t get_handle_least_tasks(starpu_data_handle_t *data_tab, int 
     //~ }
 }
 
-/* TODO: return NULL ou ne rien faie si la dernière tâche est sorti ? De même pour la mise à jour des listes à chaque eviction de donnée.
- * TODO je renre bcp trop dans cete fonction on perdu du temps car le timing avance lui. */
+/* TODO: return NULL ou ne rien faie si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée.
+ * TODO je rentre bcp trop dans cete fonction on perds du temps car le timing avance lui. */
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
     //~ int i = 0;
     //~ int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-    //~ struct starpu_sched_component *temp_component = component;
-    //~ struct HFP_sched_data *data = temp_component->data;
     
-    //~ /* Se placer sur le bon GPU. */
-    //~ data->my_planned_task_control->pointer = data->p->first_link;
+    //~ /* Se placer sur le bon GPU */
+    //~ my_planned_task_control->pointer = my_planned_task_control->first;
     //~ for (i = 1; i < current_gpu; i++)
     //~ {
-	//~ data->my_planned_task_control->pointer = data->my_planned_task_control->pointer->next;
+	//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
     //~ }
     
-    //~ if (data->my_planned_task_control->pointer->data_to_evict_next != NULL) 
+    //~ if (my_planned_task_control->pointer->data_to_evict_next != NULL) 
     //~ { 
 	//~ printf("Return data %p that was refused.\n", data->my_planned_task_control->pointer->data_to_evict_next);
 	//~ starpu_data_handle_t temp_handle = data->my_planned_task_control->pointer->data_to_evict_next;
@@ -1013,9 +1002,7 @@ void gpu_planned_task_insertion()
 	new->gpu_data[i] = NULL;
     }
     new->next = my_planned_task_control->pointer;
-    
     my_planned_task_control->pointer = new;
-    my_planned_task_control->first = my_planned_task_control->pointer;
 }
 
 void gpu_pulled_task_initialisation()
@@ -1071,6 +1058,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	for (i = 0; i < Ngpu - 1; i++)
 	{
 	    gpu_planned_task_insertion();
+	    printf("inser\n");
 	}
 	my_planned_task_control->first = my_planned_task_control->pointer;
 	
