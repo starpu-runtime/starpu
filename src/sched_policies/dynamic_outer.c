@@ -55,70 +55,70 @@ static int dynamic_outer_push_task(struct starpu_sched_component *component, str
  */
 void initialize_task_data_gpu_single_task(struct starpu_task *task)
 {
-    //~ int i = 0;
-    //~ int j = 0;
+    int i = 0;
+    int j = 0;
     
-    //~ /* Adding the data not used yet in the corresponding GPU. */
-    //~ p->temp_pointer_1 = p->first_link;
-    //~ for (i = 0; i < Ngpu; i++)
-    //~ {
-	//~ for (j = 0; j < Ndifferent_data_type; j++)
-	//~ {
-	    //~ struct gpu_data_not_used *e = gpu_data_not_used_new();
-	    //~ e->D = STARPU_TASK_GET_HANDLE(task, j);
+    /* Adding the data not used yet in the all the GPU(s). */
+    my_planned_task_control->pointer = my_planned_task_control->first;
+    for (i = 0; i < Ngpu; i++)
+    {
+	for (j = 0; j < Ndifferent_data_type; j++)
+	{
+	    struct gpu_data_not_used *e = gpu_data_not_used_new();
+	    e->D = STARPU_TASK_GET_HANDLE(task, j);
 	    
-	    //~ /* To get the data type of each data. It's in user_data. 
-	     //~ * sched_data og the handles is used for the task using this data. */
-	    //~ struct datatype *d = malloc(sizeof(*d));
-	    //~ d->type = j; 
-	    //~ STARPU_TASK_GET_HANDLE(task, j)->user_data = d;
+	    /* To get the data type of each data. It's in user_data. 
+	     * sched_data in the handles is used for the task using this data. */
+	    struct datatype *d = malloc(sizeof(*d));
+	    d->type = j; 
+	    STARPU_TASK_GET_HANDLE(task, j)->user_data = d;
 	    
-	    //~ /* If the void * of struct paquet is empty I initialize it. */ 
-	    //~ if (p->temp_pointer_1->gpu_data[j] == NULL)
-	    //~ {
-		//~ struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
-		//~ gpu_data_not_used_list_push_front(gd, e);
-		//~ p->temp_pointer_1->gpu_data[j] = gd; 
-	    //~ }
-	    //~ else
-	    //~ {
-		//~ if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
-		//~ {
-		    //~ gpu_data_not_used_list_push_front(p->temp_pointer_1->gpu_data[j], e);
-		//~ }
-	    //~ }
-	//~ }
-	//~ p->temp_pointer_1 = p->temp_pointer_1->next;
-    //~ }
+	    /* If the void * of struct paquet is empty I initialize it. */ 
+	    if (my_planned_task_control->pointer->gpu_data[j] == NULL)
+	    {
+		struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
+		gpu_data_not_used_list_push_front(gd, e);
+		my_planned_task_control->pointer->gpu_data[j] = gd; 
+	    }
+	    else
+	    {
+		if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
+		{
+		    gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data[j], e);
+		}
+	    }
+	}
+	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+    }
     
-    //~ /* Adding the pointer in the task. */
-    //~ struct pointer_in_task *pt = malloc(sizeof(*pt));
-    //~ pt->pointer_to_cell = task;
-    //~ pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
-    //~ pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
+    /* Adding the pointer in the task. */
+    struct pointer_in_task *pt = malloc(sizeof(*pt));
+    pt->pointer_to_cell = task;
+    pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+    pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
 	
-    //~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-    //~ {
-	//~ /* Pointer toward the main task list in the handles. */
-	//~ struct task_using_data *e = task_using_data_new();
-	//~ e->pointer_to_T = task;
+    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+    {
+	/* Pointer toward the main task list in the handles. */
+	struct task_using_data *e = task_using_data_new();
+	e->pointer_to_T = task;
 	
-	//~ if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
-	//~ {
-	    //~ struct task_using_data_list *tl = task_using_data_list_new();
-	    //~ task_using_data_list_push_front(tl, e);
-	    //~ STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
-	//~ }
-	//~ else
-	//~ {
-	    //~ task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
-	//~ }
+	if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
+	{
+	    struct task_using_data_list *tl = task_using_data_list_new();
+	    task_using_data_list_push_front(tl, e);
+	    STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
+	}
+	else
+	{
+	    task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
+	}
 	    
-	//~ /* Adding the pointer in the task. */
-	//~ pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
-	//~ pt->tud[i] = e;
-    //~ }
-    //~ task->sched_data = pt;
+	/* Adding the pointer in the task. */
+	pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
+	pt->tud[i] = e;
+    }
+    task->sched_data = pt;
 }
 
 /* Randomize the list of data not used yet for all the GPU. */
@@ -1118,6 +1118,25 @@ void gpu_planned_task_initialisation()
 void gpu_planned_task_insertion()
 {
     //~ init refused fifo list
+    //~ struct gpu_planned_task *new = malloc(sizeof(*new));
+    //~ struct planned_task_list *ptl = planned_task_list_new();
+    //~ new->ptpt = ptl;
+    //~ new->next = my_planned_task_control->pointer;    
+    //~ my_planned_task_control->pointer = new;
+}
+
+void gpu_pulled_task_initialisation()
+{
+    //~ _STARPU_MALLOC( my_planned_task_control, sizeof(*my_planned_task_control));
+    //~ struct gpu_planned_task *new = malloc(sizeof(*new));
+    //~ struct planned_task_list *ptl = planned_task_list_new();
+    //~ new->ptpt = ptl;
+    //~ my_planned_task_control->pointer = new;
+    //~ my_planned_task_control->first = my_planned_task_control->pointer;
+}
+
+void gpu_pulled_task_insertion()
+{
     //~ struct gpu_planned_task *new = malloc(sizeof(*new));
     //~ struct planned_task_list *ptl = planned_task_list_new();
     //~ new->ptpt = ptl;
