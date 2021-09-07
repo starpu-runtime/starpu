@@ -476,12 +476,13 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	    printf("Pushing %p in the package.\n", t->pointer_to_T);
 	    
 	    /* J'ajoute cette tâche a la liste des tâches prévu */
+	    /* Version 1 seul GPU */
 	    //~ struct planned_task *pt = planned_task_new();
 	    //~ pt->pointer_to_planned_task = t->pointer_to_T;
 	    //~ planned_task_list_push_back(my_planned_task, pt);
 	    //~ print_planned_task();
 	    
-	    /* Version multi gpu */
+	    /* Version multi gpu 1 */
 	    //~ struct planned_task *pt = planned_task_new();
 	    //~ pt = planned_task_list_begin(my_planned_task);
 	    /* Je me place sur la liste correspondant au bon gpu. */
@@ -494,6 +495,18 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	    //~ struct starpu_task *temp_task = t->pointer_to_T;
 	    //~ starpu_task_list_push_back(pt->pointer_to_planned_task, temp_task);
 	    //~ print_planned_task();
+	    
+	    /* Version multi gpu 2 */
+	    my_planned_task_control->pointer = my_planned_task_control->first;
+	    for (i = 1; i < current_gpu; i++)
+	    {
+		printf("next, curent_gpu = %d\n", current_gpu);
+		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+	    }
+	    struct planned_task *pt = planned_task_new();
+	    pt->pointer_to_planned_task = t->pointer_to_T;
+	    planned_task_list_push_back(my_planned_task_control->pointer->ptpt, pt);
+	    print_planned_task();
 	    
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
@@ -1238,19 +1251,18 @@ void print_task_list(struct starpu_task_list *l, char *s)
 
 void print_planned_task()
 {
-    //~ int i = 0;
-    //~ struct planned_task *pt = planned_task_new();
-    //~ struct starpu_task *task;
-    //~ pt = planned_task_list_begin(my_planned_task);
-    //~ for (i = 0; i < Ngpu; i++)
-    //~ {
-	//~ printf("Planned task for GPU n°%d:\n", i + 1);
-	//~ for (task = starpu_task_list_begin(pt->pointer_to_planned_task); task != starpu_task_list_end(pt->pointer_to_planned_task); task = starpu_task_list_next(task))
-	//~ {
-	    //~ printf("%p\n", task);
-	//~ }
-	//~ pt = planned_task_list_next(pt);
-    //~ }
+    int i = 0;
+    struct planned_task *pt = planned_task_new();
+    my_planned_task_control->pointer = my_planned_task_control->first;
+    for (i = 0; i < Ngpu; i++)
+    {
+	printf("Planned task for GPU n°%d:\n", i + 1);
+	for (pt = planned_task_list_begin(my_planned_task_control->pointer->ptpt); pt != planned_task_list_end(my_planned_task_control->pointer->ptpt); pt = planned_task_list_next(pt))
+	{
+	    printf("%p\n", pt->pointer_to_planned_task);
+	}
+	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+    }
 }
 
 void print_data_not_used_yet(struct paquets *p)
@@ -1465,6 +1477,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	{
 	    gpu_planned_task_insertion();
 	}
+	my_planned_task_control->first = my_planned_task_control->pointer;
 	//~ my_planned_task = planned_task_list_new();
 	//~ struct planned_task *pt = NULL;
 	//~ for (i = 0; i < Ngpu; i++)
