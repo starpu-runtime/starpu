@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -65,30 +65,46 @@ static int _compar_data_paths(const unsigned pathA[], unsigned depthA,
 static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 				  const struct _starpu_data_descr *descrB)
 {
-	struct _starpu_data_state *dataA = descrA->handle;
-	struct _starpu_data_state *dataB = descrB->handle;
+	starpu_data_handle_t dataA = descrA->handle;
+	starpu_data_handle_t dataB = descrB->handle;
 
 	/* Perhaps we have the same piece of data */
-	if (dataA == dataB)
+	if (dataA->root_handle == dataB->root_handle)
 	{
+		int Awrites = descrA->mode & STARPU_W;
+		int Bwrites = descrB->mode & STARPU_W;
+		int Areads = descrA->mode & STARPU_R;
+		int Breads = descrB->mode & STARPU_R;
+
 		/* Process write requests first, this is needed for proper
 		 * locking, see _submit_job_access_data,
 		 * _starpu_fetch_task_input, and _starpu_push_task_output  */
-		if (descrA->mode & STARPU_W)
-		{
-			if (descrB->mode & STARPU_W)
-				/* Both A and B write, take the reader first */
-				if (descrA->mode & STARPU_R)
-					return -1;
-				else
-					return 1;
-			else
-				/* Only A writes, take it first */
-				return -1;
-		}
-		else
-			/* A doesn't write, take B before */
+
+		if ( Awrites && !Bwrites)
+			/* Only A writes, take it first */
+			return -1;
+		if (!Awrites &&  Bwrites)
+			/* Only B writes, take it first */
 			return 1;
+		/* Both A and B write */
+
+		if ( Areads && !Breads)
+			/* Only A reads, take it first */
+			return -1;
+		if (!Areads &&  Breads)
+			/* Only B reads, take it first */
+			return 1;
+		/* Both A and B read and write */
+
+		/* Things get more complicated: we need to find the location of dataA
+		 * and dataB within the tree. */
+		unsigned dataA_path[dataA->depth];
+		unsigned dataB_path[dataB->depth];
+
+		find_data_path(dataA, dataA_path);
+		find_data_path(dataB, dataB_path);
+
+		return _compar_data_paths(dataA_path, dataA->depth, dataB_path, dataB->depth);
 	}
 
 	/* Put arbitered accesses after non-arbitered */
@@ -101,20 +117,7 @@ static int _starpu_compar_handles(const struct _starpu_data_descr *descrA,
 		return (dataA->arbiter < dataB->arbiter)?-1:1;
 	/* If both are arbitered by the same arbiter (or they are both not
 	 * arbitered), we'll sort them by handle */
-
-	/* In case we have data/subdata from different trees */
-	if (dataA->root_handle != dataB->root_handle)
-		return (dataA->root_handle < dataB->root_handle)?-1:1;
-
-	/* Things get more complicated: we need to find the location of dataA
-	 * and dataB within the tree. */
-	unsigned dataA_path[dataA->depth];
-	unsigned dataB_path[dataB->depth];
-
-	find_data_path(dataA, dataA_path);
-	find_data_path(dataB, dataB_path);
-
-	return _compar_data_paths(dataA_path, dataA->depth, dataB_path, dataB->depth);
+	return (dataA->root_handle < dataB->root_handle)?-1:1;
 }
 
 static int _starpu_compar_buffer_descr(const void *_descrA, const void *_descrB)

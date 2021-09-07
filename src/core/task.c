@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -815,10 +815,12 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			_STARPU_MALLOC(task->dyn_interfaces, nbuffers * sizeof(void *));
 		}
 
+		struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 		for (i = 0; i < nbuffers; i++)
 		{
-			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
-			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+			starpu_data_handle_t handle = descrs[i].handle;
+			enum starpu_data_access_mode mode = descrs[i].mode;
+
 			int node = task->cl->specific_nodes ? STARPU_CODELET_GET_NODE(task->cl, i) : -1;
 			/* Make sure handles are valid */
 			STARPU_ASSERT_MSG(handle->magic == _STARPU_TASK_MAGIC, "data %p is invalid (was it already unregistered?)", handle);
@@ -831,13 +833,13 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			if (handle->home_node != -1)
 				_STARPU_TASK_SET_INTERFACE(task, starpu_data_get_interface_on_node(handle, handle->home_node), i);
 
-			/* TODO: add a test ( && !j->is_bubble )
-			 * => require to set the is_bubble a soon as possible and not in the turn_task_into_bubble.
-			 */
 			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
 			    ((handle->nplans && !handle->nchildren) || handle->siblings)
 #ifdef STARPU_BUBBLE
 			    && !j->is_bubble
+			    /*
+			     * => require to set the is_bubble a soon as possible and not in the turn_task_into_bubble.
+			     */
 #endif
 			    && !(mode & STARPU_NOPLAN))
 				/* This handle is involved with asynchronous
@@ -938,6 +940,11 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 
 	_STARPU_TRACE_TASK_SUBMIT_START();
 
+	if (task->cl && !continuation)
+	{
+		_starpu_job_set_ordered_buffers(j);
+	}
+
 	ret = _starpu_task_submit_head(task);
 	if (ret)
 	{
@@ -958,15 +965,13 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	}
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
-	if (task->cl && !continuation)
-	{
-		_starpu_job_set_ordered_buffers(j);
-		if (!nodeps
+	if (task->cl && !continuation && !nodeps
 #ifdef STARPU_BUBBLE
-		    && !j->is_bubble
+	    && !j->is_bubble
 #endif
-			)
-			_starpu_detect_implicit_data_deps(task);
+		)
+	{
+	    _starpu_detect_implicit_data_deps(task);
 	}
 
 	if (STARPU_UNLIKELY(bundle))
@@ -1072,6 +1077,10 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	STARPU_ASSERT(task->cl);
 	STARPU_ASSERT(task->execute_on_a_specific_worker);
 
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
+	_starpu_job_set_ordered_buffers(j);
+
 	ret = _starpu_task_submit_head(task);
 	STARPU_ASSERT(ret == 0);
 
@@ -1085,8 +1094,6 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 		handle->busy_count++;
 		_starpu_spin_unlock(&handle->header_lock);
 	}
-
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	_starpu_sched_task_submit(task);
