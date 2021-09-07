@@ -76,14 +76,6 @@ struct my_list
 	double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
 	double expected_package_computation_time; /* Computation time with transfer and overlap */
 	struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
-		
-	void **gpu_data; /* Data not loaded yet. */
-	void **gpu_data_loaded; /* Data loaded on memory. */
-	starpu_ssize_t memory_used; /* Memory used from the data in gpu_data_loaded. */
-	int number_handle_to_pop; /* So I can know when to re-shuffle the data not used yet. */
-	int data_type_to_pop;
-	
-	starpu_data_handle_t data_to_evict_next; /* En cas de donnée à évincer refusé. Je la renvoie à évincer. */
 };
 
 struct paquets
