@@ -93,6 +93,7 @@ struct gpu_planned_task_control
 };
 void gpu_planned_task_initialisation();
 void gpu_planned_task_insertion();
+void add_task_to_planned_task(struct starpu_task *task, int current_gpu);
 struct gpu_planned_task_control *my_planned_task_control;
 
 #endif

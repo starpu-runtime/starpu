@@ -347,6 +347,20 @@ void push_back_data_not_used_yet(starpu_data_handle_t h, struct my_list *l, int 
     gpu_data_not_used_list_push_back(l->gpu_data[data_type], e);
 }
 
+void add_task_to_planned_task(struct starpu_task *task, int current_gpu)
+{
+    int i = 0;
+    my_planned_task_control->pointer = my_planned_task_control->first;
+    for (i = 1; i < current_gpu; i++)
+    {
+	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+    }
+    struct planned_task *pt = planned_task_new();
+    pt->pointer_to_planned_task = task;
+    planned_task_list_push_back(my_planned_task_control->pointer->ptpt, pt);
+    print_planned_task();
+}
+
 /* Fill a package's task list following dynamic_outer algorithm. It pop only one data, the one that achieve the most tasks. */
 void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_task_list, int current_gpu, struct my_list *l)
 {
@@ -475,38 +489,8 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	{
 	    printf("Pushing %p in the package.\n", t->pointer_to_T);
 	    
-	    /* J'ajoute cette tâche a la liste des tâches prévu */
-	    /* Version 1 seul GPU */
-	    //~ struct planned_task *pt = planned_task_new();
-	    //~ pt->pointer_to_planned_task = t->pointer_to_T;
-	    //~ planned_task_list_push_back(my_planned_task, pt);
-	    //~ print_planned_task();
-	    
-	    /* Version multi gpu 1 */
-	    //~ struct planned_task *pt = planned_task_new();
-	    //~ pt = planned_task_list_begin(my_planned_task);
-	    /* Je me place sur la liste correspondant au bon gpu. */
-	    //~ for (i = 1; i < current_gpu; i++)
-	    //~ {
-		//~ printf("next\n");
-		//~ pt = planned_task_list_next(pt);
-	    //~ }
-	    /* J'ajoute la tâche à la liste des tâches planifiées */
-	    //~ struct starpu_task *temp_task = t->pointer_to_T;
-	    //~ starpu_task_list_push_back(pt->pointer_to_planned_task, temp_task);
-	    //~ print_planned_task();
-	    
-	    /* Version multi gpu 2 */
-	    my_planned_task_control->pointer = my_planned_task_control->first;
-	    for (i = 1; i < current_gpu; i++)
-	    {
-		printf("next, curent_gpu = %d\n", current_gpu);
-		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-	    }
-	    struct planned_task *pt = planned_task_new();
-	    pt->pointer_to_planned_task = t->pointer_to_T;
-	    planned_task_list_push_back(my_planned_task_control->pointer->ptpt, pt);
-	    print_planned_task();
+	    /* Ajout a la liste des tâches prévus. */
+	    add_task_to_planned_task(t->pointer_to_T, current_gpu);
 	    
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 0));
 	    //~ print_task_using_data(STARPU_TASK_GET_HANDLE(t->pointer_to_T, 1));
@@ -541,6 +525,10 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *popped_ta
 	
 	printf("No task were possible with the popped handles. Returning head of the randomized main task list: %p.\n", task);
 	erase_task_and_data_pointer(task, popped_task_list);
+	
+	/* Added to the planned task still */
+	add_task_to_planned_task(task, current_gpu);
+	
 	starpu_task_list_push_back(&l->sub_list, task);
     }
     
