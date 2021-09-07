@@ -44,11 +44,11 @@ make -C src/ -j 6
 #~ watch *(int *)0x5555558c2820
 #~ watch *(int *)0x5555558c2820
 
-N=10
-NGPU=1
+N=5
+NGPU=3
 ORDO="dynamic-outer"
 BW=350
-CM=250
+CM=150
 EVICTION=1
 POP_POLICY=1
 READY=0
