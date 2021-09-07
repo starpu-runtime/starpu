@@ -1020,21 +1020,22 @@ void gpu_planned_task_insertion()
 
 void gpu_pulled_task_initialisation()
 {
-    //~ _STARPU_MALLOC( my_planned_task_control, sizeof(*my_planned_task_control));
-    //~ struct gpu_planned_task *new = malloc(sizeof(*new));
-    //~ struct planned_task_list *ptl = planned_task_list_new();
-    //~ new->ptpt = ptl;
-    //~ my_planned_task_control->pointer = new;
-    //~ my_planned_task_control->first = my_planned_task_control->pointer;
+    _STARPU_MALLOC(my_pulled_task_control, sizeof(*my_pulled_task_control));
+    struct gpu_pulled_task *new = malloc(sizeof(*new));
+    starpu_task_list_init(&new->pulled_task);
+    new->next = NULL;
+    
+    my_pulled_task_control->pointer = new;
+    my_pulled_task_control->first = my_pulled_task_control->pointer;
 }
 
 void gpu_pulled_task_insertion()
 {
-    //~ struct gpu_planned_task *new = malloc(sizeof(*new));
-    //~ struct planned_task_list *ptl = planned_task_list_new();
-    //~ new->ptpt = ptl;
-    //~ new->next = my_planned_task_control->pointer;    
-    //~ my_planned_task_control->pointer = new;
+    struct gpu_pulled_task *new = malloc(sizeof(*new));
+     starpu_task_list_init(&new->pulled_task);
+    new->next = my_pulled_task_control->pointer;    
+    my_pulled_task_control->pointer = new;
+    my_pulled_task_control->first = my_pulled_task_control->pointer;
 }
 
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)

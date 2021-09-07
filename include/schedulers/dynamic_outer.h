@@ -102,5 +102,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);
 void gpu_planned_task_initialisation();
 void gpu_planned_task_insertion();
+void gpu_pulled_task_initialisation();
+void gpu_pulled_task_insertion();
 
 #endif
