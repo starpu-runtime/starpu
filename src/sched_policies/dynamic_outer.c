@@ -918,6 +918,11 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 		min_number_task_in_pulled_task = nb_task_in_pulled_task[i];
 	    }
 	}
+	else
+	{
+	    /* - 1 si j'ai pas le droit d'évincer cette donnée */
+	    nb_task_in_pulled_task[i] = -1;
+	}
     }
     printf("Min number of task in pulled task is %d.\n", min_number_task_in_pulled_task);
     
@@ -1054,30 +1059,53 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 
 starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task)
 {
-    //~ int i = 0;
-    //~ int j = 0;
-    //~ float min_weight_average = INT_MAX;
-    //~ float weight_average = 0;
-    //~ float NT_Di = 0;
-    //~ struct starpu_task *task = NULL;
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    float min_weight_average = FLT_MAX;
+    float weight_average = 0;
+    float weight_missing_data = 0;
+    float NT_Di = 0;
+    struct starpu_task *task = NULL;
+    starpu_data_handle_t returned_handle = NULL;
     
-    //~ for (i = 0; i < nb_data_on_node; i++)
-    //~ {
-	//~ if (nb_task_in_pulled_task[i] == 0)
-	//~ {
-	    //~ for (task = starpu_task_list_begin(&g->planned_task); task = starpu_task_list_end(&g->planned_task); task = starpu_task_list_next(task))
-	    //~ {
-		//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
-		//~ {
-		    //~ if (STARPU_TASK_GET_HANDLE(task, j) == data_tab[i])
-		    //~ {
-			//~ NT_Di++;
-			//~ break;
-		    //~ }
-		//~ }
-	    //~ }
-	    //~ weight_average = NT_Di/
-    //~ }
+    for (i = 0; i < nb_data_on_node; i++)
+    {
+	if (nb_task_in_pulled_task[i] == 0)
+	{
+	    NT_Di = 0;
+	    weight_missing_data = 0;
+	    for (task = starpu_task_list_begin(&g->planned_task); task != starpu_task_list_end(&g->planned_task); task = starpu_task_list_next(task))
+	    {
+		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
+		{
+		    if (STARPU_TASK_GET_HANDLE(task, j) == data_tab[i])
+		    {
+			/* Je suis sur une tâche qui utilise Di */
+			NT_Di++;
+			
+			/* J'ajoute ses données manquantes sauf Di au poids
+			 * TODO : pour le moment si il y a des doublons je compte deux fois. Devrais-je les ignorer ? */
+			for (k = 0; k < STARPU_TASK_GET_NBUFFERS(task); k++)
+			{
+			    if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, k), node) && STARPU_TASK_GET_HANDLE(task, k) != data_tab[i])
+			    {
+				weight_missing_data += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, k));
+			    }
+			}
+			break;
+		    }
+		}
+	    }
+	    weight_average = (NT_Di/(weight_missing_data + starpu_data_get_size(data_tab[i])))*starpu_data_get_size(data_tab[i]);
+	    if (min_weight_average > weight_average)
+	    {
+		min_weight_average = weight_average;
+		returned_handle = data_tab[i];
+	    }
+	}
+    }
+    return returned_handle;
 }
 
 /* Erase a task from the main task list.
