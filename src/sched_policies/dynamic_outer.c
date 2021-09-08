@@ -72,7 +72,7 @@ void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu)
     printf("Planned task for GPU %d:\n", current_gpu);
     for (task = starpu_task_list_begin(&g->planned_task); task != starpu_task_list_end(&g->planned_task); task = starpu_task_list_next(task))
     {
-	printf("%p\n", task);
+	printf("%p: %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1));
     }
 }
 
@@ -932,19 +932,17 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
      */
     if (min_number_task_in_pulled_task == INT_MAX)
     {
-	return STARPU_DATA_NO_VICTIM;
 	printf("Return STARPU_DATA_NO_VICTIM in victim selector.\n");
+	return STARPU_DATA_NO_VICTIM;
     }
     else if (min_number_task_in_pulled_task == 0)
     {
 	returned_handle = min_weight_average_on_planned_task(data_on_node, nb_data_on_node, node, is_prefetch, my_planned_task_control->pointer, nb_task_in_pulled_task);
-	return NULL;
     }
     else
     {
-	printf("#warning min number of task done by data on node is != 0");
+	printf("#warning min number of task done by data on node is != 0.\n");
 	returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
-	return NULL;
     }
     
     /* TODO : mettre a jour la donnée (dans les tâches et dans les not used yet.
@@ -1062,12 +1060,18 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
     int i = 0;
     int j = 0;
     int k = 0;
+    int next_use = 0;
+    int data_count = 0;
+    int max_next_use = 0;
     float min_weight_average = FLT_MAX;
     float weight_average = 0;
     float weight_missing_data = 0;
-    float NT_Di = 0;
+    int NT_Di = 0;
     struct starpu_task *task = NULL;
-    starpu_data_handle_t returned_handle = NULL;
+    starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
+    
+    print_planned_task_one_gpu(g, node);
+    print_data_on_node(data_tab, nb_data_on_node);
     
     for (i = 0; i < nb_data_on_node; i++)
     {
@@ -1075,12 +1079,21 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
 	{
 	    NT_Di = 0;
 	    weight_missing_data = 0;
+	    next_use = 0;
+	    data_count = 0;
 	    for (task = starpu_task_list_begin(&g->planned_task); task != starpu_task_list_end(&g->planned_task); task = starpu_task_list_next(task))
 	    {
 		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
 		{
+		    /* Au cas où il y a égalité et que je fais Belady */
+		    data_count++;
+		    
+		    printf("Comparing %p and %p.\n", STARPU_TASK_GET_HANDLE(task, j), data_tab[i]);
 		    if (STARPU_TASK_GET_HANDLE(task, j) == data_tab[i])
 		    {
+			/* J'arrête de compter pour Belady */
+			next_use = data_count;
+			
 			/* Je suis sur une tâche qui utilise Di */
 			NT_Di++;
 			
@@ -1088,8 +1101,11 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
 			 * TODO : pour le moment si il y a des doublons je compte deux fois. Devrais-je les ignorer ? */
 			for (k = 0; k < STARPU_TASK_GET_NBUFFERS(task); k++)
 			{
-			    if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, k), node) && STARPU_TASK_GET_HANDLE(task, k) != data_tab[i])
+			    printf("Test if is on node %p.\n", STARPU_TASK_GET_HANDLE(task, k));
+			    //~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, k), node) && STARPU_TASK_GET_HANDLE(task, k) != data_tab[i])
+			    if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, k), node))
 			    {
+				printf("%p is not on node, adding it to missing data weight.\n", STARPU_TASK_GET_HANDLE(task, k));
 				weight_missing_data += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, k));
 			    }
 			}
@@ -1098,13 +1114,29 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
 		}
 	    }
 	    weight_average = (NT_Di/(weight_missing_data + starpu_data_get_size(data_tab[i])))*starpu_data_get_size(data_tab[i]);
+	    printf("Weight average of %p is %f with %d task and %f missing data.\n", data_tab[i], weight_average, NT_Di, weight_missing_data);
+	    if (weight_missing_data != 0) { printf("LA!\n"); }
 	    if (min_weight_average > weight_average)
 	    {
+		max_next_use = next_use; /* Au cas ou Belady */
 		min_weight_average = weight_average;
 		returned_handle = data_tab[i];
 	    }
+	    else if (min_weight_average == weight_average)
+	    {
+		printf("égalité entre %p et %p, les next use sont %d et %d.\n", returned_handle, data_tab[i], max_next_use, next_use);
+		/* Je fais Belady sur planned_task */
+		if (next_use > max_next_use)
+		{
+		    max_next_use = next_use;
+		    returned_handle = data_tab[i];
+		    printf("Pour le moment returned handle devient %p.\n", data_tab[i]);
+		}
+	    }
 	}
     }
+    
+    printf("Return in min_weight_average %p.\n", returned_handle);
     return returned_handle;
 }
 
