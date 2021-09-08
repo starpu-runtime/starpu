@@ -88,6 +88,7 @@ void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu);
 void print_pulled_task_one_gpu(struct gpu_pulled_task *g, int current_gpu);
 void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g);
 void print_task_using_data(starpu_data_handle_t d);
+void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node);
 
 /** Fonctions principales **/
 void initialize_task_data_gpu_single_task(struct starpu_task *task);
@@ -97,9 +98,15 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
 void push_back_data_not_used_yet(starpu_data_handle_t h, struct gpu_planned_task *g, int data_type);
 void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 void dynamic_outer_scheduling(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
+
+/** For eviction **/
 void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void *component);
-starpu_data_handle_t get_handle_least_tasks(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int current_gpu);
+//~ starpu_data_handle_t get_handle_least_tasks(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int current_gpu);
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
+int get_min_number_task_in_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, gpu_pulled_task *g);
+starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch);
+starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int min_number_task_in_pulled_task);
+
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);
 void gpu_planned_task_initialisation();
 void gpu_planned_task_insertion();

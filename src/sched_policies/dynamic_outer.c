@@ -111,6 +111,17 @@ void print_task_using_data(starpu_data_handle_t d)
     printf("\n\n");
 }
 
+void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node)
+{
+    int i = 0;
+    printf("Data on node are:");
+    for (i = 0; i < nb_data_on_node; i++)
+    {
+	printf(" %p", data_tab[i]);
+    }
+    printf("\n");
+}
+
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_outer_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
@@ -753,8 +764,8 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
  * it data on memory. If there is a draw or if there are no task in the task list, return the 
  * data that has the least remaining task (even if their data are not loaded on memory.
  */
-starpu_data_handle_t get_handle_least_tasks(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int current_gpu)
-{
+//~ starpu_data_handle_t get_handle_least_tasks(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int current_gpu)
+//~ {
     //~ printf("On GPU %d in get_handle_least_task.\n", current_gpu);
     
     //~ starpu_data_handle_t returned_handle = NULL;
@@ -840,44 +851,79 @@ starpu_data_handle_t get_handle_least_tasks(starpu_data_handle_t *data_tab, int 
 	 //~ }
 	 //~ return returned_handle;
     //~ }
-}
+//~ }
 
 /* TODO: return NULL ou ne rien faie si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée.
  * TODO je rentre bcp trop dans cete fonction on perds du temps car le timing avance lui. */
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
-    //~ int i = 0;
-    //~ int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+    int i = 0;
+    int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     
-    //~ /* Se placer sur le bon GPU */
-    //~ my_planned_task_control->pointer = my_planned_task_control->first;
-    //~ for (i = 1; i < current_gpu; i++)
-    //~ {
-	//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-    //~ }
+    /* Se placer sur le bon GPU pour planned_task */
+    my_planned_task_control->pointer = my_planned_task_control->first;
+    for (i = 1; i < current_gpu; i++)
+    {
+	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+    }
     
-    //~ if (my_planned_task_control->pointer->data_to_evict_next != NULL) 
-    //~ { 
-	//~ printf("Return data %p that was refused.\n", data->my_planned_task_control->pointer->data_to_evict_next);
-	//~ starpu_data_handle_t temp_handle = data->my_planned_task_control->pointer->data_to_evict_next;
-	//~ data->my_planned_task_control->pointer->data_to_evict_next = NULL;
-	//~ return temp_handle;
-    //~ }
+    /* Je check si une eviction n'a pas été refusé. */
+    if (my_planned_task_control->pointer->data_to_evict_next != NULL) 
+    { 
+	printf("Return data %p that was refused.\n", my_planned_task_control->pointer->data_to_evict_next);
+	starpu_data_handle_t temp_handle = my_planned_task_control->pointer->data_to_evict_next;
+	my_planned_task_control->pointer->data_to_evict_next = NULL;
+	return temp_handle;
+    }
         
-    //~ struct starpu_task *task = NULL;
-    //~ starpu_data_handle_t *data_on_node;
-    //~ unsigned nb_data_on_node = 0;
-    //~ int *valid;
-    //~ starpu_data_handle_t returned_handle = NULL;
-    //~ starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+    struct starpu_task *task = NULL;
+    starpu_data_handle_t *data_on_node;
+    unsigned nb_data_on_node = 0;
+    int *valid;
+    starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
+    starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
     
-    //~ returned_handle = get_handle_least_tasks(data_on_node, nb_data_on_node, node, is_prefetch, current_gpu);
+    /* Se placer sur le bon GPU pour pulled_task */
+    my_pulled_task_control->pointer = my_pulled_task_control->first;
+    for (i = 1; i < current_gpu; i++)
+    {
+	my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+    }
+    
+    /* Get the the min number of task a data can do in pulled_task */
+    int min_number_task_in_pulled_task = -1;
+    min_number_task_in_pulled_task = get_min_number_task_in_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
+    
+    /* Si il vaut 0 je fais belady sur les données utilisé par les tâches de pulled_task, 
+     * sinon je choisis min(NT/W(D(T)) + W(Di) * W(Di)).
+     * Si il vaut -1 c'est que je n'avais aucune donnée à renvoyer car aucune n'est évincable.
+     */
+    if (min_number_task_in_pulled_task == -1)
+    {
+	return STARPU_DATA_NO_VICTIM;
+    }
+    else if (min_number_task_in_pulled_task == 0)
+    {
+	returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch);
+    }
+    else
+    {
+	returned_handle = min_weight_average_on_planned_task(data_on_node, nb_data_on_node, node, is_prefetch, min_number_task_in_pulled_task);
+    }
+    
+    /* TODO : mettre a jour la donnée (dans les tâches et dans les not used yet.
+     * Suppr les T qui utilise Di de planned task
+     * Ajout des T à main taks list et dans les données.
+     * Le planned task c'est que dans le cas ! 0
+     */
+    
+    //~ returned_handle = get_handle_to_evict(data_on_node, nb_data_on_node, node, is_prefetch, current_gpu);
     //~ if (returned_handle == NULL)
     //~ {
 	    //~ return STARPU_DATA_NO_VICTIM; 
     //~ }
-	//~ /* Enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
-	  //~ * à pop ainsi qu'ajouter la tache dans les données. Also add it to the main task list. */
+	/* Enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
+	  * à pop ainsi qu'ajouter la tache dans les données. Also add it to the main task list. */
 	//~ //Suppression de la liste de planned task les tâches utilisant la données
 	//~ for (task = starpu_task_list_begin(&data->my_planned_task_control->pointer->planned_task); task != starpu_task_list_end(&data->my_planned_task_control->pointer->planned_task); task = starpu_task_list_next(task))
 	//~ {
@@ -931,9 +977,32 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 
 	//~ push_back_data_not_used_yet(returned_handle, data->my_planned_task_control->pointer, d->type);
 	
-	 //~ printf("Return %p in victim selector.\n", returned_handle);
-	 //~ return returned_handle;
+    printf("Return %p in victim selector.\n", returned_handle);
+    return returned_handle;
 }
+
+int get_min_number_task_in_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch)
+{
+    int i = 0;
+    
+    for (i = 0; i < nb_data_on_node; i++)
+    {
+	if (starpu_data_can_evict(data_tab[i], node, is_prefetch))
+	{
+	    
+	}
+    }
+}
+
+starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch)
+{
+    
+}
+starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int min_number_task_in_pulled_task)
+{
+    
+}
+
 
 /* Erase a task from the main task list.
  * Also erase pointer in the data.
