@@ -897,6 +897,8 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     {
 	nb_task_in_pulled_task[i] = 0;
     }
+    
+    /* Je cherche le nombre de tâche dans le pulled_task que peut faire chaque données */
     for (i = 0; i < nb_data_on_node; i++)
     {
 	if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
@@ -952,64 +954,69 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
      */
     
     //~ returned_handle = get_handle_to_evict(data_on_node, nb_data_on_node, node, is_prefetch, current_gpu);
-    //~ if (returned_handle == NULL)
-    //~ {
-	    //~ return STARPU_DATA_NO_VICTIM; 
-    //~ }
+    if (returned_handle == NULL)
+    {
+	exit(0);
+	return STARPU_DATA_NO_VICTIM; 
+    }
+    
+        struct starpu_task *task = NULL;
+	struct starpu_sched_component *temp_component = component;
+	struct dynamic_outer_sched_data *data = temp_component->data;
 	/* Enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
 	  * à pop ainsi qu'ajouter la tache dans les données. Also add it to the main task list. */
-	//~ //Suppression de la liste de planned task les tâches utilisant la données
-	//~ for (task = starpu_task_list_begin(&data->my_planned_task_control->pointer->planned_task); task != starpu_task_list_end(&data->my_planned_task_control->pointer->planned_task); task = starpu_task_list_next(task))
-	//~ {
-	    //~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-	    //~ {
-		//~ if (STARPU_TASK_GET_HANDLE(task, i) == returned_handle)
-		//~ {
-		    //~ //Suppression de la liste de tâches à faire 
-		    //~ struct pointer_in_task *pt = task->sched_data;
-		    //~ starpu_task_list_erase(&data->my_planned_task_control->pointer->planned_task, pt->pointer_to_cell);
+	//Suppression de la liste de planned task les tâches utilisant la données
+	for (task = starpu_task_list_begin(&my_planned_task_control->pointer->planned_task); task != starpu_task_list_end(&my_planned_task_control->pointer->planned_task); task = starpu_task_list_next(task))
+	{
+	    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+	    {
+		if (STARPU_TASK_GET_HANDLE(task, i) == returned_handle)
+		{
+		    //Suppression de la liste de tâches à faire 
+		    struct pointer_in_task *pt = task->sched_data;
+		    starpu_task_list_erase(&my_planned_task_control->pointer->planned_task, pt->pointer_to_cell);
 			
-			 //~ /* NEW */
-			//~ pt->pointer_to_cell = task;
-			//~ pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
-			//~ pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
+			 /* NEW */
+			pt->pointer_to_cell = task;
+			pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
+			pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
 			    
-			//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-			//~ {
-			    //~ /* Pointer toward the main task list in the handles. */
-			    //~ struct task_using_data *e = task_using_data_new();
-			    //~ e->pointer_to_T = task;
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+			{
+			    /* Pointer toward the main task list in the handles. */
+			    struct task_using_data *e = task_using_data_new();
+			    e->pointer_to_T = task;
 			    
-			    //~ if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
-			    //~ {
-				//~ struct task_using_data_list *tl = task_using_data_list_new();
-				//~ task_using_data_list_push_front(tl, e);
-				//~ STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
-			    //~ }
-			    //~ else
-			    //~ {
-				//~ task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
-			    //~ }
+			    if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
+			    {
+				struct task_using_data_list *tl = task_using_data_list_new();
+				task_using_data_list_push_front(tl, e);
+				STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
+			    }
+			    else
+			    {
+				task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
+			    }
 				
-			    //~ /* Adding the pointer in the task. */
-			    //~ pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
-			    //~ pt->tud[i] = e;
-			//~ }	
-			//~ task->sched_data = pt;
+			    /* Adding the pointer in the task. */
+			    pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
+			    pt->tud[i] = e;
+			}	
+			task->sched_data = pt;
 			
-			//~ //Ajout a la liste de tâches principales ces mêmes tâches
-			//~ starpu_task_list_push_back(&data->main_task_list, task);
+			//Ajout a la liste de tâches principales ces mêmes tâches
+			starpu_task_list_push_back(&data->main_task_list, task);
 
-		    //~ break;
-		//~ }
-	    //~ }
-	//~ } 
+		    break;
+		}
+	    }
+	} 
 	
-	//~ //Ajout de la données aux données pas encore traitées du gpu
-	//~ struct datatype *d = malloc(sizeof(*d));
-	//~ d = returned_handle->user_data;
+	//Ajout de la données aux données pas encore traitées du gpu
+	struct datatype *d = malloc(sizeof(*d));
+	d = returned_handle->user_data;
 
-	//~ push_back_data_not_used_yet(returned_handle, data->my_planned_task_control->pointer, d->type);
+	push_back_data_not_used_yet(returned_handle, my_planned_task_control->pointer, d->type);
 	
     printf("Return %p in victim selector.\n", returned_handle);
     return returned_handle;
