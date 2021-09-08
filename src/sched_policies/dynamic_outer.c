@@ -908,6 +908,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 		    if (STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j) == data_on_node[i])
 		    {
 			nb_task_in_pulled_task[i]++;
+			break;
 		    }
 		}
 	    }
@@ -919,7 +920,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	}
     }
     printf("Min number of task in pulled task is %d.\n", min_number_task_in_pulled_task);
-    return NULL;
+    
     /* Si il vaut 0 je fais belady sur les données utilisé par les tâches de pulled_task, 
      * sinon je choisis min(NT/W(D(T)) + W(Di) * W(Di)).
      * Si il vaut -1 c'est que je n'avais aucune donnée à renvoyer car aucune n'est évincable.
@@ -927,15 +928,18 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     if (min_number_task_in_pulled_task == INT_MAX)
     {
 	return STARPU_DATA_NO_VICTIM;
+	printf("Return STARPU_DATA_NO_VICTIM in victim selector.\n");
     }
     else if (min_number_task_in_pulled_task == 0)
     {
-	returned_handle = min_weight_average_on_planned_task(data_on_node, nb_data_on_node, node, is_prefetch, min_number_task_in_pulled_task);
+	returned_handle = min_weight_average_on_planned_task(data_on_node, nb_data_on_node, node, is_prefetch, my_planned_task_control->pointer, nb_task_in_pulled_task);
+	return NULL;
     }
     else
     {
-	printf("#warning Min number of task done by data on node is != 0");
-	returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch);
+	printf("#warning min number of task done by data on node is != 0");
+	returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
+	return NULL;
     }
     
     /* TODO : mettre a jour la donnée (dans les tâches et dans les not used yet.
@@ -1008,15 +1012,73 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     return returned_handle;
 }
 
-starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch)
+starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g)
 {
+    int i = 0;
+    int j = 0;
+    int next_use = 0;
+    int max_next_use = -1;
+    struct pulled_task *p = pulled_task_new();
+    starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
     
-}
-starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int min_number_task_in_pulled_task)
-{
+    print_pulled_task_one_gpu(g, node);
     
+    for (i = 0; i < nb_data_on_node; i++)
+    {
+	if (starpu_data_can_evict(data_tab[i], node, is_prefetch))
+	{
+	    next_use = 0;
+	    for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
+	    {
+		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
+		{
+		    next_use++;
+		    if (STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j) == data_tab[i])
+		    {
+			printf("Next use of %p is %d.\n", data_tab[i], next_use);
+			if (max_next_use < next_use)
+			{
+			    max_next_use = next_use;
+			    returned_handle = data_tab[i];
+			}
+			goto break_nested_for_loop;
+		    }
+		}
+	    }
+	    break_nested_for_loop : ;
+	}
+    }
+    printf("Return in belady %p.\n", returned_handle);
+    return returned_handle;
 }
 
+starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task)
+{
+    //~ int i = 0;
+    //~ int j = 0;
+    //~ float min_weight_average = INT_MAX;
+    //~ float weight_average = 0;
+    //~ float NT_Di = 0;
+    //~ struct starpu_task *task = NULL;
+    
+    //~ for (i = 0; i < nb_data_on_node; i++)
+    //~ {
+	//~ if (nb_task_in_pulled_task[i] == 0)
+	//~ {
+	    //~ for (task = starpu_task_list_begin(&g->planned_task); task = starpu_task_list_end(&g->planned_task); task = starpu_task_list_next(task))
+	    //~ {
+		//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
+		//~ {
+		    //~ if (STARPU_TASK_GET_HANDLE(task, j) == data_tab[i])
+		    //~ {
+			//~ NT_Di++;
+			//~ break;
+		    //~ }
+		//~ }
+	    //~ }
+	    //~ weight_average = NT_Di/
+    //~ }
+}
 
 /* Erase a task from the main task list.
  * Also erase pointer in the data.
