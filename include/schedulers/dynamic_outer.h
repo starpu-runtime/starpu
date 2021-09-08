@@ -101,9 +101,7 @@ void dynamic_outer_scheduling(struct starpu_task_list *main_task_list, int curre
 
 /** For eviction **/
 void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void *component);
-//~ starpu_data_handle_t get_handle_least_tasks(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int current_gpu);
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
-int get_min_number_task_in_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, gpu_pulled_task *g);
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch);
 starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int min_number_task_in_pulled_task);
 

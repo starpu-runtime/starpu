@@ -858,6 +858,7 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
     int i = 0;
+    int j = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     
     /* Se placer sur le bon GPU pour planned_task */
@@ -876,39 +877,65 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	return temp_handle;
     }
         
-    struct starpu_task *task = NULL;
     starpu_data_handle_t *data_on_node;
     unsigned nb_data_on_node = 0;
     int *valid;
     starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
     starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
     
+    /* Get the the min number of task a data can do in pulled_task */
     /* Se placer sur le bon GPU pour pulled_task */
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < current_gpu; i++)
     {
 	my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
     }
-    
-    /* Get the the min number of task a data can do in pulled_task */
-    int min_number_task_in_pulled_task = -1;
-    min_number_task_in_pulled_task = get_min_number_task_in_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
-    
+    int min_number_task_in_pulled_task = INT_MAX;
+    struct pulled_task *p = pulled_task_new();
+    int nb_task_in_pulled_task[nb_data_on_node];
+    for (i = 0; i < nb_data_on_node; i++)
+    {
+	nb_task_in_pulled_task[i] = 0;
+    }
+    for (i = 0; i < nb_data_on_node; i++)
+    {
+	if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
+	{
+	    for (p = pulled_task_list_begin(my_pulled_task_control->pointer->ptl); p!= pulled_task_list_end(my_pulled_task_control->pointer->ptl); p = pulled_task_list_next(p))
+	    {
+		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
+		{
+		    if (STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j) == data_on_node[i])
+		    {
+			nb_task_in_pulled_task[i]++;
+		    }
+		}
+	    }
+	    printf("Nb task for data %p: %d.\n", data_on_node[i], nb_task_in_pulled_task[i]);
+	    if (nb_task_in_pulled_task[i] < min_number_task_in_pulled_task)
+	    {
+		min_number_task_in_pulled_task = nb_task_in_pulled_task[i];
+	    }
+	}
+    }
+    printf("Min number of task in pulled task is %d.\n", min_number_task_in_pulled_task);
+    return NULL;
     /* Si il vaut 0 je fais belady sur les données utilisé par les tâches de pulled_task, 
      * sinon je choisis min(NT/W(D(T)) + W(Di) * W(Di)).
      * Si il vaut -1 c'est que je n'avais aucune donnée à renvoyer car aucune n'est évincable.
      */
-    if (min_number_task_in_pulled_task == -1)
+    if (min_number_task_in_pulled_task == INT_MAX)
     {
 	return STARPU_DATA_NO_VICTIM;
     }
     else if (min_number_task_in_pulled_task == 0)
     {
-	returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch);
+	returned_handle = min_weight_average_on_planned_task(data_on_node, nb_data_on_node, node, is_prefetch, min_number_task_in_pulled_task);
     }
     else
     {
-	returned_handle = min_weight_average_on_planned_task(data_on_node, nb_data_on_node, node, is_prefetch, min_number_task_in_pulled_task);
+	printf("#warning Min number of task done by data on node is != 0");
+	returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch);
     }
     
     /* TODO : mettre a jour la donnée (dans les tâches et dans les not used yet.
@@ -979,19 +1006,6 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	
     printf("Return %p in victim selector.\n", returned_handle);
     return returned_handle;
-}
-
-int get_min_number_task_in_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch)
-{
-    int i = 0;
-    
-    for (i = 0; i < nb_data_on_node; i++)
-    {
-	if (starpu_data_can_evict(data_tab[i], node, is_prefetch))
-	{
-	    
-	}
-    }
 }
 
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch)
