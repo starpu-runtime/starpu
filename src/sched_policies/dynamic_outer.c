@@ -857,6 +857,8 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cete fonction on perds du temps car le timing avance lui. */
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
+    //Si c'est un prefetch qui demande une eviction de ce qui est utile pour les tâches de pulled task je renvoie NO VICTIM si >= à STARPU_PREFETCH
+    
     int i = 0;
     int j = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
@@ -944,6 +946,9 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     else
     {
 	printf("#warning min number of task done by data on node is != 0.\n");
+	
+	//Si c'est prefetch ici
+	
 	returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
     }
     
