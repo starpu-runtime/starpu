@@ -453,8 +453,10 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
     starpu_data_handle_t handle_popped = NULL;
     struct task_using_data_list *tudl = task_using_data_list_new();
     
+    /* TODO : ca normalement ca peux jamais arriver donc a enlever et tester si ca marche toujours! */
     if (gpu_data_not_used_list_empty(g->gpu_data[g->data_type_to_pop]))
     {
+	printf("WARNING\n"); exit(0);
 	goto random;
     }
     
@@ -514,6 +516,7 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
 	else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
 	{
 	    tudl = e->D->sched_data;
+	    /* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
 	    if (task_using_data_list_size(tudl) > task_available_max)
 	    {
 		printf("Egalité mais plus de data available.\n");
@@ -536,7 +539,8 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
 	gpu_data_not_used_list_erase(g->gpu_data[g->data_type_to_pop], e);
     }
     
-    /* Adding the task to the list. TODO : this is a copy paste of the code above to test the available tasks. */
+    /* Adding the task to the list. TODO : this is a copy paste of the code above to test the available tasks.
+     * TODO : cette partie ne marchera que en 2D ? Je sais pas à tester */
     for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
     {
 	data_available = true; 
@@ -959,6 +963,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
      */
     
     //~ returned_handle = get_handle_to_evict(data_on_node, nb_data_on_node, node, is_prefetch, current_gpu);
+    /* Ca devrait pas arriver a enleevr et a tester */
     if (returned_handle == NULL)
     {
 	exit(0);
