@@ -1574,6 +1574,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 		}
 		else
 		{
+			printf("laa\n");
 			/* We are using HFP */
 			//~ print_packages_in_terminal(a, 0);
 			for (i = 0; i < nb_gpu; i++) 
@@ -1591,8 +1592,9 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 				task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 				a->temp_pointer_1->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				a->temp_pointer_1->nb_task_in_sub_list--;
-				//~ printf("Return %p\n", task);
+				printf("Return %p\n", task);
 				if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
+				printf("oui");
 				return task;
 			}
 			else
@@ -2459,6 +2461,11 @@ void print_order_in_file_hfp (struct paquets *p)
 	}
 }
 
+/* Attention, la dedans je vide la liste l. Et donc si tu lui donne sched_list et que 
+ * derrière t'essaye de la lire comme je fesais dans MST, et bah ca va crasher.
+ * Aussi si tu lance hMETIS dans un do_schedule, attention de bien mettre do_schedule_done à true
+ * et de sortir de la fonction avec un return;.
+ */
 void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
 {
 	printf("In hmetis\n");
@@ -2614,7 +2621,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	//~ print_packages_in_terminal(p, 0);
 	/* Apply HFP on each package if we have the right option */
 	if (starpu_get_env_number_default("HMETIS",0) == 2)
-	{ 
+	{
 		if (starpu_get_env_number_default("PRINTF",0) == 1)
 		{
 			i = 0;
@@ -2988,13 +2995,8 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				{
 					init_visualisation(data->p);
 				}
-				//~ task1 = get_task_to_return(component, to, data->p, number_of_package_to_build);
-				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-				//~ if (starpu_get_env_number_default("PRINTF",0) == 1)
-				//~ { 
-					//~ printf("Task %p is getting out of pull_task from hmetis on gpu %p\n",task1, to); 
-				//~ }
-				//~ return task1;
+				do_schedule_done = true;
+				return;
 			}
 			
 			/* Pulling all tasks and counting them */

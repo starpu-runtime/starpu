@@ -356,6 +356,8 @@ static void mst_do_schedule(struct starpu_sched_component *component)
 					data->p->temp_pointer_1->sub_list = mst(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
 					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 				}
+				do_schedule_done = true;
+				return;
 			}
 			
 			/* Pulling all tasks and counting them */
@@ -403,6 +405,11 @@ struct starpu_sched_component *starpu_sched_component_mst_create(struct starpu_s
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	struct paquets *paquets_data = malloc(sizeof(*paquets_data));
 	_STARPU_MALLOC(data, sizeof(*data));
+	
+		index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_all_gpu = 0;
+	index_current_popped_task_all_gpu_prefetch = 0;
 	
 	do_schedule_done = false;
 	Ngpu = get_number_GPU();

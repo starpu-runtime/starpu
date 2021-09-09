@@ -17,6 +17,8 @@ PATH_R=$2
 NB_TAILLE_TESTE=$3
 DOSSIER=$4
 MODEL=$5
+GPU=Attila
+NGPU=3
 NB_ALGO_TESTE=2
 FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_1.txt
 export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
@@ -254,6 +256,6 @@ if [ $DOSSIER = "Matrice3D" ]
 fi
 # Tracage des GFlops
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/hMETIS/GF_${MODEL}.txt
-Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/hMETIS/GF_${MODEL}.txt ${MODEL} ${DOSSIER}
-mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/hMETIS/GF_${MODEL}.pdf
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/hMETIS/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
+Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/hMETIS/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL} ${DOSSIER} ${GPU} ${NGPU}
+mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/hMETIS/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
