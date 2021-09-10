@@ -453,10 +453,10 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
     starpu_data_handle_t handle_popped = NULL;
     struct task_using_data_list *tudl = task_using_data_list_new();
     
-    /* TODO : ca normalement ca peux jamais arriver donc a enlever et tester si ca marche toujours! */
+    /* Ce cas arrive avec le cas ou je gère pas les evictions. Car quand je ne gère pas les évictions je ne remet pas les données évincées dans la liste des données
+     * à faire. */
     if (gpu_data_not_used_list_empty(g->gpu_data[g->data_type_to_pop]))
     {
-	printf("WARNING\n"); exit(0);
 	goto random;
     }
     
