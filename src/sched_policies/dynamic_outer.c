@@ -1090,6 +1090,10 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
     print_planned_task_one_gpu(g, node);
     print_data_on_node(data_tab, nb_data_on_node);
     
+    /* To avoid duplicate data */
+    struct data_weighted_list *dwl = data_weighted_list_new();
+    struct data_weighted *dw = data_weighted_new();
+    
     for (i = 0; i < nb_data_on_node; i++)
     {
 	if (nb_task_in_pulled_task[i] == 0)
@@ -1119,11 +1123,34 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
 			for (k = 0; k < STARPU_TASK_GET_NBUFFERS(task); k++)
 			{
 			    printf("Test if is on node %p.\n", STARPU_TASK_GET_HANDLE(task, k));
-			    //~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, k), node) && STARPU_TASK_GET_HANDLE(task, k) != data_tab[i])
 			    if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, k), node))
 			    {
-				printf("%p is not on node, adding it to missing data weight.\n", STARPU_TASK_GET_HANDLE(task, k));
-				weight_missing_data += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, k));
+				printf("Not on node.\n");
+				/* Je ne dois ajouter le poids de cette donnée que si elle n'a pas déjà été compté. */
+				if (data_weighted_list_empty(dwl))
+				{
+				    printf("Data counted list empty, adding the weight.\n");
+				    struct data_weighted *new = data_weighted_new();
+				    new->pointer_to_data_weighted = STARPU_TASK_GET_HANDLE(task, k);
+				    data_weighted_list_push_back(dwl, new);
+				    weight_missing_data += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, k));
+				}
+				else
+				{
+				    for (dw = data_weighted_list_begin(dwl); dw != data_weighted_list_end(dwl); dw = data_weighted_list_next(dw))
+				    {
+					if (STARPU_TASK_GET_HANDLE(task, k) == dw->pointer_to_data_weighted)
+					{
+					    printf("Déjà compté.\n");
+					    break;
+					}
+					struct data_weighted *new = data_weighted_new();
+					new->pointer_to_data_weighted = STARPU_TASK_GET_HANDLE(task, k);
+					data_weighted_list_push_back(dwl, new);
+					printf("%p is not on node and not counted yet, adding it to missing data weight.\n", STARPU_TASK_GET_HANDLE(task, k));
+					weight_missing_data += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, k));
+				    }
+				}
 			    }
 			}
 			break;
@@ -1132,7 +1159,6 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
 	    }
 	    weight_average = (NT_Di/(weight_missing_data + starpu_data_get_size(data_tab[i])))*starpu_data_get_size(data_tab[i]);
 	    printf("Weight average of %p is %f with %d task and %f missing data.\n", data_tab[i], weight_average, NT_Di, weight_missing_data);
-	    if (weight_missing_data != 0) { printf("LA!\n"); }
 	    if (min_weight_average > weight_average)
 	    {
 		max_next_use = next_use; /* Au cas ou Belady */
@@ -1141,7 +1167,7 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
 	    }
 	    else if (min_weight_average == weight_average)
 	    {
-		printf("égalité entre %p et %p, les next use sont %d et %d.\n", returned_handle, data_tab[i], max_next_use, next_use);
+		printf("Egalité entre %p et %p, les next use sont %d et %d.\n", returned_handle, data_tab[i], max_next_use, next_use);
 		/* Je fais Belady sur planned_task */
 		if (next_use > max_next_use)
 		{

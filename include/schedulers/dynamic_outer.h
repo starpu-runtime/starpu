@@ -73,6 +73,11 @@ struct gpu_pulled_task_control
     struct gpu_pulled_task *first;
 };
 
+/** To track the data counted in min_weight_average to avoid counting twice duplicate **/
+LIST_TYPE(data_weighted,
+    starpu_data_handle_t pointer_to_data_weighted; /* The data not used yet by the GPU. */
+);
+
 /** Variables globales **/
 int Ndifferent_data_type;
 bool gpu_memory_initialized;
