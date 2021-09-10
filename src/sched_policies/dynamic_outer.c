@@ -44,19 +44,14 @@ void print_task_list(struct starpu_task_list *l, char *s)
 void print_data_not_used_yet()
 {
     int i = 0;
-    int j = 0;
     my_planned_task_control->pointer = my_planned_task_control->first;
     
     for (i = 0; i < Ngpu; i++)
     {
 	printf("On GPU %d, the data not used yet are:", i + 1);
-	for (j = 0; j < Ndifferent_data_type; j++)
+	for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(my_planned_task_control->pointer->gpu_data); e != gpu_data_not_used_list_end(my_planned_task_control->pointer->gpu_data); e = gpu_data_not_used_list_next(e))
 	{
-	    printf("\nFor the data type %d:", j);
-	    for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(my_planned_task_control->pointer->gpu_data[j]); e != gpu_data_not_used_list_end(my_planned_task_control->pointer->gpu_data[j]); e = gpu_data_not_used_list_next(e))
-	    {
-		printf(" %p", e->D);
-	    }
+	    printf(" %p", e->D);
 	}
 	printf("\n");
 	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
@@ -89,14 +84,10 @@ void print_pulled_task_one_gpu(struct gpu_pulled_task *g, int current_gpu)
 
 void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g)
 {
-    int j = 0;    
-    for (j = 0; j < Ndifferent_data_type; j++)
+    printf("Data not used yet are:\n");
+    for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
     {
-	printf("\nFor the data type n°%d:", j);
-	for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(g->gpu_data[j]); e != gpu_data_not_used_list_end(g->gpu_data[j]); e = gpu_data_not_used_list_next(e))
-	{
-	    printf(" %p", e->D);
-	}
+	printf(" %p", e->D);
     }
     printf("\n");
 }
@@ -159,29 +150,23 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     my_planned_task_control->pointer = my_planned_task_control->first;
     for (i = 0; i < Ngpu; i++)
     {
-	for (j = 0; j < Ndifferent_data_type; j++)
+	for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
 	{
 	    struct gpu_data_not_used *e = gpu_data_not_used_new();
 	    e->D = STARPU_TASK_GET_HANDLE(task, j);
 	    
-	    /* To get the data type of each data. It's in user_data. 
-	     * sched_data in the handles is used for the task using this data. */
-	    struct datatype *d = malloc(sizeof(*d));
-	    d->type = j; 
-	    STARPU_TASK_GET_HANDLE(task, j)->user_data = d;
-	    
 	    /* If the void * of struct paquet is empty I initialize it. */ 
-	    if (my_planned_task_control->pointer->gpu_data[j] == NULL)
+	    if (my_planned_task_control->pointer->gpu_data == NULL)
 	    {
 		struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
 		gpu_data_not_used_list_push_front(gd, e);
-		my_planned_task_control->pointer->gpu_data[j] = gd; 
+		my_planned_task_control->pointer->gpu_data = gd; 
 	    }
 	    else
 	    {
 		if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 		{
-		    gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data[j], e);
+		    gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
 		}
 	    }
 	}
@@ -239,39 +224,32 @@ void randomize_task_list(struct dynamic_outer_sched_data *d)
 void randomize_data_not_used_yet()
 {
     int i = 0;
-    int j = 0;
     int k = 0;
     int l = 0;
     int random = 0;
-    int number_of_data[Ndifferent_data_type];
+    int number_of_data = 0;
     my_planned_task_control->pointer = my_planned_task_control->first;
     
     /* I need this for the %random. */
-    for (i = 0; i < Ndifferent_data_type; i++)
-    {
-	number_of_data[i] = gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data[i]);
-    }
+    number_of_data = gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data);
+    
     for (i = 0; i < Ngpu; i++)
     {
 	my_planned_task_control->pointer->number_handle_to_pop = 0;
-	for (j = 0; j < Ndifferent_data_type; j++)
+	struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
+	for (l = 0; l < number_of_data; l++)
 	{
-	    struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
-	    for (l = 0; l < number_of_data[j]; l++)
+	    /* After each time I remove a data I can choose between a smaller number of value for random. */
+	    random = rand()%(number_of_data - l);
+	    for (k = 0; k < random; k++)
 	    {
-		/* After each time I remove a data I can choose between a smaller number of value for random. */
-		random = rand()%(number_of_data[j]- l);
-		for (k = 0; k < random; k++)
-		{
-		    gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data[j], gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data[j]));
-		}
-		/* I use an external list. */
-		gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data[j]));
+		gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
 	    }
-	    /* Then replace the list with it. */
-	    my_planned_task_control->pointer->gpu_data[j] = randomized_list;
-	    my_planned_task_control->pointer->number_handle_to_pop += number_of_data[j];
+	    /* I use an external list. */
+	    gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
 	}
+	/* Then replace the list with it. */
+	my_planned_task_control->pointer->gpu_data = randomized_list;
 	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
     }
 }
@@ -279,35 +257,28 @@ void randomize_data_not_used_yet()
 /* Randomize the list of data not used yet for a single GPU. */
 void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
 {
-    int i = 0;
     int j = 0;
     int k = 0;
     int random = 0;
-    int number_of_data[Ndifferent_data_type];
+    int number_of_data = 0;
     g->number_handle_to_pop = 0;
     
-    for (i = 0; i < Ndifferent_data_type; i++)
+    number_of_data = gpu_data_not_used_list_size(g->gpu_data);
+    
+    struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
+    for (j = 0; j < number_of_data; j++)
     {
-	number_of_data[i] = gpu_data_not_used_list_size(g->gpu_data[i]);
-    }
-    for (i = 0; i < Ndifferent_data_type; i++)
-    {
-	struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
-	for (j = 0; j < number_of_data[i]; j++)
+	/* After each time I remove a data I can choose between a smaller number of value for random. */
+	random = rand()%(number_of_data - j);
+	for (k = 0; k < random; k++)
 	{
-	    /* After each time I remove a data I can choose between a smaller number of value for random. */
-	    random = rand()%(number_of_data[i]- j);
-	    for (k = 0; k < random; k++)
-	    {
-		gpu_data_not_used_list_push_back(g->gpu_data[i], gpu_data_not_used_list_pop_front(g->gpu_data[i]));
-	    }
-	    /* I use an external list. */
-	    gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(g->gpu_data[i]));
+	    gpu_data_not_used_list_push_back(g->gpu_data, gpu_data_not_used_list_pop_front(g->gpu_data));
 	}
-	/* Then replace the list with it. */
-	g->gpu_data[i] = randomized_list;
-	g->number_handle_to_pop += number_of_data[i];
+	/* I use an external list. */
+	gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(g->gpu_data));
     }
+    /* Then replace the list with it. */
+    g->gpu_data = randomized_list;
 }
 
 /* Get a task to put out of pull_task. In multi GPU it allows me to return a task from the right element in the 
@@ -520,11 +491,11 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     //~ return NULL;
 }
 
-void push_back_data_not_used_yet(starpu_data_handle_t h, struct gpu_planned_task *g, int data_type)
+void push_back_data_not_used_yet(starpu_data_handle_t h, struct gpu_planned_task *g)
 {
     struct gpu_data_not_used *e = gpu_data_not_used_new();
     e->D = h;
-    gpu_data_not_used_list_push_back(g->gpu_data[data_type], e);
+    gpu_data_not_used_list_push_back(g->gpu_data, e);
 }
 
 /* Fill a package's task list following dynamic_outer algorithm. It pop only one data, the one that achieve the most tasks. */

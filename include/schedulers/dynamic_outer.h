@@ -18,10 +18,6 @@ LIST_TYPE(task_using_data,
     /* Pointer to the main task list T */
     struct starpu_task *pointer_to_T;
 );
-struct datatype
-{
-    int type;
-};
 
 /** In the "packages" of dynamic outer, each representing a gpu **/
 LIST_TYPE(gpu_data_not_used,
@@ -43,13 +39,11 @@ struct gpu_planned_task
 {
     struct starpu_task_list planned_task;
     struct gpu_planned_task *next;
-    
+
     struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
-    
-    void **gpu_data; /* Data not loaded yet. */
-    int number_handle_to_pop; /* So I can know when to re-shuffle the data not used yet. */
-    int data_type_to_pop;
-	
+
+    void *gpu_data; /* Data not loaded yet. */
+
     starpu_data_handle_t data_to_evict_next; /* En cas de donnée à évincer refusé. Je la renvoie à évincer. */
 };
 struct gpu_planned_task_control
@@ -101,7 +95,7 @@ void randomize_task_list(struct dynamic_outer_sched_data *d);
 void randomize_data_not_used_yet();
 void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
 struct starpu_task *get_task_to_return_pull_task_dynamic_outer(int current_gpu, struct starpu_task_list *l);
-void push_back_data_not_used_yet(starpu_data_handle_t h, struct gpu_planned_task *g, int data_type);
+void push_back_data_not_used_yet(starpu_data_handle_t h, struct gpu_planned_task *g);
 void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 void dynamic_outer_scheduling(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 
