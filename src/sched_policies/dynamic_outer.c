@@ -949,8 +949,8 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     {
 	printf("#warning min number of task done by data on node is != 0.\n");
 	
-	/* Si c'est un prefetch qui demande une eviction de ce qui est utile pour les tâches de pulled task je renvoie NO VICTIM si >= à STARPU_PREFETCH */
-	if (is_prefetch >= 2)
+	/* Si c'est un prefetch qui demande une eviction de ce qui est utile pour les tâches de pulled task je renvoie NO VICTIM si >= à STARPU_TASK_PREFETCH */
+	if (is_prefetch >= 1)
 	{
 	    printf("A prefetch is asking for an eviction.\n");
 	    return STARPU_DATA_NO_VICTIM;
@@ -1327,6 +1327,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	gpu_memory_initialized = false;
 	number_task_out = -1;
 	
+	printf("Ngpu = %d\n", Ngpu); 
+		
 	/* Initialization of structures. */
 	//~ struct HFP_sched_data *data;
 	struct dynamic_outer_sched_data *data;
@@ -1427,18 +1429,32 @@ static void deinitialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-    printf("Dans le post exec hook avec la tâche %p.\n", task);
+    if (starpu_worker_get_memory_node(starpu_worker_get_id()) == 4)
+    { printf("Dans le post exec hook avec la tâche %p.\n", task); }
     int i = 0;
     
     /* Je me place sur la liste correspondant au bon gpu. */
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
     {
+	printf("next\n");
 	my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
     }
     
+    
+    if (starpu_worker_get_memory_node(starpu_worker_get_id()) == 4)
+    {
+    printf("AVANT\n");
+    print_pulled_task_one_gpu(my_pulled_task_control->pointer, starpu_worker_get_memory_node(starpu_worker_get_id())); }
+    
+    //~ if (pulled_task_list_empty(my_pulled_task_control->pointer->ptl)) { exit(0); printf("empty\n"); }
+    
     /* J'efface la tâche dans la liste de tâches */
     pulled_task_list_pop_front(my_pulled_task_control->pointer->ptl);
+     if (starpu_worker_get_memory_node(starpu_worker_get_id()) == 4)
+    {
+    printf("APRES\n");
+    print_pulled_task_one_gpu(my_pulled_task_control->pointer, starpu_worker_get_memory_node(starpu_worker_get_id())); }
     
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }
