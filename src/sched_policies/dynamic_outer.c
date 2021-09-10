@@ -1443,44 +1443,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	}
 	my_pulled_task_control->first = my_pulled_task_control->pointer;
 	
-	//~ starpu_task_list_init(&my_data->planned_task);
-	//~ starpu_task_list_init(&my_data->refused_fifo_list);
- 	//~ my_data->next = NULL;
-	//~ paquets_data->temp_pointer_1 = my_data;
-	//~ paquets_data->first_link = paquets_data->temp_pointer_1;
-	//~ data->p = paquets_data;
-	
-	//~ data->my_planned_task_control->pointer->gpu_data = malloc(Ndifferent_data_type*sizeof(starpu_data_handle_t));
-	//~ data->my_planned_task_control->pointer->gpu_data_loaded = malloc(Ndifferent_data_type*sizeof(starpu_data_handle_t));
-	//~ data->my_planned_task_control->pointer->memory_used = 0;
-	
-	//~ data->my_planned_task_control->pointer->data_type_to_pop = 0;
-	
-	/* Creating as much package as there are GPUs. */
-	//~ for (i = 0; i < Ngpu - 1; i++)
-	//~ {
-	    //~ printf("Insertion.\n");
-	    //~ dynamic_outer_insertion(data->p);
-	//~ }
-	//~ data->p->first_link = data->my_planned_task_control->pointer;
-	//~ data->p->first_link->data_to_evict_next = NULL;
-	
-	/* Initiliazing global struct for eviction. */
-	//~ data_to_evict_element_e = malloc(sizeof(*data_to_evict_element_e)); 
-	//~ data_to_evict_control_c = malloc(sizeof(*data_to_evict_control_c));
-	//~ data_to_evict_element_e->element = NULL;
-	//~ data_to_evict_element_e->next = NULL;
-	//~ data_to_evict_control_c->pointeur = data_to_evict_element_e;
-	//~ data_to_evict_control_c->first = data_to_evict_control_c->pointeur;
-	//~ for (i = 0; i < Ngpu - 1; i++)
-	//~ {
-	    //~ data_to_evict_insertion(data_to_evict_control_c);
-	//~ }
-	//~ data_to_evict_control_c->first = data_to_evict_control_c->pointeur;
-	
-	/* Init data that was refused at eviction. */
-	//~ data_to_evict_next = NULL;
-	
 	component->data = data;
 	/* component->do_schedule = dynamic_outer_do_schedule; */
 	component->push_task = dynamic_outer_push_task;
