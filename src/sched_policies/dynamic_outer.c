@@ -310,14 +310,93 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
     }
 }
 
+/* Get a task to put out of pull_task. In multi GPU it allows me to return a task from the right element in the 
+ * linked list without having an other GPU comme and ask a task in pull_task. At least I hope it does so.
+ */
+struct starpu_task *get_task_to_return_pull_task_dynamic_outer(int current_gpu, struct starpu_task_list *l)
+{
+     int i = 0;
+     
+    /* Getting on the right GPU's package.
+     * TODO: Can I do this faster with pointer directly to the cell ? */
+    my_planned_task_control->pointer = my_planned_task_control->first;
+    for (i = 1; i < current_gpu; i++)
+    {
+	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+    }
+    
+    /* If there are still tasks either in the packages, the main task list or the refused task,
+     * I enter here to return a task or start dynamic_outer_scheduling. Else I return NULL.
+     */
+    if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task) || !starpu_task_list_empty(l) || !starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list))
+    {	
+	printf("GPU %d is asking for a task.\n", current_gpu);
+	struct starpu_task *task = NULL;
+
+	/* If one or more task have been refused */
+	if (!starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list)) 
+	{
+	    /* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
+	    task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
+	    printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out, task, current_gpu);
+	    return task;
+	}
+
+	/* If the package is not empty I can return the head of the task list. */
+	if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
+	{
+	    number_task_out++;
+	    task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
+	    
+	    /* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
+	    add_task_to_pulled_task(current_gpu, task);
+
+	    printf("Task %d: %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
+	    
+	    /* For visualisation in python. */
+	    if (starpu_get_env_number_default("PRINTF", 0) == 1)
+	    {
+		print_data_to_load_prefetch(task, current_gpu - 1);
+	    }
+
+	    return task;
+	}
+	/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
+	else if (!starpu_task_list_empty(l))
+	{
+	    number_task_out++;
+	    if (starpu_get_env_number_default("DATA_POP_POLICY", 0) == 0)
+	    {
+		dynamic_outer_scheduling(l, current_gpu, my_planned_task_control->pointer);
+	    }
+	    else
+	    {
+		dynamic_outer_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
+	    }
+	    task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
+	    add_task_to_pulled_task(current_gpu, task);
+	    printf("Task %d, %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
+	    
+	    /* For visualisation in python. */
+	    if (starpu_get_env_number_default("PRINTF", 0) == 1)
+	    {
+		print_data_to_load_prefetch(task, current_gpu - 1);
+	    }
+	    
+	    return task;
+	}
+    }
+    return NULL;
+}
+
 /* Pull tasks. When it receives new task it will randomize the task list and the GPU data list.
  * If it has no task it return NULL. Else if a task was refused it return it. Else it return the
  * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
 static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
     struct dynamic_outer_sched_data *data = component->data;
-    int i = 0;
-    int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+    //~ int i = 0;
+    //~ int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     
     /* Need only to be done once if all GPU have the same memory. */
     if (gpu_memory_initialized == false)
@@ -344,92 +423,101 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
 	print_data_not_used_yet();
 	print_task_list(&data->main_task_list, "");
     }
-	    
-    /* Getting on the right GPU's package.
-     * TODO: Can I do this faster with pointer directly to the cell ?
-     */
-    my_planned_task_control->pointer =  my_planned_task_control->first;
-    for (i = 1; i < current_gpu; i++)
-    {
-	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-    }
     
-    /* If there are still tasks either in the packages, the main task list or the refused task,
-     * I enter here to return a task or start dynamic_outer_scheduling. Else I return NULL.
-     */
-    if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task) || !starpu_task_list_empty(&data->main_task_list) || !starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list))
-    {	
-	printf("GPU %d is asking for a task.\n", current_gpu);
-	struct starpu_task *task = NULL;
-	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+    /* Même sans les mutex ca marche, c'est bizare ... */
+    STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+    struct starpu_task *task = get_task_to_return_pull_task_dynamic_outer(starpu_worker_get_memory_node(starpu_worker_get_id()), &data->main_task_list);
+    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+    return task;
+    
+    //~ /* Getting on the right GPU's package.
+     //~ * TODO: Can I do this faster with pointer directly to the cell ?
+     //~ */
+    //~ printf("Current gpu = %d.\n", current_gpu);
+    //~ my_planned_task_control->pointer =  my_planned_task_control->first;
+    //~ for (i = 1; i < current_gpu; i++)
+    //~ {
+	//~ printf("Next of planned task 1.\n");
+	//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+    //~ }
+    
+    //~ /* If there are still tasks either in the packages, the main task list or the refused task,
+     //~ * I enter here to return a task or start dynamic_outer_scheduling. Else I return NULL.
+     //~ */
+    //~ if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task) || !starpu_task_list_empty(&data->main_task_list) || !starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list))
+    //~ {	
+	//~ printf("GPU %d is asking for a task.\n", current_gpu);
+	//~ struct starpu_task *task = NULL;
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 
-	/* If one or more task have been refused */
-	if (!starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list)) 
-	{
-	    /* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
-	    task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
-	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-	    printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out, task, current_gpu);
-	    return task;
-	}
+	//~ /* If one or more task have been refused */
+	//~ if (!starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list)) 
+	//~ {
+	    //~ /* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
+	    //~ task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
+	    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	    //~ printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out, task, current_gpu);
+	    //~ return task;
+	//~ }
 
-	/* If the package is not empty I can return the head of the task list. */
-	if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
-	{
-	    number_task_out++;
-	    task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
+	//~ /* If the package is not empty I can return the head of the task list. */
+	//~ if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
+	//~ {
+	    //~ number_task_out++;
+	    //~ task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
 	    
-	    /* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
-	    add_task_to_pulled_task(current_gpu, task);
+	    //~ /* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
+	    //~ add_task_to_pulled_task(current_gpu, task);
 
-	    printf("Task %d: %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
-	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	    //~ printf("Task %d: %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
+	    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
-	    /* For visualisation in python. */
-	    if (starpu_get_env_number_default("PRINTF", 0) == 1)
-	    {
-		print_data_to_load_prefetch(task, current_gpu - 1);
-	    }
+	    //~ /* For visualisation in python. */
+	    //~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
+	    //~ {
+		//~ print_data_to_load_prefetch(task, current_gpu - 1);
+	    //~ }
 	    
-	    return task;
-	}
-	/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
-	else if (!starpu_task_list_empty(&data->main_task_list))
-	{
-	    /* Je me remet à nouveau sur le bon gpu, car si entre temps pull_task est rappellé ca me remet au début de la liste chainée -______- Ca m'est aussi arrivé dans le print de dynamic_outer -___- */ 
+	    //~ return task;
+	//~ }
+	//~ /* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
+	//~ else if (!starpu_task_list_empty(&data->main_task_list))
+	//~ {
+	    /* Je me remet à nouveau sur le bon gpu, car si entre temps pull_task est rappellé ca me remet au début de la liste chainée -______- Ca m'est aussi arrivé dans le print de dynamic_outer -___- 
 	    my_planned_task_control->pointer = my_planned_task_control->first;
 	    for (i = 1; i < current_gpu; i++)
 	    {
+		printf("Next of planned task 2.\n");
 		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-	    }
+	    } */
 		    
-	    number_task_out++;
-	    if (starpu_get_env_number_default("DATA_POP_POLICY", 0) == 0)
-	    {
-		dynamic_outer_scheduling(&data->main_task_list, current_gpu, my_planned_task_control->pointer);
-	    }
-	    else
-	    {
-		dynamic_outer_scheduling_one_data_popped(&data->main_task_list, current_gpu, my_planned_task_control->pointer);
-	    }
-	    task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
-	    add_task_to_pulled_task(current_gpu, task);
-	    printf("Task %d, %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
-	    STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+	    //~ number_task_out++;
+	    //~ if (starpu_get_env_number_default("DATA_POP_POLICY", 0) == 0)
+	    //~ {
+		//~ dynamic_outer_scheduling(&data->main_task_list, current_gpu, my_planned_task_control->pointer);
+	    //~ }
+	    //~ else
+	    //~ {
+		//~ dynamic_outer_scheduling_one_data_popped(&data->main_task_list, current_gpu, my_planned_task_control->pointer);
+	    //~ }
+	    //~ task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
+	    //~ add_task_to_pulled_task(current_gpu, task);
+	    //~ printf("Task %d, %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
+	    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	    
-	    /* For visualisation in python. */
-	    if (starpu_get_env_number_default("PRINTF", 0) == 1)
-	    {
-		print_data_to_load_prefetch(task, current_gpu - 1);
-	    }
+	    //~ /* For visualisation in python. */
+	    //~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
+	    //~ {
+		//~ print_data_to_load_prefetch(task, current_gpu - 1);
+	    //~ }
 	    
-	    return task;
-	}
-	/* Else I will return NULL. But I still need to unlock the mutex. */
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-    }
+	    //~ return task;
+	//~ }
+	//~ /* Else I will return NULL. But I still need to unlock the mutex. */
+	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+    //~ }
     
-    return NULL;
+    //~ return NULL;
 }
 
 void push_back_data_not_used_yet(starpu_data_handle_t h, struct gpu_planned_task *g, int data_type)

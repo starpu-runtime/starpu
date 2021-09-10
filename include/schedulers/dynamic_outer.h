@@ -100,6 +100,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task);
 void randomize_task_list(struct dynamic_outer_sched_data *d);
 void randomize_data_not_used_yet();
 void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
+struct starpu_task *get_task_to_return_pull_task_dynamic_outer(int current_gpu, struct starpu_task_list *l);
 void push_back_data_not_used_yet(starpu_data_handle_t h, struct gpu_planned_task *g, int data_type);
 void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 void dynamic_outer_scheduling(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
