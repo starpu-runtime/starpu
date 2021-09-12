@@ -482,11 +482,43 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     //~ return NULL;
 }
 
-void push_back_data_not_used_yet(starpu_data_handle_t h, struct gpu_planned_task *g)
+/* TODO : la je le fais en vidant la liste en entier pour la remttr dans une autre liste
+ * il y a surement moyen de faire une vrai insertion. */
+void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g)
 {
-    struct gpu_data_not_used *e = gpu_data_not_used_new();
-    e->D = h;
-    gpu_data_not_used_list_push_back(g->gpu_data, e);
+    printf("Avant pushing random\n");
+    print_data_not_used_yet_one_gpu(g);
+    struct gpu_data_not_used_list *new_list = gpu_data_not_used_list_new();
+    struct gpu_data_not_used *new_element = gpu_data_not_used_new();
+    new_element->D = h;
+    
+    //~ gpu_data_not_used_list_push_back(g->gpu_data, new_element);
+    
+    int random = rand()%gpu_data_not_used_list_size(g->gpu_data);
+    int i = 0;
+        int size = gpu_data_not_used_list_size(g->gpu_data);
+
+    printf("La liste fais une taille %d. Random = %d. Je veux push %p.\n", gpu_data_not_used_list_size(g->gpu_data), random, h);
+
+    for (i = 0; i < random; i++)
+    {
+	gpu_data_not_used_list_push_back(new_list, gpu_data_not_used_list_pop_front(g->gpu_data));
+    }
+    gpu_data_not_used_list_push_back(new_list, new_element);
+    printf("La liste old est:\n");
+    print_data_not_used_yet(g);
+    printf("La liste fais une taille %d.\n", gpu_data_not_used_list_size(g->gpu_data));
+    
+    for (i = random; i < size; i++)
+    {
+	printf("pushing in new\n");
+	gpu_data_not_used_list_push_back(new_list, gpu_data_not_used_list_pop_front(g->gpu_data));
+    }
+    //~ free(g->gpu_data);
+    g->gpu_data = new_list;
+    
+    printf("Après pushing random\n");
+    print_data_not_used_yet_one_gpu(g);
 }
 
 /* Fill a package's task list following dynamic_outer algorithm. It pop only one data, the one that achieve the most tasks. */
@@ -922,8 +954,8 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
 	    
     }
 	
-    //Ajout de la données aux données pas encore traitées du gpu
-    push_back_data_not_used_yet(returned_handle, my_planned_task_control->pointer);
+    /*Placing in a random spot of the data list to use the evicted handle */
+    push_data_not_used_yet_random_spot(returned_handle, my_planned_task_control->pointer);
 	
     printf("Return %p in victim selector.\n", returned_handle);
     return returned_handle;
@@ -1198,7 +1230,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	int i = 0;
 	
 	/* Initialization of global variables. */
-	Ndifferent_data_type = 2; // TODO: changer cela si on est en 3D ou autre
 	Ngpu = get_number_GPU();
 	NT = 0;
 	new_tasks_initialized = false;
