@@ -235,7 +235,6 @@ void randomize_data_not_used_yet()
     
     for (i = 0; i < Ngpu; i++)
     {
-	my_planned_task_control->pointer->number_handle_to_pop = 0;
 	struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
 	for (l = 0; l < number_of_data; l++)
 	{
@@ -261,7 +260,6 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
     int k = 0;
     int random = 0;
     int number_of_data = 0;
-    g->number_handle_to_pop = 0;
     
     number_of_data = gpu_data_not_used_list_size(g->gpu_data);
     
@@ -506,7 +504,7 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
     
     /* Ce cas arrive avec le cas ou je gère pas les evictions. Car quand je ne gère pas les évictions je ne remet pas les données évincées dans la liste des données
      * à faire. */
-    if (gpu_data_not_used_list_empty(g->gpu_data[g->data_type_to_pop]))
+    if (gpu_data_not_used_list_empty(g->gpu_data))
     {
 	goto random;
     }
@@ -518,15 +516,17 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
     {
 	temp_number_of_task_max = 0;
 	
+	printf("If e->D is %p.\n", e->D);
 	for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
 	{
 	    /* I put it at false if at least one data is missing. */
 	    data_available = true; 
-	    for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T) - 1; j++)
+	    for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
 	    {
-		/* I test if the data is on memory including prefetch */ 
-		if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) != e->D)
+		/* I test if the data is on memory */ 
+		if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
 		{
+		    printf("Testing if %p is on node.\n", STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)); 
 		    if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 		    {
 			data_available = false;
@@ -536,6 +536,7 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
 	    }
 	    if (data_available == true)
 	    {
+		printf("Data available for task %p.\n", t->pointer_to_T);
 		temp_number_of_task_max++;
 	    }
 	}
@@ -543,6 +544,7 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
 	if (temp_number_of_task_max > number_of_task_max)
 	{
 	    number_of_task_max = temp_number_of_task_max;
+	    task_available_max = task_using_data_list_size(e->D->sched_data);
 	    handle_popped = e->D;
 	}
 	/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
@@ -558,6 +560,7 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
 	    }
 	}
     }
+    printf("number of task max: %d.\n", number_of_task_max);
     if (number_of_task_max == 0)
     {
 	goto random;
@@ -571,15 +574,16 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
         } 
 	gpu_data_not_used_list_erase(g->gpu_data, e);
     }
-    
+    printf("The data adding the most is %p.\n", handle_popped);
+	
     /* Adding the task to the list. TODO : this is a copy paste of the code above to test the available tasks.
      * TODO : cette partie ne marchera que en 2D ? Je sais pas à tester */
     for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
     {
 	data_available = true; 
-	for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T) - 1; j++)
+	for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
 	{		    		
-	    if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, next_handle) != handle_popped)
+	    if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != handle_popped)
 	    {
 		if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 		{
@@ -593,7 +597,7 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
 	    printf("Pushing %p in planned task of GPU %d\n", t->pointer_to_T, current_gpu);
 	    erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 	    starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
-	    print_planned_task_one_gpu(g, current_gpu);
+	    //~ print_planned_task_one_gpu(g, current_gpu);
 	}
     }
     
@@ -919,9 +923,7 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     }
 	
     //Ajout de la données aux données pas encore traitées du gpu
-    struct datatype *d = malloc(sizeof(*d));
-    d = returned_handle->user_data;
-    push_back_data_not_used_yet(returned_handle, my_planned_task_control->pointer, d->type);
+    push_back_data_not_used_yet(returned_handle, my_planned_task_control->pointer);
 	
     printf("Return %p in victim selector.\n", returned_handle);
     return returned_handle;
@@ -936,7 +938,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     struct pulled_task *p = pulled_task_new();
     starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
     
-    print_pulled_task_one_gpu(g, node);
+    //~ print_pulled_task_one_gpu(g, node);
     
     for (i = 0; i < nb_data_on_node; i++)
     {
@@ -1129,7 +1131,6 @@ static int dynamic_outer_can_pull(struct starpu_sched_component *component)
 
 void gpu_planned_task_initialisation()
 {
-    int i = 0;
     _STARPU_MALLOC( my_planned_task_control, sizeof(*my_planned_task_control));
     struct gpu_planned_task *new = malloc(sizeof(*new));
     
@@ -1145,7 +1146,6 @@ void gpu_planned_task_initialisation()
 
 void gpu_planned_task_insertion()
 {
-    int i = 0;
     struct gpu_planned_task *new = malloc(sizeof(*new));
     
     starpu_task_list_init(&new->planned_task);
@@ -1188,7 +1188,7 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
     p->pointer_to_pulled_task = task;
     pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
     
-    print_pulled_task_one_gpu(my_pulled_task_control->pointer, current_gpu);
+    //~ print_pulled_task_one_gpu(my_pulled_task_control->pointer, current_gpu);
 }
 
 struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
