@@ -2,7 +2,6 @@
 #define __dynamic_outer_H__
 
 #define EVICTION_STRATEGY_DYNAMIC_OUTER /* 0 we use default dynamic outer without managing evictions. */
-#define DATA_POP_POLICY /* 0 is the default one, we pop handles of each type from the random set of handles. 1 we pop the handles that allow to do the most task. The set of handles is randomized so if there is a tie it's the first handle encountered that is popped. */
 
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
