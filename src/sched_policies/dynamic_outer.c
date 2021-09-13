@@ -393,41 +393,24 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     return task;
 }
 
-/* TODO : la je le fais en vidant la liste en entier pour la remttre dans une autre liste
- * il y a surement moyen de faire une vrai insertion. */
 void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g)
 {
     printf("Avant pushing random\n");
     print_data_not_used_yet_one_gpu(g);
-    struct gpu_data_not_used_list *new_list = gpu_data_not_used_list_new();
+    struct gpu_data_not_used *ptr = gpu_data_not_used_new();
     struct gpu_data_not_used *new_element = gpu_data_not_used_new();
     new_element->D = h;
-    
-    //~ gpu_data_not_used_list_push_back(g->gpu_data, new_element);
-    
     int random = rand()%gpu_data_not_used_list_size(g->gpu_data);
     int i = 0;
-        int size = gpu_data_not_used_list_size(g->gpu_data);
 
-    printf("La liste fais une taille %d. Random = %d. Je veux push %p.\n", gpu_data_not_used_list_size(g->gpu_data), random, h);
-
+    printf("Random = %d. Je veux push %p.\n", random, h);
+    
+    ptr = gpu_data_not_used_list_begin(g->gpu_data);
     for (i = 0; i < random; i++)
     {
-	gpu_data_not_used_list_push_back(new_list, gpu_data_not_used_list_pop_front(g->gpu_data));
+	ptr = gpu_data_not_used_list_next(ptr);
     }
-    gpu_data_not_used_list_push_back(new_list, new_element);
-    printf("La liste old est:\n");
-    print_data_not_used_yet(g);
-    printf("La liste fais une taille %d.\n", gpu_data_not_used_list_size(g->gpu_data));
-    
-    for (i = random; i < size; i++)
-    {
-	printf("pushing in new\n");
-	gpu_data_not_used_list_push_back(new_list, gpu_data_not_used_list_pop_front(g->gpu_data));
-    }
-    //~ free(g->gpu_data);
-    g->gpu_data = new_list;
-    
+    gpu_data_not_used_list_insert_before(g->gpu_data, new_element, ptr);
     printf("Après pushing random\n");
     print_data_not_used_yet_one_gpu(g);
 }
@@ -600,101 +583,8 @@ void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void
     }
 }
 
-/* Return the handle that can do the least tasks that already have all
- * it data on memory. If there is a draw or if there are no task in the task list, return the 
- * data that has the least remaining task (even if their data are not loaded on memory.
- */
-//~ starpu_data_handle_t get_handle_least_tasks(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, int current_gpu)
-//~ {
-    //~ printf("On GPU %d in get_handle_least_task.\n", current_gpu);
-    
-    //~ starpu_data_handle_t returned_handle = NULL;
-    //~ int i = 0;
-    //~ int min = 0;
-    //~ struct planned_task *pt = planned_task_new();
-    
-    //~ /* Se placer su la liste corespondant au gpu actuel */
-    //~ my_planned_task_control->pointer = my_planned_task_control->first;
-    //~ for (i = 1; i < current_gpu; i++)
-    //~ {
-	//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-    //~ }
-    //~ if (planned_task_list_empty(my_planned_task_control->pointer->ptpt))
-    //~ {
-	//~ /* Je cherche la donnée qui permet de faire le moins de tâches globalement */
-	//~ min = INT_MAX;
-	//~ for (i = 0; i < nb_data_on_node; i++)
-	//~ {
-	    //~ if (task_using_data_list_size(tudl) < min && starpu_data_can_evict(data_tab[i], node, is_prefetch))
-	    //~ {
-		//~ min = task_using_data_list_size(tudl);
-		//~ returned_handle = data_tab[i];
-	    //~ }
-	//~ }
-	//~ return returned_handle;
-    //~ }
-    //~ else
-    //~ {
-	//~ int j = 0;
-	//~ struct starpu_task *task = NULL;
-	//~ int nb_task_done_by_data[nb_data_on_node];
-	//~ for (i = 0; i < nb_data_on_node; i++) { nb_task_done_by_data[i] = 0; }
-	//~ bool all_data_available = true;
-	 //~ /* Cherche nb de tache fais par chaque donnée parmis les tâches prévus qu'il reste à faire */
-	 //~ for (task = starpu_task_list_begin(l); task != starpu_task_list_end(l); task = starpu_task_list_next(task))
-	 //~ {
-	     //~ all_data_available = true;
-	     //~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-	     //~ {
-		//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), node))
-		//~ {
-		     //~ all_data_available = false;
-		     //~ break;
-		//~ }
-	     //~ }
-	     //~ if (all_data_available == true)
-	     //~ {
-		 //~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
-		 //~ {
-		     //~ for (i = 0; i < nb_data_on_node; i++)
-		      //~ {
-			  //~ if (data_tab[i] == STARPU_TASK_GET_HANDLE(task, j))
-			  //~ {
-			      //~ nb_task_done_by_data[i]++;
-			      //~ break;
-			  //~ }
-		      //~ }
-		 //~ }
-	     //~ }
-	 //~ }
-	//~ /* Cherche le min dans le tab */
-	//~ min = INT_MAX;
-	 //~ for (i = 0; i < nb_data_on_node; i++)
-	 //~ {
-	     //~ if (min > nb_task_done_by_data[i])
-	     //~ {
-	     //~ if (starpu_data_can_evict(data_tab[i], node, is_prefetch))
-	     //~ {
-		 //~ min = nb_task_done_by_data[i];
-		 //~ returned_handle = data_tab[i];
-	     //~ }
-	    //~ }
-	    //~ else if (min == nb_task_done_by_data[i] && starpu_data_can_evict(data_tab[i], node, is_prefetch))
-	    //~ {
-		//~ tudl = data_tab[i]->sched_data;
-		//~ if (task_using_data_list_size(tudl) < task_using_data_list_size(returned_handle->sched_data))
-		//~ {
-		    //~ min = nb_task_done_by_data[i];
-		    //~ returned_handle = data_tab[i];
-		//~ }
-	    //~ }
-	 //~ }
-	 //~ return returned_handle;
-    //~ }
-//~ }
-
 /* TODO: return NULL ou ne rien faire si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée.
- * TODO je rentre bcp trop dans cete fonction on perds du temps car le timing avance lui. */
+ * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. */
 starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {        
     int i = 0;
