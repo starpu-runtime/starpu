@@ -1,3 +1,18 @@
+# StarPU --- Runtime system for heterogeneous multicore architectures.
+#
+# Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+#
+# StarPU is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation; either version 2.1 of the License, or (at
+# your option) any later version.
+#
+# StarPU is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# See the GNU Lesser General Public License in COPYING.LGPL for more details.
+#
 You first need to compile StarPU.jl
 Now, type
 > make
@@ -11,10 +26,5 @@ During the test, several versions are compared:
 - mult_calllib.jl: the env variable JULIA_TASK_LIB should point to a library containing the function matrix_mult. This function is called.
 
 Examples of how to launch mult.jl are given in test rules.
-	 
+
 A CUDA version is generated too. Untested so far (no nvidia gpu on my laptop!)
-
-
-
-
-
