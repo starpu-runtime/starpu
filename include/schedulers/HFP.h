@@ -57,8 +57,6 @@ struct HFP_sched_data
 
 void visualisation_tache_matrice_format_tex_with_data_2D();
 
-void dynamic_outer_insertion(struct paquets *a);
-
 /* Structure used to store all the variable we need and the tasks of each package. Each link is a package */
 struct my_list
 {

@@ -1,11 +1,11 @@
-#ifndef __dynamic_outer_H__
-#define __dynamic_outer_H__
+#ifndef __dynamic_data_aware_H__
+#define __dynamic_data_aware_H__
 
-#define EVICTION_STRATEGY_DYNAMIC_OUTER /* 0 we use default dynamic outer without managing evictions. */
+#define EVICTION_STRATEGY_DYNAMIC_DATA_AWARE /* 0 we use default dynamic data aware without managing evictions. */
 
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
-struct dynamic_outer_sched_data
+struct dynamic_data_aware_sched_data
 {
     struct starpu_task_list main_task_list; /* List used to randomly pick a task. We use a second list because it's easier when we randomize sched_list. */
     struct starpu_task_list sched_list;
@@ -18,7 +18,7 @@ LIST_TYPE(task_using_data,
     struct starpu_task *pointer_to_T;
 );
 
-/** In the "packages" of dynamic outer, each representing a gpu **/
+/** In the "packages" of dynamic data aware, each representing a gpu **/
 LIST_TYPE(gpu_data_not_used,
     starpu_data_handle_t D; /* The data not used yet by the GPU. */
 );
@@ -33,7 +33,7 @@ struct pointer_in_task
     //~ int state; /* 0 = in the main task list, 1 = in pulled_task */
 };
 
-/** Planned task. The one in dynamic outer. **/
+/** Planned task. The one in dynamic data aware. **/
 struct gpu_planned_task
 {
     struct starpu_task_list planned_task;
@@ -89,17 +89,17 @@ void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node);
 
 /** Fonctions principales **/
 void initialize_task_data_gpu_single_task(struct starpu_task *task);
-void randomize_task_list(struct dynamic_outer_sched_data *d);
+void randomize_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_data_not_used_yet();
 void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
-struct starpu_task *get_task_to_return_pull_task_dynamic_outer(int current_gpu, struct starpu_task_list *l);
+struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l);
 void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g);
-void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
-void dynamic_outer_scheduling(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
+void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
+void dynamic_data_aware_scheduling(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 
 /** For eviction **/
-void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void *component);
-starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
+void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim, void *component);
+starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g);
 starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task);
 

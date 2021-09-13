@@ -45,7 +45,7 @@ struct use_order
 };
 struct gpu_list
 {
-	struct use_order *pointer;
+    struct use_order *pointer;
     struct use_order *first_gpu;
 };
 
@@ -649,13 +649,13 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	starpu_data_handle_t handle;
 	handle = mc->data;
 	
-	//~ printf("Début de try_to_throw_mem_chunk on handle %p.\n", handle);
+	printf("Début de try_to_throw_mem_chunk on handle %p.\n", handle);
 	fflush(stdout);
 	
 	STARPU_ASSERT(handle);
 	
 	if (!starpu_data_can_evict(handle, node, is_prefetch)) {
-	//~ printf("In if (!starpu_data_can_evict(handle, node, is_prefetch)).\n");
+		printf("In if (!starpu_data_can_evict(handle, node, is_prefetch)).\n");
 		return 0;
 	    }
 
@@ -673,7 +673,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 
 		if (_starpu_spin_trylock(&handle->header_lock)) {
 			/* Handle is busy, abort */
-			//~ printf("In if (_starpu_spin_trylock(&handle->header_lock)).\n");
+			printf("In if (_starpu_spin_trylock(&handle->header_lock)).\n");
 			return 0;
 		    }
 
@@ -740,16 +740,16 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 				 * and thus release the header lock, take
 				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
-				//~ printf("Juste avant le res = transfer_subtree_to_node(handle, node, target);.\n");
+				printf("Juste avant le res = transfer_subtree_to_node(handle, node, target);.\n");
 				fflush(stdout);
                                _STARPU_TRACE_END_WRITEBACK(node, handle);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
-				//~ printf("Juste avant le _starpu_spin_lock(&mc_lock[node]);.\n");
+				printf("Juste avant le _starpu_spin_lock(&mc_lock[node]);.\n");
 				fflush(stdout);
 				_starpu_spin_lock(&mc_lock[node]);
-				//~ printf("Juste après le _starpu_spin_lock(&mc_lock[node]);.\n");
+				printf("Juste après le _starpu_spin_lock(&mc_lock[node]);.\n");
 				fflush(stdout);
 
 				if (!mc)
@@ -757,7 +757,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 					if (res == -1)
 					{
 						/* handle disappeared, abort without unlocking it */
-						//~ printf("In if (res == -1).\n");
+						printf("In if (res == -1).\n");
 						return 0;
 					}
 				}
@@ -769,7 +769,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 					if (res == -1)
 					{
 						/* handle disappeared, abort without unlocking it */
-						//~ printf("In if (res == -1).\n");
+						printf("In if (res == -1).\n");
 						return 0;
 					}
 
@@ -803,11 +803,11 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	    /* unlock the tree */
 	    unlock_all_subtree(handle);
 	}
-	//~ printf("Freed vaut %ld in try_to_throw_mem_chunk.\n", freed);
+	printf("Freed vaut %ld in try_to_throw_mem_chunk.\n", freed);
 	if (freed != 0) 
 	{
 	    printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle);
-	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 		victim_evicted(1, handle, data_victim_selector);
 	    }
@@ -815,7 +815,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	else 
 	{
 	    printf("Echec eviction de %p dans try_to_throw_mem_chunk.\n", handle);
-	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 		victim_evicted(0, handle, data_victim_selector);
 	    }
@@ -1024,7 +1024,7 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 		{
 			/* Don't even bother looking for it, it won't fit anyway */
 			printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n");
-			if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+			if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 			{
 			    victim_evicted(0, victim, data_victim_selector);
 			}
@@ -1090,7 +1090,7 @@ restart:
 	if (victim && victim_evicted != NULL && success == 0)
 	{
 	    printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc.\n");
-	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 		victim_evicted(0, victim, data_victim_selector);
 	    }
@@ -1252,7 +1252,7 @@ restart2:
 	/* appeler fonction call_victim_slector(succes) */
 	if (victim && victim_evicted != NULL && freed == 0)
 	{
-	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 		printf("Calling victim evicted in free_potentially_in_use_mc.\n");
 		victim_evicted(0, victim, data_victim_selector);

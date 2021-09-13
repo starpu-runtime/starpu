@@ -4,8 +4,8 @@
 #include <starpu.h>
 
 /* For dynamic outer. */
-starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
-void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void *component);
+//~ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
+//~ void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim);
 /* End of for dynamic outer. */
 
 

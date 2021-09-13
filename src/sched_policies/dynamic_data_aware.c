@@ -15,14 +15,13 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/* Dynamic Outer scheuling. Pop as much random data not used yet by a GPU
- * as there are different data type.
- * Computes all task using these data and the data already loaded on memory.
- * if no task is available compute a random task not computed yet.
+/* Dynamic Data Aware scheduling. Pop best data.
+ * Computes all task using this data and the data already loaded on memory.
+ * If no task is available compute a random task not computed yet.
  */
 
 #include <schedulers/HFP.h>
-#include <schedulers/dynamic_outer.h>
+#include <schedulers/dynamic_data_aware.h>
 #include "helper_mct.h"
 
 void print_task_list(struct starpu_task_list *l, char *s)
@@ -114,13 +113,13 @@ void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node)
 }
 
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
-static int dynamic_outer_push_task(struct starpu_sched_component *component, struct starpu_task *task)
+static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
     /* If this boolean is true, pull_task will know that new tasks have arrived and
      * thus it will be able to randomize both the task list and the data list not used yet in the GPUs. 
      */
     new_tasks_initialized = true; 
-    struct dynamic_outer_sched_data *data = component->data;
+    struct dynamic_data_aware_sched_data *data = component->data;
 
     initialize_task_data_gpu_single_task(task);
     
@@ -204,7 +203,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     task->sched_data = pt;
 }
 
-void randomize_task_list(struct dynamic_outer_sched_data *d)
+void randomize_task_list(struct dynamic_data_aware_sched_data *d)
 {
     int random = 0;
     int i = 0;
@@ -282,7 +281,7 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
 /* Get a task to put out of pull_task. In multi GPU it allows me to return a task from the right element in the 
  * linked list without having an other GPU comme and ask a task in pull_task. At least I hope it does so.
  */
-struct starpu_task *get_task_to_return_pull_task_dynamic_outer(int current_gpu, struct starpu_task_list *l)
+struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
      int i = 0;
      
@@ -295,7 +294,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_outer(int current_gpu, 
     }
     
     /* If there are still tasks either in the packages, the main task list or the refused task,
-     * I enter here to return a task or start dynamic_outer_scheduling. Else I return NULL.
+     * I enter here to return a task or start dynamic_data_aware_scheduling. Else I return NULL.
      */
     if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task) || !starpu_task_list_empty(l) || !starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list))
     {	
@@ -334,7 +333,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_outer(int current_gpu, 
 	else if (!starpu_task_list_empty(l))
 	{
 	    number_task_out++;
-	    dynamic_outer_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
+	    dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
 	    task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
 	    add_task_to_pulled_task(current_gpu, task);
 	    printf("Task %d, %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
@@ -354,9 +353,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_outer(int current_gpu, 
 /* Pull tasks. When it receives new task it will randomize the task list and the GPU data list.
  * If it has no task it return NULL. Else if a task was refused it return it. Else it return the
  * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
-static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
+static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-    struct dynamic_outer_sched_data *data = component->data;
+    struct dynamic_data_aware_sched_data *data = component->data;
     //~ int i = 0;
     //~ int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     
@@ -388,7 +387,7 @@ static struct starpu_task *dynamic_outer_pull_task(struct starpu_sched_component
     
     /* Même sans les mutex ca marche, c'est bizare ... */
     STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-    struct starpu_task *task = get_task_to_return_pull_task_dynamic_outer(starpu_worker_get_memory_node(starpu_worker_get_id()), &data->main_task_list);
+    struct starpu_task *task = get_task_to_return_pull_task_dynamic_data_aware(starpu_worker_get_memory_node(starpu_worker_get_id()), &data->main_task_list);
     STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
     return task;
 }
@@ -415,8 +414,8 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
     print_data_not_used_yet_one_gpu(g);
 }
 
-/* Fill a package's task list following dynamic_outer algorithm. It pop only one data, the one that achieve the most tasks. */
-void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
+/* Fill a package's task list following dynamic_data_aware algorithm. It pop only one data, the one that achieve the most tasks. */
+void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
     int i = 0;
     int j = 0;
@@ -561,32 +560,35 @@ void dynamic_outer_scheduling_one_data_popped(struct starpu_task_list *main_task
  */
  /* starpu_data_handle_t planned_eviction; */
 
-void dynamic_outer_victim_evicted(int success, starpu_data_handle_t victim, void *component)
+void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim, void *component)
 {
+	printf("v evicted in dynamic outer\n");
+	fflush(stdout);
      /* If a data was not truly evicted I put it back in the list. */
     if (success == 0)
     {
-	int i = 0;
+		int i = 0;
+			
+		my_planned_task_control->pointer = my_planned_task_control->first;
+		for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
+		{
+			my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+		}
 		
-	my_planned_task_control->pointer = my_planned_task_control->first;
-	for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
-	{
-	    my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-	}
-	
-	/* Version 1 seule donnée. A voir si ca marche en multi GPU */
-	my_planned_task_control->pointer->data_to_evict_next = victim;
+		/* Version 1 seule donnée. A voir si ca marche en multi GPU */
+		my_planned_task_control->pointer->data_to_evict_next = victim;
     }
     else
     {
-	return;
+		return;
     }
 }
 
 /* TODO: return NULL ou ne rien faire si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée.
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. */
-starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
-{        
+starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
+{     
+	printf("here\n"); fflush(stdout);  
     int i = 0;
     int j = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
@@ -691,13 +693,13 @@ starpu_data_handle_t dynamic_outer_victim_selector(starpu_data_handle_t toload, 
     /* Ca devrait pas arriver a enleevr et a tester */
     if (returned_handle == NULL)
     {
-	printf("#Warning: the returned handle in dynamic_outer_victim_selector was NULL.\n");
+	printf("#Warning: the returned handle in dynamic_data_aware_victim_selector was NULL.\n");
 	return STARPU_DATA_NO_VICTIM; 
     }
     
     struct starpu_task *task = NULL;
     struct starpu_sched_component *temp_component = component;
-    struct dynamic_outer_sched_data *data = temp_component->data;
+    struct dynamic_data_aware_sched_data *data = temp_component->data;
     /* Enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
      * à pop ainsi qu'ajouter la tache dans les données. Also add it to the main task list. */
     //Suppression de la liste de planned task les tâches utilisant la données
@@ -926,9 +928,9 @@ void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_l
     starpu_task_list_erase(l, pt->pointer_to_cell);
 }
 
-static int dynamic_outer_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
+static int dynamic_data_aware_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-    struct dynamic_outer_sched_data *data = component->data;
+    struct dynamic_data_aware_sched_data *data = component->data;
     int didwork = 0;
     struct starpu_task *task;
     task = starpu_sched_component_pump_to(component, to, &didwork);
@@ -950,7 +952,7 @@ static int dynamic_outer_can_push(struct starpu_sched_component *component, stru
     return didwork || starpu_sched_component_can_push(component, to);
 }
 
-static int dynamic_outer_can_pull(struct starpu_sched_component *component)
+static int dynamic_data_aware_can_pull(struct starpu_sched_component *component)
 {
     return starpu_sched_component_can_pull(component);
 }
@@ -1013,13 +1015,11 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
     struct pulled_task *p = pulled_task_new();
     p->pointer_to_pulled_task = task;
     pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
-    
-    //~ print_pulled_task_one_gpu(my_pulled_task_control->pointer, current_gpu);
 }
 
-struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
+struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_outer");
+	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_data_aware");
 	srandom(starpu_get_env_number_default("SEED", 0));
 	int i = 0;
 	
@@ -1037,7 +1037,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	printf("Ngpu = %d\n", Ngpu); 
 		
 	/* Initialization of structures. */
-	struct dynamic_outer_sched_data *data;
+	struct dynamic_data_aware_sched_data *data;
 	_STARPU_MALLOC(data, sizeof(*data));
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	starpu_task_list_init(&data->sched_list);
@@ -1059,25 +1059,25 @@ struct starpu_sched_component *starpu_sched_component_dynamic_outer_create(struc
 	my_pulled_task_control->first = my_pulled_task_control->pointer;
 	
 	component->data = data;
-	/* component->do_schedule = dynamic_outer_do_schedule; */
-	component->push_task = dynamic_outer_push_task;
-	component->pull_task = dynamic_outer_pull_task;
-	component->can_push = dynamic_outer_can_push;
-	component->can_pull = dynamic_outer_can_pull;
+	/* component->do_schedule = dynamic_data_aware_do_schedule; */
+	component->push_task = dynamic_data_aware_push_task;
+	component->pull_task = dynamic_data_aware_pull_task;
+	component->can_push = dynamic_data_aware_can_push;
+	component->can_pull = dynamic_data_aware_can_pull;
 	
 	/* TODO: Aussi faire cela pour HFP. */
-	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_OUTER", 0) == 1) 
+	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	{ 
-	    starpu_data_register_victim_selector(dynamic_outer_victim_selector, dynamic_outer_victim_evicted, component); 
+	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_evicted, component); 
 	}
 	
 	return component;
 }
 
-static void initialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
+static void initialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 {
     
-	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_dynamic_outer_create, NULL,
+	starpu_sched_component_initialize_simple_scheduler((starpu_sched_component_create_t) starpu_sched_component_dynamic_data_aware_create, NULL,
 			STARPU_SCHED_SIMPLE_DECIDE_MEMNODES |
 			STARPU_SCHED_SIMPLE_DECIDE_ALWAYS  |
 			STARPU_SCHED_SIMPLE_FIFOS_BELOW |
@@ -1086,7 +1086,7 @@ static void initialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
 			STARPU_SCHED_SIMPLE_IMPL, sched_ctx_id);
 }
 
-static void deinitialize_dynamic_outer_center_policy(unsigned sched_ctx_id)
+static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 {
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(tree);
@@ -1113,10 +1113,10 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }
 
-struct starpu_sched_policy _starpu_sched_dynamic_outer_policy =
+struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
 {
-	.init_sched = initialize_dynamic_outer_center_policy,
-	.deinit_sched = deinitialize_dynamic_outer_center_policy,
+	.init_sched = initialize_dynamic_data_aware_center_policy,
+	.deinit_sched = deinitialize_dynamic_data_aware_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
 	/* .do_schedule = starpu_sched_tree_do_schedule, */
@@ -1128,7 +1128,7 @@ struct starpu_sched_policy _starpu_sched_dynamic_outer_policy =
 	/* .post_exec_hook = starpu_sched_component_worker_post_exec_hook, */
 	.post_exec_hook = get_task_done,
 	.pop_every_task = NULL,
-	.policy_name = "dynamic-outer",
-	.policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading 2 random data",
+	.policy_name = "dynamic-data-aware",
+	.policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
 	.worker_type = STARPU_WORKER_LIST,
 };
