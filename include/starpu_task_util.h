@@ -495,6 +495,7 @@ struct starpu_codelet_pack_arg_data
 {
 	char *arg_buffer;
 	size_t arg_buffer_size;
+	size_t arg_buffer_used;
 	size_t current_offset;
 	int nargs;
 };
