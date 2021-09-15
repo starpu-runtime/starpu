@@ -219,6 +219,7 @@ int main(int argc, char **argv)
 	int pause_workers = 0;
 	int nb_nodes_id;
 	int size_id;
+	int thread_support;
 	int ret, method, nb_dest_nodes, s, b, i, array_size;
 	starpu_data_handle_t data_handle;
 	float* msg;
@@ -240,7 +241,22 @@ int main(int argc, char **argv)
 		}
 	}
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &thread_support) != MPI_SUCCESS)
+	{
+		FPRINTF(stderr, "MPI_Init_thread failed\n");
+		return EXIT_FAILURE;
+	}
+
+	if (thread_support < MPI_THREAD_MULTIPLE)
+	{
+		/* We need MPI_THREAD_MULTIPLE for the StarPU's MPI thread and
+		 * the main thread calling functions from mpi_sync_clocks. */
+		FPRINTF(stderr, "This benchmark requires MPI_THREAD_MULTIPLE support.\n");
+		MPI_Finalize();
+		return STARPU_TEST_SKIPPED;
+	}
+
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -333,6 +349,7 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 	free(times);
+	MPI_Finalize();
 
 	return 0;
 }
