@@ -617,7 +617,6 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 		//~ printf("Data is referred to.\n");
 		return 0; }
 		
-	//~ printf("Return 1.\n");
 	return 1;
 }
 
@@ -648,14 +647,10 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	
 	starpu_data_handle_t handle;
 	handle = mc->data;
-	
-	printf("Début de try_to_throw_mem_chunk on handle %p.\n", handle);
-	fflush(stdout);
-	
+		
 	STARPU_ASSERT(handle);
 	
 	if (!starpu_data_can_evict(handle, node, is_prefetch)) {
-		printf("In if (!starpu_data_can_evict(handle, node, is_prefetch)).\n");
 		return 0;
 	    }
 
@@ -673,7 +668,6 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 
 		if (_starpu_spin_trylock(&handle->header_lock)) {
 			/* Handle is busy, abort */
-			printf("In if (_starpu_spin_trylock(&handle->header_lock)).\n");
 			return 0;
 		    }
 
@@ -740,24 +734,17 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 				 * and thus release the header lock, take
 				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
-				printf("Juste avant le res = transfer_subtree_to_node(handle, node, target);.\n");
-				fflush(stdout);
                                _STARPU_TRACE_END_WRITEBACK(node, handle);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
-				printf("Juste avant le _starpu_spin_lock(&mc_lock[node]);.\n");
-				fflush(stdout);
 				_starpu_spin_lock(&mc_lock[node]);
-				printf("Juste après le _starpu_spin_lock(&mc_lock[node]);.\n");
-				fflush(stdout);
 
 				if (!mc)
 				{
 					if (res == -1)
 					{
 						/* handle disappeared, abort without unlocking it */
-						printf("In if (res == -1).\n");
 						return 0;
 					}
 				}
@@ -769,7 +756,6 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 					if (res == -1)
 					{
 						/* handle disappeared, abort without unlocking it */
-						printf("In if (res == -1).\n");
 						return 0;
 					}
 
@@ -803,7 +789,6 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	    /* unlock the tree */
 	    unlock_all_subtree(handle);
 	}
-	printf("Freed vaut %ld in try_to_throw_mem_chunk.\n", freed);
 	if (freed != 0) 
 	{
 	    printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle);
