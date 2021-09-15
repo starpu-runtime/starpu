@@ -142,7 +142,8 @@ starpu_mpi_TESTS +=				\
 	ring_sync_detached			\
 	temporary				\
 	user_defined_datatype			\
-	early_stuff
+	early_stuff				\
+	star
 
 if !STARPU_SIMGRID
 # missing support in simgrid
@@ -220,6 +221,7 @@ noinst_PROGRAMS +=				\
 	mpi_reduction				\
 	user_defined_datatype			\
 	tags_checking				\
+	star					\
 	sync					\
 	gather					\
 	gather2					\
