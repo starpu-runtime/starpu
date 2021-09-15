@@ -91,11 +91,11 @@ void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void 
 
 void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
 {
-	STARPU_ASSERT_MSG(state->current_offset + sizeof(size) <= state->arg_buffer_size, "The unpack brings beyond the buffer size (%ld)\n", state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + sizeof(*size) <= state->arg_buffer_size, "The unpack brings beyond the buffer size (%ld)\n", state->arg_buffer_size);
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
 
-	STARPU_ASSERT_MSG(state->current_offset + size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", size, state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + *size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", size, state->arg_buffer_size);
 	_STARPU_MALLOC(*ptr, *size);
 	memcpy(*ptr, state->arg_buffer+state->current_offset, *size);
 	state->current_offset += *size;
@@ -105,11 +105,11 @@ void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **p
 
 void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
 {
-	STARPU_ASSERT_MSG(state->current_offset + sizeof(size) <= state->arg_buffer_size, "The unpack brings beyond the buffer size (%ld)\n", state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + sizeof(*size) <= state->arg_buffer_size, "The unpack brings beyond the buffer size (%ld)\n", state->arg_buffer_size);
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
 
-	STARPU_ASSERT_MSG(state->current_offset + size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", size, state->arg_buffer_size);
+	STARPU_ASSERT_MSG(state->current_offset + *size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", size, state->arg_buffer_size);
 	*ptr = state->arg_buffer+state->current_offset;
 	state->current_offset += *size;
 
