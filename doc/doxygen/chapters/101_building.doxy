@@ -16,6 +16,37 @@
 
 /*! \page BuildingAndInstallingStarPU Building and Installing StarPU
 
+Depending on how much you need to tune the library installation, we
+propose several solutions.
+
+<ul>
+<li>
+You just want to have a try, to see if it can be installed well on
+your system, what are the performances on simple cases, run the
+examples, or simply use the last stable version: we recommand to use
+the latest StarPU debian package (see \ref InstallingABinaryPackage)
+for those who work on a Linux Debian or Ubuntu distribution, Guix or
+Spack on other Linux systems (see \ref InstallingASourcePackage), Brew
+on macOS (see \ref InstallingASourcePackage).
+</li>
+<li>
+You want to use it but you need a change somewhere in the stack like
+considering another version (git branch), change the default
+MPI, use your favorite compiler, modify some sources: you may try with
+Guix or Spack because these package managers allow to build from
+sources and thus many options can be changed dynamically (command
+line), as described in \ref InstallingASourcePackage, or directly
+build from source with the native build system of the library
+(Makefile, GNU autotools) following the procedures described below in
+\ref InstallingFromSource.
+</li>
+<li>
+You need a tool for reproducibility of your experiments: Guix is
+recommended (see \ref InstallingASourcePackage).
+</li>
+</ul>
+
+
 \section InstallingABinaryPackage Installing a Binary Package
 
 One of the StarPU developers being a Debian Developer, the packages
@@ -32,7 +63,25 @@ To install what you need, type for example:
 $ sudo apt-get install libstarpu-1.3 libstarpu-dev
 \endverbatim
 
-\section InstallingFromSource Installing from Source
+\section InstallingASourcePackage Installing a Source Package
+
+StarPU is available from different package managers.
+<ul>
+<li>
+Guix https://gitlab.inria.fr/guix-hpc/guix-hpc
+</li>
+<li>
+Spack https://gitlab.inria.fr/solverstack/spack-repo
+</li>
+<li>
+Brew https://gitlab.inria.fr/solverstack/brew-repo
+</li>
+</ul>
+
+Documentation on how to install StarPU with these package managers is
+directly available from the links specified above.
+
+\section InstallingFromSource Building from Source
 
 StarPU can be built and installed by the standard means of the GNU
 autotools. The following chapter is intended to briefly remind how these tools
