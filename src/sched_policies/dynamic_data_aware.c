@@ -562,8 +562,6 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 
 void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim, void *component)
 {
-	printf("v evicted in dynamic outer\n");
-	fflush(stdout);
      /* If a data was not truly evicted I put it back in the list. */
     if (success == 0)
     {
