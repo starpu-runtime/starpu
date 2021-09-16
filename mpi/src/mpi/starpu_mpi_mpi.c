@@ -644,6 +644,9 @@ int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)
 	_starpu_mpi_request_destroy(req);
 
 	_STARPU_MPI_LOG_OUT();
+#ifdef STARPU_DEVEL
+#warning see if we can return ret instead of 0
+#endif
 	return 0;
 }
 
@@ -758,6 +761,9 @@ int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status)
 	}
 
 	_STARPU_MPI_LOG_OUT();
+#ifdef STARPU_DEVEL
+#warning see if we can return ret instead of 0
+#endif
 	return 0;
 }
 
