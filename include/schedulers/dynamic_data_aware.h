@@ -3,6 +3,15 @@
 
 #define EVICTION_STRATEGY_DYNAMIC_DATA_AWARE /* 0 we use default dynamic data aware without managing evictions. */
 
+//~ /* A supprimer */
+//~ time_t time_start_scheduling;
+//~ time_t time_end_scheduling;
+//~ time_t time_total_scheduling;
+//~ time_t time_start_evicting;
+//~ time_t time_end_evicting;
+//~ time_t time_total_evicting;
+//~ #include <time.h>
+
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
 struct dynamic_data_aware_sched_data
