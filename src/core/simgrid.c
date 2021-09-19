@@ -480,7 +480,11 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #endif
 		/* We didn't catch application's main. */
 		/* Start maestro as a separate thread */
+#ifdef HAVE_SIMGRID_SET_MAESTRO
+		simgrid_set_maestro(maestro, NULL);
+#else
 		SIMIX_set_maestro(maestro, NULL);
+#endif
 		/* Initialize simgrid */
 		_starpu_start_simgrid(argc, *argv);
 
