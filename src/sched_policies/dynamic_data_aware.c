@@ -209,13 +209,13 @@ void randomize_task_list(struct dynamic_data_aware_sched_data *d)
     int i = 0;
     for (i = 0; i < NT; i++)
     {
-	random = rand()%(NT - i);
-	while (random != 0)
-	{
-	    random--;
-	    starpu_task_list_push_back(&d->sched_list, starpu_task_list_pop_front(&d->sched_list));
-	}
-	starpu_task_list_push_back(&d->main_task_list, starpu_task_list_pop_front(&d->sched_list));
+		random = rand()%(NT - i);
+		while (random != 0)
+		{
+			random--;
+			starpu_task_list_push_back(&d->sched_list, starpu_task_list_pop_front(&d->sched_list));
+		}
+		starpu_task_list_push_back(&d->main_task_list, starpu_task_list_pop_front(&d->sched_list));
     }
 }
 
@@ -241,7 +241,7 @@ void randomize_data_not_used_yet()
 	    random = rand()%(number_of_data - l);
 	    for (k = 0; k < random; k++)
 	    {
-		gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
+			gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
 	    }
 	    /* I use an external list. */
 	    gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
@@ -371,6 +371,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
      */
     if (new_tasks_initialized == true)
     {
+		new_tasks_initialized = false;
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { 
 			printf("Printing GPU's data list and main task list before randomization:\n\n");
 			print_data_not_used_yet();
@@ -379,7 +380,6 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		NT = starpu_task_list_size(&data->sched_list);
 		randomize_task_list(data);
 		randomize_data_not_used_yet(my_planned_task_control->first);
-		new_tasks_initialized = false;
 		if (starpu_get_env_number_default("PRINTF",0) == 1) {
 			printf("Il y a %d tâches.\n", NT);
 			printf("Printing GPU's data list and main task list after randomization:\n\n");
