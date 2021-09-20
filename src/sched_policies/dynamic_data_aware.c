@@ -283,7 +283,7 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
  */
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
-	printf("Début de get_task_to_return_pull_task_dynamic_data_aware.\n"); fflush(stdout);
+	printf("Début de get_task_to_return_pull_task_dynamic_data_aware on GPU %d.\n", current_gpu); fflush(stdout);
 	int i = 0;
     /* Getting on the right GPU's package.
      * TODO: Can I do this faster with pointer directly to the cell ? */
@@ -334,6 +334,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		{
 			number_task_out++;
 			dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
+			printf("entre scheduling et pop task.\n"); fflush(stdout);
 			task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
 			add_task_to_pulled_task(current_gpu, task);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %d, %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu); }
