@@ -284,6 +284,7 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
 	printf("Début de get_task_to_return_pull_task_dynamic_data_aware.\n");
+	fflush(stdout);
 	int i = 0;
     /* Getting on the right GPU's package.
      * TODO: Can I do this faster with pointer directly to the cell ? */
