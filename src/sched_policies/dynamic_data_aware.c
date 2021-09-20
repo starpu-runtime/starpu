@@ -1106,9 +1106,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
    //starpu_pthread_mutex_lock &p;
    //STARPU_PTHREAD_MUTEX_INIT(&p, NULL);
     //STARPU_PTHREAD_MUTEX_LOCK(&p);
-   starpu_pthread_mutex_t mutex;
-	STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);   
-   starpu_pthread_mutex_lock(&mutex);
+  // starpu_pthread_mutex_t mutex;
+	//STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);   
+   //starpu_pthread_mutex_lock(&mutex);
        	int i = 0;
    printf("Début de get task done with task %p.\n", task); fflush(stdout); 
     /* Je me place sur la liste correspondant au bon gpu. */
@@ -1127,7 +1127,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
    {
 	   printf("was empty in get task done.\n"); fflush(stdout); 
    }
-	 starpu_pthread_mutex_unlock(&mutex); 
+	// starpu_pthread_mutex_unlock(&mutex); 
     starpu_sched_component_worker_post_exec_hook(task, sci);
 }
 
