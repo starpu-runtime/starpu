@@ -283,8 +283,8 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
  */
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
-     int i = 0;
-     
+	printf("Début de get_task_to_return_pull_task_dynamic_data_aware.\n");
+	int i = 0;
     /* Getting on the right GPU's package.
      * TODO: Can I do this faster with pointer directly to the cell ? */
     my_planned_task_control->pointer = my_planned_task_control->first;
@@ -920,6 +920,7 @@ void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_l
 
 static int dynamic_data_aware_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	printf("Début de dynamic_data_aware_can_push.\n");
     struct dynamic_data_aware_sched_data *data = component->data;
     int didwork = 0;
     struct starpu_task *task;
