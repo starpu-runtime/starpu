@@ -36,7 +36,6 @@
 /* Used for modular-heft for visualisation */
 void initialize_global_variable(struct starpu_task *task)
 {
-	//~ printf("Init global for visu\n");
 	N = starpu_get_env_number_default("PRINT_N", 0);
 	Ngpu = get_number_GPU();
 	int i = 0;
@@ -3013,7 +3012,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				if (starpu_get_env_number_default("MULTIGPU",0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}					
 				nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list, task1);
-			} 	
+			}
 			NT = nb_pop;
 			//~ printf("%d task have been pulled\n", NT);
 			N = sqrt(NT);
