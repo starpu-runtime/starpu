@@ -400,16 +400,16 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		{
 			number_task_out++;
 			dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
-			printf("entre scheduling et pop task.\n"); fflush(stdout);
+			//~ printf("entre scheduling et pop task.\n"); fflush(stdout);
 			if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
 			{
 				task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
-				printf("task = %p in get task to return.\n", task); fflush(stdout);
+				//~ printf("task = %p in get task to return.\n", task); fflush(stdout);
 				add_task_to_pulled_task(current_gpu, task);
 			}
 			else
 			{
-				printf("list was empty.\n"); fflush(stdout);
+				//~ printf("list was empty.\n"); fflush(stdout);
 				return NULL;
 			}
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %d, %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu); }
@@ -1227,22 +1227,24 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
 	int i = 0;
-    //~ printf("Début de get task done with task %p.\n", task); fflush(stdout); 
+    printf("Début de get task done with task %p.\n", task); fflush(stdout); 
     /* Je me place sur la liste correspondant au bon gpu. */
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
     {
+		printf("Next in get_task_done.\n"); fflush(stdout);
 		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
     }
         
     /* J'efface la tâche dans la liste de tâches */
 	if (!pulled_task_list_empty(my_pulled_task_control->pointer->ptl))
-    {   
+    {
+		printf("Pulling inn get task done.\n"); fflush(stdout);
 		pulled_task_list_pop_front(my_pulled_task_control->pointer->ptl);
     }
     else
     {
-		//~ printf("was empty in get task done.\n"); fflush(stdout); 
+		printf("was empty in get task done.\n"); fflush(stdout); 
     }
     starpu_sched_component_worker_post_exec_hook(task, sci);
     
@@ -1254,7 +1256,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		need_to_reinit = true;
 		iteration++;
 	}
-    
 }
 
 struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
