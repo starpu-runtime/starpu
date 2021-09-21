@@ -112,15 +112,42 @@ void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node)
     printf("\n");
 }
 
+bool need_to_reinit = true;
+
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
     /* If this boolean is true, pull_task will know that new tasks have arrived and
      * thus it will be able to randomize both the task list and the data list not used yet in the GPUs. 
      */
+     
+     printf("Début de push task, task = %p.\n", task); fflush(stdout);
+
+     if (need_to_reinit == true && iteration != 1)
+	  {
+		  printf("REINIT STRUCT\n");
+			int i = 0;
+			free(my_planned_task_control);
+			free(my_pulled_task_control);
+			gpu_planned_task_initialisation();
+			for (i = 0; i < Ngpu - 1; i++)
+			{
+				gpu_planned_task_insertion();
+			}
+			my_planned_task_control->first = my_planned_task_control->pointer;
+			gpu_pulled_task_initialisation();
+			for (i = 0; i < Ngpu - 1; i++)
+			{
+				gpu_pulled_task_insertion();
+			}
+			my_pulled_task_control->first = my_pulled_task_control->pointer;
+			
+			need_to_reinit = false;
+		}
+     
+     
     new_tasks_initialized = true; 
     struct dynamic_data_aware_sched_data *data = component->data;
-	//printf("Début de push task, task = %p.\n", task); fflush(stdout);
     initialize_task_data_gpu_single_task(task);
     
     /* Pushing the task in sched_list. It's this list that will be randomized
@@ -165,13 +192,31 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 			}
 			else
 			{
-				printf("else\n");
 				/* La je ne dois pas ne rien faire a l'iteration 2 */
 				/* Il faudrait une liste exeterne des data pour les reset ? */
+				//~ if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 				if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 				{
 					printf("Pushing %p\n", e->D);
 					gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+				}
+				else
+				{
+					if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
+					{
+						struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
+						printf("last iteration = %d, current iteration = %d.\n", hud->last_iteration, iteration);
+						if (hud->last_iteration != iteration)
+						{
+							printf("Pushing %p\n", e->D);
+							gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+						}
+					}
+					else
+					{
+						printf("Pushing %p\n", e->D);
+						gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+					}
 				}
 			}
 		}
@@ -183,28 +228,42 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     pt->pointer_to_cell = task;
     pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
     pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
-    //~ pt->state = 0;
+    //~ pt->state = 0; /* for state of the task in pulled task or planned task */
 	
     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
     {
-	/* Pointer toward the main task list in the handles. */
-	struct task_using_data *e = task_using_data_new();
-	e->pointer_to_T = task;
-	
-	if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
-	{
-	    struct task_using_data_list *tl = task_using_data_list_new();
-	    task_using_data_list_push_front(tl, e);
-	    STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
-	}
-	else
-	{
-	    task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
-	}
-	    
-	/* Adding the pointer in the task. */
-	pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
-	pt->tud[i] = e;
+		/* Pointer toward the main task list in the handles. */
+		struct task_using_data *e = task_using_data_new();
+		e->pointer_to_T = task;
+		
+		//~ if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) 
+		if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL)
+		{
+			struct task_using_data_list *tl = task_using_data_list_new();
+			task_using_data_list_push_front(tl, e);
+			STARPU_TASK_GET_HANDLE(task, i)->sched_data = tl;
+		}
+		else
+		{
+			task_using_data_list_push_front(STARPU_TASK_GET_HANDLE(task, i)->sched_data, e);
+		}
+		/* Added for reset */
+		if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
+		{
+			struct handle_user_data * hud = malloc(sizeof(*hud));
+			hud->last_iteration = iteration;
+			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+		}
+		else
+		{
+			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
+			hud->last_iteration = iteration;
+			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+		}
+			
+		/* Adding the pointer in the task. */
+		pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
+		pt->tud[i] = e;
     }
     task->sched_data = pt;
 }
@@ -377,47 +436,42 @@ void reset_all_struct()
 	index_current_popped_task_all_gpu = 0;
 	index_current_popped_task_all_gpu_prefetch = 0;
 	number_task_out = -1;
-	/* Initialization of structures. */
-	//~ struct dynamic_data_aware_sched_data *data;
-	//~ _STARPU_MALLOC(data, sizeof(*data));
-	//~ STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
-	//~ starpu_task_list_init(&data->sched_list);
-	//~ starpu_task_list_init(&data->main_task_list);
-	/* Initialisation des structs de liste de tâches */
-	free(my_planned_task_control);
-	free(my_pulled_task_control);
-	//~ free(gpu_planned_task);
-	gpu_planned_task_initialisation();
-	for (i = 0; i < Ngpu - 1; i++)
-	{
-	    gpu_planned_task_insertion();
-	}
-	my_planned_task_control->first = my_planned_task_control->pointer;
-	//~ free(gpu_pulled_task);
-	gpu_pulled_task_initialisation();
-	for (i = 0; i < Ngpu - 1; i++)
-	{
-	    gpu_pulled_task_insertion();
-	}
-	my_pulled_task_control->first = my_pulled_task_control->pointer;
-	//~ component->data = data;
-	//~ /* component->do_schedule = dynamic_data_aware_do_schedule; */
-	//~ component->push_task = dynamic_data_aware_push_task;
-	//~ component->pull_task = dynamic_data_aware_pull_task;
-	//~ component->can_push = dynamic_data_aware_can_push;
-	//~ component->can_pull = dynamic_data_aware_can_pull;
-	
-	/* TODO: Aussi faire cela pour HFP. */
-	//~ if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
-	//~ { 
-	    //~ starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_evicted, component); 
+
+	//~ free(my_planned_task_control);
+	//~ free(my_pulled_task_control);
+	//~ gpu_planned_task_initialisation();
+	//~ for (i = 0; i < Ngpu - 1; i++)
+	//~ {
+	    //~ gpu_planned_task_insertion();
 	//~ }
+	//~ my_planned_task_control->first = my_planned_task_control->pointer;
+	//~ gpu_pulled_task_initialisation();
+	//~ for (i = 0; i < Ngpu - 1; i++)
+	//~ {
+	    //~ gpu_pulled_task_insertion();
+	//~ }
+	//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
 	
-	//~ return component;
+	printf("FIN DE RESET.\n");
 }
 
-/* TODO : a suppr ? Car si j'ai une appli où les tâches arrive petit à petit ca ne marchera plus; Ici ca marche car c'est une nouvelle itération à chaque fois que de nouvelles tâches arrivent */
-int iteration = 0;
+//~ /* C'est bete ca fais toutes les données alors que y en a plein en double */
+//~ void store_data_list(struct starpu_task_list *l)
+//~ {
+	//~ struct starpu_task *t;
+	//~ int i = 0;
+	//~ struct main_data *d = main_data_new();
+	//~ struct main_data_list *dl = main_data_list_new();
+	//~ for (t = starpu_task_list_begin(l); t != starpu_task_list_end(l); t = starpu_task_list_next(t))
+	//~ {
+		//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t); i++)
+		//~ {
+			//~ printf("Pushing in main data list %p.\n", STARPU_TASK_GET_HANDLE(t, i));
+			//~ d->pointer_to_main_data = STARPU_TASK_GET_HANDLE(t, i);
+			//~ main_data_list_push_back(dl ,d);
+		//~ }
+	//~ }
+//~ }
 
 /* Pull tasks. When it receives new task it will randomize the task list and the GPU data list.
  * If it has no task it return NULL. Else if a task was refused it return it. Else it return the
@@ -441,7 +495,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
      */
     if (new_tasks_initialized == true)
     {
-	    iteration++;
+	    //~ iteration++;	    
 	    printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
 	    
 		new_tasks_initialized = false;
@@ -452,6 +506,13 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		}
 		NT_dynamic_outer = starpu_task_list_size(&data->sched_list);
 		NT = starpu_task_list_size(&data->sched_list);
+		
+		/* Si je suis sur la première itération je récup la liste de donnée pour pouvoir la reset plus tard */
+		//~ if (iteration == 1)
+		//~ {
+			//~ store_data_list(&data->sched_list);
+		//~ }
+		
 		randomize_task_list(data);
 		randomize_data_not_used_yet(my_planned_task_control->first);
 		if (starpu_get_env_number_default("PRINTF",0) == 1) {
@@ -1101,6 +1162,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	index_current_popped_task_all_gpu_prefetch = 0;
 	gpu_memory_initialized = false;
 	number_task_out = -1;
+	iteration = 1;
 	
 	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Ngpu = %d\n", Ngpu); }
 	printf("Dans le create. Ngpu = %d.\n", Ngpu);
@@ -1189,6 +1251,8 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     if (NT_dynamic_outer - 1 == number_task_out)
 	{
 		reset_all_struct();
+		need_to_reinit = true;
+		iteration++;
 	}
     
 }
