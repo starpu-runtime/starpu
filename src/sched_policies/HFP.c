@@ -1343,7 +1343,7 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 	//~ afficher_data_on_node(l);
 	for (next_task = starpu_task_list_next(task); next_task != starpu_task_list_end(&l->sub_list); next_task = starpu_task_list_next(next_task))
 	{
-		printf("On task %p\n", task);
+		//~ printf("On task %p\n", task);
 		time_to_add = 0;
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(next_task); i++)
 		{
@@ -2472,12 +2472,11 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	int index_task_1 = 1; int index_task_2 = 0; int number_hyperedge = 0; int j = 0; int k = 0; int m = 0;
 	for (task_1 = starpu_task_list_begin(l); task_1 != starpu_task_list_end(l); task_1 = starpu_task_list_next(task_1))
 	{
-		printf("Tâche : %p\n", task_1);
+		//~ printf("Tâche : %p\n", task_1);
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task_1); i++) 
 		{
 			task_3 = starpu_task_list_begin(l);
 			already_counted = false;
-			//~ printf("index task 1 = %d\n", index_task_1);
 			for (k = 1; k < index_task_1; k++) 
 			{
 				for (m = 0; m < STARPU_TASK_GET_NBUFFERS(task_3); m++)
@@ -2561,7 +2560,6 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	char buffer[100];
     while (fscanf(f, "%s", buffer) == 1)
     {
-        //~ printf("Line read = %s\n", buffer);
         size += sizeof(buffer);
     }
     rewind(f);
@@ -2602,7 +2600,6 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		{
 			printf("error fscanf in hMETIS\n"); exit(0);
 		}
-		//~ printf("%d\n", number);
 		p->temp_pointer_1 = p->first_link;
 		for (j = 0; j < number; j++) 
 		{
