@@ -227,6 +227,7 @@ then
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		else
+			echo "NO HFP + >1 GPU"
 		    NB_ALGO_TESTE=6
 		    echo "############## Modular eager prefetching ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))

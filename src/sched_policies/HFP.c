@@ -2654,7 +2654,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
  */
 void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
 {
-	//~ printf("In hmetis input already generated\n");
+	printf("In hmetis input already generated\n");
 	NT = starpu_task_list_size(l);
 	int i = 0; struct starpu_task *task_1;
 	int j = 0;
