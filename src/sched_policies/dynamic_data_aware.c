@@ -121,11 +121,11 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
      * thus it will be able to randomize both the task list and the data list not used yet in the GPUs. 
      */
      
-     printf("Début de push task, task = %p.\n", task); fflush(stdout);
+     //~ printf("Début de push task, task = %p.\n", task); fflush(stdout);
 
      if (need_to_reinit == true && iteration != 1)
 	  {
-		  printf("REINIT STRUCT\n");
+		  //~ printf("REINIT STRUCT\n");
 			int i = 0;
 			free(my_planned_task_control);
 			free(my_pulled_task_control);
@@ -169,15 +169,15 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
  */
 void initialize_task_data_gpu_single_task(struct starpu_task *task)
 {
-	printf("Début de initialize .\n"); fflush(stdout);
+	//~ printf("Début de initialize .\n"); fflush(stdout);
     int i = 0;
     int j = 0;
-    printf("Init %p\n", task);
+    //~ printf("Init %p\n", task);
     /* Adding the data not used yet in the all the GPU(s). */
     my_planned_task_control->pointer = my_planned_task_control->first;
     for (i = 0; i < Ngpu; i++)
     {
-		printf("For GPU %d.\n", i);
+		//~ printf("For GPU %d.\n", i);
 		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
 		{
 			struct gpu_data_not_used *e = gpu_data_not_used_new();
@@ -186,7 +186,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 			/* If the void * of struct paquet is empty I initialize it. */ 
 			if (my_planned_task_control->pointer->gpu_data == NULL)
 			{
-				printf("New %p.\n", e->D);
+				//~ printf("New %p.\n", e->D);
 				struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
 				gpu_data_not_used_list_push_front(gd, e);
 				my_planned_task_control->pointer->gpu_data = gd; 
@@ -198,7 +198,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 				//~ if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 				if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 				{
-					printf("Pushing %p\n", e->D);
+					//~ printf("Pushing %p\n", e->D);
 					gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
 				}
 				else
@@ -206,16 +206,16 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 					if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
 					{
 						struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
-						printf("last iteration = %d, current iteration = %d.\n", hud->last_iteration, iteration);
+						//~ printf("last iteration = %d, current iteration = %d.\n", hud->last_iteration, iteration);
 						if (hud->last_iteration != iteration)
 						{
-							printf("Pushing %p\n", e->D);
+							//~ printf("Pushing %p\n", e->D);
 							gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
 						}
 					}
 					else
 					{
-						printf("Pushing %p\n", e->D);
+						//~ printf("Pushing %p\n", e->D);
 						gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
 					}
 				}
@@ -321,7 +321,7 @@ void randomize_data_not_used_yet()
 /* Randomize the list of data not used yet for a single GPU. */
 void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
 {
-	printf("Début de randomize data not used yet single gpu .\n"); fflush(stdout);
+	//~ printf("Début de randomize data not used yet single gpu .\n"); fflush(stdout);
     int j = 0;
     int k = 0;
     int random = 0;
@@ -351,7 +351,7 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
 	//~ printf("NT_dynamic_outer = %d dans get to return.\n", NT_dynamic_outer);
-	printf("Début de get_task_to_return_pull_task_dynamic_data_aware on GPU %d.\n", current_gpu); fflush(stdout);
+	//~ printf("Début de get_task_to_return_pull_task_dynamic_data_aware on GPU %d.\n", current_gpu); fflush(stdout);
 	int i = 0;
     /* Getting on the right GPU's package.
      * TODO: Can I do this faster with pointer directly to the cell ? */
@@ -374,7 +374,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		{
 			/* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
 			task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
-			printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out, task, current_gpu); fflush(stdout);
+			//~ printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out, task, current_gpu); fflush(stdout);
 			return task;
 		}
 
@@ -394,7 +394,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			{
 				print_data_to_load_prefetch(task, current_gpu - 1);
 			}
-			printf("Return %p in get task to retrun.\n", task); fflush(stdout);
+			//~ printf("Return %p in get task to retrun.\n", task); fflush(stdout);
 			return task;
 		}
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
@@ -411,7 +411,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			else
 			{
-				printf("list was empty.\n"); fflush(stdout);
+				//~ printf("list was empty.\n"); fflush(stdout);
 				return NULL;
 			}
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %d, %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu); }
@@ -421,19 +421,19 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			{
 				print_data_to_load_prefetch(task, current_gpu - 1);
 			}
-			printf("Return %p in get task to return.\n", task); fflush(stdout);
+			//~ printf("Return %p in get task to return.\n", task); fflush(stdout);
 			return task;
 		}
     }
-    printf("Return NULL in get task to return.\n"); fflush(stdout);
+    //~ printf("Return NULL in get task to return.\n"); fflush(stdout);
     return NULL;
 }
 
 void reset_all_struct()
 {
-	printf("Début de reset all struct .\n"); fflush(stdout);
+	//~ printf("Début de reset all struct .\n"); fflush(stdout);
 	int i = 0;
-	printf("RESET.\n");
+	//~ printf("RESET.\n");
 	/* Initialization of global variables. */
 	NT_dynamic_outer = -1;
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
@@ -483,7 +483,7 @@ void reset_all_struct()
  * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
 static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	printf("Début de pull_task.\n"); fflush(stdout); 
+	//~ printf("Début de pull_task.\n"); fflush(stdout); 
     struct dynamic_data_aware_sched_data *data = component->data;
     //~ int i = 0;
     //~ int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
@@ -538,7 +538,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 
 void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g)
 {
-	printf("Début de push random spot .\n"); fflush(stdout);
+	//~ printf("Début de push random spot .\n"); fflush(stdout);
     struct gpu_data_not_used *ptr = gpu_data_not_used_new();
     struct gpu_data_not_used *new_element = gpu_data_not_used_new();
     new_element->D = h;
@@ -556,7 +556,7 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 /* Fill a package's task list following dynamic_data_aware algorithm. It pop only one data, the one that achieve the most tasks. */
 void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
-	printf("Début de scheduling.\n"); fflush(stdout); 
+	//~ printf("Début de scheduling.\n"); fflush(stdout); 
     int i = 0;
     int j = 0;
     struct task_using_data *t = NULL;
@@ -700,7 +700,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 
 void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim, void *component)
 {
-	printf("Début de victim evicted .\n"); fflush(stdout);
+	//~ printf("Début de victim evicted .\n"); fflush(stdout);
      /* If a data was not truly evicted I put it back in the list. */
     if (success == 0)
     {
@@ -725,7 +725,7 @@ void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim,
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
-       printf("Début de victim selector.\n"); fflush(stdout); 	
+       //~ printf("Début de victim selector.\n"); fflush(stdout); 	
     int i = 0;
     int j = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
@@ -895,7 +895,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g)
 {
-	printf("Début de belady .\n"); fflush(stdout);
+	//~ printf("Début de belady .\n"); fflush(stdout);
     int i = 0;
     int j = 0;
     int next_use = 0;
@@ -935,7 +935,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 
 starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task)
 {
-	printf("Début de min weight average .\n"); fflush(stdout);
+	//~ printf("Début de min weight average .\n"); fflush(stdout);
     int i = 0;
     int j = 0;
     int k = 0;
@@ -1051,7 +1051,7 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
  */
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l)
 {
-	printf("Début de erase task and data pointeur .\n"); fflush(stdout);
+	//~ printf("Début de erase task and data pointeur .\n"); fflush(stdout);
     int j = 0;
     struct pointer_in_task *pt = task->sched_data;
     
@@ -1064,12 +1064,12 @@ void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_l
 	}
     }
     starpu_task_list_erase(l, pt->pointer_to_cell);
-    printf("Fin de erase.\n"); fflush(stdout);
+    //~ printf("Fin de erase.\n"); fflush(stdout);
 }
 
 static int dynamic_data_aware_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	printf("Début de dynamic_data_aware_can_push.\n"); fflush(stdout);
+	//~ printf("Début de dynamic_data_aware_can_push.\n"); fflush(stdout);
     struct dynamic_data_aware_sched_data *data = component->data;
     int didwork = 0;
     struct starpu_task *task;
@@ -1146,7 +1146,7 @@ void gpu_pulled_task_insertion()
 
 void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 {
-	printf("Début de add task to pulled_task"); fflush(stdout);
+	//~ printf("Début de add task to pulled_task"); fflush(stdout);
     int i = 0;
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < current_gpu; i++)
@@ -1167,7 +1167,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	
 	/* Initialization of global variables. */
 	Ngpu = get_number_GPU();
-	printf("CREATE\n");
+	//~ printf("CREATE\n");
 	NT_dynamic_outer = 0;
 	NT = 0;
 	new_tasks_initialized = false;
@@ -1247,23 +1247,23 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++)
     {
-		printf("Next in get_task_done.\n"); fflush(stdout);
+		//~ printf("Next in get_task_done.\n"); fflush(stdout);
 		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
     }
         
     /* J'efface la tâche dans la liste de tâches */
     if (!pulled_task_list_empty(my_pulled_task_control->pointer->ptl))
     {
-		printf("Pulling inn get task done.\n"); fflush(stdout);
+		//~ printf("Pulling inn get task done.\n"); fflush(stdout);
 		pulled_task_list_pop_front(my_pulled_task_control->pointer->ptl);
     }
     else
     {
-		printf("was empty in get task done.\n"); fflush(stdout); 
+		//~ printf("was empty in get task done.\n"); fflush(stdout); 
     }
     
     /* Reset pour prochaine itération */
-    printf("NT_dynamic_outer = %d, nb task done = %d dans get task done\n", NT_dynamic_outer, number_task_out); fflush(stdout);
+    //~ printf("NT_dynamic_outer = %d, nb task done = %d dans get task done\n", NT_dynamic_outer, number_task_out); fflush(stdout);
     if (NT_dynamic_outer - 1 == number_task_out)
 	{
 		printf("Début RESET.\n"); fflush(stdout);
