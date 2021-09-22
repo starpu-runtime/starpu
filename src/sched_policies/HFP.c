@@ -1343,7 +1343,7 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 	//~ afficher_data_on_node(l);
 	for (next_task = starpu_task_list_next(task); next_task != starpu_task_list_end(&l->sub_list); next_task = starpu_task_list_next(next_task))
 	{
-		printf("On task %p\n", task);
+		//~ printf("On task %p\n", task);
 		time_to_add = 0;
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(next_task); i++)
 		{
@@ -1573,7 +1573,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 		}
 		else
 		{
-			printf("laa\n");
 			/* We are using HFP */
 			//~ print_packages_in_terminal(a, 0);
 			for (i = 0; i < nb_gpu; i++) 
@@ -1591,9 +1590,8 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 				task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 				a->temp_pointer_1->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				a->temp_pointer_1->nb_task_in_sub_list--;
-				printf("Return %p\n", task);
+				//~ printf("Return %p\n", task);
 				if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
-				printf("oui");
 				return task;
 			}
 			else
@@ -2474,12 +2472,11 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	int index_task_1 = 1; int index_task_2 = 0; int number_hyperedge = 0; int j = 0; int k = 0; int m = 0;
 	for (task_1 = starpu_task_list_begin(l); task_1 != starpu_task_list_end(l); task_1 = starpu_task_list_next(task_1))
 	{
-		printf("Tâche : %p\n", task_1);
+		//~ printf("Tâche : %p\n", task_1);
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task_1); i++) 
 		{
 			task_3 = starpu_task_list_begin(l);
 			already_counted = false;
-			//~ printf("index task 1 = %d\n", index_task_1);
 			for (k = 1; k < index_task_1; k++) 
 			{
 				for (m = 0; m < STARPU_TASK_GET_NBUFFERS(task_3); m++)
@@ -2563,7 +2560,6 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	char buffer[100];
     while (fscanf(f, "%s", buffer) == 1)
     {
-        //~ printf("Line read = %s\n", buffer);
         size += sizeof(buffer);
     }
     rewind(f);
@@ -2604,7 +2600,6 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		{
 			printf("error fscanf in hMETIS\n"); exit(0);
 		}
-		//~ printf("%d\n", number);
 		p->temp_pointer_1 = p->first_link;
 		for (j = 0; j < number; j++) 
 		{
@@ -2648,6 +2643,82 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		}
 		print_packages_in_terminal(p, 0);
 	}
+}
+
+/* Attention, la dedans je vide la liste l. Et donc si tu lui donne sched_list et que 
+ * derrière t'essaye de la lire comme je fesais dans MST, et bah ca va crasher.
+ * Aussi si tu lance hMETIS dans un do_schedule, attention de bien mettre do_schedule_done à true
+ * et de sortir de la fonction avec un return;.
+ * 
+ * CECI EST LA FONCTION POUR QUAND J'AI DEJA LE FICHIER input DE PRET CAR JE L'AI FAIS A l'AVANCE POUR GRID5K PAR EXEMPLE!
+ */
+void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
+{
+	//~ printf("In hmetis input already generated\n");
+	NT = starpu_task_list_size(l);
+	int i = 0; struct starpu_task *task_1;
+	int j = 0;
+
+	N = sqrt(NT);
+	int size =  0;
+    starpu_task_list_init(&p->temp_pointer_1->refused_fifo_list);
+    for (i = 1; i < nb_gpu; i++)
+    {
+		HFP_insertion(p);
+		starpu_task_list_init(&p->temp_pointer_1->refused_fifo_list);
+	}
+	p->first_link = p->temp_pointer_1;
+	
+	//~ printf("N = %d. NT = %d\n", N, NT);
+	
+	char str[2];
+	char Nchar[3];
+	sprintf(str, "%d", nb_gpu);
+	sprintf(Nchar, "%d", N);
+	//~ size = strlen("Output_maxime/Data/input_hMETIS.txt.part.") + strlen(str);
+	size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
+	char *path2 = (char *)malloc(size);
+	strcpy(path2, "Output_maxime/Data/input_hMETIS/");
+	strcat(path2, str);
+	strcat(path2, "GPU/input_hMETIS_N");
+	strcat(path2, Nchar);
+	strcat(path2, ".txt");
+	
+	//~ printf("Le fichier ouvert sera : %s.\n", path2);
+	
+	FILE *f_2 = fopen(path2, "r");
+		
+	int number; int error;
+	for (i = 0; i < NT; i++) 
+	{
+		error = fscanf(f_2, "%d", &number);
+		if (error == 0) 
+		{
+			printf("error fscanf in hMETIS input already generated\n"); 
+			exit(0);
+		}
+		p->temp_pointer_1 = p->first_link;
+		for (j = 0; j < number; j++) 
+		{
+			p->temp_pointer_1 = p->temp_pointer_1->next;
+		}
+		task_1 = starpu_task_list_pop_front(l);
+		p->temp_pointer_1->expected_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
+		starpu_task_list_push_back(&p->temp_pointer_1->sub_list, task_1);
+		p->temp_pointer_1->nb_task_in_sub_list++;
+	}
+	fclose(f_2);
+		
+	//~ if (starpu_get_env_number_default("HMETIS",0) == 4)
+	//~ {
+		//~ p->temp_pointer_1 = p->first_link;
+		//~ for (i = 0; i < nb_gpu; i++) 
+		//~ {
+			//~ p->temp_pointer_1->sub_list = hierarchical_fair_packing(p->temp_pointer_1->sub_list, p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
+			//~ p->temp_pointer_1 = p->temp_pointer_1->next;
+		//~ }
+		//~ print_packages_in_terminal(p, 0);
+	//~ }
 }
 
 void init_visualisation (struct paquets *a)
@@ -2989,7 +3060,14 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				
 			if (starpu_get_env_number_default("HMETIS",0) != 0) 
 			{
-				hmetis(data->p, &data->sched_list, number_of_package_to_build, GPU_RAM_M);
+				if (starpu_get_env_number_default("HMETIS",0) == 3 || starpu_get_env_number_default("HMETIS",0) == 4)
+				{
+					hmetis_input_already_generated(data->p, &data->sched_list, number_of_package_to_build, GPU_RAM_M);
+				}
+				else
+				{ 
+					hmetis(data->p, &data->sched_list, number_of_package_to_build, GPU_RAM_M);
+				}
 				if (starpu_get_env_number_default("PRINTF",0) == 1)
 				{
 					init_visualisation(data->p);

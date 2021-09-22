@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPDS.sh 2 Matrice_ligne dynamic_data_aware 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 2 Matrice_ligne dynamic_data_aware 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 2 Matrice_ligne dynamic_data_aware_no_hfp 1
 
 NB_TAILLE_TESTE=$1
@@ -11,6 +11,7 @@ FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
 FICHIER_BUS=Output_maxime/GFlops_raw_out_2.txt
 FICHIER_RAW_DT=Output_maxime/GFlops_raw_out_3.txt
 FICHIER_TIME=Output_maxime/GFlops_raw_out_4.txt
+GPU=Gemini
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 5000000
 truncate -s 0 ${FICHIER_RAW}
