@@ -1241,10 +1241,6 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-	   //starpu_pthread_mutex_t mutex;
-	//STARPU_PTHREAD_MUTEX_INIT(&mutex, NULL);
-   //starpu_pthread_mutex_lock(&mutex);
-
     printf("Début de get task done with task %p.\n", task); fflush(stdout); 
     int i = 0;
     /* Je me place sur la liste correspondant au bon gpu. */
@@ -1253,7 +1249,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     {
 		printf("Next in get_task_done.\n"); fflush(stdout);
 		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-    /
+    }
         
     /* J'efface la tâche dans la liste de tâches */
     if (!pulled_task_list_empty(my_pulled_task_control->pointer->ptl))
@@ -1275,7 +1271,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		need_to_reinit = true;
 		iteration++;
 	}
-     //starpu_pthread_mutex_unlock(&mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
