@@ -24,7 +24,7 @@ truncate -s 0 ${FICHIER_TIME}
 CM=500
 #~ CM=$((CM/NGPU))
 
-NITER = 1
+NITER=11
 #~ Il faut mettre 11 pour 10 iération car la première est ignoré
 
 if [ $DOSSIER = "Matrice_ligne" ]
