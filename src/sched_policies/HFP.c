@@ -1674,11 +1674,12 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 								/* We steal half of the package in terms of task duration */
 								while (a->temp_pointer_1->expected_time < a->temp_pointer_2->expected_time/2)
 								{
+									print_packages_in_terminal(a, 0);
 									/* We steal from the end */
 									task = starpu_task_list_pop_back(&a->temp_pointer_2->sub_list);
 									a->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 									a->temp_pointer_2->nb_task_in_sub_list--;
-									//~ printf("Stealing %p\n", task);
+									printf("Stealing %p\n", task);
 									starpu_task_list_push_front(&a->temp_pointer_1->sub_list, task);
 									a->temp_pointer_1->expected_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 									a->temp_pointer_1->nb_task_in_sub_list++;
@@ -3656,6 +3657,9 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	data->p = paquets_data;
 	data->p->temp_pointer_1->nb_task_in_sub_list = 0;
 	data->p->temp_pointer_1->expected_time_pulled_out = 0;
+
+	data->p->temp_pointer_1->expected_time = 0;
+
 	component->data = data;
 	component->do_schedule = HFP_do_schedule;
 	component->push_task = HFP_push_task;
