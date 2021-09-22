@@ -93,6 +93,8 @@ void HFP_insertion(struct paquets *a)
     new->next = a->temp_pointer_1;
     new->nb_task_in_sub_list = 0;
     new->expected_time_pulled_out = 0;
+    new->expected_time = 0;
+    new->expected_package_computation_time = 0;
 	starpu_task_list_init(&new->refused_fifo_list);
     a->temp_pointer_1 = new;
 }
@@ -2704,8 +2706,9 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 		}
 		task_1 = starpu_task_list_pop_front(l);
 		p->temp_pointer_1->expected_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
+		p->temp_pointer_1->expected_package_computation_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
+		p->temp_pointer_1->nb_task_in_sub_list++;		
 		starpu_task_list_push_back(&p->temp_pointer_1->sub_list, task_1);
-		p->temp_pointer_1->nb_task_in_sub_list++;
 	}
 	fclose(f_2);
 		
