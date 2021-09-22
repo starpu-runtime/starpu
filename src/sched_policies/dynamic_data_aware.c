@@ -456,8 +456,6 @@ void reset_all_struct()
 	    //~ gpu_pulled_task_insertion();
 	//~ }
 	//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
-	
-	printf("FIN DE RESET.\n");
 }
 
 //~ /* C'est bete ca fais toutes les données alors que y en a plein en double */
@@ -502,7 +500,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     if (new_tasks_initialized == true)
     {
 	    //~ iteration++;	    
-	    printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
+	    //printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
 	    
 		new_tasks_initialized = false;
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { 
