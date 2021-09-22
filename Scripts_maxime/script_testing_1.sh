@@ -62,7 +62,7 @@ ulimit -S -s 5000000
 		    START_X=0
 		    BW=350*NGPU
 		    CM=500
-		    for ((i=1 ; i<=10; i++))
+		    for ((i=10; i<=10; i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 

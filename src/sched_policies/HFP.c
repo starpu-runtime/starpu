@@ -2559,7 +2559,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 	//~ Reconst : 0 - 1, a tester. 0 par défaut. Normalement ca ne devrait rien changer car ca joue juste sur le fait de reconstruire les hyperedges ou non.
 	//~ dbglvl : 0. Sert à montrer des infos de debug; Si besoin mettre (1, 2 ou 4).
 
-	int size = strlen("home/mgonthier/these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis Output_maxime/input_hMETIS.txt_");
+	int size = strlen("../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis Output_maxime/input_hMETIS.txt_");
 	char buffer[100];
     while (fscanf(f, "%s", buffer) == 1)
     {
@@ -2567,8 +2567,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
     }
     rewind(f);
     char *system_call = (char *)malloc(size);
-	strcpy(system_call, "home/mgonthier/these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis Output_maxime/input_hMETIS.txt");
-   //	/home/mgonthier/these_gonthier_maxime/hMETIS/hmetis-1.5-linux
+	strcpy(system_call, "../these_gonthier_maxime/hMETIS/hmetis-1.5-linux/hmetis Output_maxime/input_hMETIS.txt");
     while (fscanf(f, "%s", buffer)== 1)
     {
 		strcat(system_call, " ");
