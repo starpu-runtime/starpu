@@ -80,10 +80,11 @@ LIST_TYPE(data_weighted,
     starpu_data_handle_t pointer_to_data_weighted; /* The data not used yet by the GPU. */
 );
 
-/** Struct dans user_data des handles pour reset **/
+/** Struct dans user_data des handles pour reset MAIS aussi pour savoir le nombre de tâches dans pulled task qui utilise cette donnée **/
 struct handle_user_data
 {
 	int last_iteration;
+	int nb_task_in_pulled_task;
 };
 
 /** Variables globales et reset **/
