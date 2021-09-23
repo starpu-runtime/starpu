@@ -44,33 +44,23 @@ make -C src/ -j 6
 #~ watch *(int *)0x5555558c2820
 #~ watch *(int *)0x5555558c2820
 
-#~ N=30
-#~ NGPU=2
-#~ ORDO="dynamic-data-aware"
-#~ BW=350*NGPU
-#~ CM=500
-#~ EVICTION=1
-#~ READY=0
-#~ HOST=attila
-export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
-ulimit -S -s 5000000
+#~ 2>&1 | tee Output_maxime/terminal_output.txt
 
+186 fois dans victim evicted dont 51 fois avec success == 0
+5280 fois dans victim selector avec 5094 fois un retrun NO_VICTIM
 
-		    echo "############## HMETIS + TASK STEALING ##############"
-		    NGPU=8
-		    ECHELLE_X=$((5*NGPU))
-		    START_X=0
-		    BW=350*NGPU
-		    CM=500
-		    for ((i=10; i<=10; i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
-			    STARPU_SCHED=HFP HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_BANDWIDTH=$((BW)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
-			    mv Output_maxime/input_hMETIS.txt.part.${NGPU} Output_maxime/Data/input_hMETIS/${NGPU}GPU/input_hMETIS_N${N}.txt
-		    done
+N=50
+NGPU=2
+ORDO="dynamic-data-aware"
+BW=350*NGPU
+CM=500
+EVICTION=1
+READY=0
+TH=5
+HOST=attila
+export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
 
-#~ SEED=1 PRINTF=0 STARPU_SCHED=${ORDO} STARPU_SCHED_READY=0 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_LIMIT_BANDWIDTH=$((BW)) STARPU_NTASKS_THRESHOLD=30 STARPU_CUDA_PIPELINE=30 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=attila valgrind -s ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 2
+SEED=1 PRINTF=0 STARPU_SCHED=${ORDO} STARPU_SCHED_READY=0 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) STARPU_LIMIT_BANDWIDTH=$((BW)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=attila ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 2>&1 | tee Output_maxime/terminal_output.txt
  
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
 
