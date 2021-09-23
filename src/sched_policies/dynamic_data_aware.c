@@ -852,7 +852,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			if (hud->nb_task_in_pulled_task == 0 && hud->nb_task_in_planned_task == 0)
 			{
 				returned_handle = data_on_node[i];
-				printf("%p is 0 in both list.\n", returned_handle);
+				//~ printf("%p is 0 in both list.\n", returned_handle);
 				goto deletion_in_victim_selector;
 			}
 			
@@ -1326,7 +1326,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	iteration = 1;
 	
 	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Ngpu = %d\n", Ngpu); }
-	printf("Dans le create. Ngpu = %d.\n", Ngpu);
+	//~ printf("Dans le create. Ngpu = %d.\n", Ngpu);
 
 	/* Initialization of structures. */
 	struct dynamic_data_aware_sched_data *data;
@@ -1387,7 +1387,7 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-    printf("Début de get task done with task %p.\n", task); fflush(stdout); 
+    //~ printf("Début de get task done with task %p.\n", task); fflush(stdout); 
     int i = 0;
     /* Je me place sur la liste correspondant au bon gpu. */
     my_pulled_task_control->pointer = my_pulled_task_control->first;
