@@ -124,7 +124,7 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 {
 	struct handle_user_data * hud = d->user_data;
 	printf("Number of task used by %p in the tasks list:", d);
-	printf("pulled_task = %d tasks | planned_tasks = %d tasks.\n", hud->nb_task_in_pulled_task[current_gpu], hud->nb_task_in_planned_task[current_gpu]);
+	printf("pulled_task = %d tasks | planned_tasks = %d tasks.\n", hud->nb_task_in_pulled_task[current_gpu - 1], hud->nb_task_in_planned_task[current_gpu - 1]);
 }
 
 bool need_to_reinit = true;
@@ -408,7 +408,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-				hud->nb_task_in_planned_task[current_gpu] = hud->nb_task_in_planned_task[current_gpu] - 1;
+				hud->nb_task_in_planned_task[current_gpu - 1] = hud->nb_task_in_planned_task[current_gpu - 1] - 1;
 				STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 			}
 			
@@ -439,7 +439,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 				{
 					struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-					hud->nb_task_in_planned_task[current_gpu] = hud->nb_task_in_planned_task[current_gpu] - 1;
+					hud->nb_task_in_planned_task[current_gpu - 1] = hud->nb_task_in_planned_task[current_gpu - 1] - 1;
 					STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 				}
 			}
@@ -707,11 +707,12 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 
 void increment_planned_task_data(struct starpu_task *task, int current_gpu)
 {
+	printf("++\n");
 	int i = 0;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-		hud->nb_task_in_planned_task[current_gpu] = hud->nb_task_in_planned_task[current_gpu] + 1;
+		hud->nb_task_in_planned_task[current_gpu - 1] = hud->nb_task_in_planned_task[current_gpu - 1] + 1;
 		STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 	}
 }
@@ -840,26 +841,28 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		struct gpu_pulled_task *g = my_pulled_task_control->first;
 		print_pulled_task_one_gpu(g, 1);
 	}
+	printf("current_gpu = %d.\n", current_gpu);
+	
     struct handle_user_data *hud = malloc(sizeof(hud));
     for (i = 0; i < nb_data_on_node; i++)
     {
 		if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 		{
 			hud = data_on_node[i]->user_data;
-			nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu];
-			if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("For %p : %d and %d.\n", data_on_node[i], hud->nb_task_in_pulled_task[current_gpu], hud->nb_task_in_planned_task[current_gpu]); }
+			nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu - 1];
+			if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("For %p : %d and %d.\n", data_on_node[i], hud->nb_task_in_pulled_task[current_gpu - 1], hud->nb_task_in_planned_task[current_gpu - 1]); }
 			
 			/* Ajout : si sur les deux lists c'est 0 je la return direct la data */
-			if (hud->nb_task_in_pulled_task[current_gpu] == 0 && hud->nb_task_in_planned_task[current_gpu] == 0)
+			if (hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 			{
 				returned_handle = data_on_node[i];
 				//~ printf("%p is 0 in both list.\n", returned_handle);
 				goto deletion_in_victim_selector;
 			}
 			
-			if (hud->nb_task_in_pulled_task[current_gpu] < min_number_task_in_pulled_task)
+			if (hud->nb_task_in_pulled_task[current_gpu - 1] < min_number_task_in_pulled_task)
 			{
-				min_number_task_in_pulled_task = hud->nb_task_in_pulled_task[current_gpu];
+				min_number_task_in_pulled_task = hud->nb_task_in_pulled_task[current_gpu - 1];
 			}
 		}
 		else
@@ -983,7 +986,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g)
 {
-	//~ printf("Début de belady .\n"); fflush(stdout);
+	printf("Début de belady .\n"); fflush(stdout);
     int i = 0;
     int j = 0;
     int next_use = 0;
@@ -991,7 +994,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     struct pulled_task *p = pulled_task_new();
     starpu_data_handle_t returned_handle = NULL;
     
-    //~ print_pulled_task_one_gpu(g, node);
+    print_pulled_task_one_gpu(g, node);
     
     for (i = 0; i < nb_data_on_node; i++)
     {
@@ -1005,6 +1008,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 					next_use++;
 					if (STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j) == data_tab[i])
 					{
+						printf("Next use of %p is %d.\n", STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j), next_use);
 						if (max_next_use < next_use)
 						{
 							max_next_use = next_use;
@@ -1037,9 +1041,9 @@ starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_
 		{
 			hud = data_tab[i]->user_data;
 			
-			if (hud->nb_task_in_planned_task[current_gpu] < min_nb_task_in_planned_task)
+			if (hud->nb_task_in_planned_task[current_gpu - 1] < min_nb_task_in_planned_task)
 			{
-				min_nb_task_in_planned_task = hud->nb_task_in_planned_task[current_gpu];
+				min_nb_task_in_planned_task = hud->nb_task_in_planned_task[current_gpu - 1];
 				returned_handle = data_tab[i];
 			}
 		}
@@ -1279,7 +1283,7 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
 		struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-		hud->nb_task_in_pulled_task[current_gpu] = hud->nb_task_in_pulled_task[current_gpu] + 1;
+		hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] + 1;
 		STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 	}
 }
@@ -1389,7 +1393,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(pt->pointer_to_pulled_task); i++)
 			{
 				struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(pt->pointer_to_pulled_task, i)->user_data;
-				hud->nb_task_in_pulled_task[current_gpu] = hud->nb_task_in_pulled_task[current_gpu] - 1;
+				hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] - 1;
 				STARPU_TASK_GET_HANDLE(pt->pointer_to_pulled_task, i)->user_data = hud;
 			} 
 		}
