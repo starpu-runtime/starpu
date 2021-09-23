@@ -793,7 +793,9 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	    if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle); }
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
+		_STARPU_SCHED_BEGIN;
 		victim_evicted(1, handle, data_victim_selector);
+		_STARPU_SCHED_END;
 	    }
 	}
 	else 
@@ -801,7 +803,9 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	    if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Echec eviction de %p dans try_to_throw_mem_chunk.\n", handle); }
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
+		_STARPU_SCHED_BEGIN;
 		victim_evicted(0, handle, data_victim_selector);
+		_STARPU_SCHED_END;
 	    }
 	}
 	return freed;
@@ -1010,7 +1014,9 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n"); }
 			if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 			{
+			    _STARPU_SCHED_BEGIN;
 			    victim_evicted(0, victim, data_victim_selector);
+			    _STARPU_SCHED_END;
 			}
 			return 0;
 		}
@@ -1076,7 +1082,9 @@ restart:
 	    if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc.\n"); }
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
+		_STARPU_SCHED_BEGIN;
 		victim_evicted(0, victim, data_victim_selector);
+		_STARPU_SCHED_END;
 	    }
 	}
 	return success;
@@ -1239,7 +1247,9 @@ restart2:
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Calling victim evicted in free_potentially_in_use_mc.\n"); }
+			_STARPU_SCHED_BEGIN;
 			victim_evicted(0, victim, data_victim_selector);
+			_STARPU_SCHED_END;
 	    }
 	}	
 	
