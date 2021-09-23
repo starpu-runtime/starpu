@@ -26,6 +26,13 @@ LIST_TYPE(task_using_data,
     /* Pointer to the main task list T */
     struct starpu_task *pointer_to_T;
 );
+/* Struct dans user_data des handles pour reset MAIS aussi pour savoir le nombre de tâches dans pulled task qui utilise cette donnée */
+struct handle_user_data
+{
+	int last_iteration;
+	int nb_task_in_pulled_task;
+	int nb_task_in_planned_task;
+};
 
 /** In the "packages" of dynamic data aware, each representing a gpu **/
 LIST_TYPE(gpu_data_not_used,
@@ -60,7 +67,7 @@ struct gpu_planned_task_control
     struct gpu_planned_task *first;
 };
 
-/** Task out of pulled task. Updated by post_exec. I'm forced to use a list of single task and not task list because else starpu doesn't allow me to push a taks in two different task_list **/
+/** Task out of pulled task. Updated by post_exec. I'm forced to use a list of single task and not task list because else starpu doesn't allow me to push a tasks in two different task_list **/
 LIST_TYPE(pulled_task,
     struct starpu_task *pointer_to_pulled_task;
 );
@@ -80,12 +87,7 @@ LIST_TYPE(data_weighted,
     starpu_data_handle_t pointer_to_data_weighted; /* The data not used yet by the GPU. */
 );
 
-/** Struct dans user_data des handles pour reset MAIS aussi pour savoir le nombre de tâches dans pulled task qui utilise cette donnée **/
-struct handle_user_data
-{
-	int last_iteration;
-	int nb_task_in_pulled_task;
-};
+void increment_planned_task_data(struct starpu_task *task);
 
 /** Variables globales et reset **/
 bool gpu_memory_initialized;
@@ -107,6 +109,7 @@ void print_pulled_task_one_gpu(struct gpu_pulled_task *g, int current_gpu);
 void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g);
 void print_task_using_data(starpu_data_handle_t d);
 void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node);
+void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d);
 
 /** Fonctions principales **/
 void initialize_task_data_gpu_single_task(struct starpu_task *task);
@@ -122,6 +125,7 @@ void dynamic_data_aware_scheduling(struct starpu_task_list *main_task_list, int 
 void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim, void *component);
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g);
+starpu_data_handle_t belady_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task);
 starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task);
 
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);
