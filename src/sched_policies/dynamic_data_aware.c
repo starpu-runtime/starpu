@@ -707,7 +707,6 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 
 void increment_planned_task_data(struct starpu_task *task, int current_gpu)
 {
-	printf("++\n");
 	int i = 0;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
