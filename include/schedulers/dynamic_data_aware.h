@@ -30,8 +30,8 @@ LIST_TYPE(task_using_data,
 struct handle_user_data
 {
 	int last_iteration;
-	int nb_task_in_pulled_task;
-	int nb_task_in_planned_task;
+	int *nb_task_in_pulled_task;
+	int *nb_task_in_planned_task;
 };
 
 /** In the "packages" of dynamic data aware, each representing a gpu **/
