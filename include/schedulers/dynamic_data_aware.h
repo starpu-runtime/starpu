@@ -30,8 +30,8 @@ LIST_TYPE(task_using_data,
 struct handle_user_data
 {
 	int last_iteration;
-	int *nb_task_in_pulled_task;
-	int *nb_task_in_planned_task;
+	int nb_task_in_pulled_task;
+	int nb_task_in_planned_task;
 };
 
 /** In the "packages" of dynamic data aware, each representing a gpu **/
@@ -125,7 +125,7 @@ void dynamic_data_aware_scheduling(struct starpu_task_list *main_task_list, int 
 void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim, void *component);
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g);
-starpu_data_handle_t belady_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task);
+starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task);
 starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task);
 
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);

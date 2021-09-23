@@ -886,7 +886,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		//~ returned_handle = min_weight_average_on_planned_task(data_on_node, nb_data_on_node, node, is_prefetch, my_planned_task_control->pointer, nb_task_in_pulled_task);
 		
 		/* NEW */
-		returned_handle = belady_on_planned_task(data_on_node, nb_data_on_node, my_planned_task_control->pointer, nb_task_in_pulled_task);
+		returned_handle = least_used_data_on_planned_task(data_on_node, nb_data_on_node, my_planned_task_control->pointer, nb_task_in_pulled_task);
     }
     else
     {
@@ -1021,50 +1021,62 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 }
 
 /* Belady sur lesp lanned task. Je check pas is on node car c'est -1 dans le tab du nb de taches dans pulled task */
-starpu_data_handle_t belady_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task)
+starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task)
 {
 	//~ printf("Début de belady on planned task.\n"); fflush(stdout);
     int i = 0;
-    int j = 0;
-    struct starpu_task *task = NULL;
-    int next_use = 0;
-    int max_next_use = -1;
+    //~ int j = 0;
+    //~ struct starpu_task *task = NULL;
+    //~ int next_use = 0;
+    int min_nb_task_in_planned_task = INT_MAX;
     starpu_data_handle_t returned_handle = NULL;
     
     //~ print_planned_task_one_gpu(g, 1);
+    
+    struct handle_user_data *hud = malloc(sizeof(hud));
     
     for (i = 0; i < nb_data_on_node; i++)
     {
 		if (nb_task_in_pulled_task[i] == 0)
 		{
-			//~ printf("Looking at data %p in belady planned task.\n", data_tab[i]);
-			next_use = 0;
-			for (task = starpu_task_list_begin(&g->planned_task); task != starpu_task_list_end(&g->planned_task); task = starpu_task_list_next(task))
+			hud = data_tab[i]->user_data;
+			
+			if (hud->nb_task_in_planned_task < min_nb_task_in_planned_task)
 			{
-				for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
-				{
-					next_use++;
-					if (STARPU_TASK_GET_HANDLE(task, j) == data_tab[i])
-					{
-						//~ printf("Next use = %d.\n", next_use);
-						if (max_next_use < next_use)
-						{
-							max_next_use = next_use;
-							returned_handle = data_tab[i];
-						}
-						goto break_nested_for_loop;
-					}
-				}
-			}
-			if (next_use == 0)
-			{
-				printf("This data is not even in planned task but I should have seen it earlier in victim_selector!!!\n");
+				min_nb_task_in_planned_task = hud->nb_task_in_planned_task;
 				returned_handle = data_tab[i];
-				goto break_nested_for_loop;
 			}
 		}
-		break_nested_for_loop : ;
-    }
+	}
+				
+			//~ printf("Looking at data %p in belady planned task.\n", data_tab[i]);
+			//~ next_use = 0;
+			//~ for (task = starpu_task_list_begin(&g->planned_task); task != starpu_task_list_end(&g->planned_task); task = starpu_task_list_next(task))
+			//~ {
+				//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
+				//~ {
+					//~ next_use++;
+					//~ if (STARPU_TASK_GET_HANDLE(task, j) == data_tab[i])
+					//~ {
+						//~ printf("Next use = %d.\n", next_use);
+						//~ if (max_next_use < next_use)
+						//~ {
+							//~ max_next_use = next_use;
+							//~ returned_handle = data_tab[i];
+						//~ }
+						//~ goto break_nested_for_loop;
+					//~ }
+				//~ }
+			//~ }
+			//~ if (next_use == 0)
+			//~ {
+				//~ printf("This data is not even in planned task but I should have seen it earlier in victim_selector!!!\n");
+				//~ returned_handle = data_tab[i];
+				//~ goto break_nested_for_loop;
+			//~ }
+		//~ }
+		//~ break_nested_for_loop : ;
+    //~ }
     if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return in belady planned task %p.\n", returned_handle); }
     return returned_handle;
 }
