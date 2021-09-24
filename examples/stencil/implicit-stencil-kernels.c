@@ -657,7 +657,7 @@ struct starpu_codelet save_cl_top =
 };
 
 /* Memset a block's buffers */
-static void memset_func(void *descr[], void *arg)
+void memset_func(void *descr[], void *arg)
 {
 	(void)descr;
     	unsigned sizex, sizey, bz;
@@ -715,6 +715,7 @@ static struct starpu_perfmodel memset_model =
 struct starpu_codelet cl_memset =
 {
 	.cpu_funcs = {memset_func},
+	.cpu_funcs_name = {"memset_func"},
 	.model = &memset_model,
 	.nbuffers = 6,
 	.modes = {STARPU_W, STARPU_W, STARPU_W, STARPU_W, STARPU_W, STARPU_W}
