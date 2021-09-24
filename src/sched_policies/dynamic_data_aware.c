@@ -1371,6 +1371,18 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 {
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     int i = 0;
+
+	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
+	{
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		{
+			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
+			hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] - 1;
+			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+		}
+	}
+	
+
     /* Je me place sur la liste correspondant au bon gpu. */
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < current_gpu; i++)
@@ -1382,20 +1394,20 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     /* J'efface la tâche dans la liste de tâches */
     if (!pulled_task_list_empty(my_pulled_task_control->pointer->ptl))
     {		
-		struct pulled_task *pt = pulled_task_new();
-		pt = pulled_task_list_pop_front(my_pulled_task_control->pointer->ptl);
+	//	struct pulled_task *pt = pulled_task_new();
+		pulled_task_list_pop_front(my_pulled_task_control->pointer->ptl);
 		
 		/* Je décrémente dans les données le nb de tâches dans pulled task */
 		/* Je mets le if on evince car 1. c'est inutile si j'évince pas et 2. ca fais crasher le code si ready est activé. */
-		if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
-		{
-			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(pt->pointer_to_pulled_task); i++)
-			{
-				struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(pt->pointer_to_pulled_task, i)->user_data;
-				hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] - 1;
-				STARPU_TASK_GET_HANDLE(pt->pointer_to_pulled_task, i)->user_data = hud;
-			} 
-		}
+		//if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
+		//{
+			//for (i = 0; i < STARPU_TASK_GET_NBUFFERS(pt->pointer_to_pulled_task); i++)
+			//{
+				//struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(pt->pointer_to_pulled_task, i)->user_data;
+				//hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] - 1;
+				//STARPU_TASK_GET_HANDLE(pt->pointer_to_pulled_task, i)->user_data = hud;
+			//} 
+		//}
     }
     else
     {
