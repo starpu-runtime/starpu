@@ -707,7 +707,6 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 
 void increment_planned_task_data(struct starpu_task *task, int current_gpu)
 {
-	printf("++\n");
 	int i = 0;
 	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
@@ -841,7 +840,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		struct gpu_pulled_task *g = my_pulled_task_control->first;
 		print_pulled_task_one_gpu(g, 1);
 	}
-	printf("current_gpu = %d.\n", current_gpu);
 	
     struct handle_user_data *hud = malloc(sizeof(hud));
     for (i = 0; i < nb_data_on_node; i++)
@@ -1267,8 +1265,17 @@ void gpu_pulled_task_insertion()
 
 void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 {
+	int i = 0;
+
+	/* J'incrémente le nombre de tâches dans pulled task pour les données de task */
+    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+	{
+		struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
+		hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] + 1;
+		STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+	}
+	
 	//~ printf("Début de add task to pulled_task"); fflush(stdout);
-    int i = 0;
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < current_gpu; i++)
     {
@@ -1278,14 +1285,6 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
     struct pulled_task *p = pulled_task_new();
     p->pointer_to_pulled_task = task;
     pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
-    
-    /* J'incrémente le nombre de tâches dans pulled task pour les données de task */
-    for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-	{
-		struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-		hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] + 1;
-		STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
-	}
 }
 
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
