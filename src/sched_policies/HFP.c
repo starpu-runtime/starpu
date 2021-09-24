@@ -2700,11 +2700,15 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 			exit(0);
 		}
 		p->temp_pointer_1 = p->first_link;
+		printf("reste liste chainée, number = %d\n", number); fflush(stdout);
 		for (j = 0; j < number; j++) 
 		{
+			printf("next gpu\n");
 			p->temp_pointer_1 = p->temp_pointer_1->next;
 		}
 		task_1 = starpu_task_list_pop_front(l);
+		printf("task = %p.\n", task_1); fflush(stdout);
+		printf("pevious time = %f\n", p->temp_pointer_1->expected_time); fflush(stdout);
 		p->temp_pointer_1->expected_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
 		p->temp_pointer_1->expected_package_computation_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
 		p->temp_pointer_1->nb_task_in_sub_list++;		
