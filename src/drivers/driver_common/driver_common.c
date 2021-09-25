@@ -79,10 +79,10 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		STARPU_AYU_RUNTASK(j->job_id);
 		cl->per_worker_stats[workerid]++;
 
-		_starpu_clock_gettime(&worker->cl_start);
 		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 		if ((profiling && profiling_info) || calibrate_model)
 		{
+			_starpu_clock_gettime(&worker->cl_start);
 			_starpu_worker_register_executing_start_date(workerid, &worker->cl_start);
 		}
 		_starpu_job_notify_start(j, perf_arch);
@@ -154,10 +154,10 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 
 	if (rank == 0)
 	{
-		_starpu_clock_gettime(&worker->cl_end);
 		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 		if ((profiling && profiling_info) || calibrate_model)
 		{
+			_starpu_clock_gettime(&worker->cl_end);
 			_starpu_worker_register_executing_end(workerid);
 		}
 		STARPU_AYU_POSTRUNTASK(j->job_id);
