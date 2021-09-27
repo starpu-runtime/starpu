@@ -307,7 +307,7 @@ void randomize_task_list(struct dynamic_data_aware_sched_data *d)
 
 /* Randomize the list of data not used yet for all the GPU. */
 void randomize_data_not_used_yet()
-{
+{printf("Début de randomize data not used yet.\n"); fflush(stdout);
     int i = 0;
     int k = 0;
     int l = 0;
@@ -323,25 +323,36 @@ void randomize_data_not_used_yet()
 	struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
 	for (l = 0; l < number_of_data; l++)
 	{
+
+	if (!gpu_data_not_used_list_empty(my_planned_task_control->pointer->gpu_data))
+	{
+
+
 	    /* After each time I remove a data I can choose between a smaller number of value for random. */
 	    random = rand()%(number_of_data - l);
+	    printf("random %d.\n", random); fflush(stdout);
 	    for (k = 0; k < random; k++)
 	    {
+		    printf("befour swing size = %d\n", gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data)); fflush(stdout);
 			gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
 	    }
 	    /* I use an external list. */
+	   printf("push bask in andom\n"); fflush(stdout);
 	    gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
+	    printf("just after push\n"); fflush(stdout);
+	}
 	}
 	/* Then replace the list with it. */
 	my_planned_task_control->pointer->gpu_data = randomized_list;
 	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-    }
+	printf("end\n"); fflush(stdout);
+    }printf("fin de randomize data not used yet .\n"); fflush(stdout);
 }
 
 /* Randomize the list of data not used yet for a single GPU. */
 void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
 {
-	//~ printf("Début de randomize data not used yet single gpu .\n"); fflush(stdout);
+   // printf("Début de randomize data not used yet single gpu .\n"); fflush(stdout);
     int j = 0;
     int k = 0;
     int random = 0;
@@ -363,6 +374,7 @@ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
     }
     /* Then replace the list with it. */
     g->gpu_data = randomized_list;
+   // printf("Fin de randomize data not used yet single gpu .\n"); fflush(stdout);
 }
 
 /* Get a task to put out of pull_task. In multi GPU it allows me to return a task from the right element in the 
@@ -790,11 +802,11 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     
     /* Get the the min number of task a data can do in pulled_task */
     /* Se placer sur le bon GPU pour pulled_task */
-    //~ my_pulled_task_control->pointer = my_pulled_task_control->first;
-    //~ for (i = 1; i < current_gpu; i++)
-    //~ {
-		//~ my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-    //~ }
+     my_pulled_task_control->pointer = my_pulled_task_control->first;
+     for (i = 1; i < current_gpu; i++)
+ 	{
+	 my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+	 }
     
     int min_number_task_in_pulled_task = INT_MAX;
     //~ struct pulled_task *p = pulled_task_new();
@@ -904,11 +916,12 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		}
 		
 		/* Se placer sur le bon GPU pour pulled_task */
-		my_pulled_task_control->pointer = my_pulled_task_control->first;
-		for (i = 1; i < current_gpu; i++)
-		{
-			my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-		}
+		//my_pulled_task_control->pointer = my_pulled_task_control->first;
+		//for (i = 1; i < current_gpu; i++)
+		//{
+		//	my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+		//}
+		printf("nb data on node = %d\n", nb_data_on_node); fflush(stdout);
 		returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
     }
     
@@ -984,7 +997,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g)
 {
-	printf("Début de belady .\n"); fflush(stdout);
+	printf("Début de belady pulled task.\n"); fflush(stdout);
     int i = 0;
     int j = 0;
     int next_use = 0;
@@ -992,7 +1005,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     struct pulled_task *p = pulled_task_new();
     starpu_data_handle_t returned_handle = NULL;
     
-    print_pulled_task_one_gpu(g, node);
+    //print_pulled_task_one_gpu(g, node);
     
     for (i = 0; i < nb_data_on_node; i++)
     {
@@ -1006,7 +1019,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 					next_use++;
 					if (STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j) == data_tab[i])
 					{
-						printf("Next use of %p is %d.\n", STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j), next_use);
+						//printf("Next use of %p is %d.\n", STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j), next_use);
 						if (max_next_use < next_use)
 						{
 							max_next_use = next_use;
@@ -1019,7 +1032,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 			break_nested_for_loop : ;
 		}
     }
-    if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return in belady %p.\n", returned_handle); }
+    printf("Return in belady %p.\n", returned_handle); fflush(stdout);
     return returned_handle;
 }
 
