@@ -3,4 +3,3 @@ module load linalg/mkl
 make -j 100
 make install
 echo "INITIALISATION OK"
-export STARPU_PERF_MODEL_DIR=/home/mgonthier/starpu/perfmodels/sampling
