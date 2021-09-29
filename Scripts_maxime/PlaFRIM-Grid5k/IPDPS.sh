@@ -339,13 +339,13 @@ then
 fi
 
 #Tracage data transfers
-#gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
-#./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} Output_maxime/Data/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
+gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
+./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW_DT:0} Output_maxime/Data/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
 
 # Tracage des GFlops
-#gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-#./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} Output_maxime/Data/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
+gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} Output_maxime/Data/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
 
 # Tracage du temps
-#gcc -o cut_time_raw_out cut_time_raw_out.c
-#./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_TIME} Output_maxime/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
+gcc -o cut_time_raw_out cut_time_raw_out.c
+./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_TIME} Output_maxime/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
