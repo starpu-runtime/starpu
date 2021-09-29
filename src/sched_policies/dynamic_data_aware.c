@@ -307,7 +307,8 @@ void randomize_task_list(struct dynamic_data_aware_sched_data *d)
 
 /* Randomize the list of data not used yet for all the GPU. */
 void randomize_data_not_used_yet()
-{printf("Début de randomize data not used yet.\n"); fflush(stdout);
+{
+    //printf("Début de randomize data not used yet.\n"); fflush(stdout);
     int i = 0;
     int k = 0;
     int l = 0;
@@ -330,23 +331,24 @@ void randomize_data_not_used_yet()
 
 	    /* After each time I remove a data I can choose between a smaller number of value for random. */
 	    random = rand()%(number_of_data - l);
-	    printf("random %d.\n", random); fflush(stdout);
+	    //printf("random %d.\n", random); fflush(stdout);
 	    for (k = 0; k < random; k++)
 	    {
-		    printf("befour swing size = %d\n", gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data)); fflush(stdout);
+		    //printf("befour swing size = %d\n", gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data)); fflush(stdout);
 			gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
 	    }
 	    /* I use an external list. */
-	   printf("push bask in andom\n"); fflush(stdout);
+	   //printf("push bask in andom\n"); fflush(stdout);
 	    gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
-	    printf("just after push\n"); fflush(stdout);
+	    //printf("just after push\n"); fflush(stdout);
 	}
 	}
 	/* Then replace the list with it. */
 	my_planned_task_control->pointer->gpu_data = randomized_list;
 	my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-	printf("end\n"); fflush(stdout);
-    }printf("fin de randomize data not used yet .\n"); fflush(stdout);
+	//printf("end\n"); fflush(stdout);
+    }
+    //printf("fin de randomize data not used yet .\n"); fflush(stdout);
 }
 
 /* Randomize the list of data not used yet for a single GPU. */
@@ -921,7 +923,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		//{
 		//	my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
 		//}
-		printf("nb data on node = %d\n", nb_data_on_node); fflush(stdout);
+		//printf("nb data on node = %d\n", nb_data_on_node); fflush(stdout);
 		returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
     }
     
@@ -997,7 +999,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g)
 {
-	printf("Début de belady pulled task.\n"); fflush(stdout);
+	//printf("Début de belady pulled task.\n"); fflush(stdout);
     int i = 0;
     int j = 0;
     int next_use = 0;
@@ -1032,7 +1034,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 			break_nested_for_loop : ;
 		}
     }
-    printf("Return in belady %p.\n", returned_handle); fflush(stdout);
+    //printf("Return in belady %p.\n", returned_handle); fflush(stdout);
     return returned_handle;
 }
 
