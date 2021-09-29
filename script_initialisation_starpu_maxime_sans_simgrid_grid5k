@@ -1,6 +1,8 @@
-module load linalg/mkl
 ./configure --prefix=/home/mgonthier/starpu
 make -j 100
 make install
+./configure --prefix=$HOME -C libtool-2.4.6
+make -C libtool-2.4.6
+make install -C libtool-2.4.6
+sudo-g5k apt-get install libtool-bin
 echo "INITIALISATION OK"
-export STARPU_PERF_MODEL_DIR=/home/mgonthier/starpu/perfmodels/sampling
