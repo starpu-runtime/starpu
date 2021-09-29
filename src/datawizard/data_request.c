@@ -584,6 +584,9 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, enum _star
 			r->canceled = 2;
 			_starpu_spin_unlock(&r->lock);
 			_starpu_spin_lock(&r2->lock);
+			if (r->prefetch < r2->prefetch)
+				/* Upgrade the existing request */
+				_starpu_update_prefetch_status(r2, r->prefetch);
 			_starpu_data_request_append_callback(r2, _starpu_data_request_complete_wait, r);
 			_starpu_spin_unlock(&r2->lock);
 			_starpu_spin_unlock(&handle->header_lock);
