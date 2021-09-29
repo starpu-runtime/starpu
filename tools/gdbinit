@@ -277,16 +277,17 @@ define starpu-tasks
   printf "Tasks being run:\n"
   set $n = 0
   while $n < _starpu_config.topology.nworkers
-    printf "worker %d %s:\n", $n, _starpu_config.workers[$n].short_name
-    if _starpu_config.workers[$n].pipeline_length > 0
+    set $w = &_starpu_config.workers[$n]
+    printf "worker %d %s:\n", $n, $w->short_name
+    if $w->pipeline_length > 0
       set $m = 0
-      while $m < _starpu_config.workers[$n].ntasks
-        set $t = _starpu_config.workers[$n].current_tasks[(_starpu_config.workers[$n].first_task + $m) % (sizeof(_starpu_config.workers[$n].current_tasks)/sizeof(_starpu_config.workers[$n].current_tasks[0]))]
+      while $m < $w->ntasks
+        set $t = $w->current_tasks[($w->first_task + $m) % (sizeof($w->current_tasks)/sizeof($w->current_tasks[0]))]
         printf "  task %p\n", $t
         set $m = $m + 1
       end
     end
-    set $task = _starpu_config.workers[$n].current_task
+    set $task = $w->current_task
     if ($task)
       printf "  task %p\n", $task
     end
