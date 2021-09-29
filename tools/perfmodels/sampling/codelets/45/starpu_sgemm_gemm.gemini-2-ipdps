@@ -5,76 +5,7 @@
 ####################
 # COMBs
 # number of combinations
-3
-####################
-# COMB_1
-# number of types devices
-1
-####################
-# DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, MPI_MS - 5)
-1
-####################
-# DEV_0
-# device id 
-0
-####################
-# DEV_0
-# number of cores 
-1
-##########
-# number of implementations
-1
-#####
-# Model for cuda0_impl0 (Comb1)
-# number of entries
-5
-# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
-0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
-# a		b		c
-nan            	nan            	nan            
-# not multiple-regression-base
-0
-# hash		size		flops		mean (us or J)	dev (us or J)	sum		sum2		n
-24c84a50	11059200       	1.769472e+09   	1.542222e+02   	5.053577e+00   	1.546849e+05   	2.388146e+07   	1003
-2eaa41c6	29491200       	7.077888e+09   	5.642351e+02   	3.836256e+01   	6.071169e+05   	3.441402e+08   	1076
-492beed5	33177600       	7.077888e+09   	5.636406e+02   	2.269566e+01   	1.431647e+05   	8.082427e+07   	254
-35979d0c	5898240        	2.831155e+08   	4.680338e+01   	8.039032e+00   	1.357298e+03   	6.540029e+04   	29
-d4c4b01b	983040         	7.864320e+06   	2.366977e+01   	3.251832e+00   	2.170518e+04   	5.234533e+05   	917
-
-####################
-# COMB_2
-# number of types devices
-1
-####################
-# DEV_0
-# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, MPI_MS - 5)
-1
-####################
-# DEV_0
-# device id 
-1
-####################
-# DEV_0
-# number of cores 
-1
-##########
-# number of implementations
-1
-#####
-# Model for cuda1_impl0 (Comb2)
-# number of entries
 2
-# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
-0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
-# a		b		c
-nan            	nan            	nan            
-# not multiple-regression-base
-0
-# hash		size		flops		mean (us or J)	dev (us or J)	sum		sum2		n
-d4c4b01b	983040         	7.864320e+06   	2.249494e+01   	2.692057e+00   	3.104302e+03   	7.083120e+04   	138
-35979d0c	5898240        	2.831155e+08   	5.527167e+01   	1.049441e+01   	4.974450e+02   	2.848581e+04   	9
-
 ####################
 # COMB_0
 # number of types devices
@@ -86,7 +17,7 @@ d4c4b01b	983040         	7.864320e+06   	2.249494e+01   	2.692057e+00   	3.10430
 ####################
 # DEV_0
 # device id 
-2
+0
 ####################
 # DEV_0
 # number of cores 
@@ -95,9 +26,9 @@ d4c4b01b	983040         	7.864320e+06   	2.249494e+01   	2.692057e+00   	3.10430
 # number of implementations
 1
 #####
-# Model for cuda2_impl0 (Comb0)
+# Model for cuda0_impl0 (Comb0)
 # number of entries
-2
+1
 # sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
 0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
 # a		b		c
@@ -105,6 +36,37 @@ nan            	nan            	nan
 # not multiple-regression-base
 0
 # hash		size		flops		mean (us or J)	dev (us or J)	sum		sum2		n
-d4c4b01b	983040         	7.864320e+06   	2.278392e+01   	2.977212e+00   	3.896050e+03   	9.028299e+04   	171
-35979d0c	5898240        	2.831155e+08   	5.820240e+01   	8.734084e+00   	2.910120e+02   	1.731902e+04   	5
+2eaa41c6	29491200       	7.077888e+09   	5.500756e+02   	1.910212e+01   	3.918188e+06   	2.157899e+09   	7123
+
+####################
+# COMB_1
+# number of types devices
+1
+####################
+# DEV_0
+# device type (CPU - 0, CUDA - 1, OPENCL - 2, MIC - 3, MPI_MS - 5)
+1
+####################
+# DEV_0
+# device id 
+1
+####################
+# DEV_0
+# number of cores 
+1
+##########
+# number of implementations
+1
+#####
+# Model for cuda1_impl0 (Comb1)
+# number of entries
+1
+# sumlnx	sumlnx2		sumlny		sumlnxlny	alpha		beta		n	minx		maxx
+0.000000e+00   	0.000000e+00   	0.000000e+00   	0.000000e+00   	nan            	nan            	0	0              	0              
+# a		b		c
+nan            	nan            	nan            
+# not multiple-regression-base
+0
+# hash		size		flops		mean (us or J)	dev (us or J)	sum		sum2		n
+2eaa41c6	29491200       	7.077888e+09   	5.484222e+02   	3.101199e+01   	1.286598e+06   	7.078554e+08   	2346
 
