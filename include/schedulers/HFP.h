@@ -11,7 +11,7 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 #include "core/task.h"
-#include "../sched_policies/prio_deque.h"
+#include "sched_policies/prio_deque.h"
 #include <starpu_perfmodel.h>
 #include <stdio.h>
 #include <float.h>
