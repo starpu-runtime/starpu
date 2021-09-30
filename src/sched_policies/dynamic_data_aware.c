@@ -742,18 +742,14 @@ void increment_planned_task_data(struct starpu_task *task, int current_gpu)
 
 /* TODO a supprimer */
 int victim_evicted_compteur = 0;
-int victim_evicted_success_0 = 0;
 int victim_selector_compteur = 0;
 int victim_selector_return_no_victim = 0;
 
-void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim, void *component)
+void dynamic_data_aware_victim_evicted(starpu_data_handle_t victim, void *component)
 {
 	victim_evicted_compteur++;
 	//~ printf("Début de victim evicted avec %p. Success = %d. Nb de fois dans victim evicted total %d.\n", victim, success, victim_evicted_compteur); fflush(stdout);
      /* If a data was not truly evicted I put it back in the list. */
-    if (success == 0)
-    {
-		victim_evicted_success_0++;
 		//~ printf("Nb de fois dans victim evicted avec success == 0 : %d.\n", victim_evicted_success_0);
 		int i = 0;
 			
@@ -763,11 +759,6 @@ void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim,
 			my_planned_task_control->pointer = my_planned_task_control->pointer->next;
 		}
 		my_planned_task_control->pointer->data_to_evict_next = victim;
-    }
-    else
-    {
-		return;
-    }
 }
 
 /* TODO: return NULL ou ne rien faire si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée.
@@ -1437,6 +1428,11 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		reset_all_struct();
 		need_to_reinit = true;
 		iteration++;
+		
+		/* TODO : a suppr car inutile */
+		printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d.\n", victim_selector_compteur, victim_selector_return_no_victim);
+		printf("Nombre d'entrée dans victim evicted = %d.\n", victim_evicted_compteur);
+		
 	}
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
