@@ -68,11 +68,11 @@ then
 fi
 if test "$suname" = "OpenBSD"
 then
-    STARPU_CONFIGURE_OPTIONS="--without-hwloc --disable-mlr"
+    STARPU_CONFIGURE_OPTIONS="--without-hwloc --disable-mlr --enable-maxcpus=2"
 fi
 if test "$suname" = "FreeBSD"
 then
-    STARPU_CONFIGURE_OPTIONS="--disable-fortran"
+    STARPU_CONFIGURE_OPTIONS="--disable-fortran --enable-maxcpus=2"
 fi
 
 export CC=gcc
