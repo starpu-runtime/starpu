@@ -1167,6 +1167,12 @@ int main(int argc, char **argv)
 			gethostname(hostname, 255);
 			PRINTF("%s\t", hostname);
 		}
+		
+		/* Récupération du temps et impression de ce dernier dans un fchier pour faire des courbes. */
+		FILE *f = fopen("Output_maxime/Schedule_time_raw_out.txt", "a");
+		fprintf(f, "%f\n", timing);
+		fclose(f);
+		
 		if (temp_niter > 1) /* We also print the deviance */
 		{
 			double average = timing/niter;

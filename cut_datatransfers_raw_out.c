@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 					
 						if (strcmp(str1, "NUMA") == 0)
 						{
-							printf("+= %f\n", atof(str6));
+							//~ printf("+= %f\n", atof(str6));
 							NUMA_CUDA[i][l] += atof(str6);
 						}
 						else if (strcmp(str1, "CUDA") == 0 && strcmp(str4, "CUDA") == 0)
@@ -184,12 +184,12 @@ int main(int argc, char *argv[])
 					TOTAL[i][j] += NUMA_CUDA[i][j] + CUDA_CUDA[i][j];
 				}
 			}
-			for (i = 0; i < NOMBRE_ALGO_TESTE; i++)
-			{
-				for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++){
-					printf("TOTAL %d = %f.\n", i, TOTAL[i][j]);
-				}
-			}
+			//~ for (i = 0; i < NOMBRE_ALGO_TESTE; i++)
+			//~ {
+				//~ for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++){
+					//~ printf("TOTAL %d = %f.\n", i, TOTAL[i][j]);
+				//~ }
+			//~ }
 			
 			/* Printing in the file */
 			
