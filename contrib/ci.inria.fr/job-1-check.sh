@@ -45,7 +45,13 @@ cd $basename
 
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz ../$tarball
-find $basename -exec touch --date="last hour" {} \; || true
+
+hour=$(date "+%H")
+lasthour=$(echo $hour - 1 | bc )
+today=$(date "+%Y-%m-%d")
+
+find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true
+
 cd $basename
 mkdir build
 cd build
