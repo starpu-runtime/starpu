@@ -3,8 +3,7 @@
 
 start=`date +%s`
 #~ export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
-make -C src/ -j 6
-#~ make -j 6
+
 
 #~ libtool --mode=execute strace ./examples/mult/sgemm
 
@@ -50,8 +49,11 @@ make -C src/ -j 6
 #~ setarch linux64 -R libtool --mode=execute gdb --args
 #~ 2>&1 | tee Output_maxime/terminal_output.txt
 
-N=80
-NGPU=2
+#~ make -C src/ -j 6
+make -j 6
+
+N=40
+NGPU=1
 ORDO="dynamic-data-aware"
 #~ ORDO="dmdar"
 #~ ORDO="eager"
@@ -70,7 +72,7 @@ HOST="gemini-1-ipdps"
 ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
-#~ SEED=1 STARPU_SCHED=${ORDO} STARPU_SCHED_READY=$((READY)) DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_BUS_STATS=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 2>&1 | tee Output_maxime/terminal_output.txt
+PRINTF=1 SEED=1 STARPU_SCHED=${ORDO} STARPU_SCHED_READY=$((READY)) DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_BUS_STATS=1 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1 2>&1 | tee Output_maxime/terminal_output.txt
 
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
 

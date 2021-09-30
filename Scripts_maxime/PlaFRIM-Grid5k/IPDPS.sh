@@ -265,7 +265,7 @@ then
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		else
-			echo "NO HFP + >1 GPU"
+		  echo "NO HFP + >1 GPU"
 		  echo "############## HMETIS + TASK STEALING ##############"
 		    NB_ALGO_TESTE=7
 		    echo "############## Modular eager prefetching ##############"
