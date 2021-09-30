@@ -1,6 +1,9 @@
 /** La tête du fichier de sortie sera comme suit :
  * N NUMA->CUDA(ALGO1) NUMA->CUDA(ALGO2) CUDA->CUDA(ALGO1) CUDA->CUDA(ALGO2) NUMA->CUDA(ALGO1)+CUDA->CUDA(ALGO1) NUMA->CUDA(ALGO1)+CUDA->CUDA(ALGO2)
  */
+ 
+//~ Pour me lancer : ./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${FICHIER_RAW_DT:0} Output_maxime/Data/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
+
 
 #include <stdlib.h>
 #include <stdio.h>
