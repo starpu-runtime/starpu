@@ -3,15 +3,6 @@
 
 #define EVICTION_STRATEGY_DYNAMIC_DATA_AWARE /* 0 we use default dynamic data aware without managing evictions. */
 
-//~ /* A supprimer */
-//~ time_t time_start_scheduling;
-//~ time_t time_end_scheduling;
-//~ time_t time_total_scheduling;
-//~ time_t time_start_evicting;
-//~ time_t time_end_evicting;
-//~ time_t time_total_evicting;
-//~ #include <time.h>
-
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
 struct dynamic_data_aware_sched_data
@@ -120,7 +111,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 void dynamic_data_aware_scheduling(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 
 /** For eviction **/
-void dynamic_data_aware_victim_evicted(int success, starpu_data_handle_t victim, void *component);
+void dynamic_data_aware_victim_evicted(starpu_data_handle_t victim, void *component);
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g);
 starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task, int current_gpu);

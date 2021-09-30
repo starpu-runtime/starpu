@@ -803,9 +803,9 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	    if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Echec eviction de %p dans try_to_throw_mem_chunk.\n", handle); }
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
-		_STARPU_SCHED_BEGIN;
-		victim_evicted(handle, data_victim_selector);
-		_STARPU_SCHED_END;
+			_STARPU_SCHED_BEGIN;
+			victim_evicted(handle, data_victim_selector);
+			_STARPU_SCHED_END;
 	    }
 	}
 	return freed;
