@@ -1,28 +1,51 @@
 #!/usr/bin/bash
 start=`date +%s`
-#~ export STARPU_PERF_MODEL_DIR=/usr/local/share/starpu/perfmodels/sampling
-#export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
-ulimit -S -s 10000000
+ulimit -S -s 5000000
 make -C src/ -j 100
-#~ sudo make -j 6
 
-N=$1
+N=10
+NGPU=3
+#~ ORDO="dynamic-data-aware"
+#~ ORDO="dmdar"
+#~ ORDO="eager"
+#~ BW=10726
+CM=500
+#~ EVICTION=0
+EVICTION=1
+READY=0
+#~ READY=1
+TH=10
+CP=5
+HOST="gemini-1-ipdps"
+#~ HOST="gemini-2-ipdps"
+#~ HOST="attila"
+export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
+NB_TAILLE_TESTE=2
+FICHIER_BUS=Output_maxime/GFlops_raw_out_2.txt
+FICHIER_RAW_DT=Output_maxime/GFlops_raw_out_3.txt
+truncate -s 0 ${FICHIER_BUS}
+truncate -s 0 ${FICHIER_RAW_DT}
+NCOMBINAISONS=$((NGPU*2+(NGPU-1)*NGPU+3))
 
-#~ ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
 
-#HOST="gemini-2"
-#~ N=25
-		NB_TAILLE_TESTE=10
-#		echo "############## HFPU TH30 ##############"
-		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			do 
-			N=$((i*10))
-			start2=`date +%s`
-			SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=2 STARPU_NOPENCL=0 STARPU_BUS_STATS=1 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 11
-			end2=`date +%s`
-			echo $((end2-start2)) "secondes"
-			done
-#STARPU_SCHED=HFP HMETIS=3 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=2 STARPU_NOPENCL=0 STARPU_BUS_STATS=1 ./examples/mult/sgemm -xy $((960*100)) -nblocks 100 -iter 11
+echo "############## DD ##############"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	N=$((5*i))
+	STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
+	sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+done
+echo "############## Modular eager prefetching ##############"
+for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	do 
+	N=$((5*i))
+	STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
+	sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+done
+
+gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
+./cut_datatransfers_raw_out $NB_TAILLE_TESTE 2 5 0 $NGPU ${FICHIER_RAW_DT:0} Output_maxime/test.txt
+
 end=`date +%s`
 runtime=$((end-start))
 echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
