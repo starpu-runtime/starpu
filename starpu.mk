@@ -75,12 +75,9 @@ showsuite:
 	exit $$RET
 
 if STARPU_SIMGRID
-STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
-STARPU_HOSTNAME=mirage
-MALLOC_PERTURB_=0
-export STARPU_PERF_MODEL_DIR
-export STARPU_HOSTNAME
-export MALLOC_PERTURB_
+export STARPU_PERF_MODEL_DIR=$(abs_top_srcdir)/tools/perfmodels/sampling
+export STARPU_HOSTNAME=mirage
+export MALLOC_PERTURB_=0
 
 env:
 	@echo export STARPU_PERF_MODEL_DIR=$(STARPU_PERF_MODEL_DIR)
@@ -89,16 +86,13 @@ env:
 endif
 
 if STARPU_SIMGRID
-STARPU_SIMGRID=1
-export STARPU_SIMGRID
+export STARPU_SIMGRID=1
 endif
 
 if STARPU_QUICK_CHECK
-STARPU_QUICK_CHECK=1
-export STARPU_QUICK_CHECK
+export STARPU_QUICK_CHECK=1
 endif
 
 if STARPU_LONG_CHECK
-STARPU_LONG_CHECK=1
-export STARPU_LONG_CHECK
+export STARPU_LONG_CHECK=1
 endif
