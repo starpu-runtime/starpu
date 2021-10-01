@@ -704,6 +704,7 @@ zero.parquet
 Output_maxime/input_hMETIS.txt.part.2
 Output_maxime/input_hMETIS.txt.part.4
 Output_maxime/GFlops_raw_out_4.txt
+Output_maxime/Schedule_time_raw_out.txt
 Output_maxime/input_hMETIS.txt.part.6
 cut_time_raw_out
 Output_maxime/input_hMETIS.txt.part.8

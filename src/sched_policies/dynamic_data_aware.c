@@ -753,7 +753,7 @@ double time_end_evicted = 0;
 double time_total_evicted = 0;
 */
 
-void dynamic_data_aware_victim_evicted(starpu_data_handle_t victim, void *component)
+void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 {
 	//victim_evicted_compteur++;
 	
@@ -1384,7 +1384,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	/* TODO: Aussi faire cela pour HFP. */
 	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	{ 
-	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_evicted, component); 
+	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_eviction_failed, component); 
 	}
 	return component;
 }
