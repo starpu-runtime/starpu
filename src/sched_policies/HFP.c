@@ -2656,7 +2656,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
  */
 void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
 {
-	printf("In hmetis input already generated\n"); fflush(stdout);
+	//printf("In hmetis input already generated\n"); fflush(stdout);
 	NT = starpu_task_list_size(l);
 	int i = 0; struct starpu_task *task_1;
 	int j = 0;
@@ -2671,7 +2671,7 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	}
 	p->first_link = p->temp_pointer_1;
 	
-	printf("N = %d. NT = %d\n", N, NT);  fflush(stdout);
+	//printf("N = %d. NT = %d\n", N, NT);  fflush(stdout);
 	
 	char str[2];
 	char Nchar[4];
@@ -2686,7 +2686,7 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	strcat(path2, Nchar);
 	strcat(path2, ".txt");
 	
-	printf("Le fichier ouvert sera : %s.\n", path2);  fflush(stdout);
+	//printf("Le fichier ouvert sera : %s.\n", path2);  fflush(stdout);
 	
 	FILE *f_2 = fopen(path2, "r");
 		
@@ -2700,15 +2700,15 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 			exit(0);
 		}
 		p->temp_pointer_1 = p->first_link;
-		printf("reste liste chainée, number = %d\n", number); fflush(stdout);
+		//printf("reste liste chainée, number = %d\n", number); fflush(stdout);
 		for (j = 0; j < number; j++) 
 		{
-			printf("next gpu\n"); fflush(stdout);
+			//printf("next gpu\n"); fflush(stdout);
 			p->temp_pointer_1 = p->temp_pointer_1->next;
 		}
 		task_1 = starpu_task_list_pop_front(l);
-		printf("task = %p.\n", task_1); fflush(stdout);
-		printf("pevious time = %f\n", p->temp_pointer_1->expected_time); fflush(stdout);
+		//printf("task = %p.\n", task_1); fflush(stdout);
+		//printf("pevious time = %f\n", p->temp_pointer_1->expected_time); fflush(stdout);
 		p->temp_pointer_1->expected_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
 		p->temp_pointer_1->expected_package_computation_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
 		p->temp_pointer_1->nb_task_in_sub_list++;		
