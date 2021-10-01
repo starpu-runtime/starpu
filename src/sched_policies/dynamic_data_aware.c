@@ -740,23 +740,24 @@ void increment_planned_task_data(struct starpu_task *task, int current_gpu)
  */
  /* starpu_data_handle_t planned_eviction; */
 
-/* TODO a supprimer */
-//~ int victim_evicted_compteur = 0;
-//~ int victim_selector_compteur = 0;
-//~ int victim_selector_return_no_victim = 0;
+/* TODO a supprimer
+int victim_evicted_compteur = 0;
+int victim_selector_compteur = 0;
+int victim_selector_return_no_victim = 0;
 
-//~ double time_start_selector = 0;
-//~ double time_end_selector = 0;
-//~ double time_total_selector = 0;
-//~ double time_start_evicted = 0;
-//~ double time_end_evicted = 0;
-//~ double time_total_evicted = 0;
+double time_start_selector = 0;
+double time_end_selector = 0;
+double time_total_selector = 0;
+double time_start_evicted = 0;
+double time_end_evicted = 0;
+double time_total_evicted = 0;
+*/
 
 void dynamic_data_aware_victim_evicted(starpu_data_handle_t victim, void *component)
 {
-	//~ victim_evicted_compteur++;
+	//victim_evicted_compteur++;
 	
-	//~ time_start_evicted = starpu_timing_now();
+	//time_start_evicted = starpu_timing_now();
 	
 	//~ printf("Début de victim evicted avec %p. Success = %d. Nb de fois dans victim evicted total %d.\n", victim, success, victim_evicted_compteur); fflush(stdout);
      /* If a data was not truly evicted I put it back in the list. */
@@ -770,18 +771,18 @@ void dynamic_data_aware_victim_evicted(starpu_data_handle_t victim, void *compon
 		}
 		my_planned_task_control->pointer->data_to_evict_next = victim;
 		
-	//~ time_end_evicted = starpu_timing_now();
-	//~ time_total_evicted += (time_end_evicted - time_start_evicted);
+	//time_end_evicted = starpu_timing_now();
+	//time_total_evicted += (time_end_evicted - time_start_evicted);
 }
 
 /* TODO: return NULL ou ne rien faire si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée.
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
-	//~ time_start_selector = starpu_timing_now();
-	//~ printf("debut %f time \n", time_start_selector);
-	//~ victim_selector_compteur++;
-    //~ printf("Début de victim selector pour la %dème fois.\n", victim_selector_compteur); fflush(stdout); 	
+	//time_start_selector = starpu_timing_now();
+	//printf("debut %f time \n", time_start_selector);
+	//victim_selector_compteur++;
+    //printf("Début de victim selector pour la %dème fois.\n", victim_selector_compteur); fflush(stdout); 	
     int i = 0;
     //~ int j = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
@@ -800,8 +801,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		starpu_data_handle_t temp_handle = my_planned_task_control->pointer->data_to_evict_next;
 		my_planned_task_control->pointer->data_to_evict_next = NULL;
 		
-		//~ time_end_selector = starpu_timing_now();
-		//~ time_total_selector += (time_end_selector - time_start_selector);
+		//time_end_selector = starpu_timing_now();
+		//time_total_selector += (time_end_selector - time_start_selector);
 		
 		return temp_handle;
     }
@@ -901,11 +902,11 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
      */
     if (min_number_task_in_pulled_task == INT_MAX)
     {
-		//~ victim_selector_return_no_victim++;
+		//victim_selector_return_no_victim++;
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector\n"); }
 		
-				//~ time_end_selector = starpu_timing_now();
-		//~ time_total_selector += (time_end_selector - time_start_selector);
+		//time_end_selector = starpu_timing_now();
+		//time_total_selector += (time_end_selector - time_start_selector);
 		
 		return STARPU_DATA_NO_VICTIM;
     }
@@ -926,11 +927,11 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		/* Si c'est un prefetch qui demande une eviction de ce qui est utile pour les tâches de pulled task je renvoie NO VICTIM si >= à STARPU_TASK_PREFETCH */
 		if (is_prefetch >= 1)
 		{
-			//~ victim_selector_return_no_victim++;
+			//victim_selector_return_no_victim++;
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector.\n"); }
 			
-					//~ time_end_selector = starpu_timing_now();
-		//~ time_total_selector += (time_end_selector - time_start_selector);
+			//time_end_selector = starpu_timing_now();
+			//time_total_selector += (time_end_selector - time_start_selector);
 			
 			return STARPU_DATA_NO_VICTIM;
 		}
@@ -948,11 +949,11 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     /* Ca devrait pas arriver a enleevr et a tester */
     if (returned_handle == NULL)
     {
-		//~ victim_selector_return_no_victim++;
+		//victim_selector_return_no_victim++;
 		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector car NULL dans returned_handle de belady planned ou pulled task.\n"); }
 		
-				//~ time_end_selector = starpu_timing_now();
-		//~ time_total_selector += (time_end_selector - time_start_selector);
+		//time_end_selector = starpu_timing_now();
+		//time_total_selector += (time_end_selector - time_start_selector);
 		
 		return STARPU_DATA_NO_VICTIM; 
     }
@@ -1017,9 +1018,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	
     if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return %p in victim selector.\n", returned_handle); }
     
-    //~ time_end_selector = starpu_timing_now();
-	//~ time_total_selector += (time_end_selector - time_start_selector);
-    //~ printf("fin %f time \n", time_end_selector);
+    //time_end_selector = starpu_timing_now();
+    //time_total_selector += (time_end_selector - time_start_selector);
+    //printf("fin %f time \n", time_end_selector);
     return returned_handle;
 }
 
@@ -1385,7 +1386,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	{ 
 	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_evicted, component); 
 	}
-	
 	return component;
 }
 
@@ -1465,8 +1465,21 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		iteration++;
 		
 		/* TODO : a suppr car inutile */
-		//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %f.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
-		//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %f.\n", victim_evicted_compteur, time_total_evicted);
+		//printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %f.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
+		//printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %f.\n", victim_evicted_compteur, time_total_evicted);
+
+	/* TODO : assupprimer car inutile */
+	//victim_evicted_compteur = 0;
+//victim_selector_compteur = 0;
+//victim_selector_return_no_victim = 0;
+
+//time_start_selector = 0;
+//time_end_selector = 0;
+//time_total_selector = 0;
+//time_start_evicted = 0;
+//time_end_evicted = 0;
+//time_total_evicted = 0;
+
 		
 	}
     starpu_sched_component_worker_pre_exec_hook(task, sci);

@@ -12,7 +12,7 @@ FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
 FICHIER_BUS=Output_maxime/GFlops_raw_out_2.txt
 FICHIER_RAW_DT=Output_maxime/GFlops_raw_out_3.txt
 FICHIER_TIME=Output_maxime/GFlops_raw_out_4.txt
-FICHIER_SCHEDULE_TIME=Output_maxime/Schedule_time_raw_out.txt
+FICHIER_SCHEDULE_TIME=${PATH_STARPU}/starpu/Output_maxime/Schedule_time_raw_out.txt
 GPU=Gemini
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 5000000
