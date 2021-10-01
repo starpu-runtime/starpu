@@ -753,10 +753,9 @@ double time_end_evicted = 0;
 double time_total_evicted = 0;
 */
 
-double time_start = 0;
-double time_end = 0;
+//double time_start = 0;
 
-void dynamic_data_aware_victim_evicted(starpu_data_handle_t victim, void *component)
+void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 {
 	//victim_evicted_compteur++;
 	
@@ -1387,11 +1386,11 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	/* TODO: Aussi faire cela pour HFP. */
 	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	{ 
-	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_evicted, component); 
+	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_eviction_failed, component); 
 	}
 
 	/* TODO a suppr */
-	time_start = starpu_timing_now();
+	//time_start = starpu_timing_now();
 
 	return component;
 }
@@ -1486,7 +1485,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 //time_start_evicted = 0;
 //time_end_evicted = 0;
 //time_total_evicted = 0;
-	printf("Temps total = %f start = %f.\n", starpu_timing_now() - time_start, time_start);
+	///printf("Temps total = %f start = %f.\n", starpu_timing_now() - time_start, time_start);
 		
 	}
     starpu_sched_component_worker_pre_exec_hook(task, sci);

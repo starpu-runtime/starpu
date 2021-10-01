@@ -648,7 +648,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
    reused without any free/alloc operations (that are very costly with CUDA).
 */
 typedef starpu_data_handle_t starpu_data_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
-typedef void starpu_data_victim_evicted(starpu_data_handle_t victim, void *component);
+typedef void starpu_data_victim_eviction_failed(starpu_data_handle_t victim, void *component);
 /**
    Register a data victim selector.
 
@@ -665,7 +665,7 @@ typedef void starpu_data_victim_evicted(starpu_data_handle_t victim, void *compo
 
    This is very experimental for now.
 */
-void starpu_data_register_victim_selector(starpu_data_victim_selector selector, starpu_data_victim_evicted evicted, void *component);
+void starpu_data_register_victim_selector(starpu_data_victim_selector selector, starpu_data_victim_eviction_failed evicted, void *component);
 #define STARPU_DATA_NO_VICTIM ((starpu_data_handle_t) -1)
 
 /**

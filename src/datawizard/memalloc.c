@@ -623,12 +623,12 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
  * pour Belady ou dynamic outer eviction. Permetra de coder Belady multi gpu pour HFP */
 static starpu_data_victim_selector *victim_selector;
 void *data_victim_selector;
-static starpu_data_victim_evicted *victim_evicted;
-void starpu_data_register_victim_selector(starpu_data_victim_selector selector, starpu_data_victim_evicted evicted, void *component)
+static starpu_data_victim_eviction_failed *victim_eviction_failed;
+void starpu_data_register_victim_selector(starpu_data_victim_selector selector, starpu_data_victim_eviction_failed evicted, void *component)
 {
 	victim_selector = selector;
 	data_victim_selector = component;
-	victim_evicted = evicted;
+	victim_eviction_failed = evicted;
 }
 //~ void starpu_data_register_victim_evicted(starpu_data_victim_evicted evicted, starpu_data_victim_evicted evicted, void *component)
 //~ {
@@ -804,7 +804,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 			_STARPU_SCHED_BEGIN;
-			victim_evicted(handle, data_victim_selector);
+			victim_eviction_failed(handle, data_victim_selector);
 			_STARPU_SCHED_END;
 	    }
 	}
@@ -1015,7 +1015,7 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 			if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 			{
 			    _STARPU_SCHED_BEGIN;
-			    victim_evicted(victim, data_victim_selector);
+			    victim_eviction_failed(victim, data_victim_selector);
 			    _STARPU_SCHED_END;
 			}
 			return 0;
@@ -1077,13 +1077,13 @@ restart:
 	_starpu_spin_unlock(&mc_lock[node]);
 	
 	//~ printf("Succes vaut : %d dans try_to_reuse_potentially_in_use_mc.\n", success);
-	if (victim && victim_evicted != NULL && success == 0)
+	if (victim && victim_eviction_failed != NULL && success == 0)
 	{
 	    if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc.\n"); }
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 			_STARPU_SCHED_BEGIN;
-			victim_evicted(victim, data_victim_selector);
+			victim_eviction_failed(victim, data_victim_selector);
 			_STARPU_SCHED_END;
 	    }
 	}
@@ -1242,13 +1242,13 @@ restart2:
 	_starpu_spin_unlock(&mc_lock[node]);
 	
 	/* appeler fonction call_victim_slector(succes) */
-	if (victim && victim_evicted != NULL && freed == 0)
+	if (victim && victim_eviction_failed != NULL && freed == 0)
 	{
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Calling victim evicted in free_potentially_in_use_mc.\n"); }
 			_STARPU_SCHED_BEGIN;
-			victim_evicted(victim, data_victim_selector);
+			victim_eviction_failed(victim, data_victim_selector);
 			_STARPU_SCHED_END;
 	    }
 	}	

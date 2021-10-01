@@ -52,8 +52,8 @@ start=`date +%s`
 #~ make -C src/ -j 6
 make -j 6
 
-N=40
-NGPU=1
+N=80
+NGPU=2
 ORDO="dynamic-data-aware"
 #~ ORDO="dmdar"
 #~ ORDO="eager"
@@ -61,7 +61,7 @@ ORDO="dynamic-data-aware"
 CM=500
 #~ EVICTION=0
 EVICTION=1
-READY=0
+READY=1
 #~ READY=1
 TH=10
 CP=5
