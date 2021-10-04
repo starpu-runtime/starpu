@@ -249,6 +249,14 @@ typedef void (*starpu_max_fpga_func_t)(void **, void*);
 */
 #define STARPU_SPECIFIC_NODE_LOCAL_OR_CPU (-5)
 
+/**
+   Value to be set in the starpu_codelet::nodes field to make StarPU not actually
+   put the data in any particular memory, i.e. the task will only get the
+   sequential consistency dependencies, but not actually trigger any data
+   transfer.
+*/
+#define STARPU_SPECIFIC_NODE_NONE (-6)
+
 struct starpu_task;
 
 /**

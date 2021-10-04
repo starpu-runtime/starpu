@@ -30,6 +30,22 @@
 
 unsigned data, data2;
 
+void specific3_kernel(void *descr[], void *arg)
+{
+	(void)arg;
+}
+
+static struct starpu_codelet specific3_cl =
+{
+	.cpu_funcs = {specific3_kernel},
+	.cuda_funcs = {specific3_kernel},
+	.opencl_funcs = {specific3_kernel},
+	.nbuffers = 2,
+	.modes = {STARPU_RW, STARPU_RW},
+	.specific_nodes = 1,
+	.nodes = {STARPU_SPECIFIC_NODE_NONE, STARPU_SPECIFIC_NODE_NONE},
+};
+
 void specific2_kernel(void *descr[], void *arg)
 {
 	(void)arg;
@@ -131,7 +147,7 @@ int main(void)
 	starpu_data_handle_t data_handle, data_handle2;
 
 #ifdef STARPU_QUICK_CHECK
-	unsigned ntasks = 10;
+	unsigned ntasks = 12;
 #else
 	unsigned ntasks = 1000;
 #endif
@@ -160,10 +176,12 @@ int main(void)
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
-		if (i%3 == 0)
+		if (i%4 == 0)
 			task->cl = &specific_cl;
-		else if (i%3 == 1)
+		else if (i%4 == 1)
 			task->cl = &specific2_cl;
+		else if (i%4 == 2)
+			task->cl = &specific3_cl;
 		else
 			task->cl = &cl;
 		task->handles[0] = data_handle;
@@ -177,7 +195,7 @@ int main(void)
 	starpu_data_unregister(data_handle);
 	starpu_data_unregister(data_handle2);
 
-	ret = (data == ntasks) ? EXIT_SUCCESS : EXIT_FAILURE;
+	ret = (data == (ntasks*3) / 4) ? EXIT_SUCCESS : EXIT_FAILURE;
 
 #ifdef STARPU_USE_OPENCL
         int ret2 = starpu_opencl_unload_opencl(&opencl_program);

@@ -364,7 +364,9 @@ void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, s
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle;
-		unsigned buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
+		int buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
+		if (buffer_node < 0)
+			continue;
 		enum starpu_data_access_mode mode;
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
@@ -398,7 +400,9 @@ int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
 	for (index = 0; index < nbuffers; index++)
 	{
 		starpu_data_handle_t handle;
-		unsigned buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
+		int buffer_node = _starpu_task_data_get_node_on_worker(task, index, worker);
+		if (buffer_node < 0)
+			continue;
 
 		handle = STARPU_TASK_GET_HANDLE(task, index);
 

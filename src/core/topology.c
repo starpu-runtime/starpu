@@ -348,6 +348,8 @@ int _starpu_task_data_get_node_on_node(struct starpu_task *task, unsigned index,
 			}
 			break;
 		}
+	case STARPU_SPECIFIC_NODE_NONE:
+		return -1;
 	}
 	return node;
 }
@@ -402,6 +404,8 @@ int _starpu_task_data_get_node_on_worker(struct starpu_task *task, unsigned inde
 			}
 			break;
 		}
+	case STARPU_SPECIFIC_NODE_NONE:
+		return -1;
 	}
 	return node;
 }

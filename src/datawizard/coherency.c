@@ -954,6 +954,9 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 		else
 			node = _starpu_task_data_get_node_on_worker(task, index, worker);
 
+		if (node < 0)
+			continue;
+
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		if (prefetch == STARPU_PREFETCH)
 			task_prefetch_data_on_node(handle, node, replicate, mode, task, prio);
@@ -1113,6 +1116,9 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 			(mode >> STARPU_MODE_SHIFT) >= (STARPU_SHIFTED_MODE_MAX >> STARPU_MODE_SHIFT))
 			STARPU_ASSERT_MSG(0, "mode %d (0x%x) is bogus\n", mode, mode);
 
+		if (node < 0)
+			continue;
+
 		struct _starpu_data_replicate *local_replicate;
 
 		if (index && descrs[index-1].handle == descrs[index].handle)
@@ -1209,6 +1215,9 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		starpu_data_handle_t handle = descrs[index].handle;
 		enum starpu_data_access_mode mode = descrs[index].mode;
 		int node = descrs[index].node;
+
+		if (node < 0)
+			continue;
 
 		struct _starpu_data_replicate *local_replicate;
 		int needs_init;
