@@ -935,10 +935,31 @@ int main(int argc, char **argv)
 				starpu_resume();
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
-				if (iter != 0)
+				//~ if (iter != 0)
+				//~ {
+					//~ timing += end - start;
+					//~ timing_square += (end-start) * (end-start);
+				//~ }
+				if (temp_niter > 1)
 				{
-					timing += end - start;
-					timing_square += (end-start) * (end-start);
+					if (iter != 0)
+					{
+						timing += end - start;
+						timing_square += (end-start) * (end-start);
+					}
+						
+					for (x = 0; x < nslicesx; x++)
+					for (y = 0; y < nslicesy; y++)
+					{
+						starpu_data_acquire(starpu_data_get_sub_data(A_handle, 1, y), STARPU_W);
+						starpu_data_release(starpu_data_get_sub_data(A_handle, 1, y));
+						starpu_data_acquire(starpu_data_get_sub_data(B_handle, 1, x), STARPU_W);
+						starpu_data_release(starpu_data_get_sub_data(B_handle, 1, x));
+					}
+				}
+				else 
+				{
+					timing = end - start;
 				}
 			}
 			//End If environment variable RANDOM_TASK_ORDER == 1
