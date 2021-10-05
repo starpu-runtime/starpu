@@ -564,7 +564,11 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 	STARPU_ASSERT(new_replicate->data_interface);
 	STARPU_ASSERT(data_interface);
-	memcpy(new_replicate->data_interface, data_interface, mc->size_interface);
+
+	if (mc->ops->reuse_data_on_node)
+		mc->ops->reuse_data_on_node(new_replicate->data_interface, data_interface, node);
+	else
+		memcpy(new_replicate->data_interface, data_interface, mc->size_interface);
 
 	if (!old_replicate)
 	{
@@ -1608,7 +1612,10 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	/* Also keep the interface parameters and pointers, for later reuse
 	 * while detached, or freed */
 	_STARPU_MALLOC(mc->chunk_interface, mc->size_interface);
-	memcpy(mc->chunk_interface, replicate->data_interface, mc->size_interface);
+	if (mc->ops->reuse_data_on_node)
+		mc->ops->reuse_data_on_node(mc->chunk_interface, replicate->data_interface, node);
+	else
+		memcpy(mc->chunk_interface, replicate->data_interface, mc->size_interface);
 
 	/* This memchunk doesn't have to do with the data any more. */
 	replicate->mc = NULL;
@@ -1726,7 +1733,10 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 		size = 1;
 	char data_interface[size];
 
-	memcpy(data_interface, replicate->data_interface, handle->ops->interface_size);
+	if (handle->ops->reuse_data_on_node)
+		handle->ops->reuse_data_on_node(data_interface, replicate->data_interface, dst_node);
+	else
+		memcpy(data_interface, replicate->data_interface, handle->ops->interface_size);
 
 	/* Take temporary reference on the replicate */
 	replicate->refcnt++;
@@ -1856,8 +1866,13 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 		allocated_memory = 0;
 	}
 	else
+	{
 		/* Install newly-allocated interface */
-		memcpy(replicate->data_interface, data_interface, handle->ops->interface_size);
+		if (handle->ops->reuse_data_on_node)
+			handle->ops->reuse_data_on_node(replicate->data_interface, data_interface, dst_node);
+		else
+			memcpy(replicate->data_interface, data_interface, handle->ops->interface_size);
+	}
 
 out:
 	return allocated_memory;
