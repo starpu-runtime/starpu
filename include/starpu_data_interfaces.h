@@ -348,6 +348,15 @@ struct starpu_data_interface_ops
 	void 		 (*free_data_on_node)		(void *data_interface, unsigned node);
 
 	/**
+	   Reuse on the given node the buffers of the provided interface
+
+	   This method is optional, mostly useful when also defining
+	   alloc_footprint to share tiles of the same allocation size but
+	   different shapes
+	*/
+	void 		 (*reuse_data_on_node)		(void *data_interface, const void *new_interface, unsigned node);
+
+	/**
 	   Initialize the interface.
 	   This method is optional. It is called when initializing the
 	   handler on all the memory nodes.

@@ -32,6 +32,7 @@ static void *matrix_to_pointer(void *data_interface, unsigned node);
 static int matrix_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_matrix_buffer_on_node(void *data_interface, unsigned node);
+static void reuse_matrix_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node);
 static size_t matrix_interface_get_size(starpu_data_handle_t handle);
 static size_t matrix_interface_get_alloc_size(starpu_data_handle_t handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);
@@ -52,6 +53,7 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.to_pointer = matrix_to_pointer,
 	.pointer_is_inside = matrix_pointer_is_inside,
 	.free_data_on_node = free_matrix_buffer_on_node,
+	.reuse_data_on_node = reuse_matrix_buffer_on_node,
 	.copy_methods = &matrix_copy_data_methods_s,
 	.get_size = matrix_interface_get_size,
 	.get_alloc_size = matrix_interface_get_alloc_size,
@@ -510,6 +512,16 @@ static void free_matrix_buffer_on_node(void *data_interface, unsigned node)
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface;
 
 	starpu_free_on_node(node, matrix_interface->dev_handle, matrix_interface->allocsize);
+}
+
+static void reuse_matrix_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node)
+{
+	struct starpu_matrix_interface *matrix_interface = data_interface;
+	const struct starpu_matrix_interface *new_matrix_interface = new_data_interface;
+
+	matrix_interface->ptr = new_matrix_interface->ptr;
+	matrix_interface->dev_handle = new_matrix_interface->dev_handle;
+	matrix_interface->offset = new_matrix_interface->offset;
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
