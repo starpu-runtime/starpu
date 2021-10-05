@@ -70,6 +70,7 @@ Small features:
     1 to enable FxT trace recording.
   * Deprecate starpu_free() and add new function starpu_free_noflag()
     to specify allocated size.
+  * Reuse matrix tiles that have different shapes but same allocation size.
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
