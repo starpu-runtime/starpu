@@ -1038,7 +1038,6 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     starpu_data_handle_t returned_handle = NULL;
     
     //print_pulled_task_one_gpu(g, node);
-    
     for (i = 0; i < nb_data_on_node; i++)
     {
 		if (starpu_data_can_evict(data_tab[i], node, is_prefetch))
@@ -1046,6 +1045,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 			next_use = 0;
 			for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
 			{
+				printf("On %p\n", p->pointer_to_pulled_task); fflush(stdout);
 				for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
 				{
 					next_use++;
@@ -1419,8 +1419,9 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
+    STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 	/* MUTEX + MUTEX DANS BELADY */
+    printf("Get task done on %p\n", task); fflush(stdout);
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     int i = 0;
 
@@ -1434,6 +1435,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		}
 	}
 	
+    //STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 
     /* Je me place sur la liste correspondant au bon gpu. */
     my_pulled_task_control->pointer = my_pulled_task_control->first;
@@ -1441,25 +1443,21 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     {
 		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
     }
-        
+    
+    struct pulled_task *temp = NULL;
+
     /* J'efface la tâche dans la liste de tâches */
     if (!pulled_task_list_empty(my_pulled_task_control->pointer->ptl))
     {		
-		pulled_task_list_pop_front(my_pulled_task_control->pointer->ptl);
+	    	//STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 		
-		/* Je décrémente dans les données le nb de tâches dans pulled task */
-		/* Je mets le if on evince car 1. c'est inutile si j'évince pas et 2. ca fais crasher le code si ready est activé. */
-		//if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
-		//{
-			//for (i = 0; i < STARPU_TASK_GET_NBUFFERS(pt->pointer_to_pulled_task); i++)
-			//{
-				//struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(pt->pointer_to_pulled_task, i)->user_data;
-				//hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] - 1;
-				//STARPU_TASK_GET_HANDLE(pt->pointer_to_pulled_task, i)->user_data = hud;
-			//} 
-		//}
+		temp = pulled_task_list_pop_front(my_pulled_task_control->pointer->ptl);
+		printf("Popped task in get task done is %p.\n", temp->pointer_to_pulled_task); fflush(stdout);	
+    		//STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
+
     }
-    
+    STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
+
     /* Reset pour prochaine itération */
     //~ printf("NT_dynamic_outer = %d, nb task done = %d dans get task done\n", NT_dynamic_outer, number_task_out); fflush(stdout);
     if (NT_dynamic_outer - 1 == number_task_out)
@@ -1489,7 +1487,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		time_total_belady = 0;
 		time_total_evicted = 0;		
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
+	//STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
