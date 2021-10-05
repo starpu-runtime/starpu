@@ -2468,7 +2468,7 @@ void print_order_in_file_hfp (struct paquets *p)
  */
 void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
 {
-	printf("In hmetis\n");
+	//~ printf("In hmetis with %d GPUs\n", nb_gpu);
 	FILE *f = fopen("Output_maxime/temp_input_hMETIS.txt", "w+");
 	NT = 0;
 	int i = 0; struct starpu_task *task_1; struct starpu_task *task_2; struct starpu_task *task_3; int NT = 0; bool first_write_on_line = true; bool already_counted = false;
@@ -2573,7 +2573,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		strcat(system_call, " ");
         strcat(system_call, buffer);
     }
-	printf("System call will be: %s\n", system_call);
+	//~ printf("System call will be: %s\n", system_call);
 	int cr = system(system_call);
 	if (cr != 0) 
 	{
