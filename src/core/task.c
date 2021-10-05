@@ -369,7 +369,7 @@ void _starpu_task_destroy(struct starpu_task *task)
 	/* If starpu_task_destroy is called in a callback, we just set the destroy
 	   flag. The task will be destroyed after the callback returns */
 	if (task == starpu_task_get_current()
-	    && _starpu_get_local_worker_status() == STATUS_CALLBACK)
+	    && _starpu_get_local_worker_status() & STATUS_CALLBACK)
 	{
 		task->destroy = 1;
 	}

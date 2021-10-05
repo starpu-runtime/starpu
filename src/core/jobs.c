@@ -447,10 +447,12 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			int profiling = starpu_profiling_status_get();
 			if (profiling && task->profiling_info)
 				_starpu_clock_gettime(&task->profiling_info->callback_start_time);
+			enum _starpu_worker_status old_status = _starpu_get_local_worker_status();
 
 			/* so that we can check whether we are doing blocking calls
 			 * within the callback */
-			_starpu_set_local_worker_status(STATUS_CALLBACK);
+			if (!(old_status & STATUS_CALLBACK))
+				_starpu_add_local_worker_status(STATUS_CALLBACK);
 
 			/* Perhaps we have nested callbacks (eg. with chains of empty
 			 * tasks). So we store the current task and we will restore it
@@ -466,7 +468,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 			_starpu_set_current_task(current_task);
 
-			_starpu_set_local_worker_status(STATUS_UNKNOWN);
+			if (!(old_status & STATUS_CALLBACK))
+				_starpu_clear_local_worker_status(STATUS_CALLBACK);
 
 			if (profiling && task->profiling_info)
 				_starpu_clock_gettime(&task->profiling_info->callback_end_time);

@@ -88,7 +88,8 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 		if (worker)
 		{
 			old_status = worker->status;
-			_starpu_set_worker_status(worker, STATUS_WAITING);
+			if (!(old_status & STATUS_WAITING))
+				_starpu_add_worker_status(worker, STATUS_WAITING);
 		}
 
 		while (used_size[node] + size > global_size[node])
@@ -103,7 +104,8 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 
 		if (worker)
 		{
-			_starpu_set_worker_status(worker, old_status);
+			if (!(old_status & STATUS_WAITING))
+				_starpu_clear_worker_status(worker, STATUS_WAITING);
 		}
 
 		/* And take it */
