@@ -512,6 +512,7 @@ static void reuse_matrix_buffer_on_node(void *data_interface, const void *new_da
 	matrix_interface->ptr = new_matrix_interface->ptr;
 	matrix_interface->dev_handle = new_matrix_interface->dev_handle;
 	matrix_interface->offset = new_matrix_interface->offset;
+	matrix_interface->ld = matrix_interface->nx; // by default
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
