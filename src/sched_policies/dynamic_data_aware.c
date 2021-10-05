@@ -1474,10 +1474,13 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
 		//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
 		//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
-		FILE *f = fopen("Output_maxime/DDA_eviction_time.txt", "a");
-		fprintf(f, "%0.0f	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector);
-		fclose(f);
-
+		if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 0)
+		{ 
+			FILE *f = fopen("Output_maxime/DDA_eviction_time.txt", "a");
+			fprintf(f, "%0.0f	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector);
+			fclose(f);
+		}
+	
 		/* TODO : a supprimer car inutile */
 		victim_evicted_compteur = 0;
 		victim_selector_compteur = 0;
