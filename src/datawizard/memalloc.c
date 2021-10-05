@@ -1354,7 +1354,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	STARPU_ASSERT(handle->ops);
 
 	mc->data = handle;
-	mc->footprint = _starpu_compute_data_footprint(handle);
+	mc->footprint = _starpu_compute_data_alloc_footprint(handle);
 	mc->ops = handle->ops;
 	mc->automatically_allocated = automatically_allocated;
 	mc->relaxed_coherency = replicate->relaxed_coherency;
@@ -1500,7 +1500,7 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	_starpu_data_allocation_inc_stats(dst_node);
 
 	/* perhaps we can directly reuse a buffer in the free-list */
-	uint32_t footprint = _starpu_compute_data_footprint(handle);
+	uint32_t footprint = _starpu_compute_data_alloc_footprint(handle);
 
 	int prefetch_oom = is_prefetch && prefetch_out_of_memory[dst_node];
 
