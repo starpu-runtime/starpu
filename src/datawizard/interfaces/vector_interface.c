@@ -364,7 +364,7 @@ static void free_vector_buffer_on_node(void *data_interface, unsigned node)
 	starpu_free_on_node(node, vector_interface->dev_handle, vector_interface->allocsize);
 }
 
-static void reuse_vector_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node)
+static void reuse_vector_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 	struct starpu_vector_interface *vector_interface = data_interface;
 	const struct starpu_vector_interface *new_vector_interface = new_data_interface;
