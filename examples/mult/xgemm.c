@@ -797,6 +797,13 @@ int main(int argc, char **argv)
 		double timing = 0;
 		double timing_square = 0;
 		double timing_iteration_i[niter];
+		
+		/* Pour get time of day */
+		struct timeval tv_start;
+		struct timeval tv_end;
+		//~ struct timeval tv_total = (struct timeval){0};
+		struct timezone tz;
+		long long elapsed = 0;
 
 		unsigned x, y, z, iter;
 		/* Matrice 3D */
@@ -1108,7 +1115,7 @@ int main(int argc, char **argv)
 				}
 			}	
 		}
-		else { 
+		else {
 			/* Normal execution of xgemm */
 			for (iter = 0; iter < niter; iter++)
 			{
@@ -1140,14 +1147,28 @@ int main(int argc, char **argv)
 				}
 				starpu_do_schedule();
 				start = starpu_timing_now();
+				
+				/* Utilisation de get time of day pour avoir le schedule time */
+				gettimeofday(&tv_start, &tz);
+								
 				starpu_resume();
 				starpu_task_wait_for_all();
 				end = starpu_timing_now();
+				
+				gettimeofday(&tv_end, &tz);
+								
 				if (temp_niter > 1)
 				{
 					if (iter != 0)
 					{
 						timing += end - start;
+						
+						//~ tv_total.tv_sec += tv_end.tv_sec - tv_start.tv_sec;
+						//~ tv_total.tv_usec += tv_end.tv_usec - tv_start.tv_usec;
+						//~ printf("%ld sec and %ld usec\n", tv_total.tv_sec, tv_total.tv_usec);
+						
+						elapsed += (tv_end.tv_sec-tv_start.tv_sec)*1000000LL + tv_end.tv_usec-tv_start.tv_usec;
+						
 						timing_square += (end-start) * (end-start);
 					}
 						
@@ -1163,6 +1184,7 @@ int main(int argc, char **argv)
 				else 
 				{
 					timing = end - start;
+					elapsed = (tv_end.tv_sec-tv_start.tv_sec)*1000000LL + tv_end.tv_usec-tv_start.tv_usec;
 				}
 			}	
 			//End If environment variable RANDOM_TASK_ORDER == 0
@@ -1191,7 +1213,7 @@ int main(int argc, char **argv)
 		
 		/* Récupération du temps et impression de ce dernier dans un fchier pour faire des courbes. */
 		FILE *f = fopen("Output_maxime/Schedule_time_raw_out.txt", "a");
-		fprintf(f, "%f\n", timing);
+		fprintf(f, "%lld\n", elapsed);
 		fclose(f);
 		
 		if (temp_niter > 1) /* We also print the deviance */
