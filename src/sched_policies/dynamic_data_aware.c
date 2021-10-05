@@ -943,7 +943,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		//	my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
 		//}
 		//printf("nb data on node = %d\n", nb_data_on_node); fflush(stdout);
+		
+		STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 		returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
     }
     
     /* Ca devrait pas arriver a enleevr et a tester */
@@ -1377,6 +1380,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	    gpu_pulled_task_insertion();
 	}
 	my_pulled_task_control->first = my_pulled_task_control->pointer;
+	/* Mutex */
+	STARPU_PTHREAD_MUTEX_INIT(&my_pulled_task_control->pulled_task_mutex, NULL);
 	
 	component->data = data;
 	/* component->do_schedule = dynamic_data_aware_do_schedule; */
@@ -1415,6 +1420,7 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
+	STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 	/* MUTEX + MUTEX DANS BELADY */
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     int i = 0;
@@ -1434,14 +1440,12 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < current_gpu; i++)
     {
-		//~ printf("Next in get_task_done.\n"); fflush(stdout);
 		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
     }
         
     /* J'efface la tâche dans la liste de tâches */
     if (!pulled_task_list_empty(my_pulled_task_control->pointer->ptl))
     {		
-	//	struct pulled_task *pt = pulled_task_new();
 		pulled_task_list_pop_front(my_pulled_task_control->pointer->ptl);
 		
 		/* Je décrémente dans les données le nb de tâches dans pulled task */
@@ -1456,10 +1460,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			//} 
 		//}
     }
-    else
-    {
-		//~ printf("was empty in get task done.\n"); fflush(stdout); 
-    }
     
     /* Reset pour prochaine itération */
     //~ printf("NT_dynamic_outer = %d, nb task done = %d dans get task done\n", NT_dynamic_outer, number_task_out); fflush(stdout);
@@ -1471,9 +1471,12 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		iteration++;
 		
 		/* TODO : a suppr car inutile */
-		printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
-		printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
-		printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
+		//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
+		//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
+		//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
+		FILE *f = fopen("Output_maxime/DDA_eviction_time.txt", "a");
+		fprintf(f, "%0.0f	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector);
+		fclose(f);
 
 		/* TODO : a supprimer car inutile */
 		victim_evicted_compteur = 0;
@@ -1484,6 +1487,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		time_total_belady = 0;
 		time_total_evicted = 0;		
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 

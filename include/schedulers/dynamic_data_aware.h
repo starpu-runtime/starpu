@@ -71,6 +71,7 @@ struct gpu_pulled_task_control
 {
     struct gpu_pulled_task *pointer;
     struct gpu_pulled_task *first;
+    starpu_pthread_mutex_t pulled_task_mutex;
 };
 
 /** To track the data counted in min_weight_average to avoid counting twice duplicate **/
