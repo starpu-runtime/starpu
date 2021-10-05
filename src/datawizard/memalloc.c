@@ -1008,17 +1008,21 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 			/* He told me we should not make any victim */
 			return 0;
 
-		if (victim && victim->footprint != footprint)
+		if (victim)
 		{
-			/* Don't even bother looking for it, it won't fit anyway */
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n"); }
-			if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
+			uint32_t victim_footprint = _starpu_compute_data_alloc_footprint(victim);
+			if (victim_footprint != footprint)
 			{
-			    _STARPU_SCHED_BEGIN;
-			    victim_eviction_failed(victim, data_victim_selector);
-			    _STARPU_SCHED_END;
+				/* Don't even bother looking for it, it won't fit anyway */
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n"); }
+				if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
+				{
+				    _STARPU_SCHED_BEGIN;
+				    victim_eviction_failed(victim, data_victim_selector);
+				    _STARPU_SCHED_END;
+				}
+				return 0;
 			}
-			return 0;
 		}
 	}
 
