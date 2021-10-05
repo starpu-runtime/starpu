@@ -2170,8 +2170,7 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 	 * awake. In the worst case, both workers will follow this pessimistic
 	 * path and perform one more scheduling loop */
 	STARPU_HG_DISABLE_CHECKING(_starpu_config.workers[worker->workerid].status);
-	STARPU_ASSERT(_starpu_config.workers[worker->workerid].status == STATUS_SLEEPING
-	           || _starpu_config.workers[worker->workerid].status == STATUS_SLEEPING_SCHEDULING);
+	STARPU_ASSERT(_starpu_config.workers[worker->workerid].status & STATUS_SLEEPING);
 	STARPU_HG_ENABLE_CHECKING(_starpu_config.workers[worker->workerid].status);
 	struct _starpu_sched_ctx_list_iterator list_it;
 
@@ -2205,8 +2204,7 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 					 * pessimistic path and assume that they are
 					 * the last worker awake */
 					STARPU_HG_DISABLE_CHECKING(_starpu_config.workers[workerid].status);
-					const int cond = _starpu_config.workers[workerid].status != STATUS_SLEEPING
-					              && _starpu_config.workers[workerid].status != STATUS_SLEEPING_SCHEDULING;
+					const int cond = !(_starpu_config.workers[workerid].status & STATUS_SLEEPING);
 					STARPU_HG_ENABLE_CHECKING(_starpu_config.workers[workerid].status);
 
 					if (cond)

@@ -576,9 +576,18 @@ static inline enum _starpu_worker_status _starpu_worker_get_status(int workerid)
 
 /** Change the status of the worker which indicates what the worker is currently
  * doing (eg. executing a callback). */
-static inline void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
+static inline void _starpu_worker_add_status(int workerid, enum _starpu_worker_status status)
 {
-	_starpu_config.workers[workerid].status = status;
+	STARPU_ASSERT(!(_starpu_config.workers[workerid].status & status));
+	_starpu_config.workers[workerid].status |= status;
+}
+
+/** Change the status of the worker which indicates what the worker is currently
+ * doing (eg. executing a callback). */
+static inline void _starpu_worker_clear_status(int workerid, enum _starpu_worker_status status)
+{
+	STARPU_ASSERT((_starpu_config.workers[workerid].status & status));
+	_starpu_config.workers[workerid].status &= ~status;
 }
 
 /** We keep an initial sched ctx which might be used in case no other ctx is available */

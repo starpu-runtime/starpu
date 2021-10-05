@@ -17,17 +17,18 @@
 #include <core/errorcheck.h>
 #include <core/workers.h>
 
-void _starpu_set_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st)
+void _starpu_add_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st)
 {
 	starpu_pthread_mutex_t *sched_mutex;
 	starpu_pthread_cond_t *sched_cond;
 	starpu_worker_get_sched_condition(worker->workerid, &sched_mutex, &sched_cond);
 	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
-	worker->status = st;
+	STARPU_ASSERT(! (worker->status & st));
+	worker->status |= st;
 	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
 }
 
-void _starpu_set_local_worker_status(enum _starpu_worker_status st)
+void _starpu_add_local_worker_status(enum _starpu_worker_status st)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 
@@ -35,7 +36,29 @@ void _starpu_set_local_worker_status(enum _starpu_worker_status st)
 	 * thereforce outside a worker), for instance if we are executing the
 	 * callback function of a task with a "NULL" codelet. */
 	if (worker)
-		_starpu_set_worker_status(worker, st);
+		_starpu_add_worker_status(worker, st);
+}
+
+void _starpu_clear_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st)
+{
+	starpu_pthread_mutex_t *sched_mutex;
+	starpu_pthread_cond_t *sched_cond;
+	starpu_worker_get_sched_condition(worker->workerid, &sched_mutex, &sched_cond);
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(sched_mutex);
+	STARPU_ASSERT((worker->status & st));
+	worker->status &= ~st;
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(sched_mutex);
+}
+
+void _starpu_clear_local_worker_status(enum _starpu_worker_status st)
+{
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
+
+	/* It is possible that we call this function from the application (and
+	 * thereforce outside a worker), for instance if we are executing the
+	 * callback function of a task with a "NULL" codelet. */
+	if (worker)
+		_starpu_clear_worker_status(worker, st);
 }
 
 enum _starpu_worker_status _starpu_get_local_worker_status(void)
@@ -62,5 +85,5 @@ unsigned _starpu_worker_may_perform_blocking_calls(void)
 	const int blocking_call_check_override = 0;
 #endif /* STARPU_OPENMP */
 
-	return blocking_call_check_override || ( !(st == STATUS_CALLBACK) && !(st == STATUS_EXECUTING));
+	return blocking_call_check_override || (st == STATUS_INVALID) || ( !(st & STATUS_CALLBACK) && !(st & STATUS_EXECUTING));
 }

@@ -172,34 +172,31 @@ define starpu-workers
   printf "[Id] Name                                     Arch Mask Devid Bindid Workerid Isrunning Isinitialized Status\n"
   while $num<_starpu_config->topology->nworkers
     set $worker=&_starpu_config->workers[$num]
-    printf "[%2d] %-40s %-4d %-4d %-5d %-6d %-8d %-9d %-13d ", $num, $worker->name, $worker->arch, $worker->worker_mask, \
+    printf "[%2d] %-40s %-4d %-4d %-5d %-6d %-8d %-9d %-13d", $num, $worker->name, $worker->arch, $worker->worker_mask, \
           $worker->devid, $worker->bindid, $worker->workerid, $worker->worker_is_running, $worker->worker_is_initialized
     if $worker->status == STATUS_INVALID
-      printf "INVALID"
+      printf " INVALID"
     end
     if $worker->status == STATUS_UNKNOWN
-      printf "UNKNOWN"
+      printf " UNKNOWN"
     end
-    if $worker->status == STATUS_INITIALIZING
-      printf "INITIALIZING"
+    if $worker->status & STATUS_INITIALIZING
+      printf " INITIALIZING"
     end
-    if $worker->status == STATUS_EXECUTING
-      printf "EXECUTING"
+    if $worker->status & STATUS_EXECUTING
+      printf " EXECUTING"
     end
-    if $worker->status == STATUS_CALLBACK
-      printf "CALLBACK"
+    if $worker->status & STATUS_CALLBACK
+      printf " CALLBACK"
     end
-    if $worker->status == STATUS_SCHEDULING
-      printf "SCHEDULING"
+    if $worker->status & STATUS_SCHEDULING
+      printf " SCHEDULING"
     end
-    if $worker->status == STATUS_WAITING
-      printf "WAITING"
+    if $worker->status & STATUS_WAITING
+      printf " WAITING"
     end
-    if $worker->status == STATUS_SLEEPING_SCHEDULING
-      printf "SLEEPING_SCHEDULING"
-    end
-    if $worker->status == STATUS_SLEEPING
-      printf "SLEEPING"
+    if $worker->status & STATUS_SLEEPING
+      printf " SLEEPING"
     end
     printf "\n"
     set $num = $num + 1

@@ -28,31 +28,32 @@ enum _starpu_worker_status
 {
 	/** invalid status (for instance if we request the status of some thread
 	 * that is not controlled by StarPU */
-	STATUS_INVALID,
-	/** everything that does not fit the other status */
-	STATUS_UNKNOWN,
+	STATUS_INVALID = -1,
+	/** Nothing particular, thus just overhead */
+	STATUS_UNKNOWN = 0,
 	/** during the initialization */
-	STATUS_INITIALIZING,
+	STATUS_INITIALIZING = 1,
 	/** during the execution of a codelet */
-	STATUS_EXECUTING,
+	STATUS_EXECUTING = 2,
 	/** during the execution of the callback */
-	STATUS_CALLBACK,
+	STATUS_CALLBACK = 4,
 	/** while executing the scheduler code */
-	STATUS_SCHEDULING,
+	STATUS_SCHEDULING = 8,
 	/** while waiting for a data transfer */
-	STATUS_WAITING,
-	/** while sleeping because there is nothing to do, but looking for tasks to do */
-	STATUS_SLEEPING_SCHEDULING,
-	/** while sleeping because there is nothing to do, and not even scheduling */
-	STATUS_SLEEPING
+	STATUS_WAITING = 16,
+	/** while sleeping because there is nothing to do */
+	STATUS_SLEEPING = 32
 };
 
 struct _starpu_worker;
 /** Specify what the local worker is currently doing (eg. executing a callback).
- * This permits to detect if this is legal to do a blocking call for instance.
- * */
-void _starpu_set_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st);
-void _starpu_set_local_worker_status(enum _starpu_worker_status st);
+ * This permits to detect if this is legal to do a blocking call for instance. */
+void _starpu_add_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st);
+void _starpu_add_local_worker_status(enum _starpu_worker_status st);
+
+/** Clear the fact that the local worker was currently doing something(eg. executing a callback). */
+void _starpu_clear_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st);
+void _starpu_clear_local_worker_status(enum _starpu_worker_status st);
 
 /** Indicate what type of operation the worker is currently doing. */
 enum _starpu_worker_status _starpu_get_local_worker_status(void);

@@ -150,6 +150,8 @@ void _starpu_profiling_init(void)
 	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
 	{
 		STARPU_PTHREAD_MUTEX_INIT(&worker_info_mutex[worker], NULL);
+		worker_registered_sleeping_start[worker] = 0;
+		worker_registered_executing_start[worker] = 0;
 	}
 
 #ifdef STARPU_PAPI
@@ -314,7 +316,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 	 * computation */
 	enum _starpu_worker_status status = _starpu_worker_get_status(workerid);
 
-	if (status == STATUS_SLEEPING || status == STATUS_SLEEPING_SCHEDULING)
+	if (status & STATUS_SLEEPING)
 	{
 		worker_registered_sleeping_start[workerid] = 1;
 		_starpu_clock_gettime(&sleeping_start_date[workerid]);
@@ -324,7 +326,7 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 		worker_registered_sleeping_start[workerid] = 0;
 	}
 
-	if (status == STATUS_EXECUTING)
+	if (status & STATUS_EXECUTING)
 	{
 		worker_registered_executing_start[workerid] = 1;
 		_starpu_clock_gettime(&executing_start_date[workerid]);
@@ -343,7 +345,7 @@ void _starpu_worker_restart_sleeping(int workerid)
 		_starpu_clock_gettime(&sleep_start_time);
 
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-		if (worker_registered_sleeping_start[workerid] == 0)
+		STARPU_ASSERT (worker_registered_sleeping_start[workerid] == 0);
 		{
 			worker_registered_sleeping_start[workerid] = 1;
 			memcpy(&sleeping_start_date[workerid], &sleep_start_time, sizeof(struct timespec));
@@ -362,7 +364,7 @@ void _starpu_worker_stop_sleeping(int workerid)
 
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 
-		if (worker_registered_sleeping_start[workerid] == 1)
+		STARPU_ASSERT (worker_registered_sleeping_start[workerid] == 1);
 		{
 			sleeping_start = &sleeping_start_date[workerid];
 
@@ -394,6 +396,7 @@ void _starpu_worker_register_executing_start_date(int workerid, struct timespec 
 {
 	if (starpu_profiling_status_get())
 	{
+		STARPU_ASSERT(worker_registered_executing_start[workerid] == 0);
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 		worker_registered_executing_start[workerid] = 1;
 		memcpy(&executing_start_date[workerid], executing_start, sizeof(struct timespec));
@@ -405,6 +408,7 @@ void _starpu_worker_register_executing_end(int workerid)
 {
 	if (starpu_profiling_status_get())
 	{
+		STARPU_ASSERT(worker_registered_executing_start[workerid] == 1);
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
 		worker_registered_executing_start[workerid] = 0;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);

@@ -281,8 +281,9 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, enum _s
 
 	if (worker)
 	{
-		old_status = worker->status ;
-		_starpu_set_worker_status(worker, STATUS_WAITING);
+		old_status = worker->status;
+		if (!(old_status & STATUS_WAITING))
+			_starpu_add_worker_status(worker, STATUS_WAITING);
 	}
 
 	do
@@ -321,7 +322,8 @@ int _starpu_wait_data_request_completion(struct _starpu_data_request *r, enum _s
 
 	if (worker)
 	{
-		_starpu_set_worker_status(worker, old_status);
+		if (!(old_status & STATUS_WAITING))
+			_starpu_clear_worker_status(worker, STATUS_WAITING);
 	}
 
 #ifdef STARPU_SIMGRID

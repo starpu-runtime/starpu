@@ -60,7 +60,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	if (j->task_size == 1 && rank == 0)
 		_starpu_sched_pre_exec_hook(task);
 
-	_starpu_set_worker_status(worker, STATUS_EXECUTING);
+	_starpu_add_worker_status(worker, STATUS_EXECUTING);
 
 	if (rank == 0)
 	{
@@ -169,7 +169,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 		STARPU_AYU_POSTRUNTASK(j->job_id);
 	}
 
-	_starpu_set_worker_status(worker, STATUS_UNKNOWN);
+	_starpu_clear_worker_status(worker, STATUS_EXECUTING);
 
 	if(!sched_ctx->sched_policy && !sched_ctx->awake_workers &&
 	   sched_ctx->main_master == worker->workerid)
@@ -325,51 +325,38 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 static void _starpu_worker_set_status_scheduling(int workerid)
 {
-	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
+	if (!(_starpu_worker_get_status(workerid) & STATUS_SCHEDULING))
 	{
-		_starpu_worker_set_status(workerid, STATUS_SLEEPING_SCHEDULING);
-	}
-	else if (_starpu_worker_get_status(workerid) != STATUS_SCHEDULING)
-	{
-		_STARPU_TRACE_WORKER_SCHEDULING_START;
-		_starpu_worker_set_status(workerid, STATUS_SCHEDULING);
+		if (!(_starpu_worker_get_status(workerid) & STATUS_SLEEPING))
+			_STARPU_TRACE_WORKER_SCHEDULING_START;
+		_starpu_worker_add_status(workerid, STATUS_SCHEDULING);
 	}
 }
 
 static void _starpu_worker_set_status_scheduling_done(int workerid)
 {
-	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING_SCHEDULING)
-	{
-		_starpu_worker_set_status(workerid, STATUS_SLEEPING);
-	}
-	else if (_starpu_worker_get_status(workerid) == STATUS_SCHEDULING)
-	{
+	if (!(_starpu_worker_get_status(workerid) & STATUS_SLEEPING))
 		_STARPU_TRACE_WORKER_SCHEDULING_END;
-		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
-	}
+	_starpu_worker_clear_status(workerid, STATUS_SCHEDULING);
 }
 
 static void _starpu_worker_set_status_sleeping(int workerid)
 {
-	if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING)
+	if (!(_starpu_worker_get_status(workerid) & STATUS_SLEEPING))
 	{
-		if (_starpu_worker_get_status(workerid) != STATUS_SLEEPING_SCHEDULING)
-		{
-			_STARPU_TRACE_WORKER_SLEEP_START;
-			_starpu_worker_restart_sleeping(workerid);
-		}
-		_starpu_worker_set_status(workerid, STATUS_SLEEPING);
+		_STARPU_TRACE_WORKER_SLEEP_START;
+		_starpu_worker_restart_sleeping(workerid);
+		_starpu_worker_add_status(workerid, STATUS_SLEEPING);
 	}
-
 }
 
 static void _starpu_worker_set_status_wakeup(int workerid)
 {
-	if (_starpu_worker_get_status(workerid) == STATUS_SLEEPING)
+	if ((_starpu_worker_get_status(workerid) & STATUS_SLEEPING))
 	{
 		_STARPU_TRACE_WORKER_SLEEP_END;
 		_starpu_worker_stop_sleeping(workerid);
-		_starpu_worker_set_status(workerid, STATUS_UNKNOWN);
+		_starpu_worker_clear_status(workerid, STATUS_SLEEPING);
 	}
 }
 
