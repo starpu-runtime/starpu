@@ -193,6 +193,10 @@ LIST_TYPE(_starpu_worker,
 	hwloc_obj_t hwloc_obj;
 #endif
 
+	struct starpu_profiling_worker_info profiling_info;
+	/* TODO: rather use rwlock? */
+	starpu_pthread_mutex_t profiling_info_mutex;
+
 	struct starpu_perf_counter_sample perf_counter_sample;
 	int64_t __w_total_executed__value;
 	double __w_cumul_execution_time__value;
@@ -547,7 +551,7 @@ static inline struct _starpu_worker_set *_starpu_get_local_worker_set_key(void)
  * specified worker. */
 static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 {
-	STARPU_ASSERT(id < starpu_worker_get_count());
+	STARPU_ASSERT(id < STARPU_NMAXWORKERS);
 	return &_starpu_config.workers[id];
 }
 
