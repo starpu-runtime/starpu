@@ -428,9 +428,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			
 			/* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
-			STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
+			//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 			add_task_to_pulled_task(current_gpu, task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
 
 			//~ printf("Task %d: %p is getting out of pull_task from GPU %d\n", number_task_out, task, current_gpu);
 				
@@ -450,9 +450,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
 			{
 				task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
-				STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
+				//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 				add_task_to_pulled_task(current_gpu, task);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
+				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
 				
 				/* Remove it from planned task compteur */
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -559,7 +559,9 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     
     /* Même sans les mutex ca marche, c'est bizare ... */
     //STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
+    STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
     struct starpu_task *task = get_task_to_return_pull_task_dynamic_data_aware(starpu_worker_get_memory_node(starpu_worker_get_id()), &data->main_task_list);
+    STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
     //~ print_planned_task_one_gpu(my_planned_task_control->first, 0);
     //~ print_nb_task_in_list_one_data_one_gpu(STARPU_TASK_GET_HANDLE(task, 0));
     //~ print_nb_task_in_list_one_data_one_gpu(STARPU_TASK_GET_HANDLE(task, 1));
