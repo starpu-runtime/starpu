@@ -164,7 +164,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 		}
 		if ((profiling && profiling_info) || calibrate_model)
 		{
-			_starpu_worker_register_executing_end(workerid);
+			_starpu_worker_register_executing_end(workerid, &worker->cl_end);
 		}
 		STARPU_AYU_POSTRUNTASK(j->job_id);
 	}

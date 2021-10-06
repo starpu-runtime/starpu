@@ -29,14 +29,6 @@
 #include <papi.h>
 #endif
 
-/* In case the worker is still sleeping when the user request profiling info,
- * we need to account for the time elasped while sleeping. */
-static unsigned worker_registered_sleeping_start[STARPU_NMAXWORKERS];
-static struct timespec sleeping_start_date[STARPU_NMAXWORKERS];
-
-static unsigned worker_registered_executing_start[STARPU_NMAXWORKERS];
-static struct timespec executing_start_date[STARPU_NMAXWORKERS];
-
 #ifdef STARPU_PAPI
 static starpu_pthread_mutex_t papi_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static int papi_events[PAPI_MAX_HWCTRS];
@@ -139,13 +131,18 @@ int starpu_profiling_status_set(int status)
 
 void _starpu_profiling_init(void)
 {
-	int worker;
+	int workerid;
 
-	for (worker = 0; worker < STARPU_NMAXWORKERS; worker++)
+	for (workerid = 0; workerid < STARPU_NMAXWORKERS; workerid++)
 	{
-		STARPU_PTHREAD_MUTEX_INIT(&_starpu_get_worker_struct(worker)->profiling_info_mutex, NULL);
-		worker_registered_sleeping_start[worker] = 0;
-		worker_registered_executing_start[worker] = 0;
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		enum _starpu_worker_status_index i;
+
+		memset(&worker->profiling_info, 0, sizeof(worker->profiling_info));
+		STARPU_PTHREAD_MUTEX_INIT(&worker->profiling_info_mutex, NULL);
+
+		for (i = 0; i< STATUS_INDEX_NR; i++)
+			worker->profiling_registered_start[i] = 0;
 	}
 
 #ifdef STARPU_PAPI
@@ -290,7 +287,8 @@ struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(str
  */
 static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 {
-	struct starpu_profiling_worker_info *worker_info = &_starpu_get_worker_struct(workerid)->profiling_info;
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	struct starpu_profiling_worker_info *worker_info = &worker->profiling_info;
 	_starpu_clock_gettime(&worker_info->start_time);
 
 	/* This is computed in a lazy fashion when the application queries
@@ -313,127 +311,119 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 
 	if (status & STATUS_SLEEPING)
 	{
-		worker_registered_sleeping_start[workerid] = 1;
-		_starpu_clock_gettime(&sleeping_start_date[workerid]);
+
+		worker->profiling_registered_start[STATUS_INDEX_SLEEPING] = 1;
+		_starpu_clock_gettime(&worker->profiling_registered_start_date[STATUS_INDEX_SLEEPING]);
 	}
 	else
 	{
-		worker_registered_sleeping_start[workerid] = 0;
+		worker->profiling_registered_start[STATUS_INDEX_SLEEPING] = 0;
 	}
 
 	if (status & STATUS_EXECUTING)
 	{
-		worker_registered_executing_start[workerid] = 1;
-		_starpu_clock_gettime(&executing_start_date[workerid]);
+		worker->profiling_registered_start[STATUS_INDEX_EXECUTING] = 1;
+		_starpu_clock_gettime(&worker->profiling_registered_start_date[STATUS_INDEX_EXECUTING]);
 	}
 	else
 	{
-		worker_registered_executing_start[workerid] = 0;
+		worker->profiling_registered_start[STATUS_INDEX_EXECUTING] = 0;
 	}
 }
 
-void _starpu_worker_restart_sleeping(int workerid)
+void _starpu_worker_restart_state(int workerid, enum _starpu_worker_status_index index, struct timespec *start_time)
 {
 	if (starpu_profiling_status_get())
 	{
-		struct timespec sleep_start_time;
-		_starpu_clock_gettime(&sleep_start_time);
+		struct timespec state_start_time;
 
-		STARPU_PTHREAD_MUTEX_LOCK(&_starpu_get_worker_struct(workerid)->profiling_info_mutex);
-		STARPU_ASSERT (worker_registered_sleeping_start[workerid] == 0);
+		if (!start_time)
 		{
-			worker_registered_sleeping_start[workerid] = 1;
-			memcpy(&sleeping_start_date[workerid], &sleep_start_time, sizeof(struct timespec));
+			_starpu_clock_gettime(&state_start_time);
+			start_time = &state_start_time;
 		}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_get_worker_struct(workerid)->profiling_info_mutex);
+
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->profiling_info_mutex);
+		STARPU_ASSERT (worker->profiling_registered_start[index] == 0);
+		worker->profiling_registered_start[index] = 1;
+		memcpy(&worker->profiling_registered_start_date[index], start_time, sizeof(*start_time));
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->profiling_info_mutex);
 	}
 }
 
-void _starpu_worker_stop_sleeping(int workerid)
+void _starpu_worker_stop_state(int workerid, enum _starpu_worker_status_index index, struct timespec *stop_time)
 {
 	if (starpu_profiling_status_get())
 	{
-		struct timespec *sleeping_start, sleep_end_time;
+		struct timespec *state_start, state_end_time;
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 
-		_starpu_clock_gettime(&sleep_end_time);
-
-		STARPU_PTHREAD_MUTEX_LOCK(&_starpu_get_worker_struct(workerid)->profiling_info_mutex);
-
-		STARPU_ASSERT (worker_registered_sleeping_start[workerid] == 1);
+		if (!stop_time)
 		{
-			sleeping_start = &sleeping_start_date[workerid];
+			_starpu_clock_gettime(&state_end_time);
+			stop_time = &state_end_time;
+		}
+
+		STARPU_PTHREAD_MUTEX_LOCK(&worker->profiling_info_mutex);
+
+		STARPU_ASSERT (worker->profiling_registered_start[index] == 1);
+		{
+			state_start = &worker->profiling_registered_start_date[index];
 
 			/* Perhaps that profiling was enabled while the worker was
 			 * already blocked, so we don't measure (end - start), but
 			 * (end - max(start,worker_start)) where worker_start is the
 			 * date of the previous profiling info reset on the worker */
-			struct starpu_profiling_worker_info *worker_info = &_starpu_get_worker_struct(workerid)->profiling_info;
+			struct starpu_profiling_worker_info *worker_info = &worker->profiling_info;
 			struct timespec *worker_start = &worker_info->start_time;
-			if (starpu_timespec_cmp(sleeping_start, worker_start, <))
+			if (starpu_timespec_cmp(state_start, worker_start, <))
 			{
-				/* sleeping_start < worker_start */
-				sleeping_start = worker_start;
+				/* state_start < worker_start */
+				state_start = worker_start;
 			}
 
-			struct timespec sleeping_time;
-			starpu_timespec_sub(&sleep_end_time, sleeping_start, &sleeping_time);
+			struct timespec state_time;
+			starpu_timespec_sub(stop_time, state_start, &state_time);
 
-			starpu_timespec_accumulate(&worker_info->sleeping_time, &sleeping_time);
+			switch (index) {
+			case STATUS_INDEX_SLEEPING:
+				starpu_timespec_accumulate(&worker_info->sleeping_time, &state_time);
+				break;
+			case STATUS_INDEX_EXECUTING:
+				starpu_timespec_accumulate(&worker_info->executing_time, &state_time);
+				break;
+			case STATUS_INDEX_NR:
+				STARPU_ASSERT(0);
+			}
 
-			worker_registered_sleeping_start[workerid] = 0;
+			worker->profiling_registered_start[index] = 0;
 		}
 
-		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_get_worker_struct(workerid)->profiling_info_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->profiling_info_mutex);
 
 	}
+}
+
+void _starpu_worker_restart_sleeping(int workerid)
+{
+	_starpu_worker_restart_state(workerid, STATUS_INDEX_SLEEPING, NULL);
+}
+
+void _starpu_worker_stop_sleeping(int workerid)
+{
+	_starpu_worker_stop_state(workerid, STATUS_INDEX_SLEEPING, NULL);
 }
 
 void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start)
 {
-	if (starpu_profiling_status_get())
-	{
-		STARPU_ASSERT(worker_registered_executing_start[workerid] == 0);
-		STARPU_PTHREAD_MUTEX_LOCK(&_starpu_get_worker_struct(workerid)->profiling_info_mutex);
-		worker_registered_executing_start[workerid] = 1;
-		memcpy(&executing_start_date[workerid], executing_start, sizeof(struct timespec));
-		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_get_worker_struct(workerid)->profiling_info_mutex);
-	}
+	_starpu_worker_restart_state(workerid, STATUS_INDEX_EXECUTING, executing_start);
 }
 
-void _starpu_worker_register_executing_end(int workerid)
+void _starpu_worker_register_executing_end(int workerid, struct timespec *executing_stop)
 {
-	if (starpu_profiling_status_get())
-	{
-		struct timespec *executing_start, executing_end_time;
-
-		_starpu_clock_gettime(&executing_end_time);
-
-		STARPU_PTHREAD_MUTEX_LOCK(&_starpu_get_worker_struct(workerid)->profiling_info_mutex);
-		STARPU_ASSERT(worker_registered_executing_start[workerid] == 1);
-		{
-			executing_start = &executing_start_date[workerid];
-
-			/* Perhaps that profiling was enabled while the worker was
-			 * executing, so we don't measure (end - start), but
-			 * (end - max(start,worker_start)) where worker_start is the
-			 * date of the previous profiling info reset on the worker */
-			struct starpu_profiling_worker_info *worker_info = &_starpu_get_worker_struct(workerid)->profiling_info;
-			struct timespec *worker_start = &worker_info->start_time;
-			if (starpu_timespec_cmp(executing_start, worker_start, <))
-			{
-				/* executing_start < worker_start */
-				executing_start = worker_start;
-			}
-
-			struct timespec executing_time;
-			starpu_timespec_sub(&executing_end_time, executing_start, &executing_time);
-
-			starpu_timespec_accumulate(&worker_info->executing_time, &executing_time);
-
-			worker_registered_executing_start[workerid] = 0;
-		}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&_starpu_get_worker_struct(workerid)->profiling_info_mutex);
-	}
+	_starpu_worker_stop_state(workerid, STATUS_INDEX_EXECUTING, executing_stop);
 }
 
 
@@ -459,7 +449,8 @@ void _starpu_worker_update_profiling_info_executing(int workerid, int executed_t
 
 int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worker_info *info)
 {
-	struct starpu_profiling_worker_info *worker_info = &_starpu_get_worker_struct(workerid)->profiling_info;
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	struct starpu_profiling_worker_info *worker_info = &worker->profiling_info;
 
 	if (!starpu_profiling_status_get())
 	{
@@ -478,17 +469,17 @@ int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worke
 
 		/* In case some worker is currently sleeping, we take into
 		 * account the time spent since it registered. */
-		if (worker_registered_sleeping_start[workerid])
+		if (worker->profiling_registered_start[STATUS_INDEX_SLEEPING])
 		{
 			struct timespec sleeping_time;
-			starpu_timespec_sub(&now, &sleeping_start_date[workerid], &sleeping_time);
+			starpu_timespec_sub(&now, &worker->profiling_registered_start_date[STATUS_INDEX_SLEEPING], &sleeping_time);
 			starpu_timespec_accumulate(&worker_info->sleeping_time, &sleeping_time);
 		}
 
-		if (worker_registered_executing_start[workerid])
+		if (worker->profiling_registered_start[STATUS_INDEX_EXECUTING])
 		{
 			struct timespec executing_time;
-			starpu_timespec_sub(&now, &executing_start_date[workerid], &executing_time);
+			starpu_timespec_sub(&now, &worker->profiling_registered_start_date[STATUS_INDEX_EXECUTING], &executing_time);
 			starpu_timespec_accumulate(&worker_info->executing_time, &executing_time);
 		}
 

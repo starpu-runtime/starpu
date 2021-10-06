@@ -49,7 +49,7 @@ void _starpu_worker_stop_sleeping(int workerid);
 void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start);
 
 /** Record that the worker is not executing any more. */
-void _starpu_worker_register_executing_end(int workerid);
+void _starpu_worker_register_executing_end(int workerid, struct timespec *executing_stop);
 
 /** When StarPU is initialized, a matrix describing all the bus between memory
  * nodes is created: it indicates whether there is a physical link between two
