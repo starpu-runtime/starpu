@@ -366,7 +366,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			/* so that we can check whether we are doing blocking calls
 			 * within the callback */
 			if (!(old_status & STATUS_CALLBACK))
-				_starpu_add_local_worker_status(STATUS_CALLBACK);
+				_starpu_add_local_worker_status(STATUS_INDEX_CALLBACK, NULL);
 
 			/* Perhaps we have nested callbacks (eg. with chains of empty
 			 * tasks). So we store the current task and we will restore it
@@ -382,7 +382,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_set_current_task(current_task);
 
 			if (!(old_status & STATUS_CALLBACK))
-				_starpu_clear_local_worker_status(STATUS_CALLBACK);
+				_starpu_clear_local_worker_status(STATUS_INDEX_CALLBACK, NULL);
 		}
 	}
 
@@ -531,15 +531,18 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * of the task itself */
 		if (callback)
 		{
+			struct timespec *time = NULL;
 			int profiling = starpu_profiling_status_get();
-			if (profiling && task->profiling_info)
-				_starpu_clock_gettime(&task->profiling_info->callback_start_time);
+			if (profiling && task->profiling_info) {
+				time = &task->profiling_info->callback_start_time;
+				_starpu_clock_gettime(time);
+			}
 			enum _starpu_worker_status old_status = _starpu_get_local_worker_status();
 
 			/* so that we can check whether we are doing blocking calls
 			 * within the callback */
 			if (!(old_status & STATUS_CALLBACK))
-				_starpu_add_local_worker_status(STATUS_CALLBACK);
+				_starpu_add_local_worker_status(STATUS_INDEX_CALLBACK, time);
 
 			/* Perhaps we have nested callbacks (eg. with chains of empty
 			 * tasks). So we store the current task and we will restore it
@@ -554,11 +557,13 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 			_starpu_set_current_task(current_task);
 
-			if (!(old_status & STATUS_CALLBACK))
-				_starpu_clear_local_worker_status(STATUS_CALLBACK);
+			if (profiling && task->profiling_info) {
+				time = &task->profiling_info->callback_end_time;
+				_starpu_clock_gettime(time);
+			}
 
-			if (profiling && task->profiling_info)
-				_starpu_clock_gettime(&task->profiling_info->callback_end_time);
+			if (!(old_status & STATUS_CALLBACK))
+				_starpu_clear_local_worker_status(STATUS_INDEX_CALLBACK, time);
 		}
 	}
 

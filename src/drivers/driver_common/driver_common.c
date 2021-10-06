@@ -60,7 +60,12 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	if (j->task_size == 1 && rank == 0)
 		_starpu_sched_pre_exec_hook(task);
 
-	_starpu_add_worker_status(worker, STATUS_EXECUTING);
+	struct timespec start;
+
+	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
+	if ((profiling && profiling_info) || (rank == 0 && calibrate_model || !_starpu_perf_counter_paused()))
+		_starpu_clock_gettime(&start);
+	_starpu_add_worker_status(worker, STATUS_INDEX_EXECUTING, &start);
 
 	if (rank == 0)
 	{
@@ -79,15 +84,9 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		STARPU_AYU_RUNTASK(j->job_id);
 		cl->per_worker_stats[workerid]++;
 
-		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 		if ((profiling && profiling_info) || calibrate_model || !_starpu_perf_counter_paused())
-		{
-			_starpu_clock_gettime(&worker->cl_start);
-		}
-		if ((profiling && profiling_info) || calibrate_model)
-		{
-			_starpu_worker_register_executing_start_date(workerid, &worker->cl_start);
-		}
+			worker->cl_start = start;
+
 		_starpu_job_notify_start(j, perf_arch);
 	}
 
@@ -155,21 +154,18 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 	if (cl && cl->model && cl->model->benchmarking)
 		calibrate_model = 1;
 
+	struct timespec end;
+	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
+	if ((profiling && profiling_info) || (rank == 0 && calibrate_model || !_starpu_perf_counter_paused()))
+		_starpu_clock_gettime(&end);
+	_starpu_clear_worker_status(worker, STATUS_INDEX_EXECUTING, &end);
+
 	if (rank == 0)
 	{
-		struct starpu_profiling_task_info *profiling_info = task->profiling_info;
 		if ((profiling && profiling_info) || calibrate_model || !_starpu_perf_counter_paused())
-		{
-			_starpu_clock_gettime(&worker->cl_end);
-		}
-		if ((profiling && profiling_info) || calibrate_model)
-		{
-			_starpu_worker_register_executing_end(workerid, &worker->cl_end);
-		}
+			worker->cl_end = end;
 		STARPU_AYU_POSTRUNTASK(j->job_id);
 	}
-
-	_starpu_clear_worker_status(worker, STATUS_EXECUTING);
 
 	if(!sched_ctx->sched_policy && !sched_ctx->awake_workers &&
 	   sched_ctx->main_master == worker->workerid)
@@ -329,15 +325,16 @@ static void _starpu_worker_set_status_scheduling(int workerid)
 	{
 		if (!(_starpu_worker_get_status(workerid) & STATUS_SLEEPING))
 			_STARPU_TRACE_WORKER_SCHEDULING_START;
-		_starpu_worker_add_status(workerid, STATUS_SCHEDULING);
+		_starpu_worker_add_status(workerid, STATUS_INDEX_SCHEDULING);
 	}
 }
 
 static void _starpu_worker_set_status_scheduling_done(int workerid)
 {
+	STARPU_ASSERT(_starpu_worker_get_status(workerid) & STATUS_SCHEDULING);
 	if (!(_starpu_worker_get_status(workerid) & STATUS_SLEEPING))
 		_STARPU_TRACE_WORKER_SCHEDULING_END;
-	_starpu_worker_clear_status(workerid, STATUS_SCHEDULING);
+	_starpu_worker_clear_status(workerid, STATUS_INDEX_SCHEDULING);
 }
 
 static void _starpu_worker_set_status_sleeping(int workerid)
@@ -345,8 +342,7 @@ static void _starpu_worker_set_status_sleeping(int workerid)
 	if (!(_starpu_worker_get_status(workerid) & STATUS_SLEEPING))
 	{
 		_STARPU_TRACE_WORKER_SLEEP_START;
-		_starpu_worker_restart_sleeping(workerid);
-		_starpu_worker_add_status(workerid, STATUS_SLEEPING);
+		_starpu_worker_add_status(workerid, STATUS_INDEX_SLEEPING);
 	}
 }
 
@@ -355,8 +351,7 @@ static void _starpu_worker_set_status_wakeup(int workerid)
 	if ((_starpu_worker_get_status(workerid) & STATUS_SLEEPING))
 	{
 		_STARPU_TRACE_WORKER_SLEEP_END;
-		_starpu_worker_stop_sleeping(workerid);
-		_starpu_worker_clear_status(workerid, STATUS_SLEEPING);
+		_starpu_worker_clear_status(workerid, STATUS_INDEX_SLEEPING);
 	}
 }
 

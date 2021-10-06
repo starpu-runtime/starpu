@@ -64,12 +64,12 @@ enum _starpu_worker_status
 struct _starpu_worker;
 /** Specify what the local worker is currently doing (eg. executing a callback).
  * This permits to detect if this is legal to do a blocking call for instance. */
-void _starpu_add_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st);
-void _starpu_add_local_worker_status(enum _starpu_worker_status st);
+void _starpu_add_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status_index st, struct timespec *time);
+void _starpu_add_local_worker_status(enum _starpu_worker_status_index st, struct timespec *time);
 
 /** Clear the fact that the local worker was currently doing something(eg. executing a callback). */
-void _starpu_clear_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status st);
-void _starpu_clear_local_worker_status(enum _starpu_worker_status st);
+void _starpu_clear_worker_status(struct _starpu_worker *worker, enum _starpu_worker_status_index st, struct timespec *time);
+void _starpu_clear_local_worker_status(enum _starpu_worker_status_index st, struct timespec *time);
 
 /** Indicate what type of operation the worker is currently doing. */
 enum _starpu_worker_status _starpu_get_local_worker_status(void);

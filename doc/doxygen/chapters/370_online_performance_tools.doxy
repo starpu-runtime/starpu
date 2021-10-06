@@ -100,22 +100,22 @@ standard error stream, use the environment variable \ref STARPU_WORKER_STATS_FIL
 Worker stats:
 CUDA 0.0 (4.7 GiB)
 	480 task(s)
-	total: 1574.82 ms executing: 1510.72 ms sleeping: 0.00 ms overhead 64.10 ms
+	total: 1574.82 ms executing: 1510.72 ms callback: 0.01ms waiting: 0.01ms sleeping: 10.13 ms scheduling: 2.23 ms overhead 64.10 ms
 	325.217970 GFlop/s
 
 CPU 0
 	22 task(s)
-	total: 1574.82 ms executing: 1364.81 ms sleeping: 0.00 ms overhead 210.01 ms
+	total: 1574.82 ms executing: 1364.81 ms callback: 0.01ms waiting: 0.01ms sleeping: 9.45 ms scheduling: 2.10 ms overhead 210.01 ms
 	7.512057 GFlop/s
 
 CPU 1
 	14 task(s)
-	total: 1574.82 ms executing: 1500.13 ms sleeping: 0.00 ms overhead 74.69 ms
+	total: 1574.82 ms executing: 1500.13 ms callback: 0.01ms waiting: 0.01ms sleeping: 10.43 ms scheduling: 2.49 ms overhead 74.69 ms
 	6.675853 GFlop/s
 
 CPU 2
 	14 task(s)
-	total: 1574.82 ms executing: 1553.12 ms sleeping: 0.00 ms overhead 21.70 ms
+	total: 1574.82 ms executing: 1553.12 ms callback: 0.01ms waiting: 0.01ms sleeping: 11.01 ms scheduling: 2.42 ms overhead 21.70 ms
 	7.152886 GFlop/s
 \endverbatim
 

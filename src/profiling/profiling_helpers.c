@@ -112,12 +112,23 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 		{
 			double total_time = starpu_timing_timespec_to_us(&info.total_time) / 1000.;
 			double executing_time = starpu_timing_timespec_to_us(&info.executing_time) / 1000.;
+			double callback_time = starpu_timing_timespec_to_us(&info.callback_time) / 1000.;
+			double waiting_time = starpu_timing_timespec_to_us(&info.waiting_time) / 1000.;
 			double sleeping_time = starpu_timing_timespec_to_us(&info.sleeping_time) / 1000.;
+			double scheduling_time = starpu_timing_timespec_to_us(&info.scheduling_time) / 1000.;
+			double overhead_time = total_time - executing_time - sleeping_time;
 			if (total_time > overall_time)
 				overall_time = total_time;
 
-			fprintf(stream, "\ttotal: %.2lf ms executing: %.2lf ms sleeping: %.2lf ms overhead %.2lf ms\n",
-				total_time, executing_time, sleeping_time, total_time - executing_time - sleeping_time);
+			fprintf(stream, "\t"
+					"total: %.2lf ms "
+					"executing: %.2lf ms "
+					"callback: %.2lf ms "
+					"waiting: %.2lf ms "
+					"sleeping: %.2lf ms "
+					"scheduling: %.2lf ms "
+					"overhead %.2lf ms\n",
+				total_time, executing_time, callback_time, waiting_time, sleeping_time, scheduling_time, overhead_time);
 			if (info.used_cycles || info.stall_cycles)
 				fprintf(stream, "\t%llu Mcy %llu Mcy stall\n", (unsigned long long)info.used_cycles/1000000, (unsigned long long)info.stall_cycles/1000000);
 			if (info.energy_consumed)

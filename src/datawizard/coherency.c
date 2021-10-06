@@ -1141,7 +1141,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 			{
 				/* Ooops, not enough memory, make worker wait for these for now, and the synchronous call will finish by forcing eviction*/
 				worker->nb_buffers_totransfer = nacquires;
-				_starpu_add_worker_status(worker, STATUS_WAITING);
+				_starpu_add_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 				return 0;
 			}
 		}
@@ -1161,7 +1161,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 	if (async)
 	{
 		worker->nb_buffers_totransfer = nacquires;
-		_starpu_add_worker_status(worker, STATUS_WAITING);
+		_starpu_add_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 		return 0;
 	}
 
@@ -1262,7 +1262,7 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 
 	_STARPU_TRACE_END_FETCH_INPUT(NULL);
 
-	_starpu_clear_worker_status(worker, STATUS_WAITING);
+	_starpu_clear_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 }
 
 /* Release task data dependencies */
