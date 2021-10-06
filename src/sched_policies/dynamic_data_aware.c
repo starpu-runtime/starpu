@@ -24,6 +24,25 @@
 #include <schedulers/dynamic_data_aware.h>
 #include "helper_mct.h"
 
+/* TODO a supprimer */
+//~ int victim_evicted_compteur = 0;
+//~ int victim_selector_compteur = 0;
+//~ int victim_selector_return_no_victim = 0;
+//~ int victim_selector_belady = 0;
+
+struct timeval time_start_selector;
+struct timeval time_end_selector;
+long long time_total_selector = 0;
+struct timeval time_start_evicted;
+struct timeval time_end_evicted;
+long long time_total_evicted = 0;
+struct timeval time_start_belady;
+struct timeval time_end_belady;
+long long time_total_belady = 0;
+struct timeval time_start_schedule;
+struct timeval time_end_schedule;
+long long time_total_schedule = 0;
+
 void print_task_list(struct starpu_task_list *l, char *s)
 {
     int i = 0;
@@ -545,7 +564,9 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 /* Fill a package's task list following dynamic_data_aware algorithm. It pop only one data, the one that achieve the most tasks. */
 void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
-	//~ printf("Début de scheduling.\n"); fflush(stdout); 
+	/* TODO : A suppr ou a ifdef pour meilleur perf */
+	gettimeofday(&time_start_schedule, NULL);
+	
     int i = 0;
     int j = 0;
     struct task_using_data *t = NULL;
@@ -680,6 +701,9 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		erase_task_and_data_pointer(task, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, task);
     }
+    
+    gettimeofday(&time_end_schedule, NULL);
+    time_total_schedule += (time_end_schedule.tv_sec - time_start_schedule.tv_sec)*1000000LL + time_end_schedule.tv_usec - time_start_schedule.tv_usec;
 }
 
 void increment_planned_task_data(struct starpu_task *task, int current_gpu)
@@ -703,25 +727,9 @@ void increment_planned_task_data(struct starpu_task *task, int current_gpu)
  */
  /* starpu_data_handle_t planned_eviction; */
 
-/* TODO a supprimer */
-int victim_evicted_compteur = 0;
-int victim_selector_compteur = 0;
-int victim_selector_return_no_victim = 0;
-int victim_selector_belady = 0;
-
-struct timeval time_start_selector;
-struct timeval time_end_selector;
-long long time_total_selector = 0;
-struct timeval time_start_evicted;
-struct timeval time_end_evicted;
-long long time_total_evicted = 0;
-struct timeval time_start_belady;
-struct timeval time_end_belady;
-long long time_total_belady = 0;
-
 void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 {
-	victim_evicted_compteur++;
+	//~ victim_evicted_compteur++;
 	gettimeofday(&time_start_evicted, NULL);
 	
 	//~ printf("Début de victim evicted avec %p. Success = %d. Nb de fois dans victim evicted total %d.\n", victim, success, victim_evicted_compteur); fflush(stdout);
@@ -745,7 +753,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
 	STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
-	victim_selector_compteur++;
+	//~ victim_selector_compteur++;
 	gettimeofday(&time_start_selector, NULL);
 	
     int i = 0;
@@ -865,7 +873,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
      */
     if (min_number_task_in_pulled_task == INT_MAX)
     {
-		victim_selector_return_no_victim++;
+		//~ victim_selector_return_no_victim++;
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector\n"); }
 		
 		gettimeofday(&time_end_selector, NULL);
@@ -891,7 +899,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		/* Si c'est un prefetch qui demande une eviction de ce qui est utile pour les tâches de pulled task je renvoie NO VICTIM si >= à STARPU_TASK_PREFETCH */
 		if (is_prefetch >= 1)
 		{
-			victim_selector_return_no_victim++;
+			//~ victim_selector_return_no_victim++;
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector.\n"); }
 			
 			gettimeofday(&time_end_selector, NULL);
@@ -917,7 +925,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     /* Ca devrait pas arriver a enleevr et a tester */
     if (returned_handle == NULL)
     {
-		victim_selector_return_no_victim++;
+		//~ victim_selector_return_no_victim++;
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector car NULL dans returned_handle de belady planned ou pulled task.\n"); }
 		
 		gettimeofday(&time_end_selector, NULL);
@@ -996,7 +1004,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g)
 {
-	victim_selector_belady++;
+	//~ victim_selector_belady++;
 	gettimeofday(&time_start_belady, NULL);
 	
     int i = 0;
@@ -1453,21 +1461,22 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
 		//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
 		//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
-		if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 0)
+		if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 0 && iteration == 3)
 		{ 
 			FILE *f = fopen("Output_maxime/DDA_eviction_time.txt", "a");
-			fprintf(f, "%0.0f	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector);
+			fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_schedule);
 			fclose(f);
 		}
 	
 		/* TODO : a supprimer car inutile */
-		victim_evicted_compteur = 0;
-		victim_selector_compteur = 0;
-		victim_selector_return_no_victim = 0;
-		victim_selector_belady = 0;
+		//~ victim_evicted_compteur = 0;
+		//~ victim_selector_compteur = 0;
+		//~ victim_selector_return_no_victim = 0;
+		//~ victim_selector_belady = 0;
 		time_total_selector = 0;
 		time_total_belady = 0;
 		time_total_evicted = 0;		
+		time_total_schedule = 0;		
 	}
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
