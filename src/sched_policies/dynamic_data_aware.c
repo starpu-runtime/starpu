@@ -157,7 +157,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 				gpu_pulled_task_insertion();
 			}
 			my_pulled_task_control->first = my_pulled_task_control->pointer;
-			
+			STARPU_PTHREAD_MUTEX_INIT(&my_pulled_task_control->pulled_task_mutex, NULL);
 			need_to_reinit = false;
 	   }
      
@@ -1346,7 +1346,7 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
     p->pointer_to_pulled_task = task;
     pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
     
-    print_pulled_task_one_gpu(my_pulled_task_control->pointer, current_gpu);
+    //print_pulled_task_one_gpu(my_pulled_task_control->pointer, current_gpu);
 }
 
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
