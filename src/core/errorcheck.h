@@ -21,6 +21,22 @@
 
 #include <starpu.h>
 
+/** This type enumerates the actions that can be done by a worker.
+ * Some can be happening during others, that is why
+ * enum _starpu_worker_status
+ * is a bitset indexed by the values of enum _starpu_worker_status_index.
+ */
+enum _starpu_worker_status_index
+{
+	STATUS_INDEX_INITIALIZING = 0,
+	STATUS_INDEX_EXECUTING,
+	STATUS_INDEX_CALLBACK,
+	STATUS_INDEX_WAITING,
+	STATUS_INDEX_SLEEPING,
+	STATUS_INDEX_SCHEDULING,
+	STATUS_INDEX_NR,
+};
+
 /** This type describes in which state a worker may be. */
 enum _starpu_worker_status
 {
@@ -30,17 +46,17 @@ enum _starpu_worker_status
 	/** Nothing particular, thus just overhead */
 	STATUS_UNKNOWN = 0,
 	/** during the initialization */
-	STATUS_INITIALIZING = 1,
+	STATUS_INITIALIZING = 1 << STATUS_INDEX_INITIALIZING,
 	/** during the execution of a codelet */
-	STATUS_EXECUTING = 2,
+	STATUS_EXECUTING = 1 << STATUS_INDEX_EXECUTING,
 	/** during the execution of the callback */
-	STATUS_CALLBACK = 4,
+	STATUS_CALLBACK = 1 << STATUS_INDEX_CALLBACK,
 	/** while waiting for a data transfer */
-	STATUS_WAITING = 8,
+	STATUS_WAITING = 1 << STATUS_INDEX_WAITING,
 	/** while sleeping because there is no task to do */
-	STATUS_SLEEPING = 16,
+	STATUS_SLEEPING = 1 << STATUS_INDEX_SLEEPING,
 	/** while executing the scheduler code */
-	STATUS_SCHEDULING = 32,
+	STATUS_SCHEDULING = 1 << STATUS_INDEX_SCHEDULING,
 };
 
 struct _starpu_worker;
