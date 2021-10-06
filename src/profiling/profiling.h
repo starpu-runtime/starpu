@@ -25,6 +25,8 @@
 #include <starpu_util.h>
 #include <common/config.h>
 
+enum _starpu_worker_status_index;
+
 /** Create a task profiling info structure (with the proper time stamps) in case
  * profiling is enabled. */
 struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(struct starpu_task *task);
@@ -33,21 +35,17 @@ struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(str
  * This tells StarPU how much time was spent doing computation. */
 void _starpu_worker_update_profiling_info_executing(int workerid, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double consumed_energy, double flops);
 
-/** Record the date when the worker started to sleep. This permits to measure
- * how much time was spent sleeping. */
-void _starpu_worker_restart_sleeping(int workerid);
+/** Record the date when the worker entered this state. This permits to measure
+ * how much time was spent in this state.
+ * start_time is optional, if unspecified, _starpu_worker_start_state will just
+ * take the current time. */
+void _starpu_worker_start_state(int workerid, enum _starpu_worker_status_index index, struct timespec *start_time);
 
-/** Record the date when the worker stopped sleeping. This permits to measure
- * how much time was spent sleeping. */
-void _starpu_worker_stop_sleeping(int workerid);
-
-/** Record the date when the worker started to execute a piece of code. This
- * permits to measure how much time was really spent doing computation at the
- * end of the codelet. */
-void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start);
-
-/** Record that the worker is not executing any more. */
-void _starpu_worker_register_executing_end(int workerid, struct timespec *executing_stop);
+/* Record the date when the worker left this state. This permits to measure
+ * how much time was spent in this state.
+ * stop_time is optional, if unspecified, _starpu_worker_start_state will just
+ * take the current time. */
+void _starpu_worker_stop_state(int workerid, enum _starpu_worker_status_index index, struct timespec *stop_time);
 
 /** When StarPU is initialized, a matrix describing all the bus between memory
  * nodes is created: it indicates whether there is a physical link between two

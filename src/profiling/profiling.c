@@ -289,7 +289,10 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 {
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	struct starpu_profiling_worker_info *worker_info = &worker->profiling_info;
-	_starpu_clock_gettime(&worker_info->start_time);
+	struct timespec now;
+	_starpu_clock_gettime(&now);
+
+	worker_info->start_time = now;
 
 	/* This is computed in a lazy fashion when the application queries
 	 * profiling info. */
@@ -309,29 +312,23 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 	 * computation */
 	enum _starpu_worker_status status = _starpu_worker_get_status(workerid);
 
-	if (status & STATUS_SLEEPING)
-	{
+	enum _starpu_worker_status_index i;
 
-		worker->profiling_registered_start[STATUS_INDEX_SLEEPING] = 1;
-		_starpu_clock_gettime(&worker->profiling_registered_start_date[STATUS_INDEX_SLEEPING]);
-	}
-	else
+	for (i = 0; i < STATUS_INDEX_NR; i++)
 	{
-		worker->profiling_registered_start[STATUS_INDEX_SLEEPING] = 0;
-	}
-
-	if (status & STATUS_EXECUTING)
-	{
-		worker->profiling_registered_start[STATUS_INDEX_EXECUTING] = 1;
-		_starpu_clock_gettime(&worker->profiling_registered_start_date[STATUS_INDEX_EXECUTING]);
-	}
-	else
-	{
-		worker->profiling_registered_start[STATUS_INDEX_EXECUTING] = 0;
+		if (status & (1 << i))
+		{
+			worker->profiling_registered_start[i] = 1;
+			worker->profiling_registered_start_date[i] = now;
+		}
+		else
+		{
+			worker->profiling_registered_start[i] = 0;
+		}
 	}
 }
 
-void _starpu_worker_restart_state(int workerid, enum _starpu_worker_status_index index, struct timespec *start_time)
+void _starpu_worker_start_state(int workerid, enum _starpu_worker_status_index index, struct timespec *start_time)
 {
 	if (starpu_profiling_status_get())
 	{
@@ -348,8 +345,31 @@ void _starpu_worker_restart_state(int workerid, enum _starpu_worker_status_index
 		STARPU_PTHREAD_MUTEX_LOCK(&worker->profiling_info_mutex);
 		STARPU_ASSERT (worker->profiling_registered_start[index] == 0);
 		worker->profiling_registered_start[index] = 1;
-		memcpy(&worker->profiling_registered_start_date[index], start_time, sizeof(*start_time));
+		worker->profiling_registered_start_date[index] = *start_time;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->profiling_info_mutex);
+	}
+}
+
+static void _starpu_worker_time_accumulate(struct starpu_profiling_worker_info *worker_info, enum _starpu_worker_status_index index, struct timespec *delta)
+{
+	switch (index) {
+	case STATUS_INDEX_EXECUTING:
+		starpu_timespec_accumulate(&worker_info->executing_time, delta);
+		break;
+	case STATUS_INDEX_CALLBACK:
+		starpu_timespec_accumulate(&worker_info->callback_time, delta);
+		break;
+	case STATUS_INDEX_WAITING:
+		starpu_timespec_accumulate(&worker_info->waiting_time, delta);
+		break;
+	case STATUS_INDEX_SLEEPING:
+		starpu_timespec_accumulate(&worker_info->sleeping_time, delta);
+		break;
+	case STATUS_INDEX_SCHEDULING:
+		starpu_timespec_accumulate(&worker_info->scheduling_time, delta);
+		break;
+	case STATUS_INDEX_NR:
+		STARPU_ASSERT(0);
 	}
 }
 
@@ -387,16 +407,7 @@ void _starpu_worker_stop_state(int workerid, enum _starpu_worker_status_index in
 			struct timespec state_time;
 			starpu_timespec_sub(stop_time, state_start, &state_time);
 
-			switch (index) {
-			case STATUS_INDEX_SLEEPING:
-				starpu_timespec_accumulate(&worker_info->sleeping_time, &state_time);
-				break;
-			case STATUS_INDEX_EXECUTING:
-				starpu_timespec_accumulate(&worker_info->executing_time, &state_time);
-				break;
-			case STATUS_INDEX_NR:
-				STARPU_ASSERT(0);
-			}
+			_starpu_worker_time_accumulate(worker_info, index, &state_time);
 
 			worker->profiling_registered_start[index] = 0;
 		}
@@ -405,27 +416,6 @@ void _starpu_worker_stop_state(int workerid, enum _starpu_worker_status_index in
 
 	}
 }
-
-void _starpu_worker_restart_sleeping(int workerid)
-{
-	_starpu_worker_restart_state(workerid, STATUS_INDEX_SLEEPING, NULL);
-}
-
-void _starpu_worker_stop_sleeping(int workerid)
-{
-	_starpu_worker_stop_state(workerid, STATUS_INDEX_SLEEPING, NULL);
-}
-
-void _starpu_worker_register_executing_start_date(int workerid, struct timespec *executing_start)
-{
-	_starpu_worker_restart_state(workerid, STATUS_INDEX_EXECUTING, executing_start);
-}
-
-void _starpu_worker_register_executing_end(int workerid, struct timespec *executing_stop)
-{
-	_starpu_worker_stop_state(workerid, STATUS_INDEX_EXECUTING, executing_stop);
-}
-
 
 void _starpu_worker_update_profiling_info_executing(int workerid, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double energy_consumed, double flops)
 {
@@ -467,27 +457,25 @@ int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worke
 		struct timespec now;
 		_starpu_clock_gettime(&now);
 
-		/* In case some worker is currently sleeping, we take into
-		 * account the time spent since it registered. */
-		if (worker->profiling_registered_start[STATUS_INDEX_SLEEPING])
-		{
-			struct timespec sleeping_time;
-			starpu_timespec_sub(&now, &worker->profiling_registered_start_date[STATUS_INDEX_SLEEPING], &sleeping_time);
-			starpu_timespec_accumulate(&worker_info->sleeping_time, &sleeping_time);
-		}
+		enum _starpu_worker_status_index i;
 
-		if (worker->profiling_registered_start[STATUS_INDEX_EXECUTING])
+		for (i = 0; i< STATUS_INDEX_NR; i++)
 		{
-			struct timespec executing_time;
-			starpu_timespec_sub(&now, &worker->profiling_registered_start_date[STATUS_INDEX_EXECUTING], &executing_time);
-			starpu_timespec_accumulate(&worker_info->executing_time, &executing_time);
+			/* In case some worker is currently doing something, we take into
+			 * account the time spent since it registered. */
+			if (worker->profiling_registered_start[i])
+			{
+				struct timespec delta;
+				starpu_timespec_sub(&now, &worker->profiling_registered_start_date[i], &delta);
+				_starpu_worker_time_accumulate(worker_info, i, &delta);
+			}
 		}
 
 		/* total_time = now - start_time */
 		starpu_timespec_sub(&now, &worker_info->start_time,
 					&worker_info->total_time);
 
-		memcpy(info, worker_info, sizeof(struct starpu_profiling_worker_info));
+		*info = *worker_info;
 	}
 
 	_starpu_worker_reset_profiling_info_with_lock(workerid);
@@ -622,7 +610,7 @@ int starpu_bus_get_profiling_info(int busid, struct starpu_profiling_bus_info *b
 		starpu_timespec_sub(&now, &bus_profiling_info[src_node][dst_node].start_time,
 					  &bus_profiling_info[src_node][dst_node].total_time);
 
-		memcpy(bus_info, &bus_profiling_info[src_node][dst_node], sizeof(struct starpu_profiling_bus_info));
+		*bus_info = bus_profiling_info[src_node][dst_node];
 	}
 
 	_starpu_bus_reset_profiling_info(&bus_profiling_info[src_node][dst_node]);
