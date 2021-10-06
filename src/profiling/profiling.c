@@ -408,22 +408,43 @@ void _starpu_worker_register_executing_end(int workerid)
 {
 	if (starpu_profiling_status_get())
 	{
-		STARPU_ASSERT(worker_registered_executing_start[workerid] == 1);
+		struct timespec *executing_start, executing_end_time;
+
+		_starpu_clock_gettime(&executing_end_time);
+
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-		worker_registered_executing_start[workerid] = 0;
+		STARPU_ASSERT(worker_registered_executing_start[workerid] == 1);
+		{
+			executing_start = &executing_start_date[workerid];
+
+			/* Perhaps that profiling was enabled while the worker was
+			 * executing, so we don't measure (end - start), but
+			 * (end - max(start,worker_start)) where worker_start is the
+			 * date of the previous profiling info reset on the worker */
+			struct timespec *worker_start = &worker_info[workerid].start_time;
+			if (starpu_timespec_cmp(executing_start, worker_start, <))
+			{
+				/* executing_start < worker_start */
+				executing_start = worker_start;
+			}
+
+			struct timespec executing_time;
+			starpu_timespec_sub(&executing_end_time, executing_start, &executing_time);
+
+			starpu_timespec_accumulate(&worker_info[workerid].executing_time, &executing_time);
+
+			worker_registered_executing_start[workerid] = 0;
+		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_info_mutex[workerid]);
 	}
 }
 
 
-void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double energy_consumed, double flops)
+void _starpu_worker_update_profiling_info_executing(int workerid, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double energy_consumed, double flops)
 {
 	if (starpu_profiling_status_get())
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&worker_info_mutex[workerid]);
-
-		if (executing_time)
-			starpu_timespec_accumulate(&worker_info[workerid].executing_time, executing_time);
 
 		worker_info[workerid].used_cycles += used_cycles;
 		worker_info[workerid].stall_cycles += stall_cycles;

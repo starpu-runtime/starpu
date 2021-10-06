@@ -37,12 +37,12 @@ enum _starpu_worker_status
 	STATUS_EXECUTING = 2,
 	/** during the execution of the callback */
 	STATUS_CALLBACK = 4,
-	/** while executing the scheduler code */
-	STATUS_SCHEDULING = 8,
 	/** while waiting for a data transfer */
-	STATUS_WAITING = 16,
-	/** while sleeping because there is nothing to do */
-	STATUS_SLEEPING = 32
+	STATUS_WAITING = 8,
+	/** while sleeping because there is no task to do */
+	STATUS_SLEEPING = 16,
+	/** while executing the scheduler code */
+	STATUS_SCHEDULING = 32,
 };
 
 struct _starpu_worker;
