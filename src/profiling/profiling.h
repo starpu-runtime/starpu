@@ -31,7 +31,7 @@ struct starpu_profiling_task_info *_starpu_allocate_profiling_info_if_needed(str
 
 /** Update the per-worker profiling info after a task (or more) was executed.
  * This tells StarPU how much time was spent doing computation. */
-void _starpu_worker_update_profiling_info_executing(int workerid, struct timespec *executing_time, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double consumed_energy, double flops);
+void _starpu_worker_update_profiling_info_executing(int workerid, int executed_tasks, uint64_t used_cycles, uint64_t stall_cycles, double consumed_energy, double flops);
 
 /** Record the date when the worker started to sleep. This permits to measure
  * how much time was spent sleeping. */

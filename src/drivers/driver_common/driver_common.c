@@ -233,7 +233,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 			profiling_info->workerid = workerid;
 
-			_starpu_worker_update_profiling_info_executing(workerid, &measured_ts, 1,
+			_starpu_worker_update_profiling_info_executing(workerid, 1,
 								       profiling_info->used_cycles,
 								       profiling_info->stall_cycles,
 								       profiling_info->energy_consumed,
@@ -282,7 +282,7 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 	}
 
 	if (!updated)
-		_starpu_worker_update_profiling_info_executing(workerid, NULL, 1, 0, 0, 0, 0);
+		_starpu_worker_update_profiling_info_executing(workerid, 1, 0, 0, 0, 0);
 
 	if (profiling_info && profiling_info->energy_consumed && cl->energy_model && cl->energy_model->benchmarking)
 	{
