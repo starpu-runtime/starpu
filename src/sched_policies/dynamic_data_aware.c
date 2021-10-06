@@ -167,6 +167,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 				gpu_planned_task_insertion();
 			}
 			my_planned_task_control->first = my_planned_task_control->pointer;
+			STARPU_PTHREAD_MUTEX_INIT(&my_planned_task_control->planned_task_mutex, NULL);
 			gpu_pulled_task_initialisation();
 			for (i = 0; i < Ngpu - 1; i++)
 			{
@@ -179,7 +180,10 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
      
     new_tasks_initialized = true; 
     struct dynamic_data_aware_sched_data *data = component->data;
+    
+    STARPU_PTHREAD_MUTEX_LOCK(&my_planned_task_control->planned_task_mutex);
     initialize_task_data_gpu_single_task(task);
+    STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
     
     /* Pushing the task in sched_list. It's this list that will be randomized
      * and put in main_task_list in pull_task.
@@ -510,6 +514,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
      * TODO: check that with other applications where task are not
      * all available at once, this works.
      */
+    STARPU_PTHREAD_MUTEX_LOCK(&my_planned_task_control->planned_task_mutex);
     if (new_tasks_initialized == true)
     {
 	    //~ iteration++;	    
@@ -532,6 +537,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 			//~ print_task_list(&data->main_task_list, "");
 		//~ }
     }
+    STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
     
     /* Même sans les mutex ca marche, c'est bizare ... */
     //STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
@@ -729,6 +735,8 @@ void increment_planned_task_data(struct starpu_task *task, int current_gpu)
 
 void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 {
+	    STARPU_PTHREAD_MUTEX_LOCK(&my_planned_task_control->planned_task_mutex);
+
 	//~ victim_evicted_compteur++;
 	gettimeofday(&time_start_evicted, NULL);
 	
@@ -746,6 +754,9 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 		
 	gettimeofday(&time_end_evicted, NULL);
 	time_total_evicted += (time_end_evicted.tv_sec - time_start_evicted.tv_sec)*1000000LL + time_end_evicted.tv_usec - time_start_evicted.tv_usec;
+	
+	    STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
+
 }
 
 /* TODO: return NULL ou ne rien faire si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée.
@@ -1351,6 +1362,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	    gpu_planned_task_insertion();
 	}
 	my_planned_task_control->first = my_planned_task_control->pointer;
+	STARPU_PTHREAD_MUTEX_INIT(&my_planned_task_control->planned_task_mutex, NULL);
 	
 	gpu_pulled_task_initialisation();
 	for (i = 0; i < Ngpu - 1; i++)
@@ -1461,7 +1473,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
 		//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
 		//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
-		if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 0 && iteration == 3)
+		if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 0 && (iteration == 3 || starpu_get_env_number_default("PRINT_TIME", 0) == 1))
 		{ 
 			FILE *f = fopen("Output_maxime/DDA_eviction_time.txt", "a");
 			fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_schedule);

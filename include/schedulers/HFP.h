@@ -31,6 +31,7 @@
 #define TASK_STEALING /* 0 we don't use it, 1 when a gpu (so a package) has finished all it tasks, it steal a task, starting by the end of the package of the package that has the most tasks left. It can be done with load balance on but was first thinked to be used with no load balance bbut |GPU| packages (MULTIGPU=1), 2 same than 1 but we steal from the package that has the biggest expected package time, 3 same than 2 but we always steal half (arondi à l'inférieur) of the package at once (in term of task duration). All that is implemented in get_task_to_return */
 #define INTERLACING /* 0 we don't use it, 1 we start giving task at the middle of the package then do right, left and so on. */
 #define PRINT_N /* To precise the value of N for visualization in scheduelers that does not count the toal number of tasks. Also use PRINT3D=1  or 2 so we know we are in 3D". */
+#define PRINT_TIME
 
 int Ngpu;
 int index_current_task_for_visualization; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
