@@ -599,11 +599,19 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
     }
     
     /* To know if all the data needed for a task are loaded in memory. */
-    bool data_available = true; 
+    bool data_available = true;
+    
+    /* getting the number of data on which we will loop. for 0 we take infinite. */
+    int choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0);
+    if (choose_best_data_threshold == 0)
+    {
+		choose_best_data_threshold = INT_MAX;
+	}
+	i = 0;
     
     /* Prendre uniquement le début (par exemple 100 en variable d'env) de la liste des données pas encore utilisé */
     gettimeofday(&time_start_choose_best_data, NULL);
-    for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
+    for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
     {
 		/* Ne pas faire la boucle si supp à 100 */
 		temp_number_of_task_max = 0;
@@ -649,6 +657,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 			}
 		}
     }
+        
     gettimeofday(&time_end_choose_best_data, NULL);
     time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
     
