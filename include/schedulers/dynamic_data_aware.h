@@ -3,7 +3,8 @@
 
 #define EVICTION_STRATEGY_DYNAMIC_DATA_AWARE /* 0 we use default dynamic data aware without managing evictions. */
 #define CHOOSE_BEST_DATA_THRESHOLD /* Jusqu'a où je regarde dans la liste des données pour choisir la meilleure. 0 = infini. */
-#define FILL_PLANNED_TASK_LIST_THRESHOLD /* Jusqu'a où je rempli la liste des planned task. 0 = infini. */
+#define PERCENTAGE_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD /* Après ce pourcentage/NGPU je retire le threshold */
+//~ #define FILL_PLANNED_TASK_LIST_THRESHOLD /* Jusqu'a où je rempli la liste des planned task. 0 = infini. inutile en réalité car cela prends très peu de temps. */
 
 starpu_pthread_mutex_t global_mutex;   	
 

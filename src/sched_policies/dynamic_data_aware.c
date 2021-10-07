@@ -609,57 +609,10 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 	}
 	i = 0;
     
-    //~ /* Version qui fonctionne bien. */
-    //~ /* Prendre uniquement le début (par exemple 100 en variable d'env) de la liste des données pas encore utilisé */
-    //~ gettimeofday(&time_start_choose_best_data, NULL);
-    //~ for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
-    //~ {
-		//~ temp_number_of_task_max = 0;
-				
-		//~ for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
-		//~ {
-			//~ /* I put it at false if at least one data is missing. */
-			//~ data_available = true; 
-			//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
-			//~ {
-				//~ /* I test if the data is on memory */ 
-				//~ if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
-				//~ {
-					//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-					//~ {
-						//~ data_available = false;
-						//~ break;
-					//~ }
-				//~ }
-			//~ }
-			//~ if (data_available == true)
-			//~ {
-				//~ temp_number_of_task_max++;
-			//~ }
-		//~ }
-	
-		//~ if (temp_number_of_task_max > number_of_task_max)
-		//~ {
-			//~ number_of_task_max = temp_number_of_task_max;
-			//~ task_available_max = task_using_data_list_size(e->D->sched_data);
-			//~ handle_popped = e->D;
-		//~ }
-		//~ /* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
-		//~ else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
-		//~ {
-			//~ tudl = e->D->sched_data;
-			//~ /* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
-			//~ if (task_using_data_list_size(tudl) > task_available_max)
-			//~ {
-				//~ task_available_max = task_using_data_list_size(tudl);
-				//~ handle_popped = e->D;
-			//~ }
-		//~ }
-    //~ }
-    
-    /* Version pour tester en continuant à perdre du temps après le threshold. */
+    /* Version qui fonctionne bien. */
+    /* Prendre uniquement le début (par exemple 100 en variable d'env) de la liste des données pas encore utilisé */
     gettimeofday(&time_start_choose_best_data, NULL);
-    for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e), i++)
+    for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
     {
 		temp_number_of_task_max = 0;
 				
@@ -684,6 +637,51 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 				temp_number_of_task_max++;
 			}
 		}
+	
+		if (temp_number_of_task_max > number_of_task_max)
+		{
+			number_of_task_max = temp_number_of_task_max;
+			task_available_max = task_using_data_list_size(e->D->sched_data);
+			handle_popped = e->D;
+		}
+		/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
+		else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
+		{
+			tudl = e->D->sched_data;
+			/* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
+			if (task_using_data_list_size(tudl) > task_available_max)
+			{
+				task_available_max = task_using_data_list_size(tudl);
+				handle_popped = e->D;
+			}
+		}
+    }
+    
+    /* Version pour tester en continuant à perdre du temps après le threshold.
+    gettimeofday(&time_start_choose_best_data, NULL);
+    for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e), i++)
+    {
+		temp_number_of_task_max = 0;
+				
+		for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
+		{
+			data_available = true; 
+			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+			{
+				if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
+				{
+					if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+					{
+						data_available = false;
+						break;
+					}
+				}
+			}
+			if (data_available == true)
+			{
+				temp_number_of_task_max++;
+			}
+		}
 		
 		if (temp_number_of_task_max > number_of_task_max)
 		{
@@ -694,11 +692,9 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 				handle_popped = e->D;
 			}
 		}
-		/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
 		else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
 		{
 			tudl = e->D->sched_data;
-			/* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
 			if (task_using_data_list_size(tudl) > task_available_max)
 			{
 				if (i < choose_best_data_threshold)
@@ -708,12 +704,11 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 				}
 			}
 		}
-    }
+    } Fin de version pour tester en perdant du temps après le threshold. */
         
     gettimeofday(&time_end_choose_best_data, NULL);
     time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
     
-    //~ printf("number of task max: %d.\n", number_of_task_max);
     if (number_of_task_max == 0)
     {
 		goto random;
