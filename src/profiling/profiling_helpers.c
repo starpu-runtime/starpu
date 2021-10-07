@@ -99,6 +99,8 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 	double tot_waiting_time = 0.0;
 	double tot_sleeping_time = 0.0;
 	double tot_scheduling_time = 0.0;
+	
+	double all_tot_scheduling_time = 0.0;
 
 	fprintf(stream, "\n#---------------------\n");
 	fprintf(stream, "Worker stats:\n");
@@ -137,6 +139,8 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 			double all_waiting_time = starpu_timing_timespec_to_us(&info.all_waiting_time) / 1000.;
 			double all_sleeping_time = starpu_timing_timespec_to_us(&info.all_sleeping_time) / 1000.;
 			double all_scheduling_time = starpu_timing_timespec_to_us(&info.all_scheduling_time) / 1000.;
+			
+			all_tot_scheduling_time += all_scheduling_time;
 
 			if (total_time > overall_time)
 				overall_time = total_time;
@@ -184,6 +188,9 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 				tot_sleeping_time, tot_sleeping_time * 100 / tot_total_time,
 				tot_scheduling_time, tot_scheduling_time * 100 / tot_total_time,
 				tot_overhead_time, tot_overhead_time * 100 / tot_total_time);
+		fprintf(stream, "\nGlobal time all: "
+					"scheduling: %.2lf ms (%.2lf%%)\n",
+				all_tot_scheduling_time, all_tot_scheduling_time * 100 / tot_total_time);
 	}
 
 	if (profiling)
