@@ -93,6 +93,13 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 	int workerid;
 	int worker_cnt = starpu_worker_get_count();
 
+	double tot_total_time = 0.0;
+	double tot_executing_time = 0.0;
+	double tot_callback_time = 0.0;
+	double tot_waiting_time = 0.0;
+	double tot_sleeping_time = 0.0;
+	double tot_scheduling_time = 0.0;
+
 	fprintf(stream, "\n#---------------------\n");
 	fprintf(stream, "Worker stats:\n");
 
@@ -117,6 +124,13 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 			double sleeping_time = starpu_timing_timespec_to_us(&info.sleeping_time) / 1000.;
 			double scheduling_time = starpu_timing_timespec_to_us(&info.scheduling_time) / 1000.;
 			double overhead_time = total_time - executing_time - callback_time - waiting_time - sleeping_time - scheduling_time;
+
+			tot_total_time += total_time;
+			tot_executing_time += executing_time;
+			tot_callback_time += callback_time;
+			tot_waiting_time += waiting_time;
+			tot_sleeping_time += sleeping_time;
+			tot_scheduling_time += scheduling_time;
 
 			double all_executing_time = starpu_timing_timespec_to_us(&info.all_executing_time) / 1000.;
 			double all_callback_time = starpu_timing_timespec_to_us(&info.all_callback_time) / 1000.;
@@ -151,6 +165,25 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 		}
 
 		sum_consumed += info.energy_consumed;
+	}
+
+	if (profiling)
+	{
+		double tot_overhead_time = tot_total_time - tot_executing_time - tot_callback_time - tot_waiting_time - tot_sleeping_time - tot_scheduling_time;
+		fprintf(stream, "\nGlobal time split: total %.2lf ms = "
+					"executing: %.2lf ms (%.2lf%%) + "
+					"callback: %.2lf ms (%.2lf%%) + "
+					"waiting: %.2lf ms (%.2lf%%) + "
+					"sleeping: %.2lf ms (%.2lf%%) + "
+					"scheduling: %.2lf ms (%.2lf%%) + "
+					"overhead %.2lf ms (%.2lf%%)\n",
+				tot_total_time,
+				tot_executing_time, tot_executing_time * 100 / tot_total_time,
+				tot_callback_time, tot_callback_time * 100 / tot_total_time,
+				tot_waiting_time, tot_waiting_time * 100 / tot_total_time,
+				tot_sleeping_time, tot_sleeping_time * 100 / tot_total_time,
+				tot_scheduling_time, tot_scheduling_time * 100 / tot_total_time,
+				tot_overhead_time, tot_overhead_time * 100 / tot_total_time);
 	}
 
 	if (profiling)

@@ -147,27 +147,30 @@ standard error stream, use the environment variable \ref STARPU_WORKER_STATS_FIL
 Worker stats:
 CUDA 0.0 (Tesla M2075 4.7 GiB 03:00.0)
 	133 task(s)
-	time split: total 3048.91 ms = executing: 1592.21 ms + callback: 3.19 ms + waiting: 5.33 ms + sleeping: 1445.95 ms + scheduling: 0.00 ms + overhead 2.22 ms
-	all time: executing: 1592.21 ms callback: 3.19 ms waiting: 23.90 ms sleeping: 1558.52 ms scheduling: 1559.40 ms
-	301.788199 GFlop/s
+	time split: total 3212.86 ms = executing: 1588.56 ms + callback: 2.95 ms + waiting: 5.34 ms + sleeping: 1613.67 ms + scheduling: 0.01 ms + overhead 2.33 ms
+	all time: executing: 1588.56 ms callback: 2.95 ms waiting: 22.83 ms sleeping: 1725.93 ms scheduling: 1726.88 ms
+	286.388333 GFlop/s
 
-CPU 0                           
+CPU 0
 	10 task(s)
-	time split: total 3048.94 ms = executing: 1961.54 ms + callback: 0.26 ms + waiting: 0.02 ms + sleeping: 1086.73 ms + scheduling: 0.02 ms + overhead 0.37 ms
-	all time: executing: 1961.54 ms callback: 0.26 ms waiting: 0.02 ms sleeping: 1086.73 ms scheduling: 281.48 ms
-	23.214285 GFlop/s
+	time split: total 3212.89 ms = executing: 2117.19 ms + callback: 0.23 ms + waiting: 0.01 ms + sleeping: 1095.06 ms + scheduling: 0.02 ms + overhead 0.37 ms
+	all time: executing: 2117.19 ms callback: 0.23 ms waiting: 0.01 ms sleeping: 1095.06 ms scheduling: 283.86 ms
+	22.029695 GFlop/s
 
-CPU 1                           
+CPU 1
 	10 task(s)
-	time split: total 3048.97 ms = executing: 1961.47 ms + callback: 0.27 ms + waiting: 0.01 ms + sleeping: 1086.85 ms + scheduling: 0.02 ms + overhead 0.35 ms
-	all time: executing: 1961.47 ms callback: 0.27 ms waiting: 0.01 ms sleeping: 1086.85 ms scheduling: 282.10 ms
-	23.214047 GFlop/s
+	time split: total 3212.92 ms = executing: 2116.18 ms + callback: 0.17 ms + waiting: 0.01 ms + sleeping: 1096.10 ms + scheduling: 0.02 ms + overhead 0.44 ms
+	all time: executing: 2116.18 ms callback: 0.17 ms waiting: 0.01 ms sleeping: 1096.10 ms scheduling: 284.40 ms
+	22.029487 GFlop/s
 
-CPU 2                           
+CPU 2
 	10 task(s)
-	time split: total 3048.98 ms = executing: 1963.76 ms + callback: 0.10 ms + waiting: 0.01 ms + sleeping: 1084.90 ms + scheduling: 0.01 ms + overhead 0.20 ms
-	all time: executing: 1963.76 ms callback: 0.10 ms waiting: 0.01 ms sleeping: 1084.90 ms scheduling: 280.80 ms
-	23.213916 GFlop/s
+	time split: total 3212.94 ms = executing: 2116.08 ms + callback: 0.18 ms + waiting: 0.01 ms + sleeping: 1096.21 ms + scheduling: 0.02 ms + overhead 0.44 ms
+	all time: executing: 2116.08 ms callback: 0.18 ms waiting: 0.01 ms sleeping: 1096.21 ms scheduling: 283.75 ms
+	22.029343 GFlop/s
+
+
+Global time split: total 12851.60 ms = executing: 7938.01 ms (61.77%) + callback: 3.53 ms (0.03%) + waiting: 5.36 ms (0.04%) + sleeping: 4901.05 ms (38.14%) + scheduling: 0.06 ms (0.00%) + overhead 3.59 ms (0.03%)
 \endverbatim
 
 The number of GFlops/s is available because the starpu_task::flops field of the
