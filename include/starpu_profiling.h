@@ -124,14 +124,37 @@ struct starpu_profiling_worker_info
 
 	/** Time spent by the worker to execute tasks during the profiling measurement interval. */
 	struct timespec executing_time;
-	/** Time spent by the worker to execute callbacks during the profiling measurement interval. */
+	/** Time spent by the worker to execute callbacks, while not executing a
+	 * task, during the profiling measurement interval. */
 	struct timespec callback_time;
-	/** Time spent by the worker waiting for a data transfer to finish during the profiling measurement interval. */
+	/** Time spent by the worker waiting for a data transfer to finish,
+	 * while not executing a task or a callback, during the profiling
+	 * measurement interval. */
 	struct timespec waiting_time;
-	/** Time spent idling by the worker because no task were available during the profiling measurement interval. */
+	/** Time spent idling by the worker because no task were available, and
+	 * not executing a task or a callback or waiting for a data transfer to
+	 * finish, during the profiling measurement interval. */
 	struct timespec sleeping_time;
-	/** Time spent by the worker scheduling tasks during the profiling measurement interval. */
+	/** Time spent by the worker scheduling tasks, while not executing a
+	 * task or a callback or waiting for a data transfer to finish, and there
+	 * are tasks to be scheduled, during the profiling measurement interval. */
 	struct timespec scheduling_time;
+
+	/** Time spent by the worker to execute tasks during the profiling measurement interval.
+	 * Normally always equal to executing_time. */
+	struct timespec all_executing_time;
+	/** Time spent by the worker to execute callbacks during the profiling measurement interval.
+	 * Normally always greater than callback_time. */
+	struct timespec all_callback_time;
+	/** Time spent by the worker waiting for a data transfer to finish during the profiling measurement interval.
+	 * Normally always greater than waiting_time. */
+	struct timespec all_waiting_time;
+	/** Time spent idling by the worker because no task were available during the profiling measurement interval.
+	 * Normally always greater than sleeping_time. */
+	struct timespec all_sleeping_time;
+	/** Time spent by the worker scheduling tasks during the profiling measurement interval.
+	 * Normally always greater than scheduling_time. */
+	struct timespec all_scheduling_time;
 
 	/** Number of tasks executed by the worker during the profiling measurement interval. */
 	int executed_tasks;

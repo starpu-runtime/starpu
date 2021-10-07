@@ -199,6 +199,8 @@ LIST_TYPE(_starpu_worker,
 	 * we need to account for the time elasped while sleeping. */
 	unsigned profiling_registered_start[STATUS_INDEX_NR];
 	struct timespec profiling_registered_start_date[STATUS_INDEX_NR];
+	enum _starpu_worker_status profiling_status;
+	struct timespec profiling_status_start_date;
 
 	struct starpu_perf_counter_sample perf_counter_sample;
 	int64_t __w_total_executed__value;
