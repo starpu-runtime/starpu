@@ -143,6 +143,8 @@ void _starpu_profiling_init(void)
 
 		for (i = 0; i< STATUS_INDEX_NR; i++)
 			worker->profiling_registered_start[i] = 0;
+
+		worker->profiling_status = STATUS_UNKNOWN;
 	}
 
 #ifdef STARPU_PAPI
@@ -325,7 +327,31 @@ static void _starpu_worker_reset_profiling_info_with_lock(int workerid)
 		{
 			worker->profiling_registered_start[i] = 0;
 		}
+		worker->profiling_status = status;
+		worker->profiling_status_start_date = now;
 	}
+}
+
+static void _starpu_worker_time_split_accumulate(struct starpu_profiling_worker_info *worker_info, enum _starpu_worker_status status, struct timespec *delta)
+{
+	/* We here prioritize where we want to attribute the time spent */
+
+	if (status & STATUS_EXECUTING)
+		/* Executing task, this is all we want to know */
+		starpu_timespec_accumulate(&worker_info->executing_time, delta);
+	else if (status & STATUS_CALLBACK)
+		/* Otherwise, callback, that's fine as well */
+		starpu_timespec_accumulate(&worker_info->callback_time, delta);
+	else if (status & STATUS_WAITING)
+		/* Not doing any task or callback, held on waiting for some data */
+		starpu_timespec_accumulate(&worker_info->waiting_time, delta);
+	else if (status & STATUS_SLEEPING)
+		/* Not even waiting for some data, but we don't have any task to do anyway */
+		starpu_timespec_accumulate(&worker_info->sleeping_time, delta);
+	else if (status & STATUS_SCHEDULING)
+		/* We do have tasks to do, but the scheduler takes time */
+		starpu_timespec_accumulate(&worker_info->scheduling_time, delta);
+	/* And otherwise it's just uncategorized overhead */
 }
 
 void _starpu_worker_start_state(int workerid, enum _starpu_worker_status_index index, struct timespec *start_time)
@@ -346,6 +372,17 @@ void _starpu_worker_start_state(int workerid, enum _starpu_worker_status_index i
 		STARPU_ASSERT (worker->profiling_registered_start[index] == 0);
 		worker->profiling_registered_start[index] = 1;
 		worker->profiling_registered_start_date[index] = *start_time;
+
+		if (worker->profiling_status != STATUS_UNKNOWN)
+		{
+			struct starpu_profiling_worker_info *worker_info = &worker->profiling_info;
+			struct timespec state_time;
+			starpu_timespec_sub(start_time, &worker->profiling_status_start_date, &state_time);
+			_starpu_worker_time_split_accumulate(worker_info, worker->profiling_status, &state_time);
+		}
+		worker->profiling_status = _starpu_worker_get_status(workerid) | (1<<index);
+		worker->profiling_status_start_date = *start_time;
+
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->profiling_info_mutex);
 	}
 }
@@ -354,21 +391,22 @@ static void _starpu_worker_time_accumulate(struct starpu_profiling_worker_info *
 {
 	switch (index) {
 	case STATUS_INDEX_EXECUTING:
-		starpu_timespec_accumulate(&worker_info->executing_time, delta);
+		starpu_timespec_accumulate(&worker_info->all_executing_time, delta);
 		break;
 	case STATUS_INDEX_CALLBACK:
-		starpu_timespec_accumulate(&worker_info->callback_time, delta);
+		starpu_timespec_accumulate(&worker_info->all_callback_time, delta);
 		break;
 	case STATUS_INDEX_WAITING:
-		starpu_timespec_accumulate(&worker_info->waiting_time, delta);
+		starpu_timespec_accumulate(&worker_info->all_waiting_time, delta);
 		break;
 	case STATUS_INDEX_SLEEPING:
-		starpu_timespec_accumulate(&worker_info->sleeping_time, delta);
+		starpu_timespec_accumulate(&worker_info->all_sleeping_time, delta);
 		break;
 	case STATUS_INDEX_SCHEDULING:
-		starpu_timespec_accumulate(&worker_info->scheduling_time, delta);
+		starpu_timespec_accumulate(&worker_info->all_scheduling_time, delta);
 		break;
 	case STATUS_INDEX_NR:
+	case STATUS_INDEX_INITIALIZING:
 		STARPU_ASSERT(0);
 	}
 }
@@ -379,6 +417,7 @@ void _starpu_worker_stop_state(int workerid, enum _starpu_worker_status_index in
 	{
 		struct timespec *state_start, state_end_time;
 		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+		struct starpu_profiling_worker_info *worker_info = &worker->profiling_info;
 
 		if (!stop_time)
 		{
@@ -396,7 +435,6 @@ void _starpu_worker_stop_state(int workerid, enum _starpu_worker_status_index in
 			 * already blocked, so we don't measure (end - start), but
 			 * (end - max(start,worker_start)) where worker_start is the
 			 * date of the previous profiling info reset on the worker */
-			struct starpu_profiling_worker_info *worker_info = &worker->profiling_info;
 			struct timespec *worker_start = &worker_info->start_time;
 			if (starpu_timespec_cmp(state_start, worker_start, <))
 			{
@@ -411,6 +449,15 @@ void _starpu_worker_stop_state(int workerid, enum _starpu_worker_status_index in
 
 			worker->profiling_registered_start[index] = 0;
 		}
+
+		if (worker->profiling_status != STATUS_UNKNOWN)
+		{
+			struct timespec state_time;
+			starpu_timespec_sub(stop_time, &worker->profiling_status_start_date, &state_time);
+			_starpu_worker_time_split_accumulate(worker_info, worker->profiling_status, &state_time);
+		}
+		worker->profiling_status = _starpu_worker_get_status(workerid) & ~(1<<index);
+		worker->profiling_status_start_date = *stop_time;
 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&worker->profiling_info_mutex);
 
@@ -469,6 +516,12 @@ int starpu_profiling_worker_get_info(int workerid, struct starpu_profiling_worke
 				starpu_timespec_sub(&now, &worker->profiling_registered_start_date[i], &delta);
 				_starpu_worker_time_accumulate(worker_info, i, &delta);
 			}
+		}
+		if (worker->profiling_status != STATUS_UNKNOWN)
+		{
+			struct timespec delta;
+			starpu_timespec_sub(&now, &worker->profiling_status_start_date, &delta);
+			_starpu_worker_time_split_accumulate(worker_info, worker->profiling_status, &delta);
 		}
 
 		/* total_time = now - start_time */
