@@ -2,6 +2,10 @@
 #define __dynamic_data_aware_H__
 
 #define EVICTION_STRATEGY_DYNAMIC_DATA_AWARE /* 0 we use default dynamic data aware without managing evictions. */
+#define CHOOSE_BEST_DATA_THRESHOLD /* Jusqu'a où je regarde dans la liste des données pour choisir la meilleure. 0 = infini. */
+#define FILL_PLANNED_TASK_LIST_THRESHOLD /* Jusqu'a où je rempli la liste des planned task. 0 = infini. */
+
+starpu_pthread_mutex_t global_mutex;   	
 
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
@@ -56,7 +60,7 @@ struct gpu_planned_task_control
 {
     struct gpu_planned_task *pointer;
     struct gpu_planned_task *first;
-    starpu_pthread_mutex_t planned_task_mutex;
+    //~ starpu_pthread_mutex_t planned_task_mutex;
 };
 
 /** Task out of pulled task. Updated by post_exec. I'm forced to use a list of single task and not task list because else starpu doesn't allow me to push a tasks in two different task_list **/
@@ -72,7 +76,7 @@ struct gpu_pulled_task_control
 {
     struct gpu_pulled_task *pointer;
     struct gpu_pulled_task *first;
-    starpu_pthread_mutex_t pulled_task_mutex;
+    //~ starpu_pthread_mutex_t pulled_task_mutex;
 };
 
 /** To track the data counted in min_weight_average to avoid counting twice duplicate **/
