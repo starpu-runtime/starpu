@@ -2,8 +2,10 @@
 #	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 2 Matrice_ligne dynamic_data_aware_ipdps 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 2 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 1
 
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 1 X
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 2 X
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 1 V
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 2 V
+
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 11 Matrice_ligne dynamic_data_aware_compare_threshold 2 X
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
@@ -346,7 +348,9 @@ then
 	if [ $MODEL == "dynamic_data_aware_compare_threshold" ]
 	then
 		ECHELLE_X=20
+		NB_ALGO_TESTE=1
 		N=110
+		echo "############## Compare Threshold ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			do
 			DDA_TH=$((START_X+i*ECHELLE_X))
