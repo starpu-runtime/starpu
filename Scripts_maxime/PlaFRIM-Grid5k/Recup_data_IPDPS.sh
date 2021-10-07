@@ -4,6 +4,7 @@
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 10 Matrice_ligne dynamic_data_aware_no_hfp 3 7
 
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 11 Matrice_ligne dynamic_data_aware_compare_threshold 2 1
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 11 Matrice_ligne dynamic_data_aware_compare_threshold_worse_time 2 1
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
@@ -53,11 +54,11 @@ if [ $MODEL == "dynamic_data_aware_no_hfp" ]
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/EVICTION_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
 	mv /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/DDA_eviction_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/EVICTION_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
 fi
-if [ $MODEL == "dynamic_data_aware_compare_threshold" ]
+if [[ $MODEL == "dynamic_data_aware_compare_threshold" || $MODEL == "dynamic_data_aware_compare_threshold_worse_time" ]]
 	then
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_1.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_3.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DDA_eviction_time.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/DDA_eviction_time.txt
+	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_1.txt
+	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_3.txt
+	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DDA_eviction_time.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/DDA_eviction_time.txt
 	
 	ECHELLE_X=20
 	

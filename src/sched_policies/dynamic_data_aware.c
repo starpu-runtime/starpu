@@ -601,16 +601,60 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
     /* To know if all the data needed for a task are loaded in memory. */
     bool data_available = true;
     
-    /* getting the number of data on which we will loop. for 0 we take infinite. */
-    int choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0);
-    if (choose_best_data_threshold == 0)
-    {
-		choose_best_data_threshold = INT_MAX;
-	}
-	i = 0;
+    int choose_best_data_threshold = INT_MAX;
     
-    /* Version qui fonctionne bien. */
-    /* Prendre uniquement le début (par exemple 100 en variable d'env) de la liste des données pas encore utilisé */
+    if (starpu_get_env_number_default("LIFT_THRESHOLD_MODE", 0) != 0)
+    {
+		if (starpu_get_env_number_default("LIFT_THRESHOLD_MODE", 0) == 1)
+		{
+			/* Version avec un threshold fixe de data que l'on regarde. */
+			/* getting the number of data on which we will loop. for 0 we take infinite. */
+			choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0);
+		}
+		else if (starpu_get_env_number_default("LIFT_THRESHOLD_MODE", 0) == 2)
+		{
+			/* Version avec un threshold qui varie en fonction du nombres de tâches envoyées à pulled task.
+			 * Quand NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD == number_of_task_out je met le th à INT_MAX. */
+			if (number_task_out >= starpu_get_env_number_default("NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD", 0)/Ngpu)
+			{
+				choose_best_data_threshold = INT_MAX;
+			}
+			else
+			{
+				choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0);
+			}
+		}
+		else if (starpu_get_env_number_default("LIFT_THRESHOLD_MODE", 0) == 3)
+		{
+			/* Version avec un threshold qui varie en fonction du nombres de tâches envoyées à pulled task mais progressivement.
+			 * Quand NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD == number_of_task_out je met le th à INT_MAX. */
+			if (number_task_out >= starpu_get_env_number_default("NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD", 0)/Ngpu)
+			{
+				choose_best_data_threshold = INT_MAX;
+			}
+			else
+			{
+				choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0) + number_task_out/2;
+			}
+		}
+		else if (starpu_get_env_number_default("LIFT_THRESHOLD_MODE", 0) == 4)
+		{
+			/* Version avec un threshold qui varie en fonction du pourcentage de tâches envoyées à pulled task.
+			 * Quand PERCENTAGE_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD == number_of_task_out je met le th à INT_MAX.
+			 * Fait augmenter en douceur jusqu'au % max. */
+			if ((number_task_out*100)/NT_dynamic_outer >= starpu_get_env_number_default("PERCENTAGE_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD", 0)/Ngpu)
+			{
+				choose_best_data_threshold = INT_MAX;
+			}
+			else
+			{
+				choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0) + ((number_task_out*100)/NT_dynamic_outer)*2;
+			}
+		}
+	}
+	
+	/* The costly loop */
+	i = 0;
     gettimeofday(&time_start_choose_best_data, NULL);
     for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
     {
