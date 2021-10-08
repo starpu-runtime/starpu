@@ -994,10 +994,8 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		/* Fin de version où je récup les 10 meilleures données et ensuite tant que je les ai pas toutes envoyé je test sur ces 10 données la. */
     }
     
-    printf("%p to Handle popped gpu %d.\n", handle_popped, current_gpu); fflush(stdout);
     if (number_of_task_max == 0)
     {
-		printf("random\n"); fflush(stdout);
 		goto random;
     }
     else /* I erase the data. */
