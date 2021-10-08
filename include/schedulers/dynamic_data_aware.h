@@ -10,6 +10,13 @@
 
 starpu_pthread_mutex_t global_mutex;   	
 
+/* TODO si on utilise pas cette méthode à supprimer */
+int N_data_to_pop_next = 10;
+/** The N_data_to_pop_next best data that I want to use next **/
+LIST_TYPE(data_to_pop_next,
+    starpu_data_handle_t pointer_to_data_to_pop_next;
+);
+
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
 struct dynamic_data_aware_sched_data
@@ -58,6 +65,8 @@ struct gpu_planned_task
     void *gpu_data; /* Data not loaded yet. */
 
     starpu_data_handle_t data_to_evict_next; /* En cas de donnée à évincer refusé. Je la renvoie à évincer. */
+    
+    struct data_to_pop_next_list *my_data_to_pop_next; /* A effacer si on l'utilise pas */
 };
 struct gpu_planned_task_control
 {
