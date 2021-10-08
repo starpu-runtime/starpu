@@ -757,7 +757,11 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 		}
 		else if (arg_type == STARPU_SCHED_CTX_POLICY_INIT)
 		{
+#ifdef __NVCOMPILER
+			init_sched = (void(*)(unsigned))va_arg(varg_list, void *);
+#else
 			init_sched = va_arg(varg_list, void(*)(unsigned));
+#endif
 		}
 		else if (arg_type == STARPU_SCHED_CTX_USER_DATA)
 		{
