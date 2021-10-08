@@ -180,7 +180,7 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 					"waiting: %.2lf ms (%.2lf%%) + "
 					"sleeping: %.2lf ms (%.2lf%%) + "
 					"scheduling: %.2lf ms (%.2lf%%) + "
-					"overhead %.2lf ms (%.2lf%%)\n",
+					"overhead %.2lf ms (%.2lf%%) | ",
 				tot_total_time,
 				tot_executing_time, tot_executing_time * 100 / tot_total_time,
 				tot_callback_time, tot_callback_time * 100 / tot_total_time,
@@ -188,7 +188,7 @@ void _starpu_profiling_worker_helper_display_summary(FILE *stream)
 				tot_sleeping_time, tot_sleeping_time * 100 / tot_total_time,
 				tot_scheduling_time, tot_scheduling_time * 100 / tot_total_time,
 				tot_overhead_time, tot_overhead_time * 100 / tot_total_time);
-		fprintf(stream, "\nGlobal time all: "
+		fprintf(stream, "Global time all: "
 					"scheduling: %.2lf ms (%.2lf%%)\n",
 				all_tot_scheduling_time, all_tot_scheduling_time * 100 / tot_total_time);
 	}

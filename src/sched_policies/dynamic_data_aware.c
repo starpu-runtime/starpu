@@ -495,10 +495,10 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 void reset_all_struct()
 {
 	NT_dynamic_outer = -1;
-	index_current_popped_task = malloc(sizeof(int)*Ngpu);
-	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
-	index_current_popped_task_all_gpu = 0;
-	index_current_popped_task_all_gpu_prefetch = 0;
+	//~ index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	//~ index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
+	//~ index_current_popped_task_all_gpu = 0;
+	//~ index_current_popped_task_all_gpu_prefetch = 0;
 	number_task_out = -1;
 }
 
@@ -1520,10 +1520,10 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	NT_dynamic_outer = 0;
 	NT = 0;
 	new_tasks_initialized = false;
-	index_current_popped_task = malloc(sizeof(int)*Ngpu);
-	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
-	index_current_popped_task_all_gpu = 0;
-	index_current_popped_task_all_gpu_prefetch = 0;
+	//~ index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	//~ index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
+	//~ index_current_popped_task_all_gpu = 0;
+	//~ index_current_popped_task_all_gpu_prefetch = 0;
 	gpu_memory_initialized = false;
 	number_task_out = -1;
 	iteration = 1;
@@ -1595,6 +1595,9 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	
+	/* TODO : increment de number_tas_out a faire ici */
+	
     //~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     //~ printf("Début de get task done on task %p on GPU %d.	", task, current_gpu); fflush(stdout);
