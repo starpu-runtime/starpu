@@ -166,22 +166,24 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	 {
 			//~ printf("REINIT STRUCT in push task.\n"); fflush(stdout);
 			int i = 0;
+			
 			free(my_planned_task_control);
-			free(my_pulled_task_control);
+			//~ free(my_pulled_task_control);
+			
 			gpu_planned_task_initialisation();
 			for (i = 0; i < Ngpu - 1; i++)
 			{
 				gpu_planned_task_insertion();
 			}
 			my_planned_task_control->first = my_planned_task_control->pointer;
-			//~ STARPU_PTHREAD_MUTEX_INIT(&my_planned_task_control->planned_task_mutex, NULL);
-			gpu_pulled_task_initialisation();
-			for (i = 0; i < Ngpu - 1; i++)
-			{
-				gpu_pulled_task_insertion();
-			}
-			my_pulled_task_control->first = my_pulled_task_control->pointer;
-			//~ STARPU_PTHREAD_MUTEX_INIT(&my_pulled_task_control->pulled_task_mutex, NULL);
+
+			//~ gpu_pulled_task_initialisation();
+			//~ for (i = 0; i < Ngpu - 1; i++)
+			//~ {
+				//~ gpu_pulled_task_insertion();
+			//~ }
+			//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
+
 			need_to_reinit = false;
 	   }
      
@@ -1678,8 +1680,7 @@ void gpu_pulled_task_initialisation()
     //~ if (iteration == 1)
     //~ {
 		//~ printf("la\n"); fflush(stdout);
-		    pthread_mutexattr_t a;
-    //~ pthread_attr_t a;
+	pthread_mutexattr_t a;
     pthread_mutexattr_init(&a);
     pthread_mutexattr_settype(&a, PTHREAD_MUTEX_ERRORCHECK_NP);
     STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, &a);
@@ -1697,7 +1698,6 @@ void gpu_pulled_task_insertion()
     new->ptl = p;
     
     pthread_mutexattr_t a;
-    //~ pthread_attr_t a;
     pthread_mutexattr_init(&a);
     pthread_mutexattr_settype(&a, PTHREAD_MUTEX_ERRORCHECK_NP);
     STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, &a);
