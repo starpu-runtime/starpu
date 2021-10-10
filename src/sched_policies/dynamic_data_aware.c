@@ -1793,13 +1793,18 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	/* Je me place sur la liste correspondant au bon gpu. */
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+    my_pulled_task_control->pointer = my_pulled_task_control->first;
+    for (i = 1; i < current_gpu; i++)
+    {
+		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+    }
+	STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 	
-	/* TODO : increment de number_tas_out a faire ici */
+	/* TODO : increment de number_task_out a faire ici */
 	
-    //~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
-    int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-    //~ printf("Début de get task done on task %p on GPU %d.	", task, current_gpu); fflush(stdout);
     int i = 0;
 
 	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
@@ -1812,12 +1817,12 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		}
 	}
 	
-    /* Je me place sur la liste correspondant au bon gpu. */
-    my_pulled_task_control->pointer = my_pulled_task_control->first;
-    for (i = 1; i < current_gpu; i++)
-    {
-		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-    }
+    //~ /* Je me place sur la liste correspondant au bon gpu. */
+    //~ my_pulled_task_control->pointer = my_pulled_task_control->first;
+    //~ for (i = 1; i < current_gpu; i++)
+    //~ {
+		//~ my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+    //~ }
     
     struct pulled_task *temp = NULL;
     int trouve = 0;
@@ -1880,7 +1885,8 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		time_total_fill_planned_task_list = 0;		
 	}
 	
-	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 

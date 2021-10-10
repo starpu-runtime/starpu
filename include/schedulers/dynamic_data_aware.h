@@ -9,7 +9,7 @@
 #define LIFT_THRESHOLD_MODE /* 0 = default, 1 = fix number,  2 = reach certain number of task out, 3 = reach certain number of task out + slow increase, 4 = percentage + slow increase */
 #define CHOOSE_BEST_DATA_TYPE /* 0 = the best one, 1 = the 10 best one, 2 = the 10 best one and I choose among them */
 
-starpu_pthread_mutex_t global_mutex;   	
+starpu_pthread_mutex_t global_mutex; /* Protège main_task_list et planned_task_list */
 
 /* TODO si on utilise pas cette méthode à supprimer */
 int N_data_to_pop_next = 10;
@@ -84,12 +84,12 @@ struct gpu_pulled_task
 {
     struct pulled_task_list *ptl;
     struct gpu_pulled_task *next;
+    starpu_pthread_mutex_t pulled_task_mutex; /* Protège pulled_task_list */
 };
 struct gpu_pulled_task_control
 {
     struct gpu_pulled_task *pointer;
     struct gpu_pulled_task *first;
-    //~ starpu_pthread_mutex_t pulled_task_mutex;
 };
 
 /** To track the data counted in min_weight_average to avoid counting twice duplicate **/
