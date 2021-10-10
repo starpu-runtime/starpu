@@ -1617,7 +1617,7 @@ static int dynamic_data_aware_can_push(struct starpu_sched_component *component,
     {	    
 	    /* If a task is refused I push it in the refused fifo list of the appropriate GPU's package.
 	     * This list is looked at first when a GPU is asking for a task so we don't break the planned order. */
-	     STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	    //~ STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	    my_planned_task_control->pointer = my_planned_task_control->first;
 	    for (int i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++) 
@@ -1697,13 +1697,6 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 {
 	//~ printf("Début de add task %p to pulled_task on GPU %d.\n", task, current_gpu); fflush(stdout);
 	int i = 0;	
-	my_pulled_task_control->pointer = my_pulled_task_control->first;
-    for (i = 1; i < current_gpu; i++)
-    {
-		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-    }
-    
-    STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 
 	/* J'incrémente le nombre de tâches dans pulled task pour les données de task */
     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -1712,13 +1705,18 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 		hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] + 1;
 		STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 	}
-    
+	
     struct pulled_task *p = pulled_task_new();
     p->pointer_to_pulled_task = task;
-    pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
     
+    my_pulled_task_control->pointer = my_pulled_task_control->first;
+    for (i = 1; i < current_gpu; i++)
+    {
+		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+    }
+    STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+    pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
     STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
-    //print_pulled_task_one_gpu(my_pulled_task_control->pointer, current_gpu);
 }
 
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
@@ -1810,12 +1808,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	/* Je me place sur la liste correspondant au bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 	int i = 0;
-    my_pulled_task_control->pointer = my_pulled_task_control->first;
-    for (i = 1; i < current_gpu; i++)
-    {
-		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-    }
-	STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 	
 	/* TODO : increment de number_task_out a faire ici */
 	
@@ -1838,6 +1830,14 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     
     struct pulled_task *temp = NULL;
     int trouve = 0;
+    
+    my_pulled_task_control->pointer = my_pulled_task_control->first;
+    for (i = 1; i < current_gpu; i++)
+    {
+		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+    }
+	STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+	
 
     /* J'efface la tâche dans la liste de tâches */
     if (!pulled_task_list_empty(my_pulled_task_control->pointer->ptl))
@@ -1860,11 +1860,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			//~ printf("%p n'a pas été trouvé.\n", task); fflush(stdout);
 		//~ }
     }
-    //~ else
-    //~ {
-		//~ printf("Pulled task list empty! exit(0)\n"); fflush(stdout); exit(0);
-	//~ }
-    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex); 
+    STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 
     /* Reset pour prochaine itération */
     if (NT_dynamic_outer - 1 == number_task_out)
@@ -1898,7 +1894,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	}
 	
 	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
