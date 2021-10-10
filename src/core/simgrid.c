@@ -747,7 +747,7 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 {
 	struct starpu_task *starpu_task = j->task;
 	double flops;
-#if defined(HAVE_SG_ACTOR_SELF_EXECUTE) || defined(HAVE_SG_ACTOR_EXECUTE)
+#if !(defined(HAVE_SG_ACTOR_SELF_EXECUTE) || defined(HAVE_SG_ACTOR_EXECUTE))
 	msg_task_t simgrid_task;
 #endif
 
@@ -788,7 +788,7 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 #endif
 #endif
 
-#if defined(HAVE_SG_ACTOR_SELF_EXECUTE) || defined(HAVE_SG_ACTOR_EXECUTE)
+#if !(defined(HAVE_SG_ACTOR_SELF_EXECUTE) || defined(HAVE_SG_ACTOR_EXECUTE))
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j), flops, 0, NULL);
 #endif
 
