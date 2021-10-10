@@ -73,7 +73,6 @@ struct gpu_planned_task_control
 {
     struct gpu_planned_task *pointer;
     struct gpu_planned_task *first;
-    //~ starpu_pthread_mutex_t planned_task_mutex;
 };
 
 /** Task out of pulled task. Updated by post_exec. I'm forced to use a list of single task and not task list because else starpu doesn't allow me to push a tasks in two different task_list **/
@@ -84,7 +83,7 @@ struct gpu_pulled_task
 {
     struct pulled_task_list *ptl;
     struct gpu_pulled_task *next;
-    starpu_pthread_mutex_t pulled_task_mutex; /* Protège pulled_task_list */
+    //~ starpu_pthread_mutex_t pulled_task_mutex; /* Protège pulled_task_list */
 };
 struct gpu_pulled_task_control
 {

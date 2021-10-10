@@ -409,6 +409,7 @@ void randomize_data_not_used_yet()
  */
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	//~ printf("Début de get_task_to_return_pull_task_dynamic_data_aware on GPU %d.\n", current_gpu); fflush(stdout);
 	int i = 0;
     /* Getting on the right GPU's package.
@@ -433,6 +434,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			/* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
 			task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
 			//~ printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out, task, current_gpu); fflush(stdout);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return task;
 		}
 
@@ -451,6 +453,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			
 			/* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 			add_task_to_pulled_task(current_gpu, task);
 			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
@@ -472,6 +475,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
 				
 				//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 				add_task_to_pulled_task(current_gpu, task);
 				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 				
@@ -496,6 +500,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			return task;
 		}
     }
+    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     return NULL;
 }
 
@@ -1680,10 +1685,10 @@ void gpu_pulled_task_initialisation()
     //~ if (iteration == 1)
     //~ {
 		//~ printf("la\n"); fflush(stdout);
-	pthread_mutexattr_t a;
-    pthread_mutexattr_init(&a);
-    pthread_mutexattr_settype(&a, PTHREAD_MUTEX_ERRORCHECK_NP);
-    STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, &a);
+	//~ pthread_mutexattr_t a;
+    //~ pthread_mutexattr_init(&a);
+    //~ pthread_mutexattr_settype(&a, PTHREAD_MUTEX_ERRORCHECK_NP);
+    //~ STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, &a);
 		//~ STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, NULL);
 	//~ }
     
@@ -1697,10 +1702,10 @@ void gpu_pulled_task_insertion()
     struct pulled_task_list *p = pulled_task_list_new();
     new->ptl = p;
     
-    pthread_mutexattr_t a;
-    pthread_mutexattr_init(&a);
-    pthread_mutexattr_settype(&a, PTHREAD_MUTEX_ERRORCHECK_NP);
-    STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, &a);
+    //~ pthread_mutexattr_t a;
+    //~ pthread_mutexattr_init(&a);
+    //~ pthread_mutexattr_settype(&a, PTHREAD_MUTEX_ERRORCHECK_NP);
+    //~ STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, &a);
     
     //~ if (iteration == 1)
     //~ {
@@ -1732,9 +1737,9 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
     {
 		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
     }
-    STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+    //~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
     pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
-    STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 }
 
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
@@ -1827,7 +1832,7 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	/* Je me place sur la liste correspondant au bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 	int i = 0;
@@ -1859,9 +1864,8 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     {
 		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
     }
-	STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 	
-
     /* J'efface la tâche dans la liste de tâches */
     if (!pulled_task_list_empty(my_pulled_task_control->pointer->ptl))
     {
@@ -1883,7 +1887,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			//~ printf("%p n'a pas été trouvé.\n", task); fflush(stdout);
 		//~ }
     }
-    STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 
     /* Reset pour prochaine itération */
     if (NT_dynamic_outer - 1 == number_task_out)
@@ -1916,7 +1920,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		time_total_fill_planned_task_list = 0;		
 	}
 	
-	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
