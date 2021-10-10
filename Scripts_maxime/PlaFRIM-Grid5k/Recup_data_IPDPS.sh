@@ -8,6 +8,8 @@
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 12 Matrice_ligne dynamic_data_aware_compare_threshold_type 2 5
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 10 Matrice_ligne dynamic_data_aware_compare_choose_best_data_type 2 3
 
+#~ AVEC 1 je fais le global time et eviction time et les GF avec l'autre les DT et le SCHEDULE
+
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
 MODEL=$3
