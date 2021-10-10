@@ -63,7 +63,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 	struct timespec start;
 
 	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
-	if ((profiling && profiling_info) || (rank == 0 && calibrate_model || !_starpu_perf_counter_paused()))
+	if ((profiling && profiling_info) || ((rank == 0) && calibrate_model || !_starpu_perf_counter_paused()))
 		_starpu_clock_gettime(&start);
 	_starpu_add_worker_status(worker, STATUS_INDEX_EXECUTING, &start);
 
@@ -156,7 +156,7 @@ void _starpu_driver_end_job(struct _starpu_worker *worker, struct _starpu_job *j
 
 	struct timespec end;
 	struct starpu_profiling_task_info *profiling_info = task->profiling_info;
-	if ((profiling && profiling_info) || (rank == 0 && calibrate_model || !_starpu_perf_counter_paused()))
+	if ((profiling && profiling_info) || ((rank == 0) && calibrate_model || !_starpu_perf_counter_paused()))
 		_starpu_clock_gettime(&end);
 	_starpu_clear_worker_status(worker, STATUS_INDEX_EXECUTING, &end);
 
