@@ -105,7 +105,7 @@ int starpu_pthread_create_on(const char *name, starpu_pthread_t *thread, const s
 	sg_actor_start(*thread, _starpu_simgrid_thread_start, 2, _args);
 #else
 	*thread = MSG_process_create_with_arguments(name, _starpu_simgrid_thread_start, tsd, host, 2, _args);
-#ifdef HAVE_SG_ACTOR_DATA
+#if defined(HAVE_SG_ACTOR_DATA) || defined(HAVE_SG_ACTOR_GET_DATA)
 #ifdef HAVE_SG_ACTOR_SET_DATA
 	sg_actor_set_data(*thread, tsd);
 #else
