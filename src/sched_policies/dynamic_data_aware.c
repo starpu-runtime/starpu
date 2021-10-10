@@ -1675,7 +1675,16 @@ void gpu_pulled_task_initialisation()
     struct pulled_task_list *p = pulled_task_list_new();
     new->ptl = p;
     
-    STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, NULL);
+    //~ if (iteration == 1)
+    //~ {
+		//~ printf("la\n"); fflush(stdout);
+		    pthread_mutexattr_t a;
+    //~ pthread_attr_t a;
+    pthread_mutexattr_init(&a);
+    pthread_mutexattr_settype(&a, PTHREAD_MUTEX_ERRORCHECK_NP);
+    STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, &a);
+		//~ STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, NULL);
+	//~ }
     
     my_pulled_task_control->pointer = new;
     my_pulled_task_control->first = my_pulled_task_control->pointer;
@@ -1687,7 +1696,16 @@ void gpu_pulled_task_insertion()
     struct pulled_task_list *p = pulled_task_list_new();
     new->ptl = p;
     
-    STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, NULL);
+    pthread_mutexattr_t a;
+    //~ pthread_attr_t a;
+    pthread_mutexattr_init(&a);
+    pthread_mutexattr_settype(&a, PTHREAD_MUTEX_ERRORCHECK_NP);
+    STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, &a);
+    
+    //~ if (iteration == 1)
+    //~ {
+		//~ STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, NULL);
+	//~ }
     
     new->next = my_pulled_task_control->pointer;    
     my_pulled_task_control->pointer = new;
@@ -1763,8 +1781,13 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	    gpu_pulled_task_insertion();
 	}
 	my_pulled_task_control->first = my_pulled_task_control->pointer;
-	/* Mutex */
-	//~ STARPU_PTHREAD_MUTEX_INIT(&my_pulled_task_control->pulled_task_mutex, NULL);
+	//~ STARPU_PTHREAD_MUTEX_INIT(&my_pulled_task_control->first->pulled_task_mutex, NULL);
+	//~ my_pulled_task_control->pointer = my_pulled_task_control->first;
+	//~ for (i = 0; i < Ngpu - 1; i++)
+	//~ {
+		//~ my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+	    //~ STARPU_PTHREAD_MUTEX_INIT(&my_pulled_task_control->pointer->pulled_task_mutex, NULL);
+	//~ }
 	
 	STARPU_PTHREAD_MUTEX_INIT(&global_mutex, NULL);
 	
