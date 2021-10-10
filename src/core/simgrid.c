@@ -492,7 +492,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 
-#if defined(HAVE_SG_ACTOR_ATTACH) && defined (HAVE_SG_ACTOR_DATA)
+#if defined(HAVE_SG_ACTOR_ATTACH) && (defined (HAVE_SG_ACTOR_DATA) || defined(HAVE_SG_ACTOR_GET_DATA))
 		sg_actor_t actor = sg_actor_attach("main", NULL, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
 #ifdef HAVE_SG_ACTOR_SET_DATA
 		sg_actor_set_data(actor, tsd);
@@ -519,7 +519,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #ifndef STARPU_STATIC_ONLY
 		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
 #endif
-#if defined(HAVE_MSG_PROCESS_USERDATA_INIT) && !defined(HAVE_SG_ACTOR_DATA)
+#if defined(HAVE_MSG_PROCESS_USERDATA_INIT) && !(defined(HAVE_SG_ACTOR_DATA) || defined(HAVE_SG_ACTOR_GET_DATA))
 		MSG_process_userdata_init();
 #endif
 		void **tsd;
