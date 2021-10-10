@@ -320,18 +320,23 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 
 void randomize_task_list(struct dynamic_data_aware_sched_data *d)
 {
+    /* NEW */
     int random = 0;
     int i = 0;
+    struct starpu_task *task_tab[NT_dynamic_outer];
+    
+    for (i = 0; i < NT_dynamic_outer; i++)
+    {
+		task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
+    }
     for (i = 0; i < NT_dynamic_outer; i++)
     {
 		random = rand()%(NT_dynamic_outer - i);
-		while (random != 0)
-		{
-			random--;
-			starpu_task_list_push_back(&d->sched_list, starpu_task_list_pop_front(&d->sched_list));
-		}
-		starpu_task_list_push_back(&d->main_task_list, starpu_task_list_pop_front(&d->sched_list));
-    }
+		starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
+		
+		/* Je remplace la case par la dernière tâche du tableau */
+		task_tab[random] = task_tab[NT_dynamic_outer - i - 1];
+	}
 }
 
 /* Randomize the list of data not used yet for all the GPU. */
@@ -528,9 +533,9 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 	    //printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
 	    
 		new_tasks_initialized = false;
-			//~ printf("Printing GPU's data list and main task list before randomization:\n\n");
+			printf("Printing GPU's data list and main task list before randomization:\n\n");
 			//~ print_data_not_used_yet();
-			//~ print_task_list(&data->sched_list, "");
+		print_task_list(&data->sched_list, "");
 		NT_dynamic_outer = starpu_task_list_size(&data->sched_list);
 		NT = starpu_task_list_size(&data->sched_list);
 		
@@ -539,9 +544,9 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) 
 		//~ {
 			//~ printf("Il y a %d tâches.\n", NT_dynamic_outer);
-			//~ printf("Printing GPU's data list and main task list after randomization:\n\n");
+			printf("Printing GPU's data list and main task list after randomization:\n\n");
 			//~ print_data_not_used_yet();
-			//~ print_task_list(&data->main_task_list, "");
+			print_task_list(&data->main_task_list, ""); fflush(stdout);
 		//~ }
     }
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
@@ -1802,6 +1807,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	/* Je me place sur la liste correspondant au bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+	int i = 0;
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < current_gpu; i++)
     {
@@ -1811,8 +1817,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	
 	/* TODO : increment de number_task_out a faire ici */
 	
-    int i = 0;
-
 	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	{
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
