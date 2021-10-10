@@ -799,6 +799,8 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		}
 		gettimeofday(&time_end_choose_best_data, NULL);
 		time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
+		/* Seulement pour les traces pour les faires ressembler à celle sur Grid5000 */
+		//~ usleep(((time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec));
     }
     else
     {

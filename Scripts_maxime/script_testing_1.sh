@@ -54,9 +54,9 @@ make -C src/ -j 6
 
 N=110
 NGPU=2
-#~ ORDO="dynamic-data-aware"
+ORDO="dynamic-data-aware"
 #~ ORDO="HFP"
-ORDO="dmdar"
+#~ ORDO="dmdar"
 #~ ORDO="eager"
 #~ BW=10726
 CM=500
