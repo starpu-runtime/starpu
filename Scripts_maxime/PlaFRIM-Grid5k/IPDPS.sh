@@ -2,14 +2,16 @@
 #	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 2 Matrice_ligne dynamic_data_aware_ipdps 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 2 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 1
 
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 1 V
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 2 V
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps_profiling 1 V
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps_profiling 2 V
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 1 x
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 2 x
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 3 x
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps_profiling 1 x
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps_profiling 2 x
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_no_hfp_ipdps_profiling 3 x
 
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 11 Matrice_ligne dynamic_data_aware_compare_threshold 2 X
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 12 Matrice_ligne dynamic_data_aware_compare_threshold_type 2 X
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_compare_choose_best_data_type 2 X
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 11 Matrice_ligne dynamic_data_aware_compare_threshold 2
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 12 Matrice_ligne dynamic_data_aware_compare_threshold_type 2
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_compare_choose_best_data_type 2
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
