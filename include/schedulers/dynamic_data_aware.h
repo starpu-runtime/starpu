@@ -123,7 +123,7 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 void initialize_task_data_gpu_single_task(struct starpu_task *task);
 void randomize_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_data_not_used_yet();
-void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
+//~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l);
 void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g);
 void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);

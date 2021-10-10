@@ -371,32 +371,31 @@ void randomize_data_not_used_yet()
     }
 }
 
-/* Randomize the list of data not used yet for a single GPU. */
-void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
-{
-   // printf("Début de randomize data not used yet single gpu .\n"); fflush(stdout);
-    int j = 0;
-    int k = 0;
-    int random = 0;
-    int number_of_data = 0;
+//~ /* Randomize the list of data not used yet for a single GPU. */
+//~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
+//~ {
+    //~ int j = 0;
+    //~ int k = 0;
+    //~ int random = 0;
+    //~ int number_of_data = 0;
     
-    number_of_data = gpu_data_not_used_list_size(g->gpu_data);
+    //~ number_of_data = gpu_data_not_used_list_size(g->gpu_data);
     
-    struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
-    for (j = 0; j < number_of_data; j++)
-    {
-	/* After each time I remove a data I can choose between a smaller number of value for random. */
-	random = rand()%(number_of_data - j);
-	for (k = 0; k < random; k++)
-	{
-	    gpu_data_not_used_list_push_back(g->gpu_data, gpu_data_not_used_list_pop_front(g->gpu_data));
-	}
-	/* I use an external list. */
-	gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(g->gpu_data));
-    }
-    /* Then replace the list with it. */
-    g->gpu_data = randomized_list;
-}
+    //~ struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
+    //~ for (j = 0; j < number_of_data; j++)
+    //~ {
+	//~ /* After each time I remove a data I can choose between a smaller number of value for random. */
+	//~ random = rand()%(number_of_data - j);
+	//~ for (k = 0; k < random; k++)
+	//~ {
+	    //~ gpu_data_not_used_list_push_back(g->gpu_data, gpu_data_not_used_list_pop_front(g->gpu_data));
+	//~ }
+	//~ /* I use an external list. */
+	//~ gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(g->gpu_data));
+    //~ }
+    //~ /* Then replace the list with it. */
+    //~ g->gpu_data = randomized_list;
+//~ }
 
 /* Get a task to put out of pull_task. In multi GPU it allows me to return a task from the right element in the 
  * linked list without having an other GPU comme and ask a task in pull_task. At least I hope it does so.
@@ -445,9 +444,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			
 			/* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
-			//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 			add_task_to_pulled_task(current_gpu, task);
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 				
 			/* For visualisation in python. */
 			//~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
@@ -464,9 +463,10 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
 			{
 				task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
-				//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
+				
+				STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 				add_task_to_pulled_task(current_gpu, task);
-				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 				
 				/* Remove it from planned task compteur */
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -1669,6 +1669,9 @@ void gpu_pulled_task_initialisation()
     struct gpu_pulled_task *new = malloc(sizeof(*new));
     struct pulled_task_list *p = pulled_task_list_new();
     new->ptl = p;
+    
+    STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, NULL);
+    
     my_pulled_task_control->pointer = new;
     my_pulled_task_control->first = my_pulled_task_control->pointer;
 }
@@ -1678,6 +1681,9 @@ void gpu_pulled_task_insertion()
     struct gpu_pulled_task *new = malloc(sizeof(*new));
     struct pulled_task_list *p = pulled_task_list_new();
     new->ptl = p;
+    
+    STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, NULL);
+    
     new->next = my_pulled_task_control->pointer;    
     my_pulled_task_control->pointer = new;
 }
@@ -1886,7 +1892,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	}
 	
 	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-	STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
