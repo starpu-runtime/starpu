@@ -46,7 +46,7 @@ NITER=11
 #~ Il faut mettre 11 pour 10 iération car la première est ignoré
 
 NCOMBINAISONS=$((NGPU*2+(NGPU-1)*NGPU+3))
-DECALAGE_FICHIER_SCHEDULE=$((NGPU*6+5))
+DECALAGE_FICHIER_SCHEDULE=$((NGPU*7+5)) #Seulement pour IPDPS la valeur est plus grande
 
 if [ $DOSSIER = "Matrice_ligne" ]
 then
@@ -437,7 +437,7 @@ then
 		ECHELLE_X=$((5*NGPU))
 		if [ $NGPU = 1 ]
 		then
-			echo "NO HFP and NGPU = 1"
+			echo "NO HFP and NGPU = 1 profiling"
 		    NB_ALGO_TESTE=6
 		    echo "############## Modular eager prefetching ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -506,7 +506,7 @@ then
 			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		else
-		  echo "NO HFP and NGPU > 1 profiing"
+		  echo "NO HFP and NGPU > 1 profiling"
 		    NB_ALGO_TESTE=7
 		    echo "############## Modular eager prefetching ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
