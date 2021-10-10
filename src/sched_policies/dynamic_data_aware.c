@@ -342,44 +342,9 @@ void randomize_task_list(struct dynamic_data_aware_sched_data *d)
 /* Randomize the list of data not used yet for all the GPU. */
 void randomize_data_not_used_yet()
 {
-	/* OLD */
-    //~ int i = 0;
-    //~ int k = 0;
-    //~ int l = 0;
-    //~ int random = 0;
-    //~ int number_of_data = 0;
-    //~ my_planned_task_control->pointer = my_planned_task_control->first;
-    
-    //~ /* I need this for the %random. */
-    //~ number_of_data = gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data);
-    
-    //~ for (i = 0; i < Ngpu; i++)
-    //~ {
-		//~ struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
-		//~ for (l = 0; l < number_of_data; l++)
-		//~ {
-			//~ if (!gpu_data_not_used_list_empty(my_planned_task_control->pointer->gpu_data))
-			//~ {
-				//~ /* After each time I remove a data I can choose between a smaller number of value for random. */
-				//~ random = rand()%(number_of_data - l);
-				//~ for (k = 0; k < random; k++)
-				//~ {
-					//~ gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
-				//~ }
-				//~ /* I use an external list. */
-				//~ gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
-			//~ }
-		//~ }
-		//~ /* Then replace the list with it. */
-		//~ my_planned_task_control->pointer->gpu_data = randomized_list;
-		//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-    //~ }
-    
     /* NEW */
     int i = 0;
-    //~ int k = 0;
     int j = 0;
-    //~ int l = 0;
     int random = 0;
     int number_of_data = 0;
     my_planned_task_control->pointer = my_planned_task_control->first;
@@ -387,8 +352,6 @@ void randomize_data_not_used_yet()
     /* I need this for the %random. */
     number_of_data = gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data);
     
-    //~ struct gpu_data_not_used data_tab[number_of_data];
-    //~ struct gpu_data_not_used *data_tab[4] = gpu_data_not_used_new();
     struct gpu_data_not_used *data_tab[number_of_data];
     
     for (i = 0; i < Ngpu; i++)
@@ -396,7 +359,6 @@ void randomize_data_not_used_yet()
 		for (j = 0; j < number_of_data; j++)
 		{
 			data_tab[j] = gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data);
-			//~ data_tab = gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data);
 		}
 		struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
 		
@@ -408,21 +370,6 @@ void randomize_data_not_used_yet()
 			/* Je remplace la case par la dernière tâche du tableau */
 			data_tab[random] = data_tab[number_of_data - j - 1];
 		}
-		
-		//~ for (l = 0; l < number_of_data; l++)
-		//~ {
-			//~ if (!gpu_data_not_used_list_empty(my_planned_task_control->pointer->gpu_data))
-			//~ {
-				/* After each time I remove a data I can choose between a smaller number of value for random. */
-				//~ random = rand()%(number_of_data - l);
-				//~ for (k = 0; k < random; k++)
-				//~ {
-					//~ gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
-				//~ }
-				//~ /* I use an external list. */
-				//~ gpu_data_not_used_list_push_back(randomized_list, gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data));
-			//~ }
-		//~ }
 		/* Then replace the list with it. */
 		my_planned_task_control->pointer->gpu_data = randomized_list;
 		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
@@ -502,9 +449,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			
 			/* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
-			STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+			//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 			add_task_to_pulled_task(current_gpu, task);
-			STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 				
 			/* For visualisation in python. */
 			//~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
@@ -522,9 +469,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			{
 				task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
 				
-				STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+				//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 				add_task_to_pulled_task(current_gpu, task);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 				
 				/* Remove it from planned task compteur */
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -586,9 +533,9 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 	    //printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
 	    
 		new_tasks_initialized = false;
-			printf("Printing GPU's data list and main task list before randomization:\n\n");
-			print_data_not_used_yet();
-		print_task_list(&data->sched_list, "");
+			//~ printf("Printing GPU's data list and main task list before randomization:\n\n");
+			//~ print_data_not_used_yet();
+		//~ print_task_list(&data->sched_list, "");
 		NT_dynamic_outer = starpu_task_list_size(&data->sched_list);
 		NT = starpu_task_list_size(&data->sched_list);
 		
@@ -597,9 +544,9 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) 
 		//~ {
 			//~ printf("Il y a %d tâches.\n", NT_dynamic_outer);
-			printf("Printing GPU's data list and main task list after randomization:\n\n");
-			print_data_not_used_yet();
-			print_task_list(&data->main_task_list, ""); fflush(stdout);
+			//~ printf("Printing GPU's data list and main task list after randomization:\n\n");
+			//~ print_data_not_used_yet();
+			//~ print_task_list(&data->main_task_list, ""); fflush(stdout);
 		//~ }
     }
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
@@ -1749,8 +1696,15 @@ void gpu_pulled_task_insertion()
 void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 {
 	//~ printf("Début de add task %p to pulled_task on GPU %d.\n", task, current_gpu); fflush(stdout);
-	int i = 0;
-	
+	int i = 0;	
+	my_pulled_task_control->pointer = my_pulled_task_control->first;
+    for (i = 1; i < current_gpu; i++)
+    {
+		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+    }
+    
+    STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+
 	/* J'incrémente le nombre de tâches dans pulled task pour les données de task */
     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
@@ -1758,17 +1712,12 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 		hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] + 1;
 		STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 	}
-	
-    my_pulled_task_control->pointer = my_pulled_task_control->first;
-    for (i = 1; i < current_gpu; i++)
-    {
-		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-    }
     
     struct pulled_task *p = pulled_task_new();
     p->pointer_to_pulled_task = task;
     pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
     
+    STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
     //print_pulled_task_one_gpu(my_pulled_task_control->pointer, current_gpu);
 }
 
