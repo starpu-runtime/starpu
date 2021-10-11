@@ -219,7 +219,7 @@ int starpu_get_pu_os_index(unsigned logical_index);
    Return a bitmap representing logical indexes of NUMA nodes where the buffer
    targeted by \p ptr is allocated. An error is notified by a negative result.
 */
-int starpu_get_memory_location_bitmap(void* ptr, size_t size);
+long starpu_get_memory_location_bitmap(void* ptr, size_t size);
 
 #ifdef STARPU_HAVE_HWLOC
 /**

@@ -81,7 +81,7 @@ struct data_parameter_info
 	unsigned long handle;
 	unsigned long size;
 	int mode;
-	int numa_nodes_bitmap;
+	long numa_nodes_bitmap;
 };
 
 struct task_info
@@ -187,27 +187,32 @@ static int show_task(struct task_info *task, struct starpu_fxt_options *options)
 	return 1;
 }
 
-void convert_numa_nodes_bitmap_to_str(int bitmap, char* str)
+void convert_numa_nodes_bitmap_to_str(long bitmap, char* str)
 {
 	if (bitmap < 0)
 	{
-		sprintf(str, "%d", bitmap);
+		sprintf(str, "%ld", bitmap);
 	}
 	else
 	{
-		int i = 0;
+		long i = 0;
 		int first = 1;
-		for (; i < sizeof(bitmap)*8; i++)
+		for (; i < (long) (sizeof(bitmap)*8); i++)
 		{
-			if (bitmap & (1 << i))
+			if (bitmap & ((long) 1 << i))
 			{
 				if (first)
 				{
-					sprintf(str, "%d", i);
+					sprintf(str, "%ld", i);
 					first = 0;
 				}
 				else
-					sprintf(str, "%s,%d", str, i);
+				{
+					strcat(str, ",");
+					char number[4];
+					sprintf(number, "%ld", i);
+					strcat(str, number);
+				}
 			}
 		}
 	}
@@ -3147,7 +3152,7 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	long jobid = ev->param[4];
 	unsigned long handle = ev->param[5];
 	int prio = ev->param[6];
-	int numa_nodes_bitmap = ev->param[7];
+	long numa_nodes_bitmap = ev->param[7];
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
@@ -3212,7 +3217,7 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 	int mpi_tag = ev->param[1];
 	long jobid = ev->param[2];
 	unsigned long handle = ev->param[4];
-	int numa_nodes_bitmap = ev->param[5];
+	long numa_nodes_bitmap = ev->param[5];
 	double date = get_event_time_stamp(ev, options);
 
 	if (options->file_rank < 0)

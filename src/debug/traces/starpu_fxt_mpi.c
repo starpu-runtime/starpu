@@ -22,7 +22,7 @@
 
 #include "starpu_fxt.h"
 
-extern void convert_numa_nodes_bitmap_to_str(int bitmap, char str[]);
+extern void convert_numa_nodes_bitmap_to_str(long bitmap, char str[]);
 
 LIST_TYPE(mpi_transfer,
 	unsigned matched;
@@ -36,7 +36,7 @@ LIST_TYPE(mpi_transfer,
 	unsigned long handle;
 	unsigned type;
 	int prio;
-	int numa_nodes_bitmap;
+	long numa_nodes_bitmap;
 );
 
 struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in, int *key, int *rank)
@@ -133,7 +133,7 @@ static unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
  * transfer, thus avoiding a quadratic complexity. */
 static unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio, int numa_nodes_bitmap)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio, long numa_nodes_bitmap)
 {
 	STARPU_ASSERT(src >= 0);
 	if (src >= STARPU_FXT_MAX_FILES)
@@ -167,7 +167,7 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 	mpi_sends[src][slot].numa_nodes_bitmap = numa_nodes_bitmap;
 }
 
-void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle, int numa_nodes_bitmap)
+void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle, long numa_nodes_bitmap)
 {
 	if (dst >= STARPU_FXT_MAX_FILES)
 		return;
@@ -313,7 +313,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 		long mpi_tag = cur->mpi_tag;
 		size_t size = cur->size;
 		unsigned long send_handle = cur->handle;
-		int send_numa_nodes_bitmap = cur->numa_nodes_bitmap;
+		long send_numa_nodes_bitmap = cur->numa_nodes_bitmap;
 
 		if (dst < STARPU_FXT_MAX_FILES)
 			match = try_to_match_send_transfer(src, dst, mpi_tag);
@@ -324,7 +324,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 		{
 			float end_date = match->date;
 			unsigned long recv_handle = match->handle;
-			int recv_numa_nodes_bitmap = match->numa_nodes_bitmap;
+			long recv_numa_nodes_bitmap = match->numa_nodes_bitmap;
 			struct mpi_transfer *prev;
 
 			if (end_date <= start_date)

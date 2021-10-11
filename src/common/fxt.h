@@ -817,7 +817,14 @@ do {									\
 					__handle->ops->describe(__interface, __buf, sizeof(__buf));	\
 					_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_DATA, _STARPU_FUT_CODELET_DATA, workerid, __buf);	\
 				}					\
-				/* regarding the memory location, if the data interface doesn't provide to_pointer operation, NULL will be returned and the location will be -1, which is fine */ \
+				/* Regarding the memory location:
+				 * - if the data interface doesn't provide to_pointer operation, NULL will be returned
+				 *   and the location will be -1, which is fine;
+				 * - looking at memory location before executing the task isn't the best choice:
+				 *   the page can be not allocated yet. A solution would be to get the memory
+				 *   location at the end of the task, but there is no FxT probe where we iterate over
+				 *   handles, after task execution.
+				 * */ \
 				FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_CODELET_DATA_HANDLE, (job)->job_id, (__handle), _starpu_data_get_size(__handle), STARPU_TASK_GET_MODE((job)->task, __i), starpu_get_memory_location_bitmap(starpu_data_handle_to_pointer(__handle, starpu_worker_get_memory_node(workerid)), starpu_data_get_size(__handle)));	\
 			}						\
 		}							\

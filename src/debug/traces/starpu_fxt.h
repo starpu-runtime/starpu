@@ -72,8 +72,8 @@ void _starpu_fxt_dag_add_sync_point(void);
  */
 
 struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in, int *key, int *rank);
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio, int numa_nodes_bitmap);
-void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle, int numa_nodes_bitmap);
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio, long numa_nodes_bitmap);
+void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle, long numa_nodes_bitmap);
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file, FILE* out_comms_file);
 
 void _starpu_fxt_write_paje_header(FILE *file, struct starpu_fxt_options *options);

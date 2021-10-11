@@ -1968,7 +1968,7 @@ unsigned _starpu_get_nhyperthreads()
 	return config->topology.nhwpus / config->topology.nhwworker[STARPU_CPU_WORKER][0];
 }
 
-int starpu_get_memory_location_bitmap(void* ptr, size_t size)
+long starpu_get_memory_location_bitmap(void* ptr, size_t size)
 {
 	if (ptr == NULL || size == 0)
 	{
@@ -1989,14 +1989,14 @@ int starpu_get_memory_location_bitmap(void* ptr, size_t size)
 
 	if (hwloc_bitmap_iszero(set) || hwloc_bitmap_isfull(set))
 	{
+		// If the page isn't allocated yet, the bitmap is empty:
 		hwloc_bitmap_free(set);
 		return -3;
 	}
 
 	/* We could maybe use starpu_bitmap, but that seems a little bit
-	 * overkill and it would make recording it in traces harder.
-	 * An integer should be large enough to store the possible indexes of NUMA nodes ! */
-	int ret_bitmap = 0;
+	 * overkill and it would make recording it in traces harder. */
+	long ret_bitmap = 0;
 	unsigned i = 0;
 	hwloc_bitmap_foreach_begin(i, set)
 	{
