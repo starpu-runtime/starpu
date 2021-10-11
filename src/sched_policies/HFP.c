@@ -1334,7 +1334,6 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 	/* Put the remaining data on simulated memory */
 	for (i = 1; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
-		printf("ici\n");
 		insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(task, i), use_order, i, &l->sub_list, task);
 		l->expected_package_computation_time += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
 		use_order++;
@@ -1640,7 +1639,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 					while (a->temp_pointer_2 != NULL)
 					{
 						get_expected_package_computation_time(a->temp_pointer_2, GPU_RAM_M);
-						printf("%f\n", a->temp_pointer_2->expected_package_computation_time);
 						a->temp_pointer_2 = a->temp_pointer_2->next;
 					}
 					i = 0;
@@ -1676,7 +1674,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 									task = starpu_task_list_pop_back(&a->temp_pointer_2->sub_list);
 									a->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 									a->temp_pointer_2->nb_task_in_sub_list--;
-									printf("Stealing %p\n", task);
 									starpu_task_list_push_front(&a->temp_pointer_1->sub_list, task);
 									a->temp_pointer_1->expected_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 									a->temp_pointer_1->nb_task_in_sub_list++;
@@ -1884,12 +1881,12 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 					if (GPU_limit_switch == 1) {
 					for (i_bis = 0; i_bis < number_task; i_bis++) {
 						if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list) { //Si on est sur un paquet de taille minimale
-							printf("Sur le paquet minimal %d de %d data\n", i_bis, paquets_data->temp_pointer_1->package_nb_data);
+							//~ printf("Sur le paquet minimal %d de %d data\n", i_bis, paquets_data->temp_pointer_1->package_nb_data);
 							for (paquets_data->temp_pointer_2 = paquets_data->first_link; paquets_data->temp_pointer_2 != NULL; paquets_data->temp_pointer_2 = paquets_data->temp_pointer_2->next) {
 								//~ if (i_bis != j_bis && matrice_donnees_commune[i_bis][j_bis] != 0) {
 								if (i_bis != j_bis) 
 								{
-									printf("Sur le paquet %d de %d data\n", j_bis, paquets_data->temp_pointer_2->package_nb_data);
+									//~ printf("Sur le paquet %d de %d data\n", j_bis, paquets_data->temp_pointer_2->package_nb_data);
 									weight_two_packages = 0;
 									for (i = 0; i < paquets_data->temp_pointer_1->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(paquets_data->temp_pointer_1->package_data[i]); } 
 									for (i = 0; i < paquets_data->temp_pointer_2->package_nb_data; i++) {
@@ -1899,7 +1896,6 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 										if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[i]); } }
 									if((max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM_M)) 
 									{ 
-										printf("maj max\n");
 										max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; 
 									} 
 							} j_bis++; } tab_runner++; }
@@ -1927,7 +1923,7 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 							j_bis = 0; }
 				paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_2 = paquets_data->first_link;
 				}
-				printf("la, max value = %ld, limit switch = %d\n", max_value_common_data_matrix, GPU_limit_switch);	
+				//~ printf("la, max value = %ld, limit switch = %d\n", max_value_common_data_matrix, GPU_limit_switch);	
 				if (max_value_common_data_matrix == 0 && GPU_limit_switch == 0) { 
 					/* It means that P_i share no data with others, so we put it in the end of the list
 					 * For this we use a separate list that we merge at the end
