@@ -52,7 +52,7 @@ start=`date +%s`
 make -C src/ -j 6
 #~ make -j 6
 
-N=110
+N=140
 NGPU=2
 #~ ORDO="dynamic-data-aware"
 #~ ORDO="HFP"

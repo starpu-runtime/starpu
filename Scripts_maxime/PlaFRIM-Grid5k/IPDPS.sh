@@ -205,7 +205,7 @@ then
 		if [ $NGPU = 1 ]
 		then
 			echo "NO HFP and NGPU = 1"
-		    NB_ALGO_TESTE=5
+		    NB_ALGO_TESTE=6
 		    echo "############## Modular eager prefetching ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
@@ -236,15 +236,6 @@ then
 				sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 				echo $((end-start)) >> ${FICHIER_TIME}
 		    done
-		    #~ echo "############## Dynamic data aware TH30 Pop best data + READY ##############"
-		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    #~ do 
-			    #~ N=$((START_X+i*ECHELLE_X))
-			    #~ start=`date +%s`
-			    #~ SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=0 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    #~ end=`date +%s` 
-				#~ echo $((end-start)) >> ${FICHIER_TIME}
-		    #~ done
 		    echo "############## Dynamic data aware TH30 Pop best data + EVICTION ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
@@ -265,9 +256,29 @@ then
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 				echo $((end-start)) >> ${FICHIER_TIME}
 		    done
+		    echo "############## HFPUR count 0 ##############"
+		    for ((i=1 ; i<=((5)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    start=`date +%s`
+			    STARPU_SCHED=HFP STARPU_SCHED_READY=1 COUNT_DO_SCHEDULE=0 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    end=`date +%s` 
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+				echo $((end-start)) >> ${FICHIER_TIME}
+		    done
+		    echo "############## HFPUR count 1 ##############"
+		    for ((i=1 ; i<=((5)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    start=`date +%s`
+			    STARPU_SCHED=HFP STARPU_SCHED_READY=1 COUNT_DO_SCHEDULE=1 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    end=`date +%s` 
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+				echo $((end-start)) >> ${FICHIER_TIME}
+		    done
 		else
 		  echo "NO HFP and NGPU > 1"
-		    NB_ALGO_TESTE=6
+		    NB_ALGO_TESTE=7
 		    echo "############## Modular eager prefetching ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
@@ -335,6 +346,26 @@ then
 			    SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
 				end=`date +%s` 
 				sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+				echo $((end-start)) >> ${FICHIER_TIME}
+		    done
+		    echo "############## HFPUR load balance task stealing count 0 ##############"
+		    for ((i=1 ; i<=((3)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    start=`date +%s`
+			    STARPU_SCHED=HFP COUNT_DO_SCHEDULE=0 STARPU_SCHED_READY=1 TASK_STEALING=3 MULTIGPU=4 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    end=`date +%s` 
+			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+				echo $((end-start)) >> ${FICHIER_TIME}
+		    done
+		    echo "############## HFPUR load balance task stealing count 1 ##############"
+		    for ((i=1 ; i<=((3)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    start=`date +%s`
+			    STARPU_SCHED=HFP COUNT_DO_SCHEDULE=1 STARPU_SCHED_READY=1 TASK_STEALING=3 MULTIGPU=4 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    end=`date +%s` 
+			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 				echo $((end-start)) >> ${FICHIER_TIME}
 		    done
 		fi

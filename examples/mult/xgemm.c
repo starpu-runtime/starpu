@@ -31,6 +31,7 @@
 #define RANDOM_TASK_ORDER /* only for 2D matrix */
 #define RECURSIVE_MATRIX_LAYOUT /* only for 2D matrix */
 #define RANDOM_DATA_ACCESS /* only for 2D matrix */
+#define COUNT_DO_SCHEDULE /* do schedule for HFP compté ou non */
 #include <starpu_data_maxime.h>
 
 #include <limits.h>
@@ -1139,11 +1140,22 @@ int main(int argc, char **argv)
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
-				starpu_do_schedule();
-				start = starpu_timing_now();					
-				starpu_resume();
-				starpu_task_wait_for_all();
-				end = starpu_timing_now();
+				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				{
+					starpu_do_schedule();
+					start = starpu_timing_now();					
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
+				else
+				{
+					start = starpu_timing_now();
+					starpu_do_schedule();		
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
 												
 				if (temp_niter > 1)
 				{
