@@ -117,6 +117,8 @@ static const intptr_t fstarpu_seq	= STARPU_SEQ;
 static const intptr_t fstarpu_spmd	= STARPU_SPMD;
 static const intptr_t fstarpu_forkjoin	= STARPU_FORKJOIN;
 
+static const intptr_t fstarpu_default_prio	= STARPU_DEFAULT_PRIO;
+
 intptr_t fstarpu_get_constant(char *s)
 {
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
@@ -213,6 +215,8 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SEQ"))	{ return fstarpu_seq; }
 	else if (!strcmp(s, "FSTARPU_SPMD"))	{ return fstarpu_spmd; }
 	else if (!strcmp(s, "FSTARPU_FORKJOIN"))	{ return fstarpu_forkjoin; }
+
+	else if (!strcmp(s, "FSTARPU_DEFAULT_PRIO"))	{ return fstarpu_default_prio; }
 
 	else { _STARPU_ERROR("unknown constant"); }
 }

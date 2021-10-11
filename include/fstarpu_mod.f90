@@ -133,6 +133,8 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_SZ_COMPLEX4
         type(c_ptr), bind(C) :: FSTARPU_SZ_COMPLEX8
 
+        integer(c_int), bind(C), target :: FSTARPU_DEFAULT_PRIO
+
         interface operator (.ior.)
                 procedure or_cptrs
         end interface operator (.ior.)
@@ -2534,6 +2536,10 @@ module fstarpu_mod
                         FSTARPU_SZ_COMPLEX        = sz_to_p(c_sizeof(FSTARPU_SZ_COMPLEX_dummy))
                         FSTARPU_SZ_COMPLEX4        = sz_to_p(c_sizeof(FSTARPU_SZ_COMPLEX4_dummy))
                         FSTARPU_SZ_COMPLEX8        = sz_to_p(c_sizeof(FSTARPU_SZ_COMPLEX8_dummy))
+                        FSTARPU_SZ_COMPLEX8        = sz_to_p(c_sizeof(FSTARPU_SZ_COMPLEX8_dummy))
+
+                        FSTARPU_DEFAULT_PRIO =  int(p_to_ip(&
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_DEFAULT_PRIO"//C_NULL_CHAR)),c_int)
 
                         ! Initialize StarPU
                         if (c_associated(conf)) then 
