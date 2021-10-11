@@ -1984,14 +1984,14 @@ long starpu_get_memory_location_bitmap(void* ptr, size_t size)
 	if (ret != 0)
 	{
 		hwloc_bitmap_free(set);
-		return -2;
+		return -1;
 	}
 
 	if (hwloc_bitmap_iszero(set) || hwloc_bitmap_isfull(set))
 	{
 		// If the page isn't allocated yet, the bitmap is empty:
 		hwloc_bitmap_free(set);
-		return -3;
+		return -1;
 	}
 
 	/* We could maybe use starpu_bitmap, but that seems a little bit
@@ -2009,7 +2009,7 @@ long starpu_get_memory_location_bitmap(void* ptr, size_t size)
 		{
 			// We can't find a matching NUMA node, this can happen on machine without NUMA node
 			hwloc_bitmap_free(set);
-			return -4;
+			return -1;
 		}
 	}
 	hwloc_bitmap_foreach_end();
@@ -2018,6 +2018,6 @@ long starpu_get_memory_location_bitmap(void* ptr, size_t size)
 	return ret_bitmap;
 #else
 	/* we could use move_pages(), but please, rather use hwloc ! */
-	return -5;
+	return -1;
 #endif
 }
