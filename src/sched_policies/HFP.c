@@ -1125,14 +1125,12 @@ struct data_on_node *init_data_list(starpu_data_handle_t d)
     element->last_use = 0;
     element->next = NULL;
     liste->first_data = element;
-	printf ("init data list ok\n");
     return liste;
 }
 
 /* For gemm that has C tile put in won't use if they are never used again */
 bool is_it_a_C_tile_data_never_used_again(starpu_data_handle_t h, int i, struct starpu_task_list *l, struct starpu_task *current_task)
 {	
-	printf("task %p, i = %d\n", current_task, i);
 	struct starpu_task *task = NULL;
 	if (i == 2)
 	{
@@ -1319,7 +1317,6 @@ void merge_task_and_package (struct my_list *package, struct starpu_task *task)
  */
 void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GPU_RAM)
 {
-	printf("la\n");
 	if (l->nb_task_in_sub_list < 1)
 	{
 		l->expected_package_computation_time = 0;
@@ -1670,11 +1667,11 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 						}
 							if (starpu_get_env_number_default("TASK_STEALING",0) == 3)
 							{
-								print_packages_in_terminal(a, 0);
+								//~ print_packages_in_terminal(a, 0);
 								/* We steal half of the package in terms of task duration */
 								while (a->temp_pointer_1->expected_time < a->temp_pointer_2->expected_time/2)
 								{
-									print_packages_in_terminal(a, 0);
+									//~ print_packages_in_terminal(a, 0);
 									/* We steal from the end */
 									task = starpu_task_list_pop_back(&a->temp_pointer_2->sub_list);
 									a->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
@@ -2643,7 +2640,7 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 			p->temp_pointer_1->sub_list = hierarchical_fair_packing(p->temp_pointer_1->sub_list, p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
 			p->temp_pointer_1 = p->temp_pointer_1->next;
 		}
-		print_packages_in_terminal(p, 0);
+		//~ print_packages_in_terminal(p, 0);
 	}
 }
 
@@ -2849,7 +2846,6 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 			}
 		}
 	}
-		
 	/* Printing the number of data to load */
 	FILE *f = NULL;
 	FILE *f2 = NULL;
@@ -2893,7 +2889,6 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 		{
 			fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
 		}
-		
 		fclose(f);
 		fclose(f2);
 }
