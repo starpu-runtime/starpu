@@ -2,10 +2,10 @@
 #	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 2 Matrice_ligne dynamic_data_aware_ipdps 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 2 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 1
 
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 1 x
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 2 V mais a refaire avec HFP sur le début et aussi pour DT
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 3 x
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 4 x sans HFP
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 1 V
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 2 X
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 3 x sans HFP
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 4 V sans HFP
 
 #~ tester en random si j'ai le temps en réel
 
@@ -250,16 +250,6 @@ then
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 				echo $((end-start)) >> ${FICHIER_TIME}
 		    done
-		    #~ echo "############## Dynamic data aware TH30 Pop best data + EVICTION + READY ##############"
-		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    #~ do 
-			    #~ N=$((START_X+i*ECHELLE_X))
-			    #~ start=`date +%s`
-			    #~ SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    #~ end=`date +%s` 
-			    #~ sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-				#~ echo $((end-start)) >> ${FICHIER_TIME}
-		    #~ done
 		    echo "############## HFPUR count 0 ##############"
 		    for ((i=1 ; i<=((5)); i++))
 			    do 
@@ -333,16 +323,6 @@ then
 				sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 				echo $((end-start)) >> ${FICHIER_TIME}
 		    done
-		    #~ echo "############## Dynamic data aware TH30 Pop best data + EVICTION + READY ##############"
-		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    #~ do 
-			    #~ N=$((START_X+i*ECHELLE_X))
-			    #~ start=`date +%s`
-			    #~ SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-				#~ end=`date +%s` 
-				#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-				#~ echo $((end-start)) >> ${FICHIER_TIME}
-		    #~ done
 		    echo "############## HFPUR load balance task stealing count 0 ##############"
 		    for ((i=1 ; i<=((3)); i++))
 			    do 
