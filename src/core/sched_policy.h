@@ -112,7 +112,6 @@ extern struct starpu_sched_policy _starpu_sched_modular_heteroprio_heft_policy;
 extern struct starpu_sched_policy _starpu_sched_modular_parallel_heft_policy;
 extern struct starpu_sched_policy _starpu_sched_graph_test_policy;
 extern struct starpu_sched_policy _starpu_sched_tree_heft_hierarchical_policy;
-extern struct starpu_sched_policy _starpu_sched_readys_policy;
 
 extern long _starpu_task_break_on_push;
 extern long _starpu_task_break_on_sched;

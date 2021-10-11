@@ -317,8 +317,7 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	sched_policies/modular_heteroprio_heft.c		\
 	sched_policies/modular_heft2.c				\
 	sched_policies/modular_ws.c				\
-	sched_policies/modular_ez.c             \
-	sched_policies/modular_readys.c
+	sched_policies/modular_ez.c
 
 
 if STARPU_HAVE_LEVELDB
