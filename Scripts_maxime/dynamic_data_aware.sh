@@ -30,14 +30,14 @@ FICHIER_TIME=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_4.txt
 FICHIER_SCHEDULE_TIME_TEMP=${PATH_STARPU}/starpu/Output_maxime/Schedule_time_raw_out_temp.txt
 FICHIER_SCHEDULE_TIME=${PATH_STARPU}/starpu/Output_maxime/Schedule_time_raw_out.txt
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
-ulimit -S -s 5000000
-truncate -s 0 ${FICHIER_RAW}
-truncate -s 0 ${FICHIER_BUS}
-truncate -s 0 ${FICHIER_RAW_DT}
-truncate -s 0 ${FICHIER_TIME}
-truncate -s 0 ${FICHIER_SCHEDULE_TIME_TEMP}
-truncate -s 0 ${FICHIER_SCHEDULE_TIME}
-truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DDA_eviction_time.txt
+ulimit -S -s 50000000
+#~ truncate -s 0 ${FICHIER_RAW}
+#~ truncate -s 0 ${FICHIER_BUS}
+#~ truncate -s 0 ${FICHIER_RAW_DT}
+#~ truncate -s 0 ${FICHIER_TIME}
+#~ truncate -s 0 ${FICHIER_SCHEDULE_TIME_TEMP}
+#~ truncate -s 0 ${FICHIER_SCHEDULE_TIME}
+#~ truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DDA_eviction_time.txt
 if [ $GPU = "gemini-2-ipdps" ]
 then
 	HOST="gemini-2-ipdps"
@@ -160,30 +160,30 @@ then
 			echo "Avec HFP et plus de 1 GPU"
 			ECHELLE_X=$((5*NGPU))
 		    NB_ALGO_TESTE=6
-		    echo "############## Modular eager prefetching ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_WORKER_STATS=1 STARPU_WORKER_STATS_FILE="${FICHIER_SCHEDULE_TIME_TEMP}" STARPU_PROFILING=1 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    end=`date +%s` 
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
-		    done
-		    echo "############## Dmdar ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_WORKER_STATS=1 STARPU_WORKER_STATS_FILE="${FICHIER_SCHEDULE_TIME_TEMP}" STARPU_PROFILING=1 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    end=`date +%s` 
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
-		    done
+		    #~ echo "############## Modular eager prefetching ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_WORKER_STATS=1 STARPU_WORKER_STATS_FILE="${FICHIER_SCHEDULE_TIME_TEMP}" STARPU_PROFILING=1 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    #~ end=`date +%s` 
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+			    #~ sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
+		    #~ done
+		    #~ echo "############## Dmdar ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_WORKER_STATS=1 STARPU_WORKER_STATS_FILE="${FICHIER_SCHEDULE_TIME_TEMP}" STARPU_PROFILING=1 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    #~ end=`date +%s` 
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+			    #~ sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
+		    #~ done
 		    echo "############## HFPUR + load balance and task stealing TH30 ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=7 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
