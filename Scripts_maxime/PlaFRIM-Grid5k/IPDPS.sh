@@ -478,6 +478,7 @@ then
 		    done
 		fi
 	fi
+fi
 if [ $DOSSIER = "Random_task_order" ]
 then
 		  echo "Random task order"
