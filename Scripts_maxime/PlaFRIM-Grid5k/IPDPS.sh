@@ -477,7 +477,6 @@ if [ $DOSSIER = "Matrice_ligne" ]
 		    done
 		fi
 	fi
-fi
 if [ $DOSSIER = "Random_task_order" ]
 		  echo "Random task order"
 		    echo "############## Modular eager prefetching ##############"
