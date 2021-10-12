@@ -306,44 +306,6 @@ int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest)
 	return already_sent;
 }
 
-static void _starpu_mpi_cache_flush_nolock(starpu_data_handle_t data_handle)
-{
-	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
-	int i, nb_nodes;
-
-	if (_starpu_cache_enabled == 0)
-		return;
-
-	starpu_mpi_comm_size(mpi_data->node_tag.node.comm, &nb_nodes);
-	for(i=0 ; i<nb_nodes ; i++)
-	{
-		if (mpi_data->cache_sent[i] == 1)
-		{
-			_STARPU_MPI_DEBUG(2, "Clearing send cache for data %p\n", data_handle);
-			mpi_data->cache_sent[i] = 0;
-			_starpu_mpi_cache_stats_dec(i, data_handle);
-		}
-	}
-
-	if (mpi_data->cache_received == 1)
-	{
-		int mpi_rank = starpu_mpi_data_get_rank(data_handle);
-		_STARPU_MPI_DEBUG(2, "Clearing received cache for data %p\n", data_handle);
-		mpi_data->cache_received = 0;
-		_starpu_mpi_cache_stats_dec(mpi_rank, data_handle);
-	}
-}
-
-void _starpu_mpi_cache_flush(starpu_data_handle_t data_handle)
-{
-	if (_starpu_cache_enabled == 0)
-		return;
-
-	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
-	_starpu_mpi_cache_flush_nolock(data_handle);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
-}
-
 static void _starpu_mpi_cache_flush_and_invalidate_nolock(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
 	int my_rank, mpi_rank;
@@ -353,6 +315,7 @@ static void _starpu_mpi_cache_flush_and_invalidate_nolock(MPI_Comm comm, starpu_
 	starpu_mpi_comm_rank(comm, &my_rank);
 	mpi_rank = starpu_mpi_data_get_rank(data_handle);
 	if (mpi_rank != my_rank && mpi_rank != -1)
+		// Clean the memory on nodes which do not own the data
 		starpu_data_invalidate_submit(data_handle);
 }
 
