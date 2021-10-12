@@ -54,6 +54,7 @@ NCOMBINAISONS=$((NGPU*2+(NGPU-1)*NGPU+3))
 DECALAGE_FICHIER_SCHEDULE=$((NGPU*7+5)) #Seulement pour IPDPS la valeur est plus grande
 
 if [ $DOSSIER = "Matrice_ligne" ]
+then
 	if [ $MODEL = "dynamic_data_aware_no_hfp_ipdps" ]
 	then
 		ECHELLE_X=$((5*NGPU))
