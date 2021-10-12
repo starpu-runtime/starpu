@@ -768,253 +768,250 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		}
     } Fin de version pour tester en perdant du temps après le threshold. */
     
-    if(starpu_get_env_number_default("CHOOSE_BEST_DATA_TYPE", 0) == 0)
-    {
-		/* The costly loop. Version originale. */
-		i = 0;
-		gettimeofday(&time_start_choose_best_data, NULL);
-		for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
-		{
-			temp_number_of_task_max = 0;
+    //~ if(starpu_get_env_number_default("CHOOSE_BEST_DATA_TYPE", 0) == 0)
+    //~ {
+		//~ /* The costly loop. Version originale. */
+		//~ i = 0;
+		//~ gettimeofday(&time_start_choose_best_data, NULL);
+		//~ for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
+		//~ {
+			//~ temp_number_of_task_max = 0;
 					
-			for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
-			{
-				/* I put it at false if at least one data is missing. */
-				data_available = true; 
-				for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
-				{
-					/* I test if the data is on memory */ 
-					if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
-					{
-						if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-						{
-							data_available = false;
-							break;
-						}
-					}
-				}
-				if (data_available == true)
-				{
-					temp_number_of_task_max++;
-				}
-			}
-		
-			if (temp_number_of_task_max > number_of_task_max)
-			{
-				number_of_task_max = temp_number_of_task_max;
-				task_available_max = task_using_data_list_size(e->D->sched_data);
-				handle_popped = e->D;
-			}
-			/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
-			else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
-			{
-				tudl = e->D->sched_data;
-				/* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
-				if (task_using_data_list_size(tudl) > task_available_max)
-				{
-					task_available_max = task_using_data_list_size(tudl);
-					handle_popped = e->D;
-				}
-			}
-		}
-		gettimeofday(&time_end_choose_best_data, NULL);
-		time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
-		/* Seulement pour les traces pour les faires ressembler à celle sur Grid5000 */
-		// usleep(((time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec));
-    }
-    else
-    {
-		/* The costly loop. Version où je récup les 10 meilleures données et ensuite tant que je les ai pas toutes envoyé je test sur ces 10 données la seulement. 
-		 * Utilise une struct globale et un int dans le .h a suppr si on utilise pas cette méthode */
-		gettimeofday(&time_start_choose_best_data, NULL);
-		if (data_to_pop_next_list_empty(g->my_data_to_pop_next))
-		{
-			int k = 0;
-			int *number_task_data_to_pop_next = malloc(N_data_to_pop_next*sizeof(int));
-			int *global_number_task_data_to_pop_next = malloc(N_data_to_pop_next*sizeof(int));
-			for (i = 0; i < N_data_to_pop_next; i++)
-			{
-				number_task_data_to_pop_next[i] = -1;
-				global_number_task_data_to_pop_next[i] = -1;
-			}
-			
-			for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
-			{
-				temp_number_of_task_max = 0;
-						
-				for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
-				{
-					/* I put it at false if at least one data is missing. */
-					data_available = true; 
-					for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
-					{
-						/* I test if the data is on memory */ 
-						if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
-						{
-							if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-							{
-								data_available = false;
-								break;
-							}
-						}
-					}
-					if (data_available == true)
-					{
-						temp_number_of_task_max++;
-					}
-				}
-				
-				for (i = 0; i < N_data_to_pop_next; i++)
-				{
-					struct data_to_pop_next *ptr = data_to_pop_next_new();
-					struct data_to_pop_next *new = data_to_pop_next_new();
-					if (temp_number_of_task_max > number_task_data_to_pop_next[i])
-					{
-						for (k = i; k < N_data_to_pop_next - 1; k++)
-						{
-							number_task_data_to_pop_next[k + 1] = number_task_data_to_pop_next[k];
-							global_number_task_data_to_pop_next[k + 1] = global_number_task_data_to_pop_next[k];
-						}
-						number_of_task_max = temp_number_of_task_max;
-						number_task_data_to_pop_next[i] = temp_number_of_task_max;
-						global_number_task_data_to_pop_next[i] = task_using_data_list_size(e->D->sched_data);
-						
-						ptr = data_to_pop_next_list_begin(g->my_data_to_pop_next);
-						new->pointer_to_data_to_pop_next = e->D;
-						for (k = 0; k < i; k++)
-						{
-							ptr = data_to_pop_next_list_next(ptr);
-						}
-						if (data_to_pop_next_list_empty(g->my_data_to_pop_next))
-						{
-							data_to_pop_next_list_push_front(g->my_data_to_pop_next, new);
-						}
-						else if (ptr == NULL)
-						{
-							data_to_pop_next_list_push_back(g->my_data_to_pop_next, new);
-						}
-						else
-						{
-							data_to_pop_next_list_insert_before(g->my_data_to_pop_next, new, ptr);
-						}
-						break;
-					}
-					else if (temp_number_of_task_max == number_task_data_to_pop_next[i] && number_task_data_to_pop_next[i] != 0)
-					{
-						if (task_using_data_list_size(tudl) > global_number_task_data_to_pop_next[i])
-						{
-							for (k = i + 1; k < N_data_to_pop_next; k++)
-							{
-								number_task_data_to_pop_next[k] = number_task_data_to_pop_next[k - 1];
-								global_number_task_data_to_pop_next[k] = global_number_task_data_to_pop_next[k - 1];
-							}
-							number_of_task_max = temp_number_of_task_max;
-							number_task_data_to_pop_next[i] = temp_number_of_task_max;
-							global_number_task_data_to_pop_next[i] = task_using_data_list_size(e->D->sched_data);
-							
-							ptr = data_to_pop_next_list_begin(g->my_data_to_pop_next);
-							new->pointer_to_data_to_pop_next = e->D;
-							for (k = 0; k < i; k++)
-							{
-								ptr = data_to_pop_next_list_next(ptr);
-							}
-							if (data_to_pop_next_list_empty(g->my_data_to_pop_next))
-							{
-								data_to_pop_next_list_push_front(g->my_data_to_pop_next, new);
-							}
-							else if (ptr == NULL)
-							{
-								data_to_pop_next_list_push_back(g->my_data_to_pop_next, new);
-							}
-							else
-							{
-								data_to_pop_next_list_insert_before(g->my_data_to_pop_next, new, ptr);
-							}
-							break;
-						}
-					}
-				}
-			}
-			struct data_to_pop_next *handle_to_return = data_to_pop_next_new();
-			handle_to_return = data_to_pop_next_list_pop_front(g->my_data_to_pop_next);
-			handle_popped = handle_to_return->pointer_to_data_to_pop_next;
-		}
-		else
-		{
-			if(starpu_get_env_number_default("CHOOSE_BEST_DATA_TYPE", 0) == 1)
-			{
-				/* version ou je renvoie juste sans choisir */
-				struct data_to_pop_next *handle_to_return = data_to_pop_next_new();
-				handle_to_return = data_to_pop_next_list_pop_front(g->my_data_to_pop_next);
-				handle_popped = handle_to_return->pointer_to_data_to_pop_next;
-			}
-			else
-			{
-				/* choose best one among them */
-				number_of_task_max = -1;
-				task_available_max = 0;
-				temp_number_of_task_max = 0;
-				struct data_to_pop_next *e2 = data_to_pop_next_new();
-				for (e2 = data_to_pop_next_list_begin(g->my_data_to_pop_next); e2 != data_to_pop_next_list_end(g->my_data_to_pop_next); e2 = data_to_pop_next_list_next(e2))
-				{
-					temp_number_of_task_max = 0;		
-					for (t = task_using_data_list_begin(e2->pointer_to_data_to_pop_next->sched_data); t != task_using_data_list_end(e2->pointer_to_data_to_pop_next->sched_data); t = task_using_data_list_next(t))
-					{
-						/* I put it at false if at least one data is missing. */
-						data_available = true; 
-						for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
-						{
-							/* I test if the data is on memory */ 
-							if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e2->pointer_to_data_to_pop_next)
-							{
-								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-								{
-									data_available = false;
-									break;
-								}
-							}
-						}
-						if (data_available == true)
-						{
-							temp_number_of_task_max++;
-						}
-					}
-				
-					if (temp_number_of_task_max > number_of_task_max)
-					{
-						number_of_task_max = temp_number_of_task_max;
-						task_available_max = task_using_data_list_size(e2->pointer_to_data_to_pop_next->sched_data);
-						handle_popped = e2->pointer_to_data_to_pop_next;
-					}
-					/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
-					else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
-					{
-						tudl = e2->pointer_to_data_to_pop_next->sched_data;
-						/* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
-						if (task_using_data_list_size(tudl) > task_available_max)
-						{
-							task_available_max = task_using_data_list_size(tudl);
-							handle_popped = e2->pointer_to_data_to_pop_next;
-						}
-					}
-				}
-				/* erase le handle de la liste des N data a pop */
-				//~ if (number_of_task_max != 0)
+			//~ for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
+			//~ {
+				//~ /* I put it at false if at least one data is missing. */
+				//~ data_available = true; 
+				//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
 				//~ {
-					e2 = data_to_pop_next_list_begin(g->my_data_to_pop_next);
-					while (e2->pointer_to_data_to_pop_next != handle_popped)
-					{
-					   e2 = data_to_pop_next_list_next(e2);
-					} 
-					data_to_pop_next_list_erase(g->my_data_to_pop_next, e2);
+					//~ /* I test if the data is on memory */ 
+					//~ if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
+					//~ {
+						//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+						//~ {
+							//~ data_available = false;
+							//~ break;
+						//~ }
+					//~ }
 				//~ }
-				number_of_task_max = 1;
-			}
-		}
-		gettimeofday(&time_end_choose_best_data, NULL);
-		time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
-		/* Fin de version où je récup les 10 meilleures données et ensuite tant que je les ai pas toutes envoyé je test sur ces 10 données la. */
-    }
+				//~ if (data_available == true)
+				//~ {
+					//~ temp_number_of_task_max++;
+				//~ }
+			//~ }
+		
+			//~ if (temp_number_of_task_max > number_of_task_max)
+			//~ {
+				//~ number_of_task_max = temp_number_of_task_max;
+				//~ task_available_max = task_using_data_list_size(e->D->sched_data);
+				//~ handle_popped = e->D;
+			//~ }
+			//~ /* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
+			//~ else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
+			//~ {
+				//~ tudl = e->D->sched_data;
+				//~ /* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
+				//~ if (task_using_data_list_size(tudl) > task_available_max)
+				//~ {
+					//~ task_available_max = task_using_data_list_size(tudl);
+					//~ handle_popped = e->D;
+				//~ }
+			//~ }
+		//~ }
+		//~ gettimeofday(&time_end_choose_best_data, NULL);
+		//~ time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
+		//~ /* Seulement pour les traces pour les faires ressembler à celle sur Grid5000 */
+		//~ // usleep(((time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec));
+    //~ }
+    //~ else
+    //~ {
+		//~ /* The costly loop. Version où je récup les 10 meilleures données et ensuite tant que je les ai pas toutes envoyé je test sur ces 10 données la seulement. 
+		 //~ * Utilise une struct globale et un int dans le .h a suppr si on utilise pas cette méthode */
+		//~ gettimeofday(&time_start_choose_best_data, NULL);
+		//~ if (data_to_pop_next_list_empty(g->my_data_to_pop_next))
+		//~ {
+			//~ int k = 0;
+			//~ int *number_task_data_to_pop_next = malloc(N_data_to_pop_next*sizeof(int));
+			//~ int *global_number_task_data_to_pop_next = malloc(N_data_to_pop_next*sizeof(int));
+			//~ for (i = 0; i < N_data_to_pop_next; i++)
+			//~ {
+				//~ number_task_data_to_pop_next[i] = -1;
+				//~ global_number_task_data_to_pop_next[i] = -1;
+			//~ }
+			
+			//~ for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
+			//~ {
+				//~ temp_number_of_task_max = 0;
+						
+				//~ for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
+				//~ {
+					//~ /* I put it at false if at least one data is missing. */
+					//~ data_available = true; 
+					//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+					//~ {
+						//~ /* I test if the data is on memory */ 
+						//~ if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
+						//~ {
+							//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+							//~ {
+								//~ data_available = false;
+								//~ break;
+							//~ }
+						//~ }
+					//~ }
+					//~ if (data_available == true)
+					//~ {
+						//~ temp_number_of_task_max++;
+					//~ }
+				//~ }
+				
+				//~ for (i = 0; i < N_data_to_pop_next; i++)
+				//~ {
+					//~ struct data_to_pop_next *ptr = data_to_pop_next_new();
+					//~ struct data_to_pop_next *new = data_to_pop_next_new();
+					//~ if (temp_number_of_task_max > number_task_data_to_pop_next[i])
+					//~ {
+						//~ for (k = i; k < N_data_to_pop_next - 1; k++)
+						//~ {
+							//~ number_task_data_to_pop_next[k + 1] = number_task_data_to_pop_next[k];
+							//~ global_number_task_data_to_pop_next[k + 1] = global_number_task_data_to_pop_next[k];
+						//~ }
+						//~ number_of_task_max = temp_number_of_task_max;
+						//~ number_task_data_to_pop_next[i] = temp_number_of_task_max;
+						//~ global_number_task_data_to_pop_next[i] = task_using_data_list_size(e->D->sched_data);
+						
+						//~ ptr = data_to_pop_next_list_begin(g->my_data_to_pop_next);
+						//~ new->pointer_to_data_to_pop_next = e->D;
+						//~ for (k = 0; k < i; k++)
+						//~ {
+							//~ ptr = data_to_pop_next_list_next(ptr);
+						//~ }
+						//~ if (data_to_pop_next_list_empty(g->my_data_to_pop_next))
+						//~ {
+							//~ data_to_pop_next_list_push_front(g->my_data_to_pop_next, new);
+						//~ }
+						//~ else if (ptr == NULL)
+						//~ {
+							//~ data_to_pop_next_list_push_back(g->my_data_to_pop_next, new);
+						//~ }
+						//~ else
+						//~ {
+							//~ data_to_pop_next_list_insert_before(g->my_data_to_pop_next, new, ptr);
+						//~ }
+						//~ break;
+					//~ }
+					//~ else if (temp_number_of_task_max == number_task_data_to_pop_next[i] && number_task_data_to_pop_next[i] != 0)
+					//~ {
+						//~ if (task_using_data_list_size(tudl) > global_number_task_data_to_pop_next[i])
+						//~ {
+							//~ for (k = i + 1; k < N_data_to_pop_next; k++)
+							//~ {
+								//~ number_task_data_to_pop_next[k] = number_task_data_to_pop_next[k - 1];
+								//~ global_number_task_data_to_pop_next[k] = global_number_task_data_to_pop_next[k - 1];
+							//~ }
+							//~ number_of_task_max = temp_number_of_task_max;
+							//~ number_task_data_to_pop_next[i] = temp_number_of_task_max;
+							//~ global_number_task_data_to_pop_next[i] = task_using_data_list_size(e->D->sched_data);
+							
+							//~ ptr = data_to_pop_next_list_begin(g->my_data_to_pop_next);
+							//~ new->pointer_to_data_to_pop_next = e->D;
+							//~ for (k = 0; k < i; k++)
+							//~ {
+								//~ ptr = data_to_pop_next_list_next(ptr);
+							//~ }
+							//~ if (data_to_pop_next_list_empty(g->my_data_to_pop_next))
+							//~ {
+								//~ data_to_pop_next_list_push_front(g->my_data_to_pop_next, new);
+							//~ }
+							//~ else if (ptr == NULL)
+							//~ {
+								//~ data_to_pop_next_list_push_back(g->my_data_to_pop_next, new);
+							//~ }
+							//~ else
+							//~ {
+								//~ data_to_pop_next_list_insert_before(g->my_data_to_pop_next, new, ptr);
+							//~ }
+							//~ break;
+						//~ }
+					//~ }
+				//~ }
+			//~ }
+			//~ struct data_to_pop_next *handle_to_return = data_to_pop_next_new();
+			//~ handle_to_return = data_to_pop_next_list_pop_front(g->my_data_to_pop_next);
+			//~ handle_popped = handle_to_return->pointer_to_data_to_pop_next;
+		//~ }
+		//~ else
+		//~ {
+			//~ if(starpu_get_env_number_default("CHOOSE_BEST_DATA_TYPE", 0) == 1)
+			//~ {
+				//~ /* version ou je renvoie juste sans choisir */
+				//~ struct data_to_pop_next *handle_to_return = data_to_pop_next_new();
+				//~ handle_to_return = data_to_pop_next_list_pop_front(g->my_data_to_pop_next);
+				//~ handle_popped = handle_to_return->pointer_to_data_to_pop_next;
+			//~ }
+			//~ else
+			//~ {
+				//~ /* choose best one among them */
+				//~ number_of_task_max = -1;
+				//~ task_available_max = 0;
+				//~ temp_number_of_task_max = 0;
+				//~ struct data_to_pop_next *e2 = data_to_pop_next_new();
+				//~ for (e2 = data_to_pop_next_list_begin(g->my_data_to_pop_next); e2 != data_to_pop_next_list_end(g->my_data_to_pop_next); e2 = data_to_pop_next_list_next(e2))
+				//~ {
+					//~ temp_number_of_task_max = 0;		
+					//~ for (t = task_using_data_list_begin(e2->pointer_to_data_to_pop_next->sched_data); t != task_using_data_list_end(e2->pointer_to_data_to_pop_next->sched_data); t = task_using_data_list_next(t))
+					//~ {
+						//~ /* I put it at false if at least one data is missing. */
+						//~ data_available = true; 
+						//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+						//~ {
+							//~ /* I test if the data is on memory */ 
+							//~ if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e2->pointer_to_data_to_pop_next)
+							//~ {
+								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+								//~ {
+									//~ data_available = false;
+									//~ break;
+								//~ }
+							//~ }
+						//~ }
+						//~ if (data_available == true)
+						//~ {
+							//~ temp_number_of_task_max++;
+						//~ }
+					//~ }
+				
+					//~ if (temp_number_of_task_max > number_of_task_max)
+					//~ {
+						//~ number_of_task_max = temp_number_of_task_max;
+						//~ task_available_max = task_using_data_list_size(e2->pointer_to_data_to_pop_next->sched_data);
+						//~ handle_popped = e2->pointer_to_data_to_pop_next;
+					//~ }
+					//~ /* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
+					//~ else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
+					//~ {
+						//~ tudl = e2->pointer_to_data_to_pop_next->sched_data;
+						//~ /* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
+						//~ if (task_using_data_list_size(tudl) > task_available_max)
+						//~ {
+							//~ task_available_max = task_using_data_list_size(tudl);
+							//~ handle_popped = e2->pointer_to_data_to_pop_next;
+						//~ }
+					//~ }
+				//~ }
+				//~ /* erase le handle de la liste des N data a pop */
+					//~ e2 = data_to_pop_next_list_begin(g->my_data_to_pop_next);
+					//~ while (e2->pointer_to_data_to_pop_next != handle_popped)
+					//~ {
+					   //~ e2 = data_to_pop_next_list_next(e2);
+					//~ } 
+					//~ data_to_pop_next_list_erase(g->my_data_to_pop_next, e2);
+				//~ number_of_task_max = 1;
+			//~ }
+		//~ }
+		//~ gettimeofday(&time_end_choose_best_data, NULL);
+		//~ time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
+		//~ /* Fin de version où je récup les 10 meilleures données et ensuite tant que je les ai pas toutes envoyé je test sur ces 10 données la. */
+    //~ }
     
     if (number_of_task_max == 0)
     {
