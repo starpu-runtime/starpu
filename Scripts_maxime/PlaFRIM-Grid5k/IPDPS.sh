@@ -122,7 +122,6 @@ then
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 				echo $((end-start)) >> ${FICHIER_TIME}
 		    done
-		fi
 		#~ if [ $NGPU = 2 ]
 		#~ then
 		  #~ echo "NO HFP and NGPU = 2"
@@ -198,8 +197,7 @@ then
 				#~ echo $((end-start)) >> ${FICHIER_TIME}
 		    #~ done
 		#~ fi
-		if [ $NGPU = 2 || $NGPU = 3 || $NGPU = 4 || $NGPU = 8 ]
-		then
+		else
 		  echo "NO HFP and NGPU = 2, 3, 4 ou 8"
 		    NB_ALGO_TESTE=7
 		    echo "############## Modular eager prefetching ##############"
