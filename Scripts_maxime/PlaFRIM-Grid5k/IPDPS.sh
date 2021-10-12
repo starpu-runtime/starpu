@@ -478,6 +478,7 @@ if [ $DOSSIER = "Matrice_ligne" ]
 		fi
 	fi
 if [ $DOSSIER = "Random_task_order" ]
+then
 		  echo "Random task order"
 		    echo "############## Modular eager prefetching ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
