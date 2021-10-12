@@ -76,7 +76,8 @@ EXTRA_DIST = 					\
 	heat/heat.sh					\
 	cholesky/cholesky.sh				\
 	cholesky/cholesky_compiled.c			\
-	lu/lu.sh
+	lu/lu.sh					\
+	subgraphs/main.h
 
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.mps */*/*.mps *.dot */*.dot */*/*.dot *.pl */*.pl */*/*.pl *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90
@@ -292,7 +293,10 @@ STARPU_EXAMPLES +=				\
 	reductions/minmax_reduction		\
 	dependency/task_end_dep			\
 	dependency/task_end_dep_add		\
-	dependency/sequential_consistency
+	dependency/sequential_consistency	\
+	subgraphs/manual			\
+	subgraphs/partition			\
+	subgraphs/plan
 
 endif
 
@@ -1298,6 +1302,23 @@ sched_ctx_parallel_tasks_reuse_handle_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 endif
+
+######################
+# subgraphs examples #
+######################
+
+subgraphs_manual_SOURCES	=	\
+	subgraphs/manual.c		\
+	subgraphs/codelets.c
+
+subgraphs_partition_SOURCES	=	\
+	subgraphs/partition.c		\
+	subgraphs/codelets.c
+
+subgraphs_plan_SOURCES	=		\
+	subgraphs/plan.c		\
+	subgraphs/codelets.c
+
 
 # - link over source file to build our own object
 fortran90/starpu_mod.f90:
