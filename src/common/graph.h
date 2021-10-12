@@ -120,6 +120,9 @@ void _starpu_graph_compute_descendants(void);
 */
 void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph_node *node), void *data);
 
+struct _starpu_graph_node *_starpu_graph_task_node(struct starpu_task *task);
+struct starpu_task *_starpu_graph_node_task(struct _starpu_graph_node *node);
+
 #pragma GCC visibility pop
 
 #endif /* __GRAPH_H__ */

@@ -446,3 +446,22 @@ void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph_node *n
 	__starpu_graph_foreach(func, data);
 	_starpu_graph_wrunlock();
 }
+
+struct _starpu_graph_node *_starpu_graph_task_node(struct starpu_task *task)
+{
+    // Can job be NULL? In other words, can a task not be associated with any job?
+    struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
+
+    return job->graph_node;
+}
+
+struct starpu_task *_starpu_graph_node_task(struct _starpu_graph_node *node)
+{
+    struct _starpu_job *job = node->job;
+    struct starpu_task *task = NULL;
+
+    if (job)
+        task = job->task;
+
+    return task;
+}
