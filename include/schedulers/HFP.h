@@ -33,6 +33,8 @@
 #define PRINT_N /* To precise the value of N for visualization in scheduelers that does not count the toal number of tasks. Also use PRINT3D=1  or 2 so we know we are in 3D". */
 #define PRINT_TIME
 
+starpu_pthread_mutex_t HFP_mutex;
+
 int Ngpu;
 int index_current_task_for_visualization; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
 const char* appli;

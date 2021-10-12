@@ -3003,6 +3003,7 @@ static int HFP_can_pull(struct starpu_sched_component * component)
 
 static void HFP_do_schedule(struct starpu_sched_component *component)
 {	
+	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
 	//~ printf("début do schedule\n");
 	struct HFP_sched_data *data = component->data;
 
@@ -3605,6 +3606,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		//print_packages_in_terminal(data->p, 0);
 		}	
 	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 }
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
@@ -3660,6 +3662,8 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	component->pull_task = HFP_pull_task;
 	component->can_push = HFP_can_push;
 	component->can_pull = HFP_can_pull;
+	
+	STARPU_PTHREAD_MUTEX_INIT(&HFP_mutex, NULL);
 	
 	return component;
 }
