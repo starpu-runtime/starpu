@@ -2315,6 +2315,39 @@ module fstarpu_mod
                         real(c_double) :: fstarpu_timing_now
                 end function fstarpu_timing_now
 
+                ! == starpu_cuda.h ==
+
+                ! cudaStream_t starpu_cuda_get_local_stream(void);
+                function fstarpu_cuda_get_local_stream () bind(C,name="starpu_cuda_get_local_stream")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_cuda_get_local_stream
+                end function fstarpu_cuda_get_local_stream
+
+                ! == starpu_stdlib.h ==
+
+                ! int starpu_malloc(void **A, size_t dim);
+                function fstarpu_malloc (ptr, len) bind(C,name="starpu_malloc")
+                        use iso_c_binding, only: c_ptr, c_long, c_int
+                        type(c_ptr), intent(out) :: ptr
+                        integer(c_long), value, intent(in) :: len
+                        integer(c_int) :: fstarpu_malloc
+                end function fstarpu_malloc
+
+                ! int starpu_free_noflag(void *A, size_t dim);
+                function fstarpu_free_no_flag (ptr, len) bind(C,name="starpu_free_no_flag")
+                        use iso_c_binding, only: c_ptr, c_long, c_int
+                        type(c_ptr), value, intent(in) :: ptr
+                        integer(c_long), value, intent(in) :: len
+                        integer(c_int) :: fstarpu_free_no_flag
+                end function fstarpu_free_no_flag
+
+                ! int starpu_memory_pin(void *addr, size_t size);
+                function fstarpu_memory_pin (ptr, len) bind(C,name="starpu_memory_pin")
+                        use iso_c_binding, only: c_ptr, c_long, c_int
+                        type(c_ptr), value, intent(in) :: ptr
+                        integer(c_long), value, intent(in) :: len
+                        integer(c_int) :: fstarpu_memory_pin
+                end function fstarpu_memory_pin
         end interface
 
         contains
