@@ -675,10 +675,10 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 	
 	/* Pour diminuer au début de l'execution */
 	int choose_best_data_threshold = 200;
-	//~ if (number_task_out > 40000)
-	//~ {
-		//~ choose_best_data_threshold = 100;
-	//~ }
+	if (number_task_out > 144000)
+	{
+		choose_best_data_threshold = 100;
+	}
 	
 	/* Version avec threshold */
 	i = 0;
