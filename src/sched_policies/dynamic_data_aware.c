@@ -507,10 +507,10 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 void reset_all_struct()
 {
 	NT_dynamic_outer = -1;
-	//~ index_current_popped_task = malloc(sizeof(int)*Ngpu);
-	//~ index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
-	//~ index_current_popped_task_all_gpu = 0;
-	//~ index_current_popped_task_all_gpu_prefetch = 0;
+	index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_all_gpu = 0;
+	index_current_popped_task_all_gpu_prefetch = 0;
 	number_task_out = -1;
 }
 
@@ -665,52 +665,60 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		//~ }
 	//~ }
 	//~ /* The costly loop */
-	//~ i = 0;
-    //~ gettimeofday(&time_start_choose_best_data, NULL);
-    //~ for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
-    //~ {
-		//~ temp_number_of_task_max = 0;
-				
-		//~ for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
-		//~ {
-			//~ /* I put it at false if at least one data is missing. */
-			//~ data_available = true; 
-			//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
-			//~ {
-				//~ /* I test if the data is on memory */ 
-				//~ if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
-				//~ {
-					//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-					//~ {
-						//~ data_available = false;
-						//~ break;
-					//~ }
-				//~ }
-			//~ }
-			//~ if (data_available == true)
-			//~ {
-				//~ temp_number_of_task_max++;
-			//~ }
-		//~ }
 	
-		//~ if (temp_number_of_task_max > number_of_task_max)
-		//~ {
-			//~ number_of_task_max = temp_number_of_task_max;
-			//~ task_available_max = task_using_data_list_size(e->D->sched_data);
-			//~ handle_popped = e->D;
-		//~ }
-		//~ /* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
-		//~ else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
-		//~ {
-			//~ tudl = e->D->sched_data;
-			//~ /* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
-			//~ if (task_using_data_list_size(tudl) > task_available_max)
-			//~ {
-				//~ task_available_max = task_using_data_list_size(tudl);
-				//~ handle_popped = e->D;
-			//~ }
-		//~ }
-    //~ }
+	/* pour diminuer a la fin de l'execution */
+	int choose_best_data_threshold = INT_MAX;
+	if (number_task_out > 40000)
+	{
+		choose_best_data_threshold = 100;
+	}
+	
+	i = 0;
+    gettimeofday(&time_start_choose_best_data, NULL);
+    for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
+    {
+		temp_number_of_task_max = 0;
+				
+		for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
+		{
+			/* I put it at false if at least one data is missing. */
+			data_available = true; 
+			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+			{
+				/* I test if the data is on memory */ 
+				if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
+				{
+					if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+					{
+						data_available = false;
+						break;
+					}
+				}
+			}
+			if (data_available == true)
+			{
+				temp_number_of_task_max++;
+			}
+		}
+	
+		if (temp_number_of_task_max > number_of_task_max)
+		{
+			number_of_task_max = temp_number_of_task_max;
+			task_available_max = task_using_data_list_size(e->D->sched_data);
+			handle_popped = e->D;
+		}
+		/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
+		else if (temp_number_of_task_max == number_of_task_max && number_of_task_max != 0)
+		{
+			tudl = e->D->sched_data;
+			/* TODO : la en 3D on voudra check les data qui peuvent permettre de faire des tâches avec 1 data de load. Puius pour rendre ca général avec 2 data de plus, 3 de plus etc... Du coup rendre ca géénral et déjà tester que en 2d ca donne les mêmes résultats exactement, car normalement ca devrait. */
+			if (task_using_data_list_size(tudl) > task_available_max)
+			{
+				task_available_max = task_using_data_list_size(tudl);
+				handle_popped = e->D;
+			}
+		}
+    }
     /* Version pour tester en continuant à perdre du temps après le threshold.
     gettimeofday(&time_start_choose_best_data, NULL);
     for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e), i++)
@@ -812,7 +820,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		gettimeofday(&time_end_choose_best_data, NULL);
 		time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
 		/* Seulement pour les traces pour les faires ressembler à celle sur Grid5000 */
-		//~ usleep(((time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec));
+		// usleep(((time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec));
     }
     else
     {
@@ -1754,10 +1762,10 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	NT_dynamic_outer = 0;
 	NT = 0;
 	new_tasks_initialized = false;
-	//~ index_current_popped_task = malloc(sizeof(int)*Ngpu);
-	//~ index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
-	//~ index_current_popped_task_all_gpu = 0;
-	//~ index_current_popped_task_all_gpu_prefetch = 0;
+	index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_all_gpu = 0;
+	index_current_popped_task_all_gpu_prefetch = 0;
 	gpu_memory_initialized = false;
 	number_task_out = -1;
 	iteration = 1;
