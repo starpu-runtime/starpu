@@ -459,10 +459,10 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 				
 			/* For visualisation in python. */
-			if (starpu_get_env_number_default("PRINTF", 0) == 1)
-			{
-				print_data_to_load_prefetch(task, current_gpu - 1);
-			}
+			//~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
+			//~ {
+				//~ print_data_to_load_prefetch(task, current_gpu - 1);
+			//~ }
 			return task;
 		}
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
@@ -493,10 +493,10 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			
 			/* For visualisation in python. */
-			if (starpu_get_env_number_default("PRINTF", 0) == 1)
-			{
-				print_data_to_load_prefetch(task, current_gpu - 1);
-			}
+			//~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
+			//~ {
+				//~ print_data_to_load_prefetch(task, current_gpu - 1);
+			//~ }
 			return task;
 		}
     }
@@ -507,10 +507,12 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 void reset_all_struct()
 {
 	NT_dynamic_outer = -1;
-	index_current_popped_task = malloc(sizeof(int)*Ngpu);
-	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
-	index_current_popped_task_all_gpu = 0;
-	index_current_popped_task_all_gpu_prefetch = 0;
+	/* For visualisation in python. */
+	//~ index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	//~ index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
+	//~ index_current_popped_task_all_gpu = 0;
+	//~ index_current_popped_task_all_gpu_prefetch = 0;
+	
 	number_task_out = -1;
 }
 
@@ -674,10 +676,10 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 	//~ }
 	
 	/* Pour diminuer au début de l'execution */
-	int choose_best_data_threshold = 200;
-	if (number_task_out > 144000)
+	int choose_best_data_threshold = INT_MAX;
+	if (number_task_out > 14400)
 	{
-		choose_best_data_threshold = 100;
+		choose_best_data_threshold = 110;
 	}
 	
 	/* Version avec threshold */
@@ -1770,10 +1772,12 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	NT_dynamic_outer = 0;
 	NT = 0;
 	new_tasks_initialized = false;
-	index_current_popped_task = malloc(sizeof(int)*Ngpu);
-	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
-	index_current_popped_task_all_gpu = 0;
-	index_current_popped_task_all_gpu_prefetch = 0;
+	/* For visualisation in python. */
+	//~ index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	//~ index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
+	//~ index_current_popped_task_all_gpu = 0;
+	//~ index_current_popped_task_all_gpu_prefetch = 0;
+	
 	gpu_memory_initialized = false;
 	number_task_out = -1;
 	iteration = 1;
