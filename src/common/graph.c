@@ -472,8 +472,11 @@ void _starpu_graph_node_outgoing(struct _starpu_graph_node *node, unsigned *n_ou
 
     _starpu_graph_rdlock();
 
-    *n_outgoing = node->n_outgoing;
-    _STARPU_REALLOC(*outgoing, *n_outgoing * sizeof(**outgoing));
+    if (*n_outgoing < node->n_outgoing)
+    {
+        *n_outgoing = node->n_outgoing;
+        _STARPU_REALLOC(*outgoing, *n_outgoing * sizeof(**outgoing));
+    }
 
     for (n = 0; n < *n_outgoing; ++n)
     {
