@@ -306,6 +306,34 @@ int starpu_mpi_cached_send(starpu_data_handle_t data_handle, int dest)
 	return already_sent;
 }
 
+static void _starpu_mpi_cache_flush_nolock(starpu_data_handle_t data_handle)
+{
+	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
+	int i, nb_nodes;
+
+	if (_starpu_cache_enabled == 0)
+		return;
+
+	starpu_mpi_comm_size(mpi_data->node_tag.node.comm, &nb_nodes);
+	for(i=0 ; i<nb_nodes ; i++)
+	{
+		if (mpi_data->cache_sent[i] == 1)
+		{
+			_STARPU_MPI_DEBUG(2, "Clearing send cache for data %p\n", data_handle);
+			mpi_data->cache_sent[i] = 0;
+			_starpu_mpi_cache_stats_dec(i, data_handle);
+		}
+	}
+
+	if (mpi_data->cache_received == 1)
+	{
+		int mpi_rank = starpu_mpi_data_get_rank(data_handle);
+		_STARPU_MPI_DEBUG(2, "Clearing received cache for data %p\n", data_handle);
+		mpi_data->cache_received = 0;
+		_starpu_mpi_cache_stats_dec(mpi_rank, data_handle);
+	}
+}
+
 static void _starpu_mpi_cache_flush_and_invalidate_nolock(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
 	int my_rank, mpi_rank;
