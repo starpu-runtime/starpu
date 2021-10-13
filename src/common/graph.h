@@ -122,6 +122,7 @@ void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph_node *n
 
 struct _starpu_graph_node *_starpu_graph_task_node(struct starpu_task *task);
 struct starpu_task *_starpu_graph_node_task(struct _starpu_graph_node *node);
+void _starpu_graph_node_outgoing(struct _starpu_graph_node *node, const unsigned *n_outgoing, struct _starpu_graph_node ***outgoing);
 
 #pragma GCC visibility pop
 
