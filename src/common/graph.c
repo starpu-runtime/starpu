@@ -466,10 +466,13 @@ struct starpu_task *_starpu_graph_node_task(struct _starpu_graph_node *node)
     return task;
 }
 
-void _starpu_graph_node_outgoing(struct _starpu_graph_node *node, const unsigned *n_outgoing, struct _starpu_graph_node ***outgoing)
+void _starpu_graph_node_outgoing(struct _starpu_graph_node *node, unsigned *n_outgoing, struct _starpu_graph_node ***outgoing)
 {
     unsigned n, added = 0;
 
+    _starpu_graph_rdlock();
+
+    *n_outgoing = node->n_outgoing;
     _STARPU_REALLOC(*outgoing, *n_outgoing * sizeof(**outgoing));
 
     for (n = 0; n < *n_outgoing; ++n)
@@ -480,7 +483,5 @@ void _starpu_graph_node_outgoing(struct _starpu_graph_node *node, const unsigned
             *outgoing[added++] = node;
     }
 
-    // Reallocate 'outgoing' if less nodes were added than expected (some successors were NULL)
-    if (added < *n_outgoing)
-        _STARPU_REALLOC(*outgoing, added * sizeof(**outgoing));
+    _starpu_graph_rdunlock();
 }
