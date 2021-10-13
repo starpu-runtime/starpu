@@ -2670,8 +2670,14 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	char Nchar[4];
 	sprintf(str, "%d", nb_gpu);
 	sprintf(Nchar, "%d", N);
-	//~ size = strlen("Output_maxime/Data/input_hMETIS.txt.part.") + strlen(str);
-	size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
+	if (starpu_get_env_number_default("RANDOM_TASK_ORDER", 0) == 1)
+	{
+		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU_Random_task_order/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
+	}
+	else
+	{
+		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
+	}
 	char *path2 = (char *)malloc(size);
 	strcpy(path2, "Output_maxime/Data/input_hMETIS/");
 	strcat(path2, str);
@@ -2687,7 +2693,7 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	strcat(path2, Nchar);
 	strcat(path2, ".txt");
 	
-	printf("Le fichier ouvert sera : %s.\n", path2);  fflush(stdout);
+	//~ printf("Le fichier ouvert sera : %s\n", path2);  fflush(stdout);
 	
 	FILE *f_2 = fopen(path2, "r");
 		
