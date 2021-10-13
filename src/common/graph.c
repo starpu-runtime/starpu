@@ -474,9 +474,11 @@ void _starpu_graph_node_outgoing(struct _starpu_graph_node *node, unsigned *n_ou
 
     if (*n_outgoing < node->n_outgoing)
     {
-        *n_outgoing = node->n_outgoing;
-        _STARPU_REALLOC(*outgoing, *n_outgoing * sizeof(**outgoing));
+        // Reallocate the 'outgoing' array if its size is smaller than the node's number of outgoing nodes
+        _STARPU_REALLOC(*outgoing, node->n_outgoing * sizeof(**outgoing));
     }
+
+    *n_outgoing = node->n_outgoing;
 
     for (n = 0; n < *n_outgoing; ++n)
     {
