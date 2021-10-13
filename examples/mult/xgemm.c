@@ -882,6 +882,7 @@ int main(int argc, char **argv)
 			}
 		}
 		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
+			srandom(starpu_get_env_number_default("SEED", 0));
 			/* Randomize the order in which task are sent, but the tasks are the same */
 			unsigned i = 0; unsigned j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; unsigned temp = 0; unsigned k = 0; unsigned n = 0;
 			for (iter = 0; iter < niter; iter++)

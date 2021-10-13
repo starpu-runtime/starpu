@@ -2675,7 +2675,15 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	char *path2 = (char *)malloc(size);
 	strcpy(path2, "Output_maxime/Data/input_hMETIS/");
 	strcat(path2, str);
-	strcat(path2, "GPU/input_hMETIS_N");
+	
+	if (starpu_get_env_number_default("RANDOM_TASK_ORDER", 0) == 1)
+	{
+		strcat(path2, "GPU_Random_task_order/input_hMETIS_N");
+	}
+	else
+	{
+		strcat(path2, "GPU/input_hMETIS_N");
+	}
 	strcat(path2, Nchar);
 	strcat(path2, ".txt");
 	

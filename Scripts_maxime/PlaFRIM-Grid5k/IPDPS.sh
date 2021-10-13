@@ -4,7 +4,7 @@
 #	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 3 X
 #	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Matrice_ligne dynamic_data_aware_no_hfp_ipdps 4 S
 
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 10 Random_task_order dynamic_data_aware_no_hfp_ipdps 2 X
+#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 13 Random_task_order dynamic_data_aware_no_hfp_ipdps 2 X
 
 #~ tester en random si j'ai le temps en réel
 
