@@ -480,7 +480,8 @@ fi
 if [ $DOSSIER = "Random_task_order" ]
 then
 		  echo "Random task order"
-		  ECHELLE_X=$((5*NGPU))
+		  #~ ECHELLE_X=$((5*NGPU))
+		  ECHELLE_X=5
 		    echo "############## Modular eager prefetching ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
