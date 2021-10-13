@@ -405,8 +405,10 @@ static void _starpu_worker_time_accumulate(struct starpu_profiling_worker_info *
 	case STATUS_INDEX_SCHEDULING:
 		starpu_timespec_accumulate(&worker_info->all_scheduling_time, delta);
 		break;
-	case STATUS_INDEX_NR:
 	case STATUS_INDEX_INITIALIZING:
+		/* no profiling info for init */
+		break;
+	case STATUS_INDEX_NR:
 		STARPU_ASSERT(0);
 	}
 }
