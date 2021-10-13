@@ -2687,7 +2687,7 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	strcat(path2, Nchar);
 	strcat(path2, ".txt");
 	
-	//printf("Le fichier ouvert sera : %s.\n", path2);  fflush(stdout);
+	printf("Le fichier ouvert sera : %s.\n", path2);  fflush(stdout);
 	
 	FILE *f_2 = fopen(path2, "r");
 		
