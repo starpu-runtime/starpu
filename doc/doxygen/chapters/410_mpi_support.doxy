@@ -1071,7 +1071,7 @@ data transfers and supports data matrices which do not fit in memory (out-of-cor
 
 \section Nmad Using the NewMadeleine communication library
 
-NewMadeleine (see http://pm2.gforge.inria.fr/newmadeleine/, part of the PM2
+NewMadeleine (see https://pm2.gitlabpages.inria.fr/newmadeleine/, part of the PM2
 project) is an optimizing communication library for high-performance networks.
 NewMadeleine provides its own interface, but also an MPI interface (called
 MadMPI). Thus there are two possibilities to use NewMadeleine with StarPU:

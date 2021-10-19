@@ -143,7 +143,7 @@ the trace size, various <c>-no-foo</c> options can be passed to
 
 One of the generated files is a trace in the Paje format. The file,
 located in the current directory, is named <c>paje.trace</c>. It can
-be viewed with ViTE (http://vite.gforge.inria.fr/) a trace
+be viewed with ViTE (https://solverstack.gitlabpages.inria.fr/vite/) a trace
 visualizing open-source tool.  To open the file <c>paje.trace</c> with
 ViTE, use the following command:
 
