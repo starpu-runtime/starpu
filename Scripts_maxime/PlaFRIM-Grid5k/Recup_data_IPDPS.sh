@@ -6,7 +6,7 @@
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp 4 5 V
 
 # Random
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 15 Random_task_order dynamic_data_aware_no_hfp_random_task_order 2 5 V
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 13 Random_task_order dynamic_data_aware_no_hfp 2 5 V
 
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_profiling 1 5 X
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_profiling 2 6 X
@@ -32,65 +32,40 @@ NITER=11
 
 if [ $MODEL == "dynamic_data_aware_no_hfp" ]
 	then
-	ECHELLE_X=$((5*NGPU))
-	
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_1.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_3.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_4.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_4.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DDA_eviction_time.txt /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/DDA_eviction_time.txt
-
-	# Tracage des GFlops
-	gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_1.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL}_ipdps ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
-
-	#Tracage data transfers
-	gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
-	./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_3.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt DT_${MODEL}_ipdps ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
-
-	# Tracage du temps
-	gcc -o cut_time_raw_out cut_time_raw_out.c
-	./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/GFlops_raw_out_4.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL}_ipdps ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
-
-	# Tracage du temps d'éviction et de schedule de DDA
-	mv /home/gonthier/starpu/Output_maxime/Data/Matrice_ligne/DDA_eviction_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/EVICTION_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/EVICTION_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt EVICTION_TIME_${MODEL}_ipdps ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/EVICTION_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
-fi
-if [ $MODEL == "dynamic_data_aware_no_hfp_random_task_order" ]
+	if [ $DOSSIER == "Matrice_ligne" ]
 	then
-	ECHELLE_X=5
+		ECHELLE_X=$((5*NGPU))
+	fi
+	if [ $DOSSIER == "Random_task_order" ]
+	then
+		ECHELLE_X=5
+	fi
 	
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/Random_task_order/GFlops_raw_out_1.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/Random_task_order/GFlops_raw_out_3.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_4.txt /home/gonthier/starpu/Output_maxime/Data/Random_task_order/GFlops_raw_out_4.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DDA_eviction_time.txt /home/gonthier/starpu/Output_maxime/Data/Random_task_order/DDA_eviction_time.txt
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_4.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_4.txt
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DDA_eviction_time.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/DDA_eviction_time.txt
 
 	# Tracage des GFlops
 	gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/Random_task_order/GFlops_raw_out_1.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
+	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL}_ipdps ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
 	#Tracage data transfers
 	gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
-	./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU /home/gonthier/starpu/Output_maxime/Data/Random_task_order/GFlops_raw_out_3.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
+	./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt DT_${MODEL}_ipdps ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
 	# Tracage du temps
 	gcc -o cut_time_raw_out cut_time_raw_out.c
-	./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/Random_task_order/GFlops_raw_out_4.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
+	./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_4.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL}_ipdps ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
 	# Tracage du temps d'éviction et de schedule de DDA
-	mv /home/gonthier/starpu/Output_maxime/Data/Random_task_order/DDA_eviction_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/EVICTION_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
+	mv /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/DDA_eviction_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/EVICTION_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/EVICTION_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt EVICTION_TIME_${MODEL}_ipdps ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/EVICTION_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
 fi
