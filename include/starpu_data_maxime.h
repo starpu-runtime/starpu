@@ -44,7 +44,7 @@ extern int * task_position_in_data_use_order;
    //~ Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
 //~ */
 
-starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
+//~ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
 
 
 //UNIQUEMENT POUR VERSION 1 SEUL GPU

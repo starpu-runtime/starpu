@@ -19,7 +19,7 @@
 #include "helper_mct.h"
 
 /* Other environmment variable you should use with HFP: 
- * STARPU_NTASKS_THRESHOLD=30  
+ * STARPU_NTASKS_THRESHOLD=30 ou 10 si on veut moins entrer dans victim_selector peut_être 
  * STARPU_MINIMUM_CLEAN_BUFFERS=0
  * STARPU_TARGET_CLEAN_BUFFERS=0 
  * STARPU_CUDA_PIPELINE=4
@@ -3679,6 +3679,12 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	
 	//~ STARPU_PTHREAD_MUTEX_INIT(&HFP_mutex, NULL);
 	
+	/* TODO: Aussi faire cela pour HFP. */
+	if (starpu_get_env_number_default("BELADY", 0) == 1) 
+	{ 
+	    starpu_data_register_victim_selector(belady_victim_selector, belady_victim_eviction_failed, component); 
+	}	
+	
 	return component;
 }
 
@@ -3832,8 +3838,11 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 	return task;
 }
 
-//VERSION 1 SEUL GPU
-starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch)
+//VERSION 1 SEUL GPU pour victim selector et victim_eviction failed
+void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
+{
+}
+starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
 	printf("Belady\n");
 	starpu_data_handle_t returned_handle = NULL;
@@ -3897,7 +3906,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 						for (j = 0; j < nb_data_on_node; j++) { prochaine_utilisation_donnee[j] = INT_MAX; }
 						//Care if a task is never use again and is on node, we must evict it
 						for (j = 0; j < nb_data_on_node; j++) 
-						{ 
+						{
 							if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) 
 							{
 										//N'est pas utilisé par la suite
