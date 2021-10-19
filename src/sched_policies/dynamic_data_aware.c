@@ -1612,7 +1612,6 @@ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *da
 
 /* Erase a task from the main task list.
  * Also erase pointer in the data.
- * There was a problem here. I evict a task in a data even tho it's not on it!
  */
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l)
 {
