@@ -932,7 +932,7 @@ void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gatheri
 		for (i = 0; i < n; i++)
 		{
 			/* Note: active_readonly_children is emptied by starpu_data_unpartition_submit calls */
-			starpu_data_handle_t *children = ancestor->active_readonly_children[0];
+			starpu_data_handle_t *children = ancestor->active_readonly_children[i];
 			_STARPU_DEBUG("unpartition readonly children %p etc.\n", children[0]);
 			nsiblings = children[0]->nsiblings;
 			for (j = 0; j < nsiblings; j++)
