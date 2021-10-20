@@ -4245,7 +4245,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 	}
 
 	for (i = 0; i < STARPU_NMAXWORKERS; i++)
+	{
 		free(options->worker_archtypes[i].devices);
+		options->worker_archtypes[i].devices = NULL;
+	}
 
 	_starpu_fxt_component_deinit();
 
