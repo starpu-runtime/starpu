@@ -173,6 +173,7 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to);
  * Things commented are things to print matrix or things like that TODO : fix it if we want to print in this function.
  */
 struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_list, int number_task, starpu_ssize_t GPU_RAM_M);
+//~ struct paquets hierarchical_fair_packing (struct starpu_task_list task_list, int number_task, starpu_ssize_t GPU_RAM_M);
 
 /* Check if our struct is empty */
 bool is_empty(struct my_list* a);

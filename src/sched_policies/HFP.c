@@ -435,7 +435,10 @@ static void get_ordre_utilisation_donnee_1gpu(struct my_list *a, int NB_TOTAL_DO
 	struct starpu_task *task = NULL; 
 	int i = 0; int j = 0; int k = 0;
 	
-	total_nb_data = NB_TOTAL_DONNEES;
+	//~ total_nb_data = NB_TOTAL_DONNEES;
+	
+	printf("%d %d\n", NT, total_nb_data);
+	
 	data_use_order = malloc(total_nb_data*sizeof(a->package_data[0]));
 	task_position_in_data_use_order = malloc(NT*sizeof(int));
 	
@@ -1806,7 +1809,8 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 					paquets_data->temp_pointer_1->package_data[i] = STARPU_TASK_GET_HANDLE(task,i);
 				}
 				paquets_data->temp_pointer_1->package_nb_data = STARPU_TASK_GET_NBUFFERS(task);
-				NB_TOTAL_DONNEES+=STARPU_TASK_GET_NBUFFERS(task);
+				//~ NB_TOTAL_DONNEES+=STARPU_TASK_GET_NBUFFERS(task);
+				total_nb_data+=STARPU_TASK_GET_NBUFFERS(task);
 				/* We sort our datas in the packages */
 				qsort(paquets_data->temp_pointer_1->package_data,paquets_data->temp_pointer_1->package_nb_data,sizeof(paquets_data->temp_pointer_1->package_data[0]),HFP_pointeurComparator);
 				/* Pushing the task and the number of the package in the package*/
@@ -2411,7 +2415,8 @@ void visualisation_data_gpu_in_file_hfp_format_tex (struct paquets *p)
 /* Print the order in one file for each GPU and also print in a tex file the coordinate for 2D matrix, before the ready, so it's only planned */
 void print_order_in_file_hfp (struct paquets *p)
 {
-	char str[2]; unsigned i = 0;
+	char str[2];
+	unsigned i = 0;
 	int size = 0;
 	char *path = NULL;
 	
@@ -2421,18 +2426,20 @@ void print_order_in_file_hfp (struct paquets *p)
 	{
 		sprintf(str, "%d", i);
 		size = strlen("Output_maxime/Task_order_HFP_") + strlen(str);
-		path = (char *)malloc(size);
+		path = malloc(sizeof(char)*size);
 		strcpy(path, "Output_maxime/Task_order_HFP_");
 		strcat(path, str);
 		FILE *f = fopen(path, "w");
 		for (task = starpu_task_list_begin(&p->temp_pointer_1->sub_list); task != starpu_task_list_end(&p->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
 		{
+			printf("%p\n", task);
 			fprintf(f, "%p\n",task);
 		}
 		p->temp_pointer_1 = p->temp_pointer_1->next;
 		i++;
 		fclose(f);
 	}
+	printf("ok1\n");
 	if (starpu_get_env_number_default("PRINTF",0) == 1 && (strcmp(appli,"starpu_sgemm_gemm") == 0))
 	{
 		i = 0;
@@ -2737,9 +2744,9 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 
 void init_visualisation (struct paquets *a)
 {
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("début init\n"); }
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Début init\n"); }
 	print_order_in_file_hfp(a);
-	if (starpu_get_env_number_default("MULTIGPU",0) != 0 && (strcmp(appli, "starpu_sgemm_gemm") == 0))
+	if (starpu_get_env_number_default("MULTIGPU", 0) != 0 && (strcmp(appli, "starpu_sgemm_gemm") == 0))
 	{ 
 		visualisation_data_gpu_in_file_hfp_format_tex(a); 
 	}
@@ -2752,7 +2759,7 @@ void init_visualisation (struct paquets *a)
 	fclose(f);
 	f = fopen("Output_maxime/Data_coordinates_order_last_scheduler.txt", "w");
 	fclose(f);
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("init visualisation ok\n"); }
+	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Fin de init_visualisation.\n"); }
 }
 
 int get_number_GPU()
@@ -3018,9 +3025,18 @@ static int HFP_can_pull(struct starpu_sched_component * component)
 static void HFP_do_schedule(struct starpu_sched_component *component)
 {	
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
-	//~ printf("début do schedule\n");
+	printf("début do schedule\n");
 	struct HFP_sched_data *data = component->data;
-
+	
+		//~ p->temp_pointer_1 = p->first_link;
+		//~ for (i = 0; i < nb_gpu; i++) 
+		//~ {
+			//~ p->temp_pointer_1->sub_list = hierarchical_fair_packing(p->temp_pointer_1->sub_list, p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
+			//~ p->temp_pointer_1 = p->temp_pointer_1->next;
+		//~ }
+	
+	/* TODO : plein de variables à suppr non utilisées */
+	
 	/* Variables used to calculate, navigate through a loop or other things */
 	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0; int NB_TOTAL_DONNEES = 0;
 	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0;
@@ -3089,7 +3105,9 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				return;
 			}
 			
-			/* Pulling all tasks and counting them */
+			/* Pulling all tasks and counting them 
+			 * TODO : pas besoin de faire ca on peut faire size. Du coup faut suppr popped task list et la remplacer par sched list
+			 */
 			while (!starpu_task_list_empty(&data->sched_list)) {
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				if (starpu_get_env_number_default("PRINTF",0) != 0) 
@@ -3113,6 +3131,150 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			}
 			data->p->NP = NT;
 			
+				
+				
+				//~ /* Méthode avec fonction externe */			
+				/* TODO : option à ajouter pour le multi gpu ou il faut s'arreter à Ngpu paquets
+				 * En ajoutant if (data->p->NP == number_of_package_to_build) { goto end_algo3; } à la fin d'une itération Il faut donc faire en 
+				 * sorte de renvoyer 3 paquets.
+				 * Le pb c'est que avec hMetis je renvoie la liste c'est plus simple car j'ai déjà le partitionnement de fais en fait. 
+				 * Une idée serait de faire une fonction qui renvoie juste la liste de tâches à l'intérieur de la fonction.
+				 * Comme ca hmetis appellerait que cette sous fonction. La grosse fonction elle appellerait cette fonction de liste 
+				 * tant qu'on a pas Ngpu paquets puis remplirait les paquets et renverais la struct. */
+				data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->popped_task_list, NT, GPU_RAM_M);
+				data->p->temp_pointer_1->nb_task_in_sub_list = NT;
+				
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+		
+		/* Printing in a file the task coordinates coordinates with the last subpackage of each gpu for visualization in 2D.
+		 * Je le fais avant le load balance la pour pouvoir split malgrès le load balance après. Je pourrai le faire après si besoin. */
+		if (starpu_get_env_number_default("PRINTF",0) == 1) 
+		{
+			int temp_tab_coordinates[2];
+			FILE *f_last_package = fopen("Output_maxime/last_package_split.txt", "w");
+			data->p->temp_pointer_1 = data->p->first_link;
+			int sub_package = 0;
+			i = 0; 
+			
+			while (data->p->temp_pointer_1 != NULL)
+			{
+				j = 1;
+				for (temp_task_1 = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); temp_task_1 = starpu_task_list_next(temp_task_1)) 
+				{
+					/* + 1 cause it's the next one that is in the other sub package */
+					if (j == data->p->temp_pointer_1->split_last_ij + 1)
+					{
+						sub_package++;
+					}
+					if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+					{
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
+						fprintf(f_last_package, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 0), 2, temp_tab_coordinates);
+						fprintf(f_last_package, "	%d	%d	%d\n", temp_tab_coordinates[0], i, sub_package);
+					}
+					else
+					{
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
+						/* Printing X Y GPU SUBPACKAGE(1 - NSUBPACKAGES) */
+						fprintf(f_last_package, "%d	%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i, sub_package);
+					}
+					j++;
+				}
+				sub_package++;
+				i++;
+				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+			}
+			fclose(f_last_package);
+		}
+		
+		/* Task stealing based on the number of tasks. Only in cases of multigpu */
+		if (starpu_get_env_number_default("MULTIGPU", 0) == 2 || starpu_get_env_number_default("MULTIGPU", 0) == 3) {
+			load_balance(data->p, number_of_package_to_build);
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+		}
+		/* Task stealing with expected time of each task */
+		if (starpu_get_env_number_default("MULTIGPU",0) == 4 || starpu_get_env_number_default("MULTIGPU",0) == 5) {
+			load_balance_expected_time(data->p, number_of_package_to_build);
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+		}
+		/* Task stealing with expected time of each package, with transfers and overlap */
+		if (starpu_get_env_number_default("MULTIGPU",0) == 6 || starpu_get_env_number_default("MULTIGPU",0) == 7) {
+			load_balance_expected_package_computation_time(data->p, GPU_RAM_M);
+			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected package computation time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+		}
+		/* Re-apply HFP on each package. 
+		 * Once task stealing is done we need to re-apply HFP. For this I use an other instance of HFP_sched_data.
+		 * It is in another function, if it work we can also put the packing above in it.
+		 * Only with MULTIGPU = 2 because if we don't do load balance there is no point in re-applying HFP.
+		 */
+		 if (starpu_get_env_number_default("MULTIGPU",0) == 3 || starpu_get_env_number_default("MULTIGPU",0) == 5 || starpu_get_env_number_default("MULTIGPU",0) == 7) 
+		 {	 
+			 data->p->temp_pointer_1 = data->p->first_link;
+			 while (data->p->temp_pointer_1 != NULL) { 
+				data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
+				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+			}
+			if (starpu_get_env_number_default("PRINTF",0) == 1) 
+			{ 
+				printf("After execution of HFP on each package we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); 
+			}
+		 }
+		 
+		 /* Interlacing package task list order */
+		 if (starpu_get_env_number_default("INTERLACING",0) != 0)
+		 {
+			 if (starpu_get_env_number_default("PRINTF",0) == 1) 
+			 { 
+				printf("Before interlacing we have:\n");
+				print_packages_in_terminal(data->p, 0);
+			 }
+			 interlacing_task_list(data->p, starpu_get_env_number_default("INTERLACING",0));
+			 if (starpu_get_env_number_default("PRINTF",0) == 1) 
+			 { 
+				printf("After interlacing we have:\n");
+				print_packages_in_terminal(data->p, 0);
+			}
+		 }
+		
+		/* if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); } */
+		
+		/* Belady */
+		if (starpu_get_env_number_default("BELADY",0) == 1) {
+			//VERSION 1 GPU
+			get_ordre_utilisation_donnee_1gpu(data->p->first_link, NB_TOTAL_DONNEES);
+			//VERSION MULTIGPU
+			//~ //get_ordre_utilisation_donnee(data->p, NB_TOTAL_DONNEES, number_of_package_to_build);
+		}
+		
+		/* If you want to get the sum of weight of all different data. Only works if you have only one package */
+		//~ //if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->p->first_link, GPU_RAM_M); }
+		
+		/* We prefetch data for each task for modular-heft-HFP */
+		if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0) 
+		{
+			prefetch_each_task(data->p, component);
+		}
+		
+		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
+		FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","w");
+		fprintf(f_time,"%d\n",time_taken);
+		fclose(f_time);
+				
+		/* Printing in a file the order produced by HFP. If we use modular-heft-HFP, we can compare this order with the one done by modular-heft. We also print here the number of gpu in which a data is used for HFP's order. */
+		if (starpu_get_env_number_default("PRINTF", 0) == 1)
+		{
+			/* Todo a remetrre quand j'aurais corrigé le print_order_in_file_hfp */
+			init_visualisation(data->p);
+		}
+
+		printf("do schedule done, gets true\n");
+		do_schedule_done = true;
+		//print_packages_in_terminal(data->p, 0);
+
+int a = 1;
+if (a == 0)
+{
 			/* One task == one link in the linked list */
 			do_not_add_more = nb_pop - 1;
 			for (temp_task_1  = starpu_task_list_begin(&data->popped_task_list); temp_task_1 != starpu_task_list_end(&data->popped_task_list); temp_task_1  = temp_task_2) {
@@ -3128,6 +3290,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				if (starpu_get_env_number_default("MULTIGPU", 0) != 0) { data->p->temp_pointer_1->expected_time = starpu_task_expected_length(temp_task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0); }
 				data->p->temp_pointer_1->package_nb_data = STARPU_TASK_GET_NBUFFERS(temp_task_1);
 				NB_TOTAL_DONNEES+=STARPU_TASK_GET_NBUFFERS(temp_task_1);
+				total_nb_data+=STARPU_TASK_GET_NBUFFERS(temp_task_1);
 				/* We sort our datas in the packages */
 				qsort(data->p->temp_pointer_1->package_data,data->p->temp_pointer_1->package_nb_data, sizeof(data->p->temp_pointer_1->package_data[0]), HFP_pointeurComparator);
 				/* Pushing the task and the number of the package in the package*/
@@ -3467,7 +3630,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			//~ nb_pop = link_index;
 			nb_pop = data->p->NP;
 			/* If we have only one package we don't have to do more packages */			
-			if (nb_pop == 1) {  packaging_impossible = 1; }
+			if (nb_pop == 1) { packaging_impossible = 1; }
 		} /* End of while (packaging_impossible == 0) { */
 		/* We remove the size limit of a package */
 		GPU_limit_switch = 0; goto algo3;
@@ -3618,9 +3781,13 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		//printf("do schedule done, gets true\n");
 		do_schedule_done = true;
 		//print_packages_in_terminal(data->p, 0);
-		}	
-	}
+}	
+
+
+}
+}
 	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
+	printf("Fin de HFP_do_schedule.\n");
 }
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
