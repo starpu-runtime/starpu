@@ -47,8 +47,12 @@ test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz ../$tarball
 
 hour=$(date "+%H")
-lasthour=$(echo $hour - 1 | bc )
 today=$(date "+%Y-%m-%d")
+lasthour=$(echo $hour - 1 | bc )
+if test "$hour" == "0"
+then
+    lasthour=0
+fi
 
 find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true
 
