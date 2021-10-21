@@ -2571,12 +2571,7 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
 #endif
-	if (_starpu_config.workers[workerid].status & STATUS_SCHEDULING)
-	{
-		_starpu_config.workers[workerid].state_keep_awake = 1;
-		return 0;
-	}
-	else if (_starpu_config.workers[workerid].status & STATUS_SLEEPING)
+	if (_starpu_config.workers[workerid].status & STATUS_SLEEPING)
 	{
 		int ret = 0;
 		if (_starpu_config.workers[workerid].state_keep_awake != 1)
@@ -2588,6 +2583,11 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 		 * the condition is share for multiple purpose */
 		STARPU_PTHREAD_COND_BROADCAST(sched_cond);
 		return ret;
+	}
+	else if (_starpu_config.workers[workerid].status & STATUS_SCHEDULING)
+	{
+		_starpu_config.workers[workerid].state_keep_awake = 1;
+		return 0;
 	}
 	return 0;
 }
