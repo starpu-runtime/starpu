@@ -17,6 +17,7 @@
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
+#include <core/task.h>
 #include <common/list.h>
 
 #pragma GCC visibility push(hidden)
