@@ -105,7 +105,7 @@ it still schedules tasks in the order they become available).
 but it also privileges tasks whose data buffers are already available
 on the target device.
 
-- The <b>dmdas</b> combines \b dmdap and \b dmdas: it sorts tasks by priority order,
+- The <b>dmdas</b> combines \b dmdap and \b dmdar: it sorts tasks by priority order,
 but for a given priority it will privilege tasks whose data buffers are already
 available on the target device.
 
