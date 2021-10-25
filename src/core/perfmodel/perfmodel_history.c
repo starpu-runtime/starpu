@@ -51,7 +51,7 @@
 static struct starpu_perfmodel_arch **arch_combs;
 static int current_arch_comb;
 static int nb_arch_combs;
-static starpu_pthread_rwlock_t arch_combs_mutex;
+static starpu_pthread_rwlock_t arch_combs_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static int historymaxerror;
 static char ignore_devid[STARPU_NARCH];
 
@@ -235,6 +235,7 @@ void _starpu_free_arch_combs(void)
 	arch_combs = NULL;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&arch_combs_mutex);
+	arch_combs_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 }
 
 int starpu_perfmodel_get_narch_combs()
