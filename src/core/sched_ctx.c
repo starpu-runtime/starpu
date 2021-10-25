@@ -1073,7 +1073,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 		_starpu_sched_ctx_unlock_write(inheritor_sched_ctx_id);
 		STARPU_PTHREAD_RWLOCK_DESTROY(&sched_ctx->rwlock);
-		sched_ctx->rwlock = STARPU_PTHREAD_MUTEX_INITIALIZER;
+		STARPU_PTHREAD_RWLOCK_INIT(&sched_ctx->rwlock, NULL);
 		_starpu_delete_sched_ctx(sched_ctx);
 	}
 	else
