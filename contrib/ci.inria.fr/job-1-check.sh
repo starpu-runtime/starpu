@@ -49,7 +49,7 @@ tar xfz ../$tarball
 hour=$(date "+%H")
 today=$(date "+%Y-%m-%d")
 lasthour=$(echo $hour - 1 | bc )
-if test "$hour" == "0"
+if test "$hour" = "0" -o "$hour" = "00"
 then
     lasthour=0
 fi
