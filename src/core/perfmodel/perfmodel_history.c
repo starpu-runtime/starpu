@@ -105,6 +105,7 @@ void _starpu_initialize_registered_performance_models(void)
 #endif
 	unsigned nmpi = 0;
 #if STARPU_MAXMPIDEVS > 0
+	STARPU_ASSERT(conf->topology.nhwdevices[STARPU_MPI_MS_WORKER] < STARPU_NMAXDEVS);
 	for(i = 0; i < conf->topology.nhwdevices[STARPU_MPI_MS_WORKER]; i++)
 		nmpi += conf->topology.nhwworker[STARPU_MPI_MS_WORKER][i];
 #endif

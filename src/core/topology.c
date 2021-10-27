@@ -697,6 +697,7 @@ static void _starpu_init_mpi_topology(struct _starpu_machine_config *config, lon
 
 	int nbcores;
 	_starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx], &nbcores);
+	STARPU_ASSERT(mpi_idx < STARPU_NMAXDEVS);
 	topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx] = nbcores;
 }
 
