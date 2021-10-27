@@ -240,76 +240,124 @@ int get_total_number_data_task_list(struct starpu_task_list a)
 struct gpu_list *gpu_data;
 struct use_order *use_order_data;;
 
+	//~ LIST_TYPE(next_use_by_gpu,
+		//~ /* int to the next use, one by GPU */
+		//~ int value_next_use;
+	//~ );
+	//~ struct next_use
+	//~ {
+		//~ struct next_use_by_gpu_list *next_use_tab;
+	//~ };
+
 /* TODO : revamp avec la nouvelle eviction */
 void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu)
 {
-	int k = 0;
-	int i = 0;
+	printf("Début ordre\n");
+	/* Je met dans  chaque donnée sa prochaine utilisation */
 	struct starpu_task *task = NULL;
-	gpu_data = malloc(sizeof(*gpu_data));
-	use_order_data = malloc(sizeof(*use_order_data));
-	use_order_data->next_gpu = NULL;
-	gpu_data->pointer = use_order_data;
-	gpu_data->first_gpu = gpu_data->pointer;
-	
-	FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
-	FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt","w");
 	a->temp_pointer_1 = a->first_link;
+	int current_gpu = 0;
+	//~ int next_use[nb_gpu];
+	int i = 0;
+	int compteur = 0;
+	
 	while (a->temp_pointer_1 != NULL) 
 	{
-		use_order_data->total_nb_data = get_total_number_data_task_list(a->temp_pointer_1->sub_list);
-		use_order_data->data_list = malloc(use_order_data->total_nb_data*sizeof(a->temp_pointer_1->package_data[0]));
-		use_order_data->last_position_in_data_use_order = 0;
-		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
+		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
 		{
-			fprintf(f_2,"%p\n",task);
-			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-				use_order_data->data_list[k] = STARPU_TASK_GET_HANDLE(task,i);
-				k++;
-				fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+			{
+				compteur++;
+				if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL)
+				{
+					struct next_use *b = malloc(sizeof(*b));
+					struct next_use_by_gpu *c = next_use_by_gpu_new();
+					struct next_use_by_gpu_list *l = next_use_by_gpu_list_new();
+					c->value_next_use = compteur;
+					next_use_by_gpu_list_push_back(l, c);
+					b->next_use_tab = malloc(sizeof(*b->next_use_tab));
+					b->next_use_tab[current_gpu] = l;
+					STARPU_TASK_GET_HANDLE(task, i)->sched_data = b;
+				}
+				else
+				{
+					/* Ajout aussi */
+				}
 			}
 		}
-		k = 0;
+		current_gpu++;
+		compteur = 0;
 		a->temp_pointer_1 = a->temp_pointer_1->next;
-		insertion_use_order(gpu_data);
-		fprintf(f_2,"-------------\n");
-		fprintf(f,"-------------\n");
 	}
-	fclose(f);
-	fclose(f_2);
+	printf("ordre ok\n"); fflush(stdout);
+	//~ exit(0);
+	//~ int k = 0;
+	//~ int i = 0;
+	//~ struct starpu_task *task = NULL;
+	//~ gpu_data = malloc(sizeof(*gpu_data));
+	//~ use_order_data = malloc(sizeof(*use_order_data));
+	//~ use_order_data->next_gpu = NULL;
+	//~ gpu_data->pointer = use_order_data;
+	//~ gpu_data->first_gpu = gpu_data->pointer;
+	
+	//~ FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
+	//~ FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt","w");
+	//~ a->temp_pointer_1 = a->first_link;
+	//~ while (a->temp_pointer_1 != NULL) 
+	//~ {
+		//~ use_order_data->total_nb_data = get_total_number_data_task_list(a->temp_pointer_1->sub_list);
+		//~ use_order_data->data_list = malloc(use_order_data->total_nb_data*sizeof(a->temp_pointer_1->package_data[0]));
+		//~ use_order_data->last_position_in_data_use_order = 0;
+		//~ for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
+		//~ {
+			//~ fprintf(f_2,"%p\n",task);
+			//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+				//~ use_order_data->data_list[k] = STARPU_TASK_GET_HANDLE(task,i);
+				//~ k++;
+				//~ fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
+			//~ }
+		//~ }
+		//~ k = 0;
+		//~ a->temp_pointer_1 = a->temp_pointer_1->next;
+		//~ insertion_use_order(gpu_data);
+		//~ fprintf(f_2,"-------------\n");
+		//~ fprintf(f,"-------------\n");
+	//~ }
+	//~ fclose(f);
+	//~ fclose(f_2);
 }
 
 /* TODO : a supprimer avec la nouvelle eviction de HFP ? */
 //VERSION 1 SEUL GPU
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
-static void get_ordre_utilisation_donnee_1gpu(struct my_list *a, int NB_TOTAL_DONNEES)
-{
-	/* ces deux fichiers sont juste utile pour le débuggage, on pourra les suppr plus tard */
-	FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt", "w");
-	FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt", "w");
-	struct starpu_task *task = NULL; 
-	int i = 0; int j = 0; int k = 0;
+//~ static void get_ordre_utilisation_donnee_1gpu(struct my_list *a, int NB_TOTAL_DONNEES)
+//~ {
+	//~ /* ces deux fichiers sont juste utile pour le débuggage, on pourra les suppr plus tard */
+	//~ FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt", "w");
+	//~ FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt", "w");
+	//~ struct starpu_task *task = NULL; 
+	//~ int i = 0; int j = 0; int k = 0;
 		
-	printf("%d %d\n", NT, total_nb_data);
+	//~ printf("%d %d\n", NT, total_nb_data);
 	
-	data_use_order = malloc(total_nb_data*sizeof(a->package_data[0]));
-	task_position_in_data_use_order = malloc(NT*sizeof(int));
+	//~ data_use_order = malloc(total_nb_data*sizeof(a->package_data[0]));
+	//~ task_position_in_data_use_order = malloc(NT*sizeof(int));
 	
-	for (task = starpu_task_list_begin(&a->sub_list); task != starpu_task_list_end(&a->sub_list); task = starpu_task_list_next(task)) {
-		fprintf(f_2,"%p\n",task);
-		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-			data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
-			k++;
-			fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
-		}
-		if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
-		else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
-		j++;
-	}
-	index_task_currently_treated = 0;
-	fclose(f);
-	fclose(f_2);
-}
+	//~ for (task = starpu_task_list_begin(&a->sub_list); task != starpu_task_list_end(&a->sub_list); task = starpu_task_list_next(task)) {
+		//~ fprintf(f_2,"%p\n",task);
+		//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
+			//~ data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
+			//~ k++;
+			//~ fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
+		//~ }
+		//~ if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
+		//~ else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
+		//~ j++;
+	//~ }
+	//~ index_task_currently_treated = 0;
+	//~ fclose(f);
+	//~ fclose(f_2);
+//~ }
 
 /* For order U. Return the number of common data of each sub package when merging I and J */
 int get_common_data_last_package(struct my_list *I, struct my_list *J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
@@ -3529,38 +3577,46 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 	/* TODO : plein de variables à suppr non utilisées à suppr une fois la séparation bien faite entre hlmetis et le retour des paquets, voir todo en dessous */
 	
 	/* Variables used to calculate, navigate through a loop or other things */
-	int i = 0; int j = 0; int tab_runner = 0; int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0; int i_bis = 0; int j_bis = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0; int NB_TOTAL_DONNEES = 0;
-	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0; int temp_nb_min_task_packages = 0;
-	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL; struct starpu_task *temp_task_2 = NULL;	 
+	int i = 0; int j = 0;
+	//~ int tab_runner = 0;
+	//~ int do_not_add_more = 0; int index_head_1 = 0; int index_head_2 = 0;
+	//~ int i_bis = 0; int j_bis = 0;
+	//~ int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
+	int NB_TOTAL_DONNEES = 0;
+	//~ int min_nb_task_in_sub_list = 0;
+	//~ int nb_min_task_packages = 0;
+	//~ int temp_nb_min_task_packages = 0;
+	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL;
+	//~ struct starpu_task *temp_task_2 = NULL;	 
 	int nb_pop = 0; /* Variable used to track the number of tasks that have been popped */
-	int nb_common_data = 0; /* Track the number of packages that have data in commons with other packages */
-	int link_index = 0; /* Track the number of packages */
-	int nb_duplicate_data = 0; /* Used to store the number of duplicate data between two packages */
-	long int weight_two_packages; /* Used to store the weight the merging of two packages would be. It is then used to see if it's inferior to the size of the RAM of the GPU */
-	long int max_value_common_data_matrix = 0; /* Store the maximum weight of the commons data between two packages for all the tasks */
+	//~ int nb_common_data = 0; /* Track the number of packages that have data in commons with other packages */
+	//~ int link_index = 0; /* Track the number of packages */
+	//~ int nb_duplicate_data = 0; /* Used to store the number of duplicate data between two packages */
+	//~ long int weight_two_packages; /* Used to store the weight the merging of two packages would be. It is then used to see if it's inferior to the size of the RAM of the GPU */
+	//~ long int max_value_common_data_matrix = 0; /* Store the maximum weight of the commons data between two packages for all the tasks */
 	int nb_of_loop = 0; /* Number of iteration of the while loop */
-	int packaging_impossible = 0; /* We use this to stop the while loop and thus stop the packaging. 0 = false, 1 = true */
-	int bool_data_common = 0; /* ""boolean"" used to check if two packages have data in commons whe we merge them */
-	int GPU_limit_switch = 1; /* On 1 it means we use the size of the GPU limit. It is usefull for algorithm 3 that remove this limit at the end of it execution */	
+	//~ int packaging_impossible = 0; /* We use this to stop the while loop and thus stop the packaging. 0 = false, 1 = true */
+	//~ int bool_data_common = 0; /* ""boolean"" used to check if two packages have data in commons whe we merge them */
+	//~ int GPU_limit_switch = 1; /* On 1 it means we use the size of the GPU limit. It is usefull for algorithm 3 that remove this limit at the end of it execution */	
 	/* List used to store tasks in sub package and then compare them to apply order-U */
-	struct starpu_task_list sub_package_1_i; /* Used for order U to store the tasks of the sub package 1 of i */
-	struct starpu_task_list sub_package_2_i;
-	struct starpu_task_list sub_package_1_j;
-	struct starpu_task_list sub_package_2_j;
-	starpu_task_list_init(&sub_package_1_i);
-	starpu_task_list_init(&sub_package_2_i);
-	starpu_task_list_init(&sub_package_1_j);
-	starpu_task_list_init(&sub_package_2_j);
-	struct starpu_task_list non_connexe;
-	starpu_task_list_init(&non_connexe);
+	//~ struct starpu_task_list sub_package_1_i; /* Used for order U to store the tasks of the sub package 1 of i */
+	//~ struct starpu_task_list sub_package_2_i;
+	//~ struct starpu_task_list sub_package_1_j;
+	//~ struct starpu_task_list sub_package_2_j;
+	//~ starpu_task_list_init(&sub_package_1_i);
+	//~ starpu_task_list_init(&sub_package_2_i);
+	//~ starpu_task_list_init(&sub_package_1_j);
+	//~ starpu_task_list_init(&sub_package_2_j);
+	//~ struct starpu_task_list non_connexe;
+	//~ starpu_task_list_init(&non_connexe);
 	/* Variable used to store the common data weight beetween two sub packages of packages i and j before merging */
-	long int common_data_last_package_i1_j1 = 0; /* Variables used to compare the affinity between sub package 1i and 1j, 1i and 2j etc... */
-	long int common_data_last_package_i1_j2 = 0; 
-	long int common_data_last_package_i2_j1 = 0; 
-	long int common_data_last_package_i2_j2 = 0; 
-	long int max_common_data_last_package = 0;
-	long int weight_package_i = 0; /* Used for ORDER_U too */
-	long int weight_package_j = 0;
+	//~ long int common_data_last_package_i1_j1 = 0; /* Variables used to compare the affinity between sub package 1i and 1j, 1i and 2j etc... */
+	//~ long int common_data_last_package_i1_j2 = 0; 
+	//~ long int common_data_last_package_i2_j1 = 0; 
+	//~ long int common_data_last_package_i2_j2 = 0; 
+	//~ long int max_common_data_last_package = 0;
+	//~ long int weight_package_i = 0; /* Used for ORDER_U too */
+	//~ long int weight_package_j = 0;
 	int number_of_package_to_build = 0;
 	
 	/* Getting the number of GPUs */
@@ -3740,9 +3796,9 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		/* Belady */
 		if (starpu_get_env_number_default("BELADY",0) == 1) {
 			//VERSION 1 GPU
-			get_ordre_utilisation_donnee_1gpu(data->p->first_link, NB_TOTAL_DONNEES);
+			//~ get_ordre_utilisation_donnee_1gpu(data->p->first_link, NB_TOTAL_DONNEES);
 			//VERSION MULTIGPU
-			//~ //get_ordre_utilisation_donnee(data->p, NB_TOTAL_DONNEES, number_of_package_to_build);
+			get_ordre_utilisation_donnee(data->p, NB_TOTAL_DONNEES, number_of_package_to_build);
 		}
 		
 		/* If you want to get the sum of weight of all different data. Only works if you have only one package */

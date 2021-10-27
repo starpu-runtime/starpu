@@ -36,9 +36,17 @@
 starpu_pthread_mutex_t HFP_mutex;
 
 /** For eviction **/
-void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component);
-starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
-
+	void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component);
+	starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
+	/** Dans sched_data des données pour avoir la liste des prochaines utilisations que l'on peut pop à chaque utilisation dans get_task_done **/
+		LIST_TYPE(next_use_by_gpu,
+			/* int to the next use, one by GPU */
+			int value_next_use;
+		);
+		struct next_use
+		{
+			struct next_use_by_gpu_list **next_use_tab;
+		};
 
 int Ngpu;
 int index_current_task_for_visualization; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
