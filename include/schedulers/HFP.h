@@ -39,6 +39,7 @@ starpu_pthread_mutex_t HFP_mutex;
 void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component);
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
 
+
 int Ngpu;
 int index_current_task_for_visualization; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
 const char* appli;
@@ -256,6 +257,8 @@ void get_current_tasks(struct starpu_task *task, unsigned sci);
  */
  
 struct starpu_sched_policy _starpu_sched_HFP_policy;
+
+int get_max_value_common_data_matrix (struct paquets *p, int GPU_limit_switch, int number_task, int min_nb_task_in_sub_list, long int matrice_donnees_commune[][number_task]);
 
 struct starpu_sched_policy _starpu_sched_modular_heft_HFP_policy;
 
