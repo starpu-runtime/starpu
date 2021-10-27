@@ -83,6 +83,8 @@ struct my_list
 	double expected_package_computation_time; /* Computation time with transfer and overlap */
 	struct data_on_node *pointer_node; /* linked list of handle use to simulate the memory in load balance with package with expected time */
 	long int data_weight;
+	
+	starpu_data_handle_t data_to_evict_next;
 };
 
 struct paquets
@@ -95,6 +97,7 @@ struct paquets
     int NP; /* Number of packages */
 };
 
+/* TODO : ou est-ce que j'utilise ca ? A suppr si inutile */
 struct data_on_node /* Simulate memory, list of handles */
 {
 	struct handle *pointer_data_list;
