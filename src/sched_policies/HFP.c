@@ -33,7 +33,7 @@
  * STARPU_CUDA_PIPELINE=30
  */
 
-/* Used for modular-heft for visualisation */
+/* Used only for visualisation of non-HFP schedulers */
 void initialize_global_variable(struct starpu_task *task)
 {
 	N = starpu_get_env_number_default("PRINT_N", 0);
@@ -42,7 +42,7 @@ void initialize_global_variable(struct starpu_task *task)
 	FILE *f = NULL;
 	char src[50], dest[50];
 	
-	/* getting the total number of tasks */
+	/* Getting the total number of tasks */
 	if(starpu_get_env_number_default("PRINT3D", 0) == 0) /* 2D */
 	{ 
 		NT = N*N; 
@@ -55,9 +55,7 @@ void initialize_global_variable(struct starpu_task *task)
 	{ 
 		NT = N*N*N;
 	}
-	
-	//~ printf("N = %d, NT = %d, NGPU = %d\n", N, NT, Ngpu);
-	
+		
 	appli = starpu_task_get_name(task);
 	
 	/* Emptying the files that receive the task order on each GPU */
@@ -156,8 +154,7 @@ struct my_list* HFP_delete_link(struct paquets* a)
 	return a->first_link;
 }
 
-/* Give a color for each package. Written in the file Data_coordinates.txt. Can give a gradiant for order */
-//~ static void rgb(int num, int *r, int *g, int *b)
+/* Only for visualisation. Give a color for each package. Written in the file Data_coordinates.txt. Can give a gradiant for order */
 void rgb(int num, int *r, int *g, int *b)
 {
     int i = 0;
@@ -167,7 +164,6 @@ void rgb(int num, int *r, int *g, int *b)
 		*r = num & 1 ? 255 : 0;
 		*g = num & 2 ? 255 : 0;
 		*b = num & 4 ? 255 : 0;
-		//~ *b = num & 3 ? 255 : 0;
 		return;
     }
     num -= 7; *r = 0; *g = 0; *b = 0;
@@ -176,16 +172,14 @@ void rgb(int num, int *r, int *g, int *b)
         *r = *r << 1 | ((num & 1) >> 0);
         *g = *g << 1 | ((num & 2) >> 1);
         *b = *b << 1 | ((num & 4) >> 2);
-        //~ *b = *b << 1 | ((num & 3) >> 2);
         num >>= 3;
     }
 }
 
-/* Give a color for cell of a tabular used for visualization in latex. Each color is a gradiant from the color of the package */
+/* Only for visualisation. Give a color for cell of a tabular used for visualization in latex. Each color is a gradiant from the color of the package */
 void rgb_gradiant(int num, int order, int number_task_gpu, int *r, int *g, int *b)
 {
 	int i = 0;
-	//~ printf("GPU = %d / Order = %d / Nb tache du GPU = %d\n", num, order, number_task_gpu);
 	
 	/* Initial color for each GPU */
 	if (num == 0) { *r = 255; *g = 0; *b = 0; }
@@ -214,133 +208,9 @@ void rgb_gradiant(int num, int order, int number_task_gpu, int *r, int *g, int *
 	if (*b != 0) { *b = *b - (*b*order)/(number_task_gpu*1.5); }
 	
 	return;
-    //~ if (num < 7)
-    //~ {
-		//~ num ++;
-		//~ *r = num & 1 ? 255 : 0;
-		//~ *g = num & 2 ? 255 : 0;
-		//~ *b = num & 4 ? 255 : 0;
-		
-		//~ if (*r != 0) { *r = *r - (255*order)/number_task_gpu; }
-		//~ if (*g != 0) { *g = *g - (255*order)/number_task_gpu; }
-		//~ if (*b != 0) { *b = *b - (255*order)/number_task_gpu; }
-		//~ return;
-    //~ }
-    //~ num -= 7; *r = 0; *g = 0; *b = 0;
-    //~ for (i = 0; i < 8; i++)
-    //~ {
-        //~ *r = *r << 1 | ((num & 1) >> 0);
-        //~ *g = *g << 1 | ((num & 2) >> 1);
-        //~ *b = *b << 1 | ((num & 4) >> 2);
-        //~ num >>= 3;
-    //~ }
-	//~ return;
 }
 
-/*
- * This was used when printing at each iteration the matrix
-void init_visualisation_tache_matrice_format_tex()
-{
-	FILE * fcoordinate;
-	fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "w");
-	fprintf(fcoordinate,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
-	FILE * fcoordinate_order;
-	FILE * fcoordinate_order_last;
-	fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "w");
-	fcoordinate_order_last = fopen("Output_maxime/Data_coordinates_order_last.tex", "w");
-	fprintf(fcoordinate_order,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
-	fprintf(fcoordinate_order_last,"\\documentclass{article}\\usepackage{color}\\usepackage{fullpage}\\usepackage{colortbl}\\usepackage{caption}\\usepackage{subcaption}\\usepackage{float}\\usepackage{graphics}\n\n\\begin{document}\n\n\\begin{figure}[H]");
-	fclose(fcoordinate);
-	fclose(fcoordinate_order);
-	fclose(fcoordinate_order_last);
-}
-
-void end_visualisation_tache_matrice_format_tex()
-{
-	FILE * fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "a");
-	FILE * fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "a");
-	FILE * fcoordinate_order_last = fopen("Output_maxime/Data_coordinates_order_last.tex", "a");
-	fprintf(fcoordinate,"\\caption{HFP packing}\\end{figure}\n\n\\end{document}");
-	fprintf(fcoordinate_order,"\\caption{Task's processing order}\\end{figure}\n\n\\end{document}");
-	fprintf(fcoordinate_order_last,"\\caption{Task's processing order}\\end{figure}\n\n\\end{document}");
-	fclose(fcoordinate);
-	fclose(fcoordinate_order);
-	fclose(fcoordinate_order_last);
-}
-
-void visualisation_tache_matrice_format_tex(int tab_paquet[][N], int tab_order[][N], int nb_of_loop, int link_index)
-{
-	int i, j, red, green, blue = 0;
-	FILE * fcoordinate = fopen("Output_maxime/Data_coordinates.tex", "a");
-	FILE * fcoordinate_order = fopen("Output_maxime/Data_coordinates_order.tex", "a");
-	fprintf(fcoordinate,"\n\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{|");
-	fprintf(fcoordinate_order,"\n\\begin{subfigure}{.5\\textwidth}\\centering\\begin{tabular}{|"); 
-	for (i = 0; i < N - 1; i++) {
-		fprintf(fcoordinate,"c|");
-		fprintf(fcoordinate_order,"c|");
-	}
-	fprintf(fcoordinate,"c|}\n\\hline");
-	fprintf(fcoordinate_order,"c|}\n\\hline");
-	for (i = 0; i < N; i++) { 
-		for (j = 0; j < N - 1; j++) {
-			if (tab_paquet[j][i] == 0) { red = 255; green = 255; blue = 255; }
-			else if (tab_paquet[j][i] == 6) { red = 70; green = 130; blue = 180; }
-			else { rgb(tab_paquet[j][i], &red, &green, &blue); }
-			fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_paquet[j][i]);
-			fprintf(fcoordinate_order,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_order[j][i]);
-		}
-		if (tab_paquet[j][i] == 0) { red = 255; green = 255; blue = 255; }
-		else if (tab_paquet[j][i] == 6) { red = 70; green = 130; blue = 180; }
-		else { rgb(tab_paquet[j][i], &red, &green, &blue); }
-		fprintf(fcoordinate,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_paquet[j][i]); 
-		fprintf(fcoordinate_order,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_order[j][i]); 
-		fprintf(fcoordinate," \\\\"); fprintf(fcoordinate,"\\hline");
-		fprintf(fcoordinate_order," \\\\"); fprintf(fcoordinate_order,"\\hline");
-	}
-	if (nb_of_loop > 1 && nb_of_loop%2 == 0) { 
-		fprintf(fcoordinate, "\\end{tabular} \\caption{Iteration %d} \\end{subfigure} \\\\",nb_of_loop); 
-		fprintf(fcoordinate_order, "\\end{tabular} \\caption{Iteration %d} \\end{subfigure} \\\\",nb_of_loop);
-		if (nb_of_loop == 10) { 
-			fprintf(fcoordinate,"\\end{figure}\\begin{figure}[H]\\ContinuedFloat");
-			fprintf(fcoordinate_order,"\\end{figure}\\begin{figure}[H]\\ContinuedFloat");
-		}
-	}
-	else { 
-		fprintf(fcoordinate, "\\end{tabular} \\caption{Iteration %d} \\end{subfigure}",nb_of_loop); 
-		fprintf(fcoordinate_order, "\\end{tabular} \\caption{Iteration %d} \\end{subfigure}",nb_of_loop); 
-	}
-	fprintf(fcoordinate,"\n");
-	fprintf(fcoordinate_order,"\n");
-	fclose(fcoordinate);
-	fclose(fcoordinate_order);
-	//TODO 3 = solution temporaire ici aussi
-	if (link_index == 1 || (starpu_get_env_number_default("MULTIGPU",0) != 0 && link_index == 3)) { 
-		FILE * fcoordinate_order_last = fopen("Output_maxime/Data_coordinates_order_last.tex", "a");
-		fprintf(fcoordinate_order_last,"\n\\centering\\begin{tabular}{|"); 
-	for (i = 0; i < N - 1; i++) {
-		fprintf(fcoordinate_order_last,"c|");
-	}
-	fprintf(fcoordinate_order_last,"c|}\n\\hline");
-	for (i = 0; i < N; i++) { 
-		for (j = 0; j < N - 1; j++) {
-			if (tab_paquet[j][i] == 0) { red = 255; green = 255; blue = 255; }
-			else if (tab_paquet[j][i] == 6) { red = 70; green = 130; blue = 180; }
-			else { rgb(tab_paquet[j][i], &red, &green, &blue); }
-			fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d&", red,green,blue, tab_order[j][i]);
-		}
-		if (tab_paquet[j][i] == 0) { red = 255; green = 255; blue = 255; }
-		else if (tab_paquet[j][i] == 6) { red = 70; green = 130; blue = 180; }
-		else { rgb(tab_paquet[j][i], &red, &green, &blue); }
-		fprintf(fcoordinate_order_last,"\\cellcolor[RGB]{%d,%d,%d}%d",red,green,blue,tab_order[j][i]); 
-		fprintf(fcoordinate_order_last," \\\\"); fprintf(fcoordinate_order_last,"\\hline");
-	}
-		fprintf(fcoordinate_order_last, "\\end{tabular} \\caption{Iteration %d}",nb_of_loop); 
-	fprintf(fcoordinate_order_last,"\n");
-		fclose(fcoordinate_order_last);
-	}
-}
-*/
-
+/* Reverse the order of task in a package for order U */
 struct my_list* HFP_reverse_sub_list(struct my_list *a) 
 {
 	struct starpu_task_list b;
@@ -351,17 +221,6 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 		starpu_task_list_push_back(&a->sub_list,starpu_task_list_pop_front(&b)); }
 	return a; 	
 }
-
-/* Get weight of all different data. Only works if you have only one package */
-//~ static void get_weight_all_different_data(struct my_list *a, starpu_ssize_t GPU_RAM_M)
-//~ {
-	//~ printf("Taille de la matrice : %ld\n",GPU_RAM_M);
-	//~ long int weight_all_different_data = 0;
-	//~ for (int i = 0; i < a->package_nb_data; i++) {
-		//~ weight_all_different_data += starpu_data_get_size(a->package_data[i]); 
-	//~ }
-	//~ printf("Poids de toutes les données différentes : %li\n",weight_all_different_data);
-//~ }
 
 /* Takes a task list and return the total number of data that will be used.
  * It means that it is the sum of the number of data for each task of the list.
@@ -377,16 +236,16 @@ int get_total_number_data_task_list(struct starpu_task_list a)
 	return total_nb_data_list;
 }
 
+/* TODO : a supprimer avec la nouvelle eviction de HFP ? */
 struct gpu_list *gpu_data;
 struct use_order *use_order_data;;
 
+/* TODO : a supprimer avec la nouvelle eviction de HFP ? */
 void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu)
 {
 	int k = 0;
 	int i = 0;
 	struct starpu_task *task = NULL;
-	//~ struct gpu_list *gpu_data = malloc(sizeof(*gpu_data));
-	//~ struct use_order *use_order_data = malloc(sizeof(*use_order_data));
 	gpu_data = malloc(sizeof(*gpu_data));
 	use_order_data = malloc(sizeof(*use_order_data));
 	use_order_data->next_gpu = NULL;
@@ -395,9 +254,7 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 	
 	FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
 	FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt","w");
-	//~ struct starpu_task *task = NULL; 
 	a->temp_pointer_1 = a->first_link;
-	//~ index_task_currently_treated = 0;
 	while (a->temp_pointer_1 != NULL) 
 	{
 		use_order_data->total_nb_data = get_total_number_data_task_list(a->temp_pointer_1->sub_list);
@@ -410,16 +267,11 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 				use_order_data->data_list[k] = STARPU_TASK_GET_HANDLE(task,i);
 				k++;
 				fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
-				//printf("Donnée de %p : %p\n",task,STARPU_TASK_GET_HANDLE(task,i));
 			}
-			//~ if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
-			//~ else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
-			//~ j++;
 		}
 		k = 0;
 		a->temp_pointer_1 = a->temp_pointer_1->next;
 		insertion_use_order(gpu_data);
-		//~ use_order_data = use_order_data->next_gpu;
 		fprintf(f_2,"-------------\n");
 		fprintf(f,"-------------\n");
 	}
@@ -427,6 +279,7 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 	fclose(f_2);
 }
 
+/* TODO : a supprimer avec la nouvelle eviction de HFP ? */
 //VERSION 1 SEUL GPU
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
 static void get_ordre_utilisation_donnee_1gpu(struct my_list *a, int NB_TOTAL_DONNEES)
@@ -436,9 +289,7 @@ static void get_ordre_utilisation_donnee_1gpu(struct my_list *a, int NB_TOTAL_DO
 	FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt", "w");
 	struct starpu_task *task = NULL; 
 	int i = 0; int j = 0; int k = 0;
-	
-	//~ total_nb_data = NB_TOTAL_DONNEES;
-	
+		
 	printf("%d %d\n", NT, total_nb_data);
 	
 	data_use_order = malloc(total_nb_data*sizeof(a->package_data[0]));
@@ -460,6 +311,7 @@ static void get_ordre_utilisation_donnee_1gpu(struct my_list *a, int NB_TOTAL_DO
 	fclose(f_2);
 }
 
+/* For order U. Return the number of common data of each sub package when merging I and J */
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
 {
 	int split_ij = 0;
@@ -1081,9 +933,9 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 	}
 }
 
-/* Printing each package and its content */
-void print_packages_in_terminal (struct paquets *a, int nb_of_loop) {
-	
+/* Printing each package and its content for visualisation */
+void print_packages_in_terminal (struct paquets *a, int nb_of_loop)
+{
 	int i = 0;
 	int link_index = 0;
 	struct starpu_task *task;
@@ -1696,9 +1548,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 								a->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 								a->temp_pointer_2->nb_task_in_sub_list--;
 								get_expected_package_computation_time(a->temp_pointer_2, GPU_RAM_M);	
-								//~ printf("Stealing %p\n", task);
 							}
-							//~ printf("Return %p\n", task);
 							if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 							return task;
 					}
@@ -1754,7 +1604,6 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *compon
 /* Pushing the tasks */		
 static int HFP_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Push task\n"); }
 	struct HFP_sched_data *data = component->data;
     STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_task_list_push_front(&data->sched_list, task);
@@ -1765,14 +1614,22 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 	return 0;
 }
 
+/* TODO : a supprimer une fois les mesures du temps terminées */
+struct timeval time_start_scheduling;
+struct timeval time_end_scheduling;
+long long time_total_scheduling = 0;
+
 /* Need an empty data paquets_data to build packages
  * Output a task list ordered. So it's HFP if we have only one package at the end
  * Used for now to reorder task inside a package after load balancing
  * Can be used as main HFP like in pull task later
  * Things commented are things to print matrix or things like that TODO : fix it if we want to print in this function.
+ * TODO : use this function or a variant for hmetis. Right now hmetis won't work with this
  */
 struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_list, int number_task, starpu_ssize_t GPU_RAM_M)
 {
+	gettimeofday(&time_start_scheduling, NULL);
+
 	struct paquets *paquets_data = malloc(sizeof(*paquets_data));
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	starpu_task_list_init(&my_data->sub_list);
@@ -1882,7 +1739,7 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 		{
 			if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
 			{
-				printf("Sur le paquet min\n");
+				printf("Sur le paquet min.\n");
 				for (paquets_data->temp_pointer_2 = paquets_data->first_link; paquets_data->temp_pointer_2 != NULL; paquets_data->temp_pointer_2 = paquets_data->temp_pointer_2->next)
 				{
 					if (index_head_1 != index_head_2)
@@ -1900,6 +1757,9 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 							}
 						}
 						if (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_2][index_head_1]) > GPU_RAM_M)
+						{
+							matrice_donnees_commune[index_head_2][index_head_1]
+						}
 							On met à -1 pour ne pas regarder.
 							Sinon on met la valeur
 						if (max_value_common_data_matrix < matrice_donnees_commune[index_head_2][index_head_1] && ((GPU_limit_switch == 0) || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_2][index_head_1]))))
@@ -2172,12 +2032,17 @@ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_
 		end_while_packaging_impossible:
 		
 		/* Add tasks or packages that were not connexe */
-		while(!starpu_task_list_empty(&non_connexe)) {
+		while(!starpu_task_list_empty(&non_connexe)) 
+		{
 			starpu_task_list_push_back(&paquets_data->first_link->sub_list, starpu_task_list_pop_front(&non_connexe));
 			paquets_data->first_link->nb_task_in_sub_list++;
 		}
-				
-		return paquets_data->first_link->sub_list;
+		
+	gettimeofday(&time_end_scheduling, NULL);
+	time_total_scheduling += (time_end_scheduling.tv_sec - time_start_scheduling.tv_sec)*1000000LL + time_end_scheduling.tv_usec - time_start_scheduling.tv_usec;
+	printf("Time scheduling : %ld\n", time_total_scheduling);
+
+	return paquets_data->first_link->sub_list;
 }
 
 /* Check if our struct is empty */
