@@ -3573,23 +3573,13 @@ static int HFP_can_pull(struct starpu_sched_component * component)
 static void HFP_do_schedule(struct starpu_sched_component *component)
 {	
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
-	//~ printf("début do schedule\n");
 	struct HFP_sched_data *data = component->data;
-	
-		//~ p->temp_pointer_1 = p->first_link;
-		//~ for (i = 0; i < nb_gpu; i++) 
-		//~ {
-			//~ p->temp_pointer_1->sub_list = hierarchical_fair_packing(p->temp_pointer_1->sub_list, p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
-			//~ p->temp_pointer_1 = p->temp_pointer_1->next;
-		//~ }
-	
-	/* TODO : plein de variables à suppr non utilisées à suppr une fois la séparation bien faite entre hlmetis et le retour des paquets, voir todo en dessous */
-	
-	/* Variables used to calculate, navigate through a loop or other things */
+		
 	int i = 0; int j = 0;
 	int NB_TOTAL_DONNEES = 0;
-	struct starpu_task *task1 = NULL; struct starpu_task *temp_task_1 = NULL;
-	int nb_pop = 0; /* Variable used to track the number of tasks that have been popped */
+	//~ struct starpu_task *task1 = NULL;
+	struct starpu_task *temp_task_1 = NULL;
+	//~ int nb_pop = 0; /* Variable used to track the number of tasks that have been popped */
 	int nb_of_loop = 0; /* Number of iteration of the while loop */
 	int number_of_package_to_build = 0;
 	
@@ -3597,15 +3587,15 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 	number_of_package_to_build = get_number_GPU(); 
 	
 	/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
-	//~ STARPU_ASSERT(STARPU_SCHED_COMPONENT_IS_SINGLE_MEMORY_NODE(component)); /* If we have only one GPU uncomment this */
 	GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
 		
 	/* If the linked list is empty, we can pull more tasks */
 	if (is_empty(data->p->first_link) == true) 
 	{
-		if (!starpu_task_list_empty(&data->sched_list)) { /* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
-			//printf("sched list not empty, starting do_schedule\n");
-			time_t start, end; time(&start);
+		if (!starpu_task_list_empty(&data->sched_list))
+		{   
+			/* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
+			//~ time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
 				
@@ -3630,7 +3620,11 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			/* Pulling all tasks and counting them 
 			 * TODO : pas besoin de faire ca on peut faire size. Du coup faut suppr popped task list et la remplacer par sched list
 			 */
-			while (!starpu_task_list_empty(&data->sched_list)) {
+			 struct starpu_task *task1 = NULL;
+			 //~ int nb_pop = 0;
+			NT = starpu_task_list_size(&data->sched_list);
+			while (!starpu_task_list_empty(&data->sched_list))
+			{
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				if (starpu_get_env_number_default("PRINTF",0) != 0) 
 				{ 
@@ -3641,11 +3635,29 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 					printf("\n");
 				}
 				if (starpu_get_env_number_default("MULTIGPU",0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}					
-				nb_pop++;
+				//nb_pop++;
 				starpu_task_list_push_back(&data->popped_task_list, task1);
 			}
-			NT = nb_pop;
-			//~ printf("%d task have been pulled\n", NT);
+			//~ NT = nb_pop;
+			//~ NT = starpu_task_list_size(&data->sched_list);
+			
+			//~ struct starpu_task *task1 = NULL;
+			//~ while (!starpu_task_list_empty(&data->sched_list))
+			//~ {
+				//~ task1 = starpu_task_list_pop_front(&data->sched_list);
+				//~ if (starpu_get_env_number_default("PRINTF",0) != 0) 
+				//~ { 
+					//~ printf("Tâche %p, %d donnée(s) : ",task1, STARPU_TASK_GET_NBUFFERS(task1));
+					//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
+						//~ printf("%p ",STARPU_TASK_GET_HANDLE(task1, i));
+					//~ }
+					//~ printf("\n");
+				//~ }
+				//~ if (starpu_get_env_number_default("MULTIGPU",0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}					
+				//~ starpu_task_list_push_back(&data->popped_task_list, task1);
+			//~ }	
+					
+			//~ printf("NT = %d\n", NT);
 			N = sqrt(NT);
 			if(starpu_get_env_number_default("PRINT3D", 0) == 1) 
 			{
@@ -3653,8 +3665,6 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			}
 			data->p->NP = NT;
 			
-				/* TODO : a suppr */
-				//~ goto here;
 				
 				/* Méthode avec fonction externe */			
 				/* TODO : option à ajouter pour le multi gpu ou il faut s'arreter à Ngpu paquets
@@ -3664,9 +3674,8 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				 * Une idée serait de faire une fonction qui renvoie juste la liste de tâches à l'intérieur de la fonction.
 				 * Comme ca hmetis appellerait que cette sous fonction. La grosse fonction elle appellerait cette fonction de liste 
 				 * tant qu'on a pas Ngpu paquets puis remplirait les paquets et renverais la struct. */
-				//~ data->p->temp_pointer_1->sub_list = hierarchical_fair_packing(data->popped_task_list, NT, GPU_RAM_M);
 				data->p = hierarchical_fair_packing(data->popped_task_list, NT, number_of_package_to_build);
-				//~ data->p->temp_pointer_1->nb_task_in_sub_list = NT;
+				//~ data->p = hierarchical_fair_packing(data->sched_list, NT, number_of_package_to_build);
 				
 				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		
@@ -3718,13 +3727,13 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			load_balance(data->p, number_of_package_to_build);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
-		/* Task stealing with expected time of each task */
-		if (starpu_get_env_number_default("MULTIGPU",0) == 4 || starpu_get_env_number_default("MULTIGPU",0) == 5) {
+		else if (starpu_get_env_number_default("MULTIGPU",0) == 4 || starpu_get_env_number_default("MULTIGPU",0) == 5) /* Task stealing with expected time of each task */
+		{
 			load_balance_expected_time(data->p, number_of_package_to_build);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
-		/* Task stealing with expected time of each package, with transfers and overlap */
-		if (starpu_get_env_number_default("MULTIGPU",0) == 6 || starpu_get_env_number_default("MULTIGPU",0) == 7) {
+		else if (starpu_get_env_number_default("MULTIGPU",0) == 6 || starpu_get_env_number_default("MULTIGPU",0) == 7)
+		{ /* Task stealing with expected time of each package, with transfers and overlap */
 			load_balance_expected_package_computation_time(data->p, GPU_RAM_M);
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected package computation time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
 		}
@@ -3767,10 +3776,8 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		/* if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); } */
 		
 		/* Belady */
-		if (starpu_get_env_number_default("BELADY",0) == 1) {
-			//VERSION 1 GPU
-			//~ get_ordre_utilisation_donnee_1gpu(data->p->first_link, NB_TOTAL_DONNEES);
-			//VERSION MULTIGPU
+		if (starpu_get_env_number_default("BELADY",0) == 1)
+		{
 			get_ordre_utilisation_donnee(data->p, NB_TOTAL_DONNEES, number_of_package_to_build);
 		}
 		
@@ -3782,11 +3789,6 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 		{
 			prefetch_each_task(data->p, component);
 		}
-		
-		time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
-		FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","w");
-		fprintf(f_time,"%d\n",time_taken);
-		fclose(f_time);
 				
 		/* Printing in a file the order produced by HFP. If we use modular-heft-HFP, we can compare this order with the one done by modular-heft. We also print here the number of gpu in which a data is used for HFP's order. */
 		if (starpu_get_env_number_default("PRINTF", 0) == 1)
@@ -3795,7 +3797,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			init_visualisation(data->p);
 		}
 
-		printf("do schedule done, gets true\n");
+		//~ printf("do schedule done, gets true\n");
 		do_schedule_done = true;
 		//print_packages_in_terminal(data->p, 0);
 
@@ -3841,17 +3843,10 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	
 	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 	starpu_task_list_init(&data->sched_list);
-	//~ starpu_task_list_init(&data->list_if_fifo_full);
 	starpu_task_list_init(&data->popped_task_list);
 	starpu_task_list_init(&my_data->sub_list);
 	starpu_task_list_init(&my_data->refused_fifo_list);
- 
-	//~ my_data->next = NULL;
-	//~ data->temp_pointer_1 = my_data;
-	
-	//~ struct my_list *my_data = malloc(sizeof(*my_data));
-	//~ struct paquets *paquets_data = malloc(sizeof(*paquets_data));
-	//~ starpu_task_list_init(&my_data->sub_list);
+
 	my_data->next = NULL;
 	paquets_data->temp_pointer_1 = my_data;
 	paquets_data->first_link = paquets_data->temp_pointer_1;
@@ -3881,11 +3876,10 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	time_total_createtolasttaskfinished = 0;
 	time_total_eviction = 0;
 	
-	/* TODO: Aussi faire cela pour HFP. */
 	if (starpu_get_env_number_default("BELADY", 0) == 1) 
 	{ 
 	    starpu_data_register_victim_selector(belady_victim_selector, belady_victim_eviction_failed, component); 
-	}	
+	}
 	
 	return component;
 }
@@ -3903,7 +3897,6 @@ static void initialize_HFP_center_policy(unsigned sched_ctx_id)
 
 static void deinitialize_HFP_center_policy(unsigned sched_ctx_id)
 {
-	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Deinitialize\n"); }
 	struct starpu_sched_tree *tree = (struct starpu_sched_tree*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	starpu_sched_tree_destroy(tree);
 }
@@ -4045,7 +4038,7 @@ void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 	struct starpu_sched_component *temp_component = component;
 	struct HFP_sched_data *data = temp_component->data;
 	
-	printf("Début de victim eviction failed avec %p.\n", victim); fflush(stdout); exit(0);
+	//~ printf("Début de victim eviction failed avec %p.\n", victim); fflush(stdout);
      /* If a data was not truly evicted I put it back in the list. */
 	int i = 0;
 			
@@ -4062,7 +4055,7 @@ void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
-	printf("Belady\n");
+	//~ printf("Belady\n");
 	gettimeofday(&time_start_eviction, NULL);
 	int i = 0;
 	
@@ -4089,11 +4082,10 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	for (i = 0; i < current_gpu; i++)
 	{
 		data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-		printf("Next.\n");
 	}
 	if (data->p->temp_pointer_1->data_to_evict_next != NULL)
 	{
-		printf("Return %p in Belady that was refused.\n", data->p->temp_pointer_1->data_to_evict_next);
+		//~ printf("Return %p in Belady that was refused.\n", data->p->temp_pointer_1->data_to_evict_next);
 		returned_handle = data->p->temp_pointer_1->data_to_evict_next;
 		data->p->temp_pointer_1->data_to_evict_next = NULL;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
@@ -4122,7 +4114,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 			if (next_use_by_gpu_list_empty(b->next_use_tab[current_gpu])) /* Si c'est vide alors je peux direct renvoyer cette donnée, elle ne sera jamais ré-utilisé */
 			{
 				STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
-				printf("Return %p that is not used again.\n", data_on_node[i]);
+				//~ printf("Return %p that is not used again.\n", data_on_node[i]);
 				
 				gettimeofday(&time_end_eviction, NULL);
 				time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
@@ -4131,7 +4123,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 			}
 			
 			c = next_use_by_gpu_list_begin(b->next_use_tab[current_gpu]);
-			printf("Next use of %p is %d.\n", data_on_node[i], c->value_next_use);
+			//~ printf("Next use of %p is %d.\n", data_on_node[i], c->value_next_use);
 			if (latest_use < c->value_next_use)
 			{
 				latest_use = c->value_next_use;
@@ -4141,7 +4133,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	}
 	if (latest_use == 0) /* Si je n'ai eu aucune donnée valide, je renvoie NO_VICTIM */
 	{
-		printf("latest_use == 0, return NO_VICTIM.\n"); fflush(stdout);
+		//~ printf("latest_use == 0, return NO_VICTIM.\n"); fflush(stdout);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 		
 		gettimeofday(&time_end_eviction, NULL);
@@ -4150,7 +4142,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		return STARPU_DATA_NO_VICTIM;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
-	printf("latest use is %d, return %p.\n", latest_use, data_on_node[index_latest_use]);
+	//~ printf("latest use is %d, return %p.\n", latest_use, data_on_node[index_latest_use]);
 	
 			gettimeofday(&time_end_eviction, NULL);
 		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
@@ -4242,7 +4234,6 @@ struct starpu_sched_policy _starpu_sched_HFP_policy =
 	.policy_description = "Affinity aware task ordering",
 	.worker_type = STARPU_WORKER_LIST,
 };
-
 
 static void initialize_heft_hfp_policy(unsigned sched_ctx_id)
 {
