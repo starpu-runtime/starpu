@@ -318,6 +318,7 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 		}
 		current_gpu++;
 		a->temp_pointer_1 = a->temp_pointer_1->next;
+		compteur = 0;
 	}
 	printf("ordre ok\n"); fflush(stdout);
 	print_next_use_each_data(a);
@@ -3828,8 +3829,17 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 	//~ printf("Fin de HFP_do_schedule.\n");
 }
 
+/* TODO a suppr */
+struct timeval time_start_createtolasttaskfinished;
+struct timeval time_end_createtolasttaskfinished;
+long long time_total_createtolasttaskfinished = 0;
+
+
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	gettimeofday(&time_start_createtolasttaskfinished, NULL);
+	
+	
 	//~ printf("Create\n");
 	//~ srandom(time(0)); /* If we need a random selection */
 	srandom(starpu_get_env_number_default("SEED", 0)); /* If we need a random selection */
@@ -3883,6 +3893,8 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	component->can_pull = HFP_can_pull;
 	
 	STARPU_PTHREAD_MUTEX_INIT(&HFP_mutex, NULL);
+	
+	number_task_out = 0;
 	
 	/* TODO: Aussi faire cela pour HFP. */
 	if (starpu_get_env_number_default("BELADY", 0) == 1) 
@@ -4066,10 +4078,16 @@ void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 }
 
+/* TODO a suppr */
+struct timeval time_start_eviction;
+struct timeval time_end_eviction;
+long long time_total_eviction = 0;
+
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
 	printf("Belady\n");
+	gettimeofday(&time_start_eviction, NULL);
 	int i = 0;
 	
 	/* NEW version multi gpu with list in data */
@@ -4104,6 +4122,10 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		returned_handle = data->p->temp_pointer_1->data_to_evict_next;
 		data->p->temp_pointer_1->data_to_evict_next = NULL;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
+		
+		gettimeofday(&time_end_eviction, NULL);
+		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
+		
 		return returned_handle;
 	}
 	/* Sinon je cherche dans la mémoire celle utilisé dans le plus longtemps et que j'ai le droit d'évincer */
@@ -4126,6 +4148,10 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 			{
 				STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 				printf("Return %p that is not used again.\n", data_on_node[i]);
+				
+				gettimeofday(&time_end_eviction, NULL);
+				time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
+				
 				return data_on_node[i];
 			}
 			
@@ -4142,14 +4168,20 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	{
 		printf("latest_use == 0, return NO_VICTIM.\n"); fflush(stdout);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
+		
+		gettimeofday(&time_end_eviction, NULL);
+		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
+		
 		return STARPU_DATA_NO_VICTIM;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 	printf("latest use is %d, return %p.\n", latest_use, data_on_node[index_latest_use]);
+	
+			gettimeofday(&time_end_eviction, NULL);
+		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
+	
 	return data_on_node[index_latest_use];
-    
-	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
-	return NULL;
+
 	/* Fin de NEW */
 	
 	/* OLD version 1 GPU */
@@ -4402,6 +4434,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
+	number_task_out++;
 	/* Je me place sur le bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
 	printf("Sur get task done avec %p on GPU %d, maj de : ", task, current_gpu);
@@ -4419,7 +4452,22 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 		}
 	}
 	printf("\n");
+	
     /* Reset pour prochaine itération à faire ici quand le nombe de tâches sortie == NT si besoin */
+    /* TODO a suppr */
+    if (NT - 1 == number_task_out)
+	{
+		FILE *f = fopen("Output_maxime/HFP_time.txt", "a");
+		fprintf(f, "Time eviction : %lld\n", time_total_eviction);
+		
+		gettimeofday(&time_end_createtolasttaskfinished, NULL);
+		time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
+		fprintf(f, "Time create->last task out of post exec hook : %lld\n", time_total_createtolasttaskfinished);
+		
+		fclose(f);
+		number_task_out = 0;
+	}
+    
 	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }

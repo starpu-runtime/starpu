@@ -35,6 +35,8 @@
 
 starpu_pthread_mutex_t HFP_mutex;
 
+int number_task_out;
+
 /** For eviction **/
 	void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component);
 	starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
