@@ -47,7 +47,6 @@
 //~ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch);
 
 
-//UNIQUEMENT POUR VERSION 1 SEUL GPU
 
 	extern int index_task_currently_treated;
 

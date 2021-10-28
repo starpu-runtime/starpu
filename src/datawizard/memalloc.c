@@ -27,27 +27,27 @@
 /* Variables used for Belady in xgemm.c and HFP.c and mst.c */
 struct starpu_task *task_currently_treated = NULL;
 
-int *summed_nb_data_each_gpu;
-int *summed_nb_task_each_gpu;
-int * task_position_in_data_use_order;
+//~ int *summed_nb_data_each_gpu;
+//~ int *summed_nb_task_each_gpu;
+//~ int * task_position_in_data_use_order;
 
 //Version 1 GPU seulement
 int index_task_currently_treated;
-int total_nb_data;
-starpu_data_handle_t * data_use_order;
+//~ int total_nb_data;
+//~ starpu_data_handle_t * data_use_order;
 
-struct use_order
-{
-   starpu_data_handle_t * data_list;
-   struct use_order *next_gpu;
-   int total_nb_data;
-   int last_position_in_data_use_order;
-};
-struct gpu_list
-{
-    struct use_order *pointer;
-    struct use_order *first_gpu;
-};
+//~ struct use_order
+//~ {
+   //~ starpu_data_handle_t * data_list;
+   //~ struct use_order *next_gpu;
+   //~ int total_nb_data;
+   //~ int last_position_in_data_use_order;
+//~ };
+//~ struct gpu_list
+//~ {
+    //~ struct use_order *pointer;
+    //~ struct use_order *first_gpu;
+//~ };
 
 
 /* When reclaiming memory to allocate, we reclaim data_size_coefficient*data_size */

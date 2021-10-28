@@ -3953,8 +3953,6 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 		print_effective_order_in_file(task, index_task_currently_treated); 	
 	}
 	task_currently_treated = task;
-	
-	//VERSION 1 GPU seulement
 	index_task_currently_treated++;	
 	
 	starpu_sched_component_worker_pre_exec_hook(task, sci);
