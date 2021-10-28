@@ -115,12 +115,12 @@ void HFP_insertion_end(struct paquets *a)
 }
 
 /* Put a link at the beginning of the linked list */
-void insertion_use_order(struct gpu_list *a)
-{
-    struct use_order *new = malloc(sizeof(*new));
-    new->next_gpu = a->pointer;
-    a->pointer = new;
-}
+//~ void insertion_use_order(struct gpu_list *a)
+//~ {
+    //~ struct use_order *new = malloc(sizeof(*new));
+    //~ new->next_gpu = a->pointer;
+    //~ a->pointer = new;
+//~ }
 
 /* Delete all the empty packages */
 struct my_list* HFP_delete_link(struct paquets* a)
@@ -225,20 +225,20 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 /* Takes a task list and return the total number of data that will be used.
  * It means that it is the sum of the number of data for each task of the list.
  */
-int get_total_number_data_task_list(struct starpu_task_list a) 
-{
-	int total_nb_data_list = 0;
-	struct starpu_task *task = NULL;
-	for (task = starpu_task_list_begin(&a); task != starpu_task_list_end(&a); task = starpu_task_list_next(task)) 
-	{
-		total_nb_data_list +=  STARPU_TASK_GET_NBUFFERS(task);
-	}
-	return total_nb_data_list;
-}
+//~ int get_total_number_data_task_list(struct starpu_task_list a) 
+//~ {
+	//~ int total_nb_data_list = 0;
+	//~ struct starpu_task *task = NULL;
+	//~ for (task = starpu_task_list_begin(&a); task != starpu_task_list_end(&a); task = starpu_task_list_next(task)) 
+	//~ {
+		//~ total_nb_data_list +=  STARPU_TASK_GET_NBUFFERS(task);
+	//~ }
+	//~ return total_nb_data_list;
+//~ }
 
 /* TODO : a supprimer avec la nouvelle eviction de HFP ? */
-struct gpu_list *gpu_data;
-struct use_order *use_order_data;;
+//~ struct gpu_list *gpu_data;
+//~ struct use_order *use_order_data;;
 
 /* Print for each GPU the order of processing of each data */
 void print_next_use_each_data(struct paquets* a)
@@ -1844,7 +1844,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 			paquets_data->temp_pointer_1->data_weight += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
 		}
 		paquets_data->temp_pointer_1->package_nb_data = STARPU_TASK_GET_NBUFFERS(task);
-		total_nb_data += STARPU_TASK_GET_NBUFFERS(task);
+		//~ total_nb_data += STARPU_TASK_GET_NBUFFERS(task);
 		/* We sort our datas in the packages */
 		qsort(paquets_data->temp_pointer_1->package_data,paquets_data->temp_pointer_1->package_nb_data,sizeof(paquets_data->temp_pointer_1->package_data[0]),HFP_pointeurComparator);
 		/* Pushing the task and the number of the package in the package*/
@@ -4437,7 +4437,7 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 	number_task_out++;
 	/* Je me place sur le bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
-	printf("Sur get task done avec %p on GPU %d, maj de : ", task, current_gpu);
+	printf("Sur get task done avec %p on GPU %d, maj de : ", task, current_gpu); fflush(stdout);
 	int i = 0;
 	
 	/* Si j'utilse Belady, je pop les valeurs dans les données de la tâche qui vient de se terminer */
@@ -4445,18 +4445,22 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 	{
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
-			printf("%p ", STARPU_TASK_GET_HANDLE(task, i));
+			printf("%p ", STARPU_TASK_GET_HANDLE(task, i)); fflush(stdout);
 			struct next_use *b = STARPU_TASK_GET_HANDLE(task, i)->sched_data;
-			next_use_by_gpu_list_pop_front(b->next_use_tab[current_gpu]);
-			STARPU_TASK_GET_HANDLE(task, i)->sched_data = b;
+			if (!next_use_by_gpu_list_empty(b->next_use_tab[current_gpu])) /* Test empty car avec le task stealing ca n'a plus aucun sens */
+			{
+				next_use_by_gpu_list_pop_front(b->next_use_tab[current_gpu]);
+				STARPU_TASK_GET_HANDLE(task, i)->sched_data = b;
+			}
 		}
 	}
 	printf("\n");
 	
     /* Reset pour prochaine itération à faire ici quand le nombe de tâches sortie == NT si besoin */
     /* TODO a suppr */
-    if (NT - 1 == number_task_out)
+    if (NT == number_task_out)
 	{
+		printf("%d\n", number_task_out);
 		FILE *f = fopen("Output_maxime/HFP_time.txt", "a");
 		fprintf(f, "Time eviction : %lld\n", time_total_eviction);
 		

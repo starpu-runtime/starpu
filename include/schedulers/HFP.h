@@ -131,7 +131,7 @@ void initialize_global_variable(struct starpu_task *task);
 void HFP_insertion(struct paquets *a);
 
 /* Put a link at the beginning of the linked list */
-void insertion_use_order(struct gpu_list *a);
+//~ void insertion_use_order(struct gpu_list *a);
 
 /* Delete all the empty packages */
 struct my_list* HFP_delete_link(struct paquets* a);

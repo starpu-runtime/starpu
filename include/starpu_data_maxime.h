@@ -14,21 +14,21 @@
    //~ Filled in HFP.c in static void get_ordre_utilisation_donnee(struct my_list *a, int NB_TOTAL_DONNEES)
    //~ Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
 //~ */
-struct use_order
-{
-   starpu_data_handle_t *data_list;
-   struct use_order *next_gpu;
-   int total_nb_data;
-   int last_position_in_data_use_order;
-};
-struct gpu_list
-{
-    struct use_order *pointer;
-    struct use_order *first_gpu;
-};
+//~ struct use_order
+//~ {
+   //~ starpu_data_handle_t *data_list;
+   //~ struct use_order *next_gpu;
+   //~ int total_nb_data;
+   //~ int last_position_in_data_use_order;
+//~ };
+//~ struct gpu_list
+//~ {
+    //~ struct use_order *pointer;
+    //~ struct use_order *first_gpu;
+//~ };
 
-extern int *summed_nb_data_each_gpu;
-extern int *summed_nb_task_each_gpu;
+//~ extern int *summed_nb_data_each_gpu;
+//~ extern int *summed_nb_task_each_gpu;
 
 //~ /**
    //~ Total number of data of a package. Used to initialize starpu_data_handle_t * data_use_order and to know when to stop.
@@ -36,7 +36,7 @@ extern int *summed_nb_task_each_gpu;
    //~ Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node)
 //~ */
 
-extern int * task_position_in_data_use_order;
+//~ extern int * task_position_in_data_use_order;
 
 //~ /**
    //~ Task position in starpu_data_handle_t * data_use_order.
@@ -67,8 +67,8 @@ extern int * task_position_in_data_use_order;
 	   Then used in xgemm.c in starpu_data_handle_t belady_victim_selector(unsigned node).
 	*/
 
-	extern starpu_data_handle_t * data_use_order;
+	//~ extern starpu_data_handle_t * data_use_order;
 
-	extern int total_nb_data;
+	//~ extern int total_nb_data;
 
 #endif
