@@ -240,8 +240,6 @@ int get_total_number_data_task_list(struct starpu_task_list a)
 struct gpu_list *gpu_data;
 struct use_order *use_order_data;;
 
-
-
 /* Print for each GPU the order of processing of each data */
 void print_next_use_each_data(struct paquets* a)
 {
@@ -273,15 +271,6 @@ void print_next_use_each_data(struct paquets* a)
 	}
 }
 
-	//~ LIST_TYPE(next_use_by_gpu,
-		//~ /* int to the next use, one by GPU */
-		//~ int value_next_use;
-	//~ );
-	//~ struct next_use
-	//~ {
-		//~ struct next_use_by_gpu_list *next_use_tab;
-	//~ };
-
 /* Read the tasks's order and each time it se a data, it add a value of it's next use in the task list.
  * Then in the post_exec_hook we pop the value of the handles of the task processed. In belady we just look at these value
  * for each data on node and evict the one with the furtherst first value.
@@ -296,7 +285,6 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 	int i = 0;
 	int j = 0;
 	int compteur = 0;
-	//~ struct next_use_by_gpu *c = next_use_by_gpu_new();
 	struct next_use *b = NULL;
 	
 	while (a->temp_pointer_1 != NULL)
@@ -313,29 +301,11 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 					/* J'initialise à vide la liste pour chaque case du tableau */
 					b = malloc(sizeof(*b));
 					b->next_use_tab = malloc(sizeof(*b->next_use_tab));
-					//~ struct next_use_by_gpu_list *l = next_use_by_gpu_list_new();
 					for (j = 0; j < nb_gpu; j++)
 					{
 						b->next_use_tab[j] = next_use_by_gpu_list_new();
-						//~ b->next_use_tab[j] = malloc(sizeof(*b->next_use_tab[j]));
 					}
-
-					//~ struct next_use *b = malloc(sizeof(*b));
-					//~ struct next_use_by_gpu *c = next_use_by_gpu_new();
-					//~ struct next_use_by_gpu_list *l = next_use_by_gpu_list_new();
-					//~ c->value_next_use = compteur;
-					
-					printf("Adding %d to %p.\n", c->value_next_use, STARPU_TASK_GET_HANDLE(task, i));
-					
 					next_use_by_gpu_list_push_back(b->next_use_tab[current_gpu], c);
-					
-					//~ for (c = next_use_by_gpu_list_begin(b->next_use_tab[current_gpu]); c != next_use_by_gpu_list_end(b->next_use_tab[current_gpu]); c = next_use_by_gpu_list_next(c))
-				//~ {
-					//~ printf("->%d", c->value_next_use);
-				//~ }
-					
-					//~ b->next_use_tab = malloc(sizeof(*b->next_use_tab));
-					//~ b->next_use_tab[current_gpu] = l;	
 					STARPU_TASK_GET_HANDLE(task, i)->sched_data = b;
 				}
 				else /* Else I just add a new int */
@@ -343,64 +313,14 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 					b = STARPU_TASK_GET_HANDLE(task, i)->sched_data;
 					next_use_by_gpu_list_push_back(b->next_use_tab[current_gpu], c);
 					STARPU_TASK_GET_HANDLE(task, i)->sched_data = b;
-					
-					
-					//~ struct next_use *b = malloc(sizeof(*b));
-					//~ struct next_use_by_gpu *c = next_use_by_gpu_new();
-					//~ struct next_use_by_gpu_list *l = next_use_by_gpu_list_new();
-					//~ c->value_next_use = compteur;
-					//~ next_use_by_gpu_list_push_back(l, c);
-					//~ b->next_use_tab = malloc(sizeof(*b->next_use_tab));
-					//~ b->next_use_tab[current_gpu] = l;
-					
-					//~ STARPU_TASK_GET_HANDLE(task, i)->sched_data = b;
 				}
 			}
 		}
 		current_gpu++;
-		//~ compteur = 0;
 		a->temp_pointer_1 = a->temp_pointer_1->next;
 	}
 	printf("ordre ok\n"); fflush(stdout);
-	
-	print_packages_in_terminal(a, 1);
 	print_next_use_each_data(a);
-	
-	//~ exit(0);
-	//~ int k = 0;
-	//~ int i = 0;
-	//~ struct starpu_task *task = NULL;
-	//~ gpu_data = malloc(sizeof(*gpu_data));
-	//~ use_order_data = malloc(sizeof(*use_order_data));
-	//~ use_order_data->next_gpu = NULL;
-	//~ gpu_data->pointer = use_order_data;
-	//~ gpu_data->first_gpu = gpu_data->pointer;
-	
-	//~ FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt","w");
-	//~ FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt","w");
-	//~ a->temp_pointer_1 = a->first_link;
-	//~ while (a->temp_pointer_1 != NULL) 
-	//~ {
-		//~ use_order_data->total_nb_data = get_total_number_data_task_list(a->temp_pointer_1->sub_list);
-		//~ use_order_data->data_list = malloc(use_order_data->total_nb_data*sizeof(a->temp_pointer_1->package_data[0]));
-		//~ use_order_data->last_position_in_data_use_order = 0;
-		//~ for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
-		//~ {
-			//~ fprintf(f_2,"%p\n",task);
-			//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-				//~ use_order_data->data_list[k] = STARPU_TASK_GET_HANDLE(task,i);
-				//~ k++;
-				//~ fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
-			//~ }
-		//~ }
-		//~ k = 0;
-		//~ a->temp_pointer_1 = a->temp_pointer_1->next;
-		//~ insertion_use_order(gpu_data);
-		//~ fprintf(f_2,"-------------\n");
-		//~ fprintf(f,"-------------\n");
-	//~ }
-	//~ fclose(f);
-	//~ fclose(f_2);
 }
 
 /* TODO : a supprimer avec la nouvelle eviction de HFP ? */
@@ -4125,7 +4045,6 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 
 /* TODO une fois l'eviction faite supprimer les fonction de get use order, det data order, de même dans le maxime.h et HFP.h */
 
-//VERSION 1 SEUL GPU pour victim selector et victim_eviction failed
 void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
@@ -4133,7 +4052,7 @@ void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 	struct starpu_sched_component *temp_component = component;
 	struct HFP_sched_data *data = temp_component->data;
 	
-	printf("Début de victim evicted avec %p.\n", victim); exit(0);
+	printf("Début de victim eviction failed avec %p.\n", victim); fflush(stdout); exit(0);
      /* If a data was not truly evicted I put it back in the list. */
 	int i = 0;
 			
@@ -4146,135 +4065,205 @@ void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 }
+
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
-	/* TODO a decommenter */
-	//~ struct starpu_sched_component *temp_component = component;
-	//~ struct HFP_sched_data *data = temp_component->data;
 	printf("Belady\n");
+	int i = 0;
+	
+	/* NEW version multi gpu with list in data */
+	/* Checking if all task are truly valid. Else I return a non valid data
+	 * pas indispensable en 2D mais sera utile plus tard. */
+	/* for (i = 0; i < nb_data_on_node; i++)
+	{
+		if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
+		{
+			free(valid);
+			returned_handle = data_on_node[i];
+			free(data_on_node);
+			return returned_handle;
+		}
+	} */
+	
+	struct starpu_sched_component *temp_component = component;
+	struct HFP_sched_data *data = temp_component->data;
 	starpu_data_handle_t returned_handle = NULL;
-	int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
-	int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
-	unsigned nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
-	if (task_currently_treated != NULL) {
-		starpu_data_handle_t *data_on_node;
-		int *valid;
-		starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
-		
-		printf("Data on node:\n");
-		for (i = 0; i < nb_data_on_node; i++)
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
+	
+	/* Je check si une eviction n'a pas été refusé. */
+	data->p->temp_pointer_1 = data->p->first_link;
+	for (i = 0; i < current_gpu; i++)
+	{
+		data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+		printf("Next.\n");
+	}
+	if (data->p->temp_pointer_1->data_to_evict_next != NULL)
+	{
+		printf("Return %p in Belady that was refused.\n", data->p->temp_pointer_1->data_to_evict_next);
+		returned_handle = data->p->temp_pointer_1->data_to_evict_next;
+		data->p->temp_pointer_1->data_to_evict_next = NULL;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
+		return returned_handle;
+	}
+	/* Sinon je cherche dans la mémoire celle utilisé dans le plus longtemps et que j'ai le droit d'évincer */
+	starpu_data_handle_t *data_on_node;
+    unsigned nb_data_on_node = 0;
+    int *valid;
+    starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+    int latest_use = 0;
+    int index_latest_use = 0;
+    struct next_use *b = NULL;
+    
+    for (i = 0; i < nb_data_on_node; i++)
+    {
+		if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 		{
-			printf("%p	", data_on_node[i]);
-		}
-		printf("\n");
-		
-		//Checking if all task are truly valid. Else I return a non valid data
-		for (i = 0; i < nb_data_on_node; i++)
-		{
-			if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
-			{
-				free(valid);
-				returned_handle = data_on_node[i];
-				free(data_on_node);
-				return returned_handle;
-			}
-		}
-		
-		//Because I started at 1 and not 0
-		int used_index_task_currently_treated = index_task_currently_treated - 1;
-		
-		//Commenté car j'ai une boucle en dessous qui gère cela
-		//STARPU_ASSERT(used_index_task_currently_treated >= 0 && used_index_task_currently_treated < NT);
-		
-		//It means that no task of the current iteration has been sent but we need to evict data from the gpu
-		//So I will consider that the next task is the first on the linked list and evict data that will be used in
-		//the longest time
-		if (used_index_task_currently_treated == -1)
-		{
-			used_index_task_currently_treated = 0;
-		}
-			printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données, ",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
-		
-		if (task_position_in_data_use_order[used_index_task_currently_treated] != total_nb_data) {
-			nb_data_next_task = task_position_in_data_use_order[used_index_task_currently_treated] - task_position_in_data_use_order[used_index_task_currently_treated - 1];
-
-			printf("Données de la tâche en cours : "); for (i = 0; i < nb_data_next_task; i++) { printf("%p ",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); } printf ("\n"); 
+			struct next_use_by_gpu *c = next_use_by_gpu_new();
+			b = data_on_node[i]->sched_data;
 			
-			for (i = 0; i < nb_data_next_task; i++) {	
-				/* On regarde si la donnée est pas déjà sur M par hasard */
-				//~ starpu_data_query_status(data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1], node, &is_allocated, NULL, NULL);
-				//~ if (is_allocated) 
-				//~ {
-					
-				//~ }
-						int *prochaine_utilisation_donnee;
-						prochaine_utilisation_donnee = malloc(nb_data_on_node*sizeof(int));
-						
-						for (j = 0; j < nb_data_on_node; j++) { prochaine_utilisation_donnee[j] = INT_MAX; }
-						//Care if a task is never use again and is on node, we must evict it
-						for (j = 0; j < nb_data_on_node; j++) 
-						{
-							if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) 
-							{
-										//N'est pas utilisé par la suite
-										for (k = task_position_in_data_use_order[used_index_task_currently_treated]; k < total_nb_data; k++) {
-											if (data_on_node[j] == data_use_order[k]) 
-											{
-												prochaine_utilisation_donnee[j] = k;
-												break;
-											}
-										}
-							}
-							else { prochaine_utilisation_donnee[j] = -1; }
-						}
-						
-						//~ printf("Données de M et leurs prochaine apparition:\n"); for (j = 0; j < nb_data_on_node; j++) { printf("%p  = %d / ",data_on_node[j],prochaine_utilisation_donnee[j]); } printf("\n");
-					
-					distance_donnee_utilise_dans_le_plus_longtemps = -1;
-					for (j = 0; j < nb_data_on_node; j++) {
-						if (prochaine_utilisation_donnee[j] > distance_donnee_utilise_dans_le_plus_longtemps) {
-								donnee_utilise_dans_le_plus_longtemps = j;
-								distance_donnee_utilise_dans_le_plus_longtemps = prochaine_utilisation_donnee[j]; 
-						}
-					}
-					if (distance_donnee_utilise_dans_le_plus_longtemps == -1) 
-					{
-						//~ printf("-1\n");
-						free(data_on_node); 
-						free(valid); 
-						free(prochaine_utilisation_donnee);
-						return STARPU_DATA_NO_VICTIM; 
-						//~ return NULL;
-					}
-					//~ printf("pas -1\n");
-					returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
-					free(data_on_node);
-					free(valid);
-					free(prochaine_utilisation_donnee);
-					return returned_handle;									
+			if (next_use_by_gpu_list_empty(b->next_use_tab[current_gpu])) /* Si c'est vide alors je peux direct renvoyer cette donnée, elle ne sera jamais ré-utilisé */
+			{
+				STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
+				printf("Return %p that is not used again.\n", data_on_node[i]);
+				return data_on_node[i];
+			}
+			
+			c = next_use_by_gpu_list_begin(b->next_use_tab[current_gpu]);
+			printf("Next use of %p is %d.\n", data_on_node[i], c->value_next_use);
+			if (latest_use < c->value_next_use)
+			{
+				latest_use = c->value_next_use;
+				index_latest_use = i;
 			}
 		}
-		else 
-		{
-			//~ printf("on last task\n");
-			//We are on the last task, we can evict any data that is not forbidden
-			for (j = 0; j < nb_data_on_node; j++) 
-			{ 
-				if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) 
-				{
-					//~ printf("last task eviction\n");
-					free(data_on_node);
-					free(valid);
-					return data_on_node[j];
-				}
-			}
-		}
-	} 
-	//~ printf("task null return null\n");
-	//Current task is null
+	}
+	if (latest_use == 0) /* Si je n'ai eu aucune donnée valide, je renvoie NO_VICTIM */
+	{
+		printf("latest_use == 0, return NO_VICTIM.\n"); fflush(stdout);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
+		return STARPU_DATA_NO_VICTIM;
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
+	printf("latest use is %d, return %p.\n", latest_use, data_on_node[index_latest_use]);
+	return data_on_node[index_latest_use];
+    
+	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 	return NULL;
-	//~ return STARPU_DATA_NO_VICTIM; 
+	/* Fin de NEW */
+	
+	/* OLD version 1 GPU */
+	//~ starpu_data_handle_t returned_handle = NULL;
+	//~ int donnee_utilise_dans_le_plus_longtemps = 0; int distance_donnee_utilise_dans_le_plus_longtemps = 0;
+	//~ int k = 0; int nb_data_next_task = 0; int i = 0; int j = 0;
+	//~ unsigned nb_data_on_node = 0; /* Number of data loaded on memory. Needed to init the tab containing data on node */
+	//~ if (task_currently_treated != NULL) {
+		//~ starpu_data_handle_t *data_on_node;
+		//~ int *valid;
+		//~ starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+		
+		//~ printf("Data on node:\n");
+		//~ for (i = 0; i < nb_data_on_node; i++)
+		//~ {
+			//~ printf("%p	", data_on_node[i]);
+		//~ }
+		//~ printf("\n");
+		
+		//~ //Checking if all task are truly valid. Else I return a non valid data
+		//~ for (i = 0; i < nb_data_on_node; i++)
+		//~ {
+			//~ if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
+			//~ {
+				//~ free(valid);
+				//~ returned_handle = data_on_node[i];
+				//~ free(data_on_node);
+				//~ return returned_handle;
+			//~ }
+		//~ }
+		
+		//~ //Because I started at 1 and not 0
+		//~ int used_index_task_currently_treated = index_task_currently_treated - 1;
+		
+		//~ //Commenté car j'ai une boucle en dessous qui gère cela
+		//~ //STARPU_ASSERT(used_index_task_currently_treated >= 0 && used_index_task_currently_treated < NT);
+		
+		//~ //It means that no task of the current iteration has been sent but we need to evict data from the gpu
+		//~ //So I will consider that the next task is the first on the linked list and evict data that will be used in
+		//~ //the longest time
+		//~ if (used_index_task_currently_treated == -1)
+		//~ {
+			//~ used_index_task_currently_treated = 0;
+		//~ }
+			//~ printf("La tâche en cours est %p, index numéro %d, position %d dans le tableau d'ordre des données, ",task_currently_treated, used_index_task_currently_treated, task_position_in_data_use_order[used_index_task_currently_treated]);
+		
+		//~ if (task_position_in_data_use_order[used_index_task_currently_treated] != total_nb_data) {
+			//~ nb_data_next_task = task_position_in_data_use_order[used_index_task_currently_treated] - task_position_in_data_use_order[used_index_task_currently_treated - 1];
+
+			//~ printf("Données de la tâche en cours : "); for (i = 0; i < nb_data_next_task; i++) { printf("%p ",data_use_order[task_position_in_data_use_order[used_index_task_currently_treated] - i - 1]); } printf ("\n"); 
+			
+			//~ for (i = 0; i < nb_data_next_task; i++) {
+						//~ int *prochaine_utilisation_donnee;
+						//~ prochaine_utilisation_donnee = malloc(nb_data_on_node*sizeof(int));
+						
+						//~ for (j = 0; j < nb_data_on_node; j++) { prochaine_utilisation_donnee[j] = INT_MAX; }
+						//~ //Care if a task is never use again and is on node, we must evict it
+						//~ for (j = 0; j < nb_data_on_node; j++) 
+						//~ {
+							//~ if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) 
+							//~ {
+										//~ //N'est pas utilisé par la suite
+										//~ for (k = task_position_in_data_use_order[used_index_task_currently_treated]; k < total_nb_data; k++) {
+											//~ if (data_on_node[j] == data_use_order[k]) 
+											//~ {
+												//~ prochaine_utilisation_donnee[j] = k;
+												//~ break;
+											//~ }
+										//~ }
+							//~ }
+							//~ else { prochaine_utilisation_donnee[j] = -1; }
+						//~ }
+						
+						//~ //printf("Données de M et leurs prochaine apparition:\n"); for (j = 0; j < nb_data_on_node; j++) { printf("%p  = %d / ",data_on_node[j],prochaine_utilisation_donnee[j]); } printf("\n");
+					
+					//~ distance_donnee_utilise_dans_le_plus_longtemps = -1;
+					//~ for (j = 0; j < nb_data_on_node; j++) {
+						//~ if (prochaine_utilisation_donnee[j] > distance_donnee_utilise_dans_le_plus_longtemps) {
+								//~ donnee_utilise_dans_le_plus_longtemps = j;
+								//~ distance_donnee_utilise_dans_le_plus_longtemps = prochaine_utilisation_donnee[j]; 
+						//~ }
+					//~ }
+					//~ if (distance_donnee_utilise_dans_le_plus_longtemps == -1) 
+					//~ {
+						//~ free(data_on_node); 
+						//~ free(valid); 
+						//~ free(prochaine_utilisation_donnee);
+						//~ return STARPU_DATA_NO_VICTIM; 
+					//~ }
+					//~ returned_handle = data_on_node[donnee_utilise_dans_le_plus_longtemps];
+					//~ free(data_on_node);
+					//~ free(valid);
+					//~ free(prochaine_utilisation_donnee);
+					//~ return returned_handle;									
+			//~ }
+		//~ }
+		//~ else 
+		//~ {
+			//~ //We are on the last task, we can evict any data that is not forbidden
+			//~ for (j = 0; j < nb_data_on_node; j++) 
+			//~ { 
+				//~ if (starpu_data_can_evict(data_on_node[j], node, is_prefetch)) 
+				//~ {
+					//~ free(data_on_node);
+					//~ free(valid);
+					//~ return data_on_node[j];
+				//~ }
+			//~ }
+		//~ }
+	//~ } 
+	//~ //Current task is null
+	//~ return NULL;
+	//~ //return STARPU_DATA_NO_VICTIM; 
+	/* Fin OLD version */
 }
 
 /* Almost Belady while tasks are being executed 
@@ -4409,6 +4398,32 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 } 
 * */
 
+/* Get the task that was last executed. Used to update the task list of pulled task	 */
+void get_task_done_HFP(struct starpu_task *task, unsigned sci)
+{
+	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
+	/* Je me place sur le bon gpu. */
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()) - 1;
+	printf("Sur get task done avec %p on GPU %d, maj de : ", task, current_gpu);
+	int i = 0;
+	
+	/* Si j'utilse Belady, je pop les valeurs dans les données de la tâche qui vient de se terminer */
+	if (starpu_get_env_number_default("BELADY", 0) == 1) 
+	{
+		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		{
+			printf("%p ", STARPU_TASK_GET_HANDLE(task, i));
+			struct next_use *b = STARPU_TASK_GET_HANDLE(task, i)->sched_data;
+			next_use_by_gpu_list_pop_front(b->next_use_tab[current_gpu]);
+			STARPU_TASK_GET_HANDLE(task, i)->sched_data = b;
+		}
+	}
+	printf("\n");
+    /* Reset pour prochaine itération à faire ici quand le nombe de tâches sortie == NT si besoin */
+	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
+    starpu_sched_component_worker_pre_exec_hook(task, sci);
+}
+
 struct starpu_sched_policy _starpu_sched_HFP_policy =
 {
 	.init_sched = initialize_HFP_center_policy,
@@ -4421,7 +4436,8 @@ struct starpu_sched_policy _starpu_sched_HFP_policy =
 	//.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = get_current_tasks, /* Getting current task for printing diff later on. Still call starpu_sched_component_worker_pre_exec_hook(task,sci); at the end */
 	//.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
-	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	//~ .post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.post_exec_hook = get_task_done_HFP,
 	.pop_every_task = NULL,
 	.policy_name = "HFP",
 	.policy_description = "Affinity aware task ordering",

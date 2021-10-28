@@ -278,4 +278,6 @@ struct starpu_sched_policy _starpu_sched_modular_heft_HFP_policy;
 
 void print_next_use_each_data(struct paquets* a);
 
+void get_task_done_HFP(struct starpu_task *task, unsigned sci);
+
 #endif
