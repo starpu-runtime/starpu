@@ -249,26 +249,58 @@ struct use_order *use_order_data;;
 		//~ struct next_use_by_gpu_list *next_use_tab;
 	//~ };
 
-/* TODO : revamp avec la nouvelle eviction */
+/* Print for each GPU the order of processing of each data */
+void print_next_use_each_data(struct paquets* a)
+{
+	a->temp_pointer_1 = a->first_link;
+	struct starpu_task *task = NULL;
+	int i = 0;
+	int current_gpu = 0;
+	struct next_use_by_gpu *c = next_use_by_gpu_new();
+	while (a->temp_pointer_1 != NULL)
+	{
+		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
+		{
+			printf("Task %p :", task);
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+			{
+				printf(" %p", STARPU_TASK_GET_HANDLE(task, i));
+				struct next_use_by_gpu_list **l = STARPU_TASK_GET_HANDLE(task, i)->sched_data;
+				for (c = next_use_by_gpu_list_begin(l[current_gpu]); c != next_use_by_gpu_list_end(l[current_gpu]); c = next_use_by_gpu_list_next(c))
+				{
+					printf("->%d", c->value_next_use);
+				}
+				printf(" |");
+			}
+			printf("\n-----\n");
+		}
+		a->temp_pointer_1 = a->temp_pointer_1->next;
+		current_gpu++;
+	}
+}
+
+/* Read the tasks's order and each time it se a data, it add a value of it's next use in the task list.
+ * Then in the post_exec_hook we pop the value of the handles of the task processed. In belady we just look at these value
+ * for each data on node and evict the one with the furtherst first value.
+ * TODO : A noer/dire que si ready modifie l'ordre et bien les pop de valuers dans le post exec hook
+ * ne sont plus exacts. mis bon cela ne devrait pas trop impacter les performances. */
 void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu)
 {
 	printf("Début ordre\n");
-	/* Je met dans  chaque donnée sa prochaine utilisation */
 	struct starpu_task *task = NULL;
 	a->temp_pointer_1 = a->first_link;
 	int current_gpu = 0;
-	//~ int next_use[nb_gpu];
 	int i = 0;
 	int compteur = 0;
 	
-	while (a->temp_pointer_1 != NULL) 
+	while (a->temp_pointer_1 != NULL)
 	{
 		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task))
 		{
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				compteur++;
-				if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL)
+				if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL) /* If it's empty I create the list in the handle */
 				{
 					struct next_use *b = malloc(sizeof(*b));
 					struct next_use_by_gpu *c = next_use_by_gpu_new();
@@ -279,9 +311,21 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 					b->next_use_tab[current_gpu] = l;
 					STARPU_TASK_GET_HANDLE(task, i)->sched_data = b;
 				}
-				else
+				else /* Else I just add a new int */
 				{
-					/* Ajout aussi */
+					//~ if (next_use_by_gpu_list_empty(STARPU_TASK_GET_HANDLE(task, i)->sched_data->next_use_tab[current_gpu]))
+					//~ {
+						
+					//~ }
+					//~ struct next_use *b = malloc(sizeof(*b));
+					//~ struct next_use_by_gpu *c = next_use_by_gpu_new();
+					//~ struct next_use_by_gpu_list *l = next_use_by_gpu_list_new();
+					//~ c->value_next_use = compteur;
+					//~ next_use_by_gpu_list_push_back(l, c);
+					//~ b->next_use_tab = malloc(sizeof(*b->next_use_tab));
+					//~ b->next_use_tab[current_gpu] = l;
+					
+					//~ STARPU_TASK_GET_HANDLE(task, i)->sched_data = b;
 				}
 			}
 		}
@@ -290,6 +334,10 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 		a->temp_pointer_1 = a->temp_pointer_1->next;
 	}
 	printf("ordre ok\n"); fflush(stdout);
+	
+	print_packages_in_terminal(a, 1);
+	print_next_use_each_data(a);
+	
 	//~ exit(0);
 	//~ int k = 0;
 	//~ int i = 0;

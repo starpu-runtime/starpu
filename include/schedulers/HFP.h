@@ -276,4 +276,6 @@ int get_max_value_common_data_matrix (struct paquets *p, int GPU_limit_switch, i
 
 struct starpu_sched_policy _starpu_sched_modular_heft_HFP_policy;
 
+void print_next_use_each_data(struct paquets* a);
+
 #endif
