@@ -42,42 +42,42 @@ int main(int argc, char *argv[])
     fichier_out = fopen(argv[7], "w+");
     if (fichier_in != NULL)
     {
-		if (NGPU == 1) 
-		{
-			count = 5;
-			for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) 
-			{
-				fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
-				for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) 
-				{
-					if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) 
-					{
-						for (k = 0; k < count; k++) 
-						{
-							fscanf(fichier_in, "%s", str1);
-						}
-						fscanf(fichier_in, "%s", Datatransfers);
-						fprintf(fichier_out,"	%s", Datatransfers);
-						for (k = 0; k < 10; k++) {
-							fscanf(fichier_in,"%s", str1);
-						}
-					}
-					else 
-					{
-						for (k = 0; k < count + 11; k++) 
-						{
-							fscanf(fichier_in,"%s",str1);
-						}
-					}
-				}
-				fprintf(fichier_out,"\n"); 
-				rewind(fichier_in);
-			}
-			fclose(fichier_in);
-			fclose(fichier_out);
-		}
-		else
-		{
+		//~ if (NGPU == 1) 
+		//~ {
+			//~ count = 5;
+			//~ for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) 
+			//~ {
+				//~ fprintf(fichier_out,"%d",ECHELLE_X*(j+1)+START_X);
+				//~ for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) 
+				//~ {
+					//~ if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) 
+					//~ {
+						//~ for (k = 0; k < count; k++) 
+						//~ {
+							//~ fscanf(fichier_in, "%s", str1);
+						//~ }
+						//~ fscanf(fichier_in, "%s", Datatransfers);
+						//~ fprintf(fichier_out,"	%s", Datatransfers);
+						//~ for (k = 0; k < 10; k++) {
+							//~ fscanf(fichier_in,"%s", str1);
+						//~ }
+					//~ }
+					//~ else 
+					//~ {
+						//~ for (k = 0; k < count + 11; k++) 
+						//~ {
+							//~ fscanf(fichier_in,"%s",str1);
+						//~ }
+					//~ }
+				//~ }
+				//~ fprintf(fichier_out,"\n"); 
+				//~ rewind(fichier_in);
+			//~ }
+			//~ fclose(fichier_in);
+			//~ fclose(fichier_out);
+		//~ }
+		//~ else
+		//~ {
 			int NCOMBINAISONS = NGPU*2+(NGPU-1)*NGPU;
 			
 			float NUMA_CUDA [NOMBRE_ALGO_TESTE][NOMBRE_DE_TAILLES_DE_MATRICES];
@@ -122,60 +122,6 @@ int main(int argc, char *argv[])
 				}
 			}
 			
-			//~ count = 5;
-			//~ for (l = 0; l < NOMBRE_ALGO_TESTE; l++)
-			//~ {
-				//~ printf("Algo %d.\n", l + 1);
-				//~ /* I need to look first at the NUMA->CUDA */
-				//~ for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++)
-				//~ {
-					//~ printf("NUMA\n");
-					//~ for (i = 0; i < NGPU; i++)
-					//~ {
-						//~ for (k = 0; k < count + 1; k++) 
-						//~ {
-							//~ fscanf(fichier_in, "%s", str1);
-						//~ }
-						//~ printf("%f\n", atof(str1));
-						//~ NUMA_CUDA[l][j] += atof(str1);
-						//~ for (k = 0; k < 10; k++) 
-						//~ {
-							//~ fscanf(fichier_in,"%s", str1);
-						//~ }
-						//~ /* Skip la ligne d'après */
-						//~ for (k = 0; k < count + 11; k++) 
-						//~ {
-							//~ fscanf(fichier_in, "%s", str1);
-						//~ }
-					//~ }
-					//~ /* Besoin de skip jusqu'au prochain NUMA CUDA de l'algo en cours */
-					/* for (k = 0; k < (count + 11)*(NGPU-1)*NGPU; k++) 
-					{
-						fscanf(fichier_in, "%s", str1);
-					} */
-					//~ /* CUDA->CUDA */
-					//~ printf("CUDA\n");
-					//~ for (m = 0; m < (NGPU - 1)*NGPU; m++)
-					//~ {
-						//~ for (k = 0; k < count + 1; k++) 
-						//~ {
-							//~ fscanf(fichier_in, "%s", str1);
-						//~ }
-						//~ printf("%f\n", atof(str1));
-						//~ CUDA_CUDA[l][j] += atof(str1);
-						//~ for (k = 0; k < 10; k++) 
-						//~ {
-							//~ fscanf(fichier_in,"%s", str1);
-						//~ }
-					//~ }
-				//~ }
-				//~ for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES; i++)
-				//~ {
-					//~ printf("NUMA CUDA %d = %f.\n", i, NUMA_CUDA[l][i]);
-					//~ printf("CUDA CUDA %d = %f.\n", i, CUDA_CUDA[l][i]);
-				//~ }
-			//~ }
-			
 			/* Calcul total */
 			for (i = 0; i < NOMBRE_ALGO_TESTE; i++)
 			{
@@ -211,38 +157,9 @@ int main(int argc, char *argv[])
 				fprintf(fichier_out, "\n");
 			}
 			
-			//~ for (j = 0; j < NOMBRE_DE_TAILLES_DE_MATRICES; j++) 
-			//~ {
-				//~ fprintf(fichier_out, "%d", ECHELLE_X*(j+1)+START_X);
-				//~ for (i = 0; i < NOMBRE_DE_TAILLES_DE_MATRICES*NOMBRE_ALGO_TESTE; i++) 
-				//~ for (i = 0; i < NCOMBINAISONS*NOMBRE_ALGO_TESTE; i++) 
-				//~ {
-					//~ if (i%NOMBRE_DE_TAILLES_DE_MATRICES == j) 
-					//~ {
-						//~ for (k = 0; k < count; k++) 
-						//~ {
-							//~ fscanf(fichier_in, "%s", str1);
-						//~ }
-						//~ fscanf(fichier_in, "%s", Datatransfers);
-						//~ fprintf(fichier_out,"	%s", Datatransfers);
-						//~ for (k = 0; k < 10; k++) {
-							//~ fscanf(fichier_in,"%s", str1);
-						//~ }
-					//~ }
-					//~ else 
-					//~ {
-						//~ for (k = 0; k < count + 11; k++) 
-						//~ {
-							//~ fscanf(fichier_in,"%s",str1);
-						//~ }
-					//~ }
-				//~ }
-				//~ fprintf(fichier_out,"\n"); 
-				//~ rewind(fichier_in);
-			//~ }
 			fclose(fichier_in);
 			fclose(fichier_out);
-		}
+		//~ }
     }
     else
     {

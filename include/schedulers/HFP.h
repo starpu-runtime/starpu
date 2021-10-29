@@ -185,11 +185,8 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to);
  * Output a task list ordered. So it's HFP if we have only one package at the end
  * Used for now to reorder task inside a package after load balancing
  * Can be used as main HFP like in pull task later
- * Things commented are things to print matrix or things like that TODO : fix it if we want to print in this function.
  */
-//~ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_list, int number_task);
 struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, int number_task, int number_of_package_to_build);
-//~ struct paquets hierarchical_fair_packing (struct starpu_task_list task_list, int number_task, starpu_ssize_t GPU_RAM_M);
 
 /* Check if our struct is empty */
 bool is_empty(struct my_list* a);
@@ -224,7 +221,6 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx);
  * including transfers and computation/transfers overlap.
  * Called in HFP_pull_task once all packages are done.
  * It is called when MULTIGPU = 6 or 7.
- * TODO : do the actual load balance
  */
 void load_balance_expected_package_computation_time (struct paquets *p, starpu_ssize_t GPU_RAM);
 
@@ -242,7 +238,6 @@ void load_balance (struct paquets *a, int number_gpu);
  * With red = 255 if it's on GPU 1, blue if it's on GPU 2 and green on GPU 3.
  * Thus it only work for 3 GPUs.
  * Also print the number of use in each GPU.
- * TODO : Faire marcher cette fonction avec n GPUs
  */
 void visualisation_data_gpu_in_file_hfp_format_tex (struct paquets *p);
 
@@ -265,10 +260,6 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 void get_current_tasks_for_visualization(struct starpu_task *task, unsigned sci);
 
 void get_current_tasks(struct starpu_task *task, unsigned sci);
-
-/* Almost Belady while tasks are being executed 
- * TODO : corriger belady en cas de multi gpu
- */
  
 struct starpu_sched_policy _starpu_sched_HFP_policy;
 

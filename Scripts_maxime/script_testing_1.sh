@@ -10,33 +10,39 @@ start=`date +%s`
 #~ setarch linux64 -R libtool --mode=execute gdb --args
 #~ 2>&1 | tee Output_maxime/terminal_output.txt
 #~ make -j 6
+#~ Quand on lance la visu python il faut PRINTF=1 PRINT_N=$((N))
 
 make -C src/ -j 6
 ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
-N=10
+N=30 #je suis censé avoir 12721.1 pour N=30
+#~ N=20
+#~ N=5
+N=5
 
 NGPU=1
+NGPU=2
 
 #~ ORDO="dynamic-data-aware" # DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
 #~ ORDO="dmdar"
 
 CM=500
+#~ CM=250
 
-EVICTION=0
-#~ EVICTION=1
+#~ EVICTION=0
+EVICTION=1
 
-#~ READY=0
-READY=1
+READY=0
+#~ READY=1
 
 TH=10
 
 CP=5
 
-#~ HOST="gemini-1-ipdps"
-HOST="gemini-2-ipdps"
+HOST="gemini-1-ipdps"
+#~ HOST="gemini-2-ipdps"
 #~ HOST="attila"
 
 SEED=1
@@ -44,14 +50,27 @@ SEED=1
 #~ PRINTF=0
 PRINTF=1
 
-TRACE=0
-#~ TRACE=1
+#~ TRACE=0
+TRACE=1
 
-#~ BELADY=0
-BELADY=1
+BELADY=0
+#~ BELADY=1
 
-STARPU_GENERATE_TRACE=$((TRACE)) PRINTF=$((PRINTF)) PRINT_N=$((N)) SEED=$((SEED)) STARPU_SCHED=${ORDO} BELADY=$((BELADY)) ORDER_U=1 STARPU_SCHED_READY=$((READY)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
+MULTI=0
+#~ MULTI=1
+#~ MULTI=2
+#~ MULTI=3
+MULTI=4
+#~ MULTI=6
 
+#~ STEALING=0
+STEALING=3
+
+FICHIER_BUS=/home/gonthier/starpu/Output_maxime/GFlops_raw_out_3.txt
+
+PRINT_N=$((N)) TASK_STEALING=$((STEALING)) STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE=${FICHIER_BUS} MULTIGPU=$((MULTI)) STARPU_GENERATE_TRACE=$((TRACE)) PRINTF=$((PRINTF)) SEED=$((SEED)) STARPU_SCHED=${ORDO} BELADY=$((BELADY)) ORDER_U=1 STARPU_SCHED_READY=$((READY)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
+
+python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
 
 end=`date +%s` 
 runtime=$((end-start))

@@ -34,7 +34,7 @@
  * STARPU_NTASKS_THRESHOLD=10
  */
 
-/* Used only for visualisation of non-HFP schedulers */
+/* Used only for visualisation of non-HFP schedulers in python */
 void initialize_global_variable(struct starpu_task *task)
 {
 	N = starpu_get_env_number_default("PRINT_N", 0);
@@ -1714,7 +1714,7 @@ long long time_total_scheduling = 0;
  * Output a task list ordered. So it's HFP if we have only one package at the end
  * Used for now to reorder task inside a package after load balancing
  * Can be used as main HFP like in pull task later
- * Things commented are things to print matrix or things like that TODO : fix it if we want to print in this function.
+ * Things commented are things to print matrix or things like that.
  */
 struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, int number_task, int number_of_package_to_build)
 {
@@ -2641,22 +2641,23 @@ void load_balance_expected_time (struct paquets *a, int number_gpu)
 				ite += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				a->temp_pointer_2->expected_time = a->temp_pointer_2->expected_time - starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				
-				//~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
-				//~ {
-					//~ int temp_tab_coordinates[2]; 
-					//~ if (starpu_get_env_number_default("PRINT3D", 0) != 0)
-					//~ {
-						//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-						//~ fprintf(f, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
-						//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
-						//~ fprintf(f, "	%d	%d\n", temp_tab_coordinates[0], index);
-					//~ }
-					//~ else
-					//~ {
-						//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-						//~ fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], index);
-					//~ }
-				//~ }
+				//Pour visu python
+				if (starpu_get_env_number_default("PRINTF", 0) == 1)
+				{
+					int temp_tab_coordinates[2]; 
+					if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+					{
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+						fprintf(f, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
+						fprintf(f, "	%d	%d\n", temp_tab_coordinates[0], index);
+					}
+					else
+					{
+						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+						fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], index);
+					}
+				}
 				
 				/* Merging */
 				merge_task_and_package(a->temp_pointer_1, task);
@@ -3431,48 +3432,48 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			
 			data->p = hierarchical_fair_packing(data->popped_task_list, NT, number_of_package_to_build);
 				
-			/* Printing in terminal */
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) 
-			//~ {
-				//~ int i = 0;
-				//~ int j = 0;
-				//~ int temp_tab_coordinates[2];
-				//~ FILE *f_last_package = fopen("Output_maxime/last_package_split.txt", "w");
-				//~ data->p->temp_pointer_1 = data->p->first_link;
-				//~ int sub_package = 0;
+			/* Printing in terminal and also visu python */
+			if (starpu_get_env_number_default("PRINTF",0) == 1) 
+			{
+				printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop);
+				int i = 0;
+				int j = 0;
+				int temp_tab_coordinates[2];
+				FILE *f_last_package = fopen("Output_maxime/last_package_split.txt", "w");
+				data->p->temp_pointer_1 = data->p->first_link;
+				int sub_package = 0;
 				
-				//~ while (data->p->temp_pointer_1 != NULL)
-				//~ {
-					//~ j = 1;
-					//~ for (task_1 = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task_1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task_1 = starpu_task_list_next(task_1)) 
-					//~ {
-						//~ /* + 1 cause it's the next one that is in the other sub package */
-						//~ if (j == data->p->temp_pointer_1->split_last_ij + 1)
-						//~ {
-							//~ sub_package++;
-						//~ }
-						//~ if (starpu_get_env_number_default("PRINT3D", 0) != 0)
-						//~ {
-							//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
-							//~ fprintf(f_last_package, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
-							//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 0), 2, temp_tab_coordinates);
-							//~ fprintf(f_last_package, "	%d	%d	%d\n", temp_tab_coordinates[0], i, sub_package);
-						//~ }
-						//~ else
-						//~ {
-							//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
-							//~ /* Printing X Y GPU SUBPACKAGE(1 - NSUBPACKAGES) */
-							//~ fprintf(f_last_package, "%d	%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i, sub_package);
-						//~ }
-						//~ j++;
-					//~ }
-					//~ sub_package++;
-					//~ i++;
-					//~ data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-				//~ }
-				//~ fclose(f_last_package);
-			//~ }
+				while (data->p->temp_pointer_1 != NULL)
+				{
+					j = 1;
+					for (task1 = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task1 = starpu_task_list_next(task1)) 
+					{
+						/* + 1 cause it's the next one that is in the other sub package */
+						if (j == data->p->temp_pointer_1->split_last_ij + 1)
+						{
+							sub_package++;
+						}
+						if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+						{
+							starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task1, 2), 2, temp_tab_coordinates);
+							fprintf(f_last_package, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+							starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task1, 0), 2, temp_tab_coordinates);
+							fprintf(f_last_package, "	%d	%d	%d\n", temp_tab_coordinates[0], i, sub_package);
+						}
+						else
+						{
+							starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task1, 2), 2, temp_tab_coordinates);
+							/* Printing X Y GPU SUBPACKAGE(1 - NSUBPACKAGES) */
+							fprintf(f_last_package, "%d	%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i, sub_package);
+						}
+						j++;
+					}
+					sub_package++;
+					i++;
+					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+				}
+				fclose(f_last_package);
+			}
 		
 			/* Task stealing based on the number of tasks. Only in cases of multigpu */
 			if (starpu_get_env_number_default("MULTIGPU", 0) == 2 || starpu_get_env_number_default("MULTIGPU", 0) == 3)
@@ -3915,21 +3916,20 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 	
     /* Reset pour prochaine itération à faire ici quand le nombe de tâches sortie == NT si besoin */
     /* TODO a suppr */
-    if (NT == number_task_out)
+    if (NT == number_task_out && starpu_get_env_number_default("BELADY", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 1)
 	{
-		printf("%d\n", number_task_out);
 		FILE *f = fopen("Output_maxime/HFP_time.txt", "a");
-		
-		fprintf(f, "Time scheduling : %lld\n", time_total_scheduling);		
-		fprintf(f, "Time eviction : %lld\n", time_total_eviction);
-		fprintf(f, "Time get order for belady : %lld\n", time_total_getorderbelady);
-		fprintf(f, "Time get common data for order u : %lld\n", time_total_getcommondataorderu);
-		fprintf(f, "Time get task to send to GPUs : %lld\n", time_total_gettasktoreturn);
-		fprintf(f, "Time load balance : %lld\n", time_total_loadbalanceexpectedtime);
+		fprintf(f, "%0.0f	", sqrt(NT));
+		fprintf(f, "%lld	", time_total_scheduling);
+		fprintf(f, "%lld	", time_total_eviction);
+		fprintf(f, "%lld	", time_total_getorderbelady);
+		fprintf(f, "%lld	", time_total_getcommondataorderu);
+		fprintf(f, "%lld	", time_total_gettasktoreturn);
+		fprintf(f, "%lld	", time_total_loadbalanceexpectedtime);
 		
 		gettimeofday(&time_end_createtolasttaskfinished, NULL);
 		time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
-		fprintf(f, "Time create->last task out of post exec hook : %lld\n", time_total_createtolasttaskfinished);
+		fprintf(f, "%lld\n", time_total_createtolasttaskfinished);
 		
 		fclose(f);
 		number_task_out = 0;
@@ -3939,25 +3939,7 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
-/* Si je veux faire les visualisations */
-//~ struct starpu_sched_policy _starpu_sched_HFP_policy =
-//~ {
-	//~ .init_sched = initialize_HFP_center_policy,
-	//~ .deinit_sched = deinitialize_HFP_center_policy,
-	//~ .add_workers = starpu_sched_tree_add_workers,
-	//~ .remove_workers = starpu_sched_tree_remove_workers,
-	//~ .do_schedule = starpu_sched_tree_do_schedule,
-	//~ .push_task = starpu_sched_tree_push_task,
-	//~ .pop_task = get_data_to_load, /* To get the number of data needed for the current task, still return the task that we got with starpu_sched_tree_pop_task */
-	//~ .pre_exec_hook = get_current_tasks, /* Getting current task for printing diff later on. Still call starpu_sched_component_worker_pre_exec_hook(task,sci); at the end */
-	//~ .post_exec_hook = get_task_done_HFP,
-	//~ .pop_every_task = NULL,
-	//~ .policy_name = "HFP",
-	//~ .policy_description = "Affinity aware task ordering",
-	//~ .worker_type = STARPU_WORKER_LIST,
-//~ };
-
-/* Si je veux faire des tests en réel */
+/* Si je veux faire les visualisations python */
 struct starpu_sched_policy _starpu_sched_HFP_policy =
 {
 	.init_sched = initialize_HFP_center_policy,
@@ -3966,14 +3948,32 @@ struct starpu_sched_policy _starpu_sched_HFP_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.do_schedule = starpu_sched_tree_do_schedule,
 	.push_task = starpu_sched_tree_push_task,
-	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
-	.post_exec_hook = get_task_done_HFP, /* Sert pour Belady et aussi pour afficher les temps d'exec. A ne pas retirer pour Belady */
+	.pop_task = get_data_to_load, /* To get the number of data needed for the current task, still return the task that we got with starpu_sched_tree_pop_task */
+	.pre_exec_hook = get_current_tasks, /* Getting current task for printing diff later on. Still call starpu_sched_component_worker_pre_exec_hook(task,sci); at the end */
+	.post_exec_hook = get_task_done_HFP,
 	.pop_every_task = NULL,
 	.policy_name = "HFP",
 	.policy_description = "Affinity aware task ordering",
 	.worker_type = STARPU_WORKER_LIST,
 };
+
+/* Si je veux faire des tests en réel */
+//~ struct starpu_sched_policy _starpu_sched_HFP_policy =
+//~ {
+	//~ .init_sched = initialize_HFP_center_policy,
+	//~ .deinit_sched = deinitialize_HFP_center_policy,
+	//~ .add_workers = starpu_sched_tree_add_workers,
+	//~ .remove_workers = starpu_sched_tree_remove_workers,
+	//~ .do_schedule = starpu_sched_tree_do_schedule,
+	//~ .push_task = starpu_sched_tree_push_task,
+	//~ .pop_task = starpu_sched_tree_pop_task,
+	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	//~ .post_exec_hook = get_task_done_HFP, /* Sert pour Belady et aussi pour afficher les temps d'exec. A ne pas retirer pour Belady */
+	//~ .pop_every_task = NULL,
+	//~ .policy_name = "HFP",
+	//~ .policy_description = "Affinity aware task ordering",
+	//~ .worker_type = STARPU_WORKER_LIST,
+//~ };
 
 static void initialize_heft_hfp_policy(unsigned sched_ctx_id)
 {
