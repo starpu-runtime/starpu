@@ -154,7 +154,7 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a);
 int get_total_number_data_task_list(struct starpu_task_list a);
 
 /* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
-void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu);
+void get_ordre_utilisation_donnee(struct paquets* a, int nb_gpu);
 
 int get_common_data_last_package(struct my_list*I, struct my_list*J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M);
 

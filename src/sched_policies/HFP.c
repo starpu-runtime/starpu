@@ -30,7 +30,8 @@
  * RECURSIVE_MATRIX_LAYOUT
  * RANDOM_DATA_ACCESS
  * STARPU_SCHED_READY=1
- * STARPU_CUDA_PIPELINE=30
+ * STARPU_CUDA_PIPELINE=5
+ * STARPU_NTASKS_THRESHOLD=10
  */
 
 /* Used only for visualisation of non-HFP schedulers */
@@ -113,14 +114,6 @@ void HFP_insertion_end(struct paquets *a)
     new->expected_time_pulled_out = 0;
     a->temp_pointer_1->next = new;
 }
-
-/* Put a link at the beginning of the linked list */
-//~ void insertion_use_order(struct gpu_list *a)
-//~ {
-    //~ struct use_order *new = malloc(sizeof(*new));
-    //~ new->next_gpu = a->pointer;
-    //~ a->pointer = new;
-//~ }
 
 /* Delete all the empty packages */
 struct my_list* HFP_delete_link(struct paquets* a)
@@ -236,10 +229,6 @@ struct my_list* HFP_reverse_sub_list(struct my_list *a)
 	//~ return total_nb_data_list;
 //~ }
 
-/* TODO : a supprimer avec la nouvelle eviction de HFP ? */
-//~ struct gpu_list *gpu_data;
-//~ struct use_order *use_order_data;;
-
 /* Print for each GPU the order of processing of each data */
 void print_next_use_each_data(struct paquets* a)
 {
@@ -280,11 +269,10 @@ long long time_total_getorderbelady = 0;
  * for each data on node and evict the one with the furtherst first value.
  * TODO : A noer/dire que si ready modifie l'ordre et bien les pop de valuers dans le post exec hook
  * ne sont plus exacts. mis bon cela ne devrait pas trop impacter les performances. */
-void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int nb_gpu)
+void get_ordre_utilisation_donnee(struct paquets* a, int nb_gpu)
 {
 	gettimeofday(&time_start_getorderbelady, NULL);
 		
-	printf("Début ordre\n");
 	struct starpu_task *task = NULL;
 	a->temp_pointer_1 = a->first_link;
 	int current_gpu = 0;
@@ -325,46 +313,12 @@ void get_ordre_utilisation_donnee(struct paquets* a, int NB_TOTAL_DONNEES, int n
 		current_gpu++;
 		a->temp_pointer_1 = a->temp_pointer_1->next;
 		compteur = 0;
-	}
-	printf("ordre ok\n"); fflush(stdout);
-	print_next_use_each_data(a);
-	
+	}	
 	gettimeofday(&time_end_getorderbelady, NULL);
 	time_total_getorderbelady += (time_end_getorderbelady.tv_sec - time_start_getorderbelady.tv_sec)*1000000LL + time_end_getorderbelady.tv_usec - time_start_getorderbelady.tv_usec;
 }
 
-/* TODO : a supprimer avec la nouvelle eviction de HFP ? */
-//VERSION 1 SEUL GPU
-/* Donne l'ordre d'utilisation des données ainsi que la liste de l'ensemble des différentes données */
-//~ static void get_ordre_utilisation_donnee_1gpu(struct my_list *a, int NB_TOTAL_DONNEES)
-//~ {
-	//~ /* ces deux fichiers sont juste utile pour le débuggage, on pourra les suppr plus tard */
-	//~ FILE *f = fopen("Output_maxime/ordre_utilisation_donnees.txt", "w");
-	//~ FILE *f_2 = fopen("Output_maxime/ordre_traitement_taches.txt", "w");
-	//~ struct starpu_task *task = NULL; 
-	//~ int i = 0; int j = 0; int k = 0;
-		
-	//~ printf("%d %d\n", NT, total_nb_data);
-	
-	//~ data_use_order = malloc(total_nb_data*sizeof(a->package_data[0]));
-	//~ task_position_in_data_use_order = malloc(NT*sizeof(int));
-	
-	//~ for (task = starpu_task_list_begin(&a->sub_list); task != starpu_task_list_end(&a->sub_list); task = starpu_task_list_next(task)) {
-		//~ fprintf(f_2,"%p\n",task);
-		//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
-			//~ data_use_order[k] = STARPU_TASK_GET_HANDLE(task,i);
-			//~ k++;
-			//~ fprintf(f,"%p\n",STARPU_TASK_GET_HANDLE(task,i));
-		//~ }
-		//~ if (j != 0) { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task) + task_position_in_data_use_order[j - 1]; }
-		//~ else { task_position_in_data_use_order[j] = STARPU_TASK_GET_NBUFFERS(task); }
-		//~ j++;
-	//~ }
-	//~ index_task_currently_treated = 0;
-	//~ fclose(f);
-	//~ fclose(f_2);
-//~ }
-
+/* TODO a suppr */
 struct timeval time_start_getcommondataorderu;
 struct timeval time_end_getcommondataorderu;
 long long time_total_getcommondataorderu = 0;
@@ -425,7 +379,6 @@ int get_common_data_last_package(struct my_list *I, struct my_list *J, int evalu
 					tab_tache_en_cours[i] = STARPU_TASK_GET_HANDLE(task, i); 
 				}
 			}
-			//~ printf("la4 poids %ld et %ld\n", poids, poids_tache_en_cours);
 			if (poids + poids_tache_en_cours <= GPU_RAM_M)
 			{
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) {
@@ -940,13 +893,7 @@ void visualisation_tache_matrice_format_tex_with_data_2D()
 				fprintf(f_output,"\\cellcolor[RGB]{%d,%d,%d}&", red, green, blue);
 			}
 		}
-		//~ printf("tab dat to load hors de la boucle j est %d pour i = %d et j = %d\n", tab_data_to_load[j][i], i, j);
-		//~ if (tab_gpu[j][i] == 0) { red = 255; green = 255; blue = 255; }
-		//~ else if (tab_gpu[j][i] == 6) { red = 70; green = 130; blue = 180; }
-		//~ else 
-		//~ { 
 			rgb_gradiant(tab_gpu[j][i], tab_order[j][i], processing_order[tab_gpu[j][i]], &red, &green, &blue); 
-		//~ }
 		if (tab_data_to_load[j][i] == 1)
 		{
 			fprintf(f_output,"\\tikzmark{start%d}\\cellcolor[RGB]{%d,%d,%d}\\tikzmark{middle%d}\\tikzmark{end%d}\\HatchedCell{start%d}{middle%d}{end%d}{pattern color=black!100,pattern=north east hatch,hatch distance=4mm,hatch thickness=.3pt}", tikz_index, red, green, blue, tikz_index, tikz_index, tikz_index, tikz_index, tikz_index);
@@ -1288,16 +1235,13 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 		l->expected_package_computation_time += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
 		use_order++;
 	}
-	//~ afficher_data_on_node(l);
 	for (next_task = starpu_task_list_next(task); next_task != starpu_task_list_end(&l->sub_list); next_task = starpu_task_list_next(next_task))
 	{
-		//~ printf("On task %p\n", task);
 		time_to_add = 0;
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(next_task); i++)
 		{
 			if (SearchTheData(l->pointer_node, STARPU_TASK_GET_HANDLE(next_task, i), use_order) == false)
 			{
-				//~ printf("Data not on memory, memory used = %ld, want to add %ld\n", l->pointer_node->memory_used, starpu_data_get_size(STARPU_TASK_GET_HANDLE(task, i)));
 				if (l->pointer_node->memory_used + starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(next_task, i))) <= GPU_RAM)
 				{
 					insertion_data_on_node(l->pointer_node, STARPU_TASK_GET_HANDLE(next_task, i), use_order, i, &l->sub_list, task);
@@ -1307,7 +1251,6 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 				else
 				{
 					/* Need to evict a data and replace it */
-					//~ printf("Memory full, need to evict\n");
 					replace_least_recently_used_data(l->pointer_node, STARPU_TASK_GET_HANDLE(next_task, i), use_order, task, &l->sub_list, i);
 					use_order++;
 					time_to_add += starpu_transfer_predict(0, 1, starpu_data_get_size(STARPU_TASK_GET_HANDLE(next_task, i)));
@@ -1322,19 +1265,15 @@ void get_expected_package_computation_time (struct my_list *l, starpu_ssize_t GP
 		/* Who cost more time ? Task T_{i-1} or data load from T_{i} */
 		if (time_to_add > starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0))
 		{
-			//~ printf("adding %f from data\n", time_to_add);
 			l->expected_package_computation_time += time_to_add;
 		}
 		else
 		{
-			//~ printf("addding %f from task %p\n", starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0), task);
 			l->expected_package_computation_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 		}
 		task = starpu_task_list_next(task);
 	}
-	//~ printf("la %p %p\n", task, next_task);
 	l->expected_package_computation_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
-	//~ afficher_data_on_node(l);
 }
 
 /* Equilibrates package in order to have packages with the same expected computation time, 
@@ -1364,8 +1303,7 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 	int last_package_with_max_expected_time = 0;
 	double min_expected_time, max_expected_time;
 	bool load_balance_needed = true;
-	int percentage = 1; /* percentage of difference between packages */
-	if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("All package should have same time +/- %d percent\n", percentage); }
+	//~ int percentage = 1; /* percentage of difference between packages */
 	/* Selecting the smallest and biggest package */
 	while (load_balance_needed == true) { 
 		p->temp_pointer_1 = p->first_link;
@@ -1375,19 +1313,22 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 		package_with_max_expected_time = 0;
 		int i = 0;
 		p->temp_pointer_1 = p->temp_pointer_1->next;
-		while (p->temp_pointer_1 != NULL) {
+		while (p->temp_pointer_1 != NULL)
+		{
 			i++;
-			if (min_expected_time > p->temp_pointer_1->expected_package_computation_time) {
+			if (min_expected_time > p->temp_pointer_1->expected_package_computation_time)
+			{
 				min_expected_time = p->temp_pointer_1->expected_package_computation_time;
 				package_with_min_expected_time = i;
 			}
-			if (max_expected_time < p->temp_pointer_1->expected_package_computation_time) {
+			if (max_expected_time < p->temp_pointer_1->expected_package_computation_time)
+			{
 				max_expected_time = p->temp_pointer_1->expected_package_computation_time;
 				package_with_max_expected_time = i;
 			}
 			p->temp_pointer_1 = p->temp_pointer_1->next;
 		}
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("min et max : %f et %f, paquets %d et %d\n",min_expected_time, max_expected_time, package_with_min_expected_time, package_with_max_expected_time); }
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("min et max : %f et %f, paquets %d et %d\n",min_expected_time, max_expected_time, package_with_min_expected_time, package_with_max_expected_time); }
 		
 		/* To avoid looping indefintly */
 		if (last_package_with_min_expected_time == package_with_max_expected_time && last_package_with_max_expected_time == package_with_min_expected_time)
@@ -1396,23 +1337,20 @@ void load_balance_expected_package_computation_time (struct paquets *p, starpu_s
 		}
 		
 		/* Stealing as much task from the last tasks of the biggest packages */
-		//~ if (package_with_min_expected_time == package_with_max_expected_time || min_expected_time >=  max_expected_time - ((percentage*max_expected_time)/100)) {
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("All packages have the same expected time +/- %d percent\n", percentage); }
-			//~ load_balance_needed = false;
-		//~ }
-		//~ else {
 			/* Getting on the right packages */
 			p->temp_pointer_1 = p->first_link;
-			for (i = 0; i < package_with_min_expected_time; i++) {
+			for (i = 0; i < package_with_min_expected_time; i++)
+			{
 				p->temp_pointer_1 = p->temp_pointer_1->next;
 			}
 			p->temp_pointer_2 = p->first_link;
-			for (i = 0; i < package_with_max_expected_time; i++) {
+			for (i = 0; i < package_with_max_expected_time; i++)
+			{
 				p->temp_pointer_2 = p->temp_pointer_2->next;
 			}
-			while (p->temp_pointer_1->expected_package_computation_time >= p->temp_pointer_2->expected_package_computation_time - ((p->temp_pointer_2->expected_package_computation_time*max_expected_time)/100)) {
+			while (p->temp_pointer_1->expected_package_computation_time >= p->temp_pointer_2->expected_package_computation_time - ((p->temp_pointer_2->expected_package_computation_time*max_expected_time)/100)) 
+			{
 				task = starpu_task_list_pop_back(&p->temp_pointer_2->sub_list);
-				//~ printf("stealing %p\n", task);
 				p->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				merge_task_and_package(p->temp_pointer_1, task);
 				p->temp_pointer_2->nb_task_in_sub_list--;
@@ -1490,7 +1428,6 @@ long long time_total_gettasktoreturn = 0;
 struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
 	gettimeofday(&time_start_gettasktoreturn, NULL);
-	//~ printf ("Début get task to return\n");	
 	int max_task_time = 0;	
 	int index_package_max_task_time = 0;
 	a->temp_pointer_1 = a->first_link; 
@@ -1499,12 +1436,10 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 	if (starpu_get_env_number_default("MULTIGPU", 0) == 0 && starpu_get_env_number_default("HMETIS", 0) == 0)
 	{
 		task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
-		//~ printf("return %p\n", task);
 		if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 		
-			gettimeofday(&time_end_gettasktoreturn, NULL);
-	time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
-
+		gettimeofday(&time_end_gettasktoreturn, NULL);
+		time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 		
 		return task;
 	}
@@ -1539,7 +1474,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 		else
 		{
 			/* We are using HFP */
-			//~ print_packages_in_terminal(a, 0);
 			for (i = 0; i < nb_gpu; i++) 
 			{
 				if (to == component->children[i]) 
@@ -1555,7 +1489,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 				task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 				a->temp_pointer_1->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				a->temp_pointer_1->nb_task_in_sub_list--;
-				//~ printf("Return %p\n", task);
 				if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 				
 					gettimeofday(&time_end_gettasktoreturn, NULL);
@@ -1595,7 +1528,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 						task = starpu_task_list_pop_back(&a->temp_pointer_2->sub_list);
 						a->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 						a->temp_pointer_2->nb_task_in_sub_list--;
-						//~ printf("Stealing %p\n", task);
 						if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 						
 							gettimeofday(&time_end_gettasktoreturn, NULL);
@@ -1632,7 +1564,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 							index_package_max_task_time = i;
 						}
 					}
-					//~ printf("max = %f, index = %d\n", max_package_time, index_package_max_task_time);
 					if (max_package_time != 0)
 					{
 						a->temp_pointer_2 = a->first_link;
@@ -1689,7 +1620,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 				else 
 				{
 					/* We don't use task stealing */
-					
 						gettimeofday(&time_end_gettasktoreturn, NULL);
 	time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 
@@ -1716,12 +1646,10 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *compon
 			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 1)
 			{  
 				starpu_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->children[0]->children[i]->workers_in_ctx)), 0);
-				//~ printf("prefetch of %p on gpu %p\n", task, component->children[0]->children[i]);
 			}
 			else if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) == 2)
 			{  
 				starpu_idle_prefetch_task_input_on_node_prio(task, starpu_worker_get_memory_node(starpu_bitmap_first(&component->children[0]->children[i]->workers_in_ctx)), 0);
-				//~ printf("prefetch of %p on gpu %p\n", task, component->children[0]->children[i]);
 			}
 			else
 			{
@@ -1738,95 +1666,30 @@ int get_max_value_common_data_matrix (struct paquets *p, int GPU_limit_switch, i
 {
 	struct my_list *l1 = p->first_link;
 	struct my_list *l2 = p->first_link;
-	//~ int i = 0;
-	//~ int j = 0;
 	int i_bis = 0;
 	int j_bis = 0;
 	
 	int max_value_common_data_matrix = 0;
-	//~ if (GPU_limit_switch == 1)
-	//~ {
-		//~ for (i_bis = 0; i_bis < number_task; i_bis++)
-		//~ {
-			//~ if (l1->nb_task_in_sub_list == min_nb_task_in_sub_list) /* Si on est sur un paquet de taille minimale */
-			//~ {
-				//~ for (l2 = p->first_link; l2 != NULL; l2 = l2->next)
-				//~ {
-					//~ if (matrice_donnees_commune[i_bis][j_bis] > 0 && i_bis != j_bis)
-					//~ {
-						//~ if (max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis] && GPU_RAM_M >= l1->data_weight + l2->data_weight - matrice_donnees_commune[i_bis][j_bis])
-						//~ {
-							//~ max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; 
-						//~ }
-					//~ }
-					//~ j_bis++;
-				//~ }
-							/* OLD */
-								//~ for (l2 = p->first_link; l2 != NULL; l2 = l2->next)
-								//~ {
-									//~ if (i_bis != j_bis) 
-									//~ {
-										//~ weight_two_packages = 0;
-										//~ for (i = 0; i < l1->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(l1->package_data[i]); } 
-										//~ for (i = 0; i < l2->package_nb_data; i++) {
-											//~ bool_data_common = 0;
-											//~ for (j = 0; j < l1->package_nb_data; j++) {
-											//~ if (l2->package_data[i] == l1->package_data[j]) { bool_data_common = 1; } }
-											//~ if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(l2->package_data[i]); } }
-										//~ if((max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) && (weight_two_packages <= GPU_RAM_M)) 
-										//~ { 
-											//~ max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; 
-										//~ } 
-									//~ }
-									//~ j_bis++;
-								//~ }
-								//~ tab_runner++;
-								/* OLD */
-								
-			//~ }
-			//~ l1 = l1->next;
-			//~ j_bis = 0;
-		//~ }
-		//~ return max_value_common_data_matrix;
-	//~ }
-	/* Else we don't check the max weight */
-	//~ else
-	//~ {
-		for (i_bis = 0; i_bis < number_task; i_bis++)
+	for (i_bis = 0; i_bis < number_task; i_bis++)
+	{
+		if (l1->nb_task_in_sub_list == min_nb_task_in_sub_list)
 		{
-			if (l1->nb_task_in_sub_list == min_nb_task_in_sub_list)
+			for (l2 = p->first_link; l2 != NULL; l2 = l2->next)
 			{
-				for (l2 = p->first_link; l2 != NULL; l2 = l2->next)
+				if (i_bis != j_bis)
 				{
-					if (i_bis != j_bis)
-					{
-						//~ weight_two_packages = 0;
-						//~ for (i = 0; i < l1->package_nb_data; i++) { weight_two_packages += starpu_data_get_size(l1->package_data[i]); } 
-						//~ for (i = 0; i < l2->package_nb_data; i++)
-						//~ {
-							//~ bool_data_common = 0;
-							//~ for (j = 0; j < l1->package_nb_data; j++)
-							//~ {
-								//~ if (l2->package_data[i] == l1->package_data[j]) { bool_data_common = 1; } }
-										//~ if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(l2->package_data[i]); } } 
-									//~ if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis]) { 
-										//~ max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis]; } 
-						if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis])
-						{ 
-							max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis];
-						}
+					if(max_value_common_data_matrix < matrice_donnees_commune[i_bis][j_bis])
+					{ 
+						max_value_common_data_matrix = matrice_donnees_commune[i_bis][j_bis];
 					}
-					j_bis++;
 				}
-				//~ tab_runner++;
-			} 
-			l1 = l1->next;
-			j_bis = 0;
-		}
-		//~ l1 = p->first_link;
-		//~ l2 = p->first_link;
-		return max_value_common_data_matrix;
-	//~ }
+				j_bis++;
+			}
+		} 
+		l1 = l1->next;
+		j_bis = 0;
+	}
+	return max_value_common_data_matrix;
 }
 
 /* Pushing the tasks */		
@@ -1852,9 +1715,7 @@ long long time_total_scheduling = 0;
  * Used for now to reorder task inside a package after load balancing
  * Can be used as main HFP like in pull task later
  * Things commented are things to print matrix or things like that TODO : fix it if we want to print in this function.
- * TODO : use this function or a variant for hmetis. Right now hmetis won't work with this
  */
-//~ struct starpu_task_list hierarchical_fair_packing (struct starpu_task_list task_list, int number_task)
 struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, int number_task, int number_of_package_to_build)
 {
 	gettimeofday(&time_start_scheduling, NULL);
@@ -1927,7 +1788,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 		nb_of_loop++;
 		packaging_impossible = 1;
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("############# Itération numéro : %d #############\n",nb_of_loop); }
-		printf("############# Itération numéro : %d #############\n", nb_of_loop);
 								
 		/* Variables we need to reinitialize for a new iteration */
 		paquets_data->temp_pointer_1 = paquets_data->first_link; 
@@ -1961,7 +1821,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 			}
 		}
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâche(s)\n", nb_min_task_packages, min_nb_task_in_sub_list); }
-		printf("Il y a %d paquets de taille minimale %d tâche(s)\n", nb_min_task_packages, min_nb_task_in_sub_list);
 		
 		max_value_common_data_matrix = 0;
 		
@@ -1970,7 +1829,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 		{
 			if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
 			{
-				//~ printf("Sur le paquet min.\n");
 				for (paquets_data->temp_pointer_2 = paquets_data->first_link; paquets_data->temp_pointer_2 != NULL; paquets_data->temp_pointer_2 = paquets_data->temp_pointer_2->next)
 				{
 					if (index_head_1 != index_head_2)
@@ -2013,7 +1871,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 			index_head_1++;
 			index_head_2 = 0;
 		}
-		//~ printf("New version, max value = %ld, limit switch = %d.\n", max_value_common_data_matrix, GPU_limit_switch);
 		
 		/* TODO : est-ce utile ? */
 		if (max_value_common_data_matrix == 0)
@@ -2023,18 +1880,9 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 		}
 			
 		/* Code to print the common data matrix */	
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
-		//~ printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
 				
-		/* Getting back to the beginning of the linked list */
-		/* looking for max common data */
-		//~ paquets_data->temp_pointer_1 = paquets_data->first_link; 
-		//~ paquets_data->temp_pointer_2 = paquets_data->first_link;
-		//~ i_bis = 0;
-		//~ j_bis = 0; 
 		temp_nb_min_task_packages = nb_min_task_packages;
-		//~ while (1)
-		//~ {
 		debut_while:
 			//~ paquets_data->temp_pointer_1 = paquets_data->first_link;
 			//~ paquets_data->temp_pointer_2 = paquets_data->first_link;
@@ -2111,7 +1959,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 					/* It means that P_i share no data with others, so we put it in the end of the list
 					 * For this we use a separate list that we merge at the end
 					 * We will put this list at the end of the rest of the packages */
-					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("graphe non connexe\n"); }
+					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("graphe non connexe\n"); }
 					while (paquets_data->temp_pointer_1->nb_task_in_sub_list != min_nb_task_in_sub_list)
 					{
 						paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next;
@@ -2124,10 +1972,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 				}
 				else /* Searching the package that get max and merge them */
 				{
-				//~ i_bis = 0;
-				//~ j_bis = 0;
-				//~ i = 0;
-				//~ j = 0;
 				for (i = 0; i < number_task; i++)
 				{
 					if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
@@ -2145,12 +1989,9 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 								//~ printf("ok0 %ld, %ld\n", weight_package_i, weight_package_j);				
 							if (matrice_donnees_commune[i][j] == max_value_common_data_matrix && i != j && max_value_common_data_matrix > 0)
 							{
-								//~ if ((weight_two_packages <= GPU_RAM_M) || (GPU_limit_switch == 0))
-								//~ {
 								/* Merge */
 								packaging_impossible = 0;
 								//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d\n",i,j); }
-								printf("On va merge le paquet %d et le paquet %d\n", i, j);
 								
 								paquets_data->NP--;
 								
@@ -2158,21 +1999,14 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 								{
 									temp_nb_min_task_packages--;
 								}
-								
-								//~ for (j_bis = 0; j_bis < number_task; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
-								//~ for (j_bis = 0; j_bis < number_task; j_bis++) { matrice_donnees_commune[j][j_bis] = 0; matrice_donnees_commune[j_bis][j] = 0;}
-								
+																
 								if (starpu_get_env_number_default("ORDER_U", 0) == 1)
 								{
 									weight_package_i = paquets_data->temp_pointer_1->data_weight;
 									weight_package_j = paquets_data->temp_pointer_2->data_weight;
-									printf("ok1 %ld, %ld\n", weight_package_i, weight_package_j);
-									//~ if (nb_of_loop == 9) { exit(0); }
-									if (paquets_data->temp_pointer_1->nb_task_in_sub_list == 1 && paquets_data->temp_pointer_2->nb_task_in_sub_list == 1)
+									if (paquets_data->temp_pointer_1->nb_task_in_sub_list != 1 && paquets_data->temp_pointer_2->nb_task_in_sub_list != 1)
 									{
-										
-									}
-									else if (weight_package_i > GPU_RAM_M && weight_package_j <= GPU_RAM_M)
+									if (weight_package_i > GPU_RAM_M && weight_package_j <= GPU_RAM_M)
 									{
 										common_data_last_package_i1_j = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 1, 0, false,GPU_RAM_M);					
 										common_data_last_package_i2_j = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 0, false,GPU_RAM_M);					
@@ -2184,20 +2018,14 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 									else if (weight_package_i <= GPU_RAM_M && weight_package_j > GPU_RAM_M)
 									{
 										common_data_last_package_i_j1 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 0, 1, false, GPU_RAM_M);
-										//~ printf("ok3.01\n");					
 										common_data_last_package_i_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 0, 2, false, GPU_RAM_M);	
-										//~ printf("ok3.02\n");						
 										if (common_data_last_package_i_j2 > common_data_last_package_i_j1)
 										{
-											//~ printf("ok3.1\n");
 											paquets_data->temp_pointer_2 = HFP_reverse_sub_list(paquets_data->temp_pointer_2);
-											//~ printf("ok3.2\n");
 										}
-										//~ printf("ok3.3\n");
 									}
 									else
 									{
-										//~ printf("ok4\n");
 										if (weight_package_i > GPU_RAM_M && weight_package_j > GPU_RAM_M)
 										{
 											common_data_last_package_i1_j1 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 1, 1, false,GPU_RAM_M);					
@@ -2232,7 +2060,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 										}		
 									}
 								}
-								printf("Après le merge : 1 = %ld; 2 = %ld, commun = %ld résultat = %ld.\n", paquets_data->temp_pointer_1->data_weight, paquets_data->temp_pointer_2->data_weight, matrice_donnees_commune[i][j], paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[i][j]);
+								}
 								paquets_data->temp_pointer_1->data_weight = paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[i][j];
 								
 								for (j_bis = 0; j_bis < number_task; j_bis++) { matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;}
@@ -2281,7 +2109,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 							if (temp_nb_min_task_packages > 1)
 							{
 								max_value_common_data_matrix = get_max_value_common_data_matrix(paquets_data, GPU_limit_switch, number_task, min_nb_task_in_sub_list, matrice_donnees_commune);
-								printf("Après le get_max, max value = %ld, switch = %d.\n", max_value_common_data_matrix, GPU_limit_switch);
 								goto debut_while; 
 							}
 							else
@@ -2347,7 +2174,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, in
 	gettimeofday(&time_end_scheduling, NULL);
 	time_total_scheduling += (time_end_scheduling.tv_sec - time_start_scheduling.tv_sec)*1000000LL + time_end_scheduling.tv_usec - time_start_scheduling.tv_usec;
 
-	//~ return paquets_data->first_link->sub_list;
 	return paquets_data;
 }
 
@@ -2429,7 +2255,7 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 				beggining_while_packaging_impossible:
 				nb_of_loop++;
 				packaging_impossible = 1;
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("############# Itération numéro : %d #############\n",nb_of_loop); }
+				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("############# Itération numéro : %d #############\n",nb_of_loop); }
 								
 				/* Variables we need to reinitialize for a new iteration */
 				paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_2 = paquets_data->first_link; index_head_1 = 0; index_head_2 = 1; link_index = 0; tab_runner = 0; nb_min_task_packages = 0;
@@ -2441,7 +2267,7 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 						if (min_nb_task_in_sub_list > paquets_data->temp_pointer_1->nb_task_in_sub_list) { min_nb_task_in_sub_list = paquets_data->temp_pointer_1->nb_task_in_sub_list; } }
 					for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next) {
 						if (min_nb_task_in_sub_list == paquets_data->temp_pointer_1->nb_task_in_sub_list) { nb_min_task_packages++; } }
-					if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list); }
+					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâches\n",nb_min_task_packages,min_nb_task_in_sub_list); }
 					/* Then we create the common data matrix */
 					for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next) {
 						for (paquets_data->temp_pointer_2 = paquets_data->temp_pointer_1->next; paquets_data->temp_pointer_2 != NULL; paquets_data->temp_pointer_2 = paquets_data->temp_pointer_2->next) {
@@ -2452,7 +2278,7 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 										matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]) + starpu_data_get_size(paquets_data->temp_pointer_1->package_data[i]);
 									} } } index_head_2++; } index_head_1++; index_head_2 = index_head_1 + 1; }
 				/* Code to print the common data matrix */
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
+				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
 				
 				/* Getting back to the beginning of the linked list */
 				paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_2 = paquets_data->first_link;
@@ -2513,7 +2339,7 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 					/* It means that P_i share no data with others, so we put it in the end of the list
 					 * For this we use a separate list that we merge at the end
 					 * We will put this list at the end of the rest of the packages */
-					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("graphe non connexe\n"); }
+					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("graphe non connexe\n"); }
 					while (paquets_data->temp_pointer_1->nb_task_in_sub_list != min_nb_task_in_sub_list)
 					{
 						paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next;
@@ -2556,7 +2382,7 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 								if ((weight_two_packages <= GPU_RAM_M) || (GPU_limit_switch == 0)) {
 								/* Merge */
 								packaging_impossible = 0;
-								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d\n",i,j); }
+								//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d\n",i,j); }
 								
 								paquets_data->NP--;
 								
@@ -2570,12 +2396,9 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I = 1 et J = 1\n"); }
 									}
 									else if (weight_package_i > GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
-										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I > PU_RAM et J <= PU_RAM\n"); }
 										common_data_last_package_i1_j = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 1, 0, false,GPU_RAM_M);					
 										common_data_last_package_i2_j = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 0, false,GPU_RAM_M);					
-										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\ni1j = %d / i2j = %d\n",common_data_last_package_i1_j,common_data_last_package_i2_j); }
 										if (common_data_last_package_i1_j > common_data_last_package_i2_j) {
-											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET I\n"); }
 											paquets_data->temp_pointer_1 = HFP_reverse_sub_list(paquets_data->temp_pointer_1);
 										}
 									}
@@ -2583,7 +2406,6 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 										common_data_last_package_i_j1 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 0, 1, false,GPU_RAM_M);					
 										common_data_last_package_i_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 0, 2, false,GPU_RAM_M);					
 										if (common_data_last_package_i_j2 > common_data_last_package_i_j1) {
-											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("SWITCH PAQUET J\n"); }
 											paquets_data->temp_pointer_2 = HFP_reverse_sub_list(paquets_data->temp_pointer_2);
 										}
 									}
@@ -2595,14 +2417,12 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 											common_data_last_package_i2_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 2, false,GPU_RAM_M);
 										}
 										else if (weight_package_i <= GPU_RAM_M && weight_package_j <= GPU_RAM_M) {
-											//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("I <= PU_RAM et J <= PU_RAM\n"); }
 											common_data_last_package_i1_j1 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 1, 1, true,GPU_RAM_M);					
 											common_data_last_package_i1_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 1, 2, true,GPU_RAM_M);
 											common_data_last_package_i2_j1 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 1, true,GPU_RAM_M);					
 											common_data_last_package_i2_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 2, true,GPU_RAM_M);
 										}
 										else { printf("Erreur dans ordre U, aucun cas choisi\n"); exit(0); }
-										//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("i1j1 = %ld / i1j2 = %ld / i2j1 = %ld / i2j2 = %ld\n",common_data_last_package_i1_j1,common_data_last_package_i1_j2,common_data_last_package_i2_j1,common_data_last_package_i2_j2); }
 										max_common_data_last_package = common_data_last_package_i2_j1;
 										if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
 										if (max_common_data_last_package < common_data_last_package_i1_j2) { max_common_data_last_package = common_data_last_package_i1_j2; }
@@ -2741,7 +2561,6 @@ struct timeval time_start_loadbalanceexpectedtime;
 struct timeval time_end_loadbalanceexpectedtime;
 long long time_total_loadbalanceexpectedtime = 0;
 
-//~ printf("%f\n", starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0));
 /* Equilibrates package in order to have packages with the exact same expected task time
  * Called in HFP_pull_task once all packages are done 
  * Used for MULTIGPU == 4
@@ -2812,36 +2631,32 @@ void load_balance_expected_time (struct paquets *a, int number_gpu)
 				break; 
 			}
 			starpu_task_list_push_back(&a->temp_pointer_2->sub_list, task);
-			//~ printf("EXPECTED_TIME/number_gpu : %f\n", EXPECTED_TIME/number_gpu);
-			//~ printf("EXPECTED_TIME : %f\n", EXPECTED_TIME);
-			//~ printf("expected time to steal : %f\n", expected_time_to_steal);
-			//~ exit(0);
 			ite = 0;
 			
 			//Pour visu python. Pas implémenté dans load_balance et load_balance_expected_package_time
 			FILE *f = fopen("Output_maxime/Data_stolen_load_balance.txt", "a");
-			int temp_tab_coordinates[2]; 
 			
 			while (ite < expected_time_to_steal) {
 				task = starpu_task_list_pop_back(&a->temp_pointer_2->sub_list);
 				ite += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				a->temp_pointer_2->expected_time = a->temp_pointer_2->expected_time - starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				
-				if (starpu_get_env_number_default("PRINTF", 0) == 1)
-				{
-					if (starpu_get_env_number_default("PRINT3D", 0) != 0)
-					{
-						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-						fprintf(f, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
-						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
-						fprintf(f, "	%d	%d\n", temp_tab_coordinates[0], index);
-					}
-					else
-					{
-						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-						fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], index);
-					}
-				}
+				//~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
+				//~ {
+					//~ int temp_tab_coordinates[2]; 
+					//~ if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+					//~ {
+						//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+						//~ fprintf(f, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+						//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
+						//~ fprintf(f, "	%d	%d\n", temp_tab_coordinates[0], index);
+					//~ }
+					//~ else
+					//~ {
+						//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+						//~ fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], index);
+					//~ }
+				//~ }
 				
 				/* Merging */
 				merge_task_and_package(a->temp_pointer_1, task);
@@ -2849,9 +2664,6 @@ void load_balance_expected_time (struct paquets *a, int number_gpu)
 			}
 			
 			fclose(f);
-			//~ printf("expected time du gros paquet = %f\n", a->temp_pointer_2->expected_time);
-			//~ printf("expected time du petit paquet = %f\n", a->temp_pointer_1->expected_time);
-			//~ exit(0);
 		}
 	}
 	
@@ -2867,7 +2679,7 @@ void load_balance (struct paquets *a, int number_gpu)
 	int min_number_task_in_package, package_with_min_number_task, i, max_number_task_in_package, package_with_max_number_task, number_task_to_steal = 0;
 	bool load_balance_needed = true;
 	struct starpu_task *task = NULL;
-	if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("A package should have %d or %d tasks\n", NT/number_gpu, NT/number_gpu+1); }
+	//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("A package should have %d or %d tasks\n", NT/number_gpu, NT/number_gpu+1); }
 	/* Selecting the smallest and biggest package */
 	while (load_balance_needed == true) { 
 		a->temp_pointer_1 = a->first_link;
@@ -2877,22 +2689,24 @@ void load_balance (struct paquets *a, int number_gpu)
 		package_with_max_number_task = 0;
 		i = 0;
 		a->temp_pointer_1 = a->temp_pointer_1->next;
-		while (a->temp_pointer_1 != NULL) {
+		while (a->temp_pointer_1 != NULL)
+		{
 			i++;
-			if (min_number_task_in_package > a->temp_pointer_1->nb_task_in_sub_list) {
+			if (min_number_task_in_package > a->temp_pointer_1->nb_task_in_sub_list)
+			{
 				min_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
 				package_with_min_number_task = i;
 			}
-			if (max_number_task_in_package < a->temp_pointer_1->nb_task_in_sub_list) {
+			if (max_number_task_in_package < a->temp_pointer_1->nb_task_in_sub_list)
+			{
 				max_number_task_in_package = a->temp_pointer_1->nb_task_in_sub_list;
 				package_with_max_number_task = i;
 			}
 			a->temp_pointer_1 = a->temp_pointer_1->next;
 		}
-		if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("min et max : %d et %d\n",min_number_task_in_package, max_number_task_in_package); }
 		/* Stealing as much task from the last tasks of the biggest packages */
-		if (package_with_min_number_task == package_with_max_number_task || min_number_task_in_package ==  max_number_task_in_package-1) {
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("All packages have the same number of tasks +/- 1 task\n"); }
+		if (package_with_min_number_task == package_with_max_number_task || min_number_task_in_package ==  max_number_task_in_package-1)
+		{
 			load_balance_needed = false;
 		}
 		else {
@@ -2905,10 +2719,12 @@ void load_balance (struct paquets *a, int number_gpu)
 				a->temp_pointer_2 = a->temp_pointer_2->next;
 			}
 			if ((NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list == 0) { number_task_to_steal = 1; }
-			else if (a->temp_pointer_2->nb_task_in_sub_list - ((NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list) >= NT/number_gpu) {
+			else if (a->temp_pointer_2->nb_task_in_sub_list - ((NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list) >= NT/number_gpu)
+			{
 				number_task_to_steal = (NT/number_gpu) - a->temp_pointer_1->nb_task_in_sub_list;
 			}
-			else {
+			else
+			{
 				number_task_to_steal = a->temp_pointer_2->nb_task_in_sub_list - NT/number_gpu;
 			}
 			for (i = 0; i < number_task_to_steal; i++)
@@ -3035,7 +2851,6 @@ void print_order_in_file_hfp (struct paquets *p)
 		i++;
 		fclose(f);
 	}
-	printf("ok1\n");
 	if (starpu_get_env_number_default("PRINTF",0) == 1 && (strcmp(appli,"starpu_sgemm_gemm") == 0))
 	{
 		i = 0;
@@ -3064,7 +2879,6 @@ void print_order_in_file_hfp (struct paquets *p)
  */
 void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
 {
-	//~ printf("In hmetis with %d GPUs\n", nb_gpu);
 	FILE *f = fopen("Output_maxime/temp_input_hMETIS.txt", "w+");
 	NT = 0;
 	int i = 0; struct starpu_task *task_1; struct starpu_task *task_2; struct starpu_task *task_3; int NT = 0; bool first_write_on_line = true; bool already_counted = false;
@@ -3235,11 +3049,9 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
 		p->temp_pointer_1 = p->first_link;
 		for (i = 0; i < nb_gpu; i++) 
 		{
-			/* TODO : autre fonction */
 			p->temp_pointer_1->sub_list = hierarchical_fair_packing_one_task_list(p->temp_pointer_1->sub_list, p->temp_pointer_1->nb_task_in_sub_list);
 			p->temp_pointer_1 = p->temp_pointer_1->next;
 		}
-		//~ print_packages_in_terminal(p, 0);
 	}
 }
 
@@ -3252,7 +3064,6 @@ void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ss
  */
 void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M) 
 {
-	//printf("In hmetis input already generated\n"); fflush(stdout);
 	NT = starpu_task_list_size(l);
 	int i = 0; struct starpu_task *task_1;
 	int j = 0;
@@ -3294,12 +3105,8 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 		strcat(path2, "GPU/input_hMETIS_N");
 	}
 	strcat(path2, Nchar);
-	strcat(path2, ".txt");
-	
-	//~ printf("Le fichier ouvert sera : %s\n", path2);  fflush(stdout);
-	
+	strcat(path2, ".txt");	
 	FILE *f_2 = fopen(path2, "r");
-		
 	int number; int error;
 	for (i = 0; i < NT; i++) 
 	{
@@ -3310,15 +3117,11 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 			exit(0);
 		}
 		p->temp_pointer_1 = p->first_link;
-		//printf("reste liste chainée, number = %d\n", number); fflush(stdout);
 		for (j = 0; j < number; j++) 
 		{
-			//printf("next gpu\n"); fflush(stdout);
 			p->temp_pointer_1 = p->temp_pointer_1->next;
 		}
 		task_1 = starpu_task_list_pop_front(l);
-		//printf("task = %p.\n", task_1); fflush(stdout);
-		//printf("pevious time = %f\n", p->temp_pointer_1->expected_time); fflush(stdout);
 		p->temp_pointer_1->expected_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
 		p->temp_pointer_1->expected_package_computation_time += starpu_task_expected_length(task_1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);			
 		p->temp_pointer_1->nb_task_in_sub_list++;		
@@ -3376,7 +3179,6 @@ int get_number_GPU()
 /* Printing in a file the coordinates and the data loaded during prefetch for each task */
 void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 {
-	//~ int current_gpu = starpu_worker_get_id();
 	int current_gpu = gpu_id;
 	if (Ngpu == 1)
 	{
@@ -3461,34 +3263,33 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 /* The function that sort the tasks in packages */
 static struct starpu_task *HFP_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	//~ printf("Début pull task\n");
 	struct HFP_sched_data *data = component->data;
 	int i = 0;
 	struct starpu_task *task1 = NULL; 
 	
 	if (do_schedule_done == true)
 	{
-		//printf("In pull task and in the if\n");		
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		
 		/* If one or more task have been refused */
 		data->p->temp_pointer_1 = data->p->first_link;
-		if (data->p->temp_pointer_1->next != NULL) {
+		if (data->p->temp_pointer_1->next != NULL)
+		{
 			for (i = 0; i < Ngpu; i++) {
-				if (to == component->children[i]) {
+				if (to == component->children[i])
+				{
 					break;
 				}
-				else {
+				else
+				{
 					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 				}
 			}
 		}
 		if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) 
 		{
-			//printf("in refused fifo of pull_task\n");
 			task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			//~ printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task1, to);
 			return task1;
 		}
 		
@@ -3496,23 +3297,18 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		if (is_empty(data->p->first_link) == true) 
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			//printf("linked list empty return NULL\n");
 			return NULL;
 		}
 		
-		//printf("Before get task to return\n");
 		task1 = get_task_to_return(component, to, data->p, Ngpu);
-		//~ printf("Task %p is getting out of pull_task from gpu %p\n", task1, to);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		return task1;
 	}
-	//printf("Ah return NULL :(\n");
 	return NULL;		
 }
 
 static int HFP_can_push(struct starpu_sched_component * component, struct starpu_sched_component * to)
 {
-	//~ printf("can push\n");
 	struct HFP_sched_data *data = component->data;
 	int didwork = 0;
 	int i = 0;
@@ -3522,29 +3318,31 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 
 	if (task)
 	{
-		//~ printf("Oops, task %p was refused by %p\n", task, to);
 		/* Oops, we couldn't push everything, put back this task */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		data->p->temp_pointer_1 = data->p->first_link;
 		int nb_gpu = get_number_GPU();
-		if (data->p->temp_pointer_1->next == NULL) { 
-			//printf("pushing in refused_fifo\n"); 
-			starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task); }
-		else {
+		if (data->p->temp_pointer_1->next == NULL)
+		{ 
+			starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task);
+		}
+		else
+		{
 			//A corriger. En fait il faut push back dans une fifo a part puis pop back dans cette fifo dans pull task
 			//Ici le pb c'est si plusieurs taches se font refusé
-			for (i = 0; i < nb_gpu; i++) {
-				if (to == component->children[i]) {
+			for (i = 0; i < nb_gpu; i++)
+			{
+				if (to == component->children[i])
+				{
 					break;
 				}
-				else {
+				else
+				{
 					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 				}
 			}
 			starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task);
 		}
-		//~ task1 = get_task_to_return(component, to, data->p); 
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task from fifo on gpu %p\n", task1,
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 	}
 	else
@@ -3564,38 +3362,25 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 
 static int HFP_can_pull(struct starpu_sched_component * component)
 {
-	//~ printf("Can pull\n");
-	//~ struct HFP_sched_data *data = component->data;
 	return starpu_sched_component_can_pull(component);
 }
 
 /* Fonction qui va appeller le scheduling en fonction multigpu et de hmetis. On peut ignorer son temps dans xgemm directement */
 static void HFP_do_schedule(struct starpu_sched_component *component)
 {	
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
 	struct HFP_sched_data *data = component->data;
-		
-	int i = 0; int j = 0;
-	int NB_TOTAL_DONNEES = 0;
-	//~ struct starpu_task *task1 = NULL;
-	struct starpu_task *temp_task_1 = NULL;
-	//~ int nb_pop = 0; /* Variable used to track the number of tasks that have been popped */
+	struct starpu_task *task1 = NULL;
 	int nb_of_loop = 0; /* Number of iteration of the while loop */
 	int number_of_package_to_build = 0;
-	
-	/* Getting the number of GPUs */
-	number_of_package_to_build = get_number_GPU(); 
-	
-	/* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
-	GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
+	number_of_package_to_build = get_number_GPU(); /* Getting the number of GPUs */
+	GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx)))); /* Here we calculate the size of the RAM of the GPU. We allow our packages to have half of this size */
 		
 	/* If the linked list is empty, we can pull more tasks */
 	if (is_empty(data->p->first_link) == true) 
 	{
 		if (!starpu_task_list_empty(&data->sched_list))
-		{   
+		{  
 			/* Si la liste initiale (sched_list) n'est pas vide, ce sont des tâches non traitées */
-			//~ time_t start, end; time(&start);
 			EXPECTED_TIME = 0;
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
 				
@@ -3620,189 +3405,153 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			/* Pulling all tasks and counting them 
 			 * TODO : pas besoin de faire ca on peut faire size. Du coup faut suppr popped task list et la remplacer par sched list
 			 */
-			 struct starpu_task *task1 = NULL;
-			 //~ int nb_pop = 0;
 			NT = starpu_task_list_size(&data->sched_list);
 			while (!starpu_task_list_empty(&data->sched_list))
 			{
 				task1 = starpu_task_list_pop_front(&data->sched_list);
-				if (starpu_get_env_number_default("PRINTF",0) != 0) 
-				{ 
-					printf("Tâche %p, %d donnée(s) : ",task1, STARPU_TASK_GET_NBUFFERS(task1));
-					for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
-						printf("%p ",STARPU_TASK_GET_HANDLE(task1, i));
-					}
-					printf("\n");
-				}
-				if (starpu_get_env_number_default("MULTIGPU",0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}					
-				//nb_pop++;
-				starpu_task_list_push_back(&data->popped_task_list, task1);
-			}
-			//~ NT = nb_pop;
-			//~ NT = starpu_task_list_size(&data->sched_list);
-			
-			//~ struct starpu_task *task1 = NULL;
-			//~ while (!starpu_task_list_empty(&data->sched_list))
-			//~ {
-				//~ task1 = starpu_task_list_pop_front(&data->sched_list);
 				//~ if (starpu_get_env_number_default("PRINTF",0) != 0) 
 				//~ { 
 					//~ printf("Tâche %p, %d donnée(s) : ",task1, STARPU_TASK_GET_NBUFFERS(task1));
-					//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++) {
+					//~ for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task1); i++)
+					//~ {
 						//~ printf("%p ",STARPU_TASK_GET_HANDLE(task1, i));
 					//~ }
 					//~ printf("\n");
 				//~ }
-				//~ if (starpu_get_env_number_default("MULTIGPU",0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}					
-				//~ starpu_task_list_push_back(&data->popped_task_list, task1);
-			//~ }	
-					
-			//~ printf("NT = %d\n", NT);
+				if (starpu_get_env_number_default("MULTIGPU", 0) != 0) { EXPECTED_TIME += starpu_task_expected_length(task1, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	}
+				starpu_task_list_push_back(&data->popped_task_list, task1);
+			}
 			N = sqrt(NT);
+			
 			if(starpu_get_env_number_default("PRINT3D", 0) == 1) 
 			{
 				N = N/2; /* So i can print just like a 2D matrix */
 			}
 			data->p->NP = NT;
 			
+			data->p = hierarchical_fair_packing(data->popped_task_list, NT, number_of_package_to_build);
 				
-				/* Méthode avec fonction externe */			
-				/* TODO : option à ajouter pour le multi gpu ou il faut s'arreter à Ngpu paquets
-				 * En ajoutant if (data->p->NP == number_of_package_to_build) { goto end_algo3; } à la fin d'une itération Il faut donc faire en 
-				 * sorte de renvoyer 3 paquets.
-				 * Le pb c'est que avec hMetis je renvoie la liste c'est plus simple car j'ai déjà le partitionnement de fais en fait. 
-				 * Une idée serait de faire une fonction qui renvoie juste la liste de tâches à l'intérieur de la fonction.
-				 * Comme ca hmetis appellerait que cette sous fonction. La grosse fonction elle appellerait cette fonction de liste 
-				 * tant qu'on a pas Ngpu paquets puis remplirait les paquets et renverais la struct. */
-				data->p = hierarchical_fair_packing(data->popped_task_list, NT, number_of_package_to_build);
-				//~ data->p = hierarchical_fair_packing(data->sched_list, NT, number_of_package_to_build);
+			/* Printing in terminal */
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) 
+			//~ {
+				//~ int i = 0;
+				//~ int j = 0;
+				//~ int temp_tab_coordinates[2];
+				//~ FILE *f_last_package = fopen("Output_maxime/last_package_split.txt", "w");
+				//~ data->p->temp_pointer_1 = data->p->first_link;
+				//~ int sub_package = 0;
 				
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After first execution of HFP we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+				//~ while (data->p->temp_pointer_1 != NULL)
+				//~ {
+					//~ j = 1;
+					//~ for (task_1 = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task_1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task_1 = starpu_task_list_next(task_1)) 
+					//~ {
+						//~ /* + 1 cause it's the next one that is in the other sub package */
+						//~ if (j == data->p->temp_pointer_1->split_last_ij + 1)
+						//~ {
+							//~ sub_package++;
+						//~ }
+						//~ if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+						//~ {
+							//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
+							//~ fprintf(f_last_package, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+							//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 0), 2, temp_tab_coordinates);
+							//~ fprintf(f_last_package, "	%d	%d	%d\n", temp_tab_coordinates[0], i, sub_package);
+						//~ }
+						//~ else
+						//~ {
+							//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
+							//~ /* Printing X Y GPU SUBPACKAGE(1 - NSUBPACKAGES) */
+							//~ fprintf(f_last_package, "%d	%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i, sub_package);
+						//~ }
+						//~ j++;
+					//~ }
+					//~ sub_package++;
+					//~ i++;
+					//~ data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
+				//~ }
+				//~ fclose(f_last_package);
+			//~ }
 		
-		/* Printing in a file the task coordinates coordinates with the last subpackage of each gpu for visualization in 2D.
-		 * Je le fais avant le load balance la pour pouvoir split malgrès le load balance après. Je pourrai le faire après si besoin. */
-		if (starpu_get_env_number_default("PRINTF",0) == 1) 
-		{
-			int temp_tab_coordinates[2];
-			FILE *f_last_package = fopen("Output_maxime/last_package_split.txt", "w");
-			data->p->temp_pointer_1 = data->p->first_link;
-			int sub_package = 0;
-			i = 0; 
-			
-			while (data->p->temp_pointer_1 != NULL)
+			/* Task stealing based on the number of tasks. Only in cases of multigpu */
+			if (starpu_get_env_number_default("MULTIGPU", 0) == 2 || starpu_get_env_number_default("MULTIGPU", 0) == 3)
 			{
-				j = 1;
-				for (temp_task_1 = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); temp_task_1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); temp_task_1 = starpu_task_list_next(temp_task_1)) 
-				{
-					/* + 1 cause it's the next one that is in the other sub package */
-					if (j == data->p->temp_pointer_1->split_last_ij + 1)
-					{
-						sub_package++;
-					}
-					if (starpu_get_env_number_default("PRINT3D", 0) != 0)
-					{
-						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
-						fprintf(f_last_package, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
-						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 0), 2, temp_tab_coordinates);
-						fprintf(f_last_package, "	%d	%d	%d\n", temp_tab_coordinates[0], i, sub_package);
-					}
-					else
-					{
-						starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(temp_task_1, 2), 2, temp_tab_coordinates);
-						/* Printing X Y GPU SUBPACKAGE(1 - NSUBPACKAGES) */
-						fprintf(f_last_package, "%d	%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], i, sub_package);
-					}
-					j++;
+				load_balance(data->p, number_of_package_to_build);
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+			}
+			else if (starpu_get_env_number_default("MULTIGPU",0) == 4 || starpu_get_env_number_default("MULTIGPU",0) == 5) /* Task stealing with expected time of each task */
+			{
+				load_balance_expected_time(data->p, number_of_package_to_build);
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+			}
+			else if (starpu_get_env_number_default("MULTIGPU",0) == 6 || starpu_get_env_number_default("MULTIGPU",0) == 7)
+			{ /* Task stealing with expected time of each package, with transfers and overlap */
+				load_balance_expected_package_computation_time(data->p, GPU_RAM_M);
+				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected package computation time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
+			}
+			/* Re-apply HFP on each package. 
+			 * Once task stealing is done we need to re-apply HFP. For this I use an other instance of HFP_sched_data.
+			 * It is in another function, if it work we can also put the packing above in it.
+			 * Only with MULTIGPU = 2 because if we don't do load balance there is no point in re-applying HFP.
+			 */
+			 if (starpu_get_env_number_default("MULTIGPU", 0) == 3 || starpu_get_env_number_default("MULTIGPU", 0) == 5 || starpu_get_env_number_default("MULTIGPU", 0) == 7) 
+			 {	 
+				 data->p->temp_pointer_1 = data->p->first_link;
+				 while (data->p->temp_pointer_1 != NULL)
+				 { 
+					data->p->temp_pointer_1->sub_list = hierarchical_fair_packing_one_task_list(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list);
+					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 				}
-				sub_package++;
-				i++;
-				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-			}
-			fclose(f_last_package);
-		}
-		
-		/* Task stealing based on the number of tasks. Only in cases of multigpu */
-		if (starpu_get_env_number_default("MULTIGPU", 0) == 2 || starpu_get_env_number_default("MULTIGPU", 0) == 3)
-		{
-			load_balance(data->p, number_of_package_to_build);
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
-		}
-		else if (starpu_get_env_number_default("MULTIGPU",0) == 4 || starpu_get_env_number_default("MULTIGPU",0) == 5) /* Task stealing with expected time of each task */
-		{
-			load_balance_expected_time(data->p, number_of_package_to_build);
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
-		}
-		else if (starpu_get_env_number_default("MULTIGPU",0) == 6 || starpu_get_env_number_default("MULTIGPU",0) == 7)
-		{ /* Task stealing with expected time of each package, with transfers and overlap */
-			load_balance_expected_package_computation_time(data->p, GPU_RAM_M);
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("After load balance we have with expected package computation time ---\n"); print_packages_in_terminal(data->p, nb_of_loop); }
-		}
-		/* Re-apply HFP on each package. 
-		 * Once task stealing is done we need to re-apply HFP. For this I use an other instance of HFP_sched_data.
-		 * It is in another function, if it work we can also put the packing above in it.
-		 * Only with MULTIGPU = 2 because if we don't do load balance there is no point in re-applying HFP.
-		 */
-		 if (starpu_get_env_number_default("MULTIGPU", 0) == 3 || starpu_get_env_number_default("MULTIGPU", 0) == 5 || starpu_get_env_number_default("MULTIGPU", 0) == 7) 
-		 {	 
-			 data->p->temp_pointer_1 = data->p->first_link;
-			 while (data->p->temp_pointer_1 != NULL)
-			 { 
-				 /* TODO utiliser une autre fonction du coup */
-				data->p->temp_pointer_1->sub_list = hierarchical_fair_packing_one_task_list(data->p->temp_pointer_1->sub_list, data->p->temp_pointer_1->nb_task_in_sub_list);
-				data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-			}
-			if (starpu_get_env_number_default("PRINTF",0) == 1) 
-			{ 
-				printf("After execution of HFP on each package we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); 
-			}
-		 }
-		 
-		 /* Interlacing package task list order */
-		 if (starpu_get_env_number_default("INTERLACING",0) != 0)
-		 {
-			 if (starpu_get_env_number_default("PRINTF",0) == 1) 
-			 { 
-				printf("Before interlacing we have:\n");
-				print_packages_in_terminal(data->p, 0);
+				if (starpu_get_env_number_default("PRINTF",0) == 1) 
+				{ 
+					printf("After execution of HFP on each package we have ---\n"); print_packages_in_terminal(data->p, nb_of_loop); 
+				}
 			 }
-			 interlacing_task_list(data->p, starpu_get_env_number_default("INTERLACING",0));
-			 if (starpu_get_env_number_default("PRINTF",0) == 1) 
-			 { 
-				printf("After interlacing we have:\n");
-				print_packages_in_terminal(data->p, 0);
+			 
+			 /* Interlacing package task list order */
+			 if (starpu_get_env_number_default("INTERLACING",0) != 0)
+			 {
+				 if (starpu_get_env_number_default("PRINTF",0) == 1) 
+				 { 
+					printf("Before interlacing we have:\n");
+					print_packages_in_terminal(data->p, 0);
+				 }
+				 interlacing_task_list(data->p, starpu_get_env_number_default("INTERLACING",0));
+				 if (starpu_get_env_number_default("PRINTF",0) == 1) 
+				 { 
+					printf("After interlacing we have:\n");
+					print_packages_in_terminal(data->p, 0);
+				}
+			 }
+		
+			/* if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); } */
+		
+			/* Belady */
+			if (starpu_get_env_number_default("BELADY",0) == 1)
+			{
+				get_ordre_utilisation_donnee(data->p, number_of_package_to_build);
 			}
-		 }
 		
-		/* if (starpu_get_env_number_default("PRINTF",0) == 1) { end_visualisation_tache_matrice_format_tex(); } */
+			/* If you want to get the sum of weight of all different data. Only works if you have only one package */
+			//~ //if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->p->first_link, GPU_RAM_M); }
 		
-		/* Belady */
-		if (starpu_get_env_number_default("BELADY",0) == 1)
-		{
-			get_ordre_utilisation_donnee(data->p, NB_TOTAL_DONNEES, number_of_package_to_build);
-		}
-		
-		/* If you want to get the sum of weight of all different data. Only works if you have only one package */
-		//~ //if (starpu_get_env_number_default("PRINTF",0) == 1) { get_weight_all_different_data(data->p->first_link, GPU_RAM_M); }
-		
-		/* We prefetch data for each task for modular-heft-HFP */
-		if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0) 
-		{
-			prefetch_each_task(data->p, component);
-		}
-				
-		/* Printing in a file the order produced by HFP. If we use modular-heft-HFP, we can compare this order with the one done by modular-heft. We also print here the number of gpu in which a data is used for HFP's order. */
-		if (starpu_get_env_number_default("PRINTF", 0) == 1)
-		{
-			/* Todo a remetrre quand j'aurais corrigé le print_order_in_file_hfp */
-			init_visualisation(data->p);
-		}
+			/* We prefetch data for each task for modular-heft-HFP */
+			if (starpu_get_env_number_default("MODULAR_HEFT_HFP_MODE",0) != 0) 
+			{
+				prefetch_each_task(data->p, component);
+			}
+					
+			/* Printing in a file the order produced by HFP. If we use modular-heft-HFP, we can compare this order with the one done by modular-heft. We also print here the number of gpu in which a data is used for HFP's order. */
+			if (starpu_get_env_number_default("PRINTF", 0) == 1)
+			{
+				/* Todo a remetrre quand j'aurais corrigé le print_order_in_file_hfp */
+				init_visualisation(data->p);
+			}
 
-		//~ printf("do schedule done, gets true\n");
-		do_schedule_done = true;
-		//print_packages_in_terminal(data->p, 0);
-
-}
-}
+			do_schedule_done = true;
+		}
+	}
 }
 
 /* TODO a suppr */
@@ -3819,8 +3568,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 {
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
 	
-	//~ srandom(time(0)); /* If we need a random selection */
-	srandom(starpu_get_env_number_default("SEED", 0)); /* If we need a random selection */
+	srandom(starpu_get_env_number_default("SEED", 0)); 
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
 	
 	if (starpu_get_env_number_default("PRINTF", 0) == 1)
@@ -3865,7 +3613,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	
 	STARPU_PTHREAD_MUTEX_INIT(&HFP_mutex, NULL);
 	
-	/* TODO init du temps a suppr si on mesure plus le temps */
+	/* TODO init du temps a suppr si on mesure plus le temps. A suppr */
 	number_task_out = 0;
 	
 	time_total_getorderbelady = 0;
@@ -3916,14 +3664,13 @@ void get_current_tasks_for_visualization(struct starpu_task *task, unsigned sci)
 	starpu_sched_component_worker_pre_exec_hook(task, sci);
 	
 	/* For DMDAR */
-	//~ dmda_pre_exec_hook(task, sci)
+	/* dmda_pre_exec_hook(task, sci) */
 }
 
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
 	if (starpu_get_env_number_default("PRINTF", 0) == 1) 
 	{ 
-		//~ printf("Tache en cours : %p, data: %p %p %p\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2));
 		if (index_task_currently_treated == 0) 
 		{ 
 			initialize_global_variable(task);
@@ -3956,7 +3703,6 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		int y_to_load = 0;
 		int z_to_load = 0;
 		int i = 0;
-		//~ printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
 		
 		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -4038,7 +3784,6 @@ void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 	struct starpu_sched_component *temp_component = component;
 	struct HFP_sched_data *data = temp_component->data;
 	
-	//~ printf("Début de victim eviction failed avec %p.\n", victim); fflush(stdout);
      /* If a data was not truly evicted I put it back in the list. */
 	int i = 0;
 			
@@ -4055,7 +3800,6 @@ void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
-	//~ printf("Belady\n");
 	gettimeofday(&time_start_eviction, NULL);
 	int i = 0;
 	
@@ -4085,7 +3829,6 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	}
 	if (data->p->temp_pointer_1->data_to_evict_next != NULL)
 	{
-		//~ printf("Return %p in Belady that was refused.\n", data->p->temp_pointer_1->data_to_evict_next);
 		returned_handle = data->p->temp_pointer_1->data_to_evict_next;
 		data->p->temp_pointer_1->data_to_evict_next = NULL;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
@@ -4123,7 +3866,6 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 			}
 			
 			c = next_use_by_gpu_list_begin(b->next_use_tab[current_gpu]);
-			//~ printf("Next use of %p is %d.\n", data_on_node[i], c->value_next_use);
 			if (latest_use < c->value_next_use)
 			{
 				latest_use = c->value_next_use;
@@ -4133,7 +3875,6 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	}
 	if (latest_use == 0) /* Si je n'ai eu aucune donnée valide, je renvoie NO_VICTIM */
 	{
-		//~ printf("latest_use == 0, return NO_VICTIM.\n"); fflush(stdout);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 		
 		gettimeofday(&time_end_eviction, NULL);
@@ -4142,7 +3883,6 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		return STARPU_DATA_NO_VICTIM;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
-	//~ printf("latest use is %d, return %p.\n", latest_use, data_on_node[index_latest_use]);
 	
 			gettimeofday(&time_end_eviction, NULL);
 		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
