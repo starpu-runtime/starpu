@@ -794,7 +794,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	}
 	if (freed != 0) 
 	{
-	    if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle); }
+	    //~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Eviction dans try_to_throw_mem_chunk de %p\n", handle); }
 	    //~ if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    //~ {
 		//~ _STARPU_SCHED_BEGIN;
@@ -804,7 +804,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	}
 	else 
 	{
-	    if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Echec eviction de %p dans try_to_throw_mem_chunk.\n", handle); }
+	    //~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Echec eviction de %p dans try_to_throw_mem_chunk.\n", handle); }
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 			_STARPU_SCHED_BEGIN;
@@ -1018,7 +1018,7 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 			if (victim_footprint != footprint)
 			{
 				/* Don't even bother looking for it, it won't fit anyway */
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n"); }
+				//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n"); }
 				if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 				{
 				    _STARPU_SCHED_BEGIN;
@@ -1087,7 +1087,7 @@ restart:
 	//~ printf("Succes vaut : %d dans try_to_reuse_potentially_in_use_mc.\n", success);
 	if (victim && victim_eviction_failed != NULL && success == 0)
 	{
-	    if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc.\n"); }
+	    //~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc.\n"); }
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
 			_STARPU_SCHED_BEGIN;
@@ -1254,7 +1254,7 @@ restart2:
 	{
 	    if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	    {
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Calling victim evicted in free_potentially_in_use_mc.\n"); }
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Calling victim evicted in free_potentially_in_use_mc.\n"); }
 			_STARPU_SCHED_BEGIN;
 			victim_eviction_failed(victim, data_victim_selector);
 			_STARPU_SCHED_END;
