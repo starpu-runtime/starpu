@@ -1281,7 +1281,11 @@ _starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 
 			STARPU_CUDA_REPORT_ERROR(cures);
 		}
+#ifdef STARPU_HAVE_CUDA_POINTER_TYPE
 		STARPU_ASSERT(cuda_ptrattr.type == cudaMemoryTypeHost || cuda_ptrattr.type == cudaMemoryTypeManaged);
+#else
+		STARPU_ASSERT(cuda_ptrattr.memoryType == cudaMemoryTypeHost || cuda_ptrattr.memoryType == cudaMemoryTypeManaged);
+#endif
 		dst_addr = (uintptr_t)cuda_ptrattr.devicePointer;
 		*ret = 0;
 	}

@@ -1465,6 +1465,9 @@ if test x$enable_cuda_map = xyes -a x$enable_cuda = xyes ; then
     AC_CHECK_MEMBER([struct cudaDeviceProp.pageableMemoryAccess],
                     AC_DEFINE([STARPU_HAVE_CUDA_PAGEABLEMEM],[1],[Define to 1 if CUDA device properties include pageableMemoryAccess]),
   , [[#include <cuda_runtime_api.h>]])
+    AC_CHECK_MEMBER([struct cudaPointerAttributes.type],
+		    AC_DEFINE([STARPU_HAVE_CUDA_POINTER_TYPE],[1],[Define to 1 if CUDA pointer attributes include a type field instead of old memoryType field]),
+  , [[#include <cuda_runtime_api.h>]])
     LDFLAGS="${SAVED_LDFLAGS}"
     AC_DEFINE(STARPU_USE_CUDA_MAP,[1],[Define to 1 if CUDA Mapped host memory may be used])
 fi
