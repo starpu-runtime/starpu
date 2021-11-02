@@ -67,7 +67,7 @@ int index_current_popped_task_all_gpu_prefetch;
 /* Structure used to acces the struct my_list. There are also task's list */
 struct HFP_sched_data
 {
-	struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
+	//~ struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
 	struct paquets *p;
 	struct starpu_task_list sched_list;
      	starpu_pthread_mutex_t policy_mutex;   	
@@ -186,7 +186,7 @@ void prefetch_each_task(struct paquets *a, struct starpu_sched_component *to);
  * Used for now to reorder task inside a package after load balancing
  * Can be used as main HFP like in pull task later
  */
-struct paquets* hierarchical_fair_packing (struct starpu_task_list task_list, int number_task, int number_of_package_to_build);
+struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, int number_task, int number_of_package_to_build);
 
 /* Check if our struct is empty */
 bool is_empty(struct my_list* a);
