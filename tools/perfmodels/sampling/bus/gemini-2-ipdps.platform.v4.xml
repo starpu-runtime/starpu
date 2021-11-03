@@ -66,6 +66,22 @@
      <prop id="memsize" value="34089730048"/>
      <prop id="memcpy_peer" value="1"/>
    </host>
+   <host id="CUDA4" speed="2000000000f">
+     <prop id="memsize" value="34089730048"/>
+     <prop id="memcpy_peer" value="1"/>
+   </host>
+   <host id="CUDA5" speed="2000000000f">
+     <prop id="memsize" value="34089730048"/>
+     <prop id="memcpy_peer" value="1"/>
+   </host>
+   <host id="CUDA6" speed="2000000000f">
+     <prop id="memsize" value="34089730048"/>
+     <prop id="memcpy_peer" value="1"/>
+   </host>
+   <host id="CUDA7" speed="2000000000f">
+     <prop id="memsize" value="34089730048"/>
+     <prop id="memcpy_peer" value="1"/>
+   </host>
    <host id="OpenCL0" speed="2000000000f">
      <prop id="memsize" value="34089730048"/>
    </host>
@@ -93,82 +109,169 @@
 
    <host id="RAM" speed="1f"/>
 
-   <link id="Host" bandwidth="12379137042.546495Bps" latency="0.000000s"/>
+   <link id="Host" bandwidth="12381247783.754141Bps" latency="0.000000s"/>
 
-   <link id="RAM-OpenCL0" bandwidth="10459870798.302425Bps" latency="0.000011s"/>
-   <link id="OpenCL0-RAM" bandwidth="11600552474.643789Bps" latency="0.000013s"/>
-   <link id="RAM-OpenCL1" bandwidth="10452227233.997274Bps" latency="0.000011s"/>
-   <link id="OpenCL1-RAM" bandwidth="11472334741.589403Bps" latency="0.000013s"/>
-   <link id="RAM-OpenCL2" bandwidth="10532740961.912489Bps" latency="0.000010s"/>
-   <link id="OpenCL2-RAM" bandwidth="11605080058.044989Bps" latency="0.000012s"/>
-   <link id="RAM-OpenCL3" bandwidth="10508888585.965229Bps" latency="0.000010s"/>
-   <link id="OpenCL3-RAM" bandwidth="11571954752.390940Bps" latency="0.000011s"/>
-   <link id="RAM-OpenCL4" bandwidth="10430249580.215050Bps" latency="0.000011s"/>
-   <link id="OpenCL4-RAM" bandwidth="7583741219.293898Bps" latency="0.000013s"/>
-   <link id="RAM-OpenCL5" bandwidth="10445569752.310448Bps" latency="0.000011s"/>
-   <link id="OpenCL5-RAM" bandwidth="7594342478.377560Bps" latency="0.000013s"/>
-   <link id="RAM-OpenCL6" bandwidth="10481636540.562502Bps" latency="0.000010s"/>
-   <link id="OpenCL6-RAM" bandwidth="7622262727.891422Bps" latency="0.000012s"/>
-   <link id="RAM-OpenCL7" bandwidth="10454645077.261808Bps" latency="0.000010s"/>
-   <link id="OpenCL7-RAM" bandwidth="7561874414.306803Bps" latency="0.000012s"/>
+   <link id="RAM-OpenCL0" bandwidth="10460600926.765137Bps" latency="0.000011s"/>
+   <link id="OpenCL0-RAM" bandwidth="11624171285.002529Bps" latency="0.000013s"/>
+   <link id="RAM-OpenCL1" bandwidth="10475188754.583134Bps" latency="0.000011s"/>
+   <link id="OpenCL1-RAM" bandwidth="11631874492.878815Bps" latency="0.000013s"/>
+   <link id="RAM-OpenCL2" bandwidth="10511245664.781881Bps" latency="0.000010s"/>
+   <link id="OpenCL2-RAM" bandwidth="11668932682.879301Bps" latency="0.000011s"/>
+   <link id="RAM-OpenCL3" bandwidth="10553105197.328243Bps" latency="0.000010s"/>
+   <link id="OpenCL3-RAM" bandwidth="11682090868.547674Bps" latency="0.000012s"/>
+   <link id="RAM-OpenCL4" bandwidth="10446422994.459127Bps" latency="0.000011s"/>
+   <link id="OpenCL4-RAM" bandwidth="7709231991.019871Bps" latency="0.000013s"/>
+   <link id="RAM-OpenCL5" bandwidth="10446523713.871843Bps" latency="0.000011s"/>
+   <link id="OpenCL5-RAM" bandwidth="7723760013.270247Bps" latency="0.000013s"/>
+   <link id="RAM-OpenCL6" bandwidth="10488013079.215948Bps" latency="0.000011s"/>
+   <link id="OpenCL6-RAM" bandwidth="7699263026.309341Bps" latency="0.000012s"/>
+   <link id="RAM-OpenCL7" bandwidth="10484382593.759270Bps" latency="0.000010s"/>
+   <link id="OpenCL7-RAM" bandwidth="7723235234.683667Bps" latency="0.000012s"/>
 
-   <link id="RAM-CUDA0" bandwidth="10726723160.672644Bps" latency="0.000010s"/>
-   <link id="CUDA0-RAM" bandwidth="12373435774.061806Bps" latency="0.000009s"/>
-   <link id="RAM-CUDA1" bandwidth="10717775986.305426Bps" latency="0.000010s"/>
-   <link id="CUDA1-RAM" bandwidth="12379137042.546495Bps" latency="0.000009s"/>
-   <link id="RAM-CUDA2" bandwidth="10723014122.359585Bps" latency="0.000009s"/>
-   <link id="CUDA2-RAM" bandwidth="12352027894.594267Bps" latency="0.000009s"/>
-   <link id="RAM-CUDA3" bandwidth="10776838946.952417Bps" latency="0.000012s"/>
-   <link id="CUDA3-RAM" bandwidth="12365571099.627028Bps" latency="0.000009s"/>
+   <link id="RAM-CUDA0" bandwidth="10799797981.137030Bps" latency="0.000011s"/>
+   <link id="CUDA0-RAM" bandwidth="12378422633.981247Bps" latency="0.000010s"/>
+   <link id="RAM-CUDA1" bandwidth="10806653877.798119Bps" latency="0.000010s"/>
+   <link id="CUDA1-RAM" bandwidth="12377102636.477217Bps" latency="0.000010s"/>
+   <link id="RAM-CUDA2" bandwidth="10758643537.489380Bps" latency="0.000010s"/>
+   <link id="CUDA2-RAM" bandwidth="12381247783.754141Bps" latency="0.000009s"/>
+   <link id="RAM-CUDA3" bandwidth="10785340527.860655Bps" latency="0.000010s"/>
+   <link id="CUDA3-RAM" bandwidth="12374047361.080482Bps" latency="0.000009s"/>
+   <link id="RAM-CUDA4" bandwidth="10991069707.056623Bps" latency="0.000010s"/>
+   <link id="CUDA4-RAM" bandwidth="12369713512.834415Bps" latency="0.000010s"/>
+   <link id="RAM-CUDA5" bandwidth="10989750831.716784Bps" latency="0.000011s"/>
+   <link id="CUDA5-RAM" bandwidth="12373934707.028971Bps" latency="0.000010s"/>
+   <link id="RAM-CUDA6" bandwidth="10964222054.211250Bps" latency="0.000010s"/>
+   <link id="CUDA6-RAM" bandwidth="12372863740.390766Bps" latency="0.000009s"/>
+   <link id="RAM-CUDA7" bandwidth="10998674146.470814Bps" latency="0.000010s"/>
+   <link id="CUDA7-RAM" bandwidth="12374564883.071974Bps" latency="0.000009s"/>
 
-   <link id="CUDA0-CUDA1" bandwidth="24026697617.988037Bps" latency="0.000013s"/>
-   <link id="CUDA0-CUDA2" bandwidth="24051537321.012802Bps" latency="0.000012s"/>
-   <link id="CUDA0-CUDA3" bandwidth="47656491083.209015Bps" latency="0.000011s"/>
-   <link id="CUDA1-CUDA0" bandwidth="23950028851.779556Bps" latency="0.000015s"/>
-   <link id="CUDA1-CUDA2" bandwidth="47651178381.009781Bps" latency="0.000011s"/>
-   <link id="CUDA1-CUDA3" bandwidth="24051229699.739750Bps" latency="0.000011s"/>
-   <link id="CUDA2-CUDA0" bandwidth="24056138571.761627Bps" latency="0.000011s"/>
-   <link id="CUDA2-CUDA1" bandwidth="47621702995.226013Bps" latency="0.000011s"/>
-   <link id="CUDA2-CUDA3" bandwidth="47665748843.384651Bps" latency="0.000011s"/>
-   <link id="CUDA3-CUDA0" bandwidth="47669623530.304352Bps" latency="0.000011s"/>
-   <link id="CUDA3-CUDA1" bandwidth="24061020332.618713Bps" latency="0.000011s"/>
-   <link id="CUDA3-CUDA2" bandwidth="47642951529.387955Bps" latency="0.000011s"/>
+   <link id="CUDA0-CUDA1" bandwidth="24048730231.933552Bps" latency="0.000012s"/>
+   <link id="CUDA0-CUDA2" bandwidth="24056371402.285213Bps" latency="0.000011s"/>
+   <link id="CUDA0-CUDA3" bandwidth="47657474655.240456Bps" latency="0.000012s"/>
+   <link id="CUDA0-CUDA4" bandwidth="47637377660.293777Bps" latency="0.000012s"/>
+   <link id="CUDA0-CUDA5" bandwidth="10210741844.976192Bps" latency="0.000022s"/>
+   <link id="CUDA0-CUDA6" bandwidth="10258413520.423454Bps" latency="0.000019s"/>
+   <link id="CUDA0-CUDA7" bandwidth="10223109254.750738Bps" latency="0.000020s"/>
+   <link id="CUDA1-CUDA0" bandwidth="24050199683.692356Bps" latency="0.000012s"/>
+   <link id="CUDA1-CUDA2" bandwidth="47652531823.259270Bps" latency="0.000011s"/>
+   <link id="CUDA1-CUDA3" bandwidth="24054844073.130135Bps" latency="0.000012s"/>
+   <link id="CUDA1-CUDA4" bandwidth="10214352096.358753Bps" latency="0.000022s"/>
+   <link id="CUDA1-CUDA5" bandwidth="47644697727.091339Bps" latency="0.000012s"/>
+   <link id="CUDA1-CUDA6" bandwidth="10284035726.748724Bps" latency="0.000020s"/>
+   <link id="CUDA1-CUDA7" bandwidth="10244305325.003298Bps" latency="0.000019s"/>
+   <link id="CUDA2-CUDA0" bandwidth="24059097255.913685Bps" latency="0.000011s"/>
+   <link id="CUDA2-CUDA1" bandwidth="47685452590.907700Bps" latency="0.000011s"/>
+   <link id="CUDA2-CUDA3" bandwidth="47694145366.374870Bps" latency="0.000011s"/>
+   <link id="CUDA2-CUDA4" bandwidth="10217814673.570988Bps" latency="0.000020s"/>
+   <link id="CUDA2-CUDA5" bandwidth="10185192773.042604Bps" latency="0.000020s"/>
+   <link id="CUDA2-CUDA6" bandwidth="24062926999.750347Bps" latency="0.000011s"/>
+   <link id="CUDA2-CUDA7" bandwidth="10192534421.198339Bps" latency="0.000018s"/>
+   <link id="CUDA3-CUDA0" bandwidth="47670258438.032021Bps" latency="0.000011s"/>
+   <link id="CUDA3-CUDA1" bandwidth="24054690488.656921Bps" latency="0.000011s"/>
+   <link id="CUDA3-CUDA2" bandwidth="47704920417.368126Bps" latency="0.000011s"/>
+   <link id="CUDA3-CUDA4" bandwidth="10227713685.046007Bps" latency="0.000020s"/>
+   <link id="CUDA3-CUDA5" bandwidth="10137894103.307386Bps" latency="0.000022s"/>
+   <link id="CUDA3-CUDA6" bandwidth="10238113043.092146Bps" latency="0.000018s"/>
+   <link id="CUDA3-CUDA7" bandwidth="24069823396.203930Bps" latency="0.000011s"/>
+   <link id="CUDA4-CUDA0" bandwidth="47651322180.602135Bps" latency="0.000012s"/>
+   <link id="CUDA4-CUDA1" bandwidth="10261880344.598625Bps" latency="0.000020s"/>
+   <link id="CUDA4-CUDA2" bandwidth="10299607864.684130Bps" latency="0.000018s"/>
+   <link id="CUDA4-CUDA3" bandwidth="10324074805.618429Bps" latency="0.000019s"/>
+   <link id="CUDA4-CUDA5" bandwidth="24045487623.584606Bps" latency="0.000012s"/>
+   <link id="CUDA4-CUDA6" bandwidth="24055533880.206924Bps" latency="0.000012s"/>
+   <link id="CUDA4-CUDA7" bandwidth="47661574366.895401Bps" latency="0.000012s"/>
+   <link id="CUDA5-CUDA0" bandwidth="10270966114.181572Bps" latency="0.000021s"/>
+   <link id="CUDA5-CUDA1" bandwidth="47623901770.045578Bps" latency="0.000012s"/>
+   <link id="CUDA5-CUDA2" bandwidth="10304056516.503370Bps" latency="0.000019s"/>
+   <link id="CUDA5-CUDA3" bandwidth="10318314513.000837Bps" latency="0.000018s"/>
+   <link id="CUDA5-CUDA4" bandwidth="24048831493.375496Bps" latency="0.000012s"/>
+   <link id="CUDA5-CUDA6" bandwidth="47660423499.436050Bps" latency="0.000012s"/>
+   <link id="CUDA5-CUDA7" bandwidth="24051447889.146519Bps" latency="0.000012s"/>
+   <link id="CUDA6-CUDA0" bandwidth="10265122322.901627Bps" latency="0.000019s"/>
+   <link id="CUDA6-CUDA1" bandwidth="10262615756.377413Bps" latency="0.000019s"/>
+   <link id="CUDA6-CUDA2" bandwidth="24060776628.848164Bps" latency="0.000011s"/>
+   <link id="CUDA6-CUDA3" bandwidth="10341424416.252550Bps" latency="0.000018s"/>
+   <link id="CUDA6-CUDA4" bandwidth="24057115735.648899Bps" latency="0.000012s"/>
+   <link id="CUDA6-CUDA5" bandwidth="47666576208.617462Bps" latency="0.000012s"/>
+   <link id="CUDA6-CUDA7" bandwidth="47694575427.534477Bps" latency="0.000011s"/>
+   <link id="CUDA7-CUDA0" bandwidth="10271392330.715046Bps" latency="0.000019s"/>
+   <link id="CUDA7-CUDA1" bandwidth="10261655858.054424Bps" latency="0.000019s"/>
+   <link id="CUDA7-CUDA2" bandwidth="10313631631.926018Bps" latency="0.000018s"/>
+   <link id="CUDA7-CUDA3" bandwidth="24059284320.524029Bps" latency="0.000011s"/>
+   <link id="CUDA7-CUDA4" bandwidth="47675579629.565384Bps" latency="0.000012s"/>
+   <link id="CUDA7-CUDA5" bandwidth="24053730764.849659Bps" latency="0.000012s"/>
+   <link id="CUDA7-CUDA6" bandwidth="47683034258.327698Bps" latency="0.000011s"/>
 
-   <link id="PCI:0000:[00-12] up" bandwidth="12379137042.546495Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[00-12] down" bandwidth="10776838946.952417Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[00-12] through" bandwidth="95339247060.608704Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[03-07] up" bandwidth="47656491083.209015Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[03-07] down" bandwidth="47669623530.304352Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[03-07] through" bandwidth="95339247060.608704Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[04-07] up" bandwidth="47656491083.209015Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[04-07] down" bandwidth="47669623530.304352Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[04-07] through" bandwidth="95339247060.608704Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[06-06] up" bandwidth="47656491083.209015Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[06-06] down" bandwidth="47669623530.304352Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[06-06] through" bandwidth="95339247060.608704Bps" latency="0.000000s"/>
-   <link id="PCI:0000:06:00.0 up" bandwidth="47656491083.209015Bps" latency="0.000000s"/>
-   <link id="PCI:0000:06:00.0 down" bandwidth="47669623530.304352Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[07-07] up" bandwidth="47651178381.009781Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[07-07] down" bandwidth="47621702995.226013Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[07-07] through" bandwidth="95302356762.019562Bps" latency="0.000000s"/>
-   <link id="PCI:0000:07:00.0 up" bandwidth="47651178381.009781Bps" latency="0.000000s"/>
-   <link id="PCI:0000:07:00.0 down" bandwidth="47621702995.226013Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[08-10] up" bandwidth="47669623530.304352Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[08-10] down" bandwidth="47656491083.209015Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[08-10] through" bandwidth="95339247060.608704Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[09-10] up" bandwidth="47669623530.304352Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[09-10] down" bandwidth="47656491083.209015Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[09-10] through" bandwidth="95339247060.608704Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[0a-0a] up" bandwidth="47665748843.384651Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[0a-0a] down" bandwidth="47651178381.009781Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[0a-0a] through" bandwidth="95331497686.769302Bps" latency="0.000000s"/>
-   <link id="PCI:0000:0a:00.0 up" bandwidth="47665748843.384651Bps" latency="0.000000s"/>
-   <link id="PCI:0000:0a:00.0 down" bandwidth="47651178381.009781Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[0b-0b] up" bandwidth="47669623530.304352Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[0b-0b] down" bandwidth="47665748843.384651Bps" latency="0.000000s"/>
-   <link id="PCI:0000:[0b-0b] through" bandwidth="95339247060.608704Bps" latency="0.000000s"/>
-   <link id="PCI:0000:0b:00.0 up" bandwidth="47669623530.304352Bps" latency="0.000000s"/>
-   <link id="PCI:0000:0b:00.0 down" bandwidth="47665748843.384651Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[00-12] up" bandwidth="47644697727.091339Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[00-12] down" bandwidth="47651322180.602135Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[00-12] through" bandwidth="95370905181.815399Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[03-07] up" bandwidth="47657474655.240456Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[03-07] down" bandwidth="47685452590.907700Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[03-07] through" bandwidth="95370905181.815399Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[04-07] up" bandwidth="47657474655.240456Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[04-07] down" bandwidth="47685452590.907700Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[04-07] through" bandwidth="95370905181.815399Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[06-06] up" bandwidth="47657474655.240456Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[06-06] down" bandwidth="47670258438.032021Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[06-06] through" bandwidth="95340516876.064041Bps" latency="0.000000s"/>
+   <link id="PCI:0000:06:00.0 up" bandwidth="47657474655.240456Bps" latency="0.000000s"/>
+   <link id="PCI:0000:06:00.0 down" bandwidth="47670258438.032021Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[07-07] up" bandwidth="47652531823.259270Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[07-07] down" bandwidth="47685452590.907700Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[07-07] through" bandwidth="95370905181.815399Bps" latency="0.000000s"/>
+   <link id="PCI:0000:07:00.0 up" bandwidth="47652531823.259270Bps" latency="0.000000s"/>
+   <link id="PCI:0000:07:00.0 down" bandwidth="47685452590.907700Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[08-10] up" bandwidth="47685452590.907700Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[08-10] down" bandwidth="47657474655.240456Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[08-10] through" bandwidth="95370905181.815399Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[09-10] up" bandwidth="47685452590.907700Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[09-10] down" bandwidth="47657474655.240456Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[09-10] through" bandwidth="95409840834.736252Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[0a-0a] up" bandwidth="47694145366.374870Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[0a-0a] down" bandwidth="47704920417.368126Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[0a-0a] through" bandwidth="95409840834.736252Bps" latency="0.000000s"/>
+   <link id="PCI:0000:0a:00.0 up" bandwidth="47694145366.374870Bps" latency="0.000000s"/>
+   <link id="PCI:0000:0a:00.0 down" bandwidth="47704920417.368126Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[0b-0b] up" bandwidth="47704920417.368126Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[0b-0b] down" bandwidth="47694145366.374870Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[0b-0b] through" bandwidth="95409840834.736252Bps" latency="0.000000s"/>
+   <link id="PCI:0000:0b:00.0 up" bandwidth="47704920417.368126Bps" latency="0.000000s"/>
+   <link id="PCI:0000:0b:00.0 down" bandwidth="47694145366.374870Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[80-8f] up" bandwidth="47651322180.602135Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[80-8f] down" bandwidth="47644697727.091339Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[80-8f] through" bandwidth="95351159259.130768Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[82-86] up" bandwidth="47661574366.895401Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[82-86] down" bandwidth="47675579629.565384Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[82-86] through" bandwidth="95351159259.130768Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[83-86] up" bandwidth="47661574366.895401Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[83-86] down" bandwidth="47675579629.565384Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[83-86] through" bandwidth="95351159259.130768Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[85-85] up" bandwidth="47661574366.895401Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[85-85] down" bandwidth="47675579629.565384Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[85-85] through" bandwidth="95351159259.130768Bps" latency="0.000000s"/>
+   <link id="PCI:0000:85:00.0 up" bandwidth="47661574366.895401Bps" latency="0.000000s"/>
+   <link id="PCI:0000:85:00.0 down" bandwidth="47675579629.565384Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[86-86] up" bandwidth="47660423499.436050Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[86-86] down" bandwidth="47666576208.617462Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[86-86] through" bandwidth="95333152417.234924Bps" latency="0.000000s"/>
+   <link id="PCI:0000:86:00.0 up" bandwidth="47660423499.436050Bps" latency="0.000000s"/>
+   <link id="PCI:0000:86:00.0 down" bandwidth="47666576208.617462Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[87-8f] up" bandwidth="47675579629.565384Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[87-8f] down" bandwidth="47661574366.895401Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[87-8f] through" bandwidth="95351159259.130768Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[88-8f] up" bandwidth="47675579629.565384Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[88-8f] down" bandwidth="47661574366.895401Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[88-8f] through" bandwidth="95389150855.068954Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[89-89] up" bandwidth="47694575427.534477Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[89-89] down" bandwidth="47683034258.327698Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[89-89] through" bandwidth="95389150855.068954Bps" latency="0.000000s"/>
+   <link id="PCI:0000:89:00.0 up" bandwidth="47694575427.534477Bps" latency="0.000000s"/>
+   <link id="PCI:0000:89:00.0 down" bandwidth="47683034258.327698Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[8a-8a] up" bandwidth="47683034258.327698Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[8a-8a] down" bandwidth="47694575427.534477Bps" latency="0.000000s"/>
+   <link id="PCI:0000:[8a-8a] through" bandwidth="95389150855.068954Bps" latency="0.000000s"/>
+   <link id="PCI:0000:8a:00.0 up" bandwidth="47683034258.327698Bps" latency="0.000000s"/>
+   <link id="PCI:0000:8a:00.0 down" bandwidth="47694575427.534477Bps" latency="0.000000s"/>
 
    <route src="CUDA0" dst="CUDA1" symmetrical="NO">
     <link_ctn id="CUDA0-CUDA1"/>
@@ -207,6 +310,98 @@
     <link_ctn id="PCI:0000:[09-10] down"/>
     <link_ctn id="PCI:0000:[08-10] through"/>
     <link_ctn id="PCI:0000:[08-10] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[03-07] up"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] up"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[06-06] up"/>
+    <link_ctn id="PCI:0000:[06-06] through"/>
+    <link_ctn id="PCI:0000:06:00.0 up"/>
+   </route>
+   <route src="CUDA0" dst="CUDA4" symmetrical="NO">
+    <link_ctn id="CUDA0-CUDA4"/>
+    <link_ctn id="PCI:0000:85:00.0 down"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:[85-85] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[03-07] up"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] up"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[06-06] up"/>
+    <link_ctn id="PCI:0000:[06-06] through"/>
+    <link_ctn id="PCI:0000:06:00.0 up"/>
+   </route>
+   <route src="CUDA0" dst="CUDA5" symmetrical="NO">
+    <link_ctn id="CUDA0-CUDA5"/>
+    <link_ctn id="PCI:0000:86:00.0 down"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[03-07] up"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] up"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[06-06] up"/>
+    <link_ctn id="PCI:0000:[06-06] through"/>
+    <link_ctn id="PCI:0000:06:00.0 up"/>
+   </route>
+   <route src="CUDA0" dst="CUDA6" symmetrical="NO">
+    <link_ctn id="CUDA0-CUDA6"/>
+    <link_ctn id="PCI:0000:89:00.0 down"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:[89-89] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[03-07] up"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] up"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[06-06] up"/>
+    <link_ctn id="PCI:0000:[06-06] through"/>
+    <link_ctn id="PCI:0000:06:00.0 up"/>
+   </route>
+   <route src="CUDA0" dst="CUDA7" symmetrical="NO">
+    <link_ctn id="CUDA0-CUDA7"/>
+    <link_ctn id="PCI:0000:8a:00.0 down"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
     <link_ctn id="PCI:0000:[00-12] through"/>
     <link_ctn id="PCI:0000:[03-07] up"/>
     <link_ctn id="PCI:0000:[03-07] through"/>
@@ -288,6 +483,98 @@
     <link_ctn id="PCI:0000:[07-07] through"/>
     <link_ctn id="PCI:0000:07:00.0 up"/>
    </route>
+   <route src="CUDA1" dst="CUDA4" symmetrical="NO">
+    <link_ctn id="CUDA1-CUDA4"/>
+    <link_ctn id="PCI:0000:85:00.0 down"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:[85-85] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[03-07] up"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] up"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[07-07] up"/>
+    <link_ctn id="PCI:0000:[07-07] through"/>
+    <link_ctn id="PCI:0000:07:00.0 up"/>
+   </route>
+   <route src="CUDA1" dst="CUDA5" symmetrical="NO">
+    <link_ctn id="CUDA1-CUDA5"/>
+    <link_ctn id="PCI:0000:86:00.0 down"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[03-07] up"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] up"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[07-07] up"/>
+    <link_ctn id="PCI:0000:[07-07] through"/>
+    <link_ctn id="PCI:0000:07:00.0 up"/>
+   </route>
+   <route src="CUDA1" dst="CUDA6" symmetrical="NO">
+    <link_ctn id="CUDA1-CUDA6"/>
+    <link_ctn id="PCI:0000:89:00.0 down"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:[89-89] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[03-07] up"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] up"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[07-07] up"/>
+    <link_ctn id="PCI:0000:[07-07] through"/>
+    <link_ctn id="PCI:0000:07:00.0 up"/>
+   </route>
+   <route src="CUDA1" dst="CUDA7" symmetrical="NO">
+    <link_ctn id="CUDA1-CUDA7"/>
+    <link_ctn id="PCI:0000:8a:00.0 down"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[03-07] up"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] up"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[07-07] up"/>
+    <link_ctn id="PCI:0000:[07-07] through"/>
+    <link_ctn id="PCI:0000:07:00.0 up"/>
+   </route>
    <route src="CUDA1" dst="RAM" symmetrical="NO">
     <link_ctn id="CUDA1-RAM"/>
     <link_ctn id="PCI:0000:07:00.0 up"/>
@@ -355,6 +642,98 @@
     <link_ctn id="PCI:0000:0b:00.0 down"/>
     <link_ctn id="PCI:0000:[0b-0b] through"/>
     <link_ctn id="PCI:0000:[0b-0b] down"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[0a-0a] up"/>
+    <link_ctn id="PCI:0000:[0a-0a] through"/>
+    <link_ctn id="PCI:0000:0a:00.0 up"/>
+   </route>
+   <route src="CUDA2" dst="CUDA4" symmetrical="NO">
+    <link_ctn id="CUDA2-CUDA4"/>
+    <link_ctn id="PCI:0000:85:00.0 down"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:[85-85] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[08-10] up"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] up"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[0a-0a] up"/>
+    <link_ctn id="PCI:0000:[0a-0a] through"/>
+    <link_ctn id="PCI:0000:0a:00.0 up"/>
+   </route>
+   <route src="CUDA2" dst="CUDA5" symmetrical="NO">
+    <link_ctn id="CUDA2-CUDA5"/>
+    <link_ctn id="PCI:0000:86:00.0 down"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[08-10] up"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] up"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[0a-0a] up"/>
+    <link_ctn id="PCI:0000:[0a-0a] through"/>
+    <link_ctn id="PCI:0000:0a:00.0 up"/>
+   </route>
+   <route src="CUDA2" dst="CUDA6" symmetrical="NO">
+    <link_ctn id="CUDA2-CUDA6"/>
+    <link_ctn id="PCI:0000:89:00.0 down"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:[89-89] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[08-10] up"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] up"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[0a-0a] up"/>
+    <link_ctn id="PCI:0000:[0a-0a] through"/>
+    <link_ctn id="PCI:0000:0a:00.0 up"/>
+   </route>
+   <route src="CUDA2" dst="CUDA7" symmetrical="NO">
+    <link_ctn id="CUDA2-CUDA7"/>
+    <link_ctn id="PCI:0000:8a:00.0 down"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[08-10] up"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] up"/>
     <link_ctn id="PCI:0000:[09-10] through"/>
     <link_ctn id="PCI:0000:[0a-0a] up"/>
     <link_ctn id="PCI:0000:[0a-0a] through"/>
@@ -432,6 +811,98 @@
     <link_ctn id="PCI:0000:[0b-0b] through"/>
     <link_ctn id="PCI:0000:0b:00.0 up"/>
    </route>
+   <route src="CUDA3" dst="CUDA4" symmetrical="NO">
+    <link_ctn id="CUDA3-CUDA4"/>
+    <link_ctn id="PCI:0000:85:00.0 down"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:[85-85] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[08-10] up"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] up"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[0b-0b] up"/>
+    <link_ctn id="PCI:0000:[0b-0b] through"/>
+    <link_ctn id="PCI:0000:0b:00.0 up"/>
+   </route>
+   <route src="CUDA3" dst="CUDA5" symmetrical="NO">
+    <link_ctn id="CUDA3-CUDA5"/>
+    <link_ctn id="PCI:0000:86:00.0 down"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[08-10] up"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] up"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[0b-0b] up"/>
+    <link_ctn id="PCI:0000:[0b-0b] through"/>
+    <link_ctn id="PCI:0000:0b:00.0 up"/>
+   </route>
+   <route src="CUDA3" dst="CUDA6" symmetrical="NO">
+    <link_ctn id="CUDA3-CUDA6"/>
+    <link_ctn id="PCI:0000:89:00.0 down"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:[89-89] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[08-10] up"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] up"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[0b-0b] up"/>
+    <link_ctn id="PCI:0000:[0b-0b] through"/>
+    <link_ctn id="PCI:0000:0b:00.0 up"/>
+   </route>
+   <route src="CUDA3" dst="CUDA7" symmetrical="NO">
+    <link_ctn id="CUDA3-CUDA7"/>
+    <link_ctn id="PCI:0000:8a:00.0 down"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[00-12] up"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[08-10] up"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] up"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[0b-0b] up"/>
+    <link_ctn id="PCI:0000:[0b-0b] through"/>
+    <link_ctn id="PCI:0000:0b:00.0 up"/>
+   </route>
    <route src="CUDA3" dst="RAM" symmetrical="NO">
     <link_ctn id="CUDA3-RAM"/>
     <link_ctn id="PCI:0000:0b:00.0 up"/>
@@ -456,6 +927,662 @@
     <link_ctn id="PCI:0000:[08-10] down"/>
     <link_ctn id="PCI:0000:[00-12] through"/>
     <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+   </route>
+   <route src="CUDA4" dst="CUDA0" symmetrical="NO">
+    <link_ctn id="CUDA4-CUDA0"/>
+    <link_ctn id="PCI:0000:06:00.0 down"/>
+    <link_ctn id="PCI:0000:[06-06] through"/>
+    <link_ctn id="PCI:0000:[06-06] down"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] down"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[03-07] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[85-85] up"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:85:00.0 up"/>
+   </route>
+   <route src="CUDA4" dst="CUDA1" symmetrical="NO">
+    <link_ctn id="CUDA4-CUDA1"/>
+    <link_ctn id="PCI:0000:07:00.0 down"/>
+    <link_ctn id="PCI:0000:[07-07] through"/>
+    <link_ctn id="PCI:0000:[07-07] down"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] down"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[03-07] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[85-85] up"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:85:00.0 up"/>
+   </route>
+   <route src="CUDA4" dst="CUDA2" symmetrical="NO">
+    <link_ctn id="CUDA4-CUDA2"/>
+    <link_ctn id="PCI:0000:0a:00.0 down"/>
+    <link_ctn id="PCI:0000:[0a-0a] through"/>
+    <link_ctn id="PCI:0000:[0a-0a] down"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] down"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[08-10] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[85-85] up"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:85:00.0 up"/>
+   </route>
+   <route src="CUDA4" dst="CUDA3" symmetrical="NO">
+    <link_ctn id="CUDA4-CUDA3"/>
+    <link_ctn id="PCI:0000:0b:00.0 down"/>
+    <link_ctn id="PCI:0000:[0b-0b] through"/>
+    <link_ctn id="PCI:0000:[0b-0b] down"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] down"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[08-10] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[85-85] up"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:85:00.0 up"/>
+   </route>
+   <route src="CUDA4" dst="CUDA5" symmetrical="NO">
+    <link_ctn id="CUDA4-CUDA5"/>
+    <link_ctn id="PCI:0000:86:00.0 down"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[85-85] up"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:85:00.0 up"/>
+   </route>
+   <route src="CUDA4" dst="CUDA6" symmetrical="NO">
+    <link_ctn id="CUDA4-CUDA6"/>
+    <link_ctn id="PCI:0000:89:00.0 down"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:[89-89] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[85-85] up"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:85:00.0 up"/>
+   </route>
+   <route src="CUDA4" dst="CUDA7" symmetrical="NO">
+    <link_ctn id="CUDA4-CUDA7"/>
+    <link_ctn id="PCI:0000:8a:00.0 down"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[85-85] up"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:85:00.0 up"/>
+   </route>
+   <route src="CUDA4" dst="RAM" symmetrical="NO">
+    <link_ctn id="CUDA4-RAM"/>
+    <link_ctn id="PCI:0000:85:00.0 up"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:[85-85] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="Host"/>
+   </route>
+   <route src="RAM" dst="CUDA4" symmetrical="NO">
+    <link_ctn id="RAM-CUDA4"/>
+    <link_ctn id="PCI:0000:85:00.0 down"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:[85-85] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+   </route>
+   <route src="CUDA5" dst="CUDA0" symmetrical="NO">
+    <link_ctn id="CUDA5-CUDA0"/>
+    <link_ctn id="PCI:0000:06:00.0 down"/>
+    <link_ctn id="PCI:0000:[06-06] through"/>
+    <link_ctn id="PCI:0000:[06-06] down"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] down"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[03-07] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] up"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:86:00.0 up"/>
+   </route>
+   <route src="CUDA5" dst="CUDA1" symmetrical="NO">
+    <link_ctn id="CUDA5-CUDA1"/>
+    <link_ctn id="PCI:0000:07:00.0 down"/>
+    <link_ctn id="PCI:0000:[07-07] through"/>
+    <link_ctn id="PCI:0000:[07-07] down"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] down"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[03-07] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] up"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:86:00.0 up"/>
+   </route>
+   <route src="CUDA5" dst="CUDA2" symmetrical="NO">
+    <link_ctn id="CUDA5-CUDA2"/>
+    <link_ctn id="PCI:0000:0a:00.0 down"/>
+    <link_ctn id="PCI:0000:[0a-0a] through"/>
+    <link_ctn id="PCI:0000:[0a-0a] down"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] down"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[08-10] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] up"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:86:00.0 up"/>
+   </route>
+   <route src="CUDA5" dst="CUDA3" symmetrical="NO">
+    <link_ctn id="CUDA5-CUDA3"/>
+    <link_ctn id="PCI:0000:0b:00.0 down"/>
+    <link_ctn id="PCI:0000:[0b-0b] through"/>
+    <link_ctn id="PCI:0000:[0b-0b] down"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] down"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[08-10] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] up"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:86:00.0 up"/>
+   </route>
+   <route src="CUDA5" dst="CUDA4" symmetrical="NO">
+    <link_ctn id="CUDA5-CUDA4"/>
+    <link_ctn id="PCI:0000:85:00.0 down"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:[85-85] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] up"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:86:00.0 up"/>
+   </route>
+   <route src="CUDA5" dst="CUDA6" symmetrical="NO">
+    <link_ctn id="CUDA5-CUDA6"/>
+    <link_ctn id="PCI:0000:89:00.0 down"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:[89-89] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] up"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:86:00.0 up"/>
+   </route>
+   <route src="CUDA5" dst="CUDA7" symmetrical="NO">
+    <link_ctn id="CUDA5-CUDA7"/>
+    <link_ctn id="PCI:0000:8a:00.0 down"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] up"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:86:00.0 up"/>
+   </route>
+   <route src="CUDA5" dst="RAM" symmetrical="NO">
+    <link_ctn id="CUDA5-RAM"/>
+    <link_ctn id="PCI:0000:86:00.0 up"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] up"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] up"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="Host"/>
+   </route>
+   <route src="RAM" dst="CUDA5" symmetrical="NO">
+    <link_ctn id="RAM-CUDA5"/>
+    <link_ctn id="PCI:0000:86:00.0 down"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+   </route>
+   <route src="CUDA6" dst="CUDA0" symmetrical="NO">
+    <link_ctn id="CUDA6-CUDA0"/>
+    <link_ctn id="PCI:0000:06:00.0 down"/>
+    <link_ctn id="PCI:0000:[06-06] through"/>
+    <link_ctn id="PCI:0000:[06-06] down"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] down"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[03-07] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[89-89] up"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:89:00.0 up"/>
+   </route>
+   <route src="CUDA6" dst="CUDA1" symmetrical="NO">
+    <link_ctn id="CUDA6-CUDA1"/>
+    <link_ctn id="PCI:0000:07:00.0 down"/>
+    <link_ctn id="PCI:0000:[07-07] through"/>
+    <link_ctn id="PCI:0000:[07-07] down"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] down"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[03-07] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[89-89] up"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:89:00.0 up"/>
+   </route>
+   <route src="CUDA6" dst="CUDA2" symmetrical="NO">
+    <link_ctn id="CUDA6-CUDA2"/>
+    <link_ctn id="PCI:0000:0a:00.0 down"/>
+    <link_ctn id="PCI:0000:[0a-0a] through"/>
+    <link_ctn id="PCI:0000:[0a-0a] down"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] down"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[08-10] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[89-89] up"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:89:00.0 up"/>
+   </route>
+   <route src="CUDA6" dst="CUDA3" symmetrical="NO">
+    <link_ctn id="CUDA6-CUDA3"/>
+    <link_ctn id="PCI:0000:0b:00.0 down"/>
+    <link_ctn id="PCI:0000:[0b-0b] through"/>
+    <link_ctn id="PCI:0000:[0b-0b] down"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] down"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[08-10] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[89-89] up"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:89:00.0 up"/>
+   </route>
+   <route src="CUDA6" dst="CUDA4" symmetrical="NO">
+    <link_ctn id="CUDA6-CUDA4"/>
+    <link_ctn id="PCI:0000:85:00.0 down"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:[85-85] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[89-89] up"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:89:00.0 up"/>
+   </route>
+   <route src="CUDA6" dst="CUDA5" symmetrical="NO">
+    <link_ctn id="CUDA6-CUDA5"/>
+    <link_ctn id="PCI:0000:86:00.0 down"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[89-89] up"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:89:00.0 up"/>
+   </route>
+   <route src="CUDA6" dst="CUDA7" symmetrical="NO">
+    <link_ctn id="CUDA6-CUDA7"/>
+    <link_ctn id="PCI:0000:8a:00.0 down"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[89-89] up"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:89:00.0 up"/>
+   </route>
+   <route src="CUDA6" dst="RAM" symmetrical="NO">
+    <link_ctn id="CUDA6-RAM"/>
+    <link_ctn id="PCI:0000:89:00.0 up"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:[89-89] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="Host"/>
+   </route>
+   <route src="RAM" dst="CUDA6" symmetrical="NO">
+    <link_ctn id="RAM-CUDA6"/>
+    <link_ctn id="PCI:0000:89:00.0 down"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:[89-89] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
+    <link_ctn id="Host"/>
+   </route>
+   <route src="CUDA7" dst="CUDA0" symmetrical="NO">
+    <link_ctn id="CUDA7-CUDA0"/>
+    <link_ctn id="PCI:0000:06:00.0 down"/>
+    <link_ctn id="PCI:0000:[06-06] through"/>
+    <link_ctn id="PCI:0000:[06-06] down"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] down"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[03-07] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] up"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:8a:00.0 up"/>
+   </route>
+   <route src="CUDA7" dst="CUDA1" symmetrical="NO">
+    <link_ctn id="CUDA7-CUDA1"/>
+    <link_ctn id="PCI:0000:07:00.0 down"/>
+    <link_ctn id="PCI:0000:[07-07] through"/>
+    <link_ctn id="PCI:0000:[07-07] down"/>
+    <link_ctn id="PCI:0000:[04-07] through"/>
+    <link_ctn id="PCI:0000:[04-07] down"/>
+    <link_ctn id="PCI:0000:[03-07] through"/>
+    <link_ctn id="PCI:0000:[03-07] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] up"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:8a:00.0 up"/>
+   </route>
+   <route src="CUDA7" dst="CUDA2" symmetrical="NO">
+    <link_ctn id="CUDA7-CUDA2"/>
+    <link_ctn id="PCI:0000:0a:00.0 down"/>
+    <link_ctn id="PCI:0000:[0a-0a] through"/>
+    <link_ctn id="PCI:0000:[0a-0a] down"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] down"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[08-10] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] up"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:8a:00.0 up"/>
+   </route>
+   <route src="CUDA7" dst="CUDA3" symmetrical="NO">
+    <link_ctn id="CUDA7-CUDA3"/>
+    <link_ctn id="PCI:0000:0b:00.0 down"/>
+    <link_ctn id="PCI:0000:[0b-0b] through"/>
+    <link_ctn id="PCI:0000:[0b-0b] down"/>
+    <link_ctn id="PCI:0000:[09-10] through"/>
+    <link_ctn id="PCI:0000:[09-10] down"/>
+    <link_ctn id="PCI:0000:[08-10] through"/>
+    <link_ctn id="PCI:0000:[08-10] down"/>
+    <link_ctn id="PCI:0000:[00-12] through"/>
+    <link_ctn id="PCI:0000:[00-12] down"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="Host"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] up"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:8a:00.0 up"/>
+   </route>
+   <route src="CUDA7" dst="CUDA4" symmetrical="NO">
+    <link_ctn id="CUDA7-CUDA4"/>
+    <link_ctn id="PCI:0000:85:00.0 down"/>
+    <link_ctn id="PCI:0000:[85-85] through"/>
+    <link_ctn id="PCI:0000:[85-85] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] up"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:8a:00.0 up"/>
+   </route>
+   <route src="CUDA7" dst="CUDA5" symmetrical="NO">
+    <link_ctn id="CUDA7-CUDA5"/>
+    <link_ctn id="PCI:0000:86:00.0 down"/>
+    <link_ctn id="PCI:0000:[86-86] through"/>
+    <link_ctn id="PCI:0000:[86-86] down"/>
+    <link_ctn id="PCI:0000:[83-86] through"/>
+    <link_ctn id="PCI:0000:[83-86] down"/>
+    <link_ctn id="PCI:0000:[82-86] through"/>
+    <link_ctn id="PCI:0000:[82-86] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] up"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:8a:00.0 up"/>
+   </route>
+   <route src="CUDA7" dst="CUDA6" symmetrical="NO">
+    <link_ctn id="CUDA7-CUDA6"/>
+    <link_ctn id="PCI:0000:89:00.0 down"/>
+    <link_ctn id="PCI:0000:[89-89] through"/>
+    <link_ctn id="PCI:0000:[89-89] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] up"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:8a:00.0 up"/>
+   </route>
+   <route src="CUDA7" dst="RAM" symmetrical="NO">
+    <link_ctn id="CUDA7-RAM"/>
+    <link_ctn id="PCI:0000:8a:00.0 up"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] up"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] up"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] up"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] up"/>
+    <link_ctn id="Host"/>
+   </route>
+   <route src="RAM" dst="CUDA7" symmetrical="NO">
+    <link_ctn id="RAM-CUDA7"/>
+    <link_ctn id="PCI:0000:8a:00.0 down"/>
+    <link_ctn id="PCI:0000:[8a-8a] through"/>
+    <link_ctn id="PCI:0000:[8a-8a] down"/>
+    <link_ctn id="PCI:0000:[88-8f] through"/>
+    <link_ctn id="PCI:0000:[88-8f] down"/>
+    <link_ctn id="PCI:0000:[87-8f] through"/>
+    <link_ctn id="PCI:0000:[87-8f] down"/>
+    <link_ctn id="PCI:0000:[80-8f] through"/>
+    <link_ctn id="PCI:0000:[80-8f] down"/>
     <link_ctn id="Host"/>
    </route>
 

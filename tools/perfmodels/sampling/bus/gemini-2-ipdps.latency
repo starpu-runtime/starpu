@@ -1,17 +1,33 @@
-# to 0		to 1		to 2		to 3		to 4		to 5		to 6		to 7		to 8		to 9		to 10		to 11		to 12		to 13		to 14		to 15		
-0.000000e+00	1.046894e+01	1.002906e+01	9.453594e+00	1.219791e+01	1.078422e+01	1.077809e+01	9.823938e+00	9.828062e+00	1.096416e+01	1.119834e+01	1.002213e+01	1.032137e+01	nan	nan	nan
-9.435719e+00	0.000000e+00	1.257281e+01	1.153434e+01	1.112984e+01	2.021994e+01	2.021381e+01	1.925966e+01	1.926378e+01	2.039988e+01	2.063406e+01	1.945784e+01	1.975709e+01	nan	nan	nan
-9.390719e+00	1.453916e+01	0.000000e+00	1.104266e+01	1.137078e+01	2.017494e+01	2.016881e+01	1.921466e+01	1.921878e+01	2.035488e+01	2.058906e+01	1.941284e+01	1.971209e+01	nan	nan	nan
-8.689063e+00	1.107475e+01	1.121881e+01	0.000000e+00	1.086191e+01	1.947328e+01	1.946716e+01	1.851300e+01	1.851712e+01	1.965322e+01	1.988741e+01	1.871119e+01	1.901044e+01	nan	nan	nan
-9.326344e+00	1.126172e+01	1.096819e+01	1.140162e+01	0.000000e+00	2.011056e+01	2.010444e+01	1.915028e+01	1.915441e+01	2.029050e+01	2.052469e+01	1.934847e+01	1.964772e+01	nan	nan	nan
-1.314834e+01	2.361728e+01	2.317741e+01	2.260194e+01	2.534625e+01	0.000000e+00	2.392644e+01	2.297228e+01	2.297641e+01	2.411250e+01	2.434669e+01	2.317047e+01	2.346972e+01	nan	nan	nan
-1.258422e+01	2.305316e+01	2.261328e+01	2.203781e+01	2.478213e+01	2.336844e+01	0.000000e+00	2.240816e+01	2.241228e+01	2.354838e+01	2.378256e+01	2.260634e+01	2.290559e+01	nan	nan	nan
-1.159634e+01	2.206528e+01	2.162541e+01	2.104994e+01	2.379425e+01	2.238056e+01	2.237444e+01	0.000000e+00	2.142441e+01	2.256050e+01	2.279469e+01	2.161847e+01	2.191772e+01	nan	nan	nan
-1.144262e+01	2.191156e+01	2.147169e+01	2.089622e+01	2.364053e+01	2.222684e+01	2.222072e+01	2.126656e+01	0.000000e+00	2.240678e+01	2.264097e+01	2.146475e+01	2.176400e+01	nan	nan	nan
-1.305263e+01	2.352156e+01	2.308169e+01	2.250622e+01	2.525053e+01	2.383684e+01	2.383072e+01	2.287656e+01	2.288069e+01	0.000000e+00	2.425097e+01	2.307475e+01	2.337400e+01	nan	nan	nan
-1.306559e+01	2.353453e+01	2.309466e+01	2.251919e+01	2.526350e+01	2.384981e+01	2.384369e+01	2.288953e+01	2.289366e+01	2.402975e+01	0.000000e+00	2.308772e+01	2.338697e+01	nan	nan	nan
-1.227069e+01	2.273963e+01	2.229975e+01	2.172428e+01	2.446859e+01	2.305491e+01	2.304878e+01	2.209463e+01	2.209875e+01	2.323484e+01	2.346903e+01	0.000000e+00	2.259206e+01	nan	nan	nan
-1.215472e+01	2.262366e+01	2.218378e+01	2.160831e+01	2.435263e+01	2.293894e+01	2.293281e+01	2.197866e+01	2.198278e+01	2.311888e+01	2.335306e+01	2.217684e+01	0.000000e+00	nan	nan	nan
-nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
-nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
-nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+# to 0		to 1		to 2		to 3		to 4		to 5		to 6		to 7		to 8		to 9		to 10		to 11		to 12		to 13		to 14		to 15		to 16		to 17		to 18		to 19		to 20		to 21		to 22		to 23		to 24		to 25		to 26		to 27		to 28		to 29		to 30		to 31		
+0.000000e+00	1.050266e+01	1.048047e+01	9.624594e+00	1.031406e+01	1.043481e+01	1.108147e+01	9.780344e+00	9.866000e+00	1.052137e+01	1.055719e+01	9.885812e+00	9.841313e+00	1.081528e+01	1.120009e+01	1.144072e+01	1.025628e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+9.567156e+00	0.000000e+00	1.173322e+01	1.138697e+01	1.159659e+01	1.156847e+01	2.197584e+01	1.916306e+01	1.961100e+01	2.008853e+01	2.012434e+01	1.945297e+01	1.940847e+01	2.038244e+01	2.076725e+01	2.100788e+01	1.982344e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+9.659687e+00	1.183294e+01	0.000000e+00	1.149503e+01	1.200062e+01	2.154231e+01	1.233806e+01	1.972316e+01	1.878494e+01	2.018106e+01	2.021687e+01	1.954550e+01	1.950100e+01	2.047497e+01	2.085978e+01	2.110041e+01	1.991597e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+9.034875e+00	1.119963e+01	1.123697e+01	0.000000e+00	1.093706e+01	1.978900e+01	1.979413e+01	1.073441e+01	1.844856e+01	1.955625e+01	1.959206e+01	1.892069e+01	1.887619e+01	1.985016e+01	2.023497e+01	2.047559e+01	1.929116e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+9.240500e+00	1.119394e+01	1.123628e+01	1.086141e+01	0.000000e+00	1.965794e+01	2.174344e+01	1.833597e+01	1.074975e+01	1.976187e+01	1.979769e+01	1.912631e+01	1.908181e+01	2.005578e+01	2.044059e+01	2.068122e+01	1.949678e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+9.810719e+00	1.236450e+01	2.041228e+01	1.833222e+01	1.850959e+01	0.000000e+00	1.227981e+01	1.180856e+01	1.180053e+01	2.033209e+01	2.036791e+01	1.969653e+01	1.965203e+01	2.062600e+01	2.101081e+01	2.125144e+01	2.006700e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1.006547e+01	2.084397e+01	1.235825e+01	1.859194e+01	1.846094e+01	1.225506e+01	0.000000e+00	1.187503e+01	1.198487e+01	2.058684e+01	2.062266e+01	1.995128e+01	1.990678e+01	2.088075e+01	2.126556e+01	2.150619e+01	2.032175e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+9.329063e+00	1.909206e+01	1.894528e+01	1.117834e+01	1.831344e+01	1.162391e+01	1.172891e+01	0.000000e+00	1.133325e+01	1.985044e+01	1.988625e+01	1.921487e+01	1.917038e+01	2.014434e+01	2.052916e+01	2.076978e+01	1.958534e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+9.245563e+00	1.903687e+01	1.925753e+01	1.833075e+01	1.137653e+01	1.224481e+01	1.165544e+01	1.141181e+01	0.000000e+00	1.976694e+01	1.980275e+01	1.913137e+01	1.908688e+01	2.006084e+01	2.044566e+01	2.068628e+01	1.950184e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1.251431e+01	2.301697e+01	2.299478e+01	2.213891e+01	2.282838e+01	2.294913e+01	2.359578e+01	2.229466e+01	2.238031e+01	0.000000e+00	2.307150e+01	2.240012e+01	2.235563e+01	2.332959e+01	2.371441e+01	2.395503e+01	2.277059e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1.250087e+01	2.300353e+01	2.298134e+01	2.212547e+01	2.281494e+01	2.293569e+01	2.358234e+01	2.228122e+01	2.236687e+01	2.302225e+01	0.000000e+00	2.238669e+01	2.234219e+01	2.331616e+01	2.370097e+01	2.394159e+01	2.275716e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1.142903e+01	2.193169e+01	2.190950e+01	2.105363e+01	2.174309e+01	2.186384e+01	2.251050e+01	2.120938e+01	2.129503e+01	2.195041e+01	2.198622e+01	0.000000e+00	2.127034e+01	2.224431e+01	2.262913e+01	2.286975e+01	2.168531e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1.152113e+01	2.202378e+01	2.200159e+01	2.114572e+01	2.183519e+01	2.195594e+01	2.260259e+01	2.130147e+01	2.138713e+01	2.204250e+01	2.207831e+01	2.140694e+01	0.000000e+00	2.233641e+01	2.272122e+01	2.296184e+01	2.177741e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1.313753e+01	2.364019e+01	2.361800e+01	2.276213e+01	2.345159e+01	2.357234e+01	2.421900e+01	2.291788e+01	2.300353e+01	2.365891e+01	2.369472e+01	2.302334e+01	2.297884e+01	0.000000e+00	2.433763e+01	2.457825e+01	2.339381e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1.324238e+01	2.374503e+01	2.372284e+01	2.286697e+01	2.355644e+01	2.367719e+01	2.432384e+01	2.302272e+01	2.310838e+01	2.376375e+01	2.379956e+01	2.312819e+01	2.308369e+01	2.405766e+01	0.000000e+00	2.468309e+01	2.349866e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1.207272e+01	2.257538e+01	2.255319e+01	2.169731e+01	2.238678e+01	2.250753e+01	2.315419e+01	2.185306e+01	2.193872e+01	2.259409e+01	2.262991e+01	2.195853e+01	2.191403e+01	2.288800e+01	2.327281e+01	0.000000e+00	2.232900e+01	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+1.211775e+01	2.262041e+01	2.259822e+01	2.174234e+01	2.243181e+01	2.255256e+01	2.319922e+01	2.189809e+01	2.198375e+01	2.263912e+01	2.267494e+01	2.200356e+01	2.195906e+01	2.293303e+01	2.331784e+01	2.355847e+01	0.000000e+00	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
+nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan
