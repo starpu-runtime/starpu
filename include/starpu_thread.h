@@ -258,6 +258,7 @@ typedef sg_mutex_t starpu_pthread_rwlock_t;
 typedef xbt_mutex_t starpu_pthread_rwlock_t;
 #endif
 typedef int starpu_pthread_rwlockattr_t;
+#define STARPU_PTHREAD_RWLOCK_INITIALIZER NULL
 
 int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *rwlock, const starpu_pthread_rwlockattr_t *attr);
 int starpu_pthread_rwlock_destroy(starpu_pthread_rwlock_t *rwlock);
@@ -271,6 +272,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock);
 
 typedef pthread_rwlock_t starpu_pthread_rwlock_t;
 typedef pthread_rwlockattr_t starpu_pthread_rwlockattr_t;
+#define STARPU_PTHREAD_RWLOCK_INITIALIZER PTHREAD_RWLOCK_INITIALIZER
 
 #define starpu_pthread_rwlock_init pthread_rwlock_init
 #define starpu_pthread_rwlock_destroy pthread_rwlock_destroy

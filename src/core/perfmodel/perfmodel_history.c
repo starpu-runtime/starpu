@@ -51,7 +51,7 @@
 static struct starpu_perfmodel_arch **arch_combs;
 static int current_arch_comb;
 static int nb_arch_combs;
-static starpu_pthread_rwlock_t arch_combs_mutex = PTHREAD_RWLOCK_INITIALIZER;
+static starpu_pthread_rwlock_t arch_combs_mutex = STARPU_PTHREAD_RWLOCK_INITIALIZER;
 static int historymaxerror;
 static char ignore_devid[STARPU_NARCH];
 
