@@ -1,5 +1,6 @@
 #!/usr/bin/bash
-#	bash Scripts_maxime/FGCS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Matrice_ligne HFP gemini-2-ipdps 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne HFP gemini-2-ipdps 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Matrice_ligne HFP gemini-2-ipdps 1
 
 PATH_STARPU=$1
 PATH_R=$2
@@ -10,26 +11,26 @@ GPU=$6
 NGPU=$7
 START_X=0 
 NITER=11
-FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_1.txt
-FICHIER_BUS=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_2.txt
-FICHIER_RAW_DT=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_3.txt
-FICHIER_TIME=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_4.txt
+FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
+FICHIER_BUS=Output_maxime/GFlops_raw_out_2.txt
+FICHIER_RAW_DT=Output_maxime/GFlops_raw_out_3.txt
+FICHIER_TIME=Output_maxime/GFlops_raw_out_4.txt
 ulimit -S -s 500000000
 truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 ${FICHIER_BUS}
 truncate -s 0 ${FICHIER_RAW_DT}
 truncate -s 0 ${FICHIER_TIME}
-truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/HFP_time.txt
+truncate -s 0 Output_maxime/HFP_time.txt
 
 CM=500
 TH=10
 CP=5
+NITER=11
 
 NCOMBINAISONS=$((NGPU*2+(NGPU-1)*NGPU+3))
 
 if [ $DOSSIER = "Matrice_ligne" ]
 then
-	NITER=1
 	if [ $MODEL = "HFP" ]
 	then
 		ECHELLE_X=5
