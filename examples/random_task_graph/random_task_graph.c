@@ -32,6 +32,7 @@
 //~ #define TIME 0.011
 //~ #define TIME_CUDA_COEFFICIENT 10 /* original value */
 //~ #define TIME_CUDA_COEFFICIENT 1
+#define COUNT_DO_SCHEDULE /* do schedule for HFP compté ou non */
 #define SEED
 int number_task = 0;
 int number_data = 0;
@@ -183,25 +184,47 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 	starpu_resume();
-	starpu_task_wait_for_all();
+	//~ starpu_task_wait_for_all();
 	
-	for (i = 0; i < number_data; i++)
+					//~ if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				//~ {
+					//~ starpu_do_schedule();
+					//~ printf("la1.5 random set of tasks \n");
+					//~ start = starpu_timing_now();	
+					//~ printf("la1.6 random set of tasks \n");				
+					//~ starpu_resume();
+					//~ printf("la1.7 random set of tasks \n");
+					//~ starpu_task_wait_for_all();
+					//~ printf("la1.8 random set of tasks \n");
+					//~ end = starpu_timing_now();
+				//~ }
+				//~ else
+				//~ {
+					//~ start = starpu_timing_now();
+					//~ starpu_do_schedule();		
+					//~ starpu_resume();
+					//~ starpu_task_wait_for_all();
+					//~ end = starpu_timing_now();
+				//~ }
+	//~ for (i = 0; i < number_data; i++)
+	//~ {
+		//~ starpu_data_unregister(tab_handle[i]);
+	//~ }
+	end = starpu_timing_now();
+	double timing = end - start;
+	double temp_number_task = number_task;
+	double flops = 960*temp_number_task*960*960*4;
+	//~ printf("flops : %f, time : %f\n", flops, timing);
+	PRINTF("# Nbtasks\tms\tGFlops\n");
+	PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000.0, flops/timing/1000);
+	
+		for (i = 0; i < number_data; i++)
 	{
 		starpu_data_unregister(tab_handle[i]);
 	}
 	
-	end = starpu_timing_now();
-	double timing = end - start;
-	double temp_number_task = number_task;
-	//~ double flops = 960*temp_number_task*960*960*4;
-	double flops = 960*temp_number_task*960*960*4;
-	printf("flops : %f, time : %f\n", flops, timing);
-	PRINTF("# Nbtasks\tms\tGFlops\n");
-	PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000.0, flops/timing/1000);
-	//~ PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000, flops/timing/1000);
-	
 	starpu_shutdown();
-
+	
 	return 0;
 
 enodev:
