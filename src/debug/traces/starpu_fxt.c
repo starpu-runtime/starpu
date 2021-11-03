@@ -3350,7 +3350,7 @@ void _starpu_fxt_process_bandwidth(struct starpu_fxt_options *options)
 		next = _starpu_communication_list_next(itor);
 
 		if (!itor->peer)
-			continue;
+			break;
 
 		/* This communication is complete */
 		_starpu_communication_list_erase(&communication_list, itor);
