@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne HFP gemini-1-ipdps 1
+#	bash Scripts_maxime/FGCS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Matrice_ligne HFP gemini-2-ipdps 1
 
 PATH_STARPU=$1
 PATH_R=$2

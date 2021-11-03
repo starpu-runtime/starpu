@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne HFP gemini-1-ipdps 1
+#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Matrice_ligne HFP gemini-2-ipdps 1
 
 PATH_STARPU=$1
 PATH_R=$2
@@ -8,7 +8,7 @@ DOSSIER=$4
 MODEL=$5
 GPU=$6
 NGPU=$7
-START_X=0 
+START_X=0
 NITER=1
 FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_1.txt
 FICHIER_BUS=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_2.txt
@@ -16,11 +16,11 @@ FICHIER_RAW_DT=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_3.txt
 FICHIER_TIME=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_4.txt
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 500000000
-truncate -s 0 ${FICHIER_RAW}
-truncate -s 0 ${FICHIER_BUS}
-truncate -s 0 ${FICHIER_RAW_DT}
-truncate -s 0 ${FICHIER_TIME}
-truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/HFP_time.txt
+#~ truncate -s 0 ${FICHIER_RAW}
+#~ truncate -s 0 ${FICHIER_BUS}
+#~ truncate -s 0 ${FICHIER_RAW_DT}
+#~ truncate -s 0 ${FICHIER_TIME}
+#~ truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/HFP_time.txt
 if [ $GPU = "gemini-2-ipdps" ]
 then
 	HOST="gemini-2-ipdps"
@@ -51,58 +51,58 @@ then
 		if [ $NGPU = 1 ]
 		then
 		    NB_ALGO_TESTE=7
-		    echo "############## Modular eager prefetching ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    end=`date +%s` 
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-		    done
-		    echo "############## Dmdar ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-				end=`date +%s`
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-		    done
-		    echo "############## HFPU ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=HFP STARPU_SCHED_READY=0 BELADY=0 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    end=`date +%s` 
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-		    done
-		    echo "############## HFPUR ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=HFP STARPU_SCHED_READY=1 BELADY=0 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    end=`date +%s` 
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-		    done
-		    echo "############## HFPU + BELADY ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=HFP STARPU_SCHED_READY=0 BELADY=1 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    end=`date +%s` 
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-		    done
+		    #~ echo "############## Modular eager prefetching ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    #~ end=`date +%s` 
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    #~ done
+		    #~ echo "############## Dmdar ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+				#~ end=`date +%s`
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    #~ done
+		    #~ echo "############## HFPU ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=HFP STARPU_SCHED_READY=0 BELADY=0 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    #~ end=`date +%s` 
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    #~ done
+		    #~ echo "############## HFPUR ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=HFP STARPU_SCHED_READY=1 BELADY=0 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    #~ end=`date +%s` 
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    #~ done
+		    #~ echo "############## HFPU + BELADY ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=HFP STARPU_SCHED_READY=0 BELADY=1 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    #~ end=`date +%s` 
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    #~ done
 		    echo "############## HFPUR + BELADY ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=15 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
