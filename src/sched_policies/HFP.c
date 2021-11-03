@@ -1720,7 +1720,7 @@ long long time_total_scheduling = 0;
 struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, int number_task, int number_of_package_to_build)
 {
 	gettimeofday(&time_start_scheduling, NULL);
-
+	
 	struct paquets *paquets_data = malloc(sizeof(*paquets_data));
 	struct my_list *my_data = malloc(sizeof(*my_data));
 	starpu_task_list_init(&my_data->sub_list);
@@ -3415,7 +3415,7 @@ static int HFP_can_pull(struct starpu_sched_component * component)
 
 /* Fonction qui va appeller le scheduling en fonction multigpu et de hmetis. On peut ignorer son temps dans xgemm directement */
 static void HFP_do_schedule(struct starpu_sched_component *component)
-{	
+{
 	struct HFP_sched_data *data = component->data;
 	struct starpu_task *task1 = NULL;
 	int nb_of_loop = 0; /* Number of iteration of the while loop */
@@ -3622,6 +3622,9 @@ struct timeval time_start_createtolasttaskfinished;
 struct timeval time_end_createtolasttaskfinished;
 long long time_total_createtolasttaskfinished = 0;
 
+/* TODO a suppr */
+int iteration;
+
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
@@ -3674,7 +3677,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	
 	/* TODO init du temps a suppr si on mesure plus le temps. A suppr */
 	number_task_out = 0;
-	
+	iteration = 0;
 	time_total_getorderbelady = 0;
 	time_total_getcommondataorderu = 0;
 	time_total_gettasktoreturn = 0;
@@ -3975,11 +3978,12 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
     /* Reset pour prochaine itération à faire ici quand le nombe de tâches sortie == NT si besoin */
     if (NT == number_task_out)
 	{
+		iteration++;
 		do_schedule_done = false;
 		number_task_out = 0;
 		
 		/* TODO a suppr */
-		if (starpu_get_env_number_default("BELADY", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 1)
+		if (iteration == 3 || starpu_get_env_number_default("PRINT_TIME", 0) == 1)
 		{
 			FILE *f = fopen("Output_maxime/HFP_time.txt", "a");
 			fprintf(f, "%0.0f	", sqrt(NT));
