@@ -840,17 +840,29 @@ int main(int argc, char **argv)
 					}
 					starpu_data_wont_use(Ctile);
 				}
-				starpu_do_schedule();
-				start = starpu_timing_now();
-				starpu_resume();
-				starpu_task_wait_for_all();
-				end = starpu_timing_now();
+				
+				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				{
+					starpu_do_schedule();
+					start = starpu_timing_now();					
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
+				else
+				{
+					start = starpu_timing_now();
+					starpu_do_schedule();		
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
+
 				if (temp_niter > 1)
 				{
 					if (iter != 0)
 					{
 						timing += end - start;
-						printf("%f\n", end - start);
 						timing_square += (end-start) * (end-start);
 					}	
 					
@@ -881,7 +893,7 @@ int main(int argc, char **argv)
 				//~ timing = end - start;
 			}
 		}
-		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER",0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
+		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER", 0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0) == 0) {
 			srandom(starpu_get_env_number_default("SEED", 0));
 			/* Randomize the order in which task are sent, but the tasks are the same */
 			unsigned i = 0; unsigned j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; unsigned temp = 0; unsigned k = 0; unsigned n = 0;
@@ -933,11 +945,24 @@ int main(int argc, char **argv)
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 				}
-				starpu_do_schedule();
-				start = starpu_timing_now();
-				starpu_resume();
-				starpu_task_wait_for_all();
-				end = starpu_timing_now();
+				
+				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				{
+					starpu_do_schedule();
+					start = starpu_timing_now();					
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
+				else
+				{
+					start = starpu_timing_now();
+					starpu_do_schedule();		
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
+				
 				//~ if (iter != 0)
 				//~ {
 					//~ timing += end - start;
@@ -967,7 +992,7 @@ int main(int argc, char **argv)
 			}
 			//End If environment variable RANDOM_TASK_ORDER == 1
 		}
-		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT",0) == 1 && starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 0) {
+		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0) == 1 && starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0) == 0) {
 			/* Tasks arrive in a "Z-order" */
 			unsigned i = 0; unsigned j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; unsigned temp = 0; unsigned k = 0; unsigned n = 0;
 			for (iter = 0; iter < niter; iter++)
@@ -1039,11 +1064,24 @@ int main(int argc, char **argv)
 				     //~ ret = 77;
 				     //~ goto enodev;
 				}
-				starpu_do_schedule();
-				start = starpu_timing_now();
-				starpu_resume();
-				starpu_task_wait_for_all();
-				end = starpu_timing_now();
+	
+				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				{
+					starpu_do_schedule();
+					start = starpu_timing_now();					
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
+				else
+				{
+					start = starpu_timing_now();
+					starpu_do_schedule();		
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
+	
 				if (iter != 0)
 				{
 					timing += end - start;
@@ -1053,7 +1091,7 @@ int main(int argc, char **argv)
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
 		/* This is the random 2D matrix operation we use */
-		else if (starpu_get_env_number_default("RANDOM_DATA_ACCESS",0) == 1) {
+		else if (starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0) == 1) {
 			/* Each task takes as data a random line and a random column from A and B */
 			for (iter = 0; iter < niter; iter++)
 			{
@@ -1082,11 +1120,24 @@ int main(int argc, char **argv)
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
-				starpu_do_schedule();
-				start = starpu_timing_now();
-				starpu_resume();
-				starpu_task_wait_for_all();
-				end = starpu_timing_now();
+
+				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				{
+					starpu_do_schedule();
+					start = starpu_timing_now();					
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
+				else
+				{
+					start = starpu_timing_now();
+					starpu_do_schedule();		
+					starpu_resume();
+					starpu_task_wait_for_all();
+					end = starpu_timing_now();
+				}
+
 				/* If I have more than 1 iteration I want the mean timing, else I don't */
 				if (temp_niter > 1)
 				{
