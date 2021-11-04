@@ -218,7 +218,7 @@ int main(int argc, char **argv)
 	PRINTF("# Nbtasks\tms\tGFlops\n");
 	PRINTF("%d\t%.0f\t%.1f\n", number_task, timing/1000.0, flops/timing/1000);
 	
-		for (i = 0; i < number_data; i++)
+	for (i = 0; i < number_data; i++)
 	{
 		starpu_data_unregister(tab_handle[i]);
 	}

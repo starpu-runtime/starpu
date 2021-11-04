@@ -811,14 +811,13 @@ int main(int argc, char **argv)
 				for (y = 0; y < nslicesy; y++)
 				{
 					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
-					//~ starpu_data_invalidate(Ctile);
+					starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR notamment du simple au double si on invalidate ou pas */
 					for (z = 0; z < nslicesz; z++)
 					{
 						struct starpu_task *task = starpu_task_create();
 
 						if (z == 0)
 							task->cl = &cl_gemm;
-							//~ task->cl = &cl_gemm;
 						else
 							task->cl = &cl_gemm;
 
@@ -883,7 +882,6 @@ int main(int argc, char **argv)
 				else 
 				{
 					timing = end - start;
-					printf("%f\n", end - start);
 				}
 				//~ starpu_do_schedule();
 				//~ start = starpu_timing_now();

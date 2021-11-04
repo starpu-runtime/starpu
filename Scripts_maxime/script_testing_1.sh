@@ -21,7 +21,7 @@ N=30 #je suis censé avoir 12721.1 pour N=30
 #~ N=20
 #~ N=5 
 #~ N=65
-N=10
+N=40
 
 NGPU=1
 #~ NGPU=2
@@ -43,8 +43,8 @@ TH=10
 
 CP=5
 
-HOST="gemini-1-ipdps"
-#~ HOST="gemini-2-ipdps"
+#~ HOST="gemini-1-ipdps"
+HOST="gemini-2-ipdps"
 #~ HOST="attila"
 
 SEED=1
@@ -74,7 +74,7 @@ NITER=11
 #~ PRINT_N=$((N)) TASK_STEALING=$((STEALING)) STARPU_BUS_STATS=1 MULTIGPU=$((MULTI)) STARPU_GENERATE_TRACE=$((TRACE)) PRINTF=$((PRINTF)) SEED=$((SEED)) STARPU_SCHED=${ORDO} BELADY=$((BELADY)) ORDER_U=1 STARPU_SCHED_READY=$((READY)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
 
-STARPU_SCHED=dmdar STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/random_task_graph/random_task_graph -ntasks $((N)) -ndata 100 -degreemax 5
+STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
 
 end=`date +%s` 
 runtime=$((end-start))

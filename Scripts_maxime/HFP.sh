@@ -65,15 +65,15 @@ NITER=1
 
 NCOMBINAISONS=$((NGPU*2+(NGPU-1)*NGPU+3))
 
-RANDOM_DATA_ACCESS=0
-RANDOM_TASK_ORDER=0
+RANDOMDATA=0
+RANDOMORDER=0
 if [ $DOSSIER = "Random_tasks" ]
 then
-	RANDOM_DATA_ACCESS=1
+	RANDOMDATA=1
 fi
 if [ $DOSSIER = "Random_task_order" ]
 then
-	RANDOM_TASK_ORDER=1
+	RANDOMORDER=1
 fi
 
 if [ $DOSSIER = "Matrice_ligne" ] || [ $DOSSIER = "Random_tasks" ] || [ $DOSSIER = "Random_task_order" ]
