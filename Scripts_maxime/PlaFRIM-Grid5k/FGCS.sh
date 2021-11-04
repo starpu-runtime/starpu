@@ -1,24 +1,24 @@
 #!/usr/bin/bash
-#	bash Scripts_maxime/HFP.sh 2 Matrice_ligne HFP 1
-#	bash Scripts_maxime/HFP.sh 15 Matrice_ligne HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Matrice_ligne HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 15 Matrice_ligne HFP 1
 
-#	bash Scripts_maxime/HFP.sh 2 Matrice_ligne HFP_memory 1
-#	bash Scripts_maxime/HFP.sh 10 Matrice_ligne HFP_memory 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Matrice_ligne HFP_memory 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 10 Matrice_ligne HFP_memory 1
 
-#	bash Scripts_maxime/HFP.sh 2 Matrice3D HFP 1
-#	bash Scripts_maxime/HFP.sh 10 Matrice3D HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Matrice3D HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 10 Matrice3D HFP 1
 
-#	bash Scripts_maxime/HFP.sh 2 Cholesky HFP 1
-#	bash Scripts_maxime/HFP.sh 10 Cholesky HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Cholesky HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 7 Cholesky HFP 1
 
-#	bash Scripts_maxime/HFP.sh 2 Random_tasks HFP 1
-#	bash Scripts_maxime/HFP.sh 15 Random_tasks HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Random_tasks HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 15 Random_tasks HFP 1
 
-#	bash Scripts_maxime/HFP.sh 2 Random_task_order HFP 1
-#	bash Scripts_maxime/HFP.sh 15 Random_task_order HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Random_task_order HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 15 Random_task_order HFP 1
 
-#	bash Scripts_maxime/HFP.sh 2 Random_set_of_task HFP 1
-#	bash Scripts_maxime/HFP.sh 10 Random_set_of_task HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Random_set_of_task HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 10 Random_set_of_task HFP 1
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
