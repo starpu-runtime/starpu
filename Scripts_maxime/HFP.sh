@@ -1,12 +1,12 @@
 #!/usr/bin/bash
-#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne HFP gemini-2-ipdps 1
-#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Matrice_ligne HFP gemini-2-ipdps 1
+#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne HFP gemini-1-fgcs 1
+#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 13 Matrice_ligne HFP gemini-1-fgcs 1
 
-#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne HFP_memory gemini-2-ipdps 1
-#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne HFP_memory gemini-2-ipdps 1
+#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne HFP_memory gemini-1-fgcs 1
+#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne HFP_memory gemini-1-fgcs 1
 
-#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D HFP gemini-2-ipdps 1
-#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice3D HFP gemini-2-ipdps 1
+#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D HFP gemini-1-fgcs 1
+#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice3D HFP gemini-1-fgcs 1
 
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Cholesky HFP gemini-2-ipdps 1
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Cholesky HFP gemini-2-ipdps 1
@@ -39,24 +39,26 @@ truncate -s 0 ${FICHIER_BUS}
 truncate -s 0 ${FICHIER_RAW_DT}
 truncate -s 0 ${FICHIER_TIME}
 truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/HFP_time.txt
-if [ $GPU = "gemini-2-ipdps" ]
-then
-	HOST="gemini-2-ipdps"
-fi
-if [ $GPU = "gemini-2-europar" ]
-then
-	HOST="gemini-2-europar"
-fi
-if [ $GPU = "gemini-1-ipdps" ]
-then
-	HOST="gemini-1-ipdps"
-fi
-if [ $GPU = "Attila" ] # Ajouter STARPU_LIMIT_BANDWIDTH si je test avec attila
-then
-	HOST="attila"
-	BW=350
-	BW=$((BW*NGPU))
-fi
+#~ if [ $GPU = "gemini-2-ipdps" ]
+#~ then
+	#~ HOST="gemini-2-ipdps"
+#~ fi
+#~ if [ $GPU = "gemini-2-europar" ]
+#~ then
+	#~ HOST="gemini-2-europar"
+#~ fi
+#~ if [ $GPU = "gemini-1-ipdps" ]
+#~ then
+	#~ HOST="gemini-1-ipdps"
+#~ fi
+#~ if [ $GPU = "Attila" ] # Ajouter STARPU_LIMIT_BANDWIDTH si je test avec attila
+#~ then
+	#~ HOST="attila"
+	#~ BW=350
+	#~ BW=$((BW*NGPU))
+#~ fi
+
+HOST=$GPU
 
 CM=500
 TH=10
@@ -517,8 +519,8 @@ then
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
-	# Tracage des temps de HFP
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/HFP_time.txt HFP_TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
-	mv ${PATH_STARPU}/starpu/Output_maxime/HFP_time.txt ${PATH_R}/R/Data/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
+	#~ # Tracage des temps de HFP
+	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/HFP_time.txt HFP_TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	#~ mv ${PATH_STARPU}/starpu/Output_maxime/HFP_time.txt ${PATH_R}/R/Data/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
 fi

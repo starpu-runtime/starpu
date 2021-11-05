@@ -21,14 +21,15 @@ N=30 #je suis censé avoir 12721.1 pour N=30
 #~ N=20
 #~ N=5 
 #~ N=65
-N=11
+N=25
 
 NGPU=1
 #~ NGPU=2
 
 #~ ORDO="dynamic-data-aware" # DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
-ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
+#~ ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
 #~ ORDO="dmdar"
+#~ ORDO=""
 
 CM=500
 #~ CM=250
@@ -72,8 +73,7 @@ NITER=1
 #~ NITER=11
 
 PRINT_N=$((N)) TASK_STEALING=$((STEALING)) STARPU_BUS_STATS=0 MULTIGPU=$((MULTI)) STARPU_GENERATE_TRACE=$((TRACE)) PRINTF=$((PRINTF)) SEED=$((SEED)) STARPU_SCHED=${ORDO} BELADY=$((BELADY)) ORDER_U=1 STARPU_SCHED_READY=$((READY)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))
-
-#~ /./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) HFP 1 1
+/./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) HFP 1 1
 python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
 
 #~ STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
