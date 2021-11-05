@@ -95,6 +95,7 @@ void HFP_insertion(struct paquets *a)
     new->expected_time = 0;
     new->expected_package_computation_time = 0;
     new->data_weight = 0;
+    new->data_to_evict_next = NULL;
 	starpu_task_list_init(&new->refused_fifo_list);
     a->temp_pointer_1 = new;
 }
@@ -1756,6 +1757,10 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 
 		paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 		paquets_data->temp_pointer_1->data_weight = 0;
+		
+		/* Mise à NULL de data to evict next pour eviter les pb en réel sur grid5k */
+		paquets_data->temp_pointer_1->data_to_evict_next = NULL;
+		
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++) 
 		{
 			paquets_data->temp_pointer_1->package_data[i] = STARPU_TASK_GET_HANDLE(task,i);
@@ -3487,8 +3492,8 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			//~ task1 = starpu_task_list_begin(&data->popped_task_list);
 			//~ printf("%p\n", task1);
 			//~ data->p = hierarchical_fair_packing(data->popped_task_list, NT, number_of_package_to_build);
-			data->p = hierarchical_fair_packing(temp_task_list, NT, number_of_package_to_build);
-
+			data->p = hierarchical_fair_packing(temp_task_list, NT, number_of_package_to_build);			
+			
 			/* Printing in terminal and also visu python */
 			if (starpu_get_env_number_default("PRINTF",0) == 1) 
 			{
@@ -3983,6 +3988,7 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
     if (NT == number_task_out)
 	{
 		iteration++;
+		printf("Iteration %d.\n", iteration);
 		do_schedule_done = false;
 		number_task_out = 0;
 		
