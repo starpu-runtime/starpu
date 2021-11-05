@@ -3898,6 +3898,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		gettimeofday(&time_end_eviction, NULL);
 		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 		
+		printf("return %p.\n", returned_handle);
 		return returned_handle;
 	}
 	/* Sinon je cherche dans la mémoire celle utilisé dans le plus longtemps et que j'ai le droit d'évincer */
@@ -3924,6 +3925,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 				gettimeofday(&time_end_eviction, NULL);
 				time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 				
+				printf("return %p.\n", data_on_node[i]);
 				return data_on_node[i];
 			}
 			
@@ -3949,6 +3951,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 			gettimeofday(&time_end_eviction, NULL);
 		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 	
+	printf("return %p.\n", data_on_node[index_latest_use]);
 	return data_on_node[index_latest_use];	
 }
 
@@ -3983,7 +3986,7 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 		number_task_out = 0;
 		
 		/* TODO a suppr */
-		if (iteration == 3 || starpu_get_env_number_default("PRINT_TIME", 0) == 1)
+		if (iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1)
 		{
 			FILE *f = fopen("Output_maxime/HFP_time.txt", "a");
 			fprintf(f, "%0.0f	", sqrt(NT));
