@@ -3898,7 +3898,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		gettimeofday(&time_end_eviction, NULL);
 		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 		
-		printf("return %p.\n", returned_handle);
+		printf("return %p.\n", returned_handle); fflush(stdout);
 		return returned_handle;
 	}
 	/* Sinon je cherche dans la mémoire celle utilisé dans le plus longtemps et que j'ai le droit d'évincer */
@@ -3925,7 +3925,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 				gettimeofday(&time_end_eviction, NULL);
 				time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 				
-				printf("return %p.\n", data_on_node[i]);
+				printf("return %p.\n", data_on_node[i]); fflush(stdout);
 				return data_on_node[i];
 			}
 			
@@ -3951,7 +3951,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 			gettimeofday(&time_end_eviction, NULL);
 		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 	
-	printf("return %p.\n", data_on_node[index_latest_use]);
+	printf("return %p.\n", data_on_node[index_latest_use]); fflush(stdout);
 	return data_on_node[index_latest_use];	
 }
 
