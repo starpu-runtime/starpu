@@ -1751,7 +1751,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	{
 		//~ task = starpu_task_list_pop_front(&task_list);
 		task = starpu_task_list_pop_front(task_list);
-		//~ printf("Task popped = %p.\n", task);
+		printf("Task popped = %p : %p %p.\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1)); fflush(stdout);
 		paquets_data->temp_pointer_1->expected_time = starpu_task_expected_length(task, starpu_worker_get_perf_archtype(0, 0), 0);	
 
 		paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
@@ -3898,7 +3898,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		gettimeofday(&time_end_eviction, NULL);
 		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 		
-		printf("return %p.\n", returned_handle); fflush(stdout);
+		printf("Return 1 %p.\n", returned_handle); fflush(stdout);
 		return returned_handle;
 	}
 	/* Sinon je cherche dans la mémoire celle utilisé dans le plus longtemps et que j'ai le droit d'évincer */
@@ -3925,7 +3925,7 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 				gettimeofday(&time_end_eviction, NULL);
 				time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 				
-				printf("return %p.\n", data_on_node[i]); fflush(stdout);
+				printf("Return 2 %p.\n", data_on_node[i]); fflush(stdout);
 				return data_on_node[i];
 			}
 			
@@ -3944,14 +3944,15 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		gettimeofday(&time_end_eviction, NULL);
 		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 		
+		//~ printf("Return NO_VICTIM\n"); fflush (stdout);
 		return STARPU_DATA_NO_VICTIM;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 	
-			gettimeofday(&time_end_eviction, NULL);
-		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
+	gettimeofday(&time_end_eviction, NULL);
+	time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 	
-	printf("return %p.\n", data_on_node[index_latest_use]); fflush(stdout);
+	printf("Return 3 %p.\n", data_on_node[index_latest_use]); fflush(stdout);
 	return data_on_node[index_latest_use];	
 }
 
