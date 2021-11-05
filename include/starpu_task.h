@@ -1510,6 +1510,17 @@ void starpu_task_clean(struct starpu_task *task);
 struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
 
 /**
+   Allocate a task structure that does nothing but accesses data \p handle
+   with mode \p mode. This allows to synchronize with the task graph, according
+   to the sequential consistency, against tasks submitted before or after
+   submitting this task. One can then use starpu_task_declare_deps_array() or
+   starpu_task_end_dep_add()/starpu_task_end_dep_release() to add dependencies
+   against this task before submitting it.
+ */
+struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create_sync(starpu_data_handle_t handle,
+	enum starpu_data_access_mode mode);
+
+/**
    Free the resource allocated during starpu_task_create() and
    associated with \p task. This function is called automatically
    after the execution of a task when the field starpu_task::destroy
