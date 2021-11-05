@@ -78,6 +78,7 @@ EXTRA_DIST = 				\
 	mpi_lu/pxlu_implicit.c		\
 	mpi_lu/pxlu_kernels.h		\
 	mpi_lu/pxlu_kernels.c		\
+	matrix_mult/mm.c 		\
 	matrix_decomposition/mpi_cholesky.h 		\
 	matrix_decomposition/mpi_cholesky_codelets.h 	\
 	matrix_decomposition/mpi_cholesky_kernels.h	\
@@ -291,15 +292,15 @@ cg_cg_LDADD =					\
 endif
 endif
 
-###########################
-# MPI Matrix mult example #
-###########################
+############################
+# MPI Matrix mult examples #
+############################
 
 examplebin_PROGRAMS +=		\
 	matrix_mult/mm
 
 matrix_mult_mm_SOURCES	=		\
-	matrix_mult/mm.c
+	matrix_mult/mm.c		
 
 matrix_mult_mm_LDADD =			\
 	-lm
@@ -307,6 +308,25 @@ matrix_mult_mm_LDADD =			\
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
 	matrix_mult/mm
+endif
+
+if !STARPU_NO_BLAS_LIB
+examplebin_PROGRAMS +=		\
+	matrix_mult/mm_2dbc
+
+matrix_mult_mm_SOURCES	=		\
+	matrix_mult/mm_2dbc.c		\
+	../../examples/common/blas.c
+
+matrix_mult_mm_LDADD =			\
+	$(STARPU_LIBNUMA_LDFLAGS) 	\
+	$(STARPU_BLAS_LDFLAGS) -lm
+
+if !STARPU_SIMGRID
+starpu_mpi_EXAMPLES +=				\
+	matrix_mult/mm_2dbc
+endif
+
 endif
 
 ########################
@@ -567,10 +587,12 @@ starpu_mpi_EXAMPLES	+=	\
 
 if STARPU_MPI_SYNC_CLOCKS
 examplebin_PROGRAMS +=		\
-	benchs/bcast_bench
+	benchs/bcast_bench		\
+	benchs/recv_wait_finalize_bench
 
 starpu_mpi_EXAMPLES	+=	\
-	benchs/bcast_bench
+	benchs/bcast_bench		\
+	benchs/recv_wait_finalize_bench
 endif
 
 if !STARPU_USE_MPI_MPI
@@ -593,6 +615,10 @@ benchs_bcast_bench_SOURCES = benchs/bcast_bench.c
 benchs_bcast_bench_SOURCES += benchs/bench_helper.c
 benchs_bcast_bench_LDADD = $(MPI_SYNC_CLOCKS_LDFLAGS)
 benchs_bcast_bench_CFLAGS = $(MPI_SYNC_CLOCKS_CFLAGS)
+
+benchs_recv_wait_finalize_bench_SOURCES = benchs/recv_wait_finalize_bench.c
+benchs_recv_wait_finalize_bench_LDADD = $(MPI_SYNC_CLOCKS_LDFLAGS)
+benchs_recv_wait_finalize_bench_CFLAGS = $(MPI_SYNC_CLOCKS_CFLAGS)
 
 benchs_sendrecv_parallel_tasks_bench_SOURCES = benchs/sendrecv_parallel_tasks_bench.c
 benchs_sendrecv_parallel_tasks_bench_SOURCES += benchs/bench_helper.c
