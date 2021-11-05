@@ -28,6 +28,9 @@
 
 #include <starpu.h>
 
+/* Master-Slave needs an unmangled name */
+extern "C" { void cpu_kernel_add_vectors(void *buffers[], void *cl_arg); }
+
 void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 {
 	// get the current task
@@ -61,7 +64,6 @@ int main(int argc, char **argv)
 
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	conf.nmpi_ms = 0;
 
 	// initialize StarPU with default configuration
 	int ret = starpu_init(&conf);

@@ -558,6 +558,9 @@ static starpu_ssize_t vector_cpp_describe(void *data_interface, char *buf, size_
 
 /* Kernel using STL objects */
 
+/* Master-Slave needs an unmangled name */
+extern "C" { void cpu_kernel_add_vectors(void *buffers[], void *cl_arg); }
+
 void cpu_kernel_add_vectors(void *buffers[], void *cl_arg)
 {
 	std::vector<MY_TYPE>* vec_A = VECTOR_CPP_GET_VEC(buffers[0]);
@@ -580,7 +583,6 @@ int main(int argc, char **argv)
 	bool fail;
 
 	starpu_conf_init(&conf);
-	conf.nmpi_ms = 0;
 
 	// initialize StarPU with default configuration
 	int ret = starpu_init(&conf);
