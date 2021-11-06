@@ -211,8 +211,10 @@ static void cpu_fill(void *handles[], void *arg)
 
 	int i,j;
 	if (VERBOSE) printf("fill_task\n");
-	for (i=0;i<n_row_A;i++){
-    		for (j=0;j<n_col_A;j++){ 
+	for (i=0;i<n_row_A;i++)
+	{
+    		for (j=0;j<n_col_A;j++)
+		{ 
 			block_A[i*BS+j] = 1.1;
 		}
 	}
@@ -337,7 +339,8 @@ int main(int argc, char *argv[])
 		{
 			for (b_col = 0; b_col < NB; b_col++)
 			{
-				for (b_aisle=0;b_aisle<KB;b_aisle++) {
+				for (b_aisle=0;b_aisle<KB;b_aisle++) 
+				{
 					starpu_mpi_task_insert(MPI_COMM_WORLD, &gemm_cl,
 						STARPU_R,  A_h[b_row*KB+b_aisle],
 						STARPU_R,  B_h[b_aisle*NB+b_col],
