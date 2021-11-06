@@ -38,6 +38,8 @@ static int K  = 8192; /* Matrix size */
 static int BS =  512; /* Block size */
 static int P  =    1; /* height of the grid */
 static int Q  =    1; /* width of the grid */
+static int T  =    1; /* number of runs */
+static int trace = 0; /* whether to trace */
 
 #define MB ((M)/(BS)) /* Number of blocks */
 #define NB ((N)/(BS)) /* Number of blocks */
@@ -197,7 +199,6 @@ static void cpu_mult(void *handles[], void *arg)
 	STARPU_DGEMM("N", "N", n_row_C,n_col_C,n_col_A,
 		1.0, block_A, ld_A, block_B, ld_B,
 		1.0, block_C, ld_C);
-
 }
 
 static void cpu_fill(void *handles[], void *arg)
@@ -284,8 +285,9 @@ int main(int argc, char *argv[])
 
 	/* Parse the matrix size and block size optional args */
  	// M, N, K, B, P, Q
-	if (argc != 7) {
-		fprintf(stderr, "invalid argument size\n");
+	if (argc < 8) 
+	{
+		fprintf(stderr, "argument size too small (require 8 arguments, 9 if tracing ; given %d)\n", argc);
 		exit(1);	
 	}
 	M  = atoi(argv[1]);
@@ -306,6 +308,14 @@ int main(int argc, char *argv[])
 	}
 	P  = atoi(argv[5]);
 	Q  = atoi(argv[6]);
+	T  = atoi(argv[6]);
+	if (argc > 9) 
+	{
+		fprintf(stderr, "invalid argument size (reuqire 8 arguments, 9 if tracing ; given %d)\n",argc);
+		exit(1);	
+	} else if (argc == 9) {
+		trace = 1;
+	}
 	/* Get the process rank and session size */
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &comm_rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &comm_size);
@@ -325,8 +335,8 @@ int main(int argc, char *argv[])
         }
   	int barrier_ret;
      	double start, stop;
-	//starpu_fxt_start_profiling();
-	for (int trial =0; trial < 4; trial++) {
+	if (trace) starpu_fxt_start_profiling();
+	for (int trial =0; trial < T; trial++) {
 	        alloc_matrices();
 		register_matrices();
 	
@@ -359,7 +369,7 @@ int main(int argc, char *argv[])
 		starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
 		free_matrices();
 	}
-	//starpu_fxt_stop_profiling();
+	if (trace) starpu_fxt_stop_profiling();
 	starpu_mpi_shutdown();
 	return 0;
 }

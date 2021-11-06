@@ -314,11 +314,11 @@ if !STARPU_NO_BLAS_LIB
 examplebin_PROGRAMS +=		\
 	matrix_mult/mm_2dbc
 
-matrix_mult_mm_SOURCES	=		\
+matrix_mult_mm2dbc_SOURCES	=	\
 	matrix_mult/mm_2dbc.c		\
 	../../examples/common/blas.c
 
-matrix_mult_mm_LDADD =			\
+matrix_mult_mm2dbc_LDADD =		\
 	$(STARPU_LIBNUMA_LDFLAGS) 	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
@@ -326,7 +326,6 @@ if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
 	matrix_mult/mm_2dbc
 endif
-
 endif
 
 ########################
