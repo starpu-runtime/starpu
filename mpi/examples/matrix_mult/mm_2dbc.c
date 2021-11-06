@@ -90,7 +90,7 @@ Matrix* alloc_matrix(int mb, int nb) {
 }
 static void alloc_matrices(void)
 {
-	printf("Allocating matrices\n");
+	if (VERBOSE) printf( "Allocating matrices\n");
 	A = alloc_matrix(MB,KB);
 	B = alloc_matrix(KB,NB);
 	C = alloc_matrix(MB,NB);
@@ -112,7 +112,7 @@ static void free_matrix(Matrix* X, int mb, int nb) {
 
 static void free_matrices(void)
 {
-	printf("Freeing matrices\n");
+	if (VERBOSE) printf( "Freeing matrices\n");
   	free_matrix(A,MB,KB);
   	free_matrix(B,KB,NB);
   	free_matrix(C,MB,NB);
@@ -144,7 +144,7 @@ static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag
 /* Register the matrix blocks to StarPU and to StarPU-MPI */
 static void register_matrices()
 {
-	printf("Registering matrices\n");
+	if (VERBOSE) printf("Registering matrices\n");
 	A_h = calloc(MB*KB, sizeof(starpu_data_handle_t));
 	B_h = calloc(KB*NB, sizeof(starpu_data_handle_t));
 	C_h = calloc(MB*NB, sizeof(starpu_data_handle_t));
@@ -172,7 +172,7 @@ static void unregister_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int 
 /* Unregister matrices from the StarPU management. */
 static void unregister_matrices()
 {
-	printf("Unregistering matrices\n");
+	if (VERBOSE) printf( "Unregistering matrices\n");
 	unregister_matrix(A,A_h,MB,KB);
 	unregister_matrix(B,B_h,KB,NB);
 	unregister_matrix(C,C_h,MB,NB);
@@ -255,7 +255,7 @@ static void init_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int nb) {
 
 static void init_matrices(void)
 {
-	printf("Initializing matrices\n");
+	if (VERBOSE) printf( "Initializing matrices\n");
 	// I own all the blocks
 	init_matrix(A,A_h,MB,KB);
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
@@ -268,11 +268,15 @@ static void init_matrices(void)
 
 int main(int argc, char *argv[])
 {
-	printf("Launching with %d arguments\n",argc);
 	/* Initializes STarPU and the StarPU-MPI layer */
 	starpu_fxt_autostart_profiling(0);
 	int ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_ini_conft");
+	/* Get the process rank and session size */
+	starpu_mpi_comm_rank(MPI_COMM_WORLD, &comm_rank);
+	starpu_mpi_comm_size(MPI_COMM_WORLD, &comm_size);
+
+	if (comm_rank == 0) printf("Launching with %d arguments\n",argc);
 
 	if (starpu_cpu_worker_get_count() == 0)
 	{
@@ -285,7 +289,7 @@ int main(int argc, char *argv[])
  	// M, N, K, B, P, Q
 	if (argc < 8) 
 	{
-		fprintf(stderr, "argument size too small (require 8 arguments, 9 if tracing ; given %d)\n", argc);
+		if (comm_rank == 0) fprintf(stderr, "argument size too small (require 8 arguments, 9 if tracing ; given %d)\n", argc);
 		exit(1);	
 	}
 	M  = atoi(argv[1]);
@@ -293,15 +297,15 @@ int main(int argc, char *argv[])
 	K  = atoi(argv[3]);
 	BS = atoi(argv[4]);
 	if (BS < 1 || M % BS != 0) {
-		fprintf(stderr, "invalid block size\n");
+		if (comm_rank == 0) fprintf(stderr, "invalid block size\n");
 		exit(1);
 	}
 	if (BS < 1 || N % BS != 0) {
-		fprintf(stderr, "invalid block size\n");
+		if (comm_rank == 0) fprintf(stderr, "invalid block size\n");
 		exit(1);
 	}
 	if (BS < 1 || K % BS != 0) {
-		fprintf(stderr, "invalid block size\n");
+		if (comm_rank == 0) fprintf(stderr, "invalid block size\n");
 		exit(1);
 	}
 	P  = atoi(argv[5]);
@@ -309,14 +313,11 @@ int main(int argc, char *argv[])
 	T  = atoi(argv[6]);
 	if (argc > 9) 
 	{
-		fprintf(stderr, "invalid argument size (reuqire 8 arguments, 9 if tracing ; given %d)\n",argc);
+		if (comm_rank == 0) fprintf(stderr, "invalid argument size (reuqire 8 arguments, 9 if tracing ; given %d)\n",argc);
 		exit(1);	
 	} else if (argc == 9) {
 		trace = 1;
 	}
-	/* Get the process rank and session size */
-	starpu_mpi_comm_rank(MPI_COMM_WORLD, &comm_rank);
-	starpu_mpi_comm_size(MPI_COMM_WORLD, &comm_size);
 	if (P < 1 || Q < 1 || P*Q != comm_size) {
 		fprintf(stderr, "invalid grid size\n");
 		exit(1);
@@ -361,7 +362,7 @@ int main(int argc, char *argv[])
 	        barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);
 		stop = starpu_timing_now();
 		double timing = stop - start;
-		if (comm_rank==0) fprintf(stderr, "RANK %d -> took %f s\n", comm_rank, timing/1000/1000);
+		if (comm_rank==0) printf("RANK %d -> took %f s\n", comm_rank, timing/1000/1000);
 
 		unregister_matrices();
 		starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
