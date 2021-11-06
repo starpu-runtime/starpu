@@ -178,8 +178,6 @@ static void unregister_matrices()
 	unregister_matrix(C,C_h,MB,NB);
 }
 
-/* Perform the actual computation. In a real-life case, this would rather call a BLAS 'gemm' routine
- * instead. */
 static void cpu_mult(void *handles[], void *arg)
 {
 	(void)arg;
