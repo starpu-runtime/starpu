@@ -15,8 +15,8 @@
  */
 
 /*
- * This example illustrates how to distribute a pre-existing data structure to
- * a set of computing nodes using StarPU-MPI routines.
+ * This example illustrates the computation of general matrices with originally
+ * distributed A, B and C matrices to a set of computing nodes.
  */
 
 #include <sys/time.h>
@@ -103,19 +103,6 @@ static void free_matrices(void)
 	free(C);
 }
 
-#if VERBOSE
-static void disp_matrix(double *m)
-{
-}
-#endif
-
-static void check_result(void)
-{
-#if VERBOSE
-	printf("success\n");
-#endif
-}
-
 static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag_t *tag, int mb, int nb) 
 {
 	int b_row, b_col;
@@ -193,9 +180,6 @@ static void cpu_mult(void *handles[], void *arg)
 	unsigned ld_B = STARPU_MATRIX_GET_LD(handles[1]);
 	unsigned ld_C = STARPU_MATRIX_GET_LD(handles[2]);
 
-/*        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n_row_C, n_col_C, n_col_A,
-            1.0, block_A, ld_A, block_B, ld_B,
-            1.0, block_C, ld_C); */
 	if (VERBOSE) printf("gemm_task\n");
 	STARPU_DGEMM("N", "N", n_row_C,n_col_C,n_col_A,
 		1.0, block_A, ld_A, block_B, ld_B,
@@ -324,7 +308,7 @@ int main(int argc, char *argv[])
         }
   	int barrier_ret;
      	double start, stop;
-	starpu_fxt_start_profiling();
+	//starpu_fxt_start_profiling();
 	for (int trial =0; trial < 4; trial++) {
 	        alloc_matrices();
 		register_matrices();
@@ -357,7 +341,7 @@ int main(int argc, char *argv[])
 		starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
 		free_matrices();
 	}
-	starpu_fxt_stop_profiling();
+	//starpu_fxt_stop_profiling();
 	starpu_mpi_shutdown();
 	return 0;
 }

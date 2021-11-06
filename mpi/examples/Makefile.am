@@ -78,7 +78,7 @@ EXTRA_DIST = 				\
 	mpi_lu/pxlu_implicit.c		\
 	mpi_lu/pxlu_kernels.h		\
 	mpi_lu/pxlu_kernels.c		\
-	matrix_mult/mm.c 		\
+	matrix_mult/mm_2dbc.c 		\
 	matrix_decomposition/mpi_cholesky.h 		\
 	matrix_decomposition/mpi_cholesky_codelets.h 	\
 	matrix_decomposition/mpi_cholesky_kernels.h	\
