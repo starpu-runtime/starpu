@@ -63,21 +63,23 @@ typedef struct Matrices {
 } Matrix;
 
 /* Matrices. Will be allocated as regular, linearized C arrays */
-static Matrix *A = NULL; /* A will be partitioned as BS rows x N  cols blocks */
-static Matrix *B = NULL; /* B will be partitioned as N  rows x BS cols blocks */
-static Matrix *C = NULL; /* C will be partitioned as BS rows x BS cols blocks */
+static Matrix *A = NULL; /* A will be partitioned as MB x KB blocks */
+static Matrix *B = NULL; /* B will be partitioned as KB x NB blocks */
+static Matrix *C = NULL; /* C will be partitioned as MB x NB blocks */
 
 Matrix* alloc_matrix(int mb, int nb) {
 	Matrix* X;
 	X = malloc(sizeof(Matrix));
       	X->blocks = malloc( mb*nb*sizeof(Block));
 	int i,j;
-	for (i = 0; i<mb; i++) {
-	  for (j= 0; j<nb; j++) {
-	    X->blocks[i*nb+j].owner = (i%P)*Q + (j%Q);  
-	    if (X->blocks[i*nb+j].owner == comm_rank)
-  	      X->blocks[i*nb+j].c = malloc(BS*BS*sizeof(double));
-	  }
+	for (i = 0; i<mb; i++) 
+	{
+		for (j= 0; j<nb; j++) 
+		{
+			X->blocks[i*nb+j].owner = (i%P)*Q + (j%Q);  
+			if (X->blocks[i*nb+j].owner == comm_rank)
+  				X->blocks[i*nb+j].c = malloc(BS*BS*sizeof(double));
+		}
 	}
 	X->mb = mb;
 	X->nb = nb;
@@ -92,15 +94,26 @@ static void alloc_matrices(void)
 	C = alloc_matrix(MB,NB);
 }
 
+static void free_matrix(Matrix* X, int mb, int nb) {
+	int i,j;
+	for (i = 0; i<mb; i++) 
+	{
+		for (j= 0; j<nb; j++) 
+		{
+			if (X->blocks[i*nb+j].owner == comm_rank)
+				free(X->blocks[i*nb+j].c);
+		}
+	}
+	free(X->blocks);
+	free(X);
+}
+
 static void free_matrices(void)
 {
 	printf("Freeing matrices\n");
-  	free(A->blocks);
-	free(A);
-  	free(B->blocks);
-	free(B);
-  	free(C->blocks);
-	free(C);
+  	free_matrix(A,MB,KB);
+  	free_matrix(B,KB,NB);
+  	free_matrix(C,MB,NB);
 }
 
 static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag_t *tag, int mb, int nb) 
@@ -224,15 +237,17 @@ static struct starpu_codelet fill_cl =
 	.name = "fill" /* to display task name in traces */
 };
 
-static void init_matrix(starpu_data_handle_t* X_h, int mb, int nb) {
+static void init_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int nb) {
 	int row, col;
 	for (row = 0; row < mb; row++)
 	{
 		for (col = 0; col < nb; col++)
 		{
-			// I own all the blocks
-			starpu_mpi_task_insert(MPI_COMM_WORLD, &fill_cl,
-				STARPU_W, X_h[row*nb+col], 0);
+			if (X->blocks[row*mb+col].owner == comm_rank) 
+			{	
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &fill_cl,
+					STARPU_W, X_h[row*nb+col], 0);
+			}
 		}
 	}
 }
@@ -241,11 +256,11 @@ static void init_matrices(void)
 {
 	printf("Initializing matrices\n");
 	// I own all the blocks
-	init_matrix(A_h,MB,KB);
+	init_matrix(A,A_h,MB,KB);
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
-	init_matrix(B_h,KB,NB);
+	init_matrix(B,B_h,KB,NB);
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
-	init_matrix(C_h,MB,NB);
+	init_matrix(C,C_h,MB,NB);
 	starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 }
 
@@ -322,12 +337,12 @@ int main(int argc, char *argv[])
 		{
 			for (b_col = 0; b_col < NB; b_col++)
 			{
-			  for (b_aisle=0;b_aisle<KB;b_aisle++) {
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &gemm_cl,
-					STARPU_R,  A_h[b_row*KB+b_aisle],
-					STARPU_R,  B_h[b_aisle*NB+b_col],
-					STARPU_RW, C_h[b_row*NB+b_col],  0);
-			  }
+				for (b_aisle=0;b_aisle<KB;b_aisle++) {
+					starpu_mpi_task_insert(MPI_COMM_WORLD, &gemm_cl,
+						STARPU_R,  A_h[b_row*KB+b_aisle],
+						STARPU_R,  B_h[b_aisle*NB+b_col],
+						STARPU_RW, C_h[b_row*NB+b_col],  0);
+				}
 			}
 		}
 	
