@@ -412,6 +412,13 @@ module fstarpu_mod
 
                 ! == starpu_task.h ==
 
+                function fstarpu_task_create_sync (handle, mode) bind(C,name="starpu_task_create_sync")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_task_create_sync
+                        type(c_ptr), value, intent(in) :: handle
+                        type(c_ptr), value, intent(in) :: mode
+                end function fstarpu_task_create_sync
+
                 ! void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
                 subroutine fstarpu_tag_declare_deps_array(id,ndeps,tag_array) bind(C,name="starpu_tag_declare_deps_array")
                         use iso_c_binding, only: c_int, c_long_long
@@ -1760,6 +1767,7 @@ module fstarpu_mod
                 end subroutine fstarpu_memchunk_tidy
 
                 ! == starpu_task_util.h ==
+
                 ! starpu_data_handle_t *fstarpu_data_handle_array_alloc(int nb);
                 function fstarpu_data_handle_array_alloc (nb) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
@@ -1838,6 +1846,17 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl_arg
                         type(c_ptr), dimension(*), intent(in) :: bufferlist
                 end subroutine fstarpu_unpack_arg
+
+                ! void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg)
+                subroutine fstarpu_create_sync_task(sync_tag, ndeps, tag_array, callback, callback_arg) & 
+                        bind(C,name="starpu_create_sync_task")
+                        use iso_c_binding, only: c_int, c_long_long, c_ptr, c_funptr
+                        integer(c_int), value, intent(in)    :: sync_tag
+                        integer(c_int), value, intent(in)    :: ndeps
+                        integer(c_long_long), intent(in)  :: tag_array(*)
+                        type(c_funptr), value, intent(in) :: callback
+                        type(c_ptr), value, intent(in)    :: callback_arg
+                end subroutine fstarpu_create_sync_task
 
                 ! == starpu_sched_ctx.h ==
 

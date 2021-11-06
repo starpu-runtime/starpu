@@ -72,6 +72,7 @@ Small features:
   * Deprecate starpu_free() and add new function starpu_free_noflag()
     to specify allocated size.
   * Reuse matrix tiles that have different shapes but same allocation size.
+  * Add starpu_task_create_sync
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
