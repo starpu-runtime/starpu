@@ -355,10 +355,10 @@ int main(int argc, char *argv[])
 		printf("comm_size = %d\n", comm_size);
 		printf("PxQ = %dx%d\n", P, Q);
         }
-  	int barrier_ret;
+  	int barrier_ret, trial;
      	double start, stop;
 	if (trace) starpu_fxt_start_profiling();
-	for (int trial =0; trial < T; trial++)
+	for (trial =0; trial < T; trial++)
 	{
 	        alloc_matrices();
 		register_matrices();
