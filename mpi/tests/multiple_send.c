@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 			FPRINTF(stderr, "We need at least 2 processes.\n");
 
 		starpu_mpi_shutdown();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	starpu_variable_data_register(&send_handle[0], STARPU_MAIN_RAM, (uintptr_t)&send[0], sizeof(unsigned));

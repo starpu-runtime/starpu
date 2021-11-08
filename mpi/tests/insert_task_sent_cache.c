@@ -157,6 +157,6 @@ int main(int argc, char **argv)
 	free(comm_amount_with_cache);
 
 	MPI_Finalize();
-	return !result;
+	return rank == 0 ? !result : 0;
 }
 #endif

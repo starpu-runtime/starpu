@@ -141,7 +141,7 @@ int main(int argc, char **argv)
         {
 		FPRINTF_MPI(stderr, "We need at least 2 processes.\n");
                 MPI_Finalize();
-                return STARPU_TEST_SKIPPED;
+                return rank == 0 ? STARPU_TEST_SKIPPED : 0;
         }
 
 	for(sdetached=0 ; sdetached<=1 ; sdetached++)
@@ -153,5 +153,5 @@ int main(int argc, char **argv)
 	}
 
         MPI_Finalize();
-	return ret;
+	return rank == 0 ? ret : 0;
 }

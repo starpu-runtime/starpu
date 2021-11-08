@@ -221,7 +221,7 @@ int main(int argc, char * argv[])
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return mpi_rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	/*element initialization : domains are connected as a ring for this test*/
