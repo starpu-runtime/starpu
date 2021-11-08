@@ -32,12 +32,12 @@
 #define VERBOSE 0
 
 
-static int M  = 8192; /* Matrix size */
-static int N  = 8192; /* Matrix size */
-static int K  = 8192; /* Matrix size */
+static int M  = 1024; /* Matrix size */
+static int N  = 1024; /* Matrix size */
+static int K  = 1024; /* Matrix size */
 static int BS =  512; /* Block size */
-static int P  =    1; /* height of the grid */
-static int Q  =    1; /* width of the grid */
+static int P  =    2; /* height of the grid */
+static int Q  =    2; /* width of the grid */
 static int T  =    1; /* number of runs */
 static int trace = 0; /* whether to trace */
 
