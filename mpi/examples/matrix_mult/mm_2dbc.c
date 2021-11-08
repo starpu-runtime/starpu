@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
  	// M, N, K, B, P, Q
 	if (argc < 8)
 	{
-		if (comm_rank == 0) fprintf(stderr, "using default sizes for arguments\n", argc);
+		if (comm_rank == 0) fprintf(stderr, "using default sizes for arguments\n");
 	}
 	else
 	{
