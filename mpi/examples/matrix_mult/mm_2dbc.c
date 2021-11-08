@@ -54,14 +54,16 @@ static starpu_data_handle_t *C_h;
 static int comm_rank; /* mpi rank of the process */
 static int comm_size; /* size of the mpi session */
 
-typedef struct Blocks {
-        double* c;            
-        int owner;           
+typedef struct Blocks
+{
+        double* c;
+        int owner;
 } Block;
 
-typedef struct Matrices {
-        int mb, nb, b;       
-        Block* blocks;      
+typedef struct Matrices
+{
+        int mb, nb, b;
+        Block* blocks;
 } Matrix;
 
 /* Matrices. Will be allocated as regular, linearized C arrays */
@@ -69,16 +71,17 @@ static Matrix *A = NULL; /* A will be partitioned as MB x KB blocks */
 static Matrix *B = NULL; /* B will be partitioned as KB x NB blocks */
 static Matrix *C = NULL; /* C will be partitioned as MB x NB blocks */
 
-Matrix* alloc_matrix(int mb, int nb) {
+Matrix* alloc_matrix(int mb, int nb)
+{
 	Matrix* X;
 	X = malloc(sizeof(Matrix));
       	X->blocks = malloc( mb*nb*sizeof(Block));
 	int i,j;
-	for (i = 0; i<mb; i++) 
+	for (i = 0; i<mb; i++)
 	{
-		for (j= 0; j<nb; j++) 
+		for (j= 0; j<nb; j++)
 		{
-			X->blocks[i*nb+j].owner = (i%P)*Q + (j%Q);  
+			X->blocks[i*nb+j].owner = (i%P)*Q + (j%Q);
 			if (X->blocks[i*nb+j].owner == comm_rank)
   				X->blocks[i*nb+j].c = malloc(BS*BS*sizeof(double));
 		}
@@ -96,11 +99,12 @@ static void alloc_matrices(void)
 	C = alloc_matrix(MB,NB);
 }
 
-static void free_matrix(Matrix* X, int mb, int nb) {
+static void free_matrix(Matrix* X, int mb, int nb)
+{
 	int i,j;
-	for (i = 0; i<mb; i++) 
+	for (i = 0; i<mb; i++)
 	{
-		for (j= 0; j<nb; j++) 
+		for (j= 0; j<nb; j++)
 		{
 			if (X->blocks[i*nb+j].owner == comm_rank)
 				free(X->blocks[i*nb+j].c);
@@ -118,7 +122,7 @@ static void free_matrices(void)
   	free_matrix(C,MB,NB);
 }
 
-static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag_t *tag, int mb, int nb) 
+static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag_t *tag, int mb, int nb)
 {
 	int b_row, b_col;
 	int owner;
@@ -126,15 +130,18 @@ static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag
 	{
 		for (b_col = 0; b_col < nb; b_col++)
 		{
-	    		if (X->blocks[b_row*nb+b_col].owner == comm_rank) {
-			    starpu_matrix_data_register(&X_h[b_row*nb+b_col],
-	  	  		STARPU_MAIN_RAM,
-	  	  		X->blocks[b_row*nb+b_col].c, BS, BS, BS,
-	  	  		sizeof(double));
-			} else {
-			    starpu_matrix_data_register(&X_h[b_row*nb+b_col],
-	  	  		-1, NULL, BS, BS, BS,
-	  	  		sizeof(double));
+	    		if (X->blocks[b_row*nb+b_col].owner == comm_rank)
+			{
+				starpu_matrix_data_register(&X_h[b_row*nb+b_col],
+							    STARPU_MAIN_RAM,
+							    X->blocks[b_row*nb+b_col].c, BS, BS, BS,
+							    sizeof(double));
+			}
+			else
+			{
+				starpu_matrix_data_register(&X_h[b_row*nb+b_col],
+							    -1, NULL, BS, BS, BS,
+							    sizeof(double));
 			}
 			starpu_mpi_data_register(X_h[b_row*nb+b_col], (*tag)++, X->blocks[b_row*nb+b_col].owner);
 		}
@@ -156,13 +163,14 @@ static void register_matrices()
 	register_matrix(C,C_h,&tag,MB,NB);
 }
 
-static void unregister_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int nb) {
+static void unregister_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int nb)
+{
 	int b_row,b_col;
 	for (b_row = 0; b_row < mb; b_row++)
 	{
 		for (b_col = 0; b_col < nb; b_col++)
 		{
-			if (X->blocks[b_row*nb+b_col].owner == comm_rank) 
+			if (X->blocks[b_row*nb+b_col].owner == comm_rank)
  				starpu_data_unregister(X_h[b_row*nb+b_col]);
 		}
 	}
@@ -213,7 +221,7 @@ static void cpu_fill(void *handles[], void *arg)
 	for (i=0;i<n_row_A;i++)
 	{
     		for (j=0;j<n_col_A;j++)
-		{ 
+		{
 			block_A[i*BS+j] = 1.1;
 		}
 	}
@@ -238,14 +246,15 @@ static struct starpu_codelet fill_cl =
 	.name = "fill" /* to display task name in traces */
 };
 
-static void init_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int nb) {
+static void init_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int nb)
+{
 	int row, col;
 	for (row = 0; row < mb; row++)
 	{
 		for (col = 0; col < nb; col++)
 		{
-			if (X->blocks[row*mb+col].owner == comm_rank) 
-			{	
+			if (X->blocks[row*mb+col].owner == comm_rank)
+			{
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &fill_cl,
 					STARPU_W, X_h[row*nb+col], 0);
 			}
@@ -268,10 +277,11 @@ static void init_matrices(void)
 
 int main(int argc, char *argv[])
 {
-	/* Initializes STarPU and the StarPU-MPI layer */
+	/* Initializes StarPU and the StarPU-MPI layer */
 	starpu_fxt_autostart_profiling(0);
 	int ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_ini_conft");
+
 	/* Get the process rank and session size */
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &comm_rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &comm_size);
@@ -282,47 +292,60 @@ int main(int argc, char *argv[])
 	{
 		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		return STARPU_TEST_SKIPPED;
+		return (comm_rank == 0) ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	/* Parse the matrix size and block size optional args */
  	// M, N, K, B, P, Q
-	if (argc < 8) 
+	if (argc < 8)
 	{
-		if (comm_rank == 0) fprintf(stderr, "argument size too small (require 8 arguments, 9 if tracing ; given %d)\n", argc);
-		exit(1);	
+		if (comm_rank == 0) fprintf(stderr, "using default sizes for arguments\n", argc);
 	}
-	M  = atoi(argv[1]);
-	N  = atoi(argv[2]);
-	K  = atoi(argv[3]);
-	BS = atoi(argv[4]);
-	if (BS < 1 || M % BS != 0) {
-		if (comm_rank == 0) fprintf(stderr, "invalid block size\n");
-		exit(1);
-	}
-	if (BS < 1 || N % BS != 0) {
-		if (comm_rank == 0) fprintf(stderr, "invalid block size\n");
-		exit(1);
-	}
-	if (BS < 1 || K % BS != 0) {
-		if (comm_rank == 0) fprintf(stderr, "invalid block size\n");
-		exit(1);
-	}
-	P  = atoi(argv[5]);
-	Q  = atoi(argv[6]);
-	T  = atoi(argv[6]);
-	if (argc > 9) 
+	else
 	{
-		if (comm_rank == 0) fprintf(stderr, "invalid argument size (reuqire 8 arguments, 9 if tracing ; given %d)\n",argc);
-		exit(1);	
-	} else if (argc == 9) {
-		trace = 1;
-	}
-	if (P < 1 || Q < 1 || P*Q != comm_size) {
-		fprintf(stderr, "invalid grid size\n");
-		exit(1);
+		M  = atoi(argv[1]);
+		N  = atoi(argv[2]);
+		K  = atoi(argv[3]);
+		BS = atoi(argv[4]);
+		P  = atoi(argv[5]);
+		Q  = atoi(argv[6]);
+		T  = atoi(argv[7]);
 	}
 
+	if (BS < 1 || M % BS != 0)
+	{
+		if (comm_rank == 0) fprintf(stderr, "invalid block size\n");
+		starpu_mpi_shutdown();
+		return (comm_rank == 0) ? 1 : 0;
+	}
+	if (BS < 1 || N % BS != 0)
+	{
+		if (comm_rank == 0) fprintf(stderr, "invalid block size\n");
+		starpu_mpi_shutdown();
+		return (comm_rank == 0) ? 1 : 0;
+	}
+	if (BS < 1 || K % BS != 0)
+	{
+		if (comm_rank == 0) fprintf(stderr, "invalid block size\n");
+		starpu_mpi_shutdown();
+		return (comm_rank == 0) ? 1 : 0;
+	}
+	if (argc > 9)
+	{
+		if (comm_rank == 0) fprintf(stderr, "invalid argument size (reuqire 8 arguments, 9 if tracing ; given %d)\n",argc);
+		starpu_mpi_shutdown();
+		return (comm_rank == 0) ? 1 : 0;
+	}
+	else if (argc == 9)
+	{
+		trace = 1;
+	}
+	if (P < 1 || Q < 1 || P*Q != comm_size)
+	{
+		fprintf(stderr, "invalid grid size\n");
+		starpu_mpi_shutdown();
+		return (comm_rank == 0) ? 1 : 0;
+	}
 
 	if (comm_rank == 0)
 	{
@@ -335,20 +358,21 @@ int main(int argc, char *argv[])
   	int barrier_ret;
      	double start, stop;
 	if (trace) starpu_fxt_start_profiling();
-	for (int trial =0; trial < T; trial++) {
+	for (int trial =0; trial < T; trial++)
+	{
 	        alloc_matrices();
 		register_matrices();
-	
+
 	        init_matrices();
 	        barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);
 		start = starpu_timing_now();
-		
+
 		int b_row,b_col,b_aisle;
 		for (b_row = 0; b_row < MB; b_row++)
 		{
 			for (b_col = 0; b_col < NB; b_col++)
 			{
-				for (b_aisle=0;b_aisle<KB;b_aisle++) 
+				for (b_aisle=0;b_aisle<KB;b_aisle++)
 				{
 					starpu_mpi_task_insert(MPI_COMM_WORLD, &gemm_cl,
 						STARPU_R,  A_h[b_row*KB+b_aisle],
@@ -357,7 +381,7 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
-	
+
 		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
 	        barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);
 		stop = starpu_timing_now();
@@ -368,8 +392,8 @@ int main(int argc, char *argv[])
 		starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
 		free_matrices();
 	}
+
 	if (trace) starpu_fxt_stop_profiling();
 	starpu_mpi_shutdown();
 	return 0;
 }
-
