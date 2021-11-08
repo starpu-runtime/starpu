@@ -215,7 +215,7 @@ int main(int argc, char **argv)
 	{
 		FPRINTF(stderr, "We need a even number of processes.\n");
 		MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	ret = exchange_variable(rank);
@@ -232,5 +232,5 @@ int main(int argc, char **argv)
 
 	MPI_Finalize();
 
-	return global_ret;
+	return rank == 0 ? global_ret : 0;
 }

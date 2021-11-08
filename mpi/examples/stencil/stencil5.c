@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 	{
 		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		return 77;
+		if (my_rank == 0) return 77; else return 0;
 	}
 
 	parse_args(argc, argv);

@@ -34,7 +34,7 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "We need a even number of processes.\n");
 		if (!mpi_init)
 			MPI_Finalize();
-                return STARPU_TEST_SKIPPED;
+                return rank == 0 ? STARPU_TEST_SKIPPED : 0;
         }
 
 	other_rank = rank%2 == 0 ? rank+1 : rank-1;

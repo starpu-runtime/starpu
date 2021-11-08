@@ -229,7 +229,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	ret = exchange_variable(rank, 0);
@@ -261,5 +261,5 @@ int main(int argc, char **argv)
 	if (!mpi_init)
 		MPI_Finalize();
 
-	return global_ret;
+	return rank == 0 ? global_ret : 0;
 }
