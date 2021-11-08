@@ -253,7 +253,7 @@ starpu_data_handle_t STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
 /* Cannot register a disk */
 int main(int argc, char **argv)
 {
-	return STARPU_TEST_SKIPPED;
+	return 77;
 }
 #else
 int main(int argc, char **argv)
