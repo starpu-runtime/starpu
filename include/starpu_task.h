@@ -1517,8 +1517,7 @@ struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
    starpu_task_end_dep_add()/starpu_task_end_dep_release() to add dependencies
    against this task before submitting it.
  */
-struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create_sync(starpu_data_handle_t handle,
-	enum starpu_data_access_mode mode);
+struct starpu_task *starpu_task_create_sync(starpu_data_handle_t handle, enum starpu_data_access_mode mode) STARPU_ATTRIBUTE_MALLOC;
 
 /**
    Free the resource allocated during starpu_task_create() and

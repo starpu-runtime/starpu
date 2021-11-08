@@ -366,8 +366,7 @@ static struct starpu_codelet _starpu_data_sync_cl =
 	.nbuffers = STARPU_VARIABLE_NBUFFERS
 };
 
-struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create_sync(starpu_data_handle_t handle,
-	enum starpu_data_access_mode mode)
+struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create_sync(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
 	struct starpu_task *task = starpu_task_create();
 	task->cl = &_starpu_data_sync_cl;
@@ -375,7 +374,6 @@ struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create_sync(starpu_data
 	STARPU_TASK_SET_MODE(task, mode, 0);
 	return task;
 }
-
 
 /* Free the ressource allocated during starpu_task_create. This function can be
  * called automatically after the execution of a task by setting the "destroy"
