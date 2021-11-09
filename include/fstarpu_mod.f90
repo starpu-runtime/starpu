@@ -412,11 +412,10 @@ module fstarpu_mod
 
                 ! == starpu_task.h ==
 
-                function fstarpu_task_create_sync (handle, mode) bind(C,name="starpu_task_create_sync")
+                function fstarpu_task_create_sync (handle) bind(C,name="starpu_task_create_sync")
                         use iso_c_binding, only: c_ptr
                         type(c_ptr) :: fstarpu_task_create_sync
                         type(c_ptr), value, intent(in) :: handle
-                        type(c_ptr), value, intent(in) :: mode
                 end function fstarpu_task_create_sync
 
                 ! void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
