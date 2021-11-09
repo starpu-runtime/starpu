@@ -134,6 +134,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
 	else
 	{
+		//~ FILE *f = fopen("Output_maxime/Flop_Cholesky.txt", "a");
+		//~ fprintf(f, "%f\n", flop);
+		//~ fclose(f);
 		PRINTF("# size\tms\tGFlops");
 		if (bound_p)
 			PRINTF("\tTms\tTGFlops");
