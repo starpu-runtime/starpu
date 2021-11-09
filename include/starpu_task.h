@@ -1511,13 +1511,13 @@ struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
 
 /**
    Allocate a task structure that does nothing but accesses data \p handle
-   with STARPU_RW mode. This allows to synchronize with the task graph, according
+   with mode \p mode. This allows to synchronize with the task graph, according
    to the sequential consistency, against tasks submitted before or after
    submitting this task. One can then use starpu_task_declare_deps_array() or
    starpu_task_end_dep_add()/starpu_task_end_dep_release() to add dependencies
    against this task before submitting it.
  */
-struct starpu_task *starpu_task_create_sync(starpu_data_handle_t handle) STARPU_ATTRIBUTE_MALLOC;
+struct starpu_task *starpu_task_create_sync(starpu_data_handle_t handle, enum starpu_data_access_mode mode) STARPU_ATTRIBUTE_MALLOC;
 
 /**
    Free the resource allocated during starpu_task_create() and
