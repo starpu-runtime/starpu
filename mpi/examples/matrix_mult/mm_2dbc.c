@@ -253,7 +253,7 @@ static void init_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int nb)
 	{
 		for (col = 0; col < nb; col++)
 		{
-			if (X->blocks[row*mb+col].owner == comm_rank)
+			if (X->blocks[row*nb+col].owner == comm_rank)
 			{
 				starpu_mpi_task_insert(MPI_COMM_WORLD, &fill_cl,
 					STARPU_W, X_h[row*nb+col], 0);
