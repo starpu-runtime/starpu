@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne HFP gemini-1-fgcs 1
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 13 Matrice_ligne HFP gemini-1-fgcs 1
+#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 16 Matrice_ligne HFP gemini-1-fgcs 1
 
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice_ligne HFP_memory gemini-1-fgcs 1
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne HFP_memory gemini-1-fgcs 1
@@ -87,7 +88,7 @@ then
 		then
 		    NB_ALGO_TESTE=8
 		    echo "############## Modular eager prefetching ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=14 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
@@ -97,7 +98,7 @@ then
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		    echo "############## Dmdar ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=14 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
@@ -107,7 +108,7 @@ then
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		    echo "############## HFP + U ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=14 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
@@ -117,7 +118,7 @@ then
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		    echo "############## HFP + R ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=14 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
@@ -127,7 +128,7 @@ then
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		    echo "############## HFP + BELADY ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=14 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
@@ -137,7 +138,7 @@ then
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		    echo "############## HFP + U + R + BELADY ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=14 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
@@ -147,7 +148,7 @@ then
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		    echo "############## MST ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=14 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
@@ -157,7 +158,7 @@ then
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		    echo "############## RCM ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=14 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
