@@ -29,7 +29,7 @@ struct starpu_task *starpu_task_dup(struct starpu_task *task)
 
 	/* TODO perhaps this is a bit too much overhead and we should only copy
 	 * part of the structure ? */
-	memcpy(task_dup, task, sizeof(struct starpu_task));
+	*task_dup = *task;
 
 	return task_dup;
 }

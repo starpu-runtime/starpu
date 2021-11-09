@@ -230,8 +230,8 @@ void _starpu_driver_update_job_feedback(struct _starpu_job *j, struct _starpu_wo
 
 		if (profiling && profiling_info)
 		{
-			memcpy(&profiling_info->start_time, &worker->cl_start, sizeof(struct timespec));
-			memcpy(&profiling_info->end_time, &worker->cl_end, sizeof(struct timespec));
+			profiling_info->start_time = worker->cl_start;
+			profiling_info->end_time = worker->cl_end;
 
 			profiling_info->workerid = workerid;
 

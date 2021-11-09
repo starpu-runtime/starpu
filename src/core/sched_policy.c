@@ -122,8 +122,7 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy, struct _
 	}
 #endif
 
-	struct starpu_sched_policy *policy = sched_ctx->sched_policy;
-	memcpy(policy, sched_policy, sizeof(*policy));
+	*(sched_ctx->sched_policy) = *sched_policy;
 }
 
 static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)
@@ -1027,8 +1026,7 @@ profiling:
 		 * even though we already tested if profiling is enabled. */
 		if (profiling_info)
 		{
-			memcpy(&profiling_info->pop_start_time,
-				&pop_start_time, sizeof(struct timespec));
+			profiling_info->pop_start_time = pop_start_time;
 			_starpu_clock_gettime(&profiling_info->pop_end_time);
 		}
 	}
