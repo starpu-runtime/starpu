@@ -143,11 +143,13 @@ static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag
 							    -1, NULL, BS, BS, BS,
 							    sizeof(double));
 			}
+//			printf("tag:%d\n",*tag);
 			starpu_mpi_data_register(X_h[b_row*nb+b_col], (*tag)++, X->blocks[b_row*nb+b_col].owner);
 		}
 	}
 }
 
+starpu_mpi_tag_t tag = 0;
 /* Register the matrix blocks to StarPU and to StarPU-MPI */
 static void register_matrices()
 {
@@ -157,7 +159,6 @@ static void register_matrices()
 	C_h = calloc(MB*NB, sizeof(starpu_data_handle_t));
 
 	/* mpi tag used for the block */
-	starpu_mpi_tag_t tag = 0;
 	register_matrix(A,A_h,&tag,MB,KB);
 	register_matrix(B,B_h,&tag,KB,NB);
 	register_matrix(C,C_h,&tag,MB,NB);
@@ -386,10 +387,10 @@ int main(int argc, char *argv[])
 	        barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);
 		stop = starpu_timing_now();
 		double timing = stop - start;
-		if (comm_rank==0) printf("RANK %d -> took %f s\n", comm_rank, timing/1000/1000);
+		if (comm_rank==0) printf("RANK %d -> took %f s | %f Gflop/s\n", comm_rank, timing/1000/1000, 2.0*M*N*K/(timing*1000));
 
-		unregister_matrices();
 		starpu_mpi_cache_flush_all_data(MPI_COMM_WORLD);
+		unregister_matrices();
 		free_matrices();
 	}
 
