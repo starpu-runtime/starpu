@@ -30,11 +30,11 @@ FICHIER_BUS=Output_maxime/GFlops_raw_out_2.txt
 FICHIER_RAW_DT=Output_maxime/GFlops_raw_out_3.txt
 FICHIER_TIME=Output_maxime/GFlops_raw_out_4.txt
 ulimit -S -s 500000000
-truncate -s 0 ${FICHIER_RAW}
-truncate -s 0 ${FICHIER_BUS}
-truncate -s 0 ${FICHIER_RAW_DT}
-truncate -s 0 ${FICHIER_TIME}
-truncate -s 0 Output_maxime/HFP_time.txt
+#~ truncate -s 0 ${FICHIER_RAW}
+#~ truncate -s 0 ${FICHIER_BUS}
+#~ truncate -s 0 ${FICHIER_RAW_DT}
+#~ truncate -s 0 ${FICHIER_TIME}
+#~ truncate -s 0 Output_maxime/HFP_time.txt
 
 CM=500
 TH=10
@@ -326,38 +326,38 @@ then
 		if [ $NGPU = 1 ]
 		then
 		    NB_ALGO_TESTE=9
-		    echo "############## Modular eager prefetching ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    end=`date +%s` 
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-		    done
-		    echo "############## Dmdar ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
-				end=`date +%s`
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-		    done
-		    echo "############## HFP + U ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    start=`date +%s`
-			    STARPU_SCHED=HFP STARPU_SCHED_READY=0 BELADY=0 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
-			    end=`date +%s` 
-				echo $((end-start)) >> ${FICHIER_TIME}
-			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-		    done
+		    #~ echo "############## Modular eager prefetching ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    #~ end=`date +%s` 
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    #~ done
+		    #~ echo "############## Dmdar ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
+				#~ end=`date +%s`
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    #~ done
+		    #~ echo "############## HFP + U ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ start=`date +%s`
+			    #~ STARPU_SCHED=HFP STARPU_SCHED_READY=0 BELADY=0 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    #~ end=`date +%s` 
+				#~ echo $((end-start)) >> ${FICHIER_TIME}
+			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    #~ done
 		    echo "############## HFP + R ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=8 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
