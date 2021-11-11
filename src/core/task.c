@@ -372,6 +372,7 @@ struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create_sync(starpu_data
 	task->cl = &_starpu_data_sync_cl;
 	STARPU_TASK_SET_HANDLE(task, handle, 0);
 	STARPU_TASK_SET_MODE(task, mode, 0);
+	task->nbuffers = 1;
 	return task;
 }
 
