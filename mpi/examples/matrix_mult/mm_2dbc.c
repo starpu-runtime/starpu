@@ -381,6 +381,10 @@ int main(int argc, char *argv[])
 						STARPU_RW, C_h[b_row*NB+b_col],  0);
 				}
 			}
+			for (b_aisle=0;b_aisle<KB;b_aisle++)
+			{
+				starpu_mpi_cache_flush(MPI_COMM_WORLD, A_h[b_row*KB+b_aisle]);
+			}
 		}
 
 		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
