@@ -74,6 +74,14 @@ static int csr_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
 static void register_csr_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *) data_interface;
+	uint32_t *ram_colind = NULL;
+	uint32_t *ram_rowptr = NULL;
+
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
+	{
+		ram_colind = csr_interface->colind;
+		ram_rowptr = csr_interface->rowptr;
+	}
 
 	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -92,6 +100,8 @@ static void register_csr_handle(starpu_data_handle_t handle, int home_node, void
 			local_interface->colind = NULL;
 		}
 
+		local_interface->ram_colind = ram_colind;
+		local_interface->ram_rowptr = ram_rowptr;
 		local_interface->id = csr_interface->id;
 		local_interface->rowptr = csr_interface->rowptr;
 		local_interface->nnz = csr_interface->nnz;

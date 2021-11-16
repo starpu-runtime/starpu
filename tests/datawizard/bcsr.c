@@ -28,6 +28,8 @@ void cpu_show_bcsr(void *descr[], void *arg)
 	int *nzval = (int *)STARPU_BCSR_GET_NZVAL(iface);
 	uint32_t *colind = STARPU_BCSR_GET_COLIND(iface);
 	uint32_t *rowptr = STARPU_BCSR_GET_ROWPTR(iface);
+	STARPU_ASSERT(colind == STARPU_BCSR_GET_RAM_COLIND(iface));
+	STARPU_ASSERT(rowptr == STARPU_BCSR_GET_RAM_ROWPTR(iface));
 
 	uint32_t firstentry = STARPU_BCSR_GET_FIRSTENTRY(iface);
 	uint32_t r = STARPU_BCSR_GET_R(iface);

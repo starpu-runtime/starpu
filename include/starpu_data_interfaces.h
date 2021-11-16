@@ -1834,6 +1834,8 @@ struct starpu_csr_interface
 	uintptr_t nzval;                  /**< non-zero values */
 	uint32_t *colind;                 /**< position of non-zero entries on the row */
 	uint32_t *rowptr;                 /**< index (in nzval) of the first entry of the row */
+	uint32_t *ram_colind;             /**< position of non-zero entries on the row (stored in RAM) */
+	uint32_t *ram_rowptr;             /**< index (in nzval) of the first entry of the row (stored in RAM) */
 
 	uint32_t firstentry;              /**< k for k-based indexing (0 or 1 usually). also useful when partitionning the matrix. */
 
@@ -1914,6 +1916,11 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
  */
 #define STARPU_CSR_GET_COLIND(interface)	    (((struct starpu_csr_interface *)(interface))->colind)
 /**
+   Return a RAM pointer to the column index of the matrix designated
+   by \p interface.
+ */
+#define STARPU_CSR_GET_RAM_COLIND(interface)	    (((struct starpu_csr_interface *)(interface))->ram_colind)
+/**
    Return a device handle for the column index of the matrix
    designated by \p interface. The offset returned by ::STARPU_CSR_GET_OFFSET has to be used in
    addition to this.
@@ -1924,6 +1931,11 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
    designated by \p interface.
  */
 #define STARPU_CSR_GET_ROWPTR(interface)	    (((struct starpu_csr_interface *)(interface))->rowptr)
+/**
+   Return a RAM pointer to the row pointer array of the matrix
+   designated by \p interface.
+ */
+#define STARPU_CSR_GET_RAM_ROWPTR(interface)	    (((struct starpu_csr_interface *)(interface))->ram_rowptr)
 /**
    Return a device handle for the row pointer array of the matrix
    designated by \p interface. The offset returned by ::STARPU_CSR_GET_OFFSET has to be used in
@@ -1983,6 +1995,8 @@ struct starpu_bcsr_interface
 					   * allows an easier access
 					   * of the matrix's elements
 					   * for the kernels. */
+	uint32_t *ram_colind;             /**< array of nnz elements (stored in RAM) */
+	uint32_t *ram_rowptr;             /**< array of nrow+1 elements (stored in RAM) */
 
 	uint32_t firstentry;              /**< k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix. */
 
@@ -2139,6 +2153,11 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
  */
 #define STARPU_BCSR_GET_COLIND(interface)     (((struct starpu_bcsr_interface *)(interface))->colind)
 /**
+   Return a RAM pointer to the column index of the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_RAM_COLIND(interface) (((struct starpu_bcsr_interface *)(interface))->ram_colind)
+/**
    Return a device handle for the column index of the matrix
    designated by \p interface. The offset returned by ::STARPU_BCSR_GET_OFFSET has to be used in
    addition to this.
@@ -2149,6 +2168,11 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
    designated by \p interface.
  */
 #define STARPU_BCSR_GET_ROWPTR(interface)     (((struct starpu_bcsr_interface *)(interface))->rowptr)
+/**
+   Return a RAM pointer to the row pointer array of the matrix
+   designated by \p interface.
+ */
+#define STARPU_BCSR_GET_RAM_ROWPTR(interface) (((struct starpu_bcsr_interface *)(interface))->ram_rowptr)
 /**
    Return a device handle for the row pointer array of the matrix
    designated by \p interface. The offset returned by ::STARPU_BCSR_GET_OFFSET has to be used in

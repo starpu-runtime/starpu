@@ -89,6 +89,15 @@ static void register_bcsr_handle(starpu_data_handle_t handle, int home_node, voi
 	struct starpu_bcsr_interface *bcsr_interface = (struct starpu_bcsr_interface *) data_interface;
 
 	int node;
+	uint32_t *ram_colind = NULL;
+	uint32_t *ram_rowptr = NULL;
+
+	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
+	{
+		ram_colind = bcsr_interface->colind;
+		ram_rowptr = bcsr_interface->rowptr;
+	}
+
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_bcsr_interface *local_interface = (struct starpu_bcsr_interface *)
@@ -107,6 +116,8 @@ static void register_bcsr_handle(starpu_data_handle_t handle, int home_node, voi
 			local_interface->rowptr = NULL;
 		}
 
+		local_interface->ram_colind = ram_colind;
+		local_interface->ram_rowptr = ram_rowptr;
 		local_interface->id = bcsr_interface->id;
 		local_interface->nnz = bcsr_interface->nnz;
 		local_interface->nrow = bcsr_interface->nrow;
