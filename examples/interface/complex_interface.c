@@ -53,11 +53,11 @@ int starpu_complex_get_nx(starpu_data_handle_t handle)
 	return complex_interface->nx;
 }
 
-static void complex_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void complex_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_complex_interface *local_interface = (struct starpu_complex_interface *)

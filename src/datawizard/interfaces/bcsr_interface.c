@@ -30,7 +30,7 @@ static const struct starpu_data_copy_methods bcsr_copy_data_methods_s =
 	.any_to_any = copy_any_to_any,
 };
 
-static void register_bcsr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_bcsr_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static void *bcsr_to_pointer(void *data_interface, unsigned node);
 static int bcsr_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_bcsr_buffer_on_node(void *data_interface, unsigned dst_node);
@@ -84,11 +84,11 @@ static int bcsr_pointer_is_inside(void *data_interface, unsigned node, void *ptr
 		(char*) ptr < (char*) bcsr_interface->rowptr + (bcsr_interface->nrow+1)*sizeof(uint32_t));
 }
 
-static void register_bcsr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_bcsr_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_bcsr_interface *bcsr_interface = (struct starpu_bcsr_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_bcsr_interface *local_interface = (struct starpu_bcsr_interface *)

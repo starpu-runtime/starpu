@@ -306,13 +306,13 @@ struct starpu_data_interface_ops
 
 	   This iterates over all memory nodes to initialize all fields of the data
 	   interface on each of them. Since data is not allocated yet except on the
-	   home node, pointers should be left as NULL except on the \p home_node, for
+	   home node, pointers should be left as NULL except on the \p home_node (if >= 0), for
 	   which the pointers should be copied from the given \p data_interface, which
 	   was filled with the application's pointers.
 
 	   This method is mandatory.
 	*/
-	void		 (*register_data_handle)	(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+	void		 (*register_data_handle)	(starpu_data_handle_t handle, int home_node, void *data_interface);
 
 	/**
 	   Unregister a data handle.

@@ -93,6 +93,8 @@ Small changes:
   - New option --worker for tool starpu_machine_display to only
     display workers of a specific type
   - Remove the unused and untested mpi_ms_funcs field.
+  - The home_node parameter of the register_data_handle method is turned from
+    unsigned to int, to explicit that it may be -1.
 
 StarPU 1.3.8
 ====================================================================

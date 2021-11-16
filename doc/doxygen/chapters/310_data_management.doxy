@@ -937,7 +937,7 @@ starpu_data_interface_ops::register_data_handle, which records them
 within the data handle (it is called once per node by starpu_data_register()):
 
 \code{.c}
-static void complex_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void complex_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
 

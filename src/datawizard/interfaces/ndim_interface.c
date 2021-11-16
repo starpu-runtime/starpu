@@ -26,7 +26,7 @@ static const struct starpu_data_copy_methods ndim_copy_data_methods_s =
 	.any_to_any = copy_any_to_any,
 };
 
-static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_ndim_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static void unregister_ndim_handle(starpu_data_handle_t handle);
 static void *ndim_to_pointer(void *data_interface, unsigned node);
 static int ndim_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
@@ -101,13 +101,13 @@ static int ndim_pointer_is_inside(void *data_interface, unsigned node, void *ptr
     return 1;
 }
 
-static void register_ndim_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_ndim_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
     struct starpu_ndim_interface *ndim_interface = (struct starpu_ndim_interface *) data_interface;
 
     size_t ndim = ndim_interface->ndim;
 
-    unsigned node;
+    int node;
     for (node = 0; node < STARPU_MAXNODES; node++)
     {
         struct starpu_ndim_interface *local_interface = (struct starpu_ndim_interface *)

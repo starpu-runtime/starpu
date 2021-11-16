@@ -233,7 +233,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 };
 #endif
 
-static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_vector_cpp_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static starpu_ssize_t allocate_vector_cpp_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *vector_cpp_to_pointer(void *data_interface, unsigned node);
 static int vector_cpp_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
@@ -330,11 +330,11 @@ static int vector_cpp_pointer_is_inside(void *data_interface, unsigned int node,
 		(char*) ptr < (char*) vector_interface->ptr + vector_interface->nx*vector_interface->elemsize;
 }
 
-static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_vector_cpp_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct vector_cpp_interface *local_interface = (struct vector_cpp_interface *)

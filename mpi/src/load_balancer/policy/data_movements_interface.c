@@ -104,7 +104,7 @@ int data_movements_reallocate_tables(starpu_data_handle_t handle, unsigned node,
 	return data_movements_reallocate_tables_interface (dm_interface, node, size);
 }
 
-static void data_movements_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void data_movements_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct data_movements_interface *dm_interface = (struct data_movements_interface *) data_interface;
 

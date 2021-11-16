@@ -27,7 +27,7 @@ static const struct starpu_data_copy_methods csr_copy_data_methods_s =
 	.any_to_any = copy_any_to_any,
 };
 
-static void register_csr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_csr_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static int csr_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_csr_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_csr_buffer_on_node(void *data_interface, unsigned node);
@@ -71,11 +71,11 @@ static int csr_pointer_is_inside(void *data_interface, unsigned node, void *ptr)
 		(char*) ptr < (char*) csr_interface->rowptr + (csr_interface->nrow+1)*sizeof(uint32_t));
 }
 
-static void register_csr_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_csr_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_csr_interface *csr_interface = (struct starpu_csr_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_csr_interface *local_interface = (struct starpu_csr_interface *)

@@ -26,7 +26,7 @@ static const struct starpu_data_copy_methods variable_copy_data_methods_s =
 	.any_to_any = copy_any_to_any,
 };
 
-static void register_variable_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_variable_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static starpu_ssize_t allocate_variable_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *variable_to_pointer(void *data_interface, unsigned node);
 static int variable_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
@@ -75,10 +75,10 @@ static int variable_pointer_is_inside(void *data_interface, unsigned node, void 
 		(char*) ptr < (char*) variable_interface->ptr + variable_interface->elemsize;
 }
 
-static void register_variable_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_variable_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *)data_interface;
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_variable_interface *local_interface = (struct starpu_variable_interface *)

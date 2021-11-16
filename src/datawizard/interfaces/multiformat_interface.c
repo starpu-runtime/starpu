@@ -61,7 +61,7 @@ static const struct starpu_data_copy_methods multiformat_copy_data_methods_s =
 #endif
 };
 
-static void register_multiformat_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_multiformat_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static starpu_ssize_t allocate_multiformat_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *multiformat_to_pointer(void *data_interface, unsigned node);
 static int multiformat_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
@@ -146,12 +146,12 @@ static int multiformat_pointer_is_inside(void *data_interface, unsigned node, vo
 	return -1;
 }
 
-static void register_multiformat_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_multiformat_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_multiformat_interface *multiformat_interface;
 	multiformat_interface = (struct starpu_multiformat_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_multiformat_interface *local_interface =

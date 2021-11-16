@@ -71,7 +71,7 @@ struct variable_size_interface
 
 static struct starpu_data_interface_ops starpu_interface_variable_size_ops;
 
-static void register_variable_size(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_variable_size(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct variable_size_interface *variable_size_interface = data_interface;
 	unsigned node;

@@ -27,7 +27,7 @@ static const struct starpu_data_copy_methods block_copy_data_methods_s =
 };
 
 
-static void register_block_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_block_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static void *block_to_pointer(void *data_interface, unsigned node);
 static int block_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_block_buffer_on_node(void *data_interface_, unsigned dst_node);
@@ -96,11 +96,11 @@ static int block_pointer_is_inside(void *data_interface, unsigned node, void *pt
 	return 1;
 }
 
-static void register_block_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_block_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_block_interface *block_interface = (struct starpu_block_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_block_interface *local_interface = (struct starpu_block_interface *)

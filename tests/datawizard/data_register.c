@@ -27,7 +27,7 @@ struct my_interface
 
 static struct starpu_data_interface_ops starpu_interface_my_ops;
 
-static void register_my(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_my(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	(void) home_node;
 	struct my_interface *my_interface = data_interface;

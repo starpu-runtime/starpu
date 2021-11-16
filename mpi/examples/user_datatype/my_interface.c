@@ -121,7 +121,7 @@ char starpu_my_data_get_char(starpu_data_handle_t handle)
 	return data->c;
 }
 
-static void data_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void data_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_my_data_interface *my_data_interface = (struct starpu_my_data_interface *) data_interface;
 
