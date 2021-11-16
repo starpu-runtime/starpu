@@ -32,9 +32,9 @@ extern "C"
  */
 
 /**
-   Return the CUSPARSE handle to be used to queue CUSPARSE kernels. It
+   Return the CUBLAS handle to be used to queue CUBLAS kernels. It
    is properly initialized and configured for multistream by
-   starpu_cusparse_init().
+   starpu_cublas_init().
 */
 cublasHandle_t starpu_cublas_get_local_handle(void);
 
