@@ -20,16 +20,16 @@ if [ $MODEL == "HFP" ]
 	then
 	ECHELLE_X=$((5*NGPU))
 		
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_4.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_4.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/HFP_time.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/HFP_time.txt
+	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
+	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
+	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_4.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_4.txt
+	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/HFP_time.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/HFP_time.txt
 	
-	# Tracage des GFlops
-	gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	#~ # Tracage des GFlops
+	#~ gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
+	#~ ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
+	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
 	# Tracage data transfers
 	gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
@@ -37,11 +37,11 @@ if [ $MODEL == "HFP" ]
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt DT_${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
-	# Tracage du temps
-	gcc -o cut_time_raw_out cut_time_raw_out.c
-	./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_4.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	#~ # Tracage du temps
+	#~ gcc -o cut_time_raw_out cut_time_raw_out.c
+	#~ ./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_4.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
+	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
 	
 	if [ $DOSSIER != "Cholesky" ]
 		then
