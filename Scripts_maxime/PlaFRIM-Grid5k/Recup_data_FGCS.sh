@@ -43,10 +43,13 @@ if [ $MODEL == "HFP" ]
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
 	
-	# Tracage du temps de HFP
-	mv ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/HFP_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt HFP_TIME_HFP ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	if [ $DOSSIER != "Cholesky" ]
+		then
+		# Tracage du temps de HFP
+		mv ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/HFP_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
+		Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt HFP_TIME_HFP ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+		mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	fi
 fi
 if [ $MODEL == "HFP_memory" ]
 	then
