@@ -25,6 +25,9 @@
 #include <starpu.h>
 #include <core/task.h>
 
+#define DMDAR_THRESHOLD
+int threshold_dmdar;
+
 struct _starpu_fifo_taskq
 {
 	/** the actual list */
