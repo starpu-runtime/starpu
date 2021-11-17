@@ -51,6 +51,8 @@ void starpu_bcsr_filter_vertical_block(void *father_interface, void *child_inter
 	bcsr_child->r = bcsr_father->r;
 	bcsr_child->c = bcsr_father->c;
 	bcsr_child->elemsize = elemsize;
+	bcsr_child->ram_colind = bcsr_father->ram_colind + start_block;
+	bcsr_child->ram_rowptr = ram_rowptr + child_rowoffset;
 
 	if (bcsr_father->nzval)
 	{

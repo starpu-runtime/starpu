@@ -46,6 +46,8 @@ void starpu_csr_filter_vertical_block(void *father_interface, void *child_interf
 	csr_child->nrow = child_nrow;
 	csr_child->firstentry = local_firstentry;
 	csr_child->elemsize = elemsize;
+	csr_child->ram_colind = &csr_father->ram_colind[local_firstentry];
+	csr_child->ram_rowptr = &ram_rowptr[first_index];
 
 	if (csr_father->nzval)
 	{
