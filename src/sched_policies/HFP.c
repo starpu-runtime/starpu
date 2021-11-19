@@ -3762,7 +3762,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		{
 			current_gpu = 0;
 		}
-		//~ printf("Ngpu = %d current = %d\n", Ngpu, current_gpu);
+		//~ printf("Ngpu = %d current = %d task = %p\n", Ngpu, current_gpu, task);
 		index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
 		index_current_popped_task_all_gpu++;
 		int nb_data_to_load = 0;
@@ -3770,7 +3770,6 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		int y_to_load = 0;
 		int z_to_load = 0;
 		int i = 0;
-		
 		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
@@ -3793,7 +3792,6 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 				}
 			}
 		}
-		
 		/* Printing the number of data to load */
 		FILE *f = NULL;
 		FILE *f2 = NULL;

@@ -19,6 +19,8 @@
 /* CM
  */
 
+#include <schedulers/HFP.h>
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
@@ -38,31 +40,31 @@
 #define REVERSE /* O or 1 */
 bool do_schedule_done_cm = false;
 
-/* Structure used to acces the struct my_list. There are also task's list */
+/* Structure used to acces the struct my_list_cm. There are also task's list */
 struct cuthillmckee_sched_data
 {
 	struct starpu_task_list popped_task_list; /* List used to store all the tasks at the beginning of the pull_task function */
 	struct starpu_task_list list_if_fifo_full; /* List used if the fifo list is not empty. It means that task from the last iteration haven't been pushed, thus we need to pop task from this list */
 	struct starpu_task_list SIGMA; /* order in which task will go out */
 	/* All the pointer use to navigate through the linked list */
-	struct my_list *temp_pointer_1;
-	struct my_list *first_link; /* Pointer that we will use to point on the first link of the linked list */
+	struct my_list_cm *temp_pointer_1;
+	struct my_list_cm *first_link; /* Pointer that we will use to point on the first link of the linked list */
 	//~ int id;
 	struct starpu_task_list sched_list;
      	starpu_pthread_mutex_t policy_mutex;
 };
 
-struct my_list
+struct my_list_cm
 {
 	int index;
 	struct starpu_task_list sub_list; /* The list containing the tasks */
-	struct my_list *next;	
+	struct my_list_cm *next;	
 };
 
 /* Put a link at the beginning of the linked list */
 void insertion_cuthillmckee(struct cuthillmckee_sched_data *a)
 {
-    struct my_list *new = malloc(sizeof(*new)); /* Creation of a new link */
+    struct my_list_cm *new = malloc(sizeof(*new)); /* Creation of a new link */
 	starpu_task_list_init(&new->sub_list);
     new->next = a->temp_pointer_1;
     a->temp_pointer_1 = new;
@@ -106,6 +108,7 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 			}
 		else { 
 			task1 = starpu_task_list_pop_front(&data->SIGMA);
+			if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task1, starpu_worker_get_id()); }
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
 			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
@@ -324,11 +327,18 @@ static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
 
 struct starpu_sched_component *starpu_sched_component_cuthillmckee_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	/* Pour la visu python */
+	Ngpu = get_number_GPU();
+	index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task_all_gpu = 0;
+	index_current_popped_task_all_gpu_prefetch = 0;
+	
 	//~ srandom(time(0)); /* For the random selection in ALGO 4 */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "cuthillmckee");
 	
 	struct cuthillmckee_sched_data *data;
-	struct my_list *my_data = malloc(sizeof(*my_data));
+	struct my_list_cm *my_data = malloc(sizeof(*my_data));
 	_STARPU_MALLOC(data, sizeof(*data));
 	
 	do_schedule_done_cm = false;
@@ -378,8 +388,10 @@ struct starpu_sched_policy _starpu_sched_cuthillmckee_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.do_schedule = starpu_sched_tree_do_schedule,
 	.push_task = starpu_sched_tree_push_task,
-	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	//~ .pop_task = starpu_sched_tree_pop_task,
+	.pop_task = get_data_to_load,
+	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.pre_exec_hook = get_current_tasks,
 	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
 	.pop_every_task = NULL,
 	.policy_name = "cuthillmckee",
