@@ -479,12 +479,12 @@ typedef sg_sem_t starpu_sem_t;
 #else
 typedef msg_sem_t starpu_sem_t;
 #endif
-int starpu_sem_destroy(starpu_sem_t *);
-int starpu_sem_getvalue(starpu_sem_t *, int *);
-int starpu_sem_init(starpu_sem_t *, int, unsigned);
-int starpu_sem_post(starpu_sem_t *);
-int starpu_sem_trywait(starpu_sem_t *);
-int starpu_sem_wait(starpu_sem_t *);
+int starpu_sem_destroy(starpu_sem_t *sem);
+int starpu_sem_getvalue(starpu_sem_t *sem, int *retval);
+int starpu_sem_init(starpu_sem_t *sem, int pshared, unsigned value);
+int starpu_sem_post(starpu_sem_t *sem);
+int starpu_sem_trywait(starpu_sem_t *sem);
+int starpu_sem_wait(starpu_sem_t *sem);
 
 #elif !defined(_MSC_VER) || defined(BUILDING_STARPU) /* !STARPU_SIMGRID */
 
@@ -493,8 +493,8 @@ typedef sem_t starpu_sem_t;
 #define starpu_sem_getvalue sem_getvalue
 #define starpu_sem_init sem_init
 #define starpu_sem_post sem_post
-int starpu_sem_trywait(starpu_sem_t *);
-int starpu_sem_wait(starpu_sem_t *);
+int starpu_sem_trywait(starpu_sem_t *sem);
+int starpu_sem_wait(starpu_sem_t *sem);
 
 #endif
 
