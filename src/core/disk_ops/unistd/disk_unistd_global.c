@@ -857,17 +857,20 @@ void starpu_unistd_global_wait_request(void *async_channel)
 			}
 #elif defined(HAVE_AIO_H)
 			struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
-			const struct aiocb *aiocb = &starpu_aiocb->aiocb;
+			struct aiocb *aiocb = &starpu_aiocb->aiocb;
 			int values = -1;
 			int ret, myerrno = EAGAIN;
+			ssize_t size;
 			while(values < 0 && (myerrno == EAGAIN || myerrno == EINTR))
 			{
 				/* Wait the answer of the request TIMESTAMP IS NULL */
-				values = aio_suspend(&aiocb, 1, NULL);
+				values = aio_suspend((const struct aiocb **) &aiocb, 1, NULL);
 				myerrno = errno;
 			}
 			ret = aio_error(aiocb);
 			STARPU_ASSERT_MSG(!ret, "aio_error returned %d", ret);
+			size = aio_return(aiocb);
+			STARPU_ASSERT(size == (ssize_t) aiocb->aio_nbytes);
 #endif
 			break;
 		}
@@ -928,22 +931,27 @@ int starpu_unistd_global_test_request(void *async_channel)
 			return 0;
 #elif defined(HAVE_AIO_H)
 			struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
-			const struct aiocb *aiocb = &starpu_aiocb->aiocb;
+			struct aiocb *aiocb = &starpu_aiocb->aiocb;
 			int ret;
 
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 22))
 			/* glibc's aio_error was not threadsafe before glibc 2.22 */
 			struct timespec ts = { .tv_sec = 0, .tv_nsec = 0 };
-			ret = aio_suspend(&aiocb, 1, &ts);
+			ret = aio_suspend((const struct aiocb **) &aiocb, 1, &ts);
 			if (ret < 0 && (errno == EAGAIN || errno == EINTR))
 				return 0;
 			STARPU_ASSERT_MSG(!ret, "aio_suspend returned %d %d\n", ret, errno);
 #endif
+			ssize_t size;
 			/* Test the answer of the request */
 			ret = aio_error(aiocb);
 			if (ret == 0)
+			{
 				/* request is finished */
+				size = aio_return(aiocb);
+				STARPU_ASSERT(size == (ssize_t) aiocb->aio_nbytes);
 				return 1;
+			}
 			if (ret == EINTR || ret == EINPROGRESS || ret == EAGAIN)
 				return 0;
 			/* an error occured */
@@ -985,7 +993,6 @@ void starpu_unistd_global_free_request(void *async_channel)
 			struct aiocb *aiocb = &starpu_aiocb->aiocb;
 			if (starpu_aiocb->obj->descriptor < 0)
 				_starpu_unistd_reclose(aiocb->aio_fildes);
-			aio_return(aiocb);
 			free(event);
 #endif
 			break;
