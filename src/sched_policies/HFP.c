@@ -1204,7 +1204,6 @@ void merge_task_and_package (struct my_list *package, struct starpu_task *task)
 	for (i = 0; i < (package->package_nb_data + STARPU_TASK_GET_NBUFFERS(task)); i++) {
 		if (temp_data_tab[i] != 0) { package->package_data[j] = temp_data_tab[i]; j++; } }
 	package->package_nb_data = STARPU_TASK_GET_NBUFFERS(task) + package->package_nb_data - nb_duplicate_data;
-	package->total_nb_data_package += STARPU_TASK_GET_NBUFFERS(task);	
 	package->expected_time += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);	
 	starpu_task_list_push_back(&package->sub_list, task); 						
 }
@@ -1786,7 +1785,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		paquets_data->temp_pointer_1->index_package = link_index;
 		/* Initialization of the lists last_packages */
 		paquets_data->temp_pointer_1->split_last_ij = 0;
-		paquets_data->temp_pointer_1->total_nb_data_package = STARPU_TASK_GET_NBUFFERS(task);
 		link_index++;
 		paquets_data->temp_pointer_1->nb_task_in_sub_list=1;
 		if(do_not_add_more != 0) 
@@ -2057,45 +2055,64 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 								
 							paquets_data->temp_pointer_1->split_last_ij = paquets_data->temp_pointer_1->nb_task_in_sub_list;
 							
+							/* Fusion des listes de tâches */
 							paquets_data->temp_pointer_1->nb_task_in_sub_list += paquets_data->temp_pointer_2->nb_task_in_sub_list;
 							while (!starpu_task_list_empty(&paquets_data->temp_pointer_2->sub_list))
 							{
 								starpu_task_list_push_back(&paquets_data->temp_pointer_1->sub_list, starpu_task_list_pop_front(&paquets_data->temp_pointer_2->sub_list)); 
 							}
 							
-								i_bis = 0; j_bis = 0; tab_runner = 0;
-								starpu_data_handle_t *temp_data_tab = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data) * sizeof(paquets_data->temp_pointer_1->package_data[0]));
-								while (i_bis < paquets_data->temp_pointer_1->package_nb_data && j_bis < paquets_data->temp_pointer_2->package_nb_data)
+							i_bis = 0;
+							j_bis = 0;
+							tab_runner = 0;
+							
+							/* Fusion des tableaux de données */
+							starpu_data_handle_t *temp_data_tab = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data) * sizeof(paquets_data->temp_pointer_1->package_data[0]));
+							while (i_bis < paquets_data->temp_pointer_1->package_nb_data && j_bis < paquets_data->temp_pointer_2->package_nb_data)
+							{
+								if (paquets_data->temp_pointer_1->package_data[i_bis] == paquets_data->temp_pointer_2->package_data[j_bis])
 								{
-									if (paquets_data->temp_pointer_1->package_data[i_bis] == paquets_data->temp_pointer_2->package_data[j_bis])
-									{
-										temp_data_tab[tab_runner] = paquets_data->temp_pointer_1->package_data[i_bis];
-										temp_data_tab[tab_runner + 1] = paquets_data->temp_pointer_2->package_data[j_bis];
-										i_bis++; j_bis++; tab_runner++;
-									}
-									else if (paquets_data->temp_pointer_1->package_data[i_bis] < paquets_data->temp_pointer_2->package_data[j_bis])
-									{
-										temp_data_tab[tab_runner] = paquets_data->temp_pointer_1->package_data[i_bis];
-										i_bis++;
-									}
-									else
-									{
-										temp_data_tab[tab_runner] = paquets_data->temp_pointer_2->package_data[j_bis];
-										j_bis++;
-									}
+									temp_data_tab[tab_runner] = paquets_data->temp_pointer_1->package_data[i_bis];
+									temp_data_tab[tab_runner + 1] = paquets_data->temp_pointer_2->package_data[j_bis];
+									i_bis++;
+									j_bis++;
 									tab_runner++;
+									//~ nb_duplicate_data++;
 								}
-								while (i_bis < paquets_data->temp_pointer_1->package_nb_data) { temp_data_tab[tab_runner] = paquets_data->temp_pointer_1->package_data[i_bis]; i_bis++; tab_runner++; }
-								while (j_bis < paquets_data->temp_pointer_2->package_nb_data) { temp_data_tab[tab_runner] = paquets_data->temp_pointer_2->package_data[j_bis]; j_bis++; tab_runner++; }
-								for (i_bis = 0; i_bis < (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data); i_bis++)
+								else if (paquets_data->temp_pointer_1->package_data[i_bis] < paquets_data->temp_pointer_2->package_data[j_bis])
 								{
-									if (temp_data_tab[i_bis] == temp_data_tab[i_bis + 1])
-									{
-										temp_data_tab[i_bis] = 0;
-										nb_duplicate_data++;
-									}
+									temp_data_tab[tab_runner] = paquets_data->temp_pointer_1->package_data[i_bis];
+									i_bis++;
 								}
-								//~ printf("Nb duplicate data = %d.\n", nb_duplicate_data);
+								else
+								{
+									temp_data_tab[tab_runner] = paquets_data->temp_pointer_2->package_data[j_bis];
+									j_bis++;
+								}
+								tab_runner++;
+							}
+							/* Remplissage en vidant les données restantes du paquet I ou J */
+							while (i_bis < paquets_data->temp_pointer_1->package_nb_data)
+							{
+								temp_data_tab[tab_runner] = paquets_data->temp_pointer_1->package_data[i_bis];
+								i_bis++;
+								tab_runner++;
+							}
+							while (j_bis < paquets_data->temp_pointer_2->package_nb_data)
+							{
+								temp_data_tab[tab_runner] = paquets_data->temp_pointer_2->package_data[j_bis];
+								j_bis++;
+								tab_runner++;
+							}
+							for (i_bis = 0; i_bis < (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data); i_bis++)
+							{
+								if (temp_data_tab[i_bis] == temp_data_tab[i_bis + 1])
+								{
+									temp_data_tab[i_bis] = 0;
+									nb_duplicate_data++;
+								}
+							}
+							//~ printf("Nb duplicate data = %d.\n", nb_duplicate_data);
 								paquets_data->temp_pointer_1->package_data = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
 								j_bis = 0;
 								for (i_bis = 0; i_bis < (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data); i_bis++)
@@ -2106,11 +2123,11 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 										j_bis++;
 									}
 								}
+							
+								/* Fusion du nombre de données et du temps prévu */
 								paquets_data->temp_pointer_1->package_nb_data = paquets_data->temp_pointer_2->package_nb_data + paquets_data->temp_pointer_1->package_nb_data - nb_duplicate_data;
-								
-								paquets_data->temp_pointer_1->total_nb_data_package += paquets_data->temp_pointer_2->total_nb_data_package;
 								paquets_data->temp_pointer_1->expected_time += paquets_data->temp_pointer_2->expected_time;
-								
+						
 								//~ /* TODO a supr */
 								//~ printf("Data after merge :");
 								//~ for (i_bis = 0; i_bis < paquets_data->temp_pointer_1->package_nb_data; i_bis++)
@@ -2125,9 +2142,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 								
 							gettimeofday(&time_end_merge, NULL);
 							time_total_merge += (time_end_merge.tv_sec - time_start_merge.tv_sec)*1000000LL + time_end_merge.tv_usec - time_start_merge.tv_usec;
-
-								
-							//~ temp_nb_min_task_packages--;
+							
 							if(paquets_data->NP == number_of_package_to_build) { goto break_merging_1; }
 							//~ if (temp_nb_min_task_packages > 1)
 							//~ {
@@ -2251,7 +2266,6 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 				paquets_data->temp_pointer_1->index_package = link_index;
 				/* Initialization of the lists last_packages */
 				paquets_data->temp_pointer_1->split_last_ij = 0;
-				paquets_data->temp_pointer_1->total_nb_data_package = STARPU_TASK_GET_NBUFFERS(task);
 				link_index++;
 				paquets_data->temp_pointer_1->nb_task_in_sub_list=1;
 				
@@ -2500,7 +2514,6 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 									if (temp_data_tab[i_bis] != 0) { paquets_data->temp_pointer_1->package_data[j_bis] = temp_data_tab[i_bis]; j_bis++; } }
 								paquets_data->temp_pointer_1->package_nb_data = paquets_data->temp_pointer_2->package_nb_data + paquets_data->temp_pointer_1->package_nb_data - nb_duplicate_data;
 								
-								paquets_data->temp_pointer_1->total_nb_data_package += paquets_data->temp_pointer_2->total_nb_data_package;
 								paquets_data->temp_pointer_1->expected_time += paquets_data->temp_pointer_2->expected_time;
 								
 								paquets_data->temp_pointer_2->package_nb_data = 0;
