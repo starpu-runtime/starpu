@@ -2119,21 +2119,14 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 								j_bis++;
 							}
 							
-								/* Fusion du nombre de données et du temps prévu */
-								paquets_data->temp_pointer_1->package_nb_data = paquets_data->temp_pointer_2->package_nb_data + paquets_data->temp_pointer_1->package_nb_data - nb_duplicate_data;
-								paquets_data->temp_pointer_1->expected_time += paquets_data->temp_pointer_2->expected_time;
-						
-								//~ /* TODO a supr */
-								//~ printf("Data after merge :");
-								//~ for (i_bis = 0; i_bis < paquets_data->temp_pointer_1->package_nb_data; i_bis++)
-								//~ {
-									//~ printf(" %p", paquets_data->temp_pointer_1->package_data[i_bis]);
-								//~ }
-								//~ printf("\n");
-								
-								paquets_data->temp_pointer_2->package_nb_data = 0;
-								nb_duplicate_data = 0;
-								paquets_data->temp_pointer_2->nb_task_in_sub_list = 0;
+							/* Fusion du nombre de données et du temps prévu */
+							paquets_data->temp_pointer_1->package_nb_data = paquets_data->temp_pointer_2->package_nb_data + paquets_data->temp_pointer_1->package_nb_data - nb_duplicate_data;
+							paquets_data->temp_pointer_1->expected_time += paquets_data->temp_pointer_2->expected_time;
+							
+							/* Il faut le mettre à 0 pour le suppr ensuite dans HFP_delete_link */
+							paquets_data->temp_pointer_2->package_nb_data = 0;
+							
+							nb_duplicate_data = 0;
 								
 							gettimeofday(&time_end_merge, NULL);
 							time_total_merge += (time_end_merge.tv_sec - time_start_merge.tv_sec)*1000000LL + time_end_merge.tv_usec - time_start_merge.tv_usec;
