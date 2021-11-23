@@ -2144,7 +2144,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		break_merging_1:
 				
 		paquets_data->temp_pointer_1 = HFP_delete_link(paquets_data);
-		tab_runner = 0;
+		//~ tab_runner = 0;
 				
 				/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task
 				 * Seulement pour visu. TODO : est-ce utile pour visu pyhton ? */
