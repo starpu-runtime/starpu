@@ -1717,6 +1717,9 @@ long long time_total_find_min_size = 0;
 struct timeval time_start_init_packages;
 struct timeval time_end_init_packages;
 long long time_total_init_packages = 0;
+struct timeval time_start_fill_matrix_common_data_plus_get_max;
+struct timeval time_end_fill_matrix_common_data_plus_get_max;
+long long time_total_fill_matrix_common_data_plus_get_max = 0;
 
 /* Need an empty data paquets_data to build packages
  * Output a task list ordered. So it's HFP if we have only one package at the end
@@ -1743,10 +1746,11 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	long int common_data_last_package_i2_j2 = 0; long int max_common_data_last_package = 0;
 	long int weight_package_i = 0; /* Used for ORDER_U too */
 	long int weight_package_j = 0; int i = 0;
-	int GPU_limit_switch = 1; int temp_nb_min_task_packages = 0; int i_bis = 0; int j_bis = 0; int j = 0; int tab_runner = 0; int index_head_1 = 0; int index_head_2 = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
-	int min_nb_task_in_sub_list = 0; int nb_min_task_packages = 0;
+	int GPU_limit_switch = 1; int i_bis = 0; int j_bis = 0; int j = 0; int tab_runner = 0; int index_head_1 = 0; int index_head_2 = 0; int common_data_last_package_i2_j = 0; int common_data_last_package_i1_j = 0; int common_data_last_package_i_j1 = 0; int common_data_last_package_i_j2 = 0;
+	int min_nb_task_in_sub_list = 0;
+	//~ int nb_min_task_packages = 0;
+	//~ int temp_nb_min_task_packages = 0;
 	struct starpu_task *task; int nb_of_loop = 0; int packaging_impossible = 0; int link_index = 0;
-	//~ task  = starpu_task_list_begin(&task_list);
 	task  = starpu_task_list_begin(task_list);
 	paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 			
@@ -1816,11 +1820,13 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		min_nb_task_in_sub_list = 0;
 		max_value_common_data_matrix = 0; 
 		min_nb_task_in_sub_list = paquets_data->temp_pointer_1->nb_task_in_sub_list; 
+		
 		/* Then we create the common data matrix */
 		long int matrice_donnees_commune[number_task][number_task];
-		for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { matrice_donnees_commune[i][j] = 0; }}
-								 
+		for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { matrice_donnees_commune[i][j] = 0; }}		
+							 
 		/* First we get the number of packages that have the minimal number of tasks */
+		gettimeofday(&time_start_find_min_size, NULL);
 		for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next)
 		{
 			if (min_nb_task_in_sub_list > paquets_data->temp_pointer_1->nb_task_in_sub_list)
@@ -1828,19 +1834,19 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 				min_nb_task_in_sub_list = paquets_data->temp_pointer_1->nb_task_in_sub_list;
 			}
 		}
-		for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next) 
-		{
-			if (min_nb_task_in_sub_list == paquets_data->temp_pointer_1->nb_task_in_sub_list)
-			{
-				nb_min_task_packages++;
-			}
-		}
+		gettimeofday(&time_end_find_min_size, NULL);
+		time_total_find_min_size += (time_end_find_min_size.tv_sec - time_start_find_min_size.tv_sec)*1000000LL + time_end_find_min_size.tv_usec - time_start_find_min_size.tv_usec;
+		//~ for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next) 
+		//~ {
+			//~ if (min_nb_task_in_sub_list == paquets_data->temp_pointer_1->nb_task_in_sub_list)
+			//~ {
+				//~ nb_min_task_packages++;
+			//~ }
+		//~ }
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâche(s)\n", nb_min_task_packages, min_nb_task_in_sub_list); }
-		
-		max_value_common_data_matrix = 0;
-		
-		
+				
 		/* Remplissage de la matrice + obtention du max du poids */
+		gettimeofday(&time_start_fill_matrix_common_data_plus_get_max, NULL);
 		for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next)
 		{
 			if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
@@ -1849,49 +1855,27 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 				{
 					if (index_head_1 != index_head_2)
 					{
-						//~ ncommun = 0;
 						for (i = 0; i < paquets_data->temp_pointer_1->package_nb_data; i++)
 						{
 							for (j = 0; j < paquets_data->temp_pointer_2->package_nb_data; j++)
 							{
 								if ((paquets_data->temp_pointer_1->package_data[i] == paquets_data->temp_pointer_2->package_data[j]))
 								{
-									/* TODO : je ne sais pas si on peut remplir que la moitié de la matrice ? */
-									//~ matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]) + starpu_data_get_size(paquets_data->temp_pointer_1->package_data[i]);
-									//~ matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]) + starpu_data_get_size(paquets_data->temp_pointer_1->package_data[i]);
-									//~ printf("+= for %d %d\n", index_head_2, index_head_1);
 									matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]);
-									//~ printf("+= %ld pour %d %d.\n",  starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]), index_head_1, index_head_2);
-									//~ matrice_donnees_commune[index_head_2][index_head_1] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]);
-									//~ ncommun ++;
-									//~ if (ncommun == 2) { 
-										//~ for (i = 0; i < paquets_data->temp_pointer_1->package_nb_data; i++) { 
-											//~ printf("%p\n", paquets_data->temp_pointer_1->package_data[i]);
-										//~ }
-										//~ printf("paquet 2\n");
-										//~ for (i = 0; i < paquets_data->temp_pointer_2->package_nb_data; i++) { 
-											//~ printf("%p\n", paquets_data->temp_pointer_2->package_data[i]);
-										//~ }
-											//~ exit(0); }
 								} 
 							}
 						}
-						//~ if (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_2][index_head_1]) > GPU_RAM_M)
-						if (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]) > GPU_RAM_M)
-						{
+						//~ if (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]) > GPU_RAM_M)
+						//~ {
 							/* On met à -1 pour ne pas regarder. */
-							matrice_donnees_commune[index_head_2][index_head_1] = -1;
-						}
-						//~ else if (max_value_common_data_matrix < matrice_donnees_commune[index_head_2][index_head_1] && ((GPU_limit_switch == 0) || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_2][index_head_1]))))
-						else if (max_value_common_data_matrix < matrice_donnees_commune[index_head_1][index_head_2] && ((GPU_limit_switch == 0) || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]))))
+							//~ matrice_donnees_commune[index_head_2][index_head_1] = -1;
+						//~ }
+						//~ else
+						if (max_value_common_data_matrix < matrice_donnees_commune[index_head_1][index_head_2] && ((GPU_limit_switch == 0) || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]))))
 						{ 
 							/* Sinon on met la valeur */
 							max_value_common_data_matrix = matrice_donnees_commune[index_head_1][index_head_2];
 						}
-						//~ if (max_value_common_data_matrix < matrice_donnees_commune[index_head_2][index_head_1] && ((GPU_limit_switch == 0) || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_2][index_head_1]))))
-						//~ { /* Sinon on met la valeur */
-							//~ max_value_common_data_matrix = matrice_donnees_commune[index_head_2][index_head_1];
-						//~ }
 					}
 					index_head_2++;
 				}
@@ -1899,7 +1883,10 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 			index_head_1++;
 			index_head_2 = 0;
 		}
-		/* TODO : est-ce utile ? */
+		gettimeofday(&time_end_fill_matrix_common_data_plus_get_max, NULL);
+		time_total_fill_matrix_common_data_plus_get_max += (time_end_fill_matrix_common_data_plus_get_max.tv_sec - time_start_fill_matrix_common_data_plus_get_max.tv_sec)*1000000LL + time_end_fill_matrix_common_data_plus_get_max.tv_usec - time_start_fill_matrix_common_data_plus_get_max.tv_usec;
+
+		/* TODO : est-ce utile ? Visiblement oui sinon ca finis jamais */
 		if (max_value_common_data_matrix == 0)
 		{
 			GPU_limit_switch = 0;
@@ -1957,10 +1944,10 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 																
 								paquets_data->NP--;
 								
-								if (paquets_data->temp_pointer_2->nb_task_in_sub_list == min_nb_task_in_sub_list)
-								{
-									temp_nb_min_task_packages--;
-								}
+								//~ if (paquets_data->temp_pointer_2->nb_task_in_sub_list == min_nb_task_in_sub_list)
+								//~ {
+									//~ temp_nb_min_task_packages--;
+								//~ }
 																
 								if (starpu_get_env_number_default("ORDER_U", 0) == 1)
 								{
@@ -2093,7 +2080,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 								paquets_data->temp_pointer_2->package_nb_data = 0;
 								nb_duplicate_data = 0;
 								paquets_data->temp_pointer_2->nb_task_in_sub_list = 0;
-							temp_nb_min_task_packages--;
+							//~ temp_nb_min_task_packages--;
 							if(paquets_data->NP == number_of_package_to_build) { goto break_merging_1; }
 							//~ if (temp_nb_min_task_packages > 1)
 							//~ {
