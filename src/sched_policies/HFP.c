@@ -2143,22 +2143,23 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 				
 		paquets_data->temp_pointer_1 = HFP_delete_link(paquets_data);
 			 			 
-			/* Checking if we have the right number of packages. if MULTIGPU is equal to 0 we want only one package. if it is equal to 1 we want |GPU| packages */
-			if (paquets_data->NP == number_of_package_to_build) { goto end_while_packaging_impossible; }
-				
-			for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { matrice_donnees_commune[i][j] = 0; }}
-			/* Reset number_task for the matrix initialisation */
-			number_task = paquets_data->NP;
-			/* If we have only one package we don't have to do more packages */			
-			if (number_task == 1) { packaging_impossible = 1; }
-		} /* End of while (packaging_impossible == 0) { */
+		/* Checking if we have the right number of packages. if MULTIGPU is equal to 0 we want only one package. if it is equal to 1 we want |GPU| packages */
+		if (paquets_data->NP == number_of_package_to_build)
+		{
+			goto end_while_packaging_impossible;
+		}
 		
-		/* Pas certain qu'il fallait enlever cela */
-		//~ /* We are in algorithm 3, we remove the size limit of a package */
-		//~ exit(0);
-		//~ GPU_limit_switch = 0; goto beggining_while_packaging_impossible;
+		/* Reset number of packages for the matrix initialisation */
+		number_task = paquets_data->NP;
 		
-		end_while_packaging_impossible:
+		/* If we have only one package we don't have to do more packages */			
+		if (number_task == 1)
+		{
+			packaging_impossible = 1;
+		}
+	} /* End of while (packaging_impossible == 0) { */
+
+	end_while_packaging_impossible:
 		
 		/* Add tasks or packages that were not connexe */
 		while(!starpu_task_list_empty(&non_connexe)) 
