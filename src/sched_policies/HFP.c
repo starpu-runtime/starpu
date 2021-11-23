@@ -1719,6 +1719,12 @@ long long time_total_init_packages = 0;
 struct timeval time_start_fill_matrix_common_data_plus_get_max;
 struct timeval time_end_fill_matrix_common_data_plus_get_max;
 long long time_total_fill_matrix_common_data_plus_get_max = 0;
+struct timeval time_start_order_u_total;
+struct timeval time_end_order_u_total;
+long long time_total_order_u_total = 0;
+struct timeval time_start_reset_init_start_while_loop;
+struct timeval time_end_reset_init_start_while_loop;
+long long time_total_reset_init_start_while_loop = 0;
 struct timeval time_start_merge;
 struct timeval time_end_merge;
 long long time_total_merge = 0;
@@ -1804,6 +1810,8 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	/* THE while loop. Stop when no more packaging are possible */
 	while (packaging_impossible == 0)
 	{
+		gettimeofday(&time_start_reset_init_start_while_loop, NULL);
+		
 		beggining_while_packaging_impossible:
 		nb_of_loop++;
 		packaging_impossible = 1;
@@ -1823,9 +1831,11 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		/* Then we create the common data matrix */
 		long int matrice_donnees_commune[number_task][number_task];
 		for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { matrice_donnees_commune[i][j] = 0; }}		
-							 
+			
+		gettimeofday(&time_end_reset_init_start_while_loop, NULL);	
+		time_total_reset_init_start_while_loop += (time_end_reset_init_start_while_loop.tv_sec - time_start_reset_init_start_while_loop.tv_sec)*1000000LL + time_end_reset_init_start_while_loop.tv_usec - time_start_reset_init_start_while_loop.tv_usec;					 
 		/* First we get the number of packages that have the minimal number of tasks */
-		
+
 		gettimeofday(&time_start_find_min_size, NULL);
 		
 		for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next)
@@ -1935,7 +1945,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 			
 		/* Code to print the common data matrix */	
 		//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
-
+				
 		if (max_value_common_data_matrix == 0 && GPU_limit_switch == 0)
 		{ 
 			/* It means that P_i share no data with others, so we put it in the end of the list
@@ -1975,7 +1985,10 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 							packaging_impossible = 0;
 							//~ printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list);
 																	
-							paquets_data->NP--;									
+							paquets_data->NP--;	
+							
+							gettimeofday(&time_start_order_u_total, NULL);	
+													
 							if (starpu_get_env_number_default("ORDER_U", 0) == 1)
 							{
 								weight_package_i = paquets_data->temp_pointer_1->data_weight;
@@ -2037,6 +2050,9 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 									}
 								}
 							}
+							
+							gettimeofday(&time_end_order_u_total, NULL);
+							time_total_order_u_total += (time_end_order_u_total.tv_sec - time_start_order_u_total.tv_sec)*1000000LL + time_end_order_u_total.tv_usec - time_start_order_u_total.tv_usec;
 								
 							gettimeofday(&time_start_merge, NULL);
 								
@@ -2160,12 +2176,12 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 
 	end_while_packaging_impossible:
 		
-		/* Add tasks or packages that were not connexe */
-		while(!starpu_task_list_empty(&non_connexe)) 
-		{
-			starpu_task_list_push_back(&paquets_data->first_link->sub_list, starpu_task_list_pop_front(&non_connexe));
-			paquets_data->first_link->nb_task_in_sub_list++;
-		}
+	/* Add tasks or packages that were not connexe */
+	while(!starpu_task_list_empty(&non_connexe)) 
+	{
+		starpu_task_list_push_back(&paquets_data->first_link->sub_list, starpu_task_list_pop_front(&non_connexe));
+		paquets_data->first_link->nb_task_in_sub_list++;
+	}
 		
 	gettimeofday(&time_end_scheduling, NULL);
 	time_total_scheduling += (time_end_scheduling.tv_sec - time_start_scheduling.tv_sec)*1000000LL + time_end_scheduling.tv_usec - time_start_scheduling.tv_usec;
@@ -3927,8 +3943,8 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 		do_schedule_done = false;
 		number_task_out = 0;
 		
-		/* TODO a suppr */
-		if (iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1)
+		/* TODO a suppr. PRINT_TIME sur 2 permet de forcer l'écriture en simulation car il y a 1 seule itération. */
+		if ((iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
 		{
 			FILE *f = fopen("Output_maxime/HFP_time.txt", "a");
 			fprintf(f, "%0.0f	", sqrt(NT));
@@ -3940,7 +3956,13 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 			fprintf(f, "%lld	", time_total_loadbalanceexpectedtime);
 			gettimeofday(&time_end_createtolasttaskfinished, NULL);
 			time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
-			fprintf(f, "%lld\n", time_total_createtolasttaskfinished);
+			fprintf(f, "%lld	", time_total_createtolasttaskfinished);
+			fprintf(f, "%lld	", time_total_find_min_size);
+			fprintf(f, "%lld	", time_total_init_packages);
+			fprintf(f, "%lld	", time_total_fill_matrix_common_data_plus_get_max);
+			fprintf(f, "%lld	", time_total_reset_init_start_while_loop);
+			fprintf(f, "%lld	", time_total_order_u_total);
+			fprintf(f, "%lld\n", time_total_merge);
 			fclose(f);
 		}
 	}
