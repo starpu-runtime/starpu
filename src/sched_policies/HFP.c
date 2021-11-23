@@ -1845,7 +1845,39 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		//~ }
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Il y a %d paquets de taille minimale %d tâche(s)\n", nb_min_task_packages, min_nb_task_in_sub_list); }
 				
-		/* Remplissage de la matrice + obtention du max du poids */
+		/* Remplissage de la matrice + obtention du max du poids */		
+		/* Ancienne version quadratique */
+		//~ for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next)
+		//~ {
+			//~ if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
+			//~ {
+				//~ for (paquets_data->temp_pointer_2 = paquets_data->first_link; paquets_data->temp_pointer_2 != NULL; paquets_data->temp_pointer_2 = paquets_data->temp_pointer_2->next)
+				//~ {
+					//~ if (index_head_1 != index_head_2)
+					//~ {
+						//~ for (i = 0; i < paquets_data->temp_pointer_1->package_nb_data; i++)
+						//~ {
+							//~ for (j = 0; j < paquets_data->temp_pointer_2->package_nb_data; j++)
+							//~ {
+								//~ if ((paquets_data->temp_pointer_1->package_data[i] == paquets_data->temp_pointer_2->package_data[j]))
+								//~ {
+									//~ matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]);
+								//~ } 
+							//~ }
+						//~ }
+						//~ if (max_value_common_data_matrix < matrice_donnees_commune[index_head_1][index_head_2] && (GPU_limit_switch == 0 || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]) <= GPU_RAM_M)))
+						//~ { 
+							//~ /* Sinon on met la valeur */
+							//~ max_value_common_data_matrix = matrice_donnees_commune[index_head_1][index_head_2];
+						//~ }
+					//~ }
+					//~ index_head_2++;
+				//~ }
+			//~ } 
+			//~ index_head_1++;
+			//~ index_head_2 = 0;
+		//~ }
+		/* Nouvelle version linéaire */
 		gettimeofday(&time_start_fill_matrix_common_data_plus_get_max, NULL);
 		for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next)
 		{
@@ -1855,25 +1887,30 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 				{
 					if (index_head_1 != index_head_2)
 					{
-						for (i = 0; i < paquets_data->temp_pointer_1->package_nb_data; i++)
+						i = 0;
+						j = 0;
+						while (i < paquets_data->temp_pointer_1->package_nb_data || j < paquets_data->temp_pointer_2->package_nb_data)
 						{
-							for (j = 0; j < paquets_data->temp_pointer_2->package_nb_data; j++)
+							//~ for (j = 0; j < paquets_data->temp_pointer_2->package_nb_data; j++)
+							//~ {
+							if (paquets_data->temp_pointer_1->package_data[i] == paquets_data->temp_pointer_2->package_data[j])
 							{
-								if ((paquets_data->temp_pointer_1->package_data[i] == paquets_data->temp_pointer_2->package_data[j]))
-								{
-									matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]);
-								} 
+								matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]);
+								i++;
+								j++;
 							}
+							else if (paquets_data->temp_pointer_1->package_data[i] > paquets_data->temp_pointer_2->package_data[j])
+							{
+								j++;
+							}
+							else if (paquets_data->temp_pointer_1->package_data[i] < paquets_data->temp_pointer_2->package_data[j])
+							{
+								i++;
+							}
+							//~ }
 						}
-						//~ if (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]) > GPU_RAM_M)
-						//~ {
-							/* On met à -1 pour ne pas regarder. */
-							//~ matrice_donnees_commune[index_head_2][index_head_1] = -1;
-						//~ }
-						//~ else
 						if (max_value_common_data_matrix < matrice_donnees_commune[index_head_1][index_head_2] && (GPU_limit_switch == 0 || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]) <= GPU_RAM_M)))
-						{ 
-							/* Sinon on met la valeur */
+						{
 							max_value_common_data_matrix = matrice_donnees_commune[index_head_1][index_head_2];
 						}
 					}
