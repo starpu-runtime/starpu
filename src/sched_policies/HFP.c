@@ -1926,28 +1926,17 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		}
 		gettimeofday(&time_end_fill_matrix_common_data_plus_get_max, NULL);
 		time_total_fill_matrix_common_data_plus_get_max += (time_end_fill_matrix_common_data_plus_get_max.tv_sec - time_start_fill_matrix_common_data_plus_get_max.tv_sec)*1000000LL + time_end_fill_matrix_common_data_plus_get_max.tv_usec - time_start_fill_matrix_common_data_plus_get_max.tv_usec;
-
-		/* TODO : est-ce utile ? Visiblement oui sinon ca finis jamais */
-		if (max_value_common_data_matrix == 0)
-		{
-			GPU_limit_switch = 0;
-			goto beggining_while_packaging_impossible;
-		}
 			
 		/* Code to print the common data matrix */	
 		//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
-				
-		//~ temp_nb_min_task_packages = nb_min_task_packages;
-		//~ debut_while:
-		
-		paquets_data->temp_pointer_1 = paquets_data->first_link;
-		paquets_data->temp_pointer_2 = paquets_data->first_link;
+
 		if (max_value_common_data_matrix == 0 && GPU_limit_switch == 0)
 		{ 
 			/* It means that P_i share no data with others, so we put it in the end of the list
 			 * For this we use a separate list that we merge at the end
 			 * We will put this list at the end of the rest of the packages */
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("graphe non connexe\n"); }
+			paquets_data->temp_pointer_1 = paquets_data->first_link;
 			while (paquets_data->temp_pointer_1->nb_task_in_sub_list != min_nb_task_in_sub_list)
 			{
 				paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next;
@@ -1959,8 +1948,15 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 			paquets_data->temp_pointer_1->package_nb_data = 0;
 			paquets_data->NP--;
 		}
+		else if (max_value_common_data_matrix == 0)
+		{
+			GPU_limit_switch = 0;
+			goto beggining_while_packaging_impossible;
+		}
 		else /* Searching the package that get max and merge them */
 		{
+			paquets_data->temp_pointer_1 = paquets_data->first_link;
+			paquets_data->temp_pointer_2 = paquets_data->first_link;
 			for (i = 0; i < number_task; i++)
 			{
 				if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
