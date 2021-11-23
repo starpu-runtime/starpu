@@ -84,7 +84,7 @@ the option \ref with-fxt "--with-fxt" :
 $ ./configure --with-fxt=$FXTDIR
 \endverbatim
 
-Or you can simply point the <c>PKG_CONFIG_PATH</c> to
+Or you can simply point the <c>PKG_CONFIG_PATH</c> environment variable to
 <c>$FXTDIR/lib/pkgconfig</c>
 
 When \ref STARPU_FXT_TRACE is set to 1, a trace is generated when StarPU is terminated by calling
