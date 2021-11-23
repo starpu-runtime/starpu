@@ -2077,7 +2077,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 									i_bis++;
 									j_bis++;
 									tab_runner++;
-									//~ nb_duplicate_data++;
+									nb_duplicate_data++;
 								}
 								else if (paquets_data->temp_pointer_1->package_data[i_bis] < paquets_data->temp_pointer_2->package_data[j_bis])
 								{
@@ -2104,25 +2104,20 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 								j_bis++;
 								tab_runner++;
 							}
+							//~ printf("Nb duplicate data = %d.\n", nb_duplicate_data);
+							
+							/* Remplissage du tableau de données en ignorant les doublons */
+							paquets_data->temp_pointer_1->package_data = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
+							j_bis = 0;
 							for (i_bis = 0; i_bis < (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data); i_bis++)
 							{
+								paquets_data->temp_pointer_1->package_data[j_bis] = temp_data_tab[i_bis];
 								if (temp_data_tab[i_bis] == temp_data_tab[i_bis + 1])
 								{
-									temp_data_tab[i_bis] = 0;
-									nb_duplicate_data++;
+									i_bis++;
 								}
+								j_bis++;
 							}
-							//~ printf("Nb duplicate data = %d.\n", nb_duplicate_data);
-								paquets_data->temp_pointer_1->package_data = malloc((paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data - nb_duplicate_data) * sizeof(starpu_data_handle_t));
-								j_bis = 0;
-								for (i_bis = 0; i_bis < (paquets_data->temp_pointer_1->package_nb_data + paquets_data->temp_pointer_2->package_nb_data); i_bis++)
-								{
-									if (temp_data_tab[i_bis] != 0)
-									{
-										paquets_data->temp_pointer_1->package_data[j_bis] = temp_data_tab[i_bis];
-										j_bis++;
-									}
-								}
 							
 								/* Fusion du nombre de données et du temps prévu */
 								paquets_data->temp_pointer_1->package_nb_data = paquets_data->temp_pointer_2->package_nb_data + paquets_data->temp_pointer_1->package_nb_data - nb_duplicate_data;
