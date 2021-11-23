@@ -35,6 +35,7 @@ truncate -s 0 ${FICHIER_BUS}
 truncate -s 0 ${FICHIER_RAW_DT}
 truncate -s 0 ${FICHIER_TIME}
 truncate -s 0 Output_maxime/HFP_time.txt
+truncate -s 0 Output_maxime/HFP_iteration_time.txt
 
 CM=500
 TH=10
