@@ -2147,15 +2147,14 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		if (paquets_data->NP == number_of_package_to_build)
 		{
 			goto end_while_packaging_impossible;
-		}
-		
-		/* Reset number of packages for the matrix initialisation */
-		number_task = paquets_data->NP;
-		
-		/* If we have only one package we don't have to do more packages */			
-		if (number_task == 1)
+		}	
+		else if (paquets_data->NP == 1) /* If we have only one package we don't have to do more packages */
 		{
-			packaging_impossible = 1;
+			goto end_while_packaging_impossible;
+		}
+		else /* Reset number of packages for the matrix initialisation */
+		{
+			number_task = paquets_data->NP;
 		}
 	} /* End of while (packaging_impossible == 0) { */
 
