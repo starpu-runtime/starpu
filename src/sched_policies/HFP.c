@@ -1807,7 +1807,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		beggining_while_packaging_impossible:
 		nb_of_loop++;
 		packaging_impossible = 1;
-		//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("############# Itération numéro : %d #############\n", nb_of_loop); }
+		if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("############# Itération numéro : %d #############\n", nb_of_loop); }
 								
 		/* Variables we need to reinitialize for a new iteration */
 		paquets_data->temp_pointer_1 = paquets_data->first_link; 
@@ -1887,10 +1887,17 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 				{
 					if (index_head_1 != index_head_2)
 					{
+						printf("Paquets %d et %d :", index_head_1, index_head_2);
+						for (i_bis = 0; i_bis < paquets_data->temp_pointer_1->package_nb_data; i_bis++) { printf(" %p", paquets_data->temp_pointer_1->package_data[i_bis]); }
+						printf(" /");
+						for (i_bis = 0; i_bis < paquets_data->temp_pointer_2->package_nb_data; i_bis++) { printf(" %p", paquets_data->temp_pointer_2->package_data[i_bis]); }
+						printf("\n");
+						
 						i = 0;
 						j = 0;
-						while (i < paquets_data->temp_pointer_1->package_nb_data || j < paquets_data->temp_pointer_2->package_nb_data)
+						while (i < paquets_data->temp_pointer_1->package_nb_data && j < paquets_data->temp_pointer_2->package_nb_data)
 						{
+							printf("On compare %p et %p.\n", paquets_data->temp_pointer_1->package_data[i], paquets_data->temp_pointer_2->package_data[j]);
 							//~ for (j = 0; j < paquets_data->temp_pointer_2->package_nb_data; j++)
 							//~ {
 							if (paquets_data->temp_pointer_1->package_data[i] == paquets_data->temp_pointer_2->package_data[j])
@@ -1976,7 +1983,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 								/* Merge */
 								packaging_impossible = 0;
 								//~ if (nb_of_loop > 4) { if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list); } }
-								//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list); }
+								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list); }
 								//~ printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list);
 																
 								paquets_data->NP--;
