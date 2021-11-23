@@ -331,10 +331,18 @@ int get_common_data_last_package(struct my_list *I, struct my_list *J, int evalu
 	
 	int split_ij = 0;
 	/* evaluation: 0 = tout, 1 = début, 2 = fin */
-	struct starpu_task *task = NULL; bool insertion_ok = false;										
-	bool donnee_deja_presente = false; int j = 0; int i = 0;
-	int common_data_last_package = 0; long int poids_tache_en_cours = 0; long int poids = 0;
-	int index_tab_donnee_I = 0; int index_tab_donnee_J = 0; int parcours_liste = 0; int i_bis = 0;
+	struct starpu_task *task = NULL;
+	bool insertion_ok = false;										
+	bool donnee_deja_presente = false;
+	int i = 0;
+	int j = 0;
+	int common_data_last_package = 0;
+	long int poids_tache_en_cours = 0;
+	long int poids = 0;
+	int index_tab_donnee_I = 0;
+	int index_tab_donnee_J = 0;
+	int parcours_liste = 0;
+	int i_bis = 0;
 	
 	starpu_data_handle_t * donnee_J = malloc((J->package_nb_data) * sizeof(J->package_data[0]));
 	for (i = 0; i < J->package_nb_data; i++) { donnee_J[i] = NULL; }
@@ -1728,6 +1736,9 @@ long long time_total_reset_init_start_while_loop = 0;
 struct timeval time_start_merge;
 struct timeval time_end_merge;
 long long time_total_merge = 0;
+struct timeval time_start_iteration_i;
+struct timeval time_end_iteration_i;
+long long time_total_iteration_i = 0;
 
 /* Need an empty data paquets_data to build packages
  * Output a task list ordered. So it's HFP if we have only one package at the end
@@ -1810,6 +1821,8 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	/* THE while loop. Stop when no more packaging are possible */
 	while (packaging_impossible == 0)
 	{
+		gettimeofday(&time_start_iteration_i, NULL);
+		
 		gettimeofday(&time_start_reset_init_start_while_loop, NULL);
 		
 		beggining_while_packaging_impossible:
@@ -1820,7 +1833,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		/* Variables we need to reinitialize for a new iteration */
 		paquets_data->temp_pointer_1 = paquets_data->first_link; 
 		paquets_data->temp_pointer_2 = paquets_data->first_link; 
-		index_head_1 = 0; 
+		index_head_1 = 0;
 		index_head_2 = 0;
 		tab_runner = 0;
 		//~ nb_min_task_packages = 0;
@@ -1935,7 +1948,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 					}
 					index_head_2++;
 				}
-			} 
+			}
 			index_head_1++;
 			index_head_2 = 0;
 		}
@@ -1947,7 +1960,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
 				
 		if (max_value_common_data_matrix == 0 && GPU_limit_switch == 0)
-		{ 
+		{
 			/* It means that P_i share no data with others, so we put it in the end of the list
 			 * For this we use a separate list that we merge at the end
 			 * We will put this list at the end of the rest of the packages */
@@ -2029,7 +2042,11 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 											common_data_last_package_i2_j1 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 1, true,GPU_RAM_M);					
 											common_data_last_package_i2_j2 = get_common_data_last_package(paquets_data->temp_pointer_1, paquets_data->temp_pointer_2, 2, 2, true,GPU_RAM_M);
 										}
-										else { printf("Erreur dans ordre U, aucun cas choisi\n"); fflush(stdout); exit(0); }
+										else
+										{ 
+											printf("Erreur dans ordre U, aucun cas choisi\n");
+											exit(0);
+										}
 										max_common_data_last_package = common_data_last_package_i2_j1;
 										if (max_common_data_last_package < common_data_last_package_i1_j1) { max_common_data_last_package = common_data_last_package_i1_j1; }
 										if (max_common_data_last_package < common_data_last_package_i1_j2) { max_common_data_last_package = common_data_last_package_i1_j2; }
@@ -2057,7 +2074,8 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 							gettimeofday(&time_start_merge, NULL);
 								
 							paquets_data->temp_pointer_1->data_weight = paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[i][j];
-								
+							
+							/* Mise à 0 pour ne pas re-merge ces tableaux */	
 							for (j_bis = 0; j_bis < number_task; j_bis++)
 							{ 
 								matrice_donnees_commune[i][j_bis] = 0; matrice_donnees_commune[j_bis][i] = 0;
@@ -2172,9 +2190,22 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		{
 			number_task = paquets_data->NP;
 		}
+		
+	gettimeofday(&time_end_iteration_i, NULL);	
+	time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
+	FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
+	fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
+	fclose(f);
+		
 	} /* End of while (packaging_impossible == 0) { */
 
 	end_while_packaging_impossible:
+	
+	gettimeofday(&time_end_iteration_i, NULL);	
+	time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
+	FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
+	fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
+	fclose(f);
 		
 	/* Add tasks or packages that were not connexe */
 	while(!starpu_task_list_empty(&non_connexe)) 
