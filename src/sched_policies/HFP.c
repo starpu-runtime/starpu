@@ -1871,7 +1871,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 							//~ matrice_donnees_commune[index_head_2][index_head_1] = -1;
 						//~ }
 						//~ else
-						if (max_value_common_data_matrix < matrice_donnees_commune[index_head_1][index_head_2] && ((GPU_limit_switch == 0) || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]))))
+						if (max_value_common_data_matrix < matrice_donnees_commune[index_head_1][index_head_2] && (GPU_limit_switch == 0 || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]) <= GPU_RAM_M)))
 						{ 
 							/* Sinon on met la valeur */
 							max_value_common_data_matrix = matrice_donnees_commune[index_head_1][index_head_2];
