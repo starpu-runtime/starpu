@@ -4,6 +4,7 @@
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_FGCS.sh 10 Matrice_ligne HFP_memory 1 9
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_FGCS.sh 8 Matrice3D HFP 1 9
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_FGCS.sh 8 Cholesky HFP 1 9
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_FGCS.sh 10 Matrice_ligne GET_ITERATION_TIME 1 9
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
@@ -49,11 +50,6 @@ if [ $MODEL == "HFP" ]
 		mv ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/HFP_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
 		Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt HFP_TIME_HFP ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 		mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/HFP_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
-		
-		# Tracage du temps de chaque itération
-		mv ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/HFP_iteration_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/${MODEL}_ITERATION_TIME_${GPU}_${NGPU}GPU.txt
-		Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/${MODEL}_ITERATION_TIME_${GPU}_${NGPU}GPU.txt HFP_ITERATION_TIME ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-		mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/${MODEL}_ITERATION_TIME_${GPU}_${NGPU}GPU.pdf
 	fi
 fi
 if [ $MODEL == "HFP_memory" ]
@@ -67,4 +63,15 @@ if [ $MODEL == "HFP_memory" ]
 	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL}_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
+fi
+if [ $MODEL == "GET_ITERATION_TIME" ]
+	then
+	
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/HFP_iteration_time.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/HFP_iteration_time.txt
+	
+	# Tracage du temps de chaque itération
+	mv ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/HFP_iteration_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/HFP_ITERATION_TIME_${GPU}_${NGPU}GPU.txt
+	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/HFP_ITERATION_TIME_${GPU}_${NGPU}GPU.txt HFP_ITERATION_TIME ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/HFP_ITERATION_TIME_${GPU}_${NGPU}GPU.pdf
+
 fi
