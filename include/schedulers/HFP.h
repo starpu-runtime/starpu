@@ -80,14 +80,13 @@ struct my_list
 {
 	int package_nb_data; 
 	int nb_task_in_sub_list;
-	int index_package; /* Used to write in Data_coordinates.txt and keep track of the initial index of the package */
+	int index_package; /* Utilisé dans MST pour le scheduling */
 	starpu_data_handle_t * package_data; /* List of all the data in the packages. We don't put two times the duplicates */
 	struct starpu_task_list sub_list; /* The list containing the tasks */
 	struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
 	struct my_list *next;
 	int split_last_ij; /* The separator of the last state of the current package */
 	//~ starpu_data_handle_t * data_use_order; /* Order in which data will be loaded. used for Belady */
-	int total_nb_data_package;
 	double expected_time; /* Only task's time */
 	double expected_time_pulled_out; /* for load balance but only MULTIGPU = 4, 5 */
 	double expected_package_computation_time; /* Computation time with transfer and overlap */
