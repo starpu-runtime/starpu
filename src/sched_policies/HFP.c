@@ -1807,7 +1807,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		beggining_while_packaging_impossible:
 		nb_of_loop++;
 		packaging_impossible = 1;
-		if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("############# Itération numéro : %d #############\n", nb_of_loop); }
+		//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("############# Itération numéro : %d #############\n", nb_of_loop); }
 								
 		/* Variables we need to reinitialize for a new iteration */
 		paquets_data->temp_pointer_1 = paquets_data->first_link; 
@@ -1887,19 +1887,17 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 				{
 					if (index_head_1 != index_head_2)
 					{
-						printf("Paquets %d et %d :", index_head_1, index_head_2);
-						for (i_bis = 0; i_bis < paquets_data->temp_pointer_1->package_nb_data; i_bis++) { printf(" %p", paquets_data->temp_pointer_1->package_data[i_bis]); }
-						printf(" /");
-						for (i_bis = 0; i_bis < paquets_data->temp_pointer_2->package_nb_data; i_bis++) { printf(" %p", paquets_data->temp_pointer_2->package_data[i_bis]); }
-						printf("\n");
+						//~ printf("Paquets %d et %d :", index_head_1, index_head_2);
+						//~ for (i_bis = 0; i_bis < paquets_data->temp_pointer_1->package_nb_data; i_bis++) { printf(" %p", paquets_data->temp_pointer_1->package_data[i_bis]); }
+						//~ printf(" /");
+						//~ for (i_bis = 0; i_bis < paquets_data->temp_pointer_2->package_nb_data; i_bis++) { printf(" %p", paquets_data->temp_pointer_2->package_data[i_bis]); }
+						//~ printf("\n");
 						
 						i = 0;
 						j = 0;
 						while (i < paquets_data->temp_pointer_1->package_nb_data && j < paquets_data->temp_pointer_2->package_nb_data)
 						{
-							printf("On compare %p et %p.\n", paquets_data->temp_pointer_1->package_data[i], paquets_data->temp_pointer_2->package_data[j]);
-							//~ for (j = 0; j < paquets_data->temp_pointer_2->package_nb_data; j++)
-							//~ {
+							//~ printf("On compare %p et %p.\n", paquets_data->temp_pointer_1->package_data[i], paquets_data->temp_pointer_2->package_data[j]);
 							if (paquets_data->temp_pointer_1->package_data[i] == paquets_data->temp_pointer_2->package_data[j])
 							{
 								matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]);
@@ -1914,7 +1912,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 							{
 								i++;
 							}
-							//~ }
 						}
 						if (max_value_common_data_matrix < matrice_donnees_commune[index_head_1][index_head_2] && (GPU_limit_switch == 0 || (GPU_limit_switch == 1 && (paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[index_head_1][index_head_2]) <= GPU_RAM_M)))
 						{
@@ -1943,48 +1940,38 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		//~ temp_nb_min_task_packages = nb_min_task_packages;
 		//~ debut_while:
 		
-				paquets_data->temp_pointer_1 = paquets_data->first_link;
-				paquets_data->temp_pointer_2 = paquets_data->first_link;
-				if (max_value_common_data_matrix == 0 && GPU_limit_switch == 0)
-				{ 
-					/* It means that P_i share no data with others, so we put it in the end of the list
-					 * For this we use a separate list that we merge at the end
-					 * We will put this list at the end of the rest of the packages */
-					//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("graphe non connexe\n"); }
-					while (paquets_data->temp_pointer_1->nb_task_in_sub_list != min_nb_task_in_sub_list)
-					{
-						paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next;
-					}
-					while (!starpu_task_list_empty(&paquets_data->temp_pointer_1->sub_list)) { 
-						starpu_task_list_push_back(&non_connexe,starpu_task_list_pop_front(&paquets_data->temp_pointer_1->sub_list));
-					}
-					paquets_data->temp_pointer_1->package_nb_data = 0;
-					paquets_data->NP--;
-				}
-				else /* Searching the package that get max and merge them */
+		paquets_data->temp_pointer_1 = paquets_data->first_link;
+		paquets_data->temp_pointer_2 = paquets_data->first_link;
+		if (max_value_common_data_matrix == 0 && GPU_limit_switch == 0)
+		{ 
+			/* It means that P_i share no data with others, so we put it in the end of the list
+			 * For this we use a separate list that we merge at the end
+			 * We will put this list at the end of the rest of the packages */
+			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("graphe non connexe\n"); }
+			while (paquets_data->temp_pointer_1->nb_task_in_sub_list != min_nb_task_in_sub_list)
+			{
+				paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next;
+			}
+			while (!starpu_task_list_empty(&paquets_data->temp_pointer_1->sub_list))
+			{ 
+				starpu_task_list_push_back(&non_connexe, starpu_task_list_pop_front(&paquets_data->temp_pointer_1->sub_list));
+			}
+			paquets_data->temp_pointer_1->package_nb_data = 0;
+			paquets_data->NP--;
+		}
+		else /* Searching the package that get max and merge them */
+		{
+			for (i = 0; i < number_task; i++)
+			{
+				if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
 				{
-				for (i = 0; i < number_task; i++)
-				{
-					if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
+					for (j = 0; j < number_task; j++)
 					{
-						for (j = 0; j < number_task; j++)
+						if (matrice_donnees_commune[i][j] == max_value_common_data_matrix && i != j)
 						{
-							//~ weight_two_packages = 0;
-							//~ weight_package_i = 0;
-							//~ weight_package_j = 0;
-							//~ for (i_bis = 0; i_bis < paquets_data->temp_pointer_1->package_nb_data; i_bis++) { weight_two_packages += starpu_data_get_size(paquets_data->temp_pointer_1->package_data[i_bis]); } weight_package_i = weight_two_packages;
-							//~ for (i_bis = 0; i_bis < paquets_data->temp_pointer_2->package_nb_data; i_bis++) { bool_data_common = 0;
-								//~ for (j_bis = 0; j_bis < paquets_data->temp_pointer_1->package_nb_data; j_bis++) { if (paquets_data->temp_pointer_2->package_data[i_bis] == paquets_data->temp_pointer_1->package_data[j_bis]) { bool_data_common = 1; } }
-								//~ if (bool_data_common != 1) { weight_two_packages += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[i_bis]); } 
-								//~ weight_package_j += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[i_bis]); }
-								//~ printf("ok0 %ld, %ld\n", weight_package_i, weight_package_j);				
-							if (matrice_donnees_commune[i][j] == max_value_common_data_matrix && i != j && max_value_common_data_matrix > 0)
-							{
-								/* Merge */
-								packaging_impossible = 0;
-								//~ if (nb_of_loop > 4) { if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list); } }
-								if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list); }
-								//~ printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list);
+							/* Merge */
+							packaging_impossible = 0;
+							//~ printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list);
 																
 								paquets_data->NP--;
 								
