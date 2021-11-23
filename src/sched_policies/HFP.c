@@ -1752,7 +1752,8 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	int min_nb_task_in_sub_list = 0;
 	//~ int nb_min_task_packages = 0;
 	//~ int temp_nb_min_task_packages = 0;
-	struct starpu_task *task; int nb_of_loop = 0; int packaging_impossible = 0; int link_index = 0;
+	struct starpu_task *task; int nb_of_loop = 0; int packaging_impossible = 0;
+	//~ int link_index = 0;
 	task  = starpu_task_list_begin(task_list);
 	paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
 			
@@ -1782,11 +1783,9 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		qsort(paquets_data->temp_pointer_1->package_data,paquets_data->temp_pointer_1->package_nb_data,sizeof(paquets_data->temp_pointer_1->package_data[0]),HFP_pointeurComparator);
 		/* Pushing the task and the number of the package in the package*/
 		starpu_task_list_push_back(&paquets_data->temp_pointer_1->sub_list, task);
-		paquets_data->temp_pointer_1->index_package = link_index;
 		/* Initialization of the lists last_packages */
 		paquets_data->temp_pointer_1->split_last_ij = 0;
-		link_index++;
-		paquets_data->temp_pointer_1->nb_task_in_sub_list=1;
+		paquets_data->temp_pointer_1->nb_task_in_sub_list = 1;
 		if(do_not_add_more != 0) 
 		{ 
 			HFP_insertion(paquets_data); 
@@ -1815,7 +1814,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		paquets_data->temp_pointer_2 = paquets_data->first_link; 
 		index_head_1 = 0; 
 		index_head_2 = 0;
-		link_index = 0;
 		tab_runner = 0;
 		//~ nb_min_task_packages = 0;
 		min_nb_task_in_sub_list = 0;
@@ -2144,33 +2142,13 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		break_merging_1:
 				
 		paquets_data->temp_pointer_1 = HFP_delete_link(paquets_data);
-		//~ tab_runner = 0;
-				
-				/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task
-				 * Seulement pour visu. TODO : est-ce utile pour visu pyhton ? */
-					//~ while (paquets_data->temp_pointer_1 != NULL)
-					//~ {
-					/* if ((strcmp(appli,"starpu_sgemm_gemm") == 0) && (starpu_get_env_number_default("PRINTF",0) == 1)) {
-						for (task = starpu_task_list_begin(&paquets_data->temp_pointer_1->sub_list); task != starpu_task_list_end(&paquets_data->temp_pointer_1->sub_list); task  = starpu_task_list_next(task)) {
-							starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task,2),2,temp_tab_coordinates);
-							coordinate_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = NT - paquets_data->temp_pointer_1->index_package - 1;
-							coordinate_order_visualization_matrix[temp_tab_coordinates[0]][temp_tab_coordinates[1]] = tab_runner;
-							tab_runner++;	
-							temp_tab_coordinates[0] = 0; temp_tab_coordinates[1] = 0;
-						}
-					}		*/	
-						//~ link_index++;
-						//~ paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next;
-					//~ } 
-					/* if (starpu_get_env_number_default("PRINTF",0) == 1) { visualisation_tache_matrice_format_tex(coordinate_visualization_matrix,coordinate_order_visualization_matrix,nb_of_loop,link_index); } */
-			 link_index = paquets_data->NP;
 			 			 
 			/* Checking if we have the right number of packages. if MULTIGPU is equal to 0 we want only one package. if it is equal to 1 we want |GPU| packages */
-			if (link_index == number_of_package_to_build) { goto end_while_packaging_impossible; }
+			if (paquets_data->NP == number_of_package_to_build) { goto end_while_packaging_impossible; }
 				
 			for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { matrice_donnees_commune[i][j] = 0; }}
 			/* Reset number_task for the matrix initialisation */
-			number_task = link_index;
+			number_task = paquets_data->NP;
 			/* If we have only one package we don't have to do more packages */			
 			if (number_task == 1) { packaging_impossible = 1; }
 		} /* End of while (packaging_impossible == 0) { */
@@ -2240,7 +2218,6 @@ struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_t
 				qsort(paquets_data->temp_pointer_1->package_data,paquets_data->temp_pointer_1->package_nb_data,sizeof(paquets_data->temp_pointer_1->package_data[0]),HFP_pointeurComparator);
 				/* Pushing the task and the number of the package in the package*/
 				starpu_task_list_push_back(&paquets_data->temp_pointer_1->sub_list,task);
-				paquets_data->temp_pointer_1->index_package = link_index;
 				/* Initialization of the lists last_packages */
 				paquets_data->temp_pointer_1->split_last_ij = 0;
 				link_index++;
