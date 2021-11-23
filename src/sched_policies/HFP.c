@@ -2132,30 +2132,19 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 							time_total_merge += (time_end_merge.tv_sec - time_start_merge.tv_sec)*1000000LL + time_end_merge.tv_usec - time_start_merge.tv_usec;
 							
 							if(paquets_data->NP == number_of_package_to_build) { goto break_merging_1; }
-							//~ if (temp_nb_min_task_packages > 1)
-							//~ {
-								//~ max_value_common_data_matrix = get_max_value_common_data_matrix(paquets_data, GPU_limit_switch, number_task, min_nb_task_in_sub_list, matrice_donnees_commune);
-								//~ goto debut_while; 
-							//~ }
-							//~ else
-							//~ {
-								//~ j = number_task;
-								//~ i = number_task;
-							//~ }
 						}
-							paquets_data->temp_pointer_2=paquets_data->temp_pointer_2->next;
-						}
+						paquets_data->temp_pointer_2=paquets_data->temp_pointer_2->next;
 					}
-					paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next;
-					paquets_data->temp_pointer_2=paquets_data->first_link;
 				}
-				}
+				paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next;
+				paquets_data->temp_pointer_2=paquets_data->first_link;
+			}
+		}
 				
-				break_merging_1:
+		break_merging_1:
 				
-				paquets_data->temp_pointer_1 = paquets_data->first_link;
-				paquets_data->temp_pointer_1 = HFP_delete_link(paquets_data);
-				tab_runner = 0;
+		paquets_data->temp_pointer_1 = HFP_delete_link(paquets_data);
+		tab_runner = 0;
 				
 				/* Code to get the coordinates of each data in the order in wich tasks get out of pull_task
 				 * Seulement pour visu. TODO : est-ce utile pour visu pyhton ? */
