@@ -261,9 +261,13 @@ void print_next_use_each_data(struct paquets* a)
 	}
 }
 
+/* TODO a suppr */
 struct timeval time_start_getorderbelady;
 struct timeval time_end_getorderbelady;
 long long time_total_getorderbelady = 0;
+
+/* TODO a suppr */
+int iteration;
 
 /* Read the tasks's order and each time it se a data, it add a value of it's next use in the task list.
  * Then in the post_exec_hook we pop the value of the handles of the task processed. In belady we just look at these value
@@ -2190,22 +2194,28 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		{
 			number_task = paquets_data->NP;
 		}
-		
-	gettimeofday(&time_end_iteration_i, NULL);	
-	time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
-	FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
-	fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
-	fclose(f);
+	
+	if ((iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
+	{	
+		gettimeofday(&time_end_iteration_i, NULL);	
+		time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
+		FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
+		fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
+		fclose(f);
+	}
 		
 	} /* End of while (packaging_impossible == 0) { */
 
 	end_while_packaging_impossible:
 	
-	gettimeofday(&time_end_iteration_i, NULL);	
-	time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
-	FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
-	fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
-	fclose(f);
+	if ((iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
+	{
+		gettimeofday(&time_end_iteration_i, NULL);	
+		time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
+		FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
+		fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
+		fclose(f);
+	}
 		
 	/* Add tasks or packages that were not connexe */
 	while(!starpu_task_list_empty(&non_connexe)) 
@@ -3611,9 +3621,6 @@ long long time_total_eviction = 0;
 struct timeval time_start_createtolasttaskfinished;
 struct timeval time_end_createtolasttaskfinished;
 long long time_total_createtolasttaskfinished = 0;
-
-/* TODO a suppr */
-int iteration;
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
