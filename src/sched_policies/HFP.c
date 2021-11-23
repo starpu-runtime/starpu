@@ -1711,6 +1711,12 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 struct timeval time_start_scheduling;
 struct timeval time_end_scheduling;
 long long time_total_scheduling = 0;
+struct timeval time_start_find_min_size;
+struct timeval time_end_find_min_size;
+long long time_total_find_min_size = 0;
+struct timeval time_start_init_packages;
+struct timeval time_end_init_packages;
+long long time_total_init_packages = 0;
 
 /* Need an empty data paquets_data to build packages
  * Output a task list ordered. So it's HFP if we have only one package at the end
@@ -1743,16 +1749,15 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	//~ task  = starpu_task_list_begin(&task_list);
 	task  = starpu_task_list_begin(task_list);
 	paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
-	//~ struct starpu_task *temp_task;
 			
 	/* One task == one link in the linked list */
 	int do_not_add_more = number_task - 1;
-	//~ while (!starpu_task_list_empty(&task_list))
+
+	gettimeofday(&time_start_init_packages, NULL);
+	
 	while (!starpu_task_list_empty(task_list))
 	{
-		//~ task = starpu_task_list_pop_front(&task_list);
 		task = starpu_task_list_pop_front(task_list);
-		//~ printf("Task popped = %p : %p %p.\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1)); fflush(stdout);
 		paquets_data->temp_pointer_1->expected_time = starpu_task_expected_length(task, starpu_worker_get_perf_archtype(0, 0), 0);	
 
 		paquets_data->temp_pointer_1->package_data = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(paquets_data->temp_pointer_1->package_data[0]));
@@ -1767,7 +1772,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 			paquets_data->temp_pointer_1->data_weight += starpu_data_get_size(STARPU_TASK_GET_HANDLE(task,i));
 		}
 		paquets_data->temp_pointer_1->package_nb_data = STARPU_TASK_GET_NBUFFERS(task);
-		//~ total_nb_data += STARPU_TASK_GET_NBUFFERS(task);
 		/* We sort our datas in the packages */
 		qsort(paquets_data->temp_pointer_1->package_data,paquets_data->temp_pointer_1->package_nb_data,sizeof(paquets_data->temp_pointer_1->package_data[0]),HFP_pointeurComparator);
 		/* Pushing the task and the number of the package in the package*/
@@ -1789,6 +1793,9 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	paquets_data->temp_pointer_2 = paquets_data->first_link;
 	index_head_2++;
 	paquets_data->NP = NT;
+	
+	gettimeofday(&time_end_init_packages, NULL);
+	time_total_init_packages += (time_end_init_packages.tv_sec - time_start_init_packages.tv_sec)*1000000LL + time_end_init_packages.tv_usec - time_start_init_packages.tv_usec;
 			
 	/* THE while loop. Stop when no more packaging are possible */
 	while (packaging_impossible == 0)
@@ -1814,7 +1821,6 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { matrice_donnees_commune[i][j] = 0; }}
 								 
 		/* First we get the number of packages that have the minimal number of tasks */
-		/* Getting the samllest package size */
 		for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next)
 		{
 			if (min_nb_task_in_sub_list > paquets_data->temp_pointer_1->nb_task_in_sub_list)
@@ -4012,24 +4018,6 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 }
 
 /* Si je veux faire les visualisations python */
-struct starpu_sched_policy _starpu_sched_HFP_policy =
-{
-	.init_sched = initialize_HFP_center_policy,
-	.deinit_sched = deinitialize_HFP_center_policy,
-	.add_workers = starpu_sched_tree_add_workers,
-	.remove_workers = starpu_sched_tree_remove_workers,
-	.do_schedule = starpu_sched_tree_do_schedule,
-	.push_task = starpu_sched_tree_push_task,
-	.pop_task = get_data_to_load, /* To get the number of data needed for the current task, still return the task that we got with starpu_sched_tree_pop_task */
-	.pre_exec_hook = get_current_tasks, /* Getting current task for printing diff later on. Still call starpu_sched_component_worker_pre_exec_hook(task,sci); at the end */
-	.post_exec_hook = get_task_done_HFP,
-	.pop_every_task = NULL,
-	.policy_name = "HFP",
-	.policy_description = "Affinity aware task ordering",
-	.worker_type = STARPU_WORKER_LIST,
-};
-
-/* Si je veux faire des tests en réel */
 //~ struct starpu_sched_policy _starpu_sched_HFP_policy =
 //~ {
 	//~ .init_sched = initialize_HFP_center_policy,
@@ -4038,14 +4026,32 @@ struct starpu_sched_policy _starpu_sched_HFP_policy =
 	//~ .remove_workers = starpu_sched_tree_remove_workers,
 	//~ .do_schedule = starpu_sched_tree_do_schedule,
 	//~ .push_task = starpu_sched_tree_push_task,
-	//~ .pop_task = starpu_sched_tree_pop_task,
-	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
-	//~ .post_exec_hook = get_task_done_HFP, /* Sert pour Belady et aussi pour afficher les temps d'exec. A ne pas retirer pour Belady */
+	//~ .pop_task = get_data_to_load, /* To get the number of data needed for the current task, still return the task that we got with starpu_sched_tree_pop_task */
+	//~ .pre_exec_hook = get_current_tasks, /* Getting current task for printing diff later on. Still call starpu_sched_component_worker_pre_exec_hook(task,sci); at the end */
+	//~ .post_exec_hook = get_task_done_HFP,
 	//~ .pop_every_task = NULL,
 	//~ .policy_name = "HFP",
 	//~ .policy_description = "Affinity aware task ordering",
 	//~ .worker_type = STARPU_WORKER_LIST,
 //~ };
+
+/* Si je veux faire des tests en réel */
+struct starpu_sched_policy _starpu_sched_HFP_policy =
+{
+	.init_sched = initialize_HFP_center_policy,
+	.deinit_sched = deinitialize_HFP_center_policy,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.do_schedule = starpu_sched_tree_do_schedule,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = get_task_done_HFP, /* Sert pour Belady et aussi pour afficher les temps d'exec. A ne pas retirer pour Belady */
+	.pop_every_task = NULL,
+	.policy_name = "HFP",
+	.policy_description = "Affinity aware task ordering",
+	.worker_type = STARPU_WORKER_LIST,
+};
 
 static void initialize_heft_hfp_policy(unsigned sched_ctx_id)
 {
