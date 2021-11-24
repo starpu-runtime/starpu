@@ -34,7 +34,7 @@ static void value_register_data_handle(starpu_data_handle_t handle, int home_nod
 {
 	struct starpu_value_interface *value_interface = (struct starpu_value_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_value_interface *local_interface = (struct starpu_value_interface *)
