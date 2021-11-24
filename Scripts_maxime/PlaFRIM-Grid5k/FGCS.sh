@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Matrice_ligne HFP 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 13 Matrice_ligne HFP 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 16 Matrice_ligne HFP 1
 
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 2 Matrice_ligne HFP_memory 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 10 Matrice_ligne HFP_memory 1

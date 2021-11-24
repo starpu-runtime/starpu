@@ -1,6 +1,7 @@
 #~ Pour récup les data sur Grid5k et les process pour IPDPS
 
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_FGCS.sh 13 Matrice_ligne HFP 1 9
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_FGCS.sh 16 Matrice_ligne HFP 1 9
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_FGCS.sh 10 Matrice_ligne HFP_memory 1 9
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_FGCS.sh 8 Matrice3D HFP 1 9
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_FGCS.sh 8 Cholesky HFP 1 9
