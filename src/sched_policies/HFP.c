@@ -347,10 +347,21 @@ int get_common_data_last_package(struct my_list *I, struct my_list *J, int evalu
 	int index_tab_donnee_J = 0;
 	int parcours_liste = 0;
 	int i_bis = 0;
+	starpu_data_handle_t * donnee_I = NULL;
+	starpu_data_handle_t * donnee_J = NULL;
 	
-	starpu_data_handle_t * donnee_J = malloc((J->package_nb_data) * sizeof(J->package_data[0]));
-	for (i = 0; i < J->package_nb_data; i++) { donnee_J[i] = NULL; }
-	starpu_data_handle_t * donnee_I = malloc((I->package_nb_data) * sizeof(I->package_data[0]));
+	if (strcmp(appli, "chol_model_11") == 0)
+	{
+		donnee_J = malloc((J->package_nb_data*1.5) * sizeof(J->package_data[0]));
+		for (i = 0; i < J->package_nb_data; i++) { donnee_J[i] = NULL; }
+		donnee_I = malloc((I->package_nb_data*1.5) * sizeof(I->package_data[0]));
+	}
+	else
+	{
+		donnee_J = malloc((J->package_nb_data) * sizeof(J->package_data[0]));
+		for (i = 0; i < J->package_nb_data; i++) { donnee_J[i] = NULL; }
+		donnee_I = malloc((I->package_nb_data) * sizeof(I->package_data[0]));
+	}
 	
 	if (evaluation_I == 0)
 	{
@@ -1441,7 +1452,6 @@ long long time_total_gettasktoreturn = 0;
  * better divide tasks between GPUs */
 struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
-	printf("Début de get task to return.\n");
 	gettimeofday(&time_start_gettasktoreturn, NULL);
 	int max_task_time = 0;	
 	int index_package_max_task_time = 0;
@@ -1456,7 +1466,6 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 		gettimeofday(&time_end_gettasktoreturn, NULL);
 		time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 		
-		printf("return %p\n", task);
 		return task;
 	}
 	else
@@ -2168,7 +2177,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 			paquets_data->temp_pointer_2 = paquets_data->first_link;
 			for (i = 0; i < number_task; i++)
 			{
-				printf("i = %d, number task = %d.\n", i, number_task);
+				//~ printf("i = %d, number task = %d.\n", i, number_task);
 				if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
 				{
 					for (j = 0; j < number_task; j++)
@@ -2177,7 +2186,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 						{
 							/* Merge */
 							packaging_impossible = 0;
-							printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list);
+							//~ printf("On va merge le paquet %d et le paquet %d. Ils ont %ld en commun. Ils ont %d et %d tâches.\n", i, j, max_value_common_data_matrix, paquets_data->temp_pointer_1->nb_task_in_sub_list, paquets_data->temp_pointer_2->nb_task_in_sub_list);
 																	
 							paquets_data->NP--;	
 							
@@ -2185,7 +2194,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 													
 							if (starpu_get_env_number_default("ORDER_U", 0) == 1)
 							{
-								printf("Début U\n");
+								//~ printf("Début U\n");
 								weight_package_i = paquets_data->temp_pointer_1->data_weight;
 								weight_package_j = paquets_data->temp_pointer_2->data_weight;
 								if (paquets_data->temp_pointer_1->nb_task_in_sub_list != 1 && paquets_data->temp_pointer_2->nb_task_in_sub_list != 1)
@@ -2249,7 +2258,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 									}
 								}
 							}
-							printf("Fin U\n");
+							//~ printf("Fin U\n");
 							gettimeofday(&time_end_order_u_total, NULL);
 							time_total_order_u_total += (time_end_order_u_total.tv_sec - time_start_order_u_total.tv_sec)*1000000LL + time_end_order_u_total.tv_usec - time_start_order_u_total.tv_usec;
 								
@@ -2372,9 +2381,9 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		}
 				
 		break_merging_1:
-		printf("break merging.\n");	
+		//~ printf("break merging.\n");	
 		paquets_data->temp_pointer_1 = HFP_delete_link(paquets_data);
-		printf("After delete %d.\n", paquets_data->NP);	 			 
+		//~ printf("After delete %d.\n", paquets_data->NP);	 			 
 		/* Checking if we have the right number of packages. if MULTIGPU is equal to 0 we want only one package. if it is equal to 1 we want |GPU| packages */
 		if (paquets_data->NP == number_of_package_to_build)
 		{
@@ -2424,7 +2433,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	gettimeofday(&time_end_scheduling, NULL);
 	time_total_scheduling += (time_end_scheduling.tv_sec - time_start_scheduling.tv_sec)*1000000LL + time_end_scheduling.tv_usec - time_start_scheduling.tv_usec;
 		
-	printf("return in HFP\n");	
+	//~ printf("return in HFP\n");	
 	//~ print_packages_in_terminal(paquets_data, 1);
 	return paquets_data;
 }
@@ -3516,14 +3525,12 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 	
 	if (do_schedule_done == true)
 	{
-		printf("True in pull_task.\n");
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		
 		/* If one or more task have been refused */
 		data->p->temp_pointer_1 = data->p->first_link;
 		if (data->p->temp_pointer_1->next != NULL)
 		{
-			printf("next n'est pas null.\n");
 			for (i = 0; i < Ngpu; i++)
 			{
 				if (to == component->children[i])
@@ -3538,10 +3545,10 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		}
 		if (!starpu_task_list_empty(&data->p->temp_pointer_1->refused_fifo_list)) 
 		{
-			printf("refused not empty.\n");
+			//~ printf("refused not empty.\n");
 			task1 = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			printf("Return in pull_task %p.\n", task1);
+			//~ printf("Return in pull_task %p.\n", task1);
 			return task1;
 		}
 		
@@ -3549,13 +3556,13 @@ static struct starpu_task *HFP_pull_task(struct starpu_sched_component *componen
 		if (is_empty(data->p->first_link) == true) 
 		{
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			printf("Return NULL.\n");
+			//~ printf("Return NULL.\n");
 			return NULL;
 		}
-		printf("go to get task to return.\n");
+		//~ printf("go to get task to return.\n");
 		task1 = get_task_to_return(component, to, data->p, Ngpu);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		printf("Return in pull_task %p.\n", task1);
+		//~ printf("Return in pull_task %p.\n", task1);
 		return task1;
 	}
 	return NULL;		
@@ -3578,7 +3585,6 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 		int nb_gpu = get_number_GPU();
 		if (data->p->temp_pointer_1->next == NULL)
 		{ 
-			printf("Pushing %p in refused.\n", task);
 			starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task);
 		}
 		else
@@ -3596,7 +3602,6 @@ static int HFP_can_push(struct starpu_sched_component * component, struct starpu
 					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
 				}
 			}
-			printf("Pushing %p in refused.\n", task);
 			starpu_task_list_push_back(&data->p->temp_pointer_1->refused_fifo_list, task);
 		}
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -3710,11 +3715,11 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				
 				while (data->p->temp_pointer_1 != NULL)
 				{
-					printf("Début while.\n");
+					//~ printf("Début while.\n");
 					j = 1;
 					for (task1 = starpu_task_list_begin(&data->p->temp_pointer_1->sub_list); task1 != starpu_task_list_end(&data->p->temp_pointer_1->sub_list); task1 = starpu_task_list_next(task1)) 
 					{
-						printf ("On %p in printing.\n", task1);
+						//~ printf ("On %p in printing.\n", task1);
 						/* + 1 cause it's the next one that is in the other sub package */
 						if (j == data->p->temp_pointer_1->split_last_ij + 1)
 						{
@@ -3738,11 +3743,10 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 					sub_package++;
 					i++;
 					data->p->temp_pointer_1 = data->p->temp_pointer_1->next;
-					printf("Next.\n");
+					//~ printf("Next.\n");
 				}
-				printf("End of printing0.\n"); fflush(stdout);
 				fclose(f_last_package);
-				printf("End of printing1.\n"); fflush(stdout);
+				//~ printf("End of printing1.\n"); fflush(stdout);
 			}
 		
 			/* Task stealing based on the number of tasks. Only in cases of multigpu */
@@ -3823,7 +3827,6 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 			do_schedule_done = true;
 		}
 	}
-	printf("End of do scheulde.\n");
 }
 
 /* TODO a suppr */
@@ -4187,7 +4190,7 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 			}
 		}
 	}
-	printf("%d tasks out.\n", number_task_out);
+
     /* Reset pour prochaine itération à faire ici quand le nombe de tâches sortie == NT si besoin */
     if (NT == number_task_out)
 	{
