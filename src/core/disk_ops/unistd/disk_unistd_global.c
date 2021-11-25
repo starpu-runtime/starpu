@@ -860,7 +860,7 @@ void starpu_unistd_global_wait_request(void *async_channel)
 			struct aiocb *aiocb = &starpu_aiocb->aiocb;
 			int values = -1;
 			int ret, myerrno = EAGAIN;
-			ssize_t size;
+			starpu_ssize_t size;
 			while(values < 0 && (myerrno == EAGAIN || myerrno == EINTR))
 			{
 				/* Wait the answer of the request TIMESTAMP IS NULL */
@@ -870,7 +870,7 @@ void starpu_unistd_global_wait_request(void *async_channel)
 			ret = aio_error(aiocb);
 			STARPU_ASSERT_MSG(!ret, "aio_error returned %d", ret);
 			size = aio_return(aiocb);
-			STARPU_ASSERT(size == (ssize_t) aiocb->aio_nbytes);
+			STARPU_ASSERT(size == (starpu_ssize_t) aiocb->aio_nbytes);
 #endif
 			break;
 		}
@@ -942,14 +942,14 @@ int starpu_unistd_global_test_request(void *async_channel)
 				return 0;
 			STARPU_ASSERT_MSG(!ret, "aio_suspend returned %d %d\n", ret, errno);
 #endif
-			ssize_t size;
+			starpu_ssize_t size;
 			/* Test the answer of the request */
 			ret = aio_error(aiocb);
 			if (ret == 0)
 			{
 				/* request is finished */
 				size = aio_return(aiocb);
-				STARPU_ASSERT(size == (ssize_t) aiocb->aio_nbytes);
+				STARPU_ASSERT(size == (starpu_ssize_t) aiocb->aio_nbytes);
 				return 1;
 			}
 			if (ret == EINTR || ret == EINPROGRESS || ret == EAGAIN)
