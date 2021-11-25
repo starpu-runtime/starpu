@@ -15,7 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-for i in bcsr block coo csr matrix multiformat variable vector void
+for i in bcsr block coo csr matrix multiformat ndim tensor variable vector void
 do
     $STARPU_LAUNCH ./tests/datawizard/interfaces/$i/${i}_interface
     ret=$?
