@@ -1047,8 +1047,8 @@ int main(int argc, char **argv)
 					for (j = 0; j < nslicesy; j++)
 					{
 						struct starpu_task *task = starpu_task_create();
-						//~ task->cl = &cl_gemm2d;
-						task->cl = &cl_gemm0;
+						task->cl = &cl_gemm2d;
+						//~ task->cl = &cl_gemm0;
 						
 						task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
 						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);

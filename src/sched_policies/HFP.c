@@ -262,11 +262,11 @@ void print_next_use_each_data(struct paquets* a)
 }
 
 /* TODO a suppr */
-struct timeval time_start_getorderbelady;
-struct timeval time_end_getorderbelady;
-long long time_total_getorderbelady = 0;
+//~ struct timeval time_start_getorderbelady;
+//~ struct timeval time_end_getorderbelady;
+//~ long long time_total_getorderbelady = 0;
 
-/* TODO a suppr */
+/* Utile pour printing mais surtout pour l'itération 1 plus rapide */
 int iteration;
 
 /* Read the tasks's order and each time it se a data, it add a value of it's next use in the task list.
@@ -276,7 +276,7 @@ int iteration;
  * ne sont plus exacts. mis bon cela ne devrait pas trop impacter les performances. */
 void get_ordre_utilisation_donnee(struct paquets* a, int nb_gpu)
 {
-	gettimeofday(&time_start_getorderbelady, NULL);
+	//~ gettimeofday(&time_start_getorderbelady, NULL);
 		
 	struct starpu_task *task = NULL;
 	a->temp_pointer_1 = a->first_link;
@@ -319,19 +319,19 @@ void get_ordre_utilisation_donnee(struct paquets* a, int nb_gpu)
 		a->temp_pointer_1 = a->temp_pointer_1->next;
 		compteur = 0;
 	}	
-	gettimeofday(&time_end_getorderbelady, NULL);
-	time_total_getorderbelady += (time_end_getorderbelady.tv_sec - time_start_getorderbelady.tv_sec)*1000000LL + time_end_getorderbelady.tv_usec - time_start_getorderbelady.tv_usec;
+	//~ gettimeofday(&time_end_getorderbelady, NULL);
+	//~ time_total_getorderbelady += (time_end_getorderbelady.tv_sec - time_start_getorderbelady.tv_sec)*1000000LL + time_end_getorderbelady.tv_usec - time_start_getorderbelady.tv_usec;
 }
 
 /* TODO a suppr */
-struct timeval time_start_getcommondataorderu;
-struct timeval time_end_getcommondataorderu;
-long long time_total_getcommondataorderu = 0;
+//~ struct timeval time_start_getcommondataorderu;
+//~ struct timeval time_end_getcommondataorderu;
+//~ long long time_total_getcommondataorderu = 0;
 
 /* For order U. Return the number of common data of each sub package when merging I and J */
 int get_common_data_last_package(struct my_list *I, struct my_list *J, int evaluation_I, int evaluation_J, bool IJ_inferieur_GPU_RAM, starpu_ssize_t GPU_RAM_M) 
 {
-	gettimeofday(&time_start_getcommondataorderu, NULL);
+	//~ gettimeofday(&time_start_getcommondataorderu, NULL);
 	
 	int split_ij = 0;
 	/* evaluation: 0 = tout, 1 = début, 2 = fin */
@@ -675,8 +675,8 @@ int get_common_data_last_package(struct my_list *I, struct my_list *J, int evalu
 		}
 	}
 	
-	gettimeofday(&time_end_getcommondataorderu, NULL);
-	time_total_getcommondataorderu += (time_end_getcommondataorderu.tv_sec - time_start_getcommondataorderu.tv_sec)*1000000LL + time_end_getcommondataorderu.tv_usec - time_start_getcommondataorderu.tv_usec;
+	//~ gettimeofday(&time_end_getcommondataorderu, NULL);
+	//~ time_total_getcommondataorderu += (time_end_getcommondataorderu.tv_sec - time_start_getcommondataorderu.tv_sec)*1000000LL + time_end_getcommondataorderu.tv_usec - time_start_getcommondataorderu.tv_usec;
 
 	return common_data_last_package;
 }
@@ -1442,9 +1442,9 @@ void interlacing_task_list (struct paquets *a, int interlacing_mode)
 }
 
 /* TODO : a supprimer une fois les mesures du temps terminées */
-struct timeval time_start_gettasktoreturn;
-struct timeval time_end_gettasktoreturn;
-long long time_total_gettasktoreturn = 0;
+//~ struct timeval time_start_gettasktoreturn;
+//~ struct timeval time_end_gettasktoreturn;
+//~ long long time_total_gettasktoreturn = 0;
 
 /* Called in HFP_pull_task when we need to return a task. It is used when we have multiple GPUs
  * In case of modular-heft-HFP, it needs to do a round robin on the task it returned. So we use expected_time_pulled_out, 
@@ -1452,7 +1452,7 @@ long long time_total_gettasktoreturn = 0;
  * better divide tasks between GPUs */
 struct starpu_task *get_task_to_return(struct starpu_sched_component *component, struct starpu_sched_component *to, struct paquets* a, int nb_gpu)
 {
-	gettimeofday(&time_start_gettasktoreturn, NULL);
+	//~ gettimeofday(&time_start_gettasktoreturn, NULL);
 	int max_task_time = 0;	
 	int index_package_max_task_time = 0;
 	a->temp_pointer_1 = a->first_link; 
@@ -1463,8 +1463,8 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 		task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 		if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 		
-		gettimeofday(&time_end_gettasktoreturn, NULL);
-		time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
+		//~ gettimeofday(&time_end_gettasktoreturn, NULL);
+		//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 		
 		return task;
 	}
@@ -1490,8 +1490,8 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 			task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 			a->temp_pointer_1->expected_time_pulled_out += starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0); 
 			
-				gettimeofday(&time_end_gettasktoreturn, NULL);
-	time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
+				//~ gettimeofday(&time_end_gettasktoreturn, NULL);
+	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 
 			
 			return task;
@@ -1516,8 +1516,8 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 				a->temp_pointer_1->nb_task_in_sub_list--;
 				if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 				
-					gettimeofday(&time_end_gettasktoreturn, NULL);
-	time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
+					//~ gettimeofday(&time_end_gettasktoreturn, NULL);
+	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 
 				
 				return task;
@@ -1555,8 +1555,8 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 						a->temp_pointer_2->nb_task_in_sub_list--;
 						if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 						
-							gettimeofday(&time_end_gettasktoreturn, NULL);
-	time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
+							//~ gettimeofday(&time_end_gettasktoreturn, NULL);
+	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 
 						
 						return task;
@@ -1625,8 +1625,8 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 							}
 							if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 							
-								gettimeofday(&time_end_gettasktoreturn, NULL);
-	time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
+								//~ gettimeofday(&time_end_gettasktoreturn, NULL);
+	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 
 							
 							return task;
@@ -1635,8 +1635,8 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 					{
 						/* Nothing to steal */
 						
-							gettimeofday(&time_end_gettasktoreturn, NULL);
-	time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
+							//~ gettimeofday(&time_end_gettasktoreturn, NULL);
+	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 
 						
 						return NULL;
@@ -1645,8 +1645,8 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 				else 
 				{
 					/* We don't use task stealing */
-						gettimeofday(&time_end_gettasktoreturn, NULL);
-	time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
+						//~ gettimeofday(&time_end_gettasktoreturn, NULL);
+	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
 
 					
 					return NULL; 
@@ -1732,30 +1732,30 @@ static int HFP_push_task(struct starpu_sched_component *component, struct starpu
 }
 
 /* TODO : a supprimer une fois les mesures du temps terminées */
-struct timeval time_start_scheduling;
-struct timeval time_end_scheduling;
-long long time_total_scheduling = 0;
-struct timeval time_start_find_min_size;
-struct timeval time_end_find_min_size;
-long long time_total_find_min_size = 0;
-struct timeval time_start_init_packages;
-struct timeval time_end_init_packages;
-long long time_total_init_packages = 0;
-struct timeval time_start_fill_matrix_common_data_plus_get_max;
-struct timeval time_end_fill_matrix_common_data_plus_get_max;
-long long time_total_fill_matrix_common_data_plus_get_max = 0;
-struct timeval time_start_order_u_total;
-struct timeval time_end_order_u_total;
-long long time_total_order_u_total = 0;
-struct timeval time_start_reset_init_start_while_loop;
-struct timeval time_end_reset_init_start_while_loop;
-long long time_total_reset_init_start_while_loop = 0;
-struct timeval time_start_merge;
-struct timeval time_end_merge;
-long long time_total_merge = 0;
-struct timeval time_start_iteration_i;
-struct timeval time_end_iteration_i;
-long long time_total_iteration_i = 0;
+//~ struct timeval time_start_scheduling;
+//~ struct timeval time_end_scheduling;
+//~ long long time_total_scheduling = 0;
+//~ struct timeval time_start_find_min_size;
+//~ struct timeval time_end_find_min_size;
+//~ long long time_total_find_min_size = 0;
+//~ struct timeval time_start_init_packages;
+//~ struct timeval time_end_init_packages;
+//~ long long time_total_init_packages = 0;
+//~ struct timeval time_start_fill_matrix_common_data_plus_get_max;
+//~ struct timeval time_end_fill_matrix_common_data_plus_get_max;
+//~ long long time_total_fill_matrix_common_data_plus_get_max = 0;
+//~ struct timeval time_start_order_u_total;
+//~ struct timeval time_end_order_u_total;
+//~ long long time_total_order_u_total = 0;
+//~ struct timeval time_start_reset_init_start_while_loop;
+//~ struct timeval time_end_reset_init_start_while_loop;
+//~ long long time_total_reset_init_start_while_loop = 0;
+//~ struct timeval time_start_merge;
+//~ struct timeval time_end_merge;
+//~ long long time_total_merge = 0;
+//~ struct timeval time_start_iteration_i;
+//~ struct timeval time_end_iteration_i;
+//~ long long time_total_iteration_i = 0;
 
 /* Need an empty data paquets_data to build packages
  * Output a task list ordered. So it's HFP if we have only one package at the end
@@ -1765,7 +1765,7 @@ long long time_total_iteration_i = 0;
  */
 struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, int number_task, int number_of_package_to_build)
 {
-	gettimeofday(&time_start_scheduling, NULL);
+	//~ gettimeofday(&time_start_scheduling, NULL);
 	
 	struct paquets *paquets_data = malloc(sizeof(*paquets_data));
 	struct my_list *my_data = malloc(sizeof(*my_data));
@@ -1803,7 +1803,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	/* One task == one link in the linked list */
 	int do_not_add_more = number_task - 1;
 
-	gettimeofday(&time_start_init_packages, NULL);
+	//~ gettimeofday(&time_start_init_packages, NULL);
 	
 	while (!starpu_task_list_empty(task_list))
 	{
@@ -1882,13 +1882,13 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 	index_head_2++;
 	paquets_data->NP = NT;
 	
-	gettimeofday(&time_end_init_packages, NULL);
-	time_total_init_packages += (time_end_init_packages.tv_sec - time_start_init_packages.tv_sec)*1000000LL + time_end_init_packages.tv_usec - time_start_init_packages.tv_usec;
+	//~ gettimeofday(&time_end_init_packages, NULL);
+	//~ time_total_init_packages += (time_end_init_packages.tv_sec - time_start_init_packages.tv_sec)*1000000LL + time_end_init_packages.tv_usec - time_start_init_packages.tv_usec;
 			
 	/* THE while loop. Stop when no more packaging are possible */
 	while (packaging_impossible == 0)
 	{
-		gettimeofday(&time_start_iteration_i, NULL);
+		//~ gettimeofday(&time_start_iteration_i, NULL);
 	
 		beggining_while_packaging_impossible:
 		//~ printf("############# Itération numéro : %d #############\n", nb_of_loop);
@@ -1898,8 +1898,10 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		/* Then we create the common data matrix */
 		long int matrice_donnees_commune[number_task][number_task];
 		for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { matrice_donnees_commune[i][j] = 0; }}		
-					
-		if (nb_of_loop == 1 && strcmp(appli, "chol_model_11") != 0)
+		
+		/* Faster first iteration by grouping together tasks that share at least one data. Doesn't look 
+		 * further after one task have been found */		
+		if (nb_of_loop == 1 && strcmp(appli, "chol_model_11") != 0 && starpu_get_env_number_default("FASTER_FIRST_ITERATION", 0) == 1)
 		{
 			packaging_impossible = 0;
 			index_head_1 = 0;
@@ -2023,7 +2025,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 			goto break_merging_1;
 		}
 		
-		gettimeofday(&time_start_reset_init_start_while_loop, NULL);
+		//~ gettimeofday(&time_start_reset_init_start_while_loop, NULL);
 						
 		/* Variables we need to reinitialize for a new iteration */
 		paquets_data->temp_pointer_1 = paquets_data->first_link; 
@@ -2036,11 +2038,11 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		max_value_common_data_matrix = 0; 
 		min_nb_task_in_sub_list = paquets_data->temp_pointer_1->nb_task_in_sub_list; 
 					
-		gettimeofday(&time_end_reset_init_start_while_loop, NULL);	
-		time_total_reset_init_start_while_loop += (time_end_reset_init_start_while_loop.tv_sec - time_start_reset_init_start_while_loop.tv_sec)*1000000LL + time_end_reset_init_start_while_loop.tv_usec - time_start_reset_init_start_while_loop.tv_usec;					 
+		//~ gettimeofday(&time_end_reset_init_start_while_loop, NULL);	
+		//~ time_total_reset_init_start_while_loop += (time_end_reset_init_start_while_loop.tv_sec - time_start_reset_init_start_while_loop.tv_sec)*1000000LL + time_end_reset_init_start_while_loop.tv_usec - time_start_reset_init_start_while_loop.tv_usec;					 
 		/* First we get the number of packages that have the minimal number of tasks */
 
-		gettimeofday(&time_start_find_min_size, NULL);
+		//~ gettimeofday(&time_start_find_min_size, NULL);
 		
 		for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next)
 		{
@@ -2049,9 +2051,8 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 				min_nb_task_in_sub_list = paquets_data->temp_pointer_1->nb_task_in_sub_list;
 			}
 		}
-		if (starpu_get_env_number_default("PRINTF",0) == 1) {  printf("Taille minimale %d tâche(s).\n", min_nb_task_in_sub_list); }
-		gettimeofday(&time_end_find_min_size, NULL);
-		time_total_find_min_size += (time_end_find_min_size.tv_sec - time_start_find_min_size.tv_sec)*1000000LL + time_end_find_min_size.tv_usec - time_start_find_min_size.tv_usec;
+		//~ gettimeofday(&time_end_find_min_size, NULL);
+		//~ time_total_find_min_size += (time_end_find_min_size.tv_sec - time_start_find_min_size.tv_sec)*1000000LL + time_end_find_min_size.tv_usec - time_start_find_min_size.tv_usec;
 		
 		//~ for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next) 
 		//~ {
@@ -2098,23 +2099,20 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		
 		/* Nouvelle version linéaire */
 		
-		gettimeofday(&time_start_fill_matrix_common_data_plus_get_max, NULL);
+		//~ gettimeofday(&time_start_fill_matrix_common_data_plus_get_max, NULL);
 		
 		for (paquets_data->temp_pointer_1 = paquets_data->first_link; paquets_data->temp_pointer_1 != NULL; paquets_data->temp_pointer_1 = paquets_data->temp_pointer_1->next)
 		{
-			//~ printf("Index 1 : Paquet %d : %d data.\n", index_head_1, paquets_data->temp_pointer_1->package_nb_data);
 			if (paquets_data->temp_pointer_1->nb_task_in_sub_list == min_nb_task_in_sub_list)
 			{
 				for (paquets_data->temp_pointer_2 = paquets_data->first_link; paquets_data->temp_pointer_2 != NULL; paquets_data->temp_pointer_2 = paquets_data->temp_pointer_2->next)
 				{
-					//~ printf("Paquet %d : %d data.\n", index_head_2, paquets_data->temp_pointer_2->package_nb_data);
 					if (index_head_1 != index_head_2)
 					{			
 						i = 0;
 						j = 0;
 						while (i < paquets_data->temp_pointer_1->package_nb_data && j < paquets_data->temp_pointer_2->package_nb_data)
 						{
-							//~ printf("On compare %p et %p.\n", paquets_data->temp_pointer_1->package_data[i], paquets_data->temp_pointer_2->package_data[j]);
 							if (paquets_data->temp_pointer_1->package_data[i] == paquets_data->temp_pointer_2->package_data[j])
 							{
 								matrice_donnees_commune[index_head_1][index_head_2] += starpu_data_get_size(paquets_data->temp_pointer_2->package_data[j]);
@@ -2142,8 +2140,8 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 			index_head_2 = 0;
 		}
 
-		gettimeofday(&time_end_fill_matrix_common_data_plus_get_max, NULL);
-		time_total_fill_matrix_common_data_plus_get_max += (time_end_fill_matrix_common_data_plus_get_max.tv_sec - time_start_fill_matrix_common_data_plus_get_max.tv_sec)*1000000LL + time_end_fill_matrix_common_data_plus_get_max.tv_usec - time_start_fill_matrix_common_data_plus_get_max.tv_usec;
+		//~ gettimeofday(&time_end_fill_matrix_common_data_plus_get_max, NULL);
+		//~ time_total_fill_matrix_common_data_plus_get_max += (time_end_fill_matrix_common_data_plus_get_max.tv_sec - time_start_fill_matrix_common_data_plus_get_max.tv_sec)*1000000LL + time_end_fill_matrix_common_data_plus_get_max.tv_usec - time_start_fill_matrix_common_data_plus_get_max.tv_usec;
 			
 		/* Code to print the common data matrix */	
 		//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("Common data matrix : \n"); for (i = 0; i < number_task; i++) { for (j = 0; j < number_task; j++) { printf (" %3li ",matrice_donnees_commune[i][j]); } printf("\n"); printf("---------\n"); }}
@@ -2190,7 +2188,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 																	
 							paquets_data->NP--;	
 							
-							gettimeofday(&time_start_order_u_total, NULL);	
+							//~ gettimeofday(&time_start_order_u_total, NULL);	
 													
 							if (starpu_get_env_number_default("ORDER_U", 0) == 1)
 							{
@@ -2259,10 +2257,10 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 								}
 							}
 							//~ printf("Fin U\n");
-							gettimeofday(&time_end_order_u_total, NULL);
-							time_total_order_u_total += (time_end_order_u_total.tv_sec - time_start_order_u_total.tv_sec)*1000000LL + time_end_order_u_total.tv_usec - time_start_order_u_total.tv_usec;
+							//~ gettimeofday(&time_end_order_u_total, NULL);
+							//~ time_total_order_u_total += (time_end_order_u_total.tv_sec - time_start_order_u_total.tv_sec)*1000000LL + time_end_order_u_total.tv_usec - time_start_order_u_total.tv_usec;
 								
-							gettimeofday(&time_start_merge, NULL);
+							//~ gettimeofday(&time_start_merge, NULL);
 								
 							paquets_data->temp_pointer_1->data_weight = paquets_data->temp_pointer_1->data_weight + paquets_data->temp_pointer_2->data_weight - matrice_donnees_commune[i][j];
 							
@@ -2367,8 +2365,8 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 							
 							//~ nb_duplicate_data = 0;
 							
-							gettimeofday(&time_end_merge, NULL);
-							time_total_merge += (time_end_merge.tv_sec - time_start_merge.tv_sec)*1000000LL + time_end_merge.tv_usec - time_start_merge.tv_usec;
+							//~ gettimeofday(&time_end_merge, NULL);
+							//~ time_total_merge += (time_end_merge.tv_sec - time_start_merge.tv_sec)*1000000LL + time_end_merge.tv_usec - time_start_merge.tv_usec;
 							if(paquets_data->NP == number_of_package_to_build) { goto break_merging_1; }
 							//~ printf("Fin du merge.\n");
 						}
@@ -2399,29 +2397,26 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 			//~ printf("la1.\n");
 		}
 	
-		if ((iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
-		{	
+		//~ if ((iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
+		//~ {	
 			//~ printf("la2.\n");
-			gettimeofday(&time_end_iteration_i, NULL);	
-			time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
-			FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
-			fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
-			fclose(f);
-		}
-		//~ printf("la3.\n");
-		
+			//~ gettimeofday(&time_end_iteration_i, NULL);	
+			//~ time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
+			//~ FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
+			//~ fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
+			//~ fclose(f);
+		//~ }		
 	} /* End of while (packaging_impossible == 0) { */
 
 	end_while_packaging_impossible:
-	//~ printf("end while.\n");
-	if ((iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
-	{
-		gettimeofday(&time_end_iteration_i, NULL);	
-		time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
-		FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
-		fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
-		fclose(f);
-	}
+	//~ if ((iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
+	//~ {
+		//~ gettimeofday(&time_end_iteration_i, NULL);	
+		//~ time_total_iteration_i = (time_end_iteration_i.tv_sec - time_start_iteration_i.tv_sec)*1000000LL + time_end_iteration_i.tv_usec - time_start_iteration_i.tv_usec;				
+		//~ FILE *f = fopen("Output_maxime/HFP_iteration_time.txt", "a");
+		//~ fprintf(f, "%d	%lld\n", nb_of_loop, time_total_iteration_i);
+		//~ fclose(f);
+	//~ }
 		
 	/* Add tasks or packages that were not connexe */
 	while(!starpu_task_list_empty(&non_connexe)) 
@@ -2430,14 +2425,16 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		paquets_data->first_link->nb_task_in_sub_list++;
 	}
 		
-	gettimeofday(&time_end_scheduling, NULL);
-	time_total_scheduling += (time_end_scheduling.tv_sec - time_start_scheduling.tv_sec)*1000000LL + time_end_scheduling.tv_usec - time_start_scheduling.tv_usec;
+	//~ gettimeofday(&time_end_scheduling, NULL);
+	//~ time_total_scheduling += (time_end_scheduling.tv_sec - time_start_scheduling.tv_sec)*1000000LL + time_end_scheduling.tv_usec - time_start_scheduling.tv_usec;
 		
-	//~ printf("return in HFP\n");	
-	//~ print_packages_in_terminal(paquets_data, 1);
 	return paquets_data;
 }
 
+/* TODO : attention ne fonctinne pas car non corrigé par rapport aux corrections ci dessus (la complexité, le fait
+ * de ne pas répéter le get_max_value_common_data_matrix, la première itration simplifié et le calcul des intersections
+ * pour la matrice en temps linéaire
+ */
 struct starpu_task_list hierarchical_fair_packing_one_task_list (struct starpu_task_list task_list, int number_task)
 {
 	struct paquets *paquets_data = malloc(sizeof(*paquets_data));
@@ -2815,9 +2812,9 @@ bool is_empty(struct my_list* a)
 }
 
 /* TODO : a supprimer une fois les mesures du temps terminées */
-struct timeval time_start_loadbalanceexpectedtime;
-struct timeval time_end_loadbalanceexpectedtime;
-long long time_total_loadbalanceexpectedtime = 0;
+//~ struct timeval time_start_loadbalanceexpectedtime;
+//~ struct timeval time_end_loadbalanceexpectedtime;
+//~ long long time_total_loadbalanceexpectedtime = 0;
 
 /* Equilibrates package in order to have packages with the exact same expected task time
  * Called in HFP_pull_task once all packages are done 
@@ -2825,7 +2822,7 @@ long long time_total_loadbalanceexpectedtime = 0;
  */
 void load_balance_expected_time (struct paquets *a, int number_gpu)
 {
-	gettimeofday(&time_start_loadbalanceexpectedtime, NULL);
+	//~ gettimeofday(&time_start_loadbalanceexpectedtime, NULL);
 	
 	struct starpu_task *task;
 	double ite = 0; int i = 0; int index = 0;
@@ -2926,8 +2923,8 @@ void load_balance_expected_time (struct paquets *a, int number_gpu)
 		}
 	}
 	
-	gettimeofday(&time_end_loadbalanceexpectedtime, NULL);
-	time_total_loadbalanceexpectedtime += (time_end_loadbalanceexpectedtime.tv_sec - time_start_loadbalanceexpectedtime.tv_sec)*1000000LL + time_end_loadbalanceexpectedtime.tv_usec - time_start_loadbalanceexpectedtime.tv_usec;
+	//~ gettimeofday(&time_end_loadbalanceexpectedtime, NULL);
+	//~ time_total_loadbalanceexpectedtime += (time_end_loadbalanceexpectedtime.tv_sec - time_start_loadbalanceexpectedtime.tv_sec)*1000000LL + time_end_loadbalanceexpectedtime.tv_usec - time_start_loadbalanceexpectedtime.tv_usec;
 }
 
 /* Equilibrates package in order to have packages with the exact same number of tasks +/-1 task 
@@ -3830,18 +3827,18 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 }
 
 /* TODO a suppr */
-struct timeval time_start_eviction;
-struct timeval time_end_eviction;
-long long time_total_eviction = 0;
+//~ struct timeval time_start_eviction;
+//~ struct timeval time_end_eviction;
+//~ long long time_total_eviction = 0;
 
 /* TODO a suppr */
-struct timeval time_start_createtolasttaskfinished;
-struct timeval time_end_createtolasttaskfinished;
-long long time_total_createtolasttaskfinished = 0;
+//~ struct timeval time_start_createtolasttaskfinished;
+//~ struct timeval time_end_createtolasttaskfinished;
+//~ long long time_total_createtolasttaskfinished = 0;
 
 struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
-	gettimeofday(&time_start_createtolasttaskfinished, NULL);
+	//~ gettimeofday(&time_start_createtolasttaskfinished, NULL);
 	
 	srandom(starpu_get_env_number_default("SEED", 0)); 
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "HFP");
@@ -3889,16 +3886,17 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	
 	STARPU_PTHREAD_MUTEX_INIT(&HFP_mutex, NULL);
 	
-	/* TODO init du temps a suppr si on mesure plus le temps. A suppr */
 	number_task_out = 0;
 	iteration = 0;
-	time_total_getorderbelady = 0;
-	time_total_getcommondataorderu = 0;
-	time_total_gettasktoreturn = 0;
-	time_total_scheduling = 0;
-	time_total_loadbalanceexpectedtime = 0;
-	time_total_createtolasttaskfinished = 0;
-	time_total_eviction = 0;
+	
+	/* TODO init du temps a suppr si on mesure plus le temps. A suppr */
+	//~ time_total_getorderbelady = 0;
+	//~ time_total_getcommondataorderu = 0;
+	//~ time_total_gettasktoreturn = 0;
+	//~ time_total_scheduling = 0;
+	//~ time_total_loadbalanceexpectedtime = 0;
+	//~ time_total_createtolasttaskfinished = 0;
+	//~ time_total_eviction = 0;
 	
 	if (starpu_get_env_number_default("BELADY", 0) == 1) 
 	{ 
@@ -4074,7 +4072,7 @@ void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&HFP_mutex);
-	gettimeofday(&time_start_eviction, NULL);
+	//~ gettimeofday(&time_start_eviction, NULL);
 	int i = 0;
 	
 	/* Checking if all task are truly valid. Else I return a non valid data
@@ -4107,8 +4105,8 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 		data->p->temp_pointer_1->data_to_evict_next = NULL;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 		
-		gettimeofday(&time_end_eviction, NULL);
-		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
+		//~ gettimeofday(&time_end_eviction, NULL);
+		//~ time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 		
 		//~ printf("Return 1 %p.\n", returned_handle); fflush(stdout);
 		return returned_handle;
@@ -4134,8 +4132,8 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 				STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 				//~ printf("Return %p that is not used again.\n", data_on_node[i]);
 				
-				gettimeofday(&time_end_eviction, NULL);
-				time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
+				//~ gettimeofday(&time_end_eviction, NULL);
+				//~ time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 				
 				//~ printf("Return 2 %p.\n", data_on_node[i]); fflush(stdout);
 				return data_on_node[i];
@@ -4153,18 +4151,17 @@ starpu_data_handle_t belady_victim_selector(starpu_data_handle_t toload, unsigne
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 		
-		gettimeofday(&time_end_eviction, NULL);
-		time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
+		//~ gettimeofday(&time_end_eviction, NULL);
+		//~ time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 		
 		//~ printf("Return NO_VICTIM\n"); fflush (stdout);
 		return STARPU_DATA_NO_VICTIM;
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&HFP_mutex);
 	
-	gettimeofday(&time_end_eviction, NULL);
-	time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
+	//~ gettimeofday(&time_end_eviction, NULL);
+	//~ time_total_eviction += (time_end_eviction.tv_sec - time_start_eviction.tv_sec)*1000000LL + time_end_eviction.tv_usec - time_start_eviction.tv_usec;
 	
-	//~ printf("Return 3 %p.\n", data_on_node[index_latest_use]); fflush(stdout);
 	return data_on_node[index_latest_use];	
 }
 
@@ -4201,24 +4198,24 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
 		/* TODO a suppr. PRINT_TIME sur 2 permet de forcer l'écriture en simulation car il y a 1 seule itération. */
 		if ((iteration == 3 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
 		{
-			FILE *f = fopen("Output_maxime/HFP_time.txt", "a");
-			fprintf(f, "%0.0f	", sqrt(NT));
-			fprintf(f, "%lld	", time_total_scheduling);
-			fprintf(f, "%lld	", time_total_eviction);
-			fprintf(f, "%lld	", time_total_getorderbelady);
-			fprintf(f, "%lld	", time_total_getcommondataorderu);
-			fprintf(f, "%lld	", time_total_gettasktoreturn);
-			fprintf(f, "%lld	", time_total_loadbalanceexpectedtime);
-			gettimeofday(&time_end_createtolasttaskfinished, NULL);
-			time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
-			fprintf(f, "%lld	", time_total_createtolasttaskfinished);
-			fprintf(f, "%lld	", time_total_find_min_size);
-			fprintf(f, "%lld	", time_total_init_packages);
-			fprintf(f, "%lld	", time_total_fill_matrix_common_data_plus_get_max);
-			fprintf(f, "%lld	", time_total_reset_init_start_while_loop);
-			fprintf(f, "%lld	", time_total_order_u_total);
-			fprintf(f, "%lld\n", time_total_merge);
-			fclose(f);
+			//~ FILE *f = fopen("Output_maxime/HFP_time.txt", "a");
+			//~ fprintf(f, "%0.0f	", sqrt(NT));
+			//~ fprintf(f, "%lld	", time_total_scheduling);
+			//~ fprintf(f, "%lld	", time_total_eviction);
+			//~ fprintf(f, "%lld	", time_total_getorderbelady);
+			//~ fprintf(f, "%lld	", time_total_getcommondataorderu);
+			//~ fprintf(f, "%lld	", time_total_gettasktoreturn);
+			//~ fprintf(f, "%lld	", time_total_loadbalanceexpectedtime);
+			//~ gettimeofday(&time_end_createtolasttaskfinished, NULL);
+			//~ time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
+			//~ fprintf(f, "%lld	", time_total_createtolasttaskfinished);
+			//~ fprintf(f, "%lld	", time_total_find_min_size);
+			//~ fprintf(f, "%lld	", time_total_init_packages);
+			//~ fprintf(f, "%lld	", time_total_fill_matrix_common_data_plus_get_max);
+			//~ fprintf(f, "%lld	", time_total_reset_init_start_while_loop);
+			//~ fprintf(f, "%lld	", time_total_order_u_total);
+			//~ fprintf(f, "%lld\n", time_total_merge);
+			//~ fclose(f);
 		}
 	}
     
