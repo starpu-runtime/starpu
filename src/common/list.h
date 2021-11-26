@@ -143,12 +143,12 @@
  *  struct my_struct * e = my_struct_new();
  *  e->a = 0;
  *  e->b = 0;
- *  my_struct_list_push_front(l, e);
+ *  my_struct_list_push_front(&l, e);
  *
  *  - iterating over a list from the front:
  *  struct my_struct * i;
- *  for(i  = my_struct_list_begin(l);
- *      i != my_struct_list_end(l);
+ *  for(i  = my_struct_list_begin(&l);
+ *      i != my_struct_list_end(&l);
  *      i  = my_struct_list_next(i))
  *  {
  *    printf("a=%d; b=%d\n", i->a, i->b);
@@ -156,8 +156,8 @@
  *
  *  - iterating over a list from the back:
  *  struct my_struct * i;
- *  for(i  = my_struct_list_last(l);
- *      i != my_struct_list_alpha(l);
+ *  for(i  = my_struct_list_last(&l);
+ *      i != my_struct_list_alpha(&l);
  *      i  = my_struct_list_prev(i))
  *  {
  *    printf("a=%d; b=%d\n", i->a, i->b);
@@ -283,6 +283,62 @@
  *   ENAME_multilist_MEMBER
  * - Then one should call MULTILIST_CREATE_INLINES to create the inlines which
  *   manipulate lists for this MEMBER type.
+ *
+ * *********************************************************
+ * Usage example:
+ *
+ *  - initially you'd have:
+ *    struct my_struct
+ *    {
+ *      int a;
+ *      int b;
+ *    };
+ *
+ * - to make multilists of it, we add MULTILIST_CREATE_TYPE calls before, the
+ *    multilist fields, and MULTILIST_CREATE_INLINES calls after::
+ *
+ *    MULTILIST_CREATE_TYPE(my_struct, foo);
+ *    MULTILIST_CREATE_TYPE(my_struct, bar);
+ *
+ *    struct my_struct
+ *    {
+ *      struct my_struct_multilist_foo foo;
+ *      struct my_struct_multilist_bar bar;
+ *      int a;
+ *      int b;
+ *    };
+ *
+ *    MULTILIST_CREATE_INLINES(struct my_struct, my_struct, foo);
+ *    MULTILIST_CREATE_INLINES(struct my_struct, my_struct, bar);
+ *
+ * - creating a new element and initialize the multilist fields:
+ *
+ *   struct my_struct *e = malloc(sizeof(*e));
+ *   my_struct_multilist_init_foo(e);
+ *   my_struct_multilist_init_bar(e);
+ *   e->a = 0;
+ *   e->b = 0;
+ *
+ * - setting up an empty list:
+ *
+ *   struct my_struct_multilist_foo l;
+ *   my_struct_multilist_head_init_foo(&l);
+ *
+ * - add element 'e' at the front of list 'l':
+ *   my_struct_multilist_push_front_foo(&l, e);
+ *
+ * - TODO implementation: popping from the front:
+ *   struct my_struct *i;
+ *   i = my_struct_multilist_front_foo(&l);
+ *
+ * - iterating over a list from the front:
+ *   struct my_struct *i;
+ *  for(i  = my_struct_multilist_begin_foo(&l);
+ *      i != my_struct_multilist_end_foo(&l);
+ *      i  = my_struct_multilist_next_foo(i))
+ *  {
+ *    printf("a=%d; b=%d\n", i->a, i->b);
+ *  }
  */
 
 /* Create the ENAME_multilist_MEMBER, to be used both as head and as member of main element type */
