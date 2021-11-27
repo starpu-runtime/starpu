@@ -1,6 +1,6 @@
-# A lancer dans le dossier starpu/ avec bash Scripts_maxime/FGCS2021/Experiments.sh name
-NAME=$1
-./configure --prefix=/home/${NAME}/starpu
+# A lancer dans le dossier starpu/ avec bash Scripts_maxime/FGCS2021/Experiments.sh path_starpu
+PATH_STARPU=$1
+./configure --prefix=${PATH_STARPU}/starpu
 make -j 100
 make install
 bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 16 Matrice_ligne HFP 1

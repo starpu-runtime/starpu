@@ -1,4 +1,4 @@
-# A lancer dans le dossier starpu/ avec bash Scripts_maxime/FGCS2021/Experiments.sh name
+# A lancer dans le dossier starpu/ avec bash Scripts_maxime/FGCS2021/Quick_Experiments.sh name
 NAME=$1
 ./configure --prefix=/home/${NAME}/starpu
 make -j 100

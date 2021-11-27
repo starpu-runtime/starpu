@@ -1,4 +1,4 @@
-# Lancer avec bash Scripts_maxime/FGCS2021/Quick_Draw.sh name path_starpu path_r
+# Lancer avec bash Scripts_maxime/FGCS2021/Quick_Draw.sh name_on_grid5k path_starpu path_r
 NAME=$1
 PATH_STARPU=$2
 PATH_R=$3

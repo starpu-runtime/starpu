@@ -25,10 +25,8 @@ if [ $DOSSIER == "Matrice_ligne" ] && [ $MODEL == "HFP" ]
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
 	
 	# Tracage des GFlops 2
-	gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL}_WITH_SCHEDULING_TIME_FGCS ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_WITH_SCHEDULING_TIME_FGCS_${GPU}_${NGPU}GPU.pdf
 
 	# Tracage data transfers
 	gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
