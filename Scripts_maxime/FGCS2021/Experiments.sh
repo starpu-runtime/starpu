@@ -1,6 +1,6 @@
 # A lancer dans le dossier starpu/ avec bash Scripts_maxime/FGCS2021/Experiments.sh name_grid5k
 NAME=$1
-./configure --prefix=/home/${NAME}/starpu
+./configure --prefix=/home/${NAME}/starpu  --enable-maxcudadev=8
 make -j 100
 make install
 bash Scripts_maxime/PlaFRIM-Grid5k/FGCS.sh 16 Matrice_ligne HFP 1
