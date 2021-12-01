@@ -3851,6 +3851,8 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	
 	Ngpu = get_number_GPU();
 	do_schedule_done = false;
+	
+	/* A faire absolument pour les visu dans les autres shcedulers!!! */
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_all_gpu = 0;
@@ -3977,7 +3979,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		int y_to_load = 0;
 		int z_to_load = 0;
 		int i = 0;
-		/* Getting the number of data to load */
+		//~ /* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
 			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))

@@ -12,7 +12,10 @@
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne dynamic_data_aware_no_hfp gemini-1-ipdps 4 V
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice_ligne dynamic_data_aware_no_hfp gemini-1-ipdps 8 V
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Random_task_order dynamic_data_aware_no_hfp Attila 1 V
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Random_task_order dynamic_data_aware_no_hfp gemini-1-ipdps 1 V
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 12 Random_task_order dynamic_data_aware_no_hfp Attila 2 V
+
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 1
 
 PATH_STARPU=$1
 PATH_R=$2
@@ -38,19 +41,20 @@ truncate -s 0 ${FICHIER_TIME}
 truncate -s 0 ${FICHIER_SCHEDULE_TIME_TEMP}
 truncate -s 0 ${FICHIER_SCHEDULE_TIME}
 truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DDA_eviction_time.txt
-if [ $GPU = "gemini-2-ipdps" ]
-then
-	HOST="gemini-2-ipdps"
-fi
-if [ $GPU = "gemini-1-ipdps" ]
-then
-	HOST="gemini-1-ipdps"
-fi
-if [ $GPU = "Sirocco10" ]
-then
-	HOST="sirocco"
-	#~ BW=350 #A corriger si on utilise Sirocco
-fi
+HOST=$GPU
+#~ if [ $GPU = "gemini-2-ipdps" ]
+#~ then
+	#~ HOST="gemini-2-ipdps"
+#~ fi
+#~ if [ $GPU = "gemini-1-ipdps" ]
+#~ then
+	#~ HOST="gemini-1-ipdps"
+#~ fi
+#~ if [ $GPU = "Sirocco10" ]
+#~ then
+	#~ HOST="sirocco"
+	#~ # BW=350 #A corriger si on utilise Sirocco
+#~ fi
 if [ $GPU = "Attila" ] # Ajouter STARPU_LIMIT_BANDWIDTH si je test avec attila
 then
 	HOST="attila"
@@ -368,6 +372,99 @@ then
 			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 			    #~ sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    #~ done
+		fi
+	fi
+fi
+if [ $DOSSIER = "Matrice3D" ]
+then
+	NITER=11
+	if [ $MODEL = "dynamic_data_aware_no_hfp" ]
+	then
+		ECHELLE_X=$((5*NGPU))
+		if [ $NGPU = 1 ]
+		then
+		    NB_ALGO_TESTE=5
+		    echo "############## Modular eager prefetching ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
+		    echo "############## Dmdar ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
+		    echo "############## Dynamic data aware + READY ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=0 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
+		    echo "############## Dynamic data aware + EVICTION + READY ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
+		    echo "############## Dynamic data aware + EVICTION + READY + variante 3D ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    APP=1 SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
+		fi
+	fi
+fi
+if [ $DOSSIER = "Cholesky" ]
+then
+	if [ $MODEL = "dynamic_data_aware_no_hfp" ]
+	then
+		ECHELLE_X=$((5*NGPU))
+		if [ $NGPU = 1 ]
+		then
+		    NB_ALGO_TESTE=5
+		    echo "############## Modular eager prefetching ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
+		    echo "############## Dmdar ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
+		    echo "############## Dynamic data aware + READY ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=0 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
+		    echo "############## Dynamic data aware + EVICTION + READY ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
+		    echo "############## Dynamic data aware + EVICTION + READY + variante 3D ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    APP=1 SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=1 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
+		    done
 		fi
 	fi
 fi

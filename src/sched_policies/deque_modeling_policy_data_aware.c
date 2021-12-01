@@ -981,6 +981,7 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 
 static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
+	/* Pour visualsiation en python */
 	Ngpu = get_number_GPU();
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
