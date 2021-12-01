@@ -20,7 +20,7 @@
 #~ AVEC 1 je fais le global time et eviction time et les GF avec l'autre les DT et le SCHEDULE
 
 #Pour le rebuttal
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 5 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit 1 4
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 3 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit 1 3
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
@@ -38,7 +38,7 @@ if [ $MODEL == "dynamic_data_aware_no_hfp_no_mem_limit" ]
 	GPU=gemini-1-fgcs
 	if [ $DOSSIER == "Matrice_ligne" ]
 	then
-		ECHELLE_X=$((20*NGPU))
+		ECHELLE_X=$((200*NGPU))
 	fi
 	
 	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
