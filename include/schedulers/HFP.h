@@ -37,7 +37,7 @@
 
 extern starpu_pthread_mutex_t HFP_mutex;
 
-int number_task_out;
+extern int number_task_out;
 
 /** For eviction **/
 	void belady_victim_eviction_failed(starpu_data_handle_t victim, void *component);
@@ -52,19 +52,19 @@ int number_task_out;
 			struct next_use_by_gpu_list **next_use_tab;
 		};
 
-int Ngpu;
-int index_current_task_for_visualization; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
-const char* appli;
-int NT;
-int N;
-double EXPECTED_TIME;
-//~ int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
-starpu_ssize_t GPU_RAM_M;
-bool do_schedule_done;
-int *index_current_popped_task; /* Index used to track the index of a task in .pop_task. It is a separate variable from index_task_currently_treated because this one is used in get_current_task and it is not the same as popped task. It is only used in get_data_to_load(unsigned sched_ctx) to print in a file the number of data needed to load for each task and then do a visualisation in R. It's a tab because I can have multiple GPUs. */
-int index_current_popped_task_all_gpu; /* Index for the single data to load file */
-int *index_current_popped_task_prefetch;
-int index_current_popped_task_all_gpu_prefetch;
+extern int Ngpu;
+extern int index_current_task_for_visualization; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
+extern const char* appli;
+extern int NT;
+extern int N;
+extern double EXPECTED_TIME;
+//~ extern int index_current_task_heft = 0; /* To track on which task we are in heft to print coordinates at the last one and also know the order */
+extern starpu_ssize_t GPU_RAM_M;
+extern bool do_schedule_done;
+extern int *index_current_popped_task; /* Index used to track the index of a task in .pop_task. It is a separate variable from index_task_currently_treated because this one is used in get_current_task and it is not the same as popped task. It is only used in get_data_to_load(unsigned sched_ctx) to print in a file the number of data needed to load for each task and then do a visualisation in R. It's a tab because I can have multiple GPUs. */
+extern int index_current_popped_task_all_gpu; /* Index for the single data to load file */
+extern int *index_current_popped_task_prefetch;
+extern int index_current_popped_task_all_gpu_prefetch;
 
 /* Structure used to acces the struct my_list. There are also task's list */
 struct HFP_sched_data

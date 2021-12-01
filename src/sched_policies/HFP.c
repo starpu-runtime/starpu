@@ -18,8 +18,21 @@
 #include <schedulers/HFP.h>
 #include "helper_mct.h"
 
-/* Les variables globales de HFP.h */
+/* Les variables globales de HFP.h qii sont déclaré en extern */
 starpu_pthread_mutex_t HFP_mutex;
+int number_task_out;
+int Ngpu;
+int index_current_task_for_visualization;
+const char* appli;
+int NT;
+int N;
+double EXPECTED_TIME;
+starpu_ssize_t GPU_RAM_M;
+bool do_schedule_done;
+int *index_current_popped_task; 
+int index_current_popped_task_all_gpu; 
+int *index_current_popped_task_prefetch;
+int index_current_popped_task_all_gpu_prefetch;
 
 /* Other environmment variable you should use with HFP: 
  * STARPU_NTASKS_THRESHOLD=30 ou 10 si on veut moins entrer dans victim_selector peut_être 
