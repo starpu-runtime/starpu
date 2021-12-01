@@ -62,7 +62,7 @@ double EXPECTED_TIME;
 starpu_ssize_t GPU_RAM_M;
 bool do_schedule_done;
 int *index_current_popped_task; /* Index used to track the index of a task in .pop_task. It is a separate variable from index_task_currently_treated because this one is used in get_current_task and it is not the same as popped task. It is only used in get_data_to_load(unsigned sched_ctx) to print in a file the number of data needed to load for each task and then do a visualisation in R. It's a tab because I can have multiple GPUs. */
-int 	_all_gpu; /* Index for the single data to load file */
+int index_current_popped_task_all_gpu; /* Index for the single data to load file */
 int *index_current_popped_task_prefetch;
 int index_current_popped_task_all_gpu_prefetch;
 
