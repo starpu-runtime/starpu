@@ -33,6 +33,8 @@ int *index_current_popped_task;
 int index_current_popped_task_all_gpu; 
 int *index_current_popped_task_prefetch;
 int index_current_popped_task_all_gpu_prefetch;
+struct starpu_sched_policy _starpu_sched_HFP_policy;
+struct starpu_sched_policy _starpu_sched_modular_heft_HFP_policy;
 
 /* Other environmment variable you should use with HFP: 
  * STARPU_NTASKS_THRESHOLD=30 ou 10 si on veut moins entrer dans victim_selector peut_être 
