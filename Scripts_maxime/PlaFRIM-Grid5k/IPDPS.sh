@@ -28,7 +28,7 @@ FICHIER_TIME=Output_maxime/GFlops_raw_out_4.txt
 FICHIER_SCHEDULE_TIME_TEMP=Output_maxime/Schedule_time_raw_out_temp.txt
 FICHIER_SCHEDULE_TIME=Output_maxime/Schedule_time_raw_out.txt
 GPU=Gemini
-export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
+#~ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 5000000
 truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 ${FICHIER_BUS}
@@ -37,9 +37,6 @@ truncate -s 0 ${FICHIER_TIME}
 truncate -s 0 ${FICHIER_SCHEDULE_TIME_TEMP}
 truncate -s 0 ${FICHIER_SCHEDULE_TIME}
 truncate -s 0 Output_maxime/DDA_eviction_time.txt
-
-#~ BW=350
-#~ BW=$((BW*NGPU))
 
 CM=500
 #~ CM=$((CM/NGPU))

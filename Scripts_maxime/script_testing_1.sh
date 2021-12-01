@@ -22,14 +22,14 @@ N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
 #~ N=5 
 #~ N=65
 N=40 # 12893.0
-N=3
+N=5
 
 NGPU=1
 #~ NGPU=2
 
-#~ ORDO="dynamic-data-aware" # DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
+ORDO="dynamic-data-aware" # DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 #~ ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
-ORDO="dmdar"
+#~ ORDO="dmdar"
 #~ ORDO="eager"
 #~ ORDO="cuthillmckee"
 
@@ -80,7 +80,7 @@ FASTER_FIRST_ITERATION=0 APP=0 PRINT_TIME=0 PRINT_N=$((N)) REVERSE=1 PRINT3D=1 R
 
 #~ ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
 #~ ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
-#~ ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) -iter 1
+#~ ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
 /./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) ${ORDO} 1 4
 python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 4
 
