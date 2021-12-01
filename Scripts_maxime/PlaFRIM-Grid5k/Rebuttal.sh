@@ -28,7 +28,8 @@ then
 	if [ $MODEL = "dynamic_data_aware_no_hfp_no_mem_limit" ]
 	then
 		NITER=3
-		ECHELLE_X=$((5*NGPU))
+		#~ ECHELLE_X=$((5*NGPU))
+		ECHELLE_X=$((20*NGPU))
 		if [ $NGPU = 1 ]
 		then
 			echo "NO HFP and NGPU = 1"
