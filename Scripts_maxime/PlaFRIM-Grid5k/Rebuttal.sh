@@ -1,4 +1,4 @@
-#	bash Scripts_maxime/PlaFRIM-Grid5k/IPDPS.sh 5 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 5 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit 1
 #	Attention au tracage, les blocs sont de taille 1920
 
 NB_TAILLE_TESTE=$1
@@ -28,6 +28,7 @@ if [ $DOSSIER = "Matrice_ligne" ]
 then
 	if [ $MODEL = "dynamic_data_aware_no_hfp_no_mem_limit" ]
 	then
+		NITER=3
 		ECHELLE_X=$((5*NGPU))
 		if [ $NGPU = 1 ]
 		then
