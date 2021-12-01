@@ -35,7 +35,7 @@
 #define FASTER_FIRST_ITERATION /* A 0 on ne fais rien, a 1 on le fais. Permet de faire une première itération où on merge ensemble els taches partageant une données sans regarder le max et donc sans calculer la matrice. Ne marche que pour matrice 2D, 3D. */
 
 
-starpu_pthread_mutex_t HFP_mutex;
+extern starpu_pthread_mutex_t HFP_mutex;
 
 int number_task_out;
 

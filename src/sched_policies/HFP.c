@@ -18,6 +18,9 @@
 #include <schedulers/HFP.h>
 #include "helper_mct.h"
 
+/* Les variables globales de HFP.h */
+starpu_pthread_mutex_t HFP_mutex;
+
 /* Other environmment variable you should use with HFP: 
  * STARPU_NTASKS_THRESHOLD=30 ou 10 si on veut moins entrer dans victim_selector peut_être 
  * STARPU_MINIMUM_CLEAN_BUFFERS=0
