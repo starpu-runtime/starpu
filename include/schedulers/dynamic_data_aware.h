@@ -37,7 +37,7 @@ LIST_TYPE(task_using_data,
 /* Struct dans user_data des handles pour reset MAIS aussi pour savoir le nombre de tâches dans pulled task qui utilise cette donnée */
 struct handle_user_data
 {
-	int last_iteration;
+	int last_iteration_DARTS;
 	int *nb_task_in_pulled_task;
 	int *nb_task_in_planned_task;
 };
@@ -103,11 +103,11 @@ extern bool gpu_memory_initialized;
 extern bool new_tasks_initialized;
 extern struct gpu_planned_task_control *my_planned_task_control;
 extern struct gpu_pulled_task_control *my_pulled_task_control;
-extern int number_task_out; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
+extern int number_task_out_DARTS; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
 void reset_all_struct();
 extern int NT_dynamic_outer;
 /* TODO : a suppr ? Car si j'ai une appli où les tâches arrive petit à petit ca ne marchera plus; Ici ca marche car c'est une nouvelle itération à chaque fois que de nouvelles tâches arrivent. Me permet de savoir ou j'en suis */
-extern int iteration;
+extern int iteration_DARTS;
 
 /** Fonctions d'affichage **/
 void print_task_list(struct starpu_task_list *l, char *s);

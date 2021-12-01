@@ -29,9 +29,9 @@ bool gpu_memory_initialized;
 bool new_tasks_initialized;
 struct gpu_planned_task_control *my_planned_task_control;
 struct gpu_pulled_task_control *my_pulled_task_control;
-int number_task_out; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
+int number_task_out_DARTS; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
 int NT_dynamic_outer;
-int iteration;
+int iteration_DARTS;
 
 /* TODO a supprimer */
 //~ int victim_evicted_compteur = 0;
@@ -171,7 +171,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
      * thus it will be able to randomize both the task list and the data list not used yet in the GPUs. 
      */
      	
-     if (need_to_reinit == true && iteration != 1)
+     if (need_to_reinit == true && iteration_DARTS != 1)
 	 {
 			//~ printf("REINIT STRUCT in push task.\n"); fflush(stdout);
 			int i = 0;
@@ -245,7 +245,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 			}
 			else
 			{
-				/* La je ne dois pas ne rien faire a l'iteration 2 */
+				/* La je ne dois pas ne rien faire a l'iteration_DARTS 2 */
 				/* Il faudrait une liste exeterne des data pour les reset ? */
 				if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 				{
@@ -256,7 +256,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 					if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
 					{
 						struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
-						if (hud->last_iteration != iteration)
+						if (hud->last_iteration_DARTS != iteration_DARTS)
 						{
 							gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
 						}
@@ -298,7 +298,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 		if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
 		{
 			struct handle_user_data * hud = malloc(sizeof(*hud));
-			hud->last_iteration = iteration;
+			hud->last_iteration_DARTS = iteration_DARTS;
 			
 			/* Need to init them with the number of GPU */
 			hud->nb_task_in_pulled_task = malloc(Ngpu*sizeof(int));
@@ -314,7 +314,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 		else
 		{
 			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-			hud->last_iteration = iteration;
+			hud->last_iteration_DARTS = iteration_DARTS;
 			for (j = 0; j < Ngpu; j++)
 			{
 				hud->nb_task_in_pulled_task[j] = 0;
@@ -443,7 +443,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		{
 			/* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
 			task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
-			//~ printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out, task, current_gpu); fflush(stdout);
+			//~ printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			
 			if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
@@ -453,7 +453,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		/* If the package is not empty I can return the head of the task list. */
 		if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
 		{
-			number_task_out++;
+			number_task_out_DARTS++;
 			task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
 			
 			/* Remove it from planned task compteur. Could be done in an external function as I use it two times */
@@ -481,7 +481,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
 		else if (!starpu_task_list_empty(l))
 		{
-			number_task_out++;
+			number_task_out_DARTS++;
 			
 			/* Cas matrice 2D */
 			if (starpu_get_env_number_default("APP", 0) == 0)
@@ -541,7 +541,7 @@ void reset_all_struct()
 	//~ index_current_popped_task_all_gpu = 0;
 	//~ index_current_popped_task_all_gpu_prefetch = 0;
 	
-	number_task_out = -1;
+	number_task_out_DARTS = -1;
 }
 
 /* Pull tasks. When it receives new task it will randomize the task list and the GPU data list.
@@ -566,8 +566,8 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     //~ STARPU_PTHREAD_MUTEX_LOCK(&my_planned_task_control->planned_task_mutex);
     if (new_tasks_initialized == true)
     {
-	    //~ iteration++;	    
-	    //~ printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
+	    //~ iteration_DARTS++;	    
+	    //~ printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration_DARTS, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
 	    
 		new_tasks_initialized = false;
 			printf("Printing GPU's data list and main task list before randomization:\n\n");
@@ -655,7 +655,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		//~ {
 			//~ /* Version avec un threshold qui varie en fonction du nombres de tâches envoyées à pulled task.
 			 //~ * Quand NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD == number_of_task_out je met le th à INT_MAX. */
-			//~ if (number_task_out >= starpu_get_env_number_default("NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD", 0)/Ngpu)
+			//~ if (number_task_out_DARTS >= starpu_get_env_number_default("NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD", 0)/Ngpu)
 			//~ {
 				//~ choose_best_data_threshold = INT_MAX;
 			//~ }
@@ -668,13 +668,13 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		//~ {
 			//~ /* Version avec un threshold qui varie en fonction du nombres de tâches envoyées à pulled task mais progressivement.
 			 //~ * Quand NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD == number_of_task_out je met le th à INT_MAX. */
-			//~ if (number_task_out >= starpu_get_env_number_default("NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD", 0)/Ngpu)
+			//~ if (number_task_out_DARTS >= starpu_get_env_number_default("NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD", 0)/Ngpu)
 			//~ {
 				//~ choose_best_data_threshold = INT_MAX;
 			//~ }
 			//~ else
 			//~ {
-				//~ choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0) + number_task_out/2;
+				//~ choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0) + number_task_out_DARTS/2;
 			//~ }
 		//~ }
 		//~ else if (starpu_get_env_number_default("LIFT_THRESHOLD_MODE", 0) == 4)
@@ -682,13 +682,13 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 			//~ /* Version avec un threshold qui varie en fonction du pourcentage de tâches envoyées à pulled task.
 			 //~ * Quand PERCENTAGE_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD == number_of_task_out je met le th à INT_MAX.
 			 //~ * Fait augmenter en douceur jusqu'au % max. */
-			//~ if ((number_task_out*100)/NT_dynamic_outer >= starpu_get_env_number_default("PERCENTAGE_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD", 0)/Ngpu)
+			//~ if ((number_task_out_DARTS*100)/NT_dynamic_outer >= starpu_get_env_number_default("PERCENTAGE_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD", 0)/Ngpu)
 			//~ {
 				//~ choose_best_data_threshold = INT_MAX;
 			//~ }
 			//~ else
 			//~ {
-				//~ choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0) + ((number_task_out*100)/NT_dynamic_outer)*2;
+				//~ choose_best_data_threshold = starpu_get_env_number_default("CHOOSE_BEST_DATA_THRESHOLD", 0) + ((number_task_out_DARTS*100)/NT_dynamic_outer)*2;
 			//~ }
 		//~ }
 	//~ }
@@ -696,7 +696,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 	
 	/* pour diminuer a la fin de l'execution */
 	//~ int choose_best_data_threshold = INT_MAX;
-	//~ if (number_task_out > 40000)
+	//~ if (number_task_out_DARTS > 40000)
 	//~ {
 		//~ choose_best_data_threshold = 100;
 	//~ }
@@ -1973,7 +1973,7 @@ void gpu_pulled_task_initialisation()
     struct pulled_task_list *p = pulled_task_list_new();
     new->ptl = p;
     
-    //~ if (iteration == 1)
+    //~ if (iteration_DARTS == 1)
     //~ {
 		//~ printf("la\n"); fflush(stdout);
 	//~ pthread_mutexattr_t a;
@@ -1998,7 +1998,7 @@ void gpu_pulled_task_insertion()
     //~ pthread_mutexattr_settype(&a, PTHREAD_MUTEX_ERRORCHECK_NP);
     //~ STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, &a);
     
-    //~ if (iteration == 1)
+    //~ if (iteration_DARTS == 1)
     //~ {
 		//~ STARPU_PTHREAD_MUTEX_INIT(&new->pulled_task_mutex, NULL);
 	//~ }
@@ -2053,8 +2053,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	index_current_popped_task_all_gpu_prefetch = 0;
 	
 	gpu_memory_initialized = false;
-	number_task_out = -1;
-	iteration = 1;
+	number_task_out_DARTS = -1;
+	iteration_DARTS = 1;
 	
 	//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Ngpu = %d\n", Ngpu); }
 
@@ -2131,7 +2131,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 	int i = 0;
 	
-	/* TODO : increment de number_task_out a faire ici */
+	/* TODO : increment de number_task_out_DARTS a faire ici */
 	
 	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
 	{
@@ -2184,17 +2184,17 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 
     /* Reset pour prochaine itération */
-    if (NT_dynamic_outer - 1 == number_task_out)
+    if (NT_dynamic_outer - 1 == number_task_out_DARTS)
 	{
 		reset_all_struct();
 		need_to_reinit = true;
-		iteration++;
+		iteration_DARTS++;
 		
 		/* TODO : a suppr car inutile */
 		//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
 		//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
 		//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
-		//~ if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 0 && (iteration == 3 || starpu_get_env_number_default("PRINT_TIME", 0) == 1))
+		//~ if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 0 && (iteration_DARTS == 3 || starpu_get_env_number_default("PRINT_TIME", 0) == 1))
 		//~ { 
 			//~ FILE *f = fopen("Output_maxime/DDA_eviction_time.txt", "a");
 			//~ fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_schedule);
