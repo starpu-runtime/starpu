@@ -30,24 +30,24 @@
 //~ int victim_selector_return_no_victim = 0;
 //~ int victim_selector_belady = 0;
 
-struct timeval time_start_selector;
-struct timeval time_end_selector;
-long long time_total_selector = 0;
-struct timeval time_start_evicted;
-struct timeval time_end_evicted;
-long long time_total_evicted = 0;
-struct timeval time_start_belady;
-struct timeval time_end_belady;
-long long time_total_belady = 0;
-struct timeval time_start_schedule;
-struct timeval time_end_schedule;
-long long time_total_schedule = 0;
-struct timeval time_start_choose_best_data;
-struct timeval time_end_choose_best_data;
-long long time_total_choose_best_data = 0;
-struct timeval time_start_fill_planned_task_list;
-struct timeval time_end_fill_planned_task_list;
-long long time_total_fill_planned_task_list = 0;
+//~ struct timeval time_start_selector;
+//~ struct timeval time_end_selector;
+//~ long long time_total_selector = 0;
+//~ struct timeval time_start_evicted;
+//~ struct timeval time_end_evicted;
+//~ long long time_total_evicted = 0;
+//~ struct timeval time_start_belady;
+//~ struct timeval time_end_belady;
+//~ long long time_total_belady = 0;
+//~ struct timeval time_start_schedule;
+//~ struct timeval time_end_schedule;
+//~ long long time_total_schedule = 0;
+//~ struct timeval time_start_choose_best_data;
+//~ struct timeval time_end_choose_best_data;
+//~ long long time_total_choose_best_data = 0;
+//~ struct timeval time_start_fill_planned_task_list;
+//~ struct timeval time_end_fill_planned_task_list;
+//~ long long time_total_fill_planned_task_list = 0;
 
 void print_task_list(struct starpu_task_list *l, char *s)
 {
@@ -606,7 +606,7 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
 	/* TODO : A suppr ou a ifdef pour meilleur perf */
-	gettimeofday(&time_start_schedule, NULL);
+	//~ gettimeofday(&time_start_schedule, NULL);
 	
     int i = 0;
     int j = 0;
@@ -700,7 +700,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 	
 	/* Version avec threshold */
 	i = 0;
-    gettimeofday(&time_start_choose_best_data, NULL);
+    //~ gettimeofday(&time_start_choose_best_data, NULL);
     for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
     {
 		temp_number_of_task_max = 0;
@@ -1068,7 +1068,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 	//~ }
 	//~ i = 0;
      
-    gettimeofday(&time_start_fill_planned_task_list, NULL);
+    //~ gettimeofday(&time_start_fill_planned_task_list, NULL);
     for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
     {
 		data_available = true; 
@@ -1093,8 +1093,8 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 			starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
 		}
     }
-    gettimeofday(&time_end_fill_planned_task_list, NULL);
-    time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
+    //~ gettimeofday(&time_end_fill_planned_task_list, NULL);
+    //~ time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
     
     /* If no task have been added to the list. */
     if (starpu_task_list_empty(&g->planned_task)) 
@@ -1123,8 +1123,8 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		starpu_task_list_push_back(&g->planned_task, task);
     }
     
-    gettimeofday(&time_end_schedule, NULL);
-    time_total_schedule += (time_end_schedule.tv_sec - time_start_schedule.tv_sec)*1000000LL + time_end_schedule.tv_usec - time_start_schedule.tv_usec;
+    //~ gettimeofday(&time_end_schedule, NULL);
+    //~ time_total_schedule += (time_end_schedule.tv_sec - time_start_schedule.tv_sec)*1000000LL + time_end_schedule.tv_usec - time_start_schedule.tv_usec;
 }
 
 /* Fill a package's task list following dynamic_data_aware algorithm but with the 3D variant. */
@@ -1399,7 +1399,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&my_planned_task_control->planned_task_mutex);
 
 	//~ victim_evicted_compteur++;
-	gettimeofday(&time_start_evicted, NULL);
+	//~ gettimeofday(&time_start_evicted, NULL);
 	
 	//~ printf("Début de victim evicted avec %p. Success = %d. Nb de fois dans victim evicted total %d.\n", victim, success, victim_evicted_compteur); fflush(stdout);
      /* If a data was not truly evicted I put it back in the list. */
@@ -1413,8 +1413,8 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 		}
 		my_planned_task_control->pointer->data_to_evict_next = victim;
 		
-	gettimeofday(&time_end_evicted, NULL);
-	time_total_evicted += (time_end_evicted.tv_sec - time_start_evicted.tv_sec)*1000000LL + time_end_evicted.tv_usec - time_start_evicted.tv_usec;
+	//~ gettimeofday(&time_end_evicted, NULL);
+	//~ time_total_evicted += (time_end_evicted.tv_sec - time_start_evicted.tv_sec)*1000000LL + time_end_evicted.tv_usec - time_start_evicted.tv_usec;
 	
 	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
@@ -1427,7 +1427,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 	//~ victim_selector_compteur++;
-	gettimeofday(&time_start_selector, NULL);
+	//~ gettimeofday(&time_start_selector, NULL);
 	
     int i = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
@@ -1446,8 +1446,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		starpu_data_handle_t temp_handle = my_planned_task_control->pointer->data_to_evict_next;
 		my_planned_task_control->pointer->data_to_evict_next = NULL;
 		
-		gettimeofday(&time_end_selector, NULL);
-		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
+		//~ gettimeofday(&time_end_selector, NULL);
+		//~ time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		
 		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -1550,8 +1550,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		//~ victim_selector_return_no_victim++;
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector\n"); }
 		
-		gettimeofday(&time_end_selector, NULL);
-		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
+		//~ gettimeofday(&time_end_selector, NULL);
+		//~ time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		
 		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -1577,8 +1577,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			//~ victim_selector_return_no_victim++;
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector.\n"); }
 			
-			gettimeofday(&time_end_selector, NULL);
-			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
+			//~ gettimeofday(&time_end_selector, NULL);
+			//~ time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 			
 			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -1604,8 +1604,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		//~ victim_selector_return_no_victim++;
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector car NULL dans returned_handle de belady planned ou pulled task.\n"); }
 		
-		gettimeofday(&time_end_selector, NULL);
-		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
+		//~ gettimeofday(&time_end_selector, NULL);
+		//~ time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		
 		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -1672,8 +1672,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	
     //~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return %p in victim selector.\n", returned_handle); }
     
-    gettimeofday(&time_end_selector, NULL);
-	time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
+    //~ gettimeofday(&time_end_selector, NULL);
+	//~ time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -1683,7 +1683,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g)
 {
 	//~ victim_selector_belady++;
-	gettimeofday(&time_start_belady, NULL);
+	//~ gettimeofday(&time_start_belady, NULL);
 	
     int i = 0;
     int j = 0;
@@ -1721,8 +1721,8 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     }
     //printf("Return in belady %p.\n", returned_handle); fflush(stdout);
     
-    gettimeofday(&time_end_belady, NULL);
-    time_total_belady += (time_end_belady.tv_sec - time_start_belady.tv_sec)*1000000LL + time_end_belady.tv_usec - time_start_belady.tv_usec;
+    //~ gettimeofday(&time_end_belady, NULL);
+    //~ time_total_belady += (time_end_belady.tv_sec - time_start_belady.tv_sec)*1000000LL + time_end_belady.tv_usec - time_start_belady.tv_usec;
     
     return returned_handle;
 }
@@ -2180,44 +2180,62 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
 		//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
 		//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
-		if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 0 && (iteration == 3 || starpu_get_env_number_default("PRINT_TIME", 0) == 1))
-		{ 
-			FILE *f = fopen("Output_maxime/DDA_eviction_time.txt", "a");
-			fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_schedule);
-			fclose(f);
-		}
+		//~ if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1 && starpu_get_env_number_default("STARPU_SCHED_READY", 0) == 0 && (iteration == 3 || starpu_get_env_number_default("PRINT_TIME", 0) == 1))
+		//~ { 
+			//~ FILE *f = fopen("Output_maxime/DDA_eviction_time.txt", "a");
+			//~ fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_schedule);
+			//~ fclose(f);
+		//~ }
 	
 		/* TODO : a supprimer car inutile */
 		//~ victim_evicted_compteur = 0;
 		//~ victim_selector_compteur = 0;
 		//~ victim_selector_return_no_victim = 0;
 		//~ victim_selector_belady = 0;
-		time_total_selector = 0;
-		time_total_belady = 0;
-		time_total_evicted = 0;		
-		time_total_schedule = 0;		
-		time_total_choose_best_data = 0;		
-		time_total_fill_planned_task_list = 0;		
+		//~ time_total_selector = 0;
+		//~ time_total_belady = 0;
+		//~ time_total_evicted = 0;		
+		//~ time_total_schedule = 0;		
+		//~ time_total_choose_best_data = 0;		
+		//~ time_total_fill_planned_task_list = 0;		
 	}
 	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
+//~ /* Version avec print et visualisation */
+//~ struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
+//~ {
+	//~ .init_sched = initialize_dynamic_data_aware_center_policy,
+	//~ .deinit_sched = deinitialize_dynamic_data_aware_center_policy,
+	//~ .add_workers = starpu_sched_tree_add_workers,
+	//~ .remove_workers = starpu_sched_tree_remove_workers,
+	//~ /* .do_schedule = starpu_sched_tree_do_schedule, */
+	//~ .push_task = starpu_sched_tree_push_task,
+	//~ /* .pop_task = starpu_sched_tree_pop_task, */
+	//~ .pop_task = get_data_to_load,
+	//~ /* .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, */
+	//~ .pre_exec_hook = get_current_tasks,
+	//~ /* .post_exec_hook = starpu_sched_component_worker_post_exec_hook, */
+	//~ .post_exec_hook = get_task_done,
+	//~ .pop_every_task = NULL,
+	//~ .policy_name = "dynamic-data-aware",
+	//~ .policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
+	//~ .worker_type = STARPU_WORKER_LIST,
+//~ };
+
+/* Version pour performances */
 struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
 {
 	.init_sched = initialize_dynamic_data_aware_center_policy,
 	.deinit_sched = deinitialize_dynamic_data_aware_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
-	/* .do_schedule = starpu_sched_tree_do_schedule, */
 	.push_task = starpu_sched_tree_push_task,
-	/* .pop_task = starpu_sched_tree_pop_task, */
-	.pop_task = get_data_to_load,
-	/* .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, */
-	.pre_exec_hook = get_current_tasks,
-	/* .post_exec_hook = starpu_sched_component_worker_post_exec_hook, */
-	.post_exec_hook = get_task_done,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = get_task_done, /* Utile pour la stratégie d'éviction */
 	.pop_every_task = NULL,
 	.policy_name = "dynamic-data-aware",
 	.policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
