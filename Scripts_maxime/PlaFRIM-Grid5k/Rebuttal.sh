@@ -9,7 +9,6 @@ START_X=0
 FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
 FICHIER_BUS=Output_maxime/GFlops_raw_out_2.txt
 FICHIER_RAW_DT=Output_maxime/GFlops_raw_out_3.txt
-GPU=Gemini
 ulimit -S -s 5000000
 truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 ${FICHIER_BUS}
