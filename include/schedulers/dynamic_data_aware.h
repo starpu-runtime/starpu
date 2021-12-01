@@ -9,6 +9,7 @@
 //~ #define LIFT_THRESHOLD_MODE /* 0 = default, 1 = fix number,  2 = reach certain number of task out, 3 = reach certain number of task out + slow increase, 4 = percentage + slow increase */
 #define CHOOSE_BEST_DATA_TYPE /* 0 = the best one, 1 = the 10 best one, 2 = the 10 best one and I choose among them */
 #define THRESHOLD /* 0 = no threshold, 1 = threshold &t 14400 tâches. 1 by default */
+#define APP /* 0 matrice 2D, par défaut. 1 matrice 3D. */
 
 starpu_pthread_mutex_t global_mutex; /* Protège main_task_list et planned_task_list */
 
@@ -127,6 +128,7 @@ void randomize_data_not_used_yet();
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l);
 void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g);
 void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
+void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 void dynamic_data_aware_scheduling(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g);
 
 /** For eviction **/
