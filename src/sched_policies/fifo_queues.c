@@ -25,6 +25,9 @@
 #include <common/fxt.h>
 #include <core/topology.h>
 #include <limits.h>
+
+int threshold_dmdar;
+
 /*
 static int is_sorted_task_list(struct starpu_task * task)
 {

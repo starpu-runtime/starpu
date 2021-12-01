@@ -436,6 +436,8 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
 			//~ printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out, task, current_gpu); fflush(stdout);
 			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			
+			if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 			return task;
 		}
 
@@ -464,6 +466,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ {
 				//~ print_data_to_load_prefetch(task, current_gpu - 1);
 			//~ }
+			if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 			return task;
 		}
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
@@ -512,6 +515,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ {
 				//~ print_data_to_load_prefetch(task, current_gpu - 1);
 			//~ }
+			if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
 			return task;
 		}
     }
@@ -2214,7 +2218,7 @@ struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	/* .do_schedule = starpu_sched_tree_do_schedule, */
 	.push_task = starpu_sched_tree_push_task,
-	//~ .pop_task = starpu_sched_tree_pop_task,
+	/* //~ .pop_task = starpu_sched_tree_pop_task, */
 	.pop_task = get_data_to_load,
 	/* .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, */
 	.pre_exec_hook = get_current_tasks,
