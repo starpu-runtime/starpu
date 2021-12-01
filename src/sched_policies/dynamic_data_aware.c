@@ -24,6 +24,15 @@
 #include <schedulers/dynamic_data_aware.h>
 #include "helper_mct.h"
 
+/* Var globales déclaré en extern */
+bool gpu_memory_initialized;
+bool new_tasks_initialized;
+struct gpu_planned_task_control *my_planned_task_control;
+struct gpu_pulled_task_control *my_pulled_task_control;
+int number_task_out; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
+int NT_dynamic_outer;
+int iteration;
+
 /* TODO a supprimer */
 //~ int victim_evicted_compteur = 0;
 //~ int victim_selector_compteur = 0;

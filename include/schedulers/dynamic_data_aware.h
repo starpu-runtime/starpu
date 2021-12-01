@@ -99,16 +99,15 @@ LIST_TYPE(data_weighted,
 );
 
 /** Variables globales et reset **/
-bool gpu_memory_initialized;
-bool new_tasks_initialized;
-struct gpu_planned_task_control *my_planned_task_control;
-struct gpu_pulled_task_control *my_pulled_task_control;
-int number_task_out; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
+extern bool gpu_memory_initialized;
+extern bool new_tasks_initialized;
+extern struct gpu_planned_task_control *my_planned_task_control;
+extern struct gpu_pulled_task_control *my_pulled_task_control;
+extern int number_task_out; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
 void reset_all_struct();
-int NT_dynamic_outer;
-//~ void store_data_list(struct starpu_task_list *l);
+extern int NT_dynamic_outer;
 /* TODO : a suppr ? Car si j'ai une appli où les tâches arrive petit à petit ca ne marchera plus; Ici ca marche car c'est une nouvelle itération à chaque fois que de nouvelles tâches arrivent. Me permet de savoir ou j'en suis */
-int iteration;
+extern int iteration;
 
 /** Fonctions d'affichage **/
 void print_task_list(struct starpu_task_list *l, char *s);
