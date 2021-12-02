@@ -570,19 +570,19 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 	    //~ printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration_DARTS, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
 	    
 		new_tasks_initialized = false;
-			printf("Printing GPU's data list and main task list before randomization:\n\n");
-			print_data_not_used_yet();
-			print_task_list(&data->sched_list, "");
+			//~ printf("Printing GPU's data list and main task list before randomization:\n\n");
+			//~ print_data_not_used_yet();
+			//~ print_task_list(&data->sched_list, "");
 		NT_dynamic_outer = starpu_task_list_size(&data->sched_list);
 		//~ NT = starpu_task_list_size(&data->sched_list);
 		NT = NT_dynamic_outer;
 		
 		randomize_task_list(data);
 		randomize_data_not_used_yet(my_planned_task_control->first);
-			printf("Il y a %d tâches.\n", NT_dynamic_outer);
-			printf("Printing GPU's data list and main task list after randomization:\n\n");
-			print_data_not_used_yet();
-			print_task_list(&data->main_task_list, ""); fflush(stdout);
+			//~ printf("Il y a %d tâches.\n", NT_dynamic_outer);
+			//~ printf("Printing GPU's data list and main task list after randomization:\n\n");
+			//~ print_data_not_used_yet();
+			//~ print_task_list(&data->main_task_list, ""); fflush(stdout);
     }
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
     
@@ -1304,7 +1304,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			  e = gpu_data_not_used_list_next(e);
 		} 
 		gpu_data_not_used_list_erase(g->gpu_data, e);
-		printf("The data adding the most free tasks is %p.\n", handle_popped);
+		//~ printf("The data adding the most free tasks is %p.\n", handle_popped);
 			     
 		for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
 		{
@@ -1325,7 +1325,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				/* Add it from planned task compteur */
 				increment_planned_task_data(t->pointer_to_T, current_gpu);
 				
-				printf("Pushing free %p in planned_task of GPU %d\n", t->pointer_to_T, current_gpu);
+				//~ printf("Pushing free %p in planned_task of GPU %d\n", t->pointer_to_T, current_gpu);
 				erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
 			}
@@ -1340,7 +1340,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			  e = gpu_data_not_used_list_next(e);
 		} 
 		gpu_data_not_used_list_erase(g->gpu_data, e);
-		printf("The data adding the most (%d) 1_from_free tasks is %p.\n", number_1_from_free_task_max, handle_popped);
+		//~ printf("The data adding the most (%d) 1_from_free tasks is %p.\n", number_1_from_free_task_max, handle_popped);
 		
 		/* Random car la liste est randomisé */
 		t = task_using_data_list_begin(handle_popped->sched_data);
@@ -1348,7 +1348,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Add it from planned task compteur */
 		increment_planned_task_data(t->pointer_to_T, current_gpu);
 				
-		printf("Pushing 1_from_free %p in planned_task of GPU %d\n", t->pointer_to_T, current_gpu);
+		//~ printf("Pushing 1_from_free %p in planned_task of GPU %d\n", t->pointer_to_T, current_gpu);
 		erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
 	}
@@ -1379,7 +1379,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Add it from planned task compteur */
 		increment_planned_task_data(task, current_gpu);
 		
-		printf("No task were possible with the popped handles. Returning head of the randomized main task list: %p.\n", task);
+		//~ printf("No task were possible with the popped handles. Returning head of the randomized main task list: %p.\n", task);
 		erase_task_and_data_pointer(task, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, task);
     }
