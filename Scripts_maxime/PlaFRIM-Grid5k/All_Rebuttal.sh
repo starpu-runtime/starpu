@@ -1,4 +1,6 @@
 #~ echo "Mémoire infinie"
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 10 Matrice3D dynamic_data_aware_no_hfp_no_mem_limit 1 960
+#~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_mem_no_limit_1GPU_960.txt
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 5 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit 1 1920
 #~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M2D_mem_no_limit_1GPU_1920.txt
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 5 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit 1 3840
