@@ -39,7 +39,7 @@ if [ $MODEL == "dynamic_data_aware_no_hfp_no_mem_limit" ]
 	GPU=gemini-1-fgcs
 	if [ $DOSSIER == "Matrice_ligne" ]
 	then
-		ECHELLE_X=$((200*NGPU))
+		ECHELLE_X=$((15*NGPU))
 	fi
 	
 	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
