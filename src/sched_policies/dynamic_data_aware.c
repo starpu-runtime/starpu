@@ -1185,9 +1185,12 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	int choose_best_data_threshold = INT_MAX;
 	if (starpu_get_env_number_default("THRESHOLD", 0) == 1)
 	{
-		if (NT_dynamic_outer > 14400)
+		//if (NT_dynamic_outer > 14400)
+		if (NT_dynamic_outer > 1599) /* Pour que ca se déclanche au 4ème point en 3D */
 		{
-			choose_best_data_threshold = 110;
+			//choose_best_data_threshold = 110;
+			//choose_best_data_threshold = 400;
+			choose_best_data_threshold = 200;
 		}
 	}
 	
