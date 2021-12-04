@@ -3361,6 +3361,10 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	{
 		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU_Random_task_order/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
 	}
+	else if (starpu_get_env_number_default("HMETIS", 0) == 5) /* Cas matrice 3D */
+	{
+		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU_Matrice3D/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");		
+	}
 	else
 	{
 		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
@@ -3372,6 +3376,10 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	if (starpu_get_env_number_default("RANDOM_TASK_ORDER", 0) == 1)
 	{
 		strcat(path2, "GPU_Random_task_order/input_hMETIS_N");
+	}
+	else if (starpu_get_env_number_default("HMETIS", 0) == 5) /* Cas matrice 3D */
+	{
+		strcat(path2, "GPU_Matrice3D/input_hMETIS_N");
 	}
 	else
 	{
@@ -3662,7 +3670,7 @@ static void HFP_do_schedule(struct starpu_sched_component *component)
 				
 			if (starpu_get_env_number_default("HMETIS",0) != 0) 
 			{
-				if (starpu_get_env_number_default("HMETIS",0) == 3 || starpu_get_env_number_default("HMETIS",0) == 4)
+				if (starpu_get_env_number_default("HMETIS",0) == 3 || starpu_get_env_number_default("HMETIS",0) == 4 || starpu_get_env_number_default("HMETIS",0) == 5 || starpu_get_env_number_default("HMETIS",0) == 6)
 				{
 					hmetis_input_already_generated(data->p, &data->sched_list, number_of_package_to_build, GPU_RAM_M);
 				}
