@@ -62,10 +62,10 @@ if [ $MODEL == "dynamic_data_aware_no_hfp" ]
 		ECHELLE_X=5
 	fi
 	
-	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GF_HFP_M3D_1GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
-	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
-	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DT_HFP_M3D_1GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_1.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
+	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GF_HFP_M3D_1GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
+	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DT_HFP_M3D_1GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
 	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_4.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_4.txt
 	#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DDA_eviction_time.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/DDA_eviction_time.txt
 

@@ -22,7 +22,7 @@ N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
 #~ N=5 
 #~ N=65
 N=40 # 12893.0
-N=135
+N=150
 
 #~ NGPU=1
 NGPU=3
