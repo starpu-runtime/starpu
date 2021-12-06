@@ -24,6 +24,7 @@
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 10 Matrice3D dynamic_data_aware_no_hfp 1 8
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 6 Matrice3D dynamic_data_aware_no_hfp 2 9
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 8 Cholesky dynamic_data_aware_no_hfp 1 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 8 Cholesky dynamic_data_aware_no_hfp 2 9
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2

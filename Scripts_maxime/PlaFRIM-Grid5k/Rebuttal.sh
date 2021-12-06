@@ -9,7 +9,7 @@
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 10 Matrice3D dynamic_data_aware_no_hfp 2
 
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 8 Cholesky dynamic_data_aware_no_hfp 1
-#	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 8 Cholesky dynamic_data_aware_no_hfp 2
+#	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 7 Cholesky dynamic_data_aware_no_hfp 2
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
