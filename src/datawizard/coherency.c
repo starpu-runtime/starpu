@@ -423,7 +423,7 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 
 		if (mode & STARPU_R)
 		{
-			/* in case the exisiting request did not imply a memory
+			/* in case the existing request did not imply a memory
 			 * transfer yet, we have to take a second refcnt now
 			 * for the source, in addition to the refcnt for the
 			 * destination
