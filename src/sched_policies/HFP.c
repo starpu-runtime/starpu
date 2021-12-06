@@ -3365,6 +3365,10 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	{
 		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU_Matrice3D/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");		
 	}
+	else if (starpu_get_env_number_default("HMETIS", 0) == 6) /* Cas cholesky */
+	{
+		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU_Cholesky/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");		
+	}
 	else
 	{
 		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
@@ -3380,6 +3384,10 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	else if (starpu_get_env_number_default("HMETIS", 0) == 5) /* Cas matrice 3D */
 	{
 		strcat(path2, "GPU_Matrice3D/input_hMETIS_N");
+	}
+	else if (starpu_get_env_number_default("HMETIS", 0) == 6) /* Cas Cholesky */
+	{
+		strcat(path2, "GPU_Cholesky/input_hMETIS_N");
 	}
 	else
 	{

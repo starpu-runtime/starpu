@@ -21,7 +21,8 @@
 
 #Pour le rebuttal
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 3 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit 1 3
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 10 Matrice3D dynamic_data_aware_no_hfp 1 7
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 10 Matrice3D dynamic_data_aware_no_hfp 1 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 6 Matrice3D dynamic_data_aware_no_hfp 2 9
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
