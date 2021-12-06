@@ -813,7 +813,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
     //~ {
 		/* The costly loop. Version originale. */
 		//~ i = 0;
-		gettimeofday(&time_start_choose_best_data, NULL);
+		//~ gettimeofday(&time_start_choose_best_data, NULL);
 		//~ for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
 		//~ {
 			//~ temp_number_of_task_max = 0;
@@ -858,8 +858,8 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 				//~ }
 			//~ }
 		//~ }
-		gettimeofday(&time_end_choose_best_data, NULL);
-		time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
+		//~ gettimeofday(&time_end_choose_best_data, NULL);
+		//~ time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
 		/* Seulement pour les traces pour les faires ressembler à celle sur Grid5000 */
 		// usleep(((time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec));
 		/* Fin de la version originale */
@@ -868,7 +868,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
     //~ {
 		//~ /* The costly loop. Version où je récup les 10 meilleures données et ensuite tant que je les ai pas toutes envoyé je test sur ces 10 données la seulement. 
 		 //~ * Utilise une struct globale et un int dans le .h a suppr si on utilise pas cette méthode */
-		gettimeofday(&time_start_choose_best_data, NULL);
+		//~ gettimeofday(&time_start_choose_best_data, NULL);
 		//~ if (data_to_pop_next_list_empty(g->my_data_to_pop_next))
 		//~ {
 			//~ int k = 0;
@@ -1153,7 +1153,8 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 
 //~ Dans un coin de la tete : idée de liste intermédiaire
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
-{	
+{
+	gettimeofday(&time_start_schedule, NULL);
     int i = 0;
     int j = 0;
     struct task_using_data *t = NULL;
@@ -1194,6 +1195,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		}
 	}
 	
+	gettimeofday(&time_start_choose_best_data, NULL);
 	/* Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
     for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
@@ -1296,7 +1298,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 		}
     }
+    gettimeofday(&time_end_choose_best_data, NULL);
+	time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
     
+    gettimeofday(&time_start_fill_planned_task_list, NULL);
     /* La je change par rapport à 2D, si à la fois free et 1_from_free sont à 0 je renvoie random */   
     if (number_free_task_max != 0) /* cas comme dans 2D, je met dans planned_task les tâches gratuites, sauf que j'ai 3 données à check et non 2. */
     {
@@ -1359,6 +1364,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	{
 		goto random;
 	}
+	gettimeofday(&time_end_fill_planned_task_list, NULL);
+    time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
     
     /* If no task have been added to the list. */
     if (starpu_task_list_empty(&g->planned_task)) 
@@ -1385,7 +1392,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		//~ printf("No task were possible with the popped handles. Returning head of the randomized main task list: %p.\n", task);
 		erase_task_and_data_pointer(task, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, task);
+		
+		gettimeofday(&time_end_fill_planned_task_list, NULL);
+		time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
     }
+    
+    gettimeofday(&time_end_schedule, NULL);
+    time_total_schedule += (time_end_schedule.tv_sec - time_start_schedule.tv_sec)*1000000LL + time_end_schedule.tv_usec - time_start_schedule.tv_usec;
 }
 
 void increment_planned_task_data(struct starpu_task *task, int current_gpu)
@@ -2194,14 +2207,23 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		iteration_DARTS++;
 		
 		/* TODO : a suppr car inutile */
-		if (iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1)
+		if ((iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
 		{
+			if (starpu_get_env_number_default("THRESHOLD", 0) == 1)
+			{
+				FILE *f = fopen("Output_maxime/DARTS_time.txt", "a");
+				fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_schedule);
+				fclose(f);
+			}
+			else
+			{
+				FILE *f = fopen("Output_maxime/DARTS_time_no_threshold.txt", "a");
+				fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_schedule);
+				fclose(f);
+			}
 			//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
 			//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
 			//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
-			FILE *f = fopen("Output_maxime/DDA_eviction_time.txt", "a");
-			fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_schedule);
-			fclose(f);
 
 			//~ victim_evicted_compteur = 0;
 			//~ victim_selector_compteur = 0;
@@ -2220,40 +2242,40 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
-/* Version avec print et visualisation */
-struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
-{
-	.init_sched = initialize_dynamic_data_aware_center_policy,
-	.deinit_sched = deinitialize_dynamic_data_aware_center_policy,
-	.add_workers = starpu_sched_tree_add_workers,
-	.remove_workers = starpu_sched_tree_remove_workers,
-	/* .do_schedule = starpu_sched_tree_do_schedule, */
-	.push_task = starpu_sched_tree_push_task,
-	/* //~ .pop_task = starpu_sched_tree_pop_task, */
-	.pop_task = get_data_to_load,
-	/* .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, */
-	.pre_exec_hook = get_current_tasks,
-	/* .post_exec_hook = starpu_sched_component_worker_post_exec_hook, */
-	.post_exec_hook = get_task_done,
-	.pop_every_task = NULL,
-	.policy_name = "dynamic-data-aware",
-	.policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
-	.worker_type = STARPU_WORKER_LIST,
-};
-
-//~ /* Version pour performances */
+//~ /* Version avec print et visualisation */
 //~ struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
 //~ {
 	//~ .init_sched = initialize_dynamic_data_aware_center_policy,
 	//~ .deinit_sched = deinitialize_dynamic_data_aware_center_policy,
 	//~ .add_workers = starpu_sched_tree_add_workers,
 	//~ .remove_workers = starpu_sched_tree_remove_workers,
+	//~ /* .do_schedule = starpu_sched_tree_do_schedule, */
 	//~ .push_task = starpu_sched_tree_push_task,
-	//~ .pop_task = starpu_sched_tree_pop_task,
-	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
-	//~ .post_exec_hook = get_task_done, /* Utile pour la stratégie d'éviction */
+	//~ /* //~ .pop_task = starpu_sched_tree_pop_task, */
+	//~ .pop_task = get_data_to_load,
+	//~ /* .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, */
+	//~ .pre_exec_hook = get_current_tasks,
+	//~ /* .post_exec_hook = starpu_sched_component_worker_post_exec_hook, */
+	//~ .post_exec_hook = get_task_done,
 	//~ .pop_every_task = NULL,
 	//~ .policy_name = "dynamic-data-aware",
 	//~ .policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
 	//~ .worker_type = STARPU_WORKER_LIST,
 //~ };
+
+/* Version pour performances */
+struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
+{
+	.init_sched = initialize_dynamic_data_aware_center_policy,
+	.deinit_sched = deinitialize_dynamic_data_aware_center_policy,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = get_task_done, /* Utile pour la stratégie d'éviction */
+	.pop_every_task = NULL,
+	.policy_name = "dynamic-data-aware",
+	.policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
+	.worker_type = STARPU_WORKER_LIST,
+};
