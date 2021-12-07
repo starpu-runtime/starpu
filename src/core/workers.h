@@ -54,6 +54,7 @@
 #include <drivers/cpu/driver_cpu.h>
 
 #include <datawizard/datawizard.h>
+#include <datawizard/malloc.h>
 
 #pragma GCC visibility push(hidden)
 
@@ -111,6 +112,17 @@ struct _starpu_node {
 	struct _starpu_data_request_prio_list data_requests_pending[STARPU_MAXNODES][2];
 	unsigned data_requests_npending[STARPU_MAXNODES][2];
 	starpu_pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES][2];
+
+	/*
+	 * used by malloc.c
+	 */
+	int malloc_on_node_default_flags;
+	/** One list of chunks per node */
+	struct _starpu_chunk_list chunks;
+	/** Number of completely free chunks */
+	int nfreechunks;
+	/** This protects chunks and nfreechunks */
+	starpu_pthread_mutex_t chunk_mutex;
 
 	/** Keep this last, to make sure to separate node data in separate
 	cache lines. */

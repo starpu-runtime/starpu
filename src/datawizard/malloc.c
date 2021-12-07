@@ -55,7 +55,6 @@
 
 static size_t _malloc_align = sizeof(void*);
 static int disable_pinning;
-static int malloc_on_node_default_flags[STARPU_MAXNODES];
 
 /* This file is used for implementing "folded" allocation */
 #ifdef STARPU_SIMGRID
@@ -151,7 +150,7 @@ static int _starpu_malloc_should_pin(int flags)
 
 int _starpu_malloc_willpin_on_node(unsigned dst_node)
 {
-	int flags = malloc_on_node_default_flags[dst_node];
+	int flags = _starpu_get_node_struct(dst_node)->malloc_on_node_default_flags;
 	return (_starpu_malloc_should_pin(flags) && STARPU_RUNNING_ON_VALGRIND == 0
 			&& (_starpu_can_submit_cuda_task()
 			    /* || _starpu_can_submit_opencl_task() */
@@ -641,79 +640,15 @@ starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRI
 	return 0;
 }
 
-/*
- * On CUDA which has very expensive malloc, for small sizes, allocate big
- * chunks divided in blocks, and we actually allocate segments of consecutive
- * blocks.
- *
- * We try to keep the list of chunks with increasing occupancy, so we can
- * quickly find free segments to allocate.
- */
-
-#ifdef STARPU_USE_MAX_FPGA
-// FIXME: Maxeler FPGAs want 192 byte alignment
-#define CHUNK_SIZE (128*1024*192)
-#define CHUNK_ALLOC_MAX (CHUNK_SIZE / 8)
-#define CHUNK_ALLOC_MIN (128*192)
-#else
-/* Size of each chunk, 32MiB granularity brings 128 chunks to be allocated in
- * order to fill a 4GiB GPU. */
-#define CHUNK_SIZE (32*1024*1024)
-
-/* Maximum segment size we will allocate in chunks */
-#define CHUNK_ALLOC_MAX (CHUNK_SIZE / 8)
-
-/* Granularity of allocation, i.e. block size, StarPU will never allocate less
- * than this.
- * 16KiB (i.e. 64x64 float) granularity eats 2MiB RAM for managing a 4GiB GPU.
- */
-#define CHUNK_ALLOC_MIN (16*1024)
-#endif
-
-/* Don't really deallocate chunks unless we have more than this many chunks
- * which are completely free. */
-#define CHUNKS_NFREE 4
-
-/* Number of blocks */
-#define CHUNK_NBLOCKS (CHUNK_SIZE/CHUNK_ALLOC_MIN)
-
-/* Linked list for available segments */
-struct block
-{
-	int length;	/* Number of consecutive free blocks */
-	int next;	/* next free segment */
-};
-
-/* One chunk */
-LIST_TYPE(_starpu_chunk,
-	uintptr_t base;
-
-	/* Available number of blocks, for debugging */
-	int available;
-
-	/* Overestimation of the maximum size of available segments in this chunk */
-	int available_max;
-
-	/* Bitmap describing availability of the block */
-	/* Block 0 is always empty, and is just the head of the free segments list */
-	struct block bitmap[CHUNK_NBLOCKS+1];
-)
-
-/* One list of chunks per node */
-static struct _starpu_chunk_list chunks[STARPU_MAXNODES];
-/* Number of completely free chunks */
-static int nfreechunks[STARPU_MAXNODES];
-/* This protects chunks and nfreechunks */
-static starpu_pthread_mutex_t chunk_mutex[STARPU_MAXNODES];
-
 void
 _starpu_malloc_init(unsigned dst_node)
 {
-	_starpu_chunk_list_init(&chunks[dst_node]);
-	nfreechunks[dst_node] = 0;
-	STARPU_PTHREAD_MUTEX_INIT(&chunk_mutex[dst_node], NULL);
+	struct _starpu_node *node_struct = _starpu_get_node_struct(dst_node);
+	_starpu_chunk_list_init(&node_struct->chunks);
+	node_struct->nfreechunks = 0;
+	STARPU_PTHREAD_MUTEX_INIT(&node_struct->chunk_mutex, NULL);
 	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
-	malloc_on_node_default_flags[dst_node] = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
+	node_struct->malloc_on_node_default_flags = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
 #ifdef STARPU_SIMGRID
 	/* Reasonably "costless" */
 	_starpu_malloc_simulation_fold = starpu_get_env_number_default("STARPU_MALLOC_SIMULATION_FOLD", 1) << 20;
@@ -723,20 +658,21 @@ _starpu_malloc_init(unsigned dst_node)
 void
 _starpu_malloc_shutdown(unsigned dst_node)
 {
+	struct _starpu_node *node_struct = _starpu_get_node_struct(dst_node);
 	struct _starpu_chunk *chunk, *next_chunk;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
-	for (chunk = _starpu_chunk_list_begin(&chunks[dst_node]);
-	     chunk != _starpu_chunk_list_end(&chunks[dst_node]);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->chunk_mutex);
+	for (chunk = _starpu_chunk_list_begin(&node_struct->chunks);
+	     chunk != _starpu_chunk_list_end(&node_struct->chunks);
 	     chunk = next_chunk)
 	{
 		next_chunk = _starpu_chunk_list_next(chunk);
-		_starpu_free_on_node_flags(dst_node, chunk->base, CHUNK_SIZE, malloc_on_node_default_flags[dst_node]);
-		_starpu_chunk_list_erase(&chunks[dst_node], chunk);
+		_starpu_free_on_node_flags(dst_node, chunk->base, CHUNK_SIZE, node_struct->malloc_on_node_default_flags);
+		_starpu_chunk_list_erase(&node_struct->chunks, chunk);
 		free(chunk);
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
-	STARPU_PTHREAD_MUTEX_DESTROY(&chunk_mutex[dst_node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->chunk_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&node_struct->chunk_mutex);
 }
 
 /* Create a new chunk */
@@ -783,6 +719,8 @@ starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags)
 	if (!_starpu_malloc_should_suballoc(dst_node, size, flags))
 		return _starpu_malloc_on_node(dst_node, size, flags);
 
+	struct _starpu_node *node_struct = _starpu_get_node_struct(dst_node);
+
 	/* Round up allocation to block size */
 	int nblocks = (size + CHUNK_ALLOC_MIN - 1) / CHUNK_ALLOC_MIN;
 
@@ -791,11 +729,11 @@ starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags)
 	int available_max;
 	struct block *bitmap;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->chunk_mutex);
 
 	/* Try to find a big enough segment among the chunks */
-	for (chunk = _starpu_chunk_list_begin(&chunks[dst_node]);
-	     chunk != _starpu_chunk_list_end(&chunks[dst_node]);
+	for (chunk = _starpu_chunk_list_begin(&node_struct->chunks);
+	     chunk != _starpu_chunk_list_end(&node_struct->chunks);
 	     chunk = _starpu_chunk_list_next(chunk))
 	{
 		if (chunk->available_max < nblocks)
@@ -817,12 +755,12 @@ starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags)
 					/* This one this has quite some room,
 					 * put it front, to make finding it
 					 * easier next time. */
-					_starpu_chunk_list_erase(&chunks[dst_node], chunk);
-					_starpu_chunk_list_push_front(&chunks[dst_node], chunk);
+					_starpu_chunk_list_erase(&node_struct->chunks, chunk);
+					_starpu_chunk_list_push_front(&node_struct->chunks, chunk);
 				}
 				if (chunk->available == CHUNK_NBLOCKS)
 					/* This one was empty, it's not empty any more */
-					nfreechunks[dst_node]--;
+					node_struct->nfreechunks--;
 				goto found;
 			}
 			if (length > available_max)
@@ -839,13 +777,13 @@ starpu_malloc_on_node_flags(unsigned dst_node, size_t size, int flags)
 	if (!chunk)
 	{
 		/* Really no memory any more, fail */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->chunk_mutex);
 		errno = ENOMEM;
 		return 0;
 	}
 
 	/* And make it easy to find. */
-	_starpu_chunk_list_push_front(&chunks[dst_node], chunk);
+	_starpu_chunk_list_push_front(&node_struct->chunks, chunk);
 	bitmap = chunk->bitmap;
 	prevblock = 0;
 	block = 1;
@@ -869,7 +807,7 @@ found:
 		bitmap[block + nblocks].next = bitmap[block].next;
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->chunk_mutex);
 
 	return chunk->base + (block-1) * CHUNK_ALLOC_MIN;
 }
@@ -884,18 +822,19 @@ starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int fl
 		return;
 	}
 
+	struct _starpu_node *node_struct = _starpu_get_node_struct(dst_node);
 	struct _starpu_chunk *chunk;
 
 	/* Round up allocation to block size */
 	int nblocks = (size + CHUNK_ALLOC_MIN - 1) / CHUNK_ALLOC_MIN;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
-	for (chunk = _starpu_chunk_list_begin(&chunks[dst_node]);
-	     chunk != _starpu_chunk_list_end(&chunks[dst_node]);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->chunk_mutex);
+	for (chunk = _starpu_chunk_list_begin(&node_struct->chunks);
+	     chunk != _starpu_chunk_list_end(&node_struct->chunks);
 	     chunk = _starpu_chunk_list_next(chunk))
 		if (addr >= chunk->base && addr < chunk->base + CHUNK_SIZE)
 			break;
-	STARPU_ASSERT(chunk != _starpu_chunk_list_end(&chunks[dst_node]));
+	STARPU_ASSERT(chunk != _starpu_chunk_list_end(&node_struct->chunks));
 
 	struct block *bitmap = chunk->bitmap;
 	int block = ((addr - chunk->base) / CHUNK_ALLOC_MIN) + 1, prevblock, nextblock;
@@ -947,41 +886,41 @@ starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int fl
 	{
 		/* This chunk is now empty, but avoid chunk free/alloc
 		 * ping-pong by keeping some of these.  */
-		if (nfreechunks[dst_node] >= CHUNKS_NFREE &&
+		if (node_struct->nfreechunks >= CHUNKS_NFREE &&
                      starpu_node_get_kind(dst_node) != STARPU_MAX_FPGA_RAM)
 		{
 			/* We already have free chunks, release this one */
 			_starpu_free_on_node_flags(dst_node, chunk->base, CHUNK_SIZE, flags);
-			_starpu_chunk_list_erase(&chunks[dst_node], chunk);
+			_starpu_chunk_list_erase(&node_struct->chunks, chunk);
 			free(chunk);
 		}
 		else
-			nfreechunks[dst_node]++;
+			node_struct->nfreechunks++;
 	}
 	else
 	{
 		/* Freed some room, put this first in chunks list */
-		_starpu_chunk_list_erase(&chunks[dst_node], chunk);
-		_starpu_chunk_list_push_front(&chunks[dst_node], chunk);
+		_starpu_chunk_list_erase(&node_struct->chunks, chunk);
+		_starpu_chunk_list_push_front(&node_struct->chunks, chunk);
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&chunk_mutex[dst_node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->chunk_mutex);
 }
 
 void starpu_malloc_on_node_set_default_flags(unsigned node, int flags)
 {
 	STARPU_ASSERT_MSG(node < STARPU_MAXNODES, "bogus node value %u given to starpu_malloc_on_node_set_default_flags\n", node);
-	malloc_on_node_default_flags[node] = flags;
+	_starpu_get_node_struct(node)->malloc_on_node_default_flags = flags;
 }
 
 uintptr_t
 starpu_malloc_on_node(unsigned dst_node, size_t size)
 {
-	return starpu_malloc_on_node_flags(dst_node, size, malloc_on_node_default_flags[dst_node]);
+	return starpu_malloc_on_node_flags(dst_node, size, _starpu_get_node_struct(dst_node)->malloc_on_node_default_flags);
 }
 
 void
 starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 {
-	starpu_free_on_node_flags(dst_node, addr, size, malloc_on_node_default_flags[dst_node]);
+	starpu_free_on_node_flags(dst_node, addr, size, _starpu_get_node_struct(dst_node)->malloc_on_node_default_flags);
 }
