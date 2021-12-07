@@ -1351,6 +1351,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		//~ printf("The data adding the most (%d) 1_from_free tasks is %p.\n", number_1_from_free_task_max, handle_popped);
 		
 		/* Random car la liste est randomisé */
+		/* TODO : Je crois que içi je dois vérifier que la tâche est bien à 1 d'être gratuite ??:: */
 		t = task_using_data_list_begin(handle_popped->sched_data);
 		
 		/* Add it from planned task compteur */

@@ -663,6 +663,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 #ifdef STARPU_DEVEL
 #warning We do not actually want to reuse an existing request when our request is for a task with low priority, that will get executed much later. We don t want to wire down the data in between, at worse that could hog the complete gpu memory...
 #endif
+//AUssi ici
 		r = _starpu_search_existing_data_request(hop_dst_replicate,
 				(mode & STARPU_R)?hop_src_node:hop_dst_node,
 							 mode, task, is_prefetch);
@@ -672,7 +673,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		if (!r)
 		{
 			/* Create a new request if there was no request to reuse */
-			printf("Appel de _starpu_create_data_request dans if (!r) avec le handle %p.\n", handle); fflush(stdout);
+			//~ printf("Appel de _starpu_create_data_request dans if (!r) avec le handle %p.\n", handle); fflush(stdout);
 			r = _starpu_create_data_request(handle, hop_src_replicate,
 							hop_dst_replicate, hop_handling_node,
 							mode, ndeps, task, is_prefetch, prio, 0, origin);
@@ -719,7 +720,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		 * request, depending on them, which will invalidate their
 		 * result.
 		 */
-		printf("Appel de _starpu_create_data_request dans if (write_invalidation) avec le handle %p.\n", handle); fflush(stdout);
+		//~ printf("Appel de _starpu_create_data_request dans if (write_invalidation) avec le handle %p.\n", handle); fflush(stdout);
 		struct _starpu_data_request *r = _starpu_create_data_request(handle, dst_replicate,
 							dst_replicate, requesting_node,
 							STARPU_W, nwait, task, is_prefetch, prio, 1, origin);

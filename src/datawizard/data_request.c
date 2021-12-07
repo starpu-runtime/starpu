@@ -217,6 +217,7 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 
 	/* For a fetch, take a reference as soon as now on the target, to avoid
 	 * replicate eviction */
+	 //Verifier le compteur et comparer avec les print au moments du crash et de la tache en question
 	if (is_prefetch == STARPU_FETCH && dst_replicate)
 	{
 		r->added_ref = 1;
