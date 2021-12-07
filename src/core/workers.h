@@ -59,8 +59,51 @@
 
 #define STARPU_MAX_PIPELINE 4
 
-struct _starpu_ctx_change_list;
+struct mc_cache_entry;
+struct _starpu_node {
+	/*
+	 * used by memalloc.c
+	 */
+	/** This per-node RW-locks protect mc_list and memchunk_cache entries */
+	/* Note: handle header lock is always taken before this (normal add/remove case) */
+	struct _starpu_spinlock mc_lock;
 
+	/** Potentially in use memory chunks. The beginning of the list is clean (home
+	 * node has a copy of the data, or the data is being transferred there), the
+	 * remainder of the list may not be clean. */
+	struct _starpu_mem_chunk_list mc_list;
+	/** This is a shortcut inside the mc_list to the first potentially dirty MC. All
+	 * MC before this are clean, MC before this only *may* be clean. */
+	struct _starpu_mem_chunk *mc_dirty_head;
+	/* TODO: introduce head of data to be evicted */
+	/** Number of elements in mc_list, number of elements in the clean part of
+	 * mc_list plus the non-automatically allocated elements (which are thus always
+	 * considered as clean) */
+	unsigned mc_nb, mc_clean_nb;
+
+	struct mc_cache_entry *mc_cache;
+	int mc_cache_nb;
+	starpu_ssize_t mc_cache_size;
+
+	/** Whether some thread is currently tidying this node */
+	unsigned tidying;
+	/** Whether some thread is currently reclaiming memory for this node */
+	unsigned reclaiming;
+
+	/** This records that we tried to prefetch data but went out of memory, so will
+	 * probably fail again to prefetch data, thus not trace each and every
+	 * attempt. */
+	volatile int prefetch_out_of_memory;
+
+	/** Whether this memory node can evict data to another node */
+	unsigned evictable;
+
+	/** Keep this last, to make sure to separate node data in separate
+	cache lines. */
+	char padding[STARPU_CACHELINE_SIZE];
+};
+
+struct _starpu_ctx_change_list;
 /** This is initialized by _starpu_worker_init() */
 LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
@@ -376,6 +419,9 @@ struct _starpu_machine_config
 	 * can be combined with other basic workers. */
 	struct _starpu_worker workers[STARPU_NMAXWORKERS];
 
+	/** Memory nodes */
+	struct _starpu_node nodes[STARPU_MAXNODES];
+
 	/** Combined workers: these worker are a combination of basic workers
 	 * that can run parallel tasks together. */
 	struct _starpu_combined_worker combined_workers[STARPU_NMAX_COMBINEDWORKERS];
@@ -555,6 +601,14 @@ static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 {
 	STARPU_ASSERT(id < STARPU_NMAXWORKERS);
 	return &_starpu_config.workers[id];
+}
+
+/** Returns the _starpu_node structure that describes the state of the
+ * specified node. */
+static inline struct _starpu_node *_starpu_get_node_struct(unsigned id)
+{
+	STARPU_ASSERT(id < STARPU_MAXNODES);
+	return &_starpu_config.nodes[id];
 }
 
 /** Returns the starpu_sched_ctx structure that describes the state of the
