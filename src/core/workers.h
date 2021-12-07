@@ -124,6 +124,21 @@ struct _starpu_node {
 	/** This protects chunks and nfreechunks */
 	starpu_pthread_mutex_t chunk_mutex;
 
+	/*
+	 * used by memory_manager.c
+	 */
+	size_t global_size;
+	size_t used_size;
+
+	/* This is used as an optimization to avoid to wake up allocating threads for
+	 * each and every deallocation, only to find that there is still not enough
+	 * room.  */
+	/* Minimum amount being waited for */
+	size_t waiting_size;
+
+	starpu_pthread_mutex_t lock_nodes;
+	starpu_pthread_cond_t cond_nodes;
+
 	/** Keep this last, to make sure to separate node data in separate
 	cache lines. */
 	char padding[STARPU_CACHELINE_SIZE];
