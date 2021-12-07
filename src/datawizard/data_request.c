@@ -24,48 +24,38 @@
 #include <core/disk.h>
 #include <core/simgrid.h>
 
-/* requests that have not been treated at all */
-static struct _starpu_data_request_prio_list data_requests[STARPU_MAXNODES][STARPU_MAXNODES][2];
-static struct _starpu_data_request_prio_list prefetch_requests[STARPU_MAXNODES][STARPU_MAXNODES][2]; /* Contains both task_prefetch and prefetch */
-static struct _starpu_data_request_prio_list idle_requests[STARPU_MAXNODES][STARPU_MAXNODES][2];
-static starpu_pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES][STARPU_MAXNODES][2];
-
-/* requests that are not terminated (eg. async transfers) */
-static struct _starpu_data_request_prio_list data_requests_pending[STARPU_MAXNODES][STARPU_MAXNODES][2];
-static unsigned data_requests_npending[STARPU_MAXNODES][STARPU_MAXNODES][2];
-static starpu_pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES][STARPU_MAXNODES][2];
-
 void _starpu_init_data_request_lists(void)
 {
 	unsigned i, j;
 	enum _starpu_data_request_inout k;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
+		struct _starpu_node *node = _starpu_get_node_struct(i);
 		for (j = 0; j < STARPU_MAXNODES; j++)
 		{
 			for (k = _STARPU_DATA_REQUEST_IN; k <= _STARPU_DATA_REQUEST_OUT; k++)
 			{
-				_starpu_data_request_prio_list_init(&data_requests[i][j][k]);
-				_starpu_data_request_prio_list_init(&prefetch_requests[i][j][k]);
-				_starpu_data_request_prio_list_init(&idle_requests[i][j][k]);
+				_starpu_data_request_prio_list_init(&node->data_requests[j][k]);
+				_starpu_data_request_prio_list_init(&node->prefetch_requests[j][k]);
+				_starpu_data_request_prio_list_init(&node->idle_requests[j][k]);
 
 #ifndef STARPU_DEBUG
 				/* Tell helgrind that we are fine with checking for list_empty
 				 * in _starpu_handle_node_data_requests, we will call it
 				 * periodically anyway */
-				STARPU_HG_DISABLE_CHECKING(data_requests[i][j][k].tree.root);
-				STARPU_HG_DISABLE_CHECKING(prefetch_requests[i][j][k].tree.root);
-				STARPU_HG_DISABLE_CHECKING(idle_requests[i][j][k].tree.root);
+				STARPU_HG_DISABLE_CHECKING(node->data_requests[j][k].tree.root);
+				STARPU_HG_DISABLE_CHECKING(node->prefetch_requests[j][k].tree.root);
+				STARPU_HG_DISABLE_CHECKING(node->idle_requests[j][k].tree.root);
 #endif
-				_starpu_data_request_prio_list_init(&data_requests_pending[i][j][k]);
-				data_requests_npending[i][j][k] = 0;
+				_starpu_data_request_prio_list_init(&node->data_requests_pending[j][k]);
+				node->data_requests_npending[j][k] = 0;
 
-				STARPU_PTHREAD_MUTEX_INIT(&data_requests_list_mutex[i][j][k], NULL);
-				STARPU_PTHREAD_MUTEX_INIT(&data_requests_pending_list_mutex[i][j][k], NULL);
+				STARPU_PTHREAD_MUTEX_INIT(&node->data_requests_list_mutex[j][k], NULL);
+				STARPU_PTHREAD_MUTEX_INIT(&node->data_requests_pending_list_mutex[j][k], NULL);
 			}
 		}
+		STARPU_HG_DISABLE_CHECKING(node->data_requests_npending);
 	}
-	STARPU_HG_DISABLE_CHECKING(data_requests_npending);
 }
 
 void _starpu_deinit_data_request_lists(void)
@@ -74,16 +64,17 @@ void _starpu_deinit_data_request_lists(void)
 	enum _starpu_data_request_inout k;
 	for (i = 0; i < STARPU_MAXNODES; i++)
 	{
+		struct _starpu_node *node = _starpu_get_node_struct(i);
 		for (j = 0; j < STARPU_MAXNODES; j++)
 		{
 			for (k = _STARPU_DATA_REQUEST_IN; k <= _STARPU_DATA_REQUEST_OUT; k++)
 			{
-				_starpu_data_request_prio_list_deinit(&data_requests[i][j][k]);
-				_starpu_data_request_prio_list_deinit(&prefetch_requests[i][j][k]);
-				_starpu_data_request_prio_list_deinit(&idle_requests[i][j][k]);
-				_starpu_data_request_prio_list_deinit(&data_requests_pending[i][j][k]);
-				STARPU_PTHREAD_MUTEX_DESTROY(&data_requests_pending_list_mutex[i][j][k]);
-				STARPU_PTHREAD_MUTEX_DESTROY(&data_requests_list_mutex[i][j][k]);
+				_starpu_data_request_prio_list_deinit(&node->data_requests[j][k]);
+				_starpu_data_request_prio_list_deinit(&node->prefetch_requests[j][k]);
+				_starpu_data_request_prio_list_deinit(&node->idle_requests[j][k]);
+				_starpu_data_request_prio_list_deinit(&node->data_requests_pending[j][k]);
+				STARPU_PTHREAD_MUTEX_DESTROY(&node->data_requests_pending_list_mutex[j][k]);
+				STARPU_PTHREAD_MUTEX_DESTROY(&node->data_requests_list_mutex[j][k]);
 			}
 		}
 	}
@@ -364,6 +355,8 @@ void _starpu_post_data_request(struct _starpu_data_request *r)
 	if (r->ndeps > 0)
 		return;
 
+	struct _starpu_node *node_struct = _starpu_get_node_struct(handling_node);
+
 	if (r->mode & STARPU_R)
 	{
 		STARPU_ASSERT(r->src_replicate->allocated);
@@ -371,14 +364,14 @@ void _starpu_post_data_request(struct _starpu_data_request *r)
 	}
 
 	/* insert the request in the proper list */
-	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node][r->peer_node][r->inout]);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->data_requests_list_mutex[r->peer_node][r->inout]);
 	if (r->prefetch >= STARPU_IDLEFETCH)
-		_starpu_data_request_prio_list_push_back(&idle_requests[handling_node][r->peer_node][r->inout], r);
+		_starpu_data_request_prio_list_push_back(&node_struct->idle_requests[r->peer_node][r->inout], r);
 	else if (r->prefetch > STARPU_FETCH)
-		_starpu_data_request_prio_list_push_back(&prefetch_requests[handling_node][r->peer_node][r->inout], r);
+		_starpu_data_request_prio_list_push_back(&node_struct->prefetch_requests[r->peer_node][r->inout], r);
 	else
-		_starpu_data_request_prio_list_push_back(&data_requests[handling_node][r->peer_node][r->inout], r);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[handling_node][r->peer_node][r->inout]);
+		_starpu_data_request_prio_list_push_back(&node_struct->data_requests[r->peer_node][r->inout], r);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_list_mutex[r->peer_node][r->inout]);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	_starpu_wake_all_blocked_workers_on_node(handling_node);
@@ -650,11 +643,12 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, enum _star
 		 * asynchronously. The request is put in the list of "pending"
 		 * requests in the meantime. */
 		_starpu_spin_unlock(&handle->header_lock);
+		struct _starpu_node *node_struct = _starpu_get_node_struct(r->handling_node);
 
-		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[r->handling_node][r->peer_node][r->inout]);
-		_starpu_data_request_prio_list_push_back(&data_requests_pending[r->handling_node][r->peer_node][r->inout], r);
-		data_requests_npending[r->handling_node][r->peer_node][r->inout]++;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[r->handling_node][r->peer_node][r->inout]);
+		STARPU_PTHREAD_MUTEX_LOCK(&node_struct->data_requests_pending_list_mutex[r->peer_node][r->inout]);
+		_starpu_data_request_prio_list_push_back(&node_struct->data_requests_pending[r->peer_node][r->inout], r);
+		node_struct->data_requests_npending[r->peer_node][r->inout]++;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_pending_list_mutex[r->peer_node][r->inout]);
 
 		return -EAGAIN;
 	}
@@ -666,7 +660,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, enum _star
 	return 0;
 }
 
-static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list reqlist[STARPU_MAXNODES][STARPU_MAXNODES][2], unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned n, unsigned *pushed, enum starpu_is_prefetch prefetch)
+static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_list reqlist[STARPU_MAXNODES][2], unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned n, unsigned *pushed, enum starpu_is_prefetch prefetch)
 {
 	struct _starpu_data_request *r;
 	unsigned i;
@@ -678,10 +672,11 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 	/* This is racy, but not posing problems actually, since we know we
 	 * will come back here to probe again regularly anyway.
 	 * Thus, do not expose this optimization to helgrind */
-	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_data_request_prio_list_empty(&reqlist[handling_node][peer_node][inout]))
+	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_data_request_prio_list_empty(&reqlist[peer_node][inout]))
 		return 0;
 #endif
 
+	struct _starpu_node *node_struct = _starpu_get_node_struct(handling_node);
 	/* We create a new list to pickup some requests from the main list, and
 	 * we handle the request(s) one by one from it, without concurrency issues.
 	 */
@@ -690,28 +685,28 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* take all the entries from the request list */
-	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_list_mutex[handling_node][peer_node][inout]))
+	if (STARPU_PTHREAD_MUTEX_TRYLOCK(&node_struct->data_requests_list_mutex[peer_node][inout]))
 	{
 		/* List is busy, do not bother with it */
 		return -EBUSY;
 	}
 #else
-	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node][peer_node][inout]);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->data_requests_list_mutex[peer_node][inout]);
 #endif
 
-	for (i = data_requests_npending[handling_node][peer_node][inout];
-		i < n && ! _starpu_data_request_prio_list_empty(&reqlist[handling_node][peer_node][inout]);
+	for (i = node_struct->data_requests_npending[peer_node][inout];
+		i < n && ! _starpu_data_request_prio_list_empty(&reqlist[peer_node][inout]);
 		i++)
 	{
-		r = _starpu_data_request_prio_list_pop_front_highest(&reqlist[handling_node][peer_node][inout]);
+		r = _starpu_data_request_prio_list_pop_front_highest(&reqlist[peer_node][inout]);
 		_starpu_data_request_list_push_back(&local_list, r);
 	}
 
-	if (!_starpu_data_request_prio_list_empty(&reqlist[handling_node][peer_node][inout]))
+	if (!_starpu_data_request_prio_list_empty(&reqlist[peer_node][inout]))
 		/* We have left some requests */
 		ret = -EBUSY;
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[handling_node][peer_node][inout]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_list_mutex[peer_node][inout]);
 
 	if (_starpu_data_request_list_empty(&local_list))
 		/* there is no request */
@@ -726,7 +721,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 	{
                 int res;
 
-		if (data_requests_npending[handling_node][peer_node][inout] >= n)
+		if (node_struct->data_requests_npending[peer_node][inout] >= n)
 		{
 			/* Too many requests at the same time, skip pushing
 			 * more for now */
@@ -763,18 +758,18 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 
 	if (!_starpu_data_request_list_empty(&remain_list))
 	{
-		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[handling_node][peer_node][inout]);
+		STARPU_PTHREAD_MUTEX_LOCK(&node_struct->data_requests_list_mutex[peer_node][inout]);
 		while (!_starpu_data_request_list_empty(&remain_list))
 		{
 			r = _starpu_data_request_list_pop_back(&remain_list);
 			if (r->prefetch >= STARPU_IDLEFETCH)
-				_starpu_data_request_prio_list_push_front(&idle_requests[handling_node][r->peer_node][r->inout], r);
+				_starpu_data_request_prio_list_push_front(&node_struct->idle_requests[r->peer_node][r->inout], r);
 			else if (r->prefetch > STARPU_FETCH)
-				_starpu_data_request_prio_list_push_front(&prefetch_requests[handling_node][r->peer_node][r->inout], r);
+				_starpu_data_request_prio_list_push_front(&node_struct->prefetch_requests[r->peer_node][r->inout], r);
 			else
-				_starpu_data_request_prio_list_push_front(&data_requests[handling_node][r->peer_node][r->inout], r);
+				_starpu_data_request_prio_list_push_front(&node_struct->data_requests[r->peer_node][r->inout], r);
 		}
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[handling_node][peer_node][inout]);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_list_mutex[peer_node][inout]);
 
 #ifdef STARPU_SIMGRID
 		if (*pushed)
@@ -798,17 +793,17 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 
 int _starpu_handle_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed)
 {
-	return __starpu_handle_node_data_requests(data_requests, handling_node, peer_node, inout, may_alloc, MAX_PENDING_REQUESTS_PER_NODE, pushed, STARPU_FETCH);
+	return __starpu_handle_node_data_requests(_starpu_get_node_struct(handling_node)->data_requests, handling_node, peer_node, inout, may_alloc, MAX_PENDING_REQUESTS_PER_NODE, pushed, STARPU_FETCH);
 }
 
 int _starpu_handle_node_prefetch_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed)
 {
-	return __starpu_handle_node_data_requests(prefetch_requests, handling_node, peer_node, inout, may_alloc, MAX_PENDING_PREFETCH_REQUESTS_PER_NODE, pushed, STARPU_PREFETCH);
+	return __starpu_handle_node_data_requests(_starpu_get_node_struct(handling_node)->prefetch_requests, handling_node, peer_node, inout, may_alloc, MAX_PENDING_PREFETCH_REQUESTS_PER_NODE, pushed, STARPU_PREFETCH);
 }
 
 int _starpu_handle_node_idle_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, enum _starpu_may_alloc may_alloc, unsigned *pushed)
 {
-	return __starpu_handle_node_data_requests(idle_requests, handling_node, peer_node, inout, may_alloc, MAX_PENDING_IDLE_REQUESTS_PER_NODE, pushed, STARPU_IDLEFETCH);
+	return __starpu_handle_node_data_requests(_starpu_get_node_struct(handling_node)->idle_requests, handling_node, peer_node, inout, may_alloc, MAX_PENDING_IDLE_REQUESTS_PER_NODE, pushed, STARPU_IDLEFETCH);
 }
 
 static int _handle_pending_node_data_requests(unsigned handling_node, unsigned peer_node, enum _starpu_data_request_inout inout, unsigned force)
@@ -817,19 +812,20 @@ static int _handle_pending_node_data_requests(unsigned handling_node, unsigned p
 //
 	struct _starpu_data_request_prio_list new_data_requests_pending;
 	unsigned taken, kept;
+	struct _starpu_node *node_struct = _starpu_get_node_struct(handling_node);
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	/* Here helgrind would should that this is an un protected access.
 	 * We however don't care about missing an entry, we will get called
 	 * again sooner or later. */
-	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_data_request_prio_list_empty(&data_requests_pending[handling_node][peer_node][inout]))
+	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_data_request_prio_list_empty(&node_struct->data_requests_pending[peer_node][inout]))
 		return 0;
 #endif
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 	if (!force)
 	{
-		if (STARPU_PTHREAD_MUTEX_TRYLOCK(&data_requests_pending_list_mutex[handling_node][peer_node][inout]))
+		if (STARPU_PTHREAD_MUTEX_TRYLOCK(&node_struct->data_requests_pending_list_mutex[peer_node][inout]))
 		{
 			/* List is busy, do not bother with it */
 			return 0;
@@ -838,19 +834,19 @@ static int _handle_pending_node_data_requests(unsigned handling_node, unsigned p
 	else
 #endif
 		/* We really want to handle requests */
-		STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[handling_node][peer_node][inout]);
+		STARPU_PTHREAD_MUTEX_LOCK(&node_struct->data_requests_pending_list_mutex[peer_node][inout]);
 
-	if (_starpu_data_request_prio_list_empty(&data_requests_pending[handling_node][peer_node][inout]))
+	if (_starpu_data_request_prio_list_empty(&node_struct->data_requests_pending[peer_node][inout]))
 	{
 		/* there is no request */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[handling_node][peer_node][inout]);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_pending_list_mutex[peer_node][inout]);
 		return 0;
 	}
 	/* for all entries of the list */
-	struct _starpu_data_request_prio_list local_list = data_requests_pending[handling_node][peer_node][inout];
-	_starpu_data_request_prio_list_init(&data_requests_pending[handling_node][peer_node][inout]);
+	struct _starpu_data_request_prio_list local_list = node_struct->data_requests_pending[peer_node][inout];
+	_starpu_data_request_prio_list_init(&node_struct->data_requests_pending[peer_node][inout]);
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[handling_node][peer_node][inout]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_pending_list_mutex[peer_node][inout]);
 
 	_starpu_data_request_prio_list_init(&new_data_requests_pending);
 	taken = 0;
@@ -913,11 +909,11 @@ static int _handle_pending_node_data_requests(unsigned handling_node, unsigned p
 		}
 	}
 	_starpu_data_request_prio_list_deinit(&local_list);
-	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[handling_node][peer_node][inout]);
-	data_requests_npending[handling_node][peer_node][inout] -= taken - kept;
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->data_requests_pending_list_mutex[peer_node][inout]);
+	node_struct->data_requests_npending[peer_node][inout] -= taken - kept;
 	if (kept)
-		_starpu_data_request_prio_list_push_prio_list_back(&data_requests_pending[handling_node][peer_node][inout], &new_data_requests_pending);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[handling_node][peer_node][inout]);
+		_starpu_data_request_prio_list_push_prio_list_back(&node_struct->data_requests_pending[peer_node][inout], &new_data_requests_pending);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_pending_list_mutex[peer_node][inout]);
 
 	return taken - kept;
 }
@@ -938,15 +934,16 @@ static int __starpu_check_that_no_data_request_exists(unsigned node, unsigned pe
 {
 	int no_request;
 	int no_pending;
+	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
 
-	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[node][peer_node][inout]);
-	no_request = _starpu_data_request_prio_list_empty(&data_requests[node][peer_node][inout])
-	          && _starpu_data_request_prio_list_empty(&prefetch_requests[node][peer_node][inout])
-		  && _starpu_data_request_prio_list_empty(&idle_requests[node][peer_node][inout]);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[node][peer_node][inout]);
-	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_pending_list_mutex[node][peer_node][inout]);
-	no_pending = !data_requests_npending[node][peer_node][inout];
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_pending_list_mutex[node][peer_node][inout]);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->data_requests_list_mutex[peer_node][inout]);
+	no_request = _starpu_data_request_prio_list_empty(&node_struct->data_requests[peer_node][inout])
+	          && _starpu_data_request_prio_list_empty(&node_struct->prefetch_requests[peer_node][inout])
+		  && _starpu_data_request_prio_list_empty(&node_struct->idle_requests[peer_node][inout]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_list_mutex[peer_node][inout]);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->data_requests_pending_list_mutex[peer_node][inout]);
+	no_pending = !node_struct->data_requests_npending[peer_node][inout];
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_pending_list_mutex[peer_node][inout]);
 
 	return no_request && no_pending;
 }
@@ -966,12 +963,13 @@ int _starpu_check_that_no_data_request_exists(unsigned node)
  * entry/exit */
 int _starpu_check_that_no_data_request_is_pending(unsigned node, unsigned peer_node, enum _starpu_data_request_inout inout)
 {
-	return !data_requests_npending[node][peer_node][inout];
+	return !_starpu_get_node_struct(node)->data_requests_npending[peer_node][inout];
 }
 
 
 void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_is_prefetch prefetch)
 {
+	struct _starpu_node *node_struct = _starpu_get_node_struct(r->handling_node);
 	_starpu_spin_checklocked(&r->handle->header_lock);
 	STARPU_ASSERT(r->prefetch > prefetch);
 
@@ -997,27 +995,27 @@ void _starpu_update_prefetch_status(struct _starpu_data_request *r, enum starpu_
 			_starpu_update_prefetch_status(next_req, prefetch);
 	}
 
-	STARPU_PTHREAD_MUTEX_LOCK(&data_requests_list_mutex[r->handling_node][r->peer_node][r->inout]);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->data_requests_list_mutex[r->peer_node][r->inout]);
 
 	int found = 1;
 
 	/* The request can be in a different list (handling request or the temp list)
 	 * we have to check that it is really in the prefetch or idle list. */
-	if (_starpu_data_request_prio_list_ismember(&prefetch_requests[r->handling_node][r->peer_node][r->inout], r))
-		_starpu_data_request_prio_list_erase(&prefetch_requests[r->handling_node][r->peer_node][r->inout], r);
-	else if (_starpu_data_request_prio_list_ismember(&idle_requests[r->handling_node][r->peer_node][r->inout], r))
-		_starpu_data_request_prio_list_erase(&idle_requests[r->handling_node][r->peer_node][r->inout], r);
+	if (_starpu_data_request_prio_list_ismember(&node_struct->prefetch_requests[r->peer_node][r->inout], r))
+		_starpu_data_request_prio_list_erase(&node_struct->prefetch_requests[r->peer_node][r->inout], r);
+	else if (_starpu_data_request_prio_list_ismember(&node_struct->idle_requests[r->peer_node][r->inout], r))
+		_starpu_data_request_prio_list_erase(&node_struct->idle_requests[r->peer_node][r->inout], r);
 	else
 		found = 0;
 
 	if (found)
 	{
 		if (prefetch > STARPU_FETCH)
-			_starpu_data_request_prio_list_push_back(&prefetch_requests[r->handling_node][r->peer_node][r->inout],r);
+			_starpu_data_request_prio_list_push_back(&node_struct->prefetch_requests[r->peer_node][r->inout],r);
 		else
-			_starpu_data_request_prio_list_push_back(&data_requests[r->handling_node][r->peer_node][r->inout],r);
+			_starpu_data_request_prio_list_push_back(&node_struct->data_requests[r->peer_node][r->inout],r);
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&data_requests_list_mutex[r->handling_node][r->peer_node][r->inout]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->data_requests_list_mutex[r->peer_node][r->inout]);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
 	_starpu_wake_all_blocked_workers_on_node(r->handling_node);

@@ -98,6 +98,20 @@ struct _starpu_node {
 	/** Whether this memory node can evict data to another node */
 	unsigned evictable;
 
+	/*
+	 * used by data_request.c
+	 */
+	/** requests that have not been treated at all */
+	struct _starpu_data_request_prio_list data_requests[STARPU_MAXNODES][2];
+	struct _starpu_data_request_prio_list prefetch_requests[STARPU_MAXNODES][2]; /* Contains both task_prefetch and prefetch */
+	struct _starpu_data_request_prio_list idle_requests[STARPU_MAXNODES][2];
+	starpu_pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES][2];
+
+	/** requests that are not terminated (eg. async transfers) */
+	struct _starpu_data_request_prio_list data_requests_pending[STARPU_MAXNODES][2];
+	unsigned data_requests_npending[STARPU_MAXNODES][2];
+	starpu_pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES][2];
+
 	/** Keep this last, to make sure to separate node data in separate
 	cache lines. */
 	char padding[STARPU_CACHELINE_SIZE];
