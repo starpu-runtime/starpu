@@ -15,8 +15,12 @@
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Random_task_order dynamic_data_aware_no_hfp gemini-1-ipdps 1 V
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 12 Random_task_order dynamic_data_aware_no_hfp Attila 2 V
 
+#	For the rebuttal
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 1
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 2
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 1
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 2
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 12 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit gemini-1-fgcs 1
 
 PATH_STARPU=$1
 PATH_R=$2
@@ -35,7 +39,7 @@ FICHIER_SCHEDULE_TIME_TEMP=${PATH_STARPU}/starpu/Output_maxime/Schedule_time_raw
 FICHIER_SCHEDULE_TIME=${PATH_STARPU}/starpu/Output_maxime/Schedule_time_raw_out.txt
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 500000000
-truncate -s 0 ${FICHIER_RAW}
+#~ truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 ${FICHIER_BUS}
 truncate -s 0 ${FICHIER_RAW_DT}
 truncate -s 0 ${FICHIER_TIME}
@@ -57,13 +61,12 @@ HOST=$GPU
 	#~ HOST="sirocco"
 	#~ # BW=350 #A corriger si on utilise Sirocco
 #~ fi
-if [ $GPU = "Attila" ] # Ajouter STARPU_LIMIT_BANDWIDTH si je test avec attila
-then
-	HOST="attila"
-	BW=350
-	BW=$((BW*NGPU))
-fi
-
+#~ if [ $GPU = "Attila" ] # Ajouter STARPU_LIMIT_BANDWIDTH si je test avec attila
+#~ then
+	#~ HOST="attila"
+	#~ BW=350
+	#~ BW=$((BW*NGPU))
+#~ fi
 
 CM=500
 #~ CM=$((CM/NGPU))
@@ -378,6 +381,40 @@ then
 			    #~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 			    #~ sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    #~ done
+		fi
+	fi
+	if [ $MODEL = "dynamic_data_aware_no_hfp_no_mem_limit" ]
+	then
+		TAILLE_TUILE=1920
+		NITER=1
+		ECHELLE_X=$((50*NGPU))
+		if [ $NGPU = 1 ]
+		then
+		    NB_ALGO_TESTE=4
+		    echo "############## Modular eager prefetching ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+		    done
+		    echo "############## Dmdar ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+		    done
+		    echo "############## Dynamic data aware TH30 Pop best data ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=0 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+		    done
+		    echo "############## Dynamic data aware TH30 Pop best data + EVICTION ##############"
+		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    do 
+			    N=$((START_X+i*ECHELLE_X))
+			    PRINT_TIME=1 SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+		    done
 		fi
 	fi
 fi
@@ -807,35 +844,38 @@ then
 	fi
 fi
 
-#Tracage data transfers
-gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
-./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${FICHIER_RAW_DT:0} ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
-Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt DT_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
-
 # Tracage des GFlops
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
 ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
 Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
-# Tracage du temps
-#~ gcc -o cut_time_raw_out cut_time_raw_out.c
-#~ ./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_TIME} ${PATH_R}/R/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
-#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
+if [ $MODEL != "dynamic_data_aware_no_hfp_no_mem_limit" ]
+then
+	#Tracage data transfers
+	gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
+	./cut_datatransfers_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${FICHIER_RAW_DT:0} ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
+	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt DT_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
-# Tracage du temps global et du temps de schedule all et split
-#~ gcc -o cut_schedule_time_raw_out cut_schedule_time_raw_out.c
-#~ ./cut_schedule_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_SCHEDULE_TIME} ${PATH_R}/R/Data/${DOSSIER}/SCHEDULE_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
-#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/SCHEDULE_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt SCHEDULE_TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/SCHEDULE_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	# Tracage du temps
+	#~ gcc -o cut_time_raw_out cut_time_raw_out.c
+	#~ ./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_TIME} ${PATH_R}/R/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
+	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
-# A retirer surement : tracage du temps d'éviction de DDA et de schedule de DDA
-Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt DARTS_time_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.pdf
-mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.txt
-# No threshold
-Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt DARTS_time_no_threshold_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.pdf
-mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.txt
+	# Tracage du temps global et du temps de schedule all et split
+	#~ gcc -o cut_schedule_time_raw_out cut_schedule_time_raw_out.c
+	#~ ./cut_schedule_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_SCHEDULE_TIME} ${PATH_R}/R/Data/${DOSSIER}/SCHEDULE_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
+	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/SCHEDULE_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt SCHEDULE_TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/SCHEDULE_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
+
+	# A retirer surement : tracage du temps d'éviction de DDA et de schedule de DDA
+	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt DARTS_time_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.txt
+	# No threshold
+	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt DARTS_time_no_threshold_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.txt
+fi
