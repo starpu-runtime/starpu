@@ -118,6 +118,12 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 	{
 		if (strcmp(argv[i], "-s") == 0)
 		{
+			if (i >= argc-1)
+			{
+				fprintf(stderr,"-s requires an argument\n");
+				usage();
+				exit(EXIT_FAILURE);
+			}
 			options->symbol = argv[++i];
 			correct_usage = 1;
 			continue;
@@ -125,6 +131,12 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 
 		if (strcmp(argv[i], "-se") == 0)
 		{
+			if (i >= argc-2)
+			{
+				fprintf(stderr,"-se requires two arguments\n");
+				usage();
+				exit(EXIT_FAILURE);
+			}
 			options->symbol = argv[++i];
 			options->energy_symbol = argv[++i];
 			correct_usage = 1;
@@ -143,6 +155,12 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 
 		if (strcmp(argv[i], "-i") == 0)
 		{
+			if (i >= argc-1)
+			{
+				fprintf(stderr,"-i requires an argument\n");
+				usage();
+				exit(EXIT_FAILURE);
+			}
 			reading_input_filenames = 1;
 #ifdef STARPU_USE_FXT
 			options->fxt_options.filenames[options->fxt_options.ninputfiles++] = argv[++i];
@@ -180,6 +198,12 @@ static void parse_args(int argc, char **argv, struct _perfmodel_plot_options *op
 
 		if (strcmp(argv[i], "-c") == 0)
 		{
+			if (i >= argc-1)
+			{
+				fprintf(stderr,"-c requires an argument\n");
+				usage();
+				exit(EXIT_FAILURE);
+			}
 			options->comb_is_set = 1;
 			options->comb = atoi(argv[++i]);
 			continue;
