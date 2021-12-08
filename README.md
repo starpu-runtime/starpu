@@ -15,7 +15,11 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU Lesser General Public License in COPYING.LGPL for more details.
 -->
 
-# Introduction
+# StarPU: A Unified Runtime System for Heterogeneous Multicore Architectures
+
+[coverage report](https://sonarqube.inria.fr/sonarqube/dashboard?id=storm%3Astarpu%3Agit)
+[![coverity report](https://scan.coverity.com/projects/7107/badge.svg)](https://scan.coverity.com/projects/starpu)
+
 
 ## What is StarPU?
 
