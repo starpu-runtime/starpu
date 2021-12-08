@@ -38,8 +38,7 @@ int iteration_DARTS;
 //~ int victim_selector_compteur = 0;
 //~ int victim_selector_return_no_victim = 0;
 //~ int victim_selector_belady = 0;
-
-/* TODO a supprimer */
+int number_random_selection = 0;
 struct timeval time_start_selector;
 struct timeval time_end_selector;
 long long time_total_selector = 0;
@@ -58,6 +57,21 @@ long long time_total_choose_best_data = 0;
 struct timeval time_start_fill_planned_task_list;
 struct timeval time_end_fill_planned_task_list;
 long long time_total_fill_planned_task_list = 0;
+struct timeval time_start_initialisation;
+struct timeval time_end_initialisation;
+long long time_total_initialisation = 0;
+struct timeval time_start_randomize;
+struct timeval time_end_randomize;
+long long time_total_randomize = 0;
+struct timeval time_start_pick_random_task;
+struct timeval time_end_pick_random_task;
+long long time_total_pick_random_task = 0;
+struct timeval time_start_least_used_data_planned_task;
+struct timeval time_end_least_used_data_planned_task;
+long long time_total_least_used_data_planned_task = 0;
+struct timeval time_start_createtolasttaskfinished;
+struct timeval time_end_createtolasttaskfinished;
+long long time_total_createtolasttaskfinished = 0;
 
 void print_task_list(struct starpu_task_list *l, char *s)
 {
@@ -201,7 +215,11 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
     struct dynamic_data_aware_sched_data *data = component->data;
     
     //~ STARPU_PTHREAD_MUTEX_LOCK(&my_planned_task_control->planned_task_mutex);
+    gettimeofday(&time_start_initialisation, NULL);
     initialize_task_data_gpu_single_task(task);
+    gettimeofday(&time_end_initialisation, NULL);
+	time_total_initialisation += (time_end_initialisation.tv_sec - time_start_initialisation.tv_sec)*1000000LL + time_end_initialisation.tv_usec - time_start_initialisation.tv_usec;
+
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
     
     /* Pushing the task in sched_list. It's this list that will be randomized
@@ -577,8 +595,12 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		//~ NT = starpu_task_list_size(&data->sched_list);
 		NT = NT_dynamic_outer;
 		
+		gettimeofday(&time_start_randomize, NULL);
 		randomize_task_list(data);
 		randomize_data_not_used_yet(my_planned_task_control->first);
+		gettimeofday(&time_end_randomize, NULL);
+		time_total_randomize += (time_end_randomize.tv_sec - time_start_randomize.tv_sec)*1000000LL + time_end_randomize.tv_usec - time_start_randomize.tv_usec;
+
 			//~ printf("Il y a %d tâches.\n", NT_dynamic_outer);
 			//~ printf("Printing GPU's data list and main task list after randomization:\n\n");
 			//~ print_data_not_used_yet();
@@ -1372,6 +1394,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     if (starpu_task_list_empty(&g->planned_task)) 
     {
 		random: ;
+		
+		/* TODO : a suppr */
+		gettimeofday(&time_start_pick_random_task, NULL);
+		number_random_selection++;
+		
 		struct starpu_task *task = starpu_task_list_pop_front(main_task_list);		
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
@@ -1396,6 +1423,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		gettimeofday(&time_end_fill_planned_task_list, NULL);
 		time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
+		
+		gettimeofday(&time_end_pick_random_task, NULL);
+		time_total_pick_random_task += (time_end_pick_random_task.tv_sec - time_start_pick_random_task.tv_sec)*1000000LL + time_end_pick_random_task.tv_usec - time_start_pick_random_task.tv_usec;
     }
     
     gettimeofday(&time_end_schedule, NULL);
@@ -1749,7 +1779,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 			break_nested_for_loop : ;
 		}
     }
-    //printf("Return in belady %p.\n", returned_handle); fflush(stdout);
+    //~ printf("Return in belady %p.\n", returned_handle); fflush(stdout);
     
     gettimeofday(&time_end_belady, NULL);
     time_total_belady += (time_end_belady.tv_sec - time_start_belady.tv_sec)*1000000LL + time_end_belady.tv_usec - time_start_belady.tv_usec;
@@ -1760,10 +1790,10 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 /* Belady sur lesp lanned task. Je check pas is on node car c'est -1 dans le tab du nb de taches dans pulled task */
 starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task, int current_gpu)
 {
+	gettimeofday(&time_start_least_used_data_planned_task, NULL);
     int i = 0;
     int min_nb_task_in_planned_task = INT_MAX;
     starpu_data_handle_t returned_handle = NULL;
-    
     
     struct handle_user_data *hud = malloc(sizeof(hud));
     
@@ -1780,11 +1810,15 @@ starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_
 			}
 		}
 	}
-    //~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return in belady planned task %p.\n", returned_handle); }
+	
+	gettimeofday(&time_end_least_used_data_planned_task, NULL);
+	time_total_least_used_data_planned_task += (time_end_least_used_data_planned_task.tv_sec - time_start_least_used_data_planned_task.tv_sec)*1000000LL + time_end_least_used_data_planned_task.tv_usec - time_start_least_used_data_planned_task.tv_usec;
+    //~ printf("Return in belady planned task %p.\n", returned_handle);
     return returned_handle;
 }
 
-/* TODO : normalement j'ai pas besoin de refaire un coup de if(data is on node) car j'ai mis -1 dans le tableau pour cela. */
+/* TODO : normalement j'ai pas besoin de refaire un coup de if(data is on node) car j'ai mis -1 dans le tableau pour cela.
+ * TODO : fonction pas utilisé */
 starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task)
 {
 	//~ printf("Début de min weight average .\n"); fflush(stdout);
@@ -2052,6 +2086,8 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	gettimeofday(&time_start_createtolasttaskfinished, NULL);
+	
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_data_aware");
 	srandom(starpu_get_env_number_default("SEED", 0));
 	int i = 0;
@@ -2205,38 +2241,41 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	{
 		reset_all_struct();
 		need_to_reinit = true;
-		iteration_DARTS++;
 		
 		/* TODO : a suppr car inutile */
-		if ((iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2)
+		if ((iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération */
 		{
+			gettimeofday(&time_end_createtolasttaskfinished, NULL);
+			time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
+
+			int print_N = 0;
+			if (starpu_get_env_number_default("APP", 0) == 0) /* M2D */
+			{
+				print_N = sqrt(NT);
+			}
+			else /* M3D */
+			{
+				print_N = sqrt(NT)/2;
+			}
 			if (starpu_get_env_number_default("THRESHOLD", 0) == 1)
 			{
 				FILE *f = fopen("Output_maxime/DARTS_time.txt", "a");
-				fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_schedule);
+				fprintf(f, "%d	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", print_N, time_total_selector, time_total_evicted, time_total_belady, time_total_schedule, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_initialisation, time_total_randomize, time_total_pick_random_task, time_total_least_used_data_planned_task, time_total_createtolasttaskfinished);
 				fclose(f);
 			}
 			else
 			{
 				FILE *f = fopen("Output_maxime/DARTS_time_no_threshold.txt", "a");
-				fprintf(f, "%0.0f	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", sqrt(NT), time_total_selector, time_total_evicted, time_total_belady, time_total_evicted+time_total_selector, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_schedule);
+				fprintf(f, "%d	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", print_N, time_total_selector, time_total_evicted, time_total_belady, time_total_schedule, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_initialisation, time_total_randomize, time_total_pick_random_task, time_total_least_used_data_planned_task, time_total_createtolasttaskfinished);
 				fclose(f);
 			}
 			//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
 			//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
 			//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
-
-			//~ victim_evicted_compteur = 0;
-			//~ victim_selector_compteur = 0;
-			//~ victim_selector_return_no_victim = 0;
-			//~ victim_selector_belady = 0;
-			//~ time_total_selector = 0;
-			//~ time_total_belady = 0;
-			//~ time_total_evicted = 0;		
-			//~ time_total_schedule = 0;		
-			//~ time_total_choose_best_data = 0;		
-			//~ time_total_fill_planned_task_list = 0;		
+			printf("Nombre de choix random = %d.\n", number_random_selection);
 		}
+		
+		iteration_DARTS++;
 	}
 	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
