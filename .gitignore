@@ -709,6 +709,7 @@ Output_maxime/DDA_eviction_time.txt
 Output_maxime/HFP_time.txt
 Output_maxime/DARTS_time.txt
 Output_maxime/Data/Cholesky/
+Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt
 Output_maxime/Data/Matrice3D/GFlops_raw_out_1.txt
 Output_maxime/Data/Matrice3D/GFlops_raw_out_3.txt
 Output_maxime/DARTS_time_no_threshold.txt
