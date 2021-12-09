@@ -661,6 +661,17 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
     starpu_data_handle_t handle_popped = NULL;
     struct task_using_data_list *tudl = task_using_data_list_new();
     
+    /* Si c'est la première tâche, on regarde pas le reste on fais random. */
+    if (g->first_task == true)
+    {
+		if (starpu_get_env_number_default("PRINTF", 0) == 1)
+		{
+			printf("Go to random car c'est la première tâche du GPU %d.\n", current_gpu);
+		}
+		g->first_task = false;
+		goto random;
+	}
+    
     /* Ce cas arrive avec le cas ou je gère pas les evictions. Car quand je ne gère pas les évictions je ne remet pas les données évincées dans la liste des données
      * à faire. */
     if (gpu_data_not_used_list_empty(g->gpu_data))
