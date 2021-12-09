@@ -12,8 +12,8 @@ start=`date +%s`
 #~ make -j 6
 #~ Quand on lance la visu python il faut PRINTF=1 PRINT_N=$((N))
 
-make -C src/ -j 6
-#~ make -j 6
+#~ make -C src/ -j 6
+make -j 6
 ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
@@ -23,7 +23,7 @@ N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
 #~ N=65
 N=40 # 12893.0
 #~ N=50 : 5 choix random
-N=10
+N=30
 
 NGPU=1
 #~ NGPU=2
@@ -90,7 +90,7 @@ TAILLE_TUILE=960
 #~ echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
 #~ STARPU_SCHED=HFP HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
 
-STARPU_SCHED=${ORDO} PRINT_TIME=2 CHOOSE_BEST_DATA_FROM=1 PRINTF=$((PRINTF)) APP=1 STARPU_LIMIT_CUDA_MEM=$((CM)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) PRINT_TIME=2 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
+STARPU_SCHED=${ORDO} SIMULATE_MEMORY=1 CHOOSE_BEST_DATA_FROM=0 PRINTF=$((PRINTF)) APP=1 STARPU_LIMIT_CUDA_MEM=$((CM)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) PRINT_TIME=2 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 11
 
 #~ FASTER_FIRST_ITERATION=0 PRINT_TIME=0 PRINT_N=$((N)) REVERSE=1 PRINT3D=0 RANDOM_TASK_ORDER=0 RANDOM_DATA_ACCESS=0 TASK_STEALING=$((STEALING)) STARPU_BUS_STATS=1 MULTIGPU=$((MULTI)) STARPU_GENERATE_TRACE=$((TRACE)) PRINTF=$((PRINTF)) SEED=$((SEED)) STARPU_SCHED=${ORDO} BELADY=$((BELADY)) ORDER_U=1 STARPU_SCHED_READY=$((READY)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
 
@@ -98,7 +98,7 @@ STARPU_SCHED=${ORDO} PRINT_TIME=2 CHOOSE_BEST_DATA_FROM=1 PRINTF=$((PRINTF)) APP
 #~ ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
 #~ ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
 #~ /./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) ${ORDO} 1 1
-#~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 1
+#~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} 4
 
 #~ STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
 
