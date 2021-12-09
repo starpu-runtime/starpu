@@ -588,9 +588,14 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 	    //~ printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration_DARTS, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
 	    
 		new_tasks_initialized = false;
-			//~ printf("Printing GPU's data list and main task list before randomization:\n\n");
-			//~ print_data_not_used_yet();
-			//~ print_task_list(&data->sched_list, "");
+		
+		if (starpu_get_env_number_default("PRINTF", 0) == 1)
+		{
+			printf("Printing GPU's data list and main task list before randomization:\n\n");
+			print_data_not_used_yet();
+			print_task_list(&data->sched_list, "");
+		}
+		
 		NT_dynamic_outer = starpu_task_list_size(&data->sched_list);
 		//~ NT = starpu_task_list_size(&data->sched_list);
 		NT = NT_dynamic_outer;
@@ -1196,6 +1201,16 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     starpu_data_handle_t handle_popped = NULL;
     struct task_using_data_list *tudl = task_using_data_list_new();
     
+    /* Si c'est la première tâche, on regarde pas le reste on fais random. */
+    if (number_task_out_DARTS == 0)
+    {
+		if (starpu_get_env_number_default("PRINTF", 0) == 1)
+		{
+			printf("Go to random car c'est la première tâche.\n");
+		}
+		goto random;
+	}
+        
     /* Ce cas arrive avec le cas ou je gère pas les evictions. Car quand je ne gère pas les évictions je ne remet pas les données évincées dans la liste des données
      * à faire. */
     if (gpu_data_not_used_list_empty(g->gpu_data))
@@ -1227,6 +1242,12 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	gettimeofday(&time_start_choose_best_data, NULL);
 	/* Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
+	 
+	if (starpu_get_env_number_default("PRINTF", 0) == 1)
+	{
+		printf("Il y a %d données parmi lesquelles choisir.\n", gpu_data_not_used_list_size(g->gpu_data));
+	}
+	 
     for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
     {
 		temp_number_free_task_max = 0;
