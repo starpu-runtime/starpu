@@ -994,8 +994,15 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 			/* 3 for 3D no ? */
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
 			fprintf(f, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+			
+			/* TODO a suppr */
+			//~ printf("Tâche n°%d %p : x = %d | y = %d | ", index_task, task, temp_tab_coordinates[0], temp_tab_coordinates[1]);
+
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
 			fprintf(f, "	%d	%d\n", temp_tab_coordinates[0], starpu_worker_get_id());
+			
+			/* TODO a suppr */
+			//~ printf("z = %d\n", temp_tab_coordinates[0]);
 		}
 		else 
 		{
