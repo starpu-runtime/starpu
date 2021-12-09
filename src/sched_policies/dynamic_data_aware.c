@@ -1202,12 +1202,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     struct task_using_data_list *tudl = task_using_data_list_new();
     
     /* Si c'est la première tâche, on regarde pas le reste on fais random. */
-    if (number_task_out_DARTS == 0)
+    if (g->first_task == true)
     {
 		if (starpu_get_env_number_default("PRINTF", 0) == 1)
 		{
-			printf("Go to random car c'est la première tâche.\n");
+			printf("Go to random car c'est la première tâche du GPU %d.\n", current_gpu);
 		}
+		g->first_task = false;
 		goto random;
 	}
         
@@ -2078,6 +2079,7 @@ void gpu_planned_task_initialisation()
     new->data_to_evict_next = NULL;
     new->next = NULL;
     new->my_data_to_pop_next = data_to_pop_next_list_new();
+    new->first_task = true;
     
     my_planned_task_control->pointer = new;
     my_planned_task_control->first = my_planned_task_control->pointer;
@@ -2093,6 +2095,7 @@ void gpu_planned_task_insertion()
     new->data_to_evict_next = NULL;
     new->next = my_planned_task_control->pointer;
     new->my_data_to_pop_next = data_to_pop_next_list_new();
+    new->first_task = true;
     my_planned_task_control->pointer = new;
 }
 

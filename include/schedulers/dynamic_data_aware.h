@@ -70,6 +70,8 @@ struct gpu_planned_task
     starpu_data_handle_t data_to_evict_next; /* En cas de donnée à évincer refusé. Je la renvoie à évincer. */
     
     struct data_to_pop_next_list *my_data_to_pop_next; /* A effacer si on l'utilise pas */
+    
+    bool first_task; /* Si c'est la première tâche du GPU on veut faire random direct sans perdre de temps. */
 };
 struct gpu_planned_task_control
 {
