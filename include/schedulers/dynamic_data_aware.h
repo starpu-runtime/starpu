@@ -2,12 +2,12 @@
 #define __dynamic_data_aware_H__
 
 #define EVICTION_STRATEGY_DYNAMIC_DATA_AWARE /* 0 we use default dynamic data aware without managing evictions. */
-#define CHOOSE_BEST_DATA_THRESHOLD /* Jusqu'a où je regarde dans la liste des données pour choisir la meilleure. 0 = infini. */
-#define PERCENTAGE_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD /* Après ce pourcentage/NGPU je retire le threshold */
-#define NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD /* Après ce chiffre/NGPU je retire le threshold */
+//~ #define CHOOSE_BEST_DATA_THRESHOLD /* Jusqu'a où je regarde dans la liste des données pour choisir la meilleure. 0 = infini. */
+//~ #define PERCENTAGE_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD /* Après ce pourcentage/NGPU je retire le threshold */
+//~ #define NUMBER_OF_TASK_DONE_BEFORE_LIFTING_THRESHOLD /* Après ce chiffre/NGPU je retire le threshold */
 //~ #define FILL_PLANNED_TASK_LIST_THRESHOLD /* Jusqu'a où je rempli la liste des planned task. 0 = infini. Inutile en réalité car cela prends très peu de temps. */
 //~ #define LIFT_THRESHOLD_MODE /* 0 = default, 1 = fix number,  2 = reach certain number of task out, 3 = reach certain number of task out + slow increase, 4 = percentage + slow increase */
-#define CHOOSE_BEST_DATA_TYPE /* 0 = the best one, 1 = the 10 best one, 2 = the 10 best one and I choose among them */
+//~ #define CHOOSE_BEST_DATA_TYPE /* 0 = the best one, 1 = the 10 best one, 2 = the 10 best one and I choose among them */
 #define THRESHOLD /* 0 = no threshold, 1 = threshold à 14400 tâches pour une matrice 2D (donc APP == 0) et à 14400 tâches aussi pour matrice 3D (donc APP == 1). 0 par défaut */
 #define APP /* 0 matrice 2D, par défaut. 1 matrice 3D. */
 
