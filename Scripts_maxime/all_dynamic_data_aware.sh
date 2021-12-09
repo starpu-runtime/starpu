@@ -14,11 +14,11 @@ make -j 6
 
 #	For the rebuttal
 echo "M3D"
-bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 1
-bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 6 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 2
+bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 7 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 1
+bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 2
 echo "CHO"
-bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 1
-bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 2
+bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 7 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 1
+bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 4 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 2
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit gemini-1-fgcs 1
 
 end=`date +%s`

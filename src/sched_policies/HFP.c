@@ -4259,25 +4259,7 @@ void get_task_done_HFP(struct starpu_task *task, unsigned sci)
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
-/* Si je veux faire les visualisations python */
-//~ struct starpu_sched_policy _starpu_sched_HFP_policy =
-//~ {
-	//~ .init_sched = initialize_HFP_center_policy,
-	//~ .deinit_sched = deinitialize_HFP_center_policy,
-	//~ .add_workers = starpu_sched_tree_add_workers,
-	//~ .remove_workers = starpu_sched_tree_remove_workers,
-	//~ .do_schedule = starpu_sched_tree_do_schedule,
-	//~ .push_task = starpu_sched_tree_push_task,
-	//~ .pop_task = get_data_to_load, /* To get the number of data needed for the current task, still return the task that we got with starpu_sched_tree_pop_task */
-	//~ .pre_exec_hook = get_current_tasks, /* Getting current task for printing diff later on. Still call starpu_sched_component_worker_pre_exec_hook(task,sci); at the end */
-	//~ .post_exec_hook = get_task_done_HFP,
-	//~ .pop_every_task = NULL,
-	//~ .policy_name = "HFP",
-	//~ .policy_description = "Affinity aware task ordering",
-	//~ .worker_type = STARPU_WORKER_LIST,
-//~ };
-
-/* Si je veux faire des tests en réel */
+//~ /* Si je veux faire les visualisations python */
 struct starpu_sched_policy _starpu_sched_HFP_policy =
 {
 	.init_sched = initialize_HFP_center_policy,
@@ -4286,14 +4268,32 @@ struct starpu_sched_policy _starpu_sched_HFP_policy =
 	.remove_workers = starpu_sched_tree_remove_workers,
 	.do_schedule = starpu_sched_tree_do_schedule,
 	.push_task = starpu_sched_tree_push_task,
-	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
-	.post_exec_hook = get_task_done_HFP, /* Sert pour Belady et aussi pour afficher les temps d'exec. A ne pas retirer pour Belady */
+	.pop_task = get_data_to_load, /* To get the number of data needed for the current task, still return the task that we got with starpu_sched_tree_pop_task */
+	.pre_exec_hook = get_current_tasks, /* Getting current task for printing diff later on. Still call starpu_sched_component_worker_pre_exec_hook(task,sci); at the end */
+	.post_exec_hook = get_task_done_HFP,
 	.pop_every_task = NULL,
 	.policy_name = "HFP",
 	.policy_description = "Affinity aware task ordering",
 	.worker_type = STARPU_WORKER_LIST,
 };
+
+//~ /* Si je veux faire des tests en réel */
+//~ struct starpu_sched_policy _starpu_sched_HFP_policy =
+//~ {
+	//~ .init_sched = initialize_HFP_center_policy,
+	//~ .deinit_sched = deinitialize_HFP_center_policy,
+	//~ .add_workers = starpu_sched_tree_add_workers,
+	//~ .remove_workers = starpu_sched_tree_remove_workers,
+	//~ .do_schedule = starpu_sched_tree_do_schedule,
+	//~ .push_task = starpu_sched_tree_push_task,
+	//~ .pop_task = starpu_sched_tree_pop_task,
+	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	//~ .post_exec_hook = get_task_done_HFP, /* Sert pour Belady et aussi pour afficher les temps d'exec. A ne pas retirer pour Belady */
+	//~ .pop_every_task = NULL,
+	//~ .policy_name = "HFP",
+	//~ .policy_description = "Affinity aware task ordering",
+	//~ .worker_type = STARPU_WORKER_LIST,
+//~ };
 
 static void initialize_heft_hfp_policy(unsigned sched_ctx_id)
 {

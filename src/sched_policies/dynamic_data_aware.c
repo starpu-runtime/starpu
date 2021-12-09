@@ -1364,10 +1364,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     gettimeofday(&time_end_choose_best_data, NULL);
 	time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
     
-    gettimeofday(&time_start_fill_planned_task_list, NULL);
     /* La je change par rapport à 2D, si à la fois free et 1_from_free sont à 0 je renvoie random */   
     if (number_free_task_max != 0) /* cas comme dans 2D, je met dans planned_task les tâches gratuites, sauf que j'ai 3 données à check et non 2. */
     {
+		gettimeofday(&time_start_fill_planned_task_list, NULL);
+
 		/* I erase the data */
 		e = gpu_data_not_used_list_begin(g->gpu_data);
 		while (e->D != handle_popped)
@@ -1414,9 +1415,15 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
 			}
 		}
+		
+		gettimeofday(&time_end_fill_planned_task_list, NULL);
+		time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
+
 	}
 	else if (number_1_from_free_task_max != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
 	{
+		gettimeofday(&time_start_fill_planned_task_list, NULL);
+		
 		/* I erase the data */
 		e = gpu_data_not_used_list_begin(g->gpu_data);
 		while (e->D != handle_popped)
@@ -1464,6 +1471,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
+		
+		gettimeofday(&time_end_fill_planned_task_list, NULL);
+		time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
 	}
 	else /* Sinon random */
 	{
@@ -1474,8 +1484,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		goto random;
 	}
-	gettimeofday(&time_end_fill_planned_task_list, NULL);
-    time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
     
     /* If no task have been added to the list. */
     if (starpu_task_list_empty(&g->planned_task)) 
@@ -1511,9 +1519,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		erase_task_and_data_pointer(task, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, task);
-		
-		gettimeofday(&time_end_fill_planned_task_list, NULL);
-		time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
 		
 		gettimeofday(&time_end_pick_random_task, NULL);
 		time_total_pick_random_task += (time_end_pick_random_task.tv_sec - time_start_pick_random_task.tv_sec)*1000000LL + time_end_pick_random_task.tv_usec - time_start_pick_random_task.tv_usec;
