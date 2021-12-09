@@ -11,6 +11,7 @@
 #define THRESHOLD /* 0 = no threshold, 1 = threshold à 14400 tâches pour une matrice 2D (donc APP == 0) et à 1599 tâches aussi pour matrice 3D (donc APP == 1). 0 par défaut */
 #define APP /* 0 matrice 2D, par défaut. 1 matrice 3D. */
 #define CHOOSE_BEST_DATA_FROM /* Pour savoir où on regarde pour choisir la meilleure donnée. 0 par défaut, on regarde la liste des données pas encore utilisées. 1 on regarde les données en mémoire et à partir des tâches de ces données on cherche une donnée pas encore en mémoire qui permet de faire le plus de tâches gratuite ou 1 from free. Si on trouve rien c'est random. A tester cette méthode. */
+#define SIMULATE_MEMORY /* Default 0, means we use starpu_data_is_on_node, 1 we also look at nb of task in planned and pulled task. */
 
 starpu_pthread_mutex_t global_mutex; /* Protège main_task_list et planned_task_list */
 
