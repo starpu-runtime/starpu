@@ -16,10 +16,10 @@
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 12 Random_task_order dynamic_data_aware_no_hfp Attila 2 V
 
 #	For the rebuttal
-#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 1
-#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 2
-#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 1
-#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 2
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 1
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 2
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 1
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 2
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit gemini-1-fgcs 1
 
 PATH_STARPU=$1
@@ -390,31 +390,32 @@ then
 		ECHELLE_X=$((100*NGPU))
 		if [ $NGPU = 1 ]
 		then
-		    NB_ALGO_TESTE=4
-		    echo "############## Modular eager prefetching ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -z $((TAILLE_TUILE*4)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-		    done
+		    NB_ALGO_TESTE=5
+		    #~ echo "############## Modular eager prefetching ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ STARPU_SCHED=modular-eager-prefetching STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -z $((TAILLE_TUILE*4)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+		    #~ done
 		    echo "############## Dmdar ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=8 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -z $((TAILLE_TUILE*4)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
 		    done
 		    echo "############## Dynamic data aware TH30 Pop best data ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		    for ((i=8 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=0 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -z $((TAILLE_TUILE*4)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
 		    done
-		    echo "############## Dynamic data aware TH30 Pop best data + EVICTION ##############"
-		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			    do 
-			    N=$((START_X+i*ECHELLE_X))
-			    PRINT_TIME=1 SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -z $((TAILLE_TUILE*4)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
-		    done
+		    #~ echo "############## Dynamic data aware TH30 Pop best data + EVICTION ##############"
+		    #~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			    #~ do 
+			    #~ N=$((START_X+i*ECHELLE_X))
+			    #~ SEED=0 STARPU_SCHED=dynamic-data-aware STARPU_SCHED_READY=0 DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/mult/sgemm -xy $((TAILLE_TUILE*N)) -z $((TAILLE_TUILE*4)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+		    #~ done
+		    exit 1
 		fi
 	fi
 fi
