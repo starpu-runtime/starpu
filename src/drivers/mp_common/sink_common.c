@@ -703,8 +703,11 @@ void* _starpu_sink_thread(void * thread_arg)
 		sem_wait(&node->sem_run_table[coreid]);
 		if (node->run_table_detached[coreid] != NULL)
 			_starpu_sink_common_execute_kernel(node, coreid, worker, 1);
-		if (node->run_table[coreid] != NULL)
+		else
+		{
+			STARPU_ASSERT(node->run_table[coreid] != NULL);
 			_starpu_sink_common_execute_kernel(node, coreid, worker, 0);
+		}
 
 	}
 	starpu_pthread_exit(NULL);
@@ -717,9 +720,15 @@ static void _starpu_sink_common_execute_thread(struct _starpu_mp_node *node, str
 	int detached = task->detached;
 	/* Add the task to the specific thread */
 	if (detached)
+	{
+		STARPU_ASSERT(!node->run_table_detached[task->coreid]);
 		node->run_table_detached[task->coreid] = task;
+	}
 	else
+	{
+		STARPU_ASSERT(!node->run_table[task->coreid]);
 		node->run_table[task->coreid] = task;
+	}
 	/* Unlock the mutex to wake up the thread which will execute the task */
 	sem_post(&node->sem_run_table[task->coreid]);
 }
