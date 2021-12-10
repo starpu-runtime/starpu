@@ -1198,7 +1198,6 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 //~ Dans un coin de la tete : idée de liste intermédiaire
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
-	printf("DARTS selection GPU n°%d\n", current_gpu);
 	gettimeofday(&time_start_schedule, NULL);
     int i = 0;
     int j = 0;
@@ -1394,13 +1393,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				}
 			}
 		}
+		
+		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
 	}
 	else if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
 	{
 		/* Pour ne pas regarder deux fois à la même itération la même donnée. */
 		struct handle_user_data * hud_last_check = NULL;
 		g->number_data_selection++;
-		printf("Itération de choix n°%d.\n", g->number_data_selection);
 		
 		/* TODO : A COP COLL DANS 2D SI CA MARCHE BIEN ATTENTION AU WHILE BLOQUANT QUAND ON FAIS LE ERASE PLUS BAS */
 		starpu_data_handle_t *data_on_node;
@@ -1413,7 +1413,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Je me met sur une donnée de la mémoire. */
 		for (i = 0; i < nb_data_on_node; i++)
 		{
-			printf("Data on node de référence : %p avec %d tâches restantes.\n", data_on_node[i], task_using_data_list_size(data_on_node[i]->sched_data));
 			/* Je me met sur une tâche de cette donnée en question. */
 			for (t2 = task_using_data_list_begin(data_on_node[i]->sched_data); t2 != task_using_data_list_end(data_on_node[i]->sched_data); t2 = task_using_data_list_next(t2))
 			{
@@ -1422,11 +1421,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				for (k = 0; k < STARPU_TASK_GET_NBUFFERS(t2->pointer_to_T); k++)
 				{
 					hud_last_check = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
-					printf("Je regarde peut-être CHOOSE_BEST_DATA_FROM == 1 : %p.\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k));
 					/* Ici il faudrait ne pas regarder 2 fois la même donnée si possible. Ca peut arriver oui. */
 					if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[i] && hud_last_check->last_check_to_choose_from[current_gpu - 1] != g->number_data_selection)
 					{
-						printf("Je regarde dans CHOOSE_BEST_DATA_FROM == 1 : %p.\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k));
 						/* Mise à jour de l'itération pour la donnée pour ne pas la regarder deux fois à cette itération. */
 						hud_last_check->last_check_to_choose_from[current_gpu - 1] = g->number_data_selection;
 						STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data = hud_last_check;
@@ -1545,7 +1542,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 		}
 	}
-	printf("best data is = %p %d %d.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
+	//~ printf("best data is = %p %d %d.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
 	  
     gettimeofday(&time_end_choose_best_data, NULL);
 	time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
@@ -2548,7 +2545,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		reset_all_struct();
 		need_to_reinit = true;
 		
-		/* TODO : a suppr car inutile */
+		/* TODO : a suppr car inutile si on ne veut pas mesurer le temps */
 		if ((iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération */
 		{
 			gettimeofday(&time_end_createtolasttaskfinished, NULL);
