@@ -8,18 +8,20 @@
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 7 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit 4
 #~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M2D_mem_no_limit_4GPU.txt
 
-echo "Matrice 3D"
+echo "Matrice 3D 1 GPU"
 bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 10 Matrice3D dynamic_data_aware_no_hfp 1
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_1GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_M3D_1GPU.txt
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 10 Matrice3D dynamic_data_aware_no_hfp 2
+echo "Matrice 3D 2 GPU"
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 8 Matrice3D dynamic_data_aware_no_hfp 2
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_2GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_M3D_2GPU.txt
 
-echo "Cholesky"
+echo "Cholesky 1 GPU"
 bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 10 Cholesky dynamic_data_aware_no_hfp 1
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_1GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_CHO_1GPU.txt
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 10 Cholesky dynamic_data_aware_no_hfp 2
+echo "Cholesky 2 GPU"
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 7 Cholesky dynamic_data_aware_no_hfp 2
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_2GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_CHO_2GPU.txt
