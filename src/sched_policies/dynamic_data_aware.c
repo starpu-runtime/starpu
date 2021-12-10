@@ -1219,6 +1219,32 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	{
 		printf("Il y a %d données parmi lesquelles choisir.\n", gpu_data_not_used_list_size(g->gpu_data));
 	}
+	
+	/* TODO : a suppr, compteur pour savoir la combientième donnée a été choisis */
+	int data_choosen_index = 0;
+	FILE *f = NULL;
+	if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0)
+	{
+		if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
+		{
+			f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "a");
+		}
+		else
+		{
+			f = fopen("Output_maxime/DARTS_data_choosen_stats_simmem.csv", "a");
+		}
+	}
+	else
+	{
+		if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
+		{
+			f = fopen("Output_maxime/DARTS_data_choosen_stats_frommem.csv", "a");
+		}
+		else
+		{
+			f = fopen("Output_maxime/DARTS_data_choosen_stats_frommem_simmem.csv", "a");
+		}
+	}
 
     /* Si c'est la première tâche, on regarde pas le reste on fais random. */
     if (g->first_task == true)
@@ -1228,6 +1254,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			printf("Random car c'est la première tâche du GPU %d.\n", current_gpu);
 		}
 		g->first_task = false;
+		
+		/* TODO a suppr */
+		fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
+		fclose(f);
+		
 		goto random;
 	}
         
@@ -1312,18 +1343,19 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						temp_number_1_from_free_task_max++;
 					}
 				}
-			
 				if (temp_number_free_task_max > 0)
 				{
 					number_free_task_max = temp_number_free_task_max;
 					task_available_max = task_using_data_list_size(e->D->sched_data);
 					handle_popped = e->D;
+					data_choosen_index = i + 1;
 				}
 				else if (temp_number_1_from_free_task_max > number_1_from_free_task_max)
 				{
 					number_1_from_free_task_max = temp_number_1_from_free_task_max;
 					task_available_max_1_from_free = task_using_data_list_size(e->D->sched_data);
 					handle_popped = e->D;
+					data_choosen_index = i + 1;
 				}
 				/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
 				/* TODO : est-ce vraiment nécessaire ? Si ca prend du temps autant le retirer */
@@ -1334,6 +1366,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					{
 						task_available_max_1_from_free = task_using_data_list_size(tudl);
 						handle_popped = e->D;
+						data_choosen_index = i + 1;
 					}
 				}
 			}
@@ -1379,6 +1412,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					number_free_task_max = temp_number_free_task_max;
 					task_available_max = task_using_data_list_size(e->D->sched_data);
 					handle_popped = e->D;
+					data_choosen_index = i + 1;
 				}
 				/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. Attention içi ce n'est pas adapté au 3D
 				 * car tu pourrais avoir des tâches qui amène plus de tache a 1 seule donnée d'être free*/
@@ -1389,15 +1423,21 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					{
 						task_available_max = task_using_data_list_size(tudl);
 						handle_popped = e->D;
+						data_choosen_index = i + 1;
 					}
 				}
 			}
 		}
 		
 		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
+		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, gpu_data_not_used_list_size(g->gpu_data));
+		fclose(f);
 	}
 	else if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
 	{
+		/* TODO : a suppr */
+		int nb_data_looked_at = 0;
+		
 		/* Pour ne pas regarder deux fois à la même itération la même donnée. */
 		struct handle_user_data * hud_last_check = NULL;
 		g->number_data_selection++;
@@ -1424,6 +1464,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					/* Ici il faudrait ne pas regarder 2 fois la même donnée si possible. Ca peut arriver oui. */
 					if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[i] && hud_last_check->last_check_to_choose_from[current_gpu - 1] != g->number_data_selection)
 					{
+						/* TOO a suppr */
+						nb_data_looked_at++;
+						
 						/* Mise à jour de l'itération pour la donnée pour ne pas la regarder deux fois à cette itération. */
 						hud_last_check->last_check_to_choose_from[current_gpu - 1] = g->number_data_selection;
 						STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data = hud_last_check;
@@ -1472,12 +1515,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								number_free_task_max = temp_number_free_task_max;
 								task_available_max = task_using_data_list_size(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data);
 								handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+								data_choosen_index = nb_data_looked_at;
 							}
 							else if (temp_number_1_from_free_task_max > number_1_from_free_task_max)
 							{
 								number_1_from_free_task_max = temp_number_1_from_free_task_max;
 								task_available_max_1_from_free = task_using_data_list_size(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data);
 								handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+								data_choosen_index = nb_data_looked_at;
 							}
 							else if (temp_number_1_from_free_task_max == number_1_from_free_task_max && number_1_from_free_task_max != 0)
 							{
@@ -1486,6 +1531,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								{
 									task_available_max_1_from_free = task_using_data_list_size(tudl);
 									handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+									data_choosen_index = nb_data_looked_at;
 								}
 							}
 						}
@@ -1526,6 +1572,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								number_free_task_max = temp_number_free_task_max;
 								task_available_max = task_using_data_list_size(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data);
 								handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+								data_choosen_index = nb_data_looked_at;
 							}
 							else if (temp_number_free_task_max == number_free_task_max && number_free_task_max != 0)
 							{
@@ -1534,6 +1581,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								{
 									task_available_max = task_using_data_list_size(tudl);
 									handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+									data_choosen_index = nb_data_looked_at;
 								}
 							}
 						}
@@ -1541,6 +1589,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				}
 			}
 		}
+		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
+		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
+		fclose(f);	
 	}
 	//~ printf("best data is = %p %d %d.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
 	  
@@ -1551,7 +1602,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     {
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
 
-		/* I erase the data */
+		/* I erase the data from the list of data not used */
 		if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0)
 		{
 			e = gpu_data_not_used_list_begin(g->gpu_data);
@@ -2389,6 +2440,33 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	/* TODO : a suppr */
+	FILE *f = NULL;
+	if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0)
+	{
+		if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
+		{
+			f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "w");
+		}
+		else
+		{
+			f = fopen("Output_maxime/DARTS_data_choosen_stats_simmem.csv", "w");
+		}
+	}
+	else
+	{
+		if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
+		{
+			f = fopen("Output_maxime/DARTS_data_choosen_stats_frommem.csv", "w");
+		}
+		else
+		{
+			f = fopen("Output_maxime/DARTS_data_choosen_stats_frommem_simmem.csv", "w");
+		}
+	}
+	fprintf(f, "Iteration,Data choosen,Number of data read\n");
+	fclose(f);
+	
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
 	
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_data_aware");

@@ -34,17 +34,11 @@ NITER=1
 FICHIER_RAW=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_1.txt
 FICHIER_BUS=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_2.txt
 FICHIER_RAW_DT=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_3.txt
-FICHIER_TIME=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_4.txt
-FICHIER_SCHEDULE_TIME_TEMP=${PATH_STARPU}/starpu/Output_maxime/Schedule_time_raw_out_temp.txt
-FICHIER_SCHEDULE_TIME=${PATH_STARPU}/starpu/Output_maxime/Schedule_time_raw_out.txt
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 500000000
 truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 ${FICHIER_BUS}
 truncate -s 0 ${FICHIER_RAW_DT}
-truncate -s 0 ${FICHIER_TIME}
-truncate -s 0 ${FICHIER_SCHEDULE_TIME_TEMP}
-truncate -s 0 ${FICHIER_SCHEDULE_TIME}
 truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt
 truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt
 truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt
@@ -100,7 +94,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dmdar ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -111,7 +104,6 @@ then
 				end=`date +%s`
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## HFPUR ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -122,7 +114,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dynamic data aware TH30 Pop best data ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -133,7 +124,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dynamic data aware TH30 Pop best data + READY ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -144,7 +134,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dynamic data aware TH30 Pop best data + EVICTION ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -155,7 +144,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dynamic data aware TH30 Pop best data + EVICTION + READY ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -166,7 +154,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		else
 			echo "Avec HFP et plus de 1 GPU"
@@ -250,7 +237,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dmdar ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -261,7 +247,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dynamic data aware TH30 Pop best data ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -272,7 +257,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dynamic data aware TH30 Pop best data + READY ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -283,7 +267,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dynamic data aware TH30 Pop best data + EVICTION ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -294,7 +277,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		    echo "############## Dynamic data aware TH30 Pop best data + EVICTION + READY ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -305,7 +287,6 @@ then
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
 			    sed -n '4p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
-			    sed -n $((DECALAGE_FICHIER_SCHEDULE))'p' ${FICHIER_SCHEDULE_TIME_TEMP} >> ${FICHIER_SCHEDULE_TIME}
 		    done
 		else
 		    NB_ALGO_TESTE=5
