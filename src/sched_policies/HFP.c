@@ -3347,8 +3347,13 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	NT = starpu_task_list_size(l);
 	int i = 0; struct starpu_task *task_1;
 	int j = 0;
-
-	N = sqrt(NT);
+		
+	N = starpu_get_env_number_default("HMETIS_N", 0);
+	if (N == 0)
+	{
+		printf("Error, please precis env var HMETIS_N.\n");
+		exit(0);
+	}
 	int size =  0;
     starpu_task_list_init(&p->temp_pointer_1->refused_fifo_list);
     for (i = 1; i < nb_gpu; i++)
@@ -3357,9 +3362,7 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 		starpu_task_list_init(&p->temp_pointer_1->refused_fifo_list);
 	}
 	p->first_link = p->temp_pointer_1;
-	
-	//printf("N = %d. NT = %d\n", N, NT);  fflush(stdout);
-	
+		
 	char str[2];
 	char Nchar[4];
 	sprintf(str, "%d", nb_gpu);
@@ -3424,17 +3427,6 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 		starpu_task_list_push_back(&p->temp_pointer_1->sub_list, task_1);
 	}
 	fclose(f_2);
-		
-	//~ if (starpu_get_env_number_default("HMETIS",0) == 4)
-	//~ {
-		//~ p->temp_pointer_1 = p->first_link;
-		//~ for (i = 0; i < nb_gpu; i++) 
-		//~ {
-			//~ p->temp_pointer_1->sub_list = hierarchical_fair_packing(p->temp_pointer_1->sub_list, p->temp_pointer_1->nb_task_in_sub_list, GPU_RAM_M);
-			//~ p->temp_pointer_1 = p->temp_pointer_1->next;
-		//~ }
-		//~ print_packages_in_terminal(p, 0);
-	//~ }
 }
 
 void init_visualisation (struct paquets *a)

@@ -22,9 +22,9 @@
 #Pour le rebuttal
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 3 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit 1 3
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 10 Matrice3D dynamic_data_aware_no_hfp 1 8
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 6 Matrice3D dynamic_data_aware_no_hfp 2 9
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 8 Cholesky dynamic_data_aware_no_hfp 1 8
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 8 Cholesky dynamic_data_aware_no_hfp 2 9
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 8 Matrice3D dynamic_data_aware_no_hfp 2 9
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 10 Cholesky dynamic_data_aware_no_hfp 1 8
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_IPDPS.sh 7 Cholesky dynamic_data_aware_no_hfp 2 9
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
@@ -80,15 +80,14 @@ if [ $MODEL == "dynamic_data_aware_no_hfp" ]
 	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt DT_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
-	# Tracage du temps d'éviction de DDA et de schedule de DDA
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/DARTS_time.txt DARTS_time_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.pdf
-	mv ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/DARTS_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.txt
-	# No threshold
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/DARTS_time_no_threshold.txt DARTS_time_no_threshold_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.pdf
-	mv ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/DARTS_time_no_threshold.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.txt
-
+	#~ # Tracage du temps d'éviction de DDA et de schedule de DDA
+	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/DARTS_time.txt DARTS_time_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	#~ mv ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/DARTS_time.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.txt
+	#~ # No threshold
+	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/DARTS_time_no_threshold.txt DARTS_time_no_threshold_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	#~ mv ${PATH_STARPU}/starpu/Output_maxime/Data/${DOSSIER}/DARTS_time_no_threshold.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.txt
 fi
 if [ $MODEL == "dynamic_data_aware_no_hfp_profiling" ]
 	then
