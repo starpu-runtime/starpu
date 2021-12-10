@@ -469,6 +469,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		buffer_ptr += sizeof(cb_workerid);
 	}
 
+	STARPU_ASSERT(coreid < node->nb_cores);
 	*(unsigned *) buffer_ptr = coreid;
 	buffer_ptr += sizeof(coreid);
 
