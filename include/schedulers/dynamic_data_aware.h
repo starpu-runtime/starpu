@@ -16,11 +16,11 @@
 starpu_pthread_mutex_t global_mutex; /* Protège main_task_list et planned_task_list */
 
 /* TODO si on utilise pas cette méthode à supprimer */
-int N_data_to_pop_next = 10;
-/** The N_data_to_pop_next best data that I want to use next **/
-LIST_TYPE(data_to_pop_next,
-    starpu_data_handle_t pointer_to_data_to_pop_next;
-);
+//~ int N_data_to_pop_next = 10;
+//~ /** The N_data_to_pop_next best data that I want to use next **/
+//~ LIST_TYPE(data_to_pop_next,
+    //~ starpu_data_handle_t pointer_to_data_to_pop_next;
+//~ );
 
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
@@ -42,6 +42,7 @@ struct handle_user_data
 	int last_iteration_DARTS;
 	int *nb_task_in_pulled_task;
 	int *nb_task_in_planned_task;
+	int *last_check_to_choose_from; /* Pour préciser la dernière fois que j'ai regardé cette donnée pour ne pas la regarder deux fois dans choose best data from 1 a une meme itération de recherche de la meilleure donnée. */
 };
 
 /** In the "packages" of dynamic data aware, each representing a gpu **/
@@ -59,7 +60,7 @@ struct pointer_in_task
     //~ int state; /* 0 = in the main task list, 1 = in pulled_task */
 };
 
-/** Planned task. The one in dynamic data aware. **/
+/** Planned task. The one in dynamic data aware. One planned task = one GPU. **/
 struct gpu_planned_task
 {
     struct starpu_task_list planned_task;
@@ -71,9 +72,11 @@ struct gpu_planned_task
 
     starpu_data_handle_t data_to_evict_next; /* En cas de donnée à évincer refusé. Je la renvoie à évincer. */
     
-    struct data_to_pop_next_list *my_data_to_pop_next; /* A effacer si on l'utilise pas */
+    //~ struct data_to_pop_next_list *my_data_to_pop_next; /* A effacer si on l'utilise pas. C'est le cas où on prévois genre 10 données à pop à l'avance */
     
     bool first_task; /* Si c'est la première tâche du GPU on veut faire random direct sans perdre de temps. */
+    
+    int number_data_selection; /* Nombre de fois qu'on a fais apppel à DARTS pour pop une donnée. A suppr si on utilise pas CHOOSE_BEST_DATA_FROM != 0. */
 };
 struct gpu_planned_task_control
 {
@@ -98,9 +101,9 @@ struct gpu_pulled_task_control
 };
 
 /** To track the data counted in min_weight_average to avoid counting twice duplicate **/
-LIST_TYPE(data_weighted,
-    starpu_data_handle_t pointer_to_data_weighted; /* The data not used yet by the GPU. */
-);
+//~ LIST_TYPE(data_weighted,
+    //~ starpu_data_handle_t pointer_to_data_weighted; /* The data not used yet by the GPU. */
+//~ );
 
 /** Variables globales et reset **/
 extern bool gpu_memory_initialized;
@@ -110,7 +113,7 @@ extern struct gpu_pulled_task_control *my_pulled_task_control;
 extern int number_task_out_DARTS; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
 void reset_all_struct();
 extern int NT_dynamic_outer;
-/* TODO : a suppr ? Car si j'ai une appli où les tâches arrive petit à petit ca ne marchera plus; Ici ca marche car c'est une nouvelle itération à chaque fois que de nouvelles tâches arrivent. Me permet de savoir ou j'en suis */
+/* Sert à print le temps surtout je crois et à reset aussi. Atention si les tâches arrivenet petit à petit il faut faire autrement. */
 extern int iteration_DARTS;
 
 /** Fonctions d'affichage **/
@@ -141,7 +144,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task, int current_gpu);
 void increment_planned_task_data(struct starpu_task *task, int current_gpu);
 /* This one under is not used anymore */
-starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task);
+//~ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task);
 
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);
 void gpu_planned_task_initialisation();
