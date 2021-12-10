@@ -703,11 +703,10 @@ void* _starpu_sink_thread(void * thread_arg)
 		sem_wait(&node->sem_run_table[coreid]);
 		if (node->run_table_detached[coreid] != NULL)
 			_starpu_sink_common_execute_kernel(node, coreid, worker, 1);
-		else
-		{
-			STARPU_ASSERT(node->run_table[coreid] != NULL);
+		else if (node->run_table[coreid] != NULL);
 			_starpu_sink_common_execute_kernel(node, coreid, worker, 0);
-		}
+		else
+			STARPU_ASSERT(!node->is_running);
 
 	}
 	starpu_pthread_exit(NULL);
