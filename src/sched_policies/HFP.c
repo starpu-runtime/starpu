@@ -3383,26 +3383,44 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	{
 		size = strlen("Output_maxime/Data/input_hMETIS/") + strlen(str) + strlen("GPU/input_hMETIS_N") + strlen(Nchar) + strlen(".txt");
 	}
+	
+	/* Cas sparse */
+	if (starpu_get_env_number_default("SPARSE_MATRIX", 0) == 1)
+	{
+		size += strlen("_sparse");
+	}
+	
 	char *path2 = (char *)malloc(size);
 	strcpy(path2, "Output_maxime/Data/input_hMETIS/");
 	strcat(path2, str);
 	
 	if (starpu_get_env_number_default("RANDOM_TASK_ORDER", 0) == 1)
 	{
-		strcat(path2, "GPU_Random_task_order/input_hMETIS_N");
+		strcat(path2, "GPU_Random_task_order");
 	}
 	else if (starpu_get_env_number_default("HMETIS", 0) == 5) /* Cas matrice 3D */
 	{
-		strcat(path2, "GPU_Matrice3D/input_hMETIS_N");
+		strcat(path2, "GPU_Matrice3D");
 	}
 	else if (starpu_get_env_number_default("HMETIS", 0) == 6) /* Cas Cholesky */
 	{
-		strcat(path2, "GPU_Cholesky/input_hMETIS_N");
+		strcat(path2, "GPU_Cholesky");
 	}
 	else
 	{
-		strcat(path2, "GPU/input_hMETIS_N");
+		strcat(path2, "GPU");
 	}
+	
+	/* Cas sparse */
+	if (starpu_get_env_number_default("SPARSE_MATRIX", 0) == 1)
+	{
+		strcat(path2, "_sparse/input_hMETIS_N");
+	}
+	else
+	{
+		strcat(path2, "/input_hMETIS_N");
+	}
+	
 	strcat(path2, Nchar);
 	strcat(path2, ".txt");	
 	FILE *f_2 = fopen(path2, "r");
