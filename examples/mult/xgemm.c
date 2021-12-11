@@ -31,7 +31,8 @@
 #define RANDOM_TASK_ORDER /* only for 2D matrix */
 #define RECURSIVE_MATRIX_LAYOUT /* only for 2D matrix */
 #define RANDOM_DATA_ACCESS /* only for 2D matrix */
-#define COUNT_DO_SCHEDULE /* do schedule for HFP compté ou non */
+#define COUNT_DO_SCHEDULE /* do schedule for HFP pris en compte ou non */
+#define SPARSE_MATRIX /* 0 by default. 1 : each task from the 2D matrix (or 3D) has a ?% chance to be created. */
 #include <starpu_data_maxime.h>
 
 #include <limits.h>
@@ -744,6 +745,14 @@ int main(int argc, char **argv)
 	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0; int j_bis = 0; int y_z_layout = 0; int y_z_layout_i = 0;
 	double start, end;
 	int ret;
+	
+	/* % de chance qu'une tâche soit créé avec sparse matrix. */
+	int chance_to_be_created = 100;
+	srandom(starpu_get_env_number_default("SEED", 0));
+	if (starpu_get_env_number_default("SPARSE_MATRIX", 0) == 1)
+	{
+		chance_to_be_created = 50;
+	}
 
 	parse_args(argc, argv);
 
@@ -814,28 +823,32 @@ int main(int argc, char **argv)
 					starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N=35 il passe de 11500 avec à 9100 sans. */
 					for (z = 0; z < nslicesz; z++)
 					{
-						struct starpu_task *task = starpu_task_create();
-
-						if (z == 0)
-							task->cl = &cl_gemm;
-						else
-							task->cl = &cl_gemm;
-
-						task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
-						task->handles[1] = starpu_data_get_sub_data(B_handle, 2, x, z);
-						task->handles[2] = Ctile;
-
-						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz);
-
-						ret = starpu_task_submit(task);
-						if (ret == -ENODEV)
+						/* Ajout pour sparse matrix. */
+						if (random()%100 < chance_to_be_created)
 						{
-						     check = 0;
-						     ret = 77;
-						     starpu_resume();
-						     goto enodev;
+							struct starpu_task *task = starpu_task_create();
+
+							if (z == 0)
+								task->cl = &cl_gemm;
+							else
+								task->cl = &cl_gemm;
+
+							task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
+							task->handles[1] = starpu_data_get_sub_data(B_handle, 2, x, z);
+							task->handles[2] = Ctile;
+
+							task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * (zdim/nslicesz);
+
+							ret = starpu_task_submit(task);
+							if (ret == -ENODEV)
+							{
+								 check = 0;
+								 ret = 77;
+								 starpu_resume();
+								 goto enodev;
+							}
+							STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 						}
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 					}
 					starpu_data_wont_use(Ctile);
 				}
@@ -891,8 +904,8 @@ int main(int argc, char **argv)
 				//~ timing = end - start;
 			}
 		}
-		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER", 0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0) == 0) {
-			srandom(starpu_get_env_number_default("SEED", 0));
+		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER", 0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0) == 0)
+		{
 			/* Randomize the order in which task are sent, but the tasks are the same */
 			unsigned i = 0; unsigned j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; unsigned temp = 0; unsigned k = 0; unsigned n = 0;
 			for (iter = 0; iter < niter; iter++)
@@ -901,7 +914,7 @@ int main(int argc, char **argv)
 				for (i= 0; i < nslicesy; i++) { for (j = 0; j < nslicesy; j++) { tab_y[i][j] = j; } }
 
 				//Shuffle
-				for( n=0; n< nslicesx*nslicesy; n++)
+				for(n=0; n< nslicesx*nslicesy; n++)
 				{	
 					k = n;
 					k += random() % ((nslicesx*nslicesy) - n);
@@ -923,25 +936,28 @@ int main(int argc, char **argv)
 				for (i = 0; i < nslicesx; i++)
 				for (j = 0; j < nslicesy; j++)
 				{
-					struct starpu_task *task = starpu_task_create();
-
-					task->cl = &cl_gemm2d;
-					//~ task->cl = &cl_gemm0;
-					
-					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
-					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
-					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
-					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-
-					ret = starpu_task_submit(task);
-					if (ret == -ENODEV)
+					if (random()%100 < chance_to_be_created)
 					{
-						 ret = 77;
-						 starpu_resume();
-						 goto enodev;
+						struct starpu_task *task = starpu_task_create();
+
+						task->cl = &cl_gemm2d;
+						//~ task->cl = &cl_gemm0;
+						
+						task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
+						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
+						task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
+						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+
+						ret = starpu_task_submit(task);
+						if (ret == -ENODEV)
+						{
+							 ret = 77;
+							 starpu_resume();
+							 goto enodev;
+						}
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+						starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 					}
-					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
 				}
 				
 				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
@@ -988,7 +1004,7 @@ int main(int argc, char **argv)
 					timing = end - start;
 				}
 			}
-			//End If environment variable RANDOM_TASK_ORDER == 1
+			//End if RANDOM_TASK_ORDER == 1
 		}
 		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0) == 1 && starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0) == 0) {
 			/* Tasks arrive in a "Z-order" */
@@ -1046,17 +1062,20 @@ int main(int argc, char **argv)
 				{
 					for (j = 0; j < nslicesy; j++)
 					{
-						struct starpu_task *task = starpu_task_create();
-						task->cl = &cl_gemm2d;
-						//~ task->cl = &cl_gemm0;
-						
-						task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
-						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
-						task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
-						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-						ret = starpu_task_submit(task); if (ret == -ENODEV) { ret = 77; starpu_resume(); goto enodev; }
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit"); 
-						starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
+						if (random()%100 < chance_to_be_created)
+						{
+							struct starpu_task *task = starpu_task_create();
+							task->cl = &cl_gemm2d;
+							//~ task->cl = &cl_gemm0;
+							
+							task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
+							task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
+							task->handles[2] = starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]);
+							task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+							ret = starpu_task_submit(task); if (ret == -ENODEV) { ret = 77; starpu_resume(); goto enodev; }
+							STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit"); 
+							starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, tab_x[i][j], tab_y[i][j]));
+						}
 					}
 				     //~ check = 0;
 				     //~ ret = 77;
@@ -1097,26 +1116,29 @@ int main(int argc, char **argv)
 				for (x = 0; x < nslicesx; x++)
 				for (y = 0; y < nslicesy; y++)
 				{
-					struct starpu_task *task = starpu_task_create();
-
-					task->cl = &cl_gemm2d;
-					//~ task->cl = &cl_gemm0;
-					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
-					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, random()%nslicesy);
-					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, random()%nslicesx);
-					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);		
-					
-					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-
-					ret = starpu_task_submit(task);
-					if (ret == -ENODEV)
+					if (random()%100 < chance_to_be_created)
 					{
-						starpu_resume();
-						 ret = 77;
-						 goto enodev;
+						struct starpu_task *task = starpu_task_create();
+
+						task->cl = &cl_gemm2d;
+						//~ task->cl = &cl_gemm0;
+						//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
+						task->handles[0] = starpu_data_get_sub_data(A_handle, 1, random()%nslicesy);
+						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, random()%nslicesx);
+						task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);		
+						
+						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+
+						ret = starpu_task_submit(task);
+						if (ret == -ENODEV)
+						{
+							starpu_resume();
+							 ret = 77;
+							 goto enodev;
+						}
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+						starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 					}
-					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
 
 				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
@@ -1168,27 +1190,30 @@ int main(int argc, char **argv)
 				for (x = 0; x < nslicesx; x++)
 				for (y = 0; y < nslicesy; y++)
 				{
-					struct starpu_task *task = starpu_task_create();
-
-					task->cl = &cl_gemm2d;
-					//~ task->cl = &cl_gemm;
-					//~ task->cl = &cl_gemm0;
-					//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
-					task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
-					task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
-					task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);		
-					
-					task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
-
-					ret = starpu_task_submit(task);
-					if (ret == -ENODEV)
+					if (random()%100 < chance_to_be_created)
 					{
-						starpu_resume();
-						 ret = 77;
-						 goto enodev;
+						struct starpu_task *task = starpu_task_create();
+
+						task->cl = &cl_gemm2d;
+						//~ task->cl = &cl_gemm;
+						//~ task->cl = &cl_gemm0;
+						//random x et y mais meme nombre de tâches inf a nslicesx et y pour la matrice A et B seulement
+						task->handles[0] = starpu_data_get_sub_data(A_handle, 1, y);
+						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, x);
+						task->handles[2] = starpu_data_get_sub_data(C_handle, 2, x, y);		
+						
+						task->flops = 2ULL * (xdim/nslicesx) * (ydim/nslicesy) * zdim;
+
+						ret = starpu_task_submit(task);
+						if (ret == -ENODEV)
+						{
+							starpu_resume();
+							 ret = 77;
+							 goto enodev;
+						}
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+						starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 					}
-					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-					starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 				}
 				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
 				{
@@ -1229,7 +1254,7 @@ int main(int argc, char **argv)
 					timing = end - start;
 				}
 			}	
-			//End If environment variable RANDOM_TASK_ORDER == 0
+			/* End of normal execution of 2D matrix. */
 		}
 		/* Don't count first iteration */
 		niter--;
