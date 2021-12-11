@@ -505,11 +505,15 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			number_task_out_DARTS++;
 			
 			/* Cas matrice 2D */
-			if (starpu_get_env_number_default("APP", 0) == 0)
-			{
-				dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
-			}
-			else if (starpu_get_env_number_default("APP", 0) == 1)
+			//~ if (starpu_get_env_number_default("APP", 0) == 0)
+			//~ {
+				//~ dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
+			//~ }
+			//~ else if (starpu_get_env_number_default("APP", 0) == 1)
+			//~ {
+				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
+			//~ }
+			if (starpu_get_env_number_default("APP", 0) == 0 || starpu_get_env_number_default("APP", 0) == 1)
 			{
 				dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			}
@@ -1236,7 +1240,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		g->first_task = false;
 		
 		/* TODO a suppr */
-		fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
+		if (starpu_get_env_number_default("PRINTF", 0) != 0)
+		{
+			fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
+		}
 		fclose(f);
 		
 		goto random;
@@ -1262,9 +1269,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	if (starpu_get_env_number_default("THRESHOLD", 0) == 1)
 	{
 		/* En 2D on fais cela */
-		//if (NT_dynamic_outer > 14400) /
-		//choose_best_data_threshold = 110;
-		if (NT_dynamic_outer > 1599) /* Pour que ca se déclanche au 4ème point en 3D */
+		if (starpu_get_env_number_default("APP", 0) == 0)
+		{
+			if (NT_dynamic_outer > 14400)
+			{
+				choose_best_data_threshold = 110;
+			}
+		}
+		else if (NT_dynamic_outer > 1599) /* Pour que ca se déclanche au 4ème point en 3D */
 		{
 			choose_best_data_threshold = 200;
 		}
@@ -1287,7 +1299,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			
 			/* Il y a deux cas pour simplifier un peu la complexité. Si j'ai au moins 1 tâche qui peut être gratuite, je ne fais plus les compteurs qui permettent 
 			 * d'avoir des tâches à 1 donnée d'être free et on ajoute un break pour gagner un peu de temps. */
-			if (number_free_task_max == 0)
+			if (number_free_task_max == 0 && starpu_get_env_number_default("APP", 0) != 0)
 			{	
 				for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
 				{
@@ -1419,7 +1431,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		}
 		
 		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
-		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
+		if (starpu_get_env_number_default("PRINTF", 0) != 0)
+		{
+			fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
+		}
 		fclose(f);
 	}
 	else if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
@@ -1460,7 +1475,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						temp_number_free_task_max = 0;
 						temp_number_1_from_free_task_max = 0;
 				
-						if (number_free_task_max == 0)
+						if (number_free_task_max == 0 && starpu_get_env_number_default("APP", 0) != 0)
 						{
 								/* Je regarde le nombre de free ou 1 from free tâche de cette donnée. */
 								for (t = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = task_using_data_list_next(t))
@@ -1521,7 +1536,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								}
 							}
 						}
-						else
+						else /* Cas 2D */
 						{
 							for (t = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = task_using_data_list_next(t))
 							{
@@ -1576,8 +1591,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 		}
 		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
-		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
-		fclose(f);	
+		if (starpu_get_env_number_default("PRINTF", 0) != 0)
+		{
+			fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
+		}
+		fclose(f);
 	}
 	//~ printf("best data is = %p %d %d.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
 	  
@@ -1657,7 +1675,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 
 	}
 	/* La je change par rapport à 2D, si à la fois free et 1_from_free sont à 0 je renvoie random */   
-	else if (number_1_from_free_task_max != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
+	else if (number_1_from_free_task_max != 0 && starpu_get_env_number_default("APP", 0) != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
 	{
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
 		
@@ -1734,7 +1752,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		{
 			printf("Random selection because no data allow to get free or 1 from free tasks.\n");
 		}
-		
 		goto random;
 	}
     
@@ -2427,10 +2444,13 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	/* TODO : a suppr */
-	FILE *f = NULL;
-	f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "w");
-	fprintf(f, "Iteration,Data choosen,Number of data read\n");
-	fclose(f);
+	if (starpu_get_env_number_default("PRINTF", 0) != 0)
+	{
+		FILE *f = NULL;
+		f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "w");
+		fprintf(f, "Iteration,Data choosen,Number of data read\n");
+		fclose(f);
+	}
 	
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
 	
