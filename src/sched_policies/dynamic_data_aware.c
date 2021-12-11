@@ -1240,10 +1240,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		g->first_task = false;
 		
 		/* TODO a suppr */
-		if (starpu_get_env_number_default("PRINTF", 0) != 0)
-		{
-			fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
-		}
+		fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
 		fclose(f);
 		
 		goto random;
@@ -1431,10 +1428,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		}
 		
 		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
-		if (starpu_get_env_number_default("PRINTF", 0) != 0)
-		{
 			fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
-		}
 		fclose(f);
 	}
 	else if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
@@ -1591,10 +1585,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 		}
 		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
-		if (starpu_get_env_number_default("PRINTF", 0) != 0)
-		{
-			fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
-		}
+		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
 		fclose(f);
 	}
 	//~ printf("best data is = %p %d %d.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
@@ -2444,13 +2435,10 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	/* TODO : a suppr */
-	if (starpu_get_env_number_default("PRINTF", 0) != 0)
-	{
 		FILE *f = NULL;
 		f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "w");
 		fprintf(f, "Iteration,Data choosen,Number of data read\n");
 		fclose(f);
-	}
 	
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
 	
