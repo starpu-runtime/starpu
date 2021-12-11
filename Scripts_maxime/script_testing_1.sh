@@ -23,15 +23,15 @@ N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
 #~ N=65
 N=40 # 12893.0
 #~ N=50 : 5 choix random
-N=60
+N=5
 
-NGPU=1
+#~ NGPU=1
 NGPU=2
 #~ NGPU=3
 #~ NGPU=4
 
-ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
-#~ ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
+#~ ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
+ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
 #~ ORDO="dmdar"
 #~ ORDO="modular-eager-prefetching"
 #~ ORDO="modular-heft"
@@ -41,8 +41,8 @@ ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 CM=500
 #~ CM=200
 
-#~ EVICTION=0
-EVICTION=1
+EVICTION=0
+#~ EVICTION=1
 
 READY=0
 #~ READY=1
@@ -60,7 +60,7 @@ SEED=1
 
 PRINTF=0
 #~ PRINTF=1
-#~ PRINTF=2  #Pour Cholesky
+#~ PRINTF=2  # Pour Cholesky
 
 TRACE=0
 #~ TRACE=1
@@ -98,7 +98,15 @@ TAILLE_TUILE=960
 #~ truncate -s 0 "Output_maxime/DARTS_data_choosen_stats_frommem_simmem.txt"
 #~ A CORRIGER pour from mem on lis pas autant!!
 
-STARPU_SCHED=${ORDO} SIMULATE_MEMORY=0 CHOOSE_BEST_DATA_FROM=0 STARPU_BUS_STATS=0 PRINTF=$((PRINTF)) APP=1 STARPU_LIMIT_CUDA_MEM=$((CM)) EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
+		    echo "############## HMETIS + TASK STEALING ##############"
+		    for ((i=1 ; i<=15; i++))
+			    do 
+			    N=$((i*10))
+			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
+			    STARPU_HOSTNAME=${HOST} SPARSE_MATRIX=1 SEED=$((i)) STARPU_SCHED=HFP HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
+			    mv Output_maxime/input_hMETIS.txt.part.${NGPU} Output_maxime/Data/input_hMETIS/2GPU_Matrice3D_sparse/input_hMETIS_N${N}.txt
+		    done
+
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/Barplot_DARTS.py Output_maxime/DARTS_data_choosen_stats_frommem.csv
 #~ mv Output_maxime/DARTS_data_choosen_stats_frommem.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Matrice3D/DARTS_data_choosen_stats_frommem.csv
 #~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Matrice3D/DARTS_data_choosen_stats_frommem.pdf
