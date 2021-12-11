@@ -13,7 +13,7 @@ NITER=11
 # 1 GPU
 NGPU=1
 ECHELLE_X=5
-NB_TAILLE_TESTE=8
+NB_TAILLE_TESTE=10
 NB_ALGO_TESTE=11
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GF_HFP_M3D_${NGPU}GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DT_HFP_M3D_${NGPU}GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
@@ -28,7 +28,7 @@ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER
 # 2 GPU
 NGPU=2
 ECHELLE_X=10
-NB_TAILLE_TESTE=5
+NB_TAILLE_TESTE=8
 NB_ALGO_TESTE=12
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GF_HFP_M3D_${NGPU}GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DT_HFP_M3D_${NGPU}GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
@@ -49,7 +49,7 @@ NITER=1
 # 1 GPU
 NGPU=1
 ECHELLE_X=5
-NB_TAILLE_TESTE=8
+NB_TAILLE_TESTE=10
 NB_ALGO_TESTE=11
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GF_HFP_CHO_${NGPU}GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DT_HFP_CHO_${NGPU}GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
@@ -64,7 +64,7 @@ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER
 # 2 GPU
 NGPU=2
 ECHELLE_X=10
-NB_TAILLE_TESTE=5
+NB_TAILLE_TESTE=7
 NB_ALGO_TESTE=12
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GF_HFP_CHO_${NGPU}GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_1.txt
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/DT_HFP_CHO_${NGPU}GPU.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/GFlops_raw_out_3.txt
