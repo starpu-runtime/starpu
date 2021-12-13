@@ -26,17 +26,17 @@ N=40 # 12893.0
 N=15
 
 NGPU=1
-#~ NGPU=2
+NGPU=2
 #~ NGPU=3
 #~ NGPU=4
 
-ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
+#~ ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 #~ ORDO="dmdar"
 #~ ORDO="modular-eager-prefetching"
 #~ ORDO="modular-heft"
 #~ ORDO="eager"
 #~ ORDO="cuthillmckee"
-#~ ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
+ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
 
 CM=500
 #~ CM=0 # 0 = infinie
@@ -103,15 +103,15 @@ SPARSE=10
 
 STARPU_BUS_STATS=0 SPARSE_MATRIX=$((SPARSE)) STARPU_GENERATE_TRACE=$((TRACE)) PRINTF=$((PRINTF)) SEED=$((SEED)) STARPU_SCHED=${ORDO} STARPU_SCHED_READY=$((READY)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) APP=$((APP3D)) ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER))
 
-		    #~ echo "############## HMETIS + TASK STEALING ##############"
-		    #~ for ((i=1 ; i<=15; i++))
-			    #~ do 
+		    echo "############## HMETIS + TASK STEALING ##############"
+		    for ((i=1 ; i<=1; i++))
+			    do 
 			    #~ N=$((i*10))
-			    #~ N=10
-			    #~ echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
-			    #~ STARPU_HOSTNAME=${HOST} SPARSE_MATRIX=1 SEED=$((i)) STARPU_SCHED=HFP HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
-			    #~ mv Output_maxime/input_hMETIS.txt.part.${NGPU} Output_maxime/Data/input_hMETIS/2GPU_Matrice3D_sparse/input_hMETIS_N${N}.txt
-		    #~ done
+			    N=200
+			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
+			    STARPU_HOSTNAME=${HOST} SPARSE_MATRIX=10 SEED=$((i)) STARPU_SCHED=HFP HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
+			    mv Output_maxime/input_hMETIS.txt.part.${NGPU} Output_maxime/Data/input_hMETIS/2GPU_Matrice3D_sparse/input_hMETIS_N${N}.txt
+		    done
 
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/Barplot_DARTS.py Output_maxime/DARTS_data_choosen_stats_frommem.csv
 #~ mv Output_maxime/DARTS_data_choosen_stats_frommem.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Matrice3D/DARTS_data_choosen_stats_frommem.csv

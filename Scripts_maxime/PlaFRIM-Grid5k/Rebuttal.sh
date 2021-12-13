@@ -255,6 +255,7 @@ then
 		if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]]
 		then
 			ECHELLE_X=$((50*NGPU))
+			NITER=3
 		fi
 		NB_ALGO_TESTE=8
 		if [ $NGPU != 1 ]
@@ -531,6 +532,7 @@ then
 		if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]]
 		then
 			ECHELLE_X=$((50*NGPU))
+			NITER=3
 		fi
 		if [ $NGPU = 1 ]
 		then
