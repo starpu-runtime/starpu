@@ -1228,7 +1228,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	int data_choosen_index = 0;
 	FILE *f = NULL;
 	f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "a");
-	int nb_data_looked_at = 0;
+	int nb_data_looked_at = 0; /* Uniquement e cas ou on choisis depuis la mémoire */
 
     /* Si c'est la première tâche, on regarde pas le reste on fais random. */
     if (g->first_task == true)
@@ -1290,7 +1290,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		g->number_data_selection++;
 		
 		for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
-		{
+		{			
 			temp_number_free_task_max = 0;
 			temp_number_1_from_free_task_max = 0;
 			
@@ -1307,9 +1307,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						/* I test if the data is on memory */ 
 						if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
 						{
-							/* TODO a suppr */
-							nb_data_looked_at++;
-
 							if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
 							{
 								/* Ancien */
@@ -1375,10 +1372,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					{
 						/* I test if the data is on memory */ 
 						if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
-						{	
-							/* TODO a suppr */
-							nb_data_looked_at++;
-							
+						{							
 							if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
 							{
 								/* Ancien */
@@ -1428,7 +1422,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		}
 		
 		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
-			fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
+		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, gpu_data_not_used_list_size(g->gpu_data) - data_choosen_index);
 		fclose(f);
 	}
 	else if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
@@ -1455,13 +1449,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				/* Je me met sur une donnée de cette tâche (qui n'est pas celle en mémoire). */
 				for (k = 0; k < STARPU_TASK_GET_NBUFFERS(t2->pointer_to_T); k++)
 				{
+					/* TODO a suppr */
+					nb_data_looked_at++;
+						
 					hud_last_check = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
 					/* Ici il faudrait ne pas regarder 2 fois la même donnée si possible. Ca peut arriver oui. */
 					if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[i] && hud_last_check->last_check_to_choose_from[current_gpu - 1] != g->number_data_selection)
-					{
-						/* TODO a suppr */
-						nb_data_looked_at++;
-						
+					{	
 						/* Mise à jour de l'itération pour la donnée pour ne pas la regarder deux fois à cette itération. */
 						hud_last_check->last_check_to_choose_from[current_gpu - 1] = g->number_data_selection;
 						STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data = hud_last_check;
@@ -1585,7 +1579,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 		}
 		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
-		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at);
+		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index);
 		fclose(f);
 	}
 	//~ printf("best data is = %p %d %d.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
