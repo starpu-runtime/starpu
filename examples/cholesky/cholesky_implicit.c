@@ -388,19 +388,24 @@ int main(int argc, char **argv)
 	
 	//~ if (starpu_get_env_number_default("BELADY",0) == 1) { starpu_data_register_victim_selector(belady_victim_selector, NULL); }
 
-	if(with_ctxs_p)
+	// Lancer 2 fois et mesurer la deuxième mesure
+	int i = 0;
+	for (i = 0; i < 1; i++)
 	{
-		construct_contexts();
-		start_2benchs(execute_cholesky);
+		if(with_ctxs_p)
+		{
+			construct_contexts();
+			start_2benchs(execute_cholesky);
+		}
+		else if(with_noctxs_p)
+			start_2benchs(execute_cholesky);
+		else if(chole1_p)
+			start_1stbench(execute_cholesky);
+		else if(chole2_p)
+			start_2ndbench(execute_cholesky);
+		else
+			execute_cholesky(size_p, nblocks_p);
 	}
-	else if(with_noctxs_p)
-		start_2benchs(execute_cholesky);
-	else if(chole1_p)
-		start_1stbench(execute_cholesky);
-	else if(chole2_p)
-		start_2ndbench(execute_cholesky);
-	else
-		execute_cholesky(size_p, nblocks_p);
 
 	starpu_cublas_shutdown();
 	starpu_shutdown();
