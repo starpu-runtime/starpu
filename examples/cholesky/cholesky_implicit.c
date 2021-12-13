@@ -388,7 +388,7 @@ int main(int argc, char **argv)
 	
 	//~ if (starpu_get_env_number_default("BELADY",0) == 1) { starpu_data_register_victim_selector(belady_victim_selector, NULL); }
 
-	// Lancer 2 fois et mesurer la deuxième mesure
+	/* Si on veux plusieurs itérations. */
 	int i = 0;
 	for (i = 0; i < 1; i++)
 	{

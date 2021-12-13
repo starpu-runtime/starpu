@@ -40,10 +40,11 @@ then
 fi
 
 SPARSE=0
-if [ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]
+if [ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ] # Mem infinite and sparse
 then
-	SPARSE=1
-fi	
+	SPARSE=10
+	CM=0
+fi
 
 if [ $MODEL = "dynamic_data_aware_no_hfp_no_mem_limit" ]
 then
@@ -251,6 +252,10 @@ then
 	then
 		NITER=11
 		ECHELLE_X=$((5*NGPU))
+		if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]]
+		then
+			ECHELLE_X=$((50*NGPU))
+		fi
 		NB_ALGO_TESTE=8
 		if [ $NGPU != 1 ]
 		then
@@ -523,6 +528,10 @@ then
 	if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]] || [[ $MODEL = "dynamic_data_aware_no_hfp" ]]
 	then
 		ECHELLE_X=$((5*NGPU))
+		if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]]
+		then
+			ECHELLE_X=$((50*NGPU))
+		fi
 		if [ $NGPU = 1 ]
 		then
 		    NB_ALGO_TESTE=11
