@@ -47,13 +47,13 @@ truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt
 truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt
 HOST=$GPU
 
-if [ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]
-then
-	SPARSE=1
-fi
-
 CM=500
-#~ CM=$((CM/NGPU))
+
+if [ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ] # Mem infinite and sparse
+then
+	SPARSE=10
+	CM=0
+fi
 
 TH=10
 CP=5
@@ -215,6 +215,10 @@ then
 	if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]] || [[ $MODEL = "dynamic_data_aware_no_hfp" ]]
 	then
 		ECHELLE_X=$((5*NGPU))
+		if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]]
+		then
+			ECHELLE_X=$((50*NGPU))
+		fi
 		NB_ALGO_TESTE=8
 		if [ $NGPU != 1 ]
 		then
@@ -485,6 +489,10 @@ then
 	if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]] || [[ $MODEL = "dynamic_data_aware_no_hfp" ]]
 	then
 		ECHELLE_X=$((5*NGPU))
+		if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]]
+		then
+			ECHELLE_X=$((50*NGPU))
+		fi
 		if [ $NGPU = 1 ]
 		then
 		    NB_ALGO_TESTE=11
@@ -838,7 +846,7 @@ gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
 Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
-if [ $MODEL != "dynamic_data_aware_no_hfp_no_mem_limit" ]
+if [[ $MODEL != "dynamic_data_aware_no_hfp_no_mem_limit" ]]
 then
 	#Tracage data transfers
 	gcc -o cut_datatransfers_raw_out cut_datatransfers_raw_out.c
@@ -858,16 +866,19 @@ then
 	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/SCHEDULE_TIME_${MODEL}_${GPU}_${NGPU}GPU.txt SCHEDULE_TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 	#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/SCHEDULE_TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
-	# A retirer surement : tracage du temps d'éviction de DDA et de schedule de DDA
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt DARTS_time_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.pdf
-	mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.txt
-	# No threshold
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt DARTS_time_no_threshold_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.pdf
-	mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.txt
-	# No threshold and choose best data from memory
-	Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt DARTS_time_no_threshold_choose_best_data_from_memory_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_no_threshold_choose_best_data_from_memory_${MODEL}_${GPU}_${NGPU}GPU.pdf
-	mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_no_threshold_choose_best_data_from_memory_${MODEL}_${GPU}_${NGPU}GPU.txt
+	if [[ $MODEL != "dynamic_data_aware_no_hfp_sparse_matrix" ]]
+	then
+		# A retirer surement : tracage du temps d'éviction de DDA et de schedule de DDA
+		Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt DARTS_time_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+		mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.pdf
+		mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_${MODEL}_${GPU}_${NGPU}GPU.txt
+		# No threshold
+		Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt DARTS_time_no_threshold_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+		mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.pdf
+		mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_no_threshold_${MODEL}_${GPU}_${NGPU}GPU.txt
+		# No threshold and choose best data from memory
+		Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt DARTS_time_no_threshold_choose_best_data_from_memory_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+		mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DARTS_time_no_threshold_choose_best_data_from_memory_${MODEL}_${GPU}_${NGPU}GPU.pdf
+		mv ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt ${PATH_R}/R/Data/${DOSSIER}/DARTS_time_no_threshold_choose_best_data_from_memory_${MODEL}_${GPU}_${NGPU}GPU.txt
+	fi
 fi

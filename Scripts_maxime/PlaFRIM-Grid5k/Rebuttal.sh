@@ -39,6 +39,12 @@ then
 	NCOMBINAISONS=$((NGPU*2+(NGPU-1)*NGPU+3))
 fi
 
+SPARSE=0
+if [ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]
+then
+	SPARSE=1
+fi	
+
 if [ $MODEL = "dynamic_data_aware_no_hfp_no_mem_limit" ]
 then
 	NB_ALGO_TESTE=4

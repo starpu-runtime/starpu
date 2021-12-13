@@ -29,7 +29,7 @@ HOST="gemini-1-fgcs"
 
 SIMMEM=0
 
-FROMMEM=1
+FROMMEM=0
 
 if [ $DOSSIER = "Matrice3D" ]
 then

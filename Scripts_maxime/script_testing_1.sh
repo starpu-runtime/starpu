@@ -23,26 +23,27 @@ N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
 #~ N=65
 N=40 # 12893.0
 #~ N=50 : 5 choix random
-N=5
+N=15
 
-#~ NGPU=1
-NGPU=2
+NGPU=1
+#~ NGPU=2
 #~ NGPU=3
 #~ NGPU=4
 
-#~ ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
-ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
+ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 #~ ORDO="dmdar"
 #~ ORDO="modular-eager-prefetching"
 #~ ORDO="modular-heft"
 #~ ORDO="eager"
 #~ ORDO="cuthillmckee"
+#~ ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
 
 CM=500
+#~ CM=0 # 0 = infinie
 #~ CM=200
 
 EVICTION=0
-#~ EVICTION=1
+EVICTION=1
 
 READY=0
 #~ READY=1
@@ -79,7 +80,7 @@ STEALING=0
 #~ STEALING=3
 
 NITER=1
-#~ NITER=11
+NITER=11
 
 TAILLE_TUILE=960
 #~ TAILLE_TUILE=1920
@@ -88,9 +89,11 @@ TAILLE_TUILE=960
 #~ TAILLE_TUILE=4800
 #~ Ne pas oublier : -z $((TAILLE_TUILE*4)) !!!
 
-#~ echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
-#~ STARPU_SCHED=HFP HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
+APP3D=0
+APP3D=1
 
+SPARSE=0
+SPARSE=10
 
 #~ truncate -s 0 "Output_maxime/DARTS_data_choosen_stats.txt"
 #~ truncate -s 0 "Output_maxime/DARTS_data_choosen_stats_simmem.txt"
@@ -98,13 +101,15 @@ TAILLE_TUILE=960
 #~ truncate -s 0 "Output_maxime/DARTS_data_choosen_stats_frommem_simmem.txt"
 #~ A CORRIGER pour from mem on lis pas autant!!
 
+STARPU_BUS_STATS=0 SPARSE_MATRIX=$((SPARSE)) STARPU_GENERATE_TRACE=$((TRACE)) PRINTF=$((PRINTF)) SEED=$((SEED)) STARPU_SCHED=${ORDO} STARPU_SCHED_READY=$((READY)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) APP=$((APP3D)) ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER))
+
 		    #~ echo "############## HMETIS + TASK STEALING ##############"
 		    #~ for ((i=1 ; i<=15; i++))
 			    #~ do 
-			    N=$((i*10))
-			    N=10
+			    #~ N=$((i*10))
+			    #~ N=10
 			    #~ echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
-			    STARPU_HOSTNAME=${HOST} SPARSE_MATRIX=1 SEED=$((i)) STARPU_SCHED=HFP HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
+			    #~ STARPU_HOSTNAME=${HOST} SPARSE_MATRIX=1 SEED=$((i)) STARPU_SCHED=HFP HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
 			    #~ mv Output_maxime/input_hMETIS.txt.part.${NGPU} Output_maxime/Data/input_hMETIS/2GPU_Matrice3D_sparse/input_hMETIS_N${N}.txt
 		    #~ done
 
@@ -112,7 +117,6 @@ TAILLE_TUILE=960
 #~ mv Output_maxime/DARTS_data_choosen_stats_frommem.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Matrice3D/DARTS_data_choosen_stats_frommem.csv
 #~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Matrice3D/DARTS_data_choosen_stats_frommem.pdf
 
-#~ FASTER_FIRST_ITERATION=0 PRINT_TIME=0 PRINT_N=$((N)) REVERSE=1 PRINT3D=0 RANDOM_TASK_ORDER=0 RANDOM_DATA_ACCESS=0 TASK_STEALING=$((STEALING)) STARPU_BUS_STATS=1 MULTIGPU=$((MULTI)) STARPU_GENERATE_TRACE=$((TRACE)) PRINTF=$((PRINTF)) SEED=$((SEED)) STARPU_SCHED=${ORDO} BELADY=$((BELADY)) ORDER_U=1 STARPU_SCHED_READY=$((READY)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} DATA_POP_POLICY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
 
 #~ ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
 #~ ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
