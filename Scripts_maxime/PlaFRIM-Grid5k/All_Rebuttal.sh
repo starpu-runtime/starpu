@@ -31,7 +31,7 @@ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 10 Matrice_ligne dynamic_data_awa
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M2D_SPARSE_1GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_M2D_SPARSE_1GPU.txt
 echo "Matrice 2D Sparse 2 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 8 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix 2
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 4 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix 2
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M2D_SPARSE_2GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_M2D_SPARSE_2GPU.txt
 
@@ -40,6 +40,6 @@ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 10 Matrice3D dynamic_data_aware_n
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_SPARSE_1GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_M3D_SPARSE_1GPU.txt
 echo "Matrice 3D Sparse 2 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 8 Matrice3D dynamic_data_aware_no_hfp_sparse_matrix 2
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 3 Matrice3D dynamic_data_aware_no_hfp_sparse_matrix 2
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_SPARSE_2GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_M3D_SPARSE_2GPU.txt
