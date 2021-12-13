@@ -32,7 +32,7 @@
 #define RECURSIVE_MATRIX_LAYOUT /* only for 2D matrix */
 #define RANDOM_DATA_ACCESS /* only for 2D matrix */
 #define COUNT_DO_SCHEDULE /* do schedule for HFP pris en compte ou non */
-#define SPARSE_MATRIX /* 0 by default. 1 : each task from the 2D matrix (or 3D) has a ?% chance to be created. */
+#define SPARSE_MATRIX /* 0 by default.  Something else than 0 correspond to the percentage of chance of a task to be created. So SPARSE_MATRIX=10 means you a 10% of the tasks (on average). Fix SEED if you want to have similar results among different schedulers! */
 #include <starpu_data_maxime.h>
 
 #include <limits.h>
@@ -749,9 +749,9 @@ int main(int argc, char **argv)
 	/* % de chance qu'une tâche soit créé avec sparse matrix. */
 	int chance_to_be_created = 100;
 	srandom(starpu_get_env_number_default("SEED", 0));
-	if (starpu_get_env_number_default("SPARSE_MATRIX", 0) == 1)
+	if (starpu_get_env_number_default("SPARSE_MATRIX", 0) != 0)
 	{
-		chance_to_be_created = 50;
+		chance_to_be_created = starpu_get_env_number_default("SPARSE_MATRIX", 0);
 	}
 
 	parse_args(argc, argv);
@@ -1236,7 +1236,7 @@ int main(int argc, char **argv)
 				{
 					if (iter != 0)
 					{
-						timing += end - start;												
+						timing += end - start;		
 						timing_square += (end-start) * (end-start);
 					}
 						
@@ -1276,6 +1276,12 @@ int main(int argc, char **argv)
 			char hostname[255];
 			gethostname(hostname, 255);
 			PRINTF("%s\t", hostname);
+		}
+		
+		/* Cas sparse je divise les flops */
+		if (starpu_get_env_number_default("SPARSE_MATRIX", 0) != 0)
+		{
+			flops = (flops*starpu_get_env_number_default("SPARSE_MATRIX", 0))/100;
 		}
 		
 		if (temp_niter > 1) /* We also print the deviance */
