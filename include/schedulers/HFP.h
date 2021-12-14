@@ -37,21 +37,21 @@ but we apply HFP on each package (pas codé en réalité car j'avais changé la 
 #define FASTER_FIRST_ITERATION /* A 0 on ne fais rien, a 1 on le fais. Permet de faire une première itération où on merge ensemble els taches partageant une données sans regarder le max et donc sans calculer la matrice. Ne marche que pour matrice 2D, 3D. */
 
 /* Défini dans le create pour appeller 1 seule fois les get_env_number */
-int print_in_terminal;
-int order_u;
-int belady;
-int multigpu;
-int modular_heft_hfp_mode;
-int hmetis;
-int hmetis_n;
-int print3d;
-int print_n;
-int task_stealing;
-int interlacing;
-int print_time;
-int faster_first_iteration;
-int random_task_order;
-int sparse_matrix;
+extern int print_in_terminal;
+extern int order_u;
+extern int belady;
+extern int multigpu;
+extern int modular_heft_hfp_mode;
+extern int hmetis;
+extern int hmetis_n;
+extern int print3d;
+extern int print_n;
+extern int task_stealing;
+extern int interlacing;
+extern int print_time;
+extern int faster_first_iteration;
+extern int random_task_order;
+extern int sparse_matrix;
 
 extern starpu_pthread_mutex_t HFP_mutex;
 

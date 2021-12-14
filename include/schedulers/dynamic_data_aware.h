@@ -14,11 +14,11 @@
 #define SIMULATE_MEMORY /* Default 0, means we use starpu_data_is_on_node, 1 we also look at nb of task in planned and pulled task. */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
-int eviction_strategy_dynamic_data_aware;
-int threshold;
-int app;
-int choose_best_data_from;
-int simulate_memory;
+extern int eviction_strategy_dynamic_data_aware;
+extern int threshold;
+extern int app;
+extern int choose_best_data_from;
+extern int simulate_memory;
 
 //~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
 //~ #define SIMMEM
