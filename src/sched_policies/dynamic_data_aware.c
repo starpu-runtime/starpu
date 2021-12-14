@@ -524,10 +524,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			//~ }
 			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. A tester voir si les perf de 2D en réel sont comme avant (dans IPDPS). */
-			//~ if (starpu_get_env_number_default("APP", 0) == 0 || starpu_get_env_number_default("APP", 0) == 1)
-			//~ {
-				dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
-			//~ }
+			dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			//~ else
 			//~ {
 				//~ printf("Erreur var d'env APP doit être 0 ou 1.");
@@ -1323,7 +1320,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	 * 0 à number_free_task_max. */
 	if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0) /* Le cas de base où je regarde les données pas encore utilisées. */
 	{
-		printf("FROM MEM 0\n");
 		#ifdef PRINT
 		g->number_data_selection++;
 		#endif
