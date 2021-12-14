@@ -34,7 +34,7 @@ int NT_dynamic_outer;
 int iteration_DARTS;
 
 /* TODO a supprimer pour meilleures perfs ? */
-/* #ifdef PRINT
+#ifdef PRINT
 //~ int victim_evicted_compteur = 0;
 //~ int victim_selector_compteur = 0;
 //~ int victim_selector_return_no_victim = 0;
@@ -73,7 +73,7 @@ long long time_total_least_used_data_planned_task = 0;
 struct timeval time_start_createtolasttaskfinished;
 struct timeval time_end_createtolasttaskfinished;
 long long time_total_createtolasttaskfinished = 0;
-#endif */
+#endif
 
 void print_task_list(struct starpu_task_list *l, char *s)
 {
@@ -217,16 +217,16 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
     struct dynamic_data_aware_sched_data *data = component->data;
     
     //~ STARPU_PTHREAD_MUTEX_LOCK(&my_planned_task_control->planned_task_mutex);
-    /* #ifdef PRINT
+    #ifdef PRINT
     gettimeofday(&time_start_initialisation, NULL);
-    #endif */
+    #endif
     
     initialize_task_data_gpu_single_task(task);
     
-    /* #ifdef PRINT
+    #ifdef PRINT
     gettimeofday(&time_end_initialisation, NULL);
 	time_total_initialisation += (time_end_initialisation.tv_sec - time_start_initialisation.tv_sec)*1000000LL + time_end_initialisation.tv_usec - time_start_initialisation.tv_usec;
-	#endif */
+	#endif
 
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
     
@@ -504,9 +504,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ {
 				//~ print_data_to_load_prefetch(task, current_gpu - 1);
 			//~ }
-			/* #ifdef PRINT
+			#ifdef PRINT
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
-			#endif */
+			#endif
 			return task;
 		}
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
@@ -524,15 +524,15 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			//~ }
 			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. A tester voir si les perf de 2D en réel sont comme avant (dans IPDPS). */
-			if (starpu_get_env_number_default("APP", 0) == 0 || starpu_get_env_number_default("APP", 0) == 1)
-			{
+			//~ if (starpu_get_env_number_default("APP", 0) == 0 || starpu_get_env_number_default("APP", 0) == 1)
+			//~ {
 				dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
-			}
-			else
-			{
-				printf("Erreur var d'env APP doit être 0 ou 1.");
-				exit(0);
-			}
+			//~ }
+			//~ else
+			//~ {
+				//~ printf("Erreur var d'env APP doit être 0 ou 1.");
+				//~ exit(0);
+			//~ }
 			if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
 			{
 				task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
@@ -560,9 +560,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ {
 				//~ print_data_to_load_prefetch(task, current_gpu - 1);
 			//~ }
-			/* #ifdef PRINT
+			#ifdef PRINT
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
-			#endif */
+			#endif
 			return task;
 		}
     }
@@ -609,31 +609,31 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 	    
 		new_tasks_initialized = false;
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		printf("Printing GPU's data list and main task list before randomization:\n\n");
 		print_data_not_used_yet();
 		print_task_list(&data->sched_list, "");
-		#endif */
+		#endif
 		
 		NT_dynamic_outer = starpu_task_list_size(&data->sched_list);
 		//~ NT = starpu_task_list_size(&data->sched_list);
 		NT = NT_dynamic_outer;
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_start_randomize, NULL);
-		#endif */
+		#endif
 		
 		randomize_task_list(data);
 		randomize_data_not_used_yet(my_planned_task_control->first);
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_end_randomize, NULL);
 		time_total_randomize += (time_end_randomize.tv_sec - time_start_randomize.tv_sec)*1000000LL + time_end_randomize.tv_usec - time_start_randomize.tv_usec;		
 		printf("Il y a %d tâches.\n", NT_dynamic_outer);
 		printf("Printing GPU's data list and main task list after randomization:\n\n");
 		print_data_not_used_yet();
 		print_task_list(&data->main_task_list, ""); fflush(stdout);
-		#endif */
+		#endif
     }
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
     
@@ -670,9 +670,9 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {
 	/* TODO : A suppr ou a ifdef pour meilleur perf */
-	/* #ifdef PRINT
+	#ifdef PRINT
 	gettimeofday(&time_start_schedule, NULL);
-	#endif */
+	#endif
 	
     int i = 0;
     int j = 0;
@@ -687,9 +687,9 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
     /* Si c'est la première tâche, on regarde pas le reste on fais random. */
     if (g->first_task == true)
     {
-		/* #ifdef PRINT
+		#ifdef PRINT
 		printf("Go to random car c'est la première tâche du GPU %d.\n", current_gpu);
-		#endif */
+		#endif
 		
 		g->first_task = false;
 		goto random;
@@ -775,9 +775,9 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		}
 	}
 
-	/* #ifdef PRINT
+	#ifdef PRINT
     gettimeofday(&time_start_choose_best_data, NULL);
-    #endif */
+    #endif
     	
 	/* Version avec threshold */
 	i = 0;
@@ -1117,10 +1117,10 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 				//~ number_of_task_max = 1;
 			//~ }
 		//~ }
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_end_choose_best_data, NULL);
 		time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
-		#endif */
+		#endif
 		//~ /* Fin de version où je récup les 10 meilleures données et ensuite tant que je les ai pas toutes envoyé je test sur ces 10 données la. */
     //~ }
     
@@ -1149,9 +1149,9 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		//~ fill_planned_task_list_threshold = INT_MAX;
 	//~ }
 	//~ i = 0;
-    /* #ifdef PRINT
+    #ifdef PRINT
     gettimeofday(&time_start_fill_planned_task_list, NULL);
-    #endif */
+    #endif
     
     for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
     {
@@ -1178,10 +1178,10 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		}
     }
     
-    /* #ifdef PRINT
+    #ifdef PRINT
     gettimeofday(&time_end_fill_planned_task_list, NULL);
     time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
-    #endif */
+    #endif
     
     /* If no task have been added to the list. */
     if (starpu_task_list_empty(&g->planned_task)) 
@@ -1210,10 +1210,10 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 		starpu_task_list_push_back(&g->planned_task, task);
     }
     
-    /* #ifdef PRINT
+    #ifdef PRINT
     gettimeofday(&time_end_schedule, NULL);
     time_total_schedule += (time_end_schedule.tv_sec - time_start_schedule.tv_sec)*1000000LL + time_end_schedule.tv_usec - time_start_schedule.tv_usec;
-	#endif */
+	#endif
 }
 
 /* Fill a package's task list following dynamic_data_aware algorithm but with the 3D variant. */
@@ -1230,9 +1230,9 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 //~ Dans un coin de la tete : idée de liste intermédiaire
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {	
-	/* #ifdef PRINT
+	#ifdef PRINT
 	gettimeofday(&time_start_schedule, NULL);
-	#endif */ 
+	#endif 
 	
     int i = 0;
     int j = 0;
@@ -1250,32 +1250,32 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     starpu_data_handle_t handle_popped = NULL;
     struct task_using_data_list *tudl = task_using_data_list_new();
     
-	/* #ifdef PRINT
+	#ifdef PRINT
 	printf("Il y a %d données parmi lesquelles choisir.\n", gpu_data_not_used_list_size(g->gpu_data));
-	#endif */
+	#endif
 	
 	/* TODO : a suppr, compteur pour savoir la combientième donnée a été choisis */
-	/* #ifdef PRINT
+	#ifdef PRINT
 	int data_choosen_index = 0;
 	FILE *f = NULL;
 	f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "a");
 	int nb_data_looked_at = 0; //Uniquement e cas ou on choisis depuis la mémoire
-	#endif */
+	#endif
 	
     /* Si c'est la première tâche, on regarde pas le reste on fais random. */
     if (g->first_task == true)
     {
-		/* #ifdef PRINT
+		#ifdef PRINT
 		printf("Random car c'est la première tâche du GPU %d.\n", current_gpu);
-		#endif */
+		#endif
 		
 		g->first_task = false;
 		
 		/* TODO a suppr */
-		/* #ifdef PRINT
+		#ifdef PRINT
 		fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
 		fclose(f);
-		#endif */
+		#endif
 		
 		goto random;
 	}
@@ -1284,9 +1284,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
      * à faire. */
     if (gpu_data_not_used_list_empty(g->gpu_data))
     {
-		/* #ifdef PRINT
+		#ifdef PRINT
 		printf("Random selection car liste des données non utilisées vide.\n");
-		#endif */
+		#endif
 		
 		goto random;
     }
@@ -1315,17 +1315,18 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	
 	struct handle_user_data * hud = NULL;
 	
-	/* #ifdef PRINT
+	#ifdef PRINT
 	gettimeofday(&time_start_choose_best_data, NULL);
-	#endif */
+	#endif
 	
 	/* Recherche de la meilleure donnée. Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
 	if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0) /* Le cas de base où je regarde les données pas encore utilisées. */
 	{
-		/* #ifdef PRINT
+		printf("FROM MEM 0\n");
+		#ifdef PRINT
 		g->number_data_selection++;
-		#endif */
+		#endif
 		
 		for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data) && i != choose_best_data_threshold; e = gpu_data_not_used_list_next(e), i++)
 		{			
@@ -1380,9 +1381,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					task_available_max = task_using_data_list_size(e->D->sched_data);
 					handle_popped = e->D;
 					
-					/* #ifdef PRINT
+					#ifdef PRINT
 					data_choosen_index = i + 1;
-					#endif */
+					#endif
 				}
 				else if (temp_number_1_from_free_task_max > number_1_from_free_task_max)
 				{
@@ -1390,9 +1391,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					task_available_max_1_from_free = task_using_data_list_size(e->D->sched_data);
 					handle_popped = e->D;
 					
-					/* #ifdef PRINT
+					#ifdef PRINT
 					data_choosen_index = i + 1;
-					#endif */
+					#endif
 				}
 				/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. */
 				/* TODO : est-ce vraiment nécessaire ? Si ca prend du temps autant le retirer */
@@ -1404,9 +1405,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						task_available_max_1_from_free = task_using_data_list_size(tudl);
 						handle_popped = e->D;
 						
-						/* #ifdef PRINT
+						#ifdef PRINT
 						data_choosen_index = i + 1;
-						#endif */
+						#endif
 					}
 				}
 			}
@@ -1415,7 +1416,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
 				{
 					/* I put it at false if at least one data is missing. */
-					data_not_available = 0; 
+					data_available = true;
 					for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
 					{
 						/* I test if the data is on memory */ 
@@ -1426,7 +1427,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								/* Ancien */
 								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 								{
-									data_not_available++;
+									data_available = false;
 									break;
 								}
 							}
@@ -1436,13 +1437,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
 								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 								{
-									data_not_available++;
+									data_available = false;
 									break;
 								}
 							}
 						}
 					}
-					if (data_not_available == 0)
+					if (data_available == true)
 					{
 						temp_number_free_task_max++;
 					}
@@ -1454,9 +1455,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					task_available_max = task_using_data_list_size(e->D->sched_data);
 					handle_popped = e->D;
 					
-					/* #ifdef PRINT
+					#ifdef PRINT
 					data_choosen_index = i + 1;
-					#endif */
+					#endif
 				}
 				/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. Attention içi ce n'est pas adapté au 3D
 				 * car tu pourrais avoir des tâches qui amène plus de tache a 1 seule donnée d'être free*/
@@ -1468,19 +1469,19 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						task_available_max = task_using_data_list_size(tudl);
 						handle_popped = e->D;
 						
-						/* #ifdef PRINT
+						#ifdef PRINT
 						data_choosen_index = i + 1;
-						#endif */
+						#endif
 					}
 				}
 			}
 		}
 		
 		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
-		/* #ifdef PRINT
+		#ifdef PRINT
 		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, gpu_data_not_used_list_size(g->gpu_data) - data_choosen_index);
 		fclose(f);
-		#endif */
+		#endif
 		
 	}
 	else if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
@@ -1488,9 +1489,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Pour ne pas regarder deux fois à la même itération la même donnée. */
 		struct handle_user_data * hud_last_check = NULL;
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		g->number_data_selection++;
-		#endif */
+		#endif
 		
 		/* TODO : A COP COLL DANS 2D SI CA MARCHE BIEN ATTENTION AU WHILE BLOQUANT QUAND ON FAIS LE ERASE PLUS BAS */
 		starpu_data_handle_t *data_on_node;
@@ -1511,9 +1512,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				for (k = 0; k < STARPU_TASK_GET_NBUFFERS(t2->pointer_to_T); k++)
 				{
 					/* TODO a suppr */
-					/* #ifdef PRINT
+					#ifdef PRINT
 					nb_data_looked_at++;
-					#endif */	
+					#endif	
 						
 					hud_last_check = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
 					/* Ici il faudrait ne pas regarder 2 fois la même donnée si possible. Ca peut arriver oui. */
@@ -1569,9 +1570,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								task_available_max = task_using_data_list_size(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data);
 								handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
 								
-								/* #ifdef PRINT
+								#ifdef PRINT
 								data_choosen_index = nb_data_looked_at;
-								#endif */
+								#endif
 								
 							}
 							else if (temp_number_1_from_free_task_max > number_1_from_free_task_max)
@@ -1580,9 +1581,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								task_available_max_1_from_free = task_using_data_list_size(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data);
 								handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
 								
-								/* #ifdef PRINT
+								#ifdef PRINT
 								data_choosen_index = nb_data_looked_at;
-								#endif */
+								#endif
 								
 							}
 							else if (temp_number_1_from_free_task_max == number_1_from_free_task_max && number_1_from_free_task_max != 0)
@@ -1593,9 +1594,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 									task_available_max_1_from_free = task_using_data_list_size(tudl);
 									handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
 									
-									/* #ifdef PRINT
+									#ifdef PRINT
 									data_choosen_index = nb_data_looked_at;
-									#endif */
+									#endif
 									
 								}
 							}
@@ -1604,7 +1605,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						{
 							for (t = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = task_using_data_list_next(t))
 							{
-								data_not_available = 0; 
+								data_available = true;
 								for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
 								{
 									if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k))
@@ -1613,7 +1614,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 										{
 											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 											{
-												data_not_available++;
+												data_available = flase;
 												break;
 											}
 										}
@@ -1622,13 +1623,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 											hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
 											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 											{
-												data_not_available++;
+												data_available = false;
 												break;
 											}
 										}
 									}
 								}
-								if (data_not_available == 0)
+								if (data_available == true)
 								{
 									temp_number_free_task_max++;
 								}
@@ -1639,9 +1640,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								task_available_max = task_using_data_list_size(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data);
 								handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
 								
-								/* #ifdef PRINT
+								#ifdef PRINT
 								data_choosen_index = nb_data_looked_at;
-								#endif */
+								#endif
 							}
 							else if (temp_number_free_task_max == number_free_task_max && number_free_task_max != 0)
 							{
@@ -1651,9 +1652,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 									task_available_max = task_using_data_list_size(tudl);
 									handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
 									
-									/* #ifdef PRINT
+									#ifdef PRINT
 									data_choosen_index = nb_data_looked_at;
-									#endif */
+									#endif
 								}
 							}
 						}
@@ -1662,23 +1663,23 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 		}
 		/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
-		/* #ifdef PRINT
+		#ifdef PRINT
 		fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index);
 		fclose(f);
-		#endif */
+		#endif
 	}
 	//~ printf("best data is = %p %d %d.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
 	
-	/* #ifdef PRINT
+	#ifdef PRINT
     gettimeofday(&time_end_choose_best_data, NULL);
 	time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
-    #endif */
+    #endif
     
     if (number_free_task_max != 0) /* cas comme dans 2D, je met dans planned_task les tâches gratuites, sauf que j'ai 3 données à check et non 2. */
     {
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
-		#endif */
+		#endif
 	
 		/* I erase the data from the list of data not used */
 		if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0)
@@ -1691,9 +1692,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			gpu_data_not_used_list_erase(g->gpu_data, e);
 		}
 
-		/* #ifdef PRINT
+		#ifdef PRINT
 		printf("The data adding the most free tasks is %p.\n", handle_popped);
-		#endif */
+		#endif
 		
 		for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
 		{
@@ -1728,32 +1729,32 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				/* Add it from planned task compteur */
 				increment_planned_task_data(t->pointer_to_T, current_gpu);
 				
-				/* #ifdef PRINT
+				#ifdef PRINT
 				printf("Pushing free %p in planned_task of GPU %d :", t->pointer_to_T, current_gpu);
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); i++)
 				{
 					printf(" %p", STARPU_TASK_GET_HANDLE(t->pointer_to_T, i));
 				}
 				printf("\n");
-				#endif */
+				#endif
 				
 				erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
 			}
 		}
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_end_fill_planned_task_list, NULL);
 		time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
-		#endif */
+		#endif
 	}
 	/* La je change par rapport à 2D, si à la fois free et 1_from_free sont à 0 je renvoie random */   
 	else if (number_1_from_free_task_max != 0 && starpu_get_env_number_default("APP", 0) != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
 	//~ else if (number_1_from_free_task_max != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
 	{
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
-		#endif */
+		#endif
 		
 		/* I erase the data */
 		if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0)
@@ -1766,9 +1767,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			gpu_data_not_used_list_erase(g->gpu_data, e);
 		}
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		printf("The data adding the most (%d) 1_from_free tasks is %p.\n", number_1_from_free_task_max, handle_popped);
-		#endif */
+		#endif
 		
 		/* Nouvelle version où au lieu de bêtement prendre une tâche de la donnée élu, je vais regarder si la tâche est bien 1 from free. */
 		for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
@@ -1810,24 +1811,24 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Add it from planned task compteur */
 		increment_planned_task_data(t->pointer_to_T, current_gpu);
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		printf("Pushing 1_from_free task %p in planned_task of GPU %d\n", t->pointer_to_T, current_gpu);
-		#endif */
+		#endif
 		
 		erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_end_fill_planned_task_list, NULL);
 		time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
-		#endif */
+		#endif
 		
 	}
 	else /* Sinon random */
 	{
-		/* #ifdef PRINT
+		#ifdef PRINT
 		printf("Random selection because no data allow to get free or 1 from free tasks.\n");
-		#endif */
+		#endif
 		
 		goto random;
 	}
@@ -1838,10 +1839,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		random: ;
 		
 		/* TODO : a suppr */
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_start_pick_random_task, NULL);
 		number_random_selection++;
-		#endif */
+		#endif
 		
 		struct starpu_task *task = starpu_task_list_pop_front(main_task_list);		
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -1861,24 +1862,23 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Add it from planned task compteur */
 		increment_planned_task_data(task, current_gpu);
 		
-		if (starpu_get_env_number_default("PRINTF", 0) != 0)
-		{
-			printf("Returning head of the randomized main task list: %p.\n", task);
-		}
+		#ifdef PRINT
+		printf("Returning head of the randomized main task list: %p.\n", task);
+		#endif
 		
 		erase_task_and_data_pointer(task, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, task);
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_end_pick_random_task, NULL);
 		time_total_pick_random_task += (time_end_pick_random_task.tv_sec - time_start_pick_random_task.tv_sec)*1000000LL + time_end_pick_random_task.tv_usec - time_start_pick_random_task.tv_usec;
-		#endif */
+		#endif
     }
     
-    /* #ifdef PRINT
+    #ifdef PRINT
     gettimeofday(&time_end_schedule, NULL);
     time_total_schedule += (time_end_schedule.tv_sec - time_start_schedule.tv_sec)*1000000LL + time_end_schedule.tv_usec - time_start_schedule.tv_usec;
-	#endif */
+	#endif
 }
 
 void increment_planned_task_data(struct starpu_task *task, int current_gpu)
@@ -1907,10 +1907,10 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&my_planned_task_control->planned_task_mutex);
 
-	/* #ifdef PRINT
+	#ifdef PRINT
 	//~ victim_evicted_compteur++;
 	gettimeofday(&time_start_evicted, NULL);
-	#endif */
+	#endif
 	
 	//~ printf("Début de victim evicted avec %p. Success = %d. Nb de fois dans victim evicted total %d.\n", victim, success, victim_evicted_compteur); fflush(stdout);
      /* If a data was not truly evicted I put it back in the list. */
@@ -1924,10 +1924,10 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 		}
 		my_planned_task_control->pointer->data_to_evict_next = victim;
 	
-	/* #ifdef PRINT
+	#ifdef PRINT
 	gettimeofday(&time_end_evicted, NULL);
 	time_total_evicted += (time_end_evicted.tv_sec - time_start_evicted.tv_sec)*1000000LL + time_end_evicted.tv_usec - time_start_evicted.tv_usec;
-	#endif */
+	#endif
 	
 	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
@@ -1940,10 +1940,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 	
-	/* #ifdef PRINT
+	#ifdef PRINT
 	//~ victim_selector_compteur++;
 	gettimeofday(&time_start_selector, NULL);
-	#endif */
+	#endif
 	
     int i = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
@@ -1962,10 +1962,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		starpu_data_handle_t temp_handle = my_planned_task_control->pointer->data_to_evict_next;
 		my_planned_task_control->pointer->data_to_evict_next = NULL;
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_end_selector, NULL);
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
-		#endif */
+		#endif
 		
 		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -2068,10 +2068,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		//~ victim_selector_return_no_victim++;
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector\n"); }
 		
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_end_selector, NULL);
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
-		#endif */
+		#endif
 		
 		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -2096,10 +2096,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		{
 			//~ victim_selector_return_no_victim++;
 			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector.\n"); }
-			/* #ifdef PRINT
+			#ifdef PRINT
 			gettimeofday(&time_end_selector, NULL);
 			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
-			#endif */
+			#endif
 			
 			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -2124,10 +2124,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     {
 		//~ victim_selector_return_no_victim++;
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector car NULL dans returned_handle de belady planned ou pulled task.\n"); }
-		/* #ifdef PRINT
+		#ifdef PRINT
 		gettimeofday(&time_end_selector, NULL);
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
-		#endif */
+		#endif
 		
 		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -2197,10 +2197,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	}
 	
     //~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return %p in victim selector.\n", returned_handle); }
-    /* #ifdef PRINT
+    #ifdef PRINT
     gettimeofday(&time_end_selector, NULL);
 	time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
-	#endif */
+	#endif
 	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
@@ -2210,9 +2210,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g)
 {
 	//~ victim_selector_belady++;
-	/* #ifdef PRINT
+	#ifdef PRINT
 	gettimeofday(&time_start_belady, NULL);
-	#endif */
+	#endif
 	
     int i = 0;
     int j = 0;
@@ -2249,10 +2249,10 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 		}
     }
 
-    /* #ifdef PRINT
+    #ifdef PRINT
     gettimeofday(&time_end_belady, NULL);
     time_total_belady += (time_end_belady.tv_sec - time_start_belady.tv_sec)*1000000LL + time_end_belady.tv_usec - time_start_belady.tv_usec;
-    #endif */
+    #endif
     
     return returned_handle;
 }
@@ -2260,9 +2260,9 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 /* Belady sur lesp lanned task. Je check pas is on node car c'est -1 dans le tab du nb de taches dans pulled task */
 starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task, int current_gpu)
 {
-	/* #ifdef PRINT
+	#ifdef PRINT
 	gettimeofday(&time_start_least_used_data_planned_task, NULL);
-    #endif */
+    #endif
     
     int i = 0;
     int min_nb_task_in_planned_task = INT_MAX;
@@ -2284,10 +2284,10 @@ starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_
 		}
 	}
 	
-	/* #ifdef PRINT
+	#ifdef PRINT
 	gettimeofday(&time_end_least_used_data_planned_task, NULL);
 	time_total_least_used_data_planned_task += (time_end_least_used_data_planned_task.tv_sec - time_start_least_used_data_planned_task.tv_sec)*1000000LL + time_end_least_used_data_planned_task.tv_usec - time_start_least_used_data_planned_task.tv_usec;
-    #endif */
+    #endif
     
     return returned_handle;
 }
@@ -2547,13 +2547,13 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
 	/* TODO : a suppr */
-	/* #ifdef PRINT
+	#ifdef PRINT
 	FILE *f = NULL;
 	f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "w");
 	fprintf(f, "Iteration,Data choosen,Number of data read\n");
 	fclose(f);	
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
-	#endif */
+	#endif
 	
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_data_aware");
 	srandom(starpu_get_env_number_default("SEED", 0));
@@ -2566,12 +2566,12 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	new_tasks_initialized = false;
 	
 	/* For visualisation in python. */
-	/* #ifdef PRINT
+	#ifdef PRINT
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_all_gpu = 0;
 	index_current_popped_task_all_gpu_prefetch = 0;
-	#endif */
+	#endif
 	
 	gpu_memory_initialized = false;
 	number_task_out_DARTS = -1;
@@ -2709,7 +2709,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		need_to_reinit = true;
 		
 		/* TODO : a suppr car inutile si on ne veut pas mesurer le temps */
-		/* #ifdef PRINT
+		#ifdef PRINT
 		if ((iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) //PRINT_TIME = 2 pour quand on a 1 seule itération
 		{
 			gettimeofday(&time_end_createtolasttaskfinished, NULL);
@@ -2750,7 +2750,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 				printf("Nombre de choix random = %d.\n", number_random_selection);
 			}
 		}
-		#endif */
+		#endif
 		
 		iteration_DARTS++;
 	}
