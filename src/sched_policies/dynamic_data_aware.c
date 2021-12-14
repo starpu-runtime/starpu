@@ -1343,23 +1343,38 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						/* I test if the data is on memory */ 
 						if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
 						{
-							if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
-							{
-								/* Ancien */
-								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-								{
-									data_not_available++;
-								}
-							}
-							else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
-							{
-								/* Nouveau */
+							/* Sans ifdef */
+							//~ if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
+							//~ {
+								//~ /* Ancien */
+								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+								//~ {
+									//~ data_not_available++;
+								//~ }
+							//~ }
+							//~ else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
+							//~ {
+								//~ /* Nouveau */
+								//~ hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
+								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
+								//~ {
+									//~ data_not_available++;
+								//~ }
+							//~ }
+							
+							/* Avec ifdef */
+							#ifdef SIMMEM
 								hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
 								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 								{
 									data_not_available++;
 								}
-							}
+							#else
+								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+								{
+									data_not_available++;
+								}
+							#endif
 						}
 					}
 					if (data_not_available == 0)
