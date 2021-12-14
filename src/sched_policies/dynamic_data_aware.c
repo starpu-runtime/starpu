@@ -518,11 +518,11 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			number_task_out_DARTS++;
 			
 			//~ /* Cas matrice 2D */
-			//~ if (starpu_get_env_number_default("APP", 0) == 0)
+			//~ if (app == 0)
 			//~ {
 				//~ dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
 			//~ }
-			//~ else if (starpu_get_env_number_default("APP", 0) == 1)
+			//~ else if (app == 1)
 			//~ {
 				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			//~ }
@@ -556,10 +556,6 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			
 			/* For visualisation in python. */
-			//~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
-			//~ {
-				//~ print_data_to_load_prefetch(task, current_gpu - 1);
-			//~ }
 			#ifdef PRINT
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
 			#endif
@@ -767,7 +763,7 @@ void dynamic_data_aware_scheduling_one_data_popped(struct starpu_task_list *main
 	
 	/* Pour diminuer au début de l'execution */
 	int choose_best_data_threshold = INT_MAX;
-	if (starpu_get_env_number_default("THRESHOLD", 0) == 1)
+	if (threshold == 1)
 	{
 		if (NT_dynamic_outer > 14400)
 		{
@@ -1297,10 +1293,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     	
 	/* Pour diminuer au début de l'execution */
 	int choose_best_data_threshold = INT_MAX;
-	if (starpu_get_env_number_default("THRESHOLD", 0) == 1)
+	if (threshold == 1)
 	{
 		/* En 2D on fais cela */
-		if (starpu_get_env_number_default("APP", 0) == 0)
+		if (app == 0)
 		{
 			if (NT_dynamic_outer > 14400)
 			{
@@ -1321,7 +1317,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	
 	/* Recherche de la meilleure donnée. Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
-	if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0) /* Le cas de base où je regarde les données pas encore utilisées. */
+	if (choose_best_data_from == 0) /* Le cas de base où je regarde les données pas encore utilisées. */
 	{
 		#ifdef PRINT
 		g->number_data_selection++;
@@ -1334,7 +1330,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			
 			/* Il y a deux cas pour simplifier un peu la complexité. Si j'ai au moins 1 tâche qui peut être gratuite, je ne fais plus les compteurs qui permettent 
 			 * d'avoir des tâches à 1 donnée d'être free et on ajoute un break pour gagner un peu de temps. */
-			if (number_free_task_max == 0 && starpu_get_env_number_default("APP", 0) != 0)
+			if (number_free_task_max == 0 && app != 0)
 			//~ if (number_free_task_max == 0)
 			{	
 				for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
@@ -1347,37 +1343,37 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
 						{
 							/* Sans ifdef */
-							//~ if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
-							//~ {
-								//~ /* Ancien */
-								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-								//~ {
-									//~ data_not_available++;
-								//~ }
-							//~ }
-							//~ else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
-							//~ {
-								//~ /* Nouveau */
-								//~ hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
-								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
-								//~ {
-									//~ data_not_available++;
-								//~ }
-							//~ }
-							
-							/* Avec ifdef */
-							#ifdef SIMMEM
+							if (simulate_memory == 0)
+							{
+								/* Ancien */
+								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+								{
+									data_not_available++;
+								}
+							}
+							else if (simulate_memory == 1)
+							{
+								/* Nouveau */
 								hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
 								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 								{
 									data_not_available++;
 								}
-							#else
-								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-								{
-									data_not_available++;
-								}
-							#endif
+							}
+							
+							//~ /* Avec ifdef */
+							//~ #ifdef SIMMEM
+								//~ hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
+								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
+								//~ {
+									//~ data_not_available++;
+								//~ }
+							//~ #else
+								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+								//~ {
+									//~ data_not_available++;
+								//~ }
+							//~ #endif
 						}
 					}
 					if (data_not_available == 0)
@@ -1436,40 +1432,41 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						/* I test if the data is on memory */ 
 						if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != e->D)
 						{							
-							//~ if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
-							//~ {
-								//~ /* Ancien */
-								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-								//~ {
-									//~ data_available = false;
-									//~ break;
-								//~ }
-							//~ }
-							//~ else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
-							//~ {
-								//~ /* Nouveau */
-								//~ hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
-								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
-								//~ {
-									//~ data_available = false;
-									//~ break;
-								//~ }
-							//~ }
-							/* Avec ifdef */
-							#ifdef SIMMEM
+							if (simulate_memory == 0)
+							{
+								/* Ancien */
+								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+								{
+									data_available = false;
+									break;
+								}
+							}
+							else if (simulate_memory == 1)
+							{
+								/* Nouveau */
 								hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
 								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 								{
 									data_available = false;
 									break;
 								}
-							#else
-								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-								{
-									data_available = false;
-									break;
-								}
-							#endif
+							}
+							
+							//~ /* Avec ifdef */
+							//~ #ifdef SIMMEM
+								//~ hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
+								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
+								//~ {
+									//~ data_available = false;
+									//~ break;
+								//~ }
+							//~ #else
+								//~ if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
+								//~ {
+									//~ data_available = false;
+									//~ break;
+								//~ }
+							//~ #endif
 						}
 					}
 					if (data_available == true)
@@ -1513,7 +1510,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#endif
 		
 	}
-	else if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
+	else if (choose_best_data_from == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
 	{	
 		/* Pour ne pas regarder deux fois à la même itération la même donnée. */
 		struct handle_user_data * hud_last_check = NULL;
@@ -1556,7 +1553,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						temp_number_free_task_max = 0;
 						temp_number_1_from_free_task_max = 0;
 				
-						if (number_free_task_max == 0 && starpu_get_env_number_default("APP", 0) != 0)
+						if (number_free_task_max == 0 && app != 0)
 						//~ if (number_free_task_max == 0)
 						{
 								/* Je regarde le nombre de free ou 1 from free tâche de cette donnée. */
@@ -1567,14 +1564,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 									{
 										if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k))
 										{
-											if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
+											if (simulate_memory == 0)
 											{
 												if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 												{
 													data_not_available++;
 												}
 											}
-											else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
+											else if (simulate_memory == 1)
 											{
 												hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
 												if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
@@ -1639,7 +1636,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								{
 									if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k))
 									{
-										if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
+										if (simulate_memory == 0)
 										{
 											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 											{
@@ -1647,7 +1644,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 												break;
 											}
 										}
-										else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
+										else if (simulate_memory == 1)
 										{
 											hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
 											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
@@ -1711,7 +1708,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#endif
 	
 		/* I erase the data from the list of data not used */
-		if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0)
+		if (choose_best_data_from == 0)
 		{
 			e = gpu_data_not_used_list_begin(g->gpu_data);
 			while (e->D != handle_popped)
@@ -1732,7 +1729,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			{		    		
 				if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != handle_popped)
 				{
-					if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
+					if (simulate_memory == 0)
 					{
 						/* Ancien */
 						if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
@@ -1741,7 +1738,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							break;
 						}
 					}
-					else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
+					else if (simulate_memory == 1)
 					{
 						/* Nouveau */
 						hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
@@ -1778,7 +1775,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#endif
 	}
 	/* La je change par rapport à 2D, si à la fois free et 1_from_free sont à 0 je renvoie random */   
-	else if (number_1_from_free_task_max != 0 && starpu_get_env_number_default("APP", 0) != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
+	else if (number_1_from_free_task_max != 0 && app != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
 	//~ else if (number_1_from_free_task_max != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
 	{
 		#ifdef PRINT
@@ -1786,7 +1783,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#endif
 		
 		/* I erase the data */
-		if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0)
+		if (choose_best_data_from == 0)
 		{
 			e = gpu_data_not_used_list_begin(g->gpu_data);
 			while (e->D != handle_popped)
@@ -1809,7 +1806,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			{
 				if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != handle_popped)
 				{
-					if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 0)
+					if (simulate_memory == 0)
 					{
 						/* Ancien */
 						if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
@@ -1817,7 +1814,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 							data_not_available++;
 						}
 					}
-					else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
+					else if (simulate_memory == 1)
 					{
 						/* Nouveau */
 						hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
@@ -2220,7 +2217,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	
     /*Placing in a random spot of the data list to use the evicted handle */
     /* Je ne le fais pas dans le cas ou on choisis depuis la mémoire ou ailleurs */
-    if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 0)
+    if (choose_best_data_from == 0)
     {
 		push_data_not_used_yet_random_spot(returned_handle, my_planned_task_control->pointer);
 	}
@@ -2575,6 +2572,13 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	/* Var globale pour n'appeller qu'une seule fois get_env_number */
+	eviction_strategy_dynamic_data_aware = starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0);
+	threshold = starpu_get_env_number_default("THRESHOLD", 0);
+	app = starpu_get_env_number_default("APP", 0);
+	choose_best_data_from = starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0);
+	simulate_memory = starpu_get_env_number_default("SIMULATE_MEMORY", 0);
+
 	/* TODO : a suppr */
 	#ifdef PRINT
 	FILE *f = NULL;
@@ -2646,7 +2650,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	component->can_pull = dynamic_data_aware_can_pull;
 	
 	/* TODO: Aussi faire cela pour HFP. */
-	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
+	if (eviction_strategy_dynamic_data_aware == 1) 
 	{ 
 	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_eviction_failed, component); 
 	}	
@@ -2681,7 +2685,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	
 	/* TODO : increment de number_task_out_DARTS a faire ici */
 	
-	if (starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0) == 1) 
+	if (eviction_strategy_dynamic_data_aware == 1) 
 	{
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
@@ -2745,7 +2749,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
 
 			int print_N = 0;
-			if (starpu_get_env_number_default("APP", 0) == 0) // Cas M2D
+			if (app == 0) // Cas M2D
 			{
 				print_N = sqrt(NT);
 			}
@@ -2753,13 +2757,13 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			{
 				print_N = sqrt(NT)/2;
 			}
-			if (starpu_get_env_number_default("THRESHOLD", 0) == 1)
+			if (threshold == 1)
 			{
 				FILE *f = fopen("Output_maxime/DARTS_time.txt", "a");
 				fprintf(f, "%d	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", print_N, time_total_selector, time_total_evicted, time_total_belady, time_total_schedule, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_initialisation, time_total_randomize, time_total_pick_random_task, time_total_least_used_data_planned_task, time_total_createtolasttaskfinished);
 				fclose(f);
 			}
-			else if (starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0) == 1)
+			else if (choose_best_data_from == 1)
 			{
 				FILE *f = fopen("Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt", "a");
 				fprintf(f, "%d	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", print_N, time_total_selector, time_total_evicted, time_total_belady, time_total_schedule, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_initialisation, time_total_randomize, time_total_pick_random_task, time_total_least_used_data_planned_task, time_total_createtolasttaskfinished);
@@ -2774,10 +2778,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
 			//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
 			//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
-			if (starpu_get_env_number_default("PRINTF", 0) == 1)
-			{
-				printf("Nombre de choix random = %d.\n", number_random_selection);
-			}
+			printf("Nombre de choix random = %d.\n", number_random_selection);
 		}
 		#endif
 		
