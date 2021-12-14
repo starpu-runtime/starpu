@@ -514,20 +514,20 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		{
 			number_task_out_DARTS++;
 			
-			/* Cas matrice 2D */
-			if (starpu_get_env_number_default("APP", 0) == 0)
-			{
-				dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
-			}
-			else if (starpu_get_env_number_default("APP", 0) == 1)
-			{
-				dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
-			}
-			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. A tester voir si les perf de 2D en réel sont comme avant (dans IPDPS). */
-			//~ if (starpu_get_env_number_default("APP", 0) == 0 || starpu_get_env_number_default("APP", 0) == 1)
+			//~ /* Cas matrice 2D */
+			//~ if (starpu_get_env_number_default("APP", 0) == 0)
+			//~ {
+				//~ dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
+			//~ }
+			//~ else if (starpu_get_env_number_default("APP", 0) == 1)
 			//~ {
 				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			//~ }
+			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. A tester voir si les perf de 2D en réel sont comme avant (dans IPDPS). */
+			if (starpu_get_env_number_default("APP", 0) == 0 || starpu_get_env_number_default("APP", 0) == 1)
+			{
+				dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
+			}
 			else
 			{
 				printf("Erreur var d'env APP doit être 0 ou 1.");
@@ -1299,15 +1299,15 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	int choose_best_data_threshold = INT_MAX;
 	if (starpu_get_env_number_default("THRESHOLD", 0) == 1)
 	{
-		//~ /* En 2D on fais cela */
-		//~ if (starpu_get_env_number_default("APP", 0) == 0)
-		//~ {
-			//~ if (NT_dynamic_outer > 14400)
-			//~ {
-				//~ choose_best_data_threshold = 110;
-			//~ }
-		//~ }
-		if (NT_dynamic_outer > 1599) /* Pour que ca se déclanche au 4ème point en 3D */
+		/* En 2D on fais cela */
+		if (starpu_get_env_number_default("APP", 0) == 0)
+		{
+			if (NT_dynamic_outer > 14400)
+			{
+				choose_best_data_threshold = 110;
+			}
+		}
+		else if (NT_dynamic_outer > 1599) /* Pour que ca se déclanche au 4ème point en 3D */
 		{
 			choose_best_data_threshold = 200;
 		}
@@ -1334,8 +1334,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			
 			/* Il y a deux cas pour simplifier un peu la complexité. Si j'ai au moins 1 tâche qui peut être gratuite, je ne fais plus les compteurs qui permettent 
 			 * d'avoir des tâches à 1 donnée d'être free et on ajoute un break pour gagner un peu de temps. */
-			//~ if (number_free_task_max == 0 && starpu_get_env_number_default("APP", 0) != 0)
-			if (number_free_task_max == 0)
+			if (number_free_task_max == 0 && starpu_get_env_number_default("APP", 0) != 0)
+			//~ if (number_free_task_max == 0)
 			{	
 				for (t = task_using_data_list_begin(e->D->sched_data); t != task_using_data_list_end(e->D->sched_data); t = task_using_data_list_next(t))
 				{
@@ -1427,6 +1427,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 								{
 									data_not_available++;
+									break;
 								}
 							}
 							else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
@@ -1525,8 +1526,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						temp_number_free_task_max = 0;
 						temp_number_1_from_free_task_max = 0;
 				
-						//~ if (number_free_task_max == 0 && starpu_get_env_number_default("APP", 0) != 0)
-						if (number_free_task_max == 0)
+						if (number_free_task_max == 0 && starpu_get_env_number_default("APP", 0) != 0)
+						//~ if (number_free_task_max == 0)
 						{
 								/* Je regarde le nombre de free ou 1 from free tâche de cette donnée. */
 								for (t = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = task_using_data_list_next(t))
@@ -1613,6 +1614,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 											{
 												data_not_available++;
+												break;
 											}
 										}
 										else if (starpu_get_env_number_default("SIMULATE_MEMORY", 0) == 1)
@@ -1746,8 +1748,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#endif
 	}
 	/* La je change par rapport à 2D, si à la fois free et 1_from_free sont à 0 je renvoie random */   
-	//~ else if (number_1_from_free_task_max != 0 && starpu_get_env_number_default("APP", 0) != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
-	else if (number_1_from_free_task_max != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
+	else if (number_1_from_free_task_max != 0 && starpu_get_env_number_default("APP", 0) != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
+	//~ else if (number_1_from_free_task_max != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
 	{
 		#ifdef PRINT
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
@@ -1834,7 +1836,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     if (starpu_task_list_empty(&g->planned_task)) 
     {
 		random: ;
-		//~ printf("random du coup.\n");
+		
 		/* TODO : a suppr */
 		#ifdef PRINT
 		gettimeofday(&time_start_pick_random_task, NULL);
