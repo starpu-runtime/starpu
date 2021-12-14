@@ -475,7 +475,10 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			
-			if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task, starpu_worker_get_id()); }
+			#ifdef PRINT
+			print_data_to_load_prefetch(task, starpu_worker_get_id());
+			#endif
+			
 			return task;
 		}
 
