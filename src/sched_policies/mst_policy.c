@@ -25,6 +25,8 @@
 
 #include <schedulers/HFP.h> /* Headers containing struct and function nedded */
 
+int hmetis;
+
 static int mst_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
 	struct HFP_sched_data *data = component->data;

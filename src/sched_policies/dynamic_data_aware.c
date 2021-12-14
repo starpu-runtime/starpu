@@ -25,6 +25,12 @@
 #include "helper_mct.h"
 
 /* Var globales déclaré en extern */
+int eviction_strategy_dynamic_data_aware;
+int threshold;
+int app;
+int choose_best_data_from;
+int simulate_memory;
+
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
 struct gpu_planned_task_control *my_planned_task_control;

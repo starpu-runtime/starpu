@@ -204,6 +204,7 @@ void _starpu_mem_chunk_disk_register(unsigned disk_memnode)
 
 static int get_better_disk_can_accept_size(starpu_data_handle_t handle, unsigned node);
 static int choose_target(starpu_data_handle_t handle, unsigned node);
+
 int eviction_strategy_dynamic_data_aware;
 
 void _starpu_init_mem_chunk_lists(void)

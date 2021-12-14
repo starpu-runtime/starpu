@@ -48,11 +48,11 @@
 #include <common/blas.h>
 #endif
 
-static int random_task_order;
-static int recursive_matrix_layout;
-static int random_data_access;
-static int count_do_schedule;
-static int sparse_matrix;
+int random_task_order;
+int recursive_matrix_layout;
+int random_data_access;
+int count_do_schedule;
+int sparse_matrix;
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>

@@ -32,7 +32,7 @@
 #include "magma.h"
 #endif
 
-static int count_do_schedule;
+int count_do_schedule;
 
 /*
  *	code to bootstrap the factorization

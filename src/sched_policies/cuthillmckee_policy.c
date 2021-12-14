@@ -23,6 +23,8 @@
 
 #include <schedulers/HFP.h>
 
+int reverse;
+
 #include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>

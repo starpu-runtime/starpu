@@ -18,7 +18,23 @@
 #include <schedulers/HFP.h>
 #include "helper_mct.h"
 
-/* Les variables globales de HFP.h qii sont déclaré en extern */
+/* Les variables globales de HFP.h qui sont déclaré en extern */
+int print_in_terminal;
+int order_u;
+int belady;
+int multigpu;
+int modular_heft_hfp_mode;
+int hmetis;
+int hmetis_n;
+int print3d;
+int print_n;
+int task_stealing;
+int interlacing;
+int print_time;
+int faster_first_iteration;
+int random_task_order;
+int sparse_matrix;
+
 starpu_pthread_mutex_t HFP_mutex;
 int number_task_out;
 int Ngpu;
