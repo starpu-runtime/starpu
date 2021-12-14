@@ -1614,7 +1614,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 										{
 											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 											{
-												data_available = flase;
+												data_available = false;
 												break;
 											}
 										}
