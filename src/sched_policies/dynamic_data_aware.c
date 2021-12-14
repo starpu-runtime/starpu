@@ -515,16 +515,16 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			number_task_out_DARTS++;
 			
 			//~ /* Cas matrice 2D */
-			//~ if (starpu_get_env_number_default("APP", 0) == 0)
-			//~ {
-				//~ dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
-			//~ }
-			//~ else if (starpu_get_env_number_default("APP", 0) == 1)
-			//~ {
-				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
-			//~ }
+			if (starpu_get_env_number_default("APP", 0) == 0)
+			{
+				dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
+			}
+			else if (starpu_get_env_number_default("APP", 0) == 1)
+			{
+				dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
+			}
 			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. A tester voir si les perf de 2D en réel sont comme avant (dans IPDPS). */
-			dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
+			//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			//~ else
 			//~ {
 				//~ printf("Erreur var d'env APP doit être 0 ou 1.");
