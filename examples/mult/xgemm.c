@@ -48,6 +48,12 @@
 #include <common/blas.h>
 #endif
 
+static int random_task_order;
+static int recursive_matrix_layout;
+static int random_data_access;
+static int count_do_schedule;
+static int sparse_matrix;
+
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
 #include <starpu_cublas_v2.h>
@@ -741,6 +747,12 @@ done:
 
 int main(int argc, char **argv)
 {	
+	random_task_order = starpu_get_env_number_default("RANDOM_TASK_ORDER", 0);
+	recursive_matrix_layout = starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0);
+	random_data_access = starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0);
+	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
+	sparse_matrix = starpu_get_env_number_default("SPARSE_MATRIX", 0);
+
 	//Ajout pour le Z layout
 	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0; int j_bis = 0; int y_z_layout = 0; int y_z_layout_i = 0;
 	double start, end;
@@ -749,9 +761,9 @@ int main(int argc, char **argv)
 	/* % de chance qu'une tâche soit créé avec sparse matrix. */
 	int chance_to_be_created = 100;
 	srandom(starpu_get_env_number_default("SEED", 0));
-	if (starpu_get_env_number_default("SPARSE_MATRIX", 0) != 0)
+	if (sparse_matrix != 0)
 	{
-		chance_to_be_created = starpu_get_env_number_default("SPARSE_MATRIX", 0);
+		chance_to_be_created = sparse_matrix;
 	}
 
 	parse_args(argc, argv);
@@ -853,7 +865,7 @@ int main(int argc, char **argv)
 					starpu_data_wont_use(Ctile);
 				}
 				
-				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				if (count_do_schedule == 0)
 				{
 					starpu_do_schedule();
 					start = starpu_timing_now();					
@@ -904,7 +916,7 @@ int main(int argc, char **argv)
 				//~ timing = end - start;
 			}
 		}
-		else if (starpu_get_env_number_default("RANDOM_TASK_ORDER", 0) == 1 && starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0) == 0 && starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0) == 0)
+		else if (random_task_order == 1 && recursive_matrix_layout == 0 && random_data_access == 0)
 		{
 			/* Randomize the order in which task are sent, but the tasks are the same */
 			unsigned i = 0; unsigned j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; unsigned temp = 0; unsigned k = 0; unsigned n = 0;
@@ -960,7 +972,7 @@ int main(int argc, char **argv)
 					}
 				}
 				
-				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				if (count_do_schedule == 0)
 				{
 					starpu_do_schedule();
 					start = starpu_timing_now();					
@@ -1006,7 +1018,7 @@ int main(int argc, char **argv)
 			}
 			//End if RANDOM_TASK_ORDER == 1
 		}
-		else if (starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0) == 1 && starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0) == 0) {
+		else if (recursive_matrix_layout == 1 && random_data_access == 0) {
 			/* Tasks arrive in a "Z-order" */
 			unsigned i = 0; unsigned j = 0; unsigned tab_x[nslicesx][nslicesx]; unsigned tab_y[nslicesy][nslicesy]; unsigned temp = 0; unsigned k = 0; unsigned n = 0;
 			for (iter = 0; iter < niter; iter++)
@@ -1082,7 +1094,7 @@ int main(int argc, char **argv)
 				     //~ goto enodev;
 				}
 	
-				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				if (count_do_schedule == 0)
 				{
 					starpu_do_schedule();
 					start = starpu_timing_now();					
@@ -1108,7 +1120,7 @@ int main(int argc, char **argv)
 			//End If RECURSIVE_MATRIX_LAYOUT == 1
 		}
 		/* This is the random 2D matrix operation we use */
-		else if (starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0) == 1) {
+		else if (random_data_access == 1) {
 			/* Each task takes as data a random line and a random column from A and B */
 			for (iter = 0; iter < niter; iter++)
 			{
@@ -1141,7 +1153,7 @@ int main(int argc, char **argv)
 					}
 				}
 
-				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				if (count_do_schedule == 0)
 				{
 					starpu_do_schedule();
 					start = starpu_timing_now();					
@@ -1215,7 +1227,7 @@ int main(int argc, char **argv)
 						starpu_data_invalidate_submit(starpu_data_get_sub_data(C_handle, 2, x, y));
 					}
 				}
-				if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+				if (count_do_schedule == 0)
 				{
 					starpu_do_schedule();
 					start = starpu_timing_now();					
@@ -1279,9 +1291,9 @@ int main(int argc, char **argv)
 		}
 		
 		/* Cas sparse je divise les flops */
-		if (starpu_get_env_number_default("SPARSE_MATRIX", 0) != 0)
+		if (sparse_matrix != 0)
 		{
-			flops = (flops*starpu_get_env_number_default("SPARSE_MATRIX", 0))/100;
+			flops = (flops*sparse_matrix)/100;
 		}
 		
 		if (temp_niter > 1) /* We also print the deviance */

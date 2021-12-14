@@ -21,6 +21,8 @@
  * hMETIS can be used before executing MST on each package with the environemment variable HMETIS=1.
  */
 
+//~ #define PRINT
+
 #include <schedulers/HFP.h> /* Headers containing struct and function nedded */
 
 static int mst_push_task(struct starpu_sched_component *component, struct starpu_task *task)
@@ -84,8 +86,7 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 	}	
 				
 	/* Printing the adjacency matrix */
-	if (starpu_get_env_number_default("PRINTF",0) == 1) 
-	{ 
+	#ifdef PRINT
 		printf("Matrice d'adjacence :\n"); 
 		for (i = 0; i < number_task; i++) 
 		{ 
@@ -95,7 +96,7 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 			} 
 			printf("\n"); 
 		}
-	}
+	#endif
 	
 	/* Struct of packages to have one task by package and thus being able to number each task.
 	 * We need to number them to recognize them later on. */
@@ -170,15 +171,15 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 		}
 	}	
 			
-	if (starpu_get_env_number_default("PRINTF",0) == 1) 
-	{ 
+	#ifdef PRINT
 		printf("tab_SIGMA[i] : "); 
 		for (i = 0; i < number_task; i++) 
 		{ 
 			printf("%d ",tab_SIGMA[i]); 
 		} 
 		printf("\n"); 
-	}
+	#endif
+	
 	i = 0;
 	
 	/* Filling our task list */
@@ -202,11 +203,6 @@ struct starpu_task_list mst(struct starpu_task_list task_list, int number_task, 
 	//~ {
 		//~ get_ordre_utilisation_donnee_mst(data, NB_TOTAL_DONNEES);
 	//~ }
-				
-	if (starpu_get_env_number_default("PRINTF",0) == 1)
-	{ 
-		printf("Fin de MST\n"); 
-	}
 				
 	return SIGMA;
 }
@@ -241,10 +237,9 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 	{
 		task = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1) 
-		{ 
+		#ifdef PRINT 
 			printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task, to); 
-		}
+		#endif
 		return task;
 	}	
 	/* If the linked list is empty, we can pull more tasks */
@@ -257,10 +252,9 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 	{
 		task = get_task_to_return(component, to, data->p, Ngpu);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-		if (starpu_get_env_number_default("PRINTF",0) == 1 && task != NULL) 
-		{ 
+		#ifdef PRINT 
 			printf("Task %p is getting out of pull_task from gpu %p\n", task, to); 
-		}
+		#endif
 		return task;
 	}
 }
@@ -278,10 +272,6 @@ static int mst_can_push(struct starpu_sched_component * component, struct starpu
 
 	if (task)
 	{
-		if (starpu_get_env_number_default("PRINTF",0) == 1) 
-		{ 
-			fprintf(stderr, "Oops, task %p was refused by %p\n", task, to); 
-		}
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		data->p->temp_pointer_1 = data->p->first_link;
 		int nb_gpu = get_number_GPU();
@@ -343,11 +333,10 @@ static void mst_do_schedule(struct starpu_sched_component *component)
 	{
 		if (!starpu_task_list_empty(&data->sched_list)) 
 		{
-			time_t start, end; time(&start); 
 			appli = starpu_task_get_name(starpu_task_list_begin(&data->sched_list));
-			if (starpu_get_env_number_default("HMETIS",0) != 0) 
+			if (hmetis != 0) 
 			{
-				hmetis(data->p, &data->sched_list, number_of_package_to_build, GPU_RAM_M);
+				hmetis_scheduling(data->p, &data->sched_list, number_of_package_to_build, GPU_RAM_M);
 				
 				/* Apply mst on each package */
 				data->p->temp_pointer_1 = data->p->first_link;
@@ -366,31 +355,19 @@ static void mst_do_schedule(struct starpu_sched_component *component)
 				task = starpu_task_list_pop_front(&data->sched_list);
 				NB_TOTAL_DONNEES+=STARPU_TASK_GET_NBUFFERS(task);
 				NT++;
-				if (starpu_get_env_number_default("PRINTF",0) == 1) 
-				{ 
+				#ifdef PRINT
 					printf("%p\n",task); 
-				}
+				#endif
 				starpu_task_list_push_back(&temp_task_list, task);
 			} 		
-			if (starpu_get_env_number_default("PRINTF",0) == 1) 
-			{ 
+			#ifdef PRINT
 				printf("%d task(s) have been pulled\n", NT); 
-			}
+			#endif
 			//~ task = starpu_task_list_begin(&data->popped_task_list);
 			//~ printf("tache %p\n", task);
 			/* Apply mst on the task list */
 			//~ data->p->temp_pointer_1->sub_list = mst(data->popped_task_list, NT, GPU_RAM_M);			
 			data->p->temp_pointer_1->sub_list = mst(temp_task_list, NT, GPU_RAM_M);			
-			
-			
-			time(&end); int time_taken = end - start; 
-			if (starpu_get_env_number_default("PRINTF",0) == 1) 
-			{ 
-				printf("Temps d'exec : %d secondes\n",time_taken);
-			}
-			FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
-			fprintf(f_time,"%d\n",time_taken);
-			fclose(f_time);
 		
 		do_schedule_done = true;
 		}
@@ -399,6 +376,8 @@ static void mst_do_schedule(struct starpu_sched_component *component)
 
 struct starpu_sched_component *starpu_sched_component_mst_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	hmetis = starpu_get_env_number_default("HMETIS", 0);
+	
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "mst");
 	
 	struct HFP_sched_data *data;
@@ -406,7 +385,7 @@ struct starpu_sched_component *starpu_sched_component_mst_create(struct starpu_s
 	struct paquets *paquets_data = malloc(sizeof(*paquets_data));
 	_STARPU_MALLOC(data, sizeof(*data));
 	
-		index_current_popped_task = malloc(sizeof(int)*Ngpu);
+	index_current_popped_task = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_all_gpu = 0;
 	index_current_popped_task_all_gpu_prefetch = 0;

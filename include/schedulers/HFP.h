@@ -21,7 +21,7 @@
 #include "common/list.h"
 #include <assert.h>
 
-#define PRINTF /* O we print nothing, 1 we print in terminal and also fill data coordinate order, task order etc... so it can take more time. */
+#define PRINT_IN_TERMINAL /* O we print nothing, 1 we print in terminal and also fill data coordinate order, task order etc... so it can take more time. */
 #define ORDER_U /* O or 1 */
 #define BELADY /* O or 1 */
 #define MULTIGPU /* 0 : on ne fais rien, 1 : on construit |GPU| paquets et on attribue chaque paquet à un GPU au hasard, 2 : pareil que 1 + load balance, 3 : pareil que 2 + HFP sur chaque paquet, 4 : pareil que 2 mais avec expected time a la place du nb de données, 5 pareil que 4 + HFP sur chaque paquet, 6 : load balance avec expected time d'un paquet en comptant transferts et overlap, 7 : pareil que 6 + HFP sur chaque paquet */
@@ -36,6 +36,22 @@ but we apply HFP on each package (pas codé en réalité car j'avais changé la 
 #define PRINT_TIME /* Pour afficher le temps d'exécution des fonctions dans HFP. A 1 on print à la 11ème itération et on fera la moyenne. A 2 on print à la première itération. Utile pour que cela fonctionne avec Grid5k. */
 #define FASTER_FIRST_ITERATION /* A 0 on ne fais rien, a 1 on le fais. Permet de faire une première itération où on merge ensemble els taches partageant une données sans regarder le max et donc sans calculer la matrice. Ne marche que pour matrice 2D, 3D. */
 
+/* Défini dans le create pour appeller 1 seule fois les get_env_number */
+int print_in_terminal;
+int order_u;
+int belady;
+int multigpu;
+int modular_heft_hfp_mode;
+int hmetis;
+int hmetis_n;
+int print3d;
+int print_n;
+int task_stealing;
+int interlacing;
+int print_time;
+int faster_first_iteration;
+int random_task_order;
+int sparse_matrix;
 
 extern starpu_pthread_mutex_t HFP_mutex;
 
@@ -249,7 +265,7 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id);
 /* Print the order in one file for each GPU and also print in a tex file the coordinate for 2D matrix */
 void print_order_in_file_hfp (struct paquets *p);
 
-void hmetis(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M);
+void hmetis_scheduling(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M);
 void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *l, int nb_gpu, starpu_ssize_t GPU_RAM_M);
 
 void init_visualisation (struct paquets *a);

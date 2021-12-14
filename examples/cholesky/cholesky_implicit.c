@@ -32,6 +32,8 @@
 #include "magma.h"
 #endif
 
+static int count_do_schedule;
+
 /*
  *	code to bootstrap the factorization
  *	and construct the DAG
@@ -123,7 +125,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	//~ end = starpu_timing_now();
 
 	/* NEW */				
-	if (starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0) == 0)
+	if (count_do_schedule == 0)
 	{
 		starpu_do_schedule();
 		start = starpu_timing_now();					
@@ -357,6 +359,8 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 int main(int argc, char **argv)
 {
+	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 0);
+	
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
 #endif

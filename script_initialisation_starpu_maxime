@@ -1,5 +1,2 @@
 ./configure --enable-simgrid --disable-mpi --with-simgrid-dir=/home/gonthier/simgrid
-sudo make -j 6
-sudo make install
-echo "INITIALISATION OK"
-export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
+make -j 6

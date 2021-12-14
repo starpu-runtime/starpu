@@ -22,6 +22,9 @@
 
 /* Distributed queues using performance modeling to assign tasks */
 
+/* Pour faire des visu python */
+//~ #define PRINT
+
 #include <schedulers/HFP.h>
 
 #include <starpu_config.h>
@@ -278,7 +281,8 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 	struct starpu_task *task = _dmda_pop_task(sched_ctx_id, 1);
 	
 	/* Getting the data we need to fetch for visualization */
-	if (starpu_get_env_number_default("PRINTF", 0) == 1 && task != NULL)
+	#ifdef PRINT
+	if (task != NULL)
 	{
 		int current_gpu = starpu_worker_get_id();
 		if (Ngpu == 1)
@@ -364,6 +368,8 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 		fclose(f);
 		fclose(f2);
 	}
+	#endif
+	
 	return task;
 }
 
@@ -480,10 +486,10 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	if (starpu_get_prefetch_flag())
 	{
 		 /* To get the data prefetched for visualization in 2D. */
-		if (starpu_get_env_number_default("PRINTF", 0) == 1)
-		{
-			print_data_to_load_prefetch(task, best_workerid);
-		}
+		#ifdef PRINT
+		print_data_to_load_prefetch(task, best_workerid);
+		#endif
+		
 		starpu_prefetch_task_input_for(task, best_workerid);
 	}
 
@@ -1054,6 +1060,7 @@ static void deinitialize_dmda_policy(unsigned sched_ctx_id)
  * value of the expected start, end, length, etc... */
 static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 {
+	#ifdef PRINT
 	if (starpu_get_env_number_default("PRINT_N", 0) != 0)
 	{
 		if (index_current_task_for_visualization == 0) 
@@ -1063,6 +1070,7 @@ static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 		print_effective_order_in_file(task, index_current_task_for_visualization);
 		index_current_task_for_visualization++;
 	}
+	#endif
 	
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);

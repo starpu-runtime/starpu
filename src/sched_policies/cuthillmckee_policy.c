@@ -18,6 +18,8 @@
 
 /* CM
  */
+ 
+//~ #define PRINT
 
 #include <schedulers/HFP.h>
 
@@ -36,8 +38,8 @@
 #include <core/task.h>
 #include "starpu_stdlib.h"
 #include "common/list.h"
-#define PRINTF /* O or 1 */
 #define REVERSE /* O or 1 */
+int reverse;
 bool do_schedule_done_cm = false;
 
 /* Structure used to acces the struct my_list_cm. There are also task's list */
@@ -97,8 +99,6 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 		if (!starpu_task_list_empty(&data->list_if_fifo_full)) {
 			task1 = starpu_task_list_pop_back(&data->list_if_fifo_full); 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-			//~ printf("Task %p is getting out of pull_task\n",task1);
 			return task1;
 		}
 		/* If the linked list is empty, we can pull more tasks */
@@ -108,10 +108,17 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 			}
 		else { 
 			task1 = starpu_task_list_pop_front(&data->SIGMA);
-			if (starpu_get_env_number_default("PRINTF", 0) == 1) { print_data_to_load_prefetch(task1, starpu_worker_get_id()); }
+			
+			#ifdef PRINT
+			print_data_to_load_prefetch(task1, starpu_worker_get_id());
+			#endif
+			
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Task %p is getting out of pull_task\n",task1); }
+			
+			#ifdef PRINT
+			printf("Task %p is getting out of pull_task\n",task1);
+			#endif
+			
 			return task1;
 		}
 	}
@@ -128,7 +135,6 @@ static int cuthillmckee_can_push(struct starpu_sched_component * component, stru
 
 	if (task)
 	{
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { fprintf(stderr, "oops, task %p got refused\n", task); }
 		/* Oops, we couldn't push everything, put back this task */
 		STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 		starpu_task_list_push_back(&data->list_if_fifo_full, task);
@@ -168,16 +174,13 @@ static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
 	/* If the linked list is empty, we can pull more tasks */
 	if (starpu_task_list_empty(&data->SIGMA)) {
 		if (!starpu_task_list_empty(&data->sched_list)) {
-			time_t start, end; time(&start); 
 			/* Pulling all tasks and counting them */
 			while (!starpu_task_list_empty(&data->sched_list)) {				
 				task1 = starpu_task_list_pop_front(&data->sched_list);
 				
 				NT++;
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%p\n",task1); }
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 		
-			if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("%d task(s) have been pulled\n",NT); }
 			
 			int matrice_adjacence[NT][NT]; for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { matrice_adjacence[i][j] = 0; } } 
 			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
@@ -283,15 +286,17 @@ static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
 		}
 	}		
 				/* I put the task in order in SIGMA */
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n"); }
+				#ifdef PRINT
+				printf("tab_SIGMA[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n");
+				#endif
 				
-				if (starpu_get_env_number_default("REVERSE",0) == 1) {
+				if (reverse == 1)
+				{
 					int tab_SIGMA_2[NT];
 					for (i = NT - 1, j = 0; i >= 0; i--, j++)
 						tab_SIGMA_2[j] = tab_SIGMA[i];
 					for (i = 0; i < NT; i++)
 						tab_SIGMA[i] = tab_SIGMA_2[i];
-					if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("tab_SIGMA_reversed[i] : "); for (i = 0; i < NT; i++) { printf("%d ",tab_SIGMA[i]); } printf("\n"); }
 				}
 				
 				i = 0;
@@ -308,16 +313,7 @@ static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
 					else { 
 						data->temp_pointer_1 = data->temp_pointer_1->next;
 					}
-				}
-				
-				
-				if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("\nFin de cuthillmckee\n"); }
-				
-			time(&end); int time_taken = end - start; if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Temps d'exec : %d secondes\n",time_taken); }
-			FILE *f_time = fopen("Output_maxime/Execution_time_raw.txt","a");
-			fprintf(f_time,"%d\n",time_taken);
-			fclose(f_time);
-		
+				}		
 		do_schedule_done_cm = true;
 		}
 	}
@@ -327,6 +323,8 @@ static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
 
 struct starpu_sched_component *starpu_sched_component_cuthillmckee_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	reverse = starpu_get_env_number_default("REVERSE", 0);
+	
 	/* Pour la visu python */
 	Ngpu = get_number_GPU();
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
