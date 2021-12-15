@@ -371,23 +371,17 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     /* TODO si je peux le fusionner avec la boulce sur NBUFFERS ci-dessus. */
     /* A modif peut etre la condition. */
     /* Pourquoi je m'embete ? l'ordre naturel peut permettre de faire ca sans check les coord nan ? SUffit de connaitre N ? */
-	if (app == 1)
-	{
-		int temp_tab_coordinates[2];
-		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2	, temp_tab_coordinates);
+	//~ if (app == 1)
+	//~ {
+		//~ int temp_tab_coordinates[2];
 
-		//~ printf("Tâche %p : x = %d | y = %d | ", task, temp_tab_coordinates[0], temp_tab_coordinates[1]);
-
-		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
-		//~ printf("	%d (%p)\n", temp_tab_coordinates[0]);
 		
-		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-		printf("Tâche %p : A (%p) x = %d | ", task, STARPU_TASK_GET_HANDLE(task, 0), temp_tab_coordinates[0]);
-		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 1), 1, temp_tab_coordinates);
-		printf("B (%p) y = %d | ", STARPU_TASK_GET_HANDLE(task, 1), temp_tab_coordinates[1]);
-		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
-		printf("C (%p) z = %d.\n", STARPU_TASK_GET_HANDLE(task, 2), temp_tab_coordinates[0]);
-	}
+		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+		//~ printf("Tâche %p : A (%p) x = %d | ", task, STARPU_TASK_GET_HANDLE(task, 0), temp_tab_coordinates[0]);
+		//~ printf("B (%p) y = %d | ", STARPU_TASK_GET_HANDLE(task, 1), temp_tab_coordinates[1]);
+		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
+		//~ printf("C (%p) z = %d.\n", STARPU_TASK_GET_HANDLE(task, 2), temp_tab_coordinates[0]);
+	//~ }
     
     task->sched_data = pt;
 }
@@ -448,6 +442,81 @@ void randomize_data_not_used_yet()
 		my_planned_task_control->pointer->gpu_data = randomized_list;
 		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
     }
+}
+
+void order_z_data_not_used_yet()
+{
+	/* Je créé une liste d'entier random pour i (1:N), j (1:N) et k (1:4). */
+	int i = 0;
+    int j = 0;
+    int random = 0;
+    //~ my_planned_task_control->pointer = my_planned_task_control->first;
+        
+    int N = sqrt(NT_dynamic_outer)/2;
+    
+    int ordre_i[N];
+    int ordre_j[N];
+    int ordre_k[4];
+    int temp_ordre_i[N];
+    int temp_ordre_j[N];
+    int temp_ordre_k[4];
+    
+    for (i = 0; i < N; i++)
+    {
+		temp_ordre_i[i] = i;
+		temp_ordre_j[i] = i;
+	}
+    for (i = 0; i < 4; i++)
+    {
+		temp_ordre_k[i] = i;
+	}
+    
+    /* Je le fais différement pour chaque GPU ou c'est comun aux 3 GPUs ? */
+    //~ for (i = 0; i < Ngpu; i++)
+    //~ {
+		/* Je créé une liste d'entier random pour i (1:N), j (1:N) et k (1:4). */	
+		for (j = 0; j < N; j++)
+		{
+			random = rand()%(N - j);
+			ordre_i[j] = temp_ordre_i[random];
+			
+			/* Je remplace la case par la dernière tâche du tableau */
+			temp_ordre_i[random] = temp_ordre_i[N - j - 1];
+			
+			random = rand()%(N - j);
+			ordre_j[j] = temp_ordre_j[random];
+			
+			/* Je remplace la case par la dernière tâche du tableau */
+			temp_ordre_j[random] = temp_ordre_j[N - j - 1];
+		}
+		for (j = 0; j < 4; j++)
+		{
+			random = rand()%(4 - j);
+			ordre_k[j] = temp_ordre_k[random];
+			
+			/* Je remplace la case par la dernière tâche du tableau */
+			temp_ordre_k[random] = temp_ordre_k[4 - j - 1];
+		}
+	//~ }
+	
+	printf("Ordre i :");
+	for (i = 0; i < N; i++)
+	{
+		printf(" %d", ordre_i[i]);
+	}
+	printf("\n");
+	printf("Ordre j :");
+	for (i = 0; i < N; i++)
+	{
+		printf(" %d", ordre_j[i]);
+	}
+	printf("\n");
+	printf("Ordre k :");
+	for (i = 0; i < 4; i++)
+	{
+		printf(" %d", ordre_k[i]);
+	}
+	printf("\n");
 }
 
 //~ /* Randomize the list of data not used yet for a single GPU. */
@@ -653,14 +722,14 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		
 		randomize_task_list(data);
 		
-		//~ if (data_order != 0)
-		//~ {
+		if (data_order == 0)
+		{
 			randomize_data_not_used_yet();
-		//~ }
-		//~ else /* ordre Z des données */
-		//~ {
-			//~ order_z_data_not_used_yet();
-		//~ }
+		}
+		else /* ordre Z des données */
+		{
+			order_z_data_not_used_yet();
+		}
 		
 		#ifdef PRINT
 		gettimeofday(&time_end_randomize, NULL);
@@ -1551,13 +1620,12 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 	}
 	else if (choose_best_data_from == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
-	{	
+	{
 		/* Pour ne pas regarder deux fois à la même itération la même donnée. */
 		struct handle_user_data * hud_last_check = NULL;
 		
-		#ifdef PRINT
+		/* Attention ici c'est utile ne pas le metre entre des ifdef!!!! */
 		g->number_data_selection++;
-		#endif
 		
 		/* TODO : A COP COLL DANS 2D SI CA MARCHE BIEN ATTENTION AU WHILE BLOQUANT QUAND ON FAIS LE ERASE PLUS BAS */
 		starpu_data_handle_t *data_on_node;

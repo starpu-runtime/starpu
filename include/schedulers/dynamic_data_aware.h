@@ -12,7 +12,7 @@
 #define APP /* 0 matrice 2D, par défaut. 1 matrice 3D. */
 #define CHOOSE_BEST_DATA_FROM /* Pour savoir où on regarde pour choisir la meilleure donnée. 0 par défaut, on regarde la liste des données pas encore utilisées. 1 on regarde les données en mémoire et à partir des tâches de ces données on cherche une donnée pas encore en mémoire qui permet de faire le plus de tâches gratuite ou 1 from free. Si on trouve rien c'est random. A tester cette méthode. */
 #define SIMULATE_MEMORY /* Default 0, means we use starpu_data_is_on_node, 1 we also look at nb of task in planned and pulled task. */
-#define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. */
+#define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
 extern int eviction_strategy_dynamic_data_aware;
@@ -142,7 +142,7 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 void initialize_task_data_gpu_single_task(struct starpu_task *task);
 void randomize_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_data_not_used_yet();
-//~ void order_z_data_not_used_yet();
+void order_z_data_not_used_yet();
 //~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l);
 void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g);
