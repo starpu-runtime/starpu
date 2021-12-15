@@ -32,6 +32,7 @@ int choose_best_data_from;
 int simulate_memory;
 //~ int data_order;
 int natural_order;
+//~ int erase_data_strategy;
 
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
@@ -106,7 +107,7 @@ void print_data_not_used_yet()
     
     for (i = 0; i < Ngpu; i++)
     {
-		printf("On GPU %d, the data not used yet are:", i + 1);
+		printf("On GPU %d, there are %d data not used yet are:", i + 1, gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data));
 		for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(my_planned_task_control->pointer->gpu_data); e != gpu_data_not_used_list_end(my_planned_task_control->pointer->gpu_data); e = gpu_data_not_used_list_next(e))
 		{
 			printf(" %p", e->D);
@@ -408,6 +409,33 @@ void randomize_task_list(struct dynamic_data_aware_sched_data *d)
 	}
 }
 
+/* Chaque GPU a un pointeur vers sa première tâche à pop.
+ * Ensuite dans le scheduling quand on pop pour la première fois c'est celle la.
+ * En plus ca tombe bien le premier pop est géré direct en dehors de random. */
+void natural_order_task_list(struct dynamic_data_aware_sched_data *d)
+{
+	my_planned_task_control->pointer = my_planned_task_control->first;
+    int i = 0;
+    int j = 0;
+    struct starpu_task *task = NULL;
+    
+    for (i = 0; i < NT_dynamic_outer; i++)
+    {
+		if (i == (NT_dynamic_outer/Ngpu)*j)
+		{
+			task = starpu_task_list_pop_front(&d->sched_list);
+			my_planned_task_control->pointer->first_task_to_pop = task;
+			starpu_task_list_push_back(&d->main_task_list, task);
+			my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+			j++;
+		}
+		else
+		{
+			starpu_task_list_push_back(&d->main_task_list, starpu_task_list_pop_front(&d->sched_list));
+		}
+    }
+}
+
 /* Randomize the list of data not used yet for all the GPU. */
 void randomize_data_not_used_yet()
 {
@@ -663,6 +691,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ }
 			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. A tester voir si les perf de 2D en réel sont comme avant (dans IPDPS). */
 			dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
+			//~ print_data_not_used_yet();
 			//~ else
 			//~ {
 				//~ printf("Erreur var d'env APP doit être 0 ou 1.");
@@ -759,10 +788,14 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 			randomize_task_list(data);
 			randomize_data_not_used_yet();
 		}
-		else
+		else if (natural_order == 1) /* Randomise pas les liste de données. */
 		{
-			//~ natural_order_task_list(data); /* TODO */
 			randomize_task_list(data);
+			natural_order_data_not_used_yet();
+		}
+		else /* Randomise rien du tout, NATURAL_ORDER == 2. */
+		{
+			natural_order_task_list(data);
 			natural_order_data_not_used_yet();
 		}
 
@@ -1415,18 +1448,46 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     if (g->first_task == true)
     {
 		#ifdef PRINT
-		printf("Random car c'est la première tâche du GPU %d.\n", current_gpu);
-		#endif
-		
-		g->first_task = false;
-		
-		/* TODO a suppr */
-		#ifdef PRINT
+		printf("Hey! C'est la première tâche du GPU n°%d!\n", current_gpu);
 		fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
 		fclose(f);
 		#endif
 		
-		goto random;
+		g->first_task = false;
+				
+		if (natural_order == 2)
+		{
+			struct starpu_task *task = g->first_task_to_pop;	
+			g->first_task_to_pop = NULL;		
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+			{
+				if (!gpu_data_not_used_list_empty(g->gpu_data))
+				{
+					for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
+					{
+						if(e->D == STARPU_TASK_GET_HANDLE(task, i))
+						{
+							gpu_data_not_used_list_erase(g->gpu_data, e);
+						}
+					}
+				}
+			}
+			/* Add it from planned task compteur */
+			increment_planned_task_data(task, current_gpu);
+			
+			#ifdef PRINT
+			printf("Returning first task of GPU n°%d in natural order: %p.\n", current_gpu, task);
+			#endif
+		
+			erase_task_and_data_pointer(task, main_task_list);
+			starpu_task_list_push_back(&g->planned_task, task);
+			
+			goto end_scheduling;
+		}
+		else
+		{
+			goto random;
+		}
 	}
         
     /* Ce cas arrive avec le cas ou je gère pas les evictions. Car quand je ne gère pas les évictions je ne remet pas les données évincées dans la liste des données
@@ -1854,7 +1915,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 		}
 	}
-	//~ printf("best data is = %p %d %d.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
+	//~ #ifdef PRINT
+	//~ printf("best data is = %p %d free tasks and/or %d 1 from free tasks.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
+	//~ #endif
 	
 	end_choose_best_data : ;
 	
@@ -1875,15 +1938,37 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
 		#endif
 	
-		/* I erase the data from the list of data not used */
+		/* I erase the data from the list of data not used. See env var ERASE_DATA_STRATEGY */
 		if (choose_best_data_from == 0)
 		{
-			e = gpu_data_not_used_list_begin(g->gpu_data);
-			while (e->D != handle_popped)
-			{
-				  e = gpu_data_not_used_list_next(e);
-			}
-			gpu_data_not_used_list_erase(g->gpu_data, e);
+			/* Je l'erase de 1 seul GPU ou de tous. */
+			//~ if (erase_data_strategy == 0)
+			//~ {
+				e = gpu_data_not_used_list_begin(g->gpu_data);
+				while (e->D != handle_popped)
+				{
+					  e = gpu_data_not_used_list_next(e);
+				}
+				gpu_data_not_used_list_erase(g->gpu_data, e);
+			//~ }
+			//~ else
+			//~ {
+				//~ my_planned_task_control->pointer = my_planned_task_control->first;
+				//~ for (i = 0; i < Ngpu; i++)
+				//~ {
+					//~ e = gpu_data_not_used_list_begin(my_planned_task_control->pointer->gpu_data);
+					//~ for (j = 0; j < gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data); j++)
+					//~ {
+						//~ if (e->D == handle_popped)
+						//~ {
+							//~ gpu_data_not_used_list_erase(my_planned_task_control->pointer->gpu_data, e);
+							//~ break;
+						//~ }
+						//~ e = gpu_data_not_used_list_next(e);
+					//~ }
+					//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+				//~ }
+			//~ }
 		}
 
 		#ifdef PRINT
@@ -1944,26 +2029,44 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	}
 	/* La je change par rapport à 2D, si à la fois free et 1_from_free sont à 0 je renvoie random */   
 	else if (number_1_from_free_task_max != 0 && app != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
-	//~ else if (number_1_from_free_task_max != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
 	{
 		#ifdef PRINT
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
-		#endif
-		
-		/* I erase the data */
-		if (choose_best_data_from == 0)
-		{
-			e = gpu_data_not_used_list_begin(g->gpu_data);
-			while (e->D != handle_popped)
-			{
-				  e = gpu_data_not_used_list_next(e);
-			} 
-			gpu_data_not_used_list_erase(g->gpu_data, e);
-		}
-		
-		#ifdef PRINT
 		printf("The data adding the most (%d) 1_from_free tasks is %p.\n", number_1_from_free_task_max, handle_popped);
 		#endif
+		
+		/* I erase the data from the list of data not used. See env var ERASE_DATA_STRATEGY */
+		if (choose_best_data_from == 0)
+		{
+			/* Je l'erase de 1 seul GPU ou de tous. */
+			//~ if (erase_data_strategy == 0)
+			//~ {
+				e = gpu_data_not_used_list_begin(g->gpu_data);
+				while (e->D != handle_popped)
+				{
+					  e = gpu_data_not_used_list_next(e);
+				}
+				gpu_data_not_used_list_erase(g->gpu_data, e);
+			//~ }
+			//~ else
+			//~ {
+				//~ my_planned_task_control->pointer = my_planned_task_control->first;
+				//~ for (i = 0; i < Ngpu; i++)
+				//~ {
+					//~ e = gpu_data_not_used_list_begin(my_planned_task_control->pointer->gpu_data);
+					//~ for (j = 0; j < gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data); j++)
+					//~ {
+						//~ if (e->D == handle_popped)
+						//~ {
+							//~ gpu_data_not_used_list_erase(my_planned_task_control->pointer->gpu_data, e);
+							//~ break;
+						//~ }
+						//~ e = gpu_data_not_used_list_next(e);
+					//~ }
+					//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+				//~ }
+			//~ }
+		}
 		
 		/* Nouvelle version où au lieu de bêtement prendre une tâche de la donnée élu, je vais regarder si la tâche est bien 1 from free. */
 		for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
@@ -2032,7 +2135,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     {
 		random: ;
 		
-		/* TODO : a suppr */
 		#ifdef PRINT
 		gettimeofday(&time_start_pick_random_task, NULL);
 		number_random_selection++;
@@ -2068,6 +2170,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		time_total_pick_random_task += (time_end_pick_random_task.tv_sec - time_start_pick_random_task.tv_sec)*1000000LL + time_end_pick_random_task.tv_usec - time_start_pick_random_task.tv_usec;
 		#endif
     }
+    
+    end_scheduling: ;
     
     #ifdef PRINT
     gettimeofday(&time_end_schedule, NULL);
@@ -2590,6 +2694,7 @@ starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_
 
 /* Erase a task from the main task list.
  * Also erase pointer in the data.
+ * Only of one GPU.
  */
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l)
 {
@@ -2752,6 +2857,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	simulate_memory = starpu_get_env_number_default("SIMULATE_MEMORY", 0);
 	//~ data_order = starpu_get_env_number_default("DATA_ORDER", 0);
 	natural_order = starpu_get_env_number_default("NATURAL_ORDER", 0);
+	//~ erase_data_strategy = starpu_get_env_number_default("ERASE_DATA_STRATEGY", 0);
 
 	/* TODO : a suppr */
 	#ifdef PRINT
