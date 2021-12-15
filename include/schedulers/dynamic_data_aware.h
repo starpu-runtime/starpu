@@ -12,6 +12,7 @@
 #define APP /* 0 matrice 2D, par défaut. 1 matrice 3D. */
 #define CHOOSE_BEST_DATA_FROM /* Pour savoir où on regarde pour choisir la meilleure donnée. 0 par défaut, on regarde la liste des données pas encore utilisées. 1 on regarde les données en mémoire et à partir des tâches de ces données on cherche une donnée pas encore en mémoire qui permet de faire le plus de tâches gratuite ou 1 from free. Si on trouve rien c'est random. A tester cette méthode. */
 #define SIMULATE_MEMORY /* Default 0, means we use starpu_data_is_on_node, 1 we also look at nb of task in planned and pulled task. */
+#define NATURAL_ORDER /* Default 0, signifie qu'on randomize la liste des tâches et des données. 1 je randomise rien mais les GPUs partent d'extrémitées différentes. */
 //~ #define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
@@ -20,9 +21,10 @@ extern int threshold;
 extern int app;
 extern int choose_best_data_from;
 extern int simulate_memory;
+extern int natural_order;
 //~ extern int data_order;
 
-//~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
+#define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
 //~ #define SIMMEM
 
 starpu_pthread_mutex_t global_mutex; /* Protège main_task_list et planned_task_list */
@@ -142,6 +144,7 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 void initialize_task_data_gpu_single_task(struct starpu_task *task);
 void randomize_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_data_not_used_yet();
+void natural_order_data_not_used_yet();
 //~ void order_z_data_not_used_yet();
 //~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l);
