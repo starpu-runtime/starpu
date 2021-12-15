@@ -3,6 +3,7 @@
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal.sh 10 Cholesky dynamic_data_aware_no_hfp 1
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal.sh 7 Cholesky dynamic_data_aware_no_hfp 2
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix 1
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal.sh 5 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix 2
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2

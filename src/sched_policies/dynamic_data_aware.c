@@ -30,6 +30,7 @@ int threshold;
 int app;
 int choose_best_data_from;
 int simulate_memory;
+int data_order;
 
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
@@ -254,6 +255,8 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
  * pointer to the cell in the main task list (main_task_list).
  * data -> pointer to the tasks using this data.
  * GPUs -> datas not used yet by this GPU.
+ * TODO : Y a pas moyen de fusionner les deux boucles pour parcourir juste une fois la liste des données d'une tâche ? Non vu que la première boucle coucle sur NGPU, faudrait faire un test if on est sur le gpu 1 seulement alors je fais le truc sinon, non.
+ * Création d'un tableau 3D des données, marche que en 3D. TODO : ajouter que APP=1 c'est que pour ca et APP=2 sera pour les variantes 3D mais sans cette init ou autrement mais le différencier quoi pour pas el faire sur cholesky ou M2D.
  */
 void initialize_task_data_gpu_single_task(struct starpu_task *task)
 {
@@ -363,6 +366,29 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 		pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
 		pt->tud[i] = e;
     }
+    
+    /* Matrice 3D des coords pour ordre Z. */
+    /* TODO si je peux le fusionner avec la boulce sur NBUFFERS ci-dessus. */
+    /* A modif peut etre la condition. */
+    /* Pourquoi je m'embete ? l'ordre naturel peut permettre de faire ca sans check les coord nan ? SUffit de connaitre N ? */
+	if (app == 1)
+	{
+		int temp_tab_coordinates[2];
+		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2	, temp_tab_coordinates);
+
+		//~ printf("Tâche %p : x = %d | y = %d | ", task, temp_tab_coordinates[0], temp_tab_coordinates[1]);
+
+		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
+		//~ printf("	%d (%p)\n", temp_tab_coordinates[0]);
+		
+		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
+		printf("Tâche %p : A (%p) x = %d | ", task, STARPU_TASK_GET_HANDLE(task, 0), temp_tab_coordinates[0]);
+		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 1), 1, temp_tab_coordinates);
+		printf("B (%p) y = %d | ", STARPU_TASK_GET_HANDLE(task, 1), temp_tab_coordinates[1]);
+		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
+		printf("C (%p) z = %d.\n", STARPU_TASK_GET_HANDLE(task, 2), temp_tab_coordinates[0]);
+	}
+    
     task->sched_data = pt;
 }
 
@@ -626,7 +652,15 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		#endif
 		
 		randomize_task_list(data);
-		randomize_data_not_used_yet(my_planned_task_control->first);
+		
+		//~ if (data_order != 0)
+		//~ {
+			randomize_data_not_used_yet();
+		//~ }
+		//~ else /* ordre Z des données */
+		//~ {
+			//~ order_z_data_not_used_yet();
+		//~ }
 		
 		#ifdef PRINT
 		gettimeofday(&time_end_randomize, NULL);
@@ -2584,6 +2618,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	app = starpu_get_env_number_default("APP", 0);
 	choose_best_data_from = starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0);
 	simulate_memory = starpu_get_env_number_default("SIMULATE_MEMORY", 0);
+	data_order = starpu_get_env_number_default("DATA_ORDER", 0);
 
 	/* TODO : a suppr */
 	#ifdef PRINT
