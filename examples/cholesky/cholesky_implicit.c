@@ -34,6 +34,11 @@
 
 int count_do_schedule;
 
+/* To avegrage on 11 iteration and ignoring the first one. */
+double average_flop;
+int niter;
+int current_iteration;
+
 /*
  *	code to bootstrap the factorization
  *	and construct the DAG
@@ -156,15 +161,24 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
 	else
 	{
-		//~ FILE *f = fopen("Output_maxime/Flop_Cholesky.txt", "a");
-		//~ fprintf(f, "%f\n", flop);
-		//~ fclose(f);
-		PRINTF("# size\tms\tGFlops");
-		if (bound_p)
-			PRINTF("\tTms\tTGFlops");
-		PRINTF("\n");
+		/* Pour faire la moyenne sur 11 itération sans la première. */
+		if (current_iteration != 1)
+		{
+			average_flop += flop/timing/1000.0f;
+		}
+		if (current_iteration == niter)
+		{
+			average_flop = average_flop/(niter - 1);
+		
+			PRINTF("# size\tms\tGFlops");
+			if (bound_p)
+				PRINTF("\tTms\tTGFlops");
+			PRINTF("\n");
 
-		PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
+			PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
+			PRINTF("\n");
+		}
+				
 		if (bound_lp_p)
 		{
 			FILE *f = fopen("cholesky.lp", "w");
@@ -183,7 +197,6 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			starpu_bound_compute(&res, NULL, 0);
 			PRINTF("\t%.0f\t%.1f", res, (flop/res/1000000.0f));
 		}
-		PRINTF("\n");
 	}
 	return 0;
 }
@@ -360,6 +373,9 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 int main(int argc, char **argv)
 {
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
+	average_flop = 0;
+	niter = 11;
+	current_iteration = 1;
 	
 #ifdef STARPU_HAVE_MAGMA
 	magma_init();
@@ -394,7 +410,7 @@ int main(int argc, char **argv)
 
 	/* Si on veux plusieurs itérations. */
 	int i = 0;
-	for (i = 0; i < 1; i++)
+	for (i = 0; i < niter; i++)
 	{
 		if(with_ctxs_p)
 		{
@@ -409,6 +425,8 @@ int main(int argc, char **argv)
 			start_2ndbench(execute_cholesky);
 		else
 			execute_cholesky(size_p, nblocks_p);
+		
+		current_iteration++;
 	}
 
 	starpu_cublas_shutdown();
