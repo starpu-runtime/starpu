@@ -444,80 +444,76 @@ void randomize_data_not_used_yet()
     }
 }
 
-void order_z_data_not_used_yet()
-{
-	/* Je créé une liste d'entier random pour i (1:N), j (1:N) et k (1:4). */
-	int i = 0;
-    int j = 0;
-    int random = 0;
-    //~ my_planned_task_control->pointer = my_planned_task_control->first;
+//~ void order_z_data_not_used_yet()
+//~ {
+	//~ /* Je créé une liste d'entier random pour i (1:N), j (1:N) et k (1:4). */
+	//~ int i = 0;
+    //~ int j = 0;
+    //~ int random = 0;
         
-    int N = sqrt(NT_dynamic_outer)/2;
+    //~ int N = sqrt(NT_dynamic_outer)/2;
     
-    int ordre_i[N];
-    int ordre_j[N];
-    int ordre_k[4];
-    int temp_ordre_i[N];
-    int temp_ordre_j[N];
-    int temp_ordre_k[4];
+    //~ int ordre_i[N];
+    //~ int ordre_j[N];
+    //~ int ordre_k[4];
+    //~ int temp_ordre_i[N];
+    //~ int temp_ordre_j[N];
+    //~ int temp_ordre_k[4];
     
-    for (i = 0; i < N; i++)
-    {
-		temp_ordre_i[i] = i;
-		temp_ordre_j[i] = i;
-	}
-    for (i = 0; i < 4; i++)
-    {
-		temp_ordre_k[i] = i;
-	}
-    
-    /* Je le fais différement pour chaque GPU ou c'est comun aux 3 GPUs ? */
-    //~ for (i = 0; i < Ngpu; i++)
+    //~ for (i = 0; i < N; i++)
     //~ {
-		/* Je créé une liste d'entier random pour i (1:N), j (1:N) et k (1:4). */	
-		for (j = 0; j < N; j++)
-		{
-			random = rand()%(N - j);
-			ordre_i[j] = temp_ordre_i[random];
-			
-			/* Je remplace la case par la dernière tâche du tableau */
-			temp_ordre_i[random] = temp_ordre_i[N - j - 1];
-			
-			random = rand()%(N - j);
-			ordre_j[j] = temp_ordre_j[random];
-			
-			/* Je remplace la case par la dernière tâche du tableau */
-			temp_ordre_j[random] = temp_ordre_j[N - j - 1];
-		}
-		for (j = 0; j < 4; j++)
-		{
-			random = rand()%(4 - j);
-			ordre_k[j] = temp_ordre_k[random];
-			
-			/* Je remplace la case par la dernière tâche du tableau */
-			temp_ordre_k[random] = temp_ordre_k[4 - j - 1];
-		}
+		//~ temp_ordre_i[i] = i;
+		//~ temp_ordre_j[i] = i;
 	//~ }
+    //~ for (i = 0; i < 4; i++)
+    //~ {
+		//~ temp_ordre_k[i] = i;
+	//~ }
+    
+    //~ /* Je le fais différement pour chaque GPU ou c'est comun aux 3 GPUs ? */
+		//~ /* Je créé une liste d'entier random pour i (1:N), j (1:N) et k (1:4). */	
+		//~ for (j = 0; j < N; j++)
+		//~ {
+			//~ random = rand()%(N - j);
+			//~ ordre_i[j] = temp_ordre_i[random];
+			
+			//~ /* Je remplace la case par la dernière tâche du tableau */
+			//~ temp_ordre_i[random] = temp_ordre_i[N - j - 1];
+			
+			//~ random = rand()%(N - j);
+			//~ ordre_j[j] = temp_ordre_j[random];
+			
+			//~ /* Je remplace la case par la dernière tâche du tableau */
+			//~ temp_ordre_j[random] = temp_ordre_j[N - j - 1];
+		//~ }
+		//~ for (j = 0; j < 4; j++)
+		//~ {
+			//~ random = rand()%(4 - j);
+			//~ ordre_k[j] = temp_ordre_k[random];
+			
+			//~ /* Je remplace la case par la dernière tâche du tableau */
+			//~ temp_ordre_k[random] = temp_ordre_k[4 - j - 1];
+		//~ }
 	
-	printf("Ordre i :");
-	for (i = 0; i < N; i++)
-	{
-		printf(" %d", ordre_i[i]);
-	}
-	printf("\n");
-	printf("Ordre j :");
-	for (i = 0; i < N; i++)
-	{
-		printf(" %d", ordre_j[i]);
-	}
-	printf("\n");
-	printf("Ordre k :");
-	for (i = 0; i < 4; i++)
-	{
-		printf(" %d", ordre_k[i]);
-	}
-	printf("\n");
-}
+	//~ printf("Ordre i :");
+	//~ for (i = 0; i < N; i++)
+	//~ {
+		//~ printf(" %d", ordre_i[i]);
+	//~ }
+	//~ printf("\n");
+	//~ printf("Ordre j :");
+	//~ for (i = 0; i < N; i++)
+	//~ {
+		//~ printf(" %d", ordre_j[i]);
+	//~ }
+	//~ printf("\n");
+	//~ printf("Ordre k :");
+	//~ for (i = 0; i < 4; i++)
+	//~ {
+		//~ printf(" %d", ordre_k[i]);
+	//~ }
+	//~ printf("\n");
+//~ }
 
 //~ /* Randomize the list of data not used yet for a single GPU. */
 //~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
@@ -722,14 +718,14 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		
 		randomize_task_list(data);
 		
-		if (data_order == 0)
-		{
+		//~ if (data_order == 0)
+		//~ {
 			randomize_data_not_used_yet();
-		}
-		else /* ordre Z des données */
-		{
-			order_z_data_not_used_yet();
-		}
+		//~ }
+		//~ else /* ordre Z des données */
+		//~ {
+			//~ order_z_data_not_used_yet();
+		//~ }
 		
 		#ifdef PRINT
 		gettimeofday(&time_end_randomize, NULL);
@@ -1644,16 +1640,16 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				//~ printf("task = %p.\n", task);
 				/* Je me met sur une donnée de cette tâche (qui n'est pas celle en mémoire). */
 				for (k = 0; k < STARPU_TASK_GET_NBUFFERS(t2->pointer_to_T); k++)
-				{
-					/* TODO a suppr */
-					#ifdef PRINT
-					nb_data_looked_at++;
-					#endif	
-						
+				{						
 					hud_last_check = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data;
 					/* Ici il faudrait ne pas regarder 2 fois la même donnée si possible. Ca peut arriver oui. */
 					if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[i] && hud_last_check->last_check_to_choose_from[current_gpu - 1] != g->number_data_selection)
-					{	
+					{
+						/* TODO a suppr */
+						#ifdef PRINT
+						nb_data_looked_at++;
+						#endif	
+						
 						/* Mise à jour de l'itération pour la donnée pour ne pas la regarder deux fois à cette itération. */
 						hud_last_check->last_check_to_choose_from[current_gpu - 1] = g->number_data_selection;
 						STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->user_data = hud_last_check;
@@ -2327,7 +2323,11 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     /* Je ne le fais pas dans le cas ou on choisis depuis la mémoire ou ailleurs */
     if (choose_best_data_from == 0)
     {
-		push_data_not_used_yet_random_spot(returned_handle, my_planned_task_control->pointer);
+		/* Si une donnée n'a plus rien à faire je ne la remet pas dans la liste des donnée parmi lesquelles choisir. */
+		if (!task_using_data_list_empty(returned_handle->sched_data))
+		{
+			push_data_not_used_yet_random_spot(returned_handle, my_planned_task_control->pointer);
+		}
 	}
 	
     //~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return %p in victim selector.\n", returned_handle); }
