@@ -786,17 +786,29 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		if (natural_order == 0)
 		{
 			randomize_task_list(data);
-			randomize_data_not_used_yet();
+			
+			if (choose_best_data_from != 1)
+			{
+				randomize_data_not_used_yet();
+			}	
 		}
 		else if (natural_order == 1) /* Randomise pas les liste de données. */
 		{
 			randomize_task_list(data);
-			natural_order_data_not_used_yet();
+			
+			if (choose_best_data_from != 1)
+			{
+				natural_order_data_not_used_yet();
+			}
 		}
 		else /* Randomise rien du tout, NATURAL_ORDER == 2. */
 		{
 			natural_order_task_list(data);
-			natural_order_data_not_used_yet();
+			
+			if (choose_best_data_from != 1)
+			{
+				natural_order_data_not_used_yet();
+			}
 		}
 
 		//~ if (data_order == 0)
@@ -2140,16 +2152,20 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		number_random_selection++;
 		#endif
 		
-		struct starpu_task *task = starpu_task_list_pop_front(main_task_list);		
-		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-		{
-			if (!gpu_data_not_used_list_empty(g->gpu_data))
+		struct starpu_task *task = starpu_task_list_pop_front(main_task_list);	
+		
+		if (choose_best_data_from == 0)
+		{	
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
-				for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
+				if (!gpu_data_not_used_list_empty(g->gpu_data))
 				{
-					if(e->D == STARPU_TASK_GET_HANDLE(task, i))
+					for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
 					{
-						gpu_data_not_used_list_erase(g->gpu_data, e);
+						if(e->D == STARPU_TASK_GET_HANDLE(task, i))
+						{
+							gpu_data_not_used_list_erase(g->gpu_data, e);
+						}
 					}
 				}
 			}
