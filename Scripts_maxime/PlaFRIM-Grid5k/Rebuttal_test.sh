@@ -4,18 +4,20 @@
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Cholesky 2
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Sparse 1
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 8 Sparse 2
+#	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Sparse_mem_infinite 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 8 Sparse_mem_infinite 2
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
 NGPU=$3
 START_X=0  
 F=Output_maxime/GFlops_raw_out_1.txt
-#~ truncate -s 0 ${F}
+truncate -s 0 ${F}
 # ulimit -S -s 5000000
 CM=500
 TH=10
 CP=5
-NITER=3
+NITER=11
 ECHELLE_X=$((5*NGPU))
 NB_ALGO_TESTE=21
 #~ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
@@ -39,6 +41,13 @@ fi
 if [ $DOSSIER = "Sparse" ]
 then
 	SPARSE=2
+	ECHELLE_X=$((50*NGPU))
+fi
+if [ $DOSSIER = "Sparse_mem_infinite" ]
+then
+	SPARSE=2
+	ECHELLE_X=$((50*NGPU))
+	CM=0
 fi
 
 if [ $DOSSIER = "Matrice3D" ]
@@ -121,7 +130,6 @@ then
 		N=$((START_X+i*ECHELLE_X))
 		STARPU_SCHED_READY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=2 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${F}
 	done
-
 	echo "############## DARTS 3D ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 		do 
@@ -185,85 +193,84 @@ then
 fi
 if [ $DOSSIER = "Cholesky" ]
 then
-	#~ echo "############## Modular eager prefetching ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED=modular-eager-prefetching SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
-	#~ echo "############## Dmdar ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED=dmdar SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
+	echo "############## Modular eager prefetching ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED=modular-eager-prefetching SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
+	echo "############## Dmdar ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED=dmdar SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
 
-	#~ # if [ $NGPU != 1 ]
-	#~ # then
-		#~ # echo "############## HMETIS_N=$((N)) HMETIS + TASK STEALING ##############"
-		#~ # for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			#~ # do 
-			#~ # N=$((START_X+i*ECHELLE_X))
-			#~ # echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
-			#~ # STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-		#~ # done
-	#~ # fi
+	# if [ $NGPU != 1 ]
+	# then
+		# echo "############## HMETIS_N=$((N)) HMETIS + TASK STEALING ##############"
+		# for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			# do 
+			# N=$((START_X+i*ECHELLE_X))
+			# echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
+			# STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+		# done
+	# fi
 
-	#~ echo "############## DARTS ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=0 THRESHOLD=0 APP=0 CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
-	#~ echo "############## DARTS + LUF ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=0 APP=0 CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
-	#~ echo "############## DARTS + LUF + R ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED_READY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=0 APP=0 CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
-	#~ echo "############## DARTS + LUF + THRESHOLD 2 ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
-	#~ echo "############## DARTS + LUF + THRESHOLD 2 + FROMMEM ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
-	#~ echo "############## DARTS + LUF + THRESHOLD 2 + FROMMEM + SIMMEM ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
-	#~ echo "############## DARTS + LUF + THRESHOLD 2 + FROMMEM + SIMMEM + NATURAL ORDER 1 ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=1 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
-	#~ echo "############## DARTS + LUF + THRESHOLD 2 + FROMMEM + SIMMEM + NATURAL ORDER 2 ##############"
-	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		#~ do 
-		#~ N=$((START_X+i*ECHELLE_X))
-		#~ STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=2 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
-	#~ done
+	echo "############## DARTS ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=0 THRESHOLD=0 APP=0 CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
+	echo "############## DARTS + LUF ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=0 APP=0 CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
+	echo "############## DARTS + LUF + R ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED_READY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=0 APP=0 CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
+	echo "############## DARTS + LUF + THRESHOLD 2 ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
+	echo "############## DARTS + LUF + THRESHOLD 2 + FROMMEM ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=0 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
+	echo "############## DARTS + LUF + THRESHOLD 2 + FROMMEM + SIMMEM ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
+	echo "############## DARTS + LUF + THRESHOLD 2 + FROMMEM + SIMMEM + NATURAL ORDER 1 ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=1 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
+	echo "############## DARTS + LUF + THRESHOLD 2 + FROMMEM + SIMMEM + NATURAL ORDER 2 ##############"
+	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		do 
+		N=$((START_X+i*ECHELLE_X))
+		STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=2 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
+	done
 	echo "############## DARTS + LUF + THRESHOLD 2 + FROMMEM + SIMMEM + NATURAL ORDER 2 + R ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 		do 
 		N=$((START_X+i*ECHELLE_X))
 		STARPU_SCHED_READY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=2 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
 	done
-
 	echo "############## DARTS 3D ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 		do 
@@ -325,7 +332,7 @@ then
 		STARPU_SCHED_READY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=1 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=2 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
 	done
 fi
-if [ $DOSSIER = "Sparse" ]
+if [ $DOSSIER = "Sparse" ] || [ $DOSSIER = "Sparse_mem_infinite" ]
 then
 	echo "############## Modular eager prefetching ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -340,16 +347,16 @@ then
 		SPARSE_MATRIX=$((SPARSE)) STARPU_SCHED=dmdar SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${F}
 	done
 
-	#~ if [ $NGPU != 1 ]
-	#~ then
-		#~ echo "############## HMETIS_N=$((N)) HMETIS + TASK STEALING ##############"
-		#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-			#~ do 
-			#~ N=$((START_X+i*ECHELLE_X))
-			#~ echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
-			#~ SPARSE_MATRIX=$((SPARSE)) STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${F}
-		#~ done
-	#~ fi
+	# if [ $NGPU != 1 ]
+	# then
+		# echo "############## HMETIS_N=$((N)) HMETIS + TASK STEALING ##############"
+		# for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+			# do 
+			# N=$((START_X+i*ECHELLE_X))
+			# echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
+			# SPARSE_MATRIX=$((SPARSE)) STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${F}
+		# done
+	# fi
 
 	echo "############## DARTS ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -405,7 +412,6 @@ then
 		N=$((START_X+i*ECHELLE_X))
 		STARPU_SCHED_READY=1 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=0 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=2 SPARSE_MATRIX=$((SPARSE)) STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${F}
 	done
-
 	echo "############## DARTS 3D ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 		do 

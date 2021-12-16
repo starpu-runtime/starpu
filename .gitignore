@@ -713,6 +713,8 @@ Output_maxime/*.csv
 Output_maxime/Data/Matrice_ligne/
 Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt
 Output_maxime/Data/Matrice3D/
+Output_maxime/HMETIS_parameters.txt
+cut_gflops_raw_out_csv
 Output_maxime/DARTS_time_no_threshold.txt
 Output_maxime/Schedule_time_raw_out_temp.txt
 Output_maxime/test1.txt
