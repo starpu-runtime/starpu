@@ -11,7 +11,7 @@ NGPU=$3
 START_X=0  
 F=Output_maxime/GFlops_raw_out_1.txt
 #~ truncate -s 0 ${F}
-ulimit -S -s 5000000
+#~ ulimit -S -s 5000000
 CM=500
 TH=10
 CP=5
@@ -20,10 +20,10 @@ ECHELLE_X=$((5*NGPU))
 NB_ALGO_TESTE=21
 #~ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 #~ STARPU_HOSTNAME=gemini-1-fgcs
-if [ $NGPU != 1 ]
-then
-	NB_ALGO_TESTE=NB_ALGO_TESTE+1
-fi
+#~ if [ $NGPU != 1 ]
+#~ then
+	#~ NB_ALGO_TESTE=NB_ALGO_TESTE+1
+#~ fi
 if [ $DOSSIER = "Matrice_ligne" ]
 then
 	HMETIS_APPLI=3
@@ -170,12 +170,12 @@ then
 		#~ N=$((START_X+i*ECHELLE_X))
 		#~ STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=1 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=0 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${F}
 	#~ done
-	echo "############## DARTS 3D + LUF + THRESHOLD 2 + FROMMEM + SIMMEM + NATURAL ORDER 2 ##############"
-	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		do 
-		N=$((START_X+i*ECHELLE_X))
-		STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=1 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=2 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${F}
-	done
+	#~ echo "############## DARTS 3D + LUF + THRESHOLD 2 + FROMMEM + SIMMEM + NATURAL ORDER 2 ##############"
+	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		#~ do 
+		#~ N=$((START_X+i*ECHELLE_X))
+		#~ STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 THRESHOLD=2 APP=1 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 NATURAL_ORDER=2 STARPU_SCHED=dynamic-data-aware SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${F}
+	#~ done
 	echo "############## DARTS 3D + LUF + THRESHOLD 2 + FROMMEM + SIMMEM + NATURAL ORDER 2 + R ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 		do 
