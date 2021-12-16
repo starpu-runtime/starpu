@@ -38,7 +38,7 @@ bool gpu_memory_initialized;
 bool new_tasks_initialized;
 struct gpu_planned_task_control *my_planned_task_control;
 struct gpu_pulled_task_control *my_pulled_task_control;
-int number_task_out_DARTS; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
+int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 int NT_dynamic_outer;
 int iteration_DARTS;
 
@@ -370,7 +370,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     }
     
     /* Matrice 3D des coords pour ordre Z. */
-    /* TODO si je peux le fusionner avec la boulce sur NBUFFERS ci-dessus. */
     /* A modif peut etre la condition. */
     /* Pourquoi je m'embete ? l'ordre naturel peut permettre de faire ca sans check les coord nan ? SUffit de connaitre N ? */
 	//~ if (app == 1)
@@ -1448,7 +1447,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	printf("Il y a %d données parmi lesquelles choisir.\n", gpu_data_not_used_list_size(g->gpu_data));
 	#endif
 	
-	/* TODO : a suppr, compteur pour savoir la combientième donnée a été choisis */
 	#ifdef PRINT
 	int data_choosen_index = 0;
 	FILE *f = NULL;
@@ -1554,7 +1552,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			temp_number_free_task_max = 0;
 			temp_number_1_from_free_task_max = 0;
 			
-			/* TODO a suppr */
 			#ifdef PRINT
 			nb_data_looked_at++;
 			#endif
@@ -1596,6 +1593,15 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					if (data_not_available == 0)
 					{
 						temp_number_free_task_max++;
+						
+						/* Version où je m'arrête dès que j'ai une tâche gratuite.
+						 * Nouvelle place du threshold == 2. */
+						if (threshold == 2)
+						{
+							handle_popped = e->D;
+							number_free_task_max = temp_number_free_task_max;
+							goto end_choose_best_data;
+						}
 					}
 					else if (data_not_available == 1)
 					{
@@ -1612,11 +1618,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					data_choosen_index = i + 1;
 					#endif
 									
-					/* Version où je m'arrête dès que j'ai une tâche gratuite. */
-					if (threshold == 2)
-					{
-						goto end_choose_best_data;
-					}
+					//~ /* Version où je m'arrête dès que j'ai une tâche gratuite. */
+					//~ if (threshold == 2)
+					//~ {
+						//~ goto end_choose_best_data;
+					//~ }
 				}
 				else if (temp_number_1_from_free_task_max > number_1_from_free_task_max)
 				{
@@ -1695,6 +1701,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					if (data_available == true)
 					{
 						temp_number_free_task_max++;
+						/* Version où je m'arrête dès que j'ai une tâche gratuite.
+						 * Nouvelle place du threshold == 2. */
+						if (threshold == 2)
+						{
+							handle_popped = e->D;
+							number_free_task_max = temp_number_free_task_max;
+							goto end_choose_best_data;
+						}
 					}
 				}
 			
@@ -1708,11 +1722,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					data_choosen_index = i + 1;
 					#endif
 					
-					/* Version où je m'arrête dès que j'ai une tâche gratuite. */
-					if (threshold == 2)
-					{
-						goto end_choose_best_data;
-					}
+					//~ /* Version où je m'arrête dès que j'ai une tâche gratuite. */
+					//~ if (threshold == 2)
+					//~ {
+						//~ goto end_choose_best_data;
+					//~ }
 				}
 				/* Si il y a égalité je pop celle qui peut faire le plus de tâches globalement. Attention içi ce n'est pas adapté au 3D
 				 * car tu pourrais avoir des tâches qui amène plus de tache a 1 seule donnée d'être free*/
@@ -1731,13 +1745,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				}
 			}
 		}
-		
-		//~ /* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
-		//~ #ifdef PRINT
-		//~ fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index);
-		//~ fclose(f);
-		//~ printf("nb data looked at = %d.\n", nb_data_looked_at);
-		//~ #endif
 	}
 	else if (choose_best_data_from == 1) /* Le cas où je regarde uniquement les données (pas encore en mémoire) des tâches des données en mémoire. */
 	{
@@ -1747,7 +1754,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Attention ici c'est utile ne pas le metre entre des ifdef!!!! */
 		g->number_data_selection++;
 		
-		/* TODO : A COP COLL DANS 2D SI CA MARCHE BIEN ATTENTION AU WHILE BLOQUANT QUAND ON FAIS LE ERASE PLUS BAS */
 		starpu_data_handle_t *data_on_node;
 		unsigned nb_data_on_node = 0;
 		int *valid;
@@ -1769,7 +1775,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					/* Ici il faudrait ne pas regarder 2 fois la même donnée si possible. Ca peut arriver oui. */
 					if (STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k) != data_on_node[i] && hud_last_check->last_check_to_choose_from[current_gpu - 1] != g->number_data_selection)
 					{
-						/* TODO a suppr */
 						#ifdef PRINT
 						nb_data_looked_at++;
 						#endif	
@@ -1783,40 +1788,49 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				
 						if (number_free_task_max == 0 && app != 0)
 						{
-								/* Je regarde le nombre de free ou 1 from free tâche de cette donnée. */
-								for (t = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = task_using_data_list_next(t))
+							/* Je regarde le nombre de free ou 1 from free tâche de cette donnée. */
+							for (t = task_using_data_list_begin(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t != task_using_data_list_end(STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k)->sched_data); t = task_using_data_list_next(t))
+							{
+								data_not_available = 0; 
+								for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
 								{
-									data_not_available = 0; 
-									for (j = 0; j < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); j++)
+									if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k))
 									{
-										if (STARPU_TASK_GET_HANDLE(t->pointer_to_T, j) != STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k))
+										if (simulate_memory == 0)
 										{
-											if (simulate_memory == 0)
+											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 											{
-												if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
-												{
-													data_not_available++;
-												}
+												data_not_available++;
 											}
-											else if (simulate_memory == 1)
+										}
+										else if (simulate_memory == 1)
+										{
+											hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
+											if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 											{
-												hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
-												if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
-												{
-													data_not_available++;
-												}
+												data_not_available++;
 											}
 										}
 									}
-									if (data_not_available == 0)
-									{
-										temp_number_free_task_max++;
-									}
-									else if (data_not_available == 1)
-									{
-										temp_number_1_from_free_task_max++;
-									}
 								}
+								if (data_not_available == 0)
+								{
+									temp_number_free_task_max++;
+									
+									/* Version où je m'arrête dès que j'ai une tâche gratuite.
+									 * Nouvelle place du threshold == 2. */
+									if (threshold == 2)
+									{
+										number_free_task_max = temp_number_free_task_max;
+										handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+										goto end_choose_best_data;
+									}	
+								}
+								else if (data_not_available == 1)
+								{
+									temp_number_1_from_free_task_max++;
+								}
+							}
 							if (temp_number_free_task_max > 0)
 							{
 								number_free_task_max = temp_number_free_task_max;
@@ -1827,11 +1841,12 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								data_choosen_index = nb_data_looked_at;
 								#endif
 								
-								/* Version où je m'arrête dès que j'ai une tâche gratuite. */
-								if (threshold == 2)
-								{
-									goto end_choose_best_data;
-								}			
+								//~ /* Anciene place du threshold==2 */
+								//~ if (threshold == 2)
+								//~ {
+									//~ printf("ancien go to de th==2 %p.\n", STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k));
+									//~ goto end_choose_best_data;
+								//~ }			
 							}
 							else if (temp_number_1_from_free_task_max > number_1_from_free_task_max)
 							{
@@ -1890,6 +1905,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								if (data_available == true)
 								{
 									temp_number_free_task_max++;
+										/* Version où je m'arrête dès que j'ai une tâche gratuite.
+										 * Nouvelle place du threshold == 2. */
+										if (threshold == 2)
+										{
+											handle_popped = STARPU_TASK_GET_HANDLE(t2->pointer_to_T, k);
+											number_free_task_max = temp_number_free_task_max;
+											goto end_choose_best_data;
+										}
 								}
 							}
 							if (temp_number_free_task_max > number_free_task_max)
@@ -1902,11 +1925,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 								data_choosen_index = nb_data_looked_at;
 								#endif
 								
-								/* Version où je m'arrête dès que j'ai une tâche gratuite. */
-								if (threshold == 2)
-								{
-									goto end_choose_best_data;
-								}
+								//~ /* Version où je m'arrête dès que j'ai une tâche gratuite. */
+								//~ if (threshold == 2)
+								//~ {
+									//~ goto end_choose_best_data;
+								//~ }
 							}
 							else if (temp_number_free_task_max == number_free_task_max && number_free_task_max != 0)
 							{
@@ -1933,7 +1956,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	
 	end_choose_best_data : ;
 	
-	/* TODO : a suppr, mesure du nombre de données parcouru/choisis. */
 	#ifdef PRINT
 	fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index);
 	fclose(f);
@@ -2091,7 +2113,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				{
 					if (simulate_memory == 0)
 					{
-						/* Ancien */
 						if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 						{
 							data_not_available++;
@@ -2099,7 +2120,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					}
 					else if (simulate_memory == 1)
 					{
-						/* Nouveau */
 						hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
 						if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 						{
@@ -2211,7 +2231,7 @@ void increment_planned_task_data(struct starpu_task *task, int current_gpu)
  * été évincé. Il faut donc mettre à jour les listes dans les tâches et les données en conséquence.
  * Cependant si on est sur la fin de l'éxécution et que les éviction sont juste la pour vider la mémoire ce n'est pas
  * nécessaire. En réalité pour le moment je ne me rend pas compte qu'on est a la fin de l'exec. 
- * TODO : se rendre compte qu'on est a la fin et arreter de mettre à jour les listes du coup.
+ * TODO : se rendre compte qu'on est a la fin et arreter de mettre à jour les listes du coup ?
  * Du coup je ne sais pas si c'est utile, à vérifier.
  */
  /* starpu_data_handle_t planned_eviction; */
@@ -2875,7 +2895,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	natural_order = starpu_get_env_number_default("NATURAL_ORDER", 0);
 	//~ erase_data_strategy = starpu_get_env_number_default("ERASE_DATA_STRATEGY", 0);
 
-	/* TODO : a suppr */
 	#ifdef PRINT
 	FILE *f = NULL;
 	f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "w");
@@ -3037,7 +3056,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		reset_all_struct();
 		need_to_reinit = true;
 		
-		/* TODO : a suppr car inutile si on ne veut pas mesurer le temps */
 		#ifdef PRINT
 		if ((iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) //PRINT_TIME = 2 pour quand on a 1 seule itération
 		{
