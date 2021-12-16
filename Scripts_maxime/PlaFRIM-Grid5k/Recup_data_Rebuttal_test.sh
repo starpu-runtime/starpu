@@ -33,11 +33,15 @@ fi
 
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_GF} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF}
 
-#~ # Tracage des GFlops
+# Tracage des GFlops
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
 gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c
 ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_test_${GPU}_${NGPU}GPU.txt
 ./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_test_${GPU}_${NGPU}GPU.csv
+# Plot FULL
 python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_test_${GPU}_${NGPU}GPU.csv
-mv ${PATH_STARPU}/starpu/plot.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_test_${GPU}_${NGPU}GPU.pdf
+mv ${PATH_STARPU}/starpu/plot.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_test_${GPU}_${NGPU}GPU_FULL.pdf
 
+# Plot Short
+python3 /home/gonthier/these_gonthier_maxime/Code/Plot_shorten.py ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_test_${GPU}_${NGPU}GPU.csv
+mv ${PATH_STARPU}/starpu/plot.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_test_${GPU}_${NGPU}GPU.pdf
