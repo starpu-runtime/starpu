@@ -33,13 +33,13 @@ NGPU=2
 #~ NGPU=3
 #~ NGPU=4
 
-#~ ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
+ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 #~ ORDO="dmdar"
 #~ ORDO="modular-eager-prefetching"
 #~ ORDO="modular-heft"
 #~ ORDO="eager"
 #~ ORDO="cuthillmckee"
-ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
+#~ ORDO="HFP" # BELADY=$((BELADY)) ORDER_U=1
 
 CM=500
 #~ CM=0 # 0 = infinie
@@ -103,9 +103,15 @@ SPARSE=0
 #~ truncate -s 0 "Output_maxime/DARTS_data_choosen_stats_frommem.txt"
 #~ truncate -s 0 "Output_maxime/DARTS_data_choosen_stats_frommem_simmem.txt"
 #~ A CORRIGER pour from mem on lis pas autant!!
+#~ N=5
+#~ CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=0 APP=1 STARPU_SCHED=dynamic-data-aware STARPU_HOSTNAME=${HOST} STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 11
 
-N=3
-STARPU_GENERATE_TRACE=0 PRINT_IN_TERMINAL=$((PRINTF)) STARPU_HOSTNAME=${HOST} APP=$((APP3D)) STARPU_SCHED=dynamic-data-aware SEED=1 STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_BUS_STATS=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
+N=20
+STARPU_GENERATE_TRACE=0 NATURAL_ORDER=0 THRESHOLD=0 CHOOSE_BEST_DATA_FROM=1 STARPU_HOSTNAME=${HOST} APP=$((APP3D)) STARPU_SCHED=dynamic-data-aware SEED=1 STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 2
+
+#~ python3 /home/gonthier/these_gonthier_maxime/Code/Barplot_DARTS.py Output_maxime/DARTS_data_choosen_stats.csv
+#~ mv Output_maxime/DARTS_data_choosen_stats.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/${DOSSIER}/DARTS_data_choosen_stats_N${N}_SIMMEM${SIMMEM}_FROMMEM${FROMMEM}.csv
+#~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/${DOSSIER}/DARTS_data_choosen_stats_N${N}_SIMMEM${SIMMEM}_FROMMEM${FROMMEM}.pdf
 
 		    #~ echo "############## HMETIS + TASK STEALING ##############"
 		    #~ for ((i=3 ; i<=6; i++))
@@ -134,4 +140,4 @@ runtime=$((end-start))
 echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
 
 # Pour tester sur Grid5k		    		    
-# N=15 ; STARPU_SCHED=dynamic-data-aware SEED=1 STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=1 STARPU_NOPENCL=0 STARPU_BUS_STATS=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 2
+# N=30 ; STARPU_SCHED=dynamic-data-aware SEED=1 CHOOSE_BEST_DATA_FROM=1 APP=1 STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=2 STARPU_NOPENCL=0 STARPU_BUS_STATS=1 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 2

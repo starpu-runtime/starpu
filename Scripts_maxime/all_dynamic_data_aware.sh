@@ -21,10 +21,10 @@ make -j 6
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 1
 #~ echo "M3D 2 GPU"
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 4 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 2
-#~ echo "CHO 1 GPU"
-#~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 1
-#~ echo "CHO 2 GPU"
-#~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 2
+echo "CHO 1 GPU"
+bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 1
+echo "CHO 2 GPU"
+bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 2
 
 #~ echo "NO MEM LIMIT"
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit gemini-1-fgcs 1
@@ -33,10 +33,10 @@ make -j 6
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 1
 #~ echo "M2D 2 GPU SPARSE NO MEM LIMIT"
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 4 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 2
-echo "M3D 1 GPU SPARSE NO MEM LIMIT"
-bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 6 Matrice3D dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 1
-echo "M3D 2 GPU SPARSE NO MEM LIMIT"
-bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice3D dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 2
+#~ echo "M3D 1 GPU SPARSE NO MEM LIMIT"
+#~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice3D dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 1
+#~ echo "M3D 2 GPU SPARSE NO MEM LIMIT"
+#~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 3 Matrice3D dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 2
 
 end=`date +%s`
 runtime=$((end-start))

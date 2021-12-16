@@ -1914,7 +1914,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				}
 			}
 		}
-	}
+	}	
 	//~ #ifdef PRINT
 	//~ printf("best data is = %p %d free tasks and/or %d 1 from free tasks.\n", handle_popped, number_free_task_max, number_1_from_free_task_max);   
 	//~ #endif

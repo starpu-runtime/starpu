@@ -27,7 +27,7 @@ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_2GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_CHO_2GPU.txt
 
 echo "Matrice 2D Sparse 1 GPU NO MEM LIMIT"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 15 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix 1
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 10 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix 1
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M2D_SPARSE_1GPU.txt
 mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_M2D_SPARSE_1GPU.txt
 echo "Matrice 2D Sparse 2 GPU"

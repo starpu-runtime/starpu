@@ -58,7 +58,7 @@ fi
 TH=10
 CP=5
 
-NITER=2
+NITER=11
 
 NCOMBINAISONS=4
 if [ NGPU != 1 ]
@@ -218,6 +218,7 @@ then
 		if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]]
 		then
 			ECHELLE_X=$((50*NGPU))
+			NITER=2
 		fi
 		NB_ALGO_TESTE=8
 		if [ $NGPU != 1 ]
@@ -489,9 +490,11 @@ then
 	if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]] || [[ $MODEL = "dynamic_data_aware_no_hfp" ]]
 	then
 		ECHELLE_X=$((5*NGPU))
+		NITER=11
 		if [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]]
 		then
 			ECHELLE_X=$((50*NGPU))
+			NITER=2
 		fi
 		if [ $NGPU = 1 ]
 		then
@@ -665,7 +668,7 @@ then
 fi
 if [ $DOSSIER = "Cholesky" ]
 then
-	NITER=1
+	NITER=11
 	if [[ $MODEL = "dynamic_data_aware_no_hfp" ]] || [[ $MODEL = "dynamic_data_aware_no_hfp_sparse_matrix" ]]
 	then
 		ECHELLE_X=$((5*NGPU))
