@@ -404,7 +404,7 @@ $ gv starpu_starpu_slu_lu_model_11.eps
 \endverbatim
 
 \image html starpu_starpu_slu_lu_model_11.png
-\image latex starpu_starpu_slu_lu_model_11.eps "" width=\textwidth
+\image latex starpu_starpu_slu_lu_model_11.png "" width=\textwidth
 
 If a kernel source code was modified (e.g. performance improvement), the
 calibration information is stale and should be dropped, to re-calibrate from

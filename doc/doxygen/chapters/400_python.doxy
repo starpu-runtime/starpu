@@ -433,7 +433,7 @@ starpu.perfmodel_plot(perfmodel="log_list")
 The performance curve of this example is shown as:
 
 \image html starpu_log_list.png
-\image latex starpu_log_list.eps "" width=\textwidth
+\image latex starpu_log_list.png "" width=\textwidth
 
 If we pass a Numpy array as input, the calculation can withstand larger size. In this example we try to set the size of array from 10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 2000, ..., 100000,200000, ..., 1000000, 2000000, until to 10000000, 20000000, ..., 90000000.
 
@@ -458,6 +458,6 @@ starpu.perfmodel_plot(perfmodel="log_arr")
 And the performance curve of this example is shown as:
 
 \image html starpu_log_arr.png
-\image latex starpu_log_arr.eps "" width=\textwidth
+\image latex starpu_log_arr.png "" width=\textwidth
 
 */

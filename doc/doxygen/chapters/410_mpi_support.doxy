@@ -1033,10 +1033,10 @@ Here an example of such a trace.
 
 These statistics can be plotted as heatmaps using StarPU tool <c>starpu_mpi_comm_matrix.py</c>, this will produce 2 PDF files, one plot for the bandwidth, and one plot for the data volume.
 
-\image latex trace_bw_heatmap.pdf "Bandwidth Heatmap" width=0.5\textwidth
+\image latex trace_bw_heatmap.png "Bandwidth Heatmap" width=0.5\textwidth
 \image html trace_bw_heatmap.png "Bandwidth Heatmap"
 
-\image latex trace_volume_heatmap.pdf "Data Volume Heatmap" width=0.5\textwidth
+\image latex trace_volume_heatmap.png "Data Volume Heatmap" width=0.5\textwidth
 \image html trace_volume_heatmap.png "Data Bandwidth Heatmap"
 
 \section MPIExamples More MPI examples

@@ -291,10 +291,10 @@ between the reception of data and their usage by a task and the second one plots
 same graph but with elapsed time between send and usage of a data by the sender.
 
 \image html trace_recv_use.png
-\image latex trace_recv_use.eps "" width=\textwidth
+\image latex trace_recv_use.png "" width=\textwidth
 
 \image html trace_send_use.png
-\image latex trace_send_use.eps "" width=\textwidth
+\image latex trace_send_use.png "" width=\textwidth
 
 
 \subsubsection NumberEvents Number of events in trace files
@@ -435,11 +435,11 @@ run with the tool <c>gnuplot</c>, which shows the corresponding curve.
 \verbatim
 $ tools/starpu_perfmodel_plot -s non_linear_memset_regression_based
 $ gnuplot starpu_non_linear_memset_regression_based.gp
-$ gv starpu_non_linear_memset_regression_based.eps
+$ gv starpu_non_linear_memset_regression_based.png
 \endverbatim
 
 \image html starpu_non_linear_memset_regression_based.png
-\image latex starpu_non_linear_memset_regression_based.eps "" width=\textwidth
+\image latex starpu_non_linear_memset_regression_based.png "" width=\textwidth
 
 When the field starpu_task::flops is set (or \ref STARPU_FLOPS is passed to
 starpu_task_insert()), <c>starpu_perfmodel_plot</c> can directly draw a GFlops/s
@@ -453,7 +453,7 @@ This will however disable displaying the regression model, for which we can not
 compute GFlops/s.
 
 \image html starpu_chol_model_11_type.png
-\image latex starpu_chol_model_11_type.eps "" width=\textwidth
+\image latex starpu_chol_model_11_type.png "" width=\textwidth
 
 When the FxT trace file <c>prof_file_something</c> has been generated, it is possible to
 get a profiling of each codelet by calling:
@@ -468,7 +468,7 @@ directory, which draws the distribution of codelet time over the application
 execution, according to data input size.
 
 \image html distrib_data.png
-\image latex distrib_data.eps "" width=\textwidth
+\image latex distrib_data.png "" width=\textwidth
 
 This is also available in the tool <c>starpu_perfmodel_plot</c>, by passing it
 the fxt trace:
@@ -481,7 +481,7 @@ It will produce a <c>.gp</c> file which contains both the performance model
 curves, and the profiling measurements.
 
 \image html starpu_non_linear_memset_regression_based_2.png
-\image latex starpu_non_linear_memset_regression_based_2.eps "" width=\textwidth
+\image latex starpu_non_linear_memset_regression_based_2.png "" width=\textwidth
 
 If you have the statistical tool <c>R</c> installed, you can additionally use
 
@@ -493,7 +493,7 @@ Which will create one <c>.pdf</c> file per codelet and per input size, showing a
 histogram of the codelet execution time distribution.
 
 \image html distrib_data_histo.png
-\image latex distrib_data_histo.eps "" width=\textwidth
+\image latex distrib_data_histo.png "" width=\textwidth
 
 \section EnergyOfCodelets Energy Of Codelets
 
@@ -512,22 +512,22 @@ proper unit in the graph:
 \verbatim
 $ tools/starpu_perfmodel_plot -e -s non_linear_memset_regression_based_energy
 $ gnuplot starpu_non_linear_memset_regression_based_energy.gp
-$ gv starpu_non_linear_memset_regression_based_energy.eps
+$ gv starpu_non_linear_memset_regression_based_energy.png
 \endverbatim
 
 \image html starpu_non_linear_memset_regression_based_energy.png
-\image latex starpu_non_linear_memset_regression_based_energy.eps "" width=\textwidth
+\image latex starpu_non_linear_memset_regression_based_energy.png "" width=\textwidth
 
 The <c>-f</c> option can also be used to display the performance in terms of GFlops/s/W, i.e. the efficiency:
 
 \verbatim
 $ tools/starpu_perfmodel_plot -f -e -s non_linear_memset_regression_based_energy
 $ gnuplot starpu_gflops_non_linear_memset_regression_based_energy.gp
-$ gv starpu_gflops_non_linear_memset_regression_based_energy.eps
+$ gv starpu_gflops_non_linear_memset_regression_based_energy.png
 \endverbatim
 
 \image html starpu_gflops_non_linear_memset_regression_based_energy.png
-\image latex starpu_gflops_non_linear_memset_regression_based_energy.eps "" width=\textwidth
+\image latex starpu_gflops_non_linear_memset_regression_based_energy.png "" width=\textwidth
 
 We clearly see here that it is much more energy-efficient to stay in the L3 cache.
 
@@ -540,7 +540,7 @@ $ gv starpu_power_non_linear_memset_regression_based.eps
 \endverbatim
 
 \image html starpu_power_non_linear_memset_regression_based.png
-\image latex starpu_power_non_linear_memset_regression_based.eps "" width=\textwidth
+\image latex starpu_power_non_linear_memset_regression_based.png "" width=\textwidth
 
 \section DataTrace Data trace and tasks length
 
@@ -555,7 +555,7 @@ can be executed to get a <c>.eps</c> image of these results. On the image, each 
 task, and each color corresponds to a codelet.
 
 \image html data_trace.png
-\image latex data_trace.eps "" width=\textwidth
+\image latex data_trace.png "" width=\textwidth
 
 \section TraceStatistics Trace Statistics
 
@@ -630,7 +630,7 @@ $ starpu_paje_draw_histogram -n chol_model_11,chol_model_21,chol_model_22 native
 and see the resulting pdf file:
 
 \image html paje_draw_histogram.png
-\image latex paje_draw_histogram.eps "" width=\textwidth
+\image latex paje_draw_histogram.png "" width=\textwidth
 
 A quick statistical report can be generated by using:
 
@@ -798,7 +798,7 @@ starvz /foo/path-to-fxt-files
 An example of default view:
 
 \image html starvz_visu.png
-\image latex starvz_visu.pdf "" width=\textwidth
+\image latex starvz_visu.png "" width=\textwidth
 
 One can also use existing trace files (paje.trace, tasks.rec,
 data.rec, papi.rec and dag.dot) skipping the StarVZ internal call to
@@ -843,7 +843,7 @@ plot <- starvz_plot(dtrace)
 An example of visualization follows:
 
 \image html starvz_visu_r.png
-\image latex starvz_visu_r.pdf "" width=\textwidth
+\image latex starvz_visu_r.png "" width=\textwidth
 
 \section EclipsePluginUsage StarPU Eclipse Plugin
 

@@ -37,7 +37,7 @@ txt_DATA = $(DOX_PDF)
 else
 all: $(DOX_HTML_DIR)
 EXTRA_DIST += $(DOX_HTML_DIR)
-endif
+endif # STARPU_BUILD_DOC_PDF
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
@@ -53,12 +53,12 @@ install-exec-hook:
 	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html \;)
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html
-endif
+endif # STARPU_AVAILABLE_DOC
 if STARPU_AVAILABLE_DOC_PDF
 EXTRA_DIST += $(top_srcdir)/doc/doxygen/starpu.pdf
 txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
-endif
-endif
+endif # STARPU_AVAILABLE_DOC_PDF
+endif # STARPU_BUILD_DOC
 
 chapters =	\
 	chapters/000_introduction.doxy		\
@@ -110,38 +110,16 @@ chapters =	\
 	chapters/api/threads.doxy
 
 images = 	\
-	chapters/images/data_trace.eps \
-	chapters/images/data_trace.pdf \
 	chapters/images/data_trace.png \
-	chapters/images/distrib_data.eps \
-	chapters/images/distrib_data.pdf \
 	chapters/images/distrib_data.png \
-	chapters/images/distrib_data_histo.eps \
-	chapters/images/distrib_data_histo.pdf \
 	chapters/images/distrib_data_histo.png \
-	chapters/images/paje_draw_histogram.eps \
-	chapters/images/paje_draw_histogram.pdf \
 	chapters/images/paje_draw_histogram.png \
-	chapters/images/parallel_worker2.eps \
-	chapters/images/parallel_worker2.pdf \
 	chapters/images/parallel_worker2.png \
-	chapters/images/runtime-par.eps \
-	chapters/images/runtime-par.pdf \
 	chapters/images/runtime-par.png \
-	chapters/images/starpu_non_linear_memset_regression_based.eps \
-	chapters/images/starpu_non_linear_memset_regression_based.pdf \
 	chapters/images/starpu_non_linear_memset_regression_based.png \
-	chapters/images/starpu_non_linear_memset_regression_based_2.eps \
-	chapters/images/starpu_non_linear_memset_regression_based_2.pdf \
 	chapters/images/starpu_non_linear_memset_regression_based_2.png \
-	chapters/images/starpu_starpu_slu_lu_model_11.eps \
-	chapters/images/starpu_starpu_slu_lu_model_11.pdf \
 	chapters/images/starpu_starpu_slu_lu_model_11.png \
-	chapters/images/starpu_chol_model_11_type.eps \
-	chapters/images/starpu_chol_model_11_type.pdf \
 	chapters/images/starpu_chol_model_11_type.png \
-	chapters/images/tasks_size_overhead.eps \
-	chapters/images/tasks_size_overhead.pdf \
 	chapters/images/tasks_size_overhead.png \
 	chapters/images/temanejo.png		\
 	chapters/images/eclipse_installer.png	\
@@ -154,7 +132,20 @@ images = 	\
 	chapters/images/eclipse_hello_svg_graph.png	\
 	chapters/images/eclipse_hello_plugin.png	\
 	chapters/images/eclipse_hello_paje_trace.png	\
-	chapters/images/eclipse_hello_hgraph.png
+	chapters/images/eclipse_hello_hgraph.png	\
+	chapters/images/eclipse_install_pde.png		\
+	chapters/images/starpu_gflops_non_linear_memset_regression_based_energy.png		\
+	chapters/images/starpu_log_arr.png		\
+	chapters/images/starpu_log_list.png		\
+	chapters/images/starpu_non_linear_memset_regression_based_energy.png		\
+	chapters/images/starpu_power_non_linear_memset_regression_based.png		\
+	chapters/images/starvz_visu.png		\
+	chapters/images/starvz_visu_r.png		\
+	chapters/images/trace_bw_heatmap.png		\
+	chapters/images/trace_recv_use.png		\
+	chapters/images/trace_send_use.png		\
+	chapters/images/trace_volume_heatmap.png
+
 
 if STARPU_BUILD_DOC
 EXTRA_DIST += \
@@ -286,7 +277,6 @@ $(DOX_HTML_DIR): $(DOX_TAG)
 $(DOX_PDF): $(DOX_TAG) refman.tex $(images)
 	$(MKDIR_P) $(DOX_LATEX_DIR)
 	@cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
-	@cp $(top_srcdir)/doc/doxygen/chapters/images/*pdf $(DOX_LATEX_DIR)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
 	@cd $(DOX_LATEX_DIR) ;\
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\

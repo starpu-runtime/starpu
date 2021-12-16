@@ -543,7 +543,7 @@ of the speedup of tasks of various sizes, depending on the number of CPUs being
 used.
 
 \image html tasks_size_overhead.png
-\image latex tasks_size_overhead.eps "" width=\textwidth
+\image latex tasks_size_overhead.png "" width=\textwidth
 
 \subsection DataTransferLatency Data Transfer Latency
 
