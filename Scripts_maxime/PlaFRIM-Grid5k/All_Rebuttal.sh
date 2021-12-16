@@ -47,22 +47,22 @@
 echo "Les variantes de Rebuttal_test.sh"
 
 echo "Matrice 3D 1 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Matrice3D dynamic_data_aware_no_hfp 1
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Matrice3D 1
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_1GPU_test.txt
 echo "Matrice 3D 2 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 8 Matrice3D dynamic_data_aware_no_hfp 2
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 8 Matrice3D 2
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_2GPU_test.txt
 
 echo "Cholesky 1 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Cholesky dynamic_data_aware_no_hfp 1
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Cholesky 1
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_1GPU_test.txt
 echo "Cholesky 2 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Cholesky dynamic_data_aware_no_hfp 2
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Cholesky 2
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_2GPU_test.txt
 
 echo "Sparse 1 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Sparse dynamic_data_aware_no_hfp 1
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Sparse 1
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_SPARSE_1GPU_test.txt
 echo "Sparse 2 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Sparse dynamic_data_aware_no_hfp 2
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Sparse 2
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_SPARSE_2GPU_test.txt
