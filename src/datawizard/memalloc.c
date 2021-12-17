@@ -443,7 +443,8 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 static void notify_handle_children(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node)
 {
 	unsigned child;
-
+	
+	printf("replicate->allocated = 0 dans notify_handle_children avec la donnée %p.\n", handle); fflush(stdout);
 	replicate->allocated = 0;
 
 	/* XXX why do we need that ? */
@@ -559,6 +560,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	{
 		_starpu_data_unregister_ram_pointer(old_replicate->handle, node);
 		old_replicate->mc = NULL;
+		printf("old_replicate->allocated = 0 dans reuse_mem_chunk.\n"); fflush(stdout);
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
 		old_replicate->initialized = 0;
@@ -1622,6 +1624,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	/* This memchunk doesn't have to do with the data any more. */
 	replicate->mc = NULL;
 	mc->replicate = NULL;
+	printf("replicate->allocated = 0 dans _starpu_request_mem_chunk_removal avec donnée %p.\n", handle); fflush(stdout);
 	replicate->allocated = 0;
 	replicate->automatically_allocated = 0;
 	replicate->initialized = 0;
