@@ -161,15 +161,28 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
 	else
 	{
-		/* Pour faire la moyenne sur 11 itération sans la première. */
-		if (current_iteration != 1)
+		if (niter > 1)
 		{
-			average_flop += flop/timing/1000.0f;
+			/* Pour faire la moyenne sur 11 itération sans la première. */
+			if (current_iteration != 1)
+			{
+				average_flop += flop/timing/1000.0f;
+			}
+			if (current_iteration == niter)
+			{
+				average_flop = average_flop/(niter - 1);
+			
+				PRINTF("# size\tms\tGFlops");
+				if (bound_p)
+					PRINTF("\tTms\tTGFlops");
+				PRINTF("\n");
+
+				PRINTF("%lu\t%.0f\t%.1f", nx, timing/1000, (flop/timing/1000.0f));
+				PRINTF("\n");
+			}
 		}
-		if (current_iteration == niter)
-		{
-			average_flop = average_flop/(niter - 1);
-		
+		else
+		{		
 			PRINTF("# size\tms\tGFlops");
 			if (bound_p)
 				PRINTF("\tTms\tTGFlops");
@@ -374,7 +387,7 @@ int main(int argc, char **argv)
 {
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
-	niter = 11;
+	niter = 1;
 	current_iteration = 1;
 	
 #ifdef STARPU_HAVE_MAGMA
