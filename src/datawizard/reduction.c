@@ -50,7 +50,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 
 void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid)
 {
-	printf("Dans _starpu_redux_init_data_replicate replicate->allocated == %d.\n", replicate->allocated); fflush(stdout);
+	printf("Dans _starpu_redux_init_data_replicate replicate->allocated == %d sur la data %p.\n", replicate->allocated, handle); fflush(stdout);
 	STARPU_ASSERT(replicate);
 	STARPU_ASSERT(replicate->allocated);
 
