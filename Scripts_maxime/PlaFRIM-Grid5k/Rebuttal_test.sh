@@ -17,7 +17,7 @@ truncate -s 0 ${F}
 CM=500
 TH=10
 CP=5
-NITER=11
+NITER=4
 ECHELLE_X=$((5*NGPU))
 NB_ALGO_TESTE=21
 #~ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
@@ -64,7 +64,6 @@ then
 		N=$((START_X+i*ECHELLE_X))
 		STARPU_SCHED=dmdar SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${F}
 	done
-
 	# if [ $NGPU != 1 ]
 	# then
 		# echo "############## HMETIS_N=$((N)) HMETIS + TASK STEALING ##############"
@@ -75,7 +74,6 @@ then
 			# STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${F}
 		# done
 	# fi
-
 	echo "############## DARTS ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 		do 
@@ -205,7 +203,6 @@ then
 		N=$((START_X+i*ECHELLE_X))
 		STARPU_SCHED=dmdar SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
 	done
-
 	# if [ $NGPU != 1 ]
 	# then
 		# echo "############## HMETIS_N=$((N)) HMETIS + TASK STEALING ##############"
@@ -216,7 +213,6 @@ then
 			# STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
 		# done
 	# fi
-
 	echo "############## DARTS ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 		do 
@@ -346,7 +342,6 @@ then
 		N=$((START_X+i*ECHELLE_X))
 		SPARSE_MATRIX=$((SPARSE)) STARPU_SCHED=dmdar SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${F}
 	done
-
 	# if [ $NGPU != 1 ]
 	# then
 		# echo "############## HMETIS_N=$((N)) HMETIS + TASK STEALING ##############"
@@ -357,7 +352,6 @@ then
 			# SPARSE_MATRIX=$((SPARSE)) STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${F}
 		# done
 	# fi
-
 	echo "############## DARTS ##############"
 	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 		do 

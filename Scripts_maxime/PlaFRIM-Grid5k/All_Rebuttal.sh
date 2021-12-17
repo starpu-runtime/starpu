@@ -53,18 +53,18 @@ echo "Les variantes de Rebuttal_test.sh"
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 8 Matrice3D 2
 #~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_2GPU_test.txt
 #~ echo "Matrice 3D 4 GPU"
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 8 Matrice3D 2
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 5 Matrice3D 4
 #~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_4GPU_test.txt
 
 #~ echo "Cholesky 1 GPU"
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Cholesky 1
 #~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_1GPU_test.txt
-#~ echo "Cholesky 2 GPU"
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Cholesky 2
-#~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_2GPU_test.txt
-#~ echo "Cholesky 4 GPU"
-#~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Cholesky 2
-#~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_4GPU_test.txt
+echo "Cholesky 2 GPU"
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Cholesky 2
+mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_2GPU_test.txt
+echo "Cholesky 4 GPU"
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 5 Cholesky 4
+mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_4GPU_test.txt
 
 #~ echo "Sparse 1 GPU"
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Sparse 1
@@ -73,7 +73,7 @@ echo "Sparse 2 GPU"
 bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Sparse 2
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_SPARSE_2GPU_test.txt
 echo "Sparse 4 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 4 Sparse 2
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 4 Sparse 4
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_SPARSE_4GPU_test.txt
 
 #~ echo "Sparse 1 GPU infinite"
@@ -83,5 +83,5 @@ echo "Sparse 2 GPU infinite"
 bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 8 Sparse_mem_infinite 2
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_SPARSE_INFINIE_2GPU_test.txt
 echo "Sparse 4 GPU infinite"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 4 Sparse_mem_infinite 2
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 4 Sparse_mem_infinite 4
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_SPARSE_INFINIE_4GPU_test.txt

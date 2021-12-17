@@ -21,10 +21,10 @@ make -j 6
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 1
 #~ echo "M3D 2 GPU"
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 4 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 2
-echo "CHO 1 GPU"
-bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 1
-echo "CHO 2 GPU"
-bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 2
+#~ echo "CHO 1 GPU"
+#~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 1
+#~ echo "CHO 2 GPU"
+#~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Cholesky dynamic_data_aware_no_hfp gemini-1-fgcs 2
 
 #~ echo "NO MEM LIMIT"
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 8 Matrice_ligne dynamic_data_aware_no_hfp_no_mem_limit gemini-1-fgcs 1
@@ -37,6 +37,25 @@ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_g
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice3D dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 1
 #~ echo "M3D 2 GPU SPARSE NO MEM LIMIT"
 #~ bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 3 Matrice3D dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 2
+
+echo "Rebuttal test"
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 10 Matrice3D 1
+#~ echo "M3D 2 GPUs"
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Matrice3D 2
+echo "M3D 4 GPUs"
+bash Scripts_maxime/Rebuttal_test_simulation.sh 5 Matrice3D 4
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Cholesky 1
+echo "CHO 2 GPUs"
+bash Scripts_maxime/Rebuttal_test_simulation.sh 7 Cholesky 2
+echo "CHO 4 GPUs"
+bash Scripts_maxime/Rebuttal_test_simulation.sh 7 Cholesky 4
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 10 Sparse 1
+bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse 2
+echo "SPARSE 4 GPUs"
+bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse 4
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 10 Sparse_mem_infinite 1
+bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse_mem_infinite 2
+bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse_mem_infinite 4
 
 end=`date +%s`
 runtime=$((end-start))
