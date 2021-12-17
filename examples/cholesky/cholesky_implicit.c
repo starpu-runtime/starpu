@@ -387,7 +387,7 @@ int main(int argc, char **argv)
 {
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
-	niter = 1;
+	niter = 11;
 	current_iteration = 1;
 	
 #ifdef STARPU_HAVE_MAGMA
