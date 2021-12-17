@@ -444,7 +444,7 @@ static void notify_handle_children(starpu_data_handle_t handle, struct _starpu_d
 {
 	unsigned child;
 	
-	printf("replicate->allocated = 0 dans notify_handle_children avec la donnée %p.\n", handle); fflush(stdout);
+	//~ printf("replicate->allocated = 0 dans notify_handle_children avec la donnée %p.\n", handle); fflush(stdout);
 	replicate->allocated = 0;
 
 	/* XXX why do we need that ? */
@@ -1624,7 +1624,7 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	/* This memchunk doesn't have to do with the data any more. */
 	replicate->mc = NULL;
 	mc->replicate = NULL;
-	printf("replicate->allocated = 0 dans _starpu_request_mem_chunk_removal avec donnée %p.\n", handle); fflush(stdout);
+	//~ printf("replicate->allocated = 0 dans _starpu_request_mem_chunk_removal avec donnée %p.\n", handle); fflush(stdout);
 	replicate->allocated = 0;
 	replicate->automatically_allocated = 0;
 	replicate->initialized = 0;
