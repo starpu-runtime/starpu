@@ -25,19 +25,23 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/starpurm/src/libstarpurm-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 LIBS += $(HWLOC_LIBS) $(DLB_LIBS)
 
-EXTRA_DIST	=				\
-	chameleon/dgemm.c			\
-	block_test/block_test.c			\
-	cuda_vector_scale/vector_scale.c	\
-	cuda_vector_scale/vs_cuda_kernel.cu
+noinst_PROGRAMS		=
+noinst_PROGRAMS += $(myPROGRAMS)
 
-examplebindir = $(libdir)/starpu/examples/starpurm
+check_PROGRAMS	=	$(myPROGRAMS)
 
-examplebin_PROGRAMS 	=	$(STARPU_EXAMPLES)
-TESTS			=	$(STARPU_EXAMPLES)
+TESTS = $(myPROGRAMS)
 
-STARPU_EXAMPLES	=	\
-	async_spawn	\
-	spawn		\
-	vector_scale
+myPROGRAMS =
+myPROGRAMS += 01_init_exit
+myPROGRAMS += 02_list_units
+myPROGRAMS += 03_cpusets
+myPROGRAMS += 04_drs_enable
 
+01_init_exit_SOURCES = 01_init_exit.c
+
+02_list_units_SOURCES = 02_list_units.c
+
+03_cpusets_SOURCES = 03_cpusets.c
+
+04_drs_enable_SOURCES = 04_drs_enable.c

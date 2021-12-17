@@ -3647,6 +3647,7 @@ AC_OUTPUT([
 	starpufft/starpufft-1.3.pc
 	starpurm/Makefile
 	starpurm/src/Makefile
+	starpurm/tests/Makefile
 	starpurm/examples/Makefile
 	starpurm/starpurm-1.3.pc
 	starpupy/src/setup.cfg
