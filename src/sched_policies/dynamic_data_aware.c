@@ -220,7 +220,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
 
 			need_to_reinit = false;
-	   }
+	}
      
     new_tasks_initialized = true; 
     struct dynamic_data_aware_sched_data *data = component->data;
@@ -1471,7 +1471,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				
 		if (natural_order == 2)
 		{
-			struct starpu_task *task = g->first_task_to_pop;	
+			struct starpu_task *task = g->first_task_to_pop;
+			
+			if (!starpu_task_list_ismember(main_task_list, task))
+			{
+				goto random;
+			}
+			
 			g->first_task_to_pop = NULL;		
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
