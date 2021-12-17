@@ -560,7 +560,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	{
 		_starpu_data_unregister_ram_pointer(old_replicate->handle, node);
 		old_replicate->mc = NULL;
-		printf("old_replicate->allocated = 0 dans reuse_mem_chunk vec donnée %p.\n", old_replicate->handle); fflush(stdout);
+		//~ printf("old_replicate->allocated = 0 dans reuse_mem_chunk vec donnée %p.\n", old_replicate->handle); fflush(stdout);
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
 		old_replicate->initialized = 0;
