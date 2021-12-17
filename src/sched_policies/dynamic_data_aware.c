@@ -420,7 +420,7 @@ void natural_order_task_list(struct dynamic_data_aware_sched_data *d)
     
     for (i = 0; i < NT_dynamic_outer; i++)
     {
-		if (i == (NT_dynamic_outer/Ngpu)*j)
+		if (i == (NT_dynamic_outer/Ngpu)*j && j < Ngpu)
 		{
 			task = starpu_task_list_pop_front(&d->sched_list);
 			my_planned_task_control->pointer->first_task_to_pop = task;
