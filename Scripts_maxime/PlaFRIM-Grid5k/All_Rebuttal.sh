@@ -59,9 +59,9 @@ echo "Les variantes de Rebuttal_test.sh"
 #~ echo "Cholesky 1 GPU"
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Cholesky 1
 #~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_1GPU_test.txt
-echo "Cholesky 2 GPU"
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Cholesky 2
-mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_2GPU_test.txt
+#~ echo "Cholesky 2 GPU"
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 7 Cholesky 2
+#~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_2GPU_test.txt
 echo "Cholesky 4 GPU"
 bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 5 Cholesky 4
 mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_4GPU_test.txt

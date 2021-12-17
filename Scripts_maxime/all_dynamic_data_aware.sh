@@ -45,17 +45,17 @@ echo "Rebuttal test"
 echo "M3D 4 GPUs"
 bash Scripts_maxime/Rebuttal_test_simulation.sh 5 Matrice3D 4
 #~ bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Cholesky 1
-echo "CHO 2 GPUs"
-bash Scripts_maxime/Rebuttal_test_simulation.sh 7 Cholesky 2
-echo "CHO 4 GPUs"
-bash Scripts_maxime/Rebuttal_test_simulation.sh 7 Cholesky 4
+#~ echo "CHO 2 GPUs"
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 7 Cholesky 2
+#~ echo "CHO 4 GPUs"
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 7 Cholesky 4
 #~ bash Scripts_maxime/Rebuttal_test_simulation.sh 10 Sparse 1
-bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse 2
-echo "SPARSE 4 GPUs"
-bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse 4
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse 2
+#~ echo "SPARSE 4 GPUs"
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse 4
 #~ bash Scripts_maxime/Rebuttal_test_simulation.sh 10 Sparse_mem_infinite 1
-bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse_mem_infinite 2
-bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse_mem_infinite 4
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse_mem_infinite 2
+#~ bash Scripts_maxime/Rebuttal_test_simulation.sh 8 Sparse_mem_infinite 4
 
 end=`date +%s`
 runtime=$((end-start))

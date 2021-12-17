@@ -634,7 +634,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		{
 			/* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
 			task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
-			printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
+			//~ printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			
 			#ifdef PRINT
@@ -673,7 +673,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
 			#endif
 			
-			printf("Task %d: %p is getting out of pull_task from planned task not empty on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
+			//~ printf("Task %d: %p is getting out of pull_task from planned task not empty on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			return task;
 		}
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
@@ -725,7 +725,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
 			#endif
 			
-			printf("Task %d: %p is getting out of pull_task after scheduling on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
+			//~ printf("Task %d: %p is getting out of pull_task after scheduling on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			return task;
 		}
     }
