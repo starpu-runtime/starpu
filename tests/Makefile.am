@@ -73,7 +73,11 @@ EXTRA_DIST =					\
 	datawizard/interfaces/ndim/ndim_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
-	microbenchs/microbench.sh
+	microbenchs/microbench.sh	\
+	memory/memstress2.gp	\
+	memory/memstress2.sh	\
+	memory/memstress.gp	\
+	memory/memstress.sh
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg

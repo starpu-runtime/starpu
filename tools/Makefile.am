@@ -276,12 +276,17 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_openblas.sirocco	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_openblas.sirocco	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_openblas.sirocco	\
-	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.sirocco
+	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.sirocco	\
+\
+	perfmodels/sampling/codelets/45/null.idgraf	\
+	perfmodels/sampling/codelets/45/null.sirocco
 
 EXTRA_DIST =				\
 	dev/checker/rename.sed		\
 	dev/checker/rename.sh		\
 	dev/cppcheck/suppressions.txt	\
+	dev/valgrind/blas.suppr		\
+	dev/valgrind/nvidia.suppr	\
 	dev/valgrind/bash.suppr		\
 	dev/valgrind/fxt.suppr		\
 	dev/valgrind/glpk.suppr		\

@@ -54,14 +54,17 @@ examplebin_PROGRAMS =
 
 examplebin_PROGRAMS +=		\
 	basic/basic		\
+	basicsplit/basicsplit	\
 	testmap/testmap		\
 	clinfo/clinfo 		\
 	matmul/matmul 		\
+	mandelbrot/mandelbrot	\
 	mansched/mansched
 
 
 SOCL_EXAMPLES +=		\
 	basic/basic		\
+	basicsplit/basicsplit	\
 	testmap/testmap		\
 	clinfo/clinfo		\
 	matmul/matmul		 \
