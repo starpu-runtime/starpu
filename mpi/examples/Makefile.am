@@ -85,12 +85,13 @@ EXTRA_DIST = 				\
 	matrix_decomposition/mpi_cholesky_models.h 	\
 	matrix_decomposition/mpi_decomposition_params.h	\
 	matrix_decomposition/mpi_decomposition_matrix.h	\
-	user_datatype/my_interface.h			\
-	benchs/abstract_sendrecv_bench.h	\
-	benchs/bench_helper.h			\
-	benchs/gemm_helper.h			\
-	benchs/burst_helper.h			\
-	helper.h
+	user_datatype/my_interface.h	\
+	benchs/abstract_sendrecv_bench.h\
+	benchs/bench_helper.h		\
+	benchs/gemm_helper.h		\
+	benchs/burst_helper.h		\
+	helper.h			\
+	perf.sh
 
 examplebindir = $(libdir)/starpu/mpi
 

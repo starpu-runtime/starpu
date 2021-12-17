@@ -318,7 +318,15 @@ EXTRA_DIST =				\
 	msvc/starpu_exec.bat		\
 	msvc/starpu_var.bat		\
 	msvc/starpu.sln			\
-	msvc/starpu/starpu.vcxproj
+	msvc/starpu/starpu.vcxproj	\
+	release/Makefile		\
+	release/README			\
+	patch-ayudame			\
+	perfs/bench_sgemm.sh		\
+	perfs/error_model.gp		\
+	perfs/error_model.sh		\
+	distrib/distrib.r		\
+	distrib/distrib.sh
 
 CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log figure/* mlr_*
 

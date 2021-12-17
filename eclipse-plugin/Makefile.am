@@ -27,7 +27,8 @@ EXTRA_DIST =			\
 	icons/fxt.png		\
 	icons/svg.png		\
 	icons/taskGraph.png	\
-	icons/vite.png
+	icons/vite.png		\
+	.settings/org.eclipse.jdt.core.prefs
 
 SUBDIRS	= src
 SUBDIRS += examples

@@ -49,6 +49,7 @@ EXTRA_DIST =					\
 	microbenchs/parallel_independent_homogeneous_tasks_data.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks.sh	\
 	microbenchs/bandwidth_scheds.sh		\
+	microbenchs/starpu_check.sh		\
 	energy/static.sh			\
 	energy/dynamic.sh			\
 	energy/perfs.gp				\
@@ -77,7 +78,16 @@ EXTRA_DIST =					\
 	memory/memstress2.gp	\
 	memory/memstress2.sh	\
 	memory/memstress.gp	\
-	memory/memstress.sh
+	memory/memstress.sh	\
+	maxfpga/LMemLoopbackCpuCode.c	\
+	maxfpga/MyTasksManager.maxj	\
+	maxfpga/MyTasksMuxManager.maxj	\
+	maxfpga/README.txt	\
+	maxfpga/StreamFMACpuCode.cpp	\
+	maxfpga/Task1.maxj	\
+	maxfpga/Task2.maxj	\
+	maxfpga/Task3.maxj	\
+	datawizard/interfaces/test_interfaces.sh
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg

@@ -41,4 +41,6 @@ libsc_hypervisor_la_SOURCES = 				\
 	hypervisor_policies/hard_coded_policy.c		\
 	hypervisor_policies/perf_count_policy.c
 
-noinst_HEADERS = sc_hypervisor_intern.h
+noinst_HEADERS =					\
+	sc_hypervisor_intern.h				\
+	uthash.h

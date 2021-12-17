@@ -77,7 +77,17 @@ EXTRA_DIST = 					\
 	cholesky/cholesky.sh				\
 	cholesky/cholesky_compiled.c			\
 	lu/lu.sh					\
-	subgraphs/main.h
+	subgraphs/main.h				\
+	native_fortran/Makefile_nf_dynbuf.mk		\
+	native_fortran/Makefile_nf_example.mk		\
+	native_fortran/Makefile_nf_matrix.mk		\
+	native_fortran/Makefile_nf_partition.mk		\
+	native_fortran/Makefile_nf_sched_ctx.mk		\
+	native_fortran/Makefile_nf_varbuf.mk		\
+	native_fortran/Makefile_nf_vector.mk		\
+	cpp/Makefile_add_vectors_cpp11.mk		\
+	cpp/Makefile_add_vectors.mk			\
+	fortran90/Makefile.mk
 
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.mps */*/*.mps *.dot */*.dot */*/*.dot *.pl */*.pl */*/*.pl *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90

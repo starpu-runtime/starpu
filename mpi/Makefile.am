@@ -25,6 +25,9 @@ if STARPU_BUILD_TESTS
 SUBDIRS += tests
 endif
 
+EXTRA_DIST	=	\
+	dev/starpu_mpi_comm_check.sh
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpumpi.pc starpumpi-1.0.pc starpumpi-1.1.pc starpumpi-1.2.pc starpumpi-1.3.pc
 

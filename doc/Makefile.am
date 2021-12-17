@@ -29,7 +29,8 @@ EXTRA_DIST =    tutorial/hello_world.c \
 		tutorial/vector_scal_cpu.c \
 		tutorial/vector_scal_cuda.cu \
 		tutorial/vector_scal_opencl.c \
-		tutorial/vector_scal_opencl_kernel.cl
+		tutorial/vector_scal_opencl_kernel.cl	\
+		tutorial/vector_scal_task_insert.c
 
 txtdir = ${docdir}/tutorial
 txt_DATA = $(EXTRA_DIST)
