@@ -280,7 +280,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 				child_replicate->state = STARPU_INVALID;
 			if (inherit_state || !initial_replicate->automatically_allocated)
 			{
-				//~ printf("child_replicate->allocated = initial_replicate->allocated = %d dans _starpu_data_partition.\n", initial_replicate->allocated); fflush(stdout);
+				printf("child_replicate->allocated = initial_replicate->allocated = %d dans _starpu_data_partition.\n", initial_replicate->allocated); fflush(stdout);
 				child_replicate->allocated = initial_replicate->allocated;
 			}
 			else
