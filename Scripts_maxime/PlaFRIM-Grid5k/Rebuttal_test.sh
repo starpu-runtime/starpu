@@ -37,6 +37,10 @@ fi
 if [ $DOSSIER = "Cholesky" ]
 then
 	HMETIS_APPLI=6
+	if [ $NGPU = 4 ]
+	then
+		ECHELLE_X=$((5*2))
+	fi
 fi
 if [ $DOSSIER = "Sparse" ]
 then

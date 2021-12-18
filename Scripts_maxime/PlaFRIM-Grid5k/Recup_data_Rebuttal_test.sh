@@ -1,6 +1,11 @@
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 10 Matrice3D dynamic_data_aware_no_hfp 1
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 8 Matrice3D dynamic_data_aware_no_hfp 2
-# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 5 Cholesky dynamic_data_aware_no_hfp 2
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 7 Cholesky dynamic_data_aware_no_hfp 2
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 5 Cholesky dynamic_data_aware_no_hfp 4
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 7 Sparse dynamic_data_aware_no_hfp 2
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 4 Sparse dynamic_data_aware_no_hfp 4
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 7 Sparse_mem_infinite dynamic_data_aware_no_hfp 2
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 4 Sparse_mem_infinite dynamic_data_aware_no_hfp 4
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
@@ -14,7 +19,6 @@ SPARSE=""
 ECHELLE_X=$((5*NGPU))
 NITER=11
 NB_ALGO_TESTE=21
-NB_ALGO_TESTE=12
 #~ if [ $NGPU != 1 ]
 #~ then
 	#~ NB_ALGO_TESTE=$((NB_ALGO_TESTE+1))
@@ -27,13 +31,23 @@ fi
 if [ $DOSSIER == "Cholesky" ]
 then
 	FICHIER_GF=GF_HFP_CHO_${NGPU}GPU_test.txt
+	if [ $NGPU = 4 ]
+	then
+		ECHELLE_X=$((5*2))
+	fi
 fi
 if [ $DOSSIER == "Sparse" ]
 then
 	FICHIER_GF=GF_HFP_SPARSE_${NGPU}GPU_test.txt
+	ECHELLE_X=$((50*NGPU))
+fi
+if [ $DOSSIER == "Sparse_mem_infinite" ]
+then
+	FICHIER_GF=GF_HFP_SPARSE_${NGPU}GPU_test.txt
+	ECHELLE_X=$((50*NGPU))
 fi
 
-#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_GF} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF}
+scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_GF} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF}
 
 # Tracage des GFlops
 gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
