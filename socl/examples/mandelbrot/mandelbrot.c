@@ -497,15 +497,22 @@ int main(int argc, char **argv) {
 #endif
 
   for (iby = 0; iby < nblocks; iby++) {
-    clReleaseMemObject(block_handles[iby]);
+    err = clReleaseMemObject(block_handles[iby]);
+    check(err, "clReleaseMemObject");
   }
 
   for (i=0; i<num_devices; i++)
-    clReleaseCommandQueue(cq[i]);
+  {
+    err = clReleaseCommandQueue(cq[i]);
+    check(err, "clReleaseCommandQueue");
+  }
 
-  clReleaseKernel(kernel);
-  clReleaseProgram(program);
-  clReleaseContext(context);
+  err = clReleaseKernel(kernel);
+  check(err, "clReleaseKernel");
+  err = clReleaseProgram(program);
+  check(err, "clReleaseProgram");
+  err = clReleaseContext(context);
+  check(err, "clReleaseContext");
 
   return 0;
 }
