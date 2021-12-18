@@ -1,10 +1,10 @@
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 10 Matrice3D dynamic_data_aware_no_hfp 1
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 8 Matrice3D dynamic_data_aware_no_hfp 2
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 7 Cholesky dynamic_data_aware_no_hfp 2
-# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 5 Cholesky dynamic_data_aware_no_hfp 4
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 7 Cholesky dynamic_data_aware_no_hfp 4
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 7 Sparse dynamic_data_aware_no_hfp 2
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 4 Sparse dynamic_data_aware_no_hfp 4
-# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 7 Sparse_mem_infinite dynamic_data_aware_no_hfp 2
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 8 Sparse_mem_infinite dynamic_data_aware_no_hfp 2
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal_test.sh 4 Sparse_mem_infinite dynamic_data_aware_no_hfp 4
 
 NB_TAILLE_TESTE=$1
@@ -43,7 +43,7 @@ then
 fi
 if [ $DOSSIER == "Sparse_mem_infinite" ]
 then
-	FICHIER_GF=GF_HFP_SPARSE_${NGPU}GPU_test.txt
+	FICHIER_GF=GF_HFP_SPARSE_INFINIE_${NGPU}GPU_test.txt
 	ECHELLE_X=$((50*NGPU))
 fi
 
