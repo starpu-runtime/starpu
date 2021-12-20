@@ -3921,7 +3921,7 @@ struct starpu_sched_component *starpu_sched_component_HFP_create(struct starpu_s
 	interlacing = starpu_get_env_number_default("INTERLACING", 0);
 	faster_first_iteration = starpu_get_env_number_default("FASTER_FIRST_ITERATION", 0);
 	#ifdef PRINT
-	print_in_terminal = starpu_get_env_number_default("PRINTF", 0);
+	print_in_terminal = starpu_get_env_number_default("PRINT_IN_TERMINAL", 0);
 	print3d = starpu_get_env_number_default("PRINT3D", 0);
 	print_n = starpu_get_env_number_default("PRINT_N", 0);
 	print_time = starpu_get_env_number_default("PRINT_TIME", 0);
@@ -4033,7 +4033,7 @@ void get_current_tasks_for_visualization(struct starpu_task *task, unsigned sci)
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
 	if (print_in_terminal == 1)
-	{ 
+	{
 		if (index_task_currently_treated == 0) 
 		{ 
 			initialize_global_variable(task);
