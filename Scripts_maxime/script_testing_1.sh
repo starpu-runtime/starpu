@@ -106,23 +106,14 @@ SPARSE=0
 #~ N=5
 #~ CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 PRINT_IN_TERMINAL=0 PRINT3D=1 PRINT_N=$((N)) STARPU_GENERATE_TRACE=0 SIMULATE_MEMORY=0 APP=$((APP3D)) STARPU_SCHED=dynamic-data-aware STARPU_HOSTNAME=${HOST} STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 11
 
-NGPU=3
-N=10
-echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
-STARPU_SCHED_READY=1 STARPU_BUS_STATS=1 STARPU_HOSTNAME=${HOST} STARPU_SCHED=HFP HMETIS_N=$((N)) HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
+#~ NGPU=3
+#~ N=10
+#~ echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
+#~ STARPU_SCHED_READY=1 STARPU_BUS_STATS=1 STARPU_HOSTNAME=${HOST} STARPU_SCHED=HFP HMETIS_N=$((N)) HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
 
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/Barplot_DARTS.py Output_maxime/DARTS_data_choosen_stats.csv
 #~ mv Output_maxime/DARTS_data_choosen_stats.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/${DOSSIER}/DARTS_data_choosen_stats_N${N}_SIMMEM${SIMMEM}_FROMMEM${FROMMEM}.csv
 #~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/${DOSSIER}/DARTS_data_choosen_stats_N${N}_SIMMEM${SIMMEM}_FROMMEM${FROMMEM}.pdf
-
-		    #~ echo "############## HMETIS + TASK STEALING ##############"
-		    #~ for ((i=3 ; i<=6; i++))
-			    #~ do 
-			    #~ N=$((100*i))
-			    #~ echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
-			    #~ STARPU_HOSTNAME=${HOST} SPARSE_MATRIX=10 SEED=$((i)) STARPU_SCHED=HFP HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
-			    #~ mv Output_maxime/input_hMETIS.txt.part.${NGPU} Output_maxime/Data/input_hMETIS/2GPU_sparse/input_hMETIS_N${N}.txt
-		    #~ done
 
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/Barplot_DARTS.py Output_maxime/DARTS_data_choosen_stats_frommem.csv
 #~ mv Output_maxime/DARTS_data_choosen_stats_frommem.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Matrice3D/DARTS_data_choosen_stats_frommem.csv
