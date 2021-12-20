@@ -13,7 +13,7 @@ NGPU=$3
 START_X=0  
 F=Output_maxime/GFlops_raw_out_1.txt
 truncate -s 0 ${F}
-# ulimit -S -s 5000000
+ulimit -S -s 5000000
 CM=500
 TH=10
 CP=5
@@ -74,7 +74,7 @@ then
 		# for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			# do 
 			# N=$((START_X+i*ECHELLE_X))
-			# echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
+			# echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
 			# STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${F}
 		# done
 	# fi
@@ -213,7 +213,7 @@ then
 		# for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			# do 
 			# N=$((START_X+i*ECHELLE_X))
-			# echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
+			# echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
 			# STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${F}
 		# done
 	# fi
@@ -352,7 +352,7 @@ then
 		# for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			# do 
 			# N=$((START_X+i*ECHELLE_X))
-			# echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
+			# echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
 			# SPARSE_MATRIX=$((SPARSE)) STARPU_SCHED_READY=1 STARPU_SCHED=HFP SEED=$((i)) HMETIS_N=$((N)) HMETIS=$((HMETIS_APPLI)) TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SCHED_READY=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${F}
 		# done
 	# fi

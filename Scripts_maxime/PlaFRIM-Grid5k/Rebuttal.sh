@@ -282,7 +282,7 @@ then
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
-			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
+			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
 			    STARPU_SCHED_READY=1 STARPU_SCHED=HFP HMETIS_N=$((N)) HMETIS=3 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
@@ -469,7 +469,7 @@ then
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
 			    start=`date +%s`
-			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
+			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
 			    STARPU_SCHED_READY=1 STARPU_SCHED=HFP HMETIS_N=$((N)) HMETIS=3 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 RANDOM_TASK_ORDER=1 STARPU_LIMIT_BANDWIDTH=$((BW)) SEED=$((i)) STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_WORKER_STATS=1 STARPU_WORKER_STATS_FILE="${FICHIER_SCHEDULE_TIME_TEMP}" STARPU_PROFILING=1 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
 			    end=`date +%s` 
 				echo $((end-start)) >> ${FICHIER_TIME}
@@ -634,7 +634,7 @@ then
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
-			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
+			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
 			    STARPU_SCHED_READY=1 STARPU_SCHED=HFP HMETIS_N=$((N)) HMETIS=5 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
@@ -810,7 +810,7 @@ then
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
 			    do 
 			    N=$((START_X+i*ECHELLE_X))
-			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/HMETIS_parameters.txt 
+			    echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
 			    SEED=$((i)) STARPU_SCHED_READY=1 STARPU_SCHED=HFP HMETIS_N=$((N)) HMETIS=6 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N)) | tail -n 1 >> ${FICHIER_RAW:0}
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done

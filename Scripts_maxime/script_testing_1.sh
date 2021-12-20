@@ -10,7 +10,7 @@ start=`date +%s`
 #~ ./examples/random_task_graph/random_task_graph -ntasks 10 -ndata 10 -degreemax 5 # Attention il faut enable max buffer pour ca avec plus de 5 en degrée max
 #~ libtool --mode=execute gdb --args 
 #~ /./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) ${ORDO} 1 NDIMENSIONS
-#~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} NIDMENSIONS
+#~ python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py Output_maxime/Data_coordinates_order_last_SCHEDULER.txt Output_maxime/Data_to_load_SCHEDULER.txt ${N} ${ORDO} ${NGPU} NIDMENSIONS + dans la commande avant : PRINT_IN_TERMINAL=1 PRINT3D=1 PRINT_N=$((N))
 #~ 2>&1 | tee Output_maxime/terminal_output.txt
 #~ make -j 6
 #~ Quand on lance la visu python il faut PRINTF=1 PRINT_N=$((N))
@@ -26,12 +26,12 @@ N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
 #~ N=65
 N=40 # 12893.0
 #~ N=50 : 5 choix random
-N=30
+N=10
 
 NGPU=1
 NGPU=2
 #~ NGPU=3
-#~ NGPU=4
+NGPU=4
 
 ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 #~ ORDO="dmdar"
@@ -92,7 +92,7 @@ TAILLE_TUILE=960
 #~ TAILLE_TUILE=4800
 #~ Ne pas oublier : -z $((TAILLE_TUILE*4)) !!!
 
-APP3D=0
+APP3D=1
 #~ APP3D=1
 
 SPARSE=0
@@ -104,9 +104,12 @@ SPARSE=0
 #~ truncate -s 0 "Output_maxime/DARTS_data_choosen_stats_frommem_simmem.txt"
 #~ A CORRIGER pour from mem on lis pas autant!!
 #~ N=5
-#~ CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=0 APP=1 STARPU_SCHED=dynamic-data-aware STARPU_HOSTNAME=${HOST} STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 11
+#~ CHOOSE_BEST_DATA_FROM=0 SIMULATE_MEMORY=0 PRINT_IN_TERMINAL=0 PRINT3D=1 PRINT_N=$((N)) STARPU_GENERATE_TRACE=0 SIMULATE_MEMORY=0 APP=$((APP3D)) STARPU_SCHED=dynamic-data-aware STARPU_HOSTNAME=${HOST} STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 11
 
-N=30 ; STARPU_GENERATE_TRACE=0 SPARSE_MATRIX=2 NATURAL_ORDER=2 THRESHOLD=2 CHOOSE_BEST_DATA_FROM=1 SIMULATE_MEMORY=1 APP=0 STARPU_HOSTNAME=${HOST} STARPU_SCHED=dynamic-data-aware SEED=1 STARPU_SCHED_READY=0 EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 STARPU_LIMIT_CUDA_MEM=500 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
+NGPU=3
+N=10
+echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
+STARPU_SCHED_READY=1 STARPU_BUS_STATS=1 STARPU_HOSTNAME=${HOST} STARPU_SCHED=HFP HMETIS_N=$((N)) HMETIS=1 TASK_STEALING=3 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) ORDER_U=1 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter 1
 
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/Barplot_DARTS.py Output_maxime/DARTS_data_choosen_stats.csv
 #~ mv Output_maxime/DARTS_data_choosen_stats.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/${DOSSIER}/DARTS_data_choosen_stats_N${N}_SIMMEM${SIMMEM}_FROMMEM${FROMMEM}.csv
