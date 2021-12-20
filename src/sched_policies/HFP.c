@@ -3404,7 +3404,7 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	}
 	
 	/* Cas sparse */
-	if (sparse_matrix == 1)
+	if (sparse_matrix != 0)
 	{
 		size += strlen("_sparse");
 	}
@@ -3431,7 +3431,7 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 	}
 	
 	/* Cas sparse */
-	if (sparse_matrix == 1)
+	if (sparse_matrix != 0)
 	{
 		strcat(path2, "_sparse/input_hMETIS_N");
 	}
