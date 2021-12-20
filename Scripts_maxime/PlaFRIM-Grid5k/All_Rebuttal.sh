@@ -44,7 +44,21 @@
 #~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_SPARSE_2GPU.txt
 #~ mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_M3D_SPARSE_2GPU.txt
 
-echo "Les variantes de Rebuttal_test.sh"
+echo "vraiment pour le Rebuttal"
+
+echo "Cholesky 4 GPU" #Ici on fais 7 car on fais juste 2*5 pour l'echelle, sinon ca crash pour tout le monde
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 15 Cholesky dynamic_data_aware_no_hfp 4
+mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_4GPU.txt
+
+echo "Sparse 4 GPU"
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 15 Sparse dynamic_data_aware_no_hfp 4
+mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_SPARSE_4GPU.txt
+
+echo "Sparse 4 GPU infinite"
+bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 15 Sparse_mem_infinite dynamic_data_aware_no_hfp 4
+mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_SPARSE_INFINIE_4GPU.txt
+
+#~ echo "Les variantes de Rebuttal_test.sh"
 
 #~ echo "Matrice 3D 1 GPU"
 #~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal_test.sh 10 Matrice3D 1
