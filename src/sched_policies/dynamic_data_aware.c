@@ -2906,6 +2906,10 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	//~ erase_data_strategy = starpu_get_env_number_default("ERASE_DATA_STRATEGY", 0);
 
 	#ifdef PRINT
+	print_in_terminal = starpu_get_env_number_default("PRINT_IN_TERMINAL", 0);
+	print3d = starpu_get_env_number_default("PRINT3D", 0);
+	print_n = starpu_get_env_number_default("PRINT_N", 0);
+	print_time = starpu_get_env_number_default("PRINT_TIME", 0);
 	FILE *f = NULL;
 	f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "w");
 	fprintf(f, "Iteration,Data choosen,Number of data read\n");
