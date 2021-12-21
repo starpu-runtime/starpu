@@ -42,9 +42,9 @@ FICHIER_BUS=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_2.txt
 FICHIER_RAW_DT=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_3.txt
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 ulimit -S -s 500000000
-truncate -s 0 ${FICHIER_RAW}
+#~ truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 ${FICHIER_BUS}
-truncate -s 0 ${FICHIER_RAW_DT}
+#~ truncate -s 0 ${FICHIER_RAW_DT}
 truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DARTS_time.txt
 truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold.txt
 truncate -s 0 ${PATH_STARPU}/starpu/Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt
@@ -496,20 +496,20 @@ then
 	then
 		NB_ALGO_TESTE=5
 	fi
-	echo "############## Modular eager prefetching ##############"
-	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		do 
-		N=$((START_X+i*ECHELLE_X))
-		STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_HOSTNAME=${HOST} STARPU_SCHED=modular-eager-prefetching SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW}
-		sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
-	done
-	echo "############## Dmdar ##############"
-	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
-		do 
-		N=$((START_X+i*ECHELLE_X))
-		STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_HOSTNAME=${HOST} STARPU_SCHED=dmdar SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW}
-		sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
-	done
+	#~ echo "############## Modular eager prefetching ##############"
+	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		#~ do 
+		#~ N=$((START_X+i*ECHELLE_X))
+		#~ STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_HOSTNAME=${HOST} STARPU_SCHED=modular-eager-prefetching SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW}
+		#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+	#~ done
+	#~ echo "############## Dmdar ##############"
+	#~ for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+		#~ do 
+		#~ N=$((START_X+i*ECHELLE_X))
+		#~ STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS}" STARPU_HOSTNAME=${HOST} STARPU_SCHED=dmdar SEED=$((i)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW}
+		#~ sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS} >> ${FICHIER_RAW_DT}
+	#~ done
 	if [ $NGPU != 1 ]
 	then
 	echo "############## HMETIS + TASK STEALING ##############"
