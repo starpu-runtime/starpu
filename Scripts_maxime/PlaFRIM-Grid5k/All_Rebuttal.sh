@@ -44,11 +44,11 @@
 #~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_M3D_SPARSE_2GPU.txt
 #~ mv Output_maxime/GFlops_raw_out_3.txt Output_maxime/DT_HFP_M3D_SPARSE_2GPU.txt
 
-echo "vraiment pour le Rebuttal"
+echo "Vraiment pour le Rebuttal"
 
-echo "Cholesky 4 GPU" #Ici on fais 7 car on fais juste 2*5 pour l'echelle, sinon ca crash pour tout le monde
-bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 15 Cholesky dynamic_data_aware_no_hfp 4
-mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_4GPU.txt
+#~ echo "Cholesky 4 GPU" #Ici on fais 7 car on fais juste 2*5 pour l'echelle, sinon ca crash pour tout le monde
+#~ bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 14 Cholesky dynamic_data_aware_no_hfp 4
+#~ mv Output_maxime/GFlops_raw_out_1.txt Output_maxime/GF_HFP_CHO_4GPU.txt
 
 echo "Sparse 4 GPU"
 bash Scripts_maxime/PlaFRIM-Grid5k/Rebuttal.sh 15 Sparse dynamic_data_aware_no_hfp 4

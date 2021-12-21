@@ -26,7 +26,7 @@
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 2
 
 #	For the testing for the actual rebuttal
-#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 9 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 4
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 4
 
 
 PATH_STARPU=$1
@@ -513,7 +513,7 @@ then
 	if [ $NGPU != 1 ]
 	then
 	echo "############## HMETIS + TASK STEALING ##############"
-	for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
+	for ((i=13 ; i<=(($NB_TAILLE_TESTE)); i++))
 		do 
 		N=$((START_X+i*ECHELLE_X))
 		echo $((NGPU)) "1 20 1 1 2 0 0" > Output_maxime/hMETIS_parameters.txt 
