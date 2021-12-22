@@ -7,6 +7,8 @@
 
 # Vraiment pour le rebuttal
 # bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal.sh 14 Cholesky dynamic_data_aware_no_hfp 4
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal.sh 15 Sparse dynamic_data_aware_no_hfp 4
+# bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Rebuttal.sh 15 Sparse_mem_infinite dynamic_data_aware_no_hfp 4
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
@@ -59,14 +61,14 @@ then
 	NB_ALGO_TESTE=$((NB_ALGO_TESTE+1))
 fi
 
-scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_GF} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF}
+#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_GF} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF}
 #~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_DT} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_DT}
 
 # Tracage des GFlops
-gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
-#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-Rscript ${PATH_R}/R/ScriptR/test.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+#~ gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
+#~ ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
+Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+# Rscript ${PATH_R}/R/ScriptR/test.R ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt ${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
 mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
 # Tracage data transfers
