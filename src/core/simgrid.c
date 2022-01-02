@@ -374,7 +374,7 @@ void _starpu_start_simgrid(int *argc, char **argv)
 
 static int main_ret;
 
-int do_starpu_main(int argc, char *argv[])
+static int do_starpu_main(int argc, char *argv[])
 {
 	/* FIXME: Ugly work-around for bug in simgrid: the MPI context is not properly set at MSG process startup */
 	starpu_sleep(0.000001);
