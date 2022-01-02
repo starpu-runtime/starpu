@@ -1315,8 +1315,8 @@ void _starpu_simgrid_count_ngpus(void)
 		{
 			int busid;
 			starpu_sg_host_t srchost, dsthost;
-			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(SD_link_t), NULL);
-			SD_link_t link;
+			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(starpu_sg_link_t), NULL);
+			starpu_sg_link_t link;
 			int i, routesize;
 			int through;
 			unsigned src2;
@@ -1339,7 +1339,7 @@ void _starpu_simgrid_count_ngpus(void)
 #endif
 			routesize = xbt_dynar_length(route_dynar);
 #else
-			const SD_link_t *route = SD_route_get_list(srchost, dsthost);
+			const starpu_sg_link_t *route = SD_route_get_list(srchost, dsthost);
 			routesize = SD_route_get_size(srchost, dsthost);
 			for (i = 0; i < routesize; i++)
 				xbt_dynar_push(route_dynar, &route[i]);
@@ -1415,7 +1415,7 @@ void _starpu_simgrid_count_ngpus(void)
 
 				starpu_sg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
 				int routesize2;
-				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(SD_link_t), NULL);
+				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(starpu_sg_link_t), NULL);
 #if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 #ifdef HAVE_SG_HOST_GET_ROUTE
 				sg_host_get_route(srchost2, ramhost, route_dynar2);
@@ -1424,7 +1424,7 @@ void _starpu_simgrid_count_ngpus(void)
 #endif
 				routesize2 = xbt_dynar_length(route_dynar2);
 #else
-				const SD_link_t *route2 = SD_route_get_list(srchost2, ramhost);
+				const starpu_sg_link_t *route2 = SD_route_get_list(srchost2, ramhost);
 				routesize2 = SD_route_get_size(srchost2, ramhost);
 				for (i = 0; i < routesize2; i++)
 					xbt_dynar_push(route_dynar2, &route2[i]);
