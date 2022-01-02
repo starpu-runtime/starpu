@@ -64,7 +64,7 @@ typedef void _starpu_simgrid_main_ret;
 typedef int _starpu_simgrid_main_ret;
 #define _STARPU_SIMGRID_MAIN_RETURN return 0
 #endif
-#if (SIMGRID_VERSION >= 32600)
+#if (SIMGRID_VERSION >= 31500)
 typedef sg_link_t starpu_sg_link_t;
 #else
 typedef SD_link_t starpu_sg_link_t;
