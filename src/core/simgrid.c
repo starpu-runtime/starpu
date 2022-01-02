@@ -836,7 +836,7 @@ LIST_TYPE(transfer,
 	struct transfer *next;
 )
 
-struct transfer_list pending;
+static struct transfer_list pending;
 
 /* Tell for two transfers whether they should be handled in sequence */
 static int transfers_are_sequential(struct transfer *new_transfer, struct transfer *old_transfer)
