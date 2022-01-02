@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Guillaume Beauchamp
@@ -168,6 +168,7 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
 	AC_CHECK_HEADERS([msg/msg.h], [AC_DEFINE([STARPU_HAVE_MSG_MSG_H], [1], [Define to 1 if you have msg.h in msg/.])])
 	AC_CHECK_HEADERS([simgrid/host.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_HOST_H], [1], [Define to 1 if you have host.h in simgrid/.])])
+	AC_CHECK_HEADERS([simgrid/link.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_LINK_H], [1], [Define to 1 if you have link.h in simgrid/.])])
 	AC_CHECK_HEADERS([xbt/base.h], [AC_DEFINE([STARPU_HAVE_XBT_BASE_H], [1], [Define to 1 if you have base.h in xbt/.])])
 	AC_CHECK_HEADERS([simgrid/version.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_VERSION_H], [1], [Define to 1 if you have version.h in simgrid/.])], [], [[
 			  #ifdef STARPU_HAVE_XBT_BASE_H
