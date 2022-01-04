@@ -1160,14 +1160,10 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
     AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
     unset ac_cv_lib_cudart_main
     if test "$have_valid_cuda" = yes ; then
-	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
 	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
 	# we also check that CUBLAS is available
 	AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
 	unset ac_cv_lib_cublas_main
-	if test "$have_valid_cuda" = "yes" ; then
-	   STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
-	fi
     fi
     LDFLAGS="${SAVED_LDFLAGS}"
 ])
@@ -1348,7 +1344,7 @@ if test x$enable_cuda = xyes; then
 #		*-*darwin*) AC_HAVE_LIBRARY([stdc++], []) ;;
 #		#*-*darwin*) AC_HAVE_LIBRARY([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
 #	esac
-	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
+	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart -lcublas"
 	STARPU_CUFFT_LDFLAGS="-lcufft"
 
 	AC_LANG_PUSH([C++])
