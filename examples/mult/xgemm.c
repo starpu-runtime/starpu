@@ -952,8 +952,8 @@ int main(int argc, char **argv)
 					{
 						struct starpu_task *task = starpu_task_create();
 
-						task->cl = &cl_gemm2d;
-						//~ task->cl = &cl_gemm0;
+						//~ task->cl = &cl_gemm2d; /* Le bon */
+						task->cl = &cl_gemm0; /* Le mauvais mais je le met juste pour tester un truc. A ENLEVER ENSUITE. */
 						
 						task->handles[0] = starpu_data_get_sub_data(A_handle, 1, tab_y[i][j]);
 						task->handles[1] = starpu_data_get_sub_data(B_handle, 1, tab_x[i][j]);
@@ -1294,6 +1294,7 @@ int main(int argc, char **argv)
 		if (sparse_matrix != 0)
 		{
 			flops = (flops*sparse_matrix)/100;
+			//~ printf("Flops sparse matrix = %f.\n", flops);
 		}
 		
 		if (temp_niter > 1) /* We also print the deviance */
