@@ -115,6 +115,18 @@
 #endif
 
 /* TODO: cache */
+#if defined(STARPU_USE_MPI)
+#define _STARPU_MSG(fmt, ...) do { char host[HOST_NAME_MAX]; _starpu_gethostname(host, HOST_NAME_MAX); fprintf(stderr, STARPU_DEBUG_PREFIX"[%s][%s] " fmt, host, __starpu_func__, ## __VA_ARGS__); } while(0)
+#define _STARPU_DISP(fmt, ...) do { if (!_starpu_silent) { char host[HOST_NAME_MAX]; _starpu_gethostname(host, HOST_NAME_MAX); fprintf(stderr, STARPU_DEBUG_PREFIX"[%s][%s] " fmt, host, __starpu_func__, ## __VA_ARGS__); }} while(0)
+#define _STARPU_ERROR(fmt, ...)						\
+	do {								\
+                char host[HOST_NAME_MAX];				\
+		_starpu_gethostname(host, HOST_NAME_MAX);		\
+                fprintf(stderr, "\n\n[starpu][%s][%s] Error: " fmt, host, __starpu_func__, ## __VA_ARGS__); \
+		fprintf(stderr, "\n\n");					      \
+		STARPU_ABORT();                                                       \
+	} while (0)
+#else /* STARPU_USE_MPI */
 #define _STARPU_MSG(fmt, ...) do { fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); } while(0)
 #define _STARPU_DISP(fmt, ...) do { if (!_starpu_silent) {fprintf(stderr, STARPU_DEBUG_PREFIX"[%s] " fmt ,__starpu_func__ ,## __VA_ARGS__); }} while(0)
 #define _STARPU_ERROR(fmt, ...)                                                  \
@@ -123,7 +135,7 @@
 		fprintf(stderr, "\n\n");					      \
 		STARPU_ABORT();                                                       \
 	} while (0)
-
+#endif /* STARPU_USE_MPI */
 
 #ifdef _MSC_VER
 #  if defined(__cplusplus)
