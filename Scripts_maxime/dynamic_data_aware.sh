@@ -26,7 +26,7 @@
 #	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice_ligne dynamic_data_aware_no_hfp_sparse_matrix gemini-1-fgcs 2
 
 #	For the testing for the actual rebuttal
-#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 15 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 4
+#	bash Scripts_maxime/dynamic_data_aware.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 12 Matrice3D dynamic_data_aware_no_hfp gemini-1-fgcs 4
 
 
 PATH_STARPU=$1
