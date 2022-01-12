@@ -2410,6 +2410,7 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 							//~ time_total_merge += (time_end_merge.tv_sec - time_start_merge.tv_sec)*1000000LL + time_end_merge.tv_usec - time_start_merge.tv_usec;
 							if(paquets_data->NP == number_of_package_to_build) { goto break_merging_1; }
 							//~ printf("Fin du merge.\n");
+							break;
 						}
 						paquets_data->temp_pointer_2 = paquets_data->temp_pointer_2->next;
 					}
