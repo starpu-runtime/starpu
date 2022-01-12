@@ -1942,7 +1942,8 @@ struct paquets* hierarchical_fair_packing (struct starpu_task_list *task_list, i
 		
 		/* Faster first iteration by grouping together tasks that share at least one data. Doesn't look 
 		 * further after one task have been found */		
-		if (nb_of_loop == 1 && strcmp(appli, "chol_model_11") != 0 && faster_first_iteration == 1)
+		//~ if (nb_of_loop == 1 && strcmp(appli, "chol_model_11") != 0 && faster_first_iteration == 1)
+		if (nb_of_loop == 1 && faster_first_iteration == 1)
 		{
 			packaging_impossible = 0;
 			index_head_1 = 0;

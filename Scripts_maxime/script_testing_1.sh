@@ -26,7 +26,7 @@ N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
 #~ N=65
 N=40 # 12893.0
 #~ N=50 : 5 choix random
-#~ N=30
+N=20
 
 NGPU=1
 #~ NGPU=2
@@ -105,7 +105,7 @@ SPARSE=0
 #~ truncate -s 0 "Output_maxime/DARTS_data_choosen_stats_frommem_simmem.txt"
 #~ A CORRIGER pour from mem on lis pas autant!!
 #~ N=5
-CHOOSE_BEST_DATA_FROM=0 RANDOM_TASK_ORDER=0 STARPU_SCHED_READY=$((READY)) BELADY=$((BELADY)) ORDER_U=1 SIMULATE_MEMORY=0 PRINT_IN_TERMINAL=0 PRINT3D=0 PRINT_N=$((N)) STARPU_GENERATE_TRACE=0 SIMULATE_MEMORY=0 APP=$((APP3D)) STARPU_SCHED=${ORDO} STARPU_HOSTNAME=${HOST} EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=1 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))
+CHOOSE_BEST_DATA_FROM=0 FASTER_FIRST_ITERATION=1 RANDOM_TASK_ORDER=0 STARPU_SCHED_READY=$((READY)) BELADY=$((BELADY)) ORDER_U=1 SIMULATE_MEMORY=0 PRINT_IN_TERMINAL=0 PRINT3D=0 PRINT_N=$((N)) STARPU_GENERATE_TRACE=0 SIMULATE_MEMORY=0 APP=$((APP3D)) STARPU_SCHED=${ORDO} STARPU_HOSTNAME=${HOST} EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=0 ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
 
 #~ NGPU=3
 #~ N=10
@@ -120,7 +120,6 @@ CHOOSE_BEST_DATA_FROM=0 RANDOM_TASK_ORDER=0 STARPU_SCHED_READY=$((READY)) BELADY
 #~ mv Output_maxime/DARTS_data_choosen_stats_frommem.csv /home/gonthier/these_gonthier_maxime/Starpu/R/Data/Matrice3D/DARTS_data_choosen_stats_frommem.csv
 #~ mv plot.pdf /home/gonthier/these_gonthier_maxime/Starpu/R/Courbes/Matrice3D/DARTS_data_choosen_stats_frommem.pdf
 
-
 #~ ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))
 #~ ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -nblocksz $((4)) -iter $((NITER))
 #~ ./examples/cholesky/cholesky_implicit -size $((960*N)) -nblocks $((N))
@@ -134,4 +133,4 @@ runtime=$((end-start))
 echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
 
 # Pour tester sur Grid5k		    		    
-# ORDO=HFP ; NITER=11 ; N=40 ; NGPU=1 ; CM=500 ; CP=5 ; TH=10 ; i=1 ; COUNT_DO_SCHEDULE=0 RANDOM_TASK_ORDER=0 STARPU_SCHED_READY=1 BELADY=1 ORDER_U=1 STARPU_SCHED=${ORDO} STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))
+# ORDO=HFP ; NITER=11 ; N=40 ; NGPU=1 ; CM=500 ; CP=5 ; TH=10 ; i=1 ; COUNT_DO_SCHEDULE=1 STARPU_SCHED=HFP FASTER_FIRST_ITERATION=1 STARPU_SCHED_READY=1 BELADY=1 ORDER_U=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))
