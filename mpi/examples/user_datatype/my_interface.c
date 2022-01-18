@@ -125,7 +125,7 @@ static void data_register_data_handle(starpu_data_handle_t handle, int home_node
 {
 	struct starpu_my_data_interface *my_data_interface = (struct starpu_my_data_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_my_data_interface *local_interface =

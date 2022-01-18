@@ -134,13 +134,13 @@ static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag
 			{
 				starpu_matrix_data_register(&X_h[b_row*nb+b_col],
 							    STARPU_MAIN_RAM,
-							    X->blocks[b_row*nb+b_col].c, BS, BS, BS,
+							    (uintptr_t) X->blocks[b_row*nb+b_col].c, BS, BS, BS,
 							    sizeof(double));
 			}
 			else
 			{
 				starpu_matrix_data_register(&X_h[b_row*nb+b_col],
-							    -1, NULL, BS, BS, BS,
+							    -1, (uintptr_t) NULL, BS, BS, BS,
 							    sizeof(double));
 			}
 //			printf("tag:%d\n",*tag);
@@ -217,7 +217,7 @@ static void cpu_fill(void *handles[], void *arg)
 	unsigned n_row_A = STARPU_MATRIX_GET_NY(handles[0]);
 	unsigned ld_A = STARPU_MATRIX_GET_LD(handles[0]);
 
-	int i,j;
+	unsigned i,j;
 	if (VERBOSE) printf("fill_task\n");
 	for (i=0;i<n_row_A;i++)
 	{
