@@ -396,6 +396,18 @@ Disable asynchronous copies between CPU and Maxeler FPGA devices.
 
 <dl>
 
+<dt>--enable-starpupy</dt>
+<dd>
+\anchor enable-starpupy
+\addindex __configure__--enable-starpupy
+Enable the StarPU Python Interface (\ref PythonInterface)
+</dd>
+
+<dt>--enable-python-multi-interpreter</dt>
+<dd>
+\anchor enable-python-multi-interpreter
+\addindex __configure__--enable-python-multi-interpreter
+Enable the use of multiple interpreters in the StarPU Python Interface (\ref MultipleInterpreters)
 <dt>--disable-mpi</dt>
 <dd>
 \anchor disable-mpi

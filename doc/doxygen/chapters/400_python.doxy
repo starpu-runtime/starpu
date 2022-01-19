@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,89 +16,87 @@
 
 /*! \page PythonInterface Python Interface
 
-A Python interface is also provided to allow the use of StarPU for Python users. This interface caters for the needs of all users accustomed to Python language who want a more concise and easily operability StarPU interface. 
+This section presents the StarPU Python Interface. It provides for those used to the Python language a more concise and easy-to-use StarPU interface.
 
-The need to exploit the computing power of the available CPUs and GPUs, while relieving them from the need to specially adapt their programs to the target machine and processing units is present in most programs regardless the programming language. Providing a Python interface, in addition to the existing C interface, will extend the use of StarPU to Python users and thus support them in this perpetual quest for optimization.
+This interface supports most of the main StarPU functionalities. All the functionalities of the C API are not provided, however, new functions especially adapted to Python have been added.
 
-The Python interface provides an interface to some of the main functionalities of StarPU. All the functionalities of the C API are not provided, however, new functions especially adapted to Python have been added in this interface.
-You can simply import the StarPU module and use the provided functions of StarPU in your own Python library.
+\section Installation Installation of the Python Interface
 
-\section ImplementingStarPUInPython Implementing StarPU in Python
+You need to call \c configure with the option \ref enable-starpupy "--enable-starpupy". The python modules \c joblib and \c cloudpickle are mandatory and should be installed before calling \c configure. The python module \c numpy is recommended but not mandatory.
+
+\verbatim
+$ pip3 install joblib
+$ pip3 install cloudpickle
+$ pip3 install numpy
+$  ../configure --enable-starpupy --prefix=$HOME/usr/starpu
+$ make
+$ make install
+\endverbatim
+
+You can then go in the directory in which StarPU is installed, and test the provided Python examples.
+
+\verbatim
+$ cd $HOME/usr/starpu
+$ . ./bin/starpu
+Setting StarPU environment for ...
+$ cd lib/starpu/python
+$ python3 starpu_py.py
+Example 1:
+Hello, world!
+...
+$
+\endverbatim
+
+\section ImplementingStarPUInPython Using StarPU in Python
 
 The StarPU module should be imported in any Python code wanting to use the StarPU Python interface.
 
 \code{.py}
->>> import starpu
+import starpu
 \endcode
 
 \subsection SubmittingTasks Submitting Tasks
-One of the most important functionality in StarPU is to submit tasks. Unlike the original C interface, Python interface simplifies the use of this function. It is more convenient for Python users to call the function directly without requiring more preparations. However, this simplification does not affect the final implementation.
 
-The function task_submit(options)(func, *args, **kwargs) is used to submit tasks to StarPU in Python interface. The task that you will submit may be a function, and in the second parentheses you need to set parameters of task_submit to your function name and its arguments. In addition to passing the function name directly, the function name can be also provided in the form of a string, and you can use all available function names which are imported before "starpu" in your Python script. When you want to let StarPU make optimizations for your program, you should submit all tasks and StarPU does smart scheduling to manage tasks. Submitted tasks will not be executed immediately, and you can only get the return value until the task has been executed.
+One of the most important functionalities in StarPU is the task submission. The Python interface simplifies its usage, as the function can directly be called without any extra steps.
 
-In the first parentheses, you can set options which must be specified using keywords. If you set none of options, you still need to keep the parentheses, and options will be set with their default values. All options are introduced as follow:
+The Python function to submit tasks is <c>task_submit(options)(func, *args, **kwargs)</c>. \c func is any Python function, \c args and \c kwargs are the function arguments. The function can be also provided as a string. In order to let StarPU make optimizations for your program, you should submit all tasks so as to allow StarPU to efficiently schedule the underlying tasks. Submitted tasks will not be executed immediately, and you can only get the return value once the task has been executed.
 
-\subsubsection name name
-(string, default: None)
+In the first set of parentheses, the following options may be specified. Please note that all options have a default value, the parentheses must be kept even without any option.
 
-Optional name of the task. This can be useful for debugging purposes.
+<ul>
+<li> \c name (string, default: \c None)
 
-\subsubsection synchronous synchronous
-(unsigned, default: 0)
+Set the name of the task. This can be useful for debugging purposes.
+</li>
 
-If this flag is set, the function task_submit is blocking and returns only when the task has been executed (or if no worker is able to process the task). Otherwise, task_submit returns immediately.
+<li> \c synchronous (unsigned, default: 0)
 
-\subsubsection priority priority
-(int, default: 0)
+If this flag is set, the function \c task_submit only returns when the task has been executed (or if no worker is able to process the task). Otherwise, \c task_submit returns immediately.
+</li>
+<li> \c priority (int, default: 0)
 
-This field indicates a level of priority for the task. This is an integer value that must be set between the return values of the function starpu.sched_get_min_priority() for the least important tasks, and that of the function starpu.sched_get_max_priority() for the most important tasks (included). Default priority is always defined as 0 in order to allow static task initialization. Scheduling strategies that take priorities into account can use this parameter to take better scheduling decisions, but the scheduling policy may also ignore it.
+Set the level of priority for the task. This is an integer value whose value must be greater than the return value of the function \c starpu.sched_get_min_priority() (for the least important tasks), and lower or equal to the return value of the function \c starpu.sched_get_max_priority() (for the most important tasks). Default priority is defined as 0 in order to allow static task initialization. Scheduling strategies that take priorities into account can use this parameter to take better scheduling decisions, but the scheduling policy may also ignore it.
+</li>
+<li> \c  color (unsigned, default: \c None)
 
-\subsubsection color color
-(unsigned, default: None)
+Set the color of the task to be used in \c dag.dot.
+</li>
+<li> \c flops (double, default: \c None)
 
-Setting color of the task to be used in dag.dot.
+Set the number of floating points operations that the task will have to achieve. This is useful for easily getting GFlops/s curves from the function \c starpu.perfmodel_plot, and for the hypervisor load balancing.
+</li>
 
-\subsubsection flops flops
-(double, default: None)
+<li> \c perfmodel (string, default: \c None)
 
-This can be set to the number of floating points operations that the task will have to achieve. This is useful for easily getting GFlops/s curves from the function starpu.perfmodel_plot, and for the hypervisor load balancing.
-
-\subsubsection perfmodel perfmodel
-(string, default: None)
-
-Setting a symbol for a function and its performance model will be saved in the file named by the symbol. Ideally, the same function should use the same symbol. After the task is executed, calling the function perfmodel_plot by giving the symbol of perfmodel to view the performance curve.
+Set the name of the performance model. This name will be used as the filename where the performance model information will be saved. After the task is executed, one can call the function \c starpu.perfmodel_plot() by giving the symbol of perfmodel to view its performance curve.
+</li>
+</ul>
 
 \subsection ReturningFutureObject Returning Future Object
-In order to realize asynchronous frameworks, the <c>task_submit</c> function will return a Future object. This is an extended use for the Python interface. A Future represents an eventual result of an asynchronous operation. It is an awaitable object, Coroutines can await on Future objects until they either have a result or an exception set, or until they are canceled.
 
-The asyncio module should be imported in this case.
+In order to realize asynchronous frameworks, the <c>task_submit()</c> function returns a Future object. This is an extended use for the Python interface. A Future represents an eventual result of an asynchronous operation. It is an awaitable object, Coroutines can await on Future objects until they either have a result or an exception set, or until they are canceled.
 
-\code{.py}
->>> import asyncio
-\endcode
-
-When submitting a task to StarPU, the task will not be executed immediately, but with this Future object, you do not need to wait for the eventual result but to perform other operations during task execution. When the return value is ready, awaiting this Future object, then you can get the return value.
-
-Here is an example to show how to submit a task in the most basic way.
-
-Suppose that there is a function:
-
-\code{.py}
->>> def add(a, b):
-...     print("The result is ready!")
-...     return a+b
-\endcode
-
-Then submitting this function as a task to StarPU. After calling task_submit function to create a Future object <c>fut</c>, we perform awaiting until receiving a signal that the result is ready. Then we get the eventual result.
-\code{.py}
->>> fut = starpu.task_submit(perfmodel="add")(add, 1, 2)
-The result is ready!
->>> res = await fut
->>> res
-3
-\endcode
-
-Special attention is needed in above example that we use the argument <c>-m asyncio</c> (available in Python version > 3.8) when executing the program, then we can use <c>await</c> directly instead of <c>asyncio.run()</c>. In addition, this argument only applies to execute programs in the command line. Therefore, if you want to write your program in Python script file or you only have an old version of Python, you need to await the Future in an asyncio function and use <c>asyncio.run()</c> to execute the function, like this:
+This feature needs the \c asyncio module to be imported.
 
 \code{.py}
 import starpu
@@ -108,7 +106,7 @@ def add(a, b):
     return a+b
 
 async def main():
-    fut = starpu.task_submit(perfmodel="add")(add, 1, 2)
+    fut = starpu.task_submit()(add, 1, 2)
     res = await fut
     print("The result of function is", res)
 
@@ -121,98 +119,437 @@ Execution:
 The result of function is 3
 \endverbatim
 
-You can also use decorator starpu.delayed to wrap your own function. The operation effect is the same as the previous example. However you can call your function directly, and the function will be submitted to StarPU as a task automatically with returning a Future object. Once the result is ready, you can perform awaiting to get it.
-\code{.py}
->>> @starpu.delayed
-... def add_deco(a, b):
-...     print("The result is ready!")
-...     return a+b
-... 
->>> fut = add_deco(1, 2)
-The result is ready!
->>> res = await fut
->>> res
-3
-\endcode
+When using at least the version 3.8 of python, one can also use the parameter <c>-m asyncio</c> which allows to directly use <c>await</c> instead of <c>asyncio.run()</c>.
 
-If you want to set options when using decorator, you can just add parameters in starpu.delayed, like this:
-
-\code{.py}
->>> @starpu.delayed(name="add", color=2, perfmodel="add_deco")
-... def add_deco(a, b):
-...     print("The result is ready!")
-...     return a+b
-... 
->>> fut = add_deco(1, 2)
-The result is ready!
->>> res = await fut
->>> res
-3
-\endcode
-
-The Future object can be also used for the next step calculation even you do not get the task result. The eventual result will be awaited until the Future has a result.
-
-In this example, after submitting the first task, a Future object <c>fut1</c> is created, and it is used in the second task as one of arguments. During the first task is executed, the second task is submitted even we do not have the first return value. Then we receive the signal that the second result is ready right after the signal that the first result is ready. We can perform awaiting to get the eventual result.
-
-\code{.py}
+\verbatim
+$ python3 -m asyncio
 >>> import asyncio
->>> import starpu
->>> import time
->>> def add(a, b):
-...     time.sleep(10)
-...     print("The first result is ready!")
-...     return a+b
-... 
->>> def sub(x, a):
-...     print("The second result is ready!")
-...     return x-a
-... 
->>> fut1 = starpu.task_submit(perfmodel="add")(add, 1, 2)
->>> fut2 = starpu.task_submit(perfmodel="sub")(sub, fut1, 1)
->>> The first result is ready!
+\endverbatim
+
+\code{.py}
+import starpu
+def add(a, b):
+	print("The result is ready!")
+	return a+b
+
+fut = starpu.task_submit()(add, 1, 2)
+\endcode
+
+\verbatim
+The result is ready!
+\endverbatim
+
+\code{.py}
+res = await fut
+res
+\endcode
+
+\verbatim
+3
+\endverbatim
+
+You can also use the decorator \c starpu.delayed to wrap a function. The function can then directly be submitted to StarPU and will automatically create a Future object.
+\code{.py}
+@starpu.delayed
+def add_deco(a, b):
+	print("The result is ready!")
+	return a+b
+
+fut = add_deco(1, 2)
+\endcode
+
+\verbatim
+The result is ready!
+\endverbatim
+
+\code{.py}
+res = await fut
+res
+\endcode
+
+\verbatim
+3
+\endverbatim
+
+To specify options when using the decorator, just do as follows:
+
+\code{.py}
+@starpu.delayed(name="add", color=2, perfmodel="add_deco")
+def add_deco(a, b):
+	print("The result is ready!")
+	return a+b
+
+fut = add_deco(1, 2)
+\endcode
+
+\verbatim
+The result is ready!
+\endverbatim
+
+\code{.py}
+res = await fut
+res
+\endcode
+
+\verbatim
+3
+\endverbatim
+
+The Future object can be also used for the next step calculation even before being ready. The eventual result will be awaited until the Future has a result.
+
+In this example, after submitting the first task, a Future object <c>fut1</c> is created, and it is used as an argument of a second task. The second task is submitted even without having the return value of the first task.
+
+\code{.py}
+import asyncio
+import starpu
+import time
+
+def add(a, b):
+	time.sleep(10)
+	print("The first result is ready!")
+	return a+b
+
+def sub(x, a):
+	print("The second result is ready!")
+	return x-a
+
+fut1 = starpu.task_submit()(add, 1, 2)
+fut2 = starpu.task_submit()(sub, fut1, 1)
+\endcode
+
+\verbatim
+The first result is ready!
 The second result is ready!
+\endverbatim
 
->>> res = await fut2
->>> res
+\code{.py}
+res = await fut2
+res
+\endcode
+
+\verbatim
 2
-\endcode
+\endverbatim
 
-
-\section ImitatingJoblibLibrary Imitating Joblib Library
-
-StarPU Python interface also provides parallel computing for loops using multiprocessing. The main idea is to imitate <a href="https://joblib.readthedocs.io/en/latest/index.html">Joblib Library</a> that can simply turn out Python code into parallel computing mode and increase the computing speed.
-
-\subsection ParallelComputing Parallel Computing
-\subsubsection IterationArguments Iteration Arguments
-
-The most basic application is that we have a simple function with one or more single arguments. We set the argument as an iteration, write the code to be executed as a generator expression, and submit it as task to StarPU parallel.
+It is also possible to return a normal StarPU object when submitting a function. To do so, you need to set the <c>starpu.task_submit</c> option \c ret_handle to \c True, its default value is \c False. You then need to call the \c get() method on the object to return its value.
 
 \code{.py}
->>> from math import log10
->>> [log10(10 ** i) for i in range(10)]
-[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+import asyncio
+import starpu
+def add(a, b):
+    return a+b
+r = starpu.task_submit(ret_handle=True)(add, 1, 2)
+r.get()
 \endcode
 
-In order to spread it over several CPUs, you can import starpu.joblib module, and call Parallel class:
+\verbatim
+3
+\endverbatim
+
+\subsection SubmitPythonBuffer Submit Python Objects Supporting The Buffer Protocol
+
+The Python buffer protocol is a framework in which Python objects can expose raw byte arrays to other Python objects. This can be extremely useful to efficiently store and manipulate large arrays of data. The StarPU Python Interface allows users to use such objects as task parameters.
 
 \code{.py}
->>> import starpu.joblib
->>> from math import log10
->>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(log10)(10**i)for i in range(10))
-[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+import asyncio
+import starpu
+import numpy as np
+import time
+def add(a,b):
+	c = np.zeros(np.size(a))
+	for i in range(np.size(a)):
+		c[i] = a[i] + b[i]
+	return c
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+fut = starpu.task_submit()(add, a, b)
+res = await fut
+res
 \endcode
 
-Or you can create an object of Parallel class, and then call starpu.joblib.delayed to execute the function.
+\verbatim
+array([5., 7., 9.])
+\endverbatim
+
+StarPU uses a specific data interface to handle Python objects supporting buffer protocol, such python objects are then managed by the StarPU data management library which allows to minimize data transfers between accelerators, and avoids to copy the object each time.
+To deactivate the use of this data interface, you need to set the \c starpu.task_submit() option \c arg_handle to \c False (its default value is \c True).
+
+We show the performances below of the \c numpy addition (<c>numpy.add</c> running the script <c>test_handle_perf.sh</c>) with different array sizes (10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 20000, ..., 100000, 200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000). We compare three cases:
+<ol>
+<li> Using StarPU and returning future object, </li>
+<li> Using StarPU and returning handle object,</li>
+<li> Without using StarPU tasks, but directly calling the <c>numpy.add</c> function.</li>
+</ol>
+
+The first plot compares the task submission time when using StarPU either returning a Future or a handle object and the program execution time without using StarPU. We can see that there is an obvious optimization using StarPU when the test array size is large, the task has not finished its execution yet as shown in second figure, the time can be used to perform other operations.
+
+\image html starpupy_handle_perf.png width=85%
+\image latex starpupy_handle_perf.png "" width=\textwidth
+
+We can also define our own function to do the \c numpy operation, e.g. the element addition:
 
 \code{.py}
->>> import starpu.joblib
->>> from math import log10
->>> parallel=starpu.joblib.Parallel(mode="normal", n_jobs=2)
->>> parallel(starpu.joblib.delayed(log10)(10**i)for i in range(10))
-[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+def add(a, b):
+	for i in range(np.size(a)):
+		a[i] = a[i] + b[i]
 \endcode
 
-You can also generate a list of functions instead of a generator expression, and submit it as task to StarPU parallel.
+We will compare operation performances with the same three cases but based on our custom function <c>add(a, b)</c>.
+
+We can see that the custom function is not as efficient as the \c numpy function overall. The optimisation for large arrays is the same when using StarPU.
+
+\image html starpupy_handle_func_perf.png width=85%
+\image latex starpupy_handle_func_perf.png "" width=\textwidth
+
+\subsubsection AnnotationAccess Access Mode Annotation
+
+StarPU defines different access modes for a data, it can be readable (access mode is \c R), writable (access mode is \c W), or both readable and writable (access mode is \c RW). The default access mode is \c R.
+
+For the Python interface, these modes can be defined as shown below.
+
+<ol>
+<li>
+Using the decorator <c>starpu.access(arg="R/W/RW")</c> to wrap the function.
+
+\code{.py}
+a = np.array([1, 2, 3, 4, 5, 6])
+e = np.array([0, 0, 0, 0, 0, 0, 0])
+@starpu.access(a="R", b="W")
+def assign(a,b):
+	for i in range(min(np.size(a), np.size(b))):
+		b[i]=a[i]
+fut = starpu.task_submit()(assign, a, e)
+starpu.acquire(e)
+\endcode
+
+\verbatim
+array([1, 2, 3, 4, 5, 6, 0])
+\endverbatim
+
+\code{.py}
+starpu.release(e)
+\endcode
+</li>
+
+<li>
+Using the decorator <c>starpu.delayed(options, arg="R/W/RW")</c>.
+
+\code{.py}
+@starpu.delayed(a="R", b="W")
+def assign(a,b):
+	for i in range(min(np.size(a), np.size(b))):
+		b[i]=a[i]
+fut = assign(a, e)
+starpu.acquire(e)
+\endcode
+
+\verbatim
+array([1, 2, 3, 4, 5, 6, 0])
+\endverbatim
+
+\code{.py}
+starpu.release(e)
+\endcode
+</li>
+
+<li>
+Using the method <c>starpu.set_access(func, arg="R/W/RW")</c> that will create a new function.
+
+\code{.py}
+def assign(a,b):
+	for i in range(min(np.size(a), np.size(b))):
+		b[i]=a[i]
+assign_access=starpu.set_access(assign, a="R", b="W")
+fut = starpu.task_submit()(assign_access, a, e)
+starpu.acquire(e)
+\endcode
+
+\verbatim
+array([1, 2, 3, 4, 5, 6, 0])
+\endverbatim
+
+\code{.py}
+starpu.release(e)
+\endcode
+</li>
+</ol>
+
+\subsubsection MethodsAcquireRelease Methods
+
+In order to access data registered to StarPU outside tasks, we provide a acquire and release mechanism.
+
+<ul>
+<li> The <c>starpu.acquire(data, mode)</c> method should be called to access registered data outside tasks (Refer to the method <c>starpu_data_acquire()</c> in C interface).  StarPU will ensure that the application will get an up-to-date copy of handle in main memory located where the data was originally registered, and that all concurrent accesses (e.g. from tasks) will be consistent with the access mode specified with the given mode (\c R the default mode, \c W or \c RW).
+</li>
+
+<li> The <c>starpu.release(data)</c> method must be called once the application no longer needs to access the piece of data (Refer to the method <c>starpu_data_release()</c> in C interface).
+</li>
+
+<li> The <c>starpu.unregister(data)</c> method must be called to unregister the Python object from StarPU. (Refer to the method <c>starpu_data_unregister()</c> in C interface). This method waits for all calculations to be finished before unregistering data.
+</li>
+</ul>
+
+In order to complete the addition operation example, execution steps are:
+
+\code{.py}
+import asyncio
+import starpu
+import numpy as np
+import time
+@starpu.access(a="RW", b="R")
+def add(a,b):
+	time.sleep(10)
+	for i in range(np.size(a)):
+		a[i] = a[i] + b[i]
+
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+starpu.acquire(a, mode="R")
+\endcode
+
+\verbatim
+array([1, 2, 3])
+\endverbatim
+
+\code{.py}
+starpu.release(a)
+fut = starpu.task_submit()(add, a, b)
+starpu.acquire(b, mode="R")
+\endcode
+
+\verbatim
+array([4, 5, 6])
+\endverbatim
+
+\code{.py}
+starpu.acquire(a, mode="R") # before the task is finished
+\endcode
+
+\verbatim
+array([5, 7, 9])
+\endverbatim
+
+\code{.py}
+starpu.release(a)
+starpu.release(b)
+starpu.unregister(a)
+starpu.unregister(b)
+\endcode
+
+The result of \c b is printed directly right after calling \c acquire, but the up-to-date value of \c a is printed after the task is finished. Here we need to pay attention that if we want to modify an argument during the task execution and get its up-to-date value for the future operation, we should set the access mode of this argument to at least \c W, otherwise this argument object is not synchronous, and the next task which needs this object will not wait its up-to-date value to execute.
+
+If we call \c acquire but not \c release before the task submission, the task will not start to execute until the object is released.
+
+An example is shown below:
+
+\code{.py}
+import asyncio
+import starpu
+import numpy as np
+import time
+@starpu.access(a="RW")
+def add(a,b):
+	print("This is the addition function")
+	time.sleep(10)
+	for i in range(np.size(a)):
+		a[i] = a[i] + b[i]
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+starpu.acquire(a, mode="R")
+\endcode
+
+\verbatim
+array([1, 2, 3])
+\endverbatim
+
+\code{.py}
+fut = starpu.task_submit()(add, a, b)
+starpu.release(a)
+\endcode
+
+\verbatim
+This is the addition function   # The task will not start until "a" is released
+\endverbatim
+
+\code{.py}
+starpu.acquire(a, mode="R") # Before the task is finished
+\endcode
+
+\verbatim
+array([5, 7, 9])                # After the task is finished
+\endverbatim
+
+\code{.py}
+starpu.release(a)
+starpu.unregister(a)
+starpu.unregister(b)
+\endcode
+
+\subsection Benchmark Benchmark
+
+This benchmark gives a glimpse into how long a task should be (in µs) for the StarPU Python interface overhead to be low enough to keep efficiency. Running <c>tasks_size_overhead.sh</c> generates a plot of the speedup of tasks of various sizes, depending on the number of CPUs being used.
+
+In the first figure, the return value is a handle object.
+In the second figure, the return value is a future object.
+In the third figure, the return value is \c None.
+
+\image html tasks_size_overhead_py_handle.png "(1) Returning handle object" width=50%
+\image latex tasks_size_overhead_py_handle.png "" width=\textwidth
+
+\image html tasks_size_overhead_py_futur.png "(2) Returning future object" width=50%
+\image latex tasks_size_overhead_py_futur.png "" width=\textwidth
+
+\image html tasks_size_overhead_py_none.png "(3) Returning None" width=50%
+\image latex tasks_size_overhead_py_none.png "" width=\textwidth
+
+\section ImitatingJoblibLibrary Running Python Functions as Pipeline Jobs (Imitating Joblib Library)
+
+The StarPU Python interface also provides parallel computing for loops using multiprocessing, in a similar way to the <a href="https://joblib.readthedocs.io/en/latest/index.html">Joblib Library</a> that can simply turn out Python code into parallel computing code and thus increase the computing speed.
+
+\subsection JobLibraryExamples Examples
+
+<ul>
+
+<li>
+The most basic usage is to parallelize a simple iteration.
+
+\code{.py}
+from math import log10
+[log10(10 ** i) for i in range(10)]
+\endcode
+
+\verbatim
+[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+\endverbatim
+
+In order to spread it over several CPUs, you need to import the \c starpu.joblib module, and use its \c Parallel class:
+
+\code{.py}
+import starpu.joblib
+from math import log10
+starpu.joblib.Parallel(n_jobs=2)(starpu.joblib.delayed(log10)(10**i)for i in range(10))
+\endcode
+
+\verbatim
+[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+\endverbatim
+
+It is also possible to first create an object of the \c Parallel class, and then call \c starpu.joblib.delayed to execute the generator expression.
+
+\code{.py}
+import starpu.joblib
+from math import log10
+parallel=starpu.joblib.Parallel(n_jobs=2)
+parallel(starpu.joblib.delayed(log10)(10**i)for i in range(10))
+\endcode
+
+\verbatim
+[0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]
+\endverbatim
+</li>
+
+<li>
+Instead of a generator expression, a list of functions can also be submitted as a task through the \c Parallel class.
 
 \code{.py}
 import starpu.joblib
@@ -224,7 +561,7 @@ g_func=[]
 def hello():
     print ("Example 1: Hello, world!")
 g_func.append(starpu.joblib.delayed(hello)())
- 
+
 #function has 2 int inputs and 1 int output
 def multi(a, b):
     res_multi = a*b
@@ -248,73 +585,142 @@ def sub(a, b, c):
 g_func.append(starpu.joblib.delayed(sub)(6, 2, 5.9))
 
 #input is iterable function list
-starpu.joblib.Parallel(mode="normal", n_jobs=2)(g_func)
+starpu.joblib.Parallel(n_jobs=2)(g_func)
 \endcode
 
 Execution:
 
 \verbatim
-Example 1: Hello, world!
-Example 2: The result of  2 * 3 is 6
 Example 3: The result of  1.2 + 2.5 + 3.6 + 4.9 is 12.200000000000001
+Example 1: Hello, world!
 Example 4: The result of  6 - 2 - 5.9 is -1.9000000000000004 and the result of 6 - 2 is 4
+Example 2: The result of  2 * 3 is 6
+[None, 6, 12.200000000000001, (-1.9000000000000004, 4)]
+\endverbatim
+</li>
+
+<li>
+The function can also take array parameters.
+
+\code{.py}
+import starpu.joblib
+import numpy as np
+
+def multi_array(a, b):
+	for i in range(len(a)):
+		a[i] = a[i]*b[i]
+
+A = np.arange(10)
+B = np.arange(10, 20, 1)
+starpu.joblib.Parallel(n_jobs=2)(starpu.joblib.delayed(multi_array)((i for i in A), (j for j in B)))
+A
+\endcode
+
+Here the array \c A has not been modified.
+
+\verbatim
+array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 \endverbatim
 
-\subsubsection ArrayArguments Array Arguments
-
-In addition to writing the code to be executed as a generator expression, you can also define a function that all arguments are passed in arrays to execute the operation. When you want to apply parallel computing for the function which contains arrays calculations, for example:
+If we pass \c A directly as an argument, its value is updated
 
 \code{.py}
->>> def multi_array(a, b):
-...     for i in range(len(a)):
-...         a[i] = a[i]*b[i]
-...     return a
+starpu.joblib.Parallel(n_jobs=2)(starpu.joblib.delayed(multi_array)(A, B))
+A
 \endcode
 
-You should provide either Numpy arrays or generators for starpu.joblib.delayed as normal arguments or keyword arguments.
+\verbatim
+array([ 0, 11, 24, 39, 56, 75, 96, 119, 144, 171])
+\endverbatim
+
+In the next call, the value of \c A is also updated.
 
 \code{.py}
->>> import starpu.joblib
->>> import numpy as np
->>> A = np.arange(10)
->>> B = np.arange(10, 20, 1)
->>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)((i for i in A), (j for j in B)))
-[0, 11, 24, 39, 56, 75, 96, 119, 144, 171]
->>> A
-array([ 0, 11, 24, 39, 56, 75, 96, 119, 144, 171])
->>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)(A, B))
-[0, 11, 24, 39, 56, 75, 96, 119, 144, 171]
->>> A
-array([ 0, 11, 24, 39, 56, 75, 96, 119, 144, 171])
->>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(multi_array)(b=(j for j in B), a=A))
-[0, 121, 288, 507, 784, 1125, 1536, 2023, 2592, 3249]
->>> A
+starpu.joblib.Parallel(n_jobs=2)(starpu.joblib.delayed(multi_array)(b=(j for j in B), a=A))
+A
+\endcode
+
+\verbatim
 array([ 0, 121, 288, 507, 784, 1125, 1536, 2023, 2592, 3249])
+\endverbatim
 
-\endcode
+The above three writing methods are equivalent and their execution time are very close. However, when using directly a \c numpy arrays, its value will be updated, this does not happen when generators are provided. When using a \c numpy array, it will be handled by StarPU with a data interface.
+</li>
 
-The above three writing methods are equivalent and their execution time are very close. However, as shown in the example above, when we provide Numpy arrays, the target array will be changed according to the function, but this does not happen when generators are provided. And what's more, when you provide a Numpy array, you can set a larger array size.
-
-Of course, you can also provide other value type as argument, e.g. a scalar, a string, a function, etc., but not with the generator expression, for example:
+<li>
+Here an example mixing scalar objects and \c numpy arrays or generator expressions.
 
 \code{.py}
->>> import starpu.joblib
->>> import numpy as np
->>> def scal(a, t):
-... 	for i in range(len(t)):
-...         t[i] = t[i]*a
-... 	return t
->>> A = np.arange(10)
->>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(scal)(2, (i for i in A)))
-[0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
->>> starpu.joblib.Parallel(mode="normal", n_jobs=2)(starpu.joblib.delayed(scal)(2,A))
-[0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
->>> A
-array([ 0,  2,  4,  6,  8, 10, 12, 14, 16, 18])
+import starpu.joblib
+import numpy as np
+def scal(a, t):
+    for i in range(len(t)):
+	t[i] = t[i]*a
+A = np.arange(10)
+
+starpu.joblib.Parallel(n_jobs=2)(starpu.joblib.delayed(scal)(2, (i for i in A)))
+
+starpu.joblib.Parallel(n_jobs=2)(starpu.joblib.delayed(scal)(2,A))
 \endcode
 
-\subsubsection Comparison Comparison
-In summary, if you want to realise the same operation, there are two methods of passing arguments to starpu.joblib.delayed function. In the first method, we define a function that contains only scalars calculations, and then we pass a generator expression as argument. In the second method, we define a function that contains arrays calculations, and then we pass either Numpy arrays or generators as arguments. Comparing these two methods, we find that the second one takes less time. You can choose the method to pass arguments according to your actual needs and function definitions.
+Again, the value of \c A is modified by the 2nd call.
+
+\code{.py}
+A
+\endcode
+
+\verbatim
+array([ 0,  2,  4,  6,  8, 10, 12, 14, 16, 18])
+\endverbatim
+</li>
+
+</ul>
+
+\subsection ParallelParameters Parallel Parameters
+
+The \c starpu.joblib.Parallel class accepts the following parameters:
+
+<ul>
+<li> \c mode (string, default: \c "normal")
+
+A string with the value <c>"normal"</c> or <c>"future"</c>. With the <c>"normal"</c> mode, you can call \c starpu.joblib.Parallel directly without using the \c asyncio module and you will get the result when the task is executed. With the <c>"future"</c> mode, when calling \c starpu.joblib.Parallel, you will get a Future object as a return value. By setting the parameter <c>end_msg</c>, the given message will be displayed when the result is ready, then you can call \c await to get the result. The \c asyncio module should be imported in this case.
+
+\code{.py}
+import starpu
+import asyncio
+from math import log10
+fut = starpu.joblib.Parallel(mode="future", n_jobs=3, end_msg="The result is ready!")(starpu.joblib.delayed(log10)(10**i)for i in range(10))
+The result is ready! <_GatheringFuture finished result=[[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]>
+await fut
+\endcode
+
+\verbatim
+[[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]
+\endverbatim
+</li>
+
+<li> \c end_msg (string, default: \c None)
+
+A message that will be displayed when the task is executed and the result is ready. When the parameter is unset, no message will be displayed when the result is ready. In any case, you need to perform awaiting to get the result.
+</li>
+
+<li> \c n_jobs (int, default: \c None)
+
+The maximum number of concurrently running jobs. If -1 all CPUs are used. If 1 is given, no parallel computing code is used at all, which is useful for debugging. For \c n_jobs below -1, (\c n_cpus + 1 + \c n_jobs) are used. Thus for \c n_jobs = -2, all CPUs but one are used. \c None is a marker for ‘unset’ that will be interpreted as \c n_jobs=1 (sequential execution).
+\c n_cpus is the number of CPUs detected by StarPU on the running device.
+</li>
+
+<li> \c perfmodel (string, default : \c None)
+
+Set the name of the performance model. This name will be used as the filename where the performance model information will be saved. After the task is executed, one can call the function \c starpu.perfmodel_plot() by giving the symbol of perfmodel to view its performance curve.
+</li>
+</ul>
+
+\subsection JobLibPerformances Performances
+
+<ul>
+<li>
+We compare the performances of the two methods for passing arguments to \c the starpu.joblib.delayed function. The first method defines a function that contains only scalars calculations, and then we pass a generator expression as an argument. The second method defines a function that contains arrays calculations, and then we pass either \c numpy arrays or generators as arguments. The second method takes less time.
 
 \code{.py}
 import starpu.joblib
@@ -332,7 +738,7 @@ A = np.arange(N)
 B = np.arange(N, 2*N, 1)
 start_exec1 = time.time()
 start_cpu1 = time.process_time()
-starpu.joblib.Parallel(mode="normal", n_jobs=-1)(starpu.joblib.delayed(multi)(i,j) for i,j in zip(A,B))
+starpu.joblib.Parallel(n_jobs=-1)(starpu.joblib.delayed(multi)(i,j) for i,j in zip(A,B))
 end_exec1 = time.time()
 end_cpu1 = time.process_time()
 print("the program execution time is", end_exec1-start_exec1)
@@ -348,7 +754,7 @@ A = np.arange(N)
 B = np.arange(N, 2*N, 1)
 start_exec2 = time.time()
 start_cpu2 = time.process_time()
-starpu.joblib.Parallel(mode="normal", n_jobs=-1)(starpu.joblib.delayed(multi_array)(A, B))
+starpu.joblib.Parallel(n_jobs=-1)(starpu.joblib.delayed(multi_array)(A, B))
 end_exec2 = time.time()
 end_cpu2 = time.process_time()
 print("the program execution time is", end_exec2-start_exec2)
@@ -359,12 +765,11 @@ A = np.arange(N)
 B = np.arange(N, 2*N, 1)
 start_exec3 = time.time()
 start_cpu3 = time.process_time()
-starpu.joblib.Parallel(mode="normal", n_jobs=-1)(starpu.joblib.delayed(multi_array)((i for i in A), (j for j in B)))
+starpu.joblib.Parallel(n_jobs=-1)(starpu.joblib.delayed(multi_array)((i for i in A), (j for j in B)))
 end_exec3 = time.time()
 end_cpu3 = time.process_time()
 print("the program execution time is", end_exec3-start_exec3)
 print("the cpu execution time is", end_cpu3-start_cpu3)
-
 \endcode
 
 Execution:
@@ -381,83 +786,372 @@ the program execution time is 0.7259719371795654
 the cpu execution time is 1.1182918959999988
 \endverbatim
 
-\subsection ParallelParameters Parallel Parameters
-
-Without setting options of function task_submit, starpu.joblib.Parallel also provides some own parameters:
-
-\subsubsection mode mode
-(string, default: "normal")
-
-You need to choose the mode between <c>normal</c> and <c>future</c>. As in the previous example, with <c>normal</c> mode, you can call starpu.joblib.Parallel directly without using asyncio module and you will get the result when the task is executed. With <c>future</c> mode, when you call starpu.joblib.Parallel, you will get a Future object as return value. Here if you set another parameter <c>end_msg</c>, you will receive a signal with this message that the result is ready, then you can perform awaiting to get the eventual result. The asyncio module should be imported in this case.
+</li>
+<li>
+Performance can also be shown with the performance model. Here an example with the function \c log10.
 
 \code{.py}
->>> import starpu
->>> import asyncio
->>> from math import log10
->>> fut = starpu.joblib.Parallel(mode="future", n_jobs=3, end_msg="The result is ready!")(starpu.joblib.delayed(log10)(10**i)for i in range(10))
->>> The result is ready! <_GatheringFuture finished result=[[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]>
->>> await fut
-[[0.0, 1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]
+from math import log10
+for x in [10, 100, 1000, 10000, 100000, 1000000]:
+    for X in range(x, x*10, x):
+        starpu.joblib.Parallel(n_jobs=-1, perfmodel="log_list")(starpu.joblib.delayed(log10)(i+1)for i in range(X))
 
-\endcode
-
-\subsubsection end_msg end_msg
-(string, default: None)
-
-As we introduced in the previous section, this parameter can be set with a prompt message to remind you that the task is executed and the result is ready, then you can perform awaiting and get the eventual result. If you do not set this parameter, the default value is None, and you will not receive any prompt message, but you still can perform awaiting and get the eventual result.
-
-\subsubsection n_jobs n_jobs
-(int, default: None)
-
-You need to set the number of CPUs which is used for parallel computing. Thus for n_jobs=2, 2 CPUs are used. If 1 is given, no parallel computing. For n_jobs below 0, (n_cpus+1+n_jobs) CPUs are used. Thus for n_jobs=-2, all CPUs but one are used.
-
-\subsection Examples Examples
-
-We will show examples of using starpu.joblib.Parallel by passing generator or Numpy array as input. We will also show how to get their performance curves by setting "perfmodel" parameter. It is a parameter of function task_submit, but here we set it in the Parallel option field, and the same for the other parameters of function task_submit when calling Parallel class.
-
-In the following example, for the function log10 (i+1) for i in range(N), we set the performodel symbol to "log_list", and we submit the task in turn when N=10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 2000, ..., 100000,200000, ..., 1000000, 2000000, ..., 9000000.
-
-\code{.py}
->>> from math import log10
->>> for x in [10, 100, 1000, 10000, 100000, 1000000]:
-...     for X in range(x, x*10, x):
-...         starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_list")(starpu.joblib.delayed(log10)(i+1)for i in range(X))
-\endcode
-
-You can call the function perfmodel_plot by giving the symbol of perfmodel to view the performance curve.
-
-\code{.py}
 starpu.perfmodel_plot(perfmodel="log_list")
 \endcode
-
-The performance curve of this example is shown as:
 
 \image html starpu_log_list.png
 \image latex starpu_log_list.png "" width=\textwidth
 
-If we pass a Numpy array as input, the calculation can withstand larger size. In this example we try to set the size of array from 10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 2000, ..., 100000,200000, ..., 1000000, 2000000, until to 10000000, 20000000, ..., 90000000.
+If we use a \c numpy array as parameter, the calculation can withstand larger size, as shown below.
 
 \code{.py}
->>> from math import log10
->>> def log10_arr(t):
-...     for i in range(len(t)):
-...         t[i] = log10(t[i])
-...     return t
->>> for x in [10, 100, 1000, 10000, 100000, 1000000, 10000000]:
-...     for X in range(x, x*10, x):
-...         A = np.arange(1,X+1,1)
-...         starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="log_arr")(starpu.joblib.delayed(log10_arr)(A))
-\endcode
+from math import log10
+def log10_arr(t):
+    for i in range(len(t)):
+        t[i] = log10(t[i])
+    return t
+for x in [10, 100, 1000, 10000, 100000, 1000000, 10000000]:
+    for X in range(x, x*10, x):
+        A = np.arange(1,X+1,1)
+        starpu.joblib.Parallel(n_jobs=-1, perfmodel="log_arr")(starpu.joblib.delayed(log10_arr)(A))
 
-Then we call the function perfmodel_plot by giving the symbol of perfmodel.
-
-\code{.py}
 starpu.perfmodel_plot(perfmodel="log_arr")
 \endcode
 
-And the performance curve of this example is shown as:
-
 \image html starpu_log_arr.png
 \image latex starpu_log_arr.png "" width=\textwidth
+</li>
+</ul>
+
+\section StarPUPYInterface StarPU Data Interface for Python Objects
+
+StarPU uses data handles to manage piece of data. A data handle keeps track of replicates of the same data (registered by the application) over various memory nodes. The data management library manages to keep them coherent. That also allows to minimize the data transfers, and avoids to copy the object each time. Data handles are managed through specific data interfaces.
+
+\subsection PythonObject Interface for Ordinary Python Objects
+
+A specific data interface has been defined to manage Python Objects, such as constant (interger, float...), string, list, etc. This interface is defined with the class <c>Handle</c>. When submitting a task, instead of specifyng a function and its arguments, we specify a function and the handles of its arguments.
+
+\code{.py}
+import starpu
+from starpu import Handle
+def add(x, y):
+   return x + y
+
+x = Handle(2)
+y = Handle(3)
+res = starpu.task_submit(ret_handle=True)(add, x, y)
+\endcode
+
+We then need to call the method <c>get()</c> to get the latest version of this Python Object.
+
+\code{.py}
+res.get()
+\endcode
+
+\verbatim
+5
+\endverbatim
+
+When not setting the parameter \c ret_handle, the return object is a Future.
+
+\code{.py}
+res_fut = starpu.task_submit()(add, x, y)
+await res_fut
+\endcode
+
+\subsection PythonBuffer Interface for Python Objects Supporting Buffer Protocol
+
+This StarPU data interface can be also used to manage Python Objects supporting buffer protocol, i.e \c numpy array, bytes, bytearray, array.array and memoryview object.
+
+\code{.py}
+import starpu
+from starpu import Handle
+import numpy as np
+def add(a,b):
+   for i in range(np.size(a)):
+      a[i] = a[i] + b[i]
+   return a
+
+a = np.array([1, 2, 3])
+b = np.array([2, 4, 6])
+a_h = Handle(a)
+b_h = Handle(b)
+res = starpu.task_submit(ret_handle=True)(add, a_h, b_h)
+res.get()
+\endcode
+
+\verbatim
+array([3, 6, 9])
+\endverbatim
+
+\subsubsection Methods Methods
+
+As in section \ref MethodsAcquireRelease, the \c Handle class defines methods to provide a acquire and release mechanism.
+
+<ul>
+<li>
+The method <c>Handle::acquire(mode)</c> should be called before accessing the object outside tasks (Refer to the method <c>starpu_data_acquire()</c> in C interface). The access mode can be \c "R", \c "W", \c "RW", the default value is "R". We will get an up-to-date copy of Python object by calling this method.
+</li>
+
+<li>
+The method <c>Handle::release()</c> must be called once the application no longer needs to access the registered data (Refer to the method <c>starpu_data_release()</c> in C interface).
+</li>
+
+<LI>
+The method <c>Handle::unregister()</c> to unregister the Python object handle from StarPU (Refer to the method <c>starpu_data_unregister()</c> in C interface). This method will wait for all calculations to be finished before unregistering data.
+</li>
+</ul>
+
+The previous example can be coded as follows:
+
+\code{.py}
+import starpu
+from starpu import Handle
+import numpy as np
+@starpu.access(a="RW", b="R")
+def add(a,b):
+   for i in range(np.size(a)):
+      a[i] = a[i] + b[i]
+
+a = np.array([1, 2, 3])
+b = np.array([2, 4, 6])
+a_h = Handle(a)
+b_h = Handle(b)
+a_h.acquire(mode = "R")
+\endcode
+
+\code{.py}
+array([1, 2, 3])
+\endcode
+
+\code{.py}
+a_h.release()
+starpu.task_submit(ret_handle=True)(add, a_h, b_h)
+a_h.acquire(mode = "R") # we get the up-to-date value
+\endcode
+
+\verbatim
+array([3, 6, 9])
+\endverbatim
+
+\code{.py}
+a_h.release()
+a_h.unregister()
+\endcode
+
+\subsection EmptyNumpy Interface for Empty Numpy Array
+
+We can register an empty \c numpy array by calling <c>HandleNumpy(size, type)</c>. The default value for <c>type</c> is <c>float64</c>.
+
+You will find below an example which defines the function \c assign taking two arrays as parameters, the second one being an empty array which will be assigned the values of the first array.
+
+\code{.py}
+import starpu
+from starpu import Handle
+from starpu import HandleNumpy
+import numpy as np
+
+@starpu.access(b="W")
+def assign(a,b):
+   for i in range(min(np.size(a,0), np.size(b,0))):
+      for j in range(min(np.size(a,1), np.size(b,1))):
+         b[i][j] = a[i][j]
+   return b
+
+a = np.array([[1, 2, 3], [4, 5, 6]])
+a_h = Handle(a)
+e_h = HandleNumpy((5,10), a.dtype)
+res = starpu.task_submit(ret_handle=True)(assign, a_h, e_h)
+e_h.acquire()
+\endcode
+
+\verbatim
+array([[1, 2, 3, 0, 0, 0, 0, 0, 0, 0],
+       [4, 5, 6, 0, 0, 0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+       [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+\endverbatim
+
+\code{.py}
+e_h.release()
+\endcode
+
+\subsection HandlePartition Array Partitioning
+
+A n-dim \c numpy array can be splitted into several sub-arrays by calling the method <c>Handle::partition(nchildren, dim, chunks_list)</c> (Refer to the method <c>starpu_data_partition_plan()</c> in C interface).
+<ul>
+<li>
+<c>nchildren</c> is the number of sub-handles,
+</li>
+<li>
+<c>dim</c> is the dimension that we want to partition along, it can be 0 for vertical dimension, 1 for horizontal dimension, 2 for depth dimension, 3 for time dimension, ...etc.
+</li>
+<li>
+<c>chunks_list</c> is a list containing the size of each segment. The total length of segments in this list must be equal to the length of the selected dimension.
+</li>
+</ul>
+
+The method will return a sub-handle list, each of the sub-handles can be used when submitting a task with <c>task_submit()</c>. This allows to process an array in parallel, once the execution of each sub-handle is finished, the result will be directly reflected in the original n-dim array.
+
+When the sub-handles are no longer needed, the method <c>Handle::unpartition(handle_list, nchildren)</c> should be called to clear the partition and unregister all the sub-handles (Refer to the method <c>starpu_data_partition_clean()</c> in C interface).
+<ul>
+<li>
+<c>handle_list</c> is the sub-handle list which was previously returned by the method <c>Handle::partition()</c>,
+</li>
+<LI>
+<c>nchildren</c> is the number of sub-handles.
+</li>
+</ul>
+
+Here is an example to use these methods.
+
+\code{.py}
+import starpu
+from starpu import Handle
+import numpy as np
+
+@starpu.access(a="RW", b="R")
+def add(a,b):
+   np.add(a,b,out=a)
+
+n, m = 20, 10
+arr = np.arange(n*m).reshape(n, m)
+arr_h = Handle(arr)
+arr_h.acquire(mode='RW')
+\endcode
+
+\verbatim
+ [[  0   1   2   3   4   5   6   7   8   9]
+ [ 10  11  12  13  14  15  16  17  18  19]
+ [ 20  21  22  23  24  25  26  27  28  29]
+ [ 30  31  32  33  34  35  36  37  38  39]
+ [ 40  41  42  43  44  45  46  47  48  49]
+ [ 50  51  52  53  54  55  56  57  58  59]
+ [ 60  61  62  63  64  65  66  67  68  69]
+ [ 70  71  72  73  74  75  76  77  78  79]
+ [ 80  81  82  83  84  85  86  87  88  89]
+ [ 90  91  92  93  94  95  96  97  98  99]
+ [100 101 102 103 104 105 106 107 108 109]
+ [110 111 112 113 114 115 116 117 118 119]
+ [120 121 122 123 124 125 126 127 128 129]
+ [130 131 132 133 134 135 136 137 138 139]
+ [140 141 142 143 144 145 146 147 148 149]
+ [150 151 152 153 154 155 156 157 158 159]
+ [160 161 162 163 164 165 166 167 168 169]
+ [170 171 172 173 174 175 176 177 178 179]
+ [180 181 182 183 184 185 186 187 188 189]
+ [190 191 192 193 194 195 196 197 198 199]]
+\endverbatim
+
+\code{.py}
+arr_h.release()
+split_num = 3
+arr_h_list = arr_h.partition(split_num, 1, [3,2,5]) # split into 3 sub-handles, and partition along the horizontal dimension
+for i in range(split_num):
+   res=starpu.task_submit(ret_handle=True)(add, arr_h_list[i], arr_h_list[i])
+arr_h.acquire(mode='RW')
+\endcode
+
+\verbatim
+[[  0   2   4  12  16  40  48  56  64  72]
+ [ 80  88  96 104 112 120 128 136 144 152]
+ [160 168 176 184 192 200 208 216 224 232]
+ [240 248 256 264 272 280 288 296 304 312]
+ [320 328 336 172 176 180 184 188 192 196]
+ [200 204 208 212 216 220 224 228 232 236]
+ [120 122 124 126 128 130 132 134 136 138]
+ [140 142 144 146 148 150 152 154 156 158]
+ [160 162 164 166 168 170 172 174 176 178]
+ [180 182 184 186 188 190 192 194 196 198]
+ [200 202 204 206 208 105 106 107 108 109]
+ [110 111 112 113 114 115 116 117 118 119]
+ [120 121 122 123 124 125 126 127 128 129]
+ [130 131 132 133 134 135 136 137 138 139]
+ [140 141 142 143 144 145 146 147 148 149]
+ [150 151 152 153 154 155 156 157 158 159]
+ [160 161 162 163 164 165 166 167 168 169]
+ [170 171 172 173 174 175 176 177 178 179]
+ [180 181 182 183 184 185 186 187 188 189]
+ [190 191 192 193 194 195 196 197 198 199]]
+\endverbatim
+
+\code{.py}
+arr_h.release()
+arr_h.unpartition(arr_h_list, split_num)
+arr_h.unregister()
+\endcode
+
+The method <c>Handle::get_partition_size(handle_list)</c> can be used to get the array size of each sub-array.
+
+\code{.py}
+arr_h_list = arr_h.partition(split_num, 1, [3,2,5])
+arr_h.get_partition_size(arr_h_list)
+\endcode
+
+\verbatim
+[60, 40, 100]
+\endverbatim
+
+\section MultipleInterpreters Multiple Interpreters
+
+It is possible to use multiple interpreters when running python applications. To do so, you need to call configure with the option \ref enable-python-multi-interpreter "--enable-python-multi-interpreter". It will automatically enable the StarPU Python Interface.
+
+\verbatim
+$ ./configure --enable-python-multi-interpreter
+$ make
+$ make install
+\endverbatim
+
+Python interpreters have a Global Interpreter Lock (GIL), which requires that at any time one and only one thread has the right to execute a task. In other words, GIL makes the multiple interpreters execution of Python actually serial rather than parallel, and the execution of Python program is single-threaded essentially.
+
+In order to transfer data between interpreters, the module \c cloudpickle is used to serialize Python objects in contiguous byte array. This mechanism increases the overhead of the StarPU Python interface, as shown in the following plots, to be compared to the plots given in \ref Benchmark.
+
+In the first figure, the return value is a handle object.
+In the second figure, the return value is a future object.
+In the third figure, the return value is \c None.
+
+\image html tasks_size_overhead_py_handle_pickle.png "(1) Returning handle object" width=50%
+\image latex tasks_size_overhead_py_handle_pickle.png "" width=\textwidth
+
+\image html tasks_size_overhead_py_fut_pickle.png "(2) Returning future object" width=50%
+\image latex tasks_size_overhead_py_fut_pickle.png "" width=\textwidth
+
+\image html tasks_size_overhead_py_noret_pickle.png "(3) Returning None" width=50%
+\image latex tasks_size_overhead_py_noret_pickle.png "" width=\textwidth
+
+In order to reflect this influence more intuitively, we make a performance comparison.
+
+By default, StarPU uses virtually shared memory manager for Python objects supporting buffer protocol that allows to minimize data transfers. But in the case multi-interpreter, if we do not use virtually shared memory manager, data transfer can be realized only with the help of cloudpickle.
+
+We will show the operation performances below (Running <c>test_handle_perf_pickle.sh</c>). The operation that we test is \c numpy addition (<c>numpy.add</c>), and the array size is 10, 20, ..., 100, 200, ..., 1000, 2000, ..., 10000, 2000, ..., 100000,200000, ..., 1000000, 2000000, ..., 10000000, ..., 50000000. We compared three cases: first, using virtually shared memory manager, second, without using virtually shared memory manager, third, without using StarPU task submitting, but directly calling <c>numpy.add</c> function.
+
+In first figure, we compare the submission time when using StarPU and the execution time without using StarPU. We can see that there is still an obvious optimization using StarPU virtually shared memory manager when the test array size is large. However, if only using cloudpickle, StarPU Python interface cannot provide an effective optimization. And in second figure, we can see that the same operation will take more time to finish the program execution when only using cloudpickle.
+
+\image html starpupy_handle_perf_pickle.png width=85%
+\image latex starpupy_handle_perf_pickle.png "" width=\textwidth
+
+We can also define our own function to do the \c numpy operation, e.g. the element addition:
+
+\code{.py}
+def add(a, b):
+   for i in range(np.size(a)):
+      a[i] = a[i] + b[i]
+\endcode
+
+We will compare operation performances of the same three cases but based on the custom function <c>add(a, b)</c>.
+
+We can see that the custom function takes more time than \c numpy function overall. Although the same operation still takes more time to submit the task when only using cloudpickle than with virtually shared memory manager, there is still a better optimization. The operation takes less time than only calling custom function even when the array is not very large.
+
+\image html starpupy_handle_func_perf_pickle.png width=85%
+\image latex starpupy_handle_func_perf_pickle.png "" width=\textwidth
+
+\section StarpupyMasterSlave Master Slave Support
+
+StarPU Python interface provides MPI master slave support as well. Please refer to \ref MPIMasterSlave for the specific usage.
+
+When you write your Python script, make sure to import all required functions before the \c starpu module. Functions imported after the \c starpu module can only be submitted using their name as a string when calling \c task_submit(), this will decrease the submission efficiency.
+
+(TODO)
 
 */

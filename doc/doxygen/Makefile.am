@@ -146,8 +146,17 @@ images = 	\
 	chapters/images/trace_bw_heatmap.png		\
 	chapters/images/trace_recv_use.png		\
 	chapters/images/trace_send_use.png		\
-	chapters/images/trace_volume_heatmap.png
-
+	chapters/images/trace_volume_heatmap.png	\
+	chapters/images/starpupy_handle_func_perf_pickle.png  \
+	chapters/images/starpupy_handle_perf_pickle.png	\
+	chapters/images/starpupy_handle_func_perf.png \
+	chapters/images/starpupy_handle_perf.png		\
+	chapters/images/tasks_size_overhead_py_fut_pickle.png	\
+	chapters/images/tasks_size_overhead_py_futur.png	\
+	chapters/images/tasks_size_overhead_py_handle_pickle.png \
+	chapters/images/tasks_size_overhead_py_handle.png	\
+	chapters/images/tasks_size_overhead_py_none.png		\
+	chapters/images/tasks_size_overhead_py_noret_pickle.png
 
 if STARPU_BUILD_DOC
 EXTRA_DIST += \
