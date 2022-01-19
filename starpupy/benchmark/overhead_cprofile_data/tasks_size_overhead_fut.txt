@@ -1,0 +1,162 @@
+         71032 function calls (71030 primitive calls) in 68.763 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:1033(_handle_fromlist)
+        1    0.000    0.000    0.000    0.000 <frozen importlib._bootstrap>:398(parent)
+        1    0.000    0.000    0.000    0.000 <string>:1(<lambda>)
+        1    0.000    0.000    0.000    0.000 __init__.py:1276(disable)
+        1    0.000    0.000    0.000    0.000 __init__.py:1424(debug)
+        1    0.000    0.000    0.000    0.000 __init__.py:1675(getEffectiveLevel)
+        1    0.000    0.000    0.000    0.000 __init__.py:1689(isEnabledFor)
+        1    0.000    0.000    0.000    0.000 __init__.py:218(_acquireLock)
+        1    0.000    0.000    0.000    0.000 __init__.py:227(_releaseLock)
+        1    0.000    0.000    0.000    0.000 _collections_abc.py:759(get)
+        1    0.000    0.000    0.000    0.000 _weakrefset.py:17(__init__)
+        1    0.000    0.000    0.000    0.000 _weakrefset.py:21(__enter__)
+        1    0.000    0.000    0.000    0.000 _weakrefset.py:27(__exit__)
+        1    0.000    0.000    0.000    0.000 _weakrefset.py:37(__init__)
+        3    0.000    0.000    0.000    0.000 _weakrefset.py:39(_remove)
+        1    0.000    0.000    0.000    0.000 _weakrefset.py:53(_commit_removals)
+        1    0.000    0.000    0.000    0.000 _weakrefset.py:59(__iter__)
+        3    0.000    0.000    0.000    0.000 _weakrefset.py:68(__len__)
+        3    0.000    0.000    0.000    0.000 _weakrefset.py:82(add)
+        1    0.000    0.000    0.000    0.000 base_events.py:1797(_add_callback)
+        6    0.018    0.003   68.762   11.460 base_events.py:1815(_run_once)
+        3    0.000    0.000    0.000    0.000 base_events.py:184(_run_until_complete_cb)
+        6    0.000    0.000    0.000    0.000 base_events.py:1893(_set_coroutine_origin_tracking)
+     7051    0.004    0.000    0.004    0.000 base_events.py:1908(get_debug)
+        1    0.000    0.000    0.000    0.000 base_events.py:1911(set_debug)
+        1    0.000    0.000    0.000    0.000 base_events.py:386(__init__)
+     7040    0.044    0.000    0.049    0.000 base_events.py:422(create_future)
+        3    0.000    0.000    0.000    0.000 base_events.py:426(create_task)
+       16    0.000    0.000    0.000    0.000 base_events.py:508(_check_closed)
+        1    0.000    0.000    0.000    0.000 base_events.py:530(shutdown_asyncgens)
+        1    0.000    0.000    0.000    0.000 base_events.py:556(shutdown_default_executor)
+        6    0.000    0.000    0.000    0.000 base_events.py:576(_check_running)
+        3    0.000    0.000   68.762   22.921 base_events.py:583(run_forever)
+        3    0.000    0.000   68.762   22.921 base_events.py:606(run_until_complete)
+        3    0.000    0.000    0.000    0.000 base_events.py:644(stop)
+        1    0.000    0.000    0.000    0.000 base_events.py:652(close)
+        2    0.000    0.000    0.000    0.000 base_events.py:675(is_closed)
+        9    0.000    0.000    0.000    0.000 base_events.py:685(is_running)
+        6    0.000    0.000    0.000    0.000 base_events.py:689(time)
+        6    0.000    0.000    0.000    0.000 base_events.py:736(call_soon)
+        6    0.000    0.000    0.000    0.000 base_events.py:765(_call_soon)
+        3    0.000    0.000    0.000    0.000 base_futures.py:14(isfuture)
+        4    0.000    0.000    0.000    0.000 coroutines.py:177(iscoroutine)
+        1    0.000    0.000    0.000    0.000 coroutines.py:18(_is_debug_mode)
+        7    0.000    0.000    0.000    0.000 events.py:31(__init__)
+        1    0.000    0.000    0.000    0.000 events.py:628(__init__)
+        1    0.000    0.000    0.000    0.000 events.py:64(cancel)
+        2    0.000    0.000    0.000    0.000 events.py:647(set_event_loop)
+        1    0.000    0.000    0.000    0.000 events.py:653(new_event_loop)
+        1    0.000    0.000    0.000    0.000 events.py:714(_init_event_loop_policy)
+        3    0.000    0.000    0.000    0.000 events.py:722(get_event_loop_policy)
+        2    0.000    0.000    0.000    0.000 events.py:754(set_event_loop)
+        1    0.000    0.000    0.000    0.000 events.py:759(new_event_loop)
+     7047    0.010    0.000   68.743    0.010 events.py:78(_run)
+        3    0.000    0.000    0.000    0.000 futures.py:296(_get_loop)
+     7040    0.023    0.000    0.027    0.000 intermedia.py:47(task_submit)
+     7040    0.033    0.000    0.491    0.000 intermedia.py:55(call_task_submit)
+        1    0.000    0.000    0.000    0.000 os.py:674(__getitem__)
+        1    0.000    0.000    0.000    0.000 os.py:754(encode)
+        1    0.000    0.000    0.000    0.000 runners.py:55(_cancel_all_tasks)
+        1    0.000    0.000   68.763   68.763 runners.py:8(run)
+        1    0.000    0.000    0.000    0.000 selector_events.py:106(_make_self_pipe)
+        1    0.000    0.000    0.000    0.000 selector_events.py:117(_read_from_self)
+        1    0.000    0.000    0.000    0.000 selector_events.py:257(_add_reader)
+        1    0.000    0.000    0.000    0.000 selector_events.py:273(_remove_reader)
+        1    0.000    0.000    0.000    0.000 selector_events.py:54(__init__)
+        6    0.000    0.000    0.000    0.000 selector_events.py:594(_process_events)
+        1    0.000    0.000    0.000    0.000 selector_events.py:87(close)
+        1    0.000    0.000    0.000    0.000 selector_events.py:98(_close_self_pipe)
+        2    0.000    0.000    0.000    0.000 selectors.py:181(get_key)
+        4    0.000    0.000    0.000    0.000 selectors.py:21(_fileobj_to_fd)
+        1    0.000    0.000    0.000    0.000 selectors.py:210(__init__)
+        4    0.000    0.000    0.000    0.000 selectors.py:216(_fileobj_lookup)
+        1    0.000    0.000    0.000    0.000 selectors.py:235(register)
+        1    0.000    0.000    0.000    0.000 selectors.py:248(unregister)
+        1    0.000    0.000    0.000    0.000 selectors.py:269(close)
+        2    0.000    0.000    0.000    0.000 selectors.py:273(get_map)
+        1    0.000    0.000    0.000    0.000 selectors.py:276(_key_from_fd)
+        1    0.000    0.000    0.000    0.000 selectors.py:348(__init__)
+        1    0.000    0.000    0.000    0.000 selectors.py:352(register)
+        1    0.000    0.000    0.000    0.000 selectors.py:366(unregister)
+        6    0.000    0.000    0.000    0.000 selectors.py:452(select)
+        1    0.000    0.000    0.000    0.000 selectors.py:484(close)
+        1    0.000    0.000    0.000    0.000 selectors.py:64(__init__)
+        2    0.000    0.000    0.000    0.000 selectors.py:70(__getitem__)
+        2    0.000    0.000    0.000    0.000 socket.py:220(__init__)
+        2    0.000    0.000    0.000    0.000 socket.py:493(_real_close)
+        2    0.000    0.000    0.000    0.000 socket.py:497(close)
+        1    0.000    0.000    0.000    0.000 socket.py:593(socketpair)
+        1    0.000    0.000    0.000    0.000 tasks.py:41(all_tasks)
+        1    0.000    0.000    0.000    0.000 tasks.py:60(<setcomp>)
+        3    0.000    0.000    0.000    0.000 tasks.py:659(ensure_future)
+        1    0.041    0.041   68.731   68.731 tasks_size_overhead.py:137(main)
+        4    0.000    0.000    0.000    0.000 tasks_size_overhead.py:85(range_multi)
+        1    0.000    0.000    0.000    0.000 unix_events.py:1423(__init__)
+        2    0.000    0.000    0.000    0.000 unix_events.py:1434(set_event_loop)
+        1    0.000    0.000    0.000    0.000 unix_events.py:53(__init__)
+        1    0.000    0.000    0.000    0.000 unix_events.py:57(close)
+        1    0.000    0.000    0.000    0.000 unix_events.py:71(_process_self_data)
+        1    0.000    0.000    0.000    0.000 weakref.py:105(__init__)
+        1    0.000    0.000    0.000    0.000 weakref.py:287(update)
+        1    0.000    0.000    0.000    0.000 {built-in method __new__ of type object at 0x5653cba91180}
+        7    0.000    0.000    0.000    0.000 {built-in method _asyncio._get_running_loop}
+        6    0.000    0.000    0.000    0.000 {built-in method _asyncio._set_running_loop}
+        1    0.000    0.000    0.000    0.000 {built-in method _contextvars.copy_context}
+        1    0.000    0.000    0.000    0.000 {built-in method _socket.socketpair}
+        3    0.000    0.000    0.000    0.000 {built-in method _thread.get_ident}
+     7045    0.004    0.000    0.004    0.000 {built-in method builtins.hasattr}
+       13    0.000    0.000    0.000    0.000 {built-in method builtins.isinstance}
+    26/24    0.000    0.000    0.000    0.000 {built-in method builtins.len}
+        6    0.000    0.000    0.000    0.000 {built-in method builtins.max}
+       52    0.002    0.000    0.002    0.000 {built-in method builtins.print}
+     7040    0.406    0.000    0.454    0.000 {built-in method starpu.starpupy._task_submit}
+        4    0.117    0.029    0.117    0.029 {built-in method starpu.starpupy.set_ncpu}
+       44   68.052    1.547   68.052    1.547 {built-in method starpu.starpupy.task_wait_for_all}
+        3    0.000    0.000    0.000    0.000 {built-in method sys.get_asyncgen_hooks}
+        1    0.000    0.000    0.000    0.000 {built-in method sys.is_finalizing}
+        6    0.000    0.000    0.000    0.000 {built-in method sys.set_asyncgen_hooks}
+        1    0.000    0.000    0.000    0.000 {built-in method time.get_clock_info}
+        6    0.000    0.000    0.000    0.000 {built-in method time.monotonic}
+       88    0.000    0.000    0.000    0.000 {built-in method time.time}
+        2    0.000    0.000    0.000    0.000 {function socket.close at 0x7f8d2acb6ec0}
+     7040    0.003    0.000    0.003    0.000 {method '__contains__' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 {method '__exit__' of '_thread.lock' objects}
+        1    0.000    0.000    0.000    0.000 {method 'acquire' of '_thread.RLock' objects}
+        5    0.000    0.000    0.000    0.000 {method 'add' of 'set' objects}
+        3    0.000    0.000    0.000    0.000 {method 'add_done_callback' of '_asyncio.Task' objects}
+        7    0.000    0.000    0.000    0.000 {method 'append' of 'collections.deque' objects}
+       45    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+        3    0.000    0.000    0.000    0.000 {method 'cancelled' of '_asyncio.Task' objects}
+        1    0.000    0.000    0.000    0.000 {method 'clear' of 'collections.deque' objects}
+        1    0.000    0.000    0.000    0.000 {method 'clear' of 'dict' objects}
+        1    0.000    0.000    0.000    0.000 {method 'clear' of 'list' objects}
+        1    0.000    0.000    0.000    0.000 {method 'close' of 'select.epoll' objects}
+        2    0.000    0.000    0.000    0.000 {method 'detach' of '_socket.socket' objects}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        3    0.000    0.000    0.000    0.000 {method 'discard' of 'set' objects}
+        3    0.000    0.000    0.000    0.000 {method 'done' of '_asyncio.Task' objects}
+        1    0.000    0.000    0.000    0.000 {method 'encode' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 {method 'exception' of '_asyncio.Task' objects}
+        2    0.000    0.000    0.000    0.000 {method 'fileno' of '_socket.socket' objects}
+        2    0.000    0.000    0.000    0.000 {method 'format' of 'str' objects}
+        3    0.000    0.000    0.000    0.000 {method 'get_loop' of '_asyncio.Future' objects}
+        2    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}
+        6    0.000    0.000    0.000    0.000 {method 'poll' of 'select.epoll' objects}
+        1    0.000    0.000    0.000    0.000 {method 'pop' of 'dict' objects}
+     7047    0.001    0.000    0.001    0.000 {method 'popleft' of 'collections.deque' objects}
+        2    0.000    0.000    0.000    0.000 {method 'recv' of '_socket.socket' objects}
+        1    0.000    0.000    0.000    0.000 {method 'register' of 'select.epoll' objects}
+        1    0.000    0.000    0.000    0.000 {method 'release' of '_thread.RLock' objects}
+        1    0.000    0.000    0.000    0.000 {method 'remove' of 'set' objects}
+        3    0.000    0.000    0.000    0.000 {method 'remove_done_callback' of '_asyncio.Task' objects}
+        3    0.000    0.000    0.000    0.000 {method 'result' of '_asyncio.Task' objects}
+        1    0.000    0.000    0.000    0.000 {method 'rpartition' of 'str' objects}
+     7047    0.002    0.000   68.733    0.010 {method 'run' of 'Context' objects}
+        2    0.000    0.000    0.000    0.000 {method 'setblocking' of '_socket.socket' objects}
+        1    0.000    0.000    0.000    0.000 {method 'unregister' of 'select.epoll' objects}

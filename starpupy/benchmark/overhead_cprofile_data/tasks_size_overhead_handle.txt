@@ -1,0 +1,20 @@
+         56557 function calls in 68.302 seconds
+
+   Ordered by: standard name
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     7040    0.016    0.000    0.130    0.000 __init__.py:36(__init__)
+     7040    0.004    0.000    0.004    0.000 __init__.py:40(get_capsule)
+     7040    0.021    0.000    0.024    0.000 intermedia.py:47(task_submit)
+     7040    0.033    0.000    0.444    0.000 intermedia.py:55(call_task_submit)
+        4    0.000    0.000    0.000    0.000 tasks_size_overhead.py:85(range_multi)
+     7040    0.005    0.000    0.005    0.000 {built-in method builtins.hasattr}
+       52    0.002    0.000    0.002    0.000 {built-in method builtins.print}
+     7040    0.273    0.000    0.406    0.000 {built-in method starpu.starpupy._task_submit}
+        4    0.117    0.029    0.117    0.029 {built-in method starpu.starpupy.set_ncpu}
+     7040    0.114    0.000    0.114    0.000 {built-in method starpu.starpupy.starpupy_data_register}
+       44   67.714    1.539   67.714    1.539 {built-in method starpu.starpupy.task_wait_for_all}
+       88    0.000    0.000    0.000    0.000 {built-in method time.time}
+     7040    0.003    0.000    0.003    0.000 {method '__contains__' of 'dict' objects}
+       44    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
