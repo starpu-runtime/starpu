@@ -44,7 +44,9 @@ static PyObject *Token_class = Py_None;  /*Handle_token class*/
 
 /*********************************************************************************************/
 
+#ifdef STARPU_STARPUPY_MULTI_INTERPRETER
 static uint32_t where_inter = STARPU_CPU;
+#endif
 
 /* prologue_callback_func*/
 void prologue_cb_func(void *cl_arg)
