@@ -3348,12 +3348,12 @@ AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples 
 
 starpupy_multi_interpreter=no
 starpupy_support=no
-enable_starpupy=yes
 
 AC_ARG_ENABLE(python-multi-interpreter, [AS_HELP_STRING([--enable-python-multi-interpreter], [enable the use of multi python interpreter])], enable_python_multi_interpreter=$enableval, enable_python_multi_interpreter=no)
 
 if test x$enable_python_multi_interpreter = xyes; then
 	starpupy_multi_interpreter=yes
+	enable_starpupy=yes
 	AC_DEFINE(STARPU_STARPUPY_MULTI_INTERPRETER, [1], [enable python multi interpreter])
 fi
 
