@@ -24,11 +24,11 @@
 
 #include "starpupy_interface.h"
 
-static void pyobject_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void pyobject_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node =0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpupyobject_interface *local_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, node);

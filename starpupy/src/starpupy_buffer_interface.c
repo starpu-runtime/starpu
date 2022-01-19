@@ -247,7 +247,7 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 	return memview_obj;
 }
 
-static void pybuffer_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void pybuffer_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
 
@@ -269,7 +269,7 @@ static void pybuffer_register_data_handle(starpu_data_handle_t handle, unsigned 
 	else
 		m_shape = NULL;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpupy_buffer_interface *local_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
