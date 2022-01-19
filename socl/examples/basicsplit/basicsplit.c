@@ -148,7 +148,7 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    err = clGetPlatformIDs(sizeof(platforms)/sizeof(cl_platform_id), platforms, NULL);
    check(err, "clGetPlatformIDs");
 
-   unsigned int platform_idx = -1;
+   int platform_idx = -1;
    for (i=0; i<num_platforms;i++) {
     char vendor[256];
     clGetPlatformInfo(platforms[i], CL_PLATFORM_VENDOR, sizeof(vendor), vendor, NULL);
@@ -210,13 +210,11 @@ int main(int UNUSED(argc), char** UNUSED(argv)) {
    }
 
    printf("Data...\n");
-   {
-      int i;
-      for (i=0; i<SIZE; i++) {
-        printf("%f ", d[i]);
-      }
-      printf("\n");
+
+   for (i=0; i<SIZE; i++) {
+      printf("%f ", d[i]);
    }
+   printf("\n");
 
 #ifdef PROFILING
    #define DURATION(event,label) do { \
