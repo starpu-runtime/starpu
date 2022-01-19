@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020, 2021       Universit'e de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -13,11 +13,37 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-[build]
-build_platlib=build
-build_temp=build/tmp
+from starpu import starpupy
+import starpu
+import inspect
 
-[install]
-prefix=@prefix@
+def access(**kwargs):
+	def access_decorator(func):
+		# write access modes in f.access attribute
+		setattr(func,'starpu_access', kwargs)
+		return func
+	return access_decorator
+
+# set mode as **kwargs of func
+def set_access(func, **kwargs):
+	# write access modes in f.access attribute
+	setattr(func,'starpu_access', kwargs)
+	return func
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

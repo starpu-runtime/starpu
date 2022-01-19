@@ -17,13 +17,23 @@ from starpu import starpupy
 import starpu
 import asyncio
 from functools import partial
+import inspect
 
-def delayed(f=None,*, name=None, synchronous=0, priority=0, color=None, flops=None, perfmodel=None):
+def delayed(f=None, **kwargs):
 	# add options of task_submit
 	if f is None:
-		return partial(delayed, name=name, synchronous=synchronous, priority=priority, color=color, flops=flops, perfmodel=perfmodel)
+		return partial(delayed, **kwargs)
 	def submit(*args):
-		fut = starpu.task_submit(name=name, synchronous=synchronous, priority=priority,\
-								 color=color, flops=flops, perfmodel=perfmodel)(f, *args)
+		# set the access right
+		access_mode={}
+		f_args = inspect.getfullargspec(f).args
+		# check the access right of argument is set in mode or not
+		for i in range(len(f_args)):
+			if f_args[i] in kwargs.keys():
+				# write access modes in f.access attribute
+				access_mode[f_args[i]]=kwargs[f_args[i]]
+				setattr(f, "starpu_access", access_mode)
+
+		fut = starpu.task_submit(**kwargs)(f, *args)
 		return fut
 	return submit

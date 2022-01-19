@@ -34,13 +34,17 @@ $(top_builddir)/starpupy/src/starpu/%.c: $(abs_top_srcdir)/starpupy/src/%.c
 all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD)
 	$(PYTHON) setup.py build $(PYTHON_SETUP_OPTIONS)
 
+PYTHONPATH=$(prefix)/lib/python$(PYTHON_VERSION)/site-packages
+
 install-exec-local:
 	@if test -d $(prefix)/lib/python* ; \
 	then	\
 		chmod u+w $(prefix)/lib/python* ; \
 		chmod u+w $(prefix)/lib/python*/site-packages ; \
 	fi
-	$(PYTHON) setup.py install
+	$(MKDIR_P) $(PYTHONPATH)
+	PYTHONPATH=$(PYTHONPATH) $(PYTHON) setup.py install
+	rm -fr build/bdist*
 
 if STARPU_BUILD_STARPUPY
 clean-local:
@@ -61,4 +65,14 @@ EXTRA_DIST	=		\
 	__init__.py	\
 	intermedia.py	\
 	joblib.py	\
-	starpu_task_wrapper.c
+	handle_access.py \
+	starpu_task_wrapper.c 	\
+	starpupy_cloudpickle.h    \
+	starpupy_interface.c 	\
+	starpupy_interface.h    \
+	starpupy_buffer_interface.c 	\
+	starpupy_buffer_interface.h     \
+	starpupy_numpy_filters.c 	\
+	starpupy_numpy_filters.h    \
+	starpupy_handle.c 	\
+	starpupy_handle.h
