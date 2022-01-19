@@ -3346,7 +3346,19 @@ AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples 
 # StarPUPy                          #
 #####################################
 
+starpupy_multi_interpreter=no
 starpupy_support=no
+enable_starpupy=yes
+
+AC_ARG_ENABLE(python-multi-interpreter, [AS_HELP_STRING([--enable-python-multi-interpreter], [enable the use of multi python interpreter])], enable_python_multi_interpreter=$enableval, enable_python_multi_interpreter=no)
+
+if test x$enable_python_multi_interpreter = xyes; then
+	starpupy_multi_interpreter=yes
+	AC_DEFINE(STARPU_STARPUPY_MULTI_INTERPRETER, [1], [enable python multi interpreter])
+fi
+
+AM_CONDITIONAL(STARPU_STARPUPY_MULTI_INTERPRETER, [test x$starpupy_multi_interpreter = xyes])
+
 AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU python interface])],
                     enable_starpupy=$enableval, enable_starpupy=no)
 if test "x$enable_starpupy" != xno
@@ -3358,6 +3370,10 @@ then
 		AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
 	fi
 	AC_SUBST(PYTHON)
+	AC_MSG_CHECKING(for python3 version)
+	PYTHON_VERSION=$(echo "import sys ; print(str(sys.version_info.major)+\".\"+str(sys.version_info.minor))" | $PYTHON)
+	AC_MSG_RESULT($PYTHON_VERSION)
+	AC_SUBST(PYTHON_VERSION)
 	PYTHON_INCLUDE_DIRS="`$PYTHON -c "from sysconfig import get_paths as gp; print(gp()@<:@'include'@:>@)"`"
 	SAVED_CPPFLAGS="${CPPFLAGS}"
 	CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDE_DIRS"
@@ -3554,6 +3570,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
   chmod +x starpupy/examples/execute.sh
+  chmod +x starpupy/benchmark/execute.sh
   chmod +x julia/examples/execute.sh
   for x in \
     tests/microbenchs/tasks_data_overhead.sh \
@@ -3603,9 +3620,15 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     julia/examples/axpy/axpy.sh \
     julia/examples/gemm/gemm.sh \
     julia/examples/cholesky/cholesky.sh \
+    starpupy/benchmark/tasks_size_overhead.sh \
+    starpupy/benchmark/tasks_size_overhead.gp \
+    starpupy/benchmark/test_handle_perf.sh \
+    starpupy/benchmark/test_handle_perf_pickle.sh \
     starpupy/examples/starpu_py.sh \
+    starpupy/examples/starpu_py_handle.sh \
     starpupy/examples/starpu_py_np.sh \
     starpupy/examples/starpu_py_parallel.sh \
+    starpupy/examples/starpu_py_partition.sh \
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
@@ -3682,6 +3705,8 @@ AC_OUTPUT([
 	starpupy/src/Makefile
 	starpupy/examples/Makefile
 	starpupy/examples/execute.sh
+	starpupy/benchmark/Makefile
+	starpupy/benchmark/execute.sh
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
@@ -3759,6 +3784,7 @@ AC_MSG_NOTICE([
 	       FFT Support:                                   $fft_support
 	       Resource Management enabled:                   $starpurm_support
 	       Python Interface enabled:                      $starpupy_support
+	       Multi Python Interpreter enabled:              $starpupy_multi_interpreter
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
