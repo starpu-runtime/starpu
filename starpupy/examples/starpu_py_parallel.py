@@ -22,8 +22,10 @@ from math import sqrt
 from math import log10
 try:
     import numpy as np
-except:
-    exit(77)
+except ModuleNotFoundError as e:
+	print("Can't find \"Python3 NumPy\" module (consider running \"pip3 install numpy\" or refer to https://numpy.org/install/)")
+	starpupy.shutdown()
+	exit(77)
 import sys
 
 #generate a list to store functions
@@ -68,30 +70,40 @@ def sub(a,b,c):
 g_func.append(starpu.joblib.delayed(sub)(6, 2, 5.9))
 
 ##########functions of array calculation###############
-
 def scal(a, t):
 	for i in range(len(t)):
 		t[i]=t[i]*a
 	return t
 
+@starpu.access(t="RW")
+def scal_np(a, t):
+	for i in range(len(t)):
+		t[i]=t[i]*a
+
+@starpu.access(t1="RW")
 def add_scal(a, t1, t2):
 	for i in range(len(t1)):
 		t1[i]=t1[i]*a+t2[i]
-	return t1
+	#return t1
 
+@starpu.access(t="RW")
 def scal_arr(a, t):
 	for i in range(len(t)):
 		t[i]=t[i]*a[i]
-	return t
 
 def multi(a,b):
 	res_multi=a*b
 	return res_multi
 
 def multi_2arr(a, b):
-        for i in range(len(a)):
-                a[i]=a[i]*b[i]
-        return a
+    for i in range(len(a)):
+    	a[i]=a[i]*b[i]
+    return a
+
+@starpu.access(a="RW")
+def multi_2np(a, b):
+    for i in range(len(a)):
+    	a[i]=a[i]*b[i]
 
 def multi_list(l):
 	res = []
@@ -99,10 +111,11 @@ def multi_list(l):
 		res.append(a*b)
 	return res
 
+@starpu.access(t="RW")
 def log10_arr(t):
 	for i in range(len(t)):
 		t[i]=log10(t[i])
-	return t
+
 ########################################################
 
 #################scikit test###################
@@ -173,11 +186,13 @@ print("the cpu execution time is", end_cpu2-start_cpu2)
 print("--(scal_arr)((i for i in b), A)")
 A=np.arange(N)
 b=np.arange(N, 2*N, 1)
+print("The input array is", A)
 start_exec3=time.time()
 start_cpu3=time.process_time()
 starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="scal_arr")(starpu.joblib.delayed(scal_arr)((i for i in b), A))
 end_exec3=time.time()
 end_cpu3=time.process_time()
+print("The return array is", A)
 print("the program execution time is", end_exec3-start_exec3)
 print("the cpu execution time is", end_cpu3-start_cpu3)
 
@@ -203,17 +218,19 @@ end_cpu5=time.process_time()
 print("the program execution time is", end_exec5-start_exec5)
 print("the cpu execution time is", end_cpu5-start_cpu5)
 
-print("--(multi_2arr)(A, B)")
+print("--(multi_2np)(A, B)")
 # A=np.arange(N)
 # B=np.arange(N, 2*N, 1)
 n, m = 4, 5
 A = np.arange(n*m).reshape(n, m)
 B = np.arange(n*m, 2*n*m, 1).reshape(n, m)
+print("The input arrays are A", A, "B", B)
 start_exec6=time.time()
 start_cpu6=time.process_time()
-starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="multi_2arr")(starpu.joblib.delayed(multi_2arr)(A, B))
+starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="multi_2arr")(starpu.joblib.delayed(multi_2np)(A, B))
 end_exec6=time.time()
 end_cpu6=time.process_time()
+print("The return array is", A)
 print("the program execution time is", end_exec6-start_exec6)
 print("the cpu execution time is", end_cpu6-start_cpu6)
 
@@ -227,24 +244,28 @@ end_cpu7=time.process_time()
 print("the program execution time is", end_exec7-start_exec7)
 print("the cpu execution time is", end_cpu7-start_cpu7)
 
-print("--(scal)(2,A)")
+print("--(scal_np)(2,A)")
 A=np.arange(N)
+print("The input is", A)
 start_exec8=time.time()
 start_cpu8=time.process_time()
-starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="scal")(starpu.joblib.delayed(scal)(2,A))
+starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="scal")(starpu.joblib.delayed(scal_np)(2,A))
 end_exec8=time.time()
 end_cpu8=time.process_time()
+print("The return array is", A)
 print("the program execution time is", end_exec8-start_exec8)
 print("the cpu execution time is", end_cpu8-start_cpu8)
 
 print("--(add_scal)(t1=A,t2=B,a=2)")
 A=np.arange(N)
 B=np.arange(N)
+print("The input arrays are t1", A, "t2", B)
 start_exec9=time.time()
 start_cpu9=time.process_time()
 starpu.joblib.Parallel(mode="normal", n_jobs=-1, perfmodel="add_scal")(starpu.joblib.delayed(add_scal)(t1=A,t2=B,a=2))
 end_exec9=time.time()
 end_cpu9=time.process_time()
+print("The return array is", A)
 print("the program execution time is", end_exec9-start_exec9)
 print("the cpu execution time is", end_cpu9-start_cpu9)
 
@@ -288,7 +309,8 @@ async def main():
 	print("The input arrays are A", A, "b", b)
 	fut3=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="scal_arr")(starpu.joblib.delayed(scal_arr)((i for i in b), A))
 	res3=await fut3
-	print("The return array is", np.concatenate(res3))
+	#print("The return array is", np.concatenate(res3))
+	print("The return array is", A)
 
 	print("--(multi_list)((i,j) for i,j in zip(a,b))")
 	a=np.arange(N)
@@ -306,13 +328,14 @@ async def main():
 	res5=await fut5
 	print("The result is", sum(res5,[]))
 
-	print("--(multi_2arr)(b=B, a=A)")
+	print("--(multi_2np)(b=B, a=A)")
 	A=np.arange(N)
 	B=np.arange(N, 2*N, 1)
 	print("The input arrays are A", A, "B", B)
-	fut6=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="multi_2arr")(starpu.joblib.delayed(multi_2arr)(b=B, a=A))
+	fut6=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="multi_2arr")(starpu.joblib.delayed(multi_2np)(b=B, a=A))
 	res6=await fut6
-	print("The return array is", np.concatenate(res6))
+	#print("The return array is", np.concatenate(res6))
+	print("The return array is", A)
 
 
 	print("--(scal)(2, (j for j in a))")
@@ -322,12 +345,13 @@ async def main():
 	res7=await fut7
 	print("The result is", sum(res7,[]))
 
-	print("--(scal)(2,t=A)")
+	print("--(scal_np)(2,t=A)")
 	A=np.arange(N)
 	print("The input array is", A)
-	fut8=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="scal")(starpu.joblib.delayed(scal)(2,t=A))
+	fut8=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="scal")(starpu.joblib.delayed(scal_np)(2,t=A))
 	res8=await fut8
-	print("The return array is", np.concatenate(res8))
+	#print("The return array is", np.concatenate(res8))
+	print("The return array is", A)
 
 	print("--(scal)(2,A,B)")
 	A=np.arange(N)
@@ -335,7 +359,8 @@ async def main():
 	print("The input arrays are A", A, "B", B)
 	fut9=starpu.joblib.Parallel(mode="future", n_jobs=-1, perfmodel="add_scal")(starpu.joblib.delayed(add_scal)(2,A,B))
 	res9=await fut9
-	print("The return array is", np.concatenate(res9))
+	#print("The return array is", np.concatenate(res9))
+	print("The return array is", A)
 
 	print("--input is iterable function list")
 	fut10=starpu.joblib.Parallel(mode="future", n_jobs=-1)(g_func)

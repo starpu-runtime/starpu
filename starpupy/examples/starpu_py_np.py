@@ -16,24 +16,67 @@
 import starpu
 from starpu import starpupy
 import asyncio
-import numpy as np
+try:
+    import numpy as np
+except ModuleNotFoundError as e:
+	print("Can't find \"Python3 NumPy\" module (consider running \"pip3 install numpy\" or refer to https://numpy.org/install/)")
+	starpupy.shutdown()
+	exit(77)
 
 
 ###############################################################################
 
-def scal(a, t):
+def scal(x, t):
 	for i in range(len(t)):
-		t[i]=t[i]*a
+		t[i] = t[i] * x
+	print ("Example scal(scalar, array):")
 	return t
 
-t=np.array([1,2,3,4,5,6,7,8,9,10])
+def add(x, y):
+	print ("Example add(array, array):")
+	return x + y
+
+def multi(x, y):
+	print ("Example multi(array, array):")
+	return x * y
+
+def matrix_multi(x, y):
+	print ("Example matrix_multi(array, array):")
+	return x @ y
+
+t = np.arange(10)
+
+a = np.array([1, 2, 3])
+b = np.array([4, 5, 6])
+
+c = np.array([[1, 2], [3, 4]])
+d = np.array([[2, 2], [2, 2]])
 
 async def main():
-    fut8 = starpu.task_submit()(scal, 2, t)
-    res8 = await fut8
-    print("The result of Example 10 is", res8)
-    print("The return array is", t)
-    #print("The result type is", type(res8))
+    fut1 = starpu.task_submit()(scal, 2, t)
+    res1 = await fut1
+    print("The result is", res1)
+
+    # two array element addition
+    fut2 = starpu.task_submit()(add, a, b)
+    res2 = await fut2
+    print("The result is", res2)
+
+    # two array element multiplication
+    fut3 = starpu.task_submit()(multi, c, d)
+    res3 = await fut3
+    print("The result is", res3)
+
+    # two array matrix multiplication
+    fut4 = starpu.task_submit()(matrix_multi, c, d)
+    res4 = await fut4
+    print("The result is", res4)
+
+    # two array matrix multiplication (inverse order)
+    fut5 = starpu.task_submit()(matrix_multi, d, c)
+    res5 = await fut5
+    print("The result is", res5)
+
 
 try:
         asyncio.run(main())
