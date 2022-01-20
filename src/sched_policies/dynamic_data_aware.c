@@ -667,8 +667,8 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return task;
 		}
+		
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
-		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex); /* Attention ca pourrait être une bêtise celui la, a voir. Il faudrait alors UNLOCK avant l'appel au scheduling. */
 		if (!starpu_task_list_empty(l))
 		{
 			number_task_out_DARTS++;
@@ -683,6 +683,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			//~ }
 			
+			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. */
 			dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			
@@ -719,7 +720,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		else
 		{
     //~ }
-    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     return NULL; }
 }
 
