@@ -26,16 +26,18 @@ extern int natural_order;
 //~ extern int erase_data_strategy;
 //~ extern int data_order;
 
-#define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
+//~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
 
-starpu_pthread_mutex_t global_mutex; /* Protège main_task_list et planned_task_list */
-
-/* TODO si on utilise pas cette méthode à supprimer */
+/* TODO : si on utilise pas cette méthode à supprimer */
 //~ int N_data_to_pop_next = 10;
 //~ /** The N_data_to_pop_next best data that I want to use next **/
 //~ LIST_TYPE(data_to_pop_next,
     //~ starpu_data_handle_t pointer_to_data_to_pop_next;
 //~ );
+
+/** Mutex **/
+starpu_pthread_mutex_t global_mutex; /* Protège main task list et tout le reste pour le moment. */
+starpu_pthread_mutex_t *local_mutex; /* Protège pulled_task et planned_task. 1 par GPU. */
 
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */

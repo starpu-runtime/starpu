@@ -265,7 +265,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     int i = 0;
     int j = 0;
     
-    /* Adding the data not used yet in the all the GPU(s). */
+    /* Adding the data not used yet in all the GPU(s). */
     my_planned_task_control->pointer = my_planned_task_control->first;
     for (i = 0; i < Ngpu; i++)
     {
@@ -375,8 +375,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 	//~ if (app == 1)
 	//~ {
 		//~ int temp_tab_coordinates[2];
-
-		
 		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
 		//~ printf("Tâche %p : A (%p) x = %d | ", task, STARPU_TASK_GET_HANDLE(task, 0), temp_tab_coordinates[0]);
 		//~ printf("B (%p) y = %d | ", STARPU_TASK_GET_HANDLE(task, 1), temp_tab_coordinates[1]);
@@ -611,12 +609,11 @@ void natural_order_data_not_used_yet()
  */
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	int i = 0;
     /* Getting on the right GPU's package.
      * TODO: Can I do this faster with pointer directly to the cell ? */
     my_planned_task_control->pointer = my_planned_task_control->first;
-    for (i = 1; i < current_gpu; i++)
+    for (i = 1; i < current_gpu; i++) /* Parce que le premier GPU vaut 1 et pas 0. */
     {
 		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
     }
@@ -634,8 +631,6 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		{
 			/* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
 			task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
-			//~ printf("Task %d: %p is getting out of pull_task from fifo refused list on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			
 			#ifdef PRINT
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
@@ -752,7 +747,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
     struct dynamic_data_aware_sched_data *data = component->data;
-    //~ STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex); 
+
     /* Need only to be done once if all GPU have the same memory. */
     if (gpu_memory_initialized == false)
     {
@@ -764,12 +759,8 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
      * TODO: check that with other applications where task are not
      * all available at once, this works.
      */
-    //~ STARPU_PTHREAD_MUTEX_LOCK(&my_planned_task_control->planned_task_mutex);
     if (new_tasks_initialized == true)
-    {
-	    //~ iteration_DARTS++;	    
-	    //~ printf("Dans le new task initialized pour la %d eme fois avec GPU %d.\n", iteration_DARTS, starpu_worker_get_memory_node(starpu_worker_get_id())); fflush(stdout);
-	    
+    {	    
 		new_tasks_initialized = false;
 		
 		#ifdef PRINT
@@ -779,7 +770,6 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		#endif
 		
 		NT_dynamic_outer = starpu_task_list_size(&data->sched_list);
-		//~ NT = starpu_task_list_size(&data->sched_list);
 		NT = NT_dynamic_outer;
 		
 		#ifdef PRINT
@@ -831,18 +821,18 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		print_task_list(&data->main_task_list, ""); fflush(stdout);
 		#endif
     }
-    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_planned_task_control->planned_task_mutex);
     
-    /* Même sans les mutex ca marche, c'est bizare ... */
-    //STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-    //~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
-    struct starpu_task *task = get_task_to_return_pull_task_dynamic_data_aware(starpu_worker_get_memory_node(starpu_worker_get_id()), &data->main_task_list);
-    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pulled_task_mutex);
-    //~ print_planned_task_one_gpu(my_planned_task_control->first, 0);
-    //~ print_nb_task_in_list_one_data_one_gpu(STARPU_TASK_GET_HANDLE(task, 0));
-    //~ print_nb_task_in_list_one_data_one_gpu(STARPU_TASK_GET_HANDLE(task, 1));
-    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
+    /* Nouveau */
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()); /* Attention le premier GPU vaut 1 et non 0. */
     STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+        
+    /* Nouveau */
+    STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[current_gpu - 1]);
+    struct starpu_task *task = get_task_to_return_pull_task_dynamic_data_aware(current_gpu, &data->main_task_list);
+    STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[current_gpu - 1]);
+    
+    /* Ancienne location du mutex global. */
+    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     return task;
 }
 
@@ -2028,7 +2018,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				{
 					if (simulate_memory == 0)
 					{
-						/* Ancien */
 						if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu))
 						{
 							data_available = false;
@@ -2037,7 +2026,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					}
 					else if (simulate_memory == 1)
 					{
-						/* Nouveau */
 						hud = STARPU_TASK_GET_HANDLE(t->pointer_to_T, j)->user_data;
 						if (!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(t->pointer_to_T, j), current_gpu) && hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
 						{
@@ -2182,6 +2170,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		number_random_selection++;
 		#endif
 		
+		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		struct starpu_task *task = starpu_task_list_pop_front(main_task_list);	
 		
 		if (choose_best_data_from == 0)
@@ -2210,6 +2199,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		erase_task_and_data_pointer(task, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, task);
+		
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		
 		#ifdef PRINT
 		gettimeofday(&time_end_pick_random_task, NULL);
@@ -2963,7 +2954,13 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	    //~ STARPU_PTHREAD_MUTEX_INIT(&my_pulled_task_control->pointer->pulled_task_mutex, NULL);
 	//~ }
 	
+	/* initialisation des mutexs. */
 	STARPU_PTHREAD_MUTEX_INIT(&global_mutex, NULL);
+	local_mutex = malloc(Ngpu*sizeof(starpu_pthread_mutex_t));
+	for (i = 0; i < Ngpu; i++)
+	{
+		STARPU_PTHREAD_MUTEX_INIT(&local_mutex[i], NULL);
+	}
 	
 	component->data = data;
 	/* component->do_schedule = dynamic_data_aware_do_schedule; */
