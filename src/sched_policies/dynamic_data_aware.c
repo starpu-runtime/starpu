@@ -608,28 +608,29 @@ void natural_order_data_not_used_yet()
  */
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
+	struct gpu_planned_task *pointer_new = my_planned_task_control->first;
 	int i = 0;
     /* Getting on the right GPU's package.
      * TODO: Can I do this faster with pointer directly to the cell ? */
-    my_planned_task_control->pointer = my_planned_task_control->first;
+    pointer_new = my_planned_task_control->first;
     for (i = 1; i < current_gpu; i++) /* Parce que le premier GPU vaut 1 et pas 0. */
     {
-		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+		pointer_new = pointer_new->next;
     }
     
     /* If there are still tasks either in the packages, the main task list or the refused task,
      * I enter here to return a task or start dynamic_data_aware_scheduling. Else I return NULL.
      */
-    if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task) || !starpu_task_list_empty(l) || !starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list))
+    if (!starpu_task_list_empty(&pointer_new->planned_task) || !starpu_task_list_empty(l) || !starpu_task_list_empty(&pointer_new->refused_fifo_list))
     {	
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("GPU %d is asking for a task.\n", current_gpu); }
 		struct starpu_task *task = NULL;
 
 		/* If one or more task have been refused */
-		if (!starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list)) 
+		if (!starpu_task_list_empty(&pointer_new->refused_fifo_list)) 
 		{
 			/* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
-			task = starpu_task_list_pop_back(&my_planned_task_control->pointer->refused_fifo_list); 
+			task = starpu_task_list_pop_back(&pointer_new->refused_fifo_list); 
 			
 			#ifdef PRINT
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
@@ -639,10 +640,10 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		}
 
 		/* If the package is not empty I can return the head of the task list. */
-		if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
+		if (!starpu_task_list_empty(&pointer_new->planned_task))
 		{
 			number_task_out_DARTS++;
-			task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
+			task = starpu_task_list_pop_front(&pointer_new->planned_task);
 			
 			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 			/* Remove it from planned task compteur. Could be done in an external function as I use it two times */
@@ -677,21 +678,21 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ /* Cas matrice 2D */
 			//~ if (app == 0)
 			//~ {
-				//~ dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
+				//~ dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, pointer_new);
 			//~ }
 			//~ else if (app == 1)
 			//~ {
-				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
+				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, pointer_new);
 			//~ }
 			
 			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. */
-			dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
+			dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, pointer_new);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			
-			if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
+			if (!starpu_task_list_empty(&pointer_new->planned_task))
 			{
-				task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
+				task = starpu_task_list_pop_front(&pointer_new->planned_task);
 				
 				STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 				add_task_to_pulled_task(current_gpu, task);
