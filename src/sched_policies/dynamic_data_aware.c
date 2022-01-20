@@ -639,13 +639,14 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return task;
 		}
-
+		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		/* If the package is not empty I can return the head of the task list. */
 		if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
 		{
 			number_task_out_DARTS++;
 			task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
-			
+		//	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+
 			/* Remove it from planned task compteur. Could be done in an external function as I use it two times */
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
@@ -668,11 +669,11 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			
 			//~ printf("Task %d: %p is getting out of pull_task from planned task not empty on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return task;
 		}
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
-		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		//STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		if (!starpu_task_list_empty(l))
 		{
 			number_task_out_DARTS++;
