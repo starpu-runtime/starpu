@@ -202,8 +202,9 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			//~ printf("REINIT STRUCT in push task.\n"); fflush(stdout);
 			int i = 0;
 			
+			STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[0]);
+			STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[1]);
 			free(my_planned_task_control);
-			//~ free(my_pulled_task_control);
 			
 			gpu_planned_task_initialisation();
 			for (i = 0; i < Ngpu - 1; i++)
@@ -220,6 +221,9 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
 
 			need_to_reinit = false;
+			
+			STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[0]);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[1]);
 	}
      
     new_tasks_initialized = true; 
