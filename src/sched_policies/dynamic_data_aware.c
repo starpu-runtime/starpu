@@ -608,7 +608,7 @@ void natural_order_data_not_used_yet()
  */
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	int i = 0;
     /* Getting on the right GPU's package.
      * TODO: Can I do this faster with pointer directly to the cell ? */
@@ -621,8 +621,8 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
     /* If there are still tasks either in the packages, the main task list or the refused task,
      * I enter here to return a task or start dynamic_data_aware_scheduling. Else I return NULL.
      */
-    if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task) || !starpu_task_list_empty(l) || !starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list))
-    {	
+    //~ if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task) || !starpu_task_list_empty(l) || !starpu_task_list_empty(&my_planned_task_control->pointer->refused_fifo_list))
+    //~ {
 		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("GPU %d is asking for a task.\n", current_gpu); }
 		struct starpu_task *task = NULL;
 
@@ -636,7 +636,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
 			#endif
 			
-			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return task;
 		}
 
@@ -668,15 +668,16 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			
 			//~ printf("Task %d: %p is getting out of pull_task from planned task not empty on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			
-			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return task;
 		}
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
-		else if (!starpu_task_list_empty(l))
+		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		if (!starpu_task_list_empty(l))
 		{
 			number_task_out_DARTS++;
 			
-			//~ /* Cas matrice 2D */
+			//~ /* Cas matrice 2D-3D séparé */
 			//~ if (app == 0)
 			//~ {
 				//~ dynamic_data_aware_scheduling_one_data_popped(l, current_gpu, my_planned_task_control->pointer);
@@ -718,9 +719,11 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return task;
 		}
-    }
+		else
+		{
+    //~ }
     STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-    return NULL;
+    return NULL; }
 }
 
 void reset_all_struct()
