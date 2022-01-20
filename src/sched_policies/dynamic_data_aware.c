@@ -2285,7 +2285,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pulled_task_mutex);
 	
 	#ifdef PRINT
-	//~ victim_selector_compteur++;
 	gettimeofday(&time_start_selector, NULL);
 	#endif
 	
@@ -2381,7 +2380,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		{
 			hud = data_on_node[i]->user_data;
 			nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu - 1];
-			//~ if (starpu_get_env_number_default("PRINTF", 0) == 1) { printf("For %p : %d and %d.\n", data_on_node[i], hud->nb_task_in_pulled_task[current_gpu - 1], hud->nb_task_in_planned_task[current_gpu - 1]); }
 			
 			/* Ajout : si sur les deux lists c'est 0 je la return direct la data */
 			if (hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
@@ -2408,10 +2406,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
      * Si il vaut -1 c'est que je n'avais aucune donnée à renvoyer car aucune n'est évincable.
      */
     if (min_number_task_in_pulled_task == INT_MAX)
-    {
-		//~ victim_selector_return_no_victim++;
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector\n"); }
-		
+    {		
 		#ifdef PRINT
 		gettimeofday(&time_end_selector, NULL);
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
@@ -2438,8 +2433,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		/* Si c'est un prefetch qui demande une eviction de ce qui est utile pour les tâches de pulled task je renvoie NO VICTIM si >= à STARPU_TASK_PREFETCH */
 		if (is_prefetch >= 1)
 		{
-			//~ victim_selector_return_no_victim++;
-			//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return STARPU_DATA_NO_VICTIM in victim selector.\n"); }
 			#ifdef PRINT
 			gettimeofday(&time_end_selector, NULL);
 			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
@@ -2485,7 +2478,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     struct dynamic_data_aware_sched_data *data = temp_component->data;
     /* Enlever de la liste de tache a faire celles qui utilisais cette donnée. Et donc ajouter cette donnée aux données
      * à pop ainsi qu'ajouter la tache dans les données. Also add it to the main task list. */
-    //Suppression de la liste de planned task les tâches utilisant la données
+     
+    /* Suppression de la liste de planned task les tâches utilisant la donnée que l'on s'apprête à évincer. */
     if (min_number_task_in_pulled_task == 0)
     {
 		for (task = starpu_task_list_begin(&my_planned_task_control->pointer->planned_task); task != starpu_task_list_end(&my_planned_task_control->pointer->planned_task); task = starpu_task_list_next(task))
