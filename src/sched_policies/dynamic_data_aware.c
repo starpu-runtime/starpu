@@ -759,6 +759,9 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
      */
     if (new_tasks_initialized == true)
     {	    
+		int i = 0;
+		for (i = 0; i < Ngpu; i++) { STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[i]); }
+
 		new_tasks_initialized = false;
 		
 		#ifdef PRINT
@@ -818,6 +821,8 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		print_data_not_used_yet();
 		print_task_list(&data->main_task_list, ""); fflush(stdout);
 		#endif
+		
+		for (i = 0; i < Ngpu; i++) { STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[i]); }
     }
     
     /* Nouveau */
