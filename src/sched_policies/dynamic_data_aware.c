@@ -644,6 +644,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			number_task_out_DARTS++;
 			task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
 			
+			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 			/* Remove it from planned task compteur. Could be done in an external function as I use it two times */
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
@@ -653,10 +654,8 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			
 			/* Fonction qui ajoute la tâche à pulled_task. Elle est aussi dans le else if en dessous. */
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-			//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 			add_task_to_pulled_task(current_gpu, task);
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 				
 			/* For visualisation in python. */
 			//~ if (starpu_get_env_number_default("PRINTF", 0) == 1)
@@ -684,22 +683,18 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			//~ {
 				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			//~ }
-			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. A tester voir si les perf de 2D en réel sont comme avant (dans IPDPS). */
+			
+			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. */
 			dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
-			//~ print_data_not_used_yet();
-			//~ else
-			//~ {
-				//~ printf("Erreur var d'env APP doit être 0 ou 1.");
-				//~ exit(0);
-			//~ }
+			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			
 			if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
 			{
 				task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
 				
-				//~ STARPU_PTHREAD_MUTEX_LOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
-				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 				add_task_to_pulled_task(current_gpu, task);
-				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&my_pulled_task_control->pointer->pulled_task_mutex);
 				
 				/* Remove it from planned task compteur */
 				for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -708,6 +703,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 					hud->nb_task_in_planned_task[current_gpu - 1] = hud->nb_task_in_planned_task[current_gpu - 1] - 1;
 					STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 				}
+				STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			}
 			else
 			{
@@ -717,9 +713,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			/* For visualisation in python. */
 			#ifdef PRINT
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
+			printf("Task %d: %p is getting out of pull_task after scheduling on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			#endif
 			
-			//~ printf("Task %d: %p is getting out of pull_task after scheduling on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			return task;
 		}
     }
@@ -828,7 +824,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     
     /* Nouveau */
 	//~ int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()); /* Attention le premier GPU vaut 1 et non 0. */
-    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
         
     /* Nouveau */
     //~ STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[current_gpu - 1]);
@@ -836,7 +832,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[current_gpu - 1]);
     
     /* Ancienne location du mutex global. */
-    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     return task;
 }
 
