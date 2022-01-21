@@ -89,7 +89,7 @@ static size_t pyobject_get_size(starpu_data_handle_t handle)
 	return sizeof(void *);
 }
 
-static int _pyobject_pack_data(struct starpupyobject_interface *pyobject_interface, unsigned node, void **ptr, starpu_ssize_t *count)
+static PyObject * _pyobject_pack_data(struct starpupyobject_interface *pyobject_interface, char **obj_data, Py_ssize_t *obj_data_size)
 {
 	/*make sure we own the GIL*/
 	PyGILState_STATE state = PyGILState_Ensure();
@@ -105,9 +105,22 @@ static int _pyobject_pack_data(struct starpupyobject_interface *pyobject_interfa
 	PyObject *dumps = PyObject_GetAttrString(cloudpickle_module, "dumps");
 	PyObject *obj_bytes = PyObject_CallFunctionObjArgs(dumps, obj, NULL);
 
+	PyBytes_AsStringAndSize(obj_bytes, obj_data, obj_data_size);
+
+	return obj_bytes;
+}
+
+static int pyobject_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
+{
+	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, node);
+	PyObject *obj_bytes;
 	char *obj_data;
 	Py_ssize_t obj_data_size;
-	PyBytes_AsStringAndSize(obj_bytes, &obj_data, &obj_data_size);
+
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
+	obj_bytes = _pyobject_pack_data(pyobject_interface, &obj_data, &obj_data_size);
 
 	char *data;
 	data = (void*)starpu_malloc_on_node_flags(node, obj_data_size, 0);
@@ -123,12 +136,6 @@ static int _pyobject_pack_data(struct starpupyobject_interface *pyobject_interfa
 	PyGILState_Release(state);
 
 	return 0;
-}
-
-static int pyobject_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
-{
-	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, node);
-	_pyobject_pack_data(pyobject_interface, node, ptr, count);
 }
 
 static int _pyobject_peek_data(struct starpupyobject_interface *pyobject_interface, unsigned node, void *ptr, size_t count)
@@ -223,11 +230,21 @@ static int pyobject_copy_any_to_any(void *src_interface, unsigned src_node, void
 	struct starpupyobject_interface *src = (struct starpupyobject_interface *) src_interface;
 	struct starpupyobject_interface *dst = (struct starpupyobject_interface *) dst_interface;
 
-	void *ptr;
-	starpu_ssize_t count;
-	_pyobject_pack_data(src, src_node, &ptr, &count);
+	PyObject *obj_bytes;
+	char *obj_data;
+	Py_ssize_t obj_data_size;
 
-	_pyobject_peek_data(dst, dst_node, ptr, count);
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
+	obj_bytes = _pyobject_pack_data(src, &obj_data, &obj_data_size);
+
+	_pyobject_peek_data(dst, dst_node, obj_data, obj_data_size);
+
+	Py_DECREF(obj_bytes);
+
+	/* release GIL */
+	PyGILState_Release(state);
 
 	return 0;
 }
