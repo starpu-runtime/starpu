@@ -48,16 +48,13 @@ static void pyobject_register_data_handle(starpu_data_handle_t handle, int home_
 
 static void pyobject_unregister_data_handle(starpu_data_handle_t handle)
 {
-	int node;
-	for (node =0; node < STARPU_MAXNODES; node++)
+	int node = starpu_data_get_home_node(handle);
+	if (node >= 0)
 	{
 		struct starpupyobject_interface *local_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, node);
 
-		if (node == starpu_data_get_home_node(handle))
-		{
-			Py_DECREF(local_interface->object);
-			local_interface->object = NULL;
-		}
+		Py_DECREF(local_interface->object);
+		local_interface->object = NULL;
 	}
 }
 
