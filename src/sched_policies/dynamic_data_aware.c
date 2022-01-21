@@ -2283,7 +2283,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
 	#ifdef PRINT
 	gettimeofday(&time_start_selector, NULL);
@@ -2311,7 +2311,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		return temp_handle;
     }
         
@@ -2412,8 +2412,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[current_gpu - 1]);
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		return STARPU_DATA_NO_VICTIM;
     }
     else if (min_number_task_in_pulled_task == 0)
@@ -2438,18 +2437,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 			#endif
 			
-			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[current_gpu - 1]);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return STARPU_DATA_NO_VICTIM;
 		}
-		
-		/* Se placer sur le bon GPU pour pulled_task */
-		//my_pulled_task_control->pointer = my_pulled_task_control->first;
-		//for (i = 1; i < current_gpu; i++)
-		//{
-		//	my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-		//}
-		//printf("nb data on node = %d\n", nb_data_on_node); fflush(stdout);
 		
 		returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
     }
@@ -2464,13 +2454,14 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[current_gpu - 1]);
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		
 		return STARPU_DATA_NO_VICTIM; 
     }
     
     deletion_in_victim_selector : ;
+    
+    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
     
     struct starpu_task *task = NULL;
     struct starpu_sched_component *temp_component = component;
@@ -2487,7 +2478,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			{
 				if (STARPU_TASK_GET_HANDLE(task, i) == returned_handle)
 				{
-					//Suppression de la liste de tâches à faire 
+					/* Suppression de la liste de tâches à faire */
 					struct pointer_in_task *pt = task->sched_data;
 					starpu_task_list_erase(&my_planned_task_control->pointer->planned_task, pt->pointer_to_cell);
 						
@@ -2764,7 +2755,6 @@ static int dynamic_data_aware_can_push(struct starpu_sched_component *component,
 	     * This list is looked at first when a GPU is asking for a task so we don't break the planned order. */
 	     
 	    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
-	    //~ STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[starpu_worker_get_memory_node(starpu_worker_get_id()) - 1]);
 	    
 	    my_planned_task_control->pointer = my_planned_task_control->first;
 	    for (int i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++) 
@@ -2773,7 +2763,6 @@ static int dynamic_data_aware_can_push(struct starpu_sched_component *component,
 	    }
 	    starpu_task_list_push_back(&my_planned_task_control->pointer->refused_fifo_list, task);
 	    
-	    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[starpu_worker_get_memory_node(starpu_worker_get_id()) - 1]);
 	    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     }
     
