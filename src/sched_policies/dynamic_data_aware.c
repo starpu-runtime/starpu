@@ -1485,7 +1485,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				}
 			}
 			/* Add it from planned task compteur */
-			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 			
 			increment_planned_task_data(task, current_gpu);
 			
@@ -1496,7 +1496,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			erase_task_and_data_pointer(task, main_task_list);
 			starpu_task_list_push_back(&g->planned_task, task);
 			
-			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			
 			goto end_scheduling;
 		}
@@ -1545,7 +1545,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	gettimeofday(&time_start_choose_best_data, NULL);
 	#endif
 	
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		
 	/* Recherche de la meilleure donnée. Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
@@ -2168,7 +2168,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		printf("Random selection because no data allow to get free or 1 from free tasks.\n");
 		#endif
 		
-		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		goto random;
 	}
     
@@ -2182,7 +2182,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		number_random_selection++;
 		#endif
 		
-		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		
 		struct starpu_task *task = starpu_task_list_pop_front(main_task_list);	
 		
@@ -2213,7 +2213,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		erase_task_and_data_pointer(task, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, task);
 		
-		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		
 		#ifdef PRINT
 		gettimeofday(&time_end_pick_random_task, NULL);
@@ -2224,7 +2224,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     }
     
     end_scheduling: ;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     
     #ifdef PRINT
     gettimeofday(&time_end_schedule, NULL);
