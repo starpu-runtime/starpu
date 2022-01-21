@@ -657,6 +657,8 @@ starpu_malloc_on_node(unsigned dst_node, size_t size)
 
 	/* Round up allocation to block size */
 	int nblocks = (size + CHUNK_ALLOC_MIN - 1) / CHUNK_ALLOC_MIN;
+	if (!nblocks)
+		nblocks = 1;
 
 	struct _starpu_chunk *chunk;
 	int prevblock, block;
@@ -759,6 +761,8 @@ starpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size)
 
 	/* Round up allocation to block size */
 	int nblocks = (size + CHUNK_ALLOC_MIN - 1) / CHUNK_ALLOC_MIN;
+	if (!nblocks)
+		nblocks = 1;
 
 	STARPU_PTHREAD_MUTEX_LOCK(&chunk_mutex[dst_node]);
 	for (chunk = _starpu_chunk_list_begin(&chunks[dst_node]);
