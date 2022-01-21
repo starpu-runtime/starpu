@@ -1418,7 +1418,7 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 //~ Dans un coin de la tete : idée de liste intermédiaire
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {	
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	#ifdef PRINT
 	gettimeofday(&time_start_schedule, NULL);
 	#endif 
@@ -1485,7 +1485,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				}
 			}
 			/* Add it from planned task compteur */
-			//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 			
 			increment_planned_task_data(task, current_gpu);
 			
@@ -1496,7 +1496,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			erase_task_and_data_pointer(task, main_task_list);
 			starpu_task_list_push_back(&g->planned_task, task);
 			
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			
 			goto end_scheduling;
 		}
@@ -1505,7 +1505,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			goto random;
 		}
 	}
-        
+    
     /* Ce cas arrive avec le cas ou je gère pas les evictions. Car quand je ne gère pas les évictions je ne remet pas les données évincées dans la liste des données
      * à faire. */
     if (gpu_data_not_used_list_empty(g->gpu_data))
@@ -1545,6 +1545,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	gettimeofday(&time_start_choose_best_data, NULL);
 	#endif
 	
+	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		
 	/* Recherche de la meilleure donnée. Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
 	if (choose_best_data_from == 0) /* Le cas de base où je regarde les données pas encore utilisées. */
@@ -2166,6 +2168,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		printf("Random selection because no data allow to get free or 1 from free tasks.\n");
 		#endif
 		
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		goto random;
 	}
     
@@ -2173,13 +2176,14 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     if (starpu_task_list_empty(&g->planned_task)) 
     {
 		random: ;
-		
+
 		#ifdef PRINT
 		gettimeofday(&time_start_pick_random_task, NULL);
 		number_random_selection++;
 		#endif
 		
-		//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		
 		struct starpu_task *task = starpu_task_list_pop_front(main_task_list);	
 		
 		if (choose_best_data_from == 0)
@@ -2209,22 +2213,23 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		erase_task_and_data_pointer(task, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, task);
 		
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		
 		#ifdef PRINT
 		gettimeofday(&time_end_pick_random_task, NULL);
 		time_total_pick_random_task += (time_end_pick_random_task.tv_sec - time_start_pick_random_task.tv_sec)*1000000LL + time_end_pick_random_task.tv_usec - time_start_pick_random_task.tv_usec;
 		#endif
+		
+		return;
     }
     
     end_scheduling: ;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     
     #ifdef PRINT
     gettimeofday(&time_end_schedule, NULL);
     time_total_schedule += (time_end_schedule.tv_sec - time_start_schedule.tv_sec)*1000000LL + time_end_schedule.tv_usec - time_start_schedule.tv_usec;
 	#endif
-	
-	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 }
 
 void increment_planned_task_data(struct starpu_task *task, int current_gpu)
