@@ -65,6 +65,9 @@ static starpu_ssize_t pyobject_allocate_data_on_node(void *data_interface, unsig
 
 static void pyobject_free_data_on_node(void *data_interface, unsigned node)
 {
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
 	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) data_interface;
 
 	if (pyobject_interface->object != NULL)
@@ -72,6 +75,9 @@ static void pyobject_free_data_on_node(void *data_interface, unsigned node)
 		Py_DECREF(pyobject_interface->object);
 	}
 	pyobject_interface->object = NULL;
+
+	/* release GIL */
+	PyGILState_Release(state);
 }
 
 static size_t pyobject_get_size(starpu_data_handle_t handle)
@@ -125,8 +131,11 @@ static int pyobject_pack_data(starpu_data_handle_t handle, unsigned node, void *
 	_pyobject_pack_data(pyobject_interface, node, ptr, count);
 }
 
-static int pyobject_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+static int _pyobject_peek_data(struct starpupyobject_interface *pyobject_interface, unsigned node, void *ptr, size_t count)
 {
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
 	char *data = ptr;
 	PyObject *pickle_module = PyImport_ImportModule("pickle");
 	if (pickle_module == NULL)
@@ -137,16 +146,24 @@ static int pyobject_peek_data(starpu_data_handle_t handle, unsigned node, void *
 	PyObject *loads = PyObject_GetAttrString(pickle_module, "loads");
 	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(data, count);
 	PyObject *obj= PyObject_CallFunctionObjArgs(loads, obj_bytes_str, NULL);
+	pyobject_interface->object = obj;
 
+	/*restore previous GIL state*/
+	PyGILState_Release(state);
+
+	return 0;
+}
+
+static int pyobject_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
+{
 	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, node);
 
 	if (pyobject_interface->object != NULL)
 	{
 		Py_DECREF(pyobject_interface->object);
 	}
-	pyobject_interface->object = obj;
 
-	return 0;
+	return _pyobject_peek_data(pyobject_interface, node, ptr, count);
 }
 
 static int pyobject_unpack_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
@@ -210,21 +227,9 @@ static int pyobject_copy_any_to_any(void *src_interface, unsigned src_node, void
 	starpu_ssize_t count;
 	_pyobject_pack_data(src, src_node, &ptr, &count);
 
-	/*make sure we own the GIL*/
-	PyGILState_STATE state = PyGILState_Ensure();
+	_pyobject_peek_data(dst, dst_node, ptr, count);
 
-	PyObject *pickle_module = PyImport_ImportModule("pickle");
-	if (pickle_module == NULL)
-	{
-		printf("can't find pickle module\n");
-		exit(1);
-	}
-	PyObject *loads = PyObject_GetAttrString(pickle_module, "loads");
-	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(ptr, count);
-	PyObject *obj= PyObject_CallFunctionObjArgs(loads, obj_bytes_str, NULL);
-	dst->object = obj;
-	/*restore previous GIL state*/
-	PyGILState_Release(state);
+	return 0;
 }
 
 static const struct starpu_data_copy_methods pyobject_copy_data_methods_s =

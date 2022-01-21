@@ -311,6 +311,9 @@ static void pybuffer_unregister_data_handle(starpu_data_handle_t handle)
 
 static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsigned node)
 {
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
 
 	starpu_ssize_t requested_memory = pybuffer_interface->buffer_size;
@@ -320,16 +323,25 @@ static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsig
 	if (!pybuffer_interface->py_buffer)
 		return -ENOMEM;
 
+	/* release GIL */
+	PyGILState_Release(state);
+
 	return requested_memory;
 }
 
 static void pybuffer_free_data_on_node(void *data_interface, unsigned node)
 {
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
 
 	starpu_ssize_t requested_memory = pybuffer_interface->buffer_size;
 
 	starpu_free_on_node(node, (uintptr_t) pybuffer_interface->py_buffer, requested_memory);
+
+	/* release GIL */
+	PyGILState_Release(state);
 }
 
 static size_t pybuffer_get_size(starpu_data_handle_t handle)
@@ -341,8 +353,10 @@ static size_t pybuffer_get_size(starpu_data_handle_t handle)
 	return size;
 }
 
-static int _pybuffer_pack_data(struct starpupy_buffer_interface *pybuffer_interface, unsigned node, void **ptr, starpu_ssize_t *count)
+static int pybuffer_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
 {
+	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
+
 	char* pybuf = pybuffer_interface->py_buffer;
 	Py_ssize_t nbuf = pybuffer_interface->buffer_size;
 
@@ -354,13 +368,6 @@ static int _pybuffer_pack_data(struct starpupy_buffer_interface *pybuffer_interf
 	*ptr = data;
 	*count = nbuf;
 	return 0;
-}
-
-static int pybuffer_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
-{
-	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
-
-	return _pybuffer_pack_data(pybuffer_interface, node, ptr, count);
 }
 
 static int pybuffer_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
@@ -430,11 +437,8 @@ static int pybuffer_copy_any_to_any(void *src_interface, unsigned src_node, void
 	struct starpupy_buffer_interface *src = (struct starpupy_buffer_interface *) src_interface;
 	struct starpupy_buffer_interface *dst = (struct starpupy_buffer_interface *) dst_interface;
 
-	void *ptr;
-	starpu_ssize_t count;
-	_pybuffer_pack_data(src, src_node, &ptr, &count);
-
-	memcpy(dst->py_buffer, ptr, count);
+	memcpy(dst->py_buffer, src->py_buffer, src->buffer_size);
+	return 0;
 }
 
 static const struct starpu_data_copy_methods pybuffer_copy_data_methods_s =
