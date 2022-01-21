@@ -269,11 +269,15 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 			/*if one of arguments is Handle, replace the Handle argument to the object*/
 			if (starpu_data_get_interface_id(task->handles[h_index]) == obj_id)
 			{
-				PyTuple_SetItem(argList, i, STARPUPY_GET_PYOBJECT(descr[h_index]));
+				PyObject *obj = STARPUPY_GET_PYOBJECT(descr[h_index]);
+				Py_INCREF(obj);
+				PyTuple_SetItem(argList, i, obj);
 			}
 			else if (starpu_data_get_interface_id(task->handles[h_index]) == buf_id)
 			{
-				PyTuple_SetItem(argList, i, STARPUPY_BUF_GET_PYOBJECT(descr[h_index]));
+				PyObject *obj = STARPUPY_BUF_GET_PYOBJECT(descr[h_index]);
+				Py_INCREF(obj);
+				PyTuple_SetItem(argList, i, obj);
 			}
 
 			h_index++;
@@ -639,6 +643,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 
 		/*create a Null Handle object*/
 		PyObject *handle_arg = PyTuple_New(1);
+		Py_INCREF(Py_None);
 		PyTuple_SetItem(handle_arg, 0, Py_None);
 
 		r_handle_obj = PyObject_CallObject(pInstanceHandle,handle_arg);
