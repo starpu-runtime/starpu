@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -406,6 +406,13 @@ static uint32_t starpupy_buffer_footprint(starpu_data_handle_t handle)
 	return crc;
 }
 
+void pybuffer_display(starpu_data_handle_t handle, FILE *f)
+{
+	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+	fprintf(f, "%u\t", pybuffer_interface->dim_size);
+}
+
 static struct starpu_data_interface_ops interface_pybuffer_ops =
 {
 	.register_data_handle = pybuffer_register_data_handle,
@@ -420,6 +427,7 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 	.peek_data = pybuffer_peek_data,
 	.unpack_data = pybuffer_unpack_data,
 	.dontcache = 0,
+	.display = pybuffer_display
 };
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
