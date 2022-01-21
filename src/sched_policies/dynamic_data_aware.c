@@ -2984,7 +2984,6 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[starpu_worker_get_memory_node(starpu_worker_get_id()) - 1]);
 	
 	/* Je me place sur la liste correspondant au bon gpu. */
@@ -2995,15 +2994,16 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	
 	if (eviction_strategy_dynamic_data_aware == 1) 
 	{
+		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
 			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
 			hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] - 1;
 			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 	}
 	
-	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 	
     //~ /* Je me place sur la liste correspondant au bon gpu. */
     //~ my_pulled_task_control->pointer = my_pulled_task_control->first;
@@ -3015,6 +3015,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     struct pulled_task *temp = NULL;
     int trouve = 0;
     
+    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
     my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < current_gpu; i++)
     {
@@ -3042,6 +3043,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			//~ printf("%p n'a pas été trouvé.\n", task); fflush(stdout);
 		//~ }
     }
+    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[starpu_worker_get_memory_node(starpu_worker_get_id()) - 1]);
 
@@ -3051,6 +3053,8 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		reset_all_struct();
 		need_to_reinit = true;
+		iteration_DARTS++;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		
 		#ifdef PRINT
 		if ((iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) //PRINT_TIME = 2 pour quand on a 1 seule itération
@@ -3091,9 +3095,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			printf("Nombre de choix random = %d.\n", number_random_selection);
 		}
 		#endif
-		
-		iteration_DARTS++;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 	}
 	
 	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
