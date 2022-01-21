@@ -313,6 +313,7 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 		return NULL;
 	}
 
+	Py_INCREF(obj);
 	return obj;
 }
 
