@@ -303,6 +303,8 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 
 	if(h_flag)
 	{
+		if (STARPUPY_GET_PYOBJECT(descr[0]) != NULL)
+			Py_DECREF(STARPUPY_GET_PYOBJECT(descr[0]));
 		STARPUPY_GET_PYOBJECT(descr[0]) = rv;
 	}
 
