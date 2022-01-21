@@ -36,10 +36,26 @@ static void pyobject_register_data_handle(starpu_data_handle_t handle, int home_
 
 		if (node == home_node)
 		{
+			Py_INCREF(pyobject_interface->object);
 			local_interface->object = pyobject_interface->object;
 		}
 		else
 		{
+			local_interface->object = NULL;
+		}
+	}
+}
+
+static void pyobject_unregister_data_handle(starpu_data_handle_t handle)
+{
+	int node;
+	for (node =0; node < STARPU_MAXNODES; node++)
+	{
+		struct starpupyobject_interface *local_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, node);
+
+		if (node == starpu_data_get_home_node(handle))
+		{
+			Py_DECREF(local_interface->object);
 			local_interface->object = NULL;
 		}
 	}
@@ -174,6 +190,7 @@ static uint32_t starpupy_footprint(starpu_data_handle_t handle)
 static struct starpu_data_interface_ops interface_pyobject_ops =
 {
 	.register_data_handle = pyobject_register_data_handle,
+	.unregister_data_handle = pyobject_unregister_data_handle,
 	.allocate_data_on_node = pyobject_allocate_data_on_node,
 	.free_data_on_node = pyobject_free_data_on_node,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
