@@ -1417,11 +1417,11 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 
 //~ Dans un coin de la tete : idée de liste intermédiaire
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
-{	
+{
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	#ifdef PRINT
 	gettimeofday(&time_start_schedule, NULL);
-	#endif 
+	#endif
 	
     int i = 0;
     int j = 0;
