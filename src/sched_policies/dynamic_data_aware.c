@@ -2373,6 +2373,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		//~ print_pulled_task_one_gpu(g, 1);
 	//~ }
 	
+	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	
     struct handle_user_data *hud = malloc(sizeof(hud));
     for (i = 0; i < nb_data_on_node; i++)
     {
@@ -2412,7 +2414,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		return STARPU_DATA_NO_VICTIM;
     }
     else if (min_number_task_in_pulled_task == 0)
@@ -2437,7 +2439,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 			#endif
 			
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return STARPU_DATA_NO_VICTIM;
 		}
 		
@@ -2454,14 +2456,11 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-		
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		return STARPU_DATA_NO_VICTIM; 
     }
     
     deletion_in_victim_selector : ;
-    
-    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
     
     struct starpu_task *task = NULL;
     struct starpu_sched_component *temp_component = component;
