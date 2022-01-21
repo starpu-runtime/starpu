@@ -83,9 +83,10 @@ static size_t pyobject_get_size(starpu_data_handle_t handle)
 	return sizeof(void *);
 }
 
-static int pyobject_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
+static int _pyobject_pack_data(struct starpupyobject_interface *pyobject_interface, unsigned node, void **ptr, starpu_ssize_t *count)
 {
-	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, node);
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
 
 	PyObject *obj = pyobject_interface->object;
 
@@ -111,7 +112,17 @@ static int pyobject_pack_data(starpu_data_handle_t handle, unsigned node, void *
 	*count = obj_data_size;
 
 	Py_DECREF(obj_bytes);
+
+	/* release GIL */
+	PyGILState_Release(state);
+
 	return 0;
+}
+
+static int pyobject_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
+{
+	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, node);
+	_pyobject_pack_data(pyobject_interface, node, ptr, count);
 }
 
 static int pyobject_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
@@ -151,6 +162,9 @@ static uint32_t starpupy_footprint(starpu_data_handle_t handle)
 {
 	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
 	PyObject *obj = pyobject_interface->object;
 
 	/*fet obj.__class__*/
@@ -181,8 +195,42 @@ static uint32_t starpupy_footprint(starpu_data_handle_t handle)
 		crc=starpu_hash_crc32c_be_ptr(obj, crc);
 	}
 
+	/*restore previous GIL state*/
+	PyGILState_Release(state);
+
 	return crc;
 }
+
+static int pyobject_copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
+{
+	struct starpupyobject_interface *src = (struct starpupyobject_interface *) src_interface;
+	struct starpupyobject_interface *dst = (struct starpupyobject_interface *) dst_interface;
+
+	void *ptr;
+	starpu_ssize_t count;
+	_pyobject_pack_data(src, src_node, &ptr, &count);
+
+	/*make sure we own the GIL*/
+	PyGILState_STATE state = PyGILState_Ensure();
+
+	PyObject *pickle_module = PyImport_ImportModule("pickle");
+	if (pickle_module == NULL)
+	{
+		printf("can't find pickle module\n");
+		exit(1);
+	}
+	PyObject *loads = PyObject_GetAttrString(pickle_module, "loads");
+	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(ptr, count);
+	PyObject *obj= PyObject_CallFunctionObjArgs(loads, obj_bytes_str, NULL);
+	dst->object = obj;
+	/*restore previous GIL state*/
+	PyGILState_Release(state);
+}
+
+static const struct starpu_data_copy_methods pyobject_copy_data_methods_s =
+{
+ 	.any_to_any = pyobject_copy_any_to_any,
+};
 
 static struct starpu_data_interface_ops interface_pyobject_ops =
 {
@@ -198,6 +246,8 @@ static struct starpu_data_interface_ops interface_pyobject_ops =
 	.unpack_data = pyobject_unpack_data,
 	.get_size = pyobject_get_size,
 	.dontcache = 0,
+	.name = "STARPUPY_OBJECT_INTERFACE",
+	.copy_methods = &pyobject_copy_data_methods_s,
 };
 
 int starpupy_data_register(starpu_data_handle_t *handleptr, unsigned home_node, PyObject *obj)

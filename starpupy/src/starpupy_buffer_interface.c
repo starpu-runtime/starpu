@@ -341,10 +341,8 @@ static size_t pybuffer_get_size(starpu_data_handle_t handle)
 	return size;
 }
 
-static int pybuffer_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
+static int _pybuffer_pack_data(struct starpupy_buffer_interface *pybuffer_interface, unsigned node, void **ptr, starpu_ssize_t *count)
 {
-	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
-
 	char* pybuf = pybuffer_interface->py_buffer;
 	Py_ssize_t nbuf = pybuffer_interface->buffer_size;
 
@@ -355,8 +353,14 @@ static int pybuffer_pack_data(starpu_data_handle_t handle, unsigned node, void *
 
 	*ptr = data;
 	*count = nbuf;
-
 	return 0;
+}
+
+static int pybuffer_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
+{
+	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
+
+	return _pybuffer_pack_data(pybuffer_interface, node, ptr, count);
 }
 
 static int pybuffer_peek_data(starpu_data_handle_t handle, unsigned node, void *ptr, size_t count)
@@ -413,6 +417,31 @@ void pybuffer_display(starpu_data_handle_t handle, FILE *f)
 	fprintf(f, "%u\t", pybuffer_interface->dim_size);
 }
 
+static int pybuffer_compare(void *data_interface_a, void *data_interface_b)
+{
+	struct starpupy_buffer_interface *a = (struct starpupy_buffer_interface *) data_interface_a;
+	struct starpupy_buffer_interface *b = (struct starpupy_buffer_interface *) data_interface_b;
+
+	return ((a->array_type == b->array_type) && (a->item_size == b->item_size) && (a->dim_size == b->dim_size));
+}
+
+static int pybuffer_copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
+{
+	struct starpupy_buffer_interface *src = (struct starpupy_buffer_interface *) src_interface;
+	struct starpupy_buffer_interface *dst = (struct starpupy_buffer_interface *) dst_interface;
+
+	void *ptr;
+	starpu_ssize_t count;
+	_pybuffer_pack_data(src, src_node, &ptr, &count);
+
+	memcpy(dst->py_buffer, ptr, count);
+}
+
+static const struct starpu_data_copy_methods pybuffer_copy_data_methods_s =
+{
+	.any_to_any = pybuffer_copy_any_to_any,
+};
+
 static struct starpu_data_interface_ops interface_pybuffer_ops =
 {
 	.register_data_handle = pybuffer_register_data_handle,
@@ -427,7 +456,10 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 	.peek_data = pybuffer_peek_data,
 	.unpack_data = pybuffer_unpack_data,
 	.dontcache = 0,
-	.display = pybuffer_display
+	.display = pybuffer_display,
+	.compare = pybuffer_compare,
+	.name = "STARPUPY_BUFFER_INTERFACE",
+	.copy_methods = &pybuffer_copy_data_methods_s,
 };
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
