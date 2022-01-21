@@ -683,11 +683,11 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				//~ dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			//~ }
 			
-			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			/* La j'appelle 3D dans les deux cas car j'ai voulu regrouper. */
 			dynamic_data_aware_scheduling_3D_matrix(l, current_gpu, my_planned_task_control->pointer);
 			
-			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 			if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
 			{
 				task = starpu_task_list_pop_front(&my_planned_task_control->pointer->planned_task);
@@ -1418,7 +1418,6 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 //~ Dans un coin de la tete : idée de liste intermédiaire
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
 {	
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	#ifdef PRINT
 	gettimeofday(&time_start_schedule, NULL);
 	#endif 
@@ -2223,8 +2222,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     gettimeofday(&time_end_schedule, NULL);
     time_total_schedule += (time_end_schedule.tv_sec - time_start_schedule.tv_sec)*1000000LL + time_end_schedule.tv_usec - time_start_schedule.tv_usec;
 	#endif
-	
-	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 }
 
 void increment_planned_task_data(struct starpu_task *task, int current_gpu)
