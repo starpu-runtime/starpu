@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -240,6 +240,7 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node)
 {
+	STARPU_ASSERT_MSG(handle->ops->copy_methods, "The handle %s does not define a copy_methods\n", handle->ops->name);
 	int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node) = handle->ops->copy_methods->can_copy;
 	void *src_interface = handle->per_node[src_node].data_interface;
 	void *dst_interface = handle->per_node[dst_node].data_interface;

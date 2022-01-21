@@ -494,7 +494,10 @@ int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface,
 	if (copy_methods->ram_to_ram)
 		copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
 	else
+	{
+		STARPU_ASSERT_MSG(copy_methods->any_to_any, "the interface '%s' does define neither ram_to_ram nor any_to_any copy method", handle->ops->name);
 		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+	}
 	return ret;
 }
 

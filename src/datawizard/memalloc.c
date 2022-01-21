@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -721,7 +721,10 @@ static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_
 	if (ops_a->alloc_compare)
 		ret = ops_a->alloc_compare(data_interface_a, data_interface_b);
 	else
+	{
+		STARPU_ASSERT_MSG(ops_a->compare, "the interface '%s' does define neither alloc_compare nor compare method", ops_a->name);
 		ret = ops_a->compare(data_interface_a, data_interface_b);
+	}
 
 	return ret;
 }
