@@ -320,11 +320,11 @@ static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsig
 
 	pybuffer_interface->py_buffer = (char*)starpu_malloc_on_node(node, requested_memory);
 
-	if (!pybuffer_interface->py_buffer)
-		return -ENOMEM;
-
 	/* release GIL */
 	PyGILState_Release(state);
+
+	if (!pybuffer_interface->py_buffer)
+		return -ENOMEM;
 
 	return requested_memory;
 }
