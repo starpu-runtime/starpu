@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +59,15 @@ static void pyobject_free_data_on_node(void *data_interface, unsigned node)
 		Py_DECREF(pyobject_interface->object);
 	}
 	pyobject_interface->object = NULL;
+}
+
+static size_t pyobject_get_size(starpu_data_handle_t handle)
+{
+#ifdef STARPU_DEVEL
+#warning this operation is needed for fxt tracing when calling starpu_data_register(), using the cloudpickle as below does not seem to work
+#endif
+	(void)handle;
+	return sizeof(void *);
 }
 
 static int pyobject_pack_data(starpu_data_handle_t handle, unsigned node, void **ptr, starpu_ssize_t *count)
@@ -173,6 +182,7 @@ static struct starpu_data_interface_ops interface_pyobject_ops =
 	.pack_data = pyobject_pack_data,
 	.peek_data = pyobject_peek_data,
 	.unpack_data = pyobject_unpack_data,
+	.get_size = pyobject_get_size,
 	.dontcache = 0,
 };
 
