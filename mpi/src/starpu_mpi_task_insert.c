@@ -498,6 +498,7 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
 #ifdef STARPU_BUBBLE
 		else if (arg_type==STARPU_BUBBLE_FUNC)
 		{
+			STARPU_ASSERT_MSG(0, "Bubbles + MPI not supported yet\n");
 			(void)va_arg(varg_list,void*);
 		}
 		else if (arg_type==STARPU_BUBBLE_FUNC_ARG)

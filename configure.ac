@@ -122,7 +122,6 @@ AC_MSG_CHECKING([for hierarchical dags - a.k.a bubble - support])
 
 if test x$enable_bubble = xyes; then
 	AC_DEFINE(STARPU_BUBBLE, [1], [Define this to enable hierarchical dags support])
-	default_enable_mpi=no
 fi
 
 AM_CONDITIONAL([STARPU_BUBBLE], [test "x$enable_bubble" = "xyes"])
