@@ -739,8 +739,6 @@ int _starpu_bubble_unpartition_data_if_needed(struct _starpu_job *j)
 	unsigned i;
 	struct starpu_task *control_task = NULL;
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
 	for (i = 0; i < nbuffers; i++)
 	{
 		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
@@ -835,6 +833,7 @@ static int _starpu_turn_task_into_bubble(struct _starpu_job *j)
 	}
 	else
 	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		return _starpu_bubble_unpartition_data_if_needed(j);
 	}
 }
