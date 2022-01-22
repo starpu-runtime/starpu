@@ -542,6 +542,9 @@ if test -d "$srcdir/.git" -o -f "$srcdir/.git"; then
 fi
 if test x$enable_mpi_check = xyes ; then
     running_mpi_check=yes
+    if test x$enable_mpi = xno ; then
+	AC_MSG_ERROR([MPI checks requested, but MPI is disabled])
+    fi
 fi
 if test x$enable_mpi_check = xno ; then
     running_mpi_check=no
