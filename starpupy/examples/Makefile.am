@@ -18,7 +18,18 @@ include $(top_srcdir)/starpu.mk
 
 SUBDIRS =
 
+noinst_PROGRAMS =
+
 CLEANFILES = *.gcno *.gcda *.linkinfo
+
+if !STARPU_HAVE_WINDOWS
+## test loader program
+LOADER			=	loader
+loader_CPPFLAGS 	=	$(AM_CPPFLAGS) -I$(top_builddir)/src/
+LOADER_BIN		=	$(abs_top_builddir)/starpupy/examples/$(LOADER)
+loader_SOURCES		=	../../tests/loader.c
+noinst_PROGRAMS		+=	loader
+endif
 
 if STARPU_USE_MPI_MASTER_SLAVE
 TESTS_ENVIRONMENT	=	$(MPI_RUN_ARGS) MPI_LAUNCHER="$(MPI_LAUNCHER)" LOADER_ARGS="--mpirun"
