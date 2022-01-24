@@ -97,7 +97,7 @@ PyObject* starpupy_buffer_get_arrarr(struct starpupy_buffer_interface *pybuffer_
 	if (arr_typecode!='u')
 	{
 		/*get the array type string*/
-		char type_c[narray];
+		char type_c[narray+1];
 		int i;
 		for (i=0; i<narray; i++)
 		{
