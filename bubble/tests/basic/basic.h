@@ -64,7 +64,8 @@ struct starpu_codelet sub_data_codelet =
 {
 	.cpu_funcs = {sub_data_func},
 	.nbuffers = 1,
-	.name = "sub_data_cl"
+	.name = "sub_data_cl",
+	.model = &starpu_perfmodel_nop
 };
 
 void bubble_func(void *buffers[], void *arg)
@@ -103,7 +104,8 @@ struct starpu_codelet bubble_codelet =
 	.cpu_funcs = {bubble_func},
 	.bubble_func = is_bubble,
 	.bubble_gen_dag_func = bubble_gen_dag,
-	.nbuffers = 1
+	.nbuffers = 1,
+	.model = &starpu_perfmodel_nop
 };
 
 void task_func(void *buffers[], void *arg)
