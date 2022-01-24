@@ -76,7 +76,7 @@ int starpu_disk_register(struct starpu_disk_ops *func, void *parameter, starpu_s
 {
 	STARPU_ASSERT_MSG(size < 0 || size >= STARPU_DISK_SIZE_MIN, "Minimum disk size is %d Bytes ! (Here %d) \n", (int) STARPU_DISK_SIZE_MIN, (int) size);
 	/* register disk */
-	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0, &_starpu_driver_disk_node_ops);
+	unsigned disk_memnode = _starpu_memory_node_register(STARPU_DISK_RAM, 0);
 
         /* Connect the disk memory node to all numa memory nodes */
         int nb_numa_nodes = starpu_memory_nodes_get_numa_count();

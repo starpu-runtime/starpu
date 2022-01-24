@@ -104,7 +104,7 @@ static inline starpu_sg_host_t _starpu_simgrid_memory_node_get_host(unsigned nod
 	return _starpu_descr.host[node];
 }
 #endif
-unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid, struct _starpu_node_ops *node_ops);
+unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid);
 //void _starpu_memory_node_attach_queue(struct starpu_jobq_s *q, unsigned nodeid);
 void _starpu_memory_node_register_condition(struct _starpu_worker *worker, starpu_pthread_cond_t *cond, unsigned nodeid);
 
