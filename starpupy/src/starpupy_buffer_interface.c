@@ -120,7 +120,7 @@ PyObject* starpupy_buffer_get_arrarr(struct starpupy_buffer_interface *pybuffer_
 	/*initialize the instance*/
 	PyObject *arr_args=PyTuple_New(2);
 
-	char arr_type[]={arr_typecode};
+	char arr_type[]={arr_typecode, 0};
 	PyTuple_SetItem(arr_args, 0, Py_BuildValue("s", arr_type));
 	PyTuple_SetItem(arr_args, 1, arr_list);
 
