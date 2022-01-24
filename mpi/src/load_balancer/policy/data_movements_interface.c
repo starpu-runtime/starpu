@@ -108,7 +108,7 @@ static void data_movements_register_data_handle(starpu_data_handle_t handle, int
 {
 	struct data_movements_interface *dm_interface = (struct data_movements_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct data_movements_interface *local_interface = (struct data_movements_interface *)
