@@ -518,6 +518,7 @@ static PyObject* init_perfmodel(PyObject *self, PyObject *args)
 	char *p =strdup(sym);
 	perf->symbol=p;
 	perf->type=STARPU_HISTORY_BASED;
+	perf->size_base=&sizebase;
 
 	/*struct perfmodel*->PyObject**/
 	PyObject *perfmodel=PyCapsule_New(perf, "Perf", NULL);
@@ -1060,12 +1061,6 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	{
 		PyErr_Format(StarpupyError, "Unexpected value %d returned for starpu_task_submit", ret);
 		return NULL;
-	}
-
-	if (strcmp(tp_perf, "PyCapsule")==0)
-	{
-		struct starpu_perfmodel *perf =(struct starpu_perfmodel *) func_cl->model;
-		perf->size_base=&sizebase;
 	}
 
 	//printf("the number of reference is %ld\n", Py_REFCNT(func_py));
