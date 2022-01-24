@@ -129,7 +129,6 @@ void prologue_cb_func(void *cl_arg)
 			PyTuple_SetItem(argList, i, fut_result);
 
 			Py_DECREF(done);
-			Py_DECREF(fut_result);
 		}
 	}
 
@@ -758,7 +757,6 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		for(i=0; i < PyTuple_Size(args)-2; i++)
 		{
 			PyObject *tmp=PyTuple_GetItem(args, i+1);
-			Py_INCREF(tmp);
 
 			/*check if the arg is handle*/
 			const char *tp_arg = Py_TYPE(tmp)->tp_name;
@@ -832,6 +830,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				{
 					free(tmp_mode);
 				}
+				Py_DECREF(tmp);
 			}
 			/*check if the arg is buffer protocol*/
 			else if((PyObject_IsTrue(arg_handle)) && (strcmp(tp_arg, "numpy.ndarray")==0 || strcmp(tp_arg, "bytes")==0 || strcmp(tp_arg, "bytearray")==0 || strcmp(tp_arg, "array.array")==0 || strcmp(tp_arg, "memoryview")==0))
@@ -895,6 +894,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				}
 
 				Py_DECREF(arg_id);
+				Py_DECREF(tmp);
 			}
 			/* check if the arg is the sub handle*/
 			else if(strcmp(tp_arg, "PyCapsule")==0)
@@ -952,12 +952,12 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				{
 					free(tmp_mode);
 				}
+				Py_DECREF(tmp);
 			}
 			else
 			{
 				PyTuple_SetItem(argList, i, tmp);
 			}
-			Py_DECREF(tmp);
 			// Py_INCREF(PyTuple_GetItem(argList, i));
 		}
 		//printf("nbuffer is %d\n", nbuffer);
