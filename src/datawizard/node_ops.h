@@ -84,19 +84,37 @@ struct _starpu_node_ops
 	 * As a first start, you can just use the generic _starpu_copy_interface_any_to_any.  */
 	copy_interface_func_t copy_interface_to[STARPU_MAX_RAM+1];
 
+	/** Request copying a data interface to this type of node from another type of node.
+	 * As a first start, you can just use the generic _starpu_copy_interface_any_to_any.  */
+	copy_interface_func_t copy_interface_from[STARPU_MAX_RAM+1];
+
 	/** Request copying a piece of data from this type of node to another type of node.
-	 * This method is required.  */
+	 * This method is required at least for STARPU_CPU_RAM.  */
 	copy_data_t copy_data_to[STARPU_MAX_RAM+1];
+
+	/** Request copying a piece of data to this type of node from another type of node.
+	 * This method is required at least for STARPU_CPU_RAM.  */
+	copy_data_t copy_data_from[STARPU_MAX_RAM+1];
 
 	/** Request copying a 2D piece of data (i.e. matrix tile with an ld)
 	 * from this type of node to another type of node.
 	 * This method is optional.  */
 	copy2d_data_t copy2d_data_to[STARPU_MAX_RAM+1];
 
+	/** Request copying a 2D piece of data (i.e. matrix tile with an ld)
+	 * to this type of node from another type of node.
+	 * This method is optional.  */
+	copy2d_data_t copy2d_data_from[STARPU_MAX_RAM+1];
+
 	/** Request copying a 3D piece of data (i.e. block piece with ldy and ldz)
 	 * from this type of node to another type of node.
 	 * This method is optional.  */
 	copy3d_data_t copy3d_data_to[STARPU_MAX_RAM+1];
+
+	/** Request copying a 3D piece of data (i.e. block piece with ldy and ldz)
+	 * to this type of node from another type of node.
+	 * This method is optional.  */
+	copy3d_data_t copy3d_data_from[STARPU_MAX_RAM+1];
 
 	/** Wait for the completion of asynchronous request \p async_channel.  */
 	void (*wait_request_completion)(struct _starpu_async_channel *async_channel);

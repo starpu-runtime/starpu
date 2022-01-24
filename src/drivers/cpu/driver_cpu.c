@@ -555,38 +555,8 @@ void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 {
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cpu_copy_interface,
-#ifdef STARPU_USE_CUDA
-	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cpu_to_cuda,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.copy_interface_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_cpu_to_opencl,
-#endif
-#ifdef STARPU_USE_MAX_FPGA
-	//.copy_interface_to[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_interface_from_cpu_to_fpga,
-#endif
-	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_cpu_to_disk,
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_copy_interface_any_to_any,
-#endif
 
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_cpu_copy_data,
-#ifdef STARPU_USE_CUDA
-	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cpu_to_cuda,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_cpu_to_opencl,
-#endif
-#ifdef STARPU_USE_MAX_FPGA
-	//.copy_data_to[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_data_from_cpu_to_fpga,
-#endif
-	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_src_common_copy_data_host_to_sink,
-#endif
-
-#ifdef STARPU_USE_CUDA
-	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cpu_to_cuda,
-#endif
 
 	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,
 	.malloc_on_node = _starpu_cpu_malloc_on_node,

@@ -168,8 +168,14 @@ struct _starpu_node_ops _starpu_driver_mpi_ms_node_ops =
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_copy_interface_any_to_any,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_copy_interface_any_to_any,
 
+	.copy_interface_from[STARPU_CPU_RAM] = _starpu_copy_interface_any_to_any,
+	.copy_interface_from[STARPU_MPI_MS_RAM] = _starpu_copy_interface_any_to_any,
+
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_src_common_copy_data_sink_to_host,
 	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_src_common_copy_data_sink_to_sink,
+
+	.copy_data_from[STARPU_CPU_RAM] = _starpu_src_common_copy_data_host_to_sink,
+	.copy_data_from[STARPU_MPI_MS_RAM] = _starpu_src_common_copy_data_sink_to_sink,
 
 	/* TODO: copy2D/3D? */
 

@@ -591,8 +591,14 @@ struct _starpu_node_ops _starpu_driver_max_fpga_node_ops =
 	//.copy_data_to[STARPU_CPU_RAM] = _starpu_max_fpga_copy_data_from_fpga_to_cpu,
 	//.copy_data_to[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_data_from_fpga_to_fpga,
 
+	//.copy_data_from[STARPU_CPU_RAM] = _starpu_max_fpga_copy_data_from_cpu_to_fpga,
+	//.copy_data_from[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_data_from_fpga_to_fpga,
+
 	//.copy_interface_to[STARPU_CPU_RAM] = _starpu_max_fpga_copy_interface_from_fpga_to_cpu,
 	//.copy_interface_to[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_interface_from_fpga_to_fpga,
+
+	//.copy_interface_from[STARPU_CPU_RAM] = _starpu_max_fpga_copy_interface_from_cpu_to_fpga,
+	//.copy_interface_from[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_interface_from_fpga_to_fpga,
 
         .wait_request_completion = NULL,
 	.test_request_completion = NULL,

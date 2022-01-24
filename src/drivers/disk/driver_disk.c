@@ -271,8 +271,14 @@ struct _starpu_node_ops _starpu_driver_disk_node_ops =
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_disk_copy_interface_from_disk_to_cpu,
 	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_disk_to_disk,
 
+	.copy_interface_from[STARPU_CPU_RAM] = _starpu_disk_copy_interface_from_cpu_to_disk,
+	.copy_interface_from[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_disk_to_disk,
+
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_disk_copy_data_from_disk_to_cpu,
 	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_disk_to_disk,
+
+	.copy_data_from[STARPU_CPU_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
+	.copy_data_from[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_disk_to_disk,
 
 	/* TODO: copy2D/3D? */
 

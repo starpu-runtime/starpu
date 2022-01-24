@@ -1377,8 +1377,14 @@ struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_opencl_copy_interface_from_opencl_to_cpu,
 	.copy_interface_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_opencl_to_opencl,
 
+	.copy_interface_from[STARPU_CPU_RAM] = _starpu_opencl_copy_interface_from_cpu_to_opencl,
+	.copy_interface_from[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_opencl_to_opencl,
+
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_opencl_copy_data_from_opencl_to_cpu,
 	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_opencl_to_opencl,
+
+	.copy_data_from[STARPU_CPU_RAM] = _starpu_opencl_copy_data_from_cpu_to_opencl,
+	.copy_data_from[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_opencl_to_opencl,
 
 	/* TODO: copy2D/3D? */
 
