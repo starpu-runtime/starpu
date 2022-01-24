@@ -81,6 +81,7 @@ TESTS = $(myPROGRAMS)
 
 myPROGRAMS =
 
+if !STARPU_SIMGRID
 if STARPU_BUBBLE
 myPROGRAMS +=			\
 	basic/b			\
@@ -101,6 +102,7 @@ myPROGRAMS +=			\
 	basic/read		\
 	basic/tbrbtt		\
 	vector/vector
+endif
 endif
 
 noinst_PROGRAMS	= $(myPROGRAMS)
