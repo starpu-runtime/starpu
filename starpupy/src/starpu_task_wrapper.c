@@ -757,6 +757,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		for(i=0; i < PyTuple_Size(args)-2; i++)
 		{
 			PyObject *tmp=PyTuple_GetItem(args, i+1);
+			Py_INCREF(tmp);
 
 			/*check if the arg is handle*/
 			const char *tp_arg = Py_TYPE(tmp)->tp_name;
