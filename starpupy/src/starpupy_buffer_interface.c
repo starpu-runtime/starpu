@@ -96,7 +96,7 @@ PyObject* starpupy_buffer_get_arrarr(struct starpupy_buffer_interface *pybuffer_
 	/*if the element is not unicode character*/
 	if (arr_typecode!='u')
 	{
-		char* type_str= malloc(narray);
+		char* type_str= malloc(narray+1);
 		memset(type_str, arr_typecode, narray);
 		type_str[narray] = 0;
 
