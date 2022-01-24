@@ -305,13 +305,27 @@ int main(void)
 		err = cudaGetDeviceProperties(&props, i);
 		if (err)
 		{
-			fprintf(stderr,"cuda error %d\n", err);
+			fprintf(stderr,"cudaGetDeviceProperties cuda error %d\n", err);
 			continue;
 		}
 		printf("%s\n", props.name);
 		printf("%0.3f GB\n", (float) props.totalGlobalMem / (1<<30));
 		printf("%u MP\n", props.multiProcessorCount);
 		printf("\n");
+
+		err = cudaSetDevice(i);
+		if (err)
+		{
+			fprintf(stderr,"cudaSetDevice(%d) cuda error %d\n", err, i);
+			continue;
+		}
+
+		err = cudaFree(0);
+		if (err)
+		{
+			fprintf(stderr,"cudaFree(0) on %d cuda error %d\n", err, i);
+			continue;
+		}
 	}
 	return 0;
 }
