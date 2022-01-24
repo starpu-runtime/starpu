@@ -74,16 +74,11 @@ endif
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
-if !STARPU_CROSS_COMPILING
 LOADER			=	loader
 loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	./$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 noinst_PROGRAMS		+=	loader
-else
-LOADER			=
-LOADER_BIN		=	$(top_builddir)/examples/stencil/loader-cross.sh
-endif
 
 if STARPU_USE_MPI_MASTER_SLAVE
 MPI = $(MPIEXEC) $(MPIEXEC_ARGS) -np 4

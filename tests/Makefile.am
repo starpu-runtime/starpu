@@ -130,14 +130,9 @@ noinst_PROGRAMS		=
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
-if !STARPU_CROSS_COMPILING
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
 noinst_PROGRAMS		+=	loader
-else
-LOADER			=
-LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
-endif
 
 if STARPU_USE_MPI_MASTER_SLAVE
 LOADER_BIN2		= $(MPI_LAUNCHER) $(LOADER_BIN)
