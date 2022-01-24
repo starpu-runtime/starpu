@@ -14,15 +14,20 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 from setuptools import setup, Extension
+import sys
 
 numpy_dir = '@PYTHON_NUMPY_DIR@'
 if numpy_dir != '':
     numpy_include_dir = [numpy_dir]
 else:
     numpy_include_dir = []
+
+ver = sys.version_info
+libpython = 'python%s.%s%s' % (ver.major, ver.minor, sys.abiflags)
+
 starpupy = Extension('starpu.starpupy',
                      include_dirs = ['@STARPU_SRC_DIR@/include', '@STARPU_BUILD_DIR@/include', '@STARPU_SRC_DIR@/starpupy/src'] + numpy_include_dir,
-                     libraries = ['starpu-@STARPU_EFFECTIVE_VERSION@'],
+                     libraries = ['starpu-@STARPU_EFFECTIVE_VERSION@', libpython],
                      library_dirs = ['@STARPU_BUILD_DIR@/src/.libs'],
 	             sources = ['starpu/starpu_task_wrapper.c', 'starpu/starpupy_handle.c', 'starpu/starpupy_interface.c', 'starpu/starpupy_buffer_interface.c', 'starpu/starpupy_numpy_filters.c'])
 
