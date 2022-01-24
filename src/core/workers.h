@@ -529,6 +529,7 @@ struct _starpu_memory_driver_info
 {
 	const char *name_upper;	/**< Name of memory in upper case */
 	enum starpu_worker_archtype worker_archtype;	/**< Kind of device */
+	const struct _starpu_node_ops *ops; /**< Memory node operations */
 };
 
 /** Memory driver information, indexed by enum starpu_node_kind */

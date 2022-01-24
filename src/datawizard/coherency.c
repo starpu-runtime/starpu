@@ -231,7 +231,7 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 		/* No worker to process the request from that node */
 		return 0;
 
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(node);
+	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(node);
 	if (node_ops && node_ops->is_direct_access_supported)
 		return node_ops->is_direct_access_supported(node, handling_node);
 	else

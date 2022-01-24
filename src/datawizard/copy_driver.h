@@ -53,8 +53,6 @@ enum _starpu_may_alloc
 	_STARPU_DATAWIZARD_ONLY_FAST_ALLOC
 };
 
-extern struct _starpu_node_ops *_starpu_copy_node_ops[STARPU_MAX_RAM+1];
-
 
 LIST_TYPE(_starpu_disk_backend_event,
 	void *backend_event;
@@ -81,7 +79,7 @@ union _starpu_async_channel_event
 struct _starpu_async_channel
 {
 	union _starpu_async_channel_event event;
-	struct _starpu_node_ops *node_ops;
+	const struct _starpu_node_ops *node_ops;
         /** Which node to polling when needing ACK msg */
         struct _starpu_mp_node *polling_node_sender;
         struct _starpu_mp_node *polling_node_receiver;

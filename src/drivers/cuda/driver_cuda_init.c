@@ -30,6 +30,9 @@ static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "CUDA",
 	.worker_archtype = STARPU_CUDA_WORKER,
+#ifdef STARPU_USE_CUDA
+	.ops = &_starpu_driver_cuda_node_ops,
+#endif
 };
 
 void _starpu_cuda_preinit(void)

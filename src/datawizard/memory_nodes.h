@@ -45,7 +45,7 @@ struct _starpu_memory_node_descr
 {
 	unsigned nnodes;
 	enum starpu_node_kind nodes[STARPU_MAXNODES];
-	struct _starpu_node_ops *node_ops[STARPU_MAXNODES];
+	const struct _starpu_node_ops *node_ops[STARPU_MAXNODES];
 
 	/** Get the device id associated to this node, or -1 if not applicable */
 	int devid[STARPU_MAXNODES];
@@ -83,7 +83,7 @@ static inline void _starpu_memory_node_add_nworkers(unsigned node)
 /** same utility as _starpu_memory_node_add_nworkers */
 void _starpu_worker_drives_memory_node(struct _starpu_worker *worker, unsigned memnode);
 
-static inline struct _starpu_node_ops *_starpu_memory_node_get_node_ops(unsigned node)
+static inline const struct _starpu_node_ops *_starpu_memory_node_get_node_ops(unsigned node)
 {
 	return _starpu_descr.node_ops[node];
 }

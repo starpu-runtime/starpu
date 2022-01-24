@@ -30,6 +30,9 @@ static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "MPI_MS",
 	.worker_archtype = STARPU_MPI_MS_WORKER,
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	.ops = &_starpu_driver_mpi_ms_node_ops,
+#endif
 };
 
 void _starpu_mpi_ms_preinit(void)

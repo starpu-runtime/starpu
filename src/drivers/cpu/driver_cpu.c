@@ -73,6 +73,9 @@ static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "NUMA",
 	.worker_archtype = STARPU_CPU_WORKER,
+#ifdef STARPU_USE_CPU
+	.ops = &_starpu_driver_cpu_node_ops,
+#endif
 };
 
 void _starpu_cpu_preinit(void)

@@ -80,7 +80,7 @@ int starpu_memory_node_get_name(unsigned node, char *name, size_t size)
 
 unsigned _starpu_memory_node_register(enum starpu_node_kind kind, int devid)
 {
-	struct _starpu_node_ops *node_ops = _starpu_copy_node_ops[kind];
+	const struct _starpu_node_ops *node_ops = starpu_memory_driver_info[kind].ops;
 	unsigned node;
 	/* ATOMIC_ADD returns the new value ... */
 	node = STARPU_ATOMIC_ADD(&_starpu_descr.nnodes, 1) - 1;

@@ -27,6 +27,7 @@ static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "Disk",
 	.worker_archtype = (enum starpu_worker_archtype) -1,
+	.ops = &_starpu_driver_disk_node_ops,
 };
 
 void _starpu_disk_preinit(void)

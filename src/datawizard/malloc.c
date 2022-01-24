@@ -583,7 +583,7 @@ static uintptr_t _starpu_malloc_on_node(unsigned dst_node, size_t size, int flag
 		flags &= ~STARPU_MALLOC_COUNT;
 	}
 
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
+	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
 	if (node_ops && node_ops->malloc_on_node)
 		addr = node_ops->malloc_on_node(dst_node, size, flags & ~STARPU_MALLOC_COUNT);
 	else
@@ -604,7 +604,7 @@ void _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, 
 	int count = flags & STARPU_MALLOC_COUNT;
 	flags &= ~STARPU_MALLOC_COUNT;
 
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
+	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
 	if (node_ops && node_ops->free_on_node)
 		node_ops->free_on_node(dst_node, addr, size, flags);
 	else

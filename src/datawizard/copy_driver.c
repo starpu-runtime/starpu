@@ -39,25 +39,6 @@
 #include <core/simgrid.h>
 #endif
 
-struct _starpu_node_ops *_starpu_copy_node_ops[STARPU_MAX_RAM+1] = {
-#ifdef STARPU_USE_CPU
-	[STARPU_CPU_RAM] = &_starpu_driver_cpu_node_ops,
-#endif
-#ifdef STARPU_USE_CUDA
-	[STARPU_CUDA_RAM] = &_starpu_driver_cuda_node_ops,
-#endif
-#ifdef STARPU_USE_OPENCL
-	[STARPU_OPENCL_RAM] = &_starpu_driver_opencl_node_ops,
-#endif
-#ifdef STARPU_USE_MAX_FPGA
-	[STARPU_MAX_FPGA_RAM] = &_starpu_driver_max_fpga_node_ops,
-#endif
-	[STARPU_DISK_RAM] = &_starpu_driver_disk_node_ops,
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	[STARPU_MPI_MS_RAM] = &_starpu_driver_mpi_ms_node_ops,
-#endif
-};
-
 void _starpu_wake_all_blocked_workers_on_node(unsigned nodeid)
 {
 	/* wake up all workers on that memory node */
@@ -181,9 +162,9 @@ int _starpu_copy_interface_any_to_any(starpu_data_handle_t handle, void *src_int
 	else
 	{
 		if (dst_kind == STARPU_CPU_RAM)
-			req->async_channel.node_ops = _starpu_copy_node_ops[src_kind];
+			req->async_channel.node_ops = starpu_memory_driver_info[src_kind].ops;
 		else
-			req->async_channel.node_ops = _starpu_copy_node_ops[dst_kind];
+			req->async_channel.node_ops = starpu_memory_driver_info[dst_kind].ops;
 		STARPU_ASSERT(copy_methods->any_to_any);
 		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 	}
@@ -233,7 +214,7 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	}
 #endif
 
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
+	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 	if (node_ops && node_ops->copy_interface_to[dst_kind])
 	{
 		return node_ops->copy_interface_to[dst_kind](handle, src_interface, src_node, dst_interface, dst_node, req);
@@ -352,7 +333,7 @@ int starpu_interface_copy(uintptr_t src, size_t src_offset, unsigned src_node, u
 {
 	struct _starpu_async_channel *async_channel = async_data;
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
+	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
 	if (node_ops && node_ops->copy_data_to[dst_kind])
 	{
@@ -378,7 +359,7 @@ int starpu_interface_copy2d(uintptr_t src, size_t src_offset, unsigned src_node,
 	unsigned i;
 	struct _starpu_async_channel *async_channel = async_data;
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
+	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
 	STARPU_ASSERT_MSG(ld_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld_src);
 	STARPU_ASSERT_MSG(ld_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld_dst);
@@ -419,7 +400,7 @@ int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
 	unsigned i;
 	struct _starpu_async_channel *async_channel = async_data;
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
+	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
 
 	STARPU_ASSERT_MSG(ld1_src >= blocksize, "block size %lu is bigger than ld %lu in source", (unsigned long) blocksize, (unsigned long) ld1_src);
 	STARPU_ASSERT_MSG(ld1_dst >= blocksize, "block size %lu is bigger than ld %lu in destination", (unsigned long) blocksize, (unsigned long) ld1_dst);
@@ -599,7 +580,7 @@ void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_wait_transfer_event(&async_channel->event);
 #else /* !SIMGRID */
-	struct _starpu_node_ops *node_ops = async_channel->node_ops;
+	const struct _starpu_node_ops *node_ops = async_channel->node_ops;
 	if (node_ops && node_ops->wait_request_completion != NULL)
 	{
 		node_ops->wait_request_completion(async_channel);
@@ -616,7 +597,7 @@ unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *as
 #ifdef STARPU_SIMGRID
 	return _starpu_simgrid_test_transfer_event(&async_channel->event);
 #else /* !SIMGRID */
-	struct _starpu_node_ops *node_ops = async_channel->node_ops;
+	const struct _starpu_node_ops *node_ops = async_channel->node_ops;
 	if (node_ops && node_ops->test_request_completion != NULL)
 	{
 		return node_ops->test_request_completion(async_channel);

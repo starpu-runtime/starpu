@@ -30,6 +30,9 @@ static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "FPGA",
 	.worker_archtype = STARPU_MAX_FPGA_WORKER,
+#ifdef STARPU_USE_MAX_FPGA
+	.ops = &_starpu_driver_max_fpga_node_ops,
+#endif
 };
 
 void _starpu_max_fpga_preinit(void)
