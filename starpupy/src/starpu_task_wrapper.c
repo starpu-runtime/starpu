@@ -128,6 +128,7 @@ void prologue_cb_func(void *cl_arg)
 			/*replace the Future argument to its result*/
 			PyTuple_SetItem(argList, i, fut_result);
 
+			/* XXX: missing decref for obj ? */
 			Py_DECREF(done);
 		}
 	}
@@ -179,6 +180,7 @@ void prologue_cb_func(void *cl_arg)
 		/*finish repacking data and store the struct in cl_arg*/
 		starpu_codelet_pack_arg_fini(&data, &task->cl_arg, &task->cl_arg_size);
 	}
+	free(task->name);
 
 	/*restore previous GIL state*/
 	PyGILState_Release(state);
