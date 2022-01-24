@@ -96,16 +96,9 @@ PyObject* starpupy_buffer_get_arrarr(struct starpupy_buffer_interface *pybuffer_
 	/*if the element is not unicode character*/
 	if (arr_typecode!='u')
 	{
-		/*get the array type string*/
-		char type_c[narray+1];
-		int i;
-		for (i=0; i<narray; i++)
-		{
-			type_c[i]=arr_typecode;
-		}
-		type_c[i] = '\0';
-
-		char* type_str= strdup(type_c);
+		char* type_str= malloc(narray);
+		memset(type_str, arr_typecode, narray);
+		type_str[narray] = 0;
 
 		/*get the array element list using struct module*/
 		PyObject *struct_module = PyImport_ImportModule("struct");
@@ -159,15 +152,9 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 	/*if the element is not unicode character of array.array*/
 	else if(mem_format!='w')
 	{
-		char type_c[narray];
-		int i;
-		for (i = 0; i<narray; i++)
-		{
-			type_c[i]=mem_format;
-		}
-		type_c[i] = '\0';
-
-		char* type_str= strdup(type_c);
+		char* type_str= malloc(narray+1);
+		memset(type_str, mem_format, narray);
+		type_str[narray] = 0;
 
 		/*get the array element list using struct module*/
 		PyObject *struct_module = PyImport_ImportModule("struct");
@@ -177,6 +164,7 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 		/*get the index of each element in new multi dimension array*/
 		int ind[narray][ndim];
 		int d;
+		int i;
 		for (i = 0; i < narray; i++)
 		{
 			int n = narray;
