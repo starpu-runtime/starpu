@@ -42,6 +42,8 @@ static struct _starpu_job_multilist_all_submitted all_jobs_list;
 static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
 
+void _starpu_job_crash();
+
 void _starpu_job_init(void)
 {
 	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
@@ -49,20 +51,27 @@ void _starpu_job_init(void)
 #ifdef STARPU_DEBUG
 	_starpu_job_multilist_head_init_all_submitted(&all_jobs_list);
 #endif
+	_starpu_crash_add_hook(&_starpu_job_crash);
 }
 
-void _starpu_job_fini(void)
+void _starpu_job_memory_use(int check)
 {
 	if (max_memory_use)
 	{
 		_STARPU_DISP("Memory used for %lu tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
-		STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
+		if (check)
+			STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
 	}
 }
 
 void _starpu_job_crash()
 {
-	_starpu_job_fini();
+	_starpu_job_memory_use(0);
+}
+
+void _starpu_job_fini(void)
+{
+	_starpu_job_memory_use(1);
 }
 
 void _starpu_exclude_task_from_dag(struct starpu_task *task)

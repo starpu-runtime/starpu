@@ -280,9 +280,6 @@ struct starpu_task *_starpu_pop_local_task(struct _starpu_worker *worker);
  * specified worker. */
 int _starpu_push_local_task(struct _starpu_worker *worker, struct starpu_task *task);
 
-/** Actions to be done when the application has crashed */
-void _starpu_job_crash(void);
-
 #define _STARPU_JOB_GET_ORDERED_BUFFER_INDEX(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].index : job->ordered_buffers[i].index)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_HANDLE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].handle : job->ordered_buffers[i].handle)
 #define _STARPU_JOB_GET_ORDERED_BUFFER_MODE(job, i) ((job->dyn_ordered_buffers) ? job->dyn_ordered_buffers[i].mode : job->ordered_buffers[i].mode)

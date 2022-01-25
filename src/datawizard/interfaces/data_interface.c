@@ -50,6 +50,8 @@ starpu_arbiter_t _starpu_global_arbiter;
 
 static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent, unsigned nowait);
 
+void _starpu_data_interface_fini(void);
+
 void _starpu_data_interface_init(void)
 {
 	_starpu_spin_init(&registered_handles_lock);
@@ -57,17 +59,14 @@ void _starpu_data_interface_init(void)
 	/* Just for testing purpose */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		_starpu_global_arbiter = starpu_arbiter_create();
+
+	_starpu_crash_add_hook(&_starpu_data_interface_fini);
 }
 
 void _starpu_data_interface_fini(void)
 {
 	if (starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0))
 		_STARPU_DISP("Memory used for %d data handles: %lu MiB\n", maxnregistered, (unsigned long) (maxnregistered * sizeof(struct _starpu_data_state)) >> 20);
-}
-
-void _starpu_data_interface_crash(void)
-{
-	_starpu_data_interface_fini();
 }
 
 void _starpu_data_interface_shutdown()

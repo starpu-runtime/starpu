@@ -1570,6 +1570,8 @@ static int sleep_some(float timeout)
 	/* and one final sleep (of less than 1 s) with the rest (if needed) */
 	if (t > 0.)
 		starpu_sleep(t);
+
+	_starpu_crash_call_hooks();
 	return 1;
 }
 

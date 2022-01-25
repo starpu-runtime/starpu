@@ -1376,6 +1376,26 @@ static void _starpu_build_tree(void)
 #endif
 }
 
+typedef void (*hook_func_t)(void);
+hook_func_t _hook_funcs[10];
+int _hook_func_nb=0;
+
+void _starpu_crash_add_hook(void (*hook_func)(void))
+{
+	STARPU_ASSERT_MSG(_hook_func_nb < 10, "The number of crash funcs has exceeded the limit\n");
+	_hook_funcs[_hook_func_nb] = hook_func;
+	_hook_func_nb++;
+}
+
+void _starpu_crash_call_hooks()
+{
+	int i;
+
+	_STARPU_DISP("Time: %f\n", starpu_timing_now());
+	for(i=0 ; i<_hook_func_nb; i++)
+		_hook_funcs[i]();
+}
+
 static starpu_pthread_mutex_t sig_handlers_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static void (*act_sigint)(int);
 static void (*act_sigsegv)(int);
@@ -1389,8 +1409,6 @@ void _starpu_handler(int sig)
 #ifdef STARPU_VERBOSE
 	_STARPU_MSG("Catching signal '%d'\n", sig);
 #endif
-	_starpu_job_crash();
-	_starpu_data_interface_crash();
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_dump_file();
 #endif
@@ -1428,6 +1446,7 @@ void _starpu_handler(int sig)
 	_STARPU_MSG("Rearming signal '%d'\n", sig);
 #endif
 	raise(sig);
+	_starpu_crash_call_hooks();
 }
 
 void _starpu_catch_signals(void)
