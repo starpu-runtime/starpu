@@ -1412,6 +1412,8 @@ void _starpu_handler(int sig)
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_dump_file();
 #endif
+	_starpu_crash_call_hooks();
+
 	if (sig == SIGINT)
 	{
 		void (*sig_act)(int) = act_sigint;
@@ -1446,7 +1448,6 @@ void _starpu_handler(int sig)
 	_STARPU_MSG("Rearming signal '%d'\n", sig);
 #endif
 	raise(sig);
-	_starpu_crash_call_hooks();
 }
 
 void _starpu_catch_signals(void)
