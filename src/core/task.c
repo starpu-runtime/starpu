@@ -258,7 +258,7 @@ void _starpu_task_init(void)
 	STARPU_PTHREAD_KEY_CREATE(&current_task_key, NULL);
 	limit_min_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MIN_SUBMITTED_TASKS");
 	limit_max_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
-	watchdog_crash = starpu_get_env_number("STARPU_WATCHDOG_CRASH");
+	watchdog_crash = starpu_get_env_number_default("STARPU_WATCHDOG_CRASH", 0);
 	watchdog_delay = starpu_get_env_number_default("STARPU_WATCHDOG_DELAY", 0);
 }
 
