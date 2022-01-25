@@ -1377,8 +1377,8 @@ static void _starpu_build_tree(void)
 }
 
 typedef void (*hook_func_t)(void);
-hook_func_t _hook_funcs[10];
-int _hook_func_nb=0;
+static hook_func_t _hook_funcs[10];
+static int _hook_func_nb=0;
 
 void _starpu_crash_add_hook(void (*hook_func)(void))
 {
