@@ -30,7 +30,7 @@ static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "OpenCL",
 	.worker_archtype = STARPU_OPENCL_WORKER,
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	.ops = &_starpu_driver_opencl_node_ops,
 #endif
 };
