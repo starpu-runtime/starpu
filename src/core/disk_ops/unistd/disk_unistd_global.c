@@ -948,7 +948,7 @@ int starpu_unistd_global_test_request(void *async_channel)
 			{
 				/* request is finished */
 				size = aio_return(aiocb);
-				STARPU_ASSERT(size == (starpu_ssize_t) aiocb->aio_nbytes);
+				STARPU_ASSERT_MSG(size == (starpu_ssize_t) aiocb->aio_nbytes, "AIO op got %ld bytes instead of %ld bytes\n", (long) size, (long) aiocb->aio_nbytes);
 				return 1;
 			}
 			if (ret == EINTR || ret == EINPROGRESS || ret == EAGAIN)
