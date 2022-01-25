@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -1389,6 +1389,8 @@ void _starpu_handler(int sig)
 #ifdef STARPU_VERBOSE
 	_STARPU_MSG("Catching signal '%d'\n", sig);
 #endif
+	_starpu_job_crash();
+	_starpu_data_interface_crash();
 #ifdef STARPU_USE_FXT
 	_starpu_fxt_dump_file();
 #endif

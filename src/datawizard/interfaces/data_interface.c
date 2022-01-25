@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +59,17 @@ void _starpu_data_interface_init(void)
 		_starpu_global_arbiter = starpu_arbiter_create();
 }
 
+void _starpu_data_interface_fini(void)
+{
+	if (starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0))
+		_STARPU_DISP("Memory used for %d data handles: %lu MiB\n", maxnregistered, (unsigned long) (maxnregistered * sizeof(struct _starpu_data_state)) >> 20);
+}
+
+void _starpu_data_interface_crash(void)
+{
+	_starpu_data_interface_fini();
+}
+
 void _starpu_data_interface_shutdown()
 {
 	struct handle_entry *entry=NULL, *tmp=NULL;
@@ -80,8 +91,7 @@ void _starpu_data_interface_shutdown()
 		free(entry);
 	}
 
-	if (starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0))
-		_STARPU_DISP("Memory used for %d data handles: %lu MiB\n", maxnregistered, (unsigned long) (maxnregistered * sizeof(struct _starpu_data_state)) >> 20);
+	_starpu_data_interface_fini();
 
 	STARPU_ASSERT(nregistered == 0);
 	registered_handles = NULL;
