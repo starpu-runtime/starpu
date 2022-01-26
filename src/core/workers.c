@@ -1695,6 +1695,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_config.conf.not_launched_drivers = copy;
 	}
 
+	_hook_func_nb = 0;
+
 	_starpu_sched_init();
 	_starpu_job_init();
 	_starpu_graph_init();
