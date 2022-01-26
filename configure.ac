@@ -605,6 +605,9 @@ if test x$enable_mpi_check = xyes ; then
 	AC_MSG_ERROR([MPI checks requested, but MPI is disabled])
     fi
 fi
+if test x$enable_mpi_check = xmaybe ; then
+   running_mpi_check=yes
+fi
 if test x$enable_mpi_check = xno ; then
     running_mpi_check=no
 fi
