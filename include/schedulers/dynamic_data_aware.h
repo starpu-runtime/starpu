@@ -37,7 +37,7 @@ extern int natural_order;
 
 /** Mutex **/
 starpu_pthread_mutex_t global_mutex; /* Protège main task list et tout le reste pour le moment. */
-//~ starpu_pthread_mutex_t *local_mutex; /* Protège pulled_task et planned_task. 1 par GPU. TODO : a suppr si je ne l'utilise pas. */
+starpu_pthread_mutex_t *local_mutex; /* Protège pulled_task et planned_task. 1 par GPU. TODO : a suppr si je ne l'utilise pas. */
 
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
