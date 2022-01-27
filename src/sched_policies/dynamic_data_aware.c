@@ -2540,7 +2540,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 	
     int i = 0;
     int j = 0;
-    int next_use = 0;
+    int index_next_use = 0;
     int max_next_use = -1;
     struct pulled_task *p = pulled_task_new();
     starpu_data_handle_t returned_handle = NULL;
@@ -2550,19 +2550,19 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     {
 		if (starpu_data_can_evict(data_tab[i], node, is_prefetch))
 		{
-			next_use = 0;
+			index_next_use = 0;
 			for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
 			{
 				//~ printf("On %p\n", p->pointer_to_pulled_task); fflush(stdout);
 				for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
 				{
-					next_use++;
+					index_next_use++;
 					if (STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j) == data_tab[i])
 					{
 						//printf("Next use of %p is %d.\n", STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j), next_use);
-						if (max_next_use < next_use)
+						if (max_next_use < index_next_use)
 						{
-							max_next_use = next_use;
+							max_next_use = index_next_use;
 							returned_handle = data_tab[i];
 						}
 						goto break_nested_for_loop;
