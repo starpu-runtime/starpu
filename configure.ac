@@ -92,7 +92,7 @@ PKG_PROG_PKG_CONFIG
 if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
-default_enable_mpi_check=maybe
+default_enable_mpi_check=no
 default_enable_mpi=maybe
 
 ###############################################################################
