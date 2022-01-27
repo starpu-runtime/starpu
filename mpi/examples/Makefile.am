@@ -62,13 +62,7 @@ starpu_mpi_EXAMPLES =
 
 BUILT_SOURCES =
 
-CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log *.mod starpu-ooc-files/*
-
-clean-local:
-	rm -rf starpu-ooc-files
-
-distclean-local:
-	rm -rf starpu-ooc-files
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log *.mod
 
 EXTRA_DIST = 				\
 	mpi_lu/mpi_lu-float.h		\
