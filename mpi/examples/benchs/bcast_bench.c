@@ -123,7 +123,7 @@ static int time_index(int size, int bench, int node)
 static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int nb_nodes_id, int size_id, int bench_id)
 {
 	double t_end = 0.0;
-	int i;
+	int i, ret;
 	starpu_data_handle_t time_handle;
 
 	if (rank == 0)
@@ -138,18 +138,21 @@ static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int 
 
 		for (i = 1; i <= nb_dest_nodes; i++)
 		{
-			starpu_mpi_isend(data_handle, &reqs[i-1], i, data_tag, MPI_COMM_WORLD);
+			ret = starpu_mpi_isend(data_handle, &reqs[i-1], i, data_tag, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 		}
 
 		for (i = 0; i < nb_dest_nodes; i++)
 		{
-			starpu_mpi_wait(&reqs[i], MPI_STATUS_IGNORE);
+			ret = starpu_mpi_wait(&reqs[i], MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 		}
 
 		for (i = 1; i <= nb_dest_nodes; i++)
 		{
 			starpu_variable_data_register(&time_handle, STARPU_MAIN_RAM, (uintptr_t) &t_end, sizeof(double));
-			starpu_mpi_recv(time_handle, i, time_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			ret = starpu_mpi_recv(time_handle, i, time_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 			starpu_data_unregister(time_handle);
 
 			if (bench_id >= 0)
@@ -162,11 +165,13 @@ static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int 
 	}
 	else // not server
 	{
-		starpu_mpi_recv(data_handle, 0, data_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_recv(data_handle, 0, data_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		t_end = mpi_sync_clocks_get_time_usec(clocks);
 
 		starpu_variable_data_register(&time_handle, STARPU_MAIN_RAM, (uintptr_t) &t_end, sizeof(double));
-		starpu_mpi_send(time_handle, 0, time_tag, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(time_handle, 0, time_tag, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		starpu_data_unregister(time_handle);
 	}
 }
