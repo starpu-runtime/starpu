@@ -2277,7 +2277,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
 	#ifdef PRINT
 	gettimeofday(&time_start_selector, NULL);
@@ -2305,7 +2305,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		return temp_handle;
     }
         
@@ -2367,7 +2367,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		//~ print_pulled_task_one_gpu(g, 1);
 	//~ }
 	
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
     struct handle_user_data *hud = malloc(sizeof(hud));
     for (i = 0; i < nb_data_on_node; i++)
