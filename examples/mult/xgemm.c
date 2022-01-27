@@ -56,6 +56,7 @@ static unsigned xdim = 960*4;
 static unsigned ydim = 960*4;
 static unsigned zdim = 960*4;
 #endif
+static unsigned size_set = 0;
 static unsigned check = 0;
 static unsigned bound = 0;
 
@@ -295,30 +296,35 @@ static void parse_args(int argc, char **argv)
 		{
 			char *argptr;
 			xdim = strtol(argv[++i], &argptr, 10);
+			size_set = 1;
 		}
 
 		else if (strcmp(argv[i], "-xy") == 0)
 		{
 			char *argptr;
 			xdim = ydim = strtol(argv[++i], &argptr, 10);
+			size_set = 1;
 		}
 
 		else if (strcmp(argv[i], "-y") == 0)
 		{
 			char *argptr;
 			ydim = strtol(argv[++i], &argptr, 10);
+			size_set = 1;
 		}
 
 		else if (strcmp(argv[i], "-z") == 0)
 		{
 			char *argptr;
 			zdim = strtol(argv[++i], &argptr, 10);
+			size_set = 1;
 		}
 
 		else if (strcmp(argv[i], "-size") == 0)
 		{
 			char *argptr;
 			xdim = ydim = zdim = strtol(argv[++i], &argptr, 10);
+			size_set = 1;
 		}
 
 		else if (strcmp(argv[i], "-iter") == 0)
@@ -362,6 +368,15 @@ int main(int argc, char **argv)
 	int ret;
 
 	parse_args(argc, argv);
+
+#ifndef STARPU_SIMGRID
+	if (check && !size_set)
+	{
+		/* Check is sequential, reduce its default duration */
+		xdim /= 2;
+		ydim /= 2;
+	}
+#endif
 
 #ifdef STARPU_QUICK_CHECK
 	niter /= 10;
