@@ -2601,6 +2601,8 @@ AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
 			[build the OpenMP runtime support])],
 			enable_openmp=$enableval, enable_openmp=yes)
 
+AC_CHECK_HEADER([ucontext.h],[have_valid_ucontext=yes],[have_valid_ucontext=no])
+
 openmp_msg=""
 if test x$starpu_windows = xyes ; then
    enable_openmp=no
@@ -2613,6 +2615,10 @@ fi
 if test x$enable_simgrid = xyes ; then
    enable_openmp=no
    openmp_msg="incompatibility with Simgrid support"
+fi
+if test x$have_valid_ucontext = xno ; then
+  enable_openmp=no
+  openmp_msg="ucontext.h unavailable"
 fi
 
 if test x$enable_openmp = xyes; then
