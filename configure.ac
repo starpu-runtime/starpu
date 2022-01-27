@@ -100,7 +100,7 @@ if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
 
-default_enable_mpi_check=maybe
+default_enable_mpi_check=no
 
 if test x$enable_simgrid = xyes ; then
 	default_enable_mpi=no
