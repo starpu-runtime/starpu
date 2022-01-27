@@ -2736,7 +2736,6 @@ void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_l
 
 static int dynamic_data_aware_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	//~ printf("Début de dynamic_data_aware_can_push.\n"); fflush(stdout);
     //~ struct dynamic_data_aware_sched_data *data = component->data;
     int didwork = 0;
@@ -2748,18 +2747,17 @@ static int dynamic_data_aware_can_push(struct starpu_sched_component *component,
 	    /* If a task is refused I push it in the refused fifo list of the appropriate GPU's package.
 	     * This list is looked at first when a GPU is asking for a task so we don't break the planned order. */
 	     
-	    //~ printf("%p was refused.\n", task); fflush(stdout);
+	    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	    my_planned_task_control->pointer = my_planned_task_control->first;
 	    for (int i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++) 
 	    {
 			my_planned_task_control->pointer = my_planned_task_control->pointer->next;
 	    }
 	    starpu_task_list_push_back(&my_planned_task_control->pointer->refused_fifo_list, task);
-	    
+	    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     }
     
     /* There is room now */
-    	    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     return didwork || starpu_sched_component_can_push(component, to);
 }
 
