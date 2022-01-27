@@ -444,7 +444,7 @@ void randomize_data_not_used_yet()
     
     /* I need this for the %random. */
     number_of_data = gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data);
-    
+    printf("%d data in randomize_data.\n", number_of_data); fflush(stdout);
     struct gpu_data_not_used *data_tab[number_of_data];
     
     for (i = 0; i < Ngpu; i++)
@@ -770,6 +770,8 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		
 		NT_dynamic_outer = starpu_task_list_size(&data->sched_list);
 		NT = NT_dynamic_outer;
+		
+		printf("NT in pull_task = %d.\n", NT); fflush(stdout);
 		
 		#ifdef PRINT
 		gettimeofday(&time_start_randomize, NULL);
@@ -3038,6 +3040,8 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     /* Reset pour prochaine itération */
     if (NT_dynamic_outer - 1 == number_task_out_DARTS)
 	{
+		printf("%d tasks out in get_task_done.\n", number_task_out_DARTS); fflush(stdout);
+		
 		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		reset_all_struct();
 		need_to_reinit = true;

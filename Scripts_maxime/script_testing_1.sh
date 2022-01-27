@@ -26,7 +26,7 @@ N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
 #~ N=65
 N=40 # 12893.0
 #~ N=50 : 5 choix random
-N=50
+N=100
 
 NGPU=1
 NGPU=2
@@ -84,6 +84,7 @@ STEALING=0
 
 NITER=1
 NITER=2
+NITER=8
 #~ NITER=11
 
 TAILLE_TUILE=960
@@ -132,5 +133,8 @@ end=`date +%s`
 runtime=$((end-start))
 echo "Fin du script, l'execution a durée" $((runtime/60))" min "$((runtime%60))" sec."
 
-# Pour tester sur Grid5k		    		    
-# ORDO=HFP ; NITER=11 ; N=40 ; NGPU=1 ; CM=500 ; CP=5 ; TH=10 ; i=1 ; STARPU_SCHED=${ORDO} STARPU_SCHED_READY=1 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))
+# Pour tester sur Grid5k	
+# ulimit -S -s 5000000
+# source ../.bashrc
+# ORDO=dynamic-data-aware ; NITER=8 ; N=40 ; NGPU=4 ; CM=500 ; CP=5 ; TH=10 ; i=1 ; EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SCHED=${ORDO} STARPU_SCHED_READY=0 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))
+# ORDO=dynamic-data-aware ; NITER=8 ; N=100 ; NGPU=2 ; CM=500 ; CP=5 ; TH=10 ; i=1 ; EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=1 STARPU_SCHED=${ORDO} STARPU_SCHED_READY=0 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 libtool --mode=execute gdb --args ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))
