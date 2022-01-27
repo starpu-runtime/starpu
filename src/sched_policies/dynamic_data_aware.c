@@ -225,7 +225,8 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			
 		//~ for (i = 0; i < Ngpu; i++) { STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[i]); }
 	}
-     
+    
+    printf("New task get true, there are %d tasks done.\n", number_task_out_DARTS); fflush(stdout);
     new_tasks_initialized = true; 
     struct dynamic_data_aware_sched_data *data = component->data;
     
