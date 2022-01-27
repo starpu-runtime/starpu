@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -62,7 +62,13 @@ starpu_mpi_EXAMPLES =
 
 BUILT_SOURCES =
 
-CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log *.mod
+CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log *.mod starpu-ooc-files/*
+
+clean-local:
+	rm -rf starpu-ooc-files
+
+distclean-local:
+	rm -rf starpu-ooc-files
 
 EXTRA_DIST = 				\
 	mpi_lu/mpi_lu-float.h		\
