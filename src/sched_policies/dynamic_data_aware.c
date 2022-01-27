@@ -39,6 +39,7 @@ bool new_tasks_initialized;
 struct gpu_planned_task_control *my_planned_task_control;
 struct gpu_pulled_task_control *my_pulled_task_control;
 int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
+int number_task_out_DARTS_2; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 int NT_dynamic_outer;
 int iteration_DARTS;
 
@@ -193,18 +194,18 @@ bool need_to_reinit = true;
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
 {
 	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
-	
+	if (number_task_out_DARTS_2 == 0)
+	{
+		printf("Pushing %p.\n", task); fflush(stdout);
     /* If this boolean is true, pull_task will know that new tasks have arrived and
      * thus it will be able to randomize both the task list and the data list not used yet in the GPUs. 
      */
-     	
-     if (need_to_reinit == true && iteration_DARTS != 1)
+     //~ if (need_to_reinit == true && iteration_DARTS != 1)
+     if (iteration_DARTS != 1 && need_to_reinit == true)
 	 {
 		int i = 0;
-		//~ for (i = 0; i < Ngpu; i++) { STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[i]); }
+		printf("REINIT STRUCT in push_task.\n"); fflush(stdout);
 
-		//~ printf("REINIT STRUCT in push task.\n"); fflush(stdout);
-			
 		free(my_planned_task_control);
 			
 		gpu_planned_task_initialisation();
@@ -214,19 +215,10 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		}
 		my_planned_task_control->first = my_planned_task_control->pointer;
 
-		//~ gpu_pulled_task_initialisation();
-		//~ for (i = 0; i < Ngpu - 1; i++)
-		//~ {
-			//~ gpu_pulled_task_insertion();
-		//~ }
-		//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
-
-		need_to_reinit = false;
-			
-		//~ for (i = 0; i < Ngpu; i++) { STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[i]); }
+		need_to_reinit = false;	
 	}
     
-    printf("New task get true, there are %d tasks done.\n", number_task_out_DARTS); fflush(stdout);
+    //~ printf("New task get true, there are %d tasks done.\n", number_task_out_DARTS); fflush(stdout);
     new_tasks_initialized = true; 
     struct dynamic_data_aware_sched_data *data = component->data;
     
@@ -247,7 +239,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
     starpu_task_list_push_front(&data->sched_list, task);
     starpu_push_task_end(task);
     component->can_pull(component);
-    
+	}
     STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     return 0;
 }
@@ -728,13 +720,13 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 void reset_all_struct()
 {
 	NT_dynamic_outer = -1;
-	/* For visualisation in python. */
+	number_task_out_DARTS = -1;
+	
+	/* For visualisation in python with multi iteration. */
 	//~ index_current_popped_task = malloc(sizeof(int)*Ngpu);
 	//~ index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	//~ index_current_popped_task_all_gpu = 0;
 	//~ index_current_popped_task_all_gpu_prefetch = 0;
-	
-	number_task_out_DARTS = -1;
 }
 
 /* Pull tasks. When it receives new task it will randomize the task list and the GPU data list.
@@ -757,9 +749,8 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
      * all available at once, this works.
      */
     if (new_tasks_initialized == true)
-    {	    
-		//~ int i = 0;
-		//~ for (i = 0; i < Ngpu; i++) { STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[i]); }
+    {
+		printf("New tasks in pull_task. \n"); fflush(stdout);
 
 		new_tasks_initialized = false;
 		
@@ -2757,7 +2748,7 @@ static int dynamic_data_aware_can_push(struct starpu_sched_component *component,
 	     * This list is looked at first when a GPU is asking for a task so we don't break the planned order. */
 	     
 	    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
-	    
+	    printf("%p was refused.\n", task); fflush(stdout);
 	    my_planned_task_control->pointer = my_planned_task_control->first;
 	    for (int i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++) 
 	    {
@@ -2857,6 +2848,7 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 
 struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(struct starpu_sched_tree *tree, void *params STARPU_ATTRIBUTE_UNUSED)
 {
+	number_task_out_DARTS_2 = 0;
 	/* Var globale pour n'appeller qu'une seule fois get_env_number */
 	eviction_strategy_dynamic_data_aware = starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0);
 	threshold = starpu_get_env_number_default("THRESHOLD", 0);
@@ -2975,6 +2967,8 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
+	number_task_out_DARTS_2++;
+	printf("get_task_done n°%d: %p.\n", number_task_out_DARTS_2, task); fflush(stdout);
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[starpu_worker_get_memory_node(starpu_worker_get_id()) - 1]);
 	
 	/* Je me place sur la liste correspondant au bon gpu. */
@@ -3029,22 +3023,16 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			//~ printf("Popped task in get task done is %p.\n", temp->pointer_to_pulled_task); fflush(stdout);	
 			pulled_task_list_erase(my_pulled_task_control->pointer->ptl, temp);
 		}
-		//~ else
-		//~ {
-			//~ printf("%p n'a pas été trouvé.\n", task); fflush(stdout);
-		//~ }
     }
     STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     
-    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[starpu_worker_get_memory_node(starpu_worker_get_id()) - 1]);
-
     /* Reset pour prochaine itération */
-    if (NT_dynamic_outer - 1 == number_task_out_DARTS)
+    if (NT_dynamic_outer == number_task_out_DARTS_2)
 	{
-		printf("%d tasks out in get_task_done.\n", number_task_out_DARTS); fflush(stdout);
-		
+		printf("%d tasks out in get_task_done.\n", number_task_out_DARTS_2); fflush(stdout);
+		number_task_out_DARTS_2 = 0;
 		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
-		reset_all_struct();
+		//~ reset_all_struct();
 		need_to_reinit = true;
 		iteration_DARTS++;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
