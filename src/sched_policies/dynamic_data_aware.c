@@ -196,7 +196,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	if (number_task_out_DARTS_2 == 0)
 	{
-		printf("Pushing %p.\n", task); fflush(stdout);
+		//~ printf("Pushing %p.\n", task); fflush(stdout);
     /* If this boolean is true, pull_task will know that new tasks have arrived and
      * thus it will be able to randomize both the task list and the data list not used yet in the GPUs. 
      */
@@ -2748,7 +2748,7 @@ static int dynamic_data_aware_can_push(struct starpu_sched_component *component,
 	     * This list is looked at first when a GPU is asking for a task so we don't break the planned order. */
 	     
 	    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
-	    printf("%p was refused.\n", task); fflush(stdout);
+	    //~ printf("%p was refused.\n", task); fflush(stdout);
 	    my_planned_task_control->pointer = my_planned_task_control->first;
 	    for (int i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++) 
 	    {
@@ -2968,7 +2968,7 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
 	number_task_out_DARTS_2++;
-	printf("get_task_done n°%d: %p.\n", number_task_out_DARTS_2, task); fflush(stdout);
+	//~ printf("get_task_done n°%d: %p.\n", number_task_out_DARTS_2, task); fflush(stdout);
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[starpu_worker_get_memory_node(starpu_worker_get_id()) - 1]);
 	
 	/* Je me place sur la liste correspondant au bon gpu. */
