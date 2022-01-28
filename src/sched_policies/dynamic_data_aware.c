@@ -2933,7 +2933,7 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
-	number_task_out_DARTS_2++;
+	//~ number_task_out_DARTS_2++;
 	//~ printf("get_task_done n°%d: %p.\n", number_task_out_DARTS_2, task); fflush(stdout);
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[starpu_worker_get_memory_node(starpu_worker_get_id()) - 1]);
 	
@@ -2991,8 +2991,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			pulled_task_list_erase(temp_pointer->ptl, temp);
 		}
     }
-    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     
+    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+    number_task_out_DARTS_2++;
     /* Reset pour prochaine itération */
     if (NT_dynamic_outer == number_task_out_DARTS_2)
 	{
@@ -3045,7 +3046,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		#endif
 	}
 	
-	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
