@@ -2277,7 +2277,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
 	#ifdef PRINT
 	gettimeofday(&time_start_selector, NULL);
@@ -2306,7 +2306,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		return temp_handle;
     }
         
@@ -2333,7 +2333,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     }
     
 	
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
 	/* Je cherche le nombre de tâche dans le pulled_task que peut faire chaque données */
     struct handle_user_data *hud = malloc(sizeof(hud));
@@ -2715,7 +2715,8 @@ static int dynamic_data_aware_can_push(struct starpu_sched_component *component,
 	     
 	    STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	    my_planned_task_control->pointer = my_planned_task_control->first;
-	    for (int i = 1; i < starpu_worker_get_memory_node(starpu_worker_get_id()); i++) 
+	    int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+	    for (int i = 1; i < current_gpu; i++) 
 	    {
 			my_planned_task_control->pointer = my_planned_task_control->pointer->next;
 	    }
