@@ -632,7 +632,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			return task;
 		}
 		
-		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		/* If the package is not empty I can return the head of the task list. */
 		if (!starpu_task_list_empty(&my_planned_task_control->pointer->planned_task))
 		{
@@ -657,7 +657,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			
 			//~ printf("Task %d: %p is getting out of pull_task from planned task not empty on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			
-			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return task;
 		}
 		
@@ -697,7 +697,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			else
 			{
-				STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 				return NULL;
 			}
 			
@@ -707,13 +707,13 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			printf("Task %d: %p is getting out of pull_task after scheduling on GPU %d\n", number_task_out_DARTS, task, current_gpu); fflush(stdout);
 			#endif
 			
-			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			return task;
 		}
 		else
 		{
     //~ }
-    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     return NULL; }
 }
 
@@ -819,7 +819,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     
     /* Nouveau */
 	//~ int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id()); /* Attention le premier GPU vaut 1 et non 0. */
-    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
         
     /* Nouveau */
     //~ STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[current_gpu - 1]);
@@ -827,7 +827,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[current_gpu - 1]);
     
     /* Ancienne location du mutex global. */
-    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+    STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     return task;
 }
 
@@ -2277,7 +2277,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
 	#ifdef PRINT
 	gettimeofday(&time_start_selector, NULL);
@@ -2305,7 +2305,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		return temp_handle;
     }
         
@@ -2367,7 +2367,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		//~ print_pulled_task_one_gpu(g, 1);
 	//~ }
 	
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
     struct handle_user_data *hud = malloc(sizeof(hud));
     for (i = 0; i < nb_data_on_node; i++)
@@ -2528,7 +2528,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	#endif
 	
 	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-	
     return returned_handle;
 }
 
