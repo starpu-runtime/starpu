@@ -2277,7 +2277,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {    
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
 	#ifdef PRINT
 	gettimeofday(&time_start_selector, NULL);
@@ -2287,25 +2287,26 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
     
     /* Se placer sur le bon GPU pour planned_task */
-    my_planned_task_control->pointer = my_planned_task_control->first;
+    struct gpu_planned_task *temp_pointer = my_planned_task_control->first;
+    //~ temp_pointer = my_planned_task_control->first;
     for (i = 1; i < current_gpu; i++)
     {
-		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+		temp_pointer = temp_pointer->next;
     }
     
     /* Je check si une eviction n'a pas été refusé. */
-    if (my_planned_task_control->pointer->data_to_evict_next != NULL) 
+    if (temp_pointer->data_to_evict_next != NULL) 
     { 
-		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return data %p that was refused.\n", my_planned_task_control->pointer->data_to_evict_next); }
-		starpu_data_handle_t temp_handle = my_planned_task_control->pointer->data_to_evict_next;
-		my_planned_task_control->pointer->data_to_evict_next = NULL;
+		//~ if (starpu_get_env_number_default("PRINTF",0) == 1) { printf("Return data %p that was refused.\n", temp_pointer->data_to_evict_next); }
+		starpu_data_handle_t temp_handle = temp_pointer->data_to_evict_next;
+		temp_pointer->data_to_evict_next = NULL;
 		
 		#ifdef PRINT
 		gettimeofday(&time_end_selector, NULL);
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 		return temp_handle;
     }
         
@@ -2331,44 +2332,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		nb_task_in_pulled_task[i] = 0;
     }
     
-    /* Je cherche le nombre de tâche dans le pulled_task que peut faire chaque données */
-    /* OLD */
-    //~ for (i = 0; i < nb_data_on_node; i++)
-    //~ {
-		//~ if (starpu_data_can_evict(data_on_node[i], node, is_prefetch))
-		//~ {
-			//~ for (p = pulled_task_list_begin(my_pulled_task_control->pointer->ptl); p!= pulled_task_list_end(my_pulled_task_control->pointer->ptl); p = pulled_task_list_next(p))
-			//~ {
-				//~ for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
-				//~ {
-					//~ if (STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j) == data_on_node[i])
-					//~ {
-						//~ nb_task_in_pulled_task[i]++;
-						//~ break;
-					//~ }
-				//~ }
-			//~ }
-			//~ if (nb_task_in_pulled_task[i] < min_number_task_in_pulled_task)
-			//~ {
-				//~ min_number_task_in_pulled_task = nb_task_in_pulled_task[i];
-			//~ }
-		//~ }
-		//~ else
-		//~ {
-			//~ /* - 1 si j'ai pas le droit d'évincer cette donnée */
-			//~ nb_task_in_pulled_task[i] = -1;
-		//~ }
-    //~ }
-    
-    /* NEW avec la struct nb_task_in_pulled_task */
-    //~ if (starpu_get_env_number_default("PRINTF", 0) == 1) 
-    //~ { 
-		//~ struct gpu_pulled_task *g = my_pulled_task_control->first;
-		//~ print_pulled_task_one_gpu(g, 1);
-	//~ }
 	
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
+	/* Je cherche le nombre de tâche dans le pulled_task que peut faire chaque données */
     struct handle_user_data *hud = malloc(sizeof(hud));
     for (i = 0; i < nb_data_on_node; i++)
     {
@@ -2415,10 +2382,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     {
 		/* Au moins 1 donnée ne sert pas dans pulled_task */
 		/* OLD */
-		//~ returned_handle = min_weight_average_on_planned_task(data_on_node, nb_data_on_node, node, is_prefetch, my_planned_task_control->pointer, nb_task_in_pulled_task);
+		//~ returned_handle = min_weight_average_on_planned_task(data_on_node, nb_data_on_node, node, is_prefetch, temp_pointer, nb_task_in_pulled_task);
 		
 		/* NEW */
-		returned_handle = least_used_data_on_planned_task(data_on_node, nb_data_on_node, my_planned_task_control->pointer, nb_task_in_pulled_task, current_gpu);
+		returned_handle = least_used_data_on_planned_task(data_on_node, nb_data_on_node, temp_pointer, nb_task_in_pulled_task, current_gpu);
     }
     else
     {
@@ -2465,7 +2432,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     /* Suppression de la liste de planned task les tâches utilisant la donnée que l'on s'apprête à évincer. */
     if (min_number_task_in_pulled_task == 0)
     {
-		for (task = starpu_task_list_begin(&my_planned_task_control->pointer->planned_task); task != starpu_task_list_end(&my_planned_task_control->pointer->planned_task); task = starpu_task_list_next(task))
+		for (task = starpu_task_list_begin(&temp_pointer->planned_task); task != starpu_task_list_end(&temp_pointer->planned_task); task = starpu_task_list_next(task))
 		{
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
@@ -2473,7 +2440,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 				{
 					/* Suppression de la liste de tâches à faire */
 					struct pointer_in_task *pt = task->sched_data;
-					starpu_task_list_erase(&my_planned_task_control->pointer->planned_task, pt->pointer_to_cell);
+					starpu_task_list_erase(&temp_pointer->planned_task, pt->pointer_to_cell);
 						
 					pt->pointer_to_cell = task;
 					pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
@@ -2517,7 +2484,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		/* Si une donnée n'a plus rien à faire je ne la remet pas dans la liste des donnée parmi lesquelles choisir. */
 		if (!task_using_data_list_empty(returned_handle->sched_data))
 		{
-			push_data_not_used_yet_random_spot(returned_handle, my_planned_task_control->pointer);
+			push_data_not_used_yet_random_spot(returned_handle, temp_pointer);
 		}
 	}
 	
