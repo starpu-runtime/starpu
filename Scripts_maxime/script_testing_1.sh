@@ -26,12 +26,12 @@ N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
 #~ N=65
 N=40 # 12893.0
 #~ N=50 : 5 choix random
-N=4
+N=100
 
 NGPU=1
-NGPU=2
+#~ NGPU=2
 #~ NGPU=3
-#~ NGPU=4
+NGPU=4
 
 ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 #~ ORDO="dmdar"

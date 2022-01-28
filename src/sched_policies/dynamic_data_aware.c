@@ -2932,7 +2932,7 @@ static void deinitialize_dynamic_data_aware_center_policy(unsigned sched_ctx_id)
 /* Get the task that was last executed. Used to update the task list of pulled task	 */
 void get_task_done(struct starpu_task *task, unsigned sci)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	number_task_out_DARTS_2++;
 	//~ printf("get_task_done n°%d: %p.\n", number_task_out_DARTS_2, task); fflush(stdout);
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&local_mutex[starpu_worker_get_memory_node(starpu_worker_get_id()) - 1]);
@@ -2945,14 +2945,14 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	
 	if (eviction_strategy_dynamic_data_aware == 1) 
 	{
-		//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
 			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
 			hud->nb_task_in_pulled_task[current_gpu - 1] = hud->nb_task_in_pulled_task[current_gpu - 1] - 1;
 			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 		}
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 	}
 	
 	
@@ -2964,19 +2964,20 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     //~ }
     
     struct pulled_task *temp = NULL;
+    struct gpu_pulled_task *temp_pointer = my_pulled_task_control->first;
     int trouve = 0;
     
     //~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
-    my_pulled_task_control->pointer = my_pulled_task_control->first;
+    //~ my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < current_gpu; i++)
     {
-		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+		temp_pointer = temp_pointer->next;
     }
 	
     /* J'efface la tâche dans la liste de tâches */
-    if (!pulled_task_list_empty(my_pulled_task_control->pointer->ptl))
+    if (!pulled_task_list_empty(temp_pointer->ptl))
     {
-		for (temp = pulled_task_list_begin(my_pulled_task_control->pointer->ptl); temp != pulled_task_list_end(my_pulled_task_control->pointer->ptl); temp = pulled_task_list_next(temp))
+		for (temp = pulled_task_list_begin(temp_pointer->ptl); temp != pulled_task_list_end(temp_pointer->ptl); temp = pulled_task_list_next(temp))
 		{	
 			if (temp->pointer_to_pulled_task == task)
 			{
@@ -2987,7 +2988,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		if (trouve == 1)
 		{
 			//~ printf("Popped task in get task done is %p.\n", temp->pointer_to_pulled_task); fflush(stdout);	
-			pulled_task_list_erase(my_pulled_task_control->pointer->ptl, temp);
+			pulled_task_list_erase(temp_pointer->ptl, temp);
 		}
     }
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
@@ -3044,7 +3045,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		#endif
 	}
 	
-	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
