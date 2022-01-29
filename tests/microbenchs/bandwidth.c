@@ -25,7 +25,7 @@
  * kernels and number of idle workers.
  */
 
-#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS)
+#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE)
 static size_t size = 1024;
 #else
 /* Must be bigger than available cache size per core, 64MiB should be enough */
@@ -303,7 +303,7 @@ int main(int argc, char **argv)
 	result = malloc(total_ncpus * sizeof(result[0]));
 
 	if (cpustep == 0) {
-#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS)
+#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE)
 		cpustep = total_ncpus / 2;
 #elif defined(STARPU_LONG_CHECK)
 		cpustep = 1;
