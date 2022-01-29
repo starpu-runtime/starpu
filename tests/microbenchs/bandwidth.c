@@ -33,7 +33,7 @@ int main(void)
  * kernels and number of idle workers.
  */
 
-#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS)
+#if defined(STARPU_QUICK_CHECK) || defined(STARPU_SANITIZE_LEAK) || defined(STARPU_SANITIZE_ADDRESS) || defined(STARPU_SANITIZE_UNDEFINED)
 static size_t size = 1024;
 #else
 /* Must be bigger than available cache size per core, 64MiB should be enough */
