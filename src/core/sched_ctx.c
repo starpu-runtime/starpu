@@ -1503,7 +1503,7 @@ int _starpu_wait_for_n_submitted_tasks_of_sched_ctx(unsigned sched_ctx_id, unsig
 void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-#ifndef STARPU_SANITIZE
+#ifndef STARPU_SANITIZE_THREAD
 	if (!config->watchdog_ok)
 		config->watchdog_ok = 1;
 #endif
