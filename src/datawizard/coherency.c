@@ -360,7 +360,7 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 
 		/* The destination node should only allocate the data, no transfer is required */
 		STARPU_ASSERT(max_len >= 1);
-		src_nodes[0] = STARPU_MAIN_RAM; // ignored
+		src_nodes[0] = dst_node; // ignored
 		dst_nodes[0] = dst_node;
 		return 1;
 	}
@@ -369,7 +369,7 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 	{
 		/* Will just initialize the destination */
 		STARPU_ASSERT(max_len >= 1);
-		src_nodes[0] = STARPU_MAIN_RAM; // ignored
+		src_nodes[0] = dst_node; // ignored
 		dst_nodes[0] = dst_node;
 		return 1;
 	}
