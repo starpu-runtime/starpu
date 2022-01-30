@@ -238,7 +238,6 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 			&& (_starpu_memory_node_get_mapped(dst_replicate->memory_node) /* || handle wants it */))
 	{
 		/* Memory node which can just map the main memory, try to map.  */
-		STARPU_ASSERT(starpu_node_get_kind(src_replicate->memory_node) == STARPU_CPU_RAM);
 		if (!handle->ops->map_data(
 				src_replicate->data_interface, src_replicate->memory_node,
 				dst_replicate->data_interface, dst_replicate->memory_node))
@@ -552,8 +551,8 @@ uintptr_t starpu_interface_map(uintptr_t src, size_t src_offset, unsigned src_no
 	}
 	else
 	{
-		STARPU_ABORT_MSG("No map function defined from node %s to node %s\n", _starpu_node_get_prefix(starpu_node_get_kind(src_node)), _starpu_node_get_prefix(starpu_node_get_kind(dst_node)));
-		return -1;
+		*ret = -EIO;
+		return 0;
 	}
 }
 
@@ -579,8 +578,6 @@ int starpu_interface_update_map(uintptr_t src, size_t src_offset, unsigned src_n
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
 	struct _starpu_node_ops *src_node_ops = _starpu_memory_node_get_node_ops(src_node);
 	struct _starpu_node_ops *dst_node_ops = _starpu_memory_node_get_node_ops(dst_node);
-
-	assert(0);
 
 	if (src_node_ops && src_node_ops->update_map[dst_kind])
 	{
