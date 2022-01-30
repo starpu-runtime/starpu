@@ -41,6 +41,7 @@ struct _starpu_cond_and_worker
 	struct _starpu_worker *worker;
 };
 
+// TODO: split out all these arrays into struct _starpu_node
 struct _starpu_memory_node_descr
 {
 	unsigned nnodes;
