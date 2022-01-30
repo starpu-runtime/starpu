@@ -318,7 +318,7 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 	struct _starpu_data_replicate *src_replicate = &handle->per_node[src_node];
 	struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
 
-	if (src_replicate->mapped || dst_replicate->mapped)
+	if (src_node >= 0 && dst_node >= 0 && (src_replicate->mapped || dst_replicate->mapped))
 	{
 		/* Mapped transfers always happen through node STARPU_MAIN_RAM */
 		STARPU_ASSERT(max_len >= 2);
@@ -358,7 +358,7 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 	{
 		/* Will just initialize the destination */
 		STARPU_ASSERT(max_len >= 1);
-		src_nodes[0] = src_node; // ignored
+		src_nodes[0] = STARPU_MAIN_RAM; // ignored
 		dst_nodes[0] = dst_node;
 		return 1;
 	}
