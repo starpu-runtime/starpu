@@ -573,7 +573,6 @@ int _starpu_cpu_update_map(uintptr_t src, size_t src_offset, unsigned src_node, 
 	(void) size;
 
 	/* Memory mappings are cache-coherent */
-	/* FIXME: not on SCC */
 	return 0;
 }
 
