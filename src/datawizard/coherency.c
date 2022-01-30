@@ -319,25 +319,29 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 				  unsigned *src_nodes, unsigned *dst_nodes,
 				  unsigned *handling_nodes, unsigned write_invalidation)
 {
-	struct _starpu_data_replicate *src_replicate = &handle->per_node[src_node];
-	struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
-
-	if (src_node >= 0 && dst_node >= 0 && (src_replicate->mapped || dst_replicate->mapped))
+	if (mode & STARPU_R)
 	{
-		/* Mapped transfers always happen through node STARPU_MAIN_RAM */
-		STARPU_ASSERT(max_len >= 2);
+		struct _starpu_data_replicate *src_replicate = &handle->per_node[src_node];
+		struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
 
-		/* Device -> RAM */
-		src_nodes[0] = src_node;
-		dst_nodes[0] = STARPU_MAIN_RAM;
-		handling_nodes[0] = src_node;
+		STARPU_ASSERT(src_node >= 0 && dst_node >= 0);
+		if (src_replicate->mapped || dst_replicate->mapped)
+		{
+			/* Mapped transfers always happen through node STARPU_MAIN_RAM */
+			STARPU_ASSERT(max_len >= 2);
 
-		/* RAM -> Device */
-		src_nodes[1] = STARPU_MAIN_RAM;
-		dst_nodes[1] = dst_node;
-		handling_nodes[1] = dst_node;
+			/* Device -> RAM */
+			src_nodes[0] = src_node;
+			dst_nodes[0] = STARPU_MAIN_RAM;
+			handling_nodes[0] = src_node;
 
-		return 2;
+			/* RAM -> Device */
+			src_nodes[1] = STARPU_MAIN_RAM;
+			dst_nodes[1] = dst_node;
+			handling_nodes[1] = dst_node;
+
+			return 2;
+		}
 	}
 
 	if (src_node == dst_node || !(mode & STARPU_R))
