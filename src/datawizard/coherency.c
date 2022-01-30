@@ -1493,8 +1493,7 @@ void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node)
 	{
 		r = _starpu_create_data_request(handle, &handle->per_node[STARPU_MAIN_RAM], &handle->per_node[node], node, STARPU_UNMAP, 0, NULL, 0, 0, 0, __func__);
 
-		/* we do not increase the refcnt associated to the request since we are
-		 * not waiting for its termination */
+		r->refcnt++;
 		_starpu_post_data_request(r);
 	}
 	_starpu_spin_unlock(&handle->header_lock);
