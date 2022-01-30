@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,9 @@
 #endif
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
+static int map_variable(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int unmap_variable(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int update_map_variable(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 static const struct starpu_data_copy_methods variable_copy_data_methods_s =
 {
@@ -47,6 +50,9 @@ struct starpu_data_interface_ops starpu_interface_variable_ops =
 	.to_pointer = variable_to_pointer,
 	.pointer_is_inside = variable_pointer_is_inside,
 	.free_data_on_node = free_variable_buffer_on_node,
+	.map_data = map_variable,
+	.unmap_data = unmap_variable,
+	.update_map = update_map_variable,
 	.copy_methods = &variable_copy_data_methods_s,
 	.get_size = variable_interface_get_size,
 	.footprint = footprint_variable_interface_crc32,
@@ -252,6 +258,47 @@ static void free_variable_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_variable_interface *variable_interface = (struct starpu_variable_interface *) data_interface;
 	starpu_free_on_node(node, variable_interface->ptr, variable_interface->elemsize);
+}
+
+static int map_variable(void *src_interface, unsigned src_node,
+			void *dst_interface, unsigned dst_node)
+{
+	struct starpu_variable_interface *src_variable = src_interface;
+	struct starpu_variable_interface *dst_variable = dst_interface;
+	int ret;
+	uintptr_t mapped;
+
+	mapped = starpu_interface_map(src_variable->dev_handle, src_variable->offset, src_node, dst_node, src_variable->elemsize, &ret);
+	if (mapped)
+	{
+		dst_variable->dev_handle = mapped;
+		dst_variable->offset = 0;
+		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+			dst_variable->ptr = mapped;
+		return 0;
+	}
+	return ret;
+}
+
+static int unmap_variable(void *src_interface, unsigned src_node,
+			  void *dst_interface, unsigned dst_node)
+{
+	struct starpu_variable_interface *src_variable = src_interface;
+	struct starpu_variable_interface *dst_variable = dst_interface;
+
+	int ret = starpu_interface_unmap(src_variable->dev_handle, src_variable->offset, src_node, dst_variable->dev_handle, dst_node, src_variable->elemsize);
+	dst_variable->dev_handle = 0;
+
+	return ret;
+}
+
+static int update_map_variable(void *src_interface, unsigned src_node,
+			       void *dst_interface, unsigned dst_node)
+{
+	struct starpu_variable_interface *src_variable = src_interface;
+	struct starpu_variable_interface *dst_variable = dst_interface;
+
+	return starpu_interface_update_map(src_variable->dev_handle, src_variable->offset, src_node, dst_variable->dev_handle, dst_variable->offset, dst_node, src_variable->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

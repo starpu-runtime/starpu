@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,9 @@
 #endif
 
 static int dummy_copy(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
+static int map_void(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int unmap_void(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int update_map_void(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 static const struct starpu_data_copy_methods void_copy_data_methods_s =
 {
@@ -44,6 +47,9 @@ struct starpu_data_interface_ops starpu_interface_void_ops =
 	.register_data_handle = register_void_handle,
 	.allocate_data_on_node = allocate_void_buffer_on_node,
 	.free_data_on_node = free_void_buffer_on_node,
+	.map_data = map_void,
+	.unmap_data = unmap_void,
+	.update_map = update_map_void,
 	.copy_methods = &void_copy_data_methods_s,
 	.get_size = void_interface_get_size,
 	.footprint = footprint_void_interface_crc32,
@@ -141,6 +147,24 @@ static void free_void_buffer_on_node(void *data_interface STARPU_ATTRIBUTE_UNUSE
 					unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
 	/* There is no buffer actually */
+}
+
+static int map_void(void *src_interface, unsigned src_node,
+		    void *dst_interface, unsigned dst_node)
+{
+	return 0;
+}
+
+static int unmap_void(void *src_interface, unsigned src_node,
+		      void *dst_interface, unsigned dst_node)
+{
+	return 0;
+}
+
+static int update_map_void(void *src_interface, unsigned src_node,
+			   void *dst_interface, unsigned dst_node)
+{
+	return 0;
 }
 
 static int dummy_copy(void *src_interface STARPU_ATTRIBUTE_UNUSED,

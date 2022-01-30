@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,9 @@
 #endif
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
+static int map_matrix(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int unmap_matrix(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int update_map_matrix(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 static const struct starpu_data_copy_methods matrix_copy_data_methods_s =
 {
@@ -52,6 +55,9 @@ struct starpu_data_interface_ops starpu_interface_matrix_ops =
 	.to_pointer = matrix_to_pointer,
 	.pointer_is_inside = matrix_pointer_is_inside,
 	.free_data_on_node = free_matrix_buffer_on_node,
+	.map_data = map_matrix,
+	.unmap_data = unmap_matrix,
+	.update_map = update_map_matrix,
 	.copy_methods = &matrix_copy_data_methods_s,
 	.get_size = matrix_interface_get_size,
 	.get_alloc_size = matrix_interface_get_alloc_size,
@@ -500,6 +506,48 @@ static void free_matrix_buffer_on_node(void *data_interface, unsigned node)
 	struct starpu_matrix_interface *matrix_interface = (struct starpu_matrix_interface *) data_interface;
 
 	starpu_free_on_node(node, matrix_interface->dev_handle, matrix_interface->allocsize);
+}
+
+static int map_matrix(void *src_interface, unsigned src_node,
+		      void *dst_interface, unsigned dst_node)
+{
+	struct starpu_matrix_interface *src_matrix = src_interface;
+	struct starpu_matrix_interface *dst_matrix = dst_interface;
+	int ret;
+	uintptr_t mapped;
+
+	mapped = starpu_interface_map(src_matrix->dev_handle, src_matrix->offset, src_node, dst_node, src_matrix->ld*src_matrix->ny*src_matrix->elemsize, &ret);
+	if (mapped)
+	{
+		dst_matrix->dev_handle = mapped;
+		dst_matrix->offset = 0;
+		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+			dst_matrix->ptr = mapped;
+		dst_matrix->ld = src_matrix->ld;
+		return 0;
+	}
+	return ret;
+}
+
+static int unmap_matrix(void *src_interface, unsigned src_node,
+			void *dst_interface, unsigned dst_node)
+{
+	struct starpu_matrix_interface *src_matrix = src_interface;
+	struct starpu_matrix_interface *dst_matrix = dst_interface;
+
+	int ret = starpu_interface_unmap(src_matrix->dev_handle, src_matrix->offset, src_node, dst_matrix->dev_handle, dst_node, src_matrix->ld*src_matrix->ny*src_matrix->elemsize);
+	dst_matrix->dev_handle = 0;
+
+	return ret;
+}
+
+static int update_map_matrix(void *src_interface, unsigned src_node,
+			     void *dst_interface, unsigned dst_node)
+{
+	struct starpu_matrix_interface *src_matrix = src_interface;
+	struct starpu_matrix_interface *dst_matrix = dst_interface;
+
+	return starpu_interface_update_map(src_matrix->dev_handle, src_matrix->offset, src_node, dst_matrix->dev_handle, dst_matrix->offset, dst_node, src_matrix->ld*src_matrix->ny*src_matrix->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

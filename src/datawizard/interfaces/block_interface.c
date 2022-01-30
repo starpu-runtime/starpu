@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,9 @@
 #endif
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
+static int map_block(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int unmap_block(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int update_map_block(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 static const struct starpu_data_copy_methods block_copy_data_methods_s =
 {
@@ -48,6 +51,9 @@ struct starpu_data_interface_ops starpu_interface_block_ops =
 	.to_pointer = block_to_pointer,
 	.pointer_is_inside = block_pointer_is_inside,
 	.free_data_on_node = free_block_buffer_on_node,
+	.map_data = map_block,
+	.unmap_data = unmap_block,
+	.update_map = update_map_block,
 	.copy_methods = &block_copy_data_methods_s,
 	.get_size = block_interface_get_size,
 	.footprint = footprint_block_interface_crc32,
@@ -474,6 +480,49 @@ static void free_block_buffer_on_node(void *data_interface, unsigned node)
 	size_t elemsize = block_interface->elemsize;
 
 	starpu_free_on_node(node, block_interface->dev_handle, nx*ny*nz*elemsize);
+}
+
+static int map_block(void *src_interface, unsigned src_node,
+		     void *dst_interface, unsigned dst_node)
+{
+	struct starpu_block_interface *src_block = src_interface;
+	struct starpu_block_interface *dst_block = dst_interface;
+	int ret;
+	uintptr_t mapped;
+
+	mapped = starpu_interface_map(src_block->dev_handle, src_block->offset, src_node, dst_node, src_block->ldz*src_block->nz*src_block->elemsize, &ret);
+	if (mapped)
+	{
+		dst_block->dev_handle = mapped;
+		dst_block->offset = 0;
+		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+			dst_block->ptr = mapped;
+		dst_block->ldy = src_block->ldy;
+		dst_block->ldz = src_block->ldz;
+		return 0;
+	}
+	return ret;
+}
+
+static int unmap_block(void *src_interface, unsigned src_node,
+		       void *dst_interface, unsigned dst_node)
+{
+	struct starpu_block_interface *src_block = src_interface;
+	struct starpu_block_interface *dst_block = dst_interface;
+
+	int ret = starpu_interface_unmap(src_block->dev_handle, src_block->offset, src_node, dst_block->dev_handle, dst_node, src_block->ldz*src_block->nz*src_block->elemsize);
+	dst_block->dev_handle = 0;
+
+	return ret;
+}
+
+static int update_map_block(void *src_interface, unsigned src_node,
+			    void *dst_interface, unsigned dst_node)
+{
+	struct starpu_block_interface *src_block = src_interface;
+	struct starpu_block_interface *dst_block = dst_interface;
+
+	return starpu_interface_update_map(src_block->dev_handle, src_block->offset, src_node, dst_block->dev_handle, dst_block->offset, dst_node, src_block->ldz*src_block->nz*src_block->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

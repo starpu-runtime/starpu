@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +20,9 @@
 #endif
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
+static int map_tensor(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int unmap_tensor(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int update_map_tensor(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 static const struct starpu_data_copy_methods tensor_copy_data_methods_s =
 {
@@ -48,6 +51,9 @@ struct starpu_data_interface_ops starpu_interface_tensor_ops =
 	.to_pointer = tensor_to_pointer,
 	.pointer_is_inside = tensor_pointer_is_inside,
 	.free_data_on_node = free_tensor_buffer_on_node,
+	.map_data = map_tensor,
+	.unmap_data = unmap_tensor,
+	.update_map = update_map_tensor,
 	.copy_methods = &tensor_copy_data_methods_s,
 	.get_size = tensor_interface_get_size,
 	.footprint = footprint_tensor_interface_crc32,
@@ -546,6 +552,50 @@ static void free_tensor_buffer_on_node(void *data_interface, unsigned node)
 	size_t elemsize = tensor_interface->elemsize;
 
 	starpu_free_on_node(node, tensor_interface->dev_handle, nx*ny*nz*nt*elemsize);
+}
+
+static int map_tensor(void *src_interface, unsigned src_node,
+		      void *dst_interface, unsigned dst_node)
+{
+	struct starpu_tensor_interface *src_tensor = src_interface;
+	struct starpu_tensor_interface *dst_tensor = dst_interface;
+	int ret;
+	uintptr_t mapped;
+
+	mapped = starpu_interface_map(src_tensor->dev_handle, src_tensor->offset, src_node, dst_node, src_tensor->ldt*src_tensor->nt*src_tensor->elemsize, &ret);
+	if (mapped)
+	{
+		dst_tensor->dev_handle = mapped;
+		dst_tensor->offset = 0;
+		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+			dst_tensor->ptr = mapped;
+		dst_tensor->ldy = src_tensor->ldy;
+		dst_tensor->ldz = src_tensor->ldz;
+		dst_tensor->ldt = src_tensor->ldt;
+		return 0;
+	}
+	return ret;
+}
+
+static int unmap_tensor(void *src_interface, unsigned src_node,
+			void *dst_interface, unsigned dst_node)
+{
+	struct starpu_tensor_interface *src_tensor = src_interface;
+	struct starpu_tensor_interface *dst_tensor = dst_interface;
+
+	int ret = starpu_interface_unmap(src_tensor->dev_handle, src_tensor->offset, src_node, dst_tensor->dev_handle, dst_node, src_tensor->ldt*src_tensor->nt*src_tensor->elemsize);
+	dst_tensor->dev_handle = 0;
+
+	return ret;
+}
+
+static int update_map_tensor(void *src_interface, unsigned src_node,
+			     void *dst_interface, unsigned dst_node)
+{
+	struct starpu_tensor_interface *src_tensor = src_interface;
+	struct starpu_tensor_interface *dst_tensor = dst_interface;
+
+	return starpu_interface_update_map(src_tensor->dev_handle, src_tensor->offset, src_node, dst_tensor->dev_handle, dst_tensor->offset, dst_node, src_tensor->ldt*src_tensor->nt*src_tensor->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
