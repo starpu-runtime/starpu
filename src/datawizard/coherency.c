@@ -325,68 +325,51 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 {
 	if (mode & STARPU_R)
 	{
+		STARPU_ASSERT(src_node >= 0 && dst_node >= 0);
+
 		struct _starpu_data_replicate *src_replicate = &handle->per_node[src_node];
 		struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
 
-		STARPU_ASSERT(src_node >= 0 && dst_node >= 0);
-		if (src_replicate->mapped != STARPU_UNMAPPED || dst_replicate->mapped != STARPU_UNMAPPED)
+		if (src_replicate->mapped != STARPU_UNMAPPED)
 		{
-			if (src_replicate->mapped != STARPU_UNMAPPED && dst_replicate->mapped != STARPU_UNMAPPED)
-			{
-				/* Two different mappings, need to flush, transfer, flush */
+			/* Device -> map */
+			STARPU_ASSERT(max_len >= 1);
+			*src_nodes++ = src_node;
+			*dst_nodes++ = src_replicate->mapped;
+			*handling_nodes++ = src_node;
+			max_len--;
 
-				STARPU_ASSERT(max_len >= 3);
+			/* map -> Device */
+			int consumed = _starpu_determine_request_path(handle,
+					src_replicate->mapped, dst_node,
+					mode, max_len,
+					src_nodes, dst_nodes, handling_nodes,
+					write_invalidation);
 
-				/* Device -> map */
-				src_nodes[0] = src_node;
-				dst_nodes[0] = src_replicate->mapped;
-				handling_nodes[0] = src_node;
+			return consumed + 1;
+		}
+		else if (dst_replicate->mapped != STARPU_UNMAPPED)
+		{
+			/* Device -> map */
+			int consumed = _starpu_determine_request_path(handle,
+					src_node, dst_replicate->mapped,
+					mode, max_len,
+					src_nodes, dst_nodes, handling_nodes,
+					write_invalidation);
 
-				/* map -> map */
-				/* Note: we here assume that direct transfer is always possible */
-				src_nodes[1] = src_replicate->mapped;
-				dst_nodes[1] = dst_replicate->mapped;
-				handling_nodes[1] = dst_node;
+			src_nodes += consumed;
+			dst_nodes += consumed;
+			handling_nodes += consumed;
+			max_len -= consumed;
 
-				/* map -> Device */
-				src_nodes[2] = dst_replicate->mapped;
-				dst_nodes[2] = dst_node;
-				handling_nodes[2] = dst_node;
+			/* map -> Device */
+			STARPU_ASSERT(max_len >= 1);
+			*src_nodes++ = dst_replicate->mapped;
+			*dst_nodes++ = dst_node;
+			*handling_nodes++ = dst_node;
+			max_len--;
 
-				return 3;
-			}
-			else if (src_replicate->mapped != STARPU_UNMAPPED)
-			{
-				/* Device -> map */
-				src_nodes[0] = src_node;
-				dst_nodes[0] = src_replicate->mapped;
-				handling_nodes[0] = src_node;
-
-				/* map -> Device */
-				/* TODO: should actually recursively call _starpu_determine_request_path */
-				src_nodes[1] = src_replicate->mapped;
-				dst_nodes[1] = dst_node;
-				handling_nodes[1] = dst_node;
-
-				return 2;
-			}
-			else
-			{
-				STARPU_ASSERT(dst_replicate->mapped != STARPU_UNMAPPED);
-
-				/* Device -> map */
-				/* TODO: should actually recursively call _starpu_determine_request_path */
-				src_nodes[0] = src_node;
-				dst_nodes[0] = dst_replicate->mapped;
-				handling_nodes[0] = src_node;
-
-				/* map -> Device */
-				src_nodes[1] = dst_replicate->mapped;
-				dst_nodes[1] = dst_node;
-				handling_nodes[1] = dst_node;
-
-				return 2;
-			}
+			return consumed + 1;
 		}
 	}
 
