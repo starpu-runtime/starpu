@@ -290,7 +290,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	 */
 	if (dst_replicate->mapped)
 	{
-		STARPU_ASSERT(src_replicate->memory_node == 0);
+		STARPU_ASSERT(src_replicate->memory_node == STARPU_MAIN_RAM);
 		if (_starpu_node_needs_map_update(dst_node))
 		{
 			/* We need to flush from RAM to the device */
@@ -304,7 +304,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 
 	else if (src_replicate->mapped)
 	{
-		STARPU_ASSERT(dst_replicate->memory_node == 0);
+		STARPU_ASSERT(dst_replicate->memory_node == STARPU_MAIN_RAM);
 		if (_starpu_node_needs_map_update(src_node))
 		{
 			/* We need to flush from the device to the RAM */

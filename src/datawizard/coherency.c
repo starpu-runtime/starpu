@@ -322,16 +322,16 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 
 	if (src_replicate->mapped || dst_replicate->mapped)
 	{
-		/* Mapped transfers always happen through node 0 */
+		/* Mapped transfers always happen through node STARPU_MAIN_RAM */
 		STARPU_ASSERT(max_len >= 2);
 
 		/* Device -> RAM */
 		src_nodes[0] = src_node;
-		dst_nodes[0] = 0;
+		dst_nodes[0] = STARPU_MAIN_RAM;
 		handling_nodes[0] = src_node;
 
 		/* RAM -> Device */
-		src_nodes[1] = 0;
+		src_nodes[1] = STARPU_MAIN_RAM;
 		dst_nodes[1] = dst_node;
 		handling_nodes[1] = dst_node;
 
@@ -1487,7 +1487,7 @@ void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node)
 	STARPU_ASSERT(handle);
 
 	_starpu_spin_lock(&handle->header_lock);
-	r = _starpu_create_data_request(handle, &handle->per_node[0], &handle->per_node[node], node, STARPU_UNMAP, 0, NULL, 0, 0, 0, __func__);
+	r = _starpu_create_data_request(handle, &handle->per_node[STARPU_MAIN_RAM], &handle->per_node[node], node, STARPU_UNMAP, 0, NULL, 0, 0, 0, __func__);
 
 	/* we do not increase the refcnt associated to the request since we are
 	 * not waiting for its termination */
