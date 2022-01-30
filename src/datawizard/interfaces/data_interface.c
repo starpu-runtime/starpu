@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1146,12 +1146,22 @@ static void _starpu_data_invalidate(void *data)
 	}
 #endif
 
+	unsigned mapped = 0;
 	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (handle->per_node[node].mapped)
+		{
+			mapped = 1;
+			break;
+		}
+	}
+
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
-		if (local->mc && local->allocated && local->automatically_allocated)
+		if (local->mc && local->allocated && local->automatically_allocated && !(node == STARPU_MAIN_RAM && mapped))
 		{
 			_starpu_data_unregister_ram_pointer(handle, node);
 
@@ -1162,6 +1172,7 @@ static void _starpu_data_invalidate(void *data)
 		if (local->state != STARPU_INVALID)
 			_STARPU_TRACE_DATA_STATE_INVALID(handle, node);
 		local->state = STARPU_INVALID;
+		local->initialized = 0;
 	}
 
 	if (handle->per_worker)

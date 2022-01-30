@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -570,6 +570,16 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 	/* This data was registered from this node, we will not be able to drop it anyway */
 	if ((int) node == handle->home_node)
 		return 0;
+
+	if (node == STARPU_MAIN_RAM)
+	{
+		unsigned mapnode;
+		for (mapnode = 0; mapnode < STARPU_MAXNODES; mapnode++)
+			if (handle->per_node[mapnode].mapped)
+				/* This is mapped, we can't evict it */
+				/* TODO: rather check if that can be evicted as well, and if so unmap it before evicting this */
+				return 0;
+	}
 
 	/* This data cannnot be pushed outside CPU memory */
 	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
