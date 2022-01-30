@@ -833,7 +833,7 @@ static int _starpu_turn_task_into_bubble(struct _starpu_job *j)
 		return 0;
 	}
 	j->already_turned_into_bubble = 1;
-	_STARPU_DEBUG("[%s(%p)]\n", starpu_task_get_name(j->task), j->task);
+	//_STARPU_DEBUG("[%s(%p)]\n", starpu_task_get_name(j->task), j->task);
 
 	if (j->is_bubble == 1)
 	{
