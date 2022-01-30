@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -102,18 +102,18 @@ struct malloc_pinned_codelet_struct
 static void malloc_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	struct malloc_pinned_codelet_struct *s = arg;
-	cudaError_t cures;
-#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+	cudaError_t cures = cudaErrorMemoryAllocation;
+#if 0 //defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
 	/* FIXME: check if devices actually support cudaMallocManaged or fallback to cudaHostAlloc() */
 	cures = cudaMallocManaged((void **)(s->ptr), s->dim, cudaMemAttachGlobal);
-#else
-#  if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_CANMAPHOST)
-	const unsigned int flags = cudaHostAllocPortable|cudaHostAllocMapped;
-#  else
-	const unsigned int flags = cudaHostAllocPortable;
-#  endif
-	cures = cudaHostAlloc((void **)(s->ptr), s->dim, flags);
 #endif
+#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_CANMAPHOST)
+	if (cures != cudaSuccess)
+		cures = cudaHostAlloc((void **)(s->ptr), s->dim, cudaHostAllocPortable|cudaHostAllocMapped);
+#endif
+	if (cures != cudaSuccess)
+		cures = cudaHostAlloc((void **)(s->ptr), s->dim, cudaHostAllocPortable);
+
 	if (STARPU_UNLIKELY(cures))
 		STARPU_CUDA_REPORT_ERROR(cures);
 }
@@ -218,18 +218,21 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 #else /* STARPU_SIMGRID */
 #ifdef STARPU_USE_CUDA
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
-			cudaError_t cures;
-#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+			cudaError_t cures = cudaErrorMemoryAllocation;
+
+#if 0 //defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
 			/* FIXME: check if devices actually support cudaMallocManaged or fallback to cudaHostAlloc() */
 			cures = cudaMallocManaged(A, dim, cudaMemAttachGlobal);
-#else
-#  if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_CANMAPHOST)
-			const unsigned int flags = cudaHostAllocPortable|cudaHostAllocMapped;
-#  else
-			const unsigned int flags = cudaHostAllocPortable;
-#  endif
-			cures = cudaHostAlloc(A, dim, flags);
 #endif
+
+#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_CANMAPHOST)
+			if (cures != cudaSuccess)
+				cures = cudaHostAlloc(A, dim, cudaHostAllocPortable|cudaHostAllocMapped);
+#endif
+
+			if (cures != cudaSuccess)
+				cures = cudaHostAlloc(A, dim, cudaHostAllocPortable);
+
 			if (STARPU_UNLIKELY(cures))
 			{
 				STARPU_CUDA_REPORT_ERROR(cures);
@@ -498,7 +501,8 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 				 * though starpu_shutdown has already
 				 * been called, so we will not be able to submit a task. */
 				cudaError_t cures;
-#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+#if 0 //defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+				/* FIXME: check if devices actually support cudaMallocManaged or fallback to cudaHostAlloc() */
 				cures = cudaFree(A);
 #else
 				cures = cudaFreeHost(A);
