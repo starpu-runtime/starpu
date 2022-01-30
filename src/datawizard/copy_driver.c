@@ -288,7 +288,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	 *   updated.
 	 * All in all, any data change will actually trigger both.
 	 */
-	if (dst_replicate->mapped)
+	if (!donotread && dst_replicate->mapped)
 	{
 		STARPU_ASSERT(src_replicate->memory_node == STARPU_MAIN_RAM);
 		if (_starpu_node_needs_map_update(dst_node))
@@ -304,7 +304,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 		dst_replicate->initialized = 1;
 	}
 
-	else if (src_replicate->mapped)
+	else if (!donotread && src_replicate->mapped)
 	{
 		STARPU_ASSERT(dst_replicate->memory_node == STARPU_MAIN_RAM);
 		if (_starpu_node_needs_map_update(src_node))
