@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -74,15 +74,17 @@ struct _starpu_data_replicate
 	 * */
 	unsigned automatically_allocated:1;
 
-	/* is the data just a mapping of a replicate on another memory node */
-	unsigned mapped:1;
-
-	/* is the write side enabled on the mapping?
+	/** is the write side enabled on the mapping?
 	 * This is important for drivers which may actually make a copy instead
 	 * of a map.
-	 */
-	/* Only meaningful when mapped == 1 */
+	 *
+	 * Only meaningful when mapped != STARPU_UNMAPPED */
 	unsigned map_write:1;
+
+#define STARPU_UNMAPPED -1
+	/** >= 0 when the data just a mapping of a replicate from that memory node,
+	 * otherwise STARPU_UNMAPPED */
+	int mapped;
 
 	/** To help the scheduling policies to make some decision, we
 	   may keep a track of the tasks that are likely to request

@@ -188,7 +188,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	{
 		if (initial_handle->per_node[node].state != STARPU_INVALID)
 			found = node;
-		STARPU_ASSERT(!initial_handle->per_node[node].mapped);
+		STARPU_ASSERT(initial_handle->per_node[node].mapped == STARPU_UNMAPPED);
 	}
 	if (found == STARPU_MAXNODES)
 	{
@@ -294,7 +294,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 			//child_replicate->refcnt = 0;
 			child_replicate->memory_node = node;
 			//child_replicate->relaxed_coherency = 0;
-			child_replicate->mapped = 0;
+			child_replicate->mapped = STARPU_UNMAPPED;
 			if (inherit_state)
 				child_replicate->initialized = initial_replicate->initialized;
 			else

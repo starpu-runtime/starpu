@@ -41,9 +41,6 @@ struct _starpu_cond_and_worker
 	struct _starpu_worker *worker;
 };
 
-/* TODO: Support mapping non-main RAM  */
-#define STARPU_MAPPED_RAM STARPU_MAIN_RAM
-
 struct _starpu_memory_node_descr
 {
 	unsigned nnodes;

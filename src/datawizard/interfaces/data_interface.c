@@ -338,7 +338,7 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 			//replicate->initialized = 0;
 		}
 
-		replicate->mapped = 0;
+		replicate->mapped = STARPU_UNMAPPED;
 	}
 
 	/* now the data is available ! */
@@ -390,7 +390,7 @@ _starpu_data_initialize_per_worker(starpu_data_handle_t handle)
 		replicate->relaxed_coherency = 1;
 		//replicate->initialized = 0;
 		replicate->memory_node = starpu_worker_get_memory_node(worker);
-		replicate->mapped = 0;
+		replicate->mapped = STARPU_UNMAPPED;
 
 		_STARPU_CALLOC(replicate->data_interface, 1, interfacesize);
 		/* duplicate  the content of the interface on node 0 */
@@ -991,8 +991,7 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	/* Request unmapping of any mapped data */
 	unsigned node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
-		if (handle->per_node[node].mapped)
-			_starpu_data_unmap(handle, node);
+		_starpu_data_unmap(handle, node);
 
 retry_busy:
 	/* Wait for all requests to finish (notably WT requests) */
@@ -1146,27 +1145,26 @@ static void _starpu_data_invalidate(void *data)
 	}
 #endif
 
-	unsigned mapped = 0;
 	unsigned node;
-	for (node = 0; node < STARPU_MAXNODES; node++)
-	{
-		if (handle->per_node[node].mapped)
-		{
-			mapped = 1;
-			break;
-		}
-	}
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
-		if (local->mc && local->allocated && local->automatically_allocated && !(node == STARPU_MAPPED_RAM && mapped))
+		if (local->mc && local->allocated && local->automatically_allocated)
 		{
-			_starpu_data_unregister_ram_pointer(handle, node);
+			unsigned mapping;
+			for (mapping = 0; mapping < STARPU_MAXNODES; mapping++)
+				if (handle->per_node[mapping].mapped == node)
+					break;
 
-			/* free the data copy in a lazy fashion */
-			_starpu_request_mem_chunk_removal(handle, local, node, size);
+			if (mapping == STARPU_MAXNODES)
+			{
+				_starpu_data_unregister_ram_pointer(handle, node);
+
+				/* free the data copy in a lazy fashion */
+				_starpu_request_mem_chunk_removal(handle, local, node, size);
+			}
 		}
 
 		if (local->state != STARPU_INVALID)

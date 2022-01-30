@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -50,7 +50,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid)
 {
 	STARPU_ASSERT(replicate);
-	STARPU_ASSERT(!replicate->mapped); /* FIXME: reduction unsupported on mapped replicates for now */
+	STARPU_ASSERT(replicate->mapped == STARPU_UNMAPPED); /* FIXME: reduction unsupported on mapped replicates for now */
 	STARPU_ASSERT(replicate->allocated);
 
 	struct starpu_codelet *init_cl = handle->init_cl;

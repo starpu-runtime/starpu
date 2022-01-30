@@ -102,7 +102,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 	if (cost && src_node != -1)
 	{
 		/* Could estimate through cost, return that */
-		STARPU_ASSERT(handle->per_node[src_node].allocated || handle->per_node[src_node].mapped);
+		STARPU_ASSERT(handle->per_node[src_node].allocated || handle->per_node[src_node].mapped != STARPU_UNMAPPED);
 		STARPU_ASSERT(handle->per_node[src_node].initialized);
 		return src_node;
 	}
@@ -194,11 +194,11 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 		unsigned node;
 		for (node = 0; node < nnodes; node++)
 		{
-			if (requesting_replicate->mapped && node == STARPU_MAPPED_RAM
-					&& !_starpu_node_needs_map_update(requesting_node))
+			if (requesting_replicate->mapped == node
+				&& !_starpu_node_needs_map_update(requesting_node))
 				/* The mapped node will be kept up to date */
 				continue;
-			if (handle->per_node[node].mapped && requesting_node == STARPU_MAPPED_RAM)
+			if (handle->per_node[node].mapped == requesting_node)
 				/* The mapping node will be kept up to date */
 				continue;
 			if (handle->per_node[node].state != STARPU_INVALID)
@@ -328,22 +328,64 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 		struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
 
 		STARPU_ASSERT(src_node >= 0 && dst_node >= 0);
-		if (src_replicate->mapped || dst_replicate->mapped)
+		if (src_replicate->mapped != STARPU_UNMAPPED || dst_replicate->mapped != STARPU_UNMAPPED)
 		{
-			/* Mapped transfers always happen through node STARPU_MAPPED_RAM */
-			STARPU_ASSERT(max_len >= 2);
+			if (src_replicate->mapped != STARPU_UNMAPPED && dst_replicate->mapped != STARPU_UNMAPPED)
+			{
+				/* Two different mappings, need to flush, transfer, flush */
 
-			/* Device -> RAM */
-			src_nodes[0] = src_node;
-			dst_nodes[0] = STARPU_MAPPED_RAM;
-			handling_nodes[0] = src_node;
+				STARPU_ASSERT(max_len >= 3);
 
-			/* RAM -> Device */
-			src_nodes[1] = STARPU_MAPPED_RAM;
-			dst_nodes[1] = dst_node;
-			handling_nodes[1] = dst_node;
+				/* Device -> map */
+				src_nodes[0] = src_node;
+				dst_nodes[0] = src_replicate->mapped;
+				handling_nodes[0] = src_node;
 
-			return 2;
+				/* map -> map */
+				/* Note: we here assume that direct transfer is always possible */
+				src_nodes[1] = src_replicate->mapped;
+				dst_nodes[1] = dst_replicate->mapped;
+				handling_nodes[1] = dst_node;
+
+				/* map -> Device */
+				src_nodes[2] = dst_replicate->mapped;
+				dst_nodes[2] = dst_node;
+				handling_nodes[2] = dst_node;
+
+				return 3;
+			}
+			else if (src_replicate->mapped != STARPU_UNMAPPED)
+			{
+				/* Device -> map */
+				src_nodes[0] = src_node;
+				dst_nodes[0] = src_replicate->mapped;
+				handling_nodes[0] = src_node;
+
+				/* map -> Device */
+				/* TODO: should actually recursively call _starpu_determine_request_path */
+				src_nodes[1] = src_replicate->mapped;
+				dst_nodes[1] = dst_node;
+				handling_nodes[1] = dst_node;
+
+				return 2;
+			}
+			else
+			{
+				STARPU_ASSERT(dst_replicate->mapped != STARPU_UNMAPPED);
+
+				/* Device -> map */
+				/* TODO: should actually recursively call _starpu_determine_request_path */
+				src_nodes[0] = src_node;
+				dst_nodes[0] = dst_replicate->mapped;
+				handling_nodes[0] = src_node;
+
+				/* map -> Device */
+				src_nodes[1] = dst_replicate->mapped;
+				dst_nodes[1] = dst_node;
+				handling_nodes[1] = dst_node;
+
+				return 2;
+			}
 		}
 	}
 
@@ -648,7 +690,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		{
 			/* And this is the main RAM without pinning, really no need for a
 			 * request, just quickly allocate and be done */
-			if (dst_replicate->mapped || _starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch, 0) == 0)
+			if (dst_replicate->mapped != STARPU_UNMAPPED
+				|| _starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch, 0) == 0)
 			{
 				_starpu_update_data_state(handle, dst_replicate, mode);
 				if (dst_replicate->mc)
@@ -1496,9 +1539,9 @@ void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node)
 	STARPU_ASSERT(handle);
 
 	_starpu_spin_lock(&handle->header_lock);
-	if (handle->per_node[node].mapped)
+	if (handle->per_node[node].mapped != STARPU_UNMAPPED)
 	{
-		r = _starpu_create_data_request(handle, &handle->per_node[STARPU_MAPPED_RAM], &handle->per_node[node], node, STARPU_UNMAP, 0, NULL, 0, 0, 0, __func__);
+		r = _starpu_create_data_request(handle, &handle->per_node[handle->per_node[node].mapped], &handle->per_node[node], node, STARPU_UNMAP, 0, NULL, 0, 0, 0, __func__);
 
 		r->refcnt++;
 		_starpu_post_data_request(r);

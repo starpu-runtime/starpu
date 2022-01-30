@@ -205,8 +205,8 @@ static int update_map_generic(starpu_data_handle_t handle,
 	STARPU_ASSERT(src_replicate->refcnt);
 	STARPU_ASSERT(dst_replicate->refcnt);
 
-	STARPU_ASSERT((src_replicate->mapped && dst_replicate->allocated)
-			||(src_replicate->allocated && dst_replicate->mapped));
+	STARPU_ASSERT((src_replicate->mapped == dst_node && dst_replicate->allocated)
+			||(src_replicate->allocated && dst_replicate->mapped == src_node));
 
 	void *src_interface = src_replicate->data_interface;
 	void *dst_interface = dst_replicate->data_interface;
@@ -226,14 +226,14 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 {
 	if (!donotread)
 	{
-		STARPU_ASSERT(src_replicate->allocated || src_replicate->mapped);
+		STARPU_ASSERT(src_replicate->allocated || src_replicate->mapped != STARPU_UNMAPPED);
 		STARPU_ASSERT(src_replicate->refcnt);
 	}
 
 	unsigned src_node = src_replicate->memory_node;
 	unsigned dst_node = dst_replicate->memory_node;
 
-	if (!dst_replicate->allocated && !dst_replicate->mapped && dst_node != STARPU_MAPPED_RAM
+	if (!dst_replicate->allocated && dst_replicate->mapped == STARPU_UNMAPPED && dst_node != src_node
 			&& handle->ops->map_data
 			&& (_starpu_memory_node_get_mapped(dst_replicate->memory_node) /* || handle wants it */))
 	{
@@ -242,7 +242,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 				src_replicate->data_interface, src_replicate->memory_node,
 				dst_replicate->data_interface, dst_replicate->memory_node))
 		{
-			dst_replicate->mapped = 1;
+			dst_replicate->mapped = src_node;
 
 			if (_starpu_node_needs_map_update(dst_node))
 			{
@@ -266,7 +266,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	}
 
 	/* first make sure the destination has an allocated buffer */
-	if (!dst_replicate->allocated && !dst_replicate->mapped)
+	if (!dst_replicate->allocated && dst_replicate->mapped == STARPU_UNMAPPED)
 	{
 		if (may_alloc==_STARPU_DATAWIZARD_DO_NOT_ALLOC || _starpu_is_reclaiming(dst_node))
 			/* We're not supposed to allocate there at the moment */
@@ -277,7 +277,7 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 			return -ENOMEM;
 	}
 
-	STARPU_ASSERT(dst_replicate->allocated || dst_replicate->mapped);
+	STARPU_ASSERT(dst_replicate->allocated || dst_replicate->mapped != STARPU_UNMAPPED);
 	STARPU_ASSERT(dst_replicate->refcnt);
 
 	/* In the case of a mapped data, we are here requested either
@@ -287,9 +287,9 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	 *   updated.
 	 * All in all, any data change will actually trigger both.
 	 */
-	if (!donotread && dst_replicate->mapped)
+	if (!donotread && dst_replicate->mapped != STARPU_UNMAPPED)
 	{
-		STARPU_ASSERT(src_replicate->memory_node == STARPU_MAPPED_RAM);
+		STARPU_ASSERT(src_replicate->memory_node == dst_replicate->mapped);
 		if (_starpu_node_needs_map_update(dst_node))
 		{
 			/* We need to flush from RAM to the device */
@@ -303,9 +303,9 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 		dst_replicate->initialized = 1;
 	}
 
-	else if (!donotread && src_replicate->mapped)
+	else if (!donotread && src_replicate->mapped != STARPU_UNMAPPED)
 	{
-		STARPU_ASSERT(dst_replicate->memory_node == STARPU_MAPPED_RAM);
+		STARPU_ASSERT(dst_replicate->memory_node == src_replicate->mapped);
 		if (_starpu_node_needs_map_update(src_node))
 		{
 			/* We need to flush from the device to the RAM */

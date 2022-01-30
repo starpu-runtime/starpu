@@ -270,7 +270,7 @@ static int lock_all_subtree(starpu_data_handle_t handle)
 
 static unsigned may_free_handle(starpu_data_handle_t handle, unsigned node)
 {
-	STARPU_ASSERT(!handle->per_node[node].mapped);
+	STARPU_ASSERT(handle->per_node[node].mapped == STARPU_UNMAPPED);
 
 	/* we only free if no one refers to the leaf */
 	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
@@ -326,8 +326,8 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 		struct _starpu_data_replicate *src_replicate = &handle->per_node[src_node];
 		struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
 
-		STARPU_ASSERT(!src_replicate->mapped);
-		STARPU_ASSERT(!dst_replicate->mapped);
+		STARPU_ASSERT(src_replicate->mapped == STARPU_UNMAPPED);
+		STARPU_ASSERT(dst_replicate->mapped == STARPU_UNMAPPED);
 
 		/* this is a leaf */
 
@@ -447,7 +447,7 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		if (handle)
 		{
 			STARPU_ASSERT(replicate->allocated);
-			STARPU_ASSERT(!replicate->mapped);
+			STARPU_ASSERT(replicate->mapped == STARPU_UNMAPPED);
 		}
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
@@ -571,15 +571,12 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 	if ((int) node == handle->home_node)
 		return 0;
 
-	if (node == STARPU_MAPPED_RAM)
-	{
-		unsigned mapnode;
-		for (mapnode = 0; mapnode < STARPU_MAXNODES; mapnode++)
-			if (handle->per_node[mapnode].mapped)
-				/* This is mapped, we can't evict it */
-				/* TODO: rather check if that can be evicted as well, and if so unmap it before evicting this */
-				return 0;
-	}
+	unsigned mapnode;
+	for (mapnode = 0; mapnode < STARPU_MAXNODES; mapnode++)
+		if (handle->per_node[mapnode].mapped == node)
+			/* This is mapped, we can't evict it */
+			/* TODO: rather check if that can be evicted as well, and if so unmap it before evicting this */
+			return 0;
 
 	/* This data cannnot be pushed outside CPU memory */
 	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
@@ -1380,7 +1377,7 @@ static void register_mem_chunk(starpu_data_handle_t handle, struct _starpu_data_
  */
 void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node, size_t size)
 {
-	STARPU_ASSERT(!replicate->mapped);
+	STARPU_ASSERT(replicate->mapped == STARPU_UNMAPPED);
 	struct _starpu_mem_chunk *mc = replicate->mc;
 
 	STARPU_ASSERT(mc->data == handle);
@@ -1666,7 +1663,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 	if (replicate->allocated)
 		return 0;
 
-	STARPU_ASSERT(!replicate->mapped);
+	STARPU_ASSERT(replicate->mapped == STARPU_UNMAPPED);
 
 	STARPU_ASSERT(replicate->data_interface);
 	allocated_memory = _starpu_allocate_interface(handle, replicate, dst_node, is_prefetch, only_fast_alloc);
@@ -1700,7 +1697,7 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 
 unsigned starpu_data_test_if_allocated_on_node(starpu_data_handle_t handle, unsigned memory_node)
 {
-	return handle->per_node[memory_node].allocated || handle->per_node[memory_node].mapped;
+	return handle->per_node[memory_node].allocated || handle->per_node[memory_node].mapped != STARPU_UNMAPPED;
 }
 
 unsigned starpu_data_test_if_mapped_on_node(starpu_data_handle_t handle, unsigned memory_node)

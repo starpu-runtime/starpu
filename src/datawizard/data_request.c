@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -366,7 +366,7 @@ void _starpu_post_data_request(struct _starpu_data_request *r)
 
 	if (r->mode & STARPU_R)
 	{
-		STARPU_ASSERT(r->src_replicate->allocated || r->src_replicate->mapped);
+		STARPU_ASSERT(r->src_replicate->allocated || r->src_replicate->mapped != STARPU_UNMAPPED);
 		STARPU_ASSERT(r->src_replicate->refcnt);
 	}
 
@@ -596,7 +596,7 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, enum _star
 	enum starpu_data_access_mode r_mode = r->mode;
 
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate);
-	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated || src_replicate->mapped);
+	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->allocated || src_replicate->mapped != STARPU_UNMAPPED);
 	STARPU_ASSERT(!(r_mode & STARPU_R) || src_replicate->refcnt);
 
 	/* For prefetches, we take a reference on the destination only now that
@@ -613,11 +613,11 @@ static int starpu_handle_data_request(struct _starpu_data_request *r, enum _star
 	if (r_mode == STARPU_UNMAP)
 	{
 		/* Unmap request, simply do it */
-		STARPU_ASSERT(dst_replicate->mapped);
+		STARPU_ASSERT(dst_replicate->mapped == src_replicate->memory_node);
 		STARPU_ASSERT(handle->ops->unmap_data);
 		handle->ops->unmap_data(src_replicate->data_interface, src_replicate->memory_node,
 					dst_replicate->data_interface, dst_replicate->memory_node);
-		dst_replicate->mapped = 0;
+		dst_replicate->mapped = STARPU_UNMAPPED;
 		r->retval = 0;
 	}
 	/* FIXME: the request may get upgraded from here to freeing it... */
