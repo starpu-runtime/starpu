@@ -242,6 +242,8 @@ static starpu_ssize_t allocate_variable_buffer_on_node(void *data_interface_, un
 
 	/* update the data properly in consequence */
 	variable_interface->ptr = addr;
+	variable_interface->dev_handle = addr;
+	variable_interface->offset = 0;
 
 	return elemsize;
 }

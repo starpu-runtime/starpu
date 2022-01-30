@@ -380,6 +380,7 @@ static int map_vector(void *src_interface, unsigned src_node,
 	if (mapped)
 	{
 		dst_vector->dev_handle = mapped;
+		dst_vector->offset = 0;
 		if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
 			dst_vector->ptr = mapped;
 		return 0;
