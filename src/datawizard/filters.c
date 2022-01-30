@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -165,6 +165,9 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	unsigned node;
 	unsigned found = STARPU_MAXNODES;
 
+	for (node = 0; node < STARPU_MAXNODES; node++)
+		_starpu_data_unmap(initial_handle, node);
+
 	/* first take care to properly lock the data header */
 	_starpu_spin_lock(&initial_handle->header_lock);
 
@@ -185,11 +188,7 @@ static void _starpu_data_partition(starpu_data_handle_t initial_handle, starpu_d
 	{
 		if (initial_handle->per_node[node].state != STARPU_INVALID)
 			found = node;
-		if (initial_handle->per_node[node].mapped)
-		{
-			_starpu_data_unmap(initial_handle, node);
-			STARPU_ASSERT(!initial_handle->per_node[node].mapped);
-		}
+		STARPU_ASSERT(!initial_handle->per_node[node].mapped);
 	}
 	if (found == STARPU_MAXNODES)
 	{
@@ -399,7 +398,11 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 		child_handle->busy_waiting = 1;
 		_starpu_spin_unlock(&child_handle->header_lock);
 
-		/* Wait for all requests to finish (notably WT requests) */
+		/* Make sure it is not mapped */
+		for (node = 0; node < STARPU_MAXNODES; node++)
+			_starpu_data_unmap(child_handle, node);
+
+		/* Wait for all requests to finish (notably WT and UNMAP requests) */
 		STARPU_PTHREAD_MUTEX_LOCK(&child_handle->busy_mutex);
 		while (1)
 		{
@@ -485,13 +488,6 @@ void starpu_data_unpartition(starpu_data_handle_t root_handle, unsigned gatherin
 			if (local->mc && local->allocated && local->automatically_allocated)
 				/* free the child data copy in a lazy fashion */
 				_starpu_request_mem_chunk_removal(child_handle, local, node, sizes[child]);
-			if (local->mapped)
-			{
-				/* This was just a mapped bit, unmap it */
-				_starpu_data_unmap(child_handle, node);
-				/* and this node does not actually have all bits */
-				isvalid = 0;
-			}
 		}
 
 		local = &root_handle->per_node[node];
