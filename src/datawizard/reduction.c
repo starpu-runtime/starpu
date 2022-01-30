@@ -50,8 +50,7 @@ void starpu_data_set_reduction_methods(starpu_data_handle_t handle,
 void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, int workerid)
 {
 	STARPU_ASSERT(replicate);
-	STARPU_ASSERT(replicate->mapped == STARPU_UNMAPPED); /* FIXME: reduction unsupported on mapped replicates for now */
-	STARPU_ASSERT(replicate->allocated);
+	STARPU_ASSERT(replicate->allocated || replicate->mapped != STARPU_UNMAPPED);
 
 	struct starpu_codelet *init_cl = handle->init_cl;
 	STARPU_ASSERT_MSG(init_cl, "There is no initialisation codelet for the reduction of the handle %p. Maybe you forget to call starpu_data_set_reduction_methods() ?", handle->root_handle);
