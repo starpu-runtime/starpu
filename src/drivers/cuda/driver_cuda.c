@@ -2011,6 +2011,8 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 #endif
 
 #ifdef STARPU_USE_CUDA_MAP
+	.map[STARPU_CPU_RAM] = _starpu_cuda_map_ram,
+	.unmap[STARPU_CPU_RAM] = _starpu_cuda_unmap_ram,
 	.update_map[STARPU_CPU_RAM] = _starpu_cuda_update_map,
 #endif
 

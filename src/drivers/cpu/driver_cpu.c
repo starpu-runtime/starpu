@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -644,28 +644,8 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.map[STARPU_CPU_RAM] = _starpu_cpu_map,
-#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
-	.map[STARPU_CUDA_RAM] = _starpu_cuda_map_ram,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.map[STARPU_OPENCL_RAM] = _starpu_opencl_map_ram,
-#endif
-
 	.unmap[STARPU_CPU_RAM] = _starpu_cpu_unmap,
-#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
-	.unmap[STARPU_CUDA_RAM] = _starpu_cuda_unmap_ram,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.unmap[STARPU_OPENCL_RAM] = _starpu_opencl_unmap_ram,
-#endif
-
 	.update_map[STARPU_CPU_RAM] = _starpu_cpu_update_map,
-#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_CUDA_MAP)
-	.update_map[STARPU_CUDA_RAM] = _starpu_cuda_update_map,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.update_map[STARPU_OPENCL_RAM] = _starpu_opencl_update_opencl_map,
-#endif
 
 	.wait_request_completion = NULL,
 	.test_request_completion = NULL,

@@ -543,12 +543,12 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
 
 uintptr_t starpu_interface_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret)
 {
-	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
 
-	if (node_ops && node_ops->map[dst_kind])
+	if (node_ops && node_ops->map[src_kind])
 	{
-		return node_ops->map[dst_kind](src, src_offset, src_node, dst_node, size, ret);
+		return node_ops->map[src_kind](src, src_offset, src_node, dst_node, size, ret);
 	}
 	else
 	{
@@ -559,12 +559,12 @@ uintptr_t starpu_interface_map(uintptr_t src, size_t src_offset, unsigned src_no
 
 int starpu_interface_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size)
 {
-	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
 
-	if (node_ops && node_ops->unmap[dst_kind])
+	if (node_ops && node_ops->unmap[src_kind])
 	{
-		return node_ops->unmap[dst_kind](src, src_offset, src_node, dst, dst_node, size);
+		return node_ops->unmap[src_kind](src, src_offset, src_node, dst, dst_node, size);
 	}
 	else
 	{
@@ -575,14 +575,20 @@ int starpu_interface_unmap(uintptr_t src, size_t src_offset, unsigned src_node, 
 
 int starpu_interface_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
 {
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
 	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(src_node);
+	struct _starpu_node_ops *src_node_ops = _starpu_memory_node_get_node_ops(src_node);
+	struct _starpu_node_ops *dst_node_ops = _starpu_memory_node_get_node_ops(dst_node);
 
 	assert(0);
 
-	if (node_ops && node_ops->update_map[dst_kind])
+	if (src_node_ops && src_node_ops->update_map[dst_kind])
 	{
-		return node_ops->update_map[dst_kind](src, src_offset, src_node, dst, dst_offset, dst_node, size);
+		return src_node_ops->update_map[dst_kind](src, src_offset, src_node, dst, dst_offset, dst_node, size);
+	}
+	else if (dst_node_ops && dst_node_ops->update_map[src_kind])
+	{
+		return dst_node_ops->update_map[src_kind](src, src_offset, src_node, dst, dst_offset, dst_node, size);
 	}
 	else
 	{

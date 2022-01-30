@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -1481,6 +1481,8 @@ struct _starpu_node_ops _starpu_driver_opencl_node_ops =
 
 	/* TODO: copy2D/3D? */
 
+	.map[STARPU_CPU_RAM] = _starpu_opencl_map_ram,
+	.unmap[STARPU_CPU_RAM] = _starpu_opencl_unmap_ram,
 	.update_map[STARPU_CPU_RAM] = _starpu_opencl_update_cpu_map,
 
 	.wait_request_completion = _starpu_opencl_wait_request_completion,
