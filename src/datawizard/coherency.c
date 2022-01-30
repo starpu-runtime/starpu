@@ -648,7 +648,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		{
 			/* And this is the main RAM without pinning, really no need for a
 			 * request, just quickly allocate and be done */
-			if (_starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch, 0) == 0)
+			if (dst_replicate->mapped || _starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch, 0) == 0)
 			{
 				_starpu_update_data_state(handle, dst_replicate, mode);
 				if (dst_replicate->mc)
