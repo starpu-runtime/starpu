@@ -1161,7 +1161,7 @@ static void _starpu_data_invalidate(void *data)
 	{
 		struct _starpu_data_replicate *local = &handle->per_node[node];
 
-		if (local->mc && local->allocated && local->automatically_allocated && !(node == STARPU_MAIN_RAM && mapped))
+		if (local->mc && local->allocated && local->automatically_allocated && !(node == STARPU_MAPPED_RAM && mapped))
 		{
 			_starpu_data_unregister_ram_pointer(handle, node);
 

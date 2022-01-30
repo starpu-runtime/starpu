@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,6 +40,9 @@ struct _starpu_cond_and_worker
 	starpu_pthread_cond_t *cond;
 	struct _starpu_worker *worker;
 };
+
+/* TODO: Support mapping non-main RAM  */
+#define STARPU_MAPPED_RAM STARPU_MAIN_RAM
 
 struct _starpu_memory_node_descr
 {

@@ -571,7 +571,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 	if ((int) node == handle->home_node)
 		return 0;
 
-	if (node == STARPU_MAIN_RAM)
+	if (node == STARPU_MAPPED_RAM)
 	{
 		unsigned mapnode;
 		for (mapnode = 0; mapnode < STARPU_MAXNODES; mapnode++)
