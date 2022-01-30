@@ -198,7 +198,8 @@ void _starpu_update_data_state(starpu_data_handle_t handle,
 				&& !_starpu_node_needs_map_update(requesting_node))
 				/* The mapped node will be kept up to date */
 				continue;
-			if (handle->per_node[node].mapped == requesting_node)
+			if (handle->per_node[node].mapped == requesting_node
+				&& !_starpu_node_needs_map_update(node))
 				/* The mapping node will be kept up to date */
 				continue;
 			if (handle->per_node[node].state != STARPU_INVALID)
