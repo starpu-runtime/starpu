@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -2060,6 +2060,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 					int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, devid, &_starpu_driver_cpu_node_ops);
 					_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(devid, config));
 					STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
+					_starpu_memory_node_set_mapped(memnode);
 					numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
 					int numa_physical_id = _starpu_get_physical_numa_node_worker(worker);
 					numa_memory_nodes_to_physicalid[memnode] = numa_physical_id;
@@ -2107,6 +2108,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 				int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index, &_starpu_driver_cpu_node_ops);
 				_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(obj->logical_index, config));
 				STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
+				_starpu_memory_node_set_mapped(memnode);
 				numa_memory_nodes_to_hwloclogid[memnode] = obj->logical_index;
 				numa_memory_nodes_to_physicalid[memnode] = obj->os_index;
 				nb_numa_nodes++;
@@ -2167,6 +2169,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 						int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, obj->logical_index, &_starpu_driver_cpu_node_ops);
 						_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(obj->logical_index, config));
 						STARPU_ASSERT_MSG(memnode < STARPU_MAXNUMANODES, "Wrong Memory Node : %d (only %d available)", memnode, STARPU_MAXNUMANODES);
+						_starpu_memory_node_set_mapped(memnode);
 						numa_memory_nodes_to_hwloclogid[memnode] = obj->logical_index;
 						numa_memory_nodes_to_physicalid[memnode] = obj->os_index;
 						nb_numa_nodes++;
@@ -2223,6 +2226,7 @@ static void _starpu_init_numa_node(struct _starpu_machine_config *config)
 		}
 		int memnode = _starpu_memory_node_register(STARPU_CPU_RAM, numa_logical_id, &_starpu_driver_cpu_node_ops);
 		_starpu_memory_manager_set_global_memory_size(memnode, _starpu_cpu_get_global_mem_size(numa_logical_id, config));
+		_starpu_memory_node_set_mapped(memnode);
 
 		numa_memory_nodes_to_hwloclogid[memnode] = numa_logical_id;
 		numa_memory_nodes_to_physicalid[memnode] = numa_physical_id;
