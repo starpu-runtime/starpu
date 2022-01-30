@@ -40,29 +40,28 @@ run()
 {
     sched=$1
     echo "cholesky.$sched"
-    STARPU_SCHED=$sched $STARPU_LAUNCH $basedir/../cholesky/cholesky_tag -size $((320*3)) -nblocks 3
+    STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $STARPU_LAUNCH $basedir/../cholesky/cholesky_tag -size $((320*3)) -nblocks 3
     check_success $?
 }
 
-case "$MAKEFLAGS" in
-    *\ -j1[0-9]*\ *|*\ -j[2-9]*\ *)
+if [ -n "$STARPU_SUB_PARALLEL" ]
+then
 	for sched in $SCHEDULERS
 	do
 		run $sched &
 	done
+	RESULT=0
 	while true
 	do
 		wait -n
 		RET=$?
 		if [ $RET = 127 ] ; then break ; fi
-		check_success $RET
+		if [ $RET != 0 -a $RET != 77 ] ; then RESULT=1 ; fi
 	done
-    ;;
-
-    *)
+	exit $RESULT
+else
 	for sched in $SCHEDULERS
 	do
 		run $sched
 	done
-    ;;
-esac
+fi

@@ -86,6 +86,15 @@ AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_PATH_PROGS(PROG_FIND,find)
 
+AC_CACHE_CHECK([for parallel that supports semaphores with exit code], [ac_cv_path_PARALLEL],
+  [AC_PATH_PROGS_FEATURE_CHECK([PARALLEL], [parallel],
+    [[parallel --semaphore --id starpu --fg --fg-exit -j 2 exit 42 > /dev/null 2>&1
+      [ $? = 42 ] && ac_cv_path_PARALLEL=$ac_path_PARALLEL ac_path_PARALLEL_found=:]],
+    [ac_cv_path_PARALLEL=no])])
+AC_SUBST([PARALLEL], [$ac_cv_path_PARALLEL])
+AM_CONDITIONAL([HAVE_PARALLEL], [test "x$PARALLEL" != "xno"])
+
+
 dnl locate pkg-config
 PKG_PROG_PKG_CONFIG
 
