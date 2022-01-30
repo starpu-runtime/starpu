@@ -19,6 +19,15 @@ AM_CXXFLAGS = $(GLOBAL_AM_CXXFLAGS)
 AM_FFLAGS = $(GLOBAL_AM_FFLAGS)
 AM_FCFLAGS = $(GLOBAL_AM_FCFLAGS)
 
+if HAVE_PARALLEL
+# When GNU parallel is available and -j is passed to make, run tests through
+# parallel, using a "starpu" semaphore.
+# Also make test shell scripts run its tests through parallel, using a
+# "substarpu" semaphore. This brings some overload, but only one level.
+STARPU_SUB_PARALLEL=$(shell echo $(MAKEFLAGS) | sed -ne 's/.*-j\([0-9]\+\).*/parallel --semaphore --id substarpu --fg --fg-exit -j \1/p')
+export STARPU_SUB_PARALLEL
+endif
+
 if STARPU_USE_MPI_MASTER_SLAVE
 MPI_LAUNCHER 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
 MPI_RUN_ARGS			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 STARPU_NMPIMSTHREADS=4
