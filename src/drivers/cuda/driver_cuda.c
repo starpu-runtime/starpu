@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
@@ -1282,13 +1282,15 @@ _starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 			STARPU_CUDA_REPORT_ERROR(cures);
 		}
 #ifdef STARPU_HAVE_CUDA_POINTER_TYPE
-		STARPU_ASSERT(cuda_ptrattr.type == cudaMemoryTypeHost || cuda_ptrattr.type == cudaMemoryTypeManaged);
+		if (!(cuda_ptrattr.type == cudaMemoryTypeHost || cuda_ptrattr.type == cudaMemoryTypeManaged))
+			return 0;
 #else
-		STARPU_ASSERT(cuda_ptrattr.memoryType == cudaMemoryTypeHost
+		if (!(cuda_ptrattr.memoryType == cudaMemoryTypeHost
 #if CUDART_VERSION >= 10000
 				|| cuda_ptrattr.memoryType == cudaMemoryTypeManaged
 #endif
-				);
+				))
+			return 0;
 #endif
 		dst_addr = (uintptr_t)cuda_ptrattr.devicePointer;
 		*ret = 0;
