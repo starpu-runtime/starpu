@@ -120,6 +120,7 @@ void bubble_gen_dag_func(struct starpu_task *t, void *arg)
 	starpu_data_handle_t *subhandlesA = b_a->subA;
 	starpu_data_handle_t *subhandlesB = b_a->subB;
 	starpu_data_handle_t *subhandlesC = b_a->subC;
+	free(b_a);
 
 	insert_dag(subhandlesA, subhandlesB, subhandlesC, NULL, NULL, NULL, t);
 }

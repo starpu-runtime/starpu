@@ -107,6 +107,7 @@ enodev:
 		FPRINTF(stderr, "\n");
 	}
 	starpu_shutdown();
+	free(vector);
 	return (ret == -ENODEV) ? 77 : 0;
 }
 
@@ -205,6 +206,7 @@ enodev:
 		FPRINTF(stderr, "\n");
 	}
 	starpu_shutdown();
+	free(vector);
 	return (ret == -ENODEV) ? 77 : 0;
 }
 
