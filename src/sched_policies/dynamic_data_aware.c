@@ -1493,7 +1493,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			erase_task_and_data_pointer(task, main_task_list);
 			starpu_task_list_push_back(&g->planned_task, task);
 			
-			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			
 			goto end_scheduling;
 		}
@@ -1543,7 +1543,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	gettimeofday(&time_start_choose_best_data, NULL);
 	#endif
 	
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		
 	/* Recherche de la meilleure donnée. Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
@@ -1961,7 +1961,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	//~ #endif
 	
 	end_choose_best_data : ;
-	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
 	#ifdef PRINT
 	fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index);
@@ -2167,7 +2167,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		printf("Random selection because no data allow to get free or 1 from free tasks.\n");
 		#endif
 		
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		goto random;
 	}
     
