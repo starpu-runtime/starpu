@@ -1497,7 +1497,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			starpu_task_list_push_back(&g->planned_task, task);
 			
 			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
-			
+			//printf("natural order 2 ok with %p.\n", task); fflush(stdout);	
 			goto end_scheduling;
 		}
 		else
@@ -2190,9 +2190,19 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		number_random_selection++;
 		#endif
 		
-		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		//STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 				
-		struct starpu_task *task = starpu_task_list_pop_front(main_task_list);	
+		struct starpu_task *task = NULL;
+		if (!starpu_task_list_empty(main_task_list))
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+			task = starpu_task_list_pop_front(main_task_list);
+		}
+		else
+		{
+			//STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			return;
+		}
 		
 		if (choose_best_data_from == 0)
 		{	
