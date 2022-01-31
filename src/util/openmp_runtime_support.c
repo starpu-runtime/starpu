@@ -2520,14 +2520,15 @@ void starpu_omp_atomic_fallback_inline_end(void)
 
 void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t slice_base)
 {
-	/* FIXME Oli: rather iterate over all nodes? */
-	int node = starpu_data_get_home_node(handle);
-	if (node < 0 || (starpu_node_get_kind(node) != STARPU_CPU_RAM))
-		node = STARPU_MAIN_RAM;
-	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
-		starpu_data_get_interface_on_node(handle, node);
-	assert(vector_interface->id == STARPU_VECTOR_INTERFACE_ID);
-	vector_interface->slice_base = slice_base;
+	unsigned node;
+
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *)
+			starpu_data_get_interface_on_node(handle, node);
+		assert(vector_interface->id == STARPU_VECTOR_INTERFACE_ID);
+		vector_interface->slice_base = slice_base;
+	}
 }
 
 struct starpu_arbiter *starpu_omp_get_default_arbiter(void)
