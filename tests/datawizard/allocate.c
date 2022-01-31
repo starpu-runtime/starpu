@@ -181,7 +181,12 @@ int main(void)
 	setenv("STARPU_LIMIT_OPENCL_MEM", STR_LIMIT, 1);
 	setenv("STARPU_LIMIT_CPU_NUMA_MEM", STR_LIMIT, 1);
 
-        ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return EXIT_FAILURE;
+	conf.disable_map = 1;
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
