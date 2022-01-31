@@ -161,7 +161,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 		src_node = i_disk;
 
 	STARPU_ASSERT(src_node != -1);
-	STARPU_ASSERT(handle->per_node[src_node].allocated);
+	STARPU_ASSERT(handle->per_node[src_node].allocated || handle->per_node[src_node].mapped != STARPU_UNMAPPED);
 	STARPU_ASSERT(handle->per_node[src_node].initialized);
 	return src_node;
 }
