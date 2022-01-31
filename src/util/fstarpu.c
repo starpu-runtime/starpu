@@ -117,6 +117,8 @@ static const intptr_t fstarpu_seq	= STARPU_SEQ;
 static const intptr_t fstarpu_spmd	= STARPU_SPMD;
 static const intptr_t fstarpu_forkjoin	= STARPU_FORKJOIN;
 
+static const intptr_t fstarpu_default_prio	= STARPU_DEFAULT_PRIO;
+
 intptr_t fstarpu_get_constant(char *s)
 {
 	if	(!strcmp(s, "FSTARPU_R"))	{ return fstarpu_r; }
@@ -214,6 +216,8 @@ intptr_t fstarpu_get_constant(char *s)
 	else if (!strcmp(s, "FSTARPU_SPMD"))	{ return fstarpu_spmd; }
 	else if (!strcmp(s, "FSTARPU_FORKJOIN"))	{ return fstarpu_forkjoin; }
 
+	else if (!strcmp(s, "FSTARPU_DEFAULT_PRIO"))	{ return fstarpu_default_prio; }
+
 	else { _STARPU_ERROR("unknown constant"); }
 }
 
@@ -300,6 +304,12 @@ void fstarpu_codelet_free(struct starpu_codelet *cl)
 void fstarpu_codelet_set_name(struct starpu_codelet *cl, const char *cl_name)
 {
 	cl->name = cl_name;
+}
+
+void fstarpu_codelet_set_color(struct starpu_codelet *cl, int cl_color)
+{
+	STARPU_ASSERT(cl_color >= 0);
+	cl->color = (unsigned)cl_color;
 }
 
 void fstarpu_codelet_set_model(struct starpu_codelet *cl, struct starpu_perfmodel *cl_perfmodel)

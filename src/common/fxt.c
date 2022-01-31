@@ -20,6 +20,7 @@
 #include <core/simgrid.h>
 #include <starpu_util.h>
 #include <starpu_profiling.h>
+#include <core/workers.h>
 
 /* we need to identify each task to generate the DAG. */
 unsigned long _starpu_job_cnt = 0;
@@ -52,7 +53,21 @@ static int _starpu_written = 0;
 
 static int _starpu_id;
 
+/* If we use several MPI processes, we can't use STARPU_GENERATE_TRACE=1,
+ * because each MPI process will handle its own trace file, so store the world
+ * size to warn the user if needed and avoid processing partial traces. */
+static int _starpu_mpi_worldsize = 1;
+
+/* Event mask used to initialize FxT. By default all events are recorded just
+ * after FxT starts, but this can be changed by calling
+ * starpu_fxt_autostart_profiling(0) */
 static unsigned int initial_key_mask = FUT_KEYMASKALL;
+
+/* Event mask used when events are actually recorded, e.g. between
+ * starpu_fxt_start|stop_profiling() calls if autostart is disabled, or at
+ * anytime otherwise. Can be changed by the user at runtime, by setting
+ * STARPU_FXT_EVENTS env var. */
+static unsigned int profiling_key_mask = 0;
 
 #ifdef STARPU_SIMGRID
 /* Give virtual time to FxT */
@@ -116,6 +131,73 @@ static void _starpu_profile_set_tracefile(void)
 	snprintf(_starpu_prof_file_user, sizeof(_starpu_prof_file_user), "%s/%s", fxt_prefix, suffix);
 }
 
+static inline unsigned int _starpu_profile_get_user_keymask(void)
+{
+	if (profiling_key_mask != 0)
+		return profiling_key_mask;
+
+	char *fxt_events = starpu_getenv("STARPU_FXT_EVENTS");
+	if (fxt_events)
+	{
+		profiling_key_mask = _STARPU_FUT_KEYMASK_META; // contains mandatory events, even when profiling is disabled
+
+		char delim[] = "|,";
+		char* sub = strtok(fxt_events, delim);
+		for (; sub != NULL; sub = strtok(NULL, delim))
+		{
+			if (!strcasecmp(sub, "USER"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_USER;
+			else if (!strcasecmp(sub, "TASK"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_TASK;
+			else if (!strcasecmp(sub, "TASK_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_TASK_VERBOSE;
+			else if (!strcasecmp(sub, "DATA"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_DATA;
+			else if (!strcasecmp(sub, "DATA_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_DATA_VERBOSE;
+			else if (!strcasecmp(sub, "WORKER"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_WORKER;
+			else if (!strcasecmp(sub, "WORKER_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_WORKER_VERBOSE;
+			else if (!strcasecmp(sub, "DSM"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_DSM;
+			else if (!strcasecmp(sub, "DSM_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_DSM_VERBOSE;
+			else if (!strcasecmp(sub, "SCHED"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_SCHED;
+			else if (!strcasecmp(sub, "SCHED_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_SCHED_VERBOSE;
+			else if (!strcasecmp(sub, "LOCK"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_LOCK;
+			else if (!strcasecmp(sub, "LOCK_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_LOCK_VERBOSE;
+			else if (!strcasecmp(sub, "EVENT"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_EVENT;
+			else if (!strcasecmp(sub, "EVENT_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_EVENT_VERBOSE;
+			else if (!strcasecmp(sub, "MPI"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_MPI;
+			else if (!strcasecmp(sub, "MPI_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_MPI_VERBOSE;
+			else if (!strcasecmp(sub, "HYP"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_HYP;
+			else if (!strcasecmp(sub, "HYP_VERBOSE"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_HYP_VERBOSE;
+			/* Added categories here should also be added in the documentation
+			 * 501_environment_variable.doxy. */
+			else
+				_STARPU_MSG("Unknown event type '%s'\n", sub);
+		}
+	}
+	else
+	{
+		/* If user doesn't want to filter events, all events are recorded: */
+		profiling_key_mask = FUT_KEYMASKALL;
+	}
+
+	return profiling_key_mask;
+}
+
 void starpu_profiling_set_id(int new_id)
 {
 	_STARPU_DEBUG("Set id to <%d>\n", new_id);
@@ -127,10 +209,32 @@ void starpu_profiling_set_id(int new_id)
 #endif
 }
 
+void _starpu_profiling_set_mpi_worldsize(int worldsize)
+{
+	STARPU_ASSERT(worldsize >= 1);
+	_starpu_mpi_worldsize = worldsize;
+
+	int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
+	if (generate_trace == 1 && _starpu_mpi_worldsize > 1)
+	{
+		/** TODO: make it work !
+		 * The problem is that when STARPU_GENERATE_TRACE is used, each MPI
+		 * process will generate the trace corresponding to its own execution
+		 * (which makes no sense in MPI execution with several processes).
+		 * Although letting only one StarPU process generating the trace by
+		 * using the trace files of all MPI processes is not the most
+		 * complicated thing to do, one case is not easy to deal with: what to
+		 * do when each process stored its trace file in the local memory of
+		 * the node (e.g. /tmp/) ?
+		 */
+		_STARPU_MSG("You can't use STARPU_GENERATE_TRACE=1 with several MPI processes. Use starpu_fxt_tool after application execution.\n");
+	}
+}
+
 void starpu_fxt_autostart_profiling(int autostart)
 {
 	if (autostart)
-		initial_key_mask = FUT_KEYMASKALL;
+		initial_key_mask = _starpu_profile_get_user_keymask();
 	else
 		initial_key_mask = _STARPU_FUT_KEYMASK_META;
 }
@@ -138,7 +242,7 @@ void starpu_fxt_autostart_profiling(int autostart)
 void starpu_fxt_start_profiling()
 {
 	unsigned threadid = _starpu_gettid();
-	fut_keychange(FUT_ENABLE, FUT_KEYMASKALL, threadid);
+	fut_keychange(FUT_ENABLE, _starpu_profile_get_user_keymask(), threadid);
 	_STARPU_TRACE_META("start_profiling");
 }
 
@@ -151,7 +255,7 @@ void starpu_fxt_stop_profiling()
 
 int starpu_fxt_is_enabled()
 {
-	return starpu_get_env_number_default("STARPU_FXT_TRACE", 1);
+	return starpu_get_env_number_default("STARPU_FXT_TRACE", 0);
 }
 
 #ifdef HAVE_FUT_SETUP_FLUSH_CALLBACK
@@ -181,6 +285,7 @@ void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
 	_starpu_fxt_started = 1;
 	_starpu_written = 0;
 	_starpu_profile_set_tracefile();
+
 
 #ifdef HAVE_FUT_SET_FILENAME
 	fut_set_filename(_starpu_prof_file_user);
@@ -212,7 +317,7 @@ void _starpu_fxt_init_profiling(uint64_t trace_buffer_size)
 	return;
 }
 
-static void _starpu_generate_paje_trace_read_option(const char *option, struct starpu_fxt_options *options)
+int _starpu_generate_paje_trace_read_option(const char *option, struct starpu_fxt_options *options)
 {
 	if (strcmp(option, "-c") == 0)
 	{
@@ -254,10 +359,15 @@ static void _starpu_generate_paje_trace_read_option(const char *option, struct s
 	{
 		options->label_deps = 1;
 	}
+	else if (strcmp(option, "-number-events") == 0)
+	{
+		options->number_events_path = strdup("number_events.data");
+	}
 	else
 	{
-		_STARPU_MSG("Option <%s> is not a valid option for starpu_fxt_tool\n", option);
+		return 1;
 	}
+	return 0;
 }
 
 static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_paje_filename, char *dirname)
@@ -272,7 +382,9 @@ static void _starpu_generate_paje_trace(char *input_fxt_filename, char *output_p
 		char *option = strtok(trace_options, " ");
 		while (option)
 		{
-			_starpu_generate_paje_trace_read_option(option, &options);
+			int ret = _starpu_generate_paje_trace_read_option(option, &options);
+			if (ret == 1)
+				_STARPU_MSG("Option <%s> is not a valid option for starpu_fxt_tool\n", option);
 			option = strtok(NULL, " ");
 		}
 	}
@@ -316,8 +428,9 @@ void _starpu_stop_fxt_profiling(void)
 
 		/* Should we generate a Paje trace directly ? */
 		int generate_trace = starpu_get_env_number("STARPU_GENERATE_TRACE");
-		if (generate_trace == 1)
+		if (_starpu_mpi_worldsize == 1 && generate_trace == 1)
 		{
+			_starpu_set_catch_signals(0);
 			char *fxt_prefix = starpu_getenv("STARPU_FXT_PREFIX");
 			_starpu_generate_paje_trace(_starpu_prof_file_user, "paje.trace", fxt_prefix);
 		}

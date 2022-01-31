@@ -122,8 +122,7 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy, struct _
 	}
 #endif
 
-	struct starpu_sched_policy *policy = sched_ctx->sched_policy;
-	memcpy(policy, sched_policy, sizeof(*policy));
+	*(sched_ctx->sched_policy) = *sched_policy;
 }
 
 static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)
@@ -494,6 +493,7 @@ int _starpu_repush_task(struct _starpu_job *j)
 	 * corresponding dependencies */
 	if (task->cl == NULL || task->where == STARPU_NOWHERE)
 	{
+		_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
 		if (!_starpu_perf_counter_paused() && !j->internal)
 		{
 			(void)STARPU_ATOMIC_ADD64(& _starpu_task__g_current_ready__value, -1);
@@ -518,7 +518,11 @@ int _starpu_repush_task(struct _starpu_job *j)
 		}
 		else
 		{
-			if (task->cl)
+			if (task->cl
+#ifdef STARPU_BUBBLE
+			    && !j->is_bubble
+#endif
+			    )
 				__starpu_push_task_output(j);
 			_starpu_handle_job_termination(j);
 			_STARPU_LOG_OUT_TAG("handle_job_termination");
@@ -1026,8 +1030,7 @@ profiling:
 		 * even though we already tested if profiling is enabled. */
 		if (profiling_info)
 		{
-			memcpy(&profiling_info->pop_start_time,
-				&pop_start_time, sizeof(struct timespec));
+			profiling_info->pop_start_time = pop_start_time;
 			_starpu_clock_gettime(&profiling_info->pop_end_time);
 		}
 	}
@@ -1164,7 +1167,7 @@ void _starpu_print_idle_time()
 	}
 }
 
-void starpu_sched_task_break(struct starpu_task *task)
+void starpu_sched_task_break(struct starpu_task *task STARPU_ATTRIBUTE_UNUSED)
 {
 	_STARPU_TASK_BREAK_ON(task, sched);
 }

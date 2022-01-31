@@ -37,10 +37,8 @@
 #include "abstract_sendrecv_bench.h"
 #include "gemm_helper.h"
 
-
 static int mpi_rank;
 static starpu_pthread_barrier_t thread_barrier;
-
 
 static void* comm_thread_func(void* arg)
 {
@@ -60,7 +58,6 @@ static void* comm_thread_func(void* arg)
 
 	return NULL;
 }
-
 
 void parse_args(int argc, char **argv)
 {
@@ -146,17 +143,13 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-
 	STARPU_PTHREAD_BARRIER_INIT(&thread_barrier, NULL, 2);
-
 
 	// Start comm thread, benchmarking sendrecv:
 	STARPU_PTHREAD_CREATE(&comm_thread, NULL, comm_thread_func, NULL);
 
-
 	// Main thread will submit GEMM tasks:
 	gemm_alloc_data();
-
 
 	if (mpi_rank == 0)
 	{
@@ -167,7 +160,6 @@ int main(int argc, char **argv)
 
 	if(gemm_init_data() == -ENODEV || gemm_submit_tasks() == -ENODEV)
 		goto enodev;
-
 
 	starpu_mpi_barrier(MPI_COMM_WORLD);
 	starpu_fxt_start_profiling();
@@ -188,7 +180,6 @@ int main(int argc, char **argv)
 
 enodev:
 	gemm_release();
-
 
 	// Wait comm thread:
 	STARPU_PTHREAD_JOIN(comm_thread, NULL);

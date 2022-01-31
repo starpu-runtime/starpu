@@ -42,7 +42,7 @@ if len(sys.argv) >= 2:
         sys.exit(0)
     if sys.argv[1] == '-h' or sys.argv[1] == '--help':
         usage()
-if (len(sys.argv) == 1):
+if len(sys.argv) == 1:
     usage()
 
 if len(sys.argv) >= 2 and sys.argv[1] == '-png':
@@ -61,7 +61,7 @@ for line in file.readlines():
     match = re.search('\TOTAL', line)
     if match:
         (node,stuff)=line.split(sep="[")[2].split("]")
-        if (int(node) > nodes):
+        if int(node) > nodes:
             nodes=int(node)
 file.close()
 nodes=nodes+1

@@ -234,9 +234,9 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 	unsigned n = starpu_matrix_get_nx(dataA);
 	double flop = (2.0f*n*n*n)/3.0f;
 
-	PRINTF("# size\tms\tGFlops");
+	PRINTF("# size\tms\tGFlop/s");
 	if (bound)
-		PRINTF("\tTms\tTGFlops");
+		PRINTF("\tTms\tTGFlop/s");
 	PRINTF("\n");
 	PRINTF("%u\t%.0f\t%.1f", n, timing/1000, flop/timing/1000.0f);
 	if (bound)

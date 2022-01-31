@@ -126,13 +126,13 @@ int main(int argc, char *argv[])
 	STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, pointer));
 	starpu_data_unregister(handle);
 
-	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, 0,
+	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)pointer, count,
 				    count, 1, sizeof(int));
 	STARPU_ASSERT(starpu_data_handle_to_pointer(handle, STARPU_MAIN_RAM) == pointer);
 	STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, pointer));
 	starpu_data_unregister(handle);
 
-	starpu_free(pointer);
+	starpu_free_noflag(pointer, count * sizeof(int));
 	pointer = NULL;
 
 	/* Lazy allocation.  */
@@ -165,7 +165,7 @@ int main(int argc, char *argv[])
 		for(i = 0; i < count; i++)
 		{
 			int *numbers = (int *)pointer;
-			STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, numbers));
+			STARPU_ASSERT(starpu_data_pointer_is_inside(handle, STARPU_MAIN_RAM, &numbers[i]));
 			if (numbers[i] != i)
 			{
 				FPRINTF(stderr, "Incorrect value numbers[%d] == %d should be %d\n", (int)i, numbers[i], (int)i);

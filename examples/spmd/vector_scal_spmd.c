@@ -112,6 +112,15 @@ int main(void)
 	conf.single_combined_worker = 1;
 	conf.sched_policy_name = "pheft";
 
+	{
+		ret = starpu_init(NULL);
+		if (ret == -ENODEV) return 77;
+		conf.ncpus = starpu_cpu_worker_get_count();
+		conf.ncpus /= 2;
+		starpu_shutdown();
+	}
+
+
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

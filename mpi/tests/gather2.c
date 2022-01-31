@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	if (rank == 0)
@@ -52,14 +52,17 @@ int main(int argc, char **argv)
 			for(i=0 ; i<2 ; i++)
 				starpu_variable_data_register(&handle[i], STARPU_MAIN_RAM, (uintptr_t)&var[i], sizeof(var[i]));
 
-			starpu_mpi_recv(handle[0], n, 42, MPI_COMM_WORLD, &status[0]);
+			ret = starpu_mpi_recv(handle[0], n, 42, MPI_COMM_WORLD, &status[0]);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 			starpu_data_acquire(handle[0], STARPU_R);
 			STARPU_ASSERT_MSG(var[0] == n, "Received incorrect value <%d> from node <%d>\n", var[0], n);
 			FPRINTF_MPI(stderr, "received <%d> from node %d\n", var[0], n);
 			starpu_data_release(handle[0]);
 
-			starpu_mpi_recv(handle[0], n, 42, MPI_COMM_WORLD, &status[1]);
-			starpu_mpi_recv(handle[1], n, 44, MPI_COMM_WORLD, &status[2]);
+			ret = starpu_mpi_recv(handle[0], n, 42, MPI_COMM_WORLD, &status[1]);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+			ret = starpu_mpi_recv(handle[1], n, 44, MPI_COMM_WORLD, &status[2]);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 			for(i=0 ; i<2 ; i++)
 				starpu_data_acquire(handle[i], STARPU_R);
 			STARPU_ASSERT_MSG(var[0] == n*2, "Received incorrect value <%d> from node <%d>\n", var[0], n);
@@ -82,9 +85,12 @@ int main(int argc, char **argv)
 		var[2] = var[0] * 4;
 		for(i=0 ; i<3 ; i++)
 			starpu_variable_data_register(&handle[i], STARPU_MAIN_RAM, (uintptr_t)&var[i], sizeof(var[i]));
-		starpu_mpi_send(handle[0], 0, 42, MPI_COMM_WORLD);
-		starpu_mpi_send(handle[1], 0, 42, MPI_COMM_WORLD);
-		starpu_mpi_send(handle[2], 0, 44, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(handle[0], 0, 42, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+		ret = starpu_mpi_send(handle[1], 0, 42, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+		ret = starpu_mpi_send(handle[2], 0, 44, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		for(i=0 ; i<3 ; i++)
 			starpu_data_unregister(handle[i]);
 	}

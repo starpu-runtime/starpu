@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -54,13 +54,97 @@
 #include <drivers/cpu/driver_cpu.h>
 
 #include <datawizard/datawizard.h>
+#include <datawizard/malloc.h>
 
 #pragma GCC visibility push(hidden)
 
 #define STARPU_MAX_PIPELINE 4
 
-struct _starpu_ctx_change_list;
+struct mc_cache_entry;
+struct _starpu_node {
+	/*
+	 * used by memalloc.c
+	 */
+	/** This per-node RW-locks protect mc_list and memchunk_cache entries */
+	/* Note: handle header lock is always taken before this (normal add/remove case) */
+	struct _starpu_spinlock mc_lock;
 
+	/** Potentially in use memory chunks. The beginning of the list is clean (home
+	 * node has a copy of the data, or the data is being transferred there), the
+	 * remainder of the list may not be clean. */
+	struct _starpu_mem_chunk_list mc_list;
+	/** This is a shortcut inside the mc_list to the first potentially dirty MC. All
+	 * MC before this are clean, MC before this only *may* be clean. */
+	struct _starpu_mem_chunk *mc_dirty_head;
+	/* TODO: introduce head of data to be evicted */
+	/** Number of elements in mc_list, number of elements in the clean part of
+	 * mc_list plus the non-automatically allocated elements (which are thus always
+	 * considered as clean) */
+	unsigned mc_nb, mc_clean_nb;
+
+	struct mc_cache_entry *mc_cache;
+	int mc_cache_nb;
+	starpu_ssize_t mc_cache_size;
+
+	/** Whether some thread is currently tidying this node */
+	unsigned tidying;
+	/** Whether some thread is currently reclaiming memory for this node */
+	unsigned reclaiming;
+
+	/** This records that we tried to prefetch data but went out of memory, so will
+	 * probably fail again to prefetch data, thus not trace each and every
+	 * attempt. */
+	volatile int prefetch_out_of_memory;
+
+	/** Whether this memory node can evict data to another node */
+	unsigned evictable;
+
+	/*
+	 * used by data_request.c
+	 */
+	/** requests that have not been treated at all */
+	struct _starpu_data_request_prio_list data_requests[STARPU_MAXNODES][2];
+	struct _starpu_data_request_prio_list prefetch_requests[STARPU_MAXNODES][2]; /* Contains both task_prefetch and prefetch */
+	struct _starpu_data_request_prio_list idle_requests[STARPU_MAXNODES][2];
+	starpu_pthread_mutex_t data_requests_list_mutex[STARPU_MAXNODES][2];
+
+	/** requests that are not terminated (eg. async transfers) */
+	struct _starpu_data_request_prio_list data_requests_pending[STARPU_MAXNODES][2];
+	unsigned data_requests_npending[STARPU_MAXNODES][2];
+	starpu_pthread_mutex_t data_requests_pending_list_mutex[STARPU_MAXNODES][2];
+
+	/*
+	 * used by malloc.c
+	 */
+	int malloc_on_node_default_flags;
+	/** One list of chunks per node */
+	struct _starpu_chunk_list chunks;
+	/** Number of completely free chunks */
+	int nfreechunks;
+	/** This protects chunks and nfreechunks */
+	starpu_pthread_mutex_t chunk_mutex;
+
+	/*
+	 * used by memory_manager.c
+	 */
+	size_t global_size;
+	size_t used_size;
+
+	/* This is used as an optimization to avoid to wake up allocating threads for
+	 * each and every deallocation, only to find that there is still not enough
+	 * room.  */
+	/* Minimum amount being waited for */
+	size_t waiting_size;
+
+	starpu_pthread_mutex_t lock_nodes;
+	starpu_pthread_cond_t cond_nodes;
+
+	/** Keep this last, to make sure to separate node data in separate
+	cache lines. */
+	char padding[STARPU_CACHELINE_SIZE];
+};
+
+struct _starpu_ctx_change_list;
 /** This is initialized by _starpu_worker_init() */
 LIST_TYPE(_starpu_worker,
 	struct _starpu_machine_config *config;
@@ -191,6 +275,17 @@ LIST_TYPE(_starpu_worker,
 	hwloc_obj_t hwloc_obj;
 #endif
 
+	struct starpu_profiling_worker_info profiling_info;
+	/* TODO: rather use rwlock? */
+	starpu_pthread_mutex_t profiling_info_mutex;
+
+	/* In case the worker is still sleeping when the user request profiling info,
+	 * we need to account for the time elasped while sleeping. */
+	unsigned profiling_registered_start[STATUS_INDEX_NR];
+	struct timespec profiling_registered_start_date[STATUS_INDEX_NR];
+	enum _starpu_worker_status profiling_status;
+	struct timespec profiling_status_start_date;
+
 	struct starpu_perf_counter_sample perf_counter_sample;
 	int64_t __w_total_executed__value;
 	double __w_cumul_execution_time__value;
@@ -317,6 +412,14 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
 
+	/** Indicates the successive FPGA identifier that should be
+	 * used by the FPGA driver.  It is either filled according
+	 * to the user's explicit parameters (from starpu_conf) or
+	 * according to the STARPU_WORKERS_MAX_FPGAID env. variable.
+	 * Otherwise, they are taken in ID order.
+	 */
+	unsigned workers_max_fpga_deviceid[STARPU_NMAXWORKERS];
+
 	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
 
 };
@@ -341,6 +444,9 @@ struct _starpu_machine_config
 	/** Which GPU(s) do we use for OpenCL ? */
 	int current_opencl_gpuid;
 
+        /* Which FPGA(s) do we use for FPGA? */
+	int current_max_fpga_deviceid;
+
 	/** Which MPI do we use? */
 	int current_mpi_deviceid;
 
@@ -353,6 +459,9 @@ struct _starpu_machine_config
 	/** Basic workers : each of this worker is running its own driver and
 	 * can be combined with other basic workers. */
 	struct _starpu_worker workers[STARPU_NMAXWORKERS];
+
+	/** Memory nodes */
+	struct _starpu_node nodes[STARPU_MAXNODES];
 
 	/** Combined workers: these worker are a combination of basic workers
 	 * that can run parallel tasks together. */
@@ -420,6 +529,7 @@ struct _starpu_memory_driver_info
 {
 	const char *name_upper;	/**< Name of memory in upper case */
 	enum starpu_worker_archtype worker_archtype;	/**< Kind of device */
+	const struct _starpu_node_ops *ops; /**< Memory node operations */
 };
 
 /** Memory driver information, indexed by enum starpu_node_kind */
@@ -433,6 +543,8 @@ extern struct _starpu_machine_config _starpu_config;
 extern int _starpu_keys_initialized;
 extern starpu_pthread_key_t _starpu_worker_key;
 extern starpu_pthread_key_t _starpu_worker_set_key;
+
+void _starpu_set_catch_signals(int do_catch_signal);
 
 /** Three functions to manage argv, argc */
 void _starpu_set_argc_argv(int *argc, char ***argv);
@@ -477,11 +589,6 @@ uint32_t _starpu_can_submit_opencl_task(void);
 /** Check whether there is anything that the worker should do instead of
  * sleeping (waiting on something to happen). */
 unsigned _starpu_worker_can_block(unsigned memnode, struct _starpu_worker *worker);
-
-/** This function must be called to block a worker. It puts the worker in a
- * sleeping state until there is some event that forces the worker to wake up.
- * */
-void _starpu_block_worker(int workerid, starpu_pthread_cond_t *cond, starpu_pthread_mutex_t *mutex);
 
 /** This function initializes the current driver for the given worker */
 void _starpu_driver_start(struct _starpu_worker *worker, enum starpu_worker_archtype archtype, unsigned sync);
@@ -534,8 +641,16 @@ static inline struct _starpu_worker_set *_starpu_get_local_worker_set_key(void)
  * specified worker. */
 static inline struct _starpu_worker *_starpu_get_worker_struct(unsigned id)
 {
-	STARPU_ASSERT(id < starpu_worker_get_count());
+	STARPU_ASSERT(id < STARPU_NMAXWORKERS);
 	return &_starpu_config.workers[id];
+}
+
+/** Returns the _starpu_node structure that describes the state of the
+ * specified node. */
+static inline struct _starpu_node *_starpu_get_node_struct(unsigned id)
+{
+	STARPU_ASSERT(id < STARPU_MAXNODES);
+	return &_starpu_config.nodes[id];
 }
 
 /** Returns the starpu_sched_ctx structure that describes the state of the
@@ -568,9 +683,22 @@ static inline enum _starpu_worker_status _starpu_worker_get_status(int workerid)
 
 /** Change the status of the worker which indicates what the worker is currently
  * doing (eg. executing a callback). */
-static inline void _starpu_worker_set_status(int workerid, enum _starpu_worker_status status)
+static inline void _starpu_worker_add_status(int workerid, enum _starpu_worker_status_index status)
 {
-	_starpu_config.workers[workerid].status = status;
+	STARPU_ASSERT(!(_starpu_config.workers[workerid].status & (1 << status)));
+	if (starpu_profiling_status_get())
+		_starpu_worker_start_state(workerid, status, NULL);
+	_starpu_config.workers[workerid].status |= (1 << status);
+}
+
+/** Change the status of the worker which indicates what the worker is currently
+ * doing (eg. executing a callback). */
+static inline void _starpu_worker_clear_status(int workerid, enum _starpu_worker_status_index status)
+{
+	STARPU_ASSERT((_starpu_config.workers[workerid].status & (1 << status)));
+	if (starpu_profiling_status_get())
+		_starpu_worker_stop_state(workerid, status, NULL);
+	_starpu_config.workers[workerid].status &= ~(1 << status);
 }
 
 /** We keep an initial sched ctx which might be used in case no other ctx is available */
@@ -1171,6 +1299,9 @@ static inline int _starpu_perf_counter_paused(void)
 	STARPU_RMB();
 	return STARPU_UNLIKELY(_starpu_config.perf_counter_pause_depth > 0);
 }
+
+void _starpu_crash_add_hook(void (*hook_func)(void));
+void _starpu_crash_call_hooks();
 
 /* @}*/
 

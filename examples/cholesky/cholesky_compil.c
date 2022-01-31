@@ -173,9 +173,9 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
 	else
 	{
-		PRINTF("# size\tms\tGFlops");
+		PRINTF("# size\tms\tGFlop/s");
 		if (bound_p)
-			PRINTF("\tTms\tTGFlops");
+			PRINTF("\tTms\tTGFlop/s");
 		PRINTF("\n");
 
 		PRINTF("%lu\t%.0f\t%.1f", nelems, timing/1000, (flop/timing/1000.0f));

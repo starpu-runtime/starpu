@@ -77,7 +77,7 @@ static void _try_resizing_hierarchically(unsigned levels, unsigned current_level
 
 	_try_resizing(sched_ctxs, nsched_ctxs, pus, npus);
 
-	int s;
+	unsigned s;
 	for(s = 0; s < nsched_ctxs; s++)
 	{
 		unsigned *sched_ctxs_child;
@@ -98,22 +98,22 @@ static void _try_resizing_hierarchically(unsigned levels, unsigned current_level
 	return;
 }
 
-static int _get_min_level(unsigned *sched_ctxs, int nsched_ctxs)
+static unsigned _get_min_level(unsigned *sched_ctxs, int nsched_ctxs)
 {
-	int min = sc_hypervisor_get_nhierarchy_levels();
+	unsigned min = sc_hypervisor_get_nhierarchy_levels();
 	int s;
 	for(s = 0; s < nsched_ctxs; s++)
 	{
-		int level = starpu_sched_ctx_get_hierarchy_level(sched_ctxs[s]);
+		unsigned level = starpu_sched_ctx_get_hierarchy_level(sched_ctxs[s]);
 		if(level < min)
 			min = level;
 	}
 	return min;
 }
 
-static int _get_first_level(unsigned *sched_ctxs, int nsched_ctxs, unsigned *first_level, int *nsched_ctxs_first_level)
+static unsigned _get_first_level(unsigned *sched_ctxs, int nsched_ctxs, unsigned *first_level, int *nsched_ctxs_first_level)
 {
-	int min = _get_min_level(sched_ctxs, nsched_ctxs);
+	unsigned min = _get_min_level(sched_ctxs, nsched_ctxs);
 	int s;
 	for(s = 0; s < nsched_ctxs; s++)
 		if(starpu_sched_ctx_get_hierarchy_level(sched_ctxs[s]) == min)
@@ -156,11 +156,12 @@ static void _resize(unsigned *sched_ctxs, int nsched_ctxs, int *workers, int nwo
 
 static void _resize_if_speed_diff(unsigned sched_ctx, int worker)
 {
+	(void)worker;
 	unsigned nhierarchy_levels = sc_hypervisor_get_nhierarchy_levels();
 	if(nhierarchy_levels > 1)
 	{
 
-		unsigned current_level = starpu_sched_ctx_get_hierarchy_level(sched_ctx);
+		int current_level = (int)starpu_sched_ctx_get_hierarchy_level(sched_ctx);
 		if(current_level == 0)
 		{
 			_resize(NULL, -1, NULL, -1);
@@ -314,14 +315,16 @@ static void _resize_leaves(int worker)
 	free(sched_ctxs);
 
 	unsigned leaves[nsched_ctxs];
-	unsigned nleaves = 0;
+	int nleaves = 0;
 	sc_hypervisor_get_leaves(workers_sched_ctxs, nworkers_sched_ctxs, leaves, &nleaves);
-	for(s = 0; s < nleaves; s++)
-		_resize_if_speed_diff(leaves[s], worker);
+	int x;
+	for(x = 0; x < nleaves; x++)
+		_resize_if_speed_diff(leaves[x], worker);
 }
 
 static void feft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
+	(void)sched_ctx;
 	unsigned criteria = sc_hypervisor_get_resize_criteria();
 	if(criteria != SC_NOTHING)// && criteria == SC_IDLE)
 	{

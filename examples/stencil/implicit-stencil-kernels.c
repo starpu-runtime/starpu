@@ -343,17 +343,17 @@ void update_func_cpu(void *descr[], void *arg)
 	struct block_description *block = get_block_description(zz);
 
 	int workerid = starpu_worker_get_id_check();
-	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 	if (block->bz == 0)
-		DEBUG("!!! DO update_func_cpu z %u CPU%d !!!\n", block->bz, workerid);
+		DEBUG("!!! DO update_func_cpu z %u worker%d !!!\n", block->bz, workerid);
 	else
-		DEBUG("!!! DO update_func_cpu z %u CPU%d !!!\n", block->bz, workerid);
+		DEBUG("!!! DO update_func_cpu z %u worker%d !!!\n", block->bz, workerid);
 #if defined(STARPU_USE_MPI) && !defined(STARPU_SIMGRID) && !defined(STARPU_USE_MPI_MASTER_SLAVE)
 	int rank = 0;
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	DEBUG( "!!!           RANK %d            !!!\n", rank);
+	DEBUG( "!!!            RANK %d              !!!\n", rank);
 #endif
-	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	DEBUG( "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 
 	unsigned block_size_z = get_block_size(block->bz);
 	unsigned i;
@@ -657,7 +657,7 @@ struct starpu_codelet save_cl_top =
 };
 
 /* Memset a block's buffers */
-static void memset_func(void *descr[], void *arg)
+void memset_func(void *descr[], void *arg)
 {
 	(void)descr;
     	unsigned sizex, sizey, bz;
@@ -715,6 +715,7 @@ static struct starpu_perfmodel memset_model =
 struct starpu_codelet cl_memset =
 {
 	.cpu_funcs = {memset_func},
+	.cpu_funcs_name = {"memset_func"},
 	.model = &memset_model,
 	.nbuffers = 6,
 	.modes = {STARPU_W, STARPU_W, STARPU_W, STARPU_W, STARPU_W, STARPU_W}

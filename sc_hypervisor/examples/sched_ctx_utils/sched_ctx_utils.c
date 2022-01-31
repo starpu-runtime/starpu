@@ -332,6 +332,8 @@ void construct_contexts()
 
 void set_hypervisor_conf(int event, int task_tag)
 {
+	(void)event;
+	(void)task_tag;
 /* 	unsigned *id = STARPU_PTHREAD_GETSPECIFIC(key); */
 /* 	if(*id == 0) */
 /* 	{ */

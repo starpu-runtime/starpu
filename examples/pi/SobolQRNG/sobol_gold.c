@@ -70,7 +70,7 @@ void initSobolDirectionVectors(int n_dimensions, unsigned int *directions)
             for (i = 0 ; i < n_directions ; i++)
             {
                 /* All m's are 1 */
-                v[i] = 1 << (31 - i);
+                v[i] = 1U << (31 - i);
             }
         }
         else

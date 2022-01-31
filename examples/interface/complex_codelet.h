@@ -20,7 +20,7 @@
 #ifndef __COMPLEX_CODELET_H
 #define __COMPLEX_CODELET_H
 
-#define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
+#define _FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
 /* Dumb performance model for simgrid */
 static double complex_cost_function(struct starpu_task *task, unsigned nimpl)
@@ -87,10 +87,10 @@ void display_complex_codelet(void *descr[], void *_args)
 	if (_args)
 		starpu_codelet_unpack_args(_args, &msg);
 
-	FPRINTF(stderr, "[%s]\n", _args?msg:NULL);
+	_FPRINTF(stderr, "[%s]\n", _args?msg:NULL);
 	for(i=0 ; i<nx ; i++)
 	{
-		FPRINTF(stderr, "\tComplex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
+		_FPRINTF(stderr, "\tComplex[%d] = %3.2f + %3.2f i\n", i, real[i], imaginary[i]);
 	}
 	fflush(stderr);
 }
@@ -98,7 +98,8 @@ void display_complex_codelet(void *descr[], void *_args)
 struct starpu_codelet cl_display =
 {
 	.cpu_funcs = {display_complex_codelet},
-	.cpu_funcs_name = {"display_complex_codelet"},
+	/* MPI Master Slave does not use pack/unpack yet */
+	/* .cpu_funcs_name = {"display_complex_codelet"}, */
 	.nbuffers = 1,
 	.modes = {STARPU_R},
 	.name = "cl_display",

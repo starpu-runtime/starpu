@@ -87,8 +87,8 @@ double sc_hypervisor_lp_find_tmax(double t1, double t2);
 */
 unsigned sc_hypervisor_lp_execute_dichotomy(int ns, int nw, double w_in_s[ns][nw], unsigned solve_lp_integer, void *specific_data,
 					    double tmin, double tmax, double smallest_tmax,
-					    double (*lp_estimated_distrib_func)(int ns, int nw, double draft_w_in_s[ns][nw],
-									     unsigned is_integer, double tmax, void *specifc_data));
+					    double (*lp_estimated_distrib_func)(int lns, int lnw, double ldraft_w_in_s[ns][nw],
+										unsigned lis_integer, double ltmax, void *lspecifc_data));
 
 #ifdef STARPU_HAVE_GLPK_H
 /**

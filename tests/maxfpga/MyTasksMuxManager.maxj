@@ -1,0 +1,96 @@
+package maxfpga;
+
+import com.maxeler.maxcompiler.v2.build.EngineParameters;
+//import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.managers.custom.DFELink;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.KernelBlock;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.Mux;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.Demux;
+import com.maxeler.maxcompiler.v2.managers.custom.stdlib.LMemCommandGroup;
+import com.maxeler.maxcompiler.v2.managers.custom.stdlib.LMemInterface;
+import com.maxeler.platform.max5.manager.MAX5CManager;
+
+public class MyTasksMuxManager extends MAX5CManager
+{
+        public MyTasksMuxManager(EngineParameters params)
+	{
+                super(params);
+                KernelBlock kernel1 = addKernel(new Task1(makeKernelParameters("Task1")));
+                KernelBlock kernel2 = addKernel(new Task2(makeKernelParameters("Task2")));
+                KernelBlock kernel3 = addKernel(new Task3(makeKernelParameters("Task3")));
+
+                LMemInterface iface = addLMemInterface();
+
+
+
+		Mux joinInAT1 = mux("joinInAT1");
+		Mux joinInBT1 = mux("joinInBT1");
+
+		joinInAT1.addInput("inCPU") <== addStreamFromCPU("inAT1CPU");
+		joinInAT1.addInput("inLMem") <== iface.addStreamFromLMem("inAT1LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+
+		joinInBT1.addInput("inCPU") <== addStreamFromCPU("inBT1CPU");
+		joinInBT1.addInput("inLMem") <== iface.addStreamFromLMem("inBT1LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+
+                kernel1.getInput("inAT1") <== joinInAT1.getOutput();
+                kernel1.getInput("inBT1") <== joinInBT1.getOutput();
+
+		Demux forkOutCT1 = demux("forkOutCT1");
+		DFELink outCT1CPU = forkOutCT1.addOutput("outCPU");
+		DFELink outCT1LMem = forkOutCT1.addOutput("outLMem");
+
+		forkOutCT1.getInput() <== kernel1.getOutput("outCT1");
+                addStreamToCPU("outCT1CPU") <== outCT1CPU;
+                iface.addStreamToLMem("outCT1LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D) <== outCT1LMem;
+
+
+		Mux joinInAT2 = mux("joinInAT2");
+		Mux joinInBT2 = mux("joinInBT2");
+
+		joinInAT2.addInput("inCPU") <== addStreamFromCPU("inAT2CPU");
+		joinInAT2.addInput("inLMem") <== iface.addStreamFromLMem("inAT2LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+
+		joinInBT2.addInput("inCPU") <== addStreamFromCPU("inBT2CPU");
+		joinInBT2.addInput("inLMem") <== iface.addStreamFromLMem("inBT2LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+
+                kernel2.getInput("inAT2") <== joinInAT2.getOutput();
+                kernel2.getInput("inBT2") <== joinInBT2.getOutput();
+
+		Demux forkOutCT2 = demux("forkOutCT2");
+		DFELink outCT2CPU = forkOutCT2.addOutput("outCPU");
+		DFELink outCT2LMem = forkOutCT2.addOutput("outLMem");
+
+		forkOutCT2.getInput() <== kernel2.getOutput("outCT2");
+                addStreamToCPU("outCT2CPU") <== outCT2CPU;
+                iface.addStreamToLMem("outCT2LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D) <== outCT2LMem;
+
+
+
+		Mux joinInAT3 = mux("joinInAT3");
+		Mux joinInBT3 = mux("joinInBT3");
+
+		joinInAT3.addInput("inCPU") <== addStreamFromCPU("inAT3CPU");
+		joinInAT3.addInput("inLMem") <== iface.addStreamFromLMem("inAT3LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+
+		joinInBT3.addInput("inCPU") <== addStreamFromCPU("inBT3CPU");
+		joinInBT3.addInput("inLMem") <== iface.addStreamFromLMem("inBT3LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D);
+
+                kernel3.getInput("inAT3") <== joinInAT3.getOutput();
+                kernel3.getInput("inBT3") <== joinInBT3.getOutput();
+
+		Demux forkOutCT3 = demux("forkOutCT3");
+		DFELink outCT3CPU = forkOutCT3.addOutput("outCPU");
+		DFELink outCT3LMem = forkOutCT3.addOutput("outLMem");
+
+		forkOutCT3.getInput() <== kernel3.getOutput("outCT3");
+                addStreamToCPU("outCT3CPU") <== outCT3CPU;
+                iface.addStreamToLMem("outCT3LMem", LMemCommandGroup.MemoryAccessPattern.LINEAR_1D) <== outCT3LMem;
+        }
+
+        public static void main(String[] args)
+	{
+                MyTasksMuxManager manager = new MyTasksMuxManager(new EngineParameters(args));
+
+                manager.build();
+        }
+}

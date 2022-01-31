@@ -165,12 +165,12 @@ static int vector_interface_copy_any_to_any(void *src_interface, unsigned src_no
 #if __cplusplus >= 201103L
 static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 {
-
 	.can_copy = NULL,
 
 	.ram_to_ram = NULL,
 	.ram_to_cuda = NULL,
 	.ram_to_opencl = NULL,
+	.ram_to_max_fpga = NULL,
 
 	.cuda_to_ram = NULL,
 	.cuda_to_cuda = NULL,
@@ -178,9 +178,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.opencl_to_ram = NULL,
 	.opencl_to_opencl = NULL,
 
-	.ram_to_mpi_ms = NULL,
-	.mpi_ms_to_ram = NULL,
-	.mpi_ms_to_mpi_ms = NULL,
+	.max_fpga_to_ram = NULL,
 
 	.ram_to_cuda_async = NULL,
 	.cuda_to_ram_async = NULL,
@@ -190,9 +188,8 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.opencl_to_ram_async = NULL,
 	.opencl_to_opencl_async = NULL,
 
-	.ram_to_mpi_ms_async = NULL,
-	.mpi_ms_to_ram_async = NULL,
-	.mpi_ms_to_mpi_ms_async = NULL,
+	.ram_to_max_fpga_async = NULL,
+	.max_fpga_to_ram_async = NULL,
 
 	.any_to_any = vector_interface_copy_any_to_any,
 };
@@ -213,7 +210,6 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	NULL,
 
 	NULL,
-
 	NULL,
 	NULL,
 	NULL,
@@ -228,12 +224,8 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	NULL,
 	NULL,
-	NULL,
 
 	NULL,
-	NULL,
-	NULL,
-
 	NULL,
 	NULL,
 
@@ -241,7 +233,7 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 };
 #endif
 
-static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_vector_cpp_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static starpu_ssize_t allocate_vector_cpp_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *vector_cpp_to_pointer(void *data_interface, unsigned node);
 static int vector_cpp_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
@@ -260,8 +252,10 @@ static starpu_ssize_t vector_cpp_describe(void *data_interface, char *buf, size_
 static struct starpu_data_interface_ops interface_vector_cpp_ops =
 {
 	.register_data_handle = register_vector_cpp_handle,
+	.unregister_data_handle = NULL,
 	.allocate_data_on_node = allocate_vector_cpp_buffer_on_node,
 	.free_data_on_node = free_vector_cpp_buffer_on_node,
+	.reuse_data_on_node = NULL,
 	.init = NULL,
 	.copy_methods = &vector_cpp_copy_data_methods_s,
 	.handle_to_pointer = NULL,
@@ -290,8 +284,10 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 static struct starpu_data_interface_ops interface_vector_cpp_ops =
 {
 	register_vector_cpp_handle,
+	NULL,
 	allocate_vector_cpp_buffer_on_node,
 	free_vector_cpp_buffer_on_node,
+	NULL,
 	NULL,
 	&vector_cpp_copy_data_methods_s,
 	vector_cpp_to_pointer,
@@ -334,11 +330,11 @@ static int vector_cpp_pointer_is_inside(void *data_interface, unsigned int node,
 		(char*) ptr < (char*) vector_interface->ptr + vector_interface->nx*vector_interface->elemsize;
 }
 
-static void register_vector_cpp_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_vector_cpp_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct vector_cpp_interface *vector_interface = (struct vector_cpp_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct vector_cpp_interface *local_interface = (struct vector_cpp_interface *)
@@ -584,6 +580,7 @@ int main(int argc, char **argv)
 	bool fail;
 
 	starpu_conf_init(&conf);
+	/* _starpu_src_common_execute_kernel doesn't support this yet */
 	conf.nmpi_ms = 0;
 
 	// initialize StarPU with default configuration

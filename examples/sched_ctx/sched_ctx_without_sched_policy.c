@@ -79,10 +79,11 @@ int main(void)
 
 	int nprocs1 = 1;
 	int nprocs2 = 1;
-	int ncuda = 0;
-	int *procs1, *procs2, *procscuda;
+	int *procs1, *procs2;
 
 #ifdef STARPU_USE_CUDA
+	int ncuda = 0;
+	int *procscuda;
 	ncuda = starpu_cuda_worker_get_count();
 	procscuda = (int*)malloc(ncuda*sizeof(int));
 	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procscuda, ncuda);

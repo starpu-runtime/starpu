@@ -23,16 +23,18 @@ void cpu_show_bcsr(void *descr[], void *arg)
 {
 	(void)arg;
 	struct starpu_bcsr_interface *iface = descr[0];
-	uint32_t nnz = iface->nnz;
-	uint32_t nrow = iface->nrow;
-	int *nzval = (int *)iface->nzval;
-	uint32_t *colind = iface->colind;
-	uint32_t *rowptr = iface->rowptr;
+	uint32_t nnz = STARPU_BCSR_GET_NNZ(iface);
+	uint32_t nrow = STARPU_BCSR_GET_NROW(iface);
+	int *nzval = (int *)STARPU_BCSR_GET_NZVAL(iface);
+	uint32_t *colind = STARPU_BCSR_GET_COLIND(iface);
+	uint32_t *rowptr = STARPU_BCSR_GET_ROWPTR(iface);
+	STARPU_ASSERT(colind == STARPU_BCSR_GET_RAM_COLIND(iface));
+	STARPU_ASSERT(rowptr == STARPU_BCSR_GET_RAM_ROWPTR(iface));
 
-	uint32_t firstentry = iface->firstentry;
-	uint32_t r = iface->r;
-	uint32_t c = iface->c;
-	uint32_t elemsize = iface->elemsize;
+	uint32_t firstentry = STARPU_BCSR_GET_FIRSTENTRY(iface);
+	uint32_t r = STARPU_BCSR_GET_R(iface);
+	uint32_t c = STARPU_BCSR_GET_C(iface);
+	uint32_t elemsize = STARPU_BCSR_GET_ELEMSIZE(iface);
 
 	uint32_t i, j, y, x;
 	static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;

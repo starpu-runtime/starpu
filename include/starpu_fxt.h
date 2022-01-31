@@ -43,6 +43,17 @@ struct starpu_fxt_codelet_event
 	float time;
 };
 
+/** Store informations related to clock synchronizations: mainly the offset to apply to each time. */
+struct starpu_fxt_mpi_offset
+{
+	uint64_t local_time_start; /**< node time for the barrier at the beginning of the program */
+	int64_t offset_start; /**< offset to apply to node time, computed at the beginning of the program */
+	uint64_t local_time_end; /**< node time for the barrier at the end of the program (optional) */
+	int64_t offset_end; /**< offset to apply to node time, computed at the end of the program (optional) */
+	int nb_barriers; /**< number of barriers to synchronize clocks during the execution of the program
+			   (can be 0, 1 or 2) */
+};
+
 struct starpu_fxt_options
 {
 	unsigned per_task_colour;
@@ -82,9 +93,9 @@ struct starpu_fxt_options
 
 	/**
 	   In case we are going to gather multiple traces (e.g in the case of
-	   MPI processes), this variable stores the time offset with the rank 0.
+	   MPI processes), we may need to synchronize clocks and apply an offset.
 	*/
-	uint64_t file_offset;
+	struct starpu_fxt_mpi_offset file_offset;
 
 	/**
 	   In case we are going to gather multiple traces (e.g in the case of
@@ -112,6 +123,7 @@ void starpu_fxt_generate_trace(struct starpu_fxt_options *options);
    Determine whether profiling should be started by starpu_init(), or only when
    starpu_fxt_start_profiling() is called. \p autostart should be 1 to do so, or 0 to
    prevent it.
+   This function has to be called before starpu_init().
 */
 void starpu_fxt_autostart_profiling(int autostart);
 

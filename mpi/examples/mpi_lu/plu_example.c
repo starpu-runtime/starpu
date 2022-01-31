@@ -606,6 +606,7 @@ int main(int argc, char **argv)
 	/*
 	 * 	Termination
 	 */
+	size_t blocksize = (size_t)(size/nblocks)*(size/nblocks)*sizeof(TYPE);
 	for (j = 0; j < nblocks; j++)
 	{
 		for (i = 0; i < nblocks; i++)
@@ -615,7 +616,7 @@ int main(int argc, char **argv)
 				starpu_data_unregister(handle);
 			TYPE *blockptr = dataA[j+i*nblocks];
 			if (blockptr != STARPU_POISON_PTR)
-				starpu_free(blockptr);
+				starpu_free_noflag(blockptr, blocksize);
 		}
 	}
 	free(dataA_handles);
@@ -623,14 +624,14 @@ int main(int argc, char **argv)
 
 #ifdef SINGLE_TMP11
 	starpu_data_unregister(tmp_11_block_handle);
-	starpu_free(tmp_11_block);
+	starpu_free_noflag(tmp_11_block, blocksize);
 #else
 	for (k = 0; k < nblocks; k++)
 	{
 		if (tmp_11_block_is_needed(rank, nblocks, k))
 		{
 			starpu_data_unregister(tmp_11_block_handles[k]);
-			starpu_free(tmp_11_block[k]);
+			starpu_free_noflag(tmp_11_block[k], blocksize);
 		}
 	}
 	free(tmp_11_block_handles);
@@ -643,13 +644,13 @@ int main(int argc, char **argv)
 		if (tmp_12_block_is_needed(rank, nblocks, k))
 		{
 			starpu_data_unregister(tmp_12_block_handles);
-			starpu_free(tmp_12_block[k]);
+			starpu_free_noflag(tmp_12_block[k], blocksize);
 		}
 
 		if (tmp_21_block_is_needed(rank, nblocks, k))
 		{
 			starpu_data_unregister(tmp_21_block_handles[k]);
-			starpu_free(tmp_21_block[k]);
+			starpu_free_noflag(tmp_21_block[k], blocksize);
 		}
 #else
 	for (i = 0; i < 2; i++)
@@ -657,13 +658,13 @@ int main(int argc, char **argv)
 		if (tmp_12_block_is_needed(rank, nblocks, k))
 		{
 			starpu_data_unregister(tmp_12_block_handles[i][k]);
-			starpu_free(tmp_12_block[i][k]);
+			starpu_free_noflag(tmp_12_block[i][k], blocksize);
 		}
 
 		if (tmp_21_block_is_needed(rank, nblocks, k))
 		{
 			starpu_data_unregister(tmp_21_block_handles[i][k]);
-			starpu_free(tmp_21_block[i][k]);
+			starpu_free_noflag(tmp_21_block[i][k], blocksize);
 		}
 	}
 #endif

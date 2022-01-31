@@ -33,7 +33,10 @@ PROGRAM f90_example
   INTEGER(KIND=C_INT)            :: i,Nelt,res,cpus
   INTEGER(KIND=C_INT)            :: starpu_maj,starpu_min,starpu_rev
   INTEGER(KIND=C_INT)            :: it,it_tot
+  INTEGER(KIND=C_INT), PARAMETER :: loop_color = INT(Z'7FFF00', KIND=C_INT)
+  INTEGER(KIND=C_INT), PARAMETER :: copy_color = INT(Z'3F7FFF', KIND=C_INT)
   REAL(KIND=C_DOUBLE),TARGET     :: flops
+  INTEGER(C_INT), TARGET         :: max_prio
 
   TYPE(C_PTR) :: cl_loop_element = C_NULL_PTR ! loop codelet
   TYPE(C_PTR) :: cl_copy_element = C_NULL_PTR ! copy codelet
@@ -66,6 +69,7 @@ PROGRAM f90_example
      CALL fstarpu_shutdown()
      STOP 77
   END IF
+  max_prio = fstarpu_sched_get_max_priority()
 
   cl_loop_element = fstarpu_codelet_allocate()
   CALL fstarpu_codelet_add_cpu_func(cl_loop_element, C_FUNLOC(loop_element_cpu_fortran))
@@ -73,12 +77,14 @@ PROGRAM f90_example
   CALL fstarpu_codelet_add_buffer(cl_loop_element, FSTARPU_RW)
   CALL fstarpu_codelet_add_buffer(cl_loop_element, FSTARPU_R)
   CALL fstarpu_codelet_set_name(cl_loop_element, C_CHAR_"LOOP_ELEMENT"//C_NULL_CHAR)
+  CALL fstarpu_codelet_set_color(cl_loop_element, loop_color)
 
   cl_copy_element = fstarpu_codelet_allocate()
   CALL fstarpu_codelet_add_cpu_func(cl_copy_element, C_FUNLOC(copy_element_cpu_fortran))
   CALL fstarpu_codelet_add_buffer(cl_copy_element, FSTARPU_RW)
   CALL fstarpu_codelet_add_buffer(cl_copy_element, FSTARPU_R)
   CALL fstarpu_codelet_set_name(cl_copy_element, C_CHAR_"COPY_ELEMENT"//C_NULL_CHAR)
+  CALL fstarpu_codelet_set_color(cl_copy_element, copy_color)
 
   !Registration of elements
   DO i = 1,Nelt
@@ -100,6 +106,7 @@ PROGRAM f90_example
                 FSTARPU_RW, elt%dro_h,                &
                 FSTARPU_R, elt%basis_h,              &
                 FSTARPU_FLOPS, c_loc(flops),         &
+                FSTARPU_PRIORITY, c_loc(FSTARPU_DEFAULT_PRIO),         &
                 C_NULL_PTR /))
      ENDDO
      ! sync (if needed by the algorithm)
@@ -113,6 +120,7 @@ PROGRAM f90_example
         CALL fstarpu_insert_task((/ cl_copy_element,    &
                 FSTARPU_RW, elt%ro_h,                 &
                 FSTARPU_R, elt%dro_h,                &
+                FSTARPU_PRIORITY, c_loc(max_prio),         &
                 C_NULL_PTR /))
      ENDDO
      ! sync (if needed by the algorithm)

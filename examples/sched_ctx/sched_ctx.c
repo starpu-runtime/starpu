@@ -82,7 +82,6 @@ int main(void)
 {
 	int ntasks = NTASKS;
 	int ret;
-	unsigned ncuda = 0;
 	int nprocs1 = 0;
 	int nprocs2 = 0;
 	int procs1[STARPU_NMAXWORKERS], procs2[STARPU_NMAXWORKERS];
@@ -105,7 +104,7 @@ int main(void)
 	if (nprocs1 == 0) goto enodev;
 
 #ifdef STARPU_USE_CUDA
-	ncuda = nprocs2 = starpu_cuda_worker_get_count();
+	nprocs2 = starpu_cuda_worker_get_count();
 	starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER, procs2, nprocs2);
 #endif
 	if (nprocs2 == 0)

@@ -67,7 +67,7 @@ static const struct starpu_data_copy_methods custom_copy_data_methods_s =
 };
 
 static void     register_custom_handle(starpu_data_handle_t handle,
-				       unsigned home_node,
+				       int home_node,
 				       void *data_interface);
 static starpu_ssize_t  allocate_custom_buffer_on_node(void *data_interface_,
 					       unsigned dst_node);
@@ -107,13 +107,13 @@ static struct starpu_data_interface_ops interface_custom_ops =
 };
 
 static void
-register_custom_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+register_custom_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct custom_data_interface *custom_interface;
 	custom_interface = (struct custom_data_interface *) data_interface;
 
-	unsigned node;
-	unsigned nnodes = starpu_memory_nodes_get_count();
+	int node;
+	int nnodes = starpu_memory_nodes_get_count();
 	for (node = 0; node < nnodes; node++)
 	{
 		struct custom_data_interface *local_interface =

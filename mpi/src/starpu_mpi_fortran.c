@@ -105,23 +105,34 @@ int fstarpu_mpi_init_c(struct _starpu_mpi_argc_argv *argcv)
 	return starpu_mpi_init_comm(argcv->argc, argcv->argv, argcv->initialize_mpi, argcv->comm);
 }
 
-void fstarpu_mpi_get_data_on_node(MPI_Fint comm, starpu_data_handle_t data_handle, int node)
+int fstarpu_mpi_get_data_on_node(MPI_Fint comm, starpu_data_handle_t data_handle, int node)
 {
-	starpu_mpi_get_data_on_node(MPI_Comm_f2c(comm), data_handle, node);
+	return starpu_mpi_get_data_on_node(MPI_Comm_f2c(comm), data_handle, node);
 }
 
-void fstarpu_mpi_get_data_on_node_detached(MPI_Fint comm, starpu_data_handle_t data_handle, int node, void (*callback)(void *), void *arg)
+int fstarpu_mpi_get_data_on_node_detached(MPI_Fint comm, starpu_data_handle_t data_handle, int node, void (*callback)(void *), void *arg)
 {
-	starpu_mpi_get_data_on_node_detached(MPI_Comm_f2c(comm), data_handle, node, callback, arg);
+	return starpu_mpi_get_data_on_node_detached(MPI_Comm_f2c(comm), data_handle, node, callback, arg);
 }
 
-void fstarpu_mpi_redux_data(MPI_Fint comm, starpu_data_handle_t data_handle)
+int fstarpu_mpi_redux_data(MPI_Fint comm, starpu_data_handle_t data_handle)
 {
-	starpu_mpi_redux_data(MPI_Comm_f2c(comm), data_handle);
+	return starpu_mpi_redux_data(MPI_Comm_f2c(comm), data_handle);
 }
-void fstarpu_mpi_redux_data_prio(MPI_Fint comm, starpu_data_handle_t data_handle, int prio)
+
+int fstarpu_mpi_redux_data_prio(MPI_Fint comm, starpu_data_handle_t data_handle, int prio)
 {
-	starpu_mpi_redux_data_prio(MPI_Comm_f2c(comm), data_handle, prio);
+	return starpu_mpi_redux_data_prio(MPI_Comm_f2c(comm), data_handle, prio);
+}
+
+int fstarpu_mpi_redux_data_tree(MPI_Fint comm, starpu_data_handle_t data_handle, int arity)
+{
+	return starpu_mpi_redux_data_tree(MPI_Comm_f2c(comm), data_handle, arity);
+}
+
+int fstarpu_mpi_redux_data_prio_tree(MPI_Fint comm, starpu_data_handle_t data_handle, int prio, int arity)
+{
+	return starpu_mpi_redux_data_prio_tree(MPI_Comm_f2c(comm), data_handle, prio, arity);
 }
 
 /* scatter/gather */

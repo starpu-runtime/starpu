@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 		if (my_rank == 0)
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		return STARPU_TEST_SKIPPED;
+		return my_rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	nb_elements = size*8000;
@@ -166,7 +166,8 @@ int main(int argc, char **argv)
 					       STARPU_REDUX, dot_handle,
 					       0);
 		}
-		starpu_mpi_redux_data(MPI_COMM_WORLD, dot_handle);
+		ret = starpu_mpi_redux_data(MPI_COMM_WORLD, dot_handle);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_redux_data");
 		starpu_mpi_task_insert(MPI_COMM_WORLD, &display_codelet, STARPU_R, dot_handle, 0);
 	}
 

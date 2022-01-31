@@ -4,7 +4,7 @@
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
- * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,8 +33,9 @@
 #include <drivers/disk/driver_disk.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <drivers/cuda/driver_cuda.h>
-#include <drivers/mpi/driver_mpi_source.h>
+#include <drivers/mp_common/source_common.h>
 #include <drivers/disk/driver_disk.h>
+#include <drivers/max/driver_max_fpga.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
@@ -72,6 +73,7 @@ static struct _starpu_memory_driver_info memory_driver_info =
 {
 	.name_upper = "NUMA",
 	.worker_archtype = STARPU_CPU_WORKER,
+	.ops = &_starpu_driver_cpu_node_ops,
 };
 
 void _starpu_cpu_preinit(void)
@@ -275,6 +277,12 @@ static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, st
 	_starpu_set_current_task(j->task);
 	cpu_worker->current_task = j->task;
 
+#ifdef STARPU_BUBBLE_VERBOSE
+	struct timespec tp;
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+	unsigned long long timestamp = 1000000000ULL*tp.tv_sec + tp.tv_nsec;
+	_STARPU_DEBUG("{%llu} [%s(%p)]\n", timestamp, starpu_task_get_name(task), task);
+#endif
 	res = execute_job_on_cpu(j, task, cpu_worker, rank, perf_arch);
 
 	_starpu_set_current_task(NULL);
@@ -332,7 +340,6 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		j = _starpu_get_job_associated_to_task(pending_task);
 
 		_starpu_fetch_task_input_tail(pending_task, j, cpu_worker);
-		_starpu_set_worker_status(cpu_worker, STATUS_UNKNOWN);
 		/* Reset it */
 		cpu_worker->task_transferring = NULL;
 
@@ -488,7 +495,10 @@ int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface,
 	if (copy_methods->ram_to_ram)
 		copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
 	else
+	{
+		STARPU_ASSERT_MSG(copy_methods->any_to_any, "the interface '%s' does define neither ram_to_ram nor any_to_any copy method", handle->ops->name);
 		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+	}
 	return ret;
 }
 
@@ -578,76 +588,14 @@ int _starpu_cpu_update_map(uintptr_t src, size_t src_offset, unsigned src_node, 
 
 struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 {
-	.copy_interface_to[STARPU_UNUSED] = NULL,
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cpu_copy_interface,
-#ifdef STARPU_USE_CUDA
-	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cpu_to_cuda,
-#else
-	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.copy_interface_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_interface_from_cpu_to_opencl,
-#else
-	.copy_interface_to[STARPU_OPENCL_RAM] = NULL,
-#endif
-	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_cpu_to_disk,
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_interface_from_cpu_to_mpi,
-#else
-	.copy_interface_to[STARPU_MPI_MS_RAM] = NULL,
-#endif
 
-	.copy_data_to[STARPU_UNUSED] = NULL,
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_cpu_copy_data,
-#ifdef STARPU_USE_CUDA
-	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cpu_to_cuda,
-#else
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-#endif
-#ifdef STARPU_USE_OPENCL
-	.copy_data_to[STARPU_OPENCL_RAM] = _starpu_opencl_copy_data_from_cpu_to_opencl,
-#else
-	.copy_data_to[STARPU_OPENCL_RAM] = NULL,
-#endif
-	.copy_data_to[STARPU_DISK_RAM] = _starpu_disk_copy_data_from_cpu_to_disk,
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-	.copy_data_to[STARPU_MPI_MS_RAM] = _starpu_mpi_copy_data_from_cpu_to_mpi,
-#else
-	.copy_data_to[STARPU_MPI_MS_RAM] = NULL,
-#endif
-
-	.copy2d_data_to[STARPU_UNUSED] = NULL,
-	.copy2d_data_to[STARPU_CPU_RAM] = NULL,
-#ifdef STARPU_USE_CUDA
-	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cpu_to_cuda,
-#else
-	.copy2d_data_to[STARPU_CUDA_RAM] = NULL,
-#endif
-	.copy2d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy2d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy2d_data_to[STARPU_MPI_MS_RAM] = NULL,
-
-	.copy3d_data_to[STARPU_UNUSED] = NULL,
-	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
-#if 0
-#ifdef STARPU_USE_CUDA
-	.copy3d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy3d_data_from_cpu_to_cuda,
-#else
-	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
-#endif
-#else
-	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
-#endif
-	.copy3d_data_to[STARPU_OPENCL_RAM] = NULL,
-	.copy3d_data_to[STARPU_DISK_RAM] = NULL,
-	.copy3d_data_to[STARPU_MPI_MS_RAM] = NULL,
 
 	.map[STARPU_CPU_RAM] = _starpu_cpu_map,
 	.unmap[STARPU_CPU_RAM] = _starpu_cpu_unmap,
 	.update_map[STARPU_CPU_RAM] = _starpu_cpu_update_map,
 
-	.wait_request_completion = NULL,
-	.test_request_completion = NULL,
 	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,
 	.malloc_on_node = _starpu_cpu_malloc_on_node,
 	.free_on_node = _starpu_cpu_free_on_node,

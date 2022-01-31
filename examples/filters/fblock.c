@@ -28,77 +28,41 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-extern void cpu_func(void *buffers[], void *cl_arg);
+extern void block_cpu_func(void *buffers[], void *cl_arg);
 
 #ifdef STARPU_USE_CUDA
-extern void cuda_func(void *buffers[], void *cl_arg);
+extern void block_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
 #ifdef STARPU_USE_OPENCL
 extern void opencl_func(void *buffers[], void *cl_arg);
 #endif
 
-void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
-{
-        int i, j, k;
-        FPRINTF(stderr, "block=%p nx=%d ny=%d nz=%d ldy=%u ldz=%u\n", block, nx, ny, nz, ldy, ldz);
-        for(k=0 ; k<nz ; k++)
-	{
-                for(j=0 ; j<ny ; j++)
-		{
-                        for(i=0 ; i<nx ; i++)
-			{
-                                FPRINTF(stderr, "%2d ", block[(k*ldz)+(j*ldy)+i]);
-                        }
-                        FPRINTF(stderr,"\n");
-                }
-                FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
-}
-
-void print_data(starpu_data_handle_t block_handle)
-{
-	int *block = (int *)starpu_block_get_local_ptr(block_handle);
-	int nx = starpu_block_get_nx(block_handle);
-	int ny = starpu_block_get_ny(block_handle);
-	int nz = starpu_block_get_nz(block_handle);
-	unsigned ldy = starpu_block_get_local_ldy(block_handle);
-	unsigned ldz = starpu_block_get_local_ldz(block_handle);
-
-        print_block(block, nx, ny, nz, ldy, ldz);
-}
-
 #ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_program;
 #endif
 
+extern void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz);
+extern void print_block(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz);
+extern void print_block_data(starpu_data_handle_t block_handle);
+
 int main(void)
 {
-        int *block,n=0;
+        int *block;
         int i, j, k;
 	int ret;
 
         block = (int*)malloc(NX*NY*NZ*sizeof(block[0]));
         assert(block);
-        for(k=0 ; k<NZ ; k++)
-	{
-                for(j=0 ; j<NY ; j++)
-		{
-                        for(i=0 ; i<NX ; i++)
-			{
-                                block[(k*NX*NY)+(j*NX)+i] = n++;
-                        }
-                }
-        }
+        generate_block_data(block, NX, NY, NZ, NX, NX*NY);
 
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func},
-                .cpu_funcs_name = {"cpu_func"},
+                .cpu_funcs = {block_cpu_func},
+                .cpu_funcs_name = {"block_cpu_func"},
 #ifdef STARPU_USE_CUDA
-                .cuda_funcs = {cuda_func},
+                .cuda_funcs = {block_cuda_func},
 		.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -123,7 +87,7 @@ int main(void)
         /* Declare data to StarPU */
         starpu_block_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(int));
         FPRINTF(stderr, "IN  Block\n");
-        print_data(handle);
+        print_block_data(handle);
 
         /* Partition the block in PARTS sub-blocks */
 	struct starpu_data_filter f =
@@ -139,7 +103,7 @@ int main(void)
         {
                 starpu_data_handle_t sblock = starpu_data_get_sub_data(handle, 1, i);
                 FPRINTF(stderr, "Sub block %d\n", i);
-                print_data(sblock);
+                print_block_data(sblock);
         }
 
         /* Submit a task on each sub-block */
@@ -157,16 +121,13 @@ int main(void)
                 task->cl_arg_size = sizeof(multiplier);
 
                 ret = starpu_task_submit(task);
-                if (ret)
-		{
-                        FPRINTF(stderr, "Error when submitting task\n");
-                        exit(ret);
-                }
+                if (ret == -ENODEV) goto enodev;
+                STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
         }
 
         /* Unpartition the data, unregister it from StarPU and shutdown */
         starpu_data_unpartition(handle, STARPU_MAIN_RAM);
-        print_data(handle);
+        print_block_data(handle);
         starpu_data_unregister(handle);
 
 #ifdef STARPU_USE_OPENCL
@@ -178,8 +139,13 @@ int main(void)
         FPRINTF(stderr, "OUT Block\n");
         print_block(block, NX, NY, NZ, NX, NX*NY);
 
-	free(block);
+        free(block);
+        
+        starpu_shutdown();
+        return 0;
 
-	starpu_shutdown();
-	return 0;
+enodev:
+        FPRINTF(stderr, "WARNING: No one can execute this task\n");
+        starpu_shutdown();
+        return 77;
 }

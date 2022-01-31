@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -42,6 +42,8 @@ static struct _starpu_job_multilist_all_submitted all_jobs_list;
 static starpu_pthread_mutex_t all_jobs_list_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif
 
+void _starpu_job_crash();
+
 void _starpu_job_init(void)
 {
 	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
@@ -49,15 +51,27 @@ void _starpu_job_init(void)
 #ifdef STARPU_DEBUG
 	_starpu_job_multilist_head_init_all_submitted(&all_jobs_list);
 #endif
+	_starpu_crash_add_hook(&_starpu_job_crash);
 }
 
-void _starpu_job_fini(void)
+void _starpu_job_memory_use(int check)
 {
 	if (max_memory_use)
 	{
 		_STARPU_DISP("Memory used for %lu tasks: %lu MiB\n", maxnjobs, (unsigned long) (maxnjobs * (sizeof(struct starpu_task) + sizeof(struct _starpu_job))) >> 20);
-		STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
+		if (check)
+			STARPU_ASSERT_MSG(njobs == 0, "Some tasks have not been cleaned, did you forget to call starpu_task_destroy or starpu_task_clean?");
 	}
+}
+
+void _starpu_job_crash()
+{
+	_starpu_job_memory_use(0);
+}
+
+void _starpu_job_fini(void)
+{
+	_starpu_job_memory_use(1);
 }
 
 void _starpu_exclude_task_from_dag(struct starpu_task *task)
@@ -86,9 +100,15 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 
 	job->task = task;
 
-#if !defined(STARPU_USE_FXT) && !defined(STARPU_DEBUG)
-	if (_starpu_bound_recording || _starpu_task_break_on_push != -1 || _starpu_task_break_on_sched != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_exec != -1 || STARPU_AYU_EVENT)
+	if (
+#if defined(STARPU_DEBUG)
+	    1
+#elif defined(STARPU_USE_FXT)
+	    fut_active
+#else
+	    _starpu_bound_recording || _starpu_task_break_on_push != -1 || _starpu_task_break_on_sched != -1 || _starpu_task_break_on_pop != -1 || _starpu_task_break_on_exec != -1 || STARPU_AYU_EVENT
 #endif
+	   )
 	{
 		job->job_id = _starpu_fxt_get_job_id();
 		STARPU_AYU_ADDTASK(job->job_id, task);
@@ -116,6 +136,40 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 		_starpu_graph_add_job(job);
 
         _STARPU_LOG_OUT();
+	return job;
+}
+
+struct _starpu_job* _starpu_get_job_associated_to_task_slow(struct starpu_task *task, struct _starpu_job *job)
+{
+	if (job == _STARPU_JOB_UNSET)
+	{
+		job = STARPU_VAL_COMPARE_AND_SWAP_PTR(&task->starpu_private, _STARPU_JOB_UNSET, _STARPU_JOB_SETTING);
+		if (job != _STARPU_JOB_UNSET && job != _STARPU_JOB_SETTING)
+		{
+			/* Actually available in the meanwhile */
+			STARPU_RMB();
+			return job;
+		}
+
+		if (job == _STARPU_JOB_UNSET)
+		{
+			/* Ok, we have to do it */
+			job = _starpu_job_create(task);
+			STARPU_WMB();
+			task->starpu_private = job;
+			return job;
+		}
+	}
+
+	/* Saw _STARPU_JOB_SETTING, somebody is doing it, wait for it.
+	 * This is rare enough that busy-reading is fine enough. */
+	while ((job = task->starpu_private) == _STARPU_JOB_SETTING)
+	{
+		STARPU_UYIELD();
+		STARPU_SYNCHRONIZE();
+	}
+
+	STARPU_RMB();
 	return job;
 }
 
@@ -226,6 +280,7 @@ void _starpu_job_prepare_for_continuation_ext(struct _starpu_job *j, unsigned co
 	j->continuation_callback_on_sleep = continuation_callback_on_sleep;
 	j->continuation_callback_on_sleep_arg = continuation_callback_on_sleep_arg;
 	j->job_successors.ndeps = 0;
+	j->job_successors.ndeps_completed = 0;
 }
 /* Prepare a currently running job for accepting a new set of
  * dependencies in anticipation of becoming a continuation. */
@@ -262,6 +317,16 @@ void _starpu_handle_job_submission(struct _starpu_job *j)
 void starpu_task_end_dep_release(struct starpu_task *t)
 {
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(t);
+
+#ifdef STARPU_USE_FXT
+	struct starpu_task *current = starpu_task_get_current();
+	if (current)
+	{
+		struct _starpu_job *jcurrent = _starpu_get_job_associated_to_task(current);
+		_STARPU_TRACE_TASK_END_DEP(jcurrent, j);
+	}
+#endif
+
 	_starpu_handle_job_termination(j);
 }
 
@@ -288,7 +353,7 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		unsigned long jobs = STARPU_ATOMIC_ADDL(&njobs_finished, 1);
 
-		fprintf(stderr,"\r%lu tasks finished (last %lu %p)...", jobs, j->job_id, j->task);
+		fprintf(stderr,"\r%lu tasks finished (last %lu %p on %d)...", jobs, j->job_id, j->task, starpu_worker_get_id());
 	}
 
 	struct starpu_task *task = j->task;
@@ -310,9 +375,12 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		/* the epilogue callback is executed before the dependencies release*/
 		if (epilogue_callback)
 		{
+			enum _starpu_worker_status old_status = _starpu_get_local_worker_status();
+
 			/* so that we can check whether we are doing blocking calls
 			 * within the callback */
-			_starpu_set_local_worker_status(STATUS_CALLBACK);
+			if (!(old_status & STATUS_CALLBACK))
+				_starpu_add_local_worker_status(STATUS_INDEX_CALLBACK, NULL);
 
 			/* Perhaps we have nested callbacks (eg. with chains of empty
 			 * tasks). So we store the current task and we will restore it
@@ -327,7 +395,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 			_starpu_set_current_task(current_task);
 
-			_starpu_set_local_worker_status(STATUS_UNKNOWN);
+			if (!(old_status & STATUS_CALLBACK))
+				_starpu_clear_local_worker_status(STATUS_INDEX_CALLBACK, NULL);
 		}
 	}
 
@@ -349,6 +418,10 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	{
 		task->status = STARPU_TASK_FINISHED;
 
+		/* already prepare for next run */
+		struct _starpu_cg_list *job_successors = &j->job_successors;
+		job_successors->ndeps_completed = 0;
+
 		/* We must have set the j->terminated flag early, so that it is
 		 * possible to express task dependencies within the callback
 		 * function. A value of 1 means that the codelet was executed but that
@@ -364,7 +437,11 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 #endif //STARPU_USE_SC_HYPERVISOR
 
 	/* We release handle reference count */
-	if (task->cl && !continuation)
+	if (task->cl && !continuation
+#ifdef STARPU_BUBBLE
+	    && !j->is_bubble
+#endif
+	    )
 	{
 		unsigned i;
 		unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -472,13 +549,18 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		 * of the task itself */
 		if (callback)
 		{
+			struct timespec *time = NULL;
 			int profiling = starpu_profiling_status_get();
-			if (profiling && task->profiling_info)
-				_starpu_clock_gettime(&task->profiling_info->callback_start_time);
+			if (profiling && task->profiling_info) {
+				time = &task->profiling_info->callback_start_time;
+				_starpu_clock_gettime(time);
+			}
+			enum _starpu_worker_status old_status = _starpu_get_local_worker_status();
 
 			/* so that we can check whether we are doing blocking calls
 			 * within the callback */
-			_starpu_set_local_worker_status(STATUS_CALLBACK);
+			if (!(old_status & STATUS_CALLBACK))
+				_starpu_add_local_worker_status(STATUS_INDEX_CALLBACK, time);
 
 			/* Perhaps we have nested callbacks (eg. with chains of empty
 			 * tasks). So we store the current task and we will restore it
@@ -493,10 +575,13 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 			_starpu_set_current_task(current_task);
 
-			_starpu_set_local_worker_status(STATUS_UNKNOWN);
+			if (profiling && task->profiling_info) {
+				time = &task->profiling_info->callback_end_time;
+				_starpu_clock_gettime(time);
+			}
 
-			if (profiling && task->profiling_info)
-				_starpu_clock_gettime(&task->profiling_info->callback_end_time);
+			if (!(old_status & STATUS_CALLBACK))
+				_starpu_clear_local_worker_status(STATUS_INDEX_CALLBACK, time);
 		}
 	}
 
@@ -652,13 +737,141 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j)
 	else
 	{
 		/* existing deps (if any) are fulfilled */
-		/* already prepare for next run */
-		job_successors->ndeps_completed = 0;
 		ret = 0;
 	}
 
 	return ret;
 }
+
+#ifdef STARPU_BUBBLE
+int _starpu_bubble_unpartition_data_if_needed(struct _starpu_job *j)
+{
+	//_STARPU_DEBUG("[%s(%p)]\n", starpu_task_get_name(j->task), j->task);
+	int unpartition_needed = 0;
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(j->task);
+	unsigned nhandle = 0;
+	unsigned i;
+	struct starpu_task *control_task = NULL;
+
+	for (i = 0; i < nbuffers; i++)
+	{
+		starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(j->task, i);
+		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(j->task, i);
+
+		STARPU_PTHREAD_MUTEX_LOCK(&handle->unpartition_mutex);
+
+		/**
+		 * Version A
+		 *
+		 * We create a control task with the required data
+		 * dependencies that will be automatically/magically
+		 * handled by _starpu_data_partition_access_submit()
+		 * called in _starpu_task_submit_head().
+		 */
+		if ( handle->nplans > 0 )
+		{
+			if (unpartition_needed == 0)
+			{
+				control_task = starpu_task_create();
+				control_task->name = "ucontrol";
+				_starpu_task_declare_deps_array(j->task, 1, &control_task, 0);
+
+				unpartition_needed = 1;
+			}
+
+			//STARPU_TASK_SET_HANDLE(control_task, handle, nhandle);
+			control_task->handles[nhandle] = handle;
+			//STARPU_TASK_SET_MODE(control_task, mode, nhandle);
+			control_task->modes[nhandle] = mode;
+			nhandle ++;
+		}
+		/**
+		 * Version B
+		 *
+		 * We find a way to call directly
+		 * _starpu_data_partition_access_submit() here, and we
+		 * (re-)plug the current task onto the last task
+		 * generated by
+		 * _starpu_data_partition_access_submit().
+		 */
+		else
+		{
+			//_starpu_data_partition_access_submit( handle, (mode & STARPU_W) != 0 );
+			// + replug on the current task
+		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->unpartition_mutex);
+	}
+
+	// No data has been partitioned, let's keep going
+	if (unpartition_needed == 0)
+        {
+		return 0;
+	}
+
+	// Add the dependency on the unpartition tasks
+	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	j->task->status = STARPU_TASK_BLOCKED_ON_TASK;
+	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+	STARPU_ASSERT(control_task);
+	int ret = starpu_task_submit(control_task);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit(control_task)");
+
+	return 1;
+}
+
+static int _starpu_turn_task_into_bubble(struct _starpu_job *j)
+{
+	if (j->already_turned_into_bubble)
+	{
+		/*
+		 * We have first checked all dependencies of the bubble,
+		 * and secondly checked in a second stage the additional
+		 * partition/unpartition dependencies
+		 */
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		return 0;
+	}
+	j->already_turned_into_bubble = 1;
+	//_STARPU_DEBUG("[%s(%p)]\n", starpu_task_get_name(j->task), j->task);
+
+	if (j->is_bubble == 1)
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		return 0;
+	}
+	else if (j->task->cl == NULL)
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		return 0;
+	}
+	else
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		return _starpu_bubble_unpartition_data_if_needed(j);
+	}
+}
+
+void _starpu_bubble_execute(struct _starpu_job *j)
+{
+	_STARPU_TRACE_BUBBLE(j);
+	_STARPU_TRACE_TASK_NAME_LINE_COLOR(j);
+	_STARPU_TRACE_START_CODELET_BODY(j, 0, NULL, 0);
+	STARPU_ASSERT_MSG(j->task->bubble_gen_dag_func!=NULL || (j->task->cl && j->task->cl->bubble_gen_dag_func!=NULL),
+			  "task->bubble_gen_dag_func MUST be defined\n");
+
+	struct timespec tp;
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+	unsigned long long timestamp = 1000000000ULL*tp.tv_sec + tp.tv_nsec;
+	_STARPU_DEBUG("{%llu} [%s(%p)] Running bubble\n", timestamp, starpu_task_get_name(j->task), j->task);
+	if (j->task->bubble_gen_dag_func)
+		j->task->bubble_gen_dag_func(j->task, j->task->bubble_gen_dag_func_arg);
+	else
+		j->task->cl->bubble_gen_dag_func(j->task, j->task->bubble_gen_dag_func_arg);
+	j->task->where = STARPU_NOWHERE;
+	_STARPU_TRACE_END_CODELET_BODY(j, 0, NULL, 0);
+}
+#endif
 
 /*
  *	In order, we enforce tag, task and data dependencies. The task is
@@ -680,21 +893,51 @@ unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 		return 0;
 	}
 
-	/* enfore task dependencies */
+	/* enforce task dependencies */
 	if (_starpu_not_all_task_deps_are_fulfilled(j))
 	{
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		_STARPU_LOG_OUT_TAG("not_all_task_deps_are_fulfilled");
 		return 0;
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
-	/* enforce data dependencies */
-	if (_starpu_submit_job_enforce_data_deps(j))
+#ifdef STARPU_BUBBLE
+	/* Wait for all dependencies at the correct level to be
+	 * fulfilled before adding missing partition/unpartition
+	 *
+	 * If partition/unpartition are submitted we will enter the if
+	 * case and come back later when these new dependencies are
+	 * fulfilled
+	 */
+	if (_starpu_turn_task_into_bubble(j))
 	{
-		_STARPU_LOG_OUT_TAG("enforce_data_deps");
+		_STARPU_LOG_OUT_TAG("bubble");
 		return 0;
 	}
+#else
+	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+#endif
+
+#ifdef STARPU_BUBBLE
+	if (j->is_bubble == 1)
+	{
+		_starpu_bubble_execute(j);
+	}
+	else
+#endif
+	{
+		/* respect data concurrent access */
+		if (_starpu_concurrent_data_access(j))
+		{
+			_STARPU_LOG_OUT_TAG("concurrent_data_access");
+			return 0;
+		}
+	}
+
+#ifdef STARPU_BUBBLE
+	if (j->task->bubble_parent != 0)
+		_STARPU_TRACE_BUBBLE_TASK_DEPS(j->task->bubble_parent, j);
+#endif
 
 	ret = _starpu_push_task(j);
 
@@ -713,11 +956,33 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 		return 0;
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
-	/* enforce data dependencies */
-	if (_starpu_submit_job_enforce_data_deps(j))
+#ifdef STARPU_BUBBLE
+	if (_starpu_turn_task_into_bubble(j))
+	{
+		_STARPU_LOG_OUT_TAG("bubble");
 		return 0;
+	}
+#else
+	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+#endif
+
+#ifdef STARPU_BUBBLE
+	if (j->is_bubble == 1)
+	{
+		_starpu_bubble_execute(j);
+	}
+	else
+#endif
+	{
+		/* respect data concurrent access */
+		if (_starpu_concurrent_data_access(j))
+			return 0;
+	}
+
+#ifdef STARPU_BUBBLE
+	if (j->task->bubble_parent != 0)
+		_STARPU_TRACE_BUBBLE_TASK_DEPS(j->task->bubble_parent, j);
+#endif
 
 	ret = _starpu_push_task(j);
 
@@ -754,6 +1019,11 @@ unsigned _starpu_take_deps_and_schedule(struct _starpu_job *j)
 
 	/* Take references */
 	_starpu_submit_job_take_data_deps(j);
+
+#ifdef STARPU_BUBBLE
+	if (j->task->bubble_parent != 0)
+		_STARPU_TRACE_BUBBLE_TASK_DEPS(j->task->bubble_parent, j);
+#endif
 
 	/* And immediately push task */
 	ret = _starpu_push_task(j);

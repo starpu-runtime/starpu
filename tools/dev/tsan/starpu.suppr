@@ -103,3 +103,10 @@ race:^_starpu_keys_initialized$
 
 # disable race detection on cg->ntags, see comment in code
 race:^_starpu_notify_cg$
+
+# this does not need to be safe
+race:^evictable$
+
+# don't care about data status query race, this is just a hint
+race:^starpu_data_query_status$
+race:^starpu_data_query_status2$

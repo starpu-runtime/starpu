@@ -35,6 +35,7 @@ static int eager_push_task(struct starpu_sched_component * component, struct sta
 	struct _starpu_eager_data *d = component->data;
 	struct starpu_sched_component *target;
 
+	/* FIX atomicity */
 	if (d->ntasks == 0)
 		/* We have already pushed a task down */
 		return 1;

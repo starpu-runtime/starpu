@@ -29,7 +29,7 @@ static const struct starpu_data_copy_methods void_copy_data_methods_s =
 	.any_to_any = dummy_copy,
 };
 
-static void register_void_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_void_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static starpu_ssize_t allocate_void_buffer_on_node(void *data_interface_, unsigned dst_node);
 static int void_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static void free_void_buffer_on_node(void *data_interface, unsigned node);
@@ -71,7 +71,7 @@ static int void_pointer_is_inside(void *data_interface STARPU_ATTRIBUTE_UNUSED, 
 }
 
 static void register_void_handle(starpu_data_handle_t handle STARPU_ATTRIBUTE_UNUSED,
-				unsigned home_node STARPU_ATTRIBUTE_UNUSED,
+				int home_node STARPU_ATTRIBUTE_UNUSED,
 				void *data_interface STARPU_ATTRIBUTE_UNUSED)
 {
 	/* Since there is no real data to register, we don't do anything */

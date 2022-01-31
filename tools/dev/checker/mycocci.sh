@@ -18,7 +18,7 @@ mode="chain" # By default, let's do everything !
 results="./results" # TODO Add an option for this
 scripts_dir=
 target=
-spatch=`which spatch`
+spatch=`command -v spatch`
 
 if [ $spatch = "" ]
 then

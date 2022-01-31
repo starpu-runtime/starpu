@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Guillaume Beauchamp
@@ -65,7 +65,7 @@ AC_SUBST([LIBSTARPUJULIA_INTERFACE_AGE])
 
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE([1.11 -Wall -Wno-portability foreign silent-rules color-tests parallel-tests subdir-objects])
+AM_INIT_AUTOMAKE([1.11 -Wall -Wno-portability foreign silent-rules color-tests parallel-tests subdir-objects tar-pax])
 
 m4_ifdef([AM_SILENT_RULES],
   [AM_SILENT_RULES(yes)])
@@ -89,6 +89,15 @@ AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_PATH_PROGS(PROG_FIND,find)
 
+AC_CACHE_CHECK([for parallel that supports semaphores with exit code], [ac_cv_path_PARALLEL],
+  [AC_PATH_PROGS_FEATURE_CHECK([PARALLEL], [parallel],
+    [[parallel --semaphore --id starpu --fg --fg-exit -j 2 exit 42 > /dev/null 2>&1
+      [ $? = 42 ] && ac_cv_path_PARALLEL=$ac_path_PARALLEL ac_path_PARALLEL_found=:]],
+    [ac_cv_path_PARALLEL=no])])
+AC_SUBST([PARALLEL], [$ac_cv_path_PARALLEL])
+AM_CONDITIONAL([HAVE_PARALLEL], [test "x$PARALLEL" != "xno"])
+
+
 dnl locate pkg-config
 PKG_PROG_PKG_CONFIG
 
@@ -100,12 +109,40 @@ if test x$enable_perf_debug = xyes; then
     enable_shared=no
 fi
 
-default_enable_mpi_check=maybe
+default_enable_mpi_check=no
 
 if test x$enable_simgrid = xyes ; then
 	default_enable_mpi=no
 else
 	default_enable_mpi=maybe
+fi
+
+###############################################################################
+#                                                                             #
+#                            Hierarchical dags support                        #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(bubble, [AS_HELP_STRING([--enable-bubble],
+			[build the hierarchical dags (a.k.a bubble) support])],
+			enable_bubble=$enableval, enable_bubble=no)
+
+AC_MSG_CHECKING([for hierarchical dags - a.k.a bubble - support])
+
+if test x$enable_bubble = xyes; then
+	AC_DEFINE(STARPU_BUBBLE, [1], [Define this to enable hierarchical dags support])
+fi
+
+AM_CONDITIONAL([STARPU_BUBBLE], [test "x$enable_bubble" = "xyes"])
+AC_MSG_RESULT($enable_bubble)
+
+AC_MSG_CHECKING(whether bubble debug messages should be displayed)
+AC_ARG_ENABLE(bubble-verbose, [AS_HELP_STRING([--enable-bubble-verbose],
+			[display verbose bubble messages])],
+			enable_bubble_verbose=$enableval, enable_bubble_verbose=no)
+AC_MSG_RESULT($enable_bubble_verbose)
+if test x$enable_bubble_verbose = xextra; then
+	AC_DEFINE(STARPU_BUBBLE_VERBOSE, [1], [display verbose bubble debug messages])
 fi
 
 ###############################################################################
@@ -177,6 +214,7 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_HEADERS([simgrid/msg.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_MSG_H], [1], [Define to 1 if you have msg.h in simgrid/.])])
 	AC_CHECK_HEADERS([msg/msg.h], [AC_DEFINE([STARPU_HAVE_MSG_MSG_H], [1], [Define to 1 if you have msg.h in msg/.])])
 	AC_CHECK_HEADERS([simgrid/host.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_HOST_H], [1], [Define to 1 if you have host.h in simgrid/.])])
+	AC_CHECK_HEADERS([simgrid/link.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_LINK_H], [1], [Define to 1 if you have link.h in simgrid/.])])
 	AC_CHECK_HEADERS([xbt/base.h], [AC_DEFINE([STARPU_HAVE_XBT_BASE_H], [1], [Define to 1 if you have base.h in xbt/.])])
 	AC_CHECK_HEADERS([simgrid/version.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_VERSION_H], [1], [Define to 1 if you have version.h in simgrid/.])], [], [[
 			  #ifdef STARPU_HAVE_XBT_BASE_H
@@ -199,6 +237,7 @@ if test x$enable_simgrid = xyes ; then
 	# Latest functions
 	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init sg_actor_set_stacksize sg_actor_on_exit MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_get_data sg_actor_set_data sg_actor_data])
 	AC_CHECK_FUNCS([xbt_mutex_try_acquire smpi_process_set_user_data SMPI_thread_create sg_zone_get_by_name sg_link_get_name sg_link_name sg_link_set_bandwidth sg_link_bandwidth_set sg_host_get_route sg_host_route sg_host_self sg_host_list sg_host_get_speed sg_host_speed simcall_process_create sg_config_continue_after_help])
+	AC_CHECK_FUNCS([simgrid_set_maestro])
 	AC_CHECK_FUNCS([simgrid_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_SIMGRID_INIT], [1], [Define to 1 if you have the `simgrid_init' function.])])
 	AC_CHECK_FUNCS([xbt_barrier_init], [AC_DEFINE([STARPU_SIMGRID_HAVE_XBT_BARRIER_INIT], [1], [Define to 1 if you have the `xbt_barrier_init' function.])])
 	AC_CHECK_FUNCS([sg_actor_sleep_for sg_actor_self sg_actor_ref sg_host_get_properties sg_host_send_to sg_host_sendto sg_cfg_set_int sg_actor_self_execute sg_actor_execute simgrid_get_clock])
@@ -328,14 +367,17 @@ AC_PATH_PROG([REALBASH], [bash], , [/bin:$PATH])
 
 # Record git version
 AC_PATH_PROG(gitcommand, git)
-if test "$gitcommand" = "" ; then
-   if test -f $srcdir/STARPU-REVISION ; then
-      cp $srcdir/STARPU-REVISION .
-   else
-      echo "unknown" > ./STARPU-REVISION
-   fi
+if test -f $srcdir/STARPU-REVISION ; then
+  cp $srcdir/STARPU-REVISION .
+elif test "$gitcommand" = "" ; then
+  echo "unknown" > ./STARPU-REVISION
 else
-   git log -n 1 --pretty="%H" $srcdir > ./STARPU-REVISION
+  git log -n 1 --pretty="%H" $srcdir > ./STARPU-REVISION_tmp
+  if test -s ./STARPU-REVISION_tmp ; then
+    mv ./STARPU-REVISION_tmp ./STARPU-REVISION
+  else
+    echo "unknown" > ./STARPU-REVISION
+  fi
 fi
 
 AM_CONDITIONAL([STARPU_CROSS_COMPILING], [test "x$cross_compiling" = "xyes"])
@@ -469,12 +511,21 @@ if test x$enable_mpi = xyes -a x$enable_nmad = xyes ; then
     build_nmad_lib=yes
     build_mpi_lib=no
     PKG_CHECK_MODULES([NMAD],[nmad])
-    AC_CHECK_DECL([piom_ltask_set_bound_thread_os_indexes], have_piom_ltask_set_bound_thread_os_indexes=yes, have_piom_ltask_set_bound_thread_os_indexes=no, [[#include <pioman.h>]])
-    if test x$have_piom_ltask_set_bound_thread_os_indexes = xyes; then
-      AC_DEFINE(HAVE_PIOM_LTASK_SET_BOUND_THREAD_OS_INDEXES, [1], [piom_ltask_set_bound_thread_os_indexes is availabe])
-    fi
+    save_LIBS="$LIBS"
+    save_CFLAGS="$CFLAGS"
+    CFLAGS="$CFLAGS $NMAD_CFLAGS"
+    LIBS="$LIBS $NMAD_LIBS"
+    AC_CHECK_FUNCS([piom_ltask_set_bound_thread_os_indexes])
+    CFLAGS="$save_CFLAGS"
+    LIBS="$save_LIBS"
 else
     build_nmad_lib=no
+fi
+
+# If MadMPI is used, MadMPI can't be built with PIOman (we don't want communication progression to be done in both StarPU and MadMPI):
+if test x$enable_mpi = xyes -a x$build_nmad_lib = xno -a ! -z "`$mpicc_path --showme|grep pioman`"; then
+  AC_MSG_WARN([Using MPI backend of StarPU with MadMPI built with PIOman: disabling PIOman's progression.])
+  AC_DEFINE(HAVE_PIOMAN, [1], [PIOman (from PM2) is available])
 fi
 
 ###############################################################################
@@ -559,6 +610,12 @@ if test -d "$srcdir/.git" -o -f "$srcdir/.git"; then
 fi
 if test x$enable_mpi_check = xyes ; then
     running_mpi_check=yes
+    if test x$enable_mpi = xno ; then
+	AC_MSG_ERROR([MPI checks requested, but MPI is disabled])
+    fi
+fi
+if test x$enable_mpi_check = xmaybe ; then
+   running_mpi_check=yes
 fi
 if test x$enable_mpi_check = xno ; then
     running_mpi_check=no
@@ -603,6 +660,7 @@ if test x$enable_mpi = xyes ; then
     if test x$enable_mpi_sync_clocks = xyes ; then
 	MPI_SYNC_CLOCKS_LDFLAGS="$(pkg-config --libs mpi_sync_clocks)"
 	MPI_SYNC_CLOCKS_CFLAGS="$(pkg-config --cflags mpi_sync_clocks)"
+	AC_DEFINE(STARPU_HAVE_MPI_SYNC_CLOCKS, [1], [Define to 1 if you have mpi_sync_clocks and it is meant to be used])
     fi
 fi
 
@@ -1060,7 +1118,20 @@ fi
 AC_MSG_CHECKING(maximum number of CPUs)
 AC_ARG_ENABLE(maxcpus, [AS_HELP_STRING([--enable-maxcpus=<number>],
 			[maximum number of CPUs])],
-			maxcpus=$enableval, maxcpus=64)
+			maxcpus=$enableval, maxcpus=auto)
+if test x$maxcpus == xauto
+then
+	confcpu=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
+	if test x$confcpu = x
+	then
+		AC_MSG_ERROR([cannot get the number of CPUS, please specify a numerical value with --enable-maxcpus])
+	fi
+	maxcpus=2
+	while test $maxcpus -lt $confcpu
+	do
+		maxcpus=`expr $maxcpus \* 2`
+	done
+fi
 AC_MSG_RESULT($maxcpus)
 AC_DEFINE_UNQUOTED(STARPU_MAXCPUS, [$maxcpus], [Maximum number of CPUs supported])
 
@@ -1132,14 +1203,10 @@ AC_DEFUN([STARPU_CHECK_CUDA_L],
     AC_HAVE_LIBRARY([cudart],[have_valid_cuda=yes],[have_valid_cuda=no])
     unset ac_cv_lib_cudart_main
     if test "$have_valid_cuda" = yes ; then
-	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
 	LDFLAGS="${SAVED_LDFLAGS} ${STARPU_CUDA_LDFLAGS}"
 	# we also check that CUBLAS is available
 	AC_HAVE_LIBRARY([cublas],[have_valid_cuda=yes],[have_valid_cuda=no])
 	unset ac_cv_lib_cublas_main
-	if test "$have_valid_cuda" = "yes" ; then
-	   STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcublas"
-	fi
     fi
     LDFLAGS="${SAVED_LDFLAGS}"
 ])
@@ -1320,7 +1387,7 @@ if test x$enable_cuda = xyes; then
 #		*-*darwin*) AC_HAVE_LIBRARY([stdc++], []) ;;
 #		#*-*darwin*) AC_HAVE_LIBRARY([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
 #	esac
-	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart"
+	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart -lcublas"
 	STARPU_CUFFT_LDFLAGS="-lcufft"
 
 	AC_LANG_PUSH([C++])
@@ -1676,6 +1743,50 @@ fi
 
 ###############################################################################
 #                                                                             #
+#                            Maxeler FPGA Settings                            #
+#                                                                             #
+###############################################################################
+
+#NUMBER OF MAXELER FPGA DEVICES
+AC_MSG_CHECKING(maximum number of Maxeler FPGA devices)
+AC_ARG_ENABLE(maxmaxfpgadev, [AS_HELP_STRING([--enable-maxmaxfpgadev=<number>],
+			[maximum number of Maxeler FPGA devices])],
+			nmaxmaxfpgadev=$enableval, nmaxmaxfpgadev=12)
+AC_MSG_RESULT($nmaxmaxfpgadev)
+AC_DEFINE_UNQUOTED(STARPU_MAXMAXFPGADEVS, [$nmaxmaxfpgadev],[maximum number of Maxeler FPGA devices])
+
+AC_ARG_ENABLE([max-fpga],
+	[AS_HELP_STRING([--disable-max-fpga],[disable support for Maxeler FPGA])],
+	[enable_max_fpga=$enableval],
+	[enable_max_fpga=maybe]
+)
+
+if test x$enable_max_fpga != xno; then
+	AC_PATH_PROG([SLIC_CONFIG], [slic-config], [not-found])
+
+	if test "x$SLIC_CONFIG" = "xnot-found"; then
+		# in case FPGA was explicitely required, but is not available, this is an error
+		if test x$enable_max_fpga = xyes; then
+			AC_MSG_ERROR(['slic-config' not found for Maxeler FPGA support])
+		fi
+		enable_max_fpga=no
+	else
+		STARPU_MAX_FPGA_CPPFLAGS="`slic-config --cflags | sed s/\'//g | sed "s/-I /-I/"`"
+		STARPU_MAX_FPGA_LDFLAGS="`slic-config --libs | sed s/\'//g | sed "s/-L /-L/" | sed "s/-L /-L/"`"
+
+		enable_max_fpga=yes
+	fi
+fi
+
+AC_SUBST(STARPU_USE_MAX_FPGA,$enable_max_fpga)
+AM_CONDITIONAL(STARPU_USE_MAX_FPGA,test x$enable_max_fpga = xyes)
+if test x$enable_max_fpga = xyes; then
+	AC_DEFINE(STARPU_USE_MAX_FPGA,[1],[Maxeler FPGA support is activated])
+fi
+
+
+###############################################################################
+#                                                                             #
 # General GPU settings                                                        #
 #                                                                             #
 ###############################################################################
@@ -1731,6 +1842,19 @@ if test x$disable_asynchronous_mpi_master_slave_copy = xyes ; then
    AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY], [1], [Define to 1 to disable asynchronous copy between MPI Master and MPI Slave devices])
 fi
 
+AC_MSG_CHECKING(whether asynchronous Maxeler FPGA copy should be disabled)
+AC_ARG_ENABLE(asynchronous-max-fpga-copy, [AS_HELP_STRING([--disable-asynchronous-max-fpga-copy],
+			[disable asynchronous copy between CPU and Maxeler FPGA devices])],
+			enable_asynchronous_max_fpga_copy=$enableval, enable_asynchronous_max_fpga_copy=yes)
+disable_asynchronous_max_fpga_copy=no
+if test x$enable_asynchronous_max_fpga_copy = xno ; then
+   disable_asynchronous_max_fpga_copy=yes
+fi
+AC_MSG_RESULT($disable_asynchronous_max_fpga_copy)
+if test x$disable_asynchronous_max_fpga_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY], [1], [Define to 1 to disable asynchronous copy between CPU and Maxeler FPGA devices])
+fi
+
 ###############################################################################
 #                                                                             #
 #                   Debug and Performance analysis tools                      #
@@ -1781,11 +1905,12 @@ AC_ARG_ENABLE(full-gdb-information, [AS_HELP_STRING([--disable-full-gdb-informat
 AC_MSG_RESULT($enable_full_gdb_information)
 if test x$enable_gdb = xyes; then
 	if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
-		CFLAGS+=" -gdwarf-2 -g3"
-		CXXFLAGS+=" -gdwarf-2 -g3"
-		FFLAGS+=" -gdwarf-2 -g3"
-		FCFLAGS+=" -gdwarf-2 -g3"
-		LDFLAGS+=" -gdwarf-2 -g3"
+	   	IS_SUPPORTED_FLAG(-gdwarf-2)
+		CFLAGS+=" -g3"
+		CXXFLAGS+=" -g3"
+		FFLAGS+=" -g3"
+		FCFLAGS+=" -g3"
+		LDFLAGS+=" -g3"
 	else
 		CFLAGS+=" -g "
 		CXXFLAGS+=" -g "
@@ -1859,93 +1984,103 @@ AC_MSG_RESULT($enable_coverity)
 AM_CONDITIONAL(STARPU_COVERITY, test x$enable_coverity = xyes)
 
 # shall we use FxT to generate trace of the execution ?
-AC_MSG_CHECKING(whether FxT traces should be generated)
-AC_ARG_WITH(fxt, [AS_HELP_STRING([--with-fxt[[=<dir>]]], [generate fxt traces])],
+AC_ARG_ENABLE(fxt, [AS_HELP_STRING([--disable-fxt],
+		[disable FxT trace mechanisms])],, [enable_fxt=maybe])
+AC_ARG_WITH(fxt,
+	[AS_HELP_STRING([--with-fxt=<path>],
+	[specify FxT installation directory])],
 	[
-		if test x$withval != xno; then
-			use_fxt=yes
-			if test x$withval = xyes; then
-				AC_MSG_RESULT(yes)
-				use_fxt_from_system=yes
-			else
-				# use specified path
-				# TODO check if the dir is actually containing FxT
-				use_fxt_from_system=no
-				fxtdir=$withval
-				AC_MSG_RESULT(yes using $fxtdir)
-				AC_SUBST(FXTDIR, $fxtdir)
-			fi
-		else
-			use_fxt=no
-			AC_MSG_RESULT(no)
-		fi
+		fxt_dir="$withval"
+		use_fxt_from_system=no
+		# in case this was not explicit yet
+		enable_fxt=yes
+		AC_SUBST(FXTDIR, $fxt_dir)
 	],
 	[
-		use_fxt=no
-		AC_MSG_RESULT(no)
+		use_fxt_from_system=yes
+		fxt_dir=""
 	])
-AC_SUBST(STARPU_USE_FXT, $use_fxt)
-AM_CONDITIONAL(STARPU_USE_FXT, test x$use_fxt = xyes)
 
-if test x$use_fxt = xyes; then
-	AC_DEFINE(STARPU_USE_FXT, [1], [enable FxT traces])
-	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
-
+if test x$enable_fxt != xno; then
 	if test x$use_fxt_from_system = xno; then
 	    save_PKG_CONFIG_PATH="$PKG_CONFIG_PATH"
-	    PKG_CONFIG_PATH="$fxtdir/lib/pkgconfig:$PKG_CONFIG_PATH"
-	    PKG_CHECK_MODULES([FXT],  [fxt], , [
+	    PKG_CONFIG_PATH="$fxt_dir/lib/pkgconfig:$PKG_CONFIG_PATH"
+	    PKG_CHECK_MODULES([FXT],  [fxt], [have_valid_fxt=yes], [
+	    	have_valid_fxt=yes
 		AC_MSG_WARN([Old FxT without fxt.pc file, hoping link will succeed])
-		FXT_CFLAGS="-I$fxtdir/include/ "
-		FXT_LDFLAGS="-L$fxtdir/lib/"
+		FXT_CFLAGS="-I$fxt_dir/include/ "
+		FXT_LDFLAGS="-L$fxt_dir/lib/"
 		AC_ARG_VAR(FXT_LDFLAGS)
 		FXT_LIBS="-lfxt"
 	    ])
 	    PKG_CONFIG_PATH="$save_PKG_CONFIG_PATH"
 	else
-	    PKG_CHECK_MODULES([FXT],  [fxt])
+	    PKG_CHECK_MODULES([FXT],  [fxt], [have_valid_fxt=yes], [have_valid_fxt=no])
 	fi
-	save_LIBS="$LIBS"
-	LIBS="$LIBS $FXT_LIBS"
-	save_LDFLAGS="$LDFLAGS"
-	LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
-	AC_CHECK_FUNCS([fxt_close])
-	AC_CHECK_FUNCS([fxt_blockev_leave])
-	AC_CHECK_FUNCS([enable_fut_flush])
-	AC_CHECK_FUNCS([fut_set_filename])
-	AC_CHECK_FUNCS([fut_setup_flush_callback])
-	LDFLAGS="$save_LDFLAGS"
-	LIBS="$save_LIBS"
-	save_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS $FXT_CFLAGS"
-	AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
-	AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
-	AC_CHECK_DECLS([fut_setup_flush_callback], [], [], [[#include <fut.h>]])
-	CFLAGS="$save_CFLAGS"
-
-	if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
-                # simgrid's SMPI needs fxt to be linked in statically for
-                # variable privatization to work
-		FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
-	fi
-
-	##########################################
-	# Poti is a library to generate paje trace files
-	##########################################
-	PKG_CHECK_MODULES([POTI], [poti], [have_valid_poti=yes], [have_valid_poti=no])
-	AC_ARG_ENABLE(poti, [AS_HELP_STRING([--enable-poti],
-				[Enable the use of the POTI library to generate Paje traces])],
-				enable_poti=$enableval, enable_poti=no)
-	if test x$enable_poti = xyes -a x$have_valid_poti = xyes ; then
-		AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
+	if test x$have_valid_fxt = xyes ; then
+		enable_fxt=yes
 		save_LIBS="$LIBS"
-		LIBS="$LIBS $POTI_LIBS"
-		AC_CHECK_FUNCS([poti_init_custom poti_user_NewEvent])
+		LIBS="$LIBS $FXT_LIBS"
+			save_LDFLAGS="$LDFLAGS"
+		LDFLAGS="$LDFLAGS $FXT_LDFLAGS"
+		AC_CHECK_FUNCS([fxt_close])
+		AC_CHECK_FUNCS([fxt_blockev_leave])
+		AC_CHECK_FUNCS([enable_fut_flush])
+		AC_CHECK_FUNCS([fut_set_filename])
+		AC_CHECK_FUNCS([fut_setup_flush_callback])
+		LDFLAGS="$save_LDFLAGS"
 		LIBS="$save_LIBS"
-		FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
-		FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+		save_CFLAGS="$CFLAGS"
+		CFLAGS="$CFLAGS $FXT_CFLAGS"
+		AC_CHECK_DECLS([enable_fut_flush], [], [], [[#include <fut.h>]])
+		AC_CHECK_DECLS([fut_set_filename], [], [], [[#include <fut.h>]])
+		AC_CHECK_DECLS([fut_setup_flush_callback], [], [], [[#include <fut.h>]])
+		CFLAGS="$save_CFLAGS"
+
+		if test x$enable_simgrid = xyes -a x$enable_shared = xno ; then
+	                # simgrid's SMPI needs fxt to be linked in statically for
+	                # variable privatization to work
+			FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
+		fi
+
+		AC_CHECK_LIB([papi], [PAPI_library_init],
+			     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
+			      PAPI_LIBS=-lpapi])
+
+		##########################################
+		# Poti is a library to generate paje trace files
+		##########################################
+		PKG_CHECK_MODULES([POTI], [poti], [have_valid_poti=yes], [have_valid_poti=no])
+		AC_ARG_ENABLE(poti, [AS_HELP_STRING([--enable-poti],
+					[Enable the use of the POTI library to generate Paje traces])],
+					enable_poti=$enableval, enable_poti=no)
+		if test x$enable_poti = xyes -a x$have_valid_poti = xyes ; then
+			AC_DEFINE(STARPU_HAVE_POTI, [1], [Define to 1 if you have libpoti and it is meant to be used])
+			save_LIBS="$LIBS"
+			LIBS="$LIBS $POTI_LIBS"
+			AC_CHECK_FUNCS([poti_init_custom poti_user_NewEvent])
+			LIBS="$save_LIBS"
+			FXT_CFLAGS="$FXT_CFLAGS $POTI_CFLAGS"
+			FXT_LIBS="$FXT_LIBS $POTI_LIBS"
+		fi
+	else
+		if test x$enable_fxt = xyes ; then
+			AC_MSG_ERROR([FxT is required but not available])
+		fi
+		enable_fxt=no
 	fi
 fi
+
+AC_MSG_CHECKING(whether FxT traces should be generated)
+AC_MSG_RESULT($enable_fxt)
+
+if test x$enable_fxt = xyes; then
+	AC_DEFINE(STARPU_USE_FXT, [1], [enable FxT traces])
+	AC_DEFINE(CONFIG_FUT, [1], [enable FUT traces])
+fi
+
+AC_SUBST(STARPU_USE_FXT, $enable_fxt)
+AM_CONDITIONAL(STARPU_USE_FXT, test x$enable_fxt = xyes)
 
 AC_MSG_CHECKING(whether additional locking systems FxT traces should be enabled)
 AC_ARG_ENABLE(fxt-lock, [AS_HELP_STRING([--enable-fxt-lock],
@@ -1961,7 +2096,6 @@ AC_CHECK_LIB([papi], [PAPI_library_init],
 	      PAPI_LIBS=-lpapi])
 AC_SUBST(PAPI_LIBS)
 
-AM_CONDITIONAL([STARPU_USE_PAPI], [test "x$PAPI_LIBS" != "x"])
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
 AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
@@ -2048,6 +2182,21 @@ AM_CONDITIONAL([STARPU_USE_AYUDAME2], [test "x$enable_ayudame2" = "xyes"])
 STARPU_FXT_EVENT_DEFINES="`grep -E '#define\s+_STARPU_(MPI_)?FUT_' ${srcdir}/src/common/fxt.h ${srcdir}/mpi/src/starpu_mpi_fxt.h | grep 0x | grep -v 0x1 | cut -d : -f 2`"
 AC_SUBST([STARPU_FXT_EVENT_DEFINES])
 
+# Heteroprio works better if it can store information based on the program's name
+AC_MSG_CHECKING(whether the target supports program_invocation_short_name)
+AC_LINK_IFELSE([AC_LANG_SOURCE(
+	[
+		#include <stdio.h>
+		#include <errno.h>
+		int main() {
+			printf("%s\n", program_invocation_short_name);
+			return 0;
+		}
+	])],
+	[AC_DEFINE([STARPU_HAVE_PROGRAM_INVOCATION_SHORT_NAME], [1], [variable program_invocation_short_name is available]) AC_MSG_RESULT(yes)],
+	AC_MSG_RESULT(no)
+)
+
 ###############################################################################
 #                                                                             #
 #                  Miscellaneous options for StarPU                           #
@@ -2092,6 +2241,11 @@ if test x$maxnodes = x0 ; then
 			# we could have used nmaxcudadev + 1, but this would certainly give an
 			# odd number.
 			nodes=`expr $nodes + $nmaxopencldev`
+		fi
+		if test x$enable_max_fpga = xyes ; then
+			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxmaxfpgadev`
 		fi
 
 		#nmaxmpidev = 0 if mpi master-slave is disabled
@@ -2159,6 +2313,10 @@ if test x$enable_simgrid != xyes; then
 	if test x$enable_cuda != xyes; then
 		nmaxcudadev=0
 	fi
+
+	if test x$enable_max_fpga != xyes; then
+		nmaxmaxfpgadev=0
+	fi
 	if test x$enable_opencl != xyes; then
 		nmaxopencldev=0
 	fi
@@ -2170,12 +2328,12 @@ if test x$enable_simgrid != xyes; then
 fi
 if test $maxcpus == 0
 then
-	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* 64 \) + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* 64 \) + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 elif test $nmaxmpidev == 0
 then
-	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 else
-	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + 15 \) / 16 \) `
+	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* $maxcpus \) + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 fi
 AC_MSG_CHECKING(Maximum number of workers)
 AC_MSG_RESULT($nmaxworkers)
@@ -2186,6 +2344,9 @@ if test $nmaxdevs -lt $nmaxcudadev; then
 fi
 if test $nmaxdevs -lt $nmaxopencldev; then
 	nmaxdevs=$nmaxopencldev
+fi
+if test $nmaxdevs -lt $nmaxmaxfpgadev; then
+	nmaxdevs=$nmaxmaxfpgadev
 fi
 if test $nmaxdevs -lt $nmaxmpidev; then
 	nmaxdevs=$nmaxmpidev
@@ -2280,13 +2441,16 @@ if test x$enable_perf_debug = xyes; then
 	IS_SUPPORTED_FLAG(-fno-pie)
 fi
 
+IS_SUPPORTED_FLAG(-Wextra)
+IS_SUPPORTED_FLAG(-Wunused)
+IS_SUPPORTED_CFLAG(-Wundef)
+IS_SUPPORTED_CXXFLAG(-Wundef)
+IS_SUPPORTED_FLAG(-Wshadow)
+IS_SUPPORTED_CFLAG(-Wpointer-arith)
+IS_SUPPORTED_CXXFLAG(-Wpointer-arith)
+
 if test "x$STARPU_DEVEL" != x; then
 	AC_DEFINE(STARPU_DEVEL, [1], [enable developer warnings])
-	IS_SUPPORTED_FLAG(-Wextra)
-	IS_SUPPORTED_FLAG(-Wunused)
-	IS_SUPPORTED_CFLAG(-Wundef)
-	IS_SUPPORTED_CXXFLAG(-Wundef)
-	IS_SUPPORTED_FLAG(-Wshadow)
 	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
 	IS_SUPPORTED_CXXFLAG(-Werror=pointer-arith)
 	IS_SUPPORTED_FLAG(-fno-common)
@@ -2469,6 +2633,8 @@ AC_ARG_ENABLE(openmp, [AS_HELP_STRING([--enable-openmp],
 			[build the OpenMP runtime support])],
 			enable_openmp=$enableval, enable_openmp=yes)
 
+AC_CHECK_HEADER([ucontext.h],[have_valid_ucontext=yes],[have_valid_ucontext=no])
+
 openmp_msg=""
 if test x$starpu_windows = xyes ; then
    enable_openmp=no
@@ -2481,6 +2647,10 @@ fi
 if test x$enable_simgrid = xyes ; then
    enable_openmp=no
    openmp_msg="incompatibility with Simgrid support"
+fi
+if test x$have_valid_ucontext = xno ; then
+  enable_openmp=no
+  openmp_msg="ucontext.h unavailable"
 fi
 
 if test x$enable_openmp = xyes; then
@@ -2800,6 +2970,14 @@ AM_CONDITIONAL(STARPU_HAVE_CBLAS_H, test x$have_cblas_h = xyes)
 if test x$have_cblas_h = xyes; then
     AC_DEFINE(STARPU_HAVE_CBLAS_H, [1], [The blas library has blas.h])
 fi
+if test x$blas_lib != xnone; then
+    AC_DEFINE(STARPU_HAVE_BLAS, [1], [The blas library is available])
+    SAVED_LIBS="$LIBS"
+    LIBS="$LIBS -lblas"
+    AC_CHECK_FUNCS([cblas_sgemv])
+    LIBS="$SAVED_LIBS"
+fi
+AM_CONDITIONAL(STARPU_HAVE_CBLAS_SGEMV, test x$HAVE_CBLAS_SGEMV = x1)
 
 AM_CONDITIONAL(STARPU_ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
 AM_CONDITIONAL(STARPU_GOTO_BLAS_LIB, test x$blas_lib = xgoto)
@@ -3211,7 +3389,19 @@ AM_CONDITIONAL(STARPU_BUILD_STARPURM_EXAMPLES, [test x$enable_starpurm_examples 
 # StarPUPy                          #
 #####################################
 
+starpupy_multi_interpreter=no
 starpupy_support=no
+
+AC_ARG_ENABLE(python-multi-interpreter, [AS_HELP_STRING([--enable-python-multi-interpreter], [enable the use of multi python interpreter])], enable_python_multi_interpreter=$enableval, enable_python_multi_interpreter=no)
+
+if test x$enable_python_multi_interpreter = xyes; then
+	starpupy_multi_interpreter=yes
+	enable_starpupy=yes
+	AC_DEFINE(STARPU_STARPUPY_MULTI_INTERPRETER, [1], [enable python multi interpreter])
+fi
+
+AM_CONDITIONAL(STARPU_STARPUPY_MULTI_INTERPRETER, [test x$starpupy_multi_interpreter = xyes])
+
 AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU python interface])],
                     enable_starpupy=$enableval, enable_starpupy=no)
 if test "x$enable_starpupy" != xno
@@ -3223,6 +3413,10 @@ then
 		AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
 	fi
 	AC_SUBST(PYTHON)
+	AC_MSG_CHECKING(for python3 version)
+	PYTHON_VERSION=$(echo "import sys ; print(str(sys.version_info.major)+\".\"+str(sys.version_info.minor))" | $PYTHON)
+	AC_MSG_RESULT($PYTHON_VERSION)
+	AC_SUBST(PYTHON_VERSION)
 	PYTHON_INCLUDE_DIRS="`$PYTHON -c "from sysconfig import get_paths as gp; print(gp()@<:@'include'@:>@)"`"
 	SAVED_CPPFLAGS="${CPPFLAGS}"
 	CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDE_DIRS"
@@ -3316,6 +3510,13 @@ AM_CONDITIONAL(STARPU_AVAILABLE_DOC, [test x$available_doc != xno])
 AM_CONDITIONAL(STARPU_BUILD_DOC_PDF, [test x$enable_build_doc_pdf != xno])
 AM_CONDITIONAL(STARPU_AVAILABLE_DOC_PDF, [test x$available_doc_pdf != xno])
 
+if test x$enable_build_doc_pdf != xno ; then
+   DOC_GENERATE_LATEX=YES
+else
+   DOC_GENERATE_LATEX=NO
+fi
+AC_SUBST(DOC_GENERATE_LATEX)
+
 ###############################################################################
 #                                                                             #
 #                                Julia                                        #
@@ -3329,8 +3530,8 @@ if test "$enable_julia" = "yes" ; then
    AC_PATH_PROG(juliapath, julia)
    AC_MSG_CHECKING(whether julia is available)
    AC_MSG_RESULT($juliapath)
-   if test ! -x $julia_path ; then
-      AC_MSG_ERROR(Julia compiler '$julia_path' is not valid)
+   if test ! -x $juliapath ; then
+      AC_MSG_ERROR(Julia compiler '$juliapath' is not valid)
       enable_julia=no
    fi
 fi
@@ -3339,16 +3540,45 @@ AC_SUBST(JULIA, $juliapath)
 
 ###############################################################################
 #                                                                             #
+#                         Eclipse Plugin                                      #
+#                                                                             #
+###############################################################################
+AC_ARG_ENABLE(eclipse-plugin, [AS_HELP_STRING([--enable-eclipse-plugin],
+			      [Build the Eclipse plugin])],
+			      enable_eclipse_plugin=$enableval, enable_eclipse_plugin=no)
+if test "$enable_eclipse_plugin" = "yes" ; then
+   AC_PATH_PROG(eclipsepath, eclipse)
+   AC_MSG_CHECKING(whether eclipse is available)
+   AC_MSG_RESULT($eclipsepath)
+   if test ! -x "$eclipsepath" ; then
+      AC_MSG_ERROR(Eclipse executable '$eclipsepath' is not valid)
+      enable_eclipse_plugin=no
+   fi
+
+   libs=$(for x in starpu-$STARPU_EFFECTIVE_VERSION $(echo $STARPU_EXPORTED_LIBS | sed 's/-l//g') $HWLOC_REQUIRES ; do echo $x ; done)
+   option_libs=$($srcdir/eclipse-plugin/tools/cproject.sh option $libs)
+   module_libs=$($srcdir/eclipse-plugin/tools/cproject.sh module $libs)
+fi
+
+AM_CONDITIONAL([STARPU_BUILD_ECLIPSE_PLUGIN], [test "x$enable_eclipse_plugin" = "xyes"])
+AC_SUBST(ECLIPSE, $eclipsepath)
+AC_SUBST(STARPU_INCLUDE_PATH, $(eval echo ${includedir}/starpu/$STARPU_EFFECTIVE_VERSION))
+AC_SUBST(STARPU_LIB_PATH, $(eval echo ${prefix}/lib))
+AC_SUBST(STARPU_MODULE_LIBS, "$module_libs")
+AC_SUBST(STARPU_OPTION_LIBS, "$option_libs")
+
+###############################################################################
+#                                                                             #
 #                                Final settings                               #
 #                                                                             #
 ###############################################################################
 
 # these are the flags needed to compile starpu.h
-STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $SIMGRID_CFLAGS $OPENMP_CFLAGS"
+STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $OPENMP_CFLAGS"
 AC_SUBST([STARPU_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
@@ -3383,6 +3613,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x doc/doxygen/doxygen_filter.sh
   chmod +x doc/doxygen_dev/doxygen_filter.sh
   chmod +x starpupy/examples/execute.sh
+  chmod +x starpupy/benchmark/execute.sh
   chmod +x julia/examples/execute.sh
   for x in \
     tests/microbenchs/tasks_data_overhead.sh \
@@ -3415,6 +3646,8 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     examples/scheduler/schedulers_context.sh \
     tools/starpu_paje_draw_histogram.R \
     tools/starpu_paje_state_stats.R \
+    tools/starpu_mlr_analysis.Rmd \
+    tools/starpu_paje_summary.Rmd \
     tools/starpu_trace_state_stats.py \
     julia/examples/check_deps/check_deps.sh \
     julia/examples/mult/mult_starpu.sh \
@@ -3430,12 +3663,19 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     julia/examples/axpy/axpy.sh \
     julia/examples/gemm/gemm.sh \
     julia/examples/cholesky/cholesky.sh \
+    starpupy/benchmark/tasks_size_overhead.sh \
+    starpupy/benchmark/tasks_size_overhead.gp \
+    starpupy/benchmark/test_handle_perf.sh \
+    starpupy/benchmark/test_handle_perf_pickle.sh \
     starpupy/examples/starpu_py.sh \
+    starpupy/examples/starpu_py_handle.sh \
     starpupy/examples/starpu_py_np.sh \
     starpupy/examples/starpu_py_parallel.sh \
+    starpupy/examples/starpu_py_partition.sh \
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
+  sed -i -e '/ STARPU_SRC_DIR /d' -e '/ STARPU_BUILD_DIR /d' src/common/config.h
 ])
 
 # Create links to ICD files in build/socl/vendors directory. SOCL will use this
@@ -3453,7 +3693,7 @@ done
 AC_SUBST(SOCL_VENDORS)
 
 AC_CONFIG_FILES(tests/regression/regression.sh tests/regression/profiles tests/regression/profiles.build.only)
-AC_CONFIG_HEADER(src/common/config.h include/starpu_config.h starpurm/include/starpurm_config.h)
+AC_CONFIG_HEADER(src/common/config.h src/common/config-src-build.h include/starpu_config.h starpurm/include/starpurm_config.h)
 
 SANITIZE=$(echo $CFLAGS | grep sanitize)
 AM_CONDITIONAL(STARPU_SANITIZE, test -n "$SANITIZE")
@@ -3499,6 +3739,7 @@ AC_OUTPUT([
 	starpufft/starpufft-1.3.pc
 	starpurm/Makefile
 	starpurm/src/Makefile
+	starpurm/tests/Makefile
 	starpurm/examples/Makefile
 	starpurm/starpurm-1.3.pc
 	starpupy/src/setup.cfg
@@ -3507,6 +3748,8 @@ AC_OUTPUT([
 	starpupy/src/Makefile
 	starpupy/examples/Makefile
 	starpupy/examples/execute.sh
+	starpupy/benchmark/Makefile
+	starpupy/benchmark/execute.sh
 	examples/Makefile
 	examples/stencil/Makefile
 	tests/Makefile
@@ -3530,28 +3773,36 @@ AC_OUTPUT([
 	doc/doxygen_dev/doxygen_filter.sh
 	tools/msvc/starpu_var.bat
 	min-dgels/Makefile
+	bubble/Makefile
+	bubble/tests/Makefile
 	julia/Makefile
 	julia/src/Makefile
 	julia/src/dynamic_compiler/Makefile
 	julia/examples/Makefile
 	julia/examples/execute.sh
+	eclipse-plugin/Makefile
+	eclipse-plugin/src/Makefile
+	eclipse-plugin/examples/Makefile
+	eclipse-plugin/examples/hello/.cproject
 ])
 
 AC_MSG_NOTICE([
 
-	CPUs   enabled: $enable_cpu
-	CUDA   enabled: $enable_cuda
-	OpenCL enabled: $enable_opencl
+	CPUs     enabled: $enable_cpu
+	CUDA     enabled: $enable_cuda
+	OpenCL   enabled: $enable_opencl
+	Max FPGA enabled: $enable_max_fpga
 
 	Compile-time limits
 	(change these with --enable-maxcpus, --enable-maxcudadev,
-	--enable-maxopencldev, --enable-maxnodes, --enable-maxbuffers)
+	--enable-maxopencldev, --enable-maxmaxfpgadev, --enable-maxnodes, --enable-maxbuffers)
         (Note these numbers do not represent the number of detected
 	devices, but the maximum number of devices StarPU can manage)
 
 	Maximum number of CPUs:                     $maxcpus
 	Maximum number of CUDA devices:             $nmaxcudadev
 	Maximum number of OpenCL devices:           $nmaxopencldev
+	Maximum number of Maxeler FPGA devices:     $nmaxmaxfpgadev
 	Maximum number of MPI master-slave devices: $nmaxmpidev
 	Maximum number of memory nodes:             $maxnodes
 	Maximum number of task buffers:             $nmaxbuffers
@@ -3563,7 +3814,7 @@ AC_MSG_NOTICE([
 	Magma enabled:     $have_magma
 	BLAS library:      $blas_lib
 	hwloc:             $have_valid_hwloc
-	FxT trace enabled: $use_fxt
+	FxT trace enabled: $enable_fxt
 
         Documentation HTML:  $enable_build_doc
         Documentation PDF:   $enable_build_doc_pdf
@@ -3577,6 +3828,7 @@ AC_MSG_NOTICE([
 	       FFT Support:                                   $fft_support
 	       Resource Management enabled:                   $starpurm_support
 	       Python Interface enabled:                      $starpupy_support
+	       Multi Python Interpreter enabled:              $starpupy_multi_interpreter
 	       OpenMP runtime support enabled:                $enable_openmp
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
@@ -3588,6 +3840,7 @@ AC_MSG_NOTICE([
 	       Native fortran support:                        $enable_build_fortran
 	       Native MPI fortran support:                    $use_mpi_fort
 	       Support for multiple linear regression models: $support_mlr
+	       Hierarchical dags support:                     $enable_bubble
 	       JULIA enabled:                                 $enable_julia
 ])
 

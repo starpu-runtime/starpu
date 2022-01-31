@@ -28,15 +28,15 @@ void starpu_csr_filter_vertical_block(void *father_interface, void *child_interf
 	size_t elemsize = csr_father->elemsize;
 	uint32_t firstentry = csr_father->firstentry;
 
-	uint32_t *rowptr = csr_father->rowptr;
+	uint32_t *ram_rowptr = csr_father->ram_rowptr;
 
 	size_t first_index;
 	unsigned child_nrow;
 
 	starpu_filter_nparts_compute_chunk_size_and_offset(nrow, nchunks, 1, id, 1, &child_nrow, &first_index);
 
-	uint32_t local_firstentry = rowptr[first_index] - firstentry;
-	uint32_t local_lastentry = rowptr[first_index + child_nrow] - firstentry;
+	uint32_t local_firstentry = ram_rowptr[first_index] - firstentry;
+	uint32_t local_lastentry = ram_rowptr[first_index + child_nrow] - firstentry;
 
 	uint32_t local_nnz = local_lastentry - local_firstentry;
 
@@ -46,6 +46,8 @@ void starpu_csr_filter_vertical_block(void *father_interface, void *child_interf
 	csr_child->nrow = child_nrow;
 	csr_child->firstentry = local_firstentry;
 	csr_child->elemsize = elemsize;
+	csr_child->ram_colind = &csr_father->ram_colind[local_firstentry];
+	csr_child->ram_rowptr = &ram_rowptr[first_index];
 
 	if (csr_father->nzval)
 	{

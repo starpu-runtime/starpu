@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2016       Uppsala University
  *
@@ -71,6 +71,13 @@ extern "C"
    executed on a OpenCL processing unit.
 */
 #define STARPU_OPENCL	STARPU_WORKER_TO_MASK(STARPU_OPENCL_WORKER)
+
+/**
+   To be used when setting the field starpu_codelet::where (or
+   starpu_task::where) to specify the codelet (or the task) may be
+   executed on a MAX FPGA.
+*/
+#define STARPU_MAX_FPGA	STARPU_WORKER_TO_MASK(STARPU_MAX_FPGA_WORKER)
 
 /**
    To be used when setting the field starpu_codelet::where (or
@@ -171,14 +178,21 @@ typedef void (*starpu_cuda_func_t)(void **, void*);
 typedef void (*starpu_opencl_func_t)(void **, void*);
 
 /**
-   MPI Master Slave kernel for a codelet
+   Maxeler FPGA implementation of a codelet.
 */
-typedef void (*starpu_mpi_ms_kernel_t)(void **, void*);
+typedef void (*starpu_max_fpga_func_t)(void **, void*);
 
 /**
-   MPI Master Slave implementation of a codelet.
-*/
-typedef starpu_mpi_ms_kernel_t (*starpu_mpi_ms_func_t)(void);
+   @ingroup API_Bubble Hierarchical Dags
+   Bubble decision function
+ */
+typedef int (*starpu_bubble_func_t)(struct starpu_task *t, void *arg);
+
+/**
+   @ingroup API_Bubble Hierarchical Dags
+   Bubble DAG generation function
+ */
+typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
 
 /**
    @deprecated
@@ -246,6 +260,14 @@ typedef starpu_mpi_ms_kernel_t (*starpu_mpi_ms_func_t)(void);
    or in CPU-accessible memory (and let StarPU choose the NUMA node).
 */
 #define STARPU_SPECIFIC_NODE_LOCAL_OR_CPU (-5)
+
+/**
+   Value to be set in the starpu_codelet::nodes field to make StarPU not actually
+   put the data in any particular memory, i.e. the task will only get the
+   sequential consistency dependencies, but not actually trigger any data
+   transfer.
+*/
+#define STARPU_SPECIFIC_NODE_NONE (-6)
 
 struct starpu_task;
 
@@ -379,20 +401,21 @@ struct starpu_codelet
 	char opencl_flags[STARPU_MAXIMPLEMENTATIONS];
 
 	/**
-	   Optional array of function pointers to a function which
-	   returns the MPI Master Slave implementation of the codelet.
-	   The functions prototype must be:
-	   \code{.c}
-	   starpu_mpi_ms_kernel_t mpi_ms_func(struct starpu_codelet *cl, unsigned nimpl)
-	   \endcode
-	   If the field starpu_codelet::where is set, then the field
-	   starpu_codelet::mpi_ms_funcs is ignored if ::STARPU_MPI_MS
-	   does not appear in the field starpu_codelet::where. It can
-	   be <c>NULL</c> if starpu_codelet::cpu_funcs_name is
-	   non-<c>NULL</c>, in which case StarPU will simply make a
-	   symbol lookup to get the implementation.
-	*/
-	starpu_mpi_ms_func_t mpi_ms_funcs[STARPU_MAXIMPLEMENTATIONS];
+           Optional array of function pointers to the Maxeler FPGA
+           implementations of the codelet. The functions prototype
+           must be:
+           \code{.c}
+           void fpga_func(void *buffers[], void *cl_arg)
+           \endcode
+           The first argument being the array of data managed by the
+           data management library, and the second argument is a
+           pointer to the argument passed from the field
+           starpu_task::cl_arg. If the field starpu_codelet::where is
+           set, then the field starpu_codelet::max_fpga_funcs is ignored if
+           ::STARPU_MAX_FPGA does not appear in the field
+           starpu_codelet::where, it must be non-<c>NULL</c> otherwise.
+        */
+	starpu_max_fpga_func_t max_fpga_funcs[STARPU_MAXIMPLEMENTATIONS];
 
 	/**
 	   Optional array of strings which provide the name of the CPU
@@ -402,6 +425,17 @@ struct starpu_codelet
 	   up the MPI MS function implementation through its name.
 	*/
 	const char *cpu_funcs_name[STARPU_MAXIMPLEMENTATIONS];
+
+	/**
+	   Optional function to decide if the task is to be
+	   transformed into a bubble
+	 */
+	starpu_bubble_func_t bubble_func;
+
+	/**
+	   Optional function to transform the task into a new graph
+	 */
+	starpu_bubble_gen_dag_func_t bubble_gen_dag_func;
 
 	/**
 	   Specify the number of arguments taken by the codelet. These
@@ -1030,13 +1064,6 @@ struct starpu_task
 	unsigned regenerate:1;
 
 	/**
-	   @private
-	   This is only used for tasks that use multiformat handle.
-	   This should only be used by StarPU.
-	*/
-	unsigned mf_skip:1;
-
-	/**
 	   do not allocate a submitorder id for this task
 
 	   With starpu_task_insert() and alike this can be specified
@@ -1046,19 +1073,32 @@ struct starpu_task
 	unsigned no_submitorder:1;
 
 	/**
+	   @private
+	   This is only used for tasks that use multiformat handle.
+	   This should only be used by StarPU.
+	*/
+	unsigned char mf_skip;
+
+	/**
 	   Whether this task has failed and will thus have to be retried
 
 	   Set by StarPU.
 	*/
-	unsigned failed:1;
+	unsigned char failed;
 
 	/**
 	   Whether the scheduler has pushed the task on some queue
 
 	   Set by StarPU.
 	*/
-	unsigned scheduled:1;
-	unsigned prefetched:1;
+	unsigned char scheduled;
+
+	/**
+	   Whether the scheduler has prefetched the task's data
+
+	   Set by StarPU.
+	*/
+	unsigned char prefetched;
 
 	/**
 	   Optional field. If the field
@@ -1212,11 +1252,12 @@ struct starpu_task
 	struct starpu_profiling_task_info *profiling_info;
 
 	/**
-	   This can be set to the number of floating points operations
-	   that the task will have to achieve. This is useful for
-	   easily getting GFlops curves from the tool
-	   <c>starpu_perfmodel_plot</c>, and for the hypervisor load
-	   balancing.
+	   The application can set this to the number of floating points
+	   operations that the task will have to achieve. StarPU will measure
+	   the time that the task takes, and divide the two to get the GFlop/s
+	   achieved by the task.  This will allow getting GFlops/s curves
+	   from the tool <c>starpu_perfmodel_plot</c>, and is useful for the
+	   hypervisor load balancing.
 
 	   With starpu_task_insert() and alike this can be specified thanks to
 	   ::STARPU_FLOPS followed by a double.
@@ -1271,6 +1312,37 @@ struct starpu_task
 #else
 	void *omp_task;
 #endif
+
+	/**
+	   When using hierarchical dags, the job identifier of the
+	   bubble task which created the current task
+	 */
+	unsigned long bubble_parent;
+
+	/**
+	   When using hierarchical dags, a pointer to the bubble
+	   decision function
+	 */
+	starpu_bubble_func_t bubble_func;
+
+	/**
+	   When using hierarchical dags, a pointer to an argument to
+	   be given when calling the bubble decision function
+	 */
+	void *bubble_func_arg;
+
+	/**
+	   When using hierarchical dags, a pointer to the bubble
+	   DAG generation function
+	 */
+	starpu_bubble_gen_dag_func_t bubble_gen_dag_func;
+
+	/**
+	   When using hierarchical dags, a pointer to an argument to
+	   be given when calling the bubble DAG generation function
+	 */
+	void *bubble_gen_dag_func_arg;
+
 	/**
 	   @private
 	   This is private to StarPU, do not modify.
@@ -1490,6 +1562,16 @@ void starpu_task_clean(struct starpu_task *task);
    task have to be freed by calling starpu_task_destroy().
 */
 struct starpu_task *starpu_task_create(void) STARPU_ATTRIBUTE_MALLOC;
+
+/**
+   Allocate a task structure that does nothing but accesses data \p handle
+   with mode \p mode. This allows to synchronize with the task graph, according
+   to the sequential consistency, against tasks submitted before or after
+   submitting this task. One can then use starpu_task_declare_deps_array() or
+   starpu_task_end_dep_add()/starpu_task_end_dep_release() to add dependencies
+   against this task before submitting it.
+ */
+struct starpu_task *starpu_task_create_sync(starpu_data_handle_t handle, enum starpu_data_access_mode mode) STARPU_ATTRIBUTE_MALLOC;
 
 /**
    Free the resource allocated during starpu_task_create() and
@@ -1756,6 +1838,11 @@ void starpu_task_ft_success(struct starpu_task *meta_task);
    not finished any task for STARPU_WATCHDOG_TIMEOUT seconds
 */
 void starpu_task_watchdog_set_hook(void (*hook)(void *), void *hook_arg);
+
+/**
+ * Return the given status as a string
+ */
+char *starpu_task_status_get_as_string(enum starpu_task_status status);
 
 /** @} */
 

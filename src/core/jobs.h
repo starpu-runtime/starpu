@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -210,6 +210,11 @@ struct _starpu_job
 	/** Linked-list of all jobs, for debugging */
 	struct _starpu_job_multilist_all_submitted all_submitted;
 #endif
+
+#ifdef STARPU_BUBBLE
+	int already_turned_into_bubble;
+	unsigned is_bubble:1;
+#endif
 };
 
 #ifdef STARPU_DEBUG
@@ -254,6 +259,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j);
 /** When waking up a continuation, we only enforce new task dependencies */
 unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j);
 #endif
+
 unsigned _starpu_take_deps_and_schedule(struct _starpu_job *j);
 void _starpu_enforce_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_notify_job_start_data *data, int tag);
 

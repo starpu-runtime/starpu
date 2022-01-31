@@ -315,7 +315,6 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 {
 	FILE *f;
 	MM_typecode matcode;
-	int ret_code;
 	int M, N;
 	int nz;
 	int i;
@@ -348,7 +347,7 @@ bcsr_t *mm_file_to_bcsr(char *filename, unsigned c, unsigned r)
 
 	/* find out size of sparse matrix .... */
 
-	if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &nz)) !=0)
+	if ((mm_read_mtx_crd_size(f, &M, &N, &nz)) !=0)
 		exit(1);
 
 

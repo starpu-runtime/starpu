@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	tab = calloc(SIZE, sizeof(float));
@@ -65,13 +65,16 @@ int main(int argc, char **argv)
 		{
 			MPI_Status status;
 			starpu_mpi_req req;
-			starpu_mpi_isend(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
-			starpu_mpi_wait(&req, &status);
+			ret = starpu_mpi_isend(tab_handle, &req, other_rank, loop, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
+			ret = starpu_mpi_wait(&req, &status);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 		}
 		else
 		{
 			MPI_Status status;
-			starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, &status);
+			ret = starpu_mpi_recv(tab_handle, other_rank, loop, MPI_COMM_WORLD, &status);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		}
 	}
 

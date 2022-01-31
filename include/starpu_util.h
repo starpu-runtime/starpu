@@ -104,7 +104,7 @@ extern "C"
 #endif
 
 /**
-   When building with a GNU C Compiler, defined to #pragma GCC visibility push(hidden)
+   When building with a GNU C Compiler, defined to \#pragma GCC visibility push(hidden)
 */
 #ifdef __GNUC__
 #  define STARPU_VISIBILITY_PUSH_HIDDEN      #pragma GCC visibility push(hidden)
@@ -113,7 +113,7 @@ extern "C"
 #endif
 
 /**
-   When building with a GNU C Compiler, defined to #pragma GCC visibility pop
+   When building with a GNU C Compiler, defined to \#pragma GCC visibility pop
 */
 #ifdef __GNUC__
 #  define STARPU_VISIBILITY_POP      #pragma GCC visibility pop
@@ -224,10 +224,24 @@ extern "C"
 #  endif
 #endif
 
+/**
+   Unless StarPU has been configured with the option \ref enable-fast
+   "--enable-fast", this macro will abort if the pointer \p x is not pointing to
+   valid memory.
+*/
 #ifdef STARPU_NO_ASSERT
 #define STARPU_ASSERT_ACCESSIBLE(x)	do { if (0) { (void) (x); } } while(0)
 #else
 #define STARPU_ASSERT_ACCESSIBLE(ptr)	do { volatile char __c STARPU_ATTRIBUTE_UNUSED = *(char*) (ptr); } while(0)
+#endif
+
+/**
+   This macro will abort compilation if the expression \p x is false.
+*/
+#if STARPU_GNUC_PREREQ(4, 6) && !defined __cplusplus && !defined(__STRICT_ANSI__)
+#define STARPU_STATIC_ASSERT(x)	_Static_assert(x, #x)
+#else
+#define STARPU_STATIC_ASSERT(x)	STARPU_ASSERT(x)
 #endif
 
 /**
@@ -517,6 +531,7 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 #endif
 #endif
 
+/* Try to replace `old' with `value' at `ptr'. Returns true iff the swap was successful. */
 #ifdef STARPU_HAVE_SYNC_BOOL_COMPARE_AND_SWAP
 #define STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_bool_compare_and_swap ((ptr), (old), (value)))
 #define STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP(ptr, old, value)
@@ -533,6 +548,13 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 #endif
 #endif
 
+#if UINTPTR_MAX == UINT64_MAX
+#define STARPU_BOOL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP64(ptr, old, value)
+#else
+#define STARPU_BOOL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_BOOL_COMPARE_AND_SWAP32(ptr, old, value)
+#endif
+
+/* Try to replace `old' with `value' at `ptr'. Returns the value actually seen at `ptr'. */
 #ifdef STARPU_HAVE_SYNC_VAL_COMPARE_AND_SWAP
 #define STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)  (__sync_val_compare_and_swap ((ptr), (old), (value)))
 #define STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP(ptr, old, value)
@@ -547,6 +569,12 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 #ifdef STARPU_HAVE_CMPXCHG64
 #define STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value) (_starpu_cmpxchg64((ptr), (old), (value)))
 #endif
+#endif
+
+#if UINTPTR_MAX == UINT64_MAX
+#define STARPU_VAL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP64(ptr, old, value)
+#else
+#define STARPU_VAL_COMPARE_AND_SWAP_PTR(ptr, old, value) STARPU_VAL_COMPARE_AND_SWAP32(ptr, old, value)
 #endif
 
 #ifdef STARPU_HAVE_ATOMIC_EXCHANGE_N
@@ -593,14 +621,10 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 /**
    This macro can be used to do a synchronization.
 */
-#if defined(__i386__)
-#define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
-#elif defined(__KNC__) || defined(__KNF__)
-#define STARPU_RMB() __asm__ __volatile__("lock; addl $0,0(%%rsp)" ::: "memory")
-#elif defined(__x86_64__)
+#if defined(__x86_64__)
 #define STARPU_RMB() __asm__ __volatile__("lfence" ::: "memory")
-#elif defined(__ppc__) || defined(__ppc64__)
-#define STARPU_RMB() __asm__ __volatile__("sync" ::: "memory")
+#elif defined(__aarch64__)
+#define STARPU_RMB() __asm__ __volatile__("dsb ld" ::: "memory")
 #else
 #define STARPU_RMB() STARPU_SYNCHRONIZE()
 #endif
@@ -608,14 +632,10 @@ STARPU_ATOMIC_SOMETHING64(or, old | value)
 /**
    This macro can be used to do a synchronization.
 */
-#if defined(__i386__)
-#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%esp)" ::: "memory")
-#elif defined(__KNC__) || defined(__KNF__)
-#define STARPU_WMB() __asm__ __volatile__("lock; addl $0,0(%%rsp)" ::: "memory")
-#elif defined(__x86_64__)
+#if defined(__x86_64__)
 #define STARPU_WMB() __asm__ __volatile__("sfence" ::: "memory")
-#elif defined(__ppc__) || defined(__ppc64__)
-#define STARPU_WMB() __asm__ __volatile__("sync" ::: "memory")
+#elif defined(__aarch64__)
+#define STARPU_WMB() __asm__ __volatile__("dsb st" ::: "memory")
 #else
 #define STARPU_WMB() STARPU_SYNCHRONIZE()
 #endif

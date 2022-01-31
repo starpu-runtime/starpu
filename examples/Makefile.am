@@ -76,10 +76,24 @@ EXTRA_DIST = 					\
 	heat/heat.sh					\
 	cholesky/cholesky.sh				\
 	cholesky/cholesky_compiled.c			\
-	lu/lu.sh
+	lu/lu.sh					\
+	subgraphs/main.h				\
+	native_fortran/Makefile_nf_dynbuf.mk		\
+	native_fortran/Makefile_nf_example.mk		\
+	native_fortran/Makefile_nf_matrix.mk		\
+	native_fortran/Makefile_nf_partition.mk		\
+	native_fortran/Makefile_nf_sched_ctx.mk		\
+	native_fortran/Makefile_nf_varbuf.mk		\
+	native_fortran/Makefile_nf_vector.mk		\
+	cpp/Makefile_add_vectors_cpp11.mk		\
+	cpp/Makefile_add_vectors.mk			\
+	fortran90/Makefile.mk
 
 
 CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.mps */*/*.mps *.dot */*.dot */*/*.dot *.pl */*.pl */*/*.pl *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90
+
+clean-local:
+	-rm -rf mult/sgemm.traces lu/lu.traces
 
 if STARPU_USE_CUDA
 
@@ -159,7 +173,9 @@ if !STARPU_USE_MPI_MASTER_SLAVE
 SHELL_TESTS			+=	scheduler/schedulers.sh
 SHELL_TESTS			+=	scheduler/schedulers_context.sh
 if !STARPU_NO_BLAS_LIB
+if STARPU_USE_FXT
 SHELL_TESTS			+=	mult/sgemm.sh
+endif
 endif
 endif
 
@@ -168,16 +184,11 @@ noinst_PROGRAMS		=
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
-if !STARPU_CROSS_COMPILING
 LOADER			=	loader
 loader_CPPFLAGS 	=	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/examples/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
 noinst_PROGRAMS		+=	loader
-else
-LOADER			=
-LOADER_BIN		=	$(top_builddir)/examples/loader-cross.sh
-endif
 
 if STARPU_USE_MPI_MASTER_SLAVE
 LOADER_BIN2		= $(MPI_LAUNCHER) $(LOADER_BIN)
@@ -233,14 +244,30 @@ STARPU_EXAMPLES +=				\
 	cpp/add_vectors_interface		\
 	filters/fread				\
 	filters/fvector				\
+	filters/fvector_pick_variable		\
+	filters/ftensor				\
+	filters/ftensor_pick_block			\
 	filters/fblock				\
+	filters/fblock_pick_matrix			\
 	filters/fmatrix				\
+	filters/fmatrix_pick_vector			\
+	filters/fndim				\
+	filters/fndim_pick_ndim				\
+	filters/fndim_pick_tensor			\
+	filters/fndim_pick_block			\
+	filters/fndim_pick_matrix			\
+	filters/fndim_pick_vector			\
+	filters/fndim_pick_variable			\
+	filters/fndim_to_tensor			\
+	filters/fndim_to_block			\
+	filters/fndim_to_matrix			\
+	filters/fndim_to_vector			\
+	filters/fndim_to_variable			\
 	filters/fmultiple_manual		\
 	filters/fmultiple_submit		\
 	filters/fmultiple_submit_readonly	\
 	filters/fmultiple_submit_implicit	\
 	filters/frecursive			\
-	filters/fplan_notautomatic		\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -271,7 +298,10 @@ STARPU_EXAMPLES +=				\
 	reductions/minmax_reduction		\
 	dependency/task_end_dep			\
 	dependency/task_end_dep_add		\
-	dependency/sequential_consistency
+	dependency/sequential_consistency	\
+	subgraphs/manual			\
+	subgraphs/partition			\
+	subgraphs/plan
 
 endif
 
@@ -307,6 +337,12 @@ STARPU_EXAMPLES +=				\
 	native_fortran/nf_partition
 endif
 endif
+endif
+
+if STARPU_USE_CUDA
+STARPU_EXAMPLES +=				\
+	mult/sgemm 				\
+	mult/dgemm
 endif
 
 if !STARPU_NO_BLAS_LIB
@@ -358,8 +394,10 @@ STARPU_EXAMPLES +=				\
 endif
 
 if STARPU_HAVE_CBLAS_H
+if STARPU_HAVE_CBLAS_SGEMV
 STARPU_EXAMPLES +=				\
 	spmv/dw_block_spmv
+endif
 endif
 
 if !STARPU_SIMGRID
@@ -564,9 +602,26 @@ endif
 ###########
 # Filters #
 ###########
+filters_fvector_SOURCES =			\
+	filters/fvector.c			\
+	filters/fvector_cpu.c
+if STARPU_USE_CUDA
+filters_fvector_SOURCES +=			\
+	filters/fvector_cuda.cu
+endif
+
+filters_fmatrix_SOURCES =			\
+	filters/fmatrix.c			\
+	filters/fmatrix_print.c			\
+	filters/fmatrix_cpu.c
+if STARPU_USE_CUDA
+filters_fmatrix_SOURCES +=			\
+	filters/fmatrix_cuda.cu
+endif
 
 filters_fblock_SOURCES =			\
 	filters/fblock.c			\
+	filters/fblock_print.c			\
 	filters/fblock_cpu.c
 
 if STARPU_USE_CUDA
@@ -578,6 +633,137 @@ filters_fblock_SOURCES +=			\
 	filters/fblock_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
 	filters/fblock_opencl_kernel.cl
+endif
+
+filters_ftensor_SOURCES =			\
+	filters/ftensor.c			\
+	filters/ftensor_print.c			\
+	filters/ftensor_cpu.c
+if STARPU_USE_CUDA
+filters_ftensor_SOURCES +=			\
+	filters/ftensor_cuda.cu
+endif
+
+filters_fndim_SOURCES =			\
+	filters/fndim.c			\
+	filters/ftensor_print.c			\
+	filters/f4d_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_SOURCES +=			\
+	filters/f4d_cuda.cu
+endif
+
+filters_fmatrix_pick_vector_SOURCES =			\
+	filters/fmatrix_pick_vector.c			\
+	filters/fmatrix_print.c			\
+	filters/fvector_cpu.c
+if STARPU_USE_CUDA
+filters_fmatrix_pick_vector_SOURCES +=			\
+	filters/fvector_cuda.cu
+endif
+
+filters_fblock_pick_matrix_SOURCES =			\
+	filters/fblock_pick_matrix.c			\
+	filters/fblock_print.c			\
+	filters/fmatrix_print.c			\
+	filters/fmatrix_cpu.c
+if STARPU_USE_CUDA
+filters_fblock_pick_matrix_SOURCES +=			\
+	filters/fmatrix_cuda.cu
+endif
+
+filters_ftensor_pick_block_SOURCES =			\
+	filters/ftensor_pick_block.c			\
+	filters/ftensor_print.c			\
+	filters/fblock_print.c			\
+	filters/fblock_cpu.c
+if STARPU_USE_CUDA
+filters_ftensor_pick_block_SOURCES +=			\
+	filters/fblock_cuda.cu
+endif
+
+filters_fndim_pick_ndim_SOURCES =			\
+	filters/fndim_pick_ndim.c			\
+	filters/ftensor_print.c			\
+	filters/fblock_print.c			\
+	filters/f3d_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_ndim_SOURCES +=			\
+	filters/f3d_cuda.cu
+endif
+
+filters_fndim_pick_tensor_SOURCES =			\
+	filters/fndim_pick_tensor.c			\
+	filters/f5d_print.c			\
+	filters/ftensor_print.c			\
+	filters/ftensor_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_tensor_SOURCES +=			\
+	filters/ftensor_cuda.cu
+endif
+
+filters_fndim_pick_block_SOURCES =			\
+	filters/fndim_pick_block.c			\
+	filters/ftensor_print.c			\
+	filters/fblock_print.c			\
+	filters/fblock_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_block_SOURCES +=			\
+	filters/fblock_cuda.cu
+endif
+
+filters_fndim_pick_matrix_SOURCES =			\
+	filters/fndim_pick_matrix.c			\
+	filters/fblock_print.c			\
+	filters/fmatrix_print.c			\
+	filters/fmatrix_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_matrix_SOURCES +=			\
+	filters/fmatrix_cuda.cu
+endif
+
+filters_fndim_pick_vector_SOURCES =			\
+	filters/fndim_pick_vector.c			\
+	filters/fmatrix_print.c			\
+	filters/fvector_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_pick_vector_SOURCES +=			\
+	filters/fvector_cuda.cu
+endif
+
+filters_fndim_to_tensor_SOURCES =			\
+	filters/fndim_to_tensor.c			\
+	filters/ftensor_print.c			\
+	filters/ftensor_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_to_tensor_SOURCES +=			\
+	filters/ftensor_cuda.cu
+endif
+
+filters_fndim_to_block_SOURCES =			\
+	filters/fndim_to_block.c			\
+	filters/fblock_print.c			\
+	filters/fblock_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_to_block_SOURCES +=			\
+	filters/fblock_cuda.cu
+endif
+
+filters_fndim_to_matrix_SOURCES =			\
+	filters/fndim_to_matrix.c			\
+	filters/fmatrix_print.c			\
+	filters/fmatrix_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_to_matrix_SOURCES +=			\
+	filters/fmatrix_cuda.cu
+endif
+
+filters_fndim_to_vector_SOURCES =			\
+	filters/fndim_to_vector.c			\
+	filters/fvector_cpu.c
+if STARPU_USE_CUDA
+filters_fndim_to_vector_SOURCES +=			\
+	filters/fvector_cuda.cu
 endif
 
 filters_fmultiple_manual_SOURCES =		\
@@ -615,7 +801,9 @@ endif
 examplebin_PROGRAMS +=				\
 	filters/shadow				\
 	filters/shadow2d			\
-	filters/shadow3d
+	filters/shadow3d			\
+	filters/shadow4d			\
+	filters/shadownd
 
 #############################
 # Custom multiformat filter #
@@ -670,22 +858,23 @@ endif
 # Mult example #
 ################
 
-if !STARPU_NO_BLAS_LIB
-
 mult_sgemm_SOURCES = 				\
-	mult/sgemm.c				\
-	common/blas.c
+	mult/sgemm.c
 
 mult_sgemm_LDADD =				\
 	$(STARPU_BLAS_LDFLAGS)
 
 mult_dgemm_SOURCES = 				\
-	mult/dgemm.c				\
-	common/blas.c
+	mult/dgemm.c
 
 mult_dgemm_LDADD =				\
 	$(STARPU_BLAS_LDFLAGS)
 
+if !STARPU_NO_BLAS_LIB
+mult_sgemm_SOURCES += 				\
+	common/blas.c
+mult_dgemm_SOURCES += 				\
+	common/blas.c
 endif
 
 ####################
@@ -1118,6 +1307,23 @@ sched_ctx_parallel_tasks_reuse_handle_CFLAGS = \
 	$(AM_CFLAGS) -fopenmp
 
 endif
+
+######################
+# subgraphs examples #
+######################
+
+subgraphs_manual_SOURCES	=	\
+	subgraphs/manual.c		\
+	subgraphs/codelets.c
+
+subgraphs_partition_SOURCES	=	\
+	subgraphs/partition.c		\
+	subgraphs/codelets.c
+
+subgraphs_plan_SOURCES	=		\
+	subgraphs/plan.c		\
+	subgraphs/codelets.c
+
 
 # - link over source file to build our own object
 fortran90/starpu_mod.f90:

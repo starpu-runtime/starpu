@@ -129,7 +129,7 @@ int load_data_wakeup_cond(starpu_data_handle_t handle)
 	return (ld_interface->wakeup_task_threshold > 0) && (ld_interface->nfinished_tasks == ld_interface->wakeup_task_threshold);
 }
 
-static void load_data_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void load_data_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	(void) home_node;
 	struct load_data_interface *ld_interface = (struct load_data_interface *) data_interface;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -258,7 +258,7 @@ void _starpu_task_init(void)
 	STARPU_PTHREAD_KEY_CREATE(&current_task_key, NULL);
 	limit_min_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MIN_SUBMITTED_TASKS");
 	limit_max_submitted_tasks = starpu_get_env_number("STARPU_LIMIT_MAX_SUBMITTED_TASKS");
-	watchdog_crash = starpu_get_env_number("STARPU_WATCHDOG_CRASH");
+	watchdog_crash = starpu_get_env_number_default("STARPU_WATCHDOG_CRASH", 0);
 	watchdog_delay = starpu_get_env_number_default("STARPU_WATCHDOG_DELAY", 0);
 }
 
@@ -359,6 +359,23 @@ struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create(void)
 	return task;
 }
 
+
+static struct starpu_codelet _starpu_data_sync_cl =
+{
+	.where = STARPU_NOWHERE,
+	.nbuffers = STARPU_VARIABLE_NBUFFERS
+};
+
+struct starpu_task * STARPU_ATTRIBUTE_MALLOC starpu_task_create_sync(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
+{
+	struct starpu_task *task = starpu_task_create();
+	task->cl = &_starpu_data_sync_cl;
+	STARPU_TASK_SET_HANDLE(task, handle, 0);
+	STARPU_TASK_SET_MODE(task, mode, 0);
+	task->nbuffers = 1;
+	return task;
+}
+
 /* Free the ressource allocated during starpu_task_create. This function can be
  * called automatically after the execution of a task by setting the "destroy"
  * flag of the starpu_task structure (default behaviour). Calling this function
@@ -369,7 +386,7 @@ void _starpu_task_destroy(struct starpu_task *task)
 	/* If starpu_task_destroy is called in a callback, we just set the destroy
 	   flag. The task will be destroyed after the callback returns */
 	if (task == starpu_task_get_current()
-	    && _starpu_get_local_worker_status() == STATUS_CALLBACK)
+	    && _starpu_get_local_worker_status() & STATUS_CALLBACK)
 	{
 		task->destroy = 1;
 	}
@@ -612,6 +629,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	/* Check deprecated and unset fields (where, <device>_func,
  	 * <device>_funcs) */
 
+#if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 	/* CPU */
 	if (cl->cpu_func && cl->cpu_func != STARPU_MULTIPLE_CPU_IMPLEMENTATIONS && cl->cpu_funcs[0])
 	{
@@ -638,7 +656,9 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		where |= STARPU_CPU;
 	}
+#endif
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	/* CUDA */
 	if (cl->cuda_func && cl->cuda_func != STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS && cl->cuda_funcs[0])
 	{
@@ -665,7 +685,9 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		where |= STARPU_CUDA;
 	}
+#endif
 
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	/* OpenCL */
 	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])
 	{
@@ -692,19 +714,25 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		where |= STARPU_OPENCL;
 	}
+#endif
 
+#ifdef STARPU_USE_MAX_FPGA
+       /* FPGA */
 	some_impl = 0;
 	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
-		if (cl->mpi_ms_funcs[i])
+		if (cl->max_fpga_funcs[i])
 		{
 			some_impl = 1;
 			break;
 		}
 	if (some_impl && is_where_unset)
 	{
-		where |= STARPU_MPI_MS;
+		where |= STARPU_MAX_FPGA;
 	}
+#endif
 
+
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
 	some_impl = 0;
 	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 		if (cl->cpu_funcs_name[i])
@@ -716,6 +744,8 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	{
 		where |= STARPU_MPI_MS;
 	}
+#endif
+
 	cl->where = where;
 
 	STARPU_WMB();
@@ -736,6 +766,13 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		task->status = STARPU_TASK_INIT;
 	else
 		STARPU_ASSERT(task->status == STARPU_TASK_INIT);
+
+#ifdef STARPU_BUBBLE
+	if ((j->task->bubble_func && j->task->bubble_func(j->task, j->task->bubble_func_arg)) || (j->task->cl && j->task->cl->bubble_func && j->task->cl->bubble_func(j->task, j->task->bubble_func_arg)))
+		j->is_bubble = 1;
+	else
+		j->is_bubble = 0;
+#endif
 
 	if (j->internal)
 	{
@@ -778,25 +815,33 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 			_STARPU_MALLOC(task->dyn_interfaces, nbuffers * sizeof(void *));
 		}
 
+		struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 		for (i = 0; i < nbuffers; i++)
 		{
-			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
-			enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, i);
+			starpu_data_handle_t handle = descrs[i].handle;
+			enum starpu_data_access_mode mode = descrs[i].mode;
+
 			int node = task->cl->specific_nodes ? STARPU_CODELET_GET_NODE(task->cl, i) : -1;
 			/* Make sure handles are valid */
 			STARPU_ASSERT_MSG(handle->magic == _STARPU_TASK_MAGIC, "data %p is invalid (was it already unregistered?)", handle);
 			/* Make sure handles are not partitioned */
 			STARPU_ASSERT_MSG(handle->nchildren == 0, "only unpartitioned data (or the pieces of a partitioned data) can be used in a task");
 			/* Make sure the specified node exists */
-			STARPU_ASSERT_MSG(node == STARPU_SPECIFIC_NODE_LOCAL || node == STARPU_SPECIFIC_NODE_CPU || node == STARPU_SPECIFIC_NODE_SLOW || node == STARPU_SPECIFIC_NODE_LOCAL_OR_CPU || (node >= 0 && node < (int) starpu_memory_nodes_get_count()), "The codelet-specified memory node does not exist");
+			STARPU_ASSERT_MSG(node == STARPU_SPECIFIC_NODE_LOCAL || node == STARPU_SPECIFIC_NODE_CPU || node == STARPU_SPECIFIC_NODE_SLOW || node == STARPU_SPECIFIC_NODE_LOCAL_OR_CPU || node == STARPU_SPECIFIC_NODE_NONE || (node >= 0 && node < (int) starpu_memory_nodes_get_count()), "The codelet-specified memory node does not exist");
 			/* Provide the home interface for now if any,
 			 * for can_execute hooks */
 			if (handle->home_node != -1)
 				_STARPU_TASK_SET_INTERFACE(task, starpu_data_get_interface_on_node(handle, handle->home_node), i);
+
 			if (!(task->cl->flags & STARPU_CODELET_NOPLANS) &&
 			    ((handle->nplans && !handle->nchildren) || handle->siblings)
-			    && handle->partition_automatic_disabled == 0
-			    )
+#ifdef STARPU_BUBBLE
+			    && !j->is_bubble
+			    /*
+			     * => require to set the is_bubble a soon as possible and not in the turn_task_into_bubble.
+			     */
+#endif
+			    && !(mode & STARPU_NOPLAN))
 				/* This handle is involved with asynchronous
 				 * partitioning as a parent or a child, make
 				 * sure the right plan is active, submit
@@ -880,11 +925,11 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	}
 	STARPU_ASSERT_MSG(!(nodeps && continuation), "not supported\n");
 
-	if (!j->internal)
+	if (!j->internal && limit_max_submitted_tasks >= 0 && limit_min_submitted_tasks >= 0)
 	{
 		int nsubmitted_tasks = starpu_task_nsubmitted();
-		if (limit_max_submitted_tasks >= 0 && limit_max_submitted_tasks < nsubmitted_tasks
-			&& limit_min_submitted_tasks >= 0 && limit_min_submitted_tasks < nsubmitted_tasks)
+		if (limit_max_submitted_tasks < nsubmitted_tasks
+			&& limit_min_submitted_tasks < nsubmitted_tasks)
 		{
 			starpu_do_schedule();
 			_STARPU_TRACE_TASK_THROTTLE_START();
@@ -895,6 +940,11 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 
 	_STARPU_TRACE_TASK_SUBMIT_START();
 
+	if (task->cl && !continuation)
+	{
+		_starpu_job_set_ordered_buffers(j);
+	}
+
 	ret = _starpu_task_submit_head(task);
 	if (ret)
 	{
@@ -904,20 +954,24 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 
 	if (!continuation)
 	{
+#ifndef STARPU_NO_ASSERT
+		STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 		STARPU_ASSERT_MSG(!j->submitted || j->terminated >= 1, "Tasks can not be submitted a second time before being terminated. Please use different task structures, or use the regenerate flag to let the task resubmit itself automatically.");
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+#endif
 		_STARPU_TRACE_TASK_SUBMIT(j,
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
-		_STARPU_TRACE_TASK_NAME(j);
-		_STARPU_TRACE_TASK_LINE(j);
 	}
 
 	/* If this is a continuation, we don't modify the implicit data dependencies detected earlier. */
-	if (task->cl && !continuation)
+	if (task->cl && !continuation && !nodeps
+#ifdef STARPU_BUBBLE
+	    && !j->is_bubble
+#endif
+		)
 	{
-		_starpu_job_set_ordered_buffers(j);
-		if (!nodeps)
-			_starpu_detect_implicit_data_deps(task);
+	    _starpu_detect_implicit_data_deps(task);
 	}
 
 	if (STARPU_UNLIKELY(bundle))
@@ -983,6 +1037,12 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 #undef starpu_task_submit
 int starpu_task_submit(struct starpu_task *task)
 {
+#ifdef STARPU_BUBBLE_VERBOSE
+	struct timespec tp;
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+	unsigned long long timestamp = 1000000000ULL*tp.tv_sec + tp.tv_nsec;
+	_STARPU_DEBUG("{%llu} [%s(%p)] Submission | id %lu\n", timestamp, starpu_task_get_name(task), task, starpu_task_get_job_id(task));
+#endif
 	return _starpu_task_submit(task, 0);
 }
 
@@ -1017,6 +1077,10 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 	STARPU_ASSERT(task->cl);
 	STARPU_ASSERT(task->execute_on_a_specific_worker);
 
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+
+	_starpu_job_set_ordered_buffers(j);
+
 	ret = _starpu_task_submit_head(task);
 	STARPU_ASSERT(ret == 0);
 
@@ -1030,8 +1094,6 @@ int _starpu_task_submit_conversion_task(struct starpu_task *task,
 		handle->busy_count++;
 		_starpu_spin_unlock(&handle->header_lock);
 	}
-
-	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	_starpu_increment_nsubmitted_tasks_of_sched_ctx(j->task->sched_ctx);
 	_starpu_sched_task_submit(task);
@@ -1508,6 +1570,8 @@ static int sleep_some(float timeout)
 	/* and one final sleep (of less than 1 s) with the rest (if needed) */
 	if (t > 0.)
 		starpu_sleep(t);
+
+	_starpu_crash_call_hooks();
 	return 1;
 }
 
@@ -1692,4 +1756,21 @@ void starpu_task_ft_failed(struct starpu_task *task)
 void starpu_task_ft_success(struct starpu_task *meta_task)
 {
 	starpu_task_end_dep_release(meta_task);
+}
+
+char *starpu_task_status_get_as_string(enum starpu_task_status status)
+{
+	switch(status)
+	{
+	case(STARPU_TASK_INIT) : return "STARPU_TASK_INIT";
+	case(STARPU_TASK_BLOCKED): return "STARPU_TASK_BLOCKED";
+	case(STARPU_TASK_READY): return "STARPU_TASK_READY";
+	case(STARPU_TASK_RUNNING): return "STARPU_TASK_RUNNING";
+	case(STARPU_TASK_FINISHED): return "STARPU_TASK_FINISHED";
+	case(STARPU_TASK_BLOCKED_ON_TAG): return "STARPU_TASK_BLOCKED_ON_TAG";
+	case(STARPU_TASK_BLOCKED_ON_TASK): return "STARPU_TASK_BLOCKED_ON_TASK";
+	case(STARPU_TASK_BLOCKED_ON_DATA): return "STARPU_TASK_BLOCKED_ON_DATA";
+	case(STARPU_TASK_STOPPED): return "STARPU_TASK_STOPPED";
+	default: return "STARPU_TASK_unknown_status";
+	}
 }

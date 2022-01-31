@@ -88,7 +88,7 @@ void _starpu_mpi_isend_unknown_datatype(struct _starpu_mpi_req *req)
  * Receive
  **********************************************/
 
-static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, const nm_sr_event_info_t* p_info, void* ref)
+static void _starpu_mpi_unknown_datatype_recv_callback(nm_sr_event_t event, const nm_sr_event_info_t* p_info STARPU_ATTRIBUTE_UNUSED, void* ref)
 {
 	STARPU_ASSERT_MSG(!((event & NM_SR_EVENT_FINALIZED) && (event & NM_SR_EVENT_RECV_DATA)), "Both events can't be triggered at the same time !");
 

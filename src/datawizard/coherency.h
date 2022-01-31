@@ -182,6 +182,10 @@ struct _starpu_data_state
 	unsigned sibling_index; /** indicate which child this node is from the father's perpsective (if any) */
 	unsigned depth; /** what's the depth of the tree ? */
 
+#ifdef STARPU_BUBBLE
+	starpu_pthread_mutex_t unpartition_mutex;
+#endif
+
 	/** Synchronous partitioning */
 	starpu_data_handle_t children;
 	unsigned nchildren;
@@ -231,6 +235,8 @@ struct _starpu_data_state
 	    is in its readonly_dup field. */
 	starpu_data_handle_t readonly_dup_of;
 
+	/* The following bitfields are set from the application submission thread */
+
 	/** in some case, the application may explicitly tell StarPU that a
  	 * piece of data is not likely to be used soon again */
 	unsigned is_not_important:1;
@@ -245,15 +251,14 @@ struct _starpu_data_state
 	/** Can the data be pushed to the disk? */
 	unsigned ooc:1;
 
-	/** Whether lazy unregistration was requested throught starpu_data_unregister_submit */
-	unsigned lazy_unregister:1;
-
-	/** Whether automatic planned partitioning/unpartitioning should not be done */
-	int partition_automatic_disabled:1;
-
 #ifdef STARPU_OPENMP
 	unsigned removed_from_context_hash:1;
 #endif
+
+	/* The following field is set by StarPU at execution time */
+
+	/** Whether lazy unregistration was requested throught starpu_data_unregister_submit */
+	unsigned char lazy_unregister;
 
 	/** This lock should protect any operation to enforce
 	 * sequential_consistency */
@@ -334,6 +339,10 @@ struct _starpu_data_state
 	/** A generic pointer to data in the user land (could be anything and this
 	 * is not manage by StarPU) */
 	void *user_data;
+
+	/** A generic pointer to data in the scheduler (could be anything and this
+	 * is managed by the scheduler) */
+	void *sched_data;
 };
 
 /** This does not take a reference on the handle, the caller has to do it,
@@ -366,8 +375,6 @@ uint32_t _starpu_data_get_footprint(starpu_data_handle_t handle);
 void __starpu_push_task_output(struct _starpu_job *j);
 /** Version with driver trace */
 void _starpu_push_task_output(struct _starpu_job *j);
-
-void _starpu_release_nowhere_task_output(struct _starpu_job *j);
 
 struct _starpu_worker;
 STARPU_ATTRIBUTE_WARN_UNUSED_RESULT

@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -45,7 +45,17 @@ cd $basename
 
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
 tar xfz ../$tarball
-touch --date="last hour" $(find $basename)
+
+hour=$(date "+%H")
+today=$(date "+%Y-%m-%d")
+lasthour=$(echo $hour - 1 | bc )
+if test "$hour" = "0" -o "$hour" = "00"
+then
+    lasthour=0
+fi
+
+find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true
+
 cd $basename
 mkdir build
 cd build
@@ -58,11 +68,11 @@ then
 fi
 if test "$suname" = "OpenBSD"
 then
-    STARPU_CONFIGURE_OPTIONS="--without-hwloc --disable-mlr"
+    STARPU_CONFIGURE_OPTIONS="--without-hwloc --disable-mlr --enable-maxcpus=2"
 fi
 if test "$suname" = "FreeBSD"
 then
-    STARPU_CONFIGURE_OPTIONS="--disable-fortran"
+    STARPU_CONFIGURE_OPTIONS="--disable-fortran --enable-maxcpus=2"
 fi
 
 export CC=gcc
@@ -77,7 +87,7 @@ then
     ARGS="--with-mpiexec-args=-oversubscribe"
 fi
 
-CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check --disable-build-doc $ARGS"
+CONFIGURE_OPTIONS="--enable-debug --enable-verbose --enable-mpi-check=maybe --disable-build-doc $ARGS"
 CONFIGURE_CHECK=""
 day=$(date +%u)
 if test $day -le 5

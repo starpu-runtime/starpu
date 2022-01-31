@@ -39,6 +39,8 @@
 
 double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -54,6 +56,8 @@ double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_a
 
 double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -69,6 +73,8 @@ double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_
 
 double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -84,6 +90,8 @@ double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_a
 
 double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -99,6 +107,8 @@ double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_
 
 double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -114,6 +124,8 @@ double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_a
 
 double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
+	(void)arch;
+	(void)nimpl;
 	uint32_t n;
 
 	n = starpu_matrix_get_nx(task->handles[0]);
@@ -148,5 +160,90 @@ void initialize_chol_model(struct starpu_perfmodel* model, char * symbol,
 	     	per_arch = starpu_perfmodel_get_model_per_devices(model, 0, STARPU_CUDA_WORKER, 0, 1, -1);
 		per_arch->cost_function = cuda_cost_function;
 
+	}
+}
+
+unsigned g_size = 4*1024;
+unsigned g_nblocks = 16;
+unsigned g_nbigblocks = 8;
+unsigned g_pinned = 0;
+unsigned g_noprio = 0;
+unsigned g_check = 0;
+unsigned g_bound = 0;
+unsigned g_with_ctxs = 0;
+unsigned g_with_noctxs = 0;
+unsigned g_chole1 = 0;
+unsigned g_chole2 = 0;
+
+void parse_args(int argc, char **argv)
+{
+	int i;
+	for (i = 1; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-with_ctxs") == 0)
+		{
+			g_with_ctxs = 1;
+			break;
+		}
+		if (strcmp(argv[i], "-with_noctxs") == 0)
+		{
+			g_with_noctxs = 1;
+			break;
+		}
+
+		if (strcmp(argv[i], "-chole1") == 0)
+		{
+			g_chole1 = 1;
+			break;
+		}
+
+		if (strcmp(argv[i], "-chole2") == 0)
+		{
+			g_chole2 = 1;
+			break;
+		}
+
+		if (strcmp(argv[i], "-size") == 0)
+		{
+		        char *argptr;
+			g_size = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nblocks") == 0)
+		{
+		        char *argptr;
+			g_nblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-nbigblocks") == 0)
+		{
+		        char *argptr;
+			g_nbigblocks = strtol(argv[++i], &argptr, 10);
+		}
+
+		if (strcmp(argv[i], "-pin") == 0)
+		{
+			g_pinned = 1;
+		}
+
+		if (strcmp(argv[i], "-no-prio") == 0)
+		{
+			g_noprio = 1;
+		}
+
+		if (strcmp(argv[i], "-bound") == 0)
+		{
+			g_bound = 1;
+		}
+
+		if (strcmp(argv[i], "-check") == 0)
+		{
+			g_check = 1;
+		}
+
+		if (strcmp(argv[i], "-h") == 0)
+		{
+			printf("usage : %s [-pin] [-size size] [-nblocks nblocks] [-check]\n", argv[0]);
+		}
 	}
 }

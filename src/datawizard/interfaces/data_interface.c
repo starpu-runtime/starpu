@@ -50,6 +50,8 @@ starpu_arbiter_t _starpu_global_arbiter;
 
 static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent, unsigned nowait);
 
+void _starpu_data_interface_fini(void);
+
 void _starpu_data_interface_init(void)
 {
 	_starpu_spin_init(&registered_handles_lock);
@@ -57,6 +59,14 @@ void _starpu_data_interface_init(void)
 	/* Just for testing purpose */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
 		_starpu_global_arbiter = starpu_arbiter_create();
+
+	_starpu_crash_add_hook(&_starpu_data_interface_fini);
+}
+
+void _starpu_data_interface_fini(void)
+{
+	if (starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0))
+		_STARPU_DISP("Memory used for %d data handles: %lu MiB\n", maxnregistered, (unsigned long) (maxnregistered * sizeof(struct _starpu_data_state)) >> 20);
 }
 
 void _starpu_data_interface_shutdown()
@@ -80,8 +90,7 @@ void _starpu_data_interface_shutdown()
 		free(entry);
 	}
 
-	if (starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0))
-		_STARPU_DISP("Memory used for %d data handles: %lu MiB\n", maxnregistered, (unsigned long) (maxnregistered * sizeof(struct _starpu_data_state)) >> 20);
+	_starpu_data_interface_fini();
 
 	STARPU_ASSERT(nregistered == 0);
 	registered_handles = NULL;
@@ -431,6 +440,9 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->busy_waiting = 0;
 	STARPU_PTHREAD_MUTEX_INIT0(&handle->busy_mutex, NULL);
 	STARPU_PTHREAD_COND_INIT0(&handle->busy_cond, NULL);
+#ifdef STARPU_BUBBLE
+	STARPU_PTHREAD_MUTEX_INIT0(&handle->unpartition_mutex, NULL);
+#endif
 
 	//handle->root_handle
 	//handle->father_handle
@@ -489,7 +501,6 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->readonly
 	//handle->ooc
 	//handle->lazy_unregister = 0;
-	//handle->partition_automatic_disabled = 0;
 	//handle->removed_from_context_hash = 0;
 
 	STARPU_PTHREAD_MUTEX_INIT0(&handle->sequential_consistency_mutex, NULL);
@@ -545,6 +556,7 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 	//handle->coordinates = {};
 
 	//handle->user_data = NULL;
+	//handle->sched_data = NULL;
 
 
 	return 0;
@@ -713,6 +725,9 @@ void _starpu_data_free_interfaces(starpu_data_handle_t handle)
 {
 	unsigned node;
 	unsigned nworkers = starpu_worker_get_count();
+
+	if (handle->ops->unregister_data_handle)
+		handle->ops->unregister_data_handle(handle);
 
 	for (node = 0; node < STARPU_MAXNODES; node++)
 		free(handle->per_node[node].data_interface);
@@ -885,6 +900,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 		STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "starpu_data_unregister must not be called from a task or callback, perhaps you can use starpu_data_unregister_submit instead");
 
 		/* If sequential consistency is enabled, wait until data is available */
+		if ((handle->nplans && !handle->nchildren) || handle->siblings)
+			_starpu_data_partition_access_submit(handle, !handle->readonly);
 		_starpu_data_wait_until_available(handle, handle->readonly?STARPU_R:STARPU_RW, "starpu_data_unregister");
 	}
 
@@ -1069,6 +1086,9 @@ retry_busy:
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->busy_mutex);
 	STARPU_PTHREAD_COND_DESTROY(&handle->busy_cond);
 	STARPU_PTHREAD_MUTEX_DESTROY(&handle->sequential_consistency_mutex);
+#ifdef STARPU_BUBBLE
+	STARPU_PTHREAD_MUTEX_DESTROY(&handle->unpartition_mutex);
+#endif
 
 	STARPU_HG_ENABLE_CHECKING(handle->post_sync_tasks_cnt);
 	STARPU_HG_ENABLE_CHECKING(handle->busy_count);
@@ -1210,6 +1230,15 @@ void starpu_data_invalidate_submit(starpu_data_handle_t handle)
 	STARPU_ASSERT(handle);
 
 	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W, _starpu_data_invalidate, handle);
+
+	handle->initialized = 0;
+}
+
+void _starpu_data_invalidate_submit_noplan(starpu_data_handle_t handle)
+{
+	STARPU_ASSERT(handle);
+
+	starpu_data_acquire_on_node_cb(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL, STARPU_W | STARPU_NOPLAN, _starpu_data_invalidate, handle);
 
 	handle->initialized = 0;
 }

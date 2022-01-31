@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2018,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -246,18 +246,16 @@ static int worker_supports_direct_access(unsigned node, unsigned handling_node)
 		/* No worker to process the request from that node */
 		return 0;
 
-	struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(node);
+	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(node);
 	if (node_ops && node_ops->is_direct_access_supported)
 		return node_ops->is_direct_access_supported(node, handling_node);
 	else
-	{
-		STARPU_ABORT_MSG("Node %s does not define the operation 'is_direct_access_supported'", _starpu_node_get_prefix(starpu_node_get_kind(node)));
-		return 1;
-	}
+		return 0;
 }
 
 static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, unsigned *handling_node)
 {
+	STARPU_ASSERT_MSG(handle->ops->copy_methods, "The handle %s does not define a copy_methods\n", handle->ops->name);
 	int (*can_copy)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, unsigned handling_node) = handle->ops->copy_methods->can_copy;
 	void *src_interface = handle->per_node[src_node].data_interface;
 	void *dst_interface = handle->per_node[dst_node].data_interface;
@@ -496,7 +494,7 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 
 		if (mode & STARPU_R)
 		{
-			/* in case the exisiting request did not imply a memory
+			/* in case the existing request did not imply a memory
 			 * transfer yet, we have to take a second refcnt now
 			 * for the source, in addition to the refcnt for the
 			 * destination
@@ -1030,6 +1028,9 @@ int _starpu_prefetch_task_input_prio(struct starpu_task *task, int target_node, 
 		else
 			node = _starpu_task_data_get_node_on_worker(task, index, worker);
 
+		if (node < 0)
+			continue;
+
 		struct _starpu_data_replicate *replicate = &handle->per_node[node];
 		if (prefetch == STARPU_PREFETCH)
 			task_prefetch_data_on_node(handle, node, replicate, mode, task, prio);
@@ -1189,6 +1190,9 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 			(mode >> STARPU_MODE_SHIFT) >= (STARPU_SHIFTED_MODE_MAX >> STARPU_MODE_SHIFT))
 			STARPU_ASSERT_MSG(0, "mode %d (0x%x) is bogus\n", mode, mode);
 
+		if (node < 0)
+			continue;
+
 		struct _starpu_data_replicate *local_replicate;
 
 		if (index && descrs[index-1].handle == descrs[index].handle)
@@ -1211,7 +1215,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 			{
 				/* Ooops, not enough memory, make worker wait for these for now, and the synchronous call will finish by forcing eviction*/
 				worker->nb_buffers_totransfer = nacquires;
-				_starpu_set_worker_status(worker, STATUS_WAITING);
+				_starpu_add_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 				return 0;
 			}
 		}
@@ -1231,7 +1235,7 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 	if (async)
 	{
 		worker->nb_buffers_totransfer = nacquires;
-		_starpu_set_worker_status(worker, STATUS_WAITING);
+		_starpu_add_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 		return 0;
 	}
 
@@ -1286,7 +1290,11 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		enum starpu_data_access_mode mode = descrs[index].mode;
 		int node = descrs[index].node;
 
+		if (node < 0)
+			continue;
+
 		struct _starpu_data_replicate *local_replicate;
+		int needs_init;
 
 		local_replicate = get_replicate(handle, mode, workerid, node);
 		_starpu_spin_lock(&handle->header_lock);
@@ -1307,16 +1315,18 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 					local_replicate->nb_tasks_prefetch--;
 			}
 		}
+		needs_init = !local_replicate->initialized;
 		_starpu_spin_unlock(&handle->header_lock);
 
 		_STARPU_TASK_SET_INTERFACE(task , local_replicate->data_interface, descrs[index].index);
 
 		/* If the replicate was not initialized yet, we have to do it now */
-		if (!(mode & STARPU_SCRATCH) && !local_replicate->initialized)
+		if (!(mode & STARPU_SCRATCH) && needs_init)
 			_starpu_redux_init_data_replicate(handle, local_replicate, workerid);
 
 #ifdef STARPU_USE_FXT
-		total_size += _starpu_data_get_size(handle);
+		if (fut_active)
+			total_size += _starpu_data_get_size(handle);
 #endif
 	}
 	_STARPU_TRACE_DATA_LOAD(workerid,total_size);
@@ -1325,6 +1335,8 @@ void _starpu_fetch_task_input_tail(struct starpu_task *task, struct _starpu_job 
 		_starpu_clock_gettime(&task->profiling_info->acquire_data_end_time);
 
 	_STARPU_TRACE_END_FETCH_INPUT(NULL);
+
+	_starpu_clear_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 }
 
 /* Release task data dependencies */
@@ -1506,7 +1518,10 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 		for (i = 0; i < nnodes; i++)
 		{
 			if (handle->per_node[node].request[i])
+			{
 				ret = 1;
+				break;
+			}
 		}
 
 	}

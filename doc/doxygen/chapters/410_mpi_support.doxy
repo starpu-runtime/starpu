@@ -1033,10 +1033,10 @@ Here an example of such a trace.
 
 These statistics can be plotted as heatmaps using StarPU tool <c>starpu_mpi_comm_matrix.py</c>, this will produce 2 PDF files, one plot for the bandwidth, and one plot for the data volume.
 
-\image latex trace_bw_heatmap.pdf "Bandwidth Heatmap" width=0.5\textwidth
+\image latex trace_bw_heatmap.png "Bandwidth Heatmap" width=0.5\textwidth
 \image html trace_bw_heatmap.png "Bandwidth Heatmap"
 
-\image latex trace_volume_heatmap.pdf "Data Volume Heatmap" width=0.5\textwidth
+\image latex trace_volume_heatmap.png "Data Volume Heatmap" width=0.5\textwidth
 \image html trace_volume_heatmap.png "Data Bandwidth Heatmap"
 
 \section MPIExamples More MPI examples
@@ -1071,7 +1071,7 @@ data transfers and supports data matrices which do not fit in memory (out-of-cor
 
 \section Nmad Using the NewMadeleine communication library
 
-NewMadeleine (see http://pm2.gforge.inria.fr/newmadeleine/, part of the PM2
+NewMadeleine (see https://pm2.gitlabpages.inria.fr/newmadeleine/, part of the PM2
 project) is an optimizing communication library for high-performance networks.
 NewMadeleine provides its own interface, but also an MPI interface (called
 MadMPI). Thus there are two possibilities to use NewMadeleine with StarPU:
@@ -1124,8 +1124,6 @@ exposed through the name of the function in the \ref starpu_codelet::cpu_funcs_n
 Functions have to be globally-visible (i.e. not static) for StarPU to
 be able to look them up, and <c>-rdynamic</c> must be passed to gcc (or
 <c>-export-dynamic</c> to ld) so that symbols of the main program are visible.
-Optionally, you can choose the use of another function on slaves thanks to
-the field \ref starpu_codelet::mpi_ms_funcs.
 
 By default, one core is dedicated on the master node to manage the
 entire set of slaves. If the implementation of MPI you are using has a

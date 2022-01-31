@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 				FPRINTF(stderr, "We need at least 1 CPU or CUDA worker.\n");
 		}
 		starpu_mpi_shutdown();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	starpu_vector_data_register(&token_handle, STARPU_MAIN_RAM, (uintptr_t)&token, 1, sizeof(token));
@@ -103,7 +103,8 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
+			ret = starpu_mpi_irecv_detached(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, NULL, NULL);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 		}
 
 		increment_token(token_handle);
@@ -116,7 +117,8 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
+			ret = starpu_mpi_isend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, NULL, NULL);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 		}
 	}
 

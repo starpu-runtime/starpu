@@ -20,6 +20,7 @@ import joblib as jl
 from joblib import logger
 from joblib._parallel_backends import ParallelBackendBase
 from starpu import starpupy
+from starpu import Handle
 import starpu
 import asyncio
 import math
@@ -85,7 +86,7 @@ def array2d_split(a, n_block):
 	for i in range(c):
 		arr_split_r=np.array_split(arr_split_c[i],r,1)
 		for j in range(r):
-			arr_split.append(arr_split_r[j])
+			arr_split.append(arr_split_r[j].copy(order='C'))
 	return arr_split
 
 
@@ -95,8 +96,7 @@ def future_generator(iterable, n_jobs, dict_task):
 	#print("iterable is", iterable)
 	# get the number of block
 	if n_jobs<-cpu_count()-1 or n_jobs>cpu_count():
-		raise SystemExit('Error: n_jobs is out of range')
-		#print("Error: n_jobs is out of range, number of CPUs is", cpu_count())
+		raise SystemExit('Error: n_jobs is out of range, number of CPUs is', cpu_count())
 	elif n_jobs<0:
 		n_block=cpu_count()+1+n_jobs
 	else:
@@ -125,26 +125,32 @@ def future_generator(iterable, n_jobs, dict_task):
 		L_fut=[]
 		# split the vector
 		args_split=[]
+		# handle list
+		arg_h=[]
 		for i in range(len(args)):
 			args_split.append([])
 			# if the array is an numpy array
 			if has_numpy and type(args[i]) is np.ndarray:
-				# one-dimension matrix
-				if args[i].ndim==1:
-					# split numpy array
-					args_split[i]=np.array_split(args[i],n_block)
-					# get the length of numpy array
-					l_arr.append(args[i].size)
-				# two-dimension matrix
-				elif args[i].ndim==2:
-					# split numpy 2D array
-					args_split[i]=array2d_split(args[i],n_block)
+				# check whether the arg is already registed
+				handle_dict = starpu.handle_dict
+				if handle_dict.get(id(args[i]))==None:
+					arr_h = Handle(args[i])
+					starpu.handle_dict_set_item(args[i], arr_h)
+					arg_h.append(arr_h)
+					args_split[i] = arr_h.partition(n_block, 0)
+				else:
+					arr_h = handle_dict.get(id(args[i]))
+					arg_h.append(arr_h)
+					args_split[i] = arr_h.partition(n_block, 0)
 			# if the array is a generator
 			elif isinstance(args[i],types.GeneratorType):
 				# split generator
 				args_split[i]=partition(list(args[i]),n_block)
+				arg_h.append(None)
 				# get the length of generator
 				l_arr.append(sum(len(args_split[i][j]) for j in range(len(args_split[i]))))
+			else:
+				arg_h.append(None)
 		if len(set(l_arr))>1:
 			raise SystemExit('Error: all arrays should have the same size')
 		#print("args list is", args_split)
@@ -153,7 +159,16 @@ def future_generator(iterable, n_jobs, dict_task):
 			L_args=[]
 			sizebase=0
 			for j in range(len(args)):
-				if (has_numpy and type(args[j]) is np.ndarray) or isinstance(args[j],types.GeneratorType):
+				if (has_numpy and type(args[j]) is np.ndarray):
+					L_args.append(args_split[j][i])
+					n_arr = arg_h[j].get_partition_size(args_split[j])
+					if sizebase==0:
+						sizebase=n_arr[i]
+					elif sizebase==n_arr[i]:
+						continue
+					else:
+						raise SystemExit('Error: all arrays should be split into equal size')
+				elif isinstance(args[j],types.GeneratorType):
 					L_args.append(args_split[j][i])
 					if sizebase==0:
 						sizebase=len(args_split[j][i])
@@ -165,9 +180,15 @@ def future_generator(iterable, n_jobs, dict_task):
 					L_args.append(args[j])
 			#print("L_args is", L_args)
 			fut=starpu.task_submit(name=dict_task['name'], synchronous=dict_task['synchronous'], priority=dict_task['priority'],\
-								   color=dict_task['color'], flops=dict_task['flops'], perfmodel=dict_task['perfmodel'], sizebase=sizebase)\
+								   color=dict_task['color'], flops=dict_task['flops'], perfmodel=dict_task['perfmodel'], sizebase=sizebase,\
+								   ret_handle=dict_task['ret_handle'], ret_fut=dict_task['ret_fut'], arg_handle=dict_task['arg_handle'], modes=dict_task['modes'])\
 				                  (f, *L_args)
 			L_fut.append(fut)
+		# unpartition and unregister the numpy array
+		for i in range(len(args)):
+			if (has_numpy and type(args[i]) is np.ndarray):
+				arg_h[i].unpartition(args_split[i], n_block)
+				#arg_h[i].unregister()
 		return L_fut
 
 	# if iterable is a generator or a list of function
@@ -193,7 +214,8 @@ def future_generator(iterable, n_jobs, dict_task):
 		for i in range(len(L_split)):
 			sizebase=len(L_split[i])
 			fut=starpu.task_submit(name=dict_task['name'], synchronous=dict_task['synchronous'], priority=dict_task['priority'],\
-								   color=dict_task['color'], flops=dict_task['flops'], perfmodel=dict_task['perfmodel'], sizebase=sizebase)\
+								   color=dict_task['color'], flops=dict_task['flops'], perfmodel=dict_task['perfmodel'], sizebase=sizebase,\
+								   ret_handle=dict_task['ret_handle'], ret_fut=dict_task['ret_fut'], arg_handle=dict_task['arg_handle'], modes=dict_task['modes'])\
 				                  (lf, L_split[i])
 			L_fut.append(fut)
 		return L_fut
@@ -201,6 +223,7 @@ def future_generator(iterable, n_jobs, dict_task):
 class Parallel(object):
 	def __init__(self, mode="normal", perfmodel=None, end_msg=None,\
 			 name=None, synchronous=0, priority=0, color=None, flops=None,\
+			 ret_handle=False, ret_fut=True, arg_handle=True, modes=None,\
 	         n_jobs=None, backend=None, verbose=0, timeout=None, pre_dispatch='2 * n_jobs',\
 	         batch_size='auto', temp_folder=None, max_nbytes='1M',\
 	         mmap_mode='r', prefer=None, require=None):
@@ -229,16 +252,20 @@ class Parallel(object):
 		self.priority=priority
 		self.color=color
 		self.flops=flops
+		self.ret_handle=ret_handle
+		self.ret_fut=ret_fut
+		self.arg_handle=arg_handle
+		self.modes=modes
 		self.n_jobs=n_jobs
 		self._backend=backend
 
 	def print_progress(self):
-		#pass
+		#todo
 		print("", starpupy.task_nsubmitted())
 
 	def __call__(self,iterable):
 		#generate the dictionary of task_submit
-		dict_task={'name': self.name, 'synchronous': self.synchronous, 'priority': self.priority, 'color': self.color, 'flops': self.flops, 'perfmodel': self.perfmodel}
+		dict_task={'name': self.name, 'synchronous': self.synchronous, 'priority': self.priority, 'color': self.color, 'flops': self.flops, 'perfmodel': self.perfmodel, 'ret_handle': self.ret_handle, 'ret_fut': self.ret_fut, 'arg_handle': self.arg_handle, 'modes': self.modes}
 		if hasattr(self._backend, 'start_call'):
 			self._backend.start_call()
 		# the mode normal, user can call the function directly without using async
@@ -248,7 +275,10 @@ class Parallel(object):
 				res=[]
 				for i in range(len(L_fut)):
 					L_res=await L_fut[i]
-					res.extend(L_res)
+					if L_res is None:
+						res=None
+					else:
+						res.extend(L_res)
 				#print(res)
 				#print("type of result is", type(res))
 				return res

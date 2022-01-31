@@ -31,7 +31,7 @@ static const TYPE gm1 = -1.0;
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-static int nblocks = 8;
+static unsigned nblocks = 8;
 
 #ifdef STARPU_QUICK_CHECK
 static int i_max = 5;
@@ -164,9 +164,9 @@ static void accumulate_vector_cuda(void *descr[], void *cl_arg)
 	(void)cl_arg;
 	TYPE *v_dst = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 
-	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(), n, &gp1, v_src, 1, v_dst, 1);
+	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(), nx, &gp1, v_src, 1, v_dst, 1);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
 }
@@ -177,9 +177,9 @@ void accumulate_vector_cpu(void *descr[], void *cl_arg)
 	(void)cl_arg;
 	TYPE *v_dst = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v_src = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 
-	AXPY(n, (TYPE)1.0, v_src, 1, v_dst, 1);
+	AXPY(nx, (TYPE)1.0, v_src, 1, v_dst, 1);
 }
 
 static struct starpu_perfmodel accumulate_vector_model =
@@ -253,10 +253,10 @@ static void bzero_vector_cuda(void *descr[], void *cl_arg)
 {
 	(void)cl_arg;
 	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 	size_t elemsize = STARPU_VECTOR_GET_ELEMSIZE(descr[0]);
 
-	cudaMemsetAsync(v, 0, n * elemsize, starpu_cuda_get_local_stream());
+	cudaMemsetAsync(v, 0, nx * elemsize, starpu_cuda_get_local_stream());
 }
 #endif
 
@@ -264,9 +264,9 @@ void bzero_vector_cpu(void *descr[], void *cl_arg)
 {
 	(void)cl_arg;
 	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 
-	memset(v, 0, n*sizeof(TYPE));
+	memset(v, 0, nx*sizeof(TYPE));
 }
 
 static struct starpu_perfmodel bzero_vector_model =
@@ -302,12 +302,12 @@ static void dot_kernel_cuda(void *descr[], void *cl_arg)
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[1]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[1]);
 
 	cublasHandle_t handle = starpu_cublas_get_local_handle();
 	cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_DEVICE);
 	cublasStatus_t status = cublasdot(handle,
-		n, v1, 1, v2, 1, dot);
+		nx, v1, 1, v2, 1, dot);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
 	cublasSetPointerMode(handle, CUBLAS_POINTER_MODE_HOST);
@@ -321,12 +321,12 @@ void dot_kernel_cpu(void *descr[], void *cl_arg)
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[2]);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[1]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[1]);
 
 	TYPE local_dot;
 	/* Note that we explicitely cast the result of the DOT kernel because
 	 * some BLAS library will return a double for sdot for instance. */
-	local_dot = (TYPE)DOT(n, v1, 1, v2, 1);
+	local_dot = (TYPE)DOT(nx, v1, 1, v2, 1);
 
 	*dot = *dot + local_dot;
 }
@@ -354,7 +354,7 @@ static struct starpu_codelet dot_kernel_cl =
 int dot_kernel(HANDLE_TYPE_VECTOR v1,
 	       HANDLE_TYPE_VECTOR v2,
 	       starpu_data_handle_t s,
-	       unsigned nblocks)
+	       unsigned nb)
 {
 	int ret;
 
@@ -368,14 +368,14 @@ int dot_kernel(HANDLE_TYPE_VECTOR v1,
 		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 	}
 
-	unsigned b;
-	for (b = 0; b < nblocks; b++)
+	unsigned block;
+	for (block = 0; block < nb; block++)
 	{
 		ret = TASK_INSERT(&dot_kernel_cl,
 					 use_reduction?STARPU_REDUX:STARPU_RW, s,
-					 STARPU_R, GET_VECTOR_BLOCK(v1, b),
-					 STARPU_R, GET_VECTOR_BLOCK(v2, b),
-					 STARPU_TAG_ONLY, (starpu_tag_t) b,
+					 STARPU_R, GET_VECTOR_BLOCK(v1, block),
+					 STARPU_R, GET_VECTOR_BLOCK(v2, block),
+					 STARPU_TAG_ONLY, (starpu_tag_t) block,
 					 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 	}
@@ -393,11 +393,11 @@ static void scal_kernel_cuda(void *descr[], void *cl_arg)
 	starpu_codelet_unpack_args(cl_arg, &p1);
 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 
 	/* v1 = p1 v1 */
 	TYPE alpha = p1;
-	cublasStatus_t status = cublasscal(starpu_cublas_get_local_handle(), n, &alpha, v1, 1);
+	cublasStatus_t status = cublasscal(starpu_cublas_get_local_handle(), nx, &alpha, v1, 1);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
 }
@@ -409,10 +409,10 @@ void scal_kernel_cpu(void *descr[], void *cl_arg)
 	starpu_codelet_unpack_args(cl_arg, &alpha);
 
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 
 	/* v1 = alpha v1 */
-	SCAL(n, alpha, v1, 1);
+	SCAL(nx, alpha, v1, 1);
 }
 
 static struct starpu_perfmodel scal_kernel_model =
@@ -479,14 +479,14 @@ void gemv_kernel_cpu(void *descr[], void *cl_arg)
 	if (worker_size > 1)
 	{
 		/* Parallel CPU task */
-		unsigned rank = starpu_combined_worker_get_rank();
+		unsigned i = starpu_combined_worker_get_rank();
 
-		unsigned block_size = (ny + worker_size - 1)/worker_size;
-		unsigned new_nx = STARPU_MIN(nx, block_size*(rank+1)) - block_size*rank;
+		unsigned bs = (ny + worker_size - 1)/worker_size;
+		unsigned new_nx = STARPU_MIN(nx, bs*(i+1)) - bs*i;
 
 		nx = new_nx;
-		v1 = &v1[block_size*rank];
-		M = &M[block_size*rank];
+		v1 = &v1[bs*i];
+		M = &M[bs*i];
 	}
 
 	/* Compute v1 = alpha M v2 + beta v1 */
@@ -519,12 +519,12 @@ int gemv_kernel(HANDLE_TYPE_VECTOR v1,
 		HANDLE_TYPE_MATRIX matrix,
 		HANDLE_TYPE_VECTOR v2,
 		TYPE p1, TYPE p2,
-		unsigned nblocks)
+		unsigned nb)
 {
 	unsigned b1, b2;
 	int ret;
 
-	for (b2 = 0; b2 < nblocks; b2++)
+	for (b2 = 0; b2 < nb; b2++)
 	{
 		ret = TASK_INSERT(&scal_kernel_cl,
 					 STARPU_RW, GET_VECTOR_BLOCK(v1, b2),
@@ -535,9 +535,9 @@ int gemv_kernel(HANDLE_TYPE_VECTOR v1,
 		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 	}
 
-	for (b2 = 0; b2 < nblocks; b2++)
+	for (b2 = 0; b2 < nb; b2++)
 	{
-		for (b1 = 0; b1 < nblocks; b1++)
+		for (b1 = 0; b1 < nb; b1++)
 		{
 			TYPE one = 1.0;
 			ret = TASK_INSERT(&gemv_kernel_cl,
@@ -546,7 +546,7 @@ int gemv_kernel(HANDLE_TYPE_VECTOR v1,
 						 STARPU_R,	GET_VECTOR_BLOCK(v2, b1),
 						 STARPU_VALUE,	&one,	sizeof(one),
 						 STARPU_VALUE,	&p2,	sizeof(p2),
-						 STARPU_TAG_ONLY, ((starpu_tag_t)b2) * nblocks + b1,
+						 STARPU_TAG_ONLY, ((starpu_tag_t)b2) * nb + b1,
 						 0);
 			STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
 		}
@@ -566,17 +566,17 @@ static void scal_axpy_kernel_cuda(void *descr[], void *cl_arg)
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 
 	/* Compute v1 = p1 * v1 + p2 * v2.
 	 *	v1 = p1 v1
 	 *	v1 = v1 + p2 v2
 	 */
 	cublasStatus_t status;
-	status = cublasscal(starpu_cublas_get_local_handle(), n, &p1, v1, 1);
+	status = cublasscal(starpu_cublas_get_local_handle(), nx, &p1, v1, 1);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
-	status = cublasaxpy(starpu_cublas_get_local_handle(), n, &p2, v2, 1, v1, 1);
+	status = cublasaxpy(starpu_cublas_get_local_handle(), nx, &p2, v2, 1, v1, 1);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
 }
@@ -622,18 +622,18 @@ static struct starpu_codelet scal_axpy_kernel_cl =
 
 int scal_axpy_kernel(HANDLE_TYPE_VECTOR v1, TYPE p1,
 		     HANDLE_TYPE_VECTOR v2, TYPE p2,
-		     unsigned nblocks)
+		     unsigned nb)
 {
-	unsigned b;
-	for (b = 0; b < nblocks; b++)
+	unsigned block;
+	for (block = 0; block < nb; block++)
 	{
 		int ret;
 		ret = TASK_INSERT(&scal_axpy_kernel_cl,
-					 STARPU_RW, GET_VECTOR_BLOCK(v1, b),
-					 STARPU_R,  GET_VECTOR_BLOCK(v2, b),
+					 STARPU_RW, GET_VECTOR_BLOCK(v1, block),
+					 STARPU_R,  GET_VECTOR_BLOCK(v2, block),
 					 STARPU_VALUE, &p1, sizeof(p1),
 					 STARPU_VALUE, &p2, sizeof(p2),
-					 STARPU_TAG_ONLY, (starpu_tag_t) b,
+					 STARPU_TAG_ONLY, (starpu_tag_t) block,
 					 0);
 		if (ret == -ENODEV) return ret;
 		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");
@@ -654,12 +654,12 @@ static void axpy_kernel_cuda(void *descr[], void *cl_arg)
 	TYPE *v1 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
 	TYPE *v2 = (TYPE *)STARPU_VECTOR_GET_PTR(descr[1]);
 
-	unsigned n = STARPU_VECTOR_GET_NX(descr[0]);
+	unsigned nx = STARPU_VECTOR_GET_NX(descr[0]);
 
 	/* Compute v1 = v1 + p1 * v2.
 	 */
 	cublasStatus_t status = cublasaxpy(starpu_cublas_get_local_handle(),
-			n, &p1, v2, 1, v1, 1);
+			nx, &p1, v2, 1, v1, 1);
 	if (status != CUBLAS_STATUS_SUCCESS)
 		STARPU_CUBLAS_REPORT_ERROR(status);
 }
@@ -702,17 +702,17 @@ static struct starpu_codelet axpy_kernel_cl =
 
 int axpy_kernel(HANDLE_TYPE_VECTOR v1,
 		HANDLE_TYPE_VECTOR v2, TYPE p1,
-		unsigned nblocks)
+		unsigned nb)
 {
-	unsigned b;
-	for (b = 0; b < nblocks; b++)
+	unsigned block;
+	for (block = 0; block < nb; block++)
 	{
 		int ret;
 		ret = TASK_INSERT(&axpy_kernel_cl,
-					 STARPU_RW, GET_VECTOR_BLOCK(v1, b),
-					 STARPU_R,  GET_VECTOR_BLOCK(v2, b),
+					 STARPU_RW, GET_VECTOR_BLOCK(v1, block),
+					 STARPU_R,  GET_VECTOR_BLOCK(v2, block),
 					 STARPU_VALUE, &p1, sizeof(p1),
-					 STARPU_TAG_ONLY, (starpu_tag_t) b,
+					 STARPU_TAG_ONLY, (starpu_tag_t) block,
 					 0);
 		if (ret == -ENODEV) return ret;
 		STARPU_CHECK_RETURN_VALUE(ret, "TASK_INSERT");

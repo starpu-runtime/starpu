@@ -29,6 +29,15 @@
 #include <mpi/starpu_mpi_driver.h>
 #include <mpi/starpu_mpi_mpi.h>
 
+static void starpu_mpi_mpi_backend_constructor(void) __attribute__((constructor));
+static void starpu_mpi_mpi_backend_constructor(void)
+{
+#ifdef HAVE_PIOMAN
+	/* We don't want progression in both PIOman and StarPU */
+	setenv("PIOM_ENABLE_PROGRESSION", "0", 0);
+#endif
+}
+
 void _starpu_mpi_mpi_backend_init(struct starpu_conf *conf)
 {
 	_starpu_mpi_driver_init(conf);

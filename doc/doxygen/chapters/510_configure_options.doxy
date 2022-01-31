@@ -182,6 +182,11 @@ about workers going to sleep and waking up.
 \addindex __configure__--enable-maxcpus
 Use at most <c>count</c> CPU cores.  This information is then
 available as the macro ::STARPU_MAXCPUS.
+
+The default value is <c>auto</c>. it allows StarPU to automatically
+detect the number of CPUs on the build machine. This should not be
+used if the running host has a larger number of CPUs than the
+build machine.
 </dd>
 
 <dt>--enable-maxnumanodes=<c>count</c></dt>
@@ -354,6 +359,13 @@ it is therefore necessary to disable asynchronous data transfers.
 Disable asynchronous copies between CPU and MPI Slave devices.
 </dd>
 
+<dt>--disable-asynchronous-fpga-copy</dt>
+<dd>
+\anchor disable-asynchronous-fpga-copy
+\addindex __configure__--disable-asynchronous-fpga-copy
+Disable asynchronous copies between CPU and Maxeler FPGA devices.
+</dd>
+
 <dt>--enable-maxnodes=<c>count</c></dt>
 <dd>
 \anchor enable-maxnodes
@@ -363,12 +375,39 @@ the macro ::STARPU_MAXNODES. Reducing it allows to considerably reduce memory
 used by StarPU data structures.
 </dd>
 
+<dt>--with-max-fpga=<c>dir</c></dt>
+<dd>
+\anchor with-max-fpga
+\addindex __configure__--with-max-fpga
+Enable the Maxeler FPGA driver support, and optionally specify the location of
+the Maxeler FPGA library.
+</dd>
+
+<dt>--disable-asynchronous-max-fpga-copy</dt>
+<dd>
+\anchor disable-asynchronous-max-fpga-copy
+\addindex __configure__--disable-asynchronous-max-fpga-copy
+Disable asynchronous copies between CPU and Maxeler FPGA devices.
+</dd>
+
 </dl>
 
 \section ExtensionConfiguration Extension Configuration
 
 <dl>
 
+<dt>--enable-starpupy</dt>
+<dd>
+\anchor enable-starpupy
+\addindex __configure__--enable-starpupy
+Enable the StarPU Python Interface (\ref PythonInterface)
+</dd>
+
+<dt>--enable-python-multi-interpreter</dt>
+<dd>
+\anchor enable-python-multi-interpreter
+\addindex __configure__--enable-python-multi-interpreter
+Enable the use of multiple interpreters in the StarPU Python Interface (\ref MultipleInterpreters)
 <dt>--disable-mpi</dt>
 <dd>
 \anchor disable-mpi
@@ -461,11 +500,24 @@ default, it is enabled when an OpenCL implementation is found.
 Enable OpenMP Support (\ref OpenMPRuntimeSupport)
 </dd>
 
+<dt>--enable-bubble</dt>
+<dd>
+\anchor enable-bubble
+\addindex __configure__--enable-bubble
+Enable Hierarchical dags support (\ref Bubble)
+
 <dt>--enable-cluster</dt>
 <dd>
 \anchor enable-cluster
 \addindex __configure__--enable-cluster
 Enable cluster Support (\ref ClusteringAMachine)
+</dd>
+
+<dt>--enable-eclipse-plugin</dt>
+<dd>
+\anchor enable-eclipse-plugin
+\addindex __configure__--enable-eclipse-plugin
+Enable the StarPU Eclipse Plugin. See \ref EclipsePlugin to know how to install Eclipse.
 </dd>
 
 </dl>

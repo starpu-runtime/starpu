@@ -86,7 +86,7 @@ void burst_free_data(int rank)
 void burst_bidir(int rank)
 {
 	int other_rank = (rank == 0) ? 1 : 0;
-	int i;
+	int i, ret;
 
 	FPRINTF(stderr, "Simultaneous....start (rank %d)\n", rank);
 
@@ -95,7 +95,8 @@ void burst_bidir(int rank)
 		for (i = 0; i < burst_nb_requests; i++)
 		{
 			recv_reqs[i] = NULL;
-			starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], other_rank, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], other_rank, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 		}
 	}
 
@@ -106,13 +107,15 @@ void burst_bidir(int rank)
 		for (i = 0; i < burst_nb_requests; i++)
 		{
 			send_reqs[i] = NULL;
-			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_prio");
 		}
 
 		for (i = 0; i < burst_nb_requests; i++)
 		{
-			if (recv_reqs[i]) starpu_mpi_wait(&recv_reqs[i], MPI_STATUS_IGNORE);
-			if (send_reqs[i]) starpu_mpi_wait(&send_reqs[i], MPI_STATUS_IGNORE);
+			if (recv_reqs[i]) ret = starpu_mpi_wait(&recv_reqs[i], MPI_STATUS_IGNORE);
+			if (send_reqs[i]) ret = starpu_mpi_wait(&send_reqs[i], MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 		}
 	}
 
@@ -123,14 +126,15 @@ void burst_bidir(int rank)
 void burst_unidir(int sender, int receiver, int rank)
 {
 	FPRINTF(stderr, "%d -> %d... start (rank %d)\n", sender, receiver, rank);
-	int i;
+	int i, ret;
 
 	if (rank == receiver)
 	{
 		for (i = 0; i < burst_nb_requests; i++)
 		{
 			recv_reqs[i] = NULL;
-			starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], sender, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], sender, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 		}
 	}
 
@@ -141,7 +145,8 @@ void burst_unidir(int sender, int receiver, int rank)
 		for (i = 0; i < burst_nb_requests; i++)
 		{
 			send_reqs[i] = NULL;
-			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], receiver, i, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], receiver, i, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_prio");
 		}
 	}
 
@@ -149,8 +154,9 @@ void burst_unidir(int sender, int receiver, int rank)
 	{
 		for (i = 0; i < burst_nb_requests; i++)
 		{
-			if (rank != sender && recv_reqs[i]) starpu_mpi_wait(&recv_reqs[i], MPI_STATUS_IGNORE);
-			if (rank == sender && send_reqs[i]) starpu_mpi_wait(&send_reqs[i], MPI_STATUS_IGNORE);
+			if (rank != sender && recv_reqs[i]) ret = starpu_mpi_wait(&recv_reqs[i], MPI_STATUS_IGNORE);
+			if (rank == sender && send_reqs[i]) ret = starpu_mpi_wait(&send_reqs[i], MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 		}
 	}
 
@@ -163,7 +169,7 @@ void burst_unidir(int sender, int receiver, int rank)
 void burst_bidir_half_postponed(int rank)
 {
 	int other_rank = (rank == 0) ? 1 : 0;
-	int i;
+	int i, ret;
 
 	FPRINTF(stderr, "Half/half burst...start (rank %d)\n", rank);
 
@@ -172,7 +178,8 @@ void burst_bidir_half_postponed(int rank)
 		for (i = 0; i < burst_nb_requests; i++)
 		{
 			recv_reqs[i] = NULL;
-			starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], other_rank, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_irecv(recv_handles[i], &recv_reqs[i], other_rank, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 		}
 	}
 
@@ -183,21 +190,28 @@ void burst_bidir_half_postponed(int rank)
 		for (i = 0; i < (burst_nb_requests / 2); i++)
 		{
 			send_reqs[i] = NULL;
-			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_prio");
 		}
 
-		if (recv_reqs[burst_nb_requests / 4]) starpu_mpi_wait(&recv_reqs[burst_nb_requests / 4], MPI_STATUS_IGNORE);
+		if (recv_reqs[burst_nb_requests / 4])
+		{
+			ret = starpu_mpi_wait(&recv_reqs[burst_nb_requests / 4], MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
+		}
 
 		for (i = (burst_nb_requests / 2); i < burst_nb_requests; i++)
 		{
 			send_reqs[i] = NULL;
-			starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_isend_prio(send_handles[i], &send_reqs[i], other_rank, i, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_prio");
 		}
 
 		for (i = 0; i < burst_nb_requests; i++)
 		{
-			if (recv_reqs[i]) starpu_mpi_wait(&recv_reqs[i], MPI_STATUS_IGNORE);
-			if (send_reqs[i]) starpu_mpi_wait(&send_reqs[i], MPI_STATUS_IGNORE);
+			if (recv_reqs[i]) ret = starpu_mpi_wait(&recv_reqs[i], MPI_STATUS_IGNORE);
+			if (send_reqs[i]) ret = starpu_mpi_wait(&send_reqs[i], MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 		}
 	}
 

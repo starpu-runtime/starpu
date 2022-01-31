@@ -65,6 +65,14 @@ void _starpu_disk_unregister(void);
 
 void _starpu_swap_init(void);
 
+static inline struct _starpu_disk_event *_starpu_disk_get_event(union _starpu_async_channel_event *_event)
+{
+	struct _starpu_disk_event *event;
+	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));
+	event = (struct _starpu_disk_event *) _event;
+	return event;
+}
+
 #ifdef __cplusplus
 }
 #endif

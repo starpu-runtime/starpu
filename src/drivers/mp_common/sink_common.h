@@ -46,6 +46,7 @@ struct arg_sink_thread
 
 void _starpu_sink_common_worker(void);
 
+void (*_starpu_sink_common_cpu_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void);
 void _starpu_sink_common_execute(struct _starpu_mp_node *node, void *arg, int arg_size);
 
 void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node, void *arg, int arg_size);

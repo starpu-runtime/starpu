@@ -311,6 +311,7 @@ void perf_count_handle_poped_task(unsigned sched_ctx, int worker,
 
 void perf_count_init_worker(int workerid, unsigned sched_ctx)
 {
+	(void)sched_ctx;
 	if(!perf_event_opened[workerid])
 	{
 		open_all_events_for_worker(workerid);

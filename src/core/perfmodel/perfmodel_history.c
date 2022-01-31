@@ -51,7 +51,7 @@
 static struct starpu_perfmodel_arch **arch_combs;
 static int current_arch_comb;
 static int nb_arch_combs;
-static starpu_pthread_rwlock_t arch_combs_mutex;
+static starpu_pthread_rwlock_t arch_combs_mutex = STARPU_PTHREAD_RWLOCK_INITIALIZER;
 static int historymaxerror;
 static char ignore_devid[STARPU_NARCH];
 
@@ -105,6 +105,7 @@ void _starpu_initialize_registered_performance_models(void)
 #endif
 	unsigned nmpi = 0;
 #if STARPU_MAXMPIDEVS > 0
+	STARPU_ASSERT(conf->topology.nhwdevices[STARPU_MPI_MS_WORKER] < STARPU_NMAXDEVS);
 	for(i = 0; i < conf->topology.nhwdevices[STARPU_MPI_MS_WORKER]; i++)
 		nmpi += conf->topology.nhwworker[STARPU_MPI_MS_WORKER][i];
 #endif
@@ -235,6 +236,7 @@ void _starpu_free_arch_combs(void)
 	arch_combs = NULL;
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&arch_combs_mutex);
 	STARPU_PTHREAD_RWLOCK_DESTROY(&arch_combs_mutex);
+	STARPU_PTHREAD_RWLOCK_INIT(&arch_combs_mutex, NULL);
 }
 
 int starpu_perfmodel_get_narch_combs()
@@ -250,7 +252,7 @@ struct starpu_perfmodel_arch *starpu_perfmodel_arch_comb_fetch(int comb)
 static size_t __starpu_job_get_data_size(struct starpu_perfmodel *model, struct starpu_perfmodel_arch* arch, unsigned impl, struct _starpu_job *j)
 {
 	struct starpu_task *task = j->task;
-	int comb = starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
+	int comb = arch == NULL ? -1 : starpu_perfmodel_arch_comb_get(arch->ndevices, arch->devices);
 
 	if (model && model->state->per_arch && comb != -1 && model->state->per_arch[comb] && model->state->per_arch[comb][impl].size_base)
 	{

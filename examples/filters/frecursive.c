@@ -114,6 +114,7 @@ int main(void)
 	ret = starpu_task_insert(&cl,
 				 STARPU_RW, subhandle_l1[0],
 				 STARPU_VALUE, &factor, sizeof(factor),
+				 STARPU_NAME, "sub-matrix1",
 				 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	for (i=1; i<PARTS; i++)
@@ -121,6 +122,8 @@ int main(void)
 		ret = starpu_task_insert(&cl,
 					 STARPU_RW, subhandle_l2[i][0],
 					 STARPU_VALUE, &factor, sizeof(factor),
+					 STARPU_NAME, "sub-matrix2",
+
 					 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		for (j=1; j<PARTS; j++)
@@ -130,6 +133,7 @@ int main(void)
 				ret = starpu_task_insert(&cl,
 							 STARPU_RW, subhandle_l3[i][j][k],
 							 STARPU_VALUE, &factor, sizeof(factor),
+							 STARPU_NAME, "sub-matrix3",
 							 0);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 			}

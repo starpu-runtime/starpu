@@ -23,6 +23,7 @@ void starpu_codelet_pack_arg_init(struct starpu_codelet_pack_arg_data *state)
 {
 	state->arg_buffer = NULL;
 	state->arg_buffer_size = 0;
+	state->arg_buffer_used = 0;
 	state->current_offset = sizeof(int);
 	state->nargs = 0;
 }
@@ -44,6 +45,7 @@ void starpu_codelet_pack_arg(struct starpu_codelet_pack_arg_data *state, const v
 	memcpy(state->arg_buffer+state->current_offset, ptr, ptr_size);
 	state->current_offset += ptr_size;
 	STARPU_ASSERT(state->current_offset <= state->arg_buffer_size);
+	state->arg_buffer_used = state->current_offset;
 	state->nargs++;
 }
 
@@ -60,13 +62,14 @@ void starpu_codelet_pack_arg_fini(struct starpu_codelet_pack_arg_data *state, vo
 	}
 
 	*cl_arg = state->arg_buffer;
-	*cl_arg_size = state->arg_buffer_size;
+	*cl_arg_size = state->arg_buffer_used;
 }
 
 void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, void *cl_arg, size_t cl_arg_size)
 {
 	state->arg_buffer = cl_arg;
 	state->arg_buffer_size = cl_arg_size;
+	state->arg_buffer_used = cl_arg_size;
 	state->current_offset = sizeof(int);
 	state->nargs = 0;
 }
@@ -74,10 +77,12 @@ void starpu_codelet_unpack_arg_init(struct starpu_codelet_pack_arg_data *state, 
 void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void *ptr, size_t size)
 {
 	size_t ptr_size;
+	STARPU_ASSERT_MSG(state->current_offset + sizeof(size) <= state->arg_buffer_size, "The unpack brings offset %ld beyond the buffer size (%ld)\n", state->current_offset, state->arg_buffer_size);
 	memcpy((void *)&ptr_size, state->arg_buffer+state->current_offset, sizeof(ptr_size));
 	STARPU_ASSERT_MSG(ptr_size==size, "The given size (%ld) is not the size of the next argument (%ld)\n", size, ptr_size);
 	state->current_offset += sizeof(size);
 
+	STARPU_ASSERT_MSG(state->current_offset + size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", size, state->arg_buffer_size);
 	memcpy(ptr, state->arg_buffer+state->current_offset, ptr_size);
 	state->current_offset += size;
 
@@ -86,9 +91,11 @@ void starpu_codelet_unpack_arg(struct starpu_codelet_pack_arg_data *state, void 
 
 void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
 {
+	STARPU_ASSERT_MSG(state->current_offset + sizeof(*size) <= state->arg_buffer_size, "The unpack brings offset %ld beyond the buffer size (%ld)\n", state->current_offset, state->arg_buffer_size);
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
 
+	STARPU_ASSERT_MSG(state->current_offset + *size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", *size, state->arg_buffer_size);
 	_STARPU_MALLOC(*ptr, *size);
 	memcpy(*ptr, state->arg_buffer+state->current_offset, *size);
 	state->current_offset += *size;
@@ -98,9 +105,11 @@ void starpu_codelet_dup_arg(struct starpu_codelet_pack_arg_data *state, void **p
 
 void starpu_codelet_pick_arg(struct starpu_codelet_pack_arg_data *state, void **ptr, size_t *size)
 {
+	STARPU_ASSERT_MSG(state->current_offset + sizeof(*size) <= state->arg_buffer_size, "The unpack brings offset %ld beyond the buffer size (%ld)\n", state->current_offset, state->arg_buffer_size);
 	memcpy((void*)size, state->arg_buffer+state->current_offset, sizeof(*size));
 	state->current_offset += sizeof(*size);
 
+	STARPU_ASSERT_MSG(state->current_offset + *size <= state->arg_buffer_size, "The recorded size (%ld) brings beyond the buffer size (%ld)\n", *size, state->arg_buffer_size);
 	*ptr = state->arg_buffer+state->current_offset;
 	state->current_offset += *size;
 
@@ -124,218 +133,6 @@ void starpu_codelet_unpack_discard_arg(struct starpu_codelet_pack_arg_data *stat
 	state->current_offset += ptr_size;
 
 	state->nargs++;
-}
-
-int _starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, va_list varg_list)
-{
-	int arg_type;
-
-	struct starpu_codelet_pack_arg_data state;
-	starpu_codelet_pack_arg_init(&state);
-
-	while((arg_type = va_arg(varg_list, int)) != 0)
-	{
-		if (arg_type & STARPU_R || arg_type & STARPU_W || arg_type & STARPU_SCRATCH || arg_type & STARPU_REDUX)
-		{
-			(void)va_arg(varg_list, starpu_data_handle_t);
-		}
-		else if (arg_type==STARPU_DATA_ARRAY)
-		{
-			(void)va_arg(varg_list, starpu_data_handle_t*);
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_DATA_MODE_ARRAY)
-		{
-			(void)va_arg(varg_list, struct starpu_data_descr*);
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_VALUE)
-		{
-			/* We have a constant value: this should be followed by a pointer to the cst value and the size of the constant */
-			void *ptr = va_arg(varg_list, void *);
-			size_t ptr_size = va_arg(varg_list, size_t);
-
-			starpu_codelet_pack_arg(&state, ptr, ptr_size);
-		}
-		else if (arg_type==STARPU_CL_ARGS)
-		{
-			(void)va_arg(varg_list, void *);
-			(void)va_arg(varg_list, size_t);
-		}
-		else if (arg_type==STARPU_CL_ARGS_NFREE)
-		{
-			(void)va_arg(varg_list, void *);
-			(void)va_arg(varg_list, size_t);
-		}
-		else if (arg_type==STARPU_TASK_DEPS_ARRAY)
-		{
-			(void)va_arg(varg_list, unsigned);
-			(void)va_arg(varg_list, struct starpu_task **);
-		}
-		else if (arg_type==STARPU_TASK_END_DEPS_ARRAY)
-		{
-			(void)va_arg(varg_list, unsigned);
-			(void)va_arg(varg_list, struct starpu_task **);
-		}
-		else if (arg_type==STARPU_CALLBACK)
-		{
-			(void)va_arg(varg_list, _starpu_callback_func_t);
-		}
-		else if (arg_type==STARPU_CALLBACK_WITH_ARG)
-		{
-			va_arg(varg_list, _starpu_callback_func_t);
-			va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_CALLBACK_WITH_ARG_NFREE)
-		{
-			va_arg(varg_list, _starpu_callback_func_t);
-			va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_CALLBACK_ARG)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_CALLBACK_ARG_NFREE)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_EPILOGUE_CALLBACK)
-		{
-			(void)va_arg(varg_list, _starpu_callback_func_t);
-		}
-		else if (arg_type==STARPU_EPILOGUE_CALLBACK_ARG)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK)
-		{
-			va_arg(varg_list, _starpu_callback_func_t);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_ARG_NFREE)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP)
-		{
-			va_arg(varg_list, _starpu_callback_func_t);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_PROLOGUE_CALLBACK_POP_ARG_NFREE)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_PRIORITY)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_EXECUTE_ON_NODE)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_EXECUTE_ON_DATA)
-		{
-			(void)va_arg(varg_list, starpu_data_handle_t);
-		}
-		else if (arg_type==STARPU_EXECUTE_WHERE)
-		{
-			(void)va_arg(varg_list, unsigned long long);
-		}
-		else if (arg_type==STARPU_EXECUTE_ON_WORKER)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_WORKER_ORDER)
-		{
-			va_arg(varg_list, unsigned);
-		}
-		else if (arg_type==STARPU_SCHED_CTX)
-		{
-			(void)va_arg(varg_list, unsigned);
-		}
-		else if (arg_type==STARPU_HYPERVISOR_TAG)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_POSSIBLY_PARALLEL)
-		{
-			(void)va_arg(varg_list, unsigned);
-		}
-		else if (arg_type==STARPU_FLOPS)
-		{
-			(void)va_arg(varg_list, double);
-		}
-		else if (arg_type==STARPU_TAG || arg_type==STARPU_TAG_ONLY)
-		{
-			(void)va_arg(varg_list, starpu_tag_t);
-		}
-		else if (arg_type==STARPU_NAME)
-		{
-			(void)va_arg(varg_list, const char *);
-		}
-		else if (arg_type==STARPU_NODE_SELECTION_POLICY)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_TASK_COLOR)
-                {
-                        (void)va_arg(varg_list, int);
-                }
-		else if (arg_type==STARPU_TASK_SYNCHRONOUS)
-                {
-                        (void)va_arg(varg_list, int);
-                }
-		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
-                {
-                        (void)va_arg(varg_list, unsigned char *);
-                }
-		else if (arg_type==STARPU_TASK_END_DEP)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else if (arg_type==STARPU_TASK_WORKERIDS)
-		{
-			(void)va_arg(varg_list, unsigned);
-			(void)va_arg(varg_list, uint32_t*);
-		}
-		else if (arg_type==STARPU_SEQUENTIAL_CONSISTENCY)
-		{
-			(void)va_arg(varg_list, unsigned);
-		}
-		else if (arg_type==STARPU_TASK_PROFILING_INFO)
-		{
-			(void)va_arg(varg_list, struct starpu_profiling_task_info *);
-		}
-		else if (arg_type==STARPU_TASK_NO_SUBMITORDER)
-		{
-			(void)va_arg(varg_list, unsigned);
-		}
-		else if (arg_type==STARPU_TASK_SCHED_DATA)
-		{
-			(void)va_arg(varg_list, void *);
-		}
-		else if (arg_type==STARPU_TASK_FILE)
-		{
-			(void)va_arg(varg_list, const char *);
-		}
-		else if (arg_type==STARPU_TASK_LINE)
-		{
-			(void)va_arg(varg_list, int);
-		}
-		else
-		{
-			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
-		}
-	}
-
-	starpu_codelet_pack_arg_fini(&state, arg_buffer, arg_buffer_size);
-	return 0;
 }
 
 void starpu_task_insert_data_make_room(struct starpu_codelet *cl, struct starpu_task *task, int *allocated_buffers, int current_buffer, int room)
@@ -680,6 +477,33 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
                 {
                         task->handles_sequential_consistency = va_arg(varg_list, unsigned char *);
                 }
+#ifdef STARPU_BUBBLE
+		else if (arg_type==STARPU_BUBBLE_FUNC)
+		{
+			task->bubble_func = va_arg(varg_list, starpu_bubble_func_t);
+		}
+		else if (arg_type==STARPU_BUBBLE_FUNC_ARG)
+		{
+			task->bubble_func_arg = va_arg(varg_list, void*);
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC)
+		{
+			task->bubble_gen_dag_func = va_arg(varg_list, starpu_bubble_gen_dag_func_t);
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC_ARG)
+		{
+			task->bubble_gen_dag_func_arg = va_arg(varg_list,void*);
+		}
+		else if (arg_type==STARPU_BUBBLE_PARENT)
+		{
+			struct starpu_task *parent = va_arg(varg_list, struct starpu_task *);
+			if (parent)
+			{
+				struct _starpu_job *job = _starpu_get_job_associated_to_task(parent);
+				task->bubble_parent = job->job_id;
+			}
+		}
+#endif
 		else if (arg_type==STARPU_TASK_END_DEP)
 		{
 			int end_dep = va_arg(varg_list, int);
@@ -1018,6 +842,36 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
                 {
                         task->handles_sequential_consistency = (unsigned char *)arglist[arg_i];
                 }
+#ifdef STARPU_BUBBLE
+		else if (arg_type==STARPU_BUBBLE_FUNC)
+		{
+			arg_i++;
+			task->bubble_func = (starpu_bubble_func_t)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_BUBBLE_FUNC_ARG)
+		{
+			arg_i++;
+			task->bubble_func_arg = (void *)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC)
+		{
+			arg_i++;
+			task->bubble_gen_dag_func = (starpu_bubble_gen_dag_func_t)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_BUBBLE_GEN_DAG_FUNC_ARG)
+		{
+			arg_i++;
+			task->bubble_gen_dag_func_arg = (void*)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_BUBBLE_PARENT)
+		{
+			arg_i++;
+			struct starpu_task *parent = (struct starpu_task *)arglist[arg_i];
+			struct _starpu_job *job = _starpu_get_job_associated_to_task(parent);
+			task->bubble_parent = job->job_id;
+
+		}
+#endif
 		else if (arg_type==STARPU_TASK_END_DEP)
 		{
 			arg_i++;

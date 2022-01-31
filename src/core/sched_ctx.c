@@ -757,7 +757,11 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 		}
 		else if (arg_type == STARPU_SCHED_CTX_POLICY_INIT)
 		{
+#ifdef __NVCOMPILER
+			init_sched = (void(*)(unsigned))va_arg(varg_list, void *);
+#else
 			init_sched = va_arg(varg_list, void(*)(unsigned));
+#endif
 		}
 		else if (arg_type == STARPU_SCHED_CTX_USER_DATA)
 		{
@@ -1069,6 +1073,7 @@ void starpu_sched_ctx_delete(unsigned sched_ctx_id)
 		_starpu_sched_ctx_unlock_write(sched_ctx_id);
 		_starpu_sched_ctx_unlock_write(inheritor_sched_ctx_id);
 		STARPU_PTHREAD_RWLOCK_DESTROY(&sched_ctx->rwlock);
+		STARPU_PTHREAD_RWLOCK_INIT(&sched_ctx->rwlock, NULL);
 		_starpu_delete_sched_ctx(sched_ctx);
 	}
 	else
@@ -2170,8 +2175,7 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 	 * awake. In the worst case, both workers will follow this pessimistic
 	 * path and perform one more scheduling loop */
 	STARPU_HG_DISABLE_CHECKING(_starpu_config.workers[worker->workerid].status);
-	STARPU_ASSERT(_starpu_config.workers[worker->workerid].status == STATUS_SLEEPING
-	           || _starpu_config.workers[worker->workerid].status == STATUS_SLEEPING_SCHEDULING);
+	STARPU_ASSERT(_starpu_config.workers[worker->workerid].status & STATUS_SLEEPING);
 	STARPU_HG_ENABLE_CHECKING(_starpu_config.workers[worker->workerid].status);
 	struct _starpu_sched_ctx_list_iterator list_it;
 
@@ -2205,8 +2209,7 @@ unsigned _starpu_sched_ctx_last_worker_awake(struct _starpu_worker *worker)
 					 * pessimistic path and assume that they are
 					 * the last worker awake */
 					STARPU_HG_DISABLE_CHECKING(_starpu_config.workers[workerid].status);
-					const int cond = _starpu_config.workers[workerid].status != STATUS_SLEEPING
-					              && _starpu_config.workers[workerid].status != STATUS_SLEEPING_SCHEDULING;
+					const int cond = !(_starpu_config.workers[workerid].status & STATUS_SLEEPING);
 					STARPU_HG_ENABLE_CHECKING(_starpu_config.workers[workerid].status);
 
 					if (cond)

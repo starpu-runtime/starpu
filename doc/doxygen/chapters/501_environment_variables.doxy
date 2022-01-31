@@ -2,7 +2,7 @@
  *
  * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
- * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -425,6 +425,36 @@ STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY.
 </dd>
 </dl>
 
+\subsection maxfpgaWorkers Maxeler FPGA Workers
+<dl>
+<dt>STARPU_NMAX_FPGA</dt>
+<dd>
+\anchor STARPU_NMAX_FPGA
+\addindex __env__STARPU_NMAX_FPGA
+Specify the number of Maxeler FPGA devices that StarPU can use. If
+\ref STARPU_NMAX_FPGA is lower than the number of physical devices, it is
+possible to select which Maxeler FPGA devices should be used by the means of the
+environment variable \ref STARPU_WORKERS_MAX_FPGAID. By default, StarPU will
+create as many Maxeler FPGA workers as there are GPU devices.
+</dd>
+
+<dt>STARPU_WORKERS_MAX_FPGAID</dt>
+<dd>
+\anchor STARPU_WORKERS_MAX_FPGAID
+\addindex __env__STARPU_WORKERS_MAX_FPGAID
+Similarly to the \ref STARPU_WORKERS_CPUID environment variable, it is
+possible to select which Maxeler FPGA devices should be used by StarPU. On a machine
+equipped with 4 Maxeler FPGAs, setting <c>STARPU_WORKERS_MAX_FPGAID = "1 3"</c> and
+<c>STARPU_NMAX_FPGA=2</c> specifies that 2 Maxeler FPGA workers should be created, and that
+they should use Maxeler FPGA devices #1 and #3 (the logical ordering of the devices is
+the one reported by the Maxeler stack).
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY
+Disable asynchronous copies between CPU and Maxeler FPGA devices.
+</dd>
 
 \subsection mpimsWorkers MPI Master Slave Workers
 <dl>
@@ -631,6 +661,123 @@ Specify which PAPI events should be recorded in the trace (\ref PapiCounters).
 
 </dl>
 
+\section ConfiguringHeteroprio Configuring The Heteroprio Scheduler
+
+\subsection ConfiguringLaHeteroprio Configuring LAHeteroprio
+<dl>
+
+<dt>STARPU_HETEROPRIO_USE_LA</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_USE_LA
+\addindex __env__STARPU_HETEROPRIO_USE_LA
+Enable the locality aware mode of Heteroprio which guides the distribution of tasks to workers
+in order to reduce the data transfers between memory nodes.
+</dd>
+
+<dt>STARPU_LAHETEROPRIO_PUSH</dt>
+<dd>
+\anchor STARPU_LAHETEROPRIO_PUSH
+\addindex __env__STARPU_LAHETEROPRIO_PUSH
+Choose between the different push strategies for locality aware Heteroprio: 
+WORKER, LcS, LS_SDH, LS_SDH2, LS_SDHB, LC_SMWB, AUTO (by default: AUTO). These are detailed in
+\ref LAHeteroprio
+</dd>
+
+<dt>STARPU_LAHETEROPRIO_S_[ARCH]</dt>
+<dd>
+\anchor STARPU_LAHETEROPRIO_S_[ARCH]
+\addindex __env__STARPU_LAHETEROPRIO_S_arch
+Specify the number of memory nodes contained in an affinity group. An affinity
+group will be composed of the closests memory nodes to a worker of a given architecture,
+and this worker will look for tasks available inside these memory nodes, before
+considering stealing tasks outside this group.
+ARCH can be CPU, CUDA, OPENCL, MICC, SCC, MPI_MS, etc.
+</dd>
+
+<dt>STARPU_LAHETEROPRIO_PRIO_STEP_[ARCH]</dt>
+<dd>
+\anchor STARPU_LAHETEROPRIO_PRIO_STEP_[ARCH]
+\addindex __env__STARPU_LAHETEROPRIO_PRIO_STEP_arch
+Specify the number of buckets in the local memory node in which a worker will look for
+available tasks, before this worker starts looking for tasks in other memory nodes' buckets.
+ARCH indicates that this number is specific to a given arch which can be:
+CPU, CUDA, OPENCL, MICC, SCC, MPI_MS, etc.
+</dd>
+
+</dl>
+
+\subsection ConfiguringAutoHeteroprio Configuring AutoHeteroprio
+<dl>
+
+<dt>STARPU_HETEROPRIO_USE_AUTO_CALIBRATION</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_USE_AUTO_CALIBRATION
+\addindex __env__STARPU_HETEROPRIO_USE_AUTO_CALIBRATION
+Enable the auto calibration mode of Heteroprio which assign priorities to tasks automatically
+</dd>
+
+<dt>STARPU_HETEROPRIO_DATA_DIR</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_DATA_DIR
+\addindex __env__STARPU_HETEROPRIO_DATA_DIR
+Specify the path of the directory where Heteroprio stores data about program executions.
+By default, these are stored in the same directory used by perfmodel.
+</dd>
+
+<dt>STARPU_HETEROPRIO_DATA_FILE</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_DATA_FILE
+\addindex __env__STARPU_HETEROPRIO_DATA_FILE
+Specify the filename where Heteroprio will save data about the current program's execution.
+</dd>
+
+<dt>STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY</dt>
+<dd>
+\anchor STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY
+\addindex __env__STARPU_HETEROPRIO_CODELET_GROUPING_STRATEGY
+Choose how Heteroprio groups similar tasks. It can be <c>0</c> to group
+the tasks with the same perfmodel or the same codelet's name if no perfmodel was assigned.
+Or, it could be <c>1</c> to group the tasks only by codelet's name.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_PRINT_DATA_ON_UPDATE</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_PRINT_DATA_ON_UPDATE
+\addindex __env__STARPU_AUTOHETEROPRIO_PRINT_DATA_ON_UPDATE
+Enable the printing of priorities' data every time they get updated.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_PRINT_AFTER_ORDERING</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_PRINT_AFTER_ORDERING
+\addindex __env__STARPU_AUTOHETEROPRIO_PRINT_AFTER_ORDERING
+Enable the printing of priorities' order for each architecture every time there's a reordering.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY
+\addindex __env__STARPU_AUTOHETEROPRIO_PRIORITY_ORDERING_POLICY
+Specify the heuristic which will be used to assign priorities automatically.
+It should be an integer between 0 and 27.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_ORDERING_INTERVAL</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_ORDERING_INTERVAL
+\addindex __env__STARPU_AUTOHETEROPRIO_ORDERING_INTERVAL
+Specify the period (in number of tasks pushed), between priorities reordering operations.
+</dd>
+
+<dt>STARPU_AUTOHETEROPRIO_FREEZE_GATHERING</dt>
+<dd>
+\anchor STARPU_AUTOHETEROPRIO_FREEZE_GATHERING
+\addindex __env__STARPU_AUTOHETEROPRIO_FREEZE_GATHERING
+Disable data gathering from task executions.
+</dd>
+
+</dl>
+
 \section Extensions Extensions
 
 <dl>
@@ -735,6 +882,17 @@ Setting to a number makes StarPU believe that it runs the given MPI node, even
 if it was run on only one MPI node. This allows e.g. to simulate the execution
 of one of the nodes of a big cluster without actually running the rest.
 It of course does not provide computation results and timing.
+</dd>
+
+<dt>STARPU_MPI_TRACE_SYNC_CLOCKS</dt>
+<dd>
+\anchor STARPU_MPI_TRACE_SYNC_CLOCKS
+\addindex __env__STARPU_MPI_TRACE_SYNC_CLOCKS
+When \c mpi_sync_clocks is available, this library will be used to have more
+precise clock synchronization in traces coming from different nodes. However,
+the clock synchronization process can take some time (several seconds) and can
+be disabled by setting this variable to \c 0. In that case, a less precise but
+faster synchronization will be used. See \ref TraceMpi for more details.
 </dd>
 
 <dt>STARPU_MPI_DRIVER_CALL_FREQUENCY</dt>
@@ -1025,8 +1183,42 @@ Specify in which file to save the generated trace if FxT is enabled.
 <dd>
 \anchor STARPU_FXT_TRACE
 \addindex __env__STARPU_FXT_TRACE
-Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY (the directory and file name can be changed with \ref STARPU_FXT_PREFIX and \ref STARPU_FXT_SUFFIX). The default is 1 (generate it)
+Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_YYY (the directory and file name can be changed with \ref STARPU_FXT_PREFIX and \ref STARPU_FXT_SUFFIX). The default is 0 (do not generate it)
 </dd>
+
+<dt>STARPU_FXT_EVENTS</dt>
+<dd>
+\anchor STARPU_FXT_EVENTS
+\addindex __env__STARPU_FXT_EVENTS
+Specify which events will be recorded in traces. By default, all events are
+recorded. One can set this variable to a comma- or pipe-separated list of the
+following categories, to record only events belonging to the selected
+categories:
+- <c>USER</c>
+- <c>TASK</c>
+- <c>TASK_VERBOSE</c>
+- <c>DATA</c>
+- <c>DATA_VERBOSE</c>
+- <c>WORKER</c>
+- <c>WORKER_VERBOSE</c>
+- <c>DSM</c>
+- <c>DSM_VERBOSE</c>
+- <c>SCHED</c>
+- <c>SCHED_VERBOSE</c>
+- <c>LOCK</c>
+- <c>LOCK_VERBOSE</c>
+- <c>EVENT</c>
+- <c>EVENT_VERBOSE</c>
+- <c>MPI</c>
+- <c>MPI_VERBOSE</c>
+- <c>HYP</c>
+- <c>HYP_VERBOSE</c>
+</dd>
+
+The choice of which categories have to be recorded is a tradeoff between
+required informations for offline analyzis and acceptable overhead introduced
+by tracing. For instance, to inspect with ViTE which tasks workers execute, one
+has to at least select the <c>TASK</c> category.
 
 <dt>STARPU_LIMIT_CUDA_devid_MEM</dt>
 <dd>

@@ -3,6 +3,7 @@
  * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -700,7 +701,7 @@ void _starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned
 					 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	if (!handles_sequential_consistency || handles_sequential_consistency[0])
-		starpu_data_invalidate_submit(initial_handle);
+		_starpu_data_invalidate_submit_noplan(initial_handle);
 }
 
 void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency)
@@ -719,6 +720,11 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
 }
 
 void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
+{
+	starpu_data_partition_readonly_submit_sequential_consistency(initial_handle, nparts, children, initial_handle->sequential_consistency);
+}
+
+void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency)
 {
 	unsigned i;
 	STARPU_ASSERT_MSG(initial_handle->sequential_consistency, "partition planning is currently only supported for data with sequential consistency");
@@ -747,14 +753,22 @@ void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, 
 
 	STARPU_ASSERT_MSG(initial_handle->initialized, "It is odd to read-only-partition a data which does not have a value yet");
 	struct starpu_data_descr descr[nparts];
+	char handles_sequential_consistency[nparts+1];
+	handles_sequential_consistency[0] = sequential_consistency;
+
 	for (i = 0; i < nparts; i++)
 	{
 		STARPU_ASSERT_MSG(children[i]->father_handle == initial_handle, "child(%d) %p is partitioned from %p and not from the given parameter %p", i, children[i], children[i]->father_handle, initial_handle);
 		descr[i].handle = children[i];
 		descr[i].mode = STARPU_W;
+		handles_sequential_consistency[i+1] = (char) children[i]->sequential_consistency;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_R, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_R, initial_handle,
+				     STARPU_DATA_MODE_ARRAY, descr, nparts,
+				     STARPU_HANDLES_SEQUENTIAL_CONSISTENCY, handles_sequential_consistency,
+				     0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 }
 
 void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children)
@@ -781,8 +795,9 @@ void starpu_data_partition_readwrite_upgrade_submit(starpu_data_handle_t initial
 		descr[i].mode = STARPU_W;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
-	starpu_data_invalidate_submit(initial_handle);
+	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_RW, initial_handle, STARPU_DATA_MODE_ARRAY, descr, nparts, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	_starpu_data_invalidate_submit_noplan(initial_handle);
 }
 
 void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node, unsigned char *handles_sequential_consistency, void (*callback_func)(void *), void *callback_arg)
@@ -858,7 +873,7 @@ void _starpu_data_unpartition_submit(starpu_data_handle_t initial_handle, unsign
 	for (i = 0; i < nparts; i++)
 	{
 		if (!handles_sequential_consistency || handles_sequential_consistency[i+1])
-			starpu_data_invalidate_submit(children[i]);
+			_starpu_data_invalidate_submit_noplan(children[i]);
 	}
 }
 
@@ -908,7 +923,8 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 		n++;
 	}
 	/* TODO: assert nparts too */
-	starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
+	int ret = starpu_task_insert(initial_handle->switch_cl, STARPU_W, initial_handle, STARPU_DATA_MODE_ARRAY, descr, n, 0);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert")
 }
 
 /* Unpartition everything below ancestor */
@@ -925,7 +941,7 @@ void starpu_data_unpartition_submit_r(starpu_data_handle_t ancestor, int gatheri
 		/* Uh, has to go through all read-only partitions */
 		for (i = 0; i < n; i++)
 		{
-			/* Note: active_readonly_children is emptied by starpu_data_unpartition_submit calls */
+			/* Note: active_readonly_children is emptied by starpu_data_unpartition_submit_r calls below, that's why we always refer to [0] here */
 			starpu_data_handle_t *children = ancestor->active_readonly_children[0];
 			_STARPU_DEBUG("unpartition readonly children %p etc.\n", children[0]);
 			nsiblings = children[0]->nsiblings;
@@ -1034,11 +1050,10 @@ void _starpu_data_partition_access_submit(starpu_data_handle_t target, int write
 	_starpu_data_partition_access_look_up(target, NULL, write);
 }
 
-void
-starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
-					     size_t elemsize, unsigned id,
-					     unsigned ld, unsigned *chunk_size,
-					     size_t *offset)
+void starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
+							size_t elemsize, unsigned id,
+							unsigned blocksize, unsigned *chunk_size,
+							size_t *offset)
 {
 	*chunk_size = n/nparts;
 	unsigned remainder = n % nparts;
@@ -1055,13 +1070,8 @@ starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 	 * 	if (i < n%nparts)
 	 *		total++;
 	 * }
-	 * offset = total * elemsize * ld;
+	 * offset = total * elemsize * blocksize;
 	 */
 	if (offset != NULL)
-		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * ld * elemsize;
-}
-
-void starpu_data_partition_not_automatic(starpu_data_handle_t handle)
-{
-	handle->partition_automatic_disabled = 1;
+		*offset = (id *(n/nparts) + STARPU_MIN(remainder, id)) * blocksize * elemsize;
 }

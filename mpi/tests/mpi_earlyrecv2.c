@@ -42,31 +42,36 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detac
 {
 	int other_rank = rank%2 == 0 ? rank+1 : rank-1;
 	int i;
+	int ret;
 
 	if (rank%2)
 	{
-		starpu_mpi_send(handles[0], other_rank, 0, MPI_COMM_WORLD);
-		starpu_mpi_send(handles[NB-1], other_rank, NB-1, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(handles[0], other_rank, 0, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+		ret = starpu_mpi_send(handles[NB-1], other_rank, NB-1, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		for(i=1 ; i<NB-1 ; i++)
 		{
-			starpu_mpi_send(handles[i], other_rank, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_send(handles[i], other_rank, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		}
 		return 0;
 	}
 	else
 	{
-		int ret=0;
 		starpu_mpi_req req[NB];
 		int received = 0;
 
 		if (detached)
 		{
-			starpu_mpi_irecv_detached(handles[0], other_rank, 0, MPI_COMM_WORLD, callback, &received);
+			ret = starpu_mpi_irecv_detached(handles[0], other_rank, 0, MPI_COMM_WORLD, callback, &received);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 		}
 		else
 		{
 			memset(req, 0, NB*sizeof(starpu_mpi_req));
-			starpu_mpi_irecv(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
+			ret = starpu_mpi_irecv(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 			STARPU_ASSERT(req[0] != NULL);
 		}
 
@@ -76,11 +81,13 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detac
 		{
 			if (detached)
 			{
-				starpu_mpi_irecv_detached(handles[i], other_rank, i, MPI_COMM_WORLD, callback, &received);
+				ret = starpu_mpi_irecv_detached(handles[i], other_rank, i, MPI_COMM_WORLD, callback, &received);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 			}
 			else
 			{
-				starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+				ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 				STARPU_ASSERT(req[i] != NULL);
 			}
 		}
@@ -99,8 +106,9 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func, int detac
 		{
 			for(i=0 ; i<NB ; i++)
 			{
-			     starpu_mpi_wait(&req[i], MPI_STATUS_IGNORE);
-			     func(handles[i], i, rank, &ret);
+				ret = starpu_mpi_wait(&req[i], MPI_STATUS_IGNORE);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
+				func(handles[i], i, rank, &ret);
 			}
 		}
 		return ret;
@@ -229,7 +237,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	ret = exchange_variable(rank, 0);
@@ -261,5 +269,5 @@ int main(int argc, char **argv)
 	if (!mpi_init)
 		MPI_Finalize();
 
-	return global_ret;
+	return rank == 0 ? global_ret : 0;
 }

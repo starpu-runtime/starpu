@@ -140,6 +140,7 @@ static struct starpu_codelet cpu_cl =
 	.cpu_funcs    = { dummy },
 	.cuda_funcs   = { dummy },
 	.opencl_funcs = { dummy },
+	.max_fpga_funcs   = { dummy },
 	.nbuffers     = 0,
 	.model        = &model_cpu_task
 };
@@ -149,6 +150,7 @@ static struct starpu_codelet gpu_cl =
 	.cpu_funcs    = { dummy },
 	.cuda_funcs   = { dummy },
 	.opencl_funcs = { dummy },
+	.max_fpga_funcs   = { dummy },
 	.nbuffers     = 0,
 	.model        = &model_gpu_task
 };

@@ -87,7 +87,7 @@ worker queues and tasks which will be executed on several resources at
 once. The execution of these tasks will be left to the internal runtime
 system, represented with a dashed box around the resources.
 
-\image latex runtime-par.eps "StarPU using parallel tasks" width=0.5\textwidth
+\image latex runtime-par.png "StarPU using parallel tasks" width=0.5\textwidth
 \image html runtime-par.png "StarPU using parallel tasks"
 
 Creating clusters as shown in the example above will create workers able to
@@ -118,7 +118,7 @@ like and how it represented in StarPU. We can see that one StarPU (black)
 thread is awake, and we need to create on the other resources the OpenMP
 threads (in pink).
 
-\image latex parallel_worker2.eps "StarPU with an OpenMP cluster" width=0.3\textwidth
+\image latex parallel_worker2.png "StarPU with an OpenMP cluster" width=0.3\textwidth
 \image html parallel_worker2.png "StarPU with an OpenMP cluster"
 
 Finally, the following code shows how to force OpenMP to cooperate with StarPU

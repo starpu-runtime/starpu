@@ -43,8 +43,8 @@ static struct starpu_codelet my_codelet =
 
 double cuda_cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
 {
-	t;
-	a;
+	(void) t;
+	(void) a;
 	return (double)i;
 }
 

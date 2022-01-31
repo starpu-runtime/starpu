@@ -65,7 +65,13 @@ void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype data
 
 	_STARPU_MPI_DEBUG(1, "[%d] adding %d to %d\n", src, count*size, dst);
 
+#ifdef STARPU_USE_MPI_NMAD
+	/* With NewMadeleine, the send requests are triggered from the workers, so
+	 * this is a critical section. */
+	STARPU_ATTRIBUTE_UNUSED size_t dummy = STARPU_ATOMIC_ADD(&comm_amount[dst], count*size);
+#else
 	comm_amount[dst] += count*size;
+#endif
 }
 
 void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts)

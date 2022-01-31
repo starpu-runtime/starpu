@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Simon Archipoff
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -102,6 +102,7 @@ noinst_HEADERS = 						\
 	core/detect_combined_workers.h				\
 	sched_policies/helper_mct.h				\
 	sched_policies/fifo_queues.h				\
+	sched_policies/heteroprio.h				\
 	datawizard/node_ops.h					\
 	datawizard/footprint.h					\
 	datawizard/datawizard.h					\
@@ -142,6 +143,7 @@ noinst_HEADERS = 						\
 	drivers/cuda/driver_cuda.h				\
 	drivers/opencl/driver_opencl.h				\
 	drivers/opencl/driver_opencl_utils.h			\
+	drivers/max/driver_max_fpga.h				\
 	debug/starpu_debug_helpers.h				\
 	drivers/mpi/driver_mpi_common.h				\
 	drivers/mpi/driver_mpi_source.h				\
@@ -242,15 +244,18 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES = 		\
 	datawizard/interfaces/bcsr_interface.c			\
 	datawizard/interfaces/coo_interface.c                   \
 	datawizard/interfaces/csr_interface.c			\
+	datawizard/interfaces/vector_filters.c			\
+	datawizard/interfaces/vector_interface.c		\
 	datawizard/interfaces/matrix_filters.c			\
 	datawizard/interfaces/matrix_interface.c		\
 	datawizard/interfaces/block_filters.c			\
 	datawizard/interfaces/block_interface.c			\
+	datawizard/interfaces/tensor_filters.c		    \
 	datawizard/interfaces/tensor_interface.c		\
-	datawizard/interfaces/vector_interface.c		\
+	datawizard/interfaces/ndim_filters.c		    \
+	datawizard/interfaces/ndim_interface.c		\
 	datawizard/interfaces/bcsr_filters.c			\
 	datawizard/interfaces/csr_filters.c			\
-	datawizard/interfaces/vector_filters.c			\
 	datawizard/interfaces/variable_interface.c		\
 	datawizard/interfaces/void_interface.c			\
 	datawizard/interfaces/multiformat_interface.c           \
@@ -347,6 +352,11 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/opencl/driver_opencl.
 endif
 endif
 
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/max/driver_max_fpga_init.c
+if STARPU_USE_MAX_FPGA
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/max/driver_max_fpga.c
+endif
+
 if STARPU_LINUX_SYS
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_unistd_o_direct.c
 endif
@@ -410,4 +420,4 @@ dist-hook:
 		nm $$j | $(GREP) -e "U \($$look\)$$" && { echo $$j ; failed=1 ; } ; \
 	done ; \
 	[ $$failed == 0 ]
-	nm -n .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.so | grep -v " [Ua-z] " | grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|_fini\|_edata\|__bss_start\|_end\)" | (! grep .)
+	nm -n .libs/libstarpu-@STARPU_EFFECTIVE_VERSION@.so | grep -v " [Ua-z] " | grep -ve " _\?_\?_\?f\?starpu" | grep -ve " \(_init\|main\|smpi_simulated_main_\|_fini\|_edata\|__bss_start\|_end\|fut_getstamp\)" | (! grep .)

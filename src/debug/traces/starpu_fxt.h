@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2018,2019  Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2018-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -49,9 +49,13 @@ void _starpu_fxt_dag_init(char *dag_filename);
 void _starpu_fxt_dag_terminate(void);
 void _starpu_fxt_dag_add_tag(const char *prefix, uint64_t tag, unsigned long job_id, const char *label);
 void _starpu_fxt_dag_add_tag_deps(const char *prefix, uint64_t child, uint64_t father, const char *label);
-void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color);
+void _starpu_fxt_dag_set_tag_done(const char *prefix, uint64_t tag, const char *color, const char *fontcolor);
 void _starpu_fxt_dag_add_task_deps(const char *prefix, unsigned long dep_prev, unsigned long dep_succ, const char *label);
-void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color);
+void _starpu_fxt_dag_add_task_end_dep(const char *prefix, unsigned long prev, unsigned long succ);
+void _starpu_fxt_dag_set_task_name(const char *prefix, unsigned long job_id, const char *label, const char *color, const char *fontcolor);
+#ifdef STARPU_BUBBLE
+void _starpu_fxt_dag_set_task_bubble(const char *prefix, unsigned long job_id, int is_bubble, unsigned long bubble_parent);
+#endif
 void _starpu_fxt_dag_set_task_line(const char *prefix, unsigned long job_id, const char *file, int line);
 void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);
@@ -61,7 +65,7 @@ void _starpu_fxt_dag_add_sync_point(void);
  *	MPI
  */
 
-int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank);
+struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in, int *key, int *rank);
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio);
 void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle);
 void _starpu_fxt_display_mpi_transfers(struct starpu_fxt_options *options, int *ranks, FILE *out_paje_file, FILE* out_comms_file);
@@ -87,8 +91,8 @@ void _starpu_fxt_component_dump(FILE *output);
 void _starpu_fxt_component_finish(FILE *output);
 void _starpu_fxt_component_deinit(void);
 
-#endif // STARPU_USE_FXT
-
 #pragma GCC visibility pop
+
+#endif // STARPU_USE_FXT
 
 #endif // __STARPU__FXT_H__

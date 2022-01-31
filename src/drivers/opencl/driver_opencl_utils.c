@@ -31,6 +31,9 @@
 #include <common/utils.h>
 #include "driver_opencl_utils.h"
 #include "driver_opencl.h"
+#ifdef STARPU_DEVEL
+#include <common/config-src-build.h>
+#endif
 
 #ifdef HAVE_CL_CL_EXT_H
 #include <CL/cl_ext.h>

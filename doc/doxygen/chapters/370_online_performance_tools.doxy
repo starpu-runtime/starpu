@@ -74,18 +74,65 @@ This array is not reinitialized when profiling is enabled or disabled.
 The second argument returned by the function
 starpu_profiling_worker_get_info() is a structure
 starpu_profiling_worker_info that gives statistics about the specified
-worker. This structure specifies when StarPU started collecting
-profiling information for that worker
-(starpu_profiling_worker_info::start_time), the
-duration of the profiling measurement interval
-(starpu_profiling_worker_info::total_time), the time spent executing
-kernels (starpu_profiling_worker_info::executing_time), the time
-spent sleeping because there is no task to execute at all
-(starpu_profiling_worker_info::sleeping_time), and the number of tasks that were executed
-while profiling was enabled. These values give an estimation of the
-proportion of time spent do real work, and the time spent either
-sleeping because there are not enough executable tasks or simply
-wasted in pure StarPU overhead.
+worker. This structure specifies:
+
+- In starpu_profiling_worker_info::start_time, when StarPU started collecting
+profiling information for that worker.
+
+- In starpu_profiling_worker_info::total_time, the duration of the profiling
+measurement interval.
+
+- In starpu_profiling_worker_info::executed_tasks, the number of tasks that
+were executed while profiling was enabled.
+
+It also specifies how much time was spent in various states (executing a task,
+executing a callback, waiting for a data transfer to complete, etc.). since
+these can happen at the same time (waiting for a data transfer while executing
+the previous tasks, and scheduling the next task), we provide two views. Firstly,
+the "all" view:
+
+- In starpu_profiling_worker_info::all_executing_time, the time spent executing
+kernels, thus real useful work.
+
+- In starpu_profiling_worker_info::all_callback_time, the time spent executing
+application callbacks.
+
+- In starpu_profiling_worker_info::all_waiting_time, the time spent waiting for data
+transfers.
+
+- In starpu_profiling_worker_info::all_sleeping_time, the time spent during which
+there was no task to be executed, i.e. lack of parallelism.
+
+- In starpu_profiling_worker_info::all_scheduling_time, the time spent scheduling
+tasks.
+
+But these times overlap, notably with GPUs the schedulers runs while tasks
+are getting executed. Another view is the "split" view, which eliminates the
+overlapping, by considering for instance that it does not matter what is
+happening while tasks are getting executed, that should be accounted for
+"executing" time, and e.g. only the scheduling periods that happen while no task
+is getting executed should be accounted in "scheduling" time. More precisely:
+
+- In starpu_profiling_worker_info::executing_time, the time spent executing
+kernels, normally equal to starpu_profiling_worker_info::all_executing_time.
+
+- In starpu_profiling_worker_info::callback_time, the time spent executing
+application callbacks while not executing a task.
+
+- In starpu_profiling_worker_info::waiting_time, the time spent waiting for data
+transfers while not executing a task or a callback.
+
+- In starpu_profiling_worker_info::sleeping_time, the time spent during which
+there was no task to be executed and not executing a task or a callback or
+waiting for a data transfer, i.e. real lack of parallelism.
+
+- In starpu_profiling_worker_info::scheduling_time, the time spent scheduling
+tasks while not executing a task or a callback or waiting for a data transfer to
+finish, and there are tasks to be scheduled.
+
+This thus provides a split of the starpu_profiling_worker_info::total_time into
+various states. The difference between starpu_profiling_worker_info::total_time
+and the sum of this split is the remaining uncategorized overhead of the runtime.
 
 Calling starpu_profiling_worker_get_info() resets the profiling
 information associated to a worker.
@@ -98,28 +145,35 @@ standard error stream, use the environment variable \ref STARPU_WORKER_STATS_FIL
 
 \verbatim
 Worker stats:
-CUDA 0.0 (4.7 GiB)
-	480 task(s)
-	total: 1574.82 ms executing: 1510.72 ms sleeping: 0.00 ms overhead 64.10 ms
-	325.217970 GFlop/s
+CUDA 0.0 (Tesla M2075 4.7 GiB 03:00.0)
+	133 task(s)
+	time split: total 3212.86 ms = executing: 1588.56 ms + callback: 2.95 ms + waiting: 5.34 ms + sleeping: 1613.67 ms + scheduling: 0.01 ms + overhead 2.33 ms
+	all time: executing: 1588.56 ms callback: 2.95 ms waiting: 22.83 ms sleeping: 1725.93 ms scheduling: 1726.88 ms
+	286.388333 GFlop/s
 
 CPU 0
-	22 task(s)
-	total: 1574.82 ms executing: 1364.81 ms sleeping: 0.00 ms overhead 210.01 ms
-	7.512057 GFlop/s
+	10 task(s)
+	time split: total 3212.89 ms = executing: 2117.19 ms + callback: 0.23 ms + waiting: 0.01 ms + sleeping: 1095.06 ms + scheduling: 0.02 ms + overhead 0.37 ms
+	all time: executing: 2117.19 ms callback: 0.23 ms waiting: 0.01 ms sleeping: 1095.06 ms scheduling: 283.86 ms
+	22.029695 GFlop/s
 
 CPU 1
-	14 task(s)
-	total: 1574.82 ms executing: 1500.13 ms sleeping: 0.00 ms overhead 74.69 ms
-	6.675853 GFlop/s
+	10 task(s)
+	time split: total 3212.92 ms = executing: 2116.18 ms + callback: 0.17 ms + waiting: 0.01 ms + sleeping: 1096.10 ms + scheduling: 0.02 ms + overhead 0.44 ms
+	all time: executing: 2116.18 ms callback: 0.17 ms waiting: 0.01 ms sleeping: 1096.10 ms scheduling: 284.40 ms
+	22.029487 GFlop/s
 
 CPU 2
-	14 task(s)
-	total: 1574.82 ms executing: 1553.12 ms sleeping: 0.00 ms overhead 21.70 ms
-	7.152886 GFlop/s
+	10 task(s)
+	time split: total 3212.94 ms = executing: 2116.08 ms + callback: 0.18 ms + waiting: 0.01 ms + sleeping: 1096.21 ms + scheduling: 0.02 ms + overhead 0.44 ms
+	all time: executing: 2116.08 ms callback: 0.18 ms waiting: 0.01 ms sleeping: 1096.21 ms scheduling: 283.75 ms
+	22.029343 GFlop/s
+
+
+Global time split: total 12851.60 ms = executing: 7938.01 ms (61.77%) + callback: 3.53 ms (0.03%) + waiting: 5.36 ms (0.04%) + sleeping: 4901.05 ms (38.14%) + scheduling: 0.06 ms (0.00%) + overhead 3.59 ms (0.03%)
 \endverbatim
 
-The number of GFlops is available because the starpu_task::flops field of the
+The number of GFlops/s is available because the starpu_task::flops field of the
 tasks were filled (or \ref STARPU_FLOPS used in starpu_task_insert()).
 
 When an FxT trace is generated (see \ref GeneratingTracesWithFxT), it is also

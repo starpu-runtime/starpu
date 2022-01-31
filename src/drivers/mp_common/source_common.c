@@ -2,6 +2,7 @@
  *
  * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +29,7 @@
 #include <datawizard/memory_nodes.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <drivers/mp_common/mp_common.h>
+#include <drivers/mp_common/source_common.h>
 #include <common/knobs.h>
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
@@ -44,6 +46,24 @@ struct starpu_save_thread_env
 
 struct starpu_save_thread_env save_thread_env[STARPU_MAXMPIDEVS];
 #endif
+
+struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXMPIDEVS];
+
+/* Mutex for concurrent access to the table.
+ */
+static starpu_pthread_mutex_t htbl_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
+
+/* Structure used by host to store informations about a kernel executable on
+ * a MPI MS device : its name, and its address on each device.
+ * If a kernel has been initialized, then a lookup has already been achieved and the
+ * device knows how to call it, else the host still needs to do a lookup.
+ */
+static struct _starpu_sink_kernel
+{
+	UT_hash_handle hh;
+	char *name;
+	starpu_cpu_func_t func[];
+} *kernels[STARPU_NARCH];
 
 static unsigned mp_node_memory_node(struct _starpu_mp_node *node)
 {
@@ -449,6 +469,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		buffer_ptr += sizeof(cb_workerid);
 	}
 
+	STARPU_ASSERT(coreid < node->nb_cores);
 	*(unsigned *) buffer_ptr = coreid;
 	buffer_ptr += sizeof(coreid);
 
@@ -466,6 +487,18 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	for (i = 0; i < nb_interfaces; i++)
 	{
 		starpu_data_handle_t handle = handles[i];
+		enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
+		/* Check that the interface exists in _starpu_interface */
+		STARPU_ASSERT_MSG(id == STARPU_VOID_INTERFACE_ID ||
+		                  id == STARPU_VARIABLE_INTERFACE_ID ||
+		                  id == STARPU_VECTOR_INTERFACE_ID ||
+		                  id == STARPU_MATRIX_INTERFACE_ID ||
+		                  id == STARPU_BLOCK_INTERFACE_ID ||
+		                  id == STARPU_TENSOR_INTERFACE_ID ||
+		                  id == STARPU_CSR_INTERFACE_ID ||
+		                  id == STARPU_BCSR_INTERFACE_ID ||
+		                  id == STARPU_COO_INTERFACE_ID,
+		                  "MPI-MS currently cannot work with interface type %d", id);
 
 		memcpy ((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
 		/* The sink side has no mean to get the type of each
@@ -528,17 +561,108 @@ static int _starpu_src_common_execute(struct _starpu_job *j, struct _starpu_work
 	return 0;
 }
 
+static struct _starpu_sink_kernel *starpu_src_common_register_kernel(const char *func_name)
+{
+        STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
+        struct _starpu_sink_kernel *kernel;
+        unsigned workerid = starpu_worker_get_id_check();
+        enum starpu_worker_archtype archtype = starpu_worker_get_type(workerid);
+
+        HASH_FIND_STR(kernels[archtype], func_name, kernel);
+
+        if (kernel != NULL)
+        {
+                STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
+                // Function already in the table.
+                return kernel;
+        }
+
+        unsigned int nb_devices = _starpu_get_machine_config()->topology.ndevices[archtype];
+        _STARPU_MALLOC(kernel, sizeof(*kernel) + nb_devices * sizeof(starpu_cpu_func_t ));
+
+        kernel->name = strdup(func_name);
+
+        HASH_ADD_STR(kernels[archtype], name, kernel);
+
+        unsigned int i;
+        for (i = 0; i < nb_devices; ++i)
+                kernel->func[i] = NULL;
+
+        STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
+
+        return kernel;
+}
+
+static starpu_cpu_func_t starpu_src_common_get_kernel(const char *func_name)
+{
+        /* This function has to be called in the codelet only, by the thread
+         * which will handle the task */
+        int workerid = starpu_worker_get_id_check();
+        int devid = starpu_worker_get_devid(workerid);
+        enum starpu_worker_archtype archtype = starpu_worker_get_type(workerid);
+
+        struct _starpu_sink_kernel *kernel = starpu_src_common_register_kernel(func_name);
+
+        if (kernel->func[devid] == NULL)
+        {
+                struct _starpu_mp_node *node = _starpu_src_nodes[archtype][devid];
+                int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
+                if (ret)
+                        return NULL;
+        }
+
+        return kernel->func[devid];
+}
+
+starpu_cpu_func_t _starpu_src_common_get_cpu_func_from_codelet(struct starpu_codelet *cl, unsigned nimpl)
+{
+	/* Try to use cpu_func_name. */
+	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
+        STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+
+	starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
+
+        STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+
+	return kernel;
+}
+
+void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void)
+{
+        /* Try to use cpu_func_name. */
+	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
+        STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+
+        starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
+
+        STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+
+	return (void (*)(void))kernel;
+}
+
+struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node)
+{
+        int devid = starpu_memory_node_get_devid(memory_node);
+	enum starpu_worker_archtype archtype = starpu_memory_node_get_worker_archtype(starpu_node_get_kind(memory_node));
+        STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
+
+        return _starpu_src_nodes[archtype][devid];
+}
+
 /* Send a request to the sink linked to the MP_NODE to allocate SIZE bytes on
  * the sink.
  * In case of success, it returns 0 and *ADDR contains the address of the
  * allocated area ;
  * else it returns 1 if the allocation fail.
  */
-int _starpu_src_common_allocate(struct _starpu_mp_node *mp_node, void **addr, size_t size)
+uintptr_t _starpu_src_common_allocate(unsigned dst_node, size_t size, int flags)
 {
+	(void) flags;
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
+	uintptr_t addr;
 
         STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
@@ -550,23 +674,26 @@ int _starpu_src_common_allocate(struct _starpu_mp_node *mp_node, void **addr, si
         if (answer == STARPU_MP_COMMAND_ERROR_ALLOCATE)
         {
                 STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
-                return 1;
+                return 0;
         }
 
-	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_ALLOCATE && arg_size == sizeof(*addr));
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_ALLOCATE && arg_size == sizeof(addr));
 
-	memcpy(addr, arg, arg_size);
+	memcpy(&addr, arg, arg_size);
 
         STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
-	return 0;
+	return addr;
 }
 
 /* Send a request to the sink linked to the MP_NODE to deallocate the memory
  * area pointed by ADDR.
  */
-void _starpu_src_common_free(struct _starpu_mp_node *mp_node, void *addr)
+void _starpu_src_common_free(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
+	(void) flags;
+	(void) size;
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
         STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
         _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_FREE, &addr, sizeof(addr));
         STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
@@ -612,6 +739,23 @@ int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node, 
         STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
         return -EAGAIN;
+}
+
+int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	(void) src_node;
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+
+	if (async_channel)
+		return _starpu_src_common_copy_host_to_sink_async(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size, async_channel);
+	else
+		return _starpu_src_common_copy_host_to_sink_sync(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size);
 }
 
 /* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST
@@ -661,6 +805,23 @@ int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node, 
         STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
         return -EAGAIN;
+}
+
+int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	(void) dst_node;
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
+
+	if (async_channel)
+		return _starpu_src_common_copy_sink_to_host_async(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size, async_channel);
+	else
+		return _starpu_src_common_copy_sink_to_host_sync(mp_node,
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size);
 }
 
 /* Tell the sink linked to SRC_NODE to send SIZE bytes of data pointed by SRC
@@ -756,6 +917,24 @@ int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node,
         STARPU_PTHREAD_MUTEX_UNLOCK(&dst_node->connection_mutex);
 
         return -EAGAIN;
+}
+
+int _starpu_src_common_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	if (async_channel)
+		return _starpu_src_common_copy_sink_to_sink_async(
+						_starpu_src_common_get_mp_node_from_memory_node(src_node),
+						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size, async_channel);
+	else
+		return _starpu_src_common_copy_sink_to_sink_sync(
+						_starpu_src_common_get_mp_node_from_memory_node(src_node),
+						_starpu_src_common_get_mp_node_from_memory_node(dst_node),
+						(void*) (src + src_offset),
+						(void*) (dst + dst_offset),
+						size);
 }
 
 /* 5 functions to determine the executable to run on the device (MPI).
@@ -879,7 +1058,6 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 			_STARPU_TRACE_END_PROGRESS(memnode);
 			_starpu_set_local_worker_key(&worker_set->workers[i]);
 			_starpu_fetch_task_input_tail(task, j, &worker_set->workers[i]);
-			_starpu_set_worker_status(&worker_set->workers[i], STATUS_UNKNOWN);
 			/* Reset it */
 			worker_set->workers[i].task_transferring = NULL;
 

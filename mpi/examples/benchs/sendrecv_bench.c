@@ -24,7 +24,6 @@
 #include "helper.h"
 #include "abstract_sendrecv_bench.h"
 
-
 static inline void man()
 {
 	fprintf(stderr, "Options:\n");
@@ -34,14 +33,12 @@ static inline void man()
 	exit(EXIT_SUCCESS);
 }
 
-
 int main(int argc, char **argv)
 {
 	int ret, rank, worldsize;
 	int pause_workers = 0;
-	int i = 0;
+	int i;
 	int bidir = 0;
-
 
 	for (i = 1; i < argc; i++)
 	{
@@ -65,7 +62,6 @@ int main(int argc, char **argv)
 			man();
 		}
 	}
-
 
 	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");

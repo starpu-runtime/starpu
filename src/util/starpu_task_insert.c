@@ -24,11 +24,31 @@
 
 void starpu_codelet_pack_args(void **arg_buffer, size_t *arg_buffer_size, ...)
 {
+	struct starpu_codelet_pack_arg_data state;
 	va_list varg_list;
+	int arg_type;
+
+	starpu_codelet_pack_arg_init(&state);
 
 	va_start(varg_list, arg_buffer_size);
-	_starpu_codelet_pack_args(arg_buffer, arg_buffer_size, varg_list);
+	while((arg_type = va_arg(varg_list, int)) != 0)
+	{
+		if (arg_type==STARPU_VALUE)
+		{
+			/* We have a constant value: this should be followed by a pointer to the cst value and the size of the constant */
+			void *ptr = va_arg(varg_list, void *);
+			size_t ptr_size = va_arg(varg_list, size_t);
+
+			starpu_codelet_pack_arg(&state, ptr, ptr_size);
+		}
+		else
+		{
+			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
+		}
+	}
 	va_end(varg_list);
+
+	starpu_codelet_pack_arg_fini(&state, arg_buffer, arg_buffer_size);
 }
 
 void _starpu_codelet_unpack_args_and_copyleft(char *cl_arg, void *_buffer, size_t buffer_size, va_list varg_list)

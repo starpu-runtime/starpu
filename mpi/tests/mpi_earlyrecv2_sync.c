@@ -34,46 +34,56 @@ int exchange(int rank, starpu_data_handle_t *handles, check_func func)
 
 	if (rank%2)
 	{
-		starpu_mpi_issend(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
-		starpu_mpi_isend(handles[NB-1], &req[NB-1], other_rank, NB-1, MPI_COMM_WORLD);
-		starpu_mpi_issend(handles[NB-2], &req[NB-2], other_rank, NB-2, MPI_COMM_WORLD);
+		ret = starpu_mpi_issend(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend");
+		ret = starpu_mpi_isend(handles[NB-1], &req[NB-1], other_rank, NB-1, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
+		ret = starpu_mpi_issend(handles[NB-2], &req[NB-2], other_rank, NB-2, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend");
 
 		for(i=1 ; i<NB-2 ; i++)
 		{
 			if (i%2)
 			{
 				FPRINTF_MPI(stderr, "iSsending value %d\n", i);
-				starpu_mpi_issend(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+				ret = starpu_mpi_issend(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend");
 			}
 			else
 			{
 				FPRINTF_MPI(stderr, "isending value %d\n", i);
-				starpu_mpi_isend(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+				ret = starpu_mpi_isend(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 			}
 		}
 		for(i=0 ; i<NB ; i++)
 		{
-			starpu_mpi_wait(&req[i], MPI_STATUS_IGNORE);
+			ret = starpu_mpi_wait(&req[i], MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 		}
 	}
 	else
 	{
-		starpu_mpi_irecv(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
+		ret = starpu_mpi_irecv(handles[0], &req[0], other_rank, 0, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 		STARPU_ASSERT(req[0] != NULL);
-		starpu_mpi_irecv(handles[1], &req[1], other_rank, 1, MPI_COMM_WORLD);
+		ret = starpu_mpi_irecv(handles[1], &req[1], other_rank, 1, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 		STARPU_ASSERT(req[1] != NULL);
 
 		// We sleep to make sure that the data for the tag 8 and the tag 9 will be received before the recv are posted
 		starpu_sleep(2);
 		for(i=2 ; i<NB ; i++)
 		{
-			starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+			ret = starpu_mpi_irecv(handles[i], &req[i], other_rank, i, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 			STARPU_ASSERT(req[i] != NULL);
 		}
 
 		for(i=0 ; i<NB ; i++)
 		{
-			starpu_mpi_wait(&req[i], MPI_STATUS_IGNORE);
+			ret = starpu_mpi_wait(&req[i], MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 			if (func)
 				func(handles[i], i, rank, &ret);
 		}
@@ -215,7 +225,7 @@ int main(int argc, char **argv)
 	{
 		FPRINTF(stderr, "We need a even number of processes.\n");
 		MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	ret = exchange_variable(rank);
@@ -232,5 +242,5 @@ int main(int argc, char **argv)
 
 	MPI_Finalize();
 
-	return global_ret;
+	return rank == 0 ? global_ret : 0;
 }

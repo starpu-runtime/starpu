@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: StarPU
+Bundle-SymbolicName: StarPU;singleton:=true
+Bundle-Version: 1.0.0.qualifier
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.e4.ui.model.workbench,
+ org.eclipse.equinox.registry,
+ org.eclipse.e4.core.di.annotations
+Automatic-Module-Name: StarPU
+Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-ClassPath: .

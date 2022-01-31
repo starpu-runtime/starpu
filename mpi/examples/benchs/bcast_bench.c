@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -123,7 +123,7 @@ static int time_index(int size, int bench, int node)
 static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int nb_nodes_id, int size_id, int bench_id)
 {
 	double t_end = 0.0;
-	int i;
+	int i, ret;
 	starpu_data_handle_t time_handle;
 
 	if (rank == 0)
@@ -138,18 +138,21 @@ static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int 
 
 		for (i = 1; i <= nb_dest_nodes; i++)
 		{
-			starpu_mpi_isend(data_handle, &reqs[i-1], i, data_tag, MPI_COMM_WORLD);
+			ret = starpu_mpi_isend(data_handle, &reqs[i-1], i, data_tag, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 		}
 
 		for (i = 0; i < nb_dest_nodes; i++)
 		{
-			starpu_mpi_wait(&reqs[i], MPI_STATUS_IGNORE);
+			ret = starpu_mpi_wait(&reqs[i], MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 		}
 
 		for (i = 1; i <= nb_dest_nodes; i++)
 		{
 			starpu_variable_data_register(&time_handle, STARPU_MAIN_RAM, (uintptr_t) &t_end, sizeof(double));
-			starpu_mpi_recv(time_handle, i, time_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			ret = starpu_mpi_recv(time_handle, i, time_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 			starpu_data_unregister(time_handle);
 
 			if (bench_id >= 0)
@@ -162,11 +165,13 @@ static void dummy_loop(int nb_dest_nodes, starpu_data_handle_t data_handle, int 
 	}
 	else // not server
 	{
-		starpu_mpi_recv(data_handle, 0, data_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_recv(data_handle, 0, data_tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		t_end = mpi_sync_clocks_get_time_usec(clocks);
 
 		starpu_variable_data_register(&time_handle, STARPU_MAIN_RAM, (uintptr_t) &t_end, sizeof(double));
-		starpu_mpi_send(time_handle, 0, time_tag, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(time_handle, 0, time_tag, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		starpu_data_unregister(time_handle);
 	}
 }
@@ -219,6 +224,7 @@ int main(int argc, char **argv)
 	int pause_workers = 0;
 	int nb_nodes_id;
 	int size_id;
+	int thread_support;
 	int ret, method, nb_dest_nodes, s, b, i, array_size;
 	starpu_data_handle_t data_handle;
 	float* msg;
@@ -240,7 +246,22 @@ int main(int argc, char **argv)
 		}
 	}
 
-	ret = starpu_mpi_init_conf(&argc, &argv, 1, MPI_COMM_WORLD, NULL);
+	if (MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &thread_support) != MPI_SUCCESS)
+	{
+		FPRINTF(stderr, "MPI_Init_thread failed\n");
+		return EXIT_FAILURE;
+	}
+
+	if (thread_support < MPI_THREAD_MULTIPLE)
+	{
+		/* We need MPI_THREAD_MULTIPLE for the StarPU's MPI thread and
+		 * the main thread calling functions from mpi_sync_clocks. */
+		FPRINTF(stderr, "This benchmark requires MPI_THREAD_MULTIPLE support.\n");
+		MPI_Finalize();
+		return STARPU_TEST_SKIPPED;
+	}
+
+	ret = starpu_mpi_init_conf(NULL, NULL, 0, MPI_COMM_WORLD, NULL);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_init_conf");
 
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
@@ -333,6 +354,7 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 	free(times);
+	MPI_Finalize();
 
 	return 0;
 }

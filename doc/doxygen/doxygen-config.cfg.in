@@ -36,7 +36,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/starpu.h \
 			 @top_srcdir@/include/starpu_hash.h \
 			 @top_srcdir@/include/starpu_helper.h \
-			 @top_srcdir@/include/starpu_mpi_ms.h \
+			 @top_srcdir@/include/starpu_max_fpga.h \
 			 @top_srcdir@/include/starpu_mod.f90 \
 			 @top_srcdir@/include/starpu_opencl.h \
 			 @top_srcdir@/include/starpu_openmp.h \
@@ -87,3 +87,4 @@ INPUT_FILTER           = @top_builddir@/doc/doxygen/doxygen_filter.sh
 
 IMAGE_PATH             = @top_srcdir@/doc/doxygen/chapters/images
 
+GENERATE_LATEX         = @DOC_GENERATE_LATEX@

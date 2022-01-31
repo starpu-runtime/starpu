@@ -240,6 +240,12 @@ void starpu_data_partition_submit(starpu_data_handle_t initial_handle, unsigned 
 void starpu_data_partition_readonly_submit(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children);
 
 /**
+ * Similar to starpu_data_partition_readonly_submit(), but allow to
+ * specify the the coherency to be used for the main data \p initial_handle
+ */
+void starpu_data_partition_readonly_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int sequential_consistency);
+
+/**
    Assume that a partitioning of \p initial_handle has already been submited
    in readonly mode through starpu_data_partition_readonly_submit(), and will upgrade
    that partitioning into read-write mode for the \p children, by invalidating \p
@@ -294,12 +300,6 @@ void starpu_data_partition_submit_sequential_consistency(starpu_data_handle_t in
    through the parameter \p sequential_consistency.
 */
 void starpu_data_unpartition_submit_sequential_consistency(starpu_data_handle_t initial_handle, unsigned nparts, starpu_data_handle_t *children, int gathering_node, int sequential_consistency);
-
-/**
-   Disable the automatic partitioning of the data \p handle for which
-   a asynchronous plan has previously been submitted
-*/
-void starpu_data_partition_not_automatic(starpu_data_handle_t handle);
 
 /** @} */
 
@@ -401,6 +401,22 @@ void starpu_matrix_filter_vertical_block(void *father_interface, void *child_int
 */
 void starpu_matrix_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
+/**
+   Pick \p nparts contiguous vectors from a matrix along
+   the Y dimension. The starting position on Y-axis is set in
+   <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_matrix_filter_pick_vector_child_ops. A usage example is
+   available in examples/filters/fmatrix_pick_vector.c
+*/
+void starpu_matrix_filter_pick_vector_y(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Return the child_ops of the partition obtained with starpu_matrix_filter_pick_vector_y().
+*/
+struct starpu_data_interface_ops *starpu_matrix_filter_pick_vector_child_ops(struct starpu_data_filter *f, unsigned child);
+
 /** @} */
 
 /**
@@ -457,6 +473,21 @@ void starpu_vector_filter_list(void *father_interface, void *child_interface, st
    equal size, ignoring nparts. Thus, \p id must be <c>0</c> or <c>1</c>.
 */
 void starpu_vector_filter_divide_in_2(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous variables from a vector. The starting
+   position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_vector_filter_pick_variable_child_ops. A usage example is
+   available in examples/filters/fvector_pick_variable.c
+*/
+void starpu_vector_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Return the child_ops of the partition obtained with starpu_vector_filter_pick_variable().
+*/
+struct starpu_data_interface_ops *starpu_vector_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
 
 /** @} */
 
@@ -528,15 +559,356 @@ void starpu_block_filter_depth_block(void *father_interface, void *child_interfa
 void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
 
 /**
+   Pick \p nparts contiguous matrices from a block along
+   the Z dimension. The starting position on Z-axis is set in
+   <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_block_filter_pick_matrix_child_ops. A usage example is
+   available in examples/filters/fblock_pick_matrix.c
+*/
+void starpu_block_filter_pick_matrix_z(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous matrices from a block along
+   the Y dimension. The starting position on Y-axis is set in
+   <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_block_filter_pick_matrix_child_ops. A usage example is
+   available in examples/filters/fblock_pick_matrix.c
+*/
+void starpu_block_filter_pick_matrix_y(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Return the child_ops of the partition obtained with starpu_block_filter_pick_matrix_z()
+   and starpu_block_filter_pick_matrix_y().
+*/
+struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/** @} */
+
+/**
+   @name Predefined Tensor Filter Functions
+   Predefined partitioning functions for tensor
+   data.
+   @{
+*/
+
+/**
+  Partition a tensor along the X dimension, thus getting
+  (x/\p nparts ,y,z,t) tensors. If \p nparts does not divide x, the last
+  submatrix contains the remainder.
+ */
+void starpu_tensor_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the X dimension, with a
+   shadow border <c>filter_arg_ptr</c>, thus getting
+   ((x-2*shadow)/\p nparts +2*shadow,y,z,t) tensors. If \p nparts does not
+   divide x, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_tensor_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the Y dimension, thus getting
+   (x,y/\p nparts ,z,t) tensors. If \p nparts does not divide y, the last
+   submatrix contains the remainder.
+ */
+void starpu_tensor_filter_vertical_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the Y dimension, with a
+   shadow border <c>filter_arg_ptr</c>, thus getting
+   (x,(y-2*shadow)/\p nparts +2*shadow,z,t) tensors. If \p nparts does not
+   divide y, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_tensor_filter_vertical_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the Z dimension, thus getting
+   (x,y,z/\p nparts,t) tensors. If \p nparts does not divide z, the last
+   submatrix contains the remainder.
+*/
+void starpu_tensor_filter_depth_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the Z dimension, with a
+   shadow border <c>filter_arg_ptr</c>, thus getting
+   (x,y,(z-2*shadow)/\p nparts +2*shadow,t) tensors. If \p nparts does not
+   divide z, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_tensor_filter_depth_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the T dimension, thus getting
+   (x,y,z,t/\p nparts) tensors. If \p nparts does not divide t, the last
+   submatrix contains the remainder.
+*/
+void starpu_tensor_filter_time_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a tensor along the T dimension, with a
+   shadow border <c>filter_arg_ptr</c>, thus getting
+   (x,y,z,(t-2*shadow)/\p nparts +2*shadow) tensors. If \p nparts does not
+   divide t, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_tensor_filter_time_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous blocks from a tensor along
+   the T dimension. The starting position on T-axis is set in
+   <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_tensor_filter_pick_block_child_ops. A usage example is
+   available in examples/filters/ftensor_pick_block.c
+*/
+void starpu_tensor_filter_pick_block_t(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous blocks from a tensor along
+   the Z dimension. The starting position on Z-axis is set in
+   <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_tensor_filter_pick_block_child_ops. A usage example is
+   available in examples/filters/ftensor_pick_block.c
+*/
+void starpu_tensor_filter_pick_block_z(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous blocks from a tensor along
+   the Y dimension. The starting position on Y-axis is set in
+   <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_tensor_filter_pick_block_child_ops. A usage example is
+   available in examples/filters/ftensor_pick_block.c
+*/
+void starpu_tensor_filter_pick_block_y(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Return the child_ops of the partition obtained with starpu_tensor_filter_pick_block_t(),
+   starpu_tensor_filter_pick_block_z() and starpu_tensor_filter_pick_block_y().
+*/
+struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/** @} */
+
+/**
+   @name Predefined Ndim Filter Functions
+   Predefined partitioning functions for ndim array
+   data.
+   @{
+*/
+
+/**
+   Partition a ndim array along the given dimension set in
+   <c>starpu_data_filter::filter_arg</c>. If \p nparts does not
+   divide the element number on dimension, the last submatrix contains the remainder.
+ */
+void starpu_ndim_filter_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a ndim array along the given dimension set in
+   <c>starpu_data_filter::filter_arg</c>, with a shadow border
+   <c>starpu_data_filter::filter_arg_ptr</c>. If \p nparts does not
+   divide the element number on dimension, the last submatrix contains the remainder.
+
+   <b>IMPORTANT</b>:
+   This can only be used for read-only access, as no coherency is
+   enforced for the shadowed parts.
+*/
+void starpu_ndim_filter_block_shadow(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a 4-dim array into \p nparts tensors along the given
+   dimension set in <c>starpu_data_filter::filter_arg</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_to_tensor_child_ops. A usage example is
+   available in examples/filters/fndim_to_tensor.c
+*/
+void starpu_ndim_filter_to_tensor(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a 3-dim array into \p nparts blocks along the given
+   dimension set in <c>starpu_data_filter::filter_arg</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_to_block_child_ops. A usage example is
+   available in examples/filters/fndim_to_block.c
+*/
+void starpu_ndim_filter_to_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a 2-dim array into \p nparts matrices along the given
+   dimension set in <c>starpu_data_filter::filter_arg</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_to_matrix_child_ops. A usage example is
+   available in examples/filters/fndim_to_matrix.c
+*/
+void starpu_ndim_filter_to_matrix(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Partition a 1-dim array into \p nparts vectors.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_to_vector_child_ops. A usage example is
+   available in examples/filters/fndim_to_vector.c
+*/
+void starpu_ndim_filter_to_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Transfer a 0-dim array to a variable.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_to_variable_child_ops. A usage example is
+   available in examples/filters/fndim_to_variable.c
+*/
+void starpu_ndim_filter_to_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous (n-1)dim arrays from a ndim array along
+   the given dimension set in <c>starpu_data_filter::filter_arg</c>.
+   The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   A usage example is available in examples/filters/fndim_pick_ndim.c
+*/
+void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous tensors from a 5-dim array along
+   the given dimension set in <c>starpu_data_filter::filter_arg</c>.
+   The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_pick_tensor_child_ops. A usage example is
+   available in examples/filters/fndim_pick_tensor.c
+*/
+void starpu_ndim_filter_pick_tensor(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous blocks from a 4-dim array along
+   the given dimension set in <c>starpu_data_filter::filter_arg</c>.
+   The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_pick_block_child_ops. A usage example is
+   available in examples/filters/fndim_pick_block.c
+*/
+void starpu_ndim_filter_pick_block(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous matrices from a 3-dim array along
+   the given dimension set in <c>starpu_data_filter::filter_arg</c>.
+   The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_pick_matrix_child_ops. A usage example is
+   available in examples/filters/fndim_pick_matrix.c
+*/
+void starpu_ndim_filter_pick_matrix(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous vectors from a 2-dim array along
+   the given dimension set in <c>starpu_data_filter::filter_arg</c>.
+   The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_pick_vector_child_ops. A usage example is
+   available in examples/filters/fndim_pick_vector.c
+*/
+void starpu_ndim_filter_pick_vector(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Pick \p nparts contiguous variables from a 1-dim array.
+   The starting position is set in <c>starpu_data_filter::filter_arg_ptr</c>.
+
+   <c>starpu_data_filter::get_child_ops</c> needs to be set to
+   starpu_ndim_filter_pick_variable_child_ops. A usage example is
+   available in examples/filters/fndim_pick_variable.c
+*/
+void starpu_ndim_filter_pick_variable(void *father_interface, void *child_interface, struct starpu_data_filter *f, unsigned id, unsigned nparts);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_pick_tensor().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_pick_tensor_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_pick_block().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_pick_block_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_pick_matrix().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_pick_matrix_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_pick_vector().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_pick_vector_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_pick_variable().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_pick_variable_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_to_tensor().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_to_tensor_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_to_block().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_to_block_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_to_matrix().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_to_matrix_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_to_vector().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_to_vector_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
+   Return the child_ops of the partition obtained with starpu_ndim_filter_to_variable().
+*/
+struct starpu_data_interface_ops *starpu_ndim_filter_to_variable_child_ops(struct starpu_data_filter *f, unsigned child);
+
+/**
    Given an integer \p n, \p n the number of parts it must be divided in, \p id the
    part currently considered, determines the \p chunk_size and the \p offset, taking
    into account the size of the elements stored in the data structure \p elemsize
-   and \p ld, the leading dimension, which is most often 1.
+   and \p blocksize, which is most often 1.
  */
 void
 starpu_filter_nparts_compute_chunk_size_and_offset(unsigned n, unsigned nparts,
 					     size_t elemsize, unsigned id,
-					     unsigned ld, unsigned *chunk_size,
+					     unsigned blocksize, unsigned *chunk_size,
 					     size_t *offset);
 
 /** @} */

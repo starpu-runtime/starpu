@@ -133,6 +133,8 @@ module fstarpu_mod
         type(c_ptr), bind(C) :: FSTARPU_SZ_COMPLEX4
         type(c_ptr), bind(C) :: FSTARPU_SZ_COMPLEX8
 
+        integer(c_int), bind(C), target :: FSTARPU_DEFAULT_PRIO
+
         interface operator (.ior.)
                 procedure or_cptrs
         end interface operator (.ior.)
@@ -410,23 +412,52 @@ module fstarpu_mod
 
                 ! == starpu_task.h ==
 
-                ! void starpu_tag_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
+                function fstarpu_task_create_sync (handle, mode) bind(C,name="starpu_task_create_sync")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_task_create_sync
+                        type(c_ptr), value, intent(in) :: handle
+                        type(c_ptr), value, intent(in) :: mode
+                end function fstarpu_task_create_sync
 
                 ! void starpu_tag_declare_deps_array(starpu_tag_t id, unsigned ndeps, starpu_tag_t *array);
                 subroutine fstarpu_tag_declare_deps_array(id,ndeps,tag_array) bind(C,name="starpu_tag_declare_deps_array")
                         use iso_c_binding, only: c_int, c_long_long
                         integer(c_int), value, intent(in) :: id
                         integer(c_int), value, intent(in) :: ndeps
-                        integer(c_long_long), intent(in) :: tag_array(*)
+                        integer(c_long_long), intent(in)  :: tag_array(*)
                 end subroutine fstarpu_tag_declare_deps_array
+
+                ! void starpu_task_declare_deps(starpu_tag_t id, unsigned ndeps, ...);
+                subroutine fstarpu_task_declare_deps(task,ndeps,root_task) bind(C,name="starpu_task_declare_deps")
+                        use iso_c_binding, only: c_int, c_ptr
+                        type(c_ptr), value, intent(in)    :: task
+                        integer(c_int), value, intent(in) :: ndeps
+                        type(c_ptr), value, intent(in)    :: root_task
+                end subroutine fstarpu_task_declare_deps
 
                 ! void starpu_task_declare_deps_array(struct starpu_task *task, unsigned ndeps, struct starpu_task *task_array[]);
                 subroutine fstarpu_task_declare_deps_array(task,ndeps,task_array) bind(C,name="starpu_task_declare_deps_array")
                         use iso_c_binding, only: c_int, c_ptr
-                        type(c_ptr), value, intent(in) :: task
+                        type(c_ptr), value, intent(in)    :: task
                         integer(c_int), value, intent(in) :: ndeps
-                        type(c_ptr), intent(in) :: task_array(*)
+                        type(c_ptr), intent(in)           :: task_array(*)
                 end subroutine fstarpu_task_declare_deps_array
+
+                ! void starpu_task_end_dep_add(struct starpu_task *t, int nb_deps)
+                subroutine fstarpu_task_end_dep_add(task, nb_deps) &
+                                bind(C,name="starpu_task_end_dep_add")
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in)    :: task
+                        integer(c_int), value, intent(in) :: nb_deps
+                end subroutine fstarpu_task_end_dep_add
+
+                ! void starpu_task_end_dep_release(struct starpu_task *t)
+                subroutine fstarpu_task_end_dep_release(task) &
+                                bind(C,name="starpu_task_end_dep_release")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in)    :: task
+                end subroutine fstarpu_task_end_dep_release
+
 
                 ! int starpu_tag_wait(starpu_tag_t id);
                 function fstarpu_tag_wait(id) bind(C,name="starpu_tag_wait")
@@ -651,6 +682,12 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl
                         character(c_char), intent(in) :: cl_name
                 end subroutine fstarpu_codelet_set_name
+
+                subroutine fstarpu_codelet_set_color (cl, cl_color) bind(C)
+                        use iso_c_binding, only: c_ptr, c_int
+                        type(c_ptr), value, intent(in) :: cl
+                        integer(c_int), value, intent(in) :: cl_color
+                end subroutine fstarpu_codelet_set_color
 
                 subroutine fstarpu_codelet_set_model (cl, cl_perfmodel) bind(C)
                         use iso_c_binding, only: c_ptr
@@ -1605,10 +1642,10 @@ module fstarpu_mod
                 end subroutine fstarpu_data_assign_arbiter
 
                 ! void starpu_arbiter_destroy(starpu_arbiter_t arbiter);
-                subroutine fstarpu_data_arbiter_destroy (arbiter) bind(C,name="starpu_data_arbiter_destroy")
+                subroutine fstarpu_arbiter_destroy (arbiter) bind(C,name="starpu_arbiter_destroy")
                         use iso_c_binding, only: c_ptr
                         type(c_ptr), value, intent(in) :: arbiter
-                end subroutine fstarpu_data_arbiter_destroy
+                end subroutine fstarpu_arbiter_destroy
 
                 ! void starpu_data_display_memory_stats();
                 subroutine fstarpu_display_memory_stats() bind(C,name="starpu_display_memory_stats")
@@ -1730,6 +1767,7 @@ module fstarpu_mod
                 end subroutine fstarpu_memchunk_tidy
 
                 ! == starpu_task_util.h ==
+
                 ! starpu_data_handle_t *fstarpu_data_handle_array_alloc(int nb);
                 function fstarpu_data_handle_array_alloc (nb) bind(C)
                         use iso_c_binding, only: c_ptr, c_int
@@ -1808,6 +1846,17 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: cl_arg
                         type(c_ptr), dimension(*), intent(in) :: bufferlist
                 end subroutine fstarpu_unpack_arg
+
+                ! void starpu_create_sync_task(starpu_tag_t sync_tag, unsigned ndeps, starpu_tag_t *deps, void (*callback)(void *), void *callback_arg)
+                subroutine fstarpu_create_sync_task(sync_tag, ndeps, tag_array, callback, callback_arg) & 
+                        bind(C,name="starpu_create_sync_task")
+                        use iso_c_binding, only: c_int, c_long_long, c_ptr, c_funptr
+                        integer(c_int), value, intent(in)    :: sync_tag
+                        integer(c_int), value, intent(in)    :: ndeps
+                        integer(c_long_long), intent(in)  :: tag_array(*)
+                        type(c_funptr), value, intent(in) :: callback
+                        type(c_ptr), value, intent(in)    :: callback_arg
+                end subroutine fstarpu_create_sync_task
 
                 ! == starpu_sched_ctx.h ==
 
@@ -2307,6 +2356,39 @@ module fstarpu_mod
                         real(c_double) :: fstarpu_timing_now
                 end function fstarpu_timing_now
 
+                ! == starpu_cuda.h ==
+
+                ! cudaStream_t starpu_cuda_get_local_stream(void);
+                function fstarpu_cuda_get_local_stream () bind(C,name="starpu_cuda_get_local_stream")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr) :: fstarpu_cuda_get_local_stream
+                end function fstarpu_cuda_get_local_stream
+
+                ! == starpu_stdlib.h ==
+
+                ! int starpu_malloc(void **A, size_t dim);
+                function fstarpu_malloc (ptr, len) bind(C,name="starpu_malloc")
+                        use iso_c_binding, only: c_ptr, c_long, c_int
+                        type(c_ptr), intent(out) :: ptr
+                        integer(c_long), value, intent(in) :: len
+                        integer(c_int) :: fstarpu_malloc
+                end function fstarpu_malloc
+
+                ! int starpu_free_noflag(void *A, size_t dim);
+                function fstarpu_free_no_flag (ptr, len) bind(C,name="starpu_free_no_flag")
+                        use iso_c_binding, only: c_ptr, c_long, c_int
+                        type(c_ptr), value, intent(in) :: ptr
+                        integer(c_long), value, intent(in) :: len
+                        integer(c_int) :: fstarpu_free_no_flag
+                end function fstarpu_free_no_flag
+
+                ! int starpu_memory_pin(void *addr, size_t size);
+                function fstarpu_memory_pin (ptr, len) bind(C,name="starpu_memory_pin")
+                        use iso_c_binding, only: c_ptr, c_long, c_int
+                        type(c_ptr), value, intent(in) :: ptr
+                        integer(c_long), value, intent(in) :: len
+                        integer(c_int) :: fstarpu_memory_pin
+                end function fstarpu_memory_pin
         end interface
 
         contains
@@ -2528,6 +2610,10 @@ module fstarpu_mod
                         FSTARPU_SZ_COMPLEX        = sz_to_p(c_sizeof(FSTARPU_SZ_COMPLEX_dummy))
                         FSTARPU_SZ_COMPLEX4        = sz_to_p(c_sizeof(FSTARPU_SZ_COMPLEX4_dummy))
                         FSTARPU_SZ_COMPLEX8        = sz_to_p(c_sizeof(FSTARPU_SZ_COMPLEX8_dummy))
+                        FSTARPU_SZ_COMPLEX8        = sz_to_p(c_sizeof(FSTARPU_SZ_COMPLEX8_dummy))
+
+                        FSTARPU_DEFAULT_PRIO =  int(p_to_ip(&
+                                fstarpu_get_constant(C_CHAR_"FSTARPU_DEFAULT_PRIO"//C_NULL_CHAR)),c_int)
 
                         ! Initialize StarPU
                         if (c_associated(conf)) then 

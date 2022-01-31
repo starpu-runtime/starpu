@@ -58,7 +58,7 @@ int test_prefetch(unsigned memnodes)
 	for(i=1 ; i<memnodes ; i++)
 	{
 		available_size = starpu_memory_get_available(i);
-		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
+		FPRINTF(stderr, "Available memory size on node %u: %zd\n", i, available_size);
 		STARPU_CHECK_RETURN_VALUE_IS((int) available_size, SIZE_ALLOC*1024*512, "starpu_memory_get_available (node %u)", i);
 	}
 
@@ -75,7 +75,7 @@ int test_prefetch(unsigned memnodes)
 	for(i=1 ; i<memnodes ; i++)
 	{
 		available_size = starpu_memory_get_available(i);
-		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
+		FPRINTF(stderr, "Available memory size on node %u: %zd\n", i, available_size);
 		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*256, "starpu_memory_get_available (node %u)", i);
 	}
 
@@ -92,7 +92,7 @@ int test_prefetch(unsigned memnodes)
 	for(i=1 ; i<memnodes ; i++)
 	{
 		available_size = starpu_memory_get_available(i);
-		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
+		FPRINTF(stderr, "Available memory size on node %u: %zd\n", i, available_size);
 		// here, we do not know which data has been cleaned, we cannot test the exact amout of available memory
 		STARPU_CHECK_RETURN_VALUE((available_size == 0), "starpu_memory_get_available (node %u)", i);
 	}
@@ -110,7 +110,7 @@ int test_prefetch(unsigned memnodes)
 	for(i=1 ; i<memnodes ; i++)
 	{
 		available_size = starpu_memory_get_available(i);
-		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
+		FPRINTF(stderr, "Available memory size on node %u: %zd\n", i, available_size);
 		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*512, "starpu_memory_get_available (node %u)", i);
 	}
 
@@ -123,7 +123,7 @@ int test_prefetch(unsigned memnodes)
 	for(i=1 ; i<memnodes ; i++)
 	{
 		available_size = starpu_memory_get_available(i);
-		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
+		FPRINTF(stderr, "Available memory size on node %u: %zd\n", i, available_size);
 		/* STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_ALLOC*1024*1024, "starpu_memory_get_available (node %u)", i); */
 	}
 
@@ -196,7 +196,7 @@ int main(void)
 			starpu_shutdown();
 			return STARPU_TEST_SKIPPED;
 		}
-		FPRINTF(stderr, "Available memory size on node %u: %ld\n", i, available_size);
+		FPRINTF(stderr, "Available memory size on node %u: %zd\n", i, available_size);
 		STARPU_CHECK_RETURN_VALUE_IS((int)available_size, SIZE_LIMIT*1024*1024, "starpu_memory_get_available (node %u)", i);
 	}
 

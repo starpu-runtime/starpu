@@ -71,7 +71,6 @@ int main(void)
 	struct starpu_task *task, *task2;
 
 	starpu_conf_init(&conf);
-	conf.nmpi_ms = 0;
 
         ret = starpu_init(&conf);
 	if (STARPU_UNLIKELY(ret == -ENODEV))
@@ -80,7 +79,7 @@ int main(void)
 	}
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	if (starpu_cpu_worker_get_count() < 1)
+	if (starpu_cpu_worker_get_count() < 1 && starpu_mpi_ms_worker_get_count() < 1)
 	{
 		FPRINTF(stderr, "This application requires at least 1 cpu worker\n");
 		starpu_shutdown();

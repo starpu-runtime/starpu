@@ -23,63 +23,54 @@
 #include <core/workers.h>
 #include <starpu_stdlib.h>
 
-static size_t global_size[STARPU_MAXNODES];
-static size_t used_size[STARPU_MAXNODES];
-
-/* This is used as an optimization to avoid to wake up allocating threads for
- * each and every deallocation, only to find that there is still not enough
- * room.  */
-/* Minimum amount being waited for */
-static size_t waiting_size[STARPU_MAXNODES];
-
-static starpu_pthread_mutex_t lock_nodes[STARPU_MAXNODES];
-static starpu_pthread_cond_t cond_nodes[STARPU_MAXNODES];
-
 int _starpu_memory_manager_init()
 {
 	int i;
 
 	for(i=0 ; i<STARPU_MAXNODES ; i++)
 	{
-		global_size[i] = 0;
-		used_size[i] = 0;
+		struct _starpu_node *node = _starpu_get_node_struct(i);
+		node->global_size = 0;
+		node->used_size = 0;
 		/* This is accessed for statistics outside the lock, don't care
 		 * about that */
-		STARPU_HG_DISABLE_CHECKING(used_size[i]);
-		STARPU_HG_DISABLE_CHECKING(global_size[i]);
-		waiting_size[i] = 0;
-		STARPU_PTHREAD_MUTEX_INIT(&lock_nodes[i], NULL);
-		STARPU_PTHREAD_COND_INIT(&cond_nodes[i], NULL);
+		STARPU_HG_DISABLE_CHECKING(node->used_size);
+		STARPU_HG_DISABLE_CHECKING(node->global_size);
+		node->waiting_size = 0;
+		STARPU_PTHREAD_MUTEX_INIT(&node->lock_nodes, NULL);
+		STARPU_PTHREAD_COND_INIT(&node->cond_nodes, NULL);
 	}
 	return 0;
 }
 
 void _starpu_memory_manager_set_global_memory_size(unsigned node, size_t size)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
-	if (!global_size[node])
+	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->lock_nodes);
+	if (!node_struct->global_size)
 	{
-		global_size[node] = size;
-		_STARPU_DEBUG("Global size for node %u is %ld\n", node, (long)global_size[node]);
+		node_struct->global_size = size;
+		_STARPU_DEBUG("Global size for node %u is %ld\n", node, (long)node_struct->global_size);
 	}
 	else
 	{
-		STARPU_ASSERT(global_size[node] == size);
+		STARPU_ASSERT(node_struct->global_size == size);
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->lock_nodes);
 }
 
 size_t _starpu_memory_manager_get_global_memory_size(unsigned node)
 {
-	return global_size[node];
+	return _starpu_get_node_struct(node)->global_size;
 }
 
 
 int starpu_memory_allocate(unsigned node, size_t size, int flags)
 {
+	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
 	int ret;
 
-	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->lock_nodes);
 	if (flags & STARPU_MEMORY_WAIT)
 	{
 		struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -88,70 +79,74 @@ int starpu_memory_allocate(unsigned node, size_t size, int flags)
 		if (worker)
 		{
 			old_status = worker->status;
-			_starpu_set_worker_status(worker, STATUS_WAITING);
+			if (!(old_status & STATUS_WAITING))
+				_starpu_add_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 		}
 
-		while (used_size[node] + size > global_size[node])
+		while (node_struct->used_size + size > node_struct->global_size)
 		{
 			/* Tell deallocators we need this amount */
-			if (!waiting_size[node] || size < waiting_size[node])
-				waiting_size[node] = size;
+			if (!node_struct->waiting_size || size < node_struct->waiting_size)
+				node_struct->waiting_size = size;
 
 			/* Wait for it */
-			STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
+			STARPU_PTHREAD_COND_WAIT(&node_struct->cond_nodes, &node_struct->lock_nodes);
 		}
 
 		if (worker)
 		{
-			_starpu_set_worker_status(worker, old_status);
+			if (!(old_status & STATUS_WAITING))
+				_starpu_clear_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 		}
 
 		/* And take it */
-		used_size[node] += size;
-		_STARPU_TRACE_USED_MEM(node, used_size[node]);
+		node_struct->used_size += size;
+		_STARPU_TRACE_USED_MEM(node, node_struct->used_size);
 		ret = 0;
 	}
 	else if (flags & STARPU_MEMORY_OVERFLOW
-			|| global_size[node] == 0
-			|| used_size[node] + size <= global_size[node])
+			|| node_struct->global_size == 0
+			|| node_struct->used_size + size <= node_struct->global_size)
 	{
-		used_size[node] += size;
-		_STARPU_TRACE_USED_MEM(node, used_size[node]);
+		node_struct->used_size += size;
+		_STARPU_TRACE_USED_MEM(node, node_struct->used_size);
 		ret = 0;
 	}
 	else
 	{
 		ret = -ENOMEM;
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->lock_nodes);
 	return ret;
 }
 
 void starpu_memory_deallocate(unsigned node, size_t size)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
+	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->lock_nodes);
 
-	used_size[node] -= size;
-	_STARPU_TRACE_USED_MEM(node, used_size[node]);
+	node_struct->used_size -= size;
+	_STARPU_TRACE_USED_MEM(node, node_struct->used_size);
 
 	/* If there's now room for waiters, wake them */
-	if (waiting_size[node] &&
-		global_size[node] - used_size[node] >= waiting_size[node])
+	if (node_struct->waiting_size &&
+		node_struct->global_size - node_struct->used_size >= node_struct->waiting_size)
 	{
 		/* And have those not happy enough tell us the size again */
-		waiting_size[node] = 0;
-		STARPU_PTHREAD_COND_BROADCAST(&cond_nodes[node]);
+		node_struct->waiting_size = 0;
+		STARPU_PTHREAD_COND_BROADCAST(&node_struct->cond_nodes);
 	}
 
-	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->lock_nodes);
 }
 
 starpu_ssize_t starpu_memory_get_total(unsigned node)
 {
-	if (global_size[node] == 0)
+	size_t size = _starpu_get_node_struct(node)->global_size;
+	if (size == 0)
 		return -1;
 	else
-		return global_size[node];
+		return size;
 }
 
 starpu_ssize_t starpu_memory_get_total_all_nodes()
@@ -171,10 +166,11 @@ starpu_ssize_t starpu_memory_get_total_all_nodes()
 starpu_ssize_t starpu_memory_get_available(unsigned node)
 {
 	starpu_ssize_t ret;
-	if (global_size[node] == 0)
+	size_t size = _starpu_get_node_struct(node)->global_size;
+	if (size == 0)
 		return -1;
 
-	ret = global_size[node] - used_size[node];
+	ret = size - _starpu_get_node_struct(node)->used_size;
 	return ret;
 }
 
@@ -194,26 +190,28 @@ starpu_ssize_t starpu_memory_get_available_all_nodes()
 
 void starpu_memory_wait_available(unsigned node, size_t size)
 {
-	STARPU_PTHREAD_MUTEX_LOCK(&lock_nodes[node]);
-	while (used_size[node] + size > global_size[node])
+	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
+	STARPU_PTHREAD_MUTEX_LOCK(&node_struct->lock_nodes);
+	while (node_struct->used_size + size > node_struct->global_size)
 	{
 		/* Tell deallocators we need this amount */
-		if (!waiting_size[node] || size < waiting_size[node])
-			waiting_size[node] = size;
+		if (!node_struct->waiting_size || size < node_struct->waiting_size)
+			node_struct->waiting_size = size;
 
 		/* Wait for it */
-		STARPU_PTHREAD_COND_WAIT(&cond_nodes[node], &lock_nodes[node]);
+		STARPU_PTHREAD_COND_WAIT(&node_struct->cond_nodes, &node_struct->lock_nodes);
 	}
-	STARPU_PTHREAD_MUTEX_UNLOCK(&lock_nodes[node]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node_struct->lock_nodes);
 }
 
 int _starpu_memory_manager_test_allocate_size(unsigned node, size_t size)
 {
+	struct _starpu_node *node_struct = _starpu_get_node_struct(node);
 	int ret;
 
-	if (global_size[node] == 0)
+	if (node_struct->global_size == 0)
 		ret = 1;
-	else if (used_size[node] + size <= global_size[node])
+	else if (node_struct->used_size + size <= node_struct->global_size)
 		ret = 1;
 	else
 		ret = 0;

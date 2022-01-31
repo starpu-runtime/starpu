@@ -30,11 +30,12 @@ static const struct starpu_data_copy_methods vector_copy_data_methods_s =
 };
 
 static void vector_init(void *data_interface);
-static void register_vector_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_vector_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static starpu_ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void *vector_to_pointer(void *data_interface, unsigned node);
 static int vector_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static void free_vector_buffer_on_node(void *data_interface, unsigned node);
+static void reuse_vector_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node);
 static size_t vector_interface_get_size(starpu_data_handle_t handle);
 static size_t vector_interface_get_alloc_size(starpu_data_handle_t handle);
 static uint32_t footprint_vector_interface_crc32(starpu_data_handle_t handle);
@@ -55,6 +56,7 @@ struct starpu_data_interface_ops starpu_interface_vector_ops =
 	.to_pointer = vector_to_pointer,
 	.pointer_is_inside = vector_pointer_is_inside,
 	.free_data_on_node = free_vector_buffer_on_node,
+	.reuse_data_on_node = reuse_vector_buffer_on_node,
 	.map_data = map_vector,
 	.unmap_data = unmap_vector,
 	.update_map = update_map,
@@ -98,11 +100,11 @@ static int vector_pointer_is_inside(void *data_interface, unsigned node, void *p
 		(char*) ptr < (char*) vector_interface->ptr + vector_interface->nx*vector_interface->elemsize;
 }
 
-static void register_vector_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_vector_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_vector_interface *local_interface = (struct starpu_vector_interface *)
@@ -366,6 +368,16 @@ static void free_vector_buffer_on_node(void *data_interface, unsigned node)
 	struct starpu_vector_interface *vector_interface = (struct starpu_vector_interface *) data_interface;
 
 	starpu_free_on_node(node, vector_interface->dev_handle, vector_interface->allocsize);
+}
+
+static void reuse_vector_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
+{
+	struct starpu_vector_interface *vector_interface = data_interface;
+	const struct starpu_vector_interface *new_vector_interface = new_data_interface;
+
+	vector_interface->ptr = new_vector_interface->ptr;
+	vector_interface->dev_handle = new_vector_interface->dev_handle;
+	vector_interface->offset = new_vector_interface->offset;
 }
 
 static int map_vector(void *src_interface, unsigned src_node,

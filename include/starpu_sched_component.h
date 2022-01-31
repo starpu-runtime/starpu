@@ -138,6 +138,11 @@ struct starpu_sched_component
 	*/
 	int (*can_pull)(struct starpu_sched_component *component);
 
+	/**
+	   This function is called when starpu_do_schedule() is called by the application.
+	*/
+	void (*do_schedule)(struct starpu_sched_component *component);
+
 	int (*notify)(struct starpu_sched_component* component, int message_ID, void* arg);
 
 	/**
@@ -258,6 +263,11 @@ void starpu_sched_tree_add_workers(unsigned sched_ctx_id, int *workerids, unsign
    compatibility with starpu_sched_policy interface
 */
 void starpu_sched_tree_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers);
+
+/**
+   Run the do_schedule method of the components. This is a helper for starpu_sched_policy::do_schedule.
+*/
+void starpu_sched_tree_do_schedule(unsigned sched_ctx_id);
 
 /**
    Attach component \p child to parent \p parent. Some component may accept only one child, others accept several (e.g. MCT)

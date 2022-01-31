@@ -22,6 +22,10 @@
 #include <starpu_opencl.h>
 #endif
 
+#if defined(STARPU_USE_MAX_FPGA)
+#include <starpu_max_fpga.h>
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {

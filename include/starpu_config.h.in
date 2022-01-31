@@ -73,6 +73,13 @@
 #undef STARPU_USE_OPENCL
 
 /**
+   Defined when StarPU has been installed with FPGA support. It should
+   be used in your code to detect the availability of FPGA.
+   @ingroup API_Max_FPGA_Extensions
+*/
+#undef STARPU_USE_MAX_FPGA
+
+/**
    Defined when StarPU has been installed with MPI Master Slave
    support. It should be used in your code to detect the availability
    of MPI Master Slave.
@@ -88,6 +95,7 @@
 */
 #undef STARPU_OPENMP
 
+#undef STARPU_BUBBLE
 #undef STARPU_CLUSTER
 
 #undef STARPU_SIMGRID
@@ -127,6 +135,7 @@
 #undef STARPU_ARMPL
 #undef STARPU_SYSTEM_BLAS
 #undef STARPU_HAVE_CBLAS_H
+#undef STARPU_HAVE_BLAS
 
 /**
    Define the directory in which the OpenCL codelets of the
@@ -226,6 +235,13 @@
 #undef STARPU_MAXOPENCLDEVS
 
 /**
+   Define the maximum number of Maxeler FPGA devices that are supported by
+   StarPU.
+   @ingroup API_Max_FPGA_Extensions
+ */
+#undef STARPU_MAXMAXFPGADEVS
+
+/**
    Define the maximum number of workers managed by StarPU.
    @ingroup API_Workers_Properties
 */
@@ -313,5 +329,6 @@ typedef ssize_t starpu_ssize_t;
 #undef STARPU_PERF_MODEL_DIR
 
 #undef STARPU_PYTHON_HAVE_NUMPY
+#undef STARPU_STARPUPY_MULTI_INTERPRETER
 
 #endif

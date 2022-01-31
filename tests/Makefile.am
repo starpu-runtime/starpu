@@ -24,6 +24,7 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 LIBS += $(HWLOC_LIBS)
 LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
+LIBS += $(STARPU_MAX_FPGA_LDFLAGS)
 
 EXTRA_DIST =					\
 	helper.h				\
@@ -48,6 +49,7 @@ EXTRA_DIST =					\
 	microbenchs/parallel_independent_homogeneous_tasks_data.sh	\
 	microbenchs/parallel_independent_homogeneous_tasks.sh	\
 	microbenchs/bandwidth_scheds.sh		\
+	microbenchs/starpu_check.sh		\
 	energy/static.sh			\
 	energy/dynamic.sh			\
 	energy/perfs.gp				\
@@ -69,12 +71,29 @@ EXTRA_DIST =					\
 	datawizard/interfaces/csr/csr_opencl_kernel.cl \
 	datawizard/interfaces/block/block_opencl_kernel.cl \
 	datawizard/interfaces/tensor/tensor_opencl_kernel.cl \
+	datawizard/interfaces/ndim/ndim_opencl_kernel.cl \
 	perfmodels/opencl_memset_kernel.cl \
 	$(MICROBENCHS:=.sh) \
-	microbenchs/microbench.sh
+	microbenchs/microbench.sh	\
+	memory/memstress2.gp	\
+	memory/memstress2.sh	\
+	memory/memstress.gp	\
+	memory/memstress.sh	\
+	maxfpga/LMemLoopbackCpuCode.c	\
+	maxfpga/MyTasksManager.maxj	\
+	maxfpga/MyTasksMuxManager.maxj	\
+	maxfpga/README.txt	\
+	maxfpga/StreamFMACpuCode.cpp	\
+	maxfpga/Task1.maxj	\
+	maxfpga/Task2.maxj	\
+	maxfpga/Task3.maxj	\
+	datawizard/interfaces/test_interfaces.sh
 
 CLEANFILES = 					\
 	*.gcno *.gcda *.linkinfo core starpu_idle_microsec.log *.mod *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 bandwidth-*.dat bandwidth.gp bandwidth.eps bandwidth.svg
+
+clean-local:
+	-rm -rf overlap/overlap.traces datawizard/locality.traces
 
 BUILT_SOURCES =
 SUBDIRS =
@@ -111,14 +130,9 @@ noinst_PROGRAMS		=
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
-if !STARPU_CROSS_COMPILING
 LOADER			=	loader
 LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
 noinst_PROGRAMS		+=	loader
-else
-LOADER			=
-LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
-endif
 
 if STARPU_USE_MPI_MASTER_SLAVE
 LOADER_BIN2		= $(MPI_LAUNCHER) $(LOADER_BIN)
@@ -235,6 +249,7 @@ myPROGRAMS +=				\
 	main/insert_task_array			\
 	main/insert_task_many			\
 	main/insert_task_where			\
+	main/job				\
 	main/multithreaded			\
 	main/starpu_task_bundle			\
 	main/starpu_task_wait_for_all		\
@@ -320,6 +335,7 @@ myPROGRAMS +=				\
 	datawizard/interfaces/multiformat/advanced/multiformat_handle_conversion \
 	datawizard/interfaces/multiformat/advanced/same_handle \
 	datawizard/interfaces/tensor/tensor_interface \
+	datawizard/interfaces/ndim/ndim_interface \
 	datawizard/interfaces/variable/variable_interface    \
 	datawizard/interfaces/vector/vector_interface   \
 	datawizard/interfaces/void/void_interface \
@@ -340,6 +356,7 @@ myPROGRAMS +=				\
 	datawizard/invalidate_pending_requests	\
 	datawizard/temporary_partition		\
 	datawizard/partitioned_initialization	\
+	datawizard/partitioned_acquire		\
 	datawizard/temporary_partition_implicit	\
 	datawizard/redux_acquire		\
 	disk/disk_copy				\
@@ -385,6 +402,14 @@ myPROGRAMS +=				\
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched	\
 	sched_ctx/sched_ctx_hierarchy
+
+if STARPU_USE_MAX_FPGA
+myPROGRAMS +=				\
+        maxfpga/max_fpga_basic_static	\
+        maxfpga/max_fpga_advanced_static	\
+        maxfpga/max_fpga_dynamic		\
+        maxfpga/max_fpga_mux
+endif
 endif
 
 MICROBENCHS = \
@@ -414,6 +439,7 @@ endif
 endif
 
 examplebin_PROGRAMS = \
+	main/deadlock				\
 	microbenchs/async_tasks_overhead	\
 	microbenchs/sync_tasks_overhead		\
 	microbenchs/tasks_overhead		\
@@ -452,8 +478,12 @@ endif
 if !STARPU_USE_MPI_MASTER_SLAVE
 SHELL_TESTS += \
 	datawizard/locality.sh \
-	microbenchs/bandwidth_scheds.sh \
+	microbenchs/bandwidth_scheds.sh
+
+if STARPU_USE_FXT
+SHELL_TESTS += \
 	overlap/overlap.sh
+endif
 endif
 
 ################################
@@ -868,6 +898,27 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 	datawizard/interfaces/tensor/tensor_opencl_kernel.cl
 endif
 
+###################
+# Ndim interface #
+###################
+datawizard_interfaces_ndim_ndim_interface_SOURCES= \
+	datawizard/interfaces/test_interfaces.c  \
+	datawizard/interfaces/ndim/ndim_interface.c
+
+datawizard_interfaces_ndim_ndim_interface_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
+
+if STARPU_USE_CUDA
+datawizard_interfaces_ndim_ndim_interface_SOURCES+= \
+	datawizard/interfaces/ndim/ndim_cuda.cu
+endif
+
+if STARPU_USE_OPENCL
+datawizard_interfaces_ndim_ndim_interface_SOURCES+= \
+	datawizard/interfaces/ndim/ndim_opencl.c
+nobase_STARPU_OPENCL_DATA_DATA += \
+	datawizard/interfaces/ndim/ndim_opencl_kernel.cl
+endif
+
 ##################
 # BSCR interface #
 ##################
@@ -1073,6 +1124,30 @@ perfmodels_regression_based_energy_SOURCES=\
 perfmodels_regression_based_gpu_SOURCES=\
 	perfmodels/regression_based_gpu.c
 
+maxfpga_max_fpga_basic_static_SOURCES=\
+       maxfpga/max_fpga_basic_static.c
+maxfpga_max_fpga_basic_static_LDADD = $(LDADD) \
+       maxfpga/slic_MyTasks.o
+maxfpga/max_fpga_basic_static.o: maxfpga/MyTasks.max
+
+maxfpga_max_fpga_advanced_static_SOURCES=\
+       maxfpga/max_fpga_advanced_static.c
+maxfpga_max_fpga_advanced_static_LDADD = $(LDADD) \
+       maxfpga/slic_MyTasks.o
+maxfpga/max_fpga_advanced_static.o: maxfpga/MyTasks.max
+
+maxfpga_max_fpga_dynamic_SOURCES=\
+       maxfpga/max_fpga_dynamic.c
+maxfpga_max_fpga_dynamic_LDADD = $(LDADD) \
+       maxfpga/slic_MyTasks.o
+maxfpga/max_fpga_dynamic.o: maxfpga/MyTasks.max
+
+maxfpga_max_fpga_mux_SOURCES=\
+       maxfpga/max_fpga_mux.c
+maxfpga_max_fpga_mux_LDADD = $(LDADD) \
+       maxfpga/slic_MyTasksMux.o
+maxfpga/max_fpga_mux.o: maxfpga/MyTasksMux.max
+
 if STARPU_USE_OPENCL
 perfmodels_regression_based_memset_SOURCES+=\
 	perfmodels/opencl_memset.c
@@ -1112,3 +1187,25 @@ starpu_mod.mod: fortran90/starpu_mod.o
 # - list explicit dependences to control proper module files dependencies
 fortran90/init_01.o: starpu_mod.mod
 endif
+
+# Maxeler compiler
+if STARPU_USE_MAX_FPGA
+# or DFE for hardware execution
+MAX_TARGET ?= DFE_SIM
+MAX_DFE = MAX5C_$(MAX_TARGET)
+
+MAXJ=$(wildcard maxfpga/*.maxj)
+CLASS=$(MAXJ:.maxj=.class)
+$(CLASS) &: $(MAXJ)
+	maxjc -1.7 -cp $$MAXCLASSPATH $(dir $<)
+
+%.max: %Manager.class
+	CLASSPATH=$$CLASSPATH:. maxJavaRun $(shell dirname $*).$(notdir $*)Manager DFEModel=MAIA maxFileName=$(notdir $*) target=$(MAX_TARGET)
+	cp $(notdir $*)_$(MAX_DFE)/results/$(notdir $*).{max,h} $(dir $@)
+
+slic_%.o: %.max
+	sliccompile $< $@
+
+CLEANFILES += */*.max */*.class max_fpga/*.h
+endif
+

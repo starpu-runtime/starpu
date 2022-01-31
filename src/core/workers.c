@@ -1,9 +1,10 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
+ * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,6 +20,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <strings.h>
 #ifdef __linux__
 #include <sys/utsname.h>
 #endif
@@ -34,6 +36,7 @@
 #include <core/detect_combined_workers.h>
 #include <datawizard/malloc.h>
 #include <profiling/profiling.h>
+#include <drivers/max/driver_max_fpga.h>
 #include <profiling/bound.h>
 #include <sched_policies/sched_component.h>
 #include <datawizard/memory_nodes.h>
@@ -44,6 +47,7 @@
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/opencl/driver_opencl.h>
+#include <drivers/max/driver_max_fpga.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/disk/driver_disk.h>
 
@@ -55,6 +59,16 @@
 #include <windows.h>
 #endif
 
+#if defined(_WIN32)
+#ifdef __GNUC__
+#define ffs(arg) __builtin_ffs(arg)
+#else
+#define ffs(arg) _bit_scan_forward(arg)
+#endif
+#endif
+
+
+static int asynchronous_copy_disabled[STARPU_MAX_RAM+1];
 
 /* global knobs */
 static int __g_calibrate_knob;
@@ -208,6 +222,7 @@ struct _starpu_driver_info starpu_driver_info[STARPU_NARCH];
 
 void _starpu_driver_info_register(enum starpu_worker_archtype archtype, const struct _starpu_driver_info *info)
 {
+	STARPU_ASSERT(archtype >= 0 && archtype < STARPU_NARCH);
 	starpu_driver_info[archtype] = *info;
 }
 
@@ -260,7 +275,44 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	   task, independent of the sched_ctx, this latter may receive latter on
 	   the necessary worker - the user or the hypervisor should take care this happens */
 
-	struct _starpu_sched_ctx *sched_ctx = check_entire_platform == 1 ? _starpu_get_initial_sched_ctx() : _starpu_get_sched_ctx_struct(task->sched_ctx);
+	if (check_entire_platform && !task->cl->can_execute)
+	{
+		if (!_starpu_get_machine_config()->topology.ndevices[arch])
+			return 0;
+
+		unsigned impl;
+		for (impl = 0; impl < STARPU_MAXIMPLEMENTATIONS; impl++)
+		{
+			switch (arch)
+			{
+			case STARPU_CPU_WORKER:
+				if (task->cl->cpu_funcs[impl] != NULL)
+					return 1;
+				break;
+			case STARPU_CUDA_WORKER:
+				if (task->cl->cuda_funcs[impl] != NULL)
+					return 1;
+				break;
+			case STARPU_OPENCL_WORKER:
+				if (task->cl->opencl_funcs[impl] != NULL)
+					return 1;
+				break;
+			case STARPU_MAX_FPGA_WORKER:
+				if (task->cl->max_fpga_funcs[impl] != NULL)
+					return 1;
+				break;
+                        case STARPU_MPI_MS_WORKER:
+                                if (task->cl->cpu_funcs_name[impl] != NULL)
+					return 1;
+                                break;
+			default:
+				STARPU_ABORT();
+			}
+		}
+		return 0;
+	}
+
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(task->sched_ctx);
 	struct starpu_worker_collection *workers = sched_ctx->workers;
 	struct starpu_sched_ctx_iterator it;
 	workers->init_iterator(workers, &it);
@@ -292,8 +344,12 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->opencl_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
+			case STARPU_MAX_FPGA_WORKER:
+				if (task->cl->max_fpga_funcs[impl] != NULL)
+					test_implementation = 1;
+				break;
                         case STARPU_MPI_MS_WORKER:
-                                if (task->cl->cpu_funcs_name[impl] != NULL || task->cl->mpi_ms_funcs[impl] != NULL)
+                                if (task->cl->cpu_funcs_name[impl] != NULL)
                                         test_implementation = 1;
                                 break;
 			default:
@@ -301,13 +357,14 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 			}
 
 			if (!test_implementation)
+				/* No implementation here, cannot execute */
 				continue;
 
-			if (task->cl->can_execute)
-				return task->cl->can_execute(i, task, impl);
+			if (task->cl->can_execute && !task->cl->can_execute(i, task, impl))
+				/* The implementation cannot be executed here */
+				continue;
 
-			if(test_implementation)
-				return 1;
+			return 1;
 		}
 	}
 
@@ -348,6 +405,11 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	if ((task->where & STARPU_OPENCL) &&
 	    _starpu_worker_exists_and_can_execute(task, STARPU_OPENCL_WORKER))
+		return 1;
+#endif
+#if defined(STARPU_USE_MAX_FPGA)
+	if ((task->where & STARPU_MAX_FPGA) &&
+	    _starpu_worker_exists_and_can_execute(task, STARPU_MAX_FPGA_WORKER))
 		return 1;
 #endif
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -412,12 +474,15 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 		starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, nimpl);
 		return func != NULL;
 	}
+        case STARPU_MAX_FPGA_WORKER:
+	{
+		starpu_max_fpga_func_t func = _starpu_task_get_fpga_nth_implementation(cl, nimpl);
+		return func != NULL;
+	}
 	case STARPU_MPI_MS_WORKER:
 	{
-		starpu_mpi_ms_func_t func = _starpu_task_get_mpi_ms_nth_implementation(cl, nimpl);
 		const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
-
-		return func != NULL || func_name != NULL;
+		return func_name != NULL;
 	}
 	default:
 		STARPU_ASSERT_MSG(0, "Unknown arch type %d", arch);
@@ -911,6 +976,35 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			}
 #endif
 
+#if defined(STARPU_USE_MAX_FPGA)
+			case STARPU_MAX_FPGA_WORKER:
+			{
+				struct starpu_driver driver;
+				driver.type = workerarg->arch;
+				workerarg->driver_ops = &_starpu_driver_max_fpga_ops;
+				workerarg->wait_for_worker_initialization = 1;
+				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
+				{
+					workerarg->run_by_starpu = 0;
+					break;
+				}
+				STARPU_PTHREAD_CREATE_ON(
+					workerarg->name,
+					&workerarg->worker_thread,
+					NULL,
+					_starpu_max_fpga_worker,
+					workerarg,
+					_starpu_simgrid_get_host_by_worker(workerarg));
+#ifdef STARPU_USE_FXT
+				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
+				while (!workerarg->worker_is_running)
+					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
+				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
+#endif
+				break;
+			}
+#endif
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 			case STARPU_MPI_MS_WORKER:
 			{
@@ -953,7 +1047,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		 * before starting another one, to make sure they appear in
 		 * order in the trace.
 		 */
-		if ((!workerarg->set || workerarg->set->workers == workerarg)
+		if (fut_active && (!workerarg->set || workerarg->set->workers == workerarg)
 			&& workerarg->run_by_starpu == 1 && workerarg->arch != STARPU_MPI_MS_WORKER)
 		{
 			STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
@@ -979,10 +1073,13 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
                 /* We use the first worker to know if everything are finished */
 #ifdef STARPU_USE_FXT
-                STARPU_PTHREAD_MUTEX_LOCK(&worker_zero->mutex);
-                while (!worker_zero->worker_is_running)
-                        STARPU_PTHREAD_COND_WAIT(&worker_zero->started_cond, &worker_zero->mutex);
-                STARPU_PTHREAD_MUTEX_UNLOCK(&worker_zero->mutex);
+		if (fut_active)
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&worker_zero->mutex);
+			while (!worker_zero->worker_is_running)
+				STARPU_PTHREAD_COND_WAIT(&worker_zero->started_cond, &worker_zero->mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker_zero->mutex);
+		}
 #endif
 
                 STARPU_PTHREAD_MUTEX_LOCK(&worker_set_zero->mutex);
@@ -1057,6 +1154,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->reserve_ncpus++;
 	conf->ncuda = starpu_get_env_number("STARPU_NCUDA");
 	conf->nopencl = starpu_get_env_number("STARPU_NOPENCL");
+	conf->nmax_fpga = starpu_get_env_number("STARPU_NMAX_FPGA");
 	conf->nmpi_ms = starpu_get_env_number("STARPU_NMPI_MS");
 	conf->calibrate = starpu_get_env_number("STARPU_CALIBRATE");
 	conf->bus_calibrate = starpu_get_env_number("STARPU_BUS_CALIBRATE");
@@ -1070,6 +1168,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->use_explicit_workers_bindid = 0; /* TODO */
 	conf->use_explicit_workers_cuda_gpuid = 0; /* TODO */
 	conf->use_explicit_workers_opencl_gpuid = 0; /* TODO */
+	conf->use_explicit_workers_max_fpga_deviceid = 0; /* TODO */
 	conf->use_explicit_workers_mpi_ms_deviceid = 0; /* TODO */
 
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
@@ -1100,12 +1199,20 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->disable_asynchronous_opencl_copy = 0;
 #endif
 
-#if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY)
-    conf->disable_asynchronous_mpi_ms_copy = 1;
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY)
+	conf->disable_asynchronous_max_fpga_copy = 1;
 #else
-    conf->disable_asynchronous_mpi_ms_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
-    if(conf->disable_asynchronous_mpi_ms_copy == -1)
-        conf->disable_asynchronous_mpi_ms_copy = 0;
+	conf->disable_asynchronous_max_fpga_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY");
+	if (conf->disable_asynchronous_max_fpga_copy == -1)
+		conf->disable_asynchronous_max_fpga_copy = 0;
+#endif
+
+#if defined(STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY)
+	conf->disable_asynchronous_mpi_ms_copy = 1;
+#else
+	conf->disable_asynchronous_mpi_ms_copy = starpu_get_env_number("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY");
+	if(conf->disable_asynchronous_mpi_ms_copy == -1)
+		conf->disable_asynchronous_mpi_ms_copy = 0;
 #endif
 
 	conf->disable_map = starpu_get_env_number("STARPU_DISABLE_MAP");
@@ -1130,6 +1237,7 @@ int starpu_conf_noworker(struct starpu_conf *conf)
 	conf->ncpus = 0;
 	conf->ncuda = 0;
 	conf->nopencl = 0;
+	conf->nmax_fpga = 0;
 	conf->nmpi_ms = 0;
 	return 0;
 }
@@ -1163,6 +1271,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 		conf->reserve_ncpus++;
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl, conf->precedence_over_environment_variables);
+        _starpu_conf_set_value_against_environment("STARPU_NMAX_FPGA", &conf->nmax_fpga, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate, conf->precedence_over_environment_variables);
 #ifdef STARPU_SIMGRID
@@ -1176,11 +1285,22 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	}
 #endif
 	_starpu_conf_set_value_against_environment("STARPU_SINGLE_COMBINED_WORKER", &conf->single_combined_worker, conf->precedence_over_environment_variables);
+
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_COPY", &conf->disable_asynchronous_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY", &conf->disable_asynchronous_cuda_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY", &conf->disable_asynchronous_opencl_copy, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MAX_FPGA_COPY", &conf->disable_asynchronous_max_fpga_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->precedence_over_environment_variables);
+
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_MAP", &conf->disable_map, conf->precedence_over_environment_variables);
+
+	asynchronous_copy_disabled[STARPU_CPU_RAM] = 0;
+	asynchronous_copy_disabled[STARPU_CUDA_RAM] = conf->disable_asynchronous_cuda_copy;
+	asynchronous_copy_disabled[STARPU_OPENCL_RAM] = conf->disable_asynchronous_opencl_copy;
+	asynchronous_copy_disabled[STARPU_MAX_FPGA_RAM] = conf->disable_asynchronous_max_fpga_copy;
+	asynchronous_copy_disabled[STARPU_DISK_RAM] = 0;
+	asynchronous_copy_disabled[STARPU_MPI_MS_RAM] = conf->disable_asynchronous_mpi_ms_copy;
+
 	_starpu_conf_set_value_against_environment("STARPU_MIN_PRIO", &conf->global_sched_ctx_min_priority, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_MAX_PRIO", &conf->global_sched_ctx_max_priority, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_CATCH_SIGNALS", &conf->catch_signals, conf->precedence_over_environment_variables);
@@ -1262,10 +1382,33 @@ static void _starpu_build_tree(void)
 #endif
 }
 
+typedef void (*hook_func_t)(void);
+static hook_func_t _hook_funcs[10];
+static int _hook_func_nb=0;
+
+void _starpu_crash_add_hook(void (*hook_func)(void))
+{
+	STARPU_ASSERT_MSG(_hook_func_nb < 10, "The number of crash funcs has exceeded the limit\n");
+	_hook_funcs[_hook_func_nb] = hook_func;
+	_hook_func_nb++;
+}
+
+void _starpu_crash_call_hooks()
+{
+	int i;
+
+	_STARPU_DISP("Time: %f\n", starpu_timing_now());
+	for(i=0 ; i<_hook_func_nb; i++)
+		_hook_funcs[i]();
+}
+
 static starpu_pthread_mutex_t sig_handlers_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 static void (*act_sigint)(int);
 static void (*act_sigsegv)(int);
+static void (*act_sigabrt)(int);
+#ifdef SIGTRAP
 static void (*act_sigtrap)(int);
+#endif
 
 void _starpu_handler(int sig)
 {
@@ -1289,6 +1432,13 @@ void _starpu_handler(int sig)
 			sig_act = SIG_DFL;
 		signal(SIGSEGV, sig_act);
 	}
+	if (sig == SIGABRT)
+	{
+		void (*sig_act)(int) = act_sigabrt;
+		if (sig_act == NULL)
+			sig_act = SIG_DFL;
+		signal(SIGABRT, sig_act);
+	}
 #ifdef SIGTRAP
 	if (sig == SIGTRAP)
 	{
@@ -1298,6 +1448,8 @@ void _starpu_handler(int sig)
 		signal(SIGTRAP, sig_act);
 	}
 #endif
+
+	_starpu_crash_call_hooks();
 #ifdef STARPU_VERBOSE
 	_STARPU_MSG("Rearming signal '%d'\n", sig);
 #endif
@@ -1316,6 +1468,11 @@ void _starpu_catch_signals(void)
 		old_sig_act = signal(SIGSEGV, _starpu_handler);
 		if (old_sig_act != _starpu_handler)
 			act_sigsegv  = old_sig_act;
+
+		old_sig_act = signal(SIGABRT, _starpu_handler);
+		if (old_sig_act != _starpu_handler)
+			act_sigabrt  = old_sig_act;
+
 #ifdef SIGTRAP
 		old_sig_act = signal(SIGTRAP, _starpu_handler);
 		if (old_sig_act != _starpu_handler)
@@ -1335,6 +1492,13 @@ void _starpu_catch_signals(void)
 			signal(SIGSEGV, act_sigsegv);
 			act_sigsegv = NULL;
 		}
+
+		if (act_sigabrt != NULL)
+		{
+			signal(SIGABRT, act_sigsegv);
+			act_sigabrt = NULL;
+		}
+
 #ifdef SIGTRAP
 		if (act_sigtrap != NULL)
 		{
@@ -1363,6 +1527,7 @@ void starpu_drivers_preinit(void)
 	_starpu_cpu_preinit();
 	_starpu_cuda_preinit();
 	_starpu_opencl_preinit();
+	_starpu_max_fpga_preinit();
 	_starpu_mpi_ms_preinit();
 	_starpu_disk_preinit();
 }
@@ -1415,10 +1580,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
                 initialized = UNINITIALIZED;
                 return -ENODEV;
         }
-
-        /* In MPI case we look at the rank to know if we are a sink */
-        if (!_starpu_mpi_common_is_src_node())
-                setenv("STARPU_SINK", "STARPU_MPI_MS", 1);
 # endif
 
 	/* If StarPU was configured to use MP sinks, we have to control the
@@ -1460,7 +1621,11 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_STARPU_DISP("Warning: StarPU was configured with --enable-verbose, which slows down a bit\n");
 #endif
 #ifdef STARPU_USE_FXT
-	_STARPU_DISP("Warning: StarPU was configured with --with-fxt, which slows down a bit, limits scalability and makes worker initialization sequential\n");
+	if (starpu_fxt_is_enabled())
+		_STARPU_DISP("Warning: FxT is enabled, which slows down a bit, limits scalability and makes worker initialization sequential\n");
+#else
+	if (starpu_get_env_number("STARPU_FXT_TRACE") > 0)
+		_STARPU_DISP("Warning: FxT trace is requested but StarPU was configured without FxT support\n");
 #endif
 #ifdef STARPU_FXT_LOCK_TRACES
 	_STARPU_DISP("Warning: StarPU was configured with --enable-fxt-lock, which slows down things a huge lot, and is really only meant for StarPU insides debugging. Did you really want to enable that?\n");
@@ -1535,6 +1700,8 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		memcpy(copy, _starpu_config.conf.not_launched_drivers, size);
 		_starpu_config.conf.not_launched_drivers = copy;
 	}
+
+	_hook_func_nb = 0;
 
 	_starpu_sched_init();
 	_starpu_job_init();
@@ -1887,7 +2054,7 @@ void starpu_shutdown(void)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&init_mutex);
 
 	/* If the workers are frozen, no progress can be made. */
-	STARPU_ASSERT(_starpu_config.pause_depth <= 0);
+	STARPU_ASSERT_MSG(_starpu_config.pause_depth <= 0, "Did you forget to call starpu_resume before starpu_shutdown?");
 
 	starpu_task_wait_for_no_ready();
 
@@ -1994,6 +2161,24 @@ void starpu_shutdown(void)
 	/* This finalizes the simgrid thread library, thus needs to be late */
 	_starpu_simgrid_deinit();
 #endif
+}
+
+unsigned starpu_worker_archtype_is_valid(enum starpu_worker_archtype type)
+{
+	return (type >= 0 && type < STARPU_NARCH)
+		&& (starpu_driver_info[type].name_upper != NULL);
+}
+
+enum starpu_worker_archtype starpu_arch_mask_to_worker_archtype(unsigned mask)
+{
+	STARPU_ASSERT(mask && !(mask & (mask-1))); // ensures that only one bit of the mask is set
+
+	enum starpu_worker_archtype worker_type = ffs(mask)-2; // ffs(mask) is the indice of the lesser bit
+
+	STARPU_ASSERT(worker_type >= 0 && worker_type < STARPU_NARCH); // worker_type is positive and lesser than arch number
+	STARPU_ASSERT(starpu_worker_archtype_is_valid(worker_type)); // worker_type is a valid worker architecture
+
+	return worker_type;
 }
 
 #undef starpu_worker_get_count
@@ -2127,6 +2312,11 @@ int starpu_asynchronous_opencl_copy_disabled(void)
 	return _starpu_config.conf.disable_asynchronous_opencl_copy;
 }
 
+int starpu_asynchronous_max_fpga_copy_disabled(void)
+{
+	return _starpu_config.conf.disable_asynchronous_max_fpga_copy;
+}
+
 int starpu_asynchronous_mpi_ms_copy_disabled(void)
 {
         return _starpu_config.conf.disable_asynchronous_mpi_ms_copy;
@@ -2136,6 +2326,11 @@ int starpu_asynchronous_mpi_ms_copy_disabled(void)
 int starpu_map_disabled(void)
 {
 	return _starpu_config.conf.disable_map;
+}
+
+int starpu_asynchronous_copy_disabled_for(enum starpu_node_kind kind)
+{
+	return asynchronous_copy_disabled[kind];
 }
 
 unsigned starpu_mpi_ms_worker_get_count(void)
@@ -2356,6 +2551,11 @@ int starpu_worker_get_devids(enum starpu_worker_archtype type, int *devids, int 
 	return ndevids;
 }
 
+unsigned starpu_worker_type_can_execute_task(enum starpu_worker_archtype worker_type, const struct starpu_task *task)
+{
+	return (STARPU_WORKER_TO_MASK(worker_type) & task->where) != 0;
+}
+
 void starpu_worker_get_name(int id, char *dst, size_t maxlen)
 {
 	char *name = _starpu_config.workers[id].name;
@@ -2407,12 +2607,7 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 #ifdef STARPU_SIMGRID
 	starpu_pthread_queue_broadcast(&_starpu_simgrid_task_queue[workerid]);
 #endif
-	if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING || _starpu_config.workers[workerid].status == STATUS_SLEEPING_SCHEDULING)
-	{
-		_starpu_config.workers[workerid].state_keep_awake = 1;
-		return 0;
-	}
-	else if (_starpu_config.workers[workerid].status == STATUS_SLEEPING)
+	if (_starpu_config.workers[workerid].status & STATUS_SLEEPING)
 	{
 		int ret = 0;
 		if (_starpu_config.workers[workerid].state_keep_awake != 1)
@@ -2424,6 +2619,11 @@ static int starpu_wakeup_worker_locked(int workerid, starpu_pthread_cond_t *sche
 		 * the condition is share for multiple purpose */
 		STARPU_PTHREAD_COND_BROADCAST(sched_cond);
 		return ret;
+	}
+	else if (_starpu_config.workers[workerid].status & STATUS_SCHEDULING)
+	{
+		_starpu_config.workers[workerid].state_keep_awake = 1;
+		return 0;
 	}
 	return 0;
 }
@@ -2547,6 +2747,7 @@ unsigned starpu_worker_get_sched_ctx_list(int workerid, unsigned **sched_ctxs)
 
 const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 {
+	STARPU_ASSERT(type >= 0 && type < STARPU_NARCH);
 	const char *ret = starpu_driver_info[type].name_upper;
 	if (!ret)
 		ret = "unknown";
@@ -2555,6 +2756,7 @@ const char *starpu_worker_get_type_as_string(enum starpu_worker_archtype type)
 
 const char *starpu_worker_get_type_as_env_var(enum starpu_worker_archtype type)
 {
+	STARPU_ASSERT(type >= 0 && type < STARPU_NARCH);
 	const char *ret = starpu_driver_info[type].name_var;
 	if (!ret)
 		ret = "UNKNOWN";
@@ -2727,8 +2929,7 @@ int starpu_wake_worker_relax_light(int workerid)
 		while (!worker->state_relax_refcnt)
 		{
 			/* Attempt a fast path if the worker is not really asleep */
-			if (_starpu_config.workers[workerid].status == STATUS_SCHEDULING
-			 || _starpu_config.workers[workerid].status == STATUS_SLEEPING_SCHEDULING)
+			if (_starpu_config.workers[workerid].status & STATUS_SCHEDULING)
 			{
 				_starpu_config.workers[workerid].state_keep_awake = 1;
 				STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&worker->sched_mutex);
@@ -2768,6 +2969,7 @@ void starpu_worker_set_waking_up_callback(void (*callback)(unsigned workerid))
 
 enum starpu_node_kind starpu_worker_get_memory_node_kind(enum starpu_worker_archtype type)
 {
+	STARPU_ASSERT(type >= 0 && type < STARPU_NARCH);
 	enum starpu_node_kind kind = starpu_driver_info[type].memory_kind;
 	STARPU_ASSERT_MSG(kind != (enum starpu_node_kind) -1, "no memory for archtype %d", type);
 	return kind;

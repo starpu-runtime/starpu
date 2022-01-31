@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -123,6 +123,13 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node CPU node to the \p dst_interface interface on the \p
+	   dst_node FPGA node. Return 0 on success.
+	*/
+	int (*ram_to_max_fpga)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CUDA node to the \p dst_interface interface on the \p
 	   dst_node CPU node. Return 0 on success.
 	*/
@@ -151,24 +158,10 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node CPU node to the \p dst_interface interface on the \p
-	   dst_node MPI Slave node. Return 0 on success.
+	   \p src_node FPGA node to the \p dst_interface interface on the \p
+	   dst_node CPU node. Return 0 on success.
 	*/
-	int (*ram_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MPI Slave node to the \p dst_interface interface on
-	   the \p dst_node CPU node. Return 0 on success.
-	*/
-	int (*mpi_ms_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MPI Slave node to the \p dst_interface interface on
-	   the \p dst_node MPI Slave node. Return 0 on success.
-	*/
-	int (*mpi_ms_to_mpi_ms)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+	int (*max_fpga_to_ram)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
 
 #ifdef STARPU_USE_CUDA
 	/**
@@ -246,32 +239,22 @@ struct starpu_data_copy_methods
 	/**
 	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CPU node to the \p dst_interface interface on the \p
-	   dst_node MPI Slave node, with the given even. Must return 0 if the
-	   transfer was actually completed completely synchronously, or
-	   <c>-EAGAIN</c> if at least some transfers are still ongoing and
-	   should be awaited for by the core.
+	   dst_node FPGA node. Must return 0 if the transfer was actually
+	   completed completely synchronously, or <c>-EAGAIN</c> if at least
+	   some transfers are still ongoing and should be awaited for by the
+	   core.
 	*/
-	int (*ram_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event);
+	int (*ram_to_max_fpga_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MPI Slave node to the \p dst_interface interface on
-	   the \p dst_node CPU node, with the given event. Must return 0 if
-	   the transfer was actually completed completely synchronously, or
-	   <c>-EAGAIN</c> if at least some transfers are still ongoing and
-	   should be awaited for by the core.
+	   \p src_node FPGA node to the \p dst_interface interface on the \p
+	   dst_node CPU node. Must return 0 if the transfer was actually
+	   completed completely synchronously, or <c>-EAGAIN</c> if at least
+	   some transfers are still ongoing and should be awaited for by the
+	   core.
 	*/
-	int (*mpi_ms_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node MPI Slave node to the \p dst_interface interface on
-	   the \p dst_node MPI Slave node, using the given stream. Must
-	   return 0 if the transfer was actually completed completely
-	   synchronously, or <c>-EAGAIN</c> if at least some transfers are
-	   still ongoing and should be awaited for by the core.
-	*/
-	int (*mpi_ms_to_mpi_ms_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void * event);
+	int (*max_fpga_to_ram_async)(void *src_interface, unsigned srd_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
@@ -308,8 +291,9 @@ enum starpu_data_interface_id
 	STARPU_VOID_INTERFACE_ID=6, /**< Identifier for the void data interface*/
 	STARPU_MULTIFORMAT_INTERFACE_ID=7, /**< Identifier for the multiformat data interface*/
 	STARPU_COO_INTERFACE_ID=8, /**< Identifier for the COO data interface*/
-	STARPU_TENSOR_INTERFACE_ID=9, /**< Identifier for the block data interface*/
-	STARPU_MAX_INTERFACE_ID=10 /**< Maximum number of data interfaces */
+	STARPU_TENSOR_INTERFACE_ID=9, /**< Identifier for the tensor data interface*/
+	STARPU_NDIM_INTERFACE_ID=10, /**< Identifier for the ndim array data interface*/
+	STARPU_MAX_INTERFACE_ID=11 /**< Maximum number of data interfaces */
 };
 
 /**
@@ -322,13 +306,24 @@ struct starpu_data_interface_ops
 
 	   This iterates over all memory nodes to initialize all fields of the data
 	   interface on each of them. Since data is not allocated yet except on the
-	   home node, pointers should be left as NULL except on the \p home_node, for
+	   home node, pointers should be left as NULL except on the \p home_node (if >= 0), for
 	   which the pointers should be copied from the given \p data_interface, which
 	   was filled with the application's pointers.
 
 	   This method is mandatory.
 	*/
-	void		 (*register_data_handle)	(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+	void		 (*register_data_handle)	(starpu_data_handle_t handle, int home_node, void *data_interface);
+
+	/**
+	   Unregister a data handle.
+
+	   This iterates over all memory nodes to free any pointer in the data
+	   interface on each of them.
+
+	   At this point, free_data_on_node has been already called on each of them.
+	   This just clears anything that would still be left.
+	*/
+	void		 (*unregister_data_handle)	(starpu_data_handle_t handle);
 
 	/**
 	   Allocate data for the interface on a given node. This should use
@@ -351,6 +346,15 @@ struct starpu_data_interface_ops
 	   This method is mandatory to be able to support memory nodes.
 	*/
 	void 		 (*free_data_on_node)		(void *data_interface, unsigned node);
+
+	/**
+	   Reuse on the given node the buffers of the provided interface
+
+	   This method is optional, mostly useful when also defining
+	   alloc_footprint to share tiles of the same allocation size but
+	   different shapes
+	*/
+	void 		 (*reuse_data_on_node)		(void *data_interface, const void *new_interface, unsigned node);
 
 	/**
 	   Map data from a source to a destination.
@@ -768,7 +772,7 @@ int starpu_interface_copy3d(uintptr_t src, size_t src_offset, unsigned src_node,
    If the blocks are contiguous, the transfers will be optimized.
 
    This is to be used in the starpu_data_copy_methods::any_to_any copy
-   method for 3D data, which is provided with \p async_data to be passed to
+   method for 4D data, which is provided with \p async_data to be passed to
    starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
    ongoing, or 0 if the transfer is already completed.
 */
@@ -778,6 +782,28 @@ int starpu_interface_copy4d(uintptr_t src, size_t src_offset, unsigned src_node,
 			    size_t numblocks1, size_t ld1_src, size_t ld1_dst,
 			    size_t numblocks2, size_t ld2_src, size_t ld2_dst,
 			    size_t numblocks3, size_t ld3_src, size_t ld3_dst,
+			    void *async_data);
+
+/**
+	Copy \p nn[1] * \p nn[2]...* \p nn[ndim-1] blocks of \p nn[0] * \p elemsize bytes from byte
+   offset \p src_offset of \p src on \p src_node to byte offset \p dst_offset of
+   \p dst on \p dst_node.
+
+   The blocks are grouped by \p nn[i] blocks (i = 1, 2, ... ndim-1) whose start addresses are
+   ldn_src[i] * \p elemsize (resp. ld1_dst[i] * \p elemsize) bytes apart
+   in the source (resp. destination) interface.
+
+	If the blocks are contiguous, the transfers will be optimized.
+
+   This is to be used in the starpu_data_copy_methods::any_to_any copy
+   method for Ndim data, which is provided with \p async_data to be passed to
+   starpu_interface_copy(). this returns <c>-EAGAIN</c> if the transfer is still
+   ongoing, or 0 if the transfer is already completed.
+*/
+int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
+			    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+			    size_t elemsize, size_t ndim,
+			    uint32_t* nn, uint32_t* ldn_src, uint32_t* ldn_dst,
 			    void *async_data);
 
 /**
@@ -1447,6 +1473,146 @@ designated by \p interface.
 /** @} */
 
 /**
+   @name Ndim Array Data Interface
+   @{
+*/
+
+extern struct starpu_data_interface_ops starpu_interface_ndim_ops;
+
+/**
+   ndim interface for ndim array
+*/
+struct starpu_ndim_interface
+{
+	enum starpu_data_interface_id id; /**< identifier of the interface */
+
+	uintptr_t ptr;                    /**< local pointer of the ndim */
+	uintptr_t dev_handle;             /**< device handle of the ndim. */
+	size_t offset;                    /**< offset in the ndim. */
+	uint32_t* nn;                     /**< array of element number on each dimension */
+	uint32_t* ldn;                    /**< array of element number between two units on each dimension */
+	size_t ndim;                      /**< size of the dimension. */
+	size_t elemsize;                  /**< size of the elements of the ndim. */
+};
+
+/**
+   Register the \p nn[0] x \p nn[1] x ... \p ndim-dimension matrix of \p elemsize byte elements
+   pointed by \p ptr and initialize \p handle to represent it. Again, \p ldn,
+   specifies the number of elements between two units on each dimension.
+
+   Here an example of how to use the function.
+   \code{.c}
+   float *ndim_arr;
+   size_t arrsize = 1;
+	int i;
+	for (i = 0; i < ndim; i++)
+	   arrsize = arrsize * nn[i];
+   starpu_data_handle_t ndim_handle;
+   ndim_arr = (float*)malloc(arrsize*sizeof(float));
+   starpu_ndim_data_register(&ndim_handle, STARPU_MAIN_RAM, (uintptr_t)ndim_arr, ldn, nn, ndim, sizeof(float));
+   \endcode
+*/
+void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node, uintptr_t ptr, uint32_t* ldn, uint32_t* nn, size_t ndim, size_t elemsize);
+/**
+   Register into the \p handle that to store data on node \p node it should use the
+   buffer located at \p ptr, or device handle \p dev_handle and offset \p offset
+   (for OpenCL, notably), with \p ldn elements between two units on each dimension.
+*/
+void starpu_ndim_ptr_register(starpu_data_handle_t handle, unsigned node, uintptr_t ptr, uintptr_t dev_handle, size_t offset, uint32_t* ldn);
+
+/**
+   Return the number of elements on each dimension of the ndim array
+   designated by \p handle.
+ */
+uint32_t* starpu_ndim_get_nn(starpu_data_handle_t handle);
+
+/**
+   Return the number of elements on the i-axis of the ndim array
+   designated by \p handle. When i=0, it means x-axis, 
+   when i=1, it means y-axis, when i=2, it means z-axis, etc.
+ */
+uint32_t starpu_ndim_get_ni(starpu_data_handle_t handle, size_t i);
+
+/**
+   Return the number of elements between two units on each dimension of the ndim array
+   designated by \p handle, in the format of the current memory node.
+*/
+uint32_t* starpu_ndim_get_local_ldn(starpu_data_handle_t handle);
+
+/**
+   Return the number of elements between two units i-axis dimension of the ndim array
+   designated by \p handle, in the format of the current memory node.
+*/
+uint32_t starpu_ndim_get_local_ldi(starpu_data_handle_t handle, size_t i);
+
+/**
+   Return the local pointer associated with \p handle.
+ */
+uintptr_t starpu_ndim_get_local_ptr(starpu_data_handle_t handle);
+
+/**
+	Return the dimension size.
+*/
+size_t starpu_ndim_get_ndim(starpu_data_handle_t handle);
+
+/**
+   Return the size of the elements of the ndim array designated by
+   \p handle.
+ */
+size_t starpu_ndim_get_elemsize(starpu_data_handle_t handle);
+
+#if defined(STARPU_HAVE_STATEMENT_EXPRESSIONS) && defined(STARPU_DEBUG)
+#define STARPU_NDIM_CHECK(interface)           STARPU_ASSERT_MSG((((struct starpu_ndim_interface *)(interface))->id) == STARPU_NDIM_INTERFACE_ID, "Error. The given data is not a ndim.")
+#define STARPU_NDIM_GET_PTR(interface)	        ({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->ptr) ; })
+#define STARPU_NDIM_GET_DEV_HANDLE(interface)	({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->dev_handle) ; })
+#define STARPU_NDIM_GET_OFFSET(interface)	({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->offset) ; })
+#define STARPU_NDIM_GET_NN(interface)	        ({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->nn) ; })
+#define STARPU_NDIM_GET_LDN(interface)	        ({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->ldn) ; })
+#define STARPU_NDIM_GET_NDIM(interface)	({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->ndim) ; })
+#define STARPU_NDIM_GET_ELEMSIZE(interface)	({ STARPU_NDIM_CHECK(interface); (((struct starpu_ndim_interface *)(interface))->elemsize) ; })
+#else
+/**
+   Return a pointer to the ndim array designated by \p interface.
+ */
+#define STARPU_NDIM_GET_PTR(interface)	        (((struct starpu_ndim_interface *)(interface))->ptr)
+/**
+   Return a device handle for the ndim array designated by \p interface,
+   to be used on OpenCL. The offset returned by
+   ::STARPU_NDIM_GET_OFFSET has to be used in
+   addition to this.
+ */
+#define STARPU_NDIM_GET_DEV_HANDLE(interface)	(((struct starpu_ndim_interface *)(interface))->dev_handle)
+/**
+   Return the offset in the ndim designated by \p interface, to be
+   used with the device handle.
+ */
+#define STARPU_NDIM_GET_OFFSET(interface)	(((struct starpu_ndim_interface *)(interface))->offset)
+/**
+   Return the number of elements on each dimension of the ndim array
+   designated by \p interface.
+ */
+#define STARPU_NDIM_GET_NN(interface)	        (((struct starpu_ndim_interface *)(interface))->nn)
+/**
+   Return the number of elements between each two units on each dimension of the ndim array
+   designated by \p interface. May be equal to nx when there is no padding.
+ */
+#define STARPU_NDIM_GET_LDN(interface)	        (((struct starpu_ndim_interface *)(interface))->ldn)
+/**
+   Return the dimension size of the ndim array designated by
+   \p interface.
+ */
+#define STARPU_NDIM_GET_NDIM(interface)	(((struct starpu_ndim_interface *)(interface))->ndim)
+/**
+   Return the size of the elements of the ndim array designated by
+   \p interface.
+ */
+#define STARPU_NDIM_GET_ELEMSIZE(interface)	(((struct starpu_ndim_interface *)(interface))->elemsize)
+#endif
+
+/** @} */
+
+
+/**
    @name Vector Data Interface
    @{
 */
@@ -1694,6 +1860,8 @@ struct starpu_csr_interface
 	uintptr_t nzval;                  /**< non-zero values */
 	uint32_t *colind;                 /**< position of non-zero entries on the row */
 	uint32_t *rowptr;                 /**< index (in nzval) of the first entry of the row */
+	uint32_t *ram_colind;             /**< position of non-zero entries on the row (stored in RAM) */
+	uint32_t *ram_rowptr;             /**< index (in nzval) of the first entry of the row (stored in RAM) */
 
 	uint32_t firstentry;              /**< k for k-based indexing (0 or 1 usually). also useful when partitionning the matrix. */
 
@@ -1774,6 +1942,11 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
  */
 #define STARPU_CSR_GET_COLIND(interface)	    (((struct starpu_csr_interface *)(interface))->colind)
 /**
+   Return a RAM pointer to the column index of the matrix designated
+   by \p interface.
+ */
+#define STARPU_CSR_GET_RAM_COLIND(interface)	    (((struct starpu_csr_interface *)(interface))->ram_colind)
+/**
    Return a device handle for the column index of the matrix
    designated by \p interface. The offset returned by ::STARPU_CSR_GET_OFFSET has to be used in
    addition to this.
@@ -1784,6 +1957,11 @@ size_t starpu_csr_get_elemsize(starpu_data_handle_t handle);
    designated by \p interface.
  */
 #define STARPU_CSR_GET_ROWPTR(interface)	    (((struct starpu_csr_interface *)(interface))->rowptr)
+/**
+   Return a RAM pointer to the row pointer array of the matrix
+   designated by \p interface.
+ */
+#define STARPU_CSR_GET_RAM_ROWPTR(interface)	    (((struct starpu_csr_interface *)(interface))->ram_rowptr)
 /**
    Return a device handle for the row pointer array of the matrix
    designated by \p interface. The offset returned by ::STARPU_CSR_GET_OFFSET has to be used in
@@ -1843,6 +2021,8 @@ struct starpu_bcsr_interface
 					   * allows an easier access
 					   * of the matrix's elements
 					   * for the kernels. */
+	uint32_t *ram_colind;             /**< array of nnz elements (stored in RAM) */
+	uint32_t *ram_rowptr;             /**< array of nrow+1 elements (stored in RAM) */
 
 	uint32_t firstentry;              /**< k for k-based indexing (0 or 1 usually). Also useful when partitionning the matrix. */
 
@@ -1978,6 +2158,11 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
  */
 #define STARPU_BCSR_GET_NNZ(interface)        (((struct starpu_bcsr_interface *)(interface))->nnz)
 /**
+   Return the number of block rows in the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_NROW(interface)        (((struct starpu_bcsr_interface *)(interface))->nrow)
+/**
    Return a pointer to the non-zero values of the matrix
    designated by \p interface.
  */
@@ -1994,6 +2179,11 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
  */
 #define STARPU_BCSR_GET_COLIND(interface)     (((struct starpu_bcsr_interface *)(interface))->colind)
 /**
+   Return a RAM pointer to the column index of the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_RAM_COLIND(interface) (((struct starpu_bcsr_interface *)(interface))->ram_colind)
+/**
    Return a device handle for the column index of the matrix
    designated by \p interface. The offset returned by ::STARPU_BCSR_GET_OFFSET has to be used in
    addition to this.
@@ -2005,11 +2195,35 @@ size_t starpu_bcsr_get_elemsize(starpu_data_handle_t handle);
  */
 #define STARPU_BCSR_GET_ROWPTR(interface)     (((struct starpu_bcsr_interface *)(interface))->rowptr)
 /**
+   Return a RAM pointer to the row pointer array of the matrix
+   designated by \p interface.
+ */
+#define STARPU_BCSR_GET_RAM_ROWPTR(interface) (((struct starpu_bcsr_interface *)(interface))->ram_rowptr)
+/**
    Return a device handle for the row pointer array of the matrix
    designated by \p interface. The offset returned by ::STARPU_BCSR_GET_OFFSET has to be used in
    addition to this.
  */
 #define STARPU_BCSR_GET_ROWPTR_DEV_HANDLE(interface) (((struct starpu_bcsr_interface *)(interface))->rowptr)
+/**
+   Return the base of the indexing (0 or 1 usually) in the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_FIRSTENTRY(interface)        (((struct starpu_bcsr_interface *)(interface))->firstentry)
+/**
+   Return the height of blocks in the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_R(interface)        (((struct starpu_bcsr_interface *)(interface))->r)
+/**
+   Return the width of blocks in the matrix designated
+   by \p interface.
+ */
+#define STARPU_BCSR_GET_C(interface)        (((struct starpu_bcsr_interface *)(interface))->c)
+/**
+   Return the size of elements in the matrix designated by \p interface.
+ */
+#define STARPU_BCSR_GET_ELEMSIZE(interface)        (((struct starpu_bcsr_interface *)(interface))->elemsize)
 /**
    Return the offset in the arrays (coling, rowptr, nzval) of the
    matrix designated by \p interface, to be used with the device handles.

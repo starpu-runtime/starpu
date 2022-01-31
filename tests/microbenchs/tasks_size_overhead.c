@@ -70,7 +70,7 @@ void func(void *descr[], void *arg)
 		double tv2 = starpu_timing_now();
 		usec = tv2 - tv1;
 	}
-	while (usec < n);
+	while (usec < (long) n);
 }
 
 double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)
@@ -228,7 +228,7 @@ int main(int argc, char **argv)
 		goto error;
 	}
 
-	if (mincpus <= 0)
+	if (mincpus == 0)
 		mincpus = 1;
 	/* For each number of cpus, benchmark */
 	for (ncpus= mincpus; ncpus <= maxcpus; ncpus += cpustep)

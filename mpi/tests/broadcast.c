@@ -64,7 +64,8 @@ int main(int argc, char **argv)
 		for(n = 1 ; n < size ; n++)
 		{
 			FPRINTF_MPI(stderr, "sending data to %d\n", n);
-			starpu_mpi_isend_detached(handle, n, 0, MPI_COMM_WORLD, NULL, NULL);
+			ret = starpu_mpi_isend_detached(handle, n, 0, MPI_COMM_WORLD, NULL, NULL);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 		}
 
 		val = 43;
@@ -73,17 +74,20 @@ int main(int argc, char **argv)
 		for(n = 1 ; n < size ; n++)
 		{
 			FPRINTF_MPI(stderr, "sending data to %d\n", n);
-			starpu_mpi_isend_detached(handle, n, 0, MPI_COMM_WORLD, NULL, NULL);
+			ret = starpu_mpi_isend_detached(handle, n, 0, MPI_COMM_WORLD, NULL, NULL);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 		}
 	}
 	else
 	{
-		starpu_mpi_recv(handle, 0, 0, MPI_COMM_WORLD, &status);
+		ret = starpu_mpi_recv(handle, 0, 0, MPI_COMM_WORLD, &status);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_acquire(handle, STARPU_R);
 		STARPU_ASSERT(var == 42);
 		starpu_data_release(handle);
 
-		starpu_mpi_recv(handle, 0, 0, MPI_COMM_WORLD, &status);
+		ret = starpu_mpi_recv(handle, 0, 0, MPI_COMM_WORLD, &status);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_acquire(handle, STARPU_R);
 		STARPU_ASSERT(var == 43);
 		starpu_data_release(handle);

@@ -1,0 +1,192 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page HierarchicalDAGS Hierarchical DAGS
+
+The STF model has the intrinsic limitation of supporting static task
+graphs only, which leads to potential submission overhead and to a
+static task graph which is not necessarily adapted for execution on
+heterogeneous systems.
+
+To address these problems, we have extended the STF model to enable
+tasks subgraphs at runtime. We refer to these tasks as
+<em>hierarchical tasks</em>. This approach allows for a more dynamic
+task graph. This allows to dynamically adapt the granularity to meet
+the optimal size of the targeted computing resource.
+
+<em>Hierarchical tasks</em> are tasks that can transform themselves into
+a new task-graph dynamically at runtime. Programmers submit a coarse
+version of the DAG, called the bubbles graph, which represents the
+general shape of the application tasks graph. The execution of this
+bubble graph will generate and submit the computing tasks of the
+application. It is up to application programmers to decide how to
+build the bubble graph (i.e. how to structure the computation tasks
+graph to create some groups of tasks). Dependencies between bubbles
+are automatically deduced from dependencies between their computing
+tasks.
+
+//Figure of bubble task graph and computing task graph that maps with it
+
+\section BubblesExamples An Example
+
+In order to understand the hierarchical tasks model, an example of
+"bubblification" is showed here. We start from a simple example
+multiplying the elements of a vector.
+
+\subsection BubblesInitialVersion Initial Version
+
+A computation is done several times on a vector splitted in smaller
+vectors. For each step and each sub-vector, a task is generated to
+perform the computation.
+
+\code{.c}
+void func_cpu(void *descr[], void *_args)
+{
+	(void) _args;
+	int x;
+	int nx = STARPU_VECTOR_GET_NX(descr[0]);
+	TYPE *v = (TYPE *)STARPU_VECTOR_GET_PTR(descr[0]);
+
+	for(x=0 ; x<nx ; x++)
+		v[x] += 1;
+}
+
+struct starpu_codelet vector_cl =
+{
+	.cpu_funcs = {func_cpu},
+	.nbuffers = 1,
+	.modes = {STARPU_RW}
+};
+
+int vector_no_bubble()
+{
+	TYPE *vector;
+	starpu_data_handle_t vhandle;
+
+	/* ... */
+
+	starpu_vector_data_register(&vhandle, 0, (uintptr_t)vector, X, sizeof(vector[0]));
+	starpu_data_map_filters(vhandle, 1, &f);
+
+	for(loop=0 ; loop<NITER; loop++)
+		for (x = 0; x < SLICES; x++)
+		{
+			starpu_task_insert(&vector_cl,
+					 STARPU_RW, starpu_data_get_sub_data(vhandle, 1, x),
+					 0);
+		}
+
+	starpu_data_unpartition(vhandle, STARPU_MAIN_RAM);
+	starpu_data_unregister(vhandle);
+
+	/* ... */
+}
+\endcode
+
+\subsection BubblesBubbleVersion Bubble Version
+
+The bubble version of the code replaces the inner loop that realizes
+the tasks insertion by a call to a bubble creation. At its execution,
+the bubble will insert the computing tasks. The bubble graph is built
+accordingly to the dependencies of the subdata.
+
+\code{.c}
+void no_func(void *buffers[], void *arg)
+{
+	assert(0);
+	return;
+}
+
+int is_bubble(struct starpu_task *t, void *arg)
+{
+	(void)arg;
+	(void)t;
+	return 1;
+}
+
+void bubble_gen_dag(struct starpu_task *t, void *arg)
+{
+	int i;
+	starpu_data_handle_t *subdata = (starpu_data_handle_t *)arg;
+
+	for(i=0 ; i<SLICES ; i++)
+	{
+		starpu_task_insert(&vector_cl,
+				STARPU_RW, subdata[i],
+				0);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+	}
+}
+
+struct starpu_codelet bubble_codelet =
+{
+	.cpu_funcs = {no_func},
+	.bubble_func = is_bubble,
+	.bubble_gen_dag_func = bubble_gen_dag,
+	.nbuffers = 1
+};
+
+int vector_bubble()
+{
+	TYPE *vector;
+	starpu_data_handle_t vhandle;
+	starpu_data_handle_t sub_handles[SLICES];
+
+	/* ... */
+
+	starpu_vector_data_register(&vhandle, 0, (uintptr_t)vector, X, sizeof(vector[0]));
+	starpu_data_partition_plan(vhandle, &f, sub_handles);
+
+	for(loop=0 ; loop<NITER; loop++)
+	{
+		starpu_task_insert(&bubble_codelet,
+				STARPU_RW, vhandle,
+				STARPU_NAME, "B1",
+				STARPU_BUBBLE_GEN_DAG_FUNC_ARG, sub_handles,
+				0);
+	}
+
+	starpu_data_partition_clean(vhandle, SLICES, sub_handles);
+	starpu_data_unregister(vhandle);
+
+	/* ... */
+}
+\endcode
+
+To define a hierarchical task, one needs to define the fields
+starpu_codelet::bubble_func and starpu_codelet::bubble_gen_dag_func.
+
+The field starpu_codelet::bubble_func is a pointer function which will
+be executed by StarPU to decide at runtime if the task must be
+transformed into a bubble. If the function returns a non-zero value,
+the function starpu_codelet::bubble_gen_dag_func will be executed to
+create the new graph of tasks.
+
+The pointer functions can also be defined when calling
+starpu_task_insert() by using the arguments ::STARPU_BUBBLE_FUNC and
+::STARPU_BUBBLE_GEN_DAG_FUNC. Both these functions can be passed
+parameters through the arguments ::STARPU_BUBBLE_FUNC_ARG and
+::STARPU_BUBBLE_GEN_DAG_FUNC_ARG
+
+When executed, the function starpu_codelet::bubble_func will be given
+as parameter the task being checked, and the value specified with
+::STARPU_BUBBLE_FUNC_ARG.
+
+When executed the function starpu_codelet::bubble_gen_dag_func will be
+given as parameter the task being turned into a hierarchical task and
+the value specified with ::STARPU_BUBBLE_GEN_DAG_FUNC_ARG.
+
+*/

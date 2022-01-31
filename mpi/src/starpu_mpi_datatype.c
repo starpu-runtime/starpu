@@ -84,14 +84,14 @@ static int handle_to_datatype_block(starpu_data_handle_t data_handle, unsigned n
 	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_2dlayer);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
-	ret = MPI_Type_commit(&datatype_2dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
-
 	ret = MPI_Type_create_hvector(nz, 1, ldz*elemsize, datatype_2dlayer, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
+
+	ret = MPI_Type_free(&datatype_2dlayer);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
 
 	return 0;
 }
@@ -119,15 +119,9 @@ static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, unsigned 
 	ret = MPI_Type_vector(ny, nx*elemsize, ldy*elemsize, MPI_BYTE, &datatype_3dlayer);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
 
-	ret = MPI_Type_commit(&datatype_3dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
-
 	MPI_Datatype datatype_2dlayer;
 	ret = MPI_Type_create_hvector(nz, 1, ldz*elemsize, datatype_3dlayer, &datatype_2dlayer);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
-
-	ret = MPI_Type_commit(&datatype_2dlayer);
-	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 
 	ret = MPI_Type_create_hvector(nt, 1, ldt*elemsize, datatype_2dlayer, datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
@@ -135,6 +129,58 @@ static int handle_to_datatype_tensor(starpu_data_handle_t data_handle, unsigned 
 	ret = MPI_Type_commit(datatype);
 	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 
+	ret = MPI_Type_free(&datatype_3dlayer);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
+
+	ret = MPI_Type_free(&datatype_2dlayer);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
+
+	return 0;
+}
+
+/*
+ * 	Ndim
+ */
+
+static int handle_to_datatype_ndim(starpu_data_handle_t data_handle, unsigned node, MPI_Datatype *datatype)
+{
+	struct starpu_ndim_interface *ndim_interface = starpu_data_get_interface_on_node(data_handle, node);
+
+	int ret;
+
+	unsigned *nn = STARPU_NDIM_GET_NN(ndim_interface);
+	unsigned *ldn = STARPU_NDIM_GET_LDN(ndim_interface);
+	size_t ndim = STARPU_NDIM_GET_NDIM(ndim_interface);
+	size_t elemsize = STARPU_NDIM_GET_ELEMSIZE(ndim_interface);
+
+	if (ndim > 1)
+	{
+		MPI_Datatype datatype_ndlayer;
+		ret = MPI_Type_vector(nn[1], nn[0]*elemsize, ldn[1]*elemsize, MPI_BYTE, &datatype_ndlayer);
+		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_vector failed");
+
+		MPI_Datatype oldtype = datatype_ndlayer, newtype;
+		unsigned i;
+		for (i = 2; i < ndim; i++)
+		{
+			ret = MPI_Type_create_hvector(nn[i], 1, ldn[i]*elemsize, oldtype, &newtype);
+			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_hvector failed");
+
+			ret = MPI_Type_free(&oldtype);
+			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
+
+			oldtype = newtype;
+		}
+		*datatype = oldtype;
+	}
+	else if (ndim == 1)
+	{
+		ret = MPI_Type_contiguous(nn[0]*elemsize, MPI_BYTE, datatype);
+		STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_contiguous failed");
+	}
+
+	ret = MPI_Type_commit(datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_commit failed");
 	return 0;
 }
 
@@ -212,6 +258,7 @@ static starpu_mpi_datatype_node_allocate_func_t handle_to_datatype_funcs[STARPU_
 #endif
 	[STARPU_BLOCK_INTERFACE_ID]	= handle_to_datatype_block,
 	[STARPU_TENSOR_INTERFACE_ID]	= handle_to_datatype_tensor,
+	[STARPU_NDIM_INTERFACE_ID]	= handle_to_datatype_ndim,
 	[STARPU_VECTOR_INTERFACE_ID]	= handle_to_datatype_vector,
 	[STARPU_CSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
 	[STARPU_BCSR_INTERFACE_ID]	= NULL, /* Sent through pack/unpack operations */
@@ -309,35 +356,8 @@ void _starpu_mpi_datatype_allocate(starpu_data_handle_t data_handle, struct _sta
 
 static void _starpu_mpi_handle_free_simple_datatype(MPI_Datatype *datatype)
 {
-	MPI_Type_free(datatype);
-}
-
-static void _starpu_mpi_handle_free_complex_datatype(MPI_Datatype *datatype)
-{
-	int num_ints, num_adds, num_datatypes, combiner;
-
-	MPI_Type_get_envelope(*datatype, &num_ints, &num_adds, &num_datatypes, &combiner);
-	if (combiner != MPI_COMBINER_NAMED)
-	{
-		int *array_of_ints;
-		MPI_Aint *array_of_adds;
-		MPI_Datatype *array_of_datatypes;
-		int i;
-
-		_STARPU_MPI_MALLOC(array_of_ints, num_ints * sizeof(int));
-		_STARPU_MPI_MALLOC(array_of_adds, num_adds * sizeof(MPI_Aint));
-		_STARPU_MPI_MALLOC(array_of_datatypes, num_datatypes * sizeof(MPI_Datatype));
-
-		MPI_Type_get_contents(*datatype, num_ints, num_adds, num_datatypes, array_of_ints, array_of_adds, array_of_datatypes);
-		for(i=0 ; i<num_datatypes ; i++)
-		{
-			_starpu_mpi_handle_free_complex_datatype(&array_of_datatypes[i]);
-		}
-		MPI_Type_free(datatype);
-		free(array_of_ints);
-		free(array_of_adds);
-		free(array_of_datatypes);
-	}
+	int ret = MPI_Type_free(datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
 }
 
 static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INTERFACE_ID] =
@@ -345,9 +365,10 @@ static starpu_mpi_datatype_free_func_t handle_free_datatype_funcs[STARPU_MAX_INT
 #ifndef DYNAMIC_MATRICES
 	[STARPU_MATRIX_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 #endif
-	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
-	[STARPU_TENSOR_INTERFACE_ID]	= _starpu_mpi_handle_free_complex_datatype,
+	[STARPU_BLOCK_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
+	[STARPU_TENSOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_VECTOR_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
+	[STARPU_NDIM_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,
 	[STARPU_CSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_BCSR_INTERFACE_ID]	= NULL,  /* Sent through pack/unpack operations */
 	[STARPU_VARIABLE_INTERFACE_ID]	= _starpu_mpi_handle_free_simple_datatype,

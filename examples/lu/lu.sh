@@ -23,6 +23,7 @@ rm -rf $PREFIX/lu.traces
 mkdir -p $PREFIX/lu.traces
 
 export STARPU_FXT_PREFIX=$PREFIX/lu.traces
+export STARPU_FXT_TRACE=1
 
 $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 4)) -nblocks 4 -piv
 $STARPU_LAUNCH $PREFIX/lu_implicit_example_float -size $((160 * 4)) -nblocks 4 -no-stride

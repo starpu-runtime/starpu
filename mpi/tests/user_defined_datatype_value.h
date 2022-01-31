@@ -30,11 +30,11 @@ int *starpu_value_get(starpu_data_handle_t handle)
 	return value_interface->value;
 }
 
-static void value_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void value_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_value_interface *value_interface = (struct starpu_value_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_value_interface *local_interface = (struct starpu_value_interface *)

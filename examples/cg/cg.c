@@ -79,12 +79,12 @@ static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsig
 static TYPE *A, *b, *x;
 static TYPE *r, *d, *q;
 
-static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nblocks)
+static int copy_handle(starpu_data_handle_t dst, starpu_data_handle_t src, unsigned nb)
 {
-	unsigned b;
+	unsigned block;
 
-	for (b = 0; b < nblocks; b++)
-		starpu_data_cpy(starpu_data_get_sub_data(dst, 1, b), starpu_data_get_sub_data(src, 1, b), 1, NULL, NULL);
+	for (block = 0; block < nb; block++)
+		starpu_data_cpy(starpu_data_get_sub_data(dst, 1, block), starpu_data_get_sub_data(src, 1, block), 1, NULL, NULL);
 	return 0;
 }
 
@@ -125,12 +125,12 @@ static void generate_random_problem(void)
 
 static void free_data(void)
 {
-	starpu_free(A);
-	starpu_free(b);
-	starpu_free(x);
-	starpu_free(r);
-	starpu_free(d);
-	starpu_free(q);
+	starpu_free_noflag(A, n*n*sizeof(TYPE));
+	starpu_free_noflag(b, n*sizeof(TYPE));
+	starpu_free_noflag(x, n*sizeof(TYPE));
+	starpu_free_noflag(r, n*sizeof(TYPE));
+	starpu_free_noflag(d, n*sizeof(TYPE));
+	starpu_free_noflag(q, n*sizeof(TYPE));
 }
 
 static void register_data(void)
@@ -258,12 +258,12 @@ static void display_matrix(void)
 
 static void display_x_result(void)
 {
-	int j, i;
+	unsigned j, i;
 	starpu_data_handle_t sub;
 
 	FPRINTF(stderr, "Computed X vector:\n");
 
-	int block_size = n / nblocks;
+	unsigned block_size = n / nblocks;
 
 	for (j = 0; j < nblocks; j++)
 	{
@@ -320,7 +320,7 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "************** PARAMETERS ***************\n");
 	FPRINTF(stderr, "Problem size (-n): %lld\n", n);
 	FPRINTF(stderr, "Maximum number of iterations (-maxiter): %d\n", i_max);
-	FPRINTF(stderr, "Number of blocks (-nblocks): %d\n", nblocks);
+	FPRINTF(stderr, "Number of blocks (-nblocks): %u\n", nblocks);
 	FPRINTF(stderr, "Reduction (-no-reduction): %s\n", use_reduction ? "enabled" : "disabled");
 
 	start = starpu_timing_now();

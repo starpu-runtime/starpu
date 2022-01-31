@@ -77,7 +77,8 @@ int starpu_my_data_datatype_allocate(starpu_data_handle_t handle, unsigned node,
 
 void starpu_my_data_datatype_free(MPI_Datatype *mpi_datatype)
 {
-	MPI_Type_free(mpi_datatype);
+	int ret = MPI_Type_free(mpi_datatype);
+	STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Type_free failed");
 }
 
 int starpu_my_data2_datatype_allocate(starpu_data_handle_t handle, unsigned node, MPI_Datatype *mpi_datatype)
@@ -120,11 +121,11 @@ char starpu_my_data_get_char(starpu_data_handle_t handle)
 	return data->c;
 }
 
-static void data_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void data_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_my_data_interface *my_data_interface = (struct starpu_my_data_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_my_data_interface *local_interface =

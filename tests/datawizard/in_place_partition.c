@@ -30,7 +30,11 @@ int main(int argc, char **argv)
 	int ret;
 	unsigned n, i, size;
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.nmax_fpga = 0;
+
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

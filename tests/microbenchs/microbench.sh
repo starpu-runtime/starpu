@@ -33,76 +33,81 @@ else
 	SCHEDS=`$(dirname $0)/../../tools/starpu_sched_display`
 fi
 
+run()
+{
+	sched=$1
+
+	set +e
+	STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $STARPU_LAUNCH $(dirname $0)/$TEST "$@"
+	ret=$?
+	set -e
+	if test $ret = 0
+	then
+		echo "SUCCESS: STARPU_SCHED=$sched ./microbenchs/$TEST"
+		exit 0
+	fi
+	if test $ret = 77
+	then
+		echo "SKIP: STARPU_SCHED=$sched ./microbenchs/$TEST"
+		exit 0
+	fi
+
+	RESULT=0
+	if [ -n "$XSUCCESS" ]
+	then
+		# We have a list of schedulers that are expected to
+		# succeed, others are allowed to fail
+		case " $XSUCCESS " in
+			*\ $sched\ *)
+				echo "FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
+				RESULT=1
+				;;
+			*)
+				echo "XFAIL: STARPU_SCHED=$sched ./microbenchs/$TEST"
+				;;
+		esac
+	else
+		# We have a list of schedulers that are expected to
+		# fail, others are expected to succeed
+		case " $XFAIL " in
+			*\ $sched\ *)
+				echo "XFAIL: STARPU_SCHED=$sched ./microbenchs/$TEST"
+				;;
+			*)
+				echo "FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
+				RESULT=1
+				;;
+		esac
+	fi
+	exit $RESULT
+}
+
 test_scheds()
 {
 	TEST=$1
 	shift
-	xfailed=""
-	failed=""
-	pass=""
-	skip=""
 
-	if [ -n "$STARPU_MIC_SINK_PROGRAM_PATH" ] ; then
-		STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/$TEST
-		# in case libtool got into play
-		[ -x "$STARPU_MIC_SINK_PROGRAM_PATH/.libs/$TEST" ] && STARPU_MIC_SINK_PROGRAM_NAME=$STARPU_MIC_SINK_PROGRAM_PATH/.libs/$TEST
+	if [ -n "$STARPU_SUB_PARALLEL" ]
+	then
+		for sched in $SCHEDS
+		do
+			run $sched &
+		done
+		RESULT=0
+		while true
+		do
+			set +e
+			wait -n
+			RET=$?
+			set -e
+			if [ $RET = 127 ] ; then break ; fi
+			if [ $RET != 0 -a $RET != 77 ] ; then RESULT=1 ; fi
+		done
+		exit $RESULT
+	else
+		for sched in $SCHEDS
+		do
+			run $sched
+		done
 	fi
-
-	RESULT=0
-	for sched in $SCHEDS;
-	do
-	    	set +e
-		STARPU_SCHED=$sched $STARPU_LAUNCH $(dirname $0)/$TEST "$@"
-		ret=$?
-	    	set -e
-		if test $ret = 0
-		then
-		    	echo "SUCCESS: STARPU_SCHED=$sched ./microbenchs/$TEST"
-			pass="$pass $sched"
-			continue
-		fi
-		if test $ret = 77
-		then
-		    	echo "SKIP: STARPU_SCHED=$sched ./microbenchs/$TEST"
-			skip="$skip $sched"
-			continue
-		fi
-
-		if [ -n "$XSUCCESS" ]
-		then
-                        # We have a list of schedulers that are expected to
-                        # succeed, others are allowed to fail
-			case " $XSUCCESS " in
-				*\ $sched\ *)
-					echo "FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
-					failed="$failed $sched"
-					RESULT=1
-					;;
-				*)
-					echo "XFAIL: STARPU_SCHED=$sched ./microbenchs/$TEST"
-					xfailed="$xfailed $sched"
-					;;
-			esac
-		else
-                        # We have a list of schedulers that are expected to
-                        # fail, others are expected to succeed
-			case " $XFAIL " in
-				*\ $sched\ *)
-					echo "XFAIL: STARPU_SCHED=$sched ./microbenchs/$TEST"
-					xfailed="$xfailed $sched"
-					;;
-				*)
-					echo "FAIL: STARPU_SCHED=$sched ./microbenchs/$TEST" | ( tee /dev/tty || true )
-					failed="$failed $sched"
-					RESULT=1
-					;;
-			esac
-		fi
-
-	done
-	echo "passed schedulers:$pass"| ( tee /dev/tty || true )
-	echo "skipped schedulers:$skip"| ( tee /dev/tty || true )
-	echo "failed schedulers:$failed"| ( tee /dev/tty || true )
-	echo "xfailed schedulers:$xfailed"| ( tee /dev/tty || true )
-	return $RESULT
 }

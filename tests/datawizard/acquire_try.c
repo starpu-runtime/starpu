@@ -50,9 +50,7 @@ void callback(void *arg)
 
 int main(int argc, char **argv)
 {
-	unsigned i;
 	int ret;
-	int nacquired;
 
         ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

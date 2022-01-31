@@ -1,0 +1,24 @@
+package maxfpga;
+
+import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEType;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEVar;
+
+class Task2 extends Kernel
+{
+	private static final DFEType type = dfeInt(32);
+
+	protected Task2(KernelParameters parameters)
+	{
+		super(parameters);
+
+                DFEVar inAT2 = io.input("inAT2", type);
+                DFEVar inBT2 = io.input("inBT2", type);
+                DFEVar outCT2;
+
+                outCT2 = inAT2*inBT2;
+
+                io.output("outCT2", outCT2, type);
+	}
+}

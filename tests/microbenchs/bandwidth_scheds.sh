@@ -66,19 +66,20 @@ run()
 		extra=
 	fi
 
-	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_LAUNCH $DIR/bandwidth $fast $extra "$@" | tee bandwidth-$sched.dat
+	STARPU_BACKOFF_MIN=0 STARPU_BACKOFF_MAX=0 STARPU_SCHED=$sched $STARPU_SUB_PARALLEL $STARPU_LAUNCH $DIR/bandwidth $fast $extra "$@" | tee bandwidth-$sched.dat
 	echo "\"bandwidth-$sched.dat\" using 1:3 with linespoints lt $type pt $type title \"$sched\", \\" >> bandwidth.gp
 	echo "\"bandwidth-$sched.dat\" using 1:8 with linespoints lt $type pt $type notitle, \\" >> bandwidth.gp
 }
 
-case "$MAKEFLAGS" in
-    *\ -j1[0-9]*\ *|*\ -j[2-9]*\ *)
+if [ -n "$STARPU_SUB_PARALLEL" ]
+then
 	type=1
 	for sched in $SCHEDS
 	do
 		run $sched $type &
 		type=$((type+1))
 	done
+	RESULT=0
 	while true
 	do
 		set +e
@@ -86,19 +87,17 @@ case "$MAKEFLAGS" in
 		RET=$?
 		set -e
 		if [ $RET = 127 ] ; then break ; fi
-		if [ $RET != 0 ] ; then exit $RET ; fi
+		if [ $RET != 0 -a $RET != 77 ] ; then RESULT=1 ; fi
 	done
-    ;;
-
-    *)
+	exit $RESULT
+else
 	type=1
 	for sched in $SCHEDS
 	do
 		run $sched $type
 		type=$((type+1))
 	done
-    ;;
-esac
+fi
 
 if gnuplot bandwidth.gp ; then
 	if [ -n "$STARPU_BENCH_DIR" ]; then

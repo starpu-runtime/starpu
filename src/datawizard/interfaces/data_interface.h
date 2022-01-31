@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -33,14 +33,15 @@
  */
 union _starpu_interface
 {
+	/* struct starpu_void_interface void; void doesn't have any data */
+	struct starpu_variable_interface variable;
+	struct starpu_vector_interface vector;
 	struct starpu_matrix_interface matrix;
 	struct starpu_block_interface block;
-	struct starpu_vector_interface vector;
+	struct starpu_tensor_interface tensor;
 	struct starpu_csr_interface csr;
-	struct starpu_coo_interface coo;
 	struct starpu_bcsr_interface bcsr;
-	struct starpu_variable_interface variable;
-	struct starpu_multiformat_interface multiformat;
+	struct starpu_coo_interface coo;
 };
 
 /** Some data interfaces or filters use this interface internally */
@@ -81,6 +82,8 @@ extern void _starpu_data_register_ram_pointer(starpu_data_handle_t handle,
 extern void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle, unsigned node);
 
 #define _starpu_data_is_multiformat_handle(handle) handle->ops->is_multiformat
+
+void _starpu_data_invalidate_submit_noplan(starpu_data_handle_t handle);
 
 #pragma GCC visibility pop
 

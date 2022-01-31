@@ -30,7 +30,7 @@ static const struct starpu_data_copy_methods tensor_copy_data_methods_s =
 };
 
 
-static void register_tensor_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface);
+static void register_tensor_handle(starpu_data_handle_t handle, int home_node, void *data_interface);
 static void *tensor_to_pointer(void *data_interface, unsigned node);
 static int tensor_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_tensor_buffer_on_node(void *data_interface_, unsigned dst_node);
@@ -89,15 +89,28 @@ static int tensor_pointer_is_inside(void *data_interface, unsigned node, void *p
 	uint32_t nt = tensor_interface->nt;
 	size_t elemsize = tensor_interface->elemsize;
 
-	return (char*) ptr >= (char*) tensor_interface->ptr &&
-		(char*) ptr < (char*) tensor_interface->ptr + (nt-1)*ldt*elemsize + (nz-1)*ldz*elemsize + (ny-1)*ldy*elemsize + nx*elemsize;
+	if ((char*) ptr < (char*) tensor_interface->ptr)
+		return 0;
+
+	size_t offset = ((char*)ptr - (char*)tensor_interface->ptr)/elemsize;
+
+	if(offset/ldt >= nt)
+		return 0;
+	if(offset%ldt/ldz >= nz)
+		return 0;
+	if(offset%ldt%ldz/ldy >= ny)
+		return 0;
+	if(offset%ldt%ldz%ldy >= nx)
+		return 0;
+
+	return 1;
 }
 
-static void register_tensor_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void register_tensor_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_tensor_interface *tensor_interface = (struct starpu_tensor_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_tensor_interface *local_interface = (struct starpu_tensor_interface *)
@@ -136,6 +149,9 @@ void starpu_tensor_data_register(starpu_data_handle_t *handleptr, int home_node,
 				uintptr_t ptr, uint32_t ldy, uint32_t ldz, uint32_t ldt, uint32_t nx,
 				uint32_t ny, uint32_t nz, uint32_t nt, size_t elemsize)
 {
+	STARPU_ASSERT_MSG(ldy >= nx, "ldy = %d should not be less than nx = %d.", ldy, nx);
+	STARPU_ASSERT_MSG(ldz/ldy >= ny, "ldz/ldy = %d/%d = %d should not be less than ny = %d.", ldz, ldy, ldz/ldy, ny);
+	STARPU_ASSERT_MSG(ldt/ldz >= nz, "ldt/ldz = %d/%d = %d should not be less than nz = %d.", ldt, ldz, ldt/ldz, nz);
 	struct starpu_tensor_interface tensor_interface =
 	{
 		.id = STARPU_TENSOR_INTERFACE_ID,

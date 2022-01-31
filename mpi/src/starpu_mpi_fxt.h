@@ -71,9 +71,9 @@ extern "C"
 	FUT_DO_ALWAYS_PROBE3(_STARPU_MPI_FUT_START, (rank), (worldsize), _starpu_gettid());
 #define _STARPU_MPI_TRACE_STOP(rank, worldsize)	\
 	FUT_DO_ALWAYS_PROBE3(_STARPU_MPI_FUT_STOP, (rank), (worldsize), _starpu_gettid());
-#define _STARPU_MPI_TRACE_BARRIER(rank, worldsize, key)	do {\
+#define _STARPU_MPI_TRACE_BARRIER(rank, worldsize, key, local_time)	do {\
 	if (_starpu_fxt_started) \
-	FUT_DO_ALWAYS_PROBE4(_STARPU_MPI_FUT_BARRIER, (rank), (worldsize), (key), _starpu_gettid()); \
+	FUT_DO_ALWAYS_PROBE5(_STARPU_MPI_FUT_BARRIER, (rank), (worldsize), (key), (local_time), _starpu_gettid()); \
 } while (0)
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(dest, data_tag, size)	\
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
@@ -152,7 +152,7 @@ extern "C"
 #else
 #define _STARPU_MPI_TRACE_START(a, b)				do {} while(0);
 #define _STARPU_MPI_TRACE_STOP(a, b)				do {} while(0);
-#define _STARPU_MPI_TRACE_BARRIER(a, b, c)			do {} while(0);
+#define _STARPU_MPI_TRACE_BARRIER(a, b, c, d)			do {} while(0);
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(a, b, c)		do {} while(0);
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(a, b, c, d, e, f, g)	do {} while(0);
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(a, b)		do {} while(0);
@@ -183,6 +183,9 @@ extern "C"
 #define _STARPU_MPI_TRACE_DRIVER_RUN_BEGIN()			do {} while(0);
 #define _STARPU_MPI_TRACE_DRIVER_RUN_END()			do {} while(0);
 #endif
+
+void _starpu_mpi_fxt_init(void* arg);
+void _starpu_mpi_fxt_shutdown();
 
 #ifdef __cplusplus
 }

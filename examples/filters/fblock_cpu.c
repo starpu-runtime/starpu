@@ -18,7 +18,7 @@
 
 #include <starpu.h>
 
-void cpu_func(void *buffers[], void *cl_arg)
+void block_cpu_func(void *buffers[], void *cl_arg)
 {
         int i, j, k;
         int *factor = (int *) cl_arg;
@@ -34,7 +34,7 @@ void cpu_func(void *buffers[], void *cl_arg)
                 for(j=0; j<ny ; j++)
 		{
                         for(i=0; i<nx ; i++)
-                                block[(k*ldz)+(j*ldy)+i] = *factor;
+                                block[(k*ldz)+(j*ldy)+i] *= *factor;
                 }
         }
 }

@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2017,2019  Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2017-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,64 +40,77 @@ LIST_TYPE(mpi_transfer,
 	int prio;
 );
 
-/* Returns 0 if a barrier is found, -1 otherwise. In case of success, offset is
- * filled with the timestamp of the barrier */
-int _starpu_fxt_mpi_find_sync_point(char *filename_in, uint64_t *offset, int *key, int *rank)
+struct starpu_fxt_mpi_offset _starpu_fxt_mpi_find_sync_points(char *filename_in, int *key, int *rank)
 {
-	STARPU_ASSERT(offset);
+	struct starpu_fxt_mpi_offset offset;
+	offset.nb_barriers = 0;
+	offset.local_time_start = 0;
+	offset.local_time_end = 0;
+	offset.offset_start = 0;
+	offset.offset_end = 0;
 
 	/* Open the trace file */
 	int fd_in;
 	fd_in = open(filename_in, O_RDONLY);
 	if (fd_in < 0)
 	{
-	        perror("open failed :");
-	        exit(-1);
+		perror("open failed :");
+		exit(-1);
 	}
 
 	static fxt_t fut;
 	fut = fxt_fdopen(fd_in);
 	if (!fut)
 	{
-	        perror("fxt_fdopen :");
-	        exit(-1);
+		perror("fxt_fdopen :");
+		exit(-1);
 	}
 
 	fxt_blockev_t block;
 	block = fxt_blockev_enter(fut);
 
 	struct fxt_ev_64 ev;
+	int ret;
+	uint64_t local_sync_time;
 
-	int func_ret = -1;
-	unsigned found = 0;
-	while(!found)
+	while (offset.nb_barriers < 2 && (ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev)) == FXT_EV_OK)
 	{
-		int ret = fxt_next_ev(block, FXT_EV_TYPE_64, (struct fxt_ev *)&ev);
-		if (ret != FXT_EV_OK)
-		{
-			_STARPU_MSG("no more block ...\n");
-			break;
-		}
-
 		if (ev.code == _STARPU_MPI_FUT_BARRIER)
 		{
-			/* We found the sync point */
-			*offset = ev.time;
+			/* We found a sync point */
 			*rank = ev.param[0];
 			*key = ev.param[2];
-			found = 1;
-			func_ret = 0;
+			local_sync_time = (uint64_t) ((double) ev.param[3]); // It is stored as a double in the trace
+
+			if (local_sync_time == 0)
+			{
+				/* This clock synchronization was made with an
+				 * MPI_Barrier, consider the event timestamp as
+				 * a local synchronized barrier time: */
+				local_sync_time = ev.time;
+			}
+
+			if (offset.nb_barriers == 0)
+			{
+				offset.local_time_start = local_sync_time;
+			}
+			else
+			{
+				offset.local_time_end = local_sync_time;
+			}
+
+			offset.nb_barriers++;
 		}
 	}
 
 	/* Close the trace file */
 	if (close(fd_in))
 	{
-	        perror("close failed :");
-	        exit(-1);
+		perror("close failed :");
+		exit(-1);
 	}
 
-	return func_ret;
+	return offset;
 }
 
 /*
@@ -120,7 +133,6 @@ static unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
  * going through the lists from the beginning to match each and every
  * transfer, thus avoiding a quadratic complexity. */
 static unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
-static unsigned mpi_sends_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 
 void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio)
 {

@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,6 +21,7 @@
 
 #include <starpu.h>
 #include <common/config.h>
+#include <common/fxt.h>
 
 #define PROGNAME "starpu_fxt_tool"
 
@@ -64,29 +66,23 @@ static int parse_args(int argc, char **argv)
 	int i;
 	for (i = 1; i < argc; i++)
 	{
-		if (strcmp(argv[i], "-c") == 0)
+		int ret = _starpu_generate_paje_trace_read_option(argv[i], &options);
+		if (ret == 0)
 		{
-			options.per_task_colour = 1;
 			reading_input_filenames = 0;
-			continue;
 		}
-
-		if (strcmp(argv[i], "-o") == 0)
+		else if (strcmp(argv[i], "-o") == 0)
 		{
 			free(options.out_paje_path);
 			options.out_paje_path = strdup(argv[++i]);
 			reading_input_filenames = 0;
-			continue;
 		}
-
-		if (strcmp(argv[i], "-d") == 0)
+		else if (strcmp(argv[i], "-d") == 0)
 		{
 			options.dir = argv[++i];
 			reading_input_filenames = 0;
-			continue;
 		}
-
-		if (strcmp(argv[i], "-i") == 0)
+		else if (strcmp(argv[i], "-i") == 0)
 		{
 			if (options.ninputfiles >= STARPU_FXT_MAX_FILES)
 			{
@@ -95,87 +91,13 @@ static int parse_args(int argc, char **argv)
 			}
 			options.filenames[options.ninputfiles++] = argv[++i];
 			reading_input_filenames = 1;
-			continue;
 		}
-
-		if (strcmp(argv[i], "-no-events") == 0)
-		{
-			options.no_events = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-number-events") == 0)
-		{
-			options.number_events_path = strdup("number_events.data");
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-no-counter") == 0)
-		{
-			options.no_counter = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-no-bus") == 0)
-		{
-			options.no_bus = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-no-flops") == 0)
-		{
-			options.no_flops = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-no-smooth") == 0)
-		{
-			options.no_smooth = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-no-acquire") == 0)
-		{
-			options.no_acquire = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-memory-states") == 0)
-		{
-			options.memory_states = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-internal") == 0)
-		{
-			options.internal = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-label-deps") == 0)
-		{
-			options.label_deps = 1;
-			reading_input_filenames = 0;
-			continue;
-		}
-
-		if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+		else if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
 		{
 			usage();
 			return 77;
 		}
-
-		if (strcmp(argv[i], "-v") == 0
-		 || strcmp(argv[i], "--version") == 0)
+		else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
 		{
 		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 			return 77;
@@ -184,7 +106,7 @@ static int parse_args(int argc, char **argv)
 		/* That's pretty dirty: if the reading_input_filenames flag is
 		 * set, and that the argument does not match an option, we
 		 * assume this may be another filename */
-		if (reading_input_filenames)
+		else if (reading_input_filenames)
 		{
 			if (options.ninputfiles >= STARPU_FXT_MAX_FILES)
 			{
@@ -192,7 +114,6 @@ static int parse_args(int argc, char **argv)
 				return 7;
 			}
 			options.filenames[options.ninputfiles++] = argv[i];
-			continue;
 		}
 	}
 

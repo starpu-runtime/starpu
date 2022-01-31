@@ -13,12 +13,12 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-CFLAGS          +=      $$(pkg-config --cflags starpu-1.1)
-LDLIBS          +=      $$(pkg-config --libs starpu-1.1)
+CFLAGS          +=      $$(pkg-config --cflags starpu-1.3)
+LDLIBS          +=      $$(pkg-config --libs starpu-1.3)
 
-HAS_CUDA	=	$(shell pkg-config --libs starpu-1.1 |grep -i cuda)
+HAS_CUDA	=	$(shell starpu_machine_display | grep "CUDA" | grep -v "No CUDA worker" | head -1)
 NVCC		?=	nvcc
-HAS_OPENCL	=	$(shell pkg-config --libs starpu-1.1 |grep -i opencl)
+HAS_OPENCL	=	$(shell starpu_machine_display | grep "OpenCL" | grep -v "No OpenCL worker" | head -1)
 
 %.o: %.cu
 	nvcc $(CFLAGS) $< -c
@@ -35,7 +35,8 @@ else
 VECTOR_SCAL_COMPILER		=	$(CC)
 endif
 ifneq ($(strip $(HAS_OPENCL)),)
-VECTOR_SCAL_PREREQUISITES += vector_scal_opencl.o
+VECTOR_SCAL_PREREQUISITES 	+=	vector_scal_opencl.o
+LDLIBS				+=	-lOpenCL
 endif
 
 vector_scal: $(VECTOR_SCAL_PREREQUISITES)

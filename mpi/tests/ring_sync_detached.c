@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	starpu_vector_data_register(&token_handle, 0, (uintptr_t)&token, 1, sizeof(token));
@@ -124,7 +124,8 @@ int main(int argc, char **argv)
 		else
 		{
 			MPI_Status status;
-			starpu_mpi_recv(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, &status);
+			ret = starpu_mpi_recv(token_handle, (rank+size-1)%size, tag, MPI_COMM_WORLD, &status);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		}
 
 		increment_token(token_handle);
@@ -138,7 +139,8 @@ int main(int argc, char **argv)
 		else
 		{
 			int sent = 0;
-			starpu_mpi_issend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, callback, &sent);
+			ret = starpu_mpi_issend_detached(token_handle, (rank+1)%size, tag+1, MPI_COMM_WORLD, callback, &sent);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend_detached");
 
 			STARPU_PTHREAD_MUTEX_LOCK(&mutex);
 			while (!sent)

@@ -224,7 +224,7 @@ double sc_hypervisor_lp_simulate_distrib_tasks(int ns, int nw, int nt, double w_
                 iocp.msg_lev = GLP_MSG_OFF;
 //		iocp.tm_lim = 1000;
 		glp_intopt(lp, &iocp);
-		int stat = glp_mip_status(lp);
+		stat = glp_mip_status(lp);
 		/* if we don't have a solution return */
 		if(stat == GLP_NOFEAS || stat == GLP_ETMLIM || stat == GLP_UNDEF)
 		{
@@ -473,7 +473,7 @@ double sc_hypervisor_lp_simulate_distrib_flops(int ns, int nw, double v[ns][nw],
                 glp_init_iocp(&iocp);
                 iocp.msg_lev = GLP_MSG_OFF;
                 glp_intopt(lp, &iocp);
-                int stat = glp_mip_status(lp);
+                stat = glp_mip_status(lp);
                 /* if we don't have a solution return */
                 if(stat == GLP_NOFEAS)
                 {

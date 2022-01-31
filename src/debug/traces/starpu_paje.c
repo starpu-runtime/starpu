@@ -258,8 +258,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	poti_DefineContainerType("MPICt", "P", "MPI Communication Thread");
 	poti_DefineContainerType("Sc", "P", "Scheduler");
 	poti_DefineEventType("prog_event", "P", "program event type");
-       poti_DefineEventType("pu", "P", "task push");
-       poti_DefineEventType("po", "P", "task pop");
+	poti_DefineEventType("pu", "P", "task push");
+	poti_DefineEventType("po", "P", "task pop");
 	poti_DefineEventType("register", "P", "data registration");
 	poti_DefineEventType("unregister", "P", "data unregistration");
 
@@ -269,7 +269,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	poti_DefineEventType("SO", "Mm", "data state owner");
 	poti_DefineEventType("WU", "Mm", "data wont use");
 	poti_DefineEventType("Al", "Mm", "Allocating Start");
-       poti_DefineEventType("rc", "Mm", "Request Created");
+	poti_DefineEventType("rc", "Mm", "Request Created");
 	poti_DefineEventType("AlE", "Mm", "Allocating End");
 	poti_DefineEventType("Alr", "Mm", "Allocating Async Start");
 	poti_DefineEventType("AlrE", "Mm", "Allocating Async End");
@@ -298,7 +298,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	/* Types for the Worker of the Memory Node */
 	poti_DefineEventType("user_event", "P", "user event type");
 	poti_DefineEventType("thread_event", "T", "thread event type");
-	poti_DefineVariableType("gf", "W", "GFlops", "0 0 0");
+	poti_DefineVariableType("gf", "W", "GFlop/s", "0 0 0");
 	poti_DefineStateType("S", "T", "Thread State");
 	poti_DefineEntityValue("I", "S", "Idle", ".9 .1 0");
 	poti_DefineEntityValue("In", "S", "Initializing", "0.0 .7 1.0");
@@ -366,6 +366,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	poti_DefineEntityValue("Bu", "US", "Building task", ".5 .18 .0");
 	poti_DefineEntityValue("Su", "US", "Submitting task", ".3 .09 .0");
 	poti_DefineEntityValue("C", "US", "Callback", ".0 .3 .8");
+	poti_DefineEntityValue("Sc", "US", "Scheduling", ".7 .36 .0");
 	poti_DefineEntityValue("Th", "US", "Throttling task submission", ".8 .6 .6");
 	poti_DefineEntityValue("MD", "US", "Decoding task for MPI", ".5 .18 .2");
 	poti_DefineEntityValue("MPr", "US", "Preparing task for MPI", ".4 .14 .2");
@@ -398,7 +399,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	/* Types for the Scheduler */
 	poti_DefineVariableType("nsubmitted", "Sc", "Number of Submitted Uncompleted Tasks", "0 0 0");
 	poti_DefineVariableType("nready", "Sc", "Number of Ready Tasks", "0 0 0");
-	poti_DefineVariableType("gft", "Sc", "Total GFlops", "0 0 0");
+	poti_DefineVariableType("gft", "Sc", "Total GFlop/s", "0 0 0");
 
 	/* Link types */
 	poti_DefineLinkType("MPIL", "MPIP", "MPICt", "MPICt", "MPI communication");
@@ -456,13 +457,13 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 3       MS       Mm       \"Memory Node State\"                        \n\
 4       nsubmitted    Sc       \"Number of Submitted Uncompleted Tasks\"                        \n\
 4       nready    Sc       \"Number of Ready Tasks\"                        \n\
-4       gft    Sc       \"Total GFlops\"                        \n\
+4       gft    Sc       \"Total GFlop/s\"                        \n\
 4       use     Mm       \"Used (MB)\"                        \n\
 4       bwi_mm     Mm       \"Bandwidth In (MB/s)\"                        \n\
 4       bwo_mm     Mm       \"Bandwidth Out (MB/s)\"                        \n\
 4       bwi_mpi     MPICt       \"Bandwidth In (MB/s)\"                        \n\
 4       bwo_mpi     MPICt       \"Bandwidth Out (MB/s)\"                        \n\
-4       gf      W       \"GFlops\"                        \n\
+4       gf      W       \"GFlop/s\"                        \n\
 6       I       S       Idle         \".9 .1 .0\"		\n\
 6       In       S      Initializing       \"0.0 .7 1.0\"            \n\
 6       D       S      Deinitializing       \"0.0 .1 .7\"            \n\
@@ -503,6 +504,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 6       Bu      US      \"Building task\"   \".5 .18 .0\"		\n\
 6       Su      US      \"Submitting task\" \".3 .09 .0\"		\n\
 6       C       US      \"Callback\" \".0 .3 .8\"		\n\
+6       Sc      US      \"Scheduling\"         \".7 .36 .0\"		\n\
 6       Th      US      \"Throttling task submission\" \".8 .6 .6\"		\n\
 6       MD      US      \"Decoding task for MPI\" \".5 .18 .2\"		\n\
 6       MPr     US      \"Preparing task for MPI\" \".4 .14 .2\"		\n\

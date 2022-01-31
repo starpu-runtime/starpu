@@ -27,19 +27,11 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void cpu_func(void *buffers[], void *cl_arg)
-{
-        unsigned i;
-        int *factor = (int *) cl_arg;
+extern void vector_cpu_func(void *buffers[], void *cl_arg);
 
-        /* length of the vector */
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-        /* local copy of the vector pointer */
-        int *val = (int *)STARPU_VECTOR_GET_PTR(buffers[0]);
-
-        for (i = 0; i < n; i++)
-                val[i] *= *factor;
-}
+#ifdef STARPU_USE_CUDA
+extern void vector_cuda_func(void *buffers[], void *cl_arg);
+#endif
 
 int main(void)
 {
@@ -51,8 +43,12 @@ int main(void)
 
         struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func},
-                .cpu_funcs_name = {"cpu_func"},
+                .cpu_funcs = {vector_cpu_func},
+                .cpu_funcs_name = {"vector_cpu_func"},
+#ifdef STARPU_USE_CUDA
+                .cuda_funcs = {vector_cuda_func},
+                .cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
                 .nbuffers = 1,
 		.modes = {STARPU_RW},
 		.name = "vector_scal"
@@ -97,6 +93,7 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
 
+        /* Unpartition the data, unregister it from StarPU and shutdown */
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
         starpu_data_unregister(handle);
 	starpu_shutdown();

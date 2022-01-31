@@ -77,7 +77,7 @@ int main(int argc, char **argv)
 		if (rank == 0)
 			FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	if (rank == 0)
@@ -130,7 +130,8 @@ int main(int argc, char **argv)
 			starpu_mpi_data_set_rank(data_handles[x], mpi_rank);
 		}
 	}
-	starpu_mpi_scatter_detached(data_handles, size, 0, MPI_COMM_WORLD, scallback, "scatter", NULL, NULL);
+	ret = starpu_mpi_scatter_detached(data_handles, size, 0, MPI_COMM_WORLD, scallback, "scatter", NULL, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_scatter_detached");
 
 	/* Calculation */
 	for(x = 0; x < size ; x++)
@@ -150,7 +151,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Gather the matrix on main node */
-	starpu_mpi_gather_detached(data_handles, size, 0, MPI_COMM_WORLD, scallback, "gather", rcallback, "gather");
+	ret = starpu_mpi_gather_detached(data_handles, size, 0, MPI_COMM_WORLD, scallback, "gather", rcallback, "gather");
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_gather_detached");
 	for(x = 0; x < size ; x++)
 	{
 		if (data_handles[x])

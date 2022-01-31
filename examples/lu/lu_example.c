@@ -154,7 +154,7 @@ void copy_blocks_into_matrix(void)
 				A_blocks[bi+nblocks*bj][i + j * blocksize];
 		}
 
-		starpu_free(A_blocks[bi+nblocks*bj]);
+		starpu_free_noflag(A_blocks[bi+nblocks*bj], (size_t)blocksize*blocksize*sizeof(TYPE));
 	}
 }
 
@@ -404,7 +404,7 @@ int main(int argc, char **argv)
 
 			unsigned n = size;
 			double flop = (2.0f*n*n*n)/3.0f;
-			FPRINTF(stderr, "Synthetic GFlops (TOTAL) : \n");
+			FPRINTF(stderr, "Synthetic GFlop/s (TOTAL) : \n");
 			FPRINTF(stdout, "%u	%6.2f\n", n, (flop/timing/1000.0f));
 		}
 	}

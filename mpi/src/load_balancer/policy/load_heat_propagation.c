@@ -164,15 +164,18 @@ static void exchange_load_data_infos(starpu_data_handle_t load_data_cpy)
 	MPI_Status load_send_status[nneighbors];
 	MPI_Status load_recv_status[nneighbors];
 
-	int flag;
+	int flag, ret;
 
 	/* Send the local load data to neighbour nodes, and receive the remote load
 	 * data from neighbour nodes */
 	for (i = 0; i < nneighbors; i++)
 	{
 		//_STARPU_DEBUG("[node %d] sending and receiving with %i-th neighbor %i\n", my_rank, i, neighbor_ids[i]);
-		starpu_mpi_isend(load_data_cpy, &load_send_req[i], neighbor_ids[i], TAG_LOAD(my_rank), MPI_COMM_WORLD);
-		starpu_mpi_irecv(neighbor_load_data_handles[i], &load_recv_req[i], neighbor_ids[i], TAG_LOAD(neighbor_ids[i]), MPI_COMM_WORLD);
+		ret = starpu_mpi_isend(load_data_cpy, &load_send_req[i], neighbor_ids[i], TAG_LOAD(my_rank), MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
+
+		ret = starpu_mpi_irecv(neighbor_load_data_handles[i], &load_recv_req[i], neighbor_ids[i], TAG_LOAD(neighbor_ids[i]), MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 	}
 
 	/* Wait for completion of all send requests */
@@ -180,7 +183,10 @@ static void exchange_load_data_infos(starpu_data_handle_t load_data_cpy)
 	{
 		flag = 0;
 		while (!flag)
-			starpu_mpi_test(&load_send_req[i], &flag, &load_send_status[i]);
+		{
+			ret = starpu_mpi_test(&load_send_req[i], &flag, &load_send_status[i]);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_test");
+		}
 	}
 
 	/* Wait for completion of all receive requests */
@@ -188,7 +194,10 @@ static void exchange_load_data_infos(starpu_data_handle_t load_data_cpy)
 	{
 		flag = 0;
 		while (!flag)
-			starpu_mpi_test(&load_recv_req[i], &flag, &load_recv_status[i]);
+		{
+			ret = starpu_mpi_test(&load_recv_req[i], &flag, &load_recv_status[i]);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_test");
+		}
 	}
 }
 
@@ -203,7 +212,7 @@ static void exchange_data_movements_infos()
 	MPI_Status data_movements_send_status[world_size];
 	MPI_Status data_movements_recv_status[world_size];
 
-	int flag;
+	int flag, ret;
 
 	/* Send the new ranks of local data to all other nodes, and receive the new
 	 * ranks of all remote data from all other nodes */
@@ -212,8 +221,10 @@ static void exchange_data_movements_infos()
 		if (i != my_rank)
 		{
 			//_STARPU_DEBUG("[node %d] Send and receive data movement with %d\n", my_rank, i);
-			starpu_mpi_isend(data_movements_handles[my_rank], &data_movements_send_req[i], i, TAG_MOV(my_rank), MPI_COMM_WORLD);
-			starpu_mpi_irecv(data_movements_handles[i], &data_movements_recv_req[i], i, TAG_MOV(i), MPI_COMM_WORLD);
+			ret = starpu_mpi_isend(data_movements_handles[my_rank], &data_movements_send_req[i], i, TAG_MOV(my_rank), MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
+			ret = starpu_mpi_irecv(data_movements_handles[i], &data_movements_recv_req[i], i, TAG_MOV(i), MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
 		}
 	}
 
@@ -225,7 +236,10 @@ static void exchange_data_movements_infos()
 			//fprintf(stderr,"Wait for sending data movement of %d to %d\n", my_rank, i);
 			flag = 0;
 			while (!flag)
-				starpu_mpi_test(&data_movements_send_req[i], &flag, &data_movements_send_status[i]);
+			{
+				ret = starpu_mpi_test(&data_movements_send_req[i], &flag, &data_movements_send_status[i]);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_test");
+			}
 		}
 	}
 
@@ -237,7 +251,10 @@ static void exchange_data_movements_infos()
 			//fprintf(stderr,"Wait for recieving data movement from %d on %d\n", i, my_rank);
 			flag = 0;
 			while (!flag)
-				starpu_mpi_test(&data_movements_recv_req[i], &flag, &data_movements_recv_status[i]);
+			{
+				ret = starpu_mpi_test(&data_movements_recv_req[i], &flag, &data_movements_recv_status[i]);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_test");
+			}
 		}
 	}
 }
@@ -293,7 +310,8 @@ static void update_data_ranks()
 				_STARPU_DEBUG("Call of starpu_mpi_get_data_on_node(%"PRIi64",%d) on node %d\n", starpu_mpi_data_get_tag(handle), dst_rank, my_rank);
 
 				/* Migrate the data handle */
-				starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, handle, dst_rank, NULL, NULL);
+				int ret = starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, handle, dst_rank, NULL, NULL);
+				STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
 
 				_STARPU_DEBUG("New rank (%d) of data %"PRIi64" upgraded on node %d\n", dst_rank, starpu_mpi_data_get_tag(handle), my_rank);
 				starpu_mpi_data_set_rank_comm(handle, dst_rank, MPI_COMM_WORLD);

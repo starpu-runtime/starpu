@@ -5,6 +5,7 @@
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
+ * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -59,6 +60,9 @@
 #endif
 #endif
 
+/* Consider a rough 10% overhead cost */
+#define FREE_MARGIN 0.9
+
 /* the number of CUDA devices */
 static int ncudagpus = -1;
 
@@ -90,6 +94,16 @@ static int cuda_device_users[STARPU_MAXCUDADEVS];
 static starpu_pthread_mutex_t cuda_device_init_mutex[STARPU_MAXCUDADEVS];
 static starpu_pthread_cond_t cuda_device_init_cond[STARPU_MAXCUDADEVS];
 
+#ifdef STARPU_USE_CUDA
+static inline cudaEvent_t *_starpu_cuda_event(union _starpu_async_channel_event *_event)
+{
+	cudaEvent_t *event;
+	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));
+	event = (void *) _event;
+	return event;
+}
+#endif
+
 void _starpu_cuda_init(void)
 {
 	unsigned i;
@@ -106,12 +120,12 @@ static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 }
 
 #ifdef STARPU_HAVE_LIBNVIDIA_ML
-nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *props)
+nvmlDevice_t _starpu_cuda_get_nvmldev(struct cudaDeviceProp *dev_props)
 {
 	char busid[13];
 	nvmlDevice_t ret;
 
-	snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", props->pciDomainID, props->pciBusID, props->pciDeviceID);
+	snprintf(busid, sizeof(busid), "%04x:%02x:%02x.0", dev_props->pciDomainID, dev_props->pciBusID, dev_props->pciDeviceID);
 	if (nvmlDeviceGetHandleByPciBusId(busid, &ret) != NVML_SUCCESS)
 		ret = NULL;
 
@@ -174,8 +188,7 @@ static void _starpu_cuda_limit_gpu_mem_if_needed(unsigned devid)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	if (limit == -1)
 	{
-		/* Use 90% of the available memory by default.  */
-		limit = totalGlobalMem / (1024*1024) * 0.9;
+		limit = totalGlobalMem / (1024*1024) * FREE_MARGIN;
 	}
 #endif
 
@@ -677,13 +690,16 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 				STARPU_CUDA_REPORT_ERROR(cures);
 #endif
 #ifdef STARPU_USE_FXT
-			int k;
-			for (k = 0; k < (int) worker->set->nworkers; k++)
-				if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
-					break;
-			if (k == (int) worker->set->nworkers)
-				/* Everybody busy */
-				_STARPU_TRACE_START_EXECUTING();
+			if (fut_active)
+			{
+				int k;
+				for (k = 0; k < (int) worker->set->nworkers; k++)
+					if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
+						break;
+				if (k == (int) worker->set->nworkers)
+					/* Everybody busy */
+					_STARPU_TRACE_START_EXECUTING();
+			}
 #endif
 		}
 	}
@@ -856,7 +872,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 
 			_starpu_set_local_worker_key(worker);
 			_starpu_fetch_task_input_tail(task, j, worker);
-			_starpu_set_worker_status(worker, STATUS_UNKNOWN);
 			/* Reset it */
 			worker->task_transferring = NULL;
 
@@ -934,13 +949,16 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 					_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
 			}
 #ifdef STARPU_USE_FXT
-			int k;
-			for (k = 0; k < (int) worker_set->nworkers; k++)
-				if (worker_set->workers[k].ntasks)
-					break;
-			if (k == (int) worker_set->nworkers)
-				/* Everybody busy */
-				_STARPU_TRACE_END_EXECUTING()
+			if (fut_active)
+			{
+				int k;
+				for (k = 0; k < (int) worker_set->nworkers; k++)
+					if (worker_set->workers[k].ntasks)
+						break;
+				if (k == (int) worker_set->nworkers)
+					/* Everybody busy */
+					_STARPU_TRACE_END_EXECUTING()
+			}
 #endif
 			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
@@ -1315,7 +1333,7 @@ _starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 }
 
 int
-_starpu_cuda_unmap_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+_starpu_cuda_unmap_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 		       uintptr_t dst_ptr STARPU_ATTRIBUTE_UNUSED, unsigned dst_node STARPU_ATTRIBUTE_UNUSED,
 		       size_t size STARPU_ATTRIBUTE_UNUSED)
 {
@@ -1572,7 +1590,7 @@ unsigned _starpu_cuda_test_request_completion(struct _starpu_async_channel *asyn
 	cudaError_t cures;
 	unsigned success;
 
-	event = (*async_channel).event.cuda_event;
+	event = *_starpu_cuda_event(&async_channel->event);
 	cures = cudaEventQuery(event);
 	success = (cures == cudaSuccess);
 
@@ -1589,7 +1607,7 @@ void _starpu_cuda_wait_request_completion(struct _starpu_async_channel *async_ch
 	cudaEvent_t event;
 	cudaError_t cures;
 
-	event = (*async_channel).event.cuda_event;
+	event = *_starpu_cuda_event(&async_channel->event);
 
 	cures = cudaEventSynchronize(event);
 	if (STARPU_UNLIKELY(cures))
@@ -1623,7 +1641,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, v
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_cuda_node_ops;
-		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
+		cures = cudaEventCreateWithFlags(_starpu_cuda_event(&req->async_channel.event), cudaEventDisableTiming);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
 		stream = starpu_cuda_get_peer_transfer_stream(src_node, dst_node);
@@ -1635,7 +1653,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, v
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		}
 
-		cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
+		cures = cudaEventRecord(*_starpu_cuda_event(&req->async_channel.event), stream);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 	}
 	return ret;
@@ -1668,7 +1686,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cpu(starpu_data_handle_t handle, vo
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_cuda_node_ops;
-		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
+		cures = cudaEventCreateWithFlags(_starpu_cuda_event(&req->async_channel.event), cudaEventDisableTiming);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
 		stream = starpu_cuda_get_out_transfer_stream(src_node);
@@ -1680,7 +1698,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cpu(starpu_data_handle_t handle, vo
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		}
 
-		cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
+		cures = cudaEventRecord(*_starpu_cuda_event(&req->async_channel.event), stream);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 	}
 	return ret;
@@ -1715,7 +1733,7 @@ int _starpu_cuda_copy_interface_from_cpu_to_cuda(starpu_data_handle_t handle, vo
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_cuda_node_ops;
-		cures = cudaEventCreateWithFlags(&req->async_channel.event.cuda_event, cudaEventDisableTiming);
+		cures = cudaEventCreateWithFlags(_starpu_cuda_event(&req->async_channel.event), cudaEventDisableTiming);
 		if (STARPU_UNLIKELY(cures != cudaSuccess))
 			STARPU_CUDA_REPORT_ERROR(cures);
 
@@ -1728,7 +1746,7 @@ int _starpu_cuda_copy_interface_from_cpu_to_cuda(starpu_data_handle_t handle, vo
 			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 		}
 
-		cures = cudaEventRecord(req->async_channel.event.cuda_event, stream);
+		cures = cudaEventRecord(*_starpu_cuda_event(&req->async_channel.event), stream);
 		if (STARPU_UNLIKELY(cures != cudaSuccess))
 			STARPU_CUDA_REPORT_ERROR(cures);
 	}
@@ -1895,7 +1913,7 @@ uintptr_t _starpu_cuda_malloc_on_node(unsigned dst_node, size_t size, int flags)
 	size_t cuda_mem_free, cuda_mem_total;
 	cudaError_t status;
 	status = cudaMemGetInfo(&cuda_mem_free, &cuda_mem_total);
-	if (status == cudaSuccess && cuda_mem_free < (size*2))
+	if (status == cudaSuccess && cuda_mem_free * FREE_MARGIN < size)
 	{
 		addr = 0;
 	}
@@ -1969,22 +1987,6 @@ struct _starpu_driver_ops _starpu_driver_cuda_ops =
 #ifdef STARPU_SIMGRID
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
-	.copy_interface_to[STARPU_CPU_RAM] = NULL,
-	.copy_interface_to[STARPU_CUDA_RAM] = NULL,
-
-	.copy_data_to[STARPU_CPU_RAM] = NULL,
-	.copy_data_to[STARPU_CUDA_RAM] = NULL,
-
-	.copy2d_data_to[STARPU_CPU_RAM] = NULL,
-	.copy2d_data_to[STARPU_CUDA_RAM] = NULL,
-
-	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
-	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
-
-	.update_map[STARPU_CPU_RAM] = NULL,
-
-	.wait_request_completion = NULL,
-	.test_request_completion = NULL,
 	.is_direct_access_supported = _starpu_cuda_is_direct_access_supported,
 	.malloc_on_node = _starpu_cuda_malloc_on_node,
 	.free_on_node = _starpu_cuda_free_on_node,
@@ -1996,19 +1998,20 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cpu,
 	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cuda,
 
+	.copy_interface_from[STARPU_CPU_RAM] = _starpu_cuda_copy_interface_from_cpu_to_cuda,
+	.copy_interface_from[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cuda,
+
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy_data_from_cuda_to_cpu,
 	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cuda_to_cuda,
+
+	.copy_data_from[STARPU_CPU_RAM] = _starpu_cuda_copy_data_from_cpu_to_cuda,
+	.copy_data_from[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cuda_to_cuda,
 
 	.copy2d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cpu,
 	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
 
-#if 0
-	.copy3d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cpu,
-	.copy3d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy3d_data_from_cuda_to_cuda,
-#else
-	.copy3d_data_to[STARPU_CPU_RAM] = NULL,
-	.copy3d_data_to[STARPU_CUDA_RAM] = NULL,
-#endif
+	.copy2d_data_from[STARPU_CPU_RAM] = _starpu_cuda_copy2d_data_from_cpu_to_cuda,
+	.copy2d_data_from[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
 
 #ifdef STARPU_USE_CUDA_MAP
 	.map[STARPU_CPU_RAM] = _starpu_cuda_map_ram,

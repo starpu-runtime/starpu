@@ -276,12 +276,17 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_12_openblas.sirocco	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_21_openblas.sirocco	\
 	perfmodels/sampling/codelets/45/starpu_dlu_lu_model_22_openblas.sirocco	\
-	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.sirocco
+	perfmodels/sampling/codelets/45/overlap_sleep_1024_24.sirocco	\
+\
+	perfmodels/sampling/codelets/45/null.idgraf	\
+	perfmodels/sampling/codelets/45/null.sirocco
 
 EXTRA_DIST =				\
 	dev/checker/rename.sed		\
 	dev/checker/rename.sh		\
 	dev/cppcheck/suppressions.txt	\
+	dev/valgrind/blas.suppr		\
+	dev/valgrind/nvidia.suppr	\
 	dev/valgrind/bash.suppr		\
 	dev/valgrind/fxt.suppr		\
 	dev/valgrind/glpk.suppr		\
@@ -313,7 +318,15 @@ EXTRA_DIST =				\
 	msvc/starpu_exec.bat		\
 	msvc/starpu_var.bat		\
 	msvc/starpu.sln			\
-	msvc/starpu/starpu.vcxproj
+	msvc/starpu/starpu.vcxproj	\
+	release/Makefile		\
+	release/README			\
+	patch-ayudame			\
+	perfs/bench_sgemm.sh		\
+	perfs/error_model.gp		\
+	perfs/error_model.sh		\
+	distrib/distrib.r		\
+	distrib/distrib.sh
 
 CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log figure/* mlr_*
 
@@ -329,16 +342,11 @@ check_PROGRAMS	=	$(STARPU_TOOLS)
 
 if !STARPU_HAVE_WINDOWS
 ## test loader program
-if !STARPU_CROSS_COMPILING
 LOADER			=	loader
 loader_CPPFLAGS =  $(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(abs_top_builddir)/tools/$(LOADER)
 loader_SOURCES		=	../tests/loader.c
 noinst_PROGRAMS		+=	loader
-else
-LOADER			=
-LOADER_BIN		=	$(top_builddir)/tests/loader-cross.sh
-endif
 
 if STARPU_USE_MPI_MASTER_SLAVE 
 LOADER_BIN2	= $(MPI_LAUNCHER) $(LOADER_BIN)

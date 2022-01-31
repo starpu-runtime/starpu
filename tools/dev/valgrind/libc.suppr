@@ -23,8 +23,24 @@
 }
 
 {
+   Ignore libc aio-internal cond oddity
+   Helgrind:Misc
+   ...
+   fun:aio_read
+   ...
+}
+
+{
    Ignore libc aio-internal races
    Helgrind:Race
+   ...
+   fun:aio_write
+   ...
+}
+
+{
+   Ignore libc aio-internal cond oddity
+   Helgrind:Misc
    ...
    fun:aio_write
    ...
@@ -60,6 +76,14 @@
    Helgrind:Race
    ...
    fun:__vfprintf_internal
+   ...
+}
+
+{
+   Ignore libc printf races
+   Helgrind:Race
+   ...
+   fun:_IO_file_xsputn
    ...
 }
 

@@ -26,12 +26,12 @@ static __global__ void fblock_cuda(int *block, int nx, int ny, int nz, unsigned 
                 for(j=0; j<ny ; j++)
 		{
                         for(i=0; i<nx ; i++)
-                                block[(k*ldz)+(j*ldy)+i] = factor;
+                                block[(k*ldz)+(j*ldy)+i] *= factor;
                 }
         }
 }
 
-extern "C" void cuda_func(void *buffers[], void *_args)
+extern "C" void block_cuda_func(void *buffers[], void *_args)
 {
         int *factor = (int *)_args;
 	int *block = (int *)STARPU_BLOCK_GET_PTR(buffers[0]);

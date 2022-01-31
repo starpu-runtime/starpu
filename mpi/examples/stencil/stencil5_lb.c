@@ -160,13 +160,13 @@ int main(int argc, char **argv)
 	{
 		FPRINTF(stderr, "Only works with 2 nodes\n");
 		starpu_mpi_shutdown();
-		return 77;
+		if (my_rank == 0) return 77; else return 0;
 	}
 	if (starpu_cpu_worker_get_count() == 0)
 	{
 		FPRINTF(stderr, "We need at least 1 CPU worker.\n");
 		starpu_mpi_shutdown();
-		return 77;
+		if (my_rank == 0) return 77; else return 0;
 	}
 
 	{

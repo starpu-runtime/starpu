@@ -27,62 +27,48 @@
 
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 
-void cpu_func(void *buffers[], void *cl_arg)
-{
-        unsigned i, j;
-        int *factor = (int *) cl_arg;
+extern void matrix_cpu_func(void *buffers[], void *cl_arg);
 
-        /* length of the matrix */
-        unsigned nx = STARPU_MATRIX_GET_NX(buffers[0]);
-        unsigned ny = STARPU_MATRIX_GET_NY(buffers[0]);
-        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
-        /* local copy of the matrix pointer */
-        int *val = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+#ifdef STARPU_USE_CUDA
+extern void matrix_cuda_func(void *buffers[], void *cl_arg);
+#endif
 
-        for(j=0; j<ny ; j++)
-	{
-                for(i=0; i<nx ; i++)
-                        val[(j*ld)+i] *= *factor;
-        }
-}
+extern void generate_matrix_data(int *matrix, int nx, int ny, unsigned ld);
+extern void print_matrix_data(starpu_data_handle_t matrix_handle);
 
 int main(void)
 {
 	unsigned j;
-	int n=1;
-        int matrix[NX*NY];
+        int *matrix;
 	int ret, i;
 	int factor = 12;
 
-        FPRINTF(stderr,"IN  Matrix: \n");
-        for(j=0 ; j<NY ; j++)
-	{
-                for(i=0 ; i<NX ; i++)
-		{
-                        matrix[(j*NX)+i] = n++;
-                        FPRINTF(stderr, "%4d ", matrix[(j*NX)+i]);
-                }
-                FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
+        matrix = (int*)malloc(NX*NY*sizeof(int));
+        generate_matrix_data(matrix, NX, NY, NX);
 
         starpu_data_handle_t handle;
         struct starpu_codelet cl =
 	{
-                .cpu_funcs = {cpu_func},
-                .cpu_funcs_name = {"cpu_func"},
+                .cpu_funcs = {matrix_cpu_func},
+                .cpu_funcs_name = {"matrix_cpu_func"},
+#ifdef STARPU_USE_CUDA
+                .cuda_funcs = {matrix_cuda_func},
+        	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
                 .nbuffers = 1,
-		.modes = {STARPU_RW},
-		.name = "matrix_scal"
+        	.modes = {STARPU_RW},
+        	.name = "matrix_scal"
         };
 
         ret = starpu_init(NULL);
 	if (ret == -ENODEV)
-		return 77;
+		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
+	FPRINTF(stderr,"IN Matrix: \n");
+	print_matrix_data(handle);
 
         /* Partition the matrix in PARTS sub-matrices */
 	struct starpu_data_filter f =
@@ -109,31 +95,17 @@ int main(void)
 
         /* Unpartition the data, unregister it from StarPU and shutdown */
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
+	FPRINTF(stderr,"OUT Matrix: \n");
+        print_matrix_data(handle);
         starpu_data_unregister(handle);
-	starpu_shutdown();
 
-        /* Print result matrix */
-	n=1;
-        FPRINTF(stderr,"OUT Matrix: \n");
-        for(j=0 ; j<NY ; j++)
-	{
-                for(i=0 ; i<NX ; i++)
-		{
-                        FPRINTF(stderr, "%4d ", matrix[(j*NX)+i]);
-			if (matrix[(j*NX)+i] != (int) n*12)
-			{
-				FPRINTF(stderr, "Incorrect result %4d != %4d", matrix[(j*NX)+i], n*12);
-				ret=1;
-			}
-			n++;
-                }
-                FPRINTF(stderr,"\n");
-        }
-        FPRINTF(stderr,"\n");
+    	free(matrix);
+	starpu_shutdown();
 
 	return ret;
 
 enodev:
+	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	starpu_shutdown();
 	return 77;
 }

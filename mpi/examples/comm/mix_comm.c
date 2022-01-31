@@ -110,16 +110,21 @@ int main(int argc, char **argv)
 	if (newrank == 0)
 	{
 		starpu_mpi_req req[2];
-		starpu_mpi_issend(data[1], &req[0], 1, 22, newcomm);
-		starpu_mpi_isend(data[0], &req[1], 1, 12, newcomm);
-		starpu_mpi_wait(&req[0], MPI_STATUS_IGNORE);
-		starpu_mpi_wait(&req[1], MPI_STATUS_IGNORE);
+		ret = starpu_mpi_issend(data[1], &req[0], 1, 22, newcomm);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_issend");
+		ret = starpu_mpi_isend(data[0], &req[1], 1, 12, newcomm);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend");
+		ret = starpu_mpi_wait(&req[0], MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
+		ret = starpu_mpi_wait(&req[1], MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
 	}
 	else if (newrank == 1)
 	{
 		int *xx;
 
-		starpu_mpi_recv(data[0], 0, 12, newcomm, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_recv(data[0], 0, 12, newcomm, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_acquire(data[0], STARPU_R);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, *xx);
@@ -128,7 +133,8 @@ int main(int argc, char **argv)
 
 		starpu_variable_data_register(&data[1], -1, (uintptr_t)NULL, sizeof(int));
 		starpu_mpi_data_register_comm(data[1], 22, 0, newcomm);
-		starpu_mpi_recv(data[0], 0, 22, newcomm, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_recv(data[0], 0, 22, newcomm, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_acquire(data[0], STARPU_R);
 		xx = (int *)starpu_variable_get_local_ptr(data[0]);
 		FPRINTF(stderr, "[%d][%d] received %d\n", rank, newrank, *xx);
@@ -142,8 +148,10 @@ int main(int argc, char **argv)
 		int rvalue = *((int *)starpu_variable_get_local_ptr(data[2]));
 		starpu_data_release(data[2]);
 		FPRINTF_MPI(stderr, "sending value %d to %d and receiving from %d\n", rvalue, 1, size-1);
-		starpu_mpi_send(data[2], 1, 44, MPI_COMM_WORLD);
-		starpu_mpi_recv(data[2], size-1, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_send(data[2], 1, 44, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+		ret = starpu_mpi_recv(data[2], size-1, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_acquire(data[2], STARPU_R);
 		int *xx = (int *)starpu_variable_get_local_ptr(data[2]);
 		FPRINTF_MPI(stderr, "Value back is %d\n", *xx);
@@ -153,13 +161,15 @@ int main(int argc, char **argv)
 	else
 	{
 		int next = (rank == size-1) ? 0 : rank+1;
-		starpu_mpi_recv(data[2], rank-1, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		ret = starpu_mpi_recv(data[2], rank-1, 44, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		starpu_data_acquire(data[2], STARPU_RW);
 		int *xx = (int *)starpu_variable_get_local_ptr(data[2]);
 		FPRINTF_MPI(stderr, "receiving %d from %d and sending %d to %d\n", *xx, rank-1, *xx+2, next);
 		*xx = *xx + 2;
 		starpu_data_release(data[2]);
-		starpu_mpi_send(data[2], next, 44, MPI_COMM_WORLD);
+		ret = starpu_mpi_send(data[2], next, 44, MPI_COMM_WORLD);
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 	}
 
 	if (newrank == 0 || newrank == 1)

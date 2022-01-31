@@ -1,0 +1,330 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page MaxFPGASupport Maxeler FPGA Support
+
+\section Introduction Introduction
+
+Maxeler provides hardware and software solutions for accelerating
+computing applications on dataflow engines (DFEs). DFEs are in-house
+designed accelerators that encapsulate reconfigurable high-end FPGAs
+at their core and are equipped with large amounts of DDR memory.
+
+We extend the StarPU task programming library that initially targets
+heterogeneous architectures to support Field Programmable Gate Array
+(FPGA).
+
+To create <c>StarPU/FPGA</c> applications exploiting DFE
+configurations, MaxCompiler allows an application to be split into
+three parts:
+
+- <c>Kernel</c>, which implements the computational components of the
+  application in hardware.
+- <c>Manager configuration</c>, which connects Kernels to the CPU,
+  engine RAM, other Kernels and other DFEs via MaxRing.
+- <c>CPU application</c>, which interacts with the DFEs to read and
+  write data to the Kernels and engine RAM.
+
+The Simple Live CPU interface (SLiC) is Maxeler’s application
+programming interface for seamless CPU-DFE integration. SLiC allows
+CPU applications to configure and load a number of DFEs as well as to
+subsequently schedule and run actions on those DFEs using simple
+function calls. In StarPU/FPGA applications, we use <em>Dynamic SLiC
+Interface</em> to exchange data streams between the CPU (Main Memory)
+and DFE (Local Memory).
+
+\section PortingApplicationsToMaxFPGA Porting Applications to Maxeler FPGA
+
+The way to port an application to FPGA is to set the field
+starpu_codelet::max_fpga_funcs, to provide StarPU with the function
+for FPGA implementation, so for instance:
+
+\verbatim
+struct starpu_codelet cl =
+{
+    .max_fpga_funcs = {myfunc},
+    .nbuffers = 1,
+}
+\endverbatim
+
+\subsection MaxFPGAExample StarPU/Maxeler FPGA Application
+
+To give you an idea of the interface that we used to exchange data
+between <c>host</c> (CPU) and <c>FPGA</c> (DFE), here is an example,
+based on one of the examples of Maxeler
+(https://trac.version.fz-juelich.de/reconfigurable/wiki/Public).
+
+<c>StreamFMAKernel.maxj</c> represents the Java kernel code; it
+implements a very simple kernel (<c>c=a+b</c>), and <c>Test.c</c> starts it
+from the <c>fpga_add</c> function; it first sets streaming up from the
+CPU pointers, triggers execution and waits for the result. The API to
+interact with DFEs is called <em>SLiC</em> which then also involves the
+<c>MaxelerOS</c> runtime.
+
+- <c>StreamFMAKernel.maxj</c>: the DFE part is described in the MaxJ
+  programming language which is a Java-based metaprogramming approach.
+
+\code{.java}
+package tests;
+
+import com.maxeler.maxcompiler.v2.kernelcompiler.Kernel;
+import com.maxeler.maxcompiler.v2.kernelcompiler.KernelParameters;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEType;
+import com.maxeler.maxcompiler.v2.kernelcompiler.types.base.DFEVar;
+
+class StreamFMAKernel extends Kernel
+{
+
+   private static final DFEType type = dfeInt(32);
+
+   protected StreamFMAKernel(KernelParameters parameters)
+   {
+             super(parameters);
+
+	     DFEVar a = io.input("a", type);
+	     DFEVar b = io.input("b", type);
+	     DFEVar c;
+
+	     c = a+b;
+
+	     io.output("output", c, type);
+   }
+}
+\endcode
+
+- <c>StreamFMAManager.maxj</c>: is also described in the MaxJ
+  programming language and orchestrates data movement between the host
+  and the DFE.
+
+\code{.java}
+package tests;
+
+import com.maxeler.maxcompiler.v2.build.EngineParameters;
+import com.maxeler.maxcompiler.v2.managers.custom.blocks.KernelBlock;
+import com.maxeler.platform.max5.manager.Max5LimaManager;
+
+class StreamFMAManager extends Max5LimaManager
+{
+	private static final String kernel_name = "StreamFMAKernel";
+
+	public StreamFMAManager(EngineParameters arg0)
+	{
+		super(arg0);
+		KernelBlock kernel = addKernel(new StreamFMAKernel(makeKernelParameters(kernel_name)));
+		kernel.getInput("a") <== addStreamFromCPU("a");
+		kernel.getInput("b") <== addStreamFromCPU("b");
+		addStreamToCPU("output") <== kernel.getOutput("output");
+	}
+
+	public static void main(String[] args)
+	{
+		StreamFMAManager manager = new StreamFMAManager(new EngineParameters(args));
+		manager.build();
+	}
+}
+\endcode
+
+Once <c>StreamFMAKernel.maxj</c> and <c>StreamFMAManager.maxj</c> are
+written, there are other steps to do:
+
+- Building the JAVA program: (for Kernel and Manager (.maxj))
+\verbatim
+$ maxjc -1.7 -cp $MAXCLASSPATH streamfma/
+\endverbatim
+
+- Running the Java program to generate a DFE implementation (a .max
+  file) that can be called from a StarPU/FPGA application and slic
+  headers (.h) for simulation:
+
+\verbatim
+$ java -XX:+UseSerialGC -Xmx2048m -cp $MAXCLASSPATH:. streamfma.StreamFMAManager DFEModel=MAIA maxFileName=StreamFMA target=DFE_SIM
+\endverbatim
+
+- Build the slic object file (simulation):
+
+\verbatim
+$ sliccompile StreamFMA.max
+\endverbatim
+
+- <c>Test.c </c>:
+
+to interface StarPU task-based runtime system with Maxeler's DFE
+devices, we use the advanced dynamic interface of <em>SLiC</em> in
+<b>non_blocking</b> mode.
+
+Test code must include <c>MaxSLiCInterface.h</c> and <c>MaxFile.h</c>.
+The .max file contains the bitstream. The StarPU/FPGA application can
+be written in C, C++, etc.
+
+\code{.c}
+#include "StreamFMA.h"
+#include "MaxSLiCInterface.h"
+
+void fpga_add(void *buffers[], void *cl_arg)
+{
+    (void)cl_arg;
+
+    int *a = (int*) STARPU_VECTOR_GET_PTR(buffers[0]);
+    int *b = (int*) STARPU_VECTOR_GET_PTR(buffers[1]);
+    int *c = (int*) STARPU_VECTOR_GET_PTR(buffers[2]);
+
+    int size = STARPU_VECTOR_GET_NX(buffers[0]);
+
+    /* actions to run on an engine */
+    max_actions_t *act = max_actions_init(maxfile, NULL);
+
+    /* set the number of ticks for a kernel */
+    max_set_ticks  (act, "StreamFMAKernel", size);
+
+    /* send input streams */
+    max_queue_input(act, "a", a, size *sizeof(a[0]));
+    max_queue_input(act, "b", b, size*sizeof(b[0]));
+
+    /* store output stream */
+    max_queue_output(act,"output", c, size*sizeof(c[0]));
+
+    /* run actions on the engine */
+     printf("**** Run actions in non blocking mode **** \n");
+
+    /* run actions in non_blocking mode */
+    max_run_t *run0= max_run_nonblock(engine, act);
+
+    printf("*** wait for the actions on DFE to complete *** \n");
+    max_wait(run0);
+  }
+
+  static struct starpu_codelet cl =
+  {
+    .cpu_funcs = {cpu_func},
+    .cpu_funcs_name = {"cpu_func"},
+    .max_fpga_funcs = {fpga_add},
+    .nbuffers = 3,
+    .modes = {STARPU_R, STARPU_R, STARPU_W}
+  };
+
+int main(int argc, char **argv)
+{
+    ...
+
+    /* Implementation of a maxfile */
+    max_file_t *maxfile = StreamFMA_init();
+
+    /* Implementation of an engine */
+    max_engine_t *engine = max_load(maxfile, "*");
+
+    starpu_init(NULL);
+
+    ... Task submission etc. ...
+
+    starpu_shutdown();
+
+    /* deallocate the set of actions */
+    max_actions_free(act);
+
+    /* unload and deallocate an engine obtained by way of max_load */
+    max_unload(engine);
+
+    return 0;
+}
+\endcode
+
+To write the StarPU/FPGA application: first, the programmer must
+describe the codelet using StarPU’s C API. This codelet provides both
+a CPU implementation and an FPGA one. It also specifies that the task
+has two inputs and one output through the starpu_codelet::nbuffers and
+starpu_codelet::modes attributes.
+
+<c>fpga_add</c> function is the name of the FPGA implementation and is
+mainly divided in four steps:
+
+- Init actions to be run on DFE.
+- Add data to an input stream for an action.
+- Add data storage space for an output stream.
+- Run actions on DFE in <b>non_blocking</b> mode; a non-blocking call
+  returns immediately, allowing the calling code to do more CPU work
+  in parallel while the actions are run.
+- Wait for the actions to complete.
+
+In the <c>main</c> function, there are four important steps:
+
+- Implement a maxfile.
+- Load a DFE.
+- Free actions.
+- Unload and deallocate the DFE.
+
+The rest of the application (data registration, task submission, etc.)
+is as usual with StarPU.
+
+The design load can also be delegated to StarPU by specifying an array
+of load specifications in <c>starpu_conf::max_fpga_load</c>, and use
+starpu_max_fpga_get_local_engine() to access the loaded max engines.
+
+Complete examples are available in <c>tests/fpga/*.c</c>
+
+\subsection MaxFPGADataTransfers Data Transfers in StarPU/Maxeler FPGA Applications
+
+The communication between the host and the DFE is done through the
+<em>Dynamic advance interface</em> to exchange data between the main
+memory and the local memory of the DFE.
+
+For the moment, we use \ref STARPU_MAIN_RAM to send and store data
+to/from DFE's local memory. However, we aim to use a multiplexer to
+choose which memory node we will use to read/write data. So, the user
+can tell that the computational kernel will take data from the main
+memory or DFE's local memory for example.
+
+In StarPU applications, when \ref starpu_codelet::specific_nodes is
+set to 1, this specifies the memory nodes where each data should be
+sent to for task execution.
+
+\subsection MaxFPGAConfiguration Maxeler FPGA Configuration
+
+To configure StarPU with Maxeler FPGA accelerators, make sure that the
+<c>slic-config</c> is available from your <c>PATH</c> environment variable.
+
+\subsection MaxFPGALaunchingprograms  Launching Programs: Simulation
+
+Maxeler provides a simple tutorial to use MaxCompiler
+(https://trac.version.fz-juelich.de/reconfigurable/wiki/Public).
+Running the Java program to generate maxfile and slic headers
+(hardware) on Maxeler's DFE device, takes a VERY long time, approx. 2
+hours even for this very small example. That's why we use the
+simulation.
+
+- To start the simulation on Maxeler's DFE device:
+\verbatim
+$ maxcompilersim -c LIMA -n StreamFMA restart
+\endverbatim
+
+- To run the binary (simulation)
+\verbatim
+$ export LD_LIBRARY_PATH=$MAXELEROSDIR/lib:$LD_LIBRARY_PATH
+$ export SLIC_CONF="use_simulation=StreamFMA"
+\endverbatim
+
+- To force tasks to be scheduled on the FPGA, one can disable the use of CPU
+cores by setting the \ref STARPU_NCPU environment variable to 0.
+\verbatim
+$ STARPU_NCPU=0 ./StreamFMA
+\endverbatim
+
+- To stop the simulation
+\verbatim
+$ maxcompilersim -c LIMA -n StreamFMA stop
+\endverbatim
+
+
+*/

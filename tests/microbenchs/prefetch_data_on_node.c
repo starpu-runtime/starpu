@@ -102,7 +102,11 @@ int main(int argc, char **argv)
 {
 	int ret;
 
-	ret = starpu_initialize(NULL, &argc, &argv);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.nmax_fpga = 0;
+
+	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
@@ -167,13 +171,13 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_wait_for_all");
 
 	starpu_data_unregister(v_handle);
-	starpu_free(v);
+	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
 
 enodev:
-	starpu_free(v);
+	starpu_free_noflag(v, VECTORSIZE*sizeof(unsigned));
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */

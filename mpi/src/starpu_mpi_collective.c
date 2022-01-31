@@ -103,18 +103,24 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 	{
 		if (data_handles[x])
 		{
+			int ret;
 			int owner = starpu_mpi_data_get_rank(data_handles[x]);
 			starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data_handles[x]);
 			STARPU_ASSERT_MSG(data_tag >= 0, "Invalid tag for data handle");
 			if ((rank == root) && (owner != root))
 			{
 				//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, owner);
-				starpu_mpi_isend_detached(data_handles[x], owner, data_tag, comm, callback_func, callback_arg);
+				ret = starpu_mpi_isend_detached(data_handles[x], owner, data_tag, comm, callback_func, callback_arg);
+				if (ret)
+					return ret;
+
 			}
 			if ((rank != root) && (owner == rank))
 			{
 				//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, root);
-				starpu_mpi_irecv_detached(data_handles[x], root, data_tag, comm, callback_func, callback_arg);
+				ret = starpu_mpi_irecv_detached(data_handles[x], root, data_tag, comm, callback_func, callback_arg);
+				if (ret)
+					return ret;
 			}
 		}
 	}
@@ -138,18 +144,24 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 	{
 		if (data_handles[x])
 		{
+			int ret;
 			int owner = starpu_mpi_data_get_rank(data_handles[x]);
 			starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data_handles[x]);
 			STARPU_ASSERT_MSG(data_tag >= 0, "Invalid tag for data handle");
 			if ((rank == root) && (owner != root))
 			{
 				//fprintf(stderr, "[%d] Receiving data[%d] from %d\n", rank, x, owner);
-				starpu_mpi_irecv_detached(data_handles[x], owner, data_tag, comm, callback_func, callback_arg);
+				ret = starpu_mpi_irecv_detached(data_handles[x], owner, data_tag, comm, callback_func, callback_arg);
+				if (ret)
+					return ret;
+
 			}
 			if ((rank != root) && (owner == rank))
 			{
 				//fprintf(stderr, "[%d] Sending data[%d] to %d\n", rank, x, root);
-				starpu_mpi_isend_detached(data_handles[x], root, data_tag, comm, callback_func, callback_arg);
+				ret = starpu_mpi_isend_detached(data_handles[x], root, data_tag, comm, callback_func, callback_arg);
+				if (ret)
+					return ret;
 			}
 		}
 	}

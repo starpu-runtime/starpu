@@ -64,6 +64,10 @@
 #include <hwloc/cuda.h>
 #endif
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#include <mpi.h>
+#endif
+
 #define SIZE	(32*1024*1024*sizeof(char))
 #define NITER	32
 
@@ -118,12 +122,18 @@ static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 #endif
 
 #ifndef STARPU_SIMGRID
-static uint64_t opencl_size[STARPU_MAXCUDADEVS];
+static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 #endif
+
 #ifdef STARPU_USE_OPENCL
 /* preference order of cores (logical indexes) */
 static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
 static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
+#endif
+
+#ifdef STARPU_USE_MAX_FPGA
+/* preference order of cores (logical indexes) */
+static unsigned max_fpga_affinity_matrix[STARPU_MAXMAXFPGADEVS][STARPU_MAXCPUS];
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -763,7 +773,7 @@ static void benchmark_all_gpu_devices(void)
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_bitmap_t former_cpuset = hwloc_bitmap_alloc();
 	hwloc_get_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
-#elif __linux__
+#elif defined(__linux__)
 	/* Save the current cpu binding */
 	cpu_set_t former_process_affinity;
 	int ret;
@@ -827,7 +837,7 @@ static void benchmark_all_gpu_devices(void)
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_set_cpubind(hwtopology, former_cpuset, HWLOC_CPUBIND_THREAD);
 	hwloc_bitmap_free(former_cpuset);
-#elif __linux__
+#elif defined(__linux__)
 	/* Restore the former affinity */
 	ret = sched_setaffinity(0, sizeof(former_process_affinity), &former_process_affinity);
 	if (ret)
@@ -1107,6 +1117,13 @@ unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid)
 	return opencl_affinity_matrix[gpuid];
 }
 #endif /* STARPU_USE_OPENCL */
+
+#ifdef STARPU_USE_MAX_FPGA
+unsigned *_starpu_get_max_fpga_affinity_vector(unsigned fpgaid)
+{
+        return max_fpga_affinity_matrix[fpgaid];
+}
+#endif /* STARPU_USE_MAX_FPGA */
 
 void starpu_bus_print_affinity(FILE *f)
 {

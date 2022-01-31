@@ -529,12 +529,12 @@ When we want to switch to the vertical slice view, all we need to do is bring
 coherency between them by running an empty task on the home node of the data:
 
 \code{.c}
-void empty(void *buffers[], void *cl_arg)
-{ }
 struct starpu_codelet cl_switch =
 {
-	.cpu_funcs = {empty},
-	.nbuffers = STARPU_VARIABLE_NBUFFERS,
+	.where = STARPU_NOWHERE,
+	.nbuffers = 3,
+	.specific_nodes = 1,
+	.nodes = { STARPU_MAIN_RAM, STARPU_MAIN_RAM, STARPU_MAIN_RAM },
 };
 
 ret = starpu_task_insert(&cl_switch, STARPU_RW, handle,
@@ -551,6 +551,11 @@ Again, we prefer to make sure that we don't accidentally access the matrix throu
 \code{.c}
 starpu_data_invalidate_submit(handle);
 \endcode
+
+Note: when enabling a set of handles in this way, the set must not have any
+overlapping, i.e. the handles of the set must not have any part of data in
+common, otherwise StarPU will not properly handle concurrent accesses between
+them.
 
 And now we can start using vertical slices, etc.
 
@@ -932,7 +937,7 @@ starpu_data_interface_ops::register_data_handle, which records them
 within the data handle (it is called once per node by starpu_data_register()):
 
 \code{.c}
-static void complex_register_data_handle(starpu_data_handle_t handle, unsigned home_node, void *data_interface)
+static void complex_register_data_handle(starpu_data_handle_t handle, int home_node, void *data_interface)
 {
 	struct starpu_complex_interface *complex_interface = (struct starpu_complex_interface *) data_interface;
 
@@ -959,6 +964,9 @@ static void complex_register_data_handle(starpu_data_handle_t handle, unsigned h
 
 If the application provided a home node, the corresponding pointers will be
 recorded for that node. Others have no buffer allocated yet.
+Possibly the interface needs some dynamic allocation (e.g. to store an array of
+dimensions that can have variable size). The corresponding deallocation will then be
+done in starpu_data_interface_ops::unregister_data_handle.
 
 Different operations need to be defined for a data interface through
 the type starpu_data_interface_ops. We only define here the basic

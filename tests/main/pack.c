@@ -112,7 +112,7 @@ void func_pick_arg(void *descr[], void *_args)
 
 	(void)descr;
 
-	size_t psize = sizeof(int) + 3*sizeof(size_t) + sizeof(int) + 4*sizeof(char) + sizeof(int);
+	size_t psize = sizeof(int) + 6*sizeof(size_t) + sizeof(int) + 4*sizeof(char) + sizeof(int);
 	struct starpu_codelet_pack_arg_data state;
 	starpu_codelet_unpack_arg_init(&state, _args, psize);
 	starpu_codelet_pick_arg(&state, (void**)&factor, &size);

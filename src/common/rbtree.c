@@ -38,15 +38,15 @@
 static inline int starpu_rbtree_index(const struct starpu_rbtree_node *node,
                                const struct starpu_rbtree_node *parent)
 {
-    assert(parent != NULL);
-    assert((node == NULL) || (starpu_rbtree_parent(node) == parent));
+	assert(parent != NULL);
+	assert((node == NULL) || (starpu_rbtree_parent(node) == parent));
 
-    if (parent->children[STARPU_RBTREE_LEFT] == node)
-        return STARPU_RBTREE_LEFT;
+	if (parent->children[STARPU_RBTREE_LEFT] == node)
+		return STARPU_RBTREE_LEFT;
 
-    assert(parent->children[STARPU_RBTREE_RIGHT] == node);
+	assert(parent->children[STARPU_RBTREE_RIGHT] == node);
 
-    return STARPU_RBTREE_RIGHT;
+	return STARPU_RBTREE_RIGHT;
 }
 
 /*
@@ -54,7 +54,7 @@ static inline int starpu_rbtree_index(const struct starpu_rbtree_node *node,
  */
 static inline int starpu_rbtree_color(const struct starpu_rbtree_node *node)
 {
-    return node->parent & STARPU_RBTREE_COLOR_MASK;
+	return node->parent & STARPU_RBTREE_COLOR_MASK;
 }
 
 /*
@@ -62,7 +62,7 @@ static inline int starpu_rbtree_color(const struct starpu_rbtree_node *node)
  */
 static inline int starpu_rbtree_is_red(const struct starpu_rbtree_node *node)
 {
-    return starpu_rbtree_color(node) == STARPU_RBTREE_COLOR_RED;
+	return starpu_rbtree_color(node) == STARPU_RBTREE_COLOR_RED;
 }
 
 /*
@@ -70,7 +70,7 @@ static inline int starpu_rbtree_is_red(const struct starpu_rbtree_node *node)
  */
 static inline int starpu_rbtree_is_black(const struct starpu_rbtree_node *node)
 {
-    return starpu_rbtree_color(node) == STARPU_RBTREE_COLOR_BLACK;
+	return starpu_rbtree_color(node) == STARPU_RBTREE_COLOR_BLACK;
 }
 
 /*
@@ -79,10 +79,10 @@ static inline int starpu_rbtree_is_black(const struct starpu_rbtree_node *node)
 static inline void starpu_rbtree_set_parent(struct starpu_rbtree_node *node,
                                      struct starpu_rbtree_node *parent)
 {
-    assert(starpu_rbtree_check_alignment(node));
-    assert(starpu_rbtree_check_alignment(parent));
+	assert(starpu_rbtree_check_alignment(node));
+	assert(starpu_rbtree_check_alignment(parent));
 
-    node->parent = (uintptr_t)parent | (node->parent & STARPU_RBTREE_COLOR_MASK);
+	node->parent = (uintptr_t)parent | (node->parent & STARPU_RBTREE_COLOR_MASK);
 }
 
 /*
@@ -90,8 +90,8 @@ static inline void starpu_rbtree_set_parent(struct starpu_rbtree_node *node,
  */
 static inline void starpu_rbtree_set_color(struct starpu_rbtree_node *node, int color)
 {
-    assert((color & ~STARPU_RBTREE_COLOR_MASK) == 0);
-    node->parent = (node->parent & STARPU_RBTREE_PARENT_MASK) | color;
+	assert((color & ~STARPU_RBTREE_COLOR_MASK) == 0);
+	node->parent = (node->parent & STARPU_RBTREE_PARENT_MASK) | color;
 }
 
 /*
@@ -99,7 +99,7 @@ static inline void starpu_rbtree_set_color(struct starpu_rbtree_node *node, int 
  */
 static inline void starpu_rbtree_set_red(struct starpu_rbtree_node *node)
 {
-    starpu_rbtree_set_color(node, STARPU_RBTREE_COLOR_RED);
+	starpu_rbtree_set_color(node, STARPU_RBTREE_COLOR_RED);
 }
 
 /*
@@ -107,7 +107,7 @@ static inline void starpu_rbtree_set_red(struct starpu_rbtree_node *node)
  */
 static inline void starpu_rbtree_set_black(struct starpu_rbtree_node *node)
 {
-    starpu_rbtree_set_color(node, STARPU_RBTREE_COLOR_BLACK);
+	starpu_rbtree_set_color(node, STARPU_RBTREE_COLOR_BLACK);
 }
 
 /*
@@ -118,323 +118,323 @@ static inline void starpu_rbtree_set_black(struct starpu_rbtree_node *node)
  */
 static void starpu_rbtree_rotate(struct starpu_rbtree *tree, struct starpu_rbtree_node *node, int direction)
 {
-    struct starpu_rbtree_node *parent, *rnode;
-    int left, right;
+	struct starpu_rbtree_node *parent, *rnode;
+	int left, right;
 
-    left = direction;
-    right = 1 - left;
-    parent = starpu_rbtree_parent(node);
-    rnode = node->children[right];
+	left = direction;
+	right = 1 - left;
+	parent = starpu_rbtree_parent(node);
+	rnode = node->children[right];
 
-    node->children[right] = rnode->children[left];
+	node->children[right] = rnode->children[left];
 
-    if (rnode->children[left] != NULL)
-        starpu_rbtree_set_parent(rnode->children[left], node);
+	if (rnode->children[left] != NULL)
+		starpu_rbtree_set_parent(rnode->children[left], node);
 
-    rnode->children[left] = node;
-    starpu_rbtree_set_parent(rnode, parent);
+	rnode->children[left] = node;
+	starpu_rbtree_set_parent(rnode, parent);
 
-    if (unlikely(parent == NULL))
-        tree->root = rnode;
-    else
-        parent->children[starpu_rbtree_index(node, parent)] = rnode;
+	if (unlikely(parent == NULL))
+		tree->root = rnode;
+	else
+		parent->children[starpu_rbtree_index(node, parent)] = rnode;
 
-    starpu_rbtree_set_parent(node, rnode);
+	starpu_rbtree_set_parent(node, rnode);
 }
 
 void starpu_rbtree_insert_rebalance(struct starpu_rbtree *tree, struct starpu_rbtree_node *parent,
-                             int index, struct starpu_rbtree_node *node)
+				    int index, struct starpu_rbtree_node *node)
 {
-    struct starpu_rbtree_node *grand_parent, *tmp;
+	struct starpu_rbtree_node *grand_parent, *tmp;
 
-    assert(starpu_rbtree_check_alignment(parent));
-    assert(starpu_rbtree_check_alignment(node));
+	assert(starpu_rbtree_check_alignment(parent));
+	assert(starpu_rbtree_check_alignment(node));
 
-    node->parent = (uintptr_t)parent | STARPU_RBTREE_COLOR_RED;
-    node->children[STARPU_RBTREE_LEFT] = NULL;
-    node->children[STARPU_RBTREE_RIGHT] = NULL;
+	node->parent = (uintptr_t)parent | STARPU_RBTREE_COLOR_RED;
+	node->children[STARPU_RBTREE_LEFT] = NULL;
+	node->children[STARPU_RBTREE_RIGHT] = NULL;
 
-    if (unlikely(parent == NULL))
-        tree->root = node;
-    else
-        parent->children[index] = node;
+	if (unlikely(parent == NULL))
+		tree->root = node;
+	else
+		parent->children[index] = node;
 
-    for (;;)
-    {
-	struct starpu_rbtree_node *uncle;
-	int left, right;
-
-	if (parent == NULL)
+	for (;;)
 	{
-            starpu_rbtree_set_black(node);
-            break;
-        }
+		struct starpu_rbtree_node *uncle;
+		int left, right;
 
-        if (starpu_rbtree_is_black(parent))
-            break;
+		if (parent == NULL)
+		{
+			starpu_rbtree_set_black(node);
+			break;
+		}
 
-        grand_parent = starpu_rbtree_parent(parent);
-        assert(grand_parent != NULL);
+		if (starpu_rbtree_is_black(parent))
+			break;
 
-        left = starpu_rbtree_index(parent, grand_parent);
-        right = 1 - left;
+		grand_parent = starpu_rbtree_parent(parent);
+		assert(grand_parent != NULL);
 
-        uncle = grand_parent->children[right];
+		left = starpu_rbtree_index(parent, grand_parent);
+		right = 1 - left;
 
-        /*
-         * Uncle is red. Flip colors and repeat at grand parent.
-         */
-        if ((uncle != NULL) && starpu_rbtree_is_red(uncle))
-	{
-            starpu_rbtree_set_black(uncle);
-            starpu_rbtree_set_black(parent);
-            starpu_rbtree_set_red(grand_parent);
-            node = grand_parent;
-            parent = starpu_rbtree_parent(node);
-            continue;
-        }
+		uncle = grand_parent->children[right];
 
-        /*
-         * Node is the right child of its parent. Rotate left at parent.
-         */
-        if (parent->children[right] == node)
-	{
-            starpu_rbtree_rotate(tree, parent, left);
-            tmp = node;
-            node = parent;
-            parent = tmp;
-        }
+		/*
+		 * Uncle is red. Flip colors and repeat at grand parent.
+		 */
+		if ((uncle != NULL) && starpu_rbtree_is_red(uncle))
+		{
+			starpu_rbtree_set_black(uncle);
+			starpu_rbtree_set_black(parent);
+			starpu_rbtree_set_red(grand_parent);
+			node = grand_parent;
+			parent = starpu_rbtree_parent(node);
+			continue;
+		}
 
-        /*
-         * Node is the left child of its parent. Handle colors, rotate right
-         * at grand parent, and leave.
-         */
-        starpu_rbtree_set_black(parent);
-        starpu_rbtree_set_red(grand_parent);
-        starpu_rbtree_rotate(tree, grand_parent, right);
-        break;
-    }
+		/*
+		 * Node is the right child of its parent. Rotate left at parent.
+		 */
+		if (parent->children[right] == node)
+		{
+			starpu_rbtree_rotate(tree, parent, left);
+			tmp = node;
+			node = parent;
+			parent = tmp;
+		}
 
-    assert(starpu_rbtree_is_black(tree->root));
+		/*
+		 * Node is the left child of its parent. Handle colors, rotate right
+		 * at grand parent, and leave.
+		 */
+		starpu_rbtree_set_black(parent);
+		starpu_rbtree_set_red(grand_parent);
+		starpu_rbtree_rotate(tree, grand_parent, right);
+		break;
+	}
+
+	assert(starpu_rbtree_is_black(tree->root));
 }
 
 void starpu_rbtree_remove(struct starpu_rbtree *tree, struct starpu_rbtree_node *node)
 {
-    struct starpu_rbtree_node *child, *parent, *brother;
-    int color, left, right;
+	struct starpu_rbtree_node *child, *parent, *brother;
+	int color, left, right;
 
-    if (node->children[STARPU_RBTREE_LEFT] == NULL)
-        child = node->children[STARPU_RBTREE_RIGHT];
-    else if (node->children[STARPU_RBTREE_RIGHT] == NULL)
-        child = node->children[STARPU_RBTREE_LEFT];
-    else
-    {
-        struct starpu_rbtree_node *successor;
-
-        /*
-         * Two-children case: replace the node with its successor.
-         */
-
-        successor = node->children[STARPU_RBTREE_RIGHT];
-
-        while (successor->children[STARPU_RBTREE_LEFT] != NULL)
-            successor = successor->children[STARPU_RBTREE_LEFT];
-
-        color = starpu_rbtree_color(successor);
-        child = successor->children[STARPU_RBTREE_RIGHT];
-        parent = starpu_rbtree_parent(node);
-
-        if (unlikely(parent == NULL))
-            tree->root = successor;
-        else
-            parent->children[starpu_rbtree_index(node, parent)] = successor;
-
-        parent = starpu_rbtree_parent(successor);
-
-        /*
-         * Set parent directly to keep the original color.
-         */
-        successor->parent = node->parent;
-        successor->children[STARPU_RBTREE_LEFT] = node->children[STARPU_RBTREE_LEFT];
-        starpu_rbtree_set_parent(successor->children[STARPU_RBTREE_LEFT], successor);
-
-        if (node == parent)
-            parent = successor;
-        else
+	if (node->children[STARPU_RBTREE_LEFT] == NULL)
+		child = node->children[STARPU_RBTREE_RIGHT];
+	else if (node->children[STARPU_RBTREE_RIGHT] == NULL)
+		child = node->children[STARPU_RBTREE_LEFT];
+	else
 	{
-            successor->children[STARPU_RBTREE_RIGHT] = node->children[STARPU_RBTREE_RIGHT];
-            starpu_rbtree_set_parent(successor->children[STARPU_RBTREE_RIGHT], successor);
-            parent->children[STARPU_RBTREE_LEFT] = child;
+		struct starpu_rbtree_node *successor;
 
-            if (child != NULL)
-                starpu_rbtree_set_parent(child, parent);
-        }
+		/*
+		 * Two-children case: replace the node with its successor.
+		 */
 
-        goto update_color;
-    }
+		successor = node->children[STARPU_RBTREE_RIGHT];
 
-    /*
-     * Node has at most one child.
-     */
+		while (successor->children[STARPU_RBTREE_LEFT] != NULL)
+			successor = successor->children[STARPU_RBTREE_LEFT];
 
-    color = starpu_rbtree_color(node);
-    parent = starpu_rbtree_parent(node);
+		color = starpu_rbtree_color(successor);
+		child = successor->children[STARPU_RBTREE_RIGHT];
+		parent = starpu_rbtree_parent(node);
 
-    if (child != NULL)
-        starpu_rbtree_set_parent(child, parent);
+		if (unlikely(parent == NULL))
+			tree->root = successor;
+		else
+			parent->children[starpu_rbtree_index(node, parent)] = successor;
 
-    if (unlikely(parent == NULL))
-        tree->root = child;
-    else
-        parent->children[starpu_rbtree_index(node, parent)] = child;
+		parent = starpu_rbtree_parent(successor);
 
-    /*
-     * The node has been removed, update the colors. The child pointer can
-     * be null, in which case it is considered a black leaf.
-     */
-update_color:
-    if (color == STARPU_RBTREE_COLOR_RED)
-        return;
+		/*
+		 * Set parent directly to keep the original color.
+		 */
+		successor->parent = node->parent;
+		successor->children[STARPU_RBTREE_LEFT] = node->children[STARPU_RBTREE_LEFT];
+		starpu_rbtree_set_parent(successor->children[STARPU_RBTREE_LEFT], successor);
 
-    for (;;)
-    {
-        if ((child != NULL) && starpu_rbtree_is_red(child))
+		if (node == parent)
+			parent = successor;
+		else
+		{
+			successor->children[STARPU_RBTREE_RIGHT] = node->children[STARPU_RBTREE_RIGHT];
+			starpu_rbtree_set_parent(successor->children[STARPU_RBTREE_RIGHT], successor);
+			parent->children[STARPU_RBTREE_LEFT] = child;
+
+			if (child != NULL)
+				starpu_rbtree_set_parent(child, parent);
+		}
+
+		goto update_color;
+	}
+
+	/*
+	 * Node has at most one child.
+	 */
+
+	color = starpu_rbtree_color(node);
+	parent = starpu_rbtree_parent(node);
+
+	if (child != NULL)
+		starpu_rbtree_set_parent(child, parent);
+
+	if (unlikely(parent == NULL))
+		tree->root = child;
+	else
+		parent->children[starpu_rbtree_index(node, parent)] = child;
+
+	/*
+	 * The node has been removed, update the colors. The child pointer can
+	 * be null, in which case it is considered a black leaf.
+	 */
+ update_color:
+	if (color == STARPU_RBTREE_COLOR_RED)
+		return;
+
+	for (;;)
 	{
-            starpu_rbtree_set_black(child);
-            break;
-        }
+		if ((child != NULL) && starpu_rbtree_is_red(child))
+		{
+			starpu_rbtree_set_black(child);
+			break;
+		}
 
-        if (parent == NULL)
-            break;
+		if (parent == NULL)
+			break;
 
-        left = starpu_rbtree_index(child, parent);
-        right = 1 - left;
+		left = starpu_rbtree_index(child, parent);
+		right = 1 - left;
 
-        brother = parent->children[right];
+		brother = parent->children[right];
 
-        /*
-         * Brother is red. Recolor and rotate left at parent so that brother
-         * becomes black.
-         */
-        if (starpu_rbtree_is_red(brother))
-	{
-            starpu_rbtree_set_black(brother);
-            starpu_rbtree_set_red(parent);
-            starpu_rbtree_rotate(tree, parent, left);
-            brother = parent->children[right];
-        }
+		/*
+		 * Brother is red. Recolor and rotate left at parent so that brother
+		 * becomes black.
+		 */
+		if (starpu_rbtree_is_red(brother))
+		{
+			starpu_rbtree_set_black(brother);
+			starpu_rbtree_set_red(parent);
+			starpu_rbtree_rotate(tree, parent, left);
+			brother = parent->children[right];
+		}
 
-        /*
-         * Brother has no red child. Recolor and repeat at parent.
-         */
-        if (((brother->children[STARPU_RBTREE_LEFT] == NULL)
-             || starpu_rbtree_is_black(brother->children[STARPU_RBTREE_LEFT]))
-            && ((brother->children[STARPU_RBTREE_RIGHT] == NULL)
-                || starpu_rbtree_is_black(brother->children[STARPU_RBTREE_RIGHT])))
-	{
-            starpu_rbtree_set_red(brother);
-            child = parent;
-            parent = starpu_rbtree_parent(child);
-            continue;
-        }
+		/*
+		 * Brother has no red child. Recolor and repeat at parent.
+		 */
+		if (((brother->children[STARPU_RBTREE_LEFT] == NULL)
+		     || starpu_rbtree_is_black(brother->children[STARPU_RBTREE_LEFT]))
+		    && ((brother->children[STARPU_RBTREE_RIGHT] == NULL)
+			|| starpu_rbtree_is_black(brother->children[STARPU_RBTREE_RIGHT])))
+		{
+			starpu_rbtree_set_red(brother);
+			child = parent;
+			parent = starpu_rbtree_parent(child);
+			continue;
+		}
 
-        /*
-         * Brother's right child is black. Recolor and rotate right at brother.
-         */
-        if ((brother->children[right] == NULL)
-            || starpu_rbtree_is_black(brother->children[right]))
-	{
-            starpu_rbtree_set_black(brother->children[left]);
-            starpu_rbtree_set_red(brother);
-            starpu_rbtree_rotate(tree, brother, right);
-            brother = parent->children[right];
-        }
+		/*
+		 * Brother's right child is black. Recolor and rotate right at brother.
+		 */
+		if ((brother->children[right] == NULL)
+		    || starpu_rbtree_is_black(brother->children[right]))
+		{
+			starpu_rbtree_set_black(brother->children[left]);
+			starpu_rbtree_set_red(brother);
+			starpu_rbtree_rotate(tree, brother, right);
+			brother = parent->children[right];
+		}
 
-        /*
-         * Brother's left child is black. Exchange parent and brother colors
-         * (we already know brother is black), set brother's right child black,
-         * rotate left at parent and leave.
-         */
-        starpu_rbtree_set_color(brother, starpu_rbtree_color(parent));
-        starpu_rbtree_set_black(parent);
-        starpu_rbtree_set_black(brother->children[right]);
-        starpu_rbtree_rotate(tree, parent, left);
-        break;
-    }
+		/*
+		 * Brother's left child is black. Exchange parent and brother colors
+		 * (we already know brother is black), set brother's right child black,
+		 * rotate left at parent and leave.
+		 */
+		starpu_rbtree_set_color(brother, starpu_rbtree_color(parent));
+		starpu_rbtree_set_black(parent);
+		starpu_rbtree_set_black(brother->children[right]);
+		starpu_rbtree_rotate(tree, parent, left);
+		break;
+	}
 
-    assert((tree->root == NULL) || starpu_rbtree_is_black(tree->root));
+	assert((tree->root == NULL) || starpu_rbtree_is_black(tree->root));
 }
 
 struct starpu_rbtree_node * starpu_rbtree_nearest(struct starpu_rbtree_node *parent, int index,
-                                    int direction)
+						  int direction)
 {
-    assert(starpu_rbtree_check_index(direction));
+	assert(starpu_rbtree_check_index(direction));
 
-    if (parent == NULL)
-        return NULL;
+	if (parent == NULL)
+		return NULL;
 
-    assert(starpu_rbtree_check_index(index));
+	assert(starpu_rbtree_check_index(index));
 
-    if (index != direction)
-        return parent;
+	if (index != direction)
+		return parent;
 
-    return starpu_rbtree_walk(parent, direction);
+	return starpu_rbtree_walk(parent, direction);
 }
 
 struct starpu_rbtree_node * starpu_rbtree_firstlast(const struct starpu_rbtree *tree, int direction)
 {
-    struct starpu_rbtree_node *prev, *cur;
+	struct starpu_rbtree_node *prev, *cur;
 
-    assert(starpu_rbtree_check_index(direction));
+	assert(starpu_rbtree_check_index(direction));
 
-    prev = NULL;
+	prev = NULL;
 
-    for (cur = tree->root; cur != NULL; cur = cur->children[direction])
-        prev = cur;
+	for (cur = tree->root; cur != NULL; cur = cur->children[direction])
+		prev = cur;
 
-    return prev;
+	return prev;
 }
 
 struct starpu_rbtree_node * starpu_rbtree_walk(struct starpu_rbtree_node *node, int direction)
 {
-    int left, right;
+	int left, right;
 
-    assert(starpu_rbtree_check_index(direction));
+	assert(starpu_rbtree_check_index(direction));
 
-    left = direction;
-    right = 1 - left;
+	left = direction;
+	right = 1 - left;
 
-    if (node == NULL)
-        return NULL;
+	if (node == NULL)
+		return NULL;
 
-    if (node->children[left] != NULL)
-    {
-        node = node->children[left];
-
-        while (node->children[right] != NULL)
-            node = node->children[right];
-    }
-    else
-    {
-        for (;;)
+	if (node->children[left] != NULL)
 	{
-            struct starpu_rbtree_node *parent;
-	    int index;
+		node = node->children[left];
 
-            parent = starpu_rbtree_parent(node);
+		while (node->children[right] != NULL)
+			node = node->children[right];
+	}
+	else
+	{
+		for (;;)
+		{
+			struct starpu_rbtree_node *parent;
+			int index;
 
-            if (parent == NULL)
-                return NULL;
+			parent = starpu_rbtree_parent(node);
 
-            index = starpu_rbtree_index(node, parent);
-            node = parent;
+			if (parent == NULL)
+				return NULL;
 
-            if (index == right)
-                break;
-        }
-    }
+			index = starpu_rbtree_index(node, parent);
+			node = parent;
 
-    return node;
+			if (index == right)
+				break;
+		}
+	}
+
+	return node;
 }
 
 /*
@@ -442,59 +442,59 @@ struct starpu_rbtree_node * starpu_rbtree_walk(struct starpu_rbtree_node *node, 
  */
 static struct starpu_rbtree_node * starpu_rbtree_find_deepest(struct starpu_rbtree_node *node)
 {
-    struct starpu_rbtree_node *parent;
+	struct starpu_rbtree_node *parent;
 
-    assert(node != NULL);
+	assert(node != NULL);
 
-    for (;;)
-    {
-        parent = node;
-        node = node->children[STARPU_RBTREE_LEFT];
-
-        if (node == NULL)
+	for (;;)
 	{
-            node = parent->children[STARPU_RBTREE_RIGHT];
+		parent = node;
+		node = node->children[STARPU_RBTREE_LEFT];
 
-            if (node == NULL)
-                return parent;
-        }
-    }
+		if (node == NULL)
+		{
+		node = parent->children[STARPU_RBTREE_RIGHT];
+
+		if (node == NULL)
+		    return parent;
+		}
+	}
 }
 
 struct starpu_rbtree_node * starpu_rbtree_postwalk_deepest(const struct starpu_rbtree *tree)
 {
-    struct starpu_rbtree_node *node;
+	struct starpu_rbtree_node *node;
 
-    node = tree->root;
+	node = tree->root;
 
-    if (node == NULL)
-        return NULL;
+	if (node == NULL)
+		return NULL;
 
-    return starpu_rbtree_find_deepest(node);
+	return starpu_rbtree_find_deepest(node);
 }
 
 struct starpu_rbtree_node * starpu_rbtree_postwalk_unlink(struct starpu_rbtree_node *node)
 {
-    struct starpu_rbtree_node *parent;
-    int index;
+	struct starpu_rbtree_node *parent;
+	int index;
 
-    if (node == NULL)
-        return NULL;
+	if (node == NULL)
+		return NULL;
 
-    assert(node->children[STARPU_RBTREE_LEFT] == NULL);
-    assert(node->children[STARPU_RBTREE_RIGHT] == NULL);
+	assert(node->children[STARPU_RBTREE_LEFT] == NULL);
+	assert(node->children[STARPU_RBTREE_RIGHT] == NULL);
 
-    parent = starpu_rbtree_parent(node);
+	parent = starpu_rbtree_parent(node);
 
-    if (parent == NULL)
-        return NULL;
+	if (parent == NULL)
+		return NULL;
 
-    index = starpu_rbtree_index(node, parent);
-    parent->children[index] = NULL;
-    node = parent->children[STARPU_RBTREE_RIGHT];
+	index = starpu_rbtree_index(node, parent);
+	parent->children[index] = NULL;
+	node = parent->children[STARPU_RBTREE_RIGHT];
 
-    if (node == NULL)
-        return parent;
+	if (node == NULL)
+		return parent;
 
-    return starpu_rbtree_find_deepest(node);
+	return starpu_rbtree_find_deepest(node);
 }

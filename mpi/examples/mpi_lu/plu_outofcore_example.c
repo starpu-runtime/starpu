@@ -261,6 +261,27 @@ static void init_matrix(int rank)
 	//display_all_blocks(nblocks, size/nblocks);
 }
 
+static void destroy_matrix(void) {
+	char *filename;
+	unsigned filename_length = strlen(path) + 1 + sizeof(nblocks)*3 + 1 + sizeof(nblocks)*3 + 1;
+	unsigned i,j;
+
+	filename = malloc(filename_length);
+
+	for (j = 0; j < nblocks; j++)
+	{
+		for (i = 0; i < nblocks; i++)
+		{
+			snprintf(filename, filename_length, "%s/%u,%u", path, i, j);
+			unlink(filename);
+		}
+	}
+
+	free(filename);
+
+	rmdir(path);
+}
+
 TYPE *STARPU_PLU(get_block)(unsigned i, unsigned j)
 {
 	(void)i;
@@ -281,6 +302,13 @@ starpu_data_handle_t STARPU_PLU(get_block_handle)(unsigned i, unsigned j)
 	return dataA_handles[j+i*nblocks];
 }
 
+#if STARPU_MAXNODES == 1
+/* Cannot register a disk */
+int main(int argc, char **argv)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#else
 int main(int argc, char **argv)
 {
 	int rank;
@@ -436,8 +464,11 @@ int main(int argc, char **argv)
 	free(dataA_handles);
 	free(disk_objs);
 
+	destroy_matrix();
+
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
 
 	return 0;
 }
+#endif

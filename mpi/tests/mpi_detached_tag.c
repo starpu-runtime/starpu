@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 		starpu_mpi_shutdown();
 		if (!mpi_init)
 			MPI_Finalize();
-		return STARPU_TEST_SKIPPED;
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 
 	tab = calloc(SIZE, sizeof(float));
@@ -67,11 +67,13 @@ int main(int argc, char **argv)
 
 		if ((loop % 2) == (rank%2))
 		{
-			starpu_mpi_isend_detached_unlock_tag(tab_handle, other_rank, loop, MPI_COMM_WORLD, tag);
+			ret = starpu_mpi_isend_detached_unlock_tag(tab_handle, other_rank, loop, MPI_COMM_WORLD, tag);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached_unlock_tag");
 		}
 		else
 		{
-			starpu_mpi_irecv_detached_unlock_tag(tab_handle, other_rank, loop, MPI_COMM_WORLD, tag);
+			ret= starpu_mpi_irecv_detached_unlock_tag(tab_handle, other_rank, loop, MPI_COMM_WORLD, tag);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached_unlock_tag");
 		}
 
 		starpu_tag_wait(tag);

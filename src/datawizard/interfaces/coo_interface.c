@@ -64,13 +64,13 @@ static const struct starpu_data_copy_methods coo_copy_data_methods =
 };
 
 static void
-register_coo_handle(starpu_data_handle_t handle, unsigned home_node,
+register_coo_handle(starpu_data_handle_t handle, int home_node,
 		    void *data_interface)
 {
 	struct starpu_coo_interface *coo_interface =
 		(struct starpu_coo_interface *) data_interface;
 
-	unsigned node;
+	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
 	{
 		struct starpu_coo_interface *local_interface;

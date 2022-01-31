@@ -36,21 +36,23 @@ loader_SOURCES		=	../../tests/loader.c
 endif
 
 if STARPU_SIMGRID
-MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+MPIRUN_I		=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
 else
 # we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPIRUN_I		=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 else
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPIRUN_I		=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
 endif
 
+MPIRUN			?= 	$(MPIRUN_I)
+
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER	 	=	$(MPI) $(LOADER_BIN)
+LOG_COMPILER	 	=	$(MPIRUN) $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPIRUN) $(LOADER_BIN)
 endif
 
 if STARPU_MPI_CHECK
@@ -76,18 +78,20 @@ EXTRA_DIST = 				\
 	mpi_lu/pxlu_implicit.c		\
 	mpi_lu/pxlu_kernels.h		\
 	mpi_lu/pxlu_kernels.c		\
+	matrix_mult/mm_2dbc.c 		\
 	matrix_decomposition/mpi_cholesky.h 		\
 	matrix_decomposition/mpi_cholesky_codelets.h 	\
 	matrix_decomposition/mpi_cholesky_kernels.h	\
 	matrix_decomposition/mpi_cholesky_models.h 	\
 	matrix_decomposition/mpi_decomposition_params.h	\
 	matrix_decomposition/mpi_decomposition_matrix.h	\
-	user_datatype/my_interface.h			\
-	benchs/abstract_sendrecv_bench.h	\
-	benchs/bench_helper.h			\
-	benchs/gemm_helper.h			\
-	benchs/burst_helper.h			\
-	helper.h
+	user_datatype/my_interface.h	\
+	benchs/abstract_sendrecv_bench.h\
+	benchs/bench_helper.h		\
+	benchs/gemm_helper.h		\
+	benchs/burst_helper.h		\
+	helper.h			\
+	perf.sh
 
 examplebindir = $(libdir)/starpu/mpi
 
@@ -289,15 +293,15 @@ cg_cg_LDADD =					\
 endif
 endif
 
-###########################
-# MPI Matrix mult example #
-###########################
+############################
+# MPI Matrix mult examples #
+############################
 
 examplebin_PROGRAMS +=		\
 	matrix_mult/mm
 
 matrix_mult_mm_SOURCES	=		\
-	matrix_mult/mm.c
+	matrix_mult/mm.c		
 
 matrix_mult_mm_LDADD =			\
 	-lm
@@ -307,22 +311,45 @@ starpu_mpi_EXAMPLES +=				\
 	matrix_mult/mm
 endif
 
+if !STARPU_NO_BLAS_LIB
+examplebin_PROGRAMS +=		\
+	matrix_mult/mm_2dbc
+
+matrix_mult_mm_2dbc_SOURCES	=	\
+	matrix_mult/mm_2dbc.c		\
+	../../examples/common/blas.c
+
+matrix_mult_mm_2dbc_LDADD =		\
+	$(STARPU_LIBNUMA_LDFLAGS) 	\
+	$(STARPU_BLAS_LDFLAGS) -lm
+
+if !STARPU_SIMGRID
+starpu_mpi_EXAMPLES +=				\
+	matrix_mult/mm_2dbc
+endif
+endif
+
 ########################
 # MPI STARPU_MPI_REDUX #
 ########################
 
 examplebin_PROGRAMS +=		\
-	mpi_redux/mpi_redux
+	mpi_redux/mpi_redux     \
+	mpi_redux/mpi_redux_tree
 
 mpi_redux_mpi_redux_SOURCES	=		\
-	mpi_redux/mpi_redux.c
+	mpi_redux/mpi_redux.c                   
+mpi_redux_mpi_redux_tree_SOURCES	=		\
+	mpi_redux/mpi_redux_tree.c
 
 mpi_redux_mpi_redux_LDADD =			\
 	-lm
-
+mpi_redux_mpi_redux_tree_LDADD =			\
+	-lm
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
-	mpi_redux/mpi_redux
+	mpi_redux/mpi_redux                     \
+	mpi_redux/mpi_redux_tree
 endif
 
 ##########################################
@@ -377,20 +404,30 @@ endif
 
 if STARPU_HAVE_MPIFORT
 if !STARPU_SANITIZE
-examplebin_PROGRAMS +=		\
-	native_fortran/nf_mpi_redux
+examplebin_PROGRAMS +=				\
+	native_fortran/nf_mpi_redux		\
+	native_fortran/nf_mpi_redux_tree
 
-native_fortran_nf_mpi_redux_SOURCES	=			\
+native_fortran_nf_mpi_redux_SOURCES =		\
 	native_fortran/fstarpu_mpi_mod.f90	\
 	native_fortran/fstarpu_mod.f90		\
 	native_fortran/nf_mpi_redux.f90	
 
-native_fortran_nf_mpi_redux_LDADD =					\
+native_fortran_nf_mpi_redux_LDADD =		\
+	-lm
+
+native_fortran_nf_mpi_redux_tree_SOURCES =	\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
+	native_fortran/nf_mpi_redux_tree.f90	
+
+native_fortran_nf_mpi_redux_tree_LDADD =	\
 	-lm
 
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
-	native_fortran/nf_mpi_redux
+	native_fortran/nf_mpi_redux		\
+	native_fortran/nf_mpi_redux_tree
 endif
 endif
 endif
@@ -441,7 +478,8 @@ starpu_mpi_EXAMPLES	+=			\
 examplebin_PROGRAMS +=				\
 	user_datatype/user_datatype		\
 	user_datatype/user_datatype2		\
-	user_datatype/user_datatype_early
+	user_datatype/user_datatype_early	\
+	user_datatype/user_datatype_interface
 
 user_datatype_user_datatype_SOURCES =		\
 	user_datatype/user_datatype.c		\
@@ -455,11 +493,16 @@ user_datatype_user_datatype_early_SOURCES =	\
 	user_datatype/user_datatype_early.c	\
 	user_datatype/my_interface.c
 
+user_datatype_user_datatype_interface_SOURCES =	\
+	user_datatype/user_datatype_interface.c	\
+	user_datatype/my_interface.c
+
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES	+=			\
 	user_datatype/user_datatype2		\
 	user_datatype/user_datatype_early	\
-	user_datatype/user_datatype
+	user_datatype/user_datatype		\
+	user_datatype/user_datatype_interface
 endif
 
 ###################
@@ -513,6 +556,7 @@ native_fortran/nf_mm_task_build.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.
 native_fortran/nf_basic_ring.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_redux_test.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_mpi_redux.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
+native_fortran/nf_mpi_redux_tree.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 endif
 endif
 

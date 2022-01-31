@@ -1,6 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +36,6 @@
 #include <starpu_opencl.h>
 #endif
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-#include <mpi.h>
-#endif
-
 #pragma GCC visibility push(hidden)
 
 #ifdef __cplusplus
@@ -56,29 +53,18 @@ enum _starpu_may_alloc
 	_STARPU_DATAWIZARD_ONLY_FAST_ALLOC
 };
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-LIST_TYPE(_starpu_mpi_ms_event_request,
-        MPI_Request request;
-);
-
-struct _starpu_mpi_ms_async_event
-{
-        int is_sender;
-        struct _starpu_mpi_ms_event_request_list * requests;
-};
-#endif
 
 LIST_TYPE(_starpu_disk_backend_event,
 	void *backend_event;
 );
 
-struct _starpu_disk_async_event
+struct _starpu_disk_event
 {
 	unsigned memory_node;
+	unsigned node;
         struct _starpu_disk_backend_event_list * requests;
 
 	void * ptr;
-	unsigned node;
 	size_t size;
 	starpu_data_handle_t handle;
 };
@@ -87,29 +73,13 @@ struct _starpu_disk_async_event
  * transfer has terminated or not */
 union _starpu_async_channel_event
 {
-#ifdef STARPU_SIMGRID
-	struct
-	{
-		unsigned finished;
-		starpu_pthread_queue_t *queue;
-	};
-#endif
-#ifdef STARPU_USE_CUDA
-        cudaEvent_t cuda_event;
-#endif
-#ifdef STARPU_USE_OPENCL
-        cl_event opencl_event;
-#endif
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-        struct _starpu_mpi_ms_async_event mpi_ms_event;
-#endif
-        struct _starpu_disk_async_event disk_event;
+	char data[40];
 };
 
 struct _starpu_async_channel
 {
 	union _starpu_async_channel_event event;
-	struct _starpu_node_ops *node_ops;
+	const struct _starpu_node_ops *node_ops;
         /** Which node to polling when needing ACK msg */
         struct _starpu_mp_node *polling_node_sender;
         struct _starpu_mp_node *polling_node_receiver;
@@ -127,6 +97,8 @@ int _starpu_driver_copy_data_1_to_1(starpu_data_handle_t handle,
 				    struct _starpu_data_request *req,
 				    enum _starpu_may_alloc may_alloc,
 				    enum starpu_is_prefetch prefetch);
+
+int _starpu_copy_interface_any_to_any(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
 
 unsigned _starpu_driver_test_request_completion(struct _starpu_async_channel *async_channel);
 void _starpu_driver_wait_request_completion(struct _starpu_async_channel *async_channel);

@@ -17,9 +17,11 @@
 
 
 #include <starpu.h>
+#include <dlfcn.h>
 #include <common/config.h>
 #include <common/utils.h>
 #include <drivers/mp_common/mp_common.h>
+#include <drivers/mp_common/sink_common.h>
 #include <drivers/mpi/driver_mpi_common.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <common/barrier.h>
@@ -68,6 +70,17 @@ static void _starpu_sink_common_lookup(const struct _starpu_mp_node *node, char 
 		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_ANSWER_LOOKUP, &func, sizeof(func));
 	else
 		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_ERROR_LOOKUP, NULL, 0);
+}
+
+/* CPU version of sink lookup */
+void (*_starpu_sink_common_cpu_lookup (const struct _starpu_mp_node * node STARPU_ATTRIBUTE_UNUSED, char* func_name))(void)
+{
+#ifdef RTLD_DEFAULT
+        return dlsym(RTLD_DEFAULT, func_name);
+#else
+        void *dl_handle = dlopen(NULL, RTLD_NOW);
+        return dlsym(dl_handle, func_name);
+#endif
 }
 
 /* Allocate a memory space and send the address of this space to the host
@@ -308,7 +321,7 @@ static void _starpu_sink_common_recv_workers(struct _starpu_mp_node * node, void
 void _starpu_sink_common_worker(void)
 {
 	struct _starpu_mp_node *node = NULL;
-	enum _starpu_mp_command command = STARPU_MP_COMMAND_EXIT;
+	enum _starpu_mp_command command;
 	int arg_size = 0;
 	void *arg = NULL;
 	int exit_starpu = 0;
@@ -690,8 +703,10 @@ void* _starpu_sink_thread(void * thread_arg)
 		sem_wait(&node->sem_run_table[coreid]);
 		if (node->run_table_detached[coreid] != NULL)
 			_starpu_sink_common_execute_kernel(node, coreid, worker, 1);
-		if (node->run_table[coreid] != NULL)
+		else if (node->run_table[coreid] != NULL)
 			_starpu_sink_common_execute_kernel(node, coreid, worker, 0);
+		else
+			STARPU_ASSERT(!node->is_running);
 
 	}
 	starpu_pthread_exit(NULL);
@@ -704,9 +719,15 @@ static void _starpu_sink_common_execute_thread(struct _starpu_mp_node *node, str
 	int detached = task->detached;
 	/* Add the task to the specific thread */
 	if (detached)
+	{
+		STARPU_ASSERT(!node->run_table_detached[task->coreid]);
 		node->run_table_detached[task->coreid] = task;
+	}
 	else
+	{
+		STARPU_ASSERT(!node->run_table[task->coreid]);
 		node->run_table[task->coreid] = task;
+	}
 	/* Unlock the mutex to wake up the thread which will execute the task */
 	sem_post(&node->sem_run_table[task->coreid]);
 }

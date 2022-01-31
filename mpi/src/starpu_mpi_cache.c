@@ -334,16 +334,6 @@ static void _starpu_mpi_cache_flush_nolock(starpu_data_handle_t data_handle)
 	}
 }
 
-void _starpu_mpi_cache_flush(starpu_data_handle_t data_handle)
-{
-	if (_starpu_cache_enabled == 0)
-		return;
-
-	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
-	_starpu_mpi_cache_flush_nolock(data_handle);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
-}
-
 static void _starpu_mpi_cache_flush_and_invalidate_nolock(MPI_Comm comm, starpu_data_handle_t data_handle)
 {
 	int my_rank, mpi_rank;
@@ -353,6 +343,7 @@ static void _starpu_mpi_cache_flush_and_invalidate_nolock(MPI_Comm comm, starpu_
 	starpu_mpi_comm_rank(comm, &my_rank);
 	mpi_rank = starpu_mpi_data_get_rank(data_handle);
 	if (mpi_rank != my_rank && mpi_rank != -1)
+		// Clean the memory on nodes which do not own the data
 		starpu_data_invalidate_submit(data_handle);
 }
 

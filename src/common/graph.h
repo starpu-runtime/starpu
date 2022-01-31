@@ -17,6 +17,7 @@
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
+#include <core/task.h>
 #include <common/list.h>
 
 #pragma GCC visibility push(hidden)
@@ -119,6 +120,10 @@ void _starpu_graph_compute_descendants(void);
  * Apply func on each job of the graph
 */
 void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph_node *node), void *data);
+
+struct _starpu_graph_node *_starpu_graph_task_node(struct starpu_task *task);
+struct starpu_task *_starpu_graph_node_task(struct _starpu_graph_node *node);
+void _starpu_graph_node_outgoing(struct _starpu_graph_node *node, unsigned *n_outgoing, struct _starpu_graph_node ***outgoing);
 
 #pragma GCC visibility pop
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -64,6 +64,11 @@ typedef void _starpu_simgrid_main_ret;
 typedef int _starpu_simgrid_main_ret;
 #define _STARPU_SIMGRID_MAIN_RETURN return 0
 #endif
+#if (SIMGRID_VERSION >= 31500)
+typedef sg_link_t starpu_sg_link_t;
+#else
+typedef SD_link_t starpu_sg_link_t;
+#endif
 _starpu_simgrid_main_ret
 _starpu_simgrid_thread_start(int argc, char *argv[]);
 
@@ -84,9 +89,8 @@ struct _starpu_job;
 void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_job *job, struct starpu_perfmodel_arch* perf_arch, double length, double energy, unsigned *finished);
 struct _starpu_data_request;
 int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, struct _starpu_data_request *req);
-union _starpu_async_channel_event;
-int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event);
-int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event);
+int _starpu_simgrid_wait_transfer_event(void *event);
+int _starpu_simgrid_test_transfer_event(void *event);
 void _starpu_simgrid_sync_gpus(void);
 /** Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);

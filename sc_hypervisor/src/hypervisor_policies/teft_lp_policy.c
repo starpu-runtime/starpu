@@ -257,6 +257,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 
 static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct starpu_task *task, uint32_t footprint)
 {
+	(void)sched_ctx;
 	if(worker > -2)
 	{
 		int ret = starpu_pthread_mutex_trylock(&act_hypervisor_mutex);
@@ -284,6 +285,8 @@ static void teft_lp_handle_poped_task(unsigned sched_ctx, int worker, struct sta
 
 static void teft_lp_handle_idle_cycle(unsigned sched_ctx, int worker)
 {
+	(void)sched_ctx;
+	(void)worker;
 	unsigned criteria = sc_hypervisor_get_resize_criteria();
 	if(criteria != SC_NOTHING)// && criteria == SC_IDLE)
 	{

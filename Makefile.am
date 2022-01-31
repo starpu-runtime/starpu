@@ -37,6 +37,10 @@ if STARPU_USE_MPI
 SUBDIRS += mpi
 endif
 
+if STARPU_BUBBLE
+SUBDIRS += bubble
+endif
+
 if STARPU_BUILD_EXAMPLES
 SUBDIRS += examples
 endif
@@ -67,6 +71,10 @@ if STARPU_USE_JULIA
 SUBDIRS += julia
 endif
 
+if STARPU_BUILD_ECLIPSE_PLUGIN
+SUBDIRS += eclipse-plugin
+endif
+
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc starpu-1.2.pc starpu-1.3.pc
 
@@ -89,9 +97,9 @@ versinclude_HEADERS = 				\
 	include/starpu_fxt.h			\
 	include/starpu_cuda.h			\
 	include/starpu_opencl.h			\
+	include/starpu_max_fpga.h		\
 	include/starpu_openmp.h			\
 	include/starpu_sink.h			\
-	include/starpu_mpi_ms.h			\
 	include/starpu_expert.h			\
 	include/starpu_profiling.h		\
 	include/starpu_bound.h			\
@@ -160,8 +168,8 @@ txtdir = ${prefix}
 else
 txtdir = ${docdir}
 endif
-txt_DATA = AUTHORS COPYING.LGPL README README.dev STARPU-REVISION
-EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README README.dev STARPU-VERSION STARPU-REVISION build-aux/svn2cl.xsl
+txt_DATA = AUTHORS COPYING.LGPL README.md README.dev STARPU-REVISION
+EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README.md README.dev STARPU-VERSION STARPU-REVISION
 
 DISTCLEANFILES = STARPU-REVISION
 

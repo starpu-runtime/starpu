@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -35,6 +35,9 @@
 #include <simgrid/simix.h>
 #ifdef STARPU_HAVE_SIMGRID_HOST_H
 #include <simgrid/host.h>
+#endif
+#ifdef STARPU_HAVE_SIMGRID_LINK_H
+#include <simgrid/link.h>
 #endif
 #ifdef STARPU_HAVE_SIMGRID_ENGINE_H
 #include <simgrid/engine.h>
@@ -84,6 +87,19 @@ static struct worker_runner
 	starpu_pthread_t runner;
 } worker_runner[STARPU_NMAXWORKERS];
 static void *task_execute(void *arg);
+
+struct _starpu_simgrid_event
+{
+	unsigned finished;
+	starpu_pthread_queue_t *queue;
+};
+static inline struct _starpu_simgrid_event *_starpu_simgrid_event(union _starpu_async_channel_event *_event)
+{
+	struct _starpu_simgrid_event *event;
+	STARPU_STATIC_ASSERT(sizeof(*event) <= sizeof(*_event));
+	event = (void *) _event;
+	return event;
+}
 
 size_t _starpu_default_stack_size = 8192;
 
@@ -494,7 +510,11 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #endif
 		/* We didn't catch application's main. */
 		/* Start maestro as a separate thread */
+#ifdef HAVE_SIMGRID_SET_MAESTRO
+		simgrid_set_maestro(maestro, NULL);
+#else
 		SIMIX_set_maestro(maestro, NULL);
+#endif
 		/* Initialize simgrid */
 		_starpu_start_simgrid(argc, *argv);
 
@@ -502,7 +522,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 		void **tsd;
 		_STARPU_CALLOC(tsd, MAX_TSD+1, sizeof(void*));
 
-#if defined(HAVE_SG_ACTOR_ATTACH) && defined (HAVE_SG_ACTOR_DATA)
+#if defined(HAVE_SG_ACTOR_ATTACH) && (defined (HAVE_SG_ACTOR_DATA) || defined(HAVE_SG_ACTOR_GET_DATA))
 		sg_actor_t actor = sg_actor_attach("main", NULL, _starpu_simgrid_get_host_by_name("MAIN"), NULL);
 #ifdef HAVE_SG_ACTOR_SET_DATA
 		sg_actor_set_data(actor, tsd);
@@ -529,7 +549,7 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 #ifndef STARPU_STATIC_ONLY
 		_STARPU_ERROR("Simgrid currently does not support privatization for dynamically-linked libraries in SMPI. Please reconfigure and build StarPU with --disable-shared");
 #endif
-#if defined(HAVE_MSG_PROCESS_USERDATA_INIT) && !defined(HAVE_SG_ACTOR_DATA)
+#if defined(HAVE_MSG_PROCESS_USERDATA_INIT) && !(defined(HAVE_SG_ACTOR_DATA) || defined(HAVE_SG_ACTOR_GET_DATA))
 		MSG_process_userdata_init();
 #endif
 		void **tsd;
@@ -646,7 +666,7 @@ void _starpu_simgrid_deinit(void)
 
 struct task
 {
-#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+#if defined(HAVE_SG_ACTOR_SELF_EXECUTE) || defined(HAVE_SG_ACTOR_EXECUTE)
 	double flops;
 #else
 	msg_task_t task;
@@ -730,7 +750,7 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 {
 	struct starpu_task *starpu_task = j->task;
 	double flops;
-#ifndef HAVE_SG_ACTOR_SELF_EXECUTE
+#if !(defined(HAVE_SG_ACTOR_SELF_EXECUTE) || defined(HAVE_SG_ACTOR_EXECUTE))
 	msg_task_t simgrid_task;
 #endif
 
@@ -771,7 +791,7 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 #endif
 #endif
 
-#ifndef HAVE_SG_ACTOR_SELF_EXECUTE
+#if !(defined(HAVE_SG_ACTOR_SELF_EXECUTE) || defined(HAVE_SG_ACTOR_EXECUTE))
 	simgrid_task = MSG_task_create(_starpu_job_get_task_name(j), flops, 0, NULL);
 #endif
 
@@ -796,7 +816,7 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 		struct task *task;
 		struct worker_runner *w = &worker_runner[workerid];
 		_STARPU_MALLOC(task, sizeof(*task));
-#ifdef HAVE_SG_ACTOR_SELF_EXECUTE
+#if defined(HAVE_SG_ACTOR_SELF_EXECUTE) || defined(HAVE_SG_ACTOR_EXECUTE)
 		task->flops = flops;
 #else
 		task->task = simgrid_task;
@@ -853,7 +873,7 @@ LIST_TYPE(transfer,
 	struct transfer *next;
 )
 
-struct transfer_list pending;
+static struct transfer_list pending;
 
 /* Tell for two transfers whether they should be handled in sequence */
 static int transfers_are_sequential(struct transfer *new_transfer, struct transfer *old_transfer)
@@ -1046,8 +1066,9 @@ static void transfer_submit(struct transfer *transfer)
 	}
 }
 
-int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event)
+int _starpu_simgrid_wait_transfer_event(void *_event)
 {
+	struct _starpu_simgrid_event *event = _event;
 	/* this is not associated to a request so it's synchronous */
 	starpu_pthread_wait_t wait;
 	starpu_pthread_wait_init(&wait);
@@ -1065,8 +1086,9 @@ int _starpu_simgrid_wait_transfer_event(union _starpu_async_channel_event *event
 	return 0;
 }
 
-int _starpu_simgrid_test_transfer_event(union _starpu_async_channel_event *event)
+int _starpu_simgrid_test_transfer_event(void *_event)
 {
+	struct _starpu_simgrid_event *event = _event;
 	return event->finished;
 }
 
@@ -1139,7 +1161,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	if (!simgrid_transfer_cost)
 		return 0;
 
-	union _starpu_async_channel_event *event, myevent;
+	struct _starpu_simgrid_event *event, myevent;
 	double start = 0.;
 	struct transfer *transfer = transfer_new();
 
@@ -1171,7 +1193,7 @@ int _starpu_simgrid_transfer(size_t size, unsigned src_node, unsigned dst_node, 
 	transfer->run_node = starpu_worker_get_local_memory_node();
 
 	if (req)
-		event = &req->async_channel.event;
+		event = _starpu_simgrid_event(&req->async_channel.event);
 	else
 		event = &myevent;
 	event->finished = 0;
@@ -1293,8 +1315,8 @@ void _starpu_simgrid_count_ngpus(void)
 		{
 			int busid;
 			starpu_sg_host_t srchost, dsthost;
-			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(SD_link_t), NULL);
-			SD_link_t link;
+			xbt_dynar_t route_dynar = xbt_dynar_new(sizeof(starpu_sg_link_t), NULL);
+			starpu_sg_link_t link;
 			int i, routesize;
 			int through;
 			unsigned src2;
@@ -1317,7 +1339,7 @@ void _starpu_simgrid_count_ngpus(void)
 #endif
 			routesize = xbt_dynar_length(route_dynar);
 #else
-			const SD_link_t *route = SD_route_get_list(srchost, dsthost);
+			const starpu_sg_link_t *route = SD_route_get_list(srchost, dsthost);
 			routesize = SD_route_get_size(srchost, dsthost);
 			for (i = 0; i < routesize; i++)
 				xbt_dynar_push(route_dynar, &route[i]);
@@ -1393,7 +1415,7 @@ void _starpu_simgrid_count_ngpus(void)
 
 				starpu_sg_host_t srchost2 = _starpu_simgrid_get_memnode_host(src2);
 				int routesize2;
-				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(SD_link_t), NULL);
+				xbt_dynar_t route_dynar2 = xbt_dynar_new(sizeof(starpu_sg_link_t), NULL);
 #if defined(HAVE_SG_HOST_GET_ROUTE) || defined(HAVE_SG_HOST_ROUTE) || defined(sg_host_route)
 #ifdef HAVE_SG_HOST_GET_ROUTE
 				sg_host_get_route(srchost2, ramhost, route_dynar2);
@@ -1402,7 +1424,7 @@ void _starpu_simgrid_count_ngpus(void)
 #endif
 				routesize2 = xbt_dynar_length(route_dynar2);
 #else
-				const SD_link_t *route2 = SD_route_get_list(srchost2, ramhost);
+				const starpu_sg_link_t *route2 = SD_route_get_list(srchost2, ramhost);
 				routesize2 = SD_route_get_size(srchost2, ramhost);
 				for (i = 0; i < routesize2; i++)
 					xbt_dynar_push(route_dynar2, &route2[i]);

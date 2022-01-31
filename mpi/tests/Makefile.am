@@ -34,21 +34,23 @@ loader_SOURCES		=	../../tests/loader.c
 endif
 
 if STARPU_SIMGRID
-MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+MPIRUN_I		=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
 else
 # we always test on 4 processes, the execution time is not that bigger
 if STARPU_QUICK_CHECK
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPIRUN_I		=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 else
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPIRUN_I		=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
 endif
 
+MPIRUN			?= 	$(MPIRUN_I)
+
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER	 	=	$(MPI) $(LOADER_BIN)
+LOG_COMPILER	 	=	$(MPIRUN) $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+TESTS_ENVIRONMENT 	=	STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3 top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPIRUN) $(LOADER_BIN)
 endif
 
 if STARPU_MPI_CHECK
@@ -140,7 +142,8 @@ starpu_mpi_TESTS +=				\
 	ring_sync_detached			\
 	temporary				\
 	user_defined_datatype			\
-	early_stuff
+	early_stuff				\
+	star
 
 if !STARPU_SIMGRID
 # missing support in simgrid
@@ -151,6 +154,7 @@ starpu_mpi_TESTS +=				\
 	mpi_earlyrecv2_sync			\
 	block_interface				\
 	block_interface_pinned			\
+	ndim_interface				\
 	insert_task_compute			\
 	insert_task_sent_cache			\
 	insert_task_recv_cache			\
@@ -193,6 +197,7 @@ noinst_PROGRAMS +=				\
 	early_stuff				\
 	block_interface				\
 	block_interface_pinned			\
+	ndim_interface				\
 	attr					\
 	broadcast				\
 	callback				\
@@ -216,6 +221,7 @@ noinst_PROGRAMS +=				\
 	mpi_reduction				\
 	user_defined_datatype			\
 	tags_checking				\
+	star					\
 	sync					\
 	gather					\
 	gather2					\

@@ -148,7 +148,6 @@ static double _glp_resolve(int ns, int nw, double speed[ns][nw], double w_in_s[n
 		glp_add_rows(lp, nw);
 		for (w = 0; w < nw; w++)
 		{
-			char name[32], title[64];
 			starpu_worker_get_name(w, name, sizeof(name));
 			snprintf(title, sizeof(title), "w%x", w);
 			glp_set_row_name(lp, curr_row_idx+w+1, title);
@@ -265,7 +264,7 @@ static void _try_resizing(unsigned *sched_ctxs, int nsched_ctxs , int *workers, 
 				}
 				else
 				{
-					int idx = sc_hypervisor_get_index_for_arch(STARPU_CPU_WORKER, tw);
+					idx = sc_hypervisor_get_index_for_arch(STARPU_CPU_WORKER, tw);
 					nworkers_per_ctx[s][idx] += w_in_s[s][w];
 					if(w_in_s[s][w] > 0.5)
 						nworkers_per_ctx_rounded[s][idx]++;

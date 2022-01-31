@@ -372,7 +372,7 @@ void dw_factoLU_grain(float *matA, unsigned size, unsigned ld, unsigned nblocks,
 	unsigned n = size;
 	double flop = (2.0f*n*n*n)/3.0f;
 
-	PRINTF("# size\tms\tGFlops\n");
+	PRINTF("# size\tms\tGFlop/s\n");
 	PRINTF("%u\t%.0f\t%.1f\n", n, timing/1000, flop/timing/1000.0f);
 
 #ifdef CHECK_RESULTS

@@ -367,7 +367,8 @@ double starpu_task_expected_data_transfer_time(unsigned memory_node, struct star
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
 		int node = _starpu_task_data_get_node_on_node(task, buffer, memory_node);
 
-		penalty += starpu_data_expected_transfer_time(handle, node, mode);
+		if (node >= 0)
+			penalty += starpu_data_expected_transfer_time(handle, node, mode);
 	}
 
 	return penalty;
@@ -387,7 +388,8 @@ double starpu_task_expected_data_transfer_time_for(struct starpu_task *task, uns
 		enum starpu_data_access_mode mode = STARPU_TASK_GET_MODE(task, buffer);
 		int node = _starpu_task_data_get_node_on_worker(task, buffer, worker);
 
-		penalty += starpu_data_expected_transfer_time(handle, node, mode);
+		if (node >= 0)
+			penalty += starpu_data_expected_transfer_time(handle, node, mode);
 	}
 
 	return penalty;
@@ -539,6 +541,12 @@ void _starpu_set_perf_model_dirs()
 	snprintf(_perf_model_dir_codelet, _PERF_MODEL_DIR_MAXLEN, "%s/codelets/%d/", _perf_model_dir, _STARPU_PERFMODEL_VERSION);
 	snprintf(_perf_model_dir_bus, _PERF_MODEL_DIR_MAXLEN, "%s/bus/", _perf_model_dir);
 	snprintf(_perf_model_dir_debug, _PERF_MODEL_DIR_MAXLEN, "%s/debug/", _perf_model_dir);
+}
+
+char *_starpu_get_perf_model_dir()
+{
+	_starpu_create_sampling_directory_if_needed();
+	return _perf_model_dir;
 }
 
 char *_starpu_get_perf_model_dir_codelet()

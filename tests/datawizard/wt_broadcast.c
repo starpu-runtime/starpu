@@ -90,7 +90,11 @@ int main(void)
 {
 	int ret;
 
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+	conf.nmax_fpga = 0;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 

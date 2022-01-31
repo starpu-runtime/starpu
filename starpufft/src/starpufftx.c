@@ -110,6 +110,7 @@ struct STARPUFFT(plan)
 
 	/* Buffers for codelets */
 	STARPUFFT(complex) *in, *twisted1, *fft1, *twisted2, *fft2, *out;
+	size_t twisted1_size, twisted2_size, fft1_size, fft2_size;
 
 	/* corresponding starpu DSM handles */
 	starpu_data_handle_t in_handle, *twisted1_handle, *fft1_handle, *twisted2_handle, *fft2_handle, out_handle;
@@ -406,10 +407,10 @@ STARPUFFT(destroy_plan)(STARPUFFT(plan) plan)
 
 		free(plan->n1);
 		free(plan->n2);
-		STARPUFFT(free)(plan->twisted1);
-		STARPUFFT(free)(plan->fft1);
-		STARPUFFT(free)(plan->twisted2);
-		STARPUFFT(free)(plan->fft2);
+		STARPUFFT(free)(plan->twisted1, plan->twisted1_size);
+		STARPUFFT(free)(plan->fft1, plan->fft1_size);
+		STARPUFFT(free)(plan->twisted2, plan->twisted2_size);
+		STARPUFFT(free)(plan->fft2, plan->fft2_size);
 	}
 	free(plan->n);
 	free(plan);
@@ -432,11 +433,12 @@ STARPUFFT(malloc)(size_t n)
 }
 
 void
-STARPUFFT(free)(void *p)
+STARPUFFT(free)(void *p, size_t dim)
 {
 #ifdef STARPU_USE_CUDA
-	starpu_free(p);
+	starpu_free_noflag(p, dim);
 #else
+	(void)dim;
 #  ifdef STARPU_HAVE_FFTW
 	_FFTW(free)(p);
 #  else

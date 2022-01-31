@@ -37,7 +37,7 @@ txt_DATA = $(DOX_PDF)
 else
 all: $(DOX_HTML_DIR)
 EXTRA_DIST += $(DOX_HTML_DIR)
-endif
+endif # STARPU_BUILD_DOC_PDF
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
 install-exec-hook:
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
@@ -53,12 +53,12 @@ install-exec-hook:
 	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html \;)
 uninstall-hook:
 	rm -rf $(DESTDIR)$(docdir)/manual/html
-endif
+endif # STARPU_AVAILABLE_DOC
 if STARPU_AVAILABLE_DOC_PDF
 EXTRA_DIST += $(top_srcdir)/doc/doxygen/starpu.pdf
 txt_DATA = $(top_srcdir)/doc/doxygen/starpu.pdf
-endif
-endif
+endif # STARPU_AVAILABLE_DOC_PDF
+endif # STARPU_BUILD_DOC
 
 chapters =	\
 	chapters/000_introduction.doxy		\
@@ -81,12 +81,15 @@ chapters =	\
 	chapters/410_mpi_support.doxy		\
 	chapters/415_fault_tolerance.doxy	\
 	chapters/420_fft_support.doxy		\
+	chapters/440_max_fpga_support.doxy		\
 	chapters/450_native_fortran_support.doxy		\
 	chapters/460_socl_opencl_extensions.doxy		\
 	chapters/470_simgrid.doxy		\
 	chapters/480_openmp_runtime_support.doxy		\
 	chapters/490_clustering_a_machine.doxy		\
+	chapters/494_bubble.doxy		\
 	chapters/495_interoperability.doxy		\
+	chapters/497_eclipse_plugin.doxy 		\
 	chapters/501_environment_variables.doxy		\
 	chapters/510_configure_options.doxy		\
 	chapters/520_files.doxy		\
@@ -104,44 +107,56 @@ chapters =	\
 	chapters/code/disk_copy.c \
 	chapters/code/disk_compute.c \
 	chapters/code/nf_initexit.f90 \
+	chapters/api/bubble_support.doxy \
 	chapters/api/fft_support.doxy \
 	chapters/api/threads.doxy
 
 images = 	\
-	chapters/images/data_trace.eps \
-	chapters/images/data_trace.pdf \
 	chapters/images/data_trace.png \
-	chapters/images/distrib_data.eps \
-	chapters/images/distrib_data.pdf \
 	chapters/images/distrib_data.png \
-	chapters/images/distrib_data_histo.eps \
-	chapters/images/distrib_data_histo.pdf \
 	chapters/images/distrib_data_histo.png \
-	chapters/images/paje_draw_histogram.eps \
-	chapters/images/paje_draw_histogram.pdf \
 	chapters/images/paje_draw_histogram.png \
-	chapters/images/parallel_worker2.eps \
-	chapters/images/parallel_worker2.pdf \
 	chapters/images/parallel_worker2.png \
-	chapters/images/runtime-par.eps \
-	chapters/images/runtime-par.pdf \
 	chapters/images/runtime-par.png \
-	chapters/images/starpu_non_linear_memset_regression_based.eps \
-	chapters/images/starpu_non_linear_memset_regression_based.pdf \
 	chapters/images/starpu_non_linear_memset_regression_based.png \
-	chapters/images/starpu_non_linear_memset_regression_based_2.eps \
-	chapters/images/starpu_non_linear_memset_regression_based_2.pdf \
 	chapters/images/starpu_non_linear_memset_regression_based_2.png \
-	chapters/images/starpu_starpu_slu_lu_model_11.eps \
-	chapters/images/starpu_starpu_slu_lu_model_11.pdf \
 	chapters/images/starpu_starpu_slu_lu_model_11.png \
-	chapters/images/starpu_chol_model_11_type.eps \
-	chapters/images/starpu_chol_model_11_type.pdf \
 	chapters/images/starpu_chol_model_11_type.png \
-	chapters/images/tasks_size_overhead.eps \
-	chapters/images/tasks_size_overhead.pdf \
 	chapters/images/tasks_size_overhead.png \
-	chapters/images/temanejo.png
+	chapters/images/temanejo.png		\
+	chapters/images/eclipse_installer.png	\
+	chapters/images/eclipse_install_cdt.png	\
+	chapters/images/eclipse_hello_build.png	\
+	chapters/images/eclipse_hello_run.png	\
+	chapters/images/eclipse_hello_fxt.png	\
+	chapters/images/eclipse_hello_graph.png	\
+	chapters/images/eclipse_hello_vite.png	\
+	chapters/images/eclipse_hello_svg_graph.png	\
+	chapters/images/eclipse_hello_plugin.png	\
+	chapters/images/eclipse_hello_paje_trace.png	\
+	chapters/images/eclipse_hello_hgraph.png	\
+	chapters/images/eclipse_install_pde.png		\
+	chapters/images/starpu_gflops_non_linear_memset_regression_based_energy.png		\
+	chapters/images/starpu_log_arr.png		\
+	chapters/images/starpu_log_list.png		\
+	chapters/images/starpu_non_linear_memset_regression_based_energy.png		\
+	chapters/images/starpu_power_non_linear_memset_regression_based.png		\
+	chapters/images/starvz_visu.png		\
+	chapters/images/starvz_visu_r.png		\
+	chapters/images/trace_bw_heatmap.png		\
+	chapters/images/trace_recv_use.png		\
+	chapters/images/trace_send_use.png		\
+	chapters/images/trace_volume_heatmap.png	\
+	chapters/images/starpupy_handle_func_perf_pickle.png  \
+	chapters/images/starpupy_handle_perf_pickle.png	\
+	chapters/images/starpupy_handle_func_perf.png \
+	chapters/images/starpupy_handle_perf.png		\
+	chapters/images/tasks_size_overhead_py_fut_pickle.png	\
+	chapters/images/tasks_size_overhead_py_futur.png	\
+	chapters/images/tasks_size_overhead_py_handle_pickle.png \
+	chapters/images/tasks_size_overhead_py_handle.png	\
+	chapters/images/tasks_size_overhead_py_none.png		\
+	chapters/images/tasks_size_overhead_py_noret_pickle.png
 
 if STARPU_BUILD_DOC
 EXTRA_DIST += \
@@ -170,7 +185,7 @@ chapters/version.sty: $(chapters)
 		if test -f $$f ; then $(RM) $$f ; fi ;\
 	done
 
-chapters/version.html: $(chapters)
+chapters/version.html: $(chapters) $(images)
 	@for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/doxygen/$$f ; then $(PROG_STAT) --format=%Y $(top_srcdir)/doc/doxygen/$$f ; fi \
         done | sort -r | head -1 > timestamp_html
@@ -212,7 +227,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/starpu_fxt.h		\
 	$(top_srcdir)/include/starpu_hash.h		\
 	$(top_srcdir)/include/starpu_helper.h		\
-	$(top_srcdir)/include/starpu_mpi_ms.h		\
+	$(top_srcdir)/include/starpu_max_fpga.h		\
 	$(top_srcdir)/include/starpu_mod.f90		\
 	$(top_srcdir)/include/starpu_opencl.h		\
 	$(top_srcdir)/include/starpu_openmp.h		\
@@ -264,14 +279,15 @@ $(DOX_TAG): $(dox_inputs)
 	@if test -f html/navtree.js ; then $(SED) -i 's/\[ "Files", "Files.html", null \]/\[ "", "Files.html", null \]/' html/navtree.js ; fi
 	@$(SED) -i 's/.*"Files.html".*//' html/pages.html
 	@if test -f latex/main.tex ; then mv latex/main.tex latex/index.tex ; fi
-	@$(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex
-	@cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex
+	@if test -f $(DOX_LATEX_DIR)/refman.tex ; then $(SED) -i '/\\begin{titlepage}/,$$d' $(DOX_LATEX_DIR)/refman.tex ; fi
+	@if test -f $(DOX_LATEX_DIR)/refman.tex ; then cat $(top_srcdir)/doc/doxygen/refman.tex >> $(DOX_LATEX_DIR)/refman.tex ; fi
+	$(top_srcdir)/doc/doxygen/sectionNumbering.py $(top_srcdir)/doc/doxygen/chapters/ $(DOX_HTML_DIR)
 
 $(DOX_HTML_DIR): $(DOX_TAG)
 
-$(DOX_PDF): $(DOX_TAG) refman.tex
+$(DOX_PDF): $(DOX_TAG) refman.tex $(images)
+	$(MKDIR_P) $(DOX_LATEX_DIR)
 	@cp $(top_srcdir)/doc/doxygen/chapters/version.sty $(DOX_LATEX_DIR)
-	@cp $(top_srcdir)/doc/doxygen/chapters/images/*pdf $(DOX_LATEX_DIR)
 	@echo $(PDFLATEX) $(DOX_LATEX_DIR)/refman.tex
 	@cd $(DOX_LATEX_DIR) ;\
 	rm -f *.aux *.toc *.idx *.ind *.ilg *.log *.out ;\

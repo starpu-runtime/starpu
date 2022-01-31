@@ -427,10 +427,10 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
                                 times[w][t] = (length / 1000.);
 				double transfer_time = 0.0;
 				unsigned worker_in_ctx = starpu_sched_ctx_contains_worker(worker, tp->sched_ctx_id);
-				enum starpu_worker_archtype arch = starpu_worker_get_type(worker);
+				enum starpu_worker_archtype warch = starpu_worker_get_type(worker);
 				if(!worker_in_ctx && !size_ctxs)
 				{
-					if(arch == STARPU_CUDA_WORKER)
+					if(warch == STARPU_CUDA_WORKER)
 					{
 						double transfer_speed = starpu_transfer_bandwidth(STARPU_MAIN_RAM, starpu_worker_get_memory_node(worker));
 						if(transfer_speed > 0.0)
@@ -440,9 +440,9 @@ void sc_hypervisor_get_tasks_times(int nw, int nt, double times[nw][nt], int *wo
 						transfer_time += latency/1000.;
 //						transfer_time *=4;
 					}
-					else if(arch == STARPU_CPU_WORKER)
+					else if (warch == STARPU_CPU_WORKER)
 					{
-						if(!starpu_sched_ctx_contains_type_of_worker(arch, tp->sched_ctx_id))
+						if(!starpu_sched_ctx_contains_type_of_worker(warch, tp->sched_ctx_id))
 						{
 							double transfer_speed = starpu_transfer_bandwidth(starpu_worker_get_memory_node(worker), STARPU_MAIN_RAM);
 							if(transfer_speed > 0.0)
@@ -484,7 +484,7 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 	unsigned *sched_ctxs = sched_ctxs_in == NULL ? sc_hypervisor_get_sched_ctxs() : sched_ctxs_in;
 	int ns = ns_in == -1 ? sc_hypervisor_get_nsched_ctxs() : ns_in;
 	int *workers = workers_in;
-	int nworkers = nworkers_in == -1 ? starpu_worker_get_count() : nworkers_in;
+	int nworkers = nworkers_in == -1 ? (int)starpu_worker_get_count() : nworkers_in;
 	int i = 0, j = 0;
 	struct sc_hypervisor_wrapper* sc_w;
 	struct sc_hypervisor_wrapper* other_sc_w;
@@ -574,8 +574,8 @@ unsigned sc_hypervisor_check_speed_gap_btw_ctxs(unsigned *sched_ctxs_in, int ns_
 				{
 					if(sched_ctxs[i] != sched_ctxs[j])
 					{
-						unsigned nworkers = starpu_sched_ctx_get_nworkers(sched_ctxs[j]);
-						if(nworkers == 0)
+						unsigned snworkers = starpu_sched_ctx_get_nworkers(sched_ctxs[j]);
+						if(snworkers == 0)
 							return 1;
 
 						other_sc_w = sc_hypervisor_get_wrapper(sched_ctxs[j]);

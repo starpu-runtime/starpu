@@ -28,6 +28,7 @@ void starpu_bcsr_filter_vertical_block(void *father_interface, void *child_inter
 	uint32_t firstentry = bcsr_father->firstentry;
 	uint32_t r = bcsr_father->r;
 	uint32_t c = bcsr_father->c;
+	uint32_t *ram_rowptr = bcsr_father->ram_rowptr;
 	uint32_t *rowptr = bcsr_father->rowptr;
 
 	unsigned child_nrow;
@@ -37,26 +38,28 @@ void starpu_bcsr_filter_vertical_block(void *father_interface, void *child_inter
 
 	bcsr_child->id = bcsr_father->id;
 
-	if (!bcsr_father->nzval)
-		/* Not supported yet */
-		return;
-
 	starpu_filter_nparts_compute_chunk_size_and_offset(bcsr_father->nrow, nparts, 1, id, 1, &child_nrow, &child_rowoffset);
 
 	/* child blocks indexes between these (0-based) */
-	uint32_t start_block = rowptr[child_rowoffset] - firstentry;
-	uint32_t end_block = rowptr[child_rowoffset + child_nrow] - firstentry;
+	uint32_t start_block = ram_rowptr[child_rowoffset] - firstentry;
+	uint32_t end_block = ram_rowptr[child_rowoffset + child_nrow] - firstentry;
 
-	bcsr_child->nzval = bcsr_father->nzval + start_block * r*c * elemsize;
 	bcsr_child->nnz = end_block - start_block;
 	bcsr_child->nrow = child_nrow;
-	bcsr_child->colind = bcsr_father->colind + start_block;
-	bcsr_child->rowptr = rowptr + child_rowoffset;
 
 	bcsr_child->firstentry = firstentry + start_block;
 	bcsr_child->r = bcsr_father->r;
 	bcsr_child->c = bcsr_father->c;
 	bcsr_child->elemsize = elemsize;
+	bcsr_child->ram_colind = bcsr_father->ram_colind + start_block;
+	bcsr_child->ram_rowptr = ram_rowptr + child_rowoffset;
+
+	if (bcsr_father->nzval)
+	{
+		bcsr_child->nzval = bcsr_father->nzval + start_block * r*c * elemsize;
+		bcsr_child->colind = bcsr_father->colind + start_block;
+		bcsr_child->rowptr = rowptr + child_rowoffset;
+	}
 }
 
 void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, STARPU_ATTRIBUTE_UNUSED unsigned nparts)
@@ -91,9 +94,9 @@ void starpu_bcsr_filter_canonical_block(void *father_interface, void *child_inte
 	}
 }
 
-unsigned starpu_bcsr_filter_canonical_block_get_nchildren(struct starpu_data_filter *f, starpu_data_handle_t handle)
+unsigned starpu_bcsr_filter_canonical_block_get_nchildren(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, starpu_data_handle_t handle)
 {
-  return (unsigned)starpu_bcsr_get_nnz(handle);
+	return (unsigned)starpu_bcsr_get_nnz(handle);
 }
 
 struct starpu_data_interface_ops *starpu_bcsr_filter_canonical_block_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)

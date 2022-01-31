@@ -44,21 +44,26 @@ void test_handle_irecv_isend_detached(starpu_data_handle_t *handles, int nb_hand
 
 void test_handle_recv_send(starpu_data_handle_t *handles, int nb_handles, int rank, starpu_mpi_tag_t tag)
 {
-	int i;
+	int i, ret;
 
 	if (rank == 1)
 	{
 		for(i=0 ; i<nb_handles ; i++)
-			starpu_mpi_send(handles[i], 0, i+tag, MPI_COMM_WORLD);
+		{
+			ret = starpu_mpi_send(handles[i], 0, i+tag, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+		}
 	}
 	else if (rank == 0)
 	{
 		MPI_Status statuses[nb_handles];
 		for(i=0 ; i<nb_handles ; i++)
-			starpu_mpi_recv(handles[i], 1, i+tag, MPI_COMM_WORLD, &statuses[i]);
+		{
+			ret = starpu_mpi_recv(handles[i], 1, i+tag, MPI_COMM_WORLD, &statuses[i]);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+		}
 	}
 }
-
 
 int main(int argc, char **argv)
 {
@@ -173,5 +178,5 @@ int main(int argc, char **argv)
 
 	starpu_mpi_shutdown();
 
-	return (rank == 0) ? !compare : ret;
+	return (rank == 0) ? !compare : 0;
 }
