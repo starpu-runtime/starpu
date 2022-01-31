@@ -209,7 +209,7 @@ Defined internally by StarPU when running in master slave mode.
 \anchor STARPU_DISABLE_MAP
 \addindex __env__STARPU_DISABLE_MAP
 Disable (1) or Enable (0) support for memory mapping between memory nodes.  The
-default is Enabled.
+default is Disable.
 </dd>
 
 <dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>

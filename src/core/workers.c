@@ -1217,7 +1217,7 @@ int starpu_conf_init(struct starpu_conf *conf)
 
 	conf->disable_map = starpu_get_env_number("STARPU_DISABLE_MAP");
 	if (conf->disable_map == -1)
-		conf->disable_map = 0;
+		conf->disable_map = 1;
 
 	/* 64MiB by default */
 	conf->trace_buffer_size = ((uint64_t) starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64)) << 20;
