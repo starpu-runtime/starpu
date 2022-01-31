@@ -185,7 +185,7 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_acquire");
 		if (*pvar != ntasks)
 		{
-			FPRINTF(stderr, "[end of loop] Value %u != Expected value %u\n", *pvar, ntasks * (loop+1));
+			FPRINTF(stderr, "[end of loop] Value %u != Expected value %u\n", *pvar, ntasks);
 			starpu_data_release(handle);
 			starpu_data_unregister(handle);
 			goto err;
