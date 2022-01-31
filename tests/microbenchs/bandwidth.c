@@ -266,6 +266,9 @@ static float bench(int *argc, char ***argv, unsigned nbusy, unsigned ncpus, int 
 	starpu_task_wait_for_all();
 	starpu_shutdown();
 
+	STARPU_PTHREAD_BARRIER_DESTROY(&barrier_begin);
+	STARPU_PTHREAD_BARRIER_DESTROY(&barrier_end);
+
 	for (bw = 0., i = 0; i < nbusy; i++)
 	{
 		if (intl)
