@@ -1464,12 +1464,12 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			
 			if (!starpu_task_list_ismember(main_task_list, task))
 			{
-				STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+				//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 				goto random;
 			}
 			
 			g->first_task_to_pop = NULL;
-			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);	
+						
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
 				if (!gpu_data_not_used_list_empty(g->gpu_data))
@@ -1483,6 +1483,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					}
 				}
 			}
+			
+			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+			
 			/* Add it from planned task compteur */			
 			increment_planned_task_data(task, current_gpu);
 			
@@ -1493,13 +1496,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			erase_task_and_data_pointer(task, main_task_list);
 			starpu_task_list_push_back(&g->planned_task, task);
 			
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			
 			goto end_scheduling;
 		}
 		else
 		{
-			STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+			//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 			goto random;
 		}
 	}
@@ -1511,7 +1514,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#ifdef PRINT
 		printf("Random selection car liste des données non utilisées vide.\n");
 		#endif
-		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 		goto random;
     }
     
@@ -1961,7 +1964,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	//~ #endif
 	
 	end_choose_best_data : ;
-	STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 	
 	#ifdef PRINT
 	fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index);
@@ -2044,7 +2047,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			}
 			if (data_available == true)
 			{
-				//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+				STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+				
 				/* Add it from planned task compteur */
 				increment_planned_task_data(t->pointer_to_T, current_gpu);
 				
@@ -2059,7 +2063,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 				
 				erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 				starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
-				//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+				
+				STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
 			}
 		}
 		
@@ -2145,7 +2150,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		//~ t = task_using_data_list_begin(handle_popped->sched_data);
 		
 		/* Add it from planned task compteur */
-		//~ STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		
+		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
+		
 		increment_planned_task_data(t->pointer_to_T, current_gpu);
 		
 		#ifdef PRINT
@@ -2154,7 +2161,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		erase_task_and_data_pointer(t->pointer_to_T, main_task_list);
 		starpu_task_list_push_back(&g->planned_task, t->pointer_to_T);
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		
+		STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+		
 		#ifdef PRINT
 		gettimeofday(&time_end_fill_planned_task_list, NULL);
 		time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
@@ -2180,6 +2189,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		gettimeofday(&time_start_pick_random_task, NULL);
 		number_random_selection++;
 		#endif
+		
+		STARPU_PTHREAD_MUTEX_LOCK(&global_mutex);
 				
 		struct starpu_task *task = starpu_task_list_pop_front(main_task_list);	
 		
@@ -2221,7 +2232,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     }
     
     end_scheduling: ;
-	STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
+	//~ STARPU_PTHREAD_MUTEX_UNLOCK(&global_mutex);
     
     #ifdef PRINT
     gettimeofday(&time_end_schedule, NULL);
