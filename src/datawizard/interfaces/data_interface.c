@@ -994,10 +994,14 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 	if (!coherent)
 	{
 		/* Should we postpone the unregister operation ? */
-		if ((handle->busy_count > 0) && handle->lazy_unregister)
+		if (handle->lazy_unregister)
 		{
-			_starpu_spin_unlock(&handle->header_lock);
-			return;
+			if (handle->busy_count > 0)
+			{
+				_starpu_spin_unlock(&handle->header_lock);
+				return;
+			}
+			handle->lazy_unregister = 0;
 		}
 	}
 
