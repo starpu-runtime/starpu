@@ -1911,12 +1911,14 @@ if test x$enable_gdb = xyes; then
 		FFLAGS+=" -g3"
 		FCFLAGS+=" -g3"
 		LDFLAGS+=" -g3"
+		NVCCFLAGS+=" -g"
 	else
 		CFLAGS+=" -g "
 		CXXFLAGS+=" -g "
 		FFLAGS+=" -g "
 		FCFLAGS+=" -g "
 		LDFLAGS+=" -g "
+		NVCCFLAGS+=" -g "
 	fi
 else
 	CFLAGS+=" -g0 "
