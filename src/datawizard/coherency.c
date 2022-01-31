@@ -1525,7 +1525,7 @@ void _starpu_data_unmap(starpu_data_handle_t handle, unsigned node)
 	_starpu_spin_lock(&handle->header_lock);
 	if (handle->per_node[node].mapped != STARPU_UNMAPPED)
 	{
-		r = _starpu_create_data_request(handle, &handle->per_node[handle->per_node[node].mapped], &handle->per_node[node], node, STARPU_UNMAP, 0, NULL, 0, 0, 0, __func__);
+		r = _starpu_create_data_request(handle, &handle->per_node[handle->per_node[node].mapped], &handle->per_node[node], node, STARPU_UNMAP, 0, NULL, STARPU_FETCH, 0, 0, __func__);
 
 		r->refcnt++;
 		_starpu_post_data_request(r);
