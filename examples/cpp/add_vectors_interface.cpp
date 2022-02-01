@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -256,6 +256,9 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	.allocate_data_on_node = allocate_vector_cpp_buffer_on_node,
 	.free_data_on_node = free_vector_cpp_buffer_on_node,
 	.reuse_data_on_node = NULL,
+	.map_data = NULL,
+	.unmap_data = NULL,
+	.update_map = NULL,
 	.init = NULL,
 	.copy_methods = &vector_cpp_copy_data_methods_s,
 	.handle_to_pointer = NULL,
@@ -287,6 +290,9 @@ static struct starpu_data_interface_ops interface_vector_cpp_ops =
 	NULL,
 	allocate_vector_cpp_buffer_on_node,
 	free_vector_cpp_buffer_on_node,
+	NULL,
+	NULL,
+	NULL,
 	NULL,
 	NULL,
 	&vector_cpp_copy_data_methods_s,
