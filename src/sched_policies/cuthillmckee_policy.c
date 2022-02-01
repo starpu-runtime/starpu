@@ -184,7 +184,8 @@ static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
 				starpu_task_list_push_back(&data->popped_task_list,task1);
 			} 		
 			
-			int matrice_adjacence[NT][NT]; for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { matrice_adjacence[i][j] = 0; } } 
+			//~ int matrice_adjacence[NT][NT]; for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { matrice_adjacence[i][j] = 0; } } 
+			long int matrice_adjacence[NT][NT]; for (i = 0; i < NT; i++) { for (j = 0; j < NT; j++) { matrice_adjacence[i][j] = 0; } } 
 			temp_task_1  = starpu_task_list_begin(&data->popped_task_list);
 			temp_task_2  = starpu_task_list_begin(&data->popped_task_list);
 			for (i = 0; i < NT; i++) {
@@ -192,7 +193,9 @@ static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
 					if (i != j) {
 						for (i_bis = 0; i_bis < STARPU_TASK_GET_NBUFFERS(temp_task_1); i_bis++) {
 							for (j_bis = 0; j_bis < STARPU_TASK_GET_NBUFFERS(temp_task_2); j_bis++) {
-								if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) { matrice_adjacence[i][j]++; }
+								if (STARPU_TASK_GET_HANDLE(temp_task_1, i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2, j_bis)) { matrice_adjacence[i][j]++; }
+								/* Pour adapter a des tailles heterogènes ici il faut juste faire : et declrer poids des arretes et matrice adja en long int */
+								if (STARPU_TASK_GET_HANDLE(temp_task_1,i_bis) == STARPU_TASK_GET_HANDLE(temp_task_2,j_bis)) { matrice_adjacence[i][j] += starpu_data_get_size(STARPU_TASK_GET_HANDLE(temp_task_1, i_bis)); }
 							}
 						}
 					}
@@ -216,7 +219,8 @@ static void cuthillmckee_do_schedule(struct starpu_sched_component *component)
 			
 			
 				
-				int poids_aretes[NT];
+				//~ int poids_aretes[NT];
+				long int poids_aretes[NT];
 				int tab_SIGMA[NT];	for (i = 0; i < NT; i++) { tab_SIGMA[i] = -1; }	
 	
 	/* Calcul du poids des arêtes de chaque sommet */		
