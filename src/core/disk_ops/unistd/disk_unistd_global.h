@@ -36,8 +36,10 @@
 #undef STARPU_UNISTD_USE_COPY
 #endif
 
-#if __FreeBSD__ >= 9
-typedef off_t           loff_t;
+#ifdef __linux__
+typedef loff_t starpu_loff_t;
+#else
+typedef off_t starpu_loff_t;
 #endif
 
 struct starpu_unistd_global_obj

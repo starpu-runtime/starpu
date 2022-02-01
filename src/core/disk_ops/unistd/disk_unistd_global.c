@@ -54,7 +54,7 @@
 #define MAX_OPEN_FILES 64
 #define TEMP_HIERARCHY_DEPTH 2
 
-#if !defined(HAVE_COPY_FILE_RANGE) && defined( __NR_copy_file_range)
+#if !defined(HAVE_COPY_FILE_RANGE) && defined(__linux__) && defined( __NR_copy_file_range)
 static starpu_ssize_t copy_file_range(int fd_in, loff_t *off_in, int fd_out,
 				      loff_t *off_out, size_t len, unsigned int flags)
 {
@@ -69,8 +69,8 @@ static unsigned starpu_unistd_opened_files;
 LIST_TYPE(starpu_unistd_work_copy,
 	int fd_src;
 	int fd_dst;
-	loff_t off_src;
-	loff_t off_dst;
+	starpu_loff_t off_src;
+	starpu_loff_t off_dst;
 	struct starpu_unistd_global_obj * obj_src;
 	struct starpu_unistd_global_obj * obj_dst;
 	size_t len;
