@@ -36,8 +36,10 @@ extern int natural_order;
 //~ );
 
 /** Mutex **/
-starpu_pthread_mutex_t global_mutex; /* Protège main task list et tout le reste pour le moment. */
-//~ starpu_pthread_mutex_t *local_mutex; /* Protège pulled_task et planned_task. 1 par GPU. TODO : a suppr si je ne l'utilise pas. */
+starpu_pthread_mutex_t refined_mutex; /* Protège main task list et les données. */
+starpu_pthread_mutex_t linear_mutex; /* Mutex qui rend tout linéaire. Utile pour la version du code rendu pour IPDPS ainsi que pour se comparer aux nouveaux mutexs. A utiliser avec les ifdef suivants. */
+//~ #define REFINED_MUTEX
+#define LINEAR_MUTEX
 
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
