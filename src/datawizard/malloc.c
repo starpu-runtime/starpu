@@ -434,7 +434,8 @@ int starpu_malloc(void **A, size_t dim)
 static void free_pinned_cuda_codelet(void *buffers[] STARPU_ATTRIBUTE_UNUSED, void *arg)
 {
 	cudaError_t cures;
-#if defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+#if 0 //defined(STARPU_USE_CUDA_MAP) && defined(STARPU_HAVE_CUDA_MNGMEM)
+	/* FIXME: check if devices actually support cudaMallocManaged or fallback to cudaHostAlloc() */
 	cures = cudaFree(arg);
 #else
 	cures = cudaFreeHost(arg);
