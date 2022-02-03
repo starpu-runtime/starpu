@@ -643,6 +643,7 @@ then
 fi
 if [ $DOSSIER = "Sparse" ]
 then
+	SPARSE=2
 	NB_ALGO_TESTE=4
 	if [ $NGPU != 1 ]
 	then
@@ -690,6 +691,7 @@ then
 fi
 if [ $DOSSIER = "Sparse_mem_infinite" ]
 then
+	SPARSE=2
 	NB_ALGO_TESTE=5
 	if [ $NGPU != 1 ]
 	then
