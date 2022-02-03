@@ -1293,6 +1293,7 @@ _starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 		{
 			if (cures == cudaErrorInvalidValue)
 			{
+				cudaGetLastError();
 				/* pointer does not support mapping */
 				return (uintptr_t)NULL;
 			}
