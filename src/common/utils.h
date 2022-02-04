@@ -31,6 +31,7 @@
 #ifdef STARPU_HAVE_SCHED_YIELD
 #include <sched.h>
 #endif
+#include <limits.h>
 
 #ifdef STARPU_HAVE_HELGRIND_H
 #include <valgrind/helgrind.h>
