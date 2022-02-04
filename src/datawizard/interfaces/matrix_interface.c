@@ -539,6 +539,8 @@ static int map_matrix(void *src_interface, unsigned src_node,
 	int ret;
 	uintptr_t mapped;
 
+	/* FIXME: we shouldn't map all of this, probably need ld*(ny-1)+nx */
+	/* And similarly for block, tensor, ndim */
 	mapped = starpu_interface_map(src_matrix->dev_handle, src_matrix->offset, src_node, dst_node, src_matrix->ld*src_matrix->ny*src_matrix->elemsize, &ret);
 	if (mapped)
 	{
