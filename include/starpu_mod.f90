@@ -116,6 +116,7 @@ MODULE starpu_mod
   ! starpu_task_clean
   ! starpu_task_create
   ! starpu_task_destroy
+  ! starpu_task_set_destroy
   ! starpu_task_submit
   ! starpu_task_submit_to_ctx
   ! starpu_task_finished

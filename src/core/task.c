@@ -431,6 +431,27 @@ void starpu_task_destroy(struct starpu_task *task)
 	_starpu_task_destroy(task);
 }
 
+void starpu_task_set_destroy(struct starpu_task *task)
+{
+	STARPU_ASSERT(task);
+	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
+	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+	STARPU_ASSERT_MSG(!task->destroy, "starpu_task_set_destroy must not be called for task with destroy = 1");
+	if (j->terminated == 2)
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+		/* It's already over, _starpu_handle_job_termination will not
+		 * destroy it, do it ourself */
+		_starpu_task_destroy(task);
+	}
+	else
+	{
+		/* Let _starpu_handle_job_termination destroy it */
+		task->destroy = 1;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+	}
+}
+
 int starpu_task_finished(struct starpu_task *task)
 {
 	STARPU_ASSERT(task);

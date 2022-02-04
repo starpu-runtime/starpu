@@ -465,7 +465,7 @@ static struct starpu_task *PyTask_AsTask(PyObject *obj)
 static void del_Task(PyObject *obj)
 {
 	struct starpu_task *obj_task=PyTask_AsTask(obj);
-	obj_task->destroy=1; /*XXX we should call starpu task destroy*/
+	starpu_task_set_destroy(obj_task);
 }
 
 /*struct starpu_task*->PyObject**/

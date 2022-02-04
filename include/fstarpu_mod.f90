@@ -524,6 +524,12 @@ module fstarpu_mod
                         type(c_ptr), value, intent(in) :: task
                 end subroutine fstarpu_task_destroy
 
+                ! void starpu_task_set_destroy(struct starpu_task *task);
+                subroutine fstarpu_task_set_destroy (task) bind(C,name="starpu_task_set_destroy")
+                        use iso_c_binding, only: c_ptr
+                        type(c_ptr), value, intent(in) :: task
+                end subroutine fstarpu_task_set_destroy
+
                 ! int starpu_task_submit(struct starpu_task *task) STARPU_WARN_UNUSED_RESULT;
                 function fstarpu_task_submit (task) bind(C,name="starpu_task_submit")
                         use iso_c_binding, only: c_int,c_ptr

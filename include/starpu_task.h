@@ -1584,6 +1584,14 @@ struct starpu_task *starpu_task_create_sync(starpu_data_handle_t handle, enum st
 void starpu_task_destroy(struct starpu_task *task);
 
 /**
+   Tell StarPU to free the resources associated with \p task when the task is
+   over. This is equivalent to having set task->destroy = 1 before submission,
+   the difference is that this can be called after submission and properly deals
+   with concurrency with the task execution.
+*/
+void starpu_task_set_destroy(struct starpu_task *task);
+
+/**
    Submit \p task to StarPU. Calling this function does not mean that
    the task will be executed immediately as there can be data or task
    (tag) dependencies that are not fulfilled yet: StarPU will take
