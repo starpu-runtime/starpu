@@ -590,6 +590,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	 */
 	_STARPU_TRACE_TASK_DONE(j);
 
+	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+
 	/* NB: we do not save those values before the callback, in case the
 	 * application changes some parameters eventually (eg. a task may not
 	 * be generated if the application is terminated). */
@@ -598,9 +600,6 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	unsigned regenerate = task->regenerate;
 	unsigned synchronous = task->synchronous;
 
-	/* we do not desallocate the job structure if some is going to
-	 * wait after the task */
-	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 	if (!continuation)
 	{
 #ifdef STARPU_OPENMP
@@ -620,6 +619,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 	STARPU_AYU_REMOVETASK(j->job_id);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
 
+	/* we do not desallocate the job structure if some is going to
+	 * wait after the task */
 	if (detach && !continuation)
 	{
 		/* no one is going to synchronize with that task so we release
