@@ -237,6 +237,15 @@ Same as \ref STARPU_WORKERS_CPUID, but bind the workers to cores instead of PUs
 (hyperthreads).
 </dd>
 
+<dt>STARPU_NTHREADS_PER_CORE</dt>
+<dd>
+\anchor STARPU_NTHREADS_PER_CORE
+\addindex __env__STARPU_NTHREADS_PER_CORE
+This allows to specify how many threads StarPU should run on each core. The
+default is 1 because kernels are usually already optimized for using a full
+core. Setting this to e.g. 2 instead allows to exploit hyperthreading.
+</dd>
+
 <dt>STARPU_MAIN_THREAD_BIND</dt>
 <dd>
 \anchor STARPU_MAIN_THREAD_BIND
