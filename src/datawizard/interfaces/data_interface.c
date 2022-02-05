@@ -47,6 +47,7 @@ static struct handle_entry *registered_handles;
 static struct _starpu_spinlock    registered_handles_lock;
 static int _data_interface_number = STARPU_MAX_INTERFACE_ID;
 starpu_arbiter_t _starpu_global_arbiter;
+static int max_memory_use;
 
 static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned coherent, unsigned nowait);
 
@@ -54,6 +55,7 @@ void _starpu_data_interface_fini(void);
 
 void _starpu_data_interface_init(void)
 {
+	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
 	_starpu_spin_init(&registered_handles_lock);
 
 	/* Just for testing purpose */
@@ -65,7 +67,7 @@ void _starpu_data_interface_init(void)
 
 void _starpu_data_interface_fini(void)
 {
-	if (starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0))
+	if (max_memory_use)
 		_STARPU_DISP("Memory used for %d data handles: %lu MiB\n", maxnregistered, (unsigned long) (maxnregistered * sizeof(struct _starpu_data_state)) >> 20);
 }
 
