@@ -1052,7 +1052,6 @@ static inline unsigned _starpu_get_next_bindid(struct _starpu_machine_config *co
 
 	unsigned current_preferred;
 	unsigned nhyperthreads = topology->nhwpus / topology->nhwcpus;
-	unsigned ncores = topology->nhwpus / nhyperthreads;
 	unsigned workers_nbindid = topology->workers_nbindid;
 	unsigned i;
 
