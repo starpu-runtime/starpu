@@ -127,7 +127,7 @@ void cpu_codelet(void *descr[], void *_args)
 	(void)_args;
 /*	int i = (uintptr_t) _args;
 	printf("doing %x\n", i);
-	usleep(SLEEP);
+	starpu_usleep(SLEEP);
 	printf("done %x\n", i);
 */
 }

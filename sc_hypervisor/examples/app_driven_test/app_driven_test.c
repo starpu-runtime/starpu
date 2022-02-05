@@ -68,7 +68,7 @@ void* submit_tasks_thread(void *arg)
 	for(i = 0; i < NTASKS; i++)
 	{
 		task[i] = starpu_task_create();
-//		usleep(5000);
+//		starpu_usleep(5000);
 		cl.cpu_funcs[0] = cpu_func;
 		cl.nbuffers = 0;
 

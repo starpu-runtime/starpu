@@ -64,7 +64,7 @@ void callback_a_cpu(void *buffers[], void *cl_arg)
 {
 	(void)buffers;
 	(void)cl_arg;
-	usleep(100000);
+	starpu_usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
@@ -72,7 +72,7 @@ void callback_b_cpu(void *buffers[], void *cl_arg)
 {
 	(void)buffers;
 	(void)cl_arg;
-	usleep(100000);
+	starpu_usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
@@ -80,7 +80,7 @@ void callback_c_cpu(void *buffers[], void *cl_arg)
 {
 	(void)buffers;
 	(void)cl_arg;
-	usleep(100000);
+	starpu_usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
@@ -89,7 +89,7 @@ void callback_a_opencl(void *buffers[], void *cl_arg)
 {
 	(void)buffers;
 	(void)cl_arg;
-	usleep(100000);
+	starpu_usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
@@ -97,7 +97,7 @@ void callback_b_opencl(void *buffers[], void *cl_arg)
 {
 	(void)buffers;
 	(void)cl_arg;
-	usleep(100000);
+	starpu_usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 
@@ -105,7 +105,7 @@ void callback_c_opencl(void *buffers[], void *cl_arg)
 {
 	(void)buffers;
 	(void)cl_arg;
-	usleep(100000);
+	starpu_usleep(100000);
 	FPRINTF(stderr, "[COMMUTE_LOG] callback %s\n", __FUNCTION__); fflush(stderr);
 }
 #endif

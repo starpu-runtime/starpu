@@ -38,7 +38,7 @@ A(void *buffers[], void *args)
 	(void) buffers;
 	(void) args;
 	STARPU_ASSERT(starpu_worker_get_id() == 0);
-	usleep(1000);
+	starpu_usleep(1000);
 }
 
 double cost_function(struct starpu_task *t, struct starpu_perfmodel_arch *a, unsigned i)

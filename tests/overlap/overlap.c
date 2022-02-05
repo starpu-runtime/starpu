@@ -68,7 +68,7 @@ void codelet_sleep(void *descr[], void *_args)
 
 	STARPU_SKIP_IF_VALGRIND;
 
-	usleep(TASKDURATION);
+	starpu_usleep(TASKDURATION);
 }
 
 static struct starpu_perfmodel model =

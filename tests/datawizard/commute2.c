@@ -38,7 +38,7 @@ static void cpu_memcpy(void *descr[], void *cl_arg)
 	if (me == 0)
 	{
 		/* let commute tasks potentially happen */
-		usleep(100000);
+		starpu_usleep(100000);
 		res = STARPU_ATOMIC_ADD(&cnt,1);
 		STARPU_ASSERT(res == 1);
 	}
@@ -104,7 +104,7 @@ int main(void)
 	}
 
 	/* let commute tasks potentially happen */
-	usleep(100000);
+	starpu_usleep(100000);
 	starpu_data_release(a_handle);
 
 	starpu_task_wait_for_all ();

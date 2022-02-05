@@ -28,7 +28,7 @@ void dummy(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
-	usleep(10000);
+	starpu_usleep(10000);
 }
 
 static int

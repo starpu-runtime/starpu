@@ -28,7 +28,7 @@ void dummy_func(void *descr[], void *arg)
 {
 	unsigned duration = (uintptr_t) arg;
 	if (duration)
-		usleep(duration);
+		starpu_usleep(duration);
 }
 
 static struct starpu_codelet dummy_Rcodelet =
@@ -226,7 +226,7 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		if (loop & 32768)
-			usleep(duration);
+			starpu_usleep(duration);
 
 		ret = starpu_task_submit(taskB);
 		if (ret == -ENODEV)
@@ -234,7 +234,7 @@ int main(void)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 		if (loop & 65536)
-			usleep(duration);
+			starpu_usleep(duration);
 
 		ret = starpu_task_submit(taskC);
 		if (ret == -ENODEV)

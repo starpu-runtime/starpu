@@ -78,7 +78,7 @@ void callback_func(void *foo)
 	float i = 1.;
 	while (i > 0)
 	{
-		usleep(100000);
+		starpu_usleep(100000);
 		display(i);
 		i -= 0.1;
 	}

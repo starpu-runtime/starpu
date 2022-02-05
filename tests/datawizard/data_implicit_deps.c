@@ -40,7 +40,7 @@ void f(void *descr[], void *arg)
 
 	STARPU_SKIP_IF_VALGRIND;
 
-	usleep(200000);
+	starpu_usleep(200000);
 }
 
 static struct starpu_codelet cl_f =
@@ -61,7 +61,7 @@ void g(void *descr[], void *arg)
 
 	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
 
-	usleep(100000);
+	starpu_usleep(100000);
 	*val = 42;
 }
 
@@ -74,7 +74,7 @@ void g_cuda(void *descr[], void *arg)
 	unsigned *val = (unsigned *) STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned value = 42;
 
-	usleep(100000);
+	starpu_usleep(100000);
 	cudaMemcpyAsync(val, &value, sizeof(value), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
 	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
@@ -89,7 +89,7 @@ void g_opencl(void *descr[], void *arg)
 	cl_mem val = (cl_mem) STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned value = 42;
 
-	usleep(100000);
+	starpu_usleep(100000);
 	cl_command_queue queue;
 	starpu_opencl_get_current_queue(&queue);
 

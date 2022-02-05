@@ -46,7 +46,7 @@ void codelet_null(void *descr[], void *_args)
 
 //	FPRINTF(stderr, "WORKERSIZE : %d\n", worker_size);
 
-	usleep(1000/worker_size);
+	starpu_usleep(1000/worker_size);
 #if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();

@@ -39,7 +39,7 @@ A(void *buffers[], void *args)
 	(void) buffers;
 	(void) args;
 	FPRINTF(stdout,"A");
-	usleep(1000);
+	starpu_usleep(1000);
 }
 
 void
@@ -48,7 +48,7 @@ B(void *buffers[], void *args)
 	(void) buffers;
 	(void) args;
 	FPRINTF(stdout,"B");
-	usleep(1000);
+	starpu_usleep(1000);
 }
 
 static int

@@ -34,7 +34,7 @@ void sleep_codelet(void *descr[], void *arg)
 {
 	(void)descr;
 	(void)arg;
-	usleep(1000);
+	starpu_usleep(1000);
 }
 
 int main(int argc, char **argv)
@@ -55,11 +55,11 @@ int main(int argc, char **argv)
 #ifdef STARPU_QUICK_CHECK
 	/* We should observe at least 50ms in the sleep time reported by every
 	 * worker. */
-	usleep(50000);
+	starpu_usleep(50000);
 #else
 	/* We should observe at least 500ms in the sleep time reported by every
 	 * worker. */
-	usleep(500000);
+	starpu_usleep(500000);
 #endif
 
 	struct starpu_codelet cl =
