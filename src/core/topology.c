@@ -955,6 +955,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 					topology->workers_bindid[i % number_of_entries];
 			}
 		}
+		topology->workers_nbindid = number_of_entries;
 	}
 	else if (config->conf.use_explicit_workers_bindid)
 	{
@@ -962,6 +963,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 		memcpy(topology->workers_bindid,
 			config->conf.workers_bindid,
 			STARPU_NMAXWORKERS*sizeof(unsigned));
+		topology->workers_nbindid = STARPU_NMAXWORKERS;
 	}
 	else
 	{
@@ -989,6 +991,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 			k++;
 			i++;
 		}
+		topology->workers_nbindid = topology->nhwpus * nth_per_core / nhyperthreads;
 	}
 
 	for (i = 0; i < STARPU_MAXCPUS;i++)
@@ -1027,7 +1030,7 @@ static inline unsigned _starpu_get_next_bindid(struct _starpu_machine_config *co
 
 	unsigned current_preferred;
 	unsigned nhyperthreads = topology->nhwpus / topology->nhwworker[STARPU_CPU_WORKER][0];
-	unsigned ncores = topology->nhwpus / nhyperthreads;
+	unsigned workers_nbindid = topology->workers_nbindid;
 	unsigned i;
 
 	if (npreferred)
@@ -1044,15 +1047,15 @@ static inline unsigned _starpu_get_next_bindid(struct _starpu_machine_config *co
 		unsigned requested_core = preferred_binding[current_preferred];
 		unsigned requested_bindid = requested_core * nhyperthreads;
 
-		/* Look at the remaining cores to be bound to */
-		for (i = 0; i < ncores; i++)
+		/* Look at the remaining PUs to be bound to */
+		for (i = 0; i < workers_nbindid; i++)
 		{
 			if (topology->workers_bindid[i] == requested_bindid &&
 					(!config->currently_bound[i] ||
 					 (config->currently_shared[i] && !(flags & STARPU_THREAD_ACTIVE)))
 					)
 			{
-				/* the cpu is available, or shareable with us, we use it ! */
+				/* the PU is available, or shareable with us, we use it ! */
 				config->currently_bound[i] = 1;
 				if (!(flags & STARPU_THREAD_ACTIVE))
 					config->currently_shared[i] = 1;
@@ -1064,18 +1067,18 @@ static inline unsigned _starpu_get_next_bindid(struct _starpu_machine_config *co
 	if (!(flags & STARPU_THREAD_ACTIVE))
 	{
 		/* Try to find a shareable PU */
-		for (i = 0; i < ncores; i++)
+		for (i = 0; i < workers_nbindid; i++)
 			if (config->currently_shared[i])
 				return topology->workers_bindid[i];
 	}
 
 	/* Try to find an available PU from last used PU */
-	for (i = config->current_bindid; i < ncores; i++)
+	for (i = config->current_bindid; i < workers_nbindid; i++)
 		if (!config->currently_bound[i])
 			/* Found a cpu ready for use, use it! */
 			break;
 
-	if (i == ncores)
+	if (i == workers_nbindid)
 	{
 		/* Finished binding on all cpus, restart from start in
 		 * case the user really wants overloading */
@@ -1083,7 +1086,7 @@ static inline unsigned _starpu_get_next_bindid(struct _starpu_machine_config *co
 		i = 0;
 	}
 
-	STARPU_ASSERT(i < ncores);
+	STARPU_ASSERT(i < workers_nbindid);
 	unsigned bindid = topology->workers_bindid[i];
 	config->currently_bound[i] = 1;
 	if (!(flags & STARPU_THREAD_ACTIVE))
