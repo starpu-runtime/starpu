@@ -321,6 +321,12 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_bindid[STARPU_NMAXWORKERS];
 
+	/** Indicates how many different values there are in
+	 * _starpu_machine_topology::workers_bindid, i.e. the length of the
+	 * cycle of the values there.
+	 */
+	unsigned workers_nbindid;
+
 	/** Indicates the successive CUDA identifier that should be
 	 * used by the CUDA driver.  It is either filled according to
 	 * the user's explicit parameters (from starpu_conf) or
