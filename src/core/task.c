@@ -565,6 +565,17 @@ static int _starpu_task_submit_head(struct starpu_task *task)
 		task->detach = 0;
 	}
 
+#ifdef STARPU_DEBUG
+	if (task->workerids)
+	{
+		unsigned i;
+		for (i = 0; i < task->workerids_len; i++)
+			if (task->workerids[i] != 0)
+				break;
+		STARPU_ASSERT_MSG(i < task->workerids_len, "The workerids array can't contain only zeros, it would not be executable at all.");
+	}
+#endif
+
 	_starpu_task_check_deprecated_fields(task);
 	_starpu_codelet_check_deprecated_fields(task->cl);
 	if (task->where== -1 && task->cl)
