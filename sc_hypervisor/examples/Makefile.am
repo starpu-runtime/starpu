@@ -51,8 +51,5 @@ cholesky_cholesky_implicit_LDADD =		\
 
 endif
 
-app_driven_test_app_driven_test_SOURCES =		\
-	app_driven_test/app_driven_test.c
-
 app_driven_test_app_driven_test_LDADD =		\
 	$(top_builddir)/sc_hypervisor/src/libsc_hypervisor.la

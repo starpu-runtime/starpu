@@ -655,11 +655,6 @@ datawizard_gpu_ptr_register_SOURCES +=	\
 	datawizard/scal_opencl.cl
 endif
 
-datawizard_wt_host_SOURCES =			\
-	datawizard/wt_host.c
-datawizard_wt_broadcast_SOURCES =		\
-	datawizard/wt_broadcast.c
-
 datawizard_specific_node_SOURCES =		\
 	datawizard/specific_node.c
 if STARPU_USE_CUDA
@@ -724,120 +719,6 @@ if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_tag_cycle_SOURCES +=		\
 	main/increment.cu
 endif
-
-sched_ctx_sched_ctx_list_SOURCES =	\
-	sched_ctx/sched_ctx_list.c
-
-sched_ctx_sched_ctx_policy_data_SOURCES =	\
-	sched_ctx/sched_ctx_policy_data.c
-
-sched_ctx_sched_ctx_hierarchy_SOURCES =	\
-	sched_ctx/sched_ctx_hierarchy.c
-
-openmp_init_exit_01_SOURCES = 	\
-	openmp/init_exit_01.c
-
-openmp_init_exit_02_SOURCES = 	\
-	openmp/init_exit_02.c
-
-openmp_environment_SOURCES = 	\
-	openmp/environment.c
-
-openmp_api_01_SOURCES = 	\
-	openmp/api_01.c
-
-openmp_parallel_01_SOURCES = 	\
-	openmp/parallel_01.c
-
-openmp_parallel_02_SOURCES = 	\
-	openmp/parallel_02.c
-
-openmp_parallel_03_SOURCES = 	\
-	openmp/parallel_03.c
-
-openmp_parallel_barrier_01_SOURCES = 	\
-	openmp/parallel_barrier_01.c
-
-openmp_parallel_master_01_SOURCES = 	\
-	openmp/parallel_master_01.c
-
-openmp_parallel_master_inline_01_SOURCES = 	\
-	openmp/parallel_master_inline_01.c
-
-openmp_parallel_single_wait_01_SOURCES = 	\
-	openmp/parallel_single_wait_01.c
-
-openmp_parallel_single_nowait_01_SOURCES = 	\
-	openmp/parallel_single_nowait_01.c
-
-openmp_parallel_single_inline_01_SOURCES = 	\
-	openmp/parallel_single_inline_01.c
-
-openmp_parallel_single_copyprivate_01_SOURCES = 	\
-	openmp/parallel_single_copyprivate_01.c
-
-openmp_parallel_single_copyprivate_inline_01_SOURCES = 	\
-	openmp/parallel_single_copyprivate_inline_01.c
-
-openmp_parallel_critical_01_SOURCES = 	\
-	openmp/parallel_critical_01.c
-
-openmp_parallel_critical_inline_01_SOURCES = 	\
-	openmp/parallel_critical_inline_01.c
-
-openmp_parallel_critical_named_01_SOURCES = 	\
-	openmp/parallel_critical_named_01.c
-
-openmp_parallel_critical_named_inline_01_SOURCES = 	\
-	openmp/parallel_critical_named_inline_01.c
-
-openmp_parallel_simple_lock_01_SOURCES = 	\
-	openmp/parallel_simple_lock_01.c
-
-openmp_parallel_nested_lock_01_SOURCES = 	\
-	openmp/parallel_nested_lock_01.c
-
-openmp_parallel_for_01_SOURCES = 	\
-	openmp/parallel_for_01.c
-
-openmp_parallel_for_02_SOURCES = 	\
-	openmp/parallel_for_02.c
-
-openmp_parallel_for_ordered_01_SOURCES = 	\
-	openmp/parallel_for_ordered_01.c
-
-openmp_parallel_sections_01_SOURCES = 	\
-	openmp/parallel_sections_01.c
-
-openmp_parallel_sections_combined_01_SOURCES = 	\
-	openmp/parallel_sections_combined_01.c
-
-openmp_task_01_SOURCES = 	\
-	openmp/task_01.c
-
-openmp_task_02_SOURCES = 	\
-	openmp/task_02.c
-
-openmp_task_03_SOURCES = 	\
-	openmp/task_03.c
-
-openmp_taskloop_SOURCES = 	\
-	openmp/taskloop.c
-
-openmp_taskwait_01_SOURCES = 	\
-	openmp/taskwait_01.c
-
-openmp_taskgroup_01_SOURCES = 	\
-	openmp/taskgroup_01.c
-
-openmp_taskgroup_02_SOURCES = 	\
-	openmp/taskgroup_02.c
-
-openmp_array_slice_01_SOURCES = 	\
-	openmp/array_slice_01.c
-
-openmp_cuda_task_01_SOURCES = 	\
-	openmp/cuda_task_01.c
 
 if STARPU_HAVE_FC
 fortran90_init_01_SOURCES =	\
@@ -1113,38 +994,21 @@ endif
 perfmodels_regression_based_memset_SOURCES=\
 	perfmodels/regression_based_memset.c
 
-perfmodels_regression_based_check_SOURCES=\
-	perfmodels/regression_based_check.c
-
-perfmodels_regression_based_multiimpl_SOURCES=\
-	perfmodels/regression_based_multiimpl.c
-
-perfmodels_regression_based_energy_SOURCES=\
-	perfmodels/regression_based_energy.c
-
 perfmodels_regression_based_gpu_SOURCES=\
 	perfmodels/regression_based_gpu.c
 
-maxfpga_max_fpga_basic_static_SOURCES=\
-       maxfpga/max_fpga_basic_static.c
 maxfpga_max_fpga_basic_static_LDADD = $(LDADD) \
        maxfpga/slic_MyTasks.o
 maxfpga/max_fpga_basic_static.o: maxfpga/MyTasks.max
 
-maxfpga_max_fpga_advanced_static_SOURCES=\
-       maxfpga/max_fpga_advanced_static.c
 maxfpga_max_fpga_advanced_static_LDADD = $(LDADD) \
        maxfpga/slic_MyTasks.o
 maxfpga/max_fpga_advanced_static.o: maxfpga/MyTasks.max
 
-maxfpga_max_fpga_dynamic_SOURCES=\
-       maxfpga/max_fpga_dynamic.c
 maxfpga_max_fpga_dynamic_LDADD = $(LDADD) \
        maxfpga/slic_MyTasks.o
 maxfpga/max_fpga_dynamic.o: maxfpga/MyTasks.max
 
-maxfpga_max_fpga_mux_SOURCES=\
-       maxfpga/max_fpga_mux.c
 maxfpga_max_fpga_mux_LDADD = $(LDADD) \
        maxfpga/slic_MyTasksMux.o
 maxfpga/max_fpga_mux.o: maxfpga/MyTasksMux.max
@@ -1167,9 +1031,6 @@ if STARPU_USE_OPENCL
 perfmodels_non_linear_regression_based_SOURCES+=\
 	perfmodels/opencl_memset.c
 endif
-
-perfmodels_feed_SOURCES=\
-	perfmodels/feed.c
 
 sched_policies_execute_all_tasks_LDFLAGS = $(AM_LDFLAGS) -lm
 sched_policies_execute_all_tasks_CFLAGS = $(AM_LDFLAGS) $(FXT_CFLAGS)

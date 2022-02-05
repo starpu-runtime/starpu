@@ -121,7 +121,6 @@ mult_mult_SOURCES	=	mult/mult.c mult/cpu_mult.c
 SHELL_TESTS		+=	mult/mult_starpu.sh
 
 STARPU_JULIA_EXAMPLES				+=	task_insert_color/task_insert_color
-task_insert_color_task_insert_color_SOURCES	=	task_insert_color/task_insert_color.c
 SHELL_TESTS					+=	task_insert_color/task_insert_color.sh
 
 SHELL_TESTS	+=	variable/variable.sh
@@ -132,7 +131,6 @@ mandelbrot_mandelbrot_SOURCES	=	mandelbrot/mandelbrot.c mandelbrot/cpu_mandelbro
 SHELL_TESTS			+=	mandelbrot/mandelbrot.sh
 
 STARPU_JULIA_EXAMPLES		+= 	callback/callback
-callback_callback_SOURCES	=	callback/callback.c
 SHELL_TESTS			+=	callback/callback.sh
 
 SHELL_TESTS			+=	dependency/tag_dep.sh

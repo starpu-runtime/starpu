@@ -300,9 +300,6 @@ endif
 examplebin_PROGRAMS +=		\
 	matrix_mult/mm
 
-matrix_mult_mm_SOURCES	=		\
-	matrix_mult/mm.c		
-
 matrix_mult_mm_LDADD =			\
 	-lm
 
@@ -336,11 +333,6 @@ endif
 examplebin_PROGRAMS +=		\
 	mpi_redux/mpi_redux     \
 	mpi_redux/mpi_redux_tree
-
-mpi_redux_mpi_redux_SOURCES	=		\
-	mpi_redux/mpi_redux.c                   
-mpi_redux_mpi_redux_tree_SOURCES	=		\
-	mpi_redux/mpi_redux_tree.c
 
 mpi_redux_mpi_redux_LDADD =			\
 	-lm

@@ -37,11 +37,3 @@ myPROGRAMS += 01_init_exit
 myPROGRAMS += 02_list_units
 myPROGRAMS += 03_cpusets
 myPROGRAMS += 04_drs_enable
-
-01_init_exit_SOURCES = 01_init_exit.c
-
-02_list_units_SOURCES = 02_list_units.c
-
-03_cpusets_SOURCES = 03_cpusets.c
-
-04_drs_enable_SOURCES = 04_drs_enable.c
