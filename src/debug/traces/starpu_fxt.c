@@ -4208,7 +4208,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 			struct _starpu_communication*itor;
 			itor = _starpu_communication_list_pop_front(&communication_list);
 
-			if (out_paje_file)
+			if (out_paje_file && !itor->peer)
 			{
 				/* Trace finished with this communication uncompleted, fake its termination */
 
@@ -4224,10 +4224,28 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
 				program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 				memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
-				poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
-#else
-				fprintf(out_paje_file, "19	%.9f	%s	%sp	%lu	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
 #endif
+
+				if (itor->bandwidth > 0)
+				{
+					/* Fake termination of communication at end of time */
+#ifdef STARPU_HAVE_POTI
+					poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
+#else
+					fprintf(out_paje_file, "19	%.9f	%s	%sp	%lu	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
+#endif
+				}
+				else
+				{
+					/* Fake start of communication at start of time */
+#ifdef STARPU_HAVE_POTI
+					char str_handle[STARPU_POTI_STR_LEN];
+					snprintf(str_handle, sizeof(str_handle), "%lx", handle);
+					poti_user_StartLink(_starpu_poti_CommLinkStart, 0., program_container, link_type, src_memnode_container, paje_value, paje_key, 1, str_handle);
+#else
+					fprintf(out_paje_file, "24	%.9f	%s	%sp	%lu	%smm%u	com_%u	%lx\n", 0., link_type, prefix, size, prefix, dst, comid, itor->handle);
+#endif
+				}
 			}
 			_starpu_communication_delete(itor);
 		}
