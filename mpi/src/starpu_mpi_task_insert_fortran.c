@@ -50,13 +50,17 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 		if (arg_type==STARPU_EXECUTE_ON_NODE)
 		{
 			arg_i++;
-			*xrank = *(int *)arglist[arg_i];
-			if (node_selected == 0)
+			int rank = *(int *)arglist[arg_i];
+			if (rank != -1)
 			{
-				_STARPU_MPI_DEBUG(100, "Executing on node %d\n", *xrank);
-				*do_execute = 1;
-				node_selected = 1;
-				inconsistent_execute = 0;
+				*xrank = rank;
+				if (node_selected == 0)
+				{
+					_STARPU_MPI_DEBUG(100, "Executing on node %d\n", *xrank);
+					*do_execute = 1;
+					node_selected = 1;
+					inconsistent_execute = 0;
+				}
 			}
 		}
 		else if (arg_type==STARPU_EXECUTE_ON_DATA)

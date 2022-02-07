@@ -772,8 +772,10 @@ should be \c STARPU_MPI_REDUX. Assuming \c data is owned by node 0 and we want n
 1 to compute the contribution, we could do the following.
 
 \code{.c}
-starpu_mpi_task_insert(MPI_COMM_WORLD, &contrib_cl, STARPU_MPI_REDUX, data, EXECUTE_ON_NODE, 1); /* Node 1 computes it */
+starpu_mpi_task_insert(MPI_COMM_WORLD, &contrib_cl, STARPU_MPI_REDUX, data, STARPU_EXECUTE_ON_NODE, 1); /* Node 1 computes it */
 \endcode
+
+Note that if the specified node is set to \c -1, the option is ignored.
 
 \section MPIPriorities Priorities
 

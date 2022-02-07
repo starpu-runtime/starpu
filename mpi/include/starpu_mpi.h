@@ -606,7 +606,7 @@ char* starpu_mpi_data_get_redux_map(starpu_data_handle_t handle);
 	starpu_mpi_node_selection_set_current_policy())
 	<li>
 	The argument ::STARPU_EXECUTE_ON_NODE followed by an integer
-	can be used to specify the node;
+	can be used to specify the node; Ignored if the node value is -1.
 	<li>
 	The argument ::STARPU_EXECUTE_ON_DATA followed by a data handle can be used to specify that the node owing the given data will execute the codelet.
 	</ul>
