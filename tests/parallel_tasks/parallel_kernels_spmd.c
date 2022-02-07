@@ -41,7 +41,7 @@ void codelet_null(void *descr[], void *_args)
 	int worker_size = starpu_combined_worker_get_size();
 	STARPU_ASSERT(worker_size > 0);
 
-	starpu_usleep(1000/worker_size);
+	starpu_usleep(1000./worker_size);
 #if 0
 	int id = starpu_worker_get_id();
 	int combined_id = starpu_combined_worker_get_id();
