@@ -36,8 +36,8 @@
 #define N 5
 #define LIMIT "60"
 #else
-#define N 20
-#define LIMIT "1000"
+#define N 10
+#define LIMIT "250"
 #endif
 
 /* Define the interface */
