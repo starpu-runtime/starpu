@@ -32,7 +32,7 @@
 #define NTASKS 1000
 #endif
 
-static void
+void
 A(void *buffers[], void *args)
 {
 	(void) buffers;
