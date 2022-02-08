@@ -554,7 +554,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 
 	unsigned mapnode;
 	for (mapnode = 0; mapnode < STARPU_MAXNODES; mapnode++)
-		if (handle->per_node[mapnode].mapped == node)
+		if (handle->per_node[mapnode].mapped == (int) node)
 			/* This is mapped, we can't evict it */
 			/* TODO: rather check if that can be evicted as well, and if so unmap it before evicting this */
 			return 0;
