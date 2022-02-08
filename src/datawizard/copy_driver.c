@@ -360,12 +360,11 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 	 * we do not perform any transfer */
 	else if (!donotread)
 	{
+		unsigned long STARPU_ATTRIBUTE_UNUSED com_id = 0;
 		size_t size = _starpu_data_get_size(handle);
 		_starpu_bus_update_profiling_info((int)src_node, (int)dst_node, size);
 
 #ifdef STARPU_USE_FXT
-		unsigned long com_id = 0;
-
 		if (fut_active)
 		{
 			com_id = STARPU_ATOMIC_ADDL(&communication_cnt, 1);
