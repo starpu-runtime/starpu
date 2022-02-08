@@ -1181,7 +1181,7 @@ static void _starpu_data_invalidate(void *data)
 		{
 			unsigned mapping;
 			for (mapping = 0; mapping < STARPU_MAXNODES; mapping++)
-				if (handle->per_node[mapping].mapped == node)
+				if (handle->per_node[mapping].mapped == (int) node)
 					break;
 
 			if (mapping == STARPU_MAXNODES)
