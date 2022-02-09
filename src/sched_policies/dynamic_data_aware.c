@@ -38,7 +38,7 @@ bool gpu_memory_initialized;
 bool new_tasks_initialized;
 struct gpu_planned_task_control *my_planned_task_control;
 struct gpu_pulled_task_control *my_pulled_task_control;
-int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
+//~ int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 int number_task_out_DARTS_2; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 int NT_dynamic_outer;
 int iteration_DARTS;
@@ -650,7 +650,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		/* If the package is not empty I can return the head of the task list. */
 		if (!starpu_task_list_empty(&temp_pointer->planned_task))
 		{
-			number_task_out_DARTS++;
+			//~ number_task_out_DARTS++;
 			task = starpu_task_list_pop_front(&temp_pointer->planned_task);
 
 			/* Remove it from planned task compteur. Could be done in an external function as I use it two times */
@@ -681,7 +681,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		/* Else if there are still tasks in the main task list I call dynamic outer algorithm. */
 		if (!starpu_task_list_empty(l))
 		{
-			number_task_out_DARTS++;
+			//~ number_task_out_DARTS++;
 			
 			//~ /* Cas matrice 2D-3D séparé */
 			//~ if (app == 0)
@@ -752,7 +752,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 void reset_all_struct()
 {
 	NT_dynamic_outer = -1;
-	number_task_out_DARTS = -1;
+	//~ number_task_out_DARTS = -1;
 	
 	/* For visualisation in python with multi iteration. */
 	//~ index_current_popped_task = malloc(sizeof(int)*Ngpu);
@@ -3000,7 +3000,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	#endif
 	
 	gpu_memory_initialized = false;
-	number_task_out_DARTS = -1;
+	//~ number_task_out_DARTS = -1;
 	iteration_DARTS = 1;
 	
 	/* Initialization of structures. */
