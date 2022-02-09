@@ -4144,7 +4144,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 					/* Fake start of communication at start of time */
 #ifdef STARPU_HAVE_POTI
 					char str_handle[STARPU_POTI_STR_LEN];
-					snprintf(str_handle, sizeof(str_handle), "%lx", handle);
+					snprintf(str_handle, sizeof(str_handle), "%lx", itor->handle);
 					poti_user_StartLink(_starpu_poti_CommLinkStart, 0., program_container, link_type, src_memnode_container, paje_value, paje_key, 1, str_handle);
 #else
 					fprintf(out_paje_file, "24	%.9f	%s	%sp	%lu	%smm%u	com_%u	%lx\n", 0., link_type, prefix, size, prefix, dst, comid, itor->handle);
