@@ -364,7 +364,7 @@ struct starpu_data_interface_ops
 	   reuse_data_on_node should thus copy over pointers, and define fields
 	   that are usually set by allocate_data_on_node (e.g. ld).
 	*/
-	void 		 (*reuse_data_on_node)		(void *new_data_interface, const void *cached_interface, unsigned node);
+	void 		 (*reuse_data_on_node)		(void *dst_data_interface, const void *cached_interface, unsigned node);
 
 	/**
 	   Map data from a source to a destination.
