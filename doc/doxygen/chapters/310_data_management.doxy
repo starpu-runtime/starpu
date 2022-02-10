@@ -206,8 +206,9 @@ need to be set within the original allocation. To reserve room for increasing
 the NX/NY values, one can use starpu_matrix_data_register_allocsize() instead of
 starpu_matrix_data_register(), to specify the allocation size to be used instead
 of the default NX*NY*ELEMSIZE. To support this, the data interface
-has to implement the functions starpu_data_interface_ops::alloc_footprint and
-starpu_data_interface_ops::alloc_compare, for proper StarPU allocation
+has to implement the functions starpu_data_interface_ops::alloc_footprint,
+starpu_data_interface_ops::alloc_compare, and
+starpu_data_interface_ops::reuse_data_on_node for proper StarPU allocation
 management.
 
 A more involved case is changing the amount of allocated data.

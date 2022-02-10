@@ -455,6 +455,8 @@ struct starpu_data_interface_ops
 	   for indexing allocation cache.
 	   If not specified, the starpu_data_interface_ops::footprint method is
 	   used instead.
+	   If specified, alloc_compare should be set to provide the strict
+	   comparison, and reuse_data_on_node should be set to provide correct buffer reuse.
 	*/
 	uint32_t 	 (*alloc_footprint)		(starpu_data_handle_t handle);
 
