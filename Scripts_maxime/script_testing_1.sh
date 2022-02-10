@@ -20,17 +20,13 @@ make -j 6
 ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
-N=30 #je suis censé avoir 12721.1 pour N=30 ou 12806.9 depuis la maj
-#~ N=20
-#~ N=5 
-#~ N=65
-N=40 # 12893.0
-#~ N=50 : 5 choix random
-N=25
+N=5
+#~ N=5
+#~ N=30
 
 NGPU=1
-#~ NGPU=2
-#~ NGPU=3
+NGPU=2
+NGPU=3
 #~ NGPU=4
 
 ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
@@ -46,7 +42,7 @@ CM=500
 #~ CM=200
 
 EVICTION=0
-#~ EVICTION=1
+EVICTION=1
 
 READY=0
 #~ READY=1
