@@ -24,6 +24,9 @@
 #include <schedulers/dynamic_data_aware.h>
 #include "helper_mct.h"
 
+/* TODO : a suppr */
+int number_data_conflict;
+
 /* Var globales déclaré en extern */
 int eviction_strategy_dynamic_data_aware;
 int threshold;
@@ -1450,9 +1453,7 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 
 //~ Dans un coin de la tete : idée de liste intermédiaire
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
-{
-	printf("Start 3D GPU %d.\n", current_gpu); fflush(stdout);
-	
+{	
 	/* TODO : a suppr */
 	Dopt[current_gpu - 1] = NULL;
 	
@@ -2019,7 +2020,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		{
 			if (Dopt[i] == handle_popped && handle_popped != NULL)
 			{
-				printf("Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped);
+				//~ printf("Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped);number_data_conflict
+				number_data_conflict++;
 			}
 		}
 	}
@@ -2033,9 +2035,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     gettimeofday(&time_end_choose_best_data, NULL);
 	time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
     #endif
-    
-    printf("Here GPU %d.\n", current_gpu);
-    
+        
     if (number_free_task_max != 0) /* cas comme dans 2D, je met dans planned_task les tâches gratuites, sauf que j'ai 3 données à check et non 2. */
     {
 		#ifdef PRINT
@@ -2307,7 +2307,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		increment_planned_task_data(task, current_gpu);
 		
 		#ifdef PRINT
-		printf("Returning head of the randomized main task list: %p.\n", task);
+		printf("For GPU %d, returning head of the randomized main task list: %p.\n", current_gpu, task);
 		#endif
 		
 		erase_task_and_data_pointer(task, main_task_list);
@@ -3069,6 +3069,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	{
 		Dopt[i] = NULL;
 	}
+	number_data_conflict = 0;
 
 	component->data = data;
 	/* component->do_schedule = dynamic_data_aware_do_schedule; */
@@ -3189,6 +3190,13 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		need_to_reinit = true;
 		iteration_DARTS++;
 		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		
+		/* TODO : a suppr */
+		if (iteration_DARTS == 11)
+		{
+			FILE *f = fopen("Output_maxime/Data/Nb_conflit_donnee.txt", "a");
+			fprintf(f , "%d\n", number_data_conflict);
+		}
 		
 		#ifdef PRINT
 		if ((iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) //PRINT_TIME = 2 pour quand on a 1 seule itération
