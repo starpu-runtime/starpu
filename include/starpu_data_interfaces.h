@@ -352,9 +352,19 @@ struct starpu_data_interface_ops
 
 	   This method is optional, mostly useful when also defining
 	   alloc_footprint to share tiles of the same allocation size but
-	   different shapes
+	   different shapes.
+
+	   \p cached_interface is an already-allocated buffer that we want to
+	   reuse, and \p new_data_interface is an interface in which we want to
+	   install that already-allocated buffer. Usually we can just memcpy over
+	   the set of pointers and descriptions. But e.g. with 2D tiles the ld
+	   value may not be correct, and memcpy would wrongly overwrite it in
+	   new_data_interface, i.e. reusing a vertical tile allocation for a horizontal tile, or vice-versa.
+
+	   reuse_data_on_node should thus copy over pointers, and define fields
+	   that are usually set by allocate_data_on_node (e.g. ld).
 	*/
-	void 		 (*reuse_data_on_node)		(void *data_interface, const void *new_interface, unsigned node);
+	void 		 (*reuse_data_on_node)		(void *new_data_interface, const void *cached_interface, unsigned node);
 
 	/**
 	   Map data from a source to a destination.

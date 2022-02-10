@@ -520,15 +520,15 @@ static void free_matrix_buffer_on_node(void *data_interface, unsigned node)
 	starpu_free_on_node(node, matrix_interface->dev_handle, matrix_interface->allocsize);
 }
 
-static void reuse_matrix_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
+static void reuse_matrix_buffer_on_node(void *new_data_interface, const void *cached_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
 {
-	struct starpu_matrix_interface *matrix_interface = data_interface;
-	const struct starpu_matrix_interface *new_matrix_interface = new_data_interface;
+	struct starpu_matrix_interface *new_matrix_interface = new_data_interface;
+	const struct starpu_matrix_interface *cached_matrix_interface = cached_interface;
 
-	matrix_interface->ptr = new_matrix_interface->ptr;
-	matrix_interface->dev_handle = new_matrix_interface->dev_handle;
-	matrix_interface->offset = new_matrix_interface->offset;
-	matrix_interface->ld = matrix_interface->nx; // by default
+	new_matrix_interface->ptr = cached_matrix_interface->ptr;
+	new_matrix_interface->dev_handle = cached_matrix_interface->dev_handle;
+	new_matrix_interface->offset = cached_matrix_interface->offset;
+	new_matrix_interface->ld = new_matrix_interface->nx; // by default
 }
 
 static int map_matrix(void *src_interface, unsigned src_node,
