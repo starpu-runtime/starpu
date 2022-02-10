@@ -6,9 +6,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 int main(int argc, char *argv[])
 {
+	int i = 0; 
+	
 	if (argc != 7)
 	{
 		fprintf(stderr, "Error: mauvais nb d'argument à ./cut_gflops_raw_out_csv\n");
@@ -18,12 +21,31 @@ int main(int argc, char *argv[])
 	int NOMBRE_ALGO_TESTE = atoi(argv[2]);
 	int ECHELLE_X = atoi(argv[3]);
 	int START_X = atoi(argv[4]);
+	
+	int strsize = 0;
+    for (i=4; i<argc; i++) {
+        strsize += strlen(argv[i]);
+        if (argc > i+1)
+            strsize++;
+    }
+    printf("strsize: %d\n", strsize);
+    char *cmdstring;
+    cmdstring = malloc(strsize);
+    cmdstring[0] = '\0';
+    for (i=4; i<argc; i++) {
+        strcat(cmdstring, argv[i]);
+        if (argc > i+1)
+            strcat(cmdstring, " ");
+    }
+    printf("cmdstring: %s\n", cmdstring);
+    exit(0);
+	
 	//~ int NGPU = atoi(argv[7]);
 	long where_to_write = 0; int k = 0;
 	long ligne[10] = {0};
 	int index = 0;
 	int first_loop = 0;
-	int i = 0; int j = 0;
+	int j = 0;
 	char str1[10];
 	int count = 0;
 	char GFlops[15];
