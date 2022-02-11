@@ -31,6 +31,8 @@ extern int natural_order;
 /* TODO : A suppr une fois les test fini */
 starpu_data_handle_t *Dopt;
 extern int number_data_conflict;
+extern int number_critical_data_conflict;
+bool* data_conflict;
 
 /** Mutex **/
 starpu_pthread_mutex_t refined_mutex; /* Protège main task list et les données. */

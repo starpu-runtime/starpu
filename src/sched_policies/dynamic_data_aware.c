@@ -26,6 +26,7 @@
 
 /* TODO : a suppr */
 int number_data_conflict;
+int number_critical_data_conflict;
 
 /* Var globales déclaré en extern */
 int eviction_strategy_dynamic_data_aware;
@@ -1453,7 +1454,7 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 
 //~ Dans un coin de la tete : idée de liste intermédiaire
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
-{	
+{		
 	/* TODO : a suppr */
 	Dopt[current_gpu - 1] = NULL;
 	
@@ -1593,7 +1594,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	gettimeofday(&time_start_choose_best_data, NULL);
 	#endif
 	
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);	
 		
 	/* Recherche de la meilleure donnée. Je regarde directement pour chaque donnée, le nombre de tâche qu'elle met à 1 donnée d'être possible si j'ai toujours
 	 * 0 à number_free_task_max. */
@@ -2012,7 +2013,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 
 	end_choose_best_data : ;
 	
-	/* TODO : a suppr */
+	/* TODO : a suppr ce qui n'est pas utile plus tard */
+	data_conflict[current_gpu - 1] = false;
 	Dopt[current_gpu - 1] = handle_popped;
 	for (i = 0; i < Ngpu; i++)
 	{
@@ -2020,8 +2022,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		{
 			if (Dopt[i] == handle_popped && handle_popped != NULL)
 			{
-				//~ printf("Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped);number_data_conflict
+				//~ printf("Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
 				number_data_conflict++;
+				data_conflict[current_gpu - 1] = true;
 			}
 		}
 	}
@@ -2263,7 +2266,27 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     /* If no task have been added to the list. */
     if (starpu_task_list_empty(&g->planned_task)) 
     {
+		/* Si il y a eu un conflit, alors on veut recommencer au lieu de faire random. */
+		//~ data_conflict = false;
+		//~ Dopt[current_gpu - 1] = handle_popped;
+		//~ for (i = 0; i < Ngpu; i++)
+		//~ {
+			//~ if(i != current_gpu - 1)
+			//~ {
+				if (data_conflict[current_gpu - 1] == true)
+				{
+					//~ printf("CRITICAL DATA CONFLICT! Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
+					//~ printf("Goto\n");
+					number_critical_data_conflict++;
+					dynamic_data_aware_scheduling_3D_matrix(main_task_list, current_gpu, g);
+					//~ goto debut_choix_Dopt;
+					//~ data_conflict = true;
+				}
+			//~ }
+		//~ }
+	
 		random: ;
+		
 		/* TODO : a suppr */
 		Dopt[current_gpu - 1] = NULL;
 
@@ -3070,6 +3093,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 		Dopt[i] = NULL;
 	}
 	number_data_conflict = 0;
+	number_critical_data_conflict = 0;
+	data_conflict = malloc(Ngpu*sizeof(bool));
 
 	component->data = data;
 	/* component->do_schedule = dynamic_data_aware_do_schedule; */
@@ -3194,8 +3219,12 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		/* TODO : a suppr */
 		if (iteration_DARTS == 11)
 		{
-			FILE *f = fopen("Output_maxime/Data/Nb_conflit_donnee.txt", "a");
-			fprintf(f , "%d\n", number_data_conflict);
+			FILE *f2 = fopen("Output_maxime/Data/Nb_conflit_donnee.txt", "a");
+			fprintf(f2 , "%d\n", number_data_conflict);
+			fclose(f2);
+			f2 = fopen("Output_maxime/Data/Nb_conflit_donnee_critique.txt", "a");
+			fprintf(f2 , "%d\n", number_critical_data_conflict);
+			fclose(f2);
 		}
 		
 		#ifdef PRINT

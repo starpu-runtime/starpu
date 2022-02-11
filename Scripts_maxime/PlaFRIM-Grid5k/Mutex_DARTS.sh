@@ -1,5 +1,5 @@
 #!/usr/bin/bash	
-#	bash Scripts_maxime/PlaFRIM-Grid5k/Mutex_DARTS.sh 15 Matrice_ligne mutex_darts 1
+#	bash Scripts_maxime/PlaFRIM-Grid5k/Mutex_DARTS.sh 12 Matrice_ligne mutex_darts 1
 
 make -j 100
 NB_TAILLE_TESTE=$1

@@ -12,11 +12,11 @@ int main(int argc, char *argv[])
 {
 	int i = 0; 
 	
-	if (argc != 7)
-	{
-		fprintf(stderr, "Error: mauvais nb d'argument à ./cut_gflops_raw_out_csv\n");
-		exit(EXIT_FAILURE);
-	}
+	//~ if (argc != 7)
+	//~ {
+		//~ fprintf(stderr, "Error: mauvais nb d'argument à ./cut_gflops_raw_out_csv\n");
+		//~ exit(EXIT_FAILURE);
+	//~ }
 	int NOMBRE_DE_TAILLES_DE_MATRICES = atoi(argv[1]);
 	int NOMBRE_ALGO_TESTE = atoi(argv[2]);
 	int ECHELLE_X = atoi(argv[3]);
