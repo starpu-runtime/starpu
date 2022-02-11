@@ -2022,7 +2022,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		{
 			if (Dopt[i] == handle_popped && handle_popped != NULL)
 			{
-				//~ printf("Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
+				//printf("Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
 				number_data_conflict++;
 				data_conflict[current_gpu - 1] = true;
 			}
@@ -2193,6 +2193,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 		#endif
 		
+		//printf("%d.\n", task_using_data_list_size(handle_popped->sched_data)); fflush(stdout);
+
 		/* Nouvelle version où au lieu de bêtement prendre une tâche de la donnée élu, je vais regarder si la tâche est bien 1 from free. */
 		for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
 		{
@@ -2219,10 +2221,20 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					}
 				}
 			}
-			if (data_not_available == 1)
+			if (data_not_available == 1 || data_not_available == 0)
 			{
+				//printf("break.\n"); fflush(stdout);
 				break;
 			}
+		}
+
+		if (t == task_using_data_list_end(handle_popped->sched_data))
+		{
+			//printf("Rien trouvé.\n"); fflush(stdout);
+
+			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+			goto random;
+			//dynamic_data_aware_scheduling_3D_matrix(main_task_list, current_gpu, g);
 		}
 		
 		/* OLD version : Random car la liste est randomisé */
@@ -2234,6 +2246,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 		//~ #endif
 		
+		//printf("task =%p, GPU  = %d.\n", t->pointer_to_T, current_gpu); fflush(stdout);	
 		increment_planned_task_data(t->pointer_to_T, current_gpu);
 		
 		#ifdef PRINT
@@ -2275,7 +2288,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			//~ {
 				if (data_conflict[current_gpu - 1] == true)
 				{
-					//~ printf("CRITICAL DATA CONFLICT! Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
+					//printf("CRITICAL DATA CONFLICT! Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
 					//~ printf("Goto\n");
 					number_critical_data_conflict++;
 					dynamic_data_aware_scheduling_3D_matrix(main_task_list, current_gpu, g);
@@ -2420,9 +2433,9 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-	//~ #ifdef REFINED_MUTEX
-	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
-	//~ #endif
+	//#ifdef REFINED_MUTEX
+	//STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	//#endif
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
@@ -2454,9 +2467,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//~ #ifdef REFINED_MUTEX
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-		//~ #endif
+		//#ifdef REFINED_MUTEX
+		//STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		//#endif
 		#ifdef LINEAR_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
@@ -2531,9 +2544,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//~ #ifdef REFINED_MUTEX
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-		//~ #endif
+		//#ifdef REFINED_MUTEX
+		//STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		//#endif
 		#ifdef LINEAR_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
@@ -2562,9 +2575,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 			#endif
 			
-			//~ #ifdef REFINED_MUTEX
-			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-			//~ #endif
+			//#ifdef REFINED_MUTEX
+			//STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+			//#endif
 			#ifdef LINEAR_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 			#endif
@@ -2585,9 +2598,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//~ #ifdef REFINED_MUTEX
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-		//~ #endif
+		//#ifdef REFINED_MUTEX
+		//STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		//#endif
 		#ifdef LINEAR_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
