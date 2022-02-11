@@ -34,7 +34,7 @@ endif
 if STARPU_USE_MPI_MASTER_SLAVE
 TESTS_ENVIRONMENT	=	$(MPI_RUN_ARGS) MPI_LAUNCHER="$(MPI_LAUNCHER)" LOADER_ARGS="--mpirun" top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 else
-TESTS_ENVIRONMENT	=	$(MPI_RUN_ARGS) MPI_LAUNCHER="$(MPI_LAUNCHER)" LOADER_ARGS="--mpirun" top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 endif
 
 TESTS	=
