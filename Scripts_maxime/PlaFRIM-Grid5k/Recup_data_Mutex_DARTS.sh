@@ -18,6 +18,7 @@ then
 	NB_ALGO_TESTE=2
 	
 	FICHIER_GF=GF_mutex_M2D_${NGPU}GPU.txt
+	FICHIER_CONFLITS=Conflits_mutex_M2D_${NGPU}GPU.txt
 
 	FICHIER_GF_REFINED=GF_refined_mutex_M2D_${NGPU}GPU.txt
 	FICHIER_CONFLITS_REFINED=Nb_conflit_donnee_refined_mutex_M2D_${NGPU}GPU.txt
@@ -30,6 +31,7 @@ then
 	NB_ALGO_TESTE=4
 	
 	FICHIER_GF=GF_mutex_M3D_${NGPU}GPU.txt
+	FICHIER_CONFLITS=Conflits_mutex_M3D_${NGPU}GPU.txt
 
 	FICHIER_GF_REFINED=GF_refined_mutex_M3D_${NGPU}GPU.txt
 	FICHIER_CONFLITS_REFINED=Nb_conflit_donnee_refined_mutex_M3D_${NGPU}GPU.txt
@@ -42,6 +44,7 @@ then
 	NB_ALGO_TESTE=6
 	
 	FICHIER_GF=GF_mutex_CHO_${NGPU}GPU.txt
+	FICHIER_CONFLITS=Conflits_mutex_CHO_${NGPU}GPU.txt
 
 	FICHIER_GF_REFINED=GF_refined_mutex_CHO_${NGPU}GPU.txt
 	FICHIER_CONFLITS_REFINED=Nb_conflit_donnee_refined_mutex_CHO_${NGPU}GPU.txt
@@ -51,25 +54,23 @@ then
 fi
 
 # Get data files from ssh
-#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_GF_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF_REFINED}
-#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_CONFLITS_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_REFINED}
-#~ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_CONFLITS_CRITIQUE_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_CRITIQUE_REFINED}
+scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_GF_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF_REFINED}
+scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_CONFLITS_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_REFINED}
+scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_CONFLITS_CRITIQUE_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_CRITIQUE_REFINED}
 
-#~ # Concaténation
-#~ cat /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF_LINEAR} > /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF}
+# Concaténation
+cat /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF_LINEAR} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF_REFINED} > /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF}
+cat /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_CRITIQUE_REFINED} > /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS}	
 
-#~ # Tracage des GFlops
-#~ gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
-#~ gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c
-#~ ./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
-#~ ./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.csv
-
-# Plot FULL
+# Tracage des GFlops
+gcc -o cut_gflops_raw_out cut_gflops_raw_out.c
+gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c
+./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.txt
+./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.csv
 python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.csv
 mv ${PATH_STARPU}/starpu/plot.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
 # Plot conflits de données
-#~ cat /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_CRITIQUE_REFINED} > /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/Nb_conflit_merged_M2D_${NGPU}GPU.txt
-#~ ./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/Nb_conflit_merged_M2D_${NGPU}GPU.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/Nb_conflit_merged_M2D_${NGPU}GPU.csv
-python3 /home/gonthier/these_gonthier_maxime/Code/Plot_conflits.py ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/Nb_conflit_merged_M2D_${NGPU}GPU.csv
+./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_conflits_${GPU}_${NGPU}GPU.csv
+python3 /home/gonthier/these_gonthier_maxime/Code/Plot_conflits.py ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_conflits_${GPU}_${NGPU}GPU.csv
 mv ${PATH_STARPU}/starpu/plot.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_conflits_${GPU}_${NGPU}GPU.pdf
