@@ -10,6 +10,7 @@ START_X=0
 FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
 truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 Output_maxime/Data/Nb_conflit_donnee.txt
+truncate -s 0 Output_maxime/Data/Nb_conflit_donnee_critique.txt
 ulimit -S -s 5000000
 CM=500
 TH=10
