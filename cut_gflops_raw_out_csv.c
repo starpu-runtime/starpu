@@ -22,23 +22,23 @@ int main(int argc, char *argv[])
 	int ECHELLE_X = atoi(argv[3]);
 	int START_X = atoi(argv[4]);
 	
-	int strsize = 0;
-    for (i=4; i<argc; i++) {
-        strsize += strlen(argv[i]);
-        if (argc > i+1)
-            strsize++;
-    }
-    printf("strsize: %d\n", strsize);
-    char *cmdstring;
-    cmdstring = malloc(strsize);
-    cmdstring[0] = '\0';
-    for (i=4; i<argc; i++) {
-        strcat(cmdstring, argv[i]);
-        if (argc > i+1)
-            strcat(cmdstring, " ");
-    }
-    printf("cmdstring: %s\n", cmdstring);
-    exit(0);
+	//~ int strsize = 0;
+    //~ for (i=5; i<argc; i++) {
+        //~ strsize += strlen(argv[i]);
+        //~ if (argc > i+1)
+            //~ strsize++;
+    //~ }
+    //~ printf("strsize: %d\n", strsize);
+    //~ char *cmdstring;
+    //~ cmdstring = malloc(strsize);
+    //~ cmdstring[0] = '\0';
+    //~ for (i=5; i<argc; i++) {
+        //~ strcat(cmdstring, argv[i]);
+        //~ if (argc > i+1)
+            //~ strcat(cmdstring, " ");
+    //~ }
+    //~ printf("cmdstring: %s\n", cmdstring);
+    //~ exit(0);
 	
 	//~ int NGPU = atoi(argv[7]);
 	long where_to_write = 0; int k = 0;
@@ -60,6 +60,7 @@ int main(int argc, char *argv[])
     if (fichier_in != NULL)
     {
 		c = fgetc(fichier_in);
+		//~ while (c != '\n') { c = fgetc(fichier_in); }
 		while (c != '\n') {
 			c = fgetc(fichier_in);
 			if (c == '	') { count++; }
@@ -77,7 +78,8 @@ int main(int argc, char *argv[])
 		
 		//~ if (NGPU == 1)
 		//~ {
-			fprintf(fichier_out,"N,EAGER,DMDAR,DARTS,DARTS+LUF,DARTS+LUF+R,DARTS+LUF+TH2,DARTS+LUF+TH2+FM,DARTS+LUF+TH2+FM+SM,DARTS+LUF+TH2+FM+SM+NO1,DARTS+LUF+TH2+FM+SM+NO2,DARTS+LUF+TH2+FM+SM+NO2+R,DARTS+3D,DARTS+3D+LUF,DARTS+3D+LUF+R,DARTS+3D+LUF+TH2,DARTS+3D+LUF+TH2+FM,DARTS+3D+LUF+TH2+FM+NO1,DARTS+3D+LUF+TH2+FM+NO2,DARTS+3D+LUF+TH2+FM+SM,DARTS+3D+LUF+TH2+FM+SM+NO2,DARTS+3D+LUF+TH2+FM+SM+NO2+R\n");
+			//~ fprintf(fichier_out,"N,EAGER,DMDAR,DARTS,DARTS+LUF,DARTS+LUF+R,DARTS+LUF+TH2,DARTS+LUF+TH2+FM,DARTS+LUF+TH2+FM+SM,DARTS+LUF+TH2+FM+SM+NO1,DARTS+LUF+TH2+FM+SM+NO2,DARTS+LUF+TH2+FM+SM+NO2+R,DARTS+3D,DARTS+3D+LUF,DARTS+3D+LUF+R,DARTS+3D+LUF+TH2,DARTS+3D+LUF+TH2+FM,DARTS+3D+LUF+TH2+FM+NO1,DARTS+3D+LUF+TH2+FM+NO2,DARTS+3D+LUF+TH2+FM+SM,DARTS+3D+LUF+TH2+FM+SM+NO2,DARTS+3D+LUF+TH2+FM+SM+NO2+R\n");
+			fprintf(fichier_out,"N,DARTS+LUF,DARTS+LUF refined mutex\n");
 		//~ }
 		//~ else
 		//~ {
