@@ -2420,9 +2420,9 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-	#ifdef REFINED_MUTEX
-	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
-	#endif
+	//~ #ifdef REFINED_MUTEX
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	//~ #endif
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
@@ -2454,9 +2454,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		#ifdef REFINED_MUTEX
-		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-		#endif
+		//~ #ifdef REFINED_MUTEX
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		//~ #endif
 		#ifdef LINEAR_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
@@ -2487,7 +2487,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     }
     
 	
-	//STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	//~ #ifdef REFINED_MUTEX
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	//~ #endif
 	
 	/* Je cherche le nombre de tâche dans le pulled_task que peut faire chaque données */
     struct handle_user_data *hud = malloc(sizeof(hud));
@@ -2529,9 +2531,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		#ifdef REFINED_MUTEX
-		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-		#endif
+		//~ #ifdef REFINED_MUTEX
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		//~ #endif
 		#ifdef LINEAR_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
@@ -2560,9 +2562,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 			#endif
 			
-			#ifdef REFINED_MUTEX
-			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-			#endif
+			//~ #ifdef REFINED_MUTEX
+			//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+			//~ #endif
 			#ifdef LINEAR_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 			#endif
@@ -2583,9 +2585,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		#ifdef REFINED_MUTEX
-		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-		#endif
+		//~ #ifdef REFINED_MUTEX
+		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		//~ #endif
 		#ifdef LINEAR_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
@@ -2594,6 +2596,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     }
     
     deletion_in_victim_selector : ;
+    
+    #ifdef REFINED_MUTEX
+	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	#endif
     
     struct starpu_task *task = NULL;
     struct starpu_sched_component *temp_component = component;
