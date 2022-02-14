@@ -280,18 +280,56 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     {
 		for (j = 0; j < STARPU_TASK_GET_NBUFFERS(task); j++)
 		{
+			/* OLD */
+			//~ struct gpu_data_not_used *e = gpu_data_not_used_new();
+			//~ e->D = STARPU_TASK_GET_HANDLE(task, j);
+			
+			//~ /* If the void * of struct paquet is empty I initialize it. */ 
+			//~ if (my_planned_task_control->pointer->gpu_data == NULL)
+			//~ {
+				//~ struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
+				//~ gpu_data_not_used_list_push_front(gd, e);
+				//~ my_planned_task_control->pointer->gpu_data = gd; 
+			//~ }
+			//~ else
+			//~ {
+				//~ /* La je ne dois pas ne rien faire a l'iteration_DARTS 2 */
+				//~ /* Il faudrait une liste externe des data pour les reset ? */
+				//~ /* TODO : J'ai enlevé le if ici qui n'est pas utile */
+				//~ if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
+				//~ {
+					//~ gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+				//~ }
+				//~ else
+				//~ {
+					//~ if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
+					//~ {
+						//~ struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
+						//~ if (hud->last_iteration_DARTS != iteration_DARTS)
+						//~ {
+							//~ gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+						//~ }
+					//~ }
+					//~ else
+					//~ {
+						//~ gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+					//~ }
+				//~ }
+			//~ }
+			
+			/* NEW */
 			struct gpu_data_not_used *e = gpu_data_not_used_new();
 			e->D = STARPU_TASK_GET_HANDLE(task, j);
 			
 			/* If the void * of struct paquet is empty I initialize it. */ 
-			if (my_planned_task_control->pointer->gpu_data == NULL)
-			{
-				struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
-				gpu_data_not_used_list_push_front(gd, e);
-				my_planned_task_control->pointer->gpu_data = gd; 
-			}
-			else
-			{
+			//~ if (my_planned_task_control->pointer->gpu_data == NULL)
+			//~ {
+				//~ struct gpu_data_not_used_list *gd = gpu_data_not_used_list_new();
+				//~ gpu_data_not_used_list_push_front(gd, e);
+				//~ my_planned_task_control->pointer->gpu_data = gd; 
+			//~ }
+			//~ else
+			//~ {
 				/* La je ne dois pas ne rien faire a l'iteration_DARTS 2 */
 				/* Il faudrait une liste externe des data pour les reset ? */
 				/* TODO : J'ai enlevé le if ici qui n'est pas utile */
@@ -314,7 +352,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 						gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
 					}
 				//~ }
-			}
+			//~ }
 		}
 		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
     }
@@ -2953,12 +2991,15 @@ void gpu_planned_task_initialisation()
     
     starpu_task_list_init(&new->planned_task);
     starpu_task_list_init(&new->refused_fifo_list);
-    new->gpu_data = NULL;
+    //~ new->gpu_data = NULL;
     new->data_to_evict_next = NULL;
     new->next = NULL;
     //~ new->my_data_to_pop_next = data_to_pop_next_list_new();
     new->first_task = true;
     new->number_data_selection = 0;
+    
+    /* Pour les init avec dépendances */
+    new->gpu_data = gpu_data_not_used_list_new();
     
     my_planned_task_control->pointer = new;
     my_planned_task_control->first = my_planned_task_control->pointer;
@@ -2970,12 +3011,15 @@ void gpu_planned_task_insertion()
     
     starpu_task_list_init(&new->planned_task);
     starpu_task_list_init(&new->refused_fifo_list);
-    new->gpu_data = NULL;
+    //~ new->gpu_data = NULL;
     new->data_to_evict_next = NULL;
     new->next = my_planned_task_control->pointer;
     //~ new->my_data_to_pop_next = data_to_pop_next_list_new();
     new->first_task = true;
     new->number_data_selection = 0;
+    
+	/* Pour les init avec dépendances */
+    new->gpu_data = gpu_data_not_used_list_new();
     
     my_planned_task_control->pointer = new;
 }
