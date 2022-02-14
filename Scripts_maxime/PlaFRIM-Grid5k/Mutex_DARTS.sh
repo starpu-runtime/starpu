@@ -10,8 +10,8 @@ MODEL=$3
 NGPU=$4
 START_X=0  
 FICHIER_RAW=Output_maxime/GFlops_raw_out_1.txt
-FICHIER_BUS=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_2.txt
-FICHIER_RAW_DT=${PATH_STARPU}/starpu/Output_maxime/GFlops_raw_out_3.txt
+FICHIER_BUS=Output_maxime/GFlops_raw_out_2.txt
+FICHIER_RAW_DT=Output_maxime/GFlops_raw_out_3.txt
 truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 Output_maxime/Data/Nb_conflit_donnee.txt
 truncate -s 0 Output_maxime/Data/Nb_conflit_donnee_critique.txt
