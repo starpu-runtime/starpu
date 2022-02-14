@@ -15,6 +15,7 @@
 #define NATURAL_ORDER /* Default 0, signifie qu'on randomize la liste des tâches et des données. 1 je ne randomise pas la liste des données et chaque GPU commence un endroit différent. 2 je ne randomise pas non plus la liste des tâches et chaque GPU a sa première tâche à pop pré-définie. */
 //~ #define ERASE_DATA_STRATEGY /* Default 0, veut dire que on erase que du GPU en question, 1 on erase de tous les GPUs. */
 //~ #define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
+#define DEPENDANCES
 
 /* Var globale pour n'appeller qu'une seule fois get_env_number */
 extern int eviction_strategy_dynamic_data_aware;
@@ -25,6 +26,7 @@ extern int simulate_memory;
 extern int natural_order;
 //~ extern int erase_data_strategy;
 //~ extern int data_order;
+extern int dependances;
 
 #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
 

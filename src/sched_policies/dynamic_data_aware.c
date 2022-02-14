@@ -38,6 +38,9 @@ int simulate_memory;
 int natural_order;
 //~ int erase_data_strategy;
 
+/* TODO : pas utile pour le moment a suppr si inutile */
+int dependances;
+
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
 struct gpu_planned_task_control *my_planned_task_control;
@@ -490,31 +493,35 @@ void randomize_data_not_used_yet()
     int number_of_data = 0;
     my_planned_task_control->pointer = my_planned_task_control->first;
     
-    /* I need this for the %random. */
-    number_of_data = gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data);
-    //~ printf("%d data in randomize_data.\n", number_of_data); fflush(stdout);
-    struct gpu_data_not_used *data_tab[number_of_data];
-    
-    for (i = 0; i < Ngpu; i++)
-    {
-		for (j = 0; j < number_of_data; j++)
-		{
-			data_tab[j] = gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data);
-		}
-		struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
+        //~ if (dependances == 0)
+    //~ {
+		/* I need this for the %random. */
 		
-		for (j = 0; j < number_of_data; j++)
+		for (i = 0; i < Ngpu; i++)
 		{
-			random = rand()%(number_of_data - j);
-			gpu_data_not_used_list_push_back(randomized_list, data_tab[random]);
+			number_of_data = gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data);
+			struct gpu_data_not_used *data_tab[number_of_data];
+
+
+			for (j = 0; j < number_of_data; j++)
+			{
+				data_tab[j] = gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data);
+			}
+			struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
 			
-			/* Je remplace la case par la dernière tâche du tableau */
-			data_tab[random] = data_tab[number_of_data - j - 1];
+			for (j = 0; j < number_of_data; j++)
+			{
+				random = rand()%(number_of_data - j);
+				gpu_data_not_used_list_push_back(randomized_list, data_tab[random]);
+				
+				/* Je remplace la case par la dernière tâche du tableau */
+				data_tab[random] = data_tab[number_of_data - j - 1];
+			}
+			/* Then replace the list with it. */
+			my_planned_task_control->pointer->gpu_data = randomized_list;
+			my_planned_task_control->pointer = my_planned_task_control->pointer->next;
 		}
-		/* Then replace the list with it. */
-		my_planned_task_control->pointer->gpu_data = randomized_list;
-		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-    }
+	//~ }
 }
 
 void natural_order_data_not_used_yet()
@@ -3080,6 +3087,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	//~ data_order = starpu_get_env_number_default("DATA_ORDER", 0);
 	natural_order = starpu_get_env_number_default("NATURAL_ORDER", 0);
 	//~ erase_data_strategy = starpu_get_env_number_default("ERASE_DATA_STRATEGY", 0);
+	dependances = starpu_get_env_number_default("DEPENDANCES", 0);
 
 	#ifdef PRINT
 	print_in_terminal = starpu_get_env_number_default("PRINT_IN_TERMINAL", 0);
