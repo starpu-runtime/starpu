@@ -32,8 +32,9 @@
 #include "magma.h"
 #endif
 
+/* Mes variables */
 int count_do_schedule;
-
+int dependances; /* 0 pas de dépendances, 1 la version classique. */
 /* To avegrage on 11 iteration and ignoring the first one. */
 double average_flop;
 int niter;
@@ -64,11 +65,17 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	if (bound_p || bound_lp_p || bound_mps_p)
 		starpu_bound_start(bound_deps_p, 0);
 	starpu_fxt_start_profiling();
-
-	//~ start = starpu_timing_now();
-
-	starpu_pause(); /* To get all tasks at once, resume at the end of the loop for (k = 0; k < nblocks; k++) */
-	/* create all the DAG nodes */
+	
+	if (dependances == 1) /* Version avec dépendances */
+	{
+		start = starpu_timing_now();
+	}
+	else /* Version sans dépendances */
+	{
+		starpu_pause(); /* To get all tasks at once, resume at the end of the loop for (k = 0; k < nblocks; k++) */
+	}
+	
+	/* Create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
 		int ret;
@@ -125,28 +132,31 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		starpu_iteration_pop();
 	}
 	//~ starpu_resume();
-	//~ starpu_task_wait_for_all();
-
-	//~ end = starpu_timing_now();
-
-	/* NEW */				
-	if (count_do_schedule == 0)
+	
+	if (dependances == 1)
 	{
-		starpu_do_schedule();
-		start = starpu_timing_now();					
-		starpu_resume();
 		starpu_task_wait_for_all();
 		end = starpu_timing_now();
 	}
 	else
 	{
-		start = starpu_timing_now();
-		starpu_do_schedule();		
-		starpu_resume();
-		starpu_task_wait_for_all();
-		end = starpu_timing_now();
+		if (count_do_schedule == 0)
+		{
+			starpu_do_schedule();
+			start = starpu_timing_now();					
+			starpu_resume();
+			starpu_task_wait_for_all();
+			end = starpu_timing_now();
+		}
+		else
+		{
+			start = starpu_timing_now();
+			starpu_do_schedule();		
+			starpu_resume();
+			starpu_task_wait_for_all();
+			end = starpu_timing_now();
+		}
 	}
-
 	
 	
 	starpu_fxt_stop_profiling();
@@ -385,6 +395,8 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 int main(int argc, char **argv)
 {
+	/* Récup de var d'env */
+	dependances = starpu_get_env_number_default("DEPENDANCES", 0);
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
 	niter = 11;
