@@ -3517,6 +3517,12 @@ int get_number_GPU()
 /* Printing in a file the coordinates and the data loaded during prefetch for each task */
 void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 {
+	/* TODO : marche que en M2D et M3D pour le moment */
+	if (strcmp(starpu_task_get_name(task), "starpu_sgemm_gemm") != 0)
+	{
+		return;
+	}
+
 	int current_gpu = gpu_id;
 	if (Ngpu == 1)
 	{

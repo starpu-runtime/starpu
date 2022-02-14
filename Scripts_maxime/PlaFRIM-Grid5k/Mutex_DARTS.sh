@@ -2,6 +2,7 @@
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Mutex_DARTS.sh 12 Matrice_ligne mutex_darts 4
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Mutex_DARTS.sh 3 Matrice3D mutex_darts 4
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Mutex_DARTS.sh 3 Cholesky mutex_darts 4
+#	bash Scripts_maxime/PlaFRIM-Grid5k/Mutex_DARTS.sh 7 Cholesky mutex_darts 2
 
 make -j 100
 NB_TAILLE_TESTE=$1

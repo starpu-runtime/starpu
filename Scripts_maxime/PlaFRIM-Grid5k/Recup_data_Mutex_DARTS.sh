@@ -1,6 +1,7 @@
 # 	bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Mutex_DARTS.sh 12 Matrice_ligne mutex_darts 4
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Mutex_DARTS.sh 3 Matrice3D mutex_darts 4
 #	bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Mutex_DARTS.sh 3 Cholesky mutex_darts 4
+#	bash Scripts_maxime/PlaFRIM-Grid5k/Recup_data_Mutex_DARTS.sh 7 Cholesky mutex_darts 2
 
 NB_TAILLE_TESTE=$1
 DOSSIER=$2
@@ -58,6 +59,11 @@ scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FIC
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_CONFLITS_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_REFINED}
 scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/${FICHIER_CONFLITS_CRITIQUE_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_CRITIQUE_REFINED}
 
+if [ $DOSSIER == "Cholesky" ]
+then
+	scp mgonthier@access.grid5000.fr:/home/mgonthier/lyon/starpu/Output_maxime/GFlops_raw_out_3.txt /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/DT_CHO_${NGPU}GPU.txt
+fi
+
 # Concaténation
 cat /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF_LINEAR} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF_REFINED} > /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_GF}
 cat /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_REFINED} /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS_CRITIQUE_REFINED} > /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS}	
@@ -74,3 +80,12 @@ mv ${PATH_STARPU}/starpu/plot.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/
 ./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/${FICHIER_CONFLITS} ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_conflits_${GPU}_${NGPU}GPU.csv
 python3 /home/gonthier/these_gonthier_maxime/Code/Plot_conflits.py ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_conflits_${GPU}_${NGPU}GPU.csv
 mv ${PATH_STARPU}/starpu/plot.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/GF_${MODEL}_conflits_${GPU}_${NGPU}GPU.pdf
+
+# Plot des transferts de données
+if [ $DOSSIER == "Cholesky" ]
+then
+	./cut_gflops_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/DT_CHO_${NGPU}GPU.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.txt
+	./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X /home/gonthier/starpu/Output_maxime/Data/${DOSSIER}/DT_CHO_${NGPU}GPU.txt ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.csv
+	python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py ${PATH_R}/R/Data/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.csv
+	mv ${PATH_STARPU}/starpu/plot.pdf ${PATH_R}/R/Courbes/PlaFRIM-Grid5k/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
+fi

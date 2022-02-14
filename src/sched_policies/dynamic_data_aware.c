@@ -102,7 +102,6 @@ void print_task_list(struct starpu_task_list *l, char *s)
 		}
 		printf("\n");
     }
-    printf("\n");
 }
 
 void print_data_not_used_yet()
@@ -112,7 +111,7 @@ void print_data_not_used_yet()
     
     for (i = 0; i < Ngpu; i++)
     {
-		printf("On GPU %d, there are %d data not used yet are:", i + 1, gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data));
+		printf("On GPU %d, there are %d data not used yet:", i + 1, gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data));
 		for (struct gpu_data_not_used *e = gpu_data_not_used_list_begin(my_planned_task_control->pointer->gpu_data); e != gpu_data_not_used_list_end(my_planned_task_control->pointer->gpu_data); e = gpu_data_not_used_list_next(e))
 		{
 			printf(" %p", e->D);
@@ -121,7 +120,6 @@ void print_data_not_used_yet()
 		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
     }
     my_planned_task_control->pointer = my_planned_task_control->first;
-    printf("\n");
 }
 
 void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu)
@@ -204,26 +202,30 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
 	
-	printf("New task %p in push_task.\n", task);
+	#ifdef PRINT
+	printf("New task %p (%s) in push_task.\n", task, starpu_task_get_name(task)); fflush(stdout);
+	#endif
 	
-	if (number_task_out_DARTS_2 == 0)
-	{
+	/* Ce if doit etre retiré quand on veut des dépendances */
+	//~ if (number_task_out_DARTS_2 == 0)
+	//~ {
 		/* If this boolean is true, pull_task will know that new tasks have arrived and
 		 * thus it will be able to randomize both the task list and the data list not used yet in the GPUs. 
 		 */
 		if (iteration_DARTS != 1 && need_to_reinit == true)
 		{
-			int i = 0;
 			//~ printf("REINIT STRUCT in push_task.\n"); fflush(stdout);
 
-			free(my_planned_task_control);
-				
-			gpu_planned_task_initialisation();
-			for (i = 0; i < Ngpu - 1; i++)
-			{
-				gpu_planned_task_insertion();
-			}
-			my_planned_task_control->first = my_planned_task_control->pointer;
+			/* TODO : Pour le moment je le commente mais en multi itération il faudra bien vider datanotusedyet */
+			//~ /* Pour ré-initialiser datanotused surtout */
+			//~ int i = 0;
+			//~ free(my_planned_task_control);
+			//~ gpu_planned_task_initialisation();
+			//~ for (i = 0; i < Ngpu - 1; i++)
+			//~ {
+				//~ gpu_planned_task_insertion();
+			//~ }
+			//~ my_planned_task_control->first = my_planned_task_control->pointer;
 
 			need_to_reinit = false;	
 		}
@@ -248,7 +250,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		starpu_task_list_push_front(&data->sched_list, task);
 		starpu_push_task_end(task);
 		component->can_pull(component);
-	}
+	//~ }
 	
 	#ifdef REFINED_MUTEX
     STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
@@ -266,7 +268,6 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
  * data -> pointer to the tasks using this data.
  * GPUs -> datas not used yet by this GPU.
  * TODO : Y a pas moyen de fusionner les deux boucles pour parcourir juste une fois la liste des données d'une tâche ? Non vu que la première boucle coucle sur NGPU, faudrait faire un test if on est sur le gpu 1 seulement alors je fais le truc sinon, non.
- * Création d'un tableau 3D des données, marche que en 3D. TODO : ajouter que APP=1 c'est que pour ca et APP=2 sera pour les variantes 3D mais sans cette init ou autrement mais le différencier quoi pour pas el faire sur cholesky ou M2D.
  */
 void initialize_task_data_gpu_single_task(struct starpu_task *task)
 {
@@ -292,7 +293,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 			else
 			{
 				/* La je ne dois pas ne rien faire a l'iteration_DARTS 2 */
-				/* Il faudrait une liste exeterne des data pour les reset ? */
+				/* Il faudrait une liste externe des data pour les reset ? */
 				if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 				{
 					gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
@@ -379,7 +380,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     
     /* Matrice 3D des coords pour ordre Z. */
     /* A modif peut etre la condition. */
-    /* Pourquoi je m'embete ? l'ordre naturel peut permettre de faire ca sans check les coord nan ? SUffit de connaitre N ? */
 	//~ if (app == 1)
 	//~ {
 		//~ int temp_tab_coordinates[2];
@@ -793,9 +793,9 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		new_tasks_initialized = false;
 		
 		#ifdef PRINT
-		printf("Printing GPU's data list and main task list before:\n\n");
+		printf("\n-----\nPrinting GPU's data list and main task list before randomization:\n");
 		print_data_not_used_yet();
-		print_task_list(&data->sched_list, "");
+		print_task_list(&data->sched_list, "Main task list");
 		#endif
 		
 		NT_dynamic_outer = starpu_task_list_size(&data->sched_list);
@@ -847,9 +847,10 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		gettimeofday(&time_end_randomize, NULL);
 		time_total_randomize += (time_end_randomize.tv_sec - time_start_randomize.tv_sec)*1000000LL + time_end_randomize.tv_usec - time_start_randomize.tv_usec;		
 		printf("Il y a %d tâches.\n", NT_dynamic_outer);
-		printf("Printing GPU's data list and main task list after randomization (NATURAL_ORDER = %d):\n\n", natural_order);
+		printf("Printing GPU's data list and main task list after randomization (NATURAL_ORDER = %d):\n", natural_order);
 		print_data_not_used_yet();
-		print_task_list(&data->main_task_list, ""); fflush(stdout);
+		print_task_list(&data->main_task_list, "Main task list"); fflush(stdout);
+		printf("-----\n\n");
 		#endif
 		
 		//~ for (i = 0; i < Ngpu; i++) { STARPU_PTHREAD_MUTEX_UNLOCK(&local_mutex[i]); }
@@ -3157,7 +3158,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
 	
-	//~ printf("get_task_done n°%d: %p.\n", number_task_out_DARTS_2, task); fflush(stdout);
+	printf("%p is in the post_exec_hook.\n", task); fflush(stdout);
 	
 	/* Je me place sur la liste correspondant au bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
