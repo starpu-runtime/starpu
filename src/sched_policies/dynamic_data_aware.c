@@ -3277,11 +3277,11 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	{
 		//~ printf("%d tasks out in get_task_done.\n", number_task_out_DARTS_2); fflush(stdout);
 		number_task_out_DARTS_2 = 0;
-		//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 		//~ reset_all_struct();
 		need_to_reinit = true;
-		iteration_DARTS++;
-		//~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		
+		/* TODO : commenté car je ne sais pas gérer plusieurs itérions pour le moment. */
+		//~ iteration_DARTS++;
 		
 		/* TODO : a suppr */
 		if (iteration_DARTS == 11)
