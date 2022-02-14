@@ -53,7 +53,7 @@ static void callback_turn_spmd_on(void *arg)
 
 static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
-	double start;
+	double start = 0;
 	double end;
 
 	unsigned k,m,n;
@@ -75,7 +75,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		starpu_pause(); /* To get all tasks at once, resume at the end of the loop for (k = 0; k < nblocks; k++) */
 	}
 	
-	/* Create all the DAG nodes */
+	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
 		int ret;
@@ -84,7 +84,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
                 ret = starpu_task_insert(&cl11,
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
-					 STARPU_R, sdatakk,
+					 //~ STARPU_R, sdatakk,
+					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					 STARPU_TAG_ONLY, TAG11(k),
@@ -99,7 +100,8 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                         ret = starpu_task_insert(&cl21,
 						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
-						 STARPU_R, sdatamk,
+						 //~ STARPU_R, sdatamk,
+						 STARPU_RW, sdatamk,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 						 STARPU_TAG_ONLY, TAG21(m,k),
 						 0);
@@ -396,10 +398,10 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 int main(int argc, char **argv)
 {
 	/* Récup de var d'env */
-	dependances = starpu_get_env_number_default("DEPENDANCES", 0);
+	dependances = starpu_get_env_number_default("DEPENDANCES", 1);
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
-	niter = 11;
+	niter = 1; /* Pour changer le nombre d'itérations */
 	current_iteration = 1;
 	
 #ifdef STARPU_HAVE_MAGMA
