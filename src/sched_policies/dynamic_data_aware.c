@@ -204,6 +204,8 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
 	
+	printf("New task %p in push_task.\n", task);
+	
 	if (number_task_out_DARTS_2 == 0)
 	{
 		/* If this boolean is true, pull_task will know that new tasks have arrived and
