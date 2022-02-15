@@ -252,16 +252,24 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		 */
 		starpu_task_list_push_front(&data->sched_list, task);
 		starpu_push_task_end(task);
+		
+		#ifdef REFINED_MUTEX
+		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		#endif
+		#ifdef LINEAR_MUTEX
+		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
+		#endif
+		
 		component->can_pull(component);
 	//~ }
 	
-	#ifdef REFINED_MUTEX
-    STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-    #endif
-	#ifdef LINEAR_MUTEX
-    STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
-    #endif
-    printf("Init fini.\n");
+	//~ #ifdef REFINED_MUTEX
+    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+    //~ #endif
+	//~ #ifdef LINEAR_MUTEX
+    //~ STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
+    //~ #endif
+    printf("Init fini.\n"); fflush(stdout);
     return 0;
 }
 
@@ -274,6 +282,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
  */
 void initialize_task_data_gpu_single_task(struct starpu_task *task)
 {
+	printf("début de initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
     int i = 0;
     int j = 0;
     
@@ -442,6 +451,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 	//~ }
     
     task->sched_data = pt;
+    printf("initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
 }
 
 void randomize_task_list(struct dynamic_data_aware_sched_data *d)
@@ -823,6 +833,8 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
+	
+	//~ printf("Début de pull task.\n"); fflush(stdout);
 	
     struct dynamic_data_aware_sched_data *data = component->data;
 
@@ -2645,7 +2657,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			#endif
 		
 			printf("Evict NO_VICTIM because is_prefetch >= 1.\n"); fflush(stdout);
-			//~ exit(0);
 			return STARPU_DATA_NO_VICTIM;
 		}
 		
