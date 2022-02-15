@@ -269,7 +269,6 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	//~ #ifdef LINEAR_MUTEX
     //~ STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
     //~ #endif
-    printf("Init fini.\n"); fflush(stdout);
     return 0;
 }
 
@@ -1553,7 +1552,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     struct task_using_data_list *tudl = task_using_data_list_new();
     
 	#ifdef PRINT
-	printf("Il y a %d données parmi lesquelles choisir.\n", gpu_data_not_used_list_size(g->gpu_data));
+	printf("Il y a %d données parmi lesquelles choisir pour le GPU %d.\n", gpu_data_not_used_list_size(g->gpu_data), current_gpu); fflush(stdout);
 	#endif
 	
 	#ifdef PRINT
@@ -1569,7 +1568,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     if (g->first_task == true)
     {
 		#ifdef PRINT
-		printf("Hey! C'est la première tâche du GPU n°%d!\n", current_gpu);
+		printf("Hey! C'est la première tâche du GPU n°%d!\n", current_gpu); fflush(stdout);
 		fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
 		fclose(f);
 		#endif
@@ -2363,6 +2362,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					//printf("CRITICAL DATA CONFLICT! Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
 					//~ printf("Goto\n");
 					number_critical_data_conflict++;
+					printf("Critical data conflict.\n"); fflush(stdout);
 					dynamic_data_aware_scheduling_3D_matrix(main_task_list, current_gpu, g);
 					//~ goto debut_choix_Dopt;
 					//~ data_conflict = true;
@@ -2381,16 +2381,22 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		#endif
 						
 		struct starpu_task *task = NULL;
+		
+		#ifdef REFINED_MUTEX
+		STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+		#endif
+		
 		if (!starpu_task_list_empty(main_task_list))
 		{
-			#ifdef REFINED_MUTEX
-			STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
-			#endif
-			
+			//~ #ifdef REFINED_MUTEX
+			//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+			//~ #endif
+			printf("Will pop random for GPU %d.\n", current_gpu); fflush(stdout);
 			task = starpu_task_list_pop_front(main_task_list);
 		}
 		else
 		{
+			printf("Return void in scheduling for GPU %d.\n", current_gpu); fflush(stdout);
 			return;
 		}
 		
