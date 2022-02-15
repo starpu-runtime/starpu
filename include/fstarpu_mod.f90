@@ -2395,6 +2395,14 @@ module fstarpu_mod
                         integer(c_long), value, intent(in) :: len
                         integer(c_int) :: fstarpu_memory_pin
                 end function fstarpu_memory_pin
+
+                ! int starpu_memory_unpin(void *addr, size_t size);
+                function fstarpu_memory_unpin (ptr, len) bind(C,name="starpu_memory_unpin")
+                        use iso_c_binding, only: c_ptr, c_long, c_int
+                        type(c_ptr), value, intent(in) :: ptr
+                        integer(c_long), value, intent(in) :: len
+                        integer(c_int) :: fstarpu_memory_unpin
+                end function fstarpu_memory_unpin
         end interface
 
         contains
