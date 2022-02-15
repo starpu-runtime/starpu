@@ -2397,6 +2397,9 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		else
 		{
 			printf("Return void in scheduling for GPU %d.\n", current_gpu); fflush(stdout);
+					#ifdef REFINED_MUTEX
+		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		#endif
 			return;
 		}
 		
