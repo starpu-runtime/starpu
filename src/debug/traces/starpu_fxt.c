@@ -4214,22 +4214,22 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 				unsigned comid = itor->comid;
 				unsigned long size = itor->size;
-				unsigned dst = itor->dst_node;
 				double time = current_computation_time;
 				const char *link_type = itor->type;
 #ifdef STARPU_HAVE_POTI
 				char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
-				char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
 				snprintf(paje_value, sizeof(paje_value), "%lu", size);
 				snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
 				program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
-				memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
 #endif
 
 				if (itor->bandwidth > 0)
 				{
 					/* Fake termination of communication at end of time */
 #ifdef STARPU_HAVE_POTI
+					unsigned dst = itor->dst_node;
+					char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
+					memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
 					poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
 #else
 					fprintf(out_paje_file, "19	%.9f	%s	%sp	%lu	%smm%u	com_%u\n", time, link_type, prefix, size, prefix, dst, comid);
@@ -4241,6 +4241,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 #ifdef STARPU_HAVE_POTI
 					char str_handle[STARPU_POTI_STR_LEN];
 					snprintf(str_handle, sizeof(str_handle), "%lx", itor->handle);
+					unsigned src = itor->src_node;
+					char src_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
+					memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, src);
 					poti_user_StartLink(_starpu_poti_CommLinkStart, 0., program_container, link_type, src_memnode_container, paje_value, paje_key, 1, str_handle);
 #else
 					fprintf(out_paje_file, "24	%.9f	%s	%sp	%lu	%smm%u	com_%u	%lx\n", 0., link_type, prefix, size, prefix, dst, comid, itor->handle);
