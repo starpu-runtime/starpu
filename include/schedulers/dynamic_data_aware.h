@@ -12,7 +12,7 @@
 #define APP /* 0 matrice 2D, par défaut. 1 matrice 3D. */
 #define CHOOSE_BEST_DATA_FROM /* Pour savoir où on regarde pour choisir la meilleure donnée. 0 par défaut, on regarde la liste des données pas encore utilisées. 1 on regarde les données en mémoire et à partir des tâches de ces données on cherche une donnée pas encore en mémoire qui permet de faire le plus de tâches gratuite ou 1 from free. */
 #define SIMULATE_MEMORY /* Default 0, means we use starpu_data_is_on_node, 1 we also look at nb of task in planned and pulled task. */
-#define NATURAL_ORDER /* Default 0, signifie qu'on randomize la liste des tâches et des données. 1 je ne randomise pas la liste des données et chaque GPU commence un endroit différent. 2 je ne randomise pas non plus la liste des tâches et chaque GPU a sa première tâche à pop pré-définie. */
+#define NATURAL_ORDER /* Default 0, signifie qu'on randomize entièrement la liste des tâches et des données a chaque nouvelle tâche. 1 je ne randomise pas la liste des données et chaque GPU commence un endroit différent. 2 je ne randomise pas non plus la liste des tâches et chaque GPU a sa première tâche à pop pré-définie. */
 //~ #define ERASE_DATA_STRATEGY /* Default 0, veut dire que on erase que du GPU en question, 1 on erase de tous les GPUs. */
 //~ #define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
 #define DEPENDANCES
@@ -39,8 +39,8 @@ bool* data_conflict;
 /** Mutex **/
 starpu_pthread_mutex_t refined_mutex; /* Protège main task list et les données. */
 starpu_pthread_mutex_t linear_mutex; /* Mutex qui rend tout linéaire. Utile pour la version du code rendu pour IPDPS ainsi que pour se comparer aux nouveaux mutexs. A utiliser avec les ifdef suivants. */
-//~ #define REFINED_MUTEX
-#define LINEAR_MUTEX
+#define REFINED_MUTEX
+//~ #define LINEAR_MUTEX
 
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */
@@ -151,7 +151,8 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 
 /** Fonctions principales **/
 void initialize_task_data_gpu_single_task(struct starpu_task *task);
-void randomize_task_list(struct dynamic_data_aware_sched_data *d);
+void randomize_new_task_list(struct dynamic_data_aware_sched_data *d);
+void randomize_full_task_list(struct dynamic_data_aware_sched_data *d);
 void natural_order_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_data_not_used_yet();
 void natural_order_data_not_used_yet();
