@@ -4124,6 +4124,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN];
 				snprintf(paje_value, sizeof(paje_value), "%lu", size);
 				snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
+				char program_container[STARPU_POTI_STR_LEN];
 				program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 #endif
 
@@ -4132,7 +4133,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 					unsigned dst = itor->dst_node;
 					/* Fake termination of communication at end of time */
 #ifdef STARPU_HAVE_POTI
-					char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
+					char dst_memnode_container[STARPU_POTI_STR_LEN];
 					memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
 					poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
 #else
@@ -4146,7 +4147,7 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 #ifdef STARPU_HAVE_POTI
 					char str_handle[STARPU_POTI_STR_LEN];
 					snprintf(str_handle, sizeof(str_handle), "%lx", itor->handle);
-					char src_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
+					char src_memnode_container[STARPU_POTI_STR_LEN];
 					memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, src);
 					poti_user_StartLink(_starpu_poti_CommLinkStart, 0., program_container, link_type, src_memnode_container, paje_value, paje_key, 1, str_handle);
 #else
