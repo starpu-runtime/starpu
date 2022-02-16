@@ -4129,9 +4129,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 				if (itor->bandwidth > 0)
 				{
+					unsigned dst = itor->dst_node;
 					/* Fake termination of communication at end of time */
 #ifdef STARPU_HAVE_POTI
-					unsigned dst = itor->dst_node;
 					char dst_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
 					memmanager_container_alias(dst_memnode_container, STARPU_POTI_STR_LEN, prefix, dst);
 					poti_EndLink(time, program_container, link_type, dst_memnode_container, paje_value, paje_key);
@@ -4141,16 +4141,16 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				}
 				else
 				{
+					unsigned src = itor->src_node;
 					/* Fake start of communication at start of time */
 #ifdef STARPU_HAVE_POTI
 					char str_handle[STARPU_POTI_STR_LEN];
 					snprintf(str_handle, sizeof(str_handle), "%lx", itor->handle);
-					unsigned src = itor->src_node;
 					char src_memnode_container[STARPU_POTI_STR_LEN], program_container[STARPU_POTI_STR_LEN];
 					memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, src);
 					poti_user_StartLink(_starpu_poti_CommLinkStart, 0., program_container, link_type, src_memnode_container, paje_value, paje_key, 1, str_handle);
 #else
-					fprintf(out_paje_file, "24	%.9f	%s	%sp	%lu	%smm%u	com_%u	%lx\n", 0., link_type, prefix, size, prefix, dst, comid, itor->handle);
+					fprintf(out_paje_file, "24	%.9f	%s	%sp	%lu	%smm%u	com_%u	%lx\n", 0., link_type, prefix, size, prefix, src, comid, itor->handle);
 #endif
 				}
 			}
