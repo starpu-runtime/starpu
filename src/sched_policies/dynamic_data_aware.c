@@ -35,7 +35,8 @@ int app;
 int choose_best_data_from;
 int simulate_memory;
 //~ int data_order;
-int natural_order;
+int task_order;
+int data_order;
 //~ int erase_data_strategy;
 
 /* TODO : pas utile pour le moment a suppr si inutile */
@@ -356,7 +357,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 						struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
 						if (hud->last_iteration_DARTS != iteration_DARTS)
 						{
-							if (natural_order == 3)
+							if (data_order == 1)
 							{
 								printf("New data %p.\n", e->D);
 								gpu_data_not_used_list_push_front(my_planned_task_control->pointer->new_gpu_data, e);
@@ -369,7 +370,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 					}
 					else
 					{
-						if (natural_order == 3)
+						if (data_order == 1)
 						{
 							printf("New data %p.\n", e->D);
 							gpu_data_not_used_list_push_front(my_planned_task_control->pointer->new_gpu_data, e);
@@ -1028,7 +1029,8 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		gettimeofday(&time_start_randomize, NULL);
 		#endif
 		
-		if (natural_order == 0) /* Randomise la liste des tâches et des données entièrement à chaque nouvelle tâches. */
+		/* Ordre des tâches dans main_task_list */
+		if (task_order == 0) /* Randomise la liste des tâches entièrement à chaque nouvelle tâches. */
 		{
 			/* Si main task list est vide pas la peine d'appeller la fonction qui randomise ensemble les 2 listes de tâches. */
 			if (!starpu_task_list_empty(&data->main_task_list))
@@ -1039,53 +1041,37 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 			{
 				randomize_new_task_list(data);
 			}
-			
-			if (choose_best_data_from != 1)
-			{
-				randomize_full_data_not_used_yet();
-			}	
 		}
-		else if (natural_order == 1) /* Ne randomise pas les liste de données. */
+		else if (task_order == 1) /* Randomise que les nouvelles tâches */
 		{
-			randomize_full_task_list(data);
-			
-			if (choose_best_data_from != 1)
-			{
-				natural_order_data_not_used_yet();
-			}
+			randomize_new_task_list(data);
 		}
-		else if (natural_order == 2) /* Randomise rien du tout */
+		else /* TASK_ORDER == 2, ordre naturel avec point de départs différent pour les GPU. */
 		{
 			natural_order_task_list(data);
-			
-			if (choose_best_data_from != 1)
-			{
-				natural_order_data_not_used_yet();
-			}
 		}
-		else if (natural_order == 3) /* Randomise les nouvelles tâches et données et les met à la fin des listes de tâches et données eistantes */
+		/* Ordre des données dans datanotuse de chaque GPU */
+		if (choose_best_data_from != 1) /* Si on regarde dans la mémoire pour choisir les données, il n'y a aucun intérêt à toucher à la liste des données. */
 		{
-			randomize_new_task_list(data);	
-					
-			if (choose_best_data_from != 1)
+			if (data_order == 0) /* Randomise la liste des données entièrement et différement pour chaque GPU. */
+			{
+				randomize_full_data_not_used_yet();
+			}
+			else if (data_order == 1) /* Randomise que les nouvelles données. */
 			{
 				randomize_new_data_not_used_yet();
 			}
+			else /* DATA_ORDER == 2, ordre naturel avec point de départs différent pour les GPU. */
+			{
+				natural_order_data_not_used_yet();
+			}
 		}
-
-		//~ if (data_order == 0)
-		//~ {
-		//~ }
-		//~ else /* ordre Z des données */
-		//~ {
-			//~ order_z_data_not_used_yet();
-		//~ }
 		
 		#ifdef PRINT
 		gettimeofday(&time_end_randomize, NULL);
 		time_total_randomize += (time_end_randomize.tv_sec - time_start_randomize.tv_sec)*1000000LL + time_end_randomize.tv_usec - time_start_randomize.tv_usec;		
 		printf("Il y a %d tâches.\n", NT_dynamic_outer);
-		printf("Printing GPU's data list and main task list after randomization (NATURAL_ORDER = %d):\n", natural_order);
+		printf("Printing GPU's data list and main task list after randomization (TASK_ORDER = %d, DATA_ORDER = %d):\n", task_order, data_order);
 		print_data_not_used_yet();
 		print_task_list(&data->main_task_list, "Main task list"); fflush(stdout);
 		printf("-----\n\n");
@@ -1695,9 +1681,7 @@ void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_plann
 
 //~ Dans un coin de la tete : idée de liste intermédiaire
 void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_list, int current_gpu, struct gpu_planned_task *g)
-{		
-			printf("Début sched 3D\n"); fflush(stdout);
-
+{
 	/* TODO : a suppr */
 	Dopt[current_gpu - 1] = NULL;
 	
@@ -1749,16 +1733,20 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		g->first_task = false;
 				
-		if (natural_order == 2)
+		if (task_order == 2) /* Cas liste des taches et données naturelles */
 		{
 			struct starpu_task *task = g->first_task_to_pop;
+			
+			/* New place */
+			g->first_task_to_pop = NULL;
 			
 			if (!starpu_task_list_ismember(main_task_list, task))
 			{
 				goto random;
 			}
 			
-			g->first_task_to_pop = NULL;
+			/* old place, a check que c'était pas important si ca crash. */
+			//~ g->first_task_to_pop = NULL;
 						
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
@@ -1815,7 +1803,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     int data_not_available = 0;
     bool data_available = true;
     	
-	/* Pour diminuer au début de l'execution */
+	/* Pour diminuer au début de l'execution. 
+	 * TODO : Ne marche plus si il y a des dépendanceces car NT_dynamic_outer est le nombre de nouvelles données. Donc il faudrait faire une somme totale des tâches qui sont arrivées ou qui vont arriver car le but c'est des le debut de mettre un trhasold pour les grosses appli. En réupérant N peut etre ? */
 	int choose_best_data_threshold = INT_MAX;
 	if (threshold == 1)
 	{
@@ -3308,7 +3297,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	choose_best_data_from = starpu_get_env_number_default("CHOOSE_BEST_DATA_FROM", 0);
 	simulate_memory = starpu_get_env_number_default("SIMULATE_MEMORY", 0);
 	//~ data_order = starpu_get_env_number_default("DATA_ORDER", 0);
-	natural_order = starpu_get_env_number_default("NATURAL_ORDER", 0);
+	task_order = starpu_get_env_number_default("TASK_ORDER", 0);
+	data_order = starpu_get_env_number_default("DATA_ORDER", 0);
 	//~ erase_data_strategy = starpu_get_env_number_default("ERASE_DATA_STRATEGY", 0);
 	dependances = starpu_get_env_number_default("DEPENDANCES", 0);
 

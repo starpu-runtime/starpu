@@ -12,7 +12,8 @@
 #define APP /* 0 matrice 2D, par défaut. 1 matrice 3D. */
 #define CHOOSE_BEST_DATA_FROM /* Pour savoir où on regarde pour choisir la meilleure donnée. 0 par défaut, on regarde la liste des données pas encore utilisées. 1 on regarde les données en mémoire et à partir des tâches de ces données on cherche une donnée pas encore en mémoire qui permet de faire le plus de tâches gratuite ou 1 from free. */
 #define SIMULATE_MEMORY /* Default 0, means we use starpu_data_is_on_node, 1 we also look at nb of task in planned and pulled task. */
-#define NATURAL_ORDER /* Default 0, signifie qu'on randomize entièrement la liste des tâches et des données a chaque nouvelle tâche. 1 je ne randomise jamais la liste des données et chaque GPU commence un endroit différent. 2 je ne randomise jamais les taches et les données et la liste des tâches et chaque GPU a sa première tâche à pop pré-définie. 3 je ne randomise que les nouvelles tâches et données entre elle et les met à la fin des listes de tache et données. */
+#define TASK_ORDER /* Default 0, signifie qu'on randomize entièrement la liste des tâches. 1 je ne randomise que les nouvelles tâches entre elle et les met à la fin des listes de taches. 2 je ne randomise pas et met chaque GPU sur un m/NGPU portion différentes pour qu'ils commencent à différent endroit de la liste de tâches. */
+#define DATA_ORDER /* Default 0, signifie qu'on randomize entièrement la liste des données. 1 je ne randomise que les nouvelles données entre elle et les met à la fin des listes de données. 2 je ne randomise pas et met chaque GPU sur un Ndata/NGPU portion différentes pour qu'ils commencent à différent endroit de la liste de données.*/
 //~ #define ERASE_DATA_STRATEGY /* Default 0, veut dire que on erase que du GPU en question, 1 on erase de tous les GPUs. */
 //~ #define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
 #define DEPENDANCES
@@ -23,7 +24,8 @@ extern int threshold;
 extern int app;
 extern int choose_best_data_from;
 extern int simulate_memory;
-extern int natural_order;
+extern int task_order;
+extern int data_order;
 //~ extern int erase_data_strategy;
 //~ extern int data_order;
 extern int dependances;
@@ -89,7 +91,7 @@ struct gpu_planned_task
     struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
 
     void *gpu_data; /* Data not loaded yet. */
-    void *new_gpu_data; /* Data not loaded yet that are from the new tasks. This is used only with NATURAL_ORDER=3 that randomize the new task/data and put them at the end of the list. TODO : a suppr si à l'avenir on ne l'utilise pas, ca économisera 2,3 if et un malloc. */
+    void *new_gpu_data; /* Data not loaded yet that are from the new tasks. This is used only with DATA_ORDER=1 that randomize the new data and put them at the end of the list. TODO : a suppr si à l'avenir on ne l'utilise pas, ca économisera 2,3 if et un malloc. */
 
     starpu_data_handle_t data_to_evict_next; /* En cas de donnée à évincer refusé. Je la renvoie à évincer. */
     
@@ -99,7 +101,7 @@ struct gpu_planned_task
     
     int number_data_selection; /* Nombre de fois qu'on a fais apppel à DARTS pour pop une donnée. A suppr si on utilise pas CHOOSE_BEST_DATA_FROM != 0. */
     
-    struct starpu_task *first_task_to_pop; /* Première tâche a pop définie dans le cas NATURAL8ORDER == 2. */
+    struct starpu_task *first_task_to_pop; /* Première tâche a pop définie dans le cas TASK_ORDER == 2. */
 };
 struct gpu_planned_task_control
 {
