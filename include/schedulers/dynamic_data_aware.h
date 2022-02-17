@@ -30,7 +30,7 @@ extern int data_order;
 //~ extern int data_order;
 extern int dependances;
 
-#define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
+//~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
 
 /* TODO : A suppr une fois les test fini */
 starpu_data_handle_t *Dopt;
@@ -147,6 +147,8 @@ void print_task_list(struct starpu_task_list *l, char *s);
 void print_data_not_used_yet();
 void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu);
 void print_pulled_task_one_gpu(struct gpu_pulled_task *g, int current_gpu);
+void print_planned_task_all_gpu();
+void print_pulled_task_all_gpu();
 void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g);
 void print_task_using_data(starpu_data_handle_t d);
 void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node);
