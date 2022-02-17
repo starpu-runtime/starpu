@@ -251,7 +251,14 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		/* Pushing the task in sched_list. It's this list that will be randomized
 		 * and put in main_task_list in pull_task.
 		 */
-		starpu_task_list_push_front(&data->sched_list, task);
+		if (task_order == 2 && dependances == 1) /* Cas ordre naturel mais avec dépendances. Pas de points de départs différents. */
+		{
+			starpu_task_list_push_back(&data->main_task_list, task);
+		}
+		else
+		{
+			starpu_task_list_push_front(&data->sched_list, task);
+		}
 		starpu_push_task_end(task);
 		
 		#ifdef REFINED_MUTEX
@@ -360,11 +367,11 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 							if (data_order == 1)
 							{
 								printf("New data %p.\n", e->D);
-								gpu_data_not_used_list_push_front(my_planned_task_control->pointer->new_gpu_data, e);
+								gpu_data_not_used_list_push_back(my_planned_task_control->pointer->new_gpu_data, e);
 							}
 							else
 							{
-								gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+								gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, e);
 							}
 						}
 					}
@@ -373,11 +380,11 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 						if (data_order == 1)
 						{
 							printf("New data %p.\n", e->D);
-							gpu_data_not_used_list_push_front(my_planned_task_control->pointer->new_gpu_data, e);
+							gpu_data_not_used_list_push_back(my_planned_task_control->pointer->new_gpu_data, e);
 						}
 						else
 						{
-							gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+							gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, e);
 						}
 					}
 				//~ }
@@ -942,8 +949,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				#ifdef REFINED_MUTEX
 				STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 				#endif
-						printf("Return NULL\n"); fflush(stdout);
-
+				//~ printf("Return NULL\n"); fflush(stdout);
 				return NULL;
 			}
 			
@@ -955,7 +961,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
-									printf("Return task %p\n", task); fflush(stdout);
+									//~ printf("Return task %p\n", task); fflush(stdout);
 
 			return task;
 		}
@@ -964,7 +970,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
-									printf("Return NULL because main task list is empty\n"); fflush(stdout);
+									//~ printf("Return NULL because main task list is empty\n"); fflush(stdout);
 
 			return NULL;
 		}
@@ -987,7 +993,6 @@ void reset_all_struct()
  * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
 static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	printf("Début pull task\n"); fflush(stdout);
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
@@ -1046,10 +1051,11 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		{
 			randomize_new_task_list(data);
 		}
-		else /* TASK_ORDER == 2, ordre naturel avec point de départs différent pour les GPU. */
+		else if (dependances == 0) /* TASK_ORDER == 2 et pas de dépendances, ordre naturel avec point de départs différent pour les GPU. */
 		{
 			natural_order_task_list(data);
 		}
+		/* Si TASK_ORDER == 2 et qu'il y a des dépendances, ordre naturel sans points de départs différents. */
 		/* Ordre des données dans datanotuse de chaque GPU */
 		if (choose_best_data_from != 1) /* Si on regarde dans la mémoire pour choisir les données, il n'y a aucun intérêt à toucher à la liste des données. */
 		{
@@ -1061,10 +1067,11 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 			{
 				randomize_new_data_not_used_yet();
 			}
-			else /* DATA_ORDER == 2, ordre naturel avec point de départs différent pour les GPU. */
+			else if (dependances == 0) /* DATA_ORDER == 2 et DEPENDANCE == 0, ordre naturel avec point de départs différent pour les GPU. */
 			{
 				natural_order_data_not_used_yet();
 			}
+			/* De même si il y a des dépendances et que DATA_ORDEr == 2 on va juste mettre les une après les autres les données. */
 		}
 		
 		#ifdef PRINT
@@ -1733,7 +1740,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 		g->first_task = false;
 				
-		if (task_order == 2) /* Cas liste des taches et données naturelles */
+		if (task_order == 2 && dependances == 0) /* Cas liste des taches et données naturelles */
 		{
 			struct starpu_task *task = g->first_task_to_pop;
 			
