@@ -12,7 +12,7 @@
 #define APP /* 0 matrice 2D, par défaut. 1 matrice 3D. */
 #define CHOOSE_BEST_DATA_FROM /* Pour savoir où on regarde pour choisir la meilleure donnée. 0 par défaut, on regarde la liste des données pas encore utilisées. 1 on regarde les données en mémoire et à partir des tâches de ces données on cherche une donnée pas encore en mémoire qui permet de faire le plus de tâches gratuite ou 1 from free. */
 #define SIMULATE_MEMORY /* Default 0, means we use starpu_data_is_on_node, 1 we also look at nb of task in planned and pulled task. */
-#define NATURAL_ORDER /* Default 0, signifie qu'on randomize entièrement la liste des tâches et des données a chaque nouvelle tâche. 1 je ne randomise pas la liste des données et chaque GPU commence un endroit différent. 2 je ne randomise pas non plus la liste des tâches et chaque GPU a sa première tâche à pop pré-définie. */
+#define NATURAL_ORDER /* Default 0, signifie qu'on randomize entièrement la liste des tâches et des données a chaque nouvelle tâche. 1 je ne randomise jamais la liste des données et chaque GPU commence un endroit différent. 2 je ne randomise jamais les taches et les données et la liste des tâches et chaque GPU a sa première tâche à pop pré-définie. 3 je ne randomise que les nouvelles tâches et données entre elle et les met à la fin des listes de tache et données. */
 //~ #define ERASE_DATA_STRATEGY /* Default 0, veut dire que on erase que du GPU en question, 1 on erase de tous les GPUs. */
 //~ #define DATA_ORDER /* Default 0, 1 means that we do a Z order on the data order in the gpu_data_not_used_yet list. Only works in 3D */
 #define DEPENDANCES
@@ -89,6 +89,7 @@ struct gpu_planned_task
     struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
 
     void *gpu_data; /* Data not loaded yet. */
+    void *new_gpu_data; /* Data not loaded yet that are from the new tasks. This is used only with NATURAL_ORDER=3 that randomize the new task/data and put them at the end of the list. TODO : a suppr si à l'avenir on ne l'utilise pas, ca économisera 2,3 if et un malloc. */
 
     starpu_data_handle_t data_to_evict_next; /* En cas de donnée à évincer refusé. Je la renvoie à évincer. */
     
@@ -154,7 +155,8 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task);
 void randomize_new_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_full_task_list(struct dynamic_data_aware_sched_data *d);
 void natural_order_task_list(struct dynamic_data_aware_sched_data *d);
-void randomize_data_not_used_yet();
+void randomize_new_data_not_used_yet();
+void randomize_full_data_not_used_yet();
 void natural_order_data_not_used_yet();
 //~ void order_z_data_not_used_yet();
 //~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);

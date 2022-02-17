@@ -356,12 +356,28 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 						struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
 						if (hud->last_iteration_DARTS != iteration_DARTS)
 						{
-							gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+							if (natural_order == 3)
+							{
+								printf("New data %p.\n", e->D);
+								gpu_data_not_used_list_push_front(my_planned_task_control->pointer->new_gpu_data, e);
+							}
+							else
+							{
+								gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+							}
 						}
 					}
 					else
 					{
-						gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+						if (natural_order == 3)
+						{
+							printf("New data %p.\n", e->D);
+							gpu_data_not_used_list_push_front(my_planned_task_control->pointer->new_gpu_data, e);
+						}
+						else
+						{
+							gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
+						}
 					}
 				//~ }
 			//~ }
@@ -550,8 +566,8 @@ void natural_order_task_list(struct dynamic_data_aware_sched_data *d)
     }
 }
 
-/* Randomize the list of data not used yet for all the GPU. */
-void randomize_data_not_used_yet()
+/* Randomize the full list of data not used yet for all the GPU. */
+void randomize_full_data_not_used_yet()
 {
     /* NEW */
     int i = 0;
@@ -589,6 +605,87 @@ void randomize_data_not_used_yet()
 			my_planned_task_control->pointer = my_planned_task_control->pointer->next;
 		}
 	//~ }
+}
+
+/* Randomize the new data and put them at the end of datanotused for all the GPU. */
+void randomize_new_data_not_used_yet()
+{
+    int i = 0;
+    int j = 0;
+    my_planned_task_control->pointer = my_planned_task_control->first;
+    int random = 0;
+    int number_new_data = 0;
+    
+	for (i = 0; i < Ngpu; i++)
+	{
+		if (!gpu_data_not_used_list_empty(my_planned_task_control->pointer->new_gpu_data))
+		{
+			number_new_data = gpu_data_not_used_list_size(my_planned_task_control->pointer->new_gpu_data);
+			struct gpu_data_not_used *data_tab[number_new_data];
+			for (j = 0; j < number_new_data; j++)
+			{
+				data_tab[j] = gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->new_gpu_data);
+			}
+			for (j = 0; j < number_new_data; j++)
+			{
+				random = rand()%(number_new_data - j);
+				gpu_data_not_used_list_push_back(my_planned_task_control->pointer->gpu_data, data_tab[random]);
+				
+				/* Je remplace la case par la dernjère tâche du tableau */
+				data_tab[random] = data_tab[number_new_data - j - 1];
+			}
+		}
+		my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+	}
+		
+	//~ int random = 0;
+    //~ struct starpu_task *task_tab[NT_dynamic_outer]; /* NT_dynamic_outer correspond au nombre de nouvelles tâches. */
+    
+    //~ for (i = 0; i < NT_dynamic_outer; i++)
+    //~ {
+		//~ task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
+    //~ }
+    //~ for (i = 0; i < NT_dynamic_outer; i++)
+    //~ {
+		//~ random = rand()%(NT_dynamic_outer - i);
+		//~ starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
+		
+		//~ /* Je remplace la case par la dernière tâche du tableau */
+		//~ task_tab[random] = task_tab[NT_dynamic_outer - i - 1];
+	//~ }
+	
+    //~ /* NEW */
+    //~ int i = 0;
+    //~ int j = 0;
+    //~ int random = 0;
+    //~ int number_of_data = 0;
+    //~ my_planned_task_control->pointer = my_planned_task_control->first;
+    
+
+		//~ for (i = 0; i < Ngpu; i++)
+		//~ {
+			//~ number_of_data = gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data);
+			//~ struct gpu_data_not_used *data_tab[number_of_data];
+
+
+			//~ for (j = 0; j < number_of_data; j++)
+			//~ {
+				//~ data_tab[j] = gpu_data_not_used_list_pop_front(my_planned_task_control->pointer->gpu_data);
+			//~ }
+			//~ struct gpu_data_not_used_list *randomized_list = gpu_data_not_used_list_new();
+			
+			//~ for (j = 0; j < number_of_data; j++)
+			//~ {
+				//~ random = rand()%(number_of_data - j);
+				//~ gpu_data_not_used_list_push_back(randomized_list, data_tab[random]);
+				
+				//~ /* Je remplace la case par la dernière tâche du tableau */
+				//~ data_tab[random] = data_tab[number_of_data - j - 1];
+			//~ }
+			//~ /* Then replace the list with it. */
+			//~ my_planned_task_control->pointer->gpu_data = randomized_list;
+			//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
+		//~ }
 }
 
 /* Chaque GPU commence au début de la liste des données a différents endroits en fonction du nombre de GPU.
@@ -702,7 +799,7 @@ void natural_order_data_not_used_yet()
 //~ }
 
 //~ /* Randomize the list of data not used yet for a single GPU. */
-//~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
+//~ void randomize_full_data_not_used_yet_single_GPU(struct gpu_planned_task *g)
 //~ {
     //~ int j = 0;
     //~ int k = 0;
@@ -916,8 +1013,8 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		new_tasks_initialized = false;
 		
 		#ifdef PRINT
-		//~ printf("\n-----\nPrinting GPU's data list and NEW task list before randomization:\n");
-		//~ print_data_not_used_yet();
+		printf("\n-----\nPrinting GPU's data list and NEW task list before randomization:\n");
+		print_data_not_used_yet();
 		print_task_list(&data->sched_list, "Main task list");
 		#endif
 		
@@ -933,8 +1030,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		
 		if (natural_order == 0) /* Randomise la liste des tâches et des données entièrement à chaque nouvelle tâches. */
 		{
-			//~ print_task_list(&data->main_task_list, "Main task list before");
-			//~ print_task_list(&data->sched_list, "Sched list before");
+			/* Si main task list est vide pas la peine d'appeller la fonction qui randomise ensemble les 2 listes de tâches. */
 			if (!starpu_task_list_empty(&data->main_task_list))
 			{
 				randomize_full_task_list(data);
@@ -943,11 +1039,10 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 			{
 				randomize_new_task_list(data);
 			}
-			//~ print_task_list(&data->main_task_list, "Main task list after");
 			
 			if (choose_best_data_from != 1)
 			{
-				randomize_data_not_used_yet();
+				randomize_full_data_not_used_yet();
 			}	
 		}
 		else if (natural_order == 1) /* Ne randomise pas les liste de données. */
@@ -959,13 +1054,22 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 				natural_order_data_not_used_yet();
 			}
 		}
-		else /* Randomise rien du tout, NATURAL_ORDER == 2. */
+		else if (natural_order == 2) /* Randomise rien du tout */
 		{
 			natural_order_task_list(data);
 			
 			if (choose_best_data_from != 1)
 			{
 				natural_order_data_not_used_yet();
+			}
+		}
+		else if (natural_order == 3) /* Randomise les nouvelles tâches et données et les met à la fin des listes de tâches et données eistantes */
+		{
+			randomize_new_task_list(data);	
+					
+			if (choose_best_data_from != 1)
+			{
+				randomize_new_data_not_used_yet();
 			}
 		}
 
@@ -981,8 +1085,8 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		gettimeofday(&time_end_randomize, NULL);
 		time_total_randomize += (time_end_randomize.tv_sec - time_start_randomize.tv_sec)*1000000LL + time_end_randomize.tv_usec - time_start_randomize.tv_usec;		
 		printf("Il y a %d tâches.\n", NT_dynamic_outer);
-		//~ printf("Printing GPU's data list and main task list after randomization (NATURAL_ORDER = %d):\n", natural_order);
-		//~ print_data_not_used_yet();
+		printf("Printing GPU's data list and main task list after randomization (NATURAL_ORDER = %d):\n", natural_order);
+		print_data_not_used_yet();
 		print_task_list(&data->main_task_list, "Main task list"); fflush(stdout);
 		printf("-----\n\n");
 		#endif
@@ -3118,6 +3222,7 @@ void gpu_planned_task_initialisation()
     
     /* Pour les init avec dépendances */
     new->gpu_data = gpu_data_not_used_list_new();
+    new->new_gpu_data = gpu_data_not_used_list_new();
     
     my_planned_task_control->pointer = new;
     my_planned_task_control->first = my_planned_task_control->pointer;
@@ -3129,7 +3234,6 @@ void gpu_planned_task_insertion()
     
     starpu_task_list_init(&new->planned_task);
     starpu_task_list_init(&new->refused_fifo_list);
-    //~ new->gpu_data = NULL;
     new->data_to_evict_next = NULL;
     new->next = my_planned_task_control->pointer;
     //~ new->my_data_to_pop_next = data_to_pop_next_list_new();
@@ -3138,6 +3242,7 @@ void gpu_planned_task_insertion()
     
 	/* Pour les init avec dépendances */
     new->gpu_data = gpu_data_not_used_list_new();
+    new->new_gpu_data = gpu_data_not_used_list_new();
     
     my_planned_task_control->pointer = new;
 }
