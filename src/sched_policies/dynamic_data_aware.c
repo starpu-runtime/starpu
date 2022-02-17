@@ -339,7 +339,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
  */
 void initialize_task_data_gpu_single_task(struct starpu_task *task)
 {
-	printf("début de initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
+	//~ printf("début de initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
     int i = 0;
     int j = 0;
     
@@ -523,7 +523,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 	//~ }
     
     task->sched_data = pt;
-    printf("initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
+    //~ printf("initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
 }
 
 /* Randomise sched_data uniquement, càd dire les nouvelles tâches et les mets à la fin de main_task_list */
@@ -899,9 +899,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		temp_pointer = temp_pointer->next;
     }
     
-    printf("\nDebut get task to return GPU n°%d.\n", current_gpu); fflush(stdout);
-	print_planned_task_all_gpu();
-	print_pulled_task_all_gpu();
+    //~ printf("\nDebut get task to return GPU n°%d.\n", current_gpu); fflush(stdout);
+	//~ print_planned_task_all_gpu();
+	//~ print_pulled_task_all_gpu();
     
     /* If there are still tasks either in the packages, the main task list or the refused task,
      * I enter here to return a task or start dynamic_data_aware_scheduling. Else I return NULL.
@@ -921,7 +921,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
 			#endif
 			
-			printf("Return refused task %p.\n", task); fflush(stdout);
+			//~ printf("Return refused task %p.\n", task); fflush(stdout);
 			return task;
 		}
 		#ifdef REFINED_MUTEX
@@ -949,7 +949,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
 			#endif
 			
-			printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d\n", task, current_gpu); fflush(stdout);
+			//~ printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d\n", task, current_gpu); fflush(stdout);
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
@@ -1000,7 +1000,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				#ifdef REFINED_MUTEX
 				STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 				#endif
-				printf("Return NULL after scheduling call.\n"); fflush(stdout);
+				//~ printf("Return NULL after scheduling call.\n"); fflush(stdout);
 				return NULL;
 			}
 			
@@ -1012,7 +1012,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
-			printf("Return task %p from the scheduling call.\n", task); fflush(stdout);
+			//~ printf("Return task %p from the scheduling call.\n", task); fflush(stdout);
 			return task;
 		}
 		else
@@ -1020,7 +1020,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
-			printf("Return NULL because main task list is empty.\n"); fflush(stdout);
+			//~ printf("Return NULL because main task list is empty.\n"); fflush(stdout);
 			return NULL;
 		}
 }
@@ -1806,7 +1806,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 						
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
-				if (!gpu_data_not_used_list_empty(g->gpu_data))
+				if (!gpu_data_not_used_list_empty(g->gpu_data)) /* TODO : Est-ce vraiment utile ? Pas sûr, ptet en réel sur Grid5k ? A tester. Si je l'enlève enlever le deuxième qu'il y a plus bas dans le cas random. */
 				{
 					for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
 					{
@@ -2328,7 +2328,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
     #endif
             
-    if (number_free_task_max != 0) /* cas comme dans 2D, je met dans planned_task les tâches gratuites, sauf que j'ai 3 données à check et non 2. */
+    if (number_free_task_max != 0) /* Cas comme dans 2D, je met dans planned_task les tâches gratuites, sauf que j'ai 3 données à check et non 2. */
     {
 		#ifdef PRINT
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
@@ -2337,9 +2337,11 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* I erase the data from the list of data not used. See env var ERASE_DATA_STRATEGY */
 		if (choose_best_data_from == 0)
 		{
-			/* Je l'erase de 1 seul GPU ou de tous. */
 			//~ if (erase_data_strategy == 0)
 			//~ {
+			
+				/* J'efface la données des datanotuse du GPU en question. Il n'y a que celle la a effacé car la tâche est gratuite 
+				 * pour les autres données. Atention dans le cas N_from_free c'est différent. */
 				e = gpu_data_not_used_list_begin(g->gpu_data);
 				while (e->D != handle_popped)
 				{
@@ -2445,45 +2447,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		printf("The data adding the most (%d) 1_from_free tasks is %p.\n", number_1_from_free_task_max, handle_popped);
 		#endif
 		
-		/* I erase the data from the list of data not used. See env var ERASE_DATA_STRATEGY */
-		if (choose_best_data_from == 0)
-		{
-			/* Je l'erase de 1 seul GPU ou de tous. */
-			//~ if (erase_data_strategy == 0)
-			//~ {
-				e = gpu_data_not_used_list_begin(g->gpu_data);
-				while (e->D != handle_popped)
-				{
-					  e = gpu_data_not_used_list_next(e);
-				}
-				gpu_data_not_used_list_erase(g->gpu_data, e);
-			//~ }
-			//~ else
-			//~ {
-				//~ my_planned_task_control->pointer = my_planned_task_control->first;
-				//~ for (i = 0; i < Ngpu; i++)
-				//~ {
-					//~ e = gpu_data_not_used_list_begin(my_planned_task_control->pointer->gpu_data);
-					//~ for (j = 0; j < gpu_data_not_used_list_size(my_planned_task_control->pointer->gpu_data); j++)
-					//~ {
-						//~ if (e->D == handle_popped)
-						//~ {
-							//~ gpu_data_not_used_list_erase(my_planned_task_control->pointer->gpu_data, e);
-							//~ break;
-						//~ }
-						//~ e = gpu_data_not_used_list_next(e);
-					//~ }
-					//~ my_planned_task_control->pointer = my_planned_task_control->pointer->next;
-				//~ }
-			//~ }
-		}
-		
 		#ifdef REFINED_MUTEX
 		STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 		#endif
-		
-		//printf("%d.\n", task_using_data_list_size(handle_popped->sched_data)); fflush(stdout);
-
+				
 		/* Nouvelle version où au lieu de bêtement prendre une tâche de la donnée élu, je vais regarder si la tâche est bien 1 from free. */
 		for (t = task_using_data_list_begin(handle_popped->sched_data); t != task_using_data_list_end(handle_popped->sched_data); t = task_using_data_list_next(t))
 		{
@@ -2510,32 +2477,49 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					}
 				}
 			}
-			if (data_not_available == 1 || data_not_available == 0)
+			if (data_not_available == 1 || data_not_available == 0) /* C'est la qu'il faut changer si on veut être N from free. */
 			{
-				//printf("break.\n"); fflush(stdout);
 				break;
 			}
 		}
-
 		if (t == task_using_data_list_end(handle_popped->sched_data))
 		{
 			printf("Rien trouvé.\n"); fflush(stdout);
 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			goto random;
-			//dynamic_data_aware_scheduling_3D_matrix(main_task_list, current_gpu, g);
 		}
 		
-		/* OLD version : Random car la liste est randomisé */
-		//~ t = task_using_data_list_begin(handle_popped->sched_data);
+		/* Removing the datas from datanotused of the GPU. */		
+		if (choose_best_data_from == 0) /* Que dans le cas où je simule pas la mémoire bien sûr. */
+		{
+			/* J'efface toutes les données qui sont utilisé par la tâche 1_from_free que l'ont va retourner. 
+			 * TODO : Est-ce correct ? Je ne le fesais pas pour le papier IPDPS. */
+			//~ e = gpu_data_not_used_list_begin(g->gpu_data);
+			//~ while (e->D != handle_popped)
+			//~ {
+				  //~ e = gpu_data_not_used_list_next(e);
+			//~ }
+			//~ gpu_data_not_used_list_erase(g->gpu_data, e);
+			
+			
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); i++)
+			{
+				if (!gpu_data_not_used_list_empty(g->gpu_data)) /* TODO : utile ? */
+				{
+					for (e = gpu_data_not_used_list_begin(g->gpu_data); e != gpu_data_not_used_list_end(g->gpu_data); e = gpu_data_not_used_list_next(e))
+					{
+						if(e->D == STARPU_TASK_GET_HANDLE(t->pointer_to_T, i))
+						{
+							gpu_data_not_used_list_erase(g->gpu_data, e);
+						}
+					}
+				}
+			}
+
+			
+		}
 		
-		/* Add it from planned task compteur */
-		
-		//~ #ifdef REFINED_MUTEX
-		//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
-		//~ #endif
-		
-		//printf("task =%p, GPU  = %d.\n", t->pointer_to_T, current_gpu); fflush(stdout);	
 		increment_planned_task_data(t->pointer_to_T, current_gpu);
 		
 		#ifdef PRINT
@@ -2980,6 +2964,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		 * Que dans le cas sans dépendances car avec qui sait ? Je pourrais avoir de nouveles tâches qui l'utilise. */
 		if (!task_using_data_list_empty(returned_handle->sched_data) || dependances != 0)
 		{
+			printf("Pushing back %p.\n", returned_handle);
 			push_data_not_used_yet_random_spot(returned_handle, temp_pointer);				
 		}
 	}
