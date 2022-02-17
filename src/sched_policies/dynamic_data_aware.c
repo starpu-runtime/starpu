@@ -172,6 +172,7 @@ void print_planned_task_all_gpu()
 void print_pulled_task_all_gpu()
 {
     int i = 0;
+    int j = 0;
     struct gpu_pulled_task *temp_pointer = my_pulled_task_control->first;
 	struct pulled_task *p = pulled_task_new();
     for (i = 0; i < Ngpu; i++)
@@ -183,7 +184,12 @@ void print_pulled_task_all_gpu()
 		printf("Pulled task for GPU %d:\n", i + 1); fflush(stdout);
 		for (p = pulled_task_list_begin(temp_pointer->ptl); p != pulled_task_list_end(temp_pointer->ptl); p = pulled_task_list_next(p))
 		{
-			printf("%p\n", p->pointer_to_pulled_task); fflush(stdout);
+			printf("%p :", p->pointer_to_pulled_task); fflush(stdout);
+			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
+			{
+				printf(" %p", STARPU_TASK_GET_HANDLE(p->pointer_to_pulled_task, j));
+			}
+			printf("\n");
 		}
 		temp_pointer = temp_pointer->next;
 	}
@@ -2727,7 +2733,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-	//~ printf("Début de victim_selector.\n");
+	printf("Début de victim_selector.\n"); fflush(stdout);
 	//#ifdef REFINED_MUTEX
 	//STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	//#endif
@@ -2768,7 +2774,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
 		
-		//~ printf("Evict refused data %p.\n", temp_handle);
+		printf("Evict refused data %p for GPU %d.\n", temp_handle, current_gpu); fflush(stdout);
 		return temp_handle;
     }
         
@@ -2808,7 +2814,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			hud = data_on_node[i]->user_data;
 			nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu - 1];
 			
-			//~ printf("%d task in pulled_task for %p.\n", hud->nb_task_in_pulled_task[current_gpu - 1], data_on_node[i]);
+			printf("%d task in pulled_task for %p.\n", hud->nb_task_in_pulled_task[current_gpu - 1], data_on_node[i]);
 			
 			/* Ajout : si sur les deux lists c'est 0 je la return direct la data */
 			if (hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
@@ -2830,7 +2836,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     }
     
     //~ print_data_on_node(data_on_node, nb_data_on_node);
-    //~ printf("Min number of task in pulled task = %d from %d data.\n", min_number_task_in_pulled_task, nb_data_on_node); 
+    printf("Min number of task in pulled task = %d from %d data.\n", min_number_task_in_pulled_task, nb_data_on_node); 
 
     if (min_number_task_in_pulled_task == INT_MAX)
     {		
@@ -2990,7 +2996,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 	#endif
 	
-	printf("Evict %p.\n", returned_handle);
+	printf("Evict %p.\n", returned_handle); fflush(stdout); 
+	if (!starpu_data_can_evict(returned_handle, node, is_prefetch)) { printf("AH!\n"); fflush(stdout); exit(0); } /* TODO : a suppr */
     return returned_handle;
 }
 
@@ -3010,7 +3017,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     //print_pulled_task_one_gpu(g, node);
     for (i = 0; i < nb_data_on_node; i++)
     {
-		if (starpu_data_can_evict(data_tab[i], node, is_prefetch))
+		if (starpu_data_can_evict(data_tab[i], node, is_prefetch)) /* TODO : il y aurait moyen de remplacé ce can evict juste par une lecture dans un tableau car de toute facon on le fias avant dans victim_selector. */
 		{
 			index_next_use = 0;
 			for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
