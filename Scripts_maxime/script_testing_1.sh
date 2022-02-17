@@ -22,7 +22,7 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
 N=5
 #~ N=30
-N=25
+N=50
 
 NGPU=1
 NGPU=2
@@ -39,7 +39,7 @@ ORDO="dynamic-data-aware" # EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION))
 
 CM=500
 #~ CM=0 # 0 = infinie
-CM=100
+#~ CM=100
 
 EVICTION=0
 EVICTION=1
@@ -101,10 +101,10 @@ DEPENDANCES=1
 #~ /* Avec ces param il y aplusieurs fois la mem données dans datanotused, + elle se fais choisir alors qu'on voulais l'evincer on se bloque donc avec victim evicted. corriger doublon + peut etre corrigé l'ajout dans data not use a un autre moment ?
 TASK_ORDER=0
 #~ TASK_ORDER=1
-TASK_ORDER=2
+#~ TASK_ORDER=2
 
 DATA_ORDER=0
-DATA_ORDER=1
+#~ DATA_ORDER=1
 #~ DATA_ORDER=2
 
 #~ CHOOSE_BEST_DATA_FROM=0 STARPU_WORKER_STATS=1 MULTIGPU=$((MULTI)) REVERSE=1 FASTER_FIRST_ITERATION=0 RANDOM_TASK_ORDER=0 STARPU_SCHED_READY=$((READY)) BELADY=$((BELADY)) ORDER_U=1 SIMULATE_MEMORY=0 PRINT3D=0 PRINT_N=$((N)) STARPU_GENERATE_TRACE=0 APP=$((APP3D)) STARPU_SCHED=${ORDO} STARPU_HOSTNAME=${HOST} EVICTION_STRATEGY_DYNAMIC_DATA_AWARE=$((EVICTION)) STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_BUS_STATS=0 ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter $((NITER))

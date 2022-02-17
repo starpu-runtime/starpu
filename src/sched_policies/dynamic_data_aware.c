@@ -2516,8 +2516,6 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					}
 				}
 			}
-
-			
 		}
 		
 		increment_planned_task_data(t->pointer_to_T, current_gpu);
