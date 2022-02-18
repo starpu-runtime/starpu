@@ -26,7 +26,7 @@
 
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
-#include <starpu_data_maxime.h>
+#include <starpu_data_maxime.h> /* Pour l'appel d'une nouvele itération dans le scheduler */
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
@@ -401,7 +401,7 @@ int main(int argc, char **argv)
 	//~ dependances = starpu_get_env_number_default("DEPENDANCES", 1);
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
-	niter = 1; /* Pour changer le nombre d'itérations */
+	niter = 2; /* Pour changer le nombre d'itérations */
 	current_iteration = 1;
 	
 #ifdef STARPU_HAVE_MAGMA
@@ -454,6 +454,10 @@ int main(int argc, char **argv)
 			execute_cholesky(size_p, nblocks_p);
 		
 		current_iteration++;
+		if (i != niter - 1) /* Si on est sur la dernière itération, pas la peine de tout ré-initialiser. */
+		{
+			new_iteration();
+		}
 	}
 
 	starpu_cublas_shutdown();

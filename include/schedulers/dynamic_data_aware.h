@@ -30,7 +30,7 @@ extern int data_order;
 //~ extern int data_order;
 extern int dependances;
 
-//~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
+#define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
 
 /* TODO : A suppr une fois les test fini */
 starpu_data_handle_t *Dopt;
@@ -137,10 +137,10 @@ extern struct gpu_planned_task_control *my_planned_task_control;
 extern struct gpu_pulled_task_control *my_pulled_task_control;
 //~ extern int number_task_out_DARTS; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
 extern int number_task_out_DARTS_2; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
-void reset_all_struct();
+//~ void reset_all_struct();
 extern int NT_dynamic_outer;
 /* Sert à print le temps surtout je crois et à reset aussi. Atention si les tâches arrivenet petit à petit il faut faire autrement. */
-extern int iteration_DARTS;
+extern int iteration;
 
 /** Fonctions d'affichage **/
 void print_task_list(struct starpu_task_list *l, char *s);

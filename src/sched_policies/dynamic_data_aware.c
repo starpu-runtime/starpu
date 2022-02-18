@@ -23,6 +23,7 @@
 #include <schedulers/HFP.h>
 #include <schedulers/dynamic_data_aware.h>
 #include "helper_mct.h"
+#include <starpu_data_maxime.h> /* pour l'appel de la fonction qui reinit a la nouvelle itération */
 
 /* TODO : a suppr si stats finis */
 int number_data_conflict;
@@ -48,8 +49,8 @@ struct gpu_planned_task_control *my_planned_task_control;
 struct gpu_pulled_task_control *my_pulled_task_control;
 //~ int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 int number_task_out_DARTS_2; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
-int NT_dynamic_outer;
-int iteration_DARTS;
+int NT_dynamic_outer; /* TODO : toujours utile ? A spurr sinon. */
+int iteration;
 
 /* TODO a supprimer pour meilleures perfs ? */
 #ifdef PRINT
@@ -92,6 +93,12 @@ struct timeval time_start_createtolasttaskfinished;
 struct timeval time_end_createtolasttaskfinished;
 long long time_total_createtolasttaskfinished = 0;
 #endif
+
+void new_iteration()
+{
+	printf("New iteration!\n"); fflush(stdout);
+	iteration++;
+}
 
 void print_task_list(struct starpu_task_list *l, char *s)
 {
@@ -244,7 +251,7 @@ void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_
 	printf("pulled_task = %d tasks | planned_tasks = %d tasks.\n", hud->nb_task_in_pulled_task[current_gpu - 1], hud->nb_task_in_planned_task[current_gpu - 1]);
 }
 
-bool need_to_reinit = true;
+//~ bool need_to_reinit = true;
 
 /* Pushing the tasks. Each time a new task enter here, we initialize it. */		
 static int dynamic_data_aware_push_task(struct starpu_sched_component *component, struct starpu_task *task)
@@ -266,8 +273,8 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 		/* If this boolean is true, pull_task will know that new tasks have arrived and
 		 * thus it will be able to randomize both the task list and the data list not used yet in the GPUs. 
 		 */
-		if (iteration_DARTS != 1 && need_to_reinit == true)
-		{
+		//~ if (iteration != 1 && need_to_reinit == true)
+		//~ {
 			//~ printf("REINIT STRUCT in push_task.\n"); fflush(stdout);
 
 			/* TODO : Pour le moment je le commente mais en multi itération il faudra bien vider datanotusedyet */
@@ -281,8 +288,8 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 			//~ }
 			//~ my_planned_task_control->first = my_planned_task_control->pointer;
 
-			need_to_reinit = false;	
-		}
+			//~ need_to_reinit = false;	
+		//~ }
 		
 		new_tasks_initialized = true; 
 		struct dynamic_data_aware_sched_data *data = component->data;
@@ -339,7 +346,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
  */
 void initialize_task_data_gpu_single_task(struct starpu_task *task)
 {
-	//~ printf("début de initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
+	//~ printf("Début de initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
     int i = 0;
     int j = 0;
     
@@ -412,7 +419,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 					{
 						/* Pour le cas ou il y a n itération on veux quand même re init la donnée. */
 						struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
-						if (hud->last_iteration_DARTS != iteration_DARTS)
+						if (hud->last_iteration_DARTS != iteration)
 						{
 							if (data_order == 1)
 							{
@@ -474,7 +481,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 		if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
 		{
 			struct handle_user_data * hud = malloc(sizeof(*hud));
-			hud->last_iteration_DARTS = iteration_DARTS;
+			hud->last_iteration_DARTS = iteration;
 			
 			/* Need to init them with the number of GPU */
 			hud->nb_task_in_pulled_task = malloc(Ngpu*sizeof(int));
@@ -494,15 +501,15 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 			/* TODO : here we should re-init if it's a new iteration! But I don't know how to know it's a 
 			 * new iteration yet :/.
 			 */
-			//~ struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-			//~ hud->last_iteration_DARTS = iteration_DARTS;
-			//~ for (j = 0; j < Ngpu; j++)
-			//~ {
-				//~ hud->nb_task_in_pulled_task[j] = 0;
-				//~ hud->nb_task_in_planned_task[j] = 0;
-				//~ hud->last_check_to_choose_from[j] = 0;
-			//~ }
-			//~ STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
+			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
+			hud->last_iteration_DARTS = iteration;
+			for (j = 0; j < Ngpu; j++)
+			{
+				hud->nb_task_in_pulled_task[j] = 0;
+				hud->nb_task_in_planned_task[j] = 0;
+				hud->last_check_to_choose_from[j] = 0;
+			}
+			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 		}
 			
 		/* Adding the pointer in the task toward the data. */
@@ -2312,7 +2319,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		{
 			if (Dopt[i] == handle_popped && handle_popped != NULL)
 			{
-				printf("Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
+				printf("Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
 				number_data_conflict++;
 				data_conflict[current_gpu - 1] = true;
 			}
@@ -3372,7 +3379,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	
 	gpu_memory_initialized = false;
 	//~ number_task_out_DARTS = -1;
-	iteration_DARTS = 1;
+	iteration = 1;
 	
 	/* Initialization of structures. */
 	struct dynamic_data_aware_sched_data *data;
@@ -3539,13 +3546,13 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		printf("RESET in get task done\n"); fflush(stdout);
 		number_task_out_DARTS_2 = 0;
 		//~ reset_all_struct();
-		need_to_reinit = true;
+		//~ need_to_reinit = true;
 		
 		/* TODO : commenté car je ne sais pas gérer plusieurs itérions pour le moment. */
 		//~ iteration_DARTS++;
 		
 		/* TODO : a suppr */
-		if (iteration_DARTS == 11)
+		if (iteration == 11)
 		{
 			FILE *f2 = fopen("Output_maxime/Data/Nb_conflit_donnee.txt", "a");
 			fprintf(f2 , "%d\n", number_data_conflict);
@@ -3556,7 +3563,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		}
 		
 		#ifdef PRINT
-		if ((iteration_DARTS == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) //PRINT_TIME = 2 pour quand on a 1 seule itération
+		if ((iteration == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) //PRINT_TIME = 2 pour quand on a 1 seule itération
 		{
 			gettimeofday(&time_end_createtolasttaskfinished, NULL);
 			time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;

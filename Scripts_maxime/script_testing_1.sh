@@ -21,8 +21,8 @@ ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
 N=5
-#~ N=30
-N=50
+N=30
+#~ N=50
 
 NGPU=1
 NGPU=2
