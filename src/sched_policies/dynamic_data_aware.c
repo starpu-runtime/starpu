@@ -48,7 +48,7 @@ bool new_tasks_initialized;
 struct gpu_planned_task_control *my_planned_task_control;
 struct gpu_pulled_task_control *my_pulled_task_control;
 //~ int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
-int number_task_out_DARTS_2; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
+//~ int number_task_out_DARTS_2; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 int NT_dynamic_outer; /* TODO : toujours utile ? A spurr sinon. */
 int iteration;
 
@@ -417,9 +417,8 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 				//~ {
 					if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
 					{
-						/* Pour le cas ou il y a n itération on veux quand même re init la donnée. */
 						struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
-						if (hud->last_iteration_DARTS != iteration)
+						if (hud->last_iteration_DARTS != iteration) /* On est sur une nouvelle itération donc on peut init. */
 						{
 							if (data_order == 1)
 							{
@@ -455,7 +454,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     pt->pointer_to_cell = task;
     pt->pointer_to_D = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(STARPU_TASK_GET_HANDLE(task, 0)));
     pt->tud = malloc(STARPU_TASK_GET_NBUFFERS(task)*sizeof(task_using_data_new()));
-    /* pt->state = 0; for state of the task in pulled task or planned task */
 	
     for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
     {
@@ -463,6 +461,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 		struct task_using_data *e = task_using_data_new();
 		e->pointer_to_T = task;
 		
+		/* TODO : vérifier que c'est vide dune itération à l'autre. */
 		/* Adding the task in the list of task using the data */
 		if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL)
 		{
@@ -498,39 +497,24 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 		}
 		else
 		{
-			/* TODO : here we should re-init if it's a new iteration! But I don't know how to know it's a 
-			 * new iteration yet :/.
-			 */
 			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-			hud->last_iteration_DARTS = iteration;
-			for (j = 0; j < Ngpu; j++)
+			if (hud->last_iteration_DARTS != iteration) /* Re-init values in hud. */
 			{
-				hud->nb_task_in_pulled_task[j] = 0;
-				hud->nb_task_in_planned_task[j] = 0;
-				hud->last_check_to_choose_from[j] = 0;
+				for (j = 0; j < Ngpu; j++)
+				{
+					hud->nb_task_in_pulled_task[j] = 0;
+					hud->nb_task_in_planned_task[j] = 0;
+					hud->last_check_to_choose_from[j] = 0;
+				}
+				STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 			}
-			STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 		}
 			
 		/* Adding the pointer in the task toward the data. */
 		pt->pointer_to_D[i] = STARPU_TASK_GET_HANDLE(task, i);
 		pt->tud[i] = e;
     }
-    
-    /* Matrice 3D des coords pour ordre Z. */
-    /* A modif peut etre la condition. */
-	//~ if (app == 1)
-	//~ {
-		//~ int temp_tab_coordinates[2];
-		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-		//~ printf("Tâche %p : A (%p) x = %d | ", task, STARPU_TASK_GET_HANDLE(task, 0), temp_tab_coordinates[0]);
-		//~ printf("B (%p) y = %d | ", STARPU_TASK_GET_HANDLE(task, 1), temp_tab_coordinates[1]);
-		//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
-		//~ printf("C (%p) z = %d.\n", STARPU_TASK_GET_HANDLE(task, 2), temp_tab_coordinates[0]);
-	//~ }
-    
     task->sched_data = pt;
-    //~ printf("initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
 }
 
 /* Randomise sched_data uniquement, càd dire les nouvelles tâches et les mets à la fin de main_task_list */
@@ -2319,7 +2303,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		{
 			if (Dopt[i] == handle_popped && handle_popped != NULL)
 			{
-				printf("Iteration %d, %d task(s) out. Same data between GPU %d and GPU %d: %p.\n", iteration, number_task_out_DARTS_2, current_gpu, i + 1, handle_popped); fflush(stdout);
+				printf("Iteration %d. Same data between GPU %d and GPU %d: %p.\n", iteration, current_gpu, i + 1, handle_popped); fflush(stdout);
 				number_data_conflict++;
 				data_conflict[current_gpu - 1] = true;
 			}
@@ -3334,7 +3318,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	/* TODO a suppr */
 	total_task_done = 0;
 	
-	number_task_out_DARTS_2 = 0;
 	/* Var globale pour n'appeller qu'une seule fois get_env_number */
 	eviction_strategy_dynamic_data_aware = starpu_get_env_number_default("EVICTION_STRATEGY_DYNAMIC_DATA_AWARE", 0);
 	threshold = starpu_get_env_number_default("THRESHOLD", 0);
@@ -3495,7 +3478,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		#ifdef REFINED_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 		#endif
-		
 	}
 	
 	
@@ -3535,16 +3517,16 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		}
     }
     
-    #ifdef REFINED_MUTEX
+    #ifdef REFINED_MUTEX /* TODO suppr ce mutex ? */
     STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
     #endif
     
-    number_task_out_DARTS_2++;
+    //~ number_task_out_DARTS_2++; /* TODO utile cela ? */
     /* Reset pour prochaine itération, a modifier */
-    if (NT_dynamic_outer == number_task_out_DARTS_2)
+    if (iteration == 10)
 	{
-		printf("RESET in get task done\n"); fflush(stdout);
-		number_task_out_DARTS_2 = 0;
+		//~ printf("RESET in get task done\n"); fflush(stdout);
+		//~ number_task_out_DARTS_2 = 0;
 		//~ reset_all_struct();
 		//~ need_to_reinit = true;
 		
@@ -3562,7 +3544,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 			fclose(f2);
 		}
 		
-		#ifdef PRINT
+		#ifdef PRINT /* TODO : Il faudrat metre 10 la cr la 11ème je ne la ++ pas dans la fonction de l'appli */
 		if ((iteration == 11 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) //PRINT_TIME = 2 pour quand on a 1 seule itération
 		{
 			gettimeofday(&time_end_createtolasttaskfinished, NULL);

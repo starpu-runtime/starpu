@@ -401,7 +401,7 @@ int main(int argc, char **argv)
 	//~ dependances = starpu_get_env_number_default("DEPENDANCES", 1);
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
-	niter = 2; /* Pour changer le nombre d'itérations */
+	niter = 1; /* Pour changer le nombre d'itérations */
 	current_iteration = 1;
 	
 #ifdef STARPU_HAVE_MAGMA

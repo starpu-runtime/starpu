@@ -136,7 +136,7 @@ extern bool new_tasks_initialized;
 extern struct gpu_planned_task_control *my_planned_task_control;
 extern struct gpu_pulled_task_control *my_pulled_task_control;
 //~ extern int number_task_out_DARTS; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
-extern int number_task_out_DARTS_2; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
+//~ extern int number_task_out_DARTS_2; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
 //~ void reset_all_struct();
 extern int NT_dynamic_outer;
 /* Sert à print le temps surtout je crois et à reset aussi. Atention si les tâches arrivenet petit à petit il faut faire autrement. */
