@@ -30,7 +30,7 @@ extern int data_order;
 //~ extern int data_order;
 extern int dependances;
 
-#define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
+//~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
 
 /* TODO : A suppr une fois les test fini */
 starpu_data_handle_t *Dopt;
@@ -41,8 +41,8 @@ bool* data_conflict;
 /** Mutex **/
 starpu_pthread_mutex_t refined_mutex; /* Protège main task list et les données. */
 starpu_pthread_mutex_t linear_mutex; /* Mutex qui rend tout linéaire. Utile pour la version du code rendu pour IPDPS ainsi que pour se comparer aux nouveaux mutexs. A utiliser avec les ifdef suivants. */
-#define REFINED_MUTEX
-//~ #define LINEAR_MUTEX
+//~ #define REFINED_MUTEX
+#define LINEAR_MUTEX
 
 /** Structures **/
 /* Structure used to acces the struct my_list. There are also task's list */

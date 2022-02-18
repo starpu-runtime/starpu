@@ -20,9 +20,11 @@ make -j 6
 ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
-N=5
-N=30
-#~ N=50
+N=5 # 240.5 GF normalement
+N=11 # 1162 GF normalement
+#~ N=18
+N=30 # 2805 GF normalement
+#~ N=45
 
 NGPU=1
 NGPU=2
@@ -98,7 +100,6 @@ SPARSE=0
 DEPENDANCES=0
 DEPENDANCES=1
 
-#~ /* Avec ces param il y aplusieurs fois la mem données dans datanotused, + elle se fais choisir alors qu'on voulais l'evincer on se bloque donc avec victim evicted. corriger doublon + peut etre corrigé l'ajout dans data not use a un autre moment ?
 TASK_ORDER=0
 #~ TASK_ORDER=1
 #~ TASK_ORDER=2

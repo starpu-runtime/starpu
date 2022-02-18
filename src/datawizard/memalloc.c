@@ -303,12 +303,11 @@ static int lock_all_subtree(starpu_data_handle_t handle)
 
 static unsigned may_free_handle(starpu_data_handle_t handle, unsigned node)
 {
-    //~ printf("Beggining of may_free_handle.\n");
 	/* we only free if no one refers to the leaf */
 	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
 	if (refcnt) 
 	{
-		//~ printf("if refcnt.\n");
+		printf("if refcnt.\n");
 		return 0; 
 	}
 
@@ -316,13 +315,13 @@ static unsigned may_free_handle(starpu_data_handle_t handle, unsigned node)
 	{
 		if (handle->write_invalidation_req) {
 			/* Some request is invalidating it anyway */
-			//~ printf("invalid request.\n");
+			printf("invalid request.\n");
 			return 0; }
 		unsigned n;
 		for (n = 0; n < STARPU_MAXNODES; n++)
 			if (_starpu_get_data_refcnt(handle, n)) {
 				/* Some task is writing to the handle somewhere */
-				//~ printf("Task is writing the handle.\n");
+				printf("Task is writing the handle.\n");
 				return 0; }
 	}
 
@@ -446,7 +445,7 @@ static void notify_handle_children(starpu_data_handle_t handle, struct _starpu_d
 {
 	unsigned child;
 	
-	//~ printf("replicate->allocated = 0 dans notify_handle_children avec la donnée %p.\n", handle); fflush(stdout);
+	printf("replicate->allocated = 0 dans notify_handle_children avec la donnée %p.\n", handle); fflush(stdout);
 	replicate->allocated = 0;
 
 	/* XXX why do we need that ? */
@@ -562,7 +561,7 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	{
 		_starpu_data_unregister_ram_pointer(old_replicate->handle, node);
 		old_replicate->mc = NULL;
-		//~ printf("old_replicate->allocated = 0 dans reuse_mem_chunk vec donnée %p.\n", old_replicate->handle); fflush(stdout);
+		printf("old_replicate->allocated = 0 dans reuse_mem_chunk vec donnée %p.\n", old_replicate->handle); fflush(stdout);
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
 		old_replicate->initialized = 0;
@@ -601,32 +600,32 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-    //~ printf("Beggining of can evict.\n");
+    printf("Beggining of can evict.\n");
 	STARPU_ASSERT(node < STARPU_MAXNODES);
 	/* This data should be written through to this node, avoid dropping it! */
 	if (node < sizeof(handle->wt_mask) * 8 && handle->wt_mask & (1<<node)) {
-		//~ printf("Data should be written.\n");
+		printf("Data should be written.\n");
 		return 0; }
 
 	/* This data was registered from this node, we will not be able to drop it anyway */
 	if ((int) node == handle->home_node) {
-		//~ printf("Data was registered.\n");
+		printf("Data was registered.\n");
 		return 0; }
 
 	/* This data cannnot be pushed outside CPU memory */
 	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
 		&& starpu_memory_nodes_get_numa_count() == 1) {
-		//~ printf("Data cannot be pushed.\n");
+		printf("Data cannot be pushed.\n");
 		return 0; }
 
 	if (is_prefetch >= STARPU_TASK_PREFETCH && handle->per_node[node].nb_tasks_prefetch) {
 		/* We have not finished executing the tasks this was prefetched for */
-		//~ printf("Not finished executing the task it was prefetched for.\n");
+		printf("Not finished executing the task it was prefetched for.\n");
 		return 0; }
 
 	if (!may_free_handle(handle, node)) {
 		/* Somebody refers to it */
-		//~ printf("Data is referred to.\n");
+		printf("Data is referred to.\n");
 		return 0; }
 		
 	return 1;
@@ -1001,7 +1000,6 @@ void starpu_data_get_node_data(unsigned node, starpu_data_handle_t **_handles, i
  */
 static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, uint32_t footprint, enum starpu_is_prefetch is_prefetch)
 {
-	//~ printf("Beggining of try_to_reuse_potentially_in_use_mc.\n");
 	struct _starpu_mem_chunk *mc, *next_mc, *orig_next_mc;
 	starpu_data_handle_t victim = NULL;
 	int success = 0;
@@ -1094,7 +1092,6 @@ restart:
 	}
 	_starpu_spin_unlock(&mc_lock[node]);
 	
-	//~ printf("Succes vaut : %d dans try_to_reuse_potentially_in_use_mc.\n", success);
 	if (victim && victim_eviction_failed != NULL && success == 0)
 	{
 	    printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc for %p.\n", victim);
@@ -1159,7 +1156,6 @@ out:
  */
 static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t reclaim, enum starpu_is_prefetch is_prefetch STARPU_ATTRIBUTE_UNUSED)
 {
-    //~ printf("Beggining of free_potentially_in_use_mc.\n");
 	size_t freed = 0;
 	starpu_data_handle_t victim = NULL;
 
@@ -1175,7 +1171,7 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 		if (victim == STARPU_DATA_NO_VICTIM)
 		{
 			/* He told me we should not make any victim */
-			//~ printf("NO_VICTIM in free_potentially_in_use_mc, return 0.\n");
+			printf("NO_VICTIM in free_potentially_in_use_mc, return 0.\n");
 			return 0;
 		}
 	}
@@ -1627,7 +1623,6 @@ void _starpu_request_mem_chunk_removal(starpu_data_handle_t handle, struct _star
 	/* This memchunk doesn't have to do with the data any more. */
 	replicate->mc = NULL;
 	mc->replicate = NULL;
-	//~ printf("replicate->allocated = 0 dans _starpu_request_mem_chunk_removal avec donnée %p.\n", handle); fflush(stdout);
 	replicate->allocated = 0;
 	replicate->automatically_allocated = 0;
 	replicate->initialized = 0;

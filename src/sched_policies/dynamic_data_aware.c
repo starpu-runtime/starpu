@@ -112,6 +112,15 @@ void new_iteration()
 				gpu_planned_task_insertion();
 			}
 			my_planned_task_control->first = my_planned_task_control->pointer;
+			
+			/* Utile ? */
+			//~ free(my_pulled_task_control);
+			//~ gpu_pulled_task_initialisation();
+			//~ for (i = 0; i < Ngpu - 1; i++)
+			//~ {
+				//~ gpu_pulled_task_insertion();
+			//~ }
+			//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
 }
 
 void print_task_list(struct starpu_task_list *l, char *s)
@@ -277,9 +286,9 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
 	
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("New task %p (%s) in push_task.\n", task, starpu_task_get_name(task)); fflush(stdout);
-	//~ #endif
+	#endif
 	
 	/* Ce if doit etre retiré quand on veut des dépendances */
 	//~ if (number_task_out_DARTS_2 == 0)
@@ -358,7 +367,7 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
  * GPUs -> datas not used yet by this GPU.
  * TODO : Y a pas moyen de fusionner les deux boucles pour parcourir juste une fois la liste des données d'une tâche ? Non vu que la première boucle coucle sur NGPU, faudrait faire un test if on est sur le gpu 1 seulement alors je fais le truc sinon, non.
  */
-void initialize_task_data_gpu_single_task(struct starpu_task *task)
+	void initialize_task_data_gpu_single_task(struct starpu_task *task)
 {
 	//~ printf("Début de initialize_task_data_gpu_single_task fini.\n"); fflush(stdout);
     int i = 0;
@@ -436,7 +445,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 						{
 							if (data_order == 1)
 							{
-								printf("New data %p.\n", e->D);
 								gpu_data_not_used_list_push_back(my_planned_task_control->pointer->new_gpu_data, e);
 							}
 							else
@@ -449,7 +457,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 					{
 						if (data_order == 1)
 						{
-							printf("New data %p.\n", e->D);
 							gpu_data_not_used_list_push_back(my_planned_task_control->pointer->new_gpu_data, e);
 						}
 						else
@@ -1058,7 +1065,10 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 	/* TODO : pas forcément nécessaire de fiare ici la randomisation */
     if (new_tasks_initialized == true)
     {
+		#ifdef PRINT
 		printf("New tasks in pull_task.\n"); fflush(stdout);
+		#endif
+		
 		new_tasks_initialized = false;
 		
 		#ifdef PRINT
@@ -2031,7 +2041,10 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			//~ #ifdef REFINED_MUTEX
 			//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 			//~ #endif
+			#ifdef PRINT
 			printf("Will pop random for GPU %d.\n", current_gpu); fflush(stdout);
+			#endif
+			
 			task = starpu_task_list_pop_front(main_task_list);
 		}
 		else
@@ -2155,10 +2168,14 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
+	debuteviction: ;
+	#ifdef PRINT
 	printf("Début de victim_selector.\n"); fflush(stdout);
-	//#ifdef REFINED_MUTEX
-	//STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
-	//#endif
+	#endif
+	
+	#ifdef REFINED_MUTEX
+	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	#endif
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
@@ -2189,13 +2206,14 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//#ifdef REFINED_MUTEX
-		//STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-		//#endif
+		#ifdef REFINED_MUTEX
+		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		#endif
 		#ifdef LINEAR_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
 		
+		if (!starpu_data_can_evict(temp_handle, node, is_prefetch)) { printf("AH!\n"); fflush(stdout); goto debuteviction; } /* TODO : pas vraiment une solution non ? */
 		printf("Evict refused data %p for GPU %d.\n", temp_handle, current_gpu); fflush(stdout);
 		return temp_handle;
     }
@@ -2236,7 +2254,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			hud = data_on_node[i]->user_data;
 			nb_task_in_pulled_task[i] = hud->nb_task_in_pulled_task[current_gpu - 1];
 			
+			#ifdef PRINT
 			printf("%d task in pulled_task for %p.\n", hud->nb_task_in_pulled_task[current_gpu - 1], data_on_node[i]);
+			#endif
 			
 			/* Ajout : si sur les deux lists c'est 0 je la return direct la data */
 			if (hud->nb_task_in_pulled_task[current_gpu - 1] == 0 && hud->nb_task_in_planned_task[current_gpu - 1] == 0)
@@ -2258,8 +2278,10 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     }
     
     //~ print_data_on_node(data_on_node, nb_data_on_node);
+    #ifdef PRINT
     printf("Min number of task in pulled task = %d from %d data.\n", min_number_task_in_pulled_task, nb_data_on_node); 
-
+	#endif
+	
     if (min_number_task_in_pulled_task == INT_MAX)
     {		
 		#ifdef PRINT
@@ -2267,9 +2289,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//#ifdef REFINED_MUTEX
-		//STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-		//#endif
+		#ifdef REFINED_MUTEX
+		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		#endif
 		#ifdef LINEAR_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
@@ -2299,9 +2321,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 			#endif
 			
-			//#ifdef REFINED_MUTEX
-			//STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-			//#endif
+			#ifdef REFINED_MUTEX
+			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+			#endif
 			#ifdef LINEAR_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 			#endif
@@ -2323,9 +2345,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		//#ifdef REFINED_MUTEX
-		//STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
-		//#endif
+		#ifdef REFINED_MUTEX
+		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+		#endif
 		#ifdef LINEAR_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
@@ -2336,9 +2358,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     
     deletion_in_victim_selector : ;
     
-    #ifdef REFINED_MUTEX
-	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
-	#endif
+    //~ #ifdef REFINED_MUTEX
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	//~ #endif
     
     struct starpu_task *task = NULL;
     struct starpu_sched_component *temp_component = component;
@@ -2419,8 +2441,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 	#endif
 	
-	printf("Evict %p.\n", returned_handle); fflush(stdout); 
-	//~ if (!starpu_data_can_evict(returned_handle, node, is_prefetch)) { printf("AH!\n"); fflush(stdout); exit(0); } /* TODO : a suppr */
+	printf("Evict %p on GPU %d.\n", returned_handle, current_gpu); fflush(stdout); 
+	if (!starpu_data_can_evict(returned_handle, node, is_prefetch)) { printf("AH!\n"); fflush(stdout); exit(0); } /* TODO : a suppr */
     return returned_handle;
 }
 
@@ -2812,9 +2834,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	gpu_memory_initialized = false;
 	//~ number_task_out_DARTS = -1;
 	//~ iteration = 1;
-	#ifdef PRINT
 	printf("############### Itération n°%d ###############\n", iteration);
-	#endif
 	
 	/* Initialization of structures. */
 	struct dynamic_data_aware_sched_data *data;
@@ -2903,6 +2923,9 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
+	//~ #ifdef REFINED_MUTEX
+	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
+	//~ #endif
 	
 	total_task_done++;
 	printf("%dème task done in the post_exec_hook: %p.\n", total_task_done, task); fflush(stdout);
@@ -2910,9 +2933,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	/* Je me place sur la liste correspondant au bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 	int i = 0;
-	
-	/* TODO : increment de number_task_out_DARTS a faire ici */
-	
+		
 	if (eviction_strategy_dynamic_data_aware == 1) 
 	{
 		#ifdef REFINED_MUTEX
@@ -2944,7 +2965,6 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     struct gpu_pulled_task *temp_pointer = my_pulled_task_control->first;
     int trouve = 0;
     
-    //~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
     //~ my_pulled_task_control->pointer = my_pulled_task_control->first;
     for (i = 1; i < current_gpu; i++)
     {

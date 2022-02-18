@@ -238,12 +238,15 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 			node = src_replicate->memory_node;
 		else
 			node = dst_replicate->memory_node;
-
+		
 		if (!dst_replicate->request[node])
 			dst_replicate->request[node] = r;
 		else
 			dst_replicate->last_request[node]->next_same_req = r;
 		dst_replicate->last_request[node] = r;
+
+		printf("dst_replicate->last_request[%d]: %p\n", node, dst_replicate->last_request[node]); fflush(stdout);	
+		printf("dst_replicate->request[%d]: %p\n", node, dst_replicate->request[node]); fflush(stdout);	
 
 		if (mode & STARPU_R)
 		{
