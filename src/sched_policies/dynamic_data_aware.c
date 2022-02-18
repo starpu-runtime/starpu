@@ -1025,9 +1025,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		}
 }
 
-void reset_all_struct()
-{
-	NT_dynamic_outer = -1;
+//~ void reset_all_struct()
+//~ {
+	//~ NT_dynamic_outer = -1;
 	//~ number_task_out_DARTS = -1;
 	
 	/* For visualisation in python with multi iteration. */
@@ -1035,7 +1035,7 @@ void reset_all_struct()
 	//~ index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	//~ index_current_popped_task_all_gpu = 0;
 	//~ index_current_popped_task_all_gpu_prefetch = 0;
-}
+//~ }
 
 /* Pull tasks. When it receives new task it will randomize the task list and the GPU data list.
  * If it has no task it return NULL. Else if a task was refused it return it. Else it return the
@@ -2979,8 +2979,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 	#endif
 	
-	printf("Evict %p.\n", returned_handle); fflush(stdout); 
-	if (!starpu_data_can_evict(returned_handle, node, is_prefetch)) { printf("AH!\n"); fflush(stdout); exit(0); } /* TODO : a suppr */
+	//~ printf("Evict %p.\n", returned_handle); fflush(stdout); 
+	//~ if (!starpu_data_can_evict(returned_handle, node, is_prefetch)) { printf("AH!\n"); fflush(stdout); exit(0); } /* TODO : a suppr */
     return returned_handle;
 }
 
