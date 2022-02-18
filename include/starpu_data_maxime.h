@@ -5,7 +5,7 @@
 
 /* For DARTS. */
 /** Pour ré-initailiser les structs et data après une itération. **/
-void new_iteration();
+void new_iteration(); /* Déjà init dans memalloc.c */
 
 
 //~ /**
