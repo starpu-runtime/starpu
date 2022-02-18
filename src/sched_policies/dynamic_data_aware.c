@@ -2213,7 +2213,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
 		
-		if (!starpu_data_can_evict(temp_handle, node, is_prefetch)) { printf("AH!\n"); fflush(stdout); goto debuteviction; } /* TODO : pas vraiment une solution non ? */
+		if (!starpu_data_is_on_node(temp_handle, node)) { printf("Refused %p is not on node ???\n", temp_handle); fflush(stdout); }
+		if (!starpu_data_can_evict(temp_handle, node, is_prefetch)) { printf("Refused data can't be evicted!\n"); fflush(stdout); goto debuteviction; } /* TODO : pas vraiment une solution non ? */
 		printf("Evict refused data %p for GPU %d.\n", temp_handle, current_gpu); fflush(stdout);
 		return temp_handle;
     }
