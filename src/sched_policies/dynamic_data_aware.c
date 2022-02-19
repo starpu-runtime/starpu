@@ -2216,7 +2216,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		temp_pointer = temp_pointer->next;
     }
    
-   /* TODO : a remettre plus bas, jsute our tester la */	 
+   /* TODO : a remettre plus bas, si je vire la verif des valid seulement! */	 
     starpu_data_handle_t *data_on_node;
     unsigned nb_data_on_node = 0;
     int *valid;
@@ -2228,7 +2228,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	{
 		if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
 		{
-			printf("la\n"); fflush(stdout);
 			free(valid);
 			returned_handle = data_on_node[i];
 			free(data_on_node);
@@ -2257,7 +2256,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		#endif
 		
 		
-		print_data_on_node(data_on_node, nb_data_on_node);
+		//~ print_data_on_node(data_on_node, nb_data_on_node);
 		if (!starpu_data_is_on_node(temp_handle, node)) { printf("Refused %p is not on node %d. ??? Restart eviction\n", temp_handle, node); fflush(stdout); goto debuteviction; }
 		if (!starpu_data_can_evict(temp_handle, node, is_prefetch)) { printf("Refused data can't be evicted ??? Restart eviction selection.\n"); fflush(stdout); goto debuteviction; } /* TODO : pas vraiment une solution non ? */
 		printf("Evict refused data %p for GPU %d.\n", temp_handle, current_gpu); fflush(stdout);
@@ -2495,7 +2494,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 	#endif
 	
-	print_data_on_node(data_on_node, nb_data_on_node);
+	//~ print_data_on_node(data_on_node, nb_data_on_node);
 	printf("Evict %p on GPU %d.\n", returned_handle, current_gpu); fflush(stdout); 
 	if (!starpu_data_can_evict(returned_handle, node, is_prefetch)) { printf("AH!\n"); fflush(stdout); exit(0); } /* TODO : a suppr */
     return returned_handle;
