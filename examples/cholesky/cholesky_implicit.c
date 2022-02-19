@@ -402,8 +402,7 @@ int main(int argc, char **argv)
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
 	//~ niter = 1; /* Pour changer le nombre d'itérations */
-	niter = 9; /* Pour changer le nombre d'itérations */
-	//~ niter = 11; /* Pour changer le nombre d'itérations */
+	niter = 11; /* Pour changer le nombre d'itérations */
 	current_iteration = 1;
 	
 #ifdef STARPU_HAVE_MAGMA
@@ -456,10 +455,10 @@ int main(int argc, char **argv)
 			execute_cholesky(size_p, nblocks_p);
 		
 		current_iteration++;
-		if (i != niter - 1) /* Si on est sur la dernière itération, pas la peine de tout ré-initialiser. */
-		{
+		//~ if (i != niter - 1) /* Si on est sur la dernière itération, pas la peine de tout ré-initialiser. */
+		//~ {
 			new_iteration();
-		}
+		//~ }
 	}
 
 	starpu_cublas_shutdown();
