@@ -21,9 +21,9 @@ ulimit -S -s 5000000
 export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 
 N=5 # 240.5 GF normalement
-#~ N=11 # 1162 GF normalement
-N=25
-N=30 # 2805 GF normalement
+N=11 # 1162 GF normalement
+#~ N=25
+#~ N=30 # 2805 GF normalement
 #~ N=45
 
 NGPU=1
