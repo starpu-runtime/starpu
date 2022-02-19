@@ -1448,7 +1448,7 @@ unsigned starpu_data_is_on_node(starpu_data_handle_t handle, unsigned node)
 	{
 		unsigned i;
 		unsigned nnodes = starpu_memory_nodes_get_count();
-		//~ printf("handle %p is invalid, ", handle);
+		printf("handle %p is invalid, ", handle);
 		for (i = 0; i < nnodes; i++)
 		{
 			if (handle->per_node[node].request[i])

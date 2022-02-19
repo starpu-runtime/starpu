@@ -1163,13 +1163,31 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 
 void push_data_not_used_yet_random_spot(starpu_data_handle_t h, struct gpu_planned_task *g)
 {
-    struct gpu_data_not_used *ptr = gpu_data_not_used_new();
-    struct gpu_data_not_used *new_element = gpu_data_not_used_new();
+	    struct gpu_data_not_used *new_element = gpu_data_not_used_new();
+        printf("la0\n"); fflush(stdout);
     new_element->D = h;
+	if (gpu_data_not_used_list_empty(g->gpu_data))
+	{
+		 gpu_data_not_used_list_push_back(g->gpu_data, new_element); return;
+	 }
+
+		
+	    printf("la1\n"); fflush(stdout);
+
+    struct gpu_data_not_used *ptr = gpu_data_not_used_new();
+    //~ struct gpu_data_not_used *new_element = gpu_data_not_used_new();
+        printf("la2\n"); fflush(stdout);
+
+    //~ new_element->D = h;
+        printf("la3\n"); fflush(stdout);
     int random = rand()%gpu_data_not_used_list_size(g->gpu_data);
+        printf("la4\n"); fflush(stdout);
+
     int i = 0;
-    
+    printf("la5\n"); fflush(stdout);
     ptr = gpu_data_not_used_list_begin(g->gpu_data);
+        printf("la6\n"); fflush(stdout);
+
     for (i = 0; i < random; i++)
     {
 		ptr = gpu_data_not_used_list_next(ptr);
@@ -2168,10 +2186,6 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-	debuteviction: ;
-	#ifdef PRINT
-	printf("Début de victim_selector.\n"); fflush(stdout);
-	#endif
 	
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
@@ -2184,8 +2198,15 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	gettimeofday(&time_start_selector, NULL);
 	#endif
 	
+		debuteviction: ;
+
+	
     int i = 0;
     int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+    
+    //~ #ifdef PRINT
+	printf("Début de victim_selector GPU %d node %d.\n", current_gpu, node); fflush(stdout);
+	//~ #endif
     
     /* Se placer sur le bon GPU pour planned_task */
     struct gpu_planned_task *temp_pointer = my_planned_task_control->first;
@@ -2194,6 +2215,35 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     {
 		temp_pointer = temp_pointer->next;
     }
+   
+   /* TODO : a remettre plus bas, jsute our tester la */	 
+    starpu_data_handle_t *data_on_node;
+    unsigned nb_data_on_node = 0;
+    int *valid;
+    starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
+    starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+   
+   	/* Checking if all task are truly valid. TODO : a garder dans le cas avec dependances ? */
+	for (i = 0; i < nb_data_on_node; i++)
+	{
+		if (valid[i] == 0 && starpu_data_can_evict(data_on_node[i], node, is_prefetch))
+		{
+			printf("la\n"); fflush(stdout);
+			free(valid);
+			returned_handle = data_on_node[i];
+			free(data_on_node);
+			
+			#ifdef REFINED_MUTEX
+			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
+			#endif
+			#ifdef LINEAR_MUTEX
+			STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
+			#endif
+			printf("Return unvalid data %p.\n", returned_handle); fflush(stdout);
+			return returned_handle;
+		}
+	}
+
     
     /* Je check si une eviction n'a pas été refusé. */
     if (temp_pointer->data_to_evict_next != NULL) 
@@ -2206,6 +2256,12 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
+		
+		print_data_on_node(data_on_node, nb_data_on_node);
+		if (!starpu_data_is_on_node(temp_handle, node)) { printf("Refused %p is not on node %d. ??? Restart eviction\n", temp_handle, node); fflush(stdout); goto debuteviction; }
+		if (!starpu_data_can_evict(temp_handle, node, is_prefetch)) { printf("Refused data can't be evicted ??? Restart eviction selection.\n"); fflush(stdout); goto debuteviction; } /* TODO : pas vraiment une solution non ? */
+		printf("Evict refused data %p for GPU %d.\n", temp_handle, current_gpu); fflush(stdout);
+		
 		#ifdef REFINED_MUTEX
 		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 		#endif
@@ -2213,17 +2269,14 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
 		
-		if (!starpu_data_is_on_node(temp_handle, node)) { printf("Refused %p is not on node ???\n", temp_handle); fflush(stdout); }
-		if (!starpu_data_can_evict(temp_handle, node, is_prefetch)) { printf("Refused data can't be evicted!\n"); fflush(stdout); goto debuteviction; } /* TODO : pas vraiment une solution non ? */
-		printf("Evict refused data %p for GPU %d.\n", temp_handle, current_gpu); fflush(stdout);
 		return temp_handle;
     }
         
-    starpu_data_handle_t *data_on_node;
-    unsigned nb_data_on_node = 0;
-    int *valid;
-    starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
-    starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
+    //~ starpu_data_handle_t *data_on_node;
+    //~ unsigned nb_data_on_node = 0;
+    //~ int *valid;
+    //~ starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
+    //~ starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
     
     /* Get the the min number of task a data can do in pulled_task */
     /* Se placer sur le bon GPU pour pulled_task */
@@ -2279,9 +2332,9 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     }
     
     //~ print_data_on_node(data_on_node, nb_data_on_node);
-    #ifdef PRINT
+    //~ #ifdef PRINT
     printf("Min number of task in pulled task = %d from %d data.\n", min_number_task_in_pulled_task, nb_data_on_node); 
-	#endif
+	//~ #endif
 	
     if (min_number_task_in_pulled_task == INT_MAX)
     {		
@@ -2425,7 +2478,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		 * Que dans le cas sans dépendances car avec qui sait ? Je pourrais avoir de nouveles tâches qui l'utilise. */
 		if (!task_using_data_list_empty(returned_handle->sched_data) || dependances != 0)
 		{
-			printf("Pushing back %p.\n", returned_handle);
+			printf("Pushing back %p.\n", returned_handle); fflush(stdout);
 			push_data_not_used_yet_random_spot(returned_handle, temp_pointer);				
 		}
 	}
@@ -2442,6 +2495,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 	STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 	#endif
 	
+	print_data_on_node(data_on_node, nb_data_on_node);
 	printf("Evict %p on GPU %d.\n", returned_handle, current_gpu); fflush(stdout); 
 	if (!starpu_data_can_evict(returned_handle, node, is_prefetch)) { printf("AH!\n"); fflush(stdout); exit(0); } /* TODO : a suppr */
     return returned_handle;
