@@ -1055,7 +1055,7 @@ static void thread_pop_state(double time, const char *prefix, long unsigned int 
 #endif
 }
 
-static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag, unsigned long job_id, double gflop, unsigned X, unsigned Y, unsigned Z STARPU_ATTRIBUTE_UNUSED, long iteration, long subiteration, struct starpu_fxt_options *options)
+static void worker_set_detailed_state(double time, const char *prefix, long unsigned int workerid, const char *name, unsigned long size, const char *parameters, unsigned long footprint, unsigned long long tag, unsigned long job_id, double gflop, unsigned X, unsigned Y, unsigned Z STARPU_ATTRIBUTE_UNUSED, long iteration, long subiteration, const char* numa_nodes, struct starpu_fxt_options *options)
 {
 	struct task_info *task = get_task(job_id, options->file_rank);
 #ifdef STARPU_HAVE_POTI
@@ -1096,12 +1096,13 @@ static void worker_set_detailed_state(double time, const char *prefix, long unsi
 			   Y_str,
 			   /* Z_str, */
 			   iteration_str,
-			   subiteration_str);
+			   subiteration_str,
+			   numa_nodes);
 #else
 	poti_SetState(time, container, "WS", name);
 #endif
 #else
-	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%s%lu	%s%lu	%f	%u	%u	"/*"%u	"*/"%ld	%ld\n", time, prefix, workerid, name, size, parameters, footprint, tag, prefix, job_id, prefix, task->submit_order, gflop, X, Y, /*Z,*/ iteration, subiteration);
+	fprintf(out_paje_file, "20	%.9f	%sw%lu	WS	%s	%lu	%s	%08lx	%016llx	%s%lu	%s%lu	%f	%u	%u	"/*"%u	"*/"%ld	%ld	%s\n", time, prefix, workerid, name, size, parameters, footprint, tag, prefix, job_id, prefix, task->submit_order, gflop, X, Y, /*Z,*/ iteration, subiteration, numa_nodes);
 #endif
 }
 
@@ -1857,6 +1858,16 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 		}
 	}
 
+	char numa_nodes_str[STARPU_TRACE_STR_LEN] = "";
+	eaten = 0;
+	for (i = 0; i < task->ndata; i++)
+	{
+		char str[STARPU_TRACE_STR_LEN] = "";
+		convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, str);
+		eaten += snprintf(numa_nodes_str + eaten, sizeof(numa_nodes_str) - eaten - 1, "%s%s", i ? "_" : "", str);
+	}
+	numa_nodes_str[sizeof(numa_nodes_str)-1] = 0;
+
 	if (out_paje_file)
 	{
 		char *prefix = options->file_prefix;
@@ -1868,7 +1879,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 			if ((*c == ' ') || (*c == '\t'))
 				*c = '_';
 
-		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1], options);
+		worker_set_detailed_state(last_codelet_start[worker], prefix, worker, _starpu_last_codelet_symbol[worker], ev->param[1], parameters, ev->param[2], ev->param[4], job_id, ((double) task->kflops) / 1000000, X, Y, Z, task->iterations[0], task->iterations[1], numa_nodes_str, options);
 		if (sched_ctx != 0)
 		{
 #ifdef STARPU_HAVE_POTI

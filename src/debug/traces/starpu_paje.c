@@ -52,7 +52,8 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 						     "Y string",
 						     /* "Z string", */
 						     "Iteration string",
-						     "Subiteration string");
+						     "Subiteration string",
+						     "NumaNodes string");
 	_starpu_poti_semiExtendedSetState = poti_header_DeclareEvent (PAJE_SetState,
 						     6,
 						     "Size string",
@@ -198,6 +199,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	/* fprintf(file, "%%	Z	string\n"); */
 	fprintf(file, "%%	Iteration	string\n");
 	fprintf(file, "%%	Subiteration	string\n");
+	fprintf(file, "%%	NumaNodes	string\n");
 	fprintf(file, "%%EndEventDef\n");
 	fprintf(file, "%%EventDef PajeSetState 21\n");
 	fprintf(file, "%%	Time	date\n");
