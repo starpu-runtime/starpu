@@ -307,7 +307,9 @@ static unsigned may_free_handle(starpu_data_handle_t handle, unsigned node)
 	uint32_t refcnt = _starpu_get_data_refcnt(handle, node);
 	if (refcnt) 
 	{
+		#ifdef PRINT
 		printf("if refcnt.\n");
+		#endif
 		return 0; 
 	}
 
@@ -315,13 +317,17 @@ static unsigned may_free_handle(starpu_data_handle_t handle, unsigned node)
 	{
 		if (handle->write_invalidation_req) {
 			/* Some request is invalidating it anyway */
+			#ifdef PRINT
 			printf("invalid request.\n");
+			#endif
 			return 0; }
 		unsigned n;
 		for (n = 0; n < STARPU_MAXNODES; n++)
 			if (_starpu_get_data_refcnt(handle, n)) {
 				/* Some task is writing to the handle somewhere */
+				#ifdef PRINT
 				printf("Task is writing the handle.\n");
+				#endif
 				return 0; }
 	}
 
@@ -444,8 +450,9 @@ static int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT transfer_subtree_to_node(starpu_d
 static void notify_handle_children(starpu_data_handle_t handle, struct _starpu_data_replicate *replicate, unsigned node)
 {
 	unsigned child;
-	
+	#ifdef PRINT
 	printf("replicate->allocated = 0 dans notify_handle_children avec la donnée %p.\n", handle); fflush(stdout);
+	#endif
 	replicate->allocated = 0;
 
 	/* XXX why do we need that ? */
@@ -561,7 +568,9 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	{
 		_starpu_data_unregister_ram_pointer(old_replicate->handle, node);
 		old_replicate->mc = NULL;
+		#ifdef PRINT
 		printf("old_replicate->allocated = 0 dans reuse_mem_chunk vec donnée %p.\n", old_replicate->handle); fflush(stdout);
+		#endif
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
 		old_replicate->initialized = 0;
@@ -600,32 +609,41 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 
 int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starpu_is_prefetch is_prefetch)
 {
-    printf("Beggining of can evict.\n");
 	STARPU_ASSERT(node < STARPU_MAXNODES);
 	/* This data should be written through to this node, avoid dropping it! */
 	if (node < sizeof(handle->wt_mask) * 8 && handle->wt_mask & (1<<node)) {
+		#ifdef PRINT
 		printf("Data should be written.\n");
+		#endif
 		return 0; }
 
 	/* This data was registered from this node, we will not be able to drop it anyway */
 	if ((int) node == handle->home_node) {
+		#ifdef PRINT
 		printf("Data was registered.\n");
+		#endif
 		return 0; }
 
 	/* This data cannnot be pushed outside CPU memory */
 	if (!handle->ooc && starpu_node_get_kind(node) == STARPU_CPU_RAM
 		&& starpu_memory_nodes_get_numa_count() == 1) {
+		#ifdef PRINT
 		printf("Data cannot be pushed.\n");
+		#endif
 		return 0; }
 
 	if (is_prefetch >= STARPU_TASK_PREFETCH && handle->per_node[node].nb_tasks_prefetch) {
 		/* We have not finished executing the tasks this was prefetched for */
+		#ifdef PRINT
 		printf("Not finished executing the task it was prefetched for.\n");
+		#endif
 		return 0; }
 
 	if (!may_free_handle(handle, node)) {
 		/* Somebody refers to it */
+		#ifdef PRINT
 		printf("Data is referred to.\n");
+		#endif
 		return 0; }
 		
 	return 1;
@@ -662,7 +680,9 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	STARPU_ASSERT(handle);
 	
 	if (!starpu_data_can_evict(handle, node, is_prefetch)) {
+		#ifdef PRINT
 		printf("Return 0 on !starpu_data_can_evict.\n"); fflush(stdout);
+		#endif
 		return 0;
 	    }
 
@@ -813,7 +833,9 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	//~ }
 	if (freed == 0)
 	{
+		#ifdef PRINT
 	    printf("Echec eviction de %p dans try_to_throw_mem_chunk.\n", handle);
+	    #endif
 	    if (eviction_strategy_dynamic_data_aware_memalloc == 1) 
 	    {
 			_STARPU_SCHED_BEGIN;
@@ -1026,7 +1048,10 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 			if (victim_footprint != footprint)
 			{
 				/* Don't even bother looking for it, it won't fit anyway */
+				#ifdef PRINT
 				printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n");
+				#endif
+				
 				if (eviction_strategy_dynamic_data_aware_memalloc == 1) 
 				{
 				    _STARPU_SCHED_BEGIN;
@@ -1094,7 +1119,9 @@ restart:
 	
 	if (victim && victim_eviction_failed != NULL && success == 0)
 	{
+		#ifdef PRINT
 	    printf("Calling victim evicted in try_to_reuse_potentially_in_use_mc for %p.\n", victim);
+	    #endif
 	    if (eviction_strategy_dynamic_data_aware_memalloc == 1) 
 	    {
 			_STARPU_SCHED_BEGIN;
@@ -1171,7 +1198,9 @@ static size_t free_potentially_in_use_mc(unsigned node, unsigned force, size_t r
 		if (victim == STARPU_DATA_NO_VICTIM)
 		{
 			/* He told me we should not make any victim */
+			#ifdef PRINT
 			printf("NO_VICTIM in free_potentially_in_use_mc, return 0.\n");
+			#endif
 			return 0;
 		}
 	}
@@ -1260,7 +1289,9 @@ restart2:
 	{
 	    if (eviction_strategy_dynamic_data_aware_memalloc == 1) 
 	    {
+			#ifdef PRINT
 			printf("Calling victim evicted in free_potentially_in_use_mc.\n");
+			#endif
 			_STARPU_SCHED_BEGIN;
 			victim_eviction_failed(victim, data_victim_selector);
 			_STARPU_SCHED_END;

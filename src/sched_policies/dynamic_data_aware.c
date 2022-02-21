@@ -108,31 +108,36 @@ void new_iteration()
 	/* Printing stats in files. Préciser PRINT_N dans les var d'env. */	
 	#ifdef PRINT
 	printf("############### Itération n°%d ###############\n", iteration + 1); fflush(stdout);
-		
+	#endif
+	
+	#ifdef PRINT_STATS
 	if (iteration == 11 || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération. */
 	{
-		FILE *f_new_iteration = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.csv", "a");
-		fprintf(f_new_iteration , "%d,%d,%d\n", print_n, number_data_conflict, number_critical_data_conflict);
+		FILE *f_new_iteration = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.txt", "a");
+		fprintf(f_new_iteration , "%d\n", number_data_conflict);
+		fclose(f_new_iteration);
+		f_new_iteration = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee_critique.txt", "a");
+		fprintf(f_new_iteration , "%d\n", number_critical_data_conflict);
 		fclose(f_new_iteration);
 	
-		gettimeofday(&time_end_createtolasttaskfinished, NULL);
-		time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
+		//~ gettimeofday(&time_end_createtolasttaskfinished, NULL);
+		//~ time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
 
-		f_new_iteration = fopen("Output_maxime/Data/DARTS/DARTS_time.csv", "a");
-		fprintf(f_new_iteration, "%d,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", print_n, time_total_selector, time_total_evicted, time_total_belady, time_total_schedule, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_initialisation, time_total_randomize, time_total_pick_random_task, time_total_least_used_data_planned_task, time_total_createtolasttaskfinished);
-		fclose(f_new_iteration);
+		//~ f_new_iteration = fopen("Output_maxime/Data/DARTS/DARTS_time.txt", "a");
+		//~ fprintf(f_new_iteration, "%d,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", print_n, time_total_selector, time_total_evicted, time_total_belady, time_total_schedule, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_initialisation, time_total_randomize, time_total_pick_random_task, time_total_least_used_data_planned_task, time_total_createtolasttaskfinished);
+		//~ fclose(f_new_iteration);
 		
-		f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_during_scheduling.csv", "a");
-		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d\n", print_n, nb_return_null_after_scheduling, nb_return_task_after_scheduling, nb_return_null_because_main_task_list_empty, number_random_selection, nb_1_from_free_task_not_found);
-		fclose(f_new_iteration);
+		//~ f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_during_scheduling.txt", "a");
+		//~ fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d\n", print_n, nb_return_null_after_scheduling, nb_return_task_after_scheduling, nb_return_null_because_main_task_list_empty, number_random_selection, nb_1_from_free_task_not_found);
+		//~ fclose(f_new_iteration);
 		
-		f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_victim_selector.csv", "a");
-		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", print_n, victim_selector_refused_not_on_node,victim_selector_refused_cant_evict,victim_selector_return_refused,victim_selector_return_unvalid,victim_selector_return_data_not_in_planned_and_pulled,victim_evicted_compteur,victim_selector_compteur,victim_selector_return_no_victim,victim_selector_belady);
-		fclose(f_new_iteration);
+		//~ f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_victim_selector.txt", "a");
+		//~ fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", print_n, victim_selector_refused_not_on_node,victim_selector_refused_cant_evict,victim_selector_return_refused,victim_selector_return_unvalid,victim_selector_return_data_not_in_planned_and_pulled,victim_evicted_compteur,victim_selector_compteur,victim_selector_return_no_victim,victim_selector_belady);
+		//~ fclose(f_new_iteration);
 		
-		f_new_iteration = fopen("Output_maxime/Data/DARTS/Misc.csv", "a");
-		fprintf(f_new_iteration, "%d,%d,%d\n", print_n, nb_refused_task, nb_new_task_initialized);
-		fclose(f_new_iteration);
+		//~ f_new_iteration = fopen("Output_maxime/Data/DARTS/Misc.txt", "a");
+		//~ fprintf(f_new_iteration, "%d,%d,%d\n", print_n, nb_refused_task, nb_new_task_initialized);
+		//~ fclose(f_new_iteration);
 	}
 	#endif
 	
@@ -1133,6 +1138,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     {
 		#ifdef PRINT
 		printf("Hey! C'est la première tâche du GPU n°%d!\n", current_gpu); fflush(stdout);	
+		#endif
+		#ifdef PRINT_STATS
 		FILE *f = NULL;
 		char str[2];
 		int size = strlen("Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_.csv") + strlen(str);
@@ -1675,6 +1682,8 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			{				
 				#ifdef PRINT
 				printf("Iteration %d. Same data between GPU %d and GPU %d: %p.\n", iteration, current_gpu, i + 1, handle_popped); fflush(stdout);
+				#endif
+				#ifdef PRINT_STATS
 				number_data_conflict++;
 				#endif
 				
@@ -1683,7 +1692,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		}
 	}
 		
-	#ifdef PRINT
+	#ifdef PRINT_STATS
 	FILE *f = NULL;
 	char str[2];
 	int size = strlen("Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_.csv") + strlen(str);
@@ -1696,14 +1705,13 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index);
 	fclose(f);
 	free(path);
-	
 	gettimeofday(&time_end_choose_best_data, NULL);
 	time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
     #endif
             
     if (number_free_task_max != 0) /* Cas comme dans 2D, je met dans planned_task les tâches gratuites, sauf que j'ai 3 données à check et non 2. */
     {
-		#ifdef PRINT
+		#ifdef PRINT_STATS
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
 		#endif
 	
@@ -1807,7 +1815,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 		#endif
 		
-		#ifdef PRINT
+		#ifdef PRINT_STATS
 		gettimeofday(&time_end_fill_planned_task_list, NULL);
 		time_total_fill_planned_task_list += (time_end_fill_planned_task_list.tv_sec - time_start_fill_planned_task_list.tv_sec)*1000000LL + time_end_fill_planned_task_list.tv_usec - time_start_fill_planned_task_list.tv_usec;
 		#endif
@@ -1815,7 +1823,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	/* La je change par rapport à 2D, si à la fois free et 1_from_free sont à 0 je renvoie random */   
 	else if (number_1_from_free_task_max != 0 && app != 0) /* On prend une tâche de la donnée 1_from_free, dans l'ordre randomisé de la liste de tâches. */
 	{
-		#ifdef PRINT
+		#ifdef PRINT_STATS
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
 		printf("The data adding the most (%d) 1_from_free tasks is %p.\n", number_1_from_free_task_max, handle_popped);
 		#endif
@@ -2143,20 +2151,18 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		
 		/* TODO : pas vraiment une solution ces deux boucles non ? */
 		if (!starpu_data_is_on_node(temp_handle, node))
-		{ 
-			printf("Refused %p is not on node %d. ??? Restart eviction\n", temp_handle, node); fflush(stdout); 
-			
+		{ 			
 			#ifdef PRINT
+			printf("Refused %p is not on node %d. ??? Restart eviction\n", temp_handle, node); fflush(stdout); 
 			victim_selector_refused_not_on_node++;
 			#endif
 			
 			goto debuteviction; 
 		}
 		if (!starpu_data_can_evict(temp_handle, node, is_prefetch))
-		{ 
-			printf("Refused data can't be evicted ??? Restart eviction selection.\n"); fflush(stdout);
-			
+		{ 			
 			#ifdef PRINT
+			printf("Refused data can't be evicted ??? Restart eviction selection.\n"); fflush(stdout);
 			victim_selector_refused_cant_evict++;
 			#endif
 			 
@@ -2706,8 +2712,8 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	int i = 0;
 
 	/* Prints and stats. */
-	#ifdef PRINT
-	printf("############### Itération n°%d ###############\n", iteration);
+	#ifdef PRINT | PRINT_STATS
+	//~ printf("############### Itération n°%d ###############\n", iteration);
 	print_in_terminal = starpu_get_env_number_default("PRINT_IN_TERMINAL", 0);
 	print3d = starpu_get_env_number_default("PRINT3D", 0);
 	print_n = starpu_get_env_number_default("PRINT_N", 0);

@@ -82,27 +82,40 @@ int main(int argc, char *argv[])
 		}
 		rewind(fichier_in);
 		
+		
+		/* Lit le fichier legende.txt pour l'imprimr. Ce fichier est rempli dans le script de lancement. */
+		FILE* f_legende = NULL;
+		f_legende = fopen("Output_maxime/Legende.txt", "r");
+		c = fgetc(f_legende);
+		while (c != '\n')
+		{
+			fprintf(fichier_out, "%c", c);
+			c = fgetc(f_legende);
+			//~ if (c == '	') { count++; }
+		}
+		fprintf(fichier_out, "\n");
+		fclose(f_legende);
 		//~ if (NGPU == 1)
 		//~ {
 			//~ fprintf(fichier_out,"N,EAGER,DMDAR,DARTS,DARTS+LUF,DARTS+LUF+R,DARTS+LUF+TH2,DARTS+LUF+TH2+FM,DARTS+LUF+TH2+FM+SM,DARTS+LUF+TH2+FM+SM+NO1,DARTS+LUF+TH2+FM+SM+NO2,DARTS+LUF+TH2+FM+SM+NO2+R,DARTS+3D,DARTS+3D+LUF,DARTS+3D+LUF+R,DARTS+3D+LUF+TH2,DARTS+3D+LUF+TH2+FM,DARTS+3D+LUF+TH2+FM+NO1,DARTS+3D+LUF+TH2+FM+NO2,DARTS+3D+LUF+TH2+FM+SM,DARTS+3D+LUF+TH2+FM+SM+NO2,DARTS+3D+LUF+TH2+FM+SM+NO2+R\n");
-			if (conflits == 0)
-			{
+			//~ if (conflits == 0)
+			//~ {
 				/* M2D mutexs */
 				//~ fprintf(fichier_out,"N,DARTS+LUF,DARTS+LUF refined mutex\n");
 				/* M3D mutexs */
 				//~ fprintf(fichier_out,"N,DARTS+LUF+3D,DARTS+LUF+3D+TH2+FM+SM,DARTS+LUF+3D refined mutex,DARTS+LUF+3D+TH2+FM+SM refined mutex\n");
 				/* CHO mutexs */
-				fprintf(fichier_out,"N,DARTS+LUF,DARTS+LUF+3D,DARTS+LUF+3D+TH2+FM+SM,DARTS+LUF refined mutex,DARTS+LUF+3D refined mutex,DARTS+LUF+3D+TH2+FM+SM refined mutex\n");
-			}
-			else
-			{
+				//~ fprintf(fichier_out,"N,DARTS+LUF,DARTS+LUF+3D,DARTS+LUF+3D+TH2+FM+SM,DARTS+LUF refined mutex,DARTS+LUF+3D refined mutex,DARTS+LUF+3D+TH2+FM+SM refined mutex\n");
+			//~ }
+			//~ else
+			//~ {
 				/* M2D mutexs */
 				//~ fprintf(fichier_out,"N,DARTS+LUF,DARTS+LUF refined mutex\n");
 				/* M3D mutexs */
 				//~ fprintf(fichier_out,"N,DARTS+LUF+3D conflits,DARTS+LUF+3D conflits critiques,DARTS+LUF+3D+TH2+FM+SM conflits,DARTS+LUF+3D+TH2+FM+SM conflits critiques\n");
 				/* CHO mutexs */
-				fprintf(fichier_out,"N,DARTS+LUF conflits,DARTS+LUF conflits critiques,DARTS+LUF+3D conflits,DARTS+LUF+3D conflits critiques,DARTS+LUF+3D+TH2+FM+SM conflits,DARTS+LUF+3D+TH2+FM+SM conflits critiques\n");
-			}
+				//~ fprintf(fichier_out,"N,DARTS+LUF conflits,DARTS+LUF conflits critiques,DARTS+LUF+3D conflits,DARTS+LUF+3D conflits critiques,DARTS+LUF+3D+TH2+FM+SM conflits,DARTS+LUF+3D+TH2+FM+SM conflits critiques\n");
+			//~ }
 		//~ }
 		//~ else
 		//~ {

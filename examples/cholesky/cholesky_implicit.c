@@ -34,7 +34,7 @@
 
 /* Mes variables */
 int count_do_schedule;
-//~ int dependances; /* 0 pas de dépendances, 1 la version classique. */
+int dependances; /* Pour appeller ne iteration que pour DARTS */
 /* To avegrage on 11 iteration and ignoring the first one. */
 double average_flop;
 int niter;
@@ -398,10 +398,11 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 int main(int argc, char **argv)
 {
 	/* Récup de var d'env */
-	//~ dependances = starpu_get_env_number_default("DEPENDANCES", 1);
+	dependances = starpu_get_env_number_default("DEPENDANCES", 0); /* Pour lancer new iteration que avec DARTS. */
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
 	//~ niter = 1; /* Pour changer le nombre d'itérations */
+	//~ niter = 5; /* Pour changer le nombre d'itérations */
 	niter = 11; /* Pour changer le nombre d'itérations */
 	current_iteration = 1;
 	
@@ -455,10 +456,10 @@ int main(int argc, char **argv)
 			execute_cholesky(size_p, nblocks_p);
 		
 		current_iteration++;
-		//~ if (i != niter - 1) /* Si on est sur la dernière itération, pas la peine de tout ré-initialiser. */
-		//~ {
+		if (dependances == 1) /* Que pour DARTS. */
+		{
 			new_iteration();
-		//~ }
+		}
 	}
 
 	starpu_cublas_shutdown();
