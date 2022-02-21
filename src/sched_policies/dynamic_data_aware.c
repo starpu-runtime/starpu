@@ -104,7 +104,38 @@ long long time_total_createtolasttaskfinished;
 #endif
 
 void new_iteration()
-{
+{	
+	/* Printing stats in files. Préciser PRINT_N dans les var d'env. */	
+	#ifdef PRINT
+	printf("############### Itération n°%d ###############\n", iteration + 1); fflush(stdout);
+		
+	if (iteration == 11 || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération. */
+	{
+		FILE *f_new_iteration = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.csv", "a");
+		fprintf(f_new_iteration , "%d,%d,%d\n", print_n, number_data_conflict, number_critical_data_conflict);
+		fclose(f_new_iteration);
+	
+		gettimeofday(&time_end_createtolasttaskfinished, NULL);
+		time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
+
+		f_new_iteration = fopen("Output_maxime/Data/DARTS/DARTS_time.csv", "a");
+		fprintf(f_new_iteration, "%d,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", print_n, time_total_selector, time_total_evicted, time_total_belady, time_total_schedule, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_initialisation, time_total_randomize, time_total_pick_random_task, time_total_least_used_data_planned_task, time_total_createtolasttaskfinished);
+		fclose(f_new_iteration);
+		
+		f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_during_scheduling.csv", "a");
+		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d\n", print_n, nb_return_null_after_scheduling, nb_return_task_after_scheduling, nb_return_null_because_main_task_list_empty, number_random_selection, nb_1_from_free_task_not_found);
+		fclose(f_new_iteration);
+		
+		f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_victim_selector.csv", "a");
+		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", print_n, victim_selector_refused_not_on_node,victim_selector_refused_cant_evict,victim_selector_return_refused,victim_selector_return_unvalid,victim_selector_return_data_not_in_planned_and_pulled,victim_evicted_compteur,victim_selector_compteur,victim_selector_return_no_victim,victim_selector_belady);
+		fclose(f_new_iteration);
+		
+		f_new_iteration = fopen("Output_maxime/Data/DARTS/Misc.csv", "a");
+		fprintf(f_new_iteration, "%d,%d,%d\n", print_n, nb_refused_task, nb_new_task_initialized);
+		fclose(f_new_iteration);
+	}
+	#endif
+	
 	iteration++; /* Variable globale qui sert à ré-init les données et tâches. */
 
 	/* Re-init of planned task struct containing datanotused and other things. */
@@ -116,34 +147,7 @@ void new_iteration()
 		gpu_planned_task_insertion();
 	}
 	my_planned_task_control->first = my_planned_task_control->pointer;
-	
-	/* TODO : a mettre dans un ifdef si on veut tester que les performances. */
-	/* Printing stats in files. */
-	#ifdef PRINT
-	printf("############### Itération n°%d ###############\n", iteration); fflush(stdout);
-	printf("Nombre de choix random = %d.\n", number_random_selection);
-		
-	FILE *f_new_iteration = fopen("Output_maxime/Data/Nb_conflit_donnee.txt", "a");
-	fprintf(f_new_iteration , "Itération %d : %d\n", iteration - 1, number_data_conflict);
-	fclose(f_new_iteration);
-	f_new_iteration = fopen("Output_maxime/Data/Nb_conflit_donnee_critique.txt", "a");
-	fprintf(f_new_iteration , "Itération %d : %d\n", iteration - 1, number_critical_data_conflict);
-	fclose(f_new_iteration);
-		
-	//~ if ((iteration == 12 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération. */
-	//~ {
-		gettimeofday(&time_end_createtolasttaskfinished, NULL);
-		time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
 
-		f_new_iteration = fopen("Output_maxime/Data/DARTS_time.txt", "a");
-		fprintf(f_new_iteration, "Itération %d : %lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld	%lld\n", iteration - 1, time_total_selector, time_total_evicted, time_total_belady, time_total_schedule, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_initialisation, time_total_randomize, time_total_pick_random_task, time_total_least_used_data_planned_task, time_total_createtolasttaskfinished);
-		fclose(f_new_iteration);
-			//~ printf("Nombre d'entrée dans victim selector = %d, nombre de return no victim = %d. Temps passé dans victim_selector = %lld.\n", victim_selector_compteur, victim_selector_return_no_victim, time_total_selector);
-			//~ printf("Nombre d'entrée dans Belady = %d. Temps passé dans Belady = %lld.\n", victim_selector_belady, time_total_belady);
-			//~ printf("Nombre d'entrée dans victim evicted = %d. Temps passé dans victim_evicted = %lld.\n", victim_evicted_compteur, time_total_evicted);
-			printf("Nombre de choix random = %d.\n", number_random_selection);
-	//~ }
-	#endif
 	
 	/* Utile ? */
 	//~ free(my_pulled_task_control);
@@ -1128,11 +1132,19 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     if (g->first_task == true)
     {
 		#ifdef PRINT
-		printf("Hey! C'est la première tâche du GPU n°%d!\n", current_gpu); fflush(stdout);
+		printf("Hey! C'est la première tâche du GPU n°%d!\n", current_gpu); fflush(stdout);	
 		FILE *f = NULL;
-		f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "a");
+		char str[2];
+		int size = strlen("Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_.csv") + strlen(str);
+		char* path = (char *)malloc(size);
+		sprintf(str, "%d", current_gpu);
+		strcpy(path, "Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_");
+		strcat(path, str);
+		strcat(path, ".csv");
+		f = fopen(path, "a");
 		fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
 		fclose(f);
+		free(path);
 		#endif
 		
 		g->first_task = false;
@@ -1673,9 +1685,18 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		
 	#ifdef PRINT
 	FILE *f = NULL;
-	f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "a");
+	char str[2];
+	int size = strlen("Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_.csv") + strlen(str);
+	char* path = (char *)malloc(size);
+	sprintf(str, "%d", current_gpu);
+	strcpy(path, "Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_");
+	strcat(path, str);
+	strcat(path, ".csv");
+	f = fopen(path, "a");
 	fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index);
 	fclose(f);
+	free(path);
+	
 	gettimeofday(&time_end_choose_best_data, NULL);
 	time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
     #endif
@@ -1921,6 +1942,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 					//~ printf("Goto\n");
 					#ifdef PRINT
 					number_critical_data_conflict++;
+					number_data_conflict--;
 					printf("Critical data conflict.\n"); fflush(stdout);
 					#endif
 					
@@ -2673,6 +2695,15 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	task_order = starpu_get_env_number_default("TASK_ORDER", 0);
 	data_order = starpu_get_env_number_default("DATA_ORDER", 0);
 	dependances = starpu_get_env_number_default("DEPENDANCES", 0);
+	
+	/* Initialization of global variables. */
+	Ngpu = get_number_GPU();
+	NT_dynamic_outer = 0;
+	NT = 0;
+	new_tasks_initialized = false;
+	gpu_memory_initialized = false;
+	
+	int i = 0;
 
 	/* Prints and stats. */
 	#ifdef PRINT
@@ -2681,10 +2712,45 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	print3d = starpu_get_env_number_default("PRINT3D", 0);
 	print_n = starpu_get_env_number_default("PRINT_N", 0);
 	print_time = starpu_get_env_number_default("PRINT_TIME", 0);
+	
+	/* If I want to empty the files. I don't do it if I want to test on multiple working set sizes. Pour data_choosen je ne le fais pas pour différentes working set sizes de toute facon. */
 	FILE *f = NULL;
-	f = fopen("Output_maxime/DARTS_data_choosen_stats.csv", "w");
-	fprintf(f, "Iteration,Data choosen,Number of data read\n");
-	fclose(f);	
+	char str[2];
+	int size = strlen("Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_.csv") + strlen(str);
+	char* path = NULL;
+	for (i = 0; i < Ngpu; i++)
+	{
+		path = (char *)malloc(size);
+		sprintf(str, "%d", i + 1); /* To get the index of the current GPU */
+		strcpy(path, "Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_");
+		strcat(path, str);
+		strcat(path, ".csv");
+		f = fopen(path, "w");
+		fprintf(f, "Data selection,Data choosen,Number of data read\n");
+		fclose(f);
+		free(path);
+	}
+		
+	//~ f = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.csv", "w");
+	//~ fprintf(f, "Nb conflits,Nb conflits critiques\n");
+	//~ fclose(f);
+	
+	//~ f = fopen("Output_maxime/Data/DARTS/Choice_during_scheduling.csv", "w");
+	//~ fprintf(f, "Return NULL, Return task, Return NULL because main task list empty,Nb of random selection,nb_1_from_free_task_not_found\n");
+	//~ fclose(f);
+	
+	//~ f = fopen("Output_maxime/Data/DARTS/Choice_victim_selector.csv", "w");
+	//~ fprintf(f, "victim_selector_refused_not_on_node,victim_selector_refused_cant_evict,victim_selector_return_refused,victim_selector_return_unvalid,victim_selector_return_data_not_in_planned_and_pulled,victim_evicted_compteur,victim_selector_compteur,victim_selector_return_no_victim,victim_selector_belady\n");
+	//~ fclose(f);
+	
+	//~ f = fopen("Output_maxime/Data/DARTS/Misc.csv", "w");
+	//~ fprintf(f, "Nb refused tasks,Nb new task initialized\n");
+	//~ fclose(f);
+	
+	//~ f = fopen("Output_maxime/Data/DARTS/DARTS_time.csv", "w");
+	//~ fprintf(f, "time_total_selector,time_total_evicted,time_total_belady,time_total_schedule,time_total_choose_best_data,time_total_fill_planned_task_list,time_total_initialisation,time_total_randomize, time_total_pick_random_task,time_total_least_used_data_planned_task,time_total_createtolasttaskfinished\n");
+	//~ fclose(f);
+	
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
 	nb_return_null_after_scheduling = 0;
 	nb_return_task_after_scheduling = 0;
@@ -2725,15 +2791,6 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "dynamic_data_aware");
 	srandom(starpu_get_env_number_default("SEED", 0));
-	int i = 0;
-	
-	/* Initialization of global variables. */
-	Ngpu = get_number_GPU();
-	NT_dynamic_outer = 0;
-	NT = 0;
-	new_tasks_initialized = false;
-	
-	gpu_memory_initialized = false;
 	
 	/* Initialization of structures. */
 	struct dynamic_data_aware_sched_data *data;
