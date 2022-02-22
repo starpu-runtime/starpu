@@ -896,7 +896,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
-						"CPU",
+						starpu_driver_info[workerarg->arch].name_upper,
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_cpu_worker,
@@ -932,7 +932,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
-						"CUDA",
+						starpu_driver_info[workerarg->arch].name_upper,
 						&worker_set->worker_thread,
 						NULL,
 						_starpu_cuda_worker,
@@ -960,7 +960,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
-						"OpenCL",
+						starpu_driver_info[workerarg->arch].name_upper,
 						&workerarg->worker_thread,
 						NULL,
 						_starpu_opencl_worker,
@@ -989,7 +989,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					break;
 				}
 				STARPU_PTHREAD_CREATE_ON(
-					workerarg->name,
+					starpu_driver_info[workerarg->arch].name_upper,
 					&workerarg->worker_thread,
 					NULL,
 					_starpu_max_fpga_worker,
@@ -1026,7 +1026,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				 * we launch one thread for all devices
 				 */
 				STARPU_PTHREAD_CREATE_ON(
-						"MPI MS",
+						starpu_driver_info[workerarg->arch].name_upper,
 						&worker_set->worker_thread,
 						NULL,
 						_starpu_mpi_src_worker,

@@ -300,20 +300,8 @@ starpu_sg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worke
 	char *prefix;
 	char name[16];
 	starpu_sg_host_t host;
-	switch (worker->arch)
-	{
-		case STARPU_CPU_WORKER:
-			prefix = "CPU";
-			break;
-		case STARPU_CUDA_WORKER:
-			prefix = "CUDA";
-			break;
-		case STARPU_OPENCL_WORKER:
-			prefix = "OpenCL";
-			break;
-		default:
-			STARPU_ASSERT(0);
-	}
+	prefix = starpu_driver_info[worker->arch].name_upper;
+	STARPU_ASSERT(prefix);
 	snprintf(name, sizeof(name), "%s%u", prefix, worker->devid);
 	host =  _starpu_simgrid_get_host_by_name(name);
 	STARPU_ASSERT_MSG(host, "Could not find host %s!", name);
