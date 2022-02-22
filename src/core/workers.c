@@ -997,12 +997,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					_starpu_max_fpga_worker,
 					workerarg,
 					_starpu_simgrid_get_host_by_worker(workerarg));
-#ifdef STARPU_USE_FXT
-				STARPU_PTHREAD_MUTEX_LOCK(&workerarg->mutex);
-				while (!workerarg->worker_is_running)
-					STARPU_PTHREAD_COND_WAIT(&workerarg->started_cond, &workerarg->mutex);
-				STARPU_PTHREAD_MUTEX_UNLOCK(&workerarg->mutex);
-#endif
 				break;
 			}
 #endif
