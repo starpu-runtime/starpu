@@ -81,7 +81,9 @@ static struct starpu_codelet cl =
 {
 	.cpu_funcs = {codelet_sleep},
 	.cuda_funcs = {codelet_sleep},
-        .opencl_funcs = {codelet_sleep},
+#ifndef STARPU_SIMGRID
+	.opencl_funcs = {codelet_sleep},
+#endif
 	.cpu_funcs_name = {"codelet_sleep"},
 	.nbuffers = 1,
 	.modes = {STARPU_R},
