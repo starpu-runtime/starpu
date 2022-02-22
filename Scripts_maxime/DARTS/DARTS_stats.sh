@@ -26,8 +26,6 @@ ulimit -S -s 500000000
 truncate -s 0 ${FICHIER_RAW}
 truncate -s 0 ${FICHIER_BUS}
 truncate -s 0 ${FICHIER_RAW_DT}
-truncate -s 0 Output_maxime/Data/DARTS/Nb_conflit_donnee.txt
-truncate -s 0 Output_maxime/Data/DARTS/Nb_conflit_donnee_critique.txt
 
 HOST=$GPU
 CM=500
@@ -237,7 +235,6 @@ gcc -o cut_gflops_raw_out_csv cut_gflops_raw_out_csv.c
 gcc -o cut_datatransfers_raw_out_csv cut_datatransfers_raw_out_csv.c
 ./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_RAW} ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.csv
 ./cut_datatransfers_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X $NGPU ${FICHIER_RAW_DT} ${PATH_R}/R/Data/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.csv
-./cut_gflops_raw_out_csv $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X Output_maxime/Data/DARTS/Nb_conflit_donnee.txt ${PATH_R}/R/Data/${DOSSIER}/Nb_conflits_donnee_${MODEL}_${GPU}_${NGPU}GPU.csv
 
 #~ # Plot python
 #~ python3 /home/gonthier/these_gonthier_maxime/Code/Plot.py ${PATH_R}/R/Data/${DOSSIER}/GF_${MODEL}_${GPU}_${NGPU}GPU.csv
