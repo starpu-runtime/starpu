@@ -1218,9 +1218,6 @@ int _starpu_run_opencl(struct _starpu_worker *workerarg)
 {
 	_STARPU_DEBUG("Running OpenCL %u from the application\n", workerarg->devid);
 
-	workerarg->set = NULL;
-	workerarg->worker_is_initialized = 0;
-
 	/* Let's go ! */
 	_starpu_opencl_worker(workerarg);
 

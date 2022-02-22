@@ -468,8 +468,6 @@ void *_starpu_cpu_worker(void *arg)
 
 int _starpu_cpu_driver_run(struct _starpu_worker *worker)
 {
-	worker->set = NULL;
-	worker->worker_is_initialized = 0;
 	_starpu_cpu_worker(worker);
 
 	return 0;
