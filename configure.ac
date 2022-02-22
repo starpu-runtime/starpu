@@ -539,6 +539,13 @@ AC_ARG_ENABLE(mpi-master-slave, [AS_HELP_STRING([--enable-mpi-master-slave],
               use_mpi_master_slave=$enableval,
               use_mpi_master_slave=no)
 
+if test x$enable_simgrid = xyes; then
+	if test x$use_mpi_master_slave = xyes; then
+		AC_MSG_ERROR([MPI Master Slave not supported with simgrid])
+	fi
+	use_mpi_master_slave=no
+fi
+
 # in case it is explicitely required, but mpicc is not available, this is an error
 if test x$use_mpi_master_slave = xyes -a ! -x "$mpicc_path"; then
    AC_MSG_ERROR([Compiler MPI '$mpicc_path' not valid])
@@ -1760,6 +1767,13 @@ AC_ARG_ENABLE([max-fpga],
 	[enable_max_fpga=$enableval],
 	[enable_max_fpga=maybe]
 )
+
+if test x$enable_simgrid = xyes; then
+	if test x$enable_max_fpga = xyes; then
+		AC_MSG_ERROR([Max fpga not supported with simgrid])
+	fi
+	enable_max_fpga=no
+fi
 
 if test x$enable_max_fpga != xno; then
 	AC_PATH_PROG([SLIC_CONFIG], [slic-config], [not-found])
