@@ -985,18 +985,22 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				driver.type = workerarg->arch;
 				workerarg->driver_ops = &_starpu_driver_max_fpga_ops;
 				workerarg->wait_for_worker_initialization = 1;
-				if (!_starpu_may_launch_driver(&pconfig->conf, &driver))
+
+				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
+				{
+					STARPU_PTHREAD_CREATE_ON(
+						starpu_driver_info[workerarg->arch].name_upper,
+						&workerarg->worker_thread,
+						NULL,
+						_starpu_max_fpga_worker,
+						workerarg,
+						_starpu_simgrid_get_host_by_worker(workerarg));
+				}
+				else
 				{
 					workerarg->run_by_starpu = 0;
 					break;
 				}
-				STARPU_PTHREAD_CREATE_ON(
-					starpu_driver_info[workerarg->arch].name_upper,
-					&workerarg->worker_thread,
-					NULL,
-					_starpu_max_fpga_worker,
-					workerarg,
-					_starpu_simgrid_get_host_by_worker(workerarg));
 				break;
 			}
 #endif
