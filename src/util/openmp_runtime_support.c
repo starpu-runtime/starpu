@@ -240,6 +240,9 @@ static struct starpu_omp_thread *get_local_thread(void)
 		thread = get_worker_thread(starpu_worker);
 
 		if (
+#ifdef STARPU_DEVEL
+#warning Why not just checking for STARPU_CPU_WORKER?
+#endif
 #ifdef STARPU_USE_CUDA
 				(starpu_worker->arch != STARPU_CUDA_WORKER)
 				&&
