@@ -422,17 +422,6 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			STARPU_ASSERT(replicate->mapped == STARPU_UNMAPPED);
 		}
 
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-		if (starpu_node_get_kind(node) == STARPU_CUDA_RAM)
-		{
-			/* To facilitate the design of interface, we set the
-			 * proper CUDA device in case it is needed. This avoids
-			 * having to set it again in the free method of each
-			 * interface. */
-			starpu_cuda_set_device(starpu_memory_node_get_devid(node));
-		}
-#endif
-
 		if (handle)
 			data_interface = replicate->data_interface;
 		else
@@ -1548,17 +1537,6 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	{
 		if (!prefetch_oom)
 			_STARPU_TRACE_START_ALLOC(dst_node, data_size, handle, is_prefetch);
-
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-		if (starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
-		{
-			/* To facilitate the design of interface, we set the
-			 * proper CUDA device in case it is needed. This avoids
-			 * having to set it again in the malloc method of each
-			 * interface. */
-			starpu_cuda_set_device(starpu_memory_node_get_devid(dst_node));
-		}
-#endif
 
 		allocated_memory = handle->ops->allocate_data_on_node(data_interface, dst_node);
 		if (!prefetch_oom)
