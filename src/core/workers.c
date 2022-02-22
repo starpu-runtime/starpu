@@ -882,8 +882,19 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 		_starpu_init_worker_queue(workerarg);
 
-		switch (workerarg->arch)
+		struct _starpu_worker_set *worker_set = workerarg->set;
+
+		/* For worker sets, we only start a thread for the first worker.  */
+		if (!worker_set || worker_set->workers == workerarg)
 		{
+			if (worker_set)
+			{
+				worker_set->set_is_initialized = 0;
+				worker_set->wait_for_set_initialization = 1;
+			}
+
+			switch (workerarg->arch)
+			{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
 			{
@@ -918,15 +929,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				driver.type = workerarg->arch;
 				driver.id.cuda_id = workerarg->devid;
 				workerarg->driver_ops = &_starpu_driver_cuda_ops;
-				struct _starpu_worker_set *worker_set = workerarg->set;
-
-				if (worker_set->workers != workerarg)
-					/* We are not the first worker of the
-					 * set, don't start a thread for it. */
-					break;
-
-				worker_set->set_is_initialized = 0;
-				worker_set->wait_for_set_initialization = 1;
 				workerarg->wait_for_worker_initialization = 0;
 
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
@@ -1008,15 +1010,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 			case STARPU_MPI_MS_WORKER:
 			{
-				/* We spawn only one thread
-				 * per MPI device, which will control all MPI
-				 * workers of this device. (by using a worker set). */
-				struct _starpu_worker_set *worker_set = workerarg->set;
-				if (worker_set->workers != workerarg)
-					break;
-
-				worker_set->set_is_initialized = 0;
-				worker_set->wait_for_set_initialization = 1;
 				workerarg->wait_for_worker_initialization = 0;
 
 #ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
@@ -1040,6 +1033,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 
 			default:
 				STARPU_ABORT();
+			}
 		}
 
 #ifdef STARPU_USE_FXT
