@@ -952,7 +952,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
 			{
-#ifndef STARPU_SIMGRID
 				struct starpu_driver driver;
 				driver.type = workerarg->arch;
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
@@ -973,7 +972,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				{
 					workerarg->run_by_starpu = 0;
 				}
-#endif
 				break;
 			}
 #endif
