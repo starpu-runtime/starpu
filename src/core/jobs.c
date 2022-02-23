@@ -861,10 +861,12 @@ void _starpu_bubble_execute(struct _starpu_job *j)
 	STARPU_ASSERT_MSG(j->task->bubble_gen_dag_func!=NULL || (j->task->cl && j->task->cl->bubble_gen_dag_func!=NULL),
 			  "task->bubble_gen_dag_func MUST be defined\n");
 
+#ifdef STARPU_VERBOSE
 	struct timespec tp;
 	clock_gettime(CLOCK_MONOTONIC, &tp);
 	unsigned long long timestamp = 1000000000ULL*tp.tv_sec + tp.tv_nsec;
 	_STARPU_DEBUG("{%llu} [%s(%p)] Running bubble\n", timestamp, starpu_task_get_name(j->task), j->task);
+#endif
 	if (j->task->bubble_gen_dag_func)
 		j->task->bubble_gen_dag_func(j->task, j->task->bubble_gen_dag_func_arg);
 	else
