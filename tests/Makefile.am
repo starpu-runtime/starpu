@@ -135,10 +135,10 @@ LOADER_BIN		=	$(MPI_LAUNCHER) $(abs_top_builddir)/tests/$(LOADER)
 noinst_PROGRAMS		+=	loader
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT   =   $(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT   =   $(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER        =   $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT   =   $(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+TESTS_ENVIRONMENT   =   $(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 endif
 

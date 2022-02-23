@@ -30,7 +30,7 @@ MPI = $(STARPU_MPIEXEC)
 if STARPU_SIMGRID
 NVCCFLAGS		+= --compiler-options -fPIC
 else
-MPI_RUN_ARGS		+=	$(MPI_RUN_ENV)
+MPI_LAUNCHER_ENV	+=	$(MPI_RUN_ENV)
 endif
 else
 MPI			=
@@ -85,10 +85,10 @@ MPI = $(STARPU_MPIEXEC)
 endif
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	$(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER		=	$(MPI) $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT	=	$(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
 endif
 
 endif

@@ -37,11 +37,13 @@ else
 STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 endif
 
-MPI_RUN_ARGS			=
+MPI_LAUNCHER_ENV		=
 if STARPU_USE_MPI_MASTER_SLAVE
 # Make tests run through mpiexec
+# MPI_LAUNCHER should be always put in front of the test loader
 MPI_LAUNCHER 			= $(STARPU_MPIEXEC)
-MPI_RUN_ARGS			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
+# MPI_LAUNCHER_ENV should be always put in TESTS_ENVIRONMENT
+MPI_LAUNCHER_ENV		+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
 endif
 
 V_nvcc_  = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
