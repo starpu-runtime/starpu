@@ -149,20 +149,26 @@ static void free_void_buffer_on_node(void *data_interface STARPU_ATTRIBUTE_UNUSE
 	/* There is no buffer actually */
 }
 
-static int map_void(void *src_interface, unsigned src_node,
-		    void *dst_interface, unsigned dst_node)
+static int map_void(void *src_interface STARPU_ATTRIBUTE_UNUSED,
+		    unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+		    void *dst_interface STARPU_ATTRIBUTE_UNUSED,
+		    unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
-static int unmap_void(void *src_interface, unsigned src_node,
-		      void *dst_interface, unsigned dst_node)
+static int unmap_void(void *src_interface STARPU_ATTRIBUTE_UNUSED,
+		      unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+		      void *dst_interface STARPU_ATTRIBUTE_UNUSED,
+		      unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
 
-static int update_map_void(void *src_interface, unsigned src_node,
-			   void *dst_interface, unsigned dst_node)
+static int update_map_void(void *src_interface STARPU_ATTRIBUTE_UNUSED,
+			   unsigned src_node STARPU_ATTRIBUTE_UNUSED,
+			   void *dst_interface STARPU_ATTRIBUTE_UNUSED,
+			   unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
 	return 0;
 }
