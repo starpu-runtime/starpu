@@ -631,24 +631,6 @@ static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_
 }
 #endif
 
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-static void _starpu_init_mpi_topology(struct _starpu_machine_config *config, long mpi_idx)
-{
-	/* Discover the topology of the mpi node identifier by MPI_IDX. That
-	 * means, make this StarPU instance aware of the number of cores available
-	 * on this MPI device. Update the `nhwworker[STARPU_MPI_MS_WORKER]' topology field
-	 * accordingly. */
-
-	struct _starpu_machine_topology *topology = &config->topology;
-
-	int nbcores;
-	_starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx], &nbcores);
-	STARPU_ASSERT(mpi_idx < STARPU_NMAXDEVS);
-	topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx] = nbcores;
-}
-
-#endif /* STARPU_USE_MPI_MASTER_SLAVE */
-
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
 static void _starpu_allocate_topology_userdata(hwloc_obj_t obj)
@@ -1210,29 +1192,15 @@ static void _starpu_init_mpi_config(struct _starpu_machine_config *config,
 {
         struct _starpu_machine_topology *topology = &config->topology;
 
-        topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx] = 0;
-
-        _starpu_init_mpi_topology(config, mpi_idx);
+	int nhwcores;
+	_starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx], &nhwcores);
+	STARPU_ASSERT(mpi_idx < STARPU_NMAXDEVS);
+	topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx] = nhwcores;
 
         int nmpicores;
         nmpicores = starpu_get_env_number("STARPU_NMPIMSTHREADS");
 
-        if (nmpicores == -1)
-        {
-                /* Nothing was specified, so let's use the number of
-                 * detected mpi cores. ! */
-                nmpicores = topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx];
-        }
-        else
-        {
-                if ((unsigned) nmpicores > topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx])
-                {
-                        /* The user requires more MPI cores than there is available */
-                        _STARPU_MSG("# Warning: %d MPI cores requested. Only %u available.\n",
-				    nmpicores, topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx]);
-                        nmpicores = topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx];
-                }
-        }
+	_starpu_topology_check_ndevices(&nmpicores, nhwcores, 0, INT_MAX, "STARPU_NMPIMSTHREADS", "MPI cores", "");
 
         mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
         mpi_worker_set[mpi_idx].nworkers = nmpicores;
