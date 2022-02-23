@@ -30,6 +30,8 @@ struct _starpu_driver_ops
 	int (*deinit)(struct _starpu_worker *worker);	/**< Deinitialize the thread after running a worker */
 	int (*set_devid)(struct starpu_driver *driver, struct _starpu_worker *worker);
 							/**< Sets into \p driver the id for worker \p worker */
+	int (*is_devid)(struct starpu_driver *driver, struct _starpu_worker *worker);
+							/**< Tests whether \p driver has the id for worker \p worker */
 };
 
 #pragma GCC visibility pop

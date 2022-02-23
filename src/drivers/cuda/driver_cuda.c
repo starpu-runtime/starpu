@@ -1611,6 +1611,11 @@ int _starpu_cuda_driver_set_devid(struct starpu_driver *driver, struct _starpu_w
 	return 0;
 }
 
+int _starpu_cuda_driver_is_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
+{
+	return driver->id.cuda_id == worker->devid;
+}
+
 #ifdef STARPU_USE_CUDA
 unsigned _starpu_cuda_test_request_completion(struct _starpu_async_channel *async_channel)
 {
@@ -2011,6 +2016,7 @@ struct _starpu_driver_ops _starpu_driver_cuda_ops =
 	.run_once = _starpu_cuda_driver_run_once_from_worker,
 	.deinit = _starpu_cuda_driver_deinit_from_worker,
 	.set_devid = _starpu_cuda_driver_set_devid,
+	.is_devid = _starpu_cuda_driver_is_devid,
 };
 
 #ifdef STARPU_SIMGRID

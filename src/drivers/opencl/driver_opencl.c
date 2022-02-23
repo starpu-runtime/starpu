@@ -983,6 +983,14 @@ int _starpu_opencl_driver_set_devid(struct starpu_driver *driver, struct _starpu
 
 	return 0;
 }
+
+int _starpu_opencl_driver_is_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
+{
+	cl_device_id device;
+	starpu_opencl_get_device(worker->devid, &device);
+
+	return device == driver->id.opencl_id;
+}
 #endif
 
 void *_starpu_opencl_worker(void *_arg)
@@ -1240,6 +1248,7 @@ struct _starpu_driver_ops _starpu_driver_opencl_ops =
 	.run_once = _starpu_opencl_driver_run_once,
 	.deinit = _starpu_opencl_driver_deinit,
 	.set_devid = _starpu_opencl_driver_set_devid,
+	.is_devid = _starpu_opencl_driver_is_devid,
 };
 #endif
 
