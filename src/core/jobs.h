@@ -43,10 +43,6 @@
 #include <common/utils.h>
 #include <common/list.h>
 
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
-#endif
-
 #pragma GCC visibility push(hidden)
 
 struct _starpu_worker;
