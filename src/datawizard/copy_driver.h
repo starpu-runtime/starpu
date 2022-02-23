@@ -27,15 +27,6 @@
 #include <common/config.h>
 #include <common/list.h>
 
-#ifdef STARPU_USE_CUDA
-#include <cuda.h>
-#include <cuda_runtime.h>
-#endif
-
-#ifdef STARPU_USE_OPENCL
-#include <starpu_opencl.h>
-#endif
-
 #pragma GCC visibility push(hidden)
 
 #ifdef __cplusplus
