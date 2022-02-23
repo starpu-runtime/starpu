@@ -46,11 +46,10 @@
 
 void create_task_memset(unsigned sizex, unsigned sizey, unsigned z)
 {
-	struct block_description *descr = get_block_description(z);
-    struct starpu_codelet *codelet = &cl_memset;
+    struct block_description *descr = get_block_description(z);
 
     int ret = starpu_insert_task(
-            codelet,
+            &cl_memset,
             STARPU_VALUE,   &sizex,  sizeof(unsigned),
             STARPU_VALUE,   &sizey,  sizeof(unsigned),
             STARPU_VALUE,   &z,  sizeof(unsigned),
@@ -64,7 +63,7 @@ void create_task_memset(unsigned sizex, unsigned sizey, unsigned z)
 
     if (ret)
     {
-        FPRINTF(stderr, "Could not submit task save: %d\n", ret);
+        FPRINTF(stderr, "Could not submit task memset: %d\n", ret);
         if (ret == -ENODEV)
             exit(77);
         STARPU_ABORT();
@@ -73,11 +72,10 @@ void create_task_memset(unsigned sizex, unsigned sizey, unsigned z)
 
 void create_task_initlayer(unsigned sizex, unsigned sizey, unsigned z)
 {
-	struct block_description *descr = get_block_description(z);
-    struct starpu_codelet *codelet = &cl_initlayer;
+    struct block_description *descr = get_block_description(z);
 
     int ret = starpu_insert_task(
-            codelet,
+            &cl_initlayer,
             STARPU_VALUE,   &sizex,  sizeof(unsigned),
             STARPU_VALUE,   &sizey,  sizeof(unsigned),
             STARPU_VALUE,   &z,  sizeof(unsigned),
@@ -86,7 +84,7 @@ void create_task_initlayer(unsigned sizex, unsigned sizey, unsigned z)
 
     if (ret)
     {
-        FPRINTF(stderr, "Could not submit task save: %d\n", ret);
+        FPRINTF(stderr, "Could not submit task initlayer: %d\n", ret);
         if (ret == -ENODEV)
             exit(77);
         STARPU_ABORT();
