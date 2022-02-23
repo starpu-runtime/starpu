@@ -52,8 +52,11 @@ extern struct _starpu_node_ops _starpu_driver_opencl_node_ops;
 #define _starpu_opencl_discover_devices(config) ((void) (config))
 #endif
 
-#ifdef STARPU_USE_OPENCL
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 extern struct _starpu_driver_ops _starpu_driver_opencl_ops;
+#endif
+
+#ifdef STARPU_USE_OPENCL
 extern char *_starpu_opencl_program_dir;
 
 int _starpu_run_opencl(struct _starpu_worker *);

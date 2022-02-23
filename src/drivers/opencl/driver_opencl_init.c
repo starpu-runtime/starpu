@@ -25,8 +25,10 @@ static struct _starpu_driver_info driver_info =
 	.memory_kind = STARPU_OPENCL_RAM,
 	.alpha = 12.22f,
 	.wait_for_worker_initialization = 1,
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_OPENCL)
 	.driver_ops = &_starpu_driver_opencl_ops,
+#endif
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	.run_worker = _starpu_opencl_worker,
 #endif
 };
