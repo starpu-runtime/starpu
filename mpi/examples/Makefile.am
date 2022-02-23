@@ -35,18 +35,7 @@ endif
 loader_SOURCES		=	../../tests/loader.c
 endif
 
-if STARPU_SIMGRID
-MPIRUN_I		=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
-else
-# we always test on 4 processes, the execution time is not that bigger
-if STARPU_QUICK_CHECK
-MPIRUN_I		=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
-else
-MPIRUN_I		=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
-endif
-endif
-
-MPIRUN			?= 	$(MPIRUN_I)
+MPIRUN			?= 	$(STARPU_MPIEXEC)
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	$(MPI_RUN_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"

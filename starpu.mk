@@ -28,13 +28,19 @@ STARPU_SUB_PARALLEL=$(shell echo $(MAKEFLAGS) | sed -ne 's/.*-j\([0-9]\+\).*/par
 export STARPU_SUB_PARALLEL
 endif
 
+# These are always defined, both for starpu-mpi and for mpi-ms
 # For MPI tests we don't want to oversubscribe the system
 MPI_RUN_ENV			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3
+if STARPU_SIMGRID
+STARPU_MPIEXEC			= $(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
+else
+STARPU_MPIEXEC			= $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+endif
 
 MPI_RUN_ARGS			=
 if STARPU_USE_MPI_MASTER_SLAVE
 # Make tests run through mpiexec
-MPI_LAUNCHER 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
+MPI_LAUNCHER 			= $(STARPU_MPIEXEC)
 MPI_RUN_ARGS			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
 endif
 

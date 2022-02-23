@@ -26,11 +26,10 @@ LIBS += $(STARPU_EXPORTED_LIBS)
 if STARPU_USE_MPI
 LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
+MPI = $(STARPU_MPIEXEC)
 if STARPU_SIMGRID
-MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdir)/tools/perfmodels/cluster.xml -hostfile $(abs_top_srcdir)/tools/perfmodels/hostfile
 NVCCFLAGS		+= --compiler-options -fPIC
 else
-MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
 MPI_RUN_ARGS		+=	$(MPI_RUN_ENV)
 endif
 else
@@ -82,7 +81,7 @@ loader_SOURCES		=	../../tests/loader.c
 noinst_PROGRAMS		+=	loader
 
 if STARPU_USE_MPI_MASTER_SLAVE
-MPI = $(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPI = $(STARPU_MPIEXEC)
 endif
 
 if STARPU_HAVE_AM111
