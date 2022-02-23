@@ -28,9 +28,14 @@ STARPU_SUB_PARALLEL=$(shell echo $(MAKEFLAGS) | sed -ne 's/.*-j\([0-9]\+\).*/par
 export STARPU_SUB_PARALLEL
 endif
 
+# For MPI tests we don't want to oversubscribe the system
+MPI_RUN_ENV			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=3
+
+MPI_RUN_ARGS			=
 if STARPU_USE_MPI_MASTER_SLAVE
+# Make tests run through mpiexec
 MPI_LAUNCHER 			= $(MPIEXEC)  $(MPIEXEC_ARGS) -np 4
-MPI_RUN_ARGS			= STARPU_WORKERS_NOBIND=1 STARPU_NCPU=4 STARPU_NMPIMSTHREADS=4
+MPI_RUN_ARGS			+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
 endif
 
 V_nvcc_  = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))

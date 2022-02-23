@@ -31,6 +31,7 @@ MPI			=	$(abs_top_builddir)/tools/starpu_smpirun -np 4 -platform $(abs_top_srcdi
 NVCCFLAGS		+= --compiler-options -fPIC
 else
 MPI			=	$(MPIEXEC) $(MPIEXEC_ARGS) -np 4
+MPI_RUN_ARGS		+=	$(MPI_RUN_ENV)
 endif
 else
 MPI			=
