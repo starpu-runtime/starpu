@@ -978,7 +978,8 @@ void visualisation_tache_matrice_format_tex_with_data_2D()
 	printf("Fin de visualisation_tache_matrice_format_tex_with_data_2D()\n");
 }
 
-/* Print in a file (Output_maxime/Task_order_effective_i) the effective order 
+/* Visu python.
+ * Print in a file (Output_maxime/Task_order_effective_i) the effective order 
  * (we do it from get_current_task because the ready heuristic
  * can change our planned order). 
  * Also print in a file each task and it data to compute later the data needed
@@ -4051,12 +4052,13 @@ void get_current_tasks_for_visualization(struct starpu_task *task, unsigned sci)
 	/* dmda_pre_exec_hook(task, sci) */
 }
 
+/* Appellé par DARTS et HFP pour visu python. */
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
 	if (print_in_terminal == 1)
 	{
 		if (index_task_currently_treated == 0) 
-		{ 
+		{
 			initialize_global_variable(task);
 		}
 		print_effective_order_in_file(task, index_task_currently_treated); 	
@@ -4094,18 +4096,22 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 			{
 				nb_data_to_load++;
 				
-				/* To know if I load a line or a column */
+				/* To know if I load a line or a column. Attention ca marche pas si plus de 3 données dans la tâche. */
 				if (i == 0)
 				{
 					x_to_load = 1;
 				}
-				if (i == 1)
+				else if (i == 1)
 				{
 					y_to_load = 1;
 				}
-				if (i == 2)
+				else if (i == 2)
 				{
 					z_to_load = 1;
+				}
+				else
+				{
+					perror("Cas pas géré dans get data to load.\n"); exit(0);
 				}
 			}
 		}
@@ -4166,10 +4172,6 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		else /* Cas Cholesky et autres */
 		{
 			printf("Cas autre.\n");
-			for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
-			{
-				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
-			}
 			if (index_current_popped_task_all_gpu == 1)
 			{
 				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
@@ -4177,6 +4179,12 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 			else
 			{
 				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
+			}
+			for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
+			{
+				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, i), 2, tab_coordinates);
+				printf("%d %d.\n", tab_coordinates[0], tab_coordinates[1]);
+				fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
 			}
 		}
 		//~ fclose(f);
