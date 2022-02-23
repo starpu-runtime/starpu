@@ -131,20 +131,14 @@ noinst_PROGRAMS		=
 if !STARPU_HAVE_WINDOWS
 ## test loader program
 LOADER			=	loader
-LOADER_BIN		=	$(abs_top_builddir)/tests/$(LOADER)
+LOADER_BIN		=	$(MPI_LAUNCHER) $(abs_top_builddir)/tests/$(LOADER)
 noinst_PROGRAMS		+=	loader
-
-if STARPU_USE_MPI_MASTER_SLAVE
-LOADER_BIN2		= $(MPI_LAUNCHER) $(LOADER_BIN)
-else
-LOADER_BIN2		= $(LOADER_BIN)
-endif
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT   =   $(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER        =   $(LOADER_BIN2)
+LOG_COMPILER        =   $(LOADER_BIN)
 else
-TESTS_ENVIRONMENT   =   $(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN2)
+TESTS_ENVIRONMENT   =   $(MPI_RUN_ARGS) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 endif
 
