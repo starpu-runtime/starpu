@@ -26,10 +26,11 @@ LIBS += $(STARPU_EXPORTED_LIBS)
 if STARPU_USE_MPI
 LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
-MPI_LAUNCHER = $(STARPU_MPIEXEC)
-MPI_LAUNCHER_ENV	+=	$(MPI_RUN_ENV)
+MPI_LAUNCHER		?= $(STARPU_MPIEXEC)
+MPI_LAUNCHER_ENV	?=	$(MPI_RUN_ENV)
 if STARPU_SIMGRID
 NVCCFLAGS		+= --compiler-options -fPIC
+endif
 endif
 
 CC = $(CC_OR_MPICC)
