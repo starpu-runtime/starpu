@@ -24,6 +24,9 @@ static struct _starpu_driver_info driver_info =
 	.name_lower = "fpga",
 	.memory_kind = STARPU_MAX_FPGA_RAM,
 	.alpha = 0.5,
+#ifdef STARPU_USE_MAX_FPGA
+	.driver_ops = &_starpu_driver_max_fpga_ops,
+#endif
 };
 
 static struct _starpu_memory_driver_info memory_driver_info =

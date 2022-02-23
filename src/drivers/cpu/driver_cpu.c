@@ -67,6 +67,9 @@ static struct _starpu_driver_info driver_info =
 	.name_lower = "cpu",
 	.memory_kind = STARPU_CPU_RAM,
 	.alpha = 0.5f,
+#ifdef STARPU_USE_CPU
+	.driver_ops = &_starpu_driver_cpu_ops,
+#endif
 };
 
 static struct _starpu_memory_driver_info memory_driver_info =

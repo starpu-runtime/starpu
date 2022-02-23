@@ -231,7 +231,7 @@ LIST_TYPE(_starpu_worker,
 	char name[128];
 	char short_name[32];
 	unsigned run_by_starpu; /**< Is this run by StarPU or directly by the application ? */
-	struct _starpu_driver_ops *driver_ops;
+	const struct _starpu_driver_ops *driver_ops;
 
 	struct _starpu_sched_ctx_list *sched_ctx_list;
 	int tmp_sched_ctx;
@@ -523,6 +523,7 @@ struct _starpu_driver_info
 	const char *name_lower;	/**< Name of worker type in lower case */
 	enum starpu_node_kind memory_kind;	/**< Kind of memory in device */
 	double alpha;	/**< Typical relative speed compared to a CPU core */
+	const struct _starpu_driver_ops *driver_ops;	/**< Driver operations */
 };
 
 /** Device driver information, indexed by enum starpu_worker_archtype */

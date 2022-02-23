@@ -899,6 +899,8 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				worker_thread = &workerarg->worker_thread;
 			}
 
+			workerarg->driver_ops = starpu_driver_info[workerarg->arch].driver_ops;
+
 			switch (workerarg->arch)
 			{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
@@ -907,7 +909,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				struct starpu_driver driver;
 				driver.type = workerarg->arch;
 				driver.id.cpu_id = workerarg->devid;
-				workerarg->driver_ops = &_starpu_driver_cpu_ops;
 				workerarg->wait_for_worker_initialization = 1;
 
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
@@ -934,7 +935,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				struct starpu_driver driver;
 				driver.type = workerarg->arch;
 				driver.id.cuda_id = workerarg->devid;
-				workerarg->driver_ops = &_starpu_driver_cuda_ops;
 				workerarg->wait_for_worker_initialization = 0;
 
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
@@ -961,7 +961,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				struct starpu_driver driver;
 				driver.type = workerarg->arch;
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
-				workerarg->driver_ops = &_starpu_driver_opencl_ops;
 				workerarg->wait_for_worker_initialization = 1;
 
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
@@ -987,7 +986,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			{
 				struct starpu_driver driver;
 				driver.type = workerarg->arch;
-				workerarg->driver_ops = &_starpu_driver_max_fpga_ops;
 				workerarg->wait_for_worker_initialization = 1;
 
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))

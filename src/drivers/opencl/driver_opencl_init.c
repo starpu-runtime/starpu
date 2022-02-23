@@ -24,6 +24,9 @@ static struct _starpu_driver_info driver_info =
 	.name_lower = "opencl",
 	.memory_kind = STARPU_OPENCL_RAM,
 	.alpha = 12.22f,
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+	.driver_ops = &_starpu_driver_opencl_ops,
+#endif
 };
 
 static struct _starpu_memory_driver_info memory_driver_info =
