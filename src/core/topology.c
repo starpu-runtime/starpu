@@ -542,8 +542,12 @@ static STARPU_ATTRIBUTE_UNUSED void _starpu_initialize_workers_deviceid(int *exp
 }
 
 
-static inline int _starpu_get_next_devid(struct _starpu_machine_config *config, enum starpu_worker_archtype arch)
+static inline int _starpu_get_next_devid(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, enum starpu_worker_archtype arch)
 {
+	if (topology->nworkers == STARPU_NMAXWORKERS)
+		// Already full!
+		return -1;
+
 	unsigned i = ((config->current_devid[arch]++) % config->topology.ndevices[arch]);
 
 	return (int)config->topology.workers_devid[arch][i];
@@ -1144,6 +1148,61 @@ void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int ove
 	}
 }
 
+/* Request to allocate a worker set for each worker */
+#define ALLOC_WORKER_SET ((struct _starpu_worker_set*) -1)
+
+/* Request to set a different perfmodel devid per worker */
+#define DEVID_PER_WORKER -2
+
+/* Configures the topology according to the desired worker distribution on the device.
+ * - homogeneous tells to use devid 0 for the perfmodel (all devices have the same performance)
+ * - worker_devid tells to set a devid per worker, and subworkerid to 0, rather
+ * than sharing the devid and giving a different subworkerid to each worker.
+ * */
+void _starpu_topology_configure_workers(struct _starpu_machine_topology *topology,
+					struct _starpu_machine_config *config,
+					enum starpu_worker_archtype type,
+					int devnum, int devid,
+					int homogeneous, int worker_devid,
+					unsigned nworker_per_device,
+					unsigned ncores,
+					struct _starpu_worker_set *worker_set)
+{
+	topology->nworker[type][devnum] = nworker_per_device;
+
+	unsigned i;
+
+	for (i = 0; i < nworker_per_device; i++)
+	{
+		if (topology->nworkers == STARPU_NMAXWORKERS)
+			// We are full
+			break;
+
+		int worker_idx = topology->nworkers++;
+
+		if (worker_set == ALLOC_WORKER_SET)
+		{
+			/* Just one worker in the set */
+			_STARPU_CALLOC(config->workers[worker_idx].set, 1, sizeof(struct _starpu_worker_set));
+			config->workers[worker_idx].set->workers = &config->workers[worker_idx];
+			config->workers[worker_idx].set->nworkers = 1;
+		}
+		else
+			config->workers[worker_idx].set = worker_set;
+
+		config->workers[worker_idx].arch = type;
+		_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
+		config->workers[worker_idx].perf_arch.ndevices = 1;
+		config->workers[worker_idx].perf_arch.devices[0].type = type;
+		config->workers[worker_idx].perf_arch.devices[0].devid = homogeneous ? 0 : worker_devid ? (int) i : devid;
+		config->workers[worker_idx].perf_arch.devices[0].ncores = ncores;
+		config->workers[worker_idx].devid = worker_devid ? (int) i : devid;
+		config->workers[worker_idx].subworkerid = worker_devid ? 0 : i;
+		config->workers[worker_idx].worker_mask = STARPU_WORKER_TO_MASK(type);
+		config->worker_mask |= STARPU_WORKER_TO_MASK(type);
+	}
+}
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static void _starpu_init_mpi_config(struct _starpu_machine_config *config,
 				    struct starpu_conf *user_conf,
@@ -1175,32 +1234,14 @@ static void _starpu_init_mpi_config(struct _starpu_machine_config *config,
                 }
         }
 
-        topology->nworker[STARPU_MPI_MS_WORKER][mpi_idx] = nmpicores;
-        STARPU_ASSERT_MSG(topology->nworker[STARPU_MPI_MS_WORKER][mpi_idx] + topology->nworkers <= STARPU_NMAXWORKERS,
-                        "topology->nworker[STARPU_MPI_MS_WORKER][mpi_idx(%u)] (%u) + topology->nworkers (%u) <= STARPU_NMAXWORKERS (%d)",
-                        mpi_idx, topology->nworker[STARPU_MPI_MS_WORKER][mpi_idx], topology->nworkers, STARPU_NMAXWORKERS);
-
         mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
-        mpi_worker_set[mpi_idx].nworkers = topology->nworker[STARPU_MPI_MS_WORKER][mpi_idx];
-        unsigned mpicore_id;
-        for (mpicore_id = 0; mpicore_id < topology->nworker[STARPU_MPI_MS_WORKER][mpi_idx]; mpicore_id++)
-        {
-                int worker_idx = topology->nworkers + mpicore_id;
-                config->workers[worker_idx].set = &mpi_worker_set[mpi_idx];
-                config->workers[worker_idx].arch = STARPU_MPI_MS_WORKER;
-                _STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
-                config->workers[worker_idx].perf_arch.ndevices = 1;
-                config->workers[worker_idx].perf_arch.devices[0].type = STARPU_MPI_MS_WORKER;
-                config->workers[worker_idx].perf_arch.devices[0].devid = mpi_idx;
-                config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
-                config->workers[worker_idx].devid = mpi_idx;
-                config->workers[worker_idx].subworkerid = mpicore_id;
-                config->workers[worker_idx].worker_mask = STARPU_MPI_MS;
-                config->worker_mask |= STARPU_MPI_MS;
-        }
+        mpi_worker_set[mpi_idx].nworkers = nmpicores;
 	_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx]->baseworkerid = topology->nworkers;
 
-        topology->nworkers += topology->nworker[STARPU_MPI_MS_WORKER][mpi_idx];
+	_starpu_topology_configure_workers(topology, config,
+			STARPU_MPI_MS_WORKER,
+			mpi_idx, mpi_idx, 0, 0,
+			nmpicores, 1, &mpi_worker_set[mpi_idx]);
 }
 #endif
 
@@ -1370,7 +1411,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 #endif
 	/* Now we know how many CUDA devices will be used */
 	topology->ndevices[STARPU_CUDA_WORKER] = ncuda;
-	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] * nworker_per_cuda + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_cuda_gpuid(config);
 
@@ -1397,15 +1437,16 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	if (!topology->cuda_th_per_dev)
 	{
 		cuda_worker_set[0].workers = &config->workers[topology->nworkers];
-		cuda_worker_set[0].nworkers = topology->ndevices[STARPU_CUDA_WORKER] * nworker_per_cuda;
+		cuda_worker_set[0].nworkers = ncuda * nworker_per_cuda;
 	}
 
 	unsigned cudagpu;
-	for (cudagpu = 0; cudagpu < topology->ndevices[STARPU_CUDA_WORKER]; cudagpu++)
+	for (cudagpu = 0; (int) cudagpu < ncuda; cudagpu++)
 	{
-		int devid = _starpu_get_next_devid(config, STARPU_CUDA_WORKER);
-		int worker_idx0 = topology->nworkers + cudagpu * nworker_per_cuda;
-		struct _starpu_worker_set *worker_set;
+#ifdef STARPU_HAVE_HWLOC
+		unsigned worker_idx0 = topology->nworkers;
+#endif
+		int devid = _starpu_get_next_devid(topology, config, STARPU_CUDA_WORKER);
 
 		if (devid == -1)
 		{
@@ -1414,12 +1455,16 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			break;
 		}
 
-		topology->nworker[STARPU_CUDA_WORKER][cudagpu] = nworker_per_cuda;
+		struct _starpu_worker_set *worker_set;
 
-		if (topology->cuda_th_per_dev)
+		if(topology->cuda_th_per_stream)
+		{
+			worker_set = ALLOC_WORKER_SET;
+		}
+		else if (topology->cuda_th_per_dev)
 		{
 			worker_set = &cuda_worker_set[devid];
-			worker_set->workers = &config->workers[worker_idx0];
+			worker_set->workers = &config->workers[topology->nworkers];
 			worker_set->nworkers = nworker_per_cuda;
 		}
 		else
@@ -1428,32 +1473,21 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			worker_set = &cuda_worker_set[0];
 		}
 
+		_starpu_topology_configure_workers(topology, config,
+					STARPU_CUDA_WORKER,
+					cudagpu, devid, 0, 0,
+					nworker_per_cuda,
+					// TODO: fix perfmodels etc.
+					// nworker_per_cuda - 1,
+					1,
+					worker_set);
+		if (devid == -1)
+			// There is no more devices left
+			break;
+
+		// TODO: only along with OpenCL
 		for (i = 0; i < nworker_per_cuda; i++)
 		{
-			int worker_idx = worker_idx0 + i;
-			if(topology->cuda_th_per_stream)
-			{
-				/* Just one worker in the set */
-				_STARPU_CALLOC(config->workers[worker_idx].set, 1, sizeof(struct _starpu_worker_set));
-				config->workers[worker_idx].set->workers = &config->workers[worker_idx];
-				config->workers[worker_idx].set->nworkers = 1;
-			}
-			else
-				config->workers[worker_idx].set = worker_set;
-
-			config->workers[worker_idx].arch = STARPU_CUDA_WORKER;
-			_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
-			config->workers[worker_idx].perf_arch.ndevices = 1;
-			config->workers[worker_idx].perf_arch.devices[0].type = STARPU_CUDA_WORKER;
-			config->workers[worker_idx].perf_arch.devices[0].devid = devid;
-			// TODO: fix perfmodels etc.
-			//config->workers[worker_idx].perf_arch.ncore = nworker_per_cuda - 1;
-			config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
-			config->workers[worker_idx].devid = devid;
-			config->workers[worker_idx].subworkerid = i;
-			config->workers[worker_idx].worker_mask = STARPU_CUDA;
-			config->worker_mask |= STARPU_CUDA;
-
 			struct handle_entry *entry;
 			HASH_FIND_INT(devices_using_cuda, &devid, entry);
 			if (!entry)
@@ -1482,8 +1516,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		}
 #endif
         }
-
-	topology->nworkers += topology->ndevices[STARPU_CUDA_WORKER] * nworker_per_cuda;
 #endif
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
@@ -1500,15 +1532,13 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	}
 
 	topology->ndevices[STARPU_OPENCL_WORKER] = nopencl;
-	STARPU_ASSERT(topology->ndevices[STARPU_OPENCL_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_opencl_gpuid(config);
 
 	unsigned openclgpu;
-	for (openclgpu = 0; openclgpu < topology->ndevices[STARPU_OPENCL_WORKER]; openclgpu++)
+	for (openclgpu = 0; (int) openclgpu < nopencl; openclgpu++)
 	{
-		int devid = _starpu_get_next_devid(config, STARPU_OPENCL_WORKER);
-		int worker_idx = topology->nworkers + openclgpu;
+		int devid = _starpu_get_next_devid(topology, config, STARPU_OPENCL_WORKER);
 		if (devid == -1)
 		{
 			// There is no more devices left
@@ -1516,21 +1546,11 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			break;
 		}
 
-		topology->nworker[STARPU_OPENCL_WORKER][openclgpu] = 1;
-
-		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
-		_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
-		config->workers[worker_idx].perf_arch.ndevices = 1;
-		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_OPENCL_WORKER;
-		config->workers[worker_idx].perf_arch.devices[0].devid = devid;
-		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
-		config->workers[worker_idx].devid = devid;
-		config->workers[worker_idx].subworkerid = 0;
-		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
-		config->worker_mask |= STARPU_OPENCL;
+		_starpu_topology_configure_workers(topology, config,
+				STARPU_OPENCL_WORKER,
+				openclgpu, devid, 0, 0,
+				1, 1, NULL);
 	}
-
-	topology->nworkers += topology->ndevices[STARPU_OPENCL_WORKER];
 #endif
 
 #if defined(STARPU_USE_MAX_FPGA)
@@ -1547,15 +1567,13 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 	/* Now we know how many MAX FPGA devices will be used */
 	topology->ndevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga;
-	STARPU_ASSERT(topology->ndevices[STARPU_MAX_FPGA_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_max_fpga_deviceid(config);
 
 	unsigned max_fpga;
-	for (max_fpga = 0; max_fpga < topology->ndevices[STARPU_MAX_FPGA_WORKER]; max_fpga++)
+	for (max_fpga = 0; (int) max_fpga < nmax_fpga; max_fpga++)
 	{
-		int worker_idx = topology->nworkers + max_fpga;
-		int devid = _starpu_get_next_devid(config, STARPU_MAX_FPGA_WORKER);
+		int devid = _starpu_get_next_devid(topology, config, STARPU_MAX_FPGA_WORKER);
 		if (devid == -1)
 		{
 			// There is no more devices left
@@ -1563,21 +1581,11 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			break;
 		}
 
-		topology->nworker[STARPU_MAX_FPGA_WORKER][max_fpga] = 1;
-
-		config->workers[worker_idx].arch = STARPU_MAX_FPGA_WORKER;
-		_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
-		config->workers[worker_idx].perf_arch.ndevices = 1;
-		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_MAX_FPGA_WORKER;
-		config->workers[worker_idx].perf_arch.devices[0].devid = devid;
-		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
-		config->workers[worker_idx].devid = devid;
-		config->workers[worker_idx].subworkerid = 0;
-		config->workers[worker_idx].worker_mask = STARPU_MAX_FPGA;
-		config->worker_mask |= STARPU_MAX_FPGA;
+		_starpu_topology_configure_workers(topology, config,
+				STARPU_MAX_FPGA_WORKER,
+				max_fpga, devid, 0, 0,
+				1, 1, NULL);
 	}
-
-	topology->nworkers += topology->ndevices[STARPU_MAX_FPGA_WORKER];
 #endif
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
@@ -1643,27 +1651,12 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	}
 
 	topology->ndevices[STARPU_CPU_WORKER] = 1;
-	topology->nworker[STARPU_CPU_WORKER][0] = ncpu;
-	STARPU_ASSERT(topology->nworker[STARPU_CPU_WORKER][0] + topology->nworkers <= STARPU_NMAXWORKERS);
-
-	unsigned cpu;
 	unsigned homogeneous = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
-	for (cpu = 0; cpu < topology->nworker[STARPU_CPU_WORKER][0]; cpu++)
-	{
-		int worker_idx = topology->nworkers + cpu;
-		config->workers[worker_idx].arch = STARPU_CPU_WORKER;
-		_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices,  sizeof(struct starpu_perfmodel_device));
-		config->workers[worker_idx].perf_arch.ndevices = 1;
-		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_CPU_WORKER;
-		config->workers[worker_idx].perf_arch.devices[0].devid = homogeneous ? 0 : cpu;
-		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
-		config->workers[worker_idx].devid = cpu;
-		config->workers[worker_idx].subworkerid = 0;
-		config->workers[worker_idx].worker_mask = STARPU_CPU;
-		config->worker_mask |= STARPU_CPU;
-	}
 
-	topology->nworkers += topology->nworker[STARPU_CPU_WORKER][0];
+	_starpu_topology_configure_workers(topology, config,
+			STARPU_CPU_WORKER,
+			0, 0, homogeneous, 1,
+			ncpu, 1, NULL);
 #endif
 
 	if (topology->nworkers == 0)
