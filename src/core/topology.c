@@ -1311,18 +1311,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	int ncuda = config->conf.ncuda;
-	int nworker_per_cuda = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
-
-	STARPU_ASSERT_MSG(nworker_per_cuda > 0, "STARPU_NWORKER_PER_CUDA has to be > 0");
-	STARPU_ASSERT_MSG(nworker_per_cuda < STARPU_NMAXWORKERS, "STARPU_NWORKER_PER_CUDA (%d) cannot be higher than STARPU_NMAXWORKERS (%d)\n", nworker_per_cuda, STARPU_NMAXWORKERS);
-
-#ifndef STARPU_NON_BLOCKING_DRIVERS
-	if (nworker_per_cuda > 1)
-	{
-		_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
-		nworker_per_cuda = 1;
-	}
-#endif
 
 	if (ncuda != 0)
 	{
@@ -1355,6 +1343,18 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		}
 	}
 
+	int nworker_per_cuda = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+
+	STARPU_ASSERT_MSG(nworker_per_cuda > 0, "STARPU_NWORKER_PER_CUDA has to be > 0");
+	STARPU_ASSERT_MSG(nworker_per_cuda < STARPU_NMAXWORKERS, "STARPU_NWORKER_PER_CUDA (%d) cannot be higher than STARPU_NMAXWORKERS (%d)\n", nworker_per_cuda, STARPU_NMAXWORKERS);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	if (nworker_per_cuda > 1)
+	{
+		_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
+		nworker_per_cuda = 1;
+	}
+#endif
 	/* Now we know how many CUDA devices will be used */
 	topology->ndevices[STARPU_CUDA_WORKER] = ncuda;
 	for (i = 0; i < ncuda; i++)
