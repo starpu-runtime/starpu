@@ -402,32 +402,13 @@ struct _starpu_machine_topology
 	 */
 	unsigned workers_nbindid;
 
-	/** Indicates the successive CUDA identifier that should be
-	 * used by the CUDA driver.  It is either filled according to
+	/** Indicates the successive device identifiers that should be
+	 * used by the driver.  It is either filled according to
 	 * the user's explicit parameters (from starpu_conf) or
-	 * according to the STARPU_WORKERS_CUDAID env. variable.
+	 * according to the corresponding env. variable.
 	 * Otherwise, they are taken in ID order.
 	 */
-	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
-
-	/** Indicates the successive OpenCL identifier that should be
-	 * used by the OpenCL driver.  It is either filled according
-	 * to the user's explicit parameters (from starpu_conf) or
-	 * according to the STARPU_WORKERS_OPENCLID env. variable.
-	 * Otherwise, they are taken in ID order.
-	 */
-	unsigned workers_opencl_gpuid[STARPU_NMAXWORKERS];
-
-	/** Indicates the successive FPGA identifier that should be
-	 * used by the FPGA driver.  It is either filled according
-	 * to the user's explicit parameters (from starpu_conf) or
-	 * according to the STARPU_WORKERS_MAX_FPGAID env. variable.
-	 * Otherwise, they are taken in ID order.
-	 */
-	unsigned workers_max_fpga_deviceid[STARPU_NMAXWORKERS];
-
-	unsigned workers_mpi_ms_deviceid[STARPU_NMAXWORKERS];
-
+	unsigned workers_devid[STARPU_NARCH][STARPU_NMAXWORKERS];
 };
 
 struct _starpu_machine_config

@@ -551,18 +551,18 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
 					    ? NULL
 					    : (int *)uconf->workers_cuda_gpuid,
 					    &(config->current_devid[STARPU_CUDA_WORKER]),
-					    (int *)topology->workers_cuda_gpuid,
+					    (int *)topology->workers_devid[STARPU_CUDA_WORKER],
 					    "STARPU_WORKERS_CUDAID",
 					    topology->nhwdevices[STARPU_CUDA_WORKER],
 					    STARPU_CUDA_WORKER);
-	_starpu_topology_drop_duplicate(topology->workers_cuda_gpuid);
+	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_CUDA_WORKER]);
 }
 
 static inline int _starpu_get_next_cuda_gpuid(struct _starpu_machine_config *config)
 {
 	unsigned i = ((config->current_devid[STARPU_CUDA_WORKER]++) % config->topology.ndevices[STARPU_CUDA_WORKER]);
 
-	return (int)config->topology.workers_cuda_gpuid[i];
+	return (int)config->topology.workers_devid[STARPU_CUDA_WORKER][i];
 }
 #endif
 
@@ -576,7 +576,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
 					    ? NULL
 					    : (int *)uconf->workers_opencl_gpuid,
 					    &(config->current_devid[STARPU_OPENCL_WORKER]),
-					    (int *)topology->workers_opencl_gpuid,
+					    (int *)topology->workers_devid[STARPU_OPENCL_WORKER],
 					    "STARPU_WORKERS_OPENCLID",
 					    topology->nhwdevices[STARPU_OPENCL_WORKER],
 					    STARPU_OPENCL_WORKER);
@@ -590,28 +590,28 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
                 for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
 		{
 			struct handle_entry *entry;
-			int devid = config->topology.workers_opencl_gpuid[i];
+			int devid = config->topology.workers_devid[STARPU_OPENCL_WORKER][i];
 
 			HASH_FIND_INT(devices_using_cuda, &devid, entry);
 			if (entry == NULL)
 			{
-                                tmp[nb] = topology->workers_opencl_gpuid[i];
+                                tmp[nb] = topology->workers_devid[STARPU_OPENCL_WORKER][i];
                                 nb++;
                         }
                 }
                 for (i=nb ; i<STARPU_NMAXWORKERS ; i++)
 			tmp[i] = -1;
-                memcpy(topology->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
+                memcpy(topology->workers_devid[STARPU_OPENCL_WORKER], tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
         }
 #endif /* STARPU_USE_CUDA */
-	_starpu_topology_drop_duplicate(topology->workers_opencl_gpuid);
+	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_OPENCL_WORKER]);
 }
 
 static inline int _starpu_get_next_opencl_gpuid(struct _starpu_machine_config *config)
 {
 	unsigned i = ((config->current_devid[STARPU_OPENCL_WORKER]++) % config->topology.ndevices[STARPU_OPENCL_WORKER]);
 
-	return (int)config->topology.workers_opencl_gpuid[i];
+	return (int)config->topology.workers_devid[STARPU_OPENCL_WORKER][i];
 }
 #endif
 
@@ -641,13 +641,6 @@ static inline int _starpu_get_next_max_fpga_deviceid (struct _starpu_machine_con
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-static inline int _starpu_get_next_mpi_deviceid(struct _starpu_machine_config *config)
-{
-	unsigned i = ((config->current_devid[STARPU_MPI_MS_WORKER]++) % config->topology.ndevices[STARPU_MPI_MS_WORKER]);
-
-	return (int)config->topology.workers_mpi_ms_deviceid[i];
-}
-
 static void _starpu_init_mpi_topology(struct _starpu_machine_config *config, long mpi_idx)
 {
 	/* Discover the topology of the mpi node identifier by MPI_IDX. That
