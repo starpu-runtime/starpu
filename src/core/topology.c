@@ -550,7 +550,7 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
         _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_cuda_gpuid == 0
 					    ? NULL
 					    : (int *)uconf->workers_cuda_gpuid,
-					    &(config->current_cuda_gpuid),
+					    &(config->current_devid[STARPU_CUDA_WORKER]),
 					    (int *)topology->workers_cuda_gpuid,
 					    "STARPU_WORKERS_CUDAID",
 					    topology->nhwdevices[STARPU_CUDA_WORKER],
@@ -560,7 +560,7 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
 
 static inline int _starpu_get_next_cuda_gpuid(struct _starpu_machine_config *config)
 {
-	unsigned i = ((config->current_cuda_gpuid++) % config->topology.ndevices[STARPU_CUDA_WORKER]);
+	unsigned i = ((config->current_devid[STARPU_CUDA_WORKER]++) % config->topology.ndevices[STARPU_CUDA_WORKER]);
 
 	return (int)config->topology.workers_cuda_gpuid[i];
 }
@@ -575,7 +575,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
         _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_opencl_gpuid == 0
 					    ? NULL
 					    : (int *)uconf->workers_opencl_gpuid,
-					    &(config->current_opencl_gpuid),
+					    &(config->current_devid[STARPU_OPENCL_WORKER]),
 					    (int *)topology->workers_opencl_gpuid,
 					    "STARPU_WORKERS_OPENCLID",
 					    topology->nhwdevices[STARPU_OPENCL_WORKER],
@@ -609,7 +609,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
 
 static inline int _starpu_get_next_opencl_gpuid(struct _starpu_machine_config *config)
 {
-	unsigned i = ((config->current_opencl_gpuid++) % config->topology.ndevices[STARPU_OPENCL_WORKER]);
+	unsigned i = ((config->current_devid[STARPU_OPENCL_WORKER]++) % config->topology.ndevices[STARPU_OPENCL_WORKER]);
 
 	return (int)config->topology.workers_opencl_gpuid[i];
 }
@@ -624,7 +624,7 @@ static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_
         _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_max_fpga_deviceid == 0
 					    ? NULL
 					    : (int *)uconf->workers_max_fpga_deviceid,
-					    &(config->current_max_fpga_deviceid),
+					    &(config->current_devid[STARPU_MAX_FPGA_WORKER]),
 					    (int *)topology->workers_max_fpga_deviceid,
 					    "STARPU_WORKERS_MAX_FPGAID",
 					    topology->nhwdevices[STARPU_MAX_FPGA_WORKER],
@@ -634,7 +634,7 @@ static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_
 
 static inline int _starpu_get_next_max_fpga_deviceid (struct _starpu_machine_config *config)
 {
-	unsigned i = ((config->current_max_fpga_deviceid++) % config->topology.ndevices[STARPU_MAX_FPGA_WORKER]);
+	unsigned i = ((config->current_devid[STARPU_MAX_FPGA_WORKER]++) % config->topology.ndevices[STARPU_MAX_FPGA_WORKER]);
 
 	return (int)config->topology.workers_max_fpga_deviceid[i];
 }
@@ -643,7 +643,7 @@ static inline int _starpu_get_next_max_fpga_deviceid (struct _starpu_machine_con
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static inline int _starpu_get_next_mpi_deviceid(struct _starpu_machine_config *config)
 {
-	unsigned i = ((config->current_mpi_deviceid++) % config->topology.ndevices[STARPU_MPI_MS_WORKER]);
+	unsigned i = ((config->current_devid[STARPU_MPI_MS_WORKER]++) % config->topology.ndevices[STARPU_MPI_MS_WORKER]);
 
 	return (int)config->topology.workers_mpi_ms_deviceid[i];
 }

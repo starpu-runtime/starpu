@@ -444,17 +444,8 @@ struct _starpu_machine_config
 	char currently_bound[STARPU_NMAXWORKERS];
 	char currently_shared[STARPU_NMAXWORKERS];
 
-	/** Which GPU(s) do we use for CUDA ? */
-	int current_cuda_gpuid;
-
-	/** Which GPU(s) do we use for OpenCL ? */
-	int current_opencl_gpuid;
-
-        /* Which FPGA(s) do we use for FPGA? */
-	int current_max_fpga_deviceid;
-
-	/** Which MPI do we use? */
-	int current_mpi_deviceid;
+	/** Which next device will we use for each arch? */
+	int current_devid[STARPU_NARCH];
 
 	/** Memory node for different worker types, if only one */
 	int arch_nodeid [STARPU_NARCH];
