@@ -103,6 +103,10 @@ int main(void)
 			/* Testing another specific scheduler, no need to run this */
 			continue;
 
+		if (!strcmp("heteroprio", (*policy)->policy_name))
+			/* https://gitlab.inria.fr/starpu/starpu/-/issues/18 */
+			continue;
+
 		FPRINTF(stderr, "Running with policy %s.\n", (*policy)->policy_name);
 		ret = run(*policy);
 		if (ret == -ENODEV)
