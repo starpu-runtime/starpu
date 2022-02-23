@@ -31,10 +31,10 @@ loader_SOURCES		=	../../tests/loader.c
 noinst_PROGRAMS		+=	loader
 endif
 
+TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) MPI_LAUNCHER="$(MPI_LAUNCHER)" top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+
 if STARPU_USE_MPI_MASTER_SLAVE
-TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) MPI_LAUNCHER="$(MPI_LAUNCHER)" LOADER_ARGS="--mpirun" top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-else
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	+=	LOADER_ARGS="--mpirun"
 endif
 
 TESTS	=
