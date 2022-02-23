@@ -23,16 +23,17 @@ else
 loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
-LOADER_BIN		=	$(abs_top_builddir)/julia/examples/$(LOADER)
+LOADER_BIN		=	$(MPI_LAUNCHER) $(abs_top_builddir)/julia/examples/$(LOADER)
 noinst_PROGRAMS		+=	loader
 endif
 loader_SOURCES		=	../../tests/loader.c
 endif
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+LOG_COMPILER	 	=	$(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+TESTS_ENVIRONMENT 	=	$(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 
 BUILT_SOURCES =

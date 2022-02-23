@@ -73,22 +73,22 @@ endif
 endif
 
 if !STARPU_HAVE_WINDOWS
-## test loader program
-LOADER			=	loader
-loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	./$(LOADER)
-loader_SOURCES		=	../../tests/loader.c
-noinst_PROGRAMS		+=	loader
-
 if STARPU_USE_MPI_MASTER_SLAVE
 MPI = $(STARPU_MPIEXEC)
 endif
 
+## test loader program
+LOADER			=	loader
+loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
+LOADER_BIN		=	$(MPI) ./$(LOADER)
+loader_SOURCES		=	../../tests/loader.c
+noinst_PROGRAMS		+=	loader
+
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(MPI) $(LOADER_BIN)
+LOG_COMPILER		=	$(LOADER_BIN)
 else
-TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPI) $(LOADER_BIN)
+TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 
 endif

@@ -22,12 +22,12 @@ CCLD=$(MPICC)
 noinst_PROGRAMS		=
 
 if STARPU_HAVE_WINDOWS
-LOADER_BIN		=
+LOADER_BIN		=	$(MPIRUN)
 else
 loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
 LOADER			=	loader
-LOADER_BIN		=	$(abs_top_builddir)/mpi/tests/$(LOADER)
+LOADER_BIN		=	$(MPIRUN) $(abs_top_builddir)/mpi/tests/$(LOADER)
 noinst_PROGRAMS		+=	loader
 endif
 loader_SOURCES		=	../../tests/loader.c
@@ -37,9 +37,9 @@ MPIRUN			?= 	$(STARPU_MPIEXEC)
 
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	$(MPI_RUN_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER	 	=	$(MPIRUN) $(LOADER_BIN)
+LOG_COMPILER	 	=	$(LOADER_BIN)
 else
-TESTS_ENVIRONMENT 	=	$(MPI_RUN_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(MPIRUN) $(LOADER_BIN)
+TESTS_ENVIRONMENT 	=	$(MPI_RUN_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 
 if STARPU_MPI_CHECK
