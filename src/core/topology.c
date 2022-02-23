@@ -1388,7 +1388,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	for (i = 0; i < ncuda; i++)
 		topology->nworker[STARPU_CUDA_WORKER][i] = nworker_per_cuda;
 	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] <= STARPU_MAXCUDADEVS);
-	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
+	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] * nworker_per_cuda + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_cuda_gpuid(config);
 
