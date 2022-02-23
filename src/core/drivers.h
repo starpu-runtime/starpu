@@ -28,6 +28,8 @@ struct _starpu_driver_ops
 	int (*run)(struct _starpu_worker *worker);	/**< Actually run the worker */
 	int (*run_once)(struct _starpu_worker *worker);	/**< Run just one loop of the worker */
 	int (*deinit)(struct _starpu_worker *worker);	/**< Deinitialize the thread after running a worker */
+	int (*set_devid)(struct starpu_driver *driver, struct _starpu_worker *worker);
+							/**< Sets into \p driver the id for worker \p worker */
 };
 
 #pragma GCC visibility pop

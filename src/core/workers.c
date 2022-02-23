@@ -904,15 +904,18 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			workerarg->driver_ops = starpu_driver_info[workerarg->arch].driver_ops;
 			workerarg->wait_for_worker_initialization = starpu_driver_info[workerarg->arch].wait_for_worker_initialization;
 
-			driver.type = workerarg->arch;
+			if (workerarg->driver_ops)
+			{
+				driver.type = workerarg->arch;
+				if (workerarg->driver_ops->set_devid)
+					workerarg->driver_ops->set_devid(&driver, workerarg);
+			}
 
 			switch (workerarg->arch)
 			{
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 			case STARPU_CPU_WORKER:
 			{
-				driver.id.cpu_id = workerarg->devid;
-
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
@@ -934,8 +937,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 			case STARPU_CUDA_WORKER:
 			{
-				driver.id.cuda_id = workerarg->devid;
-
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
@@ -957,8 +958,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 			case STARPU_OPENCL_WORKER:
 			{
-				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
-
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(

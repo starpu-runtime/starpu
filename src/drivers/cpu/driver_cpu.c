@@ -478,12 +478,20 @@ int _starpu_cpu_driver_run(struct _starpu_worker *worker)
 	return 0;
 }
 
+int _starpu_cpu_driver_set_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
+{
+	driver->id.cpu_id = worker->devid;
+
+	return 0;
+}
+
 struct _starpu_driver_ops _starpu_driver_cpu_ops =
 {
 	.init = _starpu_cpu_driver_init,
 	.run = _starpu_cpu_driver_run,
 	.run_once = _starpu_cpu_driver_run_once,
-	.deinit = _starpu_cpu_driver_deinit
+	.deinit = _starpu_cpu_driver_deinit,
+	.set_devid = _starpu_cpu_driver_set_devid,
 };
 #endif /* STARPU_USE_CPU */
 
