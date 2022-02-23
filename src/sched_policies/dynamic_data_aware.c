@@ -3081,41 +3081,41 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
-//~ /* Version avec print et visualisation */
-//~ struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
-//~ {
-	//~ .init_sched = initialize_dynamic_data_aware_center_policy,
-	//~ .deinit_sched = deinitialize_dynamic_data_aware_center_policy,
-	//~ .add_workers = starpu_sched_tree_add_workers,
-	//~ .remove_workers = starpu_sched_tree_remove_workers,
-	//~ /* .do_schedule = starpu_sched_tree_do_schedule, */
-	//~ .push_task = starpu_sched_tree_push_task,
-	//~ /* //~ .pop_task = starpu_sched_tree_pop_task, */
-	//~ .pop_task = get_data_to_load,
-	//~ /* .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, */
-	//~ .pre_exec_hook = get_current_tasks,
-	//~ /* .post_exec_hook = starpu_sched_component_worker_post_exec_hook, */
-	//~ .post_exec_hook = get_task_done,
-	//~ .pop_every_task = NULL,
-	//~ .policy_name = "dynamic-data-aware",
-	//~ .policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
-	//~ .worker_type = STARPU_WORKER_LIST,
-//~ };
-
-/* Version pour performances */
+/* Version avec print et visualisation */
 struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
 {
 	.init_sched = initialize_dynamic_data_aware_center_policy,
 	.deinit_sched = deinitialize_dynamic_data_aware_center_policy,
 	.add_workers = starpu_sched_tree_add_workers,
 	.remove_workers = starpu_sched_tree_remove_workers,
+	/* .do_schedule = starpu_sched_tree_do_schedule, */
 	.push_task = starpu_sched_tree_push_task,
-	.pop_task = starpu_sched_tree_pop_task,
-	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
-	.post_exec_hook = get_task_done, /* Utile pour la stratégie d'éviction */
-	//~ # Mettre un data unregister qui oublie les données temporaires, existe deja starpu_data_unregister y ajouter l'appel a la methode de l'ordo et en plus un reste ailleurs (depuis l'appli). Le unregsiter sera utile pour dautrs aplli comme QRmems
+	/* //~ .pop_task = starpu_sched_tree_pop_task, */
+	.pop_task = get_data_to_load,
+	/* .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, */
+	.pre_exec_hook = get_current_tasks,
+	/* .post_exec_hook = starpu_sched_component_worker_post_exec_hook, */
+	.post_exec_hook = get_task_done,
 	.pop_every_task = NULL,
 	.policy_name = "dynamic-data-aware",
 	.policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
 	.worker_type = STARPU_WORKER_LIST,
 };
+
+//~ /* Version pour performances */
+//~ struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
+//~ {
+	//~ .init_sched = initialize_dynamic_data_aware_center_policy,
+	//~ .deinit_sched = deinitialize_dynamic_data_aware_center_policy,
+	//~ .add_workers = starpu_sched_tree_add_workers,
+	//~ .remove_workers = starpu_sched_tree_remove_workers,
+	//~ .push_task = starpu_sched_tree_push_task,
+	//~ .pop_task = starpu_sched_tree_pop_task,
+	//~ .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	//~ .post_exec_hook = get_task_done, /* Utile pour la stratégie d'éviction */
+	/* Mettre un data unregister qui oublie les données temporaires, existe deja starpu_data_unregister y ajouter l'appel a la methode de l'ordo et en plus un reste ailleurs (depuis l'appli). Le unregsiter sera utile pour dautrs aplli comme QRmems */
+	//~ .pop_every_task = NULL,
+	//~ .policy_name = "dynamic-data-aware",
+	//~ .policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
+	//~ .worker_type = STARPU_WORKER_LIST,
+//~ };
