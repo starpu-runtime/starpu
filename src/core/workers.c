@@ -919,7 +919,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						starpu_driver_info[workerarg->arch].name_upper,
 						worker_thread,
 						NULL,
-						_starpu_cpu_worker,
+						starpu_driver_info[workerarg->arch].run_worker,
 						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 				}
@@ -942,7 +942,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						starpu_driver_info[workerarg->arch].name_upper,
 						worker_thread,
 						NULL,
-						_starpu_cuda_worker,
+						starpu_driver_info[workerarg->arch].run_worker,
 						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 				}
@@ -965,7 +965,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						starpu_driver_info[workerarg->arch].name_upper,
 						worker_thread,
 						NULL,
-						_starpu_opencl_worker,
+						starpu_driver_info[workerarg->arch].run_worker,
 						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 				}
@@ -986,7 +986,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						starpu_driver_info[workerarg->arch].name_upper,
 						worker_thread,
 						NULL,
-						_starpu_max_fpga_worker,
+						starpu_driver_info[workerarg->arch].run_worker,
 						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 				}
@@ -1012,7 +1012,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						starpu_driver_info[workerarg->arch].name_upper,
 						worker_thread,
 						NULL,
-						_starpu_mpi_src_worker,
+						starpu_driver_info[workerarg->arch].run_worker,
 						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 

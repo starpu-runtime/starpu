@@ -70,6 +70,7 @@ static struct _starpu_driver_info driver_info =
 	.wait_for_worker_initialization = 1,
 #ifdef STARPU_USE_CPU
 	.driver_ops = &_starpu_driver_cpu_ops,
+	.run_worker = _starpu_cpu_worker,
 #endif
 };
 

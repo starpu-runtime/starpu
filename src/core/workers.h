@@ -525,6 +525,7 @@ struct _starpu_driver_info
 	double alpha;	/**< Typical relative speed compared to a CPU core */
 	unsigned wait_for_worker_initialization;	/**< Whether we should make the core wait for worker initialization before starting other workers initialization */
 	const struct _starpu_driver_ops *driver_ops;	/**< Driver operations */
+	void *(*run_worker)(void *);	/**< Actually run the worker */
 };
 
 /** Device driver information, indexed by enum starpu_worker_archtype */
