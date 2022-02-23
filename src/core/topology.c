@@ -1369,8 +1369,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 #endif
 	/* Now we know how many CUDA devices will be used */
 	topology->ndevices[STARPU_CUDA_WORKER] = ncuda;
-	for (i = 0; i < ncuda; i++)
-		topology->nworker[STARPU_CUDA_WORKER][i] = nworker_per_cuda;
 	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] <= STARPU_MAXCUDADEVS);
 	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] * nworker_per_cuda + topology->nworkers <= STARPU_NMAXWORKERS);
 
@@ -1415,6 +1413,8 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			topology->ndevices[STARPU_CUDA_WORKER] = cudagpu;
 			break;
 		}
+
+		topology->nworker[STARPU_CUDA_WORKER][cudagpu] = nworker_per_cuda;
 
 		if (topology->cuda_th_per_dev)
 		{
@@ -1500,8 +1500,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	}
 
 	topology->ndevices[STARPU_OPENCL_WORKER] = nopencl;
-	for (i = 0; i < nopencl; i++)
-		topology->nworker[STARPU_OPENCL_WORKER][i] = 1;
 	STARPU_ASSERT(topology->ndevices[STARPU_OPENCL_WORKER] < STARPU_MAXOPENCLDEVS);
 	STARPU_ASSERT(topology->ndevices[STARPU_OPENCL_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
@@ -1518,6 +1516,9 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			topology->ndevices[STARPU_OPENCL_WORKER] = openclgpu;
 			break;
 		}
+
+		topology->nworker[STARPU_OPENCL_WORKER][openclgpu] = 1;
+
 		config->workers[worker_idx].arch = STARPU_OPENCL_WORKER;
 		_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 		config->workers[worker_idx].perf_arch.ndevices = 1;
@@ -1547,8 +1548,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 	/* Now we know how many MAX FPGA devices will be used */
 	topology->ndevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga;
-	for (i = 0; i < nmax_fpga; i++)
-		topology->nworker[STARPU_MAX_FPGA_WORKER][i] = 1;
 	STARPU_ASSERT(topology->ndevices[STARPU_MAX_FPGA_WORKER] <= STARPU_MAXMAXFPGADEVS);
 	STARPU_ASSERT(topology->ndevices[STARPU_MAX_FPGA_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
@@ -1565,6 +1564,9 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			topology->ndevices[STARPU_MAX_FPGA_WORKER] = max_fpga;
 			break;
 		}
+
+		topology->nworker[STARPU_MAX_FPGA_WORKER][max_fpga] = 1;
+
 		config->workers[worker_idx].arch = STARPU_MAX_FPGA_WORKER;
 		_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 		config->workers[worker_idx].perf_arch.ndevices = 1;
