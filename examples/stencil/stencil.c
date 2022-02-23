@@ -232,7 +232,9 @@ int main(int argc, char **argv)
 		fflush(stderr);
 	}
 
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	conf.nmpi_ms = 0;
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
