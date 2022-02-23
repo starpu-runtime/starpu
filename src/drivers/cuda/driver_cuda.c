@@ -1077,7 +1077,8 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
 
 void *_starpu_cuda_worker(void *_arg)
 {
-	struct _starpu_worker_set* worker_set = _arg;
+	struct _starpu_worker *worker = _arg;
+	struct _starpu_worker_set* worker_set = worker->set;
 	unsigned i;
 
 	_starpu_cuda_driver_init(worker_set);
@@ -1556,14 +1557,6 @@ starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node,
 #endif
 #endif /* STARPU_USE_CUDA */
 
-int _starpu_run_cuda(struct _starpu_worker_set *workerarg)
-{
-	/* Let's go ! */
-	_starpu_cuda_worker(workerarg);
-
-	return 0;
-}
-
 int _starpu_cuda_driver_init_from_worker(struct _starpu_worker *worker)
 {
 	return _starpu_cuda_driver_init(worker->set);
@@ -1571,7 +1564,10 @@ int _starpu_cuda_driver_init_from_worker(struct _starpu_worker *worker)
 
 int _starpu_cuda_run_from_worker(struct _starpu_worker *worker)
 {
-	return _starpu_run_cuda(worker->set);
+	/* Let's go ! */
+	_starpu_cuda_worker(worker);
+
+	return 0;
 }
 
 int _starpu_cuda_driver_run_once_from_worker(struct _starpu_worker *worker)

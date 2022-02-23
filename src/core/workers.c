@@ -922,7 +922,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 						worker_thread,
 						NULL,
 						starpu_driver_info[workerarg->arch].run_worker,
-						worker_set ? (void*) worker_set : (void*) workerarg,
+						workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 				}
 				else
