@@ -887,10 +887,16 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 		/* For worker sets, we only start a thread for the first worker.  */
 		if (!worker_set || worker_set->workers == workerarg)
 		{
+			starpu_pthread_t *worker_thread;
 			if (worker_set)
 			{
+				worker_thread = &worker_set->worker_thread;
 				worker_set->set_is_initialized = 0;
 				worker_set->wait_for_set_initialization = 1;
+			}
+			else
+			{
+				worker_thread = &workerarg->worker_thread;
 			}
 
 			switch (workerarg->arch)
@@ -908,10 +914,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						starpu_driver_info[workerarg->arch].name_upper,
-						&workerarg->worker_thread,
+						worker_thread,
 						NULL,
 						_starpu_cpu_worker,
-						workerarg,
+						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 				}
 				else
@@ -935,10 +941,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						starpu_driver_info[workerarg->arch].name_upper,
-						&worker_set->worker_thread,
+						worker_thread,
 						NULL,
 						_starpu_cuda_worker,
-						worker_set,
+						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 				}
 				else
@@ -962,10 +968,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						starpu_driver_info[workerarg->arch].name_upper,
-						&workerarg->worker_thread,
+						worker_thread,
 						NULL,
 						_starpu_opencl_worker,
-						workerarg,
+						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 				}
 				else
@@ -988,10 +994,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						starpu_driver_info[workerarg->arch].name_upper,
-						&workerarg->worker_thread,
+						worker_thread,
 						NULL,
 						_starpu_max_fpga_worker,
-						workerarg,
+						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 				}
 				else
@@ -1016,10 +1022,10 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				 */
 				STARPU_PTHREAD_CREATE_ON(
 						starpu_driver_info[workerarg->arch].name_upper,
-						&worker_set->worker_thread,
+						worker_thread,
 						NULL,
 						_starpu_mpi_src_worker,
-						worker_set,
+						worker_set ? worker_set : workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
 
 #endif /* STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD */
