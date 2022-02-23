@@ -24,6 +24,9 @@ static struct _starpu_driver_info driver_info =
 	.name_lower = "mpi_ms",
 	.memory_kind = STARPU_MPI_MS_RAM,
 	.alpha = 1.0f,
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+	.run_worker = _starpu_mpi_src_worker,
+#endif
 };
 
 static struct _starpu_memory_driver_info memory_driver_info =
@@ -32,7 +35,6 @@ static struct _starpu_memory_driver_info memory_driver_info =
 	.worker_archtype = STARPU_MPI_MS_WORKER,
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	.ops = &_starpu_driver_mpi_ms_node_ops,
-	.run_worker = _starpu_mpi_src_worker,
 #endif
 };
 
