@@ -63,7 +63,9 @@ extern "C"
 #define _STARPU_MPI_FUT_DRIVER_RUN_BEGIN		0x5216
 #define _STARPU_MPI_FUT_DRIVER_RUN_END			0x5217
 #define _STARPU_MPI_FUT_DATA_SET_TAG			0x5218
-// available codes: 0x5219 and > 0x5220
+#define _STARPU_MPI_FUT_IRECV_NUMA_NODE			0x5219
+#define _STARPU_MPI_FUT_ISEND_NUMA_NODE			0x5221
+// available codes: > 0x5221
 
 #ifdef STARPU_USE_FXT
 
@@ -78,7 +80,8 @@ extern "C"
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_BEGIN(dest, data_tag, size)	\
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_BEGIN, (dest), (data_tag), (size), _starpu_gettid());
 #define _STARPU_MPI_TRACE_ISEND_SUBMIT_END(type, req, prio)	\
-	FUT_FULL_PROBE9(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_END, (type), (req)->node_tag.node.rank, (req)->node_tag.data_tag, starpu_data_get_size((req)->data_handle), (req)->pre_sync_jobid, (req)->data_handle, (prio), starpu_get_memory_location_bitmap((req)->ptr, starpu_data_get_size((req)->data_handle)), _starpu_gettid());
+	FUT_FULL_PROBE8(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_SUBMIT_END, (type), (req)->node_tag.node.rank, (req)->node_tag.data_tag, starpu_data_get_size((req)->data_handle), (req)->pre_sync_jobid, (req)->data_handle, (prio), _starpu_gettid()); \
+	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI_VERBOSE_EXTRA, _STARPU_MPI_FUT_ISEND_NUMA_NODE, (req)->node_tag.node.rank, (req)->pre_sync_jobid, starpu_get_memory_location_bitmap((req)->ptr, starpu_data_get_size((req)->data_handle)), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_BEGIN(src, data_tag)	\
 	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN, (src), (data_tag), _starpu_gettid());
 #define _STARPU_MPI_TRACE_IRECV_SUBMIT_END(src, data_tag)	\
@@ -96,7 +99,10 @@ extern "C"
 #define _STARPU_MPI_TRACE_COMPLETE_END(type, rank, data_tag)		\
 	if (type == RECV_REQ) { _STARPU_MPI_TRACE_IRECV_COMPLETE_END((rank), (data_tag)); } else if (type == SEND_REQ) { _STARPU_MPI_TRACE_ISEND_COMPLETE_END((rank), (data_tag), 0); }
 #define _STARPU_MPI_TRACE_TERMINATED(req)		\
-	if ((req)->request_type == RECV_REQ) FUT_FULL_PROBE6(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_TERMINATED, (req)->node_tag.node.rank, (req)->node_tag.data_tag, (req)->post_sync_jobid, _starpu_gettid(), (req)->data_handle, starpu_get_memory_location_bitmap((req)->ptr, starpu_data_get_size((req)->data_handle))); else \
+	if ((req)->request_type == RECV_REQ) {	\
+		FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_IRECV_TERMINATED, (req)->node_tag.node.rank, (req)->node_tag.data_tag, (req)->post_sync_jobid, _starpu_gettid(), (req)->data_handle); \
+		FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_MPI_VERBOSE_EXTRA, _STARPU_MPI_FUT_IRECV_NUMA_NODE, (req)->node_tag.node.rank, (req)->post_sync_jobid, starpu_get_memory_location_bitmap((req)->ptr, starpu_data_get_size((req)->data_handle)), _starpu_gettid()); \
+	} else \
 	if ((req)->request_type == SEND_REQ) FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_ISEND_TERMINATED, (req)->node_tag.node.rank, (req)->node_tag.data_tag, _starpu_gettid());
 #define _STARPU_MPI_TRACE_SLEEP_BEGIN()	\
 	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_SLEEP_BEGIN, _starpu_gettid());

@@ -1811,8 +1811,18 @@ static void handle_codelet_data_handle(struct fxt_ev_64 *ev, struct starpu_fxt_o
 	task->data[task->ndata].handle = ev->param[1];
 	task->data[task->ndata].size = ev->param[2];
 	task->data[task->ndata].mode = ev->param[3];
-	task->data[task->ndata].numa_nodes_bitmap = ev->param[4];
+	task->data[task->ndata].numa_nodes_bitmap = -1;
 	task->ndata++;
+}
+
+static void handle_codelet_data_handle_numa_access(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	struct task_info *task = get_task(ev->param[0], options->file_rank);
+	unsigned i = (unsigned) ev->param[1];
+
+	STARPU_ASSERT(i < task->ndata);
+
+	task->data[i].numa_nodes_bitmap = ev->param[2];
 }
 
 static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3163,7 +3173,6 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 	long jobid = ev->param[4];
 	unsigned long handle = ev->param[5];
 	int prio = ev->param[6];
-	long numa_nodes_bitmap = ev->param[7];
 	double date = get_event_time_stamp(ev, options);
 
 	do_mpicommthread_set_state(date, options->file_prefix, "P");
@@ -3177,7 +3186,17 @@ static void handle_mpi_isend_submit_end(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle, type, prio, numa_nodes_bitmap);
+		_starpu_fxt_mpi_add_send_transfer(options->file_rank, dest, mpi_tag, size, date, jobid, handle, type, prio);
+}
+
+static void handle_mpi_isend_numa_node(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	int dest = ev->param[0];
+	long jobid = ev->param[1];
+	long numa_nodes_bitmap = ev->param[2];
+
+	if (options->file_rank >= 0)
+		_starpu_fxt_mpi_send_transfer_set_numa_node(options->file_rank, dest, jobid, numa_nodes_bitmap);
 }
 
 static void handle_mpi_irecv_submit_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3228,7 +3247,6 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 	int mpi_tag = ev->param[1];
 	long jobid = ev->param[2];
 	unsigned long handle = ev->param[4];
-	long numa_nodes_bitmap = ev->param[5];
 	double date = get_event_time_stamp(ev, options);
 
 	if (options->file_rank < 0)
@@ -3240,7 +3258,17 @@ static void handle_mpi_irecv_terminated(struct fxt_ev_64 *ev, struct starpu_fxt_
 		}
 	}
 	else
-		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle, numa_nodes_bitmap);
+		_starpu_fxt_mpi_add_recv_transfer(src, options->file_rank, mpi_tag, date, jobid, handle);
+}
+
+static void handle_mpi_irecv_numa_node(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	int src = ev->param[0];
+	long jobid = ev->param[1];
+	long numa_nodes_bitmap = ev->param[2];
+
+	if (options->file_rank >= 0)
+		_starpu_fxt_mpi_recv_transfer_set_numa_node(src, options->file_rank, jobid, numa_nodes_bitmap);
 }
 
 static void handle_mpi_sleep_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
@@ -3608,6 +3636,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				break;
 			case _STARPU_FUT_CODELET_DATA_HANDLE:
 				handle_codelet_data_handle(&ev, options);
+				break;
+			case _STARPU_FUT_CODELET_DATA_HANDLE_NUMA_ACCESS:
+				handle_codelet_data_handle_numa_access(&ev, options);
 				break;
 			case _STARPU_FUT_CODELET_DETAILS:
 				handle_codelet_details(&ev, options);
@@ -3990,6 +4021,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				handle_mpi_isend_submit_end(&ev, options);
 				break;
 
+			case _STARPU_MPI_FUT_ISEND_NUMA_NODE:
+				handle_mpi_isend_numa_node(&ev, options);
+				break;
+
 			case _STARPU_MPI_FUT_IRECV_SUBMIT_BEGIN:
 				handle_mpi_irecv_submit_begin(&ev, options);
 				break;
@@ -4019,6 +4054,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_MPI_FUT_IRECV_TERMINATED:
 				handle_mpi_irecv_terminated(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_IRECV_NUMA_NODE:
+				handle_mpi_irecv_numa_node(&ev, options);
 				break;
 
 			case _STARPU_MPI_FUT_SLEEP_BEGIN:

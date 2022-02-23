@@ -1199,13 +1199,14 @@ Specify whether to generate (1) or not (0) the FxT trace in /tmp/prof_file_XXX_Y
 <dd>
 \anchor STARPU_FXT_EVENTS
 \addindex __env__STARPU_FXT_EVENTS
-Specify which events will be recorded in traces. By default, all events are
-recorded. One can set this variable to a comma- or pipe-separated list of the
-following categories, to record only events belonging to the selected
-categories:
+Specify which events will be recorded in traces. By default, all events (but
+<c>VERBOSE_EXTRA</c> ones) are recorded. One can set this variable to a comma-
+or pipe-separated list of the following categories, to record only events
+belonging to the selected categories:
 - <c>USER</c>
 - <c>TASK</c>
 - <c>TASK_VERBOSE</c>
+- <c>TASK_VERBOSE_EXTRA</c>
 - <c>DATA</c>
 - <c>DATA_VERBOSE</c>
 - <c>WORKER</c>
@@ -1220,6 +1221,7 @@ categories:
 - <c>EVENT_VERBOSE</c>
 - <c>MPI</c>
 - <c>MPI_VERBOSE</c>
+- <c>MPI_VERBOSE_EXTRA</c>
 - <c>HYP</c>
 - <c>HYP_VERBOSE</c>
 </dd>
@@ -1228,6 +1230,11 @@ The choice of which categories have to be recorded is a tradeoff between
 required informations for offline analyzis and acceptable overhead introduced
 by tracing. For instance, to inspect with ViTE which tasks workers execute, one
 has to at least select the <c>TASK</c> category.
+
+Events in <code>VERBOSE_EXTRA</code> are very costly to record and can have an
+important impact on application performances. This is why there are disabled by
+default, and one has to explicitly select their categories using this variable
+to record them.
 
 <dt>STARPU_LIMIT_CUDA_devid_MEM</dt>
 <dd>

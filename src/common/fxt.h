@@ -86,6 +86,8 @@
 #define _STARPU_FUT_DATA_COORDINATES	0x511e
 #define _STARPU_FUT_HANDLE_DATA_UNREGISTER	0x511f
 
+#define _STARPU_FUT_CODELET_DATA_HANDLE_NUMA_ACCESS	0x5120
+
 #define	_STARPU_FUT_NEW_MEM_NODE	0x5122
 
 #define	_STARPU_FUT_START_CALLBACK	0x5123
@@ -266,8 +268,13 @@
 #define _STARPU_FUT_KEYMASK_MPI_VERBOSE    FUT_KEYMASK17
 #define _STARPU_FUT_KEYMASK_HYP            FUT_KEYMASK18
 #define _STARPU_FUT_KEYMASK_HYP_VERBOSE    FUT_KEYMASK19
-/* When doing modifications to keymasks, also adapt
- * _starpu_profile_get_user_keymask() in src/common/fxt.c ! */
+#define _STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA   FUT_KEYMASK20
+#define _STARPU_FUT_KEYMASK_MPI_VERBOSE_EXTRA   FUT_KEYMASK21
+/* When doing modifications to keymasks:
+ * - also adapt _starpu_profile_get_user_keymask() in src/common/fxt.c
+ * - adapt KEYMASKALL_DEFAULT in src/common/fxt.c
+ * - adapt the documentation in 501_environment_variable.doxy and/or
+ *   380_offline_performance_tools.doxy */
 
 extern unsigned long _starpu_job_cnt;
 
@@ -800,7 +807,7 @@ do {									\
 
 #define _STARPU_TRACE_START_CODELET_BODY(job, nimpl, perf_arch, workerid)				\
 do {									\
-    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK|_STARPU_FUT_KEYMASK_TASK_VERBOSE|_STARPU_FUT_KEYMASK_DATA) & fut_active) ) { \
+    if( STARPU_UNLIKELY((_STARPU_FUT_KEYMASK_TASK|_STARPU_FUT_KEYMASK_TASK_VERBOSE|_STARPU_FUT_KEYMASK_DATA|_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA) & fut_active) ) { \
 	FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_START_CODELET_BODY, (job)->job_id, ((job)->task)->sched_ctx, workerid, starpu_worker_get_memory_node(workerid)); \
 	{								\
 		if ((job)->task->cl)					\
@@ -817,6 +824,7 @@ do {									\
 					__handle->ops->describe(__interface, __buf, sizeof(__buf));	\
 					_STARPU_FUT_FULL_PROBE1STR(_STARPU_FUT_KEYMASK_DATA, _STARPU_FUT_CODELET_DATA, workerid, __buf);	\
 				}					\
+				FUT_FULL_PROBE4(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_CODELET_DATA_HANDLE, (job)->job_id, (__handle), _starpu_data_get_size(__handle), STARPU_TASK_GET_MODE((job)->task, __i));	\
 				/* Regarding the memory location:
 				 * - if the data interface doesn't provide to_pointer operation, NULL will be returned
 				 *   and the location will be -1, which is fine;
@@ -827,7 +835,7 @@ do {									\
 				 *   location at the end of the task, but there is no FxT probe where we iterate over
 				 *   handles, after task execution.
 				 * */ \
-				FUT_FULL_PROBE5(_STARPU_FUT_KEYMASK_TASK, _STARPU_FUT_CODELET_DATA_HANDLE, (job)->job_id, (__handle), _starpu_data_get_size(__handle), STARPU_TASK_GET_MODE((job)->task, __i), starpu_worker_get_memory_node_kind(starpu_worker_get_type(workerid)) == STARPU_CPU_RAM && starpu_task_get_current_data_node(__i) >= 0 ? starpu_get_memory_location_bitmap(starpu_data_handle_to_pointer(__handle, (unsigned) starpu_task_get_current_data_node(__i)), starpu_data_get_size(__handle)) : -1);	\
+				FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA, _STARPU_FUT_CODELET_DATA_HANDLE_NUMA_ACCESS, (job)->job_id, (__i), starpu_worker_get_memory_node_kind(starpu_worker_get_type(workerid)) == STARPU_CPU_RAM && starpu_task_get_current_data_node(__i) >= 0 ? starpu_get_memory_location_bitmap(starpu_data_handle_to_pointer(__handle, (unsigned) starpu_task_get_current_data_node(__i)), starpu_data_get_size(__handle)) : -1);	\
 			}						\
 		}							\
 		const size_t __job_size = _starpu_job_get_data_size((job)->task->cl?(job)->task->cl->model:NULL, perf_arch, nimpl, (job));	\

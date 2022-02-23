@@ -133,7 +133,7 @@ static unsigned mpi_recvs_used[STARPU_FXT_MAX_FILES] = {0};
  * transfer, thus avoiding a quadratic complexity. */
 static unsigned mpi_recvs_matched[STARPU_FXT_MAX_FILES][STARPU_FXT_MAX_FILES] = { {0} };
 
-void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio, long numa_nodes_bitmap)
+void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t size, float date, long jobid, unsigned long handle, unsigned type, int prio)
 {
 	STARPU_ASSERT(src >= 0);
 	if (src >= STARPU_FXT_MAX_FILES)
@@ -164,10 +164,33 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst STARPU_ATTRIBUTE_UNUSED,
 	mpi_sends[src][slot].handle = handle;
 	mpi_sends[src][slot].type = type;
 	mpi_sends[src][slot].prio = prio;
-	mpi_sends[src][slot].numa_nodes_bitmap = numa_nodes_bitmap;
+	mpi_sends[src][slot].numa_nodes_bitmap = -1;
 }
 
-void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag, float date, long jobid, unsigned long handle, long numa_nodes_bitmap)
+void _starpu_fxt_mpi_send_transfer_set_numa_node(int src, int dest, long jobid, long numa_nodes_bitmap)
+{
+	STARPU_ASSERT(src >= 0);
+	if (src >= STARPU_FXT_MAX_FILES || jobid == -1)
+		return;
+
+	unsigned i, slot;
+	for (i = 0; i < mpi_sends_used[src]; i++)
+	{
+		/* The probe is just after the one handled by
+		* _starpu_fxt_mpi_add_send_transfer, so the send transfer should have been
+		* added recently: */
+		slot = mpi_sends_used[src] - i - 1;
+		if (mpi_sends[src][slot].dst == dest && mpi_sends[src][slot].jobid == jobid)
+		{
+			mpi_sends[src][slot].numa_nodes_bitmap = numa_nodes_bitmap;
+			return;
+		}
+	}
+
+	_STARPU_MSG("Warning: did not find the send transfer from %d to %d with jobid %ld\n", src, dest, jobid);
+}
+
+void _starpu_fxt_mpi_add_recv_transfer(int src, int dst, long mpi_tag, float date, long jobid, unsigned long handle)
 {
 	if (dst >= STARPU_FXT_MAX_FILES)
 		return;
@@ -194,11 +217,35 @@ void _starpu_fxt_mpi_add_recv_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst,
 	mpi_recvs[dst][slot].date = date;
 	mpi_recvs[dst][slot].jobid = jobid;
 	mpi_recvs[dst][slot].handle = handle;
-	mpi_recvs[dst][slot].numa_nodes_bitmap = numa_nodes_bitmap;
+	mpi_recvs[dst][slot].numa_nodes_bitmap = -1;
 }
 
+void _starpu_fxt_mpi_recv_transfer_set_numa_node(int src, int dst, long jobid, long numa_nodes_bitmap)
+{
+	STARPU_ASSERT(src >= 0);
+	if (src >= STARPU_FXT_MAX_FILES || jobid == -1)
+		return;
+
+	unsigned i, slot;
+	for (i = 0; i < mpi_recvs_used[dst]; i++)
+	{
+		/* The probe is just after the one handled by
+		* _starpu_fxt_mpi_add_send_transfer, so the send transfer should have been
+		* added recently: */
+		slot = mpi_recvs_used[dst] - i - 1;
+		if (mpi_recvs[dst][slot].src == src && mpi_recvs[dst][slot].jobid == jobid)
+		{
+			mpi_recvs[dst][slot].numa_nodes_bitmap = numa_nodes_bitmap;
+			return;
+		}
+	}
+
+	_STARPU_MSG("Warning: did not find the recv transfer from %d to %d with jobid %ld\n", src, dst, jobid);
+}
+
+
 static
-struct mpi_transfer *try_to_match_send_transfer(int src STARPU_ATTRIBUTE_UNUSED, int dst, long mpi_tag)
+struct mpi_transfer *try_to_match_send_transfer(int src, int dst, long mpi_tag)
 {
 	unsigned slot;
 	unsigned firstslot = mpi_recvs_matched[src][dst];

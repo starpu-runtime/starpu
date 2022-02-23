@@ -146,7 +146,10 @@ static void _starpu_mpi_coop_sends_data_ready(void *arg)
 	for ( ;
 	     cur != _starpu_mpi_req_multilist_end_coop_sends(&coop_sends->reqs);
 	     cur  = _starpu_mpi_req_multilist_next_coop_sends(cur))
+	{
 		cur->node = node;
+		cur->pre_sync_jobid = coop_sends->pre_sync_jobid; // for tracing purposes
+	}
 
 	if (coop_sends->n == 1)
 	{

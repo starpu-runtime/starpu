@@ -40,6 +40,9 @@ unsigned long _starpu_job_cnt = 0;
 #include <sys/thr.h>       /* for thr_self() */
 #endif
 
+/* By default, record all events but the VERBOSE_EXTRA ones, which are very costly: */
+#define KEYMASKALL_DEFAULT FUT_KEYMASKALL & (~_STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA) & (~_STARPU_FUT_KEYMASK_MPI_VERBOSE_EXTRA)
+
 static char _starpu_prof_file_user[128];
 int _starpu_fxt_started = 0;
 int _starpu_fxt_willstart = 1;
@@ -61,7 +64,7 @@ static int _starpu_mpi_worldsize = 1;
 /* Event mask used to initialize FxT. By default all events are recorded just
  * after FxT starts, but this can be changed by calling
  * starpu_fxt_autostart_profiling(0) */
-static unsigned int initial_key_mask = FUT_KEYMASKALL;
+static unsigned int initial_key_mask = KEYMASKALL_DEFAULT;
 
 /* Event mask used when events are actually recorded, e.g. between
  * starpu_fxt_start|stop_profiling() calls if autostart is disabled, or at
@@ -183,6 +186,10 @@ static inline unsigned int _starpu_profile_get_user_keymask(void)
 				profiling_key_mask |= _STARPU_FUT_KEYMASK_HYP;
 			else if (!strcasecmp(sub, "HYP_VERBOSE"))
 				profiling_key_mask |= _STARPU_FUT_KEYMASK_HYP_VERBOSE;
+			else if (!strcasecmp(sub, "TASK_VERBOSE_EXTRA"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_TASK_VERBOSE_EXTRA;
+			else if (!strcasecmp(sub, "MPI_VERBOSE_EXTRA"))
+				profiling_key_mask |= _STARPU_FUT_KEYMASK_MPI_VERBOSE_EXTRA;
 			/* Added categories here should also be added in the documentation
 			 * 501_environment_variable.doxy. */
 			else
@@ -192,7 +199,7 @@ static inline unsigned int _starpu_profile_get_user_keymask(void)
 	else
 	{
 		/* If user doesn't want to filter events, all events are recorded: */
-		profiling_key_mask = FUT_KEYMASKALL;
+		profiling_key_mask = KEYMASKALL_DEFAULT;
 	}
 
 	return profiling_key_mask;
@@ -233,6 +240,9 @@ void _starpu_profiling_set_mpi_worldsize(int worldsize)
 
 void starpu_fxt_autostart_profiling(int autostart)
 {
+	/* By calling this function with autostart = 0 before starpu_init(),
+	 * FxT will record only required event to properly work later (KEYMASK_META), and
+	 * won't record anything else. */
 	if (autostart)
 		initial_key_mask = _starpu_profile_get_user_keymask();
 	else
