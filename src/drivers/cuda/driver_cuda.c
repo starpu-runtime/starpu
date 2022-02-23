@@ -1139,6 +1139,25 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 #endif /* STARPU_USE_CUDA */
 
 #ifdef STARPU_USE_CUDA
+static void
+starpu_cuda_set_copy_device(unsigned src_node, unsigned dst_node)
+{
+	enum starpu_node_kind src_kind = starpu_node_get_kind(src_node);
+	enum starpu_node_kind dst_kind = starpu_node_get_kind(dst_node);
+	unsigned devid;
+	if ((src_kind == STARPU_CUDA_RAM) && (dst_kind == STARPU_CUDA_RAM))
+	{
+		/* GPU-GPU transfer, issue it from the destination */
+		devid = starpu_memory_node_get_devid(dst_node);
+	}
+	else
+	{
+		unsigned node = (dst_kind == STARPU_CUDA_RAM)?dst_node:src_node;
+		devid = starpu_memory_node_get_devid(node);
+	}
+	starpu_cuda_set_device(devid);
+}
+
 int
 starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 			    void *dst_ptr, unsigned dst_node,
@@ -1148,6 +1167,8 @@ starpu_cuda_copy_async_sync(void *src_ptr, unsigned src_node,
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	int peer_copy = 0;
 	int src_dev = -1, dst_dev = -1;
+
+	starpu_cuda_set_copy_device(src_node, dst_node);
 #endif
 	cudaError_t cures = 0;
 
@@ -1374,6 +1395,8 @@ starpu_cuda_copy2d_async_sync(void *src_ptr, unsigned src_node,
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	int peer_copy = 0;
 	int src_dev = -1, dst_dev = -1;
+
+	starpu_cuda_set_copy_device(src_node, dst_node);
 #endif
 	cudaError_t cures = 0;
 
@@ -1469,6 +1492,8 @@ starpu_cuda_copy3d_async_sync(void *src_ptr, unsigned src_node,
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	int peer_copy = 0;
 	int src_dev = -1, dst_dev = -1;
+
+	starpu_cuda_set_copy_device(src_node, dst_node);
 #endif
 	cudaError_t cures = 0;
 

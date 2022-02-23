@@ -196,24 +196,6 @@ static int copy_data_1_to_1_generic(starpu_data_handle_t handle,
 	void *src_interface = src_replicate->data_interface;
 	void *dst_interface = dst_replicate->data_interface;
 
-#if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-	if ((src_kind == STARPU_CUDA_RAM) || (dst_kind == STARPU_CUDA_RAM))
-	{
-		unsigned devid;
-		if ((src_kind == STARPU_CUDA_RAM) && (dst_kind == STARPU_CUDA_RAM))
-		{
-			/* GPU-GPU transfer, issue it from the destination */
-			devid = starpu_memory_node_get_devid(dst_node);
-		}
-		else
-		{
-			unsigned node = (dst_kind == STARPU_CUDA_RAM)?dst_node:src_node;
-			devid = starpu_memory_node_get_devid(node);
-		}
-		starpu_cuda_set_device(devid);
-	}
-#endif
-
 	const struct _starpu_node_ops *src_node_ops = _starpu_memory_node_get_node_ops(src_node);
 	const struct _starpu_node_ops *dst_node_ops = _starpu_memory_node_get_node_ops(dst_node);
 	if (src_node_ops && src_node_ops->copy_interface_to[dst_kind])
