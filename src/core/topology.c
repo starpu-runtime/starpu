@@ -719,6 +719,19 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	if (topology_is_initialized)
 		return;
 
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+	if (config->conf.nopencl != 0)
+		_starpu_opencl_init();
+#endif
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	if (config->conf.ncuda != 0)
+		_starpu_init_cuda();
+#endif
+#if defined(STARPU_USE_MAX_FPGA)
+	if (config->conf.nmax_fpga != 0)
+		_starpu_init_max_fpga();
+#endif
+
 	nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
 
 	topology->nhwdevices[STARPU_CPU_WORKER] = 1;
@@ -1072,14 +1085,6 @@ unsigned starpu_get_next_bindid(unsigned flags, unsigned *preferred, unsigned np
 
 unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config)
 {
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	if (config->conf.nopencl != 0)
-		_starpu_opencl_init();
-#endif
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if (config->conf.ncuda != 0)
-		_starpu_init_cuda();
-#endif
 	_starpu_init_topology(config);
 
 	return config->topology.nhwworker[STARPU_CPU_WORKER][0];
@@ -1087,19 +1092,6 @@ unsigned _starpu_topology_get_nhwcpu(struct _starpu_machine_config *config)
 
 unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config)
 {
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	if (config->conf.nopencl != 0)
-		_starpu_opencl_init();
-#endif
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if (config->conf.ncuda != 0)
-		_starpu_init_cuda();
-#endif
-
-#if defined(STARPU_USE_MAX_FPGA)
-	if (config->conf.nmax_fpga != 0)
-		_starpu_init_max_fpga();
-#endif
 	_starpu_init_topology(config);
 
 	return config->topology.nhwpus;
@@ -1107,14 +1099,6 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config)
 
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	if (config->conf.nopencl != 0)
-		_starpu_opencl_init();
-#endif
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if (config->conf.ncuda != 0)
-		_starpu_init_cuda();
-#endif
         _starpu_init_topology(config);
 
 	int res;
@@ -1340,14 +1324,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	topology->ncombinedworkers = 0;
 	topology->nsched_ctxs = 0;
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-	if (config->conf.nopencl != 0)
-		_starpu_opencl_init();
-#endif
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if (config->conf.ncuda != 0)
-		_starpu_init_cuda();
-#endif
 	_starpu_init_topology(config);
 
 	_starpu_initialize_workers_bindid(config);
@@ -1833,14 +1809,6 @@ int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid S
 	const struct hwloc_topology_support *support;
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-#ifdef STARPU_USE_OPENCL
-	if (config->conf.nopencl != 0)
-		_starpu_opencl_init();
-#endif
-#ifdef STARPU_USE_CUDA
-	if (config->conf.ncuda != 0)
-		_starpu_init_cuda();
-#endif
 	_starpu_init_topology(config);
 
 	if (workerid != STARPU_NOWORKERID && cpuid < STARPU_MAXCPUS)
@@ -1957,14 +1925,6 @@ void _starpu_bind_thread_on_cpus(struct _starpu_combined_worker *combined_worker
 	const struct hwloc_topology_support *support;
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 
-#ifdef STARPU_USE_OPENC
-	if (config->conf.nopencl != 0)
-		_starpu_opencl_init();
-#endif
-#ifdef STARPU_USE_CUDA
-	if (config->conf.ncuda != 0)
-		_starpu_init_cuda();
-#endif
 	_starpu_init_topology(config);
 
 	support = hwloc_topology_get_support(config->topology.hwtopology);
