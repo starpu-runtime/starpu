@@ -1186,50 +1186,54 @@ static void _starpu_init_mp_config(struct _starpu_machine_config *config,
 	 */
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-	{
-		struct _starpu_machine_topology *topology = &config->topology;
+	struct _starpu_machine_topology *topology = &config->topology;
+	int nmpims = user_conf->nmpi_ms;
 
+	if (nmpims != 0)
+	{
 		/* Discover and initialize the number of MPI nodes through the mp
 		 * infrastructure. */
 		unsigned nhwmpidevices = _starpu_mpi_src_get_device_count();
 
-		int reqmpidevices = starpu_get_env_number("STARPU_NMPI_MS");
-		if (reqmpidevices == -1 && user_conf)
-			reqmpidevices = user_conf->nmpi_ms;
-		if (reqmpidevices == -1)
+		if (nmpims == -1)
 			/* Nothing was specified, so let's use the number of
 			 * detected mpi devices. ! */
-			reqmpidevices = nhwmpidevices;
-
-		if (reqmpidevices != -1)
+			nmpims = nhwmpidevices;
+		else
 		{
-			if ((unsigned) reqmpidevices > nhwmpidevices)
+			if ((unsigned) nmpims > nhwmpidevices)
 			{
 				/* The user requires more MPI devices than there is available */
 				_STARPU_MSG("# Warning: %d MPI Master-Slave devices requested. Only %u available.\n",
-					    reqmpidevices, nhwmpidevices);
-				reqmpidevices = nhwmpidevices;
+					    nmpims, nhwmpidevices);
+				nmpims = nhwmpidevices;
+			}
+			/* Let's make sure this value is OK. */
+			if (nmpims > STARPU_MAXMPIDEVS)
+			{
+				_STARPU_DISP("Warning: %d MPI MS devices requested. Only %d enabled. Use configure option --enable-maxmpidev=xxx to update the maximum value of supported MPI MS devices.\n", nmpims, STARPU_MAXMPIDEVS);
+				nmpims = STARPU_MAXMPIDEVS;
 			}
 		}
+	}
 
-		topology->ndevices[STARPU_MPI_MS_WORKER] = reqmpidevices;
+	topology->ndevices[STARPU_MPI_MS_WORKER] = nmpims;
 
-		/* if user don't want to use MPI slaves, we close the slave processes */
-		if (no_mp_config && topology->ndevices[STARPU_MPI_MS_WORKER] == 0)
-		{
-			_starpu_mpi_common_mp_deinit();
-			exit(0);
-		}
+	/* if user don't want to use MPI slaves, we close the slave processes */
+	if (no_mp_config && topology->ndevices[STARPU_MPI_MS_WORKER] == 0)
+	{
+		_starpu_mpi_common_mp_deinit();
+		exit(0);
+	}
 
-		if (!no_mp_config)
-		{
-			unsigned i;
-			for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
-				_starpu_src_nodes[STARPU_MPI_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
+	if (!no_mp_config)
+	{
+		unsigned i;
+		for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
+			_starpu_src_nodes[STARPU_MPI_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
 
-			for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
-				_starpu_init_mpi_config(config, user_conf, i);
-		}
+		for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
+			_starpu_init_mpi_config(config, user_conf, i);
 	}
 #endif
 }
