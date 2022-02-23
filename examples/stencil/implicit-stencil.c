@@ -238,6 +238,7 @@ int main(int argc, char **argv)
 	}
 
 	struct starpu_conf conf;
+	starpu_conf_init(&conf);
 	conf.nmpi_ms = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;
