@@ -541,6 +541,14 @@ static STARPU_ATTRIBUTE_UNUSED void _starpu_initialize_workers_deviceid(int *exp
 	}
 }
 
+
+static inline int _starpu_get_next_devid(struct _starpu_machine_config *config, enum starpu_worker_archtype arch)
+{
+	unsigned i = ((config->current_devid[arch]++) % config->topology.ndevices[arch]);
+
+	return (int)config->topology.workers_devid[arch][i];
+}
+
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config)
 {
@@ -556,13 +564,6 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
 					    topology->nhwdevices[STARPU_CUDA_WORKER],
 					    STARPU_CUDA_WORKER);
 	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_CUDA_WORKER]);
-}
-
-static inline int _starpu_get_next_cuda_gpuid(struct _starpu_machine_config *config)
-{
-	unsigned i = ((config->current_devid[STARPU_CUDA_WORKER]++) % config->topology.ndevices[STARPU_CUDA_WORKER]);
-
-	return (int)config->topology.workers_devid[STARPU_CUDA_WORKER][i];
 }
 #endif
 
@@ -606,13 +607,6 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
 #endif /* STARPU_USE_CUDA */
 	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_OPENCL_WORKER]);
 }
-
-static inline int _starpu_get_next_opencl_gpuid(struct _starpu_machine_config *config)
-{
-	unsigned i = ((config->current_devid[STARPU_OPENCL_WORKER]++) % config->topology.ndevices[STARPU_OPENCL_WORKER]);
-
-	return (int)config->topology.workers_devid[STARPU_OPENCL_WORKER][i];
-}
 #endif
 
 #if defined(STARPU_USE_MAX_FPGA)
@@ -630,13 +624,6 @@ static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_
 					    topology->nhwdevices[STARPU_MAX_FPGA_WORKER],
 					    STARPU_MAX_FPGA_WORKER);
 	_starpu_topology_drop_duplicate(topology->workers_max_fpga_deviceid);
-}
-
-static inline int _starpu_get_next_max_fpga_deviceid (struct _starpu_machine_config *config)
-{
-	unsigned i = ((config->current_devid[STARPU_MAX_FPGA_WORKER]++) % config->topology.ndevices[STARPU_MAX_FPGA_WORKER]);
-
-	return (int)config->topology.workers_max_fpga_deviceid[i];
 }
 #endif
 
@@ -1406,7 +1393,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	unsigned cudagpu;
 	for (cudagpu = 0; cudagpu < topology->ndevices[STARPU_CUDA_WORKER]; cudagpu++)
 	{
-		int devid = _starpu_get_next_cuda_gpuid(config);
+		int devid = _starpu_get_next_devid(config, STARPU_CUDA_WORKER);
 		int worker_idx0 = topology->nworkers + cudagpu * nworker_per_cuda;
 		struct _starpu_worker_set *worker_set;
 
@@ -1534,7 +1521,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	unsigned openclgpu;
 	for (openclgpu = 0; openclgpu < topology->ndevices[STARPU_OPENCL_WORKER]; openclgpu++)
 	{
-		int devid = _starpu_get_next_opencl_gpuid(config);
+		int devid = _starpu_get_next_devid(config, STARPU_OPENCL_WORKER);
 		int worker_idx = topology->nworkers + openclgpu;
 		if (devid == -1)
 		{
@@ -1605,7 +1592,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	for (max_fpga = 0; max_fpga < topology->ndevices[STARPU_MAX_FPGA_WORKER]; max_fpga++)
 	{
 		int worker_idx = topology->nworkers + max_fpga;
-		int devid = _starpu_get_next_max_fpga_deviceid(config);
+		int devid = _starpu_get_next_devid(config, STARPU_MAX_FPGA_WORKER);
 		if (devid == -1)
 		{
 			// There is no more devices left
