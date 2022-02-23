@@ -39,11 +39,8 @@ extern struct _starpu_driver_ops _starpu_driver_max_fpga_ops;
 extern struct _starpu_node_ops _starpu_driver_max_fpga_node_ops;
 
 void _starpu_init_max_fpga(void);
-#ifdef STARPU_USE_MAX_FPGA
+void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config);
-#else
-#define _starpu_max_fpga_discover_devices(config) ((void) config)
-#endif
 unsigned _starpu_max_fpga_get_device_count(void);
 
 uintptr_t _starpu_max_fpga_allocate_memory(unsigned dst_node, size_t size, int flags);

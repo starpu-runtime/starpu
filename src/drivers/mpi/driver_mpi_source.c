@@ -27,6 +27,10 @@
 #include <drivers/driver_common/driver_common.h>
 #include <drivers/mp_common/source_common.h>
 
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
+#endif
+
 struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 {
 	struct _starpu_worker *actual_worker = _starpu_get_local_worker_key();
@@ -38,11 +42,119 @@ struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 	return _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid];
 }
 
+static void _starpu_init_mpi_config(struct _starpu_machine_topology *topology,
+				    struct _starpu_machine_config *config,
+				    struct starpu_conf *user_conf,
+				    unsigned mpi_idx)
+{
+	int nhwcores;
+	_starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx], &nhwcores);
+	STARPU_ASSERT(mpi_idx < STARPU_NMAXDEVS);
+	topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx] = nhwcores;
+
+        int nmpicores;
+        nmpicores = starpu_get_env_number("STARPU_NMPIMSTHREADS");
+
+	_starpu_topology_check_ndevices(&nmpicores, nhwcores, 0, INT_MAX, "STARPU_NMPIMSTHREADS", "MPI cores", "");
+
+        mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
+        mpi_worker_set[mpi_idx].nworkers = nmpicores;
+	_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx]->baseworkerid = topology->nworkers;
+
+	_starpu_topology_configure_workers(topology, config,
+			STARPU_MPI_MS_WORKER,
+			mpi_idx, mpi_idx, 0, 0,
+			nmpicores, 1, &mpi_worker_set[mpi_idx]);
+}
+
+void _starpu_init_mp_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
+			    struct starpu_conf *user_conf, int no_mp_config)
+{
+	unsigned i;
+
+	/* Discover and configure the mp topology. That means:
+	 * - discover the number of mp nodes;
+	 * - initialize each discovered node;
+	 * - discover the local topology (number of PUs/devices) of each node;
+	 * - configure the workers accordingly.
+	 */
+
+	for (i = 0; i < (sizeof(mpi_worker_set)/sizeof(mpi_worker_set[0])); i++)
+		mpi_worker_set[i].workers = NULL;
+
+	int nmpims = user_conf->nmpi_ms;
+
+	if (nmpims != 0)
+	{
+		/* Discover and initialize the number of MPI nodes through the mp
+		 * infrastructure. */
+		unsigned nhwmpidevices = _starpu_mpi_src_get_device_count();
+
+		if (nmpims == -1)
+			/* Nothing was specified, so let's use the number of
+			 * detected mpi devices. ! */
+			nmpims = nhwmpidevices;
+		else
+		{
+			if ((unsigned) nmpims > nhwmpidevices)
+			{
+				/* The user requires more MPI devices than there is available */
+				_STARPU_MSG("# Warning: %d MPI Master-Slave devices requested. Only %u available.\n",
+					    nmpims, nhwmpidevices);
+				nmpims = nhwmpidevices;
+			}
+			/* Let's make sure this value is OK. */
+			if (nmpims > STARPU_MAXMPIDEVS)
+			{
+				_STARPU_DISP("Warning: %d MPI MS devices requested. Only %d enabled. Use configure option --enable-maxmpidev=xxx to update the maximum value of supported MPI MS devices.\n", nmpims, STARPU_MAXMPIDEVS);
+				nmpims = STARPU_MAXMPIDEVS;
+			}
+		}
+	}
+
+	topology->ndevices[STARPU_MPI_MS_WORKER] = nmpims;
+
+	/* if user don't want to use MPI slaves, we close the slave processes */
+	if (no_mp_config && topology->ndevices[STARPU_MPI_MS_WORKER] == 0)
+	{
+		_starpu_mpi_common_mp_deinit();
+		exit(0);
+	}
+
+	if (!no_mp_config)
+	{
+		for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
+			_starpu_src_nodes[STARPU_MPI_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
+
+		for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
+			_starpu_init_mpi_config(topology, config, user_conf, i);
+	}
+}
+
+static void _starpu_deinit_mpi_node(int devid)
+{
+        _starpu_mp_common_send_command(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
+
+        _starpu_mp_common_node_destroy(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid]);
+}
+
+
+void _starpu_deinit_mp_config(struct _starpu_machine_config *config)
+{
+	struct _starpu_machine_topology *topology = &config->topology;
+	unsigned i;
+
+	for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
+		_starpu_deinit_mpi_node(i);
+}
+
+
 void _starpu_mpi_source_init(struct _starpu_mp_node *node)
 {
         _starpu_mpi_common_mp_initialize_src_sink(node);
         //TODO
 }
+
 
 void _starpu_mpi_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED)
 {

@@ -50,6 +50,58 @@ void _starpu_init_max_fpga()
 {
 }
 
+static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_config *config)
+{
+	struct _starpu_machine_topology *topology = &config->topology;
+	struct starpu_conf *uconf = &config->conf;
+
+        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_max_fpga_deviceid == 0
+					    ? NULL
+					    : (int *)uconf->workers_max_fpga_deviceid,
+					    &(config->current_devid[STARPU_MAX_FPGA_WORKER]),
+					    (int *)topology->workers_max_fpga_deviceid,
+					    "STARPU_WORKERS_MAX_FPGAID",
+					    topology->nhwdevices[STARPU_MAX_FPGA_WORKER],
+					    STARPU_MAX_FPGA_WORKER);
+	_starpu_topology_drop_duplicate(topology->workers_max_fpga_deviceid);
+}
+
+void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *)
+{
+	int nmax_fpga = config->conf.nmax_fpga;
+	if (nmax_fpga != 0)
+	{
+		/* The user did not disable FPGA. We need to initialize
+ 		 * FPGA early to count the number of devices */
+		_starpu_init_max_fpga();
+		int nb_devices = _starpu_max_fpga_get_device_count();
+
+		_starpu_topology_check_ndevices(&nmax_fpga, nb_devices, 0, STARPU_MAXMAXFPGADEVS, "nmax_fpga", "Maxeler FPGA", "maxmaxfpgadev");
+	}
+
+	/* Now we know how many MAX FPGA devices will be used */
+	topology->ndevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga;
+
+	_starpu_initialize_workers_max_fpga_deviceid(config);
+
+	unsigned max_fpga;
+	for (max_fpga = 0; (int) max_fpga < nmax_fpga; max_fpga++)
+	{
+		int devid = _starpu_get_next_devid(topology, config, STARPU_MAX_FPGA_WORKER);
+		if (devid == -1)
+		{
+			// There is no more devices left
+			topology->ndevices[STARPU_MAX_FPGA_WORKER] = max_fpga;
+			break;
+		}
+
+		_starpu_topology_configure_workers(topology, config,
+				STARPU_MAX_FPGA_WORKER,
+				max_fpga, devid, 0, 0,
+				1, 1, NULL);
+	}
+}
+
 void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 {
 	//TODO: This is statically assigned, in the next round of integration

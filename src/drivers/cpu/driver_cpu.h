@@ -19,6 +19,7 @@
 
 /** @file */
 
+#include <core/workers.h>
 #include <common/config.h>
 #include <datawizard/node_ops.h>
 
@@ -28,6 +29,8 @@ void _starpu_cpu_preinit(void);
 
 extern struct _starpu_driver_ops _starpu_driver_cpu_ops;
 extern struct _starpu_node_ops _starpu_driver_cpu_node_ops;
+
+void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config);
 
 void *_starpu_cpu_worker(void *);
 

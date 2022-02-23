@@ -98,6 +98,12 @@ static int cuda_device_users[STARPU_MAXCUDADEVS];
 static starpu_pthread_mutex_t cuda_device_init_mutex[STARPU_MAXCUDADEVS];
 static starpu_pthread_cond_t cuda_device_init_cond[STARPU_MAXCUDADEVS];
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+static struct _starpu_worker_set cuda_worker_set[STARPU_MAXCUDADEVS];
+#endif
+
+int _starpu_nworker_per_cuda;
+
 #ifdef STARPU_USE_CUDA
 static inline cudaEvent_t *_starpu_cuda_event(union _starpu_async_channel_event *_event)
 {
@@ -517,6 +523,154 @@ unsigned _starpu_get_cuda_device_count(void)
 		cnt = STARPU_MAXCUDADEVS;
 	}
 	return (unsigned)cnt;
+}
+
+static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config)
+{
+	struct _starpu_machine_topology *topology = &config->topology;
+	struct starpu_conf *uconf = &config->conf;
+
+        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_cuda_gpuid == 0
+					    ? NULL
+					    : (int *)uconf->workers_cuda_gpuid,
+					    &(config->current_devid[STARPU_CUDA_WORKER]),
+					    (int *)topology->workers_devid[STARPU_CUDA_WORKER],
+					    "STARPU_WORKERS_CUDAID",
+					    topology->nhwdevices[STARPU_CUDA_WORKER],
+					    STARPU_CUDA_WORKER);
+	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_CUDA_WORKER]);
+}
+
+void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config)
+{
+	int i;
+
+	for (i = 0; i < (int) (sizeof(cuda_worker_set)/sizeof(cuda_worker_set[0])); i++)
+		cuda_worker_set[i].workers = NULL;
+
+	int ncuda = config->conf.ncuda;
+
+	if (ncuda != 0)
+	{
+		/* The user did not disable CUDA. We need to initialize CUDA
+ 		 * early to count the number of devices */
+		_starpu_init_cuda();
+		int nb_devices = _starpu_get_cuda_device_count();
+
+		_starpu_topology_check_ndevices(&ncuda, nb_devices, 0, STARPU_MAXCUDADEVS, "ncuda", "CUDA", "maxcudadev");
+	}
+
+	int nworker_per_cuda = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
+
+	STARPU_ASSERT_MSG(nworker_per_cuda > 0, "STARPU_NWORKER_PER_CUDA has to be > 0");
+	STARPU_ASSERT_MSG(nworker_per_cuda < STARPU_NMAXWORKERS, "STARPU_NWORKER_PER_CUDA (%d) cannot be higher than STARPU_NMAXWORKERS (%d)\n", nworker_per_cuda, STARPU_NMAXWORKERS);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	if (nworker_per_cuda > 1)
+	{
+		_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_CUDA to 1 because blocking drivers are enabled\n");
+		nworker_per_cuda = 1;
+	}
+	_starpu_nworker_per_cuda = nworker_per_cuda;
+#endif
+	/* Now we know how many CUDA devices will be used */
+	topology->ndevices[STARPU_CUDA_WORKER] = ncuda;
+
+	_starpu_initialize_workers_cuda_gpuid(config);
+
+	/* allow having one worker per stream */
+	topology->cuda_th_per_stream = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", -1);
+	topology->cuda_th_per_dev = starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_DEV", -1);
+
+	STARPU_ASSERT_MSG(!(topology->cuda_th_per_stream == 1 && topology->cuda_th_per_dev != -1), "It does not make sense to set both STARPU_CUDA_THREAD_PER_WORKER to 1 and to set STARPU_CUDA_THREAD_PER_DEV, please choose either per worker or per device or none");
+
+	/* per device by default */
+	if (topology->cuda_th_per_dev == -1)
+	{
+		if (topology->cuda_th_per_stream == 1)
+			topology->cuda_th_per_dev = 0;
+		else
+			topology->cuda_th_per_dev = 1;
+	}
+	/* Not per stream by default */
+	if (topology->cuda_th_per_stream == -1)
+	{
+		topology->cuda_th_per_stream = 0;
+	}
+
+	if (!topology->cuda_th_per_dev)
+	{
+		cuda_worker_set[0].workers = &config->workers[topology->nworkers];
+		cuda_worker_set[0].nworkers = ncuda * nworker_per_cuda;
+	}
+
+	unsigned cudagpu;
+	for (cudagpu = 0; (int) cudagpu < ncuda; cudagpu++)
+	{
+#ifdef STARPU_HAVE_HWLOC
+		unsigned worker_idx0 = topology->nworkers;
+#endif
+		int devid = _starpu_get_next_devid(topology, config, STARPU_CUDA_WORKER);
+
+		if (devid == -1)
+		{
+			// There is no more devices left
+			topology->ndevices[STARPU_CUDA_WORKER] = cudagpu;
+			break;
+		}
+
+		struct _starpu_worker_set *worker_set;
+
+		if(topology->cuda_th_per_stream)
+		{
+			worker_set = ALLOC_WORKER_SET;
+		}
+		else if (topology->cuda_th_per_dev)
+		{
+			worker_set = &cuda_worker_set[devid];
+			worker_set->workers = &config->workers[topology->nworkers];
+			worker_set->nworkers = nworker_per_cuda;
+		}
+		else
+		{
+			/* Same worker set for all devices */
+			worker_set = &cuda_worker_set[0];
+		}
+
+		_starpu_topology_configure_workers(topology, config,
+					STARPU_CUDA_WORKER,
+					cudagpu, devid, 0, 0,
+					nworker_per_cuda,
+					// TODO: fix perfmodels etc.
+					// nworker_per_cuda - 1,
+					1,
+					worker_set);
+		if (devid == -1)
+			// There is no more devices left
+			break;
+
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+		_starpu_opencl_using_cuda(devid);
+#endif
+
+#ifdef STARPU_HAVE_HWLOC
+		{
+			hwloc_obj_t obj = NULL;
+			if (starpu_driver_info[STARPU_CUDA_WORKER].get_hwloc_obj)
+				obj = starpu_driver_info[STARPU_CUDA_WORKER].get_hwloc_obj(topology, &config->workers[worker_idx0]);
+
+			if (obj)
+			{
+				struct _starpu_hwloc_userdata *data = obj->userdata;
+				data->ngpus++;
+			}
+			else
+			{
+				_STARPU_DEBUG("Warning: could not find location of CUDA%u, do you have the hwloc CUDA plugin installed?\n", devid);
+			}
+		}
+#endif
+        }
 }
 
 /* This is run from initialize to determine the number of CUDA devices */

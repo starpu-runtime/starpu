@@ -19,6 +19,7 @@
 
 /** @file */
 
+#include <core/workers.h>
 #include <drivers/mp_common/mp_common.h>
 #include <datawizard/node_ops.h>
 
@@ -35,6 +36,10 @@ struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node();
 
 unsigned _starpu_mpi_src_get_device_count();
 void *_starpu_mpi_src_worker(void *arg);
+
+void _starpu_init_mp_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
+			    struct starpu_conf *user_conf, int no_mp_config);
+void _starpu_deinit_mp_config(struct _starpu_machine_config *config);
 
 void _starpu_mpi_source_init(struct _starpu_mp_node *node);
 void _starpu_mpi_source_deinit(struct _starpu_mp_node *node);

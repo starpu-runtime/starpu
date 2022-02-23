@@ -732,6 +732,112 @@ void _starpu_opencl_init(void)
 	STARPU_PTHREAD_MUTEX_UNLOCK(&big_lock);
 }
 
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+/* Entry in the `devices_using_cuda' hash table.  */
+static struct _starpu_gpu_entry *devices_using_cuda;
+
+void _starpu_opencl_using_cuda(int devid)
+{
+	struct _starpu_gpu_entry *entry;
+	HASH_FIND_INT(devices_using_cuda, &devid, entry);
+	if (!entry)
+	{
+		_STARPU_MALLOC(entry, sizeof(*entry));
+		entry->gpuid = devid;
+		HASH_ADD_INT(devices_using_cuda, gpuid, entry);
+	}
+}
+#endif
+
+static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_config*config)
+{
+	struct _starpu_machine_topology *topology = &config->topology;
+	struct starpu_conf *uconf = &config->conf;
+
+        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_opencl_gpuid == 0
+					    ? NULL
+					    : (int *)uconf->workers_opencl_gpuid,
+					    &(config->current_devid[STARPU_OPENCL_WORKER]),
+					    (int *)topology->workers_devid[STARPU_OPENCL_WORKER],
+					    "STARPU_WORKERS_OPENCLID",
+					    topology->nhwdevices[STARPU_OPENCL_WORKER],
+					    STARPU_OPENCL_WORKER);
+
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+        // Detect devices which are already used with CUDA
+        {
+                unsigned tmp[STARPU_NMAXWORKERS];
+                unsigned nb=0;
+                int i;
+                for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
+		{
+			struct _starpu_gpu_entry *entry;
+			int devid = config->topology.workers_devid[STARPU_OPENCL_WORKER][i];
+
+			HASH_FIND_INT(devices_using_cuda, &devid, entry);
+			if (entry == NULL)
+			{
+                                tmp[nb] = topology->workers_devid[STARPU_OPENCL_WORKER][i];
+                                nb++;
+                        }
+                }
+                for (i=nb ; i<STARPU_NMAXWORKERS ; i++)
+			tmp[i] = -1;
+                memcpy(topology->workers_devid[STARPU_OPENCL_WORKER], tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
+        }
+#endif /* STARPU_USE_CUDA */
+	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_OPENCL_WORKER]);
+}
+
+void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config)
+{
+	int nopencl = config->conf.nopencl;
+
+	if (nopencl != 0)
+	{
+		/* The user did not disable OPENCL. We need to initialize
+ 		 * OpenCL early to count the number of devices */
+		_starpu_opencl_init();
+		int n = _starpu_opencl_get_device_count();
+
+		_starpu_topology_check_ndevices(&nopencl, n, 0, STARPU_MAXOPENCLDEVS, "nopencl", "OpenCL", "maxopencldev");
+	}
+
+	topology->ndevices[STARPU_OPENCL_WORKER] = nopencl;
+
+	_starpu_initialize_workers_opencl_gpuid(config);
+
+	unsigned openclgpu;
+	for (openclgpu = 0; (int) openclgpu < nopencl; openclgpu++)
+	{
+		int devid = _starpu_get_next_devid(topology, config, STARPU_OPENCL_WORKER);
+		if (devid == -1)
+		{
+			// There is no more devices left
+			topology->ndevices[STARPU_OPENCL_WORKER] = openclgpu;
+			break;
+		}
+
+		_starpu_topology_configure_workers(topology, config,
+				STARPU_OPENCL_WORKER,
+				openclgpu, devid, 0, 0,
+				1, 1, NULL);
+	}
+}
+
+void _starpu_deinit_opencl_config(void)
+{
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+	struct _starpu_gpu_entry *entry=NULL, *tmp=NULL;
+	HASH_ITER(hh, devices_using_cuda, entry, tmp)
+	{
+		HASH_DEL(devices_using_cuda, entry);
+		free(entry);
+	}
+	devices_using_cuda = NULL;
+#endif
+}
+
 #ifndef STARPU_SIMGRID
 static unsigned _starpu_opencl_get_device_name(int dev, char *name, int lname);
 #endif

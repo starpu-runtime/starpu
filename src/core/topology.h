@@ -23,6 +23,7 @@
 #include <common/config.h>
 #include <common/list.h>
 #include <common/fxt.h>
+#include <common/uthash.h>
 
 #pragma GCC visibility push(hidden)
 
@@ -43,8 +44,54 @@ struct _starpu_hwloc_userdata
 #endif
 #endif
 
+struct _starpu_gpu_entry
+{
+	UT_hash_handle hh;
+	unsigned gpuid;
+};
+
+struct _starpu_worker_set;
+struct _starpu_machine_topology;
+
 /** Detect the number of memory nodes and where to bind the different workers. */
 int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_config);
+
+/** Fill workers_gpuid with ids, either commit from explicit_workers_gpuid or from the environment variable \p named varname */
+void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
+					 int *current, int *workers_gpuid,
+					 const char *varname, unsigned nhwgpus,
+					 enum starpu_worker_archtype type);
+
+/** Drop duplicate values from \pids */
+void _starpu_topology_drop_duplicate(unsigned ids[STARPU_NMAXWORKERS]);
+
+/** Get the next devid for architecture \p type */
+int _starpu_get_next_devid(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, enum starpu_worker_archtype arch);
+
+/** Check that \p *ndevices is not larger than \p nhwdevices (unless overflow is 1), and is not larger than \p max.
+ * Cap it otherwise, and advise using the configurename ./configure option in the \p max case. */
+void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, const char *nname, const char *dname, const char *configurename);
+
+/** Configures the topology according to the desired worker distribution on the device.
+ * - homogeneous tells to use devid 0 for the perfmodel (all devices have the same performance)
+ * - worker_devid tells to set a devid per worker, and subworkerid to 0, rather
+ * than sharing the devid and giving a different subworkerid to each worker.
+ */
+
+/* Request to allocate a worker set for each worker */
+#define ALLOC_WORKER_SET ((struct _starpu_worker_set*) -1)
+
+/* Request to set a different perfmodel devid per worker */
+#define DEVID_PER_WORKER -2
+
+void _starpu_topology_configure_workers(struct _starpu_machine_topology *topology,
+					struct _starpu_machine_config *config,
+					enum starpu_worker_archtype type,
+					int devnum, int devid,
+					int homogeneous, int worker_devid,
+					unsigned nworker_per_device,
+					unsigned ncores,
+					struct _starpu_worker_set *worker_set);
 
 /** Should be called instead of _starpu_destroy_topology when _starpu_build_topology returns a non zero value. */
 void _starpu_destroy_machine_config(struct _starpu_machine_config *config);

@@ -46,6 +46,8 @@ void _starpu_opencl_discover_devices(struct _starpu_machine_config *config);
 
 unsigned _starpu_opencl_get_device_count(void);
 void _starpu_opencl_init(void);
+void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
+void _starpu_deinit_opencl_config(void);
 void *_starpu_opencl_worker(void *);
 extern struct _starpu_node_ops _starpu_driver_opencl_node_ops;
 #else
@@ -54,6 +56,10 @@ extern struct _starpu_node_ops _starpu_driver_opencl_node_ops;
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 extern struct _starpu_driver_ops _starpu_driver_opencl_ops;
+#endif
+
+#if (defined(STARPU_USE_OPENCL) && defined(STARPU_USE_CUDA)) || defined(STARPU_SIMGRID)
+void _starpu_opencl_using_cuda(int devid);
 #endif
 
 #ifdef STARPU_USE_OPENCL

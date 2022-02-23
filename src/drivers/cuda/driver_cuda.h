@@ -42,6 +42,8 @@ void _starpu_cuda_preinit(void);
 extern struct _starpu_driver_ops _starpu_driver_cuda_ops;
 extern struct _starpu_node_ops _starpu_driver_cuda_node_ops;
 
+extern int _starpu_nworker_per_cuda;
+
 void _starpu_cuda_init(void);
 unsigned _starpu_get_cuda_device_count(void);
 #ifdef STARPU_HAVE_HWLOC
@@ -52,6 +54,7 @@ extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_M
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 void _starpu_cuda_discover_devices (struct _starpu_machine_config *);
+void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 void _starpu_init_cuda(void);
 void *_starpu_cuda_worker(void *);
 #ifdef STARPU_HAVE_LIBNVIDIA_ML

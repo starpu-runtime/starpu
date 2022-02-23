@@ -87,6 +87,73 @@ void _starpu_cpu_preinit(void)
 	_starpu_memory_driver_info_register(STARPU_CPU_RAM, &memory_driver_info);
 }
 
+#if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
+void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config)
+{
+	int ncpu = config->conf.ncpus;
+
+	if (ncpu != 0)
+	{
+		STARPU_ASSERT_MSG(ncpu >= -1, "ncpus can not be negative and different from -1 (is is %d)", ncpu);
+
+		unsigned mpi_ms_busy_cpus = 0;
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
+#ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+		for (j = 0; j < STARPU_MAXMPIDEVS; j++)
+			mpi_ms_busy_cpus += (topology->nworker[STARPU_MPI_MS_WORKER][j] ? 1 : 0);
+#else
+		mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
+#endif
+#endif /* STARPU_USE_MPI_MASTER_SLAVE */
+		unsigned cuda_busy_cpus = 0;
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+		cuda_busy_cpus =
+			topology->cuda_th_per_dev == 0 && topology->cuda_th_per_stream == 0 ? (topology->ndevices[STARPU_CUDA_WORKER] ? 1 : 0) :
+			topology->cuda_th_per_stream ? (_starpu_nworker_per_cuda * topology->ndevices[STARPU_CUDA_WORKER]) : topology->ndevices[STARPU_CUDA_WORKER];
+#endif
+		unsigned already_busy_cpus = mpi_ms_busy_cpus
+			+ cuda_busy_cpus
+			+ topology->ndevices[STARPU_OPENCL_WORKER]
+			+ topology->ndevices[STARPU_MAX_FPGA_WORKER];
+
+		long avail_cpus = (long) topology->nhwworker[STARPU_CPU_WORKER][0] - (long) already_busy_cpus;
+		if (avail_cpus < 0)
+			avail_cpus = 0;
+		int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
+		avail_cpus *= nth_per_core;
+
+		if (avail_cpus >= STARPU_MAXCPUS)
+		{
+			_STARPU_MSG("# Warning: %ld CPU cores available. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU cores.\n", avail_cpus, STARPU_MAXCPUS);
+			avail_cpus = STARPU_MAXCPUS;
+		}
+
+		_starpu_topology_check_ndevices(&ncpu, avail_cpus, 1, STARPU_MAXCPUS, "ncpus", "CPU cores", "maxcpus");
+
+		if (config->conf.reserve_ncpus > 0)
+		{
+			if (ncpu < config->conf.reserve_ncpus)
+			{
+				_STARPU_DISP("Warning: %d CPU cores were requested to be reserved, but only %d were available,\n", config->conf.reserve_ncpus, ncpu);
+				ncpu = 0;
+			}
+			else
+			{
+				ncpu -= config->conf.reserve_ncpus;
+			}
+		}
+
+	}
+
+	topology->ndevices[STARPU_CPU_WORKER] = 1;
+	unsigned homogeneous = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
+
+	_starpu_topology_configure_workers(topology, config,
+			STARPU_CPU_WORKER,
+			0, 0, homogeneous, 1,
+			ncpu, 1, NULL);
+}
+#endif
 
 #ifdef STARPU_USE_CPU
 /* Actually launch the job on a cpu worker.
