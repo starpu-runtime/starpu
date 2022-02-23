@@ -424,8 +424,42 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
  * Discover the topology of the machine
  */
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MAX_FPGA) || defined(STARPU_SIMGRID)
-static void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
+static STARPU_ATTRIBUTE_UNUSED void _starpu_topology_drop_duplicate(unsigned ids[STARPU_NMAXWORKERS])
+{
+	// Detect identical devices, keep unique devices
+	struct handle_entry *devices_already_used = NULL;
+	unsigned tmp[STARPU_NMAXWORKERS];
+	unsigned nb=0;
+	int i;
+
+	for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
+	{
+		int devid = ids[i];
+		struct handle_entry *entry;
+		HASH_FIND_INT(devices_already_used, &devid, entry);
+		if (entry == NULL)
+		{
+			struct handle_entry *entry2;
+			_STARPU_MALLOC(entry2, sizeof(*entry2));
+			entry2->gpuid = devid;
+			HASH_ADD_INT(devices_already_used, gpuid,
+				     entry2);
+			tmp[nb] = devid;
+			nb ++;
+		}
+	}
+	struct handle_entry *entry=NULL, *tempo=NULL;
+	HASH_ITER(hh, devices_already_used, entry, tempo)
+	{
+		HASH_DEL(devices_already_used, entry);
+		free(entry);
+	}
+	for (i=nb ; i<STARPU_NMAXWORKERS ; i++)
+		tmp[i] = -1;
+	memcpy(ids, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
+}
+
+static STARPU_ATTRIBUTE_UNUSED void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 						int *current, int *workers_gpuid,
 						const char *varname, unsigned nhwgpus,
 						enum starpu_worker_archtype type)
@@ -506,7 +540,6 @@ static void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 		may_bind_automatically[type] = 1;
 	}
 }
-#endif
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config *config)
@@ -522,6 +555,7 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
 					    "STARPU_WORKERS_CUDAID",
 					    topology->nhwdevices[STARPU_CUDA_WORKER],
 					    STARPU_CUDA_WORKER);
+	_starpu_topology_drop_duplicate(topology->workers_cuda_gpuid);
 }
 
 static inline int _starpu_get_next_cuda_gpuid(struct _starpu_machine_config *config)
@@ -570,39 +604,7 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
                 memcpy(topology->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
         }
 #endif /* STARPU_USE_CUDA */
-        {
-                // Detect identical devices
-		struct handle_entry *devices_already_used = NULL;
-                unsigned tmp[STARPU_NMAXWORKERS];
-                unsigned nb=0;
-                int i;
-
-                for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
-		{
-			int devid = topology->workers_opencl_gpuid[i];
-			struct handle_entry *entry;
-			HASH_FIND_INT(devices_already_used, &devid, entry);
-			if (entry == NULL)
-			{
-				struct handle_entry *entry2;
-				_STARPU_MALLOC(entry2, sizeof(*entry2));
-				entry2->gpuid = devid;
-				HASH_ADD_INT(devices_already_used, gpuid,
-					     entry2);
-                                tmp[nb] = devid;
-                                nb ++;
-                        }
-                }
-		struct handle_entry *entry=NULL, *tempo=NULL;
-		HASH_ITER(hh, devices_already_used, entry, tempo)
-		{
-			HASH_DEL(devices_already_used, entry);
-			free(entry);
-		}
-                for (i=nb ; i<STARPU_NMAXWORKERS ; i++)
-			tmp[i] = -1;
-                memcpy(topology->workers_opencl_gpuid, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
-        }
+	_starpu_topology_drop_duplicate(topology->workers_opencl_gpuid);
 }
 
 static inline int _starpu_get_next_opencl_gpuid(struct _starpu_machine_config *config)
@@ -627,6 +629,7 @@ static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_
 					    "STARPU_WORKERS_MAX_FPGAID",
 					    topology->nhwdevices[STARPU_MAX_FPGA_WORKER],
 					    STARPU_MAX_FPGA_WORKER);
+	_starpu_topology_drop_duplicate(topology->workers_max_fpga_deviceid);
 }
 
 static inline int _starpu_get_next_max_fpga_deviceid (struct _starpu_machine_config *config)
