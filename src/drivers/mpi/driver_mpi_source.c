@@ -66,8 +66,8 @@ unsigned _starpu_mpi_src_get_device_count()
 
 void *_starpu_mpi_src_worker(void *arg)
 {
-	struct _starpu_worker *worker = arg;
-        struct _starpu_worker_set *set = worker->set;
+        struct _starpu_worker *worker0 = arg;
+        struct _starpu_worker_set *set = worker0->set;
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
         struct _starpu_worker_set *worker_set_mpi = set;
         int nbsinknodes = _starpu_mpi_src_get_device_count();
