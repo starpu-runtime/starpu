@@ -18,7 +18,7 @@ include $(top_srcdir)/starpu.mk
 noinst_PROGRAMS		=
 
 if STARPU_HAVE_WINDOWS
-LOADER_BIN		=
+LOADER_BIN		=	$(MPI_LAUNCHER)
 else
 loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 if !STARPU_SIMGRID
