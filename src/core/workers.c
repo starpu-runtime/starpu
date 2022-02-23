@@ -911,117 +911,24 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					workerarg->driver_ops->set_devid(&driver, workerarg);
 			}
 
-			switch (workerarg->arch)
-			{
-#if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
-			case STARPU_CPU_WORKER:
-			{
-				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
-				{
-					STARPU_PTHREAD_CREATE_ON(
-						starpu_driver_info[workerarg->arch].name_upper,
-						worker_thread,
-						NULL,
-						starpu_driver_info[workerarg->arch].run_worker,
-						worker_set ? worker_set : workerarg,
-						_starpu_simgrid_get_host_by_worker(workerarg));
-				}
-				else
-				{
-					workerarg->run_by_starpu = 0;
-				}
-				break;
-			}
-#endif
-
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-			case STARPU_CUDA_WORKER:
-			{
-				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
-				{
-					STARPU_PTHREAD_CREATE_ON(
-						starpu_driver_info[workerarg->arch].name_upper,
-						worker_thread,
-						NULL,
-						starpu_driver_info[workerarg->arch].run_worker,
-						worker_set ? worker_set : workerarg,
-						_starpu_simgrid_get_host_by_worker(workerarg));
-				}
-				else
-				{
-					workerarg->run_by_starpu = 0;
-				}
-				break;
-			}
-#endif
-
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-			case STARPU_OPENCL_WORKER:
-			{
-				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
-				{
-					STARPU_PTHREAD_CREATE_ON(
-						starpu_driver_info[workerarg->arch].name_upper,
-						worker_thread,
-						NULL,
-						starpu_driver_info[workerarg->arch].run_worker,
-						worker_set ? worker_set : workerarg,
-						_starpu_simgrid_get_host_by_worker(workerarg));
-				}
-				else
-				{
-					workerarg->run_by_starpu = 0;
-				}
-				break;
-			}
-#endif
-
-#if defined(STARPU_USE_MAX_FPGA)
-			case STARPU_MAX_FPGA_WORKER:
-			{
-				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
-				{
-					STARPU_PTHREAD_CREATE_ON(
-						starpu_driver_info[workerarg->arch].name_upper,
-						worker_thread,
-						NULL,
-						starpu_driver_info[workerarg->arch].run_worker,
-						worker_set ? worker_set : workerarg,
-						_starpu_simgrid_get_host_by_worker(workerarg));
-				}
-				else
-				{
-					workerarg->run_by_starpu = 0;
-					break;
-				}
-				break;
-			}
-#endif
-
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-			case STARPU_MPI_MS_WORKER:
-			{
 #ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-				/* if MPI has multiple threads supports
-				 * we launch 1 thread per device
-				 * else
-				 * we launch one thread for all devices
-				 */
-				STARPU_PTHREAD_CREATE_ON(
+			if (workerarg->arch != STARPU_MPI_MS_WORKER)
+#endif
+			{
+				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
+				{
+					STARPU_PTHREAD_CREATE_ON(
 						starpu_driver_info[workerarg->arch].name_upper,
 						worker_thread,
 						NULL,
 						starpu_driver_info[workerarg->arch].run_worker,
-						worker_set ? worker_set : workerarg,
+						worker_set ? (void*) worker_set : (void*) workerarg,
 						_starpu_simgrid_get_host_by_worker(workerarg));
-
-#endif /* STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD */
-				break;
-			}
-#endif /* STARPU_USE_MPI_MASTER_SLAVE */
-
-			default:
-				STARPU_ABORT();
+				}
+				else
+				{
+					workerarg->run_by_starpu = 0;
+				}
 			}
 		}
 
