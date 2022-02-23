@@ -911,7 +911,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 					workerarg->driver_ops->set_devid(&driver, workerarg);
 			}
 
-#ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
 			if (workerarg->arch != STARPU_MPI_MS_WORKER)
 #endif
 			{
