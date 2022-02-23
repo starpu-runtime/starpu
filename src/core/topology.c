@@ -1124,6 +1124,7 @@ void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int ove
 	if (*ndevices == -1)
 	{
 		/* Nothing was specified, so let's choose ! */
+		STARPU_ASSERT_MSG(nhwdevices <= max, "Oops, driver reported more than its own maximum");
 		*ndevices = nhwdevices;
 	}
 	else
@@ -1369,7 +1370,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 #endif
 	/* Now we know how many CUDA devices will be used */
 	topology->ndevices[STARPU_CUDA_WORKER] = ncuda;
-	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] <= STARPU_MAXCUDADEVS);
 	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] * nworker_per_cuda + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_cuda_gpuid(config);
@@ -1500,7 +1500,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	}
 
 	topology->ndevices[STARPU_OPENCL_WORKER] = nopencl;
-	STARPU_ASSERT(topology->ndevices[STARPU_OPENCL_WORKER] < STARPU_MAXOPENCLDEVS);
 	STARPU_ASSERT(topology->ndevices[STARPU_OPENCL_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_opencl_gpuid(config);
@@ -1548,7 +1547,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 	/* Now we know how many MAX FPGA devices will be used */
 	topology->ndevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga;
-	STARPU_ASSERT(topology->ndevices[STARPU_MAX_FPGA_WORKER] <= STARPU_MAXMAXFPGADEVS);
 	STARPU_ASSERT(topology->ndevices[STARPU_MAX_FPGA_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_max_fpga_deviceid(config);
@@ -1621,6 +1619,12 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
 		avail_cpus *= nth_per_core;
 
+		if (avail_cpus >= STARPU_MAXCPUS)
+		{
+			_STARPU_MSG("# Warning: %ld CPU cores available. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU cores.\n", avail_cpus, STARPU_MAXCPUS);
+			avail_cpus = STARPU_MAXCPUS;
+		}
+
 		_starpu_topology_check_ndevices(&ncpu, avail_cpus, 1, STARPU_MAXCPUS, "ncpus", "CPU cores", "maxcpus");
 
 		if (config->conf.reserve_ncpus > 0)
@@ -1640,7 +1644,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 	topology->ndevices[STARPU_CPU_WORKER] = 1;
 	topology->nworker[STARPU_CPU_WORKER][0] = ncpu;
-	STARPU_ASSERT(topology->nworker[STARPU_CUDA_WORKER][0] <= STARPU_MAXCPUS);
 	STARPU_ASSERT(topology->nworker[STARPU_CPU_WORKER][0] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	unsigned cpu;
