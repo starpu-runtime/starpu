@@ -34,6 +34,8 @@ if !STARPU_SIMGRID
 LOADER			=	loader
 LOADER_BIN		=	$(MPI_LAUNCHER) $(abs_top_builddir)/mpi/examples/$(LOADER)
 noinst_PROGRAMS		+=	loader
+else
+LOADER_BIN		=	$(MPI_LAUNCHER)
 endif
 loader_SOURCES		=	../../tests/loader.c
 endif
