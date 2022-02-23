@@ -1114,6 +1114,35 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 }
 #endif
 
+void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int overflow, unsigned max, const char *nname, const char *dname, const char *configurename)
+{
+	if (!*ndevices)
+		return;
+
+	STARPU_ASSERT_MSG(*ndevices >= -1, "%s can not be negative and different from -1 (is is %d)", nname, *ndevices);
+
+	if (*ndevices == -1)
+	{
+		/* Nothing was specified, so let's choose ! */
+		*ndevices = nhwdevices;
+	}
+	else
+	{
+		if (!overflow && *ndevices > (int) nhwdevices)
+		{
+			/* The user requires more devices than there is available */
+			_STARPU_DISP("Warning: %d %s devices requested. Only %d available.\n", *ndevices, dname, nhwdevices);
+			*ndevices = nhwdevices;
+		}
+		/* Let's make sure this value is OK. */
+		if (*ndevices > (int) max)
+		{
+			_STARPU_DISP("Warning: %d %s devices requested. Only %d enabled. Use configure option --enable-%s=xxx to update the maximum value of supported %s devices.\n", *ndevices, dname, max, configurename, dname);
+			*ndevices = max;
+		}
+	}
+}
+
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 static void _starpu_init_mpi_config(struct _starpu_machine_config *config,
 				    struct starpu_conf *user_conf,
@@ -1323,28 +1352,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		_starpu_init_cuda();
 		int nb_devices = _starpu_get_cuda_device_count();
 
-		STARPU_ASSERT_MSG(ncuda >= -1, "ncuda can not be negative and different from -1 (is is %d)", ncuda);
-		if (ncuda == -1)
-		{
-			/* Nothing was specified, so let's choose ! */
-			ncuda = nb_devices;
-		}
-		else
-		{
-			if (ncuda > nb_devices)
-			{
-				/* The user requires more CUDA devices than
-				 * there is available */
-				_STARPU_DISP("Warning: %d CUDA devices requested. Only %d available.\n", ncuda, nb_devices);
-				ncuda = nb_devices;
-			}
-			/* Let's make sure this value is OK. */
-			if (ncuda > STARPU_MAXCUDADEVS)
-			{
-				_STARPU_DISP("Warning: %d CUDA devices requested. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n", ncuda, STARPU_MAXCUDADEVS);
-				ncuda = STARPU_MAXCUDADEVS;
-			}
-		}
+		_starpu_topology_check_ndevices(&ncuda, nb_devices, 0, STARPU_MAXCUDADEVS, "ncuda", "CUDA", "maxcudadev");
 	}
 
 	int nworker_per_cuda = starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1);
@@ -1486,32 +1494,9 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		/* The user did not disable OPENCL. We need to initialize
  		 * OpenCL early to count the number of devices */
 		_starpu_opencl_init();
-		int nb_devices;
-		nb_devices = _starpu_opencl_get_device_count();
+		int nb_devices = _starpu_opencl_get_device_count();
 
-		STARPU_ASSERT_MSG(nopencl >= -1, "nopencl can not be negative and different from -1 (is is %d)", nopencl);
-		if (nopencl == -1)
-		{
-			/* Nothing was specified, so let's choose ! */
-			nopencl = nb_devices;
-		}
-		else
-		{
-			/* Let's make sure this value is OK. */
-			if (nopencl > nb_devices)
-			{
-				/* The user requires more OpenCL devices than
-				 * there is available */
-				_STARPU_DISP("Warning: %d OpenCL devices requested. Only %d available.\n", nopencl, nb_devices);
-				nopencl = nb_devices;
-			}
-			/* Let's make sure this value is OK. */
-			if (nopencl > STARPU_MAXOPENCLDEVS)
-			{
-				_STARPU_DISP("Warning: %d OpenCL devices requested. Only %d enabled. Use configure option --enable-maxopencldev=xxx to update the maximum value of supported OpenCL devices.\n", nopencl, STARPU_MAXOPENCLDEVS);
-				nopencl = STARPU_MAXOPENCLDEVS;
-			}
-		}
+		_starpu_topology_check_ndevices(&nopencl, nb_devices, 0, STARPU_MAXOPENCLDEVS, "nopencl", "OpenCL", "maxopencldev");
 	}
 
 	topology->ndevices[STARPU_OPENCL_WORKER] = nopencl;
@@ -1555,35 +1540,12 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		/* The user did not disable FPGA. We need to initialize
  		 * FPGA early to count the number of devices */
 		_starpu_init_max_fpga();
-		int nb_devices;
-		nb_devices = _starpu_max_fpga_get_device_count();
+		int nb_devices = _starpu_max_fpga_get_device_count();
 
-		STARPU_ASSERT_MSG(nmax_fpga >= -1, "nmax_fpga can not be negative and different from -1 (is is %d)", nmax_fpga);
-		if (nmax_fpga == -1)
-		{
-			/* Nothing was specified, so let's choose ! */
-			nmax_fpga = nb_devices;
-		}
-		else
-		{
-			/* Let's make sure this value is OK. */
-			if (nmax_fpga > nb_devices)
-			{
-				/* The user requires more Maxeler FPGA devices than
-				 * there is available */
-				_STARPU_DISP("Warning: %d Maxeler FPGA devices requested. Only %d available.\n", nmax_fpga, nb_devices);
-				nmax_fpga = nb_devices;
-			}
-			/* Let's make sure this value is OK. */
-			if (nmax_fpga > STARPU_MAXMAXFPGADEVS)
-			{
-				_STARPU_DISP("Warning: %d Maxeler FPGA devices requested. Only %d enabled. Use configure option --enable-maxmaxfpgadev=xxx to update the maximum value of supported Maxeler FPGA devices.\n", nmax_fpga, STARPU_MAXMAXFPGADEVS);
-				nmax_fpga = STARPU_MAXMAXFPGADEVS;
-			}
-		}
+		_starpu_topology_check_ndevices(&nmax_fpga, nb_devices, 0, STARPU_MAXMAXFPGADEVS, "nmax_fpga", "Maxeler FPGA", "maxmaxfpgadev");
 	}
 
-	/* Now we know how many CUDA devices will be used */
+	/* Now we know how many MAX FPGA devices will be used */
 	topology->ndevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga;
 	for (i = 0; i < nmax_fpga; i++)
 		topology->nworker[STARPU_MAX_FPGA_WORKER][i] = 1;
@@ -1630,42 +1592,34 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	if (ncpu != 0)
 	{
 		STARPU_ASSERT_MSG(ncpu >= -1, "ncpus can not be negative and different from -1 (is is %d)", ncpu);
-		if (ncpu == -1)
-		{
-			unsigned mpi_ms_busy_cpus = 0;
+
+		unsigned mpi_ms_busy_cpus = 0;
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 #ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-			for (j = 0; j < STARPU_MAXMPIDEVS; j++)
-				mpi_ms_busy_cpus += (topology->nworker[STARPU_MPI_MS_WORKER][j] ? 1 : 0);
+		for (j = 0; j < STARPU_MAXMPIDEVS; j++)
+			mpi_ms_busy_cpus += (topology->nworker[STARPU_MPI_MS_WORKER][j] ? 1 : 0);
 #else
-			mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
+		mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
 #endif
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
-			unsigned cuda_busy_cpus = 0;
+		unsigned cuda_busy_cpus = 0;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-			cuda_busy_cpus =
-				topology->cuda_th_per_dev == 0 && topology->cuda_th_per_stream == 0 ? (topology->ndevices[STARPU_CUDA_WORKER] ? 1 : 0) :
-				topology->cuda_th_per_stream ? (nworker_per_cuda * topology->ndevices[STARPU_CUDA_WORKER]) : topology->ndevices[STARPU_CUDA_WORKER];
+		cuda_busy_cpus =
+			topology->cuda_th_per_dev == 0 && topology->cuda_th_per_stream == 0 ? (topology->ndevices[STARPU_CUDA_WORKER] ? 1 : 0) :
+			topology->cuda_th_per_stream ? (nworker_per_cuda * topology->ndevices[STARPU_CUDA_WORKER]) : topology->ndevices[STARPU_CUDA_WORKER];
 #endif
-			unsigned already_busy_cpus = mpi_ms_busy_cpus
-				+ cuda_busy_cpus
-				+ topology->ndevices[STARPU_OPENCL_WORKER]
-				+ topology->ndevices[STARPU_MAX_FPGA_WORKER];
+		unsigned already_busy_cpus = mpi_ms_busy_cpus
+			+ cuda_busy_cpus
+			+ topology->ndevices[STARPU_OPENCL_WORKER]
+			+ topology->ndevices[STARPU_MAX_FPGA_WORKER];
 
-			long avail_cpus = (long) topology->nhwworker[STARPU_CPU_WORKER][0] - (long) already_busy_cpus;
-			if (avail_cpus < 0)
-				avail_cpus = 0;
-			int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
-			avail_cpus *= nth_per_core;
+		long avail_cpus = (long) topology->nhwworker[STARPU_CPU_WORKER][0] - (long) already_busy_cpus;
+		if (avail_cpus < 0)
+			avail_cpus = 0;
+		int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
+		avail_cpus *= nth_per_core;
 
-			ncpu = avail_cpus;
-		}
-
-		if (ncpu > STARPU_MAXCPUS)
-		{
-			_STARPU_DISP("Warning: %d CPU cores requested. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU devices.\n", ncpu, STARPU_MAXCPUS);
-			ncpu = STARPU_MAXCPUS;
-		}
+		_starpu_topology_check_ndevices(&ncpu, avail_cpus, 1, STARPU_MAXCPUS, "ncpus", "CPU cores", "maxcpus");
 
 		if (config->conf.reserve_ncpus > 0)
 		{
