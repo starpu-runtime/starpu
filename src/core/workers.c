@@ -915,7 +915,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			if (workerarg->arch != STARPU_MPI_MS_WORKER)
 #endif
 			{
-				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
+				if (! workerarg->driver_ops || _starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
 					STARPU_PTHREAD_CREATE_ON(
 						starpu_driver_info[workerarg->arch].name_upper,
