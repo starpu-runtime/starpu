@@ -24,10 +24,10 @@
 
 struct _starpu_driver_ops
 {
-	int (*init)(struct _starpu_worker *worker);
-	int (*run)(struct _starpu_worker *worker);
-	int (*run_once)(struct _starpu_worker *worker);
-	int (*deinit)(struct _starpu_worker *worker);
+	int (*init)(struct _starpu_worker *worker);	/**< Initialize the thread for running the worker */
+	int (*run)(struct _starpu_worker *worker);	/**< Actually run the worker */
+	int (*run_once)(struct _starpu_worker *worker);	/**< Run just one loop of the worker */
+	int (*deinit)(struct _starpu_worker *worker);	/**< Deinitialize the thread after running a worker */
 };
 
 #pragma GCC visibility pop
