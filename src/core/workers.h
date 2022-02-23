@@ -523,6 +523,7 @@ struct _starpu_driver_info
 	const char *name_lower;	/**< Name of worker type in lower case */
 	enum starpu_node_kind memory_kind;	/**< Kind of memory in device */
 	double alpha;	/**< Typical relative speed compared to a CPU core */
+	unsigned wait_for_worker_initialization;	/**< Whether we should make the core wait for worker initialization before starting other workers initialization */
 	const struct _starpu_driver_ops *driver_ops;	/**< Driver operations */
 };
 

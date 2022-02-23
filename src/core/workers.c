@@ -900,6 +900,7 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			}
 
 			workerarg->driver_ops = starpu_driver_info[workerarg->arch].driver_ops;
+			workerarg->wait_for_worker_initialization = starpu_driver_info[workerarg->arch].wait_for_worker_initialization;
 
 			switch (workerarg->arch)
 			{
@@ -909,7 +910,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				struct starpu_driver driver;
 				driver.type = workerarg->arch;
 				driver.id.cpu_id = workerarg->devid;
-				workerarg->wait_for_worker_initialization = 1;
 
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
@@ -935,7 +935,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				struct starpu_driver driver;
 				driver.type = workerarg->arch;
 				driver.id.cuda_id = workerarg->devid;
-				workerarg->wait_for_worker_initialization = 0;
 
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
@@ -961,7 +960,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 				struct starpu_driver driver;
 				driver.type = workerarg->arch;
 				starpu_opencl_get_device(workerarg->devid, &driver.id.opencl_id);
-				workerarg->wait_for_worker_initialization = 1;
 
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
@@ -986,7 +984,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 			{
 				struct starpu_driver driver;
 				driver.type = workerarg->arch;
-				workerarg->wait_for_worker_initialization = 1;
 
 				if (_starpu_may_launch_driver(&pconfig->conf, &driver))
 				{
@@ -1010,8 +1007,6 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 			case STARPU_MPI_MS_WORKER:
 			{
-				workerarg->wait_for_worker_initialization = 0;
-
 #ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
 				/* if MPI has multiple threads supports
 				 * we launch 1 thread per device

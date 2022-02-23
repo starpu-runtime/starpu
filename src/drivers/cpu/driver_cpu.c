@@ -67,6 +67,7 @@ static struct _starpu_driver_info driver_info =
 	.name_lower = "cpu",
 	.memory_kind = STARPU_CPU_RAM,
 	.alpha = 0.5f,
+	.wait_for_worker_initialization = 1,
 #ifdef STARPU_USE_CPU
 	.driver_ops = &_starpu_driver_cpu_ops,
 #endif
