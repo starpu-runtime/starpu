@@ -109,6 +109,13 @@ void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 
         //LMemInterface addLMemInterface()
         //// pour récupérer l'accès à la LMem
+
+	if (n > STARPU_MAXMAXFPGADEVS)
+	{
+		_STARPU_DISP("Warning: %d Maxeler FPGA devices available. Only %d enabled. Use configure option --enable-maxmaxfpgadev=xxx to update the maximum value of supported Maxeler FPGA devices.\n", n, STARPU_MAXMAXFPGADEVS);
+		n = STARPU_MAXMAXFPGADEVS;
+	}
+
 	config->topology.nhwdevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga = n;
 }
 

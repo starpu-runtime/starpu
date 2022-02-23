@@ -1374,6 +1374,12 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 				_STARPU_DISP("Warning: %d CUDA devices requested. Only %d available.\n", ncuda, nb_devices);
 				ncuda = nb_devices;
 			}
+			/* Let's make sure this value is OK. */
+			if (ncuda > STARPU_MAXCUDADEVS)
+			{
+				_STARPU_DISP("Warning: %d CUDA devices requested. Only %d enabled. Use configure option --enable-maxcudadev=xxx to update the maximum value of supported CUDA devices.\n", ncuda, STARPU_MAXCUDADEVS);
+				ncuda = STARPU_MAXCUDADEVS;
+			}
 		}
 	}
 
@@ -1382,6 +1388,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	for (i = 0; i < ncuda; i++)
 		topology->nworker[STARPU_CUDA_WORKER][i] = nworker_per_cuda;
 	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] <= STARPU_MAXCUDADEVS);
+	STARPU_ASSERT(topology->ndevices[STARPU_CUDA_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_cuda_gpuid(config);
 
@@ -1417,6 +1424,13 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		int devid = _starpu_get_next_cuda_gpuid(config);
 		int worker_idx0 = topology->nworkers + cudagpu * nworker_per_cuda;
 		struct _starpu_worker_set *worker_set;
+
+		if (devid == -1)
+		{
+			// There is no more devices left
+			topology->ndevices[STARPU_CUDA_WORKER] = cudagpu;
+			break;
+		}
 
 		if (topology->cuda_th_per_dev)
 		{
@@ -1503,11 +1517,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		{
 			/* Nothing was specified, so let's choose ! */
 			nopencl = nb_devices;
-			if (nopencl > STARPU_MAXOPENCLDEVS)
-			{
-				_STARPU_DISP("Warning: %d OpenCL devices available. Only %d enabled. Use configure option --enable-maxopencldadev=xxx to update the maximum value of supported OpenCL devices.\n", nb_devices, STARPU_MAXOPENCLDEVS);
-				nopencl = STARPU_MAXOPENCLDEVS;
-			}
 		}
 		else
 		{
@@ -1531,6 +1540,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	topology->ndevices[STARPU_OPENCL_WORKER] = nopencl;
 	for (i = 0; i < nopencl; i++)
 		topology->nworker[STARPU_OPENCL_WORKER][i] = 1;
+	STARPU_ASSERT(topology->ndevices[STARPU_OPENCL_WORKER] < STARPU_MAXOPENCLDEVS);
 	STARPU_ASSERT(topology->ndevices[STARPU_OPENCL_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_opencl_gpuid(config);
@@ -1538,8 +1548,8 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 	unsigned openclgpu;
 	for (openclgpu = 0; openclgpu < topology->ndevices[STARPU_OPENCL_WORKER]; openclgpu++)
 	{
-		int worker_idx = topology->nworkers + openclgpu;
 		int devid = _starpu_get_next_opencl_gpuid(config);
+		int worker_idx = topology->nworkers + openclgpu;
 		if (devid == -1)
 		{
 			// There is no more devices left
@@ -1552,8 +1562,8 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_OPENCL_WORKER;
 		config->workers[worker_idx].perf_arch.devices[0].devid = devid;
 		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
-		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = devid;
+		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].worker_mask = STARPU_OPENCL;
 		config->worker_mask |= STARPU_OPENCL;
 	}
@@ -1571,15 +1581,11 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		int nb_devices;
 		nb_devices = _starpu_max_fpga_get_device_count();
 
+		STARPU_ASSERT_MSG(nmax_fpga >= -1, "nmax_fpga can not be negative and different from -1 (is is %d)", nmax_fpga);
 		if (nmax_fpga == -1)
 		{
 			/* Nothing was specified, so let's choose ! */
 			nmax_fpga = nb_devices;
-			if (nmax_fpga > STARPU_MAXMAXFPGADEVS)
-			{
-				_STARPU_DISP("Warning: %d Maxeler FPGA devices available. Only %d enabled. Use configure option --enable-maxmaxfpgadev=xxx to update the maximum value of supported Maxeler FPGA devices.\n", nb_devices, STARPU_MAXMAXFPGADEVS);
-				nmax_fpga = STARPU_MAXMAXFPGADEVS;
-			}
 		}
 		else
 		{
@@ -1600,9 +1606,11 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		}
 	}
 
+	/* Now we know how many CUDA devices will be used */
 	topology->ndevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga;
 	for (i = 0; i < nmax_fpga; i++)
 		topology->nworker[STARPU_MAX_FPGA_WORKER][i] = 1;
+	STARPU_ASSERT(topology->ndevices[STARPU_MAX_FPGA_WORKER] <= STARPU_MAXMAXFPGADEVS);
 	STARPU_ASSERT(topology->ndevices[STARPU_MAX_FPGA_WORKER] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	_starpu_initialize_workers_max_fpga_deviceid(config);
@@ -1613,18 +1621,19 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		int worker_idx = topology->nworkers + max_fpga;
 		int devid = _starpu_get_next_max_fpga_deviceid(config);
 		if (devid == -1)
-		{ // There is no more devices left
+		{
+			// There is no more devices left
 			topology->ndevices[STARPU_MAX_FPGA_WORKER] = max_fpga;
 			break;
 		}
 		config->workers[worker_idx].arch = STARPU_MAX_FPGA_WORKER;
-		config->workers[worker_idx].perf_arch.devices = (struct starpu_perfmodel_device*)malloc(sizeof(struct starpu_perfmodel_device));
+		_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 		config->workers[worker_idx].perf_arch.ndevices = 1;
 		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_MAX_FPGA_WORKER;
 		config->workers[worker_idx].perf_arch.devices[0].devid = devid;
 		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
-		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = devid;
+		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].worker_mask = STARPU_MAX_FPGA;
 		config->worker_mask |= STARPU_MAX_FPGA;
 	}
@@ -1633,7 +1642,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 #endif
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
-	    _starpu_init_mp_config(config, &config->conf, no_mp_config);
+	_starpu_init_mp_config(config, &config->conf, no_mp_config);
 #endif
 
 /* we put the CPU section after the accelerator : in case there was an
@@ -1698,6 +1707,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 	topology->ndevices[STARPU_CPU_WORKER] = 1;
 	topology->nworker[STARPU_CPU_WORKER][0] = ncpu;
+	STARPU_ASSERT(topology->nworker[STARPU_CUDA_WORKER][0] <= STARPU_MAXCPUS);
 	STARPU_ASSERT(topology->nworker[STARPU_CPU_WORKER][0] + topology->nworkers <= STARPU_NMAXWORKERS);
 
 	unsigned cpu;
@@ -1711,8 +1721,8 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 		config->workers[worker_idx].perf_arch.devices[0].type = STARPU_CPU_WORKER;
 		config->workers[worker_idx].perf_arch.devices[0].devid = homogeneous ? 0 : cpu;
 		config->workers[worker_idx].perf_arch.devices[0].ncores = 1;
-		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].devid = cpu;
+		config->workers[worker_idx].subworkerid = 0;
 		config->workers[worker_idx].worker_mask = STARPU_CPU;
 		config->worker_mask |= STARPU_CPU;
 	}
