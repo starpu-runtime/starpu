@@ -976,7 +976,7 @@ int _starpu_opencl_driver_deinit(struct _starpu_worker *worker)
 	return 0;
 }
 
-#ifndef STARPU_SIMGRID
+#ifdef STARPU_USE_OPENCL
 int _starpu_opencl_driver_set_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
 {
 	starpu_opencl_get_device(worker->devid, &driver->id.opencl_id);
