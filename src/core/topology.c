@@ -230,22 +230,11 @@ static int _starpu_get_logical_close_numa_node_worker(unsigned workerid)
 		struct _starpu_machine_config *config = (struct _starpu_machine_config *)_starpu_get_machine_config() ;
 		struct _starpu_machine_topology *topology = &config->topology ;
 
-		hwloc_obj_t obj;
-		switch(worker->arch)
-		{
-			default:
-				obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
-				break;
-#ifndef STARPU_SIMGRID
-#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
-			case STARPU_CUDA_WORKER:
-				obj = hwloc_cuda_get_device_osdev_by_index(topology->hwtopology, worker->devid);
-				if (!obj)
-					obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
-				break;
-#endif
-#endif
-		}
+		hwloc_obj_t obj = NULL;
+		if (starpu_driver_info[worker->arch].get_hwloc_obj)
+			obj = starpu_driver_info[worker->arch].get_hwloc_obj(topology, worker);
+		if (!obj)
+			obj = hwloc_get_obj_by_type(topology->hwtopology, HWLOC_OBJ_PU, worker->bindid) ;
 
 		return numa_get_logical_id(obj);
 	}
@@ -1480,10 +1469,12 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 			}
 		}
 
-#ifndef STARPU_SIMGRID
-#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#ifdef STARPU_HAVE_HWLOC
 		{
-			hwloc_obj_t obj = hwloc_cuda_get_device_osdev_by_index(topology->hwtopology, devid);
+			hwloc_obj_t obj = NULL;
+			if (starpu_driver_info[STARPU_CUDA_WORKER].get_hwloc_obj)
+				obj = starpu_driver_info[STARPU_CUDA_WORKER].get_hwloc_obj(topology, &config->workers[worker_idx0]);
+
 			if (obj)
 			{
 				struct _starpu_hwloc_userdata *data = obj->userdata;
@@ -1494,7 +1485,6 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 				_STARPU_DEBUG("Warning: could not find location of CUDA%u, do you have the hwloc CUDA plugin installed?\n", devid);
 			}
 		}
-#endif
 #endif
         }
 

@@ -28,6 +28,9 @@ static struct _starpu_driver_info driver_info =
 	.driver_ops = &_starpu_driver_cuda_ops,
 	.run_worker = _starpu_cuda_worker,
 #endif
+#ifdef STARPU_HAVE_HWLOC
+	.get_hwloc_obj = _starpu_cuda_get_hwloc_obj,
+#endif
 };
 
 static struct _starpu_memory_driver_info memory_driver_info =

@@ -46,6 +46,10 @@
 #include <core/simgrid.h>
 #endif
 
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#include <hwloc/cuda.h>
+#endif
+
 #ifdef STARPU_USE_CUDA
 #if CUDART_VERSION >= 5000
 /* Avoid letting our streams spuriously synchonize with the NULL stream */
@@ -827,6 +831,17 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 
 	return 0;
 }
+
+#ifdef STARPU_HAVE_HWLOC
+hwloc_obj_t _starpu_cuda_get_hwloc_obj(struct _starpu_machine_topology *topology, struct _starpu_worker *worker)
+{
+#if !defined(STARPU_SIMGRID) && defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+	return hwloc_cuda_get_device_osdev_by_index(topology->hwtopology, worker->devid);
+#else
+	return NULL;
+#endif
+}
+#endif
 
 int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
 {

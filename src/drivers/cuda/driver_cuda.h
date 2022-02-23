@@ -44,6 +44,10 @@ extern struct _starpu_node_ops _starpu_driver_cuda_node_ops;
 
 void _starpu_cuda_init(void);
 unsigned _starpu_get_cuda_device_count(void);
+#ifdef STARPU_HAVE_HWLOC
+struct _starpu_machine_topology;
+hwloc_obj_t _starpu_cuda_get_hwloc_obj(struct _starpu_machine_topology *topology, struct _starpu_worker*);
+#endif
 extern int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)

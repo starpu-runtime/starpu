@@ -515,6 +515,8 @@ struct _starpu_machine_config
 	int perf_counter_pause_depth;
 };
 
+struct _starpu_machine_topology;
+
 /** Provides information for a device driver */
 struct _starpu_driver_info
 {
@@ -524,8 +526,12 @@ struct _starpu_driver_info
 	enum starpu_node_kind memory_kind;	/**< Kind of memory in device */
 	double alpha;	/**< Typical relative speed compared to a CPU core */
 	unsigned wait_for_worker_initialization;	/**< Whether we should make the core wait for worker initialization before starting other workers initialization */
-	const struct _starpu_driver_ops *driver_ops;	/**< Driver operations */
+	const struct _starpu_driver_ops *driver_ops;	/**< optional: Driver operations */
 	void *(*run_worker)(void *);	/**< Actually run the worker */
+#ifdef STARPU_HAVE_HWLOC
+	hwloc_obj_t (*get_hwloc_obj)(struct _starpu_machine_topology *topology, struct _starpu_worker*);
+					/**< optional: Return the hwloc object corresponding to this worker */
+#endif
 };
 
 /** Device driver information, indexed by enum starpu_worker_archtype */
