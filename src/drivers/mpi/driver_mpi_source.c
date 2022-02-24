@@ -42,6 +42,7 @@ struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 	return _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid];
 }
 
+/* Configure one MPI slaves for run */
 static void _starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 				    struct _starpu_machine_config *config,
 				    struct starpu_conf *user_conf,
@@ -67,6 +68,7 @@ static void _starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 			nmpicores, 1, &mpi_worker_set[mpi_idx]);
 }
 
+/* Determine which devices we will use */
 void _starpu_init_mp_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
 			    struct starpu_conf *user_conf, int no_mp_config)
 {
@@ -279,6 +281,13 @@ int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node
 
 struct _starpu_node_ops _starpu_driver_mpi_ms_node_ops =
 {
+	.name = "mpi driver",
+
+	.malloc_on_node = _starpu_src_common_allocate,
+	.free_on_node = _starpu_src_common_free,
+
+	.is_direct_access_supported = _starpu_mpi_is_direct_access_supported,
+
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_copy_interface_any_to_any,
 	.copy_interface_to[STARPU_MPI_MS_RAM] = _starpu_copy_interface_any_to_any,
 
@@ -295,8 +304,4 @@ struct _starpu_node_ops _starpu_driver_mpi_ms_node_ops =
 
 	.wait_request_completion = _starpu_mpi_common_wait_request_completion,
 	.test_request_completion = _starpu_mpi_common_test_event,
-	.is_direct_access_supported = _starpu_mpi_is_direct_access_supported,
-	.malloc_on_node = _starpu_src_common_allocate,
-	.free_on_node = _starpu_src_common_free,
-	.name = "mpi driver"
 };

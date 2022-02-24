@@ -43,7 +43,6 @@ void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, str
 void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config);
 unsigned _starpu_max_fpga_get_device_count(void);
 
-uintptr_t _starpu_max_fpga_allocate_memory(unsigned dst_node, size_t size, int flags);
 void *_starpu_max_fpga_worker(void *);
 struct _starpu_worker;
 int _starpu_run_fpga(struct _starpu_worker *);
@@ -52,14 +51,8 @@ int _starpu_max_fpga_driver_run_once(struct _starpu_worker *);
 int _starpu_max_fpga_driver_deinit(struct _starpu_worker *);
 
 int _starpu_max_fpga_copy_max_fpga_to_ram(void *src, void *dst, size_t size);
-int _starpu_max_fpga_copy_ram_to_max_fpga(void *src, void *dst, size_t size);
-void copy_ram_to_max_fpga(void *src, void * dst, size_t size);
-void copy_ram_to_max_fpga(void *src, void * dst, size_t size);
 int _starpu_max_fpga_copy_ram_to_max_fpga_async(void *src, void *dst, size_t size);
 int _starpu_max_fpga_copy_max_fpga_to_ram_async(void *src, void *dst, size_t size);
-
-int _starpu_max_fpga_copy_interface_from_cpu_to_fpga(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req);
-int _starpu_max_fpga_copy_data_from_cpu_to_fpga(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t ssize, struct _starpu_async_channel *async_channel);
 
 #else
 #define _starpu_max_fpga_discover_devices(config) ((void) (config))

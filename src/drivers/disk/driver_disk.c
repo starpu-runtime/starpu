@@ -35,6 +35,20 @@ void _starpu_disk_preinit(void)
 	_starpu_memory_driver_info_register(STARPU_DISK_RAM, &memory_driver_info);
 }
 
+uintptr_t _starpu_disk_malloc_on_node(unsigned dst_node, size_t size, int flags)
+{
+	(void) flags;
+	uintptr_t addr = 0;
+	addr = (uintptr_t) _starpu_disk_alloc(dst_node, size);
+	return addr;
+}
+
+void _starpu_disk_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+{
+	(void) flags;
+	_starpu_disk_free(dst_node, (void *) addr , size);
+}
+
 int _starpu_disk_copy_src_to_disk(void * src, unsigned src_node, void * dst, size_t dst_offset, unsigned dst_node, size_t size, void * async_channel)
 {
 	STARPU_ASSERT(starpu_node_get_kind(src_node) == STARPU_CPU_RAM);
@@ -252,22 +266,15 @@ int _starpu_disk_is_direct_access_supported(unsigned node, unsigned handling_nod
 	}
 }
 
-uintptr_t _starpu_disk_malloc_on_node(unsigned dst_node, size_t size, int flags)
-{
-	(void) flags;
-	uintptr_t addr = 0;
-	addr = (uintptr_t) _starpu_disk_alloc(dst_node, size);
-	return addr;
-}
-
-void _starpu_disk_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
-{
-	(void) flags;
-	_starpu_disk_free(dst_node, (void *) addr , size);
-}
-
 struct _starpu_node_ops _starpu_driver_disk_node_ops =
 {
+	.name = "disk driver",
+
+	.malloc_on_node = _starpu_disk_malloc_on_node,
+	.free_on_node = _starpu_disk_free_on_node,
+
+	.is_direct_access_supported = _starpu_disk_is_direct_access_supported,
+
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_disk_copy_interface_from_disk_to_cpu,
 	.copy_interface_to[STARPU_DISK_RAM] = _starpu_disk_copy_interface_from_disk_to_disk,
 
@@ -284,8 +291,4 @@ struct _starpu_node_ops _starpu_driver_disk_node_ops =
 
 	.wait_request_completion = _starpu_disk_wait_request_completion,
 	.test_request_completion = _starpu_disk_test_request_completion,
-	.is_direct_access_supported = _starpu_disk_is_direct_access_supported,
-	.malloc_on_node = _starpu_disk_malloc_on_node,
-	.free_on_node = _starpu_disk_free_on_node,
-	.name = "disk driver"
 };

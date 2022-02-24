@@ -36,6 +36,11 @@ static fpga_mem current_address[STARPU_MAXMAXFPGADEVS];
 static void _starpu_max_fpga_limit_max_fpga_mem(unsigned );
 static size_t _starpu_max_fpga_get_max_fpga_mem_size(unsigned devid);
 
+static size_t _starpu_max_fpga_get_max_fpga_mem_size(unsigned devid)
+{
+	return max_fpga_mem[devid];
+}
+
 max_engine_t *starpu_max_fpga_get_local_engine(void)
 {
 	int worker = starpu_worker_get_id_check();
@@ -46,6 +51,7 @@ max_engine_t *starpu_max_fpga_get_local_engine(void)
 	return engines[devid];
 }
 
+/* This is called to initialize FPGA and discover devices */
 void _starpu_init_max_fpga()
 {
 }
@@ -66,42 +72,12 @@ static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_
 	_starpu_topology_drop_duplicate(topology->workers_max_fpga_deviceid);
 }
 
-void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *)
+unsigned _starpu_max_fpga_get_device_count(void)
 {
-	int nmax_fpga = config->conf.nmax_fpga;
-	if (nmax_fpga != 0)
-	{
-		/* The user did not disable FPGA. We need to initialize
- 		 * FPGA early to count the number of devices */
-		_starpu_init_max_fpga();
-		int nb_devices = _starpu_max_fpga_get_device_count();
-
-		_starpu_topology_check_ndevices(&nmax_fpga, nb_devices, 0, STARPU_MAXMAXFPGADEVS, "nmax_fpga", "Maxeler FPGA", "maxmaxfpgadev");
-	}
-
-	/* Now we know how many MAX FPGA devices will be used */
-	topology->ndevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga;
-
-	_starpu_initialize_workers_max_fpga_deviceid(config);
-
-	unsigned max_fpga;
-	for (max_fpga = 0; (int) max_fpga < nmax_fpga; max_fpga++)
-	{
-		int devid = _starpu_get_next_devid(topology, config, STARPU_MAX_FPGA_WORKER);
-		if (devid == -1)
-		{
-			// There is no more devices left
-			topology->ndevices[STARPU_MAX_FPGA_WORKER] = max_fpga;
-			break;
-		}
-
-		_starpu_topology_configure_workers(topology, config,
-				STARPU_MAX_FPGA_WORKER,
-				max_fpga, devid, 0, 0,
-				1, 1, NULL);
-	}
+	return nmax_fpga;
 }
 
+/* This is called to really discover the hardware */
 void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 {
 	//TODO: This is statically assigned, in the next round of integration
@@ -171,9 +147,41 @@ void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 	config->topology.nhwdevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga = n;
 }
 
-unsigned _starpu_max_fpga_get_device_count(void)
+/* Determine which devices we will use */
+void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *)
 {
-	return nmax_fpga;
+	int nmax_fpga = config->conf.nmax_fpga;
+	if (nmax_fpga != 0)
+	{
+		/* The user did not disable FPGA. We need to initialize
+ 		 * FPGA early to count the number of devices */
+		_starpu_init_max_fpga();
+		int nb_devices = _starpu_max_fpga_get_device_count();
+
+		_starpu_topology_check_ndevices(&nmax_fpga, nb_devices, 0, STARPU_MAXMAXFPGADEVS, "nmax_fpga", "Maxeler FPGA", "maxmaxfpgadev");
+	}
+
+	/* Now we know how many MAX FPGA devices will be used */
+	topology->ndevices[STARPU_MAX_FPGA_WORKER] = nmax_fpga;
+
+	_starpu_initialize_workers_max_fpga_deviceid(config);
+
+	unsigned max_fpga;
+	for (max_fpga = 0; (int) max_fpga < nmax_fpga; max_fpga++)
+	{
+		int devid = _starpu_get_next_devid(topology, config, STARPU_MAX_FPGA_WORKER);
+		if (devid == -1)
+		{
+			// There is no more devices left
+			topology->ndevices[STARPU_MAX_FPGA_WORKER] = max_fpga;
+			break;
+		}
+
+		_starpu_topology_configure_workers(topology, config,
+				STARPU_MAX_FPGA_WORKER,
+				max_fpga, devid, 0, 0,
+				1, 1, NULL);
+	}
 }
 
 static void _starpu_max_fpga_limit_max_fpga_mem(unsigned devid)
@@ -184,11 +192,6 @@ static void _starpu_max_fpga_limit_max_fpga_mem(unsigned devid)
 	limit = starpu_get_env_number("STARPU_LIMIT_MAX_FPGA_MEM");
 	if(limit != -1)
 		max_fpga_mem[devid] = limit*1024*1024;
-}
-
-static size_t _starpu_max_fpga_get_max_fpga_mem_size(unsigned devid)
-{
-	return max_fpga_mem[devid];
 }
 
 static void init_device_context(unsigned devid)
@@ -279,155 +282,6 @@ int _starpu_max_fpga_driver_init(struct _starpu_worker *worker)
 	return 0;
 }
 
-static int execute_job_on_fpga(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *fpga_args, int rank, struct starpu_perfmodel_arch* perf_arch)
-{
-	int ret;
-	int profiling = starpu_profiling_status_get();
-
-	struct starpu_task *task = worker_task;
-	struct starpu_codelet *cl = task->cl;
-
-	STARPU_ASSERT(cl);
-
-	/* TODO: use asynchronous */
-	ret = _starpu_fetch_task_input(task, j, 0);
-	if (ret != 0)
-	{
-		/* there was not enough memory so the codelet cannot be executed right now ... */
-		/* push the codelet back and try another one ... */
-		return -EAGAIN;
-	}
-
-	/* Give profiling variable */
-	_starpu_driver_start_job(fpga_args, j, perf_arch, rank, profiling);
-
-	/* In case this is a Fork-join parallel task, the worker does not
-	 * execute the kernel at all. */
-	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
-	{
-		_starpu_cl_func_t func = _starpu_task_get_fpga_nth_implementation(cl, j->nimpl);
-
-		STARPU_ASSERT_MSG(func, "when STARPU_MAX_FPGA is defined in 'where', fpga_func or max_fpga_funcs has to be defined");
-		if (_starpu_get_disable_kernels() <= 0)
-		{
-			_STARPU_TRACE_START_EXECUTING();
-			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
-			_STARPU_TRACE_END_EXECUTING();
-		}
-	}
-
-	_starpu_driver_end_job(fpga_args, j, perf_arch, rank, profiling);
-
-	_starpu_driver_update_job_feedback(j, fpga_args, perf_arch, profiling);
-
-	_starpu_push_task_output(j);
-
-	return 0;
-}
-
-int _starpu_max_fpga_driver_run_once(struct _starpu_worker *fpga_worker)
-{
-	unsigned memnode = fpga_worker->memory_node;
-	int workerid = fpga_worker->workerid;
-
-	_STARPU_TRACE_START_PROGRESS(memnode);
-	_starpu_datawizard_progress(1);
-	if (memnode != STARPU_MAIN_RAM)
-	{
-		_starpu_datawizard_progress(1);
-	}
-	_STARPU_TRACE_END_PROGRESS(memnode);
-
-	struct _starpu_job *j;
-	struct starpu_task *task;
-	int res;
-
-	task = _starpu_get_worker_task(fpga_worker, workerid, memnode);
-
-	if (!task)
-		return 0;
-
-	j = _starpu_get_job_associated_to_task(task);
-
-	/* can a cpu perform that task ? */
-	if (!_STARPU_MAY_PERFORM(j, MAX_FPGA))
-	{
-		/* put it at the end of the queue ... XXX */
-		_starpu_push_task_to_workers(task);
-		return 0;
-	}
-
-	int rank = 0;
-	int is_parallel_task = (j->task_size > 1);
-
-	struct starpu_perfmodel_arch* perf_arch;
-
-	if (is_parallel_task)
-	{
-		STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
-		rank = j->active_task_alias_count++;
-		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-
-		if(j->combined_workerid != -1)
-		{
-			struct _starpu_combined_worker *combined_worker;
-			combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
-
-			fpga_worker->combined_workerid = j->combined_workerid;
-			fpga_worker->worker_size = combined_worker->worker_size;
-			fpga_worker->current_rank = rank;
-			perf_arch = &combined_worker->perf_arch;
-		}
-		else
-		{
-			struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(fpga_worker, j);
-			STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", fpga_worker->workerid);
-
-			perf_arch = &sched_ctx->perf_arch;
-		}
-	}
-	else
-	{
-		fpga_worker->combined_workerid = fpga_worker->workerid;
-		fpga_worker->worker_size = 1;
-		fpga_worker->current_rank = 0;
-		perf_arch = &fpga_worker->perf_arch;
-	}
-
-	_starpu_set_current_task(j->task);
-	fpga_worker->current_task = j->task;
-
-	res = execute_job_on_fpga(j, task, fpga_worker, rank, perf_arch);
-
-	_starpu_set_current_task(NULL);
-	fpga_worker->current_task = NULL;
-
-	if (res)
-	{
-		switch (res)
-		{
-		case -EAGAIN:
-			_starpu_push_task_to_workers(task);
-			return 0;
-		default:
-			STARPU_ABORT();
-		}
-	}
-
-	/* In the case of combined workers, we need to inform the
-	 * scheduler each worker's execution is over.
-	 * Then we free the workers' task alias */
-	if (is_parallel_task)
-	{
-		_starpu_sched_post_exec_hook(task);
-		free(task);
-	}
-
-	if (rank == 0)
-		_starpu_handle_job_termination(j);
-	return 0;
-}
-
 int _starpu_max_fpga_driver_deinit(struct _starpu_worker *fpga_worker)
 {
 	_STARPU_TRACE_WORKER_DEINIT_START;
@@ -446,25 +300,7 @@ int _starpu_max_fpga_driver_deinit(struct _starpu_worker *fpga_worker)
 	return 0;
 }
 
-void *_starpu_max_fpga_worker(void *_arg)
-{
-	struct _starpu_worker* worker = _arg;
-         unsigned memnode = worker->memory_node;
-
-	_starpu_max_fpga_driver_init(worker);
-	_STARPU_TRACE_START_PROGRESS(memnode);
-	while (_starpu_machine_is_running())
-	{
-		_starpu_may_pause();
-		_starpu_max_fpga_driver_run_once(worker);
-	}
-	_STARPU_TRACE_END_PROGRESS(memnode);
-	_starpu_max_fpga_driver_deinit(worker);
-
-	return NULL;
-}
-
-uintptr_t _starpu_max_fpga_allocate_memory(unsigned dst_node, size_t size, int flags)
+static uintptr_t _starpu_max_fpga_allocate_memory(unsigned dst_node, size_t size, int flags)
 {
 	(void) flags;
 	unsigned devid = starpu_memory_node_get_devid(dst_node);
@@ -482,7 +318,7 @@ uintptr_t _starpu_max_fpga_allocate_memory(unsigned dst_node, size_t size, int f
         return (uintptr_t) addr;
 }
 
-int _starpu_max_fpga_copy_ram_to_max_fpga(void *src, void *dst, size_t size)
+static int _starpu_max_fpga_copy_ram_to_max_fpga(void *src, void *dst, size_t size)
 {
 	printf("ram to fpga, fpga @= %p\n",dst);
 	memcpy(dst,src,size);
@@ -636,6 +472,173 @@ int _starpu_max_fpga_copy_interface_from_cpu_to_fpga(starpu_data_handle_t handle
 	return 0;
 }
 
+static int execute_job_on_fpga(struct _starpu_job *j, struct starpu_task *worker_task, struct _starpu_worker *fpga_args, int rank, struct starpu_perfmodel_arch* perf_arch)
+{
+	int ret;
+	int profiling = starpu_profiling_status_get();
+
+	struct starpu_task *task = worker_task;
+	struct starpu_codelet *cl = task->cl;
+
+	STARPU_ASSERT(cl);
+
+	/* TODO: use asynchronous */
+	ret = _starpu_fetch_task_input(task, j, 0);
+	if (ret != 0)
+	{
+		/* there was not enough memory so the codelet cannot be executed right now ... */
+		/* push the codelet back and try another one ... */
+		return -EAGAIN;
+	}
+
+	/* Give profiling variable */
+	_starpu_driver_start_job(fpga_args, j, perf_arch, rank, profiling);
+
+	/* In case this is a Fork-join parallel task, the worker does not
+	 * execute the kernel at all. */
+	if ((rank == 0) || (cl->type != STARPU_FORKJOIN))
+	{
+		_starpu_cl_func_t func = _starpu_task_get_fpga_nth_implementation(cl, j->nimpl);
+
+		STARPU_ASSERT_MSG(func, "when STARPU_MAX_FPGA is defined in 'where', fpga_func or max_fpga_funcs has to be defined");
+		if (_starpu_get_disable_kernels() <= 0)
+		{
+			_STARPU_TRACE_START_EXECUTING();
+			func(_STARPU_TASK_GET_INTERFACES(task), task->cl_arg);
+			_STARPU_TRACE_END_EXECUTING();
+		}
+	}
+
+	_starpu_driver_end_job(fpga_args, j, perf_arch, rank, profiling);
+
+	_starpu_driver_update_job_feedback(j, fpga_args, perf_arch, profiling);
+
+	_starpu_push_task_output(j);
+
+	return 0;
+}
+
+int _starpu_max_fpga_driver_run_once(struct _starpu_worker *fpga_worker)
+{
+	unsigned memnode = fpga_worker->memory_node;
+	int workerid = fpga_worker->workerid;
+
+	_STARPU_TRACE_START_PROGRESS(memnode);
+	_starpu_datawizard_progress(1);
+	if (memnode != STARPU_MAIN_RAM)
+	{
+		_starpu_datawizard_progress(1);
+	}
+	_STARPU_TRACE_END_PROGRESS(memnode);
+
+	struct _starpu_job *j;
+	struct starpu_task *task;
+	int res;
+
+	task = _starpu_get_worker_task(fpga_worker, workerid, memnode);
+
+	if (!task)
+		return 0;
+
+	j = _starpu_get_job_associated_to_task(task);
+
+	/* can a cpu perform that task ? */
+	if (!_STARPU_MAY_PERFORM(j, MAX_FPGA))
+	{
+		/* put it at the end of the queue ... XXX */
+		_starpu_push_task_to_workers(task);
+		return 0;
+	}
+
+	int rank = 0;
+	int is_parallel_task = (j->task_size > 1);
+
+	struct starpu_perfmodel_arch* perf_arch;
+
+	if (is_parallel_task)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
+		rank = j->active_task_alias_count++;
+		STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
+
+		if(j->combined_workerid != -1)
+		{
+			struct _starpu_combined_worker *combined_worker;
+			combined_worker = _starpu_get_combined_worker_struct(j->combined_workerid);
+
+			fpga_worker->combined_workerid = j->combined_workerid;
+			fpga_worker->worker_size = combined_worker->worker_size;
+			fpga_worker->current_rank = rank;
+			perf_arch = &combined_worker->perf_arch;
+		}
+		else
+		{
+			struct _starpu_sched_ctx *sched_ctx = _starpu_sched_ctx_get_sched_ctx_for_worker_and_job(fpga_worker, j);
+			STARPU_ASSERT_MSG(sched_ctx != NULL, "there should be a worker %d in the ctx of this job \n", fpga_worker->workerid);
+
+			perf_arch = &sched_ctx->perf_arch;
+		}
+	}
+	else
+	{
+		fpga_worker->combined_workerid = fpga_worker->workerid;
+		fpga_worker->worker_size = 1;
+		fpga_worker->current_rank = 0;
+		perf_arch = &fpga_worker->perf_arch;
+	}
+
+	_starpu_set_current_task(j->task);
+	fpga_worker->current_task = j->task;
+
+	res = execute_job_on_fpga(j, task, fpga_worker, rank, perf_arch);
+
+	_starpu_set_current_task(NULL);
+	fpga_worker->current_task = NULL;
+
+	if (res)
+	{
+		switch (res)
+		{
+		case -EAGAIN:
+			_starpu_push_task_to_workers(task);
+			return 0;
+		default:
+			STARPU_ABORT();
+		}
+	}
+
+	/* In the case of combined workers, we need to inform the
+	 * scheduler each worker's execution is over.
+	 * Then we free the workers' task alias */
+	if (is_parallel_task)
+	{
+		_starpu_sched_post_exec_hook(task);
+		free(task);
+	}
+
+	if (rank == 0)
+		_starpu_handle_job_termination(j);
+	return 0;
+}
+
+void *_starpu_max_fpga_worker(void *_arg)
+{
+	struct _starpu_worker* worker = _arg;
+         unsigned memnode = worker->memory_node;
+
+	_starpu_max_fpga_driver_init(worker);
+	_STARPU_TRACE_START_PROGRESS(memnode);
+	while (_starpu_machine_is_running())
+	{
+		_starpu_may_pause();
+		_starpu_max_fpga_driver_run_once(worker);
+	}
+	_STARPU_TRACE_END_PROGRESS(memnode);
+	_starpu_max_fpga_driver_deinit(worker);
+
+	return NULL;
+}
+
 struct _starpu_driver_ops _starpu_driver_max_fpga_ops =
 {
 	.init = _starpu_max_fpga_driver_init,
@@ -647,6 +650,13 @@ struct _starpu_driver_ops _starpu_driver_max_fpga_ops =
 // TODO: transfers
 struct _starpu_node_ops _starpu_driver_max_fpga_node_ops =
 {
+	.name = "fpga driver",
+
+	.malloc_on_node = _starpu_max_fpga_allocate_memory,
+	.free_on_node = NULL,
+
+	.is_direct_access_supported = NULL,
+
 	//.copy_data_to[STARPU_CPU_RAM] = _starpu_max_fpga_copy_data_from_fpga_to_cpu,
 	//.copy_data_to[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_data_from_fpga_to_fpga,
 
@@ -661,8 +671,4 @@ struct _starpu_node_ops _starpu_driver_max_fpga_node_ops =
 
         .wait_request_completion = NULL,
 	.test_request_completion = NULL,
-	.is_direct_access_supported = NULL,
-	.malloc_on_node = _starpu_max_fpga_allocate_memory,
-	.free_on_node = NULL,
-	.name = "fpga driver"
 };
