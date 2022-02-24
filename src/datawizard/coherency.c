@@ -260,18 +260,6 @@ static int link_supports_direct_transfers(starpu_data_handle_t handle, unsigned 
 	void *src_interface = handle->per_node[src_node].data_interface;
 	void *dst_interface = handle->per_node[dst_node].data_interface;
 
-	/* XXX That's a hack until we fix cudaMemcpy3DPeerAsync in the block interface
-	 * Perhaps not all data interface provide a direct GPU-GPU transfer
-	 * method ! */
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-	if (src_node != dst_node && starpu_node_get_kind(src_node) == STARPU_CUDA_RAM && starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM)
-	{
-		const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-		if (!copy_methods->cuda_to_cuda_async && !copy_methods->any_to_any)
-			return 0;
-	}
-#endif
-
 	/* Note: with CUDA, performance seems a bit better when issuing the transfer from the destination (tested without GPUDirect, but GPUDirect probably behave the same) */
 	if (worker_supports_direct_access(src_node, dst_node) && (!can_copy || can_copy(src_interface, src_node, dst_interface, dst_node, dst_node)))
 	{
