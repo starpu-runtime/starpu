@@ -297,7 +297,7 @@ starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name)
 
 starpu_sg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worker)
 {
-	char *prefix;
+	const char *prefix;
 	char name[16];
 	starpu_sg_host_t host;
 	prefix = starpu_driver_info[worker->arch].name_upper;
