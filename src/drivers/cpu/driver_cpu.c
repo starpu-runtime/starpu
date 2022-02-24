@@ -81,6 +81,7 @@ static struct _starpu_memory_driver_info memory_driver_info =
 	.ops = &_starpu_driver_cpu_node_ops,
 };
 
+/* Early library initialization, before anything else, just initialize data */
 void _starpu_cpu_preinit(void)
 {
 	_starpu_driver_info_register(STARPU_CPU_WORKER, &driver_info);
@@ -88,6 +89,7 @@ void _starpu_cpu_preinit(void)
 }
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
+/* Determine which devices we will use */
 void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config)
 {
 	int ncpu = config->conf.ncpus;
@@ -155,6 +157,152 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 			ncpu, 1, NULL);
 }
 #endif
+
+#ifdef STARPU_USE_CPU
+/* This is run from the driver thread to initialize the driver CUDA context */
+int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
+{
+	int devid = cpu_worker->devid;
+
+	_starpu_driver_start(cpu_worker, STARPU_CPU_WORKER, 1);
+	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
+	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
+	starpu_pthread_setname(cpu_worker->short_name);
+
+	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
+
+	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cpu_worker->sched_mutex);
+	cpu_worker->status = STATUS_UNKNOWN;
+	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cpu_worker->sched_mutex);
+
+	/* tell the main thread that we are ready */
+	STARPU_PTHREAD_MUTEX_LOCK(&cpu_worker->mutex);
+	cpu_worker->worker_is_initialized = 1;
+	STARPU_PTHREAD_COND_SIGNAL(&cpu_worker->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_worker->mutex);
+	return 0;
+}
+
+int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
+{
+	_STARPU_TRACE_WORKER_DEINIT_START;
+
+	unsigned memnode = cpu_worker->memory_node;
+	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
+
+	/* In case there remains some memory that was automatically
+	 * allocated by StarPU, we release it now. Note that data
+	 * coherency is not maintained anymore at that point ! */
+	_starpu_free_all_automatically_allocated_buffers(memnode);
+
+	cpu_worker->worker_is_initialized = 0;
+	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_CPU_WORKER);
+
+	return 0;
+}
+#endif /* STARPU_USE_CPU */
+
+uintptr_t _starpu_cpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
+{
+	uintptr_t addr = 0;
+	_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+				     /* without memcpy_peer, we can not
+				      * allocated pinned memory, since it
+				      * requires waiting for a task, and we
+				      * may be called with a spinlock held
+				      */
+				     flags & ~STARPU_MALLOC_PINNED
+#else
+				     flags
+#endif
+				     );
+	return addr;
+}
+
+void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
+{
+	_starpu_free_flags_on_node(dst_node, (void*)addr, size,
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
+				   flags & ~STARPU_MALLOC_PINNED
+#else
+				   flags
+#endif
+				   );
+}
+
+int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CPU_RAM);
+
+	int ret = 0;
+	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
+	if (copy_methods->ram_to_ram)
+		copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
+	else
+	{
+		STARPU_ASSERT_MSG(copy_methods->any_to_any, "the interface '%s' does define neither ram_to_ram nor any_to_any copy method", handle->ops->name);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
+	}
+	return ret;
+}
+
+int _starpu_cpu_copy_data(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
+{
+	int src_kind = starpu_node_get_kind(src_node);
+	int dst_kind = starpu_node_get_kind(dst_node);
+	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CPU_RAM);
+
+	(void) async_channel;
+
+	memcpy((void *) (dst + dst_offset), (void *) (src + src_offset), size);
+	return 0;
+}
+
+int _starpu_cpu_is_direct_access_supported(unsigned node, unsigned handling_node)
+{
+	(void) node;
+	(void) handling_node;
+	return 1;
+}
+
+uintptr_t _starpu_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret)
+{
+	(void) src_node;
+	(void) dst_node;
+	(void) size;
+
+	*ret = 0;
+	return src + src_offset;
+}
+
+int _starpu_cpu_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size)
+{
+	(void) src;
+	(void) src_offset;
+	(void) src_node;
+	(void) dst;
+	(void) dst_node;
+	(void) size;
+
+	return 0;
+}
+
+int _starpu_cpu_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
+{
+	(void) src;
+	(void) src_offset;
+	(void) src_node;
+	(void) dst;
+	(void) dst_offset;
+	(void) dst_node;
+	(void) size;
+
+	/* Memory mappings are cache-coherent */
+	return 0;
+}
 
 #ifdef STARPU_USE_CPU
 /* Actually launch the job on a cpu worker.
@@ -281,29 +429,6 @@ static int execute_job_on_cpu(struct _starpu_job *j, struct starpu_task *worker_
 	return 0;
 }
 
-int _starpu_cpu_driver_init(struct _starpu_worker *cpu_worker)
-{
-	int devid = cpu_worker->devid;
-
-	_starpu_driver_start(cpu_worker, STARPU_CPU_WORKER, 1);
-	snprintf(cpu_worker->name, sizeof(cpu_worker->name), "CPU %d", devid);
-	snprintf(cpu_worker->short_name, sizeof(cpu_worker->short_name), "CPU %d", devid);
-	starpu_pthread_setname(cpu_worker->short_name);
-
-	_STARPU_TRACE_WORKER_INIT_END(cpu_worker->workerid);
-
-	STARPU_PTHREAD_MUTEX_LOCK_SCHED(&cpu_worker->sched_mutex);
-	cpu_worker->status = STATUS_UNKNOWN;
-	STARPU_PTHREAD_MUTEX_UNLOCK_SCHED(&cpu_worker->sched_mutex);
-
-	/* tell the main thread that we are ready */
-	STARPU_PTHREAD_MUTEX_LOCK(&cpu_worker->mutex);
-	cpu_worker->worker_is_initialized = 1;
-	STARPU_PTHREAD_COND_SIGNAL(&cpu_worker->ready_cond);
-	STARPU_PTHREAD_MUTEX_UNLOCK(&cpu_worker->mutex);
-	return 0;
-}
-
 static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, struct starpu_task *task, struct _starpu_job *j)
 {
 	int res;
@@ -387,6 +512,7 @@ static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, st
 	return 0;
 }
 
+/* One iteration of the main driver loop */
 int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 {
 	unsigned memnode = cpu_worker->memory_node;
@@ -504,24 +630,6 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 	return 0;
 }
 
-int _starpu_cpu_driver_deinit(struct _starpu_worker *cpu_worker)
-{
-	_STARPU_TRACE_WORKER_DEINIT_START;
-
-	unsigned memnode = cpu_worker->memory_node;
-	_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
-
-	/* In case there remains some memory that was automatically
-	 * allocated by StarPU, we release it now. Note that data
-	 * coherency is not maintained anymore at that point ! */
-	_starpu_free_all_automatically_allocated_buffers(memnode);
-
-	cpu_worker->worker_is_initialized = 0;
-	_STARPU_TRACE_WORKER_DEINIT_END(STARPU_CPU_WORKER);
-
-	return 0;
-}
-
 void *_starpu_cpu_worker(void *arg)
 {
 	struct _starpu_worker *worker = arg;
@@ -569,110 +677,15 @@ struct _starpu_driver_ops _starpu_driver_cpu_ops =
 };
 #endif /* STARPU_USE_CPU */
 
-int _starpu_cpu_copy_interface(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
-{
-	int src_kind = starpu_node_get_kind(src_node);
-	int dst_kind = starpu_node_get_kind(dst_node);
-	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CPU_RAM);
-
-	int ret = 0;
-	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
-	if (copy_methods->ram_to_ram)
-		copy_methods->ram_to_ram(src_interface, src_node, dst_interface, dst_node);
-	else
-	{
-		STARPU_ASSERT_MSG(copy_methods->any_to_any, "the interface '%s' does define neither ram_to_ram nor any_to_any copy method", handle->ops->name);
-		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, req ? &req->async_channel : NULL);
-	}
-	return ret;
-}
-
-int _starpu_cpu_copy_data(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
-{
-	int src_kind = starpu_node_get_kind(src_node);
-	int dst_kind = starpu_node_get_kind(dst_node);
-	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_CPU_RAM);
-
-	(void) async_channel;
-
-	memcpy((void *) (dst + dst_offset), (void *) (src + src_offset), size);
-	return 0;
-}
-
-int _starpu_cpu_is_direct_access_supported(unsigned node, unsigned handling_node)
-{
-	(void) node;
-	(void) handling_node;
-	return 1;
-}
-
-uintptr_t _starpu_cpu_malloc_on_node(unsigned dst_node, size_t size, int flags)
-{
-	uintptr_t addr = 0;
-	_starpu_malloc_flags_on_node(dst_node, (void**) &addr, size,
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-				     /* without memcpy_peer, we can not
-				      * allocated pinned memory, since it
-				      * requires waiting for a task, and we
-				      * may be called with a spinlock held
-				      */
-				     flags & ~STARPU_MALLOC_PINNED
-#else
-				     flags
-#endif
-				     );
-	return addr;
-}
-
-void _starpu_cpu_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
-{
-	_starpu_free_flags_on_node(dst_node, (void*)addr, size,
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-				   flags & ~STARPU_MALLOC_PINNED
-#else
-				   flags
-#endif
-				   );
-}
-
-uintptr_t _starpu_cpu_map(uintptr_t src, size_t src_offset, unsigned src_node, unsigned dst_node, size_t size, int *ret)
-{
-	(void) src_node;
-	(void) dst_node;
-	(void) size;
-
-	*ret = 0;
-	return src + src_offset;
-}
-
-int _starpu_cpu_unmap(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, unsigned dst_node, size_t size)
-{
-	(void) src;
-	(void) src_offset;
-	(void) src_node;
-	(void) dst;
-	(void) dst_node;
-	(void) size;
-
-	return 0;
-}
-
-int _starpu_cpu_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
-{
-	(void) src;
-	(void) src_offset;
-	(void) src_node;
-	(void) dst;
-	(void) dst_offset;
-	(void) dst_node;
-	(void) size;
-
-	/* Memory mappings are cache-coherent */
-	return 0;
-}
-
 struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 {
+	.name = "cpu driver",
+
+	.malloc_on_node = _starpu_cpu_malloc_on_node,
+	.free_on_node = _starpu_cpu_free_on_node,
+
+	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,
+
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cpu_copy_interface,
 
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_cpu_copy_data,
@@ -680,9 +693,4 @@ struct _starpu_node_ops _starpu_driver_cpu_node_ops =
 	.map[STARPU_CPU_RAM] = _starpu_cpu_map,
 	.unmap[STARPU_CPU_RAM] = _starpu_cpu_unmap,
 	.update_map[STARPU_CPU_RAM] = _starpu_cpu_update_map,
-
-	.is_direct_access_supported = _starpu_cpu_is_direct_access_supported,
-	.malloc_on_node = _starpu_cpu_malloc_on_node,
-	.free_on_node = _starpu_cpu_free_on_node,
-	.name = "cpu driver"
 };
