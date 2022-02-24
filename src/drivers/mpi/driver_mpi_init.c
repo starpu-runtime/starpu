@@ -26,6 +26,7 @@ static struct _starpu_driver_info driver_info =
 	.alpha = 1.0f,
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	.run_worker = _starpu_mpi_src_worker,
+	.init_workers_binding_and_memory = _starpu_mp_init_workers_binding_and_memory,
 #endif
 };
 

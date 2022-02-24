@@ -30,6 +30,7 @@ static struct _starpu_driver_info driver_info =
 #ifdef STARPU_HAVE_HWLOC
 	.get_hwloc_obj = _starpu_cuda_get_hwloc_obj,
 #endif
+	.init_workers_binding_and_memory = _starpu_cuda_init_workers_binding_and_memory,
 #endif
 };
 

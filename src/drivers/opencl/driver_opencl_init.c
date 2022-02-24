@@ -33,6 +33,7 @@ static struct _starpu_driver_info driver_info =
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	.run_worker = _starpu_opencl_worker,
+	.init_workers_binding_and_memory = _starpu_opencl_init_workers_binding_and_memory,
 #endif
 };
 

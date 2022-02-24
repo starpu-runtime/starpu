@@ -33,6 +33,10 @@ static size_t max_fpga_mem[STARPU_MAXMAXFPGADEVS];
 static max_engine_t *engines[STARPU_MAXMAXFPGADEVS];
 static fpga_mem current_address[STARPU_MAXMAXFPGADEVS];
 
+static unsigned max_fpga_init[STARPU_MAXMAXFPGADEVS];
+static unsigned max_fpga_memory_nodes[STARPU_MAXMAXFPGADEVS];
+static unsigned max_fpga_bindid[STARPU_MAXMAXFPGADEVS];
+
 static void _starpu_max_fpga_limit_max_fpga_mem(unsigned );
 static size_t _starpu_max_fpga_get_max_fpga_mem_size(unsigned devid);
 
@@ -54,6 +58,7 @@ max_engine_t *starpu_max_fpga_get_local_engine(void)
 /* This is called to initialize FPGA and discover devices */
 void _starpu_init_max_fpga()
 {
+	memset(&max_fpga_init, 0, sizeof(max_fpga_init));
 }
 
 static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_config *config)
@@ -182,6 +187,51 @@ void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, str
 				max_fpga, devid, 0, 0,
 				1, 1, NULL);
 	}
+}
+
+/* Bind the driver on a CPU core, set up memory and buses */
+int _starpu_max_fpga_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	unsigned memory_node = -1;
+	/* Perhaps the worker has some "favourite" bindings  */
+	unsigned *preferred_binding = NULL;
+	unsigned npreferred = 0;
+	unsigned devid = workerarg->devid;
+	unsigned numa;
+
+	if (_starpu_may_bind_automatically[STARPU_MAX_FPGA_WORKER])
+	{
+		/* StarPU is allowed to bind threads automatically */
+#if 0
+/* No FPGA preference yet */
+		preferred_binding = _starpu_get_max_fpga_affinity_vector(devid);
+		npreferred = config->topology.nhwpus;
+#endif
+	}
+	if (max_fpga_init[devid])
+	{
+		memory_node = max_fpga_memory_nodes[devid];
+		workerarg->bindid = max_fpga_bindid[devid];
+	}
+	else
+	{
+		max_fpga_init[devid] = 1;
+		workerarg->bindid = max_fpga_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+
+		memory_node = max_fpga_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MAX_FPGA_RAM, devid);
+		_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
+		_starpu_register_bus(memory_node, STARPU_MAIN_RAM);
+
+	}
+	_starpu_memory_node_add_nworkers(memory_node);
+
+	//This worker can manage transfers on NUMA nodes
+	for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+			_starpu_worker_drives_memory_node(workerarg, numa);
+
+	_starpu_worker_drives_memory_node(workerarg, memory_node);
+
+	return memory_node;
 }
 
 static void _starpu_max_fpga_limit_max_fpga_mem(unsigned devid)

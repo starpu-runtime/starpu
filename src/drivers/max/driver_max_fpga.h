@@ -42,6 +42,7 @@ void _starpu_init_max_fpga(void);
 void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config);
 unsigned _starpu_max_fpga_get_device_count(void);
+int _starpu_max_fpga_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 
 void *_starpu_max_fpga_worker(void *);
 struct _starpu_worker;

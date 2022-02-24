@@ -69,6 +69,11 @@ static cl_event task_events[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
 static unsigned task_finished[STARPU_MAXOPENCLDEVS][STARPU_MAX_PIPELINE];
 static starpu_pthread_mutex_t opencl_alloc_mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
 #endif /* STARPU_SIMGRID */
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+static unsigned opencl_init[STARPU_MAXOPENCLDEVS];
+static unsigned opencl_memory_nodes[STARPU_MAXOPENCLDEVS];
+static unsigned opencl_bindid[STARPU_MAXOPENCLDEVS];
+#endif
 
 #define _STARPU_OPENCL_CHECK_AND_REPORT_ERROR(err) do { if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err); } while(0)
 
@@ -111,6 +116,7 @@ void starpu_opencl_get_current_context(cl_context *context)
 /* This is called to initialize opencl and discover devices */
 void _starpu_opencl_init(void)
 {
+	memset(&opencl_init, 0, sizeof(opencl_init));
 	STARPU_PTHREAD_MUTEX_LOCK(&big_lock);
         if (!init_done)
 	{
@@ -339,6 +345,64 @@ void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struc
 				openclgpu, devid, 0, 0,
 				1, 1, NULL);
 	}
+}
+
+/* Bind the driver on a CPU core, set up memory and buses */
+int _starpu_opencl_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	unsigned memory_node = -1;
+	/* Perhaps the worker has some "favourite" bindings  */
+	unsigned *preferred_binding = NULL;
+	unsigned npreferred = 0;
+	unsigned devid = workerarg->devid;
+	unsigned numa;
+
+#ifndef STARPU_SIMGRID
+	if (_starpu_may_bind_automatically[STARPU_OPENCL_WORKER])
+	{
+		/* StarPU is allowed to bind threads automatically */
+		preferred_binding = _starpu_get_opencl_affinity_vector(devid);
+		npreferred = config->topology.nhwpus;
+	}
+#endif /* SIMGRID */
+	if (opencl_init[devid])
+	{
+		memory_node = opencl_memory_nodes[devid];
+#ifndef STARPU_SIMGRID
+		workerarg->bindid = opencl_bindid[devid];
+#endif /* SIMGRID */
+	}
+	else
+	{
+		opencl_init[devid] = 1;
+		workerarg->bindid = opencl_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+		memory_node = opencl_memory_nodes[devid] = _starpu_memory_node_register(STARPU_OPENCL_RAM, devid);
+
+		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+		{
+			_starpu_register_bus(numa, memory_node);
+			_starpu_register_bus(memory_node, numa);
+		}
+#ifdef STARPU_SIMGRID
+		char name[16];
+		snprintf(name, sizeof(name), "OpenCL%u", devid);
+		starpu_sg_host_t host = _starpu_simgrid_get_host_by_name(name);
+		STARPU_ASSERT(host);
+		_starpu_simgrid_memory_node_set_host(memory_node, host);
+#else
+		if (_starpu_opencl_get_device_type(workerarg->devid) == CL_DEVICE_TYPE_CPU)
+			_starpu_memory_node_set_mapped(memory_node);
+#endif /* SIMGRID */
+	}
+	_starpu_memory_node_add_nworkers(memory_node);
+
+	//This worker can manage transfers on NUMA nodes
+	for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+			_starpu_worker_drives_memory_node(workerarg, numa);
+
+	_starpu_worker_drives_memory_node(workerarg, memory_node);
+
+	return memory_node;
 }
 
 void _starpu_deinit_opencl_config(void)

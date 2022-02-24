@@ -100,6 +100,11 @@ static starpu_pthread_cond_t cuda_device_init_cond[STARPU_MAXCUDADEVS];
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 static struct _starpu_worker_set cuda_worker_set[STARPU_MAXCUDADEVS];
+
+static unsigned cuda_init[STARPU_MAXCUDADEVS];
+static unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
+static unsigned cuda_bindid[STARPU_MAXCUDADEVS];
+static int cuda_globalbindid;
 #endif
 
 int _starpu_nworker_per_cuda;
@@ -189,6 +194,8 @@ void _starpu_cuda_init(void)
 		STARPU_PTHREAD_MUTEX_INIT(&cuda_device_init_mutex[i], NULL);
 		STARPU_PTHREAD_COND_INIT(&cuda_device_init_cond[i], NULL);
 	}
+	memset(&cuda_init, 0, sizeof(cuda_init));
+	cuda_globalbindid = -1;
 }
 
 /* Return the number of devices usable in the system.
@@ -387,6 +394,129 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 		}
 #endif
         }
+}
+
+/* Bind the driver on a CPU core, set up memory and buses */
+int _starpu_cuda_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	unsigned memory_node = -1;
+	/* Perhaps the worker has some "favourite" bindings  */
+	unsigned *preferred_binding = NULL;
+	unsigned npreferred = 0;
+	unsigned devid = workerarg->devid;
+	unsigned numa;
+
+#ifndef STARPU_SIMGRID
+	if (_starpu_may_bind_automatically[STARPU_CUDA_WORKER])
+	{
+		/* StarPU is allowed to bind threads automatically */
+		preferred_binding = _starpu_get_cuda_affinity_vector(devid);
+		npreferred = config->topology.nhwpus;
+	}
+#endif /* SIMGRID */
+	if (cuda_init[devid])
+	{
+		memory_node = cuda_memory_nodes[devid];
+		if (config->topology.cuda_th_per_stream == 0)
+			workerarg->bindid = cuda_bindid[devid];
+		else
+			workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+	}
+	else
+	{
+		cuda_init[devid] = 1;
+
+		if (config->topology.cuda_th_per_dev == 0 && config->topology.cuda_th_per_stream == 0)
+		{
+			if (cuda_globalbindid == -1)
+				cuda_globalbindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+			workerarg->bindid = cuda_bindid[devid] = cuda_globalbindid;
+		}
+		else
+			workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+		memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
+
+#ifdef STARPU_USE_CUDA_MAP
+		/* TODO: check node capabilities */
+		_starpu_memory_node_set_mapped(memory_node);
+#endif
+
+		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+		{
+			_starpu_cuda_bus_ids[numa][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(numa, memory_node);
+			_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][numa] = _starpu_register_bus(memory_node, numa);
+		}
+
+#ifdef STARPU_SIMGRID
+		const char* cuda_memcpy_peer;
+		char name[16];
+		snprintf(name, sizeof(name), "CUDA%u", devid);
+		starpu_sg_host_t host = _starpu_simgrid_get_host_by_name(name);
+		STARPU_ASSERT(host);
+		_starpu_simgrid_memory_node_set_host(memory_node, host);
+#  ifdef STARPU_HAVE_SIMGRID_ACTOR_H
+		cuda_memcpy_peer = sg_host_get_property_value(host, "memcpy_peer");
+#  else
+		cuda_memcpy_peer = MSG_host_get_property_value(host, "memcpy_peer");
+#  endif
+#endif /* SIMGRID */
+
+		if (
+#ifdef STARPU_SIMGRID
+			cuda_memcpy_peer && atoll(cuda_memcpy_peer)
+#elif defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+			1
+#else /* MEMCPY_PEER */
+			0
+#endif /* MEMCPY_PEER */
+		   )
+		{
+			int worker2;
+			for (worker2 = 0; worker2 < workerarg->workerid; worker2++)
+			{
+				struct _starpu_worker *workerarg2 = &config->workers[worker2];
+				int devid2 = workerarg2->devid;
+				if (workerarg2->arch == STARPU_CUDA_WORKER)
+				{
+					unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
+					_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
+					_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
+#ifndef STARPU_SIMGRID
+#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+					{
+						hwloc_obj_t obj, obj2, ancestor;
+						obj = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, devid);
+						obj2 = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, devid2);
+						ancestor = hwloc_get_common_ancestor_obj(config->topology.hwtopology, obj, obj2);
+						if (ancestor)
+						{
+							struct _starpu_hwloc_userdata *data = ancestor->userdata;
+#ifdef STARPU_VERBOSE
+							{
+								char name[64];
+								hwloc_obj_type_snprintf(name, sizeof(name), ancestor, 0);
+								_STARPU_DEBUG("CUDA%u and CUDA%u are linked through %s, along %u GPUs\n", devid, devid2, name, data->ngpus);
+							}
+#endif
+							starpu_bus_set_ngpus(_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES], data->ngpus);
+							starpu_bus_set_ngpus(_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES], data->ngpus);
+						}
+					}
+#endif
+#endif
+				}
+			}
+		}
+	}
+	_starpu_memory_node_add_nworkers(memory_node);
+
+	//This worker can also manage transfers on NUMA nodes
+	for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+			_starpu_worker_drives_memory_node(&workerarg->set->workers[0], numa);
+
+	_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
+
+	return memory_node;
 }
 
 /* Set the current CUDA device */

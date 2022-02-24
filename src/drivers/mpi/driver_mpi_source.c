@@ -28,6 +28,10 @@
 #include <drivers/mp_common/source_common.h>
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
+static unsigned mpi_init[STARPU_MAXMPIDEVS] = { };
+static unsigned mpi_memory_nodes[STARPU_MAXMPIDEVS];
+static unsigned mpi_bindid[STARPU_MAXMPIDEVS];
+
 struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
@@ -45,7 +49,6 @@ struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 /* Configure one MPI slaves for run */
 static void _starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 				    struct _starpu_machine_config *config,
-				    struct starpu_conf *user_conf,
 				    unsigned mpi_idx)
 {
 	int nhwcores;
@@ -129,8 +132,60 @@ void _starpu_init_mp_config(struct _starpu_machine_topology *topology, struct _s
 			_starpu_src_nodes[STARPU_MPI_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
 
 		for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
-			_starpu_init_mpi_config(topology, config, user_conf, i);
+			_starpu_init_mpi_config(topology, config, i);
 	}
+}
+
+/* Bind the driver on a CPU core, set up memory and buses */
+int _starpu_mp_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	unsigned memory_node = -1;
+	/* Perhaps the worker has some "favourite" bindings  */
+	unsigned *preferred_binding = NULL;
+	unsigned npreferred = 0;
+	unsigned devid = workerarg->devid;
+	unsigned numa;
+
+	if (mpi_init[devid])
+	{
+		memory_node = mpi_memory_nodes[devid];
+	}
+	else
+	{
+		mpi_init[devid] = 1;
+		mpi_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+		memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid);
+
+		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+		{
+			_starpu_register_bus(numa, memory_node);
+			_starpu_register_bus(memory_node, numa);
+		}
+
+	}
+	//This worker can manage transfers on NUMA nodes
+	for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+			_starpu_worker_drives_memory_node(&workerarg->set->workers[0], numa);
+
+	_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
+#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+	/* MPI driver thread can manage all slave memories if we disable the MPI multiple thread */
+	int findworker;
+	for (findworker = 0; findworker < workerarg->workerid; findworker++)
+	{
+		struct _starpu_worker *findworkerarg = &config->workers[findworker];
+		if (findworkerarg->arch == STARPU_MPI_MS_WORKER)
+		{
+			_starpu_worker_drives_memory_node(workerarg, findworkerarg->memory_node);
+			_starpu_worker_drives_memory_node(findworkerarg, memory_node);
+		}
+	}
+#endif
+
+	workerarg->bindid = mpi_bindid[devid];
+	_starpu_memory_node_add_nworkers(memory_node);
+
+	return memory_node;
 }
 
 static void _starpu_deinit_mpi_node(int devid)

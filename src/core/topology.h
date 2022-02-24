@@ -78,10 +78,10 @@ void _starpu_topology_check_ndevices(int *ndevices, unsigned nhwdevices, int ove
  * than sharing the devid and giving a different subworkerid to each worker.
  */
 
-/* Request to allocate a worker set for each worker */
+/** Request to allocate a worker set for each worker */
 #define ALLOC_WORKER_SET ((struct _starpu_worker_set*) -1)
 
-/* Request to set a different perfmodel devid per worker */
+/** Request to set a different perfmodel devid per worker */
 #define DEVID_PER_WORKER -2
 
 void _starpu_topology_configure_workers(struct _starpu_machine_topology *topology,
@@ -92,6 +92,15 @@ void _starpu_topology_configure_workers(struct _starpu_machine_topology *topolog
 					unsigned nworker_per_device,
 					unsigned ncores,
 					struct _starpu_worker_set *worker_set);
+
+extern unsigned _starpu_may_bind_automatically[STARPU_NARCH];
+
+/** This function gets the identifier of the next core on which to bind a
+ * worker. In case a list of preferred cores was specified (logical indexes),
+ * we look for a an available core among the list if possible, otherwise a
+ * round-robin policy is used. */
+unsigned _starpu_get_next_bindid(struct _starpu_machine_config *config, unsigned flags,
+				 unsigned *preferred_binding, unsigned npreferred);
 
 /** Should be called instead of _starpu_destroy_topology when _starpu_build_topology returns a non zero value. */
 void _starpu_destroy_machine_config(struct _starpu_machine_config *config);
@@ -107,6 +116,11 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
 
 /** returns the number of NUMA nodes */
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config);
+
+int starpu_memory_nodes_numa_hwloclogid_to_id(int logid);
+
+/* This returns the exact NUMA node next to a worker */
+int _starpu_get_logical_numa_node_worker(unsigned workerid);
 
 /** returns the number of hyperthreads per core */
 unsigned _starpu_get_nhyperthreads() STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
@@ -130,7 +144,7 @@ void _starpu_bind_thread_on_cpus(struct _starpu_combined_worker *combined_worker
 
 struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d);
 
-int starpu_memory_nodes_get_numa_count(void) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
+unsigned starpu_memory_nodes_get_numa_count(void) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 int starpu_memory_nodes_numa_id_to_hwloclogid(unsigned id);
 
 /** Get the memory node for data number i when task is to be executed on memory node \p target_node. Returns -1 if the data does not need to be loaded. */

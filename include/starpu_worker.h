@@ -375,7 +375,7 @@ int starpu_memory_node_get_name(unsigned node, char *name, size_t size);
 /**
    Return the number of NUMA nodes used by StarPU
 */
-int starpu_memory_nodes_get_numa_count(void);
+unsigned starpu_memory_nodes_get_numa_count(void);
 
 /**
    Return the identifier of the memory node associated to the NUMA

@@ -72,6 +72,7 @@ static struct _starpu_driver_info driver_info =
 	.driver_ops = &_starpu_driver_cpu_ops,
 	.run_worker = _starpu_cpu_worker,
 #endif
+	.init_workers_binding_and_memory = _starpu_cpu_init_workers_binding_and_memory,
 };
 
 static struct _starpu_memory_driver_info memory_driver_info =
@@ -157,6 +158,30 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 			ncpu, 1, NULL);
 }
 #endif
+
+/* Bind the driver on a CPU core, set up memory and buses */
+int _starpu_cpu_init_workers_binding_and_memory(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	unsigned memory_node = -1;
+	int numa_logical_id = _starpu_get_logical_numa_node_worker(workerarg->workerid);
+	int numa_starpu_id =  starpu_memory_nodes_numa_hwloclogid_to_id(numa_logical_id);
+	if (numa_starpu_id < 0 || numa_starpu_id >= STARPU_MAXNUMANODES)
+		numa_starpu_id = STARPU_MAIN_RAM;
+
+#if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)
+	hwloc_obj_t pu_obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_PU, workerarg->bindid);
+	struct _starpu_hwloc_userdata *userdata = pu_obj->userdata;
+	userdata->pu_worker = workerarg;
+#endif
+
+	workerarg->numa_memory_node = memory_node = numa_starpu_id;
+
+	_starpu_memory_node_add_nworkers(memory_node);
+
+	_starpu_worker_drives_memory_node(workerarg, numa_starpu_id);
+
+	return memory_node;
+}
 
 #ifdef STARPU_USE_CPU
 /* This is run from the driver thread to initialize the driver CUDA context */

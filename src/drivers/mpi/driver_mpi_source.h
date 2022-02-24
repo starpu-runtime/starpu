@@ -39,6 +39,7 @@ void *_starpu_mpi_src_worker(void *arg);
 
 void _starpu_init_mp_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
 			    struct starpu_conf *user_conf, int no_mp_config);
+int _starpu_mp_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 void _starpu_deinit_mp_config(struct _starpu_machine_config *config);
 
 void _starpu_mpi_source_init(struct _starpu_mp_node *node);
