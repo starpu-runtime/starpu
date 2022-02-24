@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -137,6 +137,8 @@ Writing a new driver is essentially:
 
   You can pick up src/drivers/cuda0 as an example of very basic driver which
   should be relatively easy to get working.
+
+- Adding fields in struct starpu_conf and struct starpu_codelet.
 
 - Adding cases in src/core/task.c, look for _CUDA for an example.
 
