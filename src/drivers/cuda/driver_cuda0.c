@@ -667,13 +667,11 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 	int res;
 
 	/* Make some progress */
-	_STARPU_TRACE_START_PROGRESS(memnode);
 	_starpu_datawizard_progress(1);
 	if (memnode != STARPU_MAIN_RAM)
 	{
 		_starpu_datawizard_progress(1);
 	}
-	_STARPU_TRACE_END_PROGRESS(memnode);
 
 	struct starpu_task *task;
 	struct _starpu_job *j;
