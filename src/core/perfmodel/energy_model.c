@@ -85,6 +85,8 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 {
 	t1 = starpu_timing_now();
 
+	/* Driver porters: adding your driver here is optional, only needed for the support of energy measurement.  */
+
 	switch (archi)
 	{
 #ifdef STARPU_PAPI

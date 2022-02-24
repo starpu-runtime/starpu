@@ -680,6 +680,10 @@ static unsigned _starpu_may_launch_driver(struct starpu_conf *conf,
 		if (d->type != conf->not_launched_drivers[i].type)
 			continue;
 
+		/* Driver porters: adding your driver here is optional, only
+		 * needed for supporting running the driver in a thread provided by
+		 * the application. */
+
 		switch (d->type)
 		{
 		case STARPU_CPU_WORKER:

@@ -14,6 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/* Driver porters: adding your driver here is optional, only needed for the support of multiple formats.  */
+
 #include <starpu.h>
 #ifdef BUILDING_STARPU
 #include <datawizard/memory_nodes.h>

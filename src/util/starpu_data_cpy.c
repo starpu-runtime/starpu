@@ -37,6 +37,8 @@ static void common_data_cpy_func(void *descr[], void *cl_arg)
 	void *dst_interface = descr[0];
 	void *src_interface = descr[1];
 
+	/* Driver porters: adding your driver here is very optional, any_to_any will be enough.  */
+
 	switch (type)
 	{
 		case STARPU_CPU_WORKER:

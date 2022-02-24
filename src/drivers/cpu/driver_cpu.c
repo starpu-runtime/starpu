@@ -105,6 +105,7 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 		mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
 #endif
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
+		/* FIXME: rather have drivers declare what they use */
 		unsigned cuda_busy_cpus = 0;
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 		cuda_busy_cpus =

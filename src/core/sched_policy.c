@@ -735,6 +735,8 @@ struct starpu_task *_starpu_create_conversion_task_for_arch(starpu_data_handle_t
 	handle->busy_count++;
 	_starpu_spin_unlock(&handle->header_lock);
 
+	/* Driver porters: adding your driver here is optional, only needed for the support of multiple formats.  */
+
 	switch(node_kind)
 	{
 	case STARPU_CPU_RAM:

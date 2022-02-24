@@ -96,6 +96,7 @@ void _starpu_initialize_registered_performance_models(void)
 	starpu_perfmodel_initialize();
 
 	struct _starpu_machine_config *conf = _starpu_get_machine_config();
+	/* FIXME: just iterate over all archs */
 	unsigned ncores = conf->topology.nhwworker[STARPU_CPU_WORKER][0];
 	unsigned ncuda =  conf->topology.nhwdevices[STARPU_CUDA_WORKER];
 	unsigned nopencl = conf->topology.nhwdevices[STARPU_OPENCL_WORKER];
@@ -911,6 +912,8 @@ static void check_model(struct starpu_perfmodel *model)
 		}
 	}
 }
+
+/* Driver porters: adding your driver here is optional, only needed for performance models.  */
 
 static void dump_model_file(FILE *f, struct starpu_perfmodel *model)
 {

@@ -941,6 +941,8 @@ static void _starpu_data_unregister(starpu_data_handle_t handle, unsigned cohere
 			STARPU_PTHREAD_COND_DESTROY(&arg.cond);
 		}
 
+		/* Driver porters: adding your driver here is optional, only needed for the support of multiple formats.  */
+
 		/* If this handle uses a multiformat interface, we may have to convert
 		 * this piece of data back into the CPU format.
 		 * XXX : This is quite hacky, could we submit a task instead ?

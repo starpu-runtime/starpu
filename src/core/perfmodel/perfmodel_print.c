@@ -170,6 +170,8 @@ void starpu_perfmodel_print(struct starpu_perfmodel *model, struct starpu_perfmo
 	}
 }
 
+/* FIXME: Generalize to any arch */
+
 int starpu_perfmodel_print_all(struct starpu_perfmodel *model, char *arch, char *parameter, uint32_t *footprint, FILE *output)
 {
 	_starpu_init_and_load_perfmodel(model);
