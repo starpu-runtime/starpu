@@ -21,6 +21,8 @@ Contents
 - Naming Conventions
 - Coding Style
 - Error handling
+- Makefile.am
+- Writing a new driver
 
 Directory structure
 -------------------
@@ -123,3 +125,33 @@ All install rules must use $(DESTDIR) so that
 
 can properly work, as it is used by distributions. That can easily checked by
 *not* running it as root.
+
+
+
+Writing a new driver
+--------------------
+
+Writing a new driver is essentially:
+
+- Creating an src/drivers/yourdriver/ and adding it to src/Makefile.am
+
+  You can pick up src/drivers/cuda0 as an example of very basic driver which
+  should be relatively easy to get working.
+
+- Adding cases in src/core/task.c, look for _CUDA for an example.
+
+- Adding initialization calls in src/core/topology.c, look for _CUDA for an example.
+
+- Adding cases in src/core/worker.c, look for _CUDA for an example.
+
+- Adding the case in src/datawizard/reduction.c, look for _CUDA for an example.
+
+- There are a few "Driver porters" notes in the code.
+
+- TODO: task & bus performance model
+
+  For now the simplest is not to implement performance models. We'll rework the
+  support to make it very generic.
+
+- Other places can be extended to add features: asynchronous data transfers,
+  energy measurement, multiformat, memory mapping

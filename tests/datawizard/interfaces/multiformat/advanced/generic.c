@@ -32,7 +32,7 @@ void cpu_func(void *buffers[], void *args)
 }
 #endif /* !STARPU_USE_CPU */
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 void cuda_func(void *buffers[], void *args)
 {
 	(void)buffers;
@@ -128,7 +128,7 @@ struct starpu_codelet opencl_to_cpu_cl =
 
 struct starpu_multiformat_data_interface_ops ops =
 {
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	.cuda_elemsize = sizeof(int),
 	.cpu_to_cuda_cl = &cpu_to_cuda_cl,
 	.cuda_to_cpu_cl = &cuda_to_cpu_cl,
@@ -147,7 +147,7 @@ print_stats(struct stats *s)
 #ifdef STARPU_USE_CPU
 	FPRINTF(stderr, "cpu         : %u\n", s->cpu);
 #endif /* !STARPU_USE_CPU */
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	FPRINTF(stderr, "cuda        : %u\n" 
 			"cpu->cuda   : %u\n"
 			"cuda->cpu   : %u\n",
@@ -170,7 +170,7 @@ void reset_stats(struct stats *s)
 #ifdef STARPU_USE_CPU
 	s->cpu = 0;
 #endif /* !STARPU_USE_CPU */
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	s->cuda = 0;
 	s->cpu_to_cuda = 0;
 	s->cuda_to_cpu = 0;
@@ -189,7 +189,7 @@ compare_stats(struct stats *s1, struct stats *s2)
 #ifdef STARPU_USE_CPU
 	    s1->cpu == s2->cpu &&
 #endif /* !STARPU_USE_CPU */
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	    s1->cuda == s2->cuda &&
 	    s1->cpu_to_cuda == s2->cpu_to_cuda &&
 	    s1->cuda_to_cpu == s2->cuda_to_cpu &&

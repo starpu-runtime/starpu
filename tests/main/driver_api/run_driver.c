@@ -274,7 +274,7 @@ int main(void)
 	if (ret == 1)
 		return 1;
 #endif
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	ret = test_cuda();
 	if (ret == 1)
 		return 1;

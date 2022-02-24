@@ -265,6 +265,9 @@ int STARPU_ATTRIBUTE_WARN_UNUSED_RESULT _starpu_driver_copy_data_1_to_1(starpu_d
 
 			if (_starpu_node_needs_map_update(dst_node))
 			{
+				/* Driver porters: adding your driver here is
+				   optional, it is only needed when implementing
+				   support for memory mapping */
 				switch (starpu_node_get_kind(dst_node))
 				{
 					case STARPU_OPENCL_RAM:

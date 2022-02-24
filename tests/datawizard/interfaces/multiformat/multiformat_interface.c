@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,7 @@
 #include "../../../helper.h"
 
 static void test_multiformat_cpu_func(void *buffers[], void *args);
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 extern void test_multiformat_cuda_func(void *buffers[], void *args);
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -36,7 +36,7 @@ static starpu_data_handle_t multiformat_dummy_handle;
 struct test_config multiformat_config =
 {
 	.cpu_func      = test_multiformat_cpu_func,
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	.cuda_func     = test_multiformat_cuda_func,
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -74,7 +74,7 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 	FPRINTF(stderr, "\n");
 }
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 extern struct starpu_codelet cpu_to_cuda_cl;
 extern struct starpu_codelet cuda_to_cpu_cl;
 #endif
@@ -86,7 +86,7 @@ extern struct starpu_codelet opencl_to_cpu_cl;
 
 struct starpu_multiformat_data_interface_ops format_ops =
 {
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	.cuda_elemsize = 2* sizeof(float),
 	.cpu_to_cuda_cl = &cpu_to_cuda_cl,
 	.cuda_to_cpu_cl = &cuda_to_cpu_cl,
@@ -135,7 +135,11 @@ int main(int argc, char **argv)
 	struct data_interface_test_summary summary;
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
+#if defined(STARPU_USE_CUDA0)
+	conf.ncuda = 0;
+#else
 	conf.ncuda = 2;
+#endif
 	conf.nopencl = 1;
 
 	ret = starpu_initialize(&conf, &argc, &argv);
@@ -150,9 +154,9 @@ int main(int argc, char **argv)
 
 	register_data();
 
-	run_tests(&multiformat_config, &summary);
+	ret = run_tests(&multiformat_config, &summary);
 
-	data_interface_test_summary_print(stderr, &summary);
+	if (ret) data_interface_test_summary_print(stderr, &summary);
 
 	unregister_data();
 

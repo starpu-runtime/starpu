@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -573,13 +573,14 @@ static int load_conf(struct test_config *config)
 	return 0;
 }
 
-void run_tests(struct test_config *conf, struct data_interface_test_summary *s)
+int run_tests(struct test_config *conf, struct data_interface_test_summary *s)
 {
 	summary_init(s);
 
 	if (load_conf(conf) == 1)
 	{
 		FPRINTF(stderr, "Failed to load conf.\n");
+		return 0;
 	}
 
 	run_async(s);
@@ -591,4 +592,6 @@ void run_tests(struct test_config *conf, struct data_interface_test_summary *s)
 	pointer_is_inside(s);
 
 	pack_unpack(s);
+
+	return 1;
 }

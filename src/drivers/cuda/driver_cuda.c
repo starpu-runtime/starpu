@@ -376,6 +376,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 		_starpu_opencl_using_cuda(devid);
 #endif
 
+		/* TODO: move this to generic place */
 #ifdef STARPU_HAVE_HWLOC
 		{
 			hwloc_obj_t obj = NULL;
@@ -1832,7 +1833,7 @@ int _starpu_cuda_is_direct_access_supported(unsigned node, unsigned handling_nod
 #endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 }
 
-static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx STARPU_ATTRIBUTE_UNUSED)
+static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
@@ -1896,8 +1897,6 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 #endif
 		_STARPU_TRACE_END_EXECUTING();
 	}
-
-	return 0;
 }
 
 static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worker);
@@ -1906,26 +1905,12 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker *worker)
 {
 	int workerid = worker->workerid;
-	int res;
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
 	unsigned char pipeline_idx = (worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE;
 
-	res = start_job_on_cuda(j, worker, pipeline_idx);
-
-	if (res)
-	{
-		switch (res)
-		{
-			case -EAGAIN:
-				_STARPU_DISP("ouch, CUDA could not actually run task %p, putting it back...\n", task);
-				_starpu_push_task_to_workers(task);
-				STARPU_ABORT();
-			default:
-				STARPU_ABORT();
-		}
-	}
+	start_job_on_cuda(j, worker, pipeline_idx);
 
 #ifndef STARPU_SIMGRID
 	if (!used_stream[workerid])

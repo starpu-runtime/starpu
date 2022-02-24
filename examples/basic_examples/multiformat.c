@@ -18,7 +18,7 @@
 #include "multiformat_types.h"
 
 static int ncpu = 0;
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 static int ncuda = 0;
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -47,7 +47,7 @@ multiformat_scal_cpu_func(void *buffers[], void *args)
 	}
 }
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 extern struct starpu_codelet cpu_to_cuda_cl;
 extern struct starpu_codelet cuda_to_cpu_cl;
 #endif
@@ -59,7 +59,7 @@ extern struct starpu_codelet opencl_to_cpu_cl;
 
 static struct starpu_multiformat_data_interface_ops format_ops =
 {
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	.cuda_elemsize = 2* sizeof(float),
 	.cpu_to_cuda_cl = &cpu_to_cuda_cl,
 	.cuda_to_cpu_cl = &cuda_to_cpu_cl,
@@ -73,7 +73,7 @@ static struct starpu_multiformat_data_interface_ops format_ops =
 
 };
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 extern void multiformat_scal_cuda_func(void *buffers[], void *arg);
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -91,7 +91,7 @@ static struct starpu_codelet cpu_cl =
 };
 #endif /* !STARPU_USE_CPU */
 
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 static struct starpu_codelet cuda_cl =
 {
 	.cuda_funcs = { multiformat_scal_cuda_func },
@@ -146,7 +146,7 @@ create_and_submit_task(unsigned int dev)
 			task->cl = &cpu_cl;
 			break;
 #endif
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 		case STARPU_CUDA:
 			task->cl = &cuda_cl;
 			break;
@@ -169,7 +169,7 @@ create_and_submit_task(unsigned int dev)
 static void
 create_and_submit_tasks(void)
 {
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	if (ncuda > 0)
 	{
 		int err;
@@ -235,7 +235,7 @@ check_it(void)
 	for (i = 0; i < N_ELEMENTS; i++)
 	{
 		float expected_value = i + 1.0;
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 		if (ncuda > 0)
 			expected_value *= array_of_structs[i].y;
 #endif
@@ -258,7 +258,7 @@ struct starpu_opencl_program opencl_conversion_program;
 static int
 gpus_available(void)
 {
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	if (ncuda > 0)
 		return 1;
 #endif
@@ -286,7 +286,7 @@ main(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	ncpu = starpu_cpu_worker_get_count();
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	ncuda = starpu_cuda_worker_get_count();
 #endif
 #ifdef STARPU_USE_OPENCL

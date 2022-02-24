@@ -22,14 +22,14 @@
  * A single handle can be given twice to a given kernel. In this case, it
  * should only be converted once.
  */
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if (defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)) || defined(STARPU_USE_OPENCL)
 extern struct stats global_stats;
 static int vector[NX]; static starpu_data_handle_t handle;
 
 static struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW, STARPU_RW },
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	.cuda_funcs = { cuda_func },
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -60,7 +60,7 @@ create_and_submit_tasks(void)
 	struct starpu_task *task;
 
 	cl.where = 0;
-#ifdef STARPU_USE_CUDA
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	cl.where |= STARPU_CUDA;
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -87,7 +87,7 @@ create_and_submit_tasks(void)
 int
 main(int argc, char **argv)
 {
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if (defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)) || defined(STARPU_USE_OPENCL)
 	int err;
 	err = starpu_initialize(NULL, &argc, &argv);
 	if (err == -ENODEV)
@@ -102,7 +102,7 @@ main(int argc, char **argv)
 	if (err == -ENODEV)
 		goto enodev;
 
-#if defined(STARPU_USE_CUDA)
+#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
 	if (global_stats.cuda == 1)
 	{
 		if (global_stats.cpu_to_cuda == 1 &&
