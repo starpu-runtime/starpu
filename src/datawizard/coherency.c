@@ -458,10 +458,6 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 		dst_nodes[0] = dst_node;
 		handling_nodes[0] = handling_node;
 
-#if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
-		STARPU_ASSERT(!(mode & STARPU_R) || starpu_node_get_kind(src_node) != STARPU_CUDA_RAM || starpu_node_get_kind(dst_node) != STARPU_CUDA_RAM);
-#endif
-
 		return 1;
 	}
 }

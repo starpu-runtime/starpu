@@ -1813,15 +1813,14 @@ starpu_cuda_set_copy_device(unsigned src_node, unsigned dst_node)
 }
 #endif
 
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
 	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CUDA_RAM);
 
-#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 	starpu_cuda_set_copy_device(src_node, dst_node);
-#endif
 
 	int ret = 1;
 	cudaError_t cures;
@@ -1857,6 +1856,7 @@ int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, v
 	}
 	return ret;
 }
+#endif
 
 int _starpu_cuda_copy_interface_from_cuda_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)
 {
@@ -1974,6 +1974,7 @@ int _starpu_cuda_copy_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, un
 					   cudaMemcpyDeviceToHost);
 }
 
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 int _starpu_cuda_copy_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	int src_kind = starpu_node_get_kind(src_node);
@@ -1987,6 +1988,7 @@ int _starpu_cuda_copy_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, u
 					   async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
 					   cudaMemcpyDeviceToDevice);
 }
+#endif
 
 int _starpu_cuda_copy_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
@@ -2019,6 +2021,7 @@ int _starpu_cuda_copy2d_data_from_cuda_to_cpu(uintptr_t src, size_t src_offset, 
 					   cudaMemcpyDeviceToHost);
 }
 
+#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node,
 					       uintptr_t dst, size_t dst_offset, unsigned dst_node,
 					       size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
@@ -2035,6 +2038,7 @@ int _starpu_cuda_copy2d_data_from_cuda_to_cuda(uintptr_t src, size_t src_offset,
 					   async_channel?starpu_cuda_get_peer_transfer_stream(src_node, dst_node):NULL,
 					   cudaMemcpyDeviceToDevice);
 }
+#endif
 
 int _starpu_cuda_copy2d_data_from_cpu_to_cuda(uintptr_t src, size_t src_offset, unsigned src_node,
 					      uintptr_t dst, size_t dst_offset, unsigned dst_node,
@@ -2205,22 +2209,24 @@ struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
 	.copy_interface_to[STARPU_CPU_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cpu,
-	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cuda,
-
 	.copy_interface_from[STARPU_CPU_RAM] = _starpu_cuda_copy_interface_from_cpu_to_cuda,
+
+#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+	.copy_interface_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cuda,
 	.copy_interface_from[STARPU_CUDA_RAM] = _starpu_cuda_copy_interface_from_cuda_to_cuda,
+#endif
 
 	.copy_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy_data_from_cuda_to_cpu,
-	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cuda_to_cuda,
-
 	.copy_data_from[STARPU_CPU_RAM] = _starpu_cuda_copy_data_from_cpu_to_cuda,
-	.copy_data_from[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cuda_to_cuda,
-
 	.copy2d_data_to[STARPU_CPU_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cpu,
-	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
-
 	.copy2d_data_from[STARPU_CPU_RAM] = _starpu_cuda_copy2d_data_from_cpu_to_cuda,
+
+#if defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+	.copy_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cuda_to_cuda,
+	.copy_data_from[STARPU_CUDA_RAM] = _starpu_cuda_copy_data_from_cuda_to_cuda,
+	.copy2d_data_to[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
 	.copy2d_data_from[STARPU_CUDA_RAM] = _starpu_cuda_copy2d_data_from_cuda_to_cuda,
+#endif
 
 #ifdef STARPU_USE_CUDA_MAP
 	.map[STARPU_CPU_RAM] = _starpu_cuda_map_ram,
