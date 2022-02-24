@@ -1274,11 +1274,12 @@ int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, v
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
 	STARPU_ASSERT(src_kind == STARPU_CUDA_RAM && dst_kind == STARPU_CUDA_RAM);
-#ifndef STARPU_HAVE_CUDA_MEMCPY_PEER
+
+#ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
+	starpu_cuda_set_copy_device(src_node, dst_node);
+#else
 	STARPU_ASSERT(src_node == dst_node);
 #endif
-
-	starpu_cuda_set_copy_device(src_node, dst_node);
 
 	int ret = 1;
 	cudaError_t cures;
