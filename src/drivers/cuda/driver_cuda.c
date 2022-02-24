@@ -645,9 +645,6 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 					// nworker_per_cuda - 1,
 					1,
 					worker_set);
-		if (devid == -1)
-			// There is no more devices left
-			break;
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 		_starpu_opencl_using_cuda(devid);
