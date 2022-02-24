@@ -805,8 +805,9 @@ nvmlDevice_t starpu_cuda_get_nvmldev(unsigned devid)
 #endif
 
 /* This is run from the driver thread to initialize the driver CUDA context */
-int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
+int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 {
+	struct _starpu_worker_set *worker_set = worker->set;
 	struct _starpu_worker *worker0 = &worker_set->workers[0];
 	int lastdevid = -1;
 	unsigned i;
@@ -919,8 +920,9 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 	return 0;
 }
 
-int _starpu_cuda_driver_deinit(struct _starpu_worker_set *worker_set)
+int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 {
+	struct _starpu_worker_set *worker_set = worker->set;
 	int lastdevid = -1;
 	unsigned i;
 	_STARPU_TRACE_WORKER_DEINIT_START;
@@ -2008,8 +2010,9 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 }
 
 /* One iteration of the main driver loop */
-int _starpu_cuda_driver_run_once(struct _starpu_worker_set *worker_set)
+int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 {
+	struct _starpu_worker_set *worker_set = worker->set;
 	struct _starpu_worker *worker0 = &worker_set->workers[0];
 	struct starpu_task *tasks[worker_set->nworkers], *task;
 	struct _starpu_job *j;
@@ -2204,17 +2207,17 @@ void *_starpu_cuda_worker(void *_arg)
 	struct _starpu_worker_set* worker_set = worker->set;
 	unsigned i;
 
-	_starpu_cuda_driver_init(worker_set);
+	_starpu_cuda_driver_init(worker);
 	for (i = 0; i < worker_set->nworkers; i++)
 		_STARPU_TRACE_START_PROGRESS(worker_set->workers[i].memory_node);
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
-		_starpu_cuda_driver_run_once(worker_set);
+		_starpu_cuda_driver_run_once(worker);
 	}
 	for (i = 0; i < worker_set->nworkers; i++)
 		_STARPU_TRACE_END_PROGRESS(worker_set->workers[i].memory_node);
-	_starpu_cuda_driver_deinit(worker_set);
+	_starpu_cuda_driver_deinit(worker);
 
 	return NULL;
 }
@@ -2273,27 +2276,12 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 }
 #endif /* STARPU_USE_CUDA */
 
-int _starpu_cuda_driver_init_from_worker(struct _starpu_worker *worker)
-{
-	return _starpu_cuda_driver_init(worker->set);
-}
-
 int _starpu_cuda_run_from_worker(struct _starpu_worker *worker)
 {
 	/* Let's go ! */
 	_starpu_cuda_worker(worker);
 
 	return 0;
-}
-
-int _starpu_cuda_driver_run_once_from_worker(struct _starpu_worker *worker)
-{
-	return _starpu_cuda_driver_run_once(worker->set);
-}
-
-int _starpu_cuda_driver_deinit_from_worker(struct _starpu_worker *worker)
-{
-	return _starpu_cuda_driver_deinit(worker->set);
 }
 
 int _starpu_cuda_driver_set_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
@@ -2309,10 +2297,10 @@ int _starpu_cuda_driver_is_devid(struct starpu_driver *driver, struct _starpu_wo
 
 struct _starpu_driver_ops _starpu_driver_cuda_ops =
 {
-	.init = _starpu_cuda_driver_init_from_worker,
+	.init = _starpu_cuda_driver_init,
 	.run = _starpu_cuda_run_from_worker,
-	.run_once = _starpu_cuda_driver_run_once_from_worker,
-	.deinit = _starpu_cuda_driver_deinit_from_worker,
+	.run_once = _starpu_cuda_driver_run_once,
+	.deinit = _starpu_cuda_driver_deinit,
 	.set_devid = _starpu_cuda_driver_set_devid,
 	.is_devid = _starpu_cuda_driver_is_devid,
 };

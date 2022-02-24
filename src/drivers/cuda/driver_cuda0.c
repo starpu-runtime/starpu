@@ -767,11 +767,6 @@ void starpu_cuda_report_error(const char *func, const char *file, int line, cuda
 	_STARPU_ERROR("oops in %s (%s:%d)... %d: %s \n", func, file, line, status, errormsg);
 }
 
-int _starpu_cuda_driver_init_from_worker(struct _starpu_worker *worker)
-{
-	return _starpu_cuda_driver_init(worker);
-}
-
 int _starpu_cuda_run_from_worker(struct _starpu_worker *worker)
 {
 	/* Let's go ! */
@@ -780,22 +775,12 @@ int _starpu_cuda_run_from_worker(struct _starpu_worker *worker)
 	return 0;
 }
 
-int _starpu_cuda_driver_run_once_from_worker(struct _starpu_worker *worker)
-{
-	return _starpu_cuda_driver_run_once(worker);
-}
-
-int _starpu_cuda_driver_deinit_from_worker(struct _starpu_worker *worker)
-{
-	return _starpu_cuda_driver_deinit(worker);
-}
-
 struct _starpu_driver_ops _starpu_driver_cuda_ops =
 {
-	.init = _starpu_cuda_driver_init_from_worker,
+	.init = _starpu_cuda_driver_init,
 	.run = _starpu_cuda_run_from_worker,
-	.run_once = _starpu_cuda_driver_run_once_from_worker,
-	.deinit = _starpu_cuda_driver_deinit_from_worker,
+	.run_once = _starpu_cuda_driver_run_once,
+	.deinit = _starpu_cuda_driver_deinit,
 };
 
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
