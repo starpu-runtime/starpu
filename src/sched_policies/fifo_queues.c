@@ -433,11 +433,12 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 		size_t non_loading_best = SIZE_MAX;
 		size_t non_allocated_best = SIZE_MAX;
 		
-		int count = 1;
-		threshold_dmdar = starpu_get_env_number_default("DMDAR_THRESHOLD", 0);
-		for (current = task; current && count != threshold_dmdar; current = current->next)
+		//~ int count = 1;
+		//~ threshold_dmdar = starpu_get_env_number_default("DMDAR_THRESHOLD", 0);
+		//~ for (current = task; current && count != threshold_dmdar; current = current->next)
+		for (current = task; current; current = current->next)
 		{
-			count++;
+			//~ count++;
 			int priority = current->priority;
 
 			if (priority >= first_task_priority)
