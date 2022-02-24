@@ -83,9 +83,7 @@ static int _starpu_get_logical_numa_node_worker(unsigned workerid);
 #define STARPU_NUMA_UNINITIALIZED (-2)
 #define STARPU_NUMA_MAIN_RAM (-1)
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_MAX_FPGA) || defined(STARPU_SIMGRID)
 static unsigned may_bind_automatically[STARPU_NARCH] = { 0 };
-#endif
 
 int starpu_memory_nodes_get_numa_count(void)
 {
@@ -1203,11 +1201,9 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 	_starpu_deinit_opencl_config();
 #endif
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int i;
 	for (i=0; i<STARPU_NARCH; i++)
 		may_bind_automatically[i] = 0;
-#endif
 }
 
 int _starpu_bind_thread_on_cpu(int cpuid STARPU_ATTRIBUTE_UNUSED, int workerid STARPU_ATTRIBUTE_UNUSED, const char *name STARPU_ATTRIBUTE_UNUSED)
