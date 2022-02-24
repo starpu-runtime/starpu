@@ -607,9 +607,6 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 	unsigned cudagpu;
 	for (cudagpu = 0; (int) cudagpu < ncuda; cudagpu++)
 	{
-#ifdef STARPU_HAVE_HWLOC
-		unsigned worker_idx0 = topology->nworkers;
-#endif
 		int devid = _starpu_get_next_devid(topology, config, STARPU_CUDA_WORKER);
 
 		if (devid == -1)
@@ -654,7 +651,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 		{
 			hwloc_obj_t obj = NULL;
 			if (starpu_driver_info[STARPU_CUDA_WORKER].get_hwloc_obj)
-				obj = starpu_driver_info[STARPU_CUDA_WORKER].get_hwloc_obj(topology, &config->workers[worker_idx0]);
+				obj = starpu_driver_info[STARPU_CUDA_WORKER].get_hwloc_obj(topology, devid);
 
 			if (obj)
 			{
@@ -984,10 +981,10 @@ int _starpu_cuda_driver_init(struct _starpu_worker_set *worker_set)
 }
 
 #ifdef STARPU_HAVE_HWLOC
-hwloc_obj_t _starpu_cuda_get_hwloc_obj(struct _starpu_machine_topology *topology, struct _starpu_worker *worker)
+hwloc_obj_t _starpu_cuda_get_hwloc_obj(struct _starpu_machine_topology *topology, int devid)
 {
 #if !defined(STARPU_SIMGRID) && defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
-	return hwloc_cuda_get_device_osdev_by_index(topology->hwtopology, worker->devid);
+	return hwloc_cuda_get_device_osdev_by_index(topology->hwtopology, devid);
 #else
 	return NULL;
 #endif

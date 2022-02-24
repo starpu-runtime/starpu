@@ -382,6 +382,10 @@ struct _starpu_machine_topology
 	 */
 	unsigned nworker[STARPU_NARCH][STARPU_NMAXDEVS];
 
+	/** Device ids actually used
+	 */
+	int devid[STARPU_NARCH][STARPU_NMAXDEVS];
+
 	/** Whether we should have one thread per stream */
 	int cuda_th_per_stream;
 	/** Whether we should have one thread per device */
@@ -501,8 +505,8 @@ struct _starpu_driver_info
 	const struct _starpu_driver_ops *driver_ops;	/**< optional: Driver operations */
 	void *(*run_worker)(void *);	/**< Actually run the worker */
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_obj_t (*get_hwloc_obj)(struct _starpu_machine_topology *topology, struct _starpu_worker*);
-					/**< optional: Return the hwloc object corresponding to this worker */
+	hwloc_obj_t (*get_hwloc_obj)(struct _starpu_machine_topology *topology, int devid);
+					/**< optional: Return the hwloc object corresponding to this device */
 #endif
 };
 

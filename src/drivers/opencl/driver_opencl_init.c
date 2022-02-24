@@ -27,6 +27,9 @@ static struct _starpu_driver_info driver_info =
 	.wait_for_worker_initialization = 1,
 #if defined(STARPU_USE_OPENCL)
 	.driver_ops = &_starpu_driver_opencl_ops,
+#ifdef STARPU_HAVE_HWLOC
+	.get_hwloc_obj = _starpu_opencl_get_hwloc_obj,
+#endif
 #endif
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	.run_worker = _starpu_opencl_worker,

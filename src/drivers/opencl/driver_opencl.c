@@ -36,6 +36,10 @@
 #include <core/task.h>
 #include <common/knobs.h>
 
+#if defined(STARPU_HAVE_HWLOC) && defined(STARPU_USE_OPENCL)
+#include <hwloc/opencl.h>
+#endif
+
 #ifdef STARPU_SIMGRID
 #include <core/simgrid.h>
 #endif
@@ -901,6 +905,19 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 
 	return 0;
 }
+
+#ifdef STARPU_HAVE_HWLOC
+hwloc_obj_t _starpu_opencl_get_hwloc_obj(struct _starpu_machine_topology *topology, int devid)
+{
+#if !defined(STARPU_SIMGRID)
+	cl_device_id device;
+	starpu_opencl_get_device(devid, &device);
+	return hwloc_opencl_get_device_osdev(topology->hwtopology, device);
+#else
+	return NULL;
+#endif
+}
+#endif
 
 int _starpu_opencl_driver_run_once(struct _starpu_worker *worker)
 {
