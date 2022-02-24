@@ -21,6 +21,8 @@
 #include <datawizard/memory_nodes.h>
 #endif
 
+/* Driver porters: adding your driver here is optional, only needed for the support of multiple formats. */
+
 static int copy_ram_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node);
 #ifdef STARPU_USE_CUDA
 static int copy_ram_to_cuda(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED, void *dst_interface, unsigned dst_node);
