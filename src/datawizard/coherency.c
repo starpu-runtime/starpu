@@ -1216,10 +1216,10 @@ int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, in
 
 		nacquires++;
 	}
+	_starpu_add_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 	if (async)
 	{
 		worker->nb_buffers_totransfer = nacquires;
-		_starpu_add_worker_status(worker, STATUS_INDEX_WAITING, NULL);
 		return 0;
 	}
 
