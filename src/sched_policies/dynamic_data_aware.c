@@ -831,7 +831,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			task = starpu_task_list_pop_back(&temp_pointer->refused_fifo_list); 
 			
 			//~ #ifdef PRINT_PYTHON /* Il ne faut pas le faire ici non ? */
-			//~ print_data_to_load_prefetch(task, starpu_worker_get_id());
+			//~ print_data_to_load_prefetch(task, current_gpu);
 			//~ #endif
 			#ifdef PRINT
 			printf("Return refused task %p.\n", task); fflush(stdout);
@@ -862,7 +862,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				
 			/* For visualisation in python. */
 			#ifdef PRINT_PYTHON
-			print_data_to_load_prefetch(task, starpu_worker_get_id());
+			print_data_to_load_prefetch(task, current_gpu);
 			#endif
 			#ifdef PRINT
 			printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d\n", task, current_gpu); fflush(stdout);
@@ -929,7 +929,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			
 			/* For visualisation in python. */
 			#ifdef PRINT_PYTHON
-			print_data_to_load_prefetch(task, starpu_worker_get_id());
+			print_data_to_load_prefetch(task, current_gpu);
 			#endif
 			#ifdef PRINT
 			printf("Return task %p from the scheduling call.\n", task); fflush(stdout);
