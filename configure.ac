@@ -1560,7 +1560,7 @@ if test x$enable_cuda = xyes; then
     AC_SUBST(STARPU_CUFFT_LDFLAGS)
     AC_SUBST(STARPU_CUDA_CPPFLAGS)
 fi
-AM_CONDITIONAL(STARPU_USE_CUDA0, test x$enable_cuda0=xyes)
+AM_CONDITIONAL(STARPU_USE_CUDA0, test x$enable_cuda0 = xyes)
 
 AC_ARG_VAR([NVCC], [CUDA compiler])
 AC_ARG_VAR([NVCC_CC], [C compiler for CUDA compiler])
