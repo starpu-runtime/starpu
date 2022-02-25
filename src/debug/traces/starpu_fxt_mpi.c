@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017-2020  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -21,8 +21,6 @@
 #ifdef STARPU_USE_FXT
 
 #include "starpu_fxt.h"
-
-extern void convert_numa_nodes_bitmap_to_str(long bitmap, char str[]);
 
 LIST_TYPE(mpi_transfer,
 	unsigned matched;
@@ -444,9 +442,9 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 				fprintf(out_comms_file, "Priority: %d\n", cur->prio);
 				fprintf(out_comms_file, "Type: %s\n", get_mpi_type_str(cur->type));
 				char str[STARPU_TRACE_STR_LEN] = "";
-				convert_numa_nodes_bitmap_to_str(send_numa_nodes_bitmap, str);
+				_starpu_convert_numa_nodes_bitmap_to_str(send_numa_nodes_bitmap, str);
 				fprintf(out_comms_file, "SendNumaNodes: %s\n", str);
-				convert_numa_nodes_bitmap_to_str(recv_numa_nodes_bitmap, str);
+				_starpu_convert_numa_nodes_bitmap_to_str(recv_numa_nodes_bitmap, str);
 				fprintf(out_comms_file, "RecvNumaNodes: %s\n", str);
 				fprintf(out_comms_file, "\n");
 			}

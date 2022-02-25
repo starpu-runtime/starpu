@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2017-2021  Federal University of Rio Grande do Sul (UFRGS)
@@ -187,7 +187,7 @@ static int show_task(struct task_info *task, struct starpu_fxt_options *options)
 	return 1;
 }
 
-void convert_numa_nodes_bitmap_to_str(long bitmap, char* str)
+void _starpu_convert_numa_nodes_bitmap_to_str(long bitmap, char* str)
 {
 	if (bitmap < 0)
 	{
@@ -306,7 +306,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 		for (i = 0; i < task->ndata; i++)
 		{
 			char str[STARPU_TRACE_STR_LEN] = "";
-			convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, str);
+			_starpu_convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, str);
 			fprintf(tasks_file, " %s", str);
 		}
 		fprintf(tasks_file, "\n");
@@ -1873,7 +1873,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	for (i = 0; i < task->ndata; i++)
 	{
 		char str[STARPU_TRACE_STR_LEN] = "";
-		convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, str);
+		_starpu_convert_numa_nodes_bitmap_to_str(task->data[i].numa_nodes_bitmap, str);
 		eaten += snprintf(numa_nodes_str + eaten, sizeof(numa_nodes_str) - eaten - 1, "%s%s", i ? "_" : "", str);
 	}
 	numa_nodes_str[sizeof(numa_nodes_str)-1] = 0;
