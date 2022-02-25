@@ -80,7 +80,7 @@ Small features:
   * Add starpu_task_create_sync
   * Add ram_colind/rowptr to csr and bcsr data interfaces. This allows to make
     starpu_bcsr_filter_vertical_block work on several memory nodes.
-  * Add cuda0 example driver.
+  * Add cuda0 and cuda1 example drivers.
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
