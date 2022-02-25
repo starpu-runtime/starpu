@@ -102,6 +102,7 @@ export STARPU_TIMEOUT_ENV=1800
 export MPIEXEC_TIMEOUT=1800
 
 make -j4
+make dist
 (make -k check || true) 2>&1 | tee  ../check_$$
 make showsuite
 
