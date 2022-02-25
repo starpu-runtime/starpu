@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Gwenole Lucas
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -39,12 +39,12 @@ void print_vector(int *v, int nx, const char *label)
 	int cur=0;
 	int i;
 
-	cur += snprintf(&message[cur], 100000, "%s : ", label);
+	cur += snprintf(&message[cur], 100000 - cur, "%s : ", label);
 	for (i=0; i<nx-1; i++)
 	{
-		cur += snprintf(&message[cur], 100000, "%3d,", v[i]);
+		cur += snprintf(&message[cur], 100000 - cur, "%3d,", v[i]);
 	}
-	cur += snprintf(&message[cur], 100000, "%3d\n", v[nx-1]);
+	cur += snprintf(&message[cur], 100000 - cur, "%3d\n", v[nx-1]);
 	FPRINTF(stderr, message);
 }
 
