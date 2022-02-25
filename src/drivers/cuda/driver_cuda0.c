@@ -579,7 +579,6 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 	STARPU_ASSERT(cl);
 
 	_starpu_set_current_task(task);
-	worker->current_task = task;
 
 	/* Fetch data input synchronously */
 	int ret = _starpu_fetch_task_input(task, j, 0);
@@ -638,6 +637,8 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 {
 	int profiling = starpu_profiling_status_get();
 
+	worker->current_task = NULL;
+
 	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, profiling);
@@ -645,7 +646,6 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 	_starpu_push_task_output(j);
 
 	_starpu_set_current_task(NULL);
-	worker->current_task = NULL;
 
 	_starpu_handle_job_termination(j);
 }
@@ -681,6 +681,8 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 		_starpu_worker_refuse_task(worker, task);
 		return 0;
 	}
+
+	worker->current_task = task;
 
 	res = execute_job_on_cuda(task, worker);
 

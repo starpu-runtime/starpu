@@ -1068,7 +1068,6 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 	STARPU_ASSERT(cl);
 
 	_starpu_set_current_task(task);
-	worker->current_task = task;
 
 	_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 
@@ -1112,16 +1111,7 @@ static void execute_job_on_cuda(struct starpu_task *task, struct _starpu_worker 
 		if (STARPU_UNLIKELY(cures))
 			STARPU_CUDA_REPORT_ERROR(cures);
 #ifdef STARPU_USE_FXT
-		if (fut_active)
-		{
-			int k;
-			for (k = 0; k < (int) worker->set->nworkers; k++)
-				if (worker->set->workers[k].ntasks == worker->set->workers[k].pipeline_length)
-					break;
-			if (k == (int) worker->set->nworkers)
-				/* Everybody busy */
-				_STARPU_TRACE_START_EXECUTING();
-		}
+		_STARPU_TRACE_START_EXECUTING();
 #endif
 	}
 	else
@@ -1138,6 +1128,9 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 {
 	int profiling = starpu_profiling_status_get();
 
+	worker->current_task = NULL;
+	worker->ntasks--;
+
 	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
 
 	_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, profiling);
@@ -1145,7 +1138,6 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 	_starpu_push_task_output(j);
 
 	_starpu_set_current_task(NULL);
-	worker->current_task = NULL;
 
 	_starpu_handle_job_termination(j);
 }
@@ -1237,11 +1229,16 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 	/* Something done, make some progress */
 	res = __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
+	if (worker->ntasks >= 1)
+		return 0;
+
 	/* And pull a task */
 	task = _starpu_get_worker_task(worker, worker->workerid, worker->memory_node);
 
 	if (!task)
 		return 0;
+
+	worker->ntasks++;
 
 	j = _starpu_get_job_associated_to_task(task);
 
@@ -1252,6 +1249,8 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 		_starpu_worker_refuse_task(worker, task);
 		return 0;
 	}
+
+	worker->current_task = task;
 
 	/* Fetch data asynchronously */
 	_STARPU_TRACE_END_PROGRESS(memnode);
