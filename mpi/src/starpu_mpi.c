@@ -645,16 +645,16 @@ static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 
 	if (req->request_type == RECV_REQ || req->request_type == SEND_REQ)
 	{
-		if (req->request_type == SEND_REQ)
-		{
-			// We need to make sure the communication for sending the size
-			// has completed, as MPI can re-order messages, let's call
-			// MPI_Wait to make sure data have been sent
-			ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
-			STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
-		}
 		if (req->user_datatype == 1)
 		{
+			if (req->request_type == SEND_REQ)
+			{
+				// We need to make sure the communication for sending the size
+				// has completed, as MPI can re-order messages, let's call
+				// MPI_Wait to make sure data have been sent
+				ret = MPI_Wait(&req->size_req, MPI_STATUS_IGNORE);
+				STARPU_ASSERT_MSG(ret == MPI_SUCCESS, "MPI_Wait returning %d", ret);
+			}
 			if (req->request_type == RECV_REQ)
 				// req->ptr is freed by starpu_data_unpack
 				starpu_data_unpack(req->data_handle, req->ptr, req->count);
