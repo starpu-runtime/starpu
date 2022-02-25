@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2020  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2020, 2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -207,7 +207,7 @@ main(void) {
    TYPE val; \
    err = clGetDeviceInfo(devices[j], CL_D, sizeof(val), &val, NULL); \
    checkErr(err, "clGetDeviceInfo(" #CL_D ")"); \
-   printf(str, ((val & test) == CL_TRUE ? "Yes" : "No")); \
+   printf(str, ((val & test) != 0 ? "Yes" : "No")); \
 }
 
                GET_SIZET(CL_DEVICE_MAX_WORK_GROUP_SIZE, "  Max work group size:\t\t\t\t %u\n")
