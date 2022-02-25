@@ -3668,7 +3668,7 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 		if (index_current_popped_task_all_gpu_prefetch == 1)
 		{
 			f2 = fopen("Output_maxime/Data_to_load_prefetch_SCHEDULER.txt", "w");
-			fprintf(f2, "TASK	COORDY	COORDX	NBLOADS	GPU	ITERATIONK\n");
+			fprintf(f2, "TASK	COORDY	COORDX	XTOLOAD YTOLOAD ZTOLOAD	GPU	ITERATIONK\n");
 		}
 		else
 		{
@@ -3693,7 +3693,7 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 				/* Attention pour SYRK il ne faut pas compter en double la donnée à charger. Donc je regarde si je l'a compté en double je fais --. */
 				if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
 				{
-					nb_data_to_load--;
+					y_to_load = 0;
 				}
 			}
 			else
@@ -3703,7 +3703,7 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 		}	
 		/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */
 		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
-		fprintf(f2, "	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], nb_data_to_load, current_gpu - 1, task->iterations[0]);
+		fprintf(f2, "	%d	%d	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, z_to_load, current_gpu - 1, task->iterations[0]);
 			
 		/* J'imprime les coordonnées des données utilisées. Dans le cas ou je veux toutes les coords. */
 		//~ for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
@@ -4288,7 +4288,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 			if (index_current_popped_task_all_gpu == 1)
 			{
 				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
-				fprintf(f2, "TASK	COORDY	COORDX	NBLOADS	GPU	ITERATIONK\n");
+				fprintf(f2, "TASK	COORDY	COORDX	XTOLOAD YTOLOAD ZTOLOAD	GPU	ITERATIONK\n");
 			}
 			else
 			{
@@ -4313,7 +4313,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 					/* Attention pour SYRK il ne faut pas compter en double la donnée à charger. Donc je regarde si je l'a compté en double je fais --. */
 					if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
 					{
-						nb_data_to_load--;
+						y_to_load = 0;
 					}
 				}
 				else
@@ -4325,7 +4325,7 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 			
 			/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
-			fprintf(f2, "	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], nb_data_to_load, current_gpu - 1, task->iterations[0]);
+			fprintf(f2, "	%d	%d	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, z_to_load, current_gpu - 1, task->iterations[0]);
 
 			
 			/* J'imprime les coordonnées des données utilisées. Dans le cas ou je veux toutes les coords. */

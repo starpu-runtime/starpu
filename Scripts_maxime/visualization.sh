@@ -6,8 +6,7 @@
 #~ bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 MatriceZ4 3 HFP
 #~ bash Scripts_maxime/visualization.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 5 Matrice3D 3 HFP
 
-sudo make -j 6
-#~ make -j 6
+make -j 6
 PATH_STARPU=$1
 PATH_R=$2
 N=$3
