@@ -714,6 +714,7 @@ Output_maxime/Data/Matrice_ligne/
 Output_maxime/DARTS_time_no_threshold_choose_best_data_from_memory.txt
 Output_maxime/Data/Matrice3D/
 Output_maxime/Data/DARTS/
+CLUTTER_IM_MODULE=xim
 Output_maxime/Legende.txt
 cut_datatransfers_raw_out_csv
 Output_maxime/Data/Nb_conflit_donnee_critique.txt

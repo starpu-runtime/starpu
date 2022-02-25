@@ -829,6 +829,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		{
 			/* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
 			task = starpu_task_list_pop_back(&temp_pointer->refused_fifo_list); 
+			//~ task = starpu_task_list_pop_front (&temp_pointer->refused_fifo_list); ?
 			
 			#ifdef PRINT
 			print_data_to_load_prefetch(task, starpu_worker_get_id());
