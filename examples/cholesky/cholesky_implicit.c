@@ -256,7 +256,7 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 		for (n = 0; n < nblocks; n++)
 		{
 			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, m, n);
-			starpu_data_set_coordinates(data, 2, m, n); /* Les coordonnées pour visualisation ? */
+			starpu_data_set_coordinates(data, 2, m, n); /* Les coordonnées pour visualisation */
 		}
 
 	int ret = _cholesky(dataA, nblocks);

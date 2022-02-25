@@ -902,7 +902,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	}
 
 	_STARPU_TRACE_TASK_SUBMIT_START();
-
+	
 	ret = _starpu_task_submit_head(task);
 	if (ret)
 	{
@@ -916,6 +916,8 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		_STARPU_TRACE_TASK_SUBMIT(j,
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0],
 			_starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1]);
+		task->iterations[0] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[0];
+		task->iterations[1] = _starpu_get_sched_ctx_struct(task->sched_ctx)->iterations[1];
 		_STARPU_TRACE_TASK_NAME(j);
 		_STARPU_TRACE_TASK_LINE(j);
 	}

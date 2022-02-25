@@ -605,7 +605,13 @@ struct starpu_task
 	   ::STARPU_NAME followed by the const char *.
 	*/
 	const char *name;
-
+	
+	/**
+		Put in it the iteration of the task (for Cholesky mainly) in 
+		_starpu_task_submit in order to visualize the tasks.
+	*/
+	long iterations[2];
+	
 	/**
 	   Optional file name where the task was submitted. This can be useful
 	   for debugging purposes.
