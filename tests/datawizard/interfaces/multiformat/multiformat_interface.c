@@ -20,7 +20,7 @@
 #include "../../../helper.h"
 
 static void test_multiformat_cpu_func(void *buffers[], void *args);
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 extern void test_multiformat_cuda_func(void *buffers[], void *args);
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -36,7 +36,7 @@ static starpu_data_handle_t multiformat_dummy_handle;
 struct test_config multiformat_config =
 {
 	.cpu_func      = test_multiformat_cpu_func,
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 	.cuda_func     = test_multiformat_cuda_func,
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -74,7 +74,7 @@ test_multiformat_cpu_func(void *buffers[], void *args)
 	FPRINTF(stderr, "\n");
 }
 
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 extern struct starpu_codelet cpu_to_cuda_cl;
 extern struct starpu_codelet cuda_to_cpu_cl;
 #endif
@@ -86,7 +86,7 @@ extern struct starpu_codelet opencl_to_cpu_cl;
 
 struct starpu_multiformat_data_interface_ops format_ops =
 {
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 	.cuda_elemsize = 2* sizeof(float),
 	.cpu_to_cuda_cl = &cpu_to_cuda_cl,
 	.cuda_to_cpu_cl = &cuda_to_cpu_cl,

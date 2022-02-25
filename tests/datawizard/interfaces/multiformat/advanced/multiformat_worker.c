@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,12 +18,12 @@
 #include "generic.h"
 #include "../../../../helper.h"
 
-#if (defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 extern struct stats global_stats;
 static int vector[NX]; static starpu_data_handle_t handle;
 #endif
 
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 static int ncuda;
 static int cuda_worker;
 #endif
@@ -32,11 +32,11 @@ static int nopencl;
 static int opencl_worker;
 #endif
 
-#if (defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static struct starpu_codelet cl =
 {
 	.modes = { STARPU_RW },
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 	.cuda_funcs = { cuda_func },
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -70,7 +70,7 @@ create_and_submit_tasks(void)
 	task->handles[0] = handle;
 	task->execute_on_a_specific_worker = 1;
 
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 	if (ncuda > 0)
 	{
 		task->workerid = cuda_worker;
@@ -97,7 +97,7 @@ create_and_submit_tasks(void)
 int
 main(int argc, char **argv)
 {
-#if (defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 	int err;
 	err = starpu_initialize(NULL, &argc, &argv);
 	if (err == -ENODEV)
@@ -125,7 +125,7 @@ main(int argc, char **argv)
 	if (err == -ENODEV)
 		goto enodev;
 
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#if defined(STARPU_USE_CUDA)
 	if (global_stats.cuda == 1)
 	{
 		if (global_stats.cpu_to_cuda == 1 &&

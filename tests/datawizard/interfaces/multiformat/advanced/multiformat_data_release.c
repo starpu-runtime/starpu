@@ -42,14 +42,14 @@ unregister_handle(void)
 	starpu_data_unregister(handle);
 }
 
-#if (defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void
 create_and_submit(int where)
 {
 	static struct starpu_codelet cl =
 	{
 		.modes = { STARPU_RW },
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 		.cuda_funcs   = {cuda_func},
 #endif
 #ifdef STARPU_USE_OPENCL
@@ -77,7 +77,7 @@ test(void)
 	struct stats expected_stats;
 	memset(&expected_stats, 0, sizeof(expected_stats));
 
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 	create_and_submit(STARPU_CUDA);
 	starpu_data_acquire(handle, STARPU_RW);
 

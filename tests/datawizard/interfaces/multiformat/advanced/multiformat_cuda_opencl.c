@@ -18,7 +18,7 @@
 #include "generic.h"
 #include "../../../../helper.h"
 
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0) && defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_OPENCL)
 
 extern struct stats global_stats;
 static int vector[NX];
@@ -113,12 +113,16 @@ unregister_handle(void)
 int
 main(void)
 {
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0) && defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) && defined(STARPU_USE_OPENCL)
 	int ret;
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
+#ifdef STARPU_USE_CUDA0
+	conf.ncuda = 0;
+#else
 	conf.ncuda = 1;
+#endif
 	conf.nopencl = 1;
 
 	ret = starpu_init(&conf);

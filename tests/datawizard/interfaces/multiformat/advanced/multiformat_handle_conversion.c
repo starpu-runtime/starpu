@@ -31,7 +31,7 @@
 
 extern struct stats global_stats;
 
-#if (defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
 static void
 create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 {
@@ -44,7 +44,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 		.where        = where
 	};
 
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 	if (where & STARPU_CUDA)
 		cl.cuda_funcs[0] = cuda_func;
 #endif
@@ -86,7 +86,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 		.where       = where
 	};
 
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 	if (where & STARPU_CUDA)
 		cl3.cuda_funcs[0] = cuda_func;
 #endif
@@ -112,7 +112,7 @@ create_and_submit_tasks(int where, starpu_data_handle_t handles[])
 #endif
 
 /* XXX Just a little bit of copy/pasta here... */
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 static int
 test_cuda(void)
 {
@@ -189,7 +189,7 @@ test_opencl(void)
 #ifdef STARPU_USE_CPU
 	expected_stats.cpu = 1;
 #endif /* !STARPU_USE_CPU */
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 	expected_stats.cuda = 0;
 	expected_stats.cpu_to_cuda = 0;
 	expected_stats.cuda_to_cpu = 0;
@@ -210,7 +210,11 @@ main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
+#ifdef STARPU_USE_CUDA0
+	conf.ncuda = 0;
+#else
 	conf.ncuda = 2;
+#endif
 	conf.nopencl = 1;
 
 	ret = starpu_initialize(&conf, &argc, &argv);
@@ -233,7 +237,7 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 #endif
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#ifdef STARPU_USE_CUDA
 	if (ncuda > 0 && test_cuda() != 0)
 	{
 		FPRINTF(stderr, "CUDA FAILED \n");
