@@ -3690,6 +3690,11 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 			if (STARPU_TASK_GET_HANDLE(task, 0) == STARPU_TASK_GET_HANDLE(task, 1))
 			{
 				fprintf(f2, "SYRK");
+				/* Attention pour SYRK il ne faut pas compter en double la donnée à charger. Donc je regarde si je l'a compté en double je fais --. */
+				if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
+				{
+					nb_data_to_load--;
+				}
 			}
 			else
 			{
@@ -4305,6 +4310,11 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 				if (STARPU_TASK_GET_HANDLE(task, 0) == STARPU_TASK_GET_HANDLE(task, 1))
 				{
 					fprintf(f2, "SYRK");
+					/* Attention pour SYRK il ne faut pas compter en double la donnée à charger. Donc je regarde si je l'a compté en double je fais --. */
+					if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
+					{
+						nb_data_to_load--;
+					}
 				}
 				else
 				{
