@@ -822,7 +822,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
+		worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
 		unsigned memnode = worker->memory_node;
 		if ((int) devid == lastdevid)
@@ -848,7 +848,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
+		worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
 		unsigned workerid = worker->workerid;
 		unsigned subdev = i % _starpu_get_machine_config()->topology.nworker[STARPU_CUDA_WORKER][devid];
@@ -929,7 +929,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
+		worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
 		unsigned memnode = worker->memory_node;
 		unsigned usersleft;
@@ -964,7 +964,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 
 	for (i = 0; i < worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
+		worker = &worker_set->workers[i];
 		unsigned workerid = worker->workerid;
 
 		deinit_worker_context(workerid, worker->devid);
@@ -2031,7 +2031,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 	idle_transfers = 0;
 	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
+		worker = &worker_set->workers[i];
 		int workerid = worker->workerid;
 		unsigned memnode = worker->memory_node;
 
@@ -2173,7 +2173,7 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 
 	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{
-		struct _starpu_worker *worker = &worker_set->workers[i];
+		worker = &worker_set->workers[i];
 		unsigned memnode STARPU_ATTRIBUTE_UNUSED = worker->memory_node;
 
 		task = tasks[i];
