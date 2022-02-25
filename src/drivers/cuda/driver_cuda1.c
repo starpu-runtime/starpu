@@ -468,7 +468,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 	strncpy(devname, props[devid].name, 63);
 	devname[63] = 0;
 
-	snprintf(worker->name, sizeof(worker->name), "CUDA0 %u (%s %.1f GiB)", devid, devname, size);
+	snprintf(worker->name, sizeof(worker->name), "CUDA1 %u (%s %.1f GiB)", devid, devname, size);
 	snprintf(worker->short_name, sizeof(worker->short_name), "CUDA %u", devid);
 	_STARPU_DEBUG("cuda (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
 
@@ -478,7 +478,7 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 
 	{
 		char thread_name[16];
-		snprintf(thread_name, sizeof(thread_name), "CUDA0 %u", worker->devid);
+		snprintf(thread_name, sizeof(thread_name), "CUDA1 %u", worker->devid);
 		starpu_pthread_setname(thread_name);
 	}
 
@@ -1350,7 +1350,7 @@ struct _starpu_driver_ops _starpu_driver_cuda_ops =
 
 struct _starpu_node_ops _starpu_driver_cuda_node_ops =
 {
-	.name = "cuda0 driver",
+	.name = "cuda1 driver",
 	.malloc_on_node = _starpu_cuda_malloc_on_node,
 	.free_on_node = _starpu_cuda_free_on_node,
 
