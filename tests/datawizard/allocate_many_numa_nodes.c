@@ -100,6 +100,12 @@ int main(int argc, char **argv)
 	printf("NUMA node 0 has %lu MB, the buffer will use %lu MB\n", numa_node_mem / 1024 / 1024, buffer_size / 1024 / 1024);
 
 	uintptr_t buffer = starpu_malloc_on_node(STARPU_MAIN_RAM, buffer_size);
+	if (!buffer)
+	{
+		fprintf(stderr, "Refuses to allocate that much, too bad"\n);
+		starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
 	memset((void*) buffer, 0, buffer_size);
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, buffer, buffer_size);
 
