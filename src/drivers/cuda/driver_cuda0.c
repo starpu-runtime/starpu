@@ -46,10 +46,6 @@
 #include <core/task.h>
 #include <common/knobs.h>
 
-#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
-#include <hwloc/cuda.h>
-#endif
-
 /* Consider a rough 10% overhead cost */
 #define FREE_MARGIN 0.9
 
@@ -58,17 +54,13 @@ static int ncudagpus = -1;
 
 static size_t global_mem[STARPU_MAXCUDADEVS];
 int _starpu_cuda_bus_ids[STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES][STARPU_MAXCUDADEVS+STARPU_MAXNUMANODES];
-#ifdef STARPU_USE_CUDA
 /* Note: streams are not thread-safe, so we define them for each CUDA worker
  * emitting a GPU-GPU transfer */
 static struct cudaDeviceProp props[STARPU_MAXCUDADEVS];
-#endif /* STARPU_USE_CUDA */
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 static unsigned cuda_init[STARPU_MAXCUDADEVS];
 static unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
 static unsigned cuda_bindid[STARPU_MAXCUDADEVS];
-#endif
 
 int _starpu_nworker_per_cuda = 1;
 
@@ -77,7 +69,6 @@ static size_t _starpu_cuda_get_global_mem_size(unsigned devid)
 	return global_mem[devid];
 }
 
-#ifdef STARPU_USE_CUDA
 cudaStream_t starpu_cuda_get_local_stream(void)
 {
 	return NULL;
@@ -89,7 +80,6 @@ const struct cudaDeviceProp *starpu_cuda_get_device_properties(unsigned workerid
 	unsigned devid = config->workers[workerid].devid;
 	return &props[devid];
 }
-#endif /* STARPU_USE_CUDA */
 
 
 /* Early library initialization, before anything else, just initialize data */
