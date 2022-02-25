@@ -125,7 +125,7 @@ main(int argc, char **argv)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 
-#ifdef STARPU_USE_CUDA0
+#if defined(STARPU_USE_CUDA0) || defined(STARPU_USE_CUDA1)
 	conf.ncuda = 0;
 #else
 	conf.ncuda = 1;

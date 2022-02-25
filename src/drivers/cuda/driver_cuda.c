@@ -1985,7 +1985,6 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 				(energy_end / 1000. - j->task->profiling_info->energy_consumed);
 	}
 #endif
-	_starpu_set_current_task(NULL);
 	if (worker->pipeline_length)
 		worker->current_tasks[worker->first_task] = NULL;
 	else
@@ -2005,6 +2004,8 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 		_starpu_driver_update_job_feedback(j, worker, &worker->perf_arch, profiling);
 
 	_starpu_push_task_output(j);
+
+	_starpu_set_current_task(NULL);
 
 	_starpu_handle_job_termination(j);
 }

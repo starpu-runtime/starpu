@@ -135,8 +135,10 @@ Writing a new driver is essentially:
 
 - Creating an src/drivers/yourdriver/ and adding it to src/Makefile.am
 
-  You can pick up src/drivers/cuda0 as an example of very basic driver which
-  should be relatively easy to get working.
+  You can pick up src/drivers/cuda/driver_cuda0.c as an example of very basic driver which
+  should be relatively easy to get working. Once you have it working you can
+  try to get inspiration from src/drivers/cuda/driver_cuda1.c to implement
+  asynchronous data and kernel execution.
 
 - Adding fields in struct starpu_conf and struct starpu_codelet.
 

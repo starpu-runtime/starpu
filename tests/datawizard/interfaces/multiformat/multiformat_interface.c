@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 	struct data_interface_test_summary summary;
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-#if defined(STARPU_USE_CUDA0)
+#if defined(STARPU_USE_CUDA0) || defined(STARPU_USE_CUDA1)
 	conf.ncuda = 0;
 #else
 	conf.ncuda = 2;

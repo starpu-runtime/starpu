@@ -1552,6 +1552,11 @@ if test x$enable_cuda = xyes; then
     if test x$enable_cuda0=xyes; then
         AC_DEFINE(STARPU_USE_CUDA0,[1],[Define to 1 if the CUDA0 driver is to be tested])
     fi
+    AC_ARG_ENABLE(cuda1, [AS_HELP_STRING([--enable-cuda0],
+		[Enable the small-support CUDA driver (only for testing)])],, [enable_cuda1=no])
+    if test x$enable_cuda1=xyes; then
+        AC_DEFINE(STARPU_USE_CUDA1,[1],[Define to 1 if the CUDA1 driver is to be tested])
+    fi
 
     if test x$starpu_windows != xyes ; then
 	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"
@@ -1561,6 +1566,7 @@ if test x$enable_cuda = xyes; then
     AC_SUBST(STARPU_CUDA_CPPFLAGS)
 fi
 AM_CONDITIONAL(STARPU_USE_CUDA0, test x$enable_cuda0 = xyes)
+AM_CONDITIONAL(STARPU_USE_CUDA1, test x$enable_cuda1 = xyes)
 
 AC_ARG_VAR([NVCC], [CUDA compiler])
 AC_ARG_VAR([NVCC_CC], [C compiler for CUDA compiler])
@@ -3584,15 +3590,15 @@ AC_SUBST(STARPU_OPTION_LIBS, "$option_libs")
 #                                                                             #
 ###############################################################################
 
-if test x$enable_simgrid = xyes -a x$enable_cuda0 = xyes; then
+if test x$enable_simgrid = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = xyes \) ; then
     AC_MSG_ERROR([Cuda0 not supported with simgrid])
 fi
 
-if test x$enable_opencl = xyes -a x$enable_cuda0 = xyes; then
+if test x$enable_opencl = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = xyes \) ; then
     AC_MSG_ERROR([Cuda0 not supported with OpenCL])
 fi
 
-if test x$enable_openmp = xyes -a x$enable_cuda0 = xyes; then
+if test x$enable_openmp = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = xyes \) ; then
     AC_MSG_ERROR([Cuda0 not supported with OpenMP])
 fi
 

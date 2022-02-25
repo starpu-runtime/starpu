@@ -281,7 +281,7 @@ main(void)
 
 	/* this example doesn't support MPI Master-Slave */
 	conf.nmpi_ms = 0;
-#ifdef STARPU_USE_CUDA0
+#if defined(STARPU_USE_CUDA0) || defined(STARPU_USE_CUDA1)
 	conf.ncuda = 0;
 #endif
 

@@ -103,7 +103,7 @@ main(int argc, char **argv)
 	if (err == -ENODEV)
 		goto enodev;
 
-#if defined(STARPU_USE_CUDA) && !defined(STARPU_USE_CUDA0)
+#if defined(STARPU_USE_CUDA) && !(defined(STARPU_USE_CUDA0) || defined(STARPU_USE_CUDA1))
 	ncuda = starpu_worker_get_ids_by_type(STARPU_CUDA_WORKER,
 						&cuda_worker, 1);
 	if (ncuda < 0)

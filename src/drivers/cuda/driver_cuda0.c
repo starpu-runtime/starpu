@@ -572,6 +572,8 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
 
+	int profiling = starpu_profiling_status_get();
+
 	STARPU_ASSERT(task);
 	struct starpu_codelet *cl = task->cl;
 	STARPU_ASSERT(cl);
@@ -587,8 +589,6 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 		/* push the codelet back and try another one ... */
 		return -EAGAIN;
 	}
-
-	int profiling = starpu_profiling_status_get();
 
 	_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 
@@ -653,8 +653,11 @@ static void finish_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *wor
 /* One iteration of the main driver loop */
 int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 {
-	unsigned memnode = worker->memory_node;
+	struct starpu_task *task;
+	struct _starpu_job *j;
 	int res;
+
+	unsigned memnode = worker->memory_node;
 
 	/* Make some progress */
 	_starpu_datawizard_progress(1);
@@ -662,9 +665,6 @@ int _starpu_cuda_driver_run_once(struct _starpu_worker *worker)
 	{
 		_starpu_datawizard_progress(1);
 	}
-
-	struct starpu_task *task;
-	struct _starpu_job *j;
 
 	/* And pull a task */
 	task = _starpu_get_worker_task(worker, worker->workerid, worker->memory_node);
