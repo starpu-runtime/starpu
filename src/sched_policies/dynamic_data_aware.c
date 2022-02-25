@@ -831,8 +831,10 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			task = starpu_task_list_pop_back(&temp_pointer->refused_fifo_list); 
 			//~ task = starpu_task_list_pop_front (&temp_pointer->refused_fifo_list); ?
 			
+			//~ #ifdef PRINT_PYTHON /* Il ne faut pas le faire ici non ? */
+			//~ print_data_to_load_prefetch(task, current_gpu);
+			//~ #endif
 			#ifdef PRINT
-			print_data_to_load_prefetch(task, starpu_worker_get_id());
 			printf("Return refused task %p.\n", task); fflush(stdout);
 			#endif
 			
@@ -860,11 +862,12 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			add_task_to_pulled_task(current_gpu, task);
 				
 			/* For visualisation in python. */
+			#ifdef PRINT_PYTHON
+			print_data_to_load_prefetch(task, current_gpu);
+			#endif
 			#ifdef PRINT
 			printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d\n", task, current_gpu); fflush(stdout);
-			print_data_to_load_prefetch(task, starpu_worker_get_id());
 			#endif
-			
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
@@ -925,14 +928,15 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			}
 			
 			/* For visualisation in python. */
+			#ifdef PRINT_PYTHON
+			print_data_to_load_prefetch(task, current_gpu);
+			#endif
 			#ifdef PRINT
-			print_data_to_load_prefetch(task, starpu_worker_get_id());
 			printf("Return task %p from the scheduling call.\n", task); fflush(stdout);
 			#endif
 			#ifdef PRINT_STATS
 			nb_return_task_after_scheduling++;
 			#endif
-			
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
@@ -2766,7 +2770,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	int i = 0;
 
 	/* Prints and stats. */
-	#if defined PRINT || defined PRINT_STATS
+	#if defined PRINT || defined PRINT_STATS || defined PRINT_PYTHON
 	print_in_terminal = starpu_get_env_number_default("PRINT_IN_TERMINAL", 0);
 	print3d = starpu_get_env_number_default("PRINT3D", 0);
 	print_n = starpu_get_env_number_default("PRINT_N", 0);
@@ -2844,7 +2848,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	time_total_createtolasttaskfinished = 0;
 	#endif
 	
-	#ifdef PRINT
+	#ifdef PRINT_PYTHON
 	/* For visualisation in python. */
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
@@ -3082,27 +3086,28 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
-//~ /* Version avec print et visualisation */
-//~ struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
-//~ {
-	//~ .init_sched = initialize_dynamic_data_aware_center_policy,
-	//~ .deinit_sched = deinitialize_dynamic_data_aware_center_policy,
-	//~ .add_workers = starpu_sched_tree_add_workers,
-	//~ .remove_workers = starpu_sched_tree_remove_workers,
-	//~ /* .do_schedule = starpu_sched_tree_do_schedule, */
-	//~ .push_task = starpu_sched_tree_push_task,
-	//~ /* //~ .pop_task = starpu_sched_tree_pop_task, */
-	//~ .pop_task = get_data_to_load,
-	//~ /* .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, */
-	//~ .pre_exec_hook = get_current_tasks,
-	//~ /* .post_exec_hook = starpu_sched_component_worker_post_exec_hook, */
-	//~ .post_exec_hook = get_task_done,
-	//~ .pop_every_task = NULL,
-	//~ .policy_name = "dynamic-data-aware",
-	//~ .policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
-	//~ .worker_type = STARPU_WORKER_LIST,
-//~ };
-
+#ifdef PRINT_PYTHON
+/* Version avec print et visualisation */
+struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
+{
+	.init_sched = initialize_dynamic_data_aware_center_policy,
+	.deinit_sched = deinitialize_dynamic_data_aware_center_policy,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	/* .do_schedule = starpu_sched_tree_do_schedule, */
+	.push_task = starpu_sched_tree_push_task,
+	/* //~ .pop_task = starpu_sched_tree_pop_task, */
+	.pop_task = get_data_to_load,
+	/* .pre_exec_hook = starpu_sched_component_worker_pre_exec_hook, */
+	.pre_exec_hook = get_current_tasks,
+	/* .post_exec_hook = starpu_sched_component_worker_post_exec_hook, */
+	.post_exec_hook = get_task_done,
+	.pop_every_task = NULL,
+	.policy_name = "dynamic-data-aware",
+	.policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
+	.worker_type = STARPU_WORKER_LIST,
+};
+#else
 /* Version pour performances */
 struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
 {
@@ -3114,9 +3119,10 @@ struct starpu_sched_policy _starpu_sched_dynamic_data_aware_policy =
 	.pop_task = starpu_sched_tree_pop_task,
 	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
 	.post_exec_hook = get_task_done, /* Utile pour la stratégie d'éviction */
-	//~ # Mettre un data unregister qui oublie les données temporaires, existe deja starpu_data_unregister y ajouter l'appel a la methode de l'ordo et en plus un reste ailleurs (depuis l'appli). Le unregsiter sera utile pour dautrs aplli comme QRmems
+	//~ /* Mettre un data unregister qui oublie les données temporaires, existe deja starpu_data_unregister y ajouter l'appel a la methode de l'ordo et en plus un reste ailleurs (depuis l'appli). Le unregsiter sera utile pour dautrs aplli comme QRmems */
 	.pop_every_task = NULL,
 	.policy_name = "dynamic-data-aware",
 	.policy_description = "Dynamic scheduler scheduling tasks whose data are in memory after loading the data adding the most tasks",
 	.worker_type = STARPU_WORKER_LIST,
 };
+#endif

@@ -73,9 +73,9 @@ void initialize_global_variable(struct starpu_task *task)
 {
 	N = print_n;
 	Ngpu = get_number_GPU();
-	int i = 0;
-	FILE *f = NULL;
-	char src[50], dest[50];
+	//~ int i = 0;
+	//~ FILE *f = NULL;
+	//~ char src[50], dest[50];
 	
 	/* Getting the total number of tasks */
 	if(print3d == 0) /* 2D */
@@ -93,19 +93,26 @@ void initialize_global_variable(struct starpu_task *task)
 		
 	appli = starpu_task_get_name(task);
 	
-	/* Emptying the files that receive the task order on each GPU */
-	for (i = 0; i < Ngpu; i++)
-	{
-		strcpy(src,  "Output_maxime/Task_order_effective_");
-		sprintf(dest, "%d", i);
-		strcat(src, dest);
-		f = fopen(src, "w"); 
-		fclose(f);
-	}
-	f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "w");
-	fclose(f);
-	f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER_3D.txt", "w");
-	fclose(f);
+	//~ /* Emptying the files that receive the task order on each GPU */
+	//~ for (i = 0; i < Ngpu; i++)
+	//~ {
+		//~ strcpy(src,  "Output_maxime/Task_order_effective_");
+		//~ sprintf(dest, "%d", i);
+		//~ strcat(src, dest);
+		//~ f = fopen(src, "w"); 
+		//~ fclose(f);
+	//~ }
+	//~ f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "w");
+	//~ if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "chol_model_21") == 0 || strcmp(starpu_task_get_name(task), "chol_model_22") == 0)
+	//~ {
+		//~ fprintf(f, "TASK	COORDY	COORDX	GPU\n");
+	//~ }
+	//~ fclose(f);
+	//~ if (print3d != 0)
+	//~ {
+		//~ f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER_3D.txt", "w");
+		//~ fclose(f);
+	//~ }
 }
 
 /* Empty a task's list. We use this for the lists last_package */
@@ -978,7 +985,8 @@ void visualisation_tache_matrice_format_tex_with_data_2D()
 	printf("Fin de visualisation_tache_matrice_format_tex_with_data_2D()\n");
 }
 
-/* Print in a file (Output_maxime/Task_order_effective_i) the effective order 
+/* Visu python.
+ * Print in a file (Output_maxime/Task_order_effective_i) the effective order 
  * (we do it from get_current_task because the ready heuristic
  * can change our planned order). 
  * Also print in a file each task and it data to compute later the data needed
@@ -987,52 +995,106 @@ void visualisation_tache_matrice_format_tex_with_data_2D()
  */
 void print_effective_order_in_file (struct starpu_task *task, int index_task)
 {
-	char str[2];
-	sprintf(str, "%d", starpu_worker_get_id()); /* To get the index of the current GPU */
+	//~ printf("Task %p (%s) in print effective order in file.\n", task, starpu_task_get_name(task)); fflush(stdout);
+	FILE *f = NULL;
+	int tab_coordinates[2];
 	
-	/* For the task order */
-	int size = strlen("Output_maxime/Task_order_effective_") + strlen(str);
-	char *path = (char *)malloc(size);
-	strcpy(path, "Output_maxime/Task_order_effective_");
-	strcat(path, str);
-	FILE *f = fopen(path, "a");
-	fprintf(f, "%p\n", task);
-	fclose(f);
-	
+	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
+
 	/* For the coordinates It write the coordinates (with Z for 3D), then the GPU and then the number of data needed to load for this task */
 	if (print_n != 0 && (strcmp(appli, "starpu_sgemm_gemm") == 0))
 	{
-		f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "a");
-		int temp_tab_coordinates[2];
+		if (index_task_currently_treated == 0) 
+		{
+			f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "w");
+		}
+		else
+		{
+			f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "a");
+		}
 		/* Pour matrice 3D je récupère la coord de Z aussi */
 		if (print3d != 0)
 		{
 			/* 3 for 3D no ? */
-			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-			fprintf(f, "%d	%d", temp_tab_coordinates[0], temp_tab_coordinates[1]);
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+			fprintf(f, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
 			
 			/* TODO a suppr */
 			//~ printf("Tâche n°%d %p : x = %d | y = %d | ", index_task, task, temp_tab_coordinates[0], temp_tab_coordinates[1]);
 
-			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, temp_tab_coordinates);
-			fprintf(f, "	%d	%d\n", temp_tab_coordinates[0], starpu_worker_get_id());
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
+			fprintf(f, "	%d	%d\n", tab_coordinates[0], current_gpu - 1);
 			
 			/* TODO a suppr */
 			//~ printf("z = %d\n", temp_tab_coordinates[0]);
 		}
 		else 
 		{
-			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, temp_tab_coordinates);
-			fprintf(f, "%d	%d	%d\n", temp_tab_coordinates[0], temp_tab_coordinates[1], starpu_worker_get_id());
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+			fprintf(f, "%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], current_gpu - 1);
 		}
 		fclose(f);
-		if (index_task == NT - 1)
+		//~ if (index_task == NT - 1)
+		//~ {
+			//~ if (print3d == 0)
+			//~ {
+				//~ visualisation_tache_matrice_format_tex_with_data_2D();
+			//~ }
+		//~ }
+	}
+	else if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "chol_model_21") == 0 || strcmp(starpu_task_get_name(task), "chol_model_22") == 0) /* Cas Cholesky*/
+	{		
+		if (index_task_currently_treated == 0) 
 		{
-			if (print3d == 0)
-			{
-				visualisation_tache_matrice_format_tex_with_data_2D();
-			}
+			/* Ouverture du fichier. */
+			f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "w");
+			fprintf(f, "TASK COORDY COORDX GPU ITERATIONK\n");
 		}
+		else
+		{
+			f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "a");
+		}
+		
+		/* Impression du type de tâche. */
+		if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0)
+		{
+			fprintf(f, "POTRF");
+		}
+		else if (strcmp(starpu_task_get_name(task), "chol_model_21") == 0)
+		{
+			fprintf(f, "TRSM");
+		}
+		else
+		{
+			/* Cas SYRK et GEMM que je distingue avec la donnée en double pour SYRK. */
+			if (STARPU_TASK_GET_HANDLE(task, 0) == STARPU_TASK_GET_HANDLE(task, 1))
+			{
+				fprintf(f, "SYRK");
+			}
+			else
+			{
+				fprintf(f, "GEMM");
+			}		
+		}
+		
+		/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */
+		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
+		//~ fprintf(f, "	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], starpu_worker_get_id(), task->iterations[0]);
+		fprintf(f, "	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], current_gpu - 1, task->iterations[0]);
+			
+		//~ /* J'imprime les coordonnées des données utilisées. Dans le cas ou je veux toutes les coords. */
+		//~ for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
+		//~ {
+			//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, i), 2, tab_coordinates);
+			//~ printf("%d %d.\n", tab_coordinates[0], tab_coordinates[1]);
+			//~ fprintf(f, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+		//~ }
+		fclose(f);
+	}
+	else
+	{
+		perror("Dans print effective orer in file je ne gère que GEMM et CHOLESKY :/.\n"); 
+		exit(0);
 	}
 }
 
@@ -1048,26 +1110,26 @@ void print_packages_in_terminal (struct paquets *a, int nb_of_loop)
 		link_index++; a->temp_pointer_1 = a->temp_pointer_1->next;				
 	} 
 	a->temp_pointer_1 = a->first_link;
-			printf("-----\nOn a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
-			printf("-----\n");
-			link_index = 0;	
-			while (a->temp_pointer_1 != NULL) 
+	printf("-----\nOn a fais %d tour(s) de la boucle while et on a fais %d paquet(s)\n",nb_of_loop,link_index);
+	printf("-----\n");
+	link_index = 0;	
+	while (a->temp_pointer_1 != NULL) 
+	{
+		printf("Le paquet %d contient %d tâche(s) et %d données, expected task time = %f, expected package time = %f, split last package = %d\n",link_index,a->temp_pointer_1->nb_task_in_sub_list, a->temp_pointer_1->package_nb_data,a->temp_pointer_1->expected_time, a->temp_pointer_1->expected_package_computation_time, a->temp_pointer_1->split_last_ij);
+		for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
+		{
+			printf("%p : ",task);
+			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
 			{
-				printf("Le paquet %d contient %d tâche(s) et %d données, expected task time = %f, expected package time = %f, split last package = %d\n",link_index,a->temp_pointer_1->nb_task_in_sub_list, a->temp_pointer_1->package_nb_data,a->temp_pointer_1->expected_time, a->temp_pointer_1->expected_package_computation_time, a->temp_pointer_1->split_last_ij);
-				for (task = starpu_task_list_begin(&a->temp_pointer_1->sub_list); task != starpu_task_list_end(&a->temp_pointer_1->sub_list); task = starpu_task_list_next(task)) 
-				{
-					printf("%p : ",task);
-					for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
-					{
-						printf("%p ", STARPU_TASK_GET_HANDLE(task, i));
-					}
-					printf("\n");
-				}
-				link_index++;
-				a->temp_pointer_1 = a->temp_pointer_1->next;
-				printf("-----\n");
+				printf("%p ", STARPU_TASK_GET_HANDLE(task, i));
 			}
-			a->temp_pointer_1 = a->first_link;
+			printf("\n");
+		}
+		link_index++;
+		a->temp_pointer_1 = a->temp_pointer_1->next;
+		printf("-----\n");
+	}
+	a->temp_pointer_1 = a->first_link;
 }
 
 /* For multi gpu with expected package time (MULTIGPU == 6).
@@ -3484,10 +3546,10 @@ void hmetis_input_already_generated(struct paquets *p, struct starpu_task_list *
 void init_visualisation (struct paquets *a)
 {
 	print_order_in_file_hfp(a);
-	if (multigpu != 0 && (strcmp(appli, "starpu_sgemm_gemm") == 0))
-	{ 
-		visualisation_data_gpu_in_file_hfp_format_tex(a); 
-	}
+	//~ if (multigpu != 0 && (strcmp(appli, "starpu_sgemm_gemm") == 0))
+	//~ { 
+		//~ visualisation_data_gpu_in_file_hfp_format_tex(a); 
+	//~ }
 	//TODO corriger la manière dont je vide si il y a plus de 3 GPUs
 	FILE *f = fopen("Output_maxime/Task_order_effective_0", "w"); /* Just to empty it before */
 	fclose(f);
@@ -3514,21 +3576,16 @@ int get_number_GPU()
 	return return_value;
 }
 
-/* Printing in a file the coordinates and the data loaded during prefetch for each task */
+/* Printing in a file the coordinates and the data loaded during prefetch for each task for visu python */
 void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 {
-	/* TODO : marche que en M2D et M3D pour le moment */
-	if (strcmp(starpu_task_get_name(task), "starpu_sgemm_gemm") != 0)
-	{
-		return;
-	}
-
 	int current_gpu = gpu_id;
-	if (Ngpu == 1)
-	{
-		current_gpu = 0;
-	}
-	index_current_popped_task_prefetch[current_gpu]++; /* Increment popped task on the right GPU */
+	//~ printf("%d gpu id\n", gpu_id);
+	//~ if (Ngpu == 1)
+	//~ {
+		//~ current_gpu = 0;
+	//~ }
+	index_current_popped_task_prefetch[current_gpu - 1]++; /* Increment popped task on the right GPU */
 	index_current_popped_task_all_gpu_prefetch++;
 	int nb_data_to_load = 0;
 	int x_to_load = 0;
@@ -3538,7 +3595,8 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 	/* Getting the number of data to load */
 	for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 	{
-		if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(current_gpu)))
+		//~ if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(current_gpu)))
+		if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, i), gpu_id))
 		{
 			nb_data_to_load++;
 				
@@ -3558,28 +3616,31 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 		}
 	}
 	/* Printing the number of data to load */
-	FILE *f = NULL;
+	//~ FILE *f = NULL;
 	FILE *f2 = NULL;
-	char str[2];
-	sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
+	//~ char str[2];
+	//~ sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
 	/* To open the right file */
-	int size = strlen("Output_maxime/Data_to_load_prefetch_GPU_") + strlen(str);
-	char *path = (char *)malloc(size);
-	strcpy(path, "Output_maxime/Data_to_load_prefetch_GPU_");
-	strcat(path, str);
+	//~ int size = strlen("Output_maxime/Data_to_load_prefetch_GPU_") + strlen(str);
+	//~ char *path = (char *)malloc(size);
+	//~ strcpy(path, "Output_maxime/Data_to_load_prefetch_GPU_");
+	//~ strcat(path, str);
 	
-		if (index_current_popped_task_prefetch[current_gpu] == 1)
-		{
-			/* We are on the first task so I open the file in w */
-			f = fopen(path, "w");
-			fprintf(f, "1	%d\n", nb_data_to_load);
-		}
-		else
-		{
-			f = fopen(path, "a");
-			fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
-		}
-		int tab_coordinates[2];
+		//~ if (index_current_popped_task_prefetch[current_gpu] == 1)
+		//~ {
+			//~ /* We are on the first task so I open the file in w */
+			//~ f = fopen(path, "w");
+			//~ fprintf(f, "1	%d\n", nb_data_to_load);
+		//~ }
+		//~ else
+		//~ {
+			//~ f = fopen(path, "a");
+			//~ fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
+		//~ }
+	int tab_coordinates[2];
+		
+	if (strcmp(starpu_task_get_name(task), "starpu_sgemm_gemm") == 0)
+	{	
 		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
 		if (index_current_popped_task_all_gpu_prefetch == 1)
 		{
@@ -3594,14 +3655,71 @@ void print_data_to_load_prefetch (struct starpu_task *task, int gpu_id)
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
 			fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
-			fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu);
+			fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu - 1);
 		}
 		else
 		{
-			fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+			fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu - 1);
 		}
-		fclose(f);
-		fclose(f2);
+	}
+	else if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "chol_model_21") == 0 || strcmp(starpu_task_get_name(task), "chol_model_22") == 0) /* Cas Cholesky*/
+	{
+		/* Ouverture du fichier. */
+		if (index_current_popped_task_all_gpu_prefetch == 1)
+		{
+			f2 = fopen("Output_maxime/Data_to_load_prefetch_SCHEDULER.txt", "w");
+			fprintf(f2, "TASK	COORDY	COORDX	NBLOADS	GPU	ITERATIONK\n");
+		}
+		else
+		{
+			f2 = fopen("Output_maxime/Data_to_load_prefetch_SCHEDULER.txt", "a");
+		}
+		
+		/* Impression du type de tâche. */
+		if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0)
+		{
+			fprintf(f2, "POTRF");
+		}
+		else if (strcmp(starpu_task_get_name(task), "chol_model_21") == 0)
+		{
+			fprintf(f2, "TRSM");
+		}
+		else
+		{
+			/* Cas SYRK et GEMM que je distingue avec la donnée en double pour SYRK. */
+			if (STARPU_TASK_GET_HANDLE(task, 0) == STARPU_TASK_GET_HANDLE(task, 1))
+			{
+				fprintf(f2, "SYRK");
+				/* Attention pour SYRK il ne faut pas compter en double la donnée à charger. Donc je regarde si je l'a compté en double je fais --. */
+				if(!starpu_data_is_on_node(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
+				{
+					nb_data_to_load--;
+				}
+			}
+			else
+			{
+				fprintf(f2, "GEMM");
+			}		
+		}	
+		/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */
+		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
+		fprintf(f2, "	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], nb_data_to_load, current_gpu - 1, task->iterations[0]);
+			
+		/* J'imprime les coordonnées des données utilisées. Dans le cas ou je veux toutes les coords. */
+		//~ for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
+		//~ {
+			//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, i), 2, tab_coordinates);
+			//~ printf("%d %d.\n", tab_coordinates[0], tab_coordinates[1]);
+			//~ fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+		//~ }
+	}
+	else
+	{
+		perror("Dans print data to load prefetch je ne gère que GEMM et CHOLESKY :/.\n"); 
+		exit(0);
+	}
+	//~ fclose(f);
+	fclose(f2);
 }
 
 /* The function that sort the tasks in packages */
@@ -4051,12 +4169,13 @@ void get_current_tasks_for_visualization(struct starpu_task *task, unsigned sci)
 	/* dmda_pre_exec_hook(task, sci) */
 }
 
+/* Appellé par DARTS et HFP pour visu python. */
 void get_current_tasks(struct starpu_task *task, unsigned sci)
 {
 	if (print_in_terminal == 1)
 	{
 		if (index_task_currently_treated == 0) 
-		{ 
+		{
 			initialize_global_variable(task);
 		}
 		print_effective_order_in_file(task, index_task_currently_treated); 	
@@ -4067,18 +4186,15 @@ void get_current_tasks(struct starpu_task *task, unsigned sci)
 	starpu_sched_component_worker_pre_exec_hook(task, sci);
 }
 
-/* Used for visualisation */
+/* Used for visualisation python */
 struct starpu_task *get_data_to_load(unsigned sched_ctx)
 {	
 	struct starpu_task *task = starpu_sched_tree_pop_task(sched_ctx);
 	
 	if (print_in_terminal == 1 && task != NULL)
 	{
-		int current_gpu = starpu_worker_get_id();
-		if (Ngpu == 1)
-		{
-			current_gpu = 0;
-		}
+		//~ int current_gpu = starpu_worker_get_id();
+		int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 		//~ printf("Ngpu = %d current = %d task = %p\n", Ngpu, current_gpu, task);
 		index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
 		index_current_popped_task_all_gpu++;
@@ -4087,73 +4203,144 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 		int y_to_load = 0;
 		int z_to_load = 0;
 		int i = 0;
-		//~ /* Getting the number of data to load */
+		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
-			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))
+			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), current_gpu))
 			{
 				nb_data_to_load++;
 				
-				/* To know if I load a line or a column */
+				/* To know if I load a line or a column. Attention ca marche pas si plus de 3 données dans la tâche. */
 				if (i == 0)
 				{
 					x_to_load = 1;
 				}
-				if (i == 1)
+				else if (i == 1)
 				{
 					y_to_load = 1;
 				}
-				if (i == 2)
+				else if (i == 2)
 				{
 					z_to_load = 1;
 				}
+				else
+				{
+					perror("Cas pas géré dans get data to load.\n"); exit(0);
+				}
 			}
 		}
+		
+		//~ printf("%s in get_data_to_load.\n", starpu_task_get_name(task));
+		
 		/* Printing the number of data to load */
-		FILE *f = NULL;
+		//~ FILE *f = NULL;
 		FILE *f2 = NULL;
-		char str[2];
-		sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
+		//~ char str[2];
+		//~ sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
 		/* To open the right file */
-		int size = strlen("Output_maxime/Data_to_load_GPU_") + strlen(str);
-		char *path = (char *)malloc(size);
-		strcpy(path, "Output_maxime/Data_to_load_GPU_");
-		strcat(path, str);
-	
-		if (index_current_popped_task[current_gpu] == 1)
-		{
-			/* We are on the first task so I open the file in w */
-			f = fopen(path, "w");
-			fprintf(f, "1	%d\n", nb_data_to_load);
-		}
-		else
-		{
-			f = fopen(path, "a");
-			fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
-		}
+		//~ int size = strlen("Output_maxime/Data_to_load_GPU_") + strlen(str);
+		//~ char *path = (char *)malloc(size);
+		//~ strcpy(path, "Output_maxime/Data_to_load_GPU_");
+		//~ strcat(path, str);
+		
+		//~ if (index_current_popped_task[current_gpu] == 1)
+		//~ {
+			//~ /* We are on the first task so I open the file in w */
+			//~ f = fopen(path, "w");
+			//~ fprintf(f, "1	%d\n", nb_data_to_load);
+		//~ }
+		//~ else
+		//~ {
+			//~ f = fopen(path, "a");
+			//~ fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
+		//~ }
+		
 		int tab_coordinates[2];
-		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
-		if (index_current_popped_task_all_gpu == 1)
-		{
-			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
-		}
-		else
-		{
-			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
-		}
-		if (print3d != 0)
+		
+		/* Cas 2D et 3D qui marche. */
+		if (strcmp(starpu_task_get_name(task), "starpu_sgemm_gemm") == 0)
 		{
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
-			fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
-			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
-			fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu);
+			
+			if (index_current_popped_task_all_gpu == 1)
+			{
+				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
+			}
+			else
+			{
+				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
+			}
+			if (print3d != 0)
+			{
+				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+				fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
+				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
+				fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu - 1);
+			}
+			else
+			{
+				fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu - 1);
+			}
+		}
+		else if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "chol_model_21") == 0 || strcmp(starpu_task_get_name(task), "chol_model_22") == 0) /* Cas Cholesky*/
+		{
+			/* Ouverture du fichier. */
+			if (index_current_popped_task_all_gpu == 1)
+			{
+				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
+				fprintf(f2, "TASK	COORDY	COORDX	NBLOADS	GPU	ITERATIONK\n");
+			}
+			else
+			{
+				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
+			}
+			
+			/* Impression du type de tâche. */
+			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0)
+			{
+				fprintf(f2, "POTRF");
+			}
+			else if (strcmp(starpu_task_get_name(task), "chol_model_21") == 0)
+			{
+				fprintf(f2, "TRSM");
+			}
+			else
+			{
+				/* Cas SYRK et GEMM que je distingue avec la donnée en double pour SYRK. */
+				if (STARPU_TASK_GET_HANDLE(task, 0) == STARPU_TASK_GET_HANDLE(task, 1))
+				{
+					fprintf(f2, "SYRK");
+					/* Attention pour SYRK il ne faut pas compter en double la donnée à charger. Donc je regarde si je l'a compté en double je fais --. */
+					if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
+					{
+						nb_data_to_load--;
+					}
+				}
+				else
+				{
+					fprintf(f2, "GEMM");
+				}
+				
+			}
+			
+			/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
+			fprintf(f2, "	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], nb_data_to_load, current_gpu - 1, task->iterations[0]);
+
+			
+			/* J'imprime les coordonnées des données utilisées. Dans le cas ou je veux toutes les coords. */
+			//~ for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
+			//~ {
+				//~ starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, i), 2, tab_coordinates);
+				//~ printf("%d %d.\n", tab_coordinates[0], tab_coordinates[1]);
+				//~ fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+			//~ }
 		}
 		else
 		{
-			fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+			perror("Dans get data to load je ne gère que GEMM et CHOLESKY :/.\n"); 
+			exit(0);
 		}
-		
-		fclose(f);
 		fclose(f2);
 	}
 	return task;
