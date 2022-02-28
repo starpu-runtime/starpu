@@ -72,7 +72,7 @@ static void __starpu_init_tcpip_config(struct _starpu_machine_topology * topolog
 void _starpu_init_tcpip_config(struct _starpu_machine_topology * topology, struct _starpu_machine_config *config,
                                    struct starpu_conf *user_conf, int no_mp_config)
 {
-        unsigned i;
+        int i;
 
         /* Discover and configure the mp topology. That means:
          * - discover the number of mp nodes;

@@ -75,7 +75,7 @@ static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
 			    struct starpu_conf *user_conf, int no_mp_config)
 {
-	unsigned i;
+	int i;
 
 	/* Discover and configure the mp topology. That means:
 	 * - discover the number of mp nodes;
@@ -84,7 +84,7 @@ void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _
 	 * - configure the workers accordingly.
 	 */
 
-	for (i = 0; i < (sizeof(mpi_worker_set)/sizeof(mpi_worker_set[0])); i++)
+	for (i = 0; i < (int) (sizeof(mpi_worker_set)/sizeof(mpi_worker_set[0])); i++)
 		mpi_worker_set[i].workers = NULL;
 
 	int nmpims = user_conf->nmpi_ms;
