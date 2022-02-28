@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2022-  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -143,7 +143,8 @@ if(listen(sockfd, backlog) != 0) \
         int ret = setsockopt(sockfd, SOL_SOCKET, optname, &one, sizeof(one)); \
         if (ret!=0) \
         { \
-                perror("setsockopt zerocopy"); \
+                if (errno != ENOPROTOOPT) \
+                        perror("setsockopt zerocopy"); \
                 zc = 0; \
         } \
         else \
