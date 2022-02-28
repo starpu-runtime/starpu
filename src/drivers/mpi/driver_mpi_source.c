@@ -128,10 +128,10 @@ void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _
 
 	if (!no_mp_config)
 	{
-		for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
+		for (i = 0; i < nmpims; i++)
 			_starpu_src_nodes[STARPU_MPI_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
 
-		for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
+		for (i = 0; i < nmpims; i++)
 			__starpu_init_mpi_config(topology, config, i);
 	}
 }

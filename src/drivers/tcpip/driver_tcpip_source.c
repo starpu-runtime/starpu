@@ -126,10 +126,10 @@ void _starpu_init_tcpip_config(struct _starpu_machine_topology * topology, struc
 
         if (!no_mp_config)
         {
-                for (i = 0; i < topology->ndevices[STARPU_TCPIP_MS_WORKER]; i++)
+                for (i = 0; i < ntcpipms; i++)
                         _starpu_src_nodes[STARPU_TCPIP_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_TCPIP_SOURCE, i);
 
-                for (i = 0; i < topology->ndevices[STARPU_TCPIP_MS_WORKER]; i++)
+                for (i = 0; i < ntcpipms; i++)
 			__starpu_init_tcpip_config(topology, config, i);
         }
 
