@@ -1835,7 +1835,7 @@ static void handle_codelet_details(struct fxt_ev_64 *ev, struct starpu_fxt_optio
 	char parameters[256];
 	size_t eaten = 0;
 	if (!last_codelet_parameter[worker])
-		eaten += snprintf(parameters + eaten, sizeof(parameters) - eaten - 1, "nodata");
+		snprintf(parameters, sizeof(parameters) - 1, "nodata");
 	else
 	{
 		int i;
