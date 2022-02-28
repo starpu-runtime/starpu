@@ -287,7 +287,7 @@ int _starpu_tcpip_common_mp_init()
         /*get host info*/
         host_port = starpu_getenv("STARPU_TCP_MS_MASTER");
 
-        tcpip_sock = (struct _starpu_tcpip_socket*)malloc((nb_sink + 1)*sizeof(struct _starpu_tcpip_socket));
+        tcpip_sock = (struct _starpu_tcpip_socket*)calloc(nb_sink + 1, sizeof(struct _starpu_tcpip_socket));
         local_flag = (int*)malloc((nb_sink + 1)*sizeof(int));
 
         struct sockaddr_in* sink_addr_list = (struct sockaddr_in *)malloc((nb_sink + 1)*sizeof(struct sockaddr_in));
@@ -372,6 +372,7 @@ int _starpu_tcpip_common_mp_init()
                         }
                         else
                         {
+                                STARPU_ASSERT(tcpip_sock[i_sink].notif_sock == 0);
                                 tcpip_sock[i_sink].notif_sock = sink_sock2;
                         }
                         
