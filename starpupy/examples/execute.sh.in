@@ -22,9 +22,9 @@ pypath=@STARPU_BUILD_DIR@/starpupy/src/build:$PYTHONPATH
 
 LOADER="@STARPU_BUILD_DIR@/starpupy/examples/loader @PYTHON@"
 
-if test -z "$MPI_LAUNCHER"
+if test -z "$LAUNCHER"
 then
-    MPI_LAUNCHER="mpiexec -np 2"
+    LAUNCHER="mpiexec -np 2"
 fi
 mpi=""
 gdb=""
@@ -68,9 +68,9 @@ if test "$mpi" == "mpi"
 then
     if test -n "$DEBUG"
     then
-	MPI_LOADER="$MPI_LAUNCHER xterm -sl 10000 -hold -e"
+	MPI_LOADER="$LAUNCHER xterm -sl 10000 -hold -e"
     else
-	MPI_LOADER="$MPI_LAUNCHER"
+	MPI_LOADER="$LAUNCHER"
     fi
 fi
 

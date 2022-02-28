@@ -26,8 +26,8 @@ LIBS += $(STARPU_EXPORTED_LIBS)
 if STARPU_USE_MPI
 LIBS += $(top_builddir)/mpi/src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la
 AM_CPPFLAGS += -I$(top_srcdir)/mpi/include
-MPI_LAUNCHER		+= $(STARPU_MPIEXEC)
-MPI_LAUNCHER_ENV	+=	$(MPI_RUN_ENV)
+LAUNCHER		+= $(STARPU_MPIEXEC)
+LAUNCHER_ENV	+=	$(MPI_RUN_ENV)
 if STARPU_SIMGRID
 NVCCFLAGS		+= --compiler-options -fPIC
 endif
@@ -70,23 +70,23 @@ endif
 endif
 
 if STARPU_HAVE_WINDOWS
-LOADER_BIN		=	$(MPI_LAUNCHER)
+LOADER_BIN		=	$(LAUNCHER)
 else
 
 ## test loader program
 LOADER			=	loader
 loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(MPI_LAUNCHER) ./$(LOADER)
+LOADER_BIN		=	$(LAUNCHER) ./$(LOADER)
 loader_SOURCES		=	../../tests/loader.c
 noinst_PROGRAMS		+=	loader
 
 endif
 
 if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
+TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER		=	$(LOADER_BIN)
 else
-TESTS_ENVIRONMENT	=	$(MPI_LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
+TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 
 ###################
