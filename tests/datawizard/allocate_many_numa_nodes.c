@@ -22,7 +22,13 @@
 /* Allocate a big buffer not fitting in a single NUMA node, to see what
  * happens, especially if NUMA nodes are correctly reported in traces. */
 
-#if !defined(STARPU_HAVE_HWLOC) // We need hwloc to know the size of NUMA nodes
+#if !defined(STARPU_HAVE_UNSETENV) || !defined(STARPU_HAVE_SETENV) || !defined(STARPU_USE_CPU)
+#warning unsetenv or setenv are not defined. Or CPU are not enabled. Skipping test
+int main(void)
+{
+	return STARPU_TEST_SKIPPED;
+}
+#elif !defined(STARPU_HAVE_HWLOC) // We need hwloc to know the size of NUMA nodes
 #warning hwloc is not used. Skipping test
 int main(void)
 {
@@ -56,6 +62,7 @@ int main(int argc, char **argv)
 
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
+	unsetenv("STARPU_NCUDA");
 	conf.ncpus = -1;
 	ret = starpu_initialize(&conf, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
