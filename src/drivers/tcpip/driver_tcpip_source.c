@@ -203,7 +203,11 @@ void _starpu_tcpip_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_U
 
 unsigned _starpu_tcpip_src_get_device_count()
 {
-        return (unsigned)starpu_get_env_number("STARPU_TCP_MS_SLAVES");
+        int nmpims = starpu_get_env_number("STARPU_TCP_MS_SLAVES");
+	if (nmpims == -1)
+		/* No slave */
+		nmpims = 0;
+	return nmpims;
 }
 
 void *_starpu_tcpip_src_worker(void *arg)

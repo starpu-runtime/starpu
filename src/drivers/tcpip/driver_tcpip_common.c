@@ -261,6 +261,14 @@ int _starpu_tcpip_common_mp_init()
         if (tcpip_initialized)
                 return -ENODEV;
 
+        /*get the slave number*/
+        nb_sink = starpu_get_env_number("STARPU_TCP_MS_SLAVES");
+        //_TCPIP_PRINT("the slave number is %d\n", nb_sink);
+
+        if (nb_sink <= 0)
+                /* No slave */
+                return 0;
+
         tcpip_initialized = 1;
 
         /*initialize the pipe*/
@@ -276,13 +284,8 @@ int _starpu_tcpip_common_mp_init()
         STARPU_PTHREAD_CREATE(&thread_pending, NULL, _starpu_tcpip_thread_pending, NULL);
         
 
-        /*get the slave number*/
-        nb_sink = starpu_get_env_number("STARPU_TCP_MS_SLAVES");
-        //_TCPIP_PRINT("the slave number is %d\n", nb_sink);
         /*get host info*/
         host_port = starpu_getenv("STARPU_TCP_MS_MASTER");
-
-        STARPU_ASSERT_MSG(nb_sink > 0, "The number of slaves %d should be larger than 0", nb_sink);
 
         tcpip_sock = (struct _starpu_tcpip_socket*)malloc((nb_sink + 1)*sizeof(struct _starpu_tcpip_socket));
         local_flag = (int*)malloc((nb_sink + 1)*sizeof(int));
