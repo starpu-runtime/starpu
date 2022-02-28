@@ -1117,7 +1117,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 #endif
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
-	_starpu_init_mp_config(topology, config, &config->conf, no_mp_config);
+	_starpu_init_mpi_config(topology, config, &config->conf, no_mp_config);
 #endif
 
 /* we put the CPU section after the accelerator : in case there was an
@@ -1857,7 +1857,7 @@ int _starpu_build_topology(struct _starpu_machine_config *config, int no_mp_conf
 void _starpu_destroy_topology(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
-	_starpu_deinit_mp_config(config);
+	_starpu_deinit_mpi_config(config);
 #endif
 
 	/* cleanup StarPU internal data structures */

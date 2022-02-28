@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -47,7 +47,7 @@ struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
 }
 
 /* Configure one MPI slaves for run */
-static void _starpu_init_mpi_config(struct _starpu_machine_topology *topology,
+static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 				    struct _starpu_machine_config *config,
 				    unsigned mpi_idx)
 {
@@ -72,7 +72,7 @@ static void _starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 }
 
 /* Determine which devices we will use */
-void _starpu_init_mp_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
+void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
 			    struct starpu_conf *user_conf, int no_mp_config)
 {
 	unsigned i;
@@ -132,12 +132,12 @@ void _starpu_init_mp_config(struct _starpu_machine_topology *topology, struct _s
 			_starpu_src_nodes[STARPU_MPI_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_MPI_SOURCE, i);
 
 		for (i = 0; i < topology->ndevices[STARPU_MPI_MS_WORKER]; i++)
-			_starpu_init_mpi_config(topology, config, i);
+			__starpu_init_mpi_config(topology, config, i);
 	}
 }
 
 /* Bind the driver on a CPU core, set up memory and buses */
-int _starpu_mp_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+int _starpu_mpi_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	unsigned memory_node = -1;
 	/* Perhaps the worker has some "favourite" bindings  */
@@ -196,7 +196,7 @@ static void _starpu_deinit_mpi_node(int devid)
 }
 
 
-void _starpu_deinit_mp_config(struct _starpu_machine_config *config)
+void _starpu_deinit_mpi_config(struct _starpu_machine_config *config)
 {
 	struct _starpu_machine_topology *topology = &config->topology;
 	unsigned i;
