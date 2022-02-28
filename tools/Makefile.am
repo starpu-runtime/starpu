@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Joris Pablo
 # Copyright (C) 2013       Thibaut Lambert
 # Copyright (C) 2017       Erwan Leria
@@ -532,4 +532,8 @@ endif
 if STARPU_SIMGRID
 dist_pkgdata_DATA += starpu_smpi.xslt
 dist_bin_SCRIPTS += starpu_smpirun
+endif
+
+if STARPU_USE_TCPIP_MASTER_SLAVE
+dist_bin_SCRIPTS += starpu_tcpipexec
 endif

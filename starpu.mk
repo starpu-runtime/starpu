@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -49,9 +49,9 @@ LAUNCHER_ENV		+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
 endif
 
 if STARPU_USE_TCPIP_MASTER_SLAVE
-LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec.sh -np 2 -nobind -ncpus 1
+LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
 # switch off local socket usage
-#LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec.sh -np 2 -nobind -ncpus 1 -nolocal
+#LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
 endif
 
 V_nvcc_  = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
