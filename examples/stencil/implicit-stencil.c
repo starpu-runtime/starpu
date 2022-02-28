@@ -239,7 +239,11 @@ int main(int argc, char **argv)
 
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
+
+	/*nbz is a global variable, this example doesn't support Master-Slave*/
 	conf.nmpi_ms = 0;
+	conf.ntcpip_ms = 0;
+	
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");

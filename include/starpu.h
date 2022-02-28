@@ -197,6 +197,14 @@ struct starpu_conf
 	*/
         int nmpi_ms;
 
+   /**
+	   Number of TCP/IP Master Slave devices that StarPU can use.
+	   This can also be specified with the environment variable
+	   \ref STARPU_NTCPIP_MS.
+	   (default = \c -1)
+	*/
+        int ntcpip_ms;
+
 	/**
 	   If this flag is set, the starpu_conf::workers_bindid array
 	   indicates where the different workers are bound, otherwise
@@ -400,6 +408,19 @@ struct starpu_conf
 	   (default = \c 0).
 	*/
 	int disable_asynchronous_mpi_ms_copy;
+
+	/**
+	   This flag should be set to 1 to disable asynchronous copies
+	   between CPUs and TCP/IP Master Slave devices.
+	   This can also be specified with the environment variable
+	   \ref STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY.
+	   This can also be specified at compilation time by giving to
+	   the configure script the option \ref
+	   disable-asynchronous-tcpip-master-slave-copy
+	   "--disable-asynchronous-tcpip-master-slave-copy".
+	   (default = \c 0).
+	*/
+	int disable_asynchronous_tcpip_ms_copy;
 
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
@@ -671,6 +692,12 @@ int starpu_asynchronous_max_fpga_copy_disabled(void);
    devices are disabled.
 */
 int starpu_asynchronous_mpi_ms_copy_disabled(void);
+
+/**
+   Return 1 if asynchronous data transfers between CPU and TCP/IP Slave
+   devices are disabled.
+*/
+int starpu_asynchronous_tcpip_ms_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers with a given kind of memory

@@ -29,7 +29,7 @@ int main(void)
 #else
 int main(void)
 {
-#if defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_TCPIP_MASTER_SLAVE)
 	return EXIT_SUCCESS;
 #endif
 	setenv("STARPU_DISPLAY_BINDINGS", "1", 1);

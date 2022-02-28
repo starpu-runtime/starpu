@@ -92,7 +92,6 @@ endif
 ###################
 # stencil example #
 ###################
-
 STARPU_EXAMPLES =				\
 	stencil					\
 	implicit_stencil

@@ -30,7 +30,13 @@
 
 /* Array of structures containing all the informations useful to send
  * and receive informations with devices */
+#ifdef STARPU_USE_MPI_MASTER_SLAVE
 extern struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXMPIDEVS];
+#endif
+
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+extern struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXTCPIPDEVS];
+#endif
 
 int _starpu_src_common_store_message(struct _starpu_mp_node *node, void * arg, int arg_size, enum _starpu_mp_command answer);
 

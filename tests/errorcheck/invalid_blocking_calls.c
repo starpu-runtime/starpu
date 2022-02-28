@@ -24,7 +24,7 @@
  */
 
 /* mpirun may not exit if it fails, skip the test for master-slave */
-#if defined(STARPU_NO_ASSERT) || defined(STARPU_USE_MPI_MASTER_SLAVE)
+#if defined(STARPU_NO_ASSERT) || defined(STARPU_USE_MPI_MASTER_SLAVE)|| defined(STARPU_USE_TCPIP_MASTER_SLAVE)
 int main(void)
 {
 	return STARPU_TEST_SKIPPED;

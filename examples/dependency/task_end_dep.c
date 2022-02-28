@@ -77,6 +77,7 @@ int main(void)
 
 	starpu_conf_init(&conf);
 	conf.nmpi_ms = 0;
+	conf.ntcpip_ms = 0;
 
         ret = starpu_init(&conf);
 	if (STARPU_UNLIKELY(ret == -ENODEV))

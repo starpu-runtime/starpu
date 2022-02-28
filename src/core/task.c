@@ -767,6 +767,20 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 #endif
 
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+	some_impl = 0;
+	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+		if (cl->cpu_funcs_name[i])
+		{
+			some_impl = 1;
+			break;
+		}
+	if (some_impl && is_where_unset)
+	{
+		where |= STARPU_TCPIP_MS;
+	}
+#endif
+
 	cl->where = where;
 
 	STARPU_WMB();
@@ -1546,10 +1560,12 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 	{
 		case STARPU_CPU_RAM:
 		case STARPU_MPI_MS_RAM:
+		case STARPU_TCPIP_MS_RAM:
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
                                 case STARPU_MPI_MS_RAM:
+                                case STARPU_TCPIP_MS_RAM:
 					return 0;
 				default:
 					return 1;
@@ -1560,6 +1576,7 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 			{
 				case STARPU_CPU_RAM:
                                 case STARPU_MPI_MS_RAM:
+                                case STARPU_TCPIP_MS_RAM:
 					return 1;
 				default:
 					return 0;

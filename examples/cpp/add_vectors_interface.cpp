@@ -588,6 +588,7 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	/* _starpu_src_common_execute_kernel doesn't support this yet */
 	conf.nmpi_ms = 0;
+	conf.ntcpip_ms = 0;
 
 	// initialize StarPU with default configuration
 	int ret = starpu_init(&conf);

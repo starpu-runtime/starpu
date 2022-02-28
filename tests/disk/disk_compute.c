@@ -61,6 +61,7 @@ int dotest(struct starpu_disk_ops *ops, char *base)
 	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
 	conf.nmpi_ms = 0;
+	conf.ntcpip_ms = 0;
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) goto enodev;
 

@@ -23,6 +23,7 @@
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/mpi/driver_mpi_common.h>
+#include <drivers/tcpip/driver_tcpip_common.h>
 #include <datawizard/interfaces/data_interface.h>
 #include <common/barrier.h>
 #include <core/workers.h>
@@ -43,6 +44,8 @@ static enum _starpu_mp_node_kind _starpu_sink_common_get_kind(void)
 
 	if (!strcmp(node_kind, "STARPU_MPI_MS"))
 		return STARPU_NODE_MPI_SINK;
+	else if (!strcmp(node_kind, "STARPU_TCPIP_MS"))
+		return STARPU_NODE_TCPIP_SINK;
 	else
 		return STARPU_NODE_INVALID_KIND;
 }
@@ -125,7 +128,7 @@ static void _starpu_sink_common_copy_from_host_async(struct _starpu_mp_node *mp_
         /* For asynchronous transfers, we store events to test them later when they are finished */
         struct _starpu_mp_event * sink_event = _starpu_mp_event_new();
         /* Save the command to send */
-        sink_event->answer_cmd = STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC_COMPLETED;
+        sink_event->answer_cmd = STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED;
         sink_event->remote_event = cmd->event;
 
         /* Set the sender (host) ready because we don't want to wait its ack */
@@ -167,7 +170,7 @@ static void _starpu_sink_common_copy_to_host_async(struct _starpu_mp_node *mp_no
          */
         struct _starpu_mp_event * sink_event = _starpu_mp_event_new();
         /* Save the command to send */
-        sink_event->answer_cmd = STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC_COMPLETED;
+        sink_event->answer_cmd = STARPU_MP_COMMAND_NOTIF_SEND_TO_HOST_ASYNC_COMPLETED;
         sink_event->remote_event = cmd->event;
 
         /* Set the receiver (host) ready because we don't want to wait its ack */
@@ -190,7 +193,7 @@ static void _starpu_sink_common_copy_from_sink_sync(const struct _starpu_mp_node
 	struct _starpu_mp_transfer_command_to_device *cmd = (struct _starpu_mp_transfer_command_to_device *)arg;
 
         mp_node->dt_recv_from_device(mp_node, cmd->devid, cmd->addr, cmd->size, NULL);
-        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_TRANSFER_COMPLETE, NULL, 0);
+        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ANSWER_TRANSFER_COMPLETE, NULL, 0);
 }
 
 static void _starpu_sink_common_copy_from_sink_async(struct _starpu_mp_node *mp_node, void *arg, int arg_size)
@@ -203,7 +206,7 @@ static void _starpu_sink_common_copy_from_sink_async(struct _starpu_mp_node *mp_
         */
         struct _starpu_mp_event * sink_event = _starpu_mp_event_new();
         /* Save the command to send */
-        sink_event->answer_cmd = STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC_COMPLETED;
+        sink_event->answer_cmd = STARPU_MP_COMMAND_NOTIF_RECV_FROM_SINK_ASYNC_COMPLETED;
         sink_event->remote_event = cmd->event;
 
         /* Set the sender ready because we don't want to wait its ack */
@@ -239,7 +242,7 @@ static void _starpu_sink_common_copy_to_sink_async(struct _starpu_mp_node *mp_no
          */
         struct _starpu_mp_event * sink_event = _starpu_mp_event_new();
         /* Save the command to send */
-        sink_event->answer_cmd = STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC_COMPLETED;
+        sink_event->answer_cmd = STARPU_MP_COMMAND_NOTIF_SEND_TO_SINK_ASYNC_COMPLETED;
         sink_event->remote_event = cmd->event;
 
         /* Set the receiver ready because we don't want to wait its ack */
@@ -341,7 +344,6 @@ void _starpu_sink_common_worker(void)
 		/* If we have received a message */
 		if(node->mp_recv_is_ready(node))
 		{
-
 			command = _starpu_mp_common_recv_command(node, &arg, &arg_size);
 			switch(command)
 			{
@@ -408,15 +410,15 @@ void _starpu_sink_common_worker(void)
 		}
 
 		STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
-		/* If the list is not empty */
-		if(!mp_message_list_empty(&node->message_queue))
+		/* If the list is not empty and we can send a notification */
+		if(!mp_message_list_empty(&node->message_queue) && node->nt_send_is_ready(node))
 		{
 			/* We pop a message and send it to the host */
 			struct mp_message * message = mp_message_list_pop_back(&node->message_queue);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 			//_STARPU_DEBUG("telling host that we have finished the task %p sur %d.\n", task->kernel, task->coreid);
-			_starpu_mp_common_send_command(node, message->type,
-					message->buffer, message->size);
+			STARPU_ASSERT(message->type >= STARPU_MP_COMMAND_NOTIF_FIRST && message->type <= STARPU_MP_COMMAND_NOTIF_LAST);
+			_starpu_nt_common_send_command(node, message->type, message->buffer, message->size);
 			free(message->buffer);
 			mp_message_delete(message);
 		}
@@ -425,13 +427,15 @@ void _starpu_sink_common_worker(void)
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 		}
 
-		if(!_starpu_mp_event_list_empty(&node->event_list))
+		if(!_starpu_mp_event_list_empty(&node->event_list) && node->nt_send_is_ready(node))
 		{
 			struct _starpu_mp_event * sink_event = _starpu_mp_event_list_pop_front(&node->event_list);
 			if (node->dt_test(&sink_event->event))
 			{
 				/* send ACK to host */
-				_starpu_mp_common_send_command(node, sink_event->answer_cmd , &sink_event->remote_event, sizeof(sink_event->remote_event));
+				STARPU_ASSERT(sink_event->answer_cmd >= STARPU_MP_COMMAND_NOTIF_FIRST && sink_event->answer_cmd <= STARPU_MP_COMMAND_NOTIF_LAST);
+				_starpu_nt_common_send_command(node, sink_event->answer_cmd, &sink_event->remote_event, sizeof(sink_event->remote_event));
+				
 				_starpu_mp_event_delete(sink_event);
 			}
 			else
@@ -449,6 +453,9 @@ void _starpu_sink_common_worker(void)
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         _starpu_mpi_common_mp_deinit();
+#endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+        _starpu_tcpip_common_mp_deinit();
 #endif
 
 	exit(0);
@@ -510,7 +517,7 @@ static void _starpu_sink_common_pre_execution_message(struct _starpu_mp_node *no
 {
 	/* Init message to tell the sink that the execution has begun */
 	struct mp_message * message = mp_message_new();
-	message->type = STARPU_MP_COMMAND_PRE_EXECUTION;
+	message->type = STARPU_MP_COMMAND_NOTIF_PRE_EXECUTION;
 	_STARPU_MALLOC(message->buffer, sizeof(int));
 	*(int *) message->buffer = task->combined_workerid;
 	message->size = sizeof(int);
@@ -526,9 +533,9 @@ static void _starpu_sink_common_execution_completed_message(struct _starpu_mp_no
 	/* Init message to tell the sink that the execution is completed */
 	struct mp_message * message = mp_message_new();
 	if (task->detached)
-		message->type = STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED;
+		message->type = STARPU_MP_COMMAND_NOTIF_EXECUTION_DETACHED_COMPLETED;
 	else
-		message->type = STARPU_MP_COMMAND_EXECUTION_COMPLETED;
+		message->type = STARPU_MP_COMMAND_NOTIF_EXECUTION_COMPLETED;
 
 	message->size = sizeof(int);
 
@@ -693,6 +700,10 @@ void* _starpu_sink_thread(void * thread_arg)
 	STARPU_PTHREAD_BARRIER_WAIT(&node->init_completed_barrier);
 
 	struct _starpu_worker *worker = &_starpu_get_machine_config()->workers[node->baseworkerid + coreid];
+	char *s;
+	asprintf(&s, "slave %d core %d", node->baseworkerid, coreid);
+	starpu_pthread_setname(s);
+	free(s);
 
 	node->bind_thread(node, coreid, &coreid, 1);
 
@@ -701,6 +712,9 @@ void* _starpu_sink_thread(void * thread_arg)
 	{
 		/*Wait there is a task available */
 		sem_wait(&node->sem_run_table[coreid]);
+
+		STARPU_ASSERT((node->run_table_detached[coreid]!=NULL) || (node->run_table[coreid]!=NULL) || node->is_running==0);		
+		
 		if (node->run_table_detached[coreid] != NULL)
 			_starpu_sink_common_execute_kernel(node, coreid, worker, 1);
 		else if (node->run_table[coreid] != NULL)
@@ -805,9 +819,9 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node, void *arg, int ar
 
 	//_STARPU_DEBUG("telling host that we have submitted the task %p.\n", task->kernel);
 	if (task->detached)
-		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTION_DETACHED_SUBMITTED, NULL, 0);
+		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_ANSWER_EXECUTION_DETACHED_SUBMITTED, NULL, 0);
 	else
-		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTION_SUBMITTED, NULL, 0);
+		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_ANSWER_EXECUTION_SUBMITTED, NULL, 0);
 
 	//_STARPU_DEBUG("executing the task %p\n", task->kernel);
 	_starpu_sink_common_execute_thread(node, task);

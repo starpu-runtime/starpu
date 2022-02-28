@@ -102,6 +102,11 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 			init_func = _starpu_src_common_get_cpu_func_from_codelet(init_cl, 0);
 			break;
 #endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+		case STARPU_TCPIP_MS_WORKER:
+			init_func = _starpu_src_common_get_cpu_func_from_codelet(init_cl, 0);
+			break;
+#endif
 		default:
 			STARPU_ABORT();
 			break;
@@ -115,17 +120,35 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 		case STARPU_MPI_MS_WORKER:
 		{
 			struct _starpu_mp_node *node = _starpu_mpi_ms_src_get_actual_thread_mp_node();
-			int devid = _starpu_get_worker_struct(workerid)->devid;
+			int subworkerid = _starpu_get_worker_struct(workerid)->subworkerid;
 			void * arg;
 			int arg_size;
 
 			_starpu_src_common_execute_kernel(node,
-					(void(*)(void))init_func, devid,
+					(void(*)(void))init_func, subworkerid,
 					STARPU_SEQ, 0, 0, &handle, 
 					&(replicate->data_interface), 1,
 					NULL, 0 , 1);
 
-			_starpu_src_common_wait_completed_execution(node,devid,&arg,&arg_size);
+			_starpu_src_common_wait_completed_execution(node,subworkerid,&arg,&arg_size);
+			break;
+		}
+#endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+		case STARPU_TCPIP_MS_WORKER:
+		{
+			struct _starpu_mp_node *node = _starpu_tcpip_ms_src_get_actual_thread_mp_node();
+			int subworkerid = _starpu_get_worker_struct(workerid)->subworkerid;
+			void * arg;
+			int arg_size;
+
+			_starpu_src_common_execute_kernel(node,
+					(void(*)(void))init_func, subworkerid,
+					STARPU_SEQ, 0, 0, &handle, 
+					&(replicate->data_interface), 1,
+					NULL, 0 , 1);
+
+			_starpu_src_common_wait_completed_execution(node,subworkerid,&arg,&arg_size);
 			break;
 		}
 #endif

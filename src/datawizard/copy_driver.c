@@ -25,6 +25,9 @@
 #include <drivers/mpi/driver_mpi_sink.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_common.h>
+#include <drivers/tcpip/driver_tcpip_sink.h>
+#include <drivers/tcpip/driver_tcpip_source.h>
+#include <drivers/tcpip/driver_tcpip_common.h>
 #include <common/fxt.h>
 #include <datawizard/copy_driver.h>
 #include <datawizard/memalloc.h>

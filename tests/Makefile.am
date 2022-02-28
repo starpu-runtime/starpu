@@ -449,6 +449,7 @@ examplebin_SCRIPTS = \
 	microbenchs/tasks_size_overhead.sh
 if !STARPU_SIMGRID
 if !STARPU_USE_MPI_MASTER_SLAVE
+if !STARPU_USE_TCPIP_MASTER_SLAVE
 examplebin_PROGRAMS += \
 	microbenchs/bandwidth
 SHELL_TESTS += \
@@ -456,6 +457,7 @@ SHELL_TESTS += \
 	microbenchs/sync_tasks_data_overhead.sh \
 	microbenchs/async_tasks_data_overhead.sh \
 	microbenchs/tasks_size_overhead_scheds.sh
+endif
 endif
 endif
 
@@ -472,6 +474,7 @@ SHELL_TESTS += $(MICROBENCHS:=.sh)
 endif
 
 if !STARPU_USE_MPI_MASTER_SLAVE
+if !STARPU_USE_TCPIP_MASTER_SLAVE
 SHELL_TESTS += \
 	datawizard/locality.sh \
 	microbenchs/bandwidth_scheds.sh
@@ -479,6 +482,7 @@ SHELL_TESTS += \
 if STARPU_USE_FXT
 SHELL_TESTS += \
 	overlap/overlap.sh
+endif
 endif
 endif
 

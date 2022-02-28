@@ -156,6 +156,10 @@ int main(int argc, char **argv)
 		else if (strcmp(worker_type, "MPI_MS") == 0)
 			starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
 #endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+		else if (strcmp(worker_type, "TCPIP_MS") == 0)
+			starpu_worker_display_names(stdout, STARPU_TCPIP_MS_WORKER);
+#endif
 		else
 			fprintf(stderr, "Unknown worker type '%s'\n", worker_type);
 		starpu_shutdown();
@@ -169,6 +173,9 @@ int main(int argc, char **argv)
 	starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
+#endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+	starpu_worker_display_names(stdout, STARPU_TCPIP_MS_WORKER);
 #endif
 
 	display_all_combined_workers();

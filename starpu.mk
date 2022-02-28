@@ -48,6 +48,12 @@ LAUNCHER 			+= $(STARPU_MPIEXEC)
 LAUNCHER_ENV		+= $(MPI_RUN_ENV) STARPU_NMPIMSTHREADS=4
 endif
 
+if STARPU_USE_TCPIP_MASTER_SLAVE
+LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec.sh -np 2 -nobind -ncpus 1
+# switch off local socket usage
+#LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec.sh -np 2 -nobind -ncpus 1 -nolocal
+endif
+
 V_nvcc_  = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
 V_nvcc_0 = @echo "  NVCC    " $@;
 V_nvcc_1 =

@@ -31,6 +31,7 @@ int main(void)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	conf.nmpi_ms = 0;
+	conf.ntcpip_ms = 0;
 
 	int ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;

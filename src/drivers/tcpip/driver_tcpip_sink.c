@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,21 +14,21 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <mpi.h>
 
-#include "driver_mpi_sink.h"
-#include "driver_mpi_source.h"
-#include "driver_mpi_common.h"
 
-void _starpu_mpi_sink_init(struct _starpu_mp_node *node)
+#include "driver_tcpip_sink.h"
+#include "driver_tcpip_source.h"
+#include "driver_tcpip_common.h"
+
+void _starpu_tcpip_sink_init(struct _starpu_mp_node *node)
 {
-        _starpu_mpi_common_mp_initialize_src_sink(node);
+        _starpu_tcpip_common_mp_initialize_src_sink(node);
 
         _STARPU_MALLOC(node->thread_table, sizeof(starpu_pthread_t)*node->nb_cores);
         //TODO
 }
 
-void _starpu_mpi_sink_bind_thread(const struct _starpu_mp_node *mp_node, int coreid, int *core_table, int nb_core)
+void _starpu_tcpip_sink_bind_thread(const struct _starpu_mp_node *mp_node, int coreid, int *core_table, int nb_core)
 {
         //TODO
 	(void)mp_node;

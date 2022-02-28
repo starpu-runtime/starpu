@@ -424,6 +424,26 @@ LIST_INLINE TYPE *ENAME##_multilist_end_##MEMBER(struct ENAME##_multilist_##MEMB
 LIST_INLINE TYPE *ENAME##_multilist_next_##MEMBER(TYPE *e) { \
 	return ENAME##_of_multilist_##MEMBER(e->MEMBER.next); \
 } \
+/* Return the first element of the list.  */ \
+LIST_INLINE TYPE *ENAME##_multilist_front_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+  return ENAME##_of_multilist_##MEMBER(head->next); \
+} \
+/* Return the last element of the list.  */ \
+LIST_INLINE TYPE *ENAME##_multilist_back_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+  return ENAME##_of_multilist_##MEMBER(head->prev); \
+} \
+\
+/* Return the first element of the list and erase it. */ \
+LIST_INLINE TYPE *ENAME##_multilist_pop_front_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+  TYPE *e = ENAME##_multilist_front_##MEMBER(head); \
+      ENAME##_multilist_erase_##MEMBER(head, e); return e; \
+} \
+/* Return the last element of the list and erase it. */ \
+LIST_INLINE TYPE *ENAME##_multilist_pop_back_##MEMBER(struct ENAME##_multilist_##MEMBER *head) { \
+  TYPE *e = ENAME##_multilist_back_##MEMBER(head); \
+      ENAME##_multilist_erase_##MEMBER(head, e); return e; \
+} \
+\
 \
  /* Move a list from its head to another head. Passing newhead == NULL allows to detach the list from any head. */ \
 LIST_INLINE void ENAME##_multilist_move_##MEMBER(struct ENAME##_multilist_##MEMBER *head, struct ENAME##_multilist_##MEMBER *newhead) { \

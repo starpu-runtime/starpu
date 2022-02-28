@@ -61,7 +61,7 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_SEND_TO_SINK,
 
         /* Note: Asynchronous send */
-        STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC,
+    STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC,
 	STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC,
 	STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC,
 	STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC,
@@ -73,19 +73,22 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_ERROR_LOOKUP,
 	STARPU_MP_COMMAND_ANSWER_ALLOCATE,
 	STARPU_MP_COMMAND_ERROR_ALLOCATE,
-	STARPU_MP_COMMAND_TRANSFER_COMPLETE,
+	STARPU_MP_COMMAND_ANSWER_TRANSFER_COMPLETE,
 	STARPU_MP_COMMAND_ANSWER_SINK_NBCORES,
-	STARPU_MP_COMMAND_EXECUTION_SUBMITTED,
-	STARPU_MP_COMMAND_EXECUTION_DETACHED_SUBMITTED,
+	STARPU_MP_COMMAND_ANSWER_EXECUTION_SUBMITTED,
+	STARPU_MP_COMMAND_ANSWER_EXECUTION_DETACHED_SUBMITTED,
 
 	/* Asynchronous notifications from slave to master */
-        STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC_COMPLETED,
-	STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC_COMPLETED,
-	STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC_COMPLETED,
-	STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC_COMPLETED,
-	STARPU_MP_COMMAND_EXECUTION_COMPLETED,
-	STARPU_MP_COMMAND_EXECUTION_DETACHED_COMPLETED,
-	STARPU_MP_COMMAND_PRE_EXECUTION,
+    STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED,
+	STARPU_MP_COMMAND_NOTIF_SEND_TO_HOST_ASYNC_COMPLETED,
+	STARPU_MP_COMMAND_NOTIF_RECV_FROM_SINK_ASYNC_COMPLETED,
+	STARPU_MP_COMMAND_NOTIF_SEND_TO_SINK_ASYNC_COMPLETED,
+	STARPU_MP_COMMAND_NOTIF_EXECUTION_COMPLETED,
+	STARPU_MP_COMMAND_NOTIF_EXECUTION_DETACHED_COMPLETED,
+	STARPU_MP_COMMAND_NOTIF_PRE_EXECUTION,
+
+	STARPU_MP_COMMAND_NOTIF_FIRST = STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED,
+	STARPU_MP_COMMAND_NOTIF_LAST = STARPU_MP_COMMAND_NOTIF_PRE_EXECUTION,
 };
 
 const char *_starpu_mp_common_command_to_string(const int command);
@@ -94,6 +97,8 @@ enum _starpu_mp_node_kind
 {
 	STARPU_NODE_MPI_SINK,
 	STARPU_NODE_MPI_SOURCE,
+	STARPU_NODE_TCPIP_SINK,
+	STARPU_NODE_TCPIP_SOURCE,
 	STARPU_NODE_INVALID_KIND
 };
 
@@ -103,6 +108,9 @@ union _starpu_mp_connection
 {
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	int mpi_remote_nodeid;
+#endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+	struct _starpu_tcpip_socket *tcpip_mp_connection;	
 #endif
 };
 
@@ -226,6 +234,12 @@ struct _starpu_mp_node
         void (*mp_send)         (const struct _starpu_mp_node *, void *, int);
         void (*mp_recv)         (const struct _starpu_mp_node *, void *, int);
 
+        /** Notifications */
+        int (*nt_recv_is_ready) (const struct _starpu_mp_node *);
+        int (*nt_send_is_ready) (const struct _starpu_mp_node *);
+        void (*nt_send)         (const struct _starpu_mp_node *, void *, int);
+        void (*nt_recv)         (const struct _starpu_mp_node *, void *, int);
+
         /** Data transfers */
         void (*dt_send)             (const struct _starpu_mp_node *, void *, int, void *);
         void (*dt_recv)             (const struct _starpu_mp_node *, void *, int, void *);
@@ -251,8 +265,16 @@ void _starpu_mp_common_send_command(const struct _starpu_mp_node *node,
 				    const enum _starpu_mp_command command,
 				    void *arg, int arg_size);
 
+void _starpu_nt_common_send_command(const struct _starpu_mp_node *node,
+				    const enum _starpu_mp_command command,
+				    void *arg, int arg_size);
+
 enum _starpu_mp_command _starpu_mp_common_recv_command(const struct _starpu_mp_node *node, void **arg, int *arg_size);
 
+enum _starpu_mp_command _starpu_nt_common_recv_command(const struct _starpu_mp_node *node, void **arg, int *arg_size);
+
+void _starpu_sink_deinit(struct _starpu_mp_node *node);
+void _starpu_sink_launch_workers(struct _starpu_mp_node *node);
 
 #endif /* STARPU_USE_MP */
 

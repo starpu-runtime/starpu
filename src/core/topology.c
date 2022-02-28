@@ -30,6 +30,8 @@
 #include <drivers/max/driver_max_fpga.h>
 #include <drivers/mpi/driver_mpi_source.h>
 #include <drivers/mpi/driver_mpi_common.h>
+#include <drivers/tcpip/driver_tcpip_source.h>
+#include <drivers/tcpip/driver_tcpip_common.h>
 #include <drivers/mp_common/source_common.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <drivers/opencl/driver_opencl_utils.h>
@@ -520,7 +522,6 @@ int _starpu_get_next_devid(struct _starpu_machine_topology *topology, struct _st
 	return (int)config->topology.workers_devid[arch][i];
 }
 
-
 #ifndef STARPU_SIMGRID
 #ifdef STARPU_HAVE_HWLOC
 static void _starpu_allocate_topology_userdata(hwloc_obj_t obj)
@@ -675,6 +676,9 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		_starpu_max_fpga_discover_devices(config);
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
         config->topology.nhwdevices[STARPU_MPI_MS_WORKER] = _starpu_mpi_src_get_device_count();
+#endif
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+        config->topology.nhwdevices[STARPU_TCPIP_MS_WORKER] = _starpu_tcpip_src_get_device_count();
 #endif
 
 	topology_is_initialized = 1;
@@ -1118,6 +1122,9 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
 	_starpu_init_mpi_config(topology, config, &config->conf, no_mp_config);
+#endif
+#if defined(STARPU_USE_TCPIP_MASTER_SLAVE)
+	_starpu_init_tcpip_config(topology, config, &config->conf, no_mp_config);
 #endif
 
 /* we put the CPU section after the accelerator : in case there was an
@@ -1858,6 +1865,9 @@ void _starpu_destroy_topology(struct _starpu_machine_config *config STARPU_ATTRI
 {
 #if defined(STARPU_USE_MPI_MASTER_SLAVE)
 	_starpu_deinit_mpi_config(config);
+#endif
+#if defined(STARPU_USE_TCPIP_MASTER_SLAVE)
+	_starpu_deinit_tcpip_config(config);
 #endif
 
 	/* cleanup StarPU internal data structures */

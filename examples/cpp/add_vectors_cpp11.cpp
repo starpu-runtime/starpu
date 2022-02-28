@@ -68,6 +68,7 @@ int main(int argc, char **argv)
 	starpu_conf_init(&conf);
 	/* starpu_data_get_user_data cannot work in master-slave */
 	conf.nmpi_ms = 0;
+	conf.ntcpip_ms = 0;
 
 	// initialize StarPU with default configuration
 	auto ret = starpu_init(&conf);

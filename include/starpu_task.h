@@ -87,6 +87,13 @@ extern "C"
 #define STARPU_MPI_MS	STARPU_WORKER_TO_MASK(STARPU_MPI_MS_WORKER)
 
 /**
+   To be used when setting the field starpu_codelet::where (or
+   starpu_task::where) to specify the codelet (or the task) may be
+   executed on a TCP/IP Slave processing unit.
+*/
+#define STARPU_TCPIP_MS	STARPU_WORKER_TO_MASK(STARPU_TCPIP_MS_WORKER)
+
+/**
    Value to be set in starpu_codelet::flags to execute the codelet
    functions even in simgrid mode.
 */

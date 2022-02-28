@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -50,7 +50,8 @@ enum starpu_node_kind
 	STARPU_MAX_FPGA_RAM=4,
 	STARPU_DISK_RAM=5,
 	STARPU_MPI_MS_RAM=6,
-	STARPU_MAX_RAM=6
+	STARPU_TCPIP_MS_RAM=7,
+	STARPU_MAX_RAM=7
 };
 
 /**
@@ -67,7 +68,8 @@ enum starpu_worker_archtype
 	STARPU_OPENCL_WORKER=2,     /**< OpenCL device */
 	STARPU_MAX_FPGA_WORKER=4,   /**< Maxeler FPGA device */
 	STARPU_MPI_MS_WORKER=5,     /**< MPI Slave device */
-	STARPU_NARCH = 6,           /**< Number of arch types */
+	STARPU_TCPIP_MS_WORKER=6,   /**< TCPIP Slave device */
+	STARPU_NARCH = 7,           /**< Number of arch types */
 	STARPU_ANY_WORKER=255       /**< any worker, used in the hypervisor */
 };
 
@@ -198,6 +200,11 @@ unsigned starpu_opencl_worker_get_count(void);
    Return the number of MPI Master Slave workers controlled by StarPU.
 */
 unsigned starpu_mpi_ms_worker_get_count(void);
+
+/**
+   Return the number of TCPIP Master Slave workers controlled by StarPU.
+*/
+unsigned starpu_tcpip_ms_worker_get_count(void);
 
 /**
    Return the identifier of the current worker, i.e the one associated

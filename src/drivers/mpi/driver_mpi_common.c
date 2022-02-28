@@ -151,7 +151,11 @@ void _starpu_mpi_common_mp_initialize_src_sink(struct _starpu_mp_node *node)
 {
         struct _starpu_machine_topology *topology = &_starpu_get_machine_config()->topology;
 
-        node->nb_cores = topology->nhwworker[STARPU_CPU_WORKER][0];
+	int nmpicores = starpu_get_env_number("STARPU_NMPIMSTHREADS");
+	if (nmpicores == -1)
+		node->nb_cores = topology->nhwworker[STARPU_CPU_WORKER][0];
+	else
+		node->nb_cores = nmpicores;
 }
 
 int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
@@ -172,38 +176,90 @@ int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
                 source = MPI_ANY_SOURCE;
         }
 
-        res = MPI_Iprobe(source, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+        res = MPI_Iprobe(source, SYNC_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
         STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot test if we received a message !");
 
         return flag;
 }
 
+int _starpu_mpi_common_notif_recv_is_ready(const struct _starpu_mp_node *mp_node)
+{
+        int res, source;
+        int flag = 0;
+        int id_proc;
+        MPI_Comm_rank(MPI_COMM_WORLD, &id_proc);
+
+        if (id_proc == src_node_id)
+        {
+                /* Source has mp_node defined */
+                source = mp_node->mp_connection.mpi_remote_nodeid;
+        }
+        else
+        {
+                /* Sink can have sink to sink message */
+                source = MPI_ANY_SOURCE;
+        }
+
+        res = MPI_Iprobe(source, NOTIF_TAG, MPI_COMM_WORLD, &flag, MPI_STATUS_IGNORE);
+        STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot test if we received a message !");
+
+        return flag;
+}
+
+int _starpu_mpi_common_notif_send_is_ready(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED)
+{
+        return 1;
+}
+
+static void __starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int dst_devid, void *msg, int len, void * event, int notif);
+static void __starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int src_devid, void *msg, int len, void * event, int notif);
+
 /* SEND to source node */
-void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event)
+static void __starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event, int notif)
 {
         //_STARPU_MSG("envoi %d B to %d\n", len, node->mp_connection.mpi_remote_nodeid);
-	_starpu_mpi_common_send_to_device(node, node->mp_connection.mpi_remote_nodeid, msg, len, event);
+	__starpu_mpi_common_send_to_device(node, node->mp_connection.mpi_remote_nodeid, msg, len, event, notif);
+}
+
+void _starpu_mpi_common_send(const struct _starpu_mp_node *node, void *msg, int len, void * event)
+{
+        __starpu_mpi_common_send(node, msg, len, event, 0);
 }
 
 void _starpu_mpi_common_mp_send(const struct _starpu_mp_node *node, void *msg, int len)
 {
-        _starpu_mpi_common_send(node, msg, len, NULL);
+        __starpu_mpi_common_send(node, msg, len, NULL, 0);
+}
+
+void _starpu_mpi_common_nt_send(const struct _starpu_mp_node *node, void *msg, int len)
+{
+        __starpu_mpi_common_send(node, msg, len, NULL, 1);
 }
 
 /* RECV to source node */
-void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event)
+static void __starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event, int notif)
 {
 	//_STARPU_MSG("recv %d B from %d in %p\n", len, node->mp_connection.mpi_remote_nodeid, msg);
-	_starpu_mpi_common_recv_from_device(node, node->mp_connection.mpi_remote_nodeid, msg, len, event);
+	__starpu_mpi_common_recv_from_device(node, node->mp_connection.mpi_remote_nodeid, msg, len, event, notif);
+}
+
+void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int len, void * event)
+{
+        __starpu_mpi_common_recv(node, msg, len, event, 0);
 }
 
 void _starpu_mpi_common_mp_recv(const struct _starpu_mp_node *node, void *msg, int len)
 {
-        _starpu_mpi_common_recv(node, msg, len, NULL);
+        __starpu_mpi_common_recv(node, msg, len, NULL, 0);
+}
+
+void _starpu_mpi_common_nt_recv(const struct _starpu_mp_node *node, void *msg, int len)
+{
+        __starpu_mpi_common_recv(node, msg, len, NULL, 1);
 }
 
 /* SEND to any node */
-void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int dst_devid, void *msg, int len, void * event)
+static void __starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int dst_devid, void *msg, int len, void * event, int notif)
 {
         int res;
 
@@ -236,14 +292,24 @@ void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU
         else
         {
                 /* Synchronous send */
-                res = MPI_Send(msg, len, MPI_BYTE, dst_devid, SYNC_TAG, MPI_COMM_WORLD);
+                /* Send commands */
+                if (!notif)
+                        res = MPI_Send(msg, len, MPI_BYTE, dst_devid, SYNC_TAG, MPI_COMM_WORLD);
+                /* Send notifications */
+                else
+                        res = MPI_Send(msg, len, MPI_BYTE, dst_devid, NOTIF_TAG, MPI_COMM_WORLD);
         }
 
         STARPU_ASSERT_MSG(res == MPI_SUCCESS, "MPI Master/Slave cannot receive a msg with a size of %d Bytes !", len);
 }
 
+void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int dst_devid, void *msg, int len, void * event)
+{
+        __starpu_mpi_common_send_to_device(node, dst_devid, msg, len, event, 0);
+}
+
 /* RECV to any node */
-void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int src_devid, void *msg, int len, void * event)
+static void __starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int src_devid, void *msg, int len, void * event, int notif)
 {
         int res;
 
@@ -278,7 +344,12 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STAR
         {
                 /* Synchronous recv */
                 MPI_Status s;
-                res = MPI_Recv(msg, len, MPI_BYTE, src_devid, SYNC_TAG, MPI_COMM_WORLD, &s);
+                /* Send commands */
+                if (!notif)
+                        res = MPI_Recv(msg, len, MPI_BYTE, src_devid, SYNC_TAG, MPI_COMM_WORLD, &s);
+                else
+                        res = MPI_Recv(msg, len, MPI_BYTE, src_devid, NOTIF_TAG, MPI_COMM_WORLD, &s);
+
                 int num_expected;
                 MPI_Get_count(&s, MPI_BYTE, &num_expected);
 
@@ -287,18 +358,23 @@ void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STAR
         }
 }
 
+void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int src_devid, void *msg, int len, void * event)
+{
+        __starpu_mpi_common_recv_from_device(node, src_devid, msg, len, event, 0);
+}
+
 static void _starpu_mpi_common_polling_node(struct _starpu_mp_node * node)
 {
         /* poll the asynchronous messages.*/
         if (node != NULL)
         {
                 STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
-                while(node->mp_recv_is_ready(node))
+                while(node->nt_recv_is_ready(node))
                 {
                         enum _starpu_mp_command answer;
                         void *arg;
                         int arg_size;
-                        answer = _starpu_mp_common_recv_command(node, &arg, &arg_size);
+                        answer = _starpu_nt_common_recv_command(node, &arg, &arg_size);
                         if(!_starpu_src_common_store_message(node,arg,arg_size,answer))
                         {
                                 _STARPU_ERROR("incorrect command: unknown command or sync command");

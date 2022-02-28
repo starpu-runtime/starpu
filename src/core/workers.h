@@ -51,6 +51,10 @@
 #include <drivers/mpi/driver_mpi_source.h>
 #endif
 
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+#include <drivers/tcpip/driver_tcpip_source.h>
+#endif
+
 #include <drivers/cpu/driver_cpu.h>
 
 #include <datawizard/datawizard.h>
@@ -343,6 +347,10 @@ struct _starpu_worker_set
 extern struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
+#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+extern struct _starpu_worker_set tcpip_worker_set[STARPU_MAXTCPIPDEVS];
+#endif
+
 struct _starpu_machine_topology
 {
 	/** Total number of workers. */
@@ -431,6 +439,9 @@ struct _starpu_machine_config
 
 	/** Which next device will we use for each arch? */
 	int current_devid[STARPU_NARCH];
+
+	/** Which TCPIP do we use? */
+	int current_tcpip_deviceid;
 
 	/** Memory node for different worker types, if only one */
 	int arch_nodeid [STARPU_NARCH];

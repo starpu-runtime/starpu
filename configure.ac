@@ -577,7 +577,7 @@ fi
 AC_ARG_WITH(mpi-master-slave-multiple-thread, [AS_HELP_STRING([--with-mpi-master-slave-multiple-thread])],
 	[AC_DEFINE([STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD], [1], [Use multiple threads to communicate with slaves])])
 
-AC_MSG_CHECKING(whether the master-slave mode should be enabled)
+AC_MSG_CHECKING(whether the MPI master-slave mode should be enabled)
 AC_MSG_RESULT($build_mpi_master_slave)
 AM_CONDITIONAL([STARPU_USE_MPI_MASTER_SLAVE], [test x$build_mpi_master_slave = xyes])
 
@@ -594,6 +594,40 @@ AC_ARG_ENABLE(maxmpidev, [AS_HELP_STRING([--enable-maxmpidev=<number>],
             ])
 AC_MSG_RESULT($nmaxmpidev)
 AC_DEFINE_UNQUOTED(STARPU_MAXMPIDEVS, [$nmaxmpidev], [maximum number of MPI devices])
+
+###############################################################################
+#                                                                             #
+#                             TCP/IP Master Slave                              #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(tcpip-master-slave, [AS_HELP_STRING([--enable-tcpip-master-slave],
+                              [Enable StarPU to run with the master-slave mode])],
+              build_tcpip_master_slave=$enableval,
+              build_tcpip_master_slave=no)
+
+if test x$build_tcpip_master_slave = xyes; then
+	AC_CHECK_LIB([dl], [dlsym])
+    AC_DEFINE(STARPU_USE_TCPIP_MASTER_SLAVE, [1], [TCPIP Master Slave support is enabled])
+fi
+
+AC_MSG_CHECKING(whether the TCP/IP master-slave mode should be enabled)
+AC_MSG_RESULT($build_tcpip_master_slave)
+AM_CONDITIONAL([STARPU_USE_TCPIP_MASTER_SLAVE], [test x$build_tcpip_master_slave = xyes])
+
+AC_MSG_CHECKING(maximum number of TCP/IP master-slave devices)
+AC_ARG_ENABLE(maxtcpipdev, [AS_HELP_STRING([--enable-maxtcpipdev=<number>],
+			[maximum number of TCP/IP master-slave devices])],
+			nmaxtcpipdev=$enableval,
+            [
+             if test x$build_tcpip_master_slave = xyes; then
+                 nmaxtcpipdev=4
+             else
+                 nmaxtcpipdev=0
+             fi
+            ])
+AC_MSG_RESULT($nmaxtcpipdev)
+AC_DEFINE_UNQUOTED(STARPU_MAXTCPIPDEVS, [$nmaxtcpipdev], [maximum number of TCP/IP devices])
 
 ###############################################################################
 #                                                                             #
@@ -1869,6 +1903,19 @@ if test x$disable_asynchronous_mpi_master_slave_copy = xyes ; then
    AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY], [1], [Define to 1 to disable asynchronous copy between MPI Master and MPI Slave devices])
 fi
 
+AC_MSG_CHECKING(whether asynchronous TCP/IP Master Slave copy should be disabled)
+AC_ARG_ENABLE(asynchronous-tcpip-master-slave-copy, [AS_HELP_STRING([--disable-asynchronous-tcpip-master-slave-copy],
+			[disable asynchronous copy between TCP/IP Master and TCP/IP Slave devices])],
+			enable_asynchronous_tcpip_master_slave_copy=$enableval, enable_asynchronous_tcpip_master_slave_copy=yes)
+disable_asynchronous_tcpip_master_slave_copy=no
+if test x$enable_asynchronous_tcpip_master_slave_copy = xno ; then
+   disable_asynchronous_tcpip_master_slave_copy=yes
+fi
+AC_MSG_RESULT($disable_asynchronous_tcpip_master_slave_copy)
+if test x$disable_asynchronous_tcpip_master_slave_copy = xyes ; then
+   AC_DEFINE([STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY], [1], [Define to 1 to disable asynchronous copy between TCP/IP Master and TCP/IP Slave devices])
+fi
+
 AC_MSG_CHECKING(whether asynchronous Maxeler FPGA copy should be disabled)
 AC_ARG_ENABLE(asynchronous-max-fpga-copy, [AS_HELP_STRING([--disable-asynchronous-max-fpga-copy],
 			[disable asynchronous copy between CPU and Maxeler FPGA devices])],
@@ -2279,6 +2326,9 @@ if test x$maxnodes = x0 ; then
 
 		#nmaxmpidev = 0 if mpi master-slave is disabled
 		nodes=`expr $nodes + $nmaxmpidev`
+
+		#nmaxtcpipdev = 0 if tcpip master-slave is disabled
+		nodes=`expr $nodes + $nmaxtcpipdev`
  	fi
 
 	# set maxnodes to the next power of 2 greater than nodes
@@ -2354,6 +2404,11 @@ if test x$enable_simgrid != xyes; then
     if test x$build_mpi_master_slave != xyes; then
         nmaxmpidev=1
     fi
+    #By default, if we cannot build tcp/ip master-slave nmaxtcpipdev is set to zero.
+    #But with the multiplication with maxcpus, we need to put it to one.
+    if test x$build_tcpip_master_slave != xyes; then
+        nmaxtcpipdev=1
+    fi
 fi
 if test $maxcpus == 0
 then
@@ -2379,6 +2434,9 @@ if test $nmaxdevs -lt $nmaxmaxfpgadev; then
 fi
 if test $nmaxdevs -lt $nmaxmpidev; then
 	nmaxdevs=$nmaxmpidev
+fi
+if test $nmaxdevs -lt $nmaxtcpipdev; then
+	nmaxdevs=$nmaxtcpipdev
 fi
 AC_DEFINE_UNQUOTED(STARPU_NMAXDEVS, [$nmaxdevs], [Maximum number of device per device arch])
 
@@ -2427,12 +2485,20 @@ AC_DEFINE_UNQUOTED(STARPU_HISTORYMAXERROR, [$calibration_heuristic], [calibratio
 #                                                                             #
 ###############################################################################
 
-AM_CONDITIONAL([STARPU_USE_MP], [test "x$build_mpi_master_slave" = "xyes"])
+if test x$build_mpi_master_slave = xyes -o x$build_tcpip_master_slave = xyes; then
+ 	build_master_slave=yes
+else
+    build_master_slave=no
+fi
+
+AC_MSG_CHECKING(whether the master-slave mode should be enabled)
+AC_MSG_RESULT($build_master_slave)
+AM_CONDITIONAL([STARPU_USE_MP], test "x$build_master_slave" = "xyes")
 
 AC_ARG_ENABLE([export-dynamic], [AS_HELP_STRING([--disable-export-dynamic],
 			  [Prevent the linker from adding all symbols to the dynamic symbol table])], [], [])
 
-if test x$build_mpi_master_slave = xyes ; then
+if test x$build_master_slave = xyes; then
 	AC_DEFINE(STARPU_USE_MP, [1], [Message-passing SINKs support
 		  is enabled])
 
@@ -2657,9 +2723,9 @@ if test x$starpu_windows = xyes ; then
    enable_openmp=no
    openmp_msg="disabled on windows"
 fi
-if test "x$build_mpi_master_slave" = "xyes" ; then
+if test "x$build_master_slave" = "xyes" ; then
    enable_openmp=no
-   openmp_msg="incompatibility with MPI master slave support"
+   openmp_msg="incompatibility with master slave support"
 fi
 if test x$enable_simgrid = xyes ; then
    enable_openmp=no
@@ -2707,9 +2773,9 @@ if test "x$enable_socl" = "xyes" -a "$have_valid_opencl" = "no" ; then
 fi
 
 # MPI Master Slave and SOCL are not compatible
-if test "x$build_mpi_master_slave" = "xyes" ; then
+if test "x$build_master_slave" = "xyes" ; then
    if test "x$enable_socl" = "xyes" ; then
-      AC_MSG_ERROR([MPI Master-Slave and SOCL can not be used at the same time !])
+      AC_MSG_ERROR([Master-Slave and SOCL can not be used at the same time !])
    fi
    if test "x$enable_socl" = "xmaybe" ; then
      enable_socl=no
@@ -3828,13 +3894,14 @@ AC_MSG_NOTICE([
         (Note these numbers do not represent the number of detected
 	devices, but the maximum number of devices StarPU can manage)
 
-	Maximum number of CPUs:                     $maxcpus
-	Maximum number of CUDA devices:             $nmaxcudadev
-	Maximum number of OpenCL devices:           $nmaxopencldev
-	Maximum number of Maxeler FPGA devices:     $nmaxmaxfpgadev
-	Maximum number of MPI master-slave devices: $nmaxmpidev
-	Maximum number of memory nodes:             $maxnodes
-	Maximum number of task buffers:             $nmaxbuffers
+	Maximum number of CPUs:                        $maxcpus
+	Maximum number of CUDA devices:                $nmaxcudadev
+	Maximum number of OpenCL devices:              $nmaxopencldev
+	Maximum number of Maxeler FPGA devices:        $nmaxmaxfpgadev
+	Maximum number of MPI master-slave devices:    $nmaxmpidev
+	Maximum number of TCP/IP master-slave devices: $nmaxtcpipdev
+	Maximum number of memory nodes:                $maxnodes
+	Maximum number of task buffers:                $nmaxbuffers
 
 	GPU-GPU transfers: $enable_cuda_memcpy_peer
 	CUDA Map:          $enable_cuda_map
@@ -3854,6 +3921,7 @@ AC_MSG_NOTICE([
 	       StarPU MPI(nmad) enabled:                      $build_nmad_lib
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $build_mpi_master_slave
+	       Master-Slave TCP/IP enabled:                   $build_tcpip_master_slave
 	       FFT Support:                                   $fft_support
 	       Resource Management enabled:                   $starpurm_support
 	       Python Interface enabled:                      $starpupy_support

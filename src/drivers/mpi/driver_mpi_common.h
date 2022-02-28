@@ -28,6 +28,7 @@
 
 #define SYNC_TAG 44
 #define ASYNC_TAG 45
+#define NOTIF_TAG 46
 
 int _starpu_mpi_common_mp_init();
 void _starpu_mpi_common_mp_deinit();
@@ -37,6 +38,8 @@ int _starpu_mpi_common_get_src_node();
 
 int _starpu_mpi_common_is_mp_initialized();
 int _starpu_mpi_common_recv_is_ready(const struct _starpu_mp_node *mp_node);
+int _starpu_mpi_common_notif_recv_is_ready(const struct _starpu_mp_node *mp_node);
+int _starpu_mpi_common_notif_send_is_ready(const struct _starpu_mp_node *mp_node);
 
 void _starpu_mpi_common_mp_initialize_src_sink(struct _starpu_mp_node *node);
 
@@ -45,6 +48,9 @@ void _starpu_mpi_common_recv(const struct _starpu_mp_node *node, void *msg, int 
 
 void _starpu_mpi_common_mp_send(const struct _starpu_mp_node *node, void *msg, int len);
 void _starpu_mpi_common_mp_recv(const struct _starpu_mp_node *node, void *msg, int len);
+
+void _starpu_mpi_common_nt_send(const struct _starpu_mp_node *node, void *msg, int len);
+void _starpu_mpi_common_nt_recv(const struct _starpu_mp_node *node, void *msg, int len);
 
 void _starpu_mpi_common_recv_from_device(const struct _starpu_mp_node *node, int src_devid, void *msg, int len, void * event);
 void _starpu_mpi_common_send_to_device(const struct _starpu_mp_node *node, int dst_devid, void *msg, int len, void * event);
