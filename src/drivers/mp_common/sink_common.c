@@ -411,7 +411,7 @@ void _starpu_sink_common_worker(void)
 
 		STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 		/* If the list is not empty and we can send a notification */
-		if(!mp_message_list_empty(&node->message_queue) && node->nt_send_is_ready(node))
+		while(!mp_message_list_empty(&node->message_queue) && node->nt_send_is_ready(node))
 		{
 			/* We pop a message and send it to the host */
 			struct mp_message * message = mp_message_list_pop_back(&node->message_queue);
@@ -421,29 +421,29 @@ void _starpu_sink_common_worker(void)
 			_starpu_nt_common_send_command(node, message->type, message->buffer, message->size);
 			free(message->buffer);
 			mp_message_delete(message);
+			STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 		}
-		else
-		{
-			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
-		}
+		STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 
-		if(!_starpu_mp_event_list_empty(&node->event_list) && node->nt_send_is_ready(node))
-		{
-			struct _starpu_mp_event * sink_event = _starpu_mp_event_list_pop_front(&node->event_list);
-			if (node->dt_test(&sink_event->event))
-			{
+		struct _starpu_mp_event * sink_event;
+		struct _starpu_mp_event * sink_event_next;
+
+		for (sink_event = _starpu_mp_event_list_begin(&node->event_list); 
+                     sink_event != _starpu_mp_event_list_end(&node->event_list);
+                     sink_event = sink_event_next)
+                {
+                        sink_event_next = _starpu_mp_event_list_next(sink_event);
+                        
+                        if(node->nt_send_is_ready(node) && node->dt_test(&sink_event->event))
+                        {
 				/* send ACK to host */
 				STARPU_ASSERT(sink_event->answer_cmd >= STARPU_MP_COMMAND_NOTIF_FIRST && sink_event->answer_cmd <= STARPU_MP_COMMAND_NOTIF_LAST);
 				_starpu_nt_common_send_command(node, sink_event->answer_cmd, &sink_event->remote_event, sizeof(sink_event->remote_event));
 				
+				_starpu_mp_event_list_erase(&node->event_list, sink_event);
 				_starpu_mp_event_delete(sink_event);
-			}
-			else
-			{
-				/* try later */
-				_starpu_mp_event_list_push_back(&node->event_list, sink_event);
-			}
-		}
+                        }
+                }
 	}
 
 	STARPU_PTHREAD_KEY_DELETE(worker_key);
