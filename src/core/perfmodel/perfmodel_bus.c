@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -894,7 +894,7 @@ static void write_bus_affinity_file_content(void)
 
 	_STARPU_DEBUG("writing affinities to %s\n", path);
 
-	f = fopen(path, "w+");
+	f = fopen(path, "a+");
 	if (!f)
 	{
 		perror("fopen write_buf_affinity_file_content");
@@ -903,7 +903,10 @@ static void write_bus_affinity_file_content(void)
 		STARPU_ABORT();
 	}
 
-	locked = _starpu_frdlock(f) == 0;
+	locked = _starpu_fwrlock(f) == 0;
+	fseek(f, 0, SEEK_SET);
+	_starpu_fftruncate(f, 0);
+
 	unsigned cpu;
         unsigned gpu;
 
