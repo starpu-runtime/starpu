@@ -305,10 +305,9 @@ void *_starpu_mpi_src_worker(void *arg)
                 worker_set->set_is_initialized = 1;
                 STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
                 STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-
         }
 
-        _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, _starpu_src_nodes[STARPU_MPI_MS_WORKER]);
+        _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, &_starpu_src_nodes[STARPU_MPI_MS_WORKER][worker_set_mpi->workers[0].devid]);
 
         return NULL;
 }
