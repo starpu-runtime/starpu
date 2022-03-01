@@ -801,6 +801,8 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 	printf("Début de get task to return.\n"); fflush(stdout);
 	#endif
 	
+	//~ printf("\nDebut get task to return GPU n°%d.\n", current_gpu); fflush(stdout);
+	
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	int i = 0;
     /* Getting on the right GPU's package.
@@ -812,9 +814,8 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		temp_pointer = temp_pointer->next;
     }
     
-    //~ printf("\nDebut get task to return GPU n°%d.\n", current_gpu); fflush(stdout);
-	//~ print_planned_task_all_gpu();
-	//~ print_pulled_task_all_gpu();
+	//~ print_planned_task_all_gpu(); fflush(stdout);
+	//~ print_pulled_task_all_gpu(); fflush(stdout);
     
     /* If there are still tasks either in the packages, the main task list or the refused task,
      * I enter here to return a task or start dynamic_data_aware_scheduling. Else I return NULL.
@@ -828,8 +829,8 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 		if (!starpu_task_list_empty(&temp_pointer->refused_fifo_list)) 
 		{
 			/* Ici je ne met pas à jour pulled_task car je l'ai déjà fais pour la tâche avant qu'elle ne soit refusé. */
-			task = starpu_task_list_pop_back(&temp_pointer->refused_fifo_list); 
-			//~ task = starpu_task_list_pop_front (&temp_pointer->refused_fifo_list); ?
+			//~ task = starpu_task_list_pop_back(&temp_pointer->refused_fifo_list); 
+			task = starpu_task_list_pop_front(&temp_pointer->refused_fifo_list);
 			
 			//~ #ifdef PRINT_PYTHON /* Il ne faut pas le faire ici non ? */
 			//~ print_data_to_load_prefetch(task, current_gpu);
@@ -837,7 +838,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef PRINT
 			printf("Return refused task %p.\n", task); fflush(stdout);
 			#endif
-			
+			//~ printf("Return refused task %p.\n", task); fflush(stdout);
 			return task;
 		}
 		
@@ -871,6 +872,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
+			//~ printf("Task: %p is getting out of pull_task from planned task not empty on GPU %d\n", task, current_gpu); fflush(stdout);
 			return task;
 		}
 		
@@ -923,7 +925,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 				#ifdef PRINT_STATS
 				nb_return_null_after_scheduling++;
 				#endif
-				
+				//~ printf("Return NULL after scheduling call.\n"); fflush(stdout);
 				return NULL;
 			}
 			
@@ -940,7 +942,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
-			
+			//~ printf("Return task %p from the scheduling call.\n", task); fflush(stdout);
 			return task;
 		}
 		else
@@ -955,7 +957,7 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 			#ifdef REFINED_MUTEX
 			STARPU_PTHREAD_MUTEX_UNLOCK(&refined_mutex);
 			#endif
-
+			//~ printf("Return NULL because main task list is empty.\n"); fflush(stdout);
 			return NULL;
 		}
 }
