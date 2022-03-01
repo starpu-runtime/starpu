@@ -154,7 +154,10 @@ int _starpu_mpi_init_workers_binding_and_memory(struct _starpu_machine_config *c
 	else
 	{
 		mpi_init[devid] = 1;
-		mpi_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+		if (_starpu_mpi_common_multiple_thread || devid == 0)
+			mpi_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+		else
+			mpi_bindid[devid] = mpi_bindid[0];
 		memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid);
 
 		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
