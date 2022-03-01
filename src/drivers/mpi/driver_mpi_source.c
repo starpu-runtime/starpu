@@ -69,12 +69,7 @@ static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 			STARPU_MPI_MS_WORKER,
 			mpi_idx, mpi_idx, 0, 0,
 			nmpicores, 1, &mpi_worker_set[mpi_idx],
-#ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-			NULL
-#else
-			mpi_worker_set
-#endif
-			);
+			_starpu_mpi_common_multiple_thread  ? NULL : mpi_worker_set);
 }
 
 /* Determine which devices we will use */
@@ -174,19 +169,21 @@ int _starpu_mpi_init_workers_binding_and_memory(struct _starpu_machine_config *c
 			_starpu_worker_drives_memory_node(&workerarg->set->workers[0], numa);
 
 	_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
-#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-	/* MPI driver thread can manage all slave memories if we disable the MPI multiple thread */
-	int findworker;
-	for (findworker = 0; findworker < workerarg->workerid; findworker++)
+
+	if (!_starpu_mpi_common_multiple_thread)
 	{
-		struct _starpu_worker *findworkerarg = &config->workers[findworker];
-		if (findworkerarg->arch == STARPU_MPI_MS_WORKER)
+		/* MPI driver thread can manage all slave memories if we disable the MPI multiple thread */
+		int findworker;
+		for (findworker = 0; findworker < workerarg->workerid; findworker++)
 		{
-			_starpu_worker_drives_memory_node(workerarg, findworkerarg->memory_node);
-			_starpu_worker_drives_memory_node(findworkerarg, memory_node);
+			struct _starpu_worker *findworkerarg = &config->workers[findworker];
+			if (findworkerarg->arch == STARPU_MPI_MS_WORKER)
+			{
+				_starpu_worker_drives_memory_node(workerarg, findworkerarg->memory_node);
+				_starpu_worker_drives_memory_node(findworkerarg, memory_node);
+			}
 		}
 	}
-#endif
 
 	workerarg->bindid = mpi_bindid[devid];
 	_starpu_memory_node_add_nworkers(memory_node);
@@ -244,11 +241,7 @@ void *_starpu_mpi_src_worker(void *arg)
         struct _starpu_worker *worker0 = arg;
         struct _starpu_worker_set *set = worker0->set;
         struct _starpu_worker_set *worker_set_mpi = set;
-#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-        int nbsinknodes = _starpu_mpi_src_get_device_count();
-#else
-	int nbsinknodes = 1;
-#endif
+	int nbsinknodes = _starpu_mpi_common_multiple_thread ? 1 : _starpu_mpi_src_get_device_count();
 
         int workersetnum;
         for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
@@ -284,11 +277,10 @@ void *_starpu_mpi_src_worker(void *arg)
 
                 {
                         char thread_name[16];
-#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-                        snprintf(thread_name, sizeof(thread_name), "MPI_MS");
-#else
-                        snprintf(thread_name, sizeof(thread_name), "MPI_MS %u", devid);
-#endif
+			if (_starpu_mpi_common_multiple_thread)
+				snprintf(thread_name, sizeof(thread_name), "MPI_MS %u", devid);
+			else
+				snprintf(thread_name, sizeof(thread_name), "MPI_MS");
                         starpu_pthread_setname(thread_name);
                 }
 

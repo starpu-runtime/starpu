@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -28,6 +28,8 @@
 static int mpi_initialized = 0;
 static int extern_initialized = 0;
 static int src_node_id;
+
+int _starpu_mpi_common_multiple_thread;
 
 /* (For a given datawizard we may have several starpu_interface_copy calls) */
 LIST_TYPE(_starpu_mpi_ms_event_request,
@@ -85,6 +87,8 @@ int _starpu_mpi_common_mp_init()
 
         mpi_initialized = 1;
 
+	_starpu_mpi_common_multiple_thread = starpu_get_env_number_default("STARPU_MPI_MS_MULTIPLE_THREAD", 0);
+
         if (MPI_Initialized(&extern_initialized) != MPI_SUCCESS)
                 STARPU_ABORT_MSG("Cannot check if MPI is initialized or not !");
 
@@ -92,11 +96,7 @@ int _starpu_mpi_common_mp_init()
         if (!extern_initialized)
         {
 
-#if defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
-                int required = MPI_THREAD_MULTIPLE;
-#else
-                int required = MPI_THREAD_FUNNELED;
-#endif
+                int required = _starpu_mpi_common_multiple_thread ? MPI_THREAD_MULTIPLE : MPI_THREAD_FUNNELED;
 
                 int thread_support;
                 if (MPI_Init_thread(_starpu_get_argc(), _starpu_get_argv(), required, &thread_support) != MPI_SUCCESS)
