@@ -401,8 +401,8 @@ int main(int argc, char **argv)
 	dependances = starpu_get_env_number_default("DEPENDANCES", 0); /* Pour lancer new iteration que avec DARTS. */
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
-	niter = 1; /* Pour changer le nombre d'itérations */
-	//~ niter = 5; /* Pour changer le nombre d'itérations */
+	//~ niter = 1; /* Pour changer le nombre d'itérations */
+	niter = 2; /* Pour changer le nombre d'itérations */
 	//~ niter = 11; /* Pour changer le nombre d'itérations */
 	current_iteration = 1;
 	
