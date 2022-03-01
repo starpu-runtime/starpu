@@ -52,6 +52,7 @@ if STARPU_USE_TCPIP_MASTER_SLAVE
 LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1
 # switch off local socket usage
 #LAUNCHER			+=$(abs_top_srcdir)/tools/starpu_tcpipexec -np 2 -nobind -ncpus 1 -nolocal
+LAUNCHER_ENV			+= STARPU_RESERVE_NCPU=2
 endif
 
 V_nvcc_  = $(V_nvcc_$(AM_DEFAULT_VERBOSITY))
