@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,6 +29,9 @@ void _starpu_cpu_preinit(void);
 
 extern struct _starpu_driver_ops _starpu_driver_cpu_ops;
 extern struct _starpu_node_ops _starpu_driver_cpu_node_ops;
+
+/* Reserve one CPU core as busy for starting a driver thread */
+void _starpu_cpu_busy_cpu(unsigned num);
 
 void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config);
 int _starpu_cpu_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);

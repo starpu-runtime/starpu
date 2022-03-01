@@ -60,6 +60,8 @@
 #include <windows.h>
 #endif
 
+static unsigned already_busy_cpus;
+
 static struct _starpu_driver_info driver_info =
 {
 	.name_upper = "CPU",
@@ -87,6 +89,12 @@ void _starpu_cpu_preinit(void)
 {
 	_starpu_driver_info_register(STARPU_CPU_WORKER, &driver_info);
 	_starpu_memory_driver_info_register(STARPU_CPU_RAM, &memory_driver_info);
+	already_busy_cpus = 0;
+}
+
+void _starpu_cpu_busy_cpu(unsigned num)
+{
+	already_busy_cpus += num;
 }
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
@@ -99,33 +107,6 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 	{
 		unsigned j STARPU_ATTRIBUTE_UNUSED;
 		STARPU_ASSERT_MSG(ncpu >= -1, "ncpus can not be negative and different from -1 (is is %d)", ncpu);
-
-		unsigned mpi_ms_busy_cpus = 0;
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-#ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-		for (j = 0; j < STARPU_MAXMPIDEVS; j++)
-			mpi_ms_busy_cpus += (topology->nworker[STARPU_MPI_MS_WORKER][j] ? 1 : 0);
-#else
-		mpi_ms_busy_cpus = 1; /* we launch one thread to control all slaves */
-#endif
-#endif /* STARPU_USE_MPI_MASTER_SLAVE */
-		unsigned tcpip_ms_busy_cpus = 0;
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-		for (j = 0; j < STARPU_MAXTCPIPDEVS; j++)
-			tcpip_ms_busy_cpus += (topology->nworker[STARPU_TCPIP_MS_WORKER][j] ? 1 : 0);
-#endif /* STARPU_USE_TCPIP_MASTER_SLAVE */
-		/* FIXME: rather have drivers declare what they use */
-		unsigned cuda_busy_cpus = 0;
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
-		cuda_busy_cpus =
-			topology->cuda_th_per_dev == 0 && topology->cuda_th_per_stream == 0 ? (topology->ndevices[STARPU_CUDA_WORKER] ? 1 : 0) :
-			topology->cuda_th_per_stream ? (_starpu_nworker_per_cuda * topology->ndevices[STARPU_CUDA_WORKER]) : topology->ndevices[STARPU_CUDA_WORKER];
-#endif
-		unsigned already_busy_cpus = mpi_ms_busy_cpus
-			+ tcpip_ms_busy_cpus
-			+ cuda_busy_cpus
-			+ topology->ndevices[STARPU_OPENCL_WORKER]
-			+ topology->ndevices[STARPU_MAX_FPGA_WORKER];
 
 		long avail_cpus = (long) topology->nhwworker[STARPU_CPU_WORKER][0] - (long) already_busy_cpus;
 		if (avail_cpus < 0)
