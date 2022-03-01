@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -1129,16 +1129,16 @@ be able to look them up, and <c>-rdynamic</c> must be passed to gcc (or
 
 By default, one core is dedicated on the master node to manage the
 entire set of slaves. If the implementation of MPI you are using has a
-good multiple threads support, you can use the \c configure option
-\ref with-mpi-master-slave-multiple-thread "--with-mpi-master-slave-multiple-thread"
-to dedicate one core per slave.
+good multiple threads support, you can set the \ref
+STARPU_MPI_MS_MULTIPLE_THREAD environment variable to 1 to dedicate one core per
+slave.
 
 Choosing the number of cores on each slave device is done by setting
 the environment variable \ref STARPU_NMPIMSTHREADS "STARPU_NMPIMSTHREADS=\<number\>"
 with <c>\<number\></c> being the requested number of cores. By default
 all the slave's cores are used.
 
-Setting the number of slaves nodes is done by changing the <c>-n</c>
+Setting the number of slaves nodes is done by changing the <c>-np</c>
 parameter when executing the application with mpirun or mpiexec.
 
 The master node is by default the node with the MPI rank equal to 0.
