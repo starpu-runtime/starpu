@@ -1151,20 +1151,10 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int ndevices, struct _starpu_mp_node ** mp_node)
 {
         unsigned memnode[ndevices];
-        unsigned offsetmemnode[ndevices];
-        memset(offsetmemnode, 0, ndevices*sizeof(unsigned));
-
         int device;
-        int nbworkers = 0;
+
         for (device = 0; device < ndevices; device++)
-        {
                 memnode[device] = worker_set[device].workers[0].memory_node;
-                nbworkers += worker_set[device].nworkers;
-                if (device != 0)
-                        offsetmemnode[device] += offsetmemnode[device-1];
-                if (device != ndevices -1)
-                        offsetmemnode[device+1] += worker_set[device].nworkers;
-        }
 
         for (device = 0; device < ndevices; device++)
         {
