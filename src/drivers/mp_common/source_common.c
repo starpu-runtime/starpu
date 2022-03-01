@@ -32,7 +32,6 @@
 #include <drivers/mp_common/source_common.h>
 #include <common/knobs.h>
 
-#if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
 struct starpu_save_thread_env
 {
         struct starpu_task * current_task;
@@ -44,14 +43,13 @@ struct starpu_save_thread_env
 #endif
 };
 
-struct starpu_save_thread_env save_thread_env[STARPU_MAXMPIDEVS];
-#endif
-
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
+struct starpu_save_thread_env save_thread_env[STARPU_MAXMPIDEVS];
 struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXMPIDEVS];
 #endif
 
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
+struct starpu_save_thread_env save_thread_env[STARPU_MAXTCPIPDEVS];
 struct _starpu_mp_node *_starpu_src_nodes[STARPU_NARCH][STARPU_MAXTCPIPDEVS];
 #endif
 
@@ -986,7 +984,6 @@ static int _starpu_src_common_test_suffixes(char *located_file_name, const size_
 	return 1;
 }
 
-#if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
 void _starpu_src_common_init_switch_env(unsigned this)
 {
         save_thread_env[this].current_task = starpu_task_get_current();
@@ -1016,7 +1013,6 @@ static void _starpu_src_common_switch_env(unsigned old, unsigned new)
         STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_task_key, save_thread_env[new].current_omp_task);
 #endif
 }
-#endif
 
 /* Send workers to the sink node
  */
@@ -1146,13 +1142,12 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 	}
 }
 
-#if defined(STARPU_USE_MPI_MASTER_SLAVE) && !defined(STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD)
 /* Function looping on the source node */
 void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int ndevices, struct _starpu_mp_node ** mp_node)
 {
         unsigned memnode[ndevices];
-        int device;
 
+        int device;
         for (device = 0; device < ndevices; device++)
                 memnode[device] = worker_set[device].workers[0].memory_node;
 
@@ -1170,7 +1165,8 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
         {
                 for (device = 0; device < ndevices ; device++)
                 {
-                        _starpu_src_common_switch_env(((device-1)+ndevices)%ndevices, device);
+			if (ndevices > 1)
+				_starpu_src_common_switch_env(((device-1)+ndevices)%ndevices, device);
                         _starpu_src_common_worker_internal_work(&worker_set[device], mp_node[device], memnode[device]);
                 }
         }
@@ -1187,29 +1183,4 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
         for (device = 0; device < ndevices; device++)
                 _starpu_free_all_automatically_allocated_buffers(memnode[device]);
 
-}
-#endif
-
-/* Function looping on the source node */
-void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, unsigned baseworkerid, struct _starpu_mp_node * mp_node)
-{
-        unsigned memnode = worker_set->workers[0].memory_node;
-
-        _starpu_src_common_send_workers(mp_node, baseworkerid, worker_set->nworkers);
-
-        _STARPU_TRACE_START_PROGRESS(memnode);
-        /*main loop*/
-        while (_starpu_machine_is_running())
-        {
-                _starpu_src_common_worker_internal_work(worker_set, mp_node, memnode);
-        }
-
-        _STARPU_TRACE_END_PROGRESS(memnode);
-
-        _starpu_datawizard_handle_all_pending_node_data_requests(memnode);
-
-        /* In case there remains some memory that was automatically
-         * allocated by StarPU, we release it now. Note that data
-         * coherency is not maintained anymore at that point ! */
-        _starpu_free_all_automatically_allocated_buffers(memnode);
 }

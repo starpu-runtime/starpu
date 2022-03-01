@@ -243,8 +243,8 @@ void *_starpu_mpi_src_worker(void *arg)
 {
         struct _starpu_worker *worker0 = arg;
         struct _starpu_worker_set *set = worker0->set;
-#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
         struct _starpu_worker_set *worker_set_mpi = set;
+#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
         int nbsinknodes = _starpu_mpi_src_get_device_count();
 
         int workersetnum;
@@ -252,6 +252,7 @@ void *_starpu_mpi_src_worker(void *arg)
         {
                 struct _starpu_worker_set * worker_set = &worker_set_mpi[workersetnum];
 #else
+                int nbsinknodes = 1;
                 struct _starpu_worker_set *worker_set = set;
 #endif
 
@@ -324,11 +325,7 @@ void *_starpu_mpi_src_worker(void *arg)
         }
 #endif
 
-#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
         _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, _starpu_src_nodes[STARPU_MPI_MS_WORKER]);
-#else
-        _starpu_src_common_worker(worker_set, baseworkerid, _starpu_src_nodes[STARPU_MPI_MS_WORKER][devid]);
-#endif
 
         return NULL;
 }

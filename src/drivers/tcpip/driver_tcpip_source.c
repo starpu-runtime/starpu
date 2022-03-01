@@ -214,6 +214,8 @@ void *_starpu_tcpip_src_worker(void *arg)
 {
         struct _starpu_worker *worker0 = arg;
         struct _starpu_worker_set *worker_set = worker0->set;
+        struct _starpu_worker_set *worker_set_tcpip = worker_set;
+        int nbsinknodes = 1;
 
         /* As all workers of a set share common data, we just use the first
 	 * one for intializing the following stuffs. */
@@ -260,7 +262,7 @@ void *_starpu_tcpip_src_worker(void *arg)
         STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
         STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 
-        _starpu_src_common_worker(worker_set, baseworkerid, _starpu_src_nodes[STARPU_TCPIP_MS_WORKER][devid]);
+        _starpu_src_common_workers_set(worker_set_tcpip, nbsinknodes, &_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][devid]);
 
         return NULL;
 }
