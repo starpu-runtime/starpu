@@ -246,15 +246,14 @@ void *_starpu_mpi_src_worker(void *arg)
         struct _starpu_worker_set *worker_set_mpi = set;
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
         int nbsinknodes = _starpu_mpi_src_get_device_count();
+#else
+	int nbsinknodes = 1;
+#endif
 
         int workersetnum;
         for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
         {
                 struct _starpu_worker_set * worker_set = &worker_set_mpi[workersetnum];
-#else
-                int nbsinknodes = 1;
-                struct _starpu_worker_set *worker_set = set;
-#endif
 
                 /* As all workers of a set share common data, we just use the first
 		 * one for intializing the following stuffs. */
@@ -283,19 +282,15 @@ void *_starpu_mpi_src_worker(void *arg)
                         snprintf(worker->short_name, sizeof(worker->short_name), "MPI_MS %u.%u", devid, i);
                 }
 
+                {
+                        char thread_name[16];
 #ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
-                {
-                        char thread_name[16];
                         snprintf(thread_name, sizeof(thread_name), "MPI_MS");
-                        starpu_pthread_setname(thread_name);
-                }
 #else
-                {
-                        char thread_name[16];
                         snprintf(thread_name, sizeof(thread_name), "MPI_MS %u", devid);
+#endif
                         starpu_pthread_setname(thread_name);
                 }
-#endif
 
                 for (i = 0; i < worker_set->nworkers; i++)
                 {
@@ -303,7 +298,6 @@ void *_starpu_mpi_src_worker(void *arg)
                         _STARPU_TRACE_WORKER_INIT_END(worker->workerid);
                 }
 
-#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
                 _starpu_src_common_init_switch_env(workersetnum);
         }  /* for */
 
@@ -312,7 +306,6 @@ void *_starpu_mpi_src_worker(void *arg)
         {
                 struct _starpu_worker_set * worker_set = &worker_set_mpi[workersetnum];
                 struct _starpu_worker *baseworker = &worker_set->workers[0];
-#endif
 
                 /* tell the main thread that this one is ready */
                 STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
@@ -321,9 +314,7 @@ void *_starpu_mpi_src_worker(void *arg)
                 STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
                 STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 
-#ifndef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
         }
-#endif
 
         _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, _starpu_src_nodes[STARPU_MPI_MS_WORKER]);
 
