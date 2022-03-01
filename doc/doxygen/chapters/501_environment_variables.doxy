@@ -516,6 +516,22 @@ Disable asynchronous copies between CPU and MPI Slave devices.
 Specify the number of TCP/IP master slave devices that StarPU can use.
 </dd>
 
+<dt>STARPU_TCPIP_MS_SLAVES</dt>
+<dd>
+\anchor STARPU_TCPIP_MS_SLAVES
+\addindex __env__STARPU_TCPIP_MS_SLAVES
+Specify the number of TCP/IP master slave processes that are expected to be
+run. This should be provided both to the master and to the slaves.
+</dd>
+
+<dt>STARPU_TCPIP_MS_MASTER</dt>
+<dd>
+\anchor STARPU_TCPIP_MS_MASTER
+\addindex __env__STARPU_TCPIP_MS_MASTER
+Specify (for slaves) the IP address of the master so they can connect to
+it. They will then automatically connect to each other.
+</dd>
+
 <dt>STARPU_NTCPIPMSTHREADS</dt>
 <dd>
 \anchor STARPU_NTCPIPMSTHREADS
