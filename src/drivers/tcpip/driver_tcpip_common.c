@@ -55,6 +55,8 @@ static int nb_sink;
 static char* host_port;
 static int index_sink = 0;
 
+int _starpu_tcpip_common_multiple_thread;
+
 static int is_running;
 static starpu_sem_t sem_thread_finished;
 
@@ -270,6 +272,8 @@ int _starpu_tcpip_common_mp_init()
                 return 0;
 
         tcpip_initialized = 1;
+
+        _starpu_tcpip_common_multiple_thread = starpu_get_env_number_default("STARPU_TCPIP_MS_MULTIPLE_THREAD", 0);
 
         /*initialize the pipe*/
         int r=pipe(thread_pipe);

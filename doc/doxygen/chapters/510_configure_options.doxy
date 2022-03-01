@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -359,6 +359,13 @@ it is therefore necessary to disable asynchronous data transfers.
 Disable asynchronous copies between CPU and MPI Slave devices.
 </dd>
 
+<dt>--disable-asynchronous-tcpip-master-slave-copy</dt>
+<dd>
+\anchor disable-asynchronous-tcpip-master-slave-copy
+\addindex __configure__--disable-asynchronous-mpi-master-slave-copy
+Disable asynchronous copies between CPU and MPI Slave devices.
+</dd>
+
 <dt>--disable-asynchronous-fpga-copy</dt>
 <dd>
 \anchor disable-asynchronous-fpga-copy
@@ -450,13 +457,6 @@ and StarPU does not read from it from tasks during the communication.
 Enable the MPI Master-Slave support. By default, it is disabled.
 </dd>
 
-<dt>--with-mpi-master-slave-multiple-thread</dt>
-<dd>
-\anchor with-mpi-master-slave-multiple-thread
-\addindex __configure__--with-mpi-master-slave-multiple-thread
-Create one thread per MPI Slave on the MPI master to manage communications.
-</dd>
-
 <dt>--enable-mpi-verbose</dt>
 <dd>
 \anchor enable-mpi-verbose
@@ -468,6 +468,13 @@ any value. <c>--enable-mpi-verbose=extra</c> increase even more the verbosity.
 \verbatim
 $ STARPU_SILENT=1 mpirun -np 2 ./insert_task
 \endverbatim
+</dd>
+
+<dt>--enable-tcpip-master-slave</dt>
+<dd>
+\anchor enable-tcpip-master-slave
+\addindex __configure__--enable-mpi-master-slave
+Enable the TCP/IP Master-Slave support. By default, it is disabled.
 </dd>
 
 <dt>--enable-nmad</dt>

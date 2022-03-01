@@ -26,6 +26,8 @@
 
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
 
+extern int _starpu_tcpip_common_multiple_thread;
+
 struct _starpu_tcpip_socket
 {
     /* socket used for synchronous communications*/

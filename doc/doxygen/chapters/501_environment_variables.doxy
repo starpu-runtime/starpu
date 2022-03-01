@@ -505,6 +505,42 @@ Disable asynchronous copies between CPU and MPI Slave devices.
 
 </dl>
 
+\subsection tcpipmsWorkers TCP/IP Master Slave Workers
+
+<dl>
+
+<dt>STARPU_NTCPIP_MS</dt>
+<dd>
+\anchor STARPU_NTCPIP_MS
+\addindex __env__STARPU_NTCPIP_MS
+Specify the number of TCP/IP master slave devices that StarPU can use.
+</dd>
+
+<dt>STARPU_NTCPIPMSTHREADS</dt>
+<dd>
+\anchor STARPU_NTCPIPMSTHREADS
+\addindex __env__STARPU_NTCPIPMSTHREADS
+Number of threads to use on the TCP/IP Slave devices.
+</dd>
+
+<dt>STARPU_TCPIP_MS_MULTIPLE_THREAD</dt>
+<dd>
+\anchor STARPU_TCPIP_MS_MULTIPLE_THREAD
+\addindex __env__STARPU_TCPIP_MS_MULTIPLE_THREAD
+Specify whether the master should use one thread per slave, or one thread for
+driver all slaves. The default is 0.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY
+Disable asynchronous copies between CPU and TCP/IP Slave devices.
+</dd>
+
+</dl>
+
+
 \subsection mpiConf MPI Configuration
 <dl>
 
