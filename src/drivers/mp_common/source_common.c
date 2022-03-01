@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
@@ -1046,10 +1046,11 @@ static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int b
         STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 }
 
-static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * worker_set, struct _starpu_mp_node * mp_node, struct starpu_task **tasks, unsigned memnode)
+static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * worker_set, struct _starpu_mp_node * mp_node, unsigned memnode)
 {
         int res = 0;
 	unsigned i;
+	struct starpu_task *tasks[worker_set->nworkers];
 
         _starpu_may_pause();
 
@@ -1165,9 +1166,6 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
                         offsetmemnode[device+1] += worker_set[device].nworkers;
         }
 
-        struct starpu_task **tasks;
-        _STARPU_MALLOC(tasks, sizeof(struct starpu_task *)*nbworkers);
-
         for (device = 0; device < ndevices; device++)
         {
                 struct _starpu_worker *baseworker = &worker_set[device].workers[0];
@@ -1183,10 +1181,9 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
                 for (device = 0; device < ndevices ; device++)
                 {
                         _starpu_src_common_switch_env(((device-1)+ndevices)%ndevices, device);
-                        _starpu_src_common_worker_internal_work(&worker_set[device], mp_node[device], tasks+offsetmemnode[device], memnode[device]);
+                        _starpu_src_common_worker_internal_work(&worker_set[device], mp_node[device], memnode[device]);
                 }
         }
-        free(tasks);
 
         for (device = 0; device < ndevices; device++)
 	{
@@ -1207,9 +1204,6 @@ void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int 
 void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, unsigned baseworkerid, struct _starpu_mp_node * mp_node)
 {
         unsigned memnode = worker_set->workers[0].memory_node;
-        struct starpu_task **tasks;
-
-        _STARPU_MALLOC(tasks, sizeof(struct starpu_task *)*worker_set->nworkers);
 
         _starpu_src_common_send_workers(mp_node, baseworkerid, worker_set->nworkers);
 
@@ -1217,9 +1211,8 @@ void _starpu_src_common_worker(struct _starpu_worker_set * worker_set, unsigned 
         /*main loop*/
         while (_starpu_machine_is_running())
         {
-                _starpu_src_common_worker_internal_work(worker_set, mp_node, tasks, memnode);
+                _starpu_src_common_worker_internal_work(worker_set, mp_node, memnode);
         }
-        free(tasks);
 
         _STARPU_TRACE_END_PROGRESS(memnode);
 
