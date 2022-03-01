@@ -109,7 +109,7 @@
 
    <host id="RAM" speed="1f"/>
 
-   <link id="Host" bandwidth="12361639094.792093Bps" latency="0.000000s"/>
+   <link id="Host" bandwidth="36361639094.792093Bps" latency="0.000000s"/>
 
    <link id="RAM-OpenCL0" bandwidth="9546370142.372089Bps" latency="0.000008s"/>
    <link id="OpenCL0-RAM" bandwidth="9755455103.509220Bps" latency="0.000009s"/>
