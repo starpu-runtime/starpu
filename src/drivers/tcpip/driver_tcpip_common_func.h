@@ -150,7 +150,7 @@ if(listen(sockfd, backlog) != 0) \
         int ret = setsockopt(sockfd, SOL_SOCKET, optname, &one, sizeof(one)); \
         if (ret!=0) \
         { \
-                if (errno != ENOPROTOOPT && errno != ENOTSUPP) \
+                if (errno != EOPNOTSUPP && errno != ENOPROTOOPT && errno != ENOTSUPP) \
                         perror("setsockopt zerocopy"); \
                 zc = 0; \
         } \
