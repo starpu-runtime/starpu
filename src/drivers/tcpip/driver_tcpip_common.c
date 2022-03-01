@@ -262,7 +262,7 @@ int _starpu_tcpip_common_mp_init()
                 return -ENODEV;
 
         /*get the slave number*/
-        nb_sink = starpu_get_env_number("STARPU_TCP_MS_SLAVES");
+        nb_sink = starpu_get_env_number("STARPU_TCPIP_MS_SLAVES");
         //_TCPIP_PRINT("the slave number is %d\n", nb_sink);
 
         if (nb_sink <= 0)
@@ -287,7 +287,7 @@ int _starpu_tcpip_common_mp_init()
         
 
         /*get host info*/
-        host_port = starpu_getenv("STARPU_TCP_MS_MASTER");
+        host_port = starpu_getenv("STARPU_TCPIP_MS_MASTER");
 
         tcpip_sock = (struct _starpu_tcpip_socket*)calloc(nb_sink + 1, sizeof(struct _starpu_tcpip_socket));
         local_flag = (int*)malloc((nb_sink + 1)*sizeof(int));
