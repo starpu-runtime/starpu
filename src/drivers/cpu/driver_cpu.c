@@ -162,7 +162,7 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 	_starpu_topology_configure_workers(topology, config,
 			STARPU_CPU_WORKER,
 			0, 0, homogeneous, 1,
-			ncpu, 1, NULL);
+			ncpu, 1, NULL, NULL);
 }
 #endif
 

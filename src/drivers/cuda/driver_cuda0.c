@@ -183,7 +183,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 		_starpu_topology_configure_workers(topology, config,
 					STARPU_CUDA_WORKER,
 					cudagpu, devid, 0, 0,
-					1, 1, NULL);
+					1, 1, NULL, NULL);
         }
 
 	/* Don't copy this, just here for other code to work fine */

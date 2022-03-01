@@ -226,7 +226,8 @@ LIST_TYPE(_starpu_worker,
 	unsigned char ntasks; /**< number of tasks in the pipeline */
 	unsigned char pipeline_length; /**< number of tasks to be put in the pipeline */
 	unsigned char pipeline_stuck; /**< whether a task prevents us from pipelining */
-	struct _starpu_worker_set *set; /**< in case this worker belongs to a set */
+	struct _starpu_worker_set *set; /**< in case this worker belongs to a worker set */
+	struct _starpu_worker_set *driver_worker_set; /**< in case this worker belongs to a driver worker set */
 	unsigned worker_is_running;
 	unsigned worker_is_initialized;
 	unsigned wait_for_worker_initialization;
@@ -342,14 +343,6 @@ struct _starpu_worker_set
 	unsigned set_is_initialized;
 	unsigned wait_for_set_initialization;
 };
-
-#ifdef STARPU_USE_MPI_MASTER_SLAVE
-extern struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
-#endif
-
-#ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-extern struct _starpu_worker_set tcpip_worker_set[STARPU_MAXTCPIPDEVS];
-#endif
 
 struct _starpu_machine_topology
 {

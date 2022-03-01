@@ -31,7 +31,7 @@ static unsigned tcpip_init[STARPU_MAXTCPIPDEVS] = { };
 static unsigned tcpip_memory_nodes[STARPU_MAXTCPIPDEVS];
 static unsigned tcpip_bindid[STARPU_MAXTCPIPDEVS];
 
-struct _starpu_worker_set tcpip_worker_set[STARPU_MAXTCPIPDEVS];
+static struct _starpu_worker_set tcpip_worker_set[STARPU_MAXTCPIPDEVS];
 #endif
 
 struct _starpu_mp_node *_starpu_tcpip_ms_src_get_actual_thread_mp_node()
@@ -66,7 +66,7 @@ static void __starpu_init_tcpip_config(struct _starpu_machine_topology * topolog
         _starpu_topology_configure_workers(topology, config,
                                          STARPU_TCPIP_MS_WORKER, 
                                          tcpip_idx, tcpip_idx, 0, 0,
-                                        ntcpipcores, 1, &tcpip_worker_set[tcpip_idx]);
+                                        ntcpipcores, 1, &tcpip_worker_set[tcpip_idx], NULL);
 }
 
 void _starpu_init_tcpip_config(struct _starpu_machine_topology * topology, struct _starpu_machine_config *config,

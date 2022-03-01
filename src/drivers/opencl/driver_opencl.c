@@ -343,7 +343,7 @@ void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struc
 		_starpu_topology_configure_workers(topology, config,
 				STARPU_OPENCL_WORKER,
 				openclgpu, devid, 0, 0,
-				1, 1, NULL);
+				1, 1, NULL, NULL);
 	}
 }
 

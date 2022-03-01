@@ -1027,7 +1027,8 @@ void _starpu_topology_configure_workers(struct _starpu_machine_topology *topolog
 					int homogeneous, int worker_devid,
 					unsigned nworker_per_device,
 					unsigned ncores,
-					struct _starpu_worker_set *worker_set)
+					struct _starpu_worker_set *worker_set,
+					struct _starpu_worker_set *driver_worker_set)
 {
 	topology->nworker[type][devnum] = nworker_per_device;
 	topology->devid[type][devnum] = devid;
@@ -1052,6 +1053,7 @@ void _starpu_topology_configure_workers(struct _starpu_machine_topology *topolog
 		else
 			config->workers[worker_idx].set = worker_set;
 
+		config->workers[worker_idx].driver_worker_set = driver_worker_set;
 		config->workers[worker_idx].arch = type;
 		_STARPU_MALLOC(config->workers[worker_idx].perf_arch.devices, sizeof(struct starpu_perfmodel_device));
 		config->workers[worker_idx].perf_arch.ndevices = 1;

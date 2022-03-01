@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -185,7 +185,7 @@ void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, str
 		_starpu_topology_configure_workers(topology, config,
 				STARPU_MAX_FPGA_WORKER,
 				max_fpga, devid, 0, 0,
-				1, 1, NULL);
+				1, 1, NULL, NULL);
 	}
 }
 

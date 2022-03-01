@@ -32,7 +32,7 @@ static unsigned mpi_init[STARPU_MAXMPIDEVS] = { };
 static unsigned mpi_memory_nodes[STARPU_MAXMPIDEVS];
 static unsigned mpi_bindid[STARPU_MAXMPIDEVS];
 
-struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
+static struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
 
 struct _starpu_mp_node *_starpu_mpi_ms_src_get_actual_thread_mp_node()
@@ -68,7 +68,13 @@ static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 	_starpu_topology_configure_workers(topology, config,
 			STARPU_MPI_MS_WORKER,
 			mpi_idx, mpi_idx, 0, 0,
-			nmpicores, 1, &mpi_worker_set[mpi_idx]);
+			nmpicores, 1, &mpi_worker_set[mpi_idx],
+#ifdef STARPU_MPI_MASTER_SLAVE_MULTIPLE_THREAD
+			NULL
+#else
+			mpi_worker_set
+#endif
+			);
 }
 
 /* Determine which devices we will use */

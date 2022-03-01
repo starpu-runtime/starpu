@@ -370,7 +370,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 					// TODO: fix perfmodels etc.
 					// nworker_per_cuda - 1,
 					1,
-					worker_set);
+					worker_set, NULL);
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 		_starpu_opencl_using_cuda(devid);
