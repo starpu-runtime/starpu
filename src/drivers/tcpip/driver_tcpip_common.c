@@ -37,8 +37,6 @@
 #define NITER 32
 #define SIZE_BANDWIDTH (1024*1024)
 
-#define DRIVER_TCPIP_MASTER_NODE_DEFAULT 0
-
 #define _SELECT_DEBUG 0
 #if _SELECT_DEBUG
 #  define _SELECT_PRINT(...) printf(__VA_ARGS__)
