@@ -21,6 +21,13 @@
 #  define _TCPIP_PRINT(...)
 #endif
 
+#ifdef __linux__
+#include <linux/errno.h>
+#ifndef ENOTSUPP
+#define ENOTSUPP 524
+#endif
+#endif
+
 enum errcase {SOCK_INIT, SOCK_GETADDRINFO, SOCK_GETADDRINFO_LOCAL};
 
 #define SOCKET(domain, type, protocol, errcase) ({\
