@@ -150,7 +150,6 @@ void new_iteration()
 	}
 	my_planned_task_control->first = my_planned_task_control->pointer;
 
-	
 	/* Utile ? */
 	//~ free(my_pulled_task_control);
 	//~ gpu_pulled_task_initialisation();
@@ -549,7 +548,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 // Second subarray is arr[m+1..r]
 void merge(int arr[], int l, int m, int r, struct starpu_task **task_tab)
 {
-	printf("Merge\n");
     int i, j, k;
     int n1 = m - l + 1;
     int n2 = r - m;
@@ -617,7 +615,6 @@ void merge(int arr[], int l, int m, int r, struct starpu_task **task_tab)
 sub-array of arr to be sorted */
 void mergeSort(int *arr, int l, int r, struct starpu_task **task_tab)
 {
-	printf("MergeSort l = %d r = %d\n", l, r);
     if (l < r) 
     {
         // Same as (l+r)/2, but avoids overflow for
@@ -660,7 +657,7 @@ void randomize_full_task_list(struct dynamic_data_aware_sched_data *d)
 	 * en même temps avec un tri fusion le tableau d'entiers random et le tableau de
 	 * tâches. Ensuite je parcours la liste de tâche principale en insérant 1 à 1 les
 	 * tâches à leurs position. */
-	print_task_list(&d->main_task_list, "Avant randomisation totale");
+	//~ print_task_list(&d->main_task_list, "Avant randomisation totale");
     int i = 0;
     int j = 0;
     int size_main_task_list = starpu_task_list_size(&d->main_task_list);
@@ -674,17 +671,10 @@ void randomize_full_task_list(struct dynamic_data_aware_sched_data *d)
     {
 		task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
 		random_number[i] = rand()%size_main_task_list;
-		printf("%p et %d.\n", task_tab[i], random_number[i]);
     }
     
     /* Appel du tri fusion. */
     mergeSort(random_number, 0, NT_dynamic_outer - 1, task_tab);
-   
-	printf("Fin du mergeSort.\n"); fflush(stdout);
-    for (i = 0; i < NT_dynamic_outer; i++)
-    {
-		printf("%p et %d.\n", task_tab[i], random_number[i]);
-    }
 
     /* Remplissage de main task list dans l'ordre et en fonction du chiffre tirée. */
     task = starpu_task_list_begin(&d->main_task_list);
@@ -694,14 +684,12 @@ void randomize_full_task_list(struct dynamic_data_aware_sched_data *d)
 		{
 			task = starpu_task_list_next(task);
 			avancement_main_task_list++;
-			printf("i = %d, next\n", i);
 		}
-		printf("Insert %i: %p\n", i,  task_tab[i]);
 		starpu_task_list_insert_before(&d->main_task_list, task_tab[i], task);
 	}
     
-    print_task_list(&d->main_task_list, "Après randomisation totale");
-    //~ exit(0);
+    //~ print_task_list(&d->main_task_list, "Après randomisation totale");
+
 	/* Version où je les merge les 2 listes de tâches puis je les mélange */
     //~ int random = 0;
     //~ int i = 0;
@@ -2913,26 +2901,27 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 		fclose(f);
 		free(path);
 	}
-		
-	f = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.csv", "w");
-	fprintf(f, "N,Nb conflits,Nb conflits critiques\n");
-	fclose(f);
 	
-	f = fopen("Output_maxime/Data/DARTS/Choice_during_scheduling.csv", "w");
-	fprintf(f, "N,Return NULL, Return task, Return NULL because main task list empty,Nb of random selection,nb_1_from_free_task_not_found\n");
-	fclose(f);
+	/* A commenter pour es 5 fichiers si on veut tester sur plusieurs working set. */
+	//~ f = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.csv", "w");
+	//~ fprintf(f, "N,Nb conflits,Nb conflits critiques\n");
+	//~ fclose(f);
 	
-	f = fopen("Output_maxime/Data/DARTS/Choice_victim_selector.csv", "w");
-	fprintf(f, "N,victim_selector_refused_not_on_node,victim_selector_refused_cant_evict,victim_selector_return_refused,victim_selector_return_unvalid,victim_selector_return_data_not_in_planned_and_pulled,victim_evicted_compteur,victim_selector_compteur,victim_selector_return_no_victim,victim_selector_belady\n");
-	fclose(f);
+	//~ f = fopen("Output_maxime/Data/DARTS/Choice_during_scheduling.csv", "w");
+	//~ fprintf(f, "N,Return NULL, Return task, Return NULL because main task list empty,Nb of random selection,nb_1_from_free_task_not_found\n");
+	//~ fclose(f);
 	
-	f = fopen("Output_maxime/Data/DARTS/Misc.csv", "w");
-	fprintf(f, "N,Nb refused tasks,Nb new task initialized\n");
-	fclose(f);
+	//~ f = fopen("Output_maxime/Data/DARTS/Choice_victim_selector.csv", "w");
+	//~ fprintf(f, "N,victim_selector_refused_not_on_node,victim_selector_refused_cant_evict,victim_selector_return_refused,victim_selector_return_unvalid,victim_selector_return_data_not_in_planned_and_pulled,victim_evicted_compteur,victim_selector_compteur,victim_selector_return_no_victim,victim_selector_belady\n");
+	//~ fclose(f);
 	
-	f = fopen("Output_maxime/Data/DARTS/DARTS_time.csv", "w");
-	fprintf(f, "N,time_total_selector,time_total_evicted,time_total_belady,time_total_schedule,time_total_choose_best_data,time_total_fill_planned_task_list,time_total_initialisation,time_total_randomize, time_total_pick_random_task,time_total_least_used_data_planned_task,time_total_createtolasttaskfinished\n");
-	fclose(f);
+	//~ f = fopen("Output_maxime/Data/DARTS/Misc.csv", "w");
+	//~ fprintf(f, "N,Nb refused tasks,Nb new task initialized\n");
+	//~ fclose(f);
+	
+	//~ f = fopen("Output_maxime/Data/DARTS/DARTS_time.csv", "w");
+	//~ fprintf(f, "N,time_total_selector,time_total_evicted,time_total_belady,time_total_schedule,time_total_choose_best_data,time_total_fill_planned_task_list,time_total_initialisation,time_total_randomize, time_total_pick_random_task,time_total_least_used_data_planned_task,time_total_createtolasttaskfinished\n");
+	//~ fclose(f);
 	
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
 	nb_return_null_after_scheduling = 0;

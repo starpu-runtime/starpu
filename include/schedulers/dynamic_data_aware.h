@@ -31,7 +31,7 @@ extern int data_order;
 extern int dependances;
 
 //~ #define PRINT /* A dé-commenter pour afficher les printfs dans le code, les mesures du temps et les écriture dans les fichiers. A pour objectif de remplacer la var d'env PRINTF de HFP. Pour le moment j'ai toujours besoin de PRINTF=1 pour les visualisations par exemple. Attention pour DARTS j'ai besoin de PRINTF=1 et de PRINT pour les visu pour le moment. */
-//~ #define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
+#define PRINT_STATS /* Stats de temps, de nb d'occurences de certaines fonctions etc... */
 //~ #define PRINT_PYTHON /* Visu python */
 
 /* En cas de conflits de données */
@@ -154,14 +154,18 @@ void print_task_using_data(starpu_data_handle_t d);
 void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node);
 void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_gpu);
 
-/** Fonctions principales **/
-void initialize_task_data_gpu_single_task(struct starpu_task *task);
+/** Fonctions outils **/
+void mergeSort(int *arr, int l, int r, struct starpu_task **task_tab);
+void merge(int arr[], int l, int m, int r, struct starpu_task **task_tab);
 void randomize_new_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_full_task_list(struct dynamic_data_aware_sched_data *d);
 void natural_order_task_list(struct dynamic_data_aware_sched_data *d);
 void randomize_new_data_not_used_yet();
 void randomize_full_data_not_used_yet();
 void natural_order_data_not_used_yet();
+
+/** Fonctions principales **/
+void initialize_task_data_gpu_single_task(struct starpu_task *task);
 //~ void order_z_data_not_used_yet();
 //~ void randomize_data_not_used_yet_single_GPU(struct gpu_planned_task *g);
 struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_gpu, struct starpu_task_list *l);
