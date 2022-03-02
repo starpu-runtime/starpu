@@ -96,7 +96,6 @@
    Defined when StarPU has been installed with TCP/IP Master Slave
    support. It should be used in your code to detect the availability
    of TCP/IP Master Slave.
-   @ingroup API_TCPIP_Support
 */
 #undef STARPU_USE_TCPIP_MASTER_SLAVE
 
