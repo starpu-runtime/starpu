@@ -544,6 +544,94 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
     task->sched_data = pt;
 }
 
+// Merges two subarrays of arr[].
+// First subarray is arr[l..m]
+// Second subarray is arr[m+1..r]
+void merge(int arr[], int l, int m, int r, struct starpu_task **task_tab)
+{
+	printf("Merge\n");
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 = r - m;
+  
+    /* create temp arrays */
+    int L[n1], R[n2];
+    struct starpu_task *L_task_tab[n1];
+    struct starpu_task *R_task_tab[n2];
+  
+    /* Copy data to temp arrays L[] and R[] */
+    for (i = 0; i < n1; i++)
+    {
+        L[i] = arr[l + i];
+        L_task_tab[i] = task_tab[l + i];        
+	}
+    for (j = 0; j < n2; j++)
+    {
+        R[j] = arr[m + 1 + j];
+        R_task_tab[j] = task_tab[m + 1 + j];
+	}
+  
+    /* Merge the temp arrays back into arr[l..r]*/
+    i = 0; // Initial index of first subarray
+    j = 0; // Initial index of second subarray
+    k = l; // Initial index of merged subarray
+    while (i < n1 && j < n2)
+    {
+        if (L[i] <= R[j]) 
+        {
+            arr[k] = L[i];
+            task_tab[k] = L_task_tab[i];
+            i++;
+        }
+        else
+        {
+            arr[k] = R[j];
+            task_tab[k] =  R_task_tab[j];
+            j++;
+        }
+        k++;
+    }
+  
+    /* Copy the remaining elements of L[], if there
+    are any */
+    while (i < n1)
+    {
+        arr[k] = L[i];
+        task_tab[k] =  L_task_tab[i];
+        i++;
+        k++;
+    }
+  
+    /* Copy the remaining elements of R[], if there
+    are any */
+    while (j < n2)
+    {
+        arr[k] = R[j];
+        task_tab[k] =  R_task_tab[j];
+        j++;
+        k++;
+    }
+}
+  
+/* l is for left index and r is right index of the
+sub-array of arr to be sorted */
+void mergeSort(int *arr, int l, int r, struct starpu_task **task_tab)
+{
+	printf("MergeSort l = %d r = %d\n", l, r);
+    if (l < r) 
+    {
+        // Same as (l+r)/2, but avoids overflow for
+        // large l and h
+        int m = l + (r - l) / 2;
+  
+        // Sort first and second halves
+        mergeSort(arr, l, m, task_tab);
+        mergeSort(arr, m + 1, r, task_tab);
+  
+        merge(arr, l, m, r, task_tab);
+    }
+}
+
 /* Randomise sched_data uniquement, càd dire les nouvelles tâches et les mets à la fin de main_task_list */
 void randomize_new_task_list(struct dynamic_data_aware_sched_data *d)
 {
@@ -568,45 +656,73 @@ void randomize_new_task_list(struct dynamic_data_aware_sched_data *d)
 /* Randomise ensemble main_task_list et les nouvelles tâches. */
 void randomize_full_task_list(struct dynamic_data_aware_sched_data *d)
 {
-	/* Version où je les choisis des chiffres random */
-	//~ int size_main_task_list = starpu_task_list_size(&d->main_task_list);
-    //~ int random = 0;
-    //~ int i = 0;
-	//~ int j = 0;
-	//~ struct starpu_task *task = NULL;
-	//~ for (j = 0; j < NT_dynamic_outer; j++)
-	//~ {
-		//~ task = starpu_task_list_begin(&d->main_task_list);
-		//~ random = rand()%(size_main_task_list + j);
-		//~ for (i = 0; i < random; i++)
-		//~ {
-			//~ task = starpu_task_list_next(task);
-		//~ }
-		//~ starpu_task_list_insert_before(&d->main_task_list, starpu_task_list_pop_front(&d->sched_list), task);
-	//~ }
-    
-	/* Version où je les merge puis je les mélange */
-    int random = 0;
+	/* Version où je les choisis des chiffres random pour chaque tâche, puis je trie
+	 * en même temps avec un tri fusion le tableau d'entiers random et le tableau de
+	 * tâches. Ensuite je parcours la liste de tâche principale en insérant 1 à 1 les
+	 * tâches à leurs position. */
+	print_task_list(&d->main_task_list, "Avant randomisation totale");
     int i = 0;
+    int j = 0;
     int size_main_task_list = starpu_task_list_size(&d->main_task_list);
-    struct starpu_task *task_tab[NT_dynamic_outer + size_main_task_list];
-    
+    struct starpu_task *task_tab[NT_dynamic_outer];
+    struct starpu_task *task = NULL;
+    int random_number[NT_dynamic_outer];
+    int avancement_main_task_list = 0;
+    /* Remplissage d'un tableau avec les nouvelles tâches + tirage de chiffre aléatoire 
+     * pour chaque tâche. */
     for (i = 0; i < NT_dynamic_outer; i++)
     {
 		task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
+		random_number[i] = rand()%size_main_task_list;
+		printf("%p et %d.\n", task_tab[i], random_number[i]);
     }
-    for (i = NT_dynamic_outer; i < NT_dynamic_outer + size_main_task_list; i++)
+    
+    /* Appel du tri fusion. */
+    mergeSort(random_number, 0, NT_dynamic_outer - 1, task_tab);
+   
+	printf("Fin du mergeSort.\n"); fflush(stdout);
+    for (i = 0; i < NT_dynamic_outer; i++)
     {
-		task_tab[i] = starpu_task_list_pop_front(&d->main_task_list);
+		printf("%p et %d.\n", task_tab[i], random_number[i]);
     }
-    for (i = 0; i < NT_dynamic_outer + size_main_task_list; i++)
+
+    /* Remplissage de main task list dans l'ordre et en fonction du chiffre tirée. */
+    task = starpu_task_list_begin(&d->main_task_list);
+    for (i = 0; i < NT_dynamic_outer; i++)
     {
-		random = rand()%(NT_dynamic_outer + size_main_task_list - i);
-		starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
-		
-		/* Je remplace la case par la dernière tâche du tableau */
-		task_tab[random] = task_tab[NT_dynamic_outer + size_main_task_list - i - 1];
+		for (j = avancement_main_task_list; j < random_number[i]; j++)
+		{
+			task = starpu_task_list_next(task);
+			avancement_main_task_list++;
+			printf("i = %d, next\n", i);
+		}
+		printf("Insert %i: %p\n", i,  task_tab[i]);
+		starpu_task_list_insert_before(&d->main_task_list, task_tab[i], task);
 	}
+    
+    print_task_list(&d->main_task_list, "Après randomisation totale");
+    //~ exit(0);
+	/* Version où je les merge les 2 listes de tâches puis je les mélange */
+    //~ int random = 0;
+    //~ int i = 0;
+    //~ int size_main_task_list = starpu_task_list_size(&d->main_task_list);
+    //~ struct starpu_task *task_tab[NT_dynamic_outer + size_main_task_list];
+    //~ for (i = 0; i < NT_dynamic_outer; i++)
+    //~ {
+		//~ task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
+    //~ }
+    //~ for (i = NT_dynamic_outer; i < NT_dynamic_outer + size_main_task_list; i++)
+    //~ {
+		//~ task_tab[i] = starpu_task_list_pop_front(&d->main_task_list);
+    //~ }
+    //~ for (i = 0; i < NT_dynamic_outer + size_main_task_list; i++)
+    //~ {
+		//~ random = rand()%(NT_dynamic_outer + size_main_task_list - i);
+		//~ starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
+		
+		//~ /* Je remplace la case par la dernière tâche du tableau */
+		//~ task_tab[random] = task_tab[NT_dynamic_outer + size_main_task_list - i - 1];
+	//~ }
 }
 
 /* Chaque GPU a un pointeur vers sa première tâche à pop.
