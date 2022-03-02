@@ -114,26 +114,26 @@ void new_iteration()
 	if (iteration == 11 || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération. */
 	{
 		FILE *f_new_iteration = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.csv", "a");
-		fprintf(f_new_iteration , "%d,%d,%d\n", print_n, number_data_conflict, number_critical_data_conflict);
+		fprintf(f_new_iteration , "%d,%d,%d\n", print_n, number_data_conflict/11 + number_data_conflict%11, number_critical_data_conflict/11 + number_critical_data_conflict%11);
 		fclose(f_new_iteration);
 
 		gettimeofday(&time_end_createtolasttaskfinished, NULL);
 		time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
 
 		f_new_iteration = fopen("Output_maxime/Data/DARTS/DARTS_time.csv", "a");
-		fprintf(f_new_iteration, "%d,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", print_n, time_total_selector, time_total_evicted, time_total_belady, time_total_schedule, time_total_choose_best_data, time_total_fill_planned_task_list, time_total_initialisation, time_total_randomize, time_total_pick_random_task, time_total_least_used_data_planned_task, time_total_createtolasttaskfinished);
+		fprintf(f_new_iteration, "%d,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld,%lld\n", print_n, time_total_selector/11 + time_total_selector%11, time_total_evicted/11 + time_total_evicted%11, time_total_belady/11 + time_total_belady%11, time_total_schedule/11 + time_total_schedule%11, time_total_choose_best_data/11 + time_total_choose_best_data%11, time_total_fill_planned_task_list/11 + time_total_fill_planned_task_list%11, time_total_initialisation/11 + time_total_initialisation%11, time_total_randomize/11 + time_total_randomize%11, time_total_pick_random_task/11 + time_total_pick_random_task%11, time_total_least_used_data_planned_task/11 + time_total_least_used_data_planned_task%11, time_total_createtolasttaskfinished/11 + time_total_createtolasttaskfinished%11);
 		fclose(f_new_iteration);
 		
 		f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_during_scheduling.csv", "a");
-		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d\n", print_n, nb_return_null_after_scheduling, nb_return_task_after_scheduling, nb_return_null_because_main_task_list_empty, number_random_selection, nb_1_from_free_task_not_found);
+		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d\n", print_n, nb_return_null_after_scheduling/11 + nb_return_null_after_scheduling%11, nb_return_task_after_scheduling/11 + nb_return_task_after_scheduling%11, nb_return_null_because_main_task_list_empty/11 + nb_return_null_because_main_task_list_empty%11, number_random_selection/11 + number_random_selection%11, nb_1_from_free_task_not_found/11 + nb_1_from_free_task_not_found%11);
 		fclose(f_new_iteration);
 		
 		f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_victim_selector.csv", "a");
-		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", print_n, victim_selector_refused_not_on_node,victim_selector_refused_cant_evict,victim_selector_return_refused,victim_selector_return_unvalid,victim_selector_return_data_not_in_planned_and_pulled,victim_evicted_compteur,victim_selector_compteur,victim_selector_return_no_victim,victim_selector_belady);
+		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n", print_n, victim_selector_refused_not_on_node/11 + victim_selector_refused_not_on_node%11, victim_selector_refused_cant_evict/11 + victim_selector_refused_cant_evict%11, victim_selector_return_refused/11 + victim_selector_return_refused%11, victim_selector_return_unvalid/11 + victim_selector_return_unvalid%11, victim_selector_return_data_not_in_planned_and_pulled/11 + victim_selector_return_data_not_in_planned_and_pulled%11, victim_evicted_compteur/11 + victim_evicted_compteur%11, victim_selector_compteur/11 + victim_selector_compteur%11, victim_selector_return_no_victim/11 + victim_selector_return_no_victim%11, victim_selector_belady/11 + victim_selector_belady%11);
 		fclose(f_new_iteration);
 		
 		f_new_iteration = fopen("Output_maxime/Data/DARTS/Misc.csv", "a");
-		fprintf(f_new_iteration, "%d,%d,%d\n", print_n, nb_refused_task, nb_new_task_initialized);
+		fprintf(f_new_iteration, "%d,%d,%d\n", print_n, nb_refused_task/11 + nb_refused_task%11, nb_new_task_initialized/11 + nb_new_task_initialized%11);
 		fclose(f_new_iteration);
 	}
 	#endif
@@ -2902,7 +2902,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 		free(path);
 	}
 	
-	/* A commenter pour es 5 fichiers si on veut tester sur plusieurs working set. */
+	/* A commenter pour ces 5 fichiers si on veut tester sur plusieurs working set. */
 	//~ f = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.csv", "w");
 	//~ fprintf(f, "N,Nb conflits,Nb conflits critiques\n");
 	//~ fclose(f);
@@ -2920,7 +2920,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	//~ fclose(f);
 	
 	//~ f = fopen("Output_maxime/Data/DARTS/DARTS_time.csv", "w");
-	//~ fprintf(f, "N,time_total_selector,time_total_evicted,time_total_belady,time_total_schedule,time_total_choose_best_data,time_total_fill_planned_task_list,time_total_initialisation,time_total_randomize, time_total_pick_random_task,time_total_least_used_data_planned_task,time_total_createtolasttaskfinished\n");
+	//~ fprintf(f, "N,selector,evicted,belady,schedule,choose_best_data,fill_planned_task_list,initialisation, randomize, pick_random_task,least_used_data_planned_task,createtolasttaskfinished\n");
 	//~ fclose(f);
 	
 	gettimeofday(&time_start_createtolasttaskfinished, NULL);
