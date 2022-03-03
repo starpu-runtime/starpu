@@ -372,7 +372,10 @@ if test -f $srcdir/STARPU-REVISION ; then
 elif test "$gitcommand" = "" ; then
   echo "unknown" > ./STARPU-REVISION
 else
-  git log -n 1 --pretty="%H" $srcdir > ./STARPU-REVISION_tmp
+  bdir=$PWD
+  cd $srcdir
+  git log -n 1 --pretty="%H" . > $bdir/STARPU-REVISION_tmp
+  cd $bdir
   if test -s ./STARPU-REVISION_tmp ; then
     mv ./STARPU-REVISION_tmp ./STARPU-REVISION
   else
@@ -640,12 +643,12 @@ if test x$enable_mpi_pedantic_isend = xyes; then
 fi
 
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
+if test -d "$srcdir/.git" -o -f "$srcdir/.git"; then
+    default_enable_mpi_check=yes
+fi
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]),
 	      [enable_mpi_check=$enableval], [enable_mpi_check=$default_enable_mpi_check])
 running_mpi_check=no
-if test -d "$srcdir/.git" -o -f "$srcdir/.git"; then
-    running_mpi_check=yes
-fi
 if test x$enable_mpi_check = xyes ; then
     running_mpi_check=yes
     if test x$enable_mpi = xno ; then
