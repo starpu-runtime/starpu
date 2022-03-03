@@ -651,7 +651,7 @@ if test x$enable_mpi_pedantic_isend = xyes; then
 fi
 
 # If the user specifically asks for it, or if we are in a developer checkout, we enable mpi check
-if test -d "$srcdir/.git" -o -f "$srcdir/.git"; then
+if test -d "$srcdir/.git" -o -f "$srcdir/.git" -a x$enable_mpi = xyes ; then
     default_enable_mpi_check=yes
 fi
 AC_ARG_ENABLE(mpi-check, AC_HELP_STRING([--enable-mpi-check], [Enable execution of MPI testcases]),
