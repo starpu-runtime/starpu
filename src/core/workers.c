@@ -1280,7 +1280,7 @@ void _starpu_crash_call_hooks()
 {
 	int i;
 
-	_STARPU_DISP("Time: %f\n", starpu_timing_now());
+	/*_STARPU_DISP("Time: %f\n", starpu_timing_now());*/
 	for(i=0 ; i<_hook_func_nb; i++)
 		_hook_funcs[i]();
 }
