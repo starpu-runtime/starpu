@@ -1980,18 +1980,10 @@ AC_MSG_RESULT($enable_full_gdb_information)
 if test x$enable_gdb = xyes; then
 	if test x$enable_full_gdb_information = xyes -a x$GCC = xyes; then
 	   	IS_SUPPORTED_FLAG(-gdwarf-2)
-		CFLAGS+=" -g3"
-		CXXFLAGS+=" -g3"
-		FFLAGS+=" -g3"
-		FCFLAGS+=" -g3"
-		LDFLAGS+=" -g3"
+	   	IS_SUPPORTED_FLAG(-g3)
 		NVCCFLAGS+=" -g"
 	else
-		CFLAGS+=" -g "
-		CXXFLAGS+=" -g "
-		FFLAGS+=" -g "
-		FCFLAGS+=" -g "
-		LDFLAGS+=" -g "
+	   	IS_SUPPORTED_FLAG(-g)
 		NVCCFLAGS+=" -g "
 	fi
 else
