@@ -44,7 +44,7 @@ struct gpu_planned_task_control *my_planned_task_control;
 struct gpu_pulled_task_control *my_pulled_task_control;
 //~ int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 //~ int number_task_out_DARTS_2; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
-int NT; /* TODO : toujours utile ? A suppr sinon. */
+int NT;
 int iteration;
 
 #ifdef PRINT_STATS
@@ -373,7 +373,6 @@ static int dynamic_data_aware_push_task(struct starpu_sched_component *component
  * pointer to the cell in the main task list (main_task_list).
  * data -> pointer to the tasks using this data.
  * GPUs -> datas not used yet by this GPU.
- * TODO : Y a pas moyen de fusionner les deux boucles pour parcourir juste une fois la liste des données d'une tâche ? Non vu que la première boucle coucle sur NGPU, faudrait faire un test if on est sur le gpu 1 seulement alors je fais le truc sinon, non.
  */
 void initialize_task_data_gpu_single_task(struct starpu_task *task)
 {
@@ -401,7 +400,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 			//~ {
 				//~ /* La je ne dois pas ne rien faire a l'iteration_DARTS 2 */
 				//~ /* Il faudrait une liste externe des data pour les reset ? */
-				//~ /* TODO : J'ai enlevé le if ici qui n'est pas utile */
 				//~ if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 				//~ {
 					//~ gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
@@ -438,7 +436,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 			//~ {
 				/* La je ne dois pas ne rien faire a l'iteration_DARTS 2 */
 				/* Il faudrait une liste externe des data pour les reset ? */
-				/* TODO : J'ai enlevé le if ici qui n'est pas utile */
 				//~ if (STARPU_TASK_GET_HANDLE(task, j)->sched_data == NULL)
 				//~ {
 					//~ gpu_data_not_used_list_push_front(my_planned_task_control->pointer->gpu_data, e);
@@ -491,7 +488,6 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 		struct task_using_data *e = task_using_data_new();
 		e->pointer_to_T = task;
 		
-		/* TODO : vérifier que c'est vide dune itération à l'autre. */
 		/* Adding the task in the list of task using the data */
 		if (STARPU_TASK_GET_HANDLE(task, i)->sched_data == NULL)
 		{
@@ -1086,13 +1082,12 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		
     struct dynamic_data_aware_sched_data *data = component->data;
 
-    /* Need only to be done once if all GPU have the same memory. */
-    /* TODO je pourrai le faire dans le create ? */
-    if (gpu_memory_initialized == false)
-    {
-		GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
-		gpu_memory_initialized = true;
-    }
+    /* Inutile pour DARTS pour le moment. */
+    //~ if (gpu_memory_initialized == false)
+    //~ {
+		//~ GPU_RAM_M = (starpu_memory_get_total(starpu_worker_get_memory_node(starpu_bitmap_first(&component->workers_in_ctx))));
+		//~ gpu_memory_initialized = true;
+    //~ }
     
     /* New tasks from push_task. We need to randomize. */
 	#ifdef REFINED_MUTEX
