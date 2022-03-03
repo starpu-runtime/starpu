@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -78,7 +78,7 @@ AC_RUN_IFELSE([AC_LANG_PROGRAM(
 AC_DEFUN([IS_SUPPORTED_CFLAG],
 [
 	AC_REQUIRE([AC_PROG_CC])
-	AC_MSG_CHECKING([whether C compiler support $1])
+	AC_MSG_CHECKING([whether C compiler supports $1])
 
 	SAVED_CFLAGS="$CFLAGS"
 	CFLAGS="$1"
@@ -91,11 +91,9 @@ AC_DEFUN([IS_SUPPORTED_CFLAG],
 		[
 			m4_default_nblank([$2], [GLOBAL_AM_CFLAGS="$GLOBAL_AM_CFLAGS $1"])
 			AC_MSG_RESULT(yes)
-			option_available=1
 		],
 		[
 			AC_MSG_RESULT(no)
-			option_available=0
 		]
 	)
 	CFLAGS="$SAVED_CFLAGS"
@@ -108,7 +106,7 @@ AC_DEFUN([IS_SUPPORTED_CXXFLAG],
 [
 	AC_REQUIRE([AC_PROG_CXX])
 	AC_LANG_PUSH([C++])
-	AC_MSG_CHECKING([whether CXX compiler support $1])
+	AC_MSG_CHECKING([whether CXX compiler supports $1])
 
 	SAVED_CXXFLAGS="$CXXFLAGS"
 	CXXFLAGS="$1"
@@ -121,11 +119,9 @@ AC_DEFUN([IS_SUPPORTED_CXXFLAG],
 		[
 			m4_default_nblank([$2], [GLOBAL_AM_CXXFLAGS="$GLOBAL_AM_CXXFLAGS $1"])
 			AC_MSG_RESULT(yes)
-			option_available=1
 		],
 		[
 			AC_MSG_RESULT(no)
-			option_available=0
 		]
 	)
 	CXXFLAGS="$SAVED_CXXFLAGS"
@@ -138,7 +134,7 @@ AC_DEFUN([IS_SUPPORTED_CXXFLAG],
 AC_DEFUN([IS_SUPPORTED_FFLAG],
 [
 	AC_LANG_PUSH([Fortran 77])
-	AC_MSG_CHECKING([whether Fortran 77 compiler support $1])
+	AC_MSG_CHECKING([whether Fortran 77 compiler supports $1])
 
 	SAVED_FFLAGS="$FFLAGS"
 	FFLAGS="$1"
@@ -151,11 +147,9 @@ AC_DEFUN([IS_SUPPORTED_FFLAG],
 		[
 			m4_default_nblank([$2], [GLOBAL_AM_FFLAGS="$GLOBAL_AM_FFLAGS $1"])
 			AC_MSG_RESULT(yes)
-			option_available=1
 		],
 		[
 			AC_MSG_RESULT(no)
-			option_available=0
 		]
 	)
 	FFLAGS="$SAVED_FFLAGS"
@@ -168,7 +162,7 @@ AC_DEFUN([IS_SUPPORTED_FFLAG],
 AC_DEFUN([IS_SUPPORTED_FCFLAG],
 [
 	AC_LANG_PUSH([Fortran])
-	AC_MSG_CHECKING([whether Fortran compiler support $1])
+	AC_MSG_CHECKING([whether Fortran compiler supports $1])
 
 	SAVED_FCFLAGS="$FCFLAGS"
 	FCFLAGS="$1"
@@ -181,11 +175,9 @@ AC_DEFUN([IS_SUPPORTED_FCFLAG],
 		[
 			m4_default_nblank([$2], [GLOBAL_AM_FCFLAGS="$GLOBAL_AM_FCFLAGS $1"])
 			AC_MSG_RESULT(yes)
-			option_available=1
 		],
 		[
 			AC_MSG_RESULT(no)
-			option_available=0
 		]
 	)
 	FCFLAGS="$SAVED_FCFLAGS"
@@ -201,6 +193,14 @@ AC_DEFUN([IS_SUPPORTED_FLAG],
 	IS_SUPPORTED_CXXFLAG($1)
 	IS_SUPPORTED_FFLAG($1)
 	IS_SUPPORTED_FCFLAG($1)
+])
+
+AC_DEFUN([IS_SUPPORTED_FLAG_VAR],
+[
+	IS_SUPPORTED_CFLAG($1,[$2_CFLAGS="$$2_CFLAGS $1"])
+	IS_SUPPORTED_CXXFLAG($1,[$2_CXXFLAGS="$$2_CXXFLAGS $1"])
+	IS_SUPPORTED_FFLAG($1,[$2_FFLAGS="$$2_FFLAGS $1"])
+	IS_SUPPORTED_FCFLAG($1,[$2_FCFLAGS="$$2_FCFLAGS $1"])
 ])
 
 # AC_PYTHON_MODULE(modulename, [action-if-found], [action-if-not-found])

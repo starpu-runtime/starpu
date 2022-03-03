@@ -15,10 +15,10 @@
 #
 include $(top_srcdir)/starpu.mk
 
-AM_CFLAGS += -Wno-unused
-AM_CXXFLAGS += -Wno-unused
-AM_FFLAGS += -Wno-unused -Wno-unused-dummy-argument
-AM_FCFLAGS += -Wno-unused -Wno-unused-dummy-argument
+AM_CFLAGS += $(APP_CFLAGS)
+AM_CXXFLAGS += $(APP_CXXFLAGS)
+AM_FFLAGS += $(APP_FFLAGS)
+AM_FCFLAGS += $(APP_FCFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_H_CPPFLAGS)
 AM_CPPFLAGS += -I$(top_srcdir)/bubble/include
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@

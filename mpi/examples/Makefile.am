@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2013       Thibaut Lambert
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -103,10 +103,10 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -
 endif
 endif
 
-AM_CFLAGS += $(MAGMA_CFLAGS) -Wno-unused
-AM_CXXFLAGS += $(MAGMA_CFLAGS) -Wno-unused
-AM_FFLAGS += $(MAGMA_CFLAGS) -Wno-unused -Wno-unused-dummy-argument
-AM_FCFLAGS += $(MAGMA_CFLAGS) -Wno-unused -Wno-unused-dummy-argument
+AM_CFLAGS += $(MAGMA_CFLAGS) $(APP_CFLAGS)
+AM_CXXFLAGS += $(MAGMA_CFLAGS) $(APP_CXXFLAGS)
+AM_FFLAGS += $(MAGMA_CFLAGS) $(APP_FFLAGS)
+AM_FCFLAGS += $(MAGMA_CFLAGS) $(APP_FCFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_srcdir)/examples/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la $(STARPU_EXPORTED_LIBS)

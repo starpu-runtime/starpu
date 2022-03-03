@@ -117,6 +117,14 @@ else
 	default_enable_mpi=maybe
 fi
 
+IS_SUPPORTED_FLAG_VAR(-Wno-unused,APP)
+IS_SUPPORTED_FFLAG(-Wno-unused-dummy-argument,[APP_FFLAGS="$APP_FFLAGS -Wno-unused-dummy-argument"])
+IS_SUPPORTED_FCFLAG(-Wno-unused-dummy-argument,[APP_FCFLAGS="$APP_FCFLAGS -Wno-unused-dummy-argument"])
+AC_SUBST(APP_CFLAGS)
+AC_SUBST(APP_CXXFLAGS)
+AC_SUBST(APP_FFLAGS)
+AC_SUBST(APP_FCFLAGS)
+
 ###############################################################################
 #                                                                             #
 #                            Hierarchical dags support                        #
