@@ -1,7 +1,7 @@
 module load linalg/mkl
 ./configure --prefix=/home/mgonthie/starpu --with-fxt
 make -j 100
-make install
+sudo make install
 echo "INITIALISATION OK"
 export STARPU_PERF_MODEL_DIR=/home/mgonthie/starpu/perfmodels/sampling
 module load linalg/mkl

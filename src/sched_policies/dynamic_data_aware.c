@@ -48,8 +48,8 @@ struct gpu_pulled_task_control *my_pulled_task_control;
 int NT_dynamic_outer; /* TODO : toujours utile ? A suppr sinon. */
 int iteration;
 
-/* TODO a supprimer pour meilleures perfs ? */
 #ifdef PRINT_STATS
+/* Pour les compteurs. */
 int nb_return_null_after_scheduling;
 int nb_return_task_after_scheduling;
 int nb_return_null_because_main_task_list_empty;
@@ -66,8 +66,12 @@ int victim_evicted_compteur;
 int victim_selector_compteur;
 int victim_selector_return_no_victim;
 int victim_selector_belady;
-int number_random_selection;
 int nb_1_from_free_task_not_found;
+int number_random_selection;
+int nb_free_choice;
+int nb_1_from_free_choice;
+int nb_task_added_in_planned_task;
+/* Pour la mesure du temps. */
 struct timeval time_start_selector;
 struct timeval time_end_selector;
 long long time_total_selector;
@@ -109,7 +113,7 @@ void new_iteration()
 	#ifdef PRINT
 	printf("############### Itération n°%d ###############\n", iteration + 1); fflush(stdout);
 	#endif
-	
+		
 	#ifdef PRINT_STATS
 	if (iteration == 11 || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération. */
 	{
@@ -125,7 +129,7 @@ void new_iteration()
 		fclose(f_new_iteration);
 		
 		f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_during_scheduling.csv", "a");
-		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d\n", print_n, nb_return_null_after_scheduling/11 + nb_return_null_after_scheduling%11, nb_return_task_after_scheduling/11 + nb_return_task_after_scheduling%11, nb_return_null_because_main_task_list_empty/11 + nb_return_null_because_main_task_list_empty%11, number_random_selection/11 + number_random_selection%11, nb_1_from_free_task_not_found/11 + nb_1_from_free_task_not_found%11);
+		fprintf(f_new_iteration, "%d,%d,%d,%d,%d,%d,%d,%d\n", print_n, nb_return_null_after_scheduling/11 + nb_return_null_after_scheduling%11, nb_return_task_after_scheduling/11 + nb_return_task_after_scheduling%11, nb_return_null_because_main_task_list_empty/11 + nb_return_null_because_main_task_list_empty%11, number_random_selection/11 + number_random_selection%11, nb_1_from_free_task_not_found/11 + nb_1_from_free_task_not_found%11, nb_free_choice/11 + nb_free_choice%11, nb_1_from_free_choice/11 + nb_1_from_free_choice%11);
 		fclose(f_new_iteration);
 		
 		f_new_iteration = fopen("Output_maxime/Data/DARTS/Choice_victim_selector.csv", "a");
@@ -447,6 +451,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 						struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
 						if (hud->last_iteration_DARTS != iteration) /* On est sur une nouvelle itération donc on peut init. */
 						{
+							//~ printf("Init new data %p.\n", STARPU_TASK_GET_HANDLE(task, j));
 							if (data_order == 1)
 							{
 								gpu_data_not_used_list_push_back(my_planned_task_control->pointer->new_gpu_data, e);
@@ -459,6 +464,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 					}
 					else
 					{
+						//~ printf("Init new data %p.\n", STARPU_TASK_GET_HANDLE(task, j));
 						if (data_order == 1)
 						{
 							gpu_data_not_used_list_push_back(my_planned_task_control->pointer->new_gpu_data, e);
@@ -1071,9 +1077,9 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
  * head of the GPU task list. Else it calls dyanmic_outer_scheuling to fill this package. */
 static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	#ifdef PRINT
-	printf("Début de pull_task.\n"); fflush(stdout);
-	#endif
+	//~ #ifdef PRINT
+	//~ printf("Début de pull_task.\n"); fflush(stdout);
+	//~ #endif
 		
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
@@ -1193,7 +1199,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     #ifdef LINEAR_MUTEX
     STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
     #endif
-    
+
     return task;
 }
 
@@ -1275,18 +1281,21 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		printf("Hey! C'est la première tâche du GPU n°%d!\n", current_gpu); fflush(stdout);	
 		#endif
 		#ifdef PRINT_STATS
-		FILE *f = NULL;
-		char str[2];
-		int size = strlen("Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_.csv") + strlen(str);
-		char* path = (char *)malloc(size);
-		sprintf(str, "%d", current_gpu);
-		strcpy(path, "Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_");
-		strcat(path, str);
-		strcat(path, ".csv");
-		f = fopen(path, "a");
-		fprintf(f, "%d,%d,%d\n", g->number_data_selection, 0, 0);
-		fclose(f);
-		free(path);
+		if (iteration == 1)
+		{
+			FILE *f = NULL;
+			char str[2];
+			int size = strlen("Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_.csv") + strlen(str);
+			char* path = (char *)malloc(size);
+			sprintf(str, "%d", current_gpu);
+			strcpy(path, "Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_");
+			strcat(path, str);
+			strcat(path, ".csv");
+			f = fopen(path, "a");
+			fprintf(f, "%d,%d,%d,%d\n", g->number_data_selection, 0, 0, 0);
+			fclose(f);
+			free(path);
+		}
 		#endif
 		
 		g->first_task = false;
@@ -1828,18 +1837,29 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	}
 		
 	#ifdef PRINT_STATS
-	FILE *f = NULL;
-	char str[2];
-	int size = strlen("Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_.csv") + strlen(str);
-	char* path = (char *)malloc(size);
-	sprintf(str, "%d", current_gpu);
-	strcpy(path, "Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_");
-	strcat(path, str);
-	strcat(path, ".csv");
-	f = fopen(path, "a");
-	fprintf(f, "%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index);
-	fclose(f);
-	free(path);
+	if (iteration == 1)
+	{
+		FILE *f = NULL;
+		char str[2];
+		int size = strlen("Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_.csv") + strlen(str);
+		char* path = (char *)malloc(size);
+		sprintf(str, "%d", current_gpu);
+		strcpy(path, "Output_maxime/Data/DARTS/DARTS_data_choosen_stats_GPU_");
+		strcat(path, str);
+		strcat(path, ".csv");
+		f = fopen(path, "a");
+		if (number_free_task_max != 0)
+		{
+			nb_task_added_in_planned_task = number_free_task_max;
+		}
+		else
+		{
+			nb_task_added_in_planned_task = 1;
+		}
+		fprintf(f, "%d,%d,%d,%d\n", g->number_data_selection, data_choosen_index, nb_data_looked_at - data_choosen_index, nb_task_added_in_planned_task);
+		fclose(f);
+		free(path);
+	}
 	gettimeofday(&time_end_choose_best_data, NULL);
 	time_total_choose_best_data += (time_end_choose_best_data.tv_sec - time_start_choose_best_data.tv_sec)*1000000LL + time_end_choose_best_data.tv_usec - time_start_choose_best_data.tv_usec;
     #endif
@@ -1848,6 +1868,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     {
 		#ifdef PRINT_STATS
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
+		nb_free_choice++;
 		#endif
 	
 		/* I erase the data from the list of data not used. See env var ERASE_DATA_STRATEGY */
@@ -1886,7 +1907,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		}
 
 		#ifdef PRINT
-		printf("The data adding the most free tasks is %p.\n", handle_popped);
+		printf("The data adding the most free tasks is %p and %d task.\n", handle_popped, number_free_task_max);
 		#endif
 		
 		#ifdef REFINED_MUTEX
@@ -1960,6 +1981,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	{
 		#ifdef PRINT_STATS
 		gettimeofday(&time_start_fill_planned_task_list, NULL);
+		nb_1_from_free_choice++;
 		#endif
 		#ifdef PRINT
 		printf("The data adding the most (%d) 1_from_free tasks is %p.\n", number_1_from_free_task_max, handle_popped);
@@ -2223,6 +2245,8 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
 	
+	printf("Début de victim eviction failed in DARTS.sh on %p.\n", victim); fflush(stdout);
+	
 	#ifdef PRINT_STATS
 	gettimeofday(&time_start_evicted, NULL);
 	victim_evicted_compteur++;
@@ -2255,9 +2279,9 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-	#ifdef PRINT
+	//~ #ifdef PRINT
 	printf("Début de victim selector.\n"); fflush(stdout);
-	#endif
+	//~ #endif
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	#endif
@@ -2295,7 +2319,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		time_total_selector += (time_end_selector.tv_sec - time_start_selector.tv_sec)*1000000LL + time_end_selector.tv_usec - time_start_selector.tv_usec;
 		#endif
 		
-		/* TODO : pas vraiment une solution ces deux boucles non ? */
+		/* TODO : pas vraiment une solution ces deux boucles non ? Est-ce vraiment utile ? J'ai pas l'impression. */
 		if (!starpu_data_is_on_node(temp_handle, node))
 		{ 			
 			#ifdef PRINT
@@ -2315,9 +2339,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 			#ifdef PRINT_STATS
 			victim_selector_refused_cant_evict++;
 			#endif
-			 
+			
 			goto debuteviction; 
-		
 		}
 		
 		#ifdef PRINT
@@ -2334,6 +2357,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
 		
+		printf("Evict refused data %p for GPU %d.\n", temp_handle, current_gpu); fflush(stdout);
 		return temp_handle;
     }
     
@@ -2345,7 +2369,7 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     int *valid;
     starpu_data_handle_t returned_handle = STARPU_DATA_NO_VICTIM;
     starpu_data_get_node_data(node, &data_on_node, &valid, &nb_data_on_node);
-   
+      
    	/* Checking if all task are truly valid. TODO : a garder dans le cas avec dependances ? */
 	//~ for (i = 0; i < nb_data_on_node; i++)
 	//~ {
@@ -2711,9 +2735,9 @@ void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_l
 
 static int dynamic_data_aware_can_push(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
-	#ifdef PRINT
-	printf("Début de dynamic_data_aware_can_push.\n"); fflush(stdout);
-	#endif
+	//~ #ifdef PRINT
+	//~ printf("Début de dynamic_data_aware_can_push.\n"); fflush(stdout);
+	//~ #endif
     //~ struct dynamic_data_aware_sched_data *data = component->data;
     int didwork = 0;
     struct starpu_task *task;
@@ -2897,7 +2921,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 		strcat(path, str);
 		strcat(path, ".csv");
 		f = fopen(path, "w");
-		fprintf(f, "Data selection,Data choosen,Number of data read\n");
+		fprintf(f, "Data selection,Data choosen,Number of data read,Number of task added in planned_task\n");
 		fclose(f);
 		free(path);
 	}
@@ -2941,6 +2965,9 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	victim_selector_return_no_victim = 0;
 	victim_selector_belady = 0;
 	number_random_selection = 0;
+	nb_free_choice = 0;
+	nb_1_from_free_choice = 0;
+	nb_task_added_in_planned_task = 0;
 	nb_1_from_free_task_not_found = 0;
 	time_total_selector = 0;
 	time_total_evicted = 0;
@@ -3013,7 +3040,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	
 	/* TODO: Aussi faire cela pour HFP. */
 	if (eviction_strategy_dynamic_data_aware == 1) 
-	{ 
+	{
 	    starpu_data_register_victim_selector(dynamic_data_aware_victim_selector, dynamic_data_aware_victim_eviction_failed, component); 
 	}	
 	return component;
@@ -3055,7 +3082,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 	#ifdef PRINT
 	printf("%dème task done in the post_exec_hook: %p.\n", total_task_done, task); fflush(stdout);
 	#endif
-	
+		
 	/* Je me place sur la liste correspondant au bon gpu. */
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 	int i = 0;
