@@ -833,9 +833,9 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 	//~ }
 	if (freed == 0)
 	{
-		//~ #ifdef PRINT
+		#ifdef PRINT
 	    printf("Echec eviction de %p dans try_to_throw_mem_chunk, calling victim eviction failed.\n", handle);
-	    //~ #endif
+	    #endif
 	    if (eviction_strategy_dynamic_data_aware_memalloc == 1) 
 	    {
 			_STARPU_SCHED_BEGIN;
@@ -1048,9 +1048,9 @@ static int try_to_reuse_potentially_in_use_mc(unsigned node, starpu_data_handle_
 			if (victim_footprint != footprint)
 			{
 				/* Don't even bother looking for it, it won't fit anyway */
-				//~ #ifdef PRINT
+				#ifdef PRINT
 				printf("It won't fit return 0 in try_to_reuse_potentially_in_use_mc. Thus calling victim_evicted.\n");
-				//~ #endif
+				#endif
 				
 				if (eviction_strategy_dynamic_data_aware_memalloc == 1) 
 				{
@@ -1119,9 +1119,9 @@ restart:
 	
 	if (victim && victim_eviction_failed != NULL && success == 0)
 	{
-		//~ #ifdef PRINT
+		#ifdef PRINT
 	    printf("Calling victim eviction failed in try_to_reuse_potentially_in_use_mc for %p.\n", victim);
-	    //~ #endif
+	    #endif
 	    if (eviction_strategy_dynamic_data_aware_memalloc == 1) 
 	    {
 			_STARPU_SCHED_BEGIN;
@@ -1289,9 +1289,9 @@ restart2:
 	{
 	    if (eviction_strategy_dynamic_data_aware_memalloc == 1) 
 	    {
-			//~ #ifdef PRINT
+			#ifdef PRINT
 			printf("Calling victim evicted in free_potentially_in_use_mc.\n");
-			//~ #endif
+			#endif
 			_STARPU_SCHED_BEGIN;
 			victim_eviction_failed(victim, data_victim_selector);
 			_STARPU_SCHED_END;

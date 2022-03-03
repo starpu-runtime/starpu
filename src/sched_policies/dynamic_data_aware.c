@@ -36,8 +36,7 @@ int task_order;
 int data_order;
 //~ int erase_data_strategy;
 
-/* TODO : pas utile pour le moment a suppr si inutile ? */
-int dependances;
+int dependances; /* Utile pour les ordres de données et le push back de données dans datanotusedyet. */
 
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
@@ -2244,9 +2243,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 	#ifdef LINEAR_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&linear_mutex);
 	#endif
-	
-	printf("Début de victim eviction failed in DARTS.sh on %p.\n", victim); fflush(stdout);
-	
+		
 	#ifdef PRINT_STATS
 	gettimeofday(&time_start_evicted, NULL);
 	victim_evicted_compteur++;
@@ -2279,9 +2276,9 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
  * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
-	//~ #ifdef PRINT
+	#ifdef PRINT
 	printf("Début de victim selector.\n"); fflush(stdout);
-	//~ #endif
+	#endif
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	#endif
@@ -2357,7 +2354,6 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		STARPU_PTHREAD_MUTEX_UNLOCK(&linear_mutex);
 		#endif
 		
-		printf("Evict refused data %p for GPU %d.\n", temp_handle, current_gpu); fflush(stdout);
 		return temp_handle;
     }
     
