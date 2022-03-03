@@ -832,7 +832,7 @@ int main(int argc, char **argv)
 				for (y = 0; y < nslicesy; y++)
 				{
 					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
-					starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N=35 il passe de 11500 avec à 9100 sans. */
+					//~ starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N=35 il passe de 11500 avec à 9100 sans. */
 					for (z = 0; z < nslicesz; z++)
 					{
 						/* Ajout pour sparse matrix. */

@@ -1,6 +1,6 @@
 #!/bin/bash
-#	bash Scripts_maxime/DARTS/DARTS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Cholesky_dependances DARTS gemini-1-fgcs 1
-#	bash Scripts_maxime/DARTS/DARTS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Cholesky_dependances DATA_TASK_ORDER gemini-1-fgcs 1
+#	bash Scripts_maxime/DARTS/DARTS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 6 Cholesky_dependances DARTS gemini-1-fgcs 1
+#	bash Scripts_maxime/DARTS/DARTS.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 6 Cholesky_dependances DATA_TASK_ORDER gemini-1-fgcs 1
 
 #~ # Pour initialiser les fichiers de stats
 #~ echo "N,Nb conflits,Nb conflits critiques" > Output_maxime/Data/DARTS/Nb_conflit_donnee.csv
@@ -32,6 +32,7 @@ CM=500
 TH=10
 CP=5
 NITER=11
+ECHELLE_X=$((10))
 NCOMBINAISONS=4
 if [ NGPU != 1 ]
 then
@@ -43,7 +44,6 @@ then
 	if [ $MODEL = "DARTS" ]
 	then
 		echo "N,EAGER,DMDAR,DARTS+ LUF, DARTS + LUF + 3D,DARTS + LUF + TH2,DARTS + LUF + TH2 + 3D,DARTS + LUF + 3D + SM, DARTS + LUF + 3D + FM,DARTS + LUF + 3D + FM + SM,DARTS + LUF + 3D + FM + SM + TH2" > Output_maxime/Legende.txt
-		ECHELLE_X=$((5))
 		NB_ALGO_TESTE=10
 		echo "############## MODULAR EAGER PREFETCHING ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -119,7 +119,6 @@ then
 	if [ $MODEL = "DATA_TASK_ORDER" ]
 	then
 		echo "N,DARTS+LUF+TO0+DO0,DARTS+LUF+TO0+DO1,DARTS+LUF+TO0+DO2,DARTS+LUF+TO1+DO0,DARTS+LUF+TO1+DO1,DARTS+LUF+TO1+DO2,DARTS+LUF+TO2+DO0,DARTS+LUF+TO2+DO1,DARTS+LUF+TO2+DO2" > Output_maxime/Legende.txt
-		ECHELLE_X=$((5))
 		NB_ALGO_TESTE=9
 		echo "############## DARTS + LUF ##############"
 		for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))

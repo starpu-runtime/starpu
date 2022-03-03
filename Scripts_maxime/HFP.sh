@@ -64,7 +64,7 @@ fi
 
 if [ $DOSSIER = "Matrice_ligne" ] || [ $DOSSIER = "Random_tasks" ] || [ $DOSSIER = "Random_task_order" ]
 then
-	if [ $MODEL = "HFP" ]
+	if [ $MODEL = "HFP_FGCS" ] || [ $MODEL = "HFP" ]
 	then
 		ECHELLE_X=5
 		if [ $NGPU = 1 ]
@@ -211,7 +211,7 @@ then
 fi
 if [ $DOSSIER = "Matrice3D" ]
 then
-	if [ $MODEL = "HFP" ]
+	if [ $MODEL = "HFP_FGCS" ] || [ $MODEL = "HFP" ]
 	then
 		ECHELLE_X=5
 		if [ $NGPU = 1 ]
