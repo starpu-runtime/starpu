@@ -44,7 +44,7 @@ struct gpu_planned_task_control *my_planned_task_control;
 struct gpu_pulled_task_control *my_pulled_task_control;
 //~ int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 //~ int number_task_out_DARTS_2; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
-int NT_dynamic_outer; /* TODO : toujours utile ? A suppr sinon. */
+int NT; /* TODO : toujours utile ? A suppr sinon. */
 int iteration;
 
 #ifdef PRINT_STATS
@@ -639,19 +639,19 @@ void randomize_new_task_list(struct dynamic_data_aware_sched_data *d)
 {
     int random = 0;
     int i = 0;
-    struct starpu_task *task_tab[NT_dynamic_outer]; /* NT_dynamic_outer correspond au nombre de nouvelles tâches. */
+    struct starpu_task *task_tab[NT]; /* NT correspond au nombre de nouvelles tâches. */
     
-    for (i = 0; i < NT_dynamic_outer; i++)
+    for (i = 0; i < NT; i++)
     {
 		task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
     }
-    for (i = 0; i < NT_dynamic_outer; i++)
+    for (i = 0; i < NT; i++)
     {
-		random = rand()%(NT_dynamic_outer - i);
+		random = rand()%(NT - i);
 		starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
 		
 		/* Je remplace la case par la dernière tâche du tableau */
-		task_tab[random] = task_tab[NT_dynamic_outer - i - 1];
+		task_tab[random] = task_tab[NT - i - 1];
 	}
 }
 
@@ -666,24 +666,24 @@ void randomize_full_task_list(struct dynamic_data_aware_sched_data *d)
     int i = 0;
     int j = 0;
     int size_main_task_list = starpu_task_list_size(&d->main_task_list);
-    struct starpu_task *task_tab[NT_dynamic_outer];
+    struct starpu_task *task_tab[NT];
     struct starpu_task *task = NULL;
-    int random_number[NT_dynamic_outer];
+    int random_number[NT];
     int avancement_main_task_list = 0;
     /* Remplissage d'un tableau avec les nouvelles tâches + tirage de chiffre aléatoire 
      * pour chaque tâche. */
-    for (i = 0; i < NT_dynamic_outer; i++)
+    for (i = 0; i < NT; i++)
     {
 		task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
 		random_number[i] = rand()%size_main_task_list;
     }
     
     /* Appel du tri fusion. */
-    mergeSort(random_number, 0, NT_dynamic_outer - 1, task_tab);
+    mergeSort(random_number, 0, NT - 1, task_tab);
 
     /* Remplissage de main task list dans l'ordre et en fonction du chiffre tirée. */
     task = starpu_task_list_begin(&d->main_task_list);
-    for (i = 0; i < NT_dynamic_outer; i++)
+    for (i = 0; i < NT; i++)
     {
 		for (j = avancement_main_task_list; j < random_number[i]; j++)
 		{
@@ -699,22 +699,22 @@ void randomize_full_task_list(struct dynamic_data_aware_sched_data *d)
     //~ int random = 0;
     //~ int i = 0;
     //~ int size_main_task_list = starpu_task_list_size(&d->main_task_list);
-    //~ struct starpu_task *task_tab[NT_dynamic_outer + size_main_task_list];
-    //~ for (i = 0; i < NT_dynamic_outer; i++)
+    //~ struct starpu_task *task_tab[NT + size_main_task_list];
+    //~ for (i = 0; i < NT; i++)
     //~ {
 		//~ task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
     //~ }
-    //~ for (i = NT_dynamic_outer; i < NT_dynamic_outer + size_main_task_list; i++)
+    //~ for (i = NT; i < NT + size_main_task_list; i++)
     //~ {
 		//~ task_tab[i] = starpu_task_list_pop_front(&d->main_task_list);
     //~ }
-    //~ for (i = 0; i < NT_dynamic_outer + size_main_task_list; i++)
+    //~ for (i = 0; i < NT + size_main_task_list; i++)
     //~ {
-		//~ random = rand()%(NT_dynamic_outer + size_main_task_list - i);
+		//~ random = rand()%(NT + size_main_task_list - i);
 		//~ starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
 		
 		//~ /* Je remplace la case par la dernière tâche du tableau */
-		//~ task_tab[random] = task_tab[NT_dynamic_outer + size_main_task_list - i - 1];
+		//~ task_tab[random] = task_tab[NT + size_main_task_list - i - 1];
 	//~ }
 }
 
@@ -729,9 +729,9 @@ void natural_order_task_list(struct dynamic_data_aware_sched_data *d)
     int j = 0;
     struct starpu_task *task = NULL;
     
-    for (i = 0; i < NT_dynamic_outer; i++)
+    for (i = 0; i < NT; i++)
     {
-		if (i == (NT_dynamic_outer/Ngpu)*j && j < Ngpu)
+		if (i == (NT/Ngpu)*j && j < Ngpu)
 		{
 			task = starpu_task_list_pop_front(&d->sched_list);
 			my_planned_task_control->pointer->first_task_to_pop = task;
@@ -813,19 +813,19 @@ void randomize_new_data_not_used_yet()
 	}
 		
 	//~ int random = 0;
-    //~ struct starpu_task *task_tab[NT_dynamic_outer]; /* NT_dynamic_outer correspond au nombre de nouvelles tâches. */
+    //~ struct starpu_task *task_tab[NT]; /* NT correspond au nombre de nouvelles tâches. */
     
-    //~ for (i = 0; i < NT_dynamic_outer; i++)
+    //~ for (i = 0; i < NT; i++)
     //~ {
 		//~ task_tab[i] = starpu_task_list_pop_front(&d->sched_list);
     //~ }
-    //~ for (i = 0; i < NT_dynamic_outer; i++)
+    //~ for (i = 0; i < NT; i++)
     //~ {
-		//~ random = rand()%(NT_dynamic_outer - i);
+		//~ random = rand()%(NT - i);
 		//~ starpu_task_list_push_back(&d->main_task_list, task_tab[random]);
 		
 		//~ /* Je remplace la case par la dernière tâche du tableau */
-		//~ task_tab[random] = task_tab[NT_dynamic_outer - i - 1];
+		//~ task_tab[random] = task_tab[NT - i - 1];
 	//~ }
 	
     //~ /* NEW */
@@ -1117,9 +1117,9 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		print_task_list(&data->sched_list, "Main task list");
 		#endif
 		
-		NT_dynamic_outer = starpu_task_list_size(&data->sched_list); /* Nombre de nouvelles tâches */
-		//~ NT_dynamic_outer = starpu_task_list_size(&data->sched_list) + starpu_task_list_size(&data->main_task_list);
-		NT = NT_dynamic_outer;
+		NT = starpu_task_list_size(&data->sched_list); /* Nombre de nouvelles tâches */
+		//~ NT = starpu_task_list_size(&data->sched_list) + starpu_task_list_size(&data->main_task_list);
+		//~ NT = NT;
 		
 		#ifdef PRINT
 		printf("NT in pull_task = %d.\n", NT); fflush(stdout);
@@ -1173,7 +1173,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		time_total_randomize += (time_end_randomize.tv_sec - time_start_randomize.tv_sec)*1000000LL + time_end_randomize.tv_usec - time_start_randomize.tv_usec;
 		#endif
 		#ifdef PRINT		
-		printf("Il y a %d tâches.\n", NT_dynamic_outer);
+		printf("Il y a %d tâches.\n", NT);
 		printf("Printing GPU's data list and main task list after randomization (TASK_ORDER = %d, DATA_ORDER = %d):\n", task_order, data_order);
 		print_data_not_used_yet();
 		print_task_list(&data->main_task_list, "Main task list"); fflush(stdout);
@@ -1370,19 +1370,19 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
     bool data_available = true;
     	
 	/* Pour diminuer au début de l'execution. 
-	 * TODO : Ne marche plus si il y a des dépendanceces car NT_dynamic_outer est le nombre de nouvelles données. Donc il faudrait faire une somme totale des tâches qui sont arrivées ou qui vont arriver car le but c'est des le debut de mettre un trhasold pour les grosses appli. En réupérant N peut etre ? */
+	 * TODO : Ne marche plus si il y a des dépendanceces car NT est le nombre de nouvelles données. Donc il faudrait faire une somme totale des tâches qui sont arrivées ou qui vont arriver car le but c'est des le debut de mettre un trhasold pour les grosses appli. En réupérant N peut etre ? */
 	int choose_best_data_threshold = INT_MAX;
 	if (threshold == 1)
 	{
 		/* En 2D on fais cela */
 		if (app == 0)
 		{
-			if (NT_dynamic_outer > 14400)
+			if (NT > 14400)
 			{
 				choose_best_data_threshold = 110;
 			}
 		}
-		else if (NT_dynamic_outer > 1599) /* Pour que ca se déclanche au 4ème point en 3D */
+		else if (NT > 1599) /* Pour que ca se déclanche au 4ème point en 3D */
 		{
 			choose_best_data_threshold = 200;
 		}
@@ -2888,7 +2888,7 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	
 	/* Initialization of global variables. */
 	Ngpu = get_number_GPU();
-	NT_dynamic_outer = 0;
+	NT = 0;
 	NT = 0;
 	new_tasks_initialized = false;
 	gpu_memory_initialized = false;
