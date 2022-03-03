@@ -346,19 +346,21 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 		}
 
 		struct _starpu_worker_set *worker_set;
-		struct _starpu_worker_set *driver_worker_set = NULL;
 
 		if(topology->cuda_th_per_stream)
 		{
 			worker_set = ALLOC_WORKER_SET;
 		}
-		else
+		else if (topology->cuda_th_per_dev)
 		{
 			worker_set = &cuda_worker_set[devid];
 			worker_set->workers = &config->workers[topology->nworkers];
 			worker_set->nworkers = nworker_per_cuda;
-			if (!topology->cuda_th_per_dev)
-				driver_worker_set = &cuda_worker_set[0];
+		}
+		else
+		{
+			/* Same worker set for all devices */
+			worker_set = &cuda_worker_set[0];
 		}
 
 		_starpu_topology_configure_workers(topology, config,
@@ -368,7 +370,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 					// TODO: fix perfmodels etc.
 					// nworker_per_cuda - 1,
 					1,
-					worker_set, driver_worker_set);
+					worker_set, NULL);
 
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 		_starpu_opencl_using_cuda(devid);
