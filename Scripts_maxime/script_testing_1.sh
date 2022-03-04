@@ -24,8 +24,8 @@ export STARPU_PERF_MODEL_DIR=tools/perfmodels/sampling
 N=5
 N=15
 #~ N=20	
-N=25
-#~ N=30
+#~ N=25
+N=40
 #~ N=35
 #~ N=60
 
@@ -86,7 +86,7 @@ STEALING=0
 #~ STEALING=3
 
 NITER=1
-#~ NITER=2
+NITER=2
 #~ NITER=11
 
 TAILLE_TUILE=960

@@ -1094,7 +1094,6 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
     STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
     #endif
 	
-	/* TODO : pas forcément nécessaire de fiare ici la randomisation */
     if (new_tasks_initialized == true)
     {
 		#ifdef PRINT_STATS
@@ -1114,7 +1113,7 @@ static struct starpu_task *dynamic_data_aware_pull_task(struct starpu_sched_comp
 		
 		NT = starpu_task_list_size(&data->sched_list); /* Nombre de nouvelles tâches */
 		//~ NT = starpu_task_list_size(&data->sched_list) + starpu_task_list_size(&data->main_task_list);
-		//~ NT = NT;
+		//~ NT = NT_dynamic_outer;
 		
 		#ifdef PRINT
 		printf("NT in pull_task = %d.\n", NT); fflush(stdout);
@@ -2035,16 +2034,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		/* Removing the datas from datanotused of the GPU. */		
 		if (choose_best_data_from == 0) /* Que dans le cas où je simule pas la mémoire bien sûr. */
 		{
-			/* J'efface toutes les données qui sont utilisé par la tâche 1_from_free que l'ont va retourner. 
-			 * TODO : Est-ce correct ? Je ne le fesais pas pour le papier IPDPS. */
-			//~ e = gpu_data_not_used_list_begin(g->gpu_data);
-			//~ while (e->D != handle_popped)
-			//~ {
-				  //~ e = gpu_data_not_used_list_next(e);
-			//~ }
-			//~ gpu_data_not_used_list_erase(g->gpu_data, e);
-			
-			
+			/* J'efface toutes les données qui sont utilisé par la tâche 1_from_free que l'ont va retourner. */
 			for (i = 0; i < STARPU_TASK_GET_NBUFFERS(t->pointer_to_T); i++)
 			{
 				if (!gpu_data_not_used_list_empty(g->gpu_data)) /* TODO : utile ? */
@@ -2120,7 +2110,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	
 		random: ;
 		
-		/* TODO : a suppr */
+		/* TODO : a suppr ? */
 		Dopt[current_gpu - 1] = NULL;
 
 		#ifdef PRINT_STATS
@@ -2267,8 +2257,8 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 	#endif
 }
 
-/* TODO: return NULL ou ne rien faire si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée.
- * TODO je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
+/* Return NULL ou ne rien faire si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée : J'ai pas la vision que la dernière tâche est sortie donc ce n'est pas possible.
+ * Je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
 {
 	#ifdef PRINT
@@ -2638,7 +2628,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
     //print_pulled_task_one_gpu(g, node);
     for (i = 0; i < nb_data_on_node; i++)
     {
-		if (starpu_data_can_evict(data_tab[i], node, is_prefetch)) /* TODO : il y aurait moyen de remplacé ce can evict juste par une lecture dans un tableau car de toute facon on le fias avant dans victim_selector. */
+		if (starpu_data_can_evict(data_tab[i], node, is_prefetch)) /* TODO : il y aurait moyen de remplacer ce can evict juste par une lecture dans un tableau car de toute facon on le fias avant dans victim_selector. */
 		{
 			index_next_use = 0;
 			for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))

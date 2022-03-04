@@ -1,6 +1,6 @@
 linalg/openblas
 ./configure --prefix=/home/mgonthie/starpu
 make -j 100
-make install
+sudo make install
 echo "INITIALISATION OK"
 export STARPU_PERF_MODEL_DIR=/home/mgonthie/starpu/perfmodels/sampling
