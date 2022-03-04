@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
@@ -34,6 +34,13 @@
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
 #endif
+
+static int _starpu_expected_transfer_time_writeback;
+
+void _starpu_init_perfmodel(void)
+{
+	_starpu_expected_transfer_time_writeback = starpu_get_env_number_default("STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK", 0);
+}
 
 /* This flag indicates whether performance models should be calibrated or not.
  *	0: models need not be calibrated
@@ -332,24 +339,33 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 	if (size == 0)
 		return 0.0;
 
-	int src_node = _starpu_select_src_node(handle, memory_node);
-	if (src_node < 0)
-		/* Will just create it in place. Ideally we should take the
-		 * time to create it into account */
-		return 0.0;
-
-#define MAX_REQUESTS 4
-	unsigned src_nodes[MAX_REQUESTS];
-	unsigned dst_nodes[MAX_REQUESTS];
-	unsigned handling_nodes[MAX_REQUESTS];
-	int nhops = _starpu_determine_request_path(handle, src_node, memory_node, mode,
-			MAX_REQUESTS,
-			src_nodes, dst_nodes, handling_nodes, 0);
-	int i;
 	double duration = 0.;
 
-	for (i = 0; i < nhops; i++)
-		duration += starpu_transfer_predict(src_nodes[i], dst_nodes[i], size);
+	int src_node = _starpu_select_src_node(handle, memory_node);
+	if (src_node >= 0)
+	{
+#define MAX_REQUESTS 4
+		unsigned src_nodes[MAX_REQUESTS];
+		unsigned dst_nodes[MAX_REQUESTS];
+		unsigned handling_nodes[MAX_REQUESTS];
+		int nhops = _starpu_determine_request_path(handle, src_node, memory_node, mode,
+				MAX_REQUESTS,
+				src_nodes, dst_nodes, handling_nodes, 0);
+		int i;
+
+		for (i = 0; i < nhops; i++)
+			duration += starpu_transfer_predict(src_nodes[i], dst_nodes[i], size);
+	}
+	/* Else, will just create it in place. Ideally we should take the
+	 * time to create it into account */
+
+	if (_starpu_expected_transfer_time_writeback && (mode & STARPU_W) && handle->home_node >= 0)
+	{
+		/* Will have to write back the produced data, artificially count
+		 * the time to bring it back to its home node */
+		duration += starpu_transfer_predict(memory_node, handle->home_node, size);
+	}
+
 	return duration;
 }
 

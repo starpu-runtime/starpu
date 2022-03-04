@@ -183,6 +183,14 @@ See also \ref STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY and \ref
 STARPU_DISABLE_ASYNCHRONOUS_OPENCL_COPY.
 </dd>
 
+<dt>STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK</dt>
+<dd>
+\anchor STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK
+\addindex __env__STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK
+Setting this to 1 makes task transfer time estimations artificially include
+the time that will be needed to write back data to the main memory.
+</dd>
+
 <dt>STARPU_DISABLE_PINNING</dt>
 <dd>
 \anchor STARPU_DISABLE_PINNING

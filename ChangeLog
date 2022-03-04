@@ -82,6 +82,8 @@ Small features:
   * Add ram_colind/rowptr to csr and bcsr data interfaces. This allows to make
     starpu_bcsr_filter_vertical_block work on several memory nodes.
   * Add cuda0 and cuda1 example drivers.
+  * New STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK environment variable to tune
+    transfer estimation times.
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
