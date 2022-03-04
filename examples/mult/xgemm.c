@@ -175,7 +175,7 @@ static struct starpu_codelet redux_cl =
 	.cuda_funcs = {nop},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
-	.modes = {STARPU_RW, STARPU_R},
+	.modes = {STARPU_RW | STARPU_COMMUTE, STARPU_R},
 	.model = &starpu_perfmodel_nop
 };
 
@@ -476,6 +476,7 @@ static struct starpu_codelet cl_gemm2d =
 	.model = &starpu_gemm_model
 };
 
+/* Codelet for 3D matrix z=0 */
 static struct starpu_codelet cl_gemm0 =
 {
 #ifdef STARPU_HAVE_BLAS
@@ -513,8 +514,28 @@ static struct starpu_codelet cl_gemm =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_R},
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.model = &starpu_gemm_model
+};
+/* Codelet for 3D matrix */
+static struct starpu_codelet cl_gemmredux =
+{
+#ifdef STARPU_HAVE_BLAS
+	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {cpu_gemm},
+	.cpu_funcs_name = {"cpu_gemm"},
+#endif
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {cublas_gemm},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 3,
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
+	.modes = {STARPU_R, STARPU_R, STARPU_REDUX},
 	.model = &starpu_gemm_model
 };
 
@@ -832,7 +853,7 @@ int main(int argc, char **argv)
 				for (y = 0; y < nslicesy; y++)
 				{
 					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
-					//~ starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N=35 il passe de 11500 avec à 9100 sans. */
+					//~ starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N>35 cela plombe ces performances au niveau de EAGER. */
 					for (z = 0; z < nslicesz; z++)
 					{
 						/* Ajout pour sparse matrix. */
@@ -841,9 +862,9 @@ int main(int argc, char **argv)
 							struct starpu_task *task = starpu_task_create();
 
 							if (z == 0)
-								task->cl = &cl_gemm;
+								task->cl = &cl_gemmredux;
 							else
-								task->cl = &cl_gemm;
+								task->cl = &cl_gemmredux;
 
 							task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
 							task->handles[1] = starpu_data_get_sub_data(B_handle, 2, x, z);
