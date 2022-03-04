@@ -320,6 +320,24 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	return sum;
 }
 
+static double _starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, enum starpu_data_access_mode mode, size_t size)
+{
+	double duration = 0.;
+#define MAX_REQUESTS 4
+	unsigned src_nodes[MAX_REQUESTS];
+	unsigned dst_nodes[MAX_REQUESTS];
+	unsigned handling_nodes[MAX_REQUESTS];
+	int nhops = _starpu_determine_request_path(handle, src_node, dst_node, mode,
+			MAX_REQUESTS,
+			src_nodes, dst_nodes, handling_nodes, 0);
+	int i;
+
+	for (i = 0; i < nhops; i++)
+		duration += starpu_transfer_predict(src_nodes[i], dst_nodes[i], size);
+
+	return duration;
+}
+
 /* Predict the transfer time (in µs) to move a handle to a memory node */
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode)
 {
@@ -344,17 +362,7 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 	int src_node = _starpu_select_src_node(handle, memory_node);
 	if (src_node >= 0)
 	{
-#define MAX_REQUESTS 4
-		unsigned src_nodes[MAX_REQUESTS];
-		unsigned dst_nodes[MAX_REQUESTS];
-		unsigned handling_nodes[MAX_REQUESTS];
-		int nhops = _starpu_determine_request_path(handle, src_node, memory_node, mode,
-				MAX_REQUESTS,
-				src_nodes, dst_nodes, handling_nodes, 0);
-		int i;
-
-		for (i = 0; i < nhops; i++)
-			duration += starpu_transfer_predict(src_nodes[i], dst_nodes[i], size);
+		duration += _starpu_data_expected_transfer_time(handle, src_node, memory_node, mode, size);
 	}
 	/* Else, will just create it in place. Ideally we should take the
 	 * time to create it into account */
@@ -363,7 +371,7 @@ double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned 
 	{
 		/* Will have to write back the produced data, artificially count
 		 * the time to bring it back to its home node */
-		duration += starpu_transfer_predict(memory_node, handle->home_node, size);
+		duration += _starpu_data_expected_transfer_time(handle, memory_node, handle->home_node, STARPU_R, size);
 	}
 
 	return duration;
