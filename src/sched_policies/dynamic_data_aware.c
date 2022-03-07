@@ -41,7 +41,8 @@ int dependances; /* Utile pour les ordres de données et le push back de donnée
 bool gpu_memory_initialized;
 bool new_tasks_initialized;
 struct gpu_planned_task_control *my_planned_task_control;
-struct gpu_pulled_task_control *my_pulled_task_control;
+//~ struct gpu_pulled_task_control *my_pulled_task_control;
+struct gpu_pulled_task *tab_gpu_pulled_task;
 //~ int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 //~ int number_task_out_DARTS_2; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 int NT;
@@ -269,7 +270,7 @@ void print_pulled_task_one_gpu(struct gpu_pulled_task *g, int current_gpu)
     struct pulled_task *p = pulled_task_new();
     
     printf("Pulled task for GPU %d:\n", current_gpu); fflush(stdout);
-    for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
+    for (p = pulled_task_list_begin(tab_gpu_pulled_task[current_gpu - 1].ptl); p != pulled_task_list_end(tab_gpu_pulled_task[current_gpu - 1].ptl); p = pulled_task_list_next(p))
     {
 		printf("%p\n", p->pointer_to_pulled_task); fflush(stdout);
     }
@@ -2378,11 +2379,11 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
                 
     /* Get the the min number of task a data can do in pulled_task */
     /* Se placer sur le bon GPU pour pulled_task */
-	my_pulled_task_control->pointer = my_pulled_task_control->first;
-    for (i = 1; i < current_gpu; i++)
- 	{
-		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-	}
+	//~ my_pulled_task_control->pointer = my_pulled_task_control->first;
+    //~ for (i = 1; i < current_gpu; i++)
+ 	//~ {
+		//~ my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+	//~ }
     
     int min_number_task_in_pulled_task = INT_MAX;
     int nb_task_in_pulled_task[nb_data_on_node];
@@ -2809,26 +2810,26 @@ void gpu_planned_task_insertion()
     my_planned_task_control->pointer = new;
 }
 
-void gpu_pulled_task_initialisation()
-{
-    _STARPU_MALLOC(my_pulled_task_control, sizeof(*my_pulled_task_control));
-    struct gpu_pulled_task *new = malloc(sizeof(*new));
-    struct pulled_task_list *p = pulled_task_list_new();
-    new->ptl = p;
+//~ void gpu_pulled_task_initialisation()
+//~ {
+    //~ _STARPU_MALLOC(my_pulled_task_control, sizeof(*my_pulled_task_control));
+    //~ struct gpu_pulled_task *new = malloc(sizeof(*new));
+    //~ struct pulled_task_list *p = pulled_task_list_new();
+    //~ new->ptl = p;
     
-    my_pulled_task_control->pointer = new;
-    my_pulled_task_control->first = my_pulled_task_control->pointer;
-}
+    //~ my_pulled_task_control->pointer = new;
+    //~ my_pulled_task_control->first = my_pulled_task_control->pointer;
+//~ }
 
-void gpu_pulled_task_insertion()
-{
-    struct gpu_pulled_task *new = malloc(sizeof(*new));
-    struct pulled_task_list *p = pulled_task_list_new();
-    new->ptl = p;
+//~ void gpu_pulled_task_insertion()
+//~ {
+    //~ struct gpu_pulled_task *new = malloc(sizeof(*new));
+    //~ struct pulled_task_list *p = pulled_task_list_new();
+    //~ new->ptl = p;
     
-    new->next = my_pulled_task_control->pointer;    
-    my_pulled_task_control->pointer = new;
-}
+    //~ new->next = my_pulled_task_control->pointer;    
+    //~ my_pulled_task_control->pointer = new;
+//~ }
 
 void tab_gpu_pulled_task_init()
 {
@@ -2857,12 +2858,13 @@ void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
     struct pulled_task *p = pulled_task_new();
     p->pointer_to_pulled_task = task;
     
-    my_pulled_task_control->pointer = my_pulled_task_control->first;
-    for (i = 1; i < current_gpu; i++)
-    {
-		my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
-    }
-    pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
+    //~ my_pulled_task_control->pointer = my_pulled_task_control->first;
+    //~ for (i = 1; i < current_gpu; i++)
+    //~ {
+		//~ my_pulled_task_control->pointer = my_pulled_task_control->pointer->next;
+    //~ }
+    //~ pulled_task_list_push_back(my_pulled_task_control->pointer->ptl, p);
+    pulled_task_list_push_back(tab_gpu_pulled_task[current_gpu - 1].ptl, p);
 }
 
 /* TODO : a suppr */
@@ -3000,12 +3002,13 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	    gpu_planned_task_insertion();
 	}
 	my_planned_task_control->first = my_planned_task_control->pointer;
-	gpu_pulled_task_initialisation();
-	for (i = 0; i < Ngpu - 1; i++)
-	{
-	    gpu_pulled_task_insertion();
-	}
-	my_pulled_task_control->first = my_pulled_task_control->pointer;
+	
+	//~ gpu_pulled_task_initialisation();
+	//~ for (i = 0; i < Ngpu - 1; i++)
+	//~ {
+	    //~ gpu_pulled_task_insertion();
+	//~ }
+	//~ my_pulled_task_control->first = my_pulled_task_control->pointer;
 	tab_gpu_pulled_task = malloc(Ngpu*sizeof(struct gpu_pulled_task));
 	tab_gpu_pulled_task_init();
 	
@@ -3109,19 +3112,19 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     //~ }
     
     struct pulled_task *temp = NULL;
-    struct gpu_pulled_task *temp_pointer = my_pulled_task_control->first;
+    //~ struct gpu_pulled_task *temp_pointer = my_pulled_task_control->first;
     int trouve = 0;
     
     //~ my_pulled_task_control->pointer = my_pulled_task_control->first;
-    for (i = 1; i < current_gpu; i++)
-    {
-		temp_pointer = temp_pointer->next;
-    }
+    //~ for (i = 1; i < current_gpu; i++)
+    //~ {
+		//~ temp_pointer = temp_pointer->next;
+    //~ }
 	
     /* J'efface la tâche dans la liste de tâches */
-    if (!pulled_task_list_empty(temp_pointer->ptl))
+    if (!pulled_task_list_empty(tab_gpu_pulled_task[current_gpu - 1].ptl))
     {
-		for (temp = pulled_task_list_begin(temp_pointer->ptl); temp != pulled_task_list_end(temp_pointer->ptl); temp = pulled_task_list_next(temp))
+		for (temp = pulled_task_list_begin(tab_gpu_pulled_task[current_gpu - 1].ptl); temp != pulled_task_list_end(tab_gpu_pulled_task[current_gpu - 1].ptl); temp = pulled_task_list_next(temp))
 		{	
 			if (temp->pointer_to_pulled_task == task)
 			{
@@ -3132,7 +3135,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		if (trouve == 1)
 		{
 			//~ printf("Popped task in get task done is %p.\n", temp->pointer_to_pulled_task); fflush(stdout);	
-			pulled_task_list_erase(temp_pointer->ptl, temp);
+			pulled_task_list_erase(tab_gpu_pulled_task[current_gpu - 1].ptl, temp);
 		}
     }
     

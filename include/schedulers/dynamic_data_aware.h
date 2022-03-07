@@ -117,20 +117,20 @@ struct gpu_pulled_task
 {
 	int test;
     struct pulled_task_list *ptl;
-    struct gpu_pulled_task *next;
+    //~ struct gpu_pulled_task *next;
 };
-struct gpu_pulled_task_control
-{
-    struct gpu_pulled_task *pointer;
-    struct gpu_pulled_task *first;
-};
-struct gpu_pulled_task *tab_gpu_pulled_task;
+//~ struct gpu_pulled_task_control
+//~ {
+    //~ struct gpu_pulled_task *pointer;
+    //~ struct gpu_pulled_task *first;
+//~ };
+extern struct gpu_pulled_task *tab_gpu_pulled_task;
 
 /** Variables globales et reset **/
 extern bool gpu_memory_initialized;
 extern bool new_tasks_initialized;
 extern struct gpu_planned_task_control *my_planned_task_control;
-extern struct gpu_pulled_task_control *my_pulled_task_control;
+//~ extern struct gpu_pulled_task_control *my_pulled_task_control;
 //~ extern int number_task_out_DARTS; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
 //~ extern int number_task_out_DARTS_2; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
 //~ void reset_all_struct();
