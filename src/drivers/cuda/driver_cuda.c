@@ -850,9 +850,8 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 	{
 		worker = &worker_set->workers[i];
 		unsigned devid = worker->devid;
-		unsigned subworkerid = worker->subworkerid;
 		unsigned workerid = worker->workerid;
-		unsigned subdev = i % _starpu_get_machine_config()->topology.nworker[STARPU_CUDA_WORKER][subworkerid];
+		unsigned subdev = worker->subworkerid;
 
 		float size = (float) global_mem[devid] / (1<<30);
 #ifdef STARPU_SIMGRID
