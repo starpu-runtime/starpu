@@ -115,6 +115,7 @@ LIST_TYPE(pulled_task,
 );
 struct gpu_pulled_task
 {
+	int test;
     struct pulled_task_list *ptl;
     struct gpu_pulled_task *next;
 };
@@ -123,6 +124,7 @@ struct gpu_pulled_task_control
     struct gpu_pulled_task *pointer;
     struct gpu_pulled_task *first;
 };
+struct gpu_pulled_task *tab_gpu_pulled_task;
 
 /** Variables globales et reset **/
 extern bool gpu_memory_initialized;
@@ -171,7 +173,7 @@ void dynamic_data_aware_scheduling(struct starpu_task_list *main_task_list, int 
 /** For eviction **/
 void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void *component);
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
-starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g);
+starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task g);
 starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task, int current_gpu);
 void increment_planned_task_data(struct starpu_task *task, int current_gpu);
 /* This one under is not used anymore. It used to be an score computed with the weight of a data and number of tasks remaining for a data. */

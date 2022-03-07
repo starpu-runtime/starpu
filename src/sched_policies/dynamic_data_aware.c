@@ -243,16 +243,16 @@ void print_pulled_task_all_gpu()
 {
     int i = 0;
     int j = 0;
-    struct gpu_pulled_task *temp_pointer = my_pulled_task_control->first;
+    //~ struct gpu_pulled_task *temp_pointer = my_pulled_task_control->first;
 	struct pulled_task *p = pulled_task_new();
     for (i = 0; i < Ngpu; i++)
     {
-		if (pulled_task_list_empty(temp_pointer->ptl))
+		if (pulled_task_list_empty(tab_gpu_pulled_task[i].ptl))
 		{
 			printf("GPU %d's pulled task list is empty.\n", i + 1); fflush(stdout);
 		}
 		printf("Pulled task for GPU %d:\n", i + 1); fflush(stdout);
-		for (p = pulled_task_list_begin(temp_pointer->ptl); p != pulled_task_list_end(temp_pointer->ptl); p = pulled_task_list_next(p))
+		for (p = pulled_task_list_begin(tab_gpu_pulled_task[i].ptl); p != pulled_task_list_end(tab_gpu_pulled_task[i].ptl); p = pulled_task_list_next(p))
 		{
 			printf("%p :", p->pointer_to_pulled_task); fflush(stdout);
 			for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
@@ -261,7 +261,6 @@ void print_pulled_task_all_gpu()
 			}
 			printf("\n");
 		}
-		temp_pointer = temp_pointer->next;
 	}
 }
 
@@ -2257,6 +2256,7 @@ void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void
 	#endif
 }
 
+
 /* Return NULL ou ne rien faire si la dernière tâche est sorti du post exec hook ? De même pour la mise à jour des listes à chaque eviction de donnée : J'ai pas la vision que la dernière tâche est sortie donc ce n'est pas possible.
  * Je rentre bcp trop dans cette fonction on perds du temps car le timing avance lui. Résolu en réduisant le threshold et en adaptant aussi CUDA_PIPELINE. */
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component)
@@ -2493,7 +2493,8 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
 		victim_selector_belady++;
 		#endif
 		
-		returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
+		//~ returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, my_pulled_task_control->pointer);
+		returned_handle = belady_on_pulled_task(data_on_node, nb_data_on_node, node, is_prefetch, tab_gpu_pulled_task[current_gpu - 1]);
     }
     
     /* Ca devrait pas arriver a enleevr et a tester */
@@ -2612,12 +2613,12 @@ starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t tol
     return returned_handle;
 }
 
-starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g)
+starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task g)
 {
 	#ifdef PRINT_STATS
 	gettimeofday(&time_start_belady, NULL);
 	#endif
-	
+	//~ printf("Belady.\n"); g.test++; printf("g.test = %d.\n", g.test);
     int i = 0;
     int j = 0;
     int index_next_use = 0;
@@ -2631,7 +2632,7 @@ starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int n
 		if (starpu_data_can_evict(data_tab[i], node, is_prefetch)) /* TODO : il y aurait moyen de remplacer ce can evict juste par une lecture dans un tableau car de toute facon on le fias avant dans victim_selector. */
 		{
 			index_next_use = 0;
-			for (p = pulled_task_list_begin(g->ptl); p != pulled_task_list_end(g->ptl); p = pulled_task_list_next(p))
+			for (p = pulled_task_list_begin(g.ptl); p != pulled_task_list_end(g.ptl); p = pulled_task_list_next(p))
 			{
 				for (j = 0; j < STARPU_TASK_GET_NBUFFERS(p->pointer_to_pulled_task); j++)
 				{
@@ -2829,6 +2830,17 @@ void gpu_pulled_task_insertion()
     my_pulled_task_control->pointer = new;
 }
 
+void tab_gpu_pulled_task_init()
+{
+	int i = 0;
+	for (i = 0; i < Ngpu; i++)
+	{
+		struct pulled_task_list *p = pulled_task_list_new();
+		tab_gpu_pulled_task[i].ptl = p;
+		tab_gpu_pulled_task[i].test = 0;
+	}
+}
+
 void add_task_to_pulled_task(int current_gpu, struct starpu_task *task)
 {
 	int i = 0;	
@@ -2988,13 +3000,14 @@ struct starpu_sched_component *starpu_sched_component_dynamic_data_aware_create(
 	    gpu_planned_task_insertion();
 	}
 	my_planned_task_control->first = my_planned_task_control->pointer;
-	
 	gpu_pulled_task_initialisation();
 	for (i = 0; i < Ngpu - 1; i++)
 	{
 	    gpu_pulled_task_insertion();
 	}
 	my_pulled_task_control->first = my_pulled_task_control->pointer;
+	tab_gpu_pulled_task = malloc(Ngpu*sizeof(struct gpu_pulled_task));
+	tab_gpu_pulled_task_init();
 	
 	/* Initialisation des mutexs. */
 	#ifdef REFINED_MUTEX
