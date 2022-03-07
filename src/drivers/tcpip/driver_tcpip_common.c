@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <poll.h>
 #include <core/workers.h>
 #include <core/perfmodel/perfmodel.h>
 #include <drivers/mp_common/source_common.h>
@@ -42,6 +43,13 @@
 #  define _SELECT_PRINT(...) printf(__VA_ARGS__)
 #else
 #  define _SELECT_PRINT(...)
+#endif
+
+#define _ZC_DEBUG 0
+#if _ZC_DEBUG
+#  define _ZC_PRINT(...) printf(__VA_ARGS__)
+#else
+#  define _ZC_PRINT(...)
 #endif
 
 typedef starpu_ssize_t(*what_t)(int fd, void *buf, size_t count);
@@ -69,6 +77,7 @@ int *local_flag;
 
 MULTILIST_CREATE_TYPE(_starpu_tcpip_ms_request, event); /*_starpu_tcpip_ms_request_multilist_event*/
 MULTILIST_CREATE_TYPE(_starpu_tcpip_ms_request, thread); /*_starpu_tcpip_ms_request_multilist_thread*/
+MULTILIST_CREATE_TYPE(_starpu_tcpip_ms_request, pending); /*_starpu_tcpip_ms_request_multilist_pending*/
 
 struct _starpu_tcpip_ms_request
 {
@@ -76,6 +85,8 @@ struct _starpu_tcpip_ms_request
         struct _starpu_tcpip_ms_request_multilist_event event;
         /*member of list of thread for async send/receive*/
         struct _starpu_tcpip_ms_request_multilist_thread thread;
+        /*member of list of pending for except in select*/
+        struct _starpu_tcpip_ms_request_multilist_pending pending;
         /*the struct of remote socket to send/receive message*/
         struct _starpu_tcpip_socket *remote_sock;
         /*the message to send/receive*/
@@ -92,10 +103,13 @@ struct _starpu_tcpip_ms_request
         int offset;
         /*active the flag MSG_ZEROCOPY*/
         int zerocopy;
+        /*record the count at the end of send*/
+        uint32_t send_end;
 };
 
 MULTILIST_CREATE_INLINES(struct _starpu_tcpip_ms_request, _starpu_tcpip_ms_request, event);
 MULTILIST_CREATE_INLINES(struct _starpu_tcpip_ms_request, _starpu_tcpip_ms_request, thread);
+MULTILIST_CREATE_INLINES(struct _starpu_tcpip_ms_request, _starpu_tcpip_ms_request, pending);
 
 static struct _starpu_tcpip_ms_request_multilist_thread thread_list;
 
@@ -119,6 +133,7 @@ struct _starpu_tcpip_req_pending
         int remote_sock;
         struct _starpu_tcpip_ms_request_multilist_thread send_list;
         struct _starpu_tcpip_ms_request_multilist_thread recv_list;
+        struct _starpu_tcpip_ms_request_multilist_pending pending_list;
         UT_hash_handle hh;
 };
 
@@ -177,6 +192,7 @@ static void * _starpu_tcpip_thread_pending()
                                         table->remote_sock = remote_sock;
                                         _starpu_tcpip_ms_request_multilist_head_init_thread(&table->send_list);
                                         _starpu_tcpip_ms_request_multilist_head_init_thread(&table->recv_list);
+                                        _starpu_tcpip_ms_request_multilist_head_init_pending(&table->pending_list);
                                         HASH_ADD_INT(pending_tables, remote_sock, table);
 
                                 }
@@ -202,11 +218,9 @@ static void * _starpu_tcpip_thread_pending()
                         int remote_sock = table->remote_sock;
                         _SELECT_PRINT("remote_sock in loop is %d\n", remote_sock);
 
-                        struct _starpu_tcpip_ms_request * req;
-
                         void socket_action(what_t what, const char * whatstr, struct _starpu_tcpip_ms_request_multilist_thread *list, fd_set * fdset)
                         {
-                                req = _starpu_tcpip_ms_request_multilist_begin_thread(list);
+                                struct _starpu_tcpip_ms_request * req = _starpu_tcpip_ms_request_multilist_begin_thread(list);
                                 char* msg = req->buf;
                                 int len = req->len;
 
@@ -232,14 +246,138 @@ static void * _starpu_tcpip_thread_pending()
                         
                         if(FD_ISSET(remote_sock, &writes2))
                         {  
-                                socket_action((what_t)write, "write", &table->send_list, &writes);
+                        #ifdef SO_ZEROCOPY
+                                struct pollfd pfd;
+                                pfd.fd = remote_sock;
+                                pfd.events = POLLERR|POLLOUT;
+                                pfd.revents = 0;
+                                if(poll(&pfd, 1, -1) <= 0)
+                                        error(1, errno, "poll");
+
+                                if(pfd.revents & POLLERR)
+                                {
+                                        struct _starpu_tcpip_ms_request * req_pending = _starpu_tcpip_ms_request_multilist_begin_pending(&table->pending_list);
+                                        _ZC_PRINT("nbsend is %d\n", req_pending->remote_sock->nbsend);
+                                        struct sock_extended_err *serr;
+                                        struct msghdr mg = {};
+                                        struct cmsghdr *cm;
+                                        uint32_t hi, lo;
+                                        char control[100];
+
+                                        mg.msg_control = control;
+                                        mg.msg_controllen = sizeof(control);
+
+                                        _ZC_PRINT("before recvmsg\n");
+                                        int r = recvmsg(remote_sock, &mg, MSG_ERRQUEUE);
+                                        // if (r == -1 && errno == EAGAIN)
+                                        //         continue;
+                                        if (r == -1)
+                                                error(1, errno, "recvmsg notification");
+                                        if (mg.msg_flags & MSG_CTRUNC)
+                                                error(1, errno, "recvmsg notification: truncated");
+
+                                        cm = CMSG_FIRSTHDR(&mg);
+                                        if (!cm)
+                                                error(1, 0, "cmsg: no cmsg");
+
+                                        serr = (void *) CMSG_DATA(cm);
+
+                                        if (serr->ee_origin != SO_EE_ORIGIN_ZEROCOPY)
+                                                error(1, 0, "serr: wrong origin: %u", serr->ee_origin);
+                                        if (serr->ee_errno != 0)
+                                                error(1, 0, "serr: wrong error code: %u", serr->ee_errno);
+
+                                        if (serr->ee_code != SO_EE_CODE_ZEROCOPY_COPIED)
+                                                req_pending->zerocopy = 0;
+
+                                        hi = serr->ee_data;
+                                        lo = serr->ee_info;
+
+                                        _ZC_PRINT("h=%u l=%u\n", hi, lo);
+                                        
+                                        STARPU_ASSERT(lo == req_pending->remote_sock->nback);
+                                        STARPU_ASSERT(hi < req_pending->remote_sock->nbsend);
+
+                                        _ZC_PRINT("send end is %d\n", req_pending->send_end);
+                                        while(!_starpu_tcpip_ms_request_multilist_empty_pending(&table->pending_list))
+                                        {
+                                                struct _starpu_tcpip_ms_request * req_tmp = _starpu_tcpip_ms_request_multilist_begin_pending(&table->pending_list);
+
+                                                if(hi+1 >= req_tmp->send_end)
+                                                {
+                                                        _starpu_tcpip_ms_request_multilist_erase_pending(&table->pending_list, req_tmp);
+
+                                                        if(_starpu_tcpip_ms_request_multilist_empty_thread(&table->send_list)&&_starpu_tcpip_ms_request_multilist_empty_pending(&table->pending_list))
+                                                                FD_CLR(remote_sock, &writes);
+
+                                                        req_tmp->flag_completed = 1;
+                                                        starpu_sem_post(&req_tmp->sem_wait_request);
+
+                                                        //node->signal func();
+                                                }
+                                                else
+                                                        break;
+                                        }
+                                        
+
+                                        req_pending->remote_sock->nback = hi+1;
+                                        
+                                }
+                                else
+                                {
+                                        if(!(_starpu_tcpip_ms_request_multilist_empty_thread(&table->send_list)))
+                                        {
+                                                struct _starpu_tcpip_ms_request * req = _starpu_tcpip_ms_request_multilist_begin_thread(&table->send_list);
+                                                char* msg = req->buf;
+                                                int len = req->len;
+
+                                                if(req->remote_sock->zerocopy)
+                                                {
+                                                        _ZC_PRINT("msg len is %d\n", len);
+                                                        _ZC_PRINT("offset before send is %d\n", req->offset);
+
+                                                        if(req->offset == 0)
+                                                        {
+                                                                _starpu_tcpip_ms_request_multilist_push_back_pending(&table->pending_list, req);
+                                                        }
+
+                                                        int res = send(remote_sock, msg+req->offset, len-req->offset, MSG_ZEROCOPY);
+                                                        _ZC_PRINT("send return %d\n", res);
+                                                        STARPU_ASSERT_MSG(res > 0, "TCP/IP Master/Slave cannot send a msg asynchronous with a size of %d Bytes!, the result of send is %d, the error is %s ", len, res, strerror(errno));
+                                                        
+                                                        req->remote_sock->nbsend++;     
+                                                        req->offset+=res;
+
+                                                        _ZC_PRINT("offset after send is %d\n", req->offset);
+                                                        
+                                                        if(req->offset == len)
+                                                        {
+                                                                req->send_end = req->remote_sock->nbsend;
+                                                                _ZC_PRINT("send end after send is %d\n", req->send_end);
+                                                                _starpu_tcpip_ms_request_multilist_erase_thread(&table->send_list, req);
+
+                                                                //if(_starpu_tcpip_ms_request_multilist_empty_thread(&table->send_list))
+                                                                        //we need this to check whether the msg are all sent, we would have to remove POLLOUT from poll.events
+                                                                        //FD_CLR(remote_sock, &writes);
+                                                        }
+                                                }
+                                                else
+                        #endif
+                                                {
+                                                        socket_action((what_t)write, "write", &table->send_list, &writes);
+                                                }
+                                        }
+                        #ifdef SO_ZEROCOPY
+                                }
+                        #endif
                         }
-                        else if(FD_ISSET(remote_sock, &reads2))
+
+                        if(FD_ISSET(remote_sock, &reads2))
                         {
                                 socket_action(read, "read", &table->recv_list, &reads);
                         }
                         /*if the recv/send_list is empty, delete and free hash table*/
-                        if(_starpu_tcpip_ms_request_multilist_empty_thread(&table->send_list)&&_starpu_tcpip_ms_request_multilist_empty_thread(&table->recv_list))
+                        if(_starpu_tcpip_ms_request_multilist_empty_thread(&table->send_list)&&_starpu_tcpip_ms_request_multilist_empty_thread(&table->recv_list)&&_starpu_tcpip_ms_request_multilist_empty_pending(&table->pending_list))
                         {
                                 HASH_DEL(pending_tables, table);
                                 free(table);
@@ -917,6 +1055,7 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
                 struct _starpu_tcpip_ms_request * req = malloc(sizeof(*req));
                 _starpu_tcpip_ms_request_multilist_init_thread(req);
                 _starpu_tcpip_ms_request_multilist_init_event(req);
+                _starpu_tcpip_ms_request_multilist_init_pending(req);
 
                 /*complete the fields*/
                 req->remote_sock = remote_sock;
@@ -926,6 +1065,7 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
                 starpu_sem_init(&req->sem_wait_request, 0, 0);
                 req->is_sender = is_sender;
                 req->offset = 0;
+                req->send_end = 0;
 
                 _SELECT_PRINT("%s push back\n", whatstr);
                 _starpu_spin_lock(&ListLock);

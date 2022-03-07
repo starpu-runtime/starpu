@@ -39,8 +39,8 @@ struct _starpu_tcpip_socket
     /* a flag to detect whether the socket can be used for MSG_ZEROCOPY */
     int zerocopy;
     /* how many times is this message split up to send */
-    int nbsend;
-    int nback;
+    unsigned nbsend;
+    unsigned nback;
 };
 
 extern struct _starpu_tcpip_socket *tcpip_sock;
