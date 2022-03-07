@@ -2220,7 +2220,7 @@ void increment_planned_task_data(struct starpu_task *task, int current_gpu)
 void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void *component)
 {	
 	#ifdef PRINT
-	printf("Début de victim evcited.\n"); fflush(stdout);
+	printf("Début de victim eviction failed with data %p.\n", victim); fflush(stdout);
 	#endif
 	#ifdef REFINED_MUTEX
 	STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
