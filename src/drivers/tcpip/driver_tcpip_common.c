@@ -1000,13 +1000,16 @@ static void _starpu_tcpip_common_polling_node(struct _starpu_mp_node * node)
 static unsigned int _starpu_tcpip_common_action_completion(int wait, struct _starpu_async_channel * event)
 {
         struct _starpu_tcpip_ms_async_event *tcpip_ms_event = _starpu_tcpip_ms_async_event(&event->event);
-        if (tcpip_ms_event->requests != NULL && !_starpu_tcpip_ms_request_multilist_empty_event(tcpip_ms_event->requests))
+        
+        if (tcpip_ms_event->requests != NULL)
         {
-                struct _starpu_tcpip_ms_request * req = _starpu_tcpip_ms_request_multilist_begin_event(tcpip_ms_event->requests);
+                struct _starpu_tcpip_ms_request * req;
                 struct _starpu_tcpip_ms_request * req_next;
 
                 //_TCPIP_PRINT("event requests is %p\n", req);
-                while (req != _starpu_tcpip_ms_request_multilist_end_event(tcpip_ms_event->requests))
+                for (req = _starpu_tcpip_ms_request_multilist_begin_event(tcpip_ms_event->requests); 
+                     req != _starpu_tcpip_ms_request_multilist_end_event(tcpip_ms_event->requests);
+                     req = req_next)
                 {
                         req_next = _starpu_tcpip_ms_request_multilist_next_event(req);
 
@@ -1031,8 +1034,7 @@ static unsigned int _starpu_tcpip_common_action_completion(int wait, struct _sta
                                 //_TCPIP_PRINT("common finished receiver is %d\n", event->starpu_mp_common_finished_receiver);
 
                         }
-                        
-                        req = req_next;
+                
                 }
 
                 /* When the list is empty, we finished to wait each request */
