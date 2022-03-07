@@ -86,7 +86,7 @@ struct pointer_in_task
 struct gpu_planned_task
 {
     struct starpu_task_list planned_task;
-    struct gpu_planned_task *next;
+    //~ struct gpu_planned_task *next;
 
     struct starpu_task_list refused_fifo_list; /* if a task is refused, it goes in this fifo list so it can be the next task processed by the right gpu */
 
@@ -103,11 +103,12 @@ struct gpu_planned_task
     
     struct starpu_task *first_task_to_pop; /* Première tâche a pop définie dans le cas TASK_ORDER == 2. */
 };
-struct gpu_planned_task_control
-{
-    struct gpu_planned_task *pointer;
-    struct gpu_planned_task *first;
-};
+//~ struct gpu_planned_task_control
+//~ {
+    //~ struct gpu_planned_task *pointer;
+    //~ struct gpu_planned_task *first;
+//~ };
+extern struct gpu_planned_task *tab_gpu_planned_task;
 
 /** Task out of pulled task. Updated by post_exec. I'm forced to use a list of single task and not task list because else starpu doesn't allow me to push a tasks in two different task_list **/
 LIST_TYPE(pulled_task,
@@ -129,7 +130,7 @@ extern struct gpu_pulled_task *tab_gpu_pulled_task;
 /** Variables globales et reset **/
 extern bool gpu_memory_initialized;
 extern bool new_tasks_initialized;
-extern struct gpu_planned_task_control *my_planned_task_control;
+//~ extern struct gpu_planned_task_control *my_planned_task_control;
 //~ extern struct gpu_pulled_task_control *my_pulled_task_control;
 //~ extern int number_task_out_DARTS; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
 //~ extern int number_task_out_DARTS_2; /* Just to track where I am on the exec. TODO : A supprimer quand j'aurais tout finis car c'est inutile. */
@@ -145,7 +146,7 @@ void print_planned_task_one_gpu(struct gpu_planned_task *g, int current_gpu);
 void print_pulled_task_one_gpu(struct gpu_pulled_task *g, int current_gpu);
 void print_planned_task_all_gpu();
 void print_pulled_task_all_gpu();
-void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g);
+void print_data_not_used_yet_one_gpu(struct gpu_planned_task *g, int current_gpu);
 void print_task_using_data(starpu_data_handle_t d);
 void print_data_on_node(starpu_data_handle_t *data_tab, int nb_data_on_node);
 void print_nb_task_in_list_one_data_one_gpu(starpu_data_handle_t d, int current_gpu);
@@ -173,17 +174,19 @@ void dynamic_data_aware_scheduling(struct starpu_task_list *main_task_list, int 
 /** For eviction **/
 void dynamic_data_aware_victim_eviction_failed(starpu_data_handle_t victim, void *component);
 starpu_data_handle_t dynamic_data_aware_victim_selector(starpu_data_handle_t toload, unsigned node, enum starpu_is_prefetch is_prefetch, void *component);
-starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task g);
-starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, struct gpu_planned_task *g, int *nb_task_in_pulled_task, int current_gpu);
+starpu_data_handle_t belady_on_pulled_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_pulled_task *g);
+starpu_data_handle_t least_used_data_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, int *nb_task_in_pulled_task, int current_gpu);
 void increment_planned_task_data(struct starpu_task *task, int current_gpu);
 /* This one under is not used anymore. It used to be an score computed with the weight of a data and number of tasks remaining for a data. */
 //~ starpu_data_handle_t min_weight_average_on_planned_task(starpu_data_handle_t *data_tab, int nb_data_on_node, unsigned node, enum starpu_is_prefetch is_prefetch, struct gpu_planned_task *g, int *nb_task_in_pulled_task);
 
 void erase_task_and_data_pointer (struct starpu_task *task, struct starpu_task_list *l);
-void gpu_planned_task_initialisation();
-void gpu_planned_task_insertion();
-void gpu_pulled_task_initialisation();
-void gpu_pulled_task_insertion();
+//~ void gpu_planned_task_initialisation();
+//~ void gpu_planned_task_insertion();
+//~ void gpu_pulled_task_initialisation();
+//~ void gpu_pulled_task_insertion();
+void tab_gpu_planned_task_init();
+void tab_gpu_pulled_task_init();
 void add_task_to_pulled_task(int current_gpu, struct starpu_task *task);
 void get_task_done(struct starpu_task *task, unsigned sci);
 
