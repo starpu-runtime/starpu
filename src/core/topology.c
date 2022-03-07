@@ -1068,6 +1068,7 @@ void _starpu_topology_configure_workers(struct _starpu_machine_topology *topolog
 		config->workers[worker_idx].perf_arch.devices[0].devid = homogeneous ? 0 : worker_devid ? (int) i : devid;
 		config->workers[worker_idx].perf_arch.devices[0].ncores = ncores;
 		config->workers[worker_idx].devid = worker_devid ? (int) i : devid;
+		config->workers[worker_idx].devnum = worker_devid ? (int) i : devnum;
 		config->workers[worker_idx].subworkerid = worker_devid ? 0 : i;
 		config->workers[worker_idx].worker_mask = STARPU_WORKER_TO_MASK(type);
 		config->worker_mask |= STARPU_WORKER_TO_MASK(type);

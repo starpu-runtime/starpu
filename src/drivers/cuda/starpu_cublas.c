@@ -101,10 +101,10 @@ void starpu_cublas_set_stream(void)
 {
 #ifdef STARPU_USE_CUDA
 	unsigned workerid = starpu_worker_get_id_check();
-	int subworkerid = starpu_worker_get_subworkerid(workerid);
+	int devnum = starpu_worker_get_devnum(workerid);
 	if (!_starpu_get_machine_config()->topology.cuda_th_per_dev ||
 		(!_starpu_get_machine_config()->topology.cuda_th_per_stream &&
-		 _starpu_get_machine_config()->topology.nworker[STARPU_CUDA_WORKER][subworkerid] > 1))
+		 _starpu_get_machine_config()->topology.nworker[STARPU_CUDA_WORKER][devnum] > 1))
 		cublasSetKernelStream(starpu_cuda_get_local_stream());
 #endif
 }

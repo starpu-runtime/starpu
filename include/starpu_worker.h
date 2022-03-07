@@ -309,6 +309,8 @@ void starpu_worker_display_names(FILE *output, enum starpu_worker_archtype type)
 */
 int starpu_worker_get_devid(int id);
 
+int starpu_worker_get_devnum(int id);
+
 int starpu_worker_get_subworkerid(int id);
 
 int starpu_worker_get_mp_nodeid(int id);

@@ -2346,6 +2346,11 @@ int starpu_worker_get_devid(int id)
 	return _starpu_config.workers[id].devid;
 }
 
+int starpu_worker_get_devnum(int id)
+{
+	return _starpu_config.workers[id].devnum;
+}
+
 unsigned starpu_worker_is_combined_worker(int id)
 {
 	return id >= (int)_starpu_config.topology.nworkers;
