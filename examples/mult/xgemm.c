@@ -476,7 +476,7 @@ static struct starpu_codelet cl_gemm2d =
 	.model = &starpu_gemm_model
 };
 
-/* Codelet for 3D matrix z=0 */
+/* Codelet for 3D matrix z = 0 */
 static struct starpu_codelet cl_gemm0 =
 {
 #ifdef STARPU_HAVE_BLAS
@@ -492,13 +492,13 @@ static struct starpu_codelet cl_gemm0 =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_W},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_W},
 	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
+	.modes = {STARPU_R, STARPU_R, STARPU_R},
 	.model = &starpu_gemm_model
 };
 
-/* Codelet for 3D matrix */
+/* Codelet for 3D matrix z = 1, 2, 3 */
 static struct starpu_codelet cl_gemm =
 {
 #ifdef STARPU_HAVE_BLAS
@@ -514,11 +514,11 @@ static struct starpu_codelet cl_gemm =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
-	.modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.modes = {STARPU_R, STARPU_R, STARPU_R},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &starpu_gemm_model
 };
-/* Codelet for 3D matrix */
+/* Codelet for 3D matrix with redux */
 static struct starpu_codelet cl_gemmredux =
 {
 #ifdef STARPU_HAVE_BLAS
@@ -862,9 +862,11 @@ int main(int argc, char **argv)
 							struct starpu_task *task = starpu_task_create();
 
 							if (z == 0)
-								task->cl = &cl_gemmredux;
+								//~ task->cl = &cl_gemmredux;
+								task->cl = &cl_gemm0;
 							else
-								task->cl = &cl_gemmredux;
+								//~ task->cl = &cl_gemmredux;
+								task->cl = &cl_gemm;
 
 							task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
 							task->handles[1] = starpu_data_get_sub_data(B_handle, 2, x, z);
