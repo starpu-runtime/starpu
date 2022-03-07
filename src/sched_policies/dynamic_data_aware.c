@@ -19,7 +19,7 @@
  * Computes all task using this data and the data already loaded on memory.
  * If no task is available compute a random task not computed yet.
  */
- 
+
 #include <schedulers/HFP.h>
 #include <schedulers/dynamic_data_aware.h>
 #include "helper_mct.h"

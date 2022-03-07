@@ -117,18 +117,12 @@ struct gpu_pulled_task
 {
     struct pulled_task_list *ptl;
     struct gpu_pulled_task *next;
-    //~ starpu_pthread_mutex_t pulled_task_mutex; /* Protège pulled_task_list */
 };
 struct gpu_pulled_task_control
 {
     struct gpu_pulled_task *pointer;
     struct gpu_pulled_task *first;
 };
-
-/** To track the data counted in min_weight_average to avoid counting twice duplicate **/
-//~ LIST_TYPE(data_weighted,
-    //~ starpu_data_handle_t pointer_to_data_weighted; /* The data not used yet by the GPU. */
-//~ );
 
 /** Variables globales et reset **/
 extern bool gpu_memory_initialized;
