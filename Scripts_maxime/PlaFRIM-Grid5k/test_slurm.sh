@@ -2,7 +2,7 @@
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=32
 #SBATCH --time=02:00:00
-#SBATCH --job-name=GUP_REF_MPI_RMA-N1
+#SBATCH --job-name=test
 #SBATCH -p routage
 #SBATCH -C bora
 
@@ -63,8 +63,11 @@ echo "Run starts at $(date) on $(uname -n)"
 
 $@
 
-echo "Hello world"
+echo "1" > file1.txt
+echo "2" > file2.txt
 
-echo "Run ends at $(date) on $(uname -n)" (modifié)
+echo "Hello world ./ use"
+cat file1.txt
+cat file2.txt
 
-Envoyer un message à @Radja
+echo "Run ends at $(date) on $(uname -n)"
