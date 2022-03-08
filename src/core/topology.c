@@ -3007,14 +3007,20 @@ void starpu_topology_print(FILE *output)
 		numa_obj = numa_get_obj(pu_obj);
 		if (numa_obj != last_numa_obj)
 		{
-			fprintf(output, "numa %u", numa_obj->logical_index);
+			if (numa_obj)
+				fprintf(output, "numa %2u", numa_obj->logical_index);
+			else
+				fprintf(output, "No numa");
 			last_numa_obj = numa_obj;
 		}
 		fprintf(output, "\t");
 		package_obj = hwloc_get_ancestor_obj_by_type(topo, HWLOC_OBJ_SOCKET, pu_obj);
 		if (package_obj != last_package_obj)
 		{
-			fprintf(output, "pack %u", package_obj->logical_index);
+			if (package_obj)
+				fprintf(output, "pack %2u", package_obj->logical_index);
+			else
+				fprintf(output, "no pack");
 			last_package_obj = package_obj;
 		}
 		fprintf(output, "\t");
