@@ -12,6 +12,7 @@
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice3DZN HFP gemini-1-fgcs 1
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3D HFP gemini-1-fgcs-36 1
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice3D HFP gemini-1-fgcs-36 1
+#	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice3D HFP_no_C_tile gemini-1-fgcs-36 1
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 2 Matrice3DZN HFP gemini-1-fgcs-36 1
 #	bash Scripts_maxime/HFP.sh /home/gonthier/ /home/gonthier/these_gonthier_maxime/Starpu/ 10 Matrice3DZN HFP gemini-1-fgcs-36 1
 
@@ -52,7 +53,8 @@ HOST=$GPU
 CM=500
 TH=10
 CP=5
-NITER=2 # 2 pour ignorer la première. Ensuite elle sont toutes identiques
+#~ NITER=2 # 2 pour ignorer la première. Ensuite elle sont toutes identiques
+NITER=1 # 2 pour ignorer la première. Ensuite elle sont toutes identiques
 
 NCOMBINAISONS=$((NGPU*2+(NGPU-1)*NGPU+3))
 
@@ -217,7 +219,7 @@ fi
 if [ $DOSSIER = "Matrice3D" ] || [ $DOSSIER = "Matrice3DZN" ]
 then
 	ZN=$((4))
-	if [ $MODEL = "HFP_FGCS" ] || [ $MODEL = "HFP" ]
+	if [ $MODEL = "HFP_FGCS" ] || [ $MODEL = "HFP" ] || [ $MODEL = "HFP_no_C_tile" ]
 	then
 		ECHELLE_X=5
 		if [ $NGPU = 1 ]
@@ -242,7 +244,7 @@ then
 				then
 					ZN=$((N))
 				fi
-			    STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -z $((960*ZN)) -nblocksz $((ZN)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
+			    STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_SCHED=dmdar STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -z $((960*ZN)) -nblocksz $((ZN)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
 		    echo "############## HFP + U ##############"
@@ -512,8 +514,8 @@ then
 	mv ~/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/DT_${MODEL}_${GPU}_${NGPU}GPU.pdf
 
 	#~ # Tracage du temps
-	#~ gcc -o cut_time_raw_out cut_time_raw_out.c
-	#~ ./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_TIME} ${PATH_R}/R/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
-	#~ Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
-	#~ mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
+	#~ # gcc -o cut_time_raw_out cut_time_raw_out.c
+	#~ # ./cut_time_raw_out $NB_TAILLE_TESTE $NB_ALGO_TESTE $ECHELLE_X $START_X ${FICHIER_TIME} ${PATH_R}/R/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt
+	#~ # Rscript ${PATH_R}/R/ScriptR/GF_X.R ${PATH_R}/R/Data/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.txt TIME_${MODEL} ${DOSSIER} ${GPU} ${NGPU} ${NITER}
+	#~ # mv ${PATH_STARPU}/starpu/Rplots.pdf ${PATH_R}/R/Courbes/${DOSSIER}/TIME_${MODEL}_${GPU}_${NGPU}GPU.pdf
 fi
