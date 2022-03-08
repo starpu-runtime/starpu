@@ -5,6 +5,7 @@
 #SBATCH --job-name=test
 #SBATCH -p routage
 #SBATCH -C bora
+#SBATCH --output=resultat.txt
 
 #
 # Documentation:
