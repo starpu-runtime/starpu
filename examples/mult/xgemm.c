@@ -518,6 +518,47 @@ static struct starpu_codelet cl_gemm =
 	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
 	.model = &starpu_gemm_model
 };
+
+/* Codelet for 3D matrix for DMDAR z = 0 */
+static struct starpu_codelet cl_gemm0_w_dmdar =
+{
+#ifdef STARPU_HAVE_BLAS
+	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {cpu_gemm0},
+	.cpu_funcs_name = {"cpu_gemm0"},
+#endif
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {cublas_gemm0},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE},
+	.model = &starpu_gemm_model
+};
+
+/* Codelet for 3D matrix for DMDAR z = 1, 2, 3 */
+static struct starpu_codelet cl_gemm_w_dmdar =
+{
+#ifdef STARPU_HAVE_BLAS
+	.type = STARPU_SEQ, /* changed to STARPU_SPMD if -spmd is passed */
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {cpu_gemm},
+	.cpu_funcs_name = {"cpu_gemm"},
+#endif
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {cublas_gemm},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE},
+	.model = &starpu_gemm_model
+};
+
 /* Codelet for 3D matrix with redux */
 static struct starpu_codelet cl_gemmredux =
 {
@@ -534,7 +575,6 @@ static struct starpu_codelet cl_gemmredux =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_R},
 	.modes = {STARPU_R, STARPU_R, STARPU_REDUX},
 	.model = &starpu_gemm_model
 };
@@ -768,12 +808,15 @@ done:
 
 int main(int argc, char **argv)
 {	
+	//~ redux_gemm_3d = starpu_get_env_number_default("REDUX_GEMM_3D", 0); /* Pour choisir de mettre ou non les RW dans les codelets gemm en 3D. */
 	random_task_order = starpu_get_env_number_default("RANDOM_TASK_ORDER", 0);
 	recursive_matrix_layout = starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0);
 	random_data_access = starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0);
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	sparse_matrix = starpu_get_env_number_default("SPARSE_MATRIX", 0);
-
+	const char *strings[] = { "dmdar", "HFP", "cuthill-mckee", "mst", "modular-eager-prefetching", "eager", "lws", "dynamic-data-aware", "dmda", "dmdas", "modular-heft" };
+	int display_env = starpu_get_env_string_var_default("STARPU_SCHED", strings, INT_MAX); /* 0 correspond au premier élément de strings : dmdar. */
+	
 	//Ajout pour le Z layout
 	int x_z_layout = 0; int i_bis = 0; int x_z_layout_i = 0; int j_bis = 0; int y_z_layout = 0; int y_z_layout_i = 0;
 	double start, end;
@@ -853,7 +896,7 @@ int main(int argc, char **argv)
 				for (y = 0; y < nslicesy; y++)
 				{
 					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
-					//~ starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N>35 cela plombe ces performances au niveau de EAGER. */
+					//~ starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N>35 cela plombe ces performances au niveau de EAGER. La raison est */
 					for (z = 0; z < nslicesz; z++)
 					{
 						/* Ajout pour sparse matrix. */
@@ -862,11 +905,29 @@ int main(int argc, char **argv)
 							struct starpu_task *task = starpu_task_create();
 
 							if (z == 0)
-								//~ task->cl = &cl_gemmredux;
-								task->cl = &cl_gemm0;
+							{
+								if (display_env == 0) /* Pour DMDAR */
+								{
+									task->cl = &cl_gemm0_w_dmdar; /* Cas commute pour ajouter les écritures à DMDAR sans le pénaliser. */
+								}
+								else
+								{
+									task->cl = &cl_gemmredux; /* Cas redux pour ajouter les écritures à HFP, RCM et MST. */
+								}
+								//~ task->cl = &cl_gemm0;
+							}
 							else
-								//~ task->cl = &cl_gemmredux;
-								task->cl = &cl_gemm;
+							{
+								if (display_env == 0) /* Pour DMDAR */
+								{
+									task->cl = &cl_gemm_w_dmdar; /* Cas commute pour ajouter les écritures à DMDAR sans le pénaliser. */
+								}
+								else
+								{
+									task->cl = &cl_gemmredux; /* Cas redux pour ajouter les écritures à HFP, RCM et MST. */
+								}
+								//~ task->cl = &cl_gemm;
+							}
 
 							task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);
 							task->handles[1] = starpu_data_get_sub_data(B_handle, 2, x, z);
