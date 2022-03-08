@@ -33,6 +33,7 @@
 #define RANDOM_DATA_ACCESS /* only for 2D matrix */
 #define COUNT_DO_SCHEDULE /* do schedule for HFP pris en compte ou non */
 #define SPARSE_MATRIX /* 0 by default.  Something else than 0 correspond to the percentage of chance of a task to be created. So SPARSE_MATRIX=10 means you a 10% of the tasks (on average). Fix SEED if you want to have similar results among different schedulers! */
+#define INVALIDATE_C_TILE
 #include <starpu_data_maxime.h>
 
 #include <limits.h>
@@ -53,6 +54,7 @@ int recursive_matrix_layout;
 int random_data_access;
 int count_do_schedule;
 int sparse_matrix;
+int invalidate_c_tile;
 
 #ifdef STARPU_USE_CUDA
 #include <cuda.h>
@@ -809,12 +811,13 @@ done:
 int main(int argc, char **argv)
 {	
 	//~ redux_gemm_3d = starpu_get_env_number_default("REDUX_GEMM_3D", 0); /* Pour choisir de mettre ou non les RW dans les codelets gemm en 3D. */
+	invalidate_c_tile = starpu_get_env_number_default("INVALIDATE_C_TILE", 0); /* Pour choisir de mettre ou non les RW dans les codelets gemm en 3D. */
 	random_task_order = starpu_get_env_number_default("RANDOM_TASK_ORDER", 0);
 	recursive_matrix_layout = starpu_get_env_number_default("RECURSIVE_MATRIX_LAYOUT", 0);
 	random_data_access = starpu_get_env_number_default("RANDOM_DATA_ACCESS", 0);
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	sparse_matrix = starpu_get_env_number_default("SPARSE_MATRIX", 0);
-	const char *strings[] = { "dmdar", "HFP", "cuthill-mckee", "mst", "modular-eager-prefetching", "eager", "lws", "dynamic-data-aware", "dmda", "dmdas", "modular-heft" };
+	const char *strings[] = { "dmdar", "HFP", "cuthillmckee", "mst", "modular-eager-prefetching", "eager", "lws", "dynamic-data-aware", "dmda", "dmdas", "modular-heft" };
 	int display_env = starpu_get_env_string_var_default("STARPU_SCHED", strings, INT_MAX); /* 0 correspond au premier élément de strings : dmdar. */
 	
 	//Ajout pour le Z layout
@@ -896,7 +899,10 @@ int main(int argc, char **argv)
 				for (y = 0; y < nslicesy; y++)
 				{
 					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
-					//~ starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N>35 cela plombe ces performances au niveau de EAGER. La raison est */
+					if (invalidate_c_tile == 1)
+					{
+						starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N>35 cela plombe ces performances au niveau de EAGER. La raison est */
+					}
 					for (z = 0; z < nslicesz; z++)
 					{
 						/* Ajout pour sparse matrix. */
@@ -910,6 +916,10 @@ int main(int argc, char **argv)
 								{
 									task->cl = &cl_gemm0_w_dmdar; /* Cas commute pour ajouter les écritures à DMDAR sans le pénaliser. */
 								}
+								else if (display_env == 2) /* Pour RCM */
+								{
+									task->cl = &cl_gemm0;
+								}
 								else
 								{
 									task->cl = &cl_gemmredux; /* Cas redux pour ajouter les écritures à HFP, RCM et MST. */
@@ -921,6 +931,10 @@ int main(int argc, char **argv)
 								if (display_env == 0) /* Pour DMDAR */
 								{
 									task->cl = &cl_gemm_w_dmdar; /* Cas commute pour ajouter les écritures à DMDAR sans le pénaliser. */
+								}
+								else if (display_env == 2) /* Pour RCM */
+								{
+									task->cl = &cl_gemm;
 								}
 								else
 								{
