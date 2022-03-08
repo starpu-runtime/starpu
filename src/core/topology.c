@@ -1861,8 +1861,8 @@ starpu_topology_print (FILE *output)
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_t topo = topology->hwtopology;
 	hwloc_obj_t pu_obj;
-	hwloc_obj_t last_numa_obj = NULL, numa_obj;
-	hwloc_obj_t last_package_obj = NULL, package_obj;
+	hwloc_obj_t last_numa_obj = (void*) -1, numa_obj;
+	hwloc_obj_t last_package_obj = (void*) -1, package_obj;
 #endif
 
 	for (pu = 0; pu < topology->nhwpus; pu++)
