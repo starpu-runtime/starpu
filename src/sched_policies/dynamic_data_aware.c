@@ -914,8 +914,6 @@ struct starpu_task *get_task_to_return_pull_task_dynamic_data_aware(int current_
 	
 	//~ STARPU_PTHREAD_MUTEX_LOCK(&refined_mutex);
 	int i = 0;
-    /* Getting on the right GPU's package.
-     * TODO: Can I do this faster with pointer directly to the cell ? */
     //~ my_planned_task_control->pointer = my_planned_task_control->first;
     //~ struct gpu_planned_task *temp_pointer = my_planned_task_control->first;
     //~ for (i = 1; i < current_gpu; i++) /* Parce que le premier GPU vaut 1 et pas 0. */
