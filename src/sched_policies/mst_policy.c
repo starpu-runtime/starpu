@@ -240,7 +240,7 @@ static struct starpu_task *mst_pull_task(struct starpu_sched_component *componen
 		task = starpu_task_list_pop_back(&data->p->temp_pointer_1->refused_fifo_list); 
 		STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 		#ifdef PRINT 
-			printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task, to); 
+		printf("Task %p is getting out of pull_task from fifo refused list on gpu %p\n",task, to); 
 		#endif
 		return task;
 	}	
@@ -441,6 +441,7 @@ void get_current_tasks_mst(struct starpu_task *task, unsigned sci)
 	starpu_sched_component_worker_pre_exec_hook(task,sci);
 }
 
+#ifdef PRINT_PYTHON
 struct starpu_sched_policy _starpu_sched_mst_policy =
 {
 	.init_sched = initialize_mst_center_policy,
@@ -457,3 +458,21 @@ struct starpu_sched_policy _starpu_sched_mst_policy =
 	.policy_description = "Maximum Spanning Tree",
 	.worker_type = STARPU_WORKER_LIST,
 };
+#else
+struct starpu_sched_policy _starpu_sched_mst_policy =
+{
+	.init_sched = initialize_mst_center_policy,
+	.deinit_sched = deinitialize_mst_center_policy,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.do_schedule = starpu_sched_tree_do_schedule,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.pop_every_task = NULL,
+	.policy_name = "mst",
+	.policy_description = "Maximum Spanning Tree",
+	.worker_type = STARPU_WORKER_LIST,
+};
+#endif

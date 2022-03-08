@@ -90,6 +90,10 @@ static int cuthillmckee_push_task(struct starpu_sched_component *component, stru
 /* The function that sort the tasks in packages */
 static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component *component, struct starpu_sched_component *to)
 {
+	#ifdef PRINT
+	printf("Début de cuthillmckee_pull_task\n"); fflush(stdout);
+	#endif
+	
 	struct cuthillmckee_sched_data  *data = component->data;
 	struct starpu_task *task1 = NULL; 
 	if (do_schedule_done_cm == true)
@@ -111,14 +115,14 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 		else { 
 			task1 = starpu_task_list_pop_front(&data->SIGMA);
 			
-			#ifdef PRINT
+			#ifdef PRINT_PYTHON
 			print_data_to_load_prefetch(task1, starpu_worker_get_id());
 			#endif
 			
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 			
 			#ifdef PRINT
-			printf("Task %p is getting out of pull_task\n",task1);
+			printf("Task %p is getting out of pull_task\n", task1); fflush(stdout);
 			#endif
 			
 			return task1;
@@ -333,10 +337,13 @@ struct starpu_sched_component *starpu_sched_component_cuthillmckee_create(struct
 	
 	/* Pour la visu python */
 	Ngpu = get_number_GPU();
+	
+	#ifdef PRINT_PYTHON
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_all_gpu = 0;
 	index_current_popped_task_all_gpu_prefetch = 0;
+	#endif
 	
 	//~ srandom(time(0)); /* For the random selection in ALGO 4 */
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "cuthillmckee");
@@ -384,6 +391,7 @@ static void deinitialize_cuthillmckee_center_policy(unsigned sched_ctx_id)
 	starpu_sched_tree_destroy(tree);
 }
 
+#ifdef PRINT_PYTHON
 struct starpu_sched_policy _starpu_sched_cuthillmckee_policy =
 {
 	.init_sched = initialize_cuthillmckee_center_policy,
@@ -402,3 +410,21 @@ struct starpu_sched_policy _starpu_sched_cuthillmckee_policy =
 	.policy_description = "cuthillmckee algorithm",
 	.worker_type = STARPU_WORKER_LIST,
 };
+#else
+struct starpu_sched_policy _starpu_sched_cuthillmckee_policy =
+{
+	.init_sched = initialize_cuthillmckee_center_policy,
+	.deinit_sched = deinitialize_cuthillmckee_center_policy,
+	.add_workers = starpu_sched_tree_add_workers,
+	.remove_workers = starpu_sched_tree_remove_workers,
+	.do_schedule = starpu_sched_tree_do_schedule,
+	.push_task = starpu_sched_tree_push_task,
+	.pop_task = starpu_sched_tree_pop_task,
+	.pre_exec_hook = starpu_sched_component_worker_pre_exec_hook,
+	.post_exec_hook = starpu_sched_component_worker_post_exec_hook,
+	.pop_every_task = NULL,
+	.policy_name = "cuthillmckee",
+	.policy_description = "cuthillmckee algorithm",
+	.worker_type = STARPU_WORKER_LIST,
+};
+#endif
