@@ -203,6 +203,8 @@ struct _starpu_mp_node
          * about asynchronous request
          */
         struct _starpu_mp_event_list event_list;
+        /*list where threads add events to send to the source node */
+        struct _starpu_mp_event_list event_queue;
 
         /** */
         starpu_pthread_barrier_t init_completed_barrier;

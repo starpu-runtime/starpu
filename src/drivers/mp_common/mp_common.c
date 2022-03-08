@@ -316,6 +316,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
         STARPU_PTHREAD_MUTEX_INIT(&node->connection_mutex, NULL);
 
         _starpu_mp_event_list_init(&node->event_list);
+        _starpu_mp_event_list_init(&node->event_queue);
 
 	/* If the node is a sink then we must initialize some field */
 	if(node->kind == STARPU_NODE_MPI_SINK || node->kind == STARPU_NODE_TCPIP_SINK)
