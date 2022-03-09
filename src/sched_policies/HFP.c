@@ -1010,7 +1010,6 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 		if (index_task == 0) 
 		{
 			f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "w");
-			printf("open w\n");
 		}
 		else
 		{
@@ -1569,7 +1568,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 	if (multigpu == 0 && hmetis == 0)
 	{
 		task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
-		if (print_in_terminal == 1){ print_data_to_load_prefetch(task, starpu_worker_get_id()); }
+		if (print_in_terminal == 1){ print_data_to_load_prefetch(task, starpu_worker_get_id() + 1); }
 		
 		//~ gettimeofday(&time_end_gettasktoreturn, NULL);
 		//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
@@ -1622,7 +1621,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 				task = starpu_task_list_pop_front(&a->temp_pointer_1->sub_list);
 				a->temp_pointer_1->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 				a->temp_pointer_1->nb_task_in_sub_list--;
-				if (print_in_terminal == 1){ print_data_to_load_prefetch(task, starpu_worker_get_id()); }
+				if (print_in_terminal == 1){ print_data_to_load_prefetch(task, starpu_worker_get_id() + 1); }
 				
 					//~ gettimeofday(&time_end_gettasktoreturn, NULL);
 	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
@@ -1661,7 +1660,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 						task = starpu_task_list_pop_back(&a->temp_pointer_2->sub_list);
 						a->temp_pointer_2->expected_time -= starpu_task_expected_length(task, starpu_worker_get_perf_archtype(STARPU_CUDA_WORKER, 0), 0);
 						a->temp_pointer_2->nb_task_in_sub_list--;
-						if (print_in_terminal == 1){ print_data_to_load_prefetch(task, starpu_worker_get_id()); }
+						if (print_in_terminal == 1){ print_data_to_load_prefetch(task, starpu_worker_get_id() + 1); }
 						
 							//~ gettimeofday(&time_end_gettasktoreturn, NULL);
 	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
@@ -1731,7 +1730,7 @@ struct starpu_task *get_task_to_return(struct starpu_sched_component *component,
 								a->temp_pointer_2->nb_task_in_sub_list--;
 								get_expected_package_computation_time(a->temp_pointer_2, GPU_RAM_M);	
 							}
-							if (print_in_terminal == 1){ print_data_to_load_prefetch(task, starpu_worker_get_id()); }
+							if (print_in_terminal == 1){ print_data_to_load_prefetch(task, starpu_worker_get_id() + 1); }
 							
 								//~ gettimeofday(&time_end_gettasktoreturn, NULL);
 	//~ time_total_gettasktoreturn += (time_end_gettasktoreturn.tv_sec - time_start_gettasktoreturn.tv_sec)*1000000LL + time_end_gettasktoreturn.tv_usec - time_start_gettasktoreturn.tv_usec;
