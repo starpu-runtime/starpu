@@ -500,9 +500,6 @@ static struct starpu_codelet cl_gemm0 =
 	.model = &starpu_gemm_model
 };
 
-//~ Marice C a part en courluer chargeent
-//~ 1 matrice de chargement de A et B en fetch et prefetch
-
 /* Codelet for 3D matrix z = 1, 2, 3 */
 static struct starpu_codelet cl_gemm =
 {
