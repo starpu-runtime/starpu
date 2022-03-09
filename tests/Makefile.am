@@ -282,7 +282,6 @@ myPROGRAMS +=				\
 	datawizard/acquire_release2		\
 	datawizard/acquire_release_to		\
 	datawizard/acquire_try			\
-	datawizard/allocate_many_numa_nodes	\
 	datawizard/bcsr				\
 	datawizard/cache			\
 	datawizard/commute			\
@@ -398,6 +397,9 @@ myPROGRAMS +=				\
 	sched_policies/simple_deps              \
 	sched_policies/simple_cpu_gpu_sched	\
 	sched_ctx/sched_ctx_hierarchy
+
+noinst_PROGRAMS		+= \
+	datawizard/allocate_many_numa_nodes
 
 if STARPU_USE_MAX_FPGA
 myPROGRAMS +=				\
