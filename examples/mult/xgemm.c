@@ -494,11 +494,14 @@ static struct starpu_codelet cl_gemm0 =
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_W},
-	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.modes = {STARPU_R, STARPU_R, STARPU_R},
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_W}, // 8500 GF
+	//~ .modes = {STARPU_R, STARPU_R, STARPU_RW}, // 5400
+	.modes = {STARPU_R, STARPU_R, STARPU_R}, // 38OO GF
 	.model = &starpu_gemm_model
 };
+
+//~ Marice C a part en courluer chargeent
+//~ 1 matrice de chargement de A et B en fetch et prefetch
 
 /* Codelet for 3D matrix z = 1, 2, 3 */
 static struct starpu_codelet cl_gemm =
