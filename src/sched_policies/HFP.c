@@ -4325,7 +4325,6 @@ struct starpu_task *get_data_to_load(unsigned sched_ctx)
 				{
 					fprintf(f2, "GEMM");
 				}
-				
 			}
 			
 			/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */

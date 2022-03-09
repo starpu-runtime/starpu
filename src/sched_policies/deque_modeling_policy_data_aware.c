@@ -1,5 +1,5 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
- *
+ * 
  * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Joris Pablo
@@ -7,16 +7,16 @@
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  * Copyright (C) 2020       Télécom-Sud Paris
- *
+ * 
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation; either version 2.1 of the License, or (at
  * your option) any later version.
- *
+ * 
  * StarPU is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- *
+ * 
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
@@ -285,12 +285,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 	#ifdef PRINT_PYTHON
 	if (task != NULL)
 	{
-		int current_gpu = starpu_worker_get_id();
-		if (Ngpu == 1)
-		{
-			current_gpu = 0;
-		}
-		//~ printf("Ngpu = %d current = %d\n", Ngpu, current_gpu);
+		int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
 		index_current_popped_task[current_gpu]++; /* Increment popped task on the right GPU */
 		index_current_popped_task_all_gpu++;
 		int nb_data_to_load = 0;
@@ -298,75 +293,108 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 		int y_to_load = 0;
 		int z_to_load = 0;
 		int i = 0;
-		//~ printf("Tâche dans get_data_to_load %p / data = %p %p %p / worker = %d / index tâche = %d\n", task, STARPU_TASK_GET_HANDLE(task, 0), STARPU_TASK_GET_HANDLE(task, 1), STARPU_TASK_GET_HANDLE(task, 2), starpu_worker_get_memory_node(starpu_worker_get_id_check()), index_current_popped_task[current_gpu]);
-		
 		/* Getting the number of data to load */
 		for (i = 0; i <  STARPU_TASK_GET_NBUFFERS(task); i++)
 		{
-			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), starpu_worker_get_memory_node(starpu_worker_get_id_check())))
+			if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, i), current_gpu))
 			{
 				nb_data_to_load++;
 				
-				/* To know if I load a line or a column */
+				/* To know if I load a line or a column. Attention ca marche pas si plus de 3 données dans la tâche. */
 				if (i == 0)
 				{
 					x_to_load = 1;
 				}
-				if (i == 1)
+				else if (i == 1)
 				{
 					y_to_load = 1;
 				}
-				if (i == 2)
+				else if (i == 2)
 				{
 					z_to_load = 1;
 				}
+				else
+				{
+					perror("Cas pas géré dans get data to load.\n"); exit(0);
+				}
 			}
 		}
-		
-		/* Printing the number of data to load */
-		FILE *f = NULL;
-		FILE *f2 = NULL;
-		char str[2];
-		sprintf(str, "%d", current_gpu); /* To get the index of the current GPU */
-		/* To open the right file */
-		int size = strlen("Output_maxime/Data_to_load_GPU_") + strlen(str);
-		char *path = (char *)malloc(size);
-		strcpy(path, "Output_maxime/Data_to_load_GPU_");
-		strcat(path, str);
-	
-		if (index_current_popped_task[current_gpu] == 1)
-		{
-			/* We are on the first task so I open the file in w */
-			f = fopen(path, "w");
-			fprintf(f, "1	%d\n", nb_data_to_load);
-		}
-		else
-		{
-			f = fopen(path, "a");
-			fprintf(f, "%d	%d\n", index_current_popped_task[current_gpu], nb_data_to_load);
-		}
+		FILE *f2 = NULL;	
 		int tab_coordinates[2];
-		starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
-		if (index_current_popped_task_all_gpu == 1)
-		{
-			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
-		}
-		else
-		{
-			f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
-		}
-		if (starpu_get_env_number_default("PRINT3D", 0) != 0)
+		/* Cas 2D et 3D qui marche. */
+		if (strcmp(starpu_task_get_name(task), "starpu_sgemm_gemm") == 0)
 		{
 			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
-			fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
-			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
-			fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu);
+			
+			if (index_current_popped_task_all_gpu == 1)
+			{
+				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
+			}
+			else
+			{
+				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
+			}
+			if (print3d != 0)
+			{
+				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+				fprintf(f2, "%d	%d", tab_coordinates[0], tab_coordinates[1]);
+				starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
+				fprintf(f2, "	%d	%d	%d	%d	%d\n", tab_coordinates[0], x_to_load, y_to_load, z_to_load, current_gpu - 1);
+			}
+			else
+			{
+				fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu - 1);
+			}
+		}
+		else if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "chol_model_21") == 0 || strcmp(starpu_task_get_name(task), "chol_model_22") == 0) /* Cas Cholesky*/
+		{
+			/* Ouverture du fichier. */
+			if (index_current_popped_task_all_gpu == 1)
+			{
+				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "w");
+				fprintf(f2, "TASK	COORDY	COORDX	XTOLOAD YTOLOAD ZTOLOAD	GPU	ITERATIONK\n");
+			}
+			else
+			{
+				f2 = fopen("Output_maxime/Data_to_load_SCHEDULER.txt", "a");
+			}
+			
+			/* Impression du type de tâche. */
+			if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0)
+			{
+				fprintf(f2, "POTRF");
+			}
+			else if (strcmp(starpu_task_get_name(task), "chol_model_21") == 0)
+			{
+				fprintf(f2, "TRSM");
+			}
+			else
+			{
+				/* Cas SYRK et GEMM que je distingue avec la donnée en double pour SYRK. */
+				if (STARPU_TASK_GET_HANDLE(task, 0) == STARPU_TASK_GET_HANDLE(task, 1))
+				{
+					fprintf(f2, "SYRK");
+					/* Attention pour SYRK il ne faut pas compter en double la donnée à charger. Donc je regarde si je l'a compté en double je fais --. */
+					if(!starpu_data_is_on_node_excluding_prefetch(STARPU_TASK_GET_HANDLE(task, 0), current_gpu))
+					{
+						y_to_load = 0;
+					}
+				}
+				else
+				{
+					fprintf(f2, "GEMM");
+				}
+			}
+			
+			/* La je n'imprime que les coords de la dernière donnée de la tâche car c'est ce qui me donne la place dans le triangle de Cholesky. */
+			starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, STARPU_TASK_GET_NBUFFERS(task) - 1), 2, tab_coordinates);
+			fprintf(f2, "	%d	%d	%d	%d	%d	%d	%ld\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, z_to_load, current_gpu - 1, task->iterations[0]);
 		}
 		else
 		{
-			fprintf(f2, "%d	%d	%d	%d	%d\n", tab_coordinates[0], tab_coordinates[1], x_to_load, y_to_load, current_gpu);
+			perror("Dans get data to load je ne gère que GEMM et CHOLESKY :/.\n"); 
+			exit(0);
 		}
-		fclose(f);
 		fclose(f2);
 	}
 	#endif
@@ -488,7 +516,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	{
 		 /* To get the data prefetched for visualization in 2D. */
 		#ifdef PRINT_PYTHON
-		print_data_to_load_prefetch(task, best_workerid);
+		print_data_to_load_prefetch(task, best_workerid + 1);
 		#endif
 		
 		starpu_prefetch_task_input_for(task, best_workerid);
