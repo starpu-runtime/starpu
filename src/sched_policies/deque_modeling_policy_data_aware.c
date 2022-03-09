@@ -23,7 +23,8 @@
 /* Distributed queues using performance modeling to assign tasks */
 
 /* Pour faire des visu python */
-//~ #define PRINT
+#define PRINT
+#define PRINT_PYTHON
 
 #include <schedulers/HFP.h>
 
@@ -281,7 +282,7 @@ static struct starpu_task *dmda_pop_ready_task(unsigned sched_ctx_id)
 	struct starpu_task *task = _dmda_pop_task(sched_ctx_id, 1);
 	
 	/* Getting the data we need to fetch for visualization */
-	#ifdef PRINT
+	#ifdef PRINT_PYTHON
 	if (task != NULL)
 	{
 		int current_gpu = starpu_worker_get_id();
@@ -486,7 +487,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	if (starpu_get_prefetch_flag())
 	{
 		 /* To get the data prefetched for visualization in 2D. */
-		#ifdef PRINT
+		#ifdef PRINT_PYTHON
 		print_data_to_load_prefetch(task, best_workerid);
 		#endif
 		
@@ -988,17 +989,24 @@ static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned 
 static void initialize_dmda_policy(unsigned sched_ctx_id)
 {
 	/* Pour visualsiation en python */
+	#ifdef PRINT_PYTHON
 	Ngpu = get_number_GPU();
 	index_current_popped_task = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_all_gpu = 0;
 	index_current_popped_task_all_gpu_prefetch = 0;
+	#endif
 	
 	struct _starpu_dmda_data *dt;
 	_STARPU_CALLOC(dt, 1, sizeof(struct _starpu_dmda_data));
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)dt);
 
+	#ifdef PRINT_PYTHON
+	print_n = starpu_get_env_number_default("PRINT_N", 0);
+	print3d = starpu_get_env_number_default("PRINT3D", 0);
+	#endif
+	
 	dt->alpha = starpu_get_env_float_default("STARPU_SCHED_ALPHA", _STARPU_SCHED_ALPHA_DEFAULT);
 	dt->beta = starpu_get_env_float_default("STARPU_SCHED_BETA", _STARPU_SCHED_BETA_DEFAULT);
 	/* data->_gamma: cost of one Joule in us. If gamma is set to 10^6, then one Joule cost 1s */
@@ -1060,7 +1068,7 @@ static void deinitialize_dmda_policy(unsigned sched_ctx_id)
  * value of the expected start, end, length, etc... */
 static void dmda_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id)
 {
-	#ifdef PRINT
+	#ifdef PRINT_PYTHON
 	if (starpu_get_env_number_default("PRINT_N", 0) != 0)
 	{
 		if (index_current_task_for_visualization == 0) 

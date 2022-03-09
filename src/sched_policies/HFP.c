@@ -1000,13 +1000,17 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 	int tab_coordinates[2];
 	
 	int current_gpu = starpu_worker_get_memory_node(starpu_worker_get_id());
-
+	
+	//~ printf("%s\n", appli);
+	
 	/* For the coordinates It write the coordinates (with Z for 3D), then the GPU and then the number of data needed to load for this task */
 	if (print_n != 0 && (strcmp(appli, "starpu_sgemm_gemm") == 0))
 	{
-		if (index_task_currently_treated == 0) 
+		//~ if (index_task_currently_treated == 0) 
+		if (index_task == 0) 
 		{
 			f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "w");
+			printf("open w\n");
 		}
 		else
 		{
@@ -1044,7 +1048,8 @@ void print_effective_order_in_file (struct starpu_task *task, int index_task)
 	}
 	else if (strcmp(starpu_task_get_name(task), "chol_model_11") == 0 || strcmp(starpu_task_get_name(task), "chol_model_21") == 0 || strcmp(starpu_task_get_name(task), "chol_model_22") == 0) /* Cas Cholesky*/
 	{		
-		if (index_task_currently_treated == 0) 
+		//~ if (index_task_currently_treated == 0) 
+		if (index_task == 0) 
 		{
 			/* Ouverture du fichier. */
 			f = fopen("Output_maxime/Data_coordinates_order_last_SCHEDULER.txt", "w");

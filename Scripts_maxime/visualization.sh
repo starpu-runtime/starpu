@@ -25,9 +25,14 @@ if [ $NGPU = 1 ]
 	MULTI=0
 fi
 
+#~ LA PERMUTATION 
+# ~ #~ /./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) HFP 1 1 QUe en 2D ? Oui :/.
+
+
 if [ $DOSSIER = "Matrice_ligne" ]
 	then
 	STARPU_SCHED=${ORDO} SEED=$((N/5)) EVICTION_STRATEGY_DYNAMIC_OUTER=$((EVICTION)) DATA_POP_POLICY=$((POP_POLICY)) STARPU_WORKER_STATS=1 STARPU_BUS_STATS=1 STARPU_GENERATE_TRACE=1 PRINT_IN_TERMINAL=1 PRINT_N=$((N)) STARPU_SCHED_READY=0 STARPU_NTASKS_THRESHOLD=10 STARPU_CUDA_PIPELINE=5 MULTIGPU=$((MULTI)) BELADY=0 ORDER_U=1 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=gemini-1-fgcs ./examples/mult/sgemm -xy $((960*N)) -nblocks $((N)) -iter 1
+	/./home/gonthier/these_gonthier_maxime/Code/permutation_visu_python $((N)) DARTS 1 1
 	python3 /home/gonthier/these_gonthier_maxime/Code/visualisation2D.py ${N} ${ORDO} ${NGPU} ${DOSSIER} 1
 fi
 if [ $DOSSIER = "MatriceZ4" ]
