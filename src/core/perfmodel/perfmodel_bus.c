@@ -152,6 +152,9 @@ hwloc_topology_t _starpu_perfmodel_get_hwtopology()
 
 #if (defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)) && !defined(STARPU_SIMGRID)
 
+/* TODO: factorize by using starpu_malloc, and the driver's malloc/free_on_node, copy_data_from/to.
+ * Will probably need to introduce a method for cudaDeviceReset,
+ * for MPI_Barrier, and for determining which combinations should be measured. */
 
 #ifdef STARPU_USE_CUDA
 
@@ -2841,6 +2844,7 @@ static void write_bus_platform_file_content(int version)
 		memset(nvlink, 0, sizeof(nvlink));
 		memset(nvlinkhost, 0, sizeof(nvlinkhost));
 
+		/* TODO: move to drivers */
 #if defined(STARPU_HAVE_LIBNVIDIA_ML) && !defined(STARPU_USE_CUDA0)
 		/* First find NVLinks */
 		struct cudaDeviceProp props[ncuda];
