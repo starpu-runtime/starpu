@@ -26,7 +26,7 @@
 #include <core/topology.h>
 #include <limits.h>
 
-int threshold_dmdar;
+//~ int threshold_dmdar;
 
 /*
 static int is_sorted_task_list(struct starpu_task * task)
@@ -412,12 +412,19 @@ int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
 	return cnt;
 }
 
+//~ #define PRINT
+
 struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities)
 {
 	struct starpu_task *task = NULL, *current;
 
 	if (fifo_queue->ntasks == 0)
+	{
+		#ifdef PRINT
+		printf("Return NULL because ntasks == 0\n"); fflush(stdout);
+		#endif
 		return NULL;
+	}
 
 	if (fifo_queue->ntasks > 0)
 	{
@@ -425,7 +432,12 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 		task = starpu_task_list_front(&fifo_queue->taskq);
 		if (STARPU_UNLIKELY(!task))
+		{
+			#ifdef PRINT
+			printf("Return NULL in STARPU_UNLIKELY(!task)\n"); fflush(stdout);
+			#endif
 			return NULL;
+		}
 
 		int first_task_priority = task->priority;
 
@@ -485,7 +497,16 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 		starpu_task_list_erase(&fifo_queue->taskq, task);
 	}
-
+	
+	#ifdef PRINT
+	int tab_coordinates[2];
+	printf("Return task %p in _starpu_fifo_pop_first_ready_task of coords:", task); fflush(stdout);
+	starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 2), 2, tab_coordinates);
+	printf(" %d %d", tab_coordinates[0], tab_coordinates[1]);	
+	starpu_data_get_coordinates_array(STARPU_TASK_GET_HANDLE(task, 0), 2, tab_coordinates);
+	printf(" %d\n", tab_coordinates[0]);
+	#endif
+			
 	return task;
 }
 
