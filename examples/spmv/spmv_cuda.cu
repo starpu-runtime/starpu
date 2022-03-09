@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,9 +20,9 @@
 
 #define MIN(a,b)	((a)<(b)?(a):(b))
 
-extern "C" __global__ void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr, 
-			uint32_t firstentry, uint32_t elemsize, 
-			float *vecin, uint32_t nx_in, uint32_t elemsize1, float * vecout, uint32_t nx_out, uint32_t elemsize2)
+extern "C" __global__ void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr,
+				       uint32_t firstentry, uint32_t elemsize,
+				       float *vecin, uint32_t nx_in, uint32_t elemsize1, float * vecout, uint32_t nx_out, uint32_t elemsize2)
 {
 	/* only one dimension is used here */
 	unsigned nthreads = gridDim.x*blockDim.x;
@@ -38,7 +38,7 @@ extern "C" __global__ void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval
 		unsigned index;
 
 		unsigned firstindex = rowptr[row] - firstentry;
-		unsigned lastindex = rowptr[row+1] - firstentry; 
+		unsigned lastindex = rowptr[row+1] - firstentry;
 
 		for (index = firstindex; index < lastindex; index++)
 		{
@@ -49,9 +49,9 @@ extern "C" __global__ void spmv_kernel(uint32_t nnz, uint32_t nrow, float *nzval
 	}
 }
 
-extern "C" __global__ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr, 
-			uint32_t firstentry, 
-			float *vecin, uint32_t nx_in, float * vecout, uint32_t nx_out)
+extern "C" __global__ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzval, uint32_t *colind, uint32_t *rowptr,
+					 uint32_t firstentry,
+					 float *vecin, uint32_t nx_in, float * vecout, uint32_t nx_out)
 {
 	/* only one dimension is used here */
 	unsigned block_rowstart = blockIdx.x*( (nrow + gridDim.x - 1)/gridDim.x );
@@ -73,7 +73,7 @@ extern "C" __global__ void spmv_kernel_3(uint32_t nnz, uint32_t nrow, float *nzv
 
 		vecout[row] = tmp;
 	}
-	
+
 
 }
 
@@ -99,6 +99,5 @@ extern "C" void spmv_kernel_cuda(void *descr[], void *args)
 		(nnz, nrow, nzval, colind, rowptr, firstentry, vecin, nx_in, vecout, nx_out);
 	cudaError_t status = cudaGetLastError();
 	if (status != cudaSuccess) STARPU_CUDA_REPORT_ERROR(status);
+	cudaStreamSynchronize(starpu_cuda_get_local_stream());
 }
-
-

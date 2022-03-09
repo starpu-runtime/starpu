@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 	uint32_t nnz;
 	uint32_t *colind;
 	uint32_t *rowptr;
-	
+
 	/* Input and Output vectors */
 	float *vector_in_ptr;
 	float *vector_out_ptr;
@@ -136,7 +136,7 @@ int main(int argc, char **argv)
 			colind[pos] = row-1;
 			pos++;
 		}
-		
+
 		nzval[pos] = MIDDLE_BAND;
 		colind[pos] = row;
 		pos++;
@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 	STARPU_ASSERT(pos == nnz);
 
 	rowptr[size] = nnz;
-	
+
 	/* initiate the 2 vectors */
 	starpu_malloc((void **)&vector_in_ptr, size*sizeof(float));
 	starpu_malloc((void **)&vector_out_ptr, size*sizeof(float));
@@ -197,11 +197,11 @@ int main(int argc, char **argv)
 	{
 		struct starpu_task *task = starpu_task_create();
 		task->cl = &spmv_cl;
-	
+
 		task->handles[0] = starpu_data_get_sub_data(sparse_matrix, 1, part);
 		task->handles[1] = vector_in;
 		task->handles[2] = starpu_data_get_sub_data(vector_out, 1, part);
-	
+
 		ret = starpu_task_submit(task);
 		if (STARPU_UNLIKELY(ret == -ENODEV))
 		{
