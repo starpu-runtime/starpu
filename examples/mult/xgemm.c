@@ -901,7 +901,7 @@ int main(int argc, char **argv)
 					starpu_data_handle_t Ctile = starpu_data_get_sub_data(C_handle, 2, x, y);
 					if (invalidate_c_tile == 1)
 					{
-						starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N>35 cela plombe ces performances au niveau de EAGER. La raison est */
+						starpu_data_invalidate(Ctile); /* Modifie les perfs pour DMDAR, à N>35 cela plombe ces performances au niveau de EAGER. La raison est l'allocation. */
 					}
 					for (z = 0; z < nslicesz; z++)
 					{
@@ -912,35 +912,27 @@ int main(int argc, char **argv)
 
 							if (z == 0)
 							{
-								if (display_env == 0) /* Pour DMDAR */
-								{
-									task->cl = &cl_gemm0_w_dmdar; /* Cas commute pour ajouter les écritures à DMDAR sans le pénaliser. */
-								}
-								else if (display_env == 2) /* Pour RCM */
-								{
-									task->cl = &cl_gemm0;
-								}
-								else
-								{
-									task->cl = &cl_gemmredux; /* Cas redux pour ajouter les écritures à HFP, RCM et MST. */
-								}
-								//~ task->cl = &cl_gemm0;
+								//~ if (display_env == 0) /* Pour DMDAR */
+								//~ {
+									//~ task->cl = &cl_gemm0_w_dmdar; /* Cas commute pour ajouter les écritures à DMDAR sans le pénaliser. */
+								//~ }
+								//~ else
+								//~ {
+									//~ task->cl = &cl_gemmredux; /* Cas redux pour ajouter les écritures à HFP, RCM et MST. */
+								//~ }
+								task->cl = &cl_gemm0;
 							}
 							else
 							{
-								if (display_env == 0) /* Pour DMDAR */
-								{
-									task->cl = &cl_gemm_w_dmdar; /* Cas commute pour ajouter les écritures à DMDAR sans le pénaliser. */
-								}
-								else if (display_env == 2) /* Pour RCM */
-								{
-									task->cl = &cl_gemm;
-								}
-								else
-								{
-									task->cl = &cl_gemmredux; /* Cas redux pour ajouter les écritures à HFP, RCM et MST. */
-								}
-								//~ task->cl = &cl_gemm;
+								//~ if (display_env == 0) /* Pour DMDAR */
+								//~ {
+									//~ task->cl = &cl_gemm_w_dmdar; /* Cas commute pour ajouter les écritures à DMDAR sans le pénaliser. */
+								//~ }
+								//~ else
+								//~ {
+									//~ task->cl = &cl_gemmredux; /* Cas redux pour ajouter les écritures à HFP, RCM et MST. */
+								//~ }
+								task->cl = &cl_gemm;
 							}
 
 							task->handles[0] = starpu_data_get_sub_data(A_handle, 2, z, y);

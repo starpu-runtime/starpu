@@ -15,6 +15,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+//~ #define PRINT
+
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/memalloc.h>
@@ -642,7 +644,7 @@ int starpu_data_can_evict(starpu_data_handle_t handle, unsigned node, enum starp
 	if (!may_free_handle(handle, node)) {
 		/* Somebody refers to it */
 		#ifdef PRINT
-		printf("Data is referred to.\n");
+		printf("Data %p is referred to.\n", handle);
 		#endif
 		return 0; }
 		
