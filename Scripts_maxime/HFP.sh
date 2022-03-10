@@ -222,8 +222,10 @@ then
 	if [ $MODEL = "HFP_FGCS" ] || [ $MODEL = "HFP" ] || [ $MODEL = "HFP_no_C_tile" ]
 	then
 		ECHELLE_X=5
-		if [ $NGPU = 1 ]
+	   if [ $DOSSIER = "Matrice3DZN" ]
 		then
+			ECHELLE_X=2
+		fi
 		    NB_ALGO_TESTE=8
 		    echo "############## Modular eager prefetching ##############"
 		    for ((i=1 ; i<=(($NB_TAILLE_TESTE)); i++))
@@ -313,7 +315,6 @@ then
 			    INVALIDATE_C_TILE=0 STARPU_SIMGRID_CUDA_MALLOC_COST=0 STARPU_SCHED=cuthillmckee REVERSE=1 STARPU_SCHED_READY=0 STARPU_NTASKS_THRESHOLD=$((TH)) STARPU_CUDA_PIPELINE=$((CP)) STARPU_LIMIT_CUDA_MEM=$((CM)) STARPU_MINIMUM_CLEAN_BUFFERS=0 STARPU_TARGET_CLEAN_BUFFERS=0 STARPU_NCPU=0 STARPU_NCUDA=$((NGPU)) STARPU_NOPENCL=0 STARPU_HOSTNAME=${HOST} STARPU_BUS_STATS=1 STARPU_BUS_STATS_FILE="${FICHIER_BUS:0}" ./examples/mult/sgemm -3d -xy $((960*N)) -nblocks $((N)) -z $((960*ZN)) -nblocksz $((ZN)) -iter $((NITER)) | tail -n 1 >> ${FICHIER_RAW:0}
 			    sed -n '4,'$((NCOMBINAISONS))'p' ${FICHIER_BUS:0} >> ${FICHIER_RAW_DT:0}
 		    done
-		fi
 	fi
 fi
 if [ $DOSSIER = "Cholesky" ]
