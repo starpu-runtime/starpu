@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -333,7 +333,9 @@ int main(void)
 
 If that program does not find your device, the problem is not at the StarPU
 level, but the CUDA drivers, check the documentation of your CUDA
-setup.
+setup.  This program is available in the source directory of
+StarPU in <c>tools/gpus/check_cuda.c</c>, along with another CUDA
+program <c>tools/gpus/cuda_list.cu</c>.
 
 \section OpenCLDrivers StarPU does not see my OpenCL device
 
@@ -384,7 +386,21 @@ int main(void)
 
 If that program does not find your device, the problem is not at the StarPU
 level, but the OpenCL drivers, check the documentation of your OpenCL
-implementation.
+implementation. This program is available in the source directory of
+StarPU in <c>tools/gpus/check_opencl.c</c>.
+
+\section CUDACopyError There seems to be errors when copying to and from CUDA devices
+
+You should first try to disable asynchronous copies between CUDA and
+CPU workers. You can either do that with the configuration parameter
+\ref disable-asynchronous-cuda-copy "--disable-asynchronous-cuda-copy"
+or with the environment variable \ref
+STARPU_DISABLE_ASYNCHRONOUS_COPY.
+
+If you application keeps failing, you will find in the source
+directory of StarPU, a directory named <c>tools/gpus</c> with various
+programs. <c>cuda_copy.cu</c> is testing the direct or undirect copy
+between CUDA devices.
 
 \section IncorrectPerformanceModelFile I keep getting a "Incorrect performance model file" error
 
