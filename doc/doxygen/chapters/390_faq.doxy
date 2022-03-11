@@ -402,6 +402,10 @@ directory of StarPU, a directory named <c>tools/gpus</c> with various
 programs. <c>cuda_copy.cu</c> is testing the direct or undirect copy
 between CUDA devices.
 
+You can also try to just disable the direct gpu-gpu transfers (known
+to fail under some hardware/cuda combinations) by setting the \ref
+STARPU_ENABLE_CUDA_GPU_GPU_DIRECT environment variable to 0.
+
 \section IncorrectPerformanceModelFile I keep getting a "Incorrect performance model file" error
 
 The performance model file, used by StarPU to record the performance of
