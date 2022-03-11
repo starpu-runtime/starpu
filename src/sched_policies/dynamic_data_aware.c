@@ -47,7 +47,7 @@ struct gpu_pulled_task *tab_gpu_pulled_task;
 //~ int number_task_out_DARTS; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 //~ int number_task_out_DARTS_2; /* Utile pour savoir quand réinit quand il y a plusieurs itérations. */
 int NT_DARTS;
-int iteration;
+int iteration_DARTS;
 
 #ifdef PRINT_STATS
 /* Pour les compteurs. */
@@ -112,11 +112,11 @@ void new_iteration()
 {	
 	/* Printing stats in files. Préciser PRINT_N dans les var d'env. */	
 	#ifdef PRINT
-	printf("############### Itération n°%d ###############\n", iteration + 1); fflush(stdout);
+	printf("############### Itération n°%d ###############\n", iteration_DARTS + 1); fflush(stdout);
 	#endif
 		
 	#ifdef PRINT_STATS
-	if (iteration == 11 || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération. */
+	if (iteration_DARTS == 11 || starpu_get_env_number_default("PRINT_TIME", 0) == 2) /* PRINT_TIME = 2 pour quand on a 1 seule itération. */
 	{
 		FILE *f_new_iteration = fopen("Output_maxime/Data/DARTS/Nb_conflit_donnee.csv", "a");
 		fprintf(f_new_iteration , "%d,%d,%d\n", print_n, number_data_conflict/11 + number_data_conflict%11, number_critical_data_conflict/11 + number_critical_data_conflict%11);
@@ -143,7 +143,7 @@ void new_iteration()
 	}
 	#endif
 	
-	iteration++; /* Variable globale qui sert à ré-init les données et tâches. */
+	iteration_DARTS++; /* Variable globale qui sert à ré-init les données et tâches. */
 
 	/* Re-init of planned task struct containing datanotused and other things. */
 	//~ int i = 0;
@@ -449,7 +449,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 					if (STARPU_TASK_GET_HANDLE(task, j)->user_data != NULL)
 					{
 						struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, j)->user_data;
-						if (hud->last_iteration_DARTS != iteration) /* On est sur une nouvelle itération donc on peut init. */
+						if (hud->last_iteration_DARTS != iteration_DARTS) /* On est sur une nouvelle itération donc on peut init. */
 						{
 							//~ printf("Init new data %p.\n", STARPU_TASK_GET_HANDLE(task, j));
 							if (data_order == 1)
@@ -505,12 +505,12 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 		}
 		
 		/* Init hud in the data containing a way to track the number of task in 
-		 * planned and pulled_task but also a way to check last iteration for this data and last check for CHOOSE_FROM_MEM=1
+		 * planned and pulled_task but also a way to check last iteration_DARTS for this data and last check for CHOOSE_FROM_MEM=1
 		 * so we don't look twice at the same data. */
 		if (STARPU_TASK_GET_HANDLE(task, i)->user_data == NULL)
 		{
 			struct handle_user_data * hud = malloc(sizeof(*hud));
-			hud->last_iteration_DARTS = iteration;
+			hud->last_iteration_DARTS = iteration_DARTS;
 			
 			/* Need to init them with the number of GPU */
 			hud->nb_task_in_pulled_task = malloc(Ngpu*sizeof(int));
@@ -528,7 +528,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 		else
 		{
 			struct handle_user_data * hud = STARPU_TASK_GET_HANDLE(task, i)->user_data;
-			if (hud->last_iteration_DARTS != iteration) /* Re-init values in hud. */
+			if (hud->last_iteration_DARTS != iteration_DARTS) /* Re-init values in hud. */
 			{
 				for (j = 0; j < Ngpu; j++)
 				{
@@ -536,7 +536,7 @@ void initialize_task_data_gpu_single_task(struct starpu_task *task)
 					hud->nb_task_in_planned_task[j] = 0;
 					hud->last_check_to_choose_from[j] = 0;
 				}
-				hud->last_iteration_DARTS = iteration;
+				hud->last_iteration_DARTS = iteration_DARTS;
 				STARPU_TASK_GET_HANDLE(task, i)->user_data = hud;
 			}
 		}
@@ -1276,7 +1276,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 		printf("Hey! C'est la première tâche du GPU n°%d!\n", current_gpu); fflush(stdout);	
 		#endif
 		#ifdef PRINT_STATS
-		if (iteration == 1)
+		if (iteration_DARTS == 1)
 		{
 			FILE *f = NULL;
 			char str[2];
@@ -1820,7 +1820,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 			if (Dopt[i] == handle_popped && handle_popped != NULL)
 			{				
 				#ifdef PRINT
-				printf("Iteration %d. Same data between GPU %d and GPU %d: %p.\n", iteration, current_gpu, i + 1, handle_popped); fflush(stdout);
+				printf("Iteration %d. Same data between GPU %d and GPU %d: %p.\n", iteration_DARTS, current_gpu, i + 1, handle_popped); fflush(stdout);
 				#endif
 				#ifdef PRINT_STATS
 				number_data_conflict++;
@@ -1832,7 +1832,7 @@ void dynamic_data_aware_scheduling_3D_matrix(struct starpu_task_list *main_task_
 	}
 		
 	#ifdef PRINT_STATS
-	if (iteration == 1)
+	if (iteration_DARTS == 1)
 	{
 		FILE *f = NULL;
 		char str[2];
@@ -3170,7 +3170,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
     
     //~ number_task_out_DARTS_2++; /* TODO utile cela ? */
     /* Reset pour prochaine itération, a modifier */
-    //~ if (iteration == 10)
+    //~ if (iteration_DARTS == 10)
 	//~ {
 		//~ printf("RESET in get task done\n"); fflush(stdout);
 		//~ number_task_out_DARTS_2 = 0;
@@ -3181,7 +3181,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		//~ iteration_DARTS++;
 		
 		/* TODO : a suppr */
-		//~ if (iteration == 10)
+		//~ if (iteration_DARTS == 10)
 		//~ {
 			//~ FILE *f2 = fopen("Output_maxime/Data/Nb_conflit_donnee.txt", "a");
 			//~ fprintf(f2 , "%d\n", number_data_conflict);
@@ -3192,7 +3192,7 @@ void get_task_done(struct starpu_task *task, unsigned sci)
 		//~ }
 		
 		//~ #ifdef PRINT /* TODO : Il faudrat metre 10 la cr la 11ème je ne la ++ pas dans la fonction de l'appli ? */
-		//~ if ((iteration == 10 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) //PRINT_TIME = 2 pour quand on a 1 seule itération
+		//~ if ((iteration_DARTS == 10 && starpu_get_env_number_default("PRINT_TIME", 0) == 1) || starpu_get_env_number_default("PRINT_TIME", 0) == 2) //PRINT_TIME = 2 pour quand on a 1 seule itération
 		//~ {
 			//~ gettimeofday(&time_end_createtolasttaskfinished, NULL);
 			//~ time_total_createtolasttaskfinished += (time_end_createtolasttaskfinished.tv_sec - time_start_createtolasttaskfinished.tv_sec)*1000000LL + time_end_createtolasttaskfinished.tv_usec - time_start_createtolasttaskfinished.tv_usec;
