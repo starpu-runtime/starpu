@@ -3702,6 +3702,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   chmod +x tools/starpu_paje_draw_histogram
   chmod +x tools/starpu_paje_state_stats
   chmod +x tools/starpu_paje_summary
+  chmod +x tools/starpu_config
   chmod +x tools/starpu_mlr_analysis
   chmod +x tools/starpu_paje_sort
   chmod +x tools/starpu_smpirun
@@ -3806,6 +3807,7 @@ AC_OUTPUT([
 	tools/starpu_paje_draw_histogram
 	tools/starpu_paje_state_stats
 	tools/starpu_paje_summary
+	tools/starpu_config
 	tools/starpu_mlr_analysis
 	tools/starpu_paje_sort
 	tools/starpu_smpirun

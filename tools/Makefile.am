@@ -423,6 +423,7 @@ dist_bin_SCRIPTS +=				\
 	starpu_codelet_histo_profile		\
 	starpu_codelet_profile			\
 	starpu_env				\
+	starpu_config				\
 	starpu_mpi_comm_matrix.py		\
 	starpu_fxt_number_events_to_names.py	\
 	starpu_paje_draw_histogram		\
@@ -491,6 +492,9 @@ starpu_paje_draw_histogram.1: starpu_paje_draw_histogram
 starpu_paje_state_stats.1: starpu_paje_state_stats
 	@chmod +x $<
 	$(V_help2man) help2man --no-discard-stderr -N -n "Print statistics from StarPU trace" --output=$@ ./$<
+starpu_config.1: starpu_config
+	@chmod +x $<
+	$(V_help2man) help2man --no-discard-stderr -N -n "Display StarPU configuration" --output=$@ ./$<
 
 if STARPU_USE_FXT
 starpu_fxt_tool.1: starpu_fxt_tool$(EXEEXT)
@@ -515,7 +519,8 @@ dist_man1_MANS =\
 	starpu_mpi_comm_matrix.1 \
 	starpu_fxt_number_events_to_names.1 \
 	starpu_paje_draw_histogram.1 \
-	starpu_paje_state_stats.1
+	starpu_paje_state_stats.1	\
+	starpu_config.1
 
 if STARPU_USE_FXT
 dist_man1_MANS +=\
@@ -525,7 +530,7 @@ dist_man1_MANS +=\
 endif
 
 clean-local:
-	$(RM) $(dist_man1_MANS)
+	$(RM) $(dist_man1_MANS) starpu_config.cfg
 
 endif
 
@@ -537,3 +542,8 @@ endif
 if STARPU_USE_TCPIP_MASTER_SLAVE
 dist_bin_SCRIPTS += starpu_tcpipexec
 endif
+
+dist_pkgdata_DATA += starpu_config.cfg
+starpu_config.cfg: $(top_builddir)/src/common/config.h
+	grep STARPU $< | grep '#' > $@
+

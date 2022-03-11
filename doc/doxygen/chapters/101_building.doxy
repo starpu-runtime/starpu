@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -46,6 +46,9 @@ recommended (see \ref InstallingASourcePackage).
 </li>
 </ul>
 
+Whatever solution you go for, the tool <c>bin/starpu_config</c> can be
+used to display all the configuration parameters StarPU was installed
+with.
 
 \section InstallingABinaryPackage Installing a Binary Package
 

@@ -84,6 +84,8 @@ Small features:
   * Add cuda0 and cuda1 example drivers.
   * New STARPU_EXPECTED_TRANSFER_TIME_WRITEBACK environment variable to tune
     transfer estimation times.
+  * Add tool starpu_config to display the configuration StarPU was
+    compiled with
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
