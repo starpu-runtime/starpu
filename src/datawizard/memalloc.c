@@ -26,8 +26,6 @@
 #include <starpu.h>
 #include <common/uthash.h>
 
-int iteration = 1;
-
 /* Variables used for Belady in xgemm.c and HFP.c and mst.c */
 struct starpu_task *task_currently_treated = NULL;
 
