@@ -395,7 +395,7 @@ You should first try to disable asynchronous copies between CUDA and
 CPU workers. You can either do that with the configuration parameter
 \ref disable-asynchronous-cuda-copy "--disable-asynchronous-cuda-copy"
 or with the environment variable \ref
-STARPU_DISABLE_ASYNCHRONOUS_COPY.
+STARPU_DISABLE_ASYNCHRONOUS_CUDA_COPY.
 
 If you application keeps failing, you will find in the source
 directory of StarPU, a directory named <c>tools/gpus</c> with various
