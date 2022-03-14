@@ -46,6 +46,9 @@ extern "C"
 #ifdef STARPU_HAVE_SIMGRID_HOST_H
 #include <simgrid/host.h>
 #endif
+#if defined(HAVE_SIMGRID_SIMDAG_H) && (SIMGRID_VERSION >= 31300)
+#include <simgrid/simdag.h>
+#endif
 
 #include <xbt/xbt_os_time.h>
 
