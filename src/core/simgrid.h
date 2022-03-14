@@ -20,11 +20,6 @@
 
 /** @file */
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-
 /* Note: when changing something here, update the include list in configure.ac
  * in the part that tries to enable stdc++11 */
 #ifdef STARPU_SIMGRID
@@ -51,6 +46,11 @@ extern "C"
 #endif
 
 #include <xbt/xbt_os_time.h>
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 #pragma GCC visibility push(hidden)
 
