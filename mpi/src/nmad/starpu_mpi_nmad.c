@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Guillaume Beauchamp
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -504,7 +504,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 	int i;
 	for (i = 0; i < *(argc_argv->argc); i++)
 		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
-#ifdef HAVE_SG_ACTOR_DATA
+#if defined(HAVE_SG_ACTOR_DATA) || defined(HAVE_SG_ACTOR_SET_DATA)
 	_starpu_simgrid_actor_create("main", smpi_simulated_main_, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 #else
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);

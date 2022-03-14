@@ -1255,10 +1255,14 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 		argv_cpy[i] = strdup((*(argc_argv->argv))[i]);
 	void **tsd;
 	_STARPU_CALLOC(tsd, MAX_TSD + 1, sizeof(void*));
-#ifdef HAVE_SG_ACTOR_DATA
+#if defined(HAVE_SG_ACTOR_DATA) || defined(HAVE_SG_ACTOR_SET_DATA)
 	_starpu_simgrid_actor_create("main", smpi_simulated_main_, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
+#ifdef HAVE_SG_ACTOR_SET_DATA
+	sg_actor_set_data(sg_actor_self(), tsd);
+#else
 	sg_actor_data_set(sg_actor_self(), tsd);
+#endif
 #else
 	MSG_process_create_with_arguments("main", smpi_simulated_main_, NULL, _starpu_simgrid_get_host_by_name("MAIN"), *(argc_argv->argc), argv_cpy);
 	/* And set TSD for us */
