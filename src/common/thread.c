@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,7 +36,11 @@
 #include <xbt/synchro_core.h>
 #endif
 #include <smpi/smpi.h>
+#if !defined(HAVE_SG_ACTOR_GET_DATA) && !defined(HAVE_SG_ACTOR_DATA) && \
+	(defined(HAVE_SMPI_PROCESS_SET_USER_DATA) || defined(smpi_process_get_user_data)) && \
+	!(defined(HAVE_MSG_PROCESS_SELF_NAME) || defined(MSG_process_self_name))
 #include <simgrid/simix.h>
+#endif
 #else
 
 #if defined(STARPU_LINUX_SYS) && defined(STARPU_HAVE_XCHG)

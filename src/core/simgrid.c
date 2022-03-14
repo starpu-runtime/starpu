@@ -32,7 +32,10 @@
 #ifdef HAVE_GETRLIMIT
 #include <sys/resource.h>
 #endif
+#if (defined(HAVE_MSG_PROCESS_ATTACH) || defined(MSG_process_attach) || defined(HAVE_SG_ACTOR_ATTACH)) \
+	&& !defined(HAVE_SIMGRID_SET_MAESTRO)
 #include <simgrid/simix.h>
+#endif
 #ifdef STARPU_HAVE_SIMGRID_HOST_H
 #include <simgrid/host.h>
 #endif
