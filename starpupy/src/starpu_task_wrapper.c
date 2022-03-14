@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -630,9 +630,6 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		loop = Py_None;
 		fut = Py_None;
 
-		Py_INCREF(fut);
-		Py_INCREF(loop);
-
 		/*create Handle object Handle(None)*/
 		/*import Handle class*/
 		if (Handle_class == Py_None)
@@ -684,9 +681,6 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 			return NULL;
 		}
 
-		Py_INCREF(fut);
-		Py_INCREF(loop);
-
 		PyObject *PyTask = PyTask_FromTask(task);
 
 		/*set one of fut attribute to the task pointer*/
@@ -697,11 +691,12 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		/* return value is not fut or handle there are no loop and fut*/
 		loop = Py_None;
 		fut = Py_None;
-
-		Py_INCREF(fut);
-		Py_INCREF(loop);
-
 	}
+
+	/* these are decremented in epilogue_cb_func */
+	Py_INCREF(fut);
+	Py_INCREF(loop);
+
 	/*check the arguments of python function passed in*/
 	int i;
 	for(i = 1; i < PyTuple_Size(args)-1; i++)
