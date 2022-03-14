@@ -195,7 +195,6 @@ if test x$enable_simgrid = xyes ; then
 	AC_CHECK_HEADERS([simgrid/barrier.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_BARRIER_H], [1], [Define to 1 if you have barrier.h in simgrid/.])])
 	AC_CHECK_HEADERS([simgrid/engine.h])
 	AC_CHECK_HEADERS([simgrid/zone.h], [AC_DEFINE([STARPU_HAVE_SIMGRID_ZONE_H], [1], [Define to 1 if you have zone.h in simgrid/.])])
-	AC_CHECK_TYPES([smx_actor_t], [AC_DEFINE([STARPU_HAVE_SMX_ACTOR_T], [1], [Define to 1 if you have the smx_actor_t type.])], [], [[#include <simgrid/simix.h>]])
 
 	# Latest functions
 	AC_CHECK_FUNCS([MSG_process_attach sg_actor_attach sg_actor_init sg_actor_on_exit MSG_zone_get_hosts sg_zone_get_hosts MSG_process_self_name MSG_process_userdata_init sg_actor_get_data sg_actor_set_data sg_actor_data])
