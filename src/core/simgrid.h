@@ -55,7 +55,7 @@ struct _starpu_pthread_args
 	void *arg;
 };
 
-#if (SIMGRID_VERSION >= 31500)
+#if (SIMGRID_VERSION >= 31500) && (SIMGRID_VERSION != 31559)
 typedef sg_link_t starpu_sg_link_t;
 #else
 typedef SD_link_t starpu_sg_link_t;
