@@ -45,6 +45,7 @@
 #ifdef STARPU_HAVE_XBT_CONFIG_H
 #include <xbt/config.h>
 #endif
+#include <xbt/asserts.h>
 #include <smpi/smpi.h>
 
 #pragma weak starpu_main
