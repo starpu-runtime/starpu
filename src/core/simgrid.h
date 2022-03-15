@@ -43,12 +43,14 @@
 #endif
 
 #include <xbt/xbt_os_time.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+#ifdef STARPU_SIMGRID
 struct _starpu_pthread_args
 {
 	void *(*f)(void*);
