@@ -46,12 +46,14 @@
 #endif
 
 #include <xbt/xbt_os_time.h>
+#endif
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+#ifdef STARPU_SIMGRID
 #pragma GCC visibility push(hidden)
 
 struct _starpu_pthread_args
