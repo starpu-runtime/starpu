@@ -188,6 +188,24 @@ starpu_ssize_t starpu_memory_get_available_all_nodes()
 	return avail;
 }
 
+size_t starpu_memory_get_used(unsigned node)
+{
+	return _starpu_get_node_struct(node)->used_size;
+}
+
+size_t starpu_memory_get_used_all_nodes()
+{
+	unsigned memnodes, i;
+	memnodes = starpu_memory_nodes_get_count();
+	size_t used = 0;
+	for(i=0 ; i<memnodes ; i++)
+	{
+		size_t node = starpu_memory_get_used(i);
+		used += node;
+	}
+	return used;
+}
+
 void starpu_memory_wait_available(unsigned node, size_t size)
 {
 	struct _starpu_node *node_struct = _starpu_get_node_struct(node);

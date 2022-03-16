@@ -197,6 +197,11 @@ starpu_ssize_t starpu_memory_get_total(unsigned node);
 starpu_ssize_t starpu_memory_get_available(unsigned node);
 
 /**
+   Return the amount of used memory on the node.
+*/
+size_t starpu_memory_get_used(unsigned node);
+
+/**
    Return the amount of total memory on all memory nodes for whose a
    memory limit is defined (see Section \ref HowToLimitMemoryPerNode).
 */
@@ -208,6 +213,11 @@ starpu_ssize_t starpu_memory_get_total_all_nodes(void);
    HowToLimitMemoryPerNode).
 */
 starpu_ssize_t starpu_memory_get_available_all_nodes(void);
+
+/**
+   Return the amount of used memory on all memory nodes.
+*/
+size_t starpu_memory_get_used_all_nodes(void);
 
 /**
    If a memory limit is defined on the given node (see Section \ref
