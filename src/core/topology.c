@@ -979,6 +979,7 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 	hwloc_topology_set_flags(topology, HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM | HWLOC_TOPOLOGY_FLAG_WHOLE_IO);
 #endif
 #ifdef HAVE_HWLOC_TOPOLOGY_SET_COMPONENTS
+/* Driver porters: adding your driver here is optional, it is just to avoid hwloc components which take a lot of time to start.  */
 #  ifndef STARPU_USE_CUDA
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "cuda");
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "nvml");

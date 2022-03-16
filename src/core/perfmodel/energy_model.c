@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,7 @@
 #include <datawizard/datawizard.h>
 #include <core/task.h>
 
+/* Driver porters: adding your driver here is optional, only needed for the support of energy profiling.  */
 #ifdef STARPU_USE_CUDA
 #ifdef HAVE_NVMLDEVICEGETTOTALENERGYCONSUMPTION
 #include <nvml.h>

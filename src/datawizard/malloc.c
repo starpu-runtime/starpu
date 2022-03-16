@@ -78,6 +78,8 @@ void starpu_malloc_set_align(size_t align)
 		_malloc_align = align;
 }
 
+/* Driver porters: adding your driver here is optional, only needed for pinning host memory.  */
+
 #if (defined(STARPU_USE_CUDA) && !defined(STARPU_HAVE_CUDA_MEMCPY_PEER))// || defined(STARPU_USE_OPENCL)
 struct malloc_pinned_codelet_struct
 {
