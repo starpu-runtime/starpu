@@ -811,14 +811,11 @@ int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, v
 	cudaStream_t stream;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 /* CUDA - CUDA transfer */
-	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() || !(copy_methods->cuda_to_cuda_async || copy_methods->any_to_any))
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() || !copy_methods->any_to_any)
 	{
-		STARPU_ASSERT(copy_methods->cuda_to_cuda || copy_methods->any_to_any);
+		STARPU_ASSERT(copy_methods->any_to_any);
 		/* this is not associated to a request so it's synchronous */
-		if (copy_methods->cuda_to_cuda)
-			copy_methods->cuda_to_cuda(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 	}
 	else
 	{
@@ -827,13 +824,8 @@ int _starpu_cuda_copy_interface_from_cuda_to_cuda(starpu_data_handle_t handle, v
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
 		stream = starpu_cuda_get_peer_transfer_stream(src_node, dst_node);
-		if (copy_methods->cuda_to_cuda_async)
-			ret = copy_methods->cuda_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
-		else
-		{
-			STARPU_ASSERT(copy_methods->any_to_any);
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-		}
+		STARPU_ASSERT(copy_methods->any_to_any);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 
 		cures = cudaEventRecord(*_starpu_cuda_event(&req->async_channel.event), stream);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
@@ -860,14 +852,11 @@ int _starpu_cuda_copy_interface_from_cuda_to_cpu(starpu_data_handle_t handle, vo
 #if !defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 	STARPU_ASSERT(starpu_worker_get_local_memory_node() == src_node);
 #endif
-	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() || !(copy_methods->cuda_to_ram_async || copy_methods->any_to_any))
+	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() || !copy_methods->any_to_any)
 	{
 		/* this is not associated to a request so it's synchronous */
-		STARPU_ASSERT(copy_methods->cuda_to_ram || copy_methods->any_to_any);
-		if (copy_methods->cuda_to_ram)
-			copy_methods->cuda_to_ram(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		STARPU_ASSERT(copy_methods->any_to_any);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 	}
 	else
 	{
@@ -876,13 +865,8 @@ int _starpu_cuda_copy_interface_from_cuda_to_cpu(starpu_data_handle_t handle, vo
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
 
 		stream = starpu_cuda_get_out_transfer_stream(src_node);
-		if (copy_methods->cuda_to_ram_async)
-			ret = copy_methods->cuda_to_ram_async(src_interface, src_node, dst_interface, dst_node, stream);
-		else
-		{
-			STARPU_ASSERT(copy_methods->any_to_any);
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-		}
+		STARPU_ASSERT(copy_methods->any_to_any);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 
 		cures = cudaEventRecord(*_starpu_cuda_event(&req->async_channel.event), stream);
 		if (STARPU_UNLIKELY(cures != cudaSuccess)) STARPU_CUDA_REPORT_ERROR(cures);
@@ -911,14 +895,11 @@ int _starpu_cuda_copy_interface_from_cpu_to_cuda(starpu_data_handle_t handle, vo
 	STARPU_ASSERT(starpu_worker_get_local_memory_node() == dst_node);
 #endif
 	if (!req || starpu_asynchronous_copy_disabled() || starpu_asynchronous_cuda_copy_disabled() ||
-	    !(copy_methods->ram_to_cuda_async || copy_methods->any_to_any))
+	    !copy_methods->any_to_any)
 	{
 		/* this is not associated to a request so it's synchronous */
-		STARPU_ASSERT(copy_methods->ram_to_cuda || copy_methods->any_to_any);
-		if (copy_methods->ram_to_cuda)
-			copy_methods->ram_to_cuda(src_interface, src_node, dst_interface, dst_node);
-		else
-			copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
+		STARPU_ASSERT(copy_methods->any_to_any);
+		copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, NULL);
 	}
 	else
 	{
@@ -928,13 +909,8 @@ int _starpu_cuda_copy_interface_from_cpu_to_cuda(starpu_data_handle_t handle, vo
 			STARPU_CUDA_REPORT_ERROR(cures);
 
 		stream = starpu_cuda_get_in_transfer_stream(dst_node);
-		if (copy_methods->ram_to_cuda_async)
-			ret = copy_methods->ram_to_cuda_async(src_interface, src_node, dst_interface, dst_node, stream);
-		else
-		{
-			STARPU_ASSERT(copy_methods->any_to_any);
-			ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
-		}
+		STARPU_ASSERT(copy_methods->any_to_any);
+		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 
 		cures = cudaEventRecord(*_starpu_cuda_event(&req->async_channel.event), stream);
 		if (STARPU_UNLIKELY(cures != cudaSuccess))
