@@ -19,7 +19,8 @@
 /* CM
  */
  
-//~ #define PRINT
+#define PRINT
+#define PRINT_PYTHON
 
 #include <schedulers/HFP.h>
 
@@ -116,7 +117,7 @@ static struct starpu_task *cuthillmckee_pull_task(struct starpu_sched_component 
 			task1 = starpu_task_list_pop_front(&data->SIGMA);
 			
 			#ifdef PRINT_PYTHON
-			print_data_to_load_prefetch(task1, starpu_worker_get_id());
+			print_data_to_load_prefetch(task1, starpu_worker_get_id() + 1);
 			#endif
 			
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
@@ -343,6 +344,10 @@ struct starpu_sched_component *starpu_sched_component_cuthillmckee_create(struct
 	index_current_popped_task_prefetch = malloc(sizeof(int)*Ngpu);
 	index_current_popped_task_all_gpu = 0;
 	index_current_popped_task_all_gpu_prefetch = 0;
+	print_in_terminal = starpu_get_env_number_default("PRINT_IN_TERMINAL", 0);
+	print3d = starpu_get_env_number_default("PRINT3D", 0);
+	print_n = starpu_get_env_number_default("PRINT_N", 0);
+	print_time = starpu_get_env_number_default("PRINT_TIME", 0);
 	#endif
 	
 	//~ srandom(time(0)); /* For the random selection in ALGO 4 */

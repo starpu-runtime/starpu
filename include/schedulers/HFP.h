@@ -36,8 +36,8 @@ but we apply HFP on each package (pas codé en réalité car j'avais changé la 
 #define PRINT_TIME /* Pour afficher le temps d'exécution des fonctions dans HFP. A 1 on print à la 11ème itération et on fera la moyenne. A 2 on print à la première itération. Utile pour que cela fonctionne avec Grid5k. */
 #define FASTER_FIRST_ITERATION /* A 0 on ne fais rien, a 1 on le fais. Permet de faire une première itération où on merge ensemble els taches partageant une données sans regarder le max et donc sans calculer la matrice. Ne marche que pour matrice 2D, 3D. */
 
-//~ #define PRINT /* A define pour print quoique ce soit. */
-//~ #define PRINT_PYTHON /* Visu python */
+#define PRINT /* A define pour print quoique ce soit. */
+#define PRINT_PYTHON /* Visu python */
 
 /* Défini dans le create pour appeller 1 seule fois les get_env_number */
 extern int print_in_terminal;
