@@ -5,4 +5,4 @@ PATH_R=$3
 ./configure --enable-simgrid --disable-mpi --with-simgrid-dir=${PATH_SIMGRID}
 make -j 10
 sudo make install
-bash Scripts_maxime/HFP.sh ${PATH_STARPU} ${PATH_R} 2 Matrice3DZN HFP gemini-1-fgcs 1
+bash Scripts_maxime/HFP.sh ${PATH_STARPU} ${PATH_R} 10 Matrice3DZN HFP gemini-1-fgcs 1
