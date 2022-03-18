@@ -19,8 +19,8 @@
 /* CM
  */
  
-#define PRINT
-#define PRINT_PYTHON
+//~ #define PRINT
+//~ #define PRINT_PYTHON
 
 #include <schedulers/HFP.h>
 
