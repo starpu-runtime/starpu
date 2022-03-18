@@ -168,6 +168,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->mp_recv = _starpu_mpi_common_mp_recv;
 			node->nt_recv_is_ready = _starpu_mpi_common_notif_recv_is_ready;
 			node->nt_send_is_ready = _starpu_mpi_common_notif_send_is_ready;
+			node->mp_wait = NULL;
+			node->mp_signal = NULL;
 			node->nt_send = _starpu_mpi_common_nt_send;
 			node->nt_recv = _starpu_mpi_common_nt_recv;
 			node->dt_send = _starpu_mpi_common_send;
@@ -202,6 +204,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->mp_recv = _starpu_mpi_common_mp_recv;
 			node->nt_recv_is_ready = _starpu_mpi_common_notif_recv_is_ready;
 			node->nt_send_is_ready = _starpu_mpi_common_notif_send_is_ready;
+			node->mp_wait = NULL;
+			node->mp_signal = NULL;
 			node->nt_send = _starpu_mpi_common_nt_send;
 			node->nt_recv = _starpu_mpi_common_nt_recv;
 			node->dt_send = _starpu_mpi_common_send;
@@ -246,6 +250,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->mp_recv = _starpu_tcpip_common_mp_recv;
 			node->nt_recv_is_ready = _starpu_tcpip_common_notif_recv_is_ready;
 			node->nt_send_is_ready = _starpu_tcpip_common_notif_send_is_ready;
+			node->mp_wait = _starpu_tcpip_common_wait;
+			node->mp_signal = _starpu_tcpip_common_signal;
 			node->nt_send = _starpu_tcpip_common_nt_send;
 			node->nt_recv = _starpu_tcpip_common_nt_recv;
 			node->dt_send = _starpu_tcpip_common_send;
@@ -280,6 +286,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->mp_recv = _starpu_tcpip_common_mp_recv;
 			node->nt_recv_is_ready = _starpu_tcpip_common_notif_recv_is_ready;
 			node->nt_send_is_ready = _starpu_tcpip_common_notif_send_is_ready;
+			node->mp_wait = _starpu_tcpip_common_wait;
+			node->mp_signal = _starpu_tcpip_common_signal;
 			node->nt_send = _starpu_tcpip_common_nt_send;
 			node->nt_recv = _starpu_tcpip_common_nt_recv;
 			node->dt_send = _starpu_tcpip_common_send;

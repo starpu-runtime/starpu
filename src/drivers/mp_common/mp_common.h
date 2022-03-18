@@ -242,6 +242,10 @@ struct _starpu_mp_node
         void (*nt_send)         (const struct _starpu_mp_node *, void *, int);
         void (*nt_recv)         (const struct _starpu_mp_node *, void *, int);
 
+        /*signal*/
+        void (*mp_wait)            (const struct _starpu_mp_node *);
+        void (*mp_signal)          (const struct _starpu_mp_node *);
+
         /** Data transfers */
         void (*dt_send)             (const struct _starpu_mp_node *, void *, int, void *);
         void (*dt_recv)             (const struct _starpu_mp_node *, void *, int, void *);

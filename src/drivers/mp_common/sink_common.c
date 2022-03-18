@@ -341,6 +341,10 @@ void _starpu_sink_common_worker(void)
 
 	while (!exit_starpu)
 	{
+		/* Wait send/recv is ready */
+		if (node->mp_wait)
+			node->mp_wait(node);
+
 		/* If we have received a message */
 		if(node->mp_recv_is_ready(node))
 		{
@@ -438,7 +442,7 @@ void _starpu_sink_common_worker(void)
                         if(node->dt_test(&sink_event->event))
                         {
         			_starpu_mp_event_list_erase(&node->event_list, sink_event);
-        			_starpu_mp_event_list_push_back(&node->event_queue, sink_event);
+        			_starpu_mp_event_list_push_front(&node->event_queue, sink_event);
                         }
                 }
 
@@ -518,6 +522,11 @@ static void _starpu_sink_common_append_message(struct _starpu_mp_node *node, str
 	STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 	mp_message_list_push_front(&node->message_queue,message);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
+	/* Send the signal that message is in message_queue */
+	if(node->mp_signal)
+	{
+		node->mp_signal(node);
+	}
 }
 
 /* Append to the message list a "STARPU_PRE_EXECUTION" message

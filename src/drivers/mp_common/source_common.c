@@ -265,6 +265,11 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node, void * arg, i
 			STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 			mp_message_list_push_front(&node->message_queue,message);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
+			/* Send the signal that message is in message_queue */
+			if(node->mp_signal)
+			{
+				node->mp_signal(node);
+			}
 			return 1;
 		}
 		/* For ASYNC commands don't store them, update event */
