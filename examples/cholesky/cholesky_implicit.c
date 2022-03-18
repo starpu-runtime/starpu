@@ -26,15 +26,14 @@
 
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
-#include <starpu_data_maxime.h> /* Pour l'appel d'une nouvele itération dans le scheduler */
+#include <starpu_data_maxime.h>
 
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_MAGMA)
 #include "magma.h"
 #endif
 
-/* Mes variables */
 int count_do_schedule;
-int dependances; /* Pour appeller ne iteration que pour DARTS */
+
 /* To avegrage on 11 iteration and ignoring the first one. */
 double average_flop;
 int niter;
@@ -53,7 +52,7 @@ static void callback_turn_spmd_on(void *arg)
 
 static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
-	double start = 0;
+	double start;
 	double end;
 
 	unsigned k,m,n;
@@ -65,16 +64,10 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 	if (bound_p || bound_lp_p || bound_mps_p)
 		starpu_bound_start(bound_deps_p, 0);
 	starpu_fxt_start_profiling();
-	
-	//~ if (dependances == 1) /* Version avec dépendances */
-	//~ {
-		start = starpu_timing_now();
-	//~ }
-	//~ else /* Version sans dépendances */
-	//~ {
-		//~ starpu_pause(); /* To get all tasks at once, resume at the end of the loop for (k = 0; k < nblocks; k++) */
-	//~ }
-	
+
+	//~ start = starpu_timing_now();
+
+	starpu_pause(); /* To get all tasks at once, resume at the end of the loop for (k = 0; k < nblocks; k++) */
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
@@ -84,8 +77,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
                 ret = starpu_task_insert(&cl11,
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
-					 //~ STARPU_R, sdatakk,
-					 STARPU_RW, sdatakk,
+					 STARPU_R, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					 STARPU_TAG_ONLY, TAG11(k),
@@ -100,8 +92,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                         ret = starpu_task_insert(&cl21,
 						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
-						 //~ STARPU_R, sdatamk,
-						 STARPU_RW, sdatamk,
+						 STARPU_R, sdatamk,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 						 STARPU_TAG_ONLY, TAG21(m,k),
 						 0);
@@ -134,31 +125,28 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		starpu_iteration_pop();
 	}
 	//~ starpu_resume();
-	
-	//~ if (dependances == 1)
-	//~ {
+	//~ starpu_task_wait_for_all();
+
+	//~ end = starpu_timing_now();
+
+	/* NEW */				
+	if (count_do_schedule == 0)
+	{
+		starpu_do_schedule();
+		start = starpu_timing_now();					
+		starpu_resume();
 		starpu_task_wait_for_all();
 		end = starpu_timing_now();
-	//~ }
-	//~ else
-	//~ {
-		//~ if (count_do_schedule == 0)
-		//~ {
-			//~ starpu_do_schedule();
-			//~ start = starpu_timing_now();					
-			//~ starpu_resume();
-			//~ starpu_task_wait_for_all();
-			//~ end = starpu_timing_now();
-		//~ }
-		//~ else
-		//~ {
-			//~ start = starpu_timing_now();
-			//~ starpu_do_schedule();		
-			//~ starpu_resume();
-			//~ starpu_task_wait_for_all();
-			//~ end = starpu_timing_now();
-		//~ }
-	//~ }
+	}
+	else
+	{
+		start = starpu_timing_now();
+		starpu_do_schedule();		
+		starpu_resume();
+		starpu_task_wait_for_all();
+		end = starpu_timing_now();
+	}
+
 	
 	
 	starpu_fxt_stop_profiling();
@@ -256,7 +244,7 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 		for (n = 0; n < nblocks; n++)
 		{
 			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, m, n);
-			starpu_data_set_coordinates(data, 2, m, n); /* Les coordonnées pour visualisation */
+			starpu_data_set_coordinates(data, 2, m, n);
 		}
 
 	int ret = _cholesky(dataA, nblocks);
@@ -397,14 +385,9 @@ static void execute_cholesky(unsigned size, unsigned nblocks)
 
 int main(int argc, char **argv)
 {
-	/* Récup de var d'env */
-	dependances = starpu_get_env_number_default("DEPENDANCES", 0); /* Pour lancer new iteration que avec DARTS. */
 	count_do_schedule = starpu_get_env_number_default("COUNT_DO_SCHEDULE", 1);
 	average_flop = 0;
-	//~ niter = 1; /* Pour changer le nombre d'itérations */
-	//~ niter = 2; /* Pour changer le nombre d'itérations */
-	//~ niter = 4; /* Pour changer le nombre d'itérations */
-	niter = 11; /* Pour changer le nombre d'itérations */
+	niter = 11;
 	current_iteration = 1;
 	
 #ifdef STARPU_HAVE_MAGMA
@@ -457,10 +440,6 @@ int main(int argc, char **argv)
 			execute_cholesky(size_p, nblocks_p);
 		
 		current_iteration++;
-		if (dependances == 1) /* Que pour DARTS. */
-		{
-			new_iteration();
-		}
 	}
 
 	starpu_cublas_shutdown();
