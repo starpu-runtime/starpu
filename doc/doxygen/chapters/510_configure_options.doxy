@@ -195,6 +195,11 @@ build machine.
 \addindex __configure__--enable-maxnumanodes
 Use at most <c>count</c> NUMA nodes.  This information is then
 available as the macro ::STARPU_MAXNUMANODES.
+
+The default value is <c>auto</c>. it allows StarPU to automatically
+detect the number of NUMA nodes on the build machine. This should not be
+used if the running host has a larger number of NUMA nodes than the
+build machine.
 </dd>
 
 <dt>--disable-cpu</dt>

@@ -766,10 +766,26 @@ AC_SUBST(CC_OR_MPICC, $cc_or_mpicc)
 #                                                                             #
 ###############################################################################
 
+default_nmaxnumanodes=2
+AC_PATH_PROG(hwloccalccommand, hwloc-calc)
+
 AC_MSG_CHECKING(maximum number of NUMA nodes)
 AC_ARG_ENABLE(maxnumanodes, [AS_HELP_STRING([--enable-maxnumanodes=<number>],
 			[maximum number of NUMA nodes])],
-			nmaxnumanodes=$enableval, nmaxnumanodes=2)
+			nmaxnumanodes=$enableval, nmaxnumanodes=auto)
+if test x$nmaxnumanodes = xauto
+then
+  if test "$hwloccalccommand" = ""; then
+    AC_MSG_WARN([hwloc-calc not available to automatically get the number of NUMA nodes, using the default value: $default_nmaxnumanodes])
+    nmaxnumanodes=$default_nmaxnumanodes
+  else
+      nmaxnumanodes=$($hwloccalccommand all -N node 2>/dev/null)
+      if test x$nmaxnumanodes = x; then
+	AC_MSG_WARN([hwloc-calc could not get the number of NUMA nodes, using the default value: $default_nmaxnumanodes])
+	nmaxnumanodes=$default_nmaxnumanodes
+      fi
+  fi
+fi
 AC_MSG_RESULT($nmaxnumanodes)
 AC_DEFINE_UNQUOTED(STARPU_MAXNUMANODES, [$nmaxnumanodes],
 		[maximum number of NUMA nodes])
