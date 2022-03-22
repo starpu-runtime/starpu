@@ -91,6 +91,7 @@ chapters =	\
 	chapters/494_bubble.doxy		\
 	chapters/495_interoperability.doxy		\
 	chapters/497_eclipse_plugin.doxy 		\
+	chapters/498_java.doxy 		\
 	chapters/501_environment_variables.doxy		\
 	chapters/510_configure_options.doxy		\
 	chapters/520_files.doxy		\

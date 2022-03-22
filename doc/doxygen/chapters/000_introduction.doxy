@@ -305,6 +305,7 @@ The documentation chapters include
 <li> \ref HierarchicalDAGS
 <li> \ref InteroperabilitySupport
 <li> \ref EclipsePlugin
+<li> \ref StarPUJavaInterface
 </ul>
 <li> Part 5: StarPU Reference API
 <ul>

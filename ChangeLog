@@ -52,6 +52,7 @@ New features:
     MPI/NUMA/GPUDirect.
   * Add peek_data interface method.
   * Add STARPU_MPI_REDUX
+  * New StarPU Java Bindings
   * Add starpu_data_query_status2 function.
   * Add starpu_data_evict_from_node function.
   * Add a StarPU Eclipse Plugin

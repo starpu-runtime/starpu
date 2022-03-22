@@ -1,0 +1,85 @@
+* StarPU
+** Install StarPU
+#+begin_src sh :session hpc-cloud :results value
+src=$PWD/..
+target=$PWD/install/target_$$
+build=/tmp/build_$$
+mkdir -p $target
+mkdir -p $PWD/out
+#+end_src
+#+RESULTS:
+
+*** download StarPU and compile/install it
+#+begin_src sh :session hpc-cloud :results output :file out/starpu_download.out
+if test ! -d $target/bin
+then
+    mkdir -p $build && cd $build
+    wget https://files.inria.fr/starpu/starpu-1.3.9/starpu-1.3.9.tar.gz
+    tar zxf starpu-1.3.9.tar.gz
+    cd starpu-1.3.9
+    mkdir build && cd build
+    ../configure --prefix=$target > $build/starpu_make.log 2>&1
+    make -j >> $build/starpu_make.log 2>&1
+    make install >> $build/starpu_make.log 2>&1
+fi
+. $target/bin/starpu_env
+#+end_src
+#+RESULTS:
+[[file:out/starpu_download.out]]
+
+*** compile the local sources
+#+begin_src sh :session hpc-cloud :results output :file out/starpu_install.out
+if test ! -d $target/bin
+then
+    cd $src
+    if test ! -f configure
+    then
+        ./autogen.sh
+    fi
+    mkdir -p $build && cd $build
+    rm -rf build && mkdir build && cd build
+    $src/configure --prefix=$target > $build/starpu_make.log 2>&1
+    make -j >> $build/starpu_make.log 2>&1
+    make install >> $build/starpu_make.log 2>&1
+fi
+. $target/bin/starpu_env
+#+end_src
+#+RESULTS:
+[[file:out/starpu_install.out]]
+
+** Test StarPU
+#+begin_src sh :session hpc-cloud :results output :file out/starpu_test.out
+starpu_machine_display
+#+end_src
+#+RESULTS:
+[[file:out/starpu_test.out]]
+
+* Compile StarPU-JNI
+#+begin_src sh :session hpc-cloud :results output :file out/jni_install.out
+cd $src/starpujni
+rm -rf build
+mvn package
+#+end_src
+#+RESULTS:
+[[file:out/jni_install.out]]
+
+* Run a StarPU-JNI application
+#+begin_src sh :session hpc-cloud :results output :file out/jni_run.out
+java -jar build/linux-amd64/starpujni-1.0-SNAPSHOT.jar VectorScal
+#+end_src
+#+RESULTS:
+[[file:out/jni_run.out]]
+
+* Run a Spark-StarPU application
+#+begin_src sh :session hpc-cloud :results output :file out/spark_run.out
+java -jar build/linux-amd64/starpujni-1.0-SNAPSHOT.jar TransitiveClosure
+#+end_src
+#+RESULTS:
+[[file:out/spark_run.out]]
+
+#+begin_src sh :session hpc-cloud :results output :file out/spark_run2.out
+java -jar build/linux-amd64/starpujni-1.0-SNAPSHOT.jar WordCount $src/README.md
+#+end_src
+#+RESULTS:
+[[file:out/spark_run2.out]]
+

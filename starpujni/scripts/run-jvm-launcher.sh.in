@@ -1,0 +1,13 @@
+#!/bin/bash 
+
+OS="$(uname -s | tr [A-Z] [a-z])"
+ARCH="$(uname -m | tr [A-Z] [a-z])"
+
+HADOOP_CLASSPATH="$(hadoop classpath --glob)"
+
+CLASSPATH=${HADOOP_CLASSPATH}
+export CLASSPATH
+
+exec @jvmlauncherpath@ $*
+
+

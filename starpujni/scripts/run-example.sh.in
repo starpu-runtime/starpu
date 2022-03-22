@@ -1,0 +1,24 @@
+#!/bin/bash 
+
+OS="$(uname -s | tr [A-Z] [a-z])"
+ARCH="$(uname -m | tr [A-Z] [a-z])"
+
+STARPUYARNPKG=fr.labri.hpccloud.starpu.examples
+STARPUYARNPKGPATH=$(echo ${STARPUYARNPKG} | tr "." "/")
+MAINCLASS="${STARPUYARNPKG}.Launcher"
+
+HADOOP_CLASSPATH="$(hadoop classpath)"
+JARFILE="@jarfile@"
+CLASSPATH=${JARFILE}:${HADOOP_CLASSPATH}
+export CLASSPATH
+
+if test $# = 0
+then
+    echo 1>&2 "USAGE: $0 example-class arguments where existing examples are:"
+    jar tf ${JARFILE} | grep -e "${STARPUYARNPKGPATH}.\([a-zA-Z0-9_]*\).class" | sed -e "s@${STARPUYARNPKG}.\([a-zA-Z0-9_]*\).class@\1@g"
+    exit 1
+fi
+
+exec java ${MAINCLASS} $*
+
+

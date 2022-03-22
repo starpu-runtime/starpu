@@ -1,0 +1,23 @@
+#!/bin/bash 
+
+
+OS="$(uname -s | tr [A-Z] [a-z])"
+ARCH="$(uname -m | tr [A-Z] [a-z])"
+
+JARFILE="@yarnjarfile@"
+STARPUYARNPKG=fr.labri.hpccloud.yarn.examples
+NB_CONTAINERS=5
+MASTERCLASS="${STARPUYARNPKG}.starpu.basic.StarPUMaster"
+SLAVECLASS="${STARPUYARNPKG}.starpu.basic.StarPUSlave"
+
+
+yarn jar ${JARFILE} --jar ${JARFILE} \
+     --container-master-class ${MASTERCLASS} \
+     --container-slave-class ${SLAVECLASS}\
+     --num-containers ${NB_CONTAINERS} \
+     --container-env "STARPU_HOME=." \
+     --container-env "STARPU_SCHED=eager" \
+     --container-memory 512 \
+     --native-libdir libs \
+     $*
+

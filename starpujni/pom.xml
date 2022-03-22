@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>fr.labri.hpccloud</groupId>
+    <artifactId>starpujni</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <runscripts.dir>scripts</runscripts.dir>
+        <runscripts.basedir>${project.basedir}/${runscripts.dir}</runscripts.basedir>
+        <runscripts.builddir>${project.build.directory}/${runscripts.dir}</runscripts.builddir>
+        <hadoopenvscript>${runscripts.builddir}/hadoop-env.sh</hadoopenvscript>
+        <hadoop.version>2.8.0</hadoop.version>
+        <project.native.build-directory>${project.build.directory}/native</project.native.build-directory>
+        <project.native.starpujni-libdir>${project.build.outputDirectory}</project.native.starpujni-libdir>
+        <project.native.lib-info-template>fr/labri/hpccloud/starpu/NativeLibInfo.java</project.native.lib-info-template>
+        <project.native.jarfilename>${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar</project.native.jarfilename>
+        <project.starpujnijar.mainclass>fr.labri.hpccloud.starpu.examples.Launcher</project.starpujnijar.mainclass>
+        <project.starpuyarnjar.mainclass>fr.labri.hpccloud.yarn.Client</project.starpuyarnjar.mainclass>
+        <skipTests>true</skipTests>
+        <cmake.verbose>false</cmake.verbose>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.11</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-math3</artifactId>
+            <version>3.6.1</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-client</artifactId>
+            <version>${hadoop.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <profile>
+            <id>macos</id>
+            <activation>
+                <os><family>mac</family></os>
+            </activation>
+            <build>
+                <directory>${project.basedir}/build/darwin-${os.arch}</directory>
+            </build>
+        </profile>
+        <profile>
+            <id>unix</id>
+            <activation>
+                <os>
+                    <name>Linux</name>
+                    <family>unix</family>
+                </os>
+            </activation>
+            <build>
+                <directory>${project.basedir}/build/linux-${os.arch}</directory>
+            </build>
+        </profile>
+        <!-- profile>
+            <id>fat-jar</id>
+            <activation></activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-assembly-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <configuration>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${project.starpujnijar.mainclass}</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>assemble-all</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>single</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile -->
+        <profile>
+            <id>hadoop3</id>
+            <activation>
+                <property>
+                    <name>hadoop.version</name>
+                    <value>[3.0.0,)</value>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.hadoop</groupId>
+                    <artifactId>hadoop-hdfs-client</artifactId>
+                    <version>${hadoop.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+    <build>
+        <defaultGoal>package</defaultGoal>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>prepare-native-build</id>
+                        <phase>initialize</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${project.native.build-directory}"/>
+                                <filter token="NATIVELIBINFO_SRCDIR" value="${project.basedir}/src/main/java"/>
+                                <filter token="NATIVELIBINFO_DESTDIR" value="${project.build.directory}/generated-sources/"/>
+                                <filter token="NATIVELIBINFO_JAVA" value="${project.native.lib-info-template}"/>
+                                <filter token="HEADERS_DIR" value="${project.native.build-directory}"/>
+                                <filter token="LIBRARY_OUTPUT_DIR" value="${project.native.starpujni-libdir}"/>
+                                <filter token="JARFILE" value="${project.native.jarfilename}"/>
+                                <filter token="LAUNCHER_CLASS" value="${project.starpujnijar.mainclass}"/>
+                                <filter token="HADOOP_VERSION" value="${hadoop.version}"/>
+                                <copy overwrite="true" todir="${project.native.build-directory}" filtering="true">
+                                    <globmapper from="*.cmake.in" to="*.cmake"/>
+                                    <fileset dir="${project.basedir}/cmake">
+                                        <include name="*.cmake.in"/>
+                                    </fileset>
+                                </copy>
+
+                                <exec executable="hadoop" dir="${project.native.build-directory}">
+                                    <arg value="envvars"/>
+                                    <redirector output="${project.native.build-directory}/MavenSettings.cmake" append="true">
+                                        <outputfilterchain>
+                                            <prefixlines prefix="set("/>
+                                            <suffixlines suffix=")"/>
+                                            <tokenfilter>
+                                                <replacestring from="=" to=" "/>
+                                                <replacestring from="'" to='"'/>
+                                            </tokenfilter>
+                                        </outputfilterchain>
+                                    </redirector>
+                                </exec>
+                                <exec executable="cmake" dir="${project.native.build-directory}" failonerror="true">
+                                    <arg value="${project.basedir}"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-starpujni-library</id>
+                        <phase>compile</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <exec executable="make" dir="${project.native.build-directory}" failonerror="true">
+                                    <arg value="VERBOSE=${cmake.verbose}"/>
+                                    <arg value="starpujni"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>compile-native-tests</id>
+                        <phase>test-compile</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <exec executable="make" dir="${project.native.build-directory}" failonerror="true">
+                                    <arg value="VERBOSE=${cmake.verbose}"/>
+                                    <arg value="native-testers"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-run-scripts</id>
+                        <phase>package</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <filter token="yarnjarfile" value="${project.build.directory}/${project.build.finalName}-for-yarn.jar"/>
+                                <filter token="classes" value="${project.build.outputDirectory}"/>
+                                <filter token="jarfile" value="${project.build.directory}/${project.build.finalName}.jar"/>
+                                <filter token="runjarfile" value="${project.build.directory}/${project.build.finalName}.jar"/>
+                                <filter token="depjarfile" value="${project.build.directory}/${project.build.finalName}-jar-with-dependencies.jar"/>
+                                <filter token="jvmlauncherpath" value="${project.native.build-directory}/src/test/native/jvm-launcher"/>
+                                <copy todir="${runscripts.builddir}" filtering="true">
+                                    <globmapper from="*.sh.in" to="*.sh"/>
+                                    <fileset dir="${runscripts.basedir}">
+                                        <include name="*.sh.in"/>
+                                    </fileset>
+                                </copy>
+                                <chmod perm="ugo+rx">
+                                    <fileset dir="${runscripts.builddir}">
+                                        <include name="*.sh"/>
+                                    </fileset>
+                                </chmod>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>register-generated-sources-directory</id>
+                        <phase>generate-sources</phase>
+                        <goals><goal>add-source</goal></goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.build.directory}/generated-sources/</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.0</version>
+                <configuration>
+                    <fork>true</fork>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <compilerArgs>
+                        <!-- arg>-verbose</arg -->
+                        <arg>-h</arg>
+                        <arg>${project.native.build-directory}</arg>
+                    </compilerArgs>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
+            </plugin>
+
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.1</version>
+                <executions>
+                    <execution>
+                        <id>default-jar</id>
+                        <phase>package</phase>
+                        <goals><goal>jar</goal></goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${project.starpujnijar.mainclass}</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <phase>package</phase>
+                        <goals><goal>jar</goal></goals>
+                        <configuration>
+                            <classifier>for-yarn</classifier>
+                            <archive>
+                                <manifest>
+                                    <mainClass>${project.starpuyarnjar.mainclass}</mainClass>
+                                </manifest>
+                            </archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>${project.starpujnijar.mainclass}</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>assemble-all</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <executable>${hadoopenvscript}</executable>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

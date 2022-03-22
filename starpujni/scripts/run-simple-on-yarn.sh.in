@@ -1,0 +1,17 @@
+#!/bin/bash 
+
+OS="$(uname -s | tr [A-Z] [a-z])"
+ARCH="$(uname -m | tr [A-Z] [a-z])"
+
+JARFILE="@yarnjarfile@"
+STARPUYARNPKG=fr.labri.hpccloud.yarn.examples
+NB_CONTAINERS=10
+MASTERCLASS="${STARPUYARNPKG}.simple.SimpleMaster"
+SLAVECLASS="${STARPUYARNPKG}.simple.SimpleSlave"
+
+yarn jar ${JARFILE} --jar ${JARFILE} \
+     --container-master-class ${MASTERCLASS} \
+     --container-slave-class ${SLAVECLASS}\
+     --num-containers ${NB_CONTAINERS} \
+     $* 
+

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+export CLASSPATH=${CLASSPATH}:@runjarfile@:@classes@:$(hadoop classpath --glob)
+CMD=java
+
+while test $# != 0; do
+    case "$1" in
+        -cp | -classpath )
+            CLASSPATH=${CLASSPATH}:$2
+            shift 2
+            ;;
+        *)
+            CMD="$CMD $1"
+            shift
+            ;;
+    esac
+done
+
+echo "running $CMD" 1>&2
+exec $CMD
+
+
