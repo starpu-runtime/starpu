@@ -516,7 +516,7 @@ Enable OpenMP Support (\ref OpenMPRuntimeSupport)
 <dd>
 \anchor enable-bubble
 \addindex __configure__--enable-bubble
-Enable Hierarchical dags support (\ref Bubble)
+Enable Hierarchical dags support (\ref HierarchicalDAGS)
 
 <dt>--enable-cluster</dt>
 <dd>
