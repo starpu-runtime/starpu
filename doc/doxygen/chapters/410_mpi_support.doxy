@@ -262,8 +262,8 @@ Internally, all communication are divided in 2 communications, a first
 message is used to exchange an envelope describing the data (i.e its
 tag and its size), the data itself is sent in a second message. All
 MPI communications submitted by StarPU uses a unique tag which has a
-default value, and can be accessed with the functions
-starpu_mpi_get_communication_tag() and
+default value. This value can be accessed with the function
+starpu_mpi_get_communication_tag() and changed with the function
 starpu_mpi_set_communication_tag(). The matching of tags with
 corresponding requests is done within StarPU-MPI.
 
