@@ -929,7 +929,9 @@ When set to 0, the use of priorities to order MPI communications is disabled
 <dd>
 \anchor STARPU_MPI_NDETACHED_SEND
 \addindex __env__STARPU_MPI_NDETACHED_SEND
-This sets the number of send requests that StarPU-MPI will emit concurrently. The default is 10.
+This sets the number of send requests that StarPU-MPI will emit concurrently.
+The default is 10. Setting it to 0 removes the limit of concurrent send
+requests.
 </dd>
 
 <dt>STARPU_MPI_NREADY_PROCESS</dt>
@@ -937,7 +939,9 @@ This sets the number of send requests that StarPU-MPI will emit concurrently. Th
 \anchor STARPU_MPI_NREADY_PROCESS
 \addindex __env__STARPU_MPI_NREADY_PROCESS
 This sets the number of requests that StarPU-MPI will submit to MPI before
-polling for termination of existing requests. The default is 10.
+polling for termination of existing requests. The default is 10. Setting it to
+0 removes the limit: all requests to submit to MPI will be submitted before
+polling for termination of existing ones.
 </dd>
 
 

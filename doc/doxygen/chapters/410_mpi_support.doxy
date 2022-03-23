@@ -306,6 +306,13 @@ processed in the first step of the next loop.
 </li>
 </ol>
 
+To prevent putting too much pressure on the MPI library, only a limited number
+of requests are emitted concurrently. This behaviour can be tuned with the
+environment variable \ref STARPU_MPI_NDETACHED_SEND. In the same fashion, the
+progression thread will poll for termination of existing requests after
+submitting a defined number of requests. This behaviour can be tuned with the
+environment variable \ref STARPU_MPI_NREADY_PROCESS.
+
 \ref MPIPtpCommunication gives the list of all the
 point to point communications defined in StarPU-MPI.
 

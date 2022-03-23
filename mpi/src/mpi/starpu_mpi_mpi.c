@@ -72,7 +72,7 @@ static struct _starpu_mpi_req_prio_list ready_send_requests;
 
 /* The list of detached requests that have already been submitted to MPI */
 static struct _starpu_mpi_req_list detached_requests;
-static unsigned detached_send_nrequests;
+static unsigned detached_send_nrequests = 0;
 static starpu_pthread_mutex_t detached_requests_mutex;
 
 /* Condition to wake up progression thread */
@@ -1094,7 +1094,8 @@ static void _starpu_mpi_test_detached_requests(void)
 			_STARPU_MPI_TRACE_COMPLETE_BEGIN(req->request_type, req->node_tag.node.rank, req->node_tag.data_tag);
 
 			STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-			if (req->request_type == SEND_REQ)
+			if (req->request_type == SEND_REQ && ndetached_send > 0)
+				// if ndetached_send == 0, we don't limit the number of concurrent MPI send requests
 				detached_send_nrequests--;
 			_starpu_mpi_req_list_erase(&detached_requests, req);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
@@ -1137,7 +1138,8 @@ static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req)
 		/* put the submitted request into the list of pending requests
 		 * so that it can be handled by the progression mechanisms */
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_requests_mutex);
-		if (req->request_type == SEND_REQ)
+		if (req->request_type == SEND_REQ && ndetached_send > 0)
+			// if ndetached_send == 0, we don't limit the number of concurrent MPI send requests
 			detached_send_nrequests++;
 		_starpu_mpi_req_list_push_back(&detached_requests, req);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&detached_requests_mutex);
@@ -1357,7 +1359,7 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 		/* get one send request */
 		n = 0;
-		while (!_starpu_mpi_req_prio_list_empty(&ready_send_requests) && detached_send_nrequests < ndetached_send)
+		while (!_starpu_mpi_req_prio_list_empty(&ready_send_requests) && (ndetached_send == 0 || detached_send_nrequests < ndetached_send))
 		{
 			struct _starpu_mpi_req *req;
 
