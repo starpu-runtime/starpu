@@ -336,6 +336,18 @@ struct starpu_conf
 	int calibrate;
 
 	/**
+	   This flag should be set to 1 to enforce data locality when
+	   choosing a worker to execute a task.
+	   This can also be specified with the environment variable
+	   \ref STARPU_DATA_LOCALITY_ENFORCE.
+	   This can also be specified at compilation time by giving to
+	   the configure script the option \ref
+	   enable-data-locality "--enable-data-locality".
+	   (default = \c 0)
+	*/
+	int data_locality_enforce;
+
+	/**
 	   By default, StarPU executes parallel tasks concurrently.
 	   Some parallel libraries (e.g. most OpenMP implementations)
 	   however do not support concurrent calls to parallel code.

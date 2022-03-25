@@ -229,6 +229,13 @@ Disable (1) or Enable (0) support for memory mapping between memory nodes.  The
 default is Disable.
 </dd>
 
+<dt>STARPU_DATA_LOCALITY_ENFORCE</dt>
+<dd>
+\anchor STARPU_DATA_LOCALITY_ENFORCE
+\addindex __env__STARPU_DATA_LOCALITY_ENFORCE
+Enable (1) or disable(0) data locality enforcement when picking up a worker to execute a task. The default is Disabled.
+</dd>
+
 <dt>STARPU_ENABLE_CUDA_GPU_GPU_DIRECT</dt>
 </dl>
 

@@ -159,6 +159,13 @@ used by nvcc.
 
 <dl>
 
+<dt>--enable-data-locality-enforce</dt>
+<dd>
+\anchor enable-data-locality-enforce
+\addindex __configure__--enable-data-locality-enforce
+Enable data locality enforcement when picking up a worker to execute a task. This mechanism is by default disabled.
+</dd>
+
 <dt>--enable-blocking-drivers</dt>
 <dd>
 \anchor enable-blocking-drivers

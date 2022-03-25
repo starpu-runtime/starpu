@@ -87,6 +87,8 @@ Small features:
     transfer estimation times.
   * Add tool starpu_config to display the configuration StarPU was
     compiled with
+  * Possibility to enable data locality enforcement when choosing a
+    worker to run a task implementation
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU

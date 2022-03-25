@@ -2295,6 +2295,15 @@ AC_LINK_IFELSE([AC_LANG_SOURCE(
 #                                                                             #
 ###############################################################################
 
+AC_MSG_CHECKING(whether data locality should be enforced)
+AC_ARG_ENABLE(data-locality-enforce, [AS_HELP_STRING([--enable-data-locality-enforce],
+			[disable data locality enforcement])],
+			enable_data_locality_enforce=$enableval, enable_data_locality_enforce=no)
+AC_MSG_RESULT($enable_data_locality_enforce)
+if test x$enable_data_locality_enforce = xyes ; then
+   AC_DEFINE([STARPU_DATA_LOCALITY_ENFORCE], [1], [Define to 1 to enforce data locality])
+fi
+
 AC_MSG_CHECKING(how many buffers can be manipulated per task)
 AC_ARG_ENABLE(maxbuffers, [AS_HELP_STRING([--enable-maxbuffers=<nbuffers>],
 			[maximum number of buffers per task])],

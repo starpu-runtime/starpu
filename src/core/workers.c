@@ -500,10 +500,42 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 	return 0;
 }
 
+int _starpu_enforce_locality(unsigned workerid, struct starpu_task *task)
+{
+	if (!_starpu_config.conf.data_locality_enforce)
+		return 1;
+
+	unsigned i, requested_node = starpu_worker_get_memory_node(workerid);
+	int owner = -1, shared=-1;
+	for (i = 0; i < STARPU_TASK_GET_NBUFFERS(task); i++)
+		if (STARPU_TASK_GET_MODE(task, i) & STARPU_LOCALITY)
+		{
+			starpu_data_handle_t handle = STARPU_TASK_GET_HANDLE(task, i);
+			unsigned nnodes = starpu_memory_nodes_get_count();
+			unsigned node;
+			for (node = 0; node < nnodes; node++)
+			{
+				enum _starpu_cache_state state = handle->per_node[node].state;
+				if (state == STARPU_OWNER)
+					owner = node;
+				if (state == STARPU_SHARED)
+					shared = node;
+			}
+			if (owner != -1 && owner != (int)requested_node)
+				return 0;
+			if (shared != -1 && handle->per_node[requested_node].state != STARPU_SHARED)
+				return 0;
+		}
+	return 1;
+}
+
 /* Test if this task can be processed on this worker, regardless of the implementation */
 /* must be called with sched_mutex locked to protect state_blocked */
 static inline int _starpu_can_execute_task_any_impl(unsigned workerid, struct starpu_task *task)
 {
+
+	if (!_starpu_enforce_locality(workerid, task))
+		return 0;
 
 	if (!_starpu_config.workers[workerid].enable_knob)
 		return 0;
@@ -533,7 +565,7 @@ int starpu_worker_can_execute_task(unsigned workerid, struct starpu_task *task, 
 {
 
 	/* TODO: check that the task operand sizes will fit on that device */
-	return  _starpu_can_execute_task_any_impl(workerid, task) &&
+	return _starpu_can_execute_task_any_impl(workerid, task) &&
 		_starpu_can_use_nth_implementation(_starpu_config.workers[workerid].arch, task->cl, nimpl) &&
 		(!task->cl->can_execute || task->cl->can_execute(workerid, task, nimpl));
 }
@@ -623,6 +655,10 @@ int starpu_combined_worker_can_execute_task(unsigned workerid, struct starpu_tas
 
 	struct starpu_codelet *cl = task->cl;
 	unsigned nworkers = _starpu_config.topology.nworkers;
+
+
+	if (!_starpu_enforce_locality(workerid, task))
+		return 0;
 
 	/* Is this a parallel worker ? */
 	if (workerid < nworkers)
@@ -1044,6 +1080,14 @@ int starpu_conf_init(struct starpu_conf *conf)
 	conf->single_combined_worker = starpu_get_env_number("STARPU_SINGLE_COMBINED_WORKER");
 	if (conf->single_combined_worker == -1)
 	     conf->single_combined_worker = 0;
+
+#if defined(STARPU_DATA_LOCALITY_ENFORCE)
+	conf->data_locality_enforce = 1;
+#else
+	conf->data_locality_enforce = starpu_get_env_number("STARPU_DATA_LOCALITY_ENFORCE");
+	if (conf->data_locality_enforce == -1)
+		conf->data_locality_enforce = 0;
+#endif
 
 #if defined(STARPU_DISABLE_ASYNCHRONOUS_COPY)
 	conf->disable_asynchronous_copy = 1;
