@@ -2135,10 +2135,6 @@ if test x$enable_fxt != xno; then
 			FXT_LIBS="$(pkg-config --variable=libdir fxt)/libfxt.a -Wl,--as-needed $(pkg-config --libs --static fxt) -Wl,--no-as-needed"
 		fi
 
-		AC_CHECK_LIB([papi], [PAPI_library_init],
-			     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
-			      PAPI_LIBS=-lpapi])
-
 		##########################################
 		# Poti is a library to generate paje trace files
 		##########################################
@@ -2183,11 +2179,11 @@ if  test x$enable_fxt_lock = xyes; then
 	AC_DEFINE(STARPU_FXT_LOCK_TRACES, [1], [enable additional locking systems FxT traces])
 fi
 
-AC_CHECK_LIB([papi], [PAPI_library_init],
-	     [AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
-	      PAPI_LIBS=-lpapi])
-AC_SUBST(PAPI_LIBS)
-
+PKG_CHECK_MODULES([PAPI], [papi], [have_valid_papi=yes], [have_valid_papi=no])
+if test x$have_valid_papi = xyes ; then
+   AC_DEFINE([STARPU_PAPI], [1], [Define to 1 if you have the libpapi library])
+   STARPU_EXPORTED_LIBS="$STARPU_EXPORTED_LIBS $PAPI_LIBS"
+fi
 
 AC_MSG_CHECKING(whether performance debugging should be enabled)
 AC_ARG_ENABLE(perf-debug, [AS_HELP_STRING([--enable-perf-debug],
@@ -3694,11 +3690,11 @@ if test x$enable_openmp = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = x
 fi
 
 # these are the flags needed to compile starpu.h
-STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $OPENMP_CFLAGS"
+STARPU_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $OPENMP_CFLAGS $PAPI_CFLAGS"
 AC_SUBST([STARPU_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $PAPI_LIBS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
