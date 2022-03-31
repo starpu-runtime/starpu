@@ -757,7 +757,7 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 }
 #endif
 
-static void benchmark_all_gpu_devices(void)
+static void benchmark_all_memory_nodes(void)
 {
 #ifdef STARPU_SIMGRID
 	_STARPU_DISP("Can not measure bus in simgrid mode, please run starpu_calibrate_bus in non-simgrid mode to make sure the bus performance model was calibrated\n");
@@ -1040,7 +1040,7 @@ static void write_bus_affinity_file_content(void)
 static void generate_bus_affinity_file(void)
 {
 	if (!was_benchmarked)
-		benchmark_all_gpu_devices();
+		benchmark_all_memory_nodes();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* Slaves don't write files */
@@ -1472,7 +1472,7 @@ static void write_bus_latency_file_content(void)
 static void generate_bus_latency_file(void)
 {
 	if (!was_benchmarked)
-		benchmark_all_gpu_devices();
+		benchmark_all_memory_nodes();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* Slaves don't write files */
@@ -1917,7 +1917,7 @@ void starpu_bus_print_bandwidth(FILE *f)
 static void generate_bus_bandwidth_file(void)
 {
 	if (!was_benchmarked)
-		benchmark_all_gpu_devices();
+		benchmark_all_memory_nodes();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* Slaves don't write files */
@@ -2124,7 +2124,7 @@ static void write_bus_config_file_content(void)
 static void generate_bus_config_file(void)
 {
 	if (!was_benchmarked)
-		benchmark_all_gpu_devices();
+		benchmark_all_memory_nodes();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* Slaves don't write files */
@@ -3050,7 +3050,7 @@ flat_cuda:
 static void generate_bus_platform_file(void)
 {
 	if (!was_benchmarked)
-		benchmark_all_gpu_devices();
+		benchmark_all_memory_nodes();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	/* Slaves don't write files */
