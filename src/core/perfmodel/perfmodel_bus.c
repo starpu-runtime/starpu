@@ -197,9 +197,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	unsigned char *h_buffer;
 
 #if defined(STARPU_HAVE_HWLOC)
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
-	if (nnuma_nodes > 1)
+	if (nnumas > 1)
 	{
 		/* NUMA mode activated */
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa);
@@ -476,10 +474,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	/* Allocate a buffer on the host */
 	unsigned char *h_buffer;
 #if defined(STARPU_HAVE_HWLOC)
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
-
-	if (nnuma_nodes > 1)
+	if (nnumas > 1)
 	{
 		/* NUMA mode activated */
 		hwloc_obj_t obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, numa);
@@ -629,11 +624,8 @@ static int find_cpu_from_numa_node(hwloc_obj_t obj)
 static void measure_bandwidth_between_numa_nodes_and_dev(int dev, struct dev_timing *dev_timing_per_numanode, char *type)
 {
 	/* We measure the bandwith between each GPU and each NUMA node */
-	struct _starpu_machine_config * config = _starpu_get_machine_config();
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
-
 	unsigned numa_id;
-	for (numa_id = 0; numa_id < nnuma_nodes; numa_id++)
+	for (numa_id = 0; numa_id < nnumas; numa_id++)
 	{
 		/* Store results by starpu id */
 		const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa_id;
@@ -679,10 +671,8 @@ static void measure_bandwidth_between_host_and_dev(int dev, struct dev_timing *d
 	measure_bandwidth_between_numa_nodes_and_dev(dev, dev_timing_per_numa, type);
 
 #ifdef STARPU_VERBOSE
-	struct _starpu_machine_config * config = _starpu_get_machine_config();
-	const unsigned nnuma_nodes = _starpu_topology_get_nnumanodes(config);
 	unsigned numa_id;
-	for (numa_id = 0; numa_id < nnuma_nodes; numa_id++)
+	for (numa_id = 0; numa_id < nnumas; numa_id++)
 	{
 		const unsigned timing_numa_index = dev*STARPU_MAXNUMANODES + numa_id;
 		double bandwidth_dtoh = dev_timing_per_numa[timing_numa_index].timing_dtoh;
@@ -789,10 +779,6 @@ static void benchmark_all_memory_nodes(void)
 #else
 #warning Missing binding support, StarPU will not be able to properly benchmark NUMA topology
 #endif
-
-	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	ncpus = _starpu_topology_get_nhwcpu(config);
-	nnumas = _starpu_topology_get_nnumanodes(config);
 
 	for (i = 0; i < nnumas; i++)
 		for (j = 0; j < nnumas; j++)
