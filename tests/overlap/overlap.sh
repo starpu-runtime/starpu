@@ -57,8 +57,7 @@ then
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_stats -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_tasks_rec_complete tasks.rec tasks2.rec
 	python3 $PREFIX/../../tools/starpu_trace_state_stats.py trace.rec
-	! type gnuplot || $PREFIX/../../tools/starpu_workers_activity activity.data
-	[ -f activity.eps ]
+	! type gnuplot || ( $PREFIX/../../tools/starpu_workers_activity activity.data && [ -f activity.eps ] )
 
 	# needs some R packages
 	$PREFIX/../../tools/starpu_paje_draw_histogram paje.trace || true
