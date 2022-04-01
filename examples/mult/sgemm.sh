@@ -1,7 +1,7 @@
 #!/bin/sh -x
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2017-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2017-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2018       Federal University of Rio Grande do Sul (UFRGS)
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -51,7 +51,7 @@ then
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_fxt_stats -i $STARPU_FXT_PREFIX/prof_file_${USER}_0
 	$STARPU_LAUNCH $PREFIX/../../tools/starpu_tasks_rec_complete $STARPU_FXT_PREFIX/tasks.rec $STARPU_FXT_PREFIX/tasks2.rec
 	python3 $PREFIX/../../tools/starpu_trace_state_stats.py $STARPU_FXT_PREFIX/trace.rec
-	$PREFIX/../../tools/starpu_workers_activity -d $STARPU_FXT_PREFIX $STARPU_FXT_PREFIX/activity.data
+	! type gnuplot || $PREFIX/../../tools/starpu_workers_activity -d $STARPU_FXT_PREFIX $STARPU_FXT_PREFIX/activity.data
 	[ -f $STARPU_FXT_PREFIX/activity.eps ]
 
 	# needs some R packages
