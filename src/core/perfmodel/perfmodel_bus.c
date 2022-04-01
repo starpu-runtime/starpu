@@ -322,7 +322,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	/* Free buffers */
 	cudaHostUnregister(h_buffer);
 #if defined(STARPU_HAVE_HWLOC)
-	if (nnuma_nodes > 1)
+	if (nnumas > 1)
 	{
 		/* NUMA mode activated */
 		hwloc_free(hwtopology, h_buffer, size);
@@ -601,7 +601,7 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	if (STARPU_UNLIKELY(err != CL_SUCCESS))
 		STARPU_OPENCL_REPORT_ERROR(err);
 #if defined(STARPU_HAVE_HWLOC)
-	if (nnuma_nodes > 1)
+	if (nnumas > 1)
 	{
 		/* NUMA mode activated */
 		hwloc_free(hwtopology, h_buffer, size);
