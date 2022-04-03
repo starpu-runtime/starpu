@@ -3028,7 +3028,7 @@ flat_cuda:
 #ifdef STARPU_USE_OPENCL
 	for (i = 0; i < nopencl; i++)
 	{
-		char i_name[16];
+		char i_name[17];
 		snprintf(i_name, sizeof(i_name), "OpenCL%u", i);
 		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
 		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
