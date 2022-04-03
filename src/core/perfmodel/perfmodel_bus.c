@@ -2771,7 +2771,7 @@ static void write_bus_platform_file_content(int version)
 #ifdef STARPU_USE_OPENCL
 	for (i = 0; i < nopencl; i++)
 	{
-		char i_name[16];
+		char i_name[17];
 		snprintf(i_name, sizeof(i_name), "OpenCL%u", i);
 		fprintf(f, "   <link id=\"RAM-%s\" bandwidth=\"%f%s\" latency=\"%f%s\"/>\n",
 				i_name,
