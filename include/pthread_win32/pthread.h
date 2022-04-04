@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -193,6 +193,7 @@ static __inline int pthread_mutexattr_settype(pthread_mutexattr_t *attr, int typ
 }
 
 static __inline int pthread_mutex_init (pthread_mutex_t *mutex, pthread_mutexattr_t *attr) {
+  /* TODO: we could use CreateMutex and ReleaseMutex to support recursivity */
   if (attr && *attr!=PTHREAD_MUTEX_ERRORCHECK)
     return EINVAL;
   winPthreadAssertWindows(*mutex = CreateSemaphore(NULL, 1, 1, NULL));
