@@ -89,6 +89,8 @@ Small features:
     compiled with
   * Possibility to enable data locality enforcement when choosing a
     worker to run a task implementation
+  * New function starpu_data_partition_clean_node() to specify node on
+    which to gather data
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU

@@ -631,7 +631,7 @@ void starpu_data_partition_plan(starpu_data_handle_t initial_handle, struct star
 	}
 }
 
-void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned nparts, starpu_data_handle_t *children)
+void starpu_data_partition_clean_node(starpu_data_handle_t root_handle, unsigned nparts, starpu_data_handle_t *children, int gather_node)
 {
 	unsigned i;
 
@@ -640,7 +640,7 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 #ifdef STARPU_DEVEL
 #warning FIXME: better choose gathering node
 #endif
-		starpu_data_unpartition_submit(root_handle, nparts, children, STARPU_MAIN_RAM);
+		starpu_data_unpartition_submit(root_handle, nparts, children, gather_node);
 	}
 
 	free(children[0]->siblings);
@@ -654,6 +654,11 @@ void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned npar
 	_starpu_spin_lock(&root_handle->header_lock);
 	root_handle->nplans--;
 	_starpu_spin_unlock(&root_handle->header_lock);
+}
+
+void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned nparts, starpu_data_handle_t *children)
+{
+	starpu_data_partition_clean_node(root_handle, nparts, children, STARPU_MAIN_RAM);
 }
 
 static

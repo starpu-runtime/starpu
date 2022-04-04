@@ -282,6 +282,12 @@ void starpu_data_unpartition_readonly_submit(starpu_data_handle_t initial_handle
 void starpu_data_partition_clean(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children);
 
 /**
+   Similar to starpu_data_partition_clean() but the root data will be
+   gathered on the given node
+*/
+void starpu_data_partition_clean_node(starpu_data_handle_t root_data, unsigned nparts, starpu_data_handle_t *children, int gather_node);
+
+/**
    Similar to starpu_data_unpartition_submit_sequential_consistency()
    but allow to specify a callback function for the unpartitiong task
 */
