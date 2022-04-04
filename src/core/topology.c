@@ -2002,7 +2002,7 @@ long starpu_get_memory_location_bitmap(void* ptr, size_t size)
 		return -1;
 	}
 
-#ifdef STARPU_HAVE_HWLOC
+#ifdef HAVE_HWLOC_GET_AREA_MEMLOCATION // implies STARPU_HAVE_HWLOC
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	struct _starpu_machine_topology *topology = &config->topology;
 
@@ -2044,7 +2044,7 @@ long starpu_get_memory_location_bitmap(void* ptr, size_t size)
 	hwloc_bitmap_free(set);
 	return ret_bitmap;
 #else
-	/* we could use move_pages(), but please, rather use hwloc ! */
+	/* we could use move_pages(), but please, rather use hwloc (version >= 1.11.3)! */
 	return -1;
 #endif
 }
