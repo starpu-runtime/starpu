@@ -131,7 +131,7 @@ int main(int argv, char **argc)
 		int x=i+1;
 		for(j=0; j<steps ; j++)
 		{
-			check_bubble(x); check_task(x); check_bubble(x); check_task(x); check_task(x);
+			check_bubble(x); check_task(x); check_task(x);
 		}
 		STARPU_ASSERT_MSG(v[i] == x, "Expected value %d != value %d", v[i], x);
 	}
