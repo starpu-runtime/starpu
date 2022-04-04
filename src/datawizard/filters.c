@@ -637,9 +637,6 @@ void starpu_data_partition_clean_node(starpu_data_handle_t root_handle, unsigned
 
 	if (children[0]->active)
 	{
-#ifdef STARPU_DEVEL
-#warning FIXME: better choose gathering node
-#endif
 		starpu_data_unpartition_submit(root_handle, nparts, children, gather_node);
 	}
 
@@ -658,6 +655,9 @@ void starpu_data_partition_clean_node(starpu_data_handle_t root_handle, unsigned
 
 void starpu_data_partition_clean(starpu_data_handle_t root_handle, unsigned nparts, starpu_data_handle_t *children)
 {
+#ifdef STARPU_DEVEL
+#warning FIXME: better choose gathering node
+#endif
 	starpu_data_partition_clean_node(root_handle, nparts, children, STARPU_MAIN_RAM);
 }
 
