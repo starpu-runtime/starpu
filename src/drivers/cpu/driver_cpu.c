@@ -114,7 +114,7 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 		int nth_per_core = starpu_get_env_number_default("STARPU_NTHREADS_PER_CORE", 1);
 		avail_cpus *= nth_per_core;
 
-		if (avail_cpus >= STARPU_MAXCPUS)
+		if (avail_cpus > STARPU_MAXCPUS)
 		{
 			_STARPU_MSG("# Warning: %ld CPU cores available. Only %d enabled. Use configure option --enable-maxcpus=xxx to update the maximum value of supported CPU cores.\n", avail_cpus, STARPU_MAXCPUS);
 			avail_cpus = STARPU_MAXCPUS;
