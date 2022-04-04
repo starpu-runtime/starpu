@@ -88,6 +88,7 @@ myPROGRAMS +=			\
 	basic/bbtt		\
 	basic/tbbt		\
 	basic/tbtbt		\
+	basic/brt		\
 	basic/brbtt		\
 	basic/sync		\
 	basic/gemm_dag		\
