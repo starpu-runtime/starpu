@@ -145,18 +145,18 @@ starpu_mpi_EXAMPLES +=		\
 
 if !STARPU_NO_BLAS_LIB
 
-examplebin_PROGRAMS += 			\
-	mpi_lu/plu_example_float	\
-	mpi_lu/plu_example_double	\
+examplebin_PROGRAMS += 				\
+	mpi_lu/plu_example_float		\
+	mpi_lu/plu_example_double		\
 	mpi_lu/plu_implicit_example_float	\
 	mpi_lu/plu_implicit_example_double	\
 	mpi_lu/plu_outofcore_example_float	\
 	mpi_lu/plu_outofcore_example_double
 
 if !STARPU_SIMGRID
-starpu_mpi_EXAMPLES	+=	\
-	mpi_lu/plu_example_float	\
-	mpi_lu/plu_example_double	\
+starpu_mpi_EXAMPLES	+=			\
+	mpi_lu/plu_example_float		\
+	mpi_lu/plu_example_double		\
 	mpi_lu/plu_implicit_example_float	\
 	mpi_lu/plu_implicit_example_double	\
 	mpi_lu/plu_outofcore_example_float	\
@@ -164,7 +164,7 @@ starpu_mpi_EXAMPLES	+=	\
 endif
 
 mpi_lu_plu_example_float_LDADD =	\
-	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_LIBNUMA_LDFLAGS)	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 mpi_lu_plu_example_float_SOURCES =	\
@@ -175,7 +175,7 @@ mpi_lu_plu_example_float_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_example_double_LDADD =	\
-	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_LIBNUMA_LDFLAGS)	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 mpi_lu_plu_example_double_SOURCES =	\
@@ -186,7 +186,7 @@ mpi_lu_plu_example_double_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_implicit_example_float_LDADD =	\
-	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_LIBNUMA_LDFLAGS)		\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 mpi_lu_plu_implicit_example_float_SOURCES =	\
@@ -197,7 +197,7 @@ mpi_lu_plu_implicit_example_float_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_implicit_example_double_LDADD =	\
-	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_LIBNUMA_LDFLAGS)		\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 mpi_lu_plu_implicit_example_double_SOURCES =	\
@@ -208,7 +208,7 @@ mpi_lu_plu_implicit_example_double_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_outofcore_example_float_LDADD =	\
-	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_LIBNUMA_LDFLAGS)		\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 mpi_lu_plu_outofcore_example_float_SOURCES =	\
@@ -219,7 +219,7 @@ mpi_lu_plu_outofcore_example_float_SOURCES =	\
 	../../examples/common/blas.c
 
 mpi_lu_plu_outofcore_example_double_LDADD =	\
-	$(STARPU_LIBNUMA_LDFLAGS)				\
+	$(STARPU_LIBNUMA_LDFLAGS)		\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 mpi_lu_plu_outofcore_example_double_SOURCES =	\
@@ -235,25 +235,25 @@ endif
 ########################
 
 if !STARPU_NO_BLAS_LIB
-examplebin_PROGRAMS +=		\
-	matrix_decomposition/mpi_cholesky			\
+examplebin_PROGRAMS +=					\
+	matrix_decomposition/mpi_cholesky		\
 	matrix_decomposition/mpi_cholesky_distributed
 
-matrix_decomposition_mpi_cholesky_SOURCES	=		\
+matrix_decomposition_mpi_cholesky_SOURCES	=	\
 	matrix_decomposition/mpi_cholesky.c		\
-	matrix_decomposition/mpi_cholesky_models.c		\
+	matrix_decomposition/mpi_cholesky_models.c	\
 	matrix_decomposition/mpi_cholesky_kernels.c	\
 	matrix_decomposition/mpi_cholesky_codelets.c	\
 	matrix_decomposition/mpi_decomposition_params.c	\
 	matrix_decomposition/mpi_decomposition_matrix.c	\
 	../../examples/common/blas.c
 
-matrix_decomposition_mpi_cholesky_LDADD =			\
+matrix_decomposition_mpi_cholesky_LDADD =		\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
 	matrix_decomposition/mpi_cholesky_distributed.c	\
-	matrix_decomposition/mpi_cholesky_models.c		\
+	matrix_decomposition/mpi_cholesky_models.c	\
 	matrix_decomposition/mpi_cholesky_kernels.c	\
 	matrix_decomposition/mpi_cholesky_codelets.c	\
 	matrix_decomposition/mpi_decomposition_params.c	\
@@ -263,8 +263,8 @@ matrix_decomposition_mpi_cholesky_distributed_SOURCES =	\
 matrix_decomposition_mpi_cholesky_distributed_LDADD =	\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
-starpu_mpi_EXAMPLES +=				\
-	matrix_decomposition/mpi_cholesky			\
+starpu_mpi_EXAMPLES +=					\
+	matrix_decomposition/mpi_cholesky		\
 	matrix_decomposition/mpi_cholesky_distributed
 endif
 
@@ -276,11 +276,11 @@ if !STARPU_SIMGRID
 if !STARPU_NO_BLAS_LIB
 examplebin_PROGRAMS += cg/cg
 
-cg_cg_SOURCES =					\
-	cg/cg.c						\
+cg_cg_SOURCES =				\
+	cg/cg.c				\
 	../../examples/common/blas.c
 
-cg_cg_LDADD =					\
+cg_cg_LDADD =				\
 	$(STARPU_BLAS_LDFLAGS)
 endif
 endif
@@ -289,19 +289,19 @@ endif
 # MPI Matrix mult examples #
 ############################
 
-examplebin_PROGRAMS +=		\
+examplebin_PROGRAMS +=			\
 	matrix_mult/mm
 
 matrix_mult_mm_LDADD =			\
 	-lm
 
 if !STARPU_SIMGRID
-starpu_mpi_EXAMPLES +=				\
+starpu_mpi_EXAMPLES +=			\
 	matrix_mult/mm
 endif
 
 if !STARPU_NO_BLAS_LIB
-examplebin_PROGRAMS +=		\
+examplebin_PROGRAMS +=			\
 	matrix_mult/mm_2dbc
 
 matrix_mult_mm_2dbc_SOURCES	=	\
@@ -313,7 +313,7 @@ matrix_mult_mm_2dbc_LDADD =		\
 	$(STARPU_BLAS_LDFLAGS) -lm
 
 if !STARPU_SIMGRID
-starpu_mpi_EXAMPLES +=				\
+starpu_mpi_EXAMPLES +=			\
 	matrix_mult/mm_2dbc
 endif
 endif
@@ -322,13 +322,13 @@ endif
 # MPI STARPU_MPI_REDUX #
 ########################
 
-examplebin_PROGRAMS +=		\
-	mpi_redux/mpi_redux     \
+examplebin_PROGRAMS +=				\
+	mpi_redux/mpi_redux     		\
 	mpi_redux/mpi_redux_tree
 
 mpi_redux_mpi_redux_LDADD =			\
 	-lm
-mpi_redux_mpi_redux_tree_LDADD =			\
+mpi_redux_mpi_redux_tree_LDADD =		\
 	-lm
 if !STARPU_SIMGRID
 starpu_mpi_EXAMPLES +=				\
@@ -342,35 +342,35 @@ endif
 
 if STARPU_HAVE_MPIFORT
 if !STARPU_SANITIZE
-examplebin_PROGRAMS +=		\
-	native_fortran/nf_mm	\
-	native_fortran/nf_mm_task_build	\
+examplebin_PROGRAMS +=				\
+	native_fortran/nf_mm			\
+	native_fortran/nf_mm_task_build		\
 	native_fortran/nf_basic_ring
 
-native_fortran_nf_mm_SOURCES	=			\
-	native_fortran/nf_mm_cl.f90			\
+native_fortran_nf_mm_SOURCES	=		\
+	native_fortran/nf_mm_cl.f90		\
 	native_fortran/fstarpu_mpi_mod.f90	\
 	native_fortran/fstarpu_mod.f90		\
 	native_fortran/nf_mm.f90
 
-native_fortran_nf_mm_LDADD =					\
+native_fortran_nf_mm_LDADD =			\
 	-lm
 
-native_fortran_nf_mm_task_build_SOURCES	=			\
-	native_fortran/nf_mm_cl.f90			\
+native_fortran_nf_mm_task_build_SOURCES	=	\
+	native_fortran/nf_mm_cl.f90		\
 	native_fortran/fstarpu_mpi_mod.f90	\
 	native_fortran/fstarpu_mod.f90		\
 	native_fortran/nf_mm_task_build.f90
 
-native_fortran_nf_mm_task_build_LDADD =					\
+native_fortran_nf_mm_task_build_LDADD =		\
 	-lm
 
-native_fortran_nf_basic_ring_SOURCES	=			\
+native_fortran_nf_basic_ring_SOURCES	=	\
 	native_fortran/fstarpu_mpi_mod.f90	\
 	native_fortran/fstarpu_mod.f90		\
 	native_fortran/nf_basic_ring.f90
 
-native_fortran_nf_basic_ring_LDADD =					\
+native_fortran_nf_basic_ring_LDADD =		\
 	-lm
 
 if !STARPU_SIMGRID
@@ -395,7 +395,7 @@ examplebin_PROGRAMS +=				\
 native_fortran_nf_mpi_redux_SOURCES =		\
 	native_fortran/fstarpu_mpi_mod.f90	\
 	native_fortran/fstarpu_mod.f90		\
-	native_fortran/nf_mpi_redux.f90	
+	native_fortran/nf_mpi_redux.f90
 
 native_fortran_nf_mpi_redux_LDADD =		\
 	-lm
@@ -403,7 +403,7 @@ native_fortran_nf_mpi_redux_LDADD =		\
 native_fortran_nf_mpi_redux_tree_SOURCES =	\
 	native_fortran/fstarpu_mpi_mod.f90	\
 	native_fortran/fstarpu_mod.f90		\
-	native_fortran/nf_mpi_redux_tree.f90	
+	native_fortran/nf_mpi_redux_tree.f90
 
 native_fortran_nf_mpi_redux_tree_LDADD =	\
 	-lm
@@ -422,15 +422,15 @@ endif
 
 if STARPU_HAVE_MPIFORT
 if !STARPU_SANITIZE
-examplebin_PROGRAMS +=		\
+examplebin_PROGRAMS +=				\
 	native_fortran/nf_redux_test
 
-native_fortran_nf_redux_test_SOURCES	=			\
+native_fortran_nf_redux_test_SOURCES	=	\
 	native_fortran/fstarpu_mpi_mod.f90	\
 	native_fortran/fstarpu_mod.f90		\
-	native_fortran/nf_redux_test.f90	
+	native_fortran/nf_redux_test.f90
 
-native_fortran_nf_redux_test_LDADD =					\
+native_fortran_nf_redux_test_LDADD =		\
 	-lm
 
 if !STARPU_SIMGRID
@@ -452,7 +452,7 @@ complex_mpi_complex_SOURCES =		\
 	complex/mpi_complex.c		\
 	../../examples/interface/complex_interface.c
 
-starpu_mpi_EXAMPLES	+=			\
+starpu_mpi_EXAMPLES	+=		\
 	complex/mpi_complex
 
 #########################
@@ -498,8 +498,8 @@ examplebin_PROGRAMS +=			\
 	comm/mix_comm
 
 if !STARPU_SIMGRID
-starpu_mpi_EXAMPLES	+=			\
-	comm/comm				\
+starpu_mpi_EXAMPLES	+=		\
+	comm/comm			\
 	comm/mix_comm
 endif
 
@@ -511,7 +511,7 @@ examplebin_PROGRAMS +=			\
 	filters/filter
 
 if !STARPU_SIMGRID
-starpu_mpi_EXAMPLES	+=			\
+starpu_mpi_EXAMPLES	+=		\
 	filters/filter
 endif
 
@@ -559,8 +559,8 @@ examplebin_PROGRAMS +=		\
 endif
 
 if !STARPU_NO_BLAS_LIB
-examplebin_PROGRAMS +=		\
-	benchs/sendrecv_gemm_bench			\
+examplebin_PROGRAMS +=			\
+	benchs/sendrecv_gemm_bench	\
 	benchs/burst_gemm
 endif
 
@@ -583,8 +583,8 @@ starpu_mpi_EXAMPLES	+=	\
 endif
 
 if !STARPU_NO_BLAS_LIB
-starpu_mpi_EXAMPLES	+=	\
-	benchs/sendrecv_gemm_bench			\
+starpu_mpi_EXAMPLES	+=		\
+	benchs/sendrecv_gemm_bench	\
 	benchs/burst_gemm
 endif
 endif
