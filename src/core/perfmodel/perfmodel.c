@@ -320,6 +320,7 @@ double starpu_task_expected_conversion_time(struct starpu_task *task,
 	return sum;
 }
 
+/* Predict the transfer time (in µs) to move a handle between memory nodes */
 static double _starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned src_node, unsigned dst_node, enum starpu_data_access_mode mode, size_t size)
 {
 	double duration = 0.;
