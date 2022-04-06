@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2017       Guillaume Beauchamp
 #
 # StarPU is free software; you can redistribute it and/or modify
@@ -125,7 +125,8 @@ versinclude_HEADERS = 				\
 	include/fstarpu_mod.f90			\
 	include/starpu_clusters.h		\
 	include/starpu_perf_monitoring.h	\
-	include/starpu_perf_steering.h
+	include/starpu_perf_steering.h		\
+	include/schedulers/starpu_scheduler_toolbox.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h

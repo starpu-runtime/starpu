@@ -91,6 +91,7 @@ Small features:
     worker to run a task implementation
   * New function starpu_data_partition_clean_node() to specify node on
     which to gather data
+  * Move to the public API some scheduler utility functions
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
@@ -772,7 +773,7 @@ Small features:
   * Add submit_hook and do_schedule scheduler methods.
   * Add starpu_sleep.
   * Add starpu_task_list_ismember.
-  * Add _starpu_fifo_pop_this_task.
+  * Add starpu_st_fifo_taskq_pop_this_task.
   * Add STARPU_MAX_MEMORY_USE environment variable.
   * Add starpu_worker_get_id_check().
   * New function starpu_mpi_wait_for_all(MPI_Comm comm) that allows to

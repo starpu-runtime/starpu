@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -22,7 +22,6 @@
 #include <core/workers.h>
 #include <core/sched_ctx.h>
 #include <core/sched_policy.h>
-#include <sched_policies/fifo_queues.h>
 #include <core/debug.h>
 #include <core/task.h>
 
@@ -70,14 +69,14 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	{
                 worker = worker_arr[i];
 		double worker_alpha = speedup_arr[i];
-		
+
 		if (alpha + worker_alpha >= random)
 		{
 			/* we found the worker */
 			selected = worker;
 			break;
 		}
-		
+
 		alpha += worker_alpha;
 	}
 	STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), selected);

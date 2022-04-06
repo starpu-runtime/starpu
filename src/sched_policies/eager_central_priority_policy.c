@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -24,16 +24,18 @@
 
 #include <starpu.h>
 #include <starpu_scheduler.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
+
 #include <starpu_bitmap.h>
-#include "prio_deque.h"
 #include <limits.h>
 
 #include <common/fxt.h>
 #include <core/workers.h>
+#include <sched_policies/prio_deque.h>
 
 struct _starpu_eager_central_prio_data
 {
-	struct _starpu_prio_deque taskq;
+	struct starpu_st_prio_deque taskq;
 	starpu_pthread_mutex_t policy_mutex;
 	struct starpu_bitmap waiters;
 };
@@ -48,7 +50,7 @@ static void initialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	_STARPU_MALLOC(data, sizeof(struct _starpu_eager_central_prio_data));
 
 	/* only a single queue (even though there are several internaly) */
-	_starpu_prio_deque_init(&data->taskq);
+	starpu_st_prio_deque_init(&data->taskq);
 	starpu_bitmap_init(&data->waiters);
 
 	/* Tell helgrind that it's fine to check for empty fifo in
@@ -71,7 +73,7 @@ static void deinitialize_eager_center_priority_policy(unsigned sched_ctx_id)
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
 	/* deallocate the job queue */
-	_starpu_prio_deque_destroy(&data->taskq);
+	starpu_st_prio_deque_destroy(&data->taskq);
 
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 	free(data);
@@ -81,12 +83,12 @@ static int _starpu_priority_push_task(struct starpu_task *task)
 {
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	struct _starpu_prio_deque *taskq = &data->taskq;
+	struct starpu_st_prio_deque *taskq = &data->taskq;
 
 	starpu_worker_relax_on();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_worker_relax_off();
-	_starpu_prio_deque_push_back_task(taskq, task);
+	starpu_st_prio_deque_push_back_task(taskq, task);
 
 	if (_starpu_get_nsched_ctxs() > 1)
 	{
@@ -158,12 +160,12 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-	struct _starpu_prio_deque *taskq = &data->taskq;
+	struct starpu_st_prio_deque *taskq = &data->taskq;
 
 	/* Here helgrind would shout that this is unprotected, this is just an
 	 * integer access, and we hold the sched mutex, so we can not miss any
 	 * wake up. */
-	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_prio_deque_is_empty(taskq))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_st_prio_deque_is_empty(taskq))
 	{
 		return NULL;
 	}
@@ -180,7 +182,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_worker_relax_off();
 
-	chosen_task = _starpu_prio_deque_pop_task_for_worker(taskq, workerid, &skipped);
+	chosen_task = starpu_st_prio_deque_pop_task_for_worker(taskq, workerid, &skipped);
 
 	if (!chosen_task && skipped)
 	{

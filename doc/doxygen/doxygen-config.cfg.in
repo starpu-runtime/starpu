@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 # Copyright (C) 2011       Télécom-SudParis
 # Copyright (C) 2013       Simon Archipoff
 #
@@ -75,7 +75,8 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor.h \
 			 @top_srcdir@/sc_hypervisor/include/sc_hypervisor_monitoring.h \
 			 @top_srcdir@/starpurm/include/starpurm.h \
-			 @top_srcdir@/include/schedulers/starpu_heteroprio.h
+			 @top_srcdir@/include/schedulers/starpu_heteroprio.h \
+			 @top_srcdir@/include/schedulers/starpu_scheduler_toolbox.h
 
 EXAMPLE_PATH           = @top_srcdir@/doc/doxygen \
 		       	 @top_srcdir@/doc/doxygen/chapters \

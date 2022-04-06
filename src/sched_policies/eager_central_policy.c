@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2016       Uppsala University
  *
@@ -22,14 +22,15 @@
  */
 
 #include <starpu_scheduler.h>
-#include <sched_policies/fifo_queues.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
 #include <common/thread.h>
 #include <starpu_bitmap.h>
 #include <core/workers.h>
+#include <sched_policies/fifo_queues.h>
 
 struct _starpu_eager_center_policy_data
 {
-	struct _starpu_fifo_taskq fifo;
+	struct starpu_st_fifo_taskq fifo;
 	starpu_pthread_mutex_t policy_mutex;
 	struct starpu_bitmap waiters;
 };
@@ -40,7 +41,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 	_STARPU_MALLOC(data, sizeof(struct _starpu_eager_center_policy_data));
 
 	/* there is only a single queue in that trivial design */
-	_starpu_init_fifo(&data->fifo);
+	starpu_st_fifo_taskq_init(&data->fifo);
 	starpu_bitmap_init(&data->waiters);
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
@@ -50,7 +51,7 @@ static void initialize_eager_center_policy(unsigned sched_ctx_id)
 static void deinitialize_eager_center_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	struct _starpu_fifo_taskq *fifo = &data->fifo;
+	struct starpu_st_fifo_taskq *fifo = &data->fifo;
 
 	STARPU_ASSERT(starpu_task_list_empty(&fifo->taskq));
 
@@ -137,7 +138,7 @@ static struct starpu_task *pop_every_task_eager_policy(unsigned sched_ctx_id)
 	struct _starpu_eager_center_policy_data *data = (struct _starpu_eager_center_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	unsigned workerid = starpu_worker_get_id_check();
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
-	struct starpu_task* task = _starpu_fifo_pop_every_task(&data->fifo, workerid);
+	struct starpu_task* task = starpu_st_fifo_taskq_pop_every_task(&data->fifo, workerid);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&data->policy_mutex);
 
 	starpu_sched_ctx_list_task_counters_reset_all(task, sched_ctx_id);
@@ -154,7 +155,7 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	/* Here helgrind would shout that this is unprotected, this is just an
 	 * integer access, and we hold the sched mutex, so we can not miss any
 	 * wake up. */
-	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_fifo_empty(&data->fifo))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_st_fifo_taskq_empty(&data->fifo))
 	{
 		return NULL;
 	}
@@ -171,7 +172,7 @@ static struct starpu_task *pop_task_eager_policy(unsigned sched_ctx_id)
 	STARPU_PTHREAD_MUTEX_LOCK(&data->policy_mutex);
 	starpu_worker_relax_off();
 
-	chosen_task = _starpu_fifo_pop_task(&data->fifo, workerid);
+	chosen_task = starpu_st_fifo_taskq_pop_task(&data->fifo, workerid);
 	if (!chosen_task)
 		/* Tell pushers that we are waiting for tasks for us */
 		starpu_bitmap_set(&data->waiters, workerid);

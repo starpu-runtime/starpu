@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,14 +17,14 @@
 
 #include <float.h>
 
+#include <starpu.h>
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
-#include <starpu.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
 #include <core/workers.h>
 #include <core/sched_policy.h>
 #include <core/task.h>
-
-#include "prio_deque.h"
+#include <sched_policies/prio_deque.h>
 
 #ifdef STARPU_DEVEL
 #warning TODO: locality work-stealing
@@ -32,7 +32,7 @@
 
 struct _starpu_component_work_stealing_data_per_worker
 {
-	struct _starpu_prio_deque fifo;
+	struct starpu_st_prio_deque fifo;
 	unsigned last_pop_child;
 };
 
@@ -63,10 +63,10 @@ static struct starpu_task *  steal_task_round_robin(struct starpu_sched_componen
 	struct starpu_task * task = NULL;
 	while (1)
 	{
-		struct _starpu_prio_deque * fifo = &wsd->per_worker[i].fifo;
+		struct starpu_st_prio_deque * fifo = &wsd->per_worker[i].fifo;
 
 		STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
-		task = _starpu_prio_deque_deque_task_for_worker(fifo, workerid, NULL);
+		task = starpu_st_prio_deque_deque_task_for_worker(fifo, workerid, NULL);
 		if(task && !isnan(task->predicted))
 		{
 			fifo->exp_len -= task->predicted;
@@ -145,7 +145,7 @@ static struct starpu_task * pull_task(struct starpu_sched_component * component,
 	struct _starpu_component_work_stealing_data * wsd = component->data;
 	const double now = starpu_timing_now();
 	STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
-	struct starpu_task * task = _starpu_prio_deque_pop_task(&wsd->per_worker[i].fifo);
+	struct starpu_task * task = starpu_st_prio_deque_pop_task(&wsd->per_worker[i].fifo);
 	if(task)
 	{
 		if(!isnan(task->predicted))
@@ -269,7 +269,7 @@ static int push_task(struct starpu_sched_component * component, struct starpu_ta
 
 	STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
 	starpu_sched_task_break(task);
-	ret = _starpu_prio_deque_push_front_task(&wsd->per_worker[i].fifo, task);
+	ret = starpu_st_prio_deque_push_front_task(&wsd->per_worker[i].fifo, task);
 	STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
 
 	wsd->last_push_child = i;
@@ -312,7 +312,7 @@ int starpu_sched_tree_work_stealing_push_task(struct starpu_task *task)
 
 			struct _starpu_component_work_stealing_data * wsd = component->data;
 			STARPU_COMPONENT_MUTEX_LOCK(wsd->mutexes[i]);
-			int ret = _starpu_prio_deque_push_front_task(&wsd->per_worker[i].fifo , task);
+			int ret = starpu_st_prio_deque_push_front_task(&wsd->per_worker[i].fifo , task);
 			if(ret == 0 && !isnan(task->predicted))
 				wsd->per_worker[i].fifo.exp_len += task->predicted;
 			STARPU_COMPONENT_MUTEX_UNLOCK(wsd->mutexes[i]);
@@ -339,7 +339,7 @@ static void _ws_add_child(struct starpu_sched_component * component, struct star
 	}
 
 	wsd->per_worker[component->nchildren - 1].last_pop_child = 0;
-	_starpu_prio_deque_init(&wsd->per_worker[component->nchildren - 1].fifo);
+	starpu_st_prio_deque_init(&wsd->per_worker[component->nchildren - 1].fifo);
 
 	starpu_pthread_mutex_t *mutex;
 	_STARPU_MALLOC(mutex, sizeof(*mutex));
@@ -361,14 +361,14 @@ static void _ws_remove_child(struct starpu_sched_component * component, struct s
 			break;
 	}
 	STARPU_ASSERT(i_component != component->nchildren);
-	struct _starpu_prio_deque tmp_fifo = wsd->per_worker[i_component].fifo;
+	struct starpu_st_prio_deque tmp_fifo = wsd->per_worker[i_component].fifo;
 	wsd->per_worker[i_component].fifo = wsd->per_worker[component->nchildren - 1].fifo;
 
 
 	component->children[i_component] = component->children[component->nchildren - 1];
 	component->nchildren--;
 	struct starpu_task * task;
-	while ((task = _starpu_prio_deque_pop_task(&tmp_fifo)))
+	while ((task = starpu_st_prio_deque_pop_task(&tmp_fifo)))
 	{
 		starpu_sched_component_push_task(NULL, component, task);
 	}

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -15,13 +15,95 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include <schedulers/starpu_scheduler_toolbox.h>
 #include <core/workers.h>
+#include <sched_policies/prio_deque.h>
+#include <sched_policies/fifo_queues.h>
 
-#include "prio_deque.h"
-#include "fifo_queues.h"
+void starpu_st_prio_deque_init(struct starpu_st_prio_deque *pdeque)
+{
+	memset(pdeque,0,sizeof(*pdeque));
+	starpu_task_prio_list_init(&pdeque->list);
+	STARPU_HG_DISABLE_CHECKING(pdeque->exp_start);
+	STARPU_HG_DISABLE_CHECKING(pdeque->exp_end);
+	STARPU_HG_DISABLE_CHECKING(pdeque->exp_len);
+}
 
+void starpu_st_prio_deque_destroy(struct starpu_st_prio_deque *pdeque)
+{
+	starpu_task_prio_list_deinit(&pdeque->list);
+}
 
-/* a little dirty code factorization */
+int starpu_st_prio_deque_is_empty(struct starpu_st_prio_deque *pdeque)
+{
+	return pdeque->ntasks == 0;
+}
+
+void starpu_st_prio_deque_erase(struct starpu_st_prio_deque *pdeque, struct starpu_task *task)
+{
+	starpu_task_prio_list_erase(&pdeque->list, task);
+}
+
+int starpu_st_prio_deque_push_front_task(struct starpu_st_prio_deque *pdeque, struct starpu_task *task)
+{
+	starpu_task_prio_list_push_front(&pdeque->list, task);
+	pdeque->ntasks++;
+	return 0;
+}
+
+int starpu_st_prio_deque_push_back_task(struct starpu_st_prio_deque *pdeque, struct starpu_task *task)
+{
+	starpu_task_prio_list_push_back(&pdeque->list, task);
+	pdeque->ntasks++;
+	return 0;
+}
+
+struct starpu_task *starpu_st_prio_deque_highest_task(struct starpu_st_prio_deque *pdeque)
+{
+	struct starpu_task *task;
+	if (starpu_task_prio_list_empty(&pdeque->list))
+		return NULL;
+	task = starpu_task_prio_list_front_highest(&pdeque->list);
+	return task;
+}
+
+struct starpu_task *starpu_st_prio_deque_pop_task(struct starpu_st_prio_deque *pdeque)
+{
+	struct starpu_task *task;
+	if (starpu_task_prio_list_empty(&pdeque->list))
+		return NULL;
+	task = starpu_task_prio_list_pop_front_highest(&pdeque->list);
+	pdeque->ntasks--;
+	return task;
+}
+
+struct starpu_task *starpu_st_prio_deque_pop_back_task(struct starpu_st_prio_deque *pdeque)
+{
+	struct starpu_task *task;
+	if (starpu_task_prio_list_empty(&pdeque->list))
+		return NULL;
+	task = starpu_task_prio_list_pop_back_lowest(&pdeque->list);
+	pdeque->ntasks--;
+	return task;
+}
+
+int starpu_st_prio_deque_pop_this_task(struct starpu_st_prio_deque *pdeque, int workerid, struct starpu_task *task)
+{
+	unsigned nimpl = 0;
+#ifdef STARPU_DEBUG
+	STARPU_ASSERT(starpu_task_prio_list_ismember(&pdeque->list, task));
+#endif
+
+	if (workerid < 0 || starpu_worker_can_execute_task_first_impl(workerid, task, &nimpl))
+	{
+		starpu_task_set_implementation(task, nimpl);
+		starpu_task_prio_list_erase(&pdeque->list, task);
+		pdeque->ntasks--;
+		return 1;
+	}
+
+	return 0;
+}
 
 static inline int pred_true(struct starpu_task * t STARPU_ATTRIBUTE_UNUSED, void * v STARPU_ATTRIBUTE_UNUSED)
 {
@@ -60,25 +142,21 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 		return NULL;							\
 	}
 
-/* deque a task of the higher priority available */
-
-/* From the front of the list for the highest priority */
-struct starpu_task * _starpu_prio_deque_pop_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid, int *skipped)
+struct starpu_task *starpu_st_prio_deque_pop_task_for_worker(struct starpu_st_prio_deque * pdeque, int workerid, int *skipped)
 {
 	STARPU_ASSERT(pdeque);
 	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());
 	REMOVE_TASK(pdeque, _head, prev, pred_can_execute, &workerid);
 }
 
-/* From the back of the list for the highest priority */
-struct starpu_task * _starpu_prio_deque_deque_task_for_worker(struct _starpu_prio_deque * pdeque, int workerid, int *skipped)
+struct starpu_task *starpu_st_prio_deque_deque_task_for_worker(struct starpu_st_prio_deque * pdeque, int workerid, int *skipped)
 {
 	STARPU_ASSERT(pdeque);
 	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());
 	REMOVE_TASK(pdeque, _tail, next, pred_can_execute, &workerid);
 }
 
-struct starpu_task *_starpu_prio_deque_deque_first_ready_task(struct _starpu_prio_deque * pdeque, unsigned workerid)
+struct starpu_task *starpu_st_prio_deque_deque_first_ready_task(struct starpu_st_prio_deque * pdeque, unsigned workerid)
 {
 	struct starpu_task *task = NULL, *current;
 
@@ -108,7 +186,7 @@ struct starpu_task *_starpu_prio_deque_deque_first_ready_task(struct _starpu_pri
 			if (priority >= first_task_priority)
 			{
 				size_t non_ready, non_loading, non_allocated;
-				_starpu_size_non_ready_buffers(current, workerid, &non_ready, &non_loading, &non_allocated);
+				starpu_st_non_ready_buffers_size(current, workerid, &non_ready, &non_loading, &non_allocated);
 				if (non_ready < non_ready_best)
 				{
 					non_ready_best = non_ready;

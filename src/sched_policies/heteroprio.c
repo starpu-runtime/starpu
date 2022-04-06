@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,12 +17,13 @@
 
 /* Distributed queues using performance modeling to assign tasks */
 
-#include <starpu_scheduler.h>
-#include <common/graph.h>
-
 #include <starpu_config.h>
 #include <starpu_scheduler.h>
+#include <starpu_scheduler.h>
 #include <schedulers/starpu_heteroprio.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
+
+#include <common/graph.h>
 #include "heteroprio.h"
 
 #include <common/fxt.h>
@@ -33,8 +34,8 @@
 
 #include <datawizard/memory_nodes.h>
 
-#include <sched_policies/prio_deque.h>
 #include <starpu_task_list.h>
+#include <sched_policies/prio_deque.h>
 #include <limits.h>
 #include <errno.h>
 
@@ -289,7 +290,7 @@ struct _heteroprio_worker_wrapper
 	unsigned arch_index;
 
 	/** Only used when use_locality==0 : */
-	struct _starpu_prio_deque tasks_queue;
+	struct starpu_st_prio_deque tasks_queue;
 };
 
 struct _starpu_heteroprio_data
@@ -1848,7 +1849,7 @@ static void add_workers_heteroprio_policy(unsigned sched_ctx_id, int *workerids,
 		{
 			/* if the worker has already belonged to this context
 			   the queue and the synchronization variables have been already initialized */
-			_starpu_prio_deque_init(&hp->workers_heteroprio[workerid].tasks_queue);
+			starpu_st_prio_deque_init(&hp->workers_heteroprio[workerid].tasks_queue);
 		}
 
 		enum starpu_worker_archtype arch_index = starpu_worker_get_type(workerid);
@@ -1871,7 +1872,7 @@ static void remove_workers_heteroprio_policy(unsigned sched_ctx_id, int *workeri
 		for (i = 0; i < nworkers; i++)
 		{
 			int workerid = workerids[i];
-			_starpu_prio_deque_destroy(&hp->workers_heteroprio[workerid].tasks_queue);
+			starpu_st_prio_deque_destroy(&hp->workers_heteroprio[workerid].tasks_queue);
 		}
 	}
 }
@@ -3625,7 +3626,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 					}
 					/* Save the task */
 					STARPU_AYU_ADDTOTASKQUEUE(starpu_task_get_job_id(task), workerid);
-					_starpu_prio_deque_push_front_task(&worker->tasks_queue, task);
+					starpu_st_prio_deque_push_front_task(&worker->tasks_queue, task);
 
 					/* Update general counter */
 					hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] += 1;
@@ -3654,7 +3655,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		if(worker->tasks_queue.ntasks)
 		{
 			int skipped;
-			task = _starpu_prio_deque_pop_task_for_worker(&worker->tasks_queue, workerid, &skipped);
+			task = starpu_st_prio_deque_pop_task_for_worker(&worker->tasks_queue, workerid, &skipped);
 			hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] -= 1;
 		}
 		/* Otherwise look if we can steal some work */
@@ -3706,7 +3707,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 						{
 							int skipped;
 							/* steal the last added task */
-							task = _starpu_prio_deque_pop_task_for_worker(&hp->workers_heteroprio[victim].tasks_queue, workerid, &skipped);
+							task = starpu_st_prio_deque_pop_task_for_worker(&hp->workers_heteroprio[victim].tasks_queue, workerid, &skipped);
 							/* we steal a task update global counter */
 							hp->nb_prefetched_tasks_per_arch_index[hp->workers_heteroprio[victim].arch_index] -= 1;
 

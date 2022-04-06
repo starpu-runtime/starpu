@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,16 +16,18 @@
 
 /* Work stealing policy */
 
+#include <starpu_scheduler.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
+
 #include <float.h>
 #include <limits.h>
 
 #include <core/workers.h>
-#include <sched_policies/prio_deque.h>
 #include <core/debug.h>
-#include <starpu_scheduler.h>
 #include <core/sched_policy.h>
 #include <core/debug.h>
 #include <core/task.h>
+#include <sched_policies/prio_deque.h>
 
 /* Experimental (dead) code which needs to be tested, fixed... */
 /* #define USE_OVERLOAD */
@@ -77,7 +79,7 @@ struct _starpu_work_stealing_data_per_worker
 	unsigned notask;	/* whether the queue is empty */
 	char fill2[STARPU_CACHELINE_SIZE];
 
-	struct _starpu_prio_deque queue;
+	struct starpu_st_prio_deque queue;
 	int running;
 	int *proxlist;
 	int busy;	/* Whether this worker is working on a task */
@@ -341,7 +343,7 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 	if (best_n > 0)
 	{
 		/* found an interesting task, try to pick it! */
-		if (_starpu_prio_deque_pop_this_task(&data_source->queue, target, best_task))
+		if (starpu_st_prio_deque_pop_this_task(&data_source->queue, target, best_task))
 		{
 			if (!data_source->queue.ntasks)
 			{
@@ -357,9 +359,9 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 	struct starpu_task *task;
 
 	if (source != target)
-		task = _starpu_prio_deque_deque_task_for_worker(&data_source->queue, target, &skipped);
+		task = starpu_st_prio_deque_deque_task_for_worker(&data_source->queue, target, &skipped);
 	else
-		task = _starpu_prio_deque_pop_task_for_worker(&data_source->queue, target, &skipped);
+		task = starpu_st_prio_deque_pop_task_for_worker(&data_source->queue, target, &skipped);
 
 	if (task && !data_source->queue.ntasks)
 	{
@@ -404,9 +406,9 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 	int skipped;
 	struct starpu_task *task;
 	if (source != target)
-		task = _starpu_prio_deque_deque_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
+		task = starpu_st_prio_deque_deque_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
 	else
-		task = _starpu_prio_deque_pop_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
+		task = starpu_st_prio_deque_pop_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
 
 	if (task && !ws->per_worker[source].queue.ntasks)
 	{
@@ -572,7 +574,7 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 		ws->per_worker[workerid].busy = 0;
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
-	if (STARPU_RUNNING_ON_VALGRIND || !_starpu_prio_deque_is_empty(&ws->per_worker[workerid].queue))
+	if (STARPU_RUNNING_ON_VALGRIND || !starpu_st_prio_deque_is_empty(&ws->per_worker[workerid].queue))
 #endif
 	{
 		task = ws_pick_task(ws, workerid, workerid);
@@ -692,7 +694,7 @@ int ws_push_task(struct starpu_task *task)
 	starpu_sched_task_break(task);
 	record_data_locality(task, workerid);
 	STARPU_ASSERT_MSG(ws->per_worker[workerid].running, "workerid=%d, ws=%p\n", workerid, ws);
-	_starpu_prio_deque_push_back_task(&ws->per_worker[workerid].queue, task);
+	starpu_st_prio_deque_push_back_task(&ws->per_worker[workerid].queue, task);
 	if (ws->per_worker[workerid].queue.ntasks == 1)
 	{
 		STARPU_ASSERT(ws->per_worker[workerid].notask == 1);
@@ -734,7 +736,7 @@ static void ws_add_workers(unsigned sched_ctx_id, int *workerids,unsigned nworke
 	{
 		int workerid = workerids[i];
 		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
-		_starpu_prio_deque_init(&ws->per_worker[workerid].queue);
+		starpu_st_prio_deque_init(&ws->per_worker[workerid].queue);
 		ws->per_worker[workerid].notask = 1;
 		ws->per_worker[workerid].running = 1;
 
@@ -756,7 +758,7 @@ static void ws_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nw
 	{
 		int workerid = workerids[i];
 
-		_starpu_prio_deque_destroy(&ws->per_worker[workerid].queue);
+		starpu_st_prio_deque_destroy(&ws->per_worker[workerid].queue);
 		ws->per_worker[workerid].running = 0;
 		free(ws->per_worker[workerid].proxlist);
 		ws->per_worker[workerid].proxlist = NULL;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,10 +16,10 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
 #include <common/fxt.h>
 #include <core/workers.h>
-
-#include "prio_deque.h"
+#include <sched_policies/prio_deque.h>
 
 #ifdef STARPU_USE_FXT
 #define STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component,ntasks,exp_len) do {                                 \
@@ -46,7 +46,7 @@
 
 struct _starpu_prio_data
 {
-	struct _starpu_prio_deque prio;
+	struct starpu_st_prio_deque prio;
 	starpu_pthread_mutex_t mutex;
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
@@ -58,7 +58,7 @@ static void prio_component_deinit_data(struct starpu_sched_component * component
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * f = component->data;
-	_starpu_prio_deque_destroy(&f->prio);
+	starpu_st_prio_deque_destroy(&f->prio);
 	STARPU_PTHREAD_MUTEX_DESTROY(&f->mutex);
 	free(f);
 }
@@ -67,7 +67,7 @@ static double prio_estimated_end(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * data = component->data;
-	struct _starpu_prio_deque * queue = &data->prio;
+	struct starpu_st_prio_deque * queue = &data->prio;
 	return starpu_sched_component_estimated_end_min_add(component, queue->exp_len);
 }
 
@@ -76,7 +76,7 @@ static double prio_estimated_load(struct starpu_sched_component * component)
 	STARPU_ASSERT(component && component->data);
 	STARPU_ASSERT(starpu_bitmap_cardinal(&component->workers_in_ctx) != 0);
 	struct _starpu_prio_data * data = component->data;
-	struct _starpu_prio_deque * queue = &data->prio;
+	struct starpu_st_prio_deque * queue = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
 	double load = starpu_sched_component_estimated_load(component);
@@ -110,7 +110,7 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	STARPU_ASSERT(component && component->data && task);
 	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	struct _starpu_prio_data * data = component->data;
-	struct _starpu_prio_deque * queue = &data->prio;
+	struct starpu_st_prio_deque * queue = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret = 0;
 	const double now = starpu_timing_now();
@@ -169,10 +169,10 @@ static int prio_push_local_task(struct starpu_sched_component * component, struc
 	if(!ret)
 	{
 		if(is_pushback)
-			ret = _starpu_prio_deque_push_front_task(queue,task);
+			ret = starpu_st_prio_deque_push_front_task(queue,task);
 		else
 		{
-			ret = _starpu_prio_deque_push_back_task(queue,task);
+			ret = starpu_st_prio_deque_push_back_task(queue,task);
 			starpu_sched_component_prefetch_on_node(component, task);
 			STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component, queue->ntasks, exp_len);
 		}
@@ -194,11 +194,11 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_prio_data * data = component->data;
-	struct _starpu_prio_deque * queue = &data->prio;
+	struct starpu_st_prio_deque * queue = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	const double now = starpu_timing_now();
 
-	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_prio_deque_is_empty(queue))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_st_prio_deque_is_empty(queue))
 	{
 		starpu_sched_component_send_can_push_to_parents(component);
 		return NULL;
@@ -207,9 +207,9 @@ static struct starpu_task * prio_pull_task(struct starpu_sched_component * compo
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
 	struct starpu_task * task;
 	if (data->ready && to->properties & STARPU_SCHED_COMPONENT_SINGLE_MEMORY_NODE)
-		task = _starpu_prio_deque_deque_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx));
+		task = starpu_st_prio_deque_deque_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx));
 	else
-		task = _starpu_prio_deque_pop_task(queue);
+		task = starpu_st_prio_deque_pop_task(queue);
 	if(task && data->exp)
 	{
 		if(!isnan(task->predicted))
@@ -296,7 +296,7 @@ struct starpu_sched_component * starpu_sched_component_prio_create(struct starpu
 	struct starpu_sched_component * component = starpu_sched_component_create(tree, "prio");
 	struct _starpu_prio_data *data;
 	_STARPU_MALLOC(data, sizeof(*data));
-	_starpu_prio_deque_init(&data->prio);
+	starpu_st_prio_deque_init(&data->prio);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	component->data = data;
 	component->estimated_end = prio_estimated_end;

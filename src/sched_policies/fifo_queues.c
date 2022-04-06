@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2016       Uppsala University
@@ -20,11 +20,14 @@
 /* FIFO queues, ready for use by schedulers */
 
 #include <starpu_scheduler.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
 
-#include <sched_policies/fifo_queues.h>
 #include <common/fxt.h>
 #include <core/topology.h>
+#include <sched_policies/fifo_queues.h>
+
 #include <limits.h>
+
 /*
 static int is_sorted_task_list(struct starpu_task * task)
 {
@@ -44,7 +47,7 @@ static int is_sorted_task_list(struct starpu_task * task)
 }
 */
 
-void _starpu_init_fifo(struct _starpu_fifo_taskq *fifo)
+void starpu_st_fifo_taskq_init(struct starpu_st_fifo_taskq *fifo)
 {
 	/* note that not all mechanisms (eg. the semaphore) have to be used */
 	starpu_task_list_init(&fifo->taskq);
@@ -65,33 +68,32 @@ void _starpu_init_fifo(struct _starpu_fifo_taskq *fifo)
 	STARPU_HG_DISABLE_CHECKING(fifo->exp_end);
 }
 
-struct _starpu_fifo_taskq *_starpu_create_fifo(void)
+struct starpu_st_fifo_taskq *starpu_st_fifo_taskq_create(void)
 {
-	struct _starpu_fifo_taskq *fifo;
-	_STARPU_MALLOC(fifo, sizeof(struct _starpu_fifo_taskq));
+	struct starpu_st_fifo_taskq *fifo;
+	_STARPU_MALLOC(fifo, sizeof(struct starpu_st_fifo_taskq));
 
-	_starpu_init_fifo(fifo);
+	starpu_st_fifo_taskq_init(fifo);
 
 	return fifo;
 }
 
-void _starpu_destroy_fifo(struct _starpu_fifo_taskq *fifo)
+void starpu_st_fifo_taskq_destroy(struct starpu_st_fifo_taskq *fifo)
 {
 	free(fifo);
 }
 
-int _starpu_fifo_empty(struct _starpu_fifo_taskq *fifo)
+int starpu_st_fifo_taskq_empty(struct starpu_st_fifo_taskq *fifo)
 {
 	return fifo->ntasks == 0;
 }
 
-double 
-_starpu_fifo_get_exp_len_prev_task_list(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task, int workerid, int nimpl, int *fifo_ntasks)
+double starpu_st_fifo_taskq_get_exp_len_prev_task_list(struct starpu_st_fifo_taskq *fifo_queue, struct starpu_task *task, int workerid, int nimpl, int *fifo_ntasks)
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
 	struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(workerid, task->sched_ctx);
 	double exp_len = 0.0;
-	
+
 	if (list->_head != NULL)
 	{
 		struct starpu_task *current = list->_head;
@@ -139,8 +141,7 @@ _starpu_fifo_get_exp_len_prev_task_list(struct _starpu_fifo_taskq *fifo_queue, s
 	return exp_len;
 }
 
-int
-_starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
+int starpu_st_fifo_taskq_push_sorted_task(struct starpu_st_fifo_taskq *fifo_queue, struct starpu_task *task)
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
 
@@ -209,12 +210,11 @@ _starpu_fifo_push_sorted_task(struct _starpu_fifo_taskq *fifo_queue, struct star
 	return 0;
 }
 
-int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
+int starpu_st_fifo_taskq_push_task(struct starpu_st_fifo_taskq *fifo_queue, struct starpu_task *task)
 {
-
 	if (task->priority > 0)
 	{
-		_starpu_fifo_push_sorted_task(fifo_queue, task);
+		starpu_st_fifo_taskq_push_sorted_task(fifo_queue, task);
 	}
 	else
 	{
@@ -223,16 +223,14 @@ int _starpu_fifo_push_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_
 		fifo_queue->ntasks++;
 		fifo_queue->nprocessed++;
 	}
-
 	return 0;
 }
 
-int _starpu_fifo_push_back_task(struct _starpu_fifo_taskq *fifo_queue, struct starpu_task *task)
+int starpu_st_fifo_taskq_push_back_task(struct starpu_st_fifo_taskq *fifo_queue, struct starpu_task *task)
 {
-
 	if (task->priority > 0)
 	{
-		_starpu_fifo_push_sorted_task(fifo_queue, task);
+		starpu_st_fifo_taskq_push_sorted_task(fifo_queue, task);
 	}
 	else
 	{
@@ -240,11 +238,10 @@ int _starpu_fifo_push_back_task(struct _starpu_fifo_taskq *fifo_queue, struct st
 
 		fifo_queue->ntasks++;
 	}
-
 	return 0;
 }
 
-int _starpu_fifo_pop_this_task(struct _starpu_fifo_taskq *fifo_queue, int workerid, struct starpu_task *task)
+int starpu_st_fifo_taskq_pop_this_task(struct starpu_st_fifo_taskq *fifo_queue, int workerid, struct starpu_task *task)
 {
 	unsigned nimpl = 0;
 	STARPU_ASSERT(task);
@@ -263,7 +260,7 @@ int _starpu_fifo_pop_this_task(struct _starpu_fifo_taskq *fifo_queue, int worker
 	return 0;
 }
 
-struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
+struct starpu_task *starpu_st_fifo_taskq_pop_task(struct starpu_st_fifo_taskq *fifo_queue, int workerid)
 {
 	struct starpu_task *task;
 
@@ -271,17 +268,14 @@ struct starpu_task *_starpu_fifo_pop_task(struct _starpu_fifo_taskq *fifo_queue,
 	     task != starpu_task_list_end(&fifo_queue->taskq);
 	     task  = starpu_task_list_next(task))
 	{
-		if (_starpu_fifo_pop_this_task(fifo_queue, workerid, task))
+		if (starpu_st_fifo_taskq_pop_this_task(fifo_queue, workerid, task))
 			return task;
 	}
 
 	return NULL;
 }
 
-/* This is the same as _starpu_fifo_pop_task, but without checking that the
- * worker will be able to execute this task. This is useful when the scheduler
- * has already checked it. */
-struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_queue)
+struct starpu_task *starpu_st_fifo_taskq_pop_local_task(struct starpu_st_fifo_taskq *fifo_queue)
 {
 	struct starpu_task *task = NULL;
 
@@ -294,8 +288,7 @@ struct starpu_task *_starpu_fifo_pop_local_task(struct _starpu_fifo_taskq *fifo_
 	return task;
 }
 
-/* pop every task that can be executed on the calling driver */
-struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_queue, int workerid)
+struct starpu_task *starpu_st_fifo_taskq_pop_every_task(struct starpu_st_fifo_taskq *fifo_queue, int workerid)
 {
 	unsigned size = fifo_queue->ntasks;
 	struct starpu_task *new_list = NULL;
@@ -348,14 +341,14 @@ struct starpu_task *_starpu_fifo_pop_every_task(struct _starpu_fifo_taskq *fifo_
 	return new_list;
 }
 
-int _starpu_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_id)
+int starpu_st_normalize_prio(int priority, int num_priorities, unsigned sched_ctx_id)
 {
 	int min = starpu_sched_ctx_get_min_priority(sched_ctx_id);
 	int max = starpu_sched_ctx_get_max_priority(sched_ctx_id);
 	return ((num_priorities-1)/(max-min)) * (priority - min);
 }
 
-void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, size_t *non_readyp, size_t *non_loadingp, size_t *non_allocatedp)
+void starpu_st_non_ready_buffers_size(struct starpu_task *task, unsigned worker, size_t *non_readyp, size_t *non_loadingp, size_t *non_allocatedp)
 {
 	size_t non_ready = 0, non_loading = 0, non_allocated = 0;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -391,7 +384,7 @@ void _starpu_size_non_ready_buffers(struct starpu_task *task, unsigned worker, s
 	*non_allocatedp = non_allocated;
 }
 
-int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
+int starpu_st_non_ready_buffers_count(struct starpu_task *task, unsigned worker)
 {
 	int cnt = 0;
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -416,7 +409,7 @@ int _starpu_count_non_ready_buffers(struct starpu_task *task, unsigned worker)
 	return cnt;
 }
 
-struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities)
+struct starpu_task *starpu_st_fifo_taskq_pop_first_ready_task(struct starpu_st_fifo_taskq *fifo_queue, unsigned workerid, int num_priorities)
 {
 	struct starpu_task *task = NULL, *current;
 
@@ -444,7 +437,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 			if (priority >= first_task_priority)
 			{
 				size_t non_ready, non_loading, non_allocated;
-				_starpu_size_non_ready_buffers(current, workerid, &non_ready, &non_loading, &non_allocated);
+				starpu_st_non_ready_buffers_size(current, workerid, &non_ready, &non_loading, &non_allocated);
 				if (non_ready < non_ready_best)
 				{
 					non_ready_best = non_ready;
@@ -478,7 +471,7 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 		if(num_priorities != -1)
 		{
 			int i;
-			int task_prio = _starpu_normalize_prio(task->priority, num_priorities, task->sched_ctx);
+			int task_prio = starpu_st_normalize_prio(task->priority, num_priorities, task->sched_ctx);
 			for(i = 0; i <= task_prio; i++)
 				fifo_queue->ntasks_per_priority[i]--;
 		}
@@ -488,4 +481,3 @@ struct starpu_task *_starpu_fifo_pop_first_ready_task(struct _starpu_fifo_taskq 
 
 	return task;
 }
-

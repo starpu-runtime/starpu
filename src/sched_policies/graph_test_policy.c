@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,19 +26,20 @@
  */
 
 #include <starpu_scheduler.h>
-#include <sched_policies/fifo_queues.h>
-#include <sched_policies/prio_deque.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
 #include <common/graph.h>
 #include <common/thread.h>
 #include <starpu_bitmap.h>
 #include <core/task.h>
 #include <core/workers.h>
+#include <sched_policies/fifo_queues.h>
+#include <sched_policies/prio_deque.h>
 
 struct _starpu_graph_test_policy_data
 {
-	struct _starpu_fifo_taskq fifo;	/* Bag of tasks which are ready before do_schedule is called */
-	struct _starpu_prio_deque prio_cpu;
-	struct _starpu_prio_deque prio_gpu;
+	struct starpu_st_fifo_taskq fifo;	/* Bag of tasks which are ready before do_schedule is called */
+	struct starpu_st_prio_deque prio_cpu;
+	struct starpu_st_prio_deque prio_gpu;
 	starpu_pthread_mutex_t policy_mutex;
 	struct starpu_bitmap waiters;
 	unsigned computed;
@@ -51,9 +52,9 @@ static void initialize_graph_test_policy(unsigned sched_ctx_id)
 	_STARPU_MALLOC(data, sizeof(struct _starpu_graph_test_policy_data));
 
 	/* there is only a single queue in that trivial design */
-	_starpu_init_fifo(&data->fifo);
-	 _starpu_prio_deque_init(&data->prio_cpu);
-	 _starpu_prio_deque_init(&data->prio_gpu);
+	starpu_st_fifo_taskq_init(&data->fifo);
+	 starpu_st_prio_deque_init(&data->prio_cpu);
+	 starpu_st_prio_deque_init(&data->prio_gpu);
 	starpu_bitmap_init(&data->waiters);
 	data->computed = 0;
 	data->descendants = starpu_get_env_number_default("STARPU_SCHED_GRAPH_TEST_DESCENDANTS", 0);
@@ -67,13 +68,13 @@ static void initialize_graph_test_policy(unsigned sched_ctx_id)
 static void deinitialize_graph_test_policy(unsigned sched_ctx_id)
 {
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	struct _starpu_fifo_taskq *fifo = &data->fifo;
+	struct starpu_st_fifo_taskq *fifo = &data->fifo;
 
 	STARPU_ASSERT(starpu_task_list_empty(&fifo->taskq));
 
 	/* deallocate the job queue */
-	 _starpu_prio_deque_destroy(&data->prio_cpu);
-	 _starpu_prio_deque_destroy(&data->prio_gpu);
+	 starpu_st_prio_deque_destroy(&data->prio_cpu);
+	 starpu_st_prio_deque_destroy(&data->prio_gpu);
 
 	_starpu_graph_record = 0;
 	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
@@ -81,7 +82,7 @@ static void deinitialize_graph_test_policy(unsigned sched_ctx_id)
 }
 
 /* Push the given task on CPU or GPU prio list, using a dumb heuristic */
-static struct _starpu_prio_deque *select_prio(unsigned sched_ctx_id, struct _starpu_graph_test_policy_data *data, struct starpu_task *task)
+static struct starpu_st_prio_deque *select_prio(unsigned sched_ctx_id, struct _starpu_graph_test_policy_data *data, struct starpu_task *task)
 {
 	int cpu_can = 0, gpu_can = 0;
 	double cpu_speed = 0.;
@@ -188,11 +189,11 @@ static void do_schedule_graph_test_policy(unsigned sched_ctx_id)
 	}
 
 	/* Now that we have priorities, move tasks from bag to priority queue */
-	while(!_starpu_fifo_empty(&data->fifo))
+	while(!starpu_st_fifo_taskq_empty(&data->fifo))
 	{
-		struct starpu_task *task = _starpu_fifo_pop_task(&data->fifo, -1);
-		struct _starpu_prio_deque *prio = select_prio(sched_ctx_id, data, task);
-		_starpu_prio_deque_push_back_task(prio, task);
+		struct starpu_task *task = starpu_st_fifo_taskq_pop_task(&data->fifo, -1);
+		struct starpu_st_prio_deque *prio = select_prio(sched_ctx_id, data, task);
+		starpu_st_prio_deque_push_back_task(prio, task);
 	}
 
 	/* And unleash the beast! */
@@ -240,8 +241,8 @@ static int push_task_graph_test_policy(struct starpu_task *task)
 	}
 
 	/* Priorities are computed, we can push to execution */
-	struct _starpu_prio_deque *prio = select_prio(sched_ctx_id, data, task);
-	_starpu_prio_deque_push_back_task(prio, task);
+	struct starpu_st_prio_deque *prio = select_prio(sched_ctx_id, data, task);
+	starpu_st_prio_deque_push_back_task(prio, task);
 
 	starpu_push_task_end(task);
 
@@ -309,7 +310,7 @@ static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 	struct starpu_task *chosen_task = NULL;
 	unsigned workerid = starpu_worker_get_id_check();
 	struct _starpu_graph_test_policy_data *data = (struct _starpu_graph_test_policy_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
-	struct _starpu_prio_deque *prio;
+	struct starpu_st_prio_deque *prio;
 
 	if (starpu_worker_get_type(workerid) == STARPU_CPU_WORKER)
 		prio = &data->prio_cpu;
@@ -320,7 +321,7 @@ static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 	/* Here helgrind would shout that this is unprotected, this is just an
 	 * integer access, and we hold the sched mutex, so we can not miss any
 	 * wake up. */
-	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_prio_deque_is_empty(prio))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_st_prio_deque_is_empty(prio))
 		return NULL;
 
 #ifdef STARPU_NON_BLOCKING_DRIVERS
@@ -341,7 +342,7 @@ static struct starpu_task *pop_task_graph_test_policy(unsigned sched_ctx_id)
 		return NULL;
 	}
 
-	chosen_task = _starpu_prio_deque_pop_task_for_worker(prio, workerid, NULL);
+	chosen_task = starpu_st_prio_deque_pop_task_for_worker(prio, workerid, NULL);
 	if (!chosen_task)
 		/* Tell pushers that we are waiting for tasks for us */
 		starpu_bitmap_set(&data->waiters, workerid);

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2020       Télécom-Sud Paris
  *
@@ -20,12 +20,13 @@
  * GPUs take accelerated tasks first and CPUs take non-accelerated tasks first */
 
 #include <starpu_sched_component.h>
-#include "prio_deque.h"
 #include <starpu_perfmodel.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
 #include "helper_mct.h"
 #include <float.h>
 #include <core/sched_policy.h>
 #include <core/task.h>
+#include <sched_policies/prio_deque.h>
 
 /* Approximation ratio for acceleration factor bucketing
  * We will put tasks with +-10% similar acceleration into the same bucket. */
@@ -35,12 +36,12 @@ struct _starpu_heteroprio_data
 {
 	/* This is an array of priority queues.
 	 * The array is sorted by acceleration factor, most accelerated first */
-	struct _starpu_prio_deque **bucket;
+	struct starpu_st_prio_deque **bucket;
 	float *accel;
 	unsigned naccel;
 
 	/* This contains tasks which are not supported on all archs. */
-	struct _starpu_prio_deque no_accel;
+	struct starpu_st_prio_deque no_accel;
 
 	/* This protects all queues */
 	starpu_pthread_mutex_t mutex;
@@ -64,7 +65,7 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 		/* Pick up accelerated tasks first */
 		for (j = 0; j < (int) data->naccel; j++)
 		{
-			task = _starpu_prio_deque_pop_task(data->bucket[j]);
+			task = starpu_st_prio_deque_pop_task(data->bucket[j]);
 			if (task)
 				break;
 		}
@@ -73,9 +74,9 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 		for (j = (int) data->naccel-1; j >= 0; j--)
 		{
 			if (data->batch && 0)
-				task = _starpu_prio_deque_pop_back_task(data->bucket[j]);
+				task = starpu_st_prio_deque_pop_back_task(data->bucket[j]);
 			else
-				task = _starpu_prio_deque_pop_task(data->bucket[j]);
+				task = starpu_st_prio_deque_pop_task(data->bucket[j]);
 			if (task)
 				break;
 		}
@@ -219,7 +220,7 @@ out:
 	{
 		if (acceleration == data->accel[j])
 		{
-			_starpu_prio_deque_push_front_task(data->bucket[j], task);
+			starpu_st_prio_deque_push_front_task(data->bucket[j], task);
 			break;
 		}
 	}
@@ -318,9 +319,9 @@ static int heteroprio_progress_one(struct starpu_sched_component *component)
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	struct starpu_task *task;
 
-	struct _starpu_prio_deque * no_accel = &data->no_accel;
+	struct starpu_st_prio_deque * no_accel = &data->no_accel;
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	task = _starpu_prio_deque_pop_task(no_accel);
+	task = starpu_st_prio_deque_pop_task(no_accel);
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	if (task)
@@ -329,7 +330,7 @@ static int heteroprio_progress_one(struct starpu_sched_component *component)
 		{
 			/* Could not push to child actually, push that one back */
 			STARPU_COMPONENT_MUTEX_LOCK(mutex);
-			_starpu_prio_deque_push_front_task(no_accel, task);
+			starpu_st_prio_deque_push_front_task(no_accel, task);
 			STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 		}
 	}
@@ -434,11 +435,11 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 
 			float *newaccel;
 			_STARPU_MALLOC(newaccel, data->naccel * sizeof(*newaccel));
-			struct _starpu_prio_deque **newbuckets;
+			struct starpu_st_prio_deque **newbuckets;
 			_STARPU_MALLOC(newbuckets, data->naccel * sizeof(*newbuckets));
-			struct _starpu_prio_deque *newbucket;
+			struct starpu_st_prio_deque *newbucket;
 			_STARPU_MALLOC(newbucket, sizeof(*newbucket));
-			_starpu_prio_deque_init(newbucket);
+			starpu_st_prio_deque_init(newbucket);
 			int inserted = 0;
 
 			for (j = 0; j < data->naccel-1; j++)
@@ -473,7 +474,7 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 		}
 		fprintf(stderr,"\ninserting %p %f to %d\n", task, acceleration, i);
 #endif
-		_starpu_prio_deque_push_back_task(data->bucket[i],task);
+		starpu_st_prio_deque_push_back_task(data->bucket[i],task);
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 	else
@@ -481,9 +482,9 @@ static int heteroprio_push_task(struct starpu_sched_component * component, struc
 		/* Not all archs can run it, will resort to HEFT strategy */
 		acceleration = INFINITY;
 		//fprintf(stderr,"%s: some archs can't do it\n", starpu_task_get_name(task));
-		struct _starpu_prio_deque * no_accel = &data->no_accel;
+		struct starpu_st_prio_deque * no_accel = &data->no_accel;
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
-		_starpu_prio_deque_push_back_task(no_accel,task);
+		starpu_st_prio_deque_push_back_task(no_accel,task);
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	}
 
@@ -519,12 +520,12 @@ static void heteroprio_component_deinit_data(struct starpu_sched_component * com
 	unsigned i;
 	for (i = 0; i < d->naccel; i++)
 	{
-		_starpu_prio_deque_destroy(d->bucket[i]);
+		starpu_st_prio_deque_destroy(d->bucket[i]);
 		free(d->bucket[i]);
 	}
 	free(d->bucket);
 	free(d->accel);
-	_starpu_prio_deque_destroy(&d->no_accel);
+	starpu_st_prio_deque_destroy(&d->no_accel);
 	STARPU_PTHREAD_MUTEX_DESTROY(&d->mutex);
 	STARPU_PTHREAD_MUTEX_DESTROY(&mct_d->scheduling_mutex);
 	free(mct_d);
@@ -546,7 +547,7 @@ struct starpu_sched_component * starpu_sched_component_heteroprio_create(struct 
 	data->bucket = NULL;
 	data->accel = NULL;
 	data->naccel = 0;
-	_starpu_prio_deque_init(&data->no_accel);
+	starpu_st_prio_deque_init(&data->no_accel);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	data->mct_data = mct_data;
 	STARPU_PTHREAD_MUTEX_INIT(&mct_data->scheduling_mutex,NULL);

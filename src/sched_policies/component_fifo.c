@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -17,13 +17,14 @@
 
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
-#include <core/workers.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
 
-#include "fifo_queues.h"
+#include <core/workers.h>
+#include <sched_policies/fifo_queues.h>
 
 struct _starpu_fifo_data
 {
-	struct _starpu_fifo_taskq fifo;
+	struct starpu_st_fifo_taskq fifo;
 	starpu_pthread_mutex_t mutex;
 	unsigned ntasks_threshold;
 	double exp_len_threshold;
@@ -43,7 +44,7 @@ static double fifo_estimated_end(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * queue = &data->fifo;
+	struct starpu_st_fifo_taskq * queue = &data->fifo;
 	return starpu_sched_component_estimated_end_min_add(component, queue->exp_len);
 }
 
@@ -52,7 +53,7 @@ static double fifo_estimated_load(struct starpu_sched_component * component)
 	STARPU_ASSERT(component && component->data);
 	STARPU_ASSERT(starpu_bitmap_cardinal(&component->workers_in_ctx) != 0);
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * queue = &data->fifo;
+	struct starpu_st_fifo_taskq * queue = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	double relative_speedup = 0.0;
 	double load = starpu_sched_component_estimated_load(component);
@@ -86,7 +87,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	STARPU_ASSERT(component && component->data && task);
 	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * queue = &data->fifo;
+	struct starpu_st_fifo_taskq * queue = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	int ret = 0;
 	const double now = starpu_timing_now();
@@ -144,10 +145,10 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 	if(!ret)
 	{
 		if(is_pushback)
-			ret = _starpu_fifo_push_back_task(queue,task);
+			ret = starpu_st_fifo_taskq_push_back_task(queue,task);
 		else
 		{
-			ret = _starpu_fifo_push_task(queue,task);
+			ret = starpu_st_fifo_taskq_push_task(queue,task);
 			starpu_sched_component_prefetch_on_node(component, task);
 		}
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
@@ -167,11 +168,11 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 {
 	STARPU_ASSERT(component && component->data);
 	struct _starpu_fifo_data * data = component->data;
-	struct _starpu_fifo_taskq * queue = &data->fifo;
+	struct starpu_st_fifo_taskq * queue = &data->fifo;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 	const double now = starpu_timing_now();
 
-	if (!STARPU_RUNNING_ON_VALGRIND && _starpu_fifo_empty(queue))
+	if (!STARPU_RUNNING_ON_VALGRIND && starpu_st_fifo_taskq_empty(queue))
 	{
 		starpu_sched_component_send_can_push_to_parents(component);
 		return NULL;
@@ -183,11 +184,11 @@ static struct starpu_task * fifo_pull_task(struct starpu_sched_component * compo
 #ifdef STARPU_DEVEL
 #warning In eager schedulers, we never write that we want to fill the fifo before picking up a task. Eager is then ineffective since in practice the fifo wont fill
 #endif
-		task = _starpu_fifo_pop_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx), -1);
+		task = starpu_st_fifo_taskq_pop_first_ready_task(queue, starpu_bitmap_first(&to->workers_in_ctx), -1);
 	else if (to->properties & STARPU_SCHED_COMPONENT_HOMOGENEOUS)
-		task = _starpu_fifo_pop_task(queue, starpu_bitmap_first(&to->workers_in_ctx));
+		task = starpu_st_fifo_taskq_pop_task(queue, starpu_bitmap_first(&to->workers_in_ctx));
 	else
-		task = _starpu_fifo_pop_task(queue, -1);
+		task = starpu_st_fifo_taskq_pop_task(queue, -1);
 	if(task && data->exp)
 	{
 		if(!isnan(task->predicted))
@@ -272,7 +273,7 @@ struct starpu_sched_component * starpu_sched_component_fifo_create(struct starpu
 	struct starpu_sched_component *component = starpu_sched_component_create(tree, "fifo");
 	struct _starpu_fifo_data *data;
 	_STARPU_MALLOC(data, sizeof(*data));
-	_starpu_init_fifo(&data->fifo);
+	starpu_st_fifo_taskq_init(&data->fifo);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	component->data = data;
 	component->estimated_end = fifo_estimated_end;

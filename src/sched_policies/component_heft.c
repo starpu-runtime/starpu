@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2020       Télécom-Sud Paris
  *
@@ -21,18 +21,19 @@
  * the most benefit is achieved.  */
 
 #include <starpu_sched_component.h>
-#include "prio_deque.h"
 #include <starpu_perfmodel.h>
+#include <schedulers/starpu_scheduler_toolbox.h>
 #include "helper_mct.h"
 #include <float.h>
 #include <core/sched_policy.h>
 #include <core/task.h>
+#include <sched_policies/prio_deque.h>
 
 #define NTASKS 5
 
 struct _starpu_heft_data
 {
-	struct _starpu_prio_deque prio;
+	struct starpu_st_prio_deque prio;
 	starpu_pthread_mutex_t mutex;
 	struct _starpu_mct_data *mct_data;
 };
@@ -41,22 +42,22 @@ static int heft_progress_one(struct starpu_sched_component *component)
 {
 	struct _starpu_heft_data * data = component->data;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
-	struct _starpu_prio_deque * prio = &data->prio;
+	struct starpu_st_prio_deque * prio = &data->prio;
 	struct starpu_task * (tasks[NTASKS]);
 	unsigned ntasks = 0;
 
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	tasks[0] = _starpu_prio_deque_pop_task(prio);
+	tasks[0] = starpu_st_prio_deque_pop_task(prio);
 	if (tasks[0])
 	{
 		int priority = tasks[0]->priority;
 		/* Try to look at NTASKS from the queue */
 		for (ntasks = 1; ntasks < NTASKS; ntasks++)
 		{
-			tasks[ntasks] = _starpu_prio_deque_highest_task(prio);
+			tasks[ntasks] = starpu_st_prio_deque_highest_task(prio);
  			if (!tasks[ntasks] || tasks[ntasks]->priority < priority)
  				break;
- 			_starpu_prio_deque_pop_task(prio);		
+ 			starpu_st_prio_deque_pop_task(prio);
 		}
 	}
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
@@ -106,7 +107,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 					estimated_ends_with_task + offset,
 					&min_exp_end_of_task[n], &max_exp_end_of_workers,
 							  suitable_components + offset, nsuitable_components[n]);
-			
+
 			/* Compute the energy, if provided*/
 			starpu_mct_compute_energy(component, tasks[n], local_energy + offset, suitable_components + offset, nsuitable_components[n]);
 		}
@@ -131,7 +132,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		STARPU_COMPONENT_MUTEX_LOCK(mutex);
 		for (n = ntasks - 1; n < ntasks; n--)
 			if ((int) n != best_task)
-				_starpu_prio_deque_push_front_task(prio, tasks[n]);
+				starpu_st_prio_deque_push_front_task(prio, tasks[n]);
 		STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 		unsigned offset = component->nchildren * best_task;
@@ -154,7 +155,7 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		{
 			/* Could not push to child actually, push that one back too */
 			STARPU_COMPONENT_MUTEX_LOCK(mutex);
-			_starpu_prio_deque_push_front_task(prio, tasks[best_task]);
+			starpu_st_prio_deque_push_front_task(prio, tasks[best_task]);
 			STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 			return 1;
 		}
@@ -175,11 +176,11 @@ static int heft_push_task(struct starpu_sched_component * component, struct star
 {
 	STARPU_ASSERT(component && task && starpu_sched_component_is_heft(component));
 	struct _starpu_heft_data * data = component->data;
-	struct _starpu_prio_deque * prio = &data->prio;
+	struct starpu_st_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	_starpu_prio_deque_push_back_task(prio,task);
+	starpu_st_prio_deque_push_back_task(prio,task);
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	heft_progress(component);
@@ -211,7 +212,7 @@ static void heft_component_deinit_data(struct starpu_sched_component * component
 	STARPU_ASSERT(starpu_sched_component_is_heft(component));
 	struct _starpu_heft_data * d = component->data;
 	struct _starpu_mct_data * mct_d = d->mct_data;
-	_starpu_prio_deque_destroy(&d->prio);
+	starpu_st_prio_deque_destroy(&d->prio);
 	free(mct_d);
 	free(d);
 }
@@ -228,7 +229,7 @@ struct starpu_sched_component * starpu_sched_component_heft_create(struct starpu
 	struct _starpu_heft_data *data;
 	_STARPU_MALLOC(data, sizeof(*data));
 
-	_starpu_prio_deque_init(&data->prio);
+	starpu_st_prio_deque_init(&data->prio);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	data->mct_data = mct_data;
 	component->data = data;

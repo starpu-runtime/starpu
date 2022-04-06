@@ -266,7 +266,8 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_lp.h		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_monitoring.h	\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor_policy.h	\
-	$(top_srcdir)/starpurm/include/starpurm.h
+	$(top_srcdir)/starpurm/include/starpurm.h			\
+	$(top_srcdir)/include/schedulers/starpu_scheduler_toolbox.h
 
 doxy:
 	@rm -fr $(DOX_HTML_DIR) $(DOX_LATEX_DIR)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -18,16 +18,17 @@
 /* eager component which has its own priority queue. It can thus eagerly push
  * tasks to lower queues without having to wait for being pulled from.  */
 
+#include <schedulers/starpu_scheduler_toolbox.h>
 #include <starpu_sched_component.h>
-#include "prio_deque.h"
 #include <starpu_perfmodel.h>
 #include <float.h>
 #include <core/sched_policy.h>
 #include <core/task.h>
+#include <sched_policies/prio_deque.h>
 
 struct _starpu_eager_prio_data
 {
-	struct _starpu_prio_deque prio;
+	struct starpu_st_prio_deque prio;
 	starpu_pthread_mutex_t mutex;
 };
 
@@ -35,12 +36,12 @@ static int eager_prio_progress_one(struct starpu_sched_component *component)
 {
 	struct _starpu_eager_prio_data * data = component->data;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
-	struct _starpu_prio_deque * prio = &data->prio;
+	struct starpu_st_prio_deque * prio = &data->prio;
 	struct starpu_task *task;
 	int ret;
 
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	task = _starpu_prio_deque_pop_task(prio);
+	task = starpu_st_prio_deque_pop_task(prio);
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	if (!task)
@@ -84,7 +85,7 @@ static int eager_prio_progress_one(struct starpu_sched_component *component)
 
 	/* Could not push to child actually, push that one back too */
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	_starpu_prio_deque_push_front_task(prio, task);
+	starpu_st_prio_deque_push_front_task(prio, task);
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 	return 1;
 }
@@ -101,11 +102,11 @@ static int eager_prio_push_task(struct starpu_sched_component * component, struc
 {
 	STARPU_ASSERT(component && task && starpu_sched_component_is_eager_prio(component));
 	struct _starpu_eager_prio_data * data = component->data;
-	struct _starpu_prio_deque * prio = &data->prio;
+	struct starpu_st_prio_deque * prio = &data->prio;
 	starpu_pthread_mutex_t * mutex = &data->mutex;
 
 	STARPU_COMPONENT_MUTEX_LOCK(mutex);
-	_starpu_prio_deque_push_back_task(prio,task);
+	starpu_st_prio_deque_push_back_task(prio,task);
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);
 
 	eager_prio_progress(component);
@@ -136,7 +137,7 @@ static void eager_prio_component_deinit_data(struct starpu_sched_component * com
 {
 	STARPU_ASSERT(starpu_sched_component_is_eager_prio(component));
 	struct _starpu_eager_prio_data * d = component->data;
-	_starpu_prio_deque_destroy(&d->prio);
+	starpu_st_prio_deque_destroy(&d->prio);
 	free(d);
 }
 
@@ -152,7 +153,7 @@ struct starpu_sched_component * starpu_sched_component_eager_prio_create(struct 
 	struct _starpu_eager_prio_data *data;
 	_STARPU_MALLOC(data, sizeof(*data));
 
-	_starpu_prio_deque_init(&data->prio);
+	starpu_st_prio_deque_init(&data->prio);
 	STARPU_PTHREAD_MUTEX_INIT(&data->mutex,NULL);
 	component->data = data;
 
