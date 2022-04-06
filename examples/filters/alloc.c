@@ -34,7 +34,14 @@ int main(int argc, char** argv)
 	starpu_data_handle_t parent_sync;
 	starpu_data_handle_t children[NPARTS];
 
-	ret = starpu_init(NULL);
+	struct starpu_conf conf;
+	starpu_conf_init(&conf);
+
+	/* this example doesn't support Master-Slave */
+	conf.nmpi_ms = 0;
+	conf.ntcpip_ms = 0;
+
+	ret = starpu_init(&conf);
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
