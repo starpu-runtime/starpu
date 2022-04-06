@@ -342,7 +342,7 @@ struct starpu_conf
 	   \ref STARPU_DATA_LOCALITY_ENFORCE.
 	   This can also be specified at compilation time by giving to
 	   the configure script the option \ref
-	   enable-data-locality "--enable-data-locality".
+	   enable-data-locality-enforce "--enable-data-locality-enforce".
 	   (default = \c 0)
 	*/
 	int data_locality_enforce;
