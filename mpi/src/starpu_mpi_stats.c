@@ -28,7 +28,12 @@ static double time_init;
 
 void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 {
-	stats_enabled = starpu_get_env_number("STARPU_COMM_STATS");
+	stats_enabled = starpu_get_env_number("STARPU_MPI_STATS");
+	if (stats_enabled == -1)
+	{
+		/* Legacy env var */
+		stats_enabled = starpu_get_env_number("STARPU_COMM_STATS");
+	}
 	if (stats_enabled == -1)
 	{
 		stats_enabled = 0;
@@ -37,7 +42,7 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 	if (stats_enabled == 0)
 		return;
 
-	_STARPU_DISP("Warning: StarPU is executed with STARPU_COMM_STATS=1, which slows down a bit\n");
+	_STARPU_DISP("Warning: StarPU is executed with STARPU_MPI_STATS=1, which slows down a bit\n");
 
 	starpu_mpi_comm_size(comm, &world_size);
 	_STARPU_MPI_DEBUG(1, "allocating for %d nodes\n", world_size);

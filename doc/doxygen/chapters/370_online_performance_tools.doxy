@@ -228,7 +228,7 @@ Total transfers: 2.27 GB
 \subsection MPI-relatedFeedback MPI-related Feedback
 
 Statistics about the data transfers which were performed over MPI can be
-obtained by setting the environment variable \ref STARPU_COMM_STATS to <c>1</c>;
+obtained by setting the environment variable \ref STARPU_MPI_STATS to <c>1</c>;
 a summary will then be displayed at program termination:
 
 \verbatim

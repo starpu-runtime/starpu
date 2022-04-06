@@ -128,7 +128,7 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
-	setenv("STARPU_COMM_STATS", "1", 1);
+	setenv("STARPU_MPI_STATS", "1", 1);
 	setenv("STARPU_MPI_CACHE_STATS", "1", 1);
 
 	comm_amount_with_cache = malloc(size * sizeof(size_t));

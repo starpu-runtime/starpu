@@ -95,6 +95,7 @@ Small features:
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
     actually uses commutability.
+  * Rename STARPU_COMM_STATS environment variable to STARPU_MPI_STATS
 
 Small changes:
   * Add a synthetic energy efficiency testcase.

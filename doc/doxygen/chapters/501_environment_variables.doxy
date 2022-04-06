@@ -890,8 +890,15 @@ files in the directory <c>$prefix/share/starpu/opencl/vendors</c>.
 <dd>
 \anchor STARPU_COMM_STATS
 \addindex __env__STARPU_COMM_STATS
+This variable is deprecated. You should use \ref STARPU_MPI_STATS.
+</dd>
+
+<dt>STARPU_MPI_STATS</dt>
+<dd>
+\anchor STARPU_MPI_STATS
+\addindex __env__STARPU_MPI_STATS
 Communication statistics for starpumpi (\ref MPIDebug)
-will be enabled when the environment variable \ref STARPU_COMM_STATS
+will be enabled when the environment variable \ref STARPU_MPI_STATS
 is defined to an value other than 0.
 </dd>
 

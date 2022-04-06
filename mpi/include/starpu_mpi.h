@@ -91,7 +91,7 @@ int starpu_mpi_shutdown(void);
    Retrieve the current amount of communications from the current node
    in the array \p comm_amounts which must have a size greater or
    equal to the world size. Communications statistics must be enabled
-   (see \ref STARPU_COMM_STATS).
+   (see \ref STARPU_MPI_STATS).
 */
 void starpu_mpi_comm_amounts_retrieve(size_t *comm_amounts);
 
