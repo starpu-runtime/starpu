@@ -1,7 +1,7 @@
 #!@REALBASH@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,6 +14,35 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+PROGNAME=$0
+
+usage()
+{
+    echo "Tool to launch StarPUPY examples"
+    echo ""
+    echo "  Typical usage:"
+    echo "     $PROGNAME python_script.py"
+    echo ""
+    echo "Options:"
+    echo "	-h, --help          display this help and exit"
+    echo "	-v, --version       output version information and exit"
+    echo "	--valgrind          launch executable with valgrind"
+    echo "	--gdb               launch executable with gdb"
+    echo "	--mpirun            launch executable with MPI using 2 processes"
+    exit 0
+}
+
+if [ "$1" = "-v" ] || [ "$1" = "--version" ]
+then
+    echo "$PROGNAME (@PACKAGE_NAME@) @PACKAGE_VERSION@"
+    exit 0
+fi
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "x"$1 = "x" ]
+then
+    usage
+fi
 
 exampledir=@STARPU_SRC_DIR@/starpupy/examples
 
