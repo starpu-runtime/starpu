@@ -260,7 +260,7 @@ static struct starpu_task *_dmda_pop_task(unsigned sched_ctx_id, int ready)
 #ifdef STARPU_VERBOSE
 		if (task->cl)
 		{
-			int non_ready = _starpu_st_non_ready_buffers_count(task, workerid);
+			int non_ready = starpu_st_non_ready_buffers_count(task, workerid);
 			if (non_ready == 0)
 				dt->ready_task_cnt++;
 		}
