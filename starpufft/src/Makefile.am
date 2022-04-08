@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -46,15 +46,16 @@ if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
 NVCCFLAGS += -Xcompiler -fPIC -Xlinker -fPIC
+NVCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_NVCC_H_CPPFLAGS) -I$(top_builddir)/include
 
 cudaf_kernels.o: cudaf_kernels.cu
-	$(V_nvcc) $(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD += cudaf_kernels.o
 
 if STARPU_HAVE_CUFFTDOUBLECOMPLEX
 cuda_kernels.o: cuda_kernels.cu
-	$(V_nvcc) $(NVCC) $(AM_CPPFLAGS) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
+	$(V_nvcc) $(NVCC) $< -c -o $@ --compiler-options -fno-strict-aliasing  $(NVCCFLAGS)
 
 libstarpufft_@STARPU_EFFECTIVE_VERSION@_la_LIBADD += cuda_kernels.o
 endif

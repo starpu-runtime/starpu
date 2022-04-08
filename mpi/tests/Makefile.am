@@ -67,8 +67,7 @@ if STARPU_USE_CUDA
 if STARPU_COVERITY
 include $(top_srcdir)/starpu-mynvcc.mk
 else
-NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -I$(top_builddir)/include/ $(STARPU_H_CPPFLAGS)
-
+NVCCFLAGS += --compiler-options -fno-strict-aliasing -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ $(STARPU_NVCC_H_CPPFLAGS) -I$(top_builddir)/include
 .cu.cubin:
 	$(V_nvcc) $(NVCC) -cubin $< -o $@ $(NVCCFLAGS)
 
