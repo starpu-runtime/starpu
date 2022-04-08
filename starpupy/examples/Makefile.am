@@ -19,8 +19,6 @@ include $(top_srcdir)/starpu-loader.mk
 
 SUBDIRS =
 
-noinst_PROGRAMS =
-
 CLEANFILES = *.gcno *.gcda *.linkinfo
 
 if STARPU_USE_MPI_MASTER_SLAVE

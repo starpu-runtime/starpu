@@ -338,7 +338,6 @@ CLEANFILES = *.gcno *.gcda *.linkinfo starpu_idle_microsec.log figure/* mlr_*
 STARPU_TOOLS	=
 TESTS		= $(STARPU_TOOLS)
 
-noinst_PROGRAMS	=
 check_PROGRAMS	=	$(STARPU_TOOLS)
 
 if STARPU_USE_FXT
