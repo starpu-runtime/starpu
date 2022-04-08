@@ -14,6 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-loader.mk
 
 AM_CFLAGS += $(APP_CFLAGS)
 AM_CXXFLAGS += $(APP_CXXFLAGS)
@@ -56,22 +57,6 @@ else
 check_PROGRAMS		=	$(LOADER) $(myPROGRAMS)
 endif
 
-if !STARPU_HAVE_WINDOWS
-## test loader program
-LOADER			=	loader
-loader_CPPFLAGS 	=	$(AM_CFLAGS) $(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(LAUNCHER) $(abs_top_builddir)/bubble/tests/$(LOADER)
-loader_SOURCES		=	../../tests/loader.c
-
-if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(LOADER_BIN)
-else
-TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
-endif
-
-endif
-
 TESTS = $(myPROGRAMS)
 
 myPROGRAMS =
@@ -101,4 +86,4 @@ myPROGRAMS +=			\
 endif
 endif
 
-noinst_PROGRAMS	= $(myPROGRAMS)
+noinst_PROGRAMS	+= $(myPROGRAMS)

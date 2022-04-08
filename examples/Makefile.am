@@ -17,6 +17,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-loader.mk
 
 AM_CFLAGS += $(MAGMA_CFLAGS) $(APP_CFLAGS)
 AM_CXXFLAGS += $(MAGMA_CFLAGS) $(APP_CXXFLAGS)
@@ -182,24 +183,6 @@ endif
 endif
 
 check_PROGRAMS		=	$(STARPU_EXAMPLES)
-noinst_PROGRAMS		=
-
-if !STARPU_HAVE_WINDOWS
-## test loader program
-LOADER			=	loader
-loader_CPPFLAGS 	=	$(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(LAUNCHER) $(abs_top_builddir)/examples/$(LOADER)
-loader_SOURCES		=	../tests/loader.c
-noinst_PROGRAMS		+=	loader
-
-if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(LOADER_BIN)
-else
-TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
-endif
-
-endif
 
 # STARPU_EXAMPLES list all applications which have to be compiled and checked
 # Applications which should only be compiled are added directly in examplebin_PROGRAMS

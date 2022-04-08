@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,6 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-loader.mk
 
 AM_CFLAGS += $(MAGMA_CFLAGS)
 AM_CPPFLAGS = $(STARPU_H_CPPFLAGS)
@@ -21,31 +22,12 @@ AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/socl/src/libsocl-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 LIBS += $(STARPU_OPENCL_LDFLAGS)
 
-
 SOCL_EXAMPLES	=
 if !STARPU_SIMGRID
 TESTS		=	$(SOCL_EXAMPLES)
 endif
 
-noinst_PROGRAMS	=
 check_PROGRAMS	=	$(SOCL_EXAMPLES)
-
-if !STARPU_HAVE_WINDOWS
-## test loader program
-LOADER			=	loader
-loader_CPPFLAGS 	=	$(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(LAUNCHER) $(abs_top_builddir)/socl/examples/$(LOADER)
-loader_SOURCES		=	../../tests/loader.c
-noinst_PROGRAMS		+=	loader
-
-if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	LD_LIBRARY_PATH="@SOCL_OCL_LIB_OPENCL_DIR@:$(LD_LIBRARY_PATH)" OCL_ICD_VENDORS="$(abs_top_builddir)/socl/vendors/" $(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(LOADER_BIN)
-else
-TESTS_ENVIRONMENT	=	LD_LIBRARY_PATH="@SOCL_OCL_LIB_OPENCL_DIR@:$(LD_LIBRARY_PATH)" OCL_ICD_VENDORS="$(abs_top_builddir)/socl/vendors/" $(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
-endif
-
-endif
 
 CLEANFILES = *.gcno *.gcda starpu_idle_microsec.log
 

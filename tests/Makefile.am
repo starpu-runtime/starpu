@@ -14,6 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-loader.mk
 
 AM_CFLAGS += $(APP_CFLAGS)
 AM_CXXFLAGS += $(APP_CXXFLAGS)
@@ -125,22 +126,6 @@ testbindir = $(libdir)/starpu/tests
 #####################################
 # What to install and what to check #
 #####################################
-
-noinst_PROGRAMS		=
-
-if !STARPU_HAVE_WINDOWS
-## test loader program
-LOADER			=	loader
-LOADER_BIN		=	$(LAUNCHER) $(abs_top_builddir)/tests/$(LOADER)
-noinst_PROGRAMS		+=	loader
-
-if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT   =   $(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER        =   $(LOADER_BIN)
-else
-TESTS_ENVIRONMENT   =   $(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
-endif
-endif
 
 TESTS = $(SHELL_TESTS) $(myPROGRAMS)
 

@@ -14,6 +14,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-loader.mk
 
 AM_CFLAGS +=  $(APP_CFLAGS)
 
@@ -57,7 +58,6 @@ endif
 #####################################
 
 check_PROGRAMS	=	$(STARPU_EXAMPLES)
-noinst_PROGRAMS	=
 
 if !STARPU_SIMGRID
 if STARPU_USE_MPI
@@ -67,26 +67,6 @@ endif
 else
 TESTS		=	$(STARPU_EXAMPLES)
 endif
-endif
-
-if STARPU_HAVE_WINDOWS
-LOADER_BIN		=	$(LAUNCHER)
-else
-
-## test loader program
-LOADER			=	loader
-loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(LAUNCHER) ./$(LOADER)
-loader_SOURCES		=	../../tests/loader.c
-noinst_PROGRAMS		+=	loader
-
-endif
-
-if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(LOADER_BIN)
-else
-TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
 endif
 
 ###################

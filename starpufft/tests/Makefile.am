@@ -15,6 +15,7 @@
 #
 
 include $(top_srcdir)/starpu.mk
+include $(top_srcdir)/starpu-loader.mk
 
 CLEANFILES = starpu_idle_microsec.log
 examplebindir = $(libdir)/starpu/examples/starpufft
@@ -25,25 +26,7 @@ EXTRA_DIST =		\
 	testf_threads.c	\
 	test_threads.c
 
-noinst_PROGRAMS	=
 check_PROGRAMS	=	$(STARPU_FFT_EXAMPLES)
-
-if !STARPU_HAVE_WINDOWS
-## test loader program
-LOADER			=	loader
-loader_CPPFLAGS 	=  	$(AM_CPPFLAGS) -I$(top_builddir)/src/
-LOADER_BIN		=	$(LAUNCHER) $(abs_top_builddir)/starpufft/tests/$(LOADER)
-loader_SOURCES		=	../../tests/loader.c
-noinst_PROGRAMS		+=	loader
-
-if STARPU_HAVE_AM111
-TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
-LOG_COMPILER		=	$(LOADER_BIN)
-else
-TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)" $(LOADER_BIN)
-endif
-
-endif
 
 AM_CFLAGS += $(APP_CFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/starpufft/include -I$(top_srcdir)/starpufft/src $(STARPU_H_CPPFLAGS)

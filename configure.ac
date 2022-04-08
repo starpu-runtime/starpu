@@ -3799,6 +3799,11 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
+  for x in tools julia/examples starpufft/tests examples examples/stencil mpi/tests mpi/examples socl/examples bubble/tests starpupy/examples \
+  ; do
+    test -e $x/loader.c || ln -sf $ac_abs_top_srcdir/tests/loader.c $x
+  done
+
   sed -i -e '/ STARPU_SRC_DIR /d' -e '/ STARPU_BUILD_DIR /d' src/common/config.h
 ])
 
