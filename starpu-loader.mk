@@ -20,7 +20,7 @@ if STARPU_HAVE_WINDOWS
 LOADER_BIN		=	$(LAUNCHER)
 else
 if !STARPU_SIMGRID
-LOADER			=	loader
+LOADER			=	./loader
 loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(LAUNCHER) $(LOADER)
 noinst_PROGRAMS		+=	loader
