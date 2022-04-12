@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -39,7 +39,7 @@ all: $(DOX_HTML_DIR)
 EXTRA_DIST += $(DOX_HTML_DIR)
 endif
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
-install-exec-hook:
+install-exec-hook: $(DOX_HTML_DIR)
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html_dev
 	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html_dev \;)
 uninstall-hook:
