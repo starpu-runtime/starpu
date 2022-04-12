@@ -39,7 +39,7 @@ all: $(DOX_HTML_DIR)
 EXTRA_DIST += $(DOX_HTML_DIR)
 endif # STARPU_BUILD_DOC_PDF
 DOX_HTML_SRCDIR=$(DOX_HTML_DIR)
-install-exec-hook:
+install-exec-hook: $(DOX_HTML_DIR)
 	$(MKDIR_P) $(DESTDIR)$(docdir)/manual/html
 	(cd $(DOX_HTML_SRCDIR) && $(PROG_FIND) . -type f -exec $(INSTALL_DATA) {} $(DESTDIR)$(docdir)/manual/html \;)
 uninstall-hook:
