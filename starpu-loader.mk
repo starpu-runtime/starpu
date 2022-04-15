@@ -29,6 +29,11 @@ LOADER_BIN		=	$(LAUNCHER)
 endif
 endif
 
+LSAN_OPTIONS ?= suppressions=$(abs_top_srcdir)/tools/dev/lsan/suppressions
+TSAN_OPTIONS ?= suppressions=$(abs_top_srcdir)/tools/dev/tsan/starpu.suppr
+export LSAN_OPTIONS
+export TSAN_OPTIONS
+
 if STARPU_HAVE_AM111
 TESTS_ENVIRONMENT	=	$(LAUNCHER_ENV) top_builddir="$(abs_top_builddir)" top_srcdir="$(abs_top_srcdir)"
 LOG_COMPILER	 	=	$(LOADER_BIN)
