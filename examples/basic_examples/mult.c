@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -72,6 +72,7 @@ static unsigned zdim = 512;
      |    |   |               |
      |----|   |---------------|
 
+ * Note: we use FORTRAN ordering.
  */
 
 /*
@@ -88,14 +89,20 @@ void cpu_mult(void *descr[], void *arg)
 	uint32_t nxC, nyC, nyA;
 	uint32_t ldA, ldB, ldC;
 
-	/* .blas.ptr gives a pointer to the first element of the local copy */
+	/* ptr gives a pointer to the first element of the local copy */
 	subA = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	subB = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 	subC = (float *)STARPU_MATRIX_GET_PTR(descr[2]);
 
-	/* .blas.nx is the number of rows (consecutive elements) and .blas.ny
-	 * is the number of lines that are separated by .blas.ld elements (ld
-	 * stands for leading dimension).
+	/*
+	 * Note: STARPU_MATRIX_GET_NX/NY is different from X/Y of the FORTRAN
+	 * ordering:
+	 * - nx is the number of consecutive elements (thus the number of rows
+	 *   in FORTRAN order)
+	 * - ny is the number of series that are separated by ld elements (thus
+	 *   the number of columns in FORTRAN order)
+	 * - ld stands for leading dimension
+	 *
 	 * NB: in case some filters were used, the leading dimension is not
 	 * guaranteed to be the same in main memory (on the original matrix)
 	 * and on the accelerator! */
@@ -107,11 +114,11 @@ void cpu_mult(void *descr[], void *arg)
 	ldB = STARPU_MATRIX_GET_LD(descr[1]);
 	ldC = STARPU_MATRIX_GET_LD(descr[2]);
 
-	/* we assume a FORTRAN-ordering! */
+	/* we use a FORTRAN-ordering! */
 	unsigned i,j,k;
-	for (i = 0; i < nyC; i++)
+	for (i = 0; i < nyC; i++) /* iterate over columns of C */
 	{
-		for (j = 0; j < nxC; j++)
+		for (j = 0; j < nxC; j++) /* iterate over rows of C */
 		{
 			float sum = 0.0;
 
