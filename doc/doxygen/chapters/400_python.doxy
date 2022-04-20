@@ -37,7 +37,7 @@ You can then go in the directory in which StarPU is installed, and test the prov
 
 \verbatim
 $ cd $HOME/usr/starpu
-$ . ./bin/starpu
+$ . ./bin/starpu_env
 Setting StarPU environment for ...
 $ cd lib/starpu/python
 $ python3 starpu_py.py
