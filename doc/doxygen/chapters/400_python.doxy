@@ -28,7 +28,7 @@ You need to call \c configure with the option \ref enable-starpupy "--enable-sta
 $ pip3 install joblib
 $ pip3 install cloudpickle
 $ pip3 install numpy
-$  ../configure --enable-starpupy --prefix=$HOME/usr/starpu
+$  ../configure --enable-starpupy --enable-blocking-drivers --prefix=$HOME/usr/starpu
 $ make
 $ make install
 \endverbatim
