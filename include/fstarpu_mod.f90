@@ -2381,12 +2381,12 @@ module fstarpu_mod
                 end function fstarpu_malloc
 
                 ! int starpu_free_noflag(void *A, size_t dim);
-                function fstarpu_free_no_flag (ptr, len) bind(C,name="starpu_free_no_flag")
+                function fstarpu_free_noflag (ptr, len) bind(C,name="starpu_free_noflag")
                         use iso_c_binding, only: c_ptr, c_long, c_int
                         type(c_ptr), value, intent(in) :: ptr
                         integer(c_long), value, intent(in) :: len
-                        integer(c_int) :: fstarpu_free_no_flag
-                end function fstarpu_free_no_flag
+                        integer(c_int) :: fstarpu_free_noflag
+                end function fstarpu_free_noflag
 
                 ! int starpu_memory_pin(void *addr, size_t size);
                 function fstarpu_memory_pin (ptr, len) bind(C,name="starpu_memory_pin")
