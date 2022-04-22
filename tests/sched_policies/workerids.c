@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -115,7 +115,7 @@ int main(void)
 		 ||  strcmp((*policy)->policy_name, "pheft") == 0
 		 ||  strcmp((*policy)->policy_name, "heteroprio") == 0)
 #ifdef STARPU_DEVEL
-#warning FIXME
+#warning FIXME for modular-*, pheft and heteroprio
 #endif
 			continue;
 
