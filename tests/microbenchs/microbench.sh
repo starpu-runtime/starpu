@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -44,12 +44,12 @@ run()
 	if test $ret = 0
 	then
 		echo "SUCCESS: STARPU_SCHED=$sched ./microbenchs/$TEST"
-		exit 0
+		return 0
 	fi
 	if test $ret = 77
 	then
 		echo "SKIP: STARPU_SCHED=$sched ./microbenchs/$TEST"
-		exit 0
+		return 0
 	fi
 
 	RESULT=0
@@ -79,7 +79,7 @@ run()
 				;;
 		esac
 	fi
-	exit $RESULT
+	return $RESULT
 }
 
 test_scheds()
@@ -87,13 +87,13 @@ test_scheds()
 	TEST=$1
 	shift
 
+	RESULT=0
 	if [ -n "$STARPU_SUB_PARALLEL" ]
 	then
 		for sched in $SCHEDS
 		do
 			run $sched &
 		done
-		RESULT=0
 		while true
 		do
 			set +e
@@ -103,11 +103,15 @@ test_scheds()
 			if [ $RET = 127 ] ; then break ; fi
 			if [ $RET != 0 -a $RET != 77 ] ; then RESULT=1 ; fi
 		done
-		exit $RESULT
 	else
 		for sched in $SCHEDS
 		do
+			set +e
 			run $sched
+			RET=$?
+			set -e
+			if [ $RET != 0 -a $RET != 77 ] ; then RESULT=1 ; fi
 		done
 	fi
+	exit $RESULT
 }
