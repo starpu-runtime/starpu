@@ -156,7 +156,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 {
 	struct starpu_task *chosen_task;
 	unsigned workerid = starpu_worker_get_id_check();
-	int skipped = 0;
+	struct starpu_task *skipped;
 
 	struct _starpu_eager_central_prio_data *data = (struct _starpu_eager_central_prio_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
@@ -195,7 +195,7 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 		{
 			unsigned worker = workers->get_next(workers, &it);
 
-			if(worker != workerid)
+			if(worker != workerid && starpu_worker_can_execute_task_first_impl(worker, skipped, NULL))
 			{
 #ifdef STARPU_NON_BLOCKING_DRIVERS
 				starpu_bitmap_unset(&data->waiters, worker);

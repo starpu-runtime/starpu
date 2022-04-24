@@ -75,9 +75,9 @@ int starpu_st_prio_deque_push_back_task(struct starpu_st_prio_deque *pdeque, str
 int starpu_st_prio_deque_push_front_task(struct starpu_st_prio_deque *pdeque, struct starpu_task *task);
 
 /** deque a task of the higher priority available from the front of the list for the highest priority */
-struct starpu_task *starpu_st_prio_deque_pop_task_for_worker(struct starpu_st_prio_deque *, int workerid, int *skipped);
+struct starpu_task *starpu_st_prio_deque_pop_task_for_worker(struct starpu_st_prio_deque *, int workerid, struct starpu_task * *skipped);
 /** return a task that can be executed by workerid from the back of the list for the highest priority */
-struct starpu_task *starpu_st_prio_deque_deque_task_for_worker(struct starpu_st_prio_deque *, int workerid, int *skipped);
+struct starpu_task *starpu_st_prio_deque_deque_task_for_worker(struct starpu_st_prio_deque *, int workerid, struct starpu_task * *skipped);
 struct starpu_task *starpu_st_prio_deque_deque_first_ready_task(struct starpu_st_prio_deque *, unsigned workerid);
 
 struct starpu_task *starpu_st_prio_deque_pop_task(struct starpu_st_prio_deque *pdeque);

@@ -355,13 +355,12 @@ static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, i
 	}
 
 	/* Didn't find an interesting task, or couldn't run it :( */
-	int skipped;
 	struct starpu_task *task;
 
 	if (source != target)
-		task = starpu_st_prio_deque_deque_task_for_worker(&data_source->queue, target, &skipped);
+		task = starpu_st_prio_deque_deque_task_for_worker(&data_source->queue, target, NULL);
 	else
-		task = starpu_st_prio_deque_pop_task_for_worker(&data_source->queue, target, &skipped);
+		task = starpu_st_prio_deque_pop_task_for_worker(&data_source->queue, target, NULL);
 
 	if (task && !data_source->queue.ntasks)
 	{
@@ -403,12 +402,11 @@ static void locality_pushed_task(struct _starpu_work_stealing_data *ws STARPU_AT
 /* Pick a task from workerid's queue, for execution on target */
 static struct starpu_task *ws_pick_task(struct _starpu_work_stealing_data *ws, int source, int target)
 {
-	int skipped;
 	struct starpu_task *task;
 	if (source != target)
-		task = starpu_st_prio_deque_deque_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
+		task = starpu_st_prio_deque_deque_task_for_worker(&ws->per_worker[source].queue, target, NULL);
 	else
-		task = starpu_st_prio_deque_pop_task_for_worker(&ws->per_worker[source].queue, target, &skipped);
+		task = starpu_st_prio_deque_pop_task_for_worker(&ws->per_worker[source].queue, target, NULL);
 
 	if (task && !ws->per_worker[source].queue.ntasks)
 	{

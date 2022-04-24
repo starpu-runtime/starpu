@@ -125,6 +125,8 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 #define REMOVE_TASK(pdeque, first_task_field, next_task_field, predicate, parg)	\
 	{									\
 		struct starpu_task * t;						\
+		if (skipped)							\
+			*skipped = NULL;					\
 		for (t  = starpu_task_prio_list_begin(&pdeque->list);		\
 		     t != starpu_task_prio_list_end(&pdeque->list);		\
 		     t  = starpu_task_prio_list_next(&pdeque->list, t))		\
@@ -137,19 +139,19 @@ static inline int pred_can_execute(struct starpu_task * t, void * pworkerid)
 			}							\
 			else							\
 				if (skipped)					\
-					*skipped = 1;				\
+					*skipped = t;				\
 		}								\
 		return NULL;							\
 	}
 
-struct starpu_task *starpu_st_prio_deque_pop_task_for_worker(struct starpu_st_prio_deque * pdeque, int workerid, int *skipped)
+struct starpu_task *starpu_st_prio_deque_pop_task_for_worker(struct starpu_st_prio_deque * pdeque, int workerid, struct starpu_task * *skipped)
 {
 	STARPU_ASSERT(pdeque);
 	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());
 	REMOVE_TASK(pdeque, _head, prev, pred_can_execute, &workerid);
 }
 
-struct starpu_task *starpu_st_prio_deque_deque_task_for_worker(struct starpu_st_prio_deque * pdeque, int workerid, int *skipped)
+struct starpu_task *starpu_st_prio_deque_deque_task_for_worker(struct starpu_st_prio_deque * pdeque, int workerid, struct starpu_task * *skipped)
 {
 	STARPU_ASSERT(pdeque);
 	STARPU_ASSERT(workerid >= 0 && (unsigned) workerid < starpu_worker_get_count());

@@ -3654,8 +3654,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 		/* The worker has some tasks in its queue */
 		if(worker->tasks_queue.ntasks)
 		{
-			int skipped;
-			task = starpu_st_prio_deque_pop_task_for_worker(&worker->tasks_queue, workerid, &skipped);
+			task = starpu_st_prio_deque_pop_task_for_worker(&worker->tasks_queue, workerid, NULL);
 			hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] -= 1;
 		}
 		/* Otherwise look if we can steal some work */
@@ -3705,9 +3704,8 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 						if(hp->workers_heteroprio[victim].arch_index == worker->arch_index
 						   && hp->workers_heteroprio[victim].tasks_queue.ntasks)
 						{
-							int skipped;
 							/* steal the last added task */
-							task = starpu_st_prio_deque_pop_task_for_worker(&hp->workers_heteroprio[victim].tasks_queue, workerid, &skipped);
+							task = starpu_st_prio_deque_pop_task_for_worker(&hp->workers_heteroprio[victim].tasks_queue, workerid, NULL);
 							/* we steal a task update global counter */
 							hp->nb_prefetched_tasks_per_arch_index[hp->workers_heteroprio[victim].arch_index] -= 1;
 
