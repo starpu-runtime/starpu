@@ -510,7 +510,7 @@ int starpu_pthread_cond_destroy(starpu_pthread_cond_t *cond)
 }
 
 /* TODO: use rwlocks
- * https://gforge.inria.fr/tracker/index.php?func=detail&aid=17213&group_id=12&atid=165
+ * https://framagit.org/simgrid/simgrid/-/issues/92
  */
 int starpu_pthread_rwlock_init(starpu_pthread_rwlock_t *restrict rwlock, const starpu_pthread_rwlockattr_t *restrict attr STARPU_ATTRIBUTE_UNUSED)
 {
