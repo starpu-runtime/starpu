@@ -19,14 +19,10 @@ noinst_PROGRAMS		=
 if STARPU_HAVE_WINDOWS
 LOADER_BIN		=	$(LAUNCHER)
 else
-if !STARPU_SIMGRID
 LOADER			=	loader
 loader_CPPFLAGS 	= 	$(AM_CPPFLAGS) -I$(top_builddir)/src/
 LOADER_BIN		=	$(LAUNCHER) ./$(LOADER)
 noinst_PROGRAMS		+=	loader
-else
-LOADER_BIN		=	$(LAUNCHER)
-endif
 endif
 
 LSAN_OPTIONS ?= suppressions=$(abs_top_srcdir)/tools/dev/lsan/suppressions
