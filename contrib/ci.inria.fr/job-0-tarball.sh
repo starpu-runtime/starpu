@@ -20,9 +20,11 @@ set -e
 export PKG_CONFIG_PATH=/home/ci/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=/home/ci/usr/local/lib:$LD_LIBRARY_PATH
 
+BUILD=./build_$$
+
 ./autogen.sh
-if test -d build ; then chmod -R 777 build && rm -rf build ; fi
-mkdir build && cd build
+if test -d $BUILD ; then chmod -R 777 $BUILD && rm -rf $BUILD ; fi
+mkdir $BUILD && cd $BUILD
 ../configure --enable-build-doc-pdf
 make -j4
 make dist

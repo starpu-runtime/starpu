@@ -57,8 +57,9 @@ fi
 find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true
 
 cd $basename
-mkdir build
-cd build
+BUILD=./build_$$
+mkdir $BUILD
+cd $BUILD
 
 STARPU_CONFIGURE_OPTIONS=""
 suname=$(uname)
