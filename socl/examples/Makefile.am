@@ -17,7 +17,7 @@ include $(top_srcdir)/starpu.mk
 include $(top_srcdir)/starpu-loader.mk
 
 AM_CFLAGS += $(MAGMA_CFLAGS)
-AM_CPPFLAGS = $(STARPU_H_CPPFLAGS)
+AM_CPPFLAGS = $(STARPU_H_CPPFLAGS) -DCL_TARGET_OPENCL_VERSION=200
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/socl/src/libsocl-@STARPU_EFFECTIVE_VERSION@.la $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 LIBS += $(STARPU_OPENCL_LDFLAGS)
