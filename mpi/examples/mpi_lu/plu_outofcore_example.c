@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -261,7 +261,7 @@ static void init_matrix(int rank)
 	//display_all_blocks(nblocks, size/nblocks);
 }
 
-static void destroy_matrix(void) {
+static void destroy_matrix(int rank) {
 	char *filename;
 	unsigned filename_length = strlen(path) + 1 + sizeof(nblocks)*3 + 1 + sizeof(nblocks)*3 + 1;
 	unsigned i,j;
@@ -272,8 +272,12 @@ static void destroy_matrix(void) {
 	{
 		for (i = 0; i < nblocks; i++)
 		{
-			snprintf(filename, filename_length, "%s/%u,%u", path, i, j);
-			unlink(filename);
+			int block_rank = get_block_rank(i, j);
+			if (block_rank == rank)
+			{
+				snprintf(filename, filename_length, "%s/%u,%u", path, i, j);
+				unlink(filename);
+			}
 		}
 	}
 
@@ -464,7 +468,7 @@ int main(int argc, char **argv)
 	free(dataA_handles);
 	free(disk_objs);
 
-	destroy_matrix();
+	destroy_matrix(rank);
 
 	starpu_cublas_shutdown();
 	starpu_mpi_shutdown();
