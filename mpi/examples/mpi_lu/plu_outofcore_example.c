@@ -261,7 +261,8 @@ static void init_matrix(int rank)
 	//display_all_blocks(nblocks, size/nblocks);
 }
 
-static void destroy_matrix(int rank) {
+static void destroy_matrix(int rank)
+{
 	char *filename;
 	unsigned filename_length = strlen(path) + 1 + sizeof(nblocks)*3 + 1 + sizeof(nblocks)*3 + 1;
 	unsigned i,j;
