@@ -15,6 +15,9 @@
 #
 include $(top_srcdir)/starpu.mk
 include $(top_srcdir)/starpu-loader.mk
+if STARPU_SIMGRID
+LOADER_BIN = $(LAUNCHER)
+endif
 
 AM_CFLAGS +=  $(APP_CFLAGS)
 

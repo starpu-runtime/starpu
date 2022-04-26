@@ -23,6 +23,9 @@ LAUNCHER		+=	$(STARPU_MPIEXEC)
 LAUNCHER_ENV		+=	$(MPI_RUN_ENV)
 
 include $(top_srcdir)/starpu-loader.mk
+if STARPU_SIMGRID
+LOADER_BIN = $(LAUNCHER)
+endif
 
 if STARPU_MPI_CHECK
 TESTS			=	$(starpu_mpi_TESTS)
