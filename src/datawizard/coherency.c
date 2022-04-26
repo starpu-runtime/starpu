@@ -309,9 +309,8 @@ int _starpu_determine_request_path(starpu_data_handle_t handle,
 				  unsigned *src_nodes, unsigned *dst_nodes,
 				  unsigned *handling_nodes, unsigned write_invalidation)
 {
-	if (mode & STARPU_R)
+	if ((mode & STARPU_R) && src_node >= 0 && dst_node >= 0);
 	{
-		STARPU_ASSERT(src_node >= 0 && dst_node >= 0);
 
 		struct _starpu_data_replicate *src_replicate = &handle->per_node[src_node];
 		struct _starpu_data_replicate *dst_replicate = &handle->per_node[dst_node];
