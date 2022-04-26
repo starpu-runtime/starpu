@@ -226,28 +226,33 @@ STARPU_EXAMPLES +=				\
 	filters/fvector				\
 	filters/fvector_pick_variable		\
 	filters/ftensor				\
-	filters/ftensor_pick_block			\
+	filters/ftensor_pick_block		\
 	filters/fblock				\
-	filters/fblock_pick_matrix			\
+	filters/fblock_pick_matrix		\
 	filters/fmatrix				\
-	filters/fmatrix_pick_vector			\
+	filters/fmatrix_pick_vector		\
 	filters/fndim				\
-	filters/fndim_pick_ndim				\
-	filters/fndim_pick_tensor			\
-	filters/fndim_pick_block			\
-	filters/fndim_pick_matrix			\
-	filters/fndim_pick_vector			\
-	filters/fndim_pick_variable			\
+	filters/fndim_pick_ndim			\
+	filters/fndim_pick_tensor		\
+	filters/fndim_pick_block		\
+	filters/fndim_pick_matrix		\
+	filters/fndim_pick_vector		\
+	filters/fndim_pick_variable		\
 	filters/fndim_to_tensor			\
 	filters/fndim_to_block			\
 	filters/fndim_to_matrix			\
 	filters/fndim_to_vector			\
-	filters/fndim_to_variable			\
+	filters/fndim_to_variable		\
 	filters/fmultiple_manual		\
 	filters/fmultiple_submit		\
 	filters/fmultiple_submit_readonly	\
 	filters/fmultiple_submit_implicit	\
 	filters/frecursive			\
+	filters/shadow				\
+	filters/shadow2d			\
+	filters/shadow3d			\
+	filters/shadow4d			\
+	filters/shadownd			\
 	tag_example/tag_example			\
 	tag_example/tag_example2		\
 	tag_example/tag_example3		\
@@ -779,13 +784,6 @@ if STARPU_USE_CUDA
 filters_fmultiple_submit_implicit_SOURCES +=		\
 	filters/fmultiple_cuda.cu
 endif
-
-examplebin_PROGRAMS +=				\
-	filters/shadow				\
-	filters/shadow2d			\
-	filters/shadow3d			\
-	filters/shadow4d			\
-	filters/shadownd
 
 #############################
 # Custom multiformat filter #
