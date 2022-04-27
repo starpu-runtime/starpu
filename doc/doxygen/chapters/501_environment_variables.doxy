@@ -617,6 +617,15 @@ random, stealing, greedy, with performance models, etc.
 Use <c>STARPU_SCHED=help</c> to get the list of available schedulers.
 </dd>
 
+<dt>STARPU_SCHED_LIB</dt>
+<dd>
+\anchor STARPU_SCHED_LIB
+\addindex __env__STARPU_SCHED_LIB
+Allow to specify the location of a dynamic library to choose a
+user-defined scheduling policy. See \ref UsingaNewSchedulingPolicy for
+more information.
+</dd>
+
 <dt>STARPU_MIN_PRIO</dt>
 <dd>
 \anchor STARPU_MIN_PRIO_env

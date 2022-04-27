@@ -294,6 +294,11 @@ if !STARPU_SIMGRID
 STARPU_EXAMPLES +=				\
 	scheduler/dummy_sched
 
+SHELL_TESTS += \
+	scheduler/libdummy_sched.sh
+pkglib_LTLIBRARIES =	\
+	scheduler/libdummy_sched.la
+
 if STARPU_HAVE_CXX11
 STARPU_EXAMPLES +=	\
 	cpp/add_vectors_cpp11

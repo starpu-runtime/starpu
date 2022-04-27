@@ -553,6 +553,51 @@ The Tree-Eager-Prefetching Scheduler shown in Section
                 Worker_Component                     Worker_Component
 </pre>
 
+\section UsingaNewSchedulingPolicy Using a New Scheduling Policy
+
+There is two ways to use a new scheduling policy.
+
+<ul>
+<li>
+If the code is directly available from your application, you can set
+the field starpu_conf::sched_policy with a pointer to your new defined
+scheduling policy.
+
+\code{.c}
+starpu_conf_init(&conf);
+conf.sched_policy = &dummy_sched_policy,
+ret = starpu_init(&conf);
+\endcode
+</li>
+
+<li>
+You can also load the new policy dynamically using the environment
+variable \ref STARPU_SCHED_LIB. An example is given in
+<c>examples/scheduler/libdummy_sched.c</c> and
+<c>examples/scheduler/libdummy_sched.sh</c>.
+
+The variable \ref STARPU_SCHED_LIB needs to give the location of a \c
+.so file which needs to define a function <c>struct
+starpu_sched_policy *starpu_get_sched_lib_policy(const char *name)</c>
+
+\code{.c}
+struct starpu_sched_policy *get_sched_policy(const char *name)
+{
+	if (!strcmp(name, "dummy"))
+		return &dummy_sched_policy;
+	return NULL;
+}
+\endcode
+
+To use it, you need to define both variables \ref STARPU_SCHED_LIB and
+\ref STARPU_SCHED
+
+\code{.sh}
+STARPU_SCHED_LIB=libdummy_sched.so STARPU_SCHED=dummy yourapplication
+\endcode
+</li>
+</ul>
+
 \section GraphScheduling Graph-based Scheduling
 
 For performance reasons, most of the schedulers shipped with StarPU use simple

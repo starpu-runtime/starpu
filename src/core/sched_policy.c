@@ -27,6 +27,8 @@
 #include <core/debug.h>
 #include <core/task.h>
 
+#include <dlfcn.h>
+
 static int use_prefetch = 0;
 static double idle[STARPU_NMAXWORKERS];
 static double idle_start[STARPU_NMAXWORKERS];
@@ -36,6 +38,7 @@ long _starpu_task_break_on_sched = -1;
 long _starpu_task_break_on_pop = -1;
 long _starpu_task_break_on_exec = -1;
 static const char *starpu_idle_file;
+static void *dl_sched_handle = NULL;
 
 void _starpu_sched_init(void)
 {
@@ -133,6 +136,43 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 	if (strcmp(policy_name, "") == 0)
 		return NULL;
 
+	/* check if the requested policy can be loaded dynamically */
+	const char *sched_lib = starpu_getenv("STARPU_SCHED_LIB");
+	if (sched_lib)
+	{
+		struct starpu_sched_policy *(*func_sched)(const char *);
+		if (dl_sched_handle)
+		{
+			dlclose(dl_sched_handle);
+			dl_sched_handle = NULL;
+		}
+		dl_sched_handle = dlopen(sched_lib, RTLD_NOW);
+		if (!dl_sched_handle)
+			_STARPU_MSG("Warning: scheduling dynamic library '%s' can not be loaded\n", sched_lib);
+		else
+		{
+			*(void**)(&func_sched) = dlsym(dl_sched_handle, "starpu_get_sched_lib_policy");
+			if (!func_sched)
+			{
+				/* no such symbol */
+				_STARPU_MSG("Warning: the library '%s' does not define the function 'starpu_get_sched_lib_policy' (error '%s')\n", sched_lib, dlerror());
+				dlclose(dl_sched_handle);
+				dl_sched_handle = NULL;
+			}
+			else
+			{
+				struct starpu_sched_policy *dl_sched_policy = func_sched(policy_name);
+				if (dl_sched_policy)
+					return dl_sched_policy;
+				else
+				{
+					dlclose(dl_sched_handle);
+					dl_sched_handle = NULL;
+				}
+			}
+		}
+	}
+
 	if (strncmp(policy_name, "heft", 4) == 0)
 	{
 		_STARPU_MSG("Warning: heft is now called \"dmda\".\n");
@@ -152,8 +192,11 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 			}
 		}
 	}
-	if (strcmp(policy_name, "help") != 0)
-		_STARPU_MSG("Warning: scheduling policy '%s' was not found, try 'help' to get a list\n", policy_name);
+
+	if (strcmp(policy_name, "help") == 0)
+		return NULL;
+
+	_STARPU_MSG("Warning: scheduling policy '%s' was not found, try 'help' to get a list\n", policy_name);
 
 	/* nothing was found */
 	return NULL;
@@ -250,6 +293,11 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 		_STARPU_SCHED_END;
 	}
 	starpu_sched_ctx_delete_worker_collection(sched_ctx->id);
+	if (dl_sched_handle)
+	{
+		dlclose(dl_sched_handle);
+		dl_sched_handle = NULL;
+	}
 }
 
 void _starpu_sched_task_submit(struct starpu_task *task)

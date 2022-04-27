@@ -92,6 +92,8 @@ Small features:
   * New function starpu_data_partition_clean_node() to specify node on
     which to gather data
   * Move to the public API some scheduler utility functions
+  * New variable STARPU_SCHED_LIB to dynamically load a new scheduling
+    policy
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
