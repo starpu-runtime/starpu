@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
 # Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
@@ -104,15 +104,17 @@ export MPIEXEC_TIMEOUT=1800
 
 make -j4
 make dist
-(make -k check || true) 2>&1 | tee  ../check_$$
+set +e
+set -o pipefail
+make -k check 2>&1 | tee  ../check_$$
+RET=$?
+set +o pipefail
+set -e
 make showsuite
-
-#grep "^FAIL:" ../check_$$ || true
 
 make clean
 
 grep "^FAIL:" ../check_$$ || true
 
 echo "Running on $(uname -a)"
-exit $(grep "^FAIL:" ../check_$$ | wc -l)
-
+exit $RET
