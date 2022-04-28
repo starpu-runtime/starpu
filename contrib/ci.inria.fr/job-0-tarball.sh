@@ -28,6 +28,15 @@ mkdir $BUILD && cd $BUILD
 ../configure --enable-build-doc-pdf
 make -j4
 make dist
+
+mkdir distcheck
+tar -C distcheck -xf *.tar.gz
+mkdir distcheck/build
+(cd distcheck/build && ../starpu-*/configure)
+(cd distcheck/build && make -j4)
+(cd distcheck/build && make dist)
+rm -fr distcheck
+
 cp *gz ..
 cp doc/doxygen/starpu.pdf ..
 cp doc/doxygen_dev/starpu_dev.pdf ..
