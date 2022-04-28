@@ -69,6 +69,7 @@ EXTRA_DIST = 					\
 	interface/complex_kernels.cl \
 	reductions/dot_product.h	\
 	reductions/dot_product_opencl_kernels.cl	\
+	scheduler/libdummy_sched.sh			\
 	scheduler/schedulers.sh				\
 	scheduler/schedulers_context.sh			\
 	fortran/Makefile				\
