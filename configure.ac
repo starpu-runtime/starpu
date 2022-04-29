@@ -3560,6 +3560,8 @@ fi
 AM_CONDITIONAL(STARPU_BUILD_STARPUPY, [test x$starpupy_support = xyes])
 AM_CONDITIONAL(STARPU_STARPUPY_NUMPY, [test x$numpy_avail = xyes])
 
+AC_ARG_VAR([PYTHON], [Python3 interpreter])
+
 ##########################################
 # Documentation                          #
 ##########################################
