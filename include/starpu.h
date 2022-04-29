@@ -70,6 +70,7 @@ typedef INT_PTR intptr_t;
 #include <starpu_expert.h>
 #include <starpu_rand.h>
 #include <starpu_cuda.h>
+#include <starpu_hip.h>
 #include <starpu_cublas.h>
 #include <starpu_cusparse.h>
 #include <starpu_bound.h>
@@ -174,6 +175,14 @@ struct starpu_conf
 	int ncuda;
 
 	/**
+	   Number of HIP devices that StarPU can use. This can also
+	   be specified with the environment variable \ref
+	   STARPU_NCUDA.
+	   (default = \c -1)
+	*/
+	int nhip;
+
+	/**
 	   Number of OpenCL devices that StarPU can use. This can also
 	   be specified with the environment variable \ref
 	   STARPU_NOPENCL.
@@ -243,6 +252,24 @@ struct starpu_conf
 	   CUDA devices (as used by \c cudaGetDevice()).
 	*/
 	unsigned workers_cuda_gpuid[STARPU_NMAXWORKERS];
+
+	/**
+	   If this flag is set, the HIP workers will be attached to
+	   the HIP devices specified in the
+	   starpu_conf::workers_hip_gpuid array. Otherwise, StarPU
+	   affects the HIP devices in a round-robin fashion. This can
+	   also be specified with the environment variable \ref
+	   STARPU_WORKERS_HIPID.
+	   (default = \c 0)
+	*/
+	unsigned use_explicit_workers_hip_gpuid;
+
+	/**
+	   If the starpu_conf::use_explicit_workers_hip_gpuid flag is
+	   set, this array contains the logical identifiers of the
+	   HIP devices (as used by \c hipGetDevice()).
+	*/
+	unsigned workers_hip_gpuid[STARPU_NMAXWORKERS];
 
 	/**
 	   If this flag is set, the OpenCL workers will be attached to
@@ -390,6 +417,19 @@ struct starpu_conf
 	   (default = \c 0)
 	*/
 	int disable_asynchronous_cuda_copy;
+
+	/**
+	   This flag should be set to 1 to disable asynchronous copies
+	   between CPUs and HIP accelerators.
+	   This can also be specified with the environment variable
+	   \ref STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY.
+	   This can also be specified at compilation time by giving to
+	   the configure script the option \ref
+	   disable-asynchronous-hip-copy
+	   "--disable-asynchronous-hip-copy".
+	   (default = \c 0)
+	*/
+	int disable_asynchronous_hip_copy;
 
 	/**
 	   This flag should be set to 1 to disable asynchronous copies
@@ -686,6 +726,13 @@ int starpu_asynchronous_copy_disabled(void);
    accelerators are disabled.
 */
 int starpu_asynchronous_cuda_copy_disabled(void);
+
+
+/**
+   Return 1 if asynchronous data transfers between CPU and HIP
+   accelerators are disabled.
+*/
+int starpu_asynchronous_hip_copy_disabled(void);
 
 /**
    Return 1 if asynchronous data transfers between CPU and OpenCL

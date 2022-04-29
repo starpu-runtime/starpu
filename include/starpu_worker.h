@@ -51,7 +51,8 @@ enum starpu_node_kind
 	STARPU_DISK_RAM=5,
 	STARPU_MPI_MS_RAM=6,
 	STARPU_TCPIP_MS_RAM=7,
-	STARPU_MAX_RAM=7
+	STARPU_HIP_RAM=8,
+	STARPU_MAX_RAM=8
 };
 
 /**
@@ -69,7 +70,8 @@ enum starpu_worker_archtype
 	STARPU_MAX_FPGA_WORKER=4,   /**< Maxeler FPGA device */
 	STARPU_MPI_MS_WORKER=5,     /**< MPI Slave device */
 	STARPU_TCPIP_MS_WORKER=6,   /**< TCPIP Slave device */
-	STARPU_NARCH = 7,           /**< Number of arch types */
+	STARPU_HIP_WORKER=7,    /**< NVIDIA/AMD HIP device */
+	STARPU_NARCH = 8,    /**< Number of arch types */
 	STARPU_ANY_WORKER=255       /**< any worker, used in the hypervisor */
 };
 
@@ -189,6 +191,12 @@ unsigned starpu_cpu_worker_get_count(void);
    value should be at most \ref STARPU_MAXCUDADEVS.
 */
 unsigned starpu_cuda_worker_get_count(void);
+
+/**
+   Return the number of HIP devices controlled by StarPU. The return
+   value should be at most \ref STARPU_MAXHIPDEVS.
+*/
+unsigned starpu_hip_worker_get_count(void);
 
 /**
    Return the number of OpenCL devices controlled by StarPU. The

@@ -35,6 +35,7 @@ extern void scal_cpu_func_icc(void *buffers[], void *_args);
 extern void scal_sse_func(void *buffers[], void *_args);
 extern void scal_sse_func_icc(void *buffers[], void *_args);
 extern void scal_cuda_func(void *buffers[], void *_args);
+extern void scal_hip_func(void *buffers[], void *_args);
 extern void scal_opencl_func(void *buffers[], void *_args);
 
 static struct starpu_perfmodel vector_scal_model =
@@ -88,6 +89,10 @@ static struct starpu_codelet cl =
 	/* OpenCL implementation of the codelet */
 	.opencl_funcs = {scal_opencl_func},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+	/* HIP implementation of the codelet */
+	.hip_funcs = {scal_hip_func},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},

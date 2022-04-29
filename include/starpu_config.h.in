@@ -63,6 +63,14 @@
 
 /**
    Defined when StarPU has been installed with
+   HIP support. It should be used in your code to detect the
+   availability of HIP.
+   @ingroup API_HIP_Extensions
+*/
+#undef STARPU_USE_HIP
+
+/**
+   Defined when StarPU has been installed with
    NVidia-ML support. It should be used in your code to detect the
    availability of NVML-related functions.
    @ingroup API_CUDA_Extensions

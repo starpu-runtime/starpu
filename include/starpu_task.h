@@ -68,6 +68,13 @@ extern "C"
 /**
    To be used when setting the field starpu_codelet::where (or
    starpu_task::where) to specify the codelet (or the task) may be
+   executed on a HIP processing unit.
+*/
+#define STARPU_HIP	STARPU_WORKER_TO_MASK(STARPU_HIP_WORKER)
+
+/**
+   To be used when setting the field starpu_codelet::where (or
+   starpu_task::where) to specify the codelet (or the task) may be
    executed on a OpenCL processing unit.
 */
 #define STARPU_OPENCL	STARPU_WORKER_TO_MASK(STARPU_OPENCL_WORKER)
@@ -117,6 +124,10 @@ extern "C"
    CUDA kernel execution.
  */
 #define STARPU_CUDA_ASYNC	(1<<0)
+
+/**
+ *	TODO:  async for hip
+ */
 
 /**
    Value to be set in starpu_codelet::opencl_flags to allow
@@ -180,6 +191,11 @@ typedef void (*starpu_cpu_func_t)(void **, void*);
 typedef void (*starpu_cuda_func_t)(void **, void*);
 
 /**
+   HIP implementation of a codelet.
+*/
+typedef void (*starpu_hip_func_t)(void **, void*);
+
+/**
    OpenCL implementation of a codelet.
 */
 typedef void (*starpu_opencl_func_t)(void **, void*);
@@ -218,6 +234,15 @@ typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
    starpu_codelet::cuda_funcs.
 */
 #define STARPU_MULTIPLE_CUDA_IMPLEMENTATIONS   ((starpu_cuda_func_t) -1)
+
+/**
+   @deprecated
+   Setting the field starpu_codelet::hip_func with this macro
+   indicates the codelet will have several implementations. The use of
+   this macro is deprecated. One should always only define the field
+   starpu_codelet::hip_funcs.
+*/
+#define STARPU_MULTIPLE_HIP_IMPLEMENTATIONS   ((starpu_hip_func_t) -1)
 
 /**
    @deprecated
@@ -290,7 +315,7 @@ struct starpu_codelet
 	/**
 	   Optional field to indicate which types of processing units
 	   are able to execute the codelet. The different values
-	   ::STARPU_CPU, ::STARPU_CUDA, ::STARPU_OPENCL can be
+	   ::STARPU_CPU, ::STARPU_CUDA, ::STARPU_HIP, ::STARPU_OPENCL can be
 	   combined to specify on which types of processing units the
 	   codelet can be executed. ::STARPU_CPU|::STARPU_CUDA for
 	   instance indicates that the codelet is implemented for both
@@ -385,6 +410,28 @@ struct starpu_codelet
 	   asynchronous execution.
 	*/
 	char cuda_flags[STARPU_MAXIMPLEMENTATIONS];
+
+	/**
+	   Optional array of function pointers to the HIP
+	   implementations of the codelet. The functions must be
+	   host-functions written in the HIP runtime API. Their
+	   prototype must be:
+	   \code{.c}
+	   void hip_func(void *buffers[], void *cl_arg)
+	   \endcode
+	   If the field starpu_codelet::where is set, then the field
+	   starpu_codelet::hip_funcs is ignored if ::STARPU_HIP does
+	   not appear in the field starpu_codelet::where, it must be
+	   non-<c>NULL</c> otherwise.
+	*/
+	starpu_hip_func_t hip_funcs[STARPU_MAXIMPLEMENTATIONS];
+
+	/**
+	   Optional array of flags for HIP execution. They specify
+	   some semantic details about HIP kernel execution, such as
+	   asynchronous execution.
+	*/
+	char hip_flags[STARPU_MAXIMPLEMENTATIONS];
 
 	/**
 	   Optional array of function pointers to the OpenCL

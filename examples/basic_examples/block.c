@@ -23,6 +23,9 @@ extern void cpu_codelet(void *descr[], void *_args);
 #ifdef STARPU_USE_CUDA
 extern void cuda_codelet(void *descr[], void *_args);
 #endif
+#ifdef STARPU_USE_HIP
+extern void hip_codelet(void *descr[], void *_args);
+#endif
 #ifdef STARPU_USE_OPENCL
 extern void opencl_codelet(void *descr[], void *_args);
 struct starpu_opencl_program opencl_code;
@@ -41,6 +44,7 @@ int execute_on(uint32_t where, device_func func, float *block, int pnx, int pny,
 	starpu_codelet_init(&cl);
 	cl.where = where;
         cl.cuda_funcs[0] = func;
+        cl.hip_funcs[0] = func;
         cl.cpu_funcs[0] = func;
         cl.opencl_funcs[0] = func;
         cl.nbuffers = 1;
@@ -115,6 +119,10 @@ int main(void)
 #endif
 #ifdef STARPU_USE_CUDA
         ret = execute_on(STARPU_CUDA, cuda_codelet, block, nx, ny, nz, 3.0);
+        if (!ret) multiplier *= 3.0;
+#endif
+#ifdef STARPU_USE_HIP
+        ret = execute_on(STARPU_HIP, hip_codelet, block, nx, ny, nz, 3.0);
         if (!ret) multiplier *= 3.0;
 #endif
 

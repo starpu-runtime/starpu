@@ -708,6 +708,20 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	}
 #endif
 
+#if defined(STARPU_USE_HIP)
+	some_impl = 0;
+	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
+		if (cl->hip_funcs[i])
+		{
+			some_impl = 1;
+			break;
+		}
+	if (some_impl && is_where_unset)
+	{
+		where |= STARPU_HIP;
+	}
+#endif
+
 #if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	/* OpenCL */
 	if (cl->opencl_func && cl->opencl_func != STARPU_MULTIPLE_OPENCL_IMPLEMENTATIONS && cl->opencl_funcs[0])

@@ -1632,6 +1632,82 @@ AC_ARG_VAR([NVCCFLAGS], [CUDA compiler flags])
 
 ###############################################################################
 #                                                                             #
+#                                 HIP settings                                #
+#                                                                             #
+###############################################################################
+AC_MSG_CHECKING(maximum number of HIP devices)
+AC_ARG_ENABLE(maxhipdev, [AS_HELP_STRING([--enable-maxhipdev=<number>],
+			[maximum number of HIP devices])],
+			nmaxhipdev=$enableval, nmaxhipdev=8)
+AC_MSG_RESULT($nmaxhipdev)
+AC_DEFINE_UNQUOTED(STARPU_MAXHIPDEVS, [$nmaxhipdev],
+		[maximum number of HIP devices])
+AC_ARG_ENABLE(hip, [AS_HELP_STRING([--enable-hip],
+		[Enable the minimal-support HIP driver (only for testing)])],, [enable_hip=no])
+
+if test x$enable_hip != xno; then
+	AC_PATH_PROG([HIPCONFIG], [hipconfig], [not-found])
+	if test "x$HIPCONFIG" = "xnot-found"; then
+		if test x$enable_hip = xyes; then
+			AC_MSG_ERROR(['hipconfig' not found for HIP support])
+		fi
+		enable_hip=no
+	else
+		HIP_PLATFORM="`hipconfig --platform`"
+		if test $HIP_PLATFORM != "nvidia"; then
+			HIP_DIR="`hipconfig --path`"
+			HIP_LIB_DIR="$HIP_DIR/lib"
+			HIP_INCLUDE_DIR="$HIP_DIR/include"
+			STARPU_HIP_CPPFLAGS="`hipconfig --cpp_config`"
+			HIP_CLANG_PATH="`hipconfig --hipclangpath`"
+			enable_hip=yes
+		fi
+	fi
+fi
+
+have_valid_hip=yes
+
+if test -z "$HIP_DIR"; then
+	have_valid_hip=no
+fi
+if test -z "$HIP_LIB_DIR"; then
+	have_valid_hip=no
+fi
+if test -z "$HIP_INCLUDE_DIR"; then
+	have_valid_hip=no
+fi
+
+
+if test "$HIPCC" = ""; then
+	AC_PATH_PROG([HIPCC], [hipcc], [not-found],
+		     [$HIP_CLANG_PATH:$PATH:/usr/bin:/bin])
+fi
+
+#testing if hipcc is defined, if not => STARPU_USE_HIP undefined
+if test "x$HIPCC" = "xnot-found"; then
+	AC_MSG_WARN(['hipcc' not found, disabling HIP])
+	have_valid_hip=no
+fi
+
+if test x$enable_hip = xyes -a x$have_valid_hip = xyes; then
+	AC_DEFINE(STARPU_USE_HIP,[1],[Define to 1 if the HIP driver is to be tested])
+fi
+
+
+STARPU_HIP_LDFLAGS="$STARPU_HIP_LDFLAGS -lstdc++"
+
+AC_SUBST(STARPU_HIP_LDFLAGS)
+AC_SUBST(STARPU_HIP_CPPFLAGS)
+AM_CONDITIONAL(STARPU_USE_HIP, test x$enable_hip = xyes)
+
+HIPCCFLAGS=""
+#AC_ARG_VAR([HIPCC_CC], [C compiler for HIP compiler])
+AC_ARG_VAR([HIPCCFLAGS], [HIP compiler flags])
+
+
+
+###############################################################################
+#                                                                             #
 #                                 OpenCL settings                             #
 #                                                                             #
 ###############################################################################
@@ -3693,7 +3769,7 @@ if test x$enable_openmp = xyes -a \( x$enable_cuda0 = xyes -o x$enable_cuda1 = x
 fi
 
 
-STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS"
+STARPU_BASIC_H_CPPFLAGS="$HWLOC_CFLAGS $STARPU_CUDA_CPPFLAGS $STARPU_HIP_CPPFLAGS $STARPU_OPENCL_CPPFLAGS $STARPU_MAX_FPGA_CPPFLAGS $SIMGRID_CFLAGS $PAPI_CFLAGS"
 
 # these are the flags needed to compile starpu.h
 STARPU_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS $OPENMP_CFLAGS"
@@ -3703,7 +3779,7 @@ STARPU_NVCC_H_CPPFLAGS="$STARPU_BASIC_H_CPPFLAGS"
 AC_SUBST([STARPU_NVCC_H_CPPFLAGS])
 
 # these are the flags needed for linking libstarpu (and thus also for static linking)
-LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS $PAPI_LIBS"
+LIBSTARPU_LDFLAGS="$STARPU_OPENCL_LDFLAGS $STARPU_CUDA_LDFLAGS $STARPU_HIP_LDFLAGS $HWLOC_LIBS $FXT_LDFLAGS $FXT_LIBS $PAPI_LIBS $STARPU_LEVELDB_LDFLAGS $STARPU_GLPK_LDFLAGS $STARPU_LEVELDB_LDFLAGS $SIMGRID_LDFLAGS $STARPU_BLAS_LDFLAGS $STARPU_OMP_LDFLAGS $DGELS_LIBS $STARPU_MAX_FPGA_LDFLAGS"
 AC_SUBST([LIBSTARPU_LDFLAGS])
 
 # these are the flags needed for linking against libstarpu (because starpu.h makes its includer use pthread_*, simgrid, etc.)
@@ -3923,6 +3999,7 @@ AC_MSG_NOTICE([
 
 	CPUs     enabled: $enable_cpu
 	CUDA     enabled: $enable_cuda
+	HIP      enabled: $enable_hip
 	OpenCL   enabled: $enable_opencl
 	Max FPGA enabled: $enable_max_fpga
 
@@ -3934,6 +4011,7 @@ AC_MSG_NOTICE([
 
 	Maximum number of CPUs:                        $maxcpus
 	Maximum number of CUDA devices:                $nmaxcudadev
+	Maximum number of HIP devices:                 $nmaxhipdev
 	Maximum number of OpenCL devices:              $nmaxopencldev
 	Maximum number of Maxeler FPGA devices:        $nmaxmaxfpgadev
 	Maximum number of MPI master-slave devices:    $nmaxmpidev

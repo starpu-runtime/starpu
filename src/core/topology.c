@@ -26,6 +26,7 @@
 #include <core/debug.h>
 #include <core/topology.h>
 #include <drivers/cuda/driver_cuda.h>
+#include <drivers/hip/driver_hip.h>
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/max/driver_max_fpga.h>
 #include <drivers/mpi/driver_mpi_source.h>
@@ -576,6 +577,12 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	if (config->conf.ncuda != 0)
 		_starpu_init_cuda();
 #endif
+
+#if defined(STARPU_USE_HIP)
+	if (config->conf.nhip != 0)
+		_starpu_init_hip();
+#endif
+
 #if defined(STARPU_USE_MAX_FPGA)
 	if (config->conf.nmax_fpga != 0)
 		_starpu_init_max_fpga();
@@ -670,6 +677,8 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 	if (config->conf.ncuda != 0)
 		_starpu_cuda_discover_devices(config);
+	if (config->conf.nhip != 0)
+		_starpu_hip_discover_devices(config);
 	if (config->conf.nopencl != 0)
 		_starpu_opencl_discover_devices(config);
         if (config->conf.nmax_fpga != 0)
@@ -984,6 +993,13 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "cuda");
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "nvml");
 #  endif
+#  ifndef STARPU_USE_HIP
+	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "hip");
+	/*
+	 TODO ask about nvml and hip
+	*/
+	//hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "nvml");
+#  endif
 #  ifndef STARPU_USE_OPENCL
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "opencl");
 #  endif
@@ -1120,6 +1136,10 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	_starpu_init_cuda_config(topology, config);
+#endif
+
+#if defined(STARPU_USE_HIP)
+	_starpu_init_hip_config(topology, config);
 #endif
 
 /* We put the OpenCL section after the CUDA section: we rather use NVidia GPUs in CUDA mode than in OpenCL mode */

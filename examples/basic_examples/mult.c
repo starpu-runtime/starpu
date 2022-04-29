@@ -37,7 +37,7 @@
 
 #include <starpu.h>
 
-static float *A, *B, *C;
+static float *A, *B, *C, *Cref;
 static starpu_data_handle_t A_handle, B_handle, C_handle;
 
 static unsigned nslicesx = 4;
@@ -52,6 +52,7 @@ static unsigned ydim = 1024;
 static unsigned zdim = 512;
 #endif
 
+extern void hip_mult(void *descr[], void *arg);
 
 /*
  * That program should compute C = A * B 
@@ -141,6 +142,11 @@ static void init_problem_data(void)
 	A = (float *) malloc(zdim*ydim*sizeof(float));
 	B = (float *) malloc(xdim*zdim*sizeof(float));
 	C = (float *) malloc(xdim*ydim*sizeof(float));
+	Cref = (float *) malloc(xdim*ydim*sizeof(float));
+	assert(A);
+	assert(B);
+	assert(C);
+	assert(Cref);
 
 	/* fill the A and B matrices */
 	starpu_srand48(2009);
@@ -165,6 +171,7 @@ static void init_problem_data(void)
 		for (i=0; i < xdim; i++)
 		{
 			C[j+i*ydim] = (float)(0);
+			Cref[j+i*ydim] = (float)(0);
 		}
 	}
 }
@@ -273,16 +280,18 @@ static struct starpu_perfmodel mult_perf_model =
 
 static struct starpu_codelet cl =
 {
-        /* we can only execute that kernel on a CPU yet */
-        /* CPU implementation of the codelet */
-        .cpu_funcs = {cpu_mult},
-        .cpu_funcs_name = {"cpu_mult"},
-        /* the codelet manipulates 3 buffers that are managed by the
-         * DSM */
-        .nbuffers = 3,
+	/* CPU implementation of the codelet */
+	.cpu_funcs = {cpu_mult},
+	.cpu_funcs_name = {"cpu_mult"},
+	#ifdef STARPU_USE_HIP
+	/* HIP implementation of the codelet */
+	.hip_funcs = {hip_mult},
+	#endif
+	/* the codelet manipulates 3 buffers that are managed by the DSM */
+	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W},
-        /* in case the scheduling policy may use performance models */
-        .model = &mult_perf_model
+	/* in case the scheduling policy may use performance models */
+	.model = &mult_perf_model
 };
 
 static int launch_tasks(void)
@@ -347,6 +356,25 @@ static int launch_tasks(void)
 	return 0;
 }
 
+void check_result(float* C_gpu, float* C_ref, uint32_t ldC)
+{
+	unsigned i,j,k;
+	for (i = 0; i < ydim; i++)
+	{
+		for (j = 0; j < xdim; j++)
+		{
+
+                        if(C_gpu[j + i*ldC]-C_ref[j + i*ldC] > 1e-6*C_ref[j + i*ldC])
+                        {
+			        printf("| Cref[%d,%d]=%f - Cgpu[%d,%d]=%f | Error in the computation of C on GPU: the difference between the two is bigger than 1e-6 * the reference"
+                                        , i, j, C_ref[j + i*ldC], i, j, C_gpu[j + i*ldC]);
+                                exit(1);
+                        }
+		}
+	}
+	printf("SUCCESSFUL COMPUTATION ON GPU\n");
+}
+
 int main(void)
 {
 	int ret;
@@ -368,9 +396,31 @@ int main(void)
 	ret = launch_tasks();
 	if (ret == -ENODEV) goto enodev;
 
-	/* wait for termination */
-        starpu_task_wait_for_all();
+	/* cpu compution to check */
+	/* ============================================= */
 
+	uint32_t ldA = ydim;
+	uint32_t ldB = zdim;
+	uint32_t ldC = ydim;
+
+	unsigned i,j,k;
+	for (i = 0; i < ydim; i++)
+	{
+		for (j = 0; j < xdim; j++)
+		{
+			float sum = 0.0;
+
+			for (k = 0; k < zdim; k++)
+			{
+				sum += A[j+k*ldA]*B[k+i*ldB];
+			}
+
+			Cref[j + i*ldC] = sum;
+		}
+	}
+	/* ============================================= */
+	/* wait for termination */
+	starpu_task_wait_for_all();
 	/* remove the filters applied by the means of starpu_data_map_filters; now
  	 * it's not possible to manipulate a subset of C using starpu_data_get_sub_data until
 	 * starpu_data_map_filters is called again on C_handle.
@@ -388,10 +438,13 @@ int main(void)
 	starpu_data_unregister(B_handle);
 	starpu_data_unregister(C_handle);
 
+	/* Comment to remove printing of results */
+	check_result(C, Cref, ldC);
+
 	free(A);
 	free(B);
 	free(C);
-
+	free(Cref);
 	starpu_shutdown();
 
 	return 0;

@@ -18,7 +18,7 @@
 #
 include $(top_srcdir)/starpu.mk
 include $(top_srcdir)/starpu-loader.mk
-
+SUFFIXES = .hip
 AM_CFLAGS += $(MAGMA_CFLAGS) $(APP_CFLAGS)
 AM_CXXFLAGS += $(MAGMA_CFLAGS) $(APP_CXXFLAGS)
 AM_FFLAGS += $(MAGMA_CFLAGS) $(APP_FFLAGS)
@@ -108,6 +108,15 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing  -I$(top_srcdir)/include/ -
 	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
+endif
+
+if STARPU_USE_HIP
+
+#include $(top_srcdir)/starpu-mynvcc.mk
+HIPCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include/ #$(HWLOC_CFLAGS)
+
+.hip.o:
+	$(HIPCC) $< -c -o $@ $(HIPCCFLAGS)
 endif
 
 if STARPU_HAVE_ICC
@@ -439,6 +448,9 @@ basic_examples_vector_scal_SOURCES =		\
 	basic_examples/vector_scal.c		\
 	basic_examples/vector_scal_cpu.c
 
+basic_examples_mult_SOURCES = \
+	basic_examples/mult.c
+
 if STARPU_HAVE_ICC
 if STARPU_CROSS_COMPILING
 basic_examples_vector_scal_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link $(CCLD) $(basic_examples_vector_scal_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -454,6 +466,13 @@ endif
 if STARPU_USE_CUDA
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cuda.cu
+endif
+
+if STARPU_USE_HIP
+basic_examples_vector_scal_SOURCES +=		\
+	basic_examples/vector_scal_hip.hip
+basic_examples_mult_SOURCES +=		        \
+	basic_examples/mult_hip.hip
 endif
 
 if STARPU_USE_OPENCL
@@ -564,6 +583,10 @@ basic_examples_block_SOURCES =			\
 if STARPU_USE_CUDA
 basic_examples_block_SOURCES +=			\
 	basic_examples/block_cuda.cu
+endif
+if STARPU_USE_HIP
+basic_examples_block_SOURCES +=			\
+	basic_examples/block_hip.hip
 endif
 
 if STARPU_USE_OPENCL
