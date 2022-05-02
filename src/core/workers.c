@@ -489,7 +489,7 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 		opencl_func_enabled = opencl_func != NULL && starpu_opencl_worker_get_count();
 #endif
 
-		return cpu_func_enabled && cuda_func_enabled && opencl_func_enabled;
+		return cpu_func_enabled && cuda_func_enabled && opencl_func_enabled && hip_func_enabled;
 	}
 	case STARPU_CPU_WORKER:
 	{
