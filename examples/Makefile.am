@@ -112,7 +112,6 @@ endif
 
 if STARPU_USE_HIP
 
-#include $(top_srcdir)/starpu-mynvcc.mk
 HIPCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include/ #$(HWLOC_CFLAGS)
 
 .hip.o:

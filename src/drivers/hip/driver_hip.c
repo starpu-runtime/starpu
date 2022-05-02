@@ -1,11 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2010       Mehdi Juhoor
- * Copyright (C) 2011       Télécom-SudParis
- * Copyright (C) 2013       Thibaut Lambert
- * Copyright (C) 2016       Uppsala University
- * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -74,7 +69,6 @@ const struct hipDeviceProp_t *starpu_hip_get_device_properties(unsigned workerid
 	return &props[devid];
 }
 
-
 /* Early library initialization, before anything else, just initialize data */
 void _starpu_hip_init(void)
 {
@@ -83,7 +77,6 @@ void _starpu_hip_init(void)
 
 /* Return the number of devices usable in the system.
  * The value returned cannot be greater than MAXHIPDEVS */
-
 unsigned _starpu_get_hip_device_count(void)
 {
 	int cnt;
@@ -111,11 +104,9 @@ void _starpu_init_hip(void)
 }
 
 /* This is called to really discover the hardware */
-void
-_starpu_hip_discover_devices (struct _starpu_machine_config *config)
+void _starpu_hip_discover_devices (struct _starpu_machine_config *config)
 {
-/* Discover the number of HIP devices. Fill the result in CONFIG. */
-
+	/* Discover the number of HIP devices. Fill the result in CONFIG. */
 	int cnt;
 	hipError_t cures;
 
@@ -212,7 +203,7 @@ int _starpu_hip_init_workers_binding_and_memory(struct _starpu_machine_config *c
 
 	//This worker can also manage transfers on NUMA nodes
 	for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
-			_starpu_worker_drives_memory_node(workerarg, numa);
+		_starpu_worker_drives_memory_node(workerarg, numa);
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
 
@@ -220,7 +211,7 @@ int _starpu_hip_init_workers_binding_and_memory(struct _starpu_machine_config *c
 }
 
 /* Set the current HIP device */
-void starpu_hip_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
+void starpu_hip_set_device(unsigned devid)
 {
 	hipError_t cures;
 
@@ -230,7 +221,7 @@ void starpu_hip_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 		STARPU_HIP_REPORT_ERROR(cures);
 }
 
-static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
+static void _starpu_hip_limit_mem_if_needed(unsigned devid)
 {
 	starpu_ssize_t limit;
 	size_t STARPU_ATTRIBUTE_UNUSED totalGlobalMem = 0;
@@ -243,6 +234,7 @@ static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
 
 	global_mem[devid] = limit * 1024*1024;
 }
+
 /* Really initialize one device */
 static void init_device_context(unsigned devid, unsigned memnode)
 {
@@ -251,7 +243,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	starpu_hip_set_device(devid);
 
 	/* force HIP to initialize the context for real */
-	#warning "Not sure about the argument of hipInit(flag=0)"
+#warning "Not sure about the argument of hipInit(flag=0)"
 	cures = hipInit(0);
 	if (STARPU_UNLIKELY(cures))
 	{
@@ -267,7 +259,7 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	if (STARPU_UNLIKELY(cures))
 		STARPU_HIP_REPORT_ERROR(cures);
 
-	_starpu_hip_limit_gpu_mem_if_needed(devid);
+	_starpu_hip_limit_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(memnode, _starpu_hip_get_global_mem_size(devid));
 }
 
@@ -387,11 +379,10 @@ void _starpu_hip_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 		STARPU_HIP_REPORT_ERROR(err);
 }
 
-int
-starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node,
-			    void *dst_ptr, unsigned dst_node,
-			    size_t ssize, hipStream_t stream STARPU_ATTRIBUTE_UNUSED,
-			    enum hipMemcpyKind kind)
+int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node,
+			       void *dst_ptr, unsigned dst_node,
+			       size_t ssize, hipStream_t stream STARPU_ATTRIBUTE_UNUSED,
+			       enum hipMemcpyKind kind)
 {
 	hipError_t cures = 0;
 
@@ -411,12 +402,11 @@ starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node,
 	return 0;
 }
 
-int
-starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
-			      void *dst_ptr, unsigned dst_node,
-			      size_t blocksize,
-			      size_t numblocks, size_t ld_src, size_t ld_dst,
-			      hipStream_t stream STARPU_ATTRIBUTE_UNUSED, enum hipMemcpyKind kind)
+int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
+				 void *dst_ptr, unsigned dst_node,
+				 size_t blocksize,
+				 size_t numblocks, size_t ld_src, size_t ld_dst,
+				 hipStream_t stream STARPU_ATTRIBUTE_UNUSED, enum hipMemcpyKind kind)
 {
 	hipError_t cures = 0;
 
@@ -472,10 +462,10 @@ int _starpu_hip_copy_data_from_hip_to_hip(uintptr_t src, size_t src_offset, unsi
 #endif
 
 	return starpu_hip_copy_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   size,
-					   NULL,
-					   hipMemcpyDeviceToDevice);
+					  (void*) (dst + dst_offset), dst_node,
+					  size,
+					  NULL,
+					  hipMemcpyDeviceToDevice);
 }
 
 int _starpu_hip_copy_data_from_cpu_to_hip(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
@@ -486,16 +476,16 @@ int _starpu_hip_copy_data_from_cpu_to_hip(uintptr_t src, size_t src_offset, unsi
 	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_HIP_RAM);
 
 	return starpu_hip_copy_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   size,
-					   NULL,
-					   hipMemcpyHostToDevice);
+					  (void*) (dst + dst_offset), dst_node,
+					  size,
+					  NULL,
+					  hipMemcpyHostToDevice);
 }
 
 int _starpu_hip_copy2d_data_from_hip_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node,
-					      uintptr_t dst, size_t dst_offset, unsigned dst_node,
-					      size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
-					      struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
+					    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+					    size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
+					    struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -503,16 +493,16 @@ int _starpu_hip_copy2d_data_from_hip_to_cpu(uintptr_t src, size_t src_offset, un
 	STARPU_ASSERT(src_kind == STARPU_HIP_RAM && dst_kind == STARPU_CPU_RAM);
 
 	return starpu_hip_copy2d_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   blocksize, numblocks, ld_src, ld_dst,
-					   NULL,
-					   hipMemcpyDeviceToHost);
+					    (void*) (dst + dst_offset), dst_node,
+					    blocksize, numblocks, ld_src, ld_dst,
+					    NULL,
+					    hipMemcpyDeviceToHost);
 }
 
 int _starpu_hip_copy2d_data_from_hip_to_hip(uintptr_t src, size_t src_offset, unsigned src_node,
-					       uintptr_t dst, size_t dst_offset, unsigned dst_node,
-					       size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
-					       struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
+					    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+					    size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
+					    struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -523,16 +513,16 @@ int _starpu_hip_copy2d_data_from_hip_to_hip(uintptr_t src, size_t src_offset, un
 #endif
 
 	return starpu_hip_copy2d_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   blocksize, numblocks, ld_src, ld_dst,
-					   NULL,
-					   hipMemcpyDeviceToDevice);
+					    (void*) (dst + dst_offset), dst_node,
+					    blocksize, numblocks, ld_src, ld_dst,
+					    NULL,
+					    hipMemcpyDeviceToDevice);
 }
 
 int _starpu_hip_copy2d_data_from_cpu_to_hip(uintptr_t src, size_t src_offset, unsigned src_node,
-					      uintptr_t dst, size_t dst_offset, unsigned dst_node,
-					      size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
-					      struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
+					    uintptr_t dst, size_t dst_offset, unsigned dst_node,
+					    size_t blocksize, size_t numblocks, size_t ld_src, size_t ld_dst,
+					    struct _starpu_async_channel *async_channel STARPU_ATTRIBUTE_UNUSED)
 {
 	int src_kind = starpu_node_get_kind(src_node);
 	int dst_kind = starpu_node_get_kind(dst_node);
@@ -540,10 +530,10 @@ int _starpu_hip_copy2d_data_from_cpu_to_hip(uintptr_t src, size_t src_offset, un
 	STARPU_ASSERT(src_kind == STARPU_CPU_RAM && dst_kind == STARPU_HIP_RAM);
 
 	return starpu_hip_copy2d_async_sync((void*) (src + src_offset), src_node,
-					   (void*) (dst + dst_offset), dst_node,
-					   blocksize, numblocks, ld_src, ld_dst,
-					   NULL,
-					   hipMemcpyHostToDevice);
+					    (void*) (dst + dst_offset), dst_node,
+					    blocksize, numblocks, ld_src, ld_dst,
+					    NULL,
+					    hipMemcpyHostToDevice);
 }
 
 int _starpu_hip_is_direct_access_supported(unsigned node, unsigned handling_node)

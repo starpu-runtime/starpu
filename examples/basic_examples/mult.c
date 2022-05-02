@@ -55,8 +55,8 @@ static unsigned zdim = 512;
 extern void hip_mult(void *descr[], void *arg);
 
 /*
- * That program should compute C = A * B 
- * 
+ * That program should compute C = A * B
+ *
  *   A of size (z,y)
  *   B of size (x,z)
  *   C of size (x,y)
@@ -180,7 +180,7 @@ static void partition_mult_data(void)
 {
 	/* note that we assume a FORTRAN ordering here! */
 
-	/* The BLAS data interface is described by 4 parameters: 
+	/* The BLAS data interface is described by 4 parameters:
 	 *  - the location of the first element of the matrix to monitor (3rd
 	 *    argument)
 	 *  - the number of elements between columns, aka leading dimension
@@ -193,11 +193,11 @@ static void partition_mult_data(void)
 	 * node in which resides the matrix: 0 means that the 3rd argument is
 	 * an adress in main memory.
 	 */
-	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A, 
+	starpu_matrix_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A,
 		ydim, ydim, zdim, sizeof(float));
-	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B, 
+	starpu_matrix_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B,
 		zdim, zdim, xdim, sizeof(float));
-	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C, 
+	starpu_matrix_data_register(&C_handle, STARPU_MAIN_RAM, (uintptr_t)C,
 		ydim, ydim, xdim, sizeof(float));
 
 	/* A filter is a method to partition a data into disjoint chunks, it is
@@ -228,9 +228,9 @@ static void partition_mult_data(void)
  *	the number of filters to apply, and the indexes for each filters, for
  *	instance:
  *
- *		A' handle is starpu_data_get_sub_data(A_handle, 1, 1); 
- *		B' handle is starpu_data_get_sub_data(B_handle, 1, 2); 
- *		C' handle is starpu_data_get_sub_data(C_handle, 2, 2, 1); 
+ *		A' handle is starpu_data_get_sub_data(A_handle, 1, 1);
+ *		B' handle is starpu_data_get_sub_data(B_handle, 1, 2);
+ *		C' handle is starpu_data_get_sub_data(C_handle, 2, 2, 1);
  *
  *	Note that here we applied 2 filters recursively onto C.
  *
@@ -283,10 +283,10 @@ static struct starpu_codelet cl =
 	/* CPU implementation of the codelet */
 	.cpu_funcs = {cpu_mult},
 	.cpu_funcs_name = {"cpu_mult"},
-	#ifdef STARPU_USE_HIP
+#ifdef STARPU_USE_HIP
 	/* HIP implementation of the codelet */
 	.hip_funcs = {hip_mult},
-	#endif
+#endif
 	/* the codelet manipulates 3 buffers that are managed by the DSM */
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_W},
@@ -300,7 +300,7 @@ static int launch_tasks(void)
 	/* partition the work into slices */
 	unsigned taskx, tasky;
 
-	for (taskx = 0; taskx < nslicesx; taskx++) 
+	for (taskx = 0; taskx < nslicesx; taskx++)
 	{
 		for (tasky = 0; tasky < nslicesy; tasky++)
 		{
@@ -317,7 +317,7 @@ static int launch_tasks(void)
 			 *              |---|---|---|---|
 			 *              |   | * |   |   | B
 			 *              |---|---|---|---|
-			 *                    X 
+			 *                    X
 			 *     |----|   |---|---|---|---|
 			 *     |****| Y |   |***|   |   |
 			 *     |****|   |   |***|   |   |
@@ -430,7 +430,7 @@ int main(void)
 	starpu_data_unpartition(B_handle, STARPU_MAIN_RAM);
 	starpu_data_unpartition(C_handle, STARPU_MAIN_RAM);
 
-	/* stop monitoring matrix C : after this, it is not possible to pass C 
+	/* stop monitoring matrix C : after this, it is not possible to pass C
 	 * (or any subset of C) as a codelet input/output. This also implements
 	 * a barrier so that the piece of data is put back into main memory in
 	 * case it was only available on a GPU for instance. */
@@ -453,4 +453,3 @@ enodev:
 	starpu_shutdown();
 	return 77;
 }
-

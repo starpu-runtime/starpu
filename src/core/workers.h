@@ -577,7 +577,6 @@ uint32_t _starpu_worker_exists(struct starpu_task *) STARPU_ATTRIBUTE_VISIBILITY
 /** Is there a worker that can execute CUDA code ? */
 uint32_t _starpu_can_submit_cuda_task(void);
 
-
 /** Is there a worker that can execute CUDA code ? */
 uint32_t _starpu_can_submit_hip_task(void);
 

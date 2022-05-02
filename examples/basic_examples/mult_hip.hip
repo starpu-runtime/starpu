@@ -39,8 +39,8 @@
 #define THREADS_PER_BLOCK 64
 
 /*
- * That program should compute C = A * B 
- * 
+ * That program should compute C = A * B
+ *
  *   A of size (z,y)
  *   B of size (x,z)
  *   C of size (x,y)
@@ -66,20 +66,22 @@
  * in the case of CPU, GPU frame buffer in the case of GPU etc.). Since we have
  * registered data with the "matrix" data interface, we use the matrix macros.
  */
-static __global__ void hip_mult_kernel( uint32_t nxC, uint32_t nyC, uint32_t nyA,
-										uint32_t ldA, uint32_t ldB, uint32_t ldC,
-										float * subA, float * subB, float * subC )
+static __global__ void hip_mult_kernel(uint32_t nxC, uint32_t nyC, uint32_t nyA,
+				       uint32_t ldA, uint32_t ldB, uint32_t ldC,
+				       float * subA, float * subB, float * subC )
 {
 	uint32_t id, i, j, k;
 	float sum;
 	id = blockIdx.x * blockDim.x + threadIdx.x;
 	i = id % nxC;
 	j = id / nxC;
-	if (j >= nyC){
+	if (j >= nyC)
+	{
 		return;
 	}
 	sum = 0.;
-	for (k = 0 ; k < nyA ; k++){
+	for (k = 0 ; k < nyA ; k++)
+	{
 		sum += subA[i + k*ldA] * subB[k + j*ldB];
 	}
 	subC[i + j*ldC] = sum;
@@ -121,12 +123,11 @@ extern "C" void hip_mult(void *descr[], void *arg)
 
 	nblocks = (nxC * nyC + THREADS_PER_BLOCK - 1)/THREADS_PER_BLOCK;
 
-	hipLaunchKernelGGL( hip_mult_kernel, nblocks, THREADS_PER_BLOCK, 0, 0,
-						 nxC,  nyC,  nyA,
-						 ldA,  ldB,  ldC,
-						 subA, subB, subC );
+	hipLaunchKernelGGL(hip_mult_kernel, nblocks, THREADS_PER_BLOCK, 0, 0,
+			   nxC,  nyC,  nyA,
+			   ldA,  ldB,  ldC,
+			   subA, subB, subC );
 
 	hipError_t status = hipGetLastError();
-
 	if (status != hipSuccess) STARPU_HIP_REPORT_ERROR(status);
 }

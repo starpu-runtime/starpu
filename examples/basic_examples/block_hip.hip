@@ -1,7 +1,6 @@
-#include "hip/hip_runtime.h"
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,9 +39,9 @@ extern "C" void hip_codelet(void *descr[], void *_args)
         unsigned ldz = STARPU_BLOCK_GET_LDZ(descr[0]);
         float *multiplier = (float *)_args;
 
-        hipLaunchKernelGGL( hip_block, 1, 1, 0, 0,
-                            block, nx, ny, nz,
-                            ldy, ldz, *multiplier);
+        hipLaunchKernelGGL(hip_block, 1, 1, 0, 0,
+			   block, nx, ny, nz,
+			   ldy, ldz, *multiplier);
         hipError_t status = hipGetLastError();
         if (status != hipSuccess) STARPU_HIP_REPORT_ERROR(status);
 }
