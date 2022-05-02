@@ -130,3 +130,13 @@ struct starpu_sched_policy *starpu_get_sched_lib_policy(const char *name)
 		return &dummy_sched_policy;
 	return NULL;
 }
+
+struct starpu_sched_policy *predefined_policies[] =
+{
+	&dummy_sched_policy
+};
+
+struct starpu_sched_policy **starpu_get_sched_lib_policies(void)
+{
+	return predefined_policies;
+}

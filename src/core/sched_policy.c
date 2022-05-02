@@ -39,6 +39,7 @@ long _starpu_task_break_on_pop = -1;
 long _starpu_task_break_on_exec = -1;
 static const char *starpu_idle_file;
 static void *dl_sched_handle = NULL;
+static const char *sched_lib = NULL;
 
 void _starpu_sched_init(void)
 {
@@ -128,6 +129,27 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy, struct _
 	*(sched_ctx->sched_policy) = *sched_policy;
 }
 
+static void load_sched_lib()
+{
+	/* check if the requested policy can be loaded dynamically */
+	sched_lib = starpu_getenv("STARPU_SCHED_LIB");
+	if (sched_lib)
+	{
+#ifdef HAVE_DLOPEN
+		if (dl_sched_handle)
+		{
+			dlclose(dl_sched_handle);
+			dl_sched_handle = NULL;
+		}
+		dl_sched_handle = dlopen(sched_lib, RTLD_NOW);
+		if (!dl_sched_handle)
+			_STARPU_MSG("Warning: scheduling dynamic library '%s' can not be loaded\n", sched_lib);
+#else
+		_STARPU_MSG("Environment variable 'STARPU_SCHED_LIB' defined but the dlopen functionality is unavailable on the system\n");
+#endif
+	}
+}
+
 static struct starpu_sched_policy *find_sched_policy_from_name(const char *policy_name)
 {
 	if (!policy_name)
@@ -137,45 +159,32 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 		return NULL;
 
 	/* check if the requested policy can be loaded dynamically */
-	const char *sched_lib = starpu_getenv("STARPU_SCHED_LIB");
-	if (sched_lib)
-	{
+	load_sched_lib();
 #ifdef HAVE_DLOPEN
+	if (dl_sched_handle)
+	{
 		struct starpu_sched_policy *(*func_sched)(const char *);
-		if (dl_sched_handle)
+		*(void**)(&func_sched) = dlsym(dl_sched_handle, "starpu_get_sched_lib_policy");
+		if (!func_sched)
 		{
+			/* no such symbol */
+			_STARPU_MSG("Warning: the library '%s' does not define the function 'starpu_get_sched_lib_policy' (error '%s')\n", sched_lib, dlerror());
 			dlclose(dl_sched_handle);
 			dl_sched_handle = NULL;
 		}
-		dl_sched_handle = dlopen(sched_lib, RTLD_NOW);
-		if (!dl_sched_handle)
-			_STARPU_MSG("Warning: scheduling dynamic library '%s' can not be loaded\n", sched_lib);
 		else
 		{
-			*(void**)(&func_sched) = dlsym(dl_sched_handle, "starpu_get_sched_lib_policy");
-			if (!func_sched)
+			struct starpu_sched_policy *dl_sched_policy = func_sched(policy_name);
+			if (dl_sched_policy)
+				return dl_sched_policy;
+			else
 			{
-				/* no such symbol */
-				_STARPU_MSG("Warning: the library '%s' does not define the function 'starpu_get_sched_lib_policy' (error '%s')\n", sched_lib, dlerror());
 				dlclose(dl_sched_handle);
 				dl_sched_handle = NULL;
 			}
-			else
-			{
-				struct starpu_sched_policy *dl_sched_policy = func_sched(policy_name);
-				if (dl_sched_policy)
-					return dl_sched_policy;
-				else
-				{
-					dlclose(dl_sched_handle);
-					dl_sched_handle = NULL;
-				}
-			}
 		}
-#else
-		_STARPU_MSG("Environment variable 'STARPU_SCHED_LIB' defined but the dlopen functionality is unavailable on the system\n");
-#endif
 	}
+#endif
 
 	if (strncmp(policy_name, "heft", 4) == 0)
 	{
@@ -221,6 +230,26 @@ static void display_sched_help_message(FILE *stream)
 			fprintf(stream, "%-30s\t-> %s\n", p->policy_name, p->policy_description);
 		}
 		fprintf(stream, "\n");
+
+		load_sched_lib();
+#ifdef HAVE_DLOPEN
+		if (dl_sched_handle)
+		{
+			struct starpu_sched_policy **(*func_scheds)(void);
+			*(void**)(&func_scheds) = dlsym(dl_sched_handle, "starpu_get_sched_lib_policies");
+			if (func_scheds)
+			{
+				fprintf(stream, "(dynamically available policies)\n");
+				struct starpu_sched_policy **dl_sched_policies = func_scheds();
+				for(policy=dl_sched_policies ; *policy!=NULL ; policy++)
+				{
+					struct starpu_sched_policy *p = *policy;
+					fprintf(stream, "%-30s\t-> %s\n", p->policy_name, p->policy_description);
+				}
+				fprintf(stream, "\n");
+			}
+		}
+#endif
 	 }
 }
 

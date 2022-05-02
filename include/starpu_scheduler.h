@@ -217,6 +217,12 @@ struct starpu_sched_policy **starpu_sched_get_predefined_policies(void);
 struct starpu_sched_policy *starpu_get_sched_lib_policy(const char *name);
 
 /**
+   Allow an external library to return a list of scheduling policies to be
+   loaded dynamically.
+ */
+struct starpu_sched_policy **starpu_get_sched_lib_policies();
+
+/**
    When there is no available task for a worker, StarPU blocks this
    worker on a condition variable. This function specifies which
    condition variable (and the associated mutex) should be used to

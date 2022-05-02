@@ -595,6 +595,16 @@ To use it, you need to define both variables \ref STARPU_SCHED_LIB and
 \code{.sh}
 STARPU_SCHED_LIB=libdummy_sched.so STARPU_SCHED=dummy yourapplication
 \endcode
+
+If the library defines a function <c>struct
+starpu_sched_policy **starpu_get_sched_lib_policies()</c>, the
+policies defined by the library can be displayed using the \c help
+functionality.
+
+\code{.sh}
+STARPU_SCHED_LIB=libdummy_sched.so STARPU_SCHED=help yourapplication
+\endcode
+
 </li>
 </ul>
 
