@@ -37,6 +37,7 @@
 \file starpu_hash.h
 \file starpu_helper.h
 \file starpu_heteroprio.h
+\file starpu_hip.h
 \file starpu_scheduler_toolbox.h
 \file starpu_max_fpga.h
 \file starpu_mod.f90

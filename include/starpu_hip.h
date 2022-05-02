@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -13,13 +13,14 @@
  *
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
-#ifdef STARPU_USE_HIP
+
 #ifndef __STARPU_HIP_H__
 #define __STARPU_HIP_H__
 
 #include <starpu_config.h>
 
-//#if defined STARPU_USE_ && !defined STARPU_DONT_INCLUDE_HIP_HEADERS
+#ifdef STARPU_USE_HIP
+
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
 
@@ -33,7 +34,6 @@ extern "C"
    @{
  */
 
-
 /**
    Report a HIP error.
 */
@@ -42,15 +42,7 @@ void starpu_hip_report_error(const char *func, const char *file, int line, hipEr
 /**
    Call starpu_hip_report_error(), passing the current function, file and line position.
 */
-
 #define STARPU_HIP_REPORT_ERROR(status) starpu_hip_report_error(__starpu_func__, __FILE__, __LINE__, status)
-
-/**
-   @defgroup API_HIP_Extensions HIP Extensions
-   @{
- */
-
-
 
 /**
    Return the current worker’s HIP stream. StarPU provides a stream
@@ -96,9 +88,9 @@ int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, 
    successful, or fails otherwise.
 */
 int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node,
-				  size_t blocksize,
-				  size_t numblocks, size_t ld_src, size_t ld_dst,
-				  hipStream_t stream, enum hipMemcpyKind kind);
+				 size_t blocksize,
+				 size_t numblocks, size_t ld_src, size_t ld_dst,
+				 hipStream_t stream, enum hipMemcpyKind kind);
 
 /**
    Copy \p numblocks_1 * \p numblocks_2 blocks of \p blocksize bytes from the
@@ -115,15 +107,13 @@ int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr
    successful, or fails otherwise.
 */
 int starpu_hip_copy3d_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node,
-				  size_t blocksize,
-				  size_t numblocks_1, size_t ld1_src, size_t ld1_dst,
-				  size_t numblocks_2, size_t ld2_src, size_t ld2_dst,
-				  hipStream_t stream, enum hipMemcpyKind kind);
+				 size_t blocksize,
+				 size_t numblocks_1, size_t ld1_src, size_t ld1_dst,
+				 size_t numblocks_2, size_t ld2_src, size_t ld2_dst,
+				 hipStream_t stream, enum hipMemcpyKind kind);
 
 /**
-   Call <c>hipSetDevice(\p devid)</c> or <c>hipGLSetGLDevice(\p devid)</c>,
-   according to whether \p devid is among the field
-   starpu_conf::hip_opengl_interoperability.
+   Call <c>hipSetDevice(\p devid)</c>.
 */
 void starpu_hip_set_device(unsigned devid);
 
@@ -133,5 +123,5 @@ void starpu_hip_set_device(unsigned devid);
 }
 #endif
 
-#endif /* __STARPU_HIP_H__ */
 #endif /* STARPU_USE_HIP */
+#endif /* __STARPU_HIP_H__ */

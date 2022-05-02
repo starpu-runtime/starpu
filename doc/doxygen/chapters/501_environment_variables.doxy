@@ -571,6 +571,33 @@ Disable asynchronous copies between CPU and TCP/IP Slave devices.
 
 </dl>
 
+\subsection hipWorkers HIP Workers
+
+<dl>
+<dt>STARPU_WORKERS_HPIID</dt>
+<dd>
+\anchor STARPU_WORKERS_HIPID
+\addindex __env__STARPU_WORKERS_HIPID
+Similarly to the \ref STARPU_WORKERS_HIPID environment variable, it is
+possible to select which HIP devices should be used by StarPU. On a machine
+equipped with 4 HIP devices, setting <c>STARPU_WORKERS_HIPID = "1 3"</c> and
+<c>STARPU_NHIP=2</c> specifies that 2 HIP workers should be created, and that
+they should use HIP devices #1 and #3.
+
+This variable is ignored if the field
+starpu_conf::use_explicit_workers_cuda_hipid passed to starpu_init()
+is set.
+</dd>
+
+<dt>STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY</dt>
+<dd>
+\anchor STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY
+\addindex __env__STARPU_DISABLE_ASYNCHRONOUS_HIP_COPY
+Disable asynchronous copies between CPU and HIP devices.
+</dd>
+
+</dl>
+
 
 \subsection mpiConf MPI Configuration
 <dl>

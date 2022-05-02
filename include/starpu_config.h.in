@@ -262,6 +262,13 @@
 #undef STARPU_MAXMAXFPGADEVS
 
 /**
+   Define the maximum number of HIP devices that are supported by
+   StarPU.
+   @ingroup API_HIP_Extensions
+ */
+#undef STARPU_MAXHIPDEVS
+
+/**
    Define the maximum number of workers managed by StarPU.
    @ingroup API_Workers_Properties
 */
