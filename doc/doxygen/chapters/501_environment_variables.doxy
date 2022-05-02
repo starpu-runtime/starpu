@@ -585,7 +585,7 @@ equipped with 4 HIP devices, setting <c>STARPU_WORKERS_HIPID = "1 3"</c> and
 they should use HIP devices #1 and #3.
 
 This variable is ignored if the field
-starpu_conf::use_explicit_workers_cuda_hipid passed to starpu_init()
+starpu_conf::use_explicit_workers_hip_gpuid passed to starpu_init()
 is set.
 </dd>
 
