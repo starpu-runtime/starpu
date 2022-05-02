@@ -140,6 +140,7 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 	const char *sched_lib = starpu_getenv("STARPU_SCHED_LIB");
 	if (sched_lib)
 	{
+#ifdef HAVE_DLOPEN
 		struct starpu_sched_policy *(*func_sched)(const char *);
 		if (dl_sched_handle)
 		{
@@ -171,6 +172,9 @@ static struct starpu_sched_policy *find_sched_policy_from_name(const char *polic
 				}
 			}
 		}
+#else
+		_STARPU_MSG("Environment variable 'STARPU_SCHED_LIB' defined but the dlopen functionality is unavailable on the system\n");
+#endif
 	}
 
 	if (strncmp(policy_name, "heft", 4) == 0)
