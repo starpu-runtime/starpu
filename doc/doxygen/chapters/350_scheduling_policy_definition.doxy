@@ -255,6 +255,7 @@ See starpu_sched_component::can_pull for more details
 
 The components also provide the following useful methods:
 
+<ul>
 <li>
 starpu_sched_component::estimated_load provides an estimated load of the component
 </li>
