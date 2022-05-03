@@ -224,38 +224,47 @@ to get one.
 Each Scheduling Component must follow the following pre-defined Interface
 to be able to interact with other Scheduling Components.
 
-	- push_task (child_component, Task) \n
-	The calling Scheduling Component transfers a task to its
-	Child Component. When the Push function returns, the task no longer
-	belongs to the calling Component. The Modularized Schedulers'
-	model relies on this function to perform prefetching.
-	See starpu_sched_component::push_task for more details
+<ul>
+<li> push_task (child_component, Task) \n
+The calling Scheduling Component transfers a task to its
+Child Component. When the Push function returns, the task no longer
+belongs to the calling Component. The Modularized Schedulers'
+model relies on this function to perform prefetching.
+See starpu_sched_component::push_task for more details
+</li>
 
-	- pull_task (parent_component, caller_component)  ->  Task \n
-	The calling Scheduling Component requests a task from
-	its Parent Component. When the Pull function ends, the returned
-	task belongs to the calling Component.
-	See starpu_sched_component::pull_task for more details
+<li> pull_task (parent_component, caller_component)  ->  Task \n
+The calling Scheduling Component requests a task from
+its Parent Component. When the Pull function ends, the returned
+task belongs to the calling Component.
+See starpu_sched_component::pull_task for more details
+</li>
 
-	- can_push (caller_component, parent_component) \n
-	The calling Scheduling Component notifies its Parent Component that
-	it is ready to accept new tasks.
-	See starpu_sched_component::can_push for more details
+<li> can_push (caller_component, parent_component) \n
+The calling Scheduling Component notifies its Parent Component that
+it is ready to accept new tasks.
+See starpu_sched_component::can_push for more details
+</li>
 
-	- can_pull (caller_component, child_component) \n
-	The calling Scheduling Component notifies its Child Component
-	that it is ready to give new tasks.
-	See starpu_sched_component::can_pull for more details
+<li> can_pull (caller_component, child_component) \n
+The calling Scheduling Component notifies its Child Component
+that it is ready to give new tasks.
+See starpu_sched_component::can_pull for more details
+</li>
+</ul>
 
 The components also provide the following useful methods:
 
-        - starpu_sched_component::estimated_load provides an estimated load of
-        the component
-        - starpu_sched_component::estimated_end provides an estimated date of
-        availability of workers behind the component, after processing tasks in
-        the component and below.
-        This is computed only if the estimated field of the tasks have been set
-        before passing it to the component.
+<li>
+starpu_sched_component::estimated_load provides an estimated load of the component
+</li>
+<li>
+starpu_sched_component::estimated_end provides an estimated date of
+availability of workers behind the component, after processing tasks
+in the component and below. This is computed only if the estimated
+field of the tasks have been set before passing it to the component.
+</li>
+</ul>
 
 \subsection BuildAModularizedScheduler Building a Modularized Scheduler
 
@@ -263,52 +272,62 @@ The components also provide the following useful methods:
 
 StarPU is currently shipped with the following four Scheduling Components :
 
-	- Storage Components : Fifo, Prio \n
-	Components which store tasks. They can also prioritize them if
-	they have a defined priority. It is possible to define a threshold
-	for those Components following two criterias : the number of tasks
-	stored in the Component, or the sum of the expected length of all
-        tasks stored in the Component. When a push operation tries to queue a
-        task beyond the threshold, the push fails. When some task leaves the
-        queue (and thus possibly more tasks can fit), this component calls
-        can_push from ancestors.
+<ul>
+<li> Storage Components : Fifo, Prio \n
+Components which store tasks. They can also prioritize them if
+they have a defined priority. It is possible to define a threshold
+for those Components following two criterias : the number of tasks
+stored in the Component, or the sum of the expected length of all
+tasks stored in the Component. When a push operation tries to queue a
+task beyond the threshold, the push fails. When some task leaves the
+queue (and thus possibly more tasks can fit), this component calls
+can_push from ancestors.
+</li>
 
-	- Resource-Mapping Components : Mct, Heft, Eager, Random, Work-Stealing \n
-	"Core" of the Scheduling Strategy, those Components are the
-	ones who make scheduling choices between their children components.
+<li> Resource-Mapping Components : Mct, Heft, Eager, Random, Work-Stealing \n
+"Core" of the Scheduling Strategy, those Components are the
+ones who make scheduling choices between their children components.
+</li>
 
-	- Worker Components : Worker \n
-        Each Worker Component modelizes a concrete worker, and copes with the
-        technical tricks of interacting with the StarPU core. Modular schedulers
-        thus usually have them at the bottom of their component tree.
+<li> Worker Components : Worker \n
+Each Worker Component modelizes a concrete worker, and copes with the
+technical tricks of interacting with the StarPU core. Modular schedulers
+thus usually have them at the bottom of their component tree.
+</li>
 
-	- Special-Purpose Components : Perfmodel_Select, Best_Implementation \n
-	Components dedicated to original purposes. The Perfmodel_Select
-	Component decides which Resource-Mapping Component should be used to
-        schedule a task: a component that assumes tasks with a calibrated
-        performance model; a component for non-yet-calibrated tasks, that will
-        distribute them to get measurements done as quickly as possible; and a
-        component that takes the tasks without performance models.\n
-	The Best_Implementation Component chooses which
-	implementation of a task should be used on the chosen resource.
+<li> Special-Purpose Components : Perfmodel_Select, Best_Implementation \n
+Components dedicated to original purposes. The Perfmodel_Select
+Component decides which Resource-Mapping Component should be used to
+schedule a task: a component that assumes tasks with a calibrated
+performance model; a component for non-yet-calibrated tasks, that will
+distribute them to get measurements done as quickly as possible; and a
+component that takes the tasks without performance models.\n
+The Best_Implementation Component chooses which
+implementation of a task should be used on the chosen resource.
+</li>
+</ul>
 
 \subsubsection ProgressionAndValidationRules Progression And Validation Rules
 
 Some rules must be followed to ensure the correctness of a Modularized
 Scheduler :
 
-        - At least one Storage Component without threshold is needed in a
-        Modularized Scheduler, to store incoming tasks from StarPU. It can for
-        instance be a global component at the top of the tree, or one component
-        per worker at the bottom of the tree, or intermediate assemblies. The
-        important point is that the starpu_sched_component::push_task call at the top can not
-        fail, so there has to be a storage component without threshold between
-        the top of the tree and the first storage component with threshold, or
-        the workers themselves.
+<ul>
+<li> At least one Storage Component without threshold is needed in a
+Modularized Scheduler, to store incoming tasks from StarPU. It can for
+instance be a global component at the top of the tree, or one component
+per worker at the bottom of the tree, or intermediate assemblies. The
+important point is that the starpu_sched_component::push_task call at the top can not
+fail, so there has to be a storage component without threshold between
+the top of the tree and the first storage component with threshold, or
+the workers themselves.
+</li>
 
-	- At least one Resource-Mapping Component is needed in a Modularized
-	Scheduler. Resource-Mapping Components are the only ones which can make
-	scheduling choices, and so the only ones which can have several child.
+<li> At least one Resource-Mapping Component is needed in a Modularized
+Scheduler. Resource-Mapping Components are the only ones which can make
+scheduling choices, and so the only ones which can have several child.
+</li>
+</ul>
 
 \subsubsection ModularizedSchedulerLocking Locking in modularized schedulers
 
@@ -506,20 +525,25 @@ queue of the Component, and give it to the calling Component which asks for it.
 
 \subsubsection DetailedProgressionAndValidationRules Detailed Progression and Validation Rules
 
-	- A Reservoir is a Scheduling Component which redefines a Push and a Pull
-	function, in order to store tasks into it. A Reservoir delimit Scheduling
-	Areas in the Scheduling Tree.
+<ul>
+<li> A Reservoir is a Scheduling Component which redefines a Push and a Pull
+function, in order to store tasks into it. A Reservoir delimit Scheduling
+Areas in the Scheduling Tree.
+</li>
 
-	- A Pump is the engine source of the Scheduler : it pushes/pulls tasks
-	to/from a Scheduling Component to an other. Native Pumps of a Scheduling
-	Tree are located at the root of the Tree (incoming Push calls from StarPU),
-	and at the leafs of the Tree (Pop calls coming from StarPU Workers).
-	Pre-implemented Scheduling Components currently shipped with Pumps are
-	Flow-Control Components and the Resource-Mapping Component Heft, within
-	their defined Can_Push functions.
+<li> A Pump is the engine source of the Scheduler : it pushes/pulls tasks
+to/from a Scheduling Component to an other. Native Pumps of a Scheduling
+Tree are located at the root of the Tree (incoming Push calls from StarPU),
+and at the leafs of the Tree (Pop calls coming from StarPU Workers).
+Pre-implemented Scheduling Components currently shipped with Pumps are
+Flow-Control Components and the Resource-Mapping Component Heft, within
+their defined Can_Push functions.
+</li>
 
-	- A correct Scheduling Tree requires a Pump per Scheduling Area and per
-	Execution Flow.
+<li> A correct Scheduling Tree requires a Pump per Scheduling Area and per
+Execution Flow.
+</li>
+</ul>
 
 
 The Tree-Eager-Prefetching Scheduler shown in Section
