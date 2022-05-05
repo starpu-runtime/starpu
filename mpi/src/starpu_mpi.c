@@ -61,7 +61,7 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 		/* No luck, take the least loaded node */
 		starpu_ssize_t maximum = 0;
 		starpu_ssize_t needed = starpu_data_get_alloc_size(handle);
-		unsigned node;
+		unsigned node = STARPU_MAIN_RAM;
 
 		for (i = 0; i < STARPU_MAXNODES; i++)
 		{
@@ -96,7 +96,7 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 		/* No luck, take the least loaded node, to transfer from e.g. GPU */
 		starpu_ssize_t maximum = 0;
 		starpu_ssize_t needed = starpu_data_get_alloc_size(handle);
-		unsigned node;
+		unsigned node = STARPU_MAIN_RAM;
 
 		for (i = 0; i < STARPU_MAXNODES; i++)
 		{
