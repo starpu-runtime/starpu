@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -64,7 +64,7 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 
 		/* No luck, take the least loaded node */
 		starpu_ssize_t maximum = 0;
-		starpu_ssize_t needed = _starpu_data_get_alloc_size(handle);
+		starpu_ssize_t needed = starpu_data_get_alloc_size(handle);
 		unsigned node;
 
 		for (i = 0; i < STARPU_MAXNODES; i++)
@@ -100,7 +100,7 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 
 		/* No luck, take the least loaded node, to transfer from e.g. GPU */
 		starpu_ssize_t maximum = 0;
-		starpu_ssize_t needed = _starpu_data_get_alloc_size(handle);
+		starpu_ssize_t needed = starpu_data_get_alloc_size(handle);
 		unsigned node;
 
 		for (i = 0; i < STARPU_MAXNODES; i++)
