@@ -27,7 +27,9 @@
 #include <core/debug.h>
 #include <core/task.h>
 
+#ifdef HAVE_DLOPEN
 #include <dlfcn.h>
+#endif
 
 static int use_prefetch = 0;
 static double idle[STARPU_NMAXWORKERS];
