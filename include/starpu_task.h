@@ -1906,6 +1906,22 @@ void starpu_task_watchdog_set_hook(void (*hook)(void *), void *hook_arg);
  */
 char *starpu_task_status_get_as_string(enum starpu_task_status status);
 
+/**
+   Specify a minimum number of submitted tasks allowed at a given
+   time, this allows to control the task submission flow. The value
+   can also be specified with the environment variable \ref
+   STARPU_LIMIT_MIN_SUBMITTED_TASKS.
+*/
+void starpu_set_limit_min_submitted_tasks(int limit_min);
+
+/**
+   Specify a maximum number of submitted tasks allowed at a given
+   time, this allows to control the task submission flow. The value
+   can also be specified with the environment variable \ref
+   STARPU_LIMIT_MAX_SUBMITTED_TASKS.
+*/
+void starpu_set_limit_max_submitted_tasks(int limit_min);
+
 /** @} */
 
 #ifdef __cplusplus

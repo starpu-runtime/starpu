@@ -267,6 +267,16 @@ void _starpu_task_deinit(void)
 	STARPU_PTHREAD_KEY_DELETE(current_task_key);
 }
 
+void starpu_set_limit_min_submitted_tasks(int limit_min)
+{
+	limit_min_submitted_tasks = limit_min;
+}
+
+void starpu_set_limit_max_submitted_tasks(int limit_max)
+{
+	limit_max_submitted_tasks = limit_max;
+}
+
 void starpu_task_init(struct starpu_task *task)
 {
 	/* TODO: memcpy from a template instead? benchmark it */

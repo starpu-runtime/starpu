@@ -1525,6 +1525,7 @@ to StarPU a maximum number of submitted tasks allowed at a given time, i.e. when
 this limit is reached task submission becomes blocking until enough tasks have
 completed, specified by \ref STARPU_LIMIT_MIN_SUBMITTED_TASKS.
 Setting it enables allocation cache buffer reuse in main memory.
+See \ref HowToReduceTheMemoryFootprintOfInternalDataStructures.
 </dd>
 
 <dt>STARPU_LIMIT_MIN_SUBMITTED_TASKS</dt>
@@ -1536,6 +1537,7 @@ to StarPU a submitted task threshold to wait before unblocking task submission. 
 variable has to be used in conjunction with \ref STARPU_LIMIT_MAX_SUBMITTED_TASKS
 which puts the task submission thread to
 sleep.  Setting it enables allocation cache buffer reuse in main memory.
+See \ref HowToReduceTheMemoryFootprintOfInternalDataStructures.
 </dd>
 
 <dt>STARPU_TRACE_BUFFER_SIZE</dt>

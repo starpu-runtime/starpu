@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -295,6 +295,10 @@ submission when only 9000 tasks are still submitted, i.e. 1000 tasks have
 completed among the 10000 which were submitted when submission was blocked. Of
 course this may reduce parallelism if the threshold is set too low. The precise
 balance depends on the application task graph.
+
+These values can also be specified with the functions
+starpu_set_limit_min_submitted_tasks() and
+starpu_set_limit_max_submitted_tasks().
 
 An idea of how much memory is used for tasks and data handles can be obtained by
 setting the environment variable \ref STARPU_MAX_MEMORY_USE to <c>1</c>.
