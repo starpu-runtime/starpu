@@ -36,26 +36,22 @@
 
 int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
-	return STARPU_MAIN_RAM;
-
-	/* TODO: this is completely untested */
 	if (mode & STARPU_W)
 	{
+		/* Receiving */
+
 		/* TODO: lookup NIC location */
 		/* Where to receive the data? */
 		if (handle->home_node >= 0 && starpu_node_get_kind(handle->home_node) == STARPU_CPU_RAM)
 			/* For now, better use the home node to avoid duplicates */
 			return handle->home_node;
 
-		if (starpu_memory_nodes_get_numa_count() == 1)
-			return STARPU_MAIN_RAM;
-
 		/* Several potential places */
 		unsigned i;
 		for (i = 0; i < STARPU_MAXNODES; i++)
 		{
 			/* TODO: we may want to take as a hint that it's allocated on the GPU as
-			 * a clue that we want to push to the GPU */
+			 * a clue that we want to push directly to the GPU */
 			if (starpu_node_get_kind(i) == STARPU_CPU_RAM &&
 				handle->per_node[i].allocated)
 				/* This node already has allocated buffers, let's just use it */
@@ -83,8 +79,7 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 	}
 	else
 	{
-		if (starpu_memory_nodes_get_numa_count() == 1)
-			return STARPU_MAIN_RAM;
+		/* Sending */
 
 		/* Several potential places */
 		unsigned i;
