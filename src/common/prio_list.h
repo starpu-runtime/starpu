@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -244,6 +244,7 @@
 	PRIO_LIST_INLINE void ENAME##_prio_list_erase(struct ENAME##_prio_list *priolist, struct ENAME *e) \
 	{ \
 		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, e->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
+		assert(node); \
 		struct ENAME##_prio_list_stage *stage = ENAME##_node_to_list_stage(node); \
 		ENAME##_list_erase(&stage->list, e); \
 		ENAME##_prio_list_check_empty_stage(priolist, stage); \
@@ -441,6 +442,7 @@
 		if (next != ENAME##_list_end(NULL)) \
 			return next; \
 		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, i->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
+		assert(node); \
 		struct ENAME##_prio_list_stage *stage; \
 		node = starpu_rbtree_next(node); \
 		if (!ENAME##_prio_list_get_next_nonempty_stage(priolist, node, &node, &stage)) \
@@ -463,6 +465,7 @@
 		if (next != ENAME##_list_alpha(NULL)) \
 			return next; \
 		struct starpu_rbtree_node *node = starpu_rbtree_lookup(&priolist->tree, i->PRIOFIELD, ENAME##_prio_list_cmp_fn); \
+		assert(node); \
 		struct ENAME##_prio_list_stage *stage; \
 		node = starpu_rbtree_prev(node); \
 		if (!ENAME##_prio_list_get_prev_nonempty_stage(priolist, node, &node, &stage)) \
