@@ -84,19 +84,20 @@ PyObject* starpupy_buffer_get_arrarr(struct starpupy_buffer_interface *pybuffer_
 
 	/*get array.array class*/
 	PyObject *arr_class = PyDict_GetItemString(arr_dict, "array");
-	/*create an instance of array.array*/
+	
+	/*create an instance of array.array, decrement in the end of the function*/
 	PyObject *arr_instance = PyInstanceMethod_New(arr_class);
 
-	/*get the buffer bytes*/
+	/*get the buffer bytes, decrement in the end of the function*/
 	PyObject *pybt=PyBytes_FromStringAndSize(pybuf, nbuf);
 
-	/*get the array elements*/
-	PyObject *arr_list;
+	/*get the array elements, reference is stolen by PyTuple_SetItem*/
+	PyObject *arr_list = NULL;
 
 	/*if the element is not unicode character*/
 	if (arr_typecode!='u')
 	{
-		char* type_str= malloc(narray+1);
+		char type_str[narray+1];
 		memset(type_str, arr_typecode, narray);
 		type_str[narray] = 0;
 
@@ -114,7 +115,13 @@ PyObject* starpupy_buffer_get_arrarr(struct starpupy_buffer_interface *pybuffer_
 		/*convert unicode to wide char*/
 		wchar_t* uni_str = PyUnicode_AsWideCharString(pyuni, NULL);
 
-		arr_list = Py_BuildValue("u", uni_str);
+		if(uni_str != NULL)
+		{
+			arr_list = Py_BuildValue("u", uni_str);
+			PyMem_Free(uni_str);
+		}
+
+		Py_DECREF(pyuni);
 	}
 
 	/*initialize the instance*/
@@ -128,6 +135,8 @@ PyObject* starpupy_buffer_get_arrarr(struct starpupy_buffer_interface *pybuffer_
 
 	Py_DECREF(pybt);
 	Py_DECREF(arr_module);
+	Py_DECREF(arr_instance);
+	Py_DECREF(arr_args);
 
 	return arr_obj;
 }
@@ -142,9 +151,11 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 	int* mem_shape = pybuffer_interface->shape;
 	int narray = nbuf/nitem;
 
+	/*decrement in each if{}*/
 	PyObject *pybt=PyBytes_FromStringAndSize(pybuf, nbuf);
 
-	PyObject *memview_obj;
+	/*return value of the function*/
+	PyObject *memview_obj = NULL;
 	if(mem_format=='B')
 	{
 		memview_obj = pybt;
@@ -152,14 +163,16 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 	/*if the element is not unicode character of array.array*/
 	else if(mem_format!='w')
 	{
-		char* type_str= malloc(narray+1);
+		char type_str[narray+1];
 		memset(type_str, mem_format, narray);
 		type_str[narray] = 0;
 
-		/*get the array element list using struct module*/
+		/*get the array element list using struct module, decrement after used*/
 		PyObject *struct_module = PyImport_ImportModule("struct");
 		PyObject *m_obj = PyObject_CallMethod(struct_module, "unpack", "sO", type_str, pybt);
 
+		Py_DECREF(struct_module);
+		Py_DECREF(pybt);
 		/*reshape the list in case the original array is multi dimension*/
 		/*get the index of each element in new multi dimension array*/
 		int ind[narray][ndim];
@@ -179,6 +192,7 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 
 		/*put the element of one dimension array into the multi dimension array according to the index*/
 		PyObject* list_obj[ndim];
+		memset(&list_obj, 0, sizeof(list_obj));
 		for (i = 0; i < narray; i++)
 		{
 			for (d = ndim-1; d >=0; d--)
@@ -189,10 +203,15 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 					/*if i is the first element of this list, we need to initialize the list*/
 					if(ind[i][d]==0)
 					{
+						if(list_obj[d] != NULL)
+							Py_DECREF(list_obj[d]);
 						list_obj[d] = PyList_New(mem_shape[d]);
 					}
 
-					PyList_SetItem(list_obj[d],ind[i][d],PyTuple_GetItem(m_obj, i));
+					PyObject *m_obj_item = PyTuple_GetItem(m_obj, i);
+					/*protect borrowed reference, give it to PyList_SetItem*/
+					Py_INCREF(m_obj_item);
+					PyList_SetItem(list_obj[d], ind[i][d], m_obj_item);
 				}
 				/*in the rest of nested list, we set the inner list in the current list, once we have the nested list, one element of inner list is changed, current list is changes as well*/
 				else
@@ -209,18 +228,25 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 						/*if i is the first element of this list and also the first element of all inner list, we need to initialize this list*/
 						if (ind[i][d]==0)
 						{
+							if(list_obj[d] != NULL)
+								Py_DECREF(list_obj[d]);
 							list_obj[d] = PyList_New(mem_shape[d]);
 						}
 						/*if i is the first element of all inner list, we set the last inner list in the current list*/
+						/*reference is stolen by PyList_SetItem*/
+						Py_INCREF(list_obj[d+1]);
 						PyList_SetItem(list_obj[d],ind[i][d],list_obj[d+1]);
 					}
 				}
 			}
 		}
 
+		Py_DECREF(m_obj);
+
 		memview_obj = list_obj[0];
 
-	    Py_DECREF(struct_module);
+		for(i=1; i<ndim; i++)
+			Py_DECREF(list_obj[i]);
 	}
 	/*if the element is unicode character of array.array*/
 	else
@@ -230,7 +256,14 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 		/*convert unicode to wide char*/
 		wchar_t* uni_str = PyUnicode_AsWideCharString(pyuni, NULL);
 
-		memview_obj = Py_BuildValue("u", uni_str);
+		if(uni_str != NULL)
+		{
+			memview_obj = Py_BuildValue("u", uni_str);
+			PyMem_Free(uni_str);
+		}
+
+		Py_DECREF(pybt);
+		Py_DECREF(pyuni);
 	}
 
 	return memview_obj;
@@ -241,22 +274,6 @@ static void pybuffer_register_data_handle(starpu_data_handle_t handle, int home_
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
 
 	int ndim = pybuffer_interface->dim_size;
-
-#ifdef STARPU_PYTHON_HAVE_NUMPY
-	npy_intp* arr_dim = pybuffer_interface->array_dim;
-	npy_intp* a_dim = (npy_intp*)malloc(ndim*sizeof(npy_intp));
-	if (arr_dim!=NULL)
-		memcpy(a_dim, arr_dim, ndim*sizeof(npy_intp));
-	else
-		a_dim = NULL;
-#endif
-
-	int* mem_shape = pybuffer_interface->shape;
-	int* m_shape = (int*)malloc(ndim*sizeof(int));
-	if (mem_shape!=NULL)
-		memcpy(m_shape, mem_shape, ndim*sizeof(int));
-	else
-		m_shape = NULL;
 
 	int node;
 	for (node = 0; node < STARPU_MAXNODES; node++)
@@ -273,28 +290,51 @@ static void pybuffer_register_data_handle(starpu_data_handle_t handle, int home_
 		local_interface->buffer_type = pybuffer_interface->buffer_type;
 		local_interface->buffer_size = pybuffer_interface->buffer_size;
 		local_interface->dim_size = pybuffer_interface->dim_size;
-		//local_interface->array_dim = pybuffer_interface->array_dim;
+
 #ifdef STARPU_PYTHON_HAVE_NUMPY
+		npy_intp* arr_dim = pybuffer_interface->array_dim;
+		npy_intp* a_dim;
+		if (arr_dim!=NULL)
+		{
+			a_dim = (npy_intp*)malloc(ndim*sizeof(npy_intp));
+			memcpy(a_dim, arr_dim, ndim*sizeof(npy_intp));
+		}
+		else
+			a_dim = NULL;
+
 		local_interface->array_dim = a_dim;
 #endif
 		local_interface->array_type = pybuffer_interface->array_type;
 		local_interface->item_size = pybuffer_interface->item_size;
 		local_interface->typecode = pybuffer_interface->typecode;
-		//local_interface->shape = pybuffer_interface->shape;
+
+		int* mem_shape = pybuffer_interface->shape;
+		int* m_shape;
+		if (mem_shape!=NULL)
+		{
+			m_shape = (int*)malloc(ndim*sizeof(int));
+			memcpy(m_shape, mem_shape, ndim*sizeof(int));
+		}
+		else
+			m_shape = NULL;
+
 		local_interface->shape = m_shape;
 	}
 }
 
 static void pybuffer_unregister_data_handle(starpu_data_handle_t handle)
 {
-	unsigned node=0;
+	unsigned node;
+    for (node = 0; node < STARPU_MAXNODES; node++)
+    {
+		struct starpupy_buffer_interface *local_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
 
-	struct starpupy_buffer_interface *local_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, node);
-
-#ifdef STARPU_PYTHON_HAVE_NUMPY
-	free(local_interface->array_dim);
-#endif
-	free(local_interface->shape);
+	#ifdef STARPU_PYTHON_HAVE_NUMPY
+		free(local_interface->array_dim);
+	#endif
+		free(local_interface->shape);
+	}
+	
 }
 
 static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsigned node)

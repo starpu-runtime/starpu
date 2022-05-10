@@ -27,6 +27,22 @@
 
 #include "starpupy_handle.h"
 
+#define RETURN_EXCEPT(...) do{ \
+        PyObject *starpupy_err = PyObject_GetAttrString(self, "error"); \
+		PyErr_Format(starpupy_err, __VA_ARGS__); \
+		Py_DECREF(starpupy_err); \
+		return NULL;\
+}while(0)
+
+#define RETURN_EXCEPTION(...) do{ \
+        PyObject *starpupy_module = PyObject_GetAttrString(starpu_module, "starpupy"); \
+		PyObject *starpupy_err = PyObject_GetAttrString(starpupy_module, "error"); \
+		PyErr_Format(starpupy_err, __VA_ARGS__); \
+		Py_DECREF(starpupy_module); \
+		Py_DECREF(starpupy_err); \
+		return NULL;\
+}while(0)
+
 PyObject *starpu_module; /*starpu __init__ module*/
 int buf_id;
 int obj_id;
@@ -37,7 +53,6 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 	starpu_data_handle_t handle;
 	int home_node = 0;
 
-	Py_INCREF(obj);
 	const char *tp = Py_TYPE(obj)->tp_name;
 	//printf("the type of object is %s\n", tp);
 	/*if the object is bytes*/
@@ -58,13 +73,11 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 	{
 		import_array();
 		/*if array is not contiguous, treat it as a normal Python object*/
-		if (!PyArray_IS_C_CONTIGUOUS(obj)&&!PyArray_IS_F_CONTIGUOUS(obj))
+		if (!PyArray_IS_C_CONTIGUOUS((const PyArrayObject *)obj)&&!PyArray_IS_F_CONTIGUOUS((const PyArrayObject *)obj))
 		{
 			if(mode != NULL && strcmp(mode, "R")!=0)
 			{
-				PyObject *starpupy_module = PyObject_GetAttrString(starpu_module, "starpupy");
-				PyErr_Format(PyObject_GetAttrString(starpupy_module, "error"), "The mode of object should not be other than R");
-				return NULL;
+				RETURN_EXCEPTION("The mode of object should not be other than R");
 			}
 			else
 			{
@@ -75,13 +88,13 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		else
 		{
 			/*get number of dimension*/
-			int ndim = PyArray_NDIM(obj);
+			int ndim = PyArray_NDIM((const PyArrayObject *)obj);
 			/*get array dim*/
-			npy_intp* arr_dim = PyArray_DIMS(obj);
+			npy_intp* arr_dim = PyArray_DIMS((PyArrayObject *)obj);
 			/*get the item size*/
-			int nitem = PyArray_ITEMSIZE(obj);
+			int nitem = PyArray_ITEMSIZE((const PyArrayObject *)obj);
 			/*get the array type*/
-			int arr_type = PyArray_TYPE(obj);
+			int arr_type = PyArray_TYPE((const PyArrayObject *)obj);
 
 			/*generate buffer of the array*/
 			Py_buffer *view = (Py_buffer *) malloc(sizeof(*view));
@@ -124,6 +137,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		/*register the buffer*/
 		buf_id = starpupy_buffer_array_register(&handle, home_node, starpupy_array_interface, view->buf, view->len, arr_type, view->itemsize);
 
+		Py_DECREF(PyArrtype);
 		PyBuffer_Release(view);
 		free(view);
 	}
@@ -148,12 +162,17 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		for(i=0; i<ndim; i++)
 		{
 			PyObject* shape_args = PyTuple_GetItem(PyShape, i);
+			/*protect borrowed reference*/
+			Py_INCREF(shape_args);
 			mem_shape[i] = PyLong_AsLong(shape_args);
+			Py_DECREF(shape_args);
 		}
 
 		/*register the buffer*/
 		buf_id = starpupy_buffer_memview_register(&handle, home_node, starpupy_memoryview_interface, view->buf, view->len, mem_format, view->itemsize, ndim, mem_shape);
 
+		Py_DECREF(PyFormat);
+		Py_DECREF(PyShape);
 		free(mem_shape);
 	}
 	/*if the object is PyObject*/
@@ -161,9 +180,7 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 	{
 		if(mode != NULL && strcmp(mode, "R")!=0)
 		{
-			PyObject *starpupy_module = PyObject_GetAttrString(starpu_module, "starpupy");
-			PyErr_Format(PyObject_GetAttrString(starpupy_module, "error"), "The mode of object should not be other than R");
-			return NULL;
+			RETURN_EXCEPTION("The mode of object should not be other than R");
 		}
 		else
 		{
@@ -199,6 +216,8 @@ PyObject* starpupy_numpy_register_wrapper(PyObject *self, PyObject *args)
 
 	/*get the first argument*/
 	PyObject* dimobj = PyTuple_GetItem(args, 0);
+	/*protect borrowed reference, decrement after check*/
+	Py_INCREF(dimobj);
 	/*detect whether user provides dtype or not*/
 	int ndim;
 	npy_intp *dim;
@@ -222,12 +241,15 @@ PyObject* starpupy_numpy_register_wrapper(PyObject *self, PyObject *args)
 	}
 	else
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Please enter the shape of new array, e.g., (2, 3) or 2");
-		return NULL;
+		RETURN_EXCEPT("Please enter the shape of new array, e.g., (2, 3) or 2");
 	}
+
+	Py_DECREF(dimobj);
 
 	/*the second argument is dtype*/
 	dtype = PyTuple_GetItem(args, 1);
+	/*protect borrowed reference*/
+	Py_INCREF(dtype);
 
 	/*get the size of array*/
 	int narray = 1;
@@ -245,11 +267,15 @@ PyObject* starpupy_numpy_register_wrapper(PyObject *self, PyObject *args)
 	PyObject *nitem_obj = PyObject_GetAttrString(dtype, "itemsize");
 	int nitem = PyLong_AsLong(nitem_obj);
 
+	Py_DECREF(dtype);
+	Py_DECREF(type_obj);
+	Py_DECREF(nitem_obj);
+
 	import_array();
 	/*generate a new empty array*/
 	PyObject * new_array = PyArray_EMPTY(ndim, dim, arr_type, 0);
 
-	npy_intp* arr_dim = PyArray_DIMS(new_array);
+	npy_intp* arr_dim = PyArray_DIMS((PyArrayObject *)new_array);
 
 	/*register the buffer*/
 	buf_id = starpupy_buffer_numpy_register(&handle, home_node, starpupy_numpy_interface, 0, narray*nitem, ndim, arr_dim, arr_type, nitem);
@@ -257,6 +283,7 @@ PyObject* starpupy_numpy_register_wrapper(PyObject *self, PyObject *args)
 	/*handle->PyObject**/
 	PyObject *handle_array=PyCapsule_New(handle, "Handle", NULL);
 
+	Py_DECREF(new_array);
 	free(dim);
 
 	return handle_array;
@@ -277,14 +304,7 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 
 	if (handle == (void*)-1)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Handle has already been unregistered");
-		return NULL;
-	}
-
-	if (obj_id!=starpu_data_get_interface_id(handle))
-	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Wrong interface is used");
-		return NULL;
+		RETURN_EXCEPT("Handle has already been unregistered");
 	}
 
 	int ret;
@@ -294,13 +314,24 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
 	if (ret!=0)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Unexpected value %d returned for starpu_data_acquire", ret);
-		return NULL;
+		RETURN_EXCEPT("Unexpected value %d returned for starpu_data_acquire", ret);
 	}
 
-	struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	PyObject *obj = NULL;
+	if (starpu_data_get_interface_id(handle) == obj_id)
+	{
+		struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	PyObject *obj = STARPUPY_GET_PYOBJECT(pyobject_interface);
+		obj = STARPUPY_GET_PYOBJECT(pyobject_interface);
+		Py_INCREF(obj);
+	}
+
+	if (starpu_data_get_interface_id(handle) == buf_id)
+	{
+		struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+		obj = STARPUPY_BUF_GET_PYOBJECT(pybuffer_interface);
+	}
 
 	/*call starpu_data_release method*/
 	Py_BEGIN_ALLOW_THREADS
@@ -309,11 +340,9 @@ PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 
 	if(obj == NULL)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Unexpected PyObject value NULL returned for get()");
-		return NULL;
+		RETURN_EXCEPT("Unexpected PyObject value NULL returned for get()");
 	}
 
-	Py_INCREF(obj);
 	return obj;
 }
 
@@ -330,14 +359,17 @@ PyObject *handle_dict_check(PyObject *obj, char* mode, char* op)
 		/*check whether the arg is already registed*/
 		if(PyDict_GetItem(handle_dict, obj_id)==NULL)
 		{
-			/*get the handle of arg*/
+			/*get the handle of arg, handle_obj is a new reference, is the return value of this function*/
 			handle_obj = starpupy_object_register(obj, mode);
 			/*set the arg_id and handle in handle_dict*/
+			Py_DECREF(handle_dict);
 			handle_dict = PyObject_CallMethod(starpu_module, "handle_dict_set_item", "OO", obj, handle_obj);
 		}
 		else
 		{
 			handle_obj = PyDict_GetItem(handle_dict, obj_id);
+			/*protect borrowed reference, is the return value of this function*/
+			Py_INCREF(handle_obj);
 		}
 	}
 	else if (strcmp(op, "exception") == 0)
@@ -345,13 +377,13 @@ PyObject *handle_dict_check(PyObject *obj, char* mode, char* op)
 		/*check in handle_dict whether this arg is already registed*/
 		if(!PyDict_Contains(handle_dict, obj_id))
 		{
-			PyObject *starpupy_module = PyObject_GetAttrString(starpu_module, "starpupy");
-			PyErr_Format(PyObject_GetAttrString(starpupy_module, "error"), "Argument does not have registered handle");
-			return NULL;
+			RETURN_EXCEPTION("Argument does not have registered handle");
 		}
 
 		/*get the corresponding handle of the obj*/
 		handle_obj = PyDict_GetItem(handle_dict, obj_id);
+		/*protect borrowed reference, is the retun value of this function*/
+		Py_INCREF(handle_obj);
 	}
 
 	Py_DECREF(handle_dict);
@@ -377,14 +409,7 @@ PyObject *starpupy_acquire_handle_wrapper(PyObject *self, PyObject *args)
 
 	if (handle == (void*)-1)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Handle has already been unregistered");
-		return NULL;
-	}
-
-	if (buf_id!=starpu_data_get_interface_id(handle))
-	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Wrong interface is used");
-		return NULL;
+		RETURN_EXCEPT("Handle has already been unregistered");
 	}
 
 	int ret=0;
@@ -414,13 +439,24 @@ PyObject *starpupy_acquire_handle_wrapper(PyObject *self, PyObject *args)
 
 	if (ret!=0)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Unexpected value returned for starpu_data_acquire");
-		return NULL;
+		RETURN_EXCEPT("Unexpected value returned for starpu_data_acquire");
 	}
 
-	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	PyObject *obj = NULL;
+	if (starpu_data_get_interface_id(handle) == obj_id)
+	{
+		struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	PyObject *obj = STARPUPY_BUF_GET_PYOBJECT(pybuffer_interface);
+		obj = STARPUPY_GET_PYOBJECT(pyobject_interface);
+		Py_INCREF(obj);
+	}
+
+	if (starpu_data_get_interface_id(handle) == buf_id)
+	{
+		struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+		obj = STARPUPY_BUF_GET_PYOBJECT(pybuffer_interface);
+	}
 
 	return obj;
 }
@@ -443,11 +479,7 @@ PyObject *starpupy_acquire_object_wrapper(PyObject *self, PyObject *args)
 	/*PyObject *->handle*/
 	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
 
-	if (buf_id!=starpu_data_get_interface_id(handle))
-	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Wrong interface is used");
-		return NULL;
-	}
+	Py_DECREF(handle_obj);
 
 	int ret=0;
 	if(strcmp(obj_mode, "R") == 0)
@@ -478,13 +510,24 @@ PyObject *starpupy_acquire_object_wrapper(PyObject *self, PyObject *args)
 
 	if (ret!=0)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Unexpected value returned for starpu_data_acquire");
-		return NULL;
+		RETURN_EXCEPT("Unexpected value returned for starpu_data_acquire");
 	}
 
-	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+	PyObject *obj_get = NULL;
+	if (starpu_data_get_interface_id(handle) == obj_id)
+	{
+		struct starpupyobject_interface *pyobject_interface = (struct starpupyobject_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
 
-	PyObject *obj_get = STARPUPY_BUF_GET_PYOBJECT(pybuffer_interface);
+		obj_get = STARPUPY_GET_PYOBJECT(pyobject_interface);
+		Py_INCREF(obj_get);
+	}
+
+	if (starpu_data_get_interface_id(handle) == buf_id)
+	{
+		struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
+
+		obj_get = STARPUPY_BUF_GET_PYOBJECT(pybuffer_interface);
+	}
 
 	return obj_get;
 }
@@ -502,14 +545,12 @@ PyObject *starpupy_release_handle_wrapper(PyObject *self, PyObject *args)
 
 	if (handle == (void*)-1)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Handle has already been unregistered");
-		return NULL;
+		RETURN_EXCEPT("Handle has already been unregistered");
 	}
 
 	if (buf_id!=starpu_data_get_interface_id(handle))
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Wrong interface is used");
-		return NULL;
+		RETURN_EXCEPT("Wrong interface is used");
 	}
 
 	/*call starpu_data_release method*/
@@ -534,10 +575,15 @@ PyObject *starpupy_release_object_wrapper(PyObject *self, PyObject *args)
 	PyObject *handle_obj = handle_dict_check(obj, NULL, "exception");
 
 	if(handle_obj == NULL)
+	{
+		Py_XDECREF(handle_obj);
 		return NULL;
+	}
 
 	/*PyObject *->handle*/
 	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+
+	Py_DECREF(handle_obj);
 
 	/*call starpu_data_release method*/
 	Py_BEGIN_ALLOW_THREADS
@@ -562,14 +608,8 @@ PyObject *starpupy_data_unregister_wrapper(PyObject *self, PyObject *args)
 
 	if (handle == (void*)-1)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Handle has already been unregistered");
-		return NULL;
+		RETURN_EXCEPT("Handle has already been unregistered");
 	}
-
-	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
-
-	PyObject *obj_get = STARPUPY_BUF_GET_PYOBJECT(pybuffer_interface);
-	Py_DECREF(obj_get);
 
 	/*call starpu_data_unregister method*/
 	Py_BEGIN_ALLOW_THREADS
@@ -595,15 +635,17 @@ PyObject *starpupy_data_unregister_object_wrapper(PyObject *self, PyObject *args
 	PyObject *handle_obj = handle_dict_check(obj, NULL, "exception");
 
 	if(handle_obj == NULL)
+	{
+		Py_XDECREF(handle_obj);
 		return NULL;
+	}
 
 	/*PyObject *->handle*/
 	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
 
 	if (handle == (void*)-1)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Handle has already been unregistered");
-		return NULL;
+		RETURN_EXCEPT("Handle has already been unregistered");
 	}
 
 	/*call starpu_data_unregister method*/
@@ -619,9 +661,9 @@ PyObject *starpupy_data_unregister_object_wrapper(PyObject *self, PyObject *args
 	PyObject *arg_id = PyLong_FromVoidPtr(obj);
 	PyDict_DelItem(handle_dict, arg_id);
 
-	Py_DECREF(obj);
 	Py_DECREF(handle_dict);
 	Py_DECREF(arg_id);
+	Py_DECREF(handle_obj);
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
@@ -641,8 +683,7 @@ PyObject *starpupy_data_unregister_submit_wrapper(PyObject *self, PyObject *args
 
 	if (handle == (void*)-1)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Handle has already been unregistered");
-		return NULL;
+		RETURN_EXCEPT("Handle has already been unregistered");
 	}
 
 	/*call starpu_data_unregister method*/
@@ -669,7 +710,10 @@ PyObject *starpupy_data_unregister_submit_object_wrapper(PyObject *self, PyObjec
 	PyObject *handle_obj = handle_dict_check(obj, NULL, "exception");
 
 	if(handle_obj == NULL)
+	{
+		Py_XDECREF(handle_obj);
 		return NULL;
+	}
 
 	/*PyObject *->handle*/
 	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
@@ -686,6 +730,7 @@ PyObject *starpupy_data_unregister_submit_object_wrapper(PyObject *self, PyObjec
 	Py_END_ALLOW_THREADS
 
 	PyCapsule_SetPointer(handle_obj, (void*)-1);
+
 	/*delete object from handle_dict*/
 	PyObject *handle_dict = PyObject_GetAttrString(starpu_module, "handle_dict");
 	/*get the id of arg*/
@@ -694,6 +739,7 @@ PyObject *starpupy_data_unregister_submit_object_wrapper(PyObject *self, PyObjec
 
 	Py_DECREF(handle_dict);
 	Py_DECREF(arg_id);
+	Py_DECREF(handle_obj);
 
 	/*return type is void*/
 	Py_INCREF(Py_None);

@@ -135,11 +135,12 @@ def future_generator(iterable, n_jobs, dict_task):
 				handle_dict = starpu.handle_dict
 				if handle_dict.get(id(args[i]))==None:
 					arr_h = Handle(args[i])
-					starpu.handle_dict_set_item(args[i], arr_h)
+					starpu.handle_dict_set_item(args[i], arr_h.get_capsule())
+					starpu.handle_obj_dict_set_item(args[i], arr_h)
 					arg_h.append(arr_h)
 					args_split[i] = arr_h.partition(n_block, 0)
 				else:
-					arr_h = handle_dict.get(id(args[i]))
+					arr_h = handle_obj_dict.get(id(args[i]))
 					arg_h.append(arr_h)
 					args_split[i] = arr_h.partition(n_block, 0)
 			# if the array is a generator
@@ -188,7 +189,7 @@ def future_generator(iterable, n_jobs, dict_task):
 		for i in range(len(args)):
 			if (has_numpy and type(args[i]) is np.ndarray):
 				arg_h[i].unpartition(args_split[i], n_block)
-				#arg_h[i].unregister()
+				arg_h[i].unregister()
 		return L_fut
 
 	# if iterable is a generator or a list of function

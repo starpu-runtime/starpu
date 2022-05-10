@@ -26,6 +26,13 @@
 #include "starpupy_buffer_interface.h"
 #include "starpupy_numpy_filters.h"
 
+#define RETURN_EXCEPT(...) do{ \
+        PyObject *starpupy_err = PyObject_GetAttrString(self, "error"); \
+		PyErr_Format(starpupy_err, __VA_ARGS__); \
+		Py_DECREF(starpupy_err); \
+		return NULL;\
+}while(0)
+
 static void starpupy_numpy_filter(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, unsigned id, unsigned nchunks)
 {
 	struct starpupy_buffer_interface *buffer_father = (struct starpupy_buffer_interface *) father_interface;
@@ -136,8 +143,7 @@ PyObject* starpu_data_partition_wrapper(PyObject *self, PyObject *args)
 
 	if (handle == (void*)-1)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Handle has already been unregistered");
-		return NULL;
+		RETURN_EXCEPT("Handle has already been unregistered");
 	}
 
 	int node = starpu_data_get_home_node(handle);
@@ -147,32 +153,26 @@ PyObject* starpu_data_partition_wrapper(PyObject *self, PyObject *args)
 
 	if (ndim <= 0)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Dimension size %d must be greater than 0.", ndim);
-		return NULL;
+		RETURN_EXCEPT("Dimension size %d must be greater than 0.", ndim);
 	}
 
 	if (dim >= ndim)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "dim %d must be less than dimension size %d.", dim, ndim);
-		return NULL;
+		RETURN_EXCEPT("dim %d must be less than dimension size %d.", dim, ndim);
 	}
 
 	int i;
 	int dim_len = 0;
 	int nlist = PyList_Size(chunks_list);
-	int *nchunks;
-	if (nlist == 0)
-	{
-		nchunks = NULL;
-	}
-	else
+	int nchunks[nparts];
+	
+	if(nlist != 0)
 	{
 		if (nlist != nparts)
 		{
-			PyErr_Format(PyObject_GetAttrString(self, "error"), "The chunk list size %d does not correspond to the required split size %d.", nlist, nparts);
-			return NULL;
+			RETURN_EXCEPT("The chunk list size %d does not correspond to the required split size %d.", nlist, nparts);
 		}
-		nchunks = (int*)malloc(nparts*sizeof(int));
+
 		for (i=0; i<nparts; i++)
 		{
 			nchunks[i] = PyLong_AsLong(PyList_GetItem(chunks_list, i));
@@ -181,8 +181,7 @@ PyObject* starpu_data_partition_wrapper(PyObject *self, PyObject *args)
 #ifdef STARPU_PYTHON_HAVE_NUMPY
 		if (dim_len != local_interface->array_dim[dim])
 		{
-			PyErr_Format(PyObject_GetAttrString(self, "error"), "The total length of segments in chunk list %d must be equal to the length of selected dimension %d.", dim_len, local_interface->array_dim[dim]);
-			return NULL;
+			RETURN_EXCEPT("The total length of segments in chunk list %d must be equal to the length of selected dimension %d.", dim_len, local_interface->array_dim[dim]);
 		}
 #endif
 	}
@@ -195,7 +194,7 @@ PyObject* starpu_data_partition_wrapper(PyObject *self, PyObject *args)
 	f.nchildren = nparts;
 	f.get_nchildren = 0;
 	f.get_child_ops = 0;
-	f.filter_arg_ptr = nchunks;
+	f.filter_arg_ptr = (nlist==0) ? NULL : nchunks;
 	/* partition along the given dimension */
 	f.filter_arg = dim;
 
@@ -229,8 +228,7 @@ PyObject* starpupy_get_partition_size_wrapper(PyObject *self, PyObject *args)
 
 	if (handle == (void*)-1)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Handle has already been unregistered");
-		return NULL;
+		RETURN_EXCEPT("Handle has already been unregistered");
 	}
 
 	PyObject *arr_size = PyList_New(nparts);
@@ -239,13 +237,17 @@ PyObject* starpupy_get_partition_size_wrapper(PyObject *self, PyObject *args)
 	for(i=0; i<nparts; i++)
 	{
 		PyObject *handles_cap = PyList_GetItem(handle_list, i);
-
+		/*protect borrowed reference, decrement after using*/
+		Py_INCREF(handles_cap);
 		starpu_data_handle_t handle_tmp = (starpu_data_handle_t) PyCapsule_GetPointer(handles_cap, "Handle");
+
 		int node = starpu_data_get_home_node(handle_tmp);
 		struct starpupy_buffer_interface *local_interface = (struct starpupy_buffer_interface *) starpu_data_get_interface_on_node(handle_tmp, node);
 		int narr = local_interface->buffer_size/local_interface->item_size;
 
 		PyList_SetItem(arr_size, i, Py_BuildValue("I", narr));
+
+		Py_DECREF(handles_cap);
 	}
 
 	return arr_size;
@@ -266,8 +268,7 @@ PyObject* starpu_data_unpartition_wrapper(PyObject *self, PyObject *args)
 
 	if (handle == (void*)-1)
 	{
-		PyErr_Format(PyObject_GetAttrString(self, "error"), "Handle has already been unregistered");
-		return NULL;
+		RETURN_EXCEPT("Handle has already been unregistered");
 	}
 
 	starpu_data_handle_t handles[nparts];
@@ -276,7 +277,10 @@ PyObject* starpu_data_unpartition_wrapper(PyObject *self, PyObject *args)
 	for(i=0; i<nparts; i++)
 	{
 		PyObject *handles_cap = PyList_GetItem(handle_list, i);
+		/*protect borrowed reference, decrement rigth after*/
+		Py_INCREF(handles_cap);
 		handles[i] = (starpu_data_handle_t) PyCapsule_GetPointer(handles_cap, "Handle");
+		Py_DECREF(handles_cap);
 	}
 
 	Py_BEGIN_ALLOW_THREADS

@@ -89,17 +89,20 @@ static size_t pyobject_get_size(starpu_data_handle_t handle)
 	return sizeof(void *);
 }
 
+/*return the reference of PyBytes which must be kept while using obj_data. See documentation of PyBytes_AsStringAndSize()*/
 static PyObject * _pyobject_pack_data(struct starpupyobject_interface *pyobject_interface, char **obj_data, Py_ssize_t *obj_data_size)
 {
 	/*make sure we own the GIL*/
 	PyGILState_STATE state = PyGILState_Ensure();
 
+	/*borrow the reference from the interface*/
 	PyObject *obj = pyobject_interface->object;
 
 	PyObject *cloudpickle_module = PyImport_ImportModule("cloudpickle");
 	if (cloudpickle_module == NULL)
 	{
 		printf("can't find cloudpickle module\n");
+		Py_XDECREF(cloudpickle_module);
 		exit(1);
 	}
 	PyObject *dumps = PyObject_GetAttrString(cloudpickle_module, "dumps");
@@ -107,6 +110,12 @@ static PyObject * _pyobject_pack_data(struct starpupyobject_interface *pyobject_
 
 	PyBytes_AsStringAndSize(obj_bytes, obj_data, obj_data_size);
 
+	Py_DECREF(cloudpickle_module);
+	Py_DECREF(dumps);
+
+	/*restore previous GIL state*/
+	PyGILState_Release(state);
+	
 	return obj_bytes;
 }
 
@@ -148,12 +157,19 @@ static int _pyobject_peek_data(struct starpupyobject_interface *pyobject_interfa
 	if (pickle_module == NULL)
 	{
 		printf("can't find pickle module\n");
+		Py_XDECREF(pickle_module);
 		exit(1);
 	}
 	PyObject *loads = PyObject_GetAttrString(pickle_module, "loads");
 	PyObject *obj_bytes_str = PyBytes_FromStringAndSize(data, count);
 	PyObject *obj= PyObject_CallFunctionObjArgs(loads, obj_bytes_str, NULL);
+	if(pyobject_interface->object != NULL)
+		Py_DECREF(pyobject_interface->object);
 	pyobject_interface->object = obj;
+
+	Py_DECREF(pickle_module);
+	Py_DECREF(loads);
+	Py_DECREF(obj_bytes_str);
 
 	/*restore previous GIL state*/
 	PyGILState_Release(state);
@@ -189,6 +205,7 @@ static uint32_t starpupy_footprint(starpu_data_handle_t handle)
 	/*make sure we own the GIL*/
 	PyGILState_STATE state = PyGILState_Ensure();
 
+	/*borrow the reference from the interface*/
 	PyObject *obj = pyobject_interface->object;
 
 	/*fet obj.__class__*/
@@ -199,6 +216,8 @@ static uint32_t starpupy_footprint(starpu_data_handle_t handle)
 	uint32_t crc = 0;
 	crc=starpu_hash_crc32c_be_ptr(obj_class, crc);
 
+	Py_DECREF(obj_class);
+
 #ifdef STARPU_PYTHON_HAVE_NUMPY
 	const char *tp = Py_TYPE(obj)->tp_name;
 	/*if the object is a numpy array*/
@@ -206,9 +225,9 @@ static uint32_t starpupy_footprint(starpu_data_handle_t handle)
 	{
 		import_array1(0);
 		/*get the array size*/
-		int n1 = PyArray_SIZE(obj);
+		int n1 = PyArray_SIZE((PyArrayObject *)obj);
 		/*get the item size*/
-		int n2 = PyArray_ITEMSIZE(obj);
+		int n2 = PyArray_ITEMSIZE((const PyArrayObject *)obj);
 
 		crc=starpu_hash_crc32c_be(n1, crc);
 		crc=starpu_hash_crc32c_be(n2, crc);

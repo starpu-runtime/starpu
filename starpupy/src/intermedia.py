@@ -48,8 +48,7 @@ def task_submit(**kwargs):
 	# set perfmodel
 	perf=None
 	if kwargs.__contains__("perfmodel") and kwargs['perfmodel']!=None:
-		p=dict_perf_generator(kwargs['perfmodel'])
-		perf=p.get_struct()
+		perf=dict_perf_generator(kwargs['perfmodel'])
 	kwargs['perfmodel']=perf
 
 	def call_task_submit(f, *args):
@@ -74,7 +73,7 @@ def task_submit(**kwargs):
 # dump performance model and show the plot
 def perfmodel_plot(perfmodel, view=True):
 	p=dict_perf[perfmodel]
-	starpupy.save_history_based_model(p.get_struct())
+	starpupy.save_history_based_model(p)
 	if view == True:
 		os.system('starpu_perfmodel_plot -s "' + perfmodel +'"')
 		os.system('gnuplot starpu_'+perfmodel+'.gp')

@@ -49,14 +49,21 @@ print("show funtion returns:", ret_h1.get())
 
 # return value is Handle
 res1 = starpu.task_submit(ret_handle=True)(add, x, y)
-print("result of Handle(2)+Handle(3), res1 is:", res1.get())
+print("result of Handle(2)+Handle(3) is:", res1.get())
 
 # return value is Handle
 res2 = starpu.task_submit(ret_handle=True)(add, res1, y)
-print("result of res1+Handle(3), res2 is:", res2.get())
+print("result of res1+Handle(3) is:", res2.get())
 
 # show function returns Handle
 ret_h2 = starpu.task_submit(ret_handle=True)(show, res1, res2)
+
+x.unregister()
+y.unregister()  
+
+ret_h1.unregister()
+ret_h2.unregister()
+res2.unregister()
 
 ##############################################################################################
 print("*************************")
@@ -66,7 +73,6 @@ def scal(x, t):
 	for i in range(len(t)):
 		t[i] = t[i] * x
 	print ("Example scal(scalar, array):")
-	return t
 
 t = np.arange(10)
 
@@ -75,19 +81,22 @@ t_h = Handle(t)
 
 # return value is Handle
 res3 = starpu.task_submit(ret_handle=True)(scal, 2, t_h)
-print("result of scal(2, Handle(np.arange(10)), res3 is:", res3.get())
+print("result of scal(2, Handle(np.arange(10)) is:", t_h.get())
 
-# # show function returns Future
-# async def main():
-# 	res_fut1 = starpu.task_submit()(show, res1, res3)
-# 	await res_fut1
-# asyncio.run(main())
+# show function returns Future
+async def main():
+	res_fut1 = starpu.task_submit()(show, res1, t_h)
+	await res_fut1
+asyncio.run(main())
+
+t_h.unregister()
+res1.unregister()
+res3.unregister()
 
 ######################
 def arr_add(a,b):
 	for i in range(np.size(a)):
 		a[i] = a[i] + b[i]
-	return a
 
 a = np.array([1, 2, 3])
 b = np.array([4, 5, 6])
@@ -98,12 +107,17 @@ b_h = Handle(b)
 
 # two array element addition
 res4 = starpu.task_submit(ret_handle=True)(arr_add, a_h, b_h)
-print("result of adding two Handle(numpy.array), res4 is:", res4.get())
+print("result of adding two Handle(numpy.array) is:", a_h.get())
+
+a_h.unregister()
+b_h.unregister()
+
+res4.unregister()
 
 #######################
 def multi(x, y):
 	print ("Example multi(x, y):")
-	return x * y
+	np.multiply(x, y, out=x)
 
 c = np.array([[1, 2], [3, 4]])
 d = np.array([[2, 2], [2, 2]])
@@ -114,20 +128,28 @@ d_h = Handle(d)
 
 # two array element multiplication
 res5 = starpu.task_submit(ret_handle=True)(multi, c_h, d_h)
-print("result of multiplying two Handle(numpy.array), res5 is:", res5.get())
+print("result of multiplying two Handle(numpy.array) is:", c_h.get())
 
 ########################
+@starpu.access(x="RW")
 def matrix_multi(x, y):
 	print ("Example matrix_multi(x, y):")
-	return x @ y
+	np.dot(x, y, out=x)
 
 # two array matrix multiplication
 res6 = starpu.task_submit(ret_handle=True)(matrix_multi, c_h, d_h)
-print("result of matrix multiplying two Handle(numpy.array), res6 is:", res6.get())
+print("result of matrix multiplying two Handle(numpy.array) is:", c_h.get())
 
 # two array matrix multiplication (inverse order)
 res7 = starpu.task_submit(ret_handle=True)(matrix_multi, d_h, c_h)
-print("result of matrix multiplying two Handle(numpy.array), res7 is:", res7.get())
+print("result of matrix multiplying two Handle(numpy.array) is:", d_h.get())
+
+c_h.unregister()
+d_h.unregister()
+
+res5.unregister()
+res6.unregister()
+res7.unregister()
 
 ###################################empty Numpy array handle#####################################
 print("*************************")
@@ -156,14 +178,12 @@ a3_h.release()
 def assign(a,b):
 	for i in range(min(np.size(a), np.size(b))):
 		b[i] = a[i]
-	return b
 
 @starpu.access(b="W")
 def assign2(a,b):
 	for i in range(min(np.size(a,0), np.size(b,0))):
 		for j in range(min(np.size(a,1), np.size(b,1))):
 			b[i][j] = a[i][j]
-	return b
 
 @starpu.access(b="W")
 def assign3(a,b):
@@ -171,7 +191,6 @@ def assign3(a,b):
 		for j in range(min(np.size(a,1), np.size(b,1))):
 			for k in range(min(np.size(a,2), np.size(b,2))):
 				b[i][j][k] = a[i][j][k]
-	return b
 
 # generate empty arrays Handle object using HandleNumpy
 # 1-dimension
@@ -187,19 +206,30 @@ e1_h.release()
 
 # 2-dimension
 e2_h = HandleNumpy((5,10), a2.dtype)
-res10 = starpu.task_submit(ret_handle=True)(assign2, a2_h, e2_h)
+res9 = starpu.task_submit(ret_handle=True)(assign2, a2_h, e2_h)
 e2_r = e2_h.acquire(mode='R')
 print("assigned 2-dimension array is", e2_r)
 e2_h.release()
 
 # 3-dimension
 e3_h = HandleNumpy((2,3,10), a3.dtype)
-res11 = starpu.task_submit(ret_handle=True)(assign3, a3_h, e3_h)
+res10 = starpu.task_submit(ret_handle=True)(assign3, a3_h, e3_h)
 e3_r = e3_h.acquire(mode='R')
 print("assigned 3-dimension array is", e3_r)
 e3_h.release()
 
-##################################bytes handle############################################
+a1_h.unregister()
+a2_h.unregister()
+a3_h.unregister()
+e1_h.unregister()
+e2_h.unregister()
+e3_h.unregister()
+
+res8.unregister()
+res9.unregister()
+res10.unregister()
+
+# ##################################bytes handle############################################
 print("*************************")
 print("bytes handle:")
 print("*************************")
@@ -217,17 +247,23 @@ bt2_r = bt2_h.acquire(mode='R')
 print("second bytes object is", bt2_r)
 bt2_h.release()
 
-res12 = starpu.task_submit(ret_handle=True)(add, bt1_h, bt2_h)
-print("result of appending two bytes: ", res12.get())
+# ret_bt1 = starpu.task_submit(ret_handle=True)(add, bt1_h, bt2_h)
+# print("result of appending two bytes: ", ret_bt1.get())
 
-def bytes_add(x, y):
-	z = bytearray(len(x))
-	for i in range (len(x)):
-		z[i] = x[i] + y[i]
-	return bytes(z)
+# def bytes_add(x, y):
+# 	z = bytearray(len(x))
+# 	for i in range (len(x)):
+# 		z[i] = x[i] + y[i]
+# 	return bytes(z)
 
-res13 = starpu.task_submit(ret_handle=True)(bytes_add, bt1_h, bt2_h)
-print("result of adding two bytes elements: ", res13.get())
+# ret_bt2 = starpu.task_submit(ret_handle=True)(bytes_add, bt1_h, bt2_h)
+# print("result of adding two bytes elements: ", ret_bt2.get())
+
+bt1_h.unregister()
+bt2_h.unregister()
+
+#ret_bt1.unregister()
+# ret_bt2.unregister()
 
 ####################################bytearray handle#########################################
 print("*************************")
@@ -239,24 +275,33 @@ bta2 = bytearray([3,4])
 bta1_h = Handle(bta1)
 bta2_h = Handle(bta2)
 
-bta1_r = bta1_h.acquire(mode='R')
+bta1_r = bta1_h.acquire(mode='RW')
 print("first bytearray object is", bta1_r)
+bta1[0] = 0
+bta1_h.release()
+bta11_r = bta1_h.acquire(mode='R')
+print("first bytearray object is modified", bta11_r)
 bta1_h.release()
 
 bta2_r = bta2_h.acquire(mode='R')
 print("second bytearray object is", bta2_r)
 bta2_h.release()
 
-def bytearray_add(x, y):
-	z = bytearray(len(x))
-	for i in range (len(x)):
-		z[i] = x[i] + y[i]
-	return z
+# def bytearray_add(x, y):
+# 	z = bytearray(len(x))
+# 	for i in range (len(x)):
+# 		z[i] = x[i] + y[i]
+# 	return z
 
-res14 = starpu.task_submit(ret_handle=True)(bytearray_add, bta1_h, bta2_h)
-print("result of adding two bytearray elements: ", res14.get())
+# ret_bta1 = starpu.task_submit(ret_handle=True)(bytearray_add, bta1_h, bta2_h)
+# print("result of adding two bytearray elements: ", ret_bta1.get())
 
-##################################array.array handle##########################################
+bta1_h.unregister()
+bta2_h.unregister()
+
+# ret_bta1.unregister()
+
+# ##################################array.array handle##########################################
 print("*************************")
 print("array.array handle:")
 print("*************************")
@@ -266,26 +311,29 @@ arr3 = array.array('f', [4.5, 5.5, 6.5])
 
 arr4 = array.array('u', 'hello')
 
-def arrarr_add(x, y):
-	for i in range (len(x)):
-		x[i] = x[i] + y[i]
-	#time.sleep(1)
-	return x
+# def arrarr_add(x, y):
+# 	for i in range (len(x)):
+# 		x[i] = x[i] + y[i]
+# 	#time.sleep(1)
+#	return x
 
-def arrarr_multi(x, y):
-	for i in range (len(x)):
-		x[i] = x[i] * y[i]
-	return x
+# def arrarr_multi(x, y):
+# 	for i in range (len(x)):
+# 		x[i] = x[i] * y[i]
+#	return x
 
-def arrarr_scal(x, s):
-	for i in range (len(x)):
-		x[i] = x[i] * s
-	return x
+# def arrarr_scal(x, s):
+# 	for i in range (len(x)):
+# 		x[i] = x[i] * s
+#	return x
 
 arr1_h = Handle(arr1)
 arr1_r = arr1_h.acquire(mode='RW')
 print("first array.array object is", arr1_r)
 arr1[0] = 0
+arr1_h.release()
+arr11_r = arr1_h.acquire(mode='R')
+print("first array.array object is modified", arr11_r)
 arr1_h.release()
 
 arr2_h = Handle(arr2)
@@ -303,15 +351,23 @@ arr4_r = arr4_h.acquire(mode='R')
 print("fourth array.array object is", arr4_r)
 arr4_h.release()
 
+# ret_arr1 = starpu.task_submit(ret_handle=True)(arrarr_add, arr1_h, arr2_h)
+# print("result of adding two array.array elements: ", ret_arr1.get())
 
-res15 = starpu.task_submit(ret_handle=True)(arrarr_add, arr1_h, arr2_h)
-print("result of adding two array.array elements: ", res15.get())
+# ret_arr2 = starpu.task_submit(ret_handle=True)(arrarr_multi, arr1_h, arr2_h)
+# print("result of multiplying two array.array elements: ", ret_arr2.get())
 
-res16 = starpu.task_submit(ret_handle=True)(arrarr_multi, arr1_h, arr2_h)
-print("result of multiplying two array.array elements: ", res16.get())
+# ret_arr3 = starpu.task_submit(ret_handle=True)(arrarr_scal, arr3_h, 2)
+# print("result of multiplying array.array element by a scalar: ", ret_arr3.get())
 
-res17 = starpu.task_submit(ret_handle=True)(arrarr_scal, arr3_h, 2)
-print("result of multiplying array.array element by a scalar: ", res17.get())
+arr1_h.unregister()
+arr2_h.unregister()
+arr3_h.unregister()
+arr4_h.unregister()
+
+# ret_arr1.unregister()
+# ret_arr2.unregister()
+# ret_arr3.unregister()
 
 ##################################memoryview handle###########################################
 print("*************************")
@@ -358,16 +414,27 @@ print(y.tolist())
 print(z.tolist())
 
 y_h = Handle(y)
-starpu.task_submit(ret_handle=True)(mem_show, y_h)
+ret_m1 = starpu.task_submit(ret_handle=True)(mem_show, y_h)
 
 print("y is", y_h.acquire(mode='R'))
 y_h.release()
 
 z_h = Handle(z)
-starpu.task_submit(ret_handle=True)(mem_show, z_h)
+ret_m2 = starpu.task_submit(ret_handle=True)(mem_show, z_h)
 
 print("z is", z_h.acquire(mode='R'))
 z_h.release()
+
+m1_h.unregister()
+m2_h.unregister()
+m3_h.unregister()
+
+y_h.unregister()
+z_h.unregister()
+
+ret_m1.unregister()
+ret_m2.unregister()
+
 #####################################access mode annotation###################################
 print("*************************")
 print("access mode annotation:")
@@ -389,7 +456,7 @@ def assign(a,b):
 	for i in range(min(np.size(a), np.size(b))):
 		b[i]=a[i]
 
-starpu.task_submit(ret_handle=True)(assign, a_h, e_h)
+res11 = starpu.task_submit(ret_handle=True)(assign, a_h, e_h)
 
 e_r = e_h.acquire(mode='RW')
 print("assigned 1-dimension array is:", e_r)
@@ -404,7 +471,7 @@ def assign(a,b):
 	for i in range(min(np.size(a), np.size(b))):
 		b[i]=a[i]
 
-assign(a_h, e_h)
+res12 = assign(a_h, e_h)
 
 e_r = e_h.acquire(mode='RW')
 print("assigned 1-dimension array is:", e_r)
@@ -419,11 +486,19 @@ def assign(a,b):
 		b[i]=a[i]
 
 assign_access=starpu.set_access(assign, a="R", b="W")
-starpu.task_submit(ret_handle=True)(assign_access, a_h, e_h)
+res13 = starpu.task_submit(ret_handle=True)(assign_access, a_h, e_h)
 
 e_r = e_h.acquire(mode='RW')
 print("assigned 1-dimension array is:", e_r)
 e_h.release()
+
+a_h.unregister()
+e_h.unregister()
+
+res11.unregister()
+res12.unregister()
+res13.unregister()
+
 #######################Numpy without explicit handle############################
 print("*******************************")
 print("Numpy without explicit handle:")
@@ -441,13 +516,15 @@ print("First argument before task submitting is", starpu.acquire(arrh1, mode='R'
 #a[0]=100
 starpu.release(arrh1)
 # without explicit handle
-starpu.task_submit(ret_handle=True)(np_add, arrh1, arrh2)
+res14 = starpu.task_submit(ret_handle=True)(np_add, arrh1, arrh2)
 
 print("First argument after task submitting is", starpu.acquire(arrh1, mode='R'))
 starpu.release(arrh1)
 
-# it's mandatory to call unregister when the argument is no longer needed to access
+# it's mandatory to call unregister when the argument is no longer needed to access, but it's not obligatory, calling starpupy.shutdown() in the end is enough, which will unregister all no-explicit handle
 starpu.unregister(arrh1)
+
+res14.unregister()
 
 #######################Numpy without using handle###############################
 print("*******************************")
@@ -457,10 +534,12 @@ npa1 = np.array([1, 2, 3])
 npa2 = np.array([4, 5, 6])
 
 print("First argument before task submitting is", npa1)
-# without using handle, set option arg_handle to False, otherwise, submitting Numpy array with handle by default
-res18 = starpu.task_submit(arg_handle=False, ret_handle=True)(np.add, npa1, npa2)
+# without using handle, set option arg_handle to False
+res15 = starpu.task_submit(arg_handle=False, ret_handle=True)(np_add, npa1, npa2)
 print("First argument after task submitting is", npa1)
-print("The addition result is", res18.get())
+#print("The addition result is", res15.get())
+
+res15.unregister()
 
 #########################
 

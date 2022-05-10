@@ -85,8 +85,16 @@ class HandleNumpy(Handle):
 class Handle_token(object):
 	pass
 
+#this dict contains the handle capsule which is used in all case
 handle_dict={}
 def handle_dict_set_item(obj, handle):
 	assert handle_dict.get(id(obj))==None
 	handle_dict[id(obj)]=handle
 	return handle_dict
+
+#this dict contains the handle obj which is only used in joblib.py corresponding handle_dict
+handle_obj_dict={}
+def handle_obj_dict_set_item(obj, handle):
+	assert handle_obj_dict.get(id(obj))==None
+	handle_obj_dict[id(obj)]=handle
+	return handle_obj_dict
