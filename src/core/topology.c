@@ -88,24 +88,20 @@ unsigned starpu_memory_nodes_get_numa_count(void)
 static hwloc_obj_t numa_get_obj(hwloc_obj_t obj)
 {
 #if HWLOC_API_VERSION >= 0x00020000
-	while (obj->memory_first_child == NULL)
-	{
-		obj = obj->parent;
-		if (!obj)
-			return NULL;
-	}
-	return obj->memory_first_child;
-#else
-	while (obj->type != HWLOC_OBJ_NUMANODE)
-	{
+	while (obj && obj->memory_first_child == NULL)
 		obj = obj->parent;
 
-		/* If we don't find a "node" obj before the root, this means
-		 * hwloc does not know whether there are numa nodes or not, so
-		 * we should not use a per-node sampling in that case. */
-		if (!obj)
-			return NULL;
-	}
+	if (!obj)
+		return NULL;
+
+	return obj->memory_first_child;
+#else
+	while (obj && obj->type != HWLOC_OBJ_NUMANODE)
+		obj = obj->parent;
+
+	/* Note: If we don't find a "node" obj before the root, this means
+	 * hwloc does not know whether there are numa nodes or not, so
+	 * we should not use a per-node sampling in that case. */
 	return obj;
 #endif
 }
@@ -1992,8 +1988,10 @@ int starpu_get_pu_os_index(unsigned logical_index)
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	hwloc_topology_t topo = topology->hwtopology;
+	hwloc_obj_t obj = hwloc_get_obj_by_type(topo, HWLOC_OBJ_PU, logical_index);
+	STARPU_ASSERT(obj);
 
-	return hwloc_get_obj_by_type(topo, HWLOC_OBJ_PU, logical_index)->os_index;
+	return obj->os_index;
 #else
 	return logical_index;
 #endif

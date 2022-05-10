@@ -115,6 +115,7 @@ int starpu_energy_start(int workerid STARPU_ATTRIBUTE_UNUSED, enum starpu_worker
 		{
 			/* return the index of socket */
 			hwloc_obj_t obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_PACKAGE, i);
+			STARPU_ASSERT(obj);
 			if ( (retval = add_event(EventSet, obj->os_index)) != PAPI_OK)
 			{
 				if (retval == PAPI_EPERM)

@@ -1214,6 +1214,7 @@ static inline void _starpu_worker_lock(int workerid)
 static inline int _starpu_worker_trylock(int workerid)
 {
 	struct _starpu_worker *cur_worker = _starpu_get_local_worker_key();
+	STARPU_ASSERT(cur_worker != NULL);
 	int cur_workerid = cur_worker->workerid;
 	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
 	STARPU_ASSERT(worker != NULL);
