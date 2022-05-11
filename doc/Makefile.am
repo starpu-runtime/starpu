@@ -18,8 +18,10 @@ include $(top_srcdir)/starpu-notests.mk
 
 SUBDIRS = doxygen
 SUBDIRS += doxygen_dev
+SUBDIRS	+= doxygen_short
 DIST_SUBDIRS = doxygen
 DIST_SUBDIRS += doxygen_dev
+DIST_SUBDIRS += doxygen_short
 
 EXTRA_DIST =    tutorial/hello_world.c \
 		tutorial/hello_world_msvc.c \

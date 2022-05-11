@@ -3983,6 +3983,8 @@ AC_OUTPUT([
 	doc/doxygen/Makefile
 	doc/doxygen/doxygen-config.cfg
 	doc/doxygen/doxygen_filter.sh
+	doc/doxygen_short/Makefile
+	doc/doxygen_short/doxygen-config.cfg
 	doc/doxygen_dev/Makefile
 	doc/doxygen_dev/doxygen-config.cfg
 	doc/doxygen_dev/doxygen_filter.sh

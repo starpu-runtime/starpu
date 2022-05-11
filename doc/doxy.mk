@@ -58,6 +58,7 @@ EXTRA_DIST += \
 	      $(top_srcdir)/doc/$(DOX_MAIN_DIR)/chapters/version.html
 
 chapters/version.sty: $(chapters)
+	$(MKDIR_P) $(top_srcdir)/doc/$(DOX_MAIN_DIR)/chapters
 	@for f in $(chapters) ; do \
                 if test -f $(top_srcdir)/doc/$(DOX_MAIN_DIR)/$$f ; then $(PROG_STAT) --format=%Y $(top_srcdir)/doc/$(DOX_MAIN_DIR)/$$f ; fi \
         done | sort -r | head -1 > timestamp_sty
