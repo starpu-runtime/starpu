@@ -163,6 +163,7 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 	/*if the element is not unicode character of array.array*/
 	else if(mem_format!='w')
 	{
+		/* We have a flat array, split it into ndim-dimension lists of lists according to mem_shape */
 		char type_str[narray+1];
 		memset(type_str, mem_format, narray);
 		type_str[narray] = 0;
@@ -216,7 +217,7 @@ PyObject* starpupy_buffer_get_memview(struct starpupy_buffer_interface *pybuffer
 				/*in the rest of nested list, we set the inner list in the current list, once we have the nested list, one element of inner list is changed, current list is changes as well*/
 				else
 				{
-					/*if the index of element in all inner list is 0, flag is 1*/
+					/*if the index of element in all inner list is 0, we are the first, we have to add this new list to the upper dimension list*/
 					int flag=1;
 					for(int dd= ndim-1; dd>=d+1; dd--)
 					{
