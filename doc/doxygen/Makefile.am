@@ -66,15 +66,15 @@ chapters =	\
 	chapters/110_basic_examples.doxy		\
 	chapters/201_advanced_examples.doxy		\
 	chapters/210_check_list_performance.doxy		\
+	chapters/220_debugging_tools.doxy		\
+	chapters/230_online_performance_tools.doxy		\
+	chapters/240_offline_performance_tools.doxy		\
 	chapters/301_tasks.doxy		\
 	chapters/310_data_management.doxy		\
 	chapters/320_scheduling.doxy		\
 	chapters/330_scheduling_contexts.doxy		\
 	chapters/340_scheduling_context_hypervisor.doxy		\
 	chapters/350_scheduling_policy_definition.doxy		\
-	chapters/360_debugging_tools.doxy		\
-	chapters/370_online_performance_tools.doxy		\
-	chapters/380_offline_performance_tools.doxy		\
 	chapters/390_faq.doxy		\
 	chapters/400_python.doxy		\
 	chapters/401_out_of_core.doxy		\

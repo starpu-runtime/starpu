@@ -267,59 +267,62 @@ The documentation chapters include
 
 <ul>
 <li> Part 1: StarPU Basics
-<ul>
-<li> \ref BuildingAndInstallingStarPU
-<li> \ref BasicExamples
-</ul>
+    <ul>
+    <li> \ref BuildingAndInstallingStarPU
+    <li> \ref BasicExamples
+    </ul>
 <li> Part 2: StarPU Quick Programming Guide
-<ul>
-<li> \ref AdvancedExamples
-<li> \ref CheckListWhenPerformanceAreNotThere
-</ul>
-<li> Part 3: StarPU Inside
-<ul>
-<li> \ref TasksInStarPU
-<li> \ref DataManagement
-<li> \ref Scheduling
-<li> \ref SchedulingContexts
-<li> \ref SchedulingContextHypervisor
-<li> \ref HowToDefineANewSchedulingPolicy
-<li> \ref DebuggingTools
-<li> \ref OnlinePerformanceTools
-<li> \ref OfflinePerformanceTools
-<li> \ref FrequentlyAskedQuestions
-</ul>
-<li> Part 4: StarPU Extensions
-<ul>
-<li> \ref PythonInterface
-<li> \ref OutOfCore
-<li> \ref MPISupport
-<li> \ref TCPIPSupport
-<li> \ref FaultTolerance
-<li> \ref FFTSupport
-<li> \ref NativeFortranSupport
-<li> \ref SOCLOpenclExtensions
-<li> \ref SimGridSupport
-<li> \ref OpenMPRuntimeSupport
-<li> \ref ClusteringAMachine
-<li> \ref HierarchicalDAGS
-<li> \ref InteroperabilitySupport
-<li> \ref EclipsePlugin
-<li> \ref StarPUJavaInterface
-</ul>
-<li> Part 5: StarPU Reference API
-<ul>
-<li> \ref ExecutionConfigurationThroughEnvironmentVariables
-<li> \ref CompilationConfiguration
-<li> \ref ModuleDocumentation
-<li> \ref FileDocumentation
-<li> \ref deprecated
-</ul>
+    <ul>
+    <li> \ref AdvancedExamples
+    <li> \ref CheckListWhenPerformanceAreNotThere
+    </ul>
+<li> Part 3: StarPU Tools
+    <ul>
+    <li> \ref DebuggingTools
+    <li> \ref OnlinePerformanceTools
+    <li> \ref OfflinePerformanceTools
+    </ul>
+<li> Part 4: StarPU Inside
+    <ul>
+    <li> \ref TasksInStarPU
+    <li> \ref DataManagement
+    <li> \ref Scheduling
+    <li> \ref SchedulingContexts
+    <li> \ref SchedulingContextHypervisor
+    <li> \ref HowToDefineANewSchedulingPolicy
+    <li> \ref FrequentlyAskedQuestions
+    </ul>
+<li> Part 5: StarPU Extensions
+    <ul>
+    <li> \ref PythonInterface
+    <li> \ref OutOfCore
+    <li> \ref MPISupport
+    <li> \ref TCPIPSupport
+    <li> \ref FaultTolerance
+    <li> \ref FFTSupport
+    <li> \ref NativeFortranSupport
+    <li> \ref SOCLOpenclExtensions
+    <li> \ref SimGridSupport
+    <li> \ref OpenMPRuntimeSupport
+    <li> \ref ClusteringAMachine
+    <li> \ref HierarchicalDAGS
+    <li> \ref InteroperabilitySupport
+    <li> \ref EclipsePlugin
+    <li> \ref StarPUJavaInterface
+    </ul>
+<li> Part 6: StarPU Reference API
+    <ul>
+    <li> \ref ExecutionConfigurationThroughEnvironmentVariables
+    <li> \ref CompilationConfiguration
+    <li> \ref ModuleDocumentation
+    <li> \ref FileDocumentation
+    <li> \ref deprecated
+    </ul>
 <li> Part: Appendix
-<ul>
-<li> \ref FullSourceCodeVectorScal
-<li> \ref GNUFreeDocumentationLicense
-</ul>
+    <ul>
+    <li> \ref FullSourceCodeVectorScal
+    <li> \ref GNUFreeDocumentationLicense
+    </ul>
 </ul>
 
 Make sure to have had a look at those too!
