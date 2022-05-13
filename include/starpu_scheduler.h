@@ -220,7 +220,7 @@ struct starpu_sched_policy *starpu_get_sched_lib_policy(const char *name);
    Allow an external library to return a list of scheduling policies to be
    loaded dynamically.
  */
-struct starpu_sched_policy **starpu_get_sched_lib_policies();
+struct starpu_sched_policy **starpu_get_sched_lib_policies(void);
 
 /**
    When there is no available task for a worker, StarPU blocks this
