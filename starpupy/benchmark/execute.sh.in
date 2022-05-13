@@ -1,7 +1,7 @@
 #!@REALBASH@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2021-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,8 @@ benchmarkdir=@STARPU_SRC_DIR@/starpupy/benchmark
 modpath=@STARPU_BUILD_DIR@/src/.libs${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 pypath=@STARPU_BUILD_DIR@/starpupy/src/build:$PYTHONPATH
 
-LOADER=@PYTHON@
+LOADER=""
+PYTHON=@PYTHON@
 
 if test -z "$LAUNCHER"
 then
@@ -35,16 +36,16 @@ read_arg()
     if test "$1" == "--valgrind"
     then
 	export PYTHONMALLOC=malloc
-	LOADER="valgrind --track-origins=yes @PYTHON@"
+	LOADER="valgrind --track-origins=yes"
 	do_shift=1
     elif test "$1" == "--gdb"
     then
 	gdb="gdb"
 	if test "$mpi" == "mpi"
 	then
-           LOADER="$LAUNCHER xterm -sl 10000 -hold -e gdb --args @PYTHON@"
+           LOADER="$LAUNCHER xterm -sl 10000 -hold -e gdb --args"
 	else
-	    LOADER="gdb --args @PYTHON@"
+	    LOADER="gdb --args"
 	fi
 	do_shift=1
     elif test "$1" == "--mpirun"
@@ -52,9 +53,9 @@ read_arg()
 	mpi="mpi"
 	if test "$gdb" == "gdb"
 	then
-           LOADER="$LAUNCHER xterm -sl 10000 -hold -e gdb --args @PYTHON@"
+           LOADER="$LAUNCHER xterm -sl 10000 -hold -e gdb --args"
 	else
-           LOADER="$LAUNCHER @PYTHON@"
+           LOADER="$LAUNCHER"
 	fi
 	do_shift=1
     fi
@@ -87,5 +88,5 @@ fi
 shift
 
 set -x
-PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath exec $LOADER $pythonscript $*
+PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath exec $LOADER $PYTHON $pythonscript $*
 

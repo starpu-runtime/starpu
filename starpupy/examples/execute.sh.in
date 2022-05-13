@@ -49,7 +49,8 @@ exampledir=@STARPU_SRC_DIR@/starpupy/examples
 modpath=@STARPU_BUILD_DIR@/src/.libs${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}
 pypath=@STARPU_BUILD_DIR@/starpupy/src/build:$PYTHONPATH
 
-LOADER="@STARPU_BUILD_DIR@/starpupy/examples/loader @PYTHON@"
+LOADER="@STARPU_BUILD_DIR@/starpupy/examples/loader"
+PYTHON=@PYTHON@
 
 if test -z "$LAUNCHER"
 then
@@ -58,7 +59,6 @@ fi
 mpi=""
 gdb=""
 MPI_LOADER=""
-DEBUG=""
 
 read_arg()
 {
@@ -66,12 +66,12 @@ read_arg()
     if test "$1" == "--valgrind"
     then
 	export PYTHONMALLOC=malloc
-	DEBUG="valgrind --track-origins=yes"
+	LOADER="$LOADER valgrind --track-origins=yes"
 	do_shift=1
     elif test "$1" == "--gdb"
     then
 	gdb="gdb"
-	DEBUG="gdb --args"
+	LOADER="gdb --args"
 	do_shift=1
     elif test "$1" == "--mpirun"
     then
@@ -95,7 +95,7 @@ done
 
 if test "$mpi" == "mpi"
 then
-    if test -n "$DEBUG"
+    if test -n "$gdb"
     then
 	MPI_LOADER="$LAUNCHER xterm -sl 10000 -hold -e"
     else
@@ -124,4 +124,4 @@ then
 fi
 export PYTHONPATH=$pypath LD_LIBRARY_PATH=$modpath
 
-exec $MPI_LOADER $DEBUG $LOADER $pythonscript $*
+exec $MPI_LOADER $LOADER $PYTHON $pythonscript $*
