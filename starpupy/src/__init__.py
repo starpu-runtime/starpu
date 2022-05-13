@@ -72,13 +72,16 @@ class Handle(object):
 	def unpartition(self, handle_list, nchildren):
 		return starpupy.starpupy_data_unpartition(self.handle_obj, handle_list, nchildren)
 
+def new_empty_numpy(shape, dtype):
+	return np.empty(shape, dtype)
+
 #class handle
 class HandleNumpy(Handle):
 	if has_numpy:
-		def __init__(self, *args, dtype=np.dtype('float64')):
-			#self.narray=narray
+		def __init__(self, shape, dtype=np.dtype('float64')):
 			self.dtype=dtype
-			self.handle_obj=starpupy.starpupy_numpy_register(*args, self.dtype)
+			self.obj=new_empty_numpy(shape, self.dtype)
+			self.handle_obj=starpupy.starpupy_data_register(self.obj)
 
 
 #detect class handle
