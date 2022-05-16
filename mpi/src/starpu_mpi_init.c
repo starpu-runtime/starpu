@@ -39,6 +39,7 @@ static int _mpi_world_size;
 static int _mpi_world_rank;
 #endif
 static int _mpi_initialized_starpu;
+static int _starpu_mpi_gpudirect;
 int _starpu_mpi_has_cuda;
 
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
@@ -95,6 +96,11 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	if (MPIX_Query_cuda_support())
 		_starpu_mpi_has_cuda = 1;
 	_STARPU_DEBUG("MPI has CUDA: %d\n", _starpu_mpi_has_cuda);
+	if (!_starpu_mpi_gpudirect)
+	{
+		_STARPU_DEBUG("But disabled by user\n");
+		_starpu_mpi_has_cuda = 0;
+	}
 #else
 	_STARPU_DEBUG("No CUDA support in MPI\n");
 #endif
@@ -143,6 +149,7 @@ int _starpu_mpi_initialize(int *argc, char ***argv, int initialize_mpi, MPI_Comm
 
 	_starpu_mpi_backend_check();
 
+	_starpu_mpi_gpudirect = starpu_get_env_number_default("STARPU_MPI_GPUDIRECT", 1);
 #ifdef STARPU_SIMGRID
 	/* Call MPI_Init_thread as early as possible, to initialize simgrid
 	 * before working with mutexes etc. */

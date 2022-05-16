@@ -627,6 +627,14 @@ Setting it to non-zero will prevent StarPU from binding the MPI to
 a separate core. This is for instance useful when running the testsuite on a single system.
 </dd>
 
+<dt>STARPU_MPI_GPUDIRECT</dt>
+<dd>
+\anchor STARPU_MPI_GPUDIRECT
+\addindex __env__STARPU_MPI_GPUDIRECT
+This variable allows to enable (1) MPI GPUDirect support or not (0). The default
+is to enable it.
+</dd>
+
 </dl>
 
 

@@ -95,6 +95,7 @@ Small features:
   * Move to the public API some scheduler utility functions
   * New variable STARPU_SCHED_LIB to dynamically load a new scheduling
     policy
+  * Enable GPUDirect when MPI supports it.
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU

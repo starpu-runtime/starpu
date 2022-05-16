@@ -36,7 +36,6 @@
 
 int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
-	/* TODO: check _starpu_mpi_has_cuda */
 	if (mode & STARPU_W)
 	{
 		/* Receiving */
@@ -49,12 +48,23 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 
 		/* Several potential places */
 		unsigned i;
+		if (_starpu_mpi_has_cuda)
+			for (i = 0; i < STARPU_MAXNODES; i++)
+			{
+				/* Note: We take as a hint that it's allocated on the GPU as
+				 * a clue that we want to push directly to the GPU */
+				if (starpu_node_get_kind(i) == STARPU_CUDA_RAM
+					&& handle->per_node[i].allocated)
+					/* This node already has allocated buffers, let's just use it */
+					return i;
+			}
+
 		for (i = 0; i < STARPU_MAXNODES; i++)
 		{
-			/* TODO: we may want to take as a hint that it's allocated on the GPU as
+			/* Note: We take as a hint that it's allocated on the GPU as
 			 * a clue that we want to push directly to the GPU */
-			if (starpu_node_get_kind(i) == STARPU_CPU_RAM &&
-				handle->per_node[i].allocated)
+			if (starpu_node_get_kind(i) == STARPU_CPU_RAM
+				&& handle->per_node[i].allocated)
 				/* This node already has allocated buffers, let's just use it */
 				return i;
 		}
@@ -86,9 +96,9 @@ int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access
 		unsigned i;
 		for (i = 0; i < STARPU_MAXNODES; i++)
 		{
-			/* TODO: GPUDirect */
-			if (starpu_node_get_kind(i) == STARPU_CPU_RAM &&
-				handle->per_node[i].state != STARPU_INVALID)
+			if ((starpu_node_get_kind(i) == STARPU_CPU_RAM ||
+			     (starpu_node_get_kind(i) == STARPU_CUDA_RAM && _starpu_mpi_has_cuda))
+				&& handle->per_node[i].state != STARPU_INVALID)
 				/* This node already has the value, let's just use it */
 				/* TODO: rather pick up place next to NIC */
 				return i;
