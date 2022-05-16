@@ -328,11 +328,13 @@ void _starpu_deinit_sched_policy(struct _starpu_sched_ctx *sched_ctx)
 		_STARPU_SCHED_END;
 	}
 	starpu_sched_ctx_delete_worker_collection(sched_ctx->id);
+#ifdef HAVE_DLOPEN
 	if (dl_sched_handle)
 	{
 		dlclose(dl_sched_handle);
 		dl_sched_handle = NULL;
 	}
+#endif
 }
 
 void _starpu_sched_task_submit(struct starpu_task *task)
