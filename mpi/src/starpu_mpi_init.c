@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,11 +30,16 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 
+#ifdef HAVE_MPI_EXT
+#include <mpi-ext.h>
+#endif
+
 #ifdef STARPU_SIMGRID
 static int _mpi_world_size;
 static int _mpi_world_rank;
 #endif
 static int _mpi_initialized_starpu;
+int _starpu_mpi_has_cuda;
 
 static void _starpu_mpi_print_thread_level_support(int thread_level, char *msg)
 {
@@ -84,6 +89,16 @@ void _starpu_mpi_do_initialize(struct _starpu_mpi_argc_argv *argc_argv)
 	MPI_Comm_rank(argc_argv->comm, &argc_argv->rank);
 	MPI_Comm_size(argc_argv->comm, &argc_argv->world_size);
 	MPI_Comm_set_errhandler(argc_argv->comm, MPI_ERRORS_RETURN);
+
+#ifdef STARPU_USE_CUDA
+#ifdef MPIX_CUDA_AWARE_SUPPORT
+	if (MPIX_Query_cuda_support())
+		_starpu_mpi_has_cuda = 1;
+	_STARPU_DEBUG("MPI has CUDA: %d\n", _starpu_mpi_has_cuda);
+#else
+	_STARPU_DEBUG("No CUDA support in MPI\n");
+#endif
+#endif
 
 #ifdef STARPU_SIMGRID
 	_mpi_world_size = argc_argv->world_size;

@@ -67,6 +67,7 @@ extern int _starpu_mpi_nobind;
 extern int _starpu_mpi_thread_cpuid;
 extern int _starpu_mpi_use_coop_sends;
 extern int _starpu_mpi_mem_throttle;
+extern int _starpu_mpi_has_cuda;
 void _starpu_mpi_env_init(void);
 
 #ifdef STARPU_NO_ASSERT

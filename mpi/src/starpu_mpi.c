@@ -36,6 +36,7 @@
 
 int _starpu_mpi_choose_node(starpu_data_handle_t handle, enum starpu_data_access_mode mode)
 {
+	/* TODO: check _starpu_mpi_has_cuda */
 	if (mode & STARPU_W)
 	{
 		/* Receiving */

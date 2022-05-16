@@ -498,8 +498,20 @@ if test x$enable_mpi = xmaybe ; then
 fi
 
 # in case MPI was explicitely required, but mpicc is not available, this is an error
-if test x$enable_mpi = xyes -a ! -x "$mpicc_path"; then
-   AC_MSG_ERROR([Compiler MPI '$mpicc_path' not valid])
+if test x$enable_mpi = xyes ;
+	if test ! -x "$mpicc_path"; then
+	   AC_MSG_ERROR([Compiler MPI '$mpicc_path' not valid])
+	fi
+
+	OLD_CC=$CC
+	CC=$mpicc_path
+	AC_COMPILE_IFELSE(
+			AC_LANG_PROGRAM(
+				[[#include <mpi.h>
+				  #include <mpi-ext.h>]],
+				[[]]),
+			[AC_DEFINE(HAVE_MPI_EXT, [1], [<mpi-ext.h> is available])])
+	CC=$OLD_CC
 fi
 
 build_mpi_lib=$enable_mpi
