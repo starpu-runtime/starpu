@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -227,6 +227,7 @@ int main(int argc, char *argv[])
 	char *launcher;
 	char *launcher_args;
 	char *libtool;
+	char *cflags;
 	const char *top_builddir = getenv ("top_builddir");
 	struct sigaction sa;
 	int   ret;
@@ -234,6 +235,7 @@ int main(int argc, char *argv[])
 	struct timeval end;
 	double timing;
 	int x=1;
+	int asan = 0, lsan = 0, tsan = 0, usan = 0;
 
 	(void) argc;
 	test_args = NULL;
@@ -241,6 +243,18 @@ int main(int argc, char *argv[])
 
 	launcher=getenv("STARPU_CHECK_LAUNCHER");
 	launcher_args=getenv("STARPU_CHECK_LAUNCHER_ARGS");
+	cflags = getenv("CFLAGS");
+	if (cflags)
+	{
+		if (strstr(cflags, "-fsanitize=address"))
+			asan = 1;
+		if (strstr(cflags, "-fsanitize=leak"))
+			lsan = 1;
+		if (strstr(cflags, "-fsanitize=thread"))
+			tsan = 1;
+		if (strstr(cflags, "-fsanitize=undefined"))
+			usan = 1;
+	}
 
 	if (argv[x] && strcmp(argv[x], "-t") == 0)
 	{
@@ -252,17 +266,18 @@ int main(int argc, char *argv[])
 		/* get user-defined iter_max value */
 		timeout = strtol(getenv("STARPU_TIMEOUT_ENV"), NULL, 10);
 	}
-	if (timeout <= 0)
+	else if (timeout <= 0)
 	{
 		timeout = DEFAULT_TIMEOUT;
 		if ((launcher && strstr(launcher, "valgrind")) ||
 		    (launcher && strstr(launcher, "helgrind")) ||
-		    getenv("TSAN_OPTIONS") != NULL)
+		    tsan)
 			timeout *= 20;
-		if (getenv("ASAN_OPTIONS") != NULL ||
-		    getenv("USAN_OPTIONS") != NULL ||
-		    getenv("LSAN_OPTIONS") != NULL)
+		if (asan || usan || lsan)
 			timeout *= 5;
+
+		if (timeout > 1750)
+			timeout = 1750;
 	}
 
 #ifdef STARPU_SIMGRID
