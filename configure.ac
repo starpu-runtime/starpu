@@ -1661,7 +1661,7 @@ AC_MSG_RESULT($nmaxhipdev)
 AC_DEFINE_UNQUOTED(STARPU_MAXHIPDEVS, [$nmaxhipdev],
 		[maximum number of HIP devices])
 AC_ARG_ENABLE(hip, [AS_HELP_STRING([--enable-hip],
-		[Enable the minimal-support HIP driver (only for testing)])],, [enable_hip=no])
+		[Enable the minimal-support HIP driver (only for testing)])],, [enable_hip=maybe])
 
 if test x$enable_hip != xno; then
 	AC_PATH_PROG([HIPCONFIG], [hipconfig], [not-found])
