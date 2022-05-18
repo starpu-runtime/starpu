@@ -76,7 +76,7 @@ SUBDIRS += eclipse-plugin
 endif
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libstarpu.pc starpu-1.0.pc starpu-1.1.pc starpu-1.2.pc starpu-1.3.pc
+pkgconfig_DATA = packages/libstarpu.pc packages/starpu-1.0.pc packages/starpu-1.1.pc packages/starpu-1.2.pc packages/starpu-1.3.pc
 
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 				\
@@ -172,6 +172,9 @@ txtdir = ${docdir}
 endif
 txt_DATA = AUTHORS COPYING.LGPL README.md README.dev STARPU-REVISION
 EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README.md README.dev STARPU-VERSION STARPU-REVISION
+
+moduledir = ${libdir}/modules
+module_DATA = packages/starpu-1.3
 
 DISTCLEANFILES = STARPU-REVISION
 

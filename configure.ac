@@ -3977,29 +3977,30 @@ AC_OUTPUT([
 	socl/examples/Makefile
 	socl/vendors/socl.icd
 	socl/vendors/install/socl.icd
-	libstarpu.pc
-	starpu-1.0.pc
-	starpu-1.1.pc
-	starpu-1.2.pc
-	starpu-1.3.pc
-	mpi/libstarpumpi.pc
-	mpi/starpumpi-1.0.pc
-	mpi/starpumpi-1.1.pc
-	mpi/starpumpi-1.2.pc
-	mpi/starpumpi-1.3.pc
+	packages/libstarpu.pc
+	packages/starpu-1.0.pc
+	packages/starpu-1.1.pc
+	packages/starpu-1.2.pc
+	packages/starpu-1.3.pc
+	packages/starpu-1.3
+	mpi/packages/libstarpumpi.pc
+	mpi/packages/starpumpi-1.0.pc
+	mpi/packages/starpumpi-1.1.pc
+	mpi/packages/starpumpi-1.2.pc
+	mpi/packages/starpumpi-1.3.pc
 	starpufft/Makefile
 	starpufft/src/Makefile
 	starpufft/tests/Makefile
-	starpufft/libstarpufft.pc
-	starpufft/starpufft-1.0.pc
-	starpufft/starpufft-1.1.pc
-	starpufft/starpufft-1.2.pc
-	starpufft/starpufft-1.3.pc
+	starpufft/packages/libstarpufft.pc
+	starpufft/packages/starpufft-1.0.pc
+	starpufft/packages/starpufft-1.1.pc
+	starpufft/packages/starpufft-1.2.pc
+	starpufft/packages/starpufft-1.3.pc
 	starpurm/Makefile
 	starpurm/src/Makefile
 	starpurm/tests/Makefile
 	starpurm/examples/Makefile
-	starpurm/starpurm-1.3.pc
+	starpurm/packages/starpurm-1.3.pc
 	starpupy/src/setup.cfg
 	starpupy/src/setup.py
 	starpupy/Makefile
