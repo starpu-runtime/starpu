@@ -74,7 +74,7 @@ StarPU is available from different package managers.
 Guix https://gitlab.inria.fr/guix-hpc/guix-hpc
 </li>
 <li>
-Spack https://gitlab.inria.fr/solverstack/spack-repo
+Spack https://github.com/spack/spack/
 </li>
 <li>
 Brew https://gitlab.inria.fr/solverstack/brew-repo
