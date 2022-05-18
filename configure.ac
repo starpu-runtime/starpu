@@ -211,6 +211,7 @@ if test x$enable_simgrid = xyes ; then
 	   	CFLAGS="$SIMGRID_CFLAGS $CFLAGS"
 	   	CXXFLAGS="$SIMGRID_CFLAGS $CXXFLAGS"
 	   	NVCCFLAGS="$SIMGRID_CFLAGS $NVCCFLAGS"
+	   	HIPCCFLAGS="$SIMGRID_CFLAGS $HIPCCFLAGS"
 	fi
 	SAVED_LIBS="${LIBS}"
 	LIBS="$SIMGRID_LIBS $LIBS"
@@ -711,6 +712,7 @@ if test x$enable_mpi = xyes ; then
 	    CFLAGS="$CFLAGS -fPIC"
 	    CXXFLAGS="$CXXFLAGS -fPIC"
 	    NVCCFLAGS="$NVCCFLAGS --compiler-options -fPIC"
+	    HIPCCFLAGS="$HIPCCFLAGS --compiler-options -fPIC"
 	    FFLAGS="$FFLAGS -fPIC"
 	    FCLAGS="$FFLAGS -fPIC"
         fi
@@ -2099,9 +2101,11 @@ if test x$enable_gdb = xyes; then
 	   	IS_SUPPORTED_FLAG(-gdwarf-2)
 	   	IS_SUPPORTED_FLAG(-g3)
 		NVCCFLAGS+=" -g"
+		HIPCCFLAGS+=" -g"
 	else
 	   	IS_SUPPORTED_FLAG(-g)
 		NVCCFLAGS+=" -g "
+		HIPCCFLAGS+=" -g "
 	fi
 else
 	CFLAGS+=" -g0 "
