@@ -92,7 +92,10 @@ main(void) {
          printf("  Plaform Name:\t\t\t\t\t %s\n", str);
 
          err = clGetDeviceIDs(platforms[i], CL_DEVICE_TYPE_ALL, 0, NULL, &num_devices);
-         checkErr(err, "clGetDeviceIDs(CL_DEVICE_TYPE_ALL)");
+         if (err == CL_DEVICE_NOT_FOUND)
+            num_devices = 0;
+         else
+            checkErr(err, "clGetDeviceIDs(CL_DEVICE_TYPE_ALL)");
          if (num_devices == 0) {
             printf("  No devices found\n");
             continue;

@@ -24,7 +24,10 @@ int main(void)
 		buf[size] = 0;
 		printf("        platform version %s\n", buf);
 		err = clGetDeviceIDs(pid, CL_DEVICE_TYPE_ALL, sizeof(did)/sizeof(did[0]), did, &nb);
-		assert(err == CL_SUCCESS);
+		if (err == CL_DEVICE_NOT_FOUND)
+			nb = 0;
+		else
+			assert(err == CL_SUCCESS);
 		printf("%d devices\n", nb);
 		for (i = 0; i < nb; i++)
 		{
