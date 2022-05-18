@@ -30,7 +30,7 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 
-#ifdef HAVE_MPI_EXT
+#ifdef STARPU_HAVE_MPI_EXT
 #include <mpi-ext.h>
 #endif
 

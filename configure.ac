@@ -506,11 +506,11 @@ if test x$enable_mpi = xyes ; then
 	OLD_CC=$CC
 	CC=$mpicc_path
 	AC_COMPILE_IFELSE(
-			AC_LANG_PROGRAM(
-				[[#include <mpi.h>
-				  #include <mpi-ext.h>]],
-				[[]]),
-			[AC_DEFINE(HAVE_MPI_EXT, [1], [<mpi-ext.h> is available])])
+		[AC_LANG_PROGRAM([[
+			#include <mpi.h>
+			#include <mpi-ext.h>
+		]],,)],
+		[AC_DEFINE(STARPU_HAVE_MPI_EXT, [1], [<mpi-ext.h> is available])])
 	CC=$OLD_CC
 fi
 
