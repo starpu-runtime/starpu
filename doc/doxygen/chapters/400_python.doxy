@@ -22,7 +22,9 @@ This interface supports most of the main StarPU functionalities. All the functio
 
 \section Installation Installation of the Python Interface
 
-You need to call \c configure with the option \ref enable-starpupy "--enable-starpupy". The python modules \c joblib and \c cloudpickle are mandatory and should be installed before calling \c configure. The python module \c numpy is recommended but not mandatory.
+The python modules \c joblib and \c cloudpickle are mandatory and should be installed before calling \c configure. The python module \c numpy is recommended but not mandatory.
+
+If all requirements are met, calling \c configure will enable by default the Python Interface. You can also specify th option \ref enable-starpupy "--enable-starpupy" which will fail if some requirements are missing.
 
 \verbatim
 $ pip3 install joblib

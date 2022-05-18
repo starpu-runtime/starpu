@@ -3601,15 +3601,22 @@ fi
 AM_CONDITIONAL(STARPU_STARPUPY_MULTI_INTERPRETER, [test x$starpupy_multi_interpreter = xyes])
 
 AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU python interface])],
-                    enable_starpupy=$enableval, enable_starpupy=no)
+                    enable_starpupy=$enableval, enable_starpupy=maybe)
 if test "x$enable_starpupy" != xno
 then
-	starpupy_support=yes
 	AC_CHECK_PROGS([PYTHON], python3)
 	if test "$ac_cv_prog_PYTHON" == ""
 	then
-		AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
+		if test "x$enable_starpupy" = xyes ; then
+			AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
+		else
+			AC_MSG_WARN([python3 missing, cannot build StarPU python interface])
+			enable_starpupy=no
+		fi
 	fi
+fi
+if test "x$enable_starpupy" != xno
+then
 	AC_SUBST(PYTHON)
 	AC_MSG_CHECKING(for python3 version)
 	PYTHON_VERSION=$(echo "import sys ; print(str(sys.version_info.major)+\".\"+str(sys.version_info.minor))" | $PYTHON)
@@ -3620,21 +3627,46 @@ then
 	CPPFLAGS="$CPPFLAGS -I$PYTHON_INCLUDE_DIRS"
 	AC_CHECK_HEADERS([Python.h],[have_python_h=yes],[have_python_h=no])
 	if test "$have_python_h" = "no" ; then
-		AC_MSG_ERROR([Python.h missing, cannot build StarPU python interface (consider installing python-dev)])
+		if test "x$enable_starpupy" = xyes ; then
+			AC_MSG_ERROR([Python.h missing, cannot build StarPU python interface (consider installing python-dev)])
+		else
+			AC_MSG_WARN([Python.h missing, cannot build StarPU python interface (consider installing python-dev)])
+			enable_starpupy=no
+		fi
 	fi
+fi
+if test "x$enable_starpupy" != xno
+then
 	CPPFLAGS=${SAVED_CPPFLAGS}
 	AC_MSG_CHECKING(for python3 module joblib)
 	AC_PYTHON_MODULE(joblib,[joblib_avail=yes],[joblib_avail=no])
 	AC_MSG_RESULT($joblib_avail)
 	if test "$joblib_avail" = "no" ; then
-		AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface (consider running 'pip3 install joblib')])
+		if test "x$enable_starpupy" = xyes ; then
+			AC_MSG_ERROR([python3 module joblib missing, cannot build StarPU python interface (consider running 'pip3 install joblib')])
+		else
+			AC_MSG_WARN([python3 module joblib missing, cannot build StarPU python interface (consider running 'pip3 install joblib')])
+			enable_starpupy=no
+		fi
 	fi
+fi
+if test "x$enable_starpupy" != xno
+then
 	AC_MSG_CHECKING(for python3 module cloudpickle)
 	AC_PYTHON_MODULE(cloudpickle,[cloudpickle_avail=yes],[cloudpickle_avail=no])
 	AC_MSG_RESULT($cloudpickle_avail)
 	if test "$cloudpickle_avail" = "no" ; then
-		AC_MSG_ERROR([python3 module cloudpickle missing, cannot build StarPU python interface (consider running 'pip3 install cloudpickle')])
+		if test "x$enable_starpupy" = xyes ; then
+			AC_MSG_ERROR([python3 module cloudpickle missing, cannot build StarPU python interface (consider running 'pip3 install cloudpickle')])
+		else
+			AC_MSG_WARN([python3 module cloudpickle missing, cannot build StarPU python interface (consider running 'pip3 install cloudpickle')])
+			enable_starpupy=no
+		fi
 	fi
+fi
+if test "x$enable_starpupy" != xno
+then
+	starpupy_support=yes
 	AC_MSG_CHECKING(for python3 module numpy)
 	AC_PYTHON_MODULE(numpy,[numpy_avail=yes],[numpy_avail=no])
 	AC_MSG_RESULT($numpy_avail)
