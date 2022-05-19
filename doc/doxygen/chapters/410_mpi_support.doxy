@@ -107,7 +107,7 @@ for (loop = 0; loop < nloops; loop++)
     {
         MPI_Recv(&token, 1, MPI_INT, (rank+size-1)%size, tag, MPI_COMM_WORLD);
     }
-	starpu_data_release(token_handle);
+    starpu_data_release(token_handle);
 
     /* Task delegation to StarPU to increment the token. The execution might
      * be performed on a CPU, a GPU, etc. */
@@ -123,7 +123,7 @@ for (loop = 0; loop < nloops; loop++)
     {
         MPI_Send(&token, 1, MPI_INT, (rank+1)%size, tag+1, MPI_COMM_WORLD);
     }
-	starpu_data_release(token_handle);
+    starpu_data_release(token_handle);
 }
 \endcode
 
@@ -528,7 +528,7 @@ data which will be needed by the tasks that we will execute.
     for(x = 0; x < X; x++)
     {
         for (y = 0; y < Y; y++)
-	{
+        {
             int mpi_rank = my_distrib(x, y, size);
             if (mpi_rank == my_rank)
                 /* Owning data */
@@ -541,7 +541,7 @@ data which will be needed by the tasks that we will execute.
                 /* I know it's useless to allocate anything for this */
                 data_handles[x][y] = NULL;
             if (data_handles[x][y])
-	    {
+            {
                 starpu_mpi_data_register(data_handles[x][y], x*X+y, mpi_rank);
             }
         }
@@ -671,8 +671,8 @@ can just pass \c NULL to starpu_mpi_task_insert():
 starpu_data_handle_t data0 = NULL;
 if (rank == 0)
 {
-	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
-	starpu_mpi_data_register(data0, 0, rank);
+    starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+    starpu_mpi_data_register(data0, 0, rank);
 }
 starpu_mpi_task_insert(MPI_COMM_WORLD, &cl, STARPU_W, data0, 0); /* Executes on node 0 */
 \endcode
@@ -687,15 +687,15 @@ not have to care about \c data0, but knows that it should send the value of its
 starpu_data_handle_t data0 = NULL, data1, data;
 if (rank == 0)
 {
-	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
-	starpu_mpi_data_register(data0, -1, rank);
-	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
-	starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t) &val, sizeof(val));
+    starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+    starpu_mpi_data_register(data0, -1, rank);
+    starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
+    starpu_variable_data_register(&data, STARPU_MAIN_RAM, (uintptr_t) &val, sizeof(val));
 }
 else if (rank == 1)
 {
-	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
-	starpu_variable_data_register(&data, -1, 0, sizeof(val));
+    starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
+    starpu_variable_data_register(&data, -1, 0, sizeof(val));
 }
 starpu_mpi_data_register(data, 42, 0);
 starpu_mpi_data_register(data1, 43, 1);
@@ -716,13 +716,13 @@ starpu_mpi_data_register(pernode, -1, STARPU_MPI_PER_NODE);
 /* Normal data: one on node0, one on node1 */
 if (rank == 0)
 {
-	starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
-	starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
+    starpu_variable_data_register(&data0, STARPU_MAIN_RAM, (uintptr_t) &val0, sizeof(val0));
+    starpu_variable_data_register(&data1, -1, 0, sizeof(val1));
 }
 else if (rank == 1)
 {
-	starpu_variable_data_register(&data0, -1, 0, sizeof(val1));
-	starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
+    starpu_variable_data_register(&data0, -1, 0, sizeof(val1));
+    starpu_variable_data_register(&data1, STARPU_MAIN_RAM, (uintptr_t) &val1, sizeof(val1));
 }
 starpu_mpi_data_register(data0, 42, 0);
 starpu_mpi_data_register(data1, 43, 1);
@@ -767,10 +767,10 @@ accessing the contribution through \c STARPU_RW|STARPU_COMMUTE mode.
 \code{.c}
 static struct starpu_codelet contrib_cl =
 {
-	.cpu_funcs = {cpu_contrib}, /* cpu implementation(s) of the routine */
-	.nbuffers = 1, /* number of data handles referenced by this routine */
-	.modes = {STARPU_RW | STARPU_COMMUTE} /* access modes for the contribution */
-	.name = "contribution"
+    .cpu_funcs = {cpu_contrib}, /* cpu implementation(s) of the routine */
+    .nbuffers = 1, /* number of data handles referenced by this routine */
+    .modes = {STARPU_RW | STARPU_COMMUTE} /* access modes for the contribution */
+    .name = "contribution"
 };
 \endcode
 
@@ -855,7 +855,7 @@ migrate the data, and register the new location.
     for(x = 0; x < X; x++)
     {
         for (y = 0; y < Y; y++)
-	{
+        {
             int mpi_rank = my_distrib2(x, y, size);
             if (!data_handles[x][y] && (mpi_rank == my_rank
                   || my_rank == my_distrib(x+1, y, size) || my_rank == my_distrib(x-1, y, size)
@@ -863,7 +863,7 @@ migrate the data, and register the new location.
                 /* Register newly-needed data */
                 starpu_variable_data_register(&data_handles[x][y], -1, (uintptr_t)NULL, sizeof(unsigned));
             if (data_handles[x][y])
-	    {
+            {
                 /* Migrate the data */
                 starpu_mpi_data_migrate(MPI_COMM_WORLD, data_handles[x][y], mpi_rank);
             }
@@ -889,9 +889,9 @@ latest value on the original home node.
     for(x = 0; x < X; x++)
     {
         for (y = 0; y < Y; y++)
-	{
+        {
             if (data_handles[x][y])
-	    {
+            {
                 int mpi_rank = my_distrib(x, y, size);
                 /* Get back data to original place where the user-provided buffer is.  */
                 starpu_mpi_get_data_on_node_detached(MPI_COMM_WORLD, data_handles[x][y], mpi_rank, NULL, NULL);
@@ -952,7 +952,7 @@ for(x = 0; x < nblocks ;  x++)
     {
         int owner = starpu_data_get_rank(data_handles[x]);
         if (owner == rank)
-	{
+        {
             starpu_task_insert(&cl, STARPU_RW, data_handles[x], 0);
         }
     }
