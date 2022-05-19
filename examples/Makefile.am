@@ -307,6 +307,7 @@ SHELL_TESTS += \
 	scheduler/libdummy_sched.sh
 pkglib_LTLIBRARIES =	\
 	scheduler/libdummy_sched.la
+scheduler_libdummy_sched_la_LDFLAGS = $(ldflags) -no-undefined
 
 if STARPU_HAVE_CXX11
 STARPU_EXAMPLES +=	\
