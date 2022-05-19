@@ -328,6 +328,14 @@ struct starpu_tree* starpu_workers_get_tree(void);
 unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
 
 /**
+   Return when the current task is expected to be finished.
+
+   Note: the returned date should be used with caution since the task might very
+   well end just after this function returns.
+ */
+void starpu_worker_get_current_task_exp_end(unsigned workerid, struct timespec *date);
+
+/**
    Return whether worker \p workerid is currently blocked in a parallel task.
  */
 unsigned starpu_worker_is_blocked_in_parallel(int workerid);

@@ -1510,6 +1510,15 @@ void _starpu_set_current_task(struct starpu_task *task)
 	STARPU_PTHREAD_SETSPECIFIC(current_task_key, task);
 }
 
+struct starpu_task *starpu_worker_get_current_task(unsigned workerid)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	if (worker->pipeline_length)
+		return worker->current_tasks[worker->first_task];
+	else
+		return worker->current_task;
+}
+
 int starpu_task_get_current_data_node(unsigned i)
 {
 	struct starpu_task *task = starpu_task_get_current();
