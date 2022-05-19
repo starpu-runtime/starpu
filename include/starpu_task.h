@@ -1150,7 +1150,7 @@ struct starpu_task
 
 	double flops;
 	/**
-	   Output field. Predicted duration of the task. This field is
+	   Output field. Predicted duration of the task in microseconds. This field is
 	   only set if the scheduling strategy uses performance
 	   models.
 

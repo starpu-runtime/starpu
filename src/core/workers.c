@@ -1876,6 +1876,12 @@ unsigned starpu_worker_get_count(void)
 	return _starpu_config.topology.nworkers;
 }
 
+void starpu_worker_get_current_task_exp_end(unsigned workerid, struct timespec *date)
+{
+	struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+	*date = worker->cl_expend;
+}
+
 unsigned starpu_worker_is_blocked_in_parallel(int workerid)
 {
 	if (!_starpu_worker_parallel_blocks)

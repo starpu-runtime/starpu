@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  * Copyright (C) 2016       Uppsala University
  *
@@ -301,6 +301,14 @@ int starpu_worker_get_mp_nodeid(int id);
 struct starpu_tree* starpu_workers_get_tree(void);
 
 unsigned starpu_worker_get_sched_ctx_list(int worker, unsigned **sched_ctx);
+
+/**
+   Return when the current task is expected to be finished.
+
+   Note: the returned date should be used with caution since the task might very
+   well end just after this function returns.
+ */
+void starpu_worker_get_current_task_exp_end(unsigned workerid, struct timespec *date);
 
 unsigned starpu_worker_is_blocked_in_parallel(int workerid);
 

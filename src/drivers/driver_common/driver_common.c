@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -60,6 +60,23 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 		if ((profiling && profiling_info) || calibrate_model)
 		{
 			_starpu_clock_gettime(&worker->cl_start);
+			if (task->predicted && !isnan(task->predicted))
+			{
+				struct timespec exp_end = start;
+				exp_end.tv_sec += task->predicted / 1000000;
+				exp_end.tv_nsec += fmod(task->predicted, 1000000.) * 1000;
+				if (exp_end.tv_nsec >= 1000000000)
+				{
+					exp_end.tv_sec++;
+					exp_end.tv_nsec -= 1000000000;
+				}
+				worker->cl_expend = exp_end;
+			}
+			else
+			{
+				worker->cl_expend.tv_sec = 0;
+				worker->cl_expend.tv_nsec = 0;
+			}
 			_starpu_worker_register_executing_start_date(workerid, &worker->cl_start);
 		}
 		_starpu_job_notify_start(j, perf_arch);
