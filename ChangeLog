@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -369,6 +369,7 @@ StarPU 1.2.7 (git revision 07cb7533c22958a76351bec002955f0e2818c530)
 Small features:
   * Add STARPU_HWLOC_INPUT environment variable to save initialization time.
   * Add starpu_data_set/get_ooc_flag.
+  * Use starpu_mpi_tag_t (int64_t) for MPI communication tag
 
 StarPU 1.2.6 (git revision 23049adea01837479f309a75c002dacd16eb34ad)
 ====================================================================
@@ -720,16 +721,48 @@ Small changes:
     STARPU_NMIC will be the number of devices, and STARPU_NMICCORES
     will be the number of cores per device.
 
+StarPU 1.1.8 (git revision f7b7abe9f86361cbc96f2b51c6ad7336b7d1d628)
+====================================================================
+The scheduling context release
+
+Small changes:
+  * Fix compatibility with simgrid 3.14
+  * Fix lock ordering for memory reclaiming
+
+StarPU 1.1.7 (git revision 341044b67809892cf4a388e482766beb50256907)
+====================================================================
+The scheduling context release
+
+Small changes:
+  * Fix type of data home node to allow users to pass -1 to define
+    temporary data
+
+StarPU 1.1.6 (git revision cdffbd5f5447e4d076d659232b3deb14f3c20da6)
+====================================================================
+The scheduling context release
+
+Small features:
+  * Add starpu_task_get_task_succs to get the list of children of a given
+    task.
+  * Ranges can be provided in STARPU_WORKERS_CPUID
+
+Small changes:
+  * Various fixes for MacOS and windows systems
+
 StarPU 1.1.5 (git revision 20469c6f3e7ecd6c0568c8e4e4b5b652598308d8xxx)
 =======================================================================
 The scheduling context release
 
+New features:
   * Add starpu_memory_pin and starpu_memory_unpin to pin memory allocated
     another way than starpu_malloc.
   * Add starpu_task_wait_for_n_submitted() and
     STARPU_LIMIT_MAX_NSUBMITTED_TASKS/STARPU_LIMIT_MIN_NSUBMITTED_TASKS to
     easily control the number of submitted tasks by making task submission
     block.
+  * Add STARPU_NOWHERE to create synchronization tasks with data.
+  * Document how to switch between differents views of the same data.
+  * Add Fortran 90 module and example using it
 
 StarPU 1.1.4 (git revision 2a3d30b28d6d099d271134a786335acdbb3931a3)
 ====================================================================
