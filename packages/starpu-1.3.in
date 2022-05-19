@@ -14,8 +14,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
-proc ModulesHelp { } {
-    puts stderr "\t[module-info name] - loads the $name environment"
+
+proc ModulesHelp { }
+{
+    puts stderr "\t[module-info name] - loads the StarPU @STARPU_EFFECTIVE_VERSION@ environment"
     puts stderr "\tThe following environment variables are modified:"
     puts stderr "\t$PATH"
     puts stderr "\t$LD_LIBRARY_PATH"
@@ -26,25 +28,27 @@ proc ModulesHelp { } {
     puts stderr "\t$MANPATH"
 }
 
+set prefix	@prefix@
+
 conflict starpu
 
-set     name            starpu
-set     prefix          @prefix@
+module-whatis   "loads the StarPU @STARPU_EFFECTIVE_VERSION@ environment"
 
-if {![file exists $prefix]} {
+if {![file exists $prefix]}
+{
     puts stderr "\t[module-info name] Load Error: $prefix does not exist"
     break
     exit 1
 }
 
-module-whatis   "loads the $name environment"
+set exec_prefix	@exec_prefix@
+set libdir	@libdir@
 
-# Ajout de PATH en debut de PATH existant
-# ---------------------------------------
-prepend-path   PATH               $prefix/bin
-prepend-path   LD_LIBRARY_PATH    $prefix/lib
-prepend-path   LIBRARY_PATH       $prefix/lib
-prepend-path   INCLUDE            $prefix/include/starpu/1.3
-prepend-path   CPATH              $prefix/include/starpu/1.3
-prepend-path   PKG_CONFIG_PATH    $prefix/lib/pkgconfig
-prepend-path   MANPATH            $prefix/share/man
+prepend-path  PATH		@bindir@
+prepend-path  LD_LIBRARY_PATH	@libdir@
+prepend-path  LIBRARY_PATH	@libdir@
+prepend-path  INCLUDE		@includedir@/starpu/@STARPU_EFFECTIVE_VERSION@
+prepend-path  CPATH		@includedir@/starpu/@STARPU_EFFECTIVE_VERSION@
+prepend-path  PKG_CONFIG_PATH	@libdir@/pkgconfig
+prepend-path  MANPATH		@mandir@
+prepend-path  PYTHONPATH	@libdir@/python@PYTHON_VERSION@/site-packages
