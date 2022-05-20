@@ -42,7 +42,7 @@ install-exec-local: all
 		chmod u+w $(prefix)/lib/python$(PYTHON_VERSION) ; \
 		chmod u+w $(prefix)/lib/python$(PYTHON_VERSION)/site-packages ; \
 	fi
-	mkdir $(PYTHONPATH)/starpu
+	$(MKDIR_P) $(PYTHONPATH)/starpu
 	chmod u+w $(PYTHONPATH)/starpu
 	mkdir $(PYTHONPATH)/tmp
 	chmod u+w $(PYTHONPATH)/tmp
