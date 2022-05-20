@@ -53,13 +53,12 @@ install-exec-local: all
 
 if STARPU_BUILD_STARPUPY
 clean-local:
-	$(PYTHON) setup.py clean
-	rm -fr build
+	rm -fr build $(top_builddir)/starpupy/src/starpupy.egg-info
 	rm -f starpu/*py starpu/*c
 endif
 
 distclean-local:
-	rm -rf build $(top_srcdir)/starpupy/starpupy.egg-info
+	rm -rf build
 
 uninstall-local:
 	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu*
