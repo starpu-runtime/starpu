@@ -44,9 +44,9 @@ install-exec-local: all
 	fi
 	$(MKDIR_P) $(PYTHONPATH)/starpu
 	chmod u+w $(PYTHONPATH)/starpu
-	mkdir $(PYTHONPATH)/tmp
+	$(MKDIR_P) $(PYTHONPATH)/tmp
 	chmod u+w $(PYTHONPATH)/tmp
-	mkdir $(PYTHONPATH)/tmp/starpu
+	$(MKDIR_P) $(PYTHONPATH)/tmp/starpu
 	chmod u+w $(PYTHONPATH)/tmp/starpu
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) setup.py install
 	rm -fr build/bdist*
