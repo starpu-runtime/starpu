@@ -42,8 +42,12 @@ install-exec-local: all
 		chmod u+w $(prefix)/lib/python$(PYTHON_VERSION) ; \
 		chmod u+w $(prefix)/lib/python$(PYTHON_VERSION)/site-packages ; \
 	fi
-	$(MKDIR_P) $(PYTHONPATH)/starpu
-	$(MKDIR_P) $(PYTHONPATH)/tmp/starpu
+	mkdir $(PYTHONPATH)/starpu
+	chmod u+w $(PYTHONPATH)/starpu
+	mkdir $(PYTHONPATH)/tmp
+	chmod u+w $(PYTHONPATH)/tmp
+	mkdir $(PYTHONPATH)/tmp/starpu
+	chmod u+w $(PYTHONPATH)/tmp/starpu
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) setup.py install
 	rm -fr build/bdist*
 
