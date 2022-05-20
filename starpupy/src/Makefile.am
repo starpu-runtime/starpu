@@ -59,7 +59,7 @@ clean-local:
 endif
 
 distclean-local:
-	rm -rf build
+	rm -rf build $(top_srcdir)/starpupy/starpupy.egg-info
 
 uninstall-local:
 	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu*
