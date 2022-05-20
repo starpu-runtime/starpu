@@ -62,7 +62,7 @@ void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job 
 			_starpu_clock_gettime(&worker->cl_start);
 			if (task->predicted && !isnan(task->predicted))
 			{
-				struct timespec exp_end = start;
+				struct timespec exp_end = worker->cl_start;
 				exp_end.tv_sec += task->predicted / 1000000;
 				exp_end.tv_nsec += fmod(task->predicted, 1000000.) * 1000;
 				if (exp_end.tv_nsec >= 1000000000)
