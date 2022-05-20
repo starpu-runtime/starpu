@@ -37,12 +37,13 @@ all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD)
 PYTHONPATH=$(prefix)/lib/python$(PYTHON_VERSION)/site-packages
 
 install-exec-local: all
-	@if test -d $(prefix)/lib/python* ; \
+	@if test -d $(prefix)/lib/python$(PYTHON_VERSION) ; \
 	then	\
-		chmod u+w $(prefix)/lib/python* ; \
-		chmod u+w $(prefix)/lib/python*/site-packages ; \
+		chmod u+w $(prefix)/lib/python$(PYTHON_VERSION) ; \
+		chmod u+w $(prefix)/lib/python$(PYTHON_VERSION)/site-packages ; \
 	fi
-	$(MKDIR_P) $(PYTHONPATH)
+	$(MKDIR_P) $(PYTHONPATH)/starpu
+	$(MKDIR_P) $(PYTHONPATH)/tmp/starpu
 	PYTHONPATH=$(PYTHONPATH) $(PYTHON) setup.py install
 	rm -fr build/bdist*
 
@@ -57,8 +58,8 @@ distclean-local:
 	rm -rf build
 
 uninstall-local:
-	rm -rf $(prefix)/lib/python*/site-packages/starpu*
-	rm -rf $(prefix)/lib/python*/site-packages/tmp/starpu*
+	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/starpu*
+	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/tmp/starpu*
 
 EXTRA_DIST	=		\
 	delay.py		\
