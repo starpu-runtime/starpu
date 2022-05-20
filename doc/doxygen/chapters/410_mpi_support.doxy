@@ -574,7 +574,10 @@ To tune the placement of tasks among MPI nodes, one can use
 ::STARPU_EXECUTE_ON_NODE or ::STARPU_EXECUTE_ON_DATA to specify an explicit
 node, or the node of a given data (e.g. one of the parameters), or use
 starpu_mpi_node_selection_register_policy() and ::STARPU_NODE_SELECTION_POLICY
-to provide a dynamic policy.
+to provide a dynamic policy. The default policy is to execute the task on the
+node which owns a data that require write access; if the task requires several
+data handles with write access, the node executing the task is selected in
+order to minimize the amount of data to transfer between nodes.
 
 A function starpu_mpi_task_build() is also provided with the aim to
 only construct the task structure. All MPI nodes need to call the
