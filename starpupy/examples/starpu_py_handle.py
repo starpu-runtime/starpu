@@ -37,8 +37,10 @@ def add(x, y):
 	return x + y
 
 # create Handle objects
-x = Handle(2)
-y = Handle(3)
+x=2
+y=3
+x_h = Handle(x)
+y_h = Handle(y)
 
 print("*************************")
 print("constant handle:")
@@ -58,12 +60,25 @@ print("result of res1+Handle(3) is:", res2.get())
 # show function returns Handle
 ret_h2 = starpu.task_submit(ret_handle=True)(show, res1, res2)
 
-x.unregister()
-y.unregister()  
+print("*************************************")
+print("constant handle return in parameter:")
+print("*************************************")
+
+ret = Handle(0)
+print("before calling function, ret value is:", ret.get())
+# return value as parameter
+ret_n = starpu.task_submit(ret_param=True)(add, ret, x_h, y_h)
+print("result of Handle(2)+Handle(3) is:", ret.get())
+print("return value of task_submit is:", ret_n)
+assert ret.get() == x+y
+
+x_h.unregister()
+y_h.unregister() 
 
 ret_h1.unregister()
 ret_h2.unregister()
 res2.unregister()
+ret.unregister()
 
 ##############################################################################################
 print("*************************")

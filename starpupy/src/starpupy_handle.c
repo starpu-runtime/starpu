@@ -44,6 +44,7 @@
 }while(0)
 
 PyObject *starpu_module; /*starpu __init__ module*/
+PyObject *starpu_dict;  /*starpu __init__ dictionary*/
 int buf_id;
 int obj_id;
 
@@ -188,34 +189,67 @@ static PyObject* starpupy_object_register(PyObject *obj, char* mode)
 		}
 	}
 
-	PyObject *handle_obj=PyCapsule_New(handle, "Handle", NULL);
+	PyObject *handle_cap=PyCapsule_New(handle, "Handle", NULL);
 
-	return handle_obj;
+	return handle_cap;
 }
 
 /*register PyObject in a handle*/
 PyObject* starpupy_data_register_wrapper(PyObject *self, PyObject *args)
 {
 	PyObject *obj;
+	PyObject *handle_obj;
 
-	if (!PyArg_ParseTuple(args, "O", &obj))
+	if (!PyArg_ParseTuple(args, "OO", &obj, &handle_obj))
 		return NULL;
 
-	PyObject *handle_obj = starpupy_object_register(obj, NULL);
+	/*register the python object*/
+	PyObject *handle_cap = starpupy_object_register(obj, NULL);
 
-	return handle_obj;
+	const char *tp = Py_TYPE(obj)->tp_name;
+	//printf("the type of object is %s\n", tp);
+	/*if the object is immutable, store the obj_id and handle_obj in handle_set, and registering the same python object several times is authorised*/
+	if (strcmp(tp, "int")==0 || strcmp(tp, "float")==0 || strcmp(tp, "str")==0 || strcmp(tp, "bool")==0 || strcmp(tp, "tuple")==0 || strcmp(tp, "range")==0 || strcmp(tp, "complex")==0 || strcmp(tp, "decimal.Decimal")==0 || strcmp(tp, "NoneType")==0)
+	{
+		/*set handle_obj in handle_set*/
+		/*get handle_set*/
+		PyObject *handle_set = PyObject_GetAttrString(starpu_module, "handle_set");
+		
+		/*add new handle object in set*/
+		PySet_Add(handle_set, handle_obj);
+
+		Py_DECREF(handle_set);
+	}
+	/*if the object is mutable, store the obj_id and handle_obj in handle_dict, and should not register the same python object more than twice*/
+	else
+	{
+		/*set the obj_id and handle_obj in handle_dict*/
+		/*get handle_dict*/
+		PyObject *handle_dict = PyObject_GetAttrString(starpu_module, "handle_dict");
+
+		/*get object id*/
+		PyObject *obj_id = PyObject_CallMethod(handle_obj, "get_obj_id", NULL);
+
+		if(PyDict_GetItem(handle_dict, obj_id)!=NULL)
+		{
+			RETURN_EXCEPT("Should not register the same mutable python object once more.");
+		}
+
+		PyDict_SetItem(handle_dict, obj_id, handle_obj);
+
+		Py_DECREF(handle_dict);
+		Py_DECREF(obj_id);
+	}
+
+	return handle_cap;
 }
 
-/*register empty Numpy array in a handle*/
+/*generate empty Numpy array*/
 PyObject* starpupy_numpy_register_wrapper(PyObject *self, PyObject *args)
 {
 #ifdef STARPU_PYTHON_HAVE_NUMPY
-	starpu_data_handle_t handle;
-	int home_node = -1;
-	PyObject* dtype; /*dtype of numpy array*/
-
 	/*get the first argument*/
-	PyObject* dimobj = PyTuple_GetItem(args, 0);
+	PyObject *dimobj = PyTuple_GetItem(args, 0);
 	/*protect borrowed reference, decrement after check*/
 	Py_INCREF(dimobj);
 	/*detect whether user provides dtype or not*/
@@ -247,46 +281,23 @@ PyObject* starpupy_numpy_register_wrapper(PyObject *self, PyObject *args)
 	Py_DECREF(dimobj);
 
 	/*the second argument is dtype*/
-	dtype = PyTuple_GetItem(args, 1);
+	PyObject *dtype = PyTuple_GetItem(args, 1);
 	/*protect borrowed reference*/
 	Py_INCREF(dtype);
-
-	/*get the size of array*/
-	int narray = 1;
-	int i;
-	for (i=0; i<ndim; i++)
-	{
-		narray = narray*dim[i];
-	}
 
 	/*get the type of target array*/
 	PyObject *type_obj = PyObject_GetAttrString(dtype, "num");
 	int arr_type = PyLong_AsLong(type_obj);
 
-	/*get the item size of target array*/
-	PyObject *nitem_obj = PyObject_GetAttrString(dtype, "itemsize");
-	int nitem = PyLong_AsLong(nitem_obj);
-
 	Py_DECREF(dtype);
 	Py_DECREF(type_obj);
-	Py_DECREF(nitem_obj);
 
 	import_array();
-	/*generate a new empty array*/
+	/*generate a new empty array, it's the return value*/
 	PyObject * new_array = PyArray_EMPTY(ndim, dim, arr_type, 0);
 
-	npy_intp* arr_dim = PyArray_DIMS((PyArrayObject *)new_array);
-
-	/*register the buffer*/
-	buf_id = starpupy_buffer_numpy_register(&handle, home_node, starpupy_numpy_interface, 0, narray*nitem, ndim, arr_dim, arr_type, nitem);
-
-	/*handle->PyObject**/
-	PyObject *handle_array=PyCapsule_New(handle, "Handle", NULL);
-
-	Py_DECREF(new_array);
 	free(dim);
-
-	return handle_array;
+	return new_array;
 #endif
 	return NULL;
 }
@@ -294,13 +305,13 @@ PyObject* starpupy_numpy_register_wrapper(PyObject *self, PyObject *args)
 /*get PyObject from Handle*/
 PyObject *starpupy_get_object_wrapper(PyObject *self, PyObject *args)
 {
-	PyObject *handle_obj;
+	PyObject *handle_cap;
 
-	if (!PyArg_ParseTuple(args, "O", &handle_obj))
+	if (!PyArg_ParseTuple(args, "O", &handle_cap))
 		return NULL;
 
 	/*PyObject *->handle*/
-	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
 	if (handle == (void*)-1)
 	{
@@ -359,16 +370,30 @@ PyObject *handle_dict_check(PyObject *obj, char* mode, char* op)
 		/*check whether the arg is already registed*/
 		if(PyDict_GetItem(handle_dict, obj_id)==NULL)
 		{
-			/*get the handle of arg, handle_obj is a new reference, is the return value of this function*/
-			handle_obj = starpupy_object_register(obj, mode);
+			PyObject *Handle_class = PyDict_GetItemString(starpu_dict, "Handle");
+
+			/*get the constructor, decremented after being called*/
+			PyObject *pInstanceHandle = PyInstanceMethod_New(Handle_class);
+
+			/*create a Null Handle object, decremented in the end of this if{}*/
+			PyObject *handle_arg = PyTuple_New(1);
+			/*obj is used for PyTuple_SetItem(handle_arg), once handle_arg is decremented, obj is decremented as well*/
+			Py_INCREF(obj);
+			PyTuple_SetItem(handle_arg, 0, obj);
+
+			/*generate the handle object, decremented in the end of this function*/
+			handle_obj = PyObject_CallObject(pInstanceHandle,handle_arg);
+
 			/*set the arg_id and handle in handle_dict*/
-			Py_DECREF(handle_dict);
-			handle_dict = PyObject_CallMethod(starpu_module, "handle_dict_set_item", "OO", obj, handle_obj);
+			PyDict_SetItem(handle_dict, obj_id, handle_obj);
+
+			Py_DECREF(pInstanceHandle);
+			Py_DECREF(handle_arg);
 		}
 		else
 		{
 			handle_obj = PyDict_GetItem(handle_dict, obj_id);
-			/*protect borrowed reference, is the return value of this function*/
+			/*protect borrowed reference, decremented in the end of this function*/
 			Py_INCREF(handle_obj);
 		}
 	}
@@ -382,30 +407,34 @@ PyObject *handle_dict_check(PyObject *obj, char* mode, char* op)
 
 		/*get the corresponding handle of the obj*/
 		handle_obj = PyDict_GetItem(handle_dict, obj_id);
-		/*protect borrowed reference, is the retun value of this function*/
+		/*protect borrowed reference, decremented in the end of this function*/
 		Py_INCREF(handle_obj);
 	}
 
 	Py_DECREF(handle_dict);
 	Py_DECREF(obj_id);
 
-	return handle_obj;
+	/*get Handle capsule object, which is the return value of this function*/
+	PyObject *handle_cap = PyObject_CallMethod(handle_obj, "get_capsule", NULL);
 
+	Py_DECREF(handle_obj);
+	return handle_cap;
 }
+
 /*acquire Handle*/
 PyObject *starpupy_acquire_handle_wrapper(PyObject *self, PyObject *args)
 {
-	PyObject *handle_obj;
+	PyObject *handle_cap;
 	PyObject *pyMode;
 
-	if (!PyArg_ParseTuple(args, "OO", &handle_obj, &pyMode))
+	if (!PyArg_ParseTuple(args, "OO", &handle_cap, &pyMode))
 		return NULL;
 
 	const char* mode_str = PyUnicode_AsUTF8(pyMode);
 	char* obj_mode = strdup(mode_str);
 
 	/*PyObject *->handle*/
-	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
 	if (handle == (void*)-1)
 	{
@@ -473,13 +502,13 @@ PyObject *starpupy_acquire_object_wrapper(PyObject *self, PyObject *args)
 	const char* mode_str = PyUnicode_AsUTF8(pyMode);
 	char* obj_mode = strdup(mode_str);
 
-	/*get the corresponding handle of the obj*/
-	PyObject *handle_obj = handle_dict_check(obj, NULL, "register");
+	/*get the corresponding handle capsule of the obj*/
+	PyObject *handle_cap = handle_dict_check(obj, NULL, "register");
 
 	/*PyObject *->handle*/
-	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
-	Py_DECREF(handle_obj);
+	Py_DECREF(handle_cap);
 
 	int ret=0;
 	if(strcmp(obj_mode, "R") == 0)
@@ -535,13 +564,13 @@ PyObject *starpupy_acquire_object_wrapper(PyObject *self, PyObject *args)
 /*release Handle*/
 PyObject *starpupy_release_handle_wrapper(PyObject *self, PyObject *args)
 {
-	PyObject *handle_obj;
+	PyObject *handle_cap;
 
-	if (!PyArg_ParseTuple(args, "O", &handle_obj))
+	if (!PyArg_ParseTuple(args, "O", &handle_cap))
 		return NULL;
 
 	/*PyObject *->handle*/
-	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
 	if (handle == (void*)-1)
 	{
@@ -571,19 +600,19 @@ PyObject *starpupy_release_object_wrapper(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O", &obj))
 		return NULL;
 
-	/*get the corresponding handle of the obj*/
-	PyObject *handle_obj = handle_dict_check(obj, NULL, "exception");
+	/*get the corresponding handle capsule of the obj*/
+	PyObject *handle_cap = handle_dict_check(obj, NULL, "exception");
 
-	if(handle_obj == NULL)
+	if(handle_cap == NULL)
 	{
-		Py_XDECREF(handle_obj);
+		Py_XDECREF(handle_cap);
 		return NULL;
 	}
 
 	/*PyObject *->handle*/
-	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
-	Py_DECREF(handle_obj);
+	Py_DECREF(handle_cap);
 
 	/*call starpu_data_release method*/
 	Py_BEGIN_ALLOW_THREADS
@@ -595,6 +624,29 @@ PyObject *starpupy_release_object_wrapper(PyObject *self, PyObject *args)
 	return Py_None;
 }
 
+static void starpupy_remove_handle_from_dict(PyObject *obj_id)
+{
+	/*delete object from handle_dict*/
+	PyObject *handle_dict = PyObject_GetAttrString(starpu_module, "handle_dict");
+
+	if(PyDict_GetItem(handle_dict, obj_id) != NULL)
+	{
+		PyDict_DelItem(handle_dict, obj_id);
+	}
+
+	Py_DECREF(handle_dict);
+}
+
+static void starpupy_remove_handle_from_set(PyObject *handle_obj)
+{
+	/*delete object from handle_set*/
+	PyObject *handle_set = PyObject_GetAttrString(starpu_module, "handle_set");
+	
+	PySet_Discard(handle_set, handle_obj);
+
+	Py_DECREF(handle_set);
+}
+
 /* unregister handle*/
 PyObject *starpupy_data_unregister_wrapper(PyObject *self, PyObject *args)
 {
@@ -603,8 +655,13 @@ PyObject *starpupy_data_unregister_wrapper(PyObject *self, PyObject *args)
 	if (!PyArg_ParseTuple(args, "O", &handle_obj))
 		return NULL;
 
+	/*get the handle capsule*/
+	PyObject *handle_cap = PyObject_CallMethod(handle_obj, "get_capsule", NULL);
+	/*get the id of arg*/
+	PyObject *obj_id = PyObject_CallMethod(handle_obj, "get_obj_id", NULL);
+
 	/*PyObject *->handle*/
-	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
 	if (handle == (void*)-1)
 	{
@@ -617,6 +674,12 @@ PyObject *starpupy_data_unregister_wrapper(PyObject *self, PyObject *args)
 	Py_END_ALLOW_THREADS
 
 	PyCapsule_SetPointer(handle_obj, (void*)-1);
+
+	starpupy_remove_handle_from_dict(obj_id);
+	starpupy_remove_handle_from_set(handle_obj);
+
+	Py_DECREF(handle_cap);
+	Py_DECREF(obj_id);
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
@@ -631,17 +694,19 @@ PyObject *starpupy_data_unregister_object_wrapper(PyObject *self, PyObject *args
 	if (!PyArg_ParseTuple(args, "O", &obj))
 		return NULL;
 
-	/*get the corresponding handle of the obj*/
-	PyObject *handle_obj = handle_dict_check(obj, NULL, "exception");
+	/*get the corresponding handle capsule of the obj*/
+	PyObject *handle_cap = handle_dict_check(obj, NULL, "exception");
+	/*get the id of obj*/
+	PyObject *obj_id = PyLong_FromVoidPtr(obj);
 
-	if(handle_obj == NULL)
+	if(handle_cap == NULL)
 	{
-		Py_XDECREF(handle_obj);
+		Py_XDECREF(handle_cap);
 		return NULL;
 	}
 
 	/*PyObject *->handle*/
-	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
 	if (handle == (void*)-1)
 	{
@@ -653,17 +718,12 @@ PyObject *starpupy_data_unregister_object_wrapper(PyObject *self, PyObject *args
 	starpu_data_unregister(handle);
 	Py_END_ALLOW_THREADS
 
-	PyCapsule_SetPointer(handle_obj, (void*)-1);
+	PyCapsule_SetPointer(handle_cap, (void*)-1);
 
-	/*delete object from handle_dict*/
-	PyObject *handle_dict = PyObject_GetAttrString(starpu_module, "handle_dict");
-	/*get the id of arg*/
-	PyObject *arg_id = PyLong_FromVoidPtr(obj);
-	PyDict_DelItem(handle_dict, arg_id);
+	starpupy_remove_handle_from_dict(obj_id);
 
-	Py_DECREF(handle_dict);
-	Py_DECREF(arg_id);
-	Py_DECREF(handle_obj);
+	Py_DECREF(handle_cap);
+	Py_DECREF(obj_id);
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
@@ -678,8 +738,13 @@ PyObject *starpupy_data_unregister_submit_wrapper(PyObject *self, PyObject *args
 	if (!PyArg_ParseTuple(args, "O", &handle_obj))
 		return NULL;
 
+	/*get the handle capsule*/
+	PyObject *handle_cap = PyObject_CallMethod(handle_obj, "get_capsule", NULL);
+	/*get the id of arg*/
+	PyObject *obj_id = PyObject_CallMethod(handle_obj, "get_obj_id", NULL);
+
 	/*PyObject *->handle*/
-	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
 	if (handle == (void*)-1)
 	{
@@ -692,6 +757,12 @@ PyObject *starpupy_data_unregister_submit_wrapper(PyObject *self, PyObject *args
 	Py_END_ALLOW_THREADS
 
 	PyCapsule_SetPointer(handle_obj, (void*)-1);
+
+	starpupy_remove_handle_from_dict(obj_id);
+	starpupy_remove_handle_from_set(handle_obj);
+
+	Py_DECREF(handle_cap);
+	Py_DECREF(obj_id);
 
 	/*return type is void*/
 	Py_INCREF(Py_None);
@@ -706,17 +777,19 @@ PyObject *starpupy_data_unregister_submit_object_wrapper(PyObject *self, PyObjec
 	if (!PyArg_ParseTuple(args, "O", &obj))
 		return NULL;
 
-	/*get the corresponding handle of the obj*/
-	PyObject *handle_obj = handle_dict_check(obj, NULL, "exception");
+	/*get the corresponding handle capsule of the obj*/
+	PyObject *handle_cap = handle_dict_check(obj, NULL, "exception");
+	/*get the id of obj*/
+	PyObject *obj_id = PyLong_FromVoidPtr(obj);
 
-	if(handle_obj == NULL)
+	if(handle_cap == NULL)
 	{
-		Py_XDECREF(handle_obj);
+		Py_XDECREF(handle_cap);
 		return NULL;
 	}
 
 	/*PyObject *->handle*/
-	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+	starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
 	if (handle == (void*)-1)
 	{
@@ -729,17 +802,12 @@ PyObject *starpupy_data_unregister_submit_object_wrapper(PyObject *self, PyObjec
 	starpu_data_unregister_submit(handle);
 	Py_END_ALLOW_THREADS
 
-	PyCapsule_SetPointer(handle_obj, (void*)-1);
+	PyCapsule_SetPointer(handle_cap, (void*)-1);
 
-	/*delete object from handle_dict*/
-	PyObject *handle_dict = PyObject_GetAttrString(starpu_module, "handle_dict");
-	/*get the id of arg*/
-	PyObject *arg_id = PyLong_FromVoidPtr(obj);
-	PyDict_DelItem(handle_dict, arg_id);
+	starpupy_remove_handle_from_dict(obj_id);
 
-	Py_DECREF(handle_dict);
-	Py_DECREF(arg_id);
-	Py_DECREF(handle_obj);
+	Py_DECREF(handle_cap);
+	Py_DECREF(obj_id);
 
 	/*return type is void*/
 	Py_INCREF(Py_None);

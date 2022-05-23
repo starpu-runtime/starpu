@@ -35,42 +35,46 @@ class Handle(object):
 
 	def __init__(self, obj):
 		self.obj=obj
-		self.handle_obj=starpupy.starpupy_data_register(self.obj)
+		self.obj_id=id(self.obj)
+		self.handle_cap=starpupy.starpupy_data_register(self.obj, self)
 
 	def get_capsule(self):
-		return self.handle_obj
+		return self.handle_cap
+
+	def get_obj_id(self):
+		return self.obj_id
 
 	# get PyObject
 	def get(self):
-		return starpupy.starpupy_get_object(self.handle_obj)
+		return starpupy.starpupy_get_object(self.handle_cap)
 
 	# get array object
 	def acquire(self, mode='R'):
-		return starpupy.starpupy_acquire_handle(self.handle_obj, mode)
+		return starpupy.starpupy_acquire_handle(self.handle_cap, mode)
 
 	# release
 	def release(self):
-		return starpupy.starpupy_release_handle(self.handle_obj)
+		return starpupy.starpupy_release_handle(self.handle_cap)
 
 	# unregister
 	def unregister(self):
-		return starpupy.starpupy_data_unregister(self.handle_obj)
+		return starpupy.starpupy_data_unregister(self)
 
 	# unregister_submit
 	def unregister_submit(self):
-		return starpupy.starpupy_data_unregister_submit(self.handle_obj)
+		return starpupy.starpupy_data_unregister_submit(self)
 
 	# partition
 	def partition(self, nchildren, dim, chunks_list=[]):
-		return starpupy.starpupy_data_partition(self.handle_obj, nchildren, dim, chunks_list)
+		return starpupy.starpupy_data_partition(self.handle_cap, nchildren, dim, chunks_list)
 
 	# get partition size
 	def get_partition_size(self, handle_list):
-		return starpupy.starpupy_get_partition_size(self.handle_obj, handle_list)
+		return starpupy.starpupy_get_partition_size(self.handle_cap, handle_list)
 
 	# unpartition
 	def unpartition(self, handle_list, nchildren):
-		return starpupy.starpupy_data_unpartition(self.handle_obj, handle_list, nchildren)
+		return starpupy.starpupy_data_unpartition(self.handle_cap, handle_list, nchildren)
 
 def new_empty_numpy(shape, dtype):
 	return np.empty(shape, dtype)
@@ -81,23 +85,20 @@ class HandleNumpy(Handle):
 		def __init__(self, shape, dtype=np.dtype('float64')):
 			self.dtype=dtype
 			self.obj=new_empty_numpy(shape, self.dtype)
-			self.handle_obj=starpupy.starpupy_data_register(self.obj)
+			self.obj_id=id(self.obj)
+			self.handle_cap=starpupy.starpupy_data_register(self.obj, self)
 
 
 #detect class handle
 class Handle_token(object):
 	pass
 
-#this dict contains the handle capsule which is used in all case
+#this dict contains all handle objects of mutable Python objects
 handle_dict={}
 def handle_dict_set_item(obj, handle):
 	assert handle_dict.get(id(obj))==None
 	handle_dict[id(obj)]=handle
 	return handle_dict
 
-#this dict contains the handle obj which is only used in joblib.py corresponding handle_dict
-handle_obj_dict={}
-def handle_obj_dict_set_item(obj, handle):
-	assert handle_obj_dict.get(id(obj))==None
-	handle_obj_dict[id(obj)]=handle
-	return handle_obj_dict
+#this set contains all handle objects of immutable Python objects
+handle_set=set()

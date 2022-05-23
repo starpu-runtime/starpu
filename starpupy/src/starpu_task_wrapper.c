@@ -100,7 +100,6 @@ static PyObject *StarpupyError; /*starpupy error exception*/
 static PyObject *asyncio_module; /*python asyncio module*/
 static PyObject *cloudpickle_module; /*cloudpickle module*/
 static PyObject *pickle_module; /*pickle module*/
-static PyObject *starpu_dict;  /*starpu __init__ dictionary*/
 static PyObject *wait_method = Py_None;  /*method wait_for_fut*/
 static PyObject *Handle_class = Py_None;  /*Handle class*/
 static PyObject *Token_class = Py_None;  /*Handle_token class*/
@@ -358,10 +357,14 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	/*check if there is Handle in argList, if so, get the object*/
 	int h_index= (h_flag ? 1 : 0);
 	int i;
-	for(i=0; i < PyTuple_Size(argList); i++)
+	/*if there is the return Handle in argList, length of argList minus 1*/
+	Py_ssize_t pArglist_len = (h_flag == 2) ? PyTuple_Size(argList)-1 : PyTuple_Size(argList);
+	/*new tuple contains all function arguments, decrement after calling function*/
+	PyObject *pArglist = PyTuple_New(pArglist_len);
+	for(i=0; i < pArglist_len; i++)
 	{
-		/*detect Handle*/
-		PyObject *obj=PyTuple_GetItem(argList, i);
+		/*if there is the return Handle in argList, start with the second argument*/
+		PyObject *obj= (h_flag == 2) ? PyTuple_GetItem(argList, i+1) : PyTuple_GetItem(argList, i);
 		/*protect borrowed reference, is decremented in the end of the loop*/
 		Py_INCREF(obj);
 		const char* tp = Py_TYPE(obj)->tp_name;
@@ -372,21 +375,26 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 			{
 				PyObject *obj_handle = STARPUPY_GET_PYOBJECT(descr[h_index]);
 				Py_INCREF(obj_handle);
-				PyTuple_SetItem(argList, i, obj_handle);
+				PyTuple_SetItem(pArglist, i, obj_handle);
 			}
 			else if (starpu_data_get_interface_id(task->handles[h_index]) == buf_id)
 			{
 				PyObject *buf_handle = STARPUPY_BUF_GET_PYOBJECT(descr[h_index]);
-				PyTuple_SetItem(argList, i, buf_handle);
+				PyTuple_SetItem(pArglist, i, buf_handle);
 			}
 
 			h_index++;
+		}
+		else
+		{
+			Py_INCREF(obj);
+			PyTuple_SetItem(pArglist, i, obj);
 		}
 		Py_DECREF(obj);
 	}
 
 	// printf("arglist before applying is ");
-	//    PyObject_Print(argList, stdout, 0);
+	//    PyObject_Print(pArglist, stdout, 0);
 	//    printf("\n");
 
 	/*verify that the function is a proper callable*/
@@ -396,10 +404,10 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	}
 
 	/*call the python function get the return value rv, it's a new reference*/
-	PyObject *rv = PyObject_CallObject(func_py, argList);
+	PyObject *rv = PyObject_CallObject(func_py, pArglist);
 
 	// printf("arglist after applying is ");
-	//    PyObject_Print(argList, stdout, 0);
+	//    PyObject_Print(pArglist, stdout, 0);
 	//    printf("\n");
 
 	// printf("rv after call function is ");
@@ -409,6 +417,7 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	/*if return handle*/
 	if(h_flag)
 	{
+		STARPU_ASSERT(starpu_data_get_interface_id(task->handles[0]) == obj_id);
 		if (STARPUPY_GET_PYOBJECT(descr[0]) != NULL)
 			Py_DECREF(STARPUPY_GET_PYOBJECT(descr[0]));
 
@@ -461,6 +470,8 @@ void starpupy_codelet_func(void *descr[], void *cl_arg)
 	Py_DECREF(func_py);
 	/*decrement the ref obtained by unpack*/
 	Py_DECREF(argList);
+	/*decrement the ref obtains by PyTuple_New*/
+	Py_DECREF(pArglist);
 
 	/*restore previous GIL state*/
 	PyGILState_Release(state);
@@ -750,6 +761,8 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 	func_cl->cpu_funcs[0] = &starpupy_codelet_func;
 	func_cl->cpu_funcs_name[0] = "starpupy_codelet_func";
 
+	int h_index = 0, h_flag = 0;
+	int nbuffer = 0;
 	/*the last argument is the option dictionary*/
 	PyObject *dict_option = PyTuple_GetItem(args, PyTuple_Size(args)-1);
 	/*protect borrowed reference*/
@@ -769,8 +782,21 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 		ret_fut = Py_True;
 	}
 
-	int h_index = 0, h_flag = 0;
-	int nbuffer = 0;
+	/*check whether to store the return value as a parameter*/
+	PyObject *ret_param = PyDict_GetItemString(dict_option, "ret_param");
+	/*set the default value*/
+	if(ret_param == NULL)
+	{
+		ret_param = Py_False;
+	}
+	/*if return value is a parameter, then we will not return a future nor handle object even ret_fut/ret_handle has been set to true*/
+	else if(PyObject_IsTrue(ret_param))
+	{
+		h_flag = 2;
+		ret_fut = Py_False;
+		ret_handle = Py_False;
+	}
+
 	/*if return value is handle*/
 	PyObject *r_handle_obj = NULL;
 	if(PyObject_IsTrue(ret_handle))
@@ -972,7 +998,7 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				PyObject *token_obj = PyObject_CallObject(pInstanceToken, NULL);
 				PyTuple_SetItem(argList, i, token_obj);
 
-				/*get Handle capsule object, decremented in the of this if{}*/
+				/*get Handle capsule object, decremented in the end of this if{}*/
 				PyObject *tmp_cap = PyObject_CallMethod(tmp, "get_capsule", NULL);
 
 				/*get Handle*/
@@ -981,6 +1007,13 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				if (tmp_handle == (void*)-1)
 				{
 					PyErr_Format(StarpupyError, "Handle has already been unregistered");
+					return NULL;
+				}
+
+				/*if the function result will be returned in parameter, the first argument will be the handle of return value, but this object should not be the Python object supporting buffer protocol*/
+				if(PyObject_IsTrue(ret_param) && i==0 && starpu_data_get_interface_id(tmp_handle) == buf_id)
+				{
+					PyErr_Format(StarpupyError, "Return value as parameter should not be the Python object supporting buffer protocol");
 					return NULL;
 				}
 
@@ -1001,10 +1034,15 @@ static PyObject* starpu_task_submit_wrapper(PyObject *self, PyObject *args)
 				{
 					func_cl->modes[h_index] = STARPU_RW;
 				}
-				/*access mode is not defined for Handle object*/
-				if(tmp_mode_py == NULL && strcmp(tp_arg, "Handle") == 0)
+				/*access mode is not defined for Handle object, and this object is not the return value*/
+				if(tmp_mode_py == NULL && strcmp(tp_arg, "Handle") == 0 && (!PyObject_IsTrue(ret_param) || (PyObject_IsTrue(ret_param) && i != 0)))
 				{
 					func_cl->modes[h_index] = STARPU_R;
+				}
+				/*access mode is not defined for Handle object, and this object is the return value*/
+				if(tmp_mode_py == NULL && strcmp(tp_arg, "Handle") == 0 && PyObject_IsTrue(ret_param) && i == 0)
+				{
+					func_cl->modes[h_index] = STARPU_W;
 				}
 				/*access mode is not defined for HandleNumpy object*/
 				if(tmp_mode_py == NULL && strcmp(tp_arg, "HandleNumpy") == 0)
@@ -1350,18 +1388,19 @@ void del_inter(void* arg)
 static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 {
 	//printf("it's starpu_shutdown function\n");
-	/*unregister the rest of handle*/
+	/*unregister the rest of handle in handle_dict*/
 	/*get handle_dict, decrement after using*/
 	PyObject *handle_dict = PyObject_GetAttrString(starpu_module, "handle_dict");
 
-	/*arg_id is the key in dict, handle_obj is the value in dict*/
-	PyObject *arg_id, *handle_obj;
+	/*obj_id is the key in dict, handle_obj is the value in dict*/
+	PyObject *obj_id, *handle_obj;
 	Py_ssize_t handle_pos = 0;
 
-	while(PyDict_Next(handle_dict, &handle_pos, &arg_id, &handle_obj))
+	while(PyDict_Next(handle_dict, &handle_pos, &obj_id, &handle_obj))
 	{
 		/*PyObject *->handle*/
-		starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_obj, "Handle");
+		PyObject *handle_cap = PyObject_CallMethod(handle_obj, "get_capsule", NULL);
+		starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
 
 		if (handle != (void*)-1)
 		{
@@ -1370,14 +1409,52 @@ static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 			starpu_data_unregister(handle);
 			Py_END_ALLOW_THREADS
 
-			PyCapsule_SetPointer(handle_obj, (void*)-1);
+			PyCapsule_SetPointer(handle_cap, (void*)-1);
 		}
 
 		/*remove this handle from handle_dict*/
-		PyDict_DelItem(handle_dict, arg_id);
+		PyDict_DelItem(handle_dict, obj_id);
+
+		Py_DECREF(handle_cap);
 	}
 
 	Py_DECREF(handle_dict);
+
+	/*unregister the rest of handle in handle_set*/
+	/*get handle_set, decrement after using*/
+	PyObject *handle_set = PyObject_GetAttrString(starpu_module, "handle_set");
+	/*treat set as an iterator, decrement after using*/
+	PyObject *handle_set_iterator = NULL;
+	handle_set_iterator = PyObject_GetIter(handle_set);
+
+	while((handle_obj=PyIter_Next(handle_set_iterator)))
+	{
+		/*PyObject *->handle*/
+		PyObject *handle_cap = PyObject_CallMethod(handle_obj, "get_capsule", NULL);
+		starpu_data_handle_t handle = (starpu_data_handle_t) PyCapsule_GetPointer(handle_cap, "Handle");
+
+		if (handle != (void*)-1)
+		{
+			/*call starpu_data_unregister method*/
+			Py_BEGIN_ALLOW_THREADS
+			starpu_data_unregister(handle);
+			Py_END_ALLOW_THREADS
+
+			PyCapsule_SetPointer(handle_cap, (void*)-1);
+		}
+
+		/*remove this handle from handle_set*/
+		PySet_Discard(handle_set, handle_obj);
+		Py_DECREF(handle_set_iterator);
+		handle_set_iterator = PyObject_GetIter(handle_set);
+
+		Py_DECREF(handle_cap);
+		/*release ref obtained by PyInter_Next*/
+		Py_DECREF(handle_obj);
+	}
+
+	Py_DECREF(handle_set_iterator);
+	Py_DECREF(handle_set);
 
 	/*clean all perfmodel which are saved in dict_perf*/
 	/*get dict_perf, decrement after using*/
