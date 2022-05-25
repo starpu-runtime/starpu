@@ -3894,6 +3894,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
     examples/heat/heat.sh \
     examples/lu/lu.sh \
     examples/cholesky/cholesky.sh \
+    examples/cholesky/cholesky_julia.sh \
     examples/mult/sgemm.sh \
     examples/scheduler/schedulers.sh \
     examples/scheduler/schedulers_context.sh \

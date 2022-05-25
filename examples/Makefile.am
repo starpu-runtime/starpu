@@ -76,7 +76,9 @@ EXTRA_DIST = 					\
 	sched_ctx/axpy_partition_gpu.h			\
 	sched_ctx/axpy_partition_gpu.cu			\
 	heat/heat.sh					\
+	cholesky/libmy_dmda.h				\
 	cholesky/cholesky.sh				\
+	cholesky/cholesky_julia.sh			\
 	cholesky/cholesky_compiled.c			\
 	lu/lu.sh					\
 	subgraphs/main.h				\
@@ -96,6 +98,8 @@ CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.m
 
 clean-local:
 	-rm -rf mult/sgemm.traces lu/lu.traces
+
+pkglib_LTLIBRARIES =
 
 if STARPU_USE_CUDA
 
@@ -305,7 +309,7 @@ STARPU_EXAMPLES +=				\
 
 SHELL_TESTS += \
 	scheduler/libdummy_sched.sh
-pkglib_LTLIBRARIES =	\
+pkglib_LTLIBRARIES +=	\
 	scheduler/libdummy_sched.la
 scheduler_libdummy_sched_la_LDFLAGS = $(ldflags) -no-undefined
 
@@ -891,6 +895,13 @@ endif
 ####################
 
 if !STARPU_NO_BLAS_LIB
+
+pkglib_LTLIBRARIES +=	\
+	cholesky/libmy_dmda.la
+cholesky_libmy_dmda_la_LDFLAGS = $(ldflags) -no-undefined
+
+SHELL_TESTS	+=				\
+	cholesky/cholesky_julia.sh
 
 cholesky_cholesky_tag_SOURCES =			\
 	cholesky/cholesky_tag.c			\

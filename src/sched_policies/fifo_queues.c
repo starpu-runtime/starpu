@@ -88,6 +88,86 @@ int starpu_st_fifo_taskq_empty(struct starpu_st_fifo_taskq *fifo)
 	return fifo->ntasks == 0;
 }
 
+unsigned starpu_st_fifo_ntasks_get(struct starpu_st_fifo_taskq *fifo)
+{
+	return fifo->ntasks;
+}
+
+void starpu_st_fifo_ntasks_inc(struct starpu_st_fifo_taskq *fifo, int n)
+{
+	fifo->ntasks += n;
+}
+
+unsigned *starpu_st_fifo_ntasks_per_priority_get(struct starpu_st_fifo_taskq *fifo)
+{
+	return fifo->ntasks_per_priority;
+}
+
+unsigned starpu_st_fifo_nprocessed_get(struct starpu_st_fifo_taskq *fifo)
+{
+	return fifo->nprocessed;
+}
+
+void starpu_st_fifo_nprocessed_inc(struct starpu_st_fifo_taskq *fifo, int n)
+{
+	fifo->nprocessed += n;
+}
+
+double starpu_st_fifo_exp_start_get(struct starpu_st_fifo_taskq *fifo)
+{
+	return fifo->exp_start;
+}
+
+void starpu_st_fifo_exp_start_set(struct starpu_st_fifo_taskq *fifo, double exp_start)
+{
+	fifo->exp_start = exp_start;
+}
+
+double starpu_st_fifo_exp_end_get(struct starpu_st_fifo_taskq *fifo)
+{
+	return fifo->exp_end;
+}
+
+void starpu_st_fifo_exp_end_set(struct starpu_st_fifo_taskq *fifo, double exp_end)
+{
+	fifo->exp_end = exp_end;
+}
+
+double starpu_st_fifo_exp_len_get(struct starpu_st_fifo_taskq *fifo)
+{
+	return fifo->exp_len;
+}
+
+void starpu_st_fifo_exp_len_set(struct starpu_st_fifo_taskq *fifo, double exp_len)
+{
+	fifo->exp_len = exp_len;
+}
+
+void starpu_st_fifo_exp_len_inc(struct starpu_st_fifo_taskq *fifo, double exp_len)
+{
+	fifo->exp_len += exp_len;
+}
+
+double *starpu_st_fifo_exp_len_per_priority_get(struct starpu_st_fifo_taskq *fifo)
+{
+	return fifo->exp_len_per_priority;
+}
+
+double starpu_st_fifo_pipeline_len_get(struct starpu_st_fifo_taskq *fifo)
+{
+	return fifo->pipeline_len;
+}
+
+void starpu_st_fifo_pipeline_len_set(struct starpu_st_fifo_taskq *fifo, double pipeline_len)
+{
+	fifo->pipeline_len = pipeline_len;
+}
+
+void starpu_st_fifo_pipeline_len_inc(struct starpu_st_fifo_taskq *fifo, double pipeline_len)
+{
+	fifo->pipeline_len += pipeline_len;
+}
+
 double starpu_st_fifo_taskq_get_exp_len_prev_task_list(struct starpu_st_fifo_taskq *fifo_queue, struct starpu_task *task, int workerid, int nimpl, int *fifo_ntasks)
 {
 	struct starpu_task_list *list = &fifo_queue->taskq;
