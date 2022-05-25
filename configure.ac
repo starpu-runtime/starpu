@@ -1711,7 +1711,6 @@ fi
 
 if test x$enable_hip = xyes -a x$have_valid_hip = xyes; then
 	AC_DEFINE(STARPU_USE_HIP,[1],[Define to 1 if the HIP driver is to be tested])
-
 	STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lamdhip64 -lstdc++"
 fi
 
