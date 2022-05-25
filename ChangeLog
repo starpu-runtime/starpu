@@ -795,7 +795,7 @@ Small features:
   * Add submit_hook and do_schedule scheduler methods.
   * Add starpu_sleep.
   * Add starpu_task_list_ismember.
-  * Add starpu_st_fifo_taskq_pop_this_task().
+  * Add _starpu_fifo_pop_this_task.
   * Add STARPU_MAX_MEMORY_USE environment variable.
   * Add starpu_worker_get_id_check().
   * New function starpu_mpi_wait_for_all(MPI_Comm comm) that allows to
