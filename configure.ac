@@ -1685,16 +1685,16 @@ if test x$enable_hip != xno; then
 	fi
 fi
 
-have_valid_hip=yes
+enable_hip=yes
 
 if test -z "$HIP_DIR"; then
-	have_valid_hip=no
+	enable_hip=no
 fi
 if test -z "$HIP_LIB_DIR"; then
-	have_valid_hip=no
+	enable_hip=no
 fi
 if test -z "$HIP_INCLUDE_DIR"; then
-	have_valid_hip=no
+	enable_hip=no
 fi
 
 
@@ -1706,10 +1706,23 @@ fi
 #testing if hipcc is defined, if not => STARPU_USE_HIP undefined
 if test "x$HIPCC" = "xnot-found"; then
 	AC_MSG_WARN(['hipcc' not found, disabling HIP])
-	have_valid_hip=no
+	enable_hip=no
 fi
 
-if test x$enable_hip = xyes -a x$have_valid_hip = xyes; then
+if test "x$enable_hip" = xyes; then
+	AC_MSG_CHECKING(whether $HIPCC is working)
+	rm -f conftest.hip conftest.o
+	touch conftest.hip
+	AS_IF([$HIPCC conftest.hip -o conftest.o -c $STARPU_HIP_CPPFLAGS],
+		[AC_MSG_RESULT(yes)],
+		[
+		  AC_MSG_RESULT(no)
+		  AC_MSG_WARN(['hipcc' does not work, disabling HIP])
+		  enable_hip=no
+		])
+fi
+
+if test x$enable_hip = xyes ; then
 	AC_DEFINE(STARPU_USE_HIP,[1],[Define to 1 if the HIP driver is to be tested])
 	STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lamdhip64 -lstdc++"
 fi
