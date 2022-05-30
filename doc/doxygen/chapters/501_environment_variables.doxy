@@ -221,11 +221,11 @@ Set maximum exponential backoff of number of cycles to pause when spinning. Defa
 Defined internally by StarPU when running in master slave mode.
 </dd>
 
-<dt>STARPU_DISABLE_MAP</dt>
+<dt>STARPU_ENABLE_MAP</dt>
 <dd>
-\anchor STARPU_DISABLE_MAP
-\addindex __env__STARPU_DISABLE_MAP
-Disable (1) or Enable (0) support for memory mapping between memory nodes.  The
+\anchor STARPU_ENABLE_MAP
+\addindex __env__STARPU_ENABLE_MAP
+Disable (0) or Enable (1) support for memory mapping between memory nodes.  The
 default is Disable.
 </dd>
 

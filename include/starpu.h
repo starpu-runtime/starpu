@@ -490,9 +490,9 @@ struct starpu_conf
 	/**
 	   This flag should be set to 1 to disable memory mapping
 	   support between memory nodes. This can also be specified
-	   with the environment variable \ref STARPU_DISABLE_MAP.
+	   with the environment variable \ref STARPU_ENABLE_MAP.
 	*/
-	int disable_map;
+	int enable_map;
 
 	/**
 	   Enable CUDA/OpenGL interoperation on these CUDA devices.
@@ -766,9 +766,9 @@ int starpu_asynchronous_copy_disabled_for(enum starpu_node_kind kind);
 
 /**
    Return 1 if memory mapping support between memory nodes is
-   disabled.
+   enabled.
 */
-int starpu_map_disabled(void);
+int starpu_map_enabled(void);
 
 /**
    Call starpu_profiling_bus_helper_display_summary() and

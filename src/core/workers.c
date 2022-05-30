@@ -1180,9 +1180,9 @@ int starpu_conf_init(struct starpu_conf *conf)
 		conf->disable_asynchronous_tcpip_ms_copy = 0;
 #endif
 
-	conf->disable_map = starpu_get_env_number("STARPU_DISABLE_MAP");
-	if (conf->disable_map == -1)
-		conf->disable_map = 1;
+	conf->enable_map = starpu_get_env_number("STARPU_ENABLE_MAP");
+	if (conf->enable_map == -1)
+		conf->enable_map = 1;
 
 	/* 64MiB by default */
 	conf->trace_buffer_size = ((uint64_t) starpu_get_env_number_default("STARPU_TRACE_BUFFER_SIZE", 64)) << 20;
@@ -1264,7 +1264,7 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_MPI_MS_COPY", &conf->disable_asynchronous_mpi_ms_copy, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_DISABLE_ASYNCHRONOUS_TCPIP_MS_COPY", &conf->disable_asynchronous_tcpip_ms_copy, conf->precedence_over_environment_variables);
 
-	_starpu_conf_set_value_against_environment("STARPU_DISABLE_MAP", &conf->disable_map, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_ENABLE_MAP", &conf->enable_map, conf->precedence_over_environment_variables);
 
 	asynchronous_copy_disabled[STARPU_CPU_RAM] = 0;
 	asynchronous_copy_disabled[STARPU_CUDA_RAM] = conf->disable_asynchronous_cuda_copy;
@@ -2349,10 +2349,10 @@ int starpu_asynchronous_tcpip_ms_copy_disabled(void)
         return _starpu_config.conf.disable_asynchronous_tcpip_ms_copy;
 }
 
-/* Return whether memory mapping is disabled (!0) or enabled (0) */
-int starpu_map_disabled(void)
+/* Return whether memory mapping is disabled (0) or enabled (1) */
+int starpu_map_enabled(void)
 {
-	return _starpu_config.conf.disable_map;
+	return _starpu_config.conf.enable_map;
 }
 
 int starpu_asynchronous_copy_disabled_for(enum starpu_node_kind kind)
