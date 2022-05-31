@@ -20,6 +20,9 @@
 #endif
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
+static int map_ndim(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int unmap_ndim(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static int update_map_ndim(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 static const struct starpu_data_copy_methods ndim_copy_data_methods_s =
 {
@@ -49,6 +52,9 @@ struct starpu_data_interface_ops starpu_interface_ndim_ops =
     .to_pointer = ndim_to_pointer,
     .pointer_is_inside = ndim_pointer_is_inside,
     .free_data_on_node = free_ndim_buffer_on_node,
+    .map_data = map_ndim,
+    .unmap_data = unmap_ndim,
+    .update_map = update_map_ndim,
     .copy_methods = &ndim_copy_data_methods_s,
     .get_size = ndim_interface_get_size,
     .footprint = footprint_ndim_interface_crc32,
@@ -570,6 +576,56 @@ static void free_ndim_buffer_on_node(void *data_interface, unsigned node)
     size_t elemsize = ndim_interface->elemsize;
 
     starpu_free_on_node(node, ndim_interface->dev_handle, _get_size(nn, ndim, elemsize));
+}
+
+static int map_ndim(void *src_interface, unsigned src_node,
+             void *dst_interface, unsigned dst_node)
+{
+    struct starpu_ndim_interface *src_ndarr = src_interface;
+    struct starpu_ndim_interface *dst_ndarr = dst_interface;
+    int ret;
+    uintptr_t mapped;
+
+    size_t ndim = src_ndarr->ndim;
+
+    mapped = starpu_interface_map(src_ndarr->dev_handle, src_ndarr->offset, src_node, dst_node, src_ndarr->ldn[ndim-1]*src_ndarr->nn[ndim-1]*src_ndarr->elemsize, &ret);
+    if (mapped)
+    {
+        dst_ndarr->dev_handle = mapped;
+        dst_ndarr->offset = 0;
+        if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+            dst_ndarr->ptr = mapped;
+        size_t i;
+        for (i=0; i<ndim; i++)
+        {
+            dst_ndarr->ldn[i] = src_ndarr->ldn[i];
+        }
+        return 0;
+    }
+    return ret;
+}
+
+static int unmap_ndim(void *src_interface, unsigned src_node,
+               void *dst_interface, unsigned dst_node)
+{
+    struct starpu_ndim_interface *src_ndarr = src_interface;
+    struct starpu_ndim_interface *dst_ndarr = dst_interface;
+
+    size_t ndim = src_ndarr->ndim;
+    int ret = starpu_interface_unmap(src_ndarr->dev_handle, src_ndarr->offset, src_node, dst_ndarr->dev_handle, dst_node, src_ndarr->ldn[ndim-1]*src_ndarr->nn[ndim-1]*src_ndarr->elemsize);
+    dst_ndarr->dev_handle = 0;
+
+    return ret;
+}
+
+static int update_map_ndim(void *src_interface, unsigned src_node,
+                void *dst_interface, unsigned dst_node)
+{
+    struct starpu_ndim_interface *src_ndarr = src_interface;
+    struct starpu_ndim_interface *dst_ndarr = dst_interface;
+
+    size_t ndim = src_ndarr->ndim;
+    return starpu_interface_update_map(src_ndarr->dev_handle, src_ndarr->offset, src_node, dst_ndarr->dev_handle, dst_ndarr->offset, dst_node, src_ndarr->ldn[ndim-1]*src_ndarr->nn[ndim-1]*src_ndarr->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
