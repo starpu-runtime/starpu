@@ -1665,6 +1665,12 @@ AC_DEFINE_UNQUOTED(STARPU_MAXHIPDEVS, [$nmaxhipdev],
 AC_ARG_ENABLE(hip, [AS_HELP_STRING([--enable-hip],
 		[Enable the minimal-support HIP driver (only for testing)])],, [enable_hip=maybe])
 
+if test x$enable_cuda = xyes; then
+	# hip_runtime.h conflicts with cuda_runtime.h
+	# see https://github.com/ROCm-Developer-Tools/HIP/issues/2703
+	enable_hip=no
+fi
+
 if test x$enable_hip != xno; then
 	AC_PATH_PROG([HIPCONFIG], [hipconfig], [not-found])
 	if test "x$HIPCONFIG" = "xnot-found"; then
