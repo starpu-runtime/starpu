@@ -1,0 +1,77 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Build in ${{ matrix.mode }} mode
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [native, simgrid]
+        include:
+          - mode: "native"
+            deps: "nvidia-cuda-toolkit-gcc"
+            config: ""
+          - mode: "simgrid"
+            deps: "libsimgrid-dev"
+            config: "--enable-simgrid"
+    steps:
+      - uses: actions/checkout@v3
+      - name: dependencies
+        run: sudo apt-get update ; sudo apt-get install
+            pkg-config libtool-bin
+            libnuma-dev
+            libglpk-dev
+            mpi-default-dev
+            libgl1-mesa-dev
+            libglu1-mesa-dev
+            freeglut3-dev
+            libx11-dev
+            libblas-dev
+            libfftw3-dev
+            libhwloc-dev
+            libleveldb-dev
+            libhdf5-dev
+            valgrind
+            opencl-c-headers ocl-icd-opencl-dev
+            gfortran
+            help2man doxygen
+            ${{ matrix.deps }}
+      - name: autoconf
+        run: ./autogen.sh
+      - name: configure
+        run: ./configure --prefix=/tmp/foobar --enable-quick-check --disable-mpi-check ${{ matrix.config }}
+      - name: Store the config
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: config.log
+          path: config.log
+      - name: make
+        run: make
+      - name: make check
+        run: make check -k
+      - name: make showfailed
+        if: ${{ always() }}
+        run: make showfailed
+      - name: make showsuite
+        if: ${{ always() }}
+        run: make showsuite
+      - name: make showcheck
+        if: ${{ always() }}
+        run: make showcheck
+      - name: make install
+        run: make install
+      - name: make dist
+        if: ${{ matrix.mode != 'simgrid' }}
+        run: make dist
+      - name: make distcheck
+        if: ${{ matrix.mode != 'simgrid' }}
+        run: make distcheck DISTCHECK_CONFIGURE_FLAGS="--enable-quick-check --disable-mpi-check"
