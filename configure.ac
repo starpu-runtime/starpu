@@ -1021,7 +1021,9 @@ AC_CHECK_FUNCS([mkdtemp])
 
 AC_CHECK_FUNCS([pread pwrite])
 
-AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--enable-hdf5], [disable HDF5 support])],
+# Depending on the user environment, the hdf5 library may link against some
+# mpi implementation, and bring surprising runtime behavior.
+AC_ARG_ENABLE(hdf5, [AS_HELP_STRING([--enable-hdf5], [enable HDF5 support])],
                     enable_hdf5=$enableval, enable_hdf5=no)
 
 if test "x$enable_hdf5" != xno ; then
