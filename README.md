@@ -68,7 +68,7 @@ advantage of their specificities in a portable fashion.
   * makeinfo
   * libtool (version >= 2)
 
-Remark: It is strongly recommanded that you also install the hwloc library
+Remark: It is strongly recommended that you also install the hwloc library
    before installing StarPU. This permits StarPU to actually map the processing
    units according to the machine topology. For more details on hwloc, see
    http://www.open-mpi.org/projects/hwloc/ .
