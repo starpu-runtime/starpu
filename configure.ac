@@ -613,12 +613,16 @@ AC_ARG_ENABLE(maxmpidev, [AS_HELP_STRING([--enable-maxmpidev=<number>],
                  nmaxmpidev=0
              fi
             ])
+if test x$nmaxmpidev = x -o x$nmaxmpidev = xyes
+then
+	AC_MSG_ERROR([The --enable-maxmpidev option needs to be given a number])
+fi
 AC_MSG_RESULT($nmaxmpidev)
 AC_DEFINE_UNQUOTED(STARPU_MAXMPIDEVS, [$nmaxmpidev], [maximum number of MPI devices])
 
 ###############################################################################
 #                                                                             #
-#                             TCP/IP Master Slave                              #
+#                             TCP/IP Master Slave                             #
 #                                                                             #
 ###############################################################################
 
@@ -647,6 +651,10 @@ AC_ARG_ENABLE(maxtcpipdev, [AS_HELP_STRING([--enable-maxtcpipdev=<number>],
                  nmaxtcpipdev=0
              fi
             ])
+if test x$nmaxtcpipdev = x -o x$nmaxtcpipdev = xyes
+then
+	AC_MSG_ERROR([The --enable-maxtcpipdev option needs to be given a number])
+fi
 AC_MSG_RESULT($nmaxtcpipdev)
 AC_DEFINE_UNQUOTED(STARPU_MAXTCPIPDEVS, [$nmaxtcpipdev], [maximum number of TCP/IP devices])
 
@@ -799,6 +807,10 @@ then
 	nmaxnumanodes=$default_nmaxnumanodes
       fi
   fi
+fi
+if test x$nmaxnumanodes = x -o x$nmaxnumanodes = xyes
+then
+	AC_MSG_ERROR([The --enable-maxnumanodes option needs to be given a number])
 fi
 AC_MSG_RESULT($nmaxnumanodes)
 AC_DEFINE_UNQUOTED(STARPU_MAXNUMANODES, [$nmaxnumanodes],
@@ -1159,6 +1171,10 @@ AC_MSG_CHECKING(maximum number of sched_ctxs)
 AC_ARG_ENABLE(max_sched_ctxs, [AS_HELP_STRING([--enable-max-sched-ctxs=<number>],
 			[maximum number of sched_ctxs])],
 			max_sched_ctxs=$enableval, max_sched_ctxs=10)
+if test x$max_sched_ctxs = x -o x$max_sched_ctxs = xyes
+then
+	AC_MSG_ERROR([The --enable-max_sched_ctxs option needs to be given a number])
+fi
 AC_MSG_RESULT($max_sched_ctxs)
 AC_DEFINE_UNQUOTED(STARPU_NMAX_SCHED_CTXS, [$max_sched_ctxs], [Maximum number of sched_ctxs supported])
 
@@ -1219,6 +1235,10 @@ then
 		maxcpus=`expr $maxcpus \* 2`
 	done
 fi
+if test x$maxcpus = x -o x$maxcpus = xyes
+then
+	AC_MSG_ERROR([The --enable-maxcpus option needs to be given a number])
+fi
 AC_MSG_RESULT($maxcpus)
 AC_DEFINE_UNQUOTED(STARPU_MAXCPUS, [$maxcpus], [Maximum number of CPUs supported])
 
@@ -1244,6 +1264,10 @@ AC_MSG_CHECKING(maximum number of CUDA devices)
 AC_ARG_ENABLE(maxcudadev, [AS_HELP_STRING([--enable-maxcudadev=<number>],
 			[maximum number of CUDA devices])],
 			nmaxcudadev=$enableval, nmaxcudadev=4)
+if test x$nmaxcudadev = x -o x$nmaxcudadev = xyes
+then
+	AC_MSG_ERROR([The --enable-maxcudadev option needs to be given a number])
+fi
 AC_MSG_RESULT($nmaxcudadev)
 AC_DEFINE_UNQUOTED(STARPU_MAXCUDADEVS, [$nmaxcudadev],
 		[maximum number of CUDA devices])
@@ -1661,6 +1685,10 @@ AC_MSG_CHECKING(maximum number of HIP devices)
 AC_ARG_ENABLE(maxhipdev, [AS_HELP_STRING([--enable-maxhipdev=<number>],
 			[maximum number of HIP devices])],
 			nmaxhipdev=$enableval, nmaxhipdev=8)
+if test x$nmaxhipdev = x -o x$nmaxhipdev = xyes
+then
+	AC_MSG_ERROR([The --enable-maxhipdev option needs to be given a number])
+fi
 AC_MSG_RESULT($nmaxhipdev)
 AC_DEFINE_UNQUOTED(STARPU_MAXHIPDEVS, [$nmaxhipdev],
 		[maximum number of HIP devices])
@@ -1754,6 +1782,10 @@ AC_MSG_CHECKING(maximum number of OpenCL devices)
 AC_ARG_ENABLE(maxopencldev, [AS_HELP_STRING([--enable-maxopencldev=<number>],
 			[maximum number of OPENCL devices])],
 			nmaxopencldev=$enableval, nmaxopencldev=8)
+if test x$nmaxopencldev = x -o x$nmaxopencldev = xyes
+then
+	AC_MSG_ERROR([The --enable-maxopencldev option needs to be given a number])
+fi
 AC_MSG_RESULT($nmaxopencldev)
 AC_DEFINE_UNQUOTED(STARPU_MAXOPENCLDEVS, [$nmaxopencldev],
 		[maximum number of OPENCL devices])
@@ -1944,6 +1976,10 @@ AC_MSG_CHECKING(maximum number of Maxeler FPGA devices)
 AC_ARG_ENABLE(maxmaxfpgadev, [AS_HELP_STRING([--enable-maxmaxfpgadev=<number>],
 			[maximum number of Maxeler FPGA devices])],
 			nmaxmaxfpgadev=$enableval, nmaxmaxfpgadev=12)
+if test x$nmaxmaxfpgadev = x -o x$nmaxmaxfpgadev = xyes
+then
+	AC_MSG_ERROR([The --enable-maxmaxfpgadev option needs to be given a number])
+fi
 AC_MSG_RESULT($nmaxmaxfpgadev)
 AC_DEFINE_UNQUOTED(STARPU_MAXMAXFPGADEVS, [$nmaxmaxfpgadev],[maximum number of Maxeler FPGA devices])
 
@@ -2420,6 +2456,10 @@ AC_MSG_CHECKING(how many buffers can be manipulated per task)
 AC_ARG_ENABLE(maxbuffers, [AS_HELP_STRING([--enable-maxbuffers=<nbuffers>],
 			[maximum number of buffers per task])],
 			nmaxbuffers=$enableval, nmaxbuffers=8)
+if test x$nmaxbuffers = x -o x$nmaxbuffers = xyes
+then
+	AC_MSG_ERROR([The --enable-maxbuffers option needs to be given a number])
+fi
 AC_MSG_RESULT($nmaxbuffers)
 AC_DEFINE_UNQUOTED(STARPU_NMAXBUFS, [$nmaxbuffers],
 		[how many buffers can be manipulated per task])
@@ -2428,6 +2468,10 @@ AC_MSG_CHECKING(how many MPI nodes fxt files can be manipulated when generating 
 AC_ARG_ENABLE(fxt-max-files, [AS_HELP_STRING([--enable-fxt-max-files=<nbuffers>],
 			[maximum number of mpi nodes for traces])],
 			nmaxfxtfiles=$enableval, nmaxfxtfiles=64)
+if test x$nmaxfxtfiles = x -o x$nmaxfxtfiles = xyes
+then
+	AC_MSG_ERROR([The --enable-maxfxtfiles option needs to be given a number])
+fi
 AC_MSG_RESULT($nmaxfxtfiles)
 AC_DEFINE_UNQUOTED(STARPU_FXT_MAX_FILES, [$nmaxfxtfiles],
 		[how many MPI nodes fxt files can be manipulated when generating traces])
@@ -2474,6 +2518,10 @@ if test x$maxnodes = x0 ; then
 	do
 		maxnodes=`expr $maxnodes \* 2`
 	done
+fi
+if test x$maxnodes = x -o x$maxnodes = xyes
+then
+	AC_MSG_ERROR([The --enable-maxnodes option needs to be given a number])
 fi
 if test $maxnodes -gt 32 ; then
 	AC_MSG_WARN([Note: the wt_mask feature only supports 32 memory nodes])
@@ -2594,6 +2642,10 @@ AC_ARG_ENABLE(maximplementations, [AS_HELP_STRING([--enable-maximplementations=<
 AC_MSG_RESULT($maximplementations)
 AC_DEFINE_UNQUOTED(STARPU_MAXIMPLEMENTATIONS, [$maximplementations],
 		[maximum number of implementations])
+if test x$maximplementations = x -o x$maximplementations = xyes
+then
+	AC_MSG_ERROR([The --enable-maximplementations option needs to be given a number])
+fi
 
 # Enable LevelDB support if requested and the lib is found
 AC_ARG_ENABLE(leveldb, [AS_HELP_STRING([--enable-leveldb],
