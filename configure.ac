@@ -4166,9 +4166,8 @@ AC_MSG_NOTICE([
 
 	CUDA GPU-GPU transfers: $enable_cuda_memcpy_peer
 	CUDA Map:               $enable_cuda_map
+	HIP GPU-GPU transfers:  $enable_hip_memcpy_peer
 	Allocation cache:       $enable_allocation_cache
-
-        HIP GPU-GPU transfers: $enable_hip_memcpy_peer
 
 	Magma enabled:     $have_magma
 	BLAS library:      $blas_lib
