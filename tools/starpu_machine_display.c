@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -152,6 +152,8 @@ int main(int argc, char **argv)
 			starpu_worker_display_names(stdout, STARPU_CUDA_WORKER);
 		else if (strcmp(worker_type, "OpenCL") == 0)
 			starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
+		else if (strcmp(worker_type, "HIP") == 0)
+			starpu_worker_display_names(stdout, STARPU_HIP_WORKER);
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 		else if (strcmp(worker_type, "MPI_MS") == 0)
 			starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
@@ -171,6 +173,7 @@ int main(int argc, char **argv)
 	starpu_worker_display_names(stdout, STARPU_CPU_WORKER);
 	starpu_worker_display_names(stdout, STARPU_CUDA_WORKER);
 	starpu_worker_display_names(stdout, STARPU_OPENCL_WORKER);
+	starpu_worker_display_names(stdout, STARPU_HIP_WORKER);
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	starpu_worker_display_names(stdout, STARPU_MPI_MS_WORKER);
 #endif
