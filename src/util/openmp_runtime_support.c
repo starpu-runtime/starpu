@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -244,15 +244,15 @@ static struct starpu_omp_thread *get_local_thread(void)
 #warning Why not just checking for STARPU_CPU_WORKER?
 #endif
 #ifdef STARPU_USE_CUDA
-				(starpu_worker->arch != STARPU_CUDA_WORKER)
-				&&
+		    (starpu_worker->arch != STARPU_CUDA_WORKER)
+		    &&
 #endif
 #ifdef STARPU_USE_OPENCL
-				(starpu_worker->arch != STARPU_OPENCL_WORKER)
-				&&
+		    (starpu_worker->arch != STARPU_OPENCL_WORKER)
+		    &&
 #endif
-				1
-		   )
+		    1
+		    )
 		{
 			STARPU_ASSERT(thread != NULL);
 		}
@@ -781,6 +781,10 @@ static int omp_initial_thread_setup(void)
 	initial_thread->starpu_driver.id.cpu_id = 0;
 	omp_starpu_conf.not_launched_drivers = &initial_thread->starpu_driver;
 	omp_starpu_conf.n_not_launched_drivers = 1;
+#ifdef STARPU_DEVEL
+#warning setting nhip to 0 should not be necessary
+#endif
+	omp_starpu_conf.nhip = 0;
 	/* we are now ready to start StarPU */
 	ret = starpu_init(&omp_starpu_conf);
 	int check = _starpu_omp_environment_check();
@@ -1660,20 +1664,20 @@ void starpu_omp_task_region(const struct starpu_omp_task_region_attr *attr)
 		{
 			generated_task->flags |= STARPU_OMP_TASK_FLAGS_UNDEFERRED;
 		}
-      // XXX taskgroup exist
-      if (!attr->nogroup_clause)
-      {
-         generated_task->task_group = generating_task->task_group;
-      }
-      generated_task->rank = -1;
+		// XXX taskgroup exist
+		if (!attr->nogroup_clause)
+		{
+			generated_task->task_group = generating_task->task_group;
+		}
+		generated_task->rank = -1;
 
-      /* XXX taskloop attributes */
-      generated_task->is_loop = attr->is_loop;
-      generated_task->nb_iterations = attr->nb_iterations;
-      generated_task->grainsize = attr->grainsize;
-      generated_task->chunk = attr->chunk;
-      generated_task->begin_i = attr->begin_i;
-      generated_task->end_i = attr->end_i;
+		/* XXX taskloop attributes */
+		generated_task->is_loop = attr->is_loop;
+		generated_task->nb_iterations = attr->nb_iterations;
+		generated_task->grainsize = attr->grainsize;
+		generated_task->chunk = attr->chunk;
+		generated_task->begin_i = attr->begin_i;
+		generated_task->end_i = attr->end_i;
 
 		/*
 		 * save pointer to the regions user function from the task region codelet
