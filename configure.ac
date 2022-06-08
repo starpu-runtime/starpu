@@ -1701,6 +1701,13 @@ if test x$enable_cuda = xyes; then
 	enable_hip=no
 fi
 
+if test x$enable_simgrid = xyes; then
+	if test x$enable_hip = xyes; then
+		AC_MSG_ERROR([HIP not supported with simgrid])
+	fi
+	enable_hip=no
+fi
+
 if test x$enable_hip != xno; then
 	AC_PATH_PROG([HIPCONFIG], [hipconfig], [not-found])
 	if test "x$HIPCONFIG" = "xnot-found"; then
