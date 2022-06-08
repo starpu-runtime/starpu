@@ -2715,6 +2715,7 @@ AC_SUBST(STARPU_EXPORT_DYNAMIC)
 
 IS_SUPPORTED_FLAG(-Wall)
 IS_SUPPORTED_CFLAG(-Werror=implicit)
+IS_SUPPORTED_CFLAG(-Wno-error=implicit-int)
 IS_SUPPORTED_CFLAG(-Werror=implicit-function-declaration)
 if test x$enable_perf_debug = xyes; then
 	IS_SUPPORTED_FLAG(-no-pie)
