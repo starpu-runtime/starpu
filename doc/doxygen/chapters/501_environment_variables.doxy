@@ -1421,6 +1421,28 @@ intended to be used for experimental purposes as it emulates devices
 that have a limited amount of memory.
 </dd>
 
+<dt>STARPU_LIMIT_HIP_devid_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_HIP_devid_MEM
+\addindex __env__STARPU_LIMIT_HIP_devid_MEM
+Specify the maximum number of megabytes that should be
+available to the application on the HIP device with the identifier
+<c>devid</c>. This variable is intended to be used for experimental
+purposes as it emulates devices that have a limited amount of memory.
+When defined, the variable overwrites the value of the variable
+\ref STARPU_LIMIT_HIP_MEM.
+</dd>
+
+<dt>STARPU_LIMIT_HIP_MEM</dt>
+<dd>
+\anchor STARPU_LIMIT_HIP_MEM
+\addindex __env__STARPU_LIMIT_HIP_MEM
+Specify the maximum number of megabytes that should be
+available to the application on each HIP devices. This variable is
+intended to be used for experimental purposes as it emulates devices
+that have a limited amount of memory.
+</dd>
+
 <dt>STARPU_LIMIT_CPU_MEM</dt>
 <dd>
 \anchor STARPU_LIMIT_CPU_MEM

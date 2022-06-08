@@ -179,6 +179,7 @@ int main(void)
 
 	setenv("STARPU_LIMIT_CUDA_MEM", STR_LIMIT, 1);
 	setenv("STARPU_LIMIT_OPENCL_MEM", STR_LIMIT, 1);
+	setenv("STARPU_LIMIT_HIP_MEM", STR_LIMIT, 1);
 	setenv("STARPU_LIMIT_CPU_NUMA_MEM", STR_LIMIT, 1);
 
 	struct starpu_conf conf;

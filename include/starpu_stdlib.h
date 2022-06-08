@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -40,8 +40,8 @@ extern "C"
    memory allocation should be in the limit defined by the environment
    variables \ref STARPU_LIMIT_CUDA_devid_MEM, \ref
    STARPU_LIMIT_CUDA_MEM, \ref STARPU_LIMIT_OPENCL_devid_MEM, \ref
-   STARPU_LIMIT_OPENCL_MEM and \ref STARPU_LIMIT_CPU_MEM (see Section
-   \ref HowToLimitMemoryPerNode).
+   STARPU_LIMIT_OPENCL_MEM, \ref STARPU_LIMIT_HIP_MEM, \ref STARPU_LIMIT_HIP_devid_MEM
+   and \ref STARPU_LIMIT_CPU_MEM (see Section \ref HowToLimitMemoryPerNode).
    If no memory is available, it tries to reclaim memory from StarPU.
    Memory allocated this way needs to be freed by calling the function
    starpu_free_flags() with the same flag.
