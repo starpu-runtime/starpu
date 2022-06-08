@@ -27,8 +27,11 @@ void _starpu_hip_preinit(void);
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundef"
+#pragma GCC diagnostic ignored "-Wunused-result"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#ifndef __cplusplus
 #pragma GCC diagnostic ignored "-Wimplicit-int"
+#endif
 #pragma GCC diagnostic ignored "-Wreturn-type"
 #include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
