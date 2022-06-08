@@ -364,6 +364,13 @@ fail when copying data asynchronously. When using this implementation,
 it is therefore necessary to disable asynchronous data transfers.
 </dd>
 
+<dt>--disable-asynchronous-hip-copy</dt>
+<dd>
+\anchor disable-asynchronous-hip-copy
+\addindex __configure__--disable-asynchronous-hip-copy
+Disable asynchronous copies between CPU and HIP devices.
+</dd>
+
 <dt>--disable-asynchronous-mpi-master-slave-copy</dt>
 <dd>
 \anchor disable-asynchronous-mpi-master-slave-copy

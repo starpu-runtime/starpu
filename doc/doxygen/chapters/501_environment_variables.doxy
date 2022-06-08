@@ -574,6 +574,17 @@ Disable asynchronous copies between CPU and TCP/IP Slave devices.
 \subsection hipWorkers HIP Workers
 
 <dl>
+<dt>STARPU_NHIP</dt>
+<dd>
+\anchor STARPU_NHIP
+\addindex __env__STARPU_NHIP
+Specify the number of HIP devices that StarPU can use. If
+\ref STARPU_NHIP is lower than the number of physical devices, it is
+possible to select which HIP devices should be used by the means of the
+environment variable \ref STARPU_WORKERS_HIPID. By default, StarPU will
+create as many HIP workers as there are HIP devices.
+</dd>
+
 <dt>STARPU_WORKERS_HPIID</dt>
 <dd>
 \anchor STARPU_WORKERS_HIPID
