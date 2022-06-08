@@ -36,8 +36,11 @@ typedef void *starpu_hipStream_t;
 # else
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundef"
+#pragma GCC diagnostic ignored "-Wunused-result"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#ifndef __cplusplus
 #pragma GCC diagnostic ignored "-Wimplicit-int"
+#endif
 #pragma GCC diagnostic ignored "-Wreturn-type"
 #  include <hip/hip_runtime.h>
 #pragma GCC diagnostic pop
