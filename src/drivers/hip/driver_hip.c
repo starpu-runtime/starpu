@@ -549,7 +549,7 @@ void _starpu_hip_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, in
 int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node,
 			       void *dst_ptr, unsigned dst_node,
 			       size_t ssize, hipStream_t stream,
-			       enum hipMemcpyKind kind)
+			       hipMemcpyKind kind)
 {
 #ifdef STARPU_HAVE_HIP_MEMCPY_PEER
 	int peer_copy = 0;
@@ -622,7 +622,7 @@ int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
 				 void *dst_ptr, unsigned dst_node,
 				 size_t blocksize,
 				 size_t numblocks, size_t ld_src, size_t ld_dst,
-				 hipStream_t stream, enum hipMemcpyKind kind)
+				 hipStream_t stream, hipMemcpyKind kind)
 {
 	hipError_t cures = 0;
 
