@@ -24,7 +24,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ $(STARPU_EXPORTED_LIBS)
 LIBS += $(HWLOC_LIBS)
-LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS)
+LIBS += $(STARPU_OPENCL_LDFLAGS) $(STARPU_CUDA_LDFLAGS) $(STARPU_HIP_LDFLAGS)
 LIBS += $(STARPU_MAX_FPGA_LDFLAGS)
 
 EXTRA_DIST =					\
@@ -119,6 +119,14 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing -I$(top_srcdir)/include/ -I
 	$(V_nvcc) $(NVCC) $< -c -o $@ $(NVCCFLAGS)
 endif
 
+endif
+
+if STARPU_USE_HIP
+
+HIPCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/src -I$(top_srcdir)/src/ -I$(top_builddir)/include
+
+.hip.o:
+	$(HIPCC) $< -c -o $@ $(HIPCCFLAGS)
 endif
 
 testbindir = $(libdir)/starpu/tests
@@ -491,6 +499,10 @@ if STARPU_USE_CUDA
 datawizard_acquire_release_SOURCES +=		\
 	datawizard/acquire_release_cuda.cu
 endif
+if STARPU_USE_HIP
+datawizard_acquire_release_SOURCES +=		\
+	datawizard/acquire_release_hip.hip
+endif
 if STARPU_USE_OPENCL
 datawizard_acquire_release_SOURCES +=		\
 	datawizard/acquire_release_opencl.c
@@ -504,6 +516,10 @@ if STARPU_USE_CUDA
 datawizard_acquire_release2_SOURCES +=		\
 	datawizard/acquire_release_cuda.cu
 endif
+if STARPU_USE_HIP
+datawizard_acquire_release2_SOURCES +=		\
+	datawizard/acquire_release_hip.hip
+endif
 if STARPU_USE_OPENCL
 datawizard_acquire_release2_SOURCES +=		\
 	datawizard/acquire_release_opencl.c
@@ -514,6 +530,10 @@ datawizard_acquire_release_to_SOURCES =		\
 if STARPU_USE_CUDA
 datawizard_acquire_release_to_SOURCES +=		\
 	datawizard/acquire_release_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_acquire_release_to_SOURCES +=		\
+	datawizard/acquire_release_hip.hip
 endif
 if STARPU_USE_OPENCL
 datawizard_acquire_release_to_SOURCES +=		\

@@ -123,7 +123,7 @@ extern "C" void hip_mult(void *descr[], void *arg)
 
 	nblocks = (nxC * nyC + THREADS_PER_BLOCK - 1)/THREADS_PER_BLOCK;
 
-	hipLaunchKernelGGL(hip_mult_kernel, nblocks, THREADS_PER_BLOCK, 0, 0,
+	hipLaunchKernelGGL(hip_mult_kernel, nblocks, THREADS_PER_BLOCK, 0, starpu_hip_get_local_stream(),
 			   nxC,  nyC,  nyA,
 			   ldA,  ldB,  ldC,
 			   subA, subB, subC );

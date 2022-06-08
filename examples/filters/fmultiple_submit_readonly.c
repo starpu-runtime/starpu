@@ -92,11 +92,20 @@ void fmultiple_check_scale(void *buffers[], void *cl_arg)
 #ifdef STARPU_USE_CUDA
 extern void fmultiple_check_scale_cuda(void *buffers[], void *cl_arg);
 #endif
+
+#ifdef STARPU_USE_HIP
+extern void fmultiple_check_scale_hip(void *buffers[], void *cl_arg);
+#endif
+
 struct starpu_codelet cl_check_scale =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {fmultiple_check_scale_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {fmultiple_check_scale_hip},
+	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 	.cpu_funcs = {fmultiple_check_scale},
 	.cpu_funcs_name = {"fmultiple_check_scale"},
@@ -130,11 +139,18 @@ void fmultiple_check(void *buffers[], void *cl_arg)
 #ifdef STARPU_USE_CUDA
 extern void fmultiple_check_cuda(void *buffers[], void *cl_arg);
 #endif
+#ifdef STARPU_USE_HIP
+extern void fmultiple_check_hip(void *buffers[], void *cl_arg);
+#endif
 struct starpu_codelet cl_check =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {fmultiple_check_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {fmultiple_check_hip},
+	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 	.cpu_funcs = {fmultiple_check},
 	.cpu_funcs_name = {"fmultiple_check"},
@@ -165,6 +181,15 @@ int main(void)
 
 	/* Disable codelet on CPUs if we have a CUDA device, to force remote execution on the CUDA device */
 	if (starpu_cuda_worker_get_count())
+	{
+		cl_check_scale.cpu_funcs[0] = NULL;
+		cl_check_scale.cpu_funcs_name[0] = NULL;
+		cl_check.cpu_funcs[0] = NULL;
+		cl_check.cpu_funcs_name[0] = NULL;
+	}
+
+        /* Disable codelet on CPUs if we have a HIP device, to force remote execution on the HIP device */
+	if (starpu_hip_worker_get_count())
 	{
 		cl_check_scale.cpu_funcs[0] = NULL;
 		cl_check_scale.cpu_funcs_name[0] = NULL;

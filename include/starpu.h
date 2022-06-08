@@ -177,7 +177,7 @@ struct starpu_conf
 	/**
 	   Number of HIP devices that StarPU can use. This can also
 	   be specified with the environment variable \ref
-	   STARPU_NCUDA.
+	   STARPU_NHIP.
 	   (default = \c -1)
 	*/
 	int nhip;

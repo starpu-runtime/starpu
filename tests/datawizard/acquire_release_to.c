@@ -30,6 +30,9 @@ static unsigned ntasks = 1000;
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], void *_args);
 #endif
+#ifdef STARPU_USE_HIP
+extern void increment_hip(void *descr[], void *_args);
+#endif
 #ifdef STARPU_USE_OPENCL
 extern void increment_opencl(void *buffers[], void *args);
 #endif
@@ -48,6 +51,10 @@ static struct starpu_codelet increment_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {increment_hip},
+	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {increment_opencl},

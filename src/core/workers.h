@@ -45,6 +45,7 @@
 
 #include <core/drivers.h>
 #include <drivers/cuda/driver_cuda.h>
+#include <drivers/hip/driver_hip.h>
 #include <drivers/opencl/driver_opencl.h>
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -393,6 +394,11 @@ struct _starpu_machine_topology
 	int cuda_th_per_stream;
 	/** Whether we should have one thread per device */
 	int cuda_th_per_dev;
+
+        /** Whether we should have one thread per stream (for hip) */
+	int hip_th_per_stream;
+	/** Whether we should have one thread per device (for hip) */
+	int hip_th_per_dev;
 
 	/** Indicates the successive logical PU identifier that should be used
 	 * to bind the workers. It is either filled according to the

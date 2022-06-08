@@ -32,6 +32,9 @@ extern void vector_cpu_func(void *buffers[], void *cl_arg);
 #ifdef STARPU_USE_CUDA
 extern void vector_cuda_func(void *buffers[], void *cl_arg);
 #endif
+#ifdef STARPU_USE_HIP
+extern void vector_hip_func(void *buffers[], void *cl_arg);
+#endif
 
 int main(void)
 {
@@ -48,6 +51,10 @@ int main(void)
 #ifdef STARPU_USE_CUDA
                 .cuda_funcs = {vector_cuda_func},
                 .cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+                .hip_funcs = {vector_hip_func},
+                .hip_flags = {STARPU_HIP_ASYNC},
 #endif
                 .nbuffers = 1,
 		.modes = {STARPU_RW},

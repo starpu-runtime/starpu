@@ -14,32 +14,29 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-/*
- * This example complements vector_scal.c: here we implement a HIP version.
- */
-
+/* dumb HIP kernel to fill a 2D matrix */
 
 #include <starpu.h>
 
-static __global__ void vector_mult_hip(unsigned n, float *val, float factor)
+static __global__ void fmatrix_hip(int *matrix, int nx, int ny, unsigned ld, float factor)
 {
-        unsigned i =  blockIdx.x*blockDim.x + threadIdx.x;
-
-	if (i < n)
-               val[i] *= factor;
+        int i, j;
+        for(j=0; j<ny ; j++)
+        {
+                for(i=0; i<nx ; i++)
+                        matrix[(j*ld)+i] *= factor;
+        }
 }
 
-extern "C" void scal_hip_func(void *buffers[], void *_args)
+extern "C" void matrix_hip_func(void *buffers[], void *_args)
 {
-        float *factor = (float *)_args;
-        /* length of the vector */
-        unsigned n = STARPU_VECTOR_GET_NX(buffers[0]);
-        /* local copy of the vector pointer */
-        float *val = (float *)STARPU_VECTOR_GET_PTR(buffers[0]);
-	unsigned threads_per_block = 64;
-	unsigned nblocks = (n + threads_per_block-1) / threads_per_block;
+        int *factor = (int *)_args;
+        int *matrix = (int *)STARPU_MATRIX_GET_PTR(buffers[0]);
+        int nx = (int)STARPU_MATRIX_GET_NX(buffers[0]);
+        int ny = (int)STARPU_MATRIX_GET_NY(buffers[0]);
+        unsigned ld = STARPU_MATRIX_GET_LD(buffers[0]);
 
-        hipLaunchKernelGGL(vector_mult_hip, nblocks, threads_per_block, 0, starpu_hip_get_local_stream(), n, val, *factor);
+        hipLaunchKernelGGL(fmatrix_hip, 1, 1, 0, starpu_hip_get_local_stream(), matrix, nx, ny, ld, *factor);
         hipError_t status = hipGetLastError();
         if (status != hipSuccess) STARPU_HIP_REPORT_ERROR(status);
 }

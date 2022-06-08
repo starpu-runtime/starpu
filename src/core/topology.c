@@ -991,10 +991,9 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 #  endif
 #  ifndef STARPU_USE_HIP
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "hip");
-	/*
-	 TODO ask about nvml and hip
-	*/
-	//hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "nvml");
+        /* TODO: check about rocclr, the equivalent of nvml*/
+        //hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "rocm_smi");
+	
 #  endif
 #  ifndef STARPU_USE_OPENCL
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "opencl");

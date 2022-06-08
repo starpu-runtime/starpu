@@ -93,6 +93,7 @@ static struct starpu_codelet cl =
 #ifdef STARPU_USE_HIP
 	/* HIP implementation of the codelet */
 	.hip_funcs = {scal_hip_func},
+	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},

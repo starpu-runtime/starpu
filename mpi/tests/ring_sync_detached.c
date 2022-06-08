@@ -29,6 +29,10 @@
 extern void increment_cuda(void *descr[], void *_args);
 #endif
 
+#ifdef STARPU_USE_HIP
+extern void increment_hip(void *descr[], void *_args);
+#endif
+
 void increment_cpu(void *descr[], void *_args)
 {
 	(void)_args;
@@ -40,6 +44,9 @@ static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda},
+#endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {increment_hip},
 #endif
 	.cpu_funcs = {increment_cpu},
 	.nbuffers = 1,
@@ -87,14 +94,14 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &size);
 
-	if (size < 2 || (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() == 0))
+	if (size < 2 || (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() == 0) || (starpu_cpu_worker_get_count() + starpu_hip_worker_get_count() == 0))
 	{
 		if (rank == 0)
 		{
 			if (size < 2)
 				FPRINTF(stderr, "We need at least 2 processes.\n");
 			else
-				FPRINTF(stderr, "We need at least 1 CPU or CUDA worker.\n");
+				FPRINTF(stderr, "We need at least 1 CPU or CUDA or HIP worker.\n");
 		}
 		starpu_mpi_shutdown();
 		if (!mpi_init)

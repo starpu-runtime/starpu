@@ -66,6 +66,25 @@ static void increment_cuda_kernel(void *descr[], void *cl_arg)
 }
 #endif
 
+#ifdef STARPU_USE_HIP
+static void increment_hip_kernel(void *descr[], void *cl_arg)
+{
+	(void)cl_arg;
+	STARPU_SKIP_IF_VALGRIND;
+
+	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned host_token;
+
+	/* This is a dummy technique of course */
+	hipMemcpyAsync(&host_token, tokenptr, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
+	hipStreamSynchronize(starpu_hip_get_local_stream());
+
+	host_token++;
+
+	hipMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), hipMemcpyHostToDevice, starpu_hip_get_local_stream());
+}
+#endif
+
 void increment_cpu_kernel(void *descr[], void *cl_arg)
 {
 	(void)cl_arg;
@@ -80,6 +99,10 @@ static struct starpu_codelet increment_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda_kernel},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {increment_hip_kernel},
+	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {increment_opencl_kernel},

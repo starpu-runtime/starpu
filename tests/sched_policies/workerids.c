@@ -58,6 +58,7 @@ static struct starpu_codelet clA =
 	.cpu_funcs_name = {"A"},
 	.opencl_funcs = {A},
 	.cuda_funcs = {A},
+        .hip_funcs = {A},
 	.max_fpga_funcs = {A},
 	.nbuffers = 0,
 	.model = &perf_model,

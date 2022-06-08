@@ -32,6 +32,10 @@ extern void tensor_cpu_func(void *buffers[], void *cl_arg);
 extern void tensor_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+#ifdef STARPU_USE_HIP
+extern void tensor_hip_func(void *buffers[], void *cl_arg);
+#endif
+
 extern void generate_5dim_data(int *arr5d, int nx, int ny, int nz, int nt, int ng, unsigned ldy, unsigned ldz, unsigned ldt, unsigned ldg);
 extern void print_5dim_data(starpu_data_handle_t ndim_handle);
 extern void print_tensor_data(starpu_data_handle_t ndim_handle);
@@ -56,6 +60,10 @@ int main(void)
 #ifdef STARPU_USE_CUDA
         .cuda_funcs = {tensor_cuda_func},
         .cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+        .hip_funcs = {tensor_hip_func},
+        .hip_flags = {STARPU_HIP_ASYNC},
 #endif
         .nbuffers = 1,
         .modes = {STARPU_RW},

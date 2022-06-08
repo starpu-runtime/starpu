@@ -30,6 +30,10 @@ extern void matrix_cpu_func(void *buffers[], void *cl_arg);
 extern void matrix_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+#ifdef STARPU_USE_HIP
+extern void matrix_hip_func(void *buffers[], void *cl_arg);
+#endif
+
 extern void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz);
 extern void print_block_data(starpu_data_handle_t block_handle);
 extern void print_matrix_data(starpu_data_handle_t matrix_handle);
@@ -53,6 +57,10 @@ int main(void)
 #ifdef STARPU_USE_CUDA
                 .cuda_funcs = {matrix_cuda_func},
                 .cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+                .hip_funcs = {matrix_hip_func},
+                .hip_flags = {STARPU_HIP_ASYNC},
 #endif
 		.nbuffers = 1,
                 .modes = {STARPU_RW},

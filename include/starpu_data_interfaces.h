@@ -29,6 +29,16 @@ typedef cudaStream_t starpu_cudaStream_t;
 # endif
 #endif
 
+#ifdef STARPU_USE_HIP
+/* to use HIP streams */
+# ifdef STARPU_DONT_INCLUDE_HIP_HEADERS
+typedef void *starpu_hipStream_t;
+# else
+#  include <hip/hip_runtime.h>
+typedef hipStream_t starpu_hipStream_t;
+# endif
+#endif
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -87,7 +97,7 @@ extern "C"
    starpu_data_copy_methods::any_to_any method is provided, it will be
    used by default if no specific method is provided. It can still be
    useful to provide more specific method in case of e.g. available
-   particular CUDA or OpenCL support.
+   particular CUDA, HIP or OpenCL support.
 */
 struct starpu_data_copy_methods
 {
@@ -114,6 +124,13 @@ struct starpu_data_copy_methods
 	*/
 	int (*ram_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
+        /**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node CPU node to the \p dst_interface interface on the \p
+	   dst_node HIP node. Return 0 on success.
+	*/
+	int (*ram_to_hip)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
 	/**
 	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CPU node to the \p dst_interface interface on the \p
@@ -137,10 +154,24 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node HIP node to the \p dst_interface interface on the \p
+	   dst_node CPU node. Return 0 on success.
+	*/
+	int (*hip_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CUDA node to the \p dst_interface interface on the \p
 	   dst_node CUDA node. Return 0 on success.
 	*/
 	int (*cuda_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node HIP node to the \p dst_interface interface on the \p
+	   dst_node HIP node. Return 0 on success.
+	*/
+	int (*hip_to_hip)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
@@ -197,6 +228,42 @@ struct starpu_data_copy_methods
 	int (*ram_to_cuda_async)(void);
 	int (*cuda_to_ram_async)(void);
 	int (*cuda_to_cuda_async)(void);
+#endif
+
+#ifdef STARPU_USE_HIP
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node CPU node to the \p dst_interface interface on the \p
+	   dst_node HIP node, using the given stream. Must return 0 if the
+	   transfer was actually completed completely synchronously, or
+	   <c>-EAGAIN</c> if at least some transfers are still ongoing and
+	   should be awaited for by the core.
+	*/
+	int (*ram_to_hip_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_hipStream_t stream);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node HIP node to the \p dst_interface interface on the \p
+	   dst_node CPU node, using the given stream. Must return 0 if the
+	   transfer was actually completed completely synchronously, or
+	   <c>-EAGAIN</c> if at least some transfers are still ongoing and
+	   should be awaited for by the core.
+	*/
+	int (*hip_to_ram_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_hipStream_t stream);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node HIP node to the \p dst_interface interface on the \p
+	   dst_node HIP node, using the given stream. Must return 0 if the
+	   transfer was actually completed completely synchronously, or
+	   <c>-EAGAIN</c> if at least some transfers are still ongoing and
+	   should be awaited for by the core.
+	*/
+	int (*hip_to_hip_async)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, starpu_hipStream_t stream);
+#else
+	int (*ram_to_hip_async)(void);
+	int (*hip_to_ram_async)(void);
+	int (*hip_to_hip_async)(void);
 #endif
 
 #if defined(STARPU_USE_OPENCL) && !defined(__CUDACC__)
@@ -2269,6 +2336,7 @@ struct starpu_multiformat_interface
 
 	void *cpu_ptr;
 	void *cuda_ptr;
+        void *hip_ptr;
 	void *opencl_ptr;
 	uint32_t nx;
 	struct starpu_multiformat_data_interface_ops *ops;
@@ -2292,6 +2360,11 @@ void starpu_multiformat_data_register(starpu_data_handle_t *handle, int home_nod
    Return the local pointer to the data with CUDA format.
  */
 #define STARPU_MULTIFORMAT_GET_CUDA_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->cuda_ptr)
+/**
+   Return the local pointer to the data with HIP format.
+ */
+#define STARPU_MULTIFORMAT_GET_HIP_PTR(interface) (((struct starpu_multiformat_interface *)(interface))->hip_ptr)
+
 /**
    Return the local pointer to the data with OpenCL format.
 */

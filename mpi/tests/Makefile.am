@@ -16,6 +16,8 @@
 #
 include $(top_srcdir)/starpu.mk
 
+SUFFIXES = .hip
+
 CC=$(MPICC)
 CCLD=$(MPICC)
 
@@ -58,13 +60,21 @@ NVCCFLAGS += --compiler-options -fno-strict-aliasing -I$(top_srcdir)/include/ -I
 endif
 endif
 
+if STARPU_USE_HIP
+
+HIPCCFLAGS += -I$(top_srcdir)/include/ -I$(top_builddir)/include/ -I$(top_srcdir)/src/ -I$(top_builddir)/src
+
+.hip.o:
+	$(HIPCC) $< -c -o $@ $(HIPCCFLAGS)
+endif
+
 AM_CFLAGS += $(APP_CFLAGS)
 AM_CXXFLAGS += $(APP_CXXFLAGS)
 AM_FFLAGS += $(APP_FFLAGS)
 AM_FCFLAGS += $(APP_FCFLAGS)
 AM_CPPFLAGS = -I$(top_srcdir)/include/ -I$(top_builddir)/include -I$(top_srcdir)/mpi/include -I$(top_srcdir)/mpi/src -I$(top_srcdir)/src -I$(top_builddir)/src -I$(top_srcdir)/examples/ $(STARPU_H_CPPFLAGS)
 AM_LDFLAGS = @STARPU_EXPORT_DYNAMIC@
-LIBS += $(STARPU_CUDA_LDFLAGS)
+LIBS += $(STARPU_CUDA_LDFLAGS) $(STARPU_HIP_LDFLAGS)
 LIBS += $(top_builddir)/src/@LIBSTARPU_LINK@ ../src/libstarpumpi-@STARPU_EFFECTIVE_VERSION@.la $(STARPU_EXPORTED_LIBS)
 
 ########################
@@ -230,6 +240,14 @@ ring_sync_detached_SOURCES += ring_kernel.cu
 ring_async_SOURCES += ring_kernel.cu
 ring_async_implicit_SOURCES += ring_kernel.cu
 insert_task_count_SOURCES += ring_kernel.cu
+endif
+if STARPU_USE_HIP
+ring_SOURCES += ring_kernel_hip.hip
+ring_sync_SOURCES += ring_kernel_hip.hip
+ring_sync_detached_SOURCES += ring_kernel_hip.hip
+ring_async_SOURCES += ring_kernel_hip.hip
+ring_async_implicit_SOURCES += ring_kernel_hip.hip
+insert_task_count_SOURCES += ring_kernel_hip.hip
 endif
 mpi_reduction_SOURCES = mpi_reduction.c
 mpi_reduction_SOURCES += mpi_reduction_kernels.c

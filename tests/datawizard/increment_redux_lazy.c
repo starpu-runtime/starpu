@@ -58,6 +58,38 @@ static void neutral_cuda_kernel(void *descr[], void *arg)
 }
 #endif
 
+#ifdef STARPU_USE_HIP
+static void redux_hip_kernel(void *descr[], void *arg)
+{
+	(void)arg;
+
+	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned *src = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
+
+	unsigned host_dst, host_src;
+
+	/* This is a dummy technique of course */
+	hipMemcpyAsync(&host_src, src, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
+	hipMemcpyAsync(&host_dst, dst, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
+	hipStreamSynchronize(starpu_hip_get_local_stream());
+
+	host_dst += host_src;
+
+	hipMemcpyAsync(dst, &host_dst, sizeof(unsigned), hipMemcpyHostToDevice, starpu_hip_get_local_stream());
+}
+
+static void neutral_hip_kernel(void *descr[], void *arg)
+{
+	(void)arg;
+
+	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
+
+	/* This is a dummy technique of course */
+	unsigned host_dst = 0;
+	hipMemcpyAsync(dst, &host_dst, sizeof(unsigned), hipMemcpyHostToDevice, starpu_hip_get_local_stream());
+}
+#endif
+
 #ifdef STARPU_USE_OPENCL
 static void redux_opencl_kernel(void *descr[], void *arg)
 {
@@ -117,6 +149,10 @@ static struct starpu_codelet redux_cl =
 	.cuda_funcs = {redux_cuda_kernel},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {redux_hip_kernel},
+	.hip_flags = {STARPU_HIP_ASYNC},
+#endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {redux_opencl_kernel},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
@@ -132,6 +168,10 @@ static struct starpu_codelet neutral_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {neutral_cuda_kernel},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {neutral_hip_kernel},
+	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {neutral_opencl_kernel},
@@ -182,6 +222,23 @@ static void increment_cuda_kernel(void *descr[], void *cl_arg)
 }
 #endif
 
+#ifdef STARPU_USE_HIP
+static void increment_hip_kernel(void *descr[], void *cl_arg)
+{
+	(void)cl_arg;
+	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	unsigned host_token;
+
+	/* This is a dummy technique of course */
+	hipMemcpyAsync(&host_token, tokenptr, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
+	hipStreamSynchronize(starpu_hip_get_local_stream());
+
+	host_token++;
+
+	hipMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), hipMemcpyHostToDevice, starpu_hip_get_local_stream());
+}
+#endif
+
 void increment_cpu_kernel(void *descr[], void *cl_arg)
 {
 	(void)cl_arg;
@@ -194,6 +251,10 @@ static struct starpu_codelet increment_cl =
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda_kernel},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {increment_hip_kernel},
+	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {increment_opencl_kernel},
@@ -218,7 +279,7 @@ int main(int argc, char **argv)
 	ret = starpu_initialize(NULL, &argc, &argv);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
-	if (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() + starpu_opencl_worker_get_count() == 0)
+	if (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() + starpu_opencl_worker_get_count() + starpu_hip_worker_get_count() == 0)
 	{
 		starpu_shutdown();
 		return STARPU_TEST_SKIPPED;

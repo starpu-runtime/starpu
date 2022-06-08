@@ -34,6 +34,10 @@ extern void block_cpu_func(void *buffers[], void *cl_arg);
 extern void block_cuda_func(void *buffers[], void *cl_arg);
 #endif
 
+#ifdef STARPU_USE_HIP
+extern void block_hip_func(void *buffers[], void *cl_arg);
+#endif
+
 #ifdef STARPU_USE_OPENCL
 extern void opencl_func(void *buffers[], void *cl_arg);
 #endif
@@ -64,6 +68,10 @@ int main(void)
 #ifdef STARPU_USE_CUDA
                 .cuda_funcs = {block_cuda_func},
 		.cuda_flags = {STARPU_CUDA_ASYNC},
+#endif
+#ifdef STARPU_USE_HIP
+                .hip_funcs = {block_hip_func},
+		.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
                 .opencl_funcs = {opencl_func},

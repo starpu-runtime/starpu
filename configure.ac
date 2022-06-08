@@ -1493,14 +1493,14 @@ if test x$enable_cuda = xyes; then
    	cc_or_nvcc=$NVCC
 	AC_DEFINE(STARPU_USE_CUDA, [1], [CUDA support is activated])
 
-	# On Darwin, the libstdc++ dependency is not automatically added by nvcc
+        # On Darwin, the libstdc++ dependency is not automatically added by nvcc
 #	case "$target" in
 #		*-*darwin*) AC_HAVE_LIBRARY([stdc++], []) ;;
 #		#*-*darwin*) AC_HAVE_LIBRARY([stdc++], [STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lstdc++"]) ;;
 #	esac
 	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart -lcublas"
 	STARPU_CUFFT_LDFLAGS="-lcufft"
-
+	
 	AC_LANG_PUSH([C++])
 	case \ $NVCCFLAGS\  in
 	*\ -std=*\ *) ;;
@@ -1710,18 +1710,14 @@ if test x$enable_hip != xno; then
 		enable_hip=no
 	else
 		HIP_PLATFORM="`hipconfig --platform`"
-		if test $HIP_PLATFORM != "nvidia"; then
-			HIP_DIR="`hipconfig --path`"
-			HIP_LIB_DIR="$HIP_DIR/lib"
-			HIP_INCLUDE_DIR="$HIP_DIR/include"
-			STARPU_HIP_CPPFLAGS="`hipconfig --cpp_config`"
-			HIP_CLANG_PATH="`hipconfig --hipclangpath`"
-			enable_hip=yes
-		fi
+                HIP_DIR="`hipconfig --path`"
+                HIP_LIB_DIR="$HIP_DIR/lib"
+                HIP_INCLUDE_DIR="$HIP_DIR/include"
+                STARPU_HIP_CPPFLAGS="`hipconfig --cpp_config`"
+                HIP_CLANG_PATH="`hipconfig --hipclangpath`"
+                enable_hip=yes
 	fi
 fi
-
-enable_hip=yes
 
 if test -z "$HIP_DIR"; then
 	enable_hip=no
@@ -1732,7 +1728,6 @@ fi
 if test -z "$HIP_INCLUDE_DIR"; then
 	enable_hip=no
 fi
-
 
 if test "$HIPCC" = ""; then
 	AC_PATH_PROG([HIPCC], [hipcc], [not-found],
@@ -1745,11 +1740,15 @@ if test "x$HIPCC" = "xnot-found"; then
 	enable_hip=no
 fi
 
+if test "$HIP_PLATFORM" = "nvidia"; then
+	HIPCCFLAGS="$HIPCCFLAGS --x cu"
+fi
+
 if test "x$enable_hip" = xyes; then
 	AC_MSG_CHECKING(whether $HIPCC is working)
 	rm -f conftest.hip conftest.o
 	touch conftest.hip
-	AS_IF([$HIPCC conftest.hip -o conftest.o -c $STARPU_HIP_CPPFLAGS],
+	AS_IF([$HIPCC $HIPCCFLAGS conftest.hip -o conftest.o -c $STARPU_HIP_CPPFLAGS],
 		[AC_MSG_RESULT(yes)],
 		[
 		  AC_MSG_RESULT(no)
@@ -1758,9 +1757,19 @@ if test "x$enable_hip" = xyes; then
 		])
 fi
 
-if test x$enable_hip = xyes ; then
-	AC_DEFINE(STARPU_USE_HIP,[1],[Define to 1 if the HIP driver is to be tested])
-	STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lamdhip64 -lstdc++"
+if test "x$enable_hip" = xyes; then              
+        AC_DEFINE(STARPU_USE_HIP,[1],[Define to 1 if the HIP driver is to be tested])
+        if test "$HIP_PLATFORM" = "nvidia"; then
+                STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lcuda -lcudart"
+        fi
+        if test "$HIP_PLATFORM" = "amd"; then
+	        STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lamdhip64 -lstdc++"
+        fi
+
+        AC_ARG_ENABLE(hip_memcpy_peer, [AS_HELP_STRING([--disable-hip-memcpy-peer], [if you want to disable peer transfers when using hip])],, [enable_hip_memcpy_peer=$enable_hip])
+        if test x$enable_hip_memcpy_peer = xyes; then
+                AC_DEFINE(STARPU_HAVE_HIP_MEMCPY_PEER,[1],[Peer transfers are supported in HIP])
+        fi
 fi
 
 AC_SUBST(STARPU_HIP_LDFLAGS)
@@ -4147,9 +4156,11 @@ AC_MSG_NOTICE([
 	Maximum number of memory nodes:                $maxnodes
 	Maximum number of task buffers:                $nmaxbuffers
 
-	GPU-GPU transfers: $enable_cuda_memcpy_peer
-	CUDA Map:          $enable_cuda_map
-	Allocation cache:  $enable_allocation_cache
+	CUDA GPU-GPU transfers: $enable_cuda_memcpy_peer
+	CUDA Map:               $enable_cuda_map
+	Allocation cache:       $enable_allocation_cache
+
+        HIP GPU-GPU transfers: $enable_hip_memcpy_peer
 
 	Magma enabled:     $have_magma
 	BLAS library:      $blas_lib

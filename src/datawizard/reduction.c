@@ -95,7 +95,6 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 			starpu_cuda_set_device(starpu_worker_get_devid(workerid));
 #endif
 			break;
-
 		case STARPU_HIP_WORKER:
 			init_func = _starpu_task_get_hip_nth_implementation(init_cl, 0);
 #if defined(STARPU_HAVE_HIP_MEMCPY_PEER) && !defined(STARPU_SIMGRID)
@@ -103,7 +102,6 @@ void _starpu_redux_init_data_replicate(starpu_data_handle_t handle, struct _star
 			starpu_hip_set_device(starpu_worker_get_devid(workerid));
 #endif
 			break;
-
 		case STARPU_OPENCL_WORKER:
 			init_func = _starpu_task_get_opencl_nth_implementation(init_cl, 0);
 			break;

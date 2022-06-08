@@ -286,6 +286,7 @@ static struct starpu_codelet cl =
 #ifdef STARPU_USE_HIP
 	/* HIP implementation of the codelet */
 	.hip_funcs = {hip_mult},
+        .hip_flags = {STARPU_HIP_ASYNC},
 #endif
 	/* the codelet manipulates 3 buffers that are managed by the DSM */
 	.nbuffers = 3,

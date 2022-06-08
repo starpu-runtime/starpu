@@ -126,8 +126,10 @@ extern "C"
 #define STARPU_CUDA_ASYNC	(1<<0)
 
 /**
- *	TODO:  async for hip
+   Value to be set in starpu_codelet::hip_flags to allow asynchronous
+   HIP kernel execution.
  */
+#define STARPU_HIP_ASYNC	(1<<0)
 
 /**
    Value to be set in starpu_codelet::opencl_flags to allow

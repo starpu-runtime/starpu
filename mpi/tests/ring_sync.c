@@ -29,6 +29,10 @@
 extern void increment_cuda(void *descr[], void *_args);
 #endif
 
+#ifdef STARPU_USE_HIP
+extern void increment_hip(void *descr[], void *_args);
+#endif
+
 void increment_cpu(void *descr[], void *_args)
 {
 	(void)_args;
@@ -40,6 +44,9 @@ static struct starpu_codelet increment_cl =
 {
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {increment_cuda},
+#endif
+#ifdef STARPU_USE_HIP
+	.hip_funcs = {increment_hip},
 #endif
 	.cpu_funcs = {increment_cpu},
 	.nbuffers = 1,
