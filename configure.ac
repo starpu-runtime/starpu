@@ -1719,6 +1719,14 @@ if test x$enable_hip != xno; then
 	fi
 fi
 
+if test x$enable_hip != xno; then
+	SAVED_CPPFLAGS="$CPPFLAGS"
+	CPPFLAGS="${CPPFLAGS} $STARPU_HIP_CPPFLAGS"
+	AC_CHECK_HEADER([hip/hip_runtime.h],[],[enable_hip=no])
+	AC_CHECK_HEADER([hip/hip_runtime_api.h],[],[enable_hip=no])
+	CPPFLAGS="${SAVED_CPPFLAGS}"
+fi
+
 if test -z "$HIP_DIR"; then
 	enable_hip=no
 fi
