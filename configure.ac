@@ -1222,7 +1222,7 @@ AC_MSG_CHECKING(maximum number of CPUs)
 AC_ARG_ENABLE(maxcpus, [AS_HELP_STRING([--enable-maxcpus=<number>],
 			[maximum number of CPUs])],
 			maxcpus=$enableval, maxcpus=auto)
-if test x$maxcpus == xauto
+if test x$maxcpus = xauto
 then
 	confcpu=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
 	if test x$confcpu = x
@@ -1500,7 +1500,7 @@ if test x$enable_cuda = xyes; then
 #	esac
 	STARPU_CUDA_LDFLAGS="$STARPU_CUDA_LDFLAGS -lcudart -lcublas"
 	STARPU_CUFFT_LDFLAGS="-lcufft"
-	
+
 	AC_LANG_PUSH([C++])
 	case \ $NVCCFLAGS\  in
 	*\ -std=*\ *) ;;
@@ -1757,7 +1757,7 @@ if test "x$enable_hip" = xyes; then
 		])
 fi
 
-if test "x$enable_hip" = xyes; then              
+if test "x$enable_hip" = xyes; then
         AC_DEFINE(STARPU_USE_HIP,[1],[Define to 1 if the HIP driver is to be tested])
         if test "$HIP_PLATFORM" = "nvidia"; then
                 STARPU_HIP_LDFLAGS="-L$HIP_LIB_DIR -lcuda -lcudart"
@@ -2604,10 +2604,10 @@ if test x$enable_simgrid != xyes; then
         nmaxtcpipdev=1
     fi
 fi
-if test $maxcpus == 0
+if test $maxcpus = 0
 then
 	nmaxworkers=`expr 16 \* \( \( \( $nmaxmpidev \* 64 \) + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
-elif test $nmaxmpidev == 0
+elif test $nmaxmpidev = 0
 then
 	nmaxworkers=`expr 16 \* \( \( $maxcpus + $nmaxcudadev + $nmaxopencldev + $nmaxmaxfpgadev + 15 \) / 16 \) `
 else
@@ -3659,7 +3659,7 @@ then
 	AC_SUBST(DLB_CFLAGS)
 	AC_SUBST(DLB_LIBS)
 fi
-AM_CONDITIONAL(STARPURM_HAVE_DLB, test x$starpurm_dlb_support == "xyes")
+AM_CONDITIONAL(STARPURM_HAVE_DLB, test x$starpurm_dlb_support = "xyes")
 AM_CONDITIONAL(STARPU_BUILD_STARPURM, [test x$starpurm_support = xyes])
 
 AC_ARG_ENABLE(starpurm-examples, [AS_HELP_STRING([--enable-starpurm-examples],
@@ -3689,7 +3689,7 @@ AC_ARG_ENABLE(starpupy, [AS_HELP_STRING([--enable-starpupy], [enable StarPU pyth
 if test "x$enable_starpupy" != xno
 then
 	AC_CHECK_PROGS([PYTHON], python3)
-	if test "$ac_cv_prog_PYTHON" == ""
+	if test "$ac_cv_prog_PYTHON" = ""
 	then
 		if test "x$enable_starpupy" = xyes ; then
 			AC_MSG_ERROR([python3 missing, cannot build StarPU python interface])
