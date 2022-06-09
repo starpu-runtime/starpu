@@ -29,7 +29,6 @@
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/driver_common/driver_common.h>
 #include <drivers/cuda/driver_cuda.h>
-#include <drivers/cuda/driver_gpu.h>
 #include <core/sched_policy.h>
 #ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
@@ -374,7 +373,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 						   1,
 						   worker_set, NULL);
 
-		_starpu_gpu_set_used(devid);
+		_starpu_devices_gpu_set_used(devid);
 
 		/* TODO: move this to generic place */
 #ifdef STARPU_HAVE_HWLOC
