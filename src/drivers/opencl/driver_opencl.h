@@ -62,10 +62,6 @@ extern struct _starpu_node_ops _starpu_driver_opencl_node_ops;
 extern struct _starpu_driver_ops _starpu_driver_opencl_ops;
 #endif
 
-#if (defined(STARPU_USE_OPENCL) && (defined(STARPU_USE_CUDA) || defined(STARPU_USE_HIP))) || defined(STARPU_SIMGRID)
-void _starpu_opencl_using_cuda(int devid);
-#endif
-
 #ifdef STARPU_USE_OPENCL
 extern char *_starpu_opencl_program_dir;
 
