@@ -140,6 +140,7 @@ noinst_HEADERS = 						\
 	drivers/mp_common/source_common.h			\
 	drivers/mp_common/sink_common.h				\
 	drivers/cpu/driver_cpu.h				\
+	drivers/cuda/driver_gpu.h				\
 	drivers/cuda/driver_cuda.h				\
 	drivers/hip/driver_hip.h				\
 	drivers/opencl/driver_opencl.h				\
@@ -334,6 +335,8 @@ libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += core/disk_ops/disk_hdf5.c
 endif
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cpu/driver_cpu.c
+
+libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_gpu.c
 
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/hip/driver_hip_init.c
 libstarpu_@STARPU_EFFECTIVE_VERSION@_la_SOURCES += drivers/cuda/driver_cuda_init.c

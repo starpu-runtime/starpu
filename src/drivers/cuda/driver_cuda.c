@@ -27,7 +27,8 @@
 #include <core/debug.h>
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/driver_common/driver_common.h>
-#include "driver_cuda.h"
+#include <drivers/cuda/driver_cuda.h>
+#include <drivers/cuda/driver_gpu.h>
 #include <core/sched_policy.h>
 #ifdef HAVE_CUDA_GL_INTEROP_H
 #include <cuda_gl_interop.h>
@@ -364,17 +365,15 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 		}
 
 		_starpu_topology_configure_workers(topology, config,
-					STARPU_CUDA_WORKER,
-					cudagpu, devid, 0, 0,
-					nworker_per_cuda,
-					// TODO: fix perfmodels etc.
-					// nworker_per_cuda - 1,
-					1,
-					worker_set, NULL);
+						   STARPU_CUDA_WORKER,
+						   cudagpu, devid, 0, 0,
+						   nworker_per_cuda,
+						   // TODO: fix perfmodels etc.
+						   // nworker_per_cuda - 1,
+						   1,
+						   worker_set, NULL);
 
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-		_starpu_opencl_using_cuda(devid);
-#endif
+		_starpu_gpu_set_used(devid);
 
 		/* TODO: move this to generic place */
 #ifdef STARPU_HAVE_HWLOC

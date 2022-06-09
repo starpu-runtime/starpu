@@ -52,7 +52,6 @@ hwloc_obj_t _starpu_opencl_get_hwloc_obj(struct _starpu_machine_topology *topolo
 #endif
 void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *);
 int _starpu_opencl_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
-void _starpu_deinit_opencl_config(void);
 void *_starpu_opencl_worker(void *);
 extern struct _starpu_node_ops _starpu_driver_opencl_node_ops;
 #else

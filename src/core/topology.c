@@ -25,6 +25,7 @@
 #include <core/workers.h>
 #include <core/debug.h>
 #include <core/topology.h>
+#include <drivers/cuda/driver_gpu.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/hip/driver_hip.h>
 #include <drivers/cpu/driver_cpu.h>
@@ -385,14 +386,9 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
 	return NULL;
 }
 
-
-/*
- * Discover the topology of the machine
- */
-
+// Detect identical devices, keep unique devices
 void _starpu_topology_drop_duplicate(unsigned ids[STARPU_NMAXWORKERS])
 {
-	// Detect identical devices, keep unique devices
 	struct _starpu_gpu_entry *devices_already_used = NULL;
 	unsigned tmp[STARPU_NMAXWORKERS];
 	unsigned nb=0;
@@ -993,7 +989,6 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "hip");
         /* TODO: check about rocclr, the equivalent of nvml*/
         //hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "rocm_smi");
-	
 #  endif
 #  ifndef STARPU_USE_OPENCL
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "opencl");
@@ -1218,9 +1213,7 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 
 	topology_is_initialized = 0;
 
-#ifdef STARPU_USE_OPENCL
-	_starpu_deinit_opencl_config();
-#endif
+	_starpu_gpu_clean();
 
 	int i;
 	for (i=0; i<STARPU_NARCH; i++)

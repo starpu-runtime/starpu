@@ -26,8 +26,9 @@
 #include <common/config.h>
 #include <core/debug.h>
 #include <drivers/cpu/driver_cpu.h>
+#include <drivers/cuda/driver_gpu.h>
 #include <drivers/driver_common/driver_common.h>
-#include "driver_hip.h"
+#include <drivers/hip/driver_hip.h>
 #include <core/sched_policy.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
@@ -202,6 +203,8 @@ static void _starpu_initialize_workers_hip_gpuid(struct _starpu_machine_config *
 					    "STARPU_WORKERS_HIPID",
 					    topology->nhwdevices[STARPU_HIP_WORKER],
 					    STARPU_HIP_WORKER);
+
+	_starpu_gpu_clear(config, STARPU_HIP_WORKER);
 	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_HIP_WORKER]);
 }
 
@@ -238,15 +241,10 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 		}
 
 		_starpu_topology_configure_workers(topology, config,
-					STARPU_HIP_WORKER,
-					hipgpu, devid, 0, 0,
-					1, 1, NULL, NULL);
-
-#ifdef __HIP_PLATFORM_NVIDIA__
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
-		_starpu_opencl_using_cuda(devid);
-#endif
-#endif
+						   STARPU_HIP_WORKER,
+						   hipgpu, devid, 0, 0,
+						   1, 1, NULL, NULL);
+		_starpu_gpu_set_used(devid);
         }
 }
 
@@ -445,7 +443,6 @@ static void deinit_worker_context(unsigned workerid, unsigned devid)
 	hipEventDestroy(task_events[workerid]);
 	hipStreamDestroy(streams[workerid]);
 }
-
 
 /* This is run from the driver thread to initialize the driver HIP context */
 int _starpu_hip_driver_init(struct _starpu_worker *worker)
@@ -1232,7 +1229,7 @@ int _starpu_hip_run_from_worker(struct _starpu_worker *worker)
 
 struct _starpu_driver_ops _starpu_driver_hip_ops =
 {
-	.init = _starpu_hip_driver_init,
+ 	.init = _starpu_hip_driver_init,
 	.run = _starpu_hip_run_from_worker,
 	.run_once = _starpu_hip_driver_run_once,
 	.deinit = _starpu_hip_driver_deinit,
