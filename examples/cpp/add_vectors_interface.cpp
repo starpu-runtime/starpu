@@ -169,11 +169,15 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 
 	.ram_to_ram = NULL,
 	.ram_to_cuda = NULL,
+	.ram_to_hip = NULL,
 	.ram_to_opencl = NULL,
 	.ram_to_max_fpga = NULL,
 
 	.cuda_to_ram = NULL,
 	.cuda_to_cuda = NULL,
+
+	.hip_to_ram = NULL,
+	.hip_to_hip = NULL,
 
 	.opencl_to_ram = NULL,
 	.opencl_to_opencl = NULL,
@@ -183,6 +187,10 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 	.ram_to_cuda_async = NULL,
 	.cuda_to_ram_async = NULL,
 	.cuda_to_cuda_async = NULL,
+
+	.ram_to_hip_async = NULL,
+	.hip_to_ram_async = NULL,
+	.hip_to_hip_async = NULL,
 
 	.ram_to_opencl_async = NULL,
 	.opencl_to_ram_async = NULL,
@@ -196,38 +204,39 @@ static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 #else
 static const struct starpu_data_copy_methods vector_cpp_copy_data_methods_s =
 {
-	NULL,
+ 	NULL,                      // can_copy
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	NULL,                      // ram_to_ram
+	NULL,                      // ram_to_cuda
+	NULL,                      // ram_to_hip
+	NULL,                      // ram_to_opencl
+	NULL,                      // ram_to_max_fpga
 
-	NULL,
-	NULL,
+	NULL,                      // cuda_to_ram
+	NULL,                      // cuda_to_cuda
 
-	NULL,
-	NULL,
+	NULL,                      // hip_to_ram
+	NULL,                      // hip_to_hip
 
-	NULL,
-	NULL,
-	NULL,
-	NULL,
+	NULL,                      // opencl_to_ram
+	NULL,                      // opencl_to_opencl
 
-	NULL,
-	NULL,
-	NULL,
+	NULL,                      // max_fpga_to_ram
 
-	NULL,
-	NULL,
-	NULL,
+	NULL,                      // ram_to_cuda_async
+	NULL,                      // cuda_to_ram_async
+	NULL,                      // cuda_to_cuda_async
 
-	NULL,
-	NULL,
+	NULL,                      // ram_to_hip_async
+	NULL,                      // hip_to_ram_async
+	NULL,                      // hip_to_hip_async
 
-	NULL,
-	NULL,
-	NULL,
+	NULL,                      // ram_to_opencl_async
+	NULL,                      // opencl_to_ram_async
+	NULL,                      // opencl_to_opencl_async
+
+	NULL,                      // ram_to_max_fpga_asyn
+	NULL,                      // max_fpga_to_ram_asyn
 
 	vector_interface_copy_any_to_any,
 };
