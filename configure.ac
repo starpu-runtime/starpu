@@ -1795,6 +1795,9 @@ if test "x$enable_hip" = xyes; then
         if test x$enable_hip_memcpy_peer = xyes; then
                 AC_DEFINE(STARPU_HAVE_HIP_MEMCPY_PEER,[1],[Peer transfers are supported in HIP])
         fi
+else
+	STARPU_HIP_LDFLAGS=
+	STARPU_HIP_CPPFLAGS=
 fi
 
 AC_SUBST(STARPU_HIP_LDFLAGS)
