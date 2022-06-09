@@ -3463,6 +3463,7 @@ AS_IF([test "$have_valid_hwloc" = "yes"],
        HWLOC_REQUIRES=hwloc
        AC_SUBST([STARPU_HAVE_HWLOC], [1])
        AC_CHECK_DECLS([hwloc_cuda_get_device_osdev_by_index], [], [], [[#include <hwloc/cuda.h>]])
+       AC_CHECK_DECLS([hwloc_hip_get_device_osdev_by_index], [], [], [[#include <hwloc/hip.h>]])
       ])
 
 AC_CHECK_FUNCS([hwloc_topology_dup])
