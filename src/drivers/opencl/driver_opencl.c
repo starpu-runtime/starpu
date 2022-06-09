@@ -24,11 +24,11 @@
 #include <common/config.h>
 #include <common/utils.h>
 #include <core/debug.h>
+#include <core/devices.h>
 #include <starpu_opencl.h>
 #include <drivers/driver_common/driver_common.h>
 #include <drivers/opencl/driver_opencl.h>
 #include <drivers/opencl/driver_opencl_utils.h>
-#include <drivers/cuda/driver_gpu.h>
 #include <common/utils.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
@@ -267,8 +267,8 @@ static void _starpu_initialize_workers_opencl_gpuid(struct _starpu_machine_confi
 					    topology->nhwdevices[STARPU_OPENCL_WORKER],
 					    STARPU_OPENCL_WORKER);
 
-	_starpu_gpu_clear(config, STARPU_OPENCL_WORKER);
-	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_OPENCL_WORKER]);
+	_starpu_devices_gpu_clear(config, STARPU_OPENCL_WORKER);
+	_starpu_devices_drop_duplicate(topology->workers_devid[STARPU_OPENCL_WORKER]);
 }
 
 /* Determine which devices we will use */

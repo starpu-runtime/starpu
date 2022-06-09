@@ -24,8 +24,8 @@
 #endif
 #include <core/workers.h>
 #include <core/debug.h>
+#include <core/devices.h>
 #include <core/topology.h>
-#include <drivers/cuda/driver_gpu.h>
 #include <drivers/cuda/driver_cuda.h>
 #include <drivers/hip/driver_hip.h>
 #include <drivers/cpu/driver_cpu.h>
@@ -384,41 +384,6 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
 	}
 
 	return NULL;
-}
-
-// Detect identical devices, keep unique devices
-void _starpu_topology_drop_duplicate(unsigned ids[STARPU_NMAXWORKERS])
-{
-	struct _starpu_gpu_entry *devices_already_used = NULL;
-	unsigned tmp[STARPU_NMAXWORKERS];
-	unsigned nb=0;
-	int i;
-
-	for(i=0 ; i<STARPU_NMAXWORKERS ; i++)
-	{
-		int devid = ids[i];
-		struct _starpu_gpu_entry *entry;
-		HASH_FIND_INT(devices_already_used, &devid, entry);
-		if (entry == NULL)
-		{
-			struct _starpu_gpu_entry *entry2;
-			_STARPU_MALLOC(entry2, sizeof(*entry2));
-			entry2->gpuid = devid;
-			HASH_ADD_INT(devices_already_used, gpuid,
-				     entry2);
-			tmp[nb] = devid;
-			nb ++;
-		}
-	}
-	struct _starpu_gpu_entry *entry=NULL, *tempo=NULL;
-	HASH_ITER(hh, devices_already_used, entry, tempo)
-	{
-		HASH_DEL(devices_already_used, entry);
-		free(entry);
-	}
-	for (i=nb ; i<STARPU_NMAXWORKERS ; i++)
-		tmp[i] = -1;
-	memcpy(ids, tmp, sizeof(unsigned)*STARPU_NMAXWORKERS);
 }
 
 void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
@@ -1213,7 +1178,7 @@ void _starpu_destroy_machine_config(struct _starpu_machine_config *config)
 
 	topology_is_initialized = 0;
 
-	_starpu_gpu_clean();
+	_starpu_devices_gpu_clean();
 
 	int i;
 	for (i=0; i<STARPU_NARCH; i++)

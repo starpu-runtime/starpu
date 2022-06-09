@@ -44,12 +44,6 @@ struct _starpu_hwloc_userdata
 #endif
 #endif
 
-struct _starpu_gpu_entry
-{
-	UT_hash_handle hh;
-	unsigned gpuid;
-};
-
 struct _starpu_worker_set;
 struct _starpu_machine_topology;
 
@@ -61,9 +55,6 @@ void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 					 int *current, int *workers_gpuid,
 					 const char *varname, unsigned nhwgpus,
 					 enum starpu_worker_archtype type);
-
-/** Drop duplicate values from \p ids */
-void _starpu_topology_drop_duplicate(unsigned ids[STARPU_NMAXWORKERS]);
 
 /** Get the next devid for architecture \p type */
 int _starpu_get_next_devid(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, enum starpu_worker_archtype arch);

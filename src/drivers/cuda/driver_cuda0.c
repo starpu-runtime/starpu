@@ -35,6 +35,7 @@
 #include <common/utils.h>
 #include <common/config.h>
 #include <core/debug.h>
+#include <core/devices.h>
 #include <drivers/cpu/driver_cpu.h>
 #include <drivers/driver_common/driver_common.h>
 #include "driver_cuda.h"
@@ -145,7 +146,7 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
 					    "STARPU_WORKERS_CUDAID",
 					    topology->nhwdevices[STARPU_CUDA_WORKER],
 					    STARPU_CUDA_WORKER);
-	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_CUDA_WORKER]);
+	_starpu_devices_drop_duplicate(topology->workers_devid[STARPU_CUDA_WORKER]);
 }
 
 /* Determine which devices we will use */

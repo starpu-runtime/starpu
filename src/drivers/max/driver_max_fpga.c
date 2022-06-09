@@ -20,6 +20,7 @@
 #include <common/utils.h>
 #include <common/config.h>
 #include <core/debug.h>
+#include <core/devices.h>
 #include <drivers/driver_common/driver_common.h>
 #include "driver_max_fpga.h"
 #include <core/sched_policy.h>
@@ -74,7 +75,7 @@ static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_
 					    "STARPU_WORKERS_MAX_FPGAID",
 					    topology->nhwdevices[STARPU_MAX_FPGA_WORKER],
 					    STARPU_MAX_FPGA_WORKER);
-	_starpu_topology_drop_duplicate(topology->workers_max_fpga_deviceid);
+	_starpu_devices_drop_duplicate(topology->workers_max_fpga_deviceid);
 }
 
 unsigned _starpu_max_fpga_get_device_count(void)

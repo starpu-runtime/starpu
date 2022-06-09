@@ -14,8 +14,8 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#ifndef __DRIVER_GPU_H__
-#define __DRIVER_GPU_H__
+#ifndef __DEVICES_H__
+#define __DEVICES_H__
 
 /** @file */
 
@@ -25,15 +25,18 @@
 
 #pragma GCC visibility push(hidden)
 
-void _starpu_gpu_set_used(int devid);
+/** Drop duplicate values from \p ids */
+void _starpu_devices_drop_duplicate(unsigned ids[STARPU_NMAXWORKERS]);
+
+void _starpu_devices_gpu_set_used(int devid);
 
 // Detect which GPU devices are already used
-void _starpu_gpu_clear(struct _starpu_machine_config *config, enum starpu_worker_archtype type);
+void _starpu_devices_gpu_clear(struct _starpu_machine_config *config, enum starpu_worker_archtype type);
 
-void _starpu_gpu_clean();
+void _starpu_devices_gpu_clean();
 
 
 #pragma GCC visibility pop
 
-#endif //  __DRIVER_GPU_H__
+#endif //  __DEVICES_H__
 

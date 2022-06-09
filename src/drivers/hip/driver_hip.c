@@ -25,8 +25,8 @@
 #include <common/utils.h>
 #include <common/config.h>
 #include <core/debug.h>
+#include <core/devices.h>
 #include <drivers/cpu/driver_cpu.h>
-#include <drivers/cuda/driver_gpu.h>
 #include <drivers/driver_common/driver_common.h>
 #include <drivers/hip/driver_hip.h>
 #include <core/sched_policy.h>
@@ -204,8 +204,8 @@ static void _starpu_initialize_workers_hip_gpuid(struct _starpu_machine_config *
 					    topology->nhwdevices[STARPU_HIP_WORKER],
 					    STARPU_HIP_WORKER);
 
-	_starpu_gpu_clear(config, STARPU_HIP_WORKER);
-	_starpu_topology_drop_duplicate(topology->workers_devid[STARPU_HIP_WORKER]);
+	_starpu_devices_gpu_clear(config, STARPU_HIP_WORKER);
+	_starpu_devices_drop_duplicate(topology->workers_devid[STARPU_HIP_WORKER]);
 }
 
 /* Determine which devices we will use */
@@ -244,7 +244,7 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 						   STARPU_HIP_WORKER,
 						   hipgpu, devid, 0, 0,
 						   1, 1, NULL, NULL);
-		_starpu_gpu_set_used(devid);
+		_starpu_devices_gpu_set_used(devid);
         }
 }
 
