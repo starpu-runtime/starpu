@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -53,9 +53,10 @@ void fake(void *buffers[], void *args)
 
 static struct starpu_codelet cl =
 {
-	.cpu_funcs    = { fake},
-	.cuda_funcs   = { fake},
-	.opencl_funcs = { fake},
+	.cpu_funcs    = { fake },
+	.cuda_funcs   = { fake },
+	.hip_funcs    = { fake },
+	.opencl_funcs = { fake },
 	.cpu_funcs_name = { "fake"},
 	.nbuffers     = 0
 };
