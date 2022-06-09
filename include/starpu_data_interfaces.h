@@ -163,17 +163,17 @@ struct starpu_data_copy_methods
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
-	   \p src_node HIP node to the \p dst_interface interface on the \p
-	   dst_node CPU node. Return 0 on success.
-	*/
-	int (*hip_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
-
-	/**
-	   Define how to copy data from the \p src_interface interface on the
 	   \p src_node CUDA node to the \p dst_interface interface on the \p
 	   dst_node CUDA node. Return 0 on success.
 	*/
 	int (*cuda_to_cuda)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+
+	/**
+	   Define how to copy data from the \p src_interface interface on the
+	   \p src_node HIP node to the \p dst_interface interface on the \p
+	   dst_node CPU node. Return 0 on success.
+	*/
+	int (*hip_to_ram)(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 
 	/**
 	   Define how to copy data from the \p src_interface interface on the
