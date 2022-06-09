@@ -253,7 +253,7 @@ _starpu_opencl_discover_devices(struct _starpu_machine_config *config)
 	config->topology.nhwdevices[STARPU_OPENCL_WORKER] = nb_devices;
 }
 
-#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
+#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_HIP) || defined(STARPU_SIMGRID)
 /* Entry in the `devices_using_cuda' hash table.  */
 static struct _starpu_gpu_entry *devices_using_cuda;
 

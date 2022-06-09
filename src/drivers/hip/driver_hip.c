@@ -241,6 +241,12 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 					STARPU_HIP_WORKER,
 					hipgpu, devid, 0, 0,
 					1, 1, NULL, NULL);
+
+#ifdef __HIP_PLATFORM_NVIDIA__
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
+		_starpu_opencl_using_cuda(devid);
+#endif
+#endif
         }
 }
 
