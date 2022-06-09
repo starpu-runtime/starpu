@@ -60,7 +60,7 @@
 #endif
 #endif
 
-#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 #include <hwloc/cuda.h>
 #endif
 
@@ -2165,7 +2165,7 @@ void _starpu_simgrid_get_platform_path(int version, char *path, size_t maxlen)
  * - then through all CUDA-CUDA possible transfers again to emit routes.
  */
 
-#if defined(STARPU_USE_CUDA) && defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+#if defined(STARPU_USE_CUDA) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 
 /* Records, for each PCI link and hub, the maximum bandwidth seen through it */
 struct pci_userdata
@@ -2830,7 +2830,7 @@ static void write_bus_platform_file_content(int version)
 	}
 #endif
 
-#if defined(HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
+#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 #ifdef STARPU_DEVEL
 #warning TODO: use libnvml to get NVLink links, otherwise numbers will be bogusly propagated through PCI topology
 #endif
