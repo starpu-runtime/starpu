@@ -47,7 +47,7 @@
 #include <core/simgrid.h>
 #endif
 
-#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 #include <hwloc/cuda.h>
 #endif
 
@@ -482,7 +482,7 @@ int _starpu_cuda_init_workers_binding_and_memory(struct _starpu_machine_config *
 					_starpu_cuda_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
 					_starpu_cuda_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
 #ifndef STARPU_SIMGRID
-#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#if HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 					{
 						hwloc_obj_t obj, obj2, ancestor;
 						obj = hwloc_cuda_get_device_osdev_by_index(config->topology.hwtopology, devid);
@@ -2226,7 +2226,7 @@ void *_starpu_cuda_worker(void *_arg)
 #ifdef STARPU_HAVE_HWLOC
 hwloc_obj_t _starpu_cuda_get_hwloc_obj(struct _starpu_machine_topology *topology, int devid)
 {
-#if !defined(STARPU_SIMGRID) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
+#if !defined(STARPU_SIMGRID) && HAVE_DECL_HWLOC_CUDA_GET_DEVICE_OSDEV_BY_INDEX
 	return hwloc_cuda_get_device_osdev_by_index(topology->hwtopology, devid);
 #else
 	return NULL;

@@ -37,7 +37,7 @@
 #include <core/task.h>
 #include <common/knobs.h>
 
-#if HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX && HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
+#if HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
 #include <hwloc/hip/hip_runtime.h>
 #endif
 
@@ -286,7 +286,7 @@ int _starpu_hip_init_workers_binding_and_memory(struct _starpu_machine_config *c
 				unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
 				_starpu_hip_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
 				_starpu_hip_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
-#if HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX && HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
+#if HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
 				{
 					hwloc_obj_t obj, obj2, ancestor;
 					obj = hwloc_hip_get_device_osdev_by_index(config->topology.hwtopology, devid);
@@ -1203,7 +1203,7 @@ void *_starpu_hip_worker(void *_arg)
 #ifdef STARPU_HAVE_HWLOC
 hwloc_obj_t _starpu_hip_get_hwloc_obj(struct _starpu_machine_topology *topology, int devid)
 {
-#if !defined(STARPU_SIMGRID) && HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX && HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
+#if !defined(STARPU_SIMGRID) && HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
 	return hwloc_hip_get_device_osdev_by_index(topology->hwtopology, devid);
 #else
 	(void)topology;
