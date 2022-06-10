@@ -100,7 +100,8 @@ int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, 
    asynchronous launch was successfull. It returns 0 if the synchronous copy was
    successful, or fails otherwise.
 */
-int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node, void *dst_ptr, unsigned dst_node,
+int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
+				 void *dst_ptr, unsigned dst_node,
 				 size_t blocksize,
 				 size_t numblocks, size_t ld_src, size_t ld_dst,
 				 hipStream_t stream, hipMemcpyKind kind);

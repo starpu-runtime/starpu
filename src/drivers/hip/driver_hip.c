@@ -221,6 +221,7 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 		}
 
 		_starpu_topology_configure_workers(topology, config,
+
 						   STARPU_HIP_WORKER,
 						   hipgpu, devid, 0, 0,
 						   1, 1, NULL, NULL);
