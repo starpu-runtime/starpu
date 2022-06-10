@@ -457,6 +457,8 @@ endif
 if STARPU_USE_CUDA
 basic_examples_vector_scal_SOURCES +=		\
 	basic_examples/vector_scal_cuda.cu
+basic_examples_mult_SOURCES +=		        \
+	basic_examples/mult_cuda.cu
 endif
 
 if STARPU_USE_HIP

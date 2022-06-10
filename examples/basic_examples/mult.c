@@ -53,6 +53,7 @@ static unsigned zdim = 512;
 #endif
 
 extern void hip_mult(void *descr[], void *arg);
+extern void cuda_mult(void *descr[], void *arg);
 
 /*
  * That program should compute C = A * B
@@ -287,6 +288,11 @@ static struct starpu_codelet cl =
 	/* HIP implementation of the codelet */
 	.hip_funcs = {hip_mult},
 	.hip_flags = {STARPU_HIP_ASYNC},
+#endif
+#ifdef STARPU_USE_CUDA
+	/* CUDA implementation of the codelet */
+	.cuda_funcs = {cuda_mult},
+        .cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 	/* the codelet manipulates 3 buffers that are managed by the DSM */
 	.nbuffers = 3,
