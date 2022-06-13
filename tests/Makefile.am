@@ -55,6 +55,7 @@ EXTRA_DIST =					\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
 	coverage/coverage.sh			\
+	variable/increment.h \
 	variable/increment_opencl_kernel.cl \
 	datawizard/interfaces/test_interfaces.h	\
 	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl \
