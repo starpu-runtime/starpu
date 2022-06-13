@@ -97,6 +97,8 @@ Small features:
     policy
   * Enable GPUDirect when MPI supports it.
   * Install a module file in lib/modules
+  * New function starpu_worker_wait_for_initialisation() which waits
+    for all workers to be initialised
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU

@@ -66,7 +66,8 @@
 #define STARPU_MAX_PIPELINE 4
 
 struct mc_cache_entry;
-struct _starpu_node {
+struct _starpu_node
+{
 	/*
 	 * used by memalloc.c
 	 */

@@ -136,6 +136,7 @@ int main(int argc, char **argv)
 	{
 		return ret;
 	}
+	starpu_worker_wait_for_initialisation();
 
 	if (info)
 	{

@@ -1063,6 +1063,42 @@ static void _starpu_launch_drivers(struct _starpu_machine_config *pconfig)
 	_STARPU_DEBUG("finished launching drivers\n");
 }
 
+void starpu_worker_wait_for_initialisation()
+{
+	unsigned nworkers = starpu_worker_get_count();
+	unsigned workerid;
+
+	for (workerid = 0; workerid < nworkers; workerid++)
+	{
+		struct _starpu_worker *worker = _starpu_get_worker_struct(workerid);
+
+		_STARPU_DEBUG("waiting for worker %u initialization\n", workerid);
+		if (!worker->run_by_starpu)
+			break;
+
+		struct _starpu_worker_set *worker_set = worker->set;
+
+		if (worker_set)
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+			while (!worker_set->set_is_initialized)
+				STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
+							 &worker_set->mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+			worker_set->started = 1;
+			worker_set->wait_for_set_initialization = 0;
+		}
+		else
+		{
+			STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
+			while (!worker->worker_is_initialized)
+				STARPU_PTHREAD_COND_WAIT(&worker->ready_cond, &worker->mutex);
+			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
+			worker->wait_for_worker_initialization = 0;
+		}
+	}
+}
+
 /* Initialize the starpu_conf with default values */
 int starpu_conf_init(struct starpu_conf *conf)
 {
@@ -1780,7 +1816,6 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	_starpu_cuda_init();
 #endif
-
 
 #if defined(STARPU_USE_HIP)
 	_starpu_hip_init();

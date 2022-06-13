@@ -164,6 +164,14 @@ extern struct starpu_worker_collection starpu_worker_list;
 extern struct starpu_worker_collection starpu_worker_tree;
 
 /**
+   Wait for all workers to be initialised. Calling this function is
+   normally not necessary. It is called for example in
+   <c>tools/starpu_machine_display</c> to make sure all workers
+   information are correctly set before printing their informations
+*/
+void starpu_worker_wait_for_initialisation();
+
+/**
    Return true if type matches one of StarPU's defined worker architectures
 */
 unsigned starpu_worker_archtype_is_valid(enum starpu_worker_archtype type);
