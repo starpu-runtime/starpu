@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include "../helper.h"
+#include "../variable/increment.h"
 
 /*
  * Check that _release_to correctly interacts with tasks working on the same data
@@ -26,43 +27,6 @@ static unsigned ntasks = 10;
 #else
 static unsigned ntasks = 1000;
 #endif
-
-#ifdef STARPU_USE_CUDA
-extern void increment_cuda(void *descr[], void *_args);
-#endif
-#ifdef STARPU_USE_HIP
-extern void increment_hip(void *descr[], void *_args);
-#endif
-#ifdef STARPU_USE_OPENCL
-extern void increment_opencl(void *buffers[], void *args);
-#endif
-
-void increment_cpu(void *descr[], void *arg)
-{
-	(void)arg;
-	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	(*tokenptr)++;
-}
-
-static struct starpu_codelet increment_cl =
-{
-	.modes = { STARPU_RW },
-	.cpu_funcs = {increment_cpu},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {increment_cuda},
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-#endif
-#ifdef STARPU_USE_HIP
-	.hip_funcs = {increment_hip},
-	.hip_flags = {STARPU_HIP_ASYNC},
-#endif
-#ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {increment_opencl},
-	.opencl_flags = {STARPU_OPENCL_ASYNC},
-#endif
-	.cpu_funcs_name = {"increment_cpu"},
-	.nbuffers = 1
-};
 
 void check_cpu(void *descr[], void *arg)
 {
@@ -82,8 +46,7 @@ static struct starpu_codelet check_cl =
 unsigned token = 0;
 starpu_data_handle_t token_handle;
 
-static
-int increment_token(void)
+static int increment_token(void)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
@@ -93,8 +56,7 @@ int increment_token(void)
 	return ret;
 }
 
-static
-int check_token(unsigned value)
+static int check_token(unsigned value)
 {
 	unsigned *value_p;
 	int ret;
@@ -109,8 +71,7 @@ int check_token(unsigned value)
 	return ret;
 }
 
-static
-void callback(void *arg)
+static void callback(void *arg)
 {
 	(void)arg;
 	token++;
@@ -121,9 +82,6 @@ void callback(void *arg)
 	starpu_data_release(token_handle);
 }
 
-#ifdef STARPU_USE_OPENCL
-struct starpu_opencl_program opencl_program;
-#endif
 int main(int argc, char **argv)
 {
 	unsigned i;
@@ -133,11 +91,8 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#ifdef STARPU_USE_OPENCL
-	ret = starpu_opencl_load_opencl_from_file("tests/datawizard/acquire_release_opencl_kernel.cl",
-						  &opencl_program, NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
-#endif
+	increment_load_opencl();
+
 	starpu_variable_data_register(&token_handle, STARPU_MAIN_RAM, (uintptr_t)&token, sizeof(unsigned));
 
         FPRINTF(stderr, "Token: %u\n", token);

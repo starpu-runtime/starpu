@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,7 +15,7 @@
  */
 
 #include <starpu.h>
-#include "../main/increment_codelet.h"
+#include "../variable/increment.h"
 #include "../helper.h"
 
 /*
@@ -37,8 +37,9 @@ int main(int argc, char **argv)
 		return STARPU_TEST_SKIPPED;
 	}
 
-	var1 = 42;
+	increment_load_opencl();
 
+	var1 = 42;
 	starpu_variable_data_register(&var1_handle, STARPU_MAIN_RAM, (uintptr_t)&var1, sizeof(var1));
 
 	/* Make a duplicate of the original data */
@@ -69,7 +70,7 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_data_dup_ro");
 	STARPU_ASSERT(var4_handle == var2_handle);
 
-	ret = starpu_task_insert(&increment_codelet, STARPU_RW, var1_handle, 0);
+	ret = starpu_task_insert(&increment_cl, STARPU_RW, var1_handle, 0);
 	if (ret == -ENODEV)
 	{
 		starpu_data_unregister(var1_handle);
@@ -126,6 +127,9 @@ int main(int argc, char **argv)
 	starpu_data_unregister(var3_handle);
 	starpu_data_unregister(var4_handle);
 	starpu_data_unregister(var5_handle);
+
+	increment_unload_opencl();
+
 	starpu_shutdown();
 
 	STARPU_RETURN(ret);

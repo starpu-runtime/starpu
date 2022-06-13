@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,8 +16,7 @@
 
 #include <starpu.h>
 #include <common/thread.h>
-
-#include "increment_codelet.h"
+#include "../variable/increment.h"
 #include "../helper.h"
 
 /*
@@ -53,8 +52,6 @@ static unsigned loop_cntD = 0;
 static unsigned *check_cnt;
 static starpu_pthread_cond_t cond = STARPU_PTHREAD_COND_INITIALIZER;
 static starpu_pthread_mutex_t mutex = STARPU_PTHREAD_MUTEX_INITIALIZER;
-
-extern void cuda_host_increment(void *descr[], void *_args);
 
 static void callback_task_B(void *arg)
 {
@@ -105,6 +102,8 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
+	increment_load_opencl();
+
 	/* Implicit data dependencies and regeneratable tasks are not compatible */
 	starpu_data_set_default_sequential_consistency_flag(0);
 
@@ -115,24 +114,24 @@ int main(int argc, char **argv)
 	starpu_variable_data_register(&check_data, STARPU_MAIN_RAM, (uintptr_t)check_cnt, sizeof(*check_cnt));
 
 	starpu_task_init(&taskA);
-	taskA.cl = &increment_codelet;
+	taskA.cl = &increment_cl;
 	taskA.regenerate = 0; /* this task will be explicitely resubmitted if needed */
 	taskA.handles[0] = check_data;
 
 	starpu_task_init(&taskB);
-	taskB.cl = &increment_codelet;
+	taskB.cl = &increment_cl;
 	taskB.callback_func = callback_task_B;
 	taskB.regenerate = 1;
 	taskB.handles[0] = check_data;
 
 	starpu_task_init(&taskC);
-	taskC.cl = &increment_codelet;
+	taskC.cl = &increment_cl;
 	taskC.callback_func = callback_task_C;
 	taskC.regenerate = 1;
 	taskC.handles[0] = check_data;
 
 	starpu_task_init(&taskD);
-	taskD.cl = &increment_codelet;
+	taskD.cl = &increment_cl;
 	taskD.callback_func = callback_task_D;
 	taskD.regenerate = 1;
 	taskD.handles[0] = check_data;
@@ -168,6 +167,7 @@ int main(int argc, char **argv)
 	starpu_task_clean(&taskC);
 	starpu_task_clean(&taskD);
 
+	increment_unload_opencl();
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
@@ -177,6 +177,7 @@ enodev:
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_data_unregister(check_data);
+	increment_unload_opencl();
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }

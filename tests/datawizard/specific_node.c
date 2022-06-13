@@ -20,6 +20,7 @@
 #include <starpu.h>
 #include <stdlib.h>
 #include "../helper.h"
+#include "../variable/increment.h"
 
 /*
  * Test using the specific_nodes field by forcing the data to main memory
@@ -40,6 +41,7 @@ static struct starpu_codelet specific3_cl =
 	.cpu_funcs = {specific3_kernel},
 	.cuda_funcs = {specific3_kernel},
 	.opencl_funcs = {specific3_kernel},
+	.hip_funcs = {specific3_kernel},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
 	.specific_nodes = 1,
@@ -74,6 +76,7 @@ static struct starpu_codelet specific2_cl =
 	.cpu_funcs = {specific2_kernel},
 	.cuda_funcs = {specific2_kernel},
 	.opencl_funcs = {specific2_kernel},
+	.hip_funcs = {specific2_kernel},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
 	.specific_nodes = 1,
@@ -103,44 +106,12 @@ static struct starpu_codelet specific_cl =
 	.cpu_funcs = {specific_kernel},
 	.cuda_funcs = {specific_kernel},
 	.opencl_funcs = {specific_kernel},
+	.hip_funcs = {specific_kernel},
 	.nbuffers = 2,
 	.modes = {STARPU_RW, STARPU_RW},
 	.specific_nodes = 1,
 	.nodes = {STARPU_SPECIFIC_NODE_CPU, STARPU_SPECIFIC_NODE_LOCAL},
 };
-
-void cpu_codelet_unsigned_inc(void *descr[], void *arg)
-{
-	(void)arg;
-	unsigned *dataptr = (unsigned*) STARPU_VARIABLE_GET_PTR(descr[0]);
-	(*dataptr)++;
-}
-
-#ifdef STARPU_USE_CUDA
-void cuda_codelet_unsigned_inc(void *descr[], void *cl_arg);
-#endif
-#ifdef STARPU_USE_OPENCL
-void opencl_codelet_unsigned_inc(void *buffers[], void *args);
-#endif
-
-static struct starpu_codelet cl =
-{
-	.cpu_funcs = {cpu_codelet_unsigned_inc},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_codelet_unsigned_inc},
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-#endif
-#ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_codelet_unsigned_inc},
-	.opencl_flags = {STARPU_OPENCL_ASYNC},
-#endif
-	.nbuffers = 1,
-	.modes = {STARPU_RW},
-};
-
-#ifdef STARPU_USE_OPENCL
-struct starpu_opencl_program opencl_program;
-#endif
 
 int main(void)
 {
@@ -158,18 +129,13 @@ int main(void)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#ifdef STARPU_USE_OPENCL
-	ret = starpu_opencl_load_opencl_from_file("tests/datawizard/opencl_codelet_unsigned_inc_kernel.cl",
-						  &opencl_program, NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
-#endif
+	increment_load_opencl();
 
 	data = 0;
 	data2 = 0;
 
 	/* Create a void data which will be used as an exclusion mechanism. */
 	starpu_variable_data_register(&data_handle, STARPU_MAIN_RAM, (uintptr_t) &data, sizeof(data));
-
 	starpu_variable_data_register(&data_handle2, STARPU_MAIN_RAM, (uintptr_t) &data2, sizeof(data2));
 
 	unsigned i;
@@ -183,7 +149,7 @@ int main(void)
 		else if (i%4 == 2)
 			task->cl = &specific3_cl;
 		else
-			task->cl = &cl;
+			task->cl = &increment_cl;
 		task->handles[0] = data_handle;
 		task->handles[1] = data_handle2;
 
@@ -197,11 +163,7 @@ int main(void)
 
 	ret = (data == (ntasks*3) / 4) ? EXIT_SUCCESS : EXIT_FAILURE;
 
-#ifdef STARPU_USE_OPENCL
-        int ret2 = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret2, "starpu_opencl_unload_opencl");
-#endif
-
+	increment_unload_opencl();
 	starpu_shutdown();
 
 	return ret;
@@ -210,6 +172,9 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
+	starpu_data_unregister(data_handle);
+	starpu_data_unregister(data_handle2);
+	increment_unload_opencl();
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }

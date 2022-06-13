@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,7 +18,7 @@
 #include <errno.h>
 #include <common/thread.h>
 #include "../helper.h"
-#include "./mpi_like.h"
+#include "../variable/increment.h"
 
 /*
  * Mimic the behavior of libstarpumpi, tested by a ring of threads which
@@ -53,34 +53,10 @@ static struct thread_data problem_data[NTHREADS];
  * data from its neighbour and increment it before transmitting it to its
  * successor. */
 
-void increment_handle_cpu_kernel(void *descr[], void *cl_arg)
-{
-	(void)cl_arg;
-	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	*val += 1;
-}
-
-static struct starpu_codelet increment_handle_cl =
-{
-	.modes = { STARPU_RW },
-	.cpu_funcs = {increment_handle_cpu_kernel},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {cuda_codelet_unsigned_inc},
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-#endif
-#ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {opencl_codelet_unsigned_inc},
-	.opencl_flags = {STARPU_OPENCL_ASYNC},
-#endif
-	.cpu_funcs_name = {"increment_handle_cpu_kernel"},
-	.nbuffers = 1
-};
-
-static
-void increment_handle(struct thread_data *thread_data)
+static void increment_handle(struct thread_data *thread_data)
 {
 	struct starpu_task *task = starpu_task_create();
-	task->cl = &increment_handle_cl;
+	task->cl = &increment_cl;
 
 	task->handles[0] = thread_data->handle;
 
@@ -98,8 +74,6 @@ void increment_handle(struct thread_data *thread_data)
 	ret = starpu_task_wait(task);
 	STARPU_ASSERT(!ret);
 }
-
-
 
 static void recv_handle(struct thread_data *thread_data)
 {
@@ -172,10 +146,6 @@ static void *thread_func(void *arg)
 	return NULL;
 }
 
-#ifdef STARPU_USE_OPENCL
-struct starpu_opencl_program opencl_program;
-#endif
-
 int main(int argc, char **argv)
 {
 	int ret;
@@ -184,11 +154,8 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-#ifdef STARPU_USE_OPENCL
-	ret = starpu_opencl_load_opencl_from_file("tests/datawizard/opencl_codelet_unsigned_inc_kernel.cl",
-						  &opencl_program, NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
-#endif
+	increment_load_opencl();
+
 	unsigned t;
 	for (t = 0; t < NTHREADS; t++)
 	{
@@ -222,10 +189,7 @@ int main(int argc, char **argv)
 		starpu_data_unregister(problem_data[t].handle);
 	}
 
-#ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-#endif
+	increment_unload_opencl();
 	starpu_shutdown();
 
 	ret = EXIT_SUCCESS;
@@ -234,6 +198,8 @@ int main(int argc, char **argv)
 		FPRINTF(stderr, "Final value : %u should be %d\n", problem_data[NTHREADS - 1].val, (NTHREADS * NITER));
 		ret = EXIT_FAILURE;
 	}
+	else
+		FPRINTF(stderr, "Final value : %u (niter %u nthread %u)\n", problem_data[NTHREADS - 1].val, NITER, NTHREADS);
 
 	return ret;
 }

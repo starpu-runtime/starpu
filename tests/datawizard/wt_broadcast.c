@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <starpu.h>
 #include "../helper.h"
+#include "../variable/increment.h"
 
 /*
  * Test using starpu_data_set_wt_mask(handle, ~0);, i.e. broadcasting the
@@ -24,88 +25,6 @@
 
 static unsigned var = 0;
 static starpu_data_handle_t handle;
-/*
- *	Increment codelet
- */
-
-#ifdef STARPU_USE_OPENCL
-/* dummy OpenCL implementation */
-static void increment_opencl_kernel(void *descr[], void *cl_arg)
-{
-	(void)cl_arg;
-	cl_mem d_token = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned h_token;
-
-	cl_command_queue queue;
-	starpu_opencl_get_current_queue(&queue);
-
-	clEnqueueReadBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
-	h_token++;
-	clEnqueueWriteBuffer(queue, d_token, CL_TRUE, 0, sizeof(unsigned), (void *)&h_token, 0, NULL, NULL);
-}
-#endif
-
-
-#ifdef STARPU_USE_CUDA
-static void increment_cuda_kernel(void *descr[], void *cl_arg)
-{
-	(void)cl_arg;
-	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned host_token;
-
-	/* This is a dummy technique of course */
-	cudaMemcpyAsync(&host_token, tokenptr, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
-
-	host_token++;
-
-	cudaMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-}
-#endif
-
-#ifdef STARPU_USE_HIP
-static void increment_hip_kernel(void *descr[], void *cl_arg)
-{
-	(void)cl_arg;
-	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned host_token;
-
-	/* This is a dummy technique of course */
-	hipMemcpyAsync(&host_token, tokenptr, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
-	hipStreamSynchronize(starpu_hip_get_local_stream());
-
-	host_token++;
-
-	hipMemcpyAsync(tokenptr, &host_token, sizeof(unsigned), hipMemcpyHostToDevice, starpu_hip_get_local_stream());
-}
-#endif
-
-void increment_cpu_kernel(void *descr[], void *cl_arg)
-{
-	(void)cl_arg;
-	unsigned *tokenptr = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	*tokenptr = *tokenptr + 1;
-}
-
-static struct starpu_codelet increment_cl =
-{
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {increment_cuda_kernel},
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-#endif
-#ifdef STARPU_USE_HIP
-	.hip_funcs = {increment_hip_kernel},
-	.hip_flags = {STARPU_HIP_ASYNC},
-#endif
-#ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {increment_opencl_kernel},
-	.opencl_flags = {STARPU_OPENCL_ASYNC},
-#endif
-	.cpu_funcs = {increment_cpu_kernel},
-	.cpu_funcs_name = {"increment_cpu_kernel"},
-	.nbuffers = 1,
-	.modes = {STARPU_RW}
-};
 
 int main(void)
 {
@@ -114,7 +33,7 @@ int main(void)
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
 	starpu_conf_noworker(&conf);
-        
+
         conf.ncpus = -1;
         conf.ncuda = -1;
         conf.nopencl = -1;
@@ -124,6 +43,8 @@ int main(void)
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	increment_load_opencl();
 
 	starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&var, sizeof(unsigned));
 
@@ -165,6 +86,8 @@ int main(void)
 		FPRINTF(stderr, "VAR is %u should be %u\n", var, ntasks);
 		ret = EXIT_FAILURE;
 	}
+
+	increment_unload_opencl();
 
 	starpu_shutdown();
 

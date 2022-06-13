@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,8 +16,7 @@
 
 #include <starpu.h>
 #include <common/thread.h>
-
-#include "increment_codelet.h"
+#include "../variable/increment.h"
 #include "../helper.h"
 
 /*
@@ -142,11 +141,13 @@ int main(int argc, char **argv)
 	starpu_malloc((void**)&check_cnt, sizeof(*check_cnt));
 	*check_cnt = 0;
 
+	increment_load_opencl();
+
 	starpu_data_handle_t check_data;
 	starpu_variable_data_register(&check_data, STARPU_MAIN_RAM, (uintptr_t)check_cnt, sizeof(*check_cnt));
 
 	starpu_task_init(&taskA);
-	taskA.cl = &increment_codelet;
+	taskA.cl = &increment_cl;
 	taskA.regenerate = 1; /* this task will be explicitely resubmitted if needed */
 	taskA.use_tag = 1;
 	taskA.tag_id = TAG_A;
@@ -154,7 +155,7 @@ int main(int argc, char **argv)
 	taskA.handles[0] = check_data;
 
 	starpu_task_init(&taskB);
-	taskB.cl = &increment_codelet;
+	taskB.cl = &increment_cl;
 	taskB.regenerate = 1;
 	taskB.use_tag = 1;
 	taskB.tag_id = TAG_B;
@@ -162,7 +163,7 @@ int main(int argc, char **argv)
 	taskB.handles[0] = check_data;
 
 	starpu_task_init(&taskC);
-	taskC.cl = &increment_codelet;
+	taskC.cl = &increment_cl;
 	taskC.regenerate = 1;
 	taskC.use_tag = 1;
 	taskC.tag_id = TAG_C;
@@ -170,7 +171,7 @@ int main(int argc, char **argv)
 	taskC.handles[0] = check_data;
 
 	starpu_task_init(&taskD);
-	taskD.cl = &increment_codelet;
+	taskD.cl = &increment_cl;
 	taskD.callback_func = callback_task_D;
 	taskD.regenerate = 1;
 	taskD.use_tag = 1;
@@ -213,6 +214,7 @@ int main(int argc, char **argv)
 	starpu_task_clean(&taskC);
 	starpu_task_clean(&taskD);
 
+	increment_unload_opencl();
 	starpu_shutdown();
 
 	return EXIT_SUCCESS;
@@ -222,6 +224,7 @@ enodev:
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
 	starpu_data_unregister(check_data);
+	increment_unload_opencl();
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }

@@ -30,10 +30,8 @@ LIBS += $(STARPU_MAX_FPGA_LDFLAGS)
 EXTRA_DIST =					\
 	helper.h				\
 	datawizard/locality.sh			\
-	main/increment_codelet.h		\
 	overlap/overlap.sh			\
 	datawizard/scal.h			\
-	datawizard/mpi_like.h			\
 	regression/profiles.in			\
 	regression/regression.sh.in		\
 	regression/profiles.build.only.in	\
@@ -56,9 +54,8 @@ EXTRA_DIST =					\
 	energy/perfs.gp				\
 	datawizard/scratch_opencl_kernel.cl     \
 	datawizard/sync_and_notify_data_opencl_codelet.cl\
-	datawizard/opencl_codelet_unsigned_inc_kernel.cl \
 	coverage/coverage.sh			\
-	datawizard/acquire_release_opencl_kernel.cl \
+	variable/increment_opencl_kernel.cl \
 	datawizard/interfaces/test_interfaces.h	\
 	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl \
 	datawizard/interfaces/coo/coo_opencl_kernel.cl \
@@ -494,50 +491,149 @@ endif
 #######################
 
 datawizard_acquire_release_SOURCES =		\
-	datawizard/acquire_release.c
+	datawizard/acquire_release.c		\
+	variable/increment.c
 if STARPU_USE_CUDA
 datawizard_acquire_release_SOURCES +=		\
-	datawizard/acquire_release_cuda.cu
+	variable/increment_cuda.cu
 endif
 if STARPU_USE_HIP
 datawizard_acquire_release_SOURCES +=		\
-	datawizard/acquire_release_hip.hip
+	variable/increment_hip.hip
 endif
 if STARPU_USE_OPENCL
 datawizard_acquire_release_SOURCES +=		\
-	datawizard/acquire_release_opencl.c
+	variable/increment_opencl.c
 nobase_STARPU_OPENCL_DATA_DATA += \
-	datawizard/acquire_release_opencl_kernel.cl
+	variable/increment_opencl_kernel.cl
 endif
 
 datawizard_acquire_release2_SOURCES =		\
-	datawizard/acquire_release2.c
+	datawizard/acquire_release2.c		\
+	variable/increment.c
 if STARPU_USE_CUDA
 datawizard_acquire_release2_SOURCES +=		\
-	datawizard/acquire_release_cuda.cu
+	variable/increment_cuda.cu
 endif
 if STARPU_USE_HIP
 datawizard_acquire_release2_SOURCES +=		\
-	datawizard/acquire_release_hip.hip
+	variable/increment_hip.hip
 endif
 if STARPU_USE_OPENCL
 datawizard_acquire_release2_SOURCES +=		\
-	datawizard/acquire_release_opencl.c
+	variable/increment_opencl.c
 endif
 
 datawizard_acquire_release_to_SOURCES =		\
-	datawizard/acquire_release_to.c
+	datawizard/acquire_release_to.c		\
+	variable/increment.c
 if STARPU_USE_CUDA
 datawizard_acquire_release_to_SOURCES +=		\
-	datawizard/acquire_release_cuda.cu
+	variable/increment_cuda.cu
 endif
 if STARPU_USE_HIP
 datawizard_acquire_release_to_SOURCES +=		\
-	datawizard/acquire_release_hip.hip
+	variable/increment_hip.hip
 endif
 if STARPU_USE_OPENCL
 datawizard_acquire_release_to_SOURCES +=		\
-	datawizard/acquire_release_opencl.c
+	variable/increment_opencl.c
+endif
+
+datawizard_wt_host_SOURCES =		\
+	datawizard/wt_host.c		\
+	variable/increment.c
+if STARPU_USE_CUDA
+datawizard_wt_host_SOURCES +=		\
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_wt_host_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+datawizard_wt_host_SOURCES +=		\
+	variable/increment_opencl.c
+endif
+
+datawizard_wt_broadcast_SOURCES =		\
+	datawizard/wt_broadcast.c		\
+	variable/increment.c
+if STARPU_USE_CUDA
+datawizard_wt_broadcast_SOURCES +=		\
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_wt_broadcast_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+datawizard_wt_broadcast_SOURCES +=		\
+	variable/increment_opencl.c
+endif
+
+datawizard_increment_redux_lazy_SOURCES =		\
+	datawizard/increment_redux_lazy.c		\
+	variable/increment.c
+if STARPU_USE_CUDA
+datawizard_increment_redux_lazy_SOURCES +=		\
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_increment_redux_lazy_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+datawizard_increment_redux_lazy_SOURCES +=		\
+	variable/increment_opencl.c
+endif
+
+datawizard_increment_redux_SOURCES =		\
+	datawizard/increment_redux.c		\
+	variable/increment.c
+if STARPU_USE_CUDA
+datawizard_increment_redux_SOURCES +=		\
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_increment_redux_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+datawizard_increment_redux_SOURCES +=		\
+	variable/increment_opencl.c
+endif
+
+datawizard_increment_redux_v2_SOURCES =		\
+	datawizard/increment_redux_v2.c		\
+	variable/increment.c
+if STARPU_USE_CUDA
+datawizard_increment_redux_v2_SOURCES +=		\
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_increment_redux_v2_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+datawizard_increment_redux_v2_SOURCES +=		\
+	variable/increment_opencl.c
+endif
+
+datawizard_increment_init_SOURCES =		\
+	datawizard/increment_init.c		\
+	variable/increment.c
+if STARPU_USE_CUDA
+datawizard_increment_init_SOURCES +=		\
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_increment_init_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+datawizard_increment_init_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
 datawizard_scratch_SOURCES =			\
@@ -554,27 +650,35 @@ nobase_STARPU_OPENCL_DATA_DATA += \
 endif
 
 datawizard_mpi_like_SOURCES =		\
-	datawizard/mpi_like.c
+	datawizard/mpi_like.c		\
+	variable/increment.c
 if STARPU_USE_CUDA
-datawizard_mpi_like_SOURCES +=			\
-	datawizard/cuda_codelet_unsigned_inc.cu
+datawizard_mpi_like_SOURCES +=		\
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_mpi_like_SOURCES +=		\
+	variable/increment_hip.hip
 endif
 if STARPU_USE_OPENCL
-datawizard_mpi_like_SOURCES +=			\
-	datawizard/opencl_codelet_unsigned_inc.c
-nobase_STARPU_OPENCL_DATA_DATA+= \
-	datawizard/opencl_codelet_unsigned_inc_kernel.cl
+datawizard_mpi_like_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
 datawizard_mpi_like_async_SOURCES =		\
-	datawizard/mpi_like_async.c
+	datawizard/mpi_like_async.c		\
+	variable/increment.c
 if STARPU_USE_CUDA
 datawizard_mpi_like_async_SOURCES +=		\
-	datawizard/cuda_codelet_unsigned_inc.cu
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_mpi_like_async_SOURCES +=		\
+	variable/increment_hip.hip
 endif
 if STARPU_USE_OPENCL
-datawizard_mpi_like_async_SOURCES +=			\
-	datawizard/opencl_codelet_unsigned_inc.c
+datawizard_mpi_like_async_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
 datawizard_sync_and_notify_data_SOURCES =	\
@@ -662,14 +766,19 @@ datawizard_gpu_ptr_register_SOURCES +=	\
 endif
 
 datawizard_specific_node_SOURCES =		\
-	datawizard/specific_node.c
+	datawizard/specific_node.c		\
+	variable/increment.c
 if STARPU_USE_CUDA
 datawizard_specific_node_SOURCES +=		\
-	datawizard/cuda_codelet_unsigned_inc.cu
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+datawizard_specific_node_SOURCES +=		\
+	variable/increment_hip.hip
 endif
 if STARPU_USE_OPENCL
-datawizard_specific_node_SOURCES +=			\
-	datawizard/opencl_codelet_unsigned_inc.c
+datawizard_specific_node_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
 datawizard_test_arbiter_SOURCES =	\
@@ -680,51 +789,101 @@ main_starpu_worker_exists_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
 main_deprecated_func_CFLAGS = $(AM_CFLAGS) -Wno-deprecated-declarations
 
 main_insert_task_where_SOURCES =		\
-	main/insert_task_where.c
+	main/insert_task_where.c		\
+	variable/increment.c
 if STARPU_USE_CUDA
 main_insert_task_where_SOURCES +=		\
-	main/increment.cu
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+main_insert_task_where_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+main_insert_task_where_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
 main_subgraph_repeat_SOURCES =		\
 	main/subgraph_repeat.c		\
-	main/increment_codelet.c
+	variable/increment.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_SOURCES +=		\
-	main/increment.cu
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+main_subgraph_repeat_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+main_subgraph_repeat_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
-main_subgraph_repeat_tag_SOURCES =		\
-	main/subgraph_repeat_tag.c		\
-	main/increment_codelet.c
+main_subgraph_repeat_tag_SOURCES =	\
+	main/subgraph_repeat_tag.c	\
+	variable/increment.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_tag_SOURCES +=		\
-	main/increment.cu
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+main_subgraph_repeat_tag_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+main_subgraph_repeat_tag_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
 main_subgraph_repeat_regenerate_SOURCES =		\
 	main/subgraph_repeat_regenerate.c		\
-	main/increment_codelet.c
+	variable/increment.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_SOURCES +=		\
-	main/increment.cu
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+main_subgraph_repeat_regenerate_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+main_subgraph_repeat_regenerate_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
-main_subgraph_repeat_regenerate_tag_SOURCES =		\
-	main/subgraph_repeat_regenerate_tag.c		\
-	main/increment_codelet.c
+main_subgraph_repeat_regenerate_tag_SOURCES =	\
+	main/subgraph_repeat_regenerate_tag.c	\
+	variable/increment.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_tag_SOURCES +=		\
-	main/increment.cu
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+main_subgraph_repeat_regenerate_tag_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+main_subgraph_repeat_regenerate_tag_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
-main_subgraph_repeat_regenerate_tag_cycle_SOURCES =		\
-	main/subgraph_repeat_regenerate_tag_cycle.c		\
-	main/increment_codelet.c
+main_subgraph_repeat_regenerate_tag_cycle_SOURCES =	\
+	main/subgraph_repeat_regenerate_tag_cycle.c	\
+	variable/increment.c
 if STARPU_USE_CUDA
 main_subgraph_repeat_regenerate_tag_cycle_SOURCES +=		\
-	main/increment.cu
+	variable/increment_cuda.cu
 endif
+if STARPU_USE_HIP
+main_subgraph_repeat_regenerate_tag_cycle_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+main_subgraph_repeat_regenerate_tag_cycle_SOURCES +=		\
+	variable/increment_opencl.c
+endif
+
 
 if STARPU_HAVE_FC
 fortran90_init_01_SOURCES =	\
@@ -733,11 +892,19 @@ fortran90_init_01_SOURCES =	\
 endif
 
 helper_starpu_data_dup_ro_SOURCES =		\
-	helper/starpu_data_dup_ro.c		\
-	main/increment_codelet.c
+	helper/starpu_data_dup_ro.c	\
+	variable/increment.c
 if STARPU_USE_CUDA
 helper_starpu_data_dup_ro_SOURCES +=		\
-	main/increment.cu
+	variable/increment_cuda.cu
+endif
+if STARPU_USE_HIP
+helper_starpu_data_dup_ro_SOURCES +=		\
+	variable/increment_hip.hip
+endif
+if STARPU_USE_OPENCL
+helper_starpu_data_dup_ro_SOURCES +=		\
+	variable/increment_opencl.c
 endif
 
 datawizard_interfaces_copy_interfaces_CFLAGS = $(AM_CFLAGS) $(FXT_CFLAGS)
