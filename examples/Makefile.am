@@ -94,7 +94,7 @@ EXTRA_DIST = 					\
 	fortran90/Makefile.mk
 
 
-CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.mps */*/*.mps *.dot */*.dot */*/*.dot *.pl */*.pl */*/*.pl *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90
+CLEANFILES = *.gcno *.gcda *.linkinfo *.mod starpu_idle_microsec.log *.mps */*.mps */*/*.mps *.dot */*.dot */*/*.dot *.pl */*.pl */*/*.pl *.png *.output tasks.rec perfs.rec */perfs.rec */*/perfs.rec perfs2.rec fortran90/starpu_mod.f90 native_fortran/fstarpu_mod.f90 *.csv *.md *.Rmd *.pdf *.html
 
 clean-local:
 	-rm -rf mult/sgemm.traces lu/lu.traces
