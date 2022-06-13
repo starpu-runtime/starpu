@@ -71,6 +71,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
+					 STARPU_NAME, "POTRF",
 					 STARPU_TAG_ONLY, TAG11(k),
 					 0);
 		if (ret == -ENODEV) return 77;
@@ -85,6 +86,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatamk,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
+						 STARPU_NAME, "TRSM",
 						 STARPU_TAG_ONLY, TAG21(m,k),
 						 0);
 			if (ret == -ENODEV) return 77;
@@ -106,6 +108,7 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 							 STARPU_R, sdatank,
 							 cl22.modes[2], sdatamn,
 							 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+							 STARPU_NAME, "GEMM",
 							 STARPU_TAG_ONLY, TAG22(k,m,n),
 							 0);
 				if (ret == -ENODEV) return 77;
