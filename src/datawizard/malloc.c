@@ -165,6 +165,10 @@ static int _starpu_malloc_should_pin(int flags)
 		{
 			return 1;
 		}
+		if (_starpu_can_submit_hip_task())			
+		{
+			return 1;
+		}
 //		if (_starpu_can_submit_opencl_task())
 //			return 1;
 	}
@@ -288,6 +292,33 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 			goto end;
 #endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
+		}
+		if (_starpu_can_submit_hip_task())
+		{
+#ifdef STARPU_USE_HIP
+			hipError_t hipres = hipErrorMemoryAllocation;
+
+#if 0 //defined(STARPU_USE_HIP_MAP) && defined(STARPU_HAVE_HIP_MNGMEM)
+			/* FIXME: check if devices actually support hipMallocManaged or fallback to hipHostAlloc() */
+			hipres = hipMallocManaged(A, dim, hipMemAttachGlobal);
+#endif
+
+#if defined(STARPU_USE_HIP_MAP) && defined(STARPU_HAVE_HIP_CANMAPHOST)
+			if (hipres != hipSuccess)
+				hipres = hipHostMalloc(A, dim, hipHostMallocPortable|hipHostMallocMapped);
+#endif
+
+			if (hipres != hipSuccess){
+				hipres = hipHostMalloc(A, dim, hipHostMallocPortable);
+			}
+
+			if (STARPU_UNLIKELY(hipres != hipSuccess))
+			{
+				STARPU_HIP_REPORT_ERROR(hipres);
+				ret = -ENOMEM;
+			}
+			goto end;
+#endif /* STARPU_USE_HIP */
 //		}
 //		else if (_starpu_can_submit_opencl_task())
 //		{
@@ -611,6 +642,27 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 			}
 #endif /* STARPU_HAVE_CUDA_MEMCPY_PEER */
 #endif /* STARPU_USE_CUDA */
+		}
+		if (_starpu_can_submit_cuda_task())
+		{
+#ifdef STARPU_USE_HIP
+			if (!starpu_is_initialized())
+			{
+				/* This is especially useful when starpu_free is called even
+				 * though starpu_shutdown has already
+				 * been called, so we will not be able to submit a task. */
+				hipError_t hipres;
+#if 0 //defined(STARPU_USE_HIP_MAP) && defined(STARPU_HAVE_HIP_MNGMEM)
+				/* FIXME: check if devices actually support hipMallocManaged or fallback to hipHostAlloc() */
+				hipres = hipFree(A);
+#else
+				hipres = hipHostFree(A);
+#endif
+				if (STARPU_UNLIKELY(hipres))
+					STARPU_HIP_REPORT_ERROR(hipres);
+				goto out;
+			}
+#endif /* STARPU_USE_HIP */
 #endif /* STARPU_SIMGRID */
 		}
 //	else if (_starpu_can_submit_opencl_task())
@@ -764,6 +816,10 @@ starpu_memory_pin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRIBU
 		if (cudaHostRegister(addr, size, cudaHostRegisterPortable) != cudaSuccess)
 			return -1;
 #endif
+#if defined(STARPU_USE_HIP)
+		if (hipHostRegister(addr, size, hipHostRegisterPortable) != hipSuccess)
+			return -1;
+#endif
 	}
 	return 0;
 }
@@ -775,6 +831,10 @@ starpu_memory_unpin(void *addr STARPU_ATTRIBUTE_UNUSED, size_t size STARPU_ATTRI
 	{
 #if defined(STARPU_USE_CUDA) && defined(STARPU_HAVE_CUDA_MEMCPY_PEER)
 		if (cudaHostUnregister(addr) != cudaSuccess)
+			return -1;
+#endif
+#if defined(STARPU_USE_HIP)
+		if (hipHostUnregister(addr) != hipSuccess)
 			return -1;
 #endif
 	}
