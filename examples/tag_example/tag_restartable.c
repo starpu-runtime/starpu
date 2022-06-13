@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,8 +45,6 @@
 #define FPRINTF(ofile, fmt, ...) do { if (!getenv("STARPU_SSILENT")) {fprintf(ofile, fmt, ## __VA_ARGS__); }} while(0)
 #define TAG(i, iter)	((starpu_tag_t)  (((uint64_t)((iter)%Nrolls))<<32 | (i)) )
 
-struct starpu_codelet cl;
-
 #define Ni	64
 #define Nk	256
 
@@ -90,9 +88,7 @@ static void create_task_grid(unsigned iter)
 		/* create a new task */
 		struct starpu_task *task = tasks[iter][i] = starpu_task_create();
 
-		task->cl = &cl;
-		/* task->cl_arg = (void*)(uintptr_t) (i | (iter << 16)); */
-
+		task->cl = &starpu_codelet_nop;
 		task->use_tag = 1;
 		task->tag_id = TAG(i, iter);
 
@@ -121,17 +117,6 @@ static int start_task_grid(unsigned iter)
 	return 0;
 }
 
-void cpu_codelet(void *descr[], void *_args)
-{
-	(void)descr;
-	(void)_args;
-/*	int i = (uintptr_t) _args;
-	printf("doing %x\n", i);
-	starpu_usleep(SLEEP);
-	printf("done %x\n", i);
-*/
-}
-
 int main(int argc, char **argv)
 {
 	unsigned i, j;
@@ -148,14 +133,6 @@ int main(int argc, char **argv)
 #endif
 
 	parse_args(argc, argv);
-
-	starpu_codelet_init(&cl);
-	cl.cpu_funcs[0] = cpu_codelet;
-	cl.cpu_funcs_name[0] = "cpu_codelet";
-	cl.cuda_funcs[0] = cpu_codelet;
-	cl.opencl_funcs[0] = cpu_codelet;
-	cl.nbuffers = 0;
-	cl.name = "dummy";
 
 	FPRINTF(stderr, "ITER : %u\n", nk);
 

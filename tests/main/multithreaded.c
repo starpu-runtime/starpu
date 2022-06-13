@@ -33,25 +33,7 @@ static unsigned ntasks = 65536;
 #endif
 static unsigned nthreads = 2;
 
-void dummy_func(void *descr[], void *arg)
-{
-	(void)descr;
-	(void)arg;
-}
-
-static struct starpu_codelet dummy_codelet =
-{
-	.cpu_funcs = {dummy_func},
-	.cuda_funcs = {dummy_func},
-	.hip_funcs = {dummy_func},
-	.opencl_funcs = {dummy_func},
-	.cpu_funcs_name = {"dummy_func"},
-	.model = NULL,
-	.nbuffers = 0
-};
-
-static
-void *thread_func(void *arg)
+static void *thread_func(void *arg)
 {
 	int ret;
 	unsigned i;
@@ -61,7 +43,7 @@ void *thread_func(void *arg)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &dummy_codelet;
+		task->cl = &starpu_codelet_nop;
 		task->cl_arg = NULL;
 		task->callback_func = NULL;
 		task->callback_arg = NULL;

@@ -38,38 +38,17 @@ float *buffer;
 
 starpu_data_handle_t v_handle;
 
-void dummy_codelet(void *descr[], void *_args)
+static struct starpu_task* create_task(starpu_data_handle_t handle)
 {
-	(void)descr;
-	(void)_args;
-}
+	starpu_codelet_nop.nbuffers = 1;
+	starpu_codelet_nop.modes[0] = STARPU_RW;
 
-static struct starpu_codelet cl =
-{
-	.modes = { STARPU_RW },
-	.cpu_funcs = {dummy_codelet},
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dummy_codelet},
-#endif
-#ifdef STARPU_USE_HIP
-	.hip_funcs = {dummy_codelet},
-#endif
-#ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {dummy_codelet},
-#endif
-	.cpu_funcs_name = {"dummy_codelet"},
-	.nbuffers = 1
-};
-
-static
-struct starpu_task* create_task(starpu_data_handle_t handle)
-{
 	struct starpu_task *task;
 
 	task = starpu_task_create();
-		task->cl = &cl;
-		task->handles[0] = handle;
-		task->detach = 0;
+	task->cl = &starpu_codelet_nop;
+	task->handles[0] = handle;
+	task->detach = 0;
 
 	return task;
 }

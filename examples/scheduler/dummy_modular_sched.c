@@ -204,26 +204,6 @@ static struct starpu_sched_policy dummy_sched_policy =
 	.worker_type = STARPU_WORKER_LIST,
 };
 
-void dummy_func(void *descr[], void *arg)
-{
-	(void)descr;
-	(void)arg;
-}
-
-static struct starpu_codelet dummy_codelet =
-{
-	.cpu_funcs = {dummy_func},
-	.cpu_funcs_name = {"dummy_func"},
-	.cuda_funcs = {dummy_func},
-	.hip_funcs = {dummy_func},
-	.opencl_funcs = {dummy_func},
-	.max_fpga_funcs = {dummy_func},
-	.model = &starpu_perfmodel_nop,
-	.nbuffers = 0,
-	.name = "dummy",
-};
-
-
 int main(void)
 {
 	int ntasks = NTASKS;
@@ -246,12 +226,14 @@ int main(void)
 	ntasks /= 100;
 #endif
 
+	starpu_codelet_nop.model = &starpu_perfmodel_nop;
+
 	int i;
 	for (i = 0; i < ntasks; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 
-		task->cl = &dummy_codelet;
+		task->cl = &starpu_codelet_nop;
 		task->cl_arg = NULL;
 
 		ret = starpu_task_submit(task);

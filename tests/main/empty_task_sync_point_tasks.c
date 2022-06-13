@@ -21,23 +21,6 @@
  * Test using a task with NULL codelet as a synchronization task through task dependencies
  */
 
-void dummy_func(void *descr[], void *arg)
-{
-	(void)descr;
-	(void)arg;
-}
-
-static struct starpu_codelet dummy_codelet =
-{
-	.cpu_funcs = {dummy_func},
-	.cuda_funcs = {dummy_func},
-	.hip_funcs = {dummy_func},
-	.opencl_funcs = {dummy_func},
-	.cpu_funcs_name = {"dummy_func"},
-	.model = NULL,
-	.nbuffers = 0
-};
-
 int main(int argc, char **argv)
 {
 	int ret;
@@ -48,22 +31,22 @@ int main(int argc, char **argv)
 
 	/* {A,B,C} -> D -> {E,F}, D is empty */
 	struct starpu_task *taskA = starpu_task_create();
-	taskA->cl = &dummy_codelet;
+	taskA->cl = &starpu_codelet_nop;
 
 	struct starpu_task *taskB = starpu_task_create();
-	taskB->cl = &dummy_codelet;
+	taskB->cl = &starpu_codelet_nop;
 
 	struct starpu_task *taskC = starpu_task_create();
-	taskC->cl = &dummy_codelet;
+	taskC->cl = &starpu_codelet_nop;
 
 	struct starpu_task *taskD = starpu_task_create();
 	taskD->cl = NULL;
 
 	struct starpu_task *taskE = starpu_task_create();
-	taskE->cl = &dummy_codelet;
+	taskE->cl = &starpu_codelet_nop;
 
 	struct starpu_task *taskF = starpu_task_create();
-	taskF->cl = &dummy_codelet;
+	taskF->cl = &starpu_codelet_nop;
 
 	starpu_task_declare_deps(taskD, 3, taskA, taskB, taskC);
 	starpu_task_declare_deps_array(taskE, 1, &taskD);

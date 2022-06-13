@@ -24,23 +24,6 @@
  * Test that starpu_tag_get_task returns the proper task
  */
 
-void dummy_func(void *descr[], void *arg)
-{
-	(void)descr;
-	(void)arg;
-}
-
-static struct starpu_codelet dummy_codelet =
-{
-	.cpu_funcs = {dummy_func},
-	.cuda_funcs = {dummy_func},
-	.hip_funcs = {dummy_func},
-	.opencl_funcs = {dummy_func},
-	.cpu_funcs_name = {"dummy_func"},
-	.model = NULL,
-	.nbuffers = 0
-};
-
 static void callback(void *tag)
 {
 	fflush(stderr);
@@ -63,7 +46,7 @@ int main(int argc, char **argv)
 	task = starpu_task_create();
 	task->callback_func = callback;
 	task->callback_arg = (void *)tag;
-	task->cl = &dummy_codelet;
+	task->cl = &starpu_codelet_nop;
 	task->cl_arg = NULL;
 	task->destroy = 0; /* tell StarPU to not destroy the task */
 	task->use_tag = 1;

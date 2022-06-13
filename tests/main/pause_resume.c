@@ -32,23 +32,6 @@ static unsigned ntasks = 1000;
 static unsigned ntasks = 50000;
 #endif
 
-void dummy_func(void *descr[], void *arg)
-{
-	(void)descr;
-	(void)arg;
-}
-
-static struct starpu_codelet dummy_codelet =
-{
-	.cpu_funcs = {dummy_func},
-	.cpu_funcs_name = {"dummy_func"},
-	.cuda_funcs = {dummy_func},
-	.hip_funcs = {dummy_func},
-	.opencl_funcs = {dummy_func},
-	.model = NULL,
-	.nbuffers = 0
-};
-
 int main(void)
 {
 	double timing;
@@ -71,7 +54,7 @@ int main(void)
 	unsigned i;
 	for (i = 0; i < ntasks; i++)
 	{
-		ret = starpu_task_insert(&dummy_codelet, 0);
+		ret = starpu_task_insert(&starpu_codelet_nop, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
@@ -90,7 +73,7 @@ int main(void)
 	starpu_pause();
 	for (i = 0; i < ntasks; i++)
 	{
-		ret = starpu_task_insert(&dummy_codelet, 0);
+		ret = starpu_task_insert(&starpu_codelet_nop, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	starpu_resume();

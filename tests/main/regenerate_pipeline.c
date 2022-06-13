@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,22 +60,6 @@ void callback(void *arg)
 	}
 }
 
-void dummy_func(void *descr[], void *arg)
-{
-	(void)descr;
-	(void)arg;
-}
-
-static struct starpu_codelet dummy_codelet = 
-{
-	.cpu_funcs = {dummy_func},
-	.cuda_funcs = {dummy_func},
-	.opencl_funcs = {dummy_func},
-	.cpu_funcs_name = {"dummy_func"},
-	.model = NULL,
-	.nbuffers = 0
-};
-
 static void parse_args(int argc, char **argv)
 {
 	int c;
@@ -107,14 +91,14 @@ int main(int argc, char **argv)
 	struct starpu_task *taskBp = &taskB;
 
 	starpu_task_init(&taskA);
-	taskA.cl = &dummy_codelet;
+	taskA.cl = &starpu_codelet_nop;
 	taskA.regenerate = 1;
 	taskA.detach = 1;
 	taskA.callback_func = callback;
 	taskA.callback_arg = &cntA;
 
 	starpu_task_init(&taskB);
-	taskB.cl = &dummy_codelet;
+	taskB.cl = &starpu_codelet_nop;
 	taskB.regenerate = 1;
 	taskB.detach = 1;
 	taskB.callback_func = callback;
@@ -123,7 +107,7 @@ int main(int argc, char **argv)
 	starpu_task_declare_deps_array(&taskB, 1, &taskAp);
 
 	starpu_task_init(&taskC);
-	taskC.cl = &dummy_codelet;
+	taskC.cl = &starpu_codelet_nop;
 	taskC.regenerate = 1;
 	taskC.detach = 1;
 	taskC.callback_func = callback;

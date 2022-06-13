@@ -1860,3 +1860,21 @@ char *starpu_task_status_get_as_string(enum starpu_task_status status)
 	default: return "STARPU_TASK_unknown_status";
 	}
 }
+
+void starpu_codelet_nop_func(void *descr[], void *arg)
+{
+	(void)descr;
+	(void)arg;
+}
+
+struct starpu_codelet starpu_codelet_nop =
+{
+	.cpu_funcs = {starpu_codelet_nop_func},
+	.cuda_funcs = {starpu_codelet_nop_func},
+	.hip_funcs = {starpu_codelet_nop_func},
+	.opencl_funcs = {starpu_codelet_nop_func},
+	.cpu_funcs_name = {"starpu_codelet_nop_func"},
+	.model = NULL,
+	.nbuffers = 0
+};
+

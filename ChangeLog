@@ -99,6 +99,8 @@ Small features:
   * Install a module file in lib/modules
   * New function starpu_worker_wait_for_initialisation() which waits
     for all workers to be initialised
+  * Add in the public API the codelet starpu_codelet_nop which has an
+    empty function defined for all drivers
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU

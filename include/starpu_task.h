@@ -635,6 +635,11 @@ struct starpu_codelet
 };
 
 /**
+   Codelet with empty function defined for all drivers
+*/
+extern struct starpu_codelet starpu_codelet_nop;
+
+/**
    Describe a data handle along with an access mode.
 */
 struct starpu_data_descr

@@ -45,22 +45,6 @@ static int can_never_execute(unsigned workerid,
 	return 0;
 }
 
-void fake(void *buffers[], void *args)
-{
-	(void) buffers;
-	(void) args;
-}
-
-static struct starpu_codelet cl =
-{
-	.cpu_funcs    = { fake },
-	.cuda_funcs   = { fake },
-	.hip_funcs    = { fake },
-	.opencl_funcs = { fake },
-	.cpu_funcs_name = { "fake"},
-	.nbuffers     = 0
-};
-
 int main(int argc, char **argv)
 {
 	int ret;
@@ -70,11 +54,11 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 
 	task = starpu_task_create();
-	task->cl = &cl;
+	task->cl = &starpu_codelet_nop;
 	task->destroy = 0;
 	task->sched_ctx = 0;
 
-	cl.can_execute = NULL;
+	starpu_codelet_nop.can_execute = NULL;
 	ret = _starpu_worker_exists(task);
 	if (!ret)
 	{
@@ -82,7 +66,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	cl.can_execute = can_always_execute;
+	starpu_codelet_nop.can_execute = can_always_execute;
 	ret = _starpu_worker_exists(task);
 	if (!ret)
 	{
@@ -90,7 +74,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	cl.can_execute = can_never_execute;
+	starpu_codelet_nop.can_execute = can_never_execute;
 	ret = _starpu_worker_exists(task);
 	if (ret)
 	{

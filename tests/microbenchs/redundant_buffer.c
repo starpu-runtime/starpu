@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -32,24 +32,6 @@
 starpu_data_handle_t v_handle;
 static unsigned *v;
 
-void func_codelet_null(void *descr[], void *_args)
-{
-	(void)descr;
-	(void)_args;
-}
-
-static
-struct starpu_codelet cl =
-{
-	.cpu_funcs = {func_codelet_null},
-	.cuda_funcs = {func_codelet_null},
-	.opencl_funcs = {func_codelet_null},
-	.cpu_funcs_name = {"func_codelet_null"},
-        .nbuffers = 2,
-	.modes = {STARPU_R, STARPU_R}
-};
-
-
 int main(int argc, char **argv)
 {
 	int ret;
@@ -62,11 +44,15 @@ int main(int argc, char **argv)
 
 	starpu_vector_data_register(&v_handle, STARPU_MAIN_RAM, (uintptr_t)v, VECTORSIZE, sizeof(unsigned));
 
+	starpu_codelet_nop.nbuffers = 2;
+	starpu_codelet_nop.modes[0] = STARPU_R;
+	starpu_codelet_nop.modes[1] = STARPU_R;
+
 	unsigned iter;
 	for (iter = 0; iter < N; iter++)
 	{
 		struct starpu_task *task = starpu_task_create();
-		task->cl = &cl;
+		task->cl = &starpu_codelet_nop;
 
 		task->handles[0] = v_handle;
 		task->handles[1] = v_handle;

@@ -27,14 +27,7 @@
 
 #define NTASKS           8
 
-void dummy(void *buffers[], void *args)
-{
-	(void) buffers;
-	(void) args;
-}
-
-static int
-run(struct starpu_sched_policy *p)
+static int run(struct starpu_sched_policy *p)
 {
 	int ret;
 	struct starpu_conf conf;
@@ -47,23 +40,12 @@ run(struct starpu_sched_policy *p)
 		exit(STARPU_TEST_SKIPPED);
 
 	struct starpu_task *tasks[NTASKS] = { NULL };
-	struct starpu_codelet cl =
-	{
-		.cpu_funcs    = {dummy},
-		.cpu_funcs_name = {"dummy"},
-		.cuda_funcs   = {dummy},
-		.hip_funcs   = {dummy},
-		.opencl_funcs = {dummy},
-		.max_fpga_funcs   = {dummy},
-		.nbuffers     = 0
-	};
-
 	int i;
 	for (i = 0; i < NTASKS; i++)
 	{
 		struct starpu_task *task = starpu_task_create();
 		tasks[i] = task;
-		task->cl = &cl;
+		task->cl = &starpu_codelet_nop;
 		task->synchronous = 1;
 		task->destroy = 0;
 		ret = starpu_task_submit(task);

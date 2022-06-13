@@ -31,23 +31,6 @@ static starpu_tag_t tagD = 0x3042;
 static starpu_tag_t tagE = 0x4042;
 static starpu_tag_t tagF = 0x5042;
 
-void dummy_func(void *descr[], void *arg)
-{
-	(void)descr;
-	(void)arg;
-}
-
-static struct starpu_codelet dummy_codelet =
-{
-	.cpu_funcs = {dummy_func},
-	.cuda_funcs = {dummy_func},
-	.hip_funcs = {dummy_func},
-	.opencl_funcs = {dummy_func},
-	.cpu_funcs_name = {"dummy_func"},
-	.model = NULL,
-	.nbuffers = 0
-};
-
 int main(int argc, char **argv)
 {
 	int ret;
@@ -58,17 +41,17 @@ int main(int argc, char **argv)
 
 	/* {A,B,C} -> D -> {E,F}, D is empty */
 	struct starpu_task *taskA = starpu_task_create();
-	taskA->cl = &dummy_codelet;
+	taskA->cl = &starpu_codelet_nop;
 	taskA->use_tag = 1;
 	taskA->tag_id = tagA;
 
 	struct starpu_task *taskB = starpu_task_create();
-	taskB->cl = &dummy_codelet;
+	taskB->cl = &starpu_codelet_nop;
 	taskB->use_tag = 1;
 	taskB->tag_id = tagB;
 
 	struct starpu_task *taskC = starpu_task_create();
-	taskC->cl = &dummy_codelet;
+	taskC->cl = &starpu_codelet_nop;
 	taskC->use_tag = 1;
 	taskC->tag_id = tagC;
 
@@ -79,13 +62,13 @@ int main(int argc, char **argv)
 	starpu_tag_declare_deps(tagD, 3, tagA, tagB, tagC);
 
 	struct starpu_task *taskE = starpu_task_create();
-	taskE->cl = &dummy_codelet;
+	taskE->cl = &starpu_codelet_nop;
 	taskE->use_tag = 1;
 	taskE->tag_id = tagE;
 	starpu_tag_declare_deps(tagE, 1, tagD);
 
 	struct starpu_task *taskF = starpu_task_create();
-	taskF->cl = &dummy_codelet;
+	taskF->cl = &starpu_codelet_nop;
 	taskF->use_tag = 1;
 	taskF->tag_id = tagF;
 	starpu_tag_declare_deps(tagF, 1, tagD);
