@@ -2534,13 +2534,18 @@ if test x$maxnodes = x0 ; then
 			# odd number.
 			nodes=`expr $nodes + $nmaxcudadev`
 		fi
+		if test x$enable_hip = xyes ; then
+			# we could have used nmaxhipdev + 1, but this would certainly give an
+			# odd number.
+			nodes=`expr $nodes + $nmaxhipdev`
+		fi
 		if test x$enable_opencl = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# we could have used nmaxopencldev + 1, but this would certainly give an
 			# odd number.
 			nodes=`expr $nodes + $nmaxopencldev`
 		fi
 		if test x$enable_max_fpga = xyes ; then
-			# we could have used nmaxcudadev + 1, but this would certainly give an
+			# we could have used nmaxmaxfpgadev + 1, but this would certainly give an
 			# odd number.
 			nodes=`expr $nodes + $nmaxmaxfpgadev`
 		fi
