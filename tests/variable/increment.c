@@ -73,7 +73,9 @@ struct starpu_codelet increment_redux_cl =
 	.nbuffers = 1,
 };
 
+#ifdef STARPU_USE_OPENCL
 struct starpu_opencl_program opencl_program;
+#endif
 
 void increment_load_opencl()
 {
