@@ -2089,6 +2089,8 @@ void starpu_shutdown(void)
 
 	starpu_task_wait_for_no_ready();
 
+	starpu_worker_wait_for_initialisation();
+
 	/* tell all workers to shutdown */
 	_starpu_kill_all_workers(&_starpu_config);
 
