@@ -354,6 +354,7 @@ struct starpu_sched_policy my_dm_policy =
 	.policy_name = "mydm",
 	.policy_description = "performance model",
 	.worker_type = STARPU_WORKER_LIST,
+	.prefetches = 1,
 };
 
 struct starpu_sched_policy *predefined_policies[] =
