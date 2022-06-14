@@ -1085,8 +1085,6 @@ void starpu_worker_wait_for_initialisation()
 				STARPU_PTHREAD_COND_WAIT(&worker_set->ready_cond,
 							 &worker_set->mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-			worker_set->started = 1;
-			worker_set->wait_for_set_initialization = 0;
 		}
 		else
 		{
@@ -1094,7 +1092,6 @@ void starpu_worker_wait_for_initialisation()
 			while (!worker->worker_is_initialized)
 				STARPU_PTHREAD_COND_WAIT(&worker->ready_cond, &worker->mutex);
 			STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
-			worker->wait_for_worker_initialization = 0;
 		}
 	}
 }
