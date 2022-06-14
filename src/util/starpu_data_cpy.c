@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -65,6 +65,23 @@ static void common_data_cpy_func(void *descr[], void *cl_arg)
 			break;
 		}
 #endif
+#ifdef STARPU_USE_HIP
+		case STARPU_HIP_WORKER:
+		{
+			hipStream_t stream = starpu_hip_get_local_stream();
+			if (copy_methods->hip_to_hip_async)
+			{
+				copy_methods->hip_to_hip_async(src_interface, memory_node, dst_interface, memory_node, stream);
+				return;
+			}
+			else if (copy_methods->hip_to_hip)
+			{
+				copy_methods->hip_to_hip(src_interface, memory_node, dst_interface, memory_node);
+				return;
+			}
+			break;
+		}
+#endif
 		case STARPU_OPENCL_WORKER:
 			if (copy_methods->opencl_to_opencl)
 			{
@@ -93,6 +110,7 @@ static struct starpu_codelet copy_cl =
 	.cpu_funcs = {common_data_cpy_func},
 	.cuda_funcs = {common_data_cpy_func},
 	.opencl_funcs = {common_data_cpy_func},
+	.hip_funcs = {common_data_cpy_func},
 	.nbuffers = 2,
 	.modes = {STARPU_W, STARPU_R},
 	.model = &copy_model
@@ -134,6 +152,7 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 	task->synchronous = !asynchronous;
 
 	int ret = _starpu_task_submit_internally(task);
+	STARPU_ASSERT_MSG(ret != -ENODEV, "Implementation of _starpu_data_cpy is needed for this only available architecture\n");
 	STARPU_ASSERT_MSG(!ret, "Task data copy failed with code: %d\n", ret);
 
 	return 0;
