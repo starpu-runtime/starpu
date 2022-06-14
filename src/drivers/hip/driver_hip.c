@@ -61,7 +61,7 @@ static hipStream_t in_transfer_streams[STARPU_MAXHIPDEVS];
  * emitting a GPU-GPU transfer */
 static hipStream_t in_peer_transfer_streams[STARPU_MAXHIPDEVS][STARPU_MAXHIPDEVS];
 static struct hipDeviceProp_t props[STARPU_MAXHIPDEVS];
-static hipEvent_t task_events[STARPU_NMAXWORKERS];
+static hipEvent_t task_events[STARPU_NMAXWORKERS][STARPU_MAX_PIPELINE];
 
 static unsigned hip_bindid_init[STARPU_MAXHIPDEVS];
 static unsigned hip_bindid[STARPU_MAXHIPDEVS];
@@ -434,22 +434,28 @@ static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 
 static void init_worker_context(unsigned workerid, unsigned devid)
 {
+	int j;
 	hipError_t hipres;
 	starpu_hip_set_device(devid);
 
-	hipres = hipEventCreateWithFlags(&task_events[workerid], hipEventDisableTiming);
-	if (STARPU_UNLIKELY(hipres))
-		STARPU_HIP_REPORT_ERROR(hipres);
+	for (j = 0; j < STARPU_MAX_PIPELINE; j++)
+	{
+		hipres = hipEventCreateWithFlags(&task_events[workerid][j], hipEventDisableTiming);
+		if (STARPU_UNLIKELY(hipres))
+			STARPU_HIP_REPORT_ERROR(hipres);
+	}
 
 	hipres = starpu_hipStreamCreate(&streams[workerid]);
 	if (STARPU_UNLIKELY(hipres))
 		STARPU_HIP_REPORT_ERROR(hipres);
 }
 
-static void deinit_worker_context(unsigned workerid, unsigned devid)
+static void deinit_worker_context(unsigned workerid, unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
+	unsigned j;
 	starpu_hip_set_device(devid);
-	hipEventDestroy(task_events[workerid]);
+	for (j = 0; j < STARPU_MAX_PIPELINE; j++)
+		hipEventDestroy(task_events[workerid][j]);
 	hipStreamDestroy(streams[workerid]);
 }
 
@@ -498,7 +504,22 @@ int _starpu_hip_driver_init(struct _starpu_worker *worker)
 		starpu_pthread_setname(thread_name);
 	}
 
-	/* tell the main thread that this one is ready */
+	worker->pipeline_length = starpu_get_env_number_default("STARPU_HIP_PIPELINE", 2);
+	if (worker->pipeline_length > STARPU_MAX_PIPELINE)
+	{
+		_STARPU_DISP("Warning: STARPU_HIP_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
+		worker->pipeline_length = STARPU_MAX_PIPELINE;
+	}	/* tell the main thread that this one is ready */
+#if !defined(STARPU_NON_BLOCKING_DRIVERS)
+	if (worker->pipeline_length >= 1)
+	{
+		/* We need non-blocking drivers, to poll for OPENCL task
+		 * termination */
+		_STARPU_DISP("Warning: reducing STARPU_HIP_PIPELINE to 0 because blocking drivers are enabled (and simgrid is not enabled)\n");
+		worker->pipeline_length = 0;
+	}
+#endif
+
 	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
 	worker->status = STATUS_UNKNOWN;
 	worker->worker_is_initialized = 1;
@@ -1000,7 +1021,7 @@ int _starpu_hip_is_direct_access_supported(unsigned node, unsigned handling_node
 #endif /* STARPU_HAVE_HIP_MEMCPY_PEER */
 }
 
-static void start_job_on_hip(struct _starpu_job *j, struct _starpu_worker *worker)
+static void start_job_on_hip(struct _starpu_job *j, struct _starpu_worker *worker, unsigned char pipeline_idx STARPU_ATTRIBUTE_UNUSED)
 {
 	STARPU_ASSERT(j);
 	struct starpu_task *task = j->task;
@@ -1017,7 +1038,11 @@ static void start_job_on_hip(struct _starpu_job *j, struct _starpu_worker *worke
 	_starpu_set_current_task(task);
 	j->workerid = worker->workerid;
 
-	_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
+	if (worker->ntasks == 1)
+	{
+		/* We are alone in the pipeline, the kernel will start now, record it */
+		_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
+	}
 
 #if defined(STARPU_HAVE_HIP_MEMCPY_PEER)
 	/* We make sure we do manipulate the proper device */
@@ -1054,7 +1079,9 @@ static void execute_job_on_hip(struct starpu_task *task, struct _starpu_worker *
 
 	struct _starpu_job *j = _starpu_get_job_associated_to_task(task);
 
-	start_job_on_hip(j, worker);
+	unsigned char pipeline_idx = (worker->first_task + worker->ntasks - 1)%STARPU_MAX_PIPELINE;
+
+	start_job_on_hip(j, worker, pipeline_idx);
 
 	if (!used_stream[workerid])
 	{
@@ -1064,13 +1091,22 @@ static void execute_job_on_hip(struct starpu_task *task, struct _starpu_worker *
 
 	if (task->cl->hip_flags[j->nimpl] & STARPU_HIP_ASYNC)
 	{
-		/* Record event to synchronize with task termination later */
-		hipError_t hipres = hipEventRecord(task_events[workerid], starpu_hip_get_local_stream());
-		if (STARPU_UNLIKELY(hipres))
-			STARPU_HIP_REPORT_ERROR(hipres);
+		if (worker->pipeline_length == 0)
+		{
+			/* Forced synchronous execution */
+			hipStreamSynchronize(starpu_hip_get_local_stream());
+			finish_job_on_hip(j, worker);
+		}
+		else
+		{
+			/* Record event to synchronize with task termination later */
+			hipError_t hipres = hipEventRecord(task_events[workerid][pipeline_idx], starpu_hip_get_local_stream());
+			if (STARPU_UNLIKELY(hipres))
+				STARPU_HIP_REPORT_ERROR(hipres);
 #ifdef STARPU_USE_FXT
-		_STARPU_TRACE_START_EXECUTING();
+			_STARPU_TRACE_START_EXECUTING();
 #endif
+		}
 	}
 	else /* Synchronous execution */
 	{
@@ -1085,7 +1121,11 @@ static void finish_job_on_hip(struct _starpu_job *j, struct _starpu_worker *work
 {
 	int profiling = starpu_profiling_status_get();
 
-	worker->current_task = NULL;
+	if (worker->pipeline_length)
+		worker->current_tasks[worker->first_task] = NULL;
+	else
+		worker->current_task = NULL;
+	worker->first_task = (worker->first_task + 1) % STARPU_MAX_PIPELINE;
 	worker->ntasks--;
 
 	_starpu_driver_end_job(worker, j, &worker->perf_arch, 0, profiling);
@@ -1145,12 +1185,17 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 			_starpu_fetch_task_input_tail(task, j, worker);
 			/* Reset it */
 			worker->task_transferring = NULL;
-
-			execute_job_on_hip(task, worker);
-#ifdef STARPU_PROF_TOOL
-			pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, workerid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
-			starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
-#endif
+			if (worker->ntasks > 1 && !(task->cl->hip_flags[j->nimpl] & STARPU_HIP_ASYNC))
+			{
+				/* We have to execute a non-asynchronous task but we
+				 * still have tasks in the pipeline...  Record it to
+				 * prevent more tasks from coming, and do it later */
+				worker->pipeline_stuck = 1;
+			}
+			else
+			{
+				execute_job_on_hip(task, worker);
+			}
 			_STARPU_TRACE_START_PROGRESS(memnode);
 		}
 
@@ -1159,13 +1204,16 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 			/* No queued task */
 			continue;
 
-		task = worker->current_task;
+		if (worker->pipeline_length)
+			task = worker->current_tasks[worker->first_task];
+		else
+			task = worker->current_task;
 		if (task == worker->task_transferring)
 			/* Next task is still pending transfer */
 			continue;
 
 		/* On-going asynchronous task, check for its termination first */
-		hipError_t hipres = hipEventQuery(task_events[workerid]);
+		hipError_t hipres = hipEventQuery(task_events[workerid][worker->first_task]);
 
 		if (hipres != hipSuccess)
 		{
@@ -1180,6 +1228,35 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 #endif
 			/* Asynchronous task completed! */
 			finish_job_on_hip(_starpu_get_job_associated_to_task(task), worker);
+			/* See next task if any */
+			if (worker->ntasks)
+			{
+				if (worker->current_tasks[worker->first_task] != worker->task_transferring)
+				{
+					task = worker->current_tasks[worker->first_task];
+					j = _starpu_get_job_associated_to_task(task);
+					if (task->cl->hip_flags[j->nimpl] & STARPU_HIP_ASYNC)
+					{
+						/* An asynchronous task, it was already
+						 * queued, it's now running, record its start time.  */
+						_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, starpu_profiling_status_get());
+					}
+					else
+					{
+						/* A synchronous task, we have finished
+						 * flushing the pipeline, we can now at
+						 * last execute it.  */
+
+						_STARPU_TRACE_EVENT("sync_task");
+						execute_job_on_hip(task, worker);
+						_STARPU_TRACE_EVENT("end_sync_task");
+						worker->pipeline_stuck = 0;
+					}
+				}
+				else
+					/* Data for next task didn't have time to finish transferring :/ */
+					_STARPU_TRACE_WORKER_START_FETCH_INPUT(NULL, workerid);
+			}
 #ifdef STARPU_USE_FXT
 			_STARPU_TRACE_END_EXECUTING()
 #endif
@@ -1189,7 +1266,7 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
 		}
-		if (worker->ntasks < 1)
+		if (!worker->pipeline_length || worker->ntasks < worker->pipeline_length)
 			idle_tasks++;
 	} while(0);
 
@@ -1205,18 +1282,14 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 	/* Something done, make some progress */
 	res = __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
-	if (worker->ntasks >= 1)
-		return 0;
-
-	/* And pull a task */
-	task = _starpu_get_worker_task(worker, worker->workerid, worker->memory_node);
+	/* And pull tasks */
+	res |= _starpu_get_multi_worker_task(worker, &task, 1, worker->memory_node);
 
 	if (!task)
 		return 0;
 
-	worker->ntasks++;
-
 	j = _starpu_get_job_associated_to_task(task);
+
 
 	/* can HIP do that task ? */
 	if (!_STARPU_MAY_PERFORM(j, HIP))
@@ -1225,8 +1298,6 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 		_starpu_worker_refuse_task(worker, task);
 		return 0;
 	}
-
-	worker->current_task = task;
 
 	/* Fetch data asynchronously */
 #ifdef STARPU_PROF_TOOL
