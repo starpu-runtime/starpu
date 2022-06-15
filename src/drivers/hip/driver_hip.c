@@ -20,6 +20,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+#include "starpu_config.h"
 #include <starpu.h>
 #include <starpu_hip.h>
 #include <starpu_profiling.h>
@@ -68,7 +69,15 @@ static unsigned hip_bindid[STARPU_MAXHIPDEVS];
 static unsigned hip_memory_init[STARPU_MAXHIPDEVS];
 static unsigned hip_memory_nodes[STARPU_MAXHIPDEVS];
 
-int _starpu_nworker_per_hip = 1;
+static struct _starpu_worker_set hip_worker_set[STARPU_MAXHIPDEVS];
+static enum initialization hip_device_init[STARPU_MAXHIPDEVS];
+static int hip_device_users[STARPU_MAXHIPDEVS];
+static starpu_pthread_mutex_t hip_device_init_mutex[STARPU_MAXHIPDEVS];
+static starpu_pthread_cond_t hip_device_init_cond[STARPU_MAXHIPDEVS];
+static int hip_globalbindid;
+
+
+int _starpu_nworker_per_hip;
 
 static size_t _starpu_hip_get_global_mem_size(unsigned devid)
 {
@@ -124,8 +133,15 @@ const struct hipDeviceProp_t *starpu_hip_get_device_properties(unsigned workerid
 /* Early library initialization, before anything else, just initialize data */
 void _starpu_hip_init(void)
 {
+	int i;
+	for (i = 0; i < STARPU_MAXHIPDEVS; i++)
+	{
+		STARPU_PTHREAD_MUTEX_INIT(&hip_device_init_mutex[i], NULL);
+		STARPU_PTHREAD_COND_INIT(&hip_device_init_cond[i], NULL);
+	}
 	memset(&hip_bindid_init, 0, sizeof(hip_bindid_init));
 	memset(&hip_memory_init, 0, sizeof(hip_memory_init));
+	hip_globalbindid = -1;
 }
 
 /* Return the number of devices usable in the system.
@@ -191,6 +207,11 @@ static void _starpu_initialize_workers_hip_gpuid(struct _starpu_machine_config *
 /* Determine which devices we will use */
 void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config)
 {
+	int i;
+
+	for (i = 0; i < (int) (sizeof(hip_worker_set)/sizeof(hip_worker_set[0])); i++)
+		hip_worker_set[i].workers = NULL;
+
 	int nhip = config->conf.nhip;
 
 	if (nhip != 0)
@@ -203,10 +224,50 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 		_starpu_topology_check_ndevices(&nhip, nb_devices, 0, STARPU_MAXHIPDEVS, "nhip", "HIP", "maxhipdev");
 	}
 
+	int nworker_per_hip = starpu_get_env_number_default("STARPU_NWORKER_PER_HIP", 1);
+
+	STARPU_ASSERT_MSG(nworker_per_hip > 0, "STARPU_NWORKER_PER_HIP has to be > 0");
+	STARPU_ASSERT_MSG(nworker_per_hip < STARPU_NMAXWORKERS, "STARPU_NWORKER_PER_HIP (%d) cannot be higher than STARPU_NMAXWORKERS (%d)\n", nworker_per_hip, STARPU_NMAXWORKERS);
+
+#ifndef STARPU_NON_BLOCKING_DRIVERS
+	if (nworker_per_hip > 1)
+	{
+		_STARPU_DISP("Warning: reducing STARPU_NWORKER_PER_HIP to 1 because blocking drivers are enabled\n");
+		nworker_per_hip = 1;
+	}
+	_starpu_nworker_per_hip = nworker_per_hip;
+#endif
+
 	/* Now we know how many HIP devices will be used */
 	topology->ndevices[STARPU_HIP_WORKER] = nhip;
 
 	_starpu_initialize_workers_hip_gpuid(config);
+
+	/* allow having one worker per stream */
+	topology->hip_th_per_stream = starpu_get_env_number_default("STARPU_HIP_THREAD_PER_WORKER", -1);
+	topology->hip_th_per_dev = starpu_get_env_number_default("STARPU_HIP_THREAD_PER_DEV", -1);
+
+	STARPU_ASSERT_MSG(!(topology->hip_th_per_stream == 1 && topology->hip_th_per_dev != -1), "It does not make sense to set both STARPU_HIP_THREAD_PER_WORKER to 1 and to set STARPU_HIP_THREAD_PER_DEV, please choose either per worker or per device or none");
+
+	/* per device by default */
+	if (topology->hip_th_per_dev == -1)
+	{
+		if (topology->hip_th_per_stream == 1)
+			topology->hip_th_per_dev = 0;
+		else
+			topology->hip_th_per_dev = 1;
+	}
+	/* Not per stream by default */
+	if (topology->hip_th_per_stream == -1)
+	{
+		topology->hip_th_per_stream = 0;
+	}
+
+	if (!topology->hip_th_per_dev)
+	{
+		hip_worker_set[0].workers = &config->workers[topology->nworkers];
+		hip_worker_set[0].nworkers = nhip * nworker_per_hip;
+	}
 
 	unsigned hipgpu;
 	for (hipgpu = 0; (int) hipgpu < nhip; hipgpu++)
@@ -220,13 +281,54 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 			break;
 		}
 
-		_starpu_topology_configure_workers(topology, config,
+		struct _starpu_worker_set *worker_set;
 
+		if(topology->hip_th_per_stream)
+		{
+			worker_set = ALLOC_WORKER_SET;
+		}
+		else if (topology->hip_th_per_dev)
+		{
+			worker_set = &hip_worker_set[devid];
+			worker_set->workers = &config->workers[topology->nworkers];
+			worker_set->nworkers = nworker_per_hip;
+		}
+		else
+		{
+			/* Same worker set for all devices */
+			worker_set = &hip_worker_set[0];
+		}
+
+		_starpu_topology_configure_workers(topology, config,
 						   STARPU_HIP_WORKER,
 						   hipgpu, devid, 0, 0,
-						   1, 1, NULL, NULL);
+						   nworker_per_hip,
+						   // TODO: fix perfmodels etc.
+						   // nworker_per_hip - 1,
+						   1,
+						   worker_set, NULL);
+
 		_starpu_devices_gpu_set_used(devid);
-	}
+
+/* TODO: move this to generic place */
+#ifdef STARPU_HAVE_HWLOC
+		{
+			hwloc_obj_t obj = NULL;
+			if (starpu_driver_info[STARPU_HIP_WORKER].get_hwloc_obj)
+				obj = starpu_driver_info[STARPU_HIP_WORKER].get_hwloc_obj(topology, devid);
+
+			if (obj)
+			{
+				struct _starpu_hwloc_userdata *data = obj->userdata;
+				data->ngpus++;
+			}
+			else
+			{
+				_STARPU_DEBUG("Warning: could not find location of HIP%u, do you have the hwloc HIP plugin installed?\n", devid);
+			}
+		}
+#endif
+        }
 }
 
 /* Bind the driver on a CPU core */
@@ -239,82 +341,27 @@ void _starpu_hip_init_worker_binding(struct _starpu_machine_config *config, int 
 
 	if (hip_bindid_init[devid])
 	{
-		workerarg->bindid = hip_bindid[devid];
+		memory_node = hip_memory_nodes[devid];
+		if (config->topology.hip_th_per_stream == 0)
+			workerarg->bindid = hip_bindid[devid];
+		else
+			workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 	}
 	else
 	{
 		hip_bindid_init[devid] = 1;
 
-		workerarg->bindid = hip_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-	}
-}
-
-/* Set up memory and buses */
-void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
-{
-	unsigned memory_node = -1;
-	unsigned devid = workerarg->devid;
-	unsigned numa;
-
-	if (hip_memory_init[devid])
-	{
-		memory_node = hip_memory_nodes[devid];
-	}
-	else
-	{
-		hip_memory_init[devid] = 1;
-
-		memory_node = hip_memory_nodes[devid] = _starpu_memory_node_register(STARPU_HIP_RAM, devid);
-
-		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+		if (config->topology.hip_th_per_dev == 0 && config->topology.hip_th_per_stream == 0)
 		{
-			_starpu_hip_bus_ids[numa][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(numa, memory_node);
-			_starpu_hip_bus_ids[devid+STARPU_MAXNUMANODES][numa] = _starpu_register_bus(memory_node, numa);
+			if (hip_globalbindid == -1)
+				hip_globalbindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+			workerarg->bindid = hip_bindid[devid] = hip_globalbindid;
 		}
-
-		int worker2;
-		for (worker2 = 0; worker2 < workerarg->workerid; worker2++)
-		{
-			struct _starpu_worker *workerarg2 = &config->workers[worker2];
-			int devid2 = workerarg2->devid;
-			if (workerarg2->arch == STARPU_HIP_WORKER)
-			{
-				unsigned memory_node2 = starpu_worker_get_memory_node(worker2);
-				_starpu_hip_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node2, memory_node);
-				_starpu_hip_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES] = _starpu_register_bus(memory_node, memory_node2);
-#if HAVE_DECL_HWLOC_HIP_GET_DEVICE_OSDEV_BY_INDEX
-				{
-					hwloc_obj_t obj, obj2, ancestor;
-					obj = hwloc_hip_get_device_osdev_by_index(config->topology.hwtopology, devid);
-					obj2 = hwloc_hip_get_device_osdev_by_index(config->topology.hwtopology, devid2);
-					ancestor = hwloc_get_common_ancestor_obj(config->topology.hwtopology, obj, obj2);
-					if (ancestor)
-					{
-						struct _starpu_hwloc_userdata *data = ancestor->userdata;
-#ifdef STARPU_VERBOSE
-						{
-							char name[64];
-							hwloc_obj_type_snprintf(name, sizeof(name), ancestor, 0);
-							_STARPU_DEBUG("HIP%u and HIP%u are linked through %s, along %u GPUs\n", devid, devid2, name, data->ngpus);
-						}
-#endif
-						starpu_bus_set_ngpus(_starpu_hip_bus_ids[devid2+STARPU_MAXNUMANODES][devid+STARPU_MAXNUMANODES], data->ngpus);
-						starpu_bus_set_ngpus(_starpu_hip_bus_ids[devid+STARPU_MAXNUMANODES][devid2+STARPU_MAXNUMANODES], data->ngpus);
-					}
-				}
-#endif
-			}
+		else
+		{	
+			workerarg->bindid = hip_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 		}
 	}
-	_starpu_memory_node_add_nworkers(memory_node);
-
-	//This worker can also manage transfers on NUMA nodes
-	for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
-		_starpu_worker_drives_memory_node(workerarg, numa);
-
-	_starpu_worker_drives_memory_node(workerarg, memory_node);
-
-	workerarg->memory_node = memory_node;
 }
 
 /* Set the current HIP device */
@@ -368,6 +415,21 @@ static void init_device_context(unsigned devid, unsigned memnode)
 
 	starpu_hip_set_device(devid);
 
+	STARPU_PTHREAD_MUTEX_LOCK(&hip_device_init_mutex[devid]);
+	hip_device_users[devid]++;
+	if (hip_device_init[devid] == UNINITIALIZED)
+		/* Nobody started initialization yet, do it */
+		hip_device_init[devid] = CHANGING;
+	else
+	{
+		/* Somebody else is doing initialization, wait for it */
+		while (hip_device_init[devid] != INITIALIZED)
+			STARPU_PTHREAD_COND_WAIT(&hip_device_init_cond[devid], &hip_device_init_mutex[devid]);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&hip_device_init_mutex[devid]);
+		return;
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&hip_device_init_mutex[devid]);
+
 	/* force HIP to initialize the context for real */
 	hipres = hipInit(0);
 	while (hipres == hipErrorDeinitialized && ++attempts < 100)
@@ -412,6 +474,11 @@ static void init_device_context(unsigned devid, unsigned memnode)
 		if (STARPU_UNLIKELY(hipres))
 			STARPU_HIP_REPORT_ERROR(hipres);
 	}
+
+	STARPU_PTHREAD_MUTEX_LOCK(&hip_device_init_mutex[devid]);
+	hip_device_init[devid] = INITIALIZED;
+	STARPU_PTHREAD_COND_BROADCAST(&hip_device_init_cond[devid]);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&hip_device_init_mutex[devid]);
 
 	_starpu_hip_limit_gpu_mem_if_needed(devid);
 	_starpu_memory_manager_set_global_memory_size(memnode, _starpu_hip_get_global_mem_size(devid));
@@ -462,69 +529,108 @@ static void deinit_worker_context(unsigned workerid, unsigned devid STARPU_ATTRI
 /* This is run from the driver thread to initialize the driver HIP context */
 int _starpu_hip_driver_init(struct _starpu_worker *worker)
 {
-	_starpu_driver_start(worker, STARPU_HIP_WORKER, 0);
+	struct _starpu_worker_set *worker_set = worker->set;
+	struct _starpu_worker *worker0 = &worker_set->workers[0];
+	int lastdevid = -1;
+	unsigned i;
+
+	_starpu_driver_start(worker0, STARPU_HIP_WORKER, 0);
 	_starpu_set_local_worker_key(worker);
 
-	unsigned devid = worker->devid;
-	unsigned memnode = worker->memory_node;
-
-	init_device_context(devid, memnode);
-
-	unsigned workerid = worker->workerid;
-
 #ifdef STARPU_PROF_TOOL
-	struct starpu_prof_tool_info pi;
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init, devid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init(&pi, NULL, NULL);
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_start, devid, workerid, starpu_prof_tool_driver_hip, memnode, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start(&pi, NULL, NULL);
+		struct starpu_prof_tool_info pi;
 #endif
 
-	float size = (float) global_mem[devid] / (1<<30);
-	/* get the device's name */
-	char devname[64];
-	strncpy(devname, props[devid].name, 63);
-	devname[63] = 0;
-
-	snprintf(worker->name, sizeof(worker->name), "HIP %u (%s %.1f GiB)", devid, devname, size);
-	snprintf(worker->short_name, sizeof(worker->short_name), "HIP %u", devid);
-	_STARPU_DEBUG("hip (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
-
-	init_worker_context(workerid, worker->devid);
-
-	_STARPU_TRACE_WORKER_INIT_END(workerid);
-#ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_end, devid, workerid, starpu_prof_tool_driver_hip, 0, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end(&pi, NULL, NULL);
+#ifdef STARPU_USE_FXT
+	for (i = 1; i < worker_set->nworkers; i++)
+		_starpu_worker_start(&worker_set->workers[i], STARPU_HIP_WORKER, 0);
 #endif
 
+	for (i = 0; i < worker_set->nworkers; i++)
+	{
+		worker = &worker_set->workers[i];
+		unsigned devid = worker->devid;
+		unsigned memnode = worker->memory_node;
+
+#ifdef STARPU_PROF_TOOL
+		struct starpu_prof_tool_info pi;
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init, devid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init(&pi, NULL, NULL);
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_start, devid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_start(&pi, NULL, NULL);
+#endif
+
+		if ((int) devid == lastdevid)
+		{
+			/* Already initialized */
+			continue;
+		}
+		lastdevid = devid;
+		init_device_context(devid, memnode);
+
+		if (worker->config->topology.nworker[STARPU_HIP_WORKER][devid] > 1 && props[devid].concurrentKernels == 0)
+			_STARPU_DISP("Warning: STARPU_NWORKER_PER_HIP is %u, but HIP device %u does not support concurrent kernel execution!\n", worker_set->nworkers, devid);
+	}
+
+	/* one more time to avoid hacks from third party lib :) */
+	_starpu_bind_thread_on_cpu(worker0->bindid, worker0->workerid, NULL);
+	
+	for (i = 0; i < worker_set->nworkers; i++)
+	{
+		worker = &worker_set->workers[i];
+		unsigned devid = worker->devid;
+		unsigned workerid = worker->workerid;
+
+		float size = (float) global_mem[devid] / (1<<30);
+		/* get the device's name */
+		char devname[64];
+		strncpy(devname, props[devid].name, 63);
+		devname[63] = 0;
+
+		snprintf(worker->name, sizeof(worker->name), "HIP %u (%s %.1f GiB)", devid, devname, size);
+		snprintf(worker->short_name, sizeof(worker->short_name), "HIP %u", devid);
+		_STARPU_DEBUG("hip (%s) dev id %u thread is ready to run on CPU %d !\n", devname, devid, worker->bindid);
+
+		worker->pipeline_length = starpu_get_env_number_default("STARPU_HIP_PIPELINE", 2);
+		if (worker->pipeline_length > STARPU_MAX_PIPELINE)
+		{
+			_STARPU_DISP("Warning: STARPU_HIP_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
+			worker->pipeline_length = STARPU_MAX_PIPELINE;
+		}	/* tell the main thread that this one is ready */
+#if !defined(STARPU_NON_BLOCKING_DRIVERS)
+		if (worker->pipeline_length >= 1)
+		{
+			/* We need non-blocking drivers, to poll for HIP task
+			 * termination */
+			_STARPU_DISP("Warning: reducing STARPU_HIP_PIPELINE to 0 because blocking drivers are enabled (and simgrid is not enabled)\n");
+			worker->pipeline_length = 0;
+		}
+#endif
+		init_worker_context(workerid, worker->devid);
+
+		_STARPU_TRACE_WORKER_INIT_END(workerid);
+#ifdef STARPU_PROF_TOOL
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_driver_init_end, devid, worker->workerid, starpu_prof_tool_driver_gpu, 0, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_driver_init_end(&pi, NULL, NULL);
+#endif	}
 	{
 		char thread_name[16];
 		snprintf(thread_name, sizeof(thread_name), "HIP %u", worker->devid);
 		starpu_pthread_setname(thread_name);
 	}
 
-	worker->pipeline_length = starpu_get_env_number_default("STARPU_HIP_PIPELINE", 2);
-	if (worker->pipeline_length > STARPU_MAX_PIPELINE)
-	{
-		_STARPU_DISP("Warning: STARPU_HIP_PIPELINE is %u, but STARPU_MAX_PIPELINE is only %u", worker->pipeline_length, STARPU_MAX_PIPELINE);
-		worker->pipeline_length = STARPU_MAX_PIPELINE;
-	}	/* tell the main thread that this one is ready */
-#if !defined(STARPU_NON_BLOCKING_DRIVERS)
-	if (worker->pipeline_length >= 1)
-	{
-		/* We need non-blocking drivers, to poll for OPENCL task
-		 * termination */
-		_STARPU_DISP("Warning: reducing STARPU_HIP_PIPELINE to 0 because blocking drivers are enabled (and simgrid is not enabled)\n");
-		worker->pipeline_length = 0;
-	}
-#endif
 
-	STARPU_PTHREAD_MUTEX_LOCK(&worker->mutex);
-	worker->status = STATUS_UNKNOWN;
-	worker->worker_is_initialized = 1;
+	STARPU_PTHREAD_MUTEX_LOCK(&worker0->mutex);
+	worker0->status = STATUS_UNKNOWN;
+	worker0->worker_is_initialized = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&worker->ready_cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&worker->mutex);
+
+	/* tell the main thread that this one is also ready */
+	STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+	worker_set->set_is_initialized = 1;
+	STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
 
 	return 0;
 }
@@ -1142,23 +1248,28 @@ static void finish_job_on_hip(struct _starpu_job *j, struct _starpu_worker *work
 /* One iteration of the main driver loop */
 int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 {
+	struct _starpu_worker_set *worker_set = worker->set;
+	struct _starpu_worker *worker0 = &worker_set->workers[0];
+	struct starpu_task *tasks[worker_set->nworkers];
 	struct starpu_task *task;
 	struct _starpu_job *j;
-	int res;
 #ifdef STARPU_PROF_TOOL
 	struct starpu_prof_tool_info pi;
 #endif
+	int i, res;
+
 
 	int idle_tasks, idle_transfers;
 
 	/* First poll for completed jobs */
 	idle_tasks = 0;
 	idle_transfers = 0;
-	int workerid = worker->workerid;
-	unsigned memnode = worker->memory_node;
-
-	do /* This do {} while (0) is only to match the hip driver worker for look */
+	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{
+		worker = &worker_set->workers[i];
+		int workerid = worker->workerid;
+		unsigned memnode = worker->memory_node;
+		
 		if (!worker->ntasks)
 			idle_tasks++;
 		if (!worker->task_transferring)
@@ -1182,6 +1293,7 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 #endif
 			j = _starpu_get_job_associated_to_task(task);
 
+			_starpu_set_local_worker_key(worker);
 			_starpu_fetch_task_input_tail(task, j, worker);
 			/* Reset it */
 			worker->task_transferring = NULL;
@@ -1227,6 +1339,7 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 			starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 			/* Asynchronous task completed! */
+			_starpu_set_local_worker_key(worker);
 			finish_job_on_hip(_starpu_get_job_associated_to_task(task), worker);
 			/* See next task if any */
 			if (worker->ntasks)
@@ -1268,7 +1381,7 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 		}
 		if (!worker->pipeline_length || worker->ntasks < worker->pipeline_length)
 			idle_tasks++;
-	} while(0);
+	}
 
 #if defined(STARPU_NON_BLOCKING_DRIVERS)
 	if (!idle_tasks)
@@ -1283,25 +1396,31 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 	res = __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
 	/* And pull tasks */
-	res |= _starpu_get_multi_worker_task(worker, &task, 1, worker->memory_node);
+	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, worker0->memory_node);
 
-	if (!task)
-		return 0;
-
-	j = _starpu_get_job_associated_to_task(task);
-
-
-	/* can HIP do that task ? */
-	if (!_STARPU_MAY_PERFORM(j, HIP))
+	for (i = 0; i < (int) worker_set->nworkers; i++)
 	{
-		/* this is neither a hip or a cublas task */
-		_starpu_worker_refuse_task(worker, task);
-		return 0;
-	}
+		worker = &worker_set->workers[i];
+		unsigned memnode STARPU_ATTRIBUTE_UNUSED = worker->memory_node;
 
-	/* Fetch data asynchronously */
+		task = tasks[i];
+		if (!task)
+			continue;
+
+
+		j = _starpu_get_job_associated_to_task(task);
+
+		/* can HIP do that task ? */
+		if (!_STARPU_MAY_PERFORM(j, HIP))
+		{
+			/* this is neither a cuda or a cublas task */
+			_starpu_worker_refuse_task(worker, task);
+			continue;
+		}
+
+                /* Fetch data asynchronously */
 #ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, memnode, NULL);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
 	_STARPU_TRACE_END_PROGRESS(memnode);
@@ -1310,9 +1429,10 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 	STARPU_ASSERT(res == 0);
 	_STARPU_TRACE_START_PROGRESS(memnode);
 #ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, memnode, NULL);
+	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_gpu, memnode, NULL);
 	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
+	}
 
 	return 0;
 }
@@ -1320,26 +1440,35 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 void *_starpu_hip_worker(void *_arg)
 {
 	struct _starpu_worker *worker = _arg;
+	struct _starpu_worker_set* worker_set = worker->set;
+
 #ifdef STARPU_PROF_TOOL
 	struct starpu_prof_tool_info pi;
 #endif
+	unsigned i;
 
 	_starpu_hip_driver_init(worker);
-	_STARPU_TRACE_START_PROGRESS(worker->memory_node);
+	for (i = 0; i < worker_set->nworkers; i++)
+	{
 #ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, worker->memory_node, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_start_transfer, worker_set->workers[i].workerid, worker_set->workers[i].workerid, starpu_prof_tool_driver_gpu, worker_set->workers[i].memory_node, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_start_transfer(&pi, NULL, NULL);
 #endif
+		_STARPU_TRACE_START_PROGRESS(worker_set->workers[i].memory_node);
+	}
 	while (_starpu_machine_is_running())
 	{
 		_starpu_may_pause();
 		_starpu_hip_driver_run_once(worker);
 	}
-	_STARPU_TRACE_END_PROGRESS(worker->memory_node);
+	for (i = 0; i < worker_set->nworkers; i++)
+	{
+		_STARPU_TRACE_END_PROGRESS(worker_set->workers[i].memory_node);
 #ifdef STARPU_PROF_TOOL
-	pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker->workerid, worker->workerid, starpu_prof_tool_driver_hip, worker->memory_node, NULL);
-	starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
+		pi = _starpu_prof_tool_get_info(starpu_prof_tool_event_end_transfer, worker_set->workers[i].workerid, worker_set->workers[i].workerid, starpu_prof_tool_driver_gpu, worker_set->workers[i].memory_node, NULL);
+		starpu_prof_tool_callbacks.starpu_prof_tool_event_end_transfer(&pi, NULL, NULL);
 #endif
+	}
 	_starpu_hip_driver_deinit(worker);
 
 	return NULL;
