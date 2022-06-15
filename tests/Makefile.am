@@ -57,6 +57,8 @@ EXTRA_DIST =					\
 	coverage/coverage.sh			\
 	variable/increment.h \
 	variable/increment_opencl_kernel.cl \
+	variable/redux_opencl_kernel.cl \
+	variable/neutral_opencl_kernel.cl \
 	datawizard/interfaces/test_interfaces.h	\
 	datawizard/interfaces/bcsr/bcsr_opencl_kernel.cl \
 	datawizard/interfaces/coo/coo_opencl_kernel.cl \

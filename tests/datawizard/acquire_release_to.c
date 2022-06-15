@@ -145,10 +145,7 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(token_handle);
 
-#ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-#endif
+	increment_unload_opencl();
 	starpu_shutdown();
 
         FPRINTF(stderr, "Token: %u\n", token);
@@ -165,10 +162,7 @@ enodev:
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */
-#ifdef STARPU_USE_OPENCL
-        ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-#endif
+	increment_unload_opencl();
 	starpu_shutdown();
 	return STARPU_TEST_SKIPPED;
 }

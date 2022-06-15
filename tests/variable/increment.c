@@ -20,18 +20,18 @@
 
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], void *_args);
-extern void redux_cuda_kernel(void *descr[], void *arg);
-extern void neutral_cuda_kernel(void *descr[], void *arg);
+extern void redux_cuda(void *descr[], void *arg);
+extern void neutral_cuda(void *descr[], void *arg);
 #endif
 #ifdef STARPU_USE_HIP
 extern void increment_hip(void *descr[], void *_args);
-extern void redux_hip_kernel(void *descr[], void *arg);
-extern void neutral_hip_kernel(void *descr[], void *arg);
+extern void redux_hip(void *descr[], void *arg);
+extern void neutral_hip(void *descr[], void *arg);
 #endif
 #ifdef STARPU_USE_OPENCL
 extern void increment_opencl(void *buffers[], void *args);
-extern void redux_opencl_kernel(void *descr[], void *arg);
-extern void neutral_opencl_kernel(void *descr[], void *arg);
+extern void redux_opencl(void *descr[], void *arg);
+extern void neutral_opencl(void *descr[], void *arg);
 #endif
 
 void increment_cpu(void *descr[], void *arg)
@@ -81,7 +81,7 @@ struct starpu_codelet increment_redux_cl =
 	.nbuffers = 1,
 };
 
-void redux_cpu_kernel(void *descr[], void *arg)
+void redux_cpu(void *descr[], void *arg)
 {
 	(void)arg;
 
@@ -97,22 +97,22 @@ struct starpu_codelet redux_cl =
 	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
 	.nbuffers = 2,
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {redux_cuda_kernel},
+	.cuda_funcs = {redux_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_HIP
-	.hip_funcs = {redux_hip_kernel},
+	.hip_funcs = {redux_hip},
 	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {redux_opencl_kernel},
+	.opencl_funcs = {redux_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs = {redux_cpu_kernel},
-	.cpu_funcs_name = {"redux_cpu_kernel"},
+	.cpu_funcs = {redux_cpu},
+	.cpu_funcs_name = {"redux_cpu"},
 };
 
-void neutral_cpu_kernel(void *descr[], void *arg)
+void neutral_cpu(void *descr[], void *arg)
 {
 	(void)arg;
 
@@ -125,41 +125,28 @@ void neutral_cpu_kernel(void *descr[], void *arg)
 struct starpu_codelet neutral_cl =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {neutral_cuda_kernel},
+	.cuda_funcs = {neutral_cuda},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 #endif
 #ifdef STARPU_USE_HIP
-	.hip_funcs = {neutral_hip_kernel},
+	.hip_funcs = {neutral_hip},
 	.hip_flags = {STARPU_HIP_ASYNC},
 #endif
 #ifdef STARPU_USE_OPENCL
-	.opencl_funcs = {neutral_opencl_kernel},
+	.opencl_funcs = {neutral_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs = {neutral_cpu_kernel},
-	.cpu_funcs_name = {"neutral_cpu_kernel"},
+	.cpu_funcs = {neutral_cpu},
+	.cpu_funcs_name = {"neutral_cpu"},
 	.modes = {STARPU_W},
 	.nbuffers = 1
 };
 
-#ifdef STARPU_USE_OPENCL
-struct starpu_opencl_program opencl_program;
-#endif
-
+#ifndef STARPU_USE_OPENCL
 void increment_load_opencl()
 {
-#ifdef STARPU_USE_OPENCL
-	int ret = starpu_opencl_load_opencl_from_file("tests/variable/increment_opencl_kernel.cl", &opencl_program, NULL);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
-#endif
 }
-
 void increment_unload_opencl()
 {
-#ifdef STARPU_USE_OPENCL
-        int ret = starpu_opencl_unload_opencl(&opencl_program);
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
-#endif
 }
-
-
+#endif

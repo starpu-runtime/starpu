@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -14,13 +14,7 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-#include <starpu.h>
-
-extern struct starpu_codelet increment_cl;
-extern struct starpu_codelet increment_redux_cl;
-extern struct starpu_codelet redux_cl;
-extern struct starpu_codelet neutral_cl;
-
-void increment_load_opencl();
-void increment_unload_opencl();
-
+__kernel void _redux_opencl(__global unsigned *dst, __global unsigned *src)
+{
+	dst[0] += src[0];
+}

@@ -21,7 +21,30 @@
  * Queue an OpenCL kernel that just increments a variable
  */
 
-extern struct starpu_opencl_program opencl_program;
+struct starpu_opencl_program opencl_increment_program;
+struct starpu_opencl_program opencl_redux_program;
+struct starpu_opencl_program opencl_neutral_program;
+
+void increment_load_opencl()
+{
+	int ret = starpu_opencl_load_opencl_from_file("tests/variable/increment_opencl_kernel.cl", &opencl_increment_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+	ret = starpu_opencl_load_opencl_from_file("tests/variable/redux_opencl_kernel.cl", &opencl_redux_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+	ret = starpu_opencl_load_opencl_from_file("tests/variable/neutral_opencl_kernel.cl", &opencl_neutral_program, NULL);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_load_opencl_from_file");
+}
+
+void increment_unload_opencl()
+{
+        int ret = starpu_opencl_unload_opencl(&opencl_increment_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+        ret = starpu_opencl_unload_opencl(&opencl_redux_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+        ret = starpu_opencl_unload_opencl(&opencl_neutral_program);
+        STARPU_CHECK_RETURN_VALUE(ret, "starpu_opencl_unload_opencl");
+}
+
 void increment_opencl(void *buffers[], void *args)
 {
 	(void) args;
@@ -35,7 +58,7 @@ void increment_opencl(void *buffers[], void *args)
 	id = starpu_worker_get_id_check();
 	devid = starpu_worker_get_devid(id);
 
-	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_program, "_increment_opencl_codelet", devid);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_increment_program, "_increment_opencl", devid);
 	if (err != CL_SUCCESS)
 		STARPU_OPENCL_REPORT_ERROR(err);
 
@@ -54,41 +77,64 @@ void increment_opencl(void *buffers[], void *args)
 	starpu_opencl_release_kernel(kernel);
 }
 
-void redux_opencl_kernel(void *descr[], void *arg)
+void redux_opencl(void *buffers[], void *args)
 {
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned h_dst, h_src;
-
-	cl_mem d_dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
-	cl_mem d_src = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[1]);
-
+	(void) args;
+	int id, devid;
+        cl_int err;
+	cl_kernel kernel;
 	cl_command_queue queue;
-	starpu_opencl_get_current_queue(&queue);
 
-	/* This is a dummy technique of course */
-	/* TODO: make this a kernel */
-	clEnqueueReadBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
-	clEnqueueReadBuffer(queue, d_src, CL_TRUE, 0, sizeof(unsigned), (void *)&h_src, 0, NULL, NULL);
+	cl_mem dst = (cl_mem)STARPU_VARIABLE_GET_PTR(buffers[0]);
+	cl_mem src = (cl_mem)STARPU_VARIABLE_GET_PTR(buffers[1]);
 
-	h_dst += h_src;
+	id = starpu_worker_get_id_check();
+	devid = starpu_worker_get_devid(id);
 
-	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_redux_program, "_redux_opencl", devid);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+	err = clSetKernelArg(kernel, 0, sizeof(dst), &dst);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	err = clSetKernelArg(kernel, 1, sizeof(src), &src);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+	{
+		size_t global=1;
+		size_t local=1;
+
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	}
+	starpu_opencl_release_kernel(kernel);
 }
 
-void neutral_opencl_kernel(void *descr[], void *arg)
+void neutral_opencl(void *buffers[], void *args)
 {
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned h_dst = 0;
-	cl_mem d_dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
-
+	(void) args;
+	int id, devid;
+        cl_int err;
+	cl_kernel kernel;
 	cl_command_queue queue;
-	starpu_opencl_get_current_queue(&queue);
 
-	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
+	cl_mem dst = (cl_mem)STARPU_VARIABLE_GET_PTR(buffers[0]);
+
+	id = starpu_worker_get_id_check();
+	devid = starpu_worker_get_devid(id);
+
+	err = starpu_opencl_load_kernel(&kernel, &queue, &opencl_neutral_program, "_neutral_opencl", devid);
+	if (err != CL_SUCCESS)
+		STARPU_OPENCL_REPORT_ERROR(err);
+
+	err = clSetKernelArg(kernel, 0, sizeof(dst), &dst);
+	if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+
+	{
+		size_t global=1;
+		size_t local=1;
+
+		err = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &global, &local, 0, NULL, NULL);
+		if (err != CL_SUCCESS) STARPU_OPENCL_REPORT_ERROR(err);
+	}
+	starpu_opencl_release_kernel(kernel);
 }

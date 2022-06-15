@@ -17,58 +17,54 @@
 #include <starpu.h>
 #include "../helper.h"
 
-static __global__ void _increment_hip_codelet(unsigned *val)
+static __global__ void _increment_hip(unsigned *val)
 {
 	val[0]++;
 }
 
 extern "C" void increment_hip(void *descr[], void *cl_arg)
 {
+	(void)cl_arg;
 	unsigned *val = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
-        hipLaunchKernelGGL(_increment_hip_codelet, 1, 1, 0, starpu_hip_get_local_stream(), val);
+        hipLaunchKernelGGL(_increment_hip, 1, 1, 0, starpu_hip_get_local_stream(), val);
 	hipError_t status = hipGetLastError();
 	if (status != hipSuccess) STARPU_HIP_REPORT_ERROR(status);
 }
 
-extern "C" void redux_hip_kernel(void *descr[], void *arg)
+static __global__ void _redux_hip(unsigned *dst, unsigned *src)
 {
-	(void)arg;
-	hipError_t ret;
+	dst[0] += src[0];
+}
+
+extern "C" void redux_hip(void *descr[], void *cl_arg)
+{
+	(void)cl_arg;
 
 	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *src = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 
-	unsigned host_dst, host_src;
-
-	/* This is a dummy technique of course */
-	/* TODO: make this a kernel */
-	ret = hipMemcpyAsync(&host_src, src, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
-	if (STARPU_UNLIKELY(ret)) STARPU_HIP_REPORT_ERROR(ret);
-	ret = hipMemcpyAsync(&host_dst, dst, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
-	if (STARPU_UNLIKELY(ret)) STARPU_HIP_REPORT_ERROR(ret);
-	ret = hipStreamSynchronize(starpu_hip_get_local_stream());
-	if (STARPU_UNLIKELY(ret)) STARPU_HIP_REPORT_ERROR(ret);
-
-	host_dst += host_src;
-
-	ret = hipMemcpyAsync(dst, &host_dst, sizeof(unsigned), hipMemcpyHostToDevice, starpu_hip_get_local_stream());
-	if (STARPU_UNLIKELY(ret)) STARPU_HIP_REPORT_ERROR(ret);
+	hipLaunchKernelGGL(_redux_hip, 1, 1, 0, starpu_hip_get_local_stream(), dst, src);
+	hipError_t status = hipGetLastError();
+	if (status != hipSuccess) STARPU_HIP_REPORT_ERROR(status);
 }
 
-extern "C" void neutral_hip_kernel(void *descr[], void *arg)
+static __global__ void _neutral_hip(unsigned *dst)
 {
-	(void)arg;
-	hipError_t ret;
+	dst[0] = 0;
+}
+
+extern "C" void neutral_hip(void *descr[], void *cl_arg)
+{
+	(void)cl_arg;
 
 	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 
-	/* This is a dummy technique of course */
-	unsigned host_dst = 0;
-	ret = hipMemcpyAsync(dst, &host_dst, sizeof(unsigned), hipMemcpyHostToDevice, starpu_hip_get_local_stream());
-	if (STARPU_UNLIKELY(ret)) STARPU_HIP_REPORT_ERROR(ret);
+	hipLaunchKernelGGL(_neutral_hip, 1, 1, 0, starpu_hip_get_local_stream(), dst);
+	hipError_t status = hipGetLastError();
+	if (status != hipSuccess) STARPU_HIP_REPORT_ERROR(status);
 }
