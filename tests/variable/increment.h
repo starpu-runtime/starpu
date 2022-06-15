@@ -22,6 +22,8 @@ extern struct starpu_opencl_program opencl_program;
 
 extern struct starpu_codelet increment_cl;
 extern struct starpu_codelet increment_redux_cl;
+extern struct starpu_codelet redux_cl;
+extern struct starpu_codelet neutral_cl;
 
 void increment_load_opencl();
 void increment_unload_opencl();
