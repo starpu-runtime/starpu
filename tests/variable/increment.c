@@ -69,7 +69,7 @@ struct starpu_codelet increment_redux_cl =
 	.opencl_funcs = {increment_opencl},
 	.opencl_flags = {STARPU_OPENCL_ASYNC},
 #endif
-	.cpu_funcs_name = {"increment_cpu_kernel"},
+	.cpu_funcs_name = {"increment_cpu"},
 	.nbuffers = 1,
 };
 
