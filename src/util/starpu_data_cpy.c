@@ -106,7 +106,7 @@ static struct starpu_perfmodel copy_model =
 
 static struct starpu_codelet copy_cl =
 {
-	.where = STARPU_CPU|STARPU_CUDA|STARPU_OPENCL,
+	.where = STARPU_CPU|STARPU_CUDA|STARPU_HIP|STARPU_OPENCL,
 	.cpu_funcs = {common_data_cpy_func},
 	.cuda_funcs = {common_data_cpy_func},
 	.opencl_funcs = {common_data_cpy_func},
