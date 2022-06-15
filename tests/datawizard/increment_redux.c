@@ -21,7 +21,6 @@
 /*
  * Check that STARPU_REDUX works with a mere incrementation
  */
-
 int main(int argc, char **argv)
 {
 	int ret;

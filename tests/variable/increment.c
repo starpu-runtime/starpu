@@ -20,12 +20,18 @@
 
 #ifdef STARPU_USE_CUDA
 extern void increment_cuda(void *descr[], void *_args);
+extern void redux_cuda_kernel(void *descr[], void *arg);
+extern void neutral_cuda_kernel(void *descr[], void *arg);
 #endif
 #ifdef STARPU_USE_HIP
 extern void increment_hip(void *descr[], void *_args);
+extern void redux_hip_kernel(void *descr[], void *arg);
+extern void neutral_hip_kernel(void *descr[], void *arg);
 #endif
 #ifdef STARPU_USE_OPENCL
 extern void increment_opencl(void *buffers[], void *args);
+extern void redux_opencl_kernel(void *descr[], void *arg);
+extern void neutral_opencl_kernel(void *descr[], void *arg);
 #endif
 
 void increment_cpu(void *descr[], void *arg)
@@ -75,122 +81,6 @@ struct starpu_codelet increment_redux_cl =
 	.nbuffers = 1,
 };
 
-/*
- *	Reduction methods
- */
-
-#ifdef STARPU_USE_CUDA
-static void redux_cuda_kernel(void *descr[], void *arg)
-{
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned *src = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
-
-	unsigned host_dst, host_src;
-
-	/* This is a dummy technique of course */
-	cudaMemcpyAsync(&host_src, src, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-	cudaMemcpyAsync(&host_dst, dst, sizeof(unsigned), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-	cudaStreamSynchronize(starpu_cuda_get_local_stream());
-
-	host_dst += host_src;
-
-	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-}
-
-static void neutral_cuda_kernel(void *descr[], void *arg)
-{
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-
-	/* This is a dummy technique of course */
-	unsigned host_dst = 0;
-	cudaMemcpyAsync(dst, &host_dst, sizeof(unsigned), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
-}
-#endif
-
-#ifdef STARPU_USE_HIP
-static void redux_hip_kernel(void *descr[], void *arg)
-{
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	unsigned *src = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
-
-	unsigned host_dst, host_src;
-
-	/* This is a dummy technique of course */
-	hipMemcpyAsync(&host_src, src, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
-	hipMemcpyAsync(&host_dst, dst, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
-	hipStreamSynchronize(starpu_hip_get_local_stream());
-
-	host_dst += host_src;
-
-	hipMemcpyAsync(dst, &host_dst, sizeof(unsigned), hipMemcpyHostToDevice, starpu_hip_get_local_stream());
-}
-
-static void neutral_hip_kernel(void *descr[], void *arg)
-{
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-
-	/* This is a dummy technique of course */
-	unsigned host_dst = 0;
-	hipMemcpyAsync(dst, &host_dst, sizeof(unsigned), hipMemcpyHostToDevice, starpu_hip_get_local_stream());
-}
-#endif
-
-#ifdef STARPU_USE_OPENCL
-static void redux_opencl_kernel(void *descr[], void *arg)
-{
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned h_dst, h_src;
-
-	cl_mem d_dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
-	cl_mem d_src = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[1]);
-
-	cl_command_queue queue;
-	starpu_opencl_get_current_queue(&queue);
-
-	/* This is a dummy technique of course */
-	clEnqueueReadBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
-	clEnqueueReadBuffer(queue, d_src, CL_TRUE, 0, sizeof(unsigned), (void *)&h_src, 0, NULL, NULL);
-
-	h_dst += h_src;
-
-	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
-}
-
-static void neutral_opencl_kernel(void *descr[], void *arg)
-{
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned h_dst = 0;
-	cl_mem d_dst = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
-
-	cl_command_queue queue;
-	starpu_opencl_get_current_queue(&queue);
-
-	clEnqueueWriteBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
-}
-#endif
-
 void redux_cpu_kernel(void *descr[], void *arg)
 {
 	(void)arg;
@@ -202,18 +92,10 @@ void redux_cpu_kernel(void *descr[], void *arg)
 	*dst = *dst + *src;
 }
 
-void neutral_cpu_kernel(void *descr[], void *arg)
-{
-	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
-
-	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
-	*dst = 0;
-}
-
 struct starpu_codelet redux_cl =
 {
+	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
+	.nbuffers = 2,
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {redux_cuda_kernel},
 	.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -228,9 +110,17 @@ struct starpu_codelet redux_cl =
 #endif
 	.cpu_funcs = {redux_cpu_kernel},
 	.cpu_funcs_name = {"redux_cpu_kernel"},
-	.modes = {STARPU_RW|STARPU_COMMUTE, STARPU_R},
-	.nbuffers = 2
 };
+
+void neutral_cpu_kernel(void *descr[], void *arg)
+{
+	(void)arg;
+
+	STARPU_SKIP_IF_VALGRIND;
+
+	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
+	*dst = 0;
+}
 
 struct starpu_codelet neutral_cl =
 {
