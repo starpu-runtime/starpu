@@ -69,6 +69,7 @@ void redux_opencl_kernel(void *descr[], void *arg)
 	starpu_opencl_get_current_queue(&queue);
 
 	/* This is a dummy technique of course */
+	/* TODO: make this a kernel */
 	clEnqueueReadBuffer(queue, d_dst, CL_TRUE, 0, sizeof(unsigned), (void *)&h_dst, 0, NULL, NULL);
 	clEnqueueReadBuffer(queue, d_src, CL_TRUE, 0, sizeof(unsigned), (void *)&h_src, 0, NULL, NULL);
 

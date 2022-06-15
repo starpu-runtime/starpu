@@ -44,6 +44,7 @@ extern "C" void redux_hip_kernel(void *descr[], void *arg)
 	unsigned host_dst, host_src;
 
 	/* This is a dummy technique of course */
+	/* TODO: make this a kernel */
 	ret = hipMemcpyAsync(&host_src, src, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
 	if (STARPU_UNLIKELY(ret)) STARPU_HIP_REPORT_ERROR(ret);
 	ret = hipMemcpyAsync(&host_dst, dst, sizeof(unsigned), hipMemcpyDeviceToHost, starpu_hip_get_local_stream());
