@@ -618,7 +618,10 @@ static starpu_cpu_func_t starpu_src_common_get_kernel(const char *func_name)
                 struct _starpu_mp_node *node = _starpu_src_nodes[archtype][devid];
                 int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
                 if (ret)
+                {
+			_STARPU_DISP("Could not resolve function %s on slave %d\n", kernel->name, devid);
                         return NULL;
+                }
         }
 
         return kernel->func[devid];
