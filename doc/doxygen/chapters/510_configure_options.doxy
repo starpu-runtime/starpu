@@ -526,6 +526,13 @@ default, it is enabled when an OpenCL implementation is found.
 Enable OpenMP Support (\ref OpenMPRuntimeSupport)
 </dd>
 
+<dt>--enable-openmp-llvm</dt>
+<dd>
+\anchor enable-openmp-llvm
+\addindex __configure__--enable-openmp-llvm
+Enable LLVM OpenMP Support (\ref OMPLLVM)
+</dd>
+
 <dt>--enable-bubble</dt>
 <dd>
 \anchor enable-bubble

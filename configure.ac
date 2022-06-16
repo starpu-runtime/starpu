@@ -56,6 +56,9 @@ AC_SUBST([LIBSTARPUFFT_INTERFACE_AGE])
 AC_SUBST([LIBSTARPURM_INTERFACE_CURRENT])
 AC_SUBST([LIBSTARPURM_INTERFACE_REVISION])
 AC_SUBST([LIBSTARPURM_INTERFACE_AGE])
+AC_SUBST([LIBSTARPU_OPENMP_LLVM_INTERFACE_CURRENT])
+AC_SUBST([LIBSTARPU_OPENMP_LLVM_INTERFACE_REVISION])
+AC_SUBST([LIBSTARPU_OPENMP_LLVM_INTERFACE_AGE])
 AC_SUBST([LIBSOCL_INTERFACE_CURRENT])
 AC_SUBST([LIBSOCL_INTERFACE_REVISION])
 AC_SUBST([LIBSOCL_INTERFACE_AGE])
@@ -88,6 +91,7 @@ AC_PROG_MKDIR_P
 AC_CHECK_PROGS(PROG_STAT,gstat stat)
 AC_CHECK_PROGS(PROG_DATE,gdate date)
 AC_PATH_PROGS(PROG_FIND,find)
+AC_CHECK_PROGS(PROG_CLANG,clang)
 
 AC_CACHE_CHECK([for parallel that supports semaphores with exit code], [ac_cv_path_PARALLEL],
   [AC_PATH_PROGS_FEATURE_CHECK([PARALLEL], [parallel],
@@ -2942,6 +2946,40 @@ AC_MSG_RESULT($enable_cluster)
 
 ###############################################################################
 #                                                                             #
+#                            OpenMP LLVM runtime support                      #
+#                                                                             #
+###############################################################################
+
+AC_ARG_ENABLE(openmp-llvm, [AS_HELP_STRING([--enable-openmp-llvm],
+			[build the OpenMP LLVM runtime support])],
+			enable_openmp_llvm=$enableval, enable_openmp_llvm=no)
+
+openmp_llvm_msg=""
+if test x$starpu_windows = xyes ; then
+   enable_openmp_llvm=no
+   openmp_llvm_msg="disabled on windows"
+fi
+if test "x$use_mpi_master_slave" = "xyes" ; then
+   enable_openmp_llvm=no
+   openmp_llvm_msg="incompatibility with MPI master slave support"
+fi
+if test x$enable_simgrid = xyes ; then
+   enable_openmp_llvm=no
+   openmp_llvm_msg="incompatibility with Simgrid support"
+fi
+
+if test x$enable_openmp_llvm = xyes; then
+	AC_DEFINE(STARPU_OPENMP_LLVM, [1], [Define this to enable LLVM OpenMP runtime support])
+	# Force activating the generic OpenMP runtime support
+	enable_openmp="yes"
+fi
+
+AC_MSG_CHECKING(for LLVM OpenMP runtime support)
+AM_CONDITIONAL([STARPU_OPENMP_LLVM], [test "x$enable_openmp_llvm" = "xyes"])
+AC_MSG_RESULT($enable_openmp_llvm $openmp_llvm_msg)
+
+###############################################################################
+#                                                                             #
 #                            OpenMP runtime support                           #
 #                                                                             #
 ###############################################################################
@@ -4049,7 +4087,7 @@ AC_CONFIG_COMMANDS([executable-scripts], [
   ; do
       test -e $x || ( mkdir -p $(dirname $x) && ln -sf $ac_abs_top_srcdir/$x $(dirname $x) )
   done
-  for x in tools julia/examples starpufft/tests examples examples/stencil mpi/tests mpi/examples socl/examples bubble/tests starpupy/examples \
+  for x in tools julia/examples starpufft/tests examples examples/stencil mpi/tests mpi/examples socl/examples bubble/tests starpupy/examples starpu_openmp_llvm/examples \
   ; do
     test -e $x/loader.c || ln -sf $ac_abs_top_srcdir/tests/loader.c $x
   done
@@ -4123,6 +4161,9 @@ AC_OUTPUT([
 	starpurm/tests/Makefile
 	starpurm/examples/Makefile
 	starpurm/packages/starpurm-1.3.pc
+	starpu_openmp_llvm/Makefile
+	starpu_openmp_llvm/src/Makefile
+	starpu_openmp_llvm/examples/Makefile
 	starpupy/src/setup.cfg
 	starpupy/src/setup.py
 	starpupy/Makefile
@@ -4218,6 +4259,7 @@ AC_MSG_NOTICE([
 	       Python Interface enabled:                      $starpupy_support
 	       Multi Python Interpreter enabled:              $starpupy_multi_interpreter
 	       OpenMP runtime support enabled:                $enable_openmp
+	       OpenMP LLVM runtime support enabled:           $enable_openmp_llvm
 	       Cluster support enabled:                       $enable_cluster
 	       SOCL enabled:                                  $build_socl
 	       SOCL test suite:                               $run_socl_check

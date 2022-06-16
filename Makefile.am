@@ -57,6 +57,10 @@ if STARPU_BUILD_STARPURM
 SUBDIRS += starpurm
 endif
 
+if STARPU_OPENMP_LLVM
+SUBDIRS += starpu_openmp_llvm
+endif
+
 if STARPU_USE_CPU
 if STARPU_BUILD_STARPUPY
 SUBDIRS += starpupy
@@ -127,7 +131,8 @@ versinclude_HEADERS = 				\
 	include/starpu_clusters.h		\
 	include/starpu_perf_monitoring.h	\
 	include/starpu_perf_steering.h		\
-	include/schedulers/starpu_scheduler_toolbox.h
+	include/schedulers/starpu_scheduler_toolbox.h \
+	include/omp.h
 
 nodist_versinclude_HEADERS = 			\
 	include/starpu_config.h

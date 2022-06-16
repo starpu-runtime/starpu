@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -470,5 +470,24 @@ explicit task launched by the parallel region to complete, before
 returning.
 
 \sa starpu_omp_barrier()
+
+\section OMPLLVM Example: An OpenMP LLVM Support
+
+SORS has been used to implement an OpenMP LLVM Support. This allows to
+seamlessly run OpenMP applications on top of StarPU.
+
+To enable this support, one just needs to call \c configure with the
+option \ref enable-openmp-llvm "--enable-openmp-llvm".
+
+After installation, the directory
+<c>lib/starpu/examples/starpu_openmp_llvm</c> contains a OpenMP
+application, its source code and the executable compiled with the
+StarPU OpenMP LLVM support, as well as a README file explaining how to
+use the support for your own application.
+
+One just needs to compile an OpenMP application with <c>clang</c> and
+to execute it the StarPU OpenMP LLVM support library file instead of
+the default <c>libomp.so</c>.
+
 
 */

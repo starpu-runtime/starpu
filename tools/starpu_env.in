@@ -45,6 +45,7 @@ else
     if test -f $starpu_bindir/starpu_machine_display -a -f $starpu_libdir/pkgconfig/libstarpu.pc
     then
 	echo "Setting StarPU environment for $prefix"
+	export STARPU_ROOT=$prefix
 	export PKG_CONFIG_PATH=$starpu_libdir/pkgconfig:$PKG_CONFIG_PATH
 	export LD_LIBRARY_PATH=$starpu_libdir:$LD_LIBRARY_PATH
 	export PATH=$starpu_bindir:$PATH
