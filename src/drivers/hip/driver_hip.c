@@ -140,7 +140,6 @@ const struct hipDeviceProp_t *starpu_hip_get_device_properties(unsigned workerid
 	return &props[devid];
 }
 
-
 /* Early library initialization, before anything else, just initialize data */
 void _starpu_hip_init(void)
 {
@@ -149,13 +148,12 @@ void _starpu_hip_init(void)
 
 /* Return the number of devices usable in the system.
  * The value returned cannot be greater than MAXHIPDEVS */
-
 unsigned _starpu_get_hip_device_count(void)
 {
 	int cnt;
-	hipError_t cures;
-	cures = hipGetDeviceCount(&cnt);
-	if (STARPU_UNLIKELY(cures))
+	hipError_t hipres;
+	hipres = hipGetDeviceCount(&cnt);
+	if (STARPU_UNLIKELY(hipres))
 		 return 0;
 
 	if (cnt > STARPU_MAXHIPDEVS)
@@ -182,10 +180,10 @@ void _starpu_hip_discover_devices (struct _starpu_machine_config *config)
 	/* Discover the number of HIP devices. Fill the result in CONFIG. */
 
 	int cnt;
-	hipError_t cures;
+	hipError_t hipres;
 
-	cures = hipGetDeviceCount (&cnt);
-	if (STARPU_UNLIKELY(cures != hipSuccess))
+	hipres = hipGetDeviceCount (&cnt);
+	if (STARPU_UNLIKELY(hipres != hipSuccess))
 		cnt = 0;
 	config->topology.nhwdevices[STARPU_HIP_WORKER] = cnt;
 }
@@ -324,12 +322,12 @@ int _starpu_hip_init_workers_binding_and_memory(struct _starpu_machine_config *c
 /* Set the current HIP device */
 void starpu_hip_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
-	hipError_t cures;
+	hipError_t hipres;
 
-	cures = hipSetDevice(devid);
+	hipres = hipSetDevice(devid);
 
-	if (STARPU_UNLIKELY(cures))
-		STARPU_HIP_REPORT_ERROR(cures);
+	if (STARPU_UNLIKELY(hipres))
+		STARPU_HIP_REPORT_ERROR(hipres);
 }
 
 static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
@@ -361,25 +359,25 @@ static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
 /* Really initialize one device */
 static void init_device_context(unsigned devid, unsigned memnode)
 {
-	hipError_t cures;
+	hipError_t hipres;
 
 	starpu_hip_set_device(devid);
 
 	/* force HIP to initialize the context for real */
-	cures = hipInit(0);
-	if (STARPU_UNLIKELY(cures))
+	hipres = hipInit(0);
+	if (STARPU_UNLIKELY(hipres))
 	{
-		if (cures != hipSuccess)
+		if (hipres != hipSuccess)
 		{
 			_STARPU_MSG("Failed to initialize HIP runtime\n");
 			exit(77);
 		}
-		STARPU_HIP_REPORT_ERROR(cures);
+		STARPU_HIP_REPORT_ERROR(hipres);
 	}
 
-	cures = hipGetDeviceProperties(&props[devid], devid);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_HIP_REPORT_ERROR(cures);
+	hipres = hipGetDeviceProperties(&props[devid], devid);
+	if (STARPU_UNLIKELY(hipres))
+		STARPU_HIP_REPORT_ERROR(hipres);
 #ifdef STARPU_HAVE_HIP_MEMCPY_PEER
 	if (props[devid].computeMode == hipComputeModeExclusive)
 	{
@@ -388,20 +386,20 @@ static void init_device_context(unsigned devid, unsigned memnode)
 	}
 #endif
 
-	cures = starpu_hipStreamCreate(&in_transfer_streams[devid]);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_HIP_REPORT_ERROR(cures);
+	hipres = starpu_hipStreamCreate(&in_transfer_streams[devid]);
+	if (STARPU_UNLIKELY(hipres))
+		STARPU_HIP_REPORT_ERROR(hipres);
 
-	cures = starpu_hipStreamCreate(&out_transfer_streams[devid]);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_HIP_REPORT_ERROR(cures);
+	hipres = starpu_hipStreamCreate(&out_transfer_streams[devid]);
+	if (STARPU_UNLIKELY(hipres))
+		STARPU_HIP_REPORT_ERROR(hipres);
 
 	int i;
 	for (i = 0; i < nhipgpus; i++)
 	{
-		cures = starpu_hipStreamCreate(&in_peer_transfer_streams[i][devid]);
-		if (STARPU_UNLIKELY(cures))
-			STARPU_HIP_REPORT_ERROR(cures);
+		hipres = starpu_hipStreamCreate(&in_peer_transfer_streams[i][devid]);
+		if (STARPU_UNLIKELY(hipres))
+			STARPU_HIP_REPORT_ERROR(hipres);
 	}
 
 	_starpu_hip_limit_gpu_mem_if_needed(devid);
@@ -425,16 +423,16 @@ static void deinit_device_context(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 
 static void init_worker_context(unsigned workerid, unsigned devid)
 {
-	hipError_t cures;
+	hipError_t hipres;
 	starpu_hip_set_device(devid);
 
-	cures = hipEventCreateWithFlags(&task_events[workerid], hipEventDisableTiming);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_HIP_REPORT_ERROR(cures);
+	hipres = hipEventCreateWithFlags(&task_events[workerid], hipEventDisableTiming);
+	if (STARPU_UNLIKELY(hipres))
+		STARPU_HIP_REPORT_ERROR(hipres);
 
-	cures = starpu_hipStreamCreate(&streams[workerid]);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_HIP_REPORT_ERROR(cures);
+	hipres = starpu_hipStreamCreate(&streams[workerid]);
+	if (STARPU_UNLIKELY(hipres))
+		STARPU_HIP_REPORT_ERROR(hipres);
 }
 
 static void deinit_worker_context(unsigned workerid, unsigned devid)
@@ -548,8 +546,6 @@ uintptr_t _starpu_hip_malloc_on_node(unsigned dst_node, size_t size, int flags)
 
 void _starpu_hip_free_on_node(unsigned dst_node, uintptr_t addr, size_t size, int flags)
 {
-	(void) dst_node;
-	(void) addr;
 	(void) size;
 	(void) flags;
 
@@ -570,7 +566,7 @@ int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node,
 	int peer_copy = 0;
 	int src_dev = -1, dst_dev = -1;
 #endif
-	hipError_t cures = 0;
+	hipError_t hipres = 0;
 
 	if (kind == hipMemcpyDeviceToDevice && src_node != dst_node)
 	{
@@ -590,41 +586,41 @@ int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node,
 #ifdef STARPU_HAVE_HIP_MEMCPY_PEER
 		if (peer_copy)
 		{
-			cures = hipMemcpyPeerAsync((char *) dst_ptr, dst_dev,
+			hipres = hipMemcpyPeerAsync((char *) dst_ptr, dst_dev,
 						   (char *) src_ptr, src_dev,
 						   ssize, stream);
 		}
 		else
 #endif
 		{
-			cures = hipMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
+			hipres = hipMemcpyAsync((char *)dst_ptr, (char *)src_ptr, ssize, kind, stream);
 		}
 		(void) hipGetLastError();
 		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 	}
 
 	/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
-	if (stream == NULL || cures)
+	if (stream == NULL || hipres)
 	{
 	/* do it in a synchronous fashion */
 #ifdef STARPU_HAVE_HIP_MEMCPY_PEER
 		if (peer_copy)
 		{
-			cures = hipMemcpyPeer((char *) dst_ptr, dst_dev,
+			hipres = hipMemcpyPeer((char *) dst_ptr, dst_dev,
 					      (char *) src_ptr, src_dev,
 					      ssize);
 		}
 		else
 #endif
 		{
-	                cures = hipMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
+	                hipres = hipMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
 		}
 	        (void) hipGetLastError();
 
-                if (!cures)
-                        cures = hipDeviceSynchronize();
-                if (STARPU_UNLIKELY(cures))
-                        STARPU_HIP_REPORT_ERROR(cures);
+                if (!hipres)
+                        hipres = hipDeviceSynchronize();
+                if (STARPU_UNLIKELY(hipres))
+                        STARPU_HIP_REPORT_ERROR(hipres);
 
 	        return 0;
 	}
@@ -639,7 +635,7 @@ int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
 				 size_t numblocks, size_t ld_src, size_t ld_dst,
 				 hipStream_t stream, hipMemcpyKind kind)
 {
-	hipError_t cures = 0;
+	hipError_t hipres = 0;
 
 	if (kind == hipMemcpyDeviceToDevice && src_node != dst_node)
 	{
@@ -656,20 +652,20 @@ int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
         {
                 double start;
                 starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
-                cures = hipMemcpy2DAsync((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
-                        blocksize, numblocks, kind, stream);
+                hipres = hipMemcpy2DAsync((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
+					 blocksize, numblocks, kind, stream);
                 starpu_interface_end_driver_copy_async(src_node, dst_node, start);
         }
 
         /* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
-        if (stream == NULL || cures)
+        if (stream == NULL || hipres)
         {
-                cures = hipMemcpy2D((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
-                blocksize, numblocks, kind);
-                if (!cures)
-                        cures = hipDeviceSynchronize();
-                if (STARPU_UNLIKELY(cures))
-                        STARPU_HIP_REPORT_ERROR(cures);
+                hipres = hipMemcpy2D((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
+				    blocksize, numblocks, kind);
+                if (!hipres)
+                        hipres = hipDeviceSynchronize();
+                if (STARPU_UNLIKELY(hipres))
+                        STARPU_HIP_REPORT_ERROR(hipres);
 
                 return 0;
         }
@@ -688,17 +684,17 @@ static inline hipEvent_t *_starpu_hip_event(union _starpu_async_channel_event *_
 unsigned _starpu_hip_test_request_completion(struct _starpu_async_channel *async_channel)
 {
 	hipEvent_t event;
-	hipError_t cures;
+	hipError_t hipres;
 	unsigned success;
 
 	event = *_starpu_hip_event(&async_channel->event);
-	cures = hipEventQuery(event);
-	success = (cures == hipSuccess);
+	hipres = hipEventQuery(event);
+	success = (hipres == hipSuccess);
 
 	if (success)
 		hipEventDestroy(event);
-	else if (cures != hipErrorNotReady)
-		STARPU_HIP_REPORT_ERROR(cures);
+	else if (hipres != hipErrorNotReady)
+		STARPU_HIP_REPORT_ERROR(hipres);
 
 	return success;
 }
@@ -706,17 +702,17 @@ unsigned _starpu_hip_test_request_completion(struct _starpu_async_channel *async
 void _starpu_hip_wait_request_completion(struct _starpu_async_channel *async_channel)
 {
 	hipEvent_t event;
-	hipError_t cures;
+	hipError_t hipres;
 
 	event = *_starpu_hip_event(&async_channel->event);
 
-	cures = hipEventSynchronize(event);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_HIP_REPORT_ERROR(cures);
+	hipres = hipEventSynchronize(event);
+	if (STARPU_UNLIKELY(hipres))
+		STARPU_HIP_REPORT_ERROR(hipres);
 
-	cures = hipEventDestroy(event);
-	if (STARPU_UNLIKELY(cures))
-		STARPU_HIP_REPORT_ERROR(cures);
+	hipres = hipEventDestroy(event);
+	if (STARPU_UNLIKELY(hipres))
+		STARPU_HIP_REPORT_ERROR(hipres);
 }
 
 #ifdef STARPU_HAVE_HIP_MEMCPY_PEER
@@ -752,7 +748,7 @@ int _starpu_hip_copy_interface_from_hip_to_hip(starpu_data_handle_t handle, void
 #endif
 
 	int ret = 1;
-	hipError_t cures;
+	hipError_t hipres;
 	hipStream_t stream;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 	/* HIP - HIP transfer */
@@ -765,15 +761,15 @@ int _starpu_hip_copy_interface_from_hip_to_hip(starpu_data_handle_t handle, void
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_hip_node_ops;
-		cures = hipEventCreateWithFlags(_starpu_hip_event(&req->async_channel.event), hipEventDisableTiming);
-		if (STARPU_UNLIKELY(cures != hipSuccess)) STARPU_HIP_REPORT_ERROR(cures);
+		hipres = hipEventCreateWithFlags(_starpu_hip_event(&req->async_channel.event), hipEventDisableTiming);
+		if (STARPU_UNLIKELY(hipres != hipSuccess)) STARPU_HIP_REPORT_ERROR(hipres);
 
 		stream = starpu_hip_get_peer_transfer_stream(src_node, dst_node);
 		STARPU_ASSERT(copy_methods->any_to_any);
 		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 
-		cures = hipEventRecord(*_starpu_hip_event(&req->async_channel.event), stream);
-		if (STARPU_UNLIKELY(cures != hipSuccess)) STARPU_HIP_REPORT_ERROR(cures);
+		hipres = hipEventRecord(*_starpu_hip_event(&req->async_channel.event), stream);
+		if (STARPU_UNLIKELY(hipres != hipSuccess)) STARPU_HIP_REPORT_ERROR(hipres);
 	}
 	return ret;
 }
@@ -789,7 +785,7 @@ int _starpu_hip_copy_interface_from_hip_to_cpu(starpu_data_handle_t handle, void
 #endif
 
 	int ret = 1;
-	hipError_t cures;
+	hipError_t hipres;
 	hipStream_t stream;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 
@@ -806,15 +802,15 @@ int _starpu_hip_copy_interface_from_hip_to_cpu(starpu_data_handle_t handle, void
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_hip_node_ops;
-		cures = hipEventCreateWithFlags(_starpu_hip_event(&req->async_channel.event), hipEventDisableTiming);
-		if (STARPU_UNLIKELY(cures != hipSuccess)) STARPU_HIP_REPORT_ERROR(cures);
+		hipres = hipEventCreateWithFlags(_starpu_hip_event(&req->async_channel.event), hipEventDisableTiming);
+		if (STARPU_UNLIKELY(hipres != hipSuccess)) STARPU_HIP_REPORT_ERROR(hipres);
 
 		stream = starpu_hip_get_out_transfer_stream(src_node);
 		STARPU_ASSERT(copy_methods->any_to_any);
 		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 
-		cures = hipEventRecord(*_starpu_hip_event(&req->async_channel.event), stream);
-		if (STARPU_UNLIKELY(cures != hipSuccess)) STARPU_HIP_REPORT_ERROR(cures);
+		hipres = hipEventRecord(*_starpu_hip_event(&req->async_channel.event), stream);
+		if (STARPU_UNLIKELY(hipres != hipSuccess)) STARPU_HIP_REPORT_ERROR(hipres);
 	}
 	return ret;
 }
@@ -830,7 +826,7 @@ int _starpu_hip_copy_interface_from_cpu_to_hip(starpu_data_handle_t handle, void
 #endif
 
 	int ret = 1;
-	hipError_t cures;
+	hipError_t hipres;
 	hipStream_t stream;
 	const struct starpu_data_copy_methods *copy_methods = handle->ops->copy_methods;
 
@@ -849,17 +845,17 @@ int _starpu_hip_copy_interface_from_cpu_to_hip(starpu_data_handle_t handle, void
 	else
 	{
 		req->async_channel.node_ops = &_starpu_driver_hip_node_ops;
-		cures = hipEventCreateWithFlags(_starpu_hip_event(&req->async_channel.event), hipEventDisableTiming);
-		if (STARPU_UNLIKELY(cures != hipSuccess))
-			STARPU_HIP_REPORT_ERROR(cures);
+		hipres = hipEventCreateWithFlags(_starpu_hip_event(&req->async_channel.event), hipEventDisableTiming);
+		if (STARPU_UNLIKELY(hipres != hipSuccess))
+			STARPU_HIP_REPORT_ERROR(hipres);
 
 		stream = starpu_hip_get_in_transfer_stream(dst_node);
 		STARPU_ASSERT(copy_methods->any_to_any);
 		ret = copy_methods->any_to_any(src_interface, src_node, dst_interface, dst_node, &req->async_channel);
 
-		cures = hipEventRecord(*_starpu_hip_event(&req->async_channel.event), stream);
-		if (STARPU_UNLIKELY(cures != hipSuccess))
-			STARPU_HIP_REPORT_ERROR(cures);
+		hipres = hipEventRecord(*_starpu_hip_event(&req->async_channel.event), stream);
+		if (STARPU_UNLIKELY(hipres != hipSuccess))
+			STARPU_HIP_REPORT_ERROR(hipres);
 	}
 	return ret;
 }
@@ -1028,9 +1024,9 @@ static void execute_job_on_hip(struct starpu_task *task, struct _starpu_worker *
 	if (task->cl->hip_flags[j->nimpl] & STARPU_HIP_ASYNC)
 	{
 		/* Record event to synchronize with task termination later */
-		hipError_t cures = hipEventRecord(task_events[workerid], starpu_hip_get_local_stream());
-		if (STARPU_UNLIKELY(cures))
-			STARPU_HIP_REPORT_ERROR(cures);
+		hipError_t hipres = hipEventRecord(task_events[workerid], starpu_hip_get_local_stream());
+		if (STARPU_UNLIKELY(hipres))
+			STARPU_HIP_REPORT_ERROR(hipres);
 #ifdef STARPU_USE_FXT
 		_STARPU_TRACE_START_EXECUTING();
 #endif
@@ -1117,11 +1113,11 @@ int _starpu_hip_driver_run_once(struct _starpu_worker *worker)
 			continue;
 
 		/* On-going asynchronous task, check for its termination first */
-		hipError_t cures = hipEventQuery(task_events[workerid]);
+		hipError_t hipres = hipEventQuery(task_events[workerid]);
 
-		if (cures != hipSuccess)
+		if (hipres != hipSuccess)
 		{
-			STARPU_ASSERT_MSG(cures == hipErrorNotReady, "HIP error on task %p, codelet %p (%s): %s (%d)", task, task->cl, _starpu_codelet_get_model_name(task->cl), hipGetErrorString(cures), cures);
+			STARPU_ASSERT_MSG(hipres == hipErrorNotReady, "HIP error on task %p, codelet %p (%s): %s (%d)", task, task->cl, _starpu_codelet_get_model_name(task->cl), hipGetErrorString(hipres), hipres);
 		}
 		else
 		{
@@ -1198,7 +1194,6 @@ void *_starpu_hip_worker(void *_arg)
 
 	return NULL;
 }
-
 
 #ifdef STARPU_HAVE_HWLOC
 hwloc_obj_t _starpu_hip_get_hwloc_obj(struct _starpu_machine_topology *topology, int devid)
