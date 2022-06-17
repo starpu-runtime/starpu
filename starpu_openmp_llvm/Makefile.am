@@ -14,25 +14,6 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+include $(top_srcdir)/starpu-subdirtests.mk
+
 SUBDIRS=src examples
-
-recheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i recheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showcheck:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showcheck || RET=1 ; \
-	done ; \
-	exit $$RET
-
-showsuite:
-	RET=0 ; \
-	for i in $(SUBDIRS) ; do \
-		make -C $$i showsuite || RET=1 ; \
-	done ; \
-	exit $$RET
