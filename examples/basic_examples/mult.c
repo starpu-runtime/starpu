@@ -40,12 +40,12 @@
 static float *A, *B, *C, *Cref;
 static starpu_data_handle_t A_handle, B_handle, C_handle;
 
-static unsigned nslicesx = 4;
-static unsigned nslicesy = 4;
+static unsigned nslicesx = 10;
+static unsigned nslicesy = 10;
 #ifdef STARPU_QUICK_CHECK
-static unsigned xdim = 512;
-static unsigned ydim = 512;
-static unsigned zdim = 256;
+static unsigned xdim = 21600;
+static unsigned ydim = 21600;
+static unsigned zdim = 2160;
 #else
 static unsigned xdim = 1024;
 static unsigned ydim = 1024;
@@ -140,9 +140,10 @@ static void init_problem_data(void)
 
 	/* we initialize matrices A, B and C in the usual way */
 
-	starpu_malloc((void **)&A, zdim*ydim*sizeof(float));
-	starpu_malloc((void **)&B, xdim*zdim*sizeof(float));
-	starpu_malloc((void **)&C, xdim*ydim*sizeof(float));
+	starpu_malloc_flags((void **)&A, zdim*ydim*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_malloc_flags((void **)&B, xdim*zdim*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_malloc_flags((void **)&C, xdim*ydim*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+
 	Cref = (float *) malloc(xdim*ydim*sizeof(float));
 	assert(A);
 	assert(B);
@@ -293,6 +294,7 @@ static struct starpu_codelet cl =
 	/* CUDA implementation of the codelet */
 	.cuda_funcs = {cuda_mult},
         .cuda_flags = {STARPU_CUDA_ASYNC},
+	.where     = STARPU_CUDA,
 #endif
 	/* the codelet manipulates 3 buffers that are managed by the DSM */
 	.nbuffers = 3,
@@ -447,11 +449,12 @@ int main(void)
 	starpu_data_unregister(C_handle);
 
 	/* Comment to remove printing of results */
-	check_result(C, Cref, ldC);
+	/* check_result(C, Cref, ldC); */
 
-	starpu_free_noflag(A, zdim*ydim*sizeof(float));
-	starpu_free_noflag(B, xdim*zdim*sizeof(float));
-	starpu_free_noflag(C, xdim*ydim*sizeof(float));
+        starpu_free_flags(A, zdim*ydim*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_free_flags(B, xdim*zdim*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+	starpu_free_flags(C, xdim*ydim*sizeof(float), STARPU_MALLOC_PINNED|STARPU_MALLOC_SIMULATION_FOLDED);
+
 	free(Cref);
 
 	starpu_shutdown();
