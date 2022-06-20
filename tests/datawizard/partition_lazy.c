@@ -89,6 +89,12 @@ int main(int argc, char **argv)
         return 0;
 
 enodev:
+	for (i = 0; i < f.nchildren; i++)
+	{
+		starpu_data_handle_t h = starpu_data_get_sub_data(handle, 1, i);
+		starpu_data_acquire(h, STARPU_W);
+		starpu_data_release(h);
+	}
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(handle);
 	fprintf(stderr, "WARNING: No one can execute this task\n");
