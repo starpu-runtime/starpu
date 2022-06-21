@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -193,6 +193,7 @@ void _starpu_graph_add_job_dep(struct _starpu_job *job, struct _starpu_job *prev
 		/* Next node is not at top any more */
 		_starpu_graph_node_multilist_erase_top(&top, node);
 
+	node->total_incoming++;
 	rank_incoming = add_node(prev_node, &node->incoming, &node->n_incoming, &node->alloc_incoming, &node->incoming_slot);
 	rank_outgoing = add_node(node, &prev_node->outgoing, &prev_node->n_outgoing, &prev_node->alloc_outgoing, &prev_node->outgoing_slot);
 	prev_node->outgoing_slot[rank_outgoing] = rank_incoming;
