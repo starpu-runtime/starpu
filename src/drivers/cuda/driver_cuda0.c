@@ -580,6 +580,7 @@ static int start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *worke
 	STARPU_ASSERT(cl);
 
 	_starpu_set_current_task(task);
+	j->workerid = worker->workerid;
 
 	/* Fetch data input synchronously */
 	int ret = _starpu_fetch_task_input(task, j, 0);

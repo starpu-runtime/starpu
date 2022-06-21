@@ -1077,6 +1077,7 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 			_starpu_fetch_task_input_tail(task, j, &worker_set->workers[i]);
 			/* Reset it */
 			worker_set->workers[i].task_transferring = NULL;
+			j->workerid = worker_set->workers[i]->workerid;
 
 			/* Execute the task */
 			res =  _starpu_src_common_execute(j, &worker_set->workers[i], mp_node);

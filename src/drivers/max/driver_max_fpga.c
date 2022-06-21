@@ -640,6 +640,7 @@ int _starpu_max_fpga_driver_run_once(struct _starpu_worker *fpga_worker)
 
 	_starpu_set_current_task(j->task);
 	fpga_worker->current_task = j->task;
+	j->workerid = fpga_worker->workerid;
 
 	res = execute_job_on_fpga(j, task, fpga_worker, rank, perf_arch);
 

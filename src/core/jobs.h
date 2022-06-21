@@ -186,6 +186,9 @@ struct _starpu_job
 	 * */
 	int task_size;
 
+	/** The worker the task is running on (or -1 when not running yet) */
+	int workerid;
+
 	/** In case we have assigned this job to a combined workerid */
 	int combined_workerid;
 

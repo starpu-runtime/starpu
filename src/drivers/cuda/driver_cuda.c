@@ -1847,6 +1847,7 @@ static void start_job_on_cuda(struct _starpu_job *j, struct _starpu_worker *work
 
 	_starpu_set_local_worker_key(worker);
 	_starpu_set_current_task(task);
+	j->workerid = worker->workerid;
 
 	if (worker->ntasks == 1)
 	{

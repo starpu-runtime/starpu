@@ -1210,6 +1210,7 @@ static int _starpu_opencl_start_job(struct _starpu_job *j, struct _starpu_worker
 	STARPU_ASSERT(cl);
 
 	_starpu_set_current_task(task);
+	j->workerid = worker->workerid;
 
 	if (worker->ntasks == 1)
 	{

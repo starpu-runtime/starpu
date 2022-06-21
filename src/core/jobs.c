@@ -129,6 +129,8 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	/* By default we have sequential tasks */
 	job->task_size = 1;
 
+	job->workerid = -1;
+
 	if (task->use_tag)
 		_starpu_tag_declare(task->tag_id, job);
 

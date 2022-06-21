@@ -487,6 +487,7 @@ static int _starpu_cpu_driver_execute_task(struct _starpu_worker *cpu_worker, st
 
 	_starpu_set_current_task(j->task);
 	cpu_worker->current_task = j->task;
+	j->workerid = cpu_worker->workerid;
 
 #ifdef STARPU_BUBBLE_VERBOSE
 	struct timespec tp;

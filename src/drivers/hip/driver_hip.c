@@ -985,6 +985,7 @@ static void start_job_on_hip(struct _starpu_job *j, struct _starpu_worker *worke
 	STARPU_ASSERT(cl);
 
 	_starpu_set_current_task(task);
+	j->workerid = worker->workerid;
 
 	_starpu_driver_start_job(worker, j, &worker->perf_arch, 0, profiling);
 
