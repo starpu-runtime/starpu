@@ -294,7 +294,6 @@ The documentation chapters include
     </ul>
 <li> Part 5: StarPU Extensions
     <ul>
-    <li> \ref PythonInterface
     <li> \ref OutOfCore
     <li> \ref MPISupport
     <li> \ref TCPIPSupport
@@ -309,6 +308,7 @@ The documentation chapters include
     <li> \ref InteroperabilitySupport
     <li> \ref EclipsePlugin
     <li> \ref StarPUJavaInterface
+    <li> \ref PythonInterface
     </ul>
 <li> Part 6: StarPU Reference API
     <ul>

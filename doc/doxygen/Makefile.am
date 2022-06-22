@@ -42,7 +42,6 @@ chapters =	\
 	chapters/340_scheduling_context_hypervisor.doxy		\
 	chapters/350_scheduling_policy_definition.doxy		\
 	chapters/390_faq.doxy		\
-	chapters/400_python.doxy		\
 	chapters/401_out_of_core.doxy		\
 	chapters/410_mpi_support.doxy		\
 	chapters/412_tcpip_support.doxy		\
@@ -58,6 +57,7 @@ chapters =	\
 	chapters/495_interoperability.doxy		\
 	chapters/497_eclipse_plugin.doxy 		\
 	chapters/498_java.doxy 		\
+	chapters/500_python.doxy		\
 	chapters/501_environment_variables.doxy		\
 	chapters/510_configure_options.doxy		\
 	chapters/520_files.doxy		\
