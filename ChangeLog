@@ -17,6 +17,7 @@
 StarPU 1.4.0 (git revision xxxx)
 ==============================================
 New features:
+  * Transaction support
   * OpenMP LLVM support
   * Driver for HIP-based GPUs.
   * Fault tolerance support with starpu_task_ft_failed().

@@ -55,6 +55,7 @@ chapters =	\
 	chapters/490_clustering_a_machine.doxy		\
 	chapters/494_bubble.doxy		\
 	chapters/495_interoperability.doxy		\
+	chapters/496_transactions.doxy		\
 	chapters/497_eclipse_plugin.doxy 		\
 	chapters/498_java.doxy 		\
 	chapters/500_python.doxy		\

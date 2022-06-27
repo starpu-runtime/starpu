@@ -1,0 +1,78 @@
+/* StarPU --- Runtime system for heterogeneous multicore architectures.
+ *
+ * Copyright (C) 2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ *
+ * StarPU is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * StarPU is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU Lesser General Public License in COPYING.LGPL for more details.
+ */
+
+/*! \page Transactions Transactions
+
+\section TransactionsIdeas General Ideas
+
+StarPU's transactions enable the cancellation of a sequence of already
+submitted tasks based on a just-in-time decision.
+The purpose of this mechanism is typically for iterative applications to submit
+tasks for the next iteration ahead of time while leaving some iteration loop
+criterion (e.g. convergence) to be evaluated just before the first task of the
+next iteration is about to be scheduled. Such a sequence of collectively
+cancelable tasks is called a transaction \e epoch.
+
+\section TransactionsUsage Usage
+
+Some examples illustrating the usage of StarPU's transactions are available in
+the directory <c>examples/transactions</c>.
+
+\subsection TransactionsEpochCancel Epoch Cancellation
+
+If the start criterion of an epoch evaluates to \c False, all the tasks for that next
+epoch are canceled. Thus, StarPU's transactions let applications avoid the use
+of synchronization barriers commonly found between the task submission
+sequences of subsequent iterations, and avoid breaking the flow of dependencies
+in the process. Moreover, while the kernel functions of canceled transaction
+tasks are not executed, their dependencies are still honored in the proper
+order.
+
+\subsection TransactionsCodelets Transactions Enabled Codelets
+
+Codelets for tasks being part of a transaction should set their \c nbuffers
+field to \ref STARPU_VARIABLE_NBUFFERS.
+
+\subsection TransactionsCreation Transaction Creation
+
+A <c>struct starpu_transaction</c> opaque object is created using the \ref starpu_transaction_open()
+function, specifying a transaction start criterion callback and some user
+argument to be passed to that callback upon the first call. The start criterion callback should
+return \c True (e.g. \c !0 ) if the next transaction epoch should proceed, or \c
+False (e.g. \c 0 ) if the tasks belonging to that next epoch should be canceled.
+
+\subsection TransactionsTasks Transaction Tasks
+Tasks governed by the same transaction object should be passed that transaction object either through
+the \c .transaction field of \ref starpu_task structures, using the \ref STARPU_TRANSACTION argument
+of \ref starpu_task_insert().
+
+\subsection TransactionsEpochNext Epoch Transition
+The transition from one transaction epoch to the next is expressed using the
+\ref starpu_transaction_next_epoch function to which the \c
+starpu_transaction object and a user argument are passed. Upon a call to that
+function, the start criterion callback is evaluated on the user argument to
+decide whether the next epoch should proceed or be canceled.
+
+\subsection TransactionsClosing Transaction Closing
+The last epoch should be ended through a call to \ref starpu_transaction_close().
+
+\section TransactionsLimitations Known limitations
+
+<b>Support for transactions is experimental.</b>
+<br>
+StarPU's transactions are currently not compatible with StarPU-MPI distributed sessions.
+
+*/

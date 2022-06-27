@@ -22,6 +22,7 @@
 #include <starpu.h>
 #include <common/config.h>
 #include <core/jobs.h>
+#include <common/starpu_spinlock.h>
 
 #pragma GCC visibility push(hidden)
 
@@ -139,5 +140,73 @@ int _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(unsigned sched_c
 LIST_CREATE_TYPE_NOSTRUCT(starpu_task, prev, next);
 PRIO_LIST_CREATE_TYPE(starpu_task, priority);
 #endif
+
+/** transaction states */
+enum _starpu_trs_state
+{
+	_starpu_trs_uninitialized	= 0,
+	_starpu_trs_initialized		= 1,
+};
+
+/** transaction epoch states */
+enum _starpu_trs_epoch_state
+{
+ 	_starpu_trs_epoch_uninitialized	= 0,
+
+	/** epoch is initialized but its entry task has not yet been executed to decide whether to confirm of cancel its execution */
+	_starpu_trs_epoch_inactive	= 1,
+
+	/** epoch has been confirmed for execution, its tasks will be actually executed */
+	_starpu_trs_epoch_confirmed	= 2,
+
+	/** epoch has been cancelled, its task will be skipped */
+	_starpu_trs_epoch_cancelled	= 3,
+
+	/** the exit task of the epoch has been executed */
+	_starpu_trs_epoch_terminated	= 4,
+};
+
+LIST_TYPE(_starpu_trs_epoch,
+	/** TODO: work in progress */
+	UT_hash_handle h_shadow_handles;
+
+	enum _starpu_trs_epoch_state state;
+
+	/** if 1, the epoch entry task will wait on some user-supplied handle
+	 * TODO: only used for first epoch on transaction opening for now, add for next epoch */
+	int do_sync:1;
+
+	/** if 1, the epoch is the first of the transaction */
+	int is_begin:1;
+
+	/** if 1, the epoch will be the last, and the transaction will be closed after its execution */
+	int is_end:1;
+
+	/** inline argument supplied by the user and passed to the user function deciding whether to start
+	 * or cancel the epoch execution */
+	void *do_start_arg;
+);
+
+struct starpu_transaction
+{
+	/** epoch list lock */
+	struct _starpu_spinlock lock;
+	struct _starpu_trs_epoch_list epoch_list;
+
+	/** handle of the transaction object */
+	starpu_data_handle_t handle;
+
+	/** user function to decide whether to start or cancel an epoch execution, buffer[0] will
+	 * optionally refer to an user suppled handle's object */
+	int (*do_start_func)(void *buffer, void* arg);
+	enum _starpu_trs_state state;
+
+	/** flags, unused for now */
+	int flags;
+
+	/** TODO: work in progress */
+	int (*do_commit_func)(void *buffer, void* arg);
+	void *do_commit_arg;
+};
 
 #endif // __CORE_TASK_H__

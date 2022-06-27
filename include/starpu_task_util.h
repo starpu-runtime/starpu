@@ -328,12 +328,19 @@ extern "C"
 #define STARPU_TASK_SCHED_DATA (41<<STARPU_MODE_SHIFT)
 
 /**
+   Used when calling starpu_task_insert() and alike, must be followed
+   by a struct starpu_transaction * specifying the value to be set in
+   the transaction field of the task.
+ */
+#define STARPU_TRANSACTION      (42<<STARPU_MODE_SHIFT)
+
+/**
    Used when calling starpu_task_insert(), must be followed by a
    char * stored in starpu_task::file.
 
    This is automatically set when FXT is enabled.
 */
-#define STARPU_TASK_FILE	 (42<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_FILE	 (43<<STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by an
@@ -341,27 +348,27 @@ extern "C"
 
    This is automatically set when FXT is enabled.
 */
-#define STARPU_TASK_LINE	 (43<<STARPU_MODE_SHIFT)
+#define STARPU_TASK_LINE	 (44<<STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a epilogue callback function
 */
-#define STARPU_EPILOGUE_CALLBACK   (44<<STARPU_MODE_SHIFT)
+#define STARPU_EPILOGUE_CALLBACK   (45<<STARPU_MODE_SHIFT)
 
 /**
    Used when calling starpu_task_insert(), must be followed by a
    pointer to be given as an argument to the epilogue callback
    function
 */
-#define STARPU_EPILOGUE_CALLBACK_ARG   (45<<STARPU_MODE_SHIFT)
+#define STARPU_EPILOGUE_CALLBACK_ARG   (46<<STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
    Used when calling starpu_task_insert(), must be followed by a
    pointer to a bubble decision function starpu_bubble_func_t
 */
-#define STARPU_BUBBLE_FUNC             (46<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_FUNC             (47<<STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
@@ -369,7 +376,7 @@ extern "C"
    pointer which will be passed to the function defined in
    starpu_codelet::bubble_func
 */
-#define STARPU_BUBBLE_FUNC_ARG         (47<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_FUNC_ARG         (48<<STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
@@ -377,7 +384,7 @@ extern "C"
    pointer to a bubble DAG generation function
    starpu_bubble_gen_dag_func_t
 */
-#define STARPU_BUBBLE_GEN_DAG_FUNC     (48<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_GEN_DAG_FUNC     (49<<STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
@@ -385,7 +392,7 @@ extern "C"
    pointer which will be passed to the function defined in
    starpu_codelet::bubble_gen_dag_func
 */
-#define STARPU_BUBBLE_GEN_DAG_FUNC_ARG (49<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_GEN_DAG_FUNC_ARG (50<<STARPU_MODE_SHIFT)
 
 /**
    \ingroup API_Bubble
@@ -393,12 +400,12 @@ extern "C"
    pointer to a task. The task will be set as the bubble parent task
    when using the offline tracing tool.
 */
-#define STARPU_BUBBLE_PARENT	       (50<<STARPU_MODE_SHIFT)
+#define STARPU_BUBBLE_PARENT	       (51<<STARPU_MODE_SHIFT)
 
 /**
    This has to be the last mode value plus 1
 */
-#define STARPU_SHIFTED_MODE_MAX (51<<STARPU_MODE_SHIFT)
+#define STARPU_SHIFTED_MODE_MAX (52<<STARPU_MODE_SHIFT)
 
 /**
    Set the given \p task corresponding to \p cl with the following arguments.

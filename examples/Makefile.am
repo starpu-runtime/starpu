@@ -271,6 +271,7 @@ STARPU_EXAMPLES +=				\
 	tag_example/tag_example3		\
 	tag_example/tag_example4		\
 	tag_example/tag_restartable		\
+	transactions/trs_inc			\
 	spmd/vector_scal_spmd			\
 	spmv/spmv				\
 	callback/callback			\
@@ -368,7 +369,9 @@ STARPU_EXAMPLES +=				\
 	cholesky/cholesky_grain_tag		\
 	heat/heat				\
 	cg/cg					\
-	pipeline/pipeline
+	pipeline/pipeline			\
+	transactions/trs_sgemm
+
 
 if !STARPU_USE_MPI_MASTER_SLAVE
 if !STARPU_USE_TCPIP_MASTER_SLAVE
@@ -972,6 +975,21 @@ mult_sgemm_SOURCES += 				\
 	common/blas.c
 mult_dgemm_SOURCES += 				\
 	common/blas.c
+endif
+
+#####################
+# Trs_sgemm example #
+#####################
+
+if !STARPU_NO_BLAS_LIB
+
+transactions_trs_sgemm_SOURCES = 		\
+	transactions/trs_sgemm.c		\
+	common/blas.c
+
+transactions_trs_sgemm_LDADD =			\
+	$(STARPU_BLAS_LDFLAGS)
+
 endif
 
 ####################

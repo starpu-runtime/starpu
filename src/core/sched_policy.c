@@ -509,6 +509,24 @@ int _starpu_push_task(struct _starpu_job *j)
 		_starpu_set_current_task(NULL);
 	}
 
+	if (j->task->transaction)
+	{
+		/* If task is part of a transaction and its epoch is cancelled, switch its
+		 * 'where' field to STARPU_NOWHERE to skip its execution */
+		struct starpu_transaction *p_trs = j->task->transaction;
+		STARPU_ASSERT(j->task->transaction->state == _starpu_trs_initialized);
+		_starpu_spin_lock(&p_trs->lock);
+		STARPU_ASSERT(!_starpu_trs_epoch_list_empty(&p_trs->epoch_list));
+		struct _starpu_trs_epoch *p_epoch = _starpu_trs_epoch_list_front(&p_trs->epoch_list);
+		STARPU_ASSERT(p_epoch == j->task->trs_epoch);
+		STARPU_ASSERT(p_epoch->state == _starpu_trs_epoch_confirmed || p_epoch->state == _starpu_trs_epoch_cancelled);
+		if (p_epoch->state == _starpu_trs_epoch_cancelled)
+		{
+			j->task->where = STARPU_NOWHERE;
+		}
+		_starpu_spin_unlock(&p_trs->lock);
+	}
+
 	return _starpu_repush_task(j);
 }
 

@@ -495,6 +495,10 @@ int _starpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_nod
                 {
                         (void)va_arg(varg_list_copy, int);
                 }
+		else if (arg_type==STARPU_TRANSACTION)
+		{
+			(void)va_arg(varg_list_copy, struct starpu_transaction *);
+		}
 		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
                 {
                         (void)va_arg(varg_list_copy, char *);

@@ -962,6 +962,21 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 		if (task->priority < __s_min_priority_cap__value)
 			task->priority = __s_min_priority_cap__value;
 	}
+
+	if (task->transaction != NULL)
+	{
+		/* If task is part of a transaction, add its handle to the task
+		 * handle list with a STARPU_R access mode to allow concurrency among the epoch
+		 * tasks while serializing it with epoch and transactions operations */
+		STARPU_ASSERT(task->cl->nbuffers == STARPU_VARIABLE_NBUFFERS);
+		STARPU_ASSERT(!_starpu_trs_epoch_list_empty(&task->transaction->epoch_list));
+		task->trs_epoch = _starpu_trs_epoch_list_back(&task->transaction->epoch_list);
+		int nbuffers = task->nbuffers;
+		int allocated_nbuffers = (task->dyn_handles != NULL)?nbuffers:0;
+		task->nbuffers++;
+		starpu_task_insert_data_process_arg(task->cl, task, &allocated_nbuffers, &nbuffers, STARPU_R, task->transaction->handle);
+	}
+
 	unsigned is_sync = task->synchronous;
 	starpu_task_bundle_t bundle = task->bundle;
 	STARPU_ASSERT_MSG(!(nodeps && bundle), "not supported\n");
@@ -1743,6 +1758,298 @@ void _starpu_watchdog_shutdown(void)
 	STARPU_PTHREAD_JOIN(watchdog_thread, NULL);
 }
 
+#if 0
+/* TODO: Work in progress */
+struct _starpu_trs_handle_shadow
+{
+	struct starpu_data_handle *real_handle;
+	struct starpu_data_handle *shadow_handle;
+};
+
+static void _starpu_handle_real_to_shadow(void *buffers[], void *cl_args)
+{
+	struct starpu_data_interface_ops *itf = cl_args;
+	void *itf_real_src=buffers[0];
+	void *itf_shadow_dst=buffers[1];
+	if (!itf->copy_methods->ram_to_ram)
+	{
+		itf->copy_methods->any_to_any(itf_real_src, STARPU_MAIN_RAM, itf_shadow_dst, STARPU_MAIN_RAM, NULL);
+	}
+	else
+	{
+		itf->copy_methods->ram_to_ram(itf_real_src, STARPU_MAIN_RAM, itf_shadow_dst, STARPU_MAIN_RAM);
+	}
+}
+
+static void _starpu_handle_shadow_to_real(void *buffers[], void *cl_args)
+{
+	struct starpu_data_interface_ops *itf = cl_args;
+	void *itf_real_dst=buffers[0];
+	void *itf_shadow_src=buffers[1];
+	if (!itf->copy_methods->ram_to_ram)
+	{
+		itf->copy_methods->any_to_any(itf_shadow_src, STARPU_MAIN_RAM, itf_real_dst, STARPU_MAIN_RAM, NULL);
+	}
+	else
+	{
+		itf->copy_methods->ram_to_ram(itf_shadow_src, STARPU_MAIN_RAM, itf_real_dst, STARPU_MAIN_RAM);
+	}
+}
+#endif
+
+/* Transaction clean up callback called when the transaction trs_end
+ * task completes. */
+static void _starpu_transaction_callback(void *_p_trs)
+{
+	struct starpu_transaction *p_trs = _p_trs;
+
+	_starpu_spin_destroy(&p_trs->lock);
+	starpu_data_unregister_submit(p_trs->handle);
+	starpu_free(p_trs);
+}
+
+/* Task function for the trs_begin and trs_begin_no_sync codelets. */
+static void _starpu_transaction_begin(void *buffers[], void *cl_args)
+{
+	struct starpu_transaction *p_trs = cl_args;
+	STARPU_ASSERT(p_trs->state == _starpu_trs_initialized);
+	_starpu_spin_lock(&p_trs->lock);
+	STARPU_ASSERT(!_starpu_trs_epoch_list_empty(&p_trs->epoch_list));
+	struct _starpu_trs_epoch *p_epoch = _starpu_trs_epoch_list_front(&p_trs->epoch_list);
+	STARPU_ASSERT(p_epoch->state == _starpu_trs_epoch_inactive);
+	_starpu_spin_unlock(&p_trs->lock);
+
+	int epoch_confirmed = 1;
+
+	/* If the transaction has a user 'do_start_func', we call it to
+	 * decide whether the new epoch is confirmed or cancelled. */
+	if (p_trs->do_start_func != NULL)
+	{
+		void * sync_buf = p_epoch->do_sync ? buffers[1] : NULL;
+		epoch_confirmed = p_trs->do_start_func(sync_buf, p_epoch->do_start_arg);
+	}
+
+	if (epoch_confirmed)
+	{
+		p_epoch->state = _starpu_trs_epoch_confirmed;
+	}
+	else
+	{
+		p_epoch->state = _starpu_trs_epoch_cancelled;
+	}
+	STARPU_WMB();
+}
+
+/* Task function for the trs_end codelet, in charge of cleaning the last epoch. */
+static void _starpu_transaction_end(void *buffers[], void *cl_args)
+{
+	(void)buffers;
+	struct starpu_transaction *p_trs = cl_args;
+	_starpu_spin_lock(&p_trs->lock);
+	STARPU_ASSERT(!_starpu_trs_epoch_list_empty(&p_trs->epoch_list));
+	struct _starpu_trs_epoch *p_epoch = _starpu_trs_epoch_list_pop_front(&p_trs->epoch_list);
+	STARPU_ASSERT(p_epoch->state == _starpu_trs_epoch_confirmed
+			|| p_epoch->state == _starpu_trs_epoch_cancelled);
+	_starpu_spin_unlock(&p_trs->lock);
+
+	p_epoch->state = _starpu_trs_epoch_terminated;
+
+	_starpu_trs_epoch_delete(p_epoch);
+	p_epoch = NULL;
+
+	/* TODO: transition to end */
+	STARPU_ASSERT(_starpu_trs_epoch_list_empty(&p_trs->epoch_list));
+}
+
+/* Task function for the trs_next_epoch codelet, in charge of transitioning from a
+ * an epoch to the next. */
+static void _starpu_transaction_next_epoch(void *buffers[], void *cl_args)
+{
+	struct starpu_transaction *p_trs = cl_args;
+	_starpu_spin_lock(&p_trs->lock);
+	STARPU_ASSERT(!_starpu_trs_epoch_list_empty(&p_trs->epoch_list));
+	struct _starpu_trs_epoch *p_previous_epoch = _starpu_trs_epoch_list_pop_front(&p_trs->epoch_list);
+	STARPU_ASSERT((p_previous_epoch->state == _starpu_trs_epoch_confirmed)
+			|| (p_previous_epoch->state == _starpu_trs_epoch_cancelled));
+	STARPU_ASSERT(!_starpu_trs_epoch_list_empty(&p_trs->epoch_list));
+	struct _starpu_trs_epoch *p_next_epoch = _starpu_trs_epoch_list_front(&p_trs->epoch_list);
+	STARPU_ASSERT(p_next_epoch->state == _starpu_trs_epoch_inactive);
+	_starpu_spin_unlock(&p_trs->lock);
+
+	p_previous_epoch->state = _starpu_trs_epoch_terminated;
+	_starpu_trs_epoch_delete(p_previous_epoch);
+
+	/* TODO: transition to next epoch */
+
+	int epoch_confirmed = 1;
+
+	if (p_trs->do_start_func != NULL)
+	{
+		void * sync_buf = p_next_epoch->do_sync ? buffers[1] : NULL;
+		epoch_confirmed = p_trs->do_start_func(sync_buf, p_next_epoch->do_start_arg);
+	}
+
+	if (epoch_confirmed)
+	{
+		p_next_epoch->state = _starpu_trs_epoch_confirmed;
+	}
+	else
+	{
+		p_next_epoch->state = _starpu_trs_epoch_cancelled;
+	}
+	STARPU_WMB();
+}
+
+/* Transaction begin codelet, without implicit sync on a previously
+ * accessed data. */
+struct starpu_codelet _starpu_codelet_trs_begin_no_sync =
+{
+	.cpu_funcs = {_starpu_transaction_begin},
+	.modes = {STARPU_W},
+	.nbuffers = 1,
+	.model = &starpu_perfmodel_nop,
+	.name = "starpu_transaction_begin_no_sync"
+};
+
+/* Transaction begin codelet, with an implicit sync on a previously
+ * accessed data. */
+struct starpu_codelet _starpu_codelet_trs_begin =
+{
+	.cpu_funcs = {_starpu_transaction_begin},
+	.modes = {STARPU_W, STARPU_RW},
+	.nbuffers = 2,
+	.model = &starpu_perfmodel_nop,
+	.name = "starpu_transaction_begin"
+};
+
+/* Transaction end codelet. */
+struct starpu_codelet _starpu_codelet_trs_end =
+{
+	.cpu_funcs = {_starpu_transaction_end},
+	.modes = {STARPU_RW},
+	.nbuffers = 1,
+	.model = &starpu_perfmodel_nop,
+	.name = "starpu_transaction_end"
+};
+
+/* Epoch transition codelet. */
+struct starpu_codelet _starpu_codelet_trs_next_epoch =
+{
+	.cpu_funcs = {_starpu_transaction_next_epoch},
+	.modes = {STARPU_RW},
+	.nbuffers = 1,
+	.model = &starpu_perfmodel_nop,
+	.name = "starpu_transaction_next_epoch"
+};
+
+/* Main entry point for creating and activating a transaction object.
+ *
+ * . do_start_func: a boolean function to decide whether each new epoch start should
+ * be confirmed or not.
+ * . do_start_sync_handle: a starpu data handle on which the transaction
+ * start should depend on, or NULL if no sync is required. The handle is
+ * passed to do_start_func()
+ * . do_start_arg: an argument passed to do_start_func().
+ * . do_commit_func: a boolean function to decide whether a transaction
+ * epoch should be committed or not (TODO: work in progress).
+ * . do_commit_arg: an argument passed to do_commit_func.
+ * . flags: transactions flags (unused for now). */
+static struct starpu_transaction *_do_starpu_transaction_open(int(*do_start_func)(void *buffer, void *arg), starpu_data_handle_t do_start_sync_handle, void *do_start_arg, int(*do_commit_func)(void *buffer, void *arg), void *do_commit_arg, int flags)
+{
+	struct starpu_transaction *p_trs = NULL;
+	int ret = starpu_malloc((void **)&p_trs, sizeof(*p_trs));
+	STARPU_ASSERT(ret == 0);
+	_starpu_spin_init(&p_trs->lock);
+	_starpu_trs_epoch_list_init(&p_trs->epoch_list);
+
+	p_trs->do_start_func = do_start_func;
+
+	STARPU_ASSERT(do_commit_func == NULL); /* TODO */
+	p_trs->do_commit_func = do_commit_func;
+	p_trs->do_commit_arg = do_commit_arg;
+
+	STARPU_ASSERT(flags == 0); /* TODO */
+	p_trs->flags = flags;
+
+	starpu_variable_data_register(&p_trs->handle, STARPU_MAIN_RAM, (uintptr_t)p_trs, sizeof(*p_trs));
+	struct _starpu_trs_epoch *p_epoch = _starpu_trs_epoch_new();
+
+	struct starpu_task *task = starpu_task_create();
+	task->callback_func = NULL;
+	task->cl_arg = p_trs;
+	task->handles[0] = p_trs->handle;
+	if (do_start_sync_handle != NULL)
+	{
+		p_epoch->do_sync = 1;
+		task->cl = &_starpu_codelet_trs_begin;
+		task->handles[1] = do_start_sync_handle;
+	}
+	else
+	{
+		p_epoch->do_sync = 0;
+		task->cl = &_starpu_codelet_trs_begin_no_sync;
+	}
+	p_epoch->is_begin = 1;
+	p_epoch->state = _starpu_trs_epoch_inactive;
+	p_epoch->do_start_arg = do_start_arg;
+	_starpu_trs_epoch_list_push_back(&p_trs->epoch_list, p_epoch);
+	p_trs->state = _starpu_trs_initialized;
+
+	ret = starpu_task_submit(task);
+	if (ret == -ENODEV)
+	{
+		starpu_data_unregister(p_trs->handle);
+		starpu_free(p_trs);
+		return NULL;
+	}
+	STARPU_ASSERT(ret == 0);
+	return p_trs;
+}
+
+struct starpu_transaction *starpu_transaction_open(int(*do_start_func)(void *buffer, void *arg), void *do_start_arg)
+{
+	return _do_starpu_transaction_open(do_start_func, NULL, do_start_arg, NULL, NULL, 0);
+}
+
+void starpu_transaction_close(struct starpu_transaction *p_trs)
+{
+	STARPU_ASSERT(p_trs->state == _starpu_trs_initialized);
+	struct starpu_task *task = starpu_task_create();
+	task->cl = &_starpu_codelet_trs_end;
+	task->callback_func = _starpu_transaction_callback;
+	task->callback_arg = p_trs;
+	task->handles[0] = p_trs->handle;
+	task->cl_arg = p_trs;
+
+	_starpu_spin_lock(&p_trs->lock);
+	STARPU_ASSERT(!_starpu_trs_epoch_list_empty(&p_trs->epoch_list));
+	struct _starpu_trs_epoch *p_epoch = _starpu_trs_epoch_list_back(&p_trs->epoch_list);
+	_starpu_spin_unlock(&p_trs->lock);
+	p_epoch->is_end = 1;
+
+	int ret = starpu_task_submit(task);
+	STARPU_ASSERT(ret == 0);
+}
+
+void starpu_transaction_next_epoch(struct starpu_transaction *p_trs, void *do_start_arg)
+{
+	STARPU_ASSERT(p_trs->state == _starpu_trs_initialized);
+	struct _starpu_trs_epoch *p_epoch = _starpu_trs_epoch_new();
+	struct starpu_task *task = starpu_task_create();
+	task->cl = &_starpu_codelet_trs_next_epoch;
+	task->handles[0] = p_trs->handle;
+	task->cl_arg = p_trs;
+	p_epoch->do_sync = 0;
+	p_epoch->do_start_arg = do_start_arg;
+	p_epoch->state = _starpu_trs_epoch_inactive;
+
+	_starpu_spin_lock(&p_trs->lock);
+	_starpu_trs_epoch_list_push_back(&p_trs->epoch_list, p_epoch);
+	_starpu_spin_unlock(&p_trs->lock);
+	int ret = starpu_task_submit(task);
+	STARPU_ASSERT(ret == 0);
+}
+
 static void _starpu_ft_check_support(const struct starpu_task *task)
 {
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
@@ -1877,4 +2184,3 @@ struct starpu_codelet starpu_codelet_nop =
 	.model = NULL,
 	.nbuffers = 0
 };
-

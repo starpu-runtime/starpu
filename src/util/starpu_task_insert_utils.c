@@ -538,6 +538,11 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 		{
 			task->line = va_arg(varg_list, int);
 		}
+		else if (arg_type==STARPU_TRANSACTION)
+		{
+			STARPU_ASSERT_MSG(task->transaction == NULL, "a transaction has already been set");
+			task->transaction = va_arg(varg_list, struct starpu_transaction *);
+		}
 		else
 		{
 			STARPU_ABORT_MSG("Unrecognized argument %d, did you perhaps forget to end arguments with 0?\n", arg_type);
@@ -913,6 +918,12 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 		{
 			arg_i++;
 			task->line = *(int *)arglist[arg_i];
+		}
+		else if (arg_type==STARPU_TRANSACTION)
+		{
+			STARPU_ASSERT_MSG(task->transaction == NULL, "a transaction has already been set");
+			arg_i++;
+			task->transaction = arglist[arg_i];
 		}
 		else
 		{

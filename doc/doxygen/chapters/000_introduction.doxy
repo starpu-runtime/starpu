@@ -306,6 +306,7 @@ The documentation chapters include
     <li> \ref ClusteringAMachine
     <li> \ref HierarchicalDAGS
     <li> \ref InteroperabilitySupport
+    <li> \ref Transactions
     <li> \ref EclipsePlugin
     <li> \ref StarPUJavaInterface
     <li> \ref PythonInterface

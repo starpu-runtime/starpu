@@ -344,6 +344,11 @@ int _fstarpu_mpi_task_decode_v(struct starpu_codelet *codelet, int me, int nb_no
 			arg_i++;
 			/* int* */
 		}
+		else if (arg_type==STARPU_TRANSACTION)
+		{
+			arg_i++;
+			/* struct starpu_transaction * */
+		}
 		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
 		{
 			arg_i++;

@@ -303,6 +303,9 @@ typedef void (*starpu_bubble_gen_dag_func_t)(struct starpu_task *t, void *arg);
 */
 #define STARPU_SPECIFIC_NODE_NONE (-6)
 
+struct starpu_transaction;
+struct _starpu_trs_epoch;
+typedef struct _starpu_trs_epoch* starpu_trs_epoch_t;
 struct starpu_task;
 
 /**
@@ -960,6 +963,16 @@ struct starpu_task
 	   ::STARPU_PROLOGUE_CALLBACK_POP_ARG followed by the argument.
 	   */
 	void *prologue_callback_pop_arg;
+
+	/**
+	   Transaction to which the task belongs, if any
+	*/
+	struct starpu_transaction *transaction;
+
+	/**
+	   Transaction epoch to which the task belongs, if any
+	*/
+	starpu_trs_epoch_t trs_epoch;
 
 	/**
 	    Optional field. Contain the tag associated to the task if
@@ -1928,6 +1941,28 @@ void starpu_set_limit_min_submitted_tasks(int limit_min);
    STARPU_LIMIT_MAX_SUBMITTED_TASKS.
 */
 void starpu_set_limit_max_submitted_tasks(int limit_min);
+
+/** @} */
+
+/**
+   @defgroup API_Transactions Transactions
+   @{
+ */
+
+/**
+   Function to open a new transaction object and start the first transaction epoch.
+ */
+struct starpu_transaction *starpu_transaction_open(int(*do_start_func)(void *buffer, void *arg), void *do_start_arg);
+
+/**
+   Function to mark the end of the current transaction epoch and start a new epoch.
+ */
+void starpu_transaction_next_epoch(struct starpu_transaction *p_trs, void *do_start_arg);
+
+/**
+   Function to mark the end of the last transaction epoch and free the transation object.
+ */
+void starpu_transaction_close(struct starpu_transaction *p_trs);
 
 /** @} */
 
