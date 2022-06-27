@@ -32,7 +32,7 @@
  * - STARPU_TEST_SKIPPED (non-critical errors)
  */
 
-#if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_HIP)
 static void dummy(void *buffers[], void *args)
 {
 	(void) buffers;
@@ -45,6 +45,7 @@ static struct starpu_codelet cl =
 	.cpu_funcs    = { dummy },
 	.cuda_funcs   = { dummy },
 	.opencl_funcs = { dummy },
+	.hip_funcs    = { dummy },
 	.nbuffers     = 0
 };
 
@@ -55,7 +56,7 @@ static void *run_driver(void *arg)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_run");
 	return NULL;
 }
-#endif /* STARPU_USE_CPU || STARPU_USE_CUDA || STARPU_USE_OPENCL */
+#endif /* STARPU_USE_CPU || STARPU_USE_CUDA || STARPU_USE_OPENCL || STARPU_USE_HIP */
 
 #ifdef STARPU_USE_CPU
 static int test_cpu(void)
@@ -182,6 +183,70 @@ out:
 }
 #endif /* STARPU_USE_CUDA */
 
+#ifdef STARPU_USE_HIP
+static int test_hip(void)
+{
+	int ret, var = 0;
+	static starpu_pthread_t driver_thread;
+	struct starpu_conf conf;
+	struct starpu_driver d =
+	{
+		.type = STARPU_HIP_WORKER,
+		.id.hip_id = 0
+	};
+
+	starpu_conf_init(&conf);
+	conf.precedence_over_environment_variables = 1;
+	conf.n_not_launched_drivers = 1;
+	conf.not_launched_drivers = &d;
+	starpu_conf_noworker(&conf);
+	conf.nhip = 1;
+	ret = starpu_init(&conf);
+	if (ret == -ENODEV || starpu_hip_worker_get_count() == 0)
+	{
+		FPRINTF(stderr, "WARNING: No HIP worker found\n");
+		if (ret == 0)
+			starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
+	if (starpu_hip_worker_get_count() > 1)
+	{
+		FPRINTF(stderr, "WARNING: More than one worker, this is not supported by this test\n");
+		if (ret == 0)
+			starpu_shutdown();
+		return STARPU_TEST_SKIPPED;
+	}
+
+	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
+	if (ret == -1)
+		goto out;
+
+	struct starpu_task *task;
+	task = starpu_task_create();
+	cl.where = STARPU_HIP;
+	task->cl = &cl;
+	task->cl_arg = &var;
+	task->synchronous = 1;
+
+	ret = starpu_task_submit(task);
+	if (ret == -ENODEV)
+	{
+		FPRINTF(stderr, "WARNING: No worker can execute this task\n");
+		goto out;
+	}
+
+out:
+	starpu_drivers_request_termination();
+	if (starpu_pthread_join(driver_thread, NULL) != 0)
+		return 1;
+	starpu_shutdown();
+
+	FPRINTF(stderr, "[HIP] Var = %d (expected value: 1)\n", var);
+	ret = !!(var != 1);
+	return ret;
+}
+#endif /* STARPU_USE_HIP */
+
 #ifdef STARPU_USE_OPENCL
 static int test_opencl(void)
 {
@@ -281,6 +346,11 @@ int main(void)
 #endif
 #ifdef STARPU_USE_OPENCL
 	ret = test_opencl();
+	if (ret == 1)
+		return 1;
+#endif
+#ifdef STARPU_USE_HIP
+	ret = test_hip();
 	if (ret == 1)
 		return 1;
 #endif

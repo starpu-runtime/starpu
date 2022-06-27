@@ -20,7 +20,7 @@
 
 #define NTASKS 8
 
-#if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL)
+#if defined(STARPU_USE_CPU) || defined(STARPU_USE_CUDA) || defined(STARPU_USE_OPENCL) || defined(STARPU_USE_HIP)
 void dummy(void *buffers[], void *args)
 {
 	(void) buffers;
@@ -32,6 +32,7 @@ static struct starpu_codelet cl =
 	.cpu_funcs    = { dummy },
 	.cuda_funcs   = { dummy },
 	.opencl_funcs = { dummy },
+	.hip_funcs    = { dummy },
 	.nbuffers     = 0
 };
 
@@ -186,6 +187,65 @@ static int test_cuda(void)
 }
 #endif /* STARPU_USE_CUDA */
 
+#ifdef STARPU_USE_HIP
+static int test_hip(void)
+{
+	int var = 0, ret, nhip;
+	struct starpu_conf conf;
+
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return 1;
+
+	struct starpu_driver d =
+	{
+		.type = STARPU_HIP_WORKER,
+		.id.hip_id = 0
+	};
+
+	conf.precedence_over_environment_variables = 1;
+	starpu_conf_noworker(&conf);
+	conf.nhip = 1;
+	conf.not_launched_drivers = &d;
+	conf.n_not_launched_drivers = 1;
+
+	ret = starpu_init(&conf);
+	if (ret == -ENODEV)
+	{
+		FPRINTF(stderr, "WARNING: No HIP worker found\n");
+		return STARPU_TEST_SKIPPED;
+	}
+
+	nhip = starpu_hip_worker_get_count();
+	if (nhip == 0)
+	{
+		FPRINTF(stderr, "WARNING: No HIP worker found\n");
+		return STARPU_TEST_SKIPPED;
+	}
+
+	init_driver(&d);
+	int i;
+	for (i = 0; i < NTASKS; i++)
+	{
+		struct starpu_task *task;
+		task = starpu_task_create();
+		cl.where = STARPU_HIP;
+		task->cl = &cl;
+		task->cl_arg = &var;
+		task->detach = 0;
+
+		run(task, &d);
+	}
+	deinit_driver(&d);
+
+	starpu_task_wait_for_all();
+	starpu_shutdown();
+
+	FPRINTF(stderr, "[HIP] Var is %d (expected value: %d)\n", var, NTASKS);
+	return !!(var != NTASKS);
+}
+#endif /* STARPU_USE_HIP */
+
 #ifdef STARPU_USE_OPENCL
 static int test_opencl(void)
 {
@@ -288,6 +348,11 @@ int main(void)
 #endif
 #ifdef STARPU_USE_OPENCL
 	ret = test_opencl();
+	if (ret == 1)
+		return ret;
+#endif
+#ifdef STARPU_USE_HIP
+	ret = test_hip();
 	if (ret == 1)
 		return ret;
 #endif
