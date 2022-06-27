@@ -1223,12 +1223,25 @@ int _starpu_hip_run_from_worker(struct _starpu_worker *worker)
 	return 0;
 }
 
+int _starpu_hip_driver_set_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
+{
+	driver->id.hip_id = worker->devid;
+	return 0;
+}
+
+int _starpu_hip_driver_is_devid(struct starpu_driver *driver, struct _starpu_worker *worker)
+{
+	return driver->id.hip_id == worker->devid;
+}
+
 struct _starpu_driver_ops _starpu_driver_hip_ops =
 {
  	.init = _starpu_hip_driver_init,
 	.run = _starpu_hip_run_from_worker,
 	.run_once = _starpu_hip_driver_run_once,
 	.deinit = _starpu_hip_driver_deinit,
+	.set_devid = _starpu_hip_driver_set_devid,
+	.is_devid = _starpu_hip_driver_is_devid,
 };
 
 struct _starpu_node_ops _starpu_driver_hip_node_ops =

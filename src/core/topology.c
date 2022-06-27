@@ -378,6 +378,7 @@ struct _starpu_worker *_starpu_get_worker_from_driver(struct starpu_driver *d)
 			struct _starpu_worker *worker;
 			worker = _starpu_get_worker_struct(workerid);
 			STARPU_ASSERT(worker->driver_ops);
+			STARPU_ASSERT_MSG(worker->driver_ops->is_devid, "The driver operation 'is_devid' is not defined");
 			if (worker->driver_ops->is_devid(d, worker))
 				return worker;
 		}
