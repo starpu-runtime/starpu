@@ -56,36 +56,24 @@ static void *run_driver(void *arg)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_driver_run");
 	return NULL;
 }
-#endif /* STARPU_USE_CPU || STARPU_USE_CUDA || STARPU_USE_OPENCL || STARPU_USE_HIP */
 
-#ifdef STARPU_USE_CPU
-static int test_cpu(void)
+typedef unsigned (*worker_get_count)(void);
+
+static int test_driver(struct starpu_conf *conf, struct starpu_driver *d, const char *name_driver, worker_get_count worker_get_count_func, int32_t where_driver)
 {
 	int ret, var = 0;
 	static starpu_pthread_t driver_thread;
-	struct starpu_conf conf;
-	struct starpu_driver d =
-	{
-		.type = STARPU_CPU_WORKER,
-		.id.cpu_id = 0
-	};
 
-	starpu_conf_init(&conf);
-	conf.precedence_over_environment_variables = 1;
-	conf.n_not_launched_drivers = 1;
-	conf.not_launched_drivers = &d;
-	starpu_conf_noworker(&conf);
-	conf.ncpus = 1;
-	ret = starpu_init(&conf);
-	if (ret == -ENODEV || starpu_cpu_worker_get_count() == 0)
+	ret = starpu_init(conf);
+	if (ret == -ENODEV || worker_get_count_func() == 0)
 	{
-		FPRINTF(stderr, "WARNING: No CPU worker found\n");
+		FPRINTF(stderr, "WARNING: No %s worker found\n", name_driver);
 		if (ret == 0)
 			starpu_shutdown();
 		return STARPU_TEST_SKIPPED;
 	}
 
-	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
+	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, d);
 	if (ret != 0)
 	{
 		ret = 1;
@@ -94,7 +82,7 @@ static int test_cpu(void)
 
 	struct starpu_task *task;
 	task = starpu_task_create();
-	cl.where = STARPU_CPU;
+	cl.where = where_driver;
 	task->cl = &cl;
 	task->cl_arg = &var;
 	task->synchronous = 1;
@@ -107,7 +95,7 @@ static int test_cpu(void)
 		goto out;
 	}
 
-	FPRINTF(stderr, "[CPU] Var = %d (expected value: 1)\n", var);
+	FPRINTF(stderr, "[%s] Var = %d (expected value: 1)\n", name_driver, var);
 	ret = !!(var != 1);
 out:
 	starpu_drivers_request_termination();
@@ -117,142 +105,84 @@ out2:
 	starpu_shutdown();
 	return ret;
 }
+#endif /* STARPU_USE_CPU || STARPU_USE_CUDA || STARPU_USE_OPENCL || STARPU_USE_HIP */
+
+#ifdef STARPU_USE_CPU
+static int test_cpu(void)
+{
+	struct starpu_driver d =
+	{
+		.type = STARPU_CPU_WORKER,
+		.id.cpu_id = 0
+	};
+
+	int ret;
+	struct starpu_conf conf;
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return 1;
+	conf.precedence_over_environment_variables = 1;
+	conf.n_not_launched_drivers = 1;
+	conf.not_launched_drivers = &d;
+	starpu_conf_noworker(&conf);
+	conf.ncpus = 1;
+
+	return test_driver(&conf, &d, "CPU", starpu_cpu_worker_get_count, STARPU_CPU);
+}
 #endif /* STARPU_USE_CPU */
 
 #ifdef STARPU_USE_CUDA
 static int test_cuda(void)
 {
-	int ret, var = 0;
-	static starpu_pthread_t driver_thread;
-	struct starpu_conf conf;
 	struct starpu_driver d =
 	{
 		.type = STARPU_CUDA_WORKER,
 		.id.cuda_id = 0
 	};
 
-	starpu_conf_init(&conf);
+	int ret;
+	struct starpu_conf conf;
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return 1;
 	conf.precedence_over_environment_variables = 1;
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
 	starpu_conf_noworker(&conf);
 	conf.ncuda = 1;
-	ret = starpu_init(&conf);
-	if (ret == -ENODEV || starpu_cuda_worker_get_count() == 0)
-	{
-		FPRINTF(stderr, "WARNING: No CUDA worker found\n");
-		if (ret == 0)
-			starpu_shutdown();
-		return STARPU_TEST_SKIPPED;
-	}
-	if (starpu_cuda_worker_get_count() > 1)
-	{
-		FPRINTF(stderr, "WARNING: More than one worker, this is not supported by this test\n");
-		if (ret == 0)
-			starpu_shutdown();
-		return STARPU_TEST_SKIPPED;
-	}
 
-	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
-	if (ret == -1)
-		goto out;
-
-	struct starpu_task *task;
-	task = starpu_task_create();
-	cl.where = STARPU_CUDA;
-	task->cl = &cl;
-	task->cl_arg = &var;
-	task->synchronous = 1;
-
-	ret = starpu_task_submit(task);
-	if (ret == -ENODEV)
-	{
-		FPRINTF(stderr, "WARNING: No worker can execute this task\n");
-		goto out;
-	}
-
-out:
-	starpu_drivers_request_termination();
-	if (starpu_pthread_join(driver_thread, NULL) != 0)
-		return 1;
-	starpu_shutdown();
-
-	FPRINTF(stderr, "[CUDA] Var = %d (expected value: 1)\n", var);
-	ret = !!(var != 1);
-	return ret;
+	return test_driver(&conf, &d, "CUDA", starpu_cuda_worker_get_count, STARPU_CUDA);
 }
 #endif /* STARPU_USE_CUDA */
 
 #ifdef STARPU_USE_HIP
 static int test_hip(void)
 {
-	int ret, var = 0;
-	static starpu_pthread_t driver_thread;
-	struct starpu_conf conf;
 	struct starpu_driver d =
 	{
 		.type = STARPU_HIP_WORKER,
 		.id.hip_id = 0
 	};
 
-	starpu_conf_init(&conf);
+	int ret;
+	struct starpu_conf conf;
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return 1;
 	conf.precedence_over_environment_variables = 1;
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
 	starpu_conf_noworker(&conf);
 	conf.nhip = 1;
-	ret = starpu_init(&conf);
-	if (ret == -ENODEV || starpu_hip_worker_get_count() == 0)
-	{
-		FPRINTF(stderr, "WARNING: No HIP worker found\n");
-		if (ret == 0)
-			starpu_shutdown();
-		return STARPU_TEST_SKIPPED;
-	}
-	if (starpu_hip_worker_get_count() > 1)
-	{
-		FPRINTF(stderr, "WARNING: More than one worker, this is not supported by this test\n");
-		if (ret == 0)
-			starpu_shutdown();
-		return STARPU_TEST_SKIPPED;
-	}
 
-	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
-	if (ret == -1)
-		goto out;
-
-	struct starpu_task *task;
-	task = starpu_task_create();
-	cl.where = STARPU_HIP;
-	task->cl = &cl;
-	task->cl_arg = &var;
-	task->synchronous = 1;
-
-	ret = starpu_task_submit(task);
-	if (ret == -ENODEV)
-	{
-		FPRINTF(stderr, "WARNING: No worker can execute this task\n");
-		goto out;
-	}
-
-out:
-	starpu_drivers_request_termination();
-	if (starpu_pthread_join(driver_thread, NULL) != 0)
-		return 1;
-	starpu_shutdown();
-
-	FPRINTF(stderr, "[HIP] Var = %d (expected value: 1)\n", var);
-	ret = !!(var != 1);
-	return ret;
+	return test_driver(&conf, &d, "HIP", starpu_hip_worker_get_count, STARPU_HIP);
 }
 #endif /* STARPU_USE_HIP */
 
 #ifdef STARPU_USE_OPENCL
 static int test_opencl(void)
 {
-	int ret, var = 0;
-	static starpu_pthread_t driver_thread;
-	struct starpu_conf conf;
+	int ret;
 
 	cl_int err;
         cl_uint pdummy;
@@ -284,49 +214,18 @@ static int test_opencl(void)
 		.id.opencl_id = device_id
 	};
 
-	starpu_conf_init(&conf);
+	struct starpu_conf conf;
+	ret = starpu_conf_init(&conf);
+	if (ret == -EINVAL)
+		return 1;
 	conf.precedence_over_environment_variables = 1;
 	conf.n_not_launched_drivers = 1;
 	conf.not_launched_drivers = &d;
 	starpu_conf_noworker(&conf);
 	conf.ncpus = 1;
 	conf.nopencl = 1;
-	ret = starpu_init(&conf);
-	if (ret == -ENODEV || starpu_opencl_worker_get_count() == 0)
-	{
-		FPRINTF(stderr, "WARNING: No OpenCL workers found\n");
-		if (ret == 0)
-			starpu_shutdown();
-		return STARPU_TEST_SKIPPED;
-	}
 
-	ret = starpu_pthread_create(&driver_thread, NULL, run_driver, &d);
-	if (ret == -1)
-		goto out;
-
-	struct starpu_task *task;
-	task = starpu_task_create();
-	cl.where = STARPU_OPENCL;
-	task->cl = &cl;
-	task->cl_arg = &var;
-	task->synchronous = 1;
-
-	ret = starpu_task_submit(task);
-	if (ret == -ENODEV)
-	{
-		FPRINTF(stderr, "WARNING: No worker can execute the task\n");
-		goto out;
-	}
-
-out:
-	starpu_drivers_request_termination();
-	if (starpu_pthread_join(driver_thread, NULL) != 0)
-		return 1;
-	starpu_shutdown();
-
-	FPRINTF(stderr, "[OpenCL] Var = %d (expected value: 1)\n", var);
-	ret = !!(var != 1);
-	return ret;
+	return test_driver(&conf, &d, "OpenCL", starpu_opencl_worker_get_count, STARPU_OPENCL);
 }
 #endif /* STARPU_USE_OPENCL */
 
@@ -339,7 +238,7 @@ int main(void)
 	if (ret == 1)
 		return 1;
 #endif
-#if defined(STARPU_USE_CUDA) && !(defined(STARPU_USE_CUDA0) || defined(STARPU_USE_CUDA1))
+#if defined(STARPU_USE_CUDA)
 	ret = test_cuda();
 	if (ret == 1)
 		return 1;
