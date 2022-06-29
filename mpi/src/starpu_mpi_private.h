@@ -50,6 +50,9 @@ int _starpu_mpi_simgrid_mpi_test(unsigned *done, int *flag);
 void _starpu_mpi_simgrid_wait_req(MPI_Request *request, MPI_Status *status, starpu_pthread_queue_t *queue, unsigned *done);
 #endif
 
+struct _starpu_mpi_req* _starpu_mpi_isend_cache_aware(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *_arg, int sequential_consistency, int* cache_flag);
+struct _starpu_mpi_req* _starpu_mpi_irecv_cache_aware(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *_arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int* cache_flag);
+
 extern int _starpu_debug_rank;
 char *_starpu_mpi_get_mpi_error_code(int code);
 extern int _starpu_mpi_comm_debug;
@@ -210,7 +213,10 @@ struct _starpu_mpi_data
 	int magic;
 	struct _starpu_mpi_node_tag node_tag;
 	char *cache_sent;
-	int cache_received;
+	unsigned int cache_received;
+	unsigned int ft_induced_cache_received:1;
+	unsigned int ft_induced_cache_received_count:1;
+	unsigned int modified:1; // Whether the data has been modified since the registration.
 
 	/** Array used to store the contributing nodes to this data
 	  * when it is accessed in REDUX mode. */

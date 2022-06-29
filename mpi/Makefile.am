@@ -34,5 +34,6 @@ pkgconfig_DATA = packages/libstarpumpi.pc packages/starpumpi-1.0.pc packages/sta
 versincludedir = $(includedir)/starpu/$(STARPU_EFFECTIVE_VERSION)
 versinclude_HEADERS = 					\
 	include/starpu_mpi.h				\
+	include/starpu_mpi_ft.h				\
 	include/starpu_mpi_lb.h				\
 	include/fstarpu_mpi_mod.f90

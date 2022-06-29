@@ -744,6 +744,37 @@ AM_CONDITIONAL(STARPU_USE_MPI_MPI, test x$build_mpi_lib = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI_NMAD, test x$build_nmad_lib = xyes)
 AM_CONDITIONAL(STARPU_USE_MPI, test x$build_nmad_lib = xyes -o x$build_mpi_lib = xyes)
 
+######    Failure tolerance material  #######
+default_enable_mpi_ft=no
+AC_ARG_ENABLE(mpi-ft, AC_HELP_STRING([--enable-mpi-ft], [Enable failure tolerance mechanisms provided by StarPU]),
+	      [enable_mpi_ft=$enableval], [enable_mpi_ft=$default_enable_mpi_ft])
+
+default_enable_mpi_ft_stats=no
+use_mpi_ft_stats=no
+AC_ARG_ENABLE(mpi-ft-stats, AC_HELP_STRING([--enable-mpi-ft-stats], [Enable stats for failure tolerance mechanisms]),
+	      [enable_mpi_ft_stats=$enableval], [enable_mpi_ft_stats=$default_enable_mpi_ft_stats])
+
+# TODO: Check MPI version to be ULFM
+if test x$enable_mpi_ft = xyes ; then
+    if test x$build_mpi_lib != xyes ; then
+        AC_MSG_ERROR([Failure tolerance mechanisms only work with a particular MPI implementation: ULFM (OpenMPI based).])
+    else
+        AC_DEFINE(STARPU_USE_MPI_FT, [1], [whether the StarPU MPI failure tolerance mechanisms are requested])
+        use_mpi_ft=yes;
+        if test x$enable_mpi_ft_stats = xyes ; then
+            AC_DEFINE(STARPU_USE_MPI_FT_STATS, [1], [whether the StarPU MPI failure tolerance mechanisms stats are watched])
+            use_mpi_ft_stats=$enable_mpi_ft_stats;
+        fi
+    fi
+fi
+
+AM_CONDITIONAL(STARPU_USE_MPI_FT, [test x$use_mpi_ft = xyes])
+AM_CONDITIONAL(STARPU_USE_MPI_FT_STATS, [test x$use_mpi_ft_stats = xyes])
+
+###### End of failure tolerance material ######
+
+
+
 AC_ARG_WITH(mpiexec-args, [AS_HELP_STRING([--with-mpiexec-args[=<arguments to give when running mpiexec>]],
 					  [Arguments for mpiexec])],
 	    [
@@ -4250,6 +4281,8 @@ AC_MSG_NOTICE([
 
 	StarPU Extensions:
 	       StarPU MPI enabled:                            $build_mpi_lib
+	       StarPU MPI failure tolerance:                  $enable_mpi_ft
+	       StarPU MPI failure tolerance stats:            $use_mpi_ft_stats
 	       StarPU MPI(nmad) enabled:                      $build_nmad_lib
 	       MPI test suite:                                $running_mpi_check
 	       Master-Slave MPI enabled:                      $build_mpi_master_slave

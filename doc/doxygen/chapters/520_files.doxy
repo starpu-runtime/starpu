@@ -67,6 +67,7 @@
 \file starpu_worker.h
 
 \file starpu_mpi.h
+\file starpu_mpi_ft.h
 \file starpu_mpi_lb.h
 
 \file sc_hypervisor_config.h

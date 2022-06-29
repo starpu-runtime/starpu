@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,6 +78,15 @@
 
 /* End of magma code */
 
+int _nodes;
+starpu_mpi_checkpoint_template_t* checkpoint_p;
+
+int backup_function(int rank)
+{
+	return (rank/dblockx)*dblockx +(rank+1)%dblockx;
+//	return (rank+1)%_nodes;
+}
+
 /*
  *	Create the codelets
  */
@@ -132,6 +141,12 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 	unsigned nn = size/nblocks;
 
+	if (checkpoint_enabled)
+	{
+		starpu_mpi_checkpoint_template_add_entry(checkpoint_p, STARPU_VALUE, &k, sizeof(k), nblocks*nblocks+10, backup_function);
+		starpu_mpi_checkpoint_template_freeze(checkpoint_p);
+	}
+
 	for (k = 0; k < nblocks; k++)
 	{
 		starpu_iteration_push(k);
@@ -173,6 +188,13 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 			if (my_distrib(n, k, nodes) == rank)
 				starpu_data_wont_use(data_handles[n][k]);
 		}
+
+		if (checkpoint_enabled)
+		{
+			if (k%checkpoint_period==checkpoint_period-1)
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, -2*k);
+		}
+
 		starpu_iteration_pop();
 	}
 }
@@ -183,6 +205,12 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 	unsigned k, m, n;
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 	unsigned nn = size/nblocks;
+
+	if (checkpoint_enabled)
+	{
+		starpu_mpi_checkpoint_template_add_entry(checkpoint_p, STARPU_VALUE, &n, sizeof(n), nblocks*nblocks+10, backup_function);
+		starpu_mpi_checkpoint_template_freeze(checkpoint_p);
+	}
 
 	/* Column */
 	for (n = 0; n<nblocks; n++)
@@ -246,6 +274,12 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 		starpu_mpi_cache_flush(MPI_COMM_WORLD, data_handles[n][n]);
 		starpu_data_wont_use(data_handles[n][n]);
 
+		if (checkpoint_enabled)
+		{
+			if (n%checkpoint_period==checkpoint_period-1)
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(nblocks - 2*n));
+		}
+
 		starpu_iteration_pop();
 	}
 }
@@ -257,6 +291,12 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 	unsigned k, m, n;
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 	unsigned nn = size/nblocks;
+
+	if (checkpoint_enabled)
+	{
+		starpu_mpi_checkpoint_template_add_entry(checkpoint_p, STARPU_VALUE, &a, sizeof(a), nblocks*nblocks+10, backup_function);
+		starpu_mpi_checkpoint_template_freeze(checkpoint_p);
+	}
 
 	/* double-antidiagonal number:
 	 * - a=0 contains (0,0) plus (1,0)
@@ -372,6 +412,12 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 			}
 		}
 
+		if (checkpoint_enabled)
+		{
+			if (a%checkpoint_period==checkpoint_period-1)
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks -4*a));
+		}
+
 		starpu_iteration_pop();
 	}
 }
@@ -391,6 +437,13 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 	 * - a=1 contains (2,0), (1,1) plus (3,0), (2, 1)
 	 * - etc.
 	 */
+
+	if (checkpoint_enabled)
+	{
+		starpu_mpi_checkpoint_template_add_entry(checkpoint_p, STARPU_VALUE, &a, sizeof(a), nblocks*nblocks+10, backup_function);
+		starpu_mpi_checkpoint_template_freeze(checkpoint_p);
+	}
+
 	for (a = 0; a < 4*nblocks; a++)
 	{
 		starpu_iteration_push(a);
@@ -456,6 +509,12 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 
 		}
 
+		if (checkpoint_enabled)
+		{
+			if (a%(4*checkpoint_period)==(4*checkpoint_period)-1)
+				starpu_mpi_checkpoint_template_submit(*checkpoint_p, (int)(2*nblocks - a));
+		}
+
 		starpu_iteration_pop();
 	}
 }
@@ -472,6 +531,13 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 	unsigned m, n;
 
 	/* create all the DAG nodes */
+
+	if (checkpoint_enabled)
+	{
+		_nodes = nodes;
+		starpu_malloc((void**)&checkpoint_p, sizeof(starpu_mpi_checkpoint_template_t));
+		starpu_mpi_checkpoint_template_create(checkpoint_p, 13, 0);
+	}
 
 	data_handles = malloc(nblocks*sizeof(starpu_data_handle_t *));
 	for(m=0 ; m<nblocks ; m++) data_handles[m] = malloc(nblocks*sizeof(starpu_data_handle_t));
@@ -501,6 +567,12 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 			{
 				starpu_data_set_coordinates(data_handles[m][n], 2, n, m);
 				starpu_mpi_data_register(data_handles[m][n], (m*nblocks)+n, mpi_rank);
+
+				if (checkpoint_enabled)
+				{
+					if (m>=n)
+						starpu_mpi_checkpoint_template_add_entry(checkpoint_p, STARPU_R, data_handles[m][n], backup_function(mpi_rank));
+				}
 			}
 		}
 	}

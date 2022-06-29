@@ -34,6 +34,13 @@ extern int _starpu_mpi_tag;
 #define _STARPU_MPI_TAG_DATA      _starpu_mpi_tag+1
 #define _STARPU_MPI_TAG_SYNC_DATA _starpu_mpi_tag+2
 
+#ifdef STARPU_USE_MPI_FT
+#define _STARPU_MPI_TAG_CP_ACK    _starpu_mpi_tag+3
+#define _STARPU_MPI_TAG_CP_RCVRY  _starpu_mpi_tag+4
+#define _STARPU_MPI_TAG_EXT_DATA  _starpu_mpi_tag+5
+#define _STARPU_MPI_TAG_CP_INFO    _starpu_mpi_tag+6
+#endif // STARPU_USE_MPI_FT
+
 enum _starpu_envelope_mode
 {
 	_STARPU_MPI_ENVELOPE_DATA=0,

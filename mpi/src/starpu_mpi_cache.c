@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,7 @@
 #include <starpu_mpi_cache.h>
 #include <starpu_mpi_cache_stats.h>
 #include <starpu_mpi_private.h>
+#include <mpi_failure_tolerance/starpu_mpi_ft_stats.h>
 
 /* Whether we are allowed to keep copies of remote data. */
 struct _starpu_data_entry
@@ -130,6 +131,8 @@ void _starpu_mpi_cache_data_init(starpu_data_handle_t data_handle)
 
 	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
 	mpi_data->cache_received = 0;
+	mpi_data->ft_induced_cache_received = 0;
+	mpi_data->ft_induced_cache_received_count = 0;
 	_STARPU_MALLOC(mpi_data->cache_sent, _starpu_cache_comm_size*sizeof(mpi_data->cache_sent[0]));
 	for(i=0 ; i<_starpu_cache_comm_size ; i++)
 	{
@@ -191,12 +194,15 @@ void starpu_mpi_cached_receive_clear(starpu_data_handle_t data_handle)
 #endif
 		_STARPU_MPI_DEBUG(2, "Clearing receive cache for data %p\n", data_handle);
 		mpi_data->cache_received = 0;
+		mpi_data->ft_induced_cache_received = 0;
+		mpi_data->ft_induced_cache_received_count = 0;
 		starpu_data_invalidate_submit(data_handle);
 		_starpu_mpi_cache_data_remove_nolock(data_handle);
 		_starpu_mpi_cache_stats_dec(mpi_rank, data_handle);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
 }
+
 
 int starpu_mpi_cached_receive_set(starpu_data_handle_t data_handle)
 {
@@ -220,6 +226,52 @@ int starpu_mpi_cached_receive_set(starpu_data_handle_t data_handle)
 	}
 	else
 	{
+#ifdef STARPU_USE_MPI_FT_STATS
+		if (mpi_data->ft_induced_cache_received == 1 && mpi_data->ft_induced_cache_received_count == 0)
+		{
+			_STARPU_MPI_FT_STATS_RECV_CACHED_CP_DATA(starpu_data_get_size(data_handle));
+			_STARPU_MPI_FT_STATS_CANCEL_RECV_CP_DATA(starpu_data_get_size(data_handle));
+			mpi_data->ft_induced_cache_received_count = 1;
+		}
+#endif //STARPU_USE_MPI_FT_STATS
+		_STARPU_MPI_DEBUG(2, "Do not receive data %p from node %d as it is already available\n", data_handle, mpi_rank);
+	}
+	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
+	return already_received;
+}
+
+int starpu_mpi_cached_cp_receive_set(starpu_data_handle_t data_handle)
+{
+	int mpi_rank = starpu_mpi_data_get_rank(data_handle);
+	struct _starpu_mpi_data *mpi_data = data_handle->mpi_data;
+
+	if (_starpu_cache_enabled == 0)
+		return 0;
+
+	STARPU_PTHREAD_MUTEX_LOCK(&_cache_mutex);
+	STARPU_ASSERT(mpi_data->magic == 42);
+	STARPU_MPI_ASSERT_MSG(mpi_rank < _starpu_cache_comm_size, "Node %d invalid. Max node is %d\n", mpi_rank, _starpu_cache_comm_size);
+
+	int already_received = mpi_data->cache_received;
+	if (already_received == 0)
+	{
+		_STARPU_MPI_DEBUG(2, "Noting that data %p has already been received by %d\n", data_handle, mpi_rank);
+		mpi_data->cache_received = 1;
+		mpi_data->ft_induced_cache_received = 1;
+#ifdef STARPU_USE_MPI_FT_STATS
+		_STARPU_MPI_FT_STATS_RECV_CP_DATA(starpu_data_get_size(data_handle));
+#endif
+		_starpu_mpi_cache_data_add_nolock(data_handle);
+		_starpu_mpi_cache_stats_inc(mpi_rank, data_handle);
+	}
+	else
+	{
+#ifdef STARPU_USE_MPI_FT_STATS
+		if (mpi_data->ft_induced_cache_received == 1)
+			_STARPU_MPI_FT_STATS_RECV_CP_CACHED_CP_DATA(starpu_data_get_size(data_handle));
+		else
+			_STARPU_MPI_FT_STATS_RECV_CACHED_CP_DATA(starpu_data_get_size(data_handle));
+#endif
 		_STARPU_MPI_DEBUG(2, "Do not receive data %p from node %d as it is already available\n", data_handle, mpi_rank);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&_cache_mutex);
@@ -330,6 +382,8 @@ static void _starpu_mpi_cache_flush_nolock(starpu_data_handle_t data_handle)
 		int mpi_rank = starpu_mpi_data_get_rank(data_handle);
 		_STARPU_MPI_DEBUG(2, "Clearing received cache for data %p\n", data_handle);
 		mpi_data->cache_received = 0;
+		mpi_data->ft_induced_cache_received = 0;
+		mpi_data->ft_induced_cache_received_count = 0;
 		_starpu_mpi_cache_stats_dec(mpi_rank, data_handle);
 	}
 }

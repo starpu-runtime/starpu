@@ -1156,4 +1156,15 @@ To select another node, use the environment variable \ref
 STARPU_MPI_MASTER_NODE "STARPU_MPI_MASTER_NODE=\<number\>" with
 <c>\<number\></c> being the requested MPI rank node.
 
+\section MPICheckpoint MPI Checkpoint Support
+
+StarPU provides a checkpoint mechanism. To enable it, you should use
+the \c configure option \ref enable-mpi-ft "--enable-mpi-ft". The
+application in the directory \c mpi/examples/matrix_decomposition
+shows how to enable checkpoints. The API documentation is available in
+\ref API_MPI_FT_Support
+
+Statistics can also be enabled with the \c configure option \ref
+enable-mpi-ft-stats "--enable-mpi-ft-stats".
+
 */

@@ -66,6 +66,7 @@ INPUT                  = @top_srcdir@/doc/doxygen/chapters \
 			 @top_srcdir@/include/fstarpu_mod.f90 \
 			 @top_srcdir@/mpi/include/ \
 			 @top_srcdir@/mpi/include/starpu_mpi.h \
+			 @top_srcdir@/mpi/include/starpu_mpi_ft.h \
 			 @top_srcdir@/mpi/include/starpu_mpi_lb.h \
 			 @top_srcdir@/mpi/include/fstarpu_mpi_mod.f90 \
 			 @top_srcdir@/starpufft/include/starpufft.h \

@@ -2352,6 +2352,39 @@ static const char *copy_link_type(enum starpu_is_prefetch prefetch)
 	}
 }
 
+
+static void handle_checkpoint_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+
+	/* Add an event in the trace */
+	if (out_paje_file) {
+#ifdef STARPU_HAVE_POTI
+		char container[STARPU_POTI_STR_LEN];
+		snprintf(container, sizeof(container), "%sp", options->file_prefix);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "prog_event", event);
+#else
+		fprintf(out_paje_file, "25	%.9f	checkpoint_begin %sp	 0 %lu %lu\n", get_event_time_stamp(ev, options),
+		        options->file_prefix, ev->param[0], ev->param[1]);
+#endif
+	}
+}
+
+static void handle_checkpoint_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+
+	/* Add an event in the trace */
+	if (out_paje_file) {
+#ifdef STARPU_HAVE_POTI
+		char container[STARPU_POTI_STR_LEN];
+		snprintf(container, sizeof(container), "%sp", options->file_prefix);
+		poti_NewEvent(get_event_time_stamp(ev, options), container, "prog_event", event);
+#else
+		fprintf(out_paje_file, "25	%.9f	checkpoint_end	%sp	0 %lu %lu\n", get_event_time_stamp(ev, options),
+		        options->file_prefix, ev->param[0], ev->param[1]);
+#endif
+	}
+}
+
 static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
 	unsigned src = ev->param[0];
@@ -4129,6 +4162,14 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 			case _STARPU_MPI_FUT_DRIVER_RUN_END:
 				handle_mpi_driver_run_end(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_CHECKPOINT_BEGIN:
+				handle_checkpoint_begin(&ev, options);
+				break;
+
+			case _STARPU_MPI_FUT_CHECKPOINT_END:
+				handle_checkpoint_end(&ev, options);
 				break;
 
 			case _STARPU_FUT_SET_PROFILING:

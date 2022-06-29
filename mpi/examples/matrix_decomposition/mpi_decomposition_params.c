@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -44,6 +44,12 @@ unsigned display = 0;
 int dblockx = -1;
 int dblocky = -1;
 enum submission submission = TRIANGLES;
+unsigned long checkpoint_period = 1;
+#ifdef STARPU_USE_MPI_FT
+int checkpoint_enabled = 1;
+#else
+int checkpoint_enabled = 0;
+#endif
 
 void parse_args(int argc, char **argv, int nodes)
 {
@@ -99,6 +105,18 @@ void parse_args(int argc, char **argv, int nodes)
                 {
                         noprio = 1;
                 }
+
+		else if (strcmp(argv[i], "-checkpoint-period") == 0)
+		{
+			char *argptr;
+			checkpoint_period = strtol(argv[++i], &argptr, 10);
+		}
+
+		else if (strcmp(argv[i], "-checkpoint-enabled") == 0)
+		{
+			char *argptr;
+			checkpoint_enabled = strtol(argv[++i], &argptr, 10);
+		}
 
                 else if (strcmp(argv[i], "-check") == 0)
                 {

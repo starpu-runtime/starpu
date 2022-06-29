@@ -89,6 +89,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	fprintf(file, "%%	Alias	string\n");
 	fprintf(file, "%%	Type	string\n");
 	fprintf(file, "%%	Name	string\n");
+	fprintf(file, "%%	Color	color\n");
 	fprintf(file, "%%EndEventDef\n");
 	fprintf(file, "%%EventDef	PajeDefineStateType	3\n");
 	fprintf(file, "%%	Alias	string\n");
@@ -246,6 +247,14 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	fprintf(file, "%%	StartContainer	string\n");
 	fprintf(file, "%%	Key	string\n");
 	fprintf(file, "%%	Handle	string\n");
+	fprintf(file, "%%EndEventDef\n");
+	fprintf(file, "%%EventDef	PajeNewEvent	25\n");
+	fprintf(file, "%%	Time	date\n");
+	fprintf(file, "%%	Type	string\n");
+	fprintf(file, "%%	Container	string\n");
+	fprintf(file, "%%	Value	string\n");
+	fprintf(file, "%%	CheckpointInstance	string\n");
+	fprintf(file, "%%	CheckpointDomain	string\n");
 	fprintf(file, "%%EndEventDef\n");
 #endif
 
@@ -424,38 +433,40 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 1       W      T       \"Worker\"                               \n\
 1       MPICt   P       \"MPI Communication Thread\"              \n\
 1       Sc       P       \"Scheduler State\"                        \n\
-2       prog_event   P       \"program event type\"				\n\
-2       pu   P       \"Task Push\"                             \n\
-2       po   P       \"Task Pop\"                              \n\
-2       register     P       \"data registration\"				\n\
-2       unregister     P       \"data unregistration\"				\n\
-2       user_event   P       \"user event type\"				\n\
-2       thread_event   T       \"thread event type\"				\n\
-2       user_user_event   UT       \"user event type\"				\n\
-2       user_thread_event   UT       \"thread event type\"				\n\
-2       MPIev   MPICt    \"MPI event type\"			\n\
+2       prog_event   P       \"program event type\"		\"1.0 1.0 1.0\" 		\n\
+2       checkpoint_begin  P       \"Checkpoint Begin\"	\"0.0 1.0 0.0\" 			\n\
+2       checkpoint_end  P       \"Checkpoint End\"		\"0.0 0.0 1.0\" 		\n\
+2       pu   P       \"Task Push\"           \"1.0 1.0 1.0\"                   \n\
+2       po   P       \"Task Pop\"          \"1.0 1.0 1.0\"                     \n\
+2       register     P       \"data registration\"		\"1.0 1.0 1.0\" 		\n\
+2       unregister     P       \"data unregistration\"	\"1.0 1.0 1.0\" 			\n\
+2       user_event   P       \"user event type\"		\"1.0 1.0 1.0\" 		\n\
+2       thread_event   T       \"thread event type\"	\"1.0 1.0 1.0\" 			\n\
+2       user_user_event   UT       \"user event type\"		\"1.0 1.0 1.0\" 		\n\
+2       user_thread_event   UT       \"thread event type\"	\"1.0 1.0 1.0\" 			\n\
+2       MPIev   MPICt    \"MPI event type\"		\"1.0 1.0 1.0\" 	\n\
 3       S       T       \"Thread State\"                        \n\
 3       CtS     MPICt    \"Communication Thread State\"          \n");
 	for (i=1; i<STARPU_NMAX_SCHED_CTXS; i++)
 		fprintf(file, "3       Ctx%u      W     \"InCtx%u\"         		\n", i, i);
 	fprintf(file, "\
-2       SI       Mm \"data state invalid\"                            \n\
-2       SS       Mm \"data state shared\"                            \n\
-2       SO       Mm \"data state owner\"                            \n\
-2       WU       Mm \"data wont use\"                            \n\
-2       Al       Mm    \"Allocating Start\"    \n\
-2       rc       Mm    \"Request Created\"    \n\
-2       AlE      Mm    \"Allocating End\"    \n\
-2       Alr      Mm    \"Allocating Async Start\"    \n\
-2       AlrE     Mm    \"Allocating Async End\"    \n\
-2       Fe       Mm    \"Free Start\"    \n\
-2       FeE      Mm    \"Free End\"    \n\
-2       Wb       Mm    \"WritingBack Start\"    \n\
-2       WbE      Mm    \"WritingBack End\"    \n\
-2       DCo      Mm    \"DriverCopy Start\"    \n\
-2       DCoE     Mm    \"DriverCopy End\"    \n\
-2       DCoA     Mm    \"DriverCopyAsync Start\"    \n\
-2       DCoAE    Mm    \"DriverCopyAsync End\"    \n\
+2       SI       Mm \"data state invalid\"            \"1.0 1.0 1.0\"                 \n\
+2       SS       Mm \"data state shared\"        \"1.0 1.0 1.0\"                    \n\
+2       SO       Mm \"data state owner\"        \"1.0 1.0 1.0\"                     \n\
+2       WU       Mm \"data wont use\"           \"1.0 1.0 1.0\"                  \n\
+2       Al       Mm    \"Allocating Start\"  \"1.0 1.0 1.0\"   \n\
+2       rc       Mm    \"Request Created\"  \"1.0 1.0 1.0\"   \n\
+2       AlE      Mm    \"Allocating End\" \"1.0 1.0 1.0\"    \n\
+2       Alr      Mm    \"Allocating Async Start\"  \"1.0 1.0 1.0\"   \n\
+2       AlrE     Mm    \"Allocating Async End\" \"1.0 1.0 1.0\"    \n\
+2       Fe       Mm    \"Free Start\" \"1.0 1.0 1.0\"    \n\
+2       FeE      Mm    \"Free End\"   \"1.0 1.0 1.0\"  \n\
+2       Wb       Mm    \"WritingBack Start\" \"1.0 1.0 1.0\"    \n\
+2       WbE      Mm    \"WritingBack End\"  \"1.0 1.0 1.0\"   \n\
+2       DCo      Mm    \"DriverCopy Start\"  \"1.0 1.0 1.0\"   \n\
+2       DCoE     Mm    \"DriverCopy End\" \"1.0 1.0 1.0\"    \n\
+2       DCoA     Mm    \"DriverCopyAsync Start\"  \"1.0 1.0 1.0\"   \n\
+2       DCoAE    Mm    \"DriverCopyAsync End\"  \"1.0 1.0 1.0\"   \n\
 3       MS       Mm       \"Memory Node State\"                        \n\
 4       nsubmitted    Sc       \"Number of Submitted Uncompleted Tasks\"                        \n\
 4       nready    Sc       \"Number of Ready Tasks\"                        \n\

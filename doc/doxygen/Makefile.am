@@ -185,6 +185,7 @@ dox_inputs = $(DOX_CONFIG) 				\
 	$(top_srcdir)/include/schedulers/starpu_heteroprio.h	\
 	$(top_srcdir)/starpufft/include/starpufft.h 	\
 	$(top_srcdir)/mpi/include/starpu_mpi.h 		\
+	$(top_srcdir)/mpi/include/starpu_mpi_ft.h 	\
 	$(top_srcdir)/mpi/include/starpu_mpi_lb.h	\
 	$(top_srcdir)/mpi/include/fstarpu_mpi_mod.f90		\
 	$(top_srcdir)/sc_hypervisor/include/sc_hypervisor.h 		\

@@ -489,6 +489,20 @@ $ STARPU_SILENT=1 mpirun -np 2 ./insert_task
 \endverbatim
 </dd>
 
+<dt>--enable-mpi-ft</dt>
+<dd>
+\anchor enable-mpi-ft
+\addindex __configure__--enable-mpi-ft
+Enable the MPI checkpoint mechanism. See \ref API_MPI_FT_Support
+</dd>
+
+<dt>--enable-mpi-ft-stats</dt>
+<dd>
+\anchor enable-mpi-ft-stats
+\addindex __configure__--enable-mpi-ft-stats
+Enable the statistics for the MPI checkpoint mechanism. See \ref API_MPI_FT_Support
+</dd>
+
 <dt>--enable-tcpip-master-slave</dt>
 <dd>
 \anchor enable-tcpip-master-slave

@@ -221,6 +221,11 @@ noinst_PROGRAMS +=				\
 	nothing							\
 	display_bindings
 
+if STARPU_USE_MPI_FT
+noinst_PROGRAMS +=  \
+	checkpoints
+endif STARPU_USE_MPI_FT
+
 XFAIL_TESTS=					\
 	policy_register_toomany			\
 	policy_unregister			\

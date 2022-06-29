@@ -176,7 +176,7 @@ static void _starpu_mpi_isend_irecv_common(struct _starpu_mpi_req *req, enum sta
 	}
 }
 
-static struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg, int sequential_consistency)
+struct _starpu_mpi_req *_starpu_mpi_isend_common(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *arg, int sequential_consistency)
 {
 	if (STARPU_UNLIKELY(_starpu_mpi_fake_world_size != -1))
 	{
@@ -298,6 +298,28 @@ int starpu_mpi_issend_detached(starpu_data_handle_t data_handle, int dest, starp
 	return starpu_mpi_issend_detached_prio(data_handle, dest, data_tag, 0, comm, callback, arg);
 }
 
+struct _starpu_mpi_req* _starpu_mpi_isend_cache_aware(starpu_data_handle_t data_handle, int dest, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, int prio, void (*callback)(void *), void *_arg, int sequential_consistency, int* cache_flag)
+{
+	struct _starpu_mpi_req* req = NULL;
+	int already_sent = starpu_mpi_cached_send_set(data_handle, dest);
+	if (already_sent == 0)
+	{
+		*cache_flag = 0;
+		if (data_tag == -1)
+			_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
+		_STARPU_MPI_DEBUG(1, "Send data %p to %d\n", data_handle, dest);
+		req = _starpu_mpi_isend_common(data_handle, dest, data_tag, comm, detached, sync, prio, callback, _arg, sequential_consistency);
+	}
+	else
+	{
+		_STARPU_MPI_DEBUG(1, "STARPU CACHE: Data already sent\n");
+		*cache_flag = 1;
+		if (callback)
+			callback(_arg);
+	}
+	return req;
+}
+
 struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int prio)
 {
 	if (_starpu_mpi_fake_world_size != -1)
@@ -381,6 +403,28 @@ int starpu_mpi_recv(starpu_data_handle_t data_handle, int source, starpu_mpi_tag
 
 	_STARPU_MPI_LOG_OUT();
 	return ret;
+}
+
+struct _starpu_mpi_req* _starpu_mpi_irecv_cache_aware(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *_arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int* cache_flag)
+{
+	struct _starpu_mpi_req* req = NULL;
+	int already_received = starpu_mpi_cached_cp_receive_set(data_handle);
+	if (already_received == 0)
+	{
+		if (data_tag == -1)
+			_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
+		_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data_handle, source);
+		req = _starpu_mpi_irecv_common(data_handle, source, data_tag, comm, detached, sync, callback, _arg, sequential_consistency, is_internal_req, count, STARPU_DEFAULT_PRIO); //TODO: Allow to pass prio in args
+		*cache_flag = 0;
+	}
+	else
+	{
+		_STARPU_MPI_DEBUG(1, "STARPU CACHE: Data already received\n");
+		*cache_flag =1;
+		if (callback)
+			callback(_arg);
+	}
+	return req;
 }
 
 int starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status)

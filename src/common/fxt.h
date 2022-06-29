@@ -600,6 +600,19 @@ do {									\
 	} while (0)
 #endif
 
+#ifndef FUT_RAW_ALWAYS_PROBE1
+#define FUT_RAW_ALWAYS_PROBE1(CODE,P1) do {	\
+		unsigned long *__args __attribute__((unused))=	\
+			fut_getstampedbuffer(CODE,		\
+					     FUT_SIZE(1)); \
+		*(__args++)=(unsigned long)(P1); \
+		fut_commitstampedbuffer(FUT_SIZE(1)); \
+	} while (0)
+#endif
+#define FUT_DO_ALWAYS_PROBE1(CODE,P1) do { \
+        FUT_RAW_ALWAYS_PROBE1(FUT_CODE(CODE, 1),P1); \
+} while (0)
+
 #ifndef FUT_RAW_ALWAYS_PROBE2
 #define FUT_RAW_ALWAYS_PROBE2(CODE,P1,P2) do {	\
 		unsigned long *__args __attribute__((unused))=	\

@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -86,6 +86,17 @@ noinst_HEADERS =					\
 	load_balancer/policy/load_data_interface.h	\
 	load_balancer/policy/load_balancer_policy.h
 
+if STARPU_USE_MPI_FT
+noinst_HEADERS +=       \
+	mpi_failure_tolerance/starpu_mpi_ft.h   \
+	mpi_failure_tolerance/starpu_mpi_checkpoint.h    \
+	mpi_failure_tolerance/starpu_mpi_checkpoint_template.h \
+	mpi_failure_tolerance/starpu_mpi_ft_service_comms.h  \
+	mpi_failure_tolerance/starpu_mpi_checkpoint_package.h \
+	mpi_failure_tolerance/starpu_mpi_checkpoint_tracker.h \
+	mpi_failure_tolerance/starpu_mpi_ft_stats.h
+endif STARPU_USE_MPI_FT
+
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	starpu_mpi.c					\
 	starpu_mpi_req.c				\
@@ -116,6 +127,17 @@ libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES =	\
 	load_balancer/policy/load_data_interface.c	\
 	load_balancer/policy/load_heat_propagation.c	\
 	load_balancer/load_balancer.c
+
+if STARPU_USE_MPI_FT
+libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES +=    \
+	mpi_failure_tolerance/starpu_mpi_ft.c   \
+	mpi_failure_tolerance/starpu_mpi_checkpoint.c    \
+	mpi_failure_tolerance/starpu_mpi_checkpoint_template.c   \
+	mpi_failure_tolerance/starpu_mpi_ft_service_comms.c \
+	mpi_failure_tolerance/starpu_mpi_checkpoint_package.c  \
+	mpi_failure_tolerance/starpu_mpi_checkpoint_tracker.c  \
+	mpi_failure_tolerance/starpu_mpi_ft_stats.c
+endif STARPU_USE_MPI_FT
 
 if STARPU_USE_FXT
 libstarpumpi_@STARPU_EFFECTIVE_VERSION@_la_SOURCES +=	\

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2019       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -65,7 +65,8 @@ extern "C"
 #define _STARPU_MPI_FUT_DATA_SET_TAG			0x5218
 #define _STARPU_MPI_FUT_IRECV_NUMA_NODE			0x5219
 #define _STARPU_MPI_FUT_ISEND_NUMA_NODE			0x5221
-// available codes: > 0x5221
+#define _STARPU_MPI_FUT_CHECKPOINT_BEGIN            	0x5222
+#define _STARPU_MPI_FUT_CHECKPOINT_END              	0x5223
 
 #ifdef STARPU_USE_FXT
 
@@ -154,6 +155,10 @@ extern "C"
 	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_DRIVER_RUN_BEGIN,  _starpu_gettid());
 #define _STARPU_MPI_TRACE_DRIVER_RUN_END()	\
 	FUT_FULL_PROBE1(_STARPU_FUT_KEYMASK_MPI, _STARPU_MPI_FUT_DRIVER_RUN_END, _starpu_gettid());
+#define _STARPU_MPI_TRACE_CHECKPOINT_BEGIN(cp_instance, cp_domain)	\
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_EVENT, _STARPU_MPI_FUT_CHECKPOINT_BEGIN, (cp_instance), (cp_domain), _starpu_gettid());
+#define _STARPU_MPI_TRACE_CHECKPOINT_END(cp_instance, cp_domain)	\
+	FUT_FULL_PROBE3(_STARPU_FUT_KEYMASK_EVENT, _STARPU_MPI_FUT_CHECKPOINT_END, (cp_instance), (cp_domain), _starpu_gettid());
 #define TRACE
 #else
 #define _STARPU_MPI_TRACE_START(a, b)				do {} while(0);
@@ -188,6 +193,8 @@ extern "C"
 #define _STARPU_MPI_TRACE_POLLING_END()				do {} while(0);
 #define _STARPU_MPI_TRACE_DRIVER_RUN_BEGIN()			do {} while(0);
 #define _STARPU_MPI_TRACE_DRIVER_RUN_END()			do {} while(0);
+#define _STARPU_MPI_TRACE_CHECKPOINT_BEGIN(cp_instance, cp_domain)				do {} while(0)
+#define _STARPU_MPI_TRACE_CHECKPOINT_END(cp_instance, cp_domain)	do {} while(0)
 #endif
 
 void _starpu_mpi_fxt_init(void* arg);

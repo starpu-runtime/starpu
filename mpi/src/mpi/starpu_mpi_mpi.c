@@ -42,6 +42,9 @@
 #include <core/simgrid.h>
 #include <core/task.h>
 #include <core/topology.h>
+#ifdef STARPU_USE_MPI_FT
+#include <mpi_failure_tolerance/starpu_mpi_ft.h>
+#endif // STARPU_USE_MPI_FT
 
 #ifdef STARPU_USE_FXT
 #include <starpu_mpi_fxt.h>
@@ -1323,12 +1326,21 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 
 		if (block)
 		{
-			_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
+			//_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
 			_STARPU_MPI_TRACE_SLEEP_BEGIN();
 
 			if (mpi_wait_for_all_running)
 				/* Tell mpi_barrier */
 				STARPU_PTHREAD_COND_SIGNAL(&barrier_cond);
+		}
+#ifdef STARPU_USE_MPI_FT
+		block = block && !starpu_mpi_ft_busy();
+#endif // STARPU_USE_MPI_FT
+		if (block)
+		{
+			//_STARPU_MPI_DEBUG(3, "NO MORE REQUESTS TO HANDLE\n");
+			_STARPU_MPI_TRACE_SLEEP_BEGIN();
+
 			STARPU_PTHREAD_COND_WAIT(&progress_cond, &progress_mutex);
 
 			_STARPU_MPI_TRACE_SLEEP_END();
@@ -1538,6 +1550,11 @@ static void *_starpu_mpi_progress_thread_func(void *arg)
 				//_STARPU_MPI_DEBUG(4, "Nothing received, continue ..\n");
 			}
 		}
+#ifdef STARPU_USE_MPI_FT
+		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
+		starpu_mpi_ft_progress();
+		STARPU_PTHREAD_MUTEX_LOCK(&progress_mutex);
+#endif // STARPU_USE_MPI_FT
 #ifdef STARPU_SIMGRID
 		STARPU_PTHREAD_MUTEX_UNLOCK(&progress_mutex);
 		starpu_pthread_wait_wait(&_starpu_mpi_thread_wait);
@@ -1718,6 +1735,11 @@ void _starpu_mpi_driver_init(struct starpu_conf *conf)
 		if (tasks_freq_env > 0)
 			mpi_driver_task_freq = tasks_freq_env;
 	}
+}
+
+void _starpu_mpi_wake_up_progress_thread()
+{
+	STARPU_PTHREAD_COND_SIGNAL(&progress_cond);
 }
 
 void _starpu_mpi_driver_shutdown()

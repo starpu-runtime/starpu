@@ -44,6 +44,8 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm);
 int _starpu_mpi_wait(starpu_mpi_req *public_req, MPI_Status *status);
 int _starpu_mpi_test(starpu_mpi_req *public_req, int *flag, MPI_Status *status);
 
+void _starpu_mpi_wake_up_progress_thread();
+
 void _starpu_mpi_isend_size_func(struct _starpu_mpi_req *req);
 void _starpu_mpi_irecv_size_func(struct _starpu_mpi_req *req);
 

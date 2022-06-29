@@ -150,10 +150,12 @@ int _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum st
 	{
 		int mpi_rank = starpu_mpi_data_get_rank(data);
 		starpu_mpi_tag_t data_tag = starpu_mpi_data_get_tag(data);
+		struct _starpu_mpi_data* mpi_data = _starpu_mpi_data_get(data);
 		if(mpi_rank == -1)
 		{
 			_STARPU_ERROR("StarPU needs to be told the MPI rank of this data, using starpu_mpi_data_register\n");
 		}
+		mpi_data->modified=1;
 		if (mpi_rank == STARPU_MPI_PER_NODE)
 		{
 			mpi_rank = me;
