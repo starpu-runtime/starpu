@@ -85,8 +85,6 @@ void redux_cpu(void *descr[], void *arg)
 {
 	(void)arg;
 
-	STARPU_SKIP_IF_VALGRIND;
-
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned *src = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[1]);
 	*dst = *dst + *src;
@@ -115,8 +113,6 @@ struct starpu_codelet redux_cl =
 void neutral_cpu(void *descr[], void *arg)
 {
 	(void)arg;
-
-	STARPU_SKIP_IF_VALGRIND;
 
 	unsigned *dst = (unsigned *)STARPU_VARIABLE_GET_PTR(descr[0]);
 	*dst = 0;
