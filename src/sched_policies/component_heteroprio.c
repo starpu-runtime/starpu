@@ -338,6 +338,8 @@ static int heteroprio_progress_one(struct starpu_sched_component *component)
 	/* Note: this hardcodes acceleration order */
 	if (!heteroprio_progress_accel(component, data, STARPU_CUDA_WORKER, 1))
 		return 0;
+	if (!heteroprio_progress_accel(component, data, STARPU_HIP_WORKER, 1))
+		return 0;
 	if (!heteroprio_progress_accel(component, data, STARPU_OPENCL_WORKER, 1))
 		return 0;
 	if (!heteroprio_progress_accel(component, data, STARPU_MPI_MS_WORKER, 0))
