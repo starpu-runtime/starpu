@@ -553,7 +553,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 		{
 			struct timespec *time = NULL;
 			int profiling = starpu_profiling_status_get();
-			if (profiling && task->profiling_info) {
+			if (profiling && task->profiling_info)
+			{
 				time = &task->profiling_info->callback_start_time;
 				_starpu_clock_gettime(time);
 			}
@@ -577,7 +578,8 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 
 			_starpu_set_current_task(current_task);
 
-			if (profiling && task->profiling_info) {
+			if (profiling && task->profiling_info)
+			{
 				time = &task->profiling_info->callback_end_time;
 				_starpu_clock_gettime(time);
 			}

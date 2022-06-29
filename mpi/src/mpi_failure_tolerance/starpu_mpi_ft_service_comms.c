@@ -184,9 +184,8 @@ int _starpu_mpi_ft_service_post_send(void* msg, int count, int rank, int tag, MP
 	return 0;
 }
 
-
-
-static void _starpu_mpi_handle_ft_request_termination(struct _starpu_mpi_req *req) {
+static void _starpu_mpi_handle_ft_request_termination(struct _starpu_mpi_req *req)
+{
 	_STARPU_MPI_LOG_IN();
 	_STARPU_MPI_DEBUG(2,
 	                  "complete MPI request %p type %s tag %"PRIi64" src %d data %p ptr %p datatype '%s' count %d registered_datatype %d internal_req %p\n",

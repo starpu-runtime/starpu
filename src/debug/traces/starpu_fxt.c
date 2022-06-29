@@ -2355,9 +2355,9 @@ static const char *copy_link_type(enum starpu_is_prefetch prefetch)
 
 static void handle_checkpoint_begin(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-
 	/* Add an event in the trace */
-	if (out_paje_file) {
+	if (out_paje_file)
+	{
 #ifdef STARPU_HAVE_POTI
 		char container[STARPU_POTI_STR_LEN];
 		snprintf(container, sizeof(container), "%sp", options->file_prefix);
@@ -2371,9 +2371,9 @@ static void handle_checkpoint_begin(struct fxt_ev_64 *ev, struct starpu_fxt_opti
 
 static void handle_checkpoint_end(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-
 	/* Add an event in the trace */
-	if (out_paje_file) {
+	if (out_paje_file)
+	{
 #ifdef STARPU_HAVE_POTI
 		char container[STARPU_POTI_STR_LEN];
 		snprintf(container, sizeof(container), "%sp", options->file_prefix);

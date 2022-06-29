@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -93,7 +93,7 @@ const char *_starpu_mp_common_command_to_string(const int command)
 			return "ANSWER_EXECUTION_SUBMITTED";
 		case STARPU_MP_COMMAND_ANSWER_EXECUTION_DETACHED_SUBMITTED:
 			return "ANSWER_EXECUTION_DETACHED_SUBMITTED";
-		
+
 		/* Asynchronous notifications from slave to master */
 		case STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED:
 			return "NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED";
@@ -109,7 +109,7 @@ const char *_starpu_mp_common_command_to_string(const int command)
 			return "NOTIF_EXECUTION_DETACHED_COMPLETED";
 		case STARPU_MP_COMMAND_NOTIF_PRE_EXECUTION:
 			return "NOTIF_PRE_EXECUTION";
-		
+
 		default:
 			return "<invalid command code>";
 	}
@@ -237,7 +237,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			//printf("peer_id adapted is %d\n", node->peer_id);
 			//printf("sock_list is %d\n", sock_list[node->peer_id]);
 			//printf("async_sock_list is %d\n", async_sock_list[node->peer_id]);
-			
+
 			node->mp_connection.tcpip_mp_connection = &tcpip_sock[node->peer_id];
 
 			node->init = _starpu_tcpip_source_init;
@@ -509,8 +509,9 @@ void _starpu_sink_launch_workers(struct _starpu_mp_node *node)
                 ret = starpu_pthread_attr_init(&attr);
                 STARPU_ASSERT(ret == 0);
 		int nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
-		
-		if (nobind <= 0) {
+
+		if (nobind <= 0)
+		{
 			ret = pthread_attr_setaffinity_np(&attr, sizeof(cpu_set_t), &cpuset);
 			STARPU_ASSERT(ret == 0);
 		}

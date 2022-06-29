@@ -159,7 +159,7 @@ static void * _starpu_tcpip_thread_pending()
         fd_set writes2;
 
         fdmax = thread_pipe[0];
-        
+
         while(is_running)
         {
                 _SELECT_PRINT("in while\n");
@@ -170,7 +170,7 @@ static void * _starpu_tcpip_thread_pending()
                 ret=select(fdmax+1, &reads2, &writes2, NULL, NULL);
                 STARPU_ASSERT(ret>=0);
 
-                if(FD_ISSET(thread_pipe[0], &reads2))     
+                if(FD_ISSET(thread_pipe[0], &reads2))
                 {
                         char buf[16];
                         int n=read(thread_pipe[0], buf, sizeof(buf));
@@ -214,7 +214,7 @@ static void * _starpu_tcpip_thread_pending()
                                 if(remote_sock > fdmax)
                                         fdmax=remote_sock;
                         }
-                        
+
                 }
 
                 HASH_ITER(hh, pending_tables, table, tmp)
@@ -230,7 +230,7 @@ static void * _starpu_tcpip_thread_pending()
 
                                 int res = 0;
                                 res = what(remote_sock, msg+req->offset, len-req->offset);
-                                _SELECT_PRINT("%s res is %d\n", whatstr, res); 
+                                _SELECT_PRINT("%s res is %d\n", whatstr, res);
                                 STARPU_ASSERT_MSG(res > 0, "TCP/IP Master/Slave cannot %s a msg asynchronous with a size of %d Bytes!, the result of %s is %d, the error is %s ", whatstr, len, whatstr, res, strerror(errno));
                                 req->offset+=res;
 
@@ -251,9 +251,9 @@ static void * _starpu_tcpip_thread_pending()
                                         _starpu_tcpip_common_signal(node);
                                 }
                         }
-                        
+
                         if(FD_ISSET(remote_sock, &writes2))
-                        {  
+                        {
                         #ifdef SO_ZEROCOPY
                                 struct pollfd pfd;
                                 pfd.fd = remote_sock;
@@ -302,7 +302,7 @@ static void * _starpu_tcpip_thread_pending()
                                         lo = serr->ee_info;
 
                                         _ZC_PRINT("h=%u l=%u\n", hi, lo);
-                                        
+
                                         STARPU_ASSERT(lo == req_pending->remote_sock->nback);
                                         STARPU_ASSERT(hi < req_pending->remote_sock->nbsend);
 
@@ -330,7 +330,7 @@ static void * _starpu_tcpip_thread_pending()
                                                 else
                                                         break;
                                         }
-                                        
+
                                 }
                                 else
                                 {
@@ -353,12 +353,12 @@ static void * _starpu_tcpip_thread_pending()
                                                         int res = send(remote_sock, msg+req->offset, len-req->offset, MSG_ZEROCOPY);
                                                         _ZC_PRINT("send return %d\n", res);
                                                         STARPU_ASSERT_MSG(res > 0, "TCP/IP Master/Slave cannot send a msg asynchronous with a size of %d Bytes!, the result of send is %d, the error is %s ", len, res, strerror(errno));
-                                                        
-                                                        req->remote_sock->nbsend++;     
+
+                                                        req->remote_sock->nbsend++;
                                                         req->offset+=res;
 
                                                         _ZC_PRINT("offset after send is %d\n", req->offset);
-                                                        
+
                                                         if(req->offset == len)
                                                         {
                                                                 req->send_end = req->remote_sock->nbsend;
@@ -501,7 +501,7 @@ int _starpu_tcpip_common_mp_init()
                         sink_addr_list[i] = buf_addr;
                         _TCPIP_PRINT("Message from slave (slave address) is , ip : %s, port : %d.\n",
                         inet_ntop(AF_INET, &sink_addr_list[i].sin_addr, clnt_ip, sizeof(clnt_ip)), ntohs(sink_addr_list[i].sin_port));
-                        
+
                 }
                 /*connect each slave, generate async socket and notif socket*/
                 for (i=1; i<=2*nb_sink; i++)
@@ -528,7 +528,7 @@ int _starpu_tcpip_common_mp_init()
                                 STARPU_ASSERT(tcpip_sock[i_sink].notif_sock == 0);
                                 tcpip_sock[i_sink].notif_sock = sink_sock2;
                         }
-                        
+
                 }
 
                 close(source_sock_init);
@@ -596,7 +596,7 @@ int _starpu_tcpip_common_mp_init()
                 hints.ai_socktype = SOCK_STREAM;
 
                 int gaierrno = getaddrinfo(host, port, &hints, &res);
-                if (gaierrno) 
+                if (gaierrno)
                 {
                         fprintf(stderr,"getaddrinfo: %s\n", gai_strerror(gaierrno));
                         return -1;
@@ -612,7 +612,7 @@ int _starpu_tcpip_common_mp_init()
                                 continue;
                         else if(connect_res < 0)
                                 return -1;
-                        
+
                         _TCPIP_PRINT("source_sock is %d\n", source_sock);
                         tcpip_sock[0].sync_sock = source_sock;
                         local_flag[0] = local_sock_flag;
@@ -670,14 +670,14 @@ int _starpu_tcpip_common_mp_init()
                 hints1.ai_socktype = SOCK_STREAM;
 
                 int gaierrno1 = getaddrinfo(host, port, &hints1, &res1);
-                if (gaierrno1) 
+                if (gaierrno1)
                 {
                         fprintf(stderr,"getaddrinfo: %s\n", gai_strerror(gaierrno1));
                         return -1;
                 }
 
                 for(cur1 = res1; cur1; cur1 = cur1->ai_next)
-                {       
+                {
                         /*async connect*/
                         int zerocopy;
                         int connect_res = slave_connect(&source_async_sock, cur1, NULL, NULL, &zerocopy, NULL);
@@ -730,7 +730,7 @@ int _starpu_tcpip_common_mp_init()
 
                         _TCPIP_PRINT("address of other slave is, ip : %s, port : %d.\n",
                         inet_ntop(AF_INET, &serv_addr.sin_addr, clnt_ip, sizeof(clnt_ip)), ntohs(serv_addr.sin_port));
-                        
+
                         int serv_sock;
                         int local_sock_flag;
                         int connect_sync_res = slave_connect(&serv_sock, NULL, NULL, &serv_addr, NULL, &local_sock_flag);
@@ -850,7 +850,7 @@ int _starpu_tcpip_common_mp_init()
                 free(host);
                 free(port);
         }
-        
+
         free(sink_addr_list);
 
         return 1;
@@ -910,20 +910,20 @@ int _starpu_tcpip_common_recv_is_ready(const struct _starpu_mp_node *mp_node)
         int fd = mp_node->mp_connection.tcpip_mp_connection->sync_sock;
         int res;
 
-        struct timeval tv = {
-        .tv_sec = 0,
-        .tv_usec = 0
+        struct timeval tv =
+	{
+		.tv_sec = 0,
+		.tv_usec = 0
         };
 
         FD_ZERO(&set);
         FD_SET(fd, &set);
 
-        while((res = select(fd+1, &set, NULL, NULL, &tv)) == -1 && errno == EINTR)
-        ;
+        while((res = select(fd+1, &set, NULL, NULL, &tv)) == -1 && errno == EINTR);
 
         STARPU_ASSERT_MSG(res >= 0, "There is an error when doing socket select %s %d\n", strerror(errno), errno);
 
-        return res;  
+        return res;
 }
 
 int _starpu_tcpip_common_notif_recv_is_ready(const struct _starpu_mp_node *mp_node)
@@ -932,20 +932,20 @@ int _starpu_tcpip_common_notif_recv_is_ready(const struct _starpu_mp_node *mp_no
         int fd = mp_node->mp_connection.tcpip_mp_connection->notif_sock;
         int res;
 
-        struct timeval tv = {
-        .tv_sec = 0,
-        .tv_usec = 0
+        struct timeval tv =
+	{
+		.tv_sec = 0,
+		.tv_usec = 0
         };
 
         FD_ZERO(&set);
         FD_SET(fd, &set);
 
-        while((res = select(fd+1, &set, NULL, NULL, &tv)) == -1 && errno == EINTR)
-        ;
+        while((res = select(fd+1, &set, NULL, NULL, &tv)) == -1 && errno == EINTR);
 
         STARPU_ASSERT_MSG(res >= 0, "There is an error when doing socket select %s %d\n", strerror(errno), errno);
 
-        return res;  
+        return res;
 }
 
 int _starpu_tcpip_common_notif_send_is_ready(const struct _starpu_mp_node *mp_node)
@@ -954,20 +954,20 @@ int _starpu_tcpip_common_notif_send_is_ready(const struct _starpu_mp_node *mp_no
         int fd = mp_node->mp_connection.tcpip_mp_connection->notif_sock;
         int res;
 
-        struct timeval tv = {
-        .tv_sec = 0,
-        .tv_usec = 0
+        struct timeval tv =
+	{
+		.tv_sec = 0,
+		.tv_usec = 0
         };
 
         FD_ZERO(&set);
         FD_SET(fd, &set);
 
-        while((res = select(fd+1, NULL, &set, NULL, &tv)) == -1 && errno == EINTR)
-        ;
+        while((res = select(fd+1, NULL, &set, NULL, &tv)) == -1 && errno == EINTR);
 
         STARPU_ASSERT_MSG(res >= 0, "There is an error when doing socket select %s %d\n", strerror(errno), errno);
 
-        return res;  
+        return res;
 }
 
 void _starpu_tcpip_common_wait(const struct _starpu_mp_node *mp_node)
@@ -1005,7 +1005,7 @@ void _starpu_tcpip_common_signal(const struct _starpu_mp_node *mp_node STARPU_AT
 {
         int res;
         res = pthread_kill(master_thread, SIGUSR1);
-        
+
         STARPU_ASSERT(res == 0);
 }
 
@@ -1039,7 +1039,7 @@ static void __starpu_tcpip_common_send(const struct _starpu_mp_node *node, void 
 
 /* SEND to any node */
 void _starpu_tcpip_common_send_to_device(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, int devid, void *msg, int len, void * event)
-{       
+{
         struct _starpu_tcpip_socket *dst_sock = &tcpip_sock[devid];
         _starpu_tcpip_common_send_to_socket(node, dst_sock, msg, len, event, 0);
 }
@@ -1152,7 +1152,7 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
                                 _TCPIP_PRINT("msg after write is %x, res is %d\n", *((int *) (uintptr_t)msg), res);
                                 STARPU_ASSERT_MSG(res > 0, "TCP/IP Master/Slave cannot %s a msg synchronous with a size of %d Bytes!, the result of %s is %d, the error is %s ", whatstr, len, whatstr, res, strerror(errno));
                                 offset+=res;
-                        }  
+                        }
                 }
                 else
                 {
@@ -1167,10 +1167,10 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
                                 offset+=res;
                         }
                 }
-                
+
                 _TCPIP_PRINT("finish sync send\n");
         }
-        
+
 }
 
 static void _starpu_tcpip_common_polling_node(struct _starpu_mp_node * node)
@@ -1199,14 +1199,14 @@ static void _starpu_tcpip_common_polling_node(struct _starpu_mp_node * node)
 static unsigned int _starpu_tcpip_common_action_completion(int wait, struct _starpu_async_channel * event)
 {
         struct _starpu_tcpip_ms_async_event *tcpip_ms_event = _starpu_tcpip_ms_async_event(&event->event);
-        
+
         if (tcpip_ms_event->requests != NULL)
         {
                 struct _starpu_tcpip_ms_request * req;
                 struct _starpu_tcpip_ms_request * req_next;
 
                 //_TCPIP_PRINT("event requests is %p\n", req);
-                for (req = _starpu_tcpip_ms_request_multilist_begin_event(tcpip_ms_event->requests); 
+                for (req = _starpu_tcpip_ms_request_multilist_begin_event(tcpip_ms_event->requests);
                      req != _starpu_tcpip_ms_request_multilist_end_event(tcpip_ms_event->requests);
                      req = req_next)
                 {
@@ -1233,7 +1233,7 @@ static unsigned int _starpu_tcpip_common_action_completion(int wait, struct _sta
                                 //_TCPIP_PRINT("common finished receiver is %d\n", event->starpu_mp_common_finished_receiver);
 
                         }
-                
+
                 }
 
                 /* When the list is empty, we finished to wait each request */
@@ -1302,7 +1302,7 @@ void _starpu_tcpip_common_barrier(void)
         }
         /*slave part*/
         else
-        {       
+        {
                 //_TCPIP_PRINT("master socket in sock list is %d\n", sock_list[0]);
                 ret=write(tcpip_sock[0].sync_sock, &buf, 1);
                 printf("ret1 is %d\n", ret);
@@ -1341,7 +1341,7 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
                         // _TCPIP_PRINT("index_sink is %d\n", index_sink);
                         if(index_sink == sender)
                         {
-                                
+
                                 //_TCPIP_PRINT("sender id is %d\n", sender);
                                 double start, end;
                                 /* measure bandwidth sender to receiver */
@@ -1373,7 +1373,7 @@ void _starpu_tcpip_common_measure_bandwidth_latency(double timing_dtod[STARPU_MA
                         // _TCPIP_PRINT("index_sink is %d\n", index_sink);
                         if (index_sink == receiver)
                         {
-                                
+
                                 //_TCPIP_PRINT("receiver id is %d\n", receiver);
                                 /* measure bandwidth sender to receiver*/
                                 for (iter = 0; iter < NITER; iter++)

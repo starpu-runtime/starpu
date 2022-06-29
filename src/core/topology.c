@@ -1025,7 +1025,8 @@ void _starpu_topology_configure_workers(struct _starpu_machine_topology *topolog
 			if (type != STARPU_CPU_WORKER)
 				_starpu_cpu_busy_cpu(1);
 		}
-		else {
+		else
+		{
 			config->workers[worker_idx].set = worker_set;
 			if ((!worker_set || worker_set->workers == &config->workers[worker_idx])
 			 && (!driver_worker_set || driver_worker_set == worker_set)
