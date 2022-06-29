@@ -124,6 +124,7 @@ static int fifo_push_local_task(struct starpu_sched_component * component, struc
 			{
 				double end = fifo_estimated_end(component);
 				double tfer_end = now + task->predicted_transfer;
+				/* FIXME: We don't have overlap when running CPU-CPU transfers */
 				if(tfer_end < end)
 					task->predicted_transfer = 0.0;
 				else

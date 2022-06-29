@@ -342,6 +342,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 	fifo->exp_start = isnan(fifo->exp_start) ? now + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, now);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 
+	/* FIXME: We don't have overlap when running CPU-CPU transfers */
 	if ((now + predicted_transfer) < fifo->exp_end)
 	{
 		/* We may hope that the transfer will be finished by
