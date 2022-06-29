@@ -142,6 +142,12 @@ static int test_cuda(void)
 
 	int ret;
 	struct starpu_conf conf;
+
+	/* FIXME: starpu_driver would need another field to specify which stream we're driving */
+	if (starpu_get_env_number_default("STARPU_NWORKER_PER_CUDA", 1) != 1 &&
+	    starpu_get_env_number_default("STARPU_CUDA_THREAD_PER_WORKER", -1) > 0)
+		return STARPU_TEST_SKIPPED;
+
 	ret = starpu_conf_init(&conf);
 	if (ret == -EINVAL)
 		return 1;
