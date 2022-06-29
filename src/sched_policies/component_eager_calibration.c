@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,9 +17,9 @@
 #include <starpu_sched_component.h>
 #include <starpu_scheduler.h>
 
-static int eager_calibration_push_task(struct starpu_sched_component * component, struct starpu_task * task)
+int eager_calibration_push_task(struct starpu_sched_component * component, struct starpu_task * task)
 {
-	STARPU_ASSERT(component && task && starpu_sched_component_is_eager_calibration(component));
+	STARPU_ASSERT(component && task);
 	STARPU_ASSERT(starpu_sched_component_can_execute_task(component,task));
 	
 	starpu_task_bundle_t bundle = task->bundle;

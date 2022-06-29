@@ -263,11 +263,11 @@ static int heteroprio_progress_noaccel(struct starpu_sched_component *component,
 			suitable_components);
 
 	/* If no suitable components were found, it means that the perfmodel of
-	 * the task had been purged since it has been pushed on the mct component.
-	 * We should send a push_fail message to its parent so that it will
+	 * the task had been purged since it has been pushed on the mct component. */
+	/* FIXME: We should perform a push_back message to its parent so that it will
 	 * be able to reschedule the task properly. */
 	if(nsuitable_components == 0)
-		return 1;
+		return eager_calibration_push_task(component, task);
 
 	/* Entering critical section to make sure no two workers
 	   make scheduling decisions at the same time */
@@ -295,13 +295,13 @@ static int heteroprio_progress_noaccel(struct starpu_sched_component *component,
 			suitable_components, nsuitable_components);
 
 	/* If no best component is found, it means that the perfmodel of
-	 * the task had been purged since it has been pushed on the mct component.
-	 * We should send a push_fail message to its parent so that it will
+	 * the task had been purged since it has been pushed on the mct component. */
+	/* FIXME: We should perform a push_back message to its parent so that it will
 	 * be able to reschedule the task properly. */
 	if(best_icomponent == -1)
 	{
 		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
-		return 1;
+		return eager_calibration_push_task(component, task);
 	}
 
 	best_component = component->children[best_icomponent];

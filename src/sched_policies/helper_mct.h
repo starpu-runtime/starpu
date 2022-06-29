@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Télécom-Sud Paris
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -71,5 +71,7 @@ void starpu_mct_compute_energy(struct starpu_sched_component *component,
 			       double *local_energy,
 			       unsigned *suitable_components,
 			       unsigned nsuitable_components);
+
+int eager_calibration_push_task(struct starpu_sched_component * component, struct starpu_task * task);
 
 #pragma GCC visibility pop
