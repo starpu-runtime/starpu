@@ -323,8 +323,14 @@ int _starpu_hip_init_workers_binding_and_memory(struct _starpu_machine_config *c
 void starpu_hip_set_device(unsigned devid STARPU_ATTRIBUTE_UNUSED)
 {
 	hipError_t hipres;
+	int attempts = 0;
 
 	hipres = hipSetDevice(devid);
+	while (hipres == hipErrorDeinitialized && ++attempts < 10)
+	{
+		usleep(100000);
+		hipres = hipSetDevice(devid);
+	}
 
 	if (STARPU_UNLIKELY(hipres))
 		STARPU_HIP_REPORT_ERROR(hipres);
@@ -360,11 +366,18 @@ static void _starpu_hip_limit_gpu_mem_if_needed(unsigned devid)
 static void init_device_context(unsigned devid, unsigned memnode)
 {
 	hipError_t hipres;
+	int attempts = 0;
 
 	starpu_hip_set_device(devid);
 
 	/* force HIP to initialize the context for real */
 	hipres = hipInit(0);
+	while (hipres == hipErrorDeinitialized && ++attempts < 10)
+	{
+		usleep(100000);
+		hipres = hipInit(0);
+	}
+
 	if (STARPU_UNLIKELY(hipres))
 	{
 		if (hipres != hipSuccess)
