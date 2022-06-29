@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -29,5 +29,23 @@
    Memcheck:Leak
    ...
    fun:allocate_thread
+   ...
+}
+
+# This seems like a leak in papi
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Leak
+   match-leak-kinds: definite
+   ...
+   fun:pfmlib_build_fstr.part.0
+   fun:pfmlib_perf_event_encode
+   fun:allocate_native_event
+   fun:_pe_libpfm4_ntv_name_to_code
+   fun:_papi_hwi_native_name_to_code
+   fun:PAPI_event_name_to_code
+   fun:PAPI_event_name_to_code
+   fun:PAPI_add_named_event
+   fun:add_event
    ...
 }
