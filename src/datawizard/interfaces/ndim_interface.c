@@ -126,7 +126,7 @@ static void register_ndim_handle(starpu_data_handle_t handle, int home_node, voi
 			local_interface->dev_handle = ndim_interface->dev_handle;
 			local_interface->offset = ndim_interface->offset;
 			uint32_t* ldn_org = ndim_interface->ldn;
-			uint32_t* ldn_cpy:
+			uint32_t* ldn_cpy;
 			_STARPU_MALLOC(ldn_cpy, ndim*sizeof(uint32_t));
 			if (ndim)
 				memcpy(ldn_cpy, ldn_org, ndim*sizeof(uint32_t));
