@@ -99,7 +99,15 @@ static void dmda_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nwo
 
 static void dmda_remove_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
-	// nothing to do
+	struct _starpu_dmda_data *dt = (struct _starpu_dmda_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
+
+	unsigned i;
+	for (i = 0; i < nworkers; i++)
+	{
+		int workerid = workerids[i];
+		starpu_st_fifo_taskq_destroy(dt->queue_array[workerid]);
+		dt->queue_array[workerid] = NULL;
+	}
 }
 
 static int dm_push_task(struct starpu_task *task)
