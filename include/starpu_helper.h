@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -185,6 +185,13 @@ double starpu_timing_now(void);
    callback_arg as argument.
 */
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg);
+
+/**
+   Like starpu_data_cpy(), copy the content of \p src_handle into \p dst_handle,
+   but additionally take a \p priority parameter to sort it among the whole task
+   graph.
+*/
+int starpu_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle, int asynchronous, void (*callback_func)(void*), void *callback_arg, int priority);
 
 /**
    Create a copy of \p src_handle, and return a new handle in \p dst_handle,
