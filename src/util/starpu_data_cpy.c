@@ -118,7 +118,7 @@ static struct starpu_codelet copy_cl =
 
 int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
 		     int asynchronous, void (*callback_func)(void*), void *callback_arg,
-		     int reduction, struct starpu_task *reduction_dep_task)
+		     int reduction, struct starpu_task *reduction_dep_task, int priority)
 {
 
 	struct starpu_task *task = starpu_task_create();
@@ -141,7 +141,7 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 	task->cl_arg = interface_id;
 	task->cl_arg_size = sizeof(*interface_id);
 	task->cl_arg_free = 1;
-
+	task->priority = priority;
 	task->callback_func = callback_func;
 	task->callback_arg = callback_arg;
 
@@ -159,9 +159,15 @@ int _starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_h
 }
 
 int starpu_data_cpy(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
-			int asynchronous, void (*callback_func)(void*), void *callback_arg)
+		    int asynchronous, void (*callback_func)(void*), void *callback_arg)
 {
-	return _starpu_data_cpy(dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL);
+	return _starpu_data_cpy(dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL, STARPU_DEFAULT_PRIO);
+}
+
+int starpu_data_cpy_priority(starpu_data_handle_t dst_handle, starpu_data_handle_t src_handle,
+			     int asynchronous, void (*callback_func)(void*), void *callback_arg, int priority)
+{
+	return _starpu_data_cpy(dst_handle, src_handle, asynchronous, callback_func, callback_arg, 0, NULL, priority);
 }
 
 /* TODO: implement copy on write, and introduce starpu_data_dup as well */
@@ -188,7 +194,7 @@ int starpu_data_dup_ro(starpu_data_handle_t *dst_handle, starpu_data_handle_t sr
 	_starpu_spin_unlock(&src_handle->header_lock);
 
 	starpu_data_register_same(dst_handle, src_handle);
-	_starpu_data_cpy(*dst_handle, src_handle, asynchronous, NULL, NULL, 0, NULL);
+	_starpu_data_cpy(*dst_handle, src_handle, asynchronous, NULL, NULL, 0, NULL, STARPU_DEFAULT_PRIO);
 	(*dst_handle)->readonly = 1;
 
 	_starpu_spin_lock(&src_handle->header_lock);
