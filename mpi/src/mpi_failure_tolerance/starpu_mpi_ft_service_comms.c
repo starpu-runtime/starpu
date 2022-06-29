@@ -74,13 +74,14 @@ int _starpu_mpi_ft_service_submit_rdy()
 	max_loop = MIN(SIMULTANEOUS_ACK_MSG_RECV_MAX-pending_ack_msgs_recv, ready_ack_msgs_recv);
 	for (i=0 ; i<max_loop ; i++)
 	{
-		struct _starpu_mpi_cp_ack_arg_cb* arg = malloc(sizeof(struct _starpu_mpi_cp_ack_arg_cb));
+		struct _starpu_mpi_cp_ack_arg_cb* arg;
+		_STARPU_MALLOC(arg, sizeof(struct _starpu_mpi_cp_ack_arg_cb));
 		req = _starpu_mpi_request_fill(NULL, MPI_ANY_SOURCE, _STARPU_MPI_TAG_CP_ACK, MPI_COMM_WORLD,
 					       1, 0, 0, ack_msg_recv_cb, arg, RECV_REQ, NULL,
 					       1, 0, sizeof(arg->msg));
 		req->ptr = (void*)&arg->msg;
 		req->datatype = MPI_BYTE;
-		req->status = malloc(sizeof(MPI_Status));
+		_STARPU_MALLOC(req->status, sizeof(MPI_Status));
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_ft_service_requests_mutex);
 		MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.node.rank, req->node_tag.data_tag,
@@ -96,13 +97,14 @@ int _starpu_mpi_ft_service_submit_rdy()
 	max_loop = MIN(SIMULTANEOUS_CP_INFO_RECV_MAX-pending_cp_info_msgs_recv, ready_cp_info_msgs_recv);
 	for (i=0 ; i<max_loop ; i++)
 	{
-		struct _starpu_mpi_cp_discard_arg_cb* arg = malloc(sizeof(struct _starpu_mpi_cp_discard_arg_cb));
+		struct _starpu_mpi_cp_discard_arg_cb* arg;
+		_STARPU_MALLOC(arg, sizeof(struct _starpu_mpi_cp_discard_arg_cb));
 		req = _starpu_mpi_request_fill(NULL, MPI_ANY_SOURCE, _STARPU_MPI_TAG_CP_INFO, MPI_COMM_WORLD,
 		                         1, 0, 0, cp_info_recv_cb, arg, RECV_REQ, NULL,
 		                         1, 0, sizeof(arg->msg));
 		req->ptr = (void*)&arg->msg;
 		req->datatype = MPI_BYTE;
-		req->status = malloc(sizeof(MPI_Status));
+		_STARPU_MALLOC(req->status, sizeof(MPI_Status));
 
 		STARPU_PTHREAD_MUTEX_LOCK(&detached_ft_service_requests_mutex);
 		MPI_Irecv(req->ptr, req->count, req->datatype, req->node_tag.node.rank, req->node_tag.data_tag,
@@ -170,7 +172,7 @@ int _starpu_mpi_ft_service_post_send(void* msg, int count, int rank, int tag, MP
 //	TODO: Check compatibility with prio
 	req->ptr = msg;
 	req->datatype = MPI_BYTE;
-	req->status = malloc(sizeof(MPI_Status));
+	_STARPU_MALLOC(req->status, sizeof(MPI_Status));
 
 	_STARPU_MPI_DEBUG(5, "Pushing ft service msg: %s req %p tag %"PRIi64" src %d ptr %p\n", _starpu_mpi_request_type(SEND_REQ), req, tag, rank, msg);
 

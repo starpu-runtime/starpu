@@ -18,6 +18,7 @@
 #ifdef BUILDING_STARPU
 #include <datawizard/memory_nodes.h>
 #endif
+#include <common/utils.h>
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data);
 static int map_ndim(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
@@ -125,7 +126,8 @@ static void register_ndim_handle(starpu_data_handle_t handle, int home_node, voi
 			local_interface->dev_handle = ndim_interface->dev_handle;
 			local_interface->offset = ndim_interface->offset;
 			uint32_t* ldn_org = ndim_interface->ldn;
-			uint32_t* ldn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
+			uint32_t* ldn_cpy:
+			_STARPU_MALLOC(ldn_cpy, ndim*sizeof(uint32_t));
 			if (ndim)
 				memcpy(ldn_cpy, ldn_org, ndim*sizeof(uint32_t));
 			local_interface->ldn = ldn_cpy;
@@ -135,13 +137,15 @@ static void register_ndim_handle(starpu_data_handle_t handle, int home_node, voi
 			local_interface->ptr = 0;
 			local_interface->dev_handle = 0;
 			local_interface->offset = 0;
-			uint32_t* ldn_zero = (uint32_t*)calloc(ndim, sizeof(uint32_t));
+			uint32_t* ldn_zero;
+			_STARPU_CALLOC(ldn_zero, ndim, sizeof(uint32_t));
 			local_interface->ldn = ldn_zero;
 		}
 
 		local_interface->id = ndim_interface->id;
 		uint32_t* nn_org = ndim_interface->nn;
-		uint32_t* nn_cpy = (uint32_t*)malloc(ndim*sizeof(uint32_t));
+		uint32_t* nn_cpy;
+		_STARPU_MALLOC(nn_cpy, ndim*sizeof(uint32_t));
 		if (ndim)
 			memcpy(nn_cpy, nn_org, ndim*sizeof(uint32_t));
 		local_interface->nn = nn_cpy;

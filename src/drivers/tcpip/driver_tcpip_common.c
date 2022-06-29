@@ -192,7 +192,7 @@ static void * _starpu_tcpip_thread_pending()
                                 HASH_FIND_INT(pending_tables, &remote_sock, table);
                                 if(table == NULL)
                                 {
-                                        table = malloc(sizeof(*table));
+                                        _STARPU_MALLOC(table, sizeof(*table));
                                         table->remote_sock = remote_sock;
                                         _starpu_tcpip_ms_request_multilist_head_init_thread(&table->send_list);
                                         _starpu_tcpip_ms_request_multilist_head_init_thread(&table->recv_list);
@@ -440,10 +440,11 @@ int _starpu_tcpip_common_mp_init()
         /*get host info*/
         host_port = starpu_getenv("STARPU_TCPIP_MS_MASTER");
 
-        tcpip_sock = (struct _starpu_tcpip_socket*)calloc(nb_sink + 1, sizeof(struct _starpu_tcpip_socket));
-        local_flag = (int*)malloc((nb_sink + 1)*sizeof(int));
+        _STARPU_CALLOC(tcpip_sock, nb_sink + 1, sizeof(struct _starpu_tcpip_socket));
+        _STARPU_MALLOC(local_flag, (nb_sink + 1)*sizeof(int));
 
-        struct sockaddr_in* sink_addr_list = (struct sockaddr_in *)malloc((nb_sink + 1)*sizeof(struct sockaddr_in));
+        struct sockaddr_in* sink_addr_list;
+	_STARPU_MALLOC(sink_addr_list, (nb_sink + 1)*sizeof(struct sockaddr_in));
 
         char clnt_ip[20];
         /*master part*/
@@ -1103,11 +1104,12 @@ static void _starpu_tcpip_common_action_socket(what_t what, const char * whatstr
                 /* Initialize the list */
                 if (tcpip_ms_event->requests == NULL)
                 {
-                        tcpip_ms_event->requests = malloc(sizeof(*tcpip_ms_event->requests));
+                        _STARPU_MALLOC(tcpip_ms_event->requests, sizeof(*tcpip_ms_event->requests));
                         _starpu_tcpip_ms_request_multilist_head_init_event(tcpip_ms_event->requests);
                 }
 
-                struct _starpu_tcpip_ms_request * req = malloc(sizeof(*req));
+                struct _starpu_tcpip_ms_request *req;
+		_STARPU_MALLOC(req, sizeof(*req));
                 _starpu_tcpip_ms_request_multilist_init_thread(req);
                 _starpu_tcpip_ms_request_multilist_init_event(req);
                 _starpu_tcpip_ms_request_multilist_init_pending(req);

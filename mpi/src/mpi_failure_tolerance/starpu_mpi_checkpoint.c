@@ -16,6 +16,7 @@
 
 #include <stdlib.h>
 
+#include <common/utils.h>
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint.h>
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint_template.h>
 #include <mpi_failure_tolerance/starpu_mpi_checkpoint_package.h>
@@ -145,14 +146,14 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 		{
 			case STARPU_VALUE:
 				// TODO: Maybe do not pass via starpu handles for external data, and need to reimplement mpi comm layer for
-				arg = malloc(sizeof(struct _starpu_mpi_cp_ack_arg_cb));
+				_STARPU_MALLOC(arg, sizeof(struct _starpu_mpi_cp_ack_arg_cb));
 				arg->tag = item->tag;
 				arg->type = STARPU_VALUE;
 				arg->count = item->count;
 				arg->cache_flag = 0;
 				if (item->backupped_by != -1)
 				{
-					cpy_ptr = malloc(item->count);
+					_STARPU_MALLOC(cpy_ptr, item->count);
 					memcpy(cpy_ptr, item->ptr, item->count);
 					starpu_variable_data_register(&arg->handle, STARPU_MAIN_RAM, (uintptr_t)cpy_ptr, item->count);
 					arg->rank = item->backupped_by;
@@ -165,7 +166,7 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 				{
 					arg->msg.checkpoint_id = cp_template->cp_id;
 					arg->msg.checkpoint_instance = current_instance;
-					cpy_ptr = malloc(item->count);
+					_STARPU_MALLOC(cpy_ptr, item->count);
 					starpu_variable_data_register(&arg->handle, STARPU_MAIN_RAM, (uintptr_t)cpy_ptr, item->count);
 					arg->rank = item->backup_of;
 					_STARPU_MPI_DEBUG(0, "Submit CP: receiving external data tag:%ld, from :%d\n", arg->tag, arg->rank);
@@ -188,7 +189,7 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 						break; // We don't want to CP a data that is still at initial state.
 					}
 					_STARPU_MPI_DEBUG(0, "Submit CP: sending starPU data to %d (tag %d)\n", item->backupped_by, (int)starpu_mpi_data_get_tag(handle));
-					arg = malloc(sizeof(struct _starpu_mpi_cp_ack_arg_cb));
+					_STARPU_MALLOC(arg, sizeof(struct _starpu_mpi_cp_ack_arg_cb));
 					arg->rank = item->backupped_by;
 					arg->handle = handle;
 					arg->tag = starpu_mpi_data_get_tag(handle);
@@ -209,7 +210,7 @@ int starpu_mpi_checkpoint_template_submit(starpu_mpi_checkpoint_template_t cp_te
 						break; // We don't want to CP a data that is still at initial state.
 					}
 					_STARPU_MPI_DEBUG(0, "Submit CP: receiving starPU data from %d (tag %d)\n", starpu_mpi_data_get_rank(handle), (int)starpu_mpi_data_get_tag(handle));
-					arg = malloc(sizeof(struct _starpu_mpi_cp_ack_arg_cb));
+					_STARPU_MALLOC(arg, sizeof(struct _starpu_mpi_cp_ack_arg_cb));
 					arg->rank = item->backup_of;
 					arg->handle = handle;
 					arg->tag = starpu_mpi_data_get_tag(handle);
