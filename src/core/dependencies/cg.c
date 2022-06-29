@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -358,6 +358,7 @@ void _starpu_notify_cg_list(void *pred, struct _starpu_cg_list *successors)
 	unsigned succ;
 
 	_starpu_spin_lock(&successors->lock);
+	successors->terminated = 1;
 	/* Note: some thread might be concurrently adding other items */
 	for (succ = 0; succ < successors->nsuccs; succ++)
 	{
@@ -376,7 +377,6 @@ void _starpu_notify_cg_list(void *pred, struct _starpu_cg_list *successors)
 		_starpu_notify_cg(pred, cg);
 		_starpu_spin_lock(&successors->lock);
 	}
-	successors->terminated = 1;
 	_starpu_spin_unlock(&successors->lock);
 }
 
