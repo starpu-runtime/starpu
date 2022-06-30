@@ -1758,45 +1758,6 @@ void _starpu_watchdog_shutdown(void)
 	STARPU_PTHREAD_JOIN(watchdog_thread, NULL);
 }
 
-#if 0
-/* TODO: Work in progress */
-struct _starpu_trs_handle_shadow
-{
-	struct starpu_data_handle *real_handle;
-	struct starpu_data_handle *shadow_handle;
-};
-
-static void _starpu_handle_real_to_shadow(void *buffers[], void *cl_args)
-{
-	struct starpu_data_interface_ops *itf = cl_args;
-	void *itf_real_src=buffers[0];
-	void *itf_shadow_dst=buffers[1];
-	if (!itf->copy_methods->ram_to_ram)
-	{
-		itf->copy_methods->any_to_any(itf_real_src, STARPU_MAIN_RAM, itf_shadow_dst, STARPU_MAIN_RAM, NULL);
-	}
-	else
-	{
-		itf->copy_methods->ram_to_ram(itf_real_src, STARPU_MAIN_RAM, itf_shadow_dst, STARPU_MAIN_RAM);
-	}
-}
-
-static void _starpu_handle_shadow_to_real(void *buffers[], void *cl_args)
-{
-	struct starpu_data_interface_ops *itf = cl_args;
-	void *itf_real_dst=buffers[0];
-	void *itf_shadow_src=buffers[1];
-	if (!itf->copy_methods->ram_to_ram)
-	{
-		itf->copy_methods->any_to_any(itf_shadow_src, STARPU_MAIN_RAM, itf_real_dst, STARPU_MAIN_RAM, NULL);
-	}
-	else
-	{
-		itf->copy_methods->ram_to_ram(itf_shadow_src, STARPU_MAIN_RAM, itf_real_dst, STARPU_MAIN_RAM);
-	}
-}
-#endif
-
 /* Transaction clean up callback called when the transaction trs_end
  * task completes. */
 static void _starpu_transaction_callback(void *_p_trs)
@@ -1949,12 +1910,8 @@ struct starpu_codelet _starpu_codelet_trs_next_epoch =
  * . do_start_sync_handle: a starpu data handle on which the transaction
  * start should depend on, or NULL if no sync is required. The handle is
  * passed to do_start_func()
- * . do_start_arg: an argument passed to do_start_func().
- * . do_commit_func: a boolean function to decide whether a transaction
- * epoch should be committed or not (TODO: work in progress).
- * . do_commit_arg: an argument passed to do_commit_func.
- * . flags: transactions flags (unused for now). */
-static struct starpu_transaction *_do_starpu_transaction_open(int(*do_start_func)(void *buffer, void *arg), starpu_data_handle_t do_start_sync_handle, void *do_start_arg, int(*do_commit_func)(void *buffer, void *arg), void *do_commit_arg, int flags)
+ * . do_start_arg: an argument passed to do_start_func().*/
+static struct starpu_transaction *_do_starpu_transaction_open(int(*do_start_func)(void *buffer, void *arg), starpu_data_handle_t do_start_sync_handle, void *do_start_arg)
 {
 	struct starpu_transaction *p_trs = NULL;
 	int ret = starpu_malloc((void **)&p_trs, sizeof(*p_trs));
@@ -1963,13 +1920,6 @@ static struct starpu_transaction *_do_starpu_transaction_open(int(*do_start_func
 	_starpu_trs_epoch_list_init(&p_trs->epoch_list);
 
 	p_trs->do_start_func = do_start_func;
-
-	STARPU_ASSERT(do_commit_func == NULL); /* TODO */
-	p_trs->do_commit_func = do_commit_func;
-	p_trs->do_commit_arg = do_commit_arg;
-
-	STARPU_ASSERT(flags == 0); /* TODO */
-	p_trs->flags = flags;
 
 	p_trs->dummy_data = 0;
 	starpu_variable_data_register(&p_trs->handle, STARPU_MAIN_RAM, (uintptr_t)&p_trs->dummy_data, sizeof(p_trs->dummy_data));
@@ -2010,7 +1960,7 @@ static struct starpu_transaction *_do_starpu_transaction_open(int(*do_start_func
 
 struct starpu_transaction *starpu_transaction_open(int(*do_start_func)(void *buffer, void *arg), void *do_start_arg)
 {
-	return _do_starpu_transaction_open(do_start_func, NULL, do_start_arg, NULL, NULL, 0);
+	return _do_starpu_transaction_open(do_start_func, NULL, do_start_arg);
 }
 
 void starpu_transaction_close(struct starpu_transaction *p_trs)

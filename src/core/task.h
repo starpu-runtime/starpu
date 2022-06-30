@@ -167,9 +167,6 @@ enum _starpu_trs_epoch_state
 };
 
 LIST_TYPE(_starpu_trs_epoch,
-	/** TODO: work in progress */
-	UT_hash_handle h_shadow_handles;
-
 	enum _starpu_trs_epoch_state state;
 
 	/** if 1, the epoch entry task will wait on some user-supplied handle
@@ -206,10 +203,6 @@ struct starpu_transaction
 
 	/** flags, unused for now */
 	int flags;
-
-	/** TODO: work in progress */
-	int (*do_commit_func)(void *buffer, void* arg);
-	void *do_commit_arg;
 };
 
 #endif // __CORE_TASK_H__
