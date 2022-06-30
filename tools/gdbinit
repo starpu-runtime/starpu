@@ -770,7 +770,7 @@ define starpu-memusage
   set scheduler-locking on
   set $node = 0
   while $node < _starpu_descr.nnodes
-    printf "\n\nNode %u (%d/MiB/%dMiB):\n", $node, used_size[$node] >> 20, global_size[$node] >> 20
+    printf "\n\nNode %u (%d/MiB/%dMiB):\n", $node, _starpu_config.nodes[$node].used_size >> 20, _starpu_config.nodes[$node].global_size >> 20
     set $total = 0
     set $total_b = 0
     set $wt = 0
@@ -805,7 +805,7 @@ define starpu-memusage
     set $writing_b = 0
     set $overwriting = 0
     set $overwriting_b = 0
-    set $mc = mc_list[$node]->_head
+    set $mc = _starpu_config.nodes[$node].mc_list->_head
     set pagination off
     while $mc != 0
       set $handle = $mc->data
@@ -918,7 +918,7 @@ define starpu-memusage
     printf "    reading: %u, %uMiB\n", $reading, $reading_b / 1048576
     printf "    writing: %u, %uMiB\n", $writing, $writing_b / 1048576
     printf "    overwriting: %u, %uMiB\n", $overwriting, $overwriting_b / 1048576
-    printf "\n  cached: %u, %uMiB\n", mc_cache_nb[$node], mc_cache_size[$node] / 1048576
+    printf "\n  cached: %u, %uMiB\n", _starpu_config.nodes[$node].mc_cache_nb, _starpu_config.nodes[$node].mc_cache_size / 1048576
     set $node = $node + 1
   end
 end
