@@ -340,17 +340,10 @@ static void pybuffer_unregister_data_handle(starpu_data_handle_t handle)
 
 static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsigned node)
 {
-	/*make sure we own the GIL*/
-	PyGILState_STATE state = PyGILState_Ensure();
-
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
-
 	starpu_ssize_t requested_memory = pybuffer_interface->buffer_size;
 
 	pybuffer_interface->py_buffer = (char*)starpu_malloc_on_node(node, requested_memory);
-
-	/* release GIL */
-	PyGILState_Release(state);
 
 	if (!pybuffer_interface->py_buffer)
 		return -ENOMEM;
@@ -360,17 +353,10 @@ static starpu_ssize_t pybuffer_allocate_data_on_node(void *data_interface, unsig
 
 static void pybuffer_free_data_on_node(void *data_interface, unsigned node)
 {
-	/*make sure we own the GIL*/
-	PyGILState_STATE state = PyGILState_Ensure();
-
 	struct starpupy_buffer_interface *pybuffer_interface = (struct starpupy_buffer_interface *) data_interface;
-
 	starpu_ssize_t requested_memory = pybuffer_interface->buffer_size;
 
 	starpu_free_on_node(node, (uintptr_t) pybuffer_interface->py_buffer, requested_memory);
-
-	/* release GIL */
-	PyGILState_Release(state);
 }
 
 static size_t pybuffer_get_size(starpu_data_handle_t handle)
