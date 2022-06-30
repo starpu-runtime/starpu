@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -991,6 +991,27 @@ define starpu-sched-print-modular
     starpu-sched-print-recur-component 0 $t->root
 end
 
+define starpu-sched-print-lws
+    set $ws = (struct _starpu_work_stealing_data *) _starpu_config.sched_ctxs[$arg0]->policy_data
+    set $num = 0
+    while $num < _starpu_config->topology->nworkers
+      printf "Worker %s:", _starpu_config->workers[$num].name
+      printf " %d tasks", $ws->per_worker[$num].queue.ntasks
+      if $ws->per_worker[$num].notask
+        printf " notask"
+      end
+      if $ws->per_worker[$num].running
+        printf " running"
+      end
+      if $ws->per_worker[$num].busy
+        printf " busy"
+      end
+      printf " lastpop %d", $ws->per_worker[$num].last_pop_worker
+      printf "\n"
+      set $num = $num + 1
+    end
+end
+
 define starpu-mpi-print-request
     set $request = (struct _starpu_mpi_req *)$arg0
     printf "Request (struct _starpu_mpi_req *) %p data %p tag %ld to MPI node %d type ", $request, $request->data_handle, $request->data_handle && $request->data_handle->mpi_data ? ((struct _starpu_mpi_data *) ($request->data_handle->mpi_data))->node_tag.data_tag : -1, $request->node_tag.node.rank,
@@ -1168,6 +1189,7 @@ starpu-print-registered-models     prints all registered performance models
 starpu-print-model                 prints a given performance model
 starpu-sched-data                  prints the data of the given scheduler
 starpu-sched-print-modular         prints the hierarchy of modular scheduling components
+starpu-sched-print-lws             prints the state of the lws scheduler
 starpu-mpi-print-ready-recv-requests    prints all MPI ready recv requests
 starpu-mpi-print-ready-send-requests    prints all MPI ready send requests
 starpu-mpi-print-detached-requests prints all MPI detached requests
