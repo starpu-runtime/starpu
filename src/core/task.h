@@ -174,13 +174,13 @@ LIST_TYPE(_starpu_trs_epoch,
 
 	/** if 1, the epoch entry task will wait on some user-supplied handle
 	 * TODO: only used for first epoch on transaction opening for now, add for next epoch */
-	int do_sync:1;
+	int do_sync;
 
 	/** if 1, the epoch is the first of the transaction */
-	int is_begin:1;
+	int is_begin;
 
 	/** if 1, the epoch will be the last, and the transaction will be closed after its execution */
-	int is_end:1;
+	int is_end;
 
 	/** inline argument supplied by the user and passed to the user function deciding whether to start
 	 * or cancel the epoch execution */
@@ -195,6 +195,9 @@ struct starpu_transaction
 
 	/** handle of the transaction object */
 	starpu_data_handle_t handle;
+
+	/** dummy data area referenced by the handle */
+	int dummy_data;
 
 	/** user function to decide whether to start or cancel an epoch execution, buffer[0] will
 	 * optionally refer to an user suppled handle's object */

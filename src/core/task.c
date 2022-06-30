@@ -1971,7 +1971,9 @@ static struct starpu_transaction *_do_starpu_transaction_open(int(*do_start_func
 	STARPU_ASSERT(flags == 0); /* TODO */
 	p_trs->flags = flags;
 
-	starpu_variable_data_register(&p_trs->handle, STARPU_MAIN_RAM, (uintptr_t)p_trs, sizeof(*p_trs));
+	p_trs->dummy_data = 0;
+	starpu_variable_data_register(&p_trs->handle, STARPU_MAIN_RAM, (uintptr_t)&p_trs->dummy_data, sizeof(p_trs->dummy_data));
+
 	struct _starpu_trs_epoch *p_epoch = _starpu_trs_epoch_new();
 
 	struct starpu_task *task = starpu_task_create();
