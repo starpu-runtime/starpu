@@ -1951,6 +1951,9 @@ void starpu_set_limit_max_submitted_tasks(int limit_min);
 
 /**
    Function to open a new transaction object and start the first transaction epoch.
+
+   @return A pointer to an initializes <c>struct starpu_transaction<c/>
+   or \c NULL if submitting the transaction begin task failed with ENODEV.
  */
 struct starpu_transaction *starpu_transaction_open(int(*do_start_func)(void *buffer, void *arg), void *do_start_arg);
 

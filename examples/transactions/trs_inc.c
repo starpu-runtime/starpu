@@ -92,6 +92,8 @@ int main(int argc, char **argv)
 	start = starpu_timing_now();
 
 	struct starpu_transaction *transaction = starpu_transaction_open(do_start_transaction, (void*)(intptr_t)0);
+	if (transaction == NULL)
+		return 77; /* transaction begin task submit failed with ENODEV */
 	int simulated_transaction_status = _do_start_transaction(0);
 	int expected_result = 0;
 	unsigned i;
