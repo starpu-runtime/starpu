@@ -177,8 +177,16 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 			min_exp_end_of_task, max_exp_end_of_workers,
 			suitable_components, nsuitable_components);
 
-	if (best_icomponent == -1)
-		goto out;
+	/* If no best component is found, it means that the perfmodel of
+	 * the task had been purged since it has been pushed on the mct component. */
+	/* FIXME: We should perform a push_back message to its parent so that it will
+	 * be able to reschedule the task properly. */
+	if(best_icomponent == -1)
+	{
+		STARPU_COMPONENT_MUTEX_UNLOCK(&d->scheduling_mutex);
+		return eager_calibration_push_task(component, task);
+	}
+
 
 	best_component = component->children[best_icomponent];
 
