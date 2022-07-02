@@ -441,52 +441,52 @@ endif
 
 if STARPU_HAVE_HELP2MAN
 starpu_calibrate_bus.1: starpu_calibrate_bus$(EXEEXT)
-	$(V_help2man) help2man --no-discard-stderr -N -n "Force StarPU bus calibration" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Force StarPU bus calibration" --output=$@ ./$<
 starpu_machine_display.1: starpu_machine_display$(EXEEXT)
-	$(V_help2man) help2man --no-discard-stderr -N -n "Display machine StarPU information" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Display machine StarPU information" --output=$@ ./$<
 starpu_perfmodel_display.1: starpu_perfmodel_display$(EXEEXT)
-	$(V_help2man) help2man --no-discard-stderr -N -n "Display StarPU performance model" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Display StarPU performance model" --output=$@ ./$<
 starpu_perfmodel_plot.1: starpu_perfmodel_plot$(EXEEXT)
-	$(V_help2man) help2man --no-discard-stderr -N -n "Plot StarPU performance model" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Plot StarPU performance model" --output=$@ ./$<
 starpu_tasks_rec_complete.1: starpu_tasks_rec_complete$(EXEEXT)
-	$(V_help2man) help2man --no-discard-stderr -N -n "Complete StarPU tasks.rec file" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Complete StarPU tasks.rec file" --output=$@ ./$<
 starpu_lp2paje.1: starpu_lp2paje$(EXEEXT)
-	$(V_help2man) help2man --no-discard-stderr -N -n "Convert lp StarPU schedule into Paje format" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Convert lp StarPU schedule into Paje format" --output=$@ ./$<
 starpu_workers_activity.1: starpu_workers_activity
 	@chmod +x $<
-	$(V_help2man) help2man --no-discard-stderr -N -n "Display StarPU workers activity" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Display StarPU workers activity" --output=$@ ./$<
 starpu_codelet_profile.1: starpu_codelet_profile
 	@chmod +x $<
-	$(V_help2man) help2man --no-discard-stderr -N -n "Draw StarPU codelet profile" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Draw StarPU codelet profile" --output=$@ ./$<
 starpu_env.1: starpu_env
 	@chmod +x $<
-	$(V_help2man) help2man --no-discard-stderr -N -n "Set StarPU environment variables" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Set StarPU environment variables" --output=$@ ./$<
 starpu_codelet_histo_profile.1: starpu_codelet_histo_profile
 	@chmod +x $<
-	$(V_help2man) help2man --no-discard-stderr -N -n "Draw StarPU codelet histogram" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Draw StarPU codelet histogram" --output=$@ ./$<
 starpu_mpi_comm_matrix.1: starpu_mpi_comm_matrix.py
 	@chmod +x $<
-	$(V_help2man) help2man --no-discard-stderr -N -n "Draw StarPU MPI communications matrix" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Draw StarPU MPI communications matrix" --output=$@ ./$<
 starpu_fxt_number_events_to_names.1: starpu_fxt_number_events_to_names.py
 	@chmod +x $<
-	$(V_help2man) help2man --no-discard-stderr -N -n "Count events in StarPU traces" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Count events in StarPU traces" --output=$@ ./$<
 starpu_paje_draw_histogram.1: starpu_paje_draw_histogram
 	@chmod +x $<
-	$(V_help2man) help2man --no-discard-stderr -N -n "Draw StarPU trace histogram" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Draw StarPU trace histogram" --output=$@ ./$<
 starpu_paje_state_stats.1: starpu_paje_state_stats
 	@chmod +x $<
-	$(V_help2man) help2man --no-discard-stderr -N -n "Print statistics from StarPU trace" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Print statistics from StarPU trace" --output=$@ ./$<
 starpu_config.1: starpu_config
 	@chmod +x $<
-	$(V_help2man) help2man --no-discard-stderr -N -n "Display StarPU configuration" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Display StarPU configuration" --output=$@ ./$<
 
 if STARPU_USE_FXT
 starpu_fxt_tool.1: starpu_fxt_tool$(EXEEXT)
-	$(V_help2man) help2man --no-discard-stderr -N -n "Convert raw StarPU FxT trace to various traces" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Convert raw StarPU FxT trace to various traces" --output=$@ ./$<
 starpu_fxt_stats.1: starpu_fxt_stats$(EXEEXT)
-	$(V_help2man) help2man --no-discard-stderr -N -n "Print statistics from raw StarPU FxT trace" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Print statistics from raw StarPU FxT trace" --output=$@ ./$<
 starpu_fxt_data_trace.1: starpu_fxt_data_trace$(EXEEXT)
-	$(V_help2man) help2man --no-discard-stderr -N -n "Print data trace from raw StarPU FxT trace" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Print data trace from raw StarPU FxT trace" --output=$@ ./$<
 endif
 
 dist_man1_MANS =\
