@@ -29,6 +29,8 @@ extern "C"
 #endif
 
 void _starpu_mpi_comm_amounts_init(MPI_Comm comm);
+void _starpu_mpi_comm_stats_disable(void);
+void _starpu_mpi_comm_stats_enable(void);
 void _starpu_mpi_comm_amounts_shutdown(void);
 void _starpu_mpi_comm_amounts_inc(MPI_Comm comm, unsigned dst, MPI_Datatype datatype, int count);
 void _starpu_mpi_comm_amounts_display(FILE *stream, int node);

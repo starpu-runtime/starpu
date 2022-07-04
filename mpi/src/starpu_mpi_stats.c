@@ -51,6 +51,14 @@ void _starpu_mpi_comm_amounts_init(MPI_Comm comm)
 	time_init = starpu_timing_now();
 }
 
+void _starpu_mpi_comm_stats_disable() {
+       stats_enabled = 0;
+}
+
+void _starpu_mpi_comm_stats_enable() {
+       stats_enabled = 1;
+}
+
 void _starpu_mpi_comm_amounts_shutdown()
 {
 	if (stats_enabled == 0)

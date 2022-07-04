@@ -497,6 +497,18 @@ module fstarpu_mpi_mod
                         integer(c_int) :: fstarpu_mpi_world_comm
                 end function fstarpu_mpi_world_comm
 
+                ! void starpu_mpi_comm_stats_enable()
+                subroutine fstarpu_mpi_comm_stats_enable() bind(C)
+                        use iso_c_binding
+                        implicit none
+                end subroutine fstarpu_mpi_comm_stats_enable
+
+                ! void starpu_mpi_comm_stats_disable()
+                subroutine fstarpu_mpi_comm_stats_disable() bind(C)
+                        use iso_c_binding
+                        implicit none
+                end subroutine fstarpu_mpi_comm_stats_disable
+
                 ! int starpu_mpi_get_communication_tag(void);
                 function fstarpu_mpi_get_communication_tag() bind(C,name="starpu_mpi_get_communication_tag")
                         use iso_c_binding
@@ -737,7 +749,8 @@ module fstarpu_mpi_mod
                         end interface
 
                         fargc = command_argument_count()
-                        write(*,*) "fargc",fargc
+                        !write(*,*) "fargc",fargc
+
                         if (present(mpi_comm)) then
                                 mpi_comm_present = 1
                                 mpi_comm_or_0 = mpi_comm
@@ -745,8 +758,8 @@ module fstarpu_mpi_mod
                                 mpi_comm_present = 0
                                 mpi_comm_or_0 = 0
                         end if
-                        write(*,*) "initialize_mpi",initialize_mpi
-                        write(*,*) "mpi_comm_present",mpi_comm_present
+                        !write(*,*) "initialize_mpi",initialize_mpi
+                        !write(*,*) "mpi_comm_present",mpi_comm_present
                         argcv = fstarpu_mpi_argcv_alloc(fargc, initialize_mpi, mpi_comm_present, mpi_comm_or_0)
                         do i=0,fargc-1
                                 call get_command_argument(i, farg_1, farg_len)
