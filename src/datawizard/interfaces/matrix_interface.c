@@ -539,9 +539,8 @@ static int map_matrix(void *src_interface, unsigned src_node,
 	int ret;
 	uintptr_t mapped;
 
-	/* FIXME: we shouldn't map all of this, probably need ld*(ny-1)+nx */
-	/* And similarly for block, tensor, ndim */
-	mapped = starpu_interface_map(src_matrix->dev_handle, src_matrix->offset, src_node, dst_node, src_matrix->ld*src_matrix->ny*src_matrix->elemsize, &ret);
+	/* map area ld*(ny-1)+nx */
+	mapped = starpu_interface_map(src_matrix->dev_handle, src_matrix->offset, src_node, dst_node, (src_matrix->ld*(src_matrix->ny-1)+src_matrix->nx)*src_matrix->elemsize, &ret);
 	if (mapped)
 	{
 		dst_matrix->dev_handle = mapped;
@@ -560,7 +559,7 @@ static int unmap_matrix(void *src_interface, unsigned src_node,
 	struct starpu_matrix_interface *src_matrix = src_interface;
 	struct starpu_matrix_interface *dst_matrix = dst_interface;
 
-	int ret = starpu_interface_unmap(src_matrix->dev_handle, src_matrix->offset, src_node, dst_matrix->dev_handle, dst_node, src_matrix->ld*src_matrix->ny*src_matrix->elemsize);
+	int ret = starpu_interface_unmap(src_matrix->dev_handle, src_matrix->offset, src_node, dst_matrix->dev_handle, dst_node, (src_matrix->ld*(src_matrix->ny-1)+src_matrix->nx)*src_matrix->elemsize);
 	dst_matrix->dev_handle = 0;
 
 	return ret;
@@ -572,7 +571,7 @@ static int update_map_matrix(void *src_interface, unsigned src_node,
 	struct starpu_matrix_interface *src_matrix = src_interface;
 	struct starpu_matrix_interface *dst_matrix = dst_interface;
 
-	return starpu_interface_update_map(src_matrix->dev_handle, src_matrix->offset, src_node, dst_matrix->dev_handle, dst_matrix->offset, dst_node, src_matrix->ld*src_matrix->ny*src_matrix->elemsize);
+	return starpu_interface_update_map(src_matrix->dev_handle, src_matrix->offset, src_node, dst_matrix->dev_handle, dst_matrix->offset, dst_node, (src_matrix->ld*(src_matrix->ny-1)+src_matrix->nx)*src_matrix->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

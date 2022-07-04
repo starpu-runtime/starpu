@@ -502,8 +502,8 @@ static int map_block(void *src_interface, unsigned src_node,
 	struct starpu_block_interface *dst_block = dst_interface;
 	int ret;
 	uintptr_t mapped;
-
-	mapped = starpu_interface_map(src_block->dev_handle, src_block->offset, src_node, dst_node, src_block->ldz*src_block->nz*src_block->elemsize, &ret);
+	/* map area ldz*(nz-1)+ldy*(ny-1)+nx */
+	mapped = starpu_interface_map(src_block->dev_handle, src_block->offset, src_node, dst_node, (src_block->ldz*(src_block->nz-1)+src_block->ldy*(src_block->ny-1)+src_block->nx)*src_block->elemsize, &ret);
 	if (mapped)
 	{
 		dst_block->dev_handle = mapped;
@@ -523,7 +523,7 @@ static int unmap_block(void *src_interface, unsigned src_node,
 	struct starpu_block_interface *src_block = src_interface;
 	struct starpu_block_interface *dst_block = dst_interface;
 
-	int ret = starpu_interface_unmap(src_block->dev_handle, src_block->offset, src_node, dst_block->dev_handle, dst_node, src_block->ldz*src_block->nz*src_block->elemsize);
+	int ret = starpu_interface_unmap(src_block->dev_handle, src_block->offset, src_node, dst_block->dev_handle, dst_node, (src_block->ldz*(src_block->nz-1)+src_block->ldy*(src_block->ny-1)+src_block->nx)*src_block->elemsize);
 	dst_block->dev_handle = 0;
 
 	return ret;
@@ -535,7 +535,7 @@ static int update_map_block(void *src_interface, unsigned src_node,
 	struct starpu_block_interface *src_block = src_interface;
 	struct starpu_block_interface *dst_block = dst_interface;
 
-	return starpu_interface_update_map(src_block->dev_handle, src_block->offset, src_node, dst_block->dev_handle, dst_block->offset, dst_node, src_block->ldz*src_block->nz*src_block->elemsize);
+	return starpu_interface_update_map(src_block->dev_handle, src_block->offset, src_node, dst_block->dev_handle, dst_block->offset, dst_node, (src_block->ldz*(src_block->nz-1)+src_block->ldy*(src_block->ny-1)+src_block->nx)*src_block->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

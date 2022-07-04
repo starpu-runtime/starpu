@@ -578,7 +578,8 @@ static int map_tensor(void *src_interface, unsigned src_node,
 	int ret;
 	uintptr_t mapped;
 
-	mapped = starpu_interface_map(src_tensor->dev_handle, src_tensor->offset, src_node, dst_node, src_tensor->ldt*src_tensor->nt*src_tensor->elemsize, &ret);
+	/* map area ldt*(nt-1) + ldz*(nz-1) + ldy*(ny-1) + nx*/
+	mapped = starpu_interface_map(src_tensor->dev_handle, src_tensor->offset, src_node, dst_node, (src_tensor->ldt*(src_tensor->nt-1)+src_tensor->ldz*(src_tensor->nz-1)+src_tensor->ldy*(src_tensor->ny-1)+src_tensor->nx)*src_tensor->elemsize, &ret);
 	if (mapped)
 	{
 		dst_tensor->dev_handle = mapped;
@@ -599,7 +600,7 @@ static int unmap_tensor(void *src_interface, unsigned src_node,
 	struct starpu_tensor_interface *src_tensor = src_interface;
 	struct starpu_tensor_interface *dst_tensor = dst_interface;
 
-	int ret = starpu_interface_unmap(src_tensor->dev_handle, src_tensor->offset, src_node, dst_tensor->dev_handle, dst_node, src_tensor->ldt*src_tensor->nt*src_tensor->elemsize);
+	int ret = starpu_interface_unmap(src_tensor->dev_handle, src_tensor->offset, src_node, dst_tensor->dev_handle, dst_node, (src_tensor->ldt*(src_tensor->nt-1)+src_tensor->ldz*(src_tensor->nz-1)+src_tensor->ldy*(src_tensor->ny-1)+src_tensor->nx)*src_tensor->elemsize);
 	dst_tensor->dev_handle = 0;
 
 	return ret;
@@ -611,7 +612,7 @@ static int update_map_tensor(void *src_interface, unsigned src_node,
 	struct starpu_tensor_interface *src_tensor = src_interface;
 	struct starpu_tensor_interface *dst_tensor = dst_interface;
 
-	return starpu_interface_update_map(src_tensor->dev_handle, src_tensor->offset, src_node, dst_tensor->dev_handle, dst_tensor->offset, dst_node, src_tensor->ldt*src_tensor->nt*src_tensor->elemsize);
+	return starpu_interface_update_map(src_tensor->dev_handle, src_tensor->offset, src_node, dst_tensor->dev_handle, dst_tensor->offset, dst_node, (src_tensor->ldt*(src_tensor->nt-1)+src_tensor->ldz*(src_tensor->nz-1)+src_tensor->ldy*(src_tensor->ny-1)+src_tensor->nx)*src_tensor->elemsize);
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)
