@@ -147,14 +147,36 @@ define starpu-print-task-and-successor
   end
 end
 
+define starpu-print-tasks-treelist
+  set $list = $arg0
+  set $task = $list->_head
+  while $task != 0
+    starpu-print-task $task
+    set $task = $task->_next
+  end
+end
+
+define starpu-print-tasks-tree
+  if $arg0
+    starpu-print-tasks-tree $arg0->children[0]
+    set $stage = (struct _starpu_task_prio_list_stage *) $arg0
+    starpu-print-tasks-treelist (&($stage->list))
+    starpu-print-tasks-tree $arg0->children[1]
+  end
+end
+
+define starpu-print-tasks-list
+  if _starpu_debug
+    starpu-print-tasks-treelist &$arg0.list
+  else
+    starpu-print-tasks-tree $arg0.tree.root
+  end
+end
+
 define starpu-tasks-on-worker
   set language c
-  set $worker=_starpu_config->workers[$arg0]
-  set $task=$worker.local_tasks.head
-  while $task != 0x0
-    starpu-print-task $task
-    set $task=$task->next
-  end
+  set $worker=&_starpu_config->workers[$arg0]
+  starpu-print-tasks-list $worker->local_tasks
 end
 
 define starpu-tasks-on-workers
@@ -935,10 +957,10 @@ define starpu-print-model
 end
 
 define starpu-print-registered-models
-    set $node = registered_models
+    set $node = registered_models._head
     while $node
     	  starpu-print-model $node->model
-	  set $node = $node->next
+	  set $node = $node->_next
     end
 end
 
