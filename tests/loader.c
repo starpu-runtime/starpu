@@ -76,6 +76,7 @@ static int mygettimeofday(struct timeval *tv, void *tz)
 static int try_launch_gdb(const char *exe, const char *core)
 {
 # define GDB_COMMANDS \
+				    "-ex", "py-list", \
 				    "-ex", "starpu-tasks", \
 				    "-ex", "starpu-workers", \
 				    "-ex", "starpu-print-datas-summary", \
@@ -83,9 +84,8 @@ static int try_launch_gdb(const char *exe, const char *core)
 				    "-ex", "starpu-print-archs", \
 				    "-ex", "starpu-print-registered-models", \
 				    "-ex", "bt full", \
-				    "-ex", "thread apply all bt full", \
-				    "-ex", "py-list", \
 				    "-ex", "py-bt", \
+				    "-ex", "thread apply all bt full", \
 				    "-ex", "thread apply all py-bt", \
 
 	int err;
