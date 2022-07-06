@@ -104,6 +104,8 @@ static PyObject *wait_method = Py_None;  /*method wait_for_fut*/
 static PyObject *Handle_class = Py_None;  /*Handle class*/
 static PyObject *Token_class = Py_None;  /*Handle_token class*/
 
+static pthread_t main_thread;
+
 /*********************************************************************************************/
 
 #ifdef STARPU_STARPUPY_MULTI_INTERPRETER
@@ -174,8 +176,9 @@ void prologue_cb_func(void *cl_arg)
 		#endif
 			PyObject *done = PyObject_CallMethod(obj, "done", NULL);
 			/*if the future object is not finished, we will await it for the result*/
-			if (!PyObject_IsTrue(done))
+			if (!PyObject_IsTrue(done) && pthread_self() != main_thread)
 			{
+				/* We have to delegate the wait to the main thread */
 				/*call the method wait_for_fut to await obj*/
 				/*call wait_for_fut(obj)*/
 				if (wait_method == Py_None)
@@ -1642,6 +1645,9 @@ PyInit_starpupy(void)
 	/*starpu initialization*/
 	int ret;
 	struct starpu_conf conf;
+
+	main_thread = pthread_self();
+
 	Py_BEGIN_ALLOW_THREADS;
 	starpu_conf_init(&conf);
 	ret = starpu_init(&conf);
