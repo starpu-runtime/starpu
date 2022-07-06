@@ -75,8 +75,16 @@ static int mygettimeofday(struct timeval *tv, void *tz)
 #ifdef STARPU_GDB_PATH
 static int try_launch_gdb(const char *exe, const char *core)
 {
-# define GDB_ALL_COMMAND "thread apply all bt full"
-# define GDB_COMMAND "bt full"
+# define GDB_COMMANDS \
+				    "-ex", "starpu-tasks", \
+				    "-ex", "starpu-workers", \
+				    "-ex", "starpu-print-datas-summary", \
+				    "-ex", "starpu-memusage", \
+				    "-ex", "starpu-print-archs", \
+				    "-ex", "starpu-print-registered-models", \
+				    "-ex", "bt full", \
+				    "-ex", "thread apply all bt full", \
+
 	int err;
 	pid_t pid;
 	struct stat st;
@@ -112,8 +120,7 @@ static int try_launch_gdb(const char *exe, const char *core)
 			strcat(gdb, "/libtool");
 			err = execl(gdb, "gdb", "--mode=execute",
 				    STARPU_GDB_PATH, "--batch",
-				    "-ex", GDB_COMMAND,
-				    "-ex", GDB_ALL_COMMAND,
+				    GDB_COMMANDS
 				    exe, core, NULL);
 		}
 		else
@@ -121,8 +128,7 @@ static int try_launch_gdb(const char *exe, const char *core)
 			/* Run gdb directly  */
 			gdb = STARPU_GDB_PATH;
 			err = execl(gdb, "gdb", "--batch",
-				    "-ex", GDB_COMMAND,
-				    "-ex", GDB_ALL_COMMAND,
+				    GDB_COMMANDS
 				    exe, core, NULL);
 		}
 		if (err != 0)
@@ -148,8 +154,7 @@ static int try_launch_gdb(const char *exe, const char *core)
 		}
 	}
 	return 0;
-# undef GDB_COMMAND
-# undef GDB_ALL_COMMAND
+# undef GDB_COMMANDS
 }
 #endif	/* STARPU_GDB_PATH */
 
