@@ -84,6 +84,9 @@ static int try_launch_gdb(const char *exe, const char *core)
 				    "-ex", "starpu-print-registered-models", \
 				    "-ex", "bt full", \
 				    "-ex", "thread apply all bt full", \
+				    "-ex", "py-list", \
+				    "-ex", "py-bt", \
+				    "-ex", "thread apply all py-bt", \
 
 	int err;
 	pid_t pid;
