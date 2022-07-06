@@ -176,9 +176,8 @@ void prologue_cb_func(void *cl_arg)
 		#endif
 			PyObject *done = PyObject_CallMethod(obj, "done", NULL);
 			/*if the future object is not finished, we will await it for the result*/
-			if (!PyObject_IsTrue(done) && pthread_self() != main_thread)
+			if (!PyObject_IsTrue(done))
 			{
-				/* We have to delegate the wait to the main thread */
 				/*call the method wait_for_fut to await obj*/
 				/*call wait_for_fut(obj)*/
 				if (wait_method == Py_None)
@@ -190,10 +189,20 @@ void prologue_cb_func(void *cl_arg)
 				PyObject *wait_obj = PyObject_CallFunctionObjArgs(wait_method, obj, NULL);
 				Py_DECREF(wait_method);
 
-				/*decrement the reference obtained before if{}, then get the new reference*/
-				Py_DECREF(obj);
-				/*call obj = asyncio.run_coroutine_threadsafe(wait_for_fut(obj), loop)*/
-				obj = PyObject_CallMethod(asyncio_module, "run_coroutine_threadsafe", "O,O", wait_obj, loop);
+				if (pthread_self() != main_thread)
+				{
+					/* We have to delegate the wait to the main thread */
+					/*decrement the reference obtained before if{}, then get the new reference*/
+					Py_DECREF(obj);
+					/*call obj = asyncio.run_coroutine_threadsafe(wait_for_fut(obj), loop)*/
+					obj = PyObject_CallMethod(asyncio_module, "run_coroutine_threadsafe", "O,O", wait_obj, loop);
+				}
+				else
+				{
+					PyObject *res;
+					res = PyObject_CallMethod(asyncio_module, "wait_for", "O,O", wait_obj, Py_None);
+					Py_DECREF(res);
+				}
 
 				Py_DECREF(wait_obj);
 			}
