@@ -841,6 +841,14 @@ int starpu_mpi_scatter_detached(starpu_data_handle_t *data_handles, int count, i
 */
 int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, int root, MPI_Comm comm, void (*scallback)(void *), void *sarg, void (*rcallback)(void *), void *rarg);
 
+/** @} */
+
+/**
+   @name Miscellaneous
+   \anchor MPIMisc
+   @{
+*/
+
 int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *));
 int starpu_mpi_pre_submit_hook_unregister(void);
 
