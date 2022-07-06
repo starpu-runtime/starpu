@@ -189,7 +189,7 @@ static void *progress_func(void *arg)
 	progress_thread_running = 1;
 	STARPU_PTHREAD_COND_SIGNAL(&data_req_cond);
 
-	while (progress_thread_running)
+	while (progress_thread_running || data_req_list)
 	{
 		struct data_req *req;
 
