@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -139,12 +139,12 @@ run(struct starpu_sched_policy *policy)
 
 	/* All tasks should have been executed on the same GPU. */
 	ret = 0;
-	int workerid = tasks[0]->profiling_info->workerid;
+	unsigned nodeid = starpu_worker_get_memory_node(tasks[0]->profiling_info->workerid);
 	for (i = 0; i < NTASKS; i++)
 	{
-		if (tasks[i]->profiling_info->workerid != workerid)
+		if (starpu_worker_get_memory_node(tasks[i]->profiling_info->workerid) != nodeid)
 		{
-			FPRINTF(stderr, "Error for task %d. Worker id %d different from expected worker id %d\n", i, tasks[i]->profiling_info->workerid, workerid);
+			FPRINTF(stderr, "Error for task %d. Worker id %d node id %d different from expected node id %d\n", i, tasks[i]->profiling_info->workerid, starpu_worker_get_memory_node(tasks[i]->profiling_info->workerid), nodeid);
 			ret = 1;
 			break;
 		}
