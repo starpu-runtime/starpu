@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2015       Mathieu Lirzin
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -236,13 +236,13 @@ struct sc_hypervisor_wrapper *sc_hypervisor_get_wrapper(unsigned sched_ctx);
    Get the list of registered contexts
    @ingroup API_SC_Hypervisor
 */
-unsigned *sc_hypervisor_get_sched_ctxs();
+unsigned *sc_hypervisor_get_sched_ctxs(void);
 
 /**
    Get the number of registered contexts
    @ingroup API_SC_Hypervisor
 */
-int sc_hypervisor_get_nsched_ctxs();
+int sc_hypervisor_get_nsched_ctxs(void);
 
 /**
    Get the number of workers of a certain architecture in a context

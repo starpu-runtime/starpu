@@ -169,7 +169,7 @@ extern struct starpu_worker_collection starpu_worker_tree;
    <c>tools/starpu_machine_display</c> to make sure all workers
    information are correctly set before printing their informations
 */
-void starpu_worker_wait_for_initialisation();
+void starpu_worker_wait_for_initialisation(void);
 
 /**
    Return true if type matches one of StarPU's defined worker architectures

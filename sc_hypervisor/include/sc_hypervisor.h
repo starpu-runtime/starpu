@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -196,7 +196,7 @@ void sc_hypervisor_start_resize(unsigned sched_ctx);
 /**
    Return the name of the resizing policy used by the hypervisor
 */
-const char *sc_hypervisor_get_policy();
+const char *sc_hypervisor_get_policy(void);
 
 /**
    Ask the hypervisor to add workers to a sched_ctx
@@ -283,7 +283,7 @@ void sc_hypervisor_get_leaves(unsigned *sched_ctxs, int nsched_ctxs, unsigned *l
 */
 double sc_hypervisor_get_nready_flops_of_all_sons_of_sched_ctx(unsigned sched_ctx);
 
-void sc_hypervisor_print_overhead();
+void sc_hypervisor_print_overhead(void);
 
 void sc_hypervisor_init_worker(int workerid, unsigned sched_ctx);
 
