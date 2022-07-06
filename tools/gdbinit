@@ -692,8 +692,8 @@ define starpu-print-requests
     printf "Node %u:\n", $node
     set $node2 = 0
     while $node2 < _starpu_descr.nnodes
-      starpu-print-requests-list data_requests[$node][$node2][0]
-      starpu-print-requests-list data_requests[$node][$node2][1]
+      starpu-print-requests-list _starpu_config.nodes[$node].data_requests[$node2][0]
+      starpu-print-requests-list _starpu_config.nodes[$node].data_requests[$node2][1]
       set $node2 = $node2 + 1
     end
     set $node = $node + 1
@@ -706,14 +706,14 @@ define starpu-print-prequests
     printf "Node %u:\n", $node
     set $node2 = 0
     while $node2 < _starpu_descr.nnodes
-      if data_requests_npending[$node][$node2][0]
-        printf "%u pending requests from %u\n", data_requests_npending[$node][$node2][0], $node2
+      if _starpu_config.nodes[$node].data_requests_npending[$node2][0]
+        printf "%u pending requests from %u\n", _starpu_config.nodes[$node].data_requests_npending[$node2][0], $node2
       end
-      starpu-print-requests-list data_requests_pending[$node][$node2][0]
-      if data_requests_npending[$node][$node2][1]
-        printf "%u pending requests to %u\n", data_requests_npending[$node][$node2][1], $node2
+      starpu-print-requests-list _starpu_config.nodes[$node].data_requests_pending[$node2][0]
+      if _starpu_config.nodes[$node].data_requests_npending[$node2][1]
+        printf "%u pending requests to %u\n", _starpu_config.nodes[$node].data_requests_npending[$node2][1], $node2
       end
-      starpu-print-requests-list data_requests_pending[$node][$node2][1]
+      starpu-print-requests-list _starpu_config.nodes[$node].data_requests_pending[$node2][1]
       set $node2 = $node2 + 1
     end
     set $node = $node + 1
@@ -744,8 +744,8 @@ define starpu-print-frequests
     printf "Node %u:\n", $node
     set $node2 = 0
     while $node2 < _starpu_descr.nnodes
-      starpu-print-requests-list prefetch_requests[$node][$node2][0]
-      starpu-print-requests-list prefetch_requests[$node][$node2][1]
+      starpu-print-requests-list _starpu_config.nodes[$node].prefetch_requests[$node2][0]
+      starpu-print-requests-list _starpu_config.nodes[$node].prefetch_requests[$node2][1]
       set $node2 = $node2 + 1
     end
     set $node = $node + 1
@@ -758,8 +758,8 @@ define starpu-print-irequests
     printf "Node %u:\n", $node
     set $node2 = 0
     while $node2 < _starpu_descr.nnodes
-      starpu-print-requests-list idle_requests[$node][$node2][0]
-      starpu-print-requests-list idle_requests[$node][$node2][1]
+      starpu-print-requests-list _starpu_config.nodes[$node].idle_requests[$node2][0]
+      starpu-print-requests-list _starpu_config.nodes[$node].idle_requests[$node2][1]
       set $node2 = $node2 + 1
     end
     set $node = $node + 1
