@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -83,3 +83,18 @@ void _starpu_mpi_env_init(void)
 		_starpu_mpi_thread_cpuid = mpi_thread_coreid * _starpu_get_nhyperthreads();
 	}
 }
+
+char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
+{
+	switch (request_type)
+	{
+		case SEND_REQ: return "SEND_REQ";
+		case RECV_REQ: return "RECV_REQ";
+		case WAIT_REQ: return "WAIT_REQ";
+		case TEST_REQ: return "TEST_REQ";
+		case BARRIER_REQ: return "BARRIER_REQ";
+		case UNKNOWN_REQ: return "UNSET_REQ";
+		default: return "unknown request type";
+	}
+}
+
