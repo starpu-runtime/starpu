@@ -333,6 +333,8 @@ struct _starpu_mpi_req * _starpu_mpi_request_fill(starpu_data_handle_t data_hand
 
 void _starpu_mpi_request_destroy(struct _starpu_mpi_req *req);
 
+char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
+
 struct _starpu_mpi_req *_starpu_mpi_irecv_common(starpu_data_handle_t data_handle, int source, starpu_mpi_tag_t data_tag, MPI_Comm comm, unsigned detached, unsigned sync, void (*callback)(void *), void *arg, int sequential_consistency, int is_internal_req, starpu_ssize_t count, int prio);
 
 int _starpu_mpi_choose_node(starpu_data_handle_t data_handle, enum starpu_data_access_mode mode);

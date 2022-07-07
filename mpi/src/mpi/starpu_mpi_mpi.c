@@ -63,9 +63,6 @@ static int early_data_force_allocate;
 
 static void _starpu_mpi_handle_ready_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
-#ifdef STARPU_MPI_VERBOSE
-static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
-#endif
 static void _starpu_mpi_handle_detached_request(struct _starpu_mpi_req *req);
 static void _starpu_mpi_early_data_cb(void* arg);
 
@@ -853,22 +850,6 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 /*  Progression                                         */
 /*                                                      */
 /********************************************************/
-
-#ifdef STARPU_MPI_VERBOSE
-static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
-{
-	switch (request_type)
-	{
-		case SEND_REQ: return "SEND_REQ";
-		case RECV_REQ: return "RECV_REQ";
-		case WAIT_REQ: return "WAIT_REQ";
-		case TEST_REQ: return "TEST_REQ";
-		case BARRIER_REQ: return "BARRIER_REQ";
-		case UNKNOWN_REQ: return "UNSET_REQ";
-		default: return "unknown request type";
-	}
-}
-#endif
 
 static void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req)
 {
