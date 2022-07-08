@@ -53,6 +53,9 @@ function, specifying a transaction start criterion callback and some user
 argument to be passed to that callback upon the first call. The start criterion callback should
 return \c True (e.g. \c !0 ) if the next transaction epoch should proceed, or \c
 False (e.g. \c 0 ) if the tasks belonging to that next epoch should be canceled.
+\c starpu_transaction_open() submits an internal task to mark the beginning of the
+transaction. If submitting that internal task fails with ENODEV, \c starpu_transaction_open()
+will return \c NULL.
 
 \subsection TransactionsTasks Transaction Tasks
 Tasks governed by the same transaction object should be passed that transaction object either through

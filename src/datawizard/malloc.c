@@ -378,6 +378,9 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
 		hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, starpu_memory_nodes_numa_id_to_hwloclogid(dst_node));
 		hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
+		if (dim == 0)
+			/* Make sure we succeed */
+			dim = 1;
 #if HWLOC_API_VERSION >= 0x00020000
 		*A = hwloc_alloc_membind(hwtopology, dim, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET | HWLOC_MEMBIND_NOCPUBIND);
 #else
@@ -580,6 +583,8 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 	{
 		struct _starpu_machine_config *config = _starpu_get_machine_config();
 		hwloc_topology_t hwtopology = config->topology.hwtopology;
+		if (dim == 0)
+			dim = 1;
 		hwloc_free(hwtopology, A, dim);
 	}
 #endif /* STARPU_HAVE_HWLOC */

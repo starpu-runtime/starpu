@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2017       Arthur Chevalier
  *
@@ -381,6 +381,7 @@ void starpu_sched_component_worker_post_exec_hook(struct starpu_task *task, unsi
 
 /**
    @name Flow-control Fifo Component API
+   These can be used as methods of components. Note: they are not to be called directly, one should really call the methods of the components.
    @{
 */
 

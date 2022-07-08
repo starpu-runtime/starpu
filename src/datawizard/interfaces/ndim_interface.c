@@ -582,6 +582,19 @@ static void free_ndim_buffer_on_node(void *data_interface, unsigned node)
 	starpu_free_on_node(node, ndim_interface->dev_handle, _get_size(nn, ndim, elemsize));
 }
 
+static size_t _get_mapsize(uint32_t* nn, uint32_t* ldn, size_t ndim, size_t elemsize)
+{
+    uint32_t nn0 = ndim?nn[0]:1;
+    size_t buffersize = 0;
+    unsigned i;
+    for (i = 1; i < ndim; i++)
+    {
+        buffersize += ldn[i]*(nn[i]-1)*elemsize;
+    }
+    buffersize += nn0*elemsize;
+    return buffersize;
+}
+
 static int map_ndim(void *src_interface, unsigned src_node,
 		    void *dst_interface, unsigned dst_node)
 {
@@ -592,7 +605,8 @@ static int map_ndim(void *src_interface, unsigned src_node,
 
 	size_t ndim = src_ndarr->ndim;
 
-	mapped = starpu_interface_map(src_ndarr->dev_handle, src_ndarr->offset, src_node, dst_node, src_ndarr->ldn[ndim-1]*src_ndarr->nn[ndim-1]*src_ndarr->elemsize, &ret);
+    /* map area ldn[ndim-1]*(nn[ndim-1]-1) + ldn[ndim-2]*(nn[ndim-2]-1) + ... + ldn[1]*(nn[1]-1) + nn0*/
+	mapped = starpu_interface_map(src_ndarr->dev_handle, src_ndarr->offset, src_node, dst_node, _get_mapsize(src_ndarr->nn, src_ndarr->ldn, ndim, src_ndarr->elemsize), &ret);
 	if (mapped)
 	{
 		dst_ndarr->dev_handle = mapped;
@@ -616,7 +630,7 @@ static int unmap_ndim(void *src_interface, unsigned src_node,
 	struct starpu_ndim_interface *dst_ndarr = dst_interface;
 
 	size_t ndim = src_ndarr->ndim;
-	int ret = starpu_interface_unmap(src_ndarr->dev_handle, src_ndarr->offset, src_node, dst_ndarr->dev_handle, dst_node, src_ndarr->ldn[ndim-1]*src_ndarr->nn[ndim-1]*src_ndarr->elemsize);
+	int ret = starpu_interface_unmap(src_ndarr->dev_handle, src_ndarr->offset, src_node, dst_ndarr->dev_handle, dst_node, _get_mapsize(src_ndarr->nn, src_ndarr->ldn, ndim, src_ndarr->elemsize));
 	dst_ndarr->dev_handle = 0;
 
 	return ret;
@@ -629,7 +643,7 @@ static int update_map_ndim(void *src_interface, unsigned src_node,
 	struct starpu_ndim_interface *dst_ndarr = dst_interface;
 
 	size_t ndim = src_ndarr->ndim;
-	return starpu_interface_update_map(src_ndarr->dev_handle, src_ndarr->offset, src_node, dst_ndarr->dev_handle, dst_ndarr->offset, dst_node, src_ndarr->ldn[ndim-1]*src_ndarr->nn[ndim-1]*src_ndarr->elemsize);
+	return starpu_interface_update_map(src_ndarr->dev_handle, src_ndarr->offset, src_node, dst_ndarr->dev_handle, dst_ndarr->offset, dst_node, _get_mapsize(src_ndarr->nn, src_ndarr->ldn, ndim, src_ndarr->elemsize));
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, void *async_data)

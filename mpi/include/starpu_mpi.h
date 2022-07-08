@@ -427,7 +427,7 @@ int starpu_mpi_interface_datatype_unregister(enum starpu_data_interface_id id);
 /**
    Return 1 if the communication cache is enabled, 0 otherwise
 */
-int starpu_mpi_cache_is_enabled();
+int starpu_mpi_cache_is_enabled(void);
 
 /**
    If \p enabled is 1, enable the communication cache. Otherwise,
@@ -776,7 +776,7 @@ int starpu_mpi_node_selection_unregister_policy(int policy);
    Return the current policy used to select the node which will
    execute the codelet
 */
-int starpu_mpi_node_selection_get_current_policy();
+int starpu_mpi_node_selection_get_current_policy(void);
 
 /**
    Set the current policy used to select the node which will execute
@@ -843,8 +843,24 @@ int starpu_mpi_gather_detached(starpu_data_handle_t *data_handles, int count, in
 
 /** @} */
 
+/**
+   @name Miscellaneous
+   \anchor MPIMisc
+   @{
+*/
+
 int starpu_mpi_pre_submit_hook_register(void (*f)(struct starpu_task *));
-int starpu_mpi_pre_submit_hook_unregister();
+int starpu_mpi_pre_submit_hook_unregister(void);
+
+/**
+   Disable the aggregation of statistics on communications based on STARPU_MPI_STATS.
+*/
+void starpu_mpi_comm_stats_disable(void);
+
+/**
+   Enable the aggregation of statistics on communications based on STARPU_MPI_STATS.
+*/
+void starpu_mpi_comm_stats_enable(void);
 
 /** @} */
 

@@ -104,6 +104,8 @@ static PyObject *wait_method = Py_None;  /*method wait_for_fut*/
 static PyObject *Handle_class = Py_None;  /*Handle class*/
 static PyObject *Token_class = Py_None;  /*Handle_token class*/
 
+static pthread_t main_thread;
+
 /*********************************************************************************************/
 
 #ifdef STARPU_STARPUPY_MULTI_INTERPRETER
@@ -187,10 +189,20 @@ void prologue_cb_func(void *cl_arg)
 				PyObject *wait_obj = PyObject_CallFunctionObjArgs(wait_method, obj, NULL);
 				Py_DECREF(wait_method);
 
-				/*decrement the reference obtained before if{}, then get the new reference*/
-				Py_DECREF(obj);
-				/*call obj = asyncio.run_coroutine_threadsafe(wait_for_fut(obj), loop)*/
-				obj = PyObject_CallMethod(asyncio_module, "run_coroutine_threadsafe", "O,O", wait_obj, loop);
+				if (pthread_self() != main_thread)
+				{
+					/* We have to delegate the wait to the main thread */
+					/*decrement the reference obtained before if{}, then get the new reference*/
+					Py_DECREF(obj);
+					/*call obj = asyncio.run_coroutine_threadsafe(wait_for_fut(obj), loop)*/
+					obj = PyObject_CallMethod(asyncio_module, "run_coroutine_threadsafe", "O,O", wait_obj, loop);
+				}
+				else
+				{
+					PyObject *res;
+					res = PyObject_CallMethod(asyncio_module, "wait_for", "O,O", wait_obj, Py_None);
+					Py_DECREF(res);
+				}
 
 				Py_DECREF(wait_obj);
 			}
@@ -1642,6 +1654,9 @@ PyInit_starpupy(void)
 	/*starpu initialization*/
 	int ret;
 	struct starpu_conf conf;
+
+	main_thread = pthread_self();
+
 	Py_BEGIN_ALLOW_THREADS;
 	starpu_conf_init(&conf);
 	ret = starpu_init(&conf);

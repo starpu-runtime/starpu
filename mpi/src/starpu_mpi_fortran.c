@@ -285,6 +285,15 @@ MPI_Fint fstarpu_mpi_world_comm()
 	return MPI_Comm_c2f(MPI_COMM_WORLD);
 }
 
+void fstarpu_mpi_comm_stats_disable()
+{
+	starpu_mpi_comm_stats_disable();
+}
+void fstarpu_mpi_comm_stats_enable()
+{
+	starpu_mpi_comm_stats_enable();
+}
+
 void fstarpu_mpi_data_register_comm(starpu_data_handle_t handle, starpu_mpi_tag_t data_tag, int rank, MPI_Fint comm)
 {
 	return starpu_mpi_data_register_comm(handle, data_tag, rank, MPI_Comm_f2c(comm));

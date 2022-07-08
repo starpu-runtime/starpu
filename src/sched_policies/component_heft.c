@@ -139,7 +139,9 @@ static int heft_progress_one(struct starpu_sched_component *component)
 
 		int best_icomponent = starpu_mct_get_best_component(d, tasks[best_task], estimated_lengths + offset, estimated_transfer_length + offset, estimated_ends_with_task + offset, local_energy + offset, min_exp_end_of_task[best_task], max_exp_end_of_workers, suitable_components + offset, nsuitable_components[best_task]);
 
-		STARPU_ASSERT(best_icomponent != -1);
+		if (best_icomponent == -1)
+			return eager_calibration_push_task(component, tasks[best_task]);
+
 		best_component = component->children[best_icomponent];
 
 		if(starpu_sched_component_is_worker(best_component))

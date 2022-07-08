@@ -75,3 +75,33 @@ jobs:
       - name: make distcheck
         if: ${{ matrix.mode != 'simgrid' }}
         run: make distcheck DISTCHECK_CONFIGURE_FLAGS="--enable-quick-check --disable-mpi-check"
+
+  reprotest:
+    runs-on: ubuntu-latest
+    name: Build with reprotest
+    steps:
+      - uses: actions/checkout@v3
+      - name: dependencies
+        run: sudo apt-get update ; sudo apt-get install
+            pkg-config libtool-bin
+            libnuma-dev
+            libglpk-dev
+            mpi-default-dev
+            libgl1-mesa-dev
+            libglu1-mesa-dev
+            freeglut3-dev
+            libx11-dev
+            libblas-dev
+            libfftw3-dev
+            libhwloc-dev
+            libleveldb-dev
+            libhdf5-dev
+            valgrind
+            opencl-c-headers ocl-icd-opencl-dev
+            gfortran
+            help2man doxygen
+            reprotest
+      - name: autoconf
+        run: ./autogen.sh
+      - name: run
+        run: reprotest 'export SOURCE_DATE_EPOCH=946684800 ; sed -i "/^HTML_TIMESTAMP/s/YES/NO/" doc/doxygen*/doxygen.cfg ; mkdir build && cd build && FCFLAGS=-ffile-prefix-map=$PWD=. FFLAGS=-ffile-prefix-map=$PWD=. CFLAGS=-ffile-prefix-map=$PWD=. CXXFLAGS=-ffile-prefix-map=$PWD=. ../configure --enable-quick-check && TZ= make && make install-strip DESTDIR=$PWD/../tmp' tmp
