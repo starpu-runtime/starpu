@@ -17,11 +17,6 @@
 
 set -e
 
-if test -f ./contrib/gitlab/specific_env.sh
-then
-    . ./contrib/gitlab/specific_env.sh
-fi
-
 ./contrib/ci.inria.fr/job-0-tarball.sh
 
 tarball=$(ls -tr starpu-*.tar.gz | tail -1)

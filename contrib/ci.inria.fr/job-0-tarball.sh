@@ -20,6 +20,11 @@ set -e
 export PKG_CONFIG_PATH=/home/ci/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=/home/ci/usr/local/lib:$LD_LIBRARY_PATH
 
+if test -f ./contrib/specific_env.sh
+then
+    . ./contrib/specific_env.sh
+fi
+
 BUILD=./build_$$
 
 ./autogen.sh
