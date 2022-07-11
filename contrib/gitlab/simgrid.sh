@@ -17,7 +17,7 @@
 
 if test -f ./contrib/gitlab/specific_env.sh
 then
-    ./contrib/gitlab/specific_env.sh
+    . ./contrib/gitlab/specific_env.sh
 fi
 
 STARPU_USER_CONFIGURE_OPTIONS="--enable-simgrid --disable-cuda --disable-mpi --disable-mpi-check" ./contrib/ci.inria.fr/job-1-check.sh
