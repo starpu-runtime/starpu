@@ -1244,11 +1244,12 @@ void starpu_codelet_display_stats(struct starpu_codelet *cl)
 void _starpu_do_schedule_in_nested_ctx(unsigned sched_ctx_id)
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
-	for(int s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+	unsigned s;
+	for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 	{
-		if(config->sched_ctxs[s].do_schedule == 1 &&  config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id)
+		if(config->sched_ctxs[s].do_schedule == 1 && config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id && s != sched_ctx_id)
 		{
-		   _starpu_do_schedule_in_nested_ctx(s);
+			_starpu_do_schedule_in_nested_ctx(s);
 		}
 	}
        _starpu_sched_do_schedule(sched_ctx_id);
@@ -1258,13 +1259,13 @@ int _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(unsigned 
 {
 	struct _starpu_machine_config *config = _starpu_get_machine_config();
 	unsigned nb_waited_tasks = 0;
-	int s;
+	unsigned s;
 
 	for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 	{
-		if(config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id)
+		if(config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id && s != sched_ctx_id)
 		{
-			_STARPU_DEBUG("Recursively waiting for tasks submitted to sub context %u of \n", s, sched_ctx_id);
+			_STARPU_DEBUG("Recursively waiting for tasks submitted to sub context %u of %u\n", s, sched_ctx_id);
 			nb_waited_tasks += _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(s);
       		}
 	}
