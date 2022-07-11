@@ -33,6 +33,19 @@ then
     exit 1
 fi
 
+COVERITY=0
+if test "$1" == "-coverity"
+then
+    COVERITY=1
+    if test -f $HOME/.starpu/coverity_token
+    then
+	COVERITY_TOKEN=$(cat $HOME/.starpu/coverity_token)
+    else
+	echo "Error. Coverity is enabled, but there is no file $HOME/.starpu/coverity_token"
+	exit 1
+    fi
+fi
+
 basename=$(basename $tarball .tar.gz)
 export STARPU_HOME=$PWD/$basename/home
 mkdir -p $basename
@@ -102,7 +115,16 @@ fi
 export STARPU_TIMEOUT_ENV=1800
 export MPIEXEC_TIMEOUT=1800
 
-make -j4
+if test "$COVERITY" == "1"
+then
+    cov-build --dir cov-int make -j4
+    grep "are ready for analysis" cov-int/build-log.txt
+    tar caf starpu.tar.xz cov-int
+    curl -k -f --form token=$COVERITY_TOKEN --form email=starpu-builds@inria.fr --form file=@starpu.tar.xz --form version=master --form description="https://scan.coverity.com/builds?project=StarPU"
+else
+    make -j4
+fi
+
 make dist
 set +e
 set -o pipefail

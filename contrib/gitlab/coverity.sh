@@ -15,7 +15,7 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-./contrib/ci.inria.fr/job-1-check.sh
+./contrib/ci.inria.fr/job-1-check.sh -coverity
 
 
 
