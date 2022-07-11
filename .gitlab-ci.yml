@@ -65,4 +65,4 @@ check_simgrid:
 check_coverity:
   extends: .check_template
   script:
-    - ./contrib/gitlab/coverity.sh
+    - ./contrib/gitlab/coverity.sh $CI_COMMIT_BRANCH

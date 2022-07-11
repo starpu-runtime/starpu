@@ -44,6 +44,8 @@ then
 	echo "Error. Coverity is enabled, but there is no file $HOME/.starpu/coverity_token"
 	exit 1
     fi
+    shift
+    BRANCH=$1
 fi
 
 basename=$(basename $tarball .tar.gz)
@@ -120,7 +122,7 @@ then
     cov-build --dir cov-int make -j4
     grep "are ready for analysis" cov-int/build-log.txt
     tar caf starpu.tar.xz cov-int
-    curl -k -f --form token=$COVERITY_TOKEN --form email=starpu-builds@inria.fr --form file=@starpu.tar.xz --form version=master --form description= 'https://scan.coverity.com/builds?project=StarPU'
+    curl -k -f --form token=$COVERITY_TOKEN --form email=starpu-builds@inria.fr --form file=@starpu.tar.xz --form version=$BRANCH --form description= 'https://scan.coverity.com/builds?project=StarPU'
     exit 0
 fi
 
