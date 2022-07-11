@@ -121,10 +121,10 @@ then
     grep "are ready for analysis" cov-int/build-log.txt
     tar caf starpu.tar.xz cov-int
     curl -k -f --form token=$COVERITY_TOKEN --form email=starpu-builds@inria.fr --form file=@starpu.tar.xz --form version=master --form description="https://scan.coverity.com/builds?project=StarPU"
-else
-    make -j4
+    exit 0
 fi
 
+make -j4
 make dist
 set +e
 set -o pipefail
