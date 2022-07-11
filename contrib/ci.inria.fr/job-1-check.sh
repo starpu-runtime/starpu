@@ -120,7 +120,7 @@ then
     cov-build --dir cov-int make -j4
     grep "are ready for analysis" cov-int/build-log.txt
     tar caf starpu.tar.xz cov-int
-    curl -k -f --form token=$COVERITY_TOKEN --form email=starpu-builds@inria.fr --form file=@starpu.tar.xz --form version=master --form description="https://scan.coverity.com/builds?project=StarPU"
+    curl -k -f --form token=$COVERITY_TOKEN --form email=starpu-builds@inria.fr --form file=@starpu.tar.xz --form version=master --form description= 'https://scan.coverity.com/builds?project=StarPU'
     exit 0
 fi
 
