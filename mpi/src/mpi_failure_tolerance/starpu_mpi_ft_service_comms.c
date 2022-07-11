@@ -48,22 +48,6 @@ typedef void (*cb_fn_type)(void*);
 cb_fn_type ack_msg_recv_cb;
 cb_fn_type cp_info_recv_cb;
 
-#ifdef STARPU_MPI_VERBOSE
-static char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
-{
-	switch (request_type)
-	{
-		case SEND_REQ: return "SEND_REQ";
-		case RECV_REQ: return "RECV_REQ";
-		case WAIT_REQ: return "WAIT_REQ";
-		case TEST_REQ: return "TEST_REQ";
-		case BARRIER_REQ: return "BARRIER_REQ";
-		case UNKNOWN_REQ: return "UNSET_REQ";
-		default: return "unknown request type";
-	}
-}
-#endif
-
 int _starpu_mpi_ft_service_submit_rdy()
 {
 	int i;
