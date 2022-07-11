@@ -15,4 +15,9 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+if test -f ./contrib/gitlab/specific_env.sh
+then
+    ./contrib/gitlab/specific_env.sh
+fi
+
 ./contrib/ci.inria.fr/job-1-check.sh -coverity $1
