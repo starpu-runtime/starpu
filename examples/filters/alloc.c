@@ -38,7 +38,7 @@ int main(int argc, char** argv)
 	starpu_conf_init(&conf);
 
 #ifdef STARPU_DEVEL
-#warning FIXME: this example doesn't support Master-Slave
+#warning FIXME: this example does not support Master-Slave
 #endif
 	conf.nmpi_ms = 0;
 	conf.ntcpip_ms = 0;
