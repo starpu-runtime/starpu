@@ -139,9 +139,9 @@ static void init_problem_data(void)
 
 	/* we initialize matrices A, B and C in the usual way */
 
-	A = (float *) malloc(zdim*ydim*sizeof(float));
-	B = (float *) malloc(xdim*zdim*sizeof(float));
-	C = (float *) malloc(xdim*ydim*sizeof(float));
+	starpu_malloc((void **)&A, zdim*ydim*sizeof(float));
+	starpu_malloc((void **)&B, xdim*zdim*sizeof(float));
+	starpu_malloc((void **)&C, xdim*ydim*sizeof(float));
 	Cref = (float *) malloc(xdim*ydim*sizeof(float));
 	assert(A);
 	assert(B);
@@ -442,10 +442,11 @@ int main(void)
 	/* Comment to remove printing of results */
 	check_result(C, Cref, ldC);
 
-	free(A);
-	free(B);
-	free(C);
+	starpu_free_noflag(A, zdim*ydim*sizeof(float));
+	starpu_free_noflag(B, xdim*zdim*sizeof(float));
+	starpu_free_noflag(C, xdim*ydim*sizeof(float));
 	free(Cref);
+
 	starpu_shutdown();
 
 	return 0;

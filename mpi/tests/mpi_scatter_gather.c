@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	if (rank == 0)
 	{
 		/* Allocate the vector */
-		vector = malloc(size * sizeof(int));
+		starpu_malloc((void **)&vector, size * sizeof(int));
 		for(x=0 ; x<size ; x++)
 			vector[x] = x+10;
 
@@ -188,7 +188,7 @@ int main(int argc, char **argv)
 				ret = 1;
 			}
 		}
-		free(vector);
+		starpu_free_noflag(vector, size * sizeof(int));
 	}
 
 	// Free memory

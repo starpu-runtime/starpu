@@ -56,10 +56,6 @@ int main(void)
         int i, j, k;
 	int ret;
 
-        block = (int*)malloc(NX*NY*NZ*sizeof(block[0]));
-        assert(block);
-        generate_block_data(block, NX, NY, NZ, NX, NX*NY);
-
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
@@ -86,6 +82,10 @@ int main(void)
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+        starpu_malloc((void **)&block, NX*NY*NZ*sizeof(int));
+        assert(block);
+        generate_block_data(block, NX, NY, NZ, NX, NX*NY);
 
 #ifdef STARPU_USE_OPENCL
         ret = starpu_opencl_load_opencl_from_file("examples/filters/fblock_opencl_kernel.cl", &opencl_program, NULL);
@@ -147,7 +147,7 @@ int main(void)
         FPRINTF(stderr, "OUT Block\n");
         print_block(block, NX, NY, NZ, NX, NX*NY);
 
-        free(block);
+        starpu_free_noflag(block, NX*NY*NZ*sizeof(int));
         
         starpu_shutdown();
         return 0;

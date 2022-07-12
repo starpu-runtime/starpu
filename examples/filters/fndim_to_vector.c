@@ -33,17 +33,9 @@ extern void vector_hip_func(void *buffers[], void *cl_arg);
 int main(void)
 {
 	int i, j;
-	int arr1d[NX];
+	int *arr1d;
 	int factor = 10;
 	int ret;
-
-	FPRINTF(stderr,"IN 1-dim Array: \n");
-	for(i=0 ; i<NX ; i++)
-	{
-		arr1d[i] = i;
-		FPRINTF(stderr, "%5d ", arr1d[i]);
-	}
-	FPRINTF(stderr,"\n");
 
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
@@ -63,10 +55,19 @@ int main(void)
 		.name = "arr1d_to_vector_scal"
 	};
 
-        ret = starpu_init(NULL);
+	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_malloc((void **)&arr1d, NX*sizeof(int));
+	FPRINTF(stderr,"IN 1-dim Array: \n");
+	for(i=0 ; i<NX ; i++)
+	{
+		arr1d[i] = i;
+		FPRINTF(stderr, "%5d ", arr1d[i]);
+	}
+	FPRINTF(stderr,"\n");
 
 	unsigned nn[1] = {NX};
 	unsigned ldn[1] = {1};
@@ -118,15 +119,18 @@ int main(void)
 	/* Unpartition the data, unregister it from StarPU and shutdown */
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(handle);
-	starpu_shutdown();
 
 	FPRINTF(stderr,"OUT 1-dim Array: \n");
 	for(i=0 ; i<NX ; i++) FPRINTF(stderr, "%5d ", arr1d[i]);
 	FPRINTF(stderr,"\n");
 
+	starpu_free_noflag(arr1d, NX*sizeof(int));
+
+	starpu_shutdown();
+
 	return 0;
 
- enodev:
+enodev:
 	starpu_shutdown();
 	return 77;
 }

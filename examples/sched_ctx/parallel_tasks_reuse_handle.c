@@ -189,8 +189,10 @@ int main(void)
 	parallel_task_init();
 
 	/* Data preparation */
-	double array1[SIZE];
-	double array2[SIZE];
+	double *array1;
+	double *array2;
+	starpu_malloc((void **)&array1, SIZE*sizeof(double));
+	starpu_malloc((void **)&array2, SIZE*sizeof(double));
 
 	memset(array1, 0, sizeof(double));
 	int i;
@@ -232,6 +234,9 @@ out:
 	starpu_data_unregister(handle1);
 	starpu_data_unregister(handle2);
 	parallel_task_deinit();
+
+	starpu_free_noflag(array1, SIZE*sizeof(double));
+	starpu_free_noflag(array2, SIZE*sizeof(double));
 
 	starpu_shutdown();
 	return 0;

@@ -315,7 +315,7 @@ int main(int argc, char **argv)
 
 				array_size = s * 1000 / sizeof(float);
 
-				msg = malloc(array_size * sizeof(float));
+				starpu_malloc((void **)&msg, array_size * sizeof(float));
 				for (i = 0; i < array_size; i++)
 				{
 					msg[i] = 3.14;
@@ -335,7 +335,7 @@ int main(int argc, char **argv)
 				SERVER_PRINTF("\n");
 
 				starpu_data_unregister(data_handle);
-				free(msg);
+				starpu_free_noflag(msg, array_size * sizeof(float));
 				size_id++;
 			}
 

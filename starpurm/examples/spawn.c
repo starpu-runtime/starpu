@@ -76,7 +76,7 @@ static void test1(const int N)
 	starpu_data_handle_t vector_handle;
 	int ret;
 	
-	vector = malloc(N * sizeof(*vector));
+	starpu_malloc((void **)&vector, N * sizeof(*vector));
 	{
 		int i;
 		for (i = 0; i < N; i++)
@@ -106,7 +106,7 @@ static void test1(const int N)
 			}
 		}
 	}
-	free(vector);
+	starpu_free_noflag(vector, N * sizeof(*vector));
 }
 
 static void test2(const int N, const int task_mult)
@@ -116,7 +116,7 @@ static void test2(const int N, const int task_mult)
 	starpu_data_handle_t vector_handle;
 	int ret;
 	
-	vector = malloc(N * sizeof(*vector));
+	starpu_malloc((void **)&vector, N * sizeof(*vector));
 	{
 		int i;
 		for (i = 0; i < N; i++)
@@ -161,7 +161,7 @@ static void test2(const int N, const int task_mult)
 			}
 		}
 	}
-	free(vector);
+	starpu_free_noflag(vector, N * sizeof(*vector));
 }
 
 static void init_rm_infos(void)

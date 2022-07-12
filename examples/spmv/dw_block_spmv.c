@@ -69,10 +69,10 @@ void create_data(void)
 /*	printf("size = %d \n ", size); */
 
 	/* initiate the 2 vectors */
-	vector_in_ptr = malloc(size*sizeof(float));
+	starpu_malloc((void **)&vector_in_ptr, size*sizeof(float));
 	assert(vector_in_ptr);
 
-	vector_out_ptr = malloc(size*sizeof(float));
+	starpu_malloc((void **)&vector_out_ptr, size*sizeof(float));
 	assert(vector_out_ptr);
 
 	/* fill those */
@@ -332,6 +332,9 @@ int main(int argc, char *argv[])
 	FPRINTF(stdout, "%2.2f\n", timing/1000);
 	FPRINTF(stderr, "Flop %e\n", totalflop);
 	FPRINTF(stderr, "GFlop/s : %2.2f\n", totalflop/timing/1000);
+
+	starpu_free_noflag(vector_in_ptr, size*sizeof(float));
+	starpu_free_noflag(vector_out_ptr, size*sizeof(float));
 
 	starpu_shutdown();
 

@@ -36,32 +36,33 @@ void cpu_func(void *buffers[], void *cl_arg)
 int main(void)
 {
 	int i;
-	int arr1d[NX];
+	int *arr1d;
 	starpu_data_handle_t handle;
 	int factor = 10;
 	int ret;
 
-        struct starpu_codelet cl =
+	struct starpu_codelet cl =
 	{
 		.cpu_funcs = {cpu_func},
 		.cpu_funcs_name = {"cpu_func"},
 		.nbuffers = 1,
 		.modes = {STARPU_RW},
 		.name = "arr1d_pick_variable_scal"
-        };
-
-        FPRINTF(stderr,"IN 1-dim Array: \n");
-        for(i=0 ; i<NX ; i++)
-        {
-		arr1d[i] = i;
-		FPRINTF(stderr, "%5d ", arr1d[i]);
-        }
-        FPRINTF(stderr,"\n");
+	};
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
-		exit(77);
+	exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_malloc((void **)&arr1d, NX*sizeof(int));
+	FPRINTF(stderr,"IN 1-dim Array: \n");
+	for(i=0 ; i<NX ; i++)
+	{
+		arr1d[i] = i;
+		FPRINTF(stderr, "%5d ", arr1d[i]);
+	}
+	FPRINTF(stderr,"\n");
 
 	unsigned nn[1] = {NX};
 	unsigned ldn[1] = {1};
@@ -80,7 +81,7 @@ int main(void)
 	};
 	starpu_data_partition(handle, &f);
 
-        /* Submit a task on each sub-variable */
+	/* Submit a task on each sub-variable */
 	for (i=0; i<starpu_data_get_nb_children(handle); i++)
 	{
 		starpu_data_handle_t variable_handle = starpu_data_get_sub_data(handle, 1, i);
@@ -108,15 +109,18 @@ int main(void)
 
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
 	starpu_data_unregister(handle);
-	starpu_shutdown();
 
 	FPRINTF(stderr,"OUT 1-dim Array: \n");
 	for(i=0 ; i<NX ; i++) FPRINTF(stderr, "%5d ", arr1d[i]);
 	FPRINTF(stderr,"\n");
 
+	starpu_free_noflag(arr1d, NX*sizeof(int));
+
+	starpu_shutdown();
+
 	return 0;
 
- enodev:
+enodev:
 	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	starpu_shutdown();
 	return 77;

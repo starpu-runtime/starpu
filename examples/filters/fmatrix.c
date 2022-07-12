@@ -47,9 +47,6 @@ int main(void)
 	int ret, i;
 	int factor = 12;
 
-        matrix = (int*)malloc(NX*NY*sizeof(int));
-        generate_matrix_data(matrix, NX, NY, NX);
-
         starpu_data_handle_t handle;
         struct starpu_codelet cl =
 	{
@@ -72,6 +69,9 @@ int main(void)
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_malloc((void **)&matrix, NX*NY*sizeof(int));
+	generate_matrix_data(matrix, NX, NY, NX);
 
 	/* Declare data to StarPU */
 	starpu_matrix_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)matrix, NX, NX, NY, sizeof(matrix[0]));
@@ -107,7 +107,7 @@ int main(void)
         print_matrix_data(handle);
         starpu_data_unregister(handle);
 
-    	free(matrix);
+    	starpu_free_noflag(matrix, NX*NY*sizeof(int));
 	starpu_shutdown();
 
 	return ret;

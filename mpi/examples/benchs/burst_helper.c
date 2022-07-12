@@ -55,13 +55,13 @@ void burst_init_data(int rank)
 		int i = 0;
 		for (i = 0; i < burst_nb_requests; i++)
 		{
-			send_buffers[i] = malloc(nx * sizeof(float));
-			memset(send_buffers[i], 0, nx * sizeof(float));
-			starpu_vector_data_register(&send_handles[i], STARPU_MAIN_RAM, (uintptr_t) send_buffers[i], nx, sizeof(float));
+			starpu_malloc((void **)&send_buffers[i], NX_ARRAY * sizeof(float));
+			memset(send_buffers[i], 0, NX_ARRAY * sizeof(float));
+			starpu_vector_data_register(&send_handles[i], STARPU_MAIN_RAM, (uintptr_t) send_buffers[i], NX_ARRAY, sizeof(float));
 
-			recv_buffers[i] = malloc(nx * sizeof(float));
-			memset(recv_buffers[i], 0, nx * sizeof(float));
-			starpu_vector_data_register(&recv_handles[i], STARPU_MAIN_RAM, (uintptr_t) recv_buffers[i], nx, sizeof(float));
+			starpu_malloc((void **)&recv_buffers[i], NX_ARRAY * sizeof(float));
+			memset(recv_buffers[i], 0, NX_ARRAY * sizeof(float));
+			starpu_vector_data_register(&recv_handles[i], STARPU_MAIN_RAM, (uintptr_t) recv_buffers[i], NX_ARRAY, sizeof(float));
 		}
 	}
 }
@@ -74,10 +74,10 @@ void burst_free_data(int rank)
 		for (i = 0; i < burst_nb_requests; i++)
 		{
 			starpu_data_unregister(send_handles[i]);
-			free(send_buffers[i]);
+			starpu_free_noflag(send_buffers[i], NX_ARRAY * sizeof(float));
 
 			starpu_data_unregister(recv_handles[i]);
-			free(recv_buffers[i]);
+			starpu_free_noflag(recv_buffers[i], NX_ARRAY * sizeof(float));
 		}
 
 		free(recv_handles);

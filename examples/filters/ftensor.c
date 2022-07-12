@@ -49,10 +49,6 @@ int main(void)
     int i, j, k, l;
     int ret;
 
-    tensor = (int*)malloc(NX*NY*NZ*NT*sizeof(tensor[0]));
-    assert(tensor);
-    generate_tensor_data(tensor, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
-
     starpu_data_handle_t handle;
     struct starpu_codelet cl =
     {
@@ -75,6 +71,10 @@ int main(void)
     if (ret == -ENODEV)
 	exit(77);
     STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+    starpu_malloc((void **)&tensor, NX*NY*NZ*NT*sizeof(int));
+    assert(tensor);
+    generate_tensor_data(tensor, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
     
     /* Declare data to StarPU */
     starpu_tensor_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)tensor, NX, NX*NY, NX*NY*NZ, NX, NY, NZ, NT, sizeof(int));
@@ -126,7 +126,7 @@ int main(void)
     FPRINTF(stderr, "OUT Tensor\n");
     print_tensor(tensor, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
-    free(tensor);
+    starpu_free_noflag(tensor, NX*NY*NZ*NT*sizeof(int));
 
     starpu_shutdown();
     return 0;

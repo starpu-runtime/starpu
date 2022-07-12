@@ -42,9 +42,6 @@ int main(void)
 	int ret, i, j, k;
 	int factor = 12;
 
-	arr2d = (int*)malloc(NX*NY*sizeof(int));
-	generate_matrix_data(arr2d, NX, NY, NX);
-
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
@@ -67,6 +64,9 @@ int main(void)
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_malloc((void **)&arr2d, NX*NY*sizeof(int));
+	generate_matrix_data(arr2d, NX, NY, NX);
 
 	unsigned nn[2] = {NX, NY};
 	unsigned ldn[2] = {1, NX};
@@ -121,12 +121,12 @@ int main(void)
 	print_2dim_data(handle);
 	starpu_data_unregister(handle);
 
-	free(arr2d);
+	starpu_free_noflag(arr2d, NX*NY*sizeof(int));
 	starpu_shutdown();
 
 	return 0;
 
- enodev:
+enodev:
 	starpu_shutdown();
 	return 77;
 }

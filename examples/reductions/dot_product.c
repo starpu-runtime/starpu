@@ -372,8 +372,8 @@ int main(void)
 	unsigned long nelems = _nblocks*_entries_per_block;
 	size_t size = nelems*sizeof(float);
 
-	_x = (float *) malloc(size);
-	_y = (float *) malloc(size);
+	starpu_malloc((void **)&_x, size*sizeof(float));
+	starpu_malloc((void **)&_y, size*sizeof(float));
 
 	_x_handles = (starpu_data_handle_t *) calloc(_nblocks, sizeof(starpu_data_handle_t));
 	_y_handles = (starpu_data_handle_t *) calloc(_nblocks, sizeof(starpu_data_handle_t));
@@ -445,8 +445,9 @@ int main(void)
 #endif
 	starpu_shutdown();
 
-	free(_x);
-	free(_y);
+
+	starpu_free_noflag(_x, size*sizeof(float));
+	starpu_free_noflag(_y, size*sizeof(float));
 	free(_x_handles);
 	free(_y_handles);
 

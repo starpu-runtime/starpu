@@ -49,14 +49,10 @@ int main(void)
 	int i, j, k, l;
 	int ret;
 
-	arr4d = (int*)malloc(NX*NY*NZ*NT*sizeof(int));
-	assert(arr4d);
-	generate_tensor_data(arr4d, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
-
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
-		.cpu_funcs = {f4d_cpu_func},
+	.cpu_funcs = {f4d_cpu_func},
 #ifdef STARPU_USE_CUDA
 		.cuda_funcs = {f4d_cuda_func},
 		.cuda_flags = {STARPU_CUDA_ASYNC},
@@ -72,8 +68,12 @@ int main(void)
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
-		exit(77);
+	exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_malloc((void **)&arr4d, NX*NY*NZ*NT*sizeof(int));
+	assert(arr4d);
+	generate_tensor_data(arr4d, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
 	unsigned nn[4] = {NX, NY, NZ, NT};
 	unsigned ldn[4] = {1, NX, NX*NY, NX*NY*NZ};
@@ -129,12 +129,12 @@ int main(void)
 	FPRINTF(stderr, "OUT Ndim Array\n");
 	print_tensor(arr4d, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
-	free(arr4d);
+	starpu_free_noflag(arr4d, NX*NY*NZ*NT*sizeof(int));
 
 	starpu_shutdown();
 	return 0;
 
- enodev:
+enodev:
 	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	starpu_shutdown();
 	return 77;

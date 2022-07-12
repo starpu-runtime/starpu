@@ -64,7 +64,7 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 	for(i = 0; i < 2; i++)
 	{
 		int j;
-		v[i] = malloc(N * sizeof(unsigned));
+		starpu_malloc((void **)&v[i], N * sizeof(unsigned));
 		for(j=0 ; j<N ; j++)
 		{
 			v[i][j] = 12;
@@ -116,7 +116,7 @@ void test_cache(int rank, char *enabled, size_t *comm_amount)
 	for(i = 0; i < 2; i++)
 	{
 		starpu_data_unregister(data_handles[i]);
-		free(v[i]);
+		starpu_free_noflag(v[i], N * sizeof(unsigned));
 	}
 
 	starpu_mpi_comm_amounts_retrieve(comm_amount);

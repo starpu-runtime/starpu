@@ -47,10 +47,6 @@ int main(void)
 	int ret;
 	int factor = 2;
 
-	arr5d = (int*)malloc(NX*NY*NZ*NT*NG*sizeof(arr5d[0]));
-	assert(arr5d);
-	generate_5dim_data(arr5d, NX, NY, NZ, NT, NG, NX, NX*NY, NX*NY*NZ, NX*NY*NZ*NT);
-
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
@@ -73,6 +69,10 @@ int main(void)
 	if (ret == -ENODEV)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_malloc((void **)&arr5d, NX*NY*NZ*NT*NG*sizeof(int));
+	assert(arr5d);
+	generate_5dim_data(arr5d, NX, NY, NZ, NT, NG, NX, NX*NY, NX*NY*NZ, NX*NY*NZ*NT);
 
 	unsigned nn[5] = {NX, NY, NZ, NT, NG};
 	unsigned ldn[5] = {1, NX, NX*NY, NX*NY*NZ, NX*NY*NZ*NT};
@@ -128,12 +128,12 @@ int main(void)
 	print_5dim_data(handle);
 	starpu_data_unregister(handle);
 
-	free(arr5d);
+	starpu_free_noflag(arr5d, NX*NY*NZ*NT*NG*sizeof(int));
 
 	starpu_shutdown();
 	return 0;
 
- enodev:
+enodev:
 	starpu_shutdown();
 	return 77;
 }

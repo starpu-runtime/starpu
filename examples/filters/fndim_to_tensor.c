@@ -44,10 +44,6 @@ int main(void)
 	int i, j, k, l;
 	int ret;
 
-	arr4d = (int*)malloc(NX*NY*NZ*NT*sizeof(arr4d[0]));
-	assert(arr4d);
-	generate_tensor_data(arr4d, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
-
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
@@ -70,6 +66,10 @@ int main(void)
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_malloc((void **)&arr4d, NX*NY*NZ*NT*sizeof(int));
+	assert(arr4d);
+	generate_tensor_data(arr4d, NX, NY, NZ, NT, NX, NX*NY, NX*NY*NZ);
 
 	unsigned nn[4] = {NX, NY, NZ, NT};
 	unsigned ldn[4] = {1, NX, NX*NY, NX*NY*NZ};
@@ -125,12 +125,12 @@ int main(void)
 	print_4dim_data(handle);
 	starpu_data_unregister(handle);
 
-	free(arr4d);
+	starpu_free_noflag(arr4d, NX*NY*NZ*NT*sizeof(int));
 
 	starpu_shutdown();
 	return 0;
 
- enodev:
+enodev:
 	FPRINTF(stderr, "WARNING: No one can execute this task\n");
 	starpu_shutdown();
 	return 77;

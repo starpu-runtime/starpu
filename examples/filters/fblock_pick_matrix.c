@@ -45,10 +45,6 @@ int main(void)
 	int ret;
         int factor = 2;
 
-        block = (int*)malloc(NX*NY*NZ*sizeof(block[0]));
-        assert(block);
-        generate_block_data(block, NX, NY, NZ, NX, NX*NY);
-
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
@@ -71,6 +67,10 @@ int main(void)
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+        starpu_malloc((void **)&block, NX*NY*NZ*sizeof(int));
+        assert(block);
+        generate_block_data(block, NX, NY, NZ, NX, NX*NY);
 
         /* Declare data to StarPU */
         starpu_block_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)block, NX, NX*NY, NX, NY, NZ, sizeof(int));
@@ -122,7 +122,7 @@ int main(void)
         print_block_data(handle);
         starpu_data_unregister(handle);
 
-        free(block);
+        starpu_free_noflag(block, NX*NY*NZ*sizeof(int));
         
         starpu_shutdown();
         return 0;

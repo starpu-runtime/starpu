@@ -163,11 +163,11 @@ int main(void)
 	}
 
         mem_size_matrix = width * height * sizeof(float);
-        matrix = (float*)malloc(mem_size_matrix);
+        starpu_malloc((void **)&matrix, mem_size_matrix);
         mem_size_vector = width * sizeof(float);
-        vector = (float*)malloc(mem_size_vector);
+        starpu_malloc((void **)&vector, mem_size_vector);
         mem_size_mult = height * sizeof(float);
-        mult = (float*)malloc(mem_size_mult);
+        starpu_malloc((void **)&mult, mem_size_mult);
         correctResult = (float*)malloc(mem_size_mult);
 
         assert(matrix);
@@ -222,9 +222,9 @@ int main(void)
         printArray(mult, height);
 #endif
 
-	free(matrix);
-	free(vector);
-	free(mult);
+    starpu_free_noflag(matrix, mem_size_matrix);
+    starpu_free_noflag(vector, mem_size_vector);
+    starpu_free_noflag(mult, mem_size_mult);
 	free(correctResult);
         starpu_shutdown();
 

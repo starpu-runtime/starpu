@@ -185,10 +185,10 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	A = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
-	B = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
-	C = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
-	D = (unsigned *) malloc(VECTORSIZE*sizeof(unsigned));
+	starpu_malloc((void **)&A, VECTORSIZE*sizeof(unsigned));
+	starpu_malloc((void **)&B, VECTORSIZE*sizeof(unsigned));
+	starpu_malloc((void **)&C, VECTORSIZE*sizeof(unsigned));
+	starpu_malloc((void **)&D, VECTORSIZE*sizeof(unsigned));
 
 	starpu_vector_data_register(&A_handle, STARPU_MAIN_RAM, (uintptr_t)A, VECTORSIZE, sizeof(unsigned));
 	starpu_vector_data_register(&B_handle, STARPU_MAIN_RAM, (uintptr_t)B, VECTORSIZE, sizeof(unsigned));
@@ -245,10 +245,10 @@ int main(int argc, char **argv)
 
 	starpu_data_unregister(var_handle);
 
-	free(A);
-	free(B);
-	free(C);
-	free(D);
+	starpu_free_noflag(A, VECTORSIZE*sizeof(unsigned));
+	starpu_free_noflag(B, VECTORSIZE*sizeof(unsigned));
+	starpu_free_noflag(C, VECTORSIZE*sizeof(unsigned));
+	starpu_free_noflag(D, VECTORSIZE*sizeof(unsigned));
 
 	starpu_shutdown();
 
@@ -262,10 +262,10 @@ enodev:
 
 	starpu_data_unregister(var_handle);
 
-	free(A);
-	free(B);
-	free(C);
-	free(D);
+	starpu_free_noflag(A, VECTORSIZE*sizeof(unsigned));
+	starpu_free_noflag(B, VECTORSIZE*sizeof(unsigned));
+	starpu_free_noflag(C, VECTORSIZE*sizeof(unsigned));
+	starpu_free_noflag(D, VECTORSIZE*sizeof(unsigned));
 	fprintf(stderr, "WARNING: No one can execute this task\n");
 	/* yes, we do not perform the computation but we did detect that no one
  	 * could perform the kernel, so this is not an error from StarPU */

@@ -83,7 +83,7 @@ int main(void)
 	unsigned i;
 	int ret;
 
-	vector = malloc(NX*sizeof(*vector));
+	starpu_malloc((void **)&vector, NX*sizeof(float));
 
 	for (i = 0; i < NX; i++)
                 vector[i] = (i+1.0f);
@@ -123,6 +123,7 @@ int main(void)
 	}
 
 	starpu_data_unregister(vector_handle);
+	starpu_free_noflag(vector, NX*sizeof(float));
 
 	/* terminate StarPU, no task can be submitted after */
 	starpu_shutdown();
@@ -130,12 +131,11 @@ int main(void)
 	FPRINTF(stderr, "AFTER: First element is %f\n", vector[0]);
 	FPRINTF(stderr, "AFTER: Last element is %f\n", vector[NX-1]);
 
-	free(vector);
 	return 0;
 
 enodev:
 	starpu_data_unregister(vector_handle);
-	free(vector);
+	starpu_free_noflag(vector, NX*sizeof(float));
 	starpu_shutdown();
 	return 77;
 }

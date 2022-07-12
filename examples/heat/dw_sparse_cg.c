@@ -404,9 +404,9 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	float *ptr_vecr, *ptr_vecd, *ptr_vecq;
 
 	unsigned i;
-	ptr_vecr = malloc(nrow*sizeof(float));
-	ptr_vecd = malloc(nrow*sizeof(float));
-	ptr_vecq = malloc(nrow*sizeof(float));
+	starpu_malloc((void **)&ptr_vecr, nrow*sizeof(float));
+	starpu_malloc((void **)&ptr_vecd, nrow*sizeof(float));
+	starpu_malloc((void **)&ptr_vecq, nrow*sizeof(float));
 
 	for (i = 0; i < nrow; i++)
 	{
@@ -458,9 +458,9 @@ void conjugate_gradient(float *nzvalA, float *vecb, float *vecx, uint32_t nnz,
 	starpu_data_unregister(ds_vecd);
 	starpu_data_unregister(ds_vecq);
 
-	free(ptr_vecr);
-	free(ptr_vecd);
-	free(ptr_vecq);
+	starpu_free_noflag(ptr_vecr, nrow*sizeof(float));
+	starpu_free_noflag(ptr_vecd, nrow*sizeof(float));
+	starpu_free_noflag(ptr_vecq, nrow*sizeof(float));
 }
 
 

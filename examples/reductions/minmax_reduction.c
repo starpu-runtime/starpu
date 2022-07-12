@@ -159,8 +159,8 @@ int main(void)
 	unsigned long nelems = _nblocks*_entries_per_bock;
 	size_t size = nelems*sizeof(TYPE);
 
-	_x = (TYPE *) malloc(size);
-	_x_handles = (starpu_data_handle_t *) calloc(_nblocks, sizeof(starpu_data_handle_t));
+	starpu_malloc((void **)&_x, size*sizeof(TYPE));
+	_x_handles = (starpu_data_handle_t *) malloc(_nblocks * sizeof(starpu_data_handle_t));
 
 	assert(_x && _x_handles);
 
@@ -217,7 +217,7 @@ int main(void)
 
 	STARPU_ASSERT(_minmax[0] <= _minmax[1]);
 
-	free(_x);
+	starpu_free_noflag(_x, size*sizeof(TYPE));
 	free(_x_handles);
 	starpu_shutdown();
 

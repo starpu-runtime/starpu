@@ -231,7 +231,7 @@ void exchange_matrix(int rank, int *error)
 		int x, y;
 		starpu_data_handle_t matrix_handle[2];
 
-		matrix = (char*)malloc(nx*ny*sizeof(char));
+		starpu_malloc((void **)&matrix, nx*ny*sizeof(char));
 		assert(matrix);
 		for(y=0 ; y<ny ; y++)
 		{
@@ -248,7 +248,7 @@ void exchange_matrix(int rank, int *error)
 
 		starpu_data_unregister(matrix_handle[0]);
 		starpu_data_unregister(matrix_handle[1]);
-		free(matrix);
+		starpu_free_noflag(matrix, nx*ny*sizeof(char));
 	}
 	else if (rank == 1)
 	{
@@ -320,7 +320,7 @@ void exchange_block(int rank, int *error)
 		int x, y, z;
 		starpu_data_handle_t block_handle[2];
 
-		block = (float*)malloc(nx*ny*nz*sizeof(float));
+		starpu_malloc((void **)&block, nx*ny*nz*sizeof(float));
 		assert(block);
 		for(z=0 ; z<nz ; z++)
 		{
@@ -340,7 +340,7 @@ void exchange_block(int rank, int *error)
 
 		starpu_data_unregister(block_handle[0]);
 		starpu_data_unregister(block_handle[1]);
-		free(block);
+		starpu_free_noflag(block, nx*ny*nz*sizeof(float));
 	}
 	else if (rank == 1)
 	{

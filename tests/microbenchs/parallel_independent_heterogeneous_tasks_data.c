@@ -118,7 +118,7 @@ int main(int argc, char *argv[])
 	unsigned i,j;
 	for (j = 0; j < nb_tasks; j++)
 	{
-		vector[j] = malloc(NB_FLOAT * sizeof(float));
+		starpu_malloc((void **)&vector[j], NB_FLOAT * sizeof(float));
 #ifndef STARPU_SIMGRID
 		for (i = 0; i < NB_FLOAT; i++)
         	        vector[j][i] = (i+1.0f);
@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 
 	starpu_shutdown();
 	for (j = 0; j < nb_tasks; j++)
-		free(vector[j]);
+		starpu_free_noflag(vector[j], NB_FLOAT * sizeof(float));
 
 	//test reussi ou test echoue
 	if (check && check_sup)

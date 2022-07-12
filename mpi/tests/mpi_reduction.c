@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 	step = 4;
 	loops = 5;
 
-	vector = (long int *) malloc(nb_elements*sizeof(vector[0]));
+	starpu_malloc((void **)&vector, nb_elements*sizeof(long int));
 	for(x = 0; x < nb_elements; x+=step)
 	{
 		int mpi_rank = my_distrib(x/step, size);
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 			starpu_data_unregister(handles[x]);
 	}
 	starpu_data_unregister(dot_handle);
-	free(vector);
+	starpu_free_noflag(vector, nb_elements*sizeof(long int));
 	free(handles);
 
 	starpu_mpi_shutdown();

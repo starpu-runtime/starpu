@@ -36,7 +36,7 @@ void cpu_func(void *buffers[], void *cl_arg)
 int main(void)
 {
 	int i;
-        int vector[NX];
+        int* vector;
         starpu_data_handle_t handle;
         int factor = 10;
 	int ret;
@@ -50,6 +50,12 @@ int main(void)
 		.name = "vector_pick_variable_scal"
         };
 
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		exit(77);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+        starpu_malloc((void **)&vector, NX*sizeof(int));
         FPRINTF(stderr,"IN Vector: \n");
         for(i=0 ; i<NX ; i++)
         {
@@ -57,11 +63,6 @@ int main(void)
                 FPRINTF(stderr, "%5d ", vector[i]);
         }
         FPRINTF(stderr,"\n");
-
-	ret = starpu_init(NULL);
-	if (ret == -ENODEV)
-		exit(77);
-	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 	/* Declare data to StarPU */
 	starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)vector, NX, sizeof(vector[0]));
@@ -106,11 +107,14 @@ int main(void)
 
 	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
         starpu_data_unregister(handle);
-	starpu_shutdown();
 
         FPRINTF(stderr,"OUT Vector: \n");
         for(i=0 ; i<NX ; i++) FPRINTF(stderr, "%5d ", vector[i]);
         FPRINTF(stderr,"\n");
+
+        starpu_free_noflag(vector, NX*sizeof(int));
+        
+	starpu_shutdown();
 
 	return 0;
 

@@ -96,7 +96,7 @@ int main(void)
 		return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-        block = (float*)malloc(nx*ny*nz*sizeof(float));
+        starpu_malloc((void **)&block, nx*ny*nz*sizeof(float));
         assert(block);
         for(k=0 ; k<nz ; k++)
 	{
@@ -138,7 +138,7 @@ int main(void)
         }
 
         FPRINTF(stderr,"TEST %s\n", ret==1?"PASSED":"FAILED");
-	free(block);
+        starpu_free_noflag(block, nx*ny*nz*sizeof(float));
 
         starpu_shutdown();
 

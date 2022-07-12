@@ -45,10 +45,6 @@ int main(void)
 	int ret;
 	int factor = 2;
 
-	arr3d = (int*)malloc(NX*NY*NZ*sizeof(arr3d[0]));
-	assert(arr3d);
-	generate_block_data(arr3d, NX, NY, NZ, NX, NX*NY);
-
 	starpu_data_handle_t handle;
 	struct starpu_codelet cl =
 	{
@@ -65,12 +61,16 @@ int main(void)
 		.nbuffers = 1,
 		.modes = {STARPU_RW},
 		.name = "arr3d_pick_matrix_scal"
-    };
+	};
 
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV)
 		exit(77);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+
+	starpu_malloc((void **)&arr3d, NX*NY*NZ*sizeof(int));
+	assert(arr3d);
+	generate_block_data(arr3d, NX, NY, NZ, NX, NX*NY);
 
 	unsigned nn[3] = {NX, NY, NZ};
 	unsigned ldn[3] = {1, NX, NX*NY};
@@ -126,12 +126,12 @@ int main(void)
 	print_3dim_data(handle);
 	starpu_data_unregister(handle);
 
-	free(arr3d);
+	starpu_free_noflag(arr3d, NX*NY*NZ*sizeof(int));
 
 	starpu_shutdown();
 	return 0;
 
- enodev:
+enodev:
 	starpu_shutdown();
 	return 77;
 }
