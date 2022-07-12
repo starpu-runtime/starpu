@@ -39,6 +39,12 @@ struct starpu_task *_starpu_get_worker_task(struct _starpu_worker *args, int wor
 /** Get from the scheduler tasks to be executed on the workers \p workers */
 int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_task ** tasks, int nworker, unsigned memnode);
 
+void *_starpu_map_allocate(size_t length, unsigned node);
+int _starpu_map_deallocate(void* map_addr, size_t length);
+char* _starpu_get_fdname_from_mapaddr(uintptr_t map_addr, size_t *offset, size_t length);
+void *_starpu_sink_map(char *fd_name, size_t offset, size_t length);
+int _starpu_sink_unmap(uintptr_t map_addr, size_t length);
+
 #pragma GCC visibility pop
 
 #endif // __DRIVER_COMMON_H__

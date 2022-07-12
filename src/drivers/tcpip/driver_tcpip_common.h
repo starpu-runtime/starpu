@@ -45,8 +45,7 @@ struct _starpu_tcpip_socket
 
 extern struct _starpu_tcpip_socket *tcpip_sock;
 
-/* a flag to note whether the socket is local socket*/
-extern int *local_flag;
+int _starpu_tcpip_mp_has_local();
 
 int _starpu_tcpip_common_mp_init();
 void _starpu_tcpip_common_mp_deinit();

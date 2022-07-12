@@ -28,6 +28,10 @@
 #include <core/debug.h>
 #include <core/task.h>
 #include <datawizard/memory_nodes.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h> 
+#include <errno.h>
 
 
 void _starpu_driver_start_job(struct _starpu_worker *worker, struct _starpu_job *j, struct starpu_perfmodel_arch* perf_arch, int rank, int profiling)
@@ -717,4 +721,173 @@ int _starpu_get_multi_worker_task(struct _starpu_worker *workers, struct starpu_
 #endif /* !STARPU_NON_BLOCKING_DRIVERS */
 
 	return count;
+}
+
+/*generate and initialize rbtree map_tree*/
+static struct starpu_rbtree map_tree = STARPU_RBTREE_INITIALIZER;
+
+static struct map_allocate_info
+{
+	struct starpu_rbtree_node map_node;
+	void* map_addr;
+	size_t length;
+	char name[];
+};
+
+/* the cmp_fn arg for rb_tree_insert() */
+static unsigned int map_addr_cmp_insert(struct starpu_rbtree_node * left_elm, struct starpu_rbtree_node * right_elm)
+{
+	unsigned int addr_left = (uintptr_t)((struct map_allocate_info *) left_elm)->map_addr;
+	unsigned int addr_right = (uintptr_t)((struct map_allocate_info *) right_elm)->map_addr;
+
+	return addr_left - addr_right;
+}
+
+/* the cmp_fn arg for starpu_rbtree_lookup() */
+static unsigned int map_addr_cmp_lookup(uintptr_t addr_left, struct starpu_rbtree_node * right_elm)
+{
+	unsigned int addr_right = (uintptr_t)((struct map_allocate_info *) right_elm)->map_addr;
+	
+	return addr_left - addr_right;
+}
+
+void *_starpu_map_allocate(size_t length, unsigned node)
+{
+	/*file*/
+	int fd;
+	char fd_name[16];
+	sprintf(fd_name,"starpu-%u-XXXXXX", node);
+	
+	while(1)
+	{
+		mktemp(fd_name);
+		fd = shm_open(fd_name, O_RDWR|O_CREAT|O_EXCL, 0600);
+		if(fd >= 0)
+			break;
+		/* if name is already existed, recreate one*/
+		else if (errno == EEXIST)
+			continue;
+		else
+		{
+			perror("fail to open file");
+			return NULL;
+		}
+	}
+
+	/*fix the length of file*/
+	ftruncate(fd, length);
+	void* map_addr = mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	close(fd);
+	if (map_addr == MAP_FAILED)
+	{
+		perror("fail to map");
+		return NULL;
+	}
+
+	struct map_allocate_info * map_info = (struct map_allocate_info *)malloc(sizeof(struct map_allocate_info)+strlen(fd_name));
+	map_info->map_addr = map_addr;
+	map_info->length = length;
+	memcpy(map_info->name, fd_name, strlen(fd_name));
+
+	starpu_rbtree_node_init(&map_info->map_node);
+
+	starpu_rbtree_insert(&map_tree, &map_info->map_node, map_addr_cmp_insert);
+
+	return map_addr;
+}
+
+int _starpu_map_deallocate(void* map_addr, size_t length)
+{
+	struct starpu_rbtree_node * currentNode = starpu_rbtree_lookup(&map_tree, (uintptr_t)map_addr, map_addr_cmp_lookup);
+	
+	if (currentNode != NULL)
+	{
+		struct map_allocate_info * map_info = (struct map_allocate_info *) currentNode;
+		if ((uintptr_t)map_addr == (uintptr_t)map_info->map_addr && ((uintptr_t)map_addr + length) == ((uintptr_t)map_info->map_addr + map_info->length))
+		{
+			/*unlink the map fd name*/
+			if (shm_unlink(map_info->name) != 0)
+			{
+				perror("cannot unlink the file");
+			}
+			starpu_rbtree_remove(&map_tree, &map_info->map_node);
+			free(map_info);
+		}
+		else
+		{
+			return -1;
+		}
+	}
+
+	int res = munmap(map_addr, length);
+	if (res < 0)
+	{
+		perror("fail to unmap");
+		return -1;
+	}
+
+	return 0;
+}
+
+/*lookup name from map_addr*/
+char* _starpu_get_fdname_from_mapaddr(uintptr_t map_addr, size_t *offset, size_t length)
+{
+	char* map_name = NULL;
+
+	struct starpu_rbtree_node * currentNode = starpu_rbtree_lookup_nearest(&map_tree, map_addr, map_addr_cmp_lookup, STARPU_RBTREE_LEFT);
+
+	if (currentNode != NULL)
+	{
+		struct map_allocate_info * map_info = (struct map_allocate_info *) currentNode;
+
+		if ((map_addr >= (uintptr_t)map_info->map_addr) && map_addr + length <= ((uintptr_t)map_info->map_addr + map_info->length))
+		{
+			map_name = strdup(map_info->name);
+			*offset = map_addr - (uintptr_t)map_info->map_addr;
+		}
+	}
+
+	return map_name;
+}
+
+/*map with giving file name*/
+void *_starpu_sink_map(char *fd_name, size_t offset, size_t length)
+{
+	/*file*/
+	int fd;
+
+	fd = shm_open(fd_name, O_RDWR, 0600);
+
+	if(fd < 0)
+	{
+		perror("fail to open file");
+		return NULL;
+	}
+
+	/* offset for mmap() must be page aligned */
+	off_t pa_offset = offset & ~(sysconf(_SC_PAGE_SIZE) - 1);
+               
+	void *map_sink_addr = mmap(NULL, length, PROT_READ|PROT_WRITE, MAP_SHARED, fd, pa_offset);
+	close(fd);
+	if (map_sink_addr == MAP_FAILED)
+	{
+		perror("fail to map");
+		return NULL;
+	}
+
+	return (void*)((uintptr_t)map_sink_addr + (offset - pa_offset));
+}
+
+int _starpu_sink_unmap(uintptr_t map_addr, size_t length)
+{
+	uintptr_t pa_addr = map_addr & ~(sysconf(_SC_PAGE_SIZE) - 1);
+	size_t offset = map_addr-pa_addr;
+
+	int res = munmap((void*)pa_addr, length + offset);
+	if (res < 0)
+	{
+		perror("fail to unmap");
+		return -1;
+	}
+	return 0;
 }

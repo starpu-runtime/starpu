@@ -446,6 +446,11 @@ uint32_t _starpu_worker_exists(struct starpu_task *task)
 	return 0;
 }
 
+uint32_t _starpu_can_submit_ms_task(void)
+{
+	return (STARPU_MPI_MS & _starpu_config.worker_mask) || (STARPU_TCPIP_MS & _starpu_config.worker_mask) ;
+}
+
 uint32_t _starpu_can_submit_cuda_task(void)
 {
 	return STARPU_CUDA & _starpu_config.worker_mask;

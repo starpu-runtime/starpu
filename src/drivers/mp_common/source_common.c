@@ -715,6 +715,72 @@ void _starpu_src_common_free(unsigned dst_node, uintptr_t addr, size_t size, int
 	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 }
 
+/* Send a request to the sink linked to the MP_NODE to map SIZE bytes on ADDR as mapped area
+ * on the sink.
+ * In case of success, it returns map_addr contains the address of the
+ * mapped area
+ * else it returns NULL if the map fail.
+ */
+uintptr_t _starpu_src_common_map(unsigned dst_node, uintptr_t addr, size_t size)
+{
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+	enum _starpu_mp_command answer;
+	void *arg;
+	int arg_size;
+	uintptr_t map_addr;
+
+	size_t map_offset;
+	char* map_name = _starpu_get_fdname_from_mapaddr(addr, &map_offset, size);
+
+	if(map_name == NULL)
+	{
+		return 0;
+	}
+
+	int map_cmd_size = sizeof(struct _starpu_mp_transfer_map_command)+strlen(map_name);
+	struct _starpu_mp_transfer_map_command *map_cmd = (struct _starpu_mp_transfer_map_command *)malloc(map_cmd_size);
+	memcpy(map_cmd->fd_name, map_name, strlen(map_name));
+	map_cmd->offset = map_offset;
+	map_cmd->size = size;
+
+        STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_MAP, map_cmd, map_cmd_size);
+
+	answer = _starpu_src_common_wait_command_sync(mp_node, &arg, &arg_size);
+
+        if (answer == STARPU_MP_COMMAND_ERROR_MAP)
+        {
+                STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+                return 0;
+        }
+
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_MAP && arg_size == sizeof(map_addr));
+
+	memcpy(&map_addr, arg, arg_size);
+
+        STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+
+        free(map_cmd);
+
+	return map_addr;
+}
+
+/* Send a request to the sink linked to the MP_NODE to unmap the memory
+ * area pointed by ADDR.
+ */
+void _starpu_src_common_unmap(unsigned dst_node, uintptr_t addr, size_t size)
+{
+	(void) size;
+        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+
+        struct _starpu_mp_transfer_unmap_command unmap_cmd = {addr, size};
+
+        STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_UNMAP, &unmap_cmd, sizeof(unmap_cmd));
+        STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+}
+
 /* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE with a
  * synchronous mode.
  */

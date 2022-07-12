@@ -583,6 +583,9 @@ void _starpu_worker_init(struct _starpu_worker *workerarg, struct _starpu_machin
 /** Check if there is a worker that may execute the task. */
 uint32_t _starpu_worker_exists(struct starpu_task *) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
 
+/** Is there a worker that can execute MS code ? */
+uint32_t _starpu_can_submit_ms_task(void);
+
 /** Is there a worker that can execute CUDA code ? */
 uint32_t _starpu_can_submit_cuda_task(void);
 

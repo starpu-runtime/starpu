@@ -49,6 +49,10 @@ const char *_starpu_mp_common_command_to_string(const int command)
 			return "ALLOCATE";
 		case STARPU_MP_COMMAND_FREE:
 			return "FREE";
+		case STARPU_MP_COMMAND_MAP:
+			return "MAP";
+		case STARPU_MP_COMMAND_UNMAP:
+			return "UNMAP";
 		case STARPU_MP_COMMAND_SYNC_WORKERS:
 			return "SYNC_WORKERS";
 
@@ -85,6 +89,10 @@ const char *_starpu_mp_common_command_to_string(const int command)
 			return "ANSWER_ALLOCATE";
 		case STARPU_MP_COMMAND_ERROR_ALLOCATE:
 			return "ERROR_ALLOCATE";
+		case STARPU_MP_COMMAND_ANSWER_MAP:
+			return "ANSWER_MAP";
+		case STARPU_MP_COMMAND_ERROR_MAP:
+			return "ERROR_MAP";
 		case STARPU_MP_COMMAND_ANSWER_TRANSFER_COMPLETE:
 			return "ANSWER_TRANSFER_COMPLETE";
 		case STARPU_MP_COMMAND_ANSWER_SINK_NBCORES:
@@ -183,6 +191,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->execute = NULL;
 			node->allocate = NULL;
 			node->free = NULL;
+			node->map = NULL;
+			node->unmap = NULL;
 		}
 		break;
 
@@ -221,6 +231,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->execute = _starpu_sink_common_execute;
 			node->allocate = _starpu_sink_common_allocate;
 			node->free = _starpu_sink_common_free;
+			node->map = _starpu_sink_common_map;
+			node->unmap = _starpu_sink_common_unmap;
 		}
 		break;
 #endif /* STARPU_USE_MPI_MASTER_SLAVE */
@@ -233,10 +245,6 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			  node->devid =
 			*/
 			node->peer_id = (0 <= peer_id ? peer_id+1 : peer_id);
-			//node->peer_id = peer_id+1;
-			//printf("peer_id adapted is %d\n", node->peer_id);
-			//printf("sock_list is %d\n", sock_list[node->peer_id]);
-			//printf("async_sock_list is %d\n", async_sock_list[node->peer_id]);
 
 			node->mp_connection.tcpip_mp_connection = &tcpip_sock[node->peer_id];
 
@@ -265,6 +273,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->execute = NULL;
 			node->allocate = NULL;
 			node->free = NULL;
+			node->map = NULL;
+			node->unmap = NULL;
 		}
 		break;
 
@@ -303,6 +313,8 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 			node->execute = _starpu_sink_common_execute;
 			node->allocate = _starpu_sink_common_allocate;
 			node->free = _starpu_sink_common_free;
+			node->map = _starpu_sink_common_map;
+			node->unmap = _starpu_sink_common_unmap;
 		}
 		break;
 #endif /* STARPU_USE_TCPIP_MASTER_SLAVE */

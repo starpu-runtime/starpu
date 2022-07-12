@@ -175,6 +175,8 @@ void _starpu_tcpip_init_worker_memory(struct _starpu_machine_config *config, int
 		tcpip_memory_init[devid] = 1;
 		memory_node = tcpip_memory_nodes[devid] = _starpu_memory_node_register(STARPU_TCPIP_MS_RAM, devid);
 
+                _starpu_memory_node_set_mapped(memory_node);
+
 		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
 		{
 			_starpu_register_bus(numa, memory_node);
@@ -329,6 +331,46 @@ int _starpu_tcpip_is_direct_access_supported(unsigned node, unsigned handling_no
 	return (kind == STARPU_TCPIP_MS_RAM);
 }
 
+uintptr_t _starpu_tcpip_map(uintptr_t src, size_t src_offset, unsigned src_node STARPU_ATTRIBUTE_UNUSED, unsigned dst_node, size_t size, int *ret)
+{
+        if(!_starpu_tcpip_mp_has_local())
+        {
+                *ret=-EXDEV;
+                return 0;
+        }
+
+        uintptr_t map_addr = _starpu_src_common_map(dst_node, src+src_offset, size);
+        if(map_addr == 0)
+        {
+                *ret=-ENOMEM;
+        }
+        else
+        {
+                *ret = 0;
+        }
+        return map_addr;
+}
+
+int _starpu_tcpip_unmap(uintptr_t src STARPU_ATTRIBUTE_UNUSED, size_t src_offset STARPU_ATTRIBUTE_UNUSED, unsigned src_node STARPU_ATTRIBUTE_UNUSED, uintptr_t dst, unsigned dst_node, size_t size)
+{
+        _starpu_src_common_unmap(dst_node, dst, size);
+
+        return 0;
+}
+
+int _starpu_tcpip_update_map(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size)
+{
+        (void) src;
+        (void) src_offset;
+        (void) src_node;
+        (void) dst;
+        (void) dst_offset;
+        (void) dst_node;
+        (void) size;
+
+        /* Memory mappings are cache-coherent */
+        return 0;
+}
 struct _starpu_node_ops _starpu_driver_tcpip_ms_node_ops =
 {
 	.name = "tcpip driver",
@@ -351,5 +393,9 @@ struct _starpu_node_ops _starpu_driver_tcpip_ms_node_ops =
 	.copy_data_from[STARPU_TCPIP_MS_RAM] = _starpu_src_common_copy_data_sink_to_sink,
 
 	.wait_request_completion = _starpu_tcpip_common_wait_request_completion,
-	.test_request_completion = _starpu_tcpip_common_test_event,
+        .test_request_completion = _starpu_tcpip_common_test_event,
+
+        .map[STARPU_CPU_RAM] = _starpu_tcpip_map,
+        .unmap[STARPU_CPU_RAM] = _starpu_tcpip_unmap,
+        .update_map[STARPU_CPU_RAM] = _starpu_tcpip_update_map,
 };

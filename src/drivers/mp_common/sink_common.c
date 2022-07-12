@@ -19,6 +19,7 @@
 #include <dlfcn.h>
 #include <common/config.h>
 #include <common/utils.h>
+#include <drivers/driver_common/driver_common.h>
 #include <drivers/mp_common/mp_common.h>
 #include <drivers/mp_common/sink_common.h>
 #include <drivers/mpi/driver_mpi_common.h>
@@ -107,6 +108,33 @@ void _starpu_sink_common_free(const struct _starpu_mp_node *mp_node STARPU_ATTRI
 	STARPU_ASSERT(arg_size == sizeof(void *));
 
 	free(*(void **)(arg));
+}
+
+/* Map a memory space and send the address of this space to the host
+ */
+void _starpu_sink_common_map(const struct _starpu_mp_node *mp_node, void *arg, int arg_size)
+{
+	STARPU_ASSERT((unsigned int)arg_size >= sizeof(struct _starpu_mp_transfer_map_command));
+
+        struct _starpu_mp_transfer_map_command *map_cmd = (struct _starpu_mp_transfer_map_command *)arg;
+
+	void *map_addr = _starpu_sink_map(map_cmd->fd_name, map_cmd->offset, map_cmd->size);
+
+	/* If mapping fail, let's send an error to the host.
+	 */
+	if (map_addr)
+		_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ANSWER_MAP, &map_addr, sizeof(map_addr));
+	else
+		_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ERROR_MAP, NULL, 0);
+}
+
+void _starpu_sink_common_unmap(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, void *arg, int arg_size)
+{
+	STARPU_ASSERT(arg_size == sizeof(struct _starpu_mp_transfer_unmap_command));
+
+        struct _starpu_mp_transfer_unmap_command *unmap_cmd = (struct _starpu_mp_transfer_unmap_command *)arg;
+
+        _starpu_sink_unmap(unmap_cmd->addr, unmap_cmd->size);
 }
 
 static void _starpu_sink_common_copy_from_host_sync(const struct _starpu_mp_node *mp_node, void *arg, int arg_size)
@@ -370,6 +398,14 @@ void _starpu_sink_common_worker(void)
 
 				case STARPU_MP_COMMAND_FREE:
 					node->free(node, arg, arg_size);
+					break;
+
+				case STARPU_MP_COMMAND_MAP:
+					node->map(node, arg, arg_size);
+					break;
+
+				case STARPU_MP_COMMAND_UNMAP:
+					node->unmap(node, arg, arg_size);
 					break;
 
 				case STARPU_MP_COMMAND_RECV_FROM_HOST:

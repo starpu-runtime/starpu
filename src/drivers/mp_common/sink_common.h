@@ -52,6 +52,9 @@ void _starpu_sink_common_execute(struct _starpu_mp_node *node, void *arg, int ar
 void _starpu_sink_common_allocate(const struct _starpu_mp_node *mp_node, void *arg, int arg_size);
 void _starpu_sink_common_free(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, void *arg, int arg_size);
 
+void _starpu_sink_common_map(const struct _starpu_mp_node *mp_node, void *arg, int arg_size);
+void _starpu_sink_common_unmap(const struct _starpu_mp_node *mp_node STARPU_ATTRIBUTE_UNUSED, void *arg, int arg_size);
+
 void* _starpu_sink_thread(void * thread_arg);
 
 #pragma GCC visibility pop

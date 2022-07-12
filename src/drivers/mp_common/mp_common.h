@@ -52,6 +52,8 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_LOOKUP,
 	STARPU_MP_COMMAND_ALLOCATE,
 	STARPU_MP_COMMAND_FREE,
+	STARPU_MP_COMMAND_MAP,
+	STARPU_MP_COMMAND_UNMAP,
 	STARPU_MP_COMMAND_SYNC_WORKERS,
 
         /* Note: synchronous send */
@@ -73,6 +75,8 @@ enum _starpu_mp_command
 	STARPU_MP_COMMAND_ERROR_LOOKUP,
 	STARPU_MP_COMMAND_ANSWER_ALLOCATE,
 	STARPU_MP_COMMAND_ERROR_ALLOCATE,
+	STARPU_MP_COMMAND_ANSWER_MAP,
+	STARPU_MP_COMMAND_ERROR_MAP,
 	STARPU_MP_COMMAND_ANSWER_TRANSFER_COMPLETE,
 	STARPU_MP_COMMAND_ANSWER_SINK_NBCORES,
 	STARPU_MP_COMMAND_ANSWER_EXECUTION_SUBMITTED,
@@ -127,6 +131,19 @@ struct _starpu_mp_transfer_command_to_device
 	size_t size;
 	void *addr;
         void *event;
+};
+
+struct _starpu_mp_transfer_map_command
+{
+	size_t offset;
+	size_t size;
+	char fd_name[];
+};
+
+struct _starpu_mp_transfer_unmap_command
+{
+	uintptr_t addr;
+	size_t size;
 };
 
 LIST_TYPE(mp_barrier,
@@ -261,6 +278,8 @@ struct _starpu_mp_node
         void (*execute)                 (struct _starpu_mp_node *, void *, int);
         void (*allocate)                (const struct _starpu_mp_node *, void *, int);
         void (*free)                    (const struct _starpu_mp_node *, void *, int);
+        void (*map)                		(const struct _starpu_mp_node *, void *, int);
+        void (*unmap)                   (const struct _starpu_mp_node *, void *, int);
 };
 
 struct _starpu_mp_node * _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind, int peer_devid) STARPU_ATTRIBUTE_MALLOC;

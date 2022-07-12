@@ -77,7 +77,19 @@ static pthread_t master_thread;
 
 struct _starpu_tcpip_socket *tcpip_sock;
 
-int *local_flag;
+/* a flag to note whether the socket is local socket*/
+static int *local_flag;
+
+int _starpu_tcpip_mp_has_local()
+{
+        for (int i=1; i<=nb_sink; i++)
+        {
+                if(local_flag[i] == 1)
+                        return 1;
+        }
+
+        return 0;
+}
 
 MULTILIST_CREATE_TYPE(_starpu_tcpip_ms_request, event); /*_starpu_tcpip_ms_request_multilist_event*/
 MULTILIST_CREATE_TYPE(_starpu_tcpip_ms_request, thread); /*_starpu_tcpip_ms_request_multilist_thread*/

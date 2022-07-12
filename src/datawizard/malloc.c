@@ -23,6 +23,7 @@
 #include <common/fxt.h>
 #include <starpu.h>
 #include <drivers/opencl/driver_opencl.h>
+#include <drivers/driver_common/driver_common.h>
 #include <datawizard/memory_manager.h>
 #include <datawizard/memory_nodes.h>
 #include <datawizard/malloc.h>
@@ -376,6 +377,31 @@ int _starpu_malloc_flags_on_node(unsigned dst_node, void **A, size_t dim, int fl
 	    }
 	}
 #endif
+
+#ifdef STARPU_USE_MP
+	if(_starpu_can_submit_ms_task())
+	{
+		*A = _starpu_map_allocate(dim, dst_node);
+
+		if (!*A)
+			ret = -ENOMEM;
+		else
+		{
+		#ifdef STARPU_HAVE_HWLOC
+			struct _starpu_machine_config *config = _starpu_get_machine_config();
+			hwloc_topology_t hwtopology = config->topology.hwtopology;
+			hwloc_obj_t numa_node_obj = hwloc_get_obj_by_type(hwtopology, HWLOC_OBJ_NUMANODE, starpu_memory_nodes_numa_id_to_hwloclogid(dst_node));
+			hwloc_bitmap_t nodeset = numa_node_obj->nodeset;
+	#if HWLOC_API_VERSION >= 0x00020000
+			hwloc_set_area_membind(hwtopology, *A, dim, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_BYNODESET | HWLOC_MEMBIND_NOCPUBIND);
+	#else
+			hwloc_set_area_membind_nodeset(hwtopology, *A, dim, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_NOCPUBIND);
+	#endif
+		#endif
+		}
+	}
+	else
+#endif
 #ifdef STARPU_HAVE_HWLOC
 	if (starpu_memory_nodes_get_numa_count() > 1)
 	{
@@ -581,6 +607,12 @@ int _starpu_free_flags_on_node(unsigned dst_node, void *A, size_t dim, int flags
 	    else
 #endif
 		munmap(A, dim);
+	}
+#endif
+#ifdef STARPU_USE_MP
+	else if(_starpu_can_submit_ms_task())
+	{
+		_starpu_map_deallocate(A, dim);
 	}
 #endif
 #ifdef STARPU_HAVE_HWLOC

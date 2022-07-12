@@ -54,6 +54,9 @@ struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memo
 uintptr_t _starpu_src_common_allocate(unsigned dst_node, size_t size, int flags);
 void _starpu_src_common_free(unsigned dst_node, uintptr_t addr, size_t size, int flags);
 
+uintptr_t _starpu_src_common_map(unsigned dst_node, uintptr_t addr, size_t size);
+void _starpu_src_common_unmap(unsigned dst_node, uintptr_t addr, size_t size);
+
 int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 				      void (*kernel)(void), unsigned coreid,
 				      enum starpu_codelet_type type,
