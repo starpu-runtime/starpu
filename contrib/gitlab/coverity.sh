@@ -25,5 +25,5 @@ then
     BRANCH=$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
 fi
 
-./contrib/gitlab/coverity.sh -coverity $BRANCH
+./contrib/ci.inria.fr/job-1-check.sh -coverity $BRANCH
 
