@@ -23,11 +23,6 @@ ulimit -c unlimited
 export PKG_CONFIG_PATH=/home/ci/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=/home/ci/usr/local/lib:$LD_LIBRARY_PATH
 
-if test -f ./contrib/specific_env.sh
-then
-    . ./contrib/specific_env.sh
-fi
-
 tarball=$(ls -tr starpu-*.tar.gz | tail -1)
 
 if test -z "$tarball"
@@ -64,7 +59,7 @@ cd $basename
 ) > ${PWD}/env
 
 test -d $basename && chmod -R u+rwX $basename && rm -rf $basename
-tar xfz ../$tarball
+tar xfz ../$tarball >/dev/null 2>&1
 
 hour=$(date "+%H")
 today=$(date "+%Y-%m-%d")
@@ -75,8 +70,13 @@ then
 fi
 
 find $basename -exec touch -d ${today}T${lasthour}:0:0 {} \; || true
-
 cd $basename
+
+if test -f ./contrib/specific_env.sh
+then
+    . ./contrib/specific_env.sh
+fi
+
 BUILD=./build_$$
 mkdir $BUILD
 cd $BUILD
