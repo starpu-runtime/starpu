@@ -72,7 +72,7 @@ MULTILIST_CREATE_TYPE(_starpu_job, all_submitted)
 /** A job is the internal representation of a task. */
 struct _starpu_job
 {
-	/** Each job is attributed a unique id. */
+	/** Each job is attributed a unique id. This however only defined when recording traces or using jobid-based task breakpoints */
 	unsigned long job_id;
 
 	/** The task associated to that job */
