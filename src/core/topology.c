@@ -660,6 +660,7 @@ static void _starpu_initialize_workers_bindid(struct _starpu_machine_config *con
 	unsigned i;
 
 	struct _starpu_machine_topology *topology = &config->topology;
+	STARPU_ASSERT_MSG(topology->nhwworker[STARPU_CPU_WORKER][0], "Unexpected value for topology->nhwworker[STARPU_CPU_WORKER][0] %u", topology->nhwworker[STARPU_CPU_WORKER][0]);
 	int nhyperthreads = topology->nhwpus / topology->nhwworker[STARPU_CPU_WORKER][0];
 	unsigned bind_on_core = 0;
 	int scale = 1;
