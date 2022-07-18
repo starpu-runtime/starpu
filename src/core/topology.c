@@ -565,7 +565,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 
 	_starpu_topology_filter(topology->hwtopology);
 	err = hwloc_topology_load(topology->hwtopology);
-	STARPU_ASSERT_MSG(err == 0, "Could not load Hwloc topology (%s) (input %s)\n", strerror(errno), hwloc_input);
+	STARPU_ASSERT_MSG(err == 0, "Could not load Hwloc topology (%s)%s%s%s\n", strerror(errno), hwloc_input ? " (input " : "", hwloc_input ? hwloc_input : "", hwloc_input ? ")" : "");
 
 #ifdef HAVE_HWLOC_CPUKINDS_GET_NR
 	int nr_kinds = hwloc_cpukinds_get_nr(topology->hwtopology, 0);
