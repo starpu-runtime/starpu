@@ -522,6 +522,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	   before calling this function. The discovered topology is filled in
 	   CONFIG. */
 
+	int err;
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	if (topology_is_initialized)
@@ -558,12 +559,13 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	char *hwloc_input = starpu_getenv("STARPU_HWLOC_INPUT");
 	if (hwloc_input && hwloc_input[0])
 	{
-		int err = hwloc_topology_set_xml(topology->hwtopology, hwloc_input);
+		err = hwloc_topology_set_xml(topology->hwtopology, hwloc_input);
 		if (err < 0) _STARPU_DISP("Could not load hwloc input %s\n", hwloc_input);
 	}
 
 	_starpu_topology_filter(topology->hwtopology);
-	hwloc_topology_load(topology->hwtopology);
+	err = hwloc_topology_load(topology->hwtopology);
+	STARPU_ASSERT_MSG(err == 0, "Could not load Hwloc topology (%s) (input %s)\n", strerror(errno), hwloc_input);
 
 #ifdef HAVE_HWLOC_CPUKINDS_GET_NR
 	int nr_kinds = hwloc_cpukinds_get_nr(topology->hwtopology, 0);

@@ -775,9 +775,12 @@ static void benchmark_all_memory_nodes(void)
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_init(&hwtopology);
+	int ret;
+	ret  = hwloc_topology_init(&hwtopology);
+	STARPU_ASSERT_MSG(ret == 0, "Could not initialize Hwloc topology (%s)\n", strerror(errno));
 	_starpu_topology_filter(hwtopology);
-	hwloc_topology_load(hwtopology);
+	ret = hwloc_topology_load(hwtopology);
+	STARPU_ASSERT_MSG(ret == 0, "Could not load Hwloc topology (%s)\n", strerror(errno));
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
@@ -2837,10 +2840,13 @@ static void write_bus_platform_file_content(int version)
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
 	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0) && ncuda > 0)
 	{
+		int ret;
 		hwloc_topology_t topology;
-		hwloc_topology_init(&topology);
+		ret = hwloc_topology_init(&topology);
+		STARPU_ASSERT_MSG(ret == 0, "Could not initialize Hwloc topology (%s)\n", strerror(errno));
 		_starpu_topology_filter(topology);
-		hwloc_topology_load(topology);
+		ret = hwloc_topology_load(topology);
+		STARPU_ASSERT_MSG(ret == 0, "Could not load Hwloc topology (%s)\n", strerror(errno));
 
 		char nvlink[ncuda][ncuda];
 		char nvlinkhost[ncuda];
