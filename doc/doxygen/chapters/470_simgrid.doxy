@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -27,6 +27,13 @@ platform. This was tested with SimGrid from 3.11 to 3.16, and 3.18 to
 Other versions may have compatibility issues. 3.17 notably does not build at
 all. MPI simulation does not work with version 3.22.
 
+If you have installed simgrid by hand, make sure to set \c PKG_CONFIG_PATH to
+the path where \c simgrid.pc was installed:
+
+\verbatim
+$ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/where/simgrid/installed/lib/ppkgconfig/simgrid.pc
+\endverbatim
+
 \section Preparing Preparing Your Application For Simulation
 
 There are a few technical details which need to be handled for an application to
@@ -40,7 +47,11 @@ virtual timestamp in us.
 For some technical reason, the application's .c file which contains \c main() has
 to be recompiled with \c starpu_simgrid_wrap.h, which in the SimGrid case will <c># define main()</c>
 into <c>starpu_main()</c>, and it is \c libstarpu which will provide the real \c main() and
-will call the application's \c main().
+will call the application's \c main(). Including \c starpu.h will already
+include \c starpu_simgrid_wrap.h, so usually you would not need to include
+\c starpu_simgrid_wrap.h explicitly, but if for some reason including the whole
+\c starpu.h header is not possible, you can include \c starpu_simgrid_wrap.h
+explicitly.
 
 To be able to test with crazy data sizes, one may want to only allocate
 application data if the macro \c STARPU_SIMGRID is not defined.  Passing a <c>NULL</c> pointer to
