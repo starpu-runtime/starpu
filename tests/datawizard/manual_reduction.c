@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -50,13 +50,16 @@ static void initialize_per_worker_handle(void *arg)
 			{
 			cl_context context;
 			cl_command_queue queue;
+			cl_int err;
+
 			starpu_opencl_get_current_context(&context);
 			starpu_opencl_get_current_queue(&queue);
 
 			cl_mem ptr = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(variable), NULL, NULL);
 			/* Poor's man memset */
 			unsigned zero = 0;
-			clEnqueueWriteBuffer(queue, ptr, CL_FALSE, 0, sizeof(variable), (void *)&zero, 0, NULL, NULL);
+			err = clEnqueueWriteBuffer(queue, ptr, CL_FALSE, 0, sizeof(variable), (void *)&zero, 0, NULL, NULL);
+			if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 			clFinish(queue);
 			per_worker[workerid] = (uintptr_t)ptr;
 			}
@@ -171,13 +174,17 @@ static void opencl_func_incr(void *descr[], void *cl_arg)
 	cl_mem d_val = (cl_mem)STARPU_VARIABLE_GET_PTR(descr[0]);
 	unsigned h_val;
 
+	cl_int err;
 	cl_command_queue queue;
+
 	starpu_opencl_get_current_queue(&queue);
 
-	clEnqueueReadBuffer(queue, d_val, CL_FALSE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
+	err = clEnqueueReadBuffer(queue, d_val, CL_FALSE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	clFinish(queue);
 	h_val++;
-	clEnqueueWriteBuffer(queue, d_val, CL_FALSE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
+	err = clEnqueueWriteBuffer(queue, d_val, CL_FALSE, 0, sizeof(unsigned), (void *)&h_val, 0, NULL, NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	clFinish(queue);
 	STARPU_ATOMIC_ADD(&ndone, 1);
 }

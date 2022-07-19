@@ -72,15 +72,18 @@ static void opencl_task(void *buffers[], void *args)
 	unsigned i;
 	for (i = 0; i < size; i++)
 	{
-		clEnqueueWriteBuffer(queue,
-				numbers,
-				CL_TRUE,
-				i*sizeof(int),  /* offset */
-				sizeof(int),
-				&i,
-				0,              /* num_events_in_wait_list */
-				NULL,           /* event_wait_list */
-				NULL            /* event */);
+		cl_int err;
+		err = clEnqueueWriteBuffer(queue,
+					   numbers,
+					   CL_TRUE,
+					   i*sizeof(int),  /* offset */
+					   sizeof(int),
+					   &i,
+					   0,              /* num_events_in_wait_list */
+					   NULL,           /* event_wait_list */
+					   NULL            /* event */);
+		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
 	}
 }
 #endif

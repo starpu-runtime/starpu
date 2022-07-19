@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -63,15 +63,17 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 	STARPU_ASSERT(v != NULL);
 	memset(v, 42, length);
 
-	clEnqueueWriteBuffer(queue,
-			     buffer,
-			     CL_FALSE,
-			     0,      /* offset */
-			     length, /* sizeof (char) */
-			     v,
-			     0,      /* num_events_in_wait_list */
-			     NULL,   /* event_wait_list */
-			     NULL    /* event */);
+	cl_int err;
+	err = clEnqueueWriteBuffer(queue,
+				   buffer,
+				   CL_FALSE,
+				   0,      /* offset */
+				   length, /* sizeof (char) */
+				   v,
+				   0,      /* num_events_in_wait_list */
+				   NULL,   /* event_wait_list */
+				   NULL    /* event */);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 }
 #endif
 
@@ -167,15 +169,19 @@ static void opencl_check_content_codelet(void *buffers[], void *args)
 	for (i = 0; i < length; i++)
 	{
 		char dst;
-		clEnqueueReadBuffer(queue,
-				    buf,
-				    CL_FALSE,
-				    i * sizeof(dst),
-				    sizeof(dst),
-				    &dst,
-				    0,      /* num_events_in_wait_list */
-				    NULL,   /* event_wait_list */
-				    NULL    /* event */);
+		cl_int err;
+
+		err = clEnqueueReadBuffer(queue,
+					  buf,
+					  CL_FALSE,
+					  i * sizeof(dst),
+					  sizeof(dst),
+					  &dst,
+					  0,      /* num_events_in_wait_list */
+					  NULL,   /* event_wait_list */
+					  NULL    /* event */);
+		if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
+
 		clFinish(queue);
 		if (dst != 42)
 		{

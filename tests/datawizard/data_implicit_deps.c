@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -93,7 +93,9 @@ void g_opencl(void *descr[], void *arg)
 	cl_command_queue queue;
 	starpu_opencl_get_current_queue(&queue);
 
-	clEnqueueWriteBuffer(queue, val, CL_TRUE, 0, sizeof(unsigned), (void *)&value, 0, NULL, NULL);
+	cl_int err;
+	err = clEnqueueWriteBuffer(queue, val, CL_TRUE, 0, sizeof(unsigned), (void *)&value, 0, NULL, NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	clFinish(queue);
 }
 #endif
@@ -151,7 +153,9 @@ void h_opencl(void *descr[], void *arg)
 	cl_command_queue queue;
 	starpu_opencl_get_current_queue(&queue);
 
-	clEnqueueReadBuffer(queue, val, CL_TRUE, 0, sizeof(unsigned), (void *)&value, 0, NULL, NULL);
+	cl_int err;
+	err = clEnqueueReadBuffer(queue, val, CL_TRUE, 0, sizeof(unsigned), (void *)&value, 0, NULL, NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	clFinish(queue);
 
 	FPRINTF(stderr, "VAR %u (should be 42)\n", value);
