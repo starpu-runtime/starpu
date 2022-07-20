@@ -1318,13 +1318,13 @@ struct starpu_tree* starpu_workers_get_tree(void)
 	return _starpu_config.topology.tree;
 }
 
+#ifdef STARPU_HAVE_HWLOC
 #if HWLOC_API_VERSION >= 0x20000
 #define NORMAL_CHILD(obj) 1
 #else
 #define NORMAL_CHILD(obj) ((obj)->type < HWLOC_OBJ_BRIDGE)
 #endif
 
-#ifdef STARPU_HAVE_HWLOC
 static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology, struct starpu_tree *father)
 {
 	unsigned i, j;
