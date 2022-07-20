@@ -3,7 +3,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,13 +17,13 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-##
-# This script parses the generated trace.rec file and reports statistics about
-# the number of different events/tasks and their durations. The report is
-# similar to the starpu_paje_state_stats.in script, except that this one
-# doesn't need R and pj_dump (from the pajeng repository), and it is also much
-# faster.
-##
+"""
+This script parses the generated trace.rec file and reports statistics about
+the number of different events/tasks and their durations. The report is
+similar to the starpu_paje_state_stats.in script, except that this one
+doesn't need R and pj_dump (from the pajeng repository), and it is also much
+faster.
+"""
 
 import getopt
 import os

@@ -17,6 +17,10 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+"""
+Offline tool to draw graph showing elapsed time between sent or received data and their use by tasks
+"""
+
 import sys
 PROGNAME = sys.argv[0]
 
