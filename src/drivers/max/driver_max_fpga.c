@@ -198,16 +198,6 @@ void _starpu_max_fpga_init_worker_binding(struct _starpu_machine_config *config,
 	unsigned *preferred_binding = NULL;
 	unsigned npreferred = 0;
 
-	if (_starpu_may_bind_automatically[STARPU_MAX_FPGA_WORKER])
-	{
-		/* StarPU is allowed to bind threads automatically */
-#if 0
-/* No FPGA preference yet */
-		preferred_binding = _starpu_get_max_fpga_affinity_vector(devid);
-		npreferred = _starpu_topology_get_nnumanodes(config);
-#endif
-	}
-
 	if (max_fpga_bindid_init[devid])
 	{
 		workerarg->bindid = max_fpga_bindid[devid];
