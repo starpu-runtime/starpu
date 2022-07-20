@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include "mmio.h"
 
-/* convert a matrix stored in a file with the matrix market format into the 
+/* convert a matrix stored in a file with the matrix market format into the
  * BCSR format */
 
 typedef struct tmp_block
@@ -29,7 +29,7 @@ typedef struct tmp_block
 
 	/* column i, row j*/
 	unsigned i, j;
-	
+
 	float *val;
 
 } tmp_block_t;

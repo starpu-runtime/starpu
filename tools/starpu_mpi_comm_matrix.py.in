@@ -67,8 +67,8 @@ file.close()
 nodes=nodes+1
 
 # extract volume of comm and bandwidth between all pair of nodes
-volumes = [[0 for x in range(nodes)] for y in range(nodes)]
-bandwidth = [[0 for x in range(nodes)] for y in range(nodes)]
+volumes = [[0 for _ in range(nodes)] for _ in range(nodes)]
+bandwidth = [[0 for _ in range(nodes)] for _ in range(nodes)]
 file = open(outputfile, "r")
 for line in file.readlines():
     match = re.search(r'\[starpu_comm_stats]', line)
