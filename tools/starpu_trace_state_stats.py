@@ -49,7 +49,8 @@ class EventStats():
 
     def show(self):
         if not self._name == None and not self._category == None:
-            print("\"" + self._name + "\"," + str(self._count) + ",\"" + self._category + "\"," + str(round(self._duration_time, 6)))
+            print("\"" + self._name + "\"," + str(self._count) + ",\"" +
+                  self._category + "\"," + str(round(self._duration_time, 6)))
 
 class Worker():
     def __init__(self, id):
@@ -71,7 +72,8 @@ class Worker():
     def add_event_to_stats(self, curr_event):
         if curr_event._type == "PushState":
             self._stack.append(curr_event)
-            return # Will look later to find a PopState event.
+            # Will look later to find a PopState event.
+            return
         elif curr_event._type == "PopState":
             if len(self._stack) == 0:
                 print("warning: PopState without a PushState, probably a trace with start/stop profiling")

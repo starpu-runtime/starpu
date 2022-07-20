@@ -68,12 +68,12 @@ def convert_rec_file(filename):
 working_directory = sys.argv[1]
 
 comms = convert_rec_file(os.path.join(working_directory, "comms.rec"))
-tasks = [t for t in convert_rec_file(os.path.join(working_directory, "tasks.rec")) if "control" not in t and "starttime" in t]
+tasks = [t for t in
+         convert_rec_file(os.path.join(working_directory, "tasks.rec")) if "control" not in t and "starttime" in t]
 
 if len(tasks) == 0:
     print("There is no task using data after communication.")
     sys.exit(0)
-
 
 def plot_graph(comm_time_key, match, filename, title, xlabel):
     delays = []
@@ -107,7 +107,6 @@ def plot_graph(comm_time_key, match, filename, title, xlabel):
 
             nb += 1
 
-
     fig = plt.figure(constrained_layout=True)
 
     gs = GridSpec(2, 2, figure=fig)
@@ -126,7 +125,8 @@ def plot_graph(comm_time_key, match, filename, title, xlabel):
 
     axs[0].set_yticks([i*10+4 for i in range(len(workers))])
     axs[0].set_yticklabels(list(workers))
-    axs[0].set(xlabel="Time (ms) - Duration: " + str(max_time - min_time) + "ms", ylabel="Worker [mpi]-[*pu]", title=title)
+    axs[0].set(xlabel="Time (ms) - Duration: " + str(max_time - min_time) + "ms",
+               ylabel="Worker [mpi]-[*pu]", title=title)
 
     if len(durations) != 0:
         axs[2].hist(durations, bins=np.logspace(np.log10(1), np.log10(max(durations)), 50), rwidth=0.8)
@@ -138,5 +138,9 @@ def plot_graph(comm_time_key, match, filename, title, xlabel):
     plt.savefig(os.path.join(working_directory, filename), dpi=100)
     plt.show()
 
-plot_graph("recvtime", lambda t, c: (t["mpirank"] == c["dst"] and t["starttime"] >= c["recvtime"] and str(c["recvhandle"]) in t["handles"]), "recv_use.png", "Elapsed time between recv and use (ms)", "Time between data reception and its use by a task")
-plot_graph("sendtime", lambda t, c: (t["mpirank"] == c["src"] and t["starttime"] >= c["sendtime"] and str(c["sendhandle"]) in t["handles"]), "send_use.png", "Elapsed time between send and use (ms)", "Time between data sending and its use by a task")
+plot_graph("recvtime", lambda t,
+           c: (t["mpirank"] == c["dst"] and t["starttime"] >= c["recvtime"] and str(c["recvhandle"]) in t["handles"]),
+           "recv_use.png", "Elapsed time between recv and use (ms)", "Time between data reception and its use by a task")
+plot_graph("sendtime", lambda t,
+           c: (t["mpirank"] == c["src"] and t["starttime"] >= c["sendtime"] and str(c["sendhandle"]) in t["handles"]),
+           "send_use.png", "Elapsed time between send and use (ms)", "Time between data sending and its use by a task")

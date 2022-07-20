@@ -33,7 +33,7 @@ starpu_data_handle_t A_handle, B_handle, C_handle, D_handle;
 static unsigned var = 0;
 starpu_data_handle_t var_handle;
 
-void f(void *descr[], void *arg)
+void func(void *descr[], void *arg)
 {
 	(void)descr;
 	(void)arg;
@@ -46,14 +46,14 @@ void f(void *descr[], void *arg)
 static struct starpu_codelet cl_f =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
-	.cpu_funcs = {f},
-	.cuda_funcs = {f},
-	.opencl_funcs = {f},
-	.cpu_funcs_name = {"f"},
+	.cpu_funcs = {func},
+	.cuda_funcs = {func},
+	.opencl_funcs = {func},
+	.cpu_funcs_name = {"func"},
 	.nbuffers = 3,
 };
 
-void g(void *descr[], void *arg)
+void g_cpu(void *descr[], void *arg)
 {
 	(void)descr;
 	(void)arg;
@@ -103,18 +103,18 @@ void g_opencl(void *descr[], void *arg)
 static struct starpu_codelet cl_g =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
-	.cpu_funcs = {g},
+	.cpu_funcs = {g_cpu},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {g_cuda},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {g_opencl},
 #endif
-	.cpu_funcs_name = {"g"},
+	.cpu_funcs_name = {"g_cpu"},
 	.nbuffers = 3,
 };
 
-void h(void *descr[], void *arg)
+void h_cpu(void *descr[], void *arg)
 {
 	(void)arg;
 	STARPU_SKIP_IF_VALGRIND;
@@ -166,14 +166,14 @@ void h_opencl(void *descr[], void *arg)
 static struct starpu_codelet cl_h =
 {
 	.modes = { STARPU_RW, STARPU_R, STARPU_RW },
-	.cpu_funcs = {h},
+	.cpu_funcs = {h_cpu},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {h_cuda},
 #endif
 #ifdef STARPU_USE_OPENCL
 	.opencl_funcs = {h_opencl},
 #endif
-	.cpu_funcs_name = {"h"},
+	.cpu_funcs_name = {"h_cpu"},
 	.nbuffers = 3
 };
 

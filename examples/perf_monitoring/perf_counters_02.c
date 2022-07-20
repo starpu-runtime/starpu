@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -76,7 +76,7 @@ void c_listener_cb(struct starpu_perf_counter_listener *listener, struct starpu_
 	}
 }
 
-void f(void *buffers[], void *cl_args)
+void func(void *buffers[], void *cl_args)
 {
 	int *int_vector = (int*)STARPU_VECTOR_GET_PTR(buffers[0]);
 	int NX = (int)STARPU_VECTOR_GET_NX(buffers[0]);
@@ -91,8 +91,8 @@ void f(void *buffers[], void *cl_args)
 
 struct starpu_codelet cl =
 {
-	.cpu_funcs      = {f},
-	.cpu_funcs_name = {"f"},
+	.cpu_funcs      = {func},
+	.cpu_funcs_name = {"func"},
 	.nbuffers       = 1,
 	.name           = "perf_counter_f"
 };
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 {
 	struct starpu_conf conf;
 	starpu_conf_init(&conf);
-	
+
 	/* Start collecting perfomance counter right after initialization */
 	conf.start_perf_counter_collection = 1;
 

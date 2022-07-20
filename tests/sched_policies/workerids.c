@@ -32,8 +32,7 @@
 #define NTASKS 1000
 #endif
 
-void
-A(void *buffers[], void *args)
+void funcA(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
@@ -54,18 +53,17 @@ static struct starpu_perfmodel perf_model =
 
 static struct starpu_codelet clA =
 {
-	.cpu_funcs = {A},
-	.cpu_funcs_name = {"A"},
-	.opencl_funcs = {A},
-	.cuda_funcs = {A},
-        .hip_funcs = {A},
-	.max_fpga_funcs = {A},
+	.cpu_funcs = {funcA},
+	.cpu_funcs_name = {"funcA"},
+	.opencl_funcs = {funcA},
+	.cuda_funcs = {funcA},
+        .hip_funcs = {funcA},
+	.max_fpga_funcs = {funcA},
 	.nbuffers = 0,
 	.model = &perf_model,
 };
 
-static int
-run(struct starpu_sched_policy *policy)
+static int run(struct starpu_sched_policy *policy)
 {
 	int ret;
 	struct starpu_conf conf;

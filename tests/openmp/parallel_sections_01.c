@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,7 @@ static void omp_destructor(void)
 	starpu_omp_shutdown();
 }
 
-void f(void *arg)
+void func(void *arg)
 {
 	int worker_id;
 	pthread_t tid;
@@ -64,10 +64,10 @@ void parallel_region_f(void *buffers[], void *args)
 	worker_id = starpu_worker_get_id();
 	printf("[tid %p] task thread = %d\n", (void *)tid, worker_id);
 
-	section_f[0] = f;
-	section_f[1] = f;
-	section_f[2] = f;
-	section_f[3] = f;
+	section_f[0] = func;
+	section_f[1] = func;
+	section_f[2] = func;
+	section_f[3] = func;
 
 	section_args[0] = (void *)"A";
 	section_args[1] = (void *)"B";

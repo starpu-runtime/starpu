@@ -3008,8 +3008,14 @@ flat_cuda:
 		{
 			char i_name[16];
 			snprintf(i_name, sizeof(i_name), "CUDA%u", i);
-			fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
-			fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
+			fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\">\n", i_name);
+			fprintf(f, "      <link_ctn id=\"RAM-%s\"/>\n", i_name);
+			fprintf(f, "      <link_ctn id=\"Host\"/>\n");
+			fprintf(f, "   </route>\n");
+			fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\">\n", i_name);
+			fprintf(f, "      <link_ctn id=\"%s-RAM\"/>\n", i_name);
+			fprintf(f, "      <link_ctn id=\"Host\"/>\n");
+			fprintf(f, "   </route>\n");
 		}
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		for (i = 0; i < ncuda; i++)
@@ -3023,7 +3029,10 @@ flat_cuda:
 				if (j == i)
 					continue;
                                 snprintf(j_name, sizeof(j_name), "CUDA%u", j);
-				fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"%s-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, j_name, i_name, j_name);
+				fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\">\n", i_name, j_name);
+				fprintf(f, "     <link_ctn id=\"%s-%s\"/>\n", i_name, j_name);
+				fprintf(f, "     <link_ctn id=\"Host\"/>\n");
+				fprintf(f, "   </route>\n");
 			}
 		}
 #endif
@@ -3040,8 +3049,14 @@ flat_cuda:
 	{
 		char i_name[17];
 		snprintf(i_name, sizeof(i_name), "OpenCL%u", i);
-		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\">\n", i_name);
+		fprintf(f, "     <link_ctn id=\"RAM-%s\"/>\n", i_name);
+		fprintf(f, "     <link_ctn id=\"Host\"/>\n");
+		fprintf(f, "   </route>\n");
+		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\">\n", i_name);
+		fprintf(f, "     <link_ctn id=\"%s-RAM\"/>\n", i_name);
+		fprintf(f, "     <link_ctn id=\"Host\"/>\n");
+		fprintf(f, "   </route>\n");
 	}
 #endif
 

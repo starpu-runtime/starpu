@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2014-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2014-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -43,7 +43,7 @@ static void omp_destructor(void)
 	starpu_omp_shutdown();
 }
 
-void f(unsigned long long section_num, void *arg)
+void func(unsigned long long section_num, void *arg)
 {
 	int worker_id;
 	pthread_t tid;
@@ -68,28 +68,28 @@ void parallel_region_f(void *buffers[], void *args)
 	section_args[2] = (void *)"C";
 	section_args[3] = (void *)"D";
 
-	starpu_omp_sections_combined(4, f, section_args, 0);
+	starpu_omp_sections_combined(4, func, section_args, 0);
 
 	section_args[0] = (void *)"E";
 	section_args[1] = (void *)"F";
 	section_args[2] = (void *)"G";
 	section_args[3] = (void *)"H";
 
-	starpu_omp_sections_combined(4, f, section_args, 0);
+	starpu_omp_sections_combined(4, func, section_args, 0);
 
 	section_args[0] = (void *)"I";
 	section_args[1] = (void *)"J";
 	section_args[2] = (void *)"K";
 	section_args[3] = (void *)"L";
 
-	starpu_omp_sections_combined(4, f, section_args, 0);
+	starpu_omp_sections_combined(4, func, section_args, 0);
 
 	section_args[0] = (void *)"M";
 	section_args[1] = (void *)"N";
 	section_args[2] = (void *)"O";
 	section_args[3] = (void *)"P";
 
-	starpu_omp_sections_combined(4, f, section_args, 0);
+	starpu_omp_sections_combined(4, func, section_args, 0);
 }
 
 int
