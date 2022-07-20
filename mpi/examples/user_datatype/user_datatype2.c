@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2015-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2015-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,25 +64,25 @@ int main(int argc, char **argv)
 	{
 		int *compare_ptr = &compare;
 
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node0 initial value", strlen("node0 initial value")+1, STARPU_R, handle0, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node0 initial value", strlen("node0 initial value\0")+1, STARPU_R, handle0, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_mpi_isend_detached(handle0, 1, 10, MPI_COMM_WORLD, NULL, NULL);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 		ret = starpu_mpi_irecv_detached(handle1, 1, 20, MPI_COMM_WORLD, NULL, NULL);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node0 received value", strlen("node0 received value")+1, STARPU_R, handle1, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node0 received value", strlen("node0 received value\0")+1, STARPU_R, handle1, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_task_insert(&starpu_my_data_compare_codelet, STARPU_R, handle0, STARPU_R, handle1, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 	else if (rank == 1)
 	{
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 initial value", strlen("node1 initial value")+1, STARPU_R, handle0, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 initial value", strlen("node1 initial value\0")+1, STARPU_R, handle0, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_mpi_irecv_detached(handle0, 0, 10, MPI_COMM_WORLD, NULL, NULL);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 received value", strlen("node1 received value")+1, STARPU_R, handle0, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 received value", strlen("node1 received value\0")+1, STARPU_R, handle0, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_mpi_isend_detached(handle0, 0, 20, MPI_COMM_WORLD, NULL, NULL);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");

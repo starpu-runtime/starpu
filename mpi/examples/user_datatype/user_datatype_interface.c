@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	{
 		starpu_mpi_req req;
 
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 initial value", strlen("node1 initial value")+1, STARPU_R, my_handle3, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 initial value", strlen("node1 initial value\0")+1, STARPU_R, my_handle3, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_mpi_irecv(my_handle3, &req, 0, 14, MPI_COMM_WORLD);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv");
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		ret = starpu_mpi_wait(&req, MPI_STATUS_IGNORE);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_wait");
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 rceived value", strlen("node1 rceived value")+1, STARPU_R, my_handle3, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 rceived value", strlen("node1 rceived value\0")+1, STARPU_R, my_handle3, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 

@@ -132,11 +132,11 @@ int main(void)
 	starpu_complex_data_register(&handle3, -1, 0, 0, 2);
 	starpu_complex_data_register(&handle4, -1, 0, 0, 1);
 
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1")+1, STARPU_R, handle1, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1\0")+1, STARPU_R, handle1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2")+1, STARPU_R, handle2, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2\0")+1, STARPU_R, handle2, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -163,11 +163,11 @@ int main(void)
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1")+1, STARPU_R, handle1, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle1", strlen("handle1\0")+1, STARPU_R, handle1, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2")+1, STARPU_R, handle2, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle2", strlen("handle2\0")+1, STARPU_R, handle2, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -219,7 +219,7 @@ int main(void)
 	starpu_data_unpartition(handle3, STARPU_MAIN_RAM);
 
 	/* Show it.  */
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle3", strlen("handle3")+1, STARPU_R, handle3, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle3", strlen("handle3\0")+1, STARPU_R, handle3, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 
@@ -253,7 +253,7 @@ int main(void)
 
 	/* Use helper starpu_data_cpy */
 	starpu_data_cpy(handle4, handle1, 0, NULL, NULL);
-	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle4", strlen("handle4")+1, STARPU_R, handle4, 0);
+	ret = starpu_task_insert(&cl_display, STARPU_VALUE, "handle4", strlen("handle4\0")+1, STARPU_R, handle4, 0);
 	if (ret == -ENODEV) goto end;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 

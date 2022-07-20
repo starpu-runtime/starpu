@@ -45,7 +45,7 @@ static int p = -1;
 static int q = -1;
 static unsigned display = 0;
 static unsigned no_prio = 0;
-static char *path = "./starpu-ooc-files";
+static char *path = "./starpu-ooc-files\0";
 
 #ifdef STARPU_HAVE_LIBNUMA
 static unsigned numa = 0;

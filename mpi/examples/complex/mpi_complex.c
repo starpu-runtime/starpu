@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -84,14 +84,14 @@ int main(int argc, char **argv)
 	{
 		int *compare_ptr = &compare;
 
-		ret = starpu_task_insert(&cl_display, STARPU_VALUE, "node0 initial value", strlen("node0 initial value")+1, STARPU_R, handle, 0);
+		ret = starpu_task_insert(&cl_display, STARPU_VALUE, "node0 initial value", strlen("node0 initial value\0")+1, STARPU_R, handle, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_mpi_isend_detached(handle, 1, 10, MPI_COMM_WORLD, NULL, NULL);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
 		ret = starpu_mpi_irecv_detached(handle2, 1, 20, MPI_COMM_WORLD, NULL, NULL);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
 
-		ret = starpu_task_insert(&cl_display, STARPU_VALUE, "node0 received value", strlen("node0 received value")+1, STARPU_R, handle2, 0);
+		ret = starpu_task_insert(&cl_display, STARPU_VALUE, "node0 received value", strlen("node0 received value\0")+1, STARPU_R, handle2, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_task_insert(&cl_compare, STARPU_R, handle, STARPU_R, handle2, STARPU_VALUE, &compare_ptr, sizeof(compare_ptr), 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 	{
 		ret = starpu_mpi_irecv_detached(handle, 0, 10, MPI_COMM_WORLD, NULL, NULL);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_irecv_detached");
-		ret = starpu_task_insert(&cl_display, STARPU_VALUE, "node1 received value", strlen("node1 received value")+1, STARPU_R, handle, 0);
+		ret = starpu_task_insert(&cl_display, STARPU_VALUE, "node1 received value", strlen("node1 received value\0")+1, STARPU_R, handle, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_mpi_isend_detached(handle, 0, 20, MPI_COMM_WORLD, NULL, NULL);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_isend_detached");
