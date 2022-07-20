@@ -938,6 +938,47 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 	return res;
 }
 
+static unsigned _starpu_topology_get_core_binding(unsigned *binding, unsigned nbinding, hwloc_obj_t obj)
+{
+	unsigned found = 0;
+	unsigned n;
+
+	if (obj->type == HWLOC_OBJ_CORE)
+	{
+		*binding = obj->logical_index;
+		found++;
+	}
+
+	for (n = 0; n < obj->arity; n++) {
+		found += _starpu_topology_get_core_binding(binding + found, nbinding - found, obj->children[n]);
+	}
+	return found;
+}
+
+unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, const unsigned *numa_binding, unsigned nnuma, unsigned *binding, unsigned nbinding)
+{
+#if defined(STARPU_HAVE_HWLOC)
+	unsigned n;
+	unsigned cur = 0;
+
+	for (n = 0; n < nnuma; n++)
+	{
+		hwloc_obj_t obj = hwloc_get_obj_by_type(config->topology.hwtopology, HWLOC_OBJ_NUMANODE, numa_binding[n]);
+
+#if HWLOC_API_VERSION >= 0x00020000
+		/* Get the actual topology object */
+		obj = obj->parent;
+#endif
+		cur += _starpu_topology_get_core_binding(binding + cur, nbinding - cur, obj);
+		if (cur == nbinding)
+			break;
+	}
+	return cur;
+#else
+	return 0;
+#endif
+}
+
 #ifdef STARPU_HAVE_HWLOC
 void _starpu_topology_filter(hwloc_topology_t topology)
 {

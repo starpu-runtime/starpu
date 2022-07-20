@@ -108,7 +108,7 @@ static double numa_timing[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 #endif
 #ifdef STARPU_USE_CUDA
-/* preference order of cores (logical indexes) */
+/* preference order of NUMA nodes (logical indexes) */
 static unsigned cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXNUMANODES];
 
 #ifndef STARPU_SIMGRID
@@ -126,7 +126,7 @@ static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 #endif
 
 #ifdef STARPU_USE_OPENCL
-/* preference order of cores (logical indexes) */
+/* preference order of NUMA nodes (logical indexes) */
 static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
 static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
 #endif

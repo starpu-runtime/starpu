@@ -314,7 +314,7 @@ void _starpu_init_opencl_config(struct _starpu_machine_topology *topology, struc
 void _starpu_opencl_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	/* Perhaps the worker has some "favourite" bindings  */
-	unsigned *preferred_binding = NULL;
+	unsigned preferred_binding[STARPU_NMAXWORKERS];
 	unsigned npreferred = 0;
 	unsigned devid = workerarg->devid;
 
@@ -322,8 +322,9 @@ void _starpu_opencl_init_worker_binding(struct _starpu_machine_config *config, i
 	if (_starpu_may_bind_automatically[STARPU_OPENCL_WORKER])
 	{
 		/* StarPU is allowed to bind threads automatically */
-		preferred_binding = _starpu_get_opencl_affinity_vector(devid);
-		npreferred = _starpu_topology_get_nnumanodes(config);
+		unsigned *preferred_numa_binding = _starpu_get_opencl_affinity_vector(devid);
+		unsigned npreferred_numa = _starpu_topology_get_nnumanodes(config);
+		npreferred = _starpu_topology_get_numa_core_binding(config, preferred_numa_binding, npreferred_numa, preferred_binding, STARPU_NMAXWORKERS);
 	}
 #endif /* SIMGRID */
 
