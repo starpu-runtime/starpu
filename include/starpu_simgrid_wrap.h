@@ -24,6 +24,7 @@
 #define main starpu_main
 #ifdef __cplusplus
 extern "C" int starpu_main(int argc, char *argv[]);
+extern "C" int starpu_main(int argc, char **argv);
 #endif
 #endif
 #endif
