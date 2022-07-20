@@ -752,9 +752,9 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 		hwloc_free(hwtopology, d_buffer, SIZE);
 	}
 	else
+no_calibration:
 #endif
 	{
-no_calibration:
 		/* Cannot make a real calibration */
 		numa_timing[numa_src][numa_dst] = 0.01;
 		numa_latency[numa_src][numa_dst] = 0;

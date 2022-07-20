@@ -44,7 +44,7 @@ void print_vector(int *v, int nx, const char *label)
 	{
 		cur += snprintf(&message[cur], 100000 - cur, "%3d,", v[i]);
 	}
-	cur += snprintf(&message[cur], 100000 - cur, "%3d\n", v[nx-1]);
+	snprintf(&message[cur], 100000 - cur, "%3d\n", v[nx-1]);
 	FPRINTF(stderr, message);
 }
 

@@ -1821,13 +1821,13 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
 #endif
-	/* Launch "basic" workers (ie. non-combined workers) */
 	if (!is_a_sink)
+	{
+		/* Launch "basic" workers (ie. non-combined workers) */
 		_starpu_launch_drivers(&_starpu_config);
-
-	/* Allocate swap, if any */
-	if (!is_a_sink)
+		/* Allocate swap, if any */
 		_starpu_swap_init();
+	}
 
 	_starpu_watchdog_init();
 

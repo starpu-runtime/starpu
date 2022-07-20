@@ -16,14 +16,19 @@
 knownConditionTrueFalse
 variableScope
 ConfigurationNotChecked
-shadowVar
+shadowVariable
 unusedFunction
 unmatchedSuppression
 unusedStructMember
 missingInclude
 constArgument
+nullPointer
+nullPointerRedundantCheck
+cstyleCast
+constParameter
+unknownMacro
 
-*:build/*
+*:build*/*
 
 *:starpufft/*
 *:min-dgels/*
@@ -63,16 +68,29 @@ nullPointer:src/common/utils.c:554
 redundantAssignment:src/common/utils.c:547
 nullPointerRedundantCheck:src/common/rbtree.c
 
+negativeIndex:include/starpu_bitmap.h:275
+
 AssignmentIntegerToAddress:src/core/jobs.c:148
 redundantAssignment:src/core/workers.c
 uselessAssignmentPtrArg:src/core/sched_ctx_list.c:144
 wrongPrintfScanfArgNum:src/core/simgrid.c:1296
 unreadVariable:src/core/task.c:657
 unusedVariable:src/core/task.c:658
+uninitvar:src/core/sched_ctx.c:387
 
 invalidPointerCast:src/core/perfmodel/perfmodel_nan.c:74
 unreadVariable:src/core/perfmodel/energy_model.c:179
 unusedLabel:src/core/perfmodel/perfmodel_bus.c:757
+unreadVariable:src/core/perfmodel/perfmodel_bus.c:1399
+unreadVariable:src/core/perfmodel/perfmodel_bus.c:1739
+unreadVariable:src/core/perfmodel/perfmodel_bus.c:1420
+unreadVariable:src/core/perfmodel/perfmodel_bus.c:1761
+unreadVariable:src/core/perfmodel/perfmodel_bus.c:1435
+unreadVariable:src/core/perfmodel/perfmodel_bus.c:1775
+unreadVariable:src/core/perfmodel/perfmodel_bus.c:1458
+unreadVariable:src/core/perfmodel/perfmodel_bus.c:1799
+unsignedPositive:src/core/perfmodel/perfmodel_bus.c:1390
+unsignedPositive:src/core/perfmodel/perfmodel_bus.c:1730
 
 unreadVariable:src/core/dependencies/tags.c:120
 
