@@ -81,7 +81,7 @@ for line in file.readlines():
             bandwidth[int(src)][int(dst)] = float(bwB)
 file.close()
 
-def writeData(filename, nodes, data):
+def write_data(filename, nodes, data):
     ofile=open(filename, "w")
     for dst in range(nodes):
         for src in range(nodes):
@@ -89,7 +89,7 @@ def writeData(filename, nodes, data):
         ofile.write("\n")
     ofile.close()
 
-def generateGnuplotScript(filename, datafilename, outputfile, nodes):
+def generate_gnuplot_script(filename, datafilename, outputfile, nodes):
     ofile=open(filename, "w")
     srctics=""
     dsttics=""
@@ -106,11 +106,11 @@ def generateGnuplotScript(filename, datafilename, outputfile, nodes):
     ofile.close()
 
 # generate gnuplot volume data and script file
-writeData(outputfile+"_volume.data", nodes, volumes)
-generateGnuplotScript(outputfile+"_volume.gp", outputfile+"_volume.data", outputfile+"_volume_heatmap", nodes)
+write_data(outputfile+"_volume.data", nodes, volumes)
+generate_gnuplot_script(outputfile+"_volume.gp", outputfile+"_volume.data", outputfile+"_volume_heatmap", nodes)
 os.system("gnuplot " + outputfile+"_volume.gp")
 
 # generate gnuplot bandwidth data and script file
-writeData(outputfile+"_bw.data", nodes, bandwidth)
-generateGnuplotScript(outputfile+"_bw.gp", outputfile+"_bw.data", outputfile+"_bw_heatmap", nodes)
+write_data(outputfile+"_bw.data", nodes, bandwidth)
+generate_gnuplot_script(outputfile+"_bw.gp", outputfile+"_bw.data", outputfile+"_bw_heatmap", nodes)
 os.system("gnuplot " + outputfile+"_bw.gp")

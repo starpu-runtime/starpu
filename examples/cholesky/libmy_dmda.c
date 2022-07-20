@@ -155,7 +155,6 @@ static int dm_push_task(struct starpu_task *task)
 		unsigned impl_mask;
 		unsigned worker = workers->get_next(workers, &it);
 		starpu_st_fifo_taskq_t fifo  = dt->queue_array[worker];
-		struct starpu_perfmodel_arch* perf_arch = starpu_worker_get_perf_archtype(worker, sched_ctx_id);
 		double exp_start = starpu_st_fifo_exp_start_get(fifo);
 		double pipeline_len = starpu_st_fifo_pipeline_len_get(fifo);
 		double exp_len = starpu_st_fifo_exp_len_get(fifo);

@@ -65,7 +65,7 @@ struct starpu_codelet btask_codelet =
 
 int main(int argv, char **argc)
 {
-	int ret, i;
+	int ret;
 	int vA[SIZE] = { 0 };
 
 	ret = starpu_init(NULL);

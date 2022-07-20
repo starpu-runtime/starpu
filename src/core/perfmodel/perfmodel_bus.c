@@ -701,9 +701,7 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 
 		/* Chose one CPU connected to this NUMA node */
 		int cpu_id = 0;
-#ifdef STARPU_HAVE_HWLOC
 		cpu_id = find_cpu_from_numa_node(numa_src);
-#endif
 		if (cpu_id < 0)
 			/* We didn't find a CPU attached to the numa_src NUMA nodes */
 			goto no_calibration;

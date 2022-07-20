@@ -29,14 +29,14 @@ import getopt
 import os
 import sys
 
-class Event():
+class Event(object):
     def __init__(self, type, name, category, start_time):
         self._type = type
         self._name = name
         self._category = category
         self._start_time = start_time
 
-class EventStats():
+class EventStats(object):
     def __init__(self, name, duration_time, category, count = 1):
         self._name = name
         self._duration_time = duration_time
@@ -52,7 +52,7 @@ class EventStats():
             print("\"" + self._name + "\"," + str(self._count) + ",\"" +
                   self._category + "\"," + str(round(self._duration_time, 6)))
 
-class Worker():
+class Worker(object):
     def __init__(self, id):
         self._id        = id
         self._events    = []
@@ -291,7 +291,7 @@ def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hets:",
                                    ["help", "time", "efficiency", "seq_task_time="])
-    except getopt.GetoptError as err:
+    except getopt.GetoptError:
         usage()
         sys.exit(1)
 

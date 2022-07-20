@@ -521,8 +521,6 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 	   the compiled drivers. These drivers MUST have been initialized
 	   before calling this function. The discovered topology is filled in
 	   CONFIG. */
-
-	int err;
 	struct _starpu_machine_topology *topology = &config->topology;
 
 	if (topology_is_initialized)
@@ -557,6 +555,7 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 #ifdef STARPU_HAVE_HWLOC
 	hwloc_topology_init(&topology->hwtopology);
 	char *hwloc_input = starpu_getenv("STARPU_HWLOC_INPUT");
+	int err;
 	if (hwloc_input && hwloc_input[0])
 	{
 		err = hwloc_topology_set_xml(topology->hwtopology, hwloc_input);

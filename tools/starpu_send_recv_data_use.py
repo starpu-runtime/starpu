@@ -76,9 +76,7 @@ if len(tasks) == 0:
     sys.exit(0)
 
 def plot_graph(comm_time_key, match, filename, title, xlabel):
-    delays = []
     workers = dict()
-    nb = 0
     durations = []
     min_time = 0.
     max_time = 0.
@@ -104,8 +102,6 @@ def plot_graph(comm_time_key, match, filename, title, xlabel):
                 min_time = c[comm_time_key]
             if max_time == 0 or c[comm_time_key] > max_time:
                 max_time = c[comm_time_key]
-
-            nb += 1
 
     fig = plt.figure(constrained_layout=True)
 

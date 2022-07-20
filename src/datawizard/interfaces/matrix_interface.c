@@ -152,7 +152,7 @@ void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 					   uintptr_t ptr, uint32_t ld, uint32_t nx,
 					   uint32_t ny, size_t elemsize, size_t allocsize)
 {
-	STARPU_ASSERT_MSG(ld >= nx, "ld = %d should not be less than nx = %d.", ld, nx);
+	STARPU_ASSERT_MSG(ld >= nx, "ld = %u should not be less than nx = %u.", ld, nx);
 	struct starpu_matrix_interface matrix_interface =
 	{
 		.id = STARPU_MATRIX_INTERFACE_ID,

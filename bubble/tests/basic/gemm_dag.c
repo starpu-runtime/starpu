@@ -258,13 +258,6 @@ int main(int argv, char *argc[])
 	int ret;
 	int A[PARTS*SIZE], B[PARTS*SIZE], C[PARTS*SIZE];
 
-	starpu_data_handle_t *handlesA    = malloc(PARTS*sizeof(starpu_data_handle_t));
-	starpu_data_handle_t *handlesB    = malloc(PARTS*sizeof(starpu_data_handle_t));
-	starpu_data_handle_t *handlesC    = malloc(PARTS*sizeof(starpu_data_handle_t));
-	starpu_data_handle_t *subhandlesA = malloc(PARTS*sizeof(starpu_data_handle_t));
-	starpu_data_handle_t *subhandlesB = malloc(PARTS*sizeof(starpu_data_handle_t));
-	starpu_data_handle_t *subhandlesC = malloc(PARTS*sizeof(starpu_data_handle_t));
-
 	ret = starpu_init(NULL);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -275,6 +268,13 @@ int main(int argv, char *argc[])
 		starpu_shutdown();
 		return 77;
 	}
+
+	starpu_data_handle_t *handlesA    = malloc(PARTS*sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *handlesB    = malloc(PARTS*sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *handlesC    = malloc(PARTS*sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *subhandlesA = malloc(PARTS*sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *subhandlesB = malloc(PARTS*sizeof(starpu_data_handle_t));
+	starpu_data_handle_t *subhandlesC = malloc(PARTS*sizeof(starpu_data_handle_t));
 
 	init_handles(A, handlesA, subhandlesA);
 	init_handles(B, handlesB, subhandlesB);
