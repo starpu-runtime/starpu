@@ -411,7 +411,7 @@ void _starpu_cuda_init_worker_binding(struct _starpu_machine_config *config, int
 	{
 		/* StarPU is allowed to bind threads automatically */
 		preferred_binding = _starpu_get_cuda_affinity_vector(devid);
-		npreferred = config->topology.nhwpus;
+		npreferred = _starpu_topology_get_nnumanodes(config);
 	}
 #endif /* SIMGRID */
 	if (cuda_bindid_init[devid])

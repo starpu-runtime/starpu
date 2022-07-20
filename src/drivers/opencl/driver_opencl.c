@@ -323,7 +323,7 @@ void _starpu_opencl_init_worker_binding(struct _starpu_machine_config *config, i
 	{
 		/* StarPU is allowed to bind threads automatically */
 		preferred_binding = _starpu_get_opencl_affinity_vector(devid);
-		npreferred = config->topology.nhwpus;
+		npreferred = _starpu_topology_get_nnumanodes(config);
 	}
 #endif /* SIMGRID */
 
@@ -341,7 +341,7 @@ void _starpu_opencl_init_worker_binding(struct _starpu_machine_config *config, i
 }
 
 /* Set up memory and buses */
-void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+void _starpu_opencl_init_worker_memory(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	unsigned memory_node = -1;
 	unsigned devid = workerarg->devid;

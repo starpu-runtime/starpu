@@ -204,7 +204,7 @@ void _starpu_max_fpga_init_worker_binding(struct _starpu_machine_config *config,
 #if 0
 /* No FPGA preference yet */
 		preferred_binding = _starpu_get_max_fpga_affinity_vector(devid);
-		npreferred = config->topology.nhwpus;
+		npreferred = _starpu_topology_get_nnumanodes(config);
 #endif
 	}
 
