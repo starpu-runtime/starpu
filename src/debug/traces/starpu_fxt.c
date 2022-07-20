@@ -313,7 +313,7 @@ static void task_dump(struct task_info *task, struct starpu_fxt_options *options
 	}
 	fprintf(tasks_file, "MPIRank: %d\n", task->mpi_rank);
 #ifdef STARPU_BUBBLE
-	fprintf(tasks_file, "Bubble: %d\n", task->is_bubble);
+	fprintf(tasks_file, "Bubble: %u\n", task->is_bubble);
 	fprintf(tasks_file, "ParentBubble: %lu\n", task->bubble_parent);
 #endif
 	if (task->nend_deps)

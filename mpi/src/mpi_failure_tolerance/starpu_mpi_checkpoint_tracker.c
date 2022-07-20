@@ -126,7 +126,7 @@ static inline int _clear_domain_tracker_index(struct _starpu_mpi_checkpoint_doma
 static inline int _domain_tracker_delete_all()
 {
 	struct _starpu_mpi_checkpoint_domain_tracker_index* temp_index;
-	struct _starpu_mpi_checkpoint_domain_tracker_index* index = index =_starpu_mpi_checkpoint_domain_tracker_index_list_begin(domain_tracker_list) ;
+	struct _starpu_mpi_checkpoint_domain_tracker_index* index = _starpu_mpi_checkpoint_domain_tracker_index_list_begin(domain_tracker_list) ;
 	while (index != _starpu_mpi_checkpoint_domain_tracker_index_list_end(domain_tracker_list))
 	{
 		temp_index = _starpu_mpi_checkpoint_domain_tracker_index_list_next(index);

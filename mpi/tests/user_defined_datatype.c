@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -78,8 +78,10 @@ int main(int argc, char **argv)
 
 	if (nodes < 2)
 	{
-		fprintf(stderr, "This program needs at least 2 nodes\n");
-		ret = 77;
+		FPRINTF(stderr, "This program needs at least 2 nodes\n");
+
+		starpu_mpi_shutdown();
+		return rank == 0 ? STARPU_TEST_SKIPPED : 0;
 	}
 	else
 	{

@@ -1277,6 +1277,7 @@ starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node)
 	switch (starpu_node_get_kind(node))
 	{
 		case STARPU_CPU_RAM:
+			/* We do not specify %u as NUMA effects are not taken into account */
 			fmt = "RAM";
 			break;
 		case STARPU_CUDA_RAM:

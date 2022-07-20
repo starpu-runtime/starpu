@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -833,7 +833,10 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 	starpu_mpi_comm_rank(comm, &me);
 	starpu_mpi_comm_size(comm, &nb_nodes);
 
-	int current_level, nb_contrib, next_nb_contrib;
+#ifdef STARPU_MPI_VERBOSE
+	int current_level=0;
+#endif
+	int nb_contrib, next_nb_contrib;
 	int i, j, step, node;
 	char root_in_step, me_in_step;
 	// https://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
@@ -873,7 +876,6 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 	}
 
 	_STARPU_MPI_DEBUG(15, "mpi_redux _ STARTING with %d-ary tree \n", arity);
-	current_level = 0;
 	while (nb_contrib != 1)
 	{
 		_STARPU_MPI_DEBUG(5, "%dth level in the reduction \n", current_level);
@@ -958,7 +960,9 @@ int starpu_mpi_redux_data_prio_tree(MPI_Comm comm, starpu_data_handle_t data_han
 			contributors[step] = reducing_node;
 		}
 		nb_contrib = next_nb_contrib;
+#ifdef STARPU_MPI_VERBOSE
 		current_level++;
+#endif
 	}
 	return 0;
 }

@@ -254,7 +254,7 @@ static void * _starpu_tcpip_thread_pending()
 
                         if(FD_ISSET(remote_sock, &writes2))
                         {
-                        #ifdef SO_ZEROCOPY
+#ifdef SO_ZEROCOPY
                                 struct pollfd pfd;
                                 pfd.fd = remote_sock;
                                 pfd.events = POLLERR|POLLOUT;
@@ -371,14 +371,14 @@ static void * _starpu_tcpip_thread_pending()
                                                         }
                                                 }
                                                 else
-                        #endif
+#endif
                                                 {
                                                         socket_action((what_t)write, "write", &table->send_list, &writes);
                                                 }
+#ifdef SO_ZEROCOPY
                                         }
-                        #ifdef SO_ZEROCOPY
                                 }
-                        #endif
+#endif
                         }
 
                         if(FD_ISSET(remote_sock, &reads2))

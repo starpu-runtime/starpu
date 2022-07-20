@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -209,6 +209,8 @@ void _starpu_profiling_papi_task_start_counters(struct starpu_task *task)
 				_STARPU_MSG("Error while registering Papi event: Component containing event is disabled. Try running `papi_component_avail` to get more information.\n");
 				warned_component_unavailable = 1;
 			}
+#else
+			(void)ret;
 #endif
 			profiling_info->papi_values[i]=0;
 		}

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -117,7 +117,6 @@ int main(int argc, char *argv[])
 	double a, b[comm_size];
 	starpu_data_handle_t a_h, b_h[comm_size];
 	double work_coef = 2;
-	enum starpu_data_access_mode codelet_mode;
 	enum starpu_data_access_mode task_mode;
 	int arity,j,work_node;
     	starpu_mpi_tag_t tag = 0;
@@ -157,11 +156,11 @@ int main(int argc, char *argv[])
 			for (j=1;j<=work_coef*nworkers;j++)
 			{
 			    starpu_mpi_task_insert(MPI_COMM_WORLD,
-				&mpi_work_cl,
-				task_mode, a_h,
-				STARPU_R, b_h[work_node],
-				STARPU_EXECUTE_ON_NODE, work_node,
-				0);
+						   &mpi_work_cl,
+						   task_mode, a_h,
+						   STARPU_R, b_h[work_node],
+						   STARPU_EXECUTE_ON_NODE, work_node,
+						   0);
 			}
 		}
 		ret = starpu_mpi_redux_data_tree(MPI_COMM_WORLD, a_h, arity);

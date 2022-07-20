@@ -1681,7 +1681,6 @@ _starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 
 	*ret = -EIO;
 
-	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 	if (starpu_node_get_kind(src_node) != STARPU_CPU_RAM)
 		return 0;
 
@@ -1694,6 +1693,7 @@ _starpu_cuda_map_ram(uintptr_t src_ptr STARPU_ATTRIBUTE_UNUSED, size_t src_offse
 	 * - .concurrentManagedAccess: "Device can coherently access managed memory concurrently with the CPU"
 	 */
 
+	struct _starpu_worker *worker = _starpu_get_local_worker_key();
 #ifdef STARPU_HAVE_CUDA_CANMAPHOST
 	const int cuda_canMapHostMemory = props[worker->devid].canMapHostMemory;
 #else
