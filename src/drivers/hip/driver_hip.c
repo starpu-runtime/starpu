@@ -61,9 +61,10 @@ static hipStream_t in_peer_transfer_streams[STARPU_MAXHIPDEVS][STARPU_MAXHIPDEVS
 static struct hipDeviceProp_t props[STARPU_MAXHIPDEVS];
 static hipEvent_t task_events[STARPU_NMAXWORKERS];
 
-static unsigned hip_init[STARPU_MAXHIPDEVS];
-static unsigned hip_memory_nodes[STARPU_MAXHIPDEVS];
+static unsigned hip_bindid_init[STARPU_MAXHIPDEVS];
 static unsigned hip_bindid[STARPU_MAXHIPDEVS];
+static unsigned hip_memory_init[STARPU_MAXHIPDEVS];
+static unsigned hip_memory_nodes[STARPU_MAXHIPDEVS];
 
 int _starpu_nworker_per_hip = 1;
 
@@ -143,7 +144,8 @@ const struct hipDeviceProp_t *starpu_hip_get_device_properties(unsigned workerid
 /* Early library initialization, before anything else, just initialize data */
 void _starpu_hip_init(void)
 {
-	memset(&hip_init, 0, sizeof(hip_init));
+	memset(&hip_bindid_init, 0, sizeof(hip_bindid_init));
+	memset(&hip_memory_init, 0, sizeof(hip_memory_init));
 }
 
 /* Return the number of devices usable in the system.
@@ -246,26 +248,41 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
         }
 }
 
-/* Bind the driver on a CPU core, set up memory and buses */
-int _starpu_hip_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+/* Bind the driver on a CPU core */
+void _starpu_hip_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
-	unsigned memory_node = -1;
 	/* Perhaps the worker has some "favourite" bindings  */
 	unsigned *preferred_binding = NULL;
 	unsigned npreferred = 0;
 	unsigned devid = workerarg->devid;
-	unsigned numa;
 
-	if (hip_init[devid])
+	if (hip_bindid_init[devid])
 	{
-		memory_node = hip_memory_nodes[devid];
 		workerarg->bindid = hip_bindid[devid];
 	}
 	else
 	{
-		hip_init[devid] = 1;
+		hip_bindid_init[devid] = 1;
 
 		workerarg->bindid = hip_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+	}
+}
+
+/* Set up memory and buses */
+void _starpu_hip_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	unsigned memory_node = -1;
+	unsigned devid = workerarg->devid;
+	unsigned numa;
+
+	if (hip_memory_init[devid])
+	{
+		memory_node = hip_memory_nodes[devid];
+	}
+	else
+	{
+		hip_memory_init[devid] = 1;
+
 		memory_node = hip_memory_nodes[devid] = _starpu_memory_node_register(STARPU_HIP_RAM, devid);
 
 		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
@@ -316,7 +333,7 @@ int _starpu_hip_init_workers_binding_and_memory(struct _starpu_machine_config *c
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
 
-	return memory_node;
+	workerarg->memory_node = memory_node;
 }
 
 /* Set the current HIP device */

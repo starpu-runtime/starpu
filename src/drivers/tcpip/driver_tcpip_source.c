@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2021-2022-  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2021-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,9 +27,10 @@
 #include <drivers/mp_common/source_common.h>
 
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-static unsigned tcpip_init[STARPU_MAXTCPIPDEVS] = { };
-static unsigned tcpip_memory_nodes[STARPU_MAXTCPIPDEVS];
+static unsigned tcpip_bindid_init[STARPU_MAXTCPIPDEVS] = { };
 static unsigned tcpip_bindid[STARPU_MAXTCPIPDEVS];
+static unsigned tcpip_memory_init[STARPU_MAXTCPIPDEVS] = { };
+static unsigned tcpip_memory_nodes[STARPU_MAXTCPIPDEVS];
 
 static struct _starpu_worker_set tcpip_worker_set[STARPU_MAXTCPIPDEVS];
 #endif
@@ -136,27 +137,43 @@ void _starpu_init_tcpip_config(struct _starpu_machine_topology *topology, struct
         }
 }
 
-/*Bind the driver on a CPU core, set up memory and buses*/
-int _starpu_tcpip_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+/*Bind the driver on a CPU core*/
+void _starpu_tcpip_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
-        unsigned memory_node = -1;
         /* Perhaps the worker has some "favourite" bindings  */
         unsigned *preferred_binding = NULL;
         unsigned npreferred = 0;
         unsigned devid = workerarg->devid;
+
+        if (tcpip_bindid_init[devid])
+        {
+        }
+        else
+        {
+                tcpip_bindid_init[devid] = 1;
+		if (_starpu_tcpip_common_multiple_thread || devid == 0)
+			tcpip_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+		else
+			tcpip_bindid[devid] = tcpip_bindid[0];
+	}
+
+        workerarg->bindid = tcpip_bindid[devid];
+}
+
+/*Set up memory and buses*/
+void _starpu_tcpip_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+        unsigned memory_node = -1;
+        unsigned devid = workerarg->devid;
         unsigned numa;
 
-        if (tcpip_init[devid])
+        if (tcpip_memory_init[devid])
         {
                 memory_node = tcpip_memory_nodes[devid];
         }
         else
         {
-                tcpip_init[devid] = 1;
-		if (_starpu_tcpip_common_multiple_thread || devid == 0)
-			tcpip_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-		else
-			tcpip_bindid[devid] = tcpip_bindid[0];
+                tcpip_memory_init[devid] = 1;
                 memory_node = tcpip_memory_nodes[devid] = _starpu_memory_node_register(STARPU_TCPIP_MS_RAM, devid);
 
                 for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
@@ -187,10 +204,9 @@ int _starpu_tcpip_init_workers_binding_and_memory(struct _starpu_machine_config 
 		}
 	}
 
-        workerarg->bindid = tcpip_bindid[devid];
         _starpu_memory_node_add_nworkers(memory_node);
-        
-        return memory_node;
+
+        workerarg->memory_node = memory_node;
 }
 
 static void _starpu_deinit_tcpip_node(int devid)

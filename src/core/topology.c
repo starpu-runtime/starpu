@@ -1344,30 +1344,6 @@ void _starpu_bind_thread_on_cpus(struct _starpu_combined_worker *combined_worker
 #endif
 }
 
-static void _starpu_init_binding_cpu(struct _starpu_machine_config *config)
-{
-	unsigned worker;
-	for (worker = 0; worker < config->topology.nworkers; worker++)
-	{
-		struct _starpu_worker *workerarg = &config->workers[worker];
-
-		switch (workerarg->arch)
-		{
-			case STARPU_CPU_WORKER:
-			{
-				/* Dedicate a cpu core to that worker */
-				workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, NULL, 0);
-				break;
-			}
-			default:
-				/* Do nothing */
-				break;
-		}
-
-
-	}
-}
-
 static size_t _starpu_cpu_get_global_mem_size(int nodeid, struct _starpu_machine_config *config)
 {
 	size_t global_mem;
@@ -1704,23 +1680,17 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 		config->bindid_workers[bindid].nworkers = 0;
 	}
 
-	/* Init CPU binding before NUMA nodes, because we use it to discover NUMA nodes */
-	_starpu_init_binding_cpu(config);
-
-	/* Initialize NUMA nodes */
-	_starpu_init_numa_node(config);
-	_starpu_init_numa_bus();
-
+	/* First determine the CPU binding */
 	unsigned worker;
 	for (worker = 0; worker < config->topology.nworkers; worker++)
 	{
 		struct _starpu_worker *workerarg = &config->workers[worker];
 		unsigned devid STARPU_ATTRIBUTE_UNUSED = workerarg->devid;
 
-		/* select the memory node that contains worker's memory */
-		workerarg->memory_node = starpu_driver_info[workerarg->arch].init_workers_binding_and_memory(config, no_mp_config, workerarg);
+		/* select the worker binding */
+		starpu_driver_info[workerarg->arch].init_worker_binding(config, no_mp_config, workerarg);
 
-		_STARPU_DEBUG("worker %u type %d devid %u bound to cpu %d, STARPU memory node %u\n", worker, workerarg->arch, devid, workerarg->bindid, workerarg->memory_node);
+		_STARPU_DEBUG("worker %u type %d devid %u bound to cpu %d\n", worker, workerarg->arch, devid, workerarg->bindid);
 
 #ifdef __GLIBC__
 		if (workerarg->bindid != -1)
@@ -1778,6 +1748,22 @@ static void _starpu_init_workers_binding_and_memory(struct _starpu_machine_confi
 			_STARPU_REALLOC(config->bindid_workers[bindid].workerids, config->bindid_workers[bindid].nworkers * sizeof(config->bindid_workers[bindid].workerids[0]));
 			config->bindid_workers[bindid].workerids[config->bindid_workers[bindid].nworkers-1] = worker;
 		}
+	}
+
+	/* Then initialize NUMA nodes accordingly */
+	_starpu_init_numa_node(config);
+	_starpu_init_numa_bus();
+
+	/* Eventually initialize accelerators memory nodes */
+	for (worker = 0; worker < config->topology.nworkers; worker++)
+	{
+		struct _starpu_worker *workerarg = &config->workers[worker];
+		unsigned devid STARPU_ATTRIBUTE_UNUSED = workerarg->devid;
+
+		/* select the memory node that contains worker's memory */
+		starpu_driver_info[workerarg->arch].init_worker_memory(config, no_mp_config, workerarg);
+
+		_STARPU_DEBUG("worker %u type %d devid %u STARPU memory node %u\n", worker, workerarg->arch, devid, workerarg->memory_node);
 	}
 
 #if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_SIMGRID)

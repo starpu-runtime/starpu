@@ -34,7 +34,8 @@ extern struct _starpu_node_ops _starpu_driver_cpu_node_ops;
 void _starpu_cpu_busy_cpu(unsigned num);
 
 void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config);
-int _starpu_cpu_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
+void _starpu_cpu_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
+void _starpu_cpu_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg);
 
 void *_starpu_cpu_worker(void *);
 

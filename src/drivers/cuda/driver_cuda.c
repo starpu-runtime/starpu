@@ -102,9 +102,10 @@ static starpu_pthread_cond_t cuda_device_init_cond[STARPU_MAXCUDADEVS];
 #if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 static struct _starpu_worker_set cuda_worker_set[STARPU_MAXCUDADEVS];
 
-static unsigned cuda_init[STARPU_MAXCUDADEVS];
-static unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
+static unsigned cuda_bindid_init[STARPU_MAXCUDADEVS];
 static unsigned cuda_bindid[STARPU_MAXCUDADEVS];
+static unsigned cuda_memory_init[STARPU_MAXCUDADEVS];
+static unsigned cuda_memory_nodes[STARPU_MAXCUDADEVS];
 static int cuda_globalbindid;
 #endif
 
@@ -195,7 +196,8 @@ void _starpu_cuda_init(void)
 		STARPU_PTHREAD_MUTEX_INIT(&cuda_device_init_mutex[i], NULL);
 		STARPU_PTHREAD_COND_INIT(&cuda_device_init_cond[i], NULL);
 	}
-	memset(&cuda_init, 0, sizeof(cuda_init));
+	memset(&cuda_bindid_init, 0, sizeof(cuda_bindid_init));
+	memset(&cuda_memory_init, 0, sizeof(cuda_memory_init));
 	cuda_globalbindid = -1;
 }
 
@@ -396,15 +398,13 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
         }
 }
 
-/* Bind the driver on a CPU core, set up memory and buses */
-int _starpu_cuda_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+/* Bind the driver on a CPU core */
+void _starpu_cuda_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
-	unsigned memory_node = -1;
 	/* Perhaps the worker has some "favourite" bindings  */
 	unsigned *preferred_binding = NULL;
 	unsigned npreferred = 0;
 	unsigned devid = workerarg->devid;
-	unsigned numa;
 
 #ifndef STARPU_SIMGRID
 	if (_starpu_may_bind_automatically[STARPU_CUDA_WORKER])
@@ -414,9 +414,8 @@ int _starpu_cuda_init_workers_binding_and_memory(struct _starpu_machine_config *
 		npreferred = config->topology.nhwpus;
 	}
 #endif /* SIMGRID */
-	if (cuda_init[devid])
+	if (cuda_bindid_init[devid])
 	{
-		memory_node = cuda_memory_nodes[devid];
 		if (config->topology.cuda_th_per_stream == 0)
 			workerarg->bindid = cuda_bindid[devid];
 		else
@@ -424,7 +423,7 @@ int _starpu_cuda_init_workers_binding_and_memory(struct _starpu_machine_config *
 	}
 	else
 	{
-		cuda_init[devid] = 1;
+		cuda_bindid_init[devid] = 1;
 
 		if (config->topology.cuda_th_per_dev == 0 && config->topology.cuda_th_per_stream == 0)
 		{
@@ -434,6 +433,24 @@ int _starpu_cuda_init_workers_binding_and_memory(struct _starpu_machine_config *
 		}
 		else
 			workerarg->bindid = cuda_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+	}
+}
+
+/* Set up memory and buses */
+void _starpu_cuda_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	unsigned memory_node = -1;
+	unsigned devid = workerarg->devid;
+	unsigned numa;
+
+	if (cuda_memory_init[devid])
+	{
+		memory_node = cuda_memory_nodes[devid];
+	}
+	else
+	{
+		cuda_memory_init[devid] = 1;
+
 		memory_node = cuda_memory_nodes[devid] = _starpu_memory_node_register(STARPU_CUDA_RAM, devid);
 
 #ifdef STARPU_USE_CUDA_MAP
@@ -516,7 +533,7 @@ int _starpu_cuda_init_workers_binding_and_memory(struct _starpu_machine_config *
 
 	_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 
-	return memory_node;
+	workerarg->memory_node = memory_node;
 }
 
 /* Set the current CUDA device */

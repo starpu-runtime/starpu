@@ -28,9 +28,10 @@
 #include <drivers/mp_common/source_common.h>
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-static unsigned mpi_init[STARPU_MAXMPIDEVS] = { };
-static unsigned mpi_memory_nodes[STARPU_MAXMPIDEVS];
+static unsigned mpi_bindid_init[STARPU_MAXMPIDEVS] = { };
 static unsigned mpi_bindid[STARPU_MAXMPIDEVS];
+static unsigned mpi_memory_init[STARPU_MAXMPIDEVS] = { };
+static unsigned mpi_memory_nodes[STARPU_MAXMPIDEVS];
 
 static struct _starpu_worker_set mpi_worker_set[STARPU_MAXMPIDEVS];
 #endif
@@ -137,27 +138,41 @@ void _starpu_init_mpi_config(struct _starpu_machine_topology *topology, struct _
 	}
 }
 
-/* Bind the driver on a CPU core, set up memory and buses */
-int _starpu_mpi_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+/* Bind the driver on a CPU core */
+void _starpu_mpi_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
-	unsigned memory_node = -1;
 	/* Perhaps the worker has some "favourite" bindings  */
 	unsigned *preferred_binding = NULL;
 	unsigned npreferred = 0;
 	unsigned devid = workerarg->devid;
+
+	if (mpi_bindid_init[devid])
+	{
+	}
+	else
+	{
+		mpi_bindid_init[devid] = 1;
+		if (_starpu_mpi_common_multiple_thread || devid == 0)
+			mpi_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+		else
+			mpi_bindid[devid] = mpi_bindid[0];
+	}
+}
+
+/* Set up memory and buses */
+void _starpu_mpi_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	unsigned memory_node = -1;
+	unsigned devid = workerarg->devid;
 	unsigned numa;
 
-	if (mpi_init[devid])
+	if (mpi_memory_init[devid])
 	{
 		memory_node = mpi_memory_nodes[devid];
 	}
 	else
 	{
-		mpi_init[devid] = 1;
-		if (_starpu_mpi_common_multiple_thread || devid == 0)
-			mpi_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
-		else
-			mpi_bindid[devid] = mpi_bindid[0];
+		mpi_memory_init[devid] = 1;
 		memory_node = mpi_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MPI_MS_RAM, devid);
 
 		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
@@ -191,7 +206,7 @@ int _starpu_mpi_init_workers_binding_and_memory(struct _starpu_machine_config *c
 	workerarg->bindid = mpi_bindid[devid];
 	_starpu_memory_node_add_nworkers(memory_node);
 
-	return memory_node;
+	workerarg->memory_node = memory_node;
 }
 
 static void _starpu_deinit_mpi_node(int devid)
