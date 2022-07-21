@@ -25,7 +25,7 @@
 #define MM_IO_H
 
 #define MM_MAX_LINE_LENGTH 1025
-#define MatrixMarketBanner "%%MatrixMarket\0"
+#define MatrixMarketBanner "%%MatrixMarket"
 #define MM_MAX_TOKEN_LENGTH 64
 #define MM_MAX_TOKEN_LENGTH_S "64"
 

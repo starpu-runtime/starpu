@@ -68,17 +68,17 @@ int main(int argc, char **argv)
 	else if (rank == 1)
 	{
 		// We want handle0 to be received as early_data and as starpu_mpi_data_register() has not be called, it will be received as raw memory, and then unpacked with MPI_Unpack()
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle0 init value", strlen("node1 handle0 init value\0")+1, STARPU_R, handle0, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle0 init value", strlen("node1 handle0 init value")+1, STARPU_R, handle0, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle1 init value", strlen("node1 handle1 init value\0")+1, STARPU_R, handle1, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle1 init value", strlen("node1 handle1 init value")+1, STARPU_R, handle1, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		ret = starpu_mpi_recv(handle1, 0, 20, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv1");
 		ret = starpu_mpi_recv(handle0, 0, 10, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv2");
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle0 received value", strlen("node1 handle0 received value\0")+1, STARPU_R, handle0, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle0 received value", strlen("node1 handle0 received value")+1, STARPU_R, handle0, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle1 received value", strlen("node1 handle1 received value\0")+1, STARPU_R, handle1, 0);
+		ret = starpu_task_insert(&starpu_my_data_display_codelet, STARPU_VALUE, "node1 handle1 received value", strlen("node1 handle1 received value")+1, STARPU_R, handle1, 0);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 	}
 
