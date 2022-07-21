@@ -950,7 +950,8 @@ static unsigned _starpu_topology_get_core_binding(unsigned *binding, unsigned nb
 		found++;
 	}
 
-	for (n = 0; n < obj->arity; n++) {
+	for (n = 0; n < obj->arity; n++)
+	{
 		found += _starpu_topology_get_core_binding(binding + found, nbinding - found, obj->children[n]);
 	}
 	return found;

@@ -391,7 +391,8 @@ void _starpu_worker_start_state(int workerid, enum _starpu_worker_status_index i
 
 static void _starpu_worker_time_accumulate(struct starpu_profiling_worker_info *worker_info, enum _starpu_worker_status_index index, struct timespec *delta)
 {
-	switch (index) {
+	switch (index)
+	{
 	case STATUS_INDEX_EXECUTING:
 		starpu_timespec_accumulate(&worker_info->all_executing_time, delta);
 		break;
