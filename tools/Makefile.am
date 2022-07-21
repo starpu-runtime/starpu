@@ -469,7 +469,7 @@ starpu_mpi_comm_matrix.1: starpu_mpi_comm_matrix.py
 	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Draw StarPU MPI communications matrix" --output=$@ ./$<
 starpu_fxt_number_events_to_names.1: starpu_fxt_number_events_to_names.py
 	@chmod +x $<
-	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Count events in StarPU traces" --output=$@ ./$<
+	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Convert events in StarPU traces" --output=$@ ./$<
 starpu_paje_draw_histogram.1: starpu_paje_draw_histogram
 	@chmod +x $<
 	$(V_help2man) LC_ALL=C help2man --no-discard-stderr -N -n "Draw StarPU trace histogram" --output=$@ ./$<

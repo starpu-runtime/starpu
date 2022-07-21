@@ -17,6 +17,10 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
+"""
+Plot statistics produced when running an application with STARPU_MPI_STATS=1
+"""
+
 import sys
 import re
 import os
