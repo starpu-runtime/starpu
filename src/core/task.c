@@ -1247,7 +1247,7 @@ void _starpu_do_schedule_in_nested_ctx(unsigned sched_ctx_id)
 	unsigned s;
 	for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 	{
-		if(config->sched_ctxs[s].do_schedule == 1 && config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id && s != sched_ctx_id)
+		if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS && config->sched_ctxs[s].do_schedule == 1 && config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id && s != sched_ctx_id)
 		{
 			_starpu_do_schedule_in_nested_ctx(s);
 		}
@@ -1263,7 +1263,7 @@ int _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(unsigned 
 
 	for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
 	{
-		if(config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id && s != sched_ctx_id)
+		if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS && config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id && s != sched_ctx_id)
 		{
 			_STARPU_DEBUG("Recursively waiting for tasks submitted to sub context %u of %u\n", s, sched_ctx_id);
 			nb_waited_tasks += _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(s);
