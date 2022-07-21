@@ -1199,6 +1199,7 @@ unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config S
 	return res;
 }
 
+#if defined(STARPU_HAVE_HWLOC)
 static unsigned _starpu_topology_get_core_binding(unsigned *binding, unsigned nbinding, hwloc_obj_t obj)
 {
 	unsigned found = 0;
@@ -1215,6 +1216,7 @@ static unsigned _starpu_topology_get_core_binding(unsigned *binding, unsigned nb
 	}
 	return found;
 }
+#endif
 
 unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, const unsigned *numa_binding, unsigned nnuma, unsigned *binding, unsigned nbinding)
 {
