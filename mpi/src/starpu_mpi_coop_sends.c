@@ -296,6 +296,8 @@ void _starpu_mpi_coop_send(starpu_data_handle_t data_handle, struct _starpu_mpi_
 		STARPU_ASSERT(done || coop_sends);
 	}
 
+	STARPU_ASSERT(coop_sends);
+
 	/* In case we created one for nothing after all */
 	free(tofree);
 
