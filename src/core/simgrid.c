@@ -312,6 +312,7 @@ starpu_sg_host_t _starpu_simgrid_get_host_by_worker(struct _starpu_worker *worke
 	return host;
 }
 
+#ifdef STARPU_USE_MPI
 /* Simgrid up to 3.15 would rename main into smpi_simulated_main_, and call that
  * from SMPI initialization
  * In case the MPI application didn't use smpicc to build the file containing
@@ -327,6 +328,7 @@ int _starpu_smpi_simulated_main_(int argc, char *argv[])
 	return starpu_main(argc, argv);
 }
 int smpi_simulated_main_(int argc, char *argv[]) __attribute__((weak, alias("_starpu_smpi_simulated_main_")));
+#endif
 
 /* This is used to start a non-MPI simgrid environment */
 void _starpu_start_simgrid(int *argc, char **argv)
@@ -1275,6 +1277,7 @@ starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node)
 	switch (starpu_node_get_kind(node))
 	{
 		case STARPU_CPU_RAM:
+			/* We do not specify %u as NUMA effects are not taken into account */
 			fmt = "RAM";
 			break;
 		case STARPU_CUDA_RAM:

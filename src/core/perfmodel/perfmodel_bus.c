@@ -108,7 +108,7 @@ static double numa_timing[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
 #endif
 #ifdef STARPU_USE_CUDA
-/* preference order of cores (logical indexes) */
+/* preference order of NUMA nodes (logical indexes) */
 static unsigned cuda_affinity_matrix[STARPU_MAXCUDADEVS][STARPU_MAXNUMANODES];
 
 #ifndef STARPU_SIMGRID
@@ -126,14 +126,9 @@ static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
 #endif
 
 #ifdef STARPU_USE_OPENCL
-/* preference order of cores (logical indexes) */
+/* preference order of NUMA nodes (logical indexes) */
 static unsigned opencl_affinity_matrix[STARPU_MAXOPENCLDEVS][STARPU_MAXNUMANODES];
 static struct dev_timing opencldev_timing_per_numa[STARPU_MAXOPENCLDEVS*STARPU_MAXNUMANODES];
-#endif
-
-#ifdef STARPU_USE_MAX_FPGA
-/* preference order of cores (logical indexes) */
-static unsigned max_fpga_affinity_matrix[STARPU_MAXMAXFPGADEVS][STARPU_MAXCPUS];
 #endif
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
@@ -701,9 +696,7 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 
 		/* Chose one CPU connected to this NUMA node */
 		int cpu_id = 0;
-#ifdef STARPU_HAVE_HWLOC
 		cpu_id = find_cpu_from_numa_node(numa_src);
-#endif
 		if (cpu_id < 0)
 			/* We didn't find a CPU attached to the numa_src NUMA nodes */
 			goto no_calibration;
@@ -754,9 +747,9 @@ static void measure_bandwidth_latency_between_numa(int numa_src, int numa_dst)
 		hwloc_free(hwtopology, d_buffer, SIZE);
 	}
 	else
+no_calibration:
 #endif
 	{
-no_calibration:
 		/* Cannot make a real calibration */
 		numa_timing[numa_src][numa_dst] = 0.01;
 		numa_latency[numa_src][numa_dst] = 0;
@@ -775,9 +768,12 @@ static void benchmark_all_memory_nodes(void)
 	_STARPU_DEBUG("Benchmarking the speed of the bus\n");
 
 #ifdef STARPU_HAVE_HWLOC
-	hwloc_topology_init(&hwtopology);
+	int ret;
+	ret  = hwloc_topology_init(&hwtopology);
+	STARPU_ASSERT_MSG(ret == 0, "Could not initialize Hwloc topology (%s)\n", strerror(errno));
 	_starpu_topology_filter(hwtopology);
-	hwloc_topology_load(hwtopology);
+	ret = hwloc_topology_load(hwtopology);
+	STARPU_ASSERT_MSG(ret == 0, "Could not load Hwloc topology (%s)\n", strerror(errno));
 #endif
 
 #ifdef STARPU_HAVE_HWLOC
@@ -1126,13 +1122,6 @@ unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid)
 	return opencl_affinity_matrix[gpuid];
 }
 #endif /* STARPU_USE_OPENCL */
-
-#ifdef STARPU_USE_MAX_FPGA
-unsigned *_starpu_get_max_fpga_affinity_vector(unsigned fpgaid)
-{
-        return max_fpga_affinity_matrix[fpgaid];
-}
-#endif /* STARPU_USE_MAX_FPGA */
 
 void starpu_bus_print_affinity(FILE *f)
 {
@@ -2837,10 +2826,13 @@ static void write_bus_platform_file_content(int version)
 	/* If we have enough hwloc information, write PCI bandwidths and routes */
 	if (!starpu_get_env_number_default("STARPU_PCI_FLAT", 0) && ncuda > 0)
 	{
+		int ret;
 		hwloc_topology_t topology;
-		hwloc_topology_init(&topology);
+		ret = hwloc_topology_init(&topology);
+		STARPU_ASSERT_MSG(ret == 0, "Could not initialize Hwloc topology (%s)\n", strerror(errno));
 		_starpu_topology_filter(topology);
-		hwloc_topology_load(topology);
+		ret = hwloc_topology_load(topology);
+		STARPU_ASSERT_MSG(ret == 0, "Could not load Hwloc topology (%s)\n", strerror(errno));
 
 		char nvlink[ncuda][ncuda];
 		char nvlinkhost[ncuda];
@@ -3002,8 +2994,14 @@ flat_cuda:
 		{
 			char i_name[16];
 			snprintf(i_name, sizeof(i_name), "CUDA%u", i);
-			fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
-			fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
+			fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\">\n", i_name);
+			fprintf(f, "      <link_ctn id=\"RAM-%s\"/>\n", i_name);
+			fprintf(f, "      <link_ctn id=\"Host\"/>\n");
+			fprintf(f, "   </route>\n");
+			fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\">\n", i_name);
+			fprintf(f, "      <link_ctn id=\"%s-RAM\"/>\n", i_name);
+			fprintf(f, "      <link_ctn id=\"Host\"/>\n");
+			fprintf(f, "   </route>\n");
 		}
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		for (i = 0; i < ncuda; i++)
@@ -3017,7 +3015,10 @@ flat_cuda:
 				if (j == i)
 					continue;
                                 snprintf(j_name, sizeof(j_name), "CUDA%u", j);
-				fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"%s-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, j_name, i_name, j_name);
+				fprintf(f, "   <route src=\"%s\" dst=\"%s\" symmetrical=\"NO\">\n", i_name, j_name);
+				fprintf(f, "     <link_ctn id=\"%s-%s\"/>\n", i_name, j_name);
+				fprintf(f, "     <link_ctn id=\"Host\"/>\n");
+				fprintf(f, "   </route>\n");
 			}
 		}
 #endif
@@ -3034,8 +3035,14 @@ flat_cuda:
 	{
 		char i_name[17];
 		snprintf(i_name, sizeof(i_name), "OpenCL%u", i);
-		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\"><link_ctn id=\"RAM-%s\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
-		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\"><link_ctn id=\"%s-RAM\"/><link_ctn id=\"Host\"/></route>\n", i_name, i_name);
+		fprintf(f, "   <route src=\"RAM\" dst=\"%s\" symmetrical=\"NO\">\n", i_name);
+		fprintf(f, "     <link_ctn id=\"RAM-%s\"/>\n", i_name);
+		fprintf(f, "     <link_ctn id=\"Host\"/>\n");
+		fprintf(f, "   </route>\n");
+		fprintf(f, "   <route src=\"%s\" dst=\"RAM\" symmetrical=\"NO\">\n", i_name);
+		fprintf(f, "     <link_ctn id=\"%s-RAM\"/>\n", i_name);
+		fprintf(f, "     <link_ctn id=\"Host\"/>\n");
+		fprintf(f, "   </route>\n");
 	}
 #endif
 

@@ -173,7 +173,7 @@ void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node,
 	unsigned i;
 	for (i=1; i<ndim; i++)
 	{
-		STARPU_ASSERT_MSG(ldn[i]/ldn[i-1] >= nn[i-1], "ldn[%d]/ldn[%d] = %d/%d = %d should not be less than nn[%d] = %d.", i, i-1, ldn[i], ldn[i-1], ldn[i]/ldn[i-1], i-1, nn[i-1]);
+		STARPU_ASSERT_MSG(ldn[i]/ldn[i-1] >= nn[i-1], "ldn[%u]/ldn[%u] = %u/%u = %u should not be less than nn[%u] = %u.", i, i-1, ldn[i], ldn[i-1], ldn[i]/ldn[i-1], i-1, nn[i-1]);
 	}
 
 	struct starpu_ndim_interface ndim_interface =
@@ -275,7 +275,7 @@ static void display_ndim_interface(starpu_data_handle_t handle, FILE *f)
 
 	if (ndim_interface->ndim == 0)
 	{
-		fprintf(f, "%lu\t", ndim_interface->elemsize);
+		fprintf(f, "%lu\t", (unsigned long)ndim_interface->elemsize);
 	}
 }
 

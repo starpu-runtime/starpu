@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -33,8 +33,7 @@
 #define NTASKS 1000
 #endif
 
-void
-A(void *buffers[], void *args)
+void funcA(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
@@ -42,8 +41,7 @@ A(void *buffers[], void *args)
 	starpu_usleep(1000);
 }
 
-void
-B(void *buffers[], void *args)
+void funcB(void *buffers[], void *args)
 {
 	(void) buffers;
 	(void) args;
@@ -51,8 +49,7 @@ B(void *buffers[], void *args)
 	starpu_usleep(1000);
 }
 
-static int
-run(struct starpu_sched_policy *policy)
+static int run(struct starpu_sched_policy *policy)
 {
 	int ret;
 	struct starpu_conf conf;
@@ -67,21 +64,23 @@ run(struct starpu_sched_policy *policy)
 
 	struct starpu_codelet clA =
 	{
-		.cpu_funcs = {A},
-		.cpu_funcs_name = {"A"},
-		.opencl_funcs = {A},
-		.cuda_funcs = {A},
-		.max_fpga_funcs = {A},
+		.cpu_funcs = {funcA},
+		.cpu_funcs_name = {"funcA"},
+		.opencl_funcs = {funcA},
+		.cuda_funcs = {funcA},
+		.max_fpga_funcs = {funcA},
+		.hip_funcs = {funcA},
 		.nbuffers = 0
 	};
 
 	struct starpu_codelet clB =
 	{
-		.cpu_funcs = {B},
-		.cpu_funcs_name = {"B"},
-		.opencl_funcs = {B},
-		.cuda_funcs = {B},
-		.max_fpga_funcs = {B},
+		.cpu_funcs = {funcB},
+		.cpu_funcs_name = {"funcB"},
+		.opencl_funcs = {funcB},
+		.cuda_funcs = {funcB},
+		.max_fpga_funcs = {funcB},
+		.hip_funcs = {funcB},
 		.nbuffers = 0
 	};
 

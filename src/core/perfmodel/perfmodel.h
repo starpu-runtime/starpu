@@ -99,10 +99,6 @@ unsigned *_starpu_get_cuda_affinity_vector(unsigned gpuid);
 unsigned *_starpu_get_opencl_affinity_vector(unsigned gpuid);
 #endif
 
-#if defined(STARPU_USE_MAX_FPGA)
-unsigned *_starpu_get_max_fpga_affinity_vector(unsigned fpgaid);
-#endif
-
 void _starpu_save_bandwidth_and_latency_disk(double bandwidth_write, double bandwidth_read, double latency_write, double latency_read, unsigned node, const char *name);
 
 void _starpu_write_double(FILE *f, const char *format, double val) STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;

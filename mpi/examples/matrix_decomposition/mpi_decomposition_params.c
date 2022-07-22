@@ -131,8 +131,8 @@ void parse_args(int argc, char **argv, int nodes)
                 else
                 /* if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) */
                 {
-                        printf("usage : %s [-size size] [-nblocks nblocks] [-columns] [-antidiagonals] [-prios] [-no-prio] [-display] [-check]\n", argv[0]);
-                        fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks\n", size, size, nblocks, nblocks);
+                        printf("usage : %s [-size size] [-nblocks nblocks] [-columns] [-antidiagonals] [-prios] [-no-prio] [-display] [-check] [-checkpoint-period period] [-checkpoint-enabled 0/1]\n", argv[0]);
+                        fprintf(stderr,"Currently selected: %ux%u and %ux%u blocks checkpoint enabled %d with period %lu\n", size, size, nblocks, nblocks, checkpoint_enabled, checkpoint_period);
                         exit(0);
                 }
         }

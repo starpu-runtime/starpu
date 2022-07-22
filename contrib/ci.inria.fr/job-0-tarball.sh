@@ -20,12 +20,17 @@ set -e
 export PKG_CONFIG_PATH=/home/ci/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 export LD_LIBRARY_PATH=/home/ci/usr/local/lib:$LD_LIBRARY_PATH
 
+if test -f ./contrib/specific_env.sh
+then
+    . ./contrib/specific_env.sh
+fi
+
 BUILD=./build_$$
 
 ./autogen.sh
 if test -d $BUILD ; then chmod -R 777 $BUILD && rm -rf $BUILD ; fi
 mkdir $BUILD && cd $BUILD
-../configure --enable-build-doc-pdf
+../configure --enable-build-doc-pdf $STARPU_USER_CONFIGURE_OPTIONS
 make -j4
 make dist
 cp *gz ..

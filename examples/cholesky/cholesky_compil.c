@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -51,13 +51,6 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 
 	unsigned long nelems = starpu_matrix_get_nx(dataA);
 	unsigned long nn = nelems/nblocks;
-	int M = nblocks;
-	int N = nblocks;
-
-	int lambda_b = starpu_get_env_float_default("CHOLESKY_LAMBDA_B", nblocks);
-	int lambda_o_u = starpu_get_env_float_default("CHOLESKY_LAMBDA_O_U", 0);
-	int lambda_o_d = starpu_get_env_float_default("CHOLESKY_LAMBDA_O_D", 0);
-
 	unsigned unbound_prio = STARPU_MAX_PRIO == INT_MAX && STARPU_MIN_PRIO == INT_MIN;
 
 	if (bound_p || bound_lp_p || bound_mps_p)

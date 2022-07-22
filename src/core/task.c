@@ -1239,6 +1239,42 @@ void starpu_codelet_display_stats(struct starpu_codelet *cl)
 }
 
 /*
+ * We wait for all tasks that have been submitted to the scheduling context and its nested contexts
+ */
+void _starpu_do_schedule_in_nested_ctx(unsigned sched_ctx_id)
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	unsigned s;
+	for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+	{
+		if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS && config->sched_ctxs[s].do_schedule == 1 && config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id && s != sched_ctx_id)
+		{
+			_starpu_do_schedule_in_nested_ctx(s);
+		}
+	}
+       _starpu_sched_do_schedule(sched_ctx_id);
+}
+
+int _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(unsigned sched_ctx_id)
+{
+	struct _starpu_machine_config *config = _starpu_get_machine_config();
+	unsigned nb_waited_tasks = 0;
+	unsigned s;
+
+	for(s = 0; s < STARPU_NMAX_SCHED_CTXS; s++)
+	{
+		if(config->sched_ctxs[s].id != STARPU_NMAX_SCHED_CTXS && config->sched_ctxs[s].nesting_sched_ctx == sched_ctx_id && s != sched_ctx_id)
+		{
+			_STARPU_DEBUG("Recursively waiting for tasks submitted to sub context %u of %u\n", s, sched_ctx_id);
+			nb_waited_tasks += _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(s);
+      		}
+	}
+
+	nb_waited_tasks += _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx_id);
+	return nb_waited_tasks;
+}
+
+/*
  * We wait for all the tasks that have already been submitted. Note that a
  * regenerable is not considered finished until it was explicitely set as
  * non-regenerale anymore (eg. from a callback).
@@ -1283,9 +1319,12 @@ int _starpu_task_wait_for_all_and_return_nb_waited_tasks(void)
 	}
 	else
 	{
-		_starpu_sched_do_schedule(sched_ctx_id);
+		//		_starpu_sched_do_schedule(sched_ctx_id);
+		//		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
+		//		return _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx_id);
+		_starpu_do_schedule_in_nested_ctx(sched_ctx_id);
 		_STARPU_DEBUG("Waiting for tasks submitted to context %u\n", sched_ctx_id);
-		return _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx_id);
+		return _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(sched_ctx_id);
 	}
 }
 

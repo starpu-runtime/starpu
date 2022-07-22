@@ -1318,13 +1318,13 @@ struct starpu_tree* starpu_workers_get_tree(void)
 	return _starpu_config.topology.tree;
 }
 
+#ifdef STARPU_HAVE_HWLOC
 #if HWLOC_API_VERSION >= 0x20000
 #define NORMAL_CHILD(obj) 1
 #else
 #define NORMAL_CHILD(obj) ((obj)->type < HWLOC_OBJ_BRIDGE)
 #endif
 
-#ifdef STARPU_HAVE_HWLOC
 static void _fill_tree(struct starpu_tree *tree, hwloc_obj_t curr_obj, unsigned depth, hwloc_topology_t topology, struct starpu_tree *father)
 {
 	unsigned i, j;
@@ -1821,13 +1821,13 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 #ifdef STARPU_SIMGRID
 	_starpu_simgrid_init();
 #endif
-	/* Launch "basic" workers (ie. non-combined workers) */
 	if (!is_a_sink)
+	{
+		/* Launch "basic" workers (ie. non-combined workers) */
 		_starpu_launch_drivers(&_starpu_config);
-
-	/* Allocate swap, if any */
-	if (!is_a_sink)
+		/* Allocate swap, if any */
 		_starpu_swap_init();
+	}
 
 	_starpu_watchdog_init();
 

@@ -609,6 +609,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		sched_ctx->stream_worker = workerids[0];
 	}
 
+	sched_ctx->nesting_sched_ctx = STARPU_NMAX_SCHED_CTXS;
 	sched_ctx->nsub_ctxs = 0;
 	sched_ctx->parallel_view = 0;
 

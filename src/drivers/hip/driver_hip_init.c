@@ -30,7 +30,8 @@ static struct _starpu_driver_info driver_info =
 #if defined(STARPU_HAVE_HWLOC) && !defined(STARPU_USE_HIP)
 	.get_hwloc_obj = _starpu_hip_get_hwloc_obj,
 #endif
-	.init_workers_binding_and_memory = _starpu_hip_init_workers_binding_and_memory,
+	.init_worker_binding = _starpu_hip_init_worker_binding,
+	.init_worker_memory = _starpu_hip_init_worker_memory,
 #endif
 };
 

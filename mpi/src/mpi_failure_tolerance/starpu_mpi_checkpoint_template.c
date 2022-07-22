@@ -133,6 +133,7 @@ int _starpu_mpi_checkpoint_template_add_entry(starpu_mpi_checkpoint_template_t c
 				 * it is considered unecessary to register in the CP */
 				return 0;
 			}
+			break;
 		case STARPU_VALUE:
 			ptr       = va_arg(varg_list, void*);
 			count     = va_arg(varg_list, int);
@@ -204,7 +205,6 @@ int _starpu_mpi_checkpoint_post_cp_discard_recv(starpu_mpi_checkpoint_template_t
 
 void _cp_discard_message_send_cb(void* _args)
 {
-	struct _starpu_mpi_cp_discard_arg_cb* arg = (struct _starpu_mpi_cp_discard_arg_cb*) _args;
 	_STARPU_MPI_FT_STATS_SEND_FT_SERVICE_MSG(sizeof(struct _starpu_mpi_cp_ack_msg));
 	free(_args);
 }

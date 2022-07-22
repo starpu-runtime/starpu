@@ -178,6 +178,19 @@ endif
 txt_DATA = AUTHORS COPYING.LGPL README.md README.dev STARPU-REVISION
 EXTRA_DIST = autogen.sh AUTHORS COPYING.LGPL README.md README.dev STARPU-VERSION STARPU-REVISION
 
+EXTRA_DIST += .gitlab-ci.yml
+EXTRA_DIST += contrib/ci.inria.fr/Jenkinsfile-basic
+EXTRA_DIST += contrib/ci.inria.fr/Jenkinsfile-bsd
+EXTRA_DIST += contrib/ci.inria.fr/Jenkinsfile-windows
+EXTRA_DIST += contrib/ci.inria.fr/job-0-tarball.sh
+EXTRA_DIST += contrib/ci.inria.fr/job-1-build-windows.sh
+EXTRA_DIST += contrib/ci.inria.fr/job-1-check.sh
+EXTRA_DIST += contrib/ci.inria.fr/job-1-check-windows.bat
+EXTRA_DIST += contrib/gitlab/build.sh
+EXTRA_DIST += contrib/gitlab/deploy.sh
+EXTRA_DIST += contrib/gitlab/coverity.sh
+EXTRA_DIST += contrib/gitlab/simgrid.sh
+
 moduledir = ${libdir}/modules
 module_DATA = packages/starpu-1.3
 
@@ -213,7 +226,7 @@ showsuite:
 
 ctags-local:
 	cd $(top_srcdir) ; $(CTAGS) -R -I LIST_TYPE
-	$(SED) -i $(top_srcdir)/tags -e '/^[^	]* [^	]*	/d' -e '/^[^	]*$$/d' 
+	$(SED) -i $(top_srcdir)/tags -e '/^[^	]* [^	]*	/d' -e '/^[^	]*$$/d'
 
 
 # Cyclomatic complexity reports.

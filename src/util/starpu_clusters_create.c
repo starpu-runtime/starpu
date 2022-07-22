@@ -98,7 +98,7 @@ void starpu_gnu_openmp_mkl_prologue(void* arg)
 			if (!task->possibly_parallel)
 				ncpuids=1;
 			omp_set_num_threads(ncpuids);
-			mkl_set_num_threads(ncpuids);
+			mkl_set_num_threads_local(ncpuids);
 			mkl_set_dynamic(0);
 #pragma omp parallel
 			{

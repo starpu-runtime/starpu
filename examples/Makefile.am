@@ -152,7 +152,7 @@ noinst_HEADERS = 				\
 	common/blas.h				\
 	mult/simple.h				\
 	mult/double.h				\
-	fortran/StarPU_fortran.h		\
+	fortran/starpu_fortran.h		\
 	ppm_downscaler/ppm_downscaler.h		\
 	ppm_downscaler/yuv_downscaler.h		\
 	spmv/matrix_market/mmio.h		\
@@ -506,7 +506,7 @@ if STARPU_HAVE_F77_H
 fortran_hello_SOURCES	=		\
 	fortran/hello_c.c		\
 	fortran/hello.F			\
-	fortran/StarPU_fortran.h
+	fortran/starpu_fortran.h
 endif
 endif
 

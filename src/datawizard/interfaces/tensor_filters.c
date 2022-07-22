@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -292,20 +292,19 @@ static void _starpu_tensor_filter_pick_block(int dim, void *father_interface, vo
 	}
 }
 void starpu_tensor_filter_pick_block_t(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-					    unsigned id, unsigned nparts)
+				       unsigned id, unsigned nparts)
 {
-	
 	_starpu_tensor_filter_pick_block(3, father_interface, child_interface, f, id, nparts);
 }
 
 void starpu_tensor_filter_pick_block_z(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-					    unsigned id, unsigned nparts)
+				       unsigned id, unsigned nparts)
 {
 	_starpu_tensor_filter_pick_block(2, father_interface, child_interface, f, id, nparts);
 }
 
 void starpu_tensor_filter_pick_block_y(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-					    unsigned id, unsigned nparts)
+				       unsigned id, unsigned nparts)
 {
 	_starpu_tensor_filter_pick_block(1, father_interface, child_interface, f, id, nparts);
 }
@@ -314,3 +313,4 @@ struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(STAR
 {
 	return &starpu_interface_block_ops;
 }
+

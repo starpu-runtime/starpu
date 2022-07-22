@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -69,15 +69,17 @@ static void opencl_memset_codelet(void *buffers[], void *args)
 	STARPU_ASSERT(v != NULL);
 	memset(v, 42, length);
 
-	clEnqueueWriteBuffer(queue,
-			     buffer,
-			     CL_FALSE,
-			     0,      /* offset */
-			     length, /* sizeof (char) */
-			     v,
-			     0,      /* num_events_in_wait_list */
-			     NULL,   /* event_wait_list */
-			     NULL    /* event */);
+	cl_int err;
+	err = clEnqueueWriteBuffer(queue,
+				   buffer,
+				   CL_FALSE,
+				   0,      /* offset */
+				   length, /* sizeof (char) */
+				   v,
+				   0,      /* num_events_in_wait_list */
+				   NULL,   /* event_wait_list */
+				   NULL    /* event */);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 }
 #endif /* !STARPU_USE_OPENCL */
 

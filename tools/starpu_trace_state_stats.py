@@ -3,7 +3,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -17,26 +17,26 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 
-##
-# This script parses the generated trace.rec file and reports statistics about
-# the number of different events/tasks and their durations. The report is
-# similar to the starpu_paje_state_stats.in script, except that this one
-# doesn't need R and pj_dump (from the pajeng repository), and it is also much
-# faster.
-##
+"""
+This script parses the generated trace.rec file and reports statistics about
+the number of different events/tasks and their durations. The report is
+similar to the starpu_paje_state_stats.in script, except that this one
+doesn't need R and pj_dump (from the pajeng repository), and it is also much
+faster.
+"""
 
 import getopt
 import os
 import sys
 
-class Event():
+class Event(object):
     def __init__(self, type, name, category, start_time):
         self._type = type
         self._name = name
         self._category = category
         self._start_time = start_time
 
-class EventStats():
+class EventStats(object):
     def __init__(self, name, duration_time, category, count = 1):
         self._name = name
         self._duration_time = duration_time
@@ -49,9 +49,10 @@ class EventStats():
 
     def show(self):
         if not self._name == None and not self._category == None:
-            print("\"" + self._name + "\"," + str(self._count) + ",\"" + self._category + "\"," + str(round(self._duration_time, 6)))
+            print("\"" + self._name + "\"," + str(self._count) + ",\"" +
+                  self._category + "\"," + str(round(self._duration_time, 6)))
 
-class Worker():
+class Worker(object):
     def __init__(self, id):
         self._id        = id
         self._events    = []
@@ -71,7 +72,8 @@ class Worker():
     def add_event_to_stats(self, curr_event):
         if curr_event._type == "PushState":
             self._stack.append(curr_event)
-            return # Will look later to find a PopState event.
+            # Will look later to find a PopState event.
+            return
         elif curr_event._type == "PopState":
             if len(self._stack) == 0:
                 print("warning: PopState without a PushState, probably a trace with start/stop profiling")
@@ -289,7 +291,7 @@ def main():
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hets:",
                                    ["help", "time", "efficiency", "seq_task_time="])
-    except getopt.GetoptError as err:
+    except getopt.GetoptError:
         usage()
         sys.exit(1)
 

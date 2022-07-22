@@ -1,7 +1,7 @@
 #!/bin/sh
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -49,9 +49,9 @@ options="--without-hwloc --enable-quick-check --enable-debug --enable-verbose --
 day=$(date +%u)
 if test $day -le 5
 then
-    ../configure --prefix=$prefix $options --disable-build-examples
+    ../configure --prefix=$prefix $options --disable-build-examples $STARPU_USER_CONFIGURE_OPTIONS
 else
-    ../configure --prefix=$prefix $options
+    ../configure --prefix=$prefix $options $STARPU_USER_CONFIGURE_OPTIONS
 fi
 
 make

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -170,9 +170,9 @@ static void free_problem(int rank)
 
 double start;
 double begin, end;
-double timing; 
+double timing;
 
-void f(unsigned task_per_worker[STARPU_NMAXWORKERS])
+void func(unsigned task_per_worker[STARPU_NMAXWORKERS])
 {
 	unsigned total = 0;
 	int worker;
@@ -238,7 +238,7 @@ int main(int argc, char **argv)
 	/*nbz is a global variable, this example doesn't support Master-Slave*/
 	conf.nmpi_ms = 0;
 	conf.ntcpip_ms = 0;
-	
+
 	ret = starpu_init(&conf);
 	if (ret == -ENODEV) return 77;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
@@ -327,13 +327,13 @@ int main(int argc, char **argv)
 
 	if (rank == 0)
 	{
-#if 1 
+#if 1
 		FPRINTF(stderr, "update:\n");
-		f(update_per_worker);
+		func(update_per_worker);
 		FPRINTF(stderr, "top:\n");
-		f(top_per_worker);
+		func(top_per_worker);
 		FPRINTF(stderr, "bottom:\n");
-		f(bottom_per_worker);
+		func(bottom_per_worker);
 #endif
 #if 1
 		unsigned nzblocks_per_process = (nbz + world_size - 1) / world_size;

@@ -67,7 +67,7 @@ int main(int argv, char **argc)
 {
 	int ret, i;
 	int v[SIZE];
-	int is_bubble = 1;
+	int is_bubble_p = 1;
 	int is_task = 0;
 
 	ret = starpu_init(NULL);
@@ -95,7 +95,7 @@ int main(int argv, char **argc)
 
 	ret = starpu_task_insert(&my_codelet,
 				 STARPU_RW, main_handle,
-				 STARPU_BUBBLE_FUNC_ARG, (void *)&is_bubble,
+				 STARPU_BUBBLE_FUNC_ARG, (void *)&is_bubble_p,
 				 STARPU_BUBBLE_GEN_DAG_FUNC_ARG, sub_handles_l1,
 				 STARPU_NAME, "B1", 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -108,7 +108,7 @@ int main(int argv, char **argc)
 
 	ret = starpu_task_insert(&my_codelet,
 				 STARPU_RW, main_handle,
-				 STARPU_BUBBLE_FUNC_ARG, (void *)&is_bubble,
+				 STARPU_BUBBLE_FUNC_ARG, (void *)&is_bubble_p,
 				 STARPU_BUBBLE_GEN_DAG_FUNC_ARG, sub_handles_l1,
 				 STARPU_NAME, "B2", 0);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");

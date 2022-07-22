@@ -47,10 +47,6 @@
 #include "starpu_mpi_nmad_unknown_datatype.h"
 
 void _starpu_mpi_handle_request_termination(struct _starpu_mpi_req *req);
-#if defined(STARPU_VERBOSE) || defined(STARPU_MPI_VERBOSE)
-char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type);
-#endif
-
 void _starpu_mpi_handle_pending_request(struct _starpu_mpi_req *req);
 static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem);
 
@@ -84,7 +80,8 @@ static starpu_sem_t callback_sem;
 
 void _starpu_mpi_req_willpost(struct _starpu_mpi_req *req STARPU_ATTRIBUTE_UNUSED)
 {
-	STARPU_ATTRIBUTE_UNUSED int new_nb = STARPU_ATOMIC_ADD( &nb_pending_requests, 1);
+	int new_nb = STARPU_ATOMIC_ADD( &nb_pending_requests, 1);
+	(void)new_nb;
 }
 
 /********************************************************/
@@ -320,21 +317,6 @@ int _starpu_mpi_wait_for_all(MPI_Comm comm)
 /*  Progression                                         */
 /*                                                      */
 /********************************************************/
-
-#if defined(STARPU_VERBOSE) || defined(STARPU_MPI_VERBOSE)
-char *_starpu_mpi_request_type(enum _starpu_mpi_request_type request_type)
-{
-	switch (request_type)
-	{
-		case SEND_REQ: return "SEND_REQ";
-		case RECV_REQ: return "RECV_REQ";
-		case WAIT_REQ: return "WAIT_REQ";
-		case TEST_REQ: return "TEST_REQ";
-		case BARRIER_REQ: return "BARRIER_REQ";
-		default: return "unknown request type";
-	}
-}
-#endif
 
 static inline void _starpu_mpi_request_end(struct _starpu_mpi_req* req, int post_callback_sem)
 {

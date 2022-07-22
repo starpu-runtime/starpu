@@ -244,12 +244,8 @@ LIST_TYPE(starpu_omp_task,
 	/* Driver porters: adding your driver here is very optional.  */
 	/** actual task function to be run */
 	void (*cpu_f)(void **starpu_buffers, void *starpu_cl_arg);
-#ifdef STARPU_USE_CUDA
 	void (*cuda_f)(void **starpu_buffers, void *starpu_cl_arg);
-#endif
-#ifdef STARPU_USE_OPENCL
 	void (*opencl_f)(void **starpu_buffers, void *starpu_cl_arg);
-#endif
 
 	enum starpu_omp_task_state state;
 	enum starpu_omp_task_flags flags;

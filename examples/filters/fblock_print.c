@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -51,24 +51,24 @@ void print_block_data(starpu_data_handle_t block_handle)
 
 void print_3dim_data(starpu_data_handle_t ndim_handle)
 {
-    int *arr3d = (int *)starpu_ndim_get_local_ptr(ndim_handle);
-    unsigned *nn = starpu_ndim_get_nn(ndim_handle);
-    unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
+	int *arr3d = (int *)starpu_ndim_get_local_ptr(ndim_handle);
+	unsigned *nn = starpu_ndim_get_nn(ndim_handle);
+	unsigned *ldn = starpu_ndim_get_local_ldn(ndim_handle);
 
-    print_block(arr3d, nn[0], nn[1], nn[2], ldn[1], ldn[2]);
+	print_block(arr3d, nn[0], nn[1], nn[2], ldn[1], ldn[2]);
 }
 
 void generate_block_data(int *block, int nx, int ny, int nz, unsigned ldy, unsigned ldz)
 {
-    int i, j, k, n = 0;
-    for(k=0 ; k<nz ; k++)
-    {
-        for(j=0 ; j<ny ; j++)
-        {
-            for(i=0 ; i<nx ; i++)
-            {
-                block[(k*ldz)+(j*ldy)+i] = n++;
-            }
-        }
-    }
+	int i, j, k, n = 0;
+	for(k=0 ; k<nz ; k++)
+	{
+		for(j=0 ; j<ny ; j++)
+		{
+			for(i=0 ; i<nx ; i++)
+			{
+				block[(k*ldz)+(j*ldy)+i] = n++;
+			}
+		}
+	}
 }

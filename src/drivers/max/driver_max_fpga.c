@@ -34,9 +34,10 @@ static size_t max_fpga_mem[STARPU_MAXMAXFPGADEVS];
 static max_engine_t *engines[STARPU_MAXMAXFPGADEVS];
 static fpga_mem current_address[STARPU_MAXMAXFPGADEVS];
 
-static unsigned max_fpga_init[STARPU_MAXMAXFPGADEVS];
-static unsigned max_fpga_memory_nodes[STARPU_MAXMAXFPGADEVS];
+static unsigned max_fpga_bindid_init[STARPU_MAXMAXFPGADEVS];
 static unsigned max_fpga_bindid[STARPU_MAXMAXFPGADEVS];
+static unsigned max_fpga_memory_init[STARPU_MAXMAXFPGADEVS];
+static unsigned max_fpga_memory_nodes[STARPU_MAXMAXFPGADEVS];
 
 static void _starpu_max_fpga_limit_max_fpga_mem(unsigned );
 static size_t _starpu_max_fpga_get_max_fpga_mem_size(unsigned devid);
@@ -59,7 +60,8 @@ max_engine_t *starpu_max_fpga_get_local_engine(void)
 /* This is called to initialize FPGA and discover devices */
 void _starpu_init_max_fpga()
 {
-	memset(&max_fpga_init, 0, sizeof(max_fpga_init));
+	memset(&max_fpga_bindid_init, 0, sizeof(max_fpga_bindid_init));
+	memset(&max_fpga_memory_init, 0, sizeof(max_fpga_memory_init));
 }
 
 static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_config *config)
@@ -126,7 +128,7 @@ void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 			size_t size;
 
 			size = max_count_engines_free(load->file, load->engine_id_pattern);
-			STARPU_ASSERT_MSG(size > 0, "cannot load starpu_max_load element %d on %s", (unsigned) (cur - load), load->engine_id_pattern);
+			STARPU_ASSERT_MSG(size > 0, "cannot load starpu_max_load element %u on %s", (unsigned) (cur - load), load->engine_id_pattern);
 			/* One FPGA more to be used */
 			n++;
 
@@ -190,34 +192,38 @@ void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, str
 	}
 }
 
-/* Bind the driver on a CPU core, set up memory and buses */
-int _starpu_max_fpga_init_workers_binding_and_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+/* Bind the driver on a CPU core */
+void _starpu_max_fpga_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
-	unsigned memory_node = -1;
-	/* Perhaps the worker has some "favourite" bindings  */
 	unsigned *preferred_binding = NULL;
 	unsigned npreferred = 0;
-	unsigned devid = workerarg->devid;
-	unsigned numa;
 
-	if (_starpu_may_bind_automatically[STARPU_MAX_FPGA_WORKER])
+	if (max_fpga_bindid_init[devid])
 	{
-		/* StarPU is allowed to bind threads automatically */
-#if 0
-/* No FPGA preference yet */
-		preferred_binding = _starpu_get_max_fpga_affinity_vector(devid);
-		npreferred = config->topology.nhwpus;
-#endif
-	}
-	if (max_fpga_init[devid])
-	{
-		memory_node = max_fpga_memory_nodes[devid];
 		workerarg->bindid = max_fpga_bindid[devid];
 	}
 	else
 	{
-		max_fpga_init[devid] = 1;
+		max_fpga_bindid_init[devid] = 1;
 		workerarg->bindid = max_fpga_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
+	}
+}
+
+/* Set up memory and buses */
+void _starpu_max_fpga_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	unsigned memory_node = -1;
+	/* Perhaps the worker has some "favourite" bindings  */
+	unsigned devid = workerarg->devid;
+	unsigned numa;
+
+	if (max_fpga_memory_init[devid])
+	{
+		memory_node = max_fpga_memory_nodes[devid];
+	}
+	else
+	{
+		max_fpga_memory_init[devid] = 1;
 
 		memory_node = max_fpga_memory_nodes[devid] = _starpu_memory_node_register(STARPU_MAX_FPGA_RAM, devid);
 		_starpu_register_bus(STARPU_MAIN_RAM, memory_node);
@@ -232,7 +238,7 @@ int _starpu_max_fpga_init_workers_binding_and_memory(struct _starpu_machine_conf
 
 	_starpu_worker_drives_memory_node(workerarg, memory_node);
 
-	return memory_node;
+	workerarg->memory_node = memory_node;
 }
 
 static void _starpu_max_fpga_limit_max_fpga_mem(unsigned devid)
@@ -296,12 +302,12 @@ static void init_device_context(unsigned devid)
 			/* FIXME: this assumes that the loads are in-order.
 			 * Ideally we'd detect which ones had an explicit load */
 			engines[devid] = max_load(load->file, s);
-			STARPU_ASSERT_MSG(engines[devid], "engine %d (part of *) could not be loaded\n", n);
+			STARPU_ASSERT_MSG(engines[devid], "engine %u (part of *) could not be loaded\n", n);
 		}
 		else
 		{
 			engines[n] = max_load(load->file, load->engine_id_pattern);
-			STARPU_ASSERT_MSG(engines[n], "engine %d could not be loaded\n", n);
+			STARPU_ASSERT_MSG(engines[n], "engine %u could not be loaded\n", n);
 		}
 	}
 }
@@ -361,7 +367,7 @@ static uintptr_t _starpu_max_fpga_allocate_memory(unsigned dst_node, size_t size
 	next_addr = current_address[devid] + size;
 	if (next_addr >= (fpga_mem) max_fpga_mem[devid])
 	{
-		printf("Memory overflow on %d\n", devid);
+		printf("Memory overflow on %u\n", devid);
 		return 0;
 	}
 	current_address[devid] = next_addr;
@@ -442,17 +448,17 @@ int _starpu_run_fpga(struct _starpu_worker *workerarg)
 
 int _starpu_max_fpga_copy_data_from_cpu_to_fpga(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t ssize, struct _starpu_async_channel *async_channel)
 {
-	return _starpu_max_fpga_copy_ram_to_max_fpga((void*) src + src_offset, (void*) dst + dst_offset, ssize);
+	return _starpu_max_fpga_copy_ram_to_max_fpga((char*) src + src_offset, (char*) dst + dst_offset, ssize);
 }
 
 int _starpu_max_fpga_copy_data_from_fpga_to_cpu(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t ssize, struct _starpu_async_channel *async_channel)
 {
-	return _starpu_max_fpga_copy_max_fpga_to_ram((void*) src + src_offset, (void*) dst + dst_offset, ssize);
+	return _starpu_max_fpga_copy_max_fpga_to_ram((char*) src + src_offset, (char*) dst + dst_offset, ssize);
 }
 
 int _starpu_max_fpga_copy_data_from_fpga_to_fpga(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t ssize, struct _starpu_async_channel *async_channel)
 {
-	return _starpu_max_fpga_copy_fpga_to_fpga((void*) src + src_offset, (void*) dst + dst_offset, ssize);
+	return _starpu_max_fpga_copy_fpga_to_fpga((char*) src + src_offset, (char*) dst + dst_offset, ssize);
 }
 
 int _starpu_max_fpga_copy_interface_from_fpga_to_cpu(starpu_data_handle_t handle, void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node, struct _starpu_data_request *req)

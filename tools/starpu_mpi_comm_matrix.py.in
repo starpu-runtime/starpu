@@ -3,7 +3,7 @@
 #
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2019-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2019-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,10 @@
 #
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
+
+"""
+Plot statistics produced when running an application with STARPU_MPI_STATS=1
+"""
 
 import sys
 import re
@@ -58,7 +62,7 @@ else:
 nodes=0
 file = open(outputfile, "r")
 for line in file.readlines():
-    match = re.search('\TOTAL', line)
+    match = re.search(r'\TOTAL', line)
     if match:
         (node,stuff)=line.split(sep="[")[2].split("]")
         if int(node) > nodes:
@@ -67,11 +71,11 @@ file.close()
 nodes=nodes+1
 
 # extract volume of comm and bandwidth between all pair of nodes
-volumes = [[0 for x in range(nodes)] for y in range(nodes)]
-bandwidth = [[0 for x in range(nodes)] for y in range(nodes)]
+volumes = [[0 for _ in range(nodes)] for _ in range(nodes)]
+bandwidth = [[0 for _ in range(nodes)] for _ in range(nodes)]
 file = open(outputfile, "r")
 for line in file.readlines():
-    match = re.search('\[starpu_comm_stats]', line)
+    match = re.search(r'\[starpu_comm_stats]', line)
     if match:
         match = re.search('TOTAL', line)
         if not match:
@@ -81,7 +85,7 @@ for line in file.readlines():
             bandwidth[int(src)][int(dst)] = float(bwB)
 file.close()
 
-def writeData(filename, nodes, data):
+def write_data(filename, nodes, data):
     ofile=open(filename, "w")
     for dst in range(nodes):
         for src in range(nodes):
@@ -89,7 +93,7 @@ def writeData(filename, nodes, data):
         ofile.write("\n")
     ofile.close()
 
-def generateGnuplotScript(filename, datafilename, outputfile, nodes):
+def generate_gnuplot_script(filename, datafilename, outputfile, nodes):
     ofile=open(filename, "w")
     srctics=""
     dsttics=""
@@ -106,11 +110,11 @@ def generateGnuplotScript(filename, datafilename, outputfile, nodes):
     ofile.close()
 
 # generate gnuplot volume data and script file
-writeData(outputfile+"_volume.data", nodes, volumes)
-generateGnuplotScript(outputfile+"_volume.gp", outputfile+"_volume.data", outputfile+"_volume_heatmap", nodes)
+write_data(outputfile+"_volume.data", nodes, volumes)
+generate_gnuplot_script(outputfile+"_volume.gp", outputfile+"_volume.data", outputfile+"_volume_heatmap", nodes)
 os.system("gnuplot " + outputfile+"_volume.gp")
 
 # generate gnuplot bandwidth data and script file
-writeData(outputfile+"_bw.data", nodes, bandwidth)
-generateGnuplotScript(outputfile+"_bw.gp", outputfile+"_bw.data", outputfile+"_bw_heatmap", nodes)
+write_data(outputfile+"_bw.data", nodes, bandwidth)
+generate_gnuplot_script(outputfile+"_bw.gp", outputfile+"_bw.data", outputfile+"_bw_heatmap", nodes)
 os.system("gnuplot " + outputfile+"_bw.gp")

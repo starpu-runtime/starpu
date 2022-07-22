@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -40,6 +40,9 @@ int main(int argc, char **argv)
 
 	parse_args(argc, argv, nodes);
 
+	if (checkpoint_enabled)
+		starpu_mpi_checkpoint_init();
+
 	if (check)
 	{
 		fprintf(stderr,"can't check in distributed mode\n");
@@ -53,6 +56,8 @@ int main(int argc, char **argv)
 	matrix_free(&bmat, rank, nodes, 0);
 
 	starpu_cublas_shutdown();
+	if (checkpoint_enabled)
+		starpu_mpi_checkpoint_shutdown();
 	starpu_mpi_shutdown();
 
 	if (rank == 0)

@@ -531,22 +531,19 @@ void _starpu_handle_job_termination(struct _starpu_job *j)
 			_starpu_spin_unlock(&handle->header_lock);
 	}
 
-	/* If this is a continuation, we do not notify task/tag dependencies
-	 * now. Task/tag dependencies will be notified only when the continued
-	 * task fully completes */
 	if (!continuation)
 	{
+		/* If this is a continuation, we do not notify task/tag dependencies
+		 * now. Task/tag dependencies will be notified only when the continued
+		 * task fully completes */
 		/* in case there are dependencies, wake up the proper tasks */
 		if (end_rdep)
 			starpu_task_end_dep_release(end_rdep);
 		_starpu_notify_dependencies(j);
-	}
 
-	/* If this is a continuation, we do not execute the callback
-	 * now. The callback will be executed only when the continued
-	 * task fully completes */
-	if (!continuation)
-	{
+		/* If this is a continuation, we do not execute the callback
+		 * now. The callback will be executed only when the continued
+		 * task fully completes */
 		/* the callback is executed after the dependencies so that we may remove the tag
 		 * of the task itself */
 		if (callback)

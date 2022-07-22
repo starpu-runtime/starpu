@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -125,7 +125,6 @@ static void free_matrices(void)
 static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag_t *tag, int mb, int nb)
 {
 	int b_row, b_col;
-	int owner;
 	for (b_row = 0; b_row < mb; b_row++)
 	{
 		for (b_col = 0; b_col < nb; b_col++)
@@ -204,8 +203,8 @@ static void cpu_mult(void *handles[], void *arg)
 
 	if (VERBOSE) printf("gemm_task\n");
 	STARPU_DGEMM("N", "N", n_row_C,n_col_C,n_col_A,
-		1.0, block_A, ld_A, block_B, ld_B,
-		1.0, block_C, ld_C);
+		     1.0, block_A, ld_A, block_B, ld_B,
+		     1.0, block_C, ld_C);
 }
 
 static void cpu_fill(void *handles[], void *arg)
@@ -215,7 +214,6 @@ static void cpu_fill(void *handles[], void *arg)
 
 	unsigned n_col_A = STARPU_MATRIX_GET_NX(handles[0]);
 	unsigned n_row_A = STARPU_MATRIX_GET_NY(handles[0]);
-	unsigned ld_A = STARPU_MATRIX_GET_LD(handles[0]);
 
 	unsigned i,j;
 	if (VERBOSE) printf("fill_task\n");
@@ -356,7 +354,7 @@ int main(int argc, char *argv[])
 		printf("comm_size = %d\n", comm_size);
 		printf("PxQ = %dx%d\n", P, Q);
         }
-  	int barrier_ret, trial;
+  	int trial;
      	double start, stop;
 	if (trace) starpu_fxt_start_profiling();
 	for (trial =0; trial < T; trial++)
@@ -365,7 +363,7 @@ int main(int argc, char *argv[])
 		register_matrices();
 
 	        init_matrices();
-	        barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);
+	        starpu_mpi_barrier(MPI_COMM_WORLD);
 		start = starpu_timing_now();
 
 		int b_row,b_col,b_aisle;
@@ -388,7 +386,7 @@ int main(int argc, char *argv[])
 		}
 
 		starpu_mpi_wait_for_all(MPI_COMM_WORLD);
-	        barrier_ret = starpu_mpi_barrier(MPI_COMM_WORLD);
+	        starpu_mpi_barrier(MPI_COMM_WORLD);
 		stop = starpu_timing_now();
 		double timing = stop - start;
 		if (comm_rank==0) printf("RANK %d -> took %f s | %f Gflop/s\n", comm_rank, timing/1000/1000, 2.0*M*N*K/(timing*1000));

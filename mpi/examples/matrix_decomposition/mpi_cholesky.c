@@ -38,9 +38,6 @@ int main(int argc, char **argv)
 	starpu_mpi_comm_size(MPI_COMM_WORLD, &nodes);
 	starpu_cublas_init();
 
-	if (checkpoint_enabled)
-		starpu_mpi_checkpoint_init();
-
 	if (starpu_cpu_worker_get_count() + starpu_cuda_worker_get_count() == 0)
 	{
 		if (rank == 0)
@@ -52,6 +49,9 @@ int main(int argc, char **argv)
 	}
 
 	parse_args(argc, argv, nodes);
+
+	if (checkpoint_enabled)
+		starpu_mpi_checkpoint_init();
 
 	matrix_init(&bmat, rank, nodes, 1);
 	matrix_display(bmat, rank, nodes);

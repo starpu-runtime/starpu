@@ -1,6 +1,6 @@
 C StarPU --- Runtime system for heterogeneous multicore architectures.
 C
-C Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+C Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 C
 C StarPU is free software; you can redistribute it and/or modify
 C it under the terms of the GNU Lesser General Public License as published by
@@ -14,8 +14,8 @@ C
 C See the GNU Lesser General Public License in COPYING.LGPL for more details.
 C
 
-#include "StarPU_fortran.h"
-      
+#include "starpu_fortran.h"
+
       SUBROUTINE HELLOSUB(X)
           INTEGER :: X
           WRITE(*,*) 'X =', X

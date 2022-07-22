@@ -74,7 +74,8 @@ static struct _starpu_driver_info driver_info =
 	.driver_ops = &_starpu_driver_cpu_ops,
 	.run_worker = _starpu_cpu_worker,
 #endif
-	.init_workers_binding_and_memory = _starpu_cpu_init_workers_binding_and_memory,
+	.init_worker_binding = _starpu_cpu_init_worker_binding,
+	.init_worker_memory = _starpu_cpu_init_worker_memory,
 };
 
 static struct _starpu_memory_driver_info memory_driver_info =
@@ -105,7 +106,6 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 
 	if (ncpu != 0)
 	{
-		unsigned j STARPU_ATTRIBUTE_UNUSED;
 		STARPU_ASSERT_MSG(ncpu >= -1, "ncpus can not be negative and different from -1 (is is %d)", ncpu);
 
 		long avail_cpus = (long) topology->nhwworker[STARPU_CPU_WORKER][0] - (long) already_busy_cpus;
@@ -141,14 +141,21 @@ void _starpu_init_cpu_config(struct _starpu_machine_topology *topology, struct _
 	unsigned homogeneous = starpu_get_env_number_default("STARPU_PERF_MODEL_HOMOGENEOUS_CPU", 1);
 
 	_starpu_topology_configure_workers(topology, config,
-			STARPU_CPU_WORKER,
-			0, 0, homogeneous, 1,
-			ncpu, 1, NULL, NULL);
+					   STARPU_CPU_WORKER,
+					   0, 0, homogeneous, 1,
+					   ncpu, 1, NULL, NULL);
 }
 #endif
 
-/* Bind the driver on a CPU core, set up memory and buses */
-int _starpu_cpu_init_workers_binding_and_memory(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+/* Bind the driver on a CPU core */
+void _starpu_cpu_init_worker_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
+{
+	/* Dedicate a cpu core to that worker */
+	workerarg->bindid = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, NULL, 0);;
+}
+
+/* Set up memory and buses */
+void _starpu_cpu_init_worker_memory(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
 	unsigned memory_node = -1;
 	int numa_logical_id = _starpu_get_logical_numa_node_worker(workerarg->workerid);
@@ -168,7 +175,7 @@ int _starpu_cpu_init_workers_binding_and_memory(struct _starpu_machine_config *c
 
 	_starpu_worker_drives_memory_node(workerarg, numa_starpu_id);
 
-	return memory_node;
+	workerarg->memory_node = memory_node;
 }
 
 #ifdef STARPU_USE_CPU

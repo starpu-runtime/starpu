@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -62,6 +62,7 @@ void cpu_task(void* descr[], void* args)
 	int current_worker = starpu_worker_get_id();
 	uint64_t j;
 	uint64_t k;
+	int ret;
 
 	starpu_codelet_unpack_args(args, &mpi_rank, &asked_worker, &s, &handle_send, &handle_recv);
 
@@ -74,13 +75,17 @@ void cpu_task(void* descr[], void* args)
 	{
 		if (mpi_rank == 0)
 		{
-			starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
-			starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			ret = starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+			ret = starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 		}
 		else
 		{
-			starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
+			ret = starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+			ret = starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		}
 	}
 
@@ -89,16 +94,20 @@ void cpu_task(void* descr[], void* args)
 		if (mpi_rank == 0)
 		{
 			t1 = starpu_timing_now();
-			starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
-			starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			ret = starpu_mpi_send(handle_send, 1, 0, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
+			ret = starpu_mpi_recv(handle_recv, 1, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
 			t2 = starpu_timing_now();
 
 			lats[j] =  (t2 - t1) / 2;
 		}
 		else
 		{
-			starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
+			ret = starpu_mpi_recv(handle_recv, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_recv");
+			ret = starpu_mpi_send(handle_send, 0, 1, MPI_COMM_WORLD);
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_mpi_send");
 		}
 	}
 

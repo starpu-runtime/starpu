@@ -109,6 +109,9 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config);
 /** returns the number of NUMA nodes */
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config);
 
+/** given a list of numa nodes (logical indexes) \p numa_binding, fill \p binding with the corresponding cores (logical indexes) */
+unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *config, const unsigned *numa_binding, unsigned nnuma, unsigned *binding, unsigned nbinding);
+
 int starpu_memory_nodes_numa_hwloclogid_to_id(int logid);
 
 /* This returns the exact NUMA node next to a worker */

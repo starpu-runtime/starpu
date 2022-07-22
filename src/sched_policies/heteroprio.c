@@ -847,13 +847,13 @@ void starpu_heteroprio_print_wgroups(FILE *stream, unsigned sched_ctx_id)
 	struct _starpu_heteroprio_data *hp = (struct _starpu_heteroprio_data *) starpu_sched_ctx_get_policy_data(sched_ctx_id);
 	STARPU_ASSERT_MSG(hp->use_locality == 1, "starpu_heteroprio_print_wgroups has been called without enabling LA mode\n");
 
-	fprintf(stream, "[STARPU-LAHETEROPRIO] There are %d groups\n", hp->nb_wgroups);
+	fprintf(stream, "[STARPU-LAHETEROPRIO] There are %u groups\n", hp->nb_wgroups);
 	char dest_name[512];
 	unsigned worker_id;
 	for (worker_id = 0; worker_id < starpu_worker_get_count(); ++worker_id)
 	{
 		starpu_worker_get_name(worker_id, dest_name, 512);
-		fprintf(stream, "[STARPU-LAHETEROPRIO] Worker %d => group %d (%s)\n", worker_id, hp->workers_laheteroprio_wgroup_index[worker_id], dest_name);
+		fprintf(stream, "[STARPU-LAHETEROPRIO] Worker %u => group %u (%s)\n", worker_id, hp->workers_laheteroprio_wgroup_index[worker_id], dest_name);
 	}
 	fprintf(stream, "\n");
 	unsigned idx_wgroup;
@@ -873,12 +873,12 @@ void starpu_heteroprio_print_wgroups(FILE *stream, unsigned sched_ctx_id)
 			const unsigned current_prio = wgroup_access_order[idx_access_item].prio_idx;
 			access_order[current_wgroupid][current_prio] = idx_access_item;
 		}
-		fprintf(stream, "[STARPU-LAHETEROPRIO] Access order for wgroup %d (of arch type %d):\n", idx_wgroup, wgroup_arch);
+		fprintf(stream, "[STARPU-LAHETEROPRIO] Access order for wgroup %u (of arch type %u):\n", idx_wgroup, wgroup_arch);
 		unsigned idx_prio;
 		for (idx_prio = nb_prios; idx_prio > 0; --idx_prio)
 		{
 			const unsigned current_bucket = hp->prio_mapping_per_arch_index[wgroup_arch][idx_prio - 1];
-			fprintf(stream, "[STARPU-LAHETEROPRIO]     Prio %3d (Bucket %3d) => ", idx_prio - 1, current_bucket);
+			fprintf(stream, "[STARPU-LAHETEROPRIO]     Prio %3u (Bucket %3u) => ", idx_prio - 1, current_bucket);
 			unsigned idx_wgroup_prio;
 			for (idx_wgroup_prio = 0; idx_wgroup_prio < nb_wgroups; ++idx_wgroup_prio)
 			{
@@ -1201,7 +1201,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 		}
 
 		// Read general codelet data
-		if(fscanf(autoheteroprio_file, "%lf %d %d %lf %d %d %lf %d %lf %d",
+		if(fscanf(autoheteroprio_file, "%lf %u %u %lf %u %u %lf %u %lf %u",
 			&hp->prio_average_NOD[prio], &hp->prio_average_NOD_count[prio],
 			&hp->prio_average_URT_count[prio],
 			&hp->prio_overall_proportion[prio], &hp->prio_overall_proportion_count[prio],
@@ -1220,7 +1220,7 @@ static void starpu_autoheteroprio_fetch_task_data(struct _starpu_heteroprio_data
 		{
 			if(codelet_archs[arch_ind] && archs[arch_ind] < STARPU_NB_TYPES)
 			{
-				if(fscanf(autoheteroprio_file, "%lf %lf %d %lf\n",
+				if(fscanf(autoheteroprio_file, "%lf %lf %u %lf\n",
 					&hp->prio_average_URT[archs[arch_ind]][prio],
 					&hp->prio_average_time_arch[archs[arch_ind]][prio], &hp->prio_average_time_arch_count[archs[arch_ind]][prio],
 					&hp->prio_arch_proportion[archs[arch_ind]][prio]
@@ -1363,7 +1363,7 @@ static void starpu_autoheteroprio_save_task_data(struct _starpu_heteroprio_data 
 		fprintf(autoheteroprio_file, "\n");
 
 		// Non specific codelet data
-		fprintf(autoheteroprio_file, "%lf %d %d %lf %d %d %lf %d %lf %d\n",
+		fprintf(autoheteroprio_file, "%lf %u %u %lf %u %u %lf %u %lf %u\n",
 			hp->prio_average_NOD[prio], hp->prio_average_NOD_count[prio],
 			hp->prio_average_URT_count[prio],
 			hp->prio_overall_proportion[prio], hp->prio_overall_proportion_count[prio],
@@ -1376,7 +1376,7 @@ static void starpu_autoheteroprio_save_task_data(struct _starpu_heteroprio_data 
 		{
 			if(codelet_archs[arch_ind])
 			{
-				fprintf(autoheteroprio_file, "%lf %lf %d %lf\n",
+				fprintf(autoheteroprio_file, "%lf %lf %u %lf\n",
 					hp->prio_average_URT[arch_ind][prio],
 					hp->prio_average_time_arch[arch_ind][prio], hp->prio_average_time_arch_count[arch_ind][prio],
 					hp->prio_arch_proportion[arch_ind][prio]);
@@ -2542,11 +2542,11 @@ static void order_priorities(struct _starpu_heteroprio_data *hp)
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_6)
 				{
-					prio_arch[a][prio].score = (1.0f + URT)*log(1.0f + exp(archDiff));
+					prio_arch[a][prio].score = (1.0f + URT)*log1p(exp(archDiff));
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_7)
 				{
-					prio_arch[a][prio].score = rpg(URT)*(1+URT)*(1+archDiff)+(1-rpg(URT))*(-log(1+exp(-archDiff)));
+					prio_arch[a][prio].score = rpg(URT)*(1+URT)*(1+archDiff)+(1-rpg(URT))*(-log1p(exp(-archDiff)));
 				}
 				else if(hp->autoheteroprio_priority_ordering_policy == STARPU_HETEROPRIO_URT_DOT_DIFF_8)
 				{
