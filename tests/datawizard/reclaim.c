@@ -66,6 +66,10 @@ void dummy_func(void *descr[], void *_args)
 }
 
 static unsigned int i = 0;
+void func(void *arg)
+{
+       printf("%u\n", ++i);
+}
 
 static struct starpu_codelet dummy_cl =
 {
@@ -146,7 +150,7 @@ int main(int argc, char **argv)
 		task->handles[0] = handle_array[taskid%mb];
 		task->handles[1] = handle_array[(taskid+1)%mb];
 		task->handles[2] = handle_array[(taskid+2)%mb];
-		task->callback_func = f;
+		task->callback_func = func;
 		task->callback_arg = NULL;
 
 		ret = starpu_task_submit(task);
