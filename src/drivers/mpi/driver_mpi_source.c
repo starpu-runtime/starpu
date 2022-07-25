@@ -57,13 +57,13 @@ static void __starpu_init_mpi_config(struct _starpu_machine_topology *topology,
 	STARPU_ASSERT(mpi_idx < STARPU_NMAXDEVS);
 	topology->nhwworker[STARPU_MPI_MS_WORKER][mpi_idx] = nhwcores;
 
-        int nmpicores;
-        nmpicores = starpu_get_env_number("STARPU_NMPIMSTHREADS");
+	int nmpicores;
+	nmpicores = starpu_get_env_number("STARPU_NMPIMSTHREADS");
 
 	_starpu_topology_check_ndevices(&nmpicores, nhwcores, 0, INT_MAX, "STARPU_NMPIMSTHREADS", "MPI cores", "");
 
-        mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
-        mpi_worker_set[mpi_idx].nworkers = nmpicores;
+	mpi_worker_set[mpi_idx].workers = &config->workers[topology->nworkers];
+	mpi_worker_set[mpi_idx].nworkers = nmpicores;
 	_starpu_src_nodes[STARPU_MPI_MS_WORKER][mpi_idx]->baseworkerid = topology->nworkers;
 
 	_starpu_topology_configure_workers(topology, config,
@@ -211,9 +211,9 @@ void _starpu_mpi_init_worker_memory(struct _starpu_machine_config *config, int n
 
 static void _starpu_deinit_mpi_node(int devid)
 {
-        _starpu_mp_common_send_command(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
+	_starpu_mp_common_send_command(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
 
-        _starpu_mp_common_node_destroy(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid]);
+	_starpu_mp_common_node_destroy(_starpu_src_nodes[STARPU_MPI_MS_WORKER][devid]);
 }
 
 
@@ -229,8 +229,8 @@ void _starpu_deinit_mpi_config(struct _starpu_machine_config *config)
 
 void _starpu_mpi_source_init(struct _starpu_mp_node *node)
 {
-        _starpu_mpi_common_mp_initialize_src_sink(node);
-        //TODO
+	_starpu_mpi_common_mp_initialize_src_sink(node);
+	//TODO
 }
 
 
@@ -241,93 +241,93 @@ void _starpu_mpi_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNU
 
 unsigned _starpu_mpi_src_get_device_count()
 {
-        int nb_mpi_devices;
+	int nb_mpi_devices;
 
-        if (!_starpu_mpi_common_is_mp_initialized())
-                return 0;
+	if (!_starpu_mpi_common_is_mp_initialized())
+		return 0;
 
-        MPI_Comm_size(MPI_COMM_WORLD, &nb_mpi_devices);
+	MPI_Comm_size(MPI_COMM_WORLD, &nb_mpi_devices);
 
-        //Remove one for master
-        nb_mpi_devices = nb_mpi_devices - 1;
+	//Remove one for master
+	nb_mpi_devices = nb_mpi_devices - 1;
 
-        return nb_mpi_devices;
+	return nb_mpi_devices;
 }
 
 void *_starpu_mpi_src_worker(void *arg)
 {
-        struct _starpu_worker *worker0 = arg;
-        struct _starpu_worker_set *set = worker0->set;
-        struct _starpu_worker_set *worker_set_mpi = set;
+	struct _starpu_worker *worker0 = arg;
+	struct _starpu_worker_set *set = worker0->set;
+	struct _starpu_worker_set *worker_set_mpi = set;
 	int nbsinknodes = _starpu_mpi_common_multiple_thread ? 1 : _starpu_mpi_src_get_device_count();
 
-        int workersetnum;
-        for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
-        {
-                struct _starpu_worker_set * worker_set = &worker_set_mpi[workersetnum];
+	int workersetnum;
+	for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
+	{
+		struct _starpu_worker_set * worker_set = &worker_set_mpi[workersetnum];
 
-                /* As all workers of a set share common data, we just use the first
+		/* As all workers of a set share common data, we just use the first
 		 * one for intializing the following stuffs. */
-                struct _starpu_worker *baseworker = &worker_set->workers[0];
-                struct _starpu_machine_config *config = baseworker->config;
-                unsigned baseworkerid = baseworker - config->workers;
-                unsigned devid = baseworker->devid;
-                unsigned i;
+		struct _starpu_worker *baseworker = &worker_set->workers[0];
+		struct _starpu_machine_config *config = baseworker->config;
+		unsigned baseworkerid = baseworker - config->workers;
+		unsigned devid = baseworker->devid;
+		unsigned i;
 
-                /* unsigned memnode = baseworker->memory_node; */
+		/* unsigned memnode = baseworker->memory_node; */
 
-                _starpu_driver_start(baseworker, STARPU_CPU_WORKER, 0);
+		_starpu_driver_start(baseworker, STARPU_CPU_WORKER, 0);
 
 #ifdef STARPU_USE_FXT
-                for (i = 1; i < worker_set->nworkers; i++)
-                        _starpu_worker_start(&worker_set->workers[i], STARPU_MPI_MS_WORKER, 0);
+		for (i = 1; i < worker_set->nworkers; i++)
+			_starpu_worker_start(&worker_set->workers[i], STARPU_MPI_MS_WORKER, 0);
 #endif
 
-                // Current task for a thread managing a worker set has no sense.
-                _starpu_set_current_task(NULL);
+		// Current task for a thread managing a worker set has no sense.
+		_starpu_set_current_task(NULL);
 
-                for (i = 0; i < config->topology.nworker[STARPU_MPI_MS_WORKER][devid]; i++)
-                {
-                        struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-                        snprintf(worker->name, sizeof(worker->name), "MPI_MS %u core %u", devid, i);
-                        snprintf(worker->short_name, sizeof(worker->short_name), "MPI_MS %u.%u", devid, i);
-                }
+		for (i = 0; i < config->topology.nworker[STARPU_MPI_MS_WORKER][devid]; i++)
+		{
+			struct _starpu_worker *worker = &config->workers[baseworkerid+i];
+			snprintf(worker->name, sizeof(worker->name), "MPI_MS %u core %u", devid, i);
+			snprintf(worker->short_name, sizeof(worker->short_name), "MPI_MS %u.%u", devid, i);
+		}
 
-                {
-                        char thread_name[16];
+		{
+			char thread_name[16];
 			if (_starpu_mpi_common_multiple_thread)
 				snprintf(thread_name, sizeof(thread_name), "MPI_MS %u", devid);
 			else
 				snprintf(thread_name, sizeof(thread_name), "MPI_MS");
-                        starpu_pthread_setname(thread_name);
-                }
+			starpu_pthread_setname(thread_name);
+		}
 
-                for (i = 0; i < worker_set->nworkers; i++)
-                {
-                        struct _starpu_worker *worker = &worker_set->workers[i];
-                        _STARPU_TRACE_WORKER_INIT_END(worker->workerid);
-                }
+		for (i = 0; i < worker_set->nworkers; i++)
+		{
+			struct _starpu_worker *worker = &worker_set->workers[i];
+			_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
+		}
 
-                _starpu_src_common_init_switch_env(workersetnum);
-        }  /* for */
+		_starpu_src_common_init_switch_env(workersetnum);
+	}  /* for */
 
-        /* set the worker zero for the main thread */
-        for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
-        {
-                struct _starpu_worker_set * worker_set = &worker_set_mpi[workersetnum];
-                struct _starpu_worker *baseworker = &worker_set->workers[0];
+	/* set the worker zero for the main thread */
+	for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
+	{
+		struct _starpu_worker_set * worker_set = &worker_set_mpi[workersetnum];
+		struct _starpu_worker *baseworker = &worker_set->workers[0];
 
-                /* tell the main thread that this one is ready */
-                STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-                baseworker->status = STATUS_UNKNOWN;
-                worker_set->set_is_initialized = 1;
-                STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
-                STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-        }
+		/* tell the main thread that this one is ready */
+		STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+		baseworker->status = STATUS_UNKNOWN;
+		worker_set->set_is_initialized = 1;
+		STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+	}
 
-        _starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, &_starpu_src_nodes[STARPU_MPI_MS_WORKER][worker_set_mpi->workers[0].devid]);
+	_starpu_src_common_workers_set(worker_set_mpi, nbsinknodes, &_starpu_src_nodes[STARPU_MPI_MS_WORKER][worker_set_mpi->workers[0].devid]);
 
-        return NULL;
+	return NULL;
 }
 
 int _starpu_mpi_is_direct_access_supported(unsigned node, unsigned handling_node)

@@ -1,11 +1,11 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2010       Mehdi Juhoor
- * Copyright (C) 2011       Télécom-SudParis
- * Copyright (C) 2013       Thibaut Lambert
- * Copyright (C) 2016       Uppsala University
- * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2010	    Mehdi Juhoor
+ * Copyright (C) 2011	    Télécom-SudParis
+ * Copyright (C) 2013	    Thibaut Lambert
+ * Copyright (C) 2016	    Uppsala University
+ * Copyright (C) 2021	    Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -195,7 +195,7 @@ static void _starpu_initialize_workers_hip_gpuid(struct _starpu_machine_config *
 	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = &config->conf;
 
-        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_hip_gpuid == 0
+	_starpu_initialize_workers_deviceid(uconf->use_explicit_workers_hip_gpuid == 0
 					    ? NULL
 					    : (int *)uconf->workers_hip_gpuid,
 					    &(config->current_devid[STARPU_HIP_WORKER]),
@@ -216,7 +216,7 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 	if (nhip != 0)
 	{
 		/* The user did not disable HIP. We need to initialize HIP
- 		 * early to count the number of devices */
+		 * early to count the number of devices */
 		_starpu_init_hip();
 		int nb_devices = _starpu_get_hip_device_count();
 
@@ -245,7 +245,7 @@ void _starpu_init_hip_config(struct _starpu_machine_topology *topology, struct _
 						   hipgpu, devid, 0, 0,
 						   1, 1, NULL, NULL);
 		_starpu_devices_gpu_set_used(devid);
-        }
+	}
 }
 
 /* Bind the driver on a CPU core */
@@ -643,16 +643,16 @@ int starpu_hip_copy_async_sync(void *src_ptr, unsigned src_node,
 		else
 #endif
 		{
-	                hipres = hipMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
+			hipres = hipMemcpy((char *)dst_ptr, (char *)src_ptr, ssize, kind);
 		}
-	        (void) hipGetLastError();
+		(void) hipGetLastError();
 
-                if (!hipres)
-                        hipres = hipDeviceSynchronize();
-                if (STARPU_UNLIKELY(hipres))
-                        STARPU_HIP_REPORT_ERROR(hipres);
+		if (!hipres)
+			hipres = hipDeviceSynchronize();
+		if (STARPU_UNLIKELY(hipres))
+			STARPU_HIP_REPORT_ERROR(hipres);
 
-	        return 0;
+		return 0;
 	}
 
 	return -EAGAIN;
@@ -678,27 +678,27 @@ int starpu_hip_copy2d_async_sync(void *src_ptr, unsigned src_node,
 #endif
 	}
 
-        if (stream)
-        {
-                double start;
-                starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
-                hipres = hipMemcpy2DAsync((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
+	if (stream)
+	{
+		double start;
+		starpu_interface_start_driver_copy_async(src_node, dst_node, &start);
+		hipres = hipMemcpy2DAsync((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
 					 blocksize, numblocks, kind, stream);
-                starpu_interface_end_driver_copy_async(src_node, dst_node, start);
-        }
+		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
+	}
 
-        /* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
-        if (stream == NULL || hipres)
-        {
-                hipres = hipMemcpy2D((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
+	/* Test if the asynchronous copy has failed or if the caller only asked for a synchronous copy */
+	if (stream == NULL || hipres)
+	{
+		hipres = hipMemcpy2D((char *)dst_ptr, ld_dst, (char *)src_ptr, ld_src,
 				    blocksize, numblocks, kind);
-                if (!hipres)
-                        hipres = hipDeviceSynchronize();
-                if (STARPU_UNLIKELY(hipres))
-                        STARPU_HIP_REPORT_ERROR(hipres);
+		if (!hipres)
+			hipres = hipDeviceSynchronize();
+		if (STARPU_UNLIKELY(hipres))
+			STARPU_HIP_REPORT_ERROR(hipres);
 
-                return 0;
-        }
+		return 0;
+	}
 
 	return -EAGAIN;
 }
@@ -1266,7 +1266,7 @@ int _starpu_hip_driver_is_devid(struct starpu_driver *driver, struct _starpu_wor
 
 struct _starpu_driver_ops _starpu_driver_hip_ops =
 {
- 	.init = _starpu_hip_driver_init,
+	.init = _starpu_hip_driver_init,
 	.run = _starpu_hip_run_from_worker,
 	.run_once = _starpu_hip_driver_run_once,
 	.deinit = _starpu_hip_driver_deinit,

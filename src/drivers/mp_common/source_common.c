@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2013       Thibaut Lambert
- * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
+ * Copyright (C) 2013	    Thibaut Lambert
+ * Copyright (C) 2021	    Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,14 +16,12 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #include <string.h>
 #include <starpu.h>
 #include <core/task.h>
 #include <core/sched_policy.h>
 
 #include <drivers/driver_common/driver_common.h>
-
 
 #include <datawizard/coherency.h>
 #include <datawizard/memory_nodes.h>
@@ -34,12 +32,12 @@
 
 struct starpu_save_thread_env
 {
-        struct starpu_task * current_task;
-        struct _starpu_worker * current_worker;
-        struct _starpu_worker_set * current_worker_set;
+	struct starpu_task * current_task;
+	struct _starpu_worker * current_worker;
+	struct _starpu_worker_set * current_worker_set;
 #ifdef STARPU_OPENMP
-        struct starpu_omp_thread * current_omp_thread;
-        struct starpu_omp_task * current_omp_task;
+	struct starpu_omp_thread * current_omp_thread;
+	struct starpu_omp_task * current_omp_task;
 #endif
 };
 
@@ -137,9 +135,9 @@ static int _starpu_src_common_process_completed_job(struct _starpu_mp_node *node
 	else
 		task->cl_ret = NULL;
 
-        /* if arg is not copied we release the mutex */
-        if (!stored)
-                STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
+	/* if arg is not copied we release the mutex */
+	if (!stored)
+		STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 
 	_starpu_set_local_worker_key(worker);
 	_starpu_src_common_finalize_job (j, worker);
@@ -158,9 +156,9 @@ static void _starpu_src_common_pre_exec(struct _starpu_mp_node *node, void * arg
 	cb_workerid = *(int *) arg;
 	struct _starpu_combined_worker *combined_worker = _starpu_get_combined_worker_struct(cb_workerid);
 
-        /* if arg is not copied we release the mutex */
-        if (!stored)
-                STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
+	/* if arg is not copied we release the mutex */
+	if (!stored)
+		STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
 
 	for(i=0; i < combined_worker->worker_size; i++)
 	{
@@ -176,27 +174,27 @@ static void _starpu_src_common_pre_exec(struct _starpu_mp_node *node, void * arg
  */
 static int _starpu_src_common_handle_async(struct _starpu_mp_node *node, void * arg, int arg_size, enum _starpu_mp_command answer, int stored)
 {
-        struct _starpu_worker_set * worker_set = NULL;
-        switch(answer)
-        {
-                case STARPU_MP_COMMAND_NOTIF_EXECUTION_COMPLETED:
+	struct _starpu_worker_set * worker_set = NULL;
+	switch(answer)
+	{
+		case STARPU_MP_COMMAND_NOTIF_EXECUTION_COMPLETED:
 		{
-                        worker_set = _starpu_get_worker_struct(starpu_worker_get_id())->set;
-                        _starpu_src_common_process_completed_job(node, worker_set, arg, arg_size, stored);
-                        break;
+			worker_set = _starpu_get_worker_struct(starpu_worker_get_id())->set;
+			_starpu_src_common_process_completed_job(node, worker_set, arg, arg_size, stored);
+			break;
 		}
-                case STARPU_MP_COMMAND_NOTIF_EXECUTION_DETACHED_COMPLETED:
+		case STARPU_MP_COMMAND_NOTIF_EXECUTION_DETACHED_COMPLETED:
 		{
 			_STARPU_ERROR("Detached execution completed should not arrive here... \n");
-                        break;
+			break;
 		}
-                case STARPU_MP_COMMAND_NOTIF_PRE_EXECUTION:
+		case STARPU_MP_COMMAND_NOTIF_PRE_EXECUTION:
 		{
-                        _starpu_src_common_pre_exec(node, arg,arg_size, stored);
-                        break;
+			_starpu_src_common_pre_exec(node, arg,arg_size, stored);
+			break;
 		}
-                case STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED:
-                case STARPU_MP_COMMAND_NOTIF_RECV_FROM_SINK_ASYNC_COMPLETED:
+		case STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED:
+		case STARPU_MP_COMMAND_NOTIF_RECV_FROM_SINK_ASYNC_COMPLETED:
 		{
 			struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
 			event->starpu_mp_common_finished_receiver--;
@@ -204,8 +202,8 @@ static int _starpu_src_common_handle_async(struct _starpu_mp_node *node, void * 
 				STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 			break;
 		}
-                case STARPU_MP_COMMAND_NOTIF_SEND_TO_HOST_ASYNC_COMPLETED:
-                case STARPU_MP_COMMAND_NOTIF_SEND_TO_SINK_ASYNC_COMPLETED:
+		case STARPU_MP_COMMAND_NOTIF_SEND_TO_HOST_ASYNC_COMPLETED:
+		case STARPU_MP_COMMAND_NOTIF_SEND_TO_SINK_ASYNC_COMPLETED:
 		{
 			struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
 			event->starpu_mp_common_finished_sender--;
@@ -214,10 +212,10 @@ static int _starpu_src_common_handle_async(struct _starpu_mp_node *node, void * 
 			break;
 		}
 		default:
-                        return 0;
-                        break;
-        }
-        return 1;
+			return 0;
+			break;
+	}
+	return 1;
 }
 
 /* Handle all message which have been stored in the message_queue */
@@ -230,15 +228,15 @@ static void _starpu_src_common_handle_stored_async(struct _starpu_mp_node *node)
 	{
 		/* We pop a message and handle it */
 		struct mp_message * message = mp_message_list_pop_back(&node->message_queue);
-                /* Release mutex during handle */
+		/* Release mutex during handle */
 		stopped_progress = 1;
 		_STARPU_TRACE_END_PROGRESS(mp_node_memory_node(node));
-                STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 		_starpu_src_common_handle_async(node, message->buffer, message->size, message->type, 1);
 		free(message->buffer);
 		mp_message_delete(message);
-                /* Take it again */
-                STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
+		/* Take it again */
+		STARPU_PTHREAD_MUTEX_LOCK(&node->message_queue_mutex);
 	}
 	STARPU_PTHREAD_MUTEX_UNLOCK(&node->message_queue_mutex);
 	if (stopped_progress)
@@ -273,22 +271,22 @@ int _starpu_src_common_store_message(struct _starpu_mp_node *node, void * arg, i
 			return 1;
 		}
 		/* For ASYNC commands don't store them, update event */
-                case STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED:
-                case STARPU_MP_COMMAND_NOTIF_RECV_FROM_SINK_ASYNC_COMPLETED:
+		case STARPU_MP_COMMAND_NOTIF_RECV_FROM_HOST_ASYNC_COMPLETED:
+		case STARPU_MP_COMMAND_NOTIF_RECV_FROM_SINK_ASYNC_COMPLETED:
 		{
-                                struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
-                                event->starpu_mp_common_finished_receiver--;
-                                return 1;
+				struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
+				event->starpu_mp_common_finished_receiver--;
+				return 1;
 		}
-                case STARPU_MP_COMMAND_NOTIF_SEND_TO_HOST_ASYNC_COMPLETED:
-                case STARPU_MP_COMMAND_NOTIF_SEND_TO_SINK_ASYNC_COMPLETED:
+		case STARPU_MP_COMMAND_NOTIF_SEND_TO_HOST_ASYNC_COMPLETED:
+		case STARPU_MP_COMMAND_NOTIF_SEND_TO_SINK_ASYNC_COMPLETED:
 		{
-                                struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
-                                event->starpu_mp_common_finished_sender--;
-                                return 1;
+				struct _starpu_async_channel * event = *((struct _starpu_async_channel **) arg);
+				event->starpu_mp_common_finished_sender--;
+				return 1;
 		}
-                default:
-                        return 0;
+		default:
+			return 0;
 	}
 }
 
@@ -320,7 +318,7 @@ static void _starpu_src_common_recv_async(struct _starpu_mp_node * node)
 }
 
 /* Handle all asynchrone message while a completed execution message from a specific worker has been receive */
- enum _starpu_mp_command _starpu_src_common_wait_completed_execution(struct _starpu_mp_node *node, int devid, void **arg, int * arg_size)
+enum _starpu_mp_command _starpu_src_common_wait_completed_execution(struct _starpu_mp_node *node, int devid, void **arg, int * arg_size)
 {
 	enum _starpu_mp_command answer;
 
@@ -338,13 +336,13 @@ static void _starpu_src_common_recv_async(struct _starpu_mp_node * node)
 			if(devid == coreid)
 				completed = 1;
 			else if(!_starpu_src_common_store_message(node, *arg, *arg_size, answer))
-				/* We receive a unknown or asynchronous message  */
+				/* We receive a unknown or asynchronous message	 */
 				STARPU_ASSERT(0);
 		}
 		else
 		{
 			if(!_starpu_src_common_store_message(node, *arg, *arg_size, answer))
-				/* We receive a unknown or asynchronous message  */
+				/* We receive a unknown or asynchronous message	 */
 				STARPU_ASSERT(0);
 		}
 	}
@@ -358,7 +356,7 @@ int _starpu_src_common_sink_nbcores (struct _starpu_mp_node *node, int *buf)
 	void *arg;
 	int arg_size = sizeof (int);
 
-        STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
 
 	_starpu_mp_common_send_command (node, STARPU_MP_COMMAND_SINK_NBCORES, NULL, 0);
 
@@ -368,7 +366,7 @@ int _starpu_src_common_sink_nbcores (struct _starpu_mp_node *node, int *buf)
 
 	memcpy (buf, arg, arg_size);
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 
 	return 0;
 }
@@ -387,7 +385,7 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node, void (**func_ptr)(vo
 	/* strlen ignore the terminating '\0' */
 	arg_size = (strlen(func_name) + 1) * sizeof(char);
 
-        STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
 
 	//_STARPU_DEBUG("Looking up %s\n", func_name);
 	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_LOOKUP, (void *) func_name,
@@ -398,7 +396,7 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node, void (**func_ptr)(vo
 	if (answer == STARPU_MP_COMMAND_ERROR_LOOKUP)
 	{
 		_STARPU_DISP("Error looking up symbol %s\n", func_name);
-                STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 		return -ESPIPE;
 	}
 
@@ -409,7 +407,7 @@ int _starpu_src_common_lookup(struct _starpu_mp_node *node, void (**func_ptr)(vo
 
 	memcpy(func_ptr, arg, arg_size);
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 
 	//_STARPU_DEBUG("got %p\n", *func_ptr);
 
@@ -499,16 +497,16 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 		enum starpu_data_interface_id id = starpu_data_get_interface_id(handle);
 		/* Check that the interface exists in _starpu_interface */
 		STARPU_ASSERT_MSG(id == STARPU_VOID_INTERFACE_ID ||
-		                  id == STARPU_VARIABLE_INTERFACE_ID ||
-		                  id == STARPU_VECTOR_INTERFACE_ID ||
-		                  id == STARPU_MATRIX_INTERFACE_ID ||
-		                  id == STARPU_BLOCK_INTERFACE_ID ||
-		                  id == STARPU_TENSOR_INTERFACE_ID ||
-		                  id == STARPU_CSR_INTERFACE_ID ||
-		                  id == STARPU_BCSR_INTERFACE_ID ||
-		                  id == STARPU_COO_INTERFACE_ID,
-		                  /* NDIM is not currently supported: would need to transfer the nn and ldn arrays */
-		                  "MPI-MS currently cannot work with interface type %d", id);
+				  id == STARPU_VARIABLE_INTERFACE_ID ||
+				  id == STARPU_VECTOR_INTERFACE_ID ||
+				  id == STARPU_MATRIX_INTERFACE_ID ||
+				  id == STARPU_BLOCK_INTERFACE_ID ||
+				  id == STARPU_TENSOR_INTERFACE_ID ||
+				  id == STARPU_CSR_INTERFACE_ID ||
+				  id == STARPU_BCSR_INTERFACE_ID ||
+				  id == STARPU_COO_INTERFACE_ID,
+				  /* NDIM is not currently supported: would need to transfer the nn and ldn arrays */
+				  "MPI-MS currently cannot work with interface type %d", id);
 
 		memcpy ((void*) buffer_ptr, interfaces[i], handle->ops->interface_size);
 		/* The sink side has no mean to get the type of each
@@ -520,7 +518,7 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 	if (cl_arg)
 		memcpy((void*) buffer_ptr, cl_arg, cl_arg_size);
 
-        STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
 
 	if (detached)
 		_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_EXECUTE_DETACHED, buffer, buffer_size);
@@ -529,18 +527,18 @@ int _starpu_src_common_execute_kernel(struct _starpu_mp_node *node,
 
 	enum _starpu_mp_command answer = _starpu_src_common_wait_command_sync(node, &arg, &arg_size);
 
-        if (answer == STARPU_MP_COMMAND_ERROR_EXECUTE_DETACHED)
-        {
-                STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
-                return -EINVAL;
-        }
+	if (answer == STARPU_MP_COMMAND_ERROR_EXECUTE_DETACHED)
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
+		return -EINVAL;
+	}
 
 	if (detached)
 		STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_EXECUTION_DETACHED_SUBMITTED);
 	else
 		STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_EXECUTION_SUBMITTED);
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 
 	free(buffer);
 
@@ -573,98 +571,98 @@ static int _starpu_src_common_execute(struct _starpu_job *j, struct _starpu_work
 
 static struct _starpu_sink_kernel *starpu_src_common_register_kernel(const char *func_name)
 {
-        STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
-        struct _starpu_sink_kernel *kernel;
-        unsigned workerid = starpu_worker_get_id_check();
-        enum starpu_worker_archtype archtype = starpu_worker_get_type(workerid);
+	STARPU_PTHREAD_MUTEX_LOCK(&htbl_mutex);
+	struct _starpu_sink_kernel *kernel;
+	unsigned workerid = starpu_worker_get_id_check();
+	enum starpu_worker_archtype archtype = starpu_worker_get_type(workerid);
 
-        HASH_FIND_STR(kernels[archtype], func_name, kernel);
+	HASH_FIND_STR(kernels[archtype], func_name, kernel);
 
-        if (kernel != NULL)
-        {
-                STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
-                // Function already in the table.
-                return kernel;
-        }
+	if (kernel != NULL)
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
+		// Function already in the table.
+		return kernel;
+	}
 
-        unsigned int nb_devices = _starpu_get_machine_config()->topology.ndevices[archtype];
-        _STARPU_MALLOC(kernel, sizeof(*kernel) + nb_devices * sizeof(starpu_cpu_func_t ));
+	unsigned int nb_devices = _starpu_get_machine_config()->topology.ndevices[archtype];
+	_STARPU_MALLOC(kernel, sizeof(*kernel) + nb_devices * sizeof(starpu_cpu_func_t ));
 
-        kernel->name = strdup(func_name);
+	kernel->name = strdup(func_name);
 
-        HASH_ADD_STR(kernels[archtype], name, kernel);
+	HASH_ADD_STR(kernels[archtype], name, kernel);
 
-        unsigned int i;
-        for (i = 0; i < nb_devices; ++i)
-                kernel->func[i] = NULL;
+	unsigned int i;
+	for (i = 0; i < nb_devices; ++i)
+		kernel->func[i] = NULL;
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&htbl_mutex);
 
-        return kernel;
+	return kernel;
 }
 
 static starpu_cpu_func_t starpu_src_common_get_kernel(const char *func_name)
 {
-        /* This function has to be called in the codelet only, by the thread
-         * which will handle the task */
-        int workerid = starpu_worker_get_id_check();
-        int devid = starpu_worker_get_devid(workerid);
-        enum starpu_worker_archtype archtype = starpu_worker_get_type(workerid);
+	/* This function has to be called in the codelet only, by the thread
+	 * which will handle the task */
+	int workerid = starpu_worker_get_id_check();
+	int devid = starpu_worker_get_devid(workerid);
+	enum starpu_worker_archtype archtype = starpu_worker_get_type(workerid);
 
-        struct _starpu_sink_kernel *kernel = starpu_src_common_register_kernel(func_name);
+	struct _starpu_sink_kernel *kernel = starpu_src_common_register_kernel(func_name);
 
-        if (kernel->func[devid] == NULL)
-        {
-                struct _starpu_mp_node *node = _starpu_src_nodes[archtype][devid];
-                int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
-                if (ret)
-                {
+	if (kernel->func[devid] == NULL)
+	{
+		struct _starpu_mp_node *node = _starpu_src_nodes[archtype][devid];
+		int ret = _starpu_src_common_lookup(node, (void (**)(void))&kernel->func[devid], kernel->name);
+		if (ret)
+		{
 			_STARPU_DISP("Could not resolve function %s on slave %d\n", kernel->name, devid);
-                        return NULL;
-                }
-        }
+			return NULL;
+		}
+	}
 
-        return kernel->func[devid];
+	return kernel->func[devid];
 }
 
 starpu_cpu_func_t _starpu_src_common_get_cpu_func_from_codelet(struct starpu_codelet *cl, unsigned nimpl)
 {
 	/* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(cl, nimpl);
-        STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
 
-        STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	return kernel;
 }
 
 void(* _starpu_src_common_get_cpu_func_from_job(const struct _starpu_mp_node *node STARPU_ATTRIBUTE_UNUSED, struct _starpu_job *j))(void)
 {
-        /* Try to use cpu_func_name. */
+	/* Try to use cpu_func_name. */
 	const char *func_name = _starpu_task_get_cpu_name_nth_implementation(j->task->cl, j->nimpl);
-        STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(func_name, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
-        starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
+	starpu_cpu_func_t kernel = starpu_src_common_get_kernel(func_name);
 
-        STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
+	STARPU_ASSERT_MSG(kernel, "when master-slave is used, cpu_funcs_name has to be defined and the function be non-static");
 
 	return (void (*)(void))kernel;
 }
 
 struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memory_node)
 {
-        int devid = starpu_memory_node_get_devid(memory_node);
+	int devid = starpu_memory_node_get_devid(memory_node);
 	enum starpu_worker_archtype archtype = starpu_memory_node_get_worker_archtype(starpu_node_get_kind(memory_node));
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-        STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
+	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXMPIDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 #endif
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-        STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXTCPIPDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
+	STARPU_ASSERT_MSG(devid >= 0 && devid < STARPU_MAXTCPIPDEVS, "bogus devid %d for memory node %d\n", devid, memory_node);
 #endif
 
-        return _starpu_src_nodes[archtype][devid];
+	return _starpu_src_nodes[archtype][devid];
 }
 
 /* Send a request to the sink linked to the MP_NODE to allocate SIZE bytes on
@@ -676,30 +674,30 @@ struct _starpu_mp_node *_starpu_src_common_get_mp_node_from_memory_node(int memo
 uintptr_t _starpu_src_common_allocate(unsigned dst_node, size_t size, int flags)
 {
 	(void) flags;
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
 	enum _starpu_mp_command answer;
 	void *arg;
 	int arg_size;
 	uintptr_t addr;
 
-        STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
 	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_ALLOCATE, &size,
 			sizeof(size));
 
 	answer = _starpu_src_common_wait_command_sync(mp_node, &arg, &arg_size);
 
-        if (answer == STARPU_MP_COMMAND_ERROR_ALLOCATE)
-        {
-                STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
-                return 0;
-        }
+	if (answer == STARPU_MP_COMMAND_ERROR_ALLOCATE)
+	{
+		STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+		return 0;
+	}
 
 	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_ALLOCATE && arg_size == sizeof(addr));
 
 	memcpy(&addr, arg, arg_size);
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
 	return addr;
 }
@@ -711,10 +709,10 @@ void _starpu_src_common_free(unsigned dst_node, uintptr_t addr, size_t size, int
 {
 	(void) flags;
 	(void) size;
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
-        STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
-        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_FREE, &addr, sizeof(addr));
-        STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_FREE, &addr, sizeof(addr));
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 }
 
 /* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE with a
@@ -722,17 +720,17 @@ void _starpu_src_common_free(unsigned dst_node, uintptr_t addr, size_t size, int
  */
 int _starpu_src_common_copy_host_to_sink_sync(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size)
 {
-        struct _starpu_mp_transfer_command cmd = {size, dst, NULL};
+	struct _starpu_mp_transfer_command cmd = {size, dst, NULL};
 
-        STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
-        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_RECV_FROM_HOST, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_RECV_FROM_HOST, &cmd, sizeof(cmd));
 
-        mp_node->dt_send(mp_node, src, size, NULL);
+	mp_node->dt_send(mp_node, src, size, NULL);
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
-        return 0;
+	return 0;
 }
 
 /* Send SIZE bytes pointed by SRC to DST on the sink linked to the MP_NODE with an
@@ -740,29 +738,29 @@ int _starpu_src_common_copy_host_to_sink_sync(struct _starpu_mp_node *mp_node, v
  */
 int _starpu_src_common_copy_host_to_sink_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void * event)
 {
-        struct _starpu_mp_transfer_command cmd = {size, dst, event};
+	struct _starpu_mp_transfer_command cmd = {size, dst, event};
 
-        STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
-        /* For asynchronous transfers, we save informations
-         * to test is they are finished
-         */
-        struct _starpu_async_channel * async_channel = event;
-        async_channel->polling_node_receiver = mp_node;
+	/* For asynchronous transfers, we save informations
+	 * to test is they are finished
+	 */
+	struct _starpu_async_channel * async_channel = event;
+	async_channel->polling_node_receiver = mp_node;
 
-        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_RECV_FROM_HOST_ASYNC, &cmd, sizeof(cmd));
 
-        mp_node->dt_send(mp_node, src, size, event);
+	mp_node->dt_send(mp_node, src, size, event);
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
-        return -EAGAIN;
+	return -EAGAIN;
 }
 
 int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	(void) src_node;
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
+	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(dst_node);
 
 	if (async_channel)
 		return _starpu_src_common_copy_host_to_sink_async(mp_node,
@@ -781,24 +779,24 @@ int _starpu_src_common_copy_data_host_to_sink(uintptr_t src, size_t src_offset, 
  */
 int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size)
 {
-        enum _starpu_mp_command answer;
-        void *arg;
-        int arg_size;
-        struct _starpu_mp_transfer_command cmd = {size, src, NULL};
+	enum _starpu_mp_command answer;
+	void *arg;
+	int arg_size;
+	struct _starpu_mp_transfer_command cmd = {size, src, NULL};
 
-        STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
-        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_SEND_TO_HOST, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_SEND_TO_HOST, &cmd, sizeof(cmd));
 
-        answer = _starpu_src_common_wait_command_sync(mp_node, &arg, &arg_size);
+	answer = _starpu_src_common_wait_command_sync(mp_node, &arg, &arg_size);
 
-        STARPU_ASSERT(answer == STARPU_MP_COMMAND_SEND_TO_HOST);
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_SEND_TO_HOST);
 
-        mp_node->dt_recv(mp_node, dst, size, NULL);
+	mp_node->dt_recv(mp_node, dst, size, NULL);
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
-        return 0;
+	return 0;
 }
 
 /* Receive SIZE bytes pointed by SRC on the sink linked to the MP_NODE and store them in DST
@@ -806,29 +804,29 @@ int _starpu_src_common_copy_sink_to_host_sync(struct _starpu_mp_node *mp_node, v
  */
 int _starpu_src_common_copy_sink_to_host_async(struct _starpu_mp_node *mp_node, void *src, void *dst, size_t size, void * event)
 {
-        struct _starpu_mp_transfer_command cmd = {size, src, event};
+	struct _starpu_mp_transfer_command cmd = {size, src, event};
 
-        STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
-        /* For asynchronous transfers, we save informations
-         * to test is they are finished
-         */
-        struct _starpu_async_channel * async_channel = event;
-        async_channel->polling_node_sender = mp_node;
+	/* For asynchronous transfers, we save informations
+	 * to test is they are finished
+	 */
+	struct _starpu_async_channel * async_channel = event;
+	async_channel->polling_node_sender = mp_node;
 
-        _starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC, &cmd, sizeof(cmd));
+	_starpu_mp_common_send_command(mp_node, STARPU_MP_COMMAND_SEND_TO_HOST_ASYNC, &cmd, sizeof(cmd));
 
-        mp_node->dt_recv(mp_node, dst, size, event);
+	mp_node->dt_recv(mp_node, dst, size, event);
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
-        return -EAGAIN;
+	return -EAGAIN;
 }
 
 int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
 {
 	(void) dst_node;
-        struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
+	struct _starpu_mp_node *mp_node = _starpu_src_common_get_mp_node_from_memory_node(src_node);
 
 	if (async_channel)
 		return _starpu_src_common_copy_sink_to_host_async(mp_node,
@@ -848,46 +846,46 @@ int _starpu_src_common_copy_data_sink_to_host(uintptr_t src, size_t src_offset, 
  */
 int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size)
 {
-        enum _starpu_mp_command answer;
-        void *arg;
-        int arg_size;
+	enum _starpu_mp_command answer;
+	void *arg;
+	int arg_size;
 
-        struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src, NULL};
+	struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src, NULL};
 
-        /* lock the node with the little peer_id first to prevent deadlock */
-        if (src_node->peer_id > dst_node->peer_id)
-        {
-                STARPU_PTHREAD_MUTEX_LOCK(&dst_node->connection_mutex);
-                STARPU_PTHREAD_MUTEX_LOCK(&src_node->connection_mutex);
-        }
-        else
-        {
-                STARPU_PTHREAD_MUTEX_LOCK(&src_node->connection_mutex);
-                STARPU_PTHREAD_MUTEX_LOCK(&dst_node->connection_mutex);
-        }
+	/* lock the node with the little peer_id first to prevent deadlock */
+	if (src_node->peer_id > dst_node->peer_id)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&dst_node->connection_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&src_node->connection_mutex);
+	}
+	else
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&src_node->connection_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&dst_node->connection_mutex);
+	}
 
-        /* Tell source to send data to dest. */
-        _starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK, &cmd, sizeof(cmd));
+	/* Tell source to send data to dest. */
+	_starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK, &cmd, sizeof(cmd));
 
-        /* Release the source as fast as possible */
-        STARPU_PTHREAD_MUTEX_UNLOCK(&src_node->connection_mutex);
+	/* Release the source as fast as possible */
+	STARPU_PTHREAD_MUTEX_UNLOCK(&src_node->connection_mutex);
 
-        cmd.devid = src_node->peer_id;
-        cmd.size = size;
-        cmd.addr = dst;
+	cmd.devid = src_node->peer_id;
+	cmd.size = size;
+	cmd.addr = dst;
 
-        /* Tell dest to receive data from source. */
-        _starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK, &cmd, sizeof(cmd));
+	/* Tell dest to receive data from source. */
+	_starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK, &cmd, sizeof(cmd));
 
-        /* Wait for answer from dest to know wether transfer is finished. */
-        answer = _starpu_src_common_wait_command_sync(dst_node, &arg, &arg_size);
+	/* Wait for answer from dest to know wether transfer is finished. */
+	answer = _starpu_src_common_wait_command_sync(dst_node, &arg, &arg_size);
 
-        STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_TRANSFER_COMPLETE);
+	STARPU_ASSERT(answer == STARPU_MP_COMMAND_ANSWER_TRANSFER_COMPLETE);
 
-        /* Release the receiver when we received the acknowlegment */
-        STARPU_PTHREAD_MUTEX_UNLOCK(&dst_node->connection_mutex);
+	/* Release the receiver when we received the acknowlegment */
+	STARPU_PTHREAD_MUTEX_UNLOCK(&dst_node->connection_mutex);
 
-        return 0;
+	return 0;
 }
 
 /* Tell the sink linked to SRC_NODE to send SIZE bytes of data pointed by SRC
@@ -896,45 +894,45 @@ int _starpu_src_common_copy_sink_to_sink_sync(struct _starpu_mp_node *src_node, 
  */
 int _starpu_src_common_copy_sink_to_sink_async(struct _starpu_mp_node *src_node, struct _starpu_mp_node *dst_node, void *src, void *dst, size_t size, void * event)
 {
-        struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src, event};
+	struct _starpu_mp_transfer_command_to_device cmd = {dst_node->peer_id, size, src, event};
 
-        /* lock the node with the little peer_id first to prevent deadlock */
-        if (src_node->peer_id > dst_node->peer_id)
-        {
-                STARPU_PTHREAD_MUTEX_LOCK(&dst_node->connection_mutex);
-                STARPU_PTHREAD_MUTEX_LOCK(&src_node->connection_mutex);
-        }
-        else
-        {
-                STARPU_PTHREAD_MUTEX_LOCK(&src_node->connection_mutex);
-                STARPU_PTHREAD_MUTEX_LOCK(&dst_node->connection_mutex);
-        }
+	/* lock the node with the little peer_id first to prevent deadlock */
+	if (src_node->peer_id > dst_node->peer_id)
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&dst_node->connection_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&src_node->connection_mutex);
+	}
+	else
+	{
+		STARPU_PTHREAD_MUTEX_LOCK(&src_node->connection_mutex);
+		STARPU_PTHREAD_MUTEX_LOCK(&dst_node->connection_mutex);
+	}
 
-        /* For asynchronous transfers, we save informations
-         * to test is they are finished
-         */
-        struct _starpu_async_channel * async_channel = event;
-        async_channel->polling_node_sender = src_node;
-        async_channel->polling_node_receiver = dst_node;
-        /* Increase number of ack waited */
-        async_channel->starpu_mp_common_finished_receiver++;
-        async_channel->starpu_mp_common_finished_sender++;
+	/* For asynchronous transfers, we save informations
+	 * to test is they are finished
+	 */
+	struct _starpu_async_channel * async_channel = event;
+	async_channel->polling_node_sender = src_node;
+	async_channel->polling_node_receiver = dst_node;
+	/* Increase number of ack waited */
+	async_channel->starpu_mp_common_finished_receiver++;
+	async_channel->starpu_mp_common_finished_sender++;
 
-        /* Tell source to send data to dest. */
-        _starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC, &cmd, sizeof(cmd));
+	/* Tell source to send data to dest. */
+	_starpu_mp_common_send_command(src_node, STARPU_MP_COMMAND_SEND_TO_SINK_ASYNC, &cmd, sizeof(cmd));
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&src_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&src_node->connection_mutex);
 
-        cmd.devid = src_node->peer_id;
-        cmd.size = size;
-        cmd.addr = dst;
+	cmd.devid = src_node->peer_id;
+	cmd.size = size;
+	cmd.addr = dst;
 
-        /* Tell dest to receive data from source. */
-        _starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC, &cmd, sizeof(cmd));
+	/* Tell dest to receive data from source. */
+	_starpu_mp_common_send_command(dst_node, STARPU_MP_COMMAND_RECV_FROM_SINK_ASYNC, &cmd, sizeof(cmd));
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&dst_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&dst_node->connection_mutex);
 
-        return -EAGAIN;
+	return -EAGAIN;
 }
 
 int _starpu_src_common_copy_data_sink_to_sink(uintptr_t src, size_t src_offset, unsigned src_node, uintptr_t dst, size_t dst_offset, unsigned dst_node, size_t size, struct _starpu_async_channel *async_channel)
@@ -994,31 +992,31 @@ static int _starpu_src_common_test_suffixes(char *located_file_name, const size_
 
 void _starpu_src_common_init_switch_env(unsigned this)
 {
-        save_thread_env[this].current_task = starpu_task_get_current();
-        save_thread_env[this].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
-        save_thread_env[this].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
+	save_thread_env[this].current_task = starpu_task_get_current();
+	save_thread_env[this].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
+	save_thread_env[this].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
 #ifdef STARPU_OPENMP
-        save_thread_env[this].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
-        save_thread_env[this].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_task_key);
+	save_thread_env[this].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
+	save_thread_env[this].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_task_key);
 #endif
 }
 
 static void _starpu_src_common_switch_env(unsigned old, unsigned new)
 {
-        save_thread_env[old].current_task = starpu_task_get_current();
-        save_thread_env[old].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
-        save_thread_env[old].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
+	save_thread_env[old].current_task = starpu_task_get_current();
+	save_thread_env[old].current_worker = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_key);
+	save_thread_env[old].current_worker_set = STARPU_PTHREAD_GETSPECIFIC(_starpu_worker_set_key);
 #ifdef STARPU_OPENMP
-        save_thread_env[old].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
-        save_thread_env[old].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_task_key);
+	save_thread_env[old].current_omp_thread = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_thread_key);
+	save_thread_env[old].current_omp_task = STARPU_PTHREAD_GETSPECIFIC(_starpu_omp_task_key);
 #endif
 
-        _starpu_set_current_task(save_thread_env[new].current_task);
-        STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_key, save_thread_env[new].current_worker);
-        STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_set_key, save_thread_env[new].current_worker_set);
+	_starpu_set_current_task(save_thread_env[new].current_task);
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_key, save_thread_env[new].current_worker);
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_worker_set_key, save_thread_env[new].current_worker_set);
 #ifdef STARPU_OPENMP
-        STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_thread_key, save_thread_env[new].current_omp_thread);
-        STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_task_key, save_thread_env[new].current_omp_task);
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_thread_key, save_thread_env[new].current_omp_thread);
+	STARPU_PTHREAD_SETSPECIFIC(_starpu_omp_task_key, save_thread_env[new].current_omp_task);
 #endif
 }
 
@@ -1036,7 +1034,7 @@ static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int b
 	msg[3] = baseworkerid;
 	msg[4] = starpu_worker_get_count();
 
-        STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&node->connection_mutex);
 
 	/* tell the sink node that we will send him all workers */
 	_starpu_mp_common_send_command(node, STARPU_MP_COMMAND_SYNC_WORKERS, &msg, sizeof(msg));
@@ -1047,19 +1045,19 @@ static void _starpu_src_common_send_workers(struct _starpu_mp_node * node, int b
 	/* Send all combined workers to the sink node */
 	node->dt_send(node, &config->combined_workers,combined_worker_size, NULL);
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&node->connection_mutex);
 }
 
 static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * worker_set, struct _starpu_mp_node * mp_node, unsigned memnode)
 {
-        int res = 0;
+	int res = 0;
 	unsigned i;
 	struct starpu_task *tasks[worker_set->nworkers];
 
-        _starpu_may_pause();
+	_starpu_may_pause();
 
 #ifdef STARPU_SIMGRID
-        starpu_pthread_wait_reset(&worker_set->workers[0].wait);
+	starpu_pthread_wait_reset(&worker_set->workers[0].wait);
 #endif
 
 	/* Test if async transfers are completed */
@@ -1100,34 +1098,34 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 		}
 	}
 
-        res |= __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
+	res |= __starpu_datawizard_progress(_STARPU_DATAWIZARD_DO_ALLOC, 1);
 
-        /* Handle message which have been store */
-        _starpu_src_common_handle_stored_async(mp_node);
+	/* Handle message which have been store */
+	_starpu_src_common_handle_stored_async(mp_node);
 
-        STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
 
 	unsigned stopped_progress = 0;
-        /* poll the device for completed jobs.*/
-        while(mp_node->nt_recv_is_ready(mp_node))
-        {
+	/* poll the device for completed jobs.*/
+	while(mp_node->nt_recv_is_ready(mp_node))
+	{
 		stopped_progress = 1;
 		_STARPU_TRACE_END_PROGRESS(mp_node_memory_node(mp_node));
-                _starpu_src_common_recv_async(mp_node);
-                /* Mutex is unlock in _starpu_src_common_recv_async */
-                STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
-        }
+		_starpu_src_common_recv_async(mp_node);
+		/* Mutex is unlock in _starpu_src_common_recv_async */
+		STARPU_PTHREAD_MUTEX_LOCK(&mp_node->connection_mutex);
+	}
 	if (stopped_progress)
 		_STARPU_TRACE_START_PROGRESS(mp_node_memory_node(mp_node));
 
-        STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&mp_node->connection_mutex);
 
-        /* get task for each worker*/
-        res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
+	/* get task for each worker*/
+	res |= _starpu_get_multi_worker_task(worker_set->workers, tasks, worker_set->nworkers, memnode);
 
 #ifdef STARPU_SIMGRID
-        if (!res)
-                starpu_pthread_wait_wait(&worker_set->workers[0].wait);
+	if (!res)
+		starpu_pthread_wait_wait(&worker_set->workers[0].wait);
 #endif
 
 	/*if at least one worker have pop a task*/
@@ -1154,42 +1152,41 @@ static void _starpu_src_common_worker_internal_work(struct _starpu_worker_set * 
 /* Function looping on the source node */
 void _starpu_src_common_workers_set(struct _starpu_worker_set * worker_set, int ndevices, struct _starpu_mp_node ** mp_node)
 {
-        unsigned memnode[ndevices];
+	unsigned memnode[ndevices];
 
-        int device;
-        for (device = 0; device < ndevices; device++)
-                memnode[device] = worker_set[device].workers[0].memory_node;
+	int device;
+	for (device = 0; device < ndevices; device++)
+		memnode[device] = worker_set[device].workers[0].memory_node;
 
-        for (device = 0; device < ndevices; device++)
-        {
-                struct _starpu_worker *baseworker = &worker_set[device].workers[0];
-                struct _starpu_machine_config *config = baseworker->config;
-                unsigned baseworkerid = baseworker - config->workers;
-                _starpu_src_common_send_workers(mp_node[device], baseworkerid, worker_set[device].nworkers);
-        	_STARPU_TRACE_START_PROGRESS(memnode[device]);
-        }
-
-        /*main loop*/
-        while (_starpu_machine_is_running())
-        {
-                for (device = 0; device < ndevices ; device++)
-                {
-			if (ndevices > 1)
-				_starpu_src_common_switch_env(((device-1)+ndevices)%ndevices, device);
-                        _starpu_src_common_worker_internal_work(&worker_set[device], mp_node[device], memnode[device]);
-                }
-        }
-
-        for (device = 0; device < ndevices; device++)
+	for (device = 0; device < ndevices; device++)
 	{
-        	_STARPU_TRACE_END_PROGRESS(memnode[device]);
-                _starpu_datawizard_handle_all_pending_node_data_requests(memnode[device]);
+		struct _starpu_worker *baseworker = &worker_set[device].workers[0];
+		struct _starpu_machine_config *config = baseworker->config;
+		unsigned baseworkerid = baseworker - config->workers;
+		_starpu_src_common_send_workers(mp_node[device], baseworkerid, worker_set[device].nworkers);
+		_STARPU_TRACE_START_PROGRESS(memnode[device]);
 	}
 
-        /* In case there remains some memory that was automatically
-         * allocated by StarPU, we release it now. Note that data
-         * coherency is not maintained anymore at that point ! */
-        for (device = 0; device < ndevices; device++)
-                _starpu_free_all_automatically_allocated_buffers(memnode[device]);
+	/*main loop*/
+	while (_starpu_machine_is_running())
+	{
+		for (device = 0; device < ndevices ; device++)
+		{
+			if (ndevices > 1)
+				_starpu_src_common_switch_env(((device-1)+ndevices)%ndevices, device);
+			_starpu_src_common_worker_internal_work(&worker_set[device], mp_node[device], memnode[device]);
+		}
+	}
 
+	for (device = 0; device < ndevices; device++)
+	{
+		_STARPU_TRACE_END_PROGRESS(memnode[device]);
+		_starpu_datawizard_handle_all_pending_node_data_requests(memnode[device]);
+	}
+
+	/* In case there remains some memory that was automatically
+	 * allocated by StarPU, we release it now. Note that data
+	 * coherency is not maintained anymore at that point ! */
+	for (device = 0; device < ndevices; device++)
+		_starpu_free_all_automatically_allocated_buffers(memnode[device]);
 }

@@ -964,7 +964,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
 
 		if (!usersleft)
-                {
+		{
 			/* I'm last, deinitialize device */
 			_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
@@ -976,7 +976,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 			_starpu_malloc_shutdown(memnode);
 
 			deinit_device_context(devid);
-                }
+		}
 		STARPU_PTHREAD_MUTEX_LOCK(&cuda_device_init_mutex[devid]);
 		cuda_device_init[devid] = UNINITIALIZED;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);

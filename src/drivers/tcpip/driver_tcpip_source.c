@@ -14,7 +14,6 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
-
 #include <errno.h>
 
 #include <starpu.h>
@@ -47,147 +46,147 @@ struct _starpu_mp_node *_starpu_tcpip_ms_src_get_actual_thread_mp_node()
 }
 
 static void __starpu_init_tcpip_config(struct _starpu_machine_topology * topology,
-                                    struct _starpu_machine_config *config,
-                                    unsigned tcpip_idx)
+				    struct _starpu_machine_config *config,
+				    unsigned tcpip_idx)
 {
-        int nbcores;
-        _starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][tcpip_idx], &nbcores);
-        STARPU_ASSERT(tcpip_idx < STARPU_NMAXDEVS);
-        topology->nhwworker[STARPU_TCPIP_MS_WORKER][tcpip_idx] = nbcores;
+	int nbcores;
+	_starpu_src_common_sink_nbcores(_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][tcpip_idx], &nbcores);
+	STARPU_ASSERT(tcpip_idx < STARPU_NMAXDEVS);
+	topology->nhwworker[STARPU_TCPIP_MS_WORKER][tcpip_idx] = nbcores;
 
-        int ntcpipcores;
-        ntcpipcores = starpu_get_env_number("STARPU_NTCPIPMSTHREADS");
+	int ntcpipcores;
+	ntcpipcores = starpu_get_env_number("STARPU_NTCPIPMSTHREADS");
 
-        _starpu_topology_check_ndevices(&ntcpipcores, nbcores, 0, INT_MAX, "STARPU_NTCPIPMSTHREADS", "TCPIP cores", "");
+	_starpu_topology_check_ndevices(&ntcpipcores, nbcores, 0, INT_MAX, "STARPU_NTCPIPMSTHREADS", "TCPIP cores", "");
 
-        tcpip_worker_set[tcpip_idx].workers = &config->workers[topology->nworkers];
-        tcpip_worker_set[tcpip_idx].nworkers = ntcpipcores;
-        _starpu_src_nodes[STARPU_TCPIP_MS_WORKER][tcpip_idx]->baseworkerid = topology->nworkers;
+	tcpip_worker_set[tcpip_idx].workers = &config->workers[topology->nworkers];
+	tcpip_worker_set[tcpip_idx].nworkers = ntcpipcores;
+	_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][tcpip_idx]->baseworkerid = topology->nworkers;
 
-        _starpu_topology_configure_workers(topology, config,
-                                         STARPU_TCPIP_MS_WORKER, 
-                                         tcpip_idx, tcpip_idx, 0, 0,
-                                        ntcpipcores, 1, &tcpip_worker_set[tcpip_idx],
+	_starpu_topology_configure_workers(topology, config,
+					 STARPU_TCPIP_MS_WORKER, 
+					 tcpip_idx, tcpip_idx, 0, 0,
+					ntcpipcores, 1, &tcpip_worker_set[tcpip_idx],
 					_starpu_tcpip_common_multiple_thread  ? NULL : tcpip_worker_set);
 }
 
 /* Determine which devices we will use */
 void _starpu_init_tcpip_config(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config,
-                                   struct starpu_conf *user_conf, int no_mp_config)
+				   struct starpu_conf *user_conf, int no_mp_config)
 {
-        int i;
+	int i;
 
-        /* Discover and configure the mp topology. That means:
-         * - discover the number of mp nodes;
-         * - initialize each discovered node;
-         * - discover the local topology (number of PUs/devices) of each node;
-         * - configure the workers accordingly.
-         */
+	/* Discover and configure the mp topology. That means:
+	 * - discover the number of mp nodes;
+	 * - initialize each discovered node;
+	 * - discover the local topology (number of PUs/devices) of each node;
+	 * - configure the workers accordingly.
+	 */
 
-        for (i = 0; i < (int) (sizeof(tcpip_worker_set)/sizeof(tcpip_worker_set[0])); i++)
-                tcpip_worker_set[i].workers = NULL;
+	for (i = 0; i < (int) (sizeof(tcpip_worker_set)/sizeof(tcpip_worker_set[0])); i++)
+		tcpip_worker_set[i].workers = NULL;
 
-        int ntcpipms = user_conf->ntcpip_ms;
+	int ntcpipms = user_conf->ntcpip_ms;
 
-        if(ntcpipms != 0)
-        {
-                /* Discover and initialize the number of TCPIP nodes through the mp
-                 * infrastructure. */
-                unsigned nhwtcpipdevices = _starpu_tcpip_src_get_device_count();
+	if(ntcpipms != 0)
+	{
+		/* Discover and initialize the number of TCPIP nodes through the mp
+		 * infrastructure. */
+		unsigned nhwtcpipdevices = _starpu_tcpip_src_get_device_count();
 
-                if (ntcpipms == -1)
-                        /* Nothing was specified, so let's use the number of
-                         * detected tcpip devices. ! */
-                        ntcpipms = nhwtcpipdevices;
-                else
-                {
-                        if ((unsigned) ntcpipms > nhwtcpipdevices)
-                        {
-                                /* The user requires more TCPIP devices than there is available */
-                                _STARPU_MSG("# Warning: %d TCPIP Master-Slave devices requested. Only %u available.\n",
-                                            ntcpipms, nhwtcpipdevices);
-                                ntcpipms = nhwtcpipdevices;
-                        }
-                        /*Let's make sure this value is OK.*/
-                        if(ntcpipms > STARPU_MAXTCPIPDEVS)
-                        {
-                                _STARPU_DISP("# Warning: %d TCPIP Master-Slave devices requested. Only %u enabled. Use configure options --enable-maxtcpipdev=xxx to update the maximum value of supported TCPIP MS devices.\n",
-                                            ntcpipms, STARPU_MAXTCPIPDEVS);
-                                ntcpipms = STARPU_MAXTCPIPDEVS;
-                        }
-                }
-        }
+		if (ntcpipms == -1)
+			/* Nothing was specified, so let's use the number of
+			 * detected tcpip devices. ! */
+			ntcpipms = nhwtcpipdevices;
+		else
+		{
+			if ((unsigned) ntcpipms > nhwtcpipdevices)
+			{
+				/* The user requires more TCPIP devices than there is available */
+				_STARPU_MSG("# Warning: %d TCPIP Master-Slave devices requested. Only %u available.\n",
+					    ntcpipms, nhwtcpipdevices);
+				ntcpipms = nhwtcpipdevices;
+			}
+			/*Let's make sure this value is OK.*/
+			if(ntcpipms > STARPU_MAXTCPIPDEVS)
+			{
+				_STARPU_DISP("# Warning: %d TCPIP Master-Slave devices requested. Only %u enabled. Use configure options --enable-maxtcpipdev=xxx to update the maximum value of supported TCPIP MS devices.\n",
+					    ntcpipms, STARPU_MAXTCPIPDEVS);
+				ntcpipms = STARPU_MAXTCPIPDEVS;
+			}
+		}
+	}
 
-        topology->ndevices[STARPU_TCPIP_MS_WORKER] = ntcpipms;
+	topology->ndevices[STARPU_TCPIP_MS_WORKER] = ntcpipms;
 
-        /* if user don't want to use TCPIP slaves, we close the slave processes */
-        if (no_mp_config && topology->ndevices[STARPU_TCPIP_MS_WORKER] == 0)
-        {
-                _starpu_tcpip_common_mp_deinit();
-                exit(0);
-        }
+	/* if user don't want to use TCPIP slaves, we close the slave processes */
+	if (no_mp_config && topology->ndevices[STARPU_TCPIP_MS_WORKER] == 0)
+	{
+		_starpu_tcpip_common_mp_deinit();
+		exit(0);
+	}
 
-        if (!no_mp_config)
-        {
-                for (i = 0; i < ntcpipms; i++)
-                        _starpu_src_nodes[STARPU_TCPIP_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_TCPIP_SOURCE, i);
+	if (!no_mp_config)
+	{
+		for (i = 0; i < ntcpipms; i++)
+			_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][i] = _starpu_mp_common_node_create(STARPU_NODE_TCPIP_SOURCE, i);
 
-                for (i = 0; i < ntcpipms; i++)
+		for (i = 0; i < ntcpipms; i++)
 			__starpu_init_tcpip_config(topology, config, i);
-        }
+	}
 }
 
 /*Bind the driver on a CPU core*/
 void _starpu_tcpip_init_worker_binding(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
-        /* Perhaps the worker has some "favourite" bindings  */
-        unsigned *preferred_binding = NULL;
-        unsigned npreferred = 0;
-        unsigned devid = workerarg->devid;
+	/* Perhaps the worker has some "favourite" bindings  */
+	unsigned *preferred_binding = NULL;
+	unsigned npreferred = 0;
+	unsigned devid = workerarg->devid;
 
-        if (tcpip_bindid_init[devid])
-        {
-        }
-        else
-        {
-                tcpip_bindid_init[devid] = 1;
+	if (tcpip_bindid_init[devid])
+	{
+	}
+	else
+	{
+		tcpip_bindid_init[devid] = 1;
 		if (_starpu_tcpip_common_multiple_thread || devid == 0)
 			tcpip_bindid[devid] = _starpu_get_next_bindid(config, STARPU_THREAD_ACTIVE, preferred_binding, npreferred);
 		else
 			tcpip_bindid[devid] = tcpip_bindid[0];
 	}
 
-        workerarg->bindid = tcpip_bindid[devid];
+	workerarg->bindid = tcpip_bindid[devid];
 }
 
 /*Set up memory and buses*/
 void _starpu_tcpip_init_worker_memory(struct _starpu_machine_config *config, int no_mp_config STARPU_ATTRIBUTE_UNUSED, struct _starpu_worker *workerarg)
 {
-        unsigned memory_node = -1;
-        unsigned devid = workerarg->devid;
-        unsigned numa;
+	unsigned memory_node = -1;
+	unsigned devid = workerarg->devid;
+	unsigned numa;
 
-        if (tcpip_memory_init[devid])
-        {
-                memory_node = tcpip_memory_nodes[devid];
-        }
-        else
-        {
-                tcpip_memory_init[devid] = 1;
-                memory_node = tcpip_memory_nodes[devid] = _starpu_memory_node_register(STARPU_TCPIP_MS_RAM, devid);
+	if (tcpip_memory_init[devid])
+	{
+		memory_node = tcpip_memory_nodes[devid];
+	}
+	else
+	{
+		tcpip_memory_init[devid] = 1;
+		memory_node = tcpip_memory_nodes[devid] = _starpu_memory_node_register(STARPU_TCPIP_MS_RAM, devid);
 
-                for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
-                {
-                        _starpu_register_bus(numa, memory_node);
-                        _starpu_register_bus(memory_node, numa);
-                }
+		for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+		{
+			_starpu_register_bus(numa, memory_node);
+			_starpu_register_bus(memory_node, numa);
+		}
 
-        }
-        //This worker can manage transfers on NUMA nodes
-        for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
-                        _starpu_worker_drives_memory_node(&workerarg->set->workers[0], numa);
+	}
+	//This worker can manage transfers on NUMA nodes
+	for (numa = 0; numa < starpu_memory_nodes_get_numa_count(); numa++)
+			_starpu_worker_drives_memory_node(&workerarg->set->workers[0], numa);
 
-        _starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
+	_starpu_worker_drives_memory_node(&workerarg->set->workers[0], memory_node);
 
 	if (!_starpu_tcpip_common_multiple_thread)
 	{
@@ -204,33 +203,33 @@ void _starpu_tcpip_init_worker_memory(struct _starpu_machine_config *config, int
 		}
 	}
 
-        _starpu_memory_node_add_nworkers(memory_node);
+	_starpu_memory_node_add_nworkers(memory_node);
 
-        workerarg->memory_node = memory_node;
+	workerarg->memory_node = memory_node;
 }
 
 static void _starpu_deinit_tcpip_node(int devid)
 {
-        _starpu_mp_common_send_command(_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
+	_starpu_mp_common_send_command(_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][devid], STARPU_MP_COMMAND_EXIT, NULL, 0);
 
-        _starpu_mp_common_node_destroy(_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][devid]);
+	_starpu_mp_common_node_destroy(_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][devid]);
 }
 
 
 void _starpu_deinit_tcpip_config(struct _starpu_machine_config *config)
 {
-        struct _starpu_machine_topology *topology = &config->topology;
-        unsigned i;
+	struct _starpu_machine_topology *topology = &config->topology;
+	unsigned i;
 
-        for (i = 0; i < topology->ndevices[STARPU_TCPIP_MS_WORKER]; i++)
-                _starpu_deinit_tcpip_node(i);
+	for (i = 0; i < topology->ndevices[STARPU_TCPIP_MS_WORKER]; i++)
+		_starpu_deinit_tcpip_node(i);
 }
 
 
 void _starpu_tcpip_source_init(struct _starpu_mp_node *node)
 {
-        _starpu_tcpip_common_mp_initialize_src_sink(node);
-        //TODO
+	_starpu_tcpip_common_mp_initialize_src_sink(node);
+	//TODO
 }
 
 
@@ -241,7 +240,7 @@ void _starpu_tcpip_source_deinit(struct _starpu_mp_node *node STARPU_ATTRIBUTE_U
 
 unsigned _starpu_tcpip_src_get_device_count()
 {
-        int nmpims = starpu_get_env_number("STARPU_TCPIP_MS_SLAVES");
+	int nmpims = starpu_get_env_number("STARPU_TCPIP_MS_SLAVES");
 	if (nmpims == -1)
 		/* No slave */
 		nmpims = 0;
@@ -250,77 +249,77 @@ unsigned _starpu_tcpip_src_get_device_count()
 
 void *_starpu_tcpip_src_worker(void *arg)
 {
-        struct _starpu_worker *worker0 = arg;
-        struct _starpu_worker_set *set = worker0->set;
-        struct _starpu_worker_set *worker_set_tcpip = set;
+	struct _starpu_worker *worker0 = arg;
+	struct _starpu_worker_set *set = worker0->set;
+	struct _starpu_worker_set *worker_set_tcpip = set;
 	int nbsinknodes = _starpu_tcpip_common_multiple_thread ? 1 : _starpu_tcpip_src_get_device_count();
 
-        int workersetnum;
-        for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
-        {
-                struct _starpu_worker_set * worker_set = &worker_set_tcpip[workersetnum];
+	int workersetnum;
+	for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
+	{
+		struct _starpu_worker_set * worker_set = &worker_set_tcpip[workersetnum];
 
-                /* As all workers of a set share common data, we just use the first
-                 * one for intializing the following stuffs. */
-                struct _starpu_worker *baseworker = &worker_set->workers[0];
-                struct _starpu_machine_config *config = baseworker->config;
-                unsigned baseworkerid = baseworker - config->workers;
-                unsigned devid = baseworker->devid;
-                unsigned i;
+		/* As all workers of a set share common data, we just use the first
+		 * one for intializing the following stuffs. */
+		struct _starpu_worker *baseworker = &worker_set->workers[0];
+		struct _starpu_machine_config *config = baseworker->config;
+		unsigned baseworkerid = baseworker - config->workers;
+		unsigned devid = baseworker->devid;
+		unsigned i;
 
-                /* unsigned memnode = baseworker->memory_node; */
+		/* unsigned memnode = baseworker->memory_node; */
 
-                _starpu_driver_start(baseworker, STARPU_CPU_WORKER, 0);
+		_starpu_driver_start(baseworker, STARPU_CPU_WORKER, 0);
 
 #ifdef STARPU_USE_FXT
-                for (i = 1; i < worker_set->nworkers; i++)
-                        _starpu_worker_start(&worker_set->workers[i], STARPU_TCPIP_MS_WORKER, 0);
+		for (i = 1; i < worker_set->nworkers; i++)
+			_starpu_worker_start(&worker_set->workers[i], STARPU_TCPIP_MS_WORKER, 0);
 #endif
 
-                // Current task for a thread managing a worker set has no sense.
-                _starpu_set_current_task(NULL);
+		// Current task for a thread managing a worker set has no sense.
+		_starpu_set_current_task(NULL);
 
-                for (i = 0; i < config->topology.nworker[STARPU_TCPIP_MS_WORKER][devid]; i++)
-                {
-                        struct _starpu_worker *worker = &config->workers[baseworkerid+i];
-                        snprintf(worker->name, sizeof(worker->name), "TCPIP_MS %u core %u", devid, i);
-                        snprintf(worker->short_name, sizeof(worker->short_name), "TCPIP_MS %u.%u", devid, i);
-                }
+		for (i = 0; i < config->topology.nworker[STARPU_TCPIP_MS_WORKER][devid]; i++)
+		{
+			struct _starpu_worker *worker = &config->workers[baseworkerid+i];
+			snprintf(worker->name, sizeof(worker->name), "TCPIP_MS %u core %u", devid, i);
+			snprintf(worker->short_name, sizeof(worker->short_name), "TCPIP_MS %u.%u", devid, i);
+		}
 
 
-                char thread_name[16];
-                if (_starpu_tcpip_common_multiple_thread)
-                        snprintf(thread_name, sizeof(thread_name), "TCPIP_MS %u", devid);
-                else
-                        snprintf(thread_name, sizeof(thread_name), "TCPIP_MS");
-                starpu_pthread_setname(thread_name);
+		char thread_name[16];
+		if (_starpu_tcpip_common_multiple_thread)
+			snprintf(thread_name, sizeof(thread_name), "TCPIP_MS %u", devid);
+		else
+			snprintf(thread_name, sizeof(thread_name), "TCPIP_MS");
+		starpu_pthread_setname(thread_name);
 
-                for (i = 0; i < worker_set->nworkers; i++)
-                {
-                        struct _starpu_worker *worker = &worker_set->workers[i];
-                        _STARPU_TRACE_WORKER_INIT_END(worker->workerid);
-                }
+		for (i = 0; i < worker_set->nworkers; i++)
+		{
+			struct _starpu_worker *worker = &worker_set->workers[i];
+			_STARPU_TRACE_WORKER_INIT_END(worker->workerid);
+		}
 
-                _starpu_src_common_init_switch_env(workersetnum);
-        }  /* for */
+		_starpu_src_common_init_switch_env(workersetnum);
+	}  /* for */
 
-        /* set the worker zero for the main thread */
-        for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
-        {
-                struct _starpu_worker_set * worker_set = &worker_set_tcpip[workersetnum];
-                struct _starpu_worker *baseworker = &worker_set->workers[0];
+	/* set the worker zero for the main thread */
+	for (workersetnum = 0; workersetnum < nbsinknodes; workersetnum++)
+	{
+		struct _starpu_worker_set * worker_set = &worker_set_tcpip[workersetnum];
+		struct _starpu_worker *baseworker = &worker_set->workers[0];
 
-                /* tell the main thread that this one is ready */
-                STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
-                baseworker->status = STATUS_UNKNOWN;
-                worker_set->set_is_initialized = 1;
-                STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
-                STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
-        }
+		/* tell the main thread that this one is ready */
+		STARPU_PTHREAD_MUTEX_LOCK(&worker_set->mutex);
+		baseworker->status = STATUS_UNKNOWN;
+		worker_set->set_is_initialized = 1;
+		STARPU_PTHREAD_COND_SIGNAL(&worker_set->ready_cond);
+		STARPU_PTHREAD_MUTEX_UNLOCK(&worker_set->mutex);
+	}
 
-        _starpu_src_common_workers_set(worker_set_tcpip, nbsinknodes, &_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][worker_set_tcpip->workers[0].devid]);
+	_starpu_src_common_workers_set(worker_set_tcpip, nbsinknodes, &_starpu_src_nodes[STARPU_TCPIP_MS_WORKER][worker_set_tcpip->workers[0].devid]);
 
-        return NULL;
+	return NULL;
 }
 
 int _starpu_tcpip_is_direct_access_supported(unsigned node, unsigned handling_node)
@@ -332,14 +331,14 @@ int _starpu_tcpip_is_direct_access_supported(unsigned node, unsigned handling_no
 
 struct _starpu_node_ops _starpu_driver_tcpip_ms_node_ops =
 {
-        .name = "tcpip driver",
+	.name = "tcpip driver",
 
-        .malloc_on_node = _starpu_src_common_allocate,
-        .free_on_node = _starpu_src_common_free,
+	.malloc_on_node = _starpu_src_common_allocate,
+	.free_on_node = _starpu_src_common_free,
 
-        .is_direct_access_supported = _starpu_tcpip_is_direct_access_supported,
+	.is_direct_access_supported = _starpu_tcpip_is_direct_access_supported,
 
-        .copy_interface_to[STARPU_CPU_RAM] = _starpu_copy_interface_any_to_any,
+	.copy_interface_to[STARPU_CPU_RAM] = _starpu_copy_interface_any_to_any,
 	.copy_interface_to[STARPU_TCPIP_MS_RAM] = _starpu_copy_interface_any_to_any,
 
 	.copy_interface_from[STARPU_CPU_RAM] = _starpu_copy_interface_any_to_any,
@@ -352,5 +351,5 @@ struct _starpu_node_ops _starpu_driver_tcpip_ms_node_ops =
 	.copy_data_from[STARPU_TCPIP_MS_RAM] = _starpu_src_common_copy_data_sink_to_sink,
 
 	.wait_request_completion = _starpu_tcpip_common_wait_request_completion,
-        .test_request_completion = _starpu_tcpip_common_test_event,
+	.test_request_completion = _starpu_tcpip_common_test_event,
 };

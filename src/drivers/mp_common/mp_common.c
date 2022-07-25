@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -186,7 +186,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		}
 		break;
 
-	        case STARPU_NODE_MPI_SINK:
+		case STARPU_NODE_MPI_SINK:
 		{
 			/*
 			  node->nb_mp_sinks =
@@ -268,7 +268,7 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 		}
 		break;
 
-	        case STARPU_NODE_TCPIP_SINK:
+		case STARPU_NODE_TCPIP_SINK:
 		{
 			/*
 			  node->nb_mp_sinks =
@@ -321,10 +321,10 @@ _starpu_mp_common_node_create(enum _starpu_mp_node_kind node_kind,
 	mp_message_list_init(&node->message_queue);
 	STARPU_PTHREAD_MUTEX_INIT(&node->message_queue_mutex,NULL);
 
-        STARPU_PTHREAD_MUTEX_INIT(&node->connection_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&node->connection_mutex, NULL);
 
-        _starpu_mp_event_list_init(&node->event_list);
-        _starpu_mp_event_list_init(&node->event_queue);
+	_starpu_mp_event_list_init(&node->event_list);
+	_starpu_mp_event_list_init(&node->event_queue);
 
 	/* If the node is a sink then we must initialize some field */
 	if(node->kind == STARPU_NODE_MPI_SINK || node->kind == STARPU_NODE_TCPIP_SINK)
@@ -385,7 +385,7 @@ static void __starpu_mp_common_send_command(const struct _starpu_mp_node *node, 
 {
 	STARPU_ASSERT_MSG(arg_size <= BUFFER_SIZE, "Too much data (%d) for the static buffer (%d), increase BUFFER_SIZE perhaps?", arg_size, BUFFER_SIZE);
 
-        //printf("SEND %s: %d/%s - arg_size %d by %lu \n", notif?"NOTIF":"CMD", command, _starpu_mp_common_command_to_string(command), arg_size, starpu_pthread_self());
+	//printf("SEND %s: %d/%s - arg_size %d by %lu \n", notif?"NOTIF":"CMD", command, _starpu_mp_common_command_to_string(command), arg_size, starpu_pthread_self());
 
 	/* MPI sizes are given through a int */
 	int command_size = sizeof(enum _starpu_mp_command);
@@ -443,7 +443,7 @@ static enum _starpu_mp_command __starpu_mp_common_recv_command(const struct _sta
 	command = *((enum _starpu_mp_command *) node->buffer);
 	*arg_size = *((int *) ((uintptr_t)node->buffer + command_size));
 
-        //printf("RECV %s : %d/%s - arg_size %d by %lu \n", notif?"NOTIF":"CMD", command, _starpu_mp_common_command_to_string(command), *arg_size, starpu_pthread_self());
+	//printf("RECV %s : %d/%s - arg_size %d by %lu \n", notif?"NOTIF":"CMD", command, _starpu_mp_common_command_to_string(command), *arg_size, starpu_pthread_self());
 
 	/* If there is no argument (ie. arg_size == 0),
 	 * let's return the command right now */
@@ -491,23 +491,23 @@ void _starpu_sink_deinit(struct _starpu_mp_node *node)
 
 void _starpu_sink_launch_workers(struct _starpu_mp_node *node)
 {
-        //TODO
-        int i;
-        struct arg_sink_thread * arg;
-        cpu_set_t cpuset;
-        starpu_pthread_attr_t attr;
-        starpu_pthread_t thread;
+	//TODO
+	int i;
+	struct arg_sink_thread * arg;
+	cpu_set_t cpuset;
+	starpu_pthread_attr_t attr;
+	starpu_pthread_t thread;
 
-        for(i=0; i < node->nb_cores; i++)
-        {
+	for(i=0; i < node->nb_cores; i++)
+	{
 		int ret;
 
-                //init the set
-                CPU_ZERO(&cpuset);
-                CPU_SET(i,&cpuset);
+		//init the set
+		CPU_ZERO(&cpuset);
+		CPU_SET(i,&cpuset);
 
-                ret = starpu_pthread_attr_init(&attr);
-                STARPU_ASSERT(ret == 0);
+		ret = starpu_pthread_attr_init(&attr);
+		STARPU_ASSERT(ret == 0);
 		int nobind = starpu_get_env_number("STARPU_WORKERS_NOBIND");
 
 		if (nobind <= 0)
@@ -516,13 +516,13 @@ void _starpu_sink_launch_workers(struct _starpu_mp_node *node)
 			STARPU_ASSERT(ret == 0);
 		}
 
-                /*prepare the argument for the thread*/
-                _STARPU_MALLOC(arg, sizeof(struct arg_sink_thread));
-                arg->coreid = i;
-                arg->node = node;
+		/*prepare the argument for the thread*/
+		_STARPU_MALLOC(arg, sizeof(struct arg_sink_thread));
+		arg->coreid = i;
+		arg->node = node;
 
-                STARPU_PTHREAD_CREATE(&thread, &attr, _starpu_sink_thread, arg);
-                ((starpu_pthread_t *)node->thread_table)[i] = thread;
+		STARPU_PTHREAD_CREATE(&thread, &attr, _starpu_sink_thread, arg);
+		((starpu_pthread_t *)node->thread_table)[i] = thread;
 
-        }
+	}
 }

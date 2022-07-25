@@ -574,12 +574,12 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		task = _starpu_get_worker_task(cpu_worker, workerid, memnode);
 
 #ifdef STARPU_SIMGRID
- #ifndef STARPU_OPENMP
+#ifndef STARPU_OPENMP
 	if (!res && !task)
 		/* No progress, wait */
 		starpu_pthread_wait_wait(&cpu_worker->wait);
- #else
-  #if SIMGRID_VERSION >= 31800
+#else
+#if SIMGRID_VERSION >= 31800
 	if (!res && !task)
 	{
 		/* No progress, wait (but at most 1s for OpenMP support) */
@@ -589,11 +589,11 @@ int _starpu_cpu_driver_run_once(struct _starpu_worker *cpu_worker)
 		abstime.tv_sec++;
 		starpu_pthread_wait_timedwait(&cpu_worker->wait, &abstime);
 	}
-  #else
+#else
 	/* Previous simgrid versions don't really permit to use wait_timedwait in C */
 	starpu_sleep(0.001);
-  #endif
- #endif
+#endif
+#endif
 #endif
 
 	if (!task)

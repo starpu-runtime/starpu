@@ -263,7 +263,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 					STARPU_CUDA_WORKER,
 					cudagpu, devid, 0, 0,
 					1, 1, NULL, NULL);
-        }
+	}
 
 	/* Don't copy this, just here for other code to work fine */
 	topology->cuda_th_per_stream = 0;
