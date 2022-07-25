@@ -316,3 +316,63 @@ void chol_cublas_codelet_update_potrf(void *descr[], void *_args)
 	chol_common_codelet_update_potrf(descr, 1, _args);
 }
 #endif/* STARPU_USE_CUDA */
+
+struct starpu_perfmodel chol_model_potrf;
+struct starpu_perfmodel chol_model_trsm;
+struct starpu_perfmodel chol_model_syrk;
+struct starpu_perfmodel chol_model_gemm;
+
+/*
+ *	Create the codelets
+ */
+
+struct starpu_codelet cl_potrf =
+{
+	.type = STARPU_SEQ,
+	.cpu_funcs = {chol_cpu_codelet_update_potrf},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_potrf},
+#endif
+	.nbuffers = 1,
+	.modes = {STARPU_RW},
+	.model = &chol_model_potrf
+};
+
+struct starpu_codelet cl_trsm =
+{
+	.type = STARPU_SEQ,
+	.cpu_funcs = {chol_cpu_codelet_update_trsm},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_trsm},
+#endif
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
+	.model = &chol_model_trsm
+};
+
+struct starpu_codelet cl_syrk =
+{
+	.type = STARPU_SEQ,
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {chol_cpu_codelet_update_syrk},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_syrk},
+#endif
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
+	.model = &chol_model_syrk
+};
+
+struct starpu_codelet cl_gemm =
+{
+	.type = STARPU_SEQ,
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {chol_cpu_codelet_update_gemm},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_gemm},
+#endif
+	.nbuffers = 3,
+	.modes = {STARPU_R, STARPU_R, STARPU_RW},
+	.model = &chol_model_gemm
+};
+

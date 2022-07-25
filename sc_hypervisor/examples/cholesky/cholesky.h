@@ -68,10 +68,20 @@ extern unsigned g_with_noctxs;
 extern unsigned g_chole1;
 extern unsigned g_chole2;
 
+extern struct starpu_perfmodel chol_model_potrf;
+extern struct starpu_perfmodel chol_model_trsm;
+extern struct starpu_perfmodel chol_model_syrk;
+extern struct starpu_perfmodel chol_model_gemm;
+
 void chol_cpu_codelet_update_potrf(void **, void *);
 void chol_cpu_codelet_update_trsm(void **, void *);
 void chol_cpu_codelet_update_syrk(void **, void *);
 void chol_cpu_codelet_update_gemm(void **, void *);
+
+extern struct starpu_codelet cl_potrf;
+extern struct starpu_codelet cl_trsm;
+extern struct starpu_codelet cl_syrk;
+extern struct starpu_codelet cl_gemm;
 
 double cpu_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 double cpu_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
