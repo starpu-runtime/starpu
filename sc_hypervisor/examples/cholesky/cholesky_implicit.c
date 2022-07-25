@@ -31,23 +31,27 @@ static void callback_turn_spmd_on(void *arg)
 }
 
 int hypervisor_tag = 1;
-static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
+static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 {
 	int ret;
-	struct timeval start;
-	struct timeval end;
+	double start;
+	double end;
 
-	unsigned i,j,k;
+	unsigned k,m,n;
+	unsigned long nx = starpu_matrix_get_nx(dataA);
+	unsigned long nn = nx/nblocks;
 
 	int prio_level = g_noprio?STARPU_DEFAULT_PRIO:STARPU_MAX_PRIO;
 
-	gettimeofday(&start, NULL);
-
 	if (g_bound)
 		starpu_bound_start(0, 0);
+
+	start = starpu_timing_now();
+
 	/* create all the DAG nodes */
 	for (k = 0; k < nblocks; k++)
 	{
+		starpu_iteration_push(k);
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 		if(k == 0 && g_with_ctxs)
 		{
@@ -57,77 +61,89 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 						  STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 						  STARPU_HYPERVISOR_TAG, hypervisor_tag,
 						  0);
+			if (ret == -ENODEV) return 77;
 			set_hypervisor_conf(START_BENCH, hypervisor_tag++);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 		else
-			starpu_task_insert(&cl_potrf,
+		{
+			ret = starpu_task_insert(&cl_potrf,
 					   STARPU_PRIORITY, prio_level,
 					   STARPU_RW, sdatakk,
 					   STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
+					   STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					   0);
+			if (ret == -ENODEV) return 77;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+		}
 
-		for (j = k+1; j<nblocks; j++)
+		for (m = k+1; m<nblocks; m++)
 		{
-                        starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
+                        starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 
                         ret = starpu_task_insert(&cl_trsm,
-						 STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
+						 STARPU_PRIORITY, (m == k+1)?prio_level:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
-						 STARPU_RW, sdatakj,
+						 STARPU_RW, sdatamk,
+						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 						 0);
+			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-
-			for (i = k+1; i<nblocks; i++)
-			{
-				if (i <= j)
-                                {
-					starpu_data_handle_t sdataki = starpu_data_get_sub_data(dataA, 2, k, i);
-					starpu_data_handle_t sdataij = starpu_data_get_sub_data(dataA, 2, i, j);
-
-					if(k == (nblocks-2) && j == (nblocks-1) &&
-					   i == (k + 1) && g_with_ctxs)
-					{
-						ret = starpu_task_insert(&cl_gemm,
-									 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
-									 STARPU_R, sdataki,
-									 STARPU_R, sdatakj,
-									 STARPU_RW, sdataij,
-									 STARPU_HYPERVISOR_TAG, hypervisor_tag,
-									 0);
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-						set_hypervisor_conf(END_BENCH, hypervisor_tag++);
-					}
-
-					else
-					{
-						ret = starpu_task_insert(&cl_gemm,
-									 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
-									 STARPU_R, sdataki,
-									 STARPU_R, sdatakj,
-									 STARPU_RW, sdataij,
-									 0);
-						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
-					}
-
-                   }
-			}
 		}
+		starpu_data_wont_use(sdatakk);
+
+		for (n = k+1; n<nblocks; n++)
+		{
+			starpu_data_handle_t sdatank = starpu_data_get_sub_data(dataA, 2, n, k);
+
+			for (m = n; m<nblocks; m++)
+			{
+				starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
+				starpu_data_handle_t sdatamn = starpu_data_get_sub_data(dataA, 2, m, n);
+
+				if(k == (nblocks-2) && m == (nblocks-1) &&
+				   n == (k + 1) && g_with_ctxs)
+				{
+					ret = starpu_task_insert(&cl_gemm,
+								 STARPU_PRIORITY, ((n == k+1) && (m == k+1))?prio_level:STARPU_DEFAULT_PRIO,
+								 STARPU_R, sdatank,
+								 STARPU_R, sdatamk,
+								 STARPU_RW, sdatamn,
+								 STARPU_HYPERVISOR_TAG, hypervisor_tag,
+								 0);
+					if (ret == -ENODEV) return 77;
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+					set_hypervisor_conf(END_BENCH, hypervisor_tag++);
+				}
+
+				else
+				{
+					ret = starpu_task_insert(&cl_gemm,
+								 STARPU_PRIORITY, ((n == k+1) && (m == k+1))?prio_level:STARPU_DEFAULT_PRIO,
+								 STARPU_R, sdatamk,
+								 STARPU_R, sdatank,
+								 STARPU_RW, sdatamn,
+								 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
+								 0);
+					if (ret == -ENODEV) return 77;
+					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+				}
+
+			}
+			starpu_data_wont_use(sdatank);
+		}
+		starpu_iteration_pop();
 	}
 
 	starpu_task_wait_for_all();
 	if (g_bound)
 		starpu_bound_stop();
 
-	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
+	end = starpu_timing_now();
 
-	gettimeofday(&end, NULL);
+	double timing = end - start;
 
-	double timing = (double)((end.tv_sec - start.tv_sec)*1000000 + (end.tv_usec - start.tv_usec));
-
-	unsigned long n = starpu_matrix_get_nx(dataA);
-
-	double flop = (1.0f*n*n*n)/3.0f;
+	double flop = (1.0f*nx*nx*nx)/3.0f;
 
 	if(g_with_ctxs || g_with_noctxs || g_chole1 || g_chole2)
 		update_sched_ctx_timing_results((flop/timing/1000.0f), (timing/1000000.0f));
@@ -144,33 +160,48 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			FPRINTF(stderr, "Theoretical GFlops: %2.2f\n", (flop/res/1000000.0f));
 		}
 	}
+	return 0;
 }
 
-static void cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
+static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 {
 	starpu_data_handle_t dataA;
+	unsigned m, n;
 
 	/* monitor and partition the A matrix into blocks :
-	 * one block is now determined by 2 unsigned (i,j) */
+	 * one block is now determined by 2 unsigned (m,n) */
 	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
 
+	/* Split into blocks of complete rows first */
 	struct starpu_data_filter f =
-	{
-		.filter_func = starpu_matrix_filter_vertical_block,
-		.nchildren = nblocks
-	};
-
-	struct starpu_data_filter f2 =
 	{
 		.filter_func = starpu_matrix_filter_block,
 		.nchildren = nblocks
 	};
 
+	/* Then split rows into tiles */
+	struct starpu_data_filter f2 =
+	{
+		/* Note: here "vertical" is for row-major, we are here using column-major. */
+		.filter_func = starpu_matrix_filter_vertical_block,
+		.nchildren = nblocks
+	};
+
 	starpu_data_map_filters(dataA, 2, &f, &f2);
 
-	_cholesky(dataA, nblocks);
+	for (m = 0; m < nblocks; m++)
+		for (n = 0; n < nblocks; n++)
+		{
+			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, m, n);
+			starpu_data_set_coordinates(data, 2, m, n);
+		}
 
+	int ret = _cholesky(dataA, nblocks);
+
+	starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 	starpu_data_unregister(dataA);
+
+	return ret;
 }
 
 static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
@@ -179,13 +210,13 @@ static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
 	float *mat;
 	starpu_malloc((void **)&mat, (size_t)size*size*sizeof(float));
 
-	unsigned i,j;
-	for (i = 0; i < size; i++)
+	unsigned m,n;
+	for (n = 0; n < size; n++)
 	{
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			mat[j +i*size] = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-			/* mat[j +i*size] = ((i == j)?1.0f*size:0.0f); */
+			mat[m +n*size] = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
+			/* mat[m +n*size] = ((m == n)?1.0f*size:0.0f); */
 		}
 	}
 
@@ -193,13 +224,13 @@ static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Input :\n");
 
-	for (j = 0; j < size; j++)
+	for (m = 0; m < size; m++)
 	{
-		for (i = 0; i < size; i++)
+		for (n = 0; n < size; n++)
 		{
-			if (i <= j)
+			if (n <= m)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[m +n*size]);
 			}
 			else
 			{
@@ -214,18 +245,18 @@ static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
 
 #ifdef PRINT_OUTPUT
 	FPRINTF(stdout, "Results :\n");
-	for (j = 0; j < size; j++)
+	for (m = 0; m < size; m++)
 	{
-		for (i = 0; i < size; i++)
+		for (n = 0; n < size; n++)
 		{
-			if (i <= j)
+			if (n <= m)
 			{
-				FPRINTF(stdout, "%2.2f\t", mat[j +i*size]);
+				FPRINTF(stdout, "%2.2f\t", mat[m +n*size]);
 			}
 			else
 			{
 				FPRINTF(stdout, ".\t");
-				mat[j+i*size] = 0.0f; /* debug */
+				mat[m+n*size] = 0.0f; /* debug */
 			}
 		}
 		FPRINTF(stdout, "\n");
@@ -235,13 +266,13 @@ static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
 	if (g_check)
 	{
 		FPRINTF(stderr, "compute explicit LLt ...\n");
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			for (i = 0; i < size; i++)
+			for (n = 0; n < size; n++)
 			{
-				if (i > j)
+				if (n > m)
 				{
-					mat[j+i*size] = 0.0f; /* debug */
+					mat[m+n*size] = 0.0f; /* debug */
 				}
 			}
 		}
@@ -253,13 +284,13 @@ static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
 
 		FPRINTF(stderr, "comparing results ...\n");
 #ifdef PRINT_OUTPUT
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			for (i = 0; i < size; i++)
+			for (n = 0; n < size; n++)
 			{
-				if (i <= j)
+				if (n <= m)
 				{
-					FPRINTF(stdout, "%2.2f\t", test_mat[j +i*size]);
+					FPRINTF(stdout, "%2.2f\t", test_mat[m +n*size]);
 				}
 				else
 				{
@@ -270,17 +301,17 @@ static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
 		}
 #endif
 
-		for (j = 0; j < size; j++)
+		for (m = 0; m < size; m++)
 		{
-			for (i = 0; i < size; i++)
+			for (n = 0; n < size; n++)
 			{
-				if (i <= j)
+				if (n <= m)
 				{
-	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-	                                float err = fabsf(test_mat[j +i*size] - orig) / orig;
-	                                if (err > 0.00001)
+	                                float orig = (1.0f/(1.0f+m+n)) + ((m == n)?1.0f*size:0.0f);
+	                                float err = fabsf(test_mat[m +n*size] - orig) / orig;
+	                                if (err > 0.0001)
 					{
-	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
+	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.6f != %2.6f (err %2.6f)\n", m, n, test_mat[m +n*size], orig, err);
 	                                        assert(0);
 	                                }
 	                        }
