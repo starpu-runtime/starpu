@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 
 struct starpu_perfmodel chol_model_potrf;
 struct starpu_perfmodel chol_model_trsm;
+struct starpu_perfmodel chol_model_syrk;
 struct starpu_perfmodel chol_model_gemm;
 
 /* A [ y ] [ x ] */
@@ -119,6 +120,17 @@ static void create_task_trsm(unsigned k, unsigned j)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
+static struct starpu_codelet cl_syrk =
+{
+	.modes = { STARPU_R, STARPU_RW },
+	.cpu_funcs = {chol_cpu_codelet_update_syrk},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_syrk},
+#endif
+	.nbuffers = 2,
+	.model = &chol_model_syrk
+};
+
 static struct starpu_codelet cl_gemm =
 {
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
@@ -138,12 +150,23 @@ static void create_task_gemm(unsigned k, unsigned i, unsigned j)
 
 	struct starpu_task *task = create_task(TAG_GEMM(k, i, j));
 
-	task->cl = &cl_gemm;
+	if (m == n)
+	{
+		task->cl = &cl_syrk;
 
-	/* which sub-data is manipulated ? */
-	task->handles[0] = A_state[i][k];
-	task->handles[1] = A_state[j][k];
-	task->handles[2] = A_state[j][i];
+		/* which sub-data is manipulated ? */
+		task->handles[0] = A_state[i][k];
+		task->handles[1] = A_state[j][i];
+	}
+	else
+	{
+		task->cl = &cl_gemm;
+
+		/* which sub-data is manipulated ? */
+		task->handles[0] = A_state[i][k];
+		task->handles[1] = A_state[j][k];
+		task->handles[2] = A_state[j][i];
+	}
 
 	if ( (i == k + 1) && (j == k +1) )
 	{
@@ -246,10 +269,12 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,cuda_chol_task_syrk_cost);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,NULL);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 

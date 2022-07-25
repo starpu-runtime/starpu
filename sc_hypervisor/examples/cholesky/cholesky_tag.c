@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -20,6 +20,7 @@
 
 struct starpu_perfmodel chol_model_potrf;
 struct starpu_perfmodel chol_model_trsm;
+struct starpu_perfmodel chol_model_syrk;
 struct starpu_perfmodel chol_model_gemm;
 
 /*
@@ -53,7 +54,7 @@ static struct starpu_codelet cl_potrf =
 
 static struct starpu_task * create_task_potrf(starpu_data_handle_t dataA, unsigned k)
 {
-/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG_POTRF(k))); */
+/*	FPRINTF(stdout, "task potrf k = %d TAG = %llx\n", k, (TAG_POTRF(k))); */
 
 	struct starpu_task *task = create_task(TAG_POTRF(k));
 
@@ -120,6 +121,17 @@ static void create_task_trsm(starpu_data_handle_t dataA, unsigned k, unsigned j)
 
 }
 
+static struct starpu_codelet cl_syrk =
+{
+	.modes = { STARPU_R, STARPU_RW },
+	.cpu_funcs = {chol_cpu_codelet_update_syrk},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_syrk},
+#endif
+	.nbuffers = 2,
+	.model = &chol_model_syrk
+};
+
 static struct starpu_codelet cl_gemm =
 {
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
@@ -137,12 +149,23 @@ static void create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i,
 
 	struct starpu_task *task = create_task(TAG_GEMM(k, i, j));
 
-	task->cl = &cl_gemm;
+	if (m ==n)
+	{
+		task->cl = &cl_syrk;
 
-	/* which sub-data is manipulated ? */
-	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);
-	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
-	task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
+		/* which sub-data is manipulated ? */
+		task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);
+		task->handles[1] = starpu_data_get_sub_data(dataA, 2, i, j);
+	}
+	else
+	{
+		task->cl = &cl_gemm;
+
+		/* which sub-data is manipulated ? */
+		task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);
+		task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
+		task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
+	}
 
 	if (!noprio && (i == k + 1) && (j == k +1) )
 	{
@@ -256,10 +279,12 @@ static int initialize_system(float **A, unsigned dim, unsigned pinned)
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,cuda_chol_task_syrk_cost);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,NULL);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -105,6 +105,40 @@ double cuda_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmode
 
 #ifdef STARPU_MODEL_DEBUG
 	FPRINTF(stdout, "cuda_chol_task_trsm_cost n %u cost %e\n", n, cost);
+#endif
+
+	return PERTURBATE(cost);
+}
+
+double cpu_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+{
+	(void)arch;
+	(void)nimpl;
+	uint32_t n;
+
+	n = starpu_matrix_get_nx(task->handles[0]);
+
+	double cost = (((double)(n)*n*n)/50.0f/10.75/8.0760)/2;
+
+#ifdef STARPU_MODEL_DEBUG
+	FPRINTF(stdout, "cpu_chol_task_syrk_cost n %u cost %e\n", n, cost);
+#endif
+
+	return PERTURBATE(cost);
+}
+
+double cuda_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+{
+	(void)arch;
+	(void)nimpl;
+	uint32_t n;
+
+	n = starpu_matrix_get_nx(task->handles[0]);
+
+	double cost = (((double)(n)*n*n)/50.0f/10.75/76.30666)/2;
+
+#ifdef STARPU_MODEL_DEBUG
+	FPRINTF(stdout, "cuda_chol_task_syrk_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);

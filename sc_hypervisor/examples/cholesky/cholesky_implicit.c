@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -21,6 +21,7 @@
 
 struct starpu_perfmodel chol_model_potrf;
 struct starpu_perfmodel chol_model_trsm;
+struct starpu_perfmodel chol_model_syrk;
 struct starpu_perfmodel chol_model_gemm;
 
 /*
@@ -49,6 +50,19 @@ static struct starpu_codelet cl_trsm =
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
 	.model = &chol_model_trsm
+};
+
+static struct starpu_codelet cl_syrk =
+{
+	.type = STARPU_SEQ,
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {chol_cpu_codelet_update_syrk},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_syrk},
+#endif
+	.nbuffers = 2,
+	.modes = {STARPU_R, STARPU_RW},
+	.model = &chol_model_syrk
 };
 
 static struct starpu_codelet cl_gemm =
@@ -145,6 +159,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					}
 
 					else
+					{
 						ret = starpu_task_insert(&cl_gemm,
 									 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
 									 STARPU_R, sdataki,
@@ -152,6 +167,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 									 STARPU_RW, sdataij,
 									 0);
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+					}
 
                    }
 			}
@@ -320,7 +336,7 @@ static void execute_cholesky(float *pmat, unsigned size, unsigned nblocks)
 				if (i <= j)
 				{
 	                                float orig = (1.0f/(1.0f+i+j)) + ((i == j)?1.0f*size:0.0f);
-	                                float err = abs(test_mat[j +i*size] - orig);
+	                                float err = fabsf(test_mat[j +i*size] - orig) / orig;
 	                                if (err > 0.00001)
 					{
 	                                        FPRINTF(stderr, "Error[%u, %u] --> %2.2f != %2.2f (err %2.2f)\n", i, j, test_mat[j +i*size], orig, err);
@@ -356,10 +372,12 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,cuda_chol_task_syrk_cost);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,NULL);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 

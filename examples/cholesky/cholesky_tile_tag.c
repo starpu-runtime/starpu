@@ -121,13 +121,27 @@ static int create_task_gemm(unsigned k, unsigned m, unsigned n)
 /*	FPRINTF(stdout, "task gemm k,n,m = %d,%d,%d TAG = %llx\n", k,m,n, TAG_GEMM(k,m,n)); */
 
 	struct starpu_task *task = create_task(TAG_GEMM(k, m, n));
+	int nx = starpu_matrix_get_nx(task->handles[0]);
 
-	task->cl = &cl_gemm;
+	if (m == n)
+	{
+		task->cl = &cl_syrk;
 
-	/* which sub-data is manipulated ? */
-	task->handles[0] = A_state[n][k];
-	task->handles[1] = A_state[m][k];
-	task->handles[2] = A_state[m][n];
+		/* which sub-data is manipulated ? */
+		task->handles[0] = A_state[n][k];
+		task->handles[1] = A_state[n][n];
+		task->flops = FLOPS_SSYRK(nx, nx);
+	}
+	else
+	{
+		task->cl = &cl_gemm;
+
+		/* which sub-data is manipulated ? */
+		task->handles[0] = A_state[n][k];
+		task->handles[1] = A_state[m][k];
+		task->handles[2] = A_state[m][n];
+		task->flops = FLOPS_SGEMM(nx, nx, nx);
+	}
 
 	if (!noprio_p && (n == k + 1) && (m == k +1) )
 	{
@@ -143,9 +157,6 @@ static int create_task_gemm(unsigned k, unsigned m, unsigned n)
 	{
 		starpu_tag_declare_deps(TAG_GEMM(k, m, n), 2, TAG_TRSM(n, k), TAG_TRSM(m, k));
 	}
-
-	int nx = starpu_matrix_get_nx(task->handles[0]);
-	task->flops = FLOPS_SGEMM(nx, nx, nx);
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -245,10 +256,12 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,cuda_chol_task_syrk_cost);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,NULL);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -16,10 +16,24 @@
  * See the GNU Lesser General Public License in COPYING.LGPL for more details.
  */
 
+/*
+ * This version of the Cholesky factorization uses explicit dependency
+ * declaration through dependency tags.
+ * It also uses data partitioning to split the matrix into submatrices.
+ * It also changes the partitioning during execution: when called first,
+ * cholesky_grain_rec splits the matrix with a big granularity (nblocks) and
+ * processes nbigblocks blocks, before calling itself again, to process the
+ * remainder of the matrix with a smaller granularity.
+ */
+
+/* Note: this is using fortran ordering, i.e. column-major ordering, i.e.
+ * elements with consecutive row number are consecutive in memory */
+
 #include "cholesky.h"
 
 struct starpu_perfmodel chol_model_potrf;
 struct starpu_perfmodel chol_model_trsm;
+struct starpu_perfmodel chol_model_syrk;
 struct starpu_perfmodel chol_model_gemm;
 
 /*
@@ -53,7 +67,7 @@ static struct starpu_codelet cl_potrf =
 
 static struct starpu_task * create_task_potrf(starpu_data_handle_t dataA, unsigned k, unsigned reclevel)
 {
-/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG_POTRF(k))); */
+/*	FPRINTF(stdout, "task potrf k = %d TAG = %llx\n", k, (TAG_POTRF(k))); */
 
 	struct starpu_task *task = create_task(TAG_POTRF_AUX(k, reclevel));
 
@@ -131,16 +145,27 @@ static void create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i,
 {
 	int ret;
 
-/*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG_GEMM_AUX(k,i,j)); */
+/*	FPRINTF(stdout, "task gemm k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG_GEMM_AUX(k,i,j)); */
 
 	struct starpu_task *task = create_task(TAG_GEMM_AUX(k, i, j, reclevel));
 
-	task->cl = &cl_gemm;
+	if (m == n)
+	{
+		task->cl = &cl_syrk;
 
-	/* which sub-data is manipulated ? */
-	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);
-	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
-	task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
+		/* which sub-data is manipulated ? */
+		task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);
+		task->handles[1] = starpu_data_get_sub_data(dataA, 2, i, j);
+	}
+	else
+	{
+		task->cl = &cl_gemm;
+
+		/* which sub-data is manipulated ? */
+		task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);
+		task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, j);
+		task->handles[2] = starpu_data_get_sub_data(dataA, 2, i, j);
+	}
 
 	if ( (i == k + 1) && (j == k +1) )
 	{
@@ -211,6 +236,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 		else
 		{
 			ret = starpu_task_submit(task);
+			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 

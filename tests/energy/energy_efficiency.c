@@ -156,6 +156,13 @@ static float frequency(int worker, unsigned i)
 #define FLOPS_STRSM(__m, __n) (     FMULS_TRSM((__m), (__n)) +       FADDS_TRSM((__m), (__n)) )
 
 
+#define FMULS_SYRK(__k, __n) (0.5 * (double)(__k) * (double)(__n) * ((double)(__n)+1.))
+#define FADDS_SYRK(__k, __n) (0.5 * (double)(__k) * (double)(__n) * ((double)(__n)+1.))
+
+#define FLOPS_SSYRK(__k, __n) (     FMULS_SYRK((__k), (__n)) +       FADDS_SYRK((__k), (__n)) )
+
+
+
 #define FMULS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 #define FADDS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 
@@ -179,7 +186,7 @@ static float frequency(int worker, unsigned i)
  * Kernel time performance models, would normally be provided by measurements
  */
 
-/* We assume that GEMM scales perfectly with frequency */
+/* We assume that GEMM/SYRK scale perfectly with frequency */
 #define GEMM_GFLOPS 50.	/* At full speed */
 #define GEMM_FLOPS(N) FLOPS_SGEMM(N, N, N)
 #define GEMM_TIME(N) (GEMM_FLOPS(TILE_SIZE) / (GEMM_GFLOPS * 1000000000.))
@@ -196,6 +203,23 @@ static double gemm_time(struct starpu_task *t, unsigned workerid, unsigned i)
 {
 	(void)t;
 	return _gemm_time(frequency(workerid, i));
+}
+#define SYRK_GFLOPS 50.	/* At full speed */
+#define SYRK_FLOPS(N) FLOPS_SSYRK(N, N)
+#define SYRK_TIME(N) (SYRK_FLOPS(TILE_SIZE) / (SYRK_GFLOPS * 1000000000.))
+static double _syrk_time(float frequency)
+{
+	double ret;
+
+	/* Fix according to real frequency, linear */
+	ret = SYRK_TIME(N) / (frequency / freq_fast);
+	return ret * 1000000.;
+}
+
+static double syrk_time(struct starpu_task *t, unsigned workerid, unsigned i)
+{
+	(void)t;
+	return _syrk_time(frequency(workerid, i));
 }
 
 /* We assume that TRSM decays a bit with frequency */
@@ -274,6 +298,7 @@ static struct starpu_codelet kernel##_cl = \
 
 CODELET(potrf, 1, STARPU_RW)
 CODELET(trsm, 2, STARPU_R, STARPU_RW)
+CODELET(syrk, 2, STARPU_R, STARPU_RW)
 CODELET(gemm, 3, STARPU_R, STARPU_R, STARPU_RW)
 
 int main(int argc, char *argv[])
@@ -303,6 +328,7 @@ int main(int argc, char *argv[])
 		potrf_cl.cpu_funcs[1] = dummy_func;
 		trsm_cl.cpu_funcs[1] = dummy_func;
 		gemm_cl.cpu_funcs[1] = dummy_func;
+		syrk_cl.cpu_funcs[1] = dummy_func;
 	}
 
 	/* Initialize StarPU */
@@ -358,6 +384,11 @@ int main(int argc, char *argv[])
 			GEMM_FLOPS(TILE_SIZE) / _gemm_time(freq_slow) / 1000,
 			GEMM_FLOPS(TILE_SIZE) / _gemm_time(freq_fast) / 1000);
 
+	printf("syrk:\t%f %f %f\n",
+			SYRK_FLOPS(TILE_SIZE) / _syrk_time(freq_min) / 1000,
+			SYRK_FLOPS(TILE_SIZE) / _syrk_time(freq_slow) / 1000,
+			SYRK_FLOPS(TILE_SIZE) / _syrk_time(freq_fast) / 1000);
+
 	printf("trsm:\t%f %f %f\n",
 			TRSM_FLOPS(TILE_SIZE) / _trsm_time(freq_min) / 1000,
 			TRSM_FLOPS(TILE_SIZE) / _trsm_time(freq_slow) / 1000,
@@ -374,6 +405,11 @@ int main(int argc, char *argv[])
 			GEMM_FLOPS(TILE_SIZE) / _gemm_time(freq_min) / 1000 / power(freq_min),
 			GEMM_FLOPS(TILE_SIZE) / _gemm_time(freq_slow) / 1000 / power(freq_slow),
 			GEMM_FLOPS(TILE_SIZE) / _gemm_time(freq_fast) / 1000 / power(freq_fast));
+
+	printf("syrk:\t%f %f %f\n",
+			SYRK_FLOPS(TILE_SIZE) / _syrk_time(freq_min) / 1000 / power(freq_min),
+			SYRK_FLOPS(TILE_SIZE) / _syrk_time(freq_slow) / 1000 / power(freq_slow),
+			SYRK_FLOPS(TILE_SIZE) / _syrk_time(freq_fast) / 1000 / power(freq_fast));
 
 	printf("trsm:\t%f %f %f\n",
 			TRSM_FLOPS(TILE_SIZE) / _trsm_time(freq_min) / 1000 / power(freq_min),
@@ -436,7 +472,19 @@ int main(int argc, char *argv[])
 			{
 				for (n = k+1; n<N; n++)
 				{
-					if (n <= m)
+					if (n == m)
+					{
+						ret = starpu_task_insert(&syrk_cl,
+									 STARPU_PRIORITY, unbound_prio ? (int)(2*N - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+									 STARPU_R, A[m][k],
+									 syrk_cl.modes[1], A[m][n],
+									 STARPU_FLOPS, (double) FLOPS_SSYRK(TILE_SIZE, TILE_SIZE),
+									 STARPU_TAG_ONLY, TAG_GEMM(k,m,n),
+									 0);
+						if (ret == -ENODEV) return 77;
+						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+					}
+					else if (n < m)
 					{
 						ret = starpu_task_insert(&gemm_cl,
 									 STARPU_PRIORITY, unbound_prio ? (int)(2*N - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,

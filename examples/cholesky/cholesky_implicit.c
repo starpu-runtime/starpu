@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -97,7 +97,20 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		for (n = k+1; n<nblocks; n++)
 		{
                         starpu_data_handle_t sdatank = starpu_data_get_sub_data(dataA, 2, n, k);
-			for (m = n; m<nblocks; m++)
+			starpu_data_handle_t sdatann = starpu_data_get_sub_data(dataA, 2, n, n);
+
+			ret = starpu_task_insert(&cl_syrk,
+						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - n - n) : (n == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
+						 STARPU_R, sdatank,
+						 cl_syrk.modes[1], sdatann,
+						 STARPU_FLOPS, (double) FLOPS_SSYRK(nn, nn),
+						 STARPU_NAME, "SYRK",
+						 STARPU_TAG_ONLY, TAG_GEMM(k,n,n),
+						 0);
+			if (ret == -ENODEV) return 77;
+			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
+
+			for (m = n+1; m<nblocks; m++)
 			{
 				starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 				starpu_data_handle_t sdatamn = starpu_data_get_sub_data(dataA, 2, m, n);
@@ -356,10 +369,12 @@ int main(int argc, char **argv)
 #ifdef STARPU_USE_CUDA
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,cuda_chol_task_syrk_cost);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
 	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
 	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,NULL);
 	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 

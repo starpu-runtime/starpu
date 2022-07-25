@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -109,6 +109,12 @@
 #define FLOPS_STRSM(__m, __n) (     FMULS_TRSM((__m), (__n)) +       FADDS_TRSM((__m), (__n)) )
 
 
+#define FMULS_SYRK(__k, __n) (0.5 * (double)(__k) * (double)(__n) * ((double)(__n)+1.))
+#define FADDS_SYRK(__k, __n) (0.5 * (double)(__k) * (double)(__n) * ((double)(__n)+1.))
+
+#define FLOPS_SSYRK(__k, __n) (     FMULS_SYRK((__k), (__n)) +       FADDS_SYRK((__k), (__n)) )
+
+
 #define FMULS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 #define FADDS_GEMM(__m, __n, __k) ((double)(__m) * (double)(__n) * (double)(__k))
 
@@ -162,33 +168,41 @@ static unsigned chole2_p = 0;
 
 extern struct starpu_perfmodel chol_model_potrf;
 extern struct starpu_perfmodel chol_model_trsm;
+extern struct starpu_perfmodel chol_model_syrk;
 extern struct starpu_perfmodel chol_model_gemm;
 
 extern struct starpu_codelet cl_potrf;
 extern struct starpu_codelet cl_trsm;
+extern struct starpu_codelet cl_syrk;
 extern struct starpu_codelet cl_gemm;
 extern struct starpu_codelet cl_potrf_gpu;
 extern struct starpu_codelet cl_trsm_gpu;
+extern struct starpu_codelet cl_syrk_gpu;
 extern struct starpu_codelet cl_gemm_gpu;
 extern struct starpu_codelet cl_potrf_cpu;
 extern struct starpu_codelet cl_trsm_cpu;
+extern struct starpu_codelet cl_syrk_cpu;
 extern struct starpu_codelet cl_gemm_cpu;
 
 void chol_cpu_codelet_update_potrf(void **, void *);
 void chol_cpu_codelet_update_trsm(void **, void *);
+void chol_cpu_codelet_update_syrk(void **, void *);
 void chol_cpu_codelet_update_gemm(void **, void *);
 
 double cpu_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 double cpu_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double cpu_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 double cpu_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 
 #ifdef STARPU_USE_CUDA
 void chol_cublas_codelet_update_potrf(void *descr[], void *_args);
 void chol_cublas_codelet_update_trsm(void *descr[], void *_args);
+void chol_cublas_codelet_update_syrk(void *descr[], void *_args);
 void chol_cublas_codelet_update_gemm(void *descr[], void *_args);
 
 double cuda_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 double cuda_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double cuda_chol_task_syrk_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 double cuda_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 #endif
 
@@ -246,6 +260,7 @@ static void parse_args(int argc, char **argv)
 		}
 		else if (strcmp(argv[i], "-commute") == 0)
 		{
+			cl_syrk.modes[1] |= STARPU_COMMUTE;
 			cl_gemm.modes[2] |= STARPU_COMMUTE;
 		}
 		else if (strcmp(argv[i], "-bound") == 0)
