@@ -3130,13 +3130,16 @@ void _starpu_load_bus_performance_files(void)
 
 	struct _starpu_machine_config * config = _starpu_get_machine_config();
 	nnumas = _starpu_topology_get_nnumanodes(config);
-#if defined(STARPU_USE_CUDA) || defined(STARPU_USE_SIMGRID)
+#ifndef STARPU_SIMGRID
+	ncpus = _starpu_topology_get_nhwcpu(config);
+#endif
+#if defined(STARPU_USE_CUDA) || defined(STARPU_SIMGRID)
 	ncuda = _starpu_get_cuda_device_count();
 #endif
-#if defined(STARPU_USE_OPENCL) || defined(STARPU_USE_SIMGRID)
+#if defined(STARPU_USE_OPENCL) || defined(STARPU_SIMGRID)
 	nopencl = _starpu_opencl_get_device_count();
 #endif
-#if defined(STARPU_USE_MPI_MASTER_SLAVE) || defined(STARPU_USE_SIMGRID)
+#if defined(STARPU_USE_MPI_MASTER_SLAVE)
 	nmpi_ms = _starpu_mpi_src_get_device_count();
 #endif
 #if defined(STARPU_USE_MIC) || defined(STARPU_USE_SIMGRID)
