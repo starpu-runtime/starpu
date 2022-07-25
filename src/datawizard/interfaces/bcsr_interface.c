@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -129,9 +129,9 @@ static void register_bcsr_handle(starpu_data_handle_t handle, int home_node, voi
 }
 
 void starpu_bcsr_data_register(starpu_data_handle_t *handleptr, int home_node,
-		uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind,
-		uint32_t *rowptr, uint32_t firstentry,
-		uint32_t r, uint32_t c, size_t elemsize)
+			       uint32_t nnz, uint32_t nrow, uintptr_t nzval, uint32_t *colind,
+			       uint32_t *rowptr, uint32_t firstentry,
+			       uint32_t r, uint32_t c, size_t elemsize)
 {
 	struct starpu_bcsr_interface bcsr_interface =
 	{

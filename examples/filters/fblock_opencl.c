@@ -35,7 +35,7 @@ void opencl_func(void *buffers[], void *cl_arg)
 	cl_kernel kernel;
 	cl_command_queue queue;
 
-        int *factor = cl_arg;
+	int *factor = cl_arg;
 	cl_mem block = (cl_mem)STARPU_BLOCK_GET_DEV_HANDLE(buffers[0]);
 	unsigned offset = STARPU_BLOCK_GET_OFFSET(buffers[0]);
 	int nx = (int)STARPU_BLOCK_GET_NX(buffers[0]);

@@ -33,18 +33,18 @@ void cpu_func(void *buffers[], void *cl_arg)
 
 int main(void)
 {
-    int i;
-    int arr0d;
-    starpu_data_handle_t handle;
-    int factor = 10;
-    int ret;
+	int i;
+	int arr0d;
+	starpu_data_handle_t handle;
+	int factor = 10;
+	int ret;
 
         struct starpu_codelet cl =
-    {
-        .cpu_funcs = {cpu_func},
-        .nbuffers = 1,
-        .modes = {STARPU_RW},
-        .name = "arr0d_to_variable_scal"
+	{
+		.cpu_funcs = {cpu_func},
+		.nbuffers = 1,
+		.modes = {STARPU_RW},
+		.name = "arr0d_to_variable_scal"
         };
 
         FPRINTF(stderr,"IN 0-dim Array: \n");
@@ -52,63 +52,63 @@ int main(void)
         FPRINTF(stderr, "%5d ", arr0d);
         FPRINTF(stderr,"\n");
 
-    ret = starpu_init(NULL);
-    if (ret == -ENODEV)
-        exit(77);
-    STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
+	ret = starpu_init(NULL);
+	if (ret == -ENODEV)
+		exit(77);
+	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-    /* Declare data to StarPU */
-    starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&arr0d, NULL, NULL, 0, sizeof(int));
+	/* Declare data to StarPU */
+	starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&arr0d, NULL, NULL, 0, sizeof(int));
 
-    /* Transfer the 0-dim array to a variable */
-    struct starpu_data_filter f =
-    {
-        .filter_func = starpu_ndim_filter_to_variable,
-        .nchildren = PARTS,
-        /* the children use a variable interface*/
-        .get_child_ops = starpu_ndim_filter_to_variable_child_ops
-    };
-    starpu_data_partition(handle, &f);
+	/* Transfer the 0-dim array to a variable */
+	struct starpu_data_filter f =
+	{
+		.filter_func = starpu_ndim_filter_to_variable,
+		.nchildren = PARTS,
+		/* the children use a variable interface*/
+		.get_child_ops = starpu_ndim_filter_to_variable_child_ops
+	};
+	starpu_data_partition(handle, &f);
 
-    /* Submit a task on the variable */
-    for (i=0; i<starpu_data_get_nb_children(handle); i++)
-    {
-        starpu_data_handle_t variable_handle = starpu_data_get_sub_data(handle, 1, i);
-        FPRINTF(stderr, "Sub variable %d: \n", i);
-        int *variable = (int *)starpu_variable_get_local_ptr(variable_handle);
-        FPRINTF(stderr, "%5d ", *variable);
-        FPRINTF(stderr,"\n");
+	/* Submit a task on the variable */
+	for (i=0; i<starpu_data_get_nb_children(handle); i++)
+	{
+		starpu_data_handle_t variable_handle = starpu_data_get_sub_data(handle, 1, i);
+		FPRINTF(stderr, "Sub variable %d: \n", i);
+		int *variable = (int *)starpu_variable_get_local_ptr(variable_handle);
+		FPRINTF(stderr, "%5d ", *variable);
+		FPRINTF(stderr,"\n");
 
-        struct starpu_task *task = starpu_task_create();
-        FPRINTF(stderr,"Dealing with sub-variable %d\n", i);
-        task->handles[0] = variable_handle;
-        task->cl = &cl;
-        task->synchronous = 1;
-        task->cl_arg = &factor;
-        task->cl_arg_size = sizeof(factor);
+		struct starpu_task *task = starpu_task_create();
+		FPRINTF(stderr,"Dealing with sub-variable %d\n", i);
+		task->handles[0] = variable_handle;
+		task->cl = &cl;
+		task->synchronous = 1;
+		task->cl_arg = &factor;
+		task->cl_arg_size = sizeof(factor);
 
-        ret = starpu_task_submit(task);
-        if (ret == -ENODEV) goto enodev;
-        STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
+		ret = starpu_task_submit(task);
+		if (ret == -ENODEV) goto enodev;
+		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
-        /* Print result variable */
-        FPRINTF(stderr,"OUT Variable %d: \n", i);
-        FPRINTF(stderr, "%5d ", *variable);
-        FPRINTF(stderr,"\n");
-    }
+		/* Print result variable */
+		FPRINTF(stderr,"OUT Variable %d: \n", i);
+		FPRINTF(stderr, "%5d ", *variable);
+		FPRINTF(stderr,"\n");
+	}
 
-    starpu_data_unpartition(handle, STARPU_MAIN_RAM);
-    starpu_data_unregister(handle);
-    starpu_shutdown();
+	starpu_data_unpartition(handle, STARPU_MAIN_RAM);
+	starpu_data_unregister(handle);
+	starpu_shutdown();
 
-    FPRINTF(stderr,"OUT 0-dim Array: \n");
-    FPRINTF(stderr, "%5d ", arr0d);
-    FPRINTF(stderr,"\n");
+	FPRINTF(stderr,"OUT 0-dim Array: \n");
+	FPRINTF(stderr, "%5d ", arr0d);
+	FPRINTF(stderr,"\n");
 
-    return 0;
+	return 0;
 
-enodev:
-    FPRINTF(stderr, "WARNING: No one can execute this task\n");
-    starpu_shutdown();
-    return 77;
+ enodev:
+	FPRINTF(stderr, "WARNING: No one can execute this task\n");
+	starpu_shutdown();
+	return 77;
 }
