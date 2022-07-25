@@ -3139,16 +3139,13 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	}
 }
 
-static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void show_mpi_thread(struct starpu_fxt_options *options)
 {
-	double date = get_event_time_stamp(ev, options);
-
 	char *prefix = options->file_prefix;
-
-	register_mpi_thread(prefixTOnodeid(prefix), ev->param[2]);
 
 	if (out_paje_file)
 	{
+		double date = 0.;
 #ifdef STARPU_HAVE_POTI
 		char program_container[STARPU_POTI_STR_LEN];
 		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
@@ -3166,6 +3163,19 @@ static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		fprintf(out_paje_file, "13	%.9f	%smpict	bwo_mpi	0.0\n", date, prefix);
 #endif
 	}
+}
+
+static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	char *prefix = options->file_prefix;
+
+	register_mpi_thread(prefixTOnodeid(prefix), ev->param[2]);
+
+	if (!(options->ninputfiles == 2 && options->file_rank == 1))
+		show_mpi_thread(options);
+
 	do_mpicommthread_set_state(date, prefix, "Sl");
 
 }
@@ -3623,6 +3633,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		}
 #endif
 	}
+
+	if ((options->ninputfiles == 2 && options->file_rank == 1))
+		/* put the mpi thread at the top, so MPI communications nicely show up in the middle */
+		show_mpi_thread(options);
 
 	struct fxt_ev_64 ev;
 	while(1)
