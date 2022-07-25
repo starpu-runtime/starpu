@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2012-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2012-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,11 +26,18 @@ static int check_copy(starpu_data_handle_t handle, char *header)
 
 	starpu_data_register_same(&new_handle, handle);
 
-	if (!getenv("STARPU_SSILENT") && new_handle->ops->display)
+	if (!getenv("STARPU_SSILENT"))
 	{
-		fprintf(stderr, "%s: ", header);
-		new_handle->ops->display(new_handle, stderr);
-		fprintf(stderr, "\n");
+		if (new_handle->ops->display)
+		{
+			fprintf(stderr, "%s: ", header);
+			new_handle->ops->display(new_handle, stderr);
+			fprintf(stderr, "\n");
+		}
+		else
+		{
+			fprintf(stderr, "%s does not define a display ops\n", header);
+		}
 	}
 
 	old_interface = starpu_data_get_interface_on_node(handle, STARPU_MAIN_RAM);
@@ -55,19 +62,6 @@ int main(int argc, char **argv)
 	if (ret == -ENODEV) return STARPU_TEST_SKIPPED;
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
-	{
-		int x=42;
-		starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
-		ret = check_copy(handle, "variable");
-	}
-
-	if (ret == 0)
-	{
-		int xx[] = {12, 23, 45};
-		starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)xx, 3, sizeof(xx[0]));
-		ret = check_copy(handle, "vector");
-	}
-
 	if (ret == 0)
 	{
 		int NX=3;
@@ -89,13 +83,9 @@ int main(int argc, char **argv)
 
 	if (ret == 0)
 	{
-		int NX=3;
-		int NY=2;
-		int NZ=4;
-		int NT=3;
-		int tensor[NX*NY*NZ*NT];
-		starpu_tensor_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)tensor, NX, NX*NY, NX*NY*NZ, NX, NY, NZ, NT, sizeof(tensor[0]));
-		ret = check_copy(handle, "tensor");
+		int xx[] = {12, 23, 45};
+		starpu_vector_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)xx, 3, sizeof(xx[0]));
+		ret = check_copy(handle, "vector");
 	}
 
 	if (ret == 0)
@@ -109,8 +99,46 @@ int main(int argc, char **argv)
 		ret = check_copy(handle, "csr");
 	}
 
+	if (ret == 0)
+	{
+		uint32_t nnz = 2;
+		unsigned nrow = 5;
+		float nzvalA[nnz];
+		uint32_t colind[nnz];
+		uint32_t rowptr[nrow+1];
+		starpu_bcsr_data_register(&handle, STARPU_MAIN_RAM, nnz, nrow, (uintptr_t)nzvalA, colind, rowptr, 0, 1, 1, sizeof(float));
+		ret = check_copy(handle, "bcsr");
+	}
+
+	if (ret == 0)
+	{
+		int x=42;
+		starpu_variable_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)&x, sizeof(x));
+		ret = check_copy(handle, "variable");
+	}
+
+	if (ret == 0)
+	{
+		int NX=3;
+		int NY=2;
+		int NZ=4;
+		int NT=3;
+		int tensor[NX*NY*NZ*NT];
+		starpu_tensor_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)tensor, NX, NX*NY, NX*NY*NZ, NX, NY, NZ, NT, sizeof(tensor[0]));
+		ret = check_copy(handle, "tensor");
+	}
+
+	if (ret == 0)
+	{
+		int NX=3;
+		int NY=2;
+		int array2d[NX*NY];
+		unsigned nn[2] = {NX, NY};
+		unsigned ldn[2] = {1, NX};
+		starpu_ndim_data_register(&handle, STARPU_MAIN_RAM, (uintptr_t)array2d, ldn, nn, 2, sizeof(int));
+		ret = check_copy(handle, "ndim");
+	}
+
 	starpu_shutdown();
 	return ret;
 }
-
-
