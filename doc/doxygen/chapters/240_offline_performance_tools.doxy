@@ -347,17 +347,17 @@ can be examined by using the tool <c>starpu_perfmodel_display</c>:
 \verbatim
 $ starpu_perfmodel_display -l
 file: <malloc_pinned.hannibal>
-file: <starpu_slu_lu_model_21.hannibal>
-file: <starpu_slu_lu_model_11.hannibal>
-file: <starpu_slu_lu_model_22.hannibal>
-file: <starpu_slu_lu_model_12.hannibal>
+file: <starpu_slu_lu_model_trsm_ru.hannibal>
+file: <starpu_slu_lu_model_getrf.hannibal>
+file: <starpu_slu_lu_model_gemm.hannibal>
+file: <starpu_slu_lu_model_trsm_ll.hannibal>
 \endverbatim
 
 Here, the codelets of the example <c>lu</c> are available. We can examine the
 performance of the kernel <c>22</c> (in micro-seconds), which is history-based:
 
 \verbatim
-$ starpu_perfmodel_display -s starpu_slu_lu_model_22
+$ starpu_perfmodel_display -s starpu_slu_lu_model_gemm
 performance model for cpu
 # hash      size       mean          dev           n
 57618ab0    19660800   2.851069e+05  1.829369e+04  109

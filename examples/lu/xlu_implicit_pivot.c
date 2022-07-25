@@ -53,7 +53,7 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	return ret;
 }
 
-static int create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
+static int create_task_getrf_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 				unsigned k, struct piv_s *piv_description,
 				starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
@@ -61,7 +61,7 @@ static int create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 
 	struct starpu_task *task = starpu_task_create();
 
-	task->cl = &cl11_pivot;
+	task->cl = &cl_getrf_pivot;
 	task->color = 0xffff00;
 
 	task->cl_arg = &piv_description[k];
@@ -69,7 +69,7 @@ static int create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 
-	task->tag_id = TAG11(k);
+	task->tag_id = TAG_GETRF(k);
 
 	/* this is an important task */
 	if (!no_prio)
@@ -80,20 +80,20 @@ static int create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	return ret;
 }
 
-static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned j,
+static int create_task_trsm_ll(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned j,
 			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
 
-	task->cl = &cl12;
+	task->cl = &cl_trsm_ll;
 	task->color = 0x8080ff;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 	task->handles[1] = get_block(dataAp, nblocks, j, k);
 
-	task->tag_id = TAG12(k,j);
+	task->tag_id = TAG_TRSM_LL(k,j);
 
 	if (!no_prio && (j == k+1))
 		task->priority = STARPU_MAX_PRIO;
@@ -103,20 +103,20 @@ static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	return ret;
 }
 
-static int create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i,
+static int create_task_trsm_ru(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i,
 			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
 
-	task->cl = &cl21;
+	task->cl = &cl_trsm_ru;
 	task->color = 0x8080c0;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = get_block(dataAp, nblocks, k, k);
 	task->handles[1] = get_block(dataAp, nblocks, k, i);
 
-	task->tag_id = TAG21(k,i);
+	task->tag_id = TAG_TRSM_RU(k,i);
 
 	if (!no_prio && (i == k+1))
 		task->priority = STARPU_MAX_PRIO;
@@ -126,13 +126,13 @@ static int create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	return ret;
 }
 
-static int create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
+static int create_task_gemm(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
 			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
 
-	task->cl = &cl22;
+	task->cl = &cl_gemm;
 	task->color = 0x00ff00;
 
 	/* which sub-data is manipulated ? */
@@ -140,7 +140,7 @@ static int create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	task->handles[1] = get_block(dataAp, nblocks, j, k);
 	task->handles[2] = get_block(dataAp, nblocks, j, i);
 
-	task->tag_id = TAG22(k,i,j);
+	task->tag_id = TAG_GEMM(k,i,j);
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 		task->priority = STARPU_MAX_PRIO;
@@ -177,7 +177,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 
 		starpu_iteration_push(k);
 
-		ret = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block, no_prio);
+		ret = create_task_getrf_pivot(dataAp, nblocks, k, piv_description, get_block, no_prio);
 		if (ret == -ENODEV) return ret;
 
 		for (i = 0; i < nblocks; i++)
@@ -191,9 +191,9 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 
 		for (i = k+1; i<nblocks; i++)
 		{
-			ret = create_task_12(dataAp, nblocks, k, i, get_block, no_prio);
+			ret = create_task_trsm_ll(dataAp, nblocks, k, i, get_block, no_prio);
 			if (ret == -ENODEV) return ret;
-			ret = create_task_21(dataAp, nblocks, k, i, get_block, no_prio);
+			ret = create_task_trsm_ru(dataAp, nblocks, k, i, get_block, no_prio);
 			if (ret == -ENODEV) return ret;
 		}
 		starpu_data_wont_use(get_block(dataAp, nblocks, k, k));
@@ -201,7 +201,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		for (i = k+1; i<nblocks; i++)
 		     for (j = k+1; j<nblocks; j++)
 		     {
-			     ret = create_task_22(dataAp, nblocks, k, i, j, get_block, no_prio);
+			     ret = create_task_gemm(dataAp, nblocks, k, i, j, get_block, no_prio);
 			     if (ret == -ENODEV) return ret;
 		     }
 		for (i = k+1; i<nblocks; i++)

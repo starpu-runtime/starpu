@@ -20,12 +20,12 @@
 #include <starpu.h>
 #include <common/blas.h>
 
-#define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
-#define TAG12(k,i)	((starpu_tag_t)(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
+#define TAG_GETRF(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
+#define TAG_TRSM_LL(k,i)	((starpu_tag_t)(((2ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
-#define TAG21(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
+#define TAG_TRSM_RU(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
+#define TAG_GEMM(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 #define PIVOT(k,i)	((starpu_tag_t)(((5ULL<<60) | (((unsigned long long)(k))<<32)	\
@@ -84,31 +84,31 @@ static void compare_A_LU(float *A, float *LU, unsigned size, unsigned ld)
 }
 #endif /* CHECK_RESULTS */
 
-void dw_cpu_codelet_update_u11(void **, void *);
-void dw_cpu_codelet_update_u12(void **, void *);
-void dw_cpu_codelet_update_u21(void **, void *);
-void dw_cpu_codelet_update_u22(void **, void *);
+void dw_cpu_codelet_update_getrf(void **, void *);
+void dw_cpu_codelet_update_trsm_ll(void **, void *);
+void dw_cpu_codelet_update_trsm_ru(void **, void *);
+void dw_cpu_codelet_update_gemm(void **, void *);
 
 #ifdef STARPU_USE_CUDA
-void dw_cublas_codelet_update_u11(void *descr[], void *_args);
-void dw_cublas_codelet_update_u12(void *descr[], void *_args);
-void dw_cublas_codelet_update_u21(void *descr[], void *_args);
-void dw_cublas_codelet_update_u22(void *descr[], void *_args);
+void dw_cublas_codelet_update_getrf(void *descr[], void *_args);
+void dw_cublas_codelet_update_trsm_ll(void *descr[], void *_args);
+void dw_cublas_codelet_update_trsm_ru(void *descr[], void *_args);
+void dw_cublas_codelet_update_gemm(void *descr[], void *_args);
 #endif
 
-void dw_callback_codelet_update_u11(void *);
-void dw_callback_codelet_update_u12_21(void *);
-void dw_callback_codelet_update_u22(void *);
+void dw_callback_codelet_update_getrf(void *);
+void dw_callback_codelet_update_trsm_ll_21(void *);
+void dw_callback_codelet_update_gemm(void *);
 
-void dw_callback_v2_codelet_update_u11(void *);
-void dw_callback_v2_codelet_update_u12(void *);
-void dw_callback_v2_codelet_update_u21(void *);
-void dw_callback_v2_codelet_update_u22(void *);
+void dw_callback_v2_codelet_update_getrf(void *);
+void dw_callback_v2_codelet_update_trsm_ll(void *);
+void dw_callback_v2_codelet_update_trsm_ru(void *);
+void dw_callback_v2_codelet_update_gemm(void *);
 
-extern struct starpu_perfmodel model_11;
-extern struct starpu_perfmodel model_12;
-extern struct starpu_perfmodel model_21;
-extern struct starpu_perfmodel model_22;
+extern struct starpu_perfmodel model_getrf;
+extern struct starpu_perfmodel model_trsm_ll;
+extern struct starpu_perfmodel model_trsm_ru;
+extern struct starpu_perfmodel model_gemm;
 extern unsigned bound;
 extern unsigned bounddeps;
 extern unsigned boundprio;

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +35,10 @@ static const TYPE m1 = -1.0f;
 #endif
 
 /*
- *   U22
+ *   GEMM
  */
 
-static inline void STARPU_LU(common_u22)(void *descr[], int s, void *_args)
+static inline void STARPU_LU(common_gemm)(void *descr[], int s, void *_args)
 {
 	(void)_args;
 	TYPE *right 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
@@ -85,29 +85,29 @@ static inline void STARPU_LU(common_u22)(void *descr[], int s, void *_args)
 	}
 }
 
-void STARPU_LU(cpu_u22)(void *descr[], void *_args)
+void STARPU_LU(cpu_gemm)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u22)(descr, 0, _args);
+	STARPU_LU(common_gemm)(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void STARPU_LU(cublas_u22)(void *descr[], void *_args)
+void STARPU_LU(cublas_gemm)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u22)(descr, 1, _args);
+	STARPU_LU(common_gemm)(descr, 1, _args);
 }
 #endif /* STARPU_USE_CUDA */
 
-static struct starpu_perfmodel STARPU_LU(model_22) =
+static struct starpu_perfmodel STARPU_LU(model_gemm) =
 {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
-	.symbol = STARPU_LU_STR(lu_model_22_atlas)
+	.symbol = STARPU_LU_STR(lu_model_gemm_atlas)
 #elif defined(STARPU_GOTO)
-	.symbol = STARPU_LU_STR(lu_model_22_goto)
+	.symbol = STARPU_LU_STR(lu_model_gemm_goto)
 #elif defined(STARPU_OPENBLAS)
-	.symbol = STARPU_LU_STR(lu_model_22_openblas)
+	.symbol = STARPU_LU_STR(lu_model_gemm_openblas)
 #else
-	.symbol = STARPU_LU_STR(lu_model_22)
+	.symbol = STARPU_LU_STR(lu_model_gemm)
 #endif
 };
 
@@ -143,12 +143,12 @@ static int can_execute(unsigned workerid, struct starpu_task *task, unsigned nim
 
 #define STRINGIFY_(x) #x
 #define STRINGIFY(x) STRINGIFY_(x)
-struct starpu_codelet cl22 =
+struct starpu_codelet cl_gemm =
 {
-	.cpu_funcs = {STARPU_LU(cpu_u22)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u22))},
+	.cpu_funcs = {STARPU_LU(cpu_gemm)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_gemm))},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u22)},
+	.cuda_funcs = {STARPU_LU(cublas_gemm)},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
@@ -156,14 +156,14 @@ struct starpu_codelet cl22 =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.model = &STARPU_LU(model_22)
+	.model = &STARPU_LU(model_gemm)
 };
 
 /*
- * U12
+ * TRSM_LL
  */
 
-static inline void STARPU_LU(common_u12)(void *descr[], int s, void *_args)
+static inline void STARPU_LU(common_trsmll)(void *descr[], int s, void *_args)
 {
 	(void)_args;
 	TYPE *sub11;
@@ -207,38 +207,38 @@ static inline void STARPU_LU(common_u12)(void *descr[], int s, void *_args)
 	}
 }
 
-void STARPU_LU(cpu_u12)(void *descr[], void *_args)
+void STARPU_LU(cpu_trsmll)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u12)(descr, 0, _args);
+	STARPU_LU(common_trsmll)(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void STARPU_LU(cublas_u12)(void *descr[], void *_args)
+void STARPU_LU(cublas_trsmll)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u12)(descr, 1, _args);
+	STARPU_LU(common_trsmll)(descr, 1, _args);
 }
 #endif /* STARPU_USE_CUDA */
 
-static struct starpu_perfmodel STARPU_LU(model_12) =
+static struct starpu_perfmodel STARPU_LU(model_trsm_ll) =
 {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
-	.symbol = STARPU_LU_STR(lu_model_12_atlas)
+	.symbol = STARPU_LU_STR(lu_model_trsm_ll_atlas)
 #elif defined(STARPU_GOTO)
-	.symbol = STARPU_LU_STR(lu_model_12_goto)
+	.symbol = STARPU_LU_STR(lu_model_trsm_ll_goto)
 #elif defined(STARPU_OPENBLAS)
-	.symbol = STARPU_LU_STR(lu_model_12_openblas)
+	.symbol = STARPU_LU_STR(lu_model_trsm_ll_openblas)
 #else
-	.symbol = STARPU_LU_STR(lu_model_12)
+	.symbol = STARPU_LU_STR(lu_model_trsm_ll)
 #endif
 };
 
-struct starpu_codelet cl12 =
+struct starpu_codelet cl_trsm_ll =
 {
-	.cpu_funcs = {STARPU_LU(cpu_u12)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u12))},
+	.cpu_funcs = {STARPU_LU(cpu_trsmll)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_trsmll))},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u12)},
+	.cuda_funcs = {STARPU_LU(cublas_trsmll)},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
@@ -246,14 +246,14 @@ struct starpu_codelet cl12 =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.model = &STARPU_LU(model_12)
+	.model = &STARPU_LU(model_trsm_ll)
 };
 
 /*
- * U21
+ * TRSM_RU
  */
 
-static inline void STARPU_LU(common_u21)(void *descr[], int s, void *_args)
+static inline void STARPU_LU(common_trsmru)(void *descr[], int s, void *_args)
 {
 	(void)_args;
 	TYPE *sub11;
@@ -296,38 +296,38 @@ static inline void STARPU_LU(common_u21)(void *descr[], int s, void *_args)
 	}
 }
 
-void STARPU_LU(cpu_u21)(void *descr[], void *_args)
+void STARPU_LU(cpu_trsmru)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u21)(descr, 0, _args);
+	STARPU_LU(common_trsmru)(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void STARPU_LU(cublas_u21)(void *descr[], void *_args)
+void STARPU_LU(cublas_trsmru)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u21)(descr, 1, _args);
+	STARPU_LU(common_trsmru)(descr, 1, _args);
 }
 #endif
 
-static struct starpu_perfmodel STARPU_LU(model_21) =
+static struct starpu_perfmodel STARPU_LU(model_trsm_ru) =
 {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
-	.symbol = STARPU_LU_STR(lu_model_21_atlas)
+	.symbol = STARPU_LU_STR(lu_model_trsm_ru_atlas)
 #elif defined(STARPU_GOTO)
-	.symbol = STARPU_LU_STR(lu_model_21_goto)
+	.symbol = STARPU_LU_STR(lu_model_trsm_ru_goto)
 #elif defined(STARPU_OPENBLAS)
-	.symbol = STARPU_LU_STR(lu_model_21_openblas)
+	.symbol = STARPU_LU_STR(lu_model_trsm_ru_openblas)
 #else
-	.symbol = STARPU_LU_STR(lu_model_21)
+	.symbol = STARPU_LU_STR(lu_model_trsm_ru)
 #endif
 };
 
-struct starpu_codelet cl21 =
+struct starpu_codelet cl_trsm_ru =
 {
-	.cpu_funcs = {STARPU_LU(cpu_u21)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u21))},
+	.cpu_funcs = {STARPU_LU(cpu_trsmru)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_trsmru))},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u21)},
+	.cuda_funcs = {STARPU_LU(cublas_trsmru)},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
@@ -335,14 +335,14 @@ struct starpu_codelet cl21 =
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.model = &STARPU_LU(model_21)
+	.model = &STARPU_LU(model_trsm_ru)
 };
 
 /*
- *	U11
+ *	GETRF
  */
 
-static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
+static inline void STARPU_LU(common_getrf)(void *descr[], int s, void *_args)
 {
 	(void)_args;
 	TYPE *sub11;
@@ -416,52 +416,52 @@ static inline void STARPU_LU(common_u11)(void *descr[], int s, void *_args)
 	}
 }
 
-void STARPU_LU(cpu_u11)(void *descr[], void *_args)
+void STARPU_LU(cpu_getrf)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u11)(descr, 0, _args);
+	STARPU_LU(common_getrf)(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void STARPU_LU(cublas_u11)(void *descr[], void *_args)
+void STARPU_LU(cublas_getrf)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u11)(descr, 1, _args);
+	STARPU_LU(common_getrf)(descr, 1, _args);
 }
 #endif /* STARPU_USE_CUDA */
 
-static struct starpu_perfmodel STARPU_LU(model_11) =
+static struct starpu_perfmodel STARPU_LU(model_getrf) =
 {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
-	.symbol = STARPU_LU_STR(lu_model_11_atlas)
+	.symbol = STARPU_LU_STR(lu_model_getrf_atlas)
 #elif defined(STARPU_GOTO)
-	.symbol = STARPU_LU_STR(lu_model_11_goto)
+	.symbol = STARPU_LU_STR(lu_model_getrf_goto)
 #elif defined(STARPU_OPENBLAS)
-	.symbol = STARPU_LU_STR(lu_model_11_openblas)
+	.symbol = STARPU_LU_STR(lu_model_getrf_openblas)
 #else
-	.symbol = STARPU_LU_STR(lu_model_11)
+	.symbol = STARPU_LU_STR(lu_model_getrf)
 #endif
 };
 
-struct starpu_codelet cl11 =
+struct starpu_codelet cl_getrf =
 {
-	.cpu_funcs = {STARPU_LU(cpu_u11)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u11))},
+	.cpu_funcs = {STARPU_LU(cpu_getrf)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_getrf))},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u11)},
+	.cuda_funcs = {STARPU_LU(cublas_getrf)},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &STARPU_LU(model_11)
+	.model = &STARPU_LU(model_getrf)
 };
 
 /*
- *	U11 with pivoting
+ *	GETRF with pivoting
  */
 
-static inline void STARPU_LU(common_u11_pivot)(void *descr[],
+static inline void STARPU_LU(common_getrf_pivot)(void *descr[],
 				int s, void *_args)
 {
 	TYPE *sub11;
@@ -587,45 +587,45 @@ static inline void STARPU_LU(common_u11_pivot)(void *descr[],
 	}
 }
 
-void STARPU_LU(cpu_u11_pivot)(void *descr[], void *_args)
+void STARPU_LU(cpu_getrf_pivot)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u11_pivot)(descr, 0, _args);
+	STARPU_LU(common_getrf_pivot)(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void STARPU_LU(cublas_u11_pivot)(void *descr[], void *_args)
+void STARPU_LU(cublas_getrf_pivot)(void *descr[], void *_args)
 {
-	STARPU_LU(common_u11_pivot)(descr, 1, _args);
+	STARPU_LU(common_getrf_pivot)(descr, 1, _args);
 }
 #endif /* STARPU_USE_CUDA */
 
-static struct starpu_perfmodel STARPU_LU(model_11_pivot) =
+static struct starpu_perfmodel STARPU_LU(model_getrf_pivot) =
 {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
-	.symbol = STARPU_LU_STR(lu_model_11_pivot_atlas)
+	.symbol = STARPU_LU_STR(lu_model_getrf_pivot_atlas)
 #elif defined(STARPU_GOTO)
-	.symbol = STARPU_LU_STR(lu_model_11_pivot_goto)
+	.symbol = STARPU_LU_STR(lu_model_getrf_pivot_goto)
 #elif defined(STARPU_OPENBLAS)
-	.symbol = STARPU_LU_STR(lu_model_11_pivot_openblas)
+	.symbol = STARPU_LU_STR(lu_model_getrf_pivot_openblas)
 #else
-	.symbol = STARPU_LU_STR(lu_model_11_pivot)
+	.symbol = STARPU_LU_STR(lu_model_getrf_pivot)
 #endif
 };
 
-struct starpu_codelet cl11_pivot =
+struct starpu_codelet cl_getrf_pivot =
 {
-	.cpu_funcs = {STARPU_LU(cpu_u11_pivot)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_u11_pivot))},
+	.cpu_funcs = {STARPU_LU(cpu_getrf_pivot)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_LU(cpu_getrf_pivot))},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_LU(cublas_u11_pivot)},
+	.cuda_funcs = {STARPU_LU(cublas_getrf_pivot)},
 	CAN_EXECUTE
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &STARPU_LU(model_11_pivot)
+	.model = &STARPU_LU(model_getrf_pivot)
 };
 
 /*

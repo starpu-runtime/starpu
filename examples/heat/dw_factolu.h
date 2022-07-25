@@ -193,30 +193,30 @@ static void compare_A_LU(float *A, float *LU, unsigned size, unsigned ld)
 }
 #endif /* CHECK_RESULTS */
 
-void dw_cpu_codelet_update_u11(void **, void *);
-void dw_cpu_codelet_update_u12(void **, void *);
-void dw_cpu_codelet_update_u21(void **, void *);
-void dw_cpu_codelet_update_u22(void **, void *);
+void dw_cpu_codelet_update_getrf(void **, void *);
+void dw_cpu_codelet_update_trsm_ll(void **, void *);
+void dw_cpu_codelet_update_trsm_ru(void **, void *);
+void dw_cpu_codelet_update_gemm(void **, void *);
 
 #ifdef STARPU_USE_CUDA
-void dw_cublas_codelet_update_u11(void *descr[], void *_args);
-void dw_cublas_codelet_update_u12(void *descr[], void *_args);
-void dw_cublas_codelet_update_u21(void *descr[], void *_args);
-void dw_cublas_codelet_update_u22(void *descr[], void *_args);
+void dw_cublas_codelet_update_getrf(void *descr[], void *_args);
+void dw_cublas_codelet_update_trsm_ll(void *descr[], void *_args);
+void dw_cublas_codelet_update_trsm_ru(void *descr[], void *_args);
+void dw_cublas_codelet_update_gemm(void *descr[], void *_args);
 #endif
 
-void dw_callback_codelet_update_u11(void *);
-void dw_callback_codelet_update_u12_21(void *);
-void dw_callback_codelet_update_u22(void *);
+void dw_callback_codelet_update_getrf(void *);
+void dw_callback_codelet_update_trsm_ll_21(void *);
+void dw_callback_codelet_update_gemm(void *);
 
-void dw_callback_v2_codelet_update_u11(void *);
-void dw_callback_v2_codelet_update_u12(void *);
-void dw_callback_v2_codelet_update_u21(void *);
-void dw_callback_v2_codelet_update_u22(void *);
+void dw_callback_v2_codelet_update_getrf(void *);
+void dw_callback_v2_codelet_update_trsm_ll(void *);
+void dw_callback_v2_codelet_update_trsm_ru(void *);
+void dw_callback_v2_codelet_update_gemm(void *);
 
-extern struct starpu_perfmodel model_11;
-extern struct starpu_perfmodel model_12;
-extern struct starpu_perfmodel model_21;
-extern struct starpu_perfmodel model_22;
+extern struct starpu_perfmodel model_getrf;
+extern struct starpu_perfmodel model_trsm_ll;
+extern struct starpu_perfmodel model_trsm_ru;
+extern struct starpu_perfmodel model_gemm;
 
 #endif /* __DW_FACTO_LU_H__ */

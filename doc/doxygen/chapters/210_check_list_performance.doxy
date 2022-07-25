@@ -384,7 +384,7 @@ option <c>-s</c> allows to choose the performance model to be
 displayed. The result looks like:
 
 \verbatim
-$ starpu_perfmodel_display -s starpu_slu_lu_model_11
+$ starpu_perfmodel_display -s starpu_slu_lu_model_getrf
 performance model for cpu_impl_0
 # hash    size     flops         mean          dev           n
 914f3bef  1048576  0.000000e+00  2.503577e+04  1.982465e+02  8
@@ -401,10 +401,10 @@ measurements.
 A graph can be drawn by using the tool <c>starpu_perfmodel_plot</c>:
 
 \verbatim
-$ starpu_perfmodel_plot -s starpu_slu_lu_model_11
+$ starpu_perfmodel_plot -s starpu_slu_lu_model_getrf
 4096 16384 65536 262144 1048576 4194304
-$ gnuplot starpu_starpu_slu_lu_model_11.gp
-$ gv starpu_starpu_slu_lu_model_11.eps
+$ gnuplot starpu_starpu_slu_lu_model_getrf.gp
+$ gv starpu_starpu_slu_lu_model_getrf.eps
 \endverbatim
 
 \image html starpu_starpu_slu_lu_model_11.png

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Thibaut Lambert
  *
@@ -42,7 +42,7 @@
  *
  */
 
-double task_11_cost(struct starpu_task *task, unsigned nimpl)
+double task_getrf_cost(struct starpu_task *task, unsigned nimpl)
 {
 	(void)nimpl;
 	uint32_t n;
@@ -54,7 +54,7 @@ double task_11_cost(struct starpu_task *task, unsigned nimpl)
 	return PERTURBATE(cost);
 }
 
-double task_12_cost(struct starpu_task *task, unsigned nimpl)
+double task_trsm_ll_cost(struct starpu_task *task, unsigned nimpl)
 {
 	(void)nimpl;
 	uint32_t n;
@@ -64,12 +64,12 @@ double task_12_cost(struct starpu_task *task, unsigned nimpl)
 /*	double cost = ((n*n*n)/1744.695); */
 	double cost = ((n*n*n)/3210.80);
 
-	/* fprintf(stderr, "task 12 predicts %e\n", cost); */
+	/* fprintf(stderr, "task TRSM_LL predicts %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
 
-double task_21_cost(struct starpu_task *task, unsigned nimpl)
+double task_trsm_ru_cost(struct starpu_task *task, unsigned nimpl)
 {
 	(void)nimpl;
 	uint32_t n;
@@ -79,13 +79,13 @@ double task_21_cost(struct starpu_task *task, unsigned nimpl)
 /*	double cost = ((n*n*n)/1744.695); */
 	double cost = ((n*n*n)/3691.53);
 
-	/* fprintf(stderr, "task 12 predicts %e\n", cost); */
+	/* fprintf(stderr, "task TRSM_RU predicts %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
 
 
-double task_22_cost(struct starpu_task *task, unsigned nimpl)
+double task_gemm_cost(struct starpu_task *task, unsigned nimpl)
 {
 	(void)nimpl;
 	uint32_t nx, ny, nz;
@@ -106,7 +106,7 @@ double task_22_cost(struct starpu_task *task, unsigned nimpl)
  */
 
 
-double task_11_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double task_getrf_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -116,11 +116,11 @@ double task_11_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch*
 
 	double cost = ((n*n*n)/1853.7806);
 
-/*	printf("CUDA task 11 ; predict %e\n", cost); */
+/*	printf("CUDA task GETRF ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double task_trsm_ll_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -130,12 +130,12 @@ double task_12_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch*
 
 	double cost = ((n*n*n)/42838.5718);
 
-/*	printf("CUDA task 12 ; predict %e\n", cost); */
+/*	printf("CUDA task TRSM_LL ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
 
-double task_21_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double task_trsm_ru_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -145,13 +145,13 @@ double task_21_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch*
 
 	double cost = ((n*n*n)/49208.667);
 
-/*	printf("CUDA task 21 ; predict %e\n", cost); */
+/*	printf("CUDA task TRSM_RU ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
 
 
-double task_22_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double task_gemm_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -163,7 +163,7 @@ double task_22_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch*
 
 	double cost = ((nx*ny*nz)/57523.560);
 
-/*	printf("CUDA task 22 ; predict %e\n", cost); */
+/*	printf("CUDA task GEMM ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
@@ -173,7 +173,7 @@ double task_22_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch*
  *
  */
 
-double task_11_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double task_getrf_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -183,11 +183,11 @@ double task_11_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* 
 
 	double cost = ((n*n*n)/537.5);
 
-/*	printf("CPU task 11 ; predict %e\n", cost); */
+/*	printf("CPU task GETRF ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
-double task_12_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double task_trsm_ll_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -197,12 +197,12 @@ double task_12_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* 
 
 	double cost = ((n*n*n)/6668.224);
 
-/*	printf("CPU task 12 ; predict %e\n", cost); */
+/*	printf("CPU task TRSM_LL ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
 
-double task_21_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double task_trsm_ru_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -212,13 +212,13 @@ double task_21_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* 
 
 	double cost = ((n*n*n)/6793.8423);
 
-/*	printf("CPU task 21 ; predict %e\n", cost); */
+/*	printf("CPU task TRSM_RU ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
 
 
-double task_22_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double task_gemm_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -230,7 +230,7 @@ double task_22_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* 
 
 	double cost = ((nx*ny*nz)/4203.0175);
 
-/*	printf("CPU task 22 ; predict %e\n", cost); */
+/*	printf("CPU task GEMM ; predict %e\n", cost); */
 	return PERTURBATE(cost);
 }
 
