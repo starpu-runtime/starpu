@@ -154,6 +154,15 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
 		case STARPU_MULTIFORMAT_INTERFACE_ID:
 			return &starpu_interface_multiformat_ops;
 
+		case STARPU_COO_INTERFACE_ID:
+			return &starpu_interface_coo_ops;
+
+		case STARPU_TENSOR_INTERFACE_ID:
+			return &starpu_interface_tensor_ops;
+
+		case STARPU_NDIM_INTERFACE_ID:
+			return &starpu_interface_ndim_ops;
+
 		default:
 		{
 			if (interface_id-STARPU_MAX_INTERFACE_ID > _id_to_ops_array_size || _id_to_ops_array[interface_id-STARPU_MAX_INTERFACE_ID]==NULL)
