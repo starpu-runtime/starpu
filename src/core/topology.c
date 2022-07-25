@@ -958,7 +958,7 @@ static unsigned _starpu_topology_get_core_binding(unsigned *binding, unsigned nb
 }
 #endif
 
-unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, const unsigned *numa_binding, unsigned nnuma, unsigned *binding, unsigned nbinding)
+unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, const unsigned *numa_binding STARPU_ATTRIBUTE_UNUSED, unsigned nnuma STARPU_ATTRIBUTE_UNUSED, unsigned *binding STARPU_ATTRIBUTE_UNUSED, unsigned nbinding STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(STARPU_HAVE_HWLOC)
 	unsigned n;
