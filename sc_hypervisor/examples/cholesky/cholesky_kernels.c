@@ -19,6 +19,8 @@
 //#include "../common/blas.h"
 #ifdef STARPU_USE_CUDA
 #include <starpu_cuda.h>
+#include <cublas.h>
+#include <starpu_cublas_v2.h>
 #ifdef STARPU_HAVE_MAGMA
 #include "magma.h"
 #include "magma_lapack.h"
@@ -28,6 +30,11 @@
 /*
  *   GEMM
  */
+
+#if defined(STARPU_USE_CUDA)
+static const float p1 =  1.0;
+static const float m1 = -1.0;
+#endif
 
 static inline void chol_common_cpu_codelet_update_gemm(void *descr[], int s, void *_args)
 {
@@ -78,10 +85,12 @@ static inline void chol_common_cpu_codelet_update_gemm(void *descr[], int s, voi
 	case 1:
 	{
 		/* CUDA kernel */
-		cublasSgemm('n', 't', dy, dx, dz,
-				-1.0f, left, ld21, right, ld12,
-				 1.0f, center, ld22);
-		cudaStreamSynchronize(starpu_cuda_get_local_stream());
+		cublasStatus_t status = cublasSgemm(starpu_cublas_get_local_handle(),
+				CUBLAS_OP_N, CUBLAS_OP_T, dy, dx, dz,
+				&m1, left, ld21, right, ld12,
+				&p1, center, ld22);
+		if (status != CUBLAS_STATUS_SUCCESS)
+			STARPU_CUBLAS_REPORT_ERROR(status);
 
 		break;
 	}
@@ -134,11 +143,12 @@ static inline void chol_common_cpu_codelet_update_syrk(void *descr[], int s, voi
 	case 1:
 	{
 		/* CUDA kernel */
-		cublasSsyrk('l', 'n', dx, dz,
-				-1.0f, left, ld21,
-				 1.0f, center, ld22);
-		cudaStreamSynchronize(starpu_cuda_get_local_stream());
-
+		cublasStatus_t status = cublasSsyrk(starpu_cublas_get_local_handle(),
+				CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_N, dx, dz,
+				&m1, left, ld21,
+				&p1, center, ld22);
+		if (status != CUBLAS_STATUS_SUCCESS)
+			STARPU_CUBLAS_REPORT_ERROR(status);
 		break;
 	}
 #endif
@@ -180,6 +190,10 @@ static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_
 	unsigned nx21 = STARPU_MATRIX_GET_NY(descr[1]);
 	unsigned ny21 = STARPU_MATRIX_GET_NX(descr[1]);
 
+#ifdef STARPU_USE_CUDA
+	cublasStatus status;
+#endif
+
 	switch (s)
 	{
 		case 0:
@@ -187,8 +201,11 @@ static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
-			cublasStrsm('R', 'L', 'T', 'N', nx21, ny21, 1.0f, sub11, ld11, sub21, ld21);
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			status = cublasStrsm(starpu_cublas_get_local_handle(),
+					CUBLAS_SIDE_RIGHT, CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_T, CUBLAS_DIAG_NON_UNIT,
+					nx21, ny21, &p1, sub11, ld11, sub21, ld21);
+			if (status != CUBLAS_STATUS_SUCCESS)
+				STARPU_CUBLAS_REPORT_ERROR(status);
 			break;
 #endif
 		default:
@@ -230,6 +247,9 @@ static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *
 	{
 		case 0:
 
+#ifdef STARPU_MKL
+			STARPU_SPOTRF("L", nx, sub11, ld);
+#else
 			/*
 			 *	- alpha 11 <- lambda 11 = sqrt(alpha11)
 			 *	- alpha 21 <- l 21	= alpha 21 / lambda 11
@@ -250,6 +270,7 @@ static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
 			}
+#endif
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
@@ -257,42 +278,63 @@ static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *
 			{
 			int ret;
 			int info;
-			ret = magma_spotrf_gpu('L', nx, sub11, ld, &info);
+#if (MAGMA_VERSION_MAJOR > 1) || (MAGMA_VERSION_MAJOR == 1 && MAGMA_VERSION_MINOR >= 4)
+			cudaStream_t stream = starpu_cuda_get_local_stream();
+			cublasSetKernelStream(stream);
+			magmablasSetKernelStream(stream);
+#else
+			starpu_cublas_set_stream();
+#endif
+			ret = magma_spotrf_gpu(MagmaLower, nx, sub11, ld, &info);
 			if (ret != MAGMA_SUCCESS)
 			{
 				fprintf(stderr, "Error in Magma: %d\n", ret);
 				STARPU_ABORT();
 			}
+#if (MAGMA_VERSION_MAJOR > 1) || (MAGMA_VERSION_MAJOR == 1 && MAGMA_VERSION_MINOR >= 4)
+			cudaError_t cures = cudaStreamSynchronize(stream);
+#else
 			cudaError_t cures = cudaDeviceSynchronize();
+#endif
 			STARPU_ASSERT(!cures);
 			}
 #else
 			{
 
 			float *lambda11;
+			cublasStatus_t status;
+			cudaStream_t stream = starpu_cuda_get_local_stream();
+			cublasHandle_t handle = starpu_cublas_get_local_handle();
 			cudaHostAlloc((void **)&lambda11, sizeof(float), 0);
 
 			for (z = 0; z < nx; z++)
 			{
-
-				cudaMemcpyAsync(lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, starpu_cuda_get_local_stream());
-				cudaStreamSynchronize(starpu_cuda_get_local_stream());
+				cudaMemcpyAsync(lambda11, &sub11[z+z*ld], sizeof(float), cudaMemcpyDeviceToHost, stream);
+				cudaStreamSynchronize(stream);
 
 				STARPU_ASSERT(*lambda11 != 0.0f);
 
 				*lambda11 = sqrt(*lambda11);
 
 /*				cublasSetVector(1, sizeof(float), lambda11, sizeof(float), &sub11[z+z*ld], sizeof(float)); */
-				cudaMemcpyAsync(&sub11[z+z*ld], lambda11, sizeof(float), cudaMemcpyHostToDevice, starpu_cuda_get_local_stream());
+				cudaMemcpyAsync(&sub11[z+z*ld], lambda11, sizeof(float), cudaMemcpyHostToDevice, stream);
+				float scal = 1.0f/(*lambda11);
 
-				cublasSscal(nx - z - 1, 1.0f/(*lambda11), &sub11[(z+1)+z*ld], 1);
+				status = cublasSscal(handle,
+						     nx - z - 1, &scal, &sub11[(z+1)+z*ld], 1);
+				if (status != CUBLAS_STATUS_SUCCESS)
+					STARPU_CUBLAS_REPORT_ERROR(status);
 
-				cublasSsyr('U', nx - z - 1, -1.0f,
+				status = cublasSsyr(handle,
+						    CUBLAS_FILL_MODE_UPPER,
+						    nx - z - 1, &m1,
 							&sub11[(z+1)+z*ld], 1,
 							&sub11[(z+1)+(z+1)*ld], ld);
+				if (status != CUBLAS_STATUS_SUCCESS)
+					STARPU_CUBLAS_REPORT_ERROR(status);
 			}
 
-			cudaStreamSynchronize(starpu_cuda_get_local_stream());
+			cudaStreamSynchronize(stream);
 			cudaFreeHost(lambda11);
 			}
 #endif
@@ -330,24 +372,33 @@ struct starpu_codelet cl_potrf =
 {
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_potrf},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_potrf"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_potrf},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
-	.modes = {STARPU_RW},
-	.model = &chol_model_potrf
+	.modes = { STARPU_RW },
+	.model = &chol_model_potrf,
+	.color = 0xffff00,
 };
 
 struct starpu_codelet cl_trsm =
 {
 	.type = STARPU_SEQ,
 	.cpu_funcs = {chol_cpu_codelet_update_trsm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_trsm"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_trsm},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_RW},
-	.model = &chol_model_trsm
+	.modes = { STARPU_R, STARPU_RW },
+	.model = &chol_model_trsm,
+	.color = 0x8080ff,
 };
 
 struct starpu_codelet cl_syrk =
@@ -355,12 +406,17 @@ struct starpu_codelet cl_syrk =
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {chol_cpu_codelet_update_syrk},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_syrk"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_syrk},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
-	.modes = {STARPU_R, STARPU_RW},
-	.model = &chol_model_syrk
+	.modes = { STARPU_R, STARPU_RW },
+	.model = &chol_model_syrk,
+	.color = 0x00ff00,
 };
 
 struct starpu_codelet cl_gemm =
@@ -368,11 +424,16 @@ struct starpu_codelet cl_gemm =
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
 	.cpu_funcs = {chol_cpu_codelet_update_gemm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_gemm"},
 #ifdef STARPU_USE_CUDA
 	.cuda_funcs = {chol_cublas_codelet_update_gemm},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
 #endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.model = &chol_model_gemm
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },
+	.model = &chol_model_gemm,
+	.color = 0x00c000,
 };
 
