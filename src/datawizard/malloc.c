@@ -55,6 +55,7 @@
 
 static size_t _malloc_align = sizeof(void*);
 static int disable_pinning;
+static int enable_suballocator;
 
 /* This file is used for implementing "folded" allocation */
 #ifdef STARPU_SIMGRID
@@ -690,6 +691,7 @@ _starpu_malloc_init(unsigned dst_node)
 	node_struct->nfreechunks = 0;
 	STARPU_PTHREAD_MUTEX_INIT(&node_struct->chunk_mutex, NULL);
 	disable_pinning = starpu_get_env_number("STARPU_DISABLE_PINNING");
+	enable_suballocator = starpu_get_env_number_default("STARPU_SUBALLOCATOR", 1);
 	node_struct->malloc_on_node_default_flags = STARPU_MALLOC_PINNED | STARPU_MALLOC_COUNT;
 #ifdef STARPU_SIMGRID
 	/* Reasonably "costless" */
@@ -746,11 +748,12 @@ static struct _starpu_chunk *_starpu_new_chunk(unsigned dst_node, int flags)
 /* Return whether we should use our suballocator */
 static int _starpu_malloc_should_suballoc(unsigned dst_node, size_t size, int flags)
 {
-	return (size <= CHUNK_ALLOC_MAX &&
+	return (enable_suballocator &&
+		(size <= CHUNK_ALLOC_MAX &&
 		(starpu_node_get_kind(dst_node) == STARPU_CUDA_RAM
 		 || (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM
 		     && _starpu_malloc_should_pin(flags))
-		 ))
+		 )))
 	       || starpu_node_get_kind(dst_node) == STARPU_MAX_FPGA_RAM;
 }
 
