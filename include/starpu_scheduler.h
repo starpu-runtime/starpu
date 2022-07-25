@@ -381,7 +381,7 @@ uint32_t starpu_task_footprint(struct starpu_perfmodel *model, struct starpu_tas
 uint32_t starpu_task_data_footprint(struct starpu_task *task);
 
 /**
-   Return expected task duration in micro-seconds.
+   Return expected task duration in micro-seconds on a given architecture \p arch using given implementation \p nimpl
 */
 double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
@@ -389,6 +389,14 @@ double starpu_task_expected_length(struct starpu_task *task, struct starpu_perfm
    Same as starpu_task_expected_length() but for a precise worker.
 */
 double starpu_task_worker_expected_length(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl);
+
+/**
+   Return expected task duration in micro-seconds, averaged over the different workers driven by the scheduler \p sched_ctx_id
+   Note: this is not just the average of the durations using the number of
+   processing units as coefficients, but their efficiency at processing the
+   task, thus the harmonic average of the durations.
+*/
+double starpu_task_expected_length_average(struct starpu_task *task, unsigned sched_ctx_id);
 
 /**
    Return an estimated speedup factor relative to CPU speed
@@ -415,7 +423,7 @@ double starpu_task_expected_data_transfer_time_for(struct starpu_task *task, uns
 double starpu_data_expected_transfer_time(starpu_data_handle_t handle, unsigned memory_node, enum starpu_data_access_mode mode);
 
 /**
-   Return expected energy consumption in J
+   Return expected energy use in J
 */
 double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch *arch, unsigned nimpl);
 
@@ -423,6 +431,14 @@ double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfm
    Same as starpu_task_expected_energy but for a precise worker
 */
 double starpu_task_worker_expected_energy(struct starpu_task *task, unsigned workerid, unsigned sched_ctx_id, unsigned nimpl);
+
+/**
+   Return expected task energy use in J, averaged over the different workers driven by the scheduler \p sched_ctx_id
+   Note: this is not just the average of the energy uses using the number of
+   processing units as coefficients, but their efficiency at processing the
+   task, thus the harmonic average of the energy uses.
+*/
+double starpu_task_expected_energy_average(struct starpu_task *task, unsigned sched_ctx_id);
 
 /**
    Return expected conversion time in ms (multiformat interface only)

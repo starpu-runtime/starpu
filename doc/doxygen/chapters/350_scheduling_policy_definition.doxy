@@ -46,8 +46,10 @@ This includes getting an estimation for a task computation completion with
 starpu_task_expected_length(), for the required data transfers with
 starpu_task_expected_data_transfer_time_for(), for the required energy with
 starpu_task_expected_energy(), etc. Per-worker variants are also available with
-starpu_task_worker_expected_length(), etc. Other
-useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
+starpu_task_worker_expected_length(), etc.
+The average over workers is also available with
+starpu_task_expected_length_average() and starpu_task_expected_energy_average().
+Other useful functions include starpu_transfer_bandwidth(), starpu_transfer_latency(),
 starpu_transfer_predict(), ...
 The successors of a task can be obtained with starpu_task_get_task_succs().
 One can also directly test the presence of a data handle with starpu_data_is_on_node().
