@@ -91,47 +91,47 @@ int backup_function(int rank)
  *	Create the codelets
  */
 
-static struct starpu_codelet cl11 =
+static struct starpu_codelet cl_potrf =
 {
-	.cpu_funcs = {chol_cpu_codelet_update_u11},
+	.cpu_funcs = {chol_cpu_codelet_update_potrf},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11},
+	.cuda_funcs = {chol_cublas_codelet_update_potrf},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &chol_model_11,
+	.model = &chol_model_potrf,
 	.color = 0xffff00,
 };
 
-static struct starpu_codelet cl21 =
+static struct starpu_codelet cl_trsm =
 {
-	.cpu_funcs = {chol_cpu_codelet_update_u21},
+	.cpu_funcs = {chol_cpu_codelet_update_trsm},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21},
+	.cuda_funcs = {chol_cublas_codelet_update_trsm},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.model = &chol_model_21,
+	.model = &chol_model_trsm,
 	.color = 0x8080ff,
 };
 
-static struct starpu_codelet cl22 =
+static struct starpu_codelet cl_gemm =
 {
-	.cpu_funcs = {chol_cpu_codelet_update_u22},
+	.cpu_funcs = {chol_cpu_codelet_update_gemm},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22},
+	.cuda_funcs = {chol_cublas_codelet_update_gemm},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW | STARPU_COMMUTE},
-	.model = &chol_model_22,
+	.model = &chol_model_gemm,
 	.color = 0x00ff00,
 };
 
@@ -151,7 +151,7 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 	{
 		starpu_iteration_push(k);
 
-		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_potrf,
 				       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 				       STARPU_RW, data_handles[k][k],
 				       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
@@ -159,7 +159,7 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 
 		for (m = k+1; m<nblocks; m++)
 		{
-			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_trsm,
 					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 					       STARPU_R, data_handles[k][k],
 					       STARPU_RW, data_handles[m][k],
@@ -175,7 +175,7 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 		{
 			for (m = n; m<nblocks; m++)
 			{
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_gemm,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						       STARPU_R, data_handles[n][k],
 						       STARPU_R, data_handles[m][k],
@@ -224,7 +224,7 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 		for (k = 0; k < n; k++)
 		{
 			/* Accumulate updates from TRSMs */
-			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_gemm,
 					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 					       STARPU_R, data_handles[n][k],
 					       STARPU_R, data_handles[m][k],
@@ -239,7 +239,7 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 
 		k = n;
 		/* Factorize */
-		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+		starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_potrf,
 				       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 				       STARPU_RW, data_handles[k][k],
 				       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
@@ -251,7 +251,7 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 			for (k = 0; k < n; k++)
 			{
 				/* Accumulate updates from TRSMs */
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_gemm,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						       STARPU_R, data_handles[n][k],
 						       STARPU_R, data_handles[m][k],
@@ -262,7 +262,7 @@ static void run_cholesky_column(starpu_data_handle_t **data_handles, int rank, i
 			}
 			k = n;
 			/* Solve */
-			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_trsm,
 					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 					       STARPU_R, data_handles[k][k],
 					       STARPU_RW, data_handles[m][k],
@@ -322,7 +322,7 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 			/* Accumulate updates from TRSMs */
 			for (k = 0; k < n; k++)
 			{
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_gemm,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						       STARPU_R, data_handles[n][k],
 						       STARPU_R, data_handles[m][k],
@@ -342,7 +342,7 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 			if (n < a)
 			{
 				/* non-diagonal block, solve */
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_trsm,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						       STARPU_R, data_handles[k][k],
 						       STARPU_RW, data_handles[m][k],
@@ -352,7 +352,7 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 			else
 			{
 				/* diagonal block, factorize */
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_potrf,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 						       STARPU_RW, data_handles[k][k],
 						       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
@@ -380,7 +380,7 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 			/* Accumulate updates from TRSMs */
 			for (k = 0; k < n; k++)
 			{
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_gemm,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						       STARPU_R, data_handles[n][k],
 						       STARPU_R, data_handles[m][k],
@@ -397,7 +397,7 @@ static void run_cholesky_antidiagonal(starpu_data_handle_t **data_handles, int r
 			}
 			/* non-diagonal block, solve */
 			k = n;
-			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+			starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_trsm,
 					       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 					       STARPU_R, data_handles[k][k],
 					       STARPU_RW, data_handles[m][k],
@@ -458,7 +458,7 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 			if (m == n)
 			{
 				/* diagonal block, factorize */
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl11,
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_potrf,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 						       STARPU_RW, data_handles[k][k],
 						       STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
@@ -467,7 +467,7 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 			else if (m >= n && m < (int) nblocks)
 			{
 				/* non-diagonal block, solve */
-				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl21,
+				starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_trsm,
 						       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						       STARPU_R, data_handles[k][k],
 						       STARPU_RW, data_handles[m][k],
@@ -491,7 +491,7 @@ static void run_cholesky_prio(starpu_data_handle_t **data_handles, int rank, int
 				if (m >= n && m < (int) nblocks)
 				{
 					/* Update */
-					starpu_mpi_task_insert(MPI_COMM_WORLD, &cl22,
+					starpu_mpi_task_insert(MPI_COMM_WORLD, &cl_gemm,
 							       STARPU_PRIORITY, noprio ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 							       STARPU_R, data_handles[n][k],
 							       STARPU_R, data_handles[m][k],

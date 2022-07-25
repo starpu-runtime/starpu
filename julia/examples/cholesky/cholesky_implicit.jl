@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020, 2022       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -32,17 +32,17 @@ function cholesky(mat :: Matrix{Float32}, size, nblocks)
 
             starpu_iteration_push(k)
 
-            starpu_task_insert(cl = cl_11, handles = [h_mat[k, k]], tag_only = tag11(k))
+            starpu_task_insert(cl = cl_potrf, handles = [h_mat[k, k]], tag_only = tag11(k))
 
             for m in k+1:nblocks
-                starpu_task_insert(cl = cl_21, handles = [h_mat[k, k], h_mat[m, k]], tag_only = tag21(m, k))
+                starpu_task_insert(cl = cl_trsm, handles = [h_mat[k, k], h_mat[m, k]], tag_only = tag_trsm(m, k))
             end
             starpu_data_wont_use(h_mat[k, k])
 
             for m in k+1:nblocks
                 for n in k+1:nblocks
                     if n <= m
-                        starpu_task_insert(cl = cl_22, handles = [h_mat[m, k], h_mat[n, k], h_mat[m, n]], tag_only= tag22(k, m, n))
+                        starpu_task_insert(cl = cl_gemm, handles = [h_mat[m, k], h_mat[n, k], h_mat[m, n]], tag_only= tag_gemm(k, m, n))
                     end
                 end
                 starpu_data_wont_use(h_mat[m, k])

@@ -19,49 +19,49 @@
 #include "cholesky.h"
 #include "../sched_ctx_utils/sched_ctx_utils.h"
 
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
+struct starpu_perfmodel chol_model_potrf;
+struct starpu_perfmodel chol_model_trsm;
+struct starpu_perfmodel chol_model_gemm;
 
 /*
  *	Create the codelets
  */
 
-static struct starpu_codelet cl11 =
+static struct starpu_codelet cl_potrf =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u11},
+	.cpu_funcs = {chol_cpu_codelet_update_potrf},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11},
+	.cuda_funcs = {chol_cublas_codelet_update_potrf},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &chol_model_11
+	.model = &chol_model_potrf
 };
 
-static struct starpu_codelet cl21 =
+static struct starpu_codelet cl_trsm =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u21},
+	.cpu_funcs = {chol_cpu_codelet_update_trsm},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21},
+	.cuda_funcs = {chol_cublas_codelet_update_trsm},
 #endif
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.model = &chol_model_21
+	.model = &chol_model_trsm
 };
 
-static struct starpu_codelet cl22 =
+static struct starpu_codelet cl_gemm =
 {
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
-	.cpu_funcs = {chol_cpu_codelet_update_u22},
+	.cpu_funcs = {chol_cpu_codelet_update_gemm},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22},
+	.cuda_funcs = {chol_cublas_codelet_update_gemm},
 #endif
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.model = &chol_model_22
+	.model = &chol_model_gemm
 };
 
 /*
@@ -72,7 +72,7 @@ static struct starpu_codelet cl22 =
 static void callback_turn_spmd_on(void *arg)
 {
 	(void)arg;
-	cl22.type = STARPU_SPMD;
+	cl_gemm.type = STARPU_SPMD;
 }
 
 int hypervisor_tag = 1;
@@ -96,7 +96,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 		if(k == 0 && g_with_ctxs)
 		{
-			 ret = starpu_task_insert(&cl11,
+			 ret = starpu_task_insert(&cl_potrf,
 						  STARPU_PRIORITY, prio_level,
 						  STARPU_RW, sdatakk,
 						  STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
@@ -106,7 +106,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
 		}
 		else
-			starpu_task_insert(&cl11,
+			starpu_task_insert(&cl_potrf,
 					   STARPU_PRIORITY, prio_level,
 					   STARPU_RW, sdatakk,
 					   STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
@@ -116,7 +116,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
                         starpu_data_handle_t sdatakj = starpu_data_get_sub_data(dataA, 2, k, j);
 
-                        ret = starpu_task_insert(&cl21,
+                        ret = starpu_task_insert(&cl_trsm,
 						 STARPU_PRIORITY, (j == k+1)?prio_level:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatakj,
@@ -133,7 +133,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					if(k == (nblocks-2) && j == (nblocks-1) &&
 					   i == (k + 1) && g_with_ctxs)
 					{
-						ret = starpu_task_insert(&cl22,
+						ret = starpu_task_insert(&cl_gemm,
 									 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
 									 STARPU_R, sdataki,
 									 STARPU_R, sdatakj,
@@ -145,7 +145,7 @@ static void _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 					}
 
 					else
-						ret = starpu_task_insert(&cl22,
+						ret = starpu_task_insert(&cl_gemm,
 									 STARPU_PRIORITY, ((i == k+1) && (j == k+1))?prio_level:STARPU_DEFAULT_PRIO,
 									 STARPU_R, sdataki,
 									 STARPU_R, sdatakj,
@@ -354,13 +354,13 @@ int main(int argc, char **argv)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_CUDA
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,cuda_chol_task_21_cost);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,cuda_chol_task_22_cost);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,NULL);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,NULL);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,NULL);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 
 	starpu_cublas_init();

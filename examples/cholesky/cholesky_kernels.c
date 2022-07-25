@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,9 +16,6 @@
 
 /*
  * Standard kernels for the Cholesky factorization
- * U22 is the gemm update
- * U21 is the trsm update
- * U11 is the cholesky factorization
  */
 
 #include <starpu.h>
@@ -34,7 +31,7 @@
 #endif
 
 /*
- *   U22
+ *   GEMM
  */
 
 #if defined(STARPU_USE_CUDA)
@@ -42,10 +39,10 @@ static const float p1 =  1.0;
 static const float m1 = -1.0;
 #endif
 
-static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
+static inline void chol_common_cpu_codelet_update_gemm(void *descr[], int s, void *_args)
 {
 	(void)_args;
-	/* printf("22\n"); */
+	/* printf("gemm\n"); */
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[2]);
@@ -98,25 +95,25 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void
 	}
 }
 
-void chol_cpu_codelet_update_u22(void *descr[], void *_args)
+void chol_cpu_codelet_update_gemm(void *descr[], void *_args)
 {
-	chol_common_cpu_codelet_update_u22(descr, 0, _args);
+	chol_common_cpu_codelet_update_gemm(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u22(void *descr[], void *_args)
+void chol_cublas_codelet_update_gemm(void *descr[], void *_args)
 {
-	chol_common_cpu_codelet_update_u22(descr, 1, _args);
+	chol_common_cpu_codelet_update_gemm(descr, 1, _args);
 }
 #endif /* STARPU_USE_CUDA */
 
 /*
- * U21
+ * TRSM
  */
 
-static inline void chol_common_codelet_update_u21(void *descr[], int s, void *_args)
+static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_args)
 {
-/*	printf("21\n"); */
+/*	printf("trsm\n"); */
 	float *sub11;
 	float *sub21;
 	(void)_args;
@@ -154,25 +151,25 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, void *_a
 	}
 }
 
-void chol_cpu_codelet_update_u21(void *descr[], void *_args)
+void chol_cpu_codelet_update_trsm(void *descr[], void *_args)
 {
-	 chol_common_codelet_update_u21(descr, 0, _args);
+	 chol_common_codelet_update_trsm(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u21(void *descr[], void *_args)
+void chol_cublas_codelet_update_trsm(void *descr[], void *_args)
 {
-	chol_common_codelet_update_u21(descr, 1, _args);
+	chol_common_codelet_update_trsm(descr, 1, _args);
 }
 #endif
 
 /*
- *	U11
+ *	POTRF
  */
 
-static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_args)
+static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *_args)
 {
-/*	printf("11\n"); */
+/*	printf("potrf\n"); */
 	float *sub11;
 	(void)_args;
 
@@ -287,145 +284,145 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_a
 }
 
 
-void chol_cpu_codelet_update_u11(void *descr[], void *_args)
+void chol_cpu_codelet_update_potrf(void *descr[], void *_args)
 {
-	chol_common_codelet_update_u11(descr, 0, _args);
+	chol_common_codelet_update_potrf(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u11(void *descr[], void *_args)
+void chol_cublas_codelet_update_potrf(void *descr[], void *_args)
 {
-	chol_common_codelet_update_u11(descr, 1, _args);
+	chol_common_codelet_update_potrf(descr, 1, _args);
 }
 #endif/* STARPU_USE_CUDA */
 
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
+struct starpu_perfmodel chol_model_potrf;
+struct starpu_perfmodel chol_model_trsm;
+struct starpu_perfmodel chol_model_gemm;
 
-struct starpu_codelet cl11 =
+struct starpu_codelet cl_potrf =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u11},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
+	.cpu_funcs = {chol_cpu_codelet_update_potrf},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_potrf"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11},
+	.cuda_funcs = {chol_cublas_codelet_update_potrf},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
-	.model = &chol_model_11,
+	.model = &chol_model_potrf,
 	.color = 0xffff00,
 };
 
-struct starpu_codelet cl21 =
+struct starpu_codelet cl_trsm =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u21},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u21"},
+	.cpu_funcs = {chol_cpu_codelet_update_trsm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_trsm"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21},
+	.cuda_funcs = {chol_cublas_codelet_update_trsm},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
-	.model = &chol_model_21,
+	.model = &chol_model_trsm,
 	.color = 0x8080ff,
 };
 
-struct starpu_codelet cl22 =
+struct starpu_codelet cl_gemm =
 {
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
-	.cpu_funcs = {chol_cpu_codelet_update_u22},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u22"},
+	.cpu_funcs = {chol_cpu_codelet_update_gemm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_gemm"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22},
+	.cuda_funcs = {chol_cublas_codelet_update_gemm},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.model = &chol_model_22,
+	.model = &chol_model_gemm,
 	.color = 0x00ff00,
 };
 
-struct starpu_codelet cl11_gpu =
+struct starpu_codelet cl_potrf_gpu =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11},
+	.cuda_funcs = {chol_cublas_codelet_update_potrf},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
-	.model = &chol_model_11,
+	.model = &chol_model_potrf,
 	.color = 0xffff00,
 };
 
-struct starpu_codelet cl21_gpu =
+struct starpu_codelet cl_trsm_gpu =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21},
+	.cuda_funcs = {chol_cublas_codelet_update_trsm},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
-	.model = &chol_model_21,
+	.model = &chol_model_trsm,
 	.color = 0x8080ff,
 };
 
-struct starpu_codelet cl22_gpu =
+struct starpu_codelet cl_gemm_gpu =
 {
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22},
+	.cuda_funcs = {chol_cublas_codelet_update_gemm},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.model = &chol_model_22,
+	.model = &chol_model_gemm,
 	.color = 0x00ff00,
 };
 
-struct starpu_codelet cl11_cpu =
+struct starpu_codelet cl_potrf_cpu =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u11},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
+	.cpu_funcs = {chol_cpu_codelet_update_potrf},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_potrf"},
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
-	.model = &chol_model_11,
+	.model = &chol_model_potrf,
 	.color = 0xffff00,
 };
 
-struct starpu_codelet cl21_cpu =
+struct starpu_codelet cl_trsm_cpu =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u21},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u21"},
+	.cpu_funcs = {chol_cpu_codelet_update_trsm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_trsm"},
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
-	.model = &chol_model_21,
+	.model = &chol_model_trsm,
 	.color = 0x8080ff,
 };
 
-struct starpu_codelet cl22_cpu =
+struct starpu_codelet cl_gemm_cpu =
 {
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
-	.cpu_funcs = {chol_cpu_codelet_update_u22},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u22"},
+	.cpu_funcs = {chol_cpu_codelet_update_gemm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_gemm"},
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.model = &chol_model_22,
+	.model = &chol_model_gemm,
 	.color = 0x00ff00,
 };
 

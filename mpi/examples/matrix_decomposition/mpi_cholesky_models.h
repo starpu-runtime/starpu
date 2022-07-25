@@ -17,8 +17,8 @@
 #ifndef __DW_CHOLESKY_MODELS_H__
 #define __DW_CHOLESKY_MODELS_H__
 
-extern struct starpu_perfmodel chol_model_11;
-extern struct starpu_perfmodel chol_model_21;
-extern struct starpu_perfmodel chol_model_22;
+extern struct starpu_perfmodel chol_model_potrf;
+extern struct starpu_perfmodel chol_model_trsm;
+extern struct starpu_perfmodel chol_model_gemm;
 
 #endif // __DW_CHOLESKY_MODELS_H__

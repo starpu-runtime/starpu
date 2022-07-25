@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Bérangère Subervie
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -164,10 +164,10 @@ static float frequency(int worker, unsigned i)
 
 
 /* Tags for spotting tasks in the trace */
-#define TAG11(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
-#define TAG21(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
+#define TAG_POTRF(k)	((starpu_tag_t)( (1ULL<<60) | (unsigned long long)(k)))
+#define TAG_TRSM(k,j)	((starpu_tag_t)(((3ULL<<60) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
+#define TAG_GEMM(k,i,j)	((starpu_tag_t)(((4ULL<<60) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 
@@ -414,7 +414,7 @@ int main(int argc, char *argv[])
 						 STARPU_PRIORITY, unbound_prio ? (int)(2*N - 2*k) : STARPU_MAX_PRIO,
 						 STARPU_RW, A[k][k],
 						 STARPU_FLOPS, (double) FLOPS_SPOTRF(TILE_SIZE),
-						 STARPU_TAG_ONLY, TAG11(k),
+						 STARPU_TAG_ONLY, TAG_POTRF(k),
 						 0);
 			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -426,7 +426,7 @@ int main(int argc, char *argv[])
 							 STARPU_R, A[k][k],
 							 STARPU_RW, A[m][k],
 							 STARPU_FLOPS, (double) FLOPS_STRSM(TILE_SIZE, TILE_SIZE),
-							 STARPU_TAG_ONLY, TAG21(m,k),
+							 STARPU_TAG_ONLY, TAG_TRSM(m,k),
 							 0);
 				if (ret == -ENODEV) return 77;
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -444,7 +444,7 @@ int main(int argc, char *argv[])
 									 STARPU_R, A[n][k],
 									 gemm_cl.modes[2], A[m][n],
 									 STARPU_FLOPS, (double) FLOPS_SGEMM(TILE_SIZE, TILE_SIZE, TILE_SIZE),
-									 STARPU_TAG_ONLY, TAG22(k,m,n),
+									 STARPU_TAG_ONLY, TAG_GEMM(k,m,n),
 									 0);
 						if (ret == -ENODEV) return 77;
 						STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");

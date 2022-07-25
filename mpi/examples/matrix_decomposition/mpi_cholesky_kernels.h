@@ -19,14 +19,14 @@
 
 #include <starpu.h>
 
-void chol_cpu_codelet_update_u11(void **, void *);
-void chol_cpu_codelet_update_u21(void **, void *);
-void chol_cpu_codelet_update_u22(void **, void *);
+void chol_cpu_codelet_update_potrf(void **, void *);
+void chol_cpu_codelet_update_trsm(void **, void *);
+void chol_cpu_codelet_update_gemm(void **, void *);
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u11(void *descr[], void *_args);
-void chol_cublas_codelet_update_u21(void *descr[], void *_args);
-void chol_cublas_codelet_update_u22(void *descr[], void *_args);
+void chol_cublas_codelet_update_potrf(void *descr[], void *_args);
+void chol_cublas_codelet_update_trsm(void *descr[], void *_args);
+void chol_cublas_codelet_update_gemm(void *descr[], void *_args);
 #endif
 
 #endif // __MPI_CHOLESKY_KERNELS_H__

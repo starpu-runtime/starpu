@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -15,17 +15,17 @@
  */
 
 //! [To be included. You should update doxygen if you see this text.]
-static struct starpu_codelet cl11 =
+static struct starpu_codelet cl_potrf =
 {
-	.cpu_funcs = {chol_cpu_codelet_update_u11},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
+	.cpu_funcs = {chol_cpu_codelet_update_potrf},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_potrf"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11},
+	.cuda_funcs = {chol_cublas_codelet_update_potrf},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &chol_model_11
+	.model = &chol_model_potrf
 };
 //! [To be included. You should update doxygen if you see this text.]

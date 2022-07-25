@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020, 2022       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -29,9 +29,9 @@ function cholesky(mat :: Matrix{Float32}, size, nblocks)
         starpu_data_set_sequential_consistency_flag(h_mat, 0)
         starpu_data_map_filters(h_mat, horiz, vert)
 
-        entry_task = starpu_task(cl = cl_11,
+        entry_task = starpu_task(cl = cl_potrf,
                                  handles = [h_mat[1, 1]],
-                                 tag = tag11(1))
+                                 tag = tag_potrf(1))
 
         for k in 1:nblocks
 
@@ -39,32 +39,32 @@ function cholesky(mat :: Matrix{Float32}, size, nblocks)
 
             if k > 1
                 # enforce dependencies...
-                starpu_tag_declare_deps(tag11(k), tag22(k-1, k, k))
-                starpu_task_insert(cl = cl_11,
+                starpu_tag_declare_deps(tag_potrf(k), tag_gemm(k-1, k, k))
+                starpu_task_insert(cl = cl_potrf,
                                    handles = [h_mat[k, k]],
-                                   tag = tag11(k))
+                                   tag = tag_potrf(k))
             end
 
             for m in k+1:nblocks
                 # enforce dependencies...
                 if k > 1
-                    starpu_tag_declare_deps(tag21(k, m), tag11(k), tag22(k-1, m, k))
+                    starpu_tag_declare_deps(tag_trsm(k, m), tag_potrf(k), tag_gemm(k-1, m, k))
                 else
-                    starpu_tag_declare_deps(tag21(k, m), tag11(k))
+                    starpu_tag_declare_deps(tag_trsm(k, m), tag_potrf(k))
                 end
 
-                starpu_task_insert(cl = cl_21, handles = [h_mat[k, k], h_mat[m, k]], tag = tag21(k, m))
+                starpu_task_insert(cl = cl_trsm, handles = [h_mat[k, k], h_mat[m, k]], tag = tag_trsm(k, m))
 
                 for n in k+1:nblocks
                     if n <= m
                         # enforce dependencies...
                         if k > 1
-                            starpu_tag_declare_deps(tag22(k, m, n), tag22(k-1, m, n), tag21(k, n), tag21(k, m))
+                            starpu_tag_declare_deps(tag_gemm(k, m, n), tag_gemm(k-1, m, n), tag_trsm(k, n), tag_trsm(k, m))
                         else
-                            starpu_tag_declare_deps(tag22(k, m, n), tag21(k, n), tag21(k, m))
+                            starpu_tag_declare_deps(tag_gemm(k, m, n), tag_trsm(k, n), tag_trsm(k, m))
                         end
 
-                        starpu_task_insert(cl = cl_22, handles = [h_mat[m, k], h_mat[n, k], h_mat[m, n]], tag = tag22(k, m, n))
+                        starpu_task_insert(cl = cl_gemm, handles = [h_mat[m, k], h_mat[n, k], h_mat[m, n]], tag = tag_gemm(k, m, n))
                     end
                 end
             end
@@ -73,7 +73,7 @@ function cholesky(mat :: Matrix{Float32}, size, nblocks)
         end
 
         starpu_task_submit(entry_task)
-        starpu_tag_wait(tag11(nblocks))
+        starpu_tag_wait(tag_potrf(nblocks))
     end
 end
 

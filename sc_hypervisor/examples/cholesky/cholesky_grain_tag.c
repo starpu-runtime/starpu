@@ -18,9 +18,9 @@
 
 #include "cholesky.h"
 
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
+struct starpu_perfmodel chol_model_potrf;
+struct starpu_perfmodel chol_model_trsm;
+struct starpu_perfmodel chol_model_gemm;
 
 /*
  *	Some useful functions
@@ -40,24 +40,24 @@ static struct starpu_task *create_task(starpu_tag_t id)
  *	Create the codelets
  */
 
-static struct starpu_codelet cl11 =
+static struct starpu_codelet cl_potrf =
 {
 	.modes = { STARPU_RW },
-	.cpu_funcs = {chol_cpu_codelet_update_u11},
+	.cpu_funcs = {chol_cpu_codelet_update_potrf},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11},
+	.cuda_funcs = {chol_cublas_codelet_update_potrf},
 #endif
 	.nbuffers = 1,
-	.model = &chol_model_11
+	.model = &chol_model_potrf
 };
 
-static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned reclevel)
+static struct starpu_task * create_task_potrf(starpu_data_handle_t dataA, unsigned k, unsigned reclevel)
 {
-/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
+/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG_POTRF(k))); */
 
-	struct starpu_task *task = create_task(TAG11_AUX(k, reclevel));
+	struct starpu_task *task = create_task(TAG_POTRF_AUX(k, reclevel));
 
-	task->cl = &cl11;
+	task->cl = &cl_potrf;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
@@ -68,30 +68,30 @@ static struct starpu_task * create_task_11(starpu_data_handle_t dataA, unsigned 
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG11_AUX(k, reclevel), 1, TAG22_AUX(k-1, k, k, reclevel));
+		starpu_tag_declare_deps(TAG_POTRF_AUX(k, reclevel), 1, TAG_GEMM_AUX(k-1, k, k, reclevel));
 	}
 
 	return task;
 }
 
-static struct starpu_codelet cl21 =
+static struct starpu_codelet cl_trsm =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.cpu_funcs = {chol_cpu_codelet_update_u21},
+	.cpu_funcs = {chol_cpu_codelet_update_trsm},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21},
+	.cuda_funcs = {chol_cublas_codelet_update_trsm},
 #endif
 	.nbuffers = 2,
-	.model = &chol_model_21
+	.model = &chol_model_trsm
 };
 
-static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned reclevel)
+static void create_task_trsm(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned reclevel)
 {
 	int ret;
 
-	struct starpu_task *task = create_task(TAG21_AUX(k, j, reclevel));
+	struct starpu_task *task = create_task(TAG_TRSM_AUX(k, j, reclevel));
 
-	task->cl = &cl21;
+	task->cl = &cl_trsm;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
@@ -105,37 +105,37 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, u
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG21_AUX(k, j, reclevel), 2, TAG11_AUX(k, reclevel), TAG22_AUX(k-1, k, j, reclevel));
+		starpu_tag_declare_deps(TAG_TRSM_AUX(k, j, reclevel), 2, TAG_POTRF_AUX(k, reclevel), TAG_GEMM_AUX(k-1, k, j, reclevel));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG21_AUX(k, j, reclevel), 1, TAG11_AUX(k, reclevel));
+		starpu_tag_declare_deps(TAG_TRSM_AUX(k, j, reclevel), 1, TAG_POTRF_AUX(k, reclevel));
 	}
 
 	ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static struct starpu_codelet cl22 =
+static struct starpu_codelet cl_gemm =
 {
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.cpu_funcs = {chol_cpu_codelet_update_u22},
+	.cpu_funcs = {chol_cpu_codelet_update_gemm},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22},
+	.cuda_funcs = {chol_cublas_codelet_update_gemm},
 #endif
 	.nbuffers = 3,
-	.model = &chol_model_22
+	.model = &chol_model_gemm
 };
 
-static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
+static void create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned reclevel)
 {
 	int ret;
 
-/*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22_AUX(k,i,j)); */
+/*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG_GEMM_AUX(k,i,j)); */
 
-	struct starpu_task *task = create_task(TAG22_AUX(k, i, j, reclevel));
+	struct starpu_task *task = create_task(TAG_GEMM_AUX(k, i, j, reclevel));
 
-	task->cl = &cl22;
+	task->cl = &cl_gemm;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, i);
@@ -150,11 +150,11 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG22_AUX(k, i, j, reclevel), 3, TAG22_AUX(k-1, i, j, reclevel), TAG21_AUX(k, i, reclevel), TAG21_AUX(k, j, reclevel));
+		starpu_tag_declare_deps(TAG_GEMM_AUX(k, i, j, reclevel), 3, TAG_GEMM_AUX(k-1, i, j, reclevel), TAG_TRSM_AUX(k, i, reclevel), TAG_TRSM_AUX(k, j, reclevel));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG22_AUX(k, i, j, reclevel), 2, TAG21_AUX(k, i, reclevel), TAG21_AUX(k, j, reclevel));
+		starpu_tag_declare_deps(TAG_GEMM_AUX(k, i, j, reclevel), 2, TAG_TRSM_AUX(k, i, reclevel), TAG_TRSM_AUX(k, j, reclevel));
 	}
 
 	ret = starpu_task_submit(task);
@@ -202,7 +202,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 
 	for (k = 0; k < nbigblocks; k++)
 	{
-		struct starpu_task *task = create_task_11(dataA, k, reclevel);
+		struct starpu_task *task = create_task_potrf(dataA, k, reclevel);
 		/* we defer the launch of the first task */
 		if (k == 0)
 		{
@@ -216,12 +216,12 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 
 		for (j = k+1; j<nblocks; j++)
 		{
-			create_task_21(dataA, k, j, reclevel);
+			create_task_trsm(dataA, k, j, reclevel);
 
 			for (i = k+1; i<nblocks; i++)
 			{
 				if (i <= j)
-					create_task_22(dataA, k, i, j, reclevel);
+					create_task_gemm(dataA, k, i, j, reclevel);
 			}
 		}
 	}
@@ -237,7 +237,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 	if (nblocks == nbigblocks)
 	{
 		/* stall the application until the end of computations */
-		starpu_tag_wait(TAG11_AUX(nblocks-1, reclevel));
+		starpu_tag_wait(TAG_POTRF_AUX(nblocks-1, reclevel));
 		starpu_data_unpartition(dataA, STARPU_MAIN_RAM);
 		starpu_data_unregister(dataA);
 		return;
@@ -255,7 +255,7 @@ static void cholesky_grain_rec(float *matA, unsigned size, unsigned ld, unsigned
 		for (j = nbigblocks; j < nblocks; j++)
 		{
 			if (i <= j)
-				tag_array[ind++] = TAG22_AUX(nbigblocks - 1, i, j, reclevel);
+				tag_array[ind++] = TAG_GEMM_AUX(nbigblocks - 1, i, j, reclevel);
 		}
 
 		starpu_tag_wait_array(ind, tag_array);
@@ -281,13 +281,13 @@ static void initialize_system(float **A, unsigned dim, unsigned pinned)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_USE_CUDA
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,cuda_chol_task_21_cost);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,cuda_chol_task_22_cost);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,NULL);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,NULL);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,NULL);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 
 	starpu_cublas_init();

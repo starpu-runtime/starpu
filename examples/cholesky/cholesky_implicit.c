@@ -39,7 +39,7 @@
 static void callback_turn_spmd_on(void *arg)
 {
 	(void)arg;
-	cl22.type = STARPU_SPMD;
+	cl_gemm.type = STARPU_SPMD;
 }
 
 static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
@@ -66,13 +66,13 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		starpu_iteration_push(k);
                 starpu_data_handle_t sdatakk = starpu_data_get_sub_data(dataA, 2, k, k);
 
-                ret = starpu_task_insert(&cl11,
+                ret = starpu_task_insert(&cl_potrf,
 					 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k) : STARPU_MAX_PRIO,
 					 STARPU_RW, sdatakk,
 					 STARPU_CALLBACK, (k == 3*nblocks/4)?callback_turn_spmd_on:NULL,
 					 STARPU_FLOPS, (double) FLOPS_SPOTRF(nn),
 					 STARPU_NAME, "POTRF",
-					 STARPU_TAG_ONLY, TAG11(k),
+					 STARPU_TAG_ONLY, TAG_POTRF(k),
 					 0);
 		if (ret == -ENODEV) return 77;
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -81,13 +81,13 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		{
                         starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 
-                        ret = starpu_task_insert(&cl21,
+                        ret = starpu_task_insert(&cl_trsm,
 						 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m) : (m == k+1)?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 						 STARPU_R, sdatakk,
 						 STARPU_RW, sdatamk,
 						 STARPU_FLOPS, (double) FLOPS_STRSM(nn, nn),
 						 STARPU_NAME, "TRSM",
-						 STARPU_TAG_ONLY, TAG21(m,k),
+						 STARPU_TAG_ONLY, TAG_TRSM(m,k),
 						 0);
 			if (ret == -ENODEV) return 77;
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -102,14 +102,14 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 				starpu_data_handle_t sdatamk = starpu_data_get_sub_data(dataA, 2, m, k);
 				starpu_data_handle_t sdatamn = starpu_data_get_sub_data(dataA, 2, m, n);
 
-				ret = starpu_task_insert(&cl22,
+				ret = starpu_task_insert(&cl_gemm,
 							 STARPU_PRIORITY, noprio_p ? STARPU_DEFAULT_PRIO : unbound_prio ? (int)(2*nblocks - 2*k - m - n) : ((n == k+1) && (m == k+1))?STARPU_MAX_PRIO:STARPU_DEFAULT_PRIO,
 							 STARPU_R, sdatamk,
 							 STARPU_R, sdatank,
-							 cl22.modes[2], sdatamn,
+							 cl_gemm.modes[2], sdatamn,
 							 STARPU_FLOPS, (double) FLOPS_SGEMM(nn, nn, nn),
 							 STARPU_NAME, "GEMM",
-							 STARPU_TAG_ONLY, TAG22(k,m,n),
+							 STARPU_TAG_ONLY, TAG_GEMM(k,m,n),
 							 0);
 				if (ret == -ENODEV) return 77;
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert");
@@ -354,13 +354,13 @@ int main(int argc, char **argv)
 		parse_args_ctx(argc, argv);
 
 #ifdef STARPU_USE_CUDA
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,cuda_chol_task_21_cost);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,cuda_chol_task_22_cost);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,NULL);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,NULL);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,NULL);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 
 	starpu_cublas_init();

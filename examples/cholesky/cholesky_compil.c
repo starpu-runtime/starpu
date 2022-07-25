@@ -41,7 +41,7 @@
 static void callback_turn_spmd_on(void *arg)
 {
 	(void)arg;
-	cl22.type = STARPU_SPMD;
+	cl_gemm.type = STARPU_SPMD;
 }
 
 static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
@@ -116,20 +116,20 @@ static int _cholesky(starpu_data_handle_t dataA, unsigned nblocks)
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_insert"); \
 } while (0)
 
-#define POTRF(A, prio)		_POTRF(&cl11, A, prio, "potrf")
-#define TRSM(A, B, prio)	_TRSM(&cl21, A, B, prio, "trsm")
-#define SYRK(A, B, prio)	_SYRK(&cl22, A, B, prio, "syrk")
-#define GEMM(A, B, C, prio)	_GEMM(&cl22, A, B, C, prio, "gemm")
+#define POTRF(A, prio)		_POTRF(&cl_potrf, A, prio, "potrf")
+#define TRSM(A, B, prio)	_TRSM(&cl_trsm, A, B, prio, "trsm")
+#define SYRK(A, B, prio)	_SYRK(&cl_gemm, A, B, prio, "syrk")
+#define GEMM(A, B, C, prio)	_GEMM(&cl_gemm, A, B, C, prio, "gemm")
 
-#define POTRF_GPU(A, prio)	_POTRF(&cl11_gpu, A, prio, "potrf_gpu")
-#define TRSM_GPU(A, B, prio)	_TRSM(&cl21_gpu, A, B, prio, "trsm_gpu")
-#define SYRK_GPU(A, B, prio)	_SYRK(&cl22_gpu, A, B, prio, "syrk_gpu")
-#define GEMM_GPU(A, B, C, prio)	_GEMM(&cl22_gpu, A, B, C, prio, "gemm_gpu")
+#define POTRF_GPU(A, prio)	_POTRF(&cl_potrf_gpu, A, prio, "potrf_gpu")
+#define TRSM_GPU(A, B, prio)	_TRSM(&cltrsm_gpu, A, B, prio, "trsm_gpu")
+#define SYRK_GPU(A, B, prio)	_SYRK(&cl_gemm_gpu, A, B, prio, "syrk_gpu")
+#define GEMM_GPU(A, B, C, prio)	_GEMM(&cl_gemm_gpu, A, B, C, prio, "gemm_gpu")
 
-#define POTRF_CPU(A, prio)	_POTRF(&cl11_cpu, A, prio, "potrf_cpu")
-#define TRSM_CPU(A, B, prio)	_TRSM(&cl21_cpu, A, B, prio, "trsm_cpu")
-#define SYRK_CPU(A, B, prio)	_SYRK(&cl22_cpu, A, B, prio, "syrk_cpu")
-#define GEMM_CPU(A, B, C, prio)	_GEMM(&cl22_cpu, A, B, C, prio, "gemm_cpu")
+#define POTRF_CPU(A, prio)	_POTRF(&cl_potrf_cpu, A, prio, "potrf_cpu")
+#define TRSM_CPU(A, B, prio)	_TRSM(&cltrsm_cpu, A, B, prio, "trsm_cpu")
+#define SYRK_CPU(A, B, prio)	_SYRK(&cl_gemm_cpu, A, B, prio, "syrk_cpu")
+#define GEMM_CPU(A, B, C, prio)	_GEMM(&cl_gemm_cpu, A, B, C, prio, "gemm_cpu")
 
 #define potrf_oreille_up(k)		{ POTRF_GPU(A(k,k),(2*N - 2*k)); }
 #define potrf_oreille_down(k)		{ POTRF_GPU(A(k,k),(2*N - 2*k)); }
@@ -382,13 +382,13 @@ int main(int argc, char **argv)
 		parse_args_ctx(argc, argv);
 
 #ifdef STARPU_USE_CUDA
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,cuda_chol_task_21_cost);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,cuda_chol_task_22_cost);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,NULL);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,NULL);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,NULL);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 
 	starpu_cublas_init();

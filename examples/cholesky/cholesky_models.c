@@ -42,7 +42,7 @@
 #define PERTURBATE(a)	(a)
 #endif
 
-double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double cpu_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -53,13 +53,13 @@ double cpu_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_a
 	double cost = (((double)(n)*n*n)/1000.0f*0.894/0.79176);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cpu_chol_task_11_cost n %u cost %e\n", n, cost);
+	FPRINTF(stdout, "cpu_chol_task_potrf_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
 }
 
-double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double cuda_chol_task_potrf_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -70,13 +70,13 @@ double cuda_chol_task_11_cost(struct starpu_task *task, struct starpu_perfmodel_
 	double cost = (((double)(n)*n*n)/50.0f/10.75/5.088633/0.9883);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cuda_chol_task_11_cost n %u cost %e\n", n, cost);
+	FPRINTF(stdout, "cuda_chol_task_potrf_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
 }
 
-double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double cpu_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -87,13 +87,13 @@ double cpu_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_a
 	double cost = (((double)(n)*n*n)/7706.674/0.95/0.9965);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cpu_chol_task_21_cost n %u cost %e\n", n, cost);
+	FPRINTF(stdout, "cpu_chol_task_trsm_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
 }
 
-double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double cuda_chol_task_trsm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -104,13 +104,13 @@ double cuda_chol_task_21_cost(struct starpu_task *task, struct starpu_perfmodel_
 	double cost = (((double)(n)*n*n)/50.0f/10.75/87.29520);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cuda_chol_task_21_cost n %u cost %e\n", n, cost);
+	FPRINTF(stdout, "cuda_chol_task_trsm_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
 }
 
-double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double cpu_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -121,13 +121,13 @@ double cpu_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_a
 	double cost = (((double)(n)*n*n)/50.0f/10.75/8.0760);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cpu_chol_task_22_cost n %u cost %e\n", n, cost);
+	FPRINTF(stdout, "cpu_chol_task_gemm_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);
 }
 
-double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
+double cuda_chol_task_gemm_cost(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	(void)arch;
 	(void)nimpl;
@@ -138,7 +138,7 @@ double cuda_chol_task_22_cost(struct starpu_task *task, struct starpu_perfmodel_
 	double cost = (((double)(n)*n*n)/50.0f/10.75/76.30666);
 
 #ifdef STARPU_MODEL_DEBUG
-	FPRINTF(stdout, "cuda_chol_task_22_cost n %u cost %e\n", n, cost);
+	FPRINTF(stdout, "cuda_chol_task_gemm_cost n %u cost %e\n", n, cost);
 #endif
 
 	return PERTURBATE(cost);

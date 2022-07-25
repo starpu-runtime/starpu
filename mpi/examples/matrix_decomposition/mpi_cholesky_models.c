@@ -20,20 +20,20 @@
  *	Number of flops of Gemm
  */
 
-struct starpu_perfmodel chol_model_11 =
+struct starpu_perfmodel chol_model_potrf =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "chol_model_11"
+	.symbol = "chol_model_potrf"
 };
 
-struct starpu_perfmodel chol_model_21 =
+struct starpu_perfmodel chol_model_trsm =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "chol_model_21"
+	.symbol = "chol_model_trsm"
 };
 
-struct starpu_perfmodel chol_model_22 =
+struct starpu_perfmodel chol_model_gemm =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "chol_model_22"
+	.symbol = "chol_model_gemm"
 };

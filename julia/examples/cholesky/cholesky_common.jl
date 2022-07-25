@@ -1,6 +1,6 @@
 # StarPU --- Runtime system for heterogeneous multicore architectures.
 #
-# Copyright (C) 2020       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+# Copyright (C) 2020, 2022       Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
 #
 # StarPU is free software; you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -14,12 +14,9 @@
 # See the GNU Lesser General Public License in COPYING.LGPL for more details.
 #
 # Standard kernels for the Cholesky factorization
-# U22 is the gemm update
-# U21 is the trsm update
-# U11 is the cholesky factorization
 
 @target STARPU_CPU+STARPU_CUDA
-@codelet function u11(sub11 :: Matrix{Float32}) :: Nothing
+@codelet function potrf(sub11 :: Matrix{Float32}) :: Nothing
     nx :: Int32 = width(sub11)
     ld :: Int32 = ld(sub11)
 
@@ -39,8 +36,8 @@
 end
 
 @target STARPU_CPU+STARPU_CUDA
-@codelet function u21(sub11 :: Matrix{Float32},
-                      sub21 :: Matrix{Float32}) :: Nothing
+@codelet function trsm(sub11 :: Matrix{Float32},
+                       sub21 :: Matrix{Float32}) :: Nothing
     ld11 :: Int32 = ld(sub11)
     ld21 :: Int32 = ld(sub21)
     nx21 :: Int32 = width(sub21)
@@ -51,9 +48,9 @@ end
 end
 
 @target STARPU_CPU+STARPU_CUDA
-@codelet function u22(left   :: Matrix{Float32},
-                      right  :: Matrix{Float32},
-                      center :: Matrix{Float32}) :: Nothing
+@codelet function gemm(left   :: Matrix{Float32},
+                       right  :: Matrix{Float32},
+                       center :: Matrix{Float32}) :: Nothing
     dx :: Int32 = width(center)
     dy :: Int32 = height(center)
     dz :: Int32 = width(left)
@@ -66,15 +63,15 @@ end
     return
 end
 
-@inline function tag11(k)
+@inline function tag_potrf(k)
     return starpu_tag_t((UInt64(1)<<60) | UInt64(k))
 end
 
-@inline function tag21(k, j)
+@inline function tag_trsm(k, j)
     return starpu_tag_t((UInt64(3)<<60) | (UInt64(k)<<32) |  UInt64(j))
 end
 
-@inline function tag22(k, i, j)
+@inline function tag_gemm(k, i, j)
     return starpu_tag_t((UInt64(4)<<60) | (UInt64(k)<<32) | (UInt64(i)<<16) |  UInt64(j))
 end
 
@@ -112,14 +109,14 @@ end
 
 function clean_tags(nblocks)
     for k in 1:nblocks
-        starpu_tag_remove(tag11(k))
+        starpu_tag_remove(tag_potrf(k))
 
         for m in k+1:nblocks
-            starpu_tag_remove(tag21(k, m))
+            starpu_tag_remove(tag_trsm(k, m))
 
             for n in k+1:nblocks
                 if n <= m
-                    starpu_tag_remove(tag22(k, m, n))
+                    starpu_tag_remove(tag_gemm(k, m, n))
                 end
             end
         end
