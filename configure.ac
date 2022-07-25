@@ -3362,7 +3362,9 @@ if test x$blas_lib != xnone; then
     LIBS="$LIBS -lblas"
     AC_CHECK_FUNCS([cblas_sgemv])
     LIBS="$SAVED_LIBS"
+    STARPU_SEARCH_LIBS([LIBLAPACK],[dgels_],[lapack],[enable_liblapack=yes],[enable_liblapack=no])
 fi
+AM_CONDITIONAL(STARPU_HAVE_LIBLAPACK,test x$enable_liblapack = xyes)
 AM_CONDITIONAL(STARPU_HAVE_CBLAS_SGEMV, test x$HAVE_CBLAS_SGEMV = x1)
 
 AM_CONDITIONAL(STARPU_ATLAS_BLAS_LIB, test x$blas_lib = xatlas)
