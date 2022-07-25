@@ -251,8 +251,6 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 static starpu_sg_host_t _starpu_simgrid_get_host(const char *prefix, unsigned devid)
 {
 	char name[32];
-	starpu_sg_host_t host;
-	const char *memsize;
 
 	snprintf(name, sizeof(name), "%s%u", prefix, devid);
 
