@@ -261,7 +261,7 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
 	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = &config->conf;
 
-        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_cuda_gpuid == 0
+	_starpu_initialize_workers_deviceid(uconf->use_explicit_workers_cuda_gpuid == 0
 					    ? NULL
 					    : (int *)uconf->workers_cuda_gpuid,
 					    &(config->current_devid[STARPU_CUDA_WORKER]),
@@ -284,8 +284,10 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 
 	if (ncuda != 0)
 	{
-		/* The user did not disable CUDA. We need to initialize CUDA
- 		 * early to count the number of devices */
+		/* The user did not disable CUDA. We need to
+		 * initialize CUDA early to count the number of
+		 * devices
+		 */
 		_starpu_init_cuda();
 		int nb_devices = _starpu_get_cuda_device_count();
 
@@ -395,7 +397,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 			}
 		}
 #endif
-        }
+	}
 }
 
 /* Bind the driver on a CPU core */
