@@ -580,7 +580,9 @@ int _starpu_opencl_driver_init(struct _starpu_worker *worker)
 	float size = (float) global_mem[devid] / (1<<30);
 
 #ifdef STARPU_SIMGRID
-	const char *devname = "Simgrid";
+	const char *devname = _starpu_simgrid_get_devname("OpenCL", devid);
+	if (!devname)
+		devname = "Simgrid";
 #else
 	/* get the device's name */
 	char devname[64];

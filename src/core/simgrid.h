@@ -100,6 +100,7 @@ void _starpu_simgrid_sync_gpus(void);
 /** Return the number of hosts prefixed by PREFIX */
 int _starpu_simgrid_get_nbhosts(const char *prefix);
 unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid);
+const char *_starpu_simgrid_get_devname(const char *prefix, unsigned devid);
 starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name);
 starpu_sg_host_t _starpu_simgrid_get_memnode_host(unsigned node);
 struct _starpu_worker;

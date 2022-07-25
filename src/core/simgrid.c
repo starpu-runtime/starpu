@@ -248,7 +248,7 @@ int _starpu_simgrid_get_nbhosts(const char *prefix)
 	return ret;
 }
 
-unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid)
+static starpu_sg_host_t _starpu_simgrid_get_host(const char *prefix, unsigned devid)
 {
 	char name[32];
 	starpu_sg_host_t host;
@@ -256,7 +256,15 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 
 	snprintf(name, sizeof(name), "%s%u", prefix, devid);
 
-	host = _starpu_simgrid_get_host_by_name(name);
+	return _starpu_simgrid_get_host_by_name(name);
+}
+
+unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devid)
+{
+	starpu_sg_host_t host;
+	const char *memsize;
+
+	host = _starpu_simgrid_get_host(prefix, devid);
 	if (!host)
 		return 0;
 
@@ -276,6 +284,28 @@ unsigned long long _starpu_simgrid_get_memsize(const char *prefix, unsigned devi
 		return 0;
 
 	return atoll(memsize);
+}
+
+const char *_starpu_simgrid_get_devname(const char *prefix, unsigned devid)
+{
+	starpu_sg_host_t host;
+
+	host = _starpu_simgrid_get_host(prefix, devid);
+	if (!host)
+		return 0;
+
+#ifdef HAVE_SG_HOST_GET_PROPERTIES
+	if (!sg_host_get_properties(host))
+#else
+	if (!MSG_host_get_properties(host))
+#endif
+		return 0;
+
+#ifdef HAVE_SG_HOST_GET_PROPERTIES
+	return sg_host_get_property_value(host, "model");
+#else
+	return MSG_host_get_property_value(host, "model");
+#endif
 }
 
 starpu_sg_host_t _starpu_simgrid_get_host_by_name(const char *name)

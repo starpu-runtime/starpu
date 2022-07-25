@@ -19,24 +19,30 @@
    <host id="CPU6" speed="2000000000f"/>
    <host id="CPU7" speed="2000000000f"/>
    <host id="CUDA0" speed="2000000000f">
+     <prop id="model" value="Quadro FX5800"/>
      <prop id="memsize" value="3145728000"/>
      <prop id="memcpy_peer" value="0"/>
    </host>
    <host id="CUDA1" speed="2000000000f">
+     <prop id="model" value="Quadro FX5800"/>
      <prop id="memsize" value="3145728000"/>
      <prop id="memcpy_peer" value="0"/>
    </host>
    <host id="CUDA2" speed="2000000000f">
+     <prop id="model" value="Quadro FX5800"/>
      <prop id="memsize" value="3145728000"/>
      <prop id="memcpy_peer" value="0"/>
    </host>
    <host id="OpenCL0" speed="2000000000f">
+     <prop id="model" value="Fermi C2050"/>
      <prop id="memsize" value="3145728000"/>
    </host>
    <host id="OpenCL1" speed="2000000000f">
+     <prop id="model" value="Fermi C2050"/>
      <prop id="memsize" value="3145728000"/>
    </host>
    <host id="OpenCL2" speed="2000000000f">
+     <prop id="model" value="Fermi C2050"/>
      <prop id="memsize" value="3145728000"/>
    </host>
 

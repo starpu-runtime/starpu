@@ -23,34 +23,42 @@
    <host id="CPU10" power="2000000000"/>
    <host id="CPU11" power="2000000000"/>
    <host id="CUDA0" power="2000000000">
+     <prop id="model" value="Tesla C2050"/>
      <prop id="memsize" value="2817982464"/>
      <prop id="memcpy_peer" value="1"/>
    </host>
    <host id="CUDA1" power="2000000000">
+     <prop id="model" value="Tesla C2050"/>
      <prop id="memsize" value="2817982464"/>
      <prop id="memcpy_peer" value="1"/>
    </host>
    <host id="CUDA2" power="2000000000">
+     <prop id="model" value="Tesla C2050"/>
      <prop id="memsize" value="2817982464"/>
      <prop id="memcpy_peer" value="1"/>
    </host>
    <host id="CUDA3" power="2000000000">
+     <prop id="model" value="Tesla C2050"/>
      <prop id="memsize" value="2817982464"/>
      <prop id="memcpy_peer" value="1"/>
    </host>
    <host id="CUDA4" power="2000000000">
+     <prop id="model" value="Tesla C2050"/>
      <prop id="memsize" value="2817982464"/>
      <prop id="memcpy_peer" value="1"/>
    </host>
    <host id="CUDA5" power="2000000000">
+     <prop id="model" value="Tesla C2050"/>
      <prop id="memsize" value="2817982464"/>
      <prop id="memcpy_peer" value="1"/>
    </host>
    <host id="CUDA6" power="2000000000">
+     <prop id="model" value="Tesla C2050"/>
      <prop id="memsize" value="2817982464"/>
      <prop id="memcpy_peer" value="1"/>
    </host>
    <host id="CUDA7" power="2000000000">
+     <prop id="model" value="Tesla C2050"/>
      <prop id="memsize" value="2817982464"/>
      <prop id="memcpy_peer" value="1"/>
    </host>

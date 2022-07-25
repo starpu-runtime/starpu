@@ -106,6 +106,7 @@ static double numa_latency[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 static double numa_timing[STARPU_MAXNUMANODES][STARPU_MAXNUMANODES];
 
 static uint64_t cuda_size[STARPU_MAXCUDADEVS];
+static char cuda_devname[STARPU_MAXCUDADEVS][256];
 #endif
 #ifdef STARPU_USE_CUDA
 /* preference order of NUMA nodes (logical indexes) */
@@ -123,6 +124,7 @@ static char cudadev_direct[STARPU_MAXNODES][STARPU_MAXNODES];
 
 #ifndef STARPU_SIMGRID
 static uint64_t opencl_size[STARPU_MAXOPENCLDEVS];
+static char opencl_devname[STARPU_MAXOPENCLDEVS][64];
 #endif
 
 #ifdef STARPU_USE_OPENCL
@@ -215,6 +217,8 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_cuda(int dev, in
 	cures = cudaGetDeviceProperties(&prop, dev);
 	if (STARPU_UNLIKELY(cures)) STARPU_CUDA_REPORT_ERROR(cures);
 	cuda_size[dev] = prop.totalGlobalMem;
+	strncpy(cuda_devname[dev], prop.name, sizeof(cuda_devname[dev]));
+	cuda_devname[dev][sizeof(cuda_devname[dev])-1] = 0;
         if (size > prop.totalGlobalMem/4) size = prop.totalGlobalMem/4;
 
 	/* Allocate a buffer on the device */
@@ -486,6 +490,9 @@ static void measure_bandwidth_between_host_and_dev_on_numa_with_opencl(int dev, 
 	err = clGetDeviceInfo(device, CL_DEVICE_GLOBAL_MEM_SIZE , sizeof(totalGlobalMem), &totalGlobalMem, NULL);
 	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 	opencl_size[dev] = totalGlobalMem;
+
+	err = clGetDeviceInfo(device, CL_DEVICE_NAME , sizeof(opencl_devname[dev]), &opencl_devname[dev], NULL);
+	if (STARPU_UNLIKELY(err != CL_SUCCESS)) STARPU_OPENCL_REPORT_ERROR(err);
 
 	if (_starpu_opencl_get_device_type(dev) == CL_DEVICE_TYPE_CPU)
 	{
@@ -2702,6 +2709,7 @@ static void write_bus_platform_file_content(int version)
 	for (i = 0; i < ncuda; i++)
 	{
 		fprintf(f, "   <host id=\"CUDA%u\" %s=\"2000000000%s\">\n", i, speed, flops);
+		fprintf(f, "     <prop id=\"model\" value=\"%s\"/>\n", cuda_devname[i]);
 		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) cuda_size[i]);
 #ifdef STARPU_HAVE_CUDA_MEMCPY_PEER
 		fprintf(f, "     <prop id=\"memcpy_peer\" value=\"1\"/>\n");
@@ -2713,6 +2721,7 @@ static void write_bus_platform_file_content(int version)
 	for (i = 0; i < nopencl; i++)
 	{
 		fprintf(f, "   <host id=\"OpenCL%u\" %s=\"2000000000%s\">\n", i, speed, flops);
+		fprintf(f, "     <prop id=\"model\" value=\"%s\"/>\n", opencl_devname[i]);
 		fprintf(f, "     <prop id=\"memsize\" value=\"%llu\"/>\n", (unsigned long long) opencl_size[i]);
 		fprintf(f, "   </host>\n");
 	}
