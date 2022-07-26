@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -49,20 +49,20 @@ static void usage()
 {
 	fprintf(stderr, "Display a given perfmodel\n\n");
 	fprintf(stderr, "Usage: %s [ options ]\n", PROGNAME);
-        fprintf(stderr, "\n");
-        fprintf(stderr, "One must specify either -l or -s. -x can be used with -s\n");
-        fprintf(stderr, "Options:\n");
-        fprintf(stderr, "   -l                  display all available models\n");
-        fprintf(stderr, "   -s <symbol>         specify the symbol\n");
-	fprintf(stderr, "   -x                  display output in XML format\n");
-        fprintf(stderr, "   -p <parameter>      specify the parameter (e.g. a, b, c, mean, stddev)\n");
-        fprintf(stderr, "   -a <arch>           specify the architecture (e.g. cpu, cpu:k, cuda)\n");
-	fprintf(stderr, "   -f <footprint>      display the history-based model for the specified footprint\n");
-	fprintf(stderr, "   -d                  display the directory storing performance models\n");
-	fprintf(stderr, "   -h, --help          display this help and exit\n");
-	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
-        fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
-        fprintf(stderr, "\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "One must specify either -l or -s. -x can be used with -s\n");
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "   -l			display all available models\n");
+	fprintf(stderr, "   -s <symbol>		specify the symbol\n");
+	fprintf(stderr, "   -x			display output in XML format\n");
+	fprintf(stderr, "   -p <parameter>	specify the parameter (e.g. a, b, c, mean, stddev)\n");
+	fprintf(stderr, "   -a <arch>		specify the architecture (e.g. cpu, cpu:k, cuda)\n");
+	fprintf(stderr, "   -f <footprint>	display the history-based model for the specified footprint\n");
+	fprintf(stderr, "   -d			display the directory storing performance models\n");
+	fprintf(stderr, "   -h, --help		display this help and exit\n");
+	fprintf(stderr, "   -v, --version	output version information and exit\n\n");
+	fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
+	fprintf(stderr, "\n");
 }
 
 static void parse_args(int argc, char **argv)
@@ -89,10 +89,10 @@ static void parse_args(int argc, char **argv)
 	{
 		switch (c)
 		{
-                case 'l':
-                        /* list all models */
-                        plist = 1;
-                        break;
+		case 'l':
+			/* list all models */
+			plist = 1;
+			break;
 
 		case 's':
 			/* symbol */
@@ -131,7 +131,7 @@ static void parse_args(int argc, char **argv)
 			exit(EXIT_SUCCESS);
 
 		case 'v':
-		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
+			fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 			exit(EXIT_SUCCESS);
 
 		case '?':
@@ -143,7 +143,7 @@ static void parse_args(int argc, char **argv)
 	if (!psymbol && !plist && !pdirectory)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
-                usage();
+		usage();
 		exit(-1);
 	}
 }
@@ -159,19 +159,19 @@ int main(int argc, char **argv)
 	starpu_drivers_preinit();
 	starpu_perfmodel_initialize();
 
-        if (plist)
+	if (plist)
 	{
-                starpu_perfmodel_list(stdout);
-        }
-        else if (pdirectory)
+		starpu_perfmodel_list(stdout);
+	}
+	else if (pdirectory)
 	{
 		starpu_perfmodel_directory(stdout);
 	}
 	else
 	{
 		struct starpu_perfmodel model = { .type = STARPU_PERFMODEL_INVALID };
-                int ret = starpu_perfmodel_load_symbol(psymbol, &model);
-                if (ret == 1)
+		int ret = starpu_perfmodel_load_symbol(psymbol, &model);
+		if (ret == 1)
 		{
 			fprintf(stderr, "The performance model for the symbol <%s> could not be loaded\n", psymbol);
 			return 1;
@@ -190,7 +190,7 @@ int main(int argc, char **argv)
 			starpu_perfmodel_print_all(&model, parch, pparameter, footprint, stdout);
 		}
 		starpu_perfmodel_unload_model(&model);
-        }
+	}
 
 	starpu_perfmodel_free_sampling();
 	return 0;

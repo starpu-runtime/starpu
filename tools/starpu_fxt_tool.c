@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,28 +29,28 @@ static void usage()
 {
 	fprintf(stderr, "Generate a trace in the Paje format\n\n");
 	fprintf(stderr, "Usage: %s [ options ]\n", PROGNAME);
-        fprintf(stderr, "\n");
-        fprintf(stderr, "Options:\n");
-	fprintf(stderr, "   -i <input file[s]>  specify the input file[s]. Several files can be provided,\n");
-	fprintf(stderr, "                       or the option specified several times for MPI execution\n");
-	fprintf(stderr, "                       case\n");
-        fprintf(stderr, "   -o <output file>    specify the paje output filename\n");
-	fprintf(stderr, "   -d <directory>      specify the directory in which to save files\n");
-        fprintf(stderr, "   -c                  use a different colour for every type of task\n");
-	fprintf(stderr, "   -no-events          do not show events\n");
-	fprintf(stderr, "   -no-counter         do not show scheduler counters\n");
-	fprintf(stderr, "   -no-bus             do not show PCI bus transfers\n");
-	fprintf(stderr, "   -no-flops           do not show flops\n");
-	fprintf(stderr, "   -no-smooth          avoid smoothing values for gflops etc.\n");
-	fprintf(stderr, "   -no-acquire         do not show application data acquisitions tasks in DAG\n");
-	fprintf(stderr, "   -label-deps         add label on dependencies.\n");
-	fprintf(stderr, "   -memory-states      show detailed memory states of handles\n");
-	fprintf(stderr, "   -internal           show StarPU-internal tasks in DAG\n");
-	fprintf(stderr, "   -number-events      generate a file counting FxT events by type\n");
-	fprintf(stderr, "   -h, --help          display this help and exit\n");
-	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
-        fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
-        fprintf(stderr, "\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "   -i <input file[s]>	specify the input file[s]. Several files can be provided,\n");
+	fprintf(stderr, "			or the option specified several times for MPI execution\n");
+	fprintf(stderr, "			case\n");
+	fprintf(stderr, "   -o <output file>	specify the paje output filename\n");
+	fprintf(stderr, "   -d <directory>	specify the directory in which to save files\n");
+	fprintf(stderr, "   -c			use a different colour for every type of task\n");
+	fprintf(stderr, "   -no-events		do not show events\n");
+	fprintf(stderr, "   -no-counter		do not show scheduler counters\n");
+	fprintf(stderr, "   -no-bus		do not show PCI bus transfers\n");
+	fprintf(stderr, "   -no-flops		do not show flops\n");
+	fprintf(stderr, "   -no-smooth		avoid smoothing values for gflops etc.\n");
+	fprintf(stderr, "   -no-acquire		do not show application data acquisitions tasks in DAG\n");
+	fprintf(stderr, "   -label-deps		add label on dependencies.\n");
+	fprintf(stderr, "   -memory-states	show detailed memory states of handles\n");
+	fprintf(stderr, "   -internal		show StarPU-internal tasks in DAG\n");
+	fprintf(stderr, "   -number-events	generate a file counting FxT events by type\n");
+	fprintf(stderr, "   -h, --help		display this help and exit\n");
+	fprintf(stderr, "   -v, --version	output version information and exit\n\n");
+	fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
+	fprintf(stderr, "\n");
 }
 
 static struct starpu_fxt_options options;
@@ -99,7 +99,7 @@ static int parse_args(int argc, char **argv)
 		}
 		else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
 		{
-		        fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
+			fputs(PROGNAME " (" PACKAGE_NAME ") " PACKAGE_VERSION "\n", stderr);
 			return 77;
 		}
 
@@ -120,7 +120,7 @@ static int parse_args(int argc, char **argv)
 	if (!options.ninputfiles)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
-                usage();
+		usage();
 		return 77;
 	}
 

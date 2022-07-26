@@ -29,8 +29,9 @@
 #include <starpu.h>
 #include <common/utils.h>
 #include <common/uthash.h>
-#include <core/perfmodel/perfmodel.h> // we need to browse the list associated to history-based models
-                                      // just like in starpu_perfmodel_plot
+// we need to browse the list associated to history-based models
+// just like in starpu_perfmodel_plot
+#include <core/perfmodel/perfmodel.h>
 
 #define STRHEADCMP(s, head) strncmp(s, head, strlen(head))
 
@@ -169,11 +170,11 @@ static void usage()
 {
 	fprintf(stderr, "Dumps perfmodels to a rec file\n\n");
 	fprintf(stderr, "Usage: %s [ input-file ] [ -o output-file ]\n", PROGNAME);
-        fprintf(stderr, "\n");
+	fprintf(stderr, "\n");
 	fprintf(stderr, "If input or output file names are not given, stdin and stdout are used.");
 	fprintf(stderr, "\n");
-        fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
-        fprintf(stderr, "\n");
+	fprintf(stderr, "Report bugs to <"PACKAGE_BUGREPORT">.");
+	fprintf(stderr, "\n");
 }
 
 static void print_entry(const char *name, const char *archname, FILE *output, struct starpu_perfmodel_history_entry *entry)
@@ -206,14 +207,14 @@ static void parse_args(int argc, char **argv)
 	{
 		switch (c)
 		{
-                case 'h': /* display help */
-		  usage();
-		  exit(EXIT_SUCCESS);
-		  break;
+		case 'h': /* display help */
+			usage();
+			exit(EXIT_SUCCESS);
+			break;
 
 		case 'o':
-		  poutput = optarg;
-		  break;
+			poutput = optarg;
+			break;
 		case '?':
 		default:
 			fprintf(stderr, "Unrecognized option: -%c\n", optopt);

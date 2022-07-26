@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Joris Pablo
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -28,15 +28,15 @@ static void usage()
 {
 	fprintf(stderr, "Get statistics about tasks lengths and data size\n\n");
 	fprintf(stderr, "Usage: %s [ options ] <filename> [<codelet1> <codelet2> .... <codeletn>]\n", PROGNAME);
-        fprintf(stderr, "\n");
-        fprintf(stderr, "Options:\n");
-	fprintf(stderr, "   -h, --help          display this help and exit\n");
-	fprintf(stderr, "   -v, --version       output version information and exit\n\n");
-	fprintf(stderr, "   -d directory        where to save output files (by default current directory)\n");
-	fprintf(stderr, "    filename           specify the FxT trace input file.\n");
-	fprintf(stderr, "    codeletX           specify the codelet name to profile (by default, all codelets are profiled)\n");
-        fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
-        fprintf(stderr, "\n");
+	fprintf(stderr, "\n");
+	fprintf(stderr, "Options:\n");
+	fprintf(stderr, "   -h, --help		display this help and exit\n");
+	fprintf(stderr, "   -v, --version	output version information and exit\n\n");
+	fprintf(stderr, "   -d directory	where to save output files (by default current directory)\n");
+	fprintf(stderr, "    filename		specify the FxT trace input file.\n");
+	fprintf(stderr, "    codeletX		specify the codelet name to profile (by default, all codelets are profiled)\n");
+	fprintf(stderr, "Report bugs to <%s>.", PACKAGE_BUGREPORT);
+	fprintf(stderr, "\n");
 }
 
 static int parse_args(int argc, char **argv, int *pos, char **directory)
@@ -46,7 +46,7 @@ static int parse_args(int argc, char **argv, int *pos, char **directory)
 	if(argc < 2)
 	{
 		fprintf(stderr, "Incorrect usage, aborting\n");
-                usage();
+		usage();
 		return 77;
 	}
 
