@@ -54,28 +54,28 @@ static starpu_data_handle_t *C_h;
 static int comm_rank; /* mpi rank of the process */
 static int comm_size; /* size of the mpi session */
 
-typedef struct Blocks
+struct block
 {
         double* c;
         int owner;
-} Block;
+}
 
-typedef struct Matrices
+struct matrix
 {
         int mb, nb, b;
-        Block* blocks;
-} Matrix;
+        struct block* blocks;
+}
 
 /* Matrices. Will be allocated as regular, linearized C arrays */
-static Matrix *A = NULL; /* A will be partitioned as MB x KB blocks */
-static Matrix *B = NULL; /* B will be partitioned as KB x NB blocks */
-static Matrix *C = NULL; /* C will be partitioned as MB x NB blocks */
+static struct matrix *A = NULL; /* A will be partitioned as MB x KB blocks */
+static struct matrix *B = NULL; /* B will be partitioned as KB x NB blocks */
+static struct matrix *C = NULL; /* C will be partitioned as MB x NB blocks */
 
-Matrix* alloc_matrix(int mb, int nb)
+struct matrix* alloc_matrix(int mb, int nb)
 {
-	Matrix* X;
-	X = malloc(sizeof(Matrix));
-      	X->blocks = malloc( mb*nb*sizeof(Block));
+	struct matrix* X;
+	X = malloc(sizeof(struct matrix));
+      	X->blocks = malloc( mb*nb*sizeof(struct block));
 	int i,j;
 	for (i = 0; i<mb; i++)
 	{
@@ -99,7 +99,7 @@ static void alloc_matrices(void)
 	C = alloc_matrix(MB,NB);
 }
 
-static void free_matrix(Matrix* X, int mb, int nb)
+static void free_matrix(struct matrix* X, int mb, int nb)
 {
 	int i,j;
 	for (i = 0; i<mb; i++)
@@ -122,7 +122,7 @@ static void free_matrices(void)
   	free_matrix(C,MB,NB);
 }
 
-static void register_matrix(Matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag_t *tag, int mb, int nb)
+static void register_matrix(struct matrix* X, starpu_data_handle_t* X_h, starpu_mpi_tag_t *tag, int mb, int nb)
 {
 	int b_row, b_col;
 	for (b_row = 0; b_row < mb; b_row++)
@@ -163,7 +163,7 @@ static void register_matrices()
 	register_matrix(C,C_h,&tag,MB,NB);
 }
 
-static void unregister_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int nb)
+static void unregister_matrix(struct matrix* X, starpu_data_handle_t* X_h, int mb, int nb)
 {
 	int b_row,b_col;
 	for (b_row = 0; b_row < mb; b_row++)
@@ -245,7 +245,7 @@ static struct starpu_codelet fill_cl =
 	.name = "fill" /* to display task name in traces */
 };
 
-static void init_matrix(Matrix* X, starpu_data_handle_t* X_h, int mb, int nb)
+static void init_matrix(struct matrix* X, starpu_data_handle_t* X_h, int mb, int nb)
 {
 	int row, col;
 	for (row = 0; row < mb; row++)
