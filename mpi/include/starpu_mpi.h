@@ -685,6 +685,7 @@ int starpu_mpi_task_post_build(MPI_Comm comm, struct starpu_codelet *codelet, ..
    Transfer data \p data_handle to MPI node \p node, sending it from
    its owner if needed. At least the target node and the owner have to
    call the function.
+   This waits for the transfer to be over.
 */
 int starpu_mpi_get_data_on_node(MPI_Comm comm, starpu_data_handle_t data_handle, int node);
 
