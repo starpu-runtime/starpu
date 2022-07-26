@@ -74,6 +74,7 @@ dist_pkgdata_perfmodels_sampling_bus_DATA = \
 dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 	perfmodels/sampling/codelets/45/chol_model_potrf.attila	\
 	perfmodels/sampling/codelets/45/chol_model_trsm.attila	\
+	perfmodels/sampling/codelets/45/chol_model_syrk.attila	\
 	perfmodels/sampling/codelets/45/chol_model_gemm.attila	\
 	perfmodels/sampling/codelets/45/cl_update.attila	\
 	perfmodels/sampling/codelets/45/save_cl_bottom.attila	\
@@ -116,6 +117,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 \
 	perfmodels/sampling/codelets/45/chol_model_potrf.hannibal	\
 	perfmodels/sampling/codelets/45/chol_model_trsm.hannibal	\
+	perfmodels/sampling/codelets/45/chol_model_syrk.hannibal	\
 	perfmodels/sampling/codelets/45/chol_model_gemm.hannibal	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_getrf.hannibal	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_trsm_ll.hannibal	\
@@ -136,6 +138,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 \
 	perfmodels/sampling/codelets/45/chol_model_potrf.hannibal-pitch	\
 	perfmodels/sampling/codelets/45/chol_model_trsm.hannibal-pitch	\
+	perfmodels/sampling/codelets/45/chol_model_syrk.hannibal-pitch	\
 	perfmodels/sampling/codelets/45/chol_model_gemm.hannibal-pitch	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_getrf.hannibal-pitch	\
 	perfmodels/sampling/codelets/45/starpu_slu_lu_model_trsm_ll.hannibal-pitch	\
@@ -156,6 +159,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 \
 	perfmodels/sampling/codelets/45/chol_model_potrf.idgraf	\
 	perfmodels/sampling/codelets/45/chol_model_trsm.idgraf	\
+	perfmodels/sampling/codelets/45/chol_model_syrk.idgraf	\
 	perfmodels/sampling/codelets/45/chol_model_gemm.idgraf	\
 	perfmodels/sampling/codelets/45/cl_update.idgraf	\
 	perfmodels/sampling/codelets/45/save_cl_bottom.idgraf	\
@@ -197,6 +201,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 \
 	perfmodels/sampling/codelets/45/chol_model_potrf.mirage	\
 	perfmodels/sampling/codelets/45/chol_model_trsm.mirage	\
+	perfmodels/sampling/codelets/45/chol_model_syrk.mirage	\
 	perfmodels/sampling/codelets/45/chol_model_gemm.mirage	\
 	perfmodels/sampling/codelets/45/cl_update.mirage	\
 	perfmodels/sampling/codelets/45/save_cl_bottom.mirage	\
@@ -239,6 +244,7 @@ dist_pkgdata_perfmodels_sampling_codelets_DATA = \
 \
 	perfmodels/sampling/codelets/45/chol_model_potrf.sirocco	\
 	perfmodels/sampling/codelets/45/chol_model_trsm.sirocco	\
+	perfmodels/sampling/codelets/45/chol_model_syrk.sirocco	\
 	perfmodels/sampling/codelets/45/chol_model_gemm.sirocco	\
 	perfmodels/sampling/codelets/45/cl_update.sirocco	\
 	perfmodels/sampling/codelets/45/save_cl_bottom.sirocco	\
