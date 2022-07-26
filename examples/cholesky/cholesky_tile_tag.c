@@ -121,7 +121,6 @@ static int create_task_gemm(unsigned k, unsigned m, unsigned n)
 /*	FPRINTF(stdout, "task gemm k,n,m = %d,%d,%d TAG = %llx\n", k,m,n, TAG_GEMM(k,m,n)); */
 
 	struct starpu_task *task = create_task(TAG_GEMM(k, m, n));
-	int nx = starpu_matrix_get_nx(task->handles[0]);
 
 	if (m == n)
 	{
@@ -130,6 +129,7 @@ static int create_task_gemm(unsigned k, unsigned m, unsigned n)
 		/* which sub-data is manipulated ? */
 		task->handles[0] = A_state[n][k];
 		task->handles[1] = A_state[n][n];
+		int nx = starpu_matrix_get_nx(task->handles[0]);
 		task->flops = FLOPS_SSYRK(nx, nx);
 	}
 	else
@@ -140,6 +140,7 @@ static int create_task_gemm(unsigned k, unsigned m, unsigned n)
 		task->handles[0] = A_state[n][k];
 		task->handles[1] = A_state[m][k];
 		task->handles[2] = A_state[m][n];
+		int nx = starpu_matrix_get_nx(task->handles[0]);
 		task->flops = FLOPS_SGEMM(nx, nx, nx);
 	}
 
