@@ -468,8 +468,8 @@ int main(int argc, char **argv)
 #endif
 	}
 
-        /* Already initialized?  It probably has been done through a
-         * constructor and MSG_process_attach, directly jump to real main */
+	/* Already initialized?	 It probably has been done through a
+	 * constructor and MSG_process_attach, directly jump to real main */
 	if (simgrid_started == 3)
 	{
 		return run_starpu_main(argc, argv);
@@ -562,8 +562,8 @@ void _starpu_simgrid_init_early(int *argc STARPU_ATTRIBUTE_UNUSED, char ***argv 
 
 	if (!simgrid_started && !starpu_main && !_starpu_simgrid_running_smpi())
 	{
-                /* Oops, we don't have MSG_process_attach and didn't catch the
-                 * 'main' symbol, there is no way for us */
+		/* Oops, we don't have MSG_process_attach and didn't catch the
+		 * 'main' symbol, there is no way for us */
 		_STARPU_ERROR("In simgrid mode, the file containing the main() function of this application needs to be compiled with starpu.h or starpu_simgrid_wrap.h included, to properly rename it into starpu_main\n");
 	}
 	if (_starpu_simgrid_running_smpi())
@@ -787,8 +787,8 @@ void _starpu_simgrid_submit_job(int workerid, int sched_ctx_id, struct _starpu_j
 		STARPU_ASSERT_MSG(!_STARPU_IS_ZERO(length) && !isnan(length),
 				  "Codelet %s does not have a perfmodel (in directory %s), or is not calibrated enough, please re-run in non-simgrid mode until it is calibrated, or fix the STARPU_HOSTNAME and STARPU_PERF_MODEL_DIR environment variables",
 				  _starpu_job_get_model_name(j), _starpu_get_perf_model_dir_codelet());
-                /* TODO: option to add variance according to performance model,
-                 * to be able to easily check scheduling robustness */
+		/* TODO: option to add variance according to performance model,
+		 * to be able to easily check scheduling robustness */
 	}
 	if (isnan(energy))
 	{

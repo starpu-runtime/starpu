@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -60,7 +60,7 @@ static const struct starpu_data_copy_methods multiformat_copy_data_methods_s =
 	.ram_to_opencl = copy_ram_to_opencl,
 	.opencl_to_ram = copy_opencl_to_ram,
 	.opencl_to_opencl = copy_opencl_to_opencl,
-        .ram_to_opencl_async = copy_ram_to_opencl_async,
+	.ram_to_opencl_async = copy_ram_to_opencl_async,
 	.opencl_to_ram_async = copy_opencl_to_ram_async,
 #endif
 };
@@ -509,13 +509,13 @@ static int copy_cuda_peer_common(void *src_interface, unsigned src_node,
 					     size, stream);
 		starpu_interface_end_driver_copy_async(src_node, dst_node, start);
 		/* All good ! Still, returning -EAGAIN, because we will need to
-                   check the transfert completion later */
+		   check the transfert completion later */
 		if (status == cudaSuccess)
 			return -EAGAIN;
 	}
 
 	/* Either a synchronous transfert was requested, or the asynchronous one
-           failed. */
+	   failed. */
 	status = cudaMemcpyPeer(dst_multiformat->cuda_ptr, dst_dev,
 				src_multiformat->cuda_ptr, src_dev,
 				size);
@@ -598,8 +598,8 @@ static int copy_ram_to_opencl_async(void *src_interface, unsigned src_node,
 					       0,
 					       event,
 					       &ret);
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	if (STARPU_UNLIKELY(err))
+		STARPU_OPENCL_REPORT_ERROR(err);
 
 	starpu_interface_data_copy(src_node, dst_node, size);
 	return ret;
@@ -638,8 +638,8 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 					       0,
 					       event,
 					       &ret);
-        if (STARPU_UNLIKELY(err))
-                STARPU_OPENCL_REPORT_ERROR(err);
+	if (STARPU_UNLIKELY(err))
+		STARPU_OPENCL_REPORT_ERROR(err);
 
 	starpu_interface_data_copy(src_node, dst_node, size);
 
@@ -648,19 +648,19 @@ static int copy_opencl_to_ram_async(void *src_interface, unsigned src_node,
 }
 
 static int copy_ram_to_opencl(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
-                              void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
+			      void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
-        return copy_ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
+	return copy_ram_to_opencl_async(src_interface, src_node, dst_interface, dst_node, NULL);
 }
 
 static int copy_opencl_to_ram(void *src_interface, unsigned src_node STARPU_ATTRIBUTE_UNUSED,
 				void *dst_interface, unsigned dst_node STARPU_ATTRIBUTE_UNUSED)
 {
-        return copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
+	return copy_opencl_to_ram_async(src_interface, src_node, dst_interface, dst_node, NULL);
 }
 
 static int copy_opencl_to_opencl(void *src_interface, unsigned src_node,
-                                 void *dst_interface, unsigned dst_node)
+				 void *dst_interface, unsigned dst_node)
 {
 	(void) src_interface;
 	(void) dst_interface;

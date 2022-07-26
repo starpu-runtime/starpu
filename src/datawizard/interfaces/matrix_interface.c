@@ -96,8 +96,8 @@ static void register_matrix_handle(starpu_data_handle_t handle, int home_node, v
 		if (node == home_node)
 		{
 			local_interface->ptr = matrix_interface->ptr;
-                        local_interface->dev_handle = matrix_interface->dev_handle;
-                        local_interface->offset = matrix_interface->offset;
+			local_interface->dev_handle = matrix_interface->dev_handle;
+			local_interface->offset = matrix_interface->offset;
 			local_interface->ld  = matrix_interface->ld;
 		}
 		else
@@ -161,8 +161,8 @@ void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 		.nx = nx,
 		.ny = ny,
 		.elemsize = elemsize,
-                .dev_handle = ptr,
-                .offset = 0,
+		.dev_handle = ptr,
+		.offset = 0,
 		.allocsize = allocsize,
 	};
 #ifndef STARPU_SIMGRID

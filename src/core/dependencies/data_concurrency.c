@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -334,8 +334,8 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 				continue;
 		}
 
-                STARPU_ASSERT(j->task->status == STARPU_TASK_BLOCKED || j->task->status == STARPU_TASK_BLOCKED_ON_TAG || j->task->status == STARPU_TASK_BLOCKED_ON_TASK || j->task->status == STARPU_TASK_BLOCKED_ON_DATA);
-                j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
+		STARPU_ASSERT(j->task->status == STARPU_TASK_BLOCKED || j->task->status == STARPU_TASK_BLOCKED_ON_TAG || j->task->status == STARPU_TASK_BLOCKED_ON_TASK || j->task->status == STARPU_TASK_BLOCKED_ON_DATA);
+		j->task->status = STARPU_TASK_BLOCKED_ON_DATA;
 
 		if(handle->arbiter)
 		{
@@ -345,10 +345,10 @@ static unsigned _submit_job_access_data(struct _starpu_job *j, unsigned start_bu
 			return 1;
 		}
 
-                if (attempt_to_submit_data_request_from_job(j, buf))
+		if (attempt_to_submit_data_request_from_job(j, buf))
 		{
 			return 1;
-                }
+		}
 	}
 
 	return 0;
@@ -394,7 +394,7 @@ static void _submit_job_take_data_deps(struct _starpu_job *j, unsigned start_buf
 			//_starpu_submit_job_take_arbitered_deps(j, buf, nbuffers);
 		}
 
-                take_data_from_job(j, buf);
+		take_data_from_job(j, buf);
 	}
 }
 

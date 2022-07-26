@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,21 +34,21 @@
 /* allocation memory on disk */
 static void *starpu_unistd_o_direct_alloc(void *base, size_t size)
 {
-        struct starpu_unistd_global_obj *obj;
+	struct starpu_unistd_global_obj *obj;
 	_STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
-        /* only flags change between unistd and unistd_o_direct */
-        obj->flags = O_RDWR | O_DIRECT | O_BINARY;
-        return starpu_unistd_global_alloc (obj, base, size);
+	/* only flags change between unistd and unistd_o_direct */
+	obj->flags = O_RDWR | O_DIRECT | O_BINARY;
+	return starpu_unistd_global_alloc (obj, base, size);
 }
 
 /* open an existing memory on disk */
 static void *starpu_unistd_o_direct_open(void *base, void *pos, size_t size)
 {
-        struct starpu_unistd_global_obj *obj;
+	struct starpu_unistd_global_obj *obj;
 	_STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
-        /* only flags change between unistd and unistd_o_direct */
-        obj->flags = O_RDWR | O_DIRECT | O_BINARY;
-        return starpu_unistd_global_open (obj, base, pos, size);
+	/* only flags change between unistd and unistd_o_direct */
+	obj->flags = O_RDWR | O_DIRECT | O_BINARY;
+	return starpu_unistd_global_open (obj, base, pos, size);
 }
 
 /* read the memory disk */
@@ -83,7 +83,7 @@ static void *starpu_unistd_o_direct_plug(void *parameter, starpu_ssize_t size)
 void *starpu_unistd_o_direct_global_async_read(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only read a multiple of page size %lu Bytes (Here %lu). Use the non-o_direct unistd variant if your data is not a multiple of %lu",
-			(unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
+			  (unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
 
 	STARPU_ASSERT_MSG((((uintptr_t) buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
@@ -93,7 +93,7 @@ void *starpu_unistd_o_direct_global_async_read(void *base, void *obj, void *buf,
 void *starpu_unistd_o_direct_global_async_write(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only write a multiple of page size %lu Bytes (Here %lu). Use the non-o_direct unistd variant if your data is not a multiple of %lu",
-			(unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
+			  (unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
 
 	STARPU_ASSERT_MSG((((uintptr_t)buf) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
@@ -104,19 +104,17 @@ void *starpu_unistd_o_direct_global_async_write(void *base, void *obj, void *buf
 #ifdef STARPU_UNISTD_USE_COPY
 void *  starpu_unistd_o_direct_global_copy(void *base_src, void* obj_src, off_t offset_src,  void *base_dst, void* obj_dst, off_t offset_dst, size_t size)
 {
-
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only write a multiple of page size %lu Bytes (Here %lu). Use the non-o_direct unistd variant if your data is not a multiple of %lu",
-			(unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
+			  (unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
 
 	return starpu_unistd_global_copy(base_src, obj_src, offset_src, base_dst, obj_dst, offset_dst, size);
 }
-
 #endif
 
 int starpu_unistd_o_direct_global_full_write(void *base, void *obj, void *ptr, size_t size)
 {
 	STARPU_ASSERT_MSG((size % getpagesize()) == 0, "The unistd_o_direct variant can only write a multiple of page size %lu Bytes (Here %lu). Use the non-o_direct unistd variant if your data is not a multiple of %lu",
-			(unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
+			  (unsigned long) getpagesize(), (unsigned long) size, (unsigned long) getpagesize());
 
 	STARPU_ASSERT_MSG((((uintptr_t)ptr) % getpagesize()) == 0, "You have to use starpu_malloc function to get aligned buffers for the unistd_o_direct variant");
 
@@ -140,10 +138,10 @@ struct starpu_disk_ops starpu_disk_unistd_o_direct_ops =
 #endif
 	.bandwidth = _starpu_get_unistd_global_bandwidth_between_disk_and_main_ram,
 #if defined(HAVE_AIO_H) || defined(HAVE_LIBAIO_H)
-        .async_read = starpu_unistd_o_direct_global_async_read,
-        .async_write = starpu_unistd_o_direct_global_async_write,
-        .wait_request = starpu_unistd_global_wait_request,
-        .test_request = starpu_unistd_global_test_request,
+	.async_read = starpu_unistd_o_direct_global_async_read,
+	.async_write = starpu_unistd_o_direct_global_async_write,
+	.wait_request = starpu_unistd_global_wait_request,
+	.test_request = starpu_unistd_global_test_request,
 	.free_request = starpu_unistd_global_free_request,
 	.async_full_read = starpu_unistd_global_async_full_read,
 	.async_full_write = starpu_unistd_global_async_full_write,

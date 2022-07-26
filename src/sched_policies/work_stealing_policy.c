@@ -478,7 +478,7 @@ static int select_victim_overload(struct _starpu_work_stealing_data *ws, unsigne
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-                unsigned worker = workers->get_next(workers, &it);
+		unsigned worker = workers->get_next(workers, &it);
 		float worker_ratio = overload_metric(ws, sched_ctx_id, worker);
 
 		if (worker_ratio > best_ratio && ws->per_worker[worker].running && ws->per_worker[worker].busy)
@@ -633,8 +633,8 @@ static struct starpu_task *ws_pop_task(unsigned sched_ctx_id)
 	starpu_worker_unlock(victim);
 
 #ifndef STARPU_NON_BLOCKING_DRIVERS
-        /* While stealing, perhaps somebody actually give us a task, don't miss
-         * the opportunity to take it before going to sleep. */
+	/* While stealing, perhaps somebody actually give us a task, don't miss
+	 * the opportunity to take it before going to sleep. */
 	{
 		struct _starpu_worker *worker = _starpu_get_worker_struct(starpu_worker_get_id());
 		if (!task && worker->state_keep_awake)
@@ -822,10 +822,10 @@ static int lws_select_victim(struct _starpu_work_stealing_data *ws, unsigned sch
 		int neighbor = ws->per_worker[workerid].proxlist[i];
 		if (ws->per_worker[neighbor].notask)
 			continue;
-                /* FIXME: do not keep looking again and again at some worker
-                 * which has tasks, but that can't execute on me */
+		/* FIXME: do not keep looking again and again at some worker
+		 * which has tasks, but that can't execute on me */
 		if (ws->per_worker[neighbor].busy
-					   || starpu_worker_is_blocked_in_parallel(neighbor))
+		    || starpu_worker_is_blocked_in_parallel(neighbor))
 			return neighbor;
 	}
 	return -1;

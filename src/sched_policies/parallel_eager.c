@@ -161,7 +161,7 @@ static void initialize_peager_policy(unsigned sched_ctx_id)
 	starpu_st_fifo_taskq_init(&data->fifo);
 
 	starpu_sched_ctx_set_policy_data(sched_ctx_id, (void*)data);
-        STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
+	STARPU_PTHREAD_MUTEX_INIT(&data->policy_mutex, NULL);
 }
 
 static void deinitialize_peager_policy(unsigned sched_ctx_id)
@@ -169,7 +169,7 @@ static void deinitialize_peager_policy(unsigned sched_ctx_id)
 	/* TODO check that there is no task left in the queue */
 	struct _starpu_peager_data *data = (struct _starpu_peager_data*)starpu_sched_ctx_get_policy_data(sched_ctx_id);
 
-        STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
+	STARPU_PTHREAD_MUTEX_DESTROY(&data->policy_mutex);
 
 	free(data);
 }

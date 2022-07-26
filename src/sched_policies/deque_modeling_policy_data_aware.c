@@ -210,7 +210,7 @@ static void _starpu_fifo_task_started(struct starpu_st_fifo_taskq *fifo, struct 
 		fifo->exp_len -= model;
 		fifo->pipeline_len += model;
 		fifo->exp_start = starpu_timing_now() + fifo->pipeline_len;
-                fifo->exp_end= fifo->exp_start + fifo->exp_len;
+		fifo->exp_end= fifo->exp_start + fifo->exp_len;
 		if(num_priorities != -1)
 		{
 			int i;
@@ -338,7 +338,7 @@ static int push_task_on_best_worker(struct starpu_task *task, int best_workerid,
 
 	starpu_worker_lock(best_workerid);
 
-        /* Sometimes workers didn't take the tasks as early as we expected */
+	/* Sometimes workers didn't take the tasks as early as we expected */
 	fifo->exp_start = isnan(fifo->exp_start) ? now + fifo->pipeline_len : STARPU_MAX(fifo->exp_start, now);
 	fifo->exp_end = fifo->exp_start + fifo->exp_len;
 

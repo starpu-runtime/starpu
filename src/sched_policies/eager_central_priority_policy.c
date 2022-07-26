@@ -231,15 +231,15 @@ static struct starpu_task *_starpu_priority_pop_task(unsigned sched_ctx_id)
 static void eager_center_priority_add_workers(unsigned sched_ctx_id, int *workerids, unsigned nworkers)
 {
 	unsigned i;
-        for (i = 0; i < nworkers; i++)
-        {
+	for (i = 0; i < nworkers; i++)
+	{
 		int workerid = workerids[i];
 		int curr_workerid = _starpu_worker_get_id();
 		if(workerid != curr_workerid)
 			starpu_wake_worker_locked(workerid);
 
-                starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
-        }
+		starpu_sched_ctx_worker_shares_tasks_lists(workerid, sched_ctx_id);
+	}
 }
 
 struct starpu_sched_policy _starpu_sched_prio_policy =

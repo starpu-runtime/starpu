@@ -431,9 +431,9 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 		if (handle && (starpu_node_get_kind(node) == STARPU_CPU_RAM))
 			_starpu_data_unregister_ram_pointer(handle, node);
 
-               _STARPU_TRACE_START_FREE(node, mc->size, handle);
+	       _STARPU_TRACE_START_FREE(node, mc->size, handle);
 		mc->ops->free_data_on_node(data_interface, node);
-               _STARPU_TRACE_END_FREE(node, handle);
+	       _STARPU_TRACE_END_FREE(node, handle);
 
 		if (handle)
 			notify_handle_children(handle, replicate, node);
@@ -472,7 +472,7 @@ static size_t do_free_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node)
 	_starpu_mem_chunk_delete(mc);
 
 #ifdef STARPU_SIMGRID
-       starpu_pthread_queue_broadcast(&_starpu_simgrid_transfer_queue[node]);
+	starpu_pthread_queue_broadcast(&_starpu_simgrid_transfer_queue[node]);
 #endif
 
 	return size;
@@ -520,8 +520,9 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	/* XXX: We do not actually reuse the mc at the moment, only the interface */
 
 	/* mc->data = new_replicate->handle; */
-	/* mc->footprint, mc->ops, mc->size_interface, mc->automatically_allocated should be
- 	 * unchanged ! */
+	/* mc->footprint, mc->ops, mc->size_interface,
+	 * mc->automatically_allocated should be unchanged !
+	 */
 
 	/* remove the mem chunk from the list of active memory chunks, register_mem_chunk will put it back later */
 	if (is_already_in_mc_list)
@@ -652,12 +653,12 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 				if (handle->per_node[node].state == STARPU_OWNER)
 					_starpu_memory_handle_stats_invalidated(handle, node);
 #endif
-                               _STARPU_TRACE_START_WRITEBACK(node, handle);
+			       _STARPU_TRACE_START_WRITEBACK(node, handle);
 				/* Note: this may need to allocate data etc.
 				 * and thus release the header lock, take
 				 * mc_lock, etc. */
 				res = transfer_subtree_to_node(handle, node, target);
-                               _STARPU_TRACE_END_WRITEBACK(node, handle);
+			       _STARPU_TRACE_END_WRITEBACK(node, handle);
 #ifdef STARPU_MEMORY_STATS
 				_starpu_memory_handle_stats_loaded_owner(handle, target);
 #endif
@@ -716,7 +717,7 @@ static size_t try_to_throw_mem_chunk(struct _starpu_mem_chunk *mc, unsigned node
 }
 
 static int _starpu_data_interface_compare(void *data_interface_a, struct starpu_data_interface_ops *ops_a,
-                                          void *data_interface_b, struct starpu_data_interface_ops *ops_b)
+					  void *data_interface_b, struct starpu_data_interface_ops *ops_b)
 {
 	if (ops_a->interfaceid != ops_b->interfaceid)
 		return -1;
@@ -1639,9 +1640,9 @@ static starpu_ssize_t _starpu_allocate_interface(starpu_data_handle_t handle, st
 	else if (replicate->allocated)
 	{
 		/* Argl, somebody allocated it in between already, drop this one */
-               _STARPU_TRACE_START_FREE(dst_node, data_size, handle);
+	       _STARPU_TRACE_START_FREE(dst_node, data_size, handle);
 		handle->ops->free_data_on_node(data_interface, dst_node);
-               _STARPU_TRACE_END_FREE(dst_node, handle);
+	       _STARPU_TRACE_END_FREE(dst_node, handle);
 		allocated_memory = 0;
 	}
 	else
@@ -1883,7 +1884,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 		/* try to push on RAM if we can before to push on disk */
 		if(starpu_node_get_kind(handle->home_node) == STARPU_DISK_RAM && (starpu_node_get_kind(node) != STARPU_CPU_RAM))
 		{
- 	                unsigned i;
+			unsigned i;
 			unsigned nb_numa_nodes = starpu_memory_nodes_get_numa_count();
 			for (i=0; i<nb_numa_nodes; i++)
 			{
@@ -1900,7 +1901,7 @@ choose_target(starpu_data_handle_t handle, unsigned node)
 			}
 
 		}
-          	/* others memory nodes */
+		/* others memory nodes */
 		else
 		{
 			target = handle->home_node;

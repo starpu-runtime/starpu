@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -68,10 +68,10 @@ static void _starpu_add_accessor(starpu_data_handle_t handle, struct starpu_task
 		_starpu_add_dependency(handle, handle->last_sync_task, pre_sync_task);
 		_STARPU_DEP_DEBUG("dep %p -> %p\n", handle->last_sync_task, pre_sync_task);
 	}
-        else
-        {
+	else
+	{
 		_STARPU_DEP_DEBUG("No dep\n");
-        }
+	}
 
 	/* There was perhaps no last submitted writer but a
 	 * ghost one, we should report that here, and keep the
@@ -218,7 +218,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 	mode &= ~ STARPU_LOCALITY;
 
 	STARPU_ASSERT(!(mode & STARPU_SCRATCH));
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	if (handle->sequential_consistency && task_handle_sequential_consistency)
 	{
@@ -385,7 +385,7 @@ struct starpu_task *_starpu_detect_implicit_data_deps_with_handle(struct starpu_
 	} else {
 		*submit_pre_sync = 0;
 	}
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 	return task;
 }
 
@@ -415,7 +415,7 @@ int _starpu_test_implicit_data_deps_with_handle(starpu_data_handle_t handle, enu
 void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 {
 	STARPU_ASSERT(task->cl);
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	if (!task->sequential_consistency)
 		return;
@@ -429,7 +429,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 	j->sequential_consistency = 1;
 
 	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
-        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	struct _starpu_task_wrapper_dlist *dep_slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
 	unsigned buffer;
@@ -471,7 +471,7 @@ void _starpu_detect_implicit_data_deps(struct starpu_task *task)
 			STARPU_ASSERT(!ret);
 		}
 	}
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 }
 
 /* This function is called when a task has been executed so that we don't
@@ -555,10 +555,10 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 	if (!task->cl)
 		return;
 
-        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
 	struct _starpu_task_wrapper_dlist *slots = _STARPU_JOB_GET_DEP_SLOTS(j);
 
-        unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 	unsigned index;
 
 	/* Release all implicit dependencies */
@@ -602,7 +602,7 @@ void _starpu_release_task_enforce_sequential_consistency(struct _starpu_job *j)
 
 void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data_handle_t handle)
 {
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 	STARPU_PTHREAD_MUTEX_LOCK(&handle->sequential_consistency_mutex);
 
 	if (handle->sequential_consistency)
@@ -617,7 +617,7 @@ void _starpu_add_post_sync_tasks(struct starpu_task *post_sync_task, starpu_data
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 }
 
 void _starpu_unlock_post_sync_tasks(starpu_data_handle_t handle, enum starpu_data_access_mode mode)

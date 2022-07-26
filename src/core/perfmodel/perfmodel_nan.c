@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -50,14 +50,14 @@ void _starpu_read_spaces(FILE *f)
 void _starpu_write_double(FILE *f, const char *format, double val)
 {
 #if _STARPU_OWN_NAN == 1
-        if (isnan(val))
-        {
-                fprintf(f, "NaN");
-        }
-        else
-        {
-                fprintf(f, format, val);
-        }
+	if (isnan(val))
+	{
+		fprintf(f, "NaN");
+	}
+	else
+	{
+		fprintf(f, format, val);
+	}
 #else
 	fprintf(f, format, val);
 #endif

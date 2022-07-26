@@ -936,7 +936,7 @@ starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, int fl
 		/* This chunk is now empty, but avoid chunk free/alloc
 		 * ping-pong by keeping some of these.  */
 		if (node_struct->nfreechunks >= CHUNKS_NFREE &&
-                     starpu_node_get_kind(dst_node) != STARPU_MAX_FPGA_RAM)
+		     starpu_node_get_kind(dst_node) != STARPU_MAX_FPGA_RAM)
 		{
 			/* We already have free chunks, release this one */
 			_starpu_free_on_node_flags(dst_node, chunk->base, CHUNK_SIZE, flags);

@@ -22,9 +22,9 @@ static void _starpu_block_filter_block(int dim, void *father_interface, void *ch
 				       unsigned id, unsigned nparts, uintptr_t shadow_size)
 {
 	struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
-        struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
+	struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
 
-        unsigned blocksize;
+	unsigned blocksize;
 	/* the element will be split, in case horizontal, it's nx, in case vertical, it's ny, in case depth, it's nz*/
 	uint32_t nn;
 	uint32_t nx;
@@ -101,11 +101,11 @@ static void _starpu_block_filter_block(int dim, void *father_interface, void *ch
 	if (block_father->dev_handle)
 	{
 		if (block_father->ptr)
-                	block_child->ptr = block_father->ptr + offset;
-                block_child->ldy = block_father->ldy;
-                block_child->ldz = block_father->ldz;
-                block_child->dev_handle = block_father->dev_handle;
-                block_child->offset = block_father->offset + offset;
+			block_child->ptr = block_father->ptr + offset;
+		block_child->ldy = block_father->ldy;
+		block_child->ldz = block_father->ldz;
+		block_child->dev_handle = block_father->dev_handle;
+		block_child->offset = block_father->offset + offset;
 	}
 }
 
@@ -118,9 +118,9 @@ void starpu_block_filter_block(void *father_interface, void *child_interface, ST
 void starpu_block_filter_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 				      unsigned id, unsigned nparts)
 {
-        uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
+	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-        _starpu_block_filter_block(1, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_block_filter_block(1, father_interface, child_interface, f, id, nparts, shadow_size);
 }
 
 void starpu_block_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -132,9 +132,9 @@ void starpu_block_filter_vertical_block(void *father_interface, void *child_inte
 void starpu_block_filter_vertical_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					       unsigned id, unsigned nparts)
 {
-        uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
+	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-        _starpu_block_filter_block(2, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_block_filter_block(2, father_interface, child_interface, f, id, nparts, shadow_size);
 }
 
 void starpu_block_filter_depth_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
@@ -146,18 +146,18 @@ void starpu_block_filter_depth_block(void *father_interface, void *child_interfa
 void starpu_block_filter_depth_block_shadow(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
-        uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
+	uintptr_t shadow_size = (uintptr_t) f->filter_arg_ptr;
 
-        _starpu_block_filter_block(3, father_interface, child_interface, f, id, nparts, shadow_size);
+	_starpu_block_filter_block(3, father_interface, child_interface, f, id, nparts, shadow_size);
 }
 
 static void _starpu_block_filter_pick_matrix(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
-        struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
-        struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;
+	struct starpu_block_interface *block_father = (struct starpu_block_interface *) father_interface;
+	struct starpu_matrix_interface *matrix_child = (struct starpu_matrix_interface *) child_interface;
 
-        unsigned blocksize;
+	unsigned blocksize;
 
 	uint32_t nn;
 	uint32_t nx = block_father->nx;
@@ -214,8 +214,8 @@ static void _starpu_block_filter_pick_matrix(int dim, void *father_interface, vo
 	if (block_father->dev_handle)
 	{
 		if (block_father->ptr)
-                	matrix_child->ptr = block_father->ptr + offset;
-                switch(dim)
+			matrix_child->ptr = block_father->ptr + offset;
+		switch(dim)
 		{
 			/* along y-axis */
 			case 1:
@@ -228,21 +228,21 @@ static void _starpu_block_filter_pick_matrix(int dim, void *father_interface, vo
 			default:
 				STARPU_ASSERT_MSG(0, "Unknown value for dim");
 		}
-                matrix_child->dev_handle = block_father->dev_handle;
-                matrix_child->offset = block_father->offset + offset;
+		matrix_child->dev_handle = block_father->dev_handle;
+		matrix_child->offset = block_father->offset + offset;
 	}
 }
 
 void starpu_block_filter_pick_matrix_z(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
-        _starpu_block_filter_pick_matrix(2, father_interface, child_interface, f, id, nparts);
+	_starpu_block_filter_pick_matrix(2, father_interface, child_interface, f, id, nparts);
 }
 
 void starpu_block_filter_pick_matrix_y(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
 					    unsigned id, unsigned nparts)
 {
-        _starpu_block_filter_pick_matrix(1, father_interface, child_interface, f, id, nparts);
+	_starpu_block_filter_pick_matrix(1, father_interface, child_interface, f, id, nparts);
 }
 
 struct starpu_data_interface_ops *starpu_block_filter_pick_matrix_child_ops(STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f, STARPU_ATTRIBUTE_UNUSED unsigned child)

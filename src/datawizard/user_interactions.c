@@ -174,9 +174,12 @@ static void starpu_data_acquire_cb_pre_sync_callback(void *arg)
 {
 	struct user_interaction_wrapper *wrapper = (struct user_interaction_wrapper *) arg;
 
-	/* we try to get the data, if we do not succeed immediately, we set a
- 	* callback function that will be executed automatically when the data is
- 	* available again, otherwise we fetch the data directly */
+	/*
+	 * we try to get the data, if we do not succeed immediately,
+	 * we set a callback function that will be executed
+	 * automatically when the data is available again, otherwise we
+	 * fetch the data directly
+	 */
 	if (!_starpu_attempt_to_submit_data_request_from_apps(wrapper->handle, wrapper->mode,
 			_starpu_data_acquire_continuation_non_blocking, wrapper))
 	{
@@ -196,7 +199,7 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data (%p) is not possible", handle);
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	/* Check that previous tasks have set a value if needed */
 	_starpu_data_check_initialized(handle, mode);
@@ -276,13 +279,13 @@ int starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(starpu_dat
 		starpu_data_acquire_cb_pre_sync_callback(wrapper);
 	}
 
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 	return 0;
 }
 
 int starpu_data_acquire_on_node_cb_sequential_consistency_quick(starpu_data_handle_t handle, int node,
-							  enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
-							  int sequential_consistency, int quick)
+								enum starpu_data_access_mode mode, void (*callback)(void *), void *arg,
+								int sequential_consistency, int quick)
 {
 	return starpu_data_acquire_on_node_cb_sequential_consistency_sync_jobids(handle, node, mode, NULL, callback, arg, sequential_consistency, quick, NULL, NULL, STARPU_DEFAULT_PRIO);
 }
@@ -293,7 +296,6 @@ int starpu_data_acquire_on_node_cb_sequential_consistency(starpu_data_handle_t h
 {
 	return starpu_data_acquire_on_node_cb_sequential_consistency_quick(handle, node, mode, callback, arg, sequential_consistency, 0);
 }
-
 
 int starpu_data_acquire_on_node_cb(starpu_data_handle_t handle, int node,
 				   enum starpu_data_access_mode mode, void (*callback)(void *), void *arg)
@@ -342,7 +344,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 {
 	STARPU_ASSERT(handle);
 	STARPU_ASSERT_MSG(handle->nchildren == 0, "Acquiring a partitioned data is not possible");
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	/* unless asynchronous, it is forbidden to call this function from a callback or a codelet */
 	STARPU_ASSERT_MSG(_starpu_worker_may_perform_blocking_calls(), "Acquiring a data synchronously is not possible from a codelet or from a task callback, use starpu_data_acquire_cb instead.");
@@ -411,9 +413,12 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 		STARPU_PTHREAD_MUTEX_UNLOCK(&handle->sequential_consistency_mutex);
 	}
 
-	/* we try to get the data, if we do not succeed immediately, we set a
- 	* callback function that will be executed automatically when the data is
- 	* available again, otherwise we fetch the data directly */
+	/*
+	 * we try to get the data, if we do not succeed immediately,
+	 * we set a callback function that will be executed
+	 * automatically when the data is available again, otherwise we
+	 * fetch the data directly
+	 */
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
 	{
 		/* no one has locked this data yet, so we proceed immediately */
@@ -432,7 +437,7 @@ int starpu_data_acquire_on_node(starpu_data_handle_t handle, int node, enum star
 	if (sequential_consistency)
 		_starpu_add_post_sync_tasks(wrapper.post_sync_task, handle);
 
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 	return 0;
 }
 
@@ -465,9 +470,12 @@ int starpu_data_acquire_on_node_try(starpu_data_handle_t handle, int node, enum 
 	struct user_interaction_wrapper wrapper;
 	_starpu_data_acquire_wrapper_init(&wrapper, handle, node, mode);
 
-	/* we try to get the data, if we do not succeed immediately, we set a
- 	* callback function that will be executed automatically when the data is
- 	* available again, otherwise we fetch the data directly */
+	/*
+	 * we try to get the data, if we do not succeed immediately,
+	 * we set a callback function that will be executed
+	 * automatically when the data is available again, otherwise we
+	 * fetch the data directly
+	 */
 	if (!_starpu_attempt_to_submit_data_request_from_apps(handle, mode, _starpu_data_acquire_continuation, &wrapper))
 	{
 		/* no one has locked this data yet, so we proceed immediately */

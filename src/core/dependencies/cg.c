@@ -227,7 +227,7 @@ void _starpu_notify_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct _starpu_cg *cg
 				break;
 			}
 
- 		        case STARPU_CG_TASK:
+			case STARPU_CG_TASK:
 			{
 				struct _starpu_cg_list *job_successors;
 				struct _starpu_job *j;
@@ -324,7 +324,7 @@ void _starpu_notify_job_ready_soon_cg(void *pred STARPU_ATTRIBUTE_UNUSED, struct
 				break;
 			}
 
- 		        case STARPU_CG_TASK:
+			case STARPU_CG_TASK:
 			{
 				struct _starpu_cg_list *job_successors;
 				struct _starpu_job *j;

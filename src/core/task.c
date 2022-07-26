@@ -471,7 +471,7 @@ int starpu_task_finished(struct starpu_task *task)
 
 int starpu_task_wait(struct starpu_task *task)
 {
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 	STARPU_ASSERT(task);
 
 	STARPU_ASSERT_MSG(!task->detach, "starpu_task_wait can only be called on tasks with detach = 0");
@@ -499,7 +499,7 @@ int starpu_task_wait(struct starpu_task *task)
 
 	_starpu_perf_counter_update_global_sample();
 	_STARPU_TRACE_TASK_WAIT_END();
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 	return 0;
 }
 
@@ -658,7 +658,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 	unsigned i, some_impl;
 
 	/* Check deprecated and unset fields (where, <device>_func,
- 	 * <device>_funcs) */
+	 * <device>_funcs) */
 
 #if defined(STARPU_USE_CPU) || defined(STARPU_SIMGRID)
 	/* CPU */
@@ -762,7 +762,7 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 #endif
 
 #ifdef STARPU_USE_MAX_FPGA
-       /* FPGA */
+	/* FPGA */
 	some_impl = 0;
 	for (i = 0; i < STARPU_MAXIMPLEMENTATIONS; i++)
 		if (cl->max_fpga_funcs[i])
@@ -775,7 +775,6 @@ void _starpu_codelet_check_deprecated_fields(struct starpu_codelet *cl)
 		where |= STARPU_MAX_FPGA;
 	}
 #endif
-
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
 	some_impl = 0;
@@ -1115,7 +1114,7 @@ int _starpu_task_submit(struct starpu_task *task, int nodeps)
 	}
 
 	_STARPU_TRACE_TASK_SUBMIT_END();
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 	return ret;
 }
 
@@ -1252,7 +1251,7 @@ void _starpu_do_schedule_in_nested_ctx(unsigned sched_ctx_id)
 			_starpu_do_schedule_in_nested_ctx(s);
 		}
 	}
-       _starpu_sched_do_schedule(sched_ctx_id);
+	_starpu_sched_do_schedule(sched_ctx_id);
 }
 
 int _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(unsigned sched_ctx_id)
@@ -1267,7 +1266,7 @@ int _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(unsigned 
 		{
 			_STARPU_DEBUG("Recursively waiting for tasks submitted to sub context %u of %u\n", s, sched_ctx_id);
 			nb_waited_tasks += _starpu_task_wait_for_all_in_nested_ctx_and_return_nb_waited_tasks(s);
-      		}
+		}
 	}
 
 	nb_waited_tasks += _starpu_task_wait_for_all_in_ctx_and_return_nb_waited_tasks(sched_ctx_id);
@@ -1655,8 +1654,8 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
-                                case STARPU_MPI_MS_RAM:
-                                case STARPU_TCPIP_MS_RAM:
+				case STARPU_MPI_MS_RAM:
+				case STARPU_TCPIP_MS_RAM:
 					return 0;
 				default:
 					return 1;
@@ -1666,8 +1665,8 @@ _starpu_handle_needs_conversion_task_for_arch(starpu_data_handle_t handle,
 			switch(starpu_node_get_kind(handle->mf_node))
 			{
 				case STARPU_CPU_RAM:
-                                case STARPU_MPI_MS_RAM:
-                                case STARPU_TCPIP_MS_RAM:
+				case STARPU_MPI_MS_RAM:
+				case STARPU_TCPIP_MS_RAM:
 					return 1;
 				default:
 					return 0;

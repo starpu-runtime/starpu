@@ -28,13 +28,11 @@
 static int _random_push_task(struct starpu_task *task, unsigned prio)
 {
 	/* find the queue */
-
-
 	double alpha_sum = 0.0;
 
 	unsigned sched_ctx_id = task->sched_ctx;
 	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
-        int worker;
+	int worker;
 	int worker_arr[STARPU_NMAXWORKERS];
 	double speedup_arr[STARPU_NMAXWORKERS];
 	int size = 0;
@@ -43,7 +41,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	workers->init_iterator(workers, &it);
 	while(workers->has_next(workers, &it))
 	{
-                worker = workers->get_next(workers, &it);
+		worker = workers->get_next(workers, &it);
 		unsigned impl;
 		if(starpu_worker_can_execute_task_first_impl(worker, task, &impl))
 		{
@@ -67,7 +65,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 	int i;
 	for(i = 0; i < size; i++)
 	{
-                worker = worker_arr[i];
+		worker = worker_arr[i];
 		double worker_alpha = speedup_arr[i];
 
 		if (alpha + worker_alpha >= random)
@@ -86,7 +84,7 @@ static int _random_push_task(struct starpu_task *task, unsigned prio)
 
 static int random_push_task(struct starpu_task *task)
 {
-        return _random_push_task(task, !!task->priority);
+	return _random_push_task(task, !!task->priority);
 }
 
 static void initialize_random_policy(unsigned sched_ctx_id)

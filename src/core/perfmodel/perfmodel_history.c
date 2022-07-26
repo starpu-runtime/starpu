@@ -1,8 +1,8 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2011       Télécom-SudParis
- * Copyright (C) 2013       Thibaut Lambert
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011	    Télécom-SudParis
+ * Copyright (C) 2013	    Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -765,8 +765,9 @@ static int parse_model_file(FILE *f, const char *path, struct starpu_perfmodel *
 {
 	int ret, version=0;
 
-        /* First check that it's not empty (very common corruption result, for
-         * which there is no solution) */
+	/* First check that it's not empty (very common corruption result, for
+	   which there is no solution)
+	*/
 	fseek(f, 0, SEEK_END);
 	long pos = ftell(f);
 	if (pos == 0)
@@ -852,7 +853,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, in
 	struct starpu_perfmodel_history_list *ptr = NULL;
 	unsigned nentries = 0;
 
-       if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
+	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 	{
 		/* Dump the list of all entries in the history */
 		ptr = per_arch_model->list;
@@ -873,7 +874,7 @@ static void dump_per_arch_model_file(FILE *f, struct starpu_perfmodel *model, in
 	dump_reg_model(f, model, comb, impl);
 
 	/* Dump the history into the model file in case it is necessary */
-       if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
+	if (model->type == STARPU_HISTORY_BASED || model->type == STARPU_NL_REGRESSION_BASED || model->type == STARPU_REGRESSION_BASED)
 	{
 		fprintf(f, "# hash\t\tsize\t\tflops\t\tmean (us or J)\tdev (us or J)\tsum\t\tsum2\t\tn\n");
 		ptr = per_arch_model->list;
@@ -1434,7 +1435,7 @@ void starpu_perfmodel_directory(FILE *output)
 int starpu_perfmodel_list(FILE *output)
 {
 #ifdef HAVE_SCANDIR
-        char *path;
+	char *path;
 	struct dirent **list;
 	int n;
 
@@ -1619,7 +1620,7 @@ double _starpu_regression_based_job_expected_perf(struct starpu_perfmodel *model
 	regmodel = &model->state->per_arch[comb][nimpl].regression;
 
 	if (regmodel->valid && size >= regmodel->minx * 0.9 && size <= regmodel->maxx * 1.1)
-                exp = regmodel->alpha*pow((double)size, regmodel->beta);
+		exp = regmodel->alpha*pow((double)size, regmodel->beta);
 	STARPU_PTHREAD_RWLOCK_UNLOCK(&model->state->model_rwlock);
 
 docal:

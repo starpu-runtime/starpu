@@ -141,7 +141,7 @@ int _starpu_select_src_node(starpu_data_handle_t handle, unsigned destination)
 			 * 	Other should be ok */
 
 			if (starpu_node_get_kind(i) == STARPU_CPU_RAM ||
-                            starpu_node_get_kind(i) == STARPU_MPI_MS_RAM)
+			    starpu_node_get_kind(i) == STARPU_MPI_MS_RAM)
 				i_ram = i;
 			else if (starpu_node_get_kind(i) == STARPU_DISK_RAM)
 				i_disk = i;
@@ -469,7 +469,7 @@ static struct _starpu_data_request *_starpu_search_existing_data_request(struct 
 
 		_starpu_spin_lock(&r->lock);
 
-                /* perhaps we need to "upgrade" the request */
+		/* perhaps we need to "upgrade" the request */
 		if (is_prefetch < r->prefetch)
 			_starpu_update_prefetch_status(r, is_prefetch);
 
@@ -620,7 +620,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		if (callback_func)
 			callback_func(callback_arg);
 
-                _STARPU_LOG_OUT_TAG("data available");
+		_STARPU_LOG_OUT_TAG("data available");
 		return NULL;
 	}
 
@@ -827,7 +827,7 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 			       struct starpu_task *task, enum starpu_is_prefetch is_prefetch, unsigned async,
 			       void (*callback_func)(void *), void *callback_arg, int prio, const char *origin)
 {
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	_starpu_spin_lock(&handle->header_lock);
 
@@ -882,8 +882,8 @@ int _starpu_fetch_data_on_node(starpu_data_handle_t handle, int node, struct _st
 	_starpu_spin_unlock(&handle->header_lock);
 
 	int ret = async?0:_starpu_wait_data_request_completion(r, 1);
-        _STARPU_LOG_OUT();
-        return ret;
+	_STARPU_LOG_OUT();
+	return ret;
 }
 
 static int idle_prefetch_data_on_node(starpu_data_handle_t handle, int node, struct _starpu_data_replicate *replicate, enum starpu_data_access_mode mode, struct starpu_task *task, int prio)
@@ -1112,17 +1112,16 @@ static struct _starpu_data_replicate *get_replicate(starpu_data_handle_t handle,
 /* Callback used when a buffer is send asynchronously to the sink */
 static void _starpu_fetch_task_input_cb(void *arg)
 {
-   struct _starpu_worker * worker = (struct _starpu_worker *) arg;
+	struct _starpu_worker * worker = (struct _starpu_worker *) arg;
 
-   /* increase the number of buffer received */
-   STARPU_WMB();
-   (void)STARPU_ATOMIC_ADD(&worker->nb_buffers_transferred, 1);
+	/* increase the number of buffer received */
+	STARPU_WMB();
+	(void)STARPU_ATOMIC_ADD(&worker->nb_buffers_transferred, 1);
 
 #ifdef STARPU_SIMGRID
-   starpu_pthread_queue_broadcast(&_starpu_simgrid_transfer_queue[worker->memory_node]);
+	starpu_pthread_queue_broadcast(&_starpu_simgrid_transfer_queue[worker->memory_node]);
 #endif
 }
-
 
 /* Synchronously or asynchronously fetch data for a given task (if it's not there already)
  * Returns the number of data acquired here.  */
@@ -1134,7 +1133,7 @@ static void _starpu_fetch_task_input_cb(void *arg)
 /* The driver can either just call _starpu_fetch_task_input with async==0,
  * or to improve overlapping, it can call _starpu_fetch_task_input with
  * async==1, then wait for transfers to complete, then call
- * _starpu_fetch_task_input_tail to complete the fetch.  */
+ * _starpu_fetch_task_input_tail to complete the fetch.	 */
 int _starpu_fetch_task_input(struct starpu_task *task, struct _starpu_job *j, int async)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
@@ -1333,8 +1332,8 @@ void __starpu_push_task_output(struct _starpu_job *j)
 	if (profiling && task->profiling_info)
 		_starpu_clock_gettime(&task->profiling_info->release_data_start_time);
 
-        struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
-        unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
+	struct _starpu_data_descr *descrs = _STARPU_JOB_GET_ORDERED_BUFFERS(j);
+	unsigned nbuffers = STARPU_TASK_GET_NBUFFERS(task);
 
 	int workerid = starpu_worker_get_id();
 

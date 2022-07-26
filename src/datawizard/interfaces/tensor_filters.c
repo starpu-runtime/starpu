@@ -19,7 +19,7 @@
 #include <datawizard/filters.h>
 
 static void _starpu_tensor_filter_block(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                   unsigned id, unsigned nparts, uintptr_t shadow_size)
+		   unsigned id, unsigned nparts, uintptr_t shadow_size)
 {
 	struct starpu_tensor_interface *tensor_father = (struct starpu_tensor_interface *) father_interface;
 	struct starpu_tensor_interface *tensor_child = (struct starpu_tensor_interface *) child_interface;
@@ -34,48 +34,47 @@ static void _starpu_tensor_filter_block(int dim, void *father_interface, void *c
 
 	switch(dim)
 	{
-		/* horizontal*/
-		case 1:
-			/* actual number of elements */
-			nx = tensor_father->nx - 2 * shadow_size;
-			ny = tensor_father->ny;
-			nz = tensor_father->nz;
-			nt = tensor_father->nt;
-			nn = nx;
-			blocksize = 1;
-			break;
-		/* vertical*/
-        case 2:
-			nx = tensor_father->nx;
-			/* actual number of elements */
-			ny = tensor_father->ny - 2 * shadow_size;
-			nz = tensor_father->nz;
-			nt = tensor_father->nt;
-			nn = ny;
-			blocksize = tensor_father->ldy;
-			break;
-		/* depth*/
-        case 3:
-			nx = tensor_father->nx;
-			ny = tensor_father->ny;
-			/* actual number of elements */
-			nz = tensor_father->nz - 2 * shadow_size;
-			nt = tensor_father->nt;
-			nn = nz;
-			blocksize = tensor_father->ldz;
-			break;
-		/* time*/
-        case 4:
-			nx = tensor_father->nx;
-			ny = tensor_father->ny;
-			nz = tensor_father->nz;
-			/* actual number of elements */
-			nt = tensor_father->nt - 2 * shadow_size;
-			nn = nt;
-			blocksize = tensor_father->ldt;
-			break;
-		default:
-			STARPU_ASSERT_MSG(0, "Unknown value for dim");
+	case 1: /* horizontal*/
+		/* actual number of elements */
+		nx = tensor_father->nx - 2 * shadow_size;
+		ny = tensor_father->ny;
+		nz = tensor_father->nz;
+		nt = tensor_father->nt;
+		nn = nx;
+		blocksize = 1;
+		break;
+
+	case 2: /* vertical*/
+		nx = tensor_father->nx;
+		/* actual number of elements */
+		ny = tensor_father->ny - 2 * shadow_size;
+		nz = tensor_father->nz;
+		nt = tensor_father->nt;
+		nn = ny;
+		blocksize = tensor_father->ldy;
+		break;
+
+	case 3: /* depth*/
+		nx = tensor_father->nx;
+		ny = tensor_father->ny;
+		/* actual number of elements */
+		nz = tensor_father->nz - 2 * shadow_size;
+		nt = tensor_father->nt;
+		nn = nz;
+		blocksize = tensor_father->ldz;
+		break;
+
+	case 4: /* time*/
+		nx = tensor_father->nx;
+		ny = tensor_father->ny;
+		nz = tensor_father->nz;
+		/* actual number of elements */
+		nt = tensor_father->nt - 2 * shadow_size;
+		nn = nt;
+		blocksize = tensor_father->ldt;
+		break;
+	default:
+		STARPU_ASSERT_MSG(0, "Unknown value for dim");
 	}
 
 	size_t elemsize = tensor_father->elemsize;
@@ -93,32 +92,32 @@ static void _starpu_tensor_filter_block(int dim, void *father_interface, void *c
 
 	switch(dim)
 	{
-    	case 1:
-			tensor_child->nx = child_nn;
-			tensor_child->ny = ny;
-			tensor_child->nz = nz;
-			tensor_child->nt = nt;
-			break;
-    	case 2:
-			tensor_child->nx = nx;
-			tensor_child->ny = child_nn;
-			tensor_child->nz = nz;
-			tensor_child->nt = nt;
-			break;
-    	case 3:
-			tensor_child->nx = nx;
-			tensor_child->ny = ny;
-			tensor_child->nz = child_nn;
-			tensor_child->nt = nt;
-			break;
-    	case 4:
-			tensor_child->nx = nx;
-			tensor_child->ny = ny;
-			tensor_child->nz = nz;
-			tensor_child->nt = child_nn;
-			break;
-		default:
-			STARPU_ASSERT_MSG(0, "Unknown value for dim");
+	case 1:
+		tensor_child->nx = child_nn;
+		tensor_child->ny = ny;
+		tensor_child->nz = nz;
+		tensor_child->nt = nt;
+		break;
+	case 2:
+		tensor_child->nx = nx;
+		tensor_child->ny = child_nn;
+		tensor_child->nz = nz;
+		tensor_child->nt = nt;
+		break;
+	case 3:
+		tensor_child->nx = nx;
+		tensor_child->ny = ny;
+		tensor_child->nz = child_nn;
+		tensor_child->nt = nt;
+		break;
+	case 4:
+		tensor_child->nx = nx;
+		tensor_child->ny = ny;
+		tensor_child->nz = nz;
+		tensor_child->nt = child_nn;
+		break;
+	default:
+		STARPU_ASSERT_MSG(0, "Unknown value for dim");
 	}
 
 	tensor_child->elemsize = elemsize;
@@ -150,7 +149,7 @@ void starpu_tensor_filter_block_shadow(void *father_interface, void *child_inter
 }
 
 void starpu_tensor_filter_vertical_block(void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                    unsigned id, unsigned nparts)
+					 unsigned id, unsigned nparts)
 {
 	_starpu_tensor_filter_block(2, father_interface, child_interface, f, id, nparts, 0);
 }
@@ -192,7 +191,7 @@ void starpu_tensor_filter_time_block_shadow(void *father_interface, void *child_
 }
 
 static void _starpu_tensor_filter_pick_block(int dim, void *father_interface, void *child_interface, STARPU_ATTRIBUTE_UNUSED struct starpu_data_filter *f,
-                   unsigned id, unsigned nparts)
+					     unsigned id, unsigned nparts)
 {
 	struct starpu_tensor_interface *tensor_father = (struct starpu_tensor_interface *) father_interface;
 	struct starpu_block_interface *block_child = (struct starpu_block_interface *) child_interface;
@@ -313,4 +312,3 @@ struct starpu_data_interface_ops *starpu_tensor_filter_pick_block_child_ops(STAR
 {
 	return &starpu_interface_block_ops;
 }
-

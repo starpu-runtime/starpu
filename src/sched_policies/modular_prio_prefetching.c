@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -27,16 +27,16 @@ static void initialize_prio_prefetching_center_policy(unsigned sched_ctx_id)
 	struct starpu_sched_component * eager_component;
 
 	t = starpu_sched_tree_create(sched_ctx_id);
- 	t->root = starpu_sched_component_prio_create(t, NULL);
+	t->root = starpu_sched_component_prio_create(t, NULL);
 	eager_component = starpu_sched_component_eager_create(t, NULL);
 
 	starpu_sched_component_connect(t->root, eager_component);
 
 	struct starpu_sched_component_prio_data prio_data =
-		{
-			.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
-			.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
-		};
+	{
+		.ntasks_threshold = starpu_get_env_number_default("STARPU_NTASKS_THRESHOLD", _STARPU_SCHED_NTASKS_THRESHOLD_DEFAULT),
+		.exp_len_threshold = starpu_get_env_float_default("STARPU_EXP_LEN_THRESHOLD", _STARPU_SCHED_EXP_LEN_THRESHOLD_DEFAULT),
+	};
 
 	unsigned i;
 	for(i = 0; i < starpu_worker_get_count() + starpu_combined_worker_get_count(); i++)

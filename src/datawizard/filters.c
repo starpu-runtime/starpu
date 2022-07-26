@@ -83,7 +83,7 @@ void fstarpu_data_map_filters(starpu_data_handle_t root_handle, int nfilters, st
 
 int starpu_data_get_nb_children(starpu_data_handle_t handle)
 {
-        return handle->nchildren;
+	return handle->nchildren;
 }
 
 starpu_data_handle_t starpu_data_get_child(starpu_data_handle_t handle, unsigned i)

@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2021       Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -111,7 +111,7 @@ static int ___starpu_datawizard_progress(unsigned memory_node, unsigned nnodes, 
 int __starpu_datawizard_progress(enum _starpu_may_alloc may_alloc, unsigned push_requests)
 {
 	struct _starpu_worker *worker = _starpu_get_local_worker_key();
-        unsigned memnode;
+	unsigned memnode;
 
 	if (!worker)
 	{
@@ -120,7 +120,7 @@ int __starpu_datawizard_progress(enum _starpu_may_alloc may_alloc, unsigned push
 		int nnumas = starpu_memory_nodes_get_numa_count();
 		int numa;
 		for (numa = 0; numa < nnumas; numa++)
-			ret |=  ___starpu_datawizard_progress(numa, nnumas, may_alloc, push_requests);
+			ret |=	___starpu_datawizard_progress(numa, nnumas, may_alloc, push_requests);
 		_starpu_execute_registered_progression_hooks();
 
 		return ret;
@@ -152,12 +152,12 @@ int __starpu_datawizard_progress(enum _starpu_may_alloc may_alloc, unsigned push
 
 	_starpu_execute_registered_progression_hooks();
 
-        return ret;
+	return ret;
 }
 
 void _starpu_datawizard_progress(enum _starpu_may_alloc may_alloc)
 {
-        __starpu_datawizard_progress(may_alloc, 1);
+	__starpu_datawizard_progress(may_alloc, 1);
 }
 
 void _starpu_datawizard_handle_all_pending_node_data_requests(unsigned memnode)

@@ -161,10 +161,10 @@ struct _starpu_data_request *_starpu_create_data_request(starpu_data_handle_t ha
 	r->dst_replicate = dst_replicate;
 	r->mode = mode;
 	r->async_channel.node_ops = NULL;
-        r->async_channel.starpu_mp_common_finished_sender = 0;
-        r->async_channel.starpu_mp_common_finished_receiver = 0;
-        r->async_channel.polling_node_sender = NULL;
-        r->async_channel.polling_node_receiver = NULL;
+	r->async_channel.starpu_mp_common_finished_sender = 0;
+	r->async_channel.starpu_mp_common_finished_receiver = 0;
+	r->async_channel.polling_node_sender = NULL;
+	r->async_channel.polling_node_receiver = NULL;
 	memset(&r->async_channel.event, 0, sizeof(r->async_channel.event));
 	if (handling_node == -1)
 		handling_node = STARPU_MAIN_RAM;
@@ -729,7 +729,7 @@ static int __starpu_handle_node_data_requests(struct _starpu_data_request_prio_l
 	/* for all entries of the list */
 	while (!_starpu_data_request_list_empty(&local_list))
 	{
-                int res;
+		int res;
 
 		if (node_struct->data_requests_npending[peer_node][inout] >= n)
 		{

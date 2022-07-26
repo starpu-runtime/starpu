@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -104,24 +104,24 @@ struct starpu_unistd_base
 #endif
 #if defined(HAVE_LIBAIO_H)
 	io_context_t ctx;
-        struct starpu_unistd_aiocb_link * hashtable;
-        starpu_pthread_mutex_t mutex;
+	struct starpu_unistd_aiocb_link * hashtable;
+	starpu_pthread_mutex_t mutex;
 #endif
 };
 
 #if defined(HAVE_LIBAIO_H)
 struct starpu_unistd_aiocb_link
 {
-        UT_hash_handle hh;
-        void * starpu_aiocb;
-        void * aiocb;
+	UT_hash_handle hh;
+	void * starpu_aiocb;
+	void * aiocb;
 };
 struct starpu_unistd_aiocb
 {
-        int finished;
+	int finished;
 	struct iocb iocb;
 	struct starpu_unistd_global_obj *obj;
-        struct starpu_unistd_base *base;
+	struct starpu_unistd_base *base;
 	size_t len;
 };
 #elif defined(HAVE_AIO_H)
@@ -316,78 +316,78 @@ int starpu_unistd_global_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, voi
 #if defined(HAVE_LIBAIO_H)
 void *starpu_unistd_global_async_read(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
-        struct starpu_unistd_base * fileBase = (struct starpu_unistd_base *) base;
-        struct starpu_unistd_global_obj *tmp = obj;
+	struct starpu_unistd_base * fileBase = (struct starpu_unistd_base *) base;
+	struct starpu_unistd_global_obj *tmp = obj;
 	struct starpu_unistd_wait * event;
 	_STARPU_CALLOC(event, 1,sizeof(*event));
 	event->type = STARPU_UNISTD_AIOCB;
-        struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
-        struct iocb *iocb = &starpu_aiocb->iocb;
-        starpu_aiocb->obj = obj;
-        int fd = tmp->descriptor;
+	struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
+	struct iocb *iocb = &starpu_aiocb->iocb;
+	starpu_aiocb->obj = obj;
+	int fd = tmp->descriptor;
 	int err;
 
-        if (fd < 0)
-                fd = _starpu_unistd_reopen(obj);
+	if (fd < 0)
+		fd = _starpu_unistd_reopen(obj);
 
 	starpu_aiocb->len = size;
-        starpu_aiocb->finished = 0;
-        starpu_aiocb->base = fileBase;
+	starpu_aiocb->finished = 0;
+	starpu_aiocb->base = fileBase;
 	io_prep_pread(iocb, fd, buf, size, offset);
 	if ((err = io_submit(fileBase->ctx, 1, &iocb)) < 0)
 	{
 		_STARPU_DISP("Warning: io_submit returned %d (%s)\n", err, strerror(err));
-                if (tmp->descriptor < 0)
-                        _starpu_unistd_reclose(fd);
-                iocb = NULL;
-        }
+		if (tmp->descriptor < 0)
+			_starpu_unistd_reclose(fd);
+		iocb = NULL;
+	}
 
-        struct starpu_unistd_aiocb_link *l;
-        _STARPU_MALLOC(l, sizeof(*l));
-        l->aiocb = iocb;
-        l->starpu_aiocb = starpu_aiocb;
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-        HASH_ADD_PTR(fileBase->hashtable, aiocb, l);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
+	struct starpu_unistd_aiocb_link *l;
+	_STARPU_MALLOC(l, sizeof(*l));
+	l->aiocb = iocb;
+	l->starpu_aiocb = starpu_aiocb;
+	STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
+	HASH_ADD_PTR(fileBase->hashtable, aiocb, l);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
 
-        return event;
+	return event;
 }
 #elif defined(HAVE_AIO_H)
 void *starpu_unistd_global_async_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
-        struct starpu_unistd_global_obj *tmp = obj;
+	struct starpu_unistd_global_obj *tmp = obj;
 	struct starpu_unistd_wait * event;
 	_STARPU_CALLOC(event, 1,sizeof(*event));
 	event->type = STARPU_UNISTD_AIOCB;
-        struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
-        struct aiocb *aiocb = &starpu_aiocb->aiocb;
-        starpu_aiocb->obj = obj;
-        int fd = tmp->descriptor;
+	struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
+	struct aiocb *aiocb = &starpu_aiocb->aiocb;
+	starpu_aiocb->obj = obj;
+	int fd = tmp->descriptor;
 
-        if (fd < 0)
-                fd = _starpu_unistd_reopen(obj);
+	if (fd < 0)
+		fd = _starpu_unistd_reopen(obj);
 
-        aiocb->aio_fildes = fd;
-        aiocb->aio_offset = offset;
-        aiocb->aio_nbytes = size;
-        aiocb->aio_buf = buf;
-        aiocb->aio_reqprio = 0;
-        aiocb->aio_lio_opcode = LIO_NOP;
+	aiocb->aio_fildes = fd;
+	aiocb->aio_offset = offset;
+	aiocb->aio_nbytes = size;
+	aiocb->aio_buf = buf;
+	aiocb->aio_reqprio = 0;
+	aiocb->aio_lio_opcode = LIO_NOP;
 
-        if (aio_read(aiocb) < 0)
-        {
+	if (aio_read(aiocb) < 0)
+	{
 		_STARPU_DISP("Warning: aio_read returned %d (%s)\n", errno, strerror(errno));
-                if (tmp->descriptor < 0)
-                        _starpu_unistd_reclose(fd);
-        }
+		if (tmp->descriptor < 0)
+			_starpu_unistd_reclose(fd);
+	}
 
-        return event;
+	return event;
 }
 #endif
 
 int starpu_unistd_global_full_read(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void **ptr, size_t *size, unsigned dst_node)
 {
-        struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
+	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	int fd = tmp->descriptor;
 
 	if (fd < 0)
@@ -445,83 +445,83 @@ int starpu_unistd_global_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, co
 #if defined(HAVE_LIBAIO_H)
 void *starpu_unistd_global_async_write(void *base, void *obj, void *buf, off_t offset, size_t size)
 {
-        struct starpu_unistd_base * fileBase = (struct starpu_unistd_base *) base;
-        struct starpu_unistd_global_obj *tmp = obj;
+	struct starpu_unistd_base * fileBase = (struct starpu_unistd_base *) base;
+	struct starpu_unistd_global_obj *tmp = obj;
 	struct starpu_unistd_wait * event;
 	_STARPU_CALLOC(event, 1,sizeof(*event));
 	event->type = STARPU_UNISTD_AIOCB;
-        struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
-        struct iocb *iocb = &starpu_aiocb->iocb;
-        starpu_aiocb->obj = obj;
-        int fd = tmp->descriptor;
+	struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
+	struct iocb *iocb = &starpu_aiocb->iocb;
+	starpu_aiocb->obj = obj;
+	int fd = tmp->descriptor;
 	int err;
 
-        if (fd < 0)
-                fd = _starpu_unistd_reopen(obj);
+	if (fd < 0)
+		fd = _starpu_unistd_reopen(obj);
 
 	starpu_aiocb->len = size;
-        starpu_aiocb->finished = 0;
-        starpu_aiocb->base = fileBase;
+	starpu_aiocb->finished = 0;
+	starpu_aiocb->base = fileBase;
 	io_prep_pwrite(iocb, fd, buf, size, offset);
 	if ((err = io_submit(fileBase->ctx, 1, &iocb)) < 0)
-        {
+	{
 		_STARPU_DISP("Warning: io_submit returned %d (%s)\n", err, strerror(err));
-                if (tmp->descriptor < 0)
-                        _starpu_unistd_reclose(fd);
-                iocb = NULL;
-        }
+		if (tmp->descriptor < 0)
+			_starpu_unistd_reclose(fd);
+		iocb = NULL;
+	}
 
-        struct starpu_unistd_aiocb_link *l;
-        _STARPU_MALLOC(l, sizeof(*l));
-        l->aiocb = iocb;
-        l->starpu_aiocb = starpu_aiocb;
-        STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
-        HASH_ADD_PTR(fileBase->hashtable, aiocb, l);
-        STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
+	struct starpu_unistd_aiocb_link *l;
+	_STARPU_MALLOC(l, sizeof(*l));
+	l->aiocb = iocb;
+	l->starpu_aiocb = starpu_aiocb;
+	STARPU_PTHREAD_MUTEX_LOCK(&fileBase->mutex);
+	HASH_ADD_PTR(fileBase->hashtable, aiocb, l);
+	STARPU_PTHREAD_MUTEX_UNLOCK(&fileBase->mutex);
 
-        return event;
+	return event;
 }
 #elif defined(HAVE_AIO_H)
 void *starpu_unistd_global_async_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *buf, off_t offset, size_t size)
 {
-        struct starpu_unistd_global_obj *tmp = obj;
+	struct starpu_unistd_global_obj *tmp = obj;
 	struct starpu_unistd_wait * event;
 	_STARPU_CALLOC(event, 1,sizeof(*event));
 	event->type = STARPU_UNISTD_AIOCB;
-        struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
-        struct aiocb *aiocb = &starpu_aiocb->aiocb;
-        starpu_aiocb->obj = obj;
-        int fd = tmp->descriptor;
+	struct starpu_unistd_aiocb *starpu_aiocb = &event->event.event_aiocb;
+	struct aiocb *aiocb = &starpu_aiocb->aiocb;
+	starpu_aiocb->obj = obj;
+	int fd = tmp->descriptor;
 
-        if (fd < 0)
-                fd = _starpu_unistd_reopen(obj);
+	if (fd < 0)
+		fd = _starpu_unistd_reopen(obj);
 
-        aiocb->aio_fildes = fd;
-        aiocb->aio_offset = offset;
-        aiocb->aio_nbytes = size;
-        aiocb->aio_buf = buf;
-        aiocb->aio_reqprio = 0;
-        aiocb->aio_lio_opcode = LIO_NOP;
+	aiocb->aio_fildes = fd;
+	aiocb->aio_offset = offset;
+	aiocb->aio_nbytes = size;
+	aiocb->aio_buf = buf;
+	aiocb->aio_reqprio = 0;
+	aiocb->aio_lio_opcode = LIO_NOP;
 
-        if (aio_write(aiocb) < 0)
-        {
+	if (aio_write(aiocb) < 0)
+	{
 		_STARPU_DISP("Warning: aio_write returned %d (%s)\n", errno, strerror(errno));
-                if (tmp->descriptor < 0)
-                        _starpu_unistd_reclose(fd);
-                aiocb = NULL;
-        }
+		if (tmp->descriptor < 0)
+			_starpu_unistd_reclose(fd);
+		aiocb = NULL;
+	}
 
-        return event;
+	return event;
 }
 #endif
 
 int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *obj, void *ptr, size_t size)
 {
-        struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
+	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 
-        /* update file size to realise the next good full_read */
-        if(size != tmp->size)
-        {
+	/* update file size to realise the next good full_read */
+	if(size != tmp->size)
+	{
 		int fd = tmp->descriptor;
 
 		if (fd < 0)
@@ -531,7 +531,7 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 			_starpu_unistd_reclose(fd);
 		STARPU_ASSERT(val == 0);
 		tmp->size = size;
-        }
+	}
 
 	return starpu_unistd_global_write(base, obj, ptr, 0, size);
 }
@@ -539,7 +539,7 @@ int starpu_unistd_global_full_write(void *base STARPU_ATTRIBUTE_UNUSED, void *ob
 #if defined(HAVE_AIO_H)
 void * starpu_unistd_global_async_full_read (void * base, void * obj, void ** ptr, size_t * size, unsigned dst_node)
 {
-        struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
+	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 	int fd = tmp->descriptor;
 
 	if (fd < 0)
@@ -563,11 +563,11 @@ void * starpu_unistd_global_async_full_read (void * base, void * obj, void ** pt
 
 void * starpu_unistd_global_async_full_write (void * base, void * obj, void * ptr, size_t size)
 {
-        struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
+	struct starpu_unistd_global_obj *tmp = (struct starpu_unistd_global_obj *) obj;
 
-        /* update file size to realise the next good full_read */
-        if(size != tmp->size)
-        {
+	/* update file size to realise the next good full_read */
+	if(size != tmp->size)
+	{
 		int fd = tmp->descriptor;
 
 		if (fd < 0)
@@ -577,7 +577,7 @@ void * starpu_unistd_global_async_full_write (void * base, void * obj, void * pt
 			_starpu_unistd_reclose(fd);
 		STARPU_ASSERT(val == 0);
 		tmp->size = size;
-        }
+	}
 
 	return starpu_unistd_global_async_write(base, obj, ptr, 0, size);
 }
@@ -592,7 +592,7 @@ static void * starpu_unistd_internal_thread(void * arg)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&internal_copy_thread->mutex);
 		if (internal_copy_thread->run && starpu_unistd_work_copy_list_empty(&internal_copy_thread->list))
-                        STARPU_PTHREAD_COND_WAIT(&internal_copy_thread->cond, &internal_copy_thread->mutex);
+			STARPU_PTHREAD_COND_WAIT(&internal_copy_thread->cond, &internal_copy_thread->mutex);
 		STARPU_PTHREAD_MUTEX_UNLOCK(&internal_copy_thread->mutex);
 
 		if (!starpu_unistd_work_copy_list_empty(&internal_copy_thread->list))
@@ -667,10 +667,10 @@ void *starpu_unistd_global_plug(void *parameter, starpu_ssize_t size STARPU_ATTR
 	}
 
 #if defined(HAVE_LIBAIO_H)
-        STARPU_PTHREAD_MUTEX_INIT(&base->mutex, NULL);
-        base->hashtable = NULL;
-        unsigned nb_event = MAX_PENDING_REQUESTS_PER_NODE + MAX_PENDING_PREFETCH_REQUESTS_PER_NODE + MAX_PENDING_IDLE_REQUESTS_PER_NODE;
-        memset(&base->ctx, 0, sizeof(base->ctx));
+	STARPU_PTHREAD_MUTEX_INIT(&base->mutex, NULL);
+	base->hashtable = NULL;
+	unsigned nb_event = MAX_PENDING_REQUESTS_PER_NODE + MAX_PENDING_PREFETCH_REQUESTS_PER_NODE + MAX_PENDING_IDLE_REQUESTS_PER_NODE;
+	memset(&base->ctx, 0, sizeof(base->ctx));
 	int ret = io_setup(nb_event, &base->ctx);
 	STARPU_ASSERT(ret == 0);
 #endif
@@ -712,8 +712,8 @@ void starpu_unistd_global_unplug(void *base)
 {
 	struct starpu_unistd_base * fileBase = (struct starpu_unistd_base *) base;
 #if defined(HAVE_LIBAIO_H)
-        STARPU_PTHREAD_MUTEX_DESTROY(&fileBase->mutex);
-        io_destroy(fileBase->ctx);
+	STARPU_PTHREAD_MUTEX_DESTROY(&fileBase->mutex);
+	io_destroy(fileBase->ctx);
 #endif
 	if (fileBase->created)
 		rmdir(fileBase->path);
@@ -816,7 +816,7 @@ int _starpu_get_unistd_global_bandwidth_between_disk_and_main_ram(unsigned node,
 	starpu_free_flags(buf, MEM_SIZE, 0);
 
 	_starpu_save_bandwidth_and_latency_disk((NITER/timing_slowness)*STARPU_DISK_SIZE_MIN, (NITER/timing_slowness)*STARPU_DISK_SIZE_MIN,
-			timing_latency/NITER, timing_latency/NITER, node, fileBase->path);
+						timing_latency/NITER, timing_latency/NITER, node, fileBase->path);
 	return 1;
 }
 
@@ -1063,7 +1063,7 @@ void *  starpu_unistd_global_copy(void *base_src, void* obj_src, off_t offset_sr
 
 	STARPU_PTHREAD_MUTEX_LOCK(&thread->mutex);
 	starpu_unistd_work_copy_list_push_front(&thread->list, work);
-        STARPU_PTHREAD_COND_BROADCAST(&thread->cond);
+	STARPU_PTHREAD_COND_BROADCAST(&thread->cond);
 	STARPU_PTHREAD_MUTEX_UNLOCK(&thread->mutex);
 
 	return event;
