@@ -535,7 +535,7 @@ TYPE starpu_perf_counter_sample_get_##STRING##_value(struct starpu_perf_counter_
 	STARPU_ASSERT(starpu_perf_counter_get_type_id(counter_id) == starpu_perf_counter_type_##STRING); \
 	STARPU_ASSERT(sample->listener != NULL && sample->listener->set != NULL); \
 	STARPU_ASSERT(_starpu_perf_counter_id_get_scope(counter_id) == sample->listener->set->scope); \
-	\								\
+									\
 	const struct starpu_perf_counter_set * const set = sample->listener->set; \
 	const int index =  _starpu_perf_counter_id_get_index(counter_id); \
 	STARPU_ASSERT(index < set->size); \
