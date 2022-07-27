@@ -560,9 +560,6 @@ static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsign
 
 	struct starpu_ndim_interface *dst_ndarr = (struct starpu_ndim_interface *) data_interface_;
 
-	uint32_t* nn = dst_ndarr->nn;
-	size_t ndim = dst_ndarr->ndim;
-	size_t elemsize = dst_ndarr->elemsize;
 	size_t arrsize = dst_ndarr->allocsize;
 
 	handle = starpu_malloc_on_node(dst_node, arrsize);
@@ -586,9 +583,6 @@ static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsign
 static void free_ndim_buffer_on_node(void *data_interface, unsigned node)
 {
 	struct starpu_ndim_interface *ndim_interface = (struct starpu_ndim_interface *) data_interface;
-	uint32_t* nn = ndim_interface->nn;
-	size_t ndim = ndim_interface->ndim;
-	size_t elemsize = ndim_interface->elemsize;
 
 	starpu_free_on_node(node, ndim_interface->dev_handle, ndim_interface->allocsize);
 }
