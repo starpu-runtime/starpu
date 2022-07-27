@@ -116,6 +116,13 @@ static void _starpu_ndim_filter_block(void *father_interface, void *child_interf
 		ndim_child->offset = ndim_father->offset + offset;
 		ndim_child->allocsize = allocsize;
 	}
+	else
+	{
+		size_t allocsize = elemsize;
+		for (i=0; i<ndim; i++)
+			allocsize *= child_dim[i];
+		ndim_child->allocsize = allocsize;
+	}
 }
 
 
@@ -296,6 +303,13 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 
 		ndim_child->dev_handle = ndim_father->dev_handle;
 		ndim_child->offset = ndim_father->offset + offset;
+		ndim_child->allocsize = allocsize;
+	}
+	else
+	{
+		size_t allocsize = elemsize;
+		for (i=0; i<ndim-1; i++)
+			allocsize *= child_dim[i];
 		ndim_child->allocsize = allocsize;
 	}
 }
