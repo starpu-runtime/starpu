@@ -99,6 +99,7 @@ static void register_matrix_handle(starpu_data_handle_t handle, int home_node, v
 			local_interface->dev_handle = matrix_interface->dev_handle;
 			local_interface->offset = matrix_interface->offset;
 			local_interface->ld  = matrix_interface->ld;
+			local_interface->allocsize  = matrix_interface->allocsize;
 		}
 		else
 		{
@@ -106,13 +107,13 @@ static void register_matrix_handle(starpu_data_handle_t handle, int home_node, v
 			local_interface->dev_handle = 0;
 			local_interface->offset = 0;
 			local_interface->ld  = 0;
+			local_interface->allocsize  = matrix_interface->nx * matrix_interface->ny * matrix_interface->elemsize;
 		}
 
 		local_interface->id = matrix_interface->id;
 		local_interface->nx = matrix_interface->nx;
 		local_interface->ny = matrix_interface->ny;
 		local_interface->elemsize = matrix_interface->elemsize;
-		local_interface->allocsize  = matrix_interface->allocsize;
 	}
 }
 
@@ -183,7 +184,7 @@ void starpu_matrix_data_register(starpu_data_handle_t *handleptr, int home_node,
 				 uintptr_t ptr, uint32_t ld, uint32_t nx,
 				 uint32_t ny, size_t elemsize)
 {
-	starpu_matrix_data_register_allocsize(handleptr, home_node, ptr, ld, nx, ny, elemsize, nx * ny * elemsize);
+	starpu_matrix_data_register_allocsize(handleptr, home_node, ptr, ld, nx, ny, elemsize, ld * ny * elemsize);
 }
 
 void starpu_matrix_ptr_register(starpu_data_handle_t handle, unsigned node,
