@@ -1037,6 +1037,7 @@ end
 define starpu-sched-print-dmda
     set $dt = (struct _starpu_dmda_data *) _starpu_config.sched_ctxs[$arg0]->policy_data
     set $num = 0
+    printf "alpha %f beta %f gamma %f\n", $dt->alpha, $dt->beta, $dt->_gamma
     while $num < _starpu_config->topology->nworkers
       printf "Worker %s:", _starpu_config->workers[$num].name
       printf " %d tasks", $dt->queue_array[$num].ntasks
