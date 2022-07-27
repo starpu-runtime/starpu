@@ -205,6 +205,7 @@ static void *progress_func(void *arg)
 
 			STARPU_PTHREAD_MUTEX_UNLOCK(&data_req_mutex);
 
+			STARPU_VALGRIND_YIELD();
 			int ret = req->test_func(req->test_arg);
 
 			if (ret)
