@@ -52,7 +52,7 @@ pypath=@STARPU_BUILD_DIR@/starpupy/src/build:$PYTHONPATH
 LOADER="@STARPU_BUILD_DIR@/starpupy/examples/loader"
 PYTHON=@PYTHON@
 # python produces a lot of "possibly lost" false positives
-export STARPU_VALGRIND_OPTIONS="--errors-for-leak-kinds=definite,indirect"
+export STARPU_VALGRIND_OPTIONS="--errors-for-leak-kinds=definite,indirect --show-leak-kinds=definite,indirect"
 
 if test -z "$LAUNCHER"
 then
