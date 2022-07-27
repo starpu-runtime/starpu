@@ -170,8 +170,7 @@ static void unregister_matrix(struct matrix* X, starpu_data_handle_t* X_h, int m
 	{
 		for (b_col = 0; b_col < nb; b_col++)
 		{
-			if (X->blocks[b_row*nb+b_col].owner == comm_rank)
- 				starpu_data_unregister(X_h[b_row*nb+b_col]);
+			starpu_data_unregister(X_h[b_row*nb+b_col]);
 		}
 	}
 	free(X_h);
