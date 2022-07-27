@@ -58,13 +58,13 @@ struct block
 {
         double* c;
         int owner;
-}
+};
 
 struct matrix
 {
         int mb, nb, b;
         struct block* blocks;
-}
+};
 
 /* Matrices. Will be allocated as regular, linearized C arrays */
 static struct matrix *A = NULL; /* A will be partitioned as MB x KB blocks */
