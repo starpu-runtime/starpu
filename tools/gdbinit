@@ -1228,6 +1228,7 @@ starpu-print-model                 prints a given performance model
 starpu-sched-data                  prints the data of the given scheduler
 starpu-sched-print-modular         prints the hierarchy of modular scheduling components
 starpu-sched-print-lws             prints the state of the lws scheduler
+starpu-sched-print-dmda            prints the state of any of the dm* schedulers
 starpu-mpi-print-ready-recv-requests    prints all MPI ready recv requests
 starpu-mpi-print-ready-send-requests    prints all MPI ready send requests
 starpu-mpi-print-detached-requests prints all MPI detached requests
