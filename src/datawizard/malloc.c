@@ -617,6 +617,9 @@ static uintptr_t _starpu_malloc_on_node(unsigned dst_node, size_t size, int flag
 {
 	uintptr_t addr = 0;
 
+	if (size == 0)
+		size = 1;
+
 	/* Handle count first */
 	if (flags & STARPU_MALLOC_COUNT)
 	{
@@ -646,6 +649,9 @@ void _starpu_free_on_node_flags(unsigned dst_node, uintptr_t addr, size_t size, 
 {
 	int count = flags & STARPU_MALLOC_COUNT;
 	flags &= ~STARPU_MALLOC_COUNT;
+
+	if (size == 0)
+		size = 1;
 
 	const struct _starpu_node_ops *node_ops = _starpu_memory_node_get_node_ops(dst_node);
 	if (node_ops && node_ops->free_on_node)
