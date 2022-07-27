@@ -1034,6 +1034,21 @@ define starpu-sched-print-lws
     end
 end
 
+define starpu-sched-print-dmda
+    set $dt = (struct _starpu_dmda_data *) _starpu_config.sched_ctxs[$arg0]->policy_data
+    set $num = 0
+    while $num < _starpu_config->topology->nworkers
+      printf "Worker %s:", _starpu_config->workers[$num].name
+      printf " %d tasks", $dt->queue_array[$num].ntasks
+      printf " start %f", $dt->queue_array[$num].exp_start
+      printf " len %f", $dt->queue_array[$num].exp_len
+      printf " end %f", $dt->queue_array[$num].exp_end
+      printf " piped %f", $dt->queue_array[$num].pipeline_len
+      printf "\n"
+      set $num = $num + 1
+    end
+end
+
 define starpu-mpi-print-request
     set $request = (struct _starpu_mpi_req *)$arg0
     printf "Request (struct _starpu_mpi_req *) %p data %p tag %ld to MPI node %d type ", $request, $request->data_handle, $request->data_handle && $request->data_handle->mpi_data ? ((struct _starpu_mpi_data *) ($request->data_handle->mpi_data))->node_tag.data_tag : -1, $request->node_tag.node.rank,
