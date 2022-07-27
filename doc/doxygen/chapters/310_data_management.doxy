@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -899,9 +899,10 @@ data. It is used for the buffer stored in the main memory, another instance
 is used for the buffer stored in a GPU, etc. A <i>data handle</i> is thus a
 collection of such structures, to describe each buffer on each memory node.
 
-Note: one should not take pointers into such structures, because StarPU needs
-to be able to copy over the content of it to various places, for instance to
-efficiently migrate a data buffer from one data handle to another data handle.
+Note: one should not make pointers that point into such structures, because
+StarPU needs to be able to copy over the content of it to various places, for
+instance to efficiently migrate a data buffer from one data handle to another
+data handle, so the actual address of the structure may vary.
 
 \subsection DefiningANewDataInterface_registration Data registration
 
@@ -1214,6 +1215,76 @@ static int complex_unpack_data(starpu_data_handle_t handle, unsigned node, void 
 
 And \c complex_unpack_data() just calls \c complex_peek_data() and releases the bytes array.
 
+\subsection DefiningANewDataInterface_pointers Pointers inside the data interface
+
+In the example described above, the two pointers stored in the data interface
+are data buffers, which may point into main memory GPU memory, etc. One may also
+want to store pointers to meta-data for the interface, for instance the list of
+dimensions sizes for the n-dimension matrix interface, but such pointers are to
+be handled completely differently.
+
+More precisely, there are two types of pointers:
+
+<ul>
+<li>Data pointers, which point to the actual data in RAM/GPU/etc. memory. They
+may be NULL when the data is not allocated (yet). StarPU will automatically
+call starpu_data_interface_ops::allocate_data_on_node to allocate the data
+pointers whenever needed, and call starpu_data_interface_ops::free_data_on_node
+when memory gets scarce.  For instance, for the n-dimension matrix interface
+the pointers to the actual data (\c ptr, \c dev_handle, \c offset) are data
+pointers.
+
+<li>Meta-data pointers, which always point to RAM memory. They are usually
+always allocated so that they can always be used. For instance, for the
+n-dimension matrix interface the array of dimension sizes and the array of ld
+are meta-data pointers.
+</ul>
+
+This means that:
+
+<ul>
+<li>The starpu_data_interface_ops::register_data_handle method has to allocate
+the meta-data pointers. If the user provided a buffer for the initial value
+of the handle, starpu_data_interface_ops::register_data_handle sets the data
+pointers of the home_node interface to that buffer.
+<li>The interface can additionally provide a \c ptr_register helper to set the
+data pointer of a given node.
+<li>The starpu_data_interface_ops::unregister_data_handle method has to
+deallocate the meta-data pointers
+<li>The starpu_data_interface_ops::allocate_data_on_node method has to allocate
+the data pointers on the given node.
+<li>The starpu_data_interface_ops::free_data_on_node method has to deallocate
+the data pointers on the given node.
+<li>The starpu_data_interface_ops::reuse_data_on_node transfers the data
+pointers from a cached interface to the destination interface.
+<li>The starpu_data_interface_ops::map_data has to map the data pointers on the
+given node.
+<li>The starpu_data_interface_ops::unmap_data has to unmap the data pointers on
+the given node.
+<li>The filtering functions have to allocate the meta-data pointers for the
+child interface, and when the parent interface has data pointers, it has to set
+the child data pointers to point into the parent data buffers.
+</ul>
+
+Note: for compressed matrices such as CSR, BCSR, COO, the \c colind and \c
+rowptr arrays are not meta-data pointers, but data pointers like \c nzval,
+because they need to be available in GPU memory for the GPU kernels.
+
+Note: when the interface does not contain meta-data pointers,
+starpu_data_interface_ops::reuse_data_on_node does not need to
+be implemented, StarPU will just use a memcpy. Otherwise, either
+starpu_data_interface_ops::reuse_data_on_node must be used to transfer only the
+data pointers and not the meta-data pointers, or the allocation cache should be
+disabled by setting starpu_data_interface_ops::dontcache to 1.
+
+Note: It should be noted that because of the allocation cache,
+starpu_data_interface_ops::free_data_on_node may be called on an interface which
+is not attached to a handle any more. This means that the meta-data pointers
+will have been deallocated by starpu_data_interface_ops::unregister_data_handle,
+and cannot be used by starpu_data_interface_ops::free_data_on_node to e.g.
+compute the size to be deallocated. For instance, the n-dimension matrix
+interface uses an additional scalar allocsize field to store the allocation
+size, thus still available even when the interface is in the allocation cache.
 
 \section SpecifyingATargetNode Specifying A Target Node For Task Data
 
