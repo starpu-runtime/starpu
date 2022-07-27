@@ -617,6 +617,7 @@ void dw_cholesky(float ***matA, unsigned ld, int rank, int nodes, double *timing
 			}
 			if (data_handles[m][n])
 			{
+				starpu_data_set_name(data_handles[m][n], "A");
 				starpu_data_set_coordinates(data_handles[m][n], 2, n, m);
 				starpu_mpi_data_register(data_handles[m][n], (m*nblocks)+n, mpi_rank);
 

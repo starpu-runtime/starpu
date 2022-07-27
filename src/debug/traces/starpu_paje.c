@@ -64,7 +64,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 						     "SubmitOrder string"
 						     );
 #ifdef HAVE_POTI_USER_NEWEVENT
-	_starpu_poti_CommLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 3, "Handle string", "X string", "Y string");
+	_starpu_poti_CommLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 4, "Handle string", "HName string", "X string", "Y string");
 	if (options->memory_states)
 	{
 		_starpu_poti_MemoryEvent = poti_header_DeclareEvent (PAJE_NewEvent,
@@ -74,7 +74,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 							     "Size string",
 							     "Dest string");
 	}
-	_starpu_poti_MpiLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 4, "MPITAG string", "MPIType string", "Priority string", "Handle string", "X string", "Y string");
+	_starpu_poti_MpiLinkStart = poti_header_DeclareEvent(PAJE_StartLink, 5, "MPITAG string", "MPIType string", "Priority string", "Handle string", "HName string", "X string", "Y string");
 #endif
 #else
 	poti_header(1,1);
@@ -238,6 +238,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	fprintf(file, "%%	MPIType	string\n");
 	fprintf(file, "%%	Priority	string\n");
 	fprintf(file, "%%	Handle	string\n");
+	fprintf(file, "%%	HName	string\n");
 	fprintf(file, "%%	X	string\n");
 	fprintf(file, "%%	Y	string\n");
 	fprintf(file, "%%EndEventDef\n");
@@ -249,6 +250,7 @@ void _starpu_fxt_write_paje_header(FILE *file STARPU_ATTRIBUTE_UNUSED, struct st
 	fprintf(file, "%%	StartContainer	string\n");
 	fprintf(file, "%%	Key	string\n");
 	fprintf(file, "%%	Handle	string\n");
+	fprintf(file, "%%	HName	string\n");
 	fprintf(file, "%%	X	string\n");
 	fprintf(file, "%%	Y	string\n");
 	fprintf(file, "%%EndEventDef\n");

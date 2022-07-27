@@ -394,6 +394,12 @@ unsigned _starpu_fxt_data_get_coord(unsigned long handle, int mpi_rank, unsigned
 	return data->dimensions >= dim+1 ? data->dims[dim] : 0;
 }
 
+const char *_starpu_fxt_data_get_name(unsigned long handle, int mpi_rank)
+{
+	struct data_info *data = get_data(handle, mpi_rank);
+	return data->name;
+}
+
 static void handle_papi_event(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_PAPI
@@ -2412,6 +2418,9 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCo", handle, 0, comid, size, src, options);
 			unsigned X = _starpu_fxt_data_get_coord(handle, options->file_rank, 0);
 			unsigned Y = _starpu_fxt_data_get_coord(handle, options->file_rank, 1);
+			const char *name = _starpu_fxt_data_get_name(handle, options->file_rank);
+			if (!name)
+				name = "";
 
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN], src_memnode_container[STARPU_POTI_STR_LEN];
@@ -2429,9 +2438,9 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			char Y_str[STARPU_POTI_STR_LEN];
 			snprintf(Y_str, sizeof(Y_str), "%u", Y);
 
-			poti_user_StartLink(_starpu_poti_CommLinkStart, time, program_container, link_type, src_memnode_container, paje_value, paje_key, 3, str_handle, X_str, Y_str);
+			poti_user_StartLink(_starpu_poti_CommLinkStart, time, program_container, link_type, src_memnode_container, paje_value, paje_key, 4, str_handle, name, X_str, Y_str);
 #else
-			fprintf(out_paje_file, "24	%.9f	%s	%sp	%u	%smm%u	com_%u	%lx	%u	%u\n", time, link_type, prefix, size, prefix, src, comid, handle, X, Y);
+			fprintf(out_paje_file, "24	%.9f	%s	%sp	%u	%smm%u	com_%u	%lx	\"%s\"	%u	%u\n", time, link_type, prefix, size, prefix, src, comid, handle, name, X, Y);
 #endif
 		}
 
@@ -4401,6 +4410,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 					unsigned src = itor->src_node;
 					unsigned X = _starpu_fxt_data_get_coord(itor->handle, options->file_rank, 0);
 					unsigned Y = _starpu_fxt_data_get_coord(itor->handle, options->file_rank, 1);
+					const char *name = _starpu_fxt_data_get_name(itor->handle, options->file_rank);
+					if (!name)
+						name = "";
 #ifdef STARPU_HAVE_POTI
 					char str_handle[STARPU_POTI_STR_LEN];
 					snprintf(str_handle, sizeof(str_handle), "%lx", itor->handle);
@@ -4411,9 +4423,9 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 
 					char src_memnode_container[STARPU_POTI_STR_LEN];
 					memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, src);
-					poti_user_StartLink(_starpu_poti_CommLinkStart, 0., program_container, link_type, src_memnode_container, paje_value, paje_key, 3, str_handle, X_str, Y_str);
+					poti_user_StartLink(_starpu_poti_CommLinkStart, 0., program_container, link_type, src_memnode_container, paje_value, paje_key, 4, str_handle, name, X_str, Y_str);
 #else
-					fprintf(out_paje_file, "24	%.9f	%s	%sp	%lu	%smm%u	com_%u	%lx	%u	%u\n", 0., link_type, prefix, size, prefix, src, comid, itor->handle, X, Y);
+					fprintf(out_paje_file, "24	%.9f	%s	%sp	%lu	%smm%u	com_%u	%lx	\"%s\"	%u	%u\n", 0., link_type, prefix, size, prefix, src, comid, itor->handle, name, X, Y);
 #endif
 				}
 			}

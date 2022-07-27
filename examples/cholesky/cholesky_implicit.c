@@ -185,6 +185,7 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 	/* monitor and partition the A matrix into blocks :
 	 * one block is now determined by 2 unsigned (m,n) */
 	starpu_matrix_data_register(&dataA, STARPU_MAIN_RAM, (uintptr_t)matA, ld, size, size, sizeof(float));
+	starpu_data_set_name(dataA, "A");
 
 	/* Split into blocks of complete rows first */
 	struct starpu_data_filter f =
@@ -207,6 +208,7 @@ static int cholesky(float *matA, unsigned size, unsigned ld, unsigned nblocks)
 		for (n = 0; n < nblocks; n++)
 		{
 			starpu_data_handle_t data = starpu_data_get_sub_data(dataA, 2, m, n);
+			starpu_data_set_name(data, "subA");
 			starpu_data_set_coordinates(data, 2, m, n);
 		}
 
