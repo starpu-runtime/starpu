@@ -470,9 +470,9 @@ static void _interface_assignment_ndim_to_matrix(void *ndim_interface, void *chi
 	matrix->nx = ndarr->nn[0];
 	matrix->ny = ndarr->nn[1];
 	matrix->elemsize = ndarr->elemsize;
-	matrix->allocsize = matrix->nx * matrix->ny * matrix->elemsize;
 	matrix->ptr = ndarr->ptr;
 	matrix->ld = ndarr->ldn[1];
+	matrix->allocsize = matrix->ld * matrix->ny * matrix->elemsize;
 	matrix->dev_handle = ndarr->dev_handle;
 	matrix->offset = ndarr->offset;
 }
