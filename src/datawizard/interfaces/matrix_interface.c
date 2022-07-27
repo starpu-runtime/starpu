@@ -246,6 +246,7 @@ struct pack_matrix_header
 	/* Receiving matrices with different sizes from MPI */
 	/* FIXME: that would break alignment for O_DIRECT disk access...
 	 * while in the disk case, we do know the matrix size anyway */
+	/* FIXME: rather make MPI pack the data interface in the enveloppe for us? */
 	uint32_t nx;
 	uint32_t ny;
 	size_t elemsize;

@@ -653,6 +653,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 		if (starpu_node_get_kind(requesting_node) == STARPU_CPU_RAM && !nwait
 			&& !_starpu_malloc_willpin_on_node(requesting_node))
 		{
+			/* FIXME: also try to map */
 			/* And this is the main RAM without pinning, really no need for a
 			 * request, just quickly allocate and be done */
 			if (dst_replicate->mapped != STARPU_UNMAPPED
