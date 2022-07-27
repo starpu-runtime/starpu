@@ -2198,6 +2198,7 @@ if test x$enable_debug = xyes; then
 	CXXFLAGS="$CXXFLAGS -O0"
 	FFLAGS="$FFLAGS -O0"
 	FCFLAGS="$FCFLAGS -O0"
+	IS_SUPPORTED_FLAG(-fno-optimize-sibling-calls)
 	enable_spinlock_check=yes
 	if test x$GCC = xyes; then
 		IS_SUPPORTED_FLAG(-Og)
@@ -2806,9 +2807,6 @@ if test "x$STARPU_DEVEL" != x; then
 	IS_SUPPORTED_CFLAG(-Werror=pointer-arith)
 	IS_SUPPORTED_CXXFLAG(-Werror=pointer-arith)
 	IS_SUPPORTED_FLAG(-fno-common)
-	if test x$enable_debug = xyes; then
-		IS_SUPPORTED_FLAG(-fno-optimize-sibling-calls)
-	fi
 fi
 AM_CONDITIONAL([STARPU_DEVEL],[test "x$STARPU_DEVEL" != x])
 
