@@ -66,15 +66,15 @@ TYPE s1[SIZE],s2[SIZE],d[SIZE];
 typedef cl_int (*split_func_t)(cl_command_queue, cl_uint, cl_uint, const size_t *, const size_t *, const size_t *, const cl_event, cl_event *);
 
 
-void add(cl_command_queue cq, cl_uint size, TYPE * s1, TYPE *s2, TYPE*d, cl_uint num_events, cl_event * events, cl_event *event) {
+void add(cl_command_queue cq, cl_uint size, TYPE * _s1, TYPE *_s2, TYPE*_d, cl_uint num_events, cl_event * events, cl_event *event) {
   cl_int err;
 
    printf("Creating buffers...\n");
-   cl_mem s1m = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(TYPE), s1, &err);
+   cl_mem s1m = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(TYPE), _s1, &err);
    check(err, "clCreateBuffer s1");
-   cl_mem s2m = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(TYPE), s2, &err);
+   cl_mem s2m = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(TYPE), _s2, &err);
    check(err, "clCreateBuffer s2");
-   cl_mem dm = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(TYPE), d, &err);
+   cl_mem dm = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, size * sizeof(TYPE), _d, &err);
    check(err, "clCreateBuffer d");
 
    err = clSetKernelArg(kernel, 0, sizeof(cl_mem), &s1m);
@@ -99,7 +99,7 @@ void add(cl_command_queue cq, cl_uint size, TYPE * s1, TYPE *s2, TYPE*d, cl_uint
    clReleaseMemObject(dm);
 }
 
-cl_int split_func(cl_command_queue cq, cl_uint split_factor, void * data, cl_event before, cl_event * after) {
+cl_int split_func(cl_command_queue cq, cl_uint split_factor, void * UNUSED(data), cl_event before, cl_event * after) {
 
    cl_event evs[split_factor];
 
