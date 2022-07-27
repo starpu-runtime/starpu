@@ -24,6 +24,7 @@ static int copy_any_to_any(void *src_interface, unsigned src_node, void *dst_int
 static int map_ndim(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 static int unmap_ndim(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
 static int update_map_ndim(void *src_interface, unsigned src_node, void *dst_interface, unsigned dst_node);
+static size_t _get_size(uint32_t* nn, size_t ndim, size_t elemsize);
 
 static const struct starpu_data_copy_methods ndim_copy_data_methods_s =
 {
@@ -36,6 +37,7 @@ static void *ndim_to_pointer(void *data_interface, unsigned node);
 static int ndim_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_ndim_buffer_on_node(void *data_interface, unsigned node);
+static void reuse_ndim_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node);
 static size_t ndim_interface_get_size(starpu_data_handle_t handle);
 static uint32_t footprint_ndim_interface_crc32(starpu_data_handle_t handle);
 static int ndim_compare(void *data_interface_a, void *data_interface_b);
@@ -53,6 +55,7 @@ struct starpu_data_interface_ops starpu_interface_ndim_ops =
 	.to_pointer = ndim_to_pointer,
 	.pointer_is_inside = ndim_pointer_is_inside,
 	.free_data_on_node = free_ndim_buffer_on_node,
+	.reuse_data_on_node = reuse_ndim_buffer_on_node,
 	.map_data = map_ndim,
 	.unmap_data = unmap_ndim,
 	.update_map = update_map_ndim,
@@ -68,7 +71,7 @@ struct starpu_data_interface_ops starpu_interface_ndim_ops =
 	.unpack_data = unpack_ndim_handle,
 	.describe = describe,
 	.name = "STARPU_NDIM_INTERFACE",
-	.dontcache = 1
+	.dontcache = 0
 };
 
 static void *ndim_to_pointer(void *data_interface, unsigned node)
@@ -151,6 +154,7 @@ static void register_ndim_handle(starpu_data_handle_t handle, int home_node, voi
 		local_interface->nn = nn_cpy;
 		local_interface->ndim = ndim_interface->ndim;
 		local_interface->elemsize = ndim_interface->elemsize;
+		local_interface->allocsize = ndim_interface->allocsize;
 	}
 }
 
@@ -171,6 +175,8 @@ void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node,
 			       uintptr_t ptr, uint32_t* ldn, uint32_t* nn, size_t ndim, size_t elemsize)
 {
 	unsigned i;
+	size_t allocsize = _get_size(nn, ndim, elemsize);
+
 	for (i=1; i<ndim; i++)
 	{
 		STARPU_ASSERT_MSG(ldn[i]/ldn[i-1] >= nn[i-1], "ldn[%u]/ldn[%u] = %u/%u = %u should not be less than nn[%u] = %u.", i, i-1, ldn[i], ldn[i-1], ldn[i]/ldn[i-1], i-1, nn[i-1]);
@@ -185,7 +191,8 @@ void starpu_ndim_data_register(starpu_data_handle_t *handleptr, int home_node,
 		.ldn = ldn,
 		.nn = nn,
 		.ndim = ndim,
-		.elemsize = elemsize
+		.elemsize = elemsize,
+		.allocsize = allocsize,
 	};
 #ifndef STARPU_SIMGRID
 	if (home_node >= 0 && starpu_node_get_kind(home_node) == STARPU_CPU_RAM)
@@ -527,35 +534,11 @@ size_t starpu_ndim_get_elemsize(starpu_data_handle_t handle)
 
 /* memory allocation/deallocation primitives for the NDIM interface */
 
-/* returns the size of the allocated area */
-static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsigned dst_node)
+/* For a newly-allocated interface, the ld values are trivial */
+static void set_trivial_ndim_ld(struct starpu_ndim_interface *dst_ndarr)
 {
-	uintptr_t addr = 0, handle;
-
-	struct starpu_ndim_interface *dst_ndarr = (struct starpu_ndim_interface *) data_interface_;
-
-	uint32_t* nn = dst_ndarr->nn;
 	size_t ndim = dst_ndarr->ndim;
-	size_t elemsize = dst_ndarr->elemsize;
-
-	starpu_ssize_t allocated_memory;
-
-	size_t arrsize = _get_size(nn, ndim, elemsize);
-
-	handle = starpu_malloc_on_node(dst_node, arrsize);
-
-	if (!handle)
-		return -ENOMEM;
-
-	if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
-		addr = handle;
-
-	allocated_memory = arrsize;
-
-	/* update the data properly in consequence */
-	dst_ndarr->ptr = addr;
-	dst_ndarr->dev_handle = handle;
-	dst_ndarr->offset = 0;
+	uint32_t* nn = dst_ndarr->nn;
 
 	if (ndim > 0)
 	{
@@ -568,8 +551,36 @@ static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsign
 			dst_ndarr->ldn[i] = ntmp;
 		}
 	}
+}
 
-	return allocated_memory;
+/* returns the size of the allocated area */
+static starpu_ssize_t allocate_ndim_buffer_on_node(void *data_interface_, unsigned dst_node)
+{
+	uintptr_t addr = 0, handle;
+
+	struct starpu_ndim_interface *dst_ndarr = (struct starpu_ndim_interface *) data_interface_;
+
+	uint32_t* nn = dst_ndarr->nn;
+	size_t ndim = dst_ndarr->ndim;
+	size_t elemsize = dst_ndarr->elemsize;
+	size_t arrsize = dst_ndarr->allocsize;
+
+	handle = starpu_malloc_on_node(dst_node, arrsize);
+
+	if (!handle)
+		return -ENOMEM;
+
+	if (starpu_node_get_kind(dst_node) != STARPU_OPENCL_RAM)
+		addr = handle;
+
+	/* update the data properly in consequence */
+	dst_ndarr->ptr = addr;
+	dst_ndarr->dev_handle = handle;
+	dst_ndarr->offset = 0;
+
+	set_trivial_ndim_ld(dst_ndarr);
+
+	return arrsize;
 }
 
 static void free_ndim_buffer_on_node(void *data_interface, unsigned node)
@@ -579,7 +590,19 @@ static void free_ndim_buffer_on_node(void *data_interface, unsigned node)
 	size_t ndim = ndim_interface->ndim;
 	size_t elemsize = ndim_interface->elemsize;
 
-	starpu_free_on_node(node, ndim_interface->dev_handle, _get_size(nn, ndim, elemsize));
+	starpu_free_on_node(node, ndim_interface->dev_handle, ndim_interface->allocsize);
+}
+
+static void reuse_ndim_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node STARPU_ATTRIBUTE_UNUSED)
+{
+	struct starpu_ndim_interface *dst_ndarr = (struct starpu_ndim_interface *) dst_data_interface;
+	const struct starpu_ndim_interface *cached_ndarr = (const struct starpu_ndim_interface *) cached_interface;
+
+	dst_ndarr->ptr = cached_ndarr->ptr;
+	dst_ndarr->dev_handle = cached_ndarr->dev_handle;
+	dst_ndarr->offset = cached_ndarr->offset;
+
+	set_trivial_ndim_ld(dst_ndarr);
 }
 
 static size_t _get_mapsize(uint32_t* nn, uint32_t* ldn, size_t ndim, size_t elemsize)

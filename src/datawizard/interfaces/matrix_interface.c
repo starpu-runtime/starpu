@@ -35,7 +35,7 @@ static void *matrix_to_pointer(void *data_interface, unsigned node);
 static int matrix_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_matrix_buffer_on_node(void *data_interface, unsigned node);
-static void reuse_matrix_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node);
+static void reuse_matrix_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node);
 static size_t matrix_interface_get_size(starpu_data_handle_t handle);
 static size_t matrix_interface_get_alloc_size(starpu_data_handle_t handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);

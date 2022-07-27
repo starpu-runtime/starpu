@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022 Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,19 +26,16 @@
 struct starpupy_buffer_interface
 {
 	enum BufType {starpupy_numpy_interface, starpupy_bytes_interface, starpupy_bytearray_interface, starpupy_array_interface, starpupy_memoryview_interface}buffer_type;
-	char* py_buffer;
-	Py_ssize_t buffer_size;
-	/*numpy*/
-	int dim_size;
+	char* py_buffer;	/* The buffer actually allocated to store the data */
+	Py_ssize_t buffer_size;	/* The size of py_buffer */
+	int dim_size;		/* For numpy objects, the dimension */
 #ifdef STARPU_PYTHON_HAVE_NUMPY
-	npy_intp* array_dim;
+	npy_intp* array_dim;	/* For numpy objects, the shapes of the different dimentions */
 #endif
-	int array_type;
-	size_t item_size;
-	/*array.array*/
-	char typecode;
-	/*memoryview*/
-	int* shape;
+	int array_type;		/* The type of elements */
+	size_t item_size;	/* The size of elements */
+	char typecode;		/* For array.array, the type of elements */
+	int* shape;		/* For memoryview, the shape of each dimension */
 };
 
 #ifdef STARPU_PYTHON_HAVE_NUMPY
