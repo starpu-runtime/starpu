@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2020-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2020-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -36,6 +36,10 @@ int burst_nb_requests = NB_REQUESTS;
 
 void burst_init_data(int rank)
 {
+	unsigned nx = NX_ARRAY;
+	if (RUNNING_ON_VALGRIND)
+		nx = 4*4;
+
 	if (rank == 0 || rank == 1)
 	{
 		recv_handles = malloc(burst_nb_requests * sizeof(starpu_data_handle_t));
@@ -48,13 +52,13 @@ void burst_init_data(int rank)
 		int i = 0;
 		for (i = 0; i < burst_nb_requests; i++)
 		{
-			send_buffers[i] = malloc(NX_ARRAY * sizeof(float));
-			memset(send_buffers[i], 0, NX_ARRAY * sizeof(float));
-			starpu_vector_data_register(&send_handles[i], STARPU_MAIN_RAM, (uintptr_t) send_buffers[i], NX_ARRAY, sizeof(float));
+			send_buffers[i] = malloc(nx * sizeof(float));
+			memset(send_buffers[i], 0, nx * sizeof(float));
+			starpu_vector_data_register(&send_handles[i], STARPU_MAIN_RAM, (uintptr_t) send_buffers[i], nx, sizeof(float));
 
-			recv_buffers[i] = malloc(NX_ARRAY * sizeof(float));
-			memset(recv_buffers[i], 0, NX_ARRAY * sizeof(float));
-			starpu_vector_data_register(&recv_handles[i], STARPU_MAIN_RAM, (uintptr_t) recv_buffers[i], NX_ARRAY, sizeof(float));
+			recv_buffers[i] = malloc(nx * sizeof(float));
+			memset(recv_buffers[i], 0, nx * sizeof(float));
+			starpu_vector_data_register(&recv_handles[i], STARPU_MAIN_RAM, (uintptr_t) recv_buffers[i], nx, sizeof(float));
 		}
 	}
 }
