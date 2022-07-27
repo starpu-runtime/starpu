@@ -32,6 +32,8 @@ LIST_TYPE(mpi_transfer,
 	long jobid;
 	double bandwidth;
 	unsigned long handle;
+	unsigned X;
+	unsigned Y;
 	unsigned type;
 	int prio;
 	long numa_nodes_bitmap;
@@ -160,6 +162,8 @@ void _starpu_fxt_mpi_add_send_transfer(int src, int dst, long mpi_tag, size_t si
 	mpi_sends[src][slot].date = date;
 	mpi_sends[src][slot].jobid = jobid;
 	mpi_sends[src][slot].handle = handle;
+	mpi_sends[src][slot].X = _starpu_fxt_data_get_coord(handle, src, 0);
+	mpi_sends[src][slot].Y = _starpu_fxt_data_get_coord(handle, src, 1);
 	mpi_sends[src][slot].type = type;
 	mpi_sends[src][slot].prio = prio;
 	mpi_sends[src][slot].numa_nodes_bitmap = -1;
@@ -412,7 +416,12 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 			snprintf(str_priority, sizeof(str_priority), "%d", cur->prio);
 			char str_handle[STARPU_POTI_STR_LEN];
 			snprintf(str_handle, sizeof(str_handle), "%lx", send_handle);
-			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 4, str_mpi_tag, get_mpi_type_str(cur->type), str_priority, str_handle);
+			char X_str[STARPU_POTI_STR_LEN];
+			snprintf(X_str, sizeof(X_str), "%u", cur->X);
+			char Y_str[STARPU_POTI_STR_LEN];
+			snprintf(Y_str, sizeof(Y_str), "%u", cur->Y);
+
+			poti_user_StartLink(_starpu_poti_MpiLinkStart, start_date, "MPIroot", "MPIL", mpi_container, paje_value, paje_key, 6, str_mpi_tag, get_mpi_type_str(cur->type), str_priority, str_handle, X_str, Y_str);
 
 			poti_SetVariable(start_date, mpi_container, "bwo_mpi", current_out_bandwidth[src]);
 			snprintf(mpi_container, sizeof(mpi_container), "%d_mpict", dst);
@@ -421,7 +430,7 @@ static void display_all_transfers_from_trace(FILE *out_paje_file, FILE *out_comm
 #else
 			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwo_mpi	%f\n", start_date, src, current_out_bandwidth[src]);
 			fprintf(out_paje_file, "13	%.9f	%d_mpict	bwi_mpi	%f\n", start_date, dst, current_in_bandwidth[dst]);
-			fprintf(out_paje_file, "23	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu	%ld	%s	%d	%lx\n", start_date, (unsigned long)size, src, id, mpi_tag, get_mpi_type_str(cur->type), cur->prio, send_handle);
+			fprintf(out_paje_file, "23	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu	%ld	%s	%d	%lx	%u	%u\n", start_date, (unsigned long)size, src, id, mpi_tag, get_mpi_type_str(cur->type), cur->prio, send_handle, cur->X, cur->Y);
 			fprintf(out_paje_file, "19	%.9f	MPIL	MPIroot	%lu	%d_mpict	mpicom_%lu\n", end_date, (unsigned long)size, dst, id);
 #endif
 
