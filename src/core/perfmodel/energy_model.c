@@ -54,7 +54,8 @@
 
 #ifdef STARPU_PAPI
 #ifdef STARPU_HAVE_HWLOC
-static const int N_EVTS = 2, n_recorded;
+static const int N_EVTS = 2;
+static int n_recorded;
 
 static int nsockets;
 
