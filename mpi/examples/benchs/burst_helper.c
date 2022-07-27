@@ -38,7 +38,10 @@ void burst_init_data(int rank)
 {
 	unsigned nx = NX_ARRAY;
 	if (RUNNING_ON_VALGRIND)
+	{
 		nx = 4*4;
+		burst_nb_requests = 4;
+	}
 
 	if (rank == 0 || rank == 1)
 	{
