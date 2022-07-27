@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2010       Mehdi Juhoor
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -87,8 +87,7 @@ static void _starpu_matrix_filter_block(int dim, void *father_interface, void *c
 	}
 
 	matrix_child->elemsize = elemsize;
-	STARPU_ASSERT_MSG(matrix_father->allocsize == matrix_father->nx * matrix_father->ny * matrix_father->elemsize, "partitioning matrix with non-trivial allocsize not supported yet, patch welcome");
-	matrix_child->allocsize = matrix_child->nx * matrix_child->ny * elemsize;
+	matrix_child->allocsize = matrix_child->ld * matrix_child->ny * elemsize;
 
 	/* is the information on this node valid ? */
 	if (matrix_father->dev_handle)
