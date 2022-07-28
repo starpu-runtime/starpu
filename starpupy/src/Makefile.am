@@ -33,6 +33,7 @@ $(top_builddir)/starpupy/src/starpu/%.c: $(abs_top_srcdir)/starpupy/src/%.c
 
 all: $(PYTHON_PY_BUILD) $(PYTHON_C_BUILD)
 	LDFLAGS=$${LDFLAGS/-no-pie/} $(PYTHON) setup.py build $(PYTHON_SETUP_OPTIONS)
+check: all
 
 PYTHONPATH=$(prefix)/lib/python$(PYTHON_VERSION)/site-packages
 

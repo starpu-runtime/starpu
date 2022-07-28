@@ -169,6 +169,9 @@ static void run_cholesky(starpu_data_handle_t **data_handles, int rank, int node
 		starpu_mpi_checkpoint_template_freeze(checkpoint_p);
 	}
 
+#ifdef STARPU_DEVEL
+#warning Add pruning
+#endif
 	for (k = 0; k < nblocks; k++)
 	{
 		starpu_iteration_push(k);

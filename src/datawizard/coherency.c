@@ -648,7 +648,7 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 	else if (dst_replicate)
 	{
 		/* if the data is in write only mode (and not SCRATCH or REDUX), there is no need for a source, data will be initialized by the task itself */
-		if (mode & STARPU_W)
+		if (mode & STARPU_W && is_prefetch < STARPU_TASK_PREFETCH)
 			dst_replicate->initialized = 1;
 		if (starpu_node_get_kind(requesting_node) == STARPU_CPU_RAM && !nwait
 			&& !_starpu_malloc_willpin_on_node(requesting_node))
@@ -659,7 +659,8 @@ struct _starpu_data_request *_starpu_create_request_to_fetch_data(starpu_data_ha
 			if (dst_replicate->mapped != STARPU_UNMAPPED
 				|| _starpu_allocate_memory_on_node(handle, dst_replicate, is_prefetch, 0) == 0)
 			{
-				_starpu_update_data_state(handle, dst_replicate, mode);
+				if (is_prefetch < STARPU_TASK_PREFETCH)
+					_starpu_update_data_state(handle, dst_replicate, mode);
 				if (dst_replicate->mc)
 				{
 					if (is_prefetch == STARPU_TASK_PREFETCH)
