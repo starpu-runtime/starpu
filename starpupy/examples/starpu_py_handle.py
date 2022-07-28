@@ -209,7 +209,7 @@ def assign3(a,b):
 
 # generate empty arrays Handle object using HandleNumpy
 # 1-dimension
-e1_h = HandleNumpy(10, a1.dtype)
+e1_h = HandleNumpy(a1.shape, a1.dtype)
 
 res8 = starpu.task_submit(ret_handle=True)(assign, a1_h, e1_h)
 e1_r = e1_h.acquire(mode='RW')
@@ -220,14 +220,14 @@ print("the first element of 1-dimension array is modified to 100:", e1_r)
 e1_h.release()
 
 # 2-dimension
-e2_h = HandleNumpy((5,10), a2.dtype)
+e2_h = HandleNumpy(a2.shape, a2.dtype)
 res9 = starpu.task_submit(ret_handle=True)(assign2, a2_h, e2_h)
 e2_r = e2_h.acquire(mode='R')
 print("assigned 2-dimension array is", e2_r)
 e2_h.release()
 
 # 3-dimension
-e3_h = HandleNumpy((2,3,10), a3.dtype)
+e3_h = HandleNumpy(a3.shape, a3.dtype)
 res10 = starpu.task_submit(ret_handle=True)(assign3, a3_h, e3_h)
 e3_r = e3_h.acquire(mode='R')
 print("assigned 3-dimension array is", e3_r)
@@ -456,7 +456,7 @@ print("access mode annotation:")
 print("*************************")
 a = np.array([1, 2, 3, 4])
 a_h = Handle(a)
-e_h = HandleNumpy(10, a.dtype)
+e_h = HandleNumpy(a.shape, a.dtype)
 
 a_r = a_h.acquire(mode='R')
 print("original array is:", a_r)
