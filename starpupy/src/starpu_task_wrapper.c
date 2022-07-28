@@ -1477,7 +1477,6 @@ static PyObject* starpu_shutdown_wrapper(PyObject *self, PyObject *args)
 
 	while(PyDict_Next(perf_dict, &perf_pos, &perf_key, &perf_value))
 	{
-		Py_DECREF(perf_value);
 		PyDict_DelItem(perf_dict, perf_key);
 	}
 
