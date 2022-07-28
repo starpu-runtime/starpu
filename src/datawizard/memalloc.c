@@ -1353,7 +1353,7 @@ static struct _starpu_mem_chunk *_starpu_memchunk_init(struct _starpu_data_repli
 	if (replicate->relaxed_coherency == 1)
 		/* SCRATCH is always easy to drop, thus clean */
 		mc->clean = 1;
-	else if (replicate->relaxed_coherency == 0 && handle->home_node != -1 && handle->per_node[(int) replicate->memory_node].state != STARPU_INVALID)
+	else if (replicate->relaxed_coherency == 0 && handle->home_node != -1 && handle->per_node[handle->home_node].state != STARPU_INVALID)
 		/* This is a normal data and the home node has the value */
 		mc->clean = 1;
 	mc->replicate = replicate;
