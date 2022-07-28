@@ -77,7 +77,7 @@ class Handle(object):
 		return starpupy.starpupy_data_unpartition(self.handle_cap, handle_list, nchildren)
 
 def new_empty_numpy(shape, dtype):
-	return np.empty(shape, dtype)
+	return np.zeros(shape, dtype)
 
 #class handle
 class HandleNumpy(Handle):
