@@ -23,9 +23,9 @@
 #define xstr(s)        str(s)
 #define STARPU_PLU_STR(name)  xstr(STARPU_PLU(name))
 
-extern struct starpu_codelet STARPU_PLU(cl11);
-extern struct starpu_codelet STARPU_PLU(cl12);
-extern struct starpu_codelet STARPU_PLU(cl21);
-extern struct starpu_codelet STARPU_PLU(cl22);
+extern struct starpu_codelet STARPU_PLU(cl_getrf);
+extern struct starpu_codelet STARPU_PLU(cl_trsm_ll);
+extern struct starpu_codelet STARPU_PLU(cl_trsm_ru);
+extern struct starpu_codelet STARPU_PLU(cl_gemm);
 
 #endif // __PXLU_KERNELS_H__

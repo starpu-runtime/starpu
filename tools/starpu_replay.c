@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Erwan Leria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -97,14 +97,13 @@ static struct task
 	struct starpu_rbtree_node node;
 	UT_hash_handle hh;
 	jobid_t jobid;
-        int iteration;
+	int iteration;
 	long submit_order;
 	jobid_t *deps;
 	size_t ndependson;
 	struct starpu_task task;
 	enum task_type type;
 	int reg_signal;
-
 } *tasks;
 
 /* Record handles */
@@ -1158,7 +1157,7 @@ eof:
 		starpu_data_unregister(handle->mem_ptr);
 		HASH_DEL(handles_hash, handle);
 		free(handle);
-        }
+	}
 
 	struct perfmodel *model_s=NULL, *modeltmp=NULL;
 	HASH_ITER(hh, model_hash, model_s, modeltmp)
@@ -1167,7 +1166,7 @@ eof:
 		HASH_DEL(model_hash, model_s);
 		free(model_s->model_name);
 		free(model_s);
-        }
+	}
 
 	struct task *task=NULL, *tasktmp=NULL;
 	HASH_ITER(hh, tasks, task, tasktmp)
@@ -1186,7 +1185,7 @@ eof:
 		free(task->deps);
 		starpu_rbtree_remove(&tree, &task->node);
 		free(task);
-        }
+	}
 
 	starpu_shutdown();
 	return 0;

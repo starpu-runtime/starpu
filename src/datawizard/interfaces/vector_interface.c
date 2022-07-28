@@ -113,14 +113,14 @@ static void register_vector_handle(starpu_data_handle_t handle, int home_node, v
 		if (node == home_node)
 		{
 			local_interface->ptr = vector_interface->ptr;
-                        local_interface->dev_handle = vector_interface->dev_handle;
-                        local_interface->offset = vector_interface->offset;
+			local_interface->dev_handle = vector_interface->dev_handle;
+			local_interface->offset = vector_interface->offset;
 		}
 		else
 		{
 			local_interface->ptr = 0;
-                        local_interface->dev_handle = 0;
-                        local_interface->offset = 0;
+			local_interface->dev_handle = 0;
+			local_interface->offset = 0;
 		}
 
 		local_interface->id = vector_interface->id;
@@ -141,9 +141,9 @@ void starpu_vector_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 		.ptr = ptr,
 		.nx = nx,
 		.elemsize = elemsize,
-                .dev_handle = ptr,
+		.dev_handle = ptr,
 		.slice_base = 0,
-                .offset = 0,
+		.offset = 0,
 		.allocsize = allocsize,
 	};
 #if (!defined(STARPU_SIMGRID) && !defined(STARPU_OPENMP))
@@ -358,7 +358,7 @@ static starpu_ssize_t allocate_vector_buffer_on_node(void *data_interface_, unsi
 	/* update the data properly in consequence */
 	vector_interface->ptr = addr;
 	vector_interface->dev_handle = handle;
-        vector_interface->offset = 0;
+	vector_interface->offset = 0;
 
 	return allocated_memory;
 }
@@ -381,7 +381,7 @@ static void reuse_vector_buffer_on_node(void *data_interface, const void *new_da
 }
 
 static int map_vector(void *src_interface, unsigned src_node,
-                      void *dst_interface, unsigned dst_node)
+		      void *dst_interface, unsigned dst_node)
 {
 	struct starpu_vector_interface *src_vector = src_interface;
 	struct starpu_vector_interface *dst_vector = dst_interface;
@@ -401,7 +401,7 @@ static int map_vector(void *src_interface, unsigned src_node,
 }
 
 static int unmap_vector(void *src_interface, unsigned src_node,
-                        void *dst_interface, unsigned dst_node)
+			void *dst_interface, unsigned dst_node)
 {
 	struct starpu_vector_interface *src_vector = src_interface;
 	struct starpu_vector_interface *dst_vector = dst_interface;
@@ -413,7 +413,7 @@ static int unmap_vector(void *src_interface, unsigned src_node,
 }
 
 static int update_map(void *src_interface, unsigned src_node,
-                      void *dst_interface, unsigned dst_node)
+		      void *dst_interface, unsigned dst_node)
 {
 	struct starpu_vector_interface *src_vector = src_interface;
 	struct starpu_vector_interface *dst_vector = dst_interface;
@@ -422,7 +422,7 @@ static int update_map(void *src_interface, unsigned src_node,
 }
 
 static int copy_any_to_any(void *src_interface, unsigned src_node,
-                           void *dst_interface, unsigned dst_node, void *async_data)
+			   void *dst_interface, unsigned dst_node, void *async_data)
 {
 	struct starpu_vector_interface *src_vector = src_interface;
 	struct starpu_vector_interface *dst_vector = dst_interface;

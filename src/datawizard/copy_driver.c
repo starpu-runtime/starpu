@@ -649,12 +649,12 @@ int starpu_interface_update_map(uintptr_t src, size_t src_offset, unsigned src_n
 
 static size_t _get_size(uint32_t* nn, size_t ndim)
 {
-    size_t size = 1;
-    unsigned i;
-    for (i=0; i<ndim; i++)
-        size *= nn[i];
+	size_t size = 1;
+	unsigned i;
+	for (i=0; i<ndim; i++)
+		size *= nn[i];
 
-    return size;
+	return size;
 }
 
 int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
@@ -682,7 +682,7 @@ int starpu_interface_copynd(uintptr_t src, size_t src_offset, unsigned src_node,
 						     _get_size(nn, ndim) * elemsize,
 						     async_data);
 	}
-		
+
 	if(ndim > 4)
 	{
 		for (i = 0; i < nn[ndim-1]; i++)

@@ -36,7 +36,7 @@
  * given node.
  */
 static inline int starpu_rbtree_index(const struct starpu_rbtree_node *node,
-                               const struct starpu_rbtree_node *parent)
+				      const struct starpu_rbtree_node *parent)
 {
 	assert(parent != NULL);
 	assert((node == NULL) || (starpu_rbtree_parent(node) == parent));
@@ -77,7 +77,7 @@ static inline int starpu_rbtree_is_black(const struct starpu_rbtree_node *node)
  * Set the parent of a node, retaining its current color.
  */
 static inline void starpu_rbtree_set_parent(struct starpu_rbtree_node *node,
-                                     struct starpu_rbtree_node *parent)
+					    struct starpu_rbtree_node *parent)
 {
 	assert(starpu_rbtree_check_alignment(node));
 	assert(starpu_rbtree_check_alignment(parent));
@@ -292,7 +292,7 @@ void starpu_rbtree_remove(struct starpu_rbtree *tree, struct starpu_rbtree_node 
 	 * The node has been removed, update the colors. The child pointer can
 	 * be null, in which case it is considered a black leaf.
 	 */
- update_color:
+update_color:
 	if (color == STARPU_RBTREE_COLOR_RED)
 		return;
 

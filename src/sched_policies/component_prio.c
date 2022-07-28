@@ -23,21 +23,21 @@
 
 #ifdef STARPU_USE_FXT
 #define STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component,ntasks,exp_len) do {                                 \
-    if (fut_active) { \
-	int workerid = STARPU_NMAXWORKERS + 1;									\
-	if((component->nchildren == 1) && starpu_sched_component_is_worker(component->children[0])) \
-		workerid = starpu_sched_component_worker_get_workerid(component->children[0]); \
-	_STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(workerid, ntasks, exp_len); \
-    } \
+	if (fut_active) {					\
+		int workerid = STARPU_NMAXWORKERS + 1;			\
+		if((component->nchildren == 1) && starpu_sched_component_is_worker(component->children[0])) \
+			workerid = starpu_sched_component_worker_get_workerid(component->children[0]); \
+		_STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(workerid, ntasks, exp_len); \
+	}								\
 } while (0)
 
 #define STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(component,ntasks,exp_len) do {                                 \
-    if (fut_active) { \
-	int workerid = STARPU_NMAXWORKERS + 1;									\
-	if((component->nchildren == 1) && starpu_sched_component_is_worker(component->children[0])) \
-		workerid = starpu_sched_component_worker_get_workerid(component->children[0]); \
-	_STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len); \
-    } \
+	if (fut_active) { \
+		int workerid = STARPU_NMAXWORKERS + 1;			\
+		if((component->nchildren == 1) && starpu_sched_component_is_worker(component->children[0])) \
+			workerid = starpu_sched_component_worker_get_workerid(component->children[0]); \
+		_STARPU_TRACE_SCHED_COMPONENT_POP_PRIO(workerid, ntasks, exp_len); \
+	}								\
 } while (0)
 #else
 #define STARPU_TRACE_SCHED_COMPONENT_PUSH_PRIO(component,ntasks,exp_len) do { } while (0)

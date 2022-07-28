@@ -1494,6 +1494,16 @@ NUMA nodes used by StarPU. Any \ref STARPU_LIMIT_CPU_NUMA_devid_MEM additionally
 specified will take over STARPU_LIMIT_BANDWIDTH.
 </dd>
 
+<dt>STARPU_SUBALLOCATOR</dt>
+<dd>
+\anchor STARPU_SUBALLOCATOR
+\addindex __env__STARPU_SUBALLOCATOR
+Specifies to enable (1) the StarPU suballocator or not (0). The default is to
+enable it to amortize the cost of GPU and pinned RAM allocations for small
+allocations: StarPU allocate large chunks of memory at a time, and suballocates
+the small buffers within them.
+</dd>
+
 <dt>STARPU_MINIMUM_AVAILABLE_MEM</dt>
 <dd>
 \anchor STARPU_MINIMUM_AVAILABLE_MEM

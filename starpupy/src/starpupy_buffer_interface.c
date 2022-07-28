@@ -359,6 +359,14 @@ static void pybuffer_free_data_on_node(void *data_interface, unsigned node)
 	starpu_free_on_node(node, (uintptr_t) pybuffer_interface->py_buffer, requested_memory);
 }
 
+static void pybuffer_reuse_data_on_node(void *dst_data_interface, const void *cached_interface, unsigned node)
+{
+	struct starpupy_buffer_interface *dst_pybuffer_interface = (struct starpupy_buffer_interface *) dst_data_interface;
+	const struct starpupy_buffer_interface *cached_pybuffer_interface = (const struct starpupy_buffer_interface *) cached_interface;
+
+	dst_pybuffer_interface->py_buffer = cached_pybuffer_interface->py_buffer;
+}
+
 static size_t pybuffer_get_size(starpu_data_handle_t handle)
 {
 	size_t size;
@@ -467,6 +475,7 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 	.unregister_data_handle = pybuffer_unregister_data_handle,
 	.allocate_data_on_node = pybuffer_allocate_data_on_node,
 	.free_data_on_node = pybuffer_free_data_on_node,
+	.reuse_data_on_node = pybuffer_reuse_data_on_node,
 	.get_size = pybuffer_get_size,
 	.interfaceid = STARPU_UNKNOWN_INTERFACE_ID,
 	.interface_size = sizeof(struct starpupy_buffer_interface),
@@ -474,7 +483,7 @@ static struct starpu_data_interface_ops interface_pybuffer_ops =
 	.pack_data = pybuffer_pack_data,
 	.peek_data = pybuffer_peek_data,
 	.unpack_data = pybuffer_unpack_data,
-	.dontcache = 1,
+	.dontcache = 0,
 	.display = pybuffer_display,
 	.compare = pybuffer_compare,
 	.name = "STARPUPY_BUFFER_INTERFACE",

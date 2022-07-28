@@ -115,16 +115,16 @@ static void register_block_handle(starpu_data_handle_t handle, int home_node, vo
 		if (node == home_node)
 		{
 			local_interface->ptr = block_interface->ptr;
-                        local_interface->dev_handle = block_interface->dev_handle;
-                        local_interface->offset = block_interface->offset;
+			local_interface->dev_handle = block_interface->dev_handle;
+			local_interface->offset = block_interface->offset;
 			local_interface->ldy  = block_interface->ldy;
 			local_interface->ldz  = block_interface->ldz;
 		}
 		else
 		{
 			local_interface->ptr = 0;
-                        local_interface->dev_handle = 0;
-                        local_interface->offset = 0;
+			local_interface->dev_handle = 0;
+			local_interface->offset = 0;
 			local_interface->ldy  = 0;
 			local_interface->ldz  = 0;
 		}
@@ -148,8 +148,8 @@ void starpu_block_data_register(starpu_data_handle_t *handleptr, int home_node,
 	{
 		.id = STARPU_BLOCK_INTERFACE_ID,
 		.ptr = ptr,
-                .dev_handle = ptr,
-                .offset = 0,
+		.dev_handle = ptr,
+		.offset = 0,
 		.ldy = ldy,
 		.ldz = ldz,
 		.nx = nx,

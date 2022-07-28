@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -30,17 +30,17 @@ static const float p1 =  1.0;
 static const float m1 = -1.0;
 #endif
 
-unsigned count_11_per_worker[STARPU_NMAXWORKERS] = {0};
-unsigned count_12_per_worker[STARPU_NMAXWORKERS] = {0};
-unsigned count_21_per_worker[STARPU_NMAXWORKERS] = {0};
-unsigned count_22_per_worker[STARPU_NMAXWORKERS] = {0};
+unsigned count_getrf_per_worker[STARPU_NMAXWORKERS] = {0};
+unsigned count_trsm_ll_per_worker[STARPU_NMAXWORKERS] = {0};
+unsigned count_trsm_ru_per_worker[STARPU_NMAXWORKERS] = {0};
+unsigned count_gemm_per_worker[STARPU_NMAXWORKERS] = {0};
 
 unsigned count_total_per_worker[STARPU_NMAXWORKERS] = {0};
 
-unsigned count_11_total = 0;
-unsigned count_12_total = 0;
-unsigned count_21_total = 0;
-unsigned count_22_total = 0;
+unsigned count_getrf_total = 0;
+unsigned count_trsm_ll_total = 0;
+unsigned count_trsm_ru_total = 0;
+unsigned count_gemm_total = 0;
 
 void display_stat_heat(void)
 {
@@ -51,15 +51,15 @@ void display_stat_heat(void)
 	unsigned worker;
 	for (worker = 0; worker < nworkers; worker++)
 	{
-		count_total_per_worker[worker] = count_11_per_worker[worker]
-					+ count_12_per_worker[worker]
-					+ count_21_per_worker[worker]
-					+ count_22_per_worker[worker];
+		count_total_per_worker[worker] = count_getrf_per_worker[worker]
+					+ count_trsm_ll_per_worker[worker]
+					+ count_trsm_ru_per_worker[worker]
+					+ count_gemm_per_worker[worker];
 
-		count_11_total += count_11_per_worker[worker];
-		count_12_total += count_12_per_worker[worker];
-		count_21_total += count_21_per_worker[worker];
-		count_22_total += count_22_per_worker[worker];
+		count_getrf_total += count_getrf_per_worker[worker];
+		count_trsm_ll_total += count_trsm_ll_per_worker[worker];
+		count_trsm_ru_total += count_trsm_ru_per_worker[worker];
+		count_gemm_total += count_gemm_per_worker[worker];
 	}
 
 	FPRINTF(stderr, "\t11 (diagonal block LU)\n");
@@ -70,7 +70,7 @@ void display_stat_heat(void)
 			char name[64];
 			starpu_worker_get_name(worker, name, sizeof(name));
 
-			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_11_per_worker[worker], count_11_total, (100.0*count_11_per_worker[worker])/count_11_total);
+			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_getrf_per_worker[worker], count_getrf_total, (100.0*count_getrf_per_worker[worker])/count_getrf_total);
 		}
 	}
 
@@ -82,7 +82,7 @@ void display_stat_heat(void)
 			char name[64];
 			starpu_worker_get_name(worker, name, sizeof(name));
 
-			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_12_per_worker[worker], count_12_total, (100.0*count_12_per_worker[worker])/count_12_total);
+			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_trsm_ll_per_worker[worker], count_trsm_ll_total, (100.0*count_trsm_ll_per_worker[worker])/count_trsm_ll_total);
 		}
 	}
 
@@ -95,7 +95,7 @@ void display_stat_heat(void)
 			char name[64];
 			starpu_worker_get_name(worker, name, sizeof(name));
 
-			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_21_per_worker[worker], count_21_total, (100.0*count_21_per_worker[worker])/count_21_total);
+			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_trsm_ru_per_worker[worker], count_trsm_ru_total, (100.0*count_trsm_ru_per_worker[worker])/count_trsm_ru_total);
 		}
 	}
 
@@ -107,16 +107,16 @@ void display_stat_heat(void)
 			char name[64];
 			starpu_worker_get_name(worker, name, sizeof(name));
 
-			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_22_per_worker[worker], count_22_total, (100.0*count_22_per_worker[worker])/count_22_total);
+			FPRINTF(stderr, "\t\t%s -> %u / %u (%2.2f %%)\n", name, count_gemm_per_worker[worker], count_gemm_total, (100.0*count_gemm_per_worker[worker])/count_gemm_total);
 		}
 	}
 }
 
 /*
- *   U22
+ *   GEMM
  */
 
-static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
+static inline void dw_common_cpu_codelet_update_gemm(void *descr[], int s, void *_args)
 {
 	(void)_args;
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
@@ -160,29 +160,29 @@ static inline void dw_common_cpu_codelet_update_u22(void *descr[], int s, void *
 	}
 }
 
-void dw_cpu_codelet_update_u22(void *descr[], void *_args)
+void dw_cpu_codelet_update_gemm(void *descr[], void *_args)
 {
-	dw_common_cpu_codelet_update_u22(descr, 0, _args);
+	dw_common_cpu_codelet_update_gemm(descr, 0, _args);
 
 	int id = starpu_worker_get_id_check();
-	count_22_per_worker[id]++;
+	count_gemm_per_worker[id]++;
 }
 
 #ifdef STARPU_USE_CUDA
-void dw_cublas_codelet_update_u22(void *descr[], void *_args)
+void dw_cublas_codelet_update_gemm(void *descr[], void *_args)
 {
-	dw_common_cpu_codelet_update_u22(descr, 1, _args);
+	dw_common_cpu_codelet_update_gemm(descr, 1, _args);
 
 	int id = starpu_worker_get_id_check();
-	count_22_per_worker[id]++;
+	count_gemm_per_worker[id]++;
 }
 #endif /* STARPU_USE_CUDA */
 
 /*
- * U12
+ * TRSM_LL
  */
 
-static inline void dw_common_codelet_update_u12(void *descr[], int s, void *_args)
+static inline void dw_common_codelet_update_trsm_ll(void *descr[], int s, void *_args)
 {
 	(void)_args;
 	float *sub11;
@@ -225,29 +225,29 @@ static inline void dw_common_codelet_update_u12(void *descr[], int s, void *_arg
 	}
 }
 
-void dw_cpu_codelet_update_u12(void *descr[], void *_args)
+void dw_cpu_codelet_update_trsm_ll(void *descr[], void *_args)
 {
-	dw_common_codelet_update_u12(descr, 0, _args);
+	dw_common_codelet_update_trsm_ll(descr, 0, _args);
 
 	int id = starpu_worker_get_id_check();
-	count_12_per_worker[id]++;
+	count_trsm_ll_per_worker[id]++;
 }
 
 #ifdef STARPU_USE_CUDA
-void dw_cublas_codelet_update_u12(void *descr[], void *_args)
+void dw_cublas_codelet_update_trsm_ll(void *descr[], void *_args)
 {
-	 dw_common_codelet_update_u12(descr, 1, _args);
+	 dw_common_codelet_update_trsm_ll(descr, 1, _args);
 
 	int id = starpu_worker_get_id_check();
-	count_12_per_worker[id]++;
+	count_trsm_ll_per_worker[id]++;
 }
 #endif /* STARPU_USE_CUDA */
 
 /*
- * U21
+ * TRSM_RU
  */
 
-static inline void dw_common_codelet_update_u21(void *descr[], int s, void *_args)
+static inline void dw_common_codelet_update_trsm_ru(void *descr[], int s, void *_args)
 {
 	(void)_args;
 	float *sub11;
@@ -287,26 +287,26 @@ static inline void dw_common_codelet_update_u21(void *descr[], int s, void *_arg
 	}
 }
 
-void dw_cpu_codelet_update_u21(void *descr[], void *_args)
+void dw_cpu_codelet_update_trsm_ru(void *descr[], void *_args)
 {
-	dw_common_codelet_update_u21(descr, 0, _args);
+	dw_common_codelet_update_trsm_ru(descr, 0, _args);
 
 	int id = starpu_worker_get_id_check();
-	count_21_per_worker[id]++;
+	count_trsm_ru_per_worker[id]++;
 }
 
 #ifdef STARPU_USE_CUDA
-void dw_cublas_codelet_update_u21(void *descr[], void *_args)
+void dw_cublas_codelet_update_trsm_ru(void *descr[], void *_args)
 {
-	dw_common_codelet_update_u21(descr, 1, _args);
+	dw_common_codelet_update_trsm_ru(descr, 1, _args);
 
 	int id = starpu_worker_get_id_check();
-	count_21_per_worker[id]++;
+	count_trsm_ru_per_worker[id]++;
 }
 #endif
 
 /*
- *	U11
+ *	GETRF
  */
 
 static inline void debug_print(float *tab, unsigned ld, unsigned n)
@@ -324,7 +324,7 @@ static inline void debug_print(float *tab, unsigned ld, unsigned n)
 	FPRINTF(stderr, "\n");
 }
 
-static inline void dw_common_codelet_update_u11(void *descr[], int s, void *_args)
+static inline void dw_common_codelet_update_getrf(void *descr[], int s, void *_args)
 {
 	(void)_args;
 	float *sub11;
@@ -415,20 +415,20 @@ static inline void dw_common_codelet_update_u11(void *descr[], int s, void *_arg
 }
 
 
-void dw_cpu_codelet_update_u11(void *descr[], void *_args)
+void dw_cpu_codelet_update_getrf(void *descr[], void *_args)
 {
-	dw_common_codelet_update_u11(descr, 0, _args);
+	dw_common_codelet_update_getrf(descr, 0, _args);
 
 	int id = starpu_worker_get_id_check();
-	count_11_per_worker[id]++;
+	count_getrf_per_worker[id]++;
 }
 
 #ifdef STARPU_USE_CUDA
-void dw_cublas_codelet_update_u11(void *descr[], void *_args)
+void dw_cublas_codelet_update_getrf(void *descr[], void *_args)
 {
-	dw_common_codelet_update_u11(descr, 1, _args);
+	dw_common_codelet_update_getrf(descr, 1, _args);
 
 	int id = starpu_worker_get_id_check();
-	count_11_per_worker[id]++;
+	count_getrf_per_worker[id]++;
 }
 #endif /* STARPU_USE_CUDA */

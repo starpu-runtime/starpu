@@ -428,7 +428,8 @@ struct starpu_data_interface_ops
 
 	   This method is optional, mostly useful when also defining
 	   alloc_footprint to share tiles of the same allocation size but
-	   different shapes.
+	   different shapes, or when the interface contains pointers which
+	   are initialized at registration (e.g. nn array in the ndim interface)
 
 	   \p cached_interface is an already-allocated buffer that we want to
 	   reuse, and \p new_data_interface is an interface in which we want to
@@ -1577,6 +1578,7 @@ struct starpu_ndim_interface
 	uintptr_t ptr;                    /**< local pointer of the ndim */
 	uintptr_t dev_handle;             /**< device handle of the ndim. */
 	size_t offset;                    /**< offset in the ndim. */
+	size_t allocsize;                 /**< size actually currently allocated. */
 	uint32_t* nn;                     /**< array of element number on each dimension */
 	uint32_t* ldn;                    /**< array of element number between two units on each dimension */
 	size_t ndim;                      /**< size of the dimension. */

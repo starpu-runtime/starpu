@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,8 +20,10 @@
 #define MAXREGITER	1000
 #define EPS 1.0e-10
 
-/* For measurements close to C, we do not want to try to fit, since we are
-   fitting the distance to C, which won't actually really get smaller */
+/*
+ * For measurements close to C, we do not want to try to fit, since we are
+ * fitting the distance to C, which won't actually really get smaller
+ */
 #define C_RADIUS 1
 
 /*

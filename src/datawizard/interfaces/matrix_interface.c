@@ -35,7 +35,7 @@ static void *matrix_to_pointer(void *data_interface, unsigned node);
 static int matrix_pointer_is_inside(void *data_interface, unsigned node, void *ptr);
 static starpu_ssize_t allocate_matrix_buffer_on_node(void *data_interface_, unsigned dst_node);
 static void free_matrix_buffer_on_node(void *data_interface, unsigned node);
-static void reuse_matrix_buffer_on_node(void *data_interface, const void *new_data_interface, unsigned node);
+static void reuse_matrix_buffer_on_node(void *dst_data_interface, const void *cached_interface, unsigned node);
 static size_t matrix_interface_get_size(starpu_data_handle_t handle);
 static size_t matrix_interface_get_alloc_size(starpu_data_handle_t handle);
 static uint32_t footprint_matrix_interface_crc32(starpu_data_handle_t handle);
@@ -96,8 +96,8 @@ static void register_matrix_handle(starpu_data_handle_t handle, int home_node, v
 		if (node == home_node)
 		{
 			local_interface->ptr = matrix_interface->ptr;
-                        local_interface->dev_handle = matrix_interface->dev_handle;
-                        local_interface->offset = matrix_interface->offset;
+			local_interface->dev_handle = matrix_interface->dev_handle;
+			local_interface->offset = matrix_interface->offset;
 			local_interface->ld  = matrix_interface->ld;
 		}
 		else
@@ -161,8 +161,8 @@ void starpu_matrix_data_register_allocsize(starpu_data_handle_t *handleptr, int 
 		.nx = nx,
 		.ny = ny,
 		.elemsize = elemsize,
-                .dev_handle = ptr,
-                .offset = 0,
+		.dev_handle = ptr,
+		.offset = 0,
 		.allocsize = allocsize,
 	};
 #ifndef STARPU_SIMGRID
@@ -245,6 +245,7 @@ struct pack_matrix_header
 	/* Receiving matrices with different sizes from MPI */
 	/* FIXME: that would break alignment for O_DIRECT disk access...
 	 * while in the disk case, we do know the matrix size anyway */
+	/* FIXME: rather make MPI pack the data interface in the enveloppe for us? */
 	uint32_t nx;
 	uint32_t ny;
 	size_t elemsize;

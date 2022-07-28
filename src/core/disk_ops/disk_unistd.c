@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Corentin Salingue
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,7 +34,7 @@
 /* allocation memory on disk */
 static void *starpu_unistd_alloc(void *base, size_t size)
 {
-        struct starpu_unistd_global_obj *obj;
+	struct starpu_unistd_global_obj *obj;
 	_STARPU_MALLOC(obj, sizeof(struct starpu_unistd_global_obj));
 	/* only flags change between unistd and unistd_o_direct */
 	obj->flags = O_RDWR | O_BINARY;
@@ -76,6 +76,6 @@ struct starpu_disk_ops starpu_disk_unistd_ops =
 	.test_request = starpu_unistd_global_test_request,
 	.free_request = starpu_unistd_global_free_request,
 #endif
-        .full_read = starpu_unistd_global_full_read,
-        .full_write = starpu_unistd_global_full_write
+	.full_read = starpu_unistd_global_full_read,
+	.full_write = starpu_unistd_global_full_write
 };

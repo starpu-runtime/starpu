@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2016-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2016-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2017       Erwan Leria
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -29,21 +29,19 @@
 #include <common/utils.h>
 #include <limits.h>
 
-/*
- sched.rec files look like this:
-
- SubmitOrder: 1234
- Priority: 12
- SpecificWorker: 1
- Workers: 0 1 2
- DependsOn: 1235
-
- Prefetch: 1234
- DependsOn: 1233
- MemoryNode: 1
- Parameters: 1
- */
-
+//
+// sched.rec files look like this:
+//
+// SubmitOrder: 1234
+// Priority: 12
+// SpecificWorker: 1
+// Workers: 0 1 2
+// DependsOn: 1235
+//
+// Prefetch: 1234
+// DependsOn: 1233
+// MemoryNode: 1
+// Parameters: 1
 
 #define CPY(src, dst, n) memcpy(dst, src, n * sizeof(*dst))
 
@@ -74,9 +72,9 @@ static enum sched_type
 
 static struct starpu_codelet cl_prefetch =
 {
-        .where = STARPU_NOWHERE,
-        .nbuffers = 1,
-        .modes = { STARPU_R },
+	.where = STARPU_NOWHERE,
+	.nbuffers = 1,
+	.modes = { STARPU_R },
 };
 
 static struct task
@@ -402,7 +400,7 @@ void applySchedRec(struct starpu_task *starpu_task, unsigned long submit_order)
 	}
 
 	HASH_FIND(hh, mangled_tasks, &submit_order, sizeof(submit_order), task);
-       	if (task == NULL)
+	if (task == NULL)
 		/* Nothing to do for this */
 		return;
 

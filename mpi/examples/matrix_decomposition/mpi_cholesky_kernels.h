@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -19,14 +19,16 @@
 
 #include <starpu.h>
 
-void chol_cpu_codelet_update_u11(void **, void *);
-void chol_cpu_codelet_update_u21(void **, void *);
-void chol_cpu_codelet_update_u22(void **, void *);
+void chol_cpu_codelet_update_potrf(void **, void *);
+void chol_cpu_codelet_update_trsm(void **, void *);
+void chol_cpu_codelet_update_syrk(void **, void *);
+void chol_cpu_codelet_update_gemm(void **, void *);
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u11(void *descr[], void *_args);
-void chol_cublas_codelet_update_u21(void *descr[], void *_args);
-void chol_cublas_codelet_update_u22(void *descr[], void *_args);
+void chol_cublas_codelet_update_potrf(void *descr[], void *_args);
+void chol_cublas_codelet_update_trsm(void *descr[], void *_args);
+void chol_cublas_codelet_update_syrk(void *descr[], void *_args);
+void chol_cublas_codelet_update_gemm(void *descr[], void *_args);
 #endif
 
 #endif // __MPI_CHOLESKY_KERNELS_H__

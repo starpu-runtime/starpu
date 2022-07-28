@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2008-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2008-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,9 +16,6 @@
 
 /*
  * Standard kernels for the Cholesky factorization
- * U22 is the gemm update
- * U21 is the trsm update
- * U11 is the cholesky factorization
  */
 
 #include <starpu.h>
@@ -34,7 +31,7 @@
 #endif
 
 /*
- *   U22
+ *   GEMM
  */
 
 #if defined(STARPU_USE_CUDA)
@@ -42,10 +39,10 @@ static const float p1 =  1.0;
 static const float m1 = -1.0;
 #endif
 
-static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
+static inline void chol_common_cpu_codelet_update_gemm(void *descr[], int s, void *_args)
 {
 	(void)_args;
-	/* printf("22\n"); */
+	/* printf("gemm\n"); */
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[2]);
@@ -58,8 +55,11 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void
 	unsigned ld12 = STARPU_MATRIX_GET_LD(descr[1]);
 	unsigned ld22 = STARPU_MATRIX_GET_LD(descr[2]);
 
-	if (s == 0)
+	switch (s)
 	{
+	case 0:
+	{
+		/* CPU kernel */
 		int worker_size = starpu_combined_worker_get_size();
 
 		if (worker_size == 1)
@@ -82,44 +82,107 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void
 			STARPU_SGEMM("N", "T", dy, new_dx, dz, -1.0f, new_left, ld21,
 				right, ld12, 1.0f, new_center, ld22);
 		}
+		break;
 	}
-	else
+#ifdef STARPU_USE_CUDA
+	case 1:
 	{
 		/* CUDA kernel */
-#ifdef STARPU_USE_CUDA
 		cublasStatus_t status = cublasSgemm(starpu_cublas_get_local_handle(),
 				CUBLAS_OP_N, CUBLAS_OP_T, dy, dx, dz,
 				&m1, left, ld21, right, ld12,
 				&p1, center, ld22);
 		if (status != CUBLAS_STATUS_SUCCESS)
 			STARPU_CUBLAS_REPORT_ERROR(status);
-#endif
 
+		break;
+	}
+#endif
+	default:
+		STARPU_ABORT();
+		break;
 	}
 }
 
-void chol_cpu_codelet_update_u22(void *descr[], void *_args)
+void chol_cpu_codelet_update_gemm(void *descr[], void *_args)
 {
-	chol_common_cpu_codelet_update_u22(descr, 0, _args);
+	chol_common_cpu_codelet_update_gemm(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u22(void *descr[], void *_args)
+void chol_cublas_codelet_update_gemm(void *descr[], void *_args)
 {
-	chol_common_cpu_codelet_update_u22(descr, 1, _args);
+	chol_common_cpu_codelet_update_gemm(descr, 1, _args);
 }
 #endif /* STARPU_USE_CUDA */
 
 /*
- * U21
+ *   SYRK
  */
 
-static inline void chol_common_codelet_update_u21(void *descr[], int s, void *_args)
+static inline void chol_common_cpu_codelet_update_syrk(void *descr[], int s, void *_args)
 {
-/*	printf("21\n"); */
+	(void)_args;
+	/* printf("syrk\n"); */
+	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
+	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
+
+	unsigned dx = STARPU_MATRIX_GET_NY(descr[1]);
+	unsigned dz = STARPU_MATRIX_GET_NY(descr[0]);
+
+	unsigned ld21 = STARPU_MATRIX_GET_LD(descr[0]);
+	unsigned ld22 = STARPU_MATRIX_GET_LD(descr[1]);
+
+	switch (s)
+	{
+	case 0:
+	{
+		/* CPU kernel */
+		STARPU_SSYRK("L", "N", dx, dz, -1.0f, left, ld21,
+			1.0f, center, ld22);
+		break;
+	}
+#ifdef STARPU_USE_CUDA
+	case 1:
+	{
+		/* CUDA kernel */
+		cublasStatus_t status = cublasSsyrk(starpu_cublas_get_local_handle(),
+				CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_N, dx, dz,
+				&m1, left, ld21,
+				&p1, center, ld22);
+		if (status != CUBLAS_STATUS_SUCCESS)
+			STARPU_CUBLAS_REPORT_ERROR(status);
+		break;
+	}
+#endif
+	default:
+		STARPU_ABORT();
+		break;
+	}
+}
+
+void chol_cpu_codelet_update_syrk(void *descr[], void *_args)
+{
+	chol_common_cpu_codelet_update_syrk(descr, 0, _args);
+}
+
+#ifdef STARPU_USE_CUDA
+void chol_cublas_codelet_update_syrk(void *descr[], void *_args)
+{
+	chol_common_cpu_codelet_update_syrk(descr, 1, _args);
+}
+#endif /* STARPU_USE_CUDA */
+
+/*
+ * TRSM
+ */
+
+static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_args)
+{
+	(void)_args;
+/*	printf("trsm\n"); */
 	float *sub11;
 	float *sub21;
-	(void)_args;
 
 	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	sub21 = (float *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -154,27 +217,27 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, void *_a
 	}
 }
 
-void chol_cpu_codelet_update_u21(void *descr[], void *_args)
+void chol_cpu_codelet_update_trsm(void *descr[], void *_args)
 {
-	 chol_common_codelet_update_u21(descr, 0, _args);
+	 chol_common_codelet_update_trsm(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u21(void *descr[], void *_args)
+void chol_cublas_codelet_update_trsm(void *descr[], void *_args)
 {
-	chol_common_codelet_update_u21(descr, 1, _args);
+	chol_common_codelet_update_trsm(descr, 1, _args);
 }
 #endif
 
 /*
- *	U11
+ *	POTRF
  */
 
-static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_args)
+static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *_args)
 {
-/*	printf("11\n"); */
-	float *sub11;
 	(void)_args;
+/*	printf("potrf\n"); */
+	float *sub11;
 
 	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 
@@ -287,145 +350,164 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_a
 }
 
 
-void chol_cpu_codelet_update_u11(void *descr[], void *_args)
+void chol_cpu_codelet_update_potrf(void *descr[], void *_args)
 {
-	chol_common_codelet_update_u11(descr, 0, _args);
+	chol_common_codelet_update_potrf(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u11(void *descr[], void *_args)
+void chol_cublas_codelet_update_potrf(void *descr[], void *_args)
 {
-	chol_common_codelet_update_u11(descr, 1, _args);
+	chol_common_codelet_update_potrf(descr, 1, _args);
 }
 #endif/* STARPU_USE_CUDA */
 
-struct starpu_perfmodel chol_model_11;
-struct starpu_perfmodel chol_model_21;
-struct starpu_perfmodel chol_model_22;
+struct starpu_perfmodel chol_model_potrf;
+struct starpu_perfmodel chol_model_trsm;
+struct starpu_perfmodel chol_model_syrk;
+struct starpu_perfmodel chol_model_gemm;
 
-struct starpu_codelet cl11 =
+struct starpu_codelet cl_potrf =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u11},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
+	.cpu_funcs = {chol_cpu_codelet_update_potrf},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_potrf"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11},
+	.cuda_funcs = {chol_cublas_codelet_update_potrf},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = { STARPU_RW },
-	.model = &chol_model_11,
+	.model = &chol_model_potrf,
 	.color = 0xffff00,
 };
 
-struct starpu_codelet cl21 =
+struct starpu_codelet cl_trsm =
 {
 	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u21},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u21"},
+	.cpu_funcs = {chol_cpu_codelet_update_trsm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_trsm"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21},
+	.cuda_funcs = {chol_cublas_codelet_update_trsm},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
-	.model = &chol_model_21,
+	.model = &chol_model_trsm,
 	.color = 0x8080ff,
 };
 
-struct starpu_codelet cl22 =
+struct starpu_codelet cl_syrk =
 {
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
-	.cpu_funcs = {chol_cpu_codelet_update_u22},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u22"},
+	.cpu_funcs = {chol_cpu_codelet_update_syrk},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_syrk"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1},
-#endif
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-	.nbuffers = 3,
-	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.model = &chol_model_22,
-	.color = 0x00ff00,
-};
-
-struct starpu_codelet cl11_gpu =
-{
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u11},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1},
-#endif
-	.nbuffers = 1,
-	.modes = { STARPU_RW },
-	.model = &chol_model_11,
-	.color = 0xffff00,
-};
-
-struct starpu_codelet cl21_gpu =
-{
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u21},
+	.cuda_funcs = {chol_cublas_codelet_update_syrk},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = { STARPU_R, STARPU_RW },
-	.model = &chol_model_21,
-	.color = 0x8080ff,
-};
-
-struct starpu_codelet cl22_gpu =
-{
-#ifdef STARPU_USE_CUDA
-	.cuda_funcs = {chol_cublas_codelet_update_u22},
-#elif defined(STARPU_SIMGRID)
-	.cuda_funcs = {(void*)1},
-#endif
-	.cuda_flags = {STARPU_CUDA_ASYNC},
-	.nbuffers = 3,
-	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.model = &chol_model_22,
+	.model = &chol_model_syrk,
 	.color = 0x00ff00,
 };
 
-struct starpu_codelet cl11_cpu =
-{
-	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u11},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u11"},
-	.nbuffers = 1,
-	.modes = { STARPU_RW },
-	.model = &chol_model_11,
-	.color = 0xffff00,
-};
-
-struct starpu_codelet cl21_cpu =
-{
-	.type = STARPU_SEQ,
-	.cpu_funcs = {chol_cpu_codelet_update_u21},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u21"},
-	.nbuffers = 2,
-	.modes = { STARPU_R, STARPU_RW },
-	.model = &chol_model_21,
-	.color = 0x8080ff,
-};
-
-struct starpu_codelet cl22_cpu =
+struct starpu_codelet cl_gemm =
 {
 	.type = STARPU_SEQ,
 	.max_parallelism = INT_MAX,
-	.cpu_funcs = {chol_cpu_codelet_update_u22},
-	.cpu_funcs_name = {"chol_cpu_codelet_update_u22"},
+	.cpu_funcs = {chol_cpu_codelet_update_gemm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_gemm"},
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_gemm},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.model = &chol_model_22,
+	.model = &chol_model_gemm,
+	.color = 0x00c000,
+};
+
+struct starpu_codelet cl_potrf_gpu =
+{
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_potrf},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
+	.model = &chol_model_potrf,
+	.color = 0xffff00,
+};
+
+struct starpu_codelet cl_trsm_gpu =
+{
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_trsm},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 2,
+	.modes = { STARPU_R, STARPU_RW },
+	.model = &chol_model_trsm,
+	.color = 0x8080ff,
+};
+
+struct starpu_codelet cl_gemm_gpu =
+{
+#ifdef STARPU_USE_CUDA
+	.cuda_funcs = {chol_cublas_codelet_update_gemm},
+#elif defined(STARPU_SIMGRID)
+	.cuda_funcs = {(void*)1},
+#endif
+	.cuda_flags = {STARPU_CUDA_ASYNC},
+	.nbuffers = 3,
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },
+	.model = &chol_model_gemm,
+	.color = 0x00ff00,
+};
+
+struct starpu_codelet cl_potrf_cpu =
+{
+	.type = STARPU_SEQ,
+	.cpu_funcs = {chol_cpu_codelet_update_potrf},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_potrf"},
+	.nbuffers = 1,
+	.modes = { STARPU_RW },
+	.model = &chol_model_potrf,
+	.color = 0xffff00,
+};
+
+struct starpu_codelet cl_trsm_cpu =
+{
+	.type = STARPU_SEQ,
+	.cpu_funcs = {chol_cpu_codelet_update_trsm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_trsm"},
+	.nbuffers = 2,
+	.modes = { STARPU_R, STARPU_RW },
+	.model = &chol_model_trsm,
+	.color = 0x8080ff,
+};
+
+struct starpu_codelet cl_gemm_cpu =
+{
+	.type = STARPU_SEQ,
+	.max_parallelism = INT_MAX,
+	.cpu_funcs = {chol_cpu_codelet_update_gemm},
+	.cpu_funcs_name = {"chol_cpu_codelet_update_gemm"},
+	.nbuffers = 3,
+	.modes = { STARPU_R, STARPU_R, STARPU_RW },
+	.model = &chol_model_gemm,
 	.color = 0x00ff00,
 };
 

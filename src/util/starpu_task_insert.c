@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -56,7 +56,7 @@ void _starpu_codelet_unpack_args_and_copyleft(char *cl_arg, void *_buffer, size_
 	size_t current_arg_offset = 0;
 	int nargs, arg;
 
-     	/* We fill the different pointers with the appropriate arguments */
+	/* We fill the different pointers with the appropriate arguments */
 	memcpy(&nargs, cl_arg, sizeof(nargs));
 	current_arg_offset += sizeof(nargs);
 

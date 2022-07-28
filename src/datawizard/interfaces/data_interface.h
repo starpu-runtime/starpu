@@ -45,13 +45,6 @@ union _starpu_interface
 };
 
 /** Some data interfaces or filters use this interface internally */
-extern struct starpu_data_interface_ops starpu_interface_matrix_ops;
-extern struct starpu_data_interface_ops starpu_interface_block_ops;
-extern struct starpu_data_interface_ops starpu_interface_vector_ops STARPU_ATTRIBUTE_VISIBILITY_DEFAULT;
-extern struct starpu_data_interface_ops starpu_interface_csr_ops;
-extern struct starpu_data_interface_ops starpu_interface_bcsr_ops;
-extern struct starpu_data_interface_ops starpu_interface_variable_ops;
-extern struct starpu_data_interface_ops starpu_interface_void_ops;
 extern struct starpu_data_interface_ops starpu_interface_multiformat_ops;
 
 void _starpu_data_free_interfaces(starpu_data_handle_t handle);

@@ -27,12 +27,12 @@
 
 #include "dw_factolu.h"
 
-#define TAG11(k, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
-#define TAG12(k,i, prefix)	((starpu_tag_t)((((unsigned long long)(prefix))<<60)  | ((2ULL<<56) | (((unsigned long long)(k))<<32)	\
+#define TAG_GETRF(k, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  (1ULL<<56) | (unsigned long long)(k)))
+#define TAG_TRSM_LL(k,i, prefix)	((starpu_tag_t)((((unsigned long long)(prefix))<<60)  | ((2ULL<<56) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
-#define TAG21(k,j, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
+#define TAG_TRSM_RU(k,j, prefix)	((starpu_tag_t)( (((unsigned long long)(prefix))<<60)  |  ((3ULL<<56) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG22(k,i,j, prefix)	((starpu_tag_t)(  (((unsigned long long)(prefix))<<60)  |  ((4ULL<<56) | ((unsigned long long)(k)<<32) 	\
+#define TAG_GEMM(k,i,j, prefix)	((starpu_tag_t)(  (((unsigned long long)(prefix))<<60)  |  ((4ULL<<56) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
 
@@ -51,25 +51,25 @@ static struct starpu_task *create_task(starpu_tag_t id)
 	return task;
 }
 
-static struct starpu_codelet cl11 =
+static struct starpu_codelet cl_getrf =
 {
 	.modes = { STARPU_RW },
-	.cpu_funcs = {dw_cpu_codelet_update_u11},
-	.cpu_funcs_name = {"dw_cpu_codelet_update_u11"},
+	.cpu_funcs = {dw_cpu_codelet_update_getrf},
+	.cpu_funcs_name = {"dw_cpu_codelet_update_getrf"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dw_cublas_codelet_update_u11},
+	.cuda_funcs = {dw_cublas_codelet_update_getrf},
 #endif
 	.nbuffers = 1,
-	.model = &model_11
+	.model = &model_getrf
 };
 
-static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned tag_prefix)
+static struct starpu_task *create_task_getrf(starpu_data_handle_t dataA, unsigned k, unsigned tag_prefix)
 {
-/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
+/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG_GETRF(k))); */
 
-	struct starpu_task *task = create_task(TAG11(k, tag_prefix));
+	struct starpu_task *task = create_task(TAG_GETRF(k, tag_prefix));
 
-	task->cl = &cl11;
+	task->cl = &cl_getrf;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
@@ -80,34 +80,34 @@ static struct starpu_task *create_task_11(starpu_data_handle_t dataA, unsigned k
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG11(k, tag_prefix), 1, TAG22(k-1, k, k, tag_prefix));
+		starpu_tag_declare_deps(TAG_GETRF(k, tag_prefix), 1, TAG_GEMM(k-1, k, k, tag_prefix));
 	}
 
 	return task;
 }
 
-static struct starpu_codelet cl12 =
+static struct starpu_codelet cl_trsm_ll =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.cpu_funcs = {dw_cpu_codelet_update_u12},
-	.cpu_funcs_name = {"dw_cpu_codelet_update_u12"},
+	.cpu_funcs = {dw_cpu_codelet_update_trsm_ll},
+	.cpu_funcs_name = {"dw_cpu_codelet_update_trsm_ll"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dw_cublas_codelet_update_u12},
+	.cuda_funcs = {dw_cublas_codelet_update_trsm_ll},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
-	.model = &model_12
+	.model = &model_trsm_ll
 };
 
-static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned tag_prefix)
+static void create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned tag_prefix)
 {
 	int ret;
 
-/*	FPRINTF(stdout, "task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
+/*	FPRINTF(stdout, "task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG_TRSM_LL(k,i)); */
 
-	struct starpu_task *task = create_task(TAG12(k, i, tag_prefix));
+	struct starpu_task *task = create_task(TAG_TRSM_LL(k, i, tag_prefix));
 	
-	task->cl = &cl12;
+	task->cl = &cl_trsm_ll;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
@@ -121,36 +121,36 @@ static void create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, i, k, tag_prefix));
+		starpu_tag_declare_deps(TAG_TRSM_LL(k, i, tag_prefix), 2, TAG_GETRF(k, tag_prefix), TAG_GEMM(k-1, i, k, tag_prefix));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG12(k, i, tag_prefix), 1, TAG11(k, tag_prefix));
+		starpu_tag_declare_deps(TAG_TRSM_LL(k, i, tag_prefix), 1, TAG_GETRF(k, tag_prefix));
 	}
 
 	ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static struct starpu_codelet cl21 =
+static struct starpu_codelet cl_trsm_ru =
 {
 	.modes = { STARPU_R, STARPU_RW },
-	.cpu_funcs = {dw_cpu_codelet_update_u21},
-	.cpu_funcs_name = {"dw_cpu_codelet_update_u21"},
+	.cpu_funcs = {dw_cpu_codelet_update_trsm_ru},
+	.cpu_funcs_name = {"dw_cpu_codelet_update_trsm_ru"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dw_cublas_codelet_update_u21},
+	.cuda_funcs = {dw_cublas_codelet_update_trsm_ru},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
-	.model = &model_21
+	.model = &model_trsm_ru
 };
 
-static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned tag_prefix)
+static void create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned tag_prefix)
 {
 	int ret;
-	struct starpu_task *task = create_task(TAG21(k, j, tag_prefix));
+	struct starpu_task *task = create_task(TAG_TRSM_RU(k, j, tag_prefix));
 
-	task->cl = &cl21;
+	task->cl = &cl_trsm_ru;
 	
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
@@ -164,38 +164,38 @@ static void create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned j, u
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 2, TAG11(k, tag_prefix), TAG22(k-1, k, j, tag_prefix));
+		starpu_tag_declare_deps(TAG_TRSM_RU(k, j, tag_prefix), 2, TAG_GETRF(k, tag_prefix), TAG_GEMM(k-1, k, j, tag_prefix));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG21(k, j, tag_prefix), 1, TAG11(k, tag_prefix));
+		starpu_tag_declare_deps(TAG_TRSM_RU(k, j, tag_prefix), 1, TAG_GETRF(k, tag_prefix));
 	}
 
 	ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static struct starpu_codelet cl22 =
+static struct starpu_codelet cl_gemm =
 {
 	.modes = { STARPU_R, STARPU_R, STARPU_RW },
-	.cpu_funcs = {dw_cpu_codelet_update_u22},
-	.cpu_funcs_name = {"dw_cpu_codelet_update_u22"},
+	.cpu_funcs = {dw_cpu_codelet_update_gemm},
+	.cpu_funcs_name = {"dw_cpu_codelet_update_gemm"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dw_cublas_codelet_update_u22},
+	.cuda_funcs = {dw_cublas_codelet_update_gemm},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
-	.model = &model_22
+	.model = &model_gemm
 };
 
-static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned tag_prefix)
+static void create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned tag_prefix)
 {
 	int ret;
-/*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
+/*	FPRINTF(stdout, "task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG_GEMM(k,i,j)); */
 
-	struct starpu_task *task = create_task(TAG22(k, i, j, tag_prefix));
+	struct starpu_task *task = create_task(TAG_GEMM(k, i, j, tag_prefix));
 
-	task->cl = &cl22;
+	task->cl = &cl_gemm;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, i, k);
@@ -210,11 +210,11 @@ static void create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, u
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 3, TAG22(k-1, i, j, tag_prefix), TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
+		starpu_tag_declare_deps(TAG_GEMM(k, i, j, tag_prefix), 3, TAG_GEMM(k-1, i, j, tag_prefix), TAG_TRSM_LL(k, i, tag_prefix), TAG_TRSM_RU(k, j, tag_prefix));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG22(k, i, j, tag_prefix), 2, TAG12(k, i, tag_prefix), TAG21(k, j, tag_prefix));
+		starpu_tag_declare_deps(TAG_GEMM(k, i, j, tag_prefix), 2, TAG_TRSM_LL(k, i, tag_prefix), TAG_TRSM_RU(k, j, tag_prefix));
 	}
 
 	ret = starpu_task_submit(task);
@@ -264,7 +264,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	/* if maxk < nblocks we'll stop before the LU decomposition is totally done */
 	for (k = 0; k < maxk; k++)
 	{
-		struct starpu_task *task = create_task_11(dataA, k, tag_prefix);
+		struct starpu_task *task = create_task_getrf(dataA, k, tag_prefix);
 
 		/* we defer the launch of the first task */
 		if (k == 0)
@@ -279,15 +279,15 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		
 		for (i = k+1; i<nblocks; i++)
 		{
-			create_task_12(dataA, k, i, tag_prefix);
-			create_task_21(dataA, k, i, tag_prefix);
+			create_task_trsm_ll(dataA, k, i, tag_prefix);
+			create_task_trsm_ru(dataA, k, i, tag_prefix);
 		}
 
 		for (i = k+1; i<nblocks; i++)
 		{
 			for (j = k+1; j<nblocks; j++)
 			{
-				create_task_22(dataA, k, i, j, tag_prefix);
+				create_task_gemm(dataA, k, i, j, tag_prefix);
 			}
 		}
 	}
@@ -303,7 +303,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 	if (inner_size == size)
 	{
 		/* we wait for the last task and we are done */
-		starpu_tag_wait(TAG11(nblocks-1, tag_prefix));
+		starpu_tag_wait(TAG_GETRF(nblocks-1, tag_prefix));
 		starpu_data_unpartition(dataA, STARPU_MAIN_RAM);		
 		return;
 	}
@@ -321,7 +321,7 @@ static void dw_factoLU_grain_inner(float *matA, unsigned size, unsigned inner_si
 		for (i = maxk; i < nblocks; i++)
 		for (j = maxk; j < nblocks; j++)
 		{
-			tag_array[ind++] = TAG22(maxk-1, i, j, tag_prefix);
+			tag_array[ind++] = TAG_GEMM(maxk-1, i, j, tag_prefix);
 		}
 
 		starpu_tag_wait_array(ind, tag_array);

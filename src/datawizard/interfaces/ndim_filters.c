@@ -100,14 +100,28 @@ static void _starpu_ndim_filter_block(void *father_interface, void *child_interf
 
 	if (ndim_father->dev_handle)
 	{
+		size_t allocsize = elemsize;
+
 		if (ndim_father->ptr)
 			ndim_child->ptr = ndim_father->ptr + offset;
 		for (i=0; i<ndim; i++)
 		{
 			child_ldn[i] = ndim_father->ldn[i];
 		}
+
+		if (ndim >= 1)
+			allocsize *= child_ldn[ndim-1] * child_dim[ndim-1];
+
 		ndim_child->dev_handle = ndim_father->dev_handle;
 		ndim_child->offset = ndim_father->offset + offset;
+		ndim_child->allocsize = allocsize;
+	}
+	else
+	{
+		size_t allocsize = elemsize;
+		for (i=0; i<ndim; i++)
+			allocsize *= child_dim[i];
+		ndim_child->allocsize = allocsize;
 	}
 }
 
@@ -268,6 +282,8 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 
 	if (ndim_father->dev_handle)
 	{
+		size_t allocsize = elemsize;
+
 		if (ndim_father->ptr)
 			ndim_child->ptr = ndim_father->ptr + offset;
 		if (ndim > 1)
@@ -281,9 +297,20 @@ void starpu_ndim_filter_pick_ndim(void *father_interface, void *child_interface,
 					j++;
 				}
 			}
+
+			allocsize *= child_ldn[ndim-2] * child_dim[ndim-2];
 		}
+
 		ndim_child->dev_handle = ndim_father->dev_handle;
 		ndim_child->offset = ndim_father->offset + offset;
+		ndim_child->allocsize = allocsize;
+	}
+	else
+	{
+		size_t allocsize = elemsize;
+		for (i=0; i<ndim-1; i++)
+			allocsize *= child_dim[i];
+		ndim_child->allocsize = allocsize;
 	}
 }
 
@@ -470,9 +497,9 @@ static void _interface_assignment_ndim_to_matrix(void *ndim_interface, void *chi
 	matrix->nx = ndarr->nn[0];
 	matrix->ny = ndarr->nn[1];
 	matrix->elemsize = ndarr->elemsize;
-	matrix->allocsize = matrix->nx * matrix->ny * matrix->elemsize;
 	matrix->ptr = ndarr->ptr;
 	matrix->ld = ndarr->ldn[1];
+	matrix->allocsize = matrix->ld * matrix->ny * matrix->elemsize;
 	matrix->dev_handle = ndarr->dev_handle;
 	matrix->offset = ndarr->offset;
 }

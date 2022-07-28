@@ -113,8 +113,7 @@ int _starpu_opencl_locate_file(const char *source_file_name, char **located_file
 	return ret;
 }
 
-cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs,
-                                 const char *kernel_name, int devid)
+cl_int starpu_opencl_load_kernel(cl_kernel *kernel, cl_command_queue *queue, struct starpu_opencl_program *opencl_programs, const char *kernel_name, int devid)
 {
 	cl_int err;
 	cl_device_id device;
@@ -186,7 +185,7 @@ char *_starpu_opencl_load_program_binary(const char *filename, size_t *len)
 	struct stat statbuf;
 	FILE        *fh;
 	char        *binary;
-        int         err;
+	int         err;
 
 	fh = fopen(filename, "r");
 	if (fh == 0)

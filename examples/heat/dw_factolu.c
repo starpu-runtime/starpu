@@ -40,10 +40,10 @@
 #define debug(fmt, ...)
 #endif
 
-struct starpu_perfmodel model_11;
-struct starpu_perfmodel model_12;
-struct starpu_perfmodel model_21;
-struct starpu_perfmodel model_22;
+struct starpu_perfmodel model_getrf;
+struct starpu_perfmodel model_trsm_ll;
+struct starpu_perfmodel model_trsm_ru;
+struct starpu_perfmodel model_gemm;
 
 static unsigned *advance_11; /* size nblocks, whether the 11 task is done */
 static unsigned *advance_12_21; /* size nblocks*nblocks */
@@ -54,55 +54,55 @@ static double end;
 
 static unsigned no_prio = 0;
 
-static struct starpu_codelet cl11 =
+static struct starpu_codelet cl_getrf =
 {
-	.cpu_funcs = {dw_cpu_codelet_update_u11},
-	.cpu_funcs_name = {"dw_cpu_codelet_update_u11"},
+	.cpu_funcs = {dw_cpu_codelet_update_getrf},
+	.cpu_funcs_name = {"dw_cpu_codelet_update_getrf"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dw_cublas_codelet_update_u11},
+	.cuda_funcs = {dw_cublas_codelet_update_getrf},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &model_11
+	.model = &model_getrf
 };
 
-static struct starpu_codelet cl12 =
+static struct starpu_codelet cl_trsm_ll =
 {
-	.cpu_funcs = {dw_cpu_codelet_update_u12},
-	.cpu_funcs_name = {"dw_cpu_codelet_update_u12"},
+	.cpu_funcs = {dw_cpu_codelet_update_trsm_ll},
+	.cpu_funcs_name = {"dw_cpu_codelet_update_trsm_ll"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dw_cublas_codelet_update_u12},
+	.cuda_funcs = {dw_cublas_codelet_update_trsm_ll},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.model = &model_12
+	.model = &model_trsm_ll
 };
 
-static struct starpu_codelet cl21 =
+static struct starpu_codelet cl_trsm_ru =
 {
-	.cpu_funcs = {dw_cpu_codelet_update_u21},
-	.cpu_funcs_name = {"dw_cpu_codelet_update_u21"},
+	.cpu_funcs = {dw_cpu_codelet_update_trsm_ru},
+	.cpu_funcs_name = {"dw_cpu_codelet_update_trsm_ru"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dw_cublas_codelet_update_u21},
+	.cuda_funcs = {dw_cublas_codelet_update_trsm_ru},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.model = &model_21
+	.model = &model_trsm_ru
 };
 
-static struct starpu_codelet cl22 =
+static struct starpu_codelet cl_gemm =
 {
-	.cpu_funcs = {dw_cpu_codelet_update_u22},
-	.cpu_funcs_name = {"dw_cpu_codelet_update_u22"},
+	.cpu_funcs = {dw_cpu_codelet_update_gemm},
+	.cpu_funcs_name = {"dw_cpu_codelet_update_gemm"},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {dw_cublas_codelet_update_u22},
+	.cuda_funcs = {dw_cublas_codelet_update_gemm},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.model = &model_22
+	.model = &model_gemm
 };
 
 
@@ -114,7 +114,7 @@ static struct starpu_codelet cl22 =
  *	Upgraded Callbacks : break the pipeline design !
  */
 
-void dw_callback_v2_codelet_update_u22(void *argcb)
+void dw_callback_v2_codelet_update_gemm(void *argcb)
 {
 	int ret;
 	cl_args *args = argcb;
@@ -124,7 +124,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	unsigned j = args->j;
 	unsigned nblocks = args->nblocks;
 
-	debug("u22 %d %d %d\n", k, i, j);
+	debug("ugemm %d %d %d\n", k, i, j);
 
 	/* we did task 22k,i,j */
 	advance_22[k*nblocks*nblocks + i + j*nblocks] = DONE;
@@ -132,26 +132,26 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	if ( (i == j) && (i == k+1))
 	{
 		/* we now reduce the LU22 part (recursion appears there) */
-		cl_args *u11arg = malloc(sizeof(cl_args));
+		cl_args *ugetrfarg = malloc(sizeof(cl_args));
 
 		struct starpu_task *task = starpu_task_create();
-		task->callback_func = dw_callback_v2_codelet_update_u11;
-		task->callback_arg = u11arg;
-		task->cl = &cl11;
-		task->cl_arg = u11arg;
-		task->cl_arg_size = sizeof(*u11arg);
+		task->callback_func = dw_callback_v2_codelet_update_getrf;
+		task->callback_arg = ugetrfarg;
+		task->cl = &cl_getrf;
+		task->cl_arg = ugetrfarg;
+		task->cl_arg_size = sizeof(*ugetrfarg);
 
 		task->handles[0] = starpu_data_get_sub_data(args->dataA, 2, k+1, k+1);
 
-		u11arg->dataA = args->dataA;
-		u11arg->i = k + 1;
-		u11arg->nblocks = args->nblocks;
+		ugetrfarg->dataA = args->dataA;
+		ugetrfarg->i = k + 1;
+		ugetrfarg->nblocks = args->nblocks;
 
 		/* schedule the codelet */
 		if (!no_prio)
 			task->priority = STARPU_MAX_PRIO;
 
-		debug( "u22 %d %d %d start u11 %d\n", k, i, j, k + 1);
+		debug( "ugemm %d %d %d start ugetrf %d\n", k, i, j, k + 1);
 		ret = starpu_task_submit(task);
 		STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	}
@@ -169,25 +169,25 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 				if ((u & STARTED) == 0)
 				{
 					/* we are the only one that should launch that task */
-					cl_args *u21a = malloc(sizeof(cl_args));
+					cl_args *utrsmrua = malloc(sizeof(cl_args));
 
-					struct starpu_task *task21 = starpu_task_create();
-					task21->callback_func = dw_callback_v2_codelet_update_u21;
-					task21->callback_arg = u21a;
-					task21->cl = &cl21;
-					task21->cl_arg = u21a;
-					task21->cl_arg_size = sizeof(*u21a);
+					struct starpu_task *task_trsm_ru = starpu_task_create();
+					task_trsm_ru->callback_func = dw_callback_v2_codelet_update_trsm_ru;
+					task_trsm_ru->callback_arg = utrsmrua;
+					task_trsm_ru->cl = &cl_trsm_ru;
+					task_trsm_ru->cl_arg = utrsmrua;
+					task_trsm_ru->cl_arg_size = sizeof(*utrsmrua);
 
-					u21a->i = k+1;
-					u21a->k = j;
-					u21a->nblocks = args->nblocks;
-					u21a->dataA = args->dataA;
+					utrsmrua->i = k+1;
+					utrsmrua->k = j;
+					utrsmrua->nblocks = args->nblocks;
+					utrsmrua->dataA = args->dataA;
 
-					task21->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->i);
-					task21->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->k);
+					task_trsm_ru->handles[0] = starpu_data_get_sub_data(args->dataA, 2, utrsmrua->i, utrsmrua->i);
+					task_trsm_ru->handles[1] = starpu_data_get_sub_data(args->dataA, 2, utrsmrua->i, utrsmrua->k);
 
-					debug( "u22 %d %d %d start u21 %d %d\n", k, i, j, k+1, j);
-					ret = starpu_task_submit(task21);
+					debug( "ugemm %d %d %d start utrsmru %d %d\n", k, i, j, k+1, j);
+					ret = starpu_task_submit(task_trsm_ru);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 		}
@@ -206,25 +206,25 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 				 if ((u & STARTED) == 0)
 				 {
 					/* we are the only one that should launch that task */
-					cl_args *u12a = malloc(sizeof(cl_args));
+					cl_args *utrsmlla = malloc(sizeof(cl_args));
 
-					struct starpu_task *task12 = starpu_task_create();
-						task12->callback_func = dw_callback_v2_codelet_update_u12;
-						task12->callback_arg = u12a;
-						task12->cl = &cl12;
-						task12->cl_arg = u12a;
-						task12->cl_arg_size = sizeof(*u12a);
+					struct starpu_task *task_trsm_ll = starpu_task_create();
+						task_trsm_ll->callback_func = dw_callback_v2_codelet_update_trsm_ll;
+						task_trsm_ll->callback_arg = utrsmlla;
+						task_trsm_ll->cl = &cl_trsm_ll;
+						task_trsm_ll->cl_arg = utrsmlla;
+						task_trsm_ll->cl_arg_size = sizeof(*utrsmlla);
 
-					u12a->i = k+1;
-					u12a->k = i;
-					u12a->nblocks = args->nblocks;
-					u12a->dataA = args->dataA;
+					utrsmlla->i = k+1;
+					utrsmlla->k = i;
+					utrsmlla->nblocks = args->nblocks;
+					utrsmlla->dataA = args->dataA;
 
-					task12->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u12a->i, u12a->i);
-					task12->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u12a->k, u12a->i);
+					task_trsm_ll->handles[0] = starpu_data_get_sub_data(args->dataA, 2, utrsmlla->i, utrsmlla->i);
+					task_trsm_ll->handles[1] = starpu_data_get_sub_data(args->dataA, 2, utrsmlla->k, utrsmlla->i);
 
-					debug( "u22 %d %d %d start u12 %d %d\n", k, i, j, k+1, i);
-					ret = starpu_task_submit(task12);
+					debug( "ugemm %d %d %d start utrsmll %d %d\n", k, i, j, k+1, i);
+					ret = starpu_task_submit(task_trsm_ll);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 		}
@@ -233,7 +233,7 @@ void dw_callback_v2_codelet_update_u22(void *argcb)
 	free(args);
 }
 
-void dw_callback_v2_codelet_update_u12(void *argcb)
+void dw_callback_v2_codelet_update_trsm_ll(void *argcb)
 {
 	int ret;
 	cl_args *args = argcb;
@@ -243,7 +243,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 	unsigned k = args->k;
 	unsigned nblocks = args->nblocks;
 
-	debug( "u12 %d %d\n", i, k);
+	debug( "utrsmll %d %d\n", i, k);
 
 	/* we did task 21i,k */
 	advance_12_21[i*nblocks + k] = DONE;
@@ -262,31 +262,31 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
                         if ((u & STARTED) == 0)
 			{
 				/* update that square matrix */
-				cl_args *u22a = malloc(sizeof(cl_args));
+				cl_args *ugemma = malloc(sizeof(cl_args));
 
-				struct starpu_task *task22 = starpu_task_create();
-				task22->callback_func = dw_callback_v2_codelet_update_u22;
-				task22->callback_arg = u22a;
-				task22->cl = &cl22;
-				task22->cl_arg = u22a;
-				task22->cl_arg_size = sizeof(*u22a);
+				struct starpu_task *task_gemm = starpu_task_create();
+				task_gemm->callback_func = dw_callback_v2_codelet_update_gemm;
+				task_gemm->callback_arg = ugemma;
+				task_gemm->cl = &cl_gemm;
+				task_gemm->cl_arg = ugemma;
+				task_gemm->cl_arg_size = sizeof(*ugemma);
 
-				u22a->k = i;
-				u22a->i = k;
-				u22a->j = slicey;
-				u22a->dataA = args->dataA;
-				u22a->nblocks = nblocks;
+				ugemma->k = i;
+				ugemma->i = k;
+				ugemma->j = slicey;
+				ugemma->dataA = args->dataA;
+				ugemma->nblocks = nblocks;
 
-				task22->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u22a->i, u22a->k);
-				task22->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u22a->k, u22a->j);
-				task22->handles[2] = starpu_data_get_sub_data(args->dataA, 2, u22a->i, u22a->j);
+				task_gemm->handles[0] = starpu_data_get_sub_data(args->dataA, 2, ugemma->i, ugemma->k);
+				task_gemm->handles[1] = starpu_data_get_sub_data(args->dataA, 2, ugemma->k, ugemma->j);
+				task_gemm->handles[2] = starpu_data_get_sub_data(args->dataA, 2, ugemma->i, ugemma->j);
 
 				/* schedule that codelet */
 				if (!no_prio && (slicey == i+1))
-					task22->priority = STARPU_MAX_PRIO;
+					task_gemm->priority = STARPU_MAX_PRIO;
 
-				debug( "u12 %d %d start u22 %d %d %d\n", i, k, i, k, slicey);
-				ret = starpu_task_submit(task22);
+				debug( "utrsmll %d %d start ugemm %d %d %d\n", i, k, i, k, slicey);
+				ret = starpu_task_submit(task_gemm);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
@@ -294,7 +294,7 @@ void dw_callback_v2_codelet_update_u12(void *argcb)
 	free(argcb);
 }
 
-void dw_callback_v2_codelet_update_u21(void *argcb)
+void dw_callback_v2_codelet_update_trsm_ru(void *argcb)
 {
 	int ret;
 	cl_args *args = argcb;
@@ -307,7 +307,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 	/* we did task 21i,k */
 	advance_12_21[i + k*nblocks] = DONE;
 
-	debug("u21 %d %d\n", i, k);
+	debug("utrsmru %d %d\n", i, k);
 
 	unsigned slicex;
 	for (slicex = i+1; slicex < nblocks; slicex++)
@@ -323,31 +323,31 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
                         if ((u & STARTED) == 0)
 			{
 				/* update that square matrix */
-				cl_args *u22a = malloc(sizeof(cl_args));
+				cl_args *ugemma = malloc(sizeof(cl_args));
 
-				struct starpu_task *task22 = starpu_task_create();
-				task22->callback_func = dw_callback_v2_codelet_update_u22;
-				task22->callback_arg = u22a;
-				task22->cl = &cl22;
-				task22->cl_arg = u22a;
-				task22->cl_arg_size = sizeof(*u22a);
+				struct starpu_task *task_gemm = starpu_task_create();
+				task_gemm->callback_func = dw_callback_v2_codelet_update_gemm;
+				task_gemm->callback_arg = ugemma;
+				task_gemm->cl = &cl_gemm;
+				task_gemm->cl_arg = ugemma;
+				task_gemm->cl_arg_size = sizeof(*ugemma);
 
-				u22a->k = i;
-				u22a->i = slicex;
-				u22a->j = k;
-				u22a->dataA = args->dataA;
-				u22a->nblocks = nblocks;
+				ugemma->k = i;
+				ugemma->i = slicex;
+				ugemma->j = k;
+				ugemma->dataA = args->dataA;
+				ugemma->nblocks = nblocks;
 
-				task22->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u22a->i, u22a->k);
-				task22->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u22a->k, u22a->j);
-				task22->handles[2] = starpu_data_get_sub_data(args->dataA, 2, u22a->i, u22a->j);
+				task_gemm->handles[0] = starpu_data_get_sub_data(args->dataA, 2, ugemma->i, ugemma->k);
+				task_gemm->handles[1] = starpu_data_get_sub_data(args->dataA, 2, ugemma->k, ugemma->j);
+				task_gemm->handles[2] = starpu_data_get_sub_data(args->dataA, 2, ugemma->i, ugemma->j);
 
 				/* schedule that codelet */
 				if (!no_prio && (slicex == i+1))
-					task22->priority = STARPU_MAX_PRIO;
+					task_gemm->priority = STARPU_MAX_PRIO;
 
-				debug( "u21 %d %d start u22 %d %d %d\n", i, k, i, slicex, k);
-				ret = starpu_task_submit(task22);
+				debug( "utrsmru %d %d start ugemm %d %d %d\n", i, k, i, slicex, k);
+				ret = starpu_task_submit(task_gemm);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
@@ -355,7 +355,7 @@ void dw_callback_v2_codelet_update_u21(void *argcb)
 	free(argcb);
 }
 
-void dw_callback_v2_codelet_update_u11(void *argcb)
+void dw_callback_v2_codelet_update_getrf(void *argcb)
 {
 	/* in case there remains work, go on */
 	cl_args *args = argcb;
@@ -363,7 +363,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 	unsigned nblocks = args->nblocks;
 	unsigned i = args->i;
 
-	debug("u11 %d\n", i);
+	debug("ugetrf %d\n", i);
 
 	/* we did task 11k */
 	advance_11[i] = DONE;
@@ -400,28 +400,28 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					int ret;
 
 					/* we are the only one that should launch that task */
-					cl_args *u12a = malloc(sizeof(cl_args));
+					cl_args *utrsmlla = malloc(sizeof(cl_args));
 
-					struct starpu_task *task12 = starpu_task_create();
-					task12->callback_func = dw_callback_v2_codelet_update_u12;
-					task12->callback_arg = u12a;
-					task12->cl = &cl12;
-					task12->cl_arg = u12a;
-					task12->cl_arg_size = sizeof(*u12a);
+					struct starpu_task *task_trsm_ll = starpu_task_create();
+					task_trsm_ll->callback_func = dw_callback_v2_codelet_update_trsm_ll;
+					task_trsm_ll->callback_arg = utrsmlla;
+					task_trsm_ll->cl = &cl_trsm_ll;
+					task_trsm_ll->cl_arg = utrsmlla;
+					task_trsm_ll->cl_arg_size = sizeof(*utrsmlla);
 
-					u12a->i = i;
-					u12a->k = slice;
-					u12a->nblocks = args->nblocks;
-					u12a->dataA = args->dataA;
+					utrsmlla->i = i;
+					utrsmlla->k = slice;
+					utrsmlla->nblocks = args->nblocks;
+					utrsmlla->dataA = args->dataA;
 
-					task12->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u12a->i, u12a->i);
-					task12->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u12a->k, u12a->i);
+					task_trsm_ll->handles[0] = starpu_data_get_sub_data(args->dataA, 2, utrsmlla->i, utrsmlla->i);
+					task_trsm_ll->handles[1] = starpu_data_get_sub_data(args->dataA, 2, utrsmlla->k, utrsmlla->i);
 
 					if (!no_prio && (slice == i +1))
-						task12->priority = STARPU_MAX_PRIO;
+						task_trsm_ll->priority = STARPU_MAX_PRIO;
 
-					debug( "u11 %d start u12 %d %d\n", i, i, slice);
-					ret = starpu_task_submit(task12);
+					debug( "ugetrf %d start utrsmll %d %d\n", i, i, slice);
+					ret = starpu_task_submit(task_trsm_ll);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 			}
@@ -444,28 +444,28 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
 					int ret;
 
 					/* we are the only one that should launch that task */
-					cl_args *u21a = malloc(sizeof(cl_args));
+					cl_args *utrsmrua = malloc(sizeof(cl_args));
 
-					struct starpu_task *task21 = starpu_task_create();
-					task21->callback_func = dw_callback_v2_codelet_update_u21;
-					task21->callback_arg = u21a;
-					task21->cl = &cl21;
-					task21->cl_arg = u21a;
-					task21->cl_arg_size = sizeof(*u21a);
+					struct starpu_task *task_trsm_ru = starpu_task_create();
+					task_trsm_ru->callback_func = dw_callback_v2_codelet_update_trsm_ru;
+					task_trsm_ru->callback_arg = utrsmrua;
+					task_trsm_ru->cl = &cl_trsm_ru;
+					task_trsm_ru->cl_arg = utrsmrua;
+					task_trsm_ru->cl_arg_size = sizeof(*utrsmrua);
 
-					u21a->i = i;
-					u21a->k = slice;
-					u21a->nblocks = args->nblocks;
-					u21a->dataA = args->dataA;
+					utrsmrua->i = i;
+					utrsmrua->k = slice;
+					utrsmrua->nblocks = args->nblocks;
+					utrsmrua->dataA = args->dataA;
 
-					task21->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->i);
-					task21->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->k);
+					task_trsm_ru->handles[0] = starpu_data_get_sub_data(args->dataA, 2, utrsmrua->i, utrsmrua->i);
+					task_trsm_ru->handles[1] = starpu_data_get_sub_data(args->dataA, 2, utrsmrua->i, utrsmrua->k);
 
 					if (!no_prio && (slice == i +1))
-						task21->priority = STARPU_MAX_PRIO;
+						task_trsm_ru->priority = STARPU_MAX_PRIO;
 
-					debug( "u11 %d start u21 %d %d\n", i, i, slice);
-					ret = starpu_task_submit(task21);
+					debug( "ugetrf %d start utrsmru %d %d\n", i, i, slice);
+					ret = starpu_task_submit(task_trsm_ru);
 					STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 				}
 			}
@@ -481,7 +481,7 @@ void dw_callback_v2_codelet_update_u11(void *argcb)
  */
 
 
-void dw_callback_codelet_update_u11(void *argcb)
+void dw_callback_codelet_update_getrf(void *argcb)
 {
 	/* in case there remains work, go on */
 	cl_args *args = argcb;
@@ -506,47 +506,47 @@ void dw_callback_codelet_update_u11(void *argcb)
 		{
 			int ret;
 
-			/* update slice from u12 */
-			cl_args *u12a = malloc(sizeof(cl_args));
+			/* update slice from utrsmll */
+			cl_args *utrsmlla = malloc(sizeof(cl_args));
 
-			/* update slice from u21 */
-			cl_args *u21a = malloc(sizeof(cl_args));
+			/* update slice from utrsmru */
+			cl_args *utrsmrua = malloc(sizeof(cl_args));
 
-			struct starpu_task *task12 = starpu_task_create();
-			task12->callback_func = dw_callback_codelet_update_u12_21;
-			task12->callback_arg = u12a;
-			task12->cl = &cl12;
-			task12->cl_arg = u12a;
-			task12->cl_arg_size = sizeof(*u12a);
+			struct starpu_task *task_trsm_ll = starpu_task_create();
+			task_trsm_ll->callback_func = dw_callback_codelet_update_trsm_ll_21;
+			task_trsm_ll->callback_arg = utrsmlla;
+			task_trsm_ll->cl = &cl_trsm_ll;
+			task_trsm_ll->cl_arg = utrsmlla;
+			task_trsm_ll->cl_arg_size = sizeof(*utrsmlla);
 
-			struct starpu_task *task21 = starpu_task_create();
-			task21->callback_func = dw_callback_codelet_update_u12_21;
-			task21->callback_arg = u21a;
-			task21->cl = &cl21;
-			task21->cl_arg = u21a;
-			task21->cl_arg_size = sizeof(*u21a);
+			struct starpu_task *task_trsm_ru = starpu_task_create();
+			task_trsm_ru->callback_func = dw_callback_codelet_update_trsm_ll_21;
+			task_trsm_ru->callback_arg = utrsmrua;
+			task_trsm_ru->cl = &cl_trsm_ru;
+			task_trsm_ru->cl_arg = utrsmrua;
+			task_trsm_ru->cl_arg_size = sizeof(*utrsmrua);
 
-			u12a->i = args->i;
-			u12a->k = slice;
-			u12a->nblocks = args->nblocks;
-			u12a->dataA = args->dataA;
-			u12a->remaining = remaining;
+			utrsmlla->i = args->i;
+			utrsmlla->k = slice;
+			utrsmlla->nblocks = args->nblocks;
+			utrsmlla->dataA = args->dataA;
+			utrsmlla->remaining = remaining;
 
-			u21a->i = args->i;
-			u21a->k = slice;
-			u21a->nblocks = args->nblocks;
-			u21a->dataA = args->dataA;
-			u21a->remaining = remaining;
+			utrsmrua->i = args->i;
+			utrsmrua->k = slice;
+			utrsmrua->nblocks = args->nblocks;
+			utrsmrua->dataA = args->dataA;
+			utrsmrua->remaining = remaining;
 
-			task12->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u12a->i, u12a->i);
-			task12->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u12a->k, u12a->i);
+			task_trsm_ll->handles[0] = starpu_data_get_sub_data(args->dataA, 2, utrsmlla->i, utrsmlla->i);
+			task_trsm_ll->handles[1] = starpu_data_get_sub_data(args->dataA, 2, utrsmlla->k, utrsmlla->i);
 
-			task21->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->i);
-			task21->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u21a->i, u21a->k);
+			task_trsm_ru->handles[0] = starpu_data_get_sub_data(args->dataA, 2, utrsmrua->i, utrsmrua->i);
+			task_trsm_ru->handles[1] = starpu_data_get_sub_data(args->dataA, 2, utrsmrua->i, utrsmrua->k);
 
-			ret = starpu_task_submit(task12);
+			ret = starpu_task_submit(task_trsm_ll);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
-			ret = starpu_task_submit(task21);
+			ret = starpu_task_submit(task_trsm_ru);
 			STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 		}
 
@@ -555,7 +555,7 @@ void dw_callback_codelet_update_u11(void *argcb)
 }
 
 
-void dw_callback_codelet_update_u22(void *argcb)
+void dw_callback_codelet_update_gemm(void *argcb)
 {
 	cl_args *args = argcb;
 	unsigned remaining = STARPU_ATOMIC_ADD(args->remaining, (-1));
@@ -570,20 +570,20 @@ void dw_callback_codelet_update_u22(void *argcb)
 		free(args->remaining);
 
 		/* we now reduce the LU22 part (recursion appears there) */
-		cl_args *u11arg = malloc(sizeof(cl_args));
+		cl_args *ugetrfarg = malloc(sizeof(cl_args));
 
 		struct starpu_task *task = starpu_task_create();
-		task->callback_func = dw_callback_codelet_update_u11;
-		task->callback_arg = u11arg;
-		task->cl = &cl11;
-		task->cl_arg = u11arg;
-		task->cl_arg_size = sizeof(*u11arg);
+		task->callback_func = dw_callback_codelet_update_getrf;
+		task->callback_arg = ugetrfarg;
+		task->cl = &cl_getrf;
+		task->cl_arg = ugetrfarg;
+		task->cl_arg_size = sizeof(*ugetrfarg);
 
 		task->handles[0] = starpu_data_get_sub_data(args->dataA, 2, args->k + 1, args->k + 1);
 
-		u11arg->dataA = args->dataA;
-		u11arg->i = args->k + 1;
-		u11arg->nblocks = args->nblocks;
+		ugetrfarg->dataA = args->dataA;
+		ugetrfarg->i = args->k + 1;
+		ugetrfarg->nblocks = args->nblocks;
 
 		/* schedule the codelet */
 		ret = starpu_task_submit(task);
@@ -593,7 +593,7 @@ void dw_callback_codelet_update_u22(void *argcb)
 	free(args);
 }
 
-void dw_callback_codelet_update_u12_21(void *argcb)
+void dw_callback_codelet_update_trsm_ll_21(void *argcb)
 {
 	cl_args *args = argcb;
 	unsigned remaining = STARPU_ATOMIC_ADD(args->remaining, -1);
@@ -618,28 +618,28 @@ void dw_callback_codelet_update_u12_21(void *argcb)
 				int ret;
 
 				/* update that square matrix */
-				cl_args *u22a = malloc(sizeof(cl_args));
+				cl_args *ugemma = malloc(sizeof(cl_args));
 
-				struct starpu_task *task22 = starpu_task_create();
-				task22->callback_func = dw_callback_codelet_update_u22;
-				task22->callback_arg = u22a;
-				task22->cl = &cl22;
-				task22->cl_arg = u22a;
-				task22->cl_arg_size = sizeof(*u22a);
+				struct starpu_task *task_gemm = starpu_task_create();
+				task_gemm->callback_func = dw_callback_codelet_update_gemm;
+				task_gemm->callback_arg = ugemma;
+				task_gemm->cl = &cl_gemm;
+				task_gemm->cl_arg = ugemma;
+				task_gemm->cl_arg_size = sizeof(*ugemma);
 
-				u22a->k = i;
-				u22a->i = slicex;
-				u22a->j = slicey;
-				u22a->dataA = args->dataA;
-				u22a->nblocks = nblocks;
-				u22a->remaining = remaining_tasks;
+				ugemma->k = i;
+				ugemma->i = slicex;
+				ugemma->j = slicey;
+				ugemma->dataA = args->dataA;
+				ugemma->nblocks = nblocks;
+				ugemma->remaining = remaining_tasks;
 
-				task22->handles[0] = starpu_data_get_sub_data(args->dataA, 2, u22a->i, u22a->k);
-				task22->handles[1] = starpu_data_get_sub_data(args->dataA, 2, u22a->k, u22a->j);
-				task22->handles[2] = starpu_data_get_sub_data(args->dataA, 2, u22a->i, u22a->j);
+				task_gemm->handles[0] = starpu_data_get_sub_data(args->dataA, 2, ugemma->i, ugemma->k);
+				task_gemm->handles[1] = starpu_data_get_sub_data(args->dataA, 2, ugemma->k, ugemma->j);
+				task_gemm->handles[2] = starpu_data_get_sub_data(args->dataA, 2, ugemma->i, ugemma->j);
 
 				/* schedule that codelet */
-				ret = starpu_task_submit(task22);
+				ret = starpu_task_submit(task_gemm);
 				STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 			}
 		}
@@ -667,9 +667,9 @@ void dw_codelet_facto(starpu_data_handle_t dataA, unsigned nblocks)
 
 	/* inject a new task with this codelet into the system */
 	struct starpu_task *task = starpu_task_create();
-	task->callback_func = dw_callback_codelet_update_u11;
+	task->callback_func = dw_callback_codelet_update_getrf;
 	task->callback_arg = args;
-	task->cl = &cl11;
+	task->cl = &cl_getrf;
 	task->cl_arg = args;
 
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, 0, 0);
@@ -713,9 +713,9 @@ void dw_codelet_facto_v2(starpu_data_handle_t dataA, unsigned nblocks)
 
 	/* inject a new task with this codelet into the system */
 	struct starpu_task *task = starpu_task_create();
-	task->callback_func = dw_callback_v2_codelet_update_u11;
+	task->callback_func = dw_callback_v2_codelet_update_getrf;
 	task->callback_arg = args;
-	task->cl = &cl11;
+	task->cl = &cl_getrf;
 	task->cl_arg = args;
 	task->cl_arg_size = sizeof(*args);
 
@@ -756,30 +756,30 @@ void initialize_system(float **A, float **B, unsigned dim, unsigned pinned)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_init");
 
 #ifdef STARPU_ATLAS
-	char * symbol_11 = "lu_model_11_atlas";
-	char * symbol_12 = "lu_model_12_atlas";
-	char * symbol_21 = "lu_model_21_atlas";
-	char * symbol_22 = "lu_model_22_atlas";
+	char * symbol_getrf = "lu_model_getrf_atlas";
+	char * symbol_trsm_ll = "lu_model_trsm_ll_atlas";
+	char * symbol_trsm_ru = "lu_model_trsm_ru_atlas";
+	char * symbol_gemm = "lu_model_gemm_atlas";
 #elif defined(STARPU_GOTO)
-	char * symbol_11 = "lu_model_11_goto";
-	char * symbol_12 = "lu_model_12_goto";
-	char * symbol_21 = "lu_model_21_goto";
-	char * symbol_22 = "lu_model_22_goto";
+	char * symbol_getrf = "lu_model_getrf_goto";
+	char * symbol_trsm_ll = "lu_model_trsm_ll_goto";
+	char * symbol_trsm_ru = "lu_model_trsm_ru_goto";
+	char * symbol_gemm = "lu_model_gemm_goto";
 #elif defined(STARPU_OPENBLAS)
-	char * symbol_11 = "lu_model_11_openblas";
-	char * symbol_12 = "lu_model_12_openblas";
-	char * symbol_21 = "lu_model_21_openblas";
-	char * symbol_22 = "lu_model_22_openblas";
+	char * symbol_getrf = "lu_model_getrf_openblas";
+	char * symbol_trsm_ll = "lu_model_trsm_ll_openblas";
+	char * symbol_trsm_ru = "lu_model_trsm_ru_openblas";
+	char * symbol_gemm = "lu_model_gemm_openblas";
 #else
-	char * symbol_11 = "lu_model_11";
-	char * symbol_12 = "lu_model_12";
-	char * symbol_21 = "lu_model_21";
-	char * symbol_22 = "lu_model_22";
+	char * symbol_getrf = "lu_model_getrf";
+	char * symbol_trsm_ll = "lu_model_trsm_ll";
+	char * symbol_trsm_ru = "lu_model_trsm_ru";
+	char * symbol_gemm = "lu_model_gemm";
 #endif
-	initialize_lu_kernels_model(&model_11,symbol_11,task_11_cost,task_11_cost_cpu,task_11_cost_cuda);
-	initialize_lu_kernels_model(&model_12,symbol_12,task_12_cost,task_12_cost_cpu,task_12_cost_cuda);
-	initialize_lu_kernels_model(&model_21,symbol_21,task_21_cost,task_21_cost_cpu,task_21_cost_cuda);
-	initialize_lu_kernels_model(&model_22,symbol_22,task_22_cost,task_22_cost_cpu,task_22_cost_cuda);
+	initialize_lu_kernels_model(&model_getrf,symbol_getrf,task_getrf_cost,task_getrf_cost_cpu,task_getrf_cost_cuda);
+	initialize_lu_kernels_model(&model_trsm_ll,symbol_trsm_ll,task_trsm_ll_cost,task_trsm_ll_cost_cpu,task_trsm_ll_cost_cuda);
+	initialize_lu_kernels_model(&model_trsm_ru,symbol_trsm_ru,task_trsm_ru_cost,task_trsm_ru_cost_cpu,task_trsm_ru_cost_cuda);
+	initialize_lu_kernels_model(&model_gemm,symbol_gemm,task_gemm_cost,task_gemm_cost_cpu,task_gemm_cost_cuda);
 
 	starpu_cublas_init();
 

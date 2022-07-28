@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -25,16 +25,15 @@
 
 #include "sched_component.h"
 
-
-
 /******************************************************************************
- *				Generic Scheduling Components' helper functions        		  *
+ *	 Generic Scheduling Components' helper functions        	      *
  ******************************************************************************/
 
-
-
-/* this function find the best implementation or an implementation that need to be calibrated for a worker available
- * and set prediction in *length. nan if a implementation need to be calibrated, 0.0 if no perf model are available
+/*
+ * this function find the best implementation or an implementation
+ * that need to be calibrated for a worker available and set
+ * prediction in *length. nan if a implementation need to be
+ * calibrated, 0.0 if no perf model are available
  * return false if no worker on the component can execute that task
  */
 int starpu_sched_component_execute_preds(struct starpu_sched_component * component, struct starpu_task * task, double * length)
@@ -43,7 +42,6 @@ int starpu_sched_component_execute_preds(struct starpu_sched_component * compone
 	int can_execute = 0;
 	starpu_task_bundle_t bundle = task->bundle;
 	double len = DBL_MAX;
-
 
 	int workerid;
 	for(workerid = starpu_bitmap_first(&component->workers_in_ctx);
@@ -105,8 +103,8 @@ int starpu_sched_component_can_execute_task(struct starpu_sched_component * comp
 		    -1 != worker;
 		    worker = starpu_bitmap_next(&component->workers_in_ctx, worker))
 			if (starpu_worker_can_execute_task(worker, task, nimpl)
-			     || starpu_combined_worker_can_execute_task(worker, task, nimpl))
-			    return 1;
+			    || starpu_combined_worker_can_execute_task(worker, task, nimpl))
+				return 1;
 	return 0;
 }
 
@@ -397,8 +395,11 @@ struct starpu_task * starpu_sched_component_pull_task(struct starpu_sched_compon
 }
 
 
-/* Pump mechanic to get the task flow rolling. Takes tasks from component and send them to the child.
-   To be used by components with only one child */
+/*
+ * Pump mechanic to get the task flow rolling. Takes tasks from
+ * component and send them to the child.
+ * To be used by components with only one child
+*/
 struct starpu_task* starpu_sched_component_pump_to(struct starpu_sched_component *component, struct starpu_sched_component *child, int* success)
 {
 	int ret = 0;
@@ -649,7 +650,6 @@ int starpu_sched_component_can_pull(struct starpu_sched_component * component)
 	return 0;
 }
 
-
 /* A can_pull call will try to wake up one worker associated to the childs of the
  * component. It is currenly called by components which holds a queue (like fifo and prio
  * components) to signify its childs that a task has been pushed on its local queue.
@@ -664,11 +664,11 @@ int starpu_sched_component_can_pull_all(struct starpu_sched_component * componen
 	return 0;
 }
 
-
 /* Alternative can_pull which says that this component does not want
-   to pull but prefers that you push. It can be used by decision
-   components, in which decisions are usually taken in their push()
-   functions */
+ * to pull but prefers that you push. It can be used by decision
+ * components, in which decisions are usually taken in their push()
+ * functions
+*/
 int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_component * component)
 {
 	STARPU_ASSERT(component);
@@ -689,7 +689,6 @@ int starpu_sched_component_send_can_push_to_parents(struct starpu_sched_componen
 	}
 	return ret != 0;
 }
-
 
 double starpu_sched_component_estimated_load(struct starpu_sched_component * component)
 {
@@ -735,7 +734,7 @@ double starpu_sched_component_estimated_end_min_add(struct starpu_sched_componen
 
 double starpu_sched_component_estimated_end_min(struct starpu_sched_component * component)
 {
-  return starpu_sched_component_estimated_end_min_add(component, 0.);
+	return starpu_sched_component_estimated_end_min_add(component, 0.);
 }
 
 double starpu_sched_component_estimated_end_average(struct starpu_sched_component * component)

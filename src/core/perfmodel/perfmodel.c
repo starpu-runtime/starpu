@@ -30,6 +30,7 @@
 #include <core/workers.h>
 #include <datawizard/datawizard.h>
 #include <core/task.h>
+#include <float.h>
 
 #ifdef STARPU_HAVE_WINDOWS
 #include <windows.h>
@@ -262,6 +263,47 @@ double starpu_task_worker_expected_length(struct starpu_task *task, unsigned wor
 	return starpu_model_worker_expected_perf(task, task->cl->model, workerid, sched_ctx_id, nimpl);
 }
 
+double starpu_task_expected_length_average(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	if (!task->cl)
+		/* Tasks without codelet don't actually take time */
+		return 0.0;
+
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	double harmsum = 0.0;
+	unsigned n = 0;
+
+	struct starpu_sched_ctx_iterator it;
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
+	while(workers->has_next(workers, &it))
+	{
+		unsigned nimpl;
+		unsigned impl_mask;
+		unsigned workerid = workers->get_next(workers, &it);
+
+		if (!starpu_worker_can_execute_task_impl(workerid, task, &impl_mask))
+			continue;
+
+		double best_expected = DBL_MAX;
+		for (nimpl  = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+		{
+			if (!(impl_mask & (1U << nimpl)))
+			{
+				/* no one on that queue may execute this task */
+				continue;
+			}
+
+			double expected = starpu_task_worker_expected_length(task, workerid, sched_ctx_id, nimpl);
+			if (expected < best_expected)
+				best_expected = expected;
+		}
+		harmsum += 1. / best_expected;
+		n++;
+	}
+
+	return n/harmsum;
+}
+
 double starpu_task_expected_energy(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl)
 {
 	if (!task->cl)
@@ -277,6 +319,47 @@ double starpu_task_worker_expected_energy(struct starpu_task *task, unsigned wor
 		return 0.0;
 	return starpu_model_worker_expected_perf(task, task->cl->energy_model, workerid, sched_ctx_id, nimpl);
 
+}
+
+double starpu_task_expected_energy_average(struct starpu_task *task, unsigned sched_ctx_id)
+{
+	if (!task->cl)
+		/* Tasks without codelet don't actually take time */
+		return 0.0;
+
+	struct starpu_worker_collection *workers = starpu_sched_ctx_get_worker_collection(sched_ctx_id);
+	double harmsum = 0.0;
+	unsigned n = 0;
+
+	struct starpu_sched_ctx_iterator it;
+	workers->init_iterator_for_parallel_tasks(workers, &it, task);
+	while(workers->has_next(workers, &it))
+	{
+		unsigned nimpl;
+		unsigned impl_mask;
+		unsigned workerid = workers->get_next(workers, &it);
+
+		if (!starpu_worker_can_execute_task_impl(workerid, task, &impl_mask))
+			continue;
+
+		double best_expected = DBL_MAX;
+		for (nimpl  = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
+		{
+			if (!(impl_mask & (1U << nimpl)))
+			{
+				/* no one on that queue may execute this task */
+				continue;
+			}
+
+			double expected = starpu_task_worker_expected_energy(task, workerid, sched_ctx_id, nimpl);
+			if (expected < best_expected)
+				best_expected = expected;
+		}
+		harmsum += 1. / best_expected;
+		n++;
+	}
+
+	return n/harmsum;
 }
 
 double starpu_task_expected_conversion_time(struct starpu_task *task,

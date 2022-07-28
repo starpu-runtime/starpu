@@ -57,23 +57,23 @@
 /** Push strategy for use_locality */
 enum laheteroprio_push_strategy
 {
-        PUSH_LS_SDH,
-        PUSH_LS_SDH2,
-        PUSH_LS_SDHB,
-        PUSH_LC_SMWB,
-        PUSH_NB_AUTO, // Always last to limit auto
-        PUSH_LcS,
-        PUSH_WORKER,
-        PUSH_AUTO
+	PUSH_LS_SDH,
+	PUSH_LS_SDH2,
+	PUSH_LS_SDHB,
+	PUSH_LC_SMWB,
+	PUSH_NB_AUTO, // Always last to limit auto
+	PUSH_LcS,
+	PUSH_WORKER,
+	PUSH_AUTO
 };
 
 /** Queue used when use_locality is enabled */
 struct laqueue
 {
-        unsigned char* data;
-        long int capacity;
-        long int current_index;
-        long int size_of_element;
+	unsigned char* data;
+	long int capacity;
+	long int current_index;
+	long int size_of_element;
 };
 
 static struct laqueue laqueue_init(const long int size_of_element);
@@ -85,8 +85,8 @@ static void* laqueue_pop(struct laqueue* q);
 
 struct starpu_laheteroprio_access_item
 {
-        unsigned prio_idx;
-        unsigned wgroup_idx;
+	unsigned prio_idx;
+	unsigned wgroup_idx;
 };
 
 static struct laqueue laqueue_init(const long int size_of_element)
@@ -165,9 +165,9 @@ struct _heteroprio_bucket
 	/****  Fields used when use_locality == 1 :  ****/
 
 	/* the number of tasks in all the queues (was previously tasks_queue.ntasks) */
-        unsigned tasks_queue_ntasks;
-        /* to keep track of the mn at push time */
-        struct laqueue auto_mn[LAHETEROPRIO_MAX_WORKER_GROUPS];
+	unsigned tasks_queue_ntasks;
+	/* to keep track of the mn at push time */
+	struct laqueue auto_mn[LAHETEROPRIO_MAX_WORKER_GROUPS];
 };
 
 static int use_la_mode = 0;
@@ -196,13 +196,13 @@ static void _heteroprio_bucket_init(struct _heteroprio_bucket* bucket)
 /* Release a bucket */
 static void _heteroprio_bucket_release(struct _heteroprio_bucket* bucket)
 {
-        if(use_la_mode)
+	if(use_la_mode)
 	{
 		unsigned i;
 		for(i = 0 ; i < LAHETEROPRIO_MAX_WORKER_GROUPS ; ++i)
 		{
-		        STARPU_ASSERT(starpu_task_list_empty(&bucket->tasks_queue[i]) != 0);
-		        laqueue_destroy(&bucket->auto_mn[i]);
+			STARPU_ASSERT(starpu_task_list_empty(&bucket->tasks_queue[i]) != 0);
+			laqueue_destroy(&bucket->auto_mn[i]);
 		}
 	}
 	else
@@ -327,7 +327,7 @@ struct _starpu_heteroprio_data
 	/* Helps ensuring laheteroprio has been correctly initalized */
 	unsigned warned_change_nb_memory_nodes;
 	/* Number of memory nodes */
-        unsigned nb_memory_nodes;
+	unsigned nb_memory_nodes;
 	/* The mapping to the corresponding prio prio_mapping_per_arch_index[x][prio_mapping_per_arch_index[x][y]] = y */
 	unsigned bucket_mapping_per_arch_index[STARPU_NB_TYPES][HETEROPRIO_MAX_PRIO];
 	/* The wgroup for all the workers */
@@ -621,10 +621,10 @@ void starpu_heteroprio_map_wgroup_memory_nodes_hp(struct _starpu_heteroprio_data
 	hp->map_wgroup_has_been_called = 1; // Set flag to 1
 
 	// Set the number of memory nodes
-        hp->nb_memory_nodes = starpu_memory_nodes_get_count();
+	hp->nb_memory_nodes = starpu_memory_nodes_get_count();
 	const unsigned current_nb_memory_nodes = hp->nb_memory_nodes;
 
-        hp->warned_change_nb_memory_nodes = 0;
+	hp->warned_change_nb_memory_nodes = 0;
 
 	hp->nb_wgroups = current_nb_memory_nodes;
 	// Set memory nodes' type
@@ -1886,14 +1886,14 @@ static unsigned get_best_mem_node(struct starpu_task *task, struct _starpu_heter
 
 	if (pushStrategy != PUSH_WORKER)
 	{
-                if(!hp->warned_change_nb_memory_nodes && starpu_memory_nodes_get_count() != hp->nb_memory_nodes)
-                {
-                	_STARPU_MSG("[HETEROPRIO][INITIALIZATION][get_best_mem_node] Warning: current memory node number is different from the one retrieved at initialization.\n\
+		if(!hp->warned_change_nb_memory_nodes && starpu_memory_nodes_get_count() != hp->nb_memory_nodes)
+		{
+			_STARPU_MSG("[HETEROPRIO][INITIALIZATION][get_best_mem_node] Warning: current memory node number is different from the one retrieved at initialization.\n\
 This warning will only be displayed once.\n");
-                        hp->warned_change_nb_memory_nodes = 1;
-                }
+			hp->warned_change_nb_memory_nodes = 1;
+		}
 
-                const unsigned nnodes = hp->nb_memory_nodes; // == starpu_memory_nodes_get_count() if number of mem nodes didnt change during execution
+		const unsigned nnodes = hp->nb_memory_nodes; // == starpu_memory_nodes_get_count() if number of mem nodes didnt change during execution
 
 		if (pushStrategy == PUSH_LcS)
 		{
@@ -2125,11 +2125,11 @@ This warning will only be displayed once.\n");
 			for (idx_node = 0; idx_node < nnodes; ++idx_node)
 			{
 /*
-                                const enum starpu_node_kind memnode_kind = starpu_node_get_kind(idx_node);
-                                if(memnode_kind == STARPU_DISK_RAM)
-                                {
-                                        continue; // a disk has no associated worker
-                                }
+				const enum starpu_node_kind memnode_kind = starpu_node_get_kind(idx_node);
+				if(memnode_kind == STARPU_DISK_RAM)
+				{
+					continue; // a disk has no associated worker
+				}
 */
 
 				double current_score = 0;
@@ -3472,7 +3472,7 @@ static struct starpu_task *pop_task_heteroprio_policy(unsigned sched_ctx_id)
 	/* If no tasks available, no tasks in worker queue or some arch worker queue just return NULL */
 	if (!STARPU_RUNNING_ON_VALGRIND
 	    && (hp->total_tasks_in_buckets == 0 || hp->nb_remaining_tasks_per_arch_index[worker->arch_index] == 0)
-            && (hp->use_locality || (worker->tasks_queue.ntasks == 0 && hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] == 0)))
+	    && (hp->use_locality || (worker->tasks_queue.ntasks == 0 && hp->nb_prefetched_tasks_per_arch_index[worker->arch_index] == 0)))
 	{
 		return NULL;
 	}
@@ -3860,19 +3860,19 @@ static void post_exec_hook_heteroprio_policy(struct starpu_task *task, unsigned 
 
 struct starpu_sched_policy _starpu_sched_heteroprio_policy =
 {
-        .init_sched = initialize_heteroprio_policy,
-        .deinit_sched = deinitialize_heteroprio_policy,
-        .add_workers = add_workers_heteroprio_policy,
-        .remove_workers = remove_workers_heteroprio_policy,
-        .push_task = push_task_heteroprio_policy,
+	.init_sched = initialize_heteroprio_policy,
+	.deinit_sched = deinitialize_heteroprio_policy,
+	.add_workers = add_workers_heteroprio_policy,
+	.remove_workers = remove_workers_heteroprio_policy,
+	.push_task = push_task_heteroprio_policy,
 	.simulate_push_task = NULL,
-        .push_task_notify = NULL,
+	.push_task_notify = NULL,
 	.pop_task = pop_task_heteroprio_policy,
 	.pre_exec_hook = pre_exec_hook_heteroprio_policy,
 	.post_exec_hook = post_exec_hook_heteroprio_policy,
 	.pop_every_task = NULL,
-        .policy_name = "heteroprio",
-        .policy_description = "heteroprio",
+	.policy_name = "heteroprio",
+	.policy_description = "heteroprio",
 	.worker_type = STARPU_WORKER_LIST,
 	.prefetches = 1,
 };

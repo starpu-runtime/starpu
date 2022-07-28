@@ -170,12 +170,12 @@ static int heteroprio_progress_accel(struct starpu_sched_component *component, s
 	 * including data transfer */
 
 	int best_icomponent = starpu_mct_get_best_component(d, task,
-			estimated_lengths,
-			estimated_transfer_length,
-			estimated_ends_with_task,
-                        local_energy,
-			min_exp_end_of_task, max_exp_end_of_workers,
-			suitable_components, nsuitable_components);
+							    estimated_lengths,
+							    estimated_transfer_length,
+							    estimated_ends_with_task,
+							    local_energy,
+							    min_exp_end_of_task, max_exp_end_of_workers,
+							    suitable_components, nsuitable_components);
 
 	/* If no best component is found, it means that the perfmodel of
 	 * the task had been purged since it has been pushed on the mct component. */
@@ -290,17 +290,17 @@ static int heteroprio_progress_noaccel(struct starpu_sched_component *component,
 
 	/* Compute the energy, if provided*/
 	starpu_mct_compute_energy(component, task, local_energy, suitable_components, nsuitable_components);
-	
+
 	/* And now find out which worker suits best for this task,
 	 * including data transfer */
 
 	int best_icomponent = starpu_mct_get_best_component(d, task,
-			estimated_lengths,
-			estimated_transfer_length,
-			estimated_ends_with_task,
-                        local_energy,
-			min_exp_end_of_task, max_exp_end_of_workers,
-			suitable_components, nsuitable_components);
+							    estimated_lengths,
+							    estimated_transfer_length,
+							    estimated_ends_with_task,
+							    local_energy,
+							    min_exp_end_of_task, max_exp_end_of_workers,
+							    suitable_components, nsuitable_components);
 
 	/* If no best component is found, it means that the perfmodel of
 	 * the task had been purged since it has been pushed on the mct component. */

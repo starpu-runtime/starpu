@@ -20,26 +20,26 @@
 #include <starpu.h>
 
 void STARPU_LU(cpu_pivot)(void *descr[], void *_args);
-void STARPU_LU(cpu_u11_pivot)(void *descr[], void *_args);
-void STARPU_LU(cpu_u11)(void *descr[], void *_args);
-void STARPU_LU(cpu_u12)(void *descr[], void *_args);
-void STARPU_LU(cpu_u21)(void *descr[], void *_args);
-void STARPU_LU(cpu_u22)(void *descr[], void *_args);
+void STARPU_LU(cpu_getrf_pivot)(void *descr[], void *_args);
+void STARPU_LU(cpu_getrf)(void *descr[], void *_args);
+void STARPU_LU(cpu_trsmll)(void *descr[], void *_args);
+void STARPU_LU(cpu_trsmru)(void *descr[], void *_args);
+void STARPU_LU(cpu_gemm)(void *descr[], void *_args);
 
 #ifdef STARPU_USE_CUDA
 void STARPU_LU(cublas_pivot)(void *descr[], void *_args);
-void STARPU_LU(cublas_u11_pivot)(void *descr[], void *_args);
-void STARPU_LU(cublas_u11)(void *descr[], void *_args);
-void STARPU_LU(cublas_u12)(void *descr[], void *_args);
-void STARPU_LU(cublas_u21)(void *descr[], void *_args);
-void STARPU_LU(cublas_u22)(void *descr[], void *_args);
+void STARPU_LU(cublas_getrf_pivot)(void *descr[], void *_args);
+void STARPU_LU(cublas_getrf)(void *descr[], void *_args);
+void STARPU_LU(cublas_trsmll)(void *descr[], void *_args);
+void STARPU_LU(cublas_trsmru)(void *descr[], void *_args);
+void STARPU_LU(cublas_gemm)(void *descr[], void *_args);
 #endif
 
-extern struct starpu_codelet cl11;
-extern struct starpu_codelet cl11_pivot;
-extern struct starpu_codelet cl12;
-extern struct starpu_codelet cl21;
-extern struct starpu_codelet cl22;
+extern struct starpu_codelet cl_getrf;
+extern struct starpu_codelet cl_getrf_pivot;
+extern struct starpu_codelet cl_trsm_ll;
+extern struct starpu_codelet cl_trsm_ru;
+extern struct starpu_codelet cl_gemm;
 extern struct starpu_codelet cl_pivot;
 
 #endif /* __XLU_KERNELS_H__ */

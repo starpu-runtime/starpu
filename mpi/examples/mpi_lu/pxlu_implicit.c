@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -34,13 +34,13 @@ struct callback_arg
 };
 
 /*
- *	Task 11 (diagonal factorization)
+ *	Task GETRF (diagonal factorization)
  */
 
-static void create_task_11(unsigned k)
+static void create_task_getrf(unsigned k)
 {
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
-			       &STARPU_PLU(cl11),
+			       &STARPU_PLU(cl_getrf),
 			       STARPU_VALUE, &k, sizeof(k),
 			       STARPU_VALUE, &k, sizeof(k),
 			       STARPU_VALUE, &k, sizeof(k),
@@ -51,17 +51,17 @@ static void create_task_11(unsigned k)
 }
 
 /*
- *	Task 12 (Update lower left (TRSM))
+ *	Task TRSM_LL
  */
 
-static void create_task_12(unsigned k, unsigned j)
+static void create_task_trsm_ll(unsigned k, unsigned j)
 {
 #ifdef STARPU_DEVEL
 #warning temporary fix
 #endif
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
-			       //&STARPU_PLU(cl12),
-			       &STARPU_PLU(cl21),
+			       //&STARPU_PLU(cl_trsm_ll),
+			       &STARPU_PLU(cl_trsm_ru),
 			       STARPU_VALUE, &j, sizeof(j),
 			       STARPU_VALUE, &j, sizeof(j),
 			       STARPU_VALUE, &k, sizeof(k),
@@ -73,17 +73,17 @@ static void create_task_12(unsigned k, unsigned j)
 }
 
 /*
- *	Task 21 (Update upper right (TRSM))
+ *	Task TRSM_RU
  */
 
-static void create_task_21(unsigned k, unsigned i)
+static void create_task_trsm_ru(unsigned k, unsigned i)
 {
 #ifdef STARPU_DEVEL
 #warning temporary fix
 #endif
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
-			       //&STARPU_PLU(cl21),
-			       &STARPU_PLU(cl12),
+			       //&STARPU_PLU(cl_trsm_ru),
+			       &STARPU_PLU(cl_trsm_ll),
 			       STARPU_VALUE, &i, sizeof(i),
 			       STARPU_VALUE, &i, sizeof(i),
 			       STARPU_VALUE, &k, sizeof(k),
@@ -95,13 +95,13 @@ static void create_task_21(unsigned k, unsigned i)
 }
 
 /*
- *	Task 22 (GEMM)
+ *	Task GEMM
  */
 
-static void create_task_22(unsigned k, unsigned i, unsigned j)
+static void create_task_gemm(unsigned k, unsigned i, unsigned j)
 {
 	starpu_mpi_task_insert(MPI_COMM_WORLD,
-			       &STARPU_PLU(cl22),
+			       &STARPU_PLU(cl_gemm),
 			       STARPU_VALUE, &i, sizeof(i),
 			       STARPU_VALUE, &j, sizeof(j),
 			       STARPU_VALUE, &k, sizeof(k),
@@ -142,12 +142,12 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size, unsig
 	{
 		starpu_iteration_push(k);
 
-		create_task_11(k);
+		create_task_getrf(k);
 
 		for (i = k+1; i<nblocks; i++)
 		{
-			create_task_12(k, i);
-			create_task_21(k, i);
+			create_task_trsm_ll(k, i);
+			create_task_trsm_ru(k, i);
 		}
 
 		starpu_mpi_cache_flush(MPI_COMM_WORLD, STARPU_PLU(get_block_handle)(k,k));
@@ -158,7 +158,7 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size, unsig
 		{
 			for (j = k+1; j<nblocks; j++)
 			{
-				create_task_22(k, i, j);
+				create_task_gemm(k, i, j);
 			}
 		}
 

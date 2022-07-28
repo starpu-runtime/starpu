@@ -154,6 +154,15 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
 		case STARPU_MULTIFORMAT_INTERFACE_ID:
 			return &starpu_interface_multiformat_ops;
 
+		case STARPU_COO_INTERFACE_ID:
+			return &starpu_interface_coo_ops;
+
+		case STARPU_TENSOR_INTERFACE_ID:
+			return &starpu_interface_tensor_ops;
+
+		case STARPU_NDIM_INTERFACE_ID:
+			return &starpu_interface_ndim_ops;
+
 		default:
 		{
 			if (interface_id-STARPU_MAX_INTERFACE_ID > _id_to_ops_array_size || _id_to_ops_array[interface_id-STARPU_MAX_INTERFACE_ID]==NULL)
@@ -535,13 +544,13 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 	//handle->write_invalidation_req = NULL;
 
-        //handle->mpi_data = NULL; /* invalid until set */
+	//handle->mpi_data = NULL; /* invalid until set */
 
 	_starpu_memory_stats_init(handle);
 
 	handle->mf_node = mf_node;
 
-        //handle->unregister_hook = NULL;
+	//handle->unregister_hook = NULL;
 
 	if (_starpu_global_arbiter)
 		/* Just for testing purpose */
@@ -559,7 +568,6 @@ int _starpu_data_handle_init(starpu_data_handle_t handle, struct starpu_data_int
 
 	//handle->user_data = NULL;
 	//handle->sched_data = NULL;
-
 
 	return 0;
 }
@@ -839,7 +847,7 @@ static void _starpu_data_unregister_fetch_data_callback(void *_arg)
 
 void _starpu_data_set_unregister_hook(starpu_data_handle_t handle, _starpu_data_handle_unregister_hook func)
 {
- 	STARPU_ASSERT(handle->unregister_hook == NULL);
+	STARPU_ASSERT(handle->unregister_hook == NULL);
 	handle->unregister_hook = func;
 }
 
@@ -872,7 +880,7 @@ static int _starpu_ro_data_detach(starpu_data_handle_t handle)
 	/* So that unregistration can use write dependencies to wait for
 	 * anything to finish */
 	handle->readonly = 0;
-        _starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 	return 1;
 }
 
@@ -1138,7 +1146,7 @@ static void _starpu_data_unregister_submit_cb(void *arg)
 	 * when we releases the handle below, it will be destroyed by
 	 * _starpu_data_check_not_busy */
 	STARPU_ASSERT(handle->busy_count);
-        _starpu_spin_unlock(&handle->header_lock);
+	_starpu_spin_unlock(&handle->header_lock);
 
 	starpu_data_release_on_node(handle, STARPU_ACQUIRE_NO_NODE_LOCK_ALL);
 }

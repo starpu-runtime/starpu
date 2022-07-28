@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Thibaut Lambert
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -52,14 +52,14 @@ static struct starpu_task *create_task(starpu_tag_t id)
  *	Create the codelets
  */
 
-static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
+static struct starpu_task * create_task_potrf(unsigned k, unsigned nblocks)
 {
 	(void)nblocks;
-	/*	FPRINTF(stdout, "task 11 k = %d TAG = %llx\n", k, (TAG11(k))); */
+	/*	FPRINTF(stdout, "task potrf k = %d TAG = %llx\n", k, (TAG_POTRF(k))); */
 
-	struct starpu_task *task = create_task(TAG11(k));
+	struct starpu_task *task = create_task(TAG_POTRF(k));
 
-	task->cl = &cl11;
+	task->cl = &cl_potrf;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = A_state[k][k];
@@ -70,7 +70,7 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
+		starpu_tag_declare_deps(TAG_POTRF(k), 1, TAG_GEMM(k-1, k, k));
 	}
 
 	int n = starpu_matrix_get_nx(task->handles[0]);
@@ -79,13 +79,13 @@ static struct starpu_task * create_task_11(unsigned k, unsigned nblocks)
 	return task;
 }
 
-static int create_task_21(unsigned k, unsigned m)
+static int create_task_trsm(unsigned k, unsigned m)
 {
 	int ret;
 
-	struct starpu_task *task = create_task(TAG21(m, k));
+	struct starpu_task *task = create_task(TAG_TRSM(m, k));
 
-	task->cl = &cl21;
+	task->cl = &cl_trsm;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = A_state[k][k];
@@ -99,11 +99,11 @@ static int create_task_21(unsigned k, unsigned m)
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG21(m, k), 2, TAG11(k), TAG22(k-1, m, k));
+		starpu_tag_declare_deps(TAG_TRSM(m, k), 2, TAG_POTRF(k), TAG_GEMM(k-1, m, k));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG21(m, k), 1, TAG11(k));
+		starpu_tag_declare_deps(TAG_TRSM(m, k), 1, TAG_POTRF(k));
 	}
 
 	int n = starpu_matrix_get_nx(task->handles[0]);
@@ -114,20 +114,35 @@ static int create_task_21(unsigned k, unsigned m)
 	return ret;
 }
 
-static int create_task_22(unsigned k, unsigned m, unsigned n)
+static int create_task_gemm(unsigned k, unsigned m, unsigned n)
 {
 	int ret;
 
-/*	FPRINTF(stdout, "task 22 k,n,m = %d,%d,%d TAG = %llx\n", k,m,n, TAG22(k,m,n)); */
+/*	FPRINTF(stdout, "task gemm k,n,m = %d,%d,%d TAG = %llx\n", k,m,n, TAG_GEMM(k,m,n)); */
 
-	struct starpu_task *task = create_task(TAG22(k, m, n));
+	struct starpu_task *task = create_task(TAG_GEMM(k, m, n));
 
-	task->cl = &cl22;
+	if (m == n)
+	{
+		task->cl = &cl_syrk;
 
-	/* which sub-data is manipulated ? */
-	task->handles[0] = A_state[n][k];
-	task->handles[1] = A_state[m][k];
-	task->handles[2] = A_state[m][n];
+		/* which sub-data is manipulated ? */
+		task->handles[0] = A_state[n][k];
+		task->handles[1] = A_state[n][n];
+		int nx = starpu_matrix_get_nx(task->handles[0]);
+		task->flops = FLOPS_SSYRK(nx, nx);
+	}
+	else
+	{
+		task->cl = &cl_gemm;
+
+		/* which sub-data is manipulated ? */
+		task->handles[0] = A_state[n][k];
+		task->handles[1] = A_state[m][k];
+		task->handles[2] = A_state[m][n];
+		int nx = starpu_matrix_get_nx(task->handles[0]);
+		task->flops = FLOPS_SGEMM(nx, nx, nx);
+	}
 
 	if (!noprio_p && (n == k + 1) && (m == k +1) )
 	{
@@ -137,15 +152,12 @@ static int create_task_22(unsigned k, unsigned m, unsigned n)
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG22(k, m, n), 3, TAG22(k-1, m, n), TAG21(n, k), TAG21(m, k));
+		starpu_tag_declare_deps(TAG_GEMM(k, m, n), 3, TAG_GEMM(k-1, m, n), TAG_TRSM(n, k), TAG_TRSM(m, k));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG22(k, m, n), 2, TAG21(n, k), TAG21(m, k));
+		starpu_tag_declare_deps(TAG_GEMM(k, m, n), 2, TAG_TRSM(n, k), TAG_TRSM(m, k));
 	}
-
-	int nx = starpu_matrix_get_nx(task->handles[0]);
-	task->flops = FLOPS_SGEMM(nx, nx, nx);
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
@@ -172,7 +184,7 @@ static int cholesky_no_stride(void)
 	for (k = 0; k < nblocks_p; k++)
 	{
 		starpu_iteration_push(k);
-		struct starpu_task *task = create_task_11(k, nblocks_p);
+		struct starpu_task *task = create_task_potrf(k, nblocks_p);
 		/* we defer the launch of the first task */
 		if (k == 0)
 		{
@@ -186,14 +198,14 @@ static int cholesky_no_stride(void)
 
 		for (m = k+1; m<nblocks_p; m++)
 		{
-			ret = create_task_21(k, m);
+			ret = create_task_trsm(k, m);
 			if (ret == -ENODEV) return 77;
 
 			for (n = k+1; n<nblocks_p; n++)
 			{
 				if (n <= m)
 				{
-					ret = create_task_22(k, m, n);
+					ret = create_task_gemm(k, m, n);
 					if (ret == -ENODEV) return 77;
 				}
 			}
@@ -208,7 +220,7 @@ static int cholesky_no_stride(void)
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 
 	/* stall the application until the end of computations */
-	starpu_tag_wait(TAG11(nblocks_p-1));
+	starpu_tag_wait(TAG_POTRF(nblocks_p-1));
 
 	end = starpu_timing_now();
 
@@ -243,13 +255,15 @@ int main(int argc, char **argv)
 	FPRINTF(stderr, "BLOCK SIZE = %u\n", size_p / nblocks_p);
 
 #ifdef STARPU_USE_CUDA
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,cuda_chol_task_11_cost);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,cuda_chol_task_21_cost);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,cuda_chol_task_22_cost);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,cuda_chol_task_potrf_cost);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,cuda_chol_task_trsm_cost);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,cuda_chol_task_syrk_cost);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,cuda_chol_task_gemm_cost);
 #else
-	initialize_chol_model(&chol_model_11,"chol_model_11",cpu_chol_task_11_cost,NULL);
-	initialize_chol_model(&chol_model_21,"chol_model_21",cpu_chol_task_21_cost,NULL);
-	initialize_chol_model(&chol_model_22,"chol_model_22",cpu_chol_task_22_cost,NULL);
+	initialize_chol_model(&chol_model_potrf,"chol_model_potrf",cpu_chol_task_potrf_cost,NULL);
+	initialize_chol_model(&chol_model_trsm,"chol_model_trsm",cpu_chol_task_trsm_cost,NULL);
+	initialize_chol_model(&chol_model_syrk,"chol_model_syrk",cpu_chol_task_syrk_cost,NULL);
+	initialize_chol_model(&chol_model_gemm,"chol_model_gemm",cpu_chol_task_gemm_cost,NULL);
 #endif
 
 	/* Disable sequential consistency */

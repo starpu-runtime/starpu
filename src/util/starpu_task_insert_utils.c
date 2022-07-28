@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -466,17 +466,17 @@ int _starpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *ta
 			(void)va_arg(varg_list, int);
 		}
 		else if (arg_type==STARPU_TASK_COLOR)
-                {
-                        task->color = va_arg(varg_list, int);
-                }
+		{
+			task->color = va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_TASK_SYNCHRONOUS)
-                {
-                        task->synchronous = va_arg(varg_list, int);
-                }
+		{
+			task->synchronous = va_arg(varg_list, int);
+		}
 		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
-                {
-                        task->handles_sequential_consistency = va_arg(varg_list, unsigned char *);
-                }
+		{
+			task->handles_sequential_consistency = va_arg(varg_list, unsigned char *);
+		}
 #ifdef STARPU_BUBBLE
 		else if (arg_type==STARPU_BUBBLE_FUNC)
 		{
@@ -834,19 +834,19 @@ int _fstarpu_task_insert_create(struct starpu_codelet *cl, struct starpu_task *t
 			(void)arglist[arg_i];
 		}
 		else if (arg_type == STARPU_TASK_COLOR)
-                {
-                        arg_i++;
-                        task->color = *(int *)arglist[arg_i];
-                }
+		{
+			arg_i++;
+			task->color = *(int *)arglist[arg_i];
+		}
 		else if (arg_type == STARPU_TASK_SYNCHRONOUS)
-                {
-                        arg_i++;
-                        task->synchronous = *(int *)arglist[arg_i];
-                }
+		{
+			arg_i++;
+			task->synchronous = *(int *)arglist[arg_i];
+		}
 		else if (arg_type==STARPU_HANDLES_SEQUENTIAL_CONSISTENCY)
-                {
-                        task->handles_sequential_consistency = (unsigned char *)arglist[arg_i];
-                }
+		{
+			task->handles_sequential_consistency = (unsigned char *)arglist[arg_i];
+		}
 #ifdef STARPU_BUBBLE
 		else if (arg_type==STARPU_BUBBLE_FUNC)
 		{

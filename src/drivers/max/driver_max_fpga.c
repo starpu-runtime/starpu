@@ -29,7 +29,7 @@
 #include <datawizard/malloc.h>
 
 /* the number of FPGA devices */
-static unsigned  nmax_fpga;
+static unsigned	nmax_fpga;
 static size_t max_fpga_mem[STARPU_MAXMAXFPGADEVS];
 static max_engine_t *engines[STARPU_MAXMAXFPGADEVS];
 static fpga_mem current_address[STARPU_MAXMAXFPGADEVS];
@@ -69,7 +69,7 @@ static void _starpu_initialize_workers_max_fpga_deviceid(struct _starpu_machine_
 	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = &config->conf;
 
-        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_max_fpga_deviceid == 0
+	_starpu_initialize_workers_deviceid(uconf->use_explicit_workers_max_fpga_deviceid == 0
 					    ? NULL
 					    : (int *)uconf->workers_max_fpga_deviceid,
 					    &(config->current_devid[STARPU_MAX_FPGA_WORKER]),
@@ -97,7 +97,7 @@ void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 	if (!load)
 	{
 		/* Nothing specified, single-FPGA execution with basic static
-                 * interface, file will be auto-loaded by SLiC. */
+		 * interface, file will be auto-loaded by SLiC. */
 		n = 1;
 	}
 	else
@@ -143,8 +143,8 @@ void _starpu_max_fpga_discover_devices (struct _starpu_machine_config *config)
 		n += nstar;
 	}
 
-        //LMemInterface addLMemInterface()
-        //// pour récupérer l'accès à la LMem
+	//LMemInterface addLMemInterface()
+	//// pour récupérer l'accès à la LMem
 
 	if (n > STARPU_MAXMAXFPGADEVS)
 	{
@@ -162,7 +162,7 @@ void _starpu_init_max_fpga_config(struct _starpu_machine_topology *topology, str
 	if (nmax_fpga != 0)
 	{
 		/* The user did not disable FPGA. We need to initialize
- 		 * FPGA early to count the number of devices */
+		 * FPGA early to count the number of devices */
 		_starpu_init_max_fpga();
 		int nb_devices = _starpu_max_fpga_get_device_count();
 
@@ -257,7 +257,7 @@ static void init_device_context(unsigned devid)
 
 	/* 0 would be seen as NULL, i.e. allocation failed... */
 	// FIXME: Maxeler FPGAs want 192-byte alignment
-	// TODO: use int 	max_get_burst_size (max_file_t *maxfile, const char *name)
+	// TODO: use int	max_get_burst_size (max_file_t *maxfile, const char *name)
 	current_address[devid] = (fpga_mem) (8192*192);
 	max_fpga_mem[devid] = 128ULL*1024*1024*1024;
 
@@ -266,7 +266,7 @@ static void init_device_context(unsigned devid)
 	if (!load)
 	{
 		/* Nothing specified, single-FPGA execution with basic static
-                 * interface, file will be auto-loaded by SLiC. */
+		 * interface, file will be auto-loaded by SLiC. */
 		return;
 	}
 	else
@@ -363,7 +363,7 @@ static uintptr_t _starpu_max_fpga_allocate_memory(unsigned dst_node, size_t size
 	unsigned devid = starpu_memory_node_get_devid(dst_node);
 
 	fpga_mem addr, next_addr;
- 	addr = current_address[devid];
+	addr = current_address[devid];
 	next_addr = current_address[devid] + size;
 	if (next_addr >= (fpga_mem) max_fpga_mem[devid])
 	{
@@ -372,7 +372,7 @@ static uintptr_t _starpu_max_fpga_allocate_memory(unsigned dst_node, size_t size
 	}
 	current_address[devid] = next_addr;
 	printf("fpga mem returned from allocation @: %p - %p\n",addr, addr + size);
-        return (uintptr_t) addr;
+	return (uintptr_t) addr;
 }
 
 static int _starpu_max_fpga_copy_ram_to_max_fpga(void *src, void *dst, size_t size)
@@ -397,8 +397,7 @@ void copy_max_fpga_to_ram(void *src, void *dst, size_t size)
 {
 	(void) src; (void) dst; (void) size;
 	printf("ram to fpga, fpga @= %p\n",src);
-       //LMemLoopback_readLMem(size, src, dst);
-
+	//LMemLoopback_readLMem(size, src, dst);
 }
 
 /* Transfert SIZE bytes from the address pointed by SRC in the SRC_NODE memory
@@ -682,7 +681,7 @@ int _starpu_max_fpga_driver_run_once(struct _starpu_worker *fpga_worker)
 void *_starpu_max_fpga_worker(void *_arg)
 {
 	struct _starpu_worker* worker = _arg;
-         unsigned memnode = worker->memory_node;
+	 unsigned memnode = worker->memory_node;
 
 	_starpu_max_fpga_driver_init(worker);
 	_STARPU_TRACE_START_PROGRESS(memnode);
@@ -727,6 +726,6 @@ struct _starpu_node_ops _starpu_driver_max_fpga_node_ops =
 	//.copy_interface_from[STARPU_CPU_RAM] = _starpu_max_fpga_copy_interface_from_cpu_to_fpga,
 	//.copy_interface_from[STARPU_MAX_FPGA_RAM] = _starpu_max_fpga_copy_interface_from_fpga_to_fpga,
 
-        .wait_request_completion = NULL,
+	.wait_request_completion = NULL,
 	.test_request_completion = NULL,
 };

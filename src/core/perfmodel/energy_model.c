@@ -55,6 +55,7 @@
 #ifdef STARPU_PAPI
 #ifdef STARPU_HAVE_HWLOC
 static const int N_EVTS = 2;
+static int n_recorded;
 
 static int nsockets;
 
@@ -187,7 +188,7 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 		STARPU_ASSERT_MSG(workerid == -1, "For CPUs we cannot measure each worker separately, use where = STARPU_CPU and leave workerid as -1\n");
 
 		/*This is where we store the values we read from the eventset */
-		long long values[nsockets*N_EVTS];
+		long long values[nsockets*n_recorded];
 
 		/* Stop counting and store the values into the array */
 		if ( (retval = PAPI_stop(EventSet, values)) != PAPI_OK)
@@ -197,9 +198,9 @@ int starpu_energy_stop(struct starpu_perfmodel *model, struct starpu_task *task,
 
 		for( s = 0 ; s < nsockets ; s ++)
 		{
-			for(k = 0 ; k < N_EVTS; k++)
+			for(k = 0 ; k < n_recorded; k++)
 			{
-				double delta = values[s * N_EVTS + k]*0.23/1.0e9;
+				double delta = values[s * n_recorded + k]*0.23/1.0e9;
 				energy += delta;
 
 				debug("%-40s%12.6f J\t(for %f us, Average Power %.1fW)\n",
@@ -277,6 +278,7 @@ static int add_event(int eventSet, int socket)
 			{
 				/* Ok, too bad */
 				_STARPU_DISP("Note: DRAM energy measurement not available\n");
+				n_recorded = i;
 				return PAPI_OK;
 			}
 			_STARPU_DISP("cannot add event '%s': %d\n", buf, retval);
@@ -284,6 +286,7 @@ static int add_event(int eventSet, int socket)
 		}
 	}
 
+	n_recorded = i;
 	return ( PAPI_OK );
 }
 #endif

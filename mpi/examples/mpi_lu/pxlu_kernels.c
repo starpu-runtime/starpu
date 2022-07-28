@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -26,10 +26,10 @@ static const TYPE m1 = -1.0f;
 #endif
 
 /*
- * U22
+ * GEMM
  */
 
-static inline void STARPU_PLU(common_u22)(void *descr[], int s, void *_args)
+static inline void STARPU_PLU(common_gemm)(void *descr[], int s, void *_args)
 {
 	TYPE *right 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[0]);
 	TYPE *left 	= (TYPE *)STARPU_MATRIX_GET_PTR(descr[1]);
@@ -48,7 +48,7 @@ static inline void STARPU_PLU(common_u22)(void *descr[], int s, void *_args)
 
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
-	fprintf(stderr, "KERNEL 22 %d - k = %u i = %u j = %u\n", rank, info->k, info->i, info->j);
+	fprintf(stderr, "KERNEL GEMM %d - k = %u i = %u j = %u\n", rank, info->k, info->i, info->j);
 #else
 	(void)_args;
 #endif
@@ -84,58 +84,58 @@ static inline void STARPU_PLU(common_u22)(void *descr[], int s, void *_args)
 			break;
 	}
 #ifdef VERBOSE_KERNELS
-	fprintf(stderr, "KERNEL 22 %d - k = %u i = %u j = %u done\n", rank, info->k, info->i, info->j);
+	fprintf(stderr, "KERNEL GEMM %d - k = %u i = %u j = %u done\n", rank, info->k, info->i, info->j);
 #endif
 }
 
-static void STARPU_PLU(cpu_u22)(void *descr[], void *_args)
+static void STARPU_PLU(cpu_gemm)(void *descr[], void *_args)
 {
-	STARPU_PLU(common_u22)(descr, 0, _args);
+	STARPU_PLU(common_gemm)(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-static void STARPU_PLU(cublas_u22)(void *descr[], void *_args)
+static void STARPU_PLU(cublas_gemm)(void *descr[], void *_args)
 {
-	STARPU_PLU(common_u22)(descr, 1, _args);
+	STARPU_PLU(common_gemm)(descr, 1, _args);
 }
 #endif// STARPU_USE_CUDA
 
-static struct starpu_perfmodel STARPU_PLU(model_22) =
+static struct starpu_perfmodel STARPU_PLU(model_gemm) =
 {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
-	.symbol = STARPU_PLU_STR(lu_model_22_atlas)
+	.symbol = STARPU_PLU_STR(lu_model_gemm_atlas)
 #elif defined(STARPU_GOTO)
-	.symbol = STARPU_PLU_STR(lu_model_22_goto)
+	.symbol = STARPU_PLU_STR(lu_model_gemm_goto)
 #elif defined(STARPU_OPENBLAS)
-	.symbol = STARPU_PLU_STR(lu_model_22_openblas)
+	.symbol = STARPU_PLU_STR(lu_model_gemm_openblas)
 #else
-	.symbol = STARPU_PLU_STR(lu_model_22)
+	.symbol = STARPU_PLU_STR(lu_model_gemm)
 #endif
 };
 
 #define STRINGIFY_(x) #x
 #define STRINGIFY(x) STRINGIFY_(x)
-struct starpu_codelet STARPU_PLU(cl22) =
+struct starpu_codelet STARPU_PLU(cl_gemm) =
 {
-	.cpu_funcs = {STARPU_PLU(cpu_u22)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_PLU(cpu_u22))},
+	.cpu_funcs = {STARPU_PLU(cpu_gemm)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_PLU(cpu_gemm))},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_PLU(cublas_u22)},
+	.cuda_funcs = {STARPU_PLU(cublas_gemm)},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 3,
 	.modes = {STARPU_R, STARPU_R, STARPU_RW},
-	.model = &STARPU_PLU(model_22)
+	.model = &STARPU_PLU(model_gemm)
 };
 
 /*
- * U12
+ * TRSM_LL
  */
 
-static inline void STARPU_PLU(common_u12)(void *descr[], int s, void *_args)
+static inline void STARPU_PLU(common_trsmll)(void *descr[], int s, void *_args)
 {
 	TYPE *sub11;
 	TYPE *sub12;
@@ -155,14 +155,14 @@ static inline void STARPU_PLU(common_u12)(void *descr[], int s, void *_args)
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 #warning fixed debugging according to other tweak
-	//fprintf(stderr, "KERNEL 12 %d - k = %u i %u\n", rank, info->k, info->i);
-	fprintf(stderr, "KERNEL 21 %d - k = %u i %u\n", rank, info->k, info->j);
+	//fprintf(stderr, "KERNEL TRSM_LL %d - k = %u i %u\n", rank, info->k, info->i);
+	fprintf(stderr, "KERNEL TRSM_RU %d - k = %u i %u\n", rank, info->k, info->j);
 
-	//fprintf(stderr, "INPUT 12 U11\n");
-	fprintf(stderr, "INPUT 21 U11\n");
+	//fprintf(stderr, "INPUT 12 GETRF\n");
+	fprintf(stderr, "INPUT 21 GETRF\n");
 	STARPU_PLU(display_data_content)(sub11, nx12);
-	//fprintf(stderr, "INPUT 12 U12\n");
-	fprintf(stderr, "INPUT 21 U21\n");
+	//fprintf(stderr, "INPUT 12 TRSM_LL\n");
+	fprintf(stderr, "INPUT 21 TRSM_RU\n");
 	STARPU_PLU(display_data_content)(sub12, nx12);
 #else
 	(void)_args;
@@ -197,58 +197,58 @@ static inline void STARPU_PLU(common_u12)(void *descr[], int s, void *_args)
 	}
 
 #ifdef VERBOSE_KERNELS
-	//fprintf(stderr, "OUTPUT 12 U12\n");
-	fprintf(stderr, "OUTPUT 21 U21\n");
+	//fprintf(stderr, "OUTPUT 12 TRSM_LL\n");
+	fprintf(stderr, "OUTPUT 21 TRSM_RU\n");
 	STARPU_PLU(display_data_content)(sub12, nx12);
 #endif
 }
 
-static void STARPU_PLU(cpu_u12)(void *descr[], void *_args)
+static void STARPU_PLU(cpu_trsmll)(void *descr[], void *_args)
 {
-	STARPU_PLU(common_u12)(descr, 0, _args);
+	STARPU_PLU(common_trsmll)(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-static void STARPU_PLU(cublas_u12)(void *descr[], void *_args)
+static void STARPU_PLU(cublas_trsmll)(void *descr[], void *_args)
 {
-	STARPU_PLU(common_u12)(descr, 1, _args);
+	STARPU_PLU(common_trsmll)(descr, 1, _args);
 }
 #endif // STARPU_USE_CUDA
 
-static struct starpu_perfmodel STARPU_PLU(model_12) =
+static struct starpu_perfmodel STARPU_PLU(model_trsm_ll) =
 {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
-	.symbol = STARPU_PLU_STR(lu_model_12_atlas)
+	.symbol = STARPU_PLU_STR(lu_model_trsm_ll_atlas)
 #elif defined(STARPU_GOTO)
-	.symbol = STARPU_PLU_STR(lu_model_12_goto)
+	.symbol = STARPU_PLU_STR(lu_model_trsm_ll_goto)
 #elif defined(STARPU_OPENBLAS)
-	.symbol = STARPU_PLU_STR(lu_model_12_openblas)
+	.symbol = STARPU_PLU_STR(lu_model_trsm_ll_openblas)
 #else
-	.symbol = STARPU_PLU_STR(lu_model_12)
+	.symbol = STARPU_PLU_STR(lu_model_trsm_ll)
 #endif
 };
 
-struct starpu_codelet STARPU_PLU(cl12) =
+struct starpu_codelet STARPU_PLU(cl_trsm_ll) =
 {
-	.cpu_funcs = {STARPU_PLU(cpu_u12)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_PLU(cpu_u12))},
+	.cpu_funcs = {STARPU_PLU(cpu_trsmll)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_PLU(cpu_trsmll))},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_PLU(cublas_u12)},
+	.cuda_funcs = {STARPU_PLU(cublas_trsmll)},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.model = &STARPU_PLU(model_12)
+	.model = &STARPU_PLU(model_trsm_ll)
 };
 
 /*
- * U21
+ * TRSM_RU
  */
 
-static inline void STARPU_PLU(common_u21)(void *descr[], int s, void *_args)
+static inline void STARPU_PLU(common_trsmru)(void *descr[], int s, void *_args)
 {
 	TYPE *sub11;
 	TYPE *sub21;
@@ -268,14 +268,14 @@ static inline void STARPU_PLU(common_u21)(void *descr[], int s, void *_args)
 	int rank;
 	starpu_mpi_comm_rank(MPI_COMM_WORLD, &rank);
 #warning fixed debugging according to other tweak
-	//fprintf(stderr, "KERNEL 21 %d (k = %u, i = %u)\n", rank, info->k, info->i);
-	fprintf(stderr, "KERNEL 12 %d (k = %u, j = %u)\n", rank, info->k, info->j);
+	//fprintf(stderr, "KERNEL TRSM_RU %d (k = %u, i = %u)\n", rank, info->k, info->i);
+	fprintf(stderr, "KERNEL TRSM_LL %d (k = %u, j = %u)\n", rank, info->k, info->j);
 
-	//fprintf(stderr, "INPUT 21 U11\n");
-	fprintf(stderr, "INPUT 12 U11\n");
+	//fprintf(stderr, "INPUT 21 GETRF\n");
+	fprintf(stderr, "INPUT 12 GETRF\n");
 	STARPU_PLU(display_data_content)(sub11, nx21);
-	//fprintf(stderr, "INPUT 21 U21\n");
-	fprintf(stderr, "INPUT 12 U12\n");
+	//fprintf(stderr, "INPUT 21 TRSM_RU\n");
+	fprintf(stderr, "INPUT 12 TRSM_LL\n");
 	STARPU_PLU(display_data_content)(sub21, nx21);
 #else
 	(void)_args;
@@ -309,62 +309,62 @@ static inline void STARPU_PLU(common_u21)(void *descr[], int s, void *_args)
 	}
 
 #ifdef VERBOSE_KERNELS
-	//fprintf(stderr, "OUTPUT 21 U11\n");
-	fprintf(stderr, "OUTPUT 12 U11\n");
+	//fprintf(stderr, "OUTPUT 21 GETRF\n");
+	fprintf(stderr, "OUTPUT 12 GETRF\n");
 	STARPU_PLU(display_data_content)(sub11, nx21);
-	//fprintf(stderr, "OUTPUT 21 U21\n");
-	fprintf(stderr, "OUTPUT 12 U12\n");
+	//fprintf(stderr, "OUTPUT 21 TRSM_RU\n");
+	fprintf(stderr, "OUTPUT 12 TRSM_LL\n");
 	STARPU_PLU(display_data_content)(sub21, nx21);
 #endif
 }
 
-static void STARPU_PLU(cpu_u21)(void *descr[], void *_args)
+static void STARPU_PLU(cpu_trsmru)(void *descr[], void *_args)
 {
-	STARPU_PLU(common_u21)(descr, 0, _args);
+	STARPU_PLU(common_trsmru)(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-static void STARPU_PLU(cublas_u21)(void *descr[], void *_args)
+static void STARPU_PLU(cublas_trsmru)(void *descr[], void *_args)
 {
-	STARPU_PLU(common_u21)(descr, 1, _args);
+	STARPU_PLU(common_trsmru)(descr, 1, _args);
 }
 #endif
 
-static struct starpu_perfmodel STARPU_PLU(model_21) =
+static struct starpu_perfmodel STARPU_PLU(model_trsm_ru) =
 {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
-	.symbol = STARPU_PLU_STR(lu_model_21_atlas)
+	.symbol = STARPU_PLU_STR(lu_model_trsm_ru_atlas)
 #elif defined(STARPU_GOTO)
-	.symbol = STARPU_PLU_STR(lu_model_21_goto)
+	.symbol = STARPU_PLU_STR(lu_model_trsm_ru_goto)
 #elif defined(STARPU_OPENBLAS)
-	.symbol = STARPU_PLU_STR(lu_model_21_openblas)
+	.symbol = STARPU_PLU_STR(lu_model_trsm_ru_openblas)
 #else
-	.symbol = STARPU_PLU_STR(lu_model_21)
+	.symbol = STARPU_PLU_STR(lu_model_trsm_ru)
 #endif
 };
 
-struct starpu_codelet STARPU_PLU(cl21) =
+struct starpu_codelet STARPU_PLU(cl_trsm_ru) =
 {
-	.cpu_funcs = {STARPU_PLU(cpu_u21)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_PLU(cpu_u21))},
+	.cpu_funcs = {STARPU_PLU(cpu_trsmru)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_PLU(cpu_trsmru))},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_PLU(cublas_u21)},
+	.cuda_funcs = {STARPU_PLU(cublas_trsmru)},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.cuda_flags = {STARPU_CUDA_ASYNC},
 	.nbuffers = 2,
 	.modes = {STARPU_R, STARPU_RW},
-	.model = &STARPU_PLU(model_21)
+	.model = &STARPU_PLU(model_trsm_ru)
 };
 
 
 /*
- *	U11
+ *	GETRF
  */
 
-static inline void STARPU_PLU(common_u11)(void *descr[], int s, void *_args)
+static inline void STARPU_PLU(common_getrf)(void *descr[], int s, void *_args)
 {
 	TYPE *sub11;
 
@@ -446,46 +446,46 @@ static inline void STARPU_PLU(common_u11)(void *descr[], int s, void *_args)
 			break;
 	}
 #ifdef VERBOSE_KERNELS
-	fprintf(stderr, "KERNEL 11 %d - k = %u\n", rank, info->k);
+	fprintf(stderr, "KERNEL GETRF %d - k = %u\n", rank, info->k);
 #endif
 }
 
-static void STARPU_PLU(cpu_u11)(void *descr[], void *_args)
+static void STARPU_PLU(cpu_getrf)(void *descr[], void *_args)
 {
-	STARPU_PLU(common_u11)(descr, 0, _args);
+	STARPU_PLU(common_getrf)(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-static void STARPU_PLU(cublas_u11)(void *descr[], void *_args)
+static void STARPU_PLU(cublas_getrf)(void *descr[], void *_args)
 {
-	STARPU_PLU(common_u11)(descr, 1, _args);
+	STARPU_PLU(common_getrf)(descr, 1, _args);
 }
 #endif// STARPU_USE_CUDA
 
-static struct starpu_perfmodel STARPU_PLU(model_11) =
+static struct starpu_perfmodel STARPU_PLU(model_getrf) =
 {
 	.type = STARPU_HISTORY_BASED,
 #ifdef STARPU_ATLAS
-	.symbol = STARPU_PLU_STR(lu_model_11_atlas)
+	.symbol = STARPU_PLU_STR(lu_model_getrf_atlas)
 #elif defined(STARPU_GOTO)
-	.symbol = STARPU_PLU_STR(lu_model_11_goto)
+	.symbol = STARPU_PLU_STR(lu_model_getrf_goto)
 #elif defined(STARPU_OPENBLAS)
-	.symbol = STARPU_PLU_STR(lu_model_11_openblas)
+	.symbol = STARPU_PLU_STR(lu_model_getrf_openblas)
 #else
-	.symbol = STARPU_PLU_STR(lu_model_11)
+	.symbol = STARPU_PLU_STR(lu_model_getrf)
 #endif
 };
 
-struct starpu_codelet STARPU_PLU(cl11) =
+struct starpu_codelet STARPU_PLU(cl_getrf) =
 {
-	.cpu_funcs = {STARPU_PLU(cpu_u11)},
-	.cpu_funcs_name = {STRINGIFY(STARPU_PLU(cpu_u11))},
+	.cpu_funcs = {STARPU_PLU(cpu_getrf)},
+	.cpu_funcs_name = {STRINGIFY(STARPU_PLU(cpu_getrf))},
 #ifdef STARPU_USE_CUDA
-	.cuda_funcs = {STARPU_PLU(cublas_u11)},
+	.cuda_funcs = {STARPU_PLU(cublas_getrf)},
 #elif defined(STARPU_SIMGRID)
 	.cuda_funcs = {(void*)1},
 #endif
 	.nbuffers = 1,
 	.modes = {STARPU_RW},
-	.model = &STARPU_PLU(model_11)
+	.model = &STARPU_PLU(model_getrf)
 };

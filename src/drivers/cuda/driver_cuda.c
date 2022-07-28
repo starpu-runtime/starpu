@@ -261,7 +261,7 @@ static void _starpu_initialize_workers_cuda_gpuid(struct _starpu_machine_config 
 	struct _starpu_machine_topology *topology = &config->topology;
 	struct starpu_conf *uconf = &config->conf;
 
-        _starpu_initialize_workers_deviceid(uconf->use_explicit_workers_cuda_gpuid == 0
+	_starpu_initialize_workers_deviceid(uconf->use_explicit_workers_cuda_gpuid == 0
 					    ? NULL
 					    : (int *)uconf->workers_cuda_gpuid,
 					    &(config->current_devid[STARPU_CUDA_WORKER]),
@@ -284,8 +284,10 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 
 	if (ncuda != 0)
 	{
-		/* The user did not disable CUDA. We need to initialize CUDA
- 		 * early to count the number of devices */
+		/* The user did not disable CUDA. We need to
+		 * initialize CUDA early to count the number of
+		 * devices
+		 */
 		_starpu_init_cuda();
 		int nb_devices = _starpu_get_cuda_device_count();
 
@@ -395,7 +397,7 @@ void _starpu_init_cuda_config(struct _starpu_machine_topology *topology, struct 
 			}
 		}
 #endif
-        }
+	}
 }
 
 /* Bind the driver on a CPU core */
@@ -872,7 +874,9 @@ int _starpu_cuda_driver_init(struct _starpu_worker *worker)
 
 		float size = (float) global_mem[devid] / (1<<30);
 #ifdef STARPU_SIMGRID
-		const char *devname = "Simgrid";
+		const char *devname = _starpu_simgrid_get_devname("CUDA", devid);
+		if (!devname)
+			devname = "Simgrid";
 #else
 		/* get the device's name */
 		char devname[64];
@@ -960,7 +964,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 		STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);
 
 		if (!usersleft)
-                {
+		{
 			/* I'm last, deinitialize device */
 			_starpu_datawizard_handle_all_pending_node_data_requests(memnode);
 
@@ -972,7 +976,7 @@ int _starpu_cuda_driver_deinit(struct _starpu_worker *worker)
 			_starpu_malloc_shutdown(memnode);
 
 			deinit_device_context(devid);
-                }
+		}
 		STARPU_PTHREAD_MUTEX_LOCK(&cuda_device_init_mutex[devid]);
 		cuda_device_init[devid] = UNINITIALIZED;
 		STARPU_PTHREAD_MUTEX_UNLOCK(&cuda_device_init_mutex[devid]);

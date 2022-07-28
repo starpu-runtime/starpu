@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2013-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2013-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2013       Simon Archipoff
  * Copyright (C) 2020       Télécom-Sud Paris
  *
@@ -23,7 +23,7 @@
 /* Alpha, Beta and Gamma are MCT-specific values, which allows the
  * user to set more precisely the weight of each computing value.
  * Beta, for example, controls the weight of communications between
- * memories for the computation of the best component to choose. 
+ * memories for the computation of the best component to choose.
  */
 #define _STARPU_SCHED_ALPHA_DEFAULT 1.0
 #define _STARPU_SCHED_BETA_DEFAULT 1.0
@@ -40,7 +40,7 @@ struct _starpu_mct_data *starpu_mct_init_parameters(struct starpu_sched_componen
 		/* data->_gamma: cost of one Joule in us. If gamma is set to 10^6, then one Joule cost 1s */
 		data->_gamma = params->_gamma;
 		/* data->idle_power: Idle power of the whole machine in Watt */
-		data->idle_power = params->idle_power; 
+		data->idle_power = params->idle_power;
 	}
 	else
 	{
@@ -94,22 +94,22 @@ double starpu_mct_compute_fitness(struct _starpu_mct_data * d, double exp_end, d
 		local_energy = 0.;
 
 	/* Note: the expected end includes the data transfer duration, which we want to be able to tune separately */
-	
+
 	/* min_exp_end_of_task is the minimum end time of the task over all workers */
 	double fitness = d->alpha * (exp_end - min_exp_end_of_task) + d->beta * transfer_len + d->_gamma * local_energy;
-	
-	/* max_exp_end is the maximum end time of the workers. If the total execution time is increased, then an 
-          additional energy penalty must be considered*/
+
+	/* max_exp_end is the maximum end time of the workers. If the total execution time is increased, then an
+	  additional energy penalty must be considered*/
 	if(exp_end > max_exp_end_of_workers)
-		fitness += d->_gamma * d->idle_power * (exp_end - max_exp_end_of_workers) / 1000000.0; /* Since gamma is the cost in us of one Joules, 
-											       then  d->idle_power * (exp_end - max_exp_end) 
+		fitness += d->_gamma * d->idle_power * (exp_end - max_exp_end_of_workers) / 1000000.0; /* Since gamma is the cost in us of one Joules,
+											       then  d->idle_power * (exp_end - max_exp_end)
 											       must be in Joules, thus the / 1000000.0 */
 
 	return fitness;
 }
 
 unsigned starpu_mct_compute_execution_times(struct starpu_sched_component *component, struct starpu_task *task,
-				       double *estimated_lengths, double *estimated_transfer_length, unsigned *suitable_components) 
+				       double *estimated_lengths, double *estimated_transfer_length, unsigned *suitable_components)
 {
 	unsigned nsuitable_components = 0;
 
@@ -157,7 +157,7 @@ void starpu_mct_compute_expected_times(struct starpu_sched_component *component,
 								    estimated_end,
 								    estimated_lengths[icomponent],
 								    estimated_transfer_length[icomponent]);
-		
+
 		/* estimated_ends_with_task[icomponent]: estimated end of execution on the worker icomponent
 		   estimated_end: estimatated end of the worker
 		   min_exp_end_of_task: minimum estimated execution time of the task over all workers

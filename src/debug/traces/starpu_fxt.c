@@ -388,6 +388,18 @@ static struct data_info *get_data(unsigned long handle, int mpi_rank)
 	return data;
 }
 
+unsigned _starpu_fxt_data_get_coord(unsigned long handle, int mpi_rank, unsigned dim)
+{
+	struct data_info *data = get_data(handle, mpi_rank);
+	return data->dimensions >= dim+1 ? data->dims[dim] : 0;
+}
+
+const char *_starpu_fxt_data_get_name(unsigned long handle, int mpi_rank)
+{
+	struct data_info *data = get_data(handle, mpi_rank);
+	return data->name;
+}
+
 static void handle_papi_event(struct fxt_ev_64 *ev STARPU_ATTRIBUTE_UNUSED, struct starpu_fxt_options *options STARPU_ATTRIBUTE_UNUSED)
 {
 #ifdef STARPU_PAPI
@@ -2404,6 +2416,12 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			double time = get_event_time_stamp(ev, options);
 			memnode_push_state(time, prefix, dst, "Co");
 			memnode_event(get_event_time_stamp(ev, options), options->file_prefix, dst, "DCo", handle, 0, comid, size, src, options);
+			unsigned X = _starpu_fxt_data_get_coord(handle, options->file_rank, 0);
+			unsigned Y = _starpu_fxt_data_get_coord(handle, options->file_rank, 1);
+			const char *name = _starpu_fxt_data_get_name(handle, options->file_rank);
+			if (!name)
+				name = "";
+
 #ifdef STARPU_HAVE_POTI
 			char paje_value[STARPU_POTI_STR_LEN], paje_key[STARPU_POTI_STR_LEN], src_memnode_container[STARPU_POTI_STR_LEN];
 			char program_container[STARPU_POTI_STR_LEN];
@@ -2411,11 +2429,18 @@ static void handle_start_driver_copy(struct fxt_ev_64 *ev, struct starpu_fxt_opt
 			snprintf(paje_key, sizeof(paje_key), "com_%u", comid);
 			program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
 			memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, src);
+
 			char str_handle[STARPU_POTI_STR_LEN];
 			snprintf(str_handle, sizeof(str_handle), "%lx", handle);
-			poti_user_StartLink(_starpu_poti_CommLinkStart, time, program_container, link_type, src_memnode_container, paje_value, paje_key, 1, str_handle);
+
+			char X_str[STARPU_POTI_STR_LEN];
+			snprintf(X_str, sizeof(X_str), "%u", X);
+			char Y_str[STARPU_POTI_STR_LEN];
+			snprintf(Y_str, sizeof(Y_str), "%u", Y);
+
+			poti_user_StartLink(_starpu_poti_CommLinkStart, time, program_container, link_type, src_memnode_container, paje_value, paje_key, 4, str_handle, name, X_str, Y_str);
 #else
-			fprintf(out_paje_file, "24	%.9f	%s	%sp	%u	%smm%u	com_%u	%lx\n", time, link_type, prefix, size, prefix, src, comid, handle);
+			fprintf(out_paje_file, "24	%.9f	%s	%sp	%u	%smm%u	com_%u	%lx	\"%s\"	%u	%u\n", time, link_type, prefix, size, prefix, src, comid, handle, name, X, Y);
 #endif
 		}
 
@@ -3050,10 +3075,10 @@ static void handle_task_line(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 
 static void handle_task_done(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
 {
-        /* Ideally, we would be able to dump tasks as they terminate, to save
-         * memory.
-         * We however may have to change their state later, e.g. the show field,
-         * due to dependencies added way later. */
+	/* Ideally, we would be able to dump tasks as they terminate, to save
+	 * memory.
+	 * We however may have to change their state later, e.g. the show field,
+	 * due to dependencies added way later. */
 #if 0
 	unsigned long job_id;
 	job_id = ev->param[0];
@@ -3139,16 +3164,13 @@ static void handle_mpi_barrier(struct fxt_ev_64 *ev, struct starpu_fxt_options *
 	}
 }
 
-static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+static void show_mpi_thread(struct starpu_fxt_options *options)
 {
-	double date = get_event_time_stamp(ev, options);
-
 	char *prefix = options->file_prefix;
-
-	register_mpi_thread(prefixTOnodeid(prefix), ev->param[2]);
 
 	if (out_paje_file)
 	{
+		double date = 0.;
 #ifdef STARPU_HAVE_POTI
 		char program_container[STARPU_POTI_STR_LEN];
 		program_container_alias(program_container, STARPU_POTI_STR_LEN, prefix);
@@ -3166,6 +3188,19 @@ static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *op
 		fprintf(out_paje_file, "13	%.9f	%smpict	bwo_mpi	0.0\n", date, prefix);
 #endif
 	}
+}
+
+static void handle_mpi_start(struct fxt_ev_64 *ev, struct starpu_fxt_options *options)
+{
+	double date = get_event_time_stamp(ev, options);
+
+	char *prefix = options->file_prefix;
+
+	register_mpi_thread(prefixTOnodeid(prefix), ev->param[2]);
+
+	if (!(options->ninputfiles == 2 && options->file_rank == 1))
+		show_mpi_thread(options);
+
 	do_mpicommthread_set_state(date, prefix, "Sl");
 
 }
@@ -3623,6 +3658,10 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 		}
 #endif
 	}
+
+	if ((options->ninputfiles == 2 && options->file_rank == 1))
+		/* put the mpi thread at the top, so MPI communications nicely show up in the middle */
+		show_mpi_thread(options);
 
 	struct fxt_ev_64 ev;
 	while(1)
@@ -4367,16 +4406,26 @@ void _starpu_fxt_parse_new_file(char *filename_in, struct starpu_fxt_options *op
 				}
 				else
 				{
-					unsigned src = itor->src_node;
 					/* Fake start of communication at start of time */
+					unsigned src = itor->src_node;
+					unsigned X = _starpu_fxt_data_get_coord(itor->handle, options->file_rank, 0);
+					unsigned Y = _starpu_fxt_data_get_coord(itor->handle, options->file_rank, 1);
+					const char *name = _starpu_fxt_data_get_name(itor->handle, options->file_rank);
+					if (!name)
+						name = "";
 #ifdef STARPU_HAVE_POTI
 					char str_handle[STARPU_POTI_STR_LEN];
 					snprintf(str_handle, sizeof(str_handle), "%lx", itor->handle);
+					char X_str[STARPU_POTI_STR_LEN];
+					snprintf(X_str, sizeof(X_str), "%u", X);
+					char Y_str[STARPU_POTI_STR_LEN];
+					snprintf(Y_str, sizeof(Y_str), "%u", Y);
+
 					char src_memnode_container[STARPU_POTI_STR_LEN];
 					memmanager_container_alias(src_memnode_container, STARPU_POTI_STR_LEN, prefix, src);
-					poti_user_StartLink(_starpu_poti_CommLinkStart, 0., program_container, link_type, src_memnode_container, paje_value, paje_key, 1, str_handle);
+					poti_user_StartLink(_starpu_poti_CommLinkStart, 0., program_container, link_type, src_memnode_container, paje_value, paje_key, 4, str_handle, name, X_str, Y_str);
 #else
-					fprintf(out_paje_file, "24	%.9f	%s	%sp	%lu	%smm%u	com_%u	%lx\n", 0., link_type, prefix, size, prefix, src, comid, itor->handle);
+					fprintf(out_paje_file, "24	%.9f	%s	%sp	%lu	%smm%u	com_%u	%lx	\"%s\"	%u	%u\n", 0., link_type, prefix, size, prefix, src, comid, itor->handle, name, X, Y);
 #endif
 				}
 			}

@@ -980,7 +980,7 @@ int starpu_omp_init(void)
 	_global_state.initial_task = create_omp_task_struct(NULL,
 			_global_state.initial_thread, _global_state.initial_region, 1);
 	_global_state.default_critical = create_omp_critical_struct();
-        _global_state.default_arbiter = starpu_arbiter_create();
+	_global_state.default_arbiter = starpu_arbiter_create();
 	_global_state.named_criticals = NULL;
 	_starpu_spin_init(&_global_state.named_criticals_lock);
 	_global_state.hash_workers = NULL;
@@ -1012,8 +1012,8 @@ void starpu_omp_shutdown(void)
 	_global_state.initial_device = NULL;
 	destroy_omp_critical_struct(_global_state.default_critical);
 	_global_state.default_critical = NULL;
-        starpu_arbiter_destroy(_global_state.default_arbiter);
-        _global_state.default_arbiter = NULL;
+	starpu_arbiter_destroy(_global_state.default_arbiter);
+	_global_state.default_arbiter = NULL;
 	_starpu_spin_lock(&_global_state.named_criticals_lock);
 	{
 		struct starpu_omp_critical *critical=NULL, *tmp=NULL;

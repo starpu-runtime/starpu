@@ -1,7 +1,7 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
  * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
- * Copyright (C) 2018       Umeà University
+ * Copyright (C) 2018	    Umeà University
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -109,78 +109,78 @@ static unsigned long find_long_list_size(struct starpu_perfmodel_history_list *l
 #ifdef STARPU_MLR_MODEL
 int dgels_multiple_reg_coeff(double *mpar, double *my, unsigned long nn, unsigned ncoeff, unsigned nparameters, double *coeff, unsigned **combinations)
 {
- /*  Arguments */
+/*  Arguments */
 /*  ========= */
 
 /*  TRANS   (input) CHARACTER*1 */
-/*          = 'N': the linear system involves A; */
-/*          = 'T': the linear system involves A**T. */
+/*	    = 'N': the linear system involves A; */
+/*	    = 'T': the linear system involves A**T. */
 
-/*  M       (input) INTEGER */
-/*          The number of rows of the matrix A.  M >= 0. */
+/*  M	    (input) INTEGER */
+/*	    The number of rows of the matrix A.	 M >= 0. */
 
-/*  N       (input) INTEGER */
-/*          The number of columns of the matrix A.  N >= 0. */
+/*  N	    (input) INTEGER */
+/*	    The number of columns of the matrix A.  N >= 0. */
 
 /*  NRHS    (input) INTEGER */
-/*          The number of right hand sides, i.e., the number of */
-/*          columns of the matrices B and X. NRHS >=0. */
+/*	    The number of right hand sides, i.e., the number of */
+/*	    columns of the matrices B and X. NRHS >=0. */
 
-/*  A       (input/output) DOUBLE PRECISION array, dimension (LDA,N) */
-/*          On entry, the M-by-N matrix A. */
-/*          On exit, */
-/*            if M >= N, A is overwritten by details of its QR */
-/*                       factorization as returned by DGEQRF; */
-/*            if M <  N, A is overwritten by details of its LQ */
-/*                       factorization as returned by DGELQF. */
+/*  A	    (input/output) DOUBLE PRECISION array, dimension (LDA,N) */
+/*	    On entry, the M-by-N matrix A. */
+/*	    On exit, */
+/*	      if M >= N, A is overwritten by details of its QR */
+/*			 factorization as returned by DGEQRF; */
+/*	      if M <  N, A is overwritten by details of its LQ */
+/*			 factorization as returned by DGELQF. */
 
-/*  LDA     (input) INTEGER */
-/*          The leading dimension of the array A.  LDA >= max(1,M). */
+/*  LDA	    (input) INTEGER */
+/*	    The leading dimension of the array A.  LDA >= max(1,M). */
 
-/*  B       (input/output) DOUBLE PRECISION array, dimension (LDB,NRHS) */
-/*          On entry, the matrix B of right hand side vectors, stored */
-/*          columnwise; B is M-by-NRHS if TRANS = 'N', or N-by-NRHS */
-/*          if TRANS = 'T'. */
-/*          On exit, if INFO = 0, B is overwritten by the solution */
-/*          vectors, stored columnwise: */
-/*          if TRANS = 'N' and m >= n, rows 1 to n of B contain the least */
-/*          squares solution vectors; the residual sum of squares for the */
-/*          solution in each column is given by the sum of squares of */
-/*          elements N+1 to M in that column; */
-/*          if TRANS = 'N' and m < n, rows 1 to N of B contain the */
-/*          minimum norm solution vectors; */
-/*          if TRANS = 'T' and m >= n, rows 1 to M of B contain the */
-/*          minimum norm solution vectors; */
-/*          if TRANS = 'T' and m < n, rows 1 to M of B contain the */
-/*          least squares solution vectors; the residual sum of squares */
-/*          for the solution in each column is given by the sum of */
-/*          squares of elements M+1 to N in that column. */
+/*  B	    (input/output) DOUBLE PRECISION array, dimension (LDB,NRHS) */
+/*	    On entry, the matrix B of right hand side vectors, stored */
+/*	    columnwise; B is M-by-NRHS if TRANS = 'N', or N-by-NRHS */
+/*	    if TRANS = 'T'. */
+/*	    On exit, if INFO = 0, B is overwritten by the solution */
+/*	    vectors, stored columnwise: */
+/*	    if TRANS = 'N' and m >= n, rows 1 to n of B contain the least */
+/*	    squares solution vectors; the residual sum of squares for the */
+/*	    solution in each column is given by the sum of squares of */
+/*	    elements N+1 to M in that column; */
+/*	    if TRANS = 'N' and m < n, rows 1 to N of B contain the */
+/*	    minimum norm solution vectors; */
+/*	    if TRANS = 'T' and m >= n, rows 1 to M of B contain the */
+/*	    minimum norm solution vectors; */
+/*	    if TRANS = 'T' and m < n, rows 1 to M of B contain the */
+/*	    least squares solution vectors; the residual sum of squares */
+/*	    for the solution in each column is given by the sum of */
+/*	    squares of elements M+1 to N in that column. */
 
-/*  LDB     (input) INTEGER */
-/*          The leading dimension of the array B. LDB >= MAX(1,M,N). */
+/*  LDB	    (input) INTEGER */
+/*	    The leading dimension of the array B. LDB >= MAX(1,M,N). */
 
 /*  WORK    (workspace/output) DOUBLE PRECISION array, dimension (MAX(1,LWORK)) */
-/*          On exit, if INFO = 0, WORK(1) returns the optimal LWORK. */
+/*	    On exit, if INFO = 0, WORK(1) returns the optimal LWORK. */
 
 /*  LWORK   (input) INTEGER */
-/*          The dimension of the array WORK. */
-/*          LWORK >= max( 1, MN + max( MN, NRHS ) ). */
-/*          For optimal performance, */
-/*          LWORK >= max( 1, MN + max( MN, NRHS )*NB ). */
-/*          where MN = min(M,N) and NB is the optimum block size. */
+/*	    The dimension of the array WORK. */
+/*	    LWORK >= max( 1, MN + max( MN, NRHS ) ). */
+/*	    For optimal performance, */
+/*	    LWORK >= max( 1, MN + max( MN, NRHS )*NB ). */
+/*	    where MN = min(M,N) and NB is the optimum block size. */
 
-/*          If LWORK = -1, then a workspace query is assumed; the routine */
-/*          only calculates the optimal size of the WORK array, returns */
-/*          this value as the first entry of the WORK array, and no error */
-/*          message related to LWORK is issued by XERBLA. */
+/*	    If LWORK = -1, then a workspace query is assumed; the routine */
+/*	    only calculates the optimal size of the WORK array, returns */
+/*	    this value as the first entry of the WORK array, and no error */
+/*	    message related to LWORK is issued by XERBLA. */
 
 /*  INFO    (output) INTEGER */
-/*          = 0:  successful exit */
-/*          < 0:  if INFO = -i, the i-th argument had an illegal value */
-/*          > 0:  if INFO =  i, the i-th diagonal element of the */
-/*                triangular factor of A is zero, so that A does not have */
-/*                full rank; the least squares solution could not be */
-/*                computed. */
+/*	    = 0:  successful exit */
+/*	    < 0:  if INFO = -i, the i-th argument had an illegal value */
+/*	    > 0:  if INFO =  i, the i-th diagonal element of the */
+/*		  triangular factor of A is zero, so that A does not have */
+/*		  full rank; the least squares solution could not be */
+/*		  computed. */
 
 /*  ===================================================================== */
 
@@ -255,9 +255,9 @@ int dgels_multiple_reg_coeff(double *mpar, double *my, unsigned long nn, unsigne
 #endif //STARPU_MLR_MODEL
 
 /*
-   Validating the accuracy of the coefficients.
-   For the the validation is extremely basic, but it should be improved.
- */
+ * Validating the accuracy of the coefficients.
+ * For the the validation is extremely basic, but it should be improved.
+*/
 void starpu_validate_mlr(double *coeff, unsigned ncoeff, const char *codelet_name)
 {
 	unsigned i;
@@ -271,13 +271,13 @@ void starpu_validate_mlr(double *coeff, unsigned ncoeff, const char *codelet_nam
 
 int _starpu_multiple_regression(struct starpu_perfmodel_history_list *ptr, double *coeff, unsigned ncoeff, unsigned nparameters, const char **parameters_names, unsigned **combinations, const char *codelet_name)
 {
-        unsigned long i;
+	unsigned long i;
 	unsigned j;
 
 	/* Computing number of rows */
 	unsigned n=find_long_list_size(ptr);
 
-        /* Reading old calibrations if necessary */
+	/* Reading old calibrations if necessary */
 	FILE *f=NULL;
 
 	char directory[300];

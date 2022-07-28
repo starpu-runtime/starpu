@@ -274,7 +274,7 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 {
 	_starpu_codelet_check_deprecated_fields(task->cl);
 
-        /* make sure there is a worker on the machine able to execute the
+	/* make sure there is a worker on the machine able to execute the
 	   task, independent of the sched_ctx, this latter may receive latter on
 	   the necessary worker - the user or the hypervisor should take care this happens */
 
@@ -308,11 +308,11 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->max_fpga_funcs[impl] != NULL)
 					return 1;
 				break;
-                        case STARPU_MPI_MS_WORKER:
-                        case STARPU_TCPIP_MS_WORKER:
-                                if (task->cl->cpu_funcs_name[impl] != NULL)
+			case STARPU_MPI_MS_WORKER:
+			case STARPU_TCPIP_MS_WORKER:
+				if (task->cl->cpu_funcs_name[impl] != NULL)
 					return 1;
-                                break;
+				break;
 			default:
 				STARPU_ABORT();
 			}
@@ -360,11 +360,11 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 				if (task->cl->max_fpga_funcs[impl] != NULL)
 					test_implementation = 1;
 				break;
-                        case STARPU_MPI_MS_WORKER:
-                        case STARPU_TCPIP_MS_WORKER:
-                                if (task->cl->cpu_funcs_name[impl] != NULL)
-                                        test_implementation = 1;
-                                break;
+			case STARPU_MPI_MS_WORKER:
+			case STARPU_TCPIP_MS_WORKER:
+				if (task->cl->cpu_funcs_name[impl] != NULL)
+					test_implementation = 1;
+				break;
 			default:
 				STARPU_ABORT();
 			}
@@ -384,8 +384,10 @@ static uint32_t _starpu_worker_exists_and_can_execute(struct starpu_task *task,
 	return 0;
 }
 
-/* in case a task is submitted, we may check whether there exists a worker
-   that may execute the task or not */
+/*
+ * in case a task is submitted, we may check whether there exists a worker
+ * that may execute the task or not
+ */
 uint32_t _starpu_worker_exists(struct starpu_task *task)
 {
 	_starpu_codelet_check_deprecated_fields(task->cl);
@@ -511,7 +513,7 @@ static inline int _starpu_can_use_nth_implementation(enum starpu_worker_archtype
 		starpu_opencl_func_t func = _starpu_task_get_opencl_nth_implementation(cl, nimpl);
 		return func != NULL;
 	}
-        case STARPU_MAX_FPGA_WORKER:
+	case STARPU_MAX_FPGA_WORKER:
 	{
 		starpu_max_fpga_func_t func = _starpu_task_get_fpga_nth_implementation(cl, nimpl);
 		return func != NULL;
@@ -561,8 +563,7 @@ int _starpu_enforce_locality(unsigned workerid, struct starpu_task *task)
 /* must be called with sched_mutex locked to protect state_blocked */
 static inline int _starpu_can_execute_task_any_impl(unsigned workerid, struct starpu_task *task)
 {
-
-        if (!_starpu_enforce_locality(workerid, task))
+	if (!_starpu_enforce_locality(workerid, task))
 		return 0;
 
 	if (!_starpu_config.workers[workerid].enable_knob)
@@ -932,7 +933,7 @@ void _starpu_driver_start(struct _starpu_worker *worker, enum starpu_worker_arch
 	setitimer(ITIMER_PROF, &prof_itimer, NULL);
 #endif
 
-        _STARPU_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
+	_STARPU_DEBUG("worker %p %d for dev %d is ready on logical cpu %d\n", worker, worker->workerid, devid, worker->bindid);
 #ifdef STARPU_HAVE_HWLOC
 	_STARPU_DEBUG("worker %p %d cpuset start at %d\n", worker, worker->workerid, hwloc_bitmap_first(worker->hwloc_cpu_set));
 #endif
@@ -1272,8 +1273,8 @@ void _starpu_conf_check_environment(struct starpu_conf *conf)
 	_starpu_conf_set_value_against_environment("STARPU_NCUDA", &conf->ncuda, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NHIP", &conf->nhip, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NOPENCL", &conf->nopencl, conf->precedence_over_environment_variables);
-        _starpu_conf_set_value_against_environment("STARPU_NMAX_FPGA", &conf->nmax_fpga, conf->precedence_over_environment_variables);
-        _starpu_conf_set_value_against_environment("STARPU_NMPI_MS", &conf->nmpi_ms, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NMAX_FPGA", &conf->nmax_fpga, conf->precedence_over_environment_variables);
+	_starpu_conf_set_value_against_environment("STARPU_NMPI_MS", &conf->nmpi_ms, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_NTCPIP_MS", &conf->ntcpip_ms, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_CALIBRATE", &conf->calibrate, conf->precedence_over_environment_variables);
 	_starpu_conf_set_value_against_environment("STARPU_BUS_CALIBRATE", &conf->bus_calibrate, conf->precedence_over_environment_variables);
@@ -1584,20 +1585,20 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 	_starpu_set_argc_argv(argc, argv);
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-        if (_starpu_mpi_common_mp_init() == -ENODEV)
-        {
-                initialized = UNINITIALIZED;
-                return -ENODEV;
-        }
-# endif
+	if (_starpu_mpi_common_mp_init() == -ENODEV)
+	{
+		initialized = UNINITIALIZED;
+		return -ENODEV;
+	}
+#endif
 
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-        if (_starpu_tcpip_common_mp_init() == -ENODEV)
-        {
-                initialized = UNINITIALIZED;
-                return -ENODEV;
-        }
-# endif
+	if (_starpu_tcpip_common_mp_init() == -ENODEV)
+	{
+		initialized = UNINITIALIZED;
+		return -ENODEV;
+	}
+#endif
 
 	/* If StarPU was configured to use MP sinks, we have to control the
 	 * kind on node we are running on : host or sink ? */
@@ -1763,12 +1764,12 @@ int starpu_initialize(struct starpu_conf *user_conf, int *argc, char ***argv)
 		_starpu_destroy_machine_config(&_starpu_config);
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-                if (_starpu_mpi_common_is_mp_initialized())
-                        _starpu_mpi_common_mp_deinit();
+		if (_starpu_mpi_common_is_mp_initialized())
+			_starpu_mpi_common_mp_deinit();
 #endif
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-                if (_starpu_tcpip_common_is_mp_initialized())
-                        _starpu_tcpip_common_mp_deinit();
+		if (_starpu_tcpip_common_is_mp_initialized())
+			_starpu_tcpip_common_mp_deinit();
 #endif
 
 		initialized = UNINITIALIZED;
@@ -1910,7 +1911,7 @@ static void _starpu_terminate_workers(struct _starpu_machine_config *pconfig)
 		struct _starpu_worker *worker = &pconfig->workers[workerid];
 
 		/* in case StarPU termination code is called from a callback,
- 		 * we have to check if starpu_pthread_self() is the worker itself */
+		 * we have to check if starpu_pthread_self() is the worker itself */
 		if (set && set->nworkers > 0)
 		{
 			if (set->started)
@@ -2184,13 +2185,13 @@ void starpu_shutdown(void)
 	STARPU_AYU_FINISH();
 
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-    if (_starpu_mpi_common_is_mp_initialized())
-        _starpu_mpi_common_mp_deinit();
+	if (_starpu_mpi_common_is_mp_initialized())
+		_starpu_mpi_common_mp_deinit();
 #endif
 
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-    if (_starpu_tcpip_common_is_mp_initialized())
-        _starpu_tcpip_common_mp_deinit();
+	if (_starpu_tcpip_common_is_mp_initialized())
+		_starpu_tcpip_common_mp_deinit();
 #endif
 	_starpu_print_idle_time();
 	_STARPU_DEBUG("Shutdown finished\n");
@@ -2375,12 +2376,12 @@ int starpu_asynchronous_max_fpga_copy_disabled(void)
 
 int starpu_asynchronous_mpi_ms_copy_disabled(void)
 {
-        return _starpu_config.conf.disable_asynchronous_mpi_ms_copy;
+	return _starpu_config.conf.disable_asynchronous_mpi_ms_copy;
 }
 
 int starpu_asynchronous_tcpip_ms_copy_disabled(void)
 {
-        return _starpu_config.conf.disable_asynchronous_tcpip_ms_copy;
+	return _starpu_config.conf.disable_asynchronous_tcpip_ms_copy;
 }
 
 /* Return whether memory mapping is disabled (0) or enabled (1) */
@@ -2837,23 +2838,23 @@ const char *starpu_worker_get_type_as_env_var(enum starpu_worker_archtype type)
 void _starpu_worker_set_stream_ctx(unsigned workerid, struct _starpu_sched_ctx *sched_ctx)
 {
 	STARPU_ASSERT(workerid < starpu_worker_get_count());
-        struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
-        w->stream_ctx = sched_ctx;
+	struct _starpu_worker *w = _starpu_get_worker_struct(workerid);
+	w->stream_ctx = sched_ctx;
 }
 
 struct _starpu_sched_ctx* _starpu_worker_get_ctx_stream(unsigned stream_workerid)
 {
 	if (stream_workerid >= starpu_worker_get_count())
 		return NULL;
-        struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
-        return w->stream_ctx;
+	struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
+	return w->stream_ctx;
 }
 
 unsigned starpu_worker_get_sched_ctx_id_stream(unsigned stream_workerid)
 {
 	if (stream_workerid >= starpu_worker_get_count())
 		return STARPU_NMAX_SCHED_CTXS;
-        struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
+	struct _starpu_worker *w = _starpu_get_worker_struct(stream_workerid);
 	return w->stream_ctx != NULL ? w->stream_ctx->id : STARPU_NMAX_SCHED_CTXS;
 }
 

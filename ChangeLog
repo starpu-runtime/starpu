@@ -104,6 +104,8 @@ Small features:
     for all workers to be initialised
   * Add in the public API the codelet starpu_codelet_nop which has an
     empty function defined for all drivers
+  * Add starpu_task_expected_length_average and
+    starpu_task_expected_energy_average.
 
 Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU

@@ -450,44 +450,44 @@ void _starpu_graph_foreach(void (*func)(void *data, struct _starpu_graph_node *n
 
 struct _starpu_graph_node *_starpu_graph_task_node(struct starpu_task *task)
 {
-    // Can job be NULL? In other words, can a task not be associated with any job?
-    struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
+	// Can job be NULL? In other words, can a task not be associated with any job?
+	struct _starpu_job *job = _starpu_get_job_associated_to_task(task);
 
-    return job->graph_node;
+	return job->graph_node;
 }
 
 struct starpu_task *_starpu_graph_node_task(struct _starpu_graph_node *node)
 {
-    struct _starpu_job *job = node->job;
-    struct starpu_task *task = NULL;
+	struct _starpu_job *job = node->job;
+	struct starpu_task *task = NULL;
 
-    if (job)
-        task = job->task;
+	if (job)
+		task = job->task;
 
-    return task;
+	return task;
 }
 
 void _starpu_graph_node_outgoing(struct _starpu_graph_node *node, unsigned *n_outgoing, struct _starpu_graph_node ***outgoing)
 {
-    unsigned n, added = 0;
+	unsigned n, added = 0;
 
-    _starpu_graph_rdlock();
+	_starpu_graph_rdlock();
 
-    if (*n_outgoing < node->n_outgoing)
-    {
-        // Reallocate the 'outgoing' array if its size is smaller than the node's number of outgoing nodes
-        _STARPU_REALLOC(*outgoing, node->n_outgoing * sizeof(**outgoing));
-    }
+	if (*n_outgoing < node->n_outgoing)
+	{
+		// Reallocate the 'outgoing' array if its size is smaller than the node's number of outgoing nodes
+		_STARPU_REALLOC(*outgoing, node->n_outgoing * sizeof(**outgoing));
+	}
 
-    *n_outgoing = node->n_outgoing;
+	*n_outgoing = node->n_outgoing;
 
-    for (n = 0; n < *n_outgoing; ++n)
-    {
-        struct _starpu_graph_node *successor = node->outgoing[n];
+	for (n = 0; n < *n_outgoing; ++n)
+	{
+		struct _starpu_graph_node *successor = node->outgoing[n];
 
-        if (successor)
-            *outgoing[added++] = node;
-    }
+		if (successor)
+			*outgoing[added++] = node;
+	}
 
-    _starpu_graph_rdunlock();
+	_starpu_graph_rdunlock();
 }

@@ -121,9 +121,9 @@ static void load_sched_policy(struct starpu_sched_policy *sched_policy, struct _
 	if (sched_policy->policy_name)
 	{
 		if (sched_policy->policy_description)
-                        _STARPU_DEBUG("Use %s scheduler (%s)\n", sched_policy->policy_name, sched_policy->policy_description);
-                else
-                        _STARPU_DEBUG("Use %s scheduler \n", sched_policy->policy_name);
+			_STARPU_DEBUG("Use %s scheduler (%s)\n", sched_policy->policy_name, sched_policy->policy_description);
+		else
+			_STARPU_DEBUG("Use %s scheduler \n", sched_policy->policy_name);
 
 	}
 #endif

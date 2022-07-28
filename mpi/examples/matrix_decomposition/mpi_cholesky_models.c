@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -20,20 +20,26 @@
  *	Number of flops of Gemm
  */
 
-struct starpu_perfmodel chol_model_11 =
+struct starpu_perfmodel chol_model_potrf =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "chol_model_11"
+	.symbol = "chol_model_potrf"
 };
 
-struct starpu_perfmodel chol_model_21 =
+struct starpu_perfmodel chol_model_trsm =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "chol_model_21"
+	.symbol = "chol_model_trsm"
 };
 
-struct starpu_perfmodel chol_model_22 =
+struct starpu_perfmodel chol_model_syrk =
 {
 	.type = STARPU_HISTORY_BASED,
-	.symbol = "chol_model_22"
+	.symbol = "chol_model_syrk"
+};
+
+struct starpu_perfmodel chol_model_gemm =
+{
+	.type = STARPU_HISTORY_BASED,
+	.symbol = "chol_model_gemm"
 };

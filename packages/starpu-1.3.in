@@ -43,6 +43,7 @@ if {![file exists $prefix]}
 
 set exec_prefix	@exec_prefix@
 set libdir	@libdir@
+set datarootdir	@datarootdir@
 
 prepend-path  PATH		@bindir@
 prepend-path  LD_LIBRARY_PATH	@libdir@

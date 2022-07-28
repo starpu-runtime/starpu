@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -18,31 +18,31 @@
 #include "pxlu_kernels.h"
 #include <sys/time.h>
 
-#define MPI_TAG11(k)	((1U << 16) | (k))
-#define MPI_TAG12(k, j)	((2U << 16) | (k)<<8 | (j))
-#define MPI_TAG21(k, i)	((3U << 16) | (i)<<8 | (k))
+#define MPI_TAG_GETRF(k)	((1U << 16) | (k))
+#define MPI_TAG_TRSM_LL(k, j)	((2U << 16) | (k)<<8 | (j))
+#define MPI_TAG_TRSM_RU(k, i)	((3U << 16) | (i)<<8 | (k))
 
-// 11 21
-// 12 22
+// GETRF   TRSM_RU
+// TRSM_LL GEMM
 
-#define TAG11(k)	((starpu_tag_t)( (1ULL<<50) | (unsigned long long)(k)))
-#define TAG12(k,j)	((starpu_tag_t)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_GETRF(k)	((starpu_tag_t)( (1ULL<<50) | (unsigned long long)(k)))
+#define TAG_TRSM_LL(k,j)	((starpu_tag_t)(((2ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG21(k,i)	((starpu_tag_t)(((3ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_TRSM_RU(k,i)	((starpu_tag_t)(((3ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
-#define TAG22(k,i,j)	((starpu_tag_t)(((4ULL<<50) | ((unsigned long long)(k)<<32) 	\
+#define TAG_GEMM(k,i,j)	((starpu_tag_t)(((4ULL<<50) | ((unsigned long long)(k)<<32) 	\
 					| ((unsigned long long)(i)<<16)	\
 					| (unsigned long long)(j))))
-#define TAG11_SAVE(k)	((starpu_tag_t)( (5ULL<<50) | (unsigned long long)(k)))
-#define TAG12_SAVE(k,j)	((starpu_tag_t)(((6ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_GETRF_SAVE(k)	((starpu_tag_t)( (5ULL<<50) | (unsigned long long)(k)))
+#define TAG_TRSM_LL_SAVE(k,j)	((starpu_tag_t)(((6ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG21_SAVE(k,i)	((starpu_tag_t)(((7ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_TRSM_RU_SAVE(k,i)	((starpu_tag_t)(((7ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
 
-#define TAG11_SAVE_PARTIAL(k)	((starpu_tag_t)( (8ULL<<50) | (unsigned long long)(k)))
-#define TAG12_SAVE_PARTIAL(k,j)	((starpu_tag_t)(((9ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_GETRF_SAVE_PARTIAL(k)	((starpu_tag_t)( (8ULL<<50) | (unsigned long long)(k)))
+#define TAG_TRSM_LL_SAVE_PARTIAL(k,j)	((starpu_tag_t)(((9ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(j))))
-#define TAG21_SAVE_PARTIAL(k,i)	((starpu_tag_t)(((10ULL<<50) | (((unsigned long long)(k))<<32)	\
+#define TAG_TRSM_RU_SAVE_PARTIAL(k,i)	((starpu_tag_t)(((10ULL<<50) | (((unsigned long long)(k))<<32)	\
 					| (unsigned long long)(i))))
 
 #define STARPU_TAG_INIT	((starpu_tag_t)(11ULL<<50))
@@ -176,10 +176,10 @@ static void receive_when_deps_are_done(unsigned ndeps, starpu_tag_t *deps_tags,
 }
 
 /*
- *	Task 11 (diagonal factorization)
+ *	Task GETRF (diagonal factorization)
  */
 
-static void create_task_11_recv(unsigned k)
+static void create_task_getrf_recv(unsigned k)
 {
 	/* The current node is not computing that task, so we receive the block
 	 * with MPI */
@@ -197,14 +197,14 @@ static void create_task_11_recv(unsigned k)
 		for (i = (k-1)+1; i < nblocks; i++)
 		{
 			if (rank == get_block_rank(i, k-1))
-				tag_array[ndeps++] = TAG21(k-1, i);
+				tag_array[ndeps++] = TAG_TRSM_RU(k-1, i);
 		}
 
 		unsigned j;
 		for (j = (k-1)+1; j < nblocks; j++)
 		{
 			if (rank == get_block_rank(k-1, j))
-				tag_array[ndeps++] = TAG12(k-1, j);
+				tag_array[ndeps++] = TAG_TRSM_LL(k-1, j);
 		}
 	}
 #endif
@@ -215,9 +215,9 @@ static void create_task_11_recv(unsigned k)
 #else
 	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_11_block_handle)(k);
 #endif
-	starpu_mpi_tag_t mpi_tag = MPI_TAG11(k);
-	starpu_tag_t partial_tag = TAG11_SAVE_PARTIAL(k);
-	starpu_tag_t unlocked_tag = TAG11_SAVE(k);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG_GETRF(k);
+	starpu_tag_t partial_tag = TAG_GETRF_SAVE_PARTIAL(k);
+	starpu_tag_t unlocked_tag = TAG_GETRF_SAVE(k);
 
 //	fprintf(stderr, "NODE %d - 11 (%d) - recv when done ndeps %d - tag array %lx\n", rank, k, ndeps, tag_array[0]);
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
@@ -243,7 +243,7 @@ static void find_nodes_using_11(unsigned k, int *rank_mask)
 	}
 }
 
-static void callback_task_11_real(void *_arg)
+static void callback_task_getrf_real(void *_arg)
 {
 	struct callback_arg *arg = _arg;
 
@@ -256,18 +256,18 @@ static void callback_task_11_real(void *_arg)
 
 	/* Send the block to those nodes */
 	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(k, k);
-	starpu_tag_t tag = TAG11_SAVE(k);
-	starpu_mpi_tag_t mpi_tag = MPI_TAG11(k);
+	starpu_tag_t tag = TAG_GETRF_SAVE(k);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG_GETRF(k);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
 
 	free(arg);
 }
 
-static void create_task_11_real(unsigned k)
+static void create_task_getrf_real(unsigned k)
 {
-	struct starpu_task *task = create_task(TAG11(k));
+	struct starpu_task *task = create_task(TAG_GETRF(k));
 
-	task->cl = &STARPU_PLU(cl11);
+	task->cl = &STARPU_PLU(cl_getrf);
 	task->color = 0xffff00;
 
 	task->cl_arg = create_debug_info(k, k, k);
@@ -279,7 +279,7 @@ static void create_task_11_real(unsigned k)
 	struct callback_arg *arg = malloc(sizeof(struct callback_arg));
 		arg->k = k;
 
-	task->callback_func = callback_task_11_real;
+	task->callback_func = callback_task_getrf_real;
 	task->callback_arg = arg;
 
 	/* this is an important task */
@@ -289,25 +289,25 @@ static void create_task_11_real(unsigned k)
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
+		starpu_tag_declare_deps(TAG_GETRF(k), 1, TAG_GEMM(k-1, k, k));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG11(k), 1, STARPU_TAG_INIT);
+		starpu_tag_declare_deps(TAG_GETRF(k), 1, STARPU_TAG_INIT);
 	}
 
 	int ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_11(unsigned k)
+static void create_task_getrf(unsigned k)
 {
 	if (get_block_rank(k, k) == rank)
 	{
 #ifdef VERBOSE_INIT
-		fprintf(stderr, "CREATE real task 11(%u) (TAG11_SAVE(%u) = %llux) on node %d\n", k, k, (unsigned long long) TAG11_SAVE(k), rank);
+		fprintf(stderr, "CREATE real task 11(%u) (TAG_GETRF_SAVE(%u) = %llux) on node %d\n", k, k, (unsigned long long) TAG_GETRF_SAVE(k), rank);
 #endif
-		create_task_11_real(k);
+		create_task_getrf_real(k);
 	}
 	else
 	{
@@ -320,7 +320,7 @@ static void create_task_11(unsigned k)
 #ifdef VERBOSE_INIT
 			fprintf(stderr, "create RECV task 11(%u) on node %d\n", k, rank);
 #endif
-			create_task_11_recv(k);
+			create_task_getrf_recv(k);
 		}
 		else
 		{
@@ -334,10 +334,10 @@ static void create_task_11(unsigned k)
 
 
 /*
- *	Task 12 (Update lower left (TRSM))
+ *	Task TRSM_LL
  */
 
-static void create_task_12_recv(unsigned k, unsigned j)
+static void create_task_trsm_ll_recv(unsigned k, unsigned j)
 {
 	/* The current node is not computing that task, so we receive the block
 	 * with MPI */
@@ -366,9 +366,9 @@ static void create_task_12_recv(unsigned k, unsigned j)
 		{
 			if (rank == get_block_rank(i, j))
 #ifdef SINGLE_TMP1221
-				tag_array[ndeps++] = TAG22(k-1, i, j);
+				tag_array[ndeps++] = TAG_GEMM(k-1, i, j);
 #else
-				tag_array[ndeps++] = TAG22(k-2, i, j);
+				tag_array[ndeps++] = TAG_GEMM(k-2, i, j);
 #endif
 		}
 	}
@@ -379,9 +379,9 @@ static void create_task_12_recv(unsigned k, unsigned j)
 #else
 	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_12_block_handle)(j,k);
 #endif
-	starpu_mpi_tag_t mpi_tag = MPI_TAG12(k, j);
-	starpu_tag_t partial_tag = TAG12_SAVE_PARTIAL(k, j);
-	starpu_tag_t unlocked_tag = TAG12_SAVE(k, j);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG_TRSM_LL(k, j);
+	starpu_tag_t partial_tag = TAG_TRSM_LL_SAVE_PARTIAL(k, j);
+	starpu_tag_t unlocked_tag = TAG_TRSM_LL_SAVE(k, j);
 
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
 }
@@ -399,7 +399,7 @@ static void find_nodes_using_12(unsigned k, unsigned j, int *rank_mask)
 	}
 }
 
-static void callback_task_12_real(void *_arg)
+static void callback_task_trsm_ll_real(void *_arg)
 {
 	struct callback_arg *arg = _arg;
 
@@ -413,22 +413,22 @@ static void callback_task_12_real(void *_arg)
 
 	/* Send the block to those nodes */
 	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(k, j);
-	starpu_tag_t tag = TAG12_SAVE(k, j);
-	starpu_mpi_tag_t mpi_tag = MPI_TAG12(k, j);
+	starpu_tag_t tag = TAG_TRSM_LL_SAVE(k, j);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG_TRSM_LL(k, j);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
 
 	free(arg);
 }
 
-static void create_task_12_real(unsigned k, unsigned j)
+static void create_task_trsm_ll_real(unsigned k, unsigned j)
 {
-	struct starpu_task *task = create_task(TAG12(k, j));
+	struct starpu_task *task = create_task(TAG_TRSM_LL(k, j));
 
 #ifdef STARPU_DEVEL
 #warning temporary fix :/
 #endif
-//	task->cl = &STARPU_PLU(cl12);
-	task->cl = &STARPU_PLU(cl21);
+//	task->cl = &STARPU_PLU(cl_trsm_ll);
+	task->cl = &STARPU_PLU(cl_trsm_ru);
 	task->color = 0x8080ff;
 
 	task->cl_arg = create_debug_info(j, j, k);
@@ -443,7 +443,7 @@ static void create_task_12_real(unsigned k, unsigned j)
 	if (diag_block_is_local)
 	{
 		diag_block = STARPU_PLU(get_block_handle)(k, k);
-		tag_11_dep = TAG11(k);
+		tag_11_dep = TAG_GETRF(k);
 	}
 	else
 	{
@@ -452,7 +452,7 @@ static void create_task_12_real(unsigned k, unsigned j)
 #else
 		diag_block = STARPU_PLU(get_tmp_11_block_handle)(k);
 #endif
-		tag_11_dep = TAG11_SAVE(k);
+		tag_11_dep = TAG_GETRF_SAVE(k);
 	}
 
 	task->handles[0] = diag_block;
@@ -467,7 +467,7 @@ static void create_task_12_real(unsigned k, unsigned j)
 		arg->j = j;
 		arg->k = k;
 
-	task->callback_func = callback_task_12_real;
+	task->callback_func = callback_task_trsm_ll_real;
 	task->callback_arg = arg;
 
 	if (!no_prio && (j == k+1))
@@ -478,25 +478,25 @@ static void create_task_12_real(unsigned k, unsigned j)
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG12(k, j), 2, tag_11_dep, TAG22(k-1, k, j));
+		starpu_tag_declare_deps(TAG_TRSM_LL(k, j), 2, tag_11_dep, TAG_GEMM(k-1, k, j));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG12(k, j), 1, tag_11_dep);
+		starpu_tag_declare_deps(TAG_TRSM_LL(k, j), 1, tag_11_dep);
 	}
 
 	int ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_12(unsigned k, unsigned j)
+static void create_task_trsm_ll(unsigned k, unsigned j)
 {
 	if (get_block_rank(k, j) == rank)
 	{
 #ifdef VERBOSE_INIT
 		fprintf(stderr, "CREATE real task 12(k = %u, j = %u) on node %d\n", k, j, rank);
 #endif
-		create_task_12_real(k, j);
+		create_task_trsm_ll_real(k, j);
 	}
 	else
 	{
@@ -509,7 +509,7 @@ static void create_task_12(unsigned k, unsigned j)
 #ifdef VERBOSE_INIT
 			fprintf(stderr, "create RECV task 12(k = %u, j = %u) on node %d\n", k, j, rank);
 #endif
-			create_task_12_recv(k, j);
+			create_task_trsm_ll_recv(k, j);
 		}
 		else
 		{
@@ -521,10 +521,10 @@ static void create_task_12(unsigned k, unsigned j)
 }
 
 /*
- *	Task 21 (Update upper right (TRSM))
+ *	Task TRSM_RU
  */
 
-static void create_task_21_recv(unsigned k, unsigned i)
+static void create_task_trsm_ru_recv(unsigned k, unsigned i)
 {
 	/* The current node is not computing that task, so we receive the block
 	 * with MPI */
@@ -552,9 +552,9 @@ static void create_task_21_recv(unsigned k, unsigned i)
 		{
 			if (rank == get_block_rank(i, j))
 #ifdef SINGLE_TMP1221
-				tag_array[ndeps++] = TAG22(k-1, i, j);
+				tag_array[ndeps++] = TAG_GEMM(k-1, i, j);
 #else
-				tag_array[ndeps++] = TAG22(k-2, i, j);
+				tag_array[ndeps++] = TAG_GEMM(k-2, i, j);
 #endif
 		}
 	}
@@ -565,9 +565,9 @@ static void create_task_21_recv(unsigned k, unsigned i)
 #else
 	starpu_data_handle_t block_handle = STARPU_PLU(get_tmp_21_block_handle)(i, k);
 #endif
-	starpu_mpi_tag_t mpi_tag = MPI_TAG21(k, i);
-	starpu_tag_t partial_tag = TAG21_SAVE_PARTIAL(k, i);
-	starpu_tag_t unlocked_tag = TAG21_SAVE(k, i);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG_TRSM_RU(k, i);
+	starpu_tag_t partial_tag = TAG_TRSM_RU_SAVE_PARTIAL(k, i);
+	starpu_tag_t unlocked_tag = TAG_TRSM_RU_SAVE(k, i);
 
 //	fprintf(stderr, "NODE %d - 21 (%d, %d) - recv when done ndeps %d - tag array %lx\n", rank, k, i, ndeps, tag_array[0]);
 	receive_when_deps_are_done(ndeps, tag_array, source, mpi_tag, block_handle, partial_tag, unlocked_tag);
@@ -586,7 +586,7 @@ static void find_nodes_using_21(unsigned k, unsigned i, int *rank_mask)
 	}
 }
 
-static void callback_task_21_real(void *_arg)
+static void callback_task_trsm_ru_real(void *_arg)
 {
 	struct callback_arg *arg = _arg;
 
@@ -600,22 +600,22 @@ static void callback_task_21_real(void *_arg)
 
 	/* Send the block to those nodes */
 	starpu_data_handle_t block_handle = STARPU_PLU(get_block_handle)(i, k);
-	starpu_tag_t tag = TAG21_SAVE(k, i);
-	starpu_mpi_tag_t mpi_tag = MPI_TAG21(k, i);
+	starpu_tag_t tag = TAG_TRSM_RU_SAVE(k, i);
+	starpu_mpi_tag_t mpi_tag = MPI_TAG_TRSM_RU(k, i);
 	send_data_to_mask(block_handle, rank_mask, mpi_tag, tag);
 
 	free(arg);
 }
 
-static void create_task_21_real(unsigned k, unsigned i)
+static void create_task_trsm_ru_real(unsigned k, unsigned i)
 {
-	struct starpu_task *task = create_task(TAG21(k, i));
+	struct starpu_task *task = create_task(TAG_TRSM_RU(k, i));
 
 #ifdef STARPU_DEVEL
 #warning temporary fix
 #endif
-//	task->cl = &STARPU_PLU(cl21);
-	task->cl = &STARPU_PLU(cl12);
+//	task->cl = &STARPU_PLU(cl_trsm_ru);
+	task->cl = &STARPU_PLU(cl_trsm_ll);
 	task->color = 0x8080c0;
 
 	task->cl_arg = create_debug_info(i, i, k);
@@ -630,7 +630,7 @@ static void create_task_21_real(unsigned k, unsigned i)
 	if (diag_block_is_local)
 	{
 		diag_block = STARPU_PLU(get_block_handle)(k, k);
-		tag_11_dep = TAG11(k);
+		tag_11_dep = TAG_GETRF(k);
 	}
 	else
 	{
@@ -639,7 +639,7 @@ static void create_task_21_real(unsigned k, unsigned i)
 #else
 		diag_block = STARPU_PLU(get_tmp_11_block_handle)(k);
 #endif
-		tag_11_dep = TAG11_SAVE(k);
+		tag_11_dep = TAG_GETRF_SAVE(k);
 	}
 
 	task->handles[0] = diag_block;
@@ -652,7 +652,7 @@ static void create_task_21_real(unsigned k, unsigned i)
 		arg->i = i;
 		arg->k = k;
 
-	task->callback_func = callback_task_21_real;
+	task->callback_func = callback_task_trsm_ru_real;
 	task->callback_arg = arg;
 
 	if (!no_prio && (i == k+1))
@@ -663,25 +663,25 @@ static void create_task_21_real(unsigned k, unsigned i)
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG21(k, i), 2, tag_11_dep, TAG22(k-1, i, k));
+		starpu_tag_declare_deps(TAG_TRSM_RU(k, i), 2, tag_11_dep, TAG_GEMM(k-1, i, k));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG21(k, i), 1, tag_11_dep);
+		starpu_tag_declare_deps(TAG_TRSM_RU(k, i), 1, tag_11_dep);
 	}
 
 	int ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_21(unsigned k, unsigned i)
+static void create_task_trsm_ru(unsigned k, unsigned i)
 {
 	if (get_block_rank(i, k) == rank)
 	{
 #ifdef VERBOSE_INIT
 		fprintf(stderr, "CREATE real task 21(k = %u, i = %u) on node %d\n", k, i, rank);
 #endif
-		create_task_21_real(k, i);
+		create_task_trsm_ru_real(k, i);
 	}
 	else
 	{
@@ -694,7 +694,7 @@ static void create_task_21(unsigned k, unsigned i)
 #ifdef VERBOSE_INIT
 			fprintf(stderr, "create RECV task 21(k = %u, i = %u) on node %d\n", k, i, rank);
 #endif
-			create_task_21_recv(k, i);
+			create_task_trsm_ru_recv(k, i);
 		}
 		else
 		{
@@ -706,16 +706,16 @@ static void create_task_21(unsigned k, unsigned i)
 }
 
 /*
- *	Task 22 (GEMM)
+ *	Task GEMM
  */
 
-static void create_task_22_real(unsigned k, unsigned i, unsigned j)
+static void create_task_gemm_real(unsigned k, unsigned i, unsigned j)
 {
-//	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j));
+//	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG_GEMM(k,i,j));
 
-	struct starpu_task *task = create_task(TAG22(k, i, j));
+	struct starpu_task *task = create_task(TAG_GEMM(k, i, j));
 
-	task->cl = &STARPU_PLU(cl22);
+	task->cl = &STARPU_PLU(cl_gemm);
 	task->color = 0x00ff00;
 
 	task->cl_arg = create_debug_info(i, j, k);
@@ -723,7 +723,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 
 	/* which sub-data is manipulated ? */
 
-	/* produced by TAG21_SAVE(k, i) */
+	/* produced by TAG_TRSM_RU_SAVE(k, i) */
 	unsigned block21_is_local = (get_block_rank(i, k) == rank);
 	starpu_tag_t tag_21_dep;
 
@@ -731,7 +731,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	if (block21_is_local)
 	{
 		block21 = STARPU_PLU(get_block_handle)(i, k);
-		tag_21_dep = TAG21(k, i);
+		tag_21_dep = TAG_TRSM_RU(k, i);
 	}
 	else
 	{
@@ -740,10 +740,10 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 #else
 		block21 = STARPU_PLU(get_tmp_21_block_handle)(i, k);
 #endif
-		tag_21_dep = TAG21_SAVE(k, i);
+		tag_21_dep = TAG_TRSM_RU_SAVE(k, i);
 	}
 
-	/* produced by TAG12_SAVE(k, j) */
+	/* produced by TAG_TRSM_LL_SAVE(k, j) */
 	unsigned block12_is_local = (get_block_rank(k, j) == rank);
 	starpu_tag_t tag_12_dep;
 
@@ -752,7 +752,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	{
 	//	block12 = STARPU_PLU(get_block_handle)(j, k);
 		block12 = STARPU_PLU(get_block_handle)(k, j);
-		tag_12_dep = TAG12(k, j);
+		tag_12_dep = TAG_TRSM_LL(k, j);
 	}
 	else
 	{
@@ -761,7 +761,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 #else
 		block12 = STARPU_PLU(get_tmp_12_block_handle)(j, k);
 #endif
-		tag_12_dep = TAG12_SAVE(k, j);
+		tag_12_dep = TAG_TRSM_LL_SAVE(k, j);
 	}
 
 
@@ -775,7 +775,7 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	//task->handles[1] = block12;
 	task->handles[1] = block21;
 
-	/* produced by TAG22(k-1, i, j) */
+	/* produced by TAG_GEMM(k-1, i, j) */
 	task->handles[2] = STARPU_PLU(get_block_handle)(i, j);
 
 	STARPU_ASSERT(task->handles[0] != STARPU_POISON_PTR);
@@ -790,23 +790,23 @@ static void create_task_22_real(unsigned k, unsigned i, unsigned j)
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), tag_12_dep, tag_21_dep);
+		starpu_tag_declare_deps(TAG_GEMM(k, i, j), 3, TAG_GEMM(k-1, i, j), tag_12_dep, tag_21_dep);
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG22(k, i, j), 2, tag_12_dep, tag_21_dep);
+		starpu_tag_declare_deps(TAG_GEMM(k, i, j), 2, tag_12_dep, tag_21_dep);
 	}
 
 	int ret = starpu_task_submit(task);
 	STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 }
 
-static void create_task_22(unsigned k, unsigned i, unsigned j)
+static void create_task_gemm(unsigned k, unsigned i, unsigned j)
 {
 	if (get_block_rank(i, j) == rank)
 	{
 	//	fprintf(stderr, "CREATE real task 22(k = %d, i = %d, j = %d) on node %d\n", k, i, j, rank);
-		create_task_22_real(k, i, j);
+		create_task_gemm_real(k, i, j);
 	}
 //	else
 //	{
@@ -836,7 +836,7 @@ static void wait_termination(void)
 		if (get_block_rank(k, k) == rank)
 		{
 			starpu_data_handle_t diag_block = STARPU_PLU(get_block_handle)(k, k);
-			wait_tag_and_fetch_handle(TAG11_SAVE(k), diag_block);
+			wait_tag_and_fetch_handle(TAG_GETRF_SAVE(k), diag_block);
 		}
 
 
@@ -848,7 +848,7 @@ static void wait_termination(void)
 				starpu_data_handle_t block21 = STARPU_PLU(get_block_handle)(i, k);
 				//starpu_data_handle_t block21 = STARPU_PLU(get_block_handle)(k, i);
 				//fprintf(stderr, "BLOCK21 i %d k %d -> handle %p\n", i, k, block21);
-				wait_tag_and_fetch_handle(TAG21_SAVE(k, i), block21);
+				wait_tag_and_fetch_handle(TAG_TRSM_RU_SAVE(k, i), block21);
 			}
 		}
 
@@ -860,7 +860,7 @@ static void wait_termination(void)
 				//starpu_data_handle_t block12 = STARPU_PLU(get_block_handle)(j, k);
 				starpu_data_handle_t block12 = STARPU_PLU(get_block_handle)(k, j);
 				//fprintf(stderr, "BLOCK12 j %d k %d -> handle %p\n", j, k, block12);
-				wait_tag_and_fetch_handle(TAG12_SAVE(k, j), block12);
+				wait_tag_and_fetch_handle(TAG_TRSM_LL_SAVE(k, j), block12);
 			}
 		}
 	}
@@ -887,19 +887,19 @@ double STARPU_PLU(plu_main)(unsigned _nblocks, int _rank, int _world_size, unsig
 	{
 		starpu_iteration_push(k);
 
-		create_task_11(k);
+		create_task_getrf(k);
 
 		for (i = k+1; i<nblocks; i++)
 		{
-			create_task_12(k, i);
-			create_task_21(k, i);
+			create_task_trsm_ll(k, i);
+			create_task_trsm_ru(k, i);
 		}
 
 		for (i = k+1; i<nblocks; i++)
 		{
 			for (j = k+1; j<nblocks; j++)
 			{
-				create_task_22(k, i, j);
+				create_task_gemm(k, i, j);
 			}
 		}
 		starpu_iteration_pop();

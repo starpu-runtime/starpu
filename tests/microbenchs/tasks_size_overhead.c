@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -16,6 +16,7 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <math.h>
 
 #include <starpu.h>
 #include "../helper.h"
@@ -38,12 +39,6 @@
 #endif
 
 #ifdef STARPU_QUICK_CHECK
-#define CPUSTEP 8
-#else
-#define CPUSTEP 1
-#endif
-
-#ifdef STARPU_QUICK_CHECK
 static unsigned ntasks = 1;
 #elif !defined(STARPU_LONG_CHECK)
 static unsigned ntasks = 64;
@@ -54,7 +49,7 @@ static unsigned ntasks = 256;
 static unsigned nbuffers = 0;
 static unsigned total_nbuffers = 0;
 
-static unsigned mincpus = 1, maxcpus, cpustep = CPUSTEP;
+static unsigned mincpus = 1, maxcpus, cpustep;
 static unsigned mintime = START, maxtime = STOP, factortime = FACTOR;
 
 struct starpu_task *tasks;
@@ -185,11 +180,21 @@ int main(int argc, char **argv)
 	unsetenv("STARPU_NCPU");
 #endif
 
+	cpustep = sqrt(maxcpus)/2;
+#ifdef STARPU_QUICK_CHECK
+	cpustep *= 8;
+#endif
+
 	if (STARPU_RUNNING_ON_VALGRIND)
 	{
 		factortime *= 4;
 		cpustep *= 4;
 	}
+
+	if (cpustep == 0)
+		cpustep = 1;
+	if (cpustep >= maxcpus/2)
+		cpustep = maxcpus/2;
 
 	parse_args(argc, argv);
 

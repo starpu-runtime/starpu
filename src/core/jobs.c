@@ -86,7 +86,7 @@ void _starpu_exclude_task_from_dag(struct starpu_task *task)
 struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_task *task)
 {
 	struct _starpu_job *job;
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	/* As most of the fields must be initialized at NULL, let's put 0
 	 * everywhere */
@@ -137,7 +137,7 @@ struct _starpu_job* STARPU_ATTRIBUTE_MALLOC _starpu_job_create(struct starpu_tas
 	if (_starpu_graph_record)
 		_starpu_graph_add_job(job);
 
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 	return job;
 }
 
@@ -225,7 +225,7 @@ void _starpu_wait_job(struct _starpu_job *j)
 {
 	STARPU_ASSERT(j->task);
 	STARPU_ASSERT(!j->task->detach);
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	STARPU_PTHREAD_MUTEX_LOCK(&j->sync_mutex);
 
@@ -241,7 +241,7 @@ void _starpu_wait_job(struct _starpu_job *j)
 	}
 
 	STARPU_PTHREAD_MUTEX_UNLOCK(&j->sync_mutex);
-        _STARPU_LOG_OUT();
+	_STARPU_LOG_OUT();
 }
 
 #ifdef STARPU_OPENMP
@@ -704,7 +704,7 @@ static unsigned _starpu_not_all_tag_deps_are_fulfilled(struct _starpu_job *j)
 	if (tag_successors->ndeps != tag_successors->ndeps_completed)
 	{
 		tag->state = STARPU_BLOCKED;
-                j->task->status = STARPU_TASK_BLOCKED_ON_TAG;
+		j->task->status = STARPU_TASK_BLOCKED_ON_TAG;
 		ret = 1;
 	}
 	else
@@ -733,7 +733,7 @@ static unsigned _starpu_not_all_task_deps_are_fulfilled(struct _starpu_job *j)
 	if (!j->submitted || (job_successors->ndeps != job_successors->ndeps_completed))
 	{
 		STARPU_ASSERT(j->task->status == STARPU_TASK_BLOCKED || j->task->status == STARPU_TASK_BLOCKED_ON_TAG);
-                j->task->status = STARPU_TASK_BLOCKED_ON_TASK;
+		j->task->status = STARPU_TASK_BLOCKED_ON_TASK;
 		ret = 1;
 	}
 	else
@@ -806,7 +806,7 @@ int _starpu_bubble_unpartition_data_if_needed(struct _starpu_job *j)
 
 	// No data has been partitioned, let's keep going
 	if (unpartition_needed == 0)
-        {
+	{
 		return 0;
 	}
 
@@ -887,7 +887,7 @@ void _starpu_bubble_execute(struct _starpu_job *j)
 unsigned _starpu_enforce_deps_and_schedule(struct _starpu_job *j)
 {
 	unsigned ret;
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 
 	/* enfore tag dependencies */
 	if (_starpu_not_all_tag_deps_are_fulfilled(j))
@@ -998,7 +998,7 @@ unsigned _starpu_enforce_deps_starting_from_task(struct _starpu_job *j)
 unsigned _starpu_reenforce_task_deps_and_schedule(struct _starpu_job *j)
 {
 	unsigned ret;
-        _STARPU_LOG_IN();
+	_STARPU_LOG_IN();
 	STARPU_ASSERT(j->discontinuous);
 
 	/* enfore task dependencies */
@@ -1042,10 +1042,10 @@ void _starpu_enforce_deps_notify_job_ready_soon(struct _starpu_job *j, _starpu_n
 		/* It's not even submitted actually */
 		return;
 	struct _starpu_cg_list *job_successors = &j->job_successors;
-        /* tag is 1 when we got woken up by a tag dependency about to be
-         * released, and thus we have to check the exact numbner of
-         * dependencies.  Otherwise it's a task dependency which is about to be
-         * released.  */
+	/* tag is 1 when we got woken up by a tag dependency about to be
+	 * released, and thus we have to check the exact numbner of
+	 * dependencies.  Otherwise it's a task dependency which is about to be
+	 * released.  */
 	if (job_successors->ndeps != job_successors->ndeps_completed + 1 - tag)
 		/* There are still other dependencies */
 		return;

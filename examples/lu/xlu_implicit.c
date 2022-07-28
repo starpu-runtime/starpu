@@ -20,16 +20,16 @@
 #include "xlu.h"
 #include "xlu_kernels.h"
 
-static int create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned no_prio)
+static int create_task_getrf(starpu_data_handle_t dataA, unsigned k, unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
-	task->cl = &cl11;
+	task->cl = &cl_getrf;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 
-	task->tag_id = TAG11(k);
+	task->tag_id = TAG_GETRF(k);
 	task->color = 0xffff00;
 
 	/* this is an important task */
@@ -41,17 +41,17 @@ static int create_task_11(starpu_data_handle_t dataA, unsigned k, unsigned no_pr
 	return ret;
 }
 
-static int create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned no_prio)
+static int create_task_trsm_ll(starpu_data_handle_t dataA, unsigned k, unsigned j, unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
-	task->cl = &cl12;
+	task->cl = &cl_trsm_ll;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, j, k);
 
-	task->tag_id = TAG12(k,j);
+	task->tag_id = TAG_TRSM_LL(k,j);
 	task->color = 0x8080ff;
 
 	if (!no_prio && (j == k+1))
@@ -62,18 +62,18 @@ static int create_task_12(starpu_data_handle_t dataA, unsigned k, unsigned j, un
 	return ret;
 }
 
-static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned no_prio)
+static int create_task_trsm_ru(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
 
-	task->cl = &cl21;
+	task->cl = &cl_trsm_ru;
 
 	/* which sub-data is manipulated ? */
 	task->handles[0] = starpu_data_get_sub_data(dataA, 2, k, k);
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, k, i);
 
-	task->tag_id = TAG21(k,i);
+	task->tag_id = TAG_TRSM_RU(k,i);
 	task->color = 0x8080c0;
 
 	if (!no_prio && (i == k+1))
@@ -84,12 +84,12 @@ static int create_task_21(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 	return ret;
 }
 
-static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned no_prio)
+static int create_task_gemm(starpu_data_handle_t dataA, unsigned k, unsigned i, unsigned j, unsigned no_prio)
 {
 	int ret;
 	struct starpu_task *task = starpu_task_create();
 
-	task->cl = &cl22;
+	task->cl = &cl_gemm;
 	task->color = 0x00ff00;
 
 	/* which sub-data is manipulated ? */
@@ -97,7 +97,7 @@ static int create_task_22(starpu_data_handle_t dataA, unsigned k, unsigned i, un
 	task->handles[1] = starpu_data_get_sub_data(dataA, 2, j, k);
 	task->handles[2] = starpu_data_get_sub_data(dataA, 2, j, i);
 
-	task->tag_id = TAG22(k,i,j);
+	task->tag_id = TAG_GEMM(k,i,j);
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 		task->priority = STARPU_MAX_PRIO;
@@ -130,14 +130,14 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 
 		starpu_iteration_push(k);
 
-		ret = create_task_11(dataA, k, no_prio);
+		ret = create_task_getrf(dataA, k, no_prio);
 		if (ret == -ENODEV) return ret;
 
 		for (i = k+1; i<nblocks; i++)
 		{
-			ret = create_task_12(dataA, k, i, no_prio);
+			ret = create_task_trsm_ll(dataA, k, i, no_prio);
 		     if (ret == -ENODEV) return ret;
-		     ret = create_task_21(dataA, k, i, no_prio);
+		     ret = create_task_trsm_ru(dataA, k, i, no_prio);
 		     if (ret == -ENODEV) return ret;
 		}
 		starpu_data_wont_use(starpu_data_get_sub_data(dataA, 2, k, k));
@@ -145,7 +145,7 @@ static int dw_codelet_facto_v3(starpu_data_handle_t dataA, unsigned nblocks, uns
 		for (i = k+1; i<nblocks; i++)
 		     for (j = k+1; j<nblocks; j++)
 		     {
-			     ret = create_task_22(dataA, k, i, j, no_prio);
+			     ret = create_task_gemm(dataA, k, i, j, no_prio);
 			  if (ret == -ENODEV) return ret;
 		     }
 		for (i = k+1; i<nblocks; i++)

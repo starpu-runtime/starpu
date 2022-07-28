@@ -53,6 +53,7 @@ EXTRA_DIST = 				\
 	mpi_lu/pxlu_kernels.h		\
 	mpi_lu/pxlu_kernels.c		\
 	matrix_mult/mm_2dbc.c 		\
+	native_fortran/nf_mm_2dbc.f90 		\
 	matrix_decomposition/mpi_cholesky.h 		\
 	matrix_decomposition/mpi_cholesky_codelets.h 	\
 	matrix_decomposition/mpi_cholesky_kernels.h	\
@@ -361,6 +362,29 @@ starpu_mpi_EXAMPLES +=				\
 	native_fortran/nf_mm_task_build		\
 	native_fortran/nf_basic_ring
 endif
+
+if !STARPU_NO_BLAS_LIB
+if STARPU_HAVE_LIBLAPACK
+examplebin_PROGRAMS +=		\
+	native_fortran/nf_mm_2dbc
+
+native_fortran_nf_mm_2dbc_SOURCES	=	\
+	native_fortran/nf_mm_cl_blas.f90	\
+	native_fortran/fstarpu_mpi_mod.f90	\
+	native_fortran/fstarpu_mod.f90		\
+	native_fortran/nf_mm_2dbc.f90
+
+native_fortran_nf_mm_2dbc_LDADD =	\
+	$(STARPU_LIBNUMA_LDFLAGS) 	\
+	$(STARPU_BLAS_LDFLAGS) -lm -llapack
+
+if !STARPU_SIMGRID
+starpu_mpi_EXAMPLES +=			\
+	native_fortran/nf_mm_2dbc
+endif
+endif
+endif
+
 endif
 endif
 
@@ -513,11 +537,14 @@ if !STARPU_SANITIZE
 fstarpu_mod.mod: native_fortran/fstarpu_mod.o
 fstarpu_mpi_mod.mod: native_fortran/fstarpu_mpi_mod.o
 nf_mm_cl.mod: native_fortran/nf_mm_cl.o
+nf_mm_cl_blas.mod: native_fortran/nf_mm_cl_blas.o
 
 # - list explicit dependences to control proper module files dependencies
 native_fortran/fstarpu_mpi_mod.o: fstarpu_mod.mod
-native_fortran/nf_mm_cl.o: fstarpu_mod.mod
+native_fortran/nf_mm_cl.o: fstarpu_mod.mod fstarpu_mpi_mod.mod
+native_fortran/nf_mm_cl_blas.o: fstarpu_mod.mod fstarpu_mpi_mod.mod
 native_fortran/nf_mm.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
+native_fortran/nf_mm_2dbc.o: nf_mm_cl.mod nf_mm_cl_blas.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_mm_task_build.o: nf_mm_cl.mod fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_basic_ring.o: fstarpu_mpi_mod.mod fstarpu_mod.mod
 native_fortran/nf_redux_test.o: fstarpu_mpi_mod.mod fstarpu_mod.mod

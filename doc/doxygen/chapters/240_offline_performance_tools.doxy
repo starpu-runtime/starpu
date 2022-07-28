@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2020,2021  Federal University of Rio Grande do Sul (UFRGS)
  *
  * StarPU is free software; you can redistribute it and/or modify
@@ -347,17 +347,17 @@ can be examined by using the tool <c>starpu_perfmodel_display</c>:
 \verbatim
 $ starpu_perfmodel_display -l
 file: <malloc_pinned.hannibal>
-file: <starpu_slu_lu_model_21.hannibal>
-file: <starpu_slu_lu_model_11.hannibal>
-file: <starpu_slu_lu_model_22.hannibal>
-file: <starpu_slu_lu_model_12.hannibal>
+file: <starpu_slu_lu_model_trsm_ru.hannibal>
+file: <starpu_slu_lu_model_getrf.hannibal>
+file: <starpu_slu_lu_model_gemm.hannibal>
+file: <starpu_slu_lu_model_trsm_ll.hannibal>
 \endverbatim
 
 Here, the codelets of the example <c>lu</c> are available. We can examine the
 performance of the kernel <c>22</c> (in micro-seconds), which is history-based:
 
 \verbatim
-$ starpu_perfmodel_display -s starpu_slu_lu_model_22
+$ starpu_perfmodel_display -s starpu_slu_lu_model_gemm
 performance model for cpu
 # hash      size       mean          dev           n
 57618ab0    19660800   2.851069e+05  1.829369e+04  109
@@ -446,7 +446,7 @@ starpu_task_insert()), <c>starpu_perfmodel_plot</c> can directly draw a GFlops/s
 curve, by simply adding the <c>-f</c> option:
 
 \verbatim
-$ starpu_perfmodel_plot -f -s chol_model_11
+$ starpu_perfmodel_plot -f -s chol_model_potrf
 \endverbatim
 
 This will however disable displaying the regression model, for which we can not
@@ -584,11 +584,11 @@ One can then get textual or <c>.csv</c> statistics over the trace states:
 
 \verbatim
 $ starpu_paje_state_stats -v native.trace simgrid.trace
-"Value"         "Events_native.csv" "Duration_native.csv" "Events_simgrid.csv" "Duration_simgrid.csv"
-"Callback"      220                 0.075978              220                  0
-"chol_model_11" 10                  565.176               10                   572.8695
-"chol_model_21" 45                  9184.828              45                   9170.719
-"chol_model_22" 165                 64712.07              165                  64299.203
+"Value"            "Events_native.csv" "Duration_native.csv" "Events_simgrid.csv" "Duration_simgrid.csv"
+"Callback"         220                 0.075978              220                  0
+"chol_model_potrf" 10                  565.176               10                   572.8695
+"chol_model_trsm"  45                  9184.828              45                   9170.719
+"chol_model_gemm"  165                 64712.07              165                  64299.203
 $ starpu_paje_state_stats native.trace simgrid.trace
 \endverbatim
 
@@ -612,11 +612,11 @@ Here's an example on how to use it:
 
 \verbatim
 $ starpu_trace_state_stats.py trace.rec | column -t -s ","
-"Name"		"Count" "Type"	"Duration"
-"Callback"       220	Runtime	0.075978
-"chol_model_11"  10	Task	565.176
-"chol_model_21"  45	Task	9184.828
-"chol_model_22"  165	Task	64712.07
+"Name"		   "Count" "Type"	"Duration"
+"Callback"          220	Runtime	0.075978
+"chol_model_potrf"  10	Task	565.176
+"chol_model_trsm"   45	Task	9184.828
+"chol_model_gemm"   165	Task	64712.07
 \endverbatim
 
 <c>starpu_trace_state_stats.py</c> can also be used to compute the different
@@ -624,7 +624,7 @@ efficiencies. Refer to the usage description to show some examples.
 
 And one can plot histograms of execution times, of several states for instance:
 \verbatim
-$ starpu_paje_draw_histogram -n chol_model_11,chol_model_21,chol_model_22 native.trace simgrid.trace
+$ starpu_paje_draw_histogram -n chol_model_potrf,chol_model_trsm,chol_model_gemm native.trace simgrid.trace
 \endverbatim
 
 and see the resulting pdf file:

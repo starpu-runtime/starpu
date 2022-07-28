@@ -20,20 +20,20 @@
 
 #include <starpu.h>
 
-double task_11_cost(struct starpu_task *task, unsigned nimpl);
-double task_12_cost(struct starpu_task *task, unsigned nimpl);
-double task_21_cost(struct starpu_task *task, unsigned nimpl);
-double task_22_cost(struct starpu_task *task, unsigned nimpl);
+double task_getrf_cost(struct starpu_task *task, unsigned nimpl);
+double task_trsm_ll_cost(struct starpu_task *task, unsigned nimpl);
+double task_trsm_ru_cost(struct starpu_task *task, unsigned nimpl);
+double task_gemm_cost(struct starpu_task *task, unsigned nimpl);
 
-double task_11_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double task_12_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double task_21_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double task_22_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double task_getrf_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double task_trsm_ll_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double task_trsm_ru_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double task_gemm_cost_cuda(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 
-double task_11_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double task_12_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double task_21_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
-double task_22_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double task_getrf_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double task_trsm_ll_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double task_trsm_ru_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
+double task_gemm_cost_cpu(struct starpu_task *task, struct starpu_perfmodel_arch* arch, unsigned nimpl);
 
 void initialize_lu_kernels_model(struct starpu_perfmodel* model, char * symbol, 
 		double (*cost_function)(struct starpu_task *, unsigned), 

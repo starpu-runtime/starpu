@@ -381,7 +381,7 @@ struct starpu_task *starpu_st_fifo_taskq_pop_every_task(struct starpu_st_fifo_ta
 
 		struct starpu_task *task, *next_task;
 		/* note that this starts at the _head_ of the list, so we put
- 		 * elements at the back of the new list */
+		 * elements at the back of the new list */
 		task = starpu_task_list_front(old_list);
 		while (task)
 		{

@@ -526,7 +526,7 @@ int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 {
 	_STARPU_TRACE_RDLOCKING_RWLOCK();
 
- 	int p_ret = starpu_pthread_mutex_lock(rwlock);
+	int p_ret = starpu_pthread_mutex_lock(rwlock);
 
 	_STARPU_TRACE_RWLOCK_RDLOCKED();
 
@@ -547,7 +547,7 @@ int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 {
 	_STARPU_TRACE_WRLOCKING_RWLOCK();
 
- 	int p_ret = starpu_pthread_mutex_lock(rwlock);
+	int p_ret = starpu_pthread_mutex_lock(rwlock);
 
 	_STARPU_TRACE_RWLOCK_WRLOCKED();
 
@@ -569,7 +569,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 {
 	_STARPU_TRACE_UNLOCKING_RWLOCK();
 
- 	int p_ret = starpu_pthread_mutex_unlock(rwlock);
+	int p_ret = starpu_pthread_mutex_unlock(rwlock);
 
 	_STARPU_TRACE_RWLOCK_UNLOCKED();
 
@@ -867,7 +867,7 @@ int starpu_pthread_cond_wait(starpu_pthread_cond_t *cond, starpu_pthread_mutex_t
 {
 	_STARPU_TRACE_COND_WAIT_BEGIN();
 
- 	int p_ret = pthread_cond_wait(cond, mutex);
+	int p_ret = pthread_cond_wait(cond, mutex);
 
 	_STARPU_TRACE_COND_WAIT_END();
 
@@ -878,7 +878,7 @@ int starpu_pthread_rwlock_rdlock(starpu_pthread_rwlock_t *rwlock)
 {
 	_STARPU_TRACE_RDLOCKING_RWLOCK();
 
- 	int p_ret = pthread_rwlock_rdlock(rwlock);
+	int p_ret = pthread_rwlock_rdlock(rwlock);
 
 	_STARPU_TRACE_RWLOCK_RDLOCKED();
 
@@ -889,7 +889,7 @@ int starpu_pthread_rwlock_tryrdlock(starpu_pthread_rwlock_t *rwlock)
 {
 	_STARPU_TRACE_RDLOCKING_RWLOCK();
 
- 	int p_ret = pthread_rwlock_tryrdlock(rwlock);
+	int p_ret = pthread_rwlock_tryrdlock(rwlock);
 
 	if (!p_ret)
 		_STARPU_TRACE_RWLOCK_RDLOCKED();
@@ -901,7 +901,7 @@ int starpu_pthread_rwlock_wrlock(starpu_pthread_rwlock_t *rwlock)
 {
 	_STARPU_TRACE_WRLOCKING_RWLOCK();
 
- 	int p_ret = pthread_rwlock_wrlock(rwlock);
+	int p_ret = pthread_rwlock_wrlock(rwlock);
 
 	_STARPU_TRACE_RWLOCK_WRLOCKED();
 
@@ -912,7 +912,7 @@ int starpu_pthread_rwlock_trywrlock(starpu_pthread_rwlock_t *rwlock)
 {
 	_STARPU_TRACE_WRLOCKING_RWLOCK();
 
- 	int p_ret = pthread_rwlock_trywrlock(rwlock);
+	int p_ret = pthread_rwlock_trywrlock(rwlock);
 
 	if (!p_ret)
 		_STARPU_TRACE_RWLOCK_WRLOCKED();
@@ -924,7 +924,7 @@ int starpu_pthread_rwlock_unlock(starpu_pthread_rwlock_t *rwlock)
 {
 	_STARPU_TRACE_UNLOCKING_RWLOCK();
 
- 	int p_ret = pthread_rwlock_unlock(rwlock);
+	int p_ret = pthread_rwlock_unlock(rwlock);
 
 	_STARPU_TRACE_RWLOCK_UNLOCKED();
 

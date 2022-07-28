@@ -28,7 +28,7 @@
    Memcheck:Leak
    fun:malloc
    ...
-   fun:_abc__abc_init
+   fun:_abc__abc_init.lto_priv.0
    ...
 }
 
@@ -51,5 +51,25 @@
    fun:PyTuple_New
    ...
    fun:PyMarshal_ReadObjectFromString
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Param
+   epoll_ctl(event)
+   fun:epoll_ctl
+   fun:pyepoll_internal_ctl.lto_priv.0
+   ...
+}
+
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr8
+   fun:strncmp
+   fun:is_dst
+   ...
+   fun:dlopen@@GLIBC_2.2.5
+   fun:_PyImport_FindSharedFuncptr
    ...
 }

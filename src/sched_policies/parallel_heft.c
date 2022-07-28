@@ -66,9 +66,10 @@ static double worker_exp_end[STARPU_NMAXWORKERS];
 static double worker_exp_len[STARPU_NMAXWORKERS];
 static int ntasks[STARPU_NMAXWORKERS];
 
-
-/*!!!!!!! It doesn't work with several contexts because the combined workers are constructed
-  from the workers available to the program, and not to the context !!!!!!!!!!!!!!!!!!!!!!!
+/*!!!!!!!
+ * It doesn't work with several contexts because the combined workers
+ * are constructed from the workers available to the program, and not
+ * to the context !!!!!!!!!!!!!!!!!!!!!!!
 */
 
 static void parallel_heft_pre_exec_hook(struct starpu_task *task, unsigned sched_ctx_id STARPU_ATTRIBUTE_UNUSED)
@@ -326,7 +327,7 @@ static int _parallel_heft_push_task(struct starpu_task *task, unsigned prio, uns
 	worker_ctx = 0;
 	while(workers->has_next(workers, &it))
 	{
-                workerid = workers->get_next(workers, &it);
+		workerid = workers->get_next(workers, &it);
 
 		for (nimpl = 0; nimpl < STARPU_MAXIMPLEMENTATIONS; nimpl++)
 		{
@@ -494,10 +495,10 @@ static int parallel_heft_push_task(struct starpu_task *task)
 	if (task->priority == STARPU_MAX_PRIO)
 	{
 		ret_val = _parallel_heft_push_task(task, 1, sched_ctx_id);
-                return ret_val;
-        }
+		return ret_val;
+	}
 
-        ret_val = _parallel_heft_push_task(task, 0, sched_ctx_id);
+	ret_val = _parallel_heft_push_task(task, 0, sched_ctx_id);
 	return ret_val;
 }
 

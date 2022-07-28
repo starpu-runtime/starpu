@@ -66,6 +66,8 @@ void _starpu_fxt_dag_set_task_line(const char *prefix, unsigned long job_id, con
 void _starpu_fxt_dag_add_send(int src, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_receive(int dst, unsigned long dep_prev, unsigned long tag, unsigned long id);
 void _starpu_fxt_dag_add_sync_point(void);
+unsigned _starpu_fxt_data_get_coord(unsigned long handle, int mpi_rank, unsigned dim);
+const char * _starpu_fxt_data_get_name(unsigned long handle, int mpi_rank);
 
 void _starpu_convert_numa_nodes_bitmap_to_str(long bitmap, char str[]);
 

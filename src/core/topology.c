@@ -453,8 +453,8 @@ void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 	{
 		/* we use the explicit value from the user */
 		memcpy(workers_gpuid,
-                       explicit_workers_gpuid,
-                       STARPU_NMAXWORKERS*sizeof(unsigned));
+		       explicit_workers_gpuid,
+		       STARPU_NMAXWORKERS*sizeof(unsigned));
 	}
 	else
 	{
@@ -468,7 +468,6 @@ void _starpu_initialize_workers_deviceid(int *explicit_workers_gpuid,
 		_starpu_may_bind_automatically[type] = 1;
 	}
 }
-
 
 int _starpu_get_next_devid(struct _starpu_machine_topology *topology, struct _starpu_machine_config *config, enum starpu_worker_archtype arch)
 {
@@ -640,13 +639,13 @@ static void _starpu_init_topology(struct _starpu_machine_config *config)
 		_starpu_hip_discover_devices(config);
 	if (config->conf.nopencl != 0)
 		_starpu_opencl_discover_devices(config);
-        if (config->conf.nmax_fpga != 0)
+	if (config->conf.nmax_fpga != 0)
 		_starpu_max_fpga_discover_devices(config);
 #ifdef STARPU_USE_MPI_MASTER_SLAVE
-        config->topology.nhwdevices[STARPU_MPI_MS_WORKER] = _starpu_mpi_src_get_device_count();
+	config->topology.nhwdevices[STARPU_MPI_MS_WORKER] = _starpu_mpi_src_get_device_count();
 #endif
 #ifdef STARPU_USE_TCPIP_MASTER_SLAVE
-        config->topology.nhwdevices[STARPU_TCPIP_MS_WORKER] = _starpu_tcpip_src_get_device_count();
+	config->topology.nhwdevices[STARPU_TCPIP_MS_WORKER] = _starpu_tcpip_src_get_device_count();
 #endif
 
 	topology_is_initialized = 1;
@@ -916,7 +915,7 @@ unsigned _starpu_topology_get_nhwpu(struct _starpu_machine_config *config)
 
 unsigned _starpu_topology_get_nnumanodes(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED)
 {
-        _starpu_init_topology(config);
+	_starpu_init_topology(config);
 
 	int res;
 #if defined(STARPU_HAVE_HWLOC)
@@ -958,7 +957,7 @@ static unsigned _starpu_topology_get_core_binding(unsigned *binding, unsigned nb
 }
 #endif
 
-unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, const unsigned *numa_binding, unsigned nnuma, unsigned *binding, unsigned nbinding)
+unsigned _starpu_topology_get_numa_core_binding(struct _starpu_machine_config *config STARPU_ATTRIBUTE_UNUSED, const unsigned *numa_binding STARPU_ATTRIBUTE_UNUSED, unsigned nnuma STARPU_ATTRIBUTE_UNUSED, unsigned *binding STARPU_ATTRIBUTE_UNUSED, unsigned nbinding STARPU_ATTRIBUTE_UNUSED)
 {
 #if defined(STARPU_HAVE_HWLOC)
 	unsigned n;
@@ -999,8 +998,8 @@ void _starpu_topology_filter(hwloc_topology_t topology)
 #  endif
 #  ifndef STARPU_USE_HIP
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "hip");
-        /* TODO: check about rocclr, the equivalent of nvml*/
-        //hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "rocm_smi");
+	/* TODO: check about rocclr, the equivalent of nvml*/
+	//hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "rocm_smi");
 #  endif
 #  ifndef STARPU_USE_OPENCL
 	hwloc_topology_set_components(topology, HWLOC_TOPOLOGY_COMPONENTS_FLAG_BLACKLIST, "opencl");
@@ -1169,7 +1168,7 @@ static int _starpu_init_machine_config(struct _starpu_machine_config *config, in
 
 	if (topology->nworkers == 0)
 	{
-                _STARPU_DEBUG("No worker found, aborting ...\n");
+		_STARPU_DEBUG("No worker found, aborting ...\n");
 		return -ENODEV;
 	}
 	return 0;

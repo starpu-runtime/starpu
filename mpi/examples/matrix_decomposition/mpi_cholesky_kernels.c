@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,7 @@
 #endif
 
 /*
- * U22
+ * GEMM
  */
 
 #if defined(STARPU_USE_CUDA)
@@ -37,10 +37,10 @@ static const float p1 =  1.0;
 static const float m1 = -1.0;
 #endif
 
-static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void *_args)
+static inline void chol_common_cpu_codelet_update_gemm(void *descr[], int s, void *_args)
 {
 	(void)_args;
-	//printf("22\n");
+	/* printf("gemm\n"); */
 	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
 	float *right 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
 	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[2]);
@@ -56,12 +56,14 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void
 	switch (s)
 	{
 		case 0:
+			/* CPU kernel */
 			STARPU_SGEMM("N", "T", dy, dx, dz, -1.0f, left, ld21,
 				right, ld12, 1.0f, center, ld22);
 			break;
 #ifdef STARPU_USE_CUDA
 		case 1:
 		{
+			/* CUDA kernel */
 			cublasStatus_t status = cublasSgemm(starpu_cublas_get_local_handle(),
 					CUBLAS_OP_N, CUBLAS_OP_T, dy, dx, dz,
 					&m1, left, ld21, right, ld12,
@@ -78,26 +80,83 @@ static inline void chol_common_cpu_codelet_update_u22(void *descr[], int s, void
 	}
 }
 
-void chol_cpu_codelet_update_u22(void *descr[], void *_args)
+void chol_cpu_codelet_update_gemm(void *descr[], void *_args)
 {
-	chol_common_cpu_codelet_update_u22(descr, 0, _args);
+	chol_common_cpu_codelet_update_gemm(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u22(void *descr[], void *_args)
+void chol_cublas_codelet_update_gemm(void *descr[], void *_args)
 {
-	chol_common_cpu_codelet_update_u22(descr, 1, _args);
+	chol_common_cpu_codelet_update_gemm(descr, 1, _args);
 }
-#endif// STARPU_USE_CUDA
+#endif /* STARPU_USE_CUDA */
 
 /*
- * U21
+ *   SYRK
  */
 
-static inline void chol_common_codelet_update_u21(void *descr[], int s, void *_args)
+static inline void chol_common_cpu_codelet_update_syrk(void *descr[], int s, void *_args)
 {
 	(void)_args;
-//	printf("21\n");
+	/* printf("syrk\n"); */
+	float *left 	= (float *)STARPU_MATRIX_GET_PTR(descr[0]);
+	float *center 	= (float *)STARPU_MATRIX_GET_PTR(descr[1]);
+
+	unsigned dx = STARPU_MATRIX_GET_NY(descr[1]);
+	unsigned dz = STARPU_MATRIX_GET_NY(descr[0]);
+
+	unsigned ld21 = STARPU_MATRIX_GET_LD(descr[0]);
+	unsigned ld22 = STARPU_MATRIX_GET_LD(descr[1]);
+
+	switch (s)
+	{
+	case 0:
+	{
+		/* CPU kernel */
+		STARPU_SSYRK("L", "N", dx, dz, -1.0f, left, ld21,
+			1.0f, center, ld22);
+		break;
+	}
+#ifdef STARPU_USE_CUDA
+	case 1:
+	{
+		/* CUDA kernel */
+		cublasStatus_t status = cublasSsyrk(starpu_cublas_get_local_handle(),
+				CUBLAS_FILL_MODE_LOWER, CUBLAS_OP_N, dx, dz,
+				&m1, left, ld21,
+				&p1, center, ld22);
+		if (status != CUBLAS_STATUS_SUCCESS)
+			STARPU_CUBLAS_REPORT_ERROR(status);
+		break;
+	}
+#endif
+	default:
+		STARPU_ABORT();
+		break;
+	}
+}
+
+void chol_cpu_codelet_update_syrk(void *descr[], void *_args)
+{
+	chol_common_cpu_codelet_update_syrk(descr, 0, _args);
+}
+
+#ifdef STARPU_USE_CUDA
+void chol_cublas_codelet_update_syrk(void *descr[], void *_args)
+{
+	chol_common_cpu_codelet_update_syrk(descr, 1, _args);
+}
+#endif /* STARPU_USE_CUDA */
+
+/*
+ * TRSM
+ */
+
+static inline void chol_common_codelet_update_trsm(void *descr[], int s, void *_args)
+{
+	(void)_args;
+/*	printf("trsm\n"); */
 	float *sub11;
 	float *sub21;
 
@@ -134,26 +193,26 @@ static inline void chol_common_codelet_update_u21(void *descr[], int s, void *_a
 	}
 }
 
-void chol_cpu_codelet_update_u21(void *descr[], void *_args)
+void chol_cpu_codelet_update_trsm(void *descr[], void *_args)
 {
-	 chol_common_codelet_update_u21(descr, 0, _args);
+	 chol_common_codelet_update_trsm(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u21(void *descr[], void *_args)
+void chol_cublas_codelet_update_trsm(void *descr[], void *_args)
 {
-	chol_common_codelet_update_u21(descr, 1, _args);
+	chol_common_codelet_update_trsm(descr, 1, _args);
 }
 #endif
 
 /*
- *	U11
+ *	POTRF
  */
 
-static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_args)
+static inline void chol_common_codelet_update_potrf(void *descr[], int s, void *_args)
 {
 	(void)_args;
-//	printf("11\n");
+/*	printf("potrf\n"); */
 	float *sub11;
 
 	sub11 = (float *)STARPU_MATRIX_GET_PTR(descr[0]);
@@ -267,14 +326,14 @@ static inline void chol_common_codelet_update_u11(void *descr[], int s, void *_a
 }
 
 
-void chol_cpu_codelet_update_u11(void *descr[], void *_args)
+void chol_cpu_codelet_update_potrf(void *descr[], void *_args)
 {
-	chol_common_codelet_update_u11(descr, 0, _args);
+	chol_common_codelet_update_potrf(descr, 0, _args);
 }
 
 #ifdef STARPU_USE_CUDA
-void chol_cublas_codelet_update_u11(void *descr[], void *_args)
+void chol_cublas_codelet_update_potrf(void *descr[], void *_args)
 {
-	chol_common_codelet_update_u11(descr, 1, _args);
+	chol_common_codelet_update_potrf(descr, 1, _args);
 }
-#endif// STARPU_USE_CUDA
+#endif/* STARPU_USE_CUDA */

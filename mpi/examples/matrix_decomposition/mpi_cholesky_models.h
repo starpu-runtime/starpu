@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -17,8 +17,9 @@
 #ifndef __DW_CHOLESKY_MODELS_H__
 #define __DW_CHOLESKY_MODELS_H__
 
-extern struct starpu_perfmodel chol_model_11;
-extern struct starpu_perfmodel chol_model_21;
-extern struct starpu_perfmodel chol_model_22;
+extern struct starpu_perfmodel chol_model_potrf;
+extern struct starpu_perfmodel chol_model_trsm;
+extern struct starpu_perfmodel chol_model_syrk;
+extern struct starpu_perfmodel chol_model_gemm;
 
 #endif // __DW_CHOLESKY_MODELS_H__

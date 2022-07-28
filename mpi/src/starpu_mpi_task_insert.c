@@ -118,7 +118,7 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 			{
 				if (data_tag == -1)
 					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d\n", data, mpi_rank);
+				_STARPU_MPI_DEBUG(1, "Receiving data %p from %d with prio %d\n", data, mpi_rank, prio);
 				int ret = starpu_mpi_irecv_detached_prio(data, mpi_rank, data_tag, prio, comm, NULL, NULL);
 				if (ret)
 					return ret;
@@ -134,7 +134,7 @@ int _starpu_mpi_exchange_data_before_execution(starpu_data_handle_t data, enum s
 			{
 				if (data_tag == -1)
 					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-				_STARPU_MPI_DEBUG(1, "Sending data %p to %d\n", data, xrank);
+				_STARPU_MPI_DEBUG(1, "Sending data %p to %d with prio %d\n", data, xrank, prio);
 				_SEND_DATA(data, mode, xrank, data_tag, prio, comm, NULL, NULL);
 			}
 			// Else the data has already been sent
@@ -164,10 +164,10 @@ int _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum st
 		{
 			if (xrank != -1 && (xrank != STARPU_MPI_PER_NODE && me != xrank))
 			{
-				_STARPU_MPI_DEBUG(1, "Receive data %p back from the task %d which executed the codelet ...\n", data, xrank);
+				_STARPU_MPI_DEBUG(1, "Receive data %p back from the task %d which executed the codelet with prio %d...\n", data, xrank, prio);
 				if(data_tag == -1)
 					_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-				int ret = starpu_mpi_irecv_detached(data, xrank, data_tag, comm, NULL, NULL);
+				int ret = starpu_mpi_irecv_detached_prio(data, xrank, data_tag, prio, comm, NULL, NULL);
 				if (ret)
 					return ret;
 			}
@@ -176,7 +176,7 @@ int _starpu_mpi_exchange_data_after_execution(starpu_data_handle_t data, enum st
 		{
 			if(data_tag == -1)
 				_STARPU_ERROR("StarPU needs to be told the MPI tag of this data, using starpu_mpi_data_register\n");
-			_STARPU_MPI_DEBUG(1, "Send data %p back to its owner %d...\n", data, mpi_rank);
+			_STARPU_MPI_DEBUG(1, "Send data %p back to its owner %d with prio %d...\n", data, mpi_rank, prio);
 			_SEND_DATA(data, mode, mpi_rank, data_tag, prio, comm, NULL, NULL);
 		}
 	}

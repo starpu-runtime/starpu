@@ -55,9 +55,9 @@ static int heft_progress_one(struct starpu_sched_component *component)
 		for (ntasks = 1; ntasks < NTASKS; ntasks++)
 		{
 			tasks[ntasks] = starpu_st_prio_deque_highest_task(prio);
- 			if (!tasks[ntasks] || tasks[ntasks]->priority < priority)
- 				break;
- 			starpu_st_prio_deque_pop_task(prio);
+			if (!tasks[ntasks] || tasks[ntasks]->priority < priority)
+				break;
+			starpu_st_prio_deque_pop_task(prio);
 		}
 	}
 	STARPU_COMPONENT_MUTEX_UNLOCK(mutex);

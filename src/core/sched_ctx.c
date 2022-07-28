@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2011-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2011-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2016       Uppsala University
  * Copyright (C) 2017       Arthur Chevalier
  *
@@ -625,7 +625,7 @@ struct _starpu_sched_ctx* _starpu_create_sched_ctx(struct starpu_sched_policy *p
 		starpu_sched_ctx_create_worker_collection(sched_ctx->id, STARPU_WORKER_LIST);
 	}
 
-        /*add sub_ctxs before add workers, in order to be able to associate them if necessary */
+	/*add sub_ctxs before add workers, in order to be able to associate them if necessary */
 	if(nsub_ctxs != 0)
 	{
 		for(i = 0; i < nsub_ctxs; i++)
@@ -712,8 +712,8 @@ unsigned starpu_sched_ctx_create(int *workerids, int nworkers, const char *sched
 	int min_prio = 0;
 	int max_prio = 0;
 	int nsms = 0;
-        int *sub_ctxs = NULL;
-        int nsub_ctxs = 0;
+	int *sub_ctxs = NULL;
+	int nsub_ctxs = 0;
 	void *user_data = NULL;
 	struct starpu_sched_policy *sched_policy = NULL;
 	unsigned hierarchy_level = 0;
@@ -828,8 +828,8 @@ int fstarpu_sched_ctx_create(int *workerids, int nworkers, const char *sched_ctx
 	int min_prio = 0;
 	int max_prio = 0;
 	int nsms = 0;
-        int *sub_ctxs = NULL;
-        int nsub_ctxs = 0;
+	int *sub_ctxs = NULL;
+	int nsub_ctxs = 0;
 	void *user_data = NULL;
 	struct starpu_sched_policy *sched_policy = NULL;
 	unsigned hierarchy_level = 0;
@@ -966,8 +966,10 @@ void starpu_sched_ctx_set_perf_counters(unsigned sched_ctx_id, void* perf_counte
 }
 #endif
 
-/* free all structures for the context
-   Must be called with sched_ctx_manag mutex held */
+/*
+ * free all structures for the context
+ * Must be called with sched_ctx_manag mutex held
+*/
 static void _starpu_delete_sched_ctx(struct _starpu_sched_ctx *sched_ctx)
 {
 	STARPU_ASSERT(sched_ctx->id != STARPU_NMAX_SCHED_CTXS);
@@ -1513,8 +1515,8 @@ void _starpu_decrement_nsubmitted_tasks_of_sched_ctx(unsigned sched_ctx_id)
 	int reached = _starpu_barrier_counter_get_reached_start(&sched_ctx->tasks_barrier);
 	int finished = reached == 1;
 
-        /* when finished decrementing the tasks if the user signaled he will not submit tasks anymore
-           we can move all its workers to the inheritor context */
+	/* when finished decrementing the tasks if the user signaled he will not submit tasks anymore
+	   we can move all its workers to the inheritor context */
 	if(finished && sched_ctx->inheritor != STARPU_NMAX_SCHED_CTXS)
 	{
 		STARPU_PTHREAD_MUTEX_LOCK(&finished_submit_mutex);
@@ -1805,7 +1807,7 @@ struct starpu_worker_collection* starpu_sched_ctx_create_worker_collection(unsig
 
 	}
 
-        /* construct the collection of workers(list/tree/etc.) */
+	/* construct the collection of workers(list/tree/etc.) */
 	sched_ctx->workers->init(sched_ctx->workers);
 
 	return sched_ctx->workers;
@@ -1903,35 +1905,35 @@ unsigned starpu_sched_ctx_get_nworkers(unsigned sched_ctx_id)
 
 unsigned starpu_sched_ctx_get_nshared_workers(unsigned sched_ctx_id, unsigned sched_ctx_id2)
 {
-        struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
-        struct _starpu_sched_ctx *sched_ctx2 = _starpu_get_sched_ctx_struct(sched_ctx_id2);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct _starpu_sched_ctx *sched_ctx2 = _starpu_get_sched_ctx_struct(sched_ctx_id2);
 
-        struct starpu_worker_collection *workers = sched_ctx->workers;
-        struct starpu_worker_collection *workers2 = sched_ctx2->workers;
-        int shared_workers = 0;
+	struct starpu_worker_collection *workers = sched_ctx->workers;
+	struct starpu_worker_collection *workers2 = sched_ctx2->workers;
+	int shared_workers = 0;
 	struct starpu_sched_ctx_iterator it1, it2;
 
 	workers->init_iterator(workers, &it1);
 	workers2->init_iterator(workers2, &it2);
-        while(workers->has_next(workers, &it1))
-        {
-                int worker = workers->get_next(workers, &it1);
-                while(workers2->has_next(workers2, &it2))
+	while(workers->has_next(workers, &it1))
+	{
+		int worker = workers->get_next(workers, &it1);
+		while(workers2->has_next(workers2, &it2))
 		{
-                        int worker2 = workers2->get_next(workers2, &it2);
-                        if(worker == worker2)
+			int worker2 = workers2->get_next(workers2, &it2);
+			if(worker == worker2)
 				shared_workers++;
-                }
-        }
+		}
+	}
 
 	return shared_workers;
 }
 
 unsigned starpu_sched_ctx_contains_worker(int workerid, unsigned sched_ctx_id)
 {
-        struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
+	struct _starpu_sched_ctx *sched_ctx = _starpu_get_sched_ctx_struct(sched_ctx_id);
 
-        struct starpu_worker_collection *workers = sched_ctx->workers;
+	struct starpu_worker_collection *workers = sched_ctx->workers;
 	if(workers)
 	{
 		unsigned i;
@@ -2290,14 +2292,14 @@ struct _starpu_sched_ctx *__starpu_sched_ctx_get_sched_ctx_for_worker_and_job(st
 
 void starpu_sched_ctx_revert_task_counters_ctx_locked(unsigned sched_ctx_id, double ready_flops)
 {
-        _starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx_id);
-        _starpu_decrement_nready_tasks_of_sched_ctx_locked(sched_ctx_id, ready_flops);
+	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx_id);
+	_starpu_decrement_nready_tasks_of_sched_ctx_locked(sched_ctx_id, ready_flops);
 }
 
 void starpu_sched_ctx_revert_task_counters(unsigned sched_ctx_id, double ready_flops)
 {
-        _starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx_id);
-        _starpu_decrement_nready_tasks_of_sched_ctx(sched_ctx_id, ready_flops);
+	_starpu_decrement_nsubmitted_tasks_of_sched_ctx(sched_ctx_id);
+	_starpu_decrement_nready_tasks_of_sched_ctx(sched_ctx_id, ready_flops);
 }
 
 void starpu_sched_ctx_move_task_to_ctx_locked(struct starpu_task *task, unsigned sched_ctx, unsigned with_repush)
@@ -2773,8 +2775,9 @@ void _starpu_worker_apply_deferred_ctx_changes(void)
 
 }
 
-/* TODO: verify starpu_sched_ctx_create_inside_interval correctness before re-enabling the functions below
-   */
+/*
+ * TODO: verify starpu_sched_ctx_create_inside_interval correctness before re-enabling the functions below
+ */
 #if 0
 static void _get_workers(int min, int max, int *workers, int *nw, enum starpu_worker_archtype arch, unsigned allow_overlap)
 {

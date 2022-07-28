@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2010-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2010-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  * Copyright (C) 2011       Télécom-SudParis
  * Copyright (C) 2013       Simon Archipoff
  *
@@ -129,7 +129,7 @@ static void _starpu_worker_task_list_started(struct _starpu_worker_task_list *l,
 		l->exp_len -= model;
 		l->pipeline_len += model;
 		l->exp_start = starpu_timing_now() + l->pipeline_len;
-                l->exp_end= l->exp_start + l->exp_len;
+		l->exp_end= l->exp_start + l->exp_len;
 	}
 }
 
@@ -142,7 +142,6 @@ static void _starpu_worker_task_list_finished(struct _starpu_worker_task_list *l
 	l->exp_start = STARPU_MAX(starpu_timing_now() + l->pipeline_len, l->exp_start);
 	l->exp_end = l->exp_start + l->exp_len;
 }
-
 
 struct _starpu_worker_component_data
 {
@@ -301,7 +300,7 @@ static inline void _starpu_task_grid_unset_left_right_member(struct _starpu_task
 
 static inline struct starpu_task * _starpu_worker_task_list_pop(struct _starpu_worker_task_list * l)
 {
- 	if(!l->first)
+	if(!l->first)
 	{
 		l->exp_len = l->pipeline_len = 0.0;
 		l->exp_start = l->exp_end = starpu_timing_now();

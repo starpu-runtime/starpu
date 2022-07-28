@@ -1,6 +1,6 @@
 /* StarPU --- Runtime system for heterogeneous multicore architectures.
  *
- * Copyright (C) 2009-2021  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
+ * Copyright (C) 2009-2022  Université de Bordeaux, CNRS (LaBRI UMR 5800), Inria
  *
  * StarPU is free software; you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -58,23 +58,23 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	/* enforce dependencies ... */
 	if (k == 0)
 	{
-		starpu_tag_declare_deps(PIVOT(k, i), 1, TAG11(k));
+		starpu_tag_declare_deps(PIVOT(k, i), 1, TAG_GETRF(k));
 	}
 	else
 	{
 		if (i > k)
 		{
-			starpu_tag_declare_deps(PIVOT(k, i), 2, TAG11(k), TAG22(k-1, i, k));
+			starpu_tag_declare_deps(PIVOT(k, i), 2, TAG_GETRF(k), TAG_GEMM(k-1, i, k));
 		}
 		else
 		{
 			starpu_tag_t *tags = malloc((nblocks - k)*sizeof(starpu_tag_t));
 
-			tags[0] = TAG11(k);
+			tags[0] = TAG_GETRF(k);
 			unsigned ind, ind2;
 			for (ind = k + 1, ind2 = 0; ind < nblocks; ind++, ind2++)
 			{
-				tags[1 + ind2] = TAG22(k-1, ind, k);
+				tags[1 + ind2] = TAG_GEMM(k-1, ind, k);
 			}
 
 			/* perhaps we could do better ... :/  */
@@ -88,13 +88,13 @@ static int create_task_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 	return ret;
 }
 
-static struct starpu_task *create_task_11_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
+static struct starpu_task *create_task_getrf_pivot(starpu_data_handle_t *dataAp, unsigned nblocks,
 						unsigned k, struct piv_s *piv_description,
 						starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
-	struct starpu_task *task = create_task(TAG11(k));
+	struct starpu_task *task = create_task(TAG_GETRF(k));
 
-	task->cl = &cl11_pivot;
+	task->cl = &cl_getrf_pivot;
 	task->color = 0xffff00;
 
 	task->cl_arg = &piv_description[k];
@@ -109,22 +109,22 @@ static struct starpu_task *create_task_11_pivot(starpu_data_handle_t *dataAp, un
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG11(k), 1, TAG22(k-1, k, k));
+		starpu_tag_declare_deps(TAG_GETRF(k), 1, TAG_GEMM(k-1, k, k));
 	}
 
 	return task;
 }
 
-static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned j,
+static int create_task_trsm_ll(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned j,
 			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 
-/*	printf("task 12 k,i = %d,%d TAG = %llx\n", k,i, TAG12(k,i)); */
+	/*	printf("task trsm_ll k,i = %d,%d TAG = %llx\n", k,i, TAG_TRSM_LL(k,i)); */
 
-	struct starpu_task *task = create_task(TAG12(k, j));
+	struct starpu_task *task = create_task(TAG_TRSM_LL(k, j));
 
-	task->cl = &cl12;
+	task->cl = &cl_trsm_ll;
 	task->color = 0x8080ff;
 
 	task->cl_arg = (void *)(uintptr_t)(task->tag_id);
@@ -140,15 +140,15 @@ static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 
 	/* enforce dependencies ... */
 #if 0
-	starpu_tag_declare_deps(TAG12(k, i), 1, PIVOT(k, i));
+	starpu_tag_declare_deps(TAG_TRSM_LL(k, i), 1, PIVOT(k, i));
 #endif
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG12(k, j), 2, TAG11(k), TAG22(k-1, k, j));
+		starpu_tag_declare_deps(TAG_TRSM_LL(k, j), 2, TAG_GETRF(k), TAG_GEMM(k-1, k, j));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG12(k, j), 1, TAG11(k));
+		starpu_tag_declare_deps(TAG_TRSM_LL(k, j), 1, TAG_GETRF(k));
 	}
 
 	ret = starpu_task_submit(task);
@@ -156,14 +156,14 @@ static int create_task_12(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	return ret;
 }
 
-static int create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i,
+static int create_task_trsm_ru(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i,
 			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 
-	struct starpu_task *task = create_task(TAG21(k, i));
+	struct starpu_task *task = create_task(TAG_TRSM_RU(k, i));
 
-	task->cl = &cl21;
+	task->cl = &cl_trsm_ru;
 	task->color = 0x8080c0;
 
 	/* which sub-data is manipulated ? */
@@ -178,31 +178,31 @@ static int create_task_21(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	task->cl_arg = (void *)(uintptr_t)(task->tag_id);
 
 	/* enforce dependencies ... */
-	starpu_tag_declare_deps(TAG21(k, i), 1, PIVOT(k, i));
+	starpu_tag_declare_deps(TAG_TRSM_RU(k, i), 1, PIVOT(k, i));
 
 	ret = starpu_task_submit(task);
 	if (ret != -ENODEV) STARPU_CHECK_RETURN_VALUE(ret, "starpu_task_submit");
 	return ret;
 }
 
-static int create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
+static int create_task_gemm(starpu_data_handle_t *dataAp, unsigned nblocks, unsigned k, unsigned i, unsigned j,
 			  starpu_data_handle_t (* get_block)(starpu_data_handle_t *, unsigned, unsigned, unsigned), unsigned no_prio)
 {
 	int ret;
 
-/*	printf("task 22 k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG22(k,i,j)); */
+/*	printf("task gemm k,i,j = %d,%d,%d TAG = %llx\n", k,i,j, TAG_GEMM(k,i,j)); */
 
-	struct starpu_task *task = create_task(TAG22(k, i, j));
+	struct starpu_task *task = create_task(TAG_GEMM(k, i, j));
 
-	task->cl = &cl22;
+	task->cl = &cl_gemm;
 	task->color = 0x00ff00;
 
 	task->cl_arg = (void *)(uintptr_t)(task->tag_id);
 
 	/* which sub-data is manipulated ? */
-	task->handles[0] = get_block(dataAp, nblocks, k, i); /* produced by TAG21(k, i) */
-	task->handles[1] = get_block(dataAp, nblocks, j, k); /* produced by TAG12(k, j) */
-	task->handles[2] = get_block(dataAp, nblocks, j, i);  /* produced by TAG22(k-1, i, j) */
+	task->handles[0] = get_block(dataAp, nblocks, k, i); /* produced by TAG_TRSM_RU(k, i) */
+	task->handles[1] = get_block(dataAp, nblocks, j, k); /* produced by TAG_TRSM_LL(k, j) */
+	task->handles[2] = get_block(dataAp, nblocks, j, i);  /* produced by TAG_GEMM(k-1, i, j) */
 
 	if (!no_prio &&  (i == k + 1) && (j == k +1) )
 	{
@@ -212,11 +212,11 @@ static int create_task_22(starpu_data_handle_t *dataAp, unsigned nblocks, unsign
 	/* enforce dependencies ... */
 	if (k > 0)
 	{
-		starpu_tag_declare_deps(TAG22(k, i, j), 3, TAG22(k-1, i, j), TAG12(k, j), TAG21(k, i));
+		starpu_tag_declare_deps(TAG_GEMM(k, i, j), 3, TAG_GEMM(k-1, i, j), TAG_TRSM_LL(k, j), TAG_TRSM_RU(k, i));
 	}
 	else
 	{
-		starpu_tag_declare_deps(TAG22(k, i, j), 2, TAG12(k, j), TAG21(k, i));
+		starpu_tag_declare_deps(TAG_GEMM(k, i, j), 2, TAG_TRSM_LL(k, j), TAG_TRSM_RU(k, i));
 	}
 
 	ret = starpu_task_submit(task);
@@ -250,7 +250,7 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 	for (k = 0; k < nblocks; k++)
 	{
 		starpu_iteration_push(k);
-		struct starpu_task *task = create_task_11_pivot(dataAp, nblocks, k, piv_description, get_block, no_prio);
+		struct starpu_task *task = create_task_getrf_pivot(dataAp, nblocks, k, piv_description, get_block, no_prio);
 
 		/* we defer the launch of the first task */
 		if (k == 0)
@@ -275,9 +275,9 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 
 		for (i = k+1; i<nblocks; i++)
 		{
-			ret = create_task_12(dataAp, nblocks, k, i, get_block, no_prio);
+			ret = create_task_trsm_ll(dataAp, nblocks, k, i, get_block, no_prio);
 			if (ret == -ENODEV) return ret;
-			ret = create_task_21(dataAp, nblocks, k, i, get_block, no_prio);
+			ret = create_task_trsm_ru(dataAp, nblocks, k, i, get_block, no_prio);
 			if (ret == -ENODEV) return ret;
 		}
 
@@ -285,18 +285,18 @@ static int dw_codelet_facto_pivot(starpu_data_handle_t *dataAp,
 		{
 			for (j = k+1; j<nblocks; j++)
 			{
-			     ret = create_task_22(dataAp, nblocks, k, i, j, get_block, no_prio);
+			     ret = create_task_gemm(dataAp, nblocks, k, i, j, get_block, no_prio);
 			     if (ret == -ENODEV) return ret;
 			}
 		}
 		starpu_iteration_pop();
 	}
 
-	/* we wait the last task (TAG11(nblocks - 1)) and all the pivot tasks */
+	/* we wait the last task (TAG_GETRF(nblocks - 1)) and all the pivot tasks */
 	starpu_tag_t *tags = malloc(nblocks*nblocks*sizeof(starpu_tag_t));
 	unsigned ndeps = 0;
 
-	tags[ndeps++] = TAG11(nblocks - 1);
+	tags[ndeps++] = TAG_GETRF(nblocks - 1);
 
 	for (j = 0; j < nblocks; j++)
 	{
