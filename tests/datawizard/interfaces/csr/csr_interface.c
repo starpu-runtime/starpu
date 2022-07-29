@@ -58,7 +58,9 @@ struct test_config csr_config =
 	.opencl_func   = test_csr_opencl_func,
 #endif
 	.handle        = &csr_handle,
+	.ptr           = nzval,
 	.dummy_handle  = &csr2_handle,
+	.dummy_ptr     = nzval2,
 	.copy_failed   = SUCCESS,
 	.name          = "csr_interface"
 };

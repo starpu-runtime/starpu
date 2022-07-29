@@ -456,7 +456,7 @@ static void to_pointer(struct data_interface_test_summary *s)
 
 			void *data_interface = starpu_data_get_interface_on_node(handle, node);
 			void *ptr = handle->ops->to_pointer(data_interface, node);
-			if (starpu_data_lookup(ptr) != handle)
+			if (ptr != current_config->ptr)
 			{
 				s->to_pointer = FAILURE;
 				break;
@@ -489,7 +489,7 @@ static void pointer_is_inside(struct data_interface_test_summary *s)
 
 			void *data_interface = starpu_data_get_interface_on_node(handle, node);
 			void *ptr = handle->ops->to_pointer(data_interface, node);
-			if (starpu_data_lookup(ptr) != handle)
+			if (ptr != current_config->ptr)
 			{
 				s->pointer_is_inside = FAILURE;
 				break;

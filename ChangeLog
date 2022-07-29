@@ -111,6 +111,9 @@ Changes:
   * The redux codelet should expose the STARPU_COMMUTE flag, since StarPU
     actually uses commutability.
   * Rename STARPU_COMM_STATS environment variable to STARPU_MPI_STATS
+  * Function starpu_data_lookup has been removed, it is now up to the
+    calling code to manage a ptr-to-handle reverse lookup table when
+    needed.
 
 Small changes:
   * Add a synthetic energy efficiency testcase.

@@ -763,11 +763,6 @@ size_t starpu_data_get_alloc_size(starpu_data_handle_t handle);
 */
 starpu_ssize_t starpu_data_get_max_size(starpu_data_handle_t handle);
 
-/**
-   Return the handle corresponding to the data pointed to by the \p ptr host pointer.
-*/
-starpu_data_handle_t starpu_data_lookup(const void *ptr);
-
 int starpu_data_get_home_node(starpu_data_handle_t handle);
 
 /**

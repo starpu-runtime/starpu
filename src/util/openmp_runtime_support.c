@@ -43,6 +43,18 @@ starpu_pthread_key_t _starpu_omp_task_key;
 struct starpu_omp_global *_starpu_omp_global_state = NULL;
 double _starpu_omp_clock_ref = 0.0; /* clock reference for starpu_omp_get_wtick */
 
+/* Entry in the `registered_handles' hash table.  */
+struct handle_entry
+{
+	UT_hash_handle hh;
+	void *pointer;
+	starpu_data_handle_t handle;
+};
+
+
+static struct handle_entry *registered_handles;
+static struct _starpu_spinlock    registered_handles_lock;
+
 static struct starpu_omp_critical *create_omp_critical_struct(void);
 static void destroy_omp_critical_struct(struct starpu_omp_critical *critical);
 static struct starpu_omp_device *create_omp_device_struct(void);
@@ -386,6 +398,216 @@ static void destroy_omp_thread_struct(struct starpu_omp_thread *thread)
 	starpu_omp_thread_delete(thread);
 }
 
+/* Register the mapping from PTR to HANDLE.  If PTR is already mapped to
+ * some handle, the new mapping shadows the previous one.   */
+static void register_ram_pointer(starpu_data_handle_t handle, void *ptr)
+{
+	struct handle_entry *entry;
+
+	_STARPU_MALLOC(entry, sizeof(*entry));
+
+	entry->pointer = ptr;
+	entry->handle = handle;
+
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	if (task)
+	{
+		if (task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT)
+		{
+			struct starpu_omp_region *parallel_region = task->owner_region;
+			_starpu_spin_lock(&parallel_region->registered_handles_lock);
+			HASH_ADD_PTR(parallel_region->registered_handles, pointer, entry);
+			_starpu_spin_unlock(&parallel_region->registered_handles_lock);
+		}
+		else
+		{
+			HASH_ADD_PTR(task->registered_handles, pointer, entry);
+		}
+	}
+	else
+	{
+		struct handle_entry *old_entry;
+
+		_starpu_spin_lock(&registered_handles_lock);
+		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
+		if (old_entry)
+		{
+			/* Already registered this pointer, avoid undefined
+			 * behavior of duplicate in hash table */
+			_starpu_spin_unlock(&registered_handles_lock);
+			free(entry);
+		}
+		else
+		{
+			HASH_ADD_PTR(registered_handles, pointer, entry);
+			_starpu_spin_unlock(&registered_handles_lock);
+		}
+	}
+}
+
+void starpu_omp_handle_register(starpu_data_handle_t handle)
+{
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+			continue;
+
+		void *ptr = starpu_data_handle_to_pointer(handle, node);
+		if (ptr != NULL)
+			register_ram_pointer(handle, ptr);
+	}
+}
+
+/*
+ * Stop monitoring a piece of data
+ */
+static void unregister_ram_pointer(starpu_data_handle_t handle, unsigned node)
+{
+	if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
+		return;
+
+	if (handle->removed_from_context_hash)
+		return;
+	const void *ram_ptr = starpu_data_handle_to_pointer(handle, node);
+
+	if (ram_ptr != NULL)
+	{
+		/* Remove the PTR -> HANDLE mapping.  If a mapping from PTR
+		 * to another handle existed before (e.g., when using
+		 * filters), it becomes visible again.  */
+		struct handle_entry *entry;
+		struct starpu_omp_task *task = _starpu_omp_get_task();
+		if (task)
+		{
+			if (task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT)
+			{
+				struct starpu_omp_region *parallel_region = task->owner_region;
+				_starpu_spin_lock(&parallel_region->registered_handles_lock);
+				HASH_FIND_PTR(parallel_region->registered_handles, &ram_ptr, entry);
+				STARPU_ASSERT(entry != NULL);
+				HASH_DEL(registered_handles, entry);
+				_starpu_spin_unlock(&parallel_region->registered_handles_lock);
+			}
+			else
+			{
+				HASH_FIND_PTR(task->registered_handles, &ram_ptr, entry);
+				STARPU_ASSERT(entry != NULL);
+				HASH_DEL(task->registered_handles, entry);
+			}
+		}
+		else
+		{
+
+			_starpu_spin_lock(&registered_handles_lock);
+			HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
+			if (entry)
+			{
+				if (entry->handle == handle)
+				{
+					HASH_DEL(registered_handles, entry);
+				}
+				else
+					/* don't free it, it's not ours */
+					entry = NULL;
+			}
+			_starpu_spin_unlock(&registered_handles_lock);
+		}
+		free(entry);
+	}
+}
+
+void starpu_omp_handle_unregister(starpu_data_handle_t handle)
+{
+	unsigned node;
+	for (node = 0; node < STARPU_MAXNODES; node++)
+	{
+		struct _starpu_data_replicate *local = &handle->per_node[node];
+		STARPU_ASSERT(!local->refcnt);
+		if (local->allocated)
+		{
+			unregister_ram_pointer(handle, node);
+		}
+	}
+}
+
+static void unregister_region_handles(struct starpu_omp_region *region)
+{
+	_starpu_spin_lock(&region->registered_handles_lock);
+	struct handle_entry *entry=NULL, *tmp=NULL;
+	HASH_ITER(hh, (region->registered_handles), entry, tmp)
+	{
+		entry->handle->removed_from_context_hash = 1;
+		HASH_DEL(region->registered_handles, entry);
+		starpu_data_unregister(entry->handle);
+		free(entry);
+	}
+	_starpu_spin_unlock(&region->registered_handles_lock);
+}
+
+static void unregister_task_handles(struct starpu_omp_task *task)
+{
+	struct handle_entry *entry=NULL, *tmp=NULL;
+	HASH_ITER(hh, task->registered_handles, entry, tmp)
+	{
+		entry->handle->removed_from_context_hash = 1;
+		HASH_DEL(task->registered_handles, entry);
+		starpu_data_unregister(entry->handle);
+		free(entry);
+	}
+}
+
+starpu_data_handle_t starpu_omp_data_lookup(const void *ptr)
+{
+	starpu_data_handle_t result;
+
+	struct starpu_omp_task *task = _starpu_omp_get_task();
+	if (task)
+	{
+		if (task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT)
+		{
+			struct starpu_omp_region *parallel_region = task->owner_region;
+			_starpu_spin_lock(&parallel_region->registered_handles_lock);
+			{
+				struct handle_entry *entry;
+
+				HASH_FIND_PTR(parallel_region->registered_handles, &ptr, entry);
+				if(STARPU_UNLIKELY(entry == NULL))
+					result = NULL;
+				else
+					result = entry->handle;
+			}
+			_starpu_spin_unlock(&parallel_region->registered_handles_lock);
+		}
+		else
+		{
+			struct handle_entry *entry;
+
+			HASH_FIND_PTR(task->registered_handles, &ptr, entry);
+			if(STARPU_UNLIKELY(entry == NULL))
+				result = NULL;
+			else
+				result = entry->handle;
+		}
+	}
+	else
+	{
+		_starpu_spin_lock(&registered_handles_lock);
+		{
+			struct handle_entry *entry;
+
+			HASH_FIND_PTR(registered_handles, &ptr, entry);
+			if(STARPU_UNLIKELY(entry == NULL))
+				result = NULL;
+			else
+				result = entry->handle;
+		}
+		_starpu_spin_unlock(&registered_handles_lock);
+	}
+
+	return result;
+}
+
 static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 {
 	STARPU_ASSERT(!(task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT));
@@ -414,7 +636,7 @@ static void starpu_omp_explicit_task_entry(struct starpu_omp_task *task)
 	else
 		_STARPU_ERROR("invalid worker architecture");
 	/**/
-	_starpu_omp_unregister_task_handles(task);
+	unregister_task_handles(task);
 	_starpu_spin_lock(&task->lock);
 	task->state = starpu_omp_task_state_terminated;
 	task->transaction_pending=1;
@@ -437,7 +659,7 @@ static void starpu_omp_implicit_task_entry(struct starpu_omp_task *task)
 	starpu_omp_barrier();
 	if (thread == task->owner_region->master_thread)
 	{
-		_starpu_omp_unregister_region_handles(task->owner_region);
+		unregister_region_handles(task->owner_region);
 	}
 	task->state = starpu_omp_task_state_terminated;
 	/*
@@ -992,6 +1214,7 @@ int starpu_omp_init(void)
 
 	/* init clock reference for starpu_omp_get_wtick */
 	_starpu_omp_clock_ref = starpu_timing_now();
+	_starpu_spin_init(&registered_handles_lock);
 
 	return _global_state.environment_valid;
 }
@@ -1027,6 +1250,24 @@ void starpu_omp_shutdown(void)
 	STARPU_ASSERT(_global_state.named_criticals == NULL);
 	_starpu_spin_unlock(&_global_state.named_criticals_lock);
 	_starpu_spin_destroy(&_global_state.named_criticals_lock);
+	{
+		struct handle_entry *entry=NULL, *tmp=NULL;
+
+		if (registered_handles)
+		{
+			_STARPU_DISP("[warning] The application has not unregistered all data handles.\n");
+		}
+
+		_starpu_spin_destroy(&registered_handles_lock);
+
+		HASH_ITER(hh, registered_handles, entry, tmp)
+		{
+			HASH_DEL(registered_handles, entry);
+			free(entry);
+		}
+
+		registered_handles = NULL;
+		}
 	_starpu_spin_lock(&_global_state.hash_workers_lock);
 	{
 		struct starpu_omp_thread *thread=NULL, *tmp=NULL;

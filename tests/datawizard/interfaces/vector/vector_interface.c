@@ -32,6 +32,10 @@ extern void test_vector_opencl_func(void *buffers[], void *args);
 starpu_data_handle_t vector_handle;
 starpu_data_handle_t vector2_handle;
 
+#define VECTOR_SIZE 123
+static int vector[VECTOR_SIZE];
+static int vector2[VECTOR_SIZE];
+
 struct test_config vector_config =
 {
 	.cpu_func      = test_vector_cpu_func,
@@ -42,14 +46,12 @@ struct test_config vector_config =
 	.opencl_func   = test_vector_opencl_func,
 #endif
 	.handle        = &vector_handle,
+	.ptr           = vector,
 	.dummy_handle  = &vector2_handle,
+	.dummy_ptr     = vector2,
 	.copy_failed   = SUCCESS,
 	.name          = "vector_interface"
 };
-
-#define VECTOR_SIZE 123
-static int vector[VECTOR_SIZE];
-static int vector2[VECTOR_SIZE];
 
 static void register_data(void)
 {

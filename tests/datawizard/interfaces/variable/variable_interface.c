@@ -45,7 +45,9 @@ struct test_config variable_config =
 	.opencl_func  = test_variable_opencl_func,
 #endif
 	.handle       = &variable_handle,
+	.ptr          = &variable,
 	.dummy_handle = &variable2_handle,
+	.dummy_ptr    = &variable2,
 	.copy_failed  = SUCCESS,
 	.name         = "variable_interface"
 };

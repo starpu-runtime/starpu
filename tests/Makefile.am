@@ -281,7 +281,6 @@ myPROGRAMS +=				\
 	datawizard/commute2			\
 	datawizard/copy				\
 	datawizard/data_implicit_deps		\
-	datawizard/data_lookup			\
 	datawizard/data_register		\
 	datawizard/scratch			\
 	datawizard/scratch_reuse		\
@@ -307,7 +306,6 @@ myPROGRAMS +=				\
 	datawizard/increment_redux_lazy		\
 	datawizard/handle_to_pointer		\
 	datawizard/lazy_allocation		\
-	datawizard/lazy_unregister		\
 	datawizard/no_unregister		\
 	datawizard/noreclaim			\
 	datawizard/nowhere			\

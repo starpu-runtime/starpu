@@ -22,7 +22,7 @@
 #include <datawizard/memstats.h>
 #include <datawizard/malloc.h>
 #include <core/dependencies/data_concurrency.h>
-#include <common/uthash.h>
+#include <common/knobs.h>
 #include <common/starpu_spinlock.h>
 #include <core/task.h>
 #include <core/workers.h>
@@ -33,18 +33,8 @@
 static struct starpu_data_interface_ops **_id_to_ops_array;
 static unsigned _id_to_ops_array_size;
 
-/* Entry in the `registered_handles' hash table.  */
-struct handle_entry
-{
-	UT_hash_handle hh;
-	void *pointer;
-	starpu_data_handle_t handle;
-};
-
 /* Hash table mapping host pointers to data handles.  */
-static int nregistered, maxnregistered;
-static struct handle_entry *registered_handles;
-static struct _starpu_spinlock    registered_handles_lock;
+static int32_t nregistered, maxnregistered;
 static int _data_interface_number = STARPU_MAX_INTERFACE_ID;
 starpu_arbiter_t _starpu_global_arbiter;
 static int max_memory_use;
@@ -56,7 +46,6 @@ void _starpu_data_interface_fini(void);
 void _starpu_data_interface_init(void)
 {
 	max_memory_use = starpu_get_env_number_default("STARPU_MAX_MEMORY_USE", 0);
-	_starpu_spin_init(&registered_handles_lock);
 
 	/* Just for testing purpose */
 	if (starpu_get_env_number_default("STARPU_GLOBAL_ARBITER", 0) > 0)
@@ -73,58 +62,12 @@ void _starpu_data_interface_fini(void)
 
 void _starpu_data_interface_shutdown()
 {
-	struct handle_entry *entry=NULL, *tmp=NULL;
-
-	if (registered_handles)
-	{
-		_STARPU_DISP("[warning] The application has not unregistered all data handles.\n");
-	}
-
-	_starpu_spin_destroy(&registered_handles_lock);
 	free(_id_to_ops_array);
 	_id_to_ops_array = NULL;
 	_id_to_ops_array_size = 0;
 
-	HASH_ITER(hh, registered_handles, entry, tmp)
-	{
-		HASH_DEL(registered_handles, entry);
-		nregistered--;
-		free(entry);
-	}
-
 	_starpu_data_interface_fini();
-
-	STARPU_ASSERT(nregistered == 0);
-	registered_handles = NULL;
 }
-
-#ifdef STARPU_OPENMP
-void _starpu_omp_unregister_region_handles(struct starpu_omp_region *region)
-{
-	_starpu_spin_lock(&region->registered_handles_lock);
-	struct handle_entry *entry=NULL, *tmp=NULL;
-	HASH_ITER(hh, (region->registered_handles), entry, tmp)
-	{
-		entry->handle->removed_from_context_hash = 1;
-		HASH_DEL(region->registered_handles, entry);
-		starpu_data_unregister(entry->handle);
-		free(entry);
-	}
-	_starpu_spin_unlock(&region->registered_handles_lock);
-}
-
-void _starpu_omp_unregister_task_handles(struct starpu_omp_task *task)
-{
-	struct handle_entry *entry=NULL, *tmp=NULL;
-	HASH_ITER(hh, task->registered_handles, entry, tmp)
-	{
-		entry->handle->removed_from_context_hash = 1;
-		HASH_DEL(task->registered_handles, entry);
-		starpu_data_unregister(entry->handle);
-		free(entry);
-	}
-}
-#endif
 
 struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interface_id)
 {
@@ -177,111 +120,6 @@ struct starpu_data_interface_ops *_starpu_data_interface_get_ops(unsigned interf
 	}
 }
 
-/* Register the mapping from PTR to HANDLE.  If PTR is already mapped to
- * some handle, the new mapping shadows the previous one.   */
-void _starpu_data_register_ram_pointer(starpu_data_handle_t handle, void *ptr)
-{
-	struct handle_entry *entry;
-
-	_STARPU_MALLOC(entry, sizeof(*entry));
-
-	entry->pointer = ptr;
-	entry->handle = handle;
-
-#ifdef STARPU_OPENMP
-	struct starpu_omp_task *task = _starpu_omp_get_task();
-	if (task)
-	{
-		if (task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT)
-		{
-			struct starpu_omp_region *parallel_region = task->owner_region;
-			_starpu_spin_lock(&parallel_region->registered_handles_lock);
-			HASH_ADD_PTR(parallel_region->registered_handles, pointer, entry);
-			_starpu_spin_unlock(&parallel_region->registered_handles_lock);
-		}
-		else
-		{
-			HASH_ADD_PTR(task->registered_handles, pointer, entry);
-		}
-	}
-	else
-#endif
-	{
-		struct handle_entry *old_entry;
-
-		_starpu_spin_lock(&registered_handles_lock);
-		HASH_FIND_PTR(registered_handles, &ptr, old_entry);
-		if (old_entry)
-		{
-			/* Already registered this pointer, avoid undefined
-			 * behavior of duplicate in hash table */
-			_starpu_spin_unlock(&registered_handles_lock);
-			free(entry);
-		}
-		else
-		{
-			nregistered++;
-			if (nregistered > maxnregistered)
-				maxnregistered = nregistered;
-			HASH_ADD_PTR(registered_handles, pointer, entry);
-			_starpu_spin_unlock(&registered_handles_lock);
-		}
-	}
-}
-
-starpu_data_handle_t starpu_data_lookup(const void *ptr)
-{
-	starpu_data_handle_t result;
-
-#ifdef STARPU_OPENMP
-	struct starpu_omp_task *task = _starpu_omp_get_task();
-	if (task)
-	{
-		if (task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT)
-		{
-			struct starpu_omp_region *parallel_region = task->owner_region;
-			_starpu_spin_lock(&parallel_region->registered_handles_lock);
-			{
-				struct handle_entry *entry;
-
-				HASH_FIND_PTR(parallel_region->registered_handles, &ptr, entry);
-				if(STARPU_UNLIKELY(entry == NULL))
-					result = NULL;
-				else
-					result = entry->handle;
-			}
-			_starpu_spin_unlock(&parallel_region->registered_handles_lock);
-		}
-		else
-		{
-			struct handle_entry *entry;
-
-			HASH_FIND_PTR(task->registered_handles, &ptr, entry);
-			if(STARPU_UNLIKELY(entry == NULL))
-				result = NULL;
-			else
-				result = entry->handle;
-		}
-	}
-	else
-#endif
-	{
-		_starpu_spin_lock(&registered_handles_lock);
-		{
-			struct handle_entry *entry;
-
-			HASH_FIND_PTR(registered_handles, &ptr, entry);
-			if(STARPU_UNLIKELY(entry == NULL))
-				result = NULL;
-			else
-				result = entry->handle;
-		}
-		_starpu_spin_unlock(&registered_handles_lock);
-	}
-
-	return result;
-}
-
 /*
  * Start monitoring a piece of data
  */
@@ -289,8 +127,6 @@ starpu_data_handle_t starpu_data_lookup(const void *ptr)
 static void _starpu_register_new_data(starpu_data_handle_t handle,
 					int home_node, uint32_t wt_mask)
 {
-	void *ptr;
-
 	STARPU_ASSERT(handle);
 
 	/* first take care to properly lock the data */
@@ -363,16 +199,8 @@ static void _starpu_register_new_data(starpu_data_handle_t handle,
 
 	/* now the data is available ! */
 	_starpu_spin_unlock(&handle->header_lock);
-
-	for (node = 0; node < STARPU_MAXNODES; node++)
-	{
-		if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
-			continue;
-
-		ptr = starpu_data_handle_to_pointer(handle, node);
-		if (ptr != NULL)
-			_starpu_data_register_ram_pointer(handle, ptr);
-	}
+	(void)STARPU_ATOMIC_ADD(&nregistered, 1);
+	_starpu_perf_counter_update_max_int32(&maxnregistered, nregistered);
 }
 
 void
@@ -666,69 +494,6 @@ void *starpu_data_get_local_ptr(starpu_data_handle_t handle)
 struct starpu_data_interface_ops* starpu_data_get_interface_ops(starpu_data_handle_t handle)
 {
 	return handle->ops;
-}
-
-/*
- * Stop monitoring a piece of data
- */
-void _starpu_data_unregister_ram_pointer(starpu_data_handle_t handle, unsigned node)
-{
-	if (starpu_node_get_kind(node) != STARPU_CPU_RAM)
-		return;
-
-#ifdef STARPU_OPENMP
-	if (handle->removed_from_context_hash)
-		return;
-#endif
-	const void *ram_ptr = starpu_data_handle_to_pointer(handle, node);
-
-	if (ram_ptr != NULL)
-	{
-		/* Remove the PTR -> HANDLE mapping.  If a mapping from PTR
-		 * to another handle existed before (e.g., when using
-		 * filters), it becomes visible again.  */
-		struct handle_entry *entry;
-#ifdef STARPU_OPENMP
-		struct starpu_omp_task *task = _starpu_omp_get_task();
-		if (task)
-		{
-			if (task->flags & STARPU_OMP_TASK_FLAGS_IMPLICIT)
-			{
-				struct starpu_omp_region *parallel_region = task->owner_region;
-				_starpu_spin_lock(&parallel_region->registered_handles_lock);
-				HASH_FIND_PTR(parallel_region->registered_handles, &ram_ptr, entry);
-				STARPU_ASSERT(entry != NULL);
-				HASH_DEL(registered_handles, entry);
-				_starpu_spin_unlock(&parallel_region->registered_handles_lock);
-			}
-			else
-			{
-				HASH_FIND_PTR(task->registered_handles, &ram_ptr, entry);
-				STARPU_ASSERT(entry != NULL);
-				HASH_DEL(task->registered_handles, entry);
-			}
-		}
-		else
-#endif
-		{
-
-			_starpu_spin_lock(&registered_handles_lock);
-			HASH_FIND_PTR(registered_handles, &ram_ptr, entry);
-			if (entry)
-			{
-				if (entry->handle == handle)
-				{
-					nregistered--;
-					HASH_DEL(registered_handles, entry);
-				}
-				else
-					/* don't free it, it's not ours */
-					entry = NULL;
-			}
-			_starpu_spin_unlock(&registered_handles_lock);
-		}
-		free(entry);
-	}
 }
 
 void _starpu_data_free_interfaces(starpu_data_handle_t handle)
@@ -1068,8 +833,6 @@ retry_busy:
 		STARPU_ASSERT(!local->refcnt);
 		if (local->allocated)
 		{
-			_starpu_data_unregister_ram_pointer(handle, node);
-
 		/* free the data copy in a lazy fashion */
 			if (local->automatically_allocated)
 				_starpu_request_mem_chunk_removal(handle, local, node, size);
@@ -1119,6 +882,7 @@ retry_busy:
 	}
 	_STARPU_TRACE_HANDLE_DATA_UNREGISTER(handle);
 	free(handle);
+	(void)STARPU_ATOMIC_ADD(&nregistered, -1);
 }
 
 void starpu_data_unregister(starpu_data_handle_t handle)
@@ -1196,8 +960,6 @@ static void _starpu_data_invalidate(void *data)
 
 			if (mapping == STARPU_MAXNODES)
 			{
-				_starpu_data_unregister_ram_pointer(handle, node);
-
 				/* free the data copy in a lazy fashion */
 				_starpu_request_mem_chunk_removal(handle, local, node, size);
 			}

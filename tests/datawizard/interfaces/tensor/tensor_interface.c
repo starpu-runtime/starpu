@@ -37,6 +37,9 @@ extern void test_tensor_opencl_func(void *buffers[], void *args);
 static starpu_data_handle_t _tensor_handle;
 static starpu_data_handle_t _tensor2_handle;
 
+static int _tensor[NX*NY*NZ*NT];
+static int _tensor2[NX*NY*NZ*NT];
+
 struct test_config tensor_config =
 {
 	.cpu_func      = test_tensor_cpu_func,
@@ -47,13 +50,12 @@ struct test_config tensor_config =
 	.opencl_func   = test_tensor_opencl_func,
 #endif
 	.handle        = &_tensor_handle,
+	.ptr           = _tensor,
 	.dummy_handle  = &_tensor2_handle,
+	.dummy_ptr     = _tensor2,
 	.copy_failed   = SUCCESS,
 	.name          = "tensor_interface"
 };
-
-static int _tensor[NX*NY*NZ*NT];
-static int _tensor2[NX*NY*NZ*NT];
 
 static void
 register_data(void)

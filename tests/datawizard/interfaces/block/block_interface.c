@@ -36,6 +36,9 @@ extern void test_block_opencl_func(void *buffers[], void *args);
 static starpu_data_handle_t _block_handle;
 static starpu_data_handle_t _block2_handle;
 
+static int _block[NX*NY*NZ];
+static int _block2[NX*NY*NZ];
+
 struct test_config block_config =
 {
 	.cpu_func      = test_block_cpu_func,
@@ -46,13 +49,12 @@ struct test_config block_config =
 	.opencl_func   = test_block_opencl_func,
 #endif
 	.handle        = &_block_handle,
+	.ptr           = _block,
 	.dummy_handle  = &_block2_handle,
+	.dummy_ptr     = _block2,
 	.copy_failed   = SUCCESS,
 	.name          = "block_interface"
 };
-
-static int _block[NX*NY*NZ];
-static int _block2[NX*NY*NZ];
 
 static void
 register_data(void)

@@ -1095,6 +1095,29 @@ extern void starpu_omp_vector_annotate(starpu_data_handle_t handle, uint32_t sli
  */
 extern struct starpu_arbiter *starpu_omp_get_default_arbiter(void) __STARPU_OMP_NOTHROW;
 
+/**
+   Register a handle for ptr->handle data lookup.
+
+   \sa starpu_omp_handle_unregister
+   \sa starpu_omp_data_lookup
+ */
+extern void starpu_omp_handle_register(starpu_data_handle_t handle) __STARPU_OMP_NOTHROW;
+
+/**
+   Unregister a handle from ptr->handle data lookup.
+
+   \sa starpu_omp_handle_register
+   \sa starpu_omp_data_lookup
+ */
+extern void starpu_omp_handle_unregister(starpu_data_handle_t handle) __STARPU_OMP_NOTHROW;
+
+/**
+   Return the handle corresponding to the data pointed to by the \p ptr host pointer.
+
+   \return the handle or \c NULL if not found.
+*/
+extern starpu_data_handle_t starpu_omp_data_lookup(const void *ptr) __STARPU_OMP_NOTHROW;
+
 /** @} */
 
 #ifdef __cplusplus

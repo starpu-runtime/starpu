@@ -35,6 +35,9 @@ extern void test_matrix_opencl_func(void *buffers[], void *args);
 static starpu_data_handle_t matrix_handle;
 static starpu_data_handle_t matrix2_handle;
 
+static int matrix[WIDTH * HEIGHT];
+static int matrix2[WIDTH * HEIGHT];
+
 struct test_config matrix_config =
 {
 #ifdef STARPU_USE_CPU
@@ -47,13 +50,12 @@ struct test_config matrix_config =
 	.opencl_func   = test_matrix_opencl_func,
 #endif
 	.handle        = &matrix_handle,
+	.ptr           = matrix,
 	.dummy_handle  = &matrix2_handle,
+	.dummy_ptr     = matrix2,
 	.copy_failed   = SUCCESS,
 	.name          = "matrix_interface"
 };
-
-static int matrix[WIDTH * HEIGHT];
-static int matrix2[WIDTH * HEIGHT];
 
 static void
 register_data(void)

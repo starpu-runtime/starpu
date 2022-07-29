@@ -84,6 +84,7 @@ void task_region_g(void *buffers[], void *args)
 		}
 
 		starpu_vector_data_register(&task_vector_handle, STARPU_MAIN_RAM, (uintptr_t)v, NX, sizeof(v[0]));
+		starpu_omp_handle_register(task_vector_handle);
 		printf("depth 1 task, block 1: task_vector_handle = %p\n", task_vector_handle);
 	}
 
@@ -92,7 +93,7 @@ void task_region_g(void *buffers[], void *args)
 		struct starpu_omp_task_region_attr attr;
 		int i;
 
-		task_vector_handle = starpu_data_lookup(v);
+		task_vector_handle = starpu_omp_data_lookup(v);
 		printf("depth 1 task, block 2: task_vector_handle = %p\n", task_vector_handle);
 
 		memset(&attr, 0, sizeof(attr));
@@ -136,6 +137,7 @@ void master_g1(void *arg)
 	}
 
 	starpu_vector_data_register(&region_vector_handle, STARPU_MAIN_RAM, (uintptr_t)global_vector, NX, sizeof(global_vector[0]));
+	starpu_omp_handle_register(region_vector_handle);
 	printf("master_g1: region_vector_handle = %p\n", region_vector_handle);
 }
 
@@ -146,7 +148,7 @@ void master_g2(void *arg)
 	struct starpu_omp_task_region_attr attr;
 	int i;
 
-	region_vector_handle = starpu_data_lookup(global_vector);
+	region_vector_handle = starpu_omp_data_lookup(global_vector);
 	printf("master_g2: region_vector_handle = %p\n", region_vector_handle);
 
 	memset(&attr, 0, sizeof(attr));
@@ -186,7 +188,7 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_barrier();
 	{
 		starpu_data_handle_t region_vector_handle;
-		region_vector_handle = starpu_data_lookup(global_vector);
+		region_vector_handle = starpu_omp_data_lookup(global_vector);
 		printf("parallel_region block 1: region_vector_handle = %p\n", region_vector_handle);
 	}
 	starpu_omp_barrier();
@@ -194,7 +196,7 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_barrier();
 	{
 		starpu_data_handle_t region_vector_handle;
-		region_vector_handle = starpu_data_lookup(global_vector);
+		region_vector_handle = starpu_omp_data_lookup(global_vector);
 		printf("parallel_region block 2: region_vector_handle = %p\n", region_vector_handle);
 	}
 }

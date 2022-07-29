@@ -317,8 +317,9 @@ void parallel_region_f(void *buffers[], void *args)
 The SORS implements inter-tasks data dependencies as specified in OpenMP
 4.0. Data dependencies are expressed using regular StarPU data handles
 (\ref starpu_data_handle_t) plugged into the task's <c>attr.cl</c>
-codelet. The family of starpu_vector_data_register() -like functions and the
-starpu_data_lookup() function may be used to register a memory area and
+codelet. The family of starpu_vector_data_register() -like functions,
+the starpu_omp_handle_register() and starpu_omp_handle_unregister() functions,
+and the starpu_omp_data_lookup() function may be used to register a memory area and
 to retrieve the current data handle associated with a pointer
 respectively. The testcase <c>./tests/openmp/task_02.c</c> gives a
 detailed example of using OpenMP 4.0 tasks dependencies with the SORS

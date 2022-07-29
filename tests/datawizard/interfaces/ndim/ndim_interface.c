@@ -37,6 +37,9 @@ extern void test_arr4d_opencl_func(void *buffers[], void *args);
 static starpu_data_handle_t _arr4d_handle;
 static starpu_data_handle_t _arr4d2_handle;
 
+static int _arr4d[NX*NY*NZ*NT];
+static int _arr4d2[NX*NY*NZ*NT];
+
 struct test_config arr4d_config =
 {
 	.cpu_func      = test_arr4d_cpu_func,
@@ -47,13 +50,12 @@ struct test_config arr4d_config =
 	.opencl_func   = test_arr4d_opencl_func,
 #endif
 	.handle        = &_arr4d_handle,
+	.ptr           = _arr4d,
 	.dummy_handle  = &_arr4d2_handle,
+	.dummy_ptr     = _arr4d2,
 	.copy_failed   = SUCCESS,
 	.name          = "ndim_interface"
 };
-
-static int _arr4d[NX*NY*NZ*NT];
-static int _arr4d2[NX*NY*NZ*NT];
 
 static void register_data(void)
 {

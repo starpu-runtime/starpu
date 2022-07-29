@@ -428,9 +428,6 @@ static size_t free_memory_on_node(struct _starpu_mem_chunk *mc, unsigned node)
 			data_interface = mc->chunk_interface;
 		STARPU_ASSERT(data_interface);
 
-		if (handle && (starpu_node_get_kind(node) == STARPU_CPU_RAM))
-			_starpu_data_unregister_ram_pointer(handle, node);
-
 	       _STARPU_TRACE_START_FREE(node, mc->size, handle);
 		mc->ops->free_data_on_node(data_interface, node);
 	       _STARPU_TRACE_END_FREE(node, handle);
@@ -492,7 +489,6 @@ static void reuse_mem_chunk(unsigned node, struct _starpu_data_replicate *new_re
 	struct _starpu_data_replicate *old_replicate = mc->replicate;
 	if (old_replicate)
 	{
-		_starpu_data_unregister_ram_pointer(old_replicate->handle, node);
 		old_replicate->mc = NULL;
 		old_replicate->allocated = 0;
 		old_replicate->automatically_allocated = 0;
@@ -1678,17 +1674,6 @@ int _starpu_allocate_memory_on_node(starpu_data_handle_t handle, struct _starpu_
 
 	replicate->allocated = 1;
 	replicate->automatically_allocated = 1;
-
-	if (replicate->relaxed_coherency == 0 && (starpu_node_get_kind(dst_node) == STARPU_CPU_RAM))
-	{
-		/* We are allocating the buffer in main memory, also
-		 * register it for starpu_data_handle_to_pointer() */
-		void *ptr = starpu_data_handle_to_pointer(handle, dst_node);
-		if (ptr != NULL)
-		{
-			_starpu_data_register_ram_pointer(handle, ptr);
-		}
-	}
 
 	return 0;
 }

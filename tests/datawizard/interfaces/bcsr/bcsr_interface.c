@@ -84,7 +84,9 @@ struct test_config bcsr_config =
 	.opencl_func   = test_bcsr_opencl_func,
 #endif /* !STARPU_USE_OPENCL */
 	.handle        = &bcsr_handle,
+	.ptr           = nzval,
 	.dummy_handle  = &bcsr2_handle,
+	.dummy_ptr     = nzval2,
 	.copy_failed   = SUCCESS,
 	.name          = "bcsr_interface"
 };

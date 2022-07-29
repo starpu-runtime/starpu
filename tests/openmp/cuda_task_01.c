@@ -85,6 +85,7 @@ void master_g1(void *arg)
 		}
 
 		starpu_vector_data_register(&region_vector_handle, STARPU_MAIN_RAM, (uintptr_t)global_vector_1, NX, sizeof(global_vector_1[0]));
+		starpu_omp_handle_register(region_vector_handle);
 		printf("master_g1: region_vector_handle = %p\n", region_vector_handle);
 	}
 	{
@@ -98,6 +99,7 @@ void master_g1(void *arg)
 		}
 
 		starpu_vector_data_register(&region_vector_handle, STARPU_MAIN_RAM, (uintptr_t)global_vector_2, NX, sizeof(global_vector_2[0]));
+		starpu_omp_handle_register(region_vector_handle);
 		printf("master_g1: region_vector_handle = %p\n", region_vector_handle);
 	}
 }
@@ -109,9 +111,9 @@ void master_g2(void *arg)
 	struct starpu_omp_task_region_attr attr;
 	int i;
 
-	region_vector_handles[0] = starpu_data_lookup(global_vector_1);
+	region_vector_handles[0] = starpu_omp_data_lookup(global_vector_1);
 	printf("master_g2: region_vector_handles[0] = %p\n", region_vector_handles[0]);
-	region_vector_handles[1] = starpu_data_lookup(global_vector_2);
+	region_vector_handles[1] = starpu_omp_data_lookup(global_vector_2);
 	printf("master_g2: region_vector_handles[1] = %p\n", region_vector_handles[1]);
 
 	memset(&attr, 0, sizeof(attr));
@@ -147,12 +149,12 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_barrier();
 	{
 		starpu_data_handle_t region_vector_handle_1;
-		region_vector_handle_1 = starpu_data_lookup(global_vector_1);
+		region_vector_handle_1 = starpu_omp_data_lookup(global_vector_1);
 		printf("parallel_region block 1: region_vector_handle_1 = %p\n", region_vector_handle_1);
 	}
 	{
 		starpu_data_handle_t region_vector_handle_2;
-		region_vector_handle_2 = starpu_data_lookup(global_vector_2);
+		region_vector_handle_2 = starpu_omp_data_lookup(global_vector_2);
 		printf("parallel_region block 1: region_vector_handle_2 = %p\n", region_vector_handle_2);
 	}
 	starpu_omp_barrier();
@@ -160,12 +162,12 @@ void parallel_region_f(void *buffers[], void *args)
 	starpu_omp_barrier();
 	{
 		starpu_data_handle_t region_vector_handle_1;
-		region_vector_handle_1 = starpu_data_lookup(global_vector_1);
+		region_vector_handle_1 = starpu_omp_data_lookup(global_vector_1);
 		printf("parallel_region block 2: region_vector_handle_1 = %p\n", region_vector_handle_1);
 	}
 	{
 		starpu_data_handle_t region_vector_handle_2;
-		region_vector_handle_2 = starpu_data_lookup(global_vector_2);
+		region_vector_handle_2 = starpu_omp_data_lookup(global_vector_2);
 		printf("parallel_region block 2: region_vector_handle_2 = %p\n", region_vector_handle_2);
 	}
 }

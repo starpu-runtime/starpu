@@ -496,7 +496,7 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 		{
 			attr->cl.modes[current_buffer] = STARPU_W;
 		}
-		current_handler = starpu_data_lookup(dep_list[i].base_addr);
+		current_handler = starpu_omp_data_lookup(dep_list[i].base_addr);
 		if (current_handler)
 		{
 			handles[current_buffer] = current_handler;
@@ -506,10 +506,12 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 			if (dep_list[i].len == 1)
 			{
 				starpu_variable_data_register(&handles[current_buffer], STARPU_MAIN_RAM, (uintptr_t)dep_list[i].base_addr, sizeof(kmp_intptr_t));
+				starpu_omp_handle_register(handles[current_buffer], dep_list[i].base_addr);
 			}
 			else
 			{
 				starpu_vector_data_register(&handles[current_buffer], STARPU_MAIN_RAM, (uintptr_t)dep_list[i].base_addr, dep_list[i].len, dep_list[i].elem_size);
+				starpu_omp_handle_register(handles[current_buffer], dep_list[i].base_addr);
 			}
 		}
 		current_buffer++;
@@ -528,7 +530,7 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 		{
 			attr->cl.modes[current_buffer] = STARPU_W;
 		}
-		current_handler = starpu_data_lookup(noalias_dep_list[i].base_addr);
+		current_handler = starpu_omp_data_lookup(noalias_dep_list[i].base_addr);
 		if (current_handler)
 		{
 			handles[current_buffer] = current_handler;
@@ -538,10 +540,12 @@ kmp_int32 __kmpc_omp_task_with_deps(ident_t *loc_ref, kmp_int32 gtid,
 			if (dep_list[i].len == 1)
 			{
 				starpu_variable_data_register(&handles[current_buffer], STARPU_MAIN_RAM, (uintptr_t)dep_list[i].base_addr, sizeof(kmp_intptr_t));
+				starpu_omp_handle_register(handles[current_buffer], dep_list[i].base_addr);
 			}
 			else
 			{
 				starpu_vector_data_register(&handles[current_buffer], STARPU_MAIN_RAM, (uintptr_t)dep_list[i].base_addr, dep_list[i].len, dep_list[i].elem_size);
+				starpu_omp_handle_register(handles[current_buffer], dep_list[i].base_addr);
 			}
 		}
 		current_buffer++;

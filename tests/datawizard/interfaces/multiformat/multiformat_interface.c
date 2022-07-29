@@ -43,7 +43,9 @@ struct test_config multiformat_config =
 	.opencl_func   = test_multiformat_opencl_func,
 #endif
 	.handle        = &multiformat_handle,
+	.ptr           = array_of_structs,
 	.dummy_handle  = &multiformat_dummy_handle,
+	.dummy_ptr     = array_of_structs_dummy,
 	.copy_failed   = SUCCESS,
 	.name          = "multiformat_interface"
 };

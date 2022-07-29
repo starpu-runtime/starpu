@@ -37,11 +37,13 @@ struct test_config
 	/** we use pointers as we want to allow static initializations in the main application */
 	/* A pointer to a registered handle */
 	starpu_data_handle_t *handle;
+	void *ptr;
 
 	/* A pointer to a registered handle, that will be used to test
 	 * RAM to RAM copy. The values it points to should be different from
 	 * the ones pointed to by the previous handle. */
 	starpu_data_handle_t *dummy_handle;
+	void *dummy_ptr;
 
 	/* StarPU codelets. The following functions should :
 	 * 1) Check that the values are correct

@@ -33,6 +33,13 @@ extern void test_coo_opencl_func(void *buffers[], void *args);
 
 static starpu_data_handle_t coo_handle, coo2_handle;
 
+static uint32_t columns[MATRIX_SIZE];
+static uint32_t rows[MATRIX_SIZE];
+static int values[MATRIX_SIZE];
+static uint32_t columns2[MATRIX_SIZE];
+static uint32_t rows2[MATRIX_SIZE];
+static int values2[MATRIX_SIZE];
+
 struct test_config coo_config =
 {
 #ifdef STARPU_USE_CPU
@@ -45,7 +52,9 @@ struct test_config coo_config =
 	.opencl_func   = test_coo_opencl_func,
 #endif /* !STARPU_USE_OPENCL */
 	.handle        = &coo_handle,
+	.ptr           = values,
 	.dummy_handle  = &coo2_handle,
+	.dummy_ptr     = values2,
 	.copy_failed   = SUCCESS,
 	.name          = "coo_interface"
 };
@@ -54,28 +63,21 @@ void
 test_coo_cpu_func(void *buffers[], void *args)
 {
 	int factor = *(int *) args;
-	int *values = (int *) STARPU_COO_GET_VALUES(buffers[0]);
+	int *vals = (int *) STARPU_COO_GET_VALUES(buffers[0]);
 	unsigned size = STARPU_COO_GET_NVALUES(buffers[0]);
 
 	int i;
 	for (i = 0; i < (int)size; i++)
 	{
-		if (values[i] != i * factor)
+		if (vals[i] != i * factor)
 		{
 			coo_config.copy_failed = FAILURE;
 			return;
 		}
-		values[i] *= -1;
+		vals[i] *= -1;
 	}
 }
 
-
-static uint32_t columns[MATRIX_SIZE];
-static uint32_t rows[MATRIX_SIZE];
-static int values[MATRIX_SIZE];
-static uint32_t columns2[MATRIX_SIZE];
-static uint32_t rows2[MATRIX_SIZE];
-static int values2[MATRIX_SIZE];
 
 static void
 register_data(void)
